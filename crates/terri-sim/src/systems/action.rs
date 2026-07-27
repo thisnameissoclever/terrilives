@@ -83,3 +83,95 @@ pub fn select_action(
             .insert((Target(object), Path { steps, cursor: 0 }));
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Sim;
+
+    #[test]
+    fn contention_resolves_by_entity_order_not_iteration_order() {
+        // Three identical agents contend for one single-slot fridge.
+        // Exactly one may win, and which one must not depend on
+        // interaction history.
+        //
+        // This is a GOLDEN assertion: it names the winning entity. That
+        // is deliberate. Do NOT "simplify" it into a two-run comparison.
+        // Running the sim twice in one process compares two identical
+        // answers, because bevy's iteration is deterministic for a fixed
+        // archetype layout and spawn order, so a broken tiebreak would
+        // simply be broken the same way twice. The same trap is
+        // documented at terri-core's
+        // `tie_breaking_pins_one_specific_path_among_equals`.
+        //
+        // The churn below is what makes `idle.sort_by_key` load-bearing.
+        // An agent changes archetype every time `Target`, `Path` or
+        // `Eating` is added or removed, and leaving an archetype
+        // swap-removes the agent from its table while re-entering
+        // appends it at the end. So after a few meals `agents.iter()`
+        // yields agents in an order set by who ate last rather than by
+        // spawn order. Adding and removing one component reproduces in
+        // two lines what a handful of meals does naturally. Without the
+        // sort, who wins a contended object becomes a function of
+        // interaction history.
+        let mut sim = Sim::new_with_lot(16, 16);
+
+        // Spawn agents first so entity index ascends with spawn order.
+        let agents: Vec<Entity> = (0..3)
+            .map(|_| {
+                sim.world_mut()
+                    .spawn((Agent, Position { x: 1.0, y: 1.0 }, Hunger(20.0)))
+                    .id()
+            })
+            .collect();
+        let fridge = sim
+            .world_mut()
+            .spawn((
+                Position { x: 5.0, y: 5.0 },
+                SmartObject {
+                    hunger_delta: 40.0,
+                    duration_ticks: 15,
+                    slots: 1,
+                },
+            ))
+            .id();
+
+        // Archetype churn. Moves the lowest-index agent to the back of
+        // the table, so iteration order and index order now disagree.
+        sim.world_mut().entity_mut(agents[0]).insert(Eating {
+            remaining_ticks: 1,
+            delta_per_tick: 0.0,
+        });
+        sim.world_mut().entity_mut(agents[0]).remove::<Eating>();
+
+        sim.tick();
+
+        let holders: Vec<Entity> = agents
+            .iter()
+            .copied()
+            .filter(|e| sim.world().get::<Target>(*e).is_some())
+            .collect();
+
+        // Assert non-emptiness explicitly, per lessons-learned [L3]:
+        // "exactly one" must not be satisfiable by "none at all".
+        assert_eq!(
+            holders.len(),
+            1,
+            "exactly one agent may claim a single-slot object; got {holders:?}"
+        );
+        assert_eq!(
+            holders[0], agents[0],
+            "the lowest entity index must win regardless of table order; \
+             a different winner means the deterministic sort is gone"
+        );
+        assert_eq!(
+            sim.world().get::<Target>(holders[0]).unwrap().0,
+            fridge,
+            "the winner must target the fridge"
+        );
+        assert!(
+            sim.world().get::<Reserved>(fridge).is_some(),
+            "the winner must have reserved the fridge"
+        );
+    }
+}

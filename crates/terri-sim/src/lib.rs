@@ -13,6 +13,16 @@ pub struct Sim {
 }
 
 impl Sim {
+    /// Creates a sim with a **1x1 placeholder lot**, so only tile (0, 0)
+    /// is walkable.
+    ///
+    /// Only suitable for worlds that never path: need decay, clock, and
+    /// component-level tests. Any world built with `Sim::new` or
+    /// `Sim::default` that contains a smart object will have every
+    /// `find_path` return `None` on every tick, so agents silently never
+    /// go anywhere - no panic, no log, and the sim looks alive because
+    /// needs still decay. Use [`Sim::new_with_lot`] whenever agents are
+    /// expected to move.
     pub fn new() -> Self {
         let mut world = World::new();
         world.insert_resource(SimClock::default());

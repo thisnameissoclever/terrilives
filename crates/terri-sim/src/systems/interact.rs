@@ -16,7 +16,26 @@ pub fn tick_interactions(
                 .entity(entity)
                 .remove::<Eating>()
                 .remove::<Target>();
-            commands.entity(target.0).remove::<Reserved>();
+            // try_remove, not remove: `Commands::entity` deliberately
+            // does not validate, so a `Target` pointing at an entity
+            // that no longer exists routes the queued removal to the
+            // command error handler. `try_remove` silences it instead,
+            // which keeps the failure a no-op rather than something
+            // whose severity depends on the configured handler.
+            //
+            // Nothing in M0 despawns entities, so this is unreachable
+            // today. Reservation leaks that remain UNHANDLED, and must
+            // be revisited when despawning or component removal arrives:
+            //   - the agent is despawned mid-interaction, so this system
+            //     never runs for it and `Reserved` is never removed;
+            //   - the target loses its `SmartObject` mid-walk, so
+            //     `follow_path` drops `Path` and `Target` without
+            //     releasing the reservation;
+            //   - `Hunger` is removed from an eating agent, dropping it
+            //     out of this query with `Eating` and `Target` intact.
+            // Reclaiming those needs a dedicated system, which is a
+            // later milestone, not a patch here.
+            commands.entity(target.0).try_remove::<Reserved>();
         }
     }
 }
@@ -24,10 +43,19 @@ pub fn tick_interactions(
 #[cfg(test)]
 mod tests {
     use crate::Sim;
-    use terri_core::{Agent, Eating, Hunger, Position, SmartObject, Target};
+    use terri_core::{Agent, Eating, Hunger, Position, Reserved, SmartObject, Target};
 
     #[test]
     fn hungry_sim_walks_to_the_fridge_and_eats() {
+        // Event-driven, not tick-counted, on purpose. Ticking a fixed
+        // number of times and then asserting `Eating` is none proves
+        // nothing: it passes just as well if the meal never started, the
+        // "test that can pass on empty input" pattern from
+        // lessons-learned [L3]. It is also phase-dependent, because the
+        // agent oscillates between hunger and satiety forever, so any
+        // change to the decay rate, walk speed, meal duration, action
+        // threshold or spawn geometry moves which tick lands in an idle
+        // window.
         let mut sim = Sim::new_with_lot(16, 16);
 
         let fridge = sim
@@ -47,26 +75,55 @@ mod tests {
             .spawn((Agent, Position { x: 1.0, y: 1.0 }, Hunger(20.0)))
             .id();
 
-        // Long enough to path across the lot and finish the meal.
+        // Drive until the meal starts. Bounded, and the bound failing is
+        // a real failure.
+        let mut started = false;
         for _ in 0..400 {
             sim.tick();
+            if sim.world().get::<Eating>(sim_entity).is_some() {
+                started = true;
+                break;
+            }
         }
-
-        let hunger = sim.world().get::<Hunger>(sim_entity).unwrap().0;
+        assert!(started, "agent must reach the fridge and begin eating");
         assert!(
-            hunger > 40.0,
-            "sim should have eaten and recovered; hunger is {hunger}"
+            sim.world().get::<Reserved>(fridge).is_some(),
+            "fridge must be reserved during the meal"
         );
 
         let pos = sim.world().get::<Position>(sim_entity).unwrap();
         let dist = ((pos.x - 10.0).powi(2) + (pos.y - 8.0).powi(2)).sqrt();
         assert!(dist < 2.0, "sim should be at the fridge; distance {dist}");
 
+        let before = sim.world().get::<Hunger>(sim_entity).unwrap().0;
+
+        // Break on completion rather than counting ticks: counting
+        // exactly duration_ticks lands on the re-target tick, where
+        // Eating is re-inserted in the same tick because the path is
+        // empty.
+        let mut finished = false;
+        for _ in 0..64 {
+            sim.tick();
+            if sim.world().get::<Eating>(sim_entity).is_none() {
+                finished = true;
+                break;
+            }
+        }
+        assert!(finished, "meal must terminate");
         assert!(
-            sim.world().get::<Eating>(sim_entity).is_none(),
-            "interaction should have completed"
+            sim.world().get::<Target>(sim_entity).is_none(),
+            "target must clear on completion"
         );
-        let _ = fridge;
+        assert!(
+            sim.world().get::<Reserved>(fridge).is_none(),
+            "reservation must be released"
+        );
+
+        let after = sim.world().get::<Hunger>(sim_entity).unwrap().0;
+        assert!(
+            after > before + 30.0,
+            "meal must deliver most of hunger_delta; {before} -> {after}"
+        );
     }
 
     #[test]
