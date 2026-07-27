@@ -110,6 +110,47 @@ still exercises rows rather than trivially comparing two empty hashes.
 
 ---
 
+## [L5] A determinism test that runs twice in one process tests nothing
+
+**What happened:** Three separate times, a test named for determinism could not
+observe the mechanism it existed to protect. Each was caught in review, not by
+running the suite, because each was permanently green.
+
+1. `pathfinding_is_deterministic` compared two `find_path` calls. `find_path` is
+   pure and takes `&self`, so the two **cannot** disagree by construction.
+   Deleting the A* f-score tie-break left every test passing.
+2. The world-hash determinism test compared two runs' hashes. Two empty hashes
+   compare equal, so it would have passed if the hash saw zero rows.
+3. `select_action`'s agent sort, score tie-break, and in-tick double-claim guard
+   all had zero coverage. Deleting any of the three left all 27 tests green.
+
+**Root cause:** within one process, iteration order is deterministic for a fixed
+archetype and spawn order. So a two-run comparison compares **two identical
+wrong answers**. The failure modes these tests target are cross-*version*,
+cross-*target*, and cross-*history*, none of which a same-process A/B can see.
+
+**Prevention rule: pin determinism with a golden assertion, never with a
+self-comparison.** Assert the one specific output - the exact path, the exact
+winning entity - for an input where the mechanism actually fires. That is
+stable only if the mechanism exists, so deleting it fails the test.
+
+**The ECS-specific trap, which is subtle:** a test that spawns N entities
+sequentially puts them all in one archetype, where table order already equals
+index order. Such a test passes with the sort deleted. **You must induce
+archetype churn to make the two orders differ** - insert then remove a component
+on one entity, which swap-removes it from its table and re-appends it at the
+back. Two lines reproduce what a few minutes of gameplay does naturally, since
+agents change archetype every time `Target`, `Path`, or `Eating` is added or
+removed. Without the sort, who wins a contended object becomes a function of
+interaction history.
+
+**How to verify: mutation-test it.** Delete the mechanism, confirm the test
+fails, restore, confirm the tree is byte-identical. **A test claiming to pin a
+mechanism it cannot detect is worse than no test**, because it also removes the
+suspicion that would otherwise prompt someone to check.
+
+---
+
 ## [L4] `cargo tree` reports an inert web dependency path for `terri-core`
 
 **What happened:** The project's load-bearing rule is that `terri-core` and
