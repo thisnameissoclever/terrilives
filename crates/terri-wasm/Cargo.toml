@@ -8,4 +8,5 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 terri-core = { path = "../terri-core" }
+terri-sim = { path = "../terri-sim" }
 wasm-bindgen = { workspace = true }

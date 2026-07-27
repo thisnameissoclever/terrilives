@@ -1,5 +1,6 @@
 //! Simulation systems and scheduling. No web dependencies, ever.
 
+pub mod render_buffer;
 pub mod systems;
 
 use bevy_ecs::prelude::*;
@@ -10,6 +11,7 @@ use terri_core::SimClock;
 pub struct Sim {
     world: World,
     schedule: Schedule,
+    render: render_buffer::RenderBuffer,
 }
 
 impl Sim {
@@ -64,7 +66,11 @@ impl Sim {
                 .chain(),
         );
 
-        Self { world, schedule }
+        Self {
+            world,
+            schedule,
+            render: render_buffer::RenderBuffer::default(),
+        }
     }
 
     /// Creates a sim with an empty walkable lot of the given size.
@@ -85,6 +91,58 @@ impl Sim {
 
     pub fn world_mut(&mut self) -> &mut World {
         &mut self.world
+    }
+
+    /// Copies render-relevant state into the struct-of-arrays buffer that
+    /// JavaScript views directly. Called once per tick, before the
+    /// renderer reads.
+    ///
+    /// Entities are sorted by index so an entity keeps its slot between
+    /// frames. This is load-bearing rather than tidiness: the renderer
+    /// interpolates slot `i` of `prev_positions` towards slot `i` of
+    /// `positions` and assumes both belong to the same entity. Query
+    /// iteration is archetype order, which shifts every time any entity
+    /// gains or loses a component, so without the sort entities would
+    /// smear across each other's positions whenever an agent started or
+    /// stopped eating. `entity_slots_survive_archetype_churn` pins it;
+    /// deleting the sort must fail that test.
+    pub fn sync_render_buffer(&mut self) {
+        use terri_core::{Agent, Position};
+
+        std::mem::swap(&mut self.render.prev_positions, &mut self.render.positions);
+        self.render.positions.clear();
+        self.render.kinds.clear();
+
+        // World::query (not try_query) registers components on demand and
+        // cannot fail, so there is no Option to handle here. It returns an
+        // owned QueryState, which ends the &mut borrow immediately and
+        // leaves self.render free to write below.
+        let mut state = self.world.query::<(Entity, &Position, Has<Agent>)>();
+        let mut rows: Vec<(u32, f32, f32, u32)> = Vec::new();
+        for (entity, pos, is_agent) in state.iter(&self.world) {
+            let kind = if is_agent { 0 } else { 1 };
+            rows.push((entity.index_u32(), pos.x, pos.y, kind));
+        }
+        rows.sort_by_key(|(index, _, _, _)| *index);
+
+        for (_, x, y, kind) in &rows {
+            self.render.positions.push(*x);
+            self.render.positions.push(*y);
+            self.render.kinds.push(*kind);
+        }
+        self.render.count = rows.len();
+
+        // On the first sync there is no previous frame, and a changed
+        // entity count invalidates the slot mapping wholesale, so seed
+        // prev from the current frame to avoid interpolating from garbage
+        // or from another entity's coordinates.
+        if self.render.prev_positions.len() != self.render.positions.len() {
+            self.render.prev_positions = self.render.positions.clone();
+        }
+    }
+
+    pub fn render_buffer(&self) -> &render_buffer::RenderBuffer {
+        &self.render
     }
 
     /// Hashes all simulation-visible state. Entities are sorted by index
@@ -299,6 +357,47 @@ mod determinism_tests {
 
         sim.world_mut().get_mut::<Hunger>(agent).unwrap().0 += 1.0;
         assert_ne!(baseline, sim.world_hash(), "world_hash ignores Hunger");
+    }
+
+    /// The golden vector. Everything else in this module compares two
+    /// digests computed by the same binary, which pins reproducibility
+    /// but says nothing about the value itself. From Task 8 onward
+    /// `world_hash` is exported across the WASM boundary and JavaScript
+    /// depends on it, so the digest is a published format: a change to
+    /// the hash's encoding, to the field order, to the FNV constants, or
+    /// to what the simulation computes over 100 ticks would otherwise be
+    /// completely invisible to the suite.
+    ///
+    /// **If this number changes, that is a finding, not a rebase
+    /// artifact.** Update it only when you can name the simulation
+    /// behaviour change that moved it, and say so in the commit message.
+    /// An unexplained change means the sim is no longer computing what it
+    /// computed before, which is exactly the bug this vector exists to
+    /// surface.
+    ///
+    /// It also acts as a cross-platform check for free: CI runs on Linux
+    /// and this machine is Windows, so a divergence in float arithmetic
+    /// or iteration order between the two shows up here rather than in
+    /// Layer 2 desync reports.
+    #[test]
+    fn world_hash_matches_its_golden_vector() {
+        const TICKS: usize = 100;
+        const GOLDEN: u64 = 0xEF60_1D50_4790_5825;
+
+        let mut sim = build_scenario();
+        for _ in 0..TICKS {
+            sim.tick();
+        }
+
+        assert_hash_sees_entities(&sim, TICKS);
+        assert_eq!(
+            sim.world_hash(),
+            GOLDEN,
+            "the world hash of a fixed scenario at tick {TICKS} changed; \
+             either the digest encoding moved or the simulation no longer \
+             computes what it did. Do not update the constant without \
+             naming which"
+        );
     }
 
     #[test]

@@ -755,6 +755,7 @@ name = "terri-wasm"
 version = "0.1.0"
 dependencies = [
  "terri-core",
+ "terri-sim",
  "wasm-bindgen",
 ]
 
