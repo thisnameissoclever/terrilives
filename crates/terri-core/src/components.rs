@@ -1,4 +1,4 @@
-use bevy_ecs::prelude::Component;
+use bevy_ecs::prelude::{Component, Entity};
 
 /// World-space position in tiles. Not screen space; the renderer
 /// applies the isometric projection.
@@ -49,6 +49,34 @@ pub struct SmartObject {
 /// ordered by entity id so two agents never claim one slot.
 #[derive(Component, Debug, Clone, Copy)]
 pub struct Reserved;
+
+/// A tile path being followed. `steps` excludes the origin tile.
+#[derive(Component, Debug, Clone)]
+pub struct Path {
+    pub steps: Vec<(i32, i32)>,
+    pub cursor: usize,
+}
+
+impl Path {
+    pub fn next_step(&self) -> Option<(i32, i32)> {
+        self.steps.get(self.cursor).copied()
+    }
+
+    pub fn is_complete(&self) -> bool {
+        self.cursor >= self.steps.len()
+    }
+}
+
+/// The smart object this agent is currently travelling to.
+#[derive(Component, Debug, Clone, Copy)]
+pub struct Target(pub Entity);
+
+/// An in-progress eating interaction.
+#[derive(Component, Debug, Clone, Copy)]
+pub struct Eating {
+    pub remaining_ticks: u32,
+    pub delta_per_tick: f32,
+}
 
 #[cfg(test)]
 mod tests {
