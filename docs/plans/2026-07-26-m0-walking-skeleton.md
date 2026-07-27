@@ -319,7 +319,9 @@ architecture, so it gets validated first."
 
 **Interfaces:**
 - Consumes: nothing
-- Produces: `SimClock { tick: u64 }` (a `bevy_ecs` `Resource`), `SimClock::advance(&mut self)`, `SimClock::sim_minutes(&self) -> u64`, `SimClock::sim_hours(&self) -> u64`, constant `TICKS_PER_SIM_HOUR: u64 = 60`
+- Produces: `SimClock { tick: u64 }` (a `bevy_ecs` `Resource`), `SimClock::advance(&mut self)`, `SimClock::sim_minutes(&self) -> u64`, `SimClock::sim_hours(&self) -> u64`, `SimClock::is_hour_boundary(&self) -> bool`, constants `TICKS_PER_SIM_HOUR: u64 = 60` and `TICK_HZ: f64 = 10.0`
+
+Note on `is_hour_boundary`: it returns `true` at `tick == 0`, which is correct since tick 0 does begin sim-hour 0. The unpinned part is the calling convention - whether a consumer running before or after `advance()` sees that first boundary. Nothing consumes it in M0. **Whichever task first adds a consumer (Tier 2 story progression, per [D3]) must pin the run order in a doc comment and lock it with a test.**
 
 - [ ] **Step 1: Write the failing test**
 
