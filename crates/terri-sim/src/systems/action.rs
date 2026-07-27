@@ -174,4 +174,103 @@ mod tests {
             "the winner must have reserved the fridge"
         );
     }
+
+    #[test]
+    fn tied_scores_resolve_by_object_index_not_archetype_order() {
+        // One agent, two objects whose scores are exactly equal. Which
+        // one wins is decided entirely by the second half of the `better`
+        // expression in `select_action`:
+        //
+        //     score == best_score && object.index() < best_e.index()
+        //
+        // That clause is what makes the argmax unique. The `objects`
+        // query iterates UNSORTED, which is only safe because this
+        // tiebreak leaves no room for iteration order to matter. Delete
+        // the clause and the winner becomes whichever tied object the
+        // archetype happened to yield first, and archetype order shifts
+        // as objects gain and lose `Reserved`.
+        //
+        // GOLDEN assertion, for the same reason as the contention test
+        // above: do NOT rewrite this as a two-run comparison. Two runs in
+        // one process share one archetype layout, so they would agree
+        // with each other while both being wrong.
+        let mut sim = Sim::new_with_lot(16, 16);
+
+        let advert = SmartObject {
+            hunger_delta: 40.0,
+            duration_ticks: 15,
+            slots: 1,
+        };
+        // Mirrored about the agent at x = 8, so both are exactly 3 tiles
+        // away. Spawned before the agent so object index ascends with
+        // spawn order.
+        let left = sim
+            .world_mut()
+            .spawn((Position { x: 5.0, y: 8.0 }, advert))
+            .id();
+        let right = sim
+            .world_mut()
+            .spawn((Position { x: 11.0, y: 8.0 }, advert))
+            .id();
+        let agent = sim
+            .world_mut()
+            .spawn((Agent, Position { x: 8.0, y: 8.0 }, Hunger(20.0)))
+            .id();
+
+        // Archetype churn on the objects, which is how it happens for
+        // real: an object leaves and re-enters the unreserved archetype
+        // every time it is claimed and released. Leaving swap-removes it
+        // from its table and re-entering appends it at the end, so the
+        // lower-index object now iterates LAST.
+        sim.world_mut().entity_mut(left).insert(Reserved);
+        sim.world_mut().entity_mut(left).remove::<Reserved>();
+
+        sim.tick();
+
+        // The precondition this whole test rests on: the two scores must
+        // be BIT-identical, not merely close. If they differed in the
+        // last bit, `score > best_score` would settle the winner and the
+        // tiebreak would never fire, leaving the test decorative.
+        // `decay_needs` runs before `select_action` within a tick and
+        // nothing else touches hunger on a tick where the agent only
+        // starts walking, so the post-tick level is exactly the one
+        // scoring saw.
+        let deficit = sim.world().get::<Hunger>(agent).unwrap().deficit();
+        let distance = |ox: f32| {
+            let dx = ox - 8.0;
+            let dy = 8.0f32 - 8.0;
+            (dx * dx + dy * dy).sqrt()
+        };
+        let score_left = score_advertisement(deficit, 40.0, 15, distance(5.0));
+        let score_right = score_advertisement(deficit, 40.0, 15, distance(11.0));
+        assert_eq!(
+            score_left.to_bits(),
+            score_right.to_bits(),
+            "the two objects must score bitwise identically or this test \
+             pins nothing; got {score_left} and {score_right}"
+        );
+        assert!(
+            score_left > ACTION_THRESHOLD,
+            "the tied score must clear the action threshold; got {score_left}"
+        );
+
+        let target = sim
+            .world()
+            .get::<Target>(agent)
+            .expect("the agent must have chosen one of the tied objects");
+        assert_eq!(
+            target.0, left,
+            "the lower object index must win a tied score regardless of \
+             archetype order; a different winner means the score tiebreak \
+             is gone"
+        );
+        assert!(
+            sim.world().get::<Reserved>(left).is_some(),
+            "the winning object must be reserved"
+        );
+        assert!(
+            sim.world().get::<Reserved>(right).is_none(),
+            "the losing object must stay free"
+        );
+    }
 }
