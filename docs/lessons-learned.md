@@ -7,10 +7,21 @@ Entries are append-only and numbered. Do not renumber.
 
 ---
 
-## [L1] Bare `cargo` does not link on this machine
+## [L1] Bare `cargo` does not link on this machine - RESOLVED 2026-07-27
 
-**What happened:** Every cargo command fails at link time with `LNK1104: cannot
-open file 'msvcrt.lib'`. It has been rediscovered independently twice, costing
+**Status: fixed.** Adding the "Desktop development with C++" workload to VS
+Community 2026 installed the desktop x64 CRT across all three toolsets
+(14.44.35207, 14.51.36231, 14.52.36520). `cargo test --workspace` now passes
+unwrapped. **The vcvars workaround below is no longer needed**; it is retained
+because the diagnosis is what matters if this recurs.
+
+**Watch item:** toolset 14.52.36520 appears to be the Preview build tools, and
+`rustc` selects the newest toolset, so that is the one now in use. It is
+complete today. Preview toolsets ship incomplete more often than releases, so
+if this breaks again after a VS update, check this first.
+
+**What happened:** Every cargo command failed at link time with `LNK1104: cannot
+open file 'msvcrt.lib'`. It was rediscovered independently twice, costing
 time both times.
 
 **Root cause:** `rustc` auto-selects the **newest** Visual Studio install it

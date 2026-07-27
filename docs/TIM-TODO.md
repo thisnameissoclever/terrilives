@@ -90,10 +90,12 @@ threads, so whatever you pick must let you set response headers.
 item worth paying for if it does not**, because characters are where players
 look. Do not pre-emptively spend here.
 
-### [T21] Repair the MSVC toolchain in Visual Studio Community 2026 `[YOURS]`
+### [T21] Repair the MSVC toolchain in Visual Studio Community 2026 - DONE 2026-07-27
 
-**Not blocking** - builds currently route through VS 2022 BuildTools' `vcvars64.bat`
-as a stopgap. But a plain `cargo build` fails in a normal shell until this is done.
+**Resolved.** The "Desktop development with C++" workload installed the desktop
+x64 CRT across all three toolsets, and `cargo test --workspace` now passes with
+no wrapper. Verified independently. Kept here for the record; see [L1] in
+`docs/lessons-learned.md` for the diagnosis and the one remaining watch item.
 
 **Diagnosis:** VS Community 2026 (18.8) at
 `C:\Program Files\Microsoft Visual Studio\18\Community` has MSVC toolset
