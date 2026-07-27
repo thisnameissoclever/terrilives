@@ -354,3 +354,46 @@ not only that the bytes match.
 **How to verify:** after restoring, confirm both that `git status` is clean and
 that the suite passes. If the bytes are identical but the tests are red, you are
 running a stale artifact, not observing a real failure.
+
+---
+
+## [L9] `git checkout <path>` is not a mutation restore; it is a discard
+
+**What happened:** During Task 8's mutation verification, a second mutation was
+applied to `crates/terri-sim/src/lib.rs` with a script and then "restored" with
+`git checkout crates/terri-sim/src/lib.rs`. That command restores the file from
+the **index**, and the index held the *committed* version, so it did not undo
+the mutation - it reverted the entire task's uncommitted work in that file:
+the `render_buffer` module declaration, the `render` field, `sync_render_buffer`,
+`render_buffer()`, and the new golden-vector test. All of it, silently, exit 0.
+
+The loss was caught because `git hash-object` on the restored file printed a
+hash that did not match the pre-mutation one. Without that check the next step
+would have been a commit of a half-finished task.
+
+**Root cause:** this project's mandated workflow is to mutation-test on an
+**uncommitted** tree ([L5] rule 1, run before the task's own commit). Every git
+command that "restores a file" restores it to a committed or staged state, which
+on an uncommitted tree is the *start of the task*, not the state one line ago.
+The mental model "checkout undoes my last edit" is right only when the last edit
+is the only uncommitted change to that file - which during a task is exactly the
+condition that does not hold.
+
+**Prevention rule:**
+
+1. **Restore a mutation by inverting the exact edit**, never with `git checkout`,
+   `git restore`, `git stash`, or `git reset --hard`. If a harness needs a
+   restore mechanism, have it snapshot the file's bytes to the scratchpad
+   *before* mutating and write those exact bytes back.
+2. **Record `git hash-object <file>` before applying any mutation and assert it
+   again after restoring.** This is what caught the loss, and it is cheap. [L8]
+   already required the byte check for a different reason; it earns its place
+   twice.
+3. If a mutation is worth running against a large uncommitted change, consider
+   committing the task first and mutating on top, so `git checkout` is a correct
+   restore rather than a trap. Amending afterwards is cheaper than reconstructing
+   lost work.
+
+**How to verify:** apply a mutation, restore it, and confirm `git hash-object`
+matches the value recorded before the mutation. If it instead matches
+`git hash-object HEAD:<path>`, the restore reverted the whole task.
