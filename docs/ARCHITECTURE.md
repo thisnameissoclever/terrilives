@@ -238,6 +238,13 @@ JS to sim traffic is player commands only: small and infrequent, so a simple
 serialized command channel suffices. UI reads are pull-based and throttled; the
 needs panel does not need 60Hz.
 
+**The discipline that makes this safe, in one rule: never cache a view.** WASM
+linear memory grows, and growth detaches every typed-array view over the old
+`ArrayBuffer`; a detached view reads as length 0 or throws. So `web/src/bridge.ts`
+rebuilds buffer, pointer and length on every access. That is a pointer-plus-length
+operation with no copying, so it is cheap - caching it is the classic bug in this
+pattern, not an optimisation. See [L10] in `lessons-learned.md`.
+
 This is called out as its own section because it is the most likely place for
 the design to quietly rot into slowness. It must be deliberate rather than
 emergent. Tracked as [R1].

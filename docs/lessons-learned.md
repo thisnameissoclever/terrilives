@@ -397,3 +397,60 @@ condition that does not hold.
 **How to verify:** apply a mutation, restore it, and confirm `git hash-object`
 matches the value recorded before the mutation. If it instead matches
 `git hash-object HEAD:<path>`, the restore reverted the whole task.
+
+---
+
+## [L10] `--target web` has no importable `memory`, and three things detach, not one
+
+**What happened:** Task 9's brief specified
+`import { memory } from './wasm/terri_wasm_bg.wasm'`. That cannot resolve.
+`wasm-pack --target web` emits a `_bg.wasm` whose import section names
+`./terri_wasm_bg.js`, a glue module **only produced for `--target bundler`**.
+Under Vitest the failure is
+`Cannot find module './terri_wasm_bg.js' imported from src/wasm/terri_wasm_bg.wasm`,
+and it would fail the same way under a Vite browser build.
+
+**Root cause:** the two wasm-pack targets ship different module topologies.
+`--target web` puts the glue in `terri_wasm.js` and expects you to call
+`init()`; the `.wasm` is an asset it fetches, not an ES module a bundler links.
+`terri_wasm_bg.wasm.d.ts` still declares `export const memory`, so the import
+typechecks and only fails at resolve time - the type declaration describes the
+bundler layout regardless of which target was built.
+
+**Prevention rule:** get the `WebAssembly.Memory` from what `init()` resolves
+to. It resolves to the instance's export object, so `(await init()).memory` is
+the real `WebAssembly.Memory`. `SimBridge` takes it as a constructor argument
+rather than reading a module-level global, which also makes it injectable in
+tests. If the build ever moves to `--target bundler`, the direct import becomes
+available and the constructor argument can go; do not assume it works before
+checking which target `wasm-pack` was invoked with.
+
+**The second half, which is the more valuable part.** "Do not cache the view"
+undersells the problem. **Three** things must be re-read on every access, and
+caching any one of them is the same bug:
+
+| cached | what breaks | which assertion catches it |
+| --- | --- | --- |
+| `memory.buffer` | old `ArrayBuffer` detaches on growth | `TypeError: Cannot perform Construct on a detached ArrayBuffer` |
+| the pointer | the `Vec` reallocates on growth and moves | `pos.some((v) => v !== 0)` |
+| the length | spawns change the entity count | `pos.length` |
+
+The `WebAssembly.Memory` object itself **is** stable across growth, which is why
+it is safe to hold; its `.buffer` is not. Measured on this build: a 64x64 sim
+starts at 1179648 bytes and grows at the **256th** spawned agent, reaching
+1507328 bytes by 2000.
+
+The pointer row is the one that nearly slipped. With a stale pointer the view
+still has the right **length**, so `expect(pos.length).toBe(4000)` passes; it
+points at zeroed static memory, so only `expect(pos.some((v) => v !== 0))`
+fails. A growth test that checked length alone would have missed one of the
+three mechanisms entirely. Count the mechanisms and mutate each separately,
+per [L7].
+
+**How to verify:** in `web/src/bridge.ts`, independently (a) cache the three
+views in constructor fields, (b) cache `memory.buffer`, (c) cache the pointers,
+(d) cache the count. Run `cd web && npm test` after each and restore by writing
+back a byte snapshot, never with `git checkout` ([L9]). Expected: (a), (c), (d)
+each fail 5 of 6 tests; (b) fails exactly the two growth tests and leaves the
+other four green, which is what proves those two are the growth guard rather
+than incidentally-passing duplicates of the others.
