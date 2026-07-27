@@ -596,3 +596,99 @@ then `cd web && npm test`: exactly the boundary test fails, with
 re-run. Skipping the rebuild is the [L8] trap wearing a different hat, since
 `npm test` reads the previously emitted `.wasm` and has no idea the Rust source
 moved.
+
+---
+
+## [L14] "The page loaded with no console errors" is not evidence a renderer ran
+
+**What happened:** Task 10's browser check was specified as "load the page,
+confirm no console or WebGPU validation errors". That check passed immediately
+and meant nothing. The agent-driven Browser pane runs the tab **hidden**, and a
+hidden tab is not composited, so `requestAnimationFrame` **never fires**.
+`SpriteRenderer.draw` sits inside the rAF callback, so it had not been called
+once. Measured: `document.visibilityState === 'hidden'` and **0 rAF callbacks
+per second**. The canvas read back as `0,0,0,0` across all 921 600 pixels.
+
+A green "no errors" here is the project's recurring failure shape ([L5], [L6],
+[L7], [L11]) in a new costume: **the check passed because the code under test
+never executed.** Nothing about the console output distinguishes "the pipeline
+is correct" from "the pipeline never ran".
+
+**Second, self-inflicted half.** The first probe called
+`canvas.getContext('2d')` to ask "is this a WebGPU canvas?". `getContext`
+**permanently binds a canvas to the first context type requested**, so that
+probe would have made every later `getContext('webgpu')` return `null` and
+broken `initDevice` for the rest of the page's life. A diagnostic that mutates
+the thing it measures is worse than no diagnostic. The non-destructive form is
+`canvas.getContext('webgpu')`, which is idempotent and returns the existing
+context.
+
+**Prevention rule, for every GPU verification in this project:**
+
+1. **Drive the draw yourself; never rely on rAF in an agent-driven browser.**
+   Dynamic-import the real modules from the Vite dev server
+   (`await import('/src/render/sprites.ts')`), build a canvas, and call `draw`
+   directly. This exercises the shipped code path, not a mock.
+2. **Wrap GPU work in explicit error scopes** rather than reading the console.
+   `device.pushErrorScope('validation')` / `popErrorScope()` returns the error
+   object, so "no validation error" becomes an assertion with a value behind it
+   instead of an absence of log lines.
+3. **Read pixels back and assert on them.** `ctx2d.drawImage(webgpuCanvas, 0, 0)`
+   then `getImageData` works, is non-destructive to the source canvas, and turns
+   "it rendered" into arithmetic. Await `queue.onSubmittedWorkDone()` and one
+   macrotask first, because a WebGPU canvas presents at the end of the task.
+4. **Assert a pixel count, not just a colour.** A 24x24 tile must cover exactly
+   576 pixels. That catches a collapsed or degenerate triangle, which a
+   "some orange is present" check does not.
+
+**How to verify a depth-buffer claim specifically,** since [D10] rests on it:
+draw two overlapping quads, hold **draw order constant**, and swap only their
+depth values. The winner must flip. If the winner never changes, painter's order
+is deciding and the depth buffer is inert. Measured on this pipeline: agent at
+depth 0.1 beats object at 0.9, and object at 0.1 beats agent at 0.9, with the
+agent written to instance slot 0 both times.
+
+**Measured facts worth keeping.** The WGSL in `sprites.wgsl` compiles clean on
+Chrome/NVIDIA Ada: a module-scope `const CORNERS = array<vec2<f32>, 6>(...)`
+indexed by a runtime `@builtin(vertex_index)` is legal, and the trailing `;`
+after a `struct` declaration parses. Preferred canvas format here is
+`bgra8unorm`. Clear colour `0.09, 0.09, 0.11` reads back as exactly `23, 23, 28`.
+
+---
+
+## [L15] A mutation that loops forever hangs the harness, because Windows kills only the direct child
+
+**What happened:** Task 10's mutation set included removing the `Math.max`
+floor from `growCapacity`, which turns `while (next < needed) next *= 2` into an
+infinite loop when capacity is 0. Python's `subprocess.run(timeout=...)` fired,
+killed `npm.cmd`, and then **blocked forever** anyway: the `node` grandchild
+running vitest survived, held the inherited stdout pipe open, and the reader
+threads never saw EOF. The harness had to be killed from outside, leaving the
+mutation applied on disk.
+
+Two smaller traps came with it. `subprocess.run(text=True)` decoded vitest's
+UTF-8 box-drawing output with the console's **cp1252** codepage and killed both
+reader threads with `UnicodeDecodeError`, silently emptying the captured output
+so every mutation's evidence was blank. And the machine had ~95 unrelated
+`node.exe` processes running, so "kill all node" was never an option.
+
+**Prevention rule for mutation harnesses on this machine:**
+
+1. **Redirect subprocess output to a file and decode it yourself** with
+   `errors="replace"`. Do not use `text=True` with vitest or cargo.
+2. **Kill the process tree, not the process:** `Popen`, poll against a deadline,
+   then `taskkill /F /T /PID <pid>`. `/T` is the load-bearing flag.
+3. **Identify your own processes by command line before killing anything.**
+   `Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*vitest*' }`
+   pins the exact PIDs. Never kill by image name on this box.
+4. **A mutation whose detection is a hang is still a detection, but say so
+   plainly.** Report it as TIMEOUT rather than FAIL. The test never goes green,
+   which is what "the mutation was caught" means, but in CI a hang burns the job
+   timeout instead of printing an assertion, so it is a weaker signal than a
+   failure and should be described as one.
+
+**How to verify:** apply the `let next = current;` mutation to `growCapacity`
+in `web/src/render/instances.ts` and run `npm test` under a deadline. Expected:
+the suite never terminates. Restore from a scratchpad byte snapshot, never with
+`git checkout` ([L9]), and confirm `git hash-object` matches the pre-mutation
+value.
