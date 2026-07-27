@@ -209,16 +209,20 @@ Expected: `[INFO]: :-) Done in ...`, and `web/src/wasm/terri_wasm.js` exists.
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "typescript": "^5.5.0",
-    "vite": "^5.4.0",
-    "vitest": "^2.0.0",
+    "vite": "^8.1.5",
+    "vitest": "^4.1.10",
+    "@types/node": "^24.13.3",
     "@webgpu/types": "^0.1.44"
   }
 }
 ```
+
+Vite 8 and Vitest 4 were adopted immediately after Task 1: Vite 5 pulled `esbuild <=0.24.2` with five audit vulnerabilities, and Vitest 4 is the first line that peers with Vite 8. Post-upgrade audit is clean. `@types/node` is required because the tests import `node:fs`.
 
 `web/tsconfig.json`:
 
@@ -230,11 +234,13 @@ Expected: `[INFO]: :-) Done in ...`, and `web/src/wasm/terri_wasm.js` exists.
     "moduleResolution": "bundler",
     "strict": true,
     "skipLibCheck": true,
-    "types": ["@webgpu/types", "vitest/globals"]
+    "types": ["@webgpu/types"]
   },
-  "include": ["src", "tests"]
+  "include": ["src", "tests", "vite.config.ts"]
 }
 ```
+
+`vitest/globals` is deliberately absent: globals are not enabled, and tests import `describe`/`it`/`expect` explicitly. `vite.config.ts` is included so it is actually type-checked.
 
 `web/vite.config.ts`:
 

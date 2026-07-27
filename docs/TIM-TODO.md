@@ -102,9 +102,18 @@ found and nothing links. `rustc` auto-selects the newest Visual Studio, so it
 picks this broken one over the working 2022 BuildTools install.
 
 **Fix:** Visual Studio Installer, Modify on VS Community 2026, Workloads tab,
-tick **"Desktop development with C++"**, Modify. If already ticked, use the
-Individual components tab and add **"MSVC v145 - VS 2026 C++ x64/x86 build
-tools (Latest)"** plus a Windows 11 SDK.
+tick **"Desktop development with C++"**, then Modify.
+
+**Component naming note:** there is no "MSVC v145" in VS 2026. Microsoft
+changed the scheme; the current toolset is **"MSVC Build Tools for x64/x86
+(Latest)"**, and the `v143` / `v142` / `v141` entries are legacy toolsets for
+older projects. Also ensure a **Windows 11 SDK** is ticked. Both are selected
+automatically by the Desktop C++ workload.
+
+**Untick "MSVC Build Tools for x64/x86 (Preview)".** `rustc` auto-selects the
+newest toolset it finds regardless of whether that toolset is complete, which
+is what caused this failure originally. Keeping only the release toolset makes
+that selection deterministic and stops the problem recurring after VS updates.
 
 **Verify** in a new terminal:
 `Get-ChildItem "C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\*\lib\x64\msvcrt.lib"`
