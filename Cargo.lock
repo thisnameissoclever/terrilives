@@ -745,6 +745,10 @@ dependencies = [
 [[package]]
 name = "terri-sim"
 version = "0.1.0"
+dependencies = [
+ "bevy_ecs",
+ "terri-core",
+]
 
 [[package]]
 name = "terri-wasm"

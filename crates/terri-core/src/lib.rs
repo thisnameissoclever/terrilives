@@ -1,8 +1,10 @@
 //! Pure simulation core. No web dependencies, ever.
 
 pub mod clock;
+pub mod components;
 
 pub use clock::{SimClock, TICKS_PER_SIM_HOUR, TICK_HZ};
+pub use components::{Agent, Hunger, Position, NEED_MAX, NEED_MIN};
 
 /// Trivial value used only to prove the Rust -> WASM -> JS path works.
 /// Deleted once real state crosses the boundary.
