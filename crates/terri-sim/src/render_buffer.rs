@@ -69,6 +69,27 @@ mod tests {
 
     #[test]
     fn prev_positions_lag_by_one_sync() {
+        // THREE syncs, not two, and the third one is the whole test.
+        //
+        // The mechanism under test is the `std::mem::swap` at the top of
+        // `sync_render_buffer`. Delete it and `prev_positions` is written
+        // only by the reseed branch, which fires solely when the row count
+        // changes. Trace the first two syncs with the swap deleted: sync 1
+        // reseeds (0 != 2) and leaves prev holding frame 1; sync 2 finds
+        // the lengths equal, writes nothing, and prev still holds frame 1
+        // - which is exactly what a two-sync test asserts. **Two samples
+        // cannot distinguish "prev lags by one frame" from "prev is frozen
+        // at the first frame."** Both hypotheses predict the same two
+        // numbers, so the old form of this test was permanently green with
+        // the swap removed, despite naming that invariant in its title.
+        //
+        // The third sync is the first observation the two hypotheses
+        // disagree about: lagging predicts 3.0, frozen predicts 0.0.
+        //
+        // What it would have cost: with prev frozen at the last frame
+        // where the entity count changed, Task 12 would tween every entity
+        // from its spawn position towards its current position on every
+        // frame, forever, with the suite green throughout.
         let mut sim = Sim::new_with_lot(16, 16);
         let id = sim
             .world_mut()
@@ -79,9 +100,18 @@ mod tests {
         sim.world_mut().get_mut::<Position>(id).unwrap().x = 3.0;
         sim.sync_render_buffer();
 
-        let buf = sim.render_buffer();
-        assert_eq!(buf.prev_positions[0], 0.0);
-        assert_eq!(buf.positions[0], 3.0);
+        assert_eq!(sim.render_buffer().prev_positions[0], 0.0);
+        assert_eq!(sim.render_buffer().positions[0], 3.0);
+
+        sim.world_mut().get_mut::<Position>(id).unwrap().x = 5.0;
+        sim.sync_render_buffer();
+
+        assert_eq!(
+            sim.render_buffer().prev_positions[0],
+            3.0,
+            "prev must lag by exactly one sync, not freeze at the first"
+        );
+        assert_eq!(sim.render_buffer().positions[0], 5.0);
     }
 
     #[test]

@@ -454,3 +454,145 @@ back a byte snapshot, never with `git checkout` ([L9]). Expected: (a), (c), (d)
 each fail 5 of 6 tests; (b) fails exactly the two growth tests and leaves the
 other four green, which is what proves those two are the growth guard rather
 than incidentally-passing duplicates of the others.
+
+---
+
+## [L11] Two samples cannot tell "lags by one" from "frozen at the first"
+
+**What happened:** the **sixth** instance of the family ([L2], [L3], [L5], [L6],
+[L7]), and the first one where the test's *shape* was right and only its
+*length* was wrong. `prev_positions_lag_by_one_sync` synced twice and asserted
+`prev == frame 1` while `positions == frame 2`. A reviewer deleted
+`std::mem::swap(&mut self.render.prev_positions, &mut self.render.positions)`
+from `sync_render_buffer` and **all 31 `terri-sim` tests stayed green**,
+including that one.
+
+**Root cause, and it is arithmetic rather than ECS trivia.** Without the swap,
+`prev_positions` is written by one branch only: the reseed that fires when the
+row count changes. Sync 1 reseeds (0 != 2) and leaves prev holding frame 1.
+Sync 2 finds the lengths equal, writes nothing, and prev *still* holds frame 1 -
+which is exactly what the test asserted. **Two observations are consistent with
+two different hypotheses**, "prev lags by one frame" and "prev is frozen at the
+first frame", and they only diverge on the third. A test cannot discriminate
+between hypotheses that agree on every sample it takes.
+
+The consequence would have been total and silent. `prev_positions` would freeze
+at the last frame where the entity count changed, so Task 12 would tween every
+entity from its spawn position towards its current position, every frame,
+forever, with the suite green throughout.
+
+**Why the automated backstop did not help, which is the part worth keeping:**
+`cargo mutants` does **not** emit statement-deletion mutants. It rewrites
+expressions and return values. So its "0 survivors" on this file was
+simultaneously true and no evidence at all about a deleted statement. Rule 2 of
+`testing-protocol.md` already says the tool is a backstop and not a replacement
+for hand mutation; this is the concrete shape of what it cannot see. **Whole
+statements whose only effect is on state - `swap`, `clear`, `sort`, `push`,
+`insert` - are outside its mutation grammar and must be deleted by hand.**
+
+**Prevention rule: for any invariant of the form "X lags/leads/differs from Y
+by exactly N", the test needs at least N + 2 observations.** N + 1 is where the
+relation first becomes expressible; N + 2 is the first point where a *frozen*
+or *saturated* alternative predicts something different. State the degenerate
+alternative out loud - "what else would produce these same numbers?" - and add
+samples until it is excluded.
+
+**How to verify:** delete the `std::mem::swap` line from `sync_render_buffer`
+and run `cargo test -p terri-sim`. Exactly
+`render_buffer::tests::prev_positions_lag_by_one_sync` must fail, with
+`left: 0.0, right: 3.0` - 0.0 being the frozen first frame and 3.0 the correct
+lagged one. Restore from a scratchpad byte snapshot, never with `git checkout`
+([L9]), and touch the file ([L8]).
+
+---
+
+## [L12] `debug_assert!` is not a boundary check, because the shipped build is release
+
+**What happened:** `Sim::world_hash` encodes "this entity has no `Hunger`" as
+the **in-band** value `-1.0`, and guards the collision with a `debug_assert!`.
+That was sufficient through Task 7, when nothing outside Rust could construct a
+`Hunger`. Task 8 exported `SimHandle::spawn_agent(x, y, hunger)` to JavaScript
+and made the value caller-supplied, at which point the guard became inert on
+the only target that ships: `wasm-pack build` produces a **release** build, and
+`debug_assert!` compiles out of it. Measured before the fix, in `--release`:
+an agent spawned with `Hunger(-1.0)` and a Hunger-less entity at the same
+position both digested to `0xCA2474BB3E44B36C`.
+
+The same export made `f32::NAN` reachable, and NaN does not self-heal.
+`f32::clamp` **propagates** NaN rather than replacing it, so a clamp alone is
+not a fix; `advertise.rs` documents where it ends up, since NaN loses every
+comparison and the agent "would simply never choose to do anything, forever,
+with no panic and no log".
+
+**Root cause:** adding an FFI export silently reclassifies every argument from
+"internal, therefore trusted" to "external, therefore hostile", but nothing in
+the type system or the build marks the reclassification. The old guard was not
+weakened by the change; the change moved the guard to the wrong side of the
+boundary and to the wrong build profile.
+
+**Prevention rule:**
+
+1. **Validate at the crate where untrusted input enters, which is
+   `terri-wasm`.** `terri-core` and `terri-sim` keep the right to assume their
+   inputs are valid; that assumption is what makes them testable. Pushing
+   validation down into them would spread boundary concerns through the whole
+   simulation.
+2. **`debug_assert!` documents an invariant; it does not enforce one.** If a
+   value can arrive from outside Rust, the check must survive `--release`.
+3. **A NaN check is a separate branch from a range clamp.** `x.clamp(lo, hi)`
+   returns NaN for NaN input, so "I clamped it" is not "it is in range".
+4. Whenever a new argument is added to a `#[wasm_bindgen]` function, ask which
+   `debug_assert!`s downstream of it just became unreachable.
+
+**How to verify:** replace `sanitize_hunger` in `crates/terri-wasm/src/lib.rs`
+with the identity function and run `cargo test -p terri-wasm --release`. Four
+tests must fail, and
+`hunger_from_js_cannot_alias_the_world_hash_no_hunger_sentinel` must fail with
+`left` and `right` **equal** - that equality is the collision itself. The
+`--release` flag is load-bearing: in a debug build `terri-sim`'s
+`debug_assert!` panics first, so the test fails for the wrong reason and you
+never observe the digest collision the boundary actually has to prevent. Do the
+same with `sanitize_coord`; exactly the two coordinate tests must fail.
+
+---
+
+## [L13] The native golden hash vector never crossed the boundary it was written for
+
+**What happened:** `world_hash_matches_its_golden_vector`'s doc claimed it was
+"a cross-platform check for free: CI runs on Linux and this machine is
+Windows". True, and irrelevant to the risk Task 8 introduced. The platform pair
+that now matters is **native versus wasm32**, and that test runs natively on
+both sides of its own comparison, so wasm was never in it.
+
+The gap was concrete rather than theoretical. `FnvHasher::write_f32` calls
+`f32::round`, which is **round-half-away-from-zero** in Rust and does *not* map
+to wasm's `f32.nearest` (**round-half-to-even**), so rustc must emit a
+different code path on wasm32. Every position and every hunger level in the
+digest passes through that call.
+
+**Measured outcome: they agree.** Rebuilding the identical scenario through the
+JavaScript API - `new SimHandle(24, 24)`, `spawn_object(18, 14)`, eight
+`spawn_agent(1 + i, 1, 30 + 5 * i)`, 100 `tick()` - yields
+`0xEF601D504790_5825`, the same constant the native test asserts. This is a
+reassuring result, not a vacuous one: it was verified by mutation, and it means
+the quantizer's `round` call is not currently landing on a half-way value where
+the two rounding modes differ. It is **not** a proof that they never will. The
+quantizer multiplies by 10 000 before rounding, and a coordinate that lands
+exactly on `n + 0.5` after that scaling would diverge.
+
+**Prevention rule:** a golden vector pins the boundary it is *evaluated*
+across, not the boundary it *mentions*. If two build targets consume the same
+constant, assert it from both, and say in each place that the other exists -
+otherwise the next person to legitimately move the constant updates one copy
+and the pair silently stops being a comparison.
+
+**How to verify:** the constant now appears twice, in
+`crates/terri-sim/src/lib.rs` and `web/tests/bridge.test.ts`, each pointing at
+the other. To confirm the web side is real rather than decorative, delete
+`hasher.write_f32(y)` from `world_hash`, run
+`wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`,
+then `cd web && npm test`: exactly the boundary test fails, with
+`expected 14804735595947770788n to be 17248818803464230949n`. Restore, rebuild,
+re-run. Skipping the rebuild is the [L8] trap wearing a different hat, since
+`npm test` reads the previously emitted `.wasm` and has no idea the Rust source
+moved.

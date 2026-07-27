@@ -43,6 +43,12 @@ surviving mutant is, by definition, behaviour that nothing constrains.
 - It mutates **production** code, so it finds untested production behaviour. A
   test vacuous in a way not tied to a production mutation can still slip
   through. It is a backstop, not a replacement for rule 1.
+- **It does not emit statement-deletion mutants.** It rewrites expressions and
+  return values, so a whole statement whose only effect is on state - `swap`,
+  `clear`, `sort`, `push`, `insert` - is outside its grammar. A clean report
+  over such a line is true and is simultaneously no evidence. Delete those by
+  hand. See [L11], where deleting one `std::mem::swap` left all 31 tests green
+  under a "0 survivors" report.
 
 ## 3. Prefer causal assertions to equality assertions
 
@@ -86,6 +92,35 @@ instance.
 `hash_observes_entity_state_not_only_the_clock` tells a reader which mutation
 should break it. `pathfinding_is_deterministic` does not. If you cannot write a
 name that implies its own mutation, the test probably does not have one.
+
+## 7. Take enough samples to exclude the degenerate alternative
+
+For an invariant of the form "X lags, leads, or differs from Y by exactly N",
+**N + 1 observations make the relation expressible and N + 2 are needed to test
+it.** At N + 1 a *frozen* or *saturated* alternative predicts the same numbers,
+so the test cannot tell the two apart and is green either way.
+
+Before writing the assertions, name the degenerate alternative out loud: *what
+else would produce exactly these numbers?* Then add samples until only the
+intended mechanism survives.
+
+[L11] is the recorded instance: `prev_positions_lag_by_one_sync` synced twice,
+and "prev lags by one frame" and "prev is frozen at the first frame" agree on
+both of those frames. They disagree only on the third.
+
+## 8. Validate at the boundary, and check that the check ships
+
+An FFI export reclassifies every argument from trusted to hostile, and nothing
+in the type system marks the moment it happened. Two consequences:
+
+- Put the validation in the crate where untrusted input **enters**
+  (`terri-wasm`). The sim crates keep the right to assume valid inputs; that
+  assumption is what makes them testable.
+- **`debug_assert!` documents an invariant, it does not enforce one.**
+  `wasm-pack build` is a release build, so every `debug_assert!` reachable from
+  JavaScript is absent on the only target that ships. Verify boundary tests
+  with `--release`, or a debug-only panic will fail them for the wrong reason
+  and hide whether the real check works. See [L12].
 
 ## Standing review question
 

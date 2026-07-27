@@ -104,6 +104,45 @@ describe('SimBridge', () => {
     expect(fresh[1]).toBe(2);
   });
 
+  it('reproduces the native golden world hash across the wasm boundary', () => {
+    // The native `world_hash_matches_its_golden_vector` in
+    // crates/terri-sim/src/lib.rs claims to be a free cross-platform
+    // check. It is not: it runs natively on both Windows and CI's Linux,
+    // and the platform pair Task 8 actually created is native versus
+    // wasm32, which nothing exercised.
+    //
+    // That gap is concrete, not theoretical. `FnvHasher::write_f32` calls
+    // `f32::round`, which is round-half-away-from-zero in Rust and does
+    // NOT map to wasm's `f32.nearest` (round-half-to-even), so rustc has
+    // to emit a different code path there for wasm32. Every position and
+    // every hunger level in the digest goes through it.
+    //
+    // Spawn order below matches the native `build_scenario` exactly: the
+    // smart object first, so it holds the lower entity index, then eight
+    // agents. `world_hash` keys its rows on the entity index, so the
+    // order is load-bearing rather than stylistic.
+    //
+    // If this ever disagrees with the native constant, that is a genuine
+    // finding about this project's determinism guarantees. Do not adjust
+    // the constant to match; report the divergence.
+    const bridge = new SimBridge(new SimHandle(24, 24), wasmMemory);
+    bridge.spawnObject(18, 14);
+    for (let i = 0; i < 8; i++) {
+      bridge.spawnAgent(1 + i, 1, 30 + 5 * i);
+    }
+    for (let i = 0; i < 100; i++) bridge.tick();
+
+    // Precondition, per docs/testing-protocol.md rule 5. A digest over an
+    // empty world is still a digest, and it would still be stable, so
+    // without this the test could agree with a constant while the
+    // scenario silently built nothing.
+    expect(bridge.count).toBe(9);
+
+    // bigint, not Number. Number() coercion silently drops the low bits
+    // of a u64, and the low bits are the whole point of a digest.
+    expect(bridge.worldHash()).toBe(0xef60_1d50_4790_5825n);
+  });
+
   it('exposes the world hash as a bigint that tracks simulation state', () => {
     const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
     bridge.spawnObject(12, 1);

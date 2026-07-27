@@ -133,9 +133,26 @@ impl Sim {
         self.render.count = rows.len();
 
         // On the first sync there is no previous frame, and a changed
-        // entity count invalidates the slot mapping wholesale, so seed
-        // prev from the current frame to avoid interpolating from garbage
-        // or from another entity's coordinates.
+        // row count invalidates the slot mapping wholesale, so seed prev
+        // from the current frame to avoid interpolating from garbage or
+        // from another entity's coordinates.
+        //
+        // Read the guard as what it is: a length check, not a membership
+        // check. **An unchanged count does not imply an unchanged entity
+        // set.** It catches pure additions and pure removals, because
+        // those move the length. It does NOT catch one addition and one
+        // removal between the same two syncs: `bevy_ecs` reuses freed
+        // entity indices, so the new entity can land on the departed
+        // one's index, keep its sorted slot, and change only the occupant.
+        // Task 12 would then interpolate that slot from the dead entity's
+        // last position to the new entity's first one and draw something
+        // streaking across the lot in a single frame.
+        //
+        // Unreachable in M0 - nothing despawns - which is why this is a
+        // comment and not a fix. The fix, for whoever first adds a
+        // despawn: keep the previous frame's sorted index list alongside
+        // `prev_positions` and reseed whenever the new list differs from
+        // it, rather than whenever the lengths differ.
         if self.render.prev_positions.len() != self.render.positions.len() {
             self.render.prev_positions = self.render.positions.clone();
         }
@@ -375,10 +392,25 @@ mod determinism_tests {
     /// computed before, which is exactly the bug this vector exists to
     /// surface.
     ///
-    /// It also acts as a cross-platform check for free: CI runs on Linux
-    /// and this machine is Windows, so a divergence in float arithmetic
-    /// or iteration order between the two shows up here rather than in
-    /// Layer 2 desync reports.
+    /// It covers **one** platform pair for free: CI runs on Linux and
+    /// this machine is Windows, so a divergence in float arithmetic or
+    /// iteration order between those two shows up here.
+    ///
+    /// It does **not** cover the platform pair Task 8 actually created,
+    /// which is native versus wasm32. This test runs natively on both
+    /// sides of the Linux/Windows comparison, so wasm is not among them.
+    /// That gap is concrete rather than theoretical: `write_f32` calls
+    /// `f32::round`, which is round-half-away-from-zero in Rust and does
+    /// not map to wasm's round-half-to-even `f32.nearest`, so rustc emits
+    /// a different code path there - and every position and hunger level
+    /// in this digest passes through it.
+    ///
+    /// The boundary is covered by
+    /// `reproduces the native golden world hash across the wasm boundary`
+    /// in web/tests/bridge.test.ts, which rebuilds this exact scenario
+    /// through the JavaScript API and compares against the same constant.
+    /// Measured: the two agree. **If you change `GOLDEN` here, change it
+    /// there too, or the boundary check silently stops being one.**
     #[test]
     fn world_hash_matches_its_golden_vector() {
         const TICKS: usize = 100;
