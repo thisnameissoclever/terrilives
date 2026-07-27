@@ -754,3 +754,68 @@ brief's `Math.min(1, Math.max(0, nearness))` and run `cd web && npm test`. Four
 tests must fail, the first with
 `AssertionError: expected 0 to be greater than 0.15873015873015872`. Restore
 from a scratchpad byte snapshot, never with `git checkout` ([L9]).
+
+---
+
+## [L17] A spawn outside the lot is a silent no-op, and it looks like a render bug
+
+**What happened:** Task 12's brief set `GRID = 16` and then spawned the fridge
+at `(24, 20)`, eight tiles outside the lot it had just declared. The
+coordinates were correct for the `GRID = 32` the plan used before [L16]'s
+sibling correction shrank the lot to fit the canvas; nothing re-checked them
+when the constant moved.
+
+**Measured, in the browser, on the shipped wasm build:** a sim with the fridge
+at (24, 20) leaves the agent at (2, 3) after **40 ticks**, exactly where it
+spawned. With the fridge at (12, 10) the same agent reaches (12, 3) over the
+same 40 ticks. No panic, no log, no validation error, and nothing in the render
+buffer looks wrong - both entities are present and drawn in the right places.
+
+**Root cause:** `TileGrid::is_walkable` is false out of bounds, so `find_path`
+returns `None` on its destination check, so `select_action` hits its
+`let ... else { continue }` and the agent never gets a `Target`. The agent then
+stands still forever while its hunger decays. This is deliberate at every
+individual step, and the composite behaviour is indistinguishable, on screen,
+from "interpolation is broken" or "the sim is not ticking" - which are the two
+things Task 12 actually changed, so it would have been diagnosed there.
+
+`sanitize_coord` does not catch it and should not: [L12] settled that the
+boundary replaces **non-finite** coordinates only, because a finite out-of-lot
+coordinate is a legitimate request that the sim handles by not pathing to it.
+Clamping would silently relocate an object the caller asked for. The cost of
+that correct policy is that lot size and spawn coordinates are a joint
+constraint that nothing checks.
+
+**Prevention rule:** when the lot size changes, re-check every hardcoded spawn
+coordinate against it in the same edit. More generally, treat "the agent never
+moves" as a **pathing** symptom before a rendering one: the render path cannot
+make an entity hold still, since it only draws what the render buffer says.
+
+**How to verify:** set `sim.spawnObject(24, 20)` in `web/src/main.ts` with
+`GRID` at 16, tick 40 times, and read `positions()`. Slot 1 stays at its spawn
+coordinates. Restore to (12, 10) and it moves.
+
+---
+
+## [L18] The instance array is f32, so an f64 expectation is not equal to it
+
+**What happened:** three `frame.test.ts` assertions failed on their first
+otherwise-green run with `expected 0.800000011920929 to be 0.8`. `worldDepth`
+computes in JavaScript's f64 and the instance array is a `Float32Array`, so
+storing the value rounds it.
+
+**Root cause, and the reason it is worth an entry:** the obvious fix is
+`toBeCloseTo`, and it is the wrong one. It would have made the tests pass and
+would also have accepted a depth wrong by far more than a rounding step, on the
+one value whose entire job is deciding what covers what. That is the project's
+recurring shape again - a test loosened until it passes stops being able to
+fail.
+
+**Prevention rule:** compare against `Math.fround(expected)`. The assertion
+stays exact, and it states the real contract, which is what the GPU reads
+rather than what JavaScript computed. `frame.test.ts` wraps this as `stored()`
+with the reasoning next to it.
+
+**How to verify:** replace `stored(...)` with its argument in any of the three
+depth assertions in `web/tests/frame.test.ts`; the test fails on the f32
+rounding rather than on anything about the code under test.
