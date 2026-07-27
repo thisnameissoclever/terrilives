@@ -5,7 +5,7 @@
     "moduleResolution": "bundler",
     "strict": true,
     "skipLibCheck": true,
-    "types": ["@webgpu/types"]
+    "types": ["@webgpu/types", "node"]
   },
   "include": ["src", "tests", "vite.config.ts"]
 }

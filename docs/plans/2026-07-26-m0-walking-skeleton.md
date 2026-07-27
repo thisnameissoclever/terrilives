@@ -18,7 +18,7 @@
 - **Single-threaded executor for M0.** Set `ExecutorKind::SingleThreaded` explicitly. Parallelism is [D4]/[A9] and arrives later; keeping it off now makes determinism trivially safe.
 - **Zero-copy bridge: no per-entity JavaScript objects, ever.** This is [D11].
 - **Determinism test runs in CI from Task 7 onward.** This is [D12].
-- **Rust edition 2021. `bevy_ecs` is pinned to 0.18.1**, verified during Task 1. 0.19.0 exists but requires Rust 1.95.0 against the installed 1.94.1, so 0.18.1 is a hard ceiling rather than a preference. All code below was compiled and its assertions run against 0.18.1.
+- **Rust edition 2021. `bevy_ecs` resolves to 0.18.1**, locked by the committed `Cargo.lock`. The workspace manifest requests `"0.18"`, which floats the patch version; the lockfile is what actually pins it, and it is committed because this is an application rather than a library. Verified during Task 1. 0.19.0 exists but requires Rust 1.95.0 against the installed 1.94.1, so 0.18.1 is a hard ceiling rather than a preference. All code below was compiled and its assertions run against 0.18.1.
 - **Two 0.18 API facts that differ from older bevy_ecs and are easy to get wrong:**
   - `World::iter_entities()` no longer exists. Use `World::query::<D>()` where you hold `&mut World`, or `World::try_query::<D>()` where you only hold `&World`. Both return an owned `QueryState` that must be bound `mut`, then iterated as `state.iter(&world)`. Note `World::entities()` is **not** the replacement; it returns `&Entities` metadata.
   - `Entity::index()` returns `EntityIndex`, not `u32`. `EntityIndex` derives `Ord`, and sorting by it was verified to match sorting by the raw integer, so it is safe for ordering. Use `index_u32() -> u32` only where a literal `u32` is required.
