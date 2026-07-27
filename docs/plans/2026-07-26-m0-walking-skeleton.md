@@ -1040,6 +1040,17 @@ mod tests {
     }
 
     #[test]
+    fn out_of_range_deficit_cannot_inflate_a_score() {
+        // Hunger's field is public, so callers can construct values
+        // outside 0..=100 and deficit() can return outside 0.0..=1.0.
+        // Raising such a value to DEFICIT_EXPONENT would inflate the
+        // score without bound, so scoring clamps its input.
+        let sane = score_advertisement(1.0, 35.0, 15, 5.0);
+        assert_eq!(score_advertisement(1.6, 35.0, 15, 5.0), sane);
+        assert_eq!(score_advertisement(-0.4, 35.0, 15, 5.0), 0.0);
+    }
+
+    #[test]
     fn closer_objects_score_higher() {
         let near = score_advertisement(0.5, 35.0, 15, 1.0);
         let far = score_advertisement(0.5, 35.0, 15, 40.0);
@@ -1094,7 +1105,12 @@ pub fn score_advertisement(
     if deficit <= 0.0 || delta <= 0.0 {
         return 0.0;
     }
-    let urgency = deficit.powf(DEFICIT_EXPONENT);
+    // Clamp before exponentiating. Hunger's field is public, so nothing
+    // structurally prevents a level outside 0..=100 and therefore a
+    // deficit outside 0.0..=1.0; cubing 1.6 would inflate the score by
+    // 4x with no bound. Clamping here rather than trusting callers keeps
+    // the guarantee local to the function that depends on it.
+    let urgency = deficit.clamp(0.0, 1.0).powf(DEFICIT_EXPONENT);
     let travel_ticks = distance / TILES_PER_TICK;
     let time_cost = travel_ticks + duration_ticks as f32;
     // The +1 keeps a zero-cost interaction from producing infinity.

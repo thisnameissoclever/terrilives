@@ -15,7 +15,7 @@ pub fn decay_needs(mut query: Query<&mut Hunger>) {
 mod tests {
     use super::*;
     use crate::Sim;
-    use terri_core::{Agent, Position};
+    use terri_core::{Agent, Position, SimClock};
 
     #[test]
     fn hunger_decays_over_ticks() {
@@ -36,6 +36,11 @@ mod tests {
             "expected ~{expected}, got {}",
             hunger.0
         );
+
+        // Covers the seam between the clock and the schedule. Without
+        // this, dropping advance_clock from add_systems, or failing to
+        // insert SimClock at all, would leave the whole workspace green.
+        assert_eq!(sim.world().resource::<SimClock>().tick, 100);
     }
 
     #[test]
