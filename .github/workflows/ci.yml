@@ -54,6 +54,51 @@ jobs:
             done
           done
 
+  # Mutation testing. A surviving mutant is behaviour nothing constrains.
+  # Five separate tests in this project were permanently green while
+  # protecting nothing, and prose rules failed to prevent the recurrence
+  # three times, because the family does not look like itself. This is the
+  # mechanical backstop. See docs/testing-protocol.md.
+  #
+  # --in-diff restricts mutants to lines the PR actually changed, which
+  # keeps runtime proportional to the change rather than the codebase and
+  # means the gate is "no NEW survivors" rather than "zero survivors". A
+  # wall of known noise gets ignored, which is the exact failure mode this
+  # whole gate exists to prevent.
+  #
+  # --test-workspace true is load-bearing, not tidiness. By default each
+  # mutant is tested only against its own package's suite, so a mutation in
+  # terri-core is judged by terri-core's tests alone. Most of terri-core's
+  # behaviour is exercised through terri-sim, so the default produced 11
+  # false survivors on the first run, including Path::next_step -> None,
+  # which the real suite catches instantly.
+  mutants:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install cargo-mutants
+        run: cargo install cargo-mutants --locked
+      - name: Compute PR diff
+        run: |
+          set -eu
+          git diff "origin/${{ github.base_ref }}"... > pr.diff
+          wc -l pr.diff
+      - name: Test mutants introduced by this PR
+        run: |
+          cargo mutants --in-diff pr.diff \
+            --package terri-core --package terri-sim \
+            --test-workspace true --timeout 60
+      - name: Upload mutants report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutants-out
+          path: mutants.out/
+
   web:
     runs-on: ubuntu-latest
     steps:
