@@ -2532,8 +2532,11 @@ describe('isometric projection', () => {
     expect(worldToScreen(0, 0, 640, 360)).toEqual([640, 360]);
   });
 
-  it('gives farther tiles smaller depth so they draw behind', () => {
-    expect(worldDepth(0, 0, 64)).toBeLessThan(worldDepth(10, 10, 64));
+  it('gives nearer tiles smaller depth so they win the depth test', () => {
+    // The pipeline compares with 'less' against a clear of 1.0, so the
+    // SMALLER depth wins the pixel. Larger x + y is nearer the camera
+    // (it draws lower on screen), so near must carry smaller depth.
+    expect(worldDepth(10, 10, 64)).toBeLessThan(worldDepth(0, 0, 64));
   });
 
   it('keeps depth inside the clip range', () => {
@@ -2576,14 +2579,25 @@ export function worldToScreen(
 }
 
 /**
- * Depth for the depth buffer, in [0, 1]. Tiles farther from the camera
- * (lower x + y) get smaller values and therefore draw behind, since the
- * pipeline compares with 'less'. Using the depth buffer avoids sorting
- * entirely, which matters at high object counts.
+ * Depth for the depth buffer, in [0, 1].
+ *
+ * The pipeline compares with 'less' against a depth clear of 1.0, so the
+ * SMALLER value wins the pixel. Larger x + y is nearer the camera, since
+ * worldToScreen puts it lower on screen and the shader flips Y. Nearer
+ * must therefore carry the smaller depth, which is why this subtracts
+ * from 1 rather than returning the ratio directly.
+ *
+ * Getting this backwards is not subtle in effect: every entity would be
+ * occluded by whatever stands behind it. An earlier draft of this plan
+ * had it inverted, and its test asserted the negation of its own name,
+ * so it would have been permanently green. See lessons-learned [L16].
+ *
+ * Using the depth buffer at all avoids CPU-side sorting entirely, which
+ * is what makes high object counts cheap.
  */
 export function worldDepth(wx: number, wy: number, gridSize: number): number {
   const maxSum = Math.max(1, (gridSize - 1) * 2);
-  return Math.min(1, Math.max(0, (wx + wy) / maxSum));
+  return Math.min(1, Math.max(0, 1 - (wx + wy) / maxSum));
 }
 ```
 
@@ -2776,7 +2790,15 @@ import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
 import { FixedStepDriver, buildInstances } from './frame.js';
 
-const GRID = 32;
+// GRID is 16, not 32, so the lot actually fits the 1280x720 canvas.
+// Isometric extents are (GRID - 1) * 2 * TILE_HALF_WIDTH wide and
+// (GRID - 1) * 2 * TILE_HALF_HEIGHT tall, so 32 would be 1984 px wide
+// with its near corner at y = 1072 - most of the lot off screen. At 16
+// it is 960 by 480, which leaves room for the origin offset.
+//
+// Worth knowing because the symptom of getting this wrong looks like a
+// broken projection rather than a camera that is simply too zoomed in.
+const GRID = 16;
 const TICK_HZ = 10;
 const MAX_TICKS_PER_FRAME = 5;
 
