@@ -32,22 +32,53 @@ export const TILE_HALF_WIDTH = 32;
 export const TILE_HALF_HEIGHT = 16;
 
 /**
- * Converts world tile coordinates to screen pixels.
+ * Screen x for a world tile coordinate. The sign on `wy` is the whole
+ * difference between the two world axes; without it the diamond
+ * collapses onto one diagonal.
  *
- * Fractional inputs are expected and supported: Task 12 interpolates
+ * Fractional inputs are expected and supported: `frame.ts` interpolates
  * between the previous and current tick before calling this, so `wx` and
  * `wy` are usually between tiles rather than on one.
+ */
+export function screenX(wx: number, wy: number, originX: number): number {
+  return (wx - wy) * TILE_HALF_WIDTH + originX;
+}
+
+/**
+ * Screen y for a world tile coordinate. Both world axes increase
+ * downward, which is what makes x + y the nearness ordering `worldDepth`
+ * inverts.
+ */
+export function screenY(wx: number, wy: number, originY: number): number {
+  return (wx + wy) * TILE_HALF_HEIGHT + originY;
+}
+
+/**
+ * Both screen coordinates as a tuple. Reads better at a call site than
+ * two calls do, so it is what tests and any non-per-frame caller should
+ * use - but **not** the render loop.
  *
- * Returns a tuple rather than writing into an out-parameter, which is the
- * interface the plan specifies and which reads far better at the call
- * site. The array is a per-entity, per-frame allocation that V8's escape
- * analysis is expected to eliminate once this inlines into the frame loop
- * (it never escapes; Task 12 destructures it immediately). That is an
- * expectation, not a measurement - Task 13's perf harness is where it gets
- * one. If the allocation ever shows up in a profile, the fix is to add
- * scalar `screenX`/`screenY` helpers alongside this, not to reach for a
- * mutable shared tuple, which would be a per-entity JS object by another
- * name and is exactly what [D11] forbids.
+ * It delegates rather than repeating the arithmetic, so there is still
+ * exactly one definition of each axis and the tuple form cannot drift
+ * away from the scalar one.
+ *
+ * **Why the render loop calls the scalars instead.** This returns a
+ * per-entity, per-frame array. Through Task 13 that was excused on the
+ * grounds that the tuple never escapes and V8's escape analysis would
+ * eliminate it once this inlined into `buildInstances` - an expectation
+ * the comment here admitted was never measured. The M0 close-out
+ * measured it, and the expectation was wrong: V8's sampling heap
+ * profiler attributes **57.8 MB of allocation to `buildInstances` over
+ * 2,394 frames** at 1,002 entities, about 25 bytes per entity per frame,
+ * which is the tuple and nothing else. See [V11] in
+ * `docs/gpu-verification.md`, and [L20] for why the first run of that
+ * profile read zero.
+ *
+ * That is a straight violation of [D11]'s "no per-entity JS objects,
+ * ever", so `buildInstances` now calls `screenX`/`screenY` and allocates
+ * nothing per entity. Do not reach for a shared mutable tuple as the fix
+ * if this ever comes up again: that is a per-entity JS object by another
+ * name, plus aliasing.
  */
 export function worldToScreen(
   wx: number,
@@ -55,10 +86,7 @@ export function worldToScreen(
   originX: number,
   originY: number,
 ): [number, number] {
-  return [
-    (wx - wy) * TILE_HALF_WIDTH + originX,
-    (wx + wy) * TILE_HALF_HEIGHT + originY,
-  ];
+  return [screenX(wx, wy, originX), screenY(wx, wy, originY)];
 }
 
 /**
@@ -69,11 +97,17 @@ export function worldToScreen(
  * beats sorting well. That only works if the value has the right sense.
  *
  * `sprites.ts` configures `depthCompare: 'less'` against a clear value of
- * 1.0, so the **smaller** depth wins the pixel (measured causally in Task
- * 10 [V3]: two quads at one pixel, draw order held constant, only the
- * depths swapped, and the winner flipped). Tiles with a larger x + y sit
- * lower on the screen and are nearer the camera, so they take the smaller
- * value; the far corner at (0, 0) takes 1 and draws behind everything.
+ * 1.0, so the **smaller** depth wins the pixel (measured causally in
+ * `docs/gpu-verification.md` [V3]: two quads at one pixel, draw order
+ * held constant, only the depths swapped, and the winner flipped). Tiles
+ * with a larger x + y sit lower on the screen and are nearer the camera,
+ * so they take the smaller value; the far corner at (0, 0) takes 1 and
+ * draws behind everything.
+ *
+ * That cross-file contract is pinned mechanically as well as in prose:
+ * `iso.test.ts` reads `sprites.ts` as text and fails if the compare op,
+ * the clear value or `depthWriteEnabled` drifts from what this
+ * derivation assumes.
  *
  * The clamp is not decoration. A depth outside [0, 1] fails the clip test,
  * so the entity does not sort wrong, it vanishes - and `Math.max(1, ...)`

@@ -693,6 +693,25 @@ the suite never terminates. Restore from a scratchpad byte snapshot, never with
 `git checkout` ([L9]), and confirm `git hash-object` matches the pre-mutation
 value.
 
+**Addendum, M0 close-out: the restore must be in a `finally`, and the
+harness must not print.** Rule 1 above says to decode *subprocess* output
+with `errors="replace"`. That is not the whole of it - the harness then
+**printed** vitest's captured output to a cp1252 console, died with
+`UnicodeEncodeError` mid-report, and skipped its own restore, leaving
+`depthCompare: 'greater'` on disk. Caught by `git status`, so the cost was
+one minute, but the same crash one step earlier in a longer run is how a
+mutation gets committed.
+
+Two rules, and the second matters more than the first:
+
+1. **Write the report to a UTF-8 file and read it afterwards. Never
+   `print()` captured tool output on this machine.** Both directions of
+   the console codepage are hostile, not just the decode side.
+2. **Put the restore in a `finally`, so reporting cannot precede it.** The
+   restore is the invariant; the report is a side effect. Any harness
+   where a formatting bug can skip the restore is one exception away from
+   the [L9] failure it was written to avoid.
+
 ---
 
 ## [L16] The Task 11 brief shipped an inverted depth mapping and a test that pinned it
@@ -703,7 +722,8 @@ specified `return (wx + wy) / maxSum`, with a doc comment reading "Tiles farther
 from the camera (lower x + y) get smaller values and therefore draw behind,
 since the pipeline compares with 'less'." That sentence is self-refuting.
 `sprites.ts` sets `depthCompare: 'less'` against `depthClearValue: 1.0`, so the
-**smaller** depth wins the pixel; [L14]/[V3] measured exactly that. Smaller
+**smaller** depth wins the pixel; [L14] and [V3] in
+`docs/gpu-verification.md` measured exactly that. Smaller
 values draw **in front**, not behind. The prose states the correct intent and
 the code does the opposite of it.
 
@@ -848,7 +868,9 @@ but interpolate and draw. The single most expensive thing a frame can do had
 been sampled out of the statistic. Driving *harder* made the test *weaker*,
 which is the opposite of the intuition that a stress harness should run flat
 out. Re-measured at a realistic cadence, p95 moved from 0.255 ms to 1.335 ms -
-a 5x difference that changed no code.
+a 5x difference that changed no code. **Tick inclusion is not the whole of
+that 5x; see the magnitude correction below, which the project's own final
+numbers force.**
 
 This is the same family as [L5], [L6], [L7], [L11] and [L14]: the measurement
 was green because the expensive path was not in the sample. It is a new costume
@@ -874,7 +896,43 @@ see.
 `globalThis.__terriStress.step()` in a loop with no pacing; p95 reads about
 0.25 ms. Pace the same loop to one call per 16.667 ms and p95 reads about
 1.3 ms, against an identical build. The measured artefact is the harness, not
-the renderer.
+the renderer. **Expect that 1.3 ms not to reconcile with the headline 0.33 ms;
+the correction below is why, and reproducing the discrepancy is part of the
+procedure rather than a sign you did it wrong.**
+
+**Magnitude correction, M0 close-out review.** The entry above attributes the
+whole 0.255 -> 1.335 ms shift to tick frames entering the percentile
+population. The project's own final measurement rules that out. Over 7,202
+real rAF frames the **worst single frame of any kind was 0.805 ms**, and at
+120 fps a tick lands on 1 frame in 12, so tick frames are inside that sample
+and are bounded by it. A tick frame on this machine therefore costs **at most
+0.805 ms**, which is strictly less than the 1.335 ms the paced hidden-tab run
+reported for its p95. At least 0.5 ms of the 1.08 ms gap - **roughly half of
+it** - cannot be tick cost.
+
+The remainder is harness and hidden-tab overhead. Two plausible contributors,
+neither of which was isolated: a tab that is not composited runs at background
+scheduling priority, and 16.7 ms of idle between paced frames lets caches,
+branch predictors and clock speed go cold in a way that 0.14 ms of idle does
+not. [F6] in the Task 13 report blames the same environment for a single
+123.7 ms frame that never once appears under real rAF, so the environment is
+already known to inflate this statistic.
+
+**The rule is unchanged and still the valuable part:** compute the duty cycle
+of every periodic cost, check the percentile you are quoting sits above it,
+and say the achieved frame rate next to every frame-time number. What is
+withdrawn is the *number*. "Pacing the harness cost 5x" is not supported;
+"pacing the harness changed the statistic by 5x, of which roughly half is the
+harness measuring itself" is what the data says.
+
+The deeper form of the mistake is worth naming, because it is the same family
+as everything above: **a corrected measurement is still a measurement, and it
+needs its own control.** Having found one explanation that predicted the right
+direction, I stopped looking, and attributed 100% of an effect to a cause that
+could account for at most half of it. Rule 3 of `testing-protocol.md` applies
+to explanations too - name the alternative that predicts the same numbers,
+then find the observation that separates them. Here the separating
+observation already existed in the same report, three sections down.
 
 **Measured facts worth keeping, from the visible-Chrome run.** 1,002 entities,
 1280x720, release build: 7,202 rAF frames in 60.02 s (a sustained 120 fps, so
@@ -884,3 +942,90 @@ no frames dropped), mean 0.261 ms, p95 0.33 ms, p99 0.405 ms, max 0.805 ms,
 next reports 0.32 ms, so pipeline and JIT warm-up costs roughly one window and
 must be discarded rather than averaged in. JS heap oscillated between 1.84 and
 2.62 MB with no trend across 12 five-second marks.
+
+---
+
+## [L20] Two ways a browser probe silently measures something other than the page
+
+Both found during the M0 close-out, both in the same hour, both with the
+same shape as everything above: the probe ran, returned a number, and the
+number was about the wrong thing.
+
+### Half one: an edited module is a *different* module, so patching the class patches nobody
+
+To observe the shipped `requestAnimationFrame` loop without changing
+source, `SpriteRenderer.prototype.draw` and `SimBridge.prototype.tick`
+were patched from a dynamic import of the real modules - [L14] rule 1,
+and what Tasks 10 and 12 relied on. The tick patch worked and produced a
+complete 259-tick trace. **The draw patch counted zero, over 26 seconds
+in which the page demonstrably drew 3,104 times.**
+
+The cause is Vite's dev-server cache busting. A module the server has
+invalidated since start-up is served to importers under a **timestamped
+URL**, and a URL is a module's identity:
+
+```
+http://localhost:5173/src/render/sprites.ts?t=1785191946008   <- what main.ts got
+http://localhost:5173/src/render/sprites.ts                   <- what the probe got
+```
+
+Two URLs, two module records, two `SpriteRenderer` classes, two
+prototypes. `sprites.ts` had been edited during the session and
+`bridge.ts` had not, which is the entire reason one patch worked and the
+other did not. The `.js` and `.ts` specifiers are also distinct records
+(`sprites === (await import('/src/render/sprites.js'))` is **false**),
+so the same trap is reachable without editing anything.
+
+The dangerous direction is not the zero. It is a probe that builds a
+"real module" harness, gets a plausible number, and has actually
+measured a **second, parallel copy** of the code - possibly a stale one -
+while believing it observed the page.
+
+**Prevention rule:**
+
+1. **Count frames with platform globals, not module exports.**
+   `GPURenderPassEncoder.prototype.draw` and `GPUQueue.prototype.submit`
+   have exactly one identity per page and cannot be duplicated by a
+   bundler. They are also closer to the claim: what reached the GPU.
+2. **Any module-identity probe must assert its own identity**, by
+   observing something only the page's instance can produce. The tick
+   patch was self-verifying by accident - it returned the page's real
+   agent walking the page's real lot - and the draw patch was not.
+3. **Dump `performance.getEntriesByType('resource')` when a probe reads
+   zero**, before believing the zero. The two URLs are right there.
+4. Restarting the dev server clears the timestamps, which fixes it and
+   also hides it. Prefer rule 1.
+
+### Half two: the heap profiler hides exactly the allocations you are hunting
+
+[D11] forbids per-entity allocation on the render path, and the question
+was whether `worldToScreen`'s returned tuple survives escape analysis.
+The first CDP sampling run reported **0 sampled bytes over 2,395 frames**
+of a full web page - which was caught only because a page allocating
+literally nothing for twenty seconds is not a plausible reading.
+
+`HeapProfiler.startSampling` takes `includeObjectsCollectedByMajorGC` and
+`includeObjectsCollectedByMinorGC`, and **both default to false**. The
+default profile is therefore *surviving* allocations only, so a
+short-lived per-frame temporary that the scavenger reaps is reported as
+zero bytes. That is precisely the "nothing allocates" versus "the
+scavenger keeps up" ambiguity the profile exists to settle, and the
+default answers it wrong in the reassuring direction.
+
+With both flags true the same page reported 58.54 MB, of which **57.76 MB
+was the tuple**. The expectation that escape analysis would eliminate it
+was simply false. See [V11] in `docs/gpu-verification.md`.
+
+**Prevention rule:** when a measurement of a *hot* path returns zero,
+treat the instrument as the suspect before the code. State the expected
+magnitude first - here, 2.4 million calls times a few tens of bytes,
+which is tens of megabytes and thousands of samples - so that "zero" is
+recognisable as impossible rather than as good news. An instrument
+configured to exclude the phenomenon under study is the same failure as a
+test that cannot fail.
+
+**How to verify:** revert `buildInstances` to call `worldToScreen` and
+re-run the profile on `?stress=1000` with both include flags set;
+`buildInstances` reads tens of MB. Drop the flags and it reads 0 with the
+identical code. The two configurations disagree about the same program,
+and only one of them is answering the question asked.

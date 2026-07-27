@@ -249,6 +249,24 @@ This is called out as its own section because it is the most likely place for
 the design to quietly rot into slowness. It must be deliberate rather than
 emergent. Tracked as [R1].
 
+**"No per-entity JS objects, ever" is now measured rather than asserted, and
+it had already been broken once.** `worldToScreen` returned a two-element
+array per entity per frame, excused on the expectation that V8's escape
+analysis would eliminate it. A sampling heap profile at 1,002 entities
+attributed **57.8 MB over 2,394 frames** to that array - about 25 bytes per
+entity per frame - so the expectation was simply wrong. The render loop now
+calls scalar helpers and the same profile reads 0.38 MB, which is the three
+typed-array views the bridge must rebuild every call and must never cache.
+See [V11] in `docs/gpu-verification.md`, and [L20] for the profiler flag that
+made the first run of that measurement report zero.
+
+The general rule this leaves behind: **a frame-time budget and a JS heap
+trend both pass while this rule is being broken.** Task 13's numbers were
+green throughout the 57.8 MB period, because 2.9 MB/s of short-lived garbage
+is invisible to a p95 and to a heap that the scavenger keeps flat. Only an
+allocation profile can see it, so only an allocation profile counts as
+evidence here.
+
 ## [D13] Ghost pipeline (Layer 1 multiplayer)
 
 When a sim dies, the game exports a **Ghost Record**: identity, appearance,

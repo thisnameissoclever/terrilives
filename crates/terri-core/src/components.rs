@@ -58,12 +58,15 @@ pub struct Path {
 }
 
 impl Path {
+    /// The tile to walk to next, or `None` once the path is exhausted.
+    ///
+    /// There is deliberately no `is_complete`. `follow_path` asks the same
+    /// question as `next_step().is_none()`, and two ways to ask one
+    /// question is a future divergence: an off-by-one fixed in one and not
+    /// the other would leave an agent that both has a step to take and is
+    /// finished. The `None` case is the completion signal.
     pub fn next_step(&self) -> Option<(i32, i32)> {
         self.steps.get(self.cursor).copied()
-    }
-
-    pub fn is_complete(&self) -> bool {
-        self.cursor >= self.steps.len()
     }
 }
 

@@ -13,6 +13,16 @@ import shaderSource from './sprites.wgsl?raw';
 const INITIAL_CAPACITY = 4096;
 
 /**
+ * The quad edge in screen pixels, uploaded as `Uniforms.tileSize` and
+ * multiplied by the unit `CORNERS` in `sprites.wgsl`.
+ *
+ * Named because [V2] in `docs/gpu-verification.md` asserts a hardware
+ * pixel count of exactly 576 against it: 24 x 24. A silent edit here
+ * changes what that measurement means.
+ */
+const QUAD_SIZE_PX = 24;
+
+/**
  * Draws every entity in a single instanced draw call. Depth comes from
  * the instance's z, so no CPU-side sorting is needed. See [D10]: at
  * 100k objects, not sorting beats sorting well.
@@ -29,6 +39,30 @@ export class SpriteRenderer {
   private uniformBuffer: GPUBuffer;
   private bindGroup: GPUBindGroup;
   private depthTexture: GPUTexture | null = null;
+
+  /**
+   * Scratch for the per-frame uniform upload, allocated once and mutated
+   * in place. Layout matches `struct Uniforms` in `sprites.wgsl`:
+   * viewport x, viewport y, tile width, tile height.
+   *
+   * [D11] forbids per-frame allocation on the render path, and this is
+   * the one allocation there that **no optimiser can remove**: the array
+   * is handed to `writeBuffer`, so it escapes into a call the engine
+   * cannot see through. It was a fresh `new Float32Array([...])` every
+   * frame until the M0 close-out review; at 120 fps that was 120 escaping
+   * 16-byte allocations a second, for four numbers of which two change.
+   *
+   * The viewport pair is rewritten each frame rather than cached because
+   * the canvas can be resized under the caller at any time, and a stale
+   * viewport silently rescales every quad's clip-space position instead
+   * of erroring.
+   */
+  private readonly uniformData = new Float32Array([
+    0,
+    0,
+    QUAD_SIZE_PX,
+    QUAD_SIZE_PX,
+  ]);
 
   constructor(private readonly gpu: GpuContext) {
     const module = gpu.device.createShaderModule({ code: shaderSource });
@@ -108,11 +142,9 @@ export class SpriteRenderer {
     this.ensureCapacity(count);
 
     const canvas = this.gpu.context.canvas as HTMLCanvasElement;
-    this.gpu.device.queue.writeBuffer(
-      this.uniformBuffer,
-      0,
-      new Float32Array([canvas.width, canvas.height, 24, 24]),
-    );
+    this.uniformData[0] = canvas.width;
+    this.uniformData[1] = canvas.height;
+    this.gpu.device.queue.writeBuffer(this.uniformBuffer, 0, this.uniformData);
     // dataOffset and size are in elements for a TypedArray source, so the
     // caller's scratch buffer may be longer than the live entity count.
     this.gpu.device.queue.writeBuffer(

@@ -6,7 +6,7 @@
  * testable in Node. `main.ts` is the thin wiring that does.
  */
 
-import { worldToScreen, worldDepth } from './render/iso.js';
+import { screenX, screenY, worldDepth } from './render/iso.js';
 import {
   FLOATS_PER_INSTANCE,
   writeInstance,
@@ -133,15 +133,21 @@ export function buildInstances(
   for (let i = 0; i < count; i++) {
     const wx = lerp(previous[i * 2], current[i * 2], alpha);
     const wy = lerp(previous[i * 2 + 1], current[i * 2 + 1], alpha);
-    const [screenX, screenY] = worldToScreen(wx, wy, originX, originY);
+    // Two scalar calls rather than the `worldToScreen` tuple. The tuple
+    // is one JS array per entity per frame, and the M0 close-out profile
+    // measured V8 keeping every one of them - 57.8 MB over 2,394 frames
+    // at 1,002 entities - rather than eliminating them by escape
+    // analysis as this loop used to assume. [D11] says no per-entity JS
+    // objects, ever; `docs/gpu-verification.md` [V11] is the measurement.
+    //
     // Depth from the interpolated position, not from the current tick:
     // sorting an entity as though it were a tile ahead of where it is
     // drawn flickers rather than sorting stably wrong.
     writeInstance(
       scratch,
       i,
-      screenX,
-      screenY,
+      screenX(wx, wy, originX),
+      screenY(wx, wy, originY),
       worldDepth(wx, wy, gridSize),
       kinds[i],
     );

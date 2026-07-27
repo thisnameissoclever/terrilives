@@ -1,8 +1,5 @@
 crates/terri-core/src/clock.rs:32:9: replace SimClock::is_hour_boundary -> bool with false
 crates/terri-core/src/clock.rs:32:9: replace SimClock::is_hour_boundary -> bool with true
-crates/terri-core/src/components.rs:66:21: replace >= with < in Path::is_complete
-crates/terri-core/src/components.rs:66:9: replace Path::is_complete -> bool with false
-crates/terri-core/src/components.rs:66:9: replace Path::is_complete -> bool with true
 crates/terri-core/src/grid.rs:102:43: replace + with - in TileGrid::find_path
 crates/terri-core/src/grid.rs:102:63: replace + with - in TileGrid::find_path
 crates/terri-core/src/grid.rs:115:44: replace + with * in TileGrid::find_path

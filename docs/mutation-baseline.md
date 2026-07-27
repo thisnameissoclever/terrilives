@@ -14,6 +14,13 @@ originally 83%. The narrative below still describes the 26-survivor
 state; five more were closed by Tasks 8 through 13, chiefly the
 `std::mem::swap` and boundary-validation work.
 
+**Amended at the M0 close-out.** Deleting `Path::is_complete` removed
+three mutants from the codebase entirely, so the sweep above no longer
+reproduces exactly: expect **234 mutants and 18 missed**, and a score of
+92% (209 of 227 viable). The baseline file was edited to match. A count
+that moves because the code moved is the only reason it may move without
+a re-run recorded here.
+
 ## The machine-readable baseline is `docs/mutants-baseline.txt`
 
 That file, not this one, is what CI compares against. It is the sorted
@@ -87,17 +94,27 @@ Two details worth keeping if these tests are ever edited:
   construction - the test asserts the bit equality as a precondition, so
   it will say so rather than quietly becoming an ordinary inequality.
 
-## Group A: dead or not-yet-consumed code (9 mutants)
+## Group A: dead or not-yet-consumed code (6 mutants)
 
-Nothing tests these because nothing *uses* them. All three were independently
+Nothing tests these because nothing *uses* them. Both were independently
 flagged in human code review before the tool existed, which is a useful
 cross-check that reviewers and the tool see the same territory.
 
 | Location | Note |
 |---|---|
 | `clock.rs:32` `is_hour_boundary` (2) | No consumer until M3 Tier 2 story progression |
-| `components.rs:66` `Path::is_complete` (3) | Genuinely redundant; `follow_path` uses `next_step().is_none()` |
 | `grid.rs:28,32` `width`/`height` (4) | Unused accessors |
+
+**`components.rs:66` `Path::is_complete` (3) was deleted rather than
+baselined,** in the M0 close-out. It asked exactly the question
+`follow_path` already asks as `next_step().is_none()`, so it was three
+survivors guarding a second way to ask one question - the shape that
+diverges the first time somebody fixes an off-by-one in one of them. The
+three entries are gone from `docs/mutants-baseline.txt` as well; deleting
+the code is the only baseline removal that needs no argument.
+
+`width`/`height` are kept deliberately. They are harmless accessors over
+fields that already exist, and M1's camera work consumes them.
 
 ## Group B: real test gaps (16 mutants)
 

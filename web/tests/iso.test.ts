@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import {
   worldToScreen,
+  screenX,
+  screenY,
   worldDepth,
   TILE_HALF_WIDTH,
   TILE_HALF_HEIGHT,
@@ -10,7 +13,8 @@ import {
 // in Node. That makes it the module where the protocol's standing question
 // - "which specific mutation would make this test fail?" - has to be
 // answered for every assertion, because there is no browser check standing
-// behind these the way [V1]-[V5] stand behind sprites.ts.
+// behind these the way [V1]-[V5] in `docs/gpu-verification.md` stand
+// behind sprites.ts.
 //
 // Screen space grows downward; sprites.wgsl flips Y on the way to clip
 // space. So "down the screen" below means +y, and it is also the direction
@@ -59,6 +63,29 @@ describe('worldToScreen', () => {
     // Doubling the world coordinates doubles the offset from the origin,
     // which excludes a per-tile constant step masquerading as a scale.
     expect(worldToScreen(4, 6, 100, 50)).toEqual([36, 210]);
+  });
+
+  it('agrees with the scalar helpers the render loop actually calls', () => {
+    // `buildInstances` calls `screenX`/`screenY` and never the tuple,
+    // because the tuple is a per-entity JS object and [D11] forbids one
+    // ([V11] measured 57.8 MB of them over 2,394 frames before the
+    // change). Every other assertion in this file exercises the tuple,
+    // so if the two forms ever diverge, the render path is untested and
+    // this file is testing something the game does not run.
+    //
+    // Tautological only while `worldToScreen` delegates. It stops being
+    // tautological the moment someone re-inlines the arithmetic into it,
+    // which is exactly the edit this is here to catch.
+    for (const [wx, wy, ox, oy] of [
+      [0, 0, 0, 0],
+      [2, 3, 100, 50],
+      [-4.5, 6.25, 640, 80],
+    ]) {
+      expect(worldToScreen(wx, wy, ox, oy)).toEqual([
+        screenX(wx, wy, ox),
+        screenY(wx, wy, oy),
+      ]);
+    }
   });
 
   it('pins the 2 to 1 tile ratio that the fixed camera angle is', () => {
@@ -125,5 +152,64 @@ describe('worldDepth', () => {
     expect(worldDepth(0, 0, 1)).toBe(1);
     expect(worldDepth(0, 0, 0)).toBe(1);
     expect(Number.isFinite(worldDepth(5, 5, 1))).toBe(true);
+  });
+});
+
+describe('depth sense contract with the render pipeline', () => {
+  // `worldDepth` returns `1 - nearness`, and every assertion in the block
+  // above derives from that. **Nothing in `iso.ts` makes that the right
+  // sense.** It is right only because `sprites.ts` configures the pipeline
+  // to compare with 'less' against a clear value of 1.0, so the smaller
+  // depth wins the pixel. Change those two settings to 'greater' and 0.0
+  // and every other test in this repository stays green while occlusion
+  // inverts for every entity in the game: a sim standing in front of the
+  // fridge would be drawn inside it. That inversion already shipped once,
+  // in the Task 11 brief, together with a test that pinned it - [L16].
+  //
+  // So this reads `sprites.ts` as text, the same mechanism
+  // `instances.test.ts` uses to tie the WGSL declarations to the
+  // TypeScript constants, and for the same reason: CI has no GPU, and the
+  // contract spans two files that the type system does not connect.
+  // `number` in [0, 1] is `number` in [0, 1].
+  //
+  // The hardware evidence that 'less' plus a 1.0 clear really does mean
+  // "smaller wins" is [V3] in `docs/gpu-verification.md`: two quads on one
+  // pixel, draw order held constant, only the depths swapped, and the
+  // winner flipped.
+  //
+  // If you deliberately move the pipeline to a reversed-Z convention, this
+  // test is the checklist: flip `worldDepth` to return `nearness`, flip the
+  // three expectations in `worldDepth`'s own tests, and update this one.
+  // Changing any one of those alone is the bug.
+  const sprites = readFileSync('src/render/sprites.ts', 'utf8');
+
+  it('declares exactly one depth compare, and it is the less-than that worldDepth assumes', () => {
+    const compares = [...sprites.matchAll(/depthCompare:\s*'([a-z-]+)'/g)];
+    // Rule 5, and it is not hypothetical here: a rename or a reformat
+    // could stop the regex matching, and a zero-match assertion on the
+    // captured value would then pass while comparing nothing. Requiring
+    // exactly one also means a second pipeline with a different sense
+    // fails rather than hiding behind the first match.
+    expect(compares).toHaveLength(1);
+    expect(compares[0][1]).toBe('less');
+  });
+
+  it('clears the depth buffer to the far plane, so an undrawn pixel loses to everything', () => {
+    // 1.0 is the far end under 'less'. Clearing to 0.0 would make the
+    // cleared buffer beat every quad and nothing would draw at all; a
+    // clear anywhere in between silently culls the far half of the lot.
+    const clears = [...sprites.matchAll(/depthClearValue:\s*([\d.]+)/g)];
+    expect(clears).toHaveLength(1);
+    expect(Number(clears[0][1])).toBe(1.0);
+  });
+
+  it('writes depth as well as testing it, so the first quad can occlude the second', () => {
+    // With `depthWriteEnabled: false` the compare op above still runs but
+    // every fragment tests against the cleared value, so the depth buffer
+    // is inert and painter's order decides. That is the failure [V3] was
+    // designed to detect on hardware; this is its CI-side counterpart.
+    const writes = [...sprites.matchAll(/depthWriteEnabled:\s*(true|false)/g)];
+    expect(writes).toHaveLength(1);
+    expect(writes[0][1]).toBe('true');
   });
 });
