@@ -231,6 +231,24 @@ mod tests {
     }
 
     #[test]
+    fn tie_breaking_pins_one_specific_path_among_equals() {
+        // A diagonal query on an open grid has many equally short paths,
+        // so which one comes back is decided entirely by the f-score tie
+        // break on tile index in OpenNode::cmp.
+        //
+        // This is a golden assertion, and it is the only test that covers
+        // that tiebreak. Deleting the .then_with(...) line leaves every
+        // other test in this file green: BinaryHeap is deterministic for
+        // a fixed push order, so comparing two calls in one process can
+        // never observe the difference. What the tiebreak actually buys
+        // is stability across Rust versions and across future changes to
+        // push order, which is what Task 7's cross-run world hash needs.
+        let grid = TileGrid::new(5, 5);
+        let path = grid.find_path((0, 0), (2, 2)).expect("path exists");
+        assert_eq!(path, vec![(1, 0), (2, 0), (2, 1), (2, 2)]);
+    }
+
+    #[test]
     #[should_panic(expected = "outside the 5x5 grid")]
     fn set_blocked_rejects_out_of_bounds() {
         // Without the bounds check this silently blocks (0, 2) instead.
