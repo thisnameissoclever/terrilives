@@ -32,7 +32,18 @@ impl TileGrid {
         self.height
     }
 
+    /// Panics if the tile is outside the grid. That is deliberate: the
+    /// naive `y * width + x` silently addresses the wrong row when x is
+    /// out of range rather than failing, so an off-by-one in lot setup
+    /// would block an unrelated tile and surface much later as an
+    /// inexplicable pathfinding bug.
     pub fn set_blocked(&mut self, x: usize, y: usize, blocked: bool) {
+        assert!(
+            x < self.width && y < self.height,
+            "set_blocked({x}, {y}) is outside the {}x{} grid",
+            self.width,
+            self.height
+        );
         let idx = y * self.width + x;
         self.blocked[idx] = blocked;
     }
@@ -206,6 +217,23 @@ mod tests {
         grid.set_blocked(5, 5, true);
         let a = grid.find_path((0, 0), (11, 11));
         let b = grid.find_path((0, 0), (11, 11));
-        assert_eq!(a, b);
+
+        // Assert a real path exists before comparing. Two Nones compare
+        // equal, so without this the test would pass vacuously if
+        // pathfinding broke entirely - green while protecting nothing.
+        // See lessons-learned [L3].
+        let steps = a.as_ref().expect("a path exists across an open grid");
+        assert_eq!(steps.len(), 22, "expected a Manhattan-optimal path");
+        assert_eq!(*steps.last().unwrap(), (11, 11));
+        assert!(!steps.contains(&(0, 0)), "path must exclude the start tile");
+
+        assert_eq!(a, b, "identical queries must return identical paths");
+    }
+
+    #[test]
+    #[should_panic(expected = "outside the 5x5 grid")]
+    fn set_blocked_rejects_out_of_bounds() {
+        // Without the bounds check this silently blocks (0, 2) instead.
+        TileGrid::new(5, 5).set_blocked(5, 1, true);
     }
 }
