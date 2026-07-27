@@ -2812,7 +2812,12 @@ async function main(): Promise<void> {
   const renderer = new SpriteRenderer(gpu);
   const bridge = new SimBridge(new SimHandle(GRID, GRID));
 
-  bridge.spawnObject(24, 20);
+  // Both must sit inside the GRID x GRID lot. Out-of-bounds tiles are
+  // unwalkable, so find_path returns None every tick and the agent
+  // simply never moves - no panic, no log. That presents as "the
+  // renderer is broken" rather than "the fridge is off the lot", which
+  // is a genuinely expensive misdiagnosis. See lessons-learned [L17].
+  bridge.spawnObject(12, 10);
   bridge.spawnAgent(2, 3, 25);
 
   const driver = new FixedStepDriver(TICK_HZ, MAX_TICKS_PER_FRAME);
@@ -2968,7 +2973,12 @@ Replace the two spawn lines with:
 ```ts
   // ?stress=1000 spawns idle entities to exercise the M0 exit criterion.
   const stress = Number(new URLSearchParams(location.search).get('stress') ?? 0);
-  bridge.spawnObject(24, 20);
+  // Both must sit inside the GRID x GRID lot. Out-of-bounds tiles are
+  // unwalkable, so find_path returns None every tick and the agent
+  // simply never moves - no panic, no log. That presents as "the
+  // renderer is broken" rather than "the fridge is off the lot", which
+  // is a genuinely expensive misdiagnosis. See lessons-learned [L17].
+  bridge.spawnObject(12, 10);
   bridge.spawnAgent(2, 3, 25);
   for (let i = 0; i < stress; i++) {
     // Hunger is high so these stay idle and do not all path at once;
