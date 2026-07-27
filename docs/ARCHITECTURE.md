@@ -309,7 +309,9 @@ Deliberately minimal. This is content sync, not a game server, and there is no
 real-time or authoritative simulation anywhere in it.
 
 - Object storage for Ghost Records, plus a small API to upload and to fetch a
-  curated set.
+  curated set. Account setup and the upload-identity decision are TIM-TODO
+  [T16]; the privacy policy and published moderation rules that must ship
+  alongside are [T14] and [T15].
 - Reading ghosts requires no account. **Uploading requires a lightweight
   identity**, so that bans have something durable to attach to. See [R9].
 - **Moderation is report-driven and retroactive, not filter-based.** No

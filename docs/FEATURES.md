@@ -95,6 +95,10 @@ The signature feature, and asynchronous throughout, so no clock coupling.
 
 **The game remains fully playable offline. Ghosts are strictly additive.**
 
+M4 also has non-code prerequisites that take longer than expected and block
+launch rather than development: a privacy policy [T14], published moderation
+rules [T15], and storage plus upload identity [T16]. See TIM-TODO.md.
+
 ## Explicitly out of scope for v1
 
 Listed so the boundary is a decision rather than a drift. Each is designed for
