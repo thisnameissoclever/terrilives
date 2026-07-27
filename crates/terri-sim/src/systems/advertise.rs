@@ -149,6 +149,32 @@ mod tests {
     }
 
     #[test]
+    fn the_time_cost_offset_is_added_rather_than_subtracted() {
+        // `zero_cost_interaction_stays_finite` above cannot tell `+ 1.0`
+        // from `- 1.0`: at zero time cost the subtracting version divides
+        // by -1.0, which is finite, merely negated. So the test that
+        // exists to protect the denominator guard passes with the guard
+        // inverted. Two consequences pin the sign instead.
+        //
+        // First, a time cost of exactly 1.0 - one tick of interaction and
+        // no travel at all - is where subtracting actually divides by
+        // zero. This is reachable content, not a contrived input: a
+        // one-tick object an agent is already standing on.
+        let unit_cost = score_advertisement(1.0, 35.0, 1, 0.0);
+        assert!(
+            unit_cost.is_finite(),
+            "a unit time cost must not divide by zero; got {unit_cost}"
+        );
+        assert_eq!(unit_cost, 17.5, "1.0^3 * 35.0 / (1.0 + 1.0)");
+
+        // Second, a genuinely free interaction must score its full
+        // benefit rather than the negation of it. A negative score loses
+        // every `>` in selection, so the object would be silently
+        // invisible instead of irresistible.
+        assert_eq!(score_advertisement(1.0, 35.0, 0, 0.0), 35.0);
+    }
+
+    #[test]
     fn closer_objects_score_higher() {
         let near = score_advertisement(0.5, 35.0, 15, 1.0);
         let far = score_advertisement(0.5, 35.0, 15, 40.0);
