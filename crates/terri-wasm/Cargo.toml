@@ -1,0 +1,11 @@
+[package]
+name = "terri-wasm"
+edition.workspace = true
+version.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+terri-core = { path = "../terri-core" }
+wasm-bindgen = { workspace = true }

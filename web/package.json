@@ -1,0 +1,16 @@
+{
+  "name": "terrilives-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "vite": "^5.4.0",
+    "vitest": "^2.0.0",
+    "@webgpu/types": "^0.1.44"
+  }
+}
