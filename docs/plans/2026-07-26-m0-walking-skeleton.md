@@ -651,6 +651,10 @@ impl Sim {
         world.register_component::<terri_core::Position>();
         world.register_component::<terri_core::Agent>();
         world.register_component::<terri_core::Hunger>();
+        // Task 6 must extend this list with SmartObject, Reserved, Path,
+        // Target, and Eating as it introduces them. Forgetting one is
+        // silent: try_query yields None and the determinism hash sees
+        // zero rows.
 
         let mut schedule = Schedule::default();
         // M0 runs single-threaded on purpose. Parallelism is [A9]/[D4]
@@ -1090,7 +1094,12 @@ const DEFICIT_EXPONENT: f32 = 3.0;
 
 /// Tiles per tick an agent walks. Used to convert distance into a time
 /// cost so travel and duration are commensurable.
-const TILES_PER_TICK: f32 = 0.25;
+///
+/// Public and shared on purpose: Task 6's movement system consumes this
+/// same constant rather than declaring its own. If the two ever drift,
+/// the scoring function's travel estimate silently becomes a lie and no
+/// test fails.
+pub const TILES_PER_TICK: f32 = 0.25;
 
 /// Score one advertised interaction for one agent. Higher wins.
 ///
@@ -1347,6 +1356,13 @@ pub fn select_action(
             if claimed.contains(&object) {
                 continue;
             }
+            // Euclidean straight-line distance, deliberately, not A*
+            // path length. Scoring runs against every candidate object
+            // every tick, so pathing each one first would be far too
+            // expensive. The cost is that an object one tile away
+            // through a wall scores as near and is then walked around.
+            // Acceptable in M0's single open room; revisit when [D7]'s
+            // room and portal graph lands and walls become common.
             let dx = object_pos.x - agent_pos.x;
             let dy = object_pos.y - agent_pos.y;
             let distance = (dx * dx + dy * dy).sqrt();
@@ -1396,9 +1412,12 @@ pub fn select_action(
 use bevy_ecs::prelude::*;
 use terri_core::{Eating, Path, Position, SmartObject, Target};
 
-/// Tiles travelled per tick. Matches TILES_PER_TICK in advertise.rs so
-/// the scoring function's travel estimate stays honest.
-const SPEED: f32 = 0.25;
+use super::advertise::TILES_PER_TICK;
+
+/// Tiles travelled per tick. Imported rather than redeclared so the
+/// scoring function's travel estimate cannot silently drift out of step
+/// with actual movement.
+const SPEED: f32 = TILES_PER_TICK;
 
 /// Advances agents along their path. On arrival, converts the target
 /// into an in-progress interaction.
