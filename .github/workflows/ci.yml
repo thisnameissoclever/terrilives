@@ -60,11 +60,17 @@ jobs:
   # three times, because the family does not look like itself. This is the
   # mechanical backstop. See docs/testing-protocol.md.
   #
-  # --in-diff restricts mutants to lines the PR actually changed, which
-  # keeps runtime proportional to the change rather than the codebase and
-  # means the gate is "no NEW survivors" rather than "zero survivors". A
-  # wall of known noise gets ignored, which is the exact failure mode this
-  # whole gate exists to prevent.
+  # The gate is "no NEW survivors", not "zero survivors". It runs a full
+  # sweep and compares the survivor list against a committed baseline,
+  # rather than using --in-diff to restrict mutants to changed lines.
+  #
+  # --in-diff was tried first and is the wrong tool here. It implements
+  # "no new survivors" only by proxy, and that proxy breaks on the one PR
+  # that introduces the whole codebase: the diff is everything, so the run
+  # degenerates into a full sweep and fails on accepted debt. Diffing
+  # against a checked-in baseline needs no special case, and it turns the
+  # known survivors into reviewable data instead of a number in a doc that
+  # nothing enforces.
   #
   # --test-workspace true is load-bearing, not tidiness. By default each
   # mutant is tested only against its own package's suite, so a mutation in
@@ -75,37 +81,46 @@ jobs:
   mutants:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
-    # TEMPORARY, remove once this branch has merged to main.
-    #
-    # --in-diff makes the gate "no new survivors" by restricting mutants to
-    # lines the PR touched. That works for an incremental PR. It does not
-    # work for the very first one, which introduces the entire codebase:
-    # the diff is everything, so the run degenerates into a full sweep and
-    # fails on the 26 known survivors documented in docs/mutation-baseline.md.
-    #
-    # Those 26 are accepted debt, not regressions, so blocking on them here
-    # would be reporting a fact as a failure. The job still runs and still
-    # reports, it just does not block. Every subsequent PR has a real base
-    # to diff against, at which point this line must come off or the gate
-    # becomes the wall of ignorable noise it was designed to avoid.
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: dtolnay/rust-toolchain@stable
       - name: Install cargo-mutants
         run: cargo install cargo-mutants --locked
-      - name: Compute PR diff
+      # cargo-mutants exits 2 whenever any mutant survives, so its exit
+      # code cannot be the signal for a no-new-survivors gate. The
+      # comparison in the next step is.
+      - name: Full mutation sweep
+        run: |
+          cargo mutants --package terri-core --package terri-sim \
+            --test-workspace true --timeout 60 || true
+      - name: Fail on survivors not in the baseline
         run: |
           set -eu
-          git diff "origin/${{ github.base_ref }}"... > pr.diff
-          wc -l pr.diff
-      - name: Test mutants introduced by this PR
-        run: |
-          cargo mutants --in-diff pr.diff \
-            --package terri-core --package terri-sim \
-            --test-workspace true --timeout 60
+          sort mutants.out/missed.txt > actual.txt
+          sort docs/mutants-baseline.txt > baseline.txt
+
+          new=$(comm -23 actual.txt baseline.txt)
+          if [ -n "$new" ]; then
+            echo "NEW surviving mutants, absent from docs/mutants-baseline.txt:"
+            printf '%s\n' "$new"
+            echo ""
+            echo "Each is behaviour that nothing constrains. Either add a test"
+            echo "that kills it, or - if it is genuinely an equivalent mutant -"
+            echo "add it to the baseline with the argument written down in"
+            echo "docs/mutation-baseline.md. Do not add it silently."
+            exit 1
+          fi
+
+          echo "No new survivors. Baseline holds at $(wc -l < baseline.txt)."
+
+          # A baseline that only ever grows becomes a permission slip, so
+          # report entries that are now caught. Not a failure; a nudge.
+          fixed=$(comm -13 actual.txt baseline.txt)
+          if [ -n "$fixed" ]; then
+            echo ""
+            echo "These baseline entries are now caught and should be removed:"
+            printf '%s\n' "$fixed"
+          fi
       - name: Upload mutants report
         if: always()
         uses: actions/upload-artifact@v4

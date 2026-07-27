@@ -6,15 +6,32 @@ distance and comparison gaps. Previous baseline: 2026-07-27 at commit
 
 ```
 cargo mutants --package terri-core --package terri-sim --test-workspace true --timeout 60
-236 mutants tested in 7m: 26 missed, 203 caught, 7 unviable
+237 mutants tested in 9m: 21 missed, 209 caught, 7 unviable
 ```
 
-**Mutation score: 89%** (203 caught of 229 viable), up from 83%
-(189 of 229). Fourteen survivors closed, none added.
+**Mutation score: 91%** (209 caught of 230 viable), up from 89% and
+originally 83%. The narrative below still describes the 26-survivor
+state; five more were closed by Tasks 8 through 13, chiefly the
+`std::mem::swap` and boundary-validation work.
 
-CI gates on **no new** survivors via `--in-diff`, not on zero survivors.
-This list is the accepted debt. Anything here is a known gap,
-deliberately recorded rather than silently tolerated.
+## The machine-readable baseline is `docs/mutants-baseline.txt`
+
+That file, not this one, is what CI compares against. It is the sorted
+contents of `mutants.out/missed.txt` from a full sweep. **This document
+is the argument; that file is the contract.**
+
+CI runs a full sweep and fails only on survivors **absent from the
+baseline**. It also reports baseline entries that are now caught, so the
+file cannot quietly rot into a permission slip that only ever grows.
+
+`--in-diff` was tried first and abandoned. It approximates "no new
+survivors" by restricting mutants to changed lines, which breaks on the
+one PR that introduces the whole codebase: the diff is everything, the
+run degenerates into a full sweep, and it fails on accepted debt.
+Diffing against a committed baseline needs no special case.
+
+**Adding an entry to the baseline is a deliberate act.** Record why here
+before doing it, and prefer killing the mutant.
 
 ## A trap worth knowing before you run this yourself
 
