@@ -819,3 +819,68 @@ with the reasoning next to it.
 **How to verify:** replace `stored(...)` with its argument in any of the three
 depth assertions in `web/tests/frame.test.ts`; the test fails on the f32
 rounding rather than on anything about the code under test.
+
+---
+
+## [L19] A perf harness running faster than reality hides every periodic cost
+
+**What happened:** Task 13's first measurement of the M0 exit criterion drove
+the frame body flat out from a hidden tab, per [L14]'s rule that you must drive
+the draw yourself rather than trust `requestAnimationFrame`. It produced
+141,767 frames in 20 seconds - **7,088 fps** - and reported p95 0.255 ms
+against a 16.6 ms budget. Every number was real, the draw call really ran, and
+the conclusion was still not supported.
+
+**Root cause, and it is arithmetic rather than tooling.** The simulation ticks
+at a fixed 10 Hz, and `FixedStepDriver` decides how many ticks a frame owes
+from **elapsed wall time**. So the tick rate is 10 per second no matter how
+fast frames are produced, and the *proportion of frames that pay for a tick* is
+`10 / fps`:
+
+| drive rate | frames that tick | is a tick frame inside p95? |
+| --- | --- | --- |
+| 60 fps | 1 in 6, 16.7% | yes, comfortably |
+| 120 fps | 1 in 12, 8.3% | yes, p95 sits inside the slowest 8.3% |
+| 7,088 fps | 1 in 709, 0.14% | **no** - not until about p99.9 |
+
+At 7,088 fps the 95th percentile lands entirely among frames that did nothing
+but interpolate and draw. The single most expensive thing a frame can do had
+been sampled out of the statistic. Driving *harder* made the test *weaker*,
+which is the opposite of the intuition that a stress harness should run flat
+out. Re-measured at a realistic cadence, p95 moved from 0.255 ms to 1.335 ms -
+a 5x difference that changed no code.
+
+This is the same family as [L5], [L6], [L7], [L11] and [L14]: the measurement
+was green because the expensive path was not in the sample. It is a new costume
+because nothing was broken, mocked, or skipped - the harness simply chose a
+frame rate, and the frame rate silently chose which costs the percentile could
+see.
+
+**Prevention rule:**
+
+1. **A frame-time percentile is only meaningful at the frame rate it will ship
+   at.** Before trusting one, compute `10 / fps` (more generally, the duty
+   cycle of every periodic cost) and check that the percentile you are quoting
+   is above it. If p95 sits below the tick duty cycle, it is measuring the
+   cheap frames only.
+2. **Say the achieved frame rate next to every frame-time number.** A p95
+   without an fps is uninterpretable, for exactly this reason.
+3. **Prefer a real, visible browser for the final number.** Driving frames by
+   hand is the right *diagnostic* and [L14] still stands, but a genuine
+   vsync-paced `requestAnimationFrame` run gets the duty cycle right for free
+   and needs no reasoning about pacing at all.
+
+**How to verify:** with the preview server up, load `?stress=1000` and drive
+`globalThis.__terriStress.step()` in a loop with no pacing; p95 reads about
+0.25 ms. Pace the same loop to one call per 16.667 ms and p95 reads about
+1.3 ms, against an identical build. The measured artefact is the harness, not
+the renderer.
+
+**Measured facts worth keeping, from the visible-Chrome run.** 1,002 entities,
+1280x720, release build: 7,202 rAF frames in 60.02 s (a sustained 120 fps, so
+no frames dropped), mean 0.261 ms, p95 0.33 ms, p99 0.405 ms, max 0.805 ms,
+**zero frames over 16.6 ms**. One draw call and one queue submit per frame with
+`instanceCount = 1002`. The first 240-frame window reports p95 6.21 ms and the
+next reports 0.32 ms, so pipeline and JIT warm-up costs roughly one window and
+must be discarded rather than averaged in. JS heap oscillated between 1.84 and
+2.62 MB with no trend across 12 five-second marks.
