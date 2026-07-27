@@ -96,15 +96,27 @@ impl Sim {
         let mut hasher = terri_core::FnvHasher::default();
         hasher.write_u64(self.world.resource::<SimClock>().tick);
 
-        // (entity index, x, y, hunger). Hunger is -1.0 for entities that
-        // have none, which distinguishes "no need" from "starving".
+        // (entity index, x, y, hunger). Hunger is NO_HUNGER for entities
+        // that have none, which distinguishes "no need" from "starving".
+        const NO_HUNGER: f32 = -1.0;
+
         let mut rows: Vec<(u32, f32, f32, f32)> = Vec::new();
         if let Some(mut state) = self
             .world
             .try_query::<(Entity, &Position, Option<&Hunger>)>()
         {
             for (entity, pos, hunger) in state.iter(&self.world) {
-                let hunger = hunger.map_or(-1.0, |h| h.0);
+                // The sentinel is in-band: Hunger's field is pub, so
+                // Hunger(-1.0) is constructible and would hash as if the
+                // component were absent. Nothing produces it today -
+                // decay clamps at NEED_MIN = 0.0 - but that coupling is
+                // invisible from terri-core, so pin it here. If needs
+                // ever go negative, this sentinel must move out of band.
+                debug_assert!(
+                    hunger.is_none_or(|h| h.0 != NO_HUNGER),
+                    "Hunger({NO_HUNGER}) aliases world_hash's no-Hunger sentinel"
+                );
+                let hunger = hunger.map_or(NO_HUNGER, |h| h.0);
                 rows.push((entity.index_u32(), pos.x, pos.y, hunger));
             }
         }
@@ -179,6 +191,43 @@ mod determinism_tests {
             .collect()
     }
 
+    /// An entity-free world advanced to `ticks`, for the guards below.
+    ///
+    /// Ticking it is load-bearing. `world_hash` writes the clock before
+    /// the entity rows, so an *unticked* empty world differs from any
+    /// ticked world by the clock term alone: the guard would then pass
+    /// even if the row block emitted nothing at all, which is the exact
+    /// failure it was written to prevent. See lessons-learned [L7].
+    fn empty_world_at(ticks: usize) -> Sim {
+        let mut sim = Sim::new_with_lot(24, 24);
+        for _ in 0..ticks {
+            sim.tick();
+        }
+        sim
+    }
+
+    /// Asserts `sim`'s hash is not simply an empty world's, holding
+    /// every other term in the digest constant so only the entity rows
+    /// can account for the difference. Guards the [L3] trap: if any
+    /// queried component were unregistered, `try_query` would yield zero
+    /// rows and the equality tests would pass by comparing two identical
+    /// empty hashes - permanently green while testing nothing.
+    fn assert_hash_sees_entities(sim: &Sim, ticks: usize) {
+        let empty = empty_world_at(ticks);
+        assert_eq!(
+            sim.world().resource::<SimClock>().tick,
+            empty.world().resource::<SimClock>().tick,
+            "the empty world must sit at the same tick, or the clock term \
+             alone makes this guard pass and it checks nothing"
+        );
+        assert_ne!(
+            sim.world_hash(),
+            empty.world_hash(),
+            "world hash equals an empty world's at the same tick; the hash \
+             is seeing no entities"
+        );
+    }
+
     fn lowest_indexed_agent(sim: &Sim) -> Entity {
         let mut state = sim
             .world()
@@ -192,32 +241,64 @@ mod determinism_tests {
 
     #[test]
     fn identical_scenarios_produce_identical_world_hashes() {
+        const TICKS: usize = 500;
+
         let mut a = build_scenario();
         let mut b = build_scenario();
 
-        for _ in 0..500 {
+        for _ in 0..TICKS {
             a.tick();
             b.tick();
         }
 
         // Guard against the empty-hash trap before asserting equality.
-        // If any queried component were unregistered, try_query would
-        // yield zero rows and this test would pass by comparing two
-        // identical empty hashes - permanently green while testing
-        // nothing. See lessons-learned [L3]. Any test that can pass on
-        // empty input needs an assertion that the input was not empty.
-        let empty = Sim::new_with_lot(24, 24);
-        assert_ne!(
-            a.world_hash(),
-            empty.world_hash(),
-            "world hash equals an empty world's; the hash is seeing no entities"
-        );
+        // Any test that can pass on empty input needs an assertion that
+        // the input was not empty. See lessons-learned [L3] and [L7].
+        assert_hash_sees_entities(&a, TICKS);
 
         assert_eq!(
             a.world_hash(),
             b.world_hash(),
             "simulation diverged; determinism is broken"
         );
+    }
+
+    #[test]
+    fn hash_observes_entity_state_not_only_the_clock() {
+        // The other tests all move the clock, and world_hash writes the
+        // clock as well as the entity rows, so a digest difference there
+        // never isolates which term produced it. This test never ticks:
+        // the clock is frozen, the entity set is frozen, and the only
+        // thing that changes is one field on one entity. That makes it
+        // the only test in the suite that can see the row block at all.
+        //
+        // Mutation-verified: without this, deleting the whole row
+        // collection from world_hash, or just the two position writes,
+        // or just the hunger write, leaves every other test green.
+        let mut sim = build_scenario();
+        let baseline = sim.world_hash();
+        let agent = lowest_indexed_agent(&sim);
+
+        sim.world_mut().get_mut::<Position>(agent).unwrap().x += 1.0;
+        assert_ne!(baseline, sim.world_hash(), "world_hash ignores Position.x");
+        sim.world_mut().get_mut::<Position>(agent).unwrap().x -= 1.0;
+        assert_eq!(
+            baseline,
+            sim.world_hash(),
+            "restoring state must restore the digest"
+        );
+
+        sim.world_mut().get_mut::<Position>(agent).unwrap().y += 1.0;
+        assert_ne!(baseline, sim.world_hash(), "world_hash ignores Position.y");
+        sim.world_mut().get_mut::<Position>(agent).unwrap().y -= 1.0;
+        assert_eq!(
+            baseline,
+            sim.world_hash(),
+            "restoring state must restore the digest"
+        );
+
+        sim.world_mut().get_mut::<Hunger>(agent).unwrap().0 += 1.0;
+        assert_ne!(baseline, sim.world_hash(), "world_hash ignores Hunger");
     }
 
     #[test]
@@ -240,14 +321,24 @@ mod determinism_tests {
         // the hash is CORRECT.
         //
         // What Layer 2 multiplayer needs is stronger: two worlds holding
-        // the same logical state must hash the same even when they
-        // reached it by different histories, because a peer that joined
-        // late, or that saw entities die in a different order, has a
-        // different archetype layout for identical state. This test
-        // builds that difference deliberately and asserts the difference
-        // exists at the moment the hashes are compared - without that
-        // precondition the test would silently degrade into a second
-        // copy of the one above.
+        // the same logical state, **and having allocated the same entity
+        // indices for it**, must hash the same even when their ECS
+        // layouts got there by different routes, because entities that
+        // lived and died in a different order leave a different
+        // archetype layout behind. This test builds that difference
+        // deliberately and asserts the difference exists at the moment
+        // the hashes are compared - without that precondition the test
+        // would silently degrade into a second copy of the one above.
+        //
+        // The index clause is a real limit, not pedantry. world_hash
+        // keys rows on Entity::index_u32(), which is itself allocation
+        // history, so a peer that joined late and allocated different
+        // indices for the same logical entities hashes differently. What
+        // this test pins is layout-insensitivity, not history- or
+        // index-insensitivity. Entity generation is unhashed as well, so
+        // a despawn/respawn that reuses an index aliases with the
+        // original. Both are known M0 limits; Layer 2 will need a stable
+        // network id in place of the raw index.
         const TICKS: usize = 500;
 
         let mut a = build_scenario();
@@ -305,12 +396,7 @@ mod determinism_tests {
             b.world().resource::<SimClock>().tick,
             "both runs must have advanced the same number of ticks"
         );
-        let empty = Sim::new_with_lot(24, 24);
-        assert_ne!(
-            a.world_hash(),
-            empty.world_hash(),
-            "world hash equals an empty world's; the hash is seeing no entities"
-        );
+        assert_hash_sees_entities(&a, TICKS);
 
         assert_eq!(
             a.world_hash(),

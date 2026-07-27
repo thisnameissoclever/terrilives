@@ -7,6 +7,15 @@
 const FNV_OFFSET: u64 = 0xcbf29ce484222325;
 const FNV_PRIME: u64 = 0x100000001b3;
 
+// Sentinels for non-finite input. Each is unreachable by the quantizer
+// in `write_f32`: saturation can only ever land on i64::MAX or i64::MIN
+// exactly, and a finite product that rounds into this magnitude is an
+// f32, whose spacing there is 2^39, so only multiples of 2^39 are
+// representable. None of the three is one.
+const NON_FINITE_NAN: i64 = i64::MIN + 1;
+const NON_FINITE_POS_INF: i64 = i64::MIN + 2;
+const NON_FINITE_NEG_INF: i64 = i64::MIN + 3;
+
 #[derive(Debug, Clone, Copy)]
 pub struct FnvHasher(u64);
 
@@ -28,11 +37,36 @@ impl FnvHasher {
         self.write_bytes(&value.to_le_bytes());
     }
 
-    /// Floats are quantized before hashing. Two runs that differ only by
-    /// a last-bit rounding artefact should not be reported as divergent,
-    /// but anything visible must be caught. 1e-4 tiles is far below one
-    /// rendered pixel.
+    /// Floats are quantized to 1e-4 tiles before hashing, which is far
+    /// below one rendered pixel, so most last-bit rounding artefacts fall
+    /// inside a bucket and hash the same.
+    ///
+    /// That is a tendency, not a guarantee. Rounding relocates the cliff
+    /// rather than removing it: two values 1.19e-7 apart still produce
+    /// different digests when they straddle a bucket boundary. The
+    /// property this buys is one-directional - a *visible* difference is
+    /// always caught - and it must not be read as "sub-threshold noise is
+    /// never reported".
+    ///
+    /// Non-finite input bypasses the quantizer entirely.
+    /// `(f32::NAN * 10_000.0).round() as i64` is `0` under Rust's
+    /// saturating float-to-int cast, so without this branch a run whose
+    /// position went NaN would hash identically to one holding 0.0,
+    /// silently masking exactly the float divergence this hash exists to
+    /// catch. The infinities saturate to `i64::MAX` / `i64::MIN` and would
+    /// collide with any finite value past roughly 9.2e14.
     pub fn write_f32(&mut self, value: f32) {
+        if !value.is_finite() {
+            let sentinel = if value.is_nan() {
+                NON_FINITE_NAN
+            } else if value.is_sign_positive() {
+                NON_FINITE_POS_INF
+            } else {
+                NON_FINITE_NEG_INF
+            };
+            self.write_bytes(&sentinel.to_le_bytes());
+            return;
+        }
         let quantized = (value * 10_000.0).round() as i64;
         self.write_bytes(&quantized.to_le_bytes());
     }
@@ -65,8 +99,10 @@ mod tests {
 
     #[test]
     fn quantization_absorbs_sub_threshold_float_noise() {
-        // Differences below 1e-4 tiles are rounding artefacts and must
-        // not read as divergence.
+        // A specific sub-threshold difference that lands inside one
+        // bucket. This pins the quantizer's existence, not a general
+        // property: see write_f32 on why a sub-threshold difference
+        // straddling a bucket boundary still changes the digest.
         let mut a = FnvHasher::default();
         a.write_f32(3.5);
         let mut b = FnvHasher::default();
@@ -84,6 +120,35 @@ mod tests {
         let mut b = FnvHasher::default();
         b.write_f32(3.5010);
         assert_ne!(a.finish(), b.finish());
+    }
+
+    #[test]
+    fn non_finite_values_get_distinct_digests() {
+        fn digest(value: f32) -> u64 {
+            let mut hasher = FnvHasher::default();
+            hasher.write_f32(value);
+            hasher.finish()
+        }
+
+        // The quantizer alone maps NaN to 0, so a position that went NaN
+        // would hash exactly like one holding 0.0 - the hash would hide
+        // the divergence it exists to report. The infinities saturate to
+        // i64::MAX / i64::MIN, which every sufficiently large finite
+        // value also saturates to.
+        let nan = digest(f32::NAN);
+        let pos_inf = digest(f32::INFINITY);
+        let neg_inf = digest(f32::NEG_INFINITY);
+
+        assert_ne!(nan, digest(0.0), "NaN collides with 0.0");
+        assert_ne!(nan, pos_inf, "NaN collides with +inf");
+        assert_ne!(nan, neg_inf, "NaN collides with -inf");
+        assert_ne!(pos_inf, neg_inf, "+inf collides with -inf");
+        assert_ne!(pos_inf, digest(1.0e30), "+inf collides with a finite value");
+        assert_ne!(
+            neg_inf,
+            digest(-1.0e30),
+            "-inf collides with a finite value"
+        );
     }
 
     #[test]

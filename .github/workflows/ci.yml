@@ -32,13 +32,22 @@ jobs:
       # targets that actually get built is both correct and meaningful; a
       # check that fails spuriously trains everyone to ignore it. See
       # lessons-learned [L4].
+      #
+      # The tree is captured before it is grepped, on purpose. A pipeline
+      # used directly as an `if` condition is exempt from errexit, and
+      # `pipefail` does not help because grep's no-match exit 1 is the
+      # rightmost status anyway - so `if cargo tree | grep` reports "no
+      # web crates found" when cargo itself fails. A renamed crate, a
+      # crate moved out of the workspace, a bad target triple, or a
+      # registry hiccup would all make this check vacuously green.
+      # Assigning to a variable puts the failure back under errexit.
       - name: Verify sim core has no web dependencies
         run: |
-          set -e
+          set -eu
           for target in x86_64-unknown-linux-gnu wasm32-unknown-unknown; do
             for crate in terri-core terri-sim; do
-              if cargo tree -p "$crate" --target "$target" \
-                   | grep -E 'wasm-bindgen|web-sys|js-sys'; then
+              tree=$(cargo tree -p "$crate" --target "$target")
+              if printf '%s\n' "$tree" | grep -E 'wasm-bindgen|web-sys|js-sys'; then
                 echo "FAIL: $crate depends on a web crate for $target"
                 exit 1
               fi

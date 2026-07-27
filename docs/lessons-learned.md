@@ -223,4 +223,103 @@ Layer 2 needs; layout-insensitivity is.
 **How to verify:** delete `rows.sort_by_key` in `Sim::world_hash` and run
 `cargo test -p terri-sim`. Exactly
 `determinism_tests::hash_ignores_archetype_layout_and_entity_history` must fail.
-If instead everything is green, the sort is unprotected again.
+If instead everything is green, the sort is unprotected again. Note this pins
+one mechanism out of four; see [L7] for the other three.
+
+**Scope correction, Task 7 review:** the wording above and the test's own
+comment both overclaimed. "Two worlds holding the same logical state hash the
+same even when they reached it by different histories" is only true when
+**entity index allocation also coincides**. `world_hash` keys its rows on
+`Entity::index_u32()`, and that index *is* allocation history, so the
+motivating scenario named in the comment - a peer that joined late - would
+allocate different indices for the same logical entities and hash differently.
+Entity generation is unhashed as well, so a despawn/respawn that reuses an
+index aliases with the original. What the test actually pins is narrower and
+still worth having: **insensitivity to archetype/table layout, given the same
+set of entity indices.** Layer 2 will need a stable network id in place of the
+raw index before the broader claim becomes true. Both files now say so; do not
+let the broad phrasing creep back.
+
+---
+
+## [L7] An untested guard is indistinguishable from no guard
+
+**What happened:** this is the **fifth** recorded instance of the same trap
+([L2], [L3], [L5], [L6]), and the new part is where it hid. [L3] said "any test
+that can pass on empty input needs an assertion that the input was not empty",
+so Task 7 dutifully added one to both hash determinism tests:
+
+```rust
+let empty = Sim::new_with_lot(24, 24);
+assert_ne!(a.world_hash(), empty.world_hash(), "the hash is seeing no entities");
+```
+
+That guard was inert. `world_hash` writes the clock tick **before** the entity
+rows, and `empty` was **never ticked**, so it sat at tick 0 while `a` was at
+tick 500. The clock term alone made the two digests differ. The guard passed
+unconditionally, for a reason that had nothing to do with entities.
+
+Measured consequence, before the fix: **deleting the entire row-collection
+block and the emit loop from `world_hash` left all three determinism tests
+green.** So did deleting only `write_f32(x)`/`write_f32(y)`, and so did
+deleting only `write_f32(hunger)`. Of the four mechanisms in `world_hash` - row
+collection, position writes, hunger write, `sort_by_key` - exactly one, the
+sort, was actually pinned, and by [L6]'s cross-history test rather than by the
+guard. The guard written specifically to catch the other kind of failure caught
+nothing.
+
+**Root cause, and this is the generalisable part: a guard is a mechanism like
+any other, so an unverified guard carries exactly as much weight as an
+unverified test - none.** [L5] already said to mutation-test the *mechanism*.
+Nobody mutation-tested the *guard*, because a guard reads like scaffolding
+rather than like a claim. It is a claim.
+
+The specific shape of the failure: the guard compared two digests that differed
+in **an unrelated term** (the clock). A differential guard is evidence about
+the term it names only if **every other term is held constant**. Otherwise it
+passes for the wrong reason, and passing for the wrong reason is silent.
+
+**Prevention rule:**
+
+1. **Mutation-test the guard, not just the mechanism.** Delete the thing the
+   guard claims to protect and confirm the guard is what fails. If some other
+   test fails first, the guard itself still has no evidence behind it.
+2. **A differential guard must hold every other input constant.** If the digest
+   covers a clock and some rows, either advance the control world to the same
+   tick or freeze the clock, and assert that equality as a precondition. Better
+   still, write a test that can only move for one reason:
+   `hash_observes_entity_state_not_only_the_clock` never ticks at all, mutates
+   one field on one entity and restores it, so the row block is the only thing
+   that can move the digest.
+3. **Count the mechanisms and check them off individually.** "The suite is
+   green" says nothing about coverage. `world_hash` has four; write the list
+   down and mutate each one separately.
+
+**How to verify:** apply each of these four mutations to `Sim::world_hash`
+independently, run `cargo test -p terri-sim`, restore, and confirm the file is
+byte-identical (`git hash-object`) before the next one.
+
+| mutation | must fail |
+| --- | --- |
+| delete the `if let Some(...)` row collection and the emit loop | `identical_scenarios...`, `hash_ignores_archetype_layout...`, `hash_observes_entity_state...` |
+| delete `write_f32(x)` and `write_f32(y)` | `hash_observes_entity_state...` |
+| delete `write_f32(hunger)` | `hash_observes_entity_state...` |
+| delete `rows.sort_by_key` | `hash_ignores_archetype_layout...` |
+
+If a mutation leaves the suite green, say so plainly rather than adjusting the
+test until it looks right. A test tuned until it passes is how this entry came
+to be written.
+
+**The same failure shape in CI, found in the same review.** The [D1] web-purity
+check was written as `if cargo tree ... | grep -E ...`. A pipeline used directly
+as an `if` condition is **exempt from `errexit`**, and `pipefail` does not help
+because grep's no-match exit 1 is the rightmost status anyway. Reproduced with a
+stub `cargo` exiting 101: the old form ran all four iterations and exited **0**,
+so a renamed crate, a crate moved out of the workspace, a bad target triple, or
+a registry hiccup would have made the check vacuously green - the identical
+"passes for the wrong reason" pattern, in YAML instead of Rust. The fix is to
+capture first, `tree=$(cargo tree ...)`, which puts the failure back under
+`errexit`; the same stub then yields exit 101. **Prevention rule: never put a
+command whose failure matters inside an `if` condition or the left side of a
+pipe.** How to verify: put a stub `cargo` that exits non-zero first on `PATH`
+and confirm the step still fails.
