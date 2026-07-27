@@ -692,3 +692,65 @@ in `web/src/render/instances.ts` and run `npm test` under a deadline. Expected:
 the suite never terminates. Restore from a scratchpad byte snapshot, never with
 `git checkout` ([L9]), and confirm `git hash-object` matches the pre-mutation
 value.
+
+---
+
+## [L16] The Task 11 brief shipped an inverted depth mapping and a test that pinned it
+
+**What happened:** the M0 plan's Task 11 section (`worldDepth` in
+`docs/plans/2026-07-26-m0-walking-skeleton.md`, and the brief cut from it)
+specified `return (wx + wy) / maxSum`, with a doc comment reading "Tiles farther
+from the camera (lower x + y) get smaller values and therefore draw behind,
+since the pipeline compares with 'less'." That sentence is self-refuting.
+`sprites.ts` sets `depthCompare: 'less'` against `depthClearValue: 1.0`, so the
+**smaller** depth wins the pixel; [L14]/[V3] measured exactly that. Smaller
+values draw **in front**, not behind. The prose states the correct intent and
+the code does the opposite of it.
+
+The projection settles which end is which, so this is not a matter of taste.
+`worldToScreen` returns `(wx + wy) * TILE_HALF_HEIGHT`, `sprites.wgsl` flips Y
+(`1.0 - screen.y / u.viewport.y * 2.0`), and `main.ts` puts `originY` at 80, near
+the top. So screen y grows downward, a larger x + y draws lower on the screen,
+and lower on the screen is nearer the camera. Near must take the smaller depth.
+Shipped as written, every entity would have been occluded by whatever was
+**behind** it: a sim standing in front of the fridge would be drawn inside it.
+
+**The part that makes this another instance of [L5], [L6], [L7], [L11]:** the
+brief's own test was `expect(worldDepth(0, 0, 64)).toBeLessThan(worldDepth(10,
+10, 64))` under the name *"gives farther tiles smaller depth so they draw
+behind"*. It would have passed. It names the invariant correctly, asserts its
+negation, and goes green - so it would have converted the bug from a visible
+mistake into a pinned requirement, and the next person to fix the rendering
+would have had to delete a test to do it. The brief's other five tests were all
+compatible with the inversion too: three of them (`clamps out-of-grid...`,
+`keeps depth finite...`) did not exist, and "keeps depth inside the clip range"
+passes for either sense because both are in [0, 1].
+
+**Root cause:** the sense of a depth value is not a property of the depth
+function. It is a joint property of four things in four different files - the
+compare op and clear value in `sprites.ts`, the Y flip in `sprites.wgsl`, the
+sign of the y term in `iso.ts`, and the choice of `originY` in `main.ts`. Nobody
+reviewing `worldDepth` alone can tell whether it is inverted, and the type
+system connects none of them. `number` in [0, 1] is `number` in [0, 1].
+
+**Prevention rule:**
+
+1. **For any value whose meaning is fixed elsewhere - depth, winding order,
+   handedness, a sort key read by a comparator you did not write - state the
+   external convention in the test, then derive the assertion from it.** The
+   test name here is `orders the far corner behind the near corner for a
+   less-than test`: it carries `less` in the name, so a reader can check the
+   claim against `sprites.ts` without re-deriving the whole chain.
+2. **A doc comment that contradicts the code next to it is a defect report, not
+   a typo.** Two independent statements of intent disagreed here and the
+   disagreement was visible in six lines of adjacent text. Read the comment
+   against the code before trusting either.
+3. **A brief is an input, not an authority.** Where a brief's code and its stated
+   requirement disagree, the hardware behaviour that Task 10 measured settles it.
+   Implement the requirement and report the deviation loudly.
+
+**How to verify:** invert `worldDepth` in `web/src/render/iso.ts` back to the
+brief's `Math.min(1, Math.max(0, nearness))` and run `cd web && npm test`. Four
+tests must fail, the first with
+`AssertionError: expected 0 to be greater than 0.15873015873015872`. Restore
+from a scratchpad byte snapshot, never with `git checkout` ([L9]).
