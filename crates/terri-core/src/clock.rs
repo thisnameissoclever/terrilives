@@ -29,7 +29,7 @@ impl SimClock {
     /// True on the tick that begins a new sim-hour. Tier 2 story
     /// progression will hang off this later.
     pub fn is_hour_boundary(&self) -> bool {
-        self.tick % TICKS_PER_SIM_HOUR == 0
+        self.tick.is_multiple_of(TICKS_PER_SIM_HOUR)
     }
 }
 

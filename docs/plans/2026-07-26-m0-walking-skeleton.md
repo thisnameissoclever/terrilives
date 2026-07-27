@@ -1541,6 +1541,19 @@ mod determinism_tests {
             b.tick();
         }
 
+        // Guard against the empty-hash trap before asserting equality.
+        // If any queried component were unregistered, try_query would
+        // yield zero rows and this test would pass by comparing two
+        // identical empty hashes - permanently green while testing
+        // nothing. See lessons-learned [L3]. Any test that can pass on
+        // empty input needs an assertion that the input was not empty.
+        let empty = Sim::new_with_lot(24, 24);
+        assert_ne!(
+            a.world_hash(),
+            empty.world_hash(),
+            "world hash equals an empty world's; the hash is seeing no entities"
+        );
+
         assert_eq!(
             a.world_hash(),
             b.world_hash(),
