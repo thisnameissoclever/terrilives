@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+          targets: wasm32-unknown-unknown
+      - name: Format check
+        run: cargo fmt --all -- --check
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: Test
+        run: cargo test --workspace
+      # Mechanically enforces [D1]: terri-core and terri-sim never depend
+      # on a web crate. Explicit targets are load-bearing, not tidiness.
+      # Cargo.lock records unactivated optional dependencies, and under
+      # --target all there is a real-looking but inert path:
+      #   terri-core -> bevy_ecs -> bevy_reflect -> bevy_reflect_derive
+      #     -> uuid -> js-sys -> wasm-bindgen
+      # bevy_reflect_derive is a proc-macro, so it always builds for the
+      # host, where uuid's cfg(target_arch = "wasm32") block is inactive.
+      # Nothing links into terri-core on any real target. Checking the two
+      # targets that actually get built is both correct and meaningful; a
+      # check that fails spuriously trains everyone to ignore it. See
+      # lessons-learned [L4].
+      - name: Verify sim core has no web dependencies
+        run: |
+          set -e
+          for target in x86_64-unknown-linux-gnu wasm32-unknown-unknown; do
+            for crate in terri-core terri-sim; do
+              if cargo tree -p "$crate" --target "$target" \
+                   | grep -E 'wasm-bindgen|web-sys|js-sys'; then
+                echo "FAIL: $crate depends on a web crate for $target"
+                exit 1
+              fi
+            done
+          done
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: jetli/wasm-pack-action@v0.4.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # web/src/wasm/ is gitignored build output, so a fresh clone has no
+      # WASM package. It must be built before the web tests can import it.
+      - name: Build WASM package
+        run: wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm
+      - name: Install web dependencies
+        working-directory: web
+        run: npm ci
+      - name: Type check
+        working-directory: web
+        run: npm run typecheck
+      - name: Test
+        working-directory: web
+        run: npm test

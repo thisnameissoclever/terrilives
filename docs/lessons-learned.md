@@ -176,3 +176,51 @@ everyone to ignore it, which is worse than no check.
 **How to verify:** `cargo tree -p terri-core --target wasm32-unknown-unknown`
 and the same for the host target should both be clean of `wasm-bindgen`,
 `web-sys`, and `js-sys`.
+
+**Precision correction, measured during Task 7 on cargo 1.94.1:** a *bare*
+`cargo tree` is clean. `--target` defaults to the **host** platform, so on both
+this Windows box and CI's Linux runner the inert path is already filtered out.
+The path only appears under `--target all`. [L4]'s prevention rule is unchanged
+and still right - naming explicit targets is what makes the check mean something
+rather than accidentally depending on whatever host it runs on - but do not
+expect a bare `cargo tree | grep` to be the thing that fails.
+
+---
+
+## [L6] The world-hash sort is pinned by a cross-history test, not by the A/B
+
+**What happened:** Task 7 added `Sim::world_hash` and the determinism test
+[D12] calls the highest-value test in the project. Mutation-testing it confirmed
+[L5] exactly: **deleting `rows.sort_by_key` in `world_hash` left
+`identical_scenarios_produce_identical_world_hashes` green.** Two scenarios
+built identically in one process share an archetype layout, so both hash their
+rows in the same wrong order and agree. The brief's empty-world guard does not
+help here either - the rows are present, just misordered.
+
+**What does catch it:** `hash_ignores_archetype_layout_and_entity_history`.
+Two runs reach the same tick count by different histories - run B additionally
+spawns a bystander entity, ticks, despawns it, and insert/removes `Eating` on
+its lowest-index agent to swap-remove that agent to the back of its table.
+Neither touches what the simulation computes (the bystander matches no system's
+query, and the insert/remove pair happens between ticks), but both change ECS
+iteration order. With the sort deleted, this test fails; with it present, it
+passes.
+
+**The part that keeps it honest:** the test asserts its own precondition. Before
+comparing hashes it asserts the two worlds' **raw, unsorted iteration orders
+still differ** at that moment, and that they hold the same entity set. Without
+that assertion the test would silently decay into a second copy of the A/B if
+the two layouts ever reconverged over 500 ticks. Measured: they do not
+reconverge at 500 ticks, but that is an observation, not a guarantee, which is
+why the assertion is there rather than a comment.
+
+**Prevention rule:** for any state-digest function, the test that pins the
+canonical ordering must compare **two worlds with different histories**, and
+must assert that their underlying iteration orders actually differ. A
+same-process A/B pins reproducibility only. Reproducibility is not the property
+Layer 2 needs; layout-insensitivity is.
+
+**How to verify:** delete `rows.sort_by_key` in `Sim::world_hash` and run
+`cargo test -p terri-sim`. Exactly
+`determinism_tests::hash_ignores_archetype_layout_and_entity_history` must fail.
+If instead everything is green, the sort is unprotected again.
