@@ -90,6 +90,28 @@ threads, so whatever you pick must let you set response headers.
 item worth paying for if it does not**, because characters are where players
 look. Do not pre-emptively spend here.
 
+### [T21] Repair the MSVC toolchain in Visual Studio Community 2026 `[YOURS]`
+
+**Not blocking** - builds currently route through VS 2022 BuildTools' `vcvars64.bat`
+as a stopgap. But a plain `cargo build` fails in a normal shell until this is done.
+
+**Diagnosis:** VS Community 2026 (18.8) at
+`C:\Program Files\Microsoft Visual Studio\18\Community` has MSVC toolset
+14.51.36231 with `lib\onecore` but **no `lib\x64`**, so `msvcrt.lib` cannot be
+found and nothing links. `rustc` auto-selects the newest Visual Studio, so it
+picks this broken one over the working 2022 BuildTools install.
+
+**Fix:** Visual Studio Installer, Modify on VS Community 2026, Workloads tab,
+tick **"Desktop development with C++"**, Modify. If already ticked, use the
+Individual components tab and add **"MSVC v145 - VS 2026 C++ x64/x86 build
+tools (Latest)"** plus a Windows 11 SDK.
+
+**Verify** in a new terminal:
+`Get-ChildItem "C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\*\lib\x64\msvcrt.lib"`
+should print a path, and `cargo test -p terri-core` should pass with no wrapper.
+
+Requires admin and a 2-4GB download, which is why this is not mine to run.
+
 ### [T20] Review moderation reports and operate the ban tool `[YOURS]`
 
 Inherently human, and recurring. Report-driven moderation only works if someone

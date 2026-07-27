@@ -18,7 +18,10 @@
 - **Single-threaded executor for M0.** Set `ExecutorKind::SingleThreaded` explicitly. Parallelism is [D4]/[A9] and arrives later; keeping it off now makes determinism trivially safe.
 - **Zero-copy bridge: no per-entity JavaScript objects, ever.** This is [D11].
 - **Determinism test runs in CI from Task 7 onward.** This is [D12].
-- **Rust edition 2021.** Pin `bevy_ecs` in `Cargo.toml`; if the API differs from the code below, check `docs.rs/bevy_ecs` for the pinned version and adjust. The API shapes used here (`World`, `Schedule`, `Query`, `Res`/`ResMut`, `#[derive(Component)]`, `#[derive(Resource)]`) have been stable across recent releases, but verify rather than assume.
+- **Rust edition 2021. `bevy_ecs` is pinned to 0.18.1**, verified during Task 1. 0.19.0 exists but requires Rust 1.95.0 against the installed 1.94.1, so 0.18.1 is a hard ceiling rather than a preference. All code below was compiled and its assertions run against 0.18.1.
+- **Two 0.18 API facts that differ from older bevy_ecs and are easy to get wrong:**
+  - `World::iter_entities()` no longer exists. Use `World::query::<D>()` where you hold `&mut World`, or `World::try_query::<D>()` where you only hold `&World`. Both return an owned `QueryState` that must be bound `mut`, then iterated as `state.iter(&world)`. Note `World::entities()` is **not** the replacement; it returns `&Entities` metadata.
+  - `Entity::index()` returns `EntityIndex`, not `u32`. `EntityIndex` derives `Ord`, and sorting by it was verified to match sorting by the raw integer, so it is safe for ordering. Use `index_u32() -> u32` only where a literal `u32` is required.
 - **Every task ends with a commit.**
 
 ## File Structure
@@ -101,7 +104,7 @@ edition = "2021"
 version = "0.1.0"
 
 [workspace.dependencies]
-bevy_ecs = "0.16"
+bevy_ecs = "0.18"
 wasm-bindgen = "0.2"
 ```
 
@@ -626,6 +629,17 @@ impl Sim {
     pub fn new() -> Self {
         let mut world = World::new();
         world.insert_resource(SimClock::default());
+
+        // Register components eagerly. This is NOT optional bookkeeping:
+        // World::try_query returns None if ANY component in the query is
+        // unregistered, including one behind Option<&T>. Task 7's
+        // world_hash uses try_query, so without this a world that never
+        // spawned a Hunger would hash zero rows and the determinism test
+        // would pass by comparing two empty hashes - green while testing
+        // nothing. Later tasks must add their components here too.
+        world.register_component::<terri_core::Position>();
+        world.register_component::<terri_core::Agent>();
+        world.register_component::<terri_core::Hunger>();
 
         let mut schedule = Schedule::default();
         // M0 runs single-threaded on purpose. Parallelism is [A9]/[D4]
@@ -1615,13 +1629,18 @@ Add to `impl Sim` in `crates/terri-sim/src/lib.rs`:
         // (entity index, x, y, hunger). Hunger is -1.0 for entities that
         // have none, which distinguishes "no need" from "starving".
         let mut rows: Vec<(u32, f32, f32, f32)> = Vec::new();
-        for entity in self.world.iter_entities() {
-            let Some(pos) = entity.get::<Position>() else {
-                continue;
-            };
-            let hunger = entity.get::<Hunger>().map_or(-1.0, |h| h.0);
-            rows.push((entity.id().index(), pos.x, pos.y, hunger));
+        if let Some(mut state) = self
+            .world
+            .try_query::<(Entity, &Position, Option<&Hunger>)>()
+        {
+            for (entity, pos, hunger) in state.iter(&self.world) {
+                let hunger = hunger.map_or(-1.0, |h| h.0);
+                rows.push((entity.index_u32(), pos.x, pos.y, hunger));
+            }
         }
+        // The sort is load-bearing: query iteration is archetype order,
+        // not entity order, and archetype order shifts as components are
+        // added and removed.
         rows.sort_by_key(|(index, _, _, _)| *index);
 
         for (index, x, y, hunger) in rows {
@@ -1635,7 +1654,9 @@ Add to `impl Sim` in `crates/terri-sim/src/lib.rs`:
     }
 ```
 
-This mirrors the shape used by `sync_render_buffer` in Task 8 on purpose; if one needs adjusting for the pinned `bevy_ecs` API, the other will need the same change. The only hard requirement is that rows are sorted by entity index before hashing, because ECS iteration order is not a stable contract.
+`try_query` takes `&self`, so `world_hash`'s signature survives. It returns `Option<QueryState>`, and the state must be bound `mut` because `iter` takes `&mut self` on it; since the state is owned, `let Some(mut state)` then `state.iter(&self.world)` has no borrow conflict.
+
+**Do not replace the `if let Some` with `.expect(..)` without reading the note in `Sim::new` about `register_component`.** Either form is a trap if components are unregistered: `expect` panics, and `if let Some` silently hashes zero rows, which makes the determinism test pass by comparing two empty hashes. Registration in `Sim::new` is what makes this correct.
 
 - [ ] **Step 5: Run to verify it passes**
 
@@ -1662,6 +1683,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt
+          targets: wasm32-unknown-unknown
       - name: Format check
         run: cargo fmt --all -- --check
       - name: Clippy
@@ -1670,10 +1692,52 @@ jobs:
         run: cargo test --workspace
       - name: Verify sim core has no web dependencies
         run: |
-          ! cargo tree -p terri-core -p terri-sim | grep -E 'wasm-bindgen|web-sys'
+          set -e
+          for target in x86_64-unknown-linux-gnu wasm32-unknown-unknown; do
+            for crate in terri-core terri-sim; do
+              if cargo tree -p "$crate" --target "$target" \
+                   | grep -E 'wasm-bindgen|web-sys|js-sys'; then
+                echo "FAIL: $crate depends on a web crate for $target"
+                exit 1
+              fi
+            done
+          done
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: jetli/wasm-pack-action@v0.4.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # web/src/wasm/ is gitignored build output, so a fresh clone has no
+      # WASM package. It must be built before the web tests can import it.
+      - name: Build WASM package
+        run: wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm
+      - name: Install web dependencies
+        working-directory: web
+        run: npm ci
+      - name: Type check
+        working-directory: web
+        run: npm run typecheck
+      - name: Test
+        working-directory: web
+        run: npm test
 ```
 
-That last step mechanically enforces [D1]. If it ever fails, the architecture's load-bearing rule has been broken.
+The dependency check mechanically enforces [D1]. If it ever fails, the architecture's load-bearing rule has been broken.
+
+**Why the check names explicit targets rather than running bare `cargo tree`.** `Cargo.lock` legitimately contains `wasm-bindgen`, `web-sys`, and `js-sys` entries as unactivated optional-dependency records, and under `--target all` there is a real-looking path:
+
+```
+terri-core -> bevy_ecs -> bevy_reflect -> bevy_reflect_derive -> uuid -> js-sys -> wasm-bindgen
+```
+
+That path is inert. `bevy_reflect_derive` is a proc-macro, so it always builds for the host, where `uuid`'s `cfg(all(target_arch = "wasm32", target_os = "unknown"))` block is inactive. Nothing links into `terri-core` on any real target. A bare `cargo tree` or a `--target all` check would therefore fail spuriously and train everyone to ignore it. Checking the two targets that actually get built is both correct and meaningful.
 
 - [ ] **Step 7: Run the checks locally**
 
@@ -1801,13 +1865,15 @@ Add `pub mod render_buffer;` to `crates/terri-sim/src/lib.rs`, add `render: rend
         self.render.positions.clear();
         self.render.kinds.clear();
 
+        // World::query (not try_query) registers components on demand and
+        // cannot fail, so there is no Option to handle here. It returns an
+        // owned QueryState, which ends the &mut borrow immediately and
+        // leaves self.render free to write below.
+        let mut state = self.world.query::<(Entity, &Position, Has<Agent>)>();
         let mut rows: Vec<(u32, f32, f32, u32)> = Vec::new();
-        for entity in self.world.iter_entities() {
-            let Some(pos) = entity.get::<Position>() else {
-                continue;
-            };
-            let kind = if entity.get::<Agent>().is_some() { 0 } else { 1 };
-            rows.push((entity.id().index(), pos.x, pos.y, kind));
+        for (entity, pos, is_agent) in state.iter(&self.world) {
+            let kind = if is_agent { 0 } else { 1 };
+            rows.push((entity.index_u32(), pos.x, pos.y, kind));
         }
         rows.sort_by_key(|(index, _, _, _)| *index);
 
