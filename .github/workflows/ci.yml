@@ -135,7 +135,20 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
+      # Pinned. Unpinned, this action installs whatever wasm-pack is
+      # latest, and its bundled wasm-opt then has to parse whatever the
+      # current rustc emits. That skew broke the build once already:
+      # "Fatal: error in parsing input" from wasm-opt, on a commit whose
+      # Rust changes were a dead-code deletion. 0.15.0 is the version
+      # verified working against rustc 1.94.1.
+      #
+      # Reproducibility is load-bearing in this repo rather than merely
+      # tidy: the golden world-hash vectors assert that native and wasm32
+      # agree bit for bit, and a floating toolchain would turn a genuine
+      # determinism regression and a toolchain bump into the same red.
       - uses: jetli/wasm-pack-action@v0.4.0
+        with:
+          version: 'v0.15.0'
       - uses: actions/setup-node@v4
         with:
           node-version: 22
