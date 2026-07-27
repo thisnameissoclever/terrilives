@@ -35,6 +35,21 @@ impl Hunger {
     }
 }
 
+/// An object that advertises an interaction. See [D6]. M0 supports a
+/// single need; the full version advertises a map of need deltas loaded
+/// from content files.
+#[derive(Component, Debug, Clone, Copy)]
+pub struct SmartObject {
+    pub hunger_delta: f32,
+    pub duration_ticks: u32,
+    pub slots: u8,
+}
+
+/// Marks a smart object as claimed. Reservation is serialized and
+/// ordered by entity id so two agents never claim one slot.
+#[derive(Component, Debug, Clone, Copy)]
+pub struct Reserved;
+
 #[cfg(test)]
 mod tests {
     use super::*;

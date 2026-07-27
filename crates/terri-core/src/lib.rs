@@ -5,7 +5,7 @@ pub mod components;
 pub mod grid;
 
 pub use clock::{SimClock, TICKS_PER_SIM_HOUR, TICK_HZ};
-pub use components::{Agent, Hunger, Position, NEED_MAX, NEED_MIN};
+pub use components::{Agent, Hunger, Position, Reserved, SmartObject, NEED_MAX, NEED_MIN};
 pub use grid::TileGrid;
 
 /// Trivial value used only to prove the Rust -> WASM -> JS path works.
