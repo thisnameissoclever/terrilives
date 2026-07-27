@@ -323,3 +323,34 @@ capture first, `tree=$(cargo tree ...)`, which puts the failure back under
 command whose failure matters inside an `if` condition or the left side of a
 pipe.** How to verify: put a stub `cargo` that exits non-zero first on `PATH`
 and confirm the step still fails.
+
+---
+
+## [L8] `git hash-object` proves content, not what cargo will run
+
+**What happened:** A mutation-testing harness restored source files with
+`shutil.copy2`, which preserves mtime. Cargo's freshness check is mtime-based,
+so the restored file looked **older** than the artifact built from the mutant,
+and a plain `cargo test --workspace` afterwards silently ran the **mutated
+binary** against unmutated source. The tree was provably correct by
+`git hash-object` and the tests were red anyway.
+
+**Root cause:** content identity and build identity are different things. Any
+verification that ends at "the bytes match" has checked the wrong invariant if
+what happens next is a build.
+
+This instance landed red, which is the safe direction and is why it was caught.
+**The symmetric case is a false green:** restore a file, get a stale artifact
+that still contains the fix, and conclude a mutation was caught when it was not.
+That would silently corrupt every row of a mutation-testing table, which is
+precisely the evidence this project now relies on.
+
+**Prevention rule:** any harness that edits source in place and relies on cargo
+to rebuild must **touch the file after restoring it**, stamping a fresh mtime.
+Applying a mutation is safe by accident, because writing the file stamps it; the
+restore is the dangerous half. Assert the suite is green after every restore,
+not only that the bytes match.
+
+**How to verify:** after restoring, confirm both that `git status` is clean and
+that the suite passes. If the bytes are identical but the tests are red, you are
+running a stale artifact, not observing a real failure.
