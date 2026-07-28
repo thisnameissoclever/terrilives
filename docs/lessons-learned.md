@@ -1372,3 +1372,121 @@ Every hit is a mutant killed by `build.rs` rather than by a test. Measured here:
 the fall in caught disagree, something other than the content gate also changed.
 Anything unviable for a different reason shows an `error[E...]` instead, which
 is the ordinary [L21] case and was already there.
+
+---
+
+## [L29] A field read for exactly one purpose is only observable through that purpose
+
+**What happened:** the **ninth** instance of the family ([L2], [L3], [L5], [L6],
+[L7], [L11], [L24], [L26]), found during M1a Task 6 by the mandatory hand sweep
+rather than by review or by `cargo mutants`, and found in code written minutes
+earlier.
+
+Task 6 made an object offer a *list* of interactions, so `select_action` records
+which one won in `Target::interaction` and `follow_path` resolves that index
+when it starts the meal. A test was written for exactly that -
+`the_interaction_recorded_at_selection_is_the_one_that_fills` - with a fixture
+object offering a weak `nibble` and a strong `feast`. It asserted the agent ends
+up performing the second one.
+
+Replacing `interactions[target.interaction as usize]` with `interactions[0]` in
+`follow_path` left **all 91 workspace tests green**, that one included.
+
+**Root cause, and it is narrower and more useful than "the fixture was weak".**
+`follow_path` reads the resolved interaction for **one** value: its
+`duration_ticks`. Everything else flows through `Eating`, whose `interaction`
+field is copied from `Target` and re-resolved by `tick_interactions`. The
+fixture gave both interactions a duration of **15**, so the wrong lookup
+returned a different object with the same number in the only field anybody read.
+The test asserted `Eating.interaction == 1` and got it, because that field never
+passed through the mutated expression at all.
+
+So the test exercised the line, the line returned the wrong value, and the
+assertion could not see it. **The reachable-but-unobservable case is not the
+same as the untested case, and it does not look different from the outside.**
+
+The generalisable rule: *before writing the fixture, ask which single value the
+code under test actually extracts, and make the candidates differ in **that**
+value.* Making them differ in something adjacent - here, the advertised delta -
+feels like the same thing and is not, because the delta reaches the assertion by
+a route that bypasses the mutated line.
+
+**Prevention rule:**
+
+1. For any lookup, indirection or index resolution, **name the field the caller
+   reads** and give the fixture's alternatives different values *for that
+   field*. A fixture whose candidates agree on the read field cannot test the
+   read.
+2. `cargo mutants` would not have found this either. It rewrites expressions,
+   and `interactions[i]` to `interactions[0]` is a constant substitution inside
+   an index expression that is outside its grammar, exactly as statement
+   deletion is ([L11]). Hand mutation is what caught it, which is rule 1 of
+   `testing-protocol.md` earning its place for the ninth time.
+3. When the fix is to make a fixture's values differ, **say in the test comment
+   that the difference is load-bearing and that the equal version was measured
+   green.** Otherwise the next reader tidies the two durations back to one
+   constant and the test silently returns to being decorative.
+
+**How to verify:** in `crates/terri-sim/src/systems/movement.rs`, replace
+`interactions[target.interaction as usize]` with `interactions[0]` and run
+`cargo test -p terri-sim`. Exactly
+`systems::interact::tests::the_interaction_recorded_at_selection_is_the_one_that_fills`
+must fail, with
+`left: Eating { object: ObjectDefId(0), interaction: 1, remaining_ticks: 4 }`
+against `right: ... remaining_ticks: 14`. Then set both fixture interactions to
+the same `duration_ticks`, apply the same mutation, and confirm the suite is
+green again - that second half is the finding, not the first. Restore from a
+scratchpad byte snapshot, never with `git checkout` ([L9]), and touch the file
+([L8]).
+
+---
+
+## [L30] An equivalent mutant stops being equivalent when the code around it changes shape
+
+**What happened:** `crates/terri-sim/src/systems/action.rs`'s
+`replace < with <= in select_action` had been in `docs/mutants-baseline.txt`
+since M0, and correctly so. The clause is
+
+```rust
+score == best_score && object.index() < best_e.index()
+```
+
+and while an object carried a single advert, the two sides were always
+**different entities**. Distinct entity indices are never equal, so `<` and
+`<=` agree on every input the program can produce. It was an equivalent
+mutant: unkillable, and rightly recorded as accepted debt rather than chased.
+
+M1a Task 6 gave an object a *list* of interactions and made `select_action`
+score each one, so the same clause now also compares an object **against
+itself**. There `idx < idx` is false and `idx <= idx` is true, and the
+difference decides which of two equally good interactions an agent performs -
+a real determinism property, silently governed by declaration order in
+content. The mutant became killable, and nothing killed it.
+
+Nothing in the sweep said so. It reported the entry as missed, exactly as it
+had for five milestones, and the `comm` against the baseline was clean. **A
+survivor that was already a survivor produces no signal when its meaning
+changes.**
+
+**Root cause:** "equivalent mutant" is a judgement about the code *as it was*,
+not a property of the line. A baseline entry records the judgement and not the
+argument behind it, so nothing prompts a re-read when the argument expires.
+Same family as [L27] and [L28]: the check still passes, over something
+different from what it used to cover.
+
+**Prevention rule:** when a change widens what an existing expression compares -
+a new caller, a new loop, a new pair of operands - **look up whether that
+expression already has a baseline entry, and re-derive the argument for it**.
+If the argument no longer holds, the entry is a missing test, not debt.
+Practically: grep `docs/mutants-baseline.txt` for the file you are editing
+before you start, not after the sweep.
+
+Corollary for `docs/mutation-baseline.md`: an accepted-survivor entry should
+record *why* it is unkillable, because that sentence is what a future reader
+can check against the new code. "Equivalent" alone cannot expire visibly.
+
+**How to verify:** replace `<` with `<=` in that clause and run
+`cargo test -p terri-sim`. Exactly
+`systems::action::tests::a_tied_later_interaction_cannot_displace_an_earlier_one_on_the_same_object`
+must fail, with `left: 1, right: 0`. Delete that test and the same mutation
+leaves the workspace green, which is the state the baseline described.
