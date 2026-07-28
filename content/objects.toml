@@ -1,0 +1,16 @@
+# Smart objects. Each interaction advertises what it satisfies; agents
+# score those adverts against their own deficits. Adding an object here
+# is all it takes for agents to start using it.
+
+[[object]]
+id = "fridge"
+name = "Chill-o-Matic 3000"
+
+  # 40.0 and 15 are M0's hardcoded values, reproduced exactly so moving
+  # the fridge into content changes no behaviour. Changing either is a
+  # balance decision, not a port detail.
+  [[object.interaction]]
+  id = "grab_snack"
+  advertises = { hunger = 40.0 }
+  duration_ticks = 15
+  slots = 1

@@ -69,7 +69,9 @@ against explicit targets; see [L4] for why the targets are named.
 ```
 crates/
   terri-core/     ECS wiring, world types, time. No I/O.
-  terri-data/     Content schema and loaders (serde). No I/O.
+  terri-data/     Content schema, validation, compiled pack (serde). No
+                  runtime I/O: its build.rs reads content/ at build time
+                  and the pack ships as embedded bytes.
   terri-sim/      All simulation systems. No I/O.
   terri-save/     Snapshot and delta serialization.
   terri-ghost/    Ghost record export/import. No network I/O.
