@@ -199,6 +199,7 @@ mod boundary_tests {
     //! out of the world it was spawned into.
 
     use super::*;
+    use terri_core::SimClock;
 
     /// Hunger levels as the ECS actually stored them.
     fn stored_hungers(handle: &SimHandle) -> Vec<f32> {
@@ -402,6 +403,165 @@ mod boundary_tests {
              in-band sentinel is reachable across the boundary and \
              terri-sim's debug_assert guard is compiled out of the release \
              wasm build that ships"
+        );
+    }
+
+    // The rest of this module exists because `cargo mutants` reported
+    // these four exports as the only survivors in this crate: `tick`
+    // replaced with `()`, and each pointer accessor replaced with
+    // `Default::default()`, which for a raw pointer is null. Raised in
+    // review on #4, where the crate was also added to the CI sweep.
+    //
+    // A survivor is behaviour nothing constrains, and every one of these
+    // is on the path JavaScript drives every frame. The `()` mutant is
+    // the one that matters: a boundary tick that does nothing renders a
+    // frozen world with no panic, no log, and a green suite.
+
+    /// The clock term, read from the world rather than from the buffer.
+    fn clock_tick(handle: &SimHandle) -> u64 {
+        handle.sim.world().resource::<SimClock>().tick
+    }
+
+    /// The `len` elements an exported pointer addresses.
+    ///
+    /// Null is checked **before** the read. `from_raw_parts` requires a
+    /// non-null aligned pointer even at zero length, and null is exactly
+    /// what the mutants these tests kill return, so reading first would
+    /// trade a named assertion for undefined behaviour. Every call site
+    /// derives `len` from `entity_count`.
+    fn addressed<T: Copy>(ptr: *const T, len: usize, what: &str) -> Vec<T> {
+        assert!(
+            !ptr.is_null(),
+            "{what} handed JavaScript a null pointer; the view built on it \
+             would read from address zero"
+        );
+        // SAFETY: non-null is asserted above, `handle` owns the buffer and
+        // outlives this call, and `len` is the row count that same buffer
+        // was built with.
+        unsafe { std::slice::from_raw_parts(ptr, len) }.to_vec()
+    }
+
+    #[test]
+    fn tick_advances_the_world_clock() {
+        // Isolates the `self.sim.tick()` half of `SimHandle::tick`.
+        let mut handle = SimHandle::new(8, 8);
+        handle.spawn_agent(1.0, 1.0, 80.0);
+        assert_eq!(
+            clock_tick(&handle),
+            0,
+            "spawning must not advance the clock, or the assertion below \
+             cannot attribute the movement to the tick"
+        );
+
+        handle.tick();
+
+        assert_eq!(
+            clock_tick(&handle),
+            1,
+            "the boundary tick did not advance the simulation; JavaScript \
+             would drive a frozen world and have nothing to show for it"
+        );
+    }
+
+    #[test]
+    fn tick_refreshes_the_render_buffer() {
+        // Isolates the `self.sim.sync_render_buffer()` half. Spawning
+        // through the ECS directly rather than through `spawn_agent` is
+        // what makes the two halves separable: `spawn_agent` syncs on its
+        // own, so an entity added behind its back reaches the renderer
+        // only if `tick` is what syncs.
+        let mut handle = SimHandle::new(8, 8);
+        handle.spawn_agent(1.0, 1.0, 80.0);
+        assert_eq!(handle.entity_count(), 1);
+
+        handle.sim.world_mut().spawn((
+            Agent,
+            Position { x: 2.0, y: 3.0 },
+            Needs::with(NeedId::Hunger, 50.0),
+        ));
+        assert_eq!(
+            handle.entity_count(),
+            1,
+            "the direct spawn must not be visible before a sync, or this \
+             test cannot tell a refreshed buffer from a stale one"
+        );
+
+        handle.tick();
+
+        assert_eq!(
+            handle.entity_count(),
+            2,
+            "the boundary tick advanced the world without refreshing the \
+             render buffer; JavaScript would redraw the previous frame \
+             forever while the simulation ran on without it"
+        );
+    }
+
+    #[test]
+    fn positions_ptr_addresses_the_current_frame_coordinates() {
+        let mut handle = SimHandle::new(16, 16);
+        handle.spawn_agent(3.5, 6.25, 50.0);
+
+        assert_eq!(
+            addressed(
+                handle.positions_ptr(),
+                handle.entity_count() * 2,
+                "positions_ptr"
+            ),
+            vec![3.5, 6.25],
+            "positions_ptr must address the interleaved x, y pairs of the \
+             current frame"
+        );
+    }
+
+    #[test]
+    fn kinds_ptr_addresses_the_entity_kind_tags() {
+        // One of each kind, because an all-agent lot tags every row 0 and
+        // could not distinguish the real array from a zeroed one.
+        let mut handle = SimHandle::new(16, 16);
+        assert!(handle.spawn_object(1.0, 1.0, "fridge"));
+        handle.spawn_agent(2.0, 2.0, 50.0);
+
+        assert_eq!(
+            addressed(handle.kinds_ptr(), handle.entity_count(), "kinds_ptr"),
+            vec![1, 0],
+            "kinds_ptr must address the 0 = agent, 1 = smart object tags, \
+             sorted by entity index, so the object spawned first comes first"
+        );
+    }
+
+    #[test]
+    fn prev_positions_ptr_addresses_the_frame_before_the_last_sync() {
+        // Two frames with DIFFERENT coordinates. On a first sync prev is
+        // seeded from the current frame, so a single-frame test would be
+        // unable to tell `prev_positions_ptr` from `positions_ptr` - both
+        // hypotheses predict the same numbers, per testing-protocol rule 7.
+        //
+        // The second frame is produced by syncing directly rather than by
+        // ticking, which keeps this test about the pointer instead of
+        // about what the systems do to an idle agent.
+        let mut handle = SimHandle::new(16, 16);
+        handle.spawn_agent(1.0, 1.0, 80.0);
+
+        let mut state = handle.sim.world_mut().query::<&mut Position>();
+        for mut position in state.iter_mut(handle.sim.world_mut()) {
+            position.x = 5.0;
+            position.y = 7.0;
+        }
+        handle.sim.sync_render_buffer();
+
+        let rows = handle.entity_count() * 2;
+        assert_eq!(
+            addressed(handle.prev_positions_ptr(), rows, "prev_positions_ptr"),
+            vec![1.0, 1.0],
+            "prev_positions_ptr must address the frame before the last sync; \
+             the renderer interpolates from it towards the current frame"
+        );
+        assert_eq!(
+            addressed(handle.positions_ptr(), rows, "positions_ptr"),
+            vec![5.0, 7.0],
+            "the two pointers must address different buffers; aliasing them \
+             would interpolate every entity from itself and freeze motion"
         );
     }
 }
