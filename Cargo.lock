@@ -740,6 +740,7 @@ name = "terri-core"
 version = "0.1.0"
 dependencies = [
  "bevy_ecs",
+ "serde",
 ]
 
 [[package]]

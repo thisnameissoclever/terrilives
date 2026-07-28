@@ -1029,3 +1029,69 @@ re-run the profile on `?stress=1000` with both include flags set;
 `buildInstances` reads tens of MB. Drop the flags and it reads 0 with the
 identical code. The two configurations disagree about the same program,
 and only one of them is answering the question asked.
+
+---
+
+## [L21] A mutation that fails to compile is not evidence about the test
+
+**What happened:** A task brief instructed "remove `NeedId::Comfort` from the
+`ALL` array, confirm `all_lists_every_variant_in_index_order` fails." The
+mutation did fail the build - but with
+`error[E0308]: expected an array with a size of 7, found one with a size of 6`,
+because `ALL` is declared `[NeedId; NEED_COUNT]`. **The test never ran.**
+
+Logged naively, that is a "caught" row that is entirely true and says nothing
+about whether the test works. The implementer noticed and found the mutation
+that actually exercises it: replace `Comfort` with a duplicate of another
+variant, which preserves the length and is also the realistic copy-paste slip.
+That one failed the test properly, at index 6.
+
+**Root cause:** mutation testing asks "does the test suite notice this change?"
+A change the *compiler* rejects never reaches the suite, so it answers a
+different question. The stronger the types, the more often this happens - which
+means it happens most in exactly the code where you are most tempted to trust a
+green mutation report.
+
+**Prevention rule:** a mutation is only evidence if the code **compiles**. When
+designing one, ask what the type system already prevents and mutate around it.
+For a fixed-size array, change a member rather than the count. For an enum,
+substitute a variant rather than removing one. **If a mutation produces a
+compile error, that is an inconclusive result, not a pass** - record it as such
+and design another.
+
+Note the compile error is still a real guard worth having. The point is only
+that it is a *different* guard than the test, and finding one does not verify
+the other.
+
+**How to verify:** read the failure output, not the exit code. `error[E0308]`
+means the type system caught it; a test-name-and-assertion failure means the
+test did.
+
+---
+
+## [L22] Snapshot harnesses must key on the full path, not the filename
+
+**What happened:** A mutation harness stored snapshots keyed on
+`parent_dir + filename`. In this workspace `crates/terri-sim/src/lib.rs` and
+`crates/terri-wasm/src/lib.rs` both reduce to `src__lib.rs`, so they collided
+and one restore wrote the other file's contents.
+
+**Root cause:** Rust workspaces put same-named files in every crate by
+construction - `lib.rs`, `mod.rs`, `error.rs`. Any key short of the full
+repo-relative path collides, and it collides *silently*, because writing a
+valid Rust file over another valid Rust file usually still compiles.
+
+**Why it was caught:** [L9]'s rule of asserting `git hash-object` after every
+restore. The hash did not match, the run stopped, and nothing was lost. The
+recovery deliberately avoided `git checkout` - the tree held uncommitted work -
+and instead replayed the edits from `HEAD`, each asserting a unique match, then
+re-verified byte identity plus a golden vector that independently pins the
+affected function.
+
+**Prevention rule:** key snapshots on the **full repo-relative path**, with
+separators replaced rather than dropped. And keep asserting the hash after every
+restore: that assertion is what turned a silent cross-file corruption into a
+stopped run.
+
+**How to verify:** snapshot two same-named files from different crates and
+confirm the harness produces two distinct keys.

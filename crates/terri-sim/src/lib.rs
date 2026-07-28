@@ -36,12 +36,12 @@ impl Sim {
         // World::try_query returns None if ANY component in the query is
         // unregistered, including one behind Option<&T>. Task 7's
         // world_hash uses try_query, so without this a world that never
-        // spawned a Hunger would hash zero rows and the determinism test
+        // spawned a Needs would hash zero rows and the determinism test
         // would pass by comparing two empty hashes - green while testing
         // nothing. Later tasks must add their components here too.
         world.register_component::<terri_core::Position>();
         world.register_component::<terri_core::Agent>();
-        world.register_component::<terri_core::Hunger>();
+        world.register_component::<terri_core::Needs>();
         world.register_component::<terri_core::SmartObject>();
         world.register_component::<terri_core::Reserved>();
         world.register_component::<terri_core::Path>();
@@ -166,33 +166,42 @@ impl Sim {
     /// first, because ECS iteration order is an implementation detail and
     /// must not affect the result.
     pub fn world_hash(&self) -> u64 {
-        use terri_core::{Hunger, Position};
+        use terri_core::{Needs, Position, NEED_COUNT};
 
         let mut hasher = terri_core::FnvHasher::default();
         hasher.write_u64(self.world.resource::<SimClock>().tick);
 
-        // (entity index, x, y, hunger). Hunger is NO_HUNGER for entities
-        // that have none, which distinguishes "no need" from "starving".
-        const NO_HUNGER: f32 = -1.0;
+        // (entity index, x, y, all seven need levels). Every level is
+        // NO_NEEDS for entities carrying no `Needs` at all, which
+        // distinguishes "no needs" from "desperate on all of them".
+        //
+        // All seven are hashed rather than only the one that currently
+        // decays. The digest is a published format across the WASM
+        // boundary, so fixing its shape once - now, while only hunger
+        // moves - costs one golden-vector update instead of one per need
+        // as the others come alive.
+        const NO_NEEDS: f32 = -1.0;
 
-        let mut rows: Vec<(u32, f32, f32, f32)> = Vec::new();
+        let mut rows: Vec<(u32, f32, f32, [f32; NEED_COUNT])> = Vec::new();
         if let Some(mut state) = self
             .world
-            .try_query::<(Entity, &Position, Option<&Hunger>)>()
+            .try_query::<(Entity, &Position, Option<&Needs>)>()
         {
-            for (entity, pos, hunger) in state.iter(&self.world) {
-                // The sentinel is in-band: Hunger's field is pub, so
-                // Hunger(-1.0) is constructible and would hash as if the
-                // component were absent. Nothing produces it today -
-                // decay clamps at NEED_MIN = 0.0 - but that coupling is
-                // invisible from terri-core, so pin it here. If needs
-                // ever go negative, this sentinel must move out of band.
+            for (entity, pos, needs) in state.iter(&self.world) {
+                // The sentinel is in-band, so a real level equal to it
+                // would hash as if the component were absent. `Needs`
+                // holds a private array and every mutator clamps to
+                // NEED_MIN = 0.0, so today the type system prevents it
+                // outright - but that is a property of terri-core's
+                // implementation, invisible from here, so pin it. If
+                // needs ever go negative, this sentinel must move out of
+                // band.
                 debug_assert!(
-                    hunger.is_none_or(|h| h.0 != NO_HUNGER),
-                    "Hunger({NO_HUNGER}) aliases world_hash's no-Hunger sentinel"
+                    needs.is_none_or(|n| n.as_slice().iter().all(|&l| l != NO_NEEDS)),
+                    "a need level of {NO_NEEDS} aliases world_hash's no-Needs sentinel"
                 );
-                let hunger = hunger.map_or(NO_HUNGER, |h| h.0);
-                rows.push((entity.index_u32(), pos.x, pos.y, hunger));
+                let levels = needs.map_or([NO_NEEDS; NEED_COUNT], |n| *n.as_slice());
+                rows.push((entity.index_u32(), pos.x, pos.y, levels));
             }
         }
         // The sort is load-bearing: query iteration is archetype order,
@@ -201,11 +210,13 @@ impl Sim {
         // is what pins it; deleting this line must fail that test.
         rows.sort_by_key(|(index, _, _, _)| *index);
 
-        for (index, x, y, hunger) in rows {
+        for (index, x, y, levels) in rows {
             hasher.write_u64(index as u64);
             hasher.write_f32(x);
             hasher.write_f32(y);
-            hasher.write_f32(hunger);
+            for level in levels {
+                hasher.write_f32(level);
+            }
         }
 
         hasher.finish()
@@ -225,7 +236,7 @@ fn advance_clock(mut clock: ResMut<SimClock>) {
 #[cfg(test)]
 mod determinism_tests {
     use super::*;
-    use terri_core::{Agent, Eating, Hunger, Position, SmartObject};
+    use terri_core::{Agent, Eating, NeedId, Needs, Position, SmartObject};
 
     fn build_scenario() -> Sim {
         let mut sim = Sim::new_with_lot(24, 24);
@@ -244,7 +255,7 @@ mod determinism_tests {
                     x: 1.0 + i as f32,
                     y: 1.0,
                 },
-                Hunger(30.0 + i as f32 * 5.0),
+                Needs::with(NeedId::Hunger, 30.0 + i as f32 * 5.0),
             ));
         }
         sim
@@ -258,7 +269,7 @@ mod determinism_tests {
     fn raw_iteration_order(sim: &Sim) -> Vec<u32> {
         let mut state = sim
             .world()
-            .try_query::<(Entity, &Position, Option<&Hunger>)>()
+            .try_query::<(Entity, &Position, Option<&Needs>)>()
             .expect("every component in the hash query must be registered");
         state
             .iter(sim.world())
@@ -349,7 +360,11 @@ mod determinism_tests {
         //
         // Mutation-verified: without this, deleting the whole row
         // collection from world_hash, or just the two position writes,
-        // or just the hunger write, leaves every other test green.
+        // or just the need writes, leaves every other test green.
+        //
+        // It checks that SOME need reaches the digest.
+        // `hash_observes_every_need_not_only_hunger` below is what checks
+        // that all seven do.
         let mut sim = build_scenario();
         let baseline = sim.world_hash();
         let agent = lowest_indexed_agent(&sim);
@@ -372,8 +387,56 @@ mod determinism_tests {
             "restoring state must restore the digest"
         );
 
-        sim.world_mut().get_mut::<Hunger>(agent).unwrap().0 += 1.0;
-        assert_ne!(baseline, sim.world_hash(), "world_hash ignores Hunger");
+        let hunger = sim.world().get::<Needs>(agent).unwrap().get(NeedId::Hunger);
+        sim.world_mut()
+            .get_mut::<Needs>(agent)
+            .unwrap()
+            .set(NeedId::Hunger, hunger + 1.0);
+        assert_ne!(baseline, sim.world_hash(), "world_hash ignores Needs");
+    }
+
+    #[test]
+    fn hash_observes_every_need_not_only_hunger() {
+        // Hunger is the only need that decays, the only one an
+        // interaction fills, and the only one selection scores, so every
+        // other test in the workspace would stay green with the other six
+        // levels absent from the digest. They would then diverge silently
+        // between peers the moment M1b gives any of them behaviour, and
+        // the golden vector would have to move a second time.
+        //
+        // Causal rather than comparative, per docs/testing-protocol.md
+        // rule 3: perturb exactly one level, require the digest to move,
+        // restore it, and require the digest to come back. Restoring is
+        // what rules out a hash that merely reacts to being touched.
+        let mut sim = build_scenario();
+        let baseline = sim.world_hash();
+        let agent = lowest_indexed_agent(&sim);
+
+        for id in NeedId::ALL {
+            let before = sim.world().get::<Needs>(agent).unwrap().get(id);
+            // Downwards, so a need already sitting at NEED_MAX moves
+            // instead of being clamped back to where it started.
+            sim.world_mut()
+                .get_mut::<Needs>(agent)
+                .unwrap()
+                .set(id, before - 1.0);
+            assert_ne!(
+                baseline,
+                sim.world_hash(),
+                "world_hash ignores the {} level",
+                id.as_str()
+            );
+            sim.world_mut()
+                .get_mut::<Needs>(agent)
+                .unwrap()
+                .set(id, before);
+            assert_eq!(
+                baseline,
+                sim.world_hash(),
+                "restoring the {} level must restore the digest",
+                id.as_str()
+            );
+        }
     }
 
     /// The golden vector. Everything else in this module compares two
@@ -402,8 +465,8 @@ mod determinism_tests {
     /// That gap is concrete rather than theoretical: `write_f32` calls
     /// `f32::round`, which is round-half-away-from-zero in Rust and does
     /// not map to wasm's round-half-to-even `f32.nearest`, so rustc emits
-    /// a different code path there - and every position and hunger level
-    /// in this digest passes through it.
+    /// a different code path there - and every position and every one of
+    /// the seven need levels in this digest passes through it.
     ///
     /// The boundary is covered by
     /// `reproduces the native golden world hash across the wasm boundary`
@@ -414,7 +477,18 @@ mod determinism_tests {
     #[test]
     fn world_hash_matches_its_golden_vector() {
         const TICKS: usize = 100;
-        const GOLDEN: u64 = 0xEF60_1D50_4790_5825;
+        // Moved deliberately at the Hunger-to-Needs migration: the digest
+        // now covers all seven need levels per entity rather than one
+        // hunger level, and a `Needs`-less entity contributes seven
+        // sentinels rather than one. The simulation still computes the
+        // same thing - the same eight agents eat at the same ticks - so
+        // this is an encoding change, and it is the only one this
+        // milestone plans to make. Previous value: 0xEF60_1D50_4790_5825.
+        //
+        // The new value was measured on wasm32 as well as natively, per
+        // [L13], rather than assumed to carry across: the two agree. The
+        // boundary copy lives in web/tests/bridge.test.ts.
+        const GOLDEN: u64 = 0x6C37_57F1_8481_75C1;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {
@@ -479,7 +553,7 @@ mod determinism_tests {
         // entity is born, lives one tick and dies, and one agent leaves
         // and re-enters its table. Neither changes what the simulation
         // computes: the bystander carries neither Agent nor SmartObject
-        // nor Hunger nor Path, so no system's query matches it, and the
+        // nor Needs nor Path, so no system's query matches it, and the
         // insert/remove pair is applied between ticks where no system can
         // observe it. Both change the order the ECS yields entities in,
         // because leaving an archetype swap-removes an entity from its

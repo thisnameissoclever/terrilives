@@ -1,25 +1,56 @@
 # Mutation Testing Baseline
 
-Re-recorded 2026-07-27 on the tree that closes the `select_action`
-distance and comparison gaps. Previous baseline: 2026-07-27 at commit
-`7415d98`, after Task 7 of M0.
+Re-recorded 2026-07-27 on the M1a content-pipeline branch, after the
+Hunger-to-Needs refactor. Previous sweeps: 234 mutants / 18 missed at
+commit `28e5acf` (the M0 close-out tree, after `Path::is_complete` was
+deleted); 237 / 21 on the tree that closed the `select_action` distance
+and comparison gaps; and 2026-07-27 at commit `7415d98`, after Task 7
+of M0.
 
 ```
 cargo mutants --package terri-core --package terri-sim --test-workspace true --timeout 60
-237 mutants tested in 9m: 21 missed, 209 caught, 7 unviable
+250 mutants tested in 9m: 18 missed, 222 caught, 10 unviable
 ```
 
-**Mutation score: 91%** (209 caught of 230 viable), up from 89% and
-originally 83%. The narrative below still describes the 26-survivor
-state; five more were closed by Tasks 8 through 13, chiefly the
-`std::mem::swap` and boundary-validation work.
+**Mutation score: 92.5%** (222 caught of 240 viable), up from 92%, 91%,
+89% and originally 83%. The M1a work added 16 mutants and killed all of
+them: +13 caught, +3 unviable, **+0 missed**. The survivor set is
+unchanged in substance from the M0 close-out sweep.
 
-**Amended at the M0 close-out.** Deleting `Path::is_complete` removed
-three mutants from the codebase entirely, so the sweep above no longer
-reproduces exactly: expect **234 mutants and 18 missed**, and a score of
-92% (209 of 227 viable). The baseline file was edited to match. A count
-that moves because the code moved is the only reason it may move without
-a re-run recorded here.
+The group headings below sum to 23 rather than to the 18 actually
+missed: five of those entries were closed by Tasks 8 through 13,
+chiefly the `std::mem::swap` and boundary-validation work, and the
+headings still describe the pre-Task-8 state. (This sentence previously
+said 26. That was the count before `Path::is_complete`'s three came out
+of Group A, and it was not updated when they did.)
+
+**Three baseline entries were re-anchored, not added.** The refactor
+shifted `select_action`'s tiebreak from `action.rs:60:82` to `67:82`,
+and the `score_advertisement` NaN guard from `advertise.rs:31` to `32`.
+Because baseline entries are line-anchored, the CI comparison saw those
+three as new survivors *and* their old positions as stale entries at the
+same time - six diff lines describing three unmoved mutants. Normalising
+line numbers makes the measured set and the previous baseline identical,
+which is the check worth running before believing a survivor is new:
+**a survivor at a shifted line is not a new survivor, and the difference
+matters because one requires a test and the other requires a renumber.**
+
+**The close-out amendment is now measured rather than expected.**
+Deleting `Path::is_complete` removed three mutants from the codebase
+entirely, and the amendment written at the time *projected* 234 mutants,
+18 missed and a 92% score without re-running the tool. The block above
+is that re-run, and the projection was exact on all three figures.
+`mutants.out/missed.txt` came back byte-identical to
+`docs/mutants-baseline.txt` under the same comparison CI performs: no
+new survivors, and no baseline entry gone stale. A count that moves
+because the code moved remains the only reason it may move without a
+re-run recorded here.
+
+Scope of that claim: `cargo mutants` emits no statement-deletion
+mutants ([L11], and rule 2 of `testing-protocol.md`), so this clean
+report is a backstop and says nothing about whether a deleted `swap`,
+`clear`, `sort`, `push` or `insert` would be noticed. Those still have
+to be deleted by hand.
 
 ## The machine-readable baseline is `docs/mutants-baseline.txt`
 
@@ -135,9 +166,10 @@ The group totals were right, the heading was not.)
 
 ### Scoring boundaries (2)
 
-`advertise.rs:31` - the NaN guard's `>` versus `>=`, on both the deficit
+`advertise.rs:32` - the NaN guard's `>` versus `>=`, on both the deficit
 and the delta term. The `advertise.rs:59` denominator guard that used to
-sit here is now closed.
+sit here is now closed. The guard gained a third term, `distance >= 0.0`,
+in the M1a work; that one is caught, so it is not listed here.
 
 ### Hash (2)
 
@@ -150,7 +182,7 @@ Already recorded as a gap in Task 7's review.
 Not debt. These cannot be killed by any correctness test, so a future
 run that reports them is reporting nothing actionable.
 
-### `action.rs:60:82` `<` to `<=`
+### `action.rs:67:82` `<` to `<=`
 
 `object.index() < best_e.index()` versus `<=`. The two differ on exactly
 one input, `object.index() == best_e.index()`, and that state is
@@ -184,6 +216,9 @@ project's determinism guarantees care about which path comes back.
 cargo mutants --package terri-core --package terri-sim --test-workspace true --timeout 60
 ```
 
-Roughly 7 to 8 minutes on the development machine. Update this file when
-the baseline changes, and say which entries were closed and which were
-added.
+Roughly 9 minutes on the development machine; the last three recorded
+sweeps all reported 9m. Run it on a **clean tree** and confirm
+`git status` is clean first, or the copy `cargo mutants` takes will
+include uncommitted work and the counts will not match this file.
+Update this file when the baseline changes, and say which entries were
+closed and which were added.
