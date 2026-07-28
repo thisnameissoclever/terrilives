@@ -254,4 +254,91 @@ mod tests {
         // Without the bounds check this silently blocks (0, 2) instead.
         TileGrid::new(5, 5).set_blocked(5, 1, true);
     }
+
+    #[test]
+    fn width_and_height_report_the_constructor_arguments_in_that_order() {
+        // Every other test in this file builds a SQUARE grid, so a
+        // transposed `TileGrid::new` - or a `height` that returns
+        // `self.width` - is invisible to all of them. Both accessors
+        // survived as mutants on that basis, and they are not idle
+        // getters: `is_walkable` and `set_blocked` both derive their
+        // bounds from these fields, and `find_path` indexes rows by
+        // `width`.
+        let grid = TileGrid::new(7, 3);
+        assert_eq!(grid.width(), 7);
+        assert_eq!(grid.height(), 3);
+
+        // The same claim stated through behaviour, so the two lines
+        // above cannot both be satisfied by a grid that is actually
+        // 3 wide and 7 tall.
+        assert!(grid.is_walkable(6, 2), "(6, 2) is the far corner of 7x3");
+        assert!(!grid.is_walkable(2, 6), "(2, 6) is outside a 7x3 grid");
+    }
+
+    #[test]
+    fn a_path_that_starts_on_an_unwalkable_tile_is_none() {
+        // The two halves of `find_path`'s entry guard are not equally
+        // covered. The DESTINATION half is protected incidentally: an
+        // unreachable goal makes the search exhaust and return None
+        // anyway, so removing that half changes nothing observable.
+        // The ORIGIN half has no such backstop - without it the search
+        // happily expands outward from inside a wall and hands back a
+        // path - which is why `||` mutated to `&&` survived every other
+        // test in this file.
+        //
+        // Reachable in play rather than contrived: an agent standing on
+        // a tile that build mode then walls over is exactly this state.
+        let mut grid = TileGrid::new(5, 5);
+        grid.set_blocked(2, 2, true);
+
+        assert!(
+            grid.find_path((2, 2), (0, 0)).is_none(),
+            "an agent inside a wall has nowhere to walk from"
+        );
+        assert!(
+            grid.find_path((0, 0), (2, 2)).is_none(),
+            "nothing can path into a wall"
+        );
+        // Without this the two assertions above would also pass if
+        // find_path were broken outright and returned None for
+        // everything.
+        assert!(grid.find_path((0, 0), (4, 4)).is_some());
+    }
+
+    #[test]
+    fn the_heuristic_equals_the_true_cost_on_an_open_grid() {
+        // A* returns optimal paths only while its heuristic never
+        // overestimates the remaining cost. On a four-neighbour grid
+        // with unit step cost and no obstacles, the Manhattan distance
+        // IS the remaining cost exactly, so admissibility here is an
+        // equality rather than an inequality - and that is the strongest
+        // form the claim can take.
+        //
+        // Three mutants lived in this function because nothing else can
+        // see them: replacing the heuristic with 0 or with any constant
+        // degrades A* to Dijkstra, which still returns paths of optimal
+        // LENGTH, so every path assertion in this file stays green.
+        //
+        // Both coordinates differ in every pair, and no pair starts on
+        // an axis, deliberately: where `a.1` is 0, `a.1 - b.1` and
+        // `a.1 + b.1` have the same absolute value and the sign flip is
+        // invisible.
+        let grid = TileGrid::new(9, 9);
+        for (from, to, cost) in [
+            ((2, 5), (3, 1), 5usize),
+            ((5, 2), (1, 3), 5),
+            ((7, 7), (0, 4), 10),
+        ] {
+            assert_eq!(
+                heuristic(from, to) as usize,
+                cost,
+                "heuristic {from:?} -> {to:?}"
+            );
+            assert_eq!(
+                grid.find_path(from, to).expect("open grid").len(),
+                cost,
+                "the cost above must be the real one, not a copied literal"
+            );
+        }
+    }
 }

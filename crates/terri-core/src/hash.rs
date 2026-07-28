@@ -143,12 +143,31 @@ mod tests {
         assert_ne!(nan, pos_inf, "NaN collides with +inf");
         assert_ne!(nan, neg_inf, "NaN collides with -inf");
         assert_ne!(pos_inf, neg_inf, "+inf collides with -inf");
-        assert_ne!(pos_inf, digest(1.0e30), "+inf collides with a finite value");
-        assert_ne!(
-            neg_inf,
-            digest(-1.0e30),
-            "-inf collides with a finite value"
-        );
+
+        // Every sentinel must clear BOTH saturation points, not just the
+        // one on its own side. This is the whole reason the three are
+        // `i64::MIN + 1..3` rather than `i64::MIN` and `i64::MAX`
+        // themselves, and the earlier version of this test checked only
+        // the matching side: it asserted +inf differs from a huge
+        // positive and -inf from a huge negative, and said nothing about
+        // the four remaining pairings.
+        //
+        // Measured consequence of the gap: `i64::MIN + 1` mutated to
+        // `i64::MIN * 1` compiles, leaves the sentinel AT i64::MIN, and
+        // makes NaN hash identically to any coordinate below roughly
+        // -9.2e14. That mutant survived the whole suite.
+        for (label, sentinel) in [("NaN", nan), ("+inf", pos_inf), ("-inf", neg_inf)] {
+            assert_ne!(
+                sentinel,
+                digest(1.0e30),
+                "{label} collides with i64::MAX saturation"
+            );
+            assert_ne!(
+                sentinel,
+                digest(-1.0e30),
+                "{label} collides with i64::MIN saturation"
+            );
+        }
     }
 
     #[test]
