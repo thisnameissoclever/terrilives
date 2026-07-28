@@ -13,6 +13,7 @@ import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
 import { FixedStepDriver, buildInstances } from './frame.js';
 import { TILE_HALF_HEIGHT, TILE_HALF_WIDTH } from './render/iso.js';
+import { buildStaticInstances } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
 
 /** [D2]: the simulation's one true rate. Speed controls change how many
@@ -77,7 +78,12 @@ async function main(): Promise<void> {
   }
 
   const gpu = await initDevice(canvas);
-  const renderer = new SpriteRenderer(gpu);
+  // Awaited: the atlas is a PNG and decoding it is asynchronous, so the
+  // renderer is only usable once its texture is on the GPU. Constructing
+  // it synchronously and uploading later would let the first frames
+  // sample an empty texture, which is a black room that fixes itself -
+  // the hardest kind of glitch to reproduce.
+  const renderer = await SpriteRenderer.create(gpu);
 
   // The lot, its walls and all eight authored objects come out of
   // content/lot.toml through the compiled pack. Nothing here names a
@@ -154,6 +160,19 @@ async function main(): Promise<void> {
   // 2 * max(w, h) >= w + h. A depth outside the range does not sort
   // wrong, it clips the entity away entirely.
   const depthScale = Math.max(lotWidth, lotHeight);
+
+  // The floor and the walls, built once. They are static for the whole
+  // session, so they are uploaded here and never touched again rather
+  // than being rebuilt inside `frame` sixty times a second; see
+  // `tiles.ts` and [V11] for what an unexamined per-frame rebuild costs.
+  //
+  // The wall tiles come from the simulation's own `TileGrid`, not from
+  // the content pack, so what is drawn is what `find_path` refuses to
+  // walk through. A sim detouring to the doorway is then legible instead
+  // of looking like an AI fault.
+  const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles() };
+  const staticGeometry = buildStaticInstances(lot, originX, originY, depthScale);
+  renderer.setStaticGeometry(staticGeometry.instances, staticGeometry.count);
 
   const timer = new FrameTimer(FRAME_WINDOW);
   let previousFrameMs = performance.now();

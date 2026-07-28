@@ -77,6 +77,19 @@ pub enum ContentError {
     UnknownPlacedObject {
         object: String,
     },
+    /// An object names a sprite the atlas manifest does not hold. The
+    /// same dangling-reference shape as [`ContentError::UnknownNeed`] and
+    /// [`ContentError::UnknownPlacedObject`], across one more file.
+    UnknownSprite {
+        object: String,
+        sprite: String,
+    },
+    /// The atlas has no sprite for a sim. Nothing in `content/` names it,
+    /// so a designer cannot cause this; regenerating the atlas from a
+    /// `build-atlas.ps1` that had dropped the sprite can.
+    MissingSimSprite {
+        sprite: String,
+    },
 }
 
 impl fmt::Display for ContentError {
@@ -160,6 +173,14 @@ impl fmt::Display for ContentError {
                     "lot.toml places '{object}', which objects.toml does not declare"
                 )
             }
+            ContentError::UnknownSprite { object, sprite } => write!(
+                f,
+                "object '{object}' names sprite '{sprite}', which atlas.toml does not hold"
+            ),
+            ContentError::MissingSimSprite { sprite } => write!(
+                f,
+                "atlas.toml has no '{sprite}' sprite, so no sim could be drawn"
+            ),
         }
     }
 }

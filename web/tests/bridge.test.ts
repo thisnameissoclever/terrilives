@@ -45,6 +45,64 @@ describe('SimBridge', () => {
     expect(kinds[1]).toBe(0);
   });
 
+  it('carries a content-resolved sprite index per entity', () => {
+    // The Rust twin is in crates/terri-wasm/src/lib.rs; this one is not
+    // redundant with it for [L12]'s reason - that one is a debug build of
+    // the rlib, and the artifact the page loads is the release wasm.
+    //
+    // The specific mistake this is written against is the one that made
+    // Task 3b's screen nine identical blue diamonds: every entity
+    // reaching the GPU with the same number. Two DIFFERENT objects plus a
+    // sim is the smallest fixture that can see it; two of the same object
+    // could not.
+    const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
+    expect(bridge.spawnObject(4, 5, 'fridge')).toBe(true);
+    expect(bridge.spawnObject(6, 7, 'bed')).toBe(true);
+    bridge.spawnAgent(1, 2, 50);
+
+    const sprites = bridge.sprites();
+    expect(sprites.length).toBe(3);
+    expect(new Set(sprites).size).toBe(3);
+    // A zero-copy view like every other accessor here, not a snapshot.
+    expect(sprites.buffer).toBe(wasmMemory.buffer);
+    // And the two objects differ from the sim as well as from each
+    // other, so a sprite column filled with `sim_sprite` throughout -
+    // the mutation that looks most like working code - fails.
+    expect(sprites[0]).not.toBe(sprites[2]);
+    expect(sprites[1]).not.toBe(sprites[2]);
+  });
+
+  it('reports the shipped lot walls, with the doorway left open', () => {
+    // The renderer draws these, so if they disagreed with the grid the
+    // page would show a wall where a sim walks through, or a gap where
+    // one detours. Both read as an AI fault rather than a drawing one.
+    const handle = SimHandle.from_lot();
+    const bridge = new SimBridge(handle, wasmMemory);
+    const walls = bridge.wallTiles();
+
+    expect(walls.length % 2).toBe(0);
+    const pairs = new Set<string>();
+    for (let i = 0; i < walls.length; i += 2) {
+      pairs.add(`${walls[i]},${walls[i + 1]}`);
+    }
+    // Rule 5: an empty list would satisfy the two absence checks below.
+    expect(pairs.size).toBeGreaterThanOrEqual(15);
+    expect(pairs.size * 2).toBe(walls.length);
+
+    expect(pairs.has('16,4')).toBe(true);
+    expect(pairs.has('16,6')).toBe(true);
+    // The doorway. Drawn as a wall, the bathroom would look sealed while
+    // the sim walked straight through the picture of one.
+    expect(pairs.has('16,5')).toBe(false);
+    // Every tile is inside the lot; the boundary is drawn from the lot's
+    // dimensions instead, because no tile exists off the grid to report.
+    for (const key of pairs) {
+      const [x, y] = key.split(',').map(Number);
+      expect(x).toBeLessThan(handle.lot_width());
+      expect(y).toBeLessThan(handle.lot_height());
+    }
+  });
+
   it('rejects an unknown content id without trapping the wasm module', () => {
     // The Rust-side twin of this lives in crates/terri-wasm/src/lib.rs.
     // This one is not redundant with it, and the reason is [L12]: the

@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import {
   FLOATS_PER_INSTANCE,
   BYTES_PER_INSTANCE,
+  MAX_SPRITES,
   VERTICES_PER_QUAD,
   growCapacity,
   writeInstance,
@@ -17,7 +18,7 @@ import {
 const shader = readFileSync('src/render/sprites.wgsl', 'utf8');
 
 describe('instance layout', () => {
-  it('packs an instance as screenX, screenY, depth, kind in that order', () => {
+  it('packs an instance as screenX, screenY, depth, sprite in that order', () => {
     const out = new Float32Array(FLOATS_PER_INSTANCE);
     writeInstance(out, 0, 12, 34, 0.25, 1);
 
@@ -102,5 +103,32 @@ describe('sprites.wgsl contract', () => {
     expect(corners).not.toBeNull();
     expect(Number(corners![1])).toBe(VERTICES_PER_QUAD);
     expect(corners![2].match(/vec2f\(/g)?.length).toBe(VERTICES_PER_QUAD);
+  });
+
+  it('sizes its sprite table at exactly MAX_SPRITES', () => {
+    // A uniform array in WGSL is fixed-size, so this number genuinely
+    // lives in two files and nothing in either language connects them.
+    // Getting it wrong is not an error anywhere: WGSL CLAMPS an
+    // out-of-range index rather than trapping, so with the shader
+    // declaring fewer than the atlas holds, every sprite past the end
+    // draws as the last one in the table - forever, silently, and only
+    // for the sprites that were added most recently.
+    const declared = shader.match(/const MAX_SPRITES = (\d+)u;/);
+    expect(declared).not.toBeNull();
+    expect(Number(declared![1])).toBe(MAX_SPRITES);
+
+    const used = shader.match(/array<Sprite,\s*MAX_SPRITES>/);
+    expect(used).not.toBeNull();
+  });
+
+  it('samples the atlas and discards below the alpha threshold', () => {
+    // The discard is what makes the transparent part of a sprite
+    // genuinely see-through. The pipeline writes depth, so without it
+    // every quad's transparent bounding box would claim its pixels and a
+    // bed would occlude a rectangle of floor and anything standing in
+    // it. There is no GPU in CI, so this is the only thing standing
+    // between that and a play session.
+    expect(shader).toMatch(/textureSample\(/);
+    expect(shader).toMatch(/discard;/);
   });
 });

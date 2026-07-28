@@ -120,6 +120,41 @@ impl SimHandle {
         self.sim.world().resource::<TileGrid>().height()
     }
 
+    /// Every impassable tile inside the lot, interleaved `[x0, y0, x1,
+    /// y1, ...]`, so the renderer can draw the walls the sim paths
+    /// around.
+    ///
+    /// Read off the `TileGrid` rather than off `pack().lot.walls`, and
+    /// that is the point rather than an implementation detail: the grid
+    /// is what `find_path` consults, so what this returns is what the
+    /// simulation actually treats as solid. Reading the content list
+    /// instead would let the two drift, and the drift would look like a
+    /// sim detouring around nothing - which is exactly the class of
+    /// confusion drawing walls exists to remove.
+    ///
+    /// It copies, unlike the render pointers, because it is called once
+    /// at load and the caller keeps the result for the session. A zero-
+    /// copy view would have to survive every later `Vec` reallocation
+    /// for no benefit at all.
+    ///
+    /// The lot BOUNDARY is not in here and cannot be: `is_walkable`
+    /// treats everything off the grid as blocked without any tile
+    /// existing to report. The renderer draws that separately, from the
+    /// lot's dimensions.
+    pub fn wall_tiles(&self) -> Vec<u32> {
+        let grid = self.sim.world().resource::<TileGrid>();
+        let mut tiles = Vec::new();
+        for y in 0..grid.height() {
+            for x in 0..grid.width() {
+                if !grid.is_walkable(x as i32, y as i32) {
+                    tiles.push(x as u32);
+                    tiles.push(y as u32);
+                }
+            }
+        }
+        tiles
+    }
+
     /// Advances one fixed tick and refreshes the render buffer.
     pub fn tick(&mut self) {
         self.sim.tick();
@@ -216,6 +251,12 @@ impl SimHandle {
 
     pub fn kinds_ptr(&self) -> *const u32 {
         self.sim.render_buffer().kinds.as_ptr()
+    }
+
+    /// Atlas sprite index per row. Same caching hazard as every other
+    /// pointer here; re-read it on every access.
+    pub fn sprites_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().sprites.as_ptr()
     }
 
     pub fn world_hash(&self) -> u64 {
@@ -668,6 +709,88 @@ mod boundary_tests {
             "kinds_ptr must address the 0 = agent, 1 = smart object tags, \
              sorted by entity index, so the object spawned first comes first"
         );
+    }
+
+    #[test]
+    fn sprites_ptr_addresses_the_content_resolved_atlas_indices() {
+        // One object and one agent, because an all-object lot would tag
+        // every row the same and could not distinguish the real array
+        // from a constant. The expectations are read out of the pack so
+        // a re-skin does not break this, and asserted to differ so that
+        // reading them out cannot make the comparison vacuous.
+        let mut handle = SimHandle::new(16, 16);
+        assert!(handle.spawn_object(1.0, 1.0, "sofa"));
+        handle.spawn_agent(2.0, 2.0, 50.0);
+
+        // Through the sim's own `Content` resource rather than by
+        // depending on `terri-data`. This crate deliberately does not
+        // name that crate in its manifest, and it does not have to:
+        // inherent methods on `ContentPack` are callable without naming
+        // the type.
+        let pack = handle.sim.world().resource::<Content>().0;
+        let sofa = pack.object(pack.find("sofa").expect("shipped content has a sofa"));
+        assert_ne!(
+            sofa.sprite, pack.sim_sprite,
+            "the sofa and the sim must draw differently or this proves nothing"
+        );
+
+        assert_eq!(
+            addressed(handle.sprites_ptr(), handle.entity_count(), "sprites_ptr"),
+            vec![sofa.sprite, pack.sim_sprite],
+            "sprites_ptr must address the atlas index per row, sorted by \
+             entity index, so the object spawned first comes first"
+        );
+    }
+
+    #[test]
+    fn wall_tiles_reports_the_blocked_tiles_of_the_shipped_lot_and_only_those() {
+        // The shipped lot, because the point of this export is that the
+        // page draws the walls the simulation actually paths around.
+        let handle = SimHandle::from_lot();
+        let tiles = handle.wall_tiles();
+
+        assert_eq!(tiles.len() % 2, 0, "the pairs must be interleaved x, y");
+        let pairs: Vec<(u32, u32)> = tiles.chunks_exact(2).map(|c| (c[0], c[1])).collect();
+        assert!(
+            !pairs.is_empty(),
+            "the shipped lot has interior walls; an empty result means the \
+             page would draw none of them"
+        );
+
+        // Against the grid rather than against `lot.toml`, because the
+        // grid is what `find_path` consults and therefore what the
+        // renderer has to agree with.
+        let grid = handle.sim.world().resource::<TileGrid>();
+        let mut blocked = 0;
+        for y in 0..grid.height() {
+            for x in 0..grid.width() {
+                let listed = pairs.contains(&(x as u32, y as u32));
+                assert_eq!(
+                    listed,
+                    !grid.is_walkable(x as i32, y as i32),
+                    "({x}, {y}) is {} in the grid and {} in wall_tiles",
+                    if grid.is_walkable(x as i32, y as i32) {
+                        "walkable"
+                    } else {
+                        "blocked"
+                    },
+                    if listed { "listed" } else { "absent" }
+                );
+                if listed {
+                    blocked += 1;
+                }
+            }
+        }
+        assert_eq!(blocked, pairs.len(), "wall_tiles must not repeat a tile");
+
+        // The doorway, stated positively as well. A wall list that
+        // included it would draw the bathroom sealed while the sim walked
+        // straight through the picture of a wall.
+        assert!(
+            !pairs.contains(&(16, 5)),
+            "the doorway at (16, 5) is walkable and must not be drawn as a wall"
+        );
+        assert!(pairs.contains(&(16, 4)) && pairs.contains(&(16, 6)));
     }
 
     #[test]

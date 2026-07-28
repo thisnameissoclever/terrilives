@@ -1859,3 +1859,48 @@ produce the same 921,600 zeroes.
 Task 3b browser script and re-run against a page that is demonstrably
 drawing. The colour tally collapses to a single `0,0,0` entry while the
 submit counter keeps climbing.
+
+## [L38] A borrowed asset pack's grid is not this project's grid, and the difference reads as a level-design problem
+
+**What happened:** Task 3c scaled Kenney's isometric furniture by their
+floor tile, which is the obvious reading: their `floorFull` renders 208 px
+across and our tile diamond is 64 px, so the factor is 64/208. Everything
+tiled, nothing overlapped, and the rendered lot looked wrong in a way that
+had nothing obviously to do with scaling: an enormous empty floor with
+doll's-house props scattered on it. The first instinct was that
+`content/lot.toml` had authored too big a lot.
+
+**Root cause:** **their tile is about 1.7 m and ours is roughly 1 m.**
+`grid.rs` says so about ours; theirs has to be measured, and can be. An
+isometric box of footprint w by d renders `(w + d) * halfTile` wide, so
+their 0.4 x 0.7 m toilet at 66 px and their 1.0 x 2.0 m bunk bed at 172 px
+both put their metre near 118 source pixels rather than 208. Scaling by
+their tile therefore drew every object at 58% of its real size. Nothing in
+the pipeline could notice: the atlas packed, the manifests agreed, every
+test passed, and the only symptom was an aesthetic judgement about a room.
+
+**Prevention rule:**
+
+1. **Scale a borrowed pack by a shared physical unit, not by its grid.**
+   Derive the unit from two objects of known real size and check they
+   agree; one object cannot distinguish a scale error from an unusual
+   model.
+2. **Say what the unit is in the file that applies it.** `build-atlas.ps1`
+   names 118 px as one metre and shows the arithmetic, so the next person
+   changing the scale is changing a measured quantity rather than a magic
+   number.
+3. **A rendering bug can present as a content bug.** Before re-authoring
+   content because the picture looks wrong, check that the picture is
+   drawing the content at the right size.
+
+**Also recorded here because it cost a second iteration:** scale both axes
+of a borrowed isometric sprite or neither. Their wall panel is 1.8 of our
+tile edges wide at the metre scale, so a run of them overlaps; narrowing
+only the width to one tile edge looks like the fix and is worse, because
+the panel's top and bottom edges are diagonals cut to the tile slope and
+scaling x without y re-slopes them. The run then opens into a picket fence
+with the floor showing through.
+
+**How to verify:** set `$KENNEY_METRE_PX` in `assets/sprites/build-atlas.ps1`
+to 208, regenerate, and look at the page. Every object shrinks to 58% while
+the floor, which is generated at exactly 64 x 32, does not move at all.

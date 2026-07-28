@@ -30,6 +30,14 @@ pub struct CompiledInteraction {
 pub struct CompiledObject {
     pub id: String,
     pub name: String,
+    /// Index into `assets/sprites/atlas.toml`'s `[[sprite]]` list, and
+    /// therefore into the renderer's `SPRITES` array, which is generated
+    /// from the same manifest in the same pass.
+    ///
+    /// An index rather than the authored name for the same reason a need
+    /// is an index: once a pack exists, a sprite the atlas does not hold
+    /// has no representation.
+    pub sprite: u32,
     pub interactions: Vec<CompiledInteraction>,
 }
 
@@ -82,6 +90,15 @@ impl CompiledLot {
 pub struct ContentPack {
     pub decay_per_tick: [f32; NEED_COUNT],
     pub objects: Vec<CompiledObject>,
+    /// The atlas index of the sprite every sim is drawn with.
+    ///
+    /// A sim is not authored content - nothing in `content/` declares
+    /// one - so unlike an object's sprite this resolves a name fixed in
+    /// `compile.rs` rather than one a designer typed. It lives in the
+    /// pack anyway so that the render buffer can fill a sprite index for
+    /// every row without the simulation or the shell knowing what a sim
+    /// looks like.
+    pub sim_sprite: u32,
     /// Last, so that the pack's byte encoding grows by appending. The
     /// golden vector in `compile.rs` annotates the earlier blocks, and
     /// keeping them at fixed offsets is what makes it reviewable.
@@ -147,12 +164,18 @@ mod tests {
             decay_per_tick: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
             objects: ["fridge", "bed", "sink"]
                 .iter()
-                .map(|id| CompiledObject {
+                .enumerate()
+                // Sprite indices that are not the object's own position,
+                // so a field dropped from the encoding or read off the
+                // wrong slot moves the round-trip assertion below.
+                .map(|(i, id)| CompiledObject {
                     id: (*id).to_string(),
                     name: id.to_uppercase(),
+                    sprite: (i as u32) + 4,
                     interactions: vec![interaction("use_it")],
                 })
                 .collect(),
+            sim_sprite: 1,
             lot: a_lot(),
         }
     }

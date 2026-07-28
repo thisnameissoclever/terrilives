@@ -31,7 +31,7 @@
  */
 export type InstanceArray = Float32Array<ArrayBuffer>;
 
-/** screenX, screenY, depth, kind. Matches `vec4<f32>` in sprites.wgsl. */
+/** screenX, screenY, depth, sprite. Matches `vec4<f32>` in sprites.wgsl. */
 export const FLOATS_PER_INSTANCE = 4;
 
 /** The vertex buffer `arrayStride`, in bytes. */
@@ -45,7 +45,28 @@ export const VERTICES_PER_QUAD = 6;
 export const OFFSET_SCREEN_X = 0;
 export const OFFSET_SCREEN_Y = 1;
 export const OFFSET_DEPTH = 2;
-export const OFFSET_KIND = 3;
+export const OFFSET_SPRITE = 3;
+
+/**
+ * The `kinds` array the render buffer exports: 0 for a sim, 1 for a smart
+ * object. It is **not** what the GPU draws - the sprite index is - and it
+ * exists on this side only to pick the depth layer a row belongs on. See
+ * `layeredDepth` in `iso.ts`.
+ */
+export const KIND_AGENT = 0;
+
+/**
+ * The most sprites the atlas may hold, and the length of the `Atlas`
+ * uniform array in `sprites.wgsl`.
+ *
+ * A uniform array in WGSL is fixed-size, so this number lives in two
+ * files by necessity. `instances.test.ts` reads the shader as text and
+ * fails if they disagree - an over-long atlas would otherwise index past
+ * the array, and WGSL **clamps** an out-of-range index rather than
+ * trapping, so every sprite past the end would silently draw as the last
+ * one in the table.
+ */
+export const MAX_SPRITES = 32;
 
 /**
  * Writes one entity into slot `index` of a packed instance array.
@@ -60,13 +81,13 @@ export function writeInstance(
   screenX: number,
   screenY: number,
   depth: number,
-  kind: number,
+  sprite: number,
 ): void {
   const base = index * FLOATS_PER_INSTANCE;
   out[base + OFFSET_SCREEN_X] = screenX;
   out[base + OFFSET_SCREEN_Y] = screenY;
   out[base + OFFSET_DEPTH] = depth;
-  out[base + OFFSET_KIND] = kind;
+  out[base + OFFSET_SPRITE] = sprite;
 }
 
 /**

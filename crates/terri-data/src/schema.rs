@@ -34,6 +34,19 @@ pub struct ObjectsFile {
 pub struct ObjectDef {
     pub id: String,
     pub name: String,
+    /// Which sprite in the atlas draws this object.
+    ///
+    /// Required rather than defaulted, and it is content rather than a
+    /// renderer detail on purpose. The alternative - a switch in
+    /// TypeScript mapping object id to sprite - is a second copy of the
+    /// object list living in the shell, so every new object would be a
+    /// two-file edit and a silently-wrong sprite would be a two-file
+    /// bug. That is the coupling [D1] exists to prevent.
+    ///
+    /// A `String` here and an index in the compiled pack, for the same
+    /// reason a need name is: after compilation a sprite that the atlas
+    /// does not hold has no representation.
+    pub sprite: String,
     /// Absent rather than empty is the common case for scenery, so this
     /// defaults instead of being required.
     #[serde(default)]
@@ -89,6 +102,30 @@ pub struct WallDef {
     pub y: i32,
 }
 
+/// Mirrors `assets/sprites/atlas.toml`, which is **generated** by
+/// `assets/sprites/build-atlas.ps1` rather than authored.
+///
+/// It is read here rather than in the renderer because the check it
+/// enables - "every object names a sprite the atlas actually holds" - is
+/// a dangling-reference check, and [D9] puts those at build time where
+/// they abort the build. The renderer reads the same manifest through
+/// its generated `web/src/render/atlas.ts` twin.
+///
+/// Only the fields the validator needs are declared. `x`, `y`, `w` and
+/// `h` are in the file and are deliberately absent here: pixel
+/// coordinates are the renderer's business, and a `terri-data` that
+/// parsed them would invite something in the simulation to use one.
+#[derive(Debug, Deserialize)]
+pub struct AtlasFile {
+    /// Declaration order is the sprite index. Nothing sorts it.
+    pub sprite: Vec<AtlasSpriteDef>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct AtlasSpriteDef {
+    pub name: String,
+}
+
 /// One object, placed. `object` is the string id of an entry in
 /// `objects.toml`; the compile step resolves it to an `ObjectDefId`, so
 /// a dangling reference has no representation once a pack exists.
@@ -129,6 +166,7 @@ mod tests {
             [[object]]
             id = "fridge"
             name = "Chill-o-Matic 3000"
+            sprite = "kitchenFridgeBuiltIn"
 
               [[object.interaction]]
               id = "grab_snack"
@@ -140,6 +178,7 @@ mod tests {
         .expect("valid objects toml");
         let obj = &parsed.object[0];
         assert_eq!(obj.id, "fridge");
+        assert_eq!(obj.sprite, "kitchenFridgeBuiltIn");
         let act = &obj.interaction[0];
         assert_eq!(act.advertises.get("hunger"), Some(&35.0));
         assert_eq!(act.advertises.len(), 1, "advert must stay sparse");
@@ -183,6 +222,7 @@ mod tests {
             [[object]]
             id = "bed"
             name = "Sleepeazy"
+            sprite = "bedBunk"
 
               [[object.interaction]]
               id = "sleep"
@@ -208,6 +248,7 @@ mod tests {
             [[object]]
             id = "rug"
             name = "Rug"
+            sprite = "rugRound"
             "#,
         )
         .expect("objects with no interaction should parse");

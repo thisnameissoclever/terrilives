@@ -14,10 +14,18 @@
 #    Scoring weighs a cost by the cube of the deficit of the need it
 #    drains, so an already-exhausted sim refuses a shower that a rested
 #    one takes happily. See `score_advertisement`.
+#
+# `sprite` names an entry in assets/sprites/atlas.toml, and the build
+# fails if it does not exist. It lives here rather than in the renderer
+# on purpose: a lookup table in TypeScript would be a second copy of this
+# list, so adding an object would be a two-file edit and giving one the
+# wrong sprite would be a two-file bug. The names are Kenney's, kept
+# verbatim so the provenance recorded in ASSETS.md stays checkable.
 
 [[object]]
 id = "fridge"
 name = "Chill-o-Matic 3000"
+sprite = "kitchenFridgeBuiltIn"
 
   # 40.0 and 15 are M0's hardcoded values, reproduced exactly so moving
   # the fridge into content changes no behaviour. Changing either is a
@@ -33,6 +41,7 @@ name = "Chill-o-Matic 3000"
 [[object]]
 id = "bed"
 name = "Sleepeazy Deluxe"
+sprite = "bedBunk"
 
   # The largest single restore in the game and by far the longest, both
   # deliberately. Energy drains slowly (0.069 per tick), so sleeping
@@ -48,6 +57,7 @@ name = "Sleepeazy Deluxe"
 [[object]]
 id = "shower"
 name = "Rainfall Cubicle"
+sprite = "showerRound"
 
   # The trade-off object, and the reason negative deltas are allowed. It
   # restores a lot of hygiene and costs some energy, so a tired sim puts
@@ -63,6 +73,7 @@ name = "Rainfall Cubicle"
 [[object]]
 id = "toilet"
 name = "Porcelain Standard"
+sprite = "toiletSquare"
 
   # Cheap, fast and near-total. Bladder is the fastest-draining need
   # (0.139 per tick), so this has to be able to interrupt anything, which
@@ -76,6 +87,7 @@ name = "Porcelain Standard"
 [[object]]
 id = "television"
 name = "Cathode Companion"
+sprite = "cabinetTelevisionDoors"
 
   # Two slots, so it does not become contended when households grow past
   # one sim. More fun per tick than either the sofa or the bookshelf, and
@@ -89,6 +101,7 @@ name = "Cathode Companion"
 [[object]]
 id = "sofa"
 name = "Chesterfield Regret"
+sprite = "loungeDesignSofaCorner"
 
   # Two advertised needs, deliberately. [D6]'s scoring SUMS across
   # advertised deltas, and this is the first object in shipped content
@@ -104,6 +117,7 @@ name = "Chesterfield Regret"
 [[object]]
 id = "sink"
 name = "Basin Basic"
+sprite = "bathroomSinkSquare"
 
   # The quick partial fix for hygiene, and its whole reason for existing
   # is to give the shower something to lose to: 8 ticks and no energy
@@ -118,6 +132,7 @@ name = "Basin Basic"
 [[object]]
 id = "bookshelf"
 name = "Wall of Intent"
+sprite = "bookcaseClosedDoors"
 
   # The slowest fun in the house. It is here as the low end of the fun
   # range, so the three fun objects span a real spread instead of

@@ -61,10 +61,17 @@ pub fn object(id: &str, advertises: &[(NeedId, f32)], duration_ticks: u32) -> Co
 }
 
 /// An object offering several interactions, in the given order.
+///
+/// The sprite is the sim's, because nothing in `terri-sim` renders and
+/// every fixture here would otherwise have to invent an atlas index that
+/// no atlas backs. `render_buffer.rs` is where the sprite column is
+/// actually pinned, and it uses shipped content so the index means
+/// something.
 pub fn object_offering(id: &str, interactions: Vec<CompiledInteraction>) -> CompiledObject {
     CompiledObject {
         id: id.to_string(),
         name: id.to_string(),
+        sprite: terri_data::pack().sim_sprite,
         interactions,
     }
 }
@@ -83,6 +90,7 @@ pub fn pack(objects: Vec<CompiledObject>) -> &'static ContentPack {
     Box::leak(Box::new(ContentPack {
         decay_per_tick: terri_data::pack().decay_per_tick,
         objects,
+        sim_sprite: terri_data::pack().sim_sprite,
         // Same reasoning as the decay rates: copy the shipped lot rather
         // than invent one. Nothing in `terri-sim` reads `pack.lot` yet -
         // `sim_with` builds its own `TileGrid` and spawns objects

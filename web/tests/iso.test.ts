@@ -6,6 +6,12 @@ import {
   screenX,
   screenY,
   worldDepth,
+  layeredDepth,
+  DEPTH_LAYER_STEP,
+  DEPTH_MARGIN,
+  LAYER_FLOOR,
+  LAYER_PROP,
+  LAYER_SIM,
   TILE_HALF_WIDTH,
   TILE_HALF_HEIGHT,
 } from '../src/render/iso.js';
@@ -221,6 +227,97 @@ describe('worldDepth', () => {
     expect(worldDepth(0, 0, 1)).toBe(1);
     expect(worldDepth(0, 0, 0)).toBe(1);
     expect(Number.isFinite(worldDepth(5, 5, 1))).toBe(true);
+  });
+});
+
+describe('layeredDepth', () => {
+  // What this exists for, in one sentence: two things on the same tile
+  // used to take the same depth, and under `depthCompare: 'less'` the
+  // second one drawn simply did not appear. [V12] recorded it - a sim
+  // reaching the fridge stopped being in the frame at all - and during a
+  // play session that reads as the sim having disappeared.
+
+  it('orders sim in front of prop in front of floor on every tile', () => {
+    // Every tile, not one, because the two ends of the range are where a
+    // naive "subtract a bias" implementation breaks: `worldDepth`
+    // returns exactly 1 at the far corner and 0 at the near one, and a
+    // clamp there collapses all three layers onto the same number.
+    let checked = 0;
+    for (let x = -1; x <= 8; x++) {
+      for (let y = -1; y <= 8; y++) {
+        const floor = layeredDepth(x, y, 8, LAYER_FLOOR);
+        const prop = layeredDepth(x, y, 8, LAYER_PROP);
+        const sim = layeredDepth(x, y, 8, LAYER_SIM);
+        expect(sim).toBeLessThan(prop);
+        expect(prop).toBeLessThan(floor);
+        checked += 1;
+      }
+    }
+    // Rule 5: an empty loop would satisfy every assertion above.
+    expect(checked).toBe(100);
+  });
+
+  it('keeps every layer inside the clip range, including outside the lot', () => {
+    // A depth outside [0, 1] does not sort wrong, it fails the clip test
+    // and the quad vanishes - trading the bug this function fixes for a
+    // different one with the same symptom. The boundary walls are drawn
+    // at -1, so the range has to hold there too.
+    let checked = 0;
+    for (const [x, y] of [
+      [-1, -1],
+      [0, 0],
+      [3, 4],
+      [7, 7],
+      [40, 40],
+      [-9, -9],
+    ]) {
+      for (const layer of [LAYER_FLOOR, LAYER_PROP, LAYER_SIM]) {
+        const depth = layeredDepth(x, y, 8, layer);
+        expect(depth).toBeGreaterThan(0);
+        expect(depth).toBeLessThanOrEqual(1);
+        checked += 1;
+      }
+    }
+    expect(checked).toBe(18);
+  });
+
+  it('lets one tile of distance outrank any layer bias', () => {
+    // The bias has to be big enough to break a tie and small enough not
+    // to create one. A sim one tile further from the camera than a prop
+    // must still draw behind it, however favoured its layer is - so this
+    // is the assertion that stops a residual tie being "fixed" by
+    // enlarging DEPTH_LAYER_STEP until it reorders the room.
+    //
+    // Both single-axis steps, because x and y contribute to nearness
+    // equally and a bias that only cleared one of them would be half a
+    // fix.
+    expect(layeredDepth(4, 5, 8, LAYER_SIM)).toBeGreaterThan(
+      layeredDepth(5, 5, 8, LAYER_FLOOR),
+    );
+    expect(layeredDepth(5, 4, 8, LAYER_SIM)).toBeGreaterThan(
+      layeredDepth(5, 5, 8, LAYER_FLOOR),
+    );
+    // Stated as the arithmetic as well, so the margin is visible rather
+    // than merely sufficient on these two samples: one tile is worth
+    // 1 / ((gridSize - 1 + margin) * 2) of depth, and three layers must
+    // fit inside that with room to spare.
+    const oneTile = 1 / ((8 - 1 + DEPTH_MARGIN) * 2);
+    expect(DEPTH_LAYER_STEP * 3).toBeLessThan(oneTile / 8);
+  });
+
+  it('preserves worldDepth ordering between different tiles', () => {
+    // The layer offsets and the margin are both translations; neither
+    // may change which of two tiles is in front. Held at one layer so
+    // only the position varies.
+    const far = layeredDepth(0, 0, 8, LAYER_PROP);
+    const middle = layeredDepth(3, 3, 8, LAYER_PROP);
+    const near = layeredDepth(7, 7, 8, LAYER_PROP);
+    expect(far).toBeGreaterThan(middle);
+    expect(middle).toBeGreaterThan(near);
+    // And it really is `worldDepth` underneath, rather than a second
+    // projection that happens to be monotonic too.
+    expect(far).toBeGreaterThan(layeredDepth(1, 0, 8, LAYER_PROP));
+    expect(worldDepth(0, 0, 8)).toBeGreaterThan(worldDepth(1, 0, 8));
   });
 });
 

@@ -8,8 +8,18 @@ import {
   buildInstances,
   type RenderSource,
 } from '../src/frame.js';
-import { worldToScreen, worldDepth } from '../src/render/iso.js';
-import { FLOATS_PER_INSTANCE } from '../src/render/instances.js';
+import {
+  LAYER_PROP,
+  LAYER_SIM,
+  layeredDepth,
+  worldToScreen,
+} from '../src/render/iso.js';
+import {
+  FLOATS_PER_INSTANCE,
+  KIND_AGENT,
+  OFFSET_DEPTH,
+  OFFSET_SPRITE,
+} from '../src/render/instances.js';
 
 // The two mechanisms this file guards are [D2] - the simulation advances
 // in whole ticks of identical duration, and only the *number* of ticks per
@@ -50,11 +60,19 @@ function stored(value: number): number {
   return Math.fround(value);
 }
 
-/** The four floats one entity occupies, as the GPU would see them. */
+/**
+ * The four floats one entity occupies, as the GPU would see them.
+ *
+ * `kind` picks the depth LAYER and never reaches the GPU; `sprite` is
+ * what the shader indexes the atlas with. Defaulting sprite to kind keeps
+ * the older assertions in this file readable, since for them the two are
+ * interchangeable placeholders.
+ */
 function packed(
   wx: number,
   wy: number,
   kind: number,
+  sprite = kind,
   originX = ORIGIN_X,
   originY = ORIGIN_Y,
 ): number[] {
@@ -62,13 +80,13 @@ function packed(
   return [
     stored(screenX),
     stored(screenY),
-    stored(worldDepth(wx, wy, GRID)),
-    kind,
+    stored(layeredDepth(wx, wy, GRID, kind === KIND_AGENT ? LAYER_SIM : LAYER_PROP)),
+    sprite,
   ];
 }
 
-/** prevX, prevY, curX, curY, kind. */
-type FakeEntity = readonly [number, number, number, number, number];
+/** prevX, prevY, curX, curY, kind, sprite. */
+type FakeEntity = readonly [number, number, number, number, number, number];
 
 /**
  * A stand-in for `SimBridge` for the tests that do not need a real sim.
@@ -103,6 +121,10 @@ class FakeEntities implements RenderSource {
 
   kinds(): Uint32Array {
     return Uint32Array.from(this.entities.map((e) => e[4]));
+  }
+
+  sprites(): Uint32Array {
+    return Uint32Array.from(this.entities.map((e) => e[5]));
   }
 }
 
@@ -273,7 +295,7 @@ describe('buildInstances', () => {
     // one agrees at alpha 0, and a step function at the midpoint agrees
     // with both ends. Only the midpoint sample excludes all three.
     const view = new FakeEntities();
-    view.set([[1, 2, 3, 6, 0]]);
+    view.set([[1, 2, 3, 6, 0, 7]]);
 
     const atStart = snapshot(
       buildInstances(view, 0, ORIGIN_X, ORIGIN_Y, GRID),
@@ -285,9 +307,9 @@ describe('buildInstances', () => {
     );
     const atEnd = snapshot(buildInstances(view, 1, ORIGIN_X, ORIGIN_Y, GRID), 1);
 
-    expect(atStart).toEqual(packed(1, 2, 0));
-    expect(atMiddle).toEqual(packed(2, 4, 0));
-    expect(atEnd).toEqual(packed(3, 6, 0));
+    expect(atStart).toEqual(packed(1, 2, 0, 7));
+    expect(atMiddle).toEqual(packed(2, 4, 0, 7));
+    expect(atEnd).toEqual(packed(3, 6, 0, 7));
 
     // Both world axes move, so interpolating only x - which the screen x
     // of an isometric projection would partly hide - shows up here.
@@ -302,40 +324,116 @@ describe('buildInstances', () => {
     // where it is drawn, which at 60 fps is a flicker rather than a
     // stable error.
     const view = new FakeEntities();
-    view.set([[1, 2, 3, 6, 0]]);
+    view.set([[1, 2, 3, 6, 0, 7]]);
 
     const atMiddle = snapshot(
       buildInstances(view, 0.5, ORIGIN_X, ORIGIN_Y, GRID),
       1,
     );
 
-    expect(atMiddle[2]).toBe(stored(worldDepth(2, 4, GRID)));
+    expect(atMiddle[OFFSET_DEPTH]).toBe(stored(layeredDepth(2, 4, GRID, LAYER_SIM)));
     // Preconditions: the three candidate depths really are different once
     // stored as f32, so the assertion above is discriminating rather than
     // decorative.
-    expect(stored(worldDepth(2, 4, GRID))).not.toBe(
-      stored(worldDepth(3, 6, GRID)),
+    expect(stored(layeredDepth(2, 4, GRID, LAYER_SIM))).not.toBe(
+      stored(layeredDepth(3, 6, GRID, LAYER_SIM)),
     );
-    expect(stored(worldDepth(2, 4, GRID))).not.toBe(
-      stored(worldDepth(1, 2, GRID)),
+    expect(stored(layeredDepth(2, 4, GRID, LAYER_SIM))).not.toBe(
+      stored(layeredDepth(1, 2, GRID, LAYER_SIM)),
     );
+  });
+
+  it('gives a sim on an object tile a strictly smaller depth than the object', () => {
+    // The bug this pins, measured in [V12]: a sim that reaches the
+    // fridge takes the fridge's world position, so both quads took the
+    // same depth, and `depthCompare: 'less'` rejected whichever was
+    // drawn second. The sim's 576 orange pixels were simply absent from
+    // that frame. Watching it, the sim vanishes into the furniture,
+    // which reads as an AI fault and is not one.
+    //
+    // Smaller wins the pixel - `sprites.ts` compares with 'less' against
+    // a clear of 1.0, measured causally in [V3] - so the sim's depth
+    // must be STRICTLY smaller. Equal is the bug.
+    const view = new FakeEntities();
+    view.set([
+      [12, 10, 12, 10, 1, 4],
+      [12, 10, 12, 10, KIND_AGENT, 1],
+    ]);
+
+    const out = snapshot(buildInstances(view, 1, ORIGIN_X, ORIGIN_Y, GRID), 2);
+    const objectDepth = out[OFFSET_DEPTH];
+    const simDepth = out[FLOATS_PER_INSTANCE + OFFSET_DEPTH];
+
+    // The precondition that makes the comparison mean what it says: both
+    // rows are on the same tile, so nothing but the layer can separate
+    // them. Without this the two could differ because they are in
+    // different places, which is not the invariant.
+    expect(out[0]).toBe(out[FLOATS_PER_INSTANCE]);
+    expect(out[1]).toBe(out[FLOATS_PER_INSTANCE + 1]);
+    expect(simDepth).toBeLessThan(objectDepth);
+
+    // And both are still inside the clip range. A depth outside [0, 1]
+    // does not sort wrong, it drops the quad entirely, so a bias that
+    // fixed the tie by leaving the range would trade one disappearance
+    // for another.
+    for (const depth of [simDepth, objectDepth]) {
+      expect(depth).toBeGreaterThan(0);
+      expect(depth).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('keeps the layer bias smaller than one tile of separation', () => {
+    // The other half of the same mechanism. A bias large enough to break
+    // the tie is only correct if it is small enough not to reorder two
+    // different tiles: a sim one tile FURTHER from the camera than an
+    // object must still be drawn behind it, however much the sim's layer
+    // is favoured. This is the assertion that stops someone "fixing" a
+    // residual tie by enlarging DEPTH_LAYER_STEP until it does real harm.
+    const view = new FakeEntities();
+    view.set([
+      [5, 5, 5, 5, 1, 4],
+      [4, 5, 4, 5, KIND_AGENT, 1],
+    ]);
+
+    const out = snapshot(buildInstances(view, 1, ORIGIN_X, ORIGIN_Y, GRID), 2);
+    expect(out[FLOATS_PER_INSTANCE + OFFSET_DEPTH]).toBeGreaterThan(
+      out[OFFSET_DEPTH],
+    );
+  });
+
+  it('carries the content-resolved sprite index rather than the kind', () => {
+    // `kind` used to be what reached the GPU, which is why all eight
+    // objects looked identical. It now picks the depth layer only, and
+    // the sprite is a separate column that comes from content. Two rows
+    // of the SAME kind with DIFFERENT sprites is the case that can tell
+    // the two columns apart; a fixture where sprite happened to equal
+    // kind could not ([L34]).
+    const view = new FakeEntities();
+    view.set([
+      [1, 1, 1, 1, 1, 9],
+      [2, 2, 2, 2, 1, 4],
+    ]);
+
+    const out = snapshot(buildInstances(view, 1, ORIGIN_X, ORIGIN_Y, GRID), 2);
+    expect(out[OFFSET_SPRITE]).toBe(9);
+    expect(out[FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(4);
   });
 
   it('packs each entity into its own slot with its own kind', () => {
     const view = new FakeEntities();
     view.set([
-      [4, 4, 4, 4, 1],
-      [9, 1, 9, 1, 0],
+      [4, 4, 4, 4, 1, 5],
+      [9, 1, 9, 1, 0, 3],
     ]);
 
     const out = snapshot(buildInstances(view, 0.5, ORIGIN_X, ORIGIN_Y, GRID), 2);
     expect(out).toHaveLength(8);
 
-    expect(out.slice(0, 4)).toEqual(packed(4, 4, 1));
-    expect(out.slice(4, 8)).toEqual(packed(9, 1, 0));
+    expect(out.slice(0, 4)).toEqual(packed(4, 4, 1, 5));
+    expect(out.slice(4, 8)).toEqual(packed(9, 1, 0, 3));
     // The two entities differ in every field, so a stride mistake that
     // read slot 1 from slot 0's territory moves all four numbers.
-    expect(packed(4, 4, 1)).not.toEqual(packed(9, 1, 0));
+    expect(packed(4, 4, 1, 5)).not.toEqual(packed(9, 1, 0, 3));
   });
 
   it('re-reads the source on every call, because the pointers swap each tick', () => {
@@ -350,11 +448,11 @@ describe('buildInstances', () => {
     const readAtCurrent = (): number[] =>
       snapshot(buildInstances(view, 1, 0, 0, GRID), 1);
 
-    view.set([[0, 0, 1, 0, 0]]);
+    view.set([[0, 0, 1, 0, 0, 2]]);
     const first = readAtCurrent();
-    view.set([[1, 0, 2, 0, 0]]);
+    view.set([[1, 0, 2, 0, 0, 2]]);
     const second = readAtCurrent();
-    view.set([[2, 0, 3, 0, 0]]);
+    view.set([[2, 0, 3, 0, 0, 2]]);
     const third = readAtCurrent();
 
     expect([first[0], first[1]]).toEqual(worldToScreen(1, 0, 0, 0));
@@ -368,8 +466,8 @@ describe('buildInstances', () => {
     // capacity.
     const view = new FakeEntities();
     view.set([
-      [1, 1, 2, 2, 0],
-      [5, 5, 5, 5, 1],
+      [1, 1, 2, 2, 0, 1],
+      [5, 5, 5, 5, 1, 9],
     ]);
     buildInstances(view, 0, ORIGIN_X, ORIGIN_Y, GRID);
 
@@ -390,7 +488,7 @@ describe('buildInstances', () => {
     // once, and one that never grows, both leave the array too short and
     // `snapshot` returns fewer numbers than asked for.
     const view = new FakeEntities();
-    view.set([[0, 0, 0, 0, 0]]);
+    view.set([[0, 0, 0, 0, 0, 1]]);
     buildInstances(view, 1, ORIGIN_X, ORIGIN_Y, GRID);
 
     const many = 6000;
@@ -398,7 +496,7 @@ describe('buildInstances', () => {
       Array.from({ length: many }, (_, i): FakeEntity => {
         const x = i % GRID;
         const y = Math.floor(i / GRID) % GRID;
-        return [x, y, x, y, i % 2];
+        return [x, y, x, y, i % 2, i % 5];
       }),
     );
 
@@ -408,7 +506,7 @@ describe('buildInstances', () => {
     const last = snapshot(out, many).slice(-FLOATS_PER_INSTANCE);
     const lastX = (many - 1) % GRID;
     const lastY = Math.floor((many - 1) / GRID) % GRID;
-    expect(last).toEqual(packed(lastX, lastY, (many - 1) % 2));
+    expect(last).toEqual(packed(lastX, lastY, (many - 1) % 2, (many - 1) % 5));
   });
 });
 

@@ -9,13 +9,14 @@ pub mod error;
 pub mod pack;
 pub mod schema;
 
-pub use compile::compile;
+pub use compile::{compile, SIM_SPRITE};
 pub use error::ContentError;
 pub use pack::{
     CompiledInteraction, CompiledLot, CompiledObject, CompiledPlacement, ContentPack, ObjectDefId,
 };
 pub use schema::{
-    InteractionDef, LotFile, NeedDef, NeedsFile, ObjectDef, ObjectsFile, PlacementDef, WallDef,
+    AtlasFile, AtlasSpriteDef, InteractionDef, LotFile, NeedDef, NeedsFile, ObjectDef, ObjectsFile,
+    PlacementDef, WallDef,
 };
 
 use std::sync::OnceLock;
@@ -182,6 +183,33 @@ mod tests {
                 object.id
             );
         }
+    }
+
+    /// Every shipped object draws as something, and as something of its
+    /// own.
+    ///
+    /// The build already refuses a sprite the atlas does not hold, so
+    /// this is not re-checking that. What it checks is the thing
+    /// validation deliberately permits and a copy-paste in
+    /// `objects.toml` would produce: two objects sharing one sprite, so
+    /// the sofa and the television are the same picture and the play
+    /// session judges a room it cannot read. Nothing else in the
+    /// pipeline treats that as an error.
+    #[test]
+    fn every_shipped_object_draws_as_a_different_sprite() {
+        let p = pack();
+        let mut sprites: Vec<u32> = p.objects.iter().map(|o| o.sprite).collect();
+        assert_eq!(sprites.len(), 8, "the design calls for eight objects");
+        sprites.push(p.sim_sprite);
+        let before = sprites.len();
+        sprites.sort_unstable();
+        sprites.dedup();
+        assert_eq!(
+            sprites.len(),
+            before,
+            "two shipped objects share a sprite, or one of them is drawn \
+             as the sim; every id in objects.toml must name its own"
+        );
     }
 
     /// Every object the design declares is actually placed. An object in

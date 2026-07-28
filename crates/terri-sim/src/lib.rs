@@ -168,28 +168,43 @@ impl Sim {
     /// stopped eating. `entity_slots_survive_archetype_churn` pins it;
     /// deleting the sort must fail that test.
     pub fn sync_render_buffer(&mut self) {
-        use terri_core::{Agent, Position};
+        use terri_core::{Agent, Position, SmartObject};
 
         std::mem::swap(&mut self.render.prev_positions, &mut self.render.positions);
         self.render.positions.clear();
         self.render.kinds.clear();
+        self.render.sprites.clear();
+
+        // Read before the query, because `Content` is a resource and the
+        // query below borrows the world. `ContentPack` is behind a
+        // &'static so this is a pointer copy, not a clone.
+        let content = self.world.resource::<Content>().0;
 
         // World::query (not try_query) registers components on demand and
         // cannot fail, so there is no Option to handle here. It returns an
         // owned QueryState, which ends the &mut borrow immediately and
         // leaves self.render free to write below.
-        let mut state = self.world.query::<(Entity, &Position, Has<Agent>)>();
-        let mut rows: Vec<(u32, f32, f32, u32)> = Vec::new();
-        for (entity, pos, is_agent) in state.iter(&self.world) {
+        let mut state = self
+            .world
+            .query::<(Entity, &Position, Has<Agent>, Option<&SmartObject>)>();
+        let mut rows: Vec<(u32, f32, f32, u32, u32)> = Vec::new();
+        for (entity, pos, is_agent, object) in state.iter(&self.world) {
             let kind = if is_agent { 0 } else { 1 };
-            rows.push((entity.index_u32(), pos.x, pos.y, kind));
+            // An entity that is neither an agent nor a smart object has
+            // no sprite of its own; the sim's is the only sensible
+            // stand-in, and nothing in M1b spawns one. `world_hash`'s
+            // bystander fixture is the only thing that ever has.
+            let sprite =
+                object.map_or(content.sim_sprite, |placed| content.object(placed.0).sprite);
+            rows.push((entity.index_u32(), pos.x, pos.y, kind, sprite));
         }
-        rows.sort_by_key(|(index, _, _, _)| *index);
+        rows.sort_by_key(|(index, _, _, _, _)| *index);
 
-        for (_, x, y, kind) in &rows {
+        for (_, x, y, kind, sprite) in &rows {
             self.render.positions.push(*x);
             self.render.positions.push(*y);
             self.render.kinds.push(*kind);
+            self.render.sprites.push(*sprite);
         }
         self.render.count = rows.len();
 

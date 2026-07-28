@@ -9,9 +9,19 @@ use crate::error::ContentError;
 use crate::pack::{
     CompiledInteraction, CompiledLot, CompiledObject, CompiledPlacement, ContentPack, ObjectDefId,
 };
-use crate::schema::{LotFile, NeedsFile, ObjectsFile};
+use crate::schema::{AtlasFile, LotFile, NeedsFile, ObjectsFile};
 use std::collections::BTreeSet;
 use terri_core::{NeedId, NEED_COUNT};
+
+/// The atlas sprite every sim is drawn with.
+///
+/// The one sprite name that lives in Rust rather than in `content/`,
+/// because a sim is not an authored object: nothing declares one, and
+/// `spawn_agent` takes a position and a hunger. Keeping it here rather
+/// than in TypeScript means the render buffer can carry a sprite index
+/// for **every** row, so the shell never has to ask what kind of thing a
+/// row is in order to draw it.
+pub const SIM_SPRITE: &str = "sim";
 
 /// Rejects a number that is meaningless rather than merely wrong. `NaN`
 /// is the dangerous one: it propagates silently through the scoring
@@ -61,7 +71,13 @@ pub fn compile(
     needs: NeedsFile,
     objects: ObjectsFile,
     lot: LotFile,
+    atlas: AtlasFile,
 ) -> Result<ContentPack, ContentError> {
+    let sprite_index = |name: &str| atlas.sprite.iter().position(|s| s.name == name);
+    let sim_sprite = sprite_index(SIM_SPRITE).ok_or_else(|| ContentError::MissingSimSprite {
+        sprite: SIM_SPRITE.to_string(),
+    })? as u32;
+
     let mut decay = [f32::NAN; NEED_COUNT];
     // A fixed-size array rather than a set: `NeedId` is `Eq + Hash` but
     // not `Ord`, and the need space is closed and small, so indexing it
@@ -107,6 +123,16 @@ pub fn compile(
                 id: object.id.clone(),
             });
         }
+
+        // Resolved before the interactions, so a typo in the sprite name
+        // is reported as a typo rather than as whatever the object's
+        // other content happens to trip over first.
+        let Some(sprite) = sprite_index(&object.sprite) else {
+            return Err(ContentError::UnknownSprite {
+                object: object.id.clone(),
+                sprite: object.sprite.clone(),
+            });
+        };
 
         // Scoped to the object, so two objects may each declare a
         // `use` interaction without colliding.
@@ -162,6 +188,7 @@ pub fn compile(
         compiled.push(CompiledObject {
             id: object.id.clone(),
             name: object.name.clone(),
+            sprite: sprite as u32,
             interactions,
         });
     }
@@ -171,6 +198,7 @@ pub fn compile(
     Ok(ContentPack {
         decay_per_tick: decay,
         objects: compiled,
+        sim_sprite,
         lot,
     })
 }
@@ -292,7 +320,39 @@ mod tests {
     // NeedId and NEED_COUNT. Only the types production code does not
     // name are imported here.
     use super::*;
-    use crate::schema::{InteractionDef, NeedDef, ObjectDef, PlacementDef, WallDef};
+    use crate::schema::{
+        AtlasSpriteDef, InteractionDef, NeedDef, ObjectDef, PlacementDef, WallDef,
+    };
+
+    /// The atlas every test compiles against.
+    ///
+    /// Five sprites in an order chosen so that no object's sprite index
+    /// equals its own position in the object list, and so that the sim's
+    /// is neither 0 nor last. `three_objects` declares fridge, bed, sink
+    /// at positions 0, 1, 2 and they resolve to 2, 3, 4 here. Without
+    /// that offset a resolver that returned the object's own position, or
+    /// zero, would satisfy every assertion below - [L29] in the atlas's
+    /// costume.
+    fn test_atlas() -> AtlasFile {
+        AtlasFile {
+            sprite: ["couch_art", SIM_SPRITE, "fridge_art", "bed_art", "sink_art"]
+                .iter()
+                .map(|name| AtlasSpriteDef {
+                    name: (*name).to_string(),
+                })
+                .collect(),
+        }
+    }
+
+    /// The index `test_atlas` gives a sprite, so the expectations below
+    /// read off the fixture rather than restating it.
+    fn atlas_index(name: &str) -> u32 {
+        test_atlas()
+            .sprite
+            .iter()
+            .position(|s| s.name == name)
+            .expect("the fixture atlas must hold this sprite") as u32
+    }
 
     /// A decay rate that differs per need. `0.1` everywhere would let a
     /// compile step that wrote every rate into slot 0 pass unnoticed.
@@ -322,6 +382,9 @@ mod tests {
         0x01, // objects: 1
         0x06, b'f', b'r', b'i', b'd', b'g', b'e',
         0x06, b'F', b'r', b'i', b'd', b'g', b'e',
+        0x02, // sprite: 'fridge_art' is at index 2 of the fixture atlas,
+              // NOT 0, which is where a resolver reading the object's own
+              // position would put it
         0x01, // interactions: 1
         0x0A, b'g', b'r', b'a', b'b', b'_', b's', b'n', b'a', b'c', b'k',
         0x03, // advertises: 3, index-ordered
@@ -330,6 +393,7 @@ mod tests {
         0x06, 0x00, 0x00, 0xA0, 0x40, // comfort  5.0
         0x0F, // duration_ticks: 15
         0x01, // slots: 1
+        0x01, // sim_sprite: 'sim' is at index 1 of the fixture atlas
         // lot: width, height, walls, placements.
         0x05, // width:  5
         0x03, // height: 3, so the two are not interchangeable
@@ -348,7 +412,7 @@ mod tests {
         needs: NeedsFile,
         objects: ObjectsFile,
     ) -> Result<ContentPack, ContentError> {
-        compile(needs, objects, bare_lot())
+        compile(needs, objects, bare_lot(), test_atlas())
     }
 
     fn bare_lot() -> LotFile {
@@ -395,6 +459,7 @@ mod tests {
                 .map(|id| ObjectDef {
                     id: (*id).to_string(),
                     name: id.to_uppercase(),
+                    sprite: format!("{id}_art"),
                     interaction: vec![snack()],
                 })
                 .collect(),
@@ -418,6 +483,7 @@ mod tests {
             object: vec![ObjectDef {
                 id: "fridge".into(),
                 name: "Fridge".into(),
+                sprite: "fridge_art".into(),
                 interaction: vec![interaction],
             }],
         }
@@ -469,6 +535,107 @@ mod tests {
         assert_eq!(pack.objects[0].name, "Fridge");
         assert_eq!(pack.find("fridge"), Some(ObjectDefId(0)));
         assert_eq!(pack.find("nope"), None);
+    }
+
+    /// The accepting half of the sprite rule: a name that IS in the atlas
+    /// resolves to that sprite's position in it.
+    ///
+    /// Three objects rather than one, and an atlas whose order is not the
+    /// object list's, because one object cannot tell a resolved index
+    /// from a hardcoded zero and three objects in declaration order
+    /// cannot tell it from the object's own position. Here they are at
+    /// positions 0, 1, 2 and resolve to 2, 3, 4.
+    #[test]
+    fn an_objects_sprite_resolves_to_its_position_in_the_atlas() {
+        let pack = compile_objects(full_needs(), three_objects()).expect("valid");
+        assert_eq!(
+            pack.objects.len(),
+            3,
+            "the resolver needs something to find"
+        );
+
+        let resolved: Vec<u32> = pack.objects.iter().map(|o| o.sprite).collect();
+        assert_eq!(
+            resolved,
+            vec![
+                atlas_index("fridge_art"),
+                atlas_index("bed_art"),
+                atlas_index("sink_art"),
+            ],
+            "each object must carry its own sprite's atlas index"
+        );
+        assert_eq!(
+            resolved,
+            vec![2, 3, 4],
+            "and those indices must differ from the objects' own positions, \
+             or this test cannot see a resolver that returns the position"
+        );
+    }
+
+    /// The dangling-reference check for sprites, the same shape as
+    /// `rejects_a_placement_naming_an_object_that_does_not_exist`. An
+    /// object naming a sprite the atlas does not hold must not compile,
+    /// because after compilation a sprite is an index into the atlas and
+    /// a bad index has no representation - WGSL clamps an out-of-range
+    /// uniform-array index rather than trapping, so at run time the
+    /// object would silently draw as some other object.
+    #[test]
+    fn rejects_an_object_naming_a_sprite_the_atlas_does_not_hold() {
+        let mut objects = one_object(snack());
+        objects.object[0].sprite = "hovercraft_art".into();
+        assert_eq!(
+            compile_objects(full_needs(), objects).unwrap_err(),
+            ContentError::UnknownSprite {
+                object: "fridge".into(),
+                sprite: "hovercraft_art".into()
+            }
+        );
+
+        // The same object against a sprite the atlas DOES hold compiles,
+        // so the rejection is about the reference rather than about the
+        // rule firing unconditionally.
+        let mut objects = one_object(snack());
+        objects.object[0].sprite = "couch_art".into();
+        let pack = compile_objects(full_needs(), objects).expect("'couch_art' is in the atlas");
+        assert_eq!(pack.objects[0].sprite, atlas_index("couch_art"));
+    }
+
+    /// The sim's sprite is not authored, so nothing in `content/` can
+    /// break it - but an atlas regenerated without it would leave every
+    /// sim drawing whatever sprite index 0 happens to be, which on the
+    /// shipped atlas is the floor. Rejected at build time instead.
+    #[test]
+    fn rejects_an_atlas_with_no_sprite_for_a_sim() {
+        let atlas = AtlasFile {
+            sprite: test_atlas()
+                .sprite
+                .into_iter()
+                .filter(|s| s.name != SIM_SPRITE)
+                .collect(),
+        };
+        assert!(
+            !atlas.sprite.is_empty(),
+            "an empty atlas would fail for the other reason and prove nothing"
+        );
+        assert_eq!(
+            compile(full_needs(), one_object(snack()), bare_lot(), atlas).unwrap_err(),
+            ContentError::MissingSimSprite {
+                sprite: SIM_SPRITE.into()
+            }
+        );
+    }
+
+    /// And the accepting half: the sim resolves to its own position,
+    /// which in the fixture is neither 0 nor last.
+    #[test]
+    fn the_sim_sprite_resolves_to_its_own_position_in_the_atlas() {
+        let pack = compile_objects(full_needs(), one_object(snack())).expect("valid");
+        assert_eq!(pack.sim_sprite, atlas_index(SIM_SPRITE));
+        assert_eq!(
+            pack.sim_sprite, 1,
+            "the fixture puts the sim at index 1 precisely so that 0 and \
+             `len - 1` are both wrong answers"
+        );
     }
 
     #[test]
@@ -537,6 +704,7 @@ mod tests {
         objects.object.push(ObjectDef {
             id: "fridge".into(),
             name: "Another".into(),
+            sprite: "fridge_art".into(),
             interaction: vec![],
         });
         let err = compile_objects(full_needs(), objects).unwrap_err();
@@ -568,6 +736,7 @@ mod tests {
         objects.object.push(ObjectDef {
             id: "vending".into(),
             name: "Vending".into(),
+            sprite: "fridge_art".into(),
             interaction: vec![snack()],
         });
         compile_objects(full_needs(), objects).expect("ids are scoped to their object");
@@ -644,7 +813,7 @@ mod tests {
                 });
                 assert!(
                     matches!(
-                        compile(full_needs(), one_object(snack()), lot).unwrap_err(),
+                        compile(full_needs(), one_object(snack()), lot, test_atlas()).unwrap_err(),
                         ContentError::NonFiniteValue { .. }
                     ),
                     "a placement coordinate of {bad} on axis {axis} must be rejected"
@@ -809,6 +978,7 @@ mod tests {
             distinct_needs(),
             one_object(snack_advertising_three_needs()),
             distinct_lot(),
+            test_atlas(),
         )
         .expect("valid");
         let bytes = postcard::to_allocvec(&pack).expect("pack must serialise");
@@ -832,7 +1002,13 @@ mod tests {
     /// the placement's coordinates are fractional and unequal.
     #[test]
     fn compiles_a_lot_into_the_pack() {
-        let pack = compile(full_needs(), one_object(snack()), distinct_lot()).expect("valid");
+        let pack = compile(
+            full_needs(),
+            one_object(snack()),
+            distinct_lot(),
+            test_atlas(),
+        )
+        .expect("valid");
         let lot = &pack.lot;
 
         assert_eq!((lot.width, lot.height), (5, 3));
@@ -869,7 +1045,7 @@ mod tests {
                 .collect(),
         };
 
-        let pack = compile(full_needs(), three_objects(), lot).expect("valid");
+        let pack = compile(full_needs(), three_objects(), lot, test_atlas()).expect("valid");
         assert_eq!(
             pack.objects.len(),
             3,
@@ -909,7 +1085,7 @@ mod tests {
                 lot.place.clear();
             });
             assert_eq!(
-                compile(full_needs(), one_object(snack()), lot).unwrap_err(),
+                compile(full_needs(), one_object(snack()), lot, test_atlas()).unwrap_err(),
                 ContentError::EmptyLot { width, height },
                 "a {width}x{height} lot has no walkable tile"
             );
@@ -932,7 +1108,7 @@ mod tests {
         for (x, y) in [(5, 1), (1, 3), (-1, 1), (1, -1), (-1, -1)] {
             let lot = lot_where(|lot| lot.wall = vec![WallDef { x, y }]);
             assert_eq!(
-                compile(full_needs(), one_object(snack()), lot).unwrap_err(),
+                compile(full_needs(), one_object(snack()), lot, test_atlas()).unwrap_err(),
                 ContentError::WallOutOfBounds {
                     x,
                     y,
@@ -946,7 +1122,7 @@ mod tests {
         // The boundary from the other side, so the test cannot pass by
         // rejecting everything. (4, 2) is the far corner of a 5x3 lot.
         let lot = lot_where(|lot| lot.wall = vec![WallDef { x: 4, y: 2 }]);
-        let pack = compile(full_needs(), one_object(snack()), lot)
+        let pack = compile(full_needs(), one_object(snack()), lot, test_atlas())
             .expect("(4, 2) is the far corner of a 5x3 lot, not outside it");
         assert_eq!(pack.lot.walls, vec![(4, 2)]);
     }
@@ -965,7 +1141,7 @@ mod tests {
                 lot.place[0].y = y;
             });
             assert_eq!(
-                compile(full_needs(), one_object(snack()), lot).unwrap_err(),
+                compile(full_needs(), one_object(snack()), lot, test_atlas()).unwrap_err(),
                 ContentError::PlacementOutOfBounds {
                     object: "fridge".into(),
                     x,
@@ -984,7 +1160,7 @@ mod tests {
             // other reason and prove nothing about the bound.
             lot.wall.clear();
         });
-        let pack = compile(full_needs(), one_object(snack()), lot)
+        let pack = compile(full_needs(), one_object(snack()), lot, test_atlas())
             .expect("4.999 is inside a 5-wide lot; only 5.0 is not");
         assert_eq!(pack.lot.placements[0].x, 4.999);
     }
@@ -1004,7 +1180,7 @@ mod tests {
             lot.place[0].y = 2.5;
         });
         assert_eq!(
-            compile(full_needs(), one_object(snack()), lot).unwrap_err(),
+            compile(full_needs(), one_object(snack()), lot, test_atlas()).unwrap_err(),
             ContentError::PlacementOnWall {
                 object: "fridge".into(),
                 x: 3,
@@ -1018,7 +1194,7 @@ mod tests {
             lot.place[0].x = 2.5;
             lot.place[0].y = 0.5;
         });
-        compile(full_needs(), one_object(snack()), lot)
+        compile(full_needs(), one_object(snack()), lot, test_atlas())
             .expect("(2, 0) is not a wall; (3, 2) and (1, 0) are");
     }
 
@@ -1030,7 +1206,7 @@ mod tests {
     fn rejects_a_placement_naming_an_object_that_does_not_exist() {
         let lot = lot_where(|lot| lot.place[0].object = "hovercraft".into());
         assert_eq!(
-            compile(full_needs(), one_object(snack()), lot).unwrap_err(),
+            compile(full_needs(), one_object(snack()), lot, test_atlas()).unwrap_err(),
             ContentError::UnknownPlacedObject {
                 object: "hovercraft".into()
             }
@@ -1040,7 +1216,8 @@ mod tests {
         // the rejection is about the reference rather than about the
         // rule firing unconditionally.
         let lot = lot_where(|lot| lot.place[0].object = "sink".into());
-        let pack = compile(full_needs(), three_objects(), lot).expect("'sink' is declared");
+        let pack =
+            compile(full_needs(), three_objects(), lot, test_atlas()).expect("'sink' is declared");
         assert_eq!(pack.lot.placements[0].object, ObjectDefId(2));
     }
 
@@ -1086,6 +1263,15 @@ mod tests {
                 .to_string(),
             "decay_per_tick for 'hunger' is negative"
         );
+
+        let mut objects = one_object(snack());
+        objects.object[0].sprite = "hovercraft_art".into();
+        assert_eq!(
+            compile_objects(full_needs(), objects)
+                .unwrap_err()
+                .to_string(),
+            "object 'fridge' names sprite 'hovercraft_art', which atlas.toml does not hold"
+        );
     }
 
     /// The lot half of the message test above, kept separate only
@@ -1129,7 +1315,7 @@ mod tests {
 
         for (lot, expected) in cases {
             assert_eq!(
-                compile(full_needs(), one_object(snack()), lot)
+                compile(full_needs(), one_object(snack()), lot, test_atlas())
                     .unwrap_err()
                     .to_string(),
                 expected
