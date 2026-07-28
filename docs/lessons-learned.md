@@ -1095,3 +1095,125 @@ stopped run.
 
 **How to verify:** snapshot two same-named files from different crates and
 confirm the harness produces two distinct keys.
+
+---
+
+## [L23] A crate can compile on a serde feature a *sibling* dependency turned on
+
+**What happened:** `terri-data`'s manifest was written with
+`serde = { workspace = true, features = ["std"] }`, deviating from the Task 3
+brief's plain `serde = { workspace = true }`. The reasoning was that the
+workspace entry is `default-features = false`, so `String`, `Vec` and `BTreeMap`
+would have no `Deserialize` impls. Removing the feature to confirm that, per
+`testing-protocol.md` rule 1, produced the **opposite** of the expected result:
+`cargo build -p terri-data` succeeded anyway.
+
+`cargo tree -p terri-data -e features` says why:
+
+```
+terri-data
+|-- postcard feature "alloc"
+|   +-- serde feature "alloc"
+```
+
+`postcard`'s `alloc` feature enables `serde/alloc`, and feature unification hands
+it to `terri-data`. The derives compiled because of a dependency that has nothing
+to do with them.
+
+**Root cause:** Cargo unifies features across a package's whole dependency graph,
+so a crate's declared features describe what it *asked for*, never what it
+*gets*. Nothing warns when the two differ. The failure only appears later, when
+whoever removes or re-scopes the unrelated dependency gets a compile error in
+code they did not touch, naming a trait impl they did not know was conditional.
+
+**The compounding trap:** `cargo test -p terri-data` passes under **both**
+configurations, because the `toml` dev-dependency drags in `serde/std` for the
+test target. Dev-dependencies are unified into the lib build when building tests
+and are absent from `cargo build`, so the test command is systematically more
+permissive about features than the build command. Checking a feature question
+with `cargo test` answers a different question.
+
+**Prevention rule:** declare every feature your own code needs, even when it
+already builds without it, and verify feature questions with `cargo build`
+(no dev-dependencies) rather than `cargo test`. When a feature looks redundant,
+run `cargo tree -e features` before deleting it; "it compiles without this" is
+not evidence the crate does not need it.
+
+**How to verify:** drop `features = ["std"]` from `serde` in
+`crates/terri-data/Cargo.toml` and run `cargo build -p terri-data`. It succeeds.
+Then also set `default-features = false` on `postcard`'s `alloc` feature, or
+remove `postcard` from `[dependencies]`, and it stops succeeding. Two edits are
+needed to observe a requirement that one manifest line claims to own.
+
+---
+
+## [L24] A brief's own tests can be blind to the property the same brief calls load-bearing
+
+**What happened:** the **seventh** instance of the family ([L2], [L3], [L5],
+[L6], [L7], [L11]), and the new part is where the blind spot originated. Task 3's
+instructions stated, in bold, that `InteractionDef::advertises` must be a
+`BTreeMap` rather than a `HashMap`, because the compiled pack is serialised in
+iteration order and feeds a determinism hash. The same brief supplied three
+tests. Swapping in a `HashMap` left **all three green**:
+
+```
+test schema::tests::parses_a_needs_file ... ok
+test schema::tests::an_object_may_declare_no_interactions ... ok
+test schema::tests::parses_an_object_with_a_sparse_advert ... ok
+
+test result: ok. 3 passed; 0 failed
+```
+
+The two assertions that touch the map are `advertises.get("hunger")` and
+`advertises.len()`, and both behave identically under either map type. The
+brief argued for the mechanism carefully and then tested everything about the
+map except it.
+
+**Root cause:** a brief that explains *why* a choice matters reads as though it
+has covered the choice. Prose justification and test coverage are independent,
+and the more convincing the prose, the less likely anybody checks the tests
+against it. [L16] recorded a brief whose code contradicted its own stated
+requirement; this is the quieter version, where the code is right and nothing
+holds it in place.
+
+**Prevention rule:** for every property a brief calls load-bearing, find the test
+that would fail if it were violated **before** writing any code. If there is not
+one, that is the first thing to add, and it is not scope creep. Expect the
+predicted test count in a plan to be a floor rather than a target.
+
+**How to verify:** apply `use std::collections::HashMap as BTreeMap;` to
+`crates/terri-data/src/schema.rs` (an alias keeps every use site identical, so
+the mutation is a single clean variable) and run `cargo test -p terri-data`.
+Exactly `schema::tests::advert_iteration_is_sorted_not_hash_ordered` must fail,
+with a `left` showing hash order and a `right` showing sorted order. If the
+suite is green, the ordering is unprotected again.
+
+Note the test is probabilistic against a `HashMap`, though not against the
+correct code: seven keys have 5040 orderings and one of them is sorted, so it
+fails about 99.98% of runs. It is fully deterministic under `BTreeMap`. The
+airtight version is a golden vector over a compiled pack, which needs the
+compile step to exist first.
+
+---
+
+## [L25] The Bash tool is Git Bash, so PowerShell here-string syntax lands as a literal argument
+
+**What happened:** a commit was made from the Bash tool with
+`git commit -m @'...'@`, which is PowerShell here-string syntax. Bash has no such
+form, so `@` was passed through as an ordinary character: the commit subject
+became a bare `@` and the real subject dropped to line two, silently, with
+exit 0.
+
+**Root cause:** this environment exposes a PowerShell tool and a Bash tool side
+by side, and the two take different quoting for exactly the operation that most
+needs multi-line strings. Neither shell errors on the other's syntax here; both
+produce a valid command with the wrong content.
+
+**Prevention rule:** in the Bash tool use a quoted heredoc,
+`git commit -F - <<'EOF'`, and in the PowerShell tool use `@'...'@` with the
+closing delimiter at column 0. Pick the form from the tool, not from habit. After
+any scripted commit, run `git log -1 --format=%s` and read the subject back;
+`git commit` reports success for a message that is entirely wrong.
+
+**How to verify:** `git log -1 --format=%B | head -3` after committing. A subject
+line consisting of a stray delimiter character is the signature of this mistake.
