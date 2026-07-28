@@ -1293,3 +1293,82 @@ should report a survivor count you have read. `terri-data` reported 16 mutants,
 meaning nothing in the suite pinned whether zero is legal content. It is: a
 decay rate of zero is a need that does not decay. A test now says so, and the
 crate joined CI at 13 caught, 3 unviable, 0 missed.
+
+---
+
+## [L28] A build-time validation gate converts caught mutants into unviable ones
+
+**What happened:** M1a Task 5 gave `terri-data` a `build.rs` that includes
+`src/compile.rs` via `#[path]` and aborts the build on invalid content. The
+sweep was re-run afterwards. No test changed, and neither `compile.rs` nor
+`pack.rs` changed:
+
+```
+terri-data alone
+  Task 4: 16 mutants tested: 13 caught,  3 unviable, 0 missed
+  Task 5: 17 mutants tested:  6 caught, 11 unviable, 0 missed
+
+all three packages
+  Task 4: 266 mutants: 18 missed, 235 caught, 13 unviable
+  Task 5: 267 mutants: 18 missed, 222 caught, 27 unviable
+```
+
+**Thirteen** mutants moved from **caught** to **unviable**, matching the
+235-to-222 fall exactly. Seven are in `terri-data`, among them
+`compile.rs:65:12: delete ! in compile` (the missing-need loop) and
+`compile.rs:94:35: replace == with != in compile` (the zero-duration check).
+
+**The other six are in `terri-core`, and that is the part worth remembering.**
+`NeedId::index`, `NeedId::as_str` and `NeedId::from_name` were all caught by
+`terri-core`'s own tests before this task, and are now unviable:
+
+```
+crates/terri-core/src/needs.rs:36:9: replace NeedId::index -> usize with 0
+  content is invalid: needs.toml declares 'energy' more than once
+crates/terri-core/src/needs.rs:54:9: replace NeedId::from_name -> Option<NeedId> with None
+  content is invalid: needs.toml declares unknown need 'hunger'
+```
+
+**Root cause:** `compile.rs` is now compiled into two units, the library and the
+build script, and the build script also pulls in `terri-core` as a build
+dependency. When `cargo mutants` mutates either crate, the mutated code runs
+inside `build.rs` against the real `content/*.toml`, rejects it, and the package
+never builds. `cargo mutants` classifies any build failure as unviable, so the
+mutant never reaches the test suite that used to kill it.
+
+The blast radius is therefore **not confined to the crate that owns the build
+script**. It covers everything the build script transitively depends on, which
+is exactly the direction nobody looks: the change was made in `terri-data` and
+the evidence quietly degraded in `terri-core`.
+
+**Why this is not a regression in safety and is one in evidence.** Every one of
+those mutants is still detected, and the build gate detecting them is precisely
+the [D9] guarantee the build script exists to provide. But by [L21], an unviable
+mutant says nothing about the tests. The sweep can no longer tell you whether
+`rejects_a_missing_need_decay` and its siblings still work, and the CI gate
+stays green either way, because unviable is neither caught nor missed. That is
+this project's recurring shape wearing yet another costume: **the check still
+passes, over less.**
+
+**Prevention rule:** when a validator gains a build-time caller that consumes
+real data, re-measure the **whole sweep's** caught/unviable split and record
+both numbers, not just the missed count and not just the crate you edited. A
+fall in *caught* with a matching rise in *unviable* means coverage moved out of
+the test suite and into the build. No `cargo mutants` flag converts a build
+failure back into a catch; `--help` offers only `-V, --unviable`, which lists
+them. Do not delete the tests that used to catch those mutants on the grounds
+that the sweep has stopped crediting them: they are still the only thing that
+would catch a regression if the build gate were ever relaxed, and the sweep will
+not tell you when they rot.
+
+**How to verify:** run the sweep, then
+
+```
+grep -lE "content is invalid" mutants.out/log/*.log | wc -l
+```
+
+Every hit is a mutant killed by `build.rs` rather than by a test. Measured here:
+**13**, which is exactly the fall in *caught* from 235 to 222. If that count and
+the fall in caught disagree, something other than the content gate also changed.
+Anything unviable for a different reason shows an `error[E...]` instead, which
+is the ordinary [L21] case and was already there.

@@ -6,6 +6,12 @@
 #
 # Hunger keeps M0's rate; the rest are first guesses to be balanced in
 # M1b.
+#
+# Until the simulation reads this pack, hunger's rate exists twice: here
+# and as HUNGER_DECAY_PER_TICK in crates/terri-sim/src/systems/needs.rs,
+# which still owns decay. Nothing yet asserts the two agree, so change
+# both or neither. The duplication goes away when terri-sim starts
+# reading the pack.
 
 [[need]]
 id = "hunger"

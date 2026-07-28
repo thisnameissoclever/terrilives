@@ -52,6 +52,58 @@ from the M0 close-out sweep.
 The 92.5% figure below the previous sweep refers to the two-package run and is
 kept for continuity of the series.
 
+## Re-measured after M1a Task 5, and why *caught* fell
+
+Task 5 gave `terri-data` a `build.rs` that validates `content/*.toml` and aborts
+the build on invalid content. That is [D9] working as designed, and it changes
+what the mutation sweep can see. Same command as above, same tree plus the build
+script:
+
+```
+cargo mutants --package terri-core --package terri-sim --package terri-data \
+  --test-workspace true --timeout 60
+267 mutants tested in 12m: 18 missed, 222 caught, 27 unviable
+```
+
+`comm` against `mutants-baseline.txt` again reports **no new survivors and no
+stale entries**; the missed set is identical, so the CI gate is unaffected.
+
+**But 13 mutants moved from caught to unviable**, which is exactly the fall from
+235 caught to 222. They are the mutants whose mutated code runs inside the build
+script, rejects the real content, and fails the build before any test runs:
+
+| Crate | Task 4 | Task 5 |
+| --- | --- | --- |
+| `terri-core` | 131 caught, 10 unviable | 125 caught, 16 unviable |
+| `terri-sim` | 91 caught, 0 unviable | 91 caught, 0 unviable |
+| `terri-data` | 13 caught, 3 unviable | 6 caught, 11 unviable |
+
+The Task 5 column is measured per crate, by grouping `mutants.out/caught.txt`
+and `unviable.txt`. In the Task 4 column only `terri-data`'s row was measured
+directly; `terri-core`'s is derived from the recorded 222 caught / 10 unviable
+for the two-package run, given that `terri-sim` cannot be affected by this
+change - it is not a build dependency of `terri-data` - and is unchanged at
+91 caught, 0 unviable.
+
+Six of the thirteen are in **`terri-core`**, not in the crate that gained the
+build script: `NeedId::index`, `NeedId::as_str` and `NeedId::from_name` are
+build dependencies of `terri-data`'s validator now. Mutating them makes
+`needs.toml` fail to validate, so the build dies and the mutant is recorded as
+unviable rather than as caught by `terri-core`'s own tests.
+
+Nothing is less safe - those mutants are still detected, by the build gate - but
+by [L21] an unviable mutant is no evidence about the tests, so the sweep has
+stopped vouching for roughly a dozen tests that still exist and still work. See
+[L28]. To identify them in any future run:
+
+```
+grep -lE "content is invalid" mutants.out/log/*.log
+```
+
+**Mutation score on viable mutants: 92.5%** (222 caught of 240 viable). The
+apparent dip from 92.9% is entirely this reclassification; the missed set has
+not moved.
+
 The group headings below sum to 23 rather than to the 18 actually
 missed: five of those entries were closed by Tasks 8 through 13,
 chiefly the `std::mem::swap` and boundary-validation work, and the
