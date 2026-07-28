@@ -202,14 +202,29 @@ Two properties matter. Adding content means adding a data file rather than
 touching AI code, so a modder's new object is used correctly on day one. And
 cost is bounded by the spatial query in [A7], not by world size.
 
-The first is now literally true: the fridge is a row in a TOML file, and the
-only places outside `content/` that name it are test fixtures and the one line
-in `web/src/main.ts` that asks the pack to place one. No simulation code knows
-the word. **The second is still a design claim.** `select_action` scans
-every unreserved object every tick; [A7]'s uniform grid is not built, and until
-it is, selection is O(agents x objects). That is fine at M1's one lot and is
-exactly the thing [D3]'s scale target breaks, so it is tracked as work for M3
-rather than as a property the code already has.
+The first is now literally true: the fridge is a row in a TOML file, and
+nothing outside `content/` and the test fixtures names it at all - M1b's
+`Sim::new_from_lot` reads `content/lot.toml` and spawns whatever it says, so
+even the placement is content. No simulation code knows the word. **The second
+is still a design claim.** `select_action` scans every unreserved object every
+tick; [A7]'s uniform grid is not built, and until it is, selection is
+O(agents x objects). That is fine at M1's one lot and is exactly the thing
+[D3]'s scale target breaks, so it is tracked as work for M3 rather than as a
+property the code already has.
+
+**The travel term is wall-aware, and that is a commitment rather than an
+implementation detail.** M0 measured a straight line, which was fine in a
+single open room and became wrong the moment M1b's lot grew a walled bathroom:
+a sim scored the shower as one tile away through its wall and then walked round
+to the door, so its ranking disagreed with its own movement. Selection now
+costs travel at the **A\* path length**, so ranking and pathing measure the
+same thing. The implementation is expected to change - [D7]'s room graph is
+the plan at scale, and the same `O(agents x objects)` sentence above is what
+will force it - but a room-graph length is wall-aware too, so balance tuned
+against A\* length survives that swap. Balance tuned against a straight line
+would survive neither, which is why the metric is the part written down here.
+An object with **no** path is unavailable rather than free: it is skipped, and
+the agent takes the best object it can actually reach.
 
 This is roughly 200 lines of code and it is the entire personality of the game.
 

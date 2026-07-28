@@ -12,16 +12,8 @@ import { SimBridge } from './bridge.js';
 import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
 import { FixedStepDriver, buildInstances } from './frame.js';
+import { TILE_HALF_HEIGHT, TILE_HALF_WIDTH } from './render/iso.js';
 import { FrameTimer } from './perf.js';
-
-// 16, not 32. The isometric lot spans (GRID - 1) * 2 * TILE_HALF_WIDTH by
-// (GRID - 1) * 2 * TILE_HALF_HEIGHT pixels, so 32 would be 1984 x 992 on a
-// 1280 x 720 canvas with the near corner at y = 1072, most of the lot off
-// screen. At 16 it is 960 x 480, which leaves room for the origin offset.
-//
-// Worth knowing because the symptom of getting this wrong looks like a
-// broken projection rather than a camera that is simply too zoomed in.
-const GRID = 16;
 
 /** [D2]: the simulation's one true rate. Speed controls change how many
  * ticks run per frame, never how long a tick is. */
@@ -35,8 +27,14 @@ const TICK_HZ = 10;
  */
 const MAX_TICKS_PER_FRAME = 5;
 
-/** Screen y of world tile (0, 0), the lot's far corner, near the top. */
-const ORIGIN_Y = 80;
+/**
+ * Where the sim starts, in tiles. Open living space, a few tiles from the
+ * kitchen and well clear of the bathroom wall at x = 16.
+ *
+ * The hunger is low enough to give it something to do the moment the page
+ * loads, which is what makes the opening seconds worth watching.
+ */
+const START_TILE = { x: 8, y: 6, hunger: 25 };
 
 /** Frames of history behind the rolling mean and p95. Four seconds at 60 Hz. */
 const FRAME_WINDOW = 240;
@@ -81,35 +79,46 @@ async function main(): Promise<void> {
   const gpu = await initDevice(canvas);
   const renderer = new SpriteRenderer(gpu);
 
-  const sim = new SimBridge(new SimHandle(GRID, GRID), wasm.memory);
-  // Both inside the 16 x 16 lot. A smart object outside it is not a
-  // cosmetic mistake: `find_path` refuses an unwalkable destination, so
-  // the agent would stand still forever with nothing logged anywhere.
-  // See [L17], which cost a misdiagnosis of the renderer.
+  // The lot, its walls and all eight authored objects come out of
+  // content/lot.toml through the compiled pack. Nothing here names a
+  // size, a coordinate or an object id, deliberately: a hardcoded room is
+  // a second copy of content that nothing keeps in sync, and until this
+  // task that copy was what the page actually ran - a 16 x 16 room with
+  // one fridge, none of it authored anywhere.
   //
-  // Checked rather than ignored: the id is resolved against the compiled
-  // content pack, so renaming the object in content/objects.toml without
-  // updating this line would otherwise leave a lot with a hungry agent
-  // and nothing to eat, which looks like a simulation bug rather than a
-  // content one. main()'s catch below surfaces it.
-  if (!sim.spawnObject(12, 10, 'fridge')) {
-    throw new Error("content declares no smart object with id 'fridge'");
+  // `handle` is kept alongside the bridge because the lot's dimensions
+  // are simulation state rather than a memory view, and the bridge's job
+  // is the zero-copy views.
+  const handle = SimHandle.from_lot();
+  const sim = new SimBridge(handle, wasm.memory);
+  const lotWidth = handle.lot_width();
+  const lotHeight = handle.lot_height();
+  // Checked rather than assumed. An empty lot is not a crash: it renders
+  // a blank canvas with a lone sim wandering it, which reads as a broken
+  // renderer rather than as missing content ([L17] is what that costs to
+  // diagnose). main()'s catch below surfaces it instead.
+  if (sim.count === 0) {
+    throw new Error('the compiled lot placed no objects');
   }
-  sim.spawnAgent(2, 3, 25);
+  sim.spawnAgent(START_TILE.x, START_TILE.y, START_TILE.hunger);
 
   // ?stress=1000 spawns idle filler entities to exercise the M0 exit
   // criterion: p95 frame time at or under 16.6 ms with 1,000 entities.
   const stress = Number(new URLSearchParams(location.search).get('stress') ?? 0);
   const spawnStartMs = performance.now();
   for (let i = 0; i < stress; i++) {
-    // Hunger 100 keeps them idle, so they neither path nor eat and the
-    // measurement is of render and bridge throughput rather than of A*.
+    // Hunger 100 starts them satisfied, so they neither path nor eat at
+    // first and the measurement is of render and bridge throughput. It
+    // stops being true within seconds: every need decays from M1a
+    // onwards, and selection now runs one A* per candidate object per
+    // idle agent per tick, so a long stress run measures pathing too.
+    // Say which you are reading.
     //
-    // GRID is 16, so `i % GRID` by `floor(i / GRID) % GRID` walks 256
-    // distinct tiles and 1,000 entities stack about four deep on each.
-    // That is deliberate rather than incidental: it raises overdraw, which
-    // makes the test harder on the GPU, not easier.
-    sim.spawnAgent(i % GRID, Math.floor(i / GRID) % GRID, 100);
+    // This walks every tile of the lot in turn, so entities stack
+    // several deep on each. That is deliberate rather than incidental:
+    // it raises overdraw, which makes the test harder on the GPU, not
+    // easier.
+    sim.spawnAgent(i % lotWidth, Math.floor(i / lotWidth) % lotHeight, 100);
   }
   if (stress > 0) {
     // Startup, not steady state, and it is superlinear: `spawn_agent`
@@ -123,7 +132,29 @@ async function main(): Promise<void> {
   }
 
   const driver = new FixedStepDriver(TICK_HZ, MAX_TICKS_PER_FRAME);
-  const originX = canvas.width / 2;
+
+  // Centre the lot's screen-space bounding box on the canvas, derived
+  // from the lot rather than hand-tuned. `screenX` spans
+  // -(h - 1) to (w - 1) tile half-widths and `screenY` spans 0 to
+  // (w - 1) + (h - 1) tile half-heights, so the two offsets below put the
+  // middle of each range in the middle of the canvas. For the shipped
+  // 24 x 18 lot that is originX 544, originY 40, and the diamond fits
+  // 1280 x 720 exactly.
+  //
+  // Doing this by hand is how the lot ends up half off screen, which
+  // looks like a broken projection rather than a badly placed camera.
+  const originX =
+    canvas.width / 2 - ((lotWidth - lotHeight) * TILE_HALF_WIDTH) / 2;
+  const originY =
+    (canvas.height - (lotWidth + lotHeight - 2) * TILE_HALF_HEIGHT) / 2;
+
+  // `worldDepth` divides by (gridSize - 1) * 2, so this has to be at
+  // least (w - 1) + (h - 1) for the far corner to keep a depth inside
+  // [0, 1]; taking the larger side guarantees it for any lot, since
+  // 2 * max(w, h) >= w + h. A depth outside the range does not sort
+  // wrong, it clips the entity away entirely.
+  const depthScale = Math.max(lotWidth, lotHeight);
+
   const timer = new FrameTimer(FRAME_WINDOW);
   let previousFrameMs = performance.now();
   let lastReportMs = performance.now();
@@ -140,7 +171,7 @@ async function main(): Promise<void> {
     // The sim advances in whole ticks; alpha is how far this frame sits
     // between the last one that ran and the next one that has not.
     const alpha = driver.advance(deltaMs, () => sim.tick());
-    const instances = buildInstances(sim, alpha, originX, ORIGIN_Y, GRID);
+    const instances = buildInstances(sim, alpha, originX, originY, depthScale);
     renderer.draw(instances, sim.count);
 
     timer.sample(performance.now() - nowMs);

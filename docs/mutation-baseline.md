@@ -4,7 +4,26 @@
 contract.** That file, not this one, is what CI compares against; it is the
 sorted contents of `mutants.out/missed.txt` from a full sweep.
 
-Re-recorded 2026-07-28 at M1b Task 3, from a full sweep on a clean tree at
+**Latest sweep: M1b Task 3b, 2026-07-28**, with the package list CI actually
+uses, which includes `terri-wasm`:
+
+```
+cargo mutants --package terri-core --package terri-sim \
+  --package terri-data --package terri-wasm --test-workspace true --timeout 60
+311 mutants tested in 16m: 4 missed, 266 caught, 41 unviable
+```
+
+The four survivors are **exactly** the four in `docs/mutants-baseline.txt`:
+no new ones, and none of the existing four has become killable. Task 3b
+added `Sim::new_from_lot`, `Sim::new_from_shipped_lot`, `SimHandle::from_lot`,
+`SimHandle::lot_width`, `SimHandle::lot_height` and the wall-aware distance in
+`select_action`, so the 14 extra mutants are theirs and all 14 are caught.
+
+**The counts are not comparable with the Task 3 line below**, and the reason is
+[L27]: that sweep named three packages, this one names four. Compare survivor
+*lists*, which is what the gate does, rather than totals.
+
+Recorded 2026-07-28 at M1b Task 3, from a full sweep on a clean tree at
 `61b77fd`:
 
 ```

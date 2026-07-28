@@ -35,7 +35,8 @@ impl Sim {
     /// `find_path` return `None` on every tick, so agents silently never
     /// go anywhere - no panic, no log, and the sim looks alive because
     /// needs still decay. Use [`Sim::new_with_lot`] whenever agents are
-    /// expected to move.
+    /// expected to move, or [`Sim::new_from_lot`] to load an authored
+    /// lot with its walls and objects.
     pub fn new() -> Self {
         let mut world = World::new();
         world.insert_resource(SimClock::default());
@@ -91,6 +92,54 @@ impl Sim {
         sim.world
             .insert_resource(terri_core::TileGrid::new(width, height));
         sim
+    }
+
+    /// Creates a sim holding a compiled lot: the grid sized to it, its
+    /// walls marked unwalkable, and every placed object spawned.
+    ///
+    /// This is what makes `content/lot.toml` reach the game. Everything
+    /// it reads is post-validation, so nothing here re-checks it:
+    /// `terri-data`'s `compile` rejects a wall or a placement outside the
+    /// lot, and `build.rs` runs that validation over the shipped content
+    /// at build time, so a pack that exists cannot hold either. That is
+    /// what lets `set_blocked` be called without a bounds test - it
+    /// asserts, and an assertion firing here would mean the content gate
+    /// had been removed rather than that this function needs a guard.
+    ///
+    /// The lot is passed in rather than read from `terri_data::pack()` so
+    /// a test can build one, for the same reason [`Content`] is a
+    /// resource rather than a direct call into the content crate.
+    pub fn new_from_lot(lot: &terri_data::CompiledLot) -> Self {
+        let mut sim = Self::new();
+
+        let mut grid = terri_core::TileGrid::new(lot.width as usize, lot.height as usize);
+        for &(x, y) in &lot.walls {
+            grid.set_blocked(x as usize, y as usize, true);
+        }
+        sim.world.insert_resource(grid);
+
+        for placement in &lot.placements {
+            sim.world.spawn((
+                terri_core::Position {
+                    x: placement.x,
+                    y: placement.y,
+                },
+                terri_core::SmartObject(placement.object),
+            ));
+        }
+
+        sim
+    }
+
+    /// The lot the game ships, compiled from `content/lot.toml`.
+    ///
+    /// A convenience over [`Sim::new_from_lot`] for callers that do not
+    /// depend on `terri-data` themselves. `terri-wasm` is the one that
+    /// matters: it is the boundary crate, and keeping the content crate
+    /// out of its manifest keeps its dependency list as small as the [D1]
+    /// purity rule can make it.
+    pub fn new_from_shipped_lot() -> Self {
+        Self::new_from_lot(&terri_data::pack().lot)
     }
 
     pub fn tick(&mut self) {
@@ -244,6 +293,168 @@ impl Default for Sim {
 
 fn advance_clock(mut clock: ResMut<SimClock>) {
     clock.advance();
+}
+
+#[cfg(test)]
+mod lot_tests {
+    //! `Sim::new_from_lot` is a three-part mapping - grid size, wall
+    //! tiles, placed objects - and each part is checked separately, per
+    //! [L7] rule 3. The fixture is deliberately asymmetric everywhere it
+    //! can be: a non-square lot, walls whose transposes are not walls,
+    //! and placements whose object ids differ from their own positions in
+    //! the list. [L26] is the recorded instance of a tidy fixture hiding
+    //! an index-to-slot bug one layer down, and [L29] is the one where a
+    //! fixture whose candidates agreed on the field being read made the
+    //! read untestable.
+
+    use super::*;
+    use terri_core::{Position, SmartObject, TileGrid};
+    use terri_data::{CompiledLot, CompiledPlacement, ObjectDefId};
+
+    /// A 6x4 lot: wider than it is tall, so a transposed `TileGrid::new`
+    /// is visible; walls whose transposes and cross products are free, so
+    /// a single-coordinate or swapped `set_blocked` is visible; and two
+    /// placements at distinct positions carrying distinct definitions, so
+    /// a definition collapsed to zero or a coordinate pair swapped is
+    /// visible.
+    fn a_lot() -> CompiledLot {
+        CompiledLot {
+            width: 6,
+            height: 4,
+            walls: vec![(3, 2), (1, 0)],
+            placements: vec![
+                CompiledPlacement {
+                    object: ObjectDefId(2),
+                    x: 2.5,
+                    y: 1.25,
+                },
+                CompiledPlacement {
+                    object: ObjectDefId(0),
+                    x: 4.0,
+                    y: 3.5,
+                },
+            ],
+        }
+    }
+
+    /// Every (position, definition) pair in the world, sorted by entity
+    /// index so the assertion can be exact.
+    fn placed_objects(sim: &Sim) -> Vec<(f32, f32, ObjectDefId)> {
+        let mut state = sim
+            .world()
+            .try_query::<(Entity, &Position, &SmartObject)>()
+            .expect("Position and SmartObject are registered eagerly in Sim::new");
+        let mut rows: Vec<(u32, f32, f32, ObjectDefId)> = state
+            .iter(sim.world())
+            .map(|(entity, pos, placed)| (entity.index_u32(), pos.x, pos.y, placed.0))
+            .collect();
+        rows.sort_by_key(|(index, _, _, _)| *index);
+        rows.into_iter().map(|(_, x, y, def)| (x, y, def)).collect()
+    }
+
+    #[test]
+    fn new_from_lot_sizes_the_grid_to_the_lot_rather_than_transposing_it() {
+        let sim = Sim::new_from_lot(&a_lot());
+        let grid = sim.world().resource::<TileGrid>();
+
+        assert_eq!(grid.width(), 6);
+        assert_eq!(grid.height(), 4);
+        // The same claim through behaviour, so the two accessors above
+        // cannot both be satisfied by a grid that is actually 4 by 6.
+        assert!(grid.is_walkable(5, 3), "(5, 3) is the far corner of 6x4");
+        assert!(!grid.is_walkable(3, 5), "(3, 5) is outside a 6x4 lot");
+    }
+
+    #[test]
+    fn new_from_lot_blocks_every_declared_wall_and_only_those() {
+        let lot = a_lot();
+        let sim = Sim::new_from_lot(&lot);
+        let grid = sim.world().resource::<TileGrid>();
+
+        assert!(!lot.walls.is_empty(), "a lot with no walls blocks nothing");
+        for &(x, y) in &lot.walls {
+            assert!(
+                !grid.is_walkable(x as i32, y as i32),
+                "the declared wall at ({x}, {y}) must be unwalkable"
+            );
+        }
+        // The transposes and the cross products of the two declared
+        // walls, none of which is a wall. Without these, blocking
+        // `(y, x)` or blocking a whole row or column would pass.
+        for (x, y, why) in [
+            (2, 3, "(2, 3) is (3, 2) transposed"),
+            (0, 1, "(0, 1) is (1, 0) transposed"),
+            (3, 0, "x alone must not block a tile"),
+            (1, 2, "y alone must not block a tile"),
+        ] {
+            assert!(grid.is_walkable(x, y), "{why}");
+        }
+    }
+
+    #[test]
+    fn new_from_lot_spawns_each_placement_at_its_own_position_and_definition() {
+        assert_eq!(
+            placed_objects(&Sim::new_from_lot(&a_lot())),
+            vec![(2.5, 1.25, ObjectDefId(2)), (4.0, 3.5, ObjectDefId(0))],
+            "each placement must reach the world with its own coordinates \
+             and its own definition; a shared definition means the id is \
+             not being carried, and swapped coordinates mean x and y are \
+             transposed on the way in"
+        );
+    }
+
+    #[test]
+    fn the_shipped_lot_loads_its_walls_its_doorway_and_all_of_its_objects() {
+        // The synthetic fixture above pins the mapping; this pins that
+        // the mapping is applied to the content the game actually ships,
+        // which is the whole reason this function exists. It reads the
+        // lot rather than restating it, so it stays true when the lot is
+        // re-authored - but the counts and the doorway are asserted
+        // against numbers, because a lot that compiled to nothing would
+        // satisfy any purely self-referential check.
+        //
+        // It goes through `new_from_shipped_lot`, which is the entry
+        // point `terri-wasm` calls, so that thin wrapper is constrained
+        // by something rather than being an untested public function.
+        let lot = &terri_data::pack().lot;
+        let sim = Sim::new_from_shipped_lot();
+        let grid = sim.world().resource::<TileGrid>();
+
+        assert_eq!(
+            (grid.width(), grid.height()),
+            (lot.width as usize, lot.height as usize)
+        );
+        assert_eq!(
+            placed_objects(&sim).len(),
+            lot.placements.len(),
+            "every placement in the shipped lot must be spawned"
+        );
+        assert!(
+            placed_objects(&sim).len() >= 8,
+            "[D-6] calls for roughly eight objects; got {}",
+            placed_objects(&sim).len()
+        );
+
+        // The bathroom's west wall is solid at y = 4 and y = 6 and OPEN at
+        // y = 5. That gap is the doorway, and it is the property the whole
+        // lot turns on: without it the bathroom is sealed and the shower
+        // and toilet are unreachable, which is a silent behaviour change
+        // rather than a visible one ([L17]).
+        assert!(!grid.is_walkable(16, 4), "the bathroom wall must be solid");
+        assert!(!grid.is_walkable(16, 6), "the bathroom wall must be solid");
+        assert!(
+            grid.is_walkable(16, 5),
+            "the doorway at (16, 5) must be open"
+        );
+
+        // And the bathroom is genuinely reachable from the living space,
+        // stated as a path rather than as a hole in a wall, because that
+        // is the thing the game depends on.
+        assert!(
+            grid.find_path((2, 2), (18, 2)).is_some(),
+            "the shower must be reachable from the kitchen"
+        );
+    }
 }
 
 #[cfg(test)]
@@ -511,6 +722,17 @@ mod determinism_tests {
         // Measured on wasm32 as well as natively, per [L13], rather than
         // assumed to carry across: the two agree. The boundary copy lives
         // in web/tests/bridge.test.ts.
+        //
+        // **M1b Task 3b did NOT move it, and that is worth knowing rather
+        // than reassuring.** Selection changed from Euclidean distance to
+        // A* path length, which is a real behaviour change, and this
+        // scenario cannot see it: one object means there is nothing to
+        // rank, and the only agent that ever claims it is still walking
+        // its 30 tiles at tick 100 - movement always used A*, so its
+        // position is identical either way. The metric is pinned by
+        // `an_object_behind_a_wall_loses_to_a_further_one_the_agent_can_walk_to`
+        // instead. Recorded as [L36]; do not read this vector as covering
+        // how candidates are ordered.
         const GOLDEN: u64 = 0x2FC6_69EF_A725_4F2D;
 
         let mut sim = build_scenario();

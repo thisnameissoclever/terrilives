@@ -214,6 +214,12 @@ Computed through the shipped `worldToScreen` with the page's real
 (640, 80), (1120, 320), (160, 320), (640, 560); with the 24 px quad the
 lot occupies x 148..1132 and y 68..572.
 
+**Superseded by [V12] at M1b Task 3b.** `GRID` no longer exists: the lot
+comes from `content/lot.toml` and is 24 x 18, so the origins are derived
+from its dimensions rather than hand-tuned. The measurement above is kept
+because it is what the numbers in `iso.ts` were checked against at the
+time.
+
 ---
 
 # Task 13: the M0 exit measurement
@@ -525,3 +531,105 @@ descriptions above; the load-bearing details are these.
 - **Prefer platform-level hooks to module-level ones** when counting
   frames. `GPURenderPassEncoder.prototype.draw` cannot be defeated by
   [L20]'s module-identity trap; a patched class method can, and was.
+
+---
+
+# M1b Task 3b: the authored lot on screen
+
+Real, **visible** Chrome driven by Playwright, so `requestAnimationFrame`
+is paced by the compositor rather than by a harness ([L19] rule 3). Frames
+counted at `GPUQueue.prototype.submit` and `GPURenderPassEncoder.prototype.draw`,
+and the instance array captured at `GPUQueue.prototype.writeBuffer` - three
+platform globals with one identity per page, so none of them can be
+defeated by [L20]'s module-identity trap.
+
+## [V12] The lot in `content/lot.toml` is what the page draws
+
+`document.visibilityState` was **`visible`** and **1,345 rAF callbacks,
+1,345 `draw` calls and 1,345 `submit` calls** landed in 12 s, an
+`instanceCount` of **9** on every one. The page reports `entities 9`.
+
+Pixel readback, taken **inside** a rAF callback, over the 921,600-pixel
+canvas:
+
+| colour | pixels | what |
+| --- | --- | --- |
+| `23,23,28` | 916,416 | the clear colour |
+| `89,166,217` | **4,608** | 8 smart objects x 576 |
+| `242,140,89` | **576** | 1 sim |
+
+576 is exactly one 24 x 24 quad, so this is the [L14] rule 4 count rather
+than a "some blue is present" check: 4,608 is 8 quads and not 7, and no
+quad is degenerate.
+
+The instance array the GPU received, converted back through the shipped
+projection with `originX = 544`, `originY = 40`:
+
+| screen | world tile | object |
+| --- | --- | --- |
+| 544, 104 | 2, 2 | fridge |
+| 640, 152 | 5, 2 | sink |
+| 1056, 360 | 18, 2 | shower |
+| 1184, 424 | 22, 2 | toilet |
+| 288, 232 | 2, 10 | bookshelf |
+| 352, 360 | 7, 13 | sofa |
+| 416, 456 | 11, 15 | television |
+| 768, 568 | 20, 13 | bed |
+
+Every one is exactly where `content/lot.toml` places it, and every screen
+coordinate is inside 1280 x 720. The sim was at (687.8, 224.1) - world
+(8.0, 3.5) - at t = 1.2 s, having started at (8, 6) and walked north
+toward the fridge, and at (544, 104) at t = 12 s, which is the fridge's
+tile.
+
+**Two things you cannot see, and both matter to whoever reads the play
+session.**
+
+1. **Walls are not drawn.** Only entities are, and a wall is a `TileGrid`
+   bit rather than an entity. The bathroom is enclosed in the simulation
+   and invisible on screen, so a sim walking round to the doorway looks
+   like a detour for no reason.
+2. **A sim standing on an object disappears behind it.** Both quads take
+   the same world position, so [D10]'s depth is identical, and
+   `depthCompare: 'less'` rejects the second draw. This is why the orange
+   576 pixels are present in the t = 1.2 s sample and absent from the
+   t = 12 s one - the sim is *at* the fridge, not gone. Pre-existing
+   behaviour rather than anything Task 3b changed, but the M1b lot makes
+   it constant: a sim spends most of its time using something.
+
+## [V13] `?stress=1000` on the M1b lot, with two controls
+
+Frame time got worse, and the first plausible cause is wrong. Numbers are
+the **median p95 across the 240-frame windows after the first**, which is
+discarded as warm-up; all three runs are the same session, same machine,
+same visible Chrome, roughly 100 fps.
+
+| configuration | p95 | mean |
+| --- | --- | --- |
+| M1b lot, 8 objects, **A\* path length** (shipping) | **16.68 ms** | 4.39 ms |
+| M1b lot, 8 objects, **Euclidean** (control, metric reverted) | 17.49 ms | 5.22 ms |
+| M0 shape: 16 x 16, one fridge, shipping simulation | **7.82 ms** | 3.24 ms |
+
+**The wall-aware metric is not the cause.** Reverting only the metric, on
+the same lot and the same 1,009 entities, measures the same thing - very
+slightly worse, which is noise. The reason it costs so little is
+structural rather than lucky: `select_action` skips objects already
+claimed this tick and objects the query has excluded as `Reserved`, so
+once the eight objects are taken the ~1,000 idle agents iterate an empty
+candidate list and path nowhere at all.
+
+**The configuration is the cause**, roughly a 2x p95, from a 24 x 18 lot
+with eight objects and 1,000 entities spread across 432 tiles instead of
+256.
+
+**Do not compare any of these with [V9]'s 0.33 ms.** The M0 shape reads
+7.82 ms here against the 0.33 ms recorded at the M0 close-out, on the same
+shape and the same machine, so this session's environment differs from
+that one by more than the thing being measured. Only the three
+same-session rows above are comparable with each other. Reproduced on both
+the Vite dev server and a `vite preview` production build, which rules out
+bundling as the difference.
+
+The M1b page itself, with one sim and eight objects, runs at **p95 0.32 to
+0.38 ms** in steady windows, so nothing here affects the milestone; it
+affects the M0 stress harness, which is what [V9] rests on.

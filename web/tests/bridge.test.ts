@@ -130,6 +130,54 @@ describe('SimBridge', () => {
     expect(fresh[1]).toBe(2);
   });
 
+  it('loads the shipped lot through from_lot before the first tick', () => {
+    // The Rust twin of this lives in crates/terri-wasm/src/lib.rs, and
+    // this one is not redundant with it for [L12]'s reason: the native
+    // test is a debug build of the rlib, and the artifact that ships is
+    // the release wasm wasm-pack emits. Only this side runs the thing the
+    // page runs.
+    //
+    // `from_lot` is what replaced main.ts's hardcoded 16x16 room and its
+    // single hand-placed fridge. That hardcoding is the failure this test
+    // exists to keep out: the game would run against none of the authored
+    // content, and would look completely normal doing it.
+    const handle = SimHandle.from_lot();
+    const bridge = new SimBridge(handle, wasmMemory);
+
+    // Nothing ticks first, on purpose: `from_lot` has to sync the render
+    // buffer itself, or the opening frame draws an empty lot.
+    expect(bridge.count).toBeGreaterThanOrEqual(8);
+    const kinds = bridge.kinds();
+    expect([...kinds].every((k) => k === 1)).toBe(true);
+
+    const width = handle.lot_width();
+    const height = handle.lot_height();
+    // Non-square, which is what makes the two accessors distinguishable
+    // at all; without this the checks below would pass with them swapped.
+    expect(width).not.toBe(height);
+
+    const positions = bridge.positions();
+    expect(positions.length).toBe(bridge.count * 2);
+    for (let i = 0; i < bridge.count; i++) {
+      expect(positions[i * 2]).toBeLessThan(width);
+      expect(positions[i * 2 + 1]).toBeLessThan(height);
+    }
+    // At least one object sits at an x the lot's HEIGHT would reject, so
+    // the bounds above are genuinely testing x against width rather than
+    // passing under either reading.
+    const xs = [...positions].filter((_, i) => i % 2 === 0);
+    expect(xs.some((x) => x >= height)).toBe(true);
+
+    // And the loaded grid is walkable: a hungry sim dropped into the
+    // living space paths to something. A lot whose walls were applied to
+    // every tile would satisfy every assertion above and leave the sim
+    // standing still forever ([L17]).
+    bridge.spawnAgent(8, 6, 20);
+    const before = [...bridge.positions()];
+    for (let i = 0; i < 10; i++) bridge.tick();
+    expect([...bridge.positions()]).not.toEqual(before);
+  });
+
   it('reproduces the native golden world hash across the wasm boundary', () => {
     // The native `world_hash_matches_its_golden_vector` in
     // crates/terri-sim/src/lib.rs claims to be a free cross-platform
@@ -185,6 +233,14 @@ describe('SimBridge', () => {
     //
     // Previous values: 0x6c37_57f1_8481_75c1n (Task 6, at the
     // Hunger-to-Needs encoding change), 0xef60_1d50_4790_5825n before that.
+    //
+    // M1b Task 3b changed selection from Euclidean distance to A* path
+    // length and this vector did NOT move, on either target. That is a
+    // property of the scenario rather than of the change - one object
+    // means there is nothing to rank - and it is written up as [L36]. The
+    // wasm was rebuilt before this was re-run, per [L8]; skipping that
+    // would have measured the previous artifact and proved nothing either
+    // way.
     expect(bridge.worldHash()).toBe(0x2fc6_69ef_a725_4f2dn);
   });
 

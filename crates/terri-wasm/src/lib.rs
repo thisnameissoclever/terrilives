@@ -1,7 +1,7 @@
 //! The ONLY crate that knows JavaScript exists.
 //! Nothing in here may contain simulation logic.
 
-use terri_core::{Agent, NeedId, Needs, Position, SmartObject, NEED_MAX, NEED_MIN};
+use terri_core::{Agent, NeedId, Needs, Position, SmartObject, TileGrid, NEED_MAX, NEED_MIN};
 use terri_sim::{Content, Sim};
 use wasm_bindgen::prelude::*;
 
@@ -82,6 +82,42 @@ impl SimHandle {
         SimHandle {
             sim: Sim::new_with_lot(width, height),
         }
+    }
+
+    /// The shipped lot from `content/lot.toml`: sized, walled, and with
+    /// every authored object already standing on it.
+    ///
+    /// This is how the game starts. The constructor above builds an empty
+    /// room of a caller-chosen size and stays for tests and for anything
+    /// that wants a blank lot; it is **not** what the page should use,
+    /// because a hand-typed size and a hand-typed object list are a
+    /// second copy of content that nothing keeps in sync ([L17] is what
+    /// that costs to diagnose).
+    ///
+    /// No arguments, so nothing to sanitise: the lot comes from the
+    /// compiled pack, which `build.rs` validated at build time.
+    ///
+    /// It syncs the render buffer, so the objects are visible to
+    /// JavaScript before the first `tick`.
+    pub fn from_lot() -> SimHandle {
+        let mut handle = SimHandle {
+            sim: Sim::new_from_shipped_lot(),
+        };
+        handle.sim.sync_render_buffer();
+        handle
+    }
+
+    /// The lot's width in tiles. The page needs it to place the camera
+    /// and to scale depth, and reading it back from the simulation is
+    /// what stops those from being a second hand-maintained copy of the
+    /// lot's dimensions.
+    pub fn lot_width(&self) -> usize {
+        self.sim.world().resource::<TileGrid>().width()
+    }
+
+    /// The lot's height in tiles. See [`SimHandle::lot_width`].
+    pub fn lot_height(&self) -> usize {
+        self.sim.world().resource::<TileGrid>().height()
     }
 
     /// Advances one fixed tick and refreshes the render buffer.
@@ -439,6 +475,110 @@ mod boundary_tests {
         // outlives this call, and `len` is the row count that same buffer
         // was built with.
         unsafe { std::slice::from_raw_parts(ptr, len) }.to_vec()
+    }
+
+    #[test]
+    fn from_lot_hands_javascript_the_shipped_objects_without_a_tick_first() {
+        // Two mechanisms, and they fail differently.
+        //
+        // The SPAWN half is `Sim::new_from_lot`, pinned in terri-sim. The
+        // half that only exists here is the `sync_render_buffer` call: the
+        // render buffer is the only thing JavaScript can see, and without
+        // that call `entity_count` reads zero and the first frame draws an
+        // empty lot. The page would then look exactly like a lot that
+        // failed to load, which is [L17]'s diagnosis cost again.
+        //
+        // Nothing ticks, so the sync under test is the one `from_lot`
+        // does rather than the one `tick` does.
+        let handle = SimHandle::from_lot();
+
+        let placed = stored_positions(&handle);
+        assert!(
+            placed.len() >= 8,
+            "[D-6] calls for roughly eight authored objects; got {}",
+            placed.len()
+        );
+        assert_eq!(
+            handle.entity_count(),
+            placed.len(),
+            "every object in the world must be in the render buffer before \
+             the first tick; a count of 0 means from_lot never synced and \
+             the page would draw an empty lot"
+        );
+        assert_eq!(
+            addressed(
+                handle.positions_ptr(),
+                handle.entity_count() * 2,
+                "positions_ptr"
+            )
+            .len(),
+            placed.len() * 2,
+            "the exported pointer must address the same rows entity_count \
+             promises"
+        );
+    }
+
+    #[test]
+    fn lot_width_and_lot_height_report_the_lot_in_that_order() {
+        // The shipped lot is NOT square, which is what makes a transposed
+        // pair of accessors visible here at all. Asserted rather than
+        // assumed, because a future lot that happens to be square would
+        // silently turn this test into a tautology - the [L34] shape,
+        // where the input domain rather than the assertion is what fails.
+        let handle = SimHandle::from_lot();
+        let (width, height) = (handle.lot_width(), handle.lot_height());
+
+        assert_ne!(
+            width, height,
+            "the lot must not be square or these two accessors are \
+             interchangeable and this test proves nothing"
+        );
+        // The page derives its camera and its depth scale from these, so
+        // they have to be the lot's own numbers rather than a default.
+        assert!(width >= 16 && height >= 8, "got {width}x{height}");
+
+        /// Whether a hungry agent dropped on `tile` of the SHIPPED lot
+        /// moves at all in ten ticks.
+        ///
+        /// An agent standing outside the lot is a silent no-op:
+        /// `find_path` refuses an unwalkable origin, so it never gets a
+        /// target and stands still forever with nothing logged ([L17]).
+        /// Nothing else in the world moves, so the whole position array
+        /// is a sound thing to compare.
+        ///
+        /// The world comes from `from_lot`, NOT from a lot rebuilt out of
+        /// the two numbers under test. That is the load-bearing part: a
+        /// helper that constructed its own lot from `width` and `height`
+        /// would be self-consistent under a swap of the pair and could
+        /// not see it.
+        fn moves_from(tile: (f32, f32)) -> bool {
+            let mut handle = SimHandle::from_lot();
+            handle.spawn_agent(tile.0, tile.1, 20.0);
+            let start = stored_positions(&handle);
+            for _ in 0..10 {
+                handle.tick();
+            }
+            stored_positions(&handle) != start
+        }
+
+        // The claim through behaviour, so the pair cannot both be
+        // satisfied by a lot that is really height by width. On a
+        // non-square lot the far corner is inside and its transpose is
+        // outside, and only the correct orientation makes these two runs
+        // disagree.
+        let far_corner = ((width - 1) as f32, (height - 1) as f32);
+        let transposed = ((height - 1) as f32, (width - 1) as f32);
+        assert!(
+            moves_from(far_corner),
+            "{far_corner:?} must be inside the lot, so a hungry sim \
+             standing there can path somewhere"
+        );
+        assert!(
+            !moves_from(transposed),
+            "{transposed:?} must be OUTSIDE a {width}x{height} lot; a sim \
+             that walks from there too means lot_width and lot_height are \
+             swapped"
+        );
     }
 
     #[test]

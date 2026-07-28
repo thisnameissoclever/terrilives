@@ -1754,3 +1754,108 @@ is not on `build.rs`'s validation path, so that test stays conclusive.
 `build.rs` saying "content is invalid" means the gate caught it; a test name
 and an assertion means the test did. Only the second is evidence about the
 test.
+
+---
+
+## [L36] A golden vector over a one-candidate fixture cannot see a change to how candidates are ranked
+
+**What happened:** M1b Task 3b's brief predicted, in bold, that switching
+`select_action` from Euclidean distance to A* path length would move the
+world-hash golden vectors, and instructed that both copies be updated
+deliberately. **They did not move.** `0x2FC6_69EF_A725_4F2D` before the
+change and `0x2FC6_69EF_A725_4F2D` after it, on native and on wasm32, with
+the wasm rebuilt first ([L8], [L13]).
+
+The prediction was reasonable and the fixture is what refutes it.
+`build_scenario` in `crates/terri-sim/src/lib.rs` is a 24x24 **open** room
+holding **one** smart object and eight agents. Three things follow, and all
+three have to hold:
+
+1. With one object there is nothing to rank, so the metric can only act
+   through the `ACTION_THRESHOLD` comparison. It does change that - agent 4
+   clears the threshold at Euclidean 21.4 tiles and fails it at a path
+   length of 30 - but only the lowest-index agent that clears it ever gets
+   the object, because the rest find it in `claimed` and skip.
+2. That agent's walk is **30 tiles at 0.25 tiles per tick = 120 ticks**, and
+   the vector is taken at tick 100. It is still walking. Nothing else in the
+   scenario ever selects anything.
+3. Movement always used A*. So the agent's position at tick 100 is the same
+   under both metrics, every other agent is stationary, and the digest is
+   bit-identical.
+
+**Root cause:** a golden vector pins *what the simulation computes in that
+scenario*, and a scenario with one candidate exercises no comparison between
+candidates. This is [L27], [L28], [L30] and [L31] again - "the check still
+passes, over less" - but the trigger is new and worse, because the check did
+not merely narrow: it never covered the mechanism at all, and its *stability*
+was read as reassurance. A vector that does not move is normally evidence
+that nothing changed.
+
+**Prevention rule:**
+
+1. **Before predicting that a golden vector will move, name the mechanism and
+   check the fixture exercises it.** "Does this scenario contain two things
+   the change would order differently?" is a one-line check and it is the
+   whole of it.
+2. **An unchanged golden vector after a deliberate behaviour change is a
+   finding, not a relief.** Work out why before writing it down as a pass.
+   The two answers - "the change is inert" and "the fixture is blind" - look
+   identical from the outside and mean opposite things.
+3. Do not fix this by tuning the fixture until the vector moves. The vector's
+   job is a stable reference scenario; the mechanism's job belongs to a test
+   named for it. Task 3b's
+   `an_object_behind_a_wall_loses_to_a_further_one_the_agent_can_walk_to` is
+   that test, and it is what mutation-verifying the metric proved.
+
+**How to verify:** revert `let distance = steps.len() as f32;` in
+`crates/terri-sim/src/systems/action.rs` to the Euclidean form and run
+`cargo test --workspace`. Exactly one test fails, and it is **not**
+`world_hash_matches_its_golden_vector`. Restore from a scratchpad byte
+snapshot, never with `git checkout` ([L9]), and touch the file ([L8]).
+
+**A second, smaller instance from the same task, recorded because the shape
+recurs.** A boundary test for `lot_width` and `lot_height` built its own
+`SimHandle::new(width, height)` out of the two numbers under test and then
+asked whether a corner was inside it. That helper is **self-consistent under
+a swap of the pair**: with both accessors transposed it constructs an 18x24
+lot, agrees with itself, and passes. Measured. The fix was to ask the
+question of `from_lot()`'s real lot instead. **A control that rebuilds its
+world from the values it is testing is not a control.**
+
+---
+
+## [L37] A WebGPU canvas read outside a rAF callback is black, and the screenshot is what proves it
+
+**What happened:** Task 3b's browser check read the canvas back with
+`drawImage` + `getImageData` from a plain `page.evaluate`, and got
+`0,0,0` across all 921,600 pixels - the exact reading [L14] records for a
+renderer that never ran. The frame counters in the same probe said 1,114
+rAF callbacks, 1,114 `draw` calls and 1,114 `submit` calls, and the
+Playwright screenshot taken seconds later plainly showed eight blue
+diamonds and an orange sim.
+
+**Root cause:** a WebGPU canvas presents at the **end of the task**, so a
+readback issued in an arbitrary task samples a surface with nothing in it.
+Task 10's notes already said to await `queue.onSubmittedWorkDone()` and a
+macrotask; what they did not say is that the failure is not a *dim* or
+*partial* reading, it is the identical all-zero reading that means "the
+renderer never ran". The two most different diagnoses in this project
+produce the same 921,600 zeroes.
+
+**Prevention rule:**
+
+1. **Do the readback inside a `requestAnimationFrame` callback registered
+   during a frame**, so it runs after the page's own callback has drawn.
+2. **Never accept an all-zero canvas without a second, independent
+   instrument.** A frame counter on a platform global and a screenshot are
+   both cheap, and here they disagreed with the readback immediately. This
+   is [L20]'s "when a measurement of a hot path returns zero, treat the
+   instrument as the suspect" with a different instrument.
+3. State the expected magnitude first. Eight 24x24 quads is 4,608 pixels
+   and one sim is 576; "zero" is then recognisable as impossible rather
+   than as a finding about the page.
+
+**How to verify:** move the `drawImage` out of the rAF callback in the
+Task 3b browser script and re-run against a page that is demonstrably
+drawing. The colour tally collapses to a single `0,0,0` entry while the
+submit counter keeps climbing.
