@@ -1,23 +1,39 @@
 # Mutation Testing Baseline
 
-Re-recorded 2026-07-27 at commit `28e5acf`, on the clean tree that
-follows the M0 close-out deletion of `Path::is_complete`. Previous
-sweeps: 237 mutants / 21 missed on the tree that closed the
-`select_action` distance and comparison gaps, and before that
-2026-07-27 at commit `7415d98`, after Task 7 of M0.
+Re-recorded 2026-07-27 on the M1a content-pipeline branch, after the
+Hunger-to-Needs refactor. Previous sweeps: 234 mutants / 18 missed at
+commit `28e5acf` (the M0 close-out tree, after `Path::is_complete` was
+deleted); 237 / 21 on the tree that closed the `select_action` distance
+and comparison gaps; and 2026-07-27 at commit `7415d98`, after Task 7
+of M0.
 
 ```
 cargo mutants --package terri-core --package terri-sim --test-workspace true --timeout 60
-234 mutants tested in 9m: 18 missed, 209 caught, 7 unviable
+250 mutants tested in 9m: 18 missed, 222 caught, 10 unviable
 ```
 
-**Mutation score: 92%** (209 caught of 227 viable), up from 91%, 89% and
-originally 83%. The group headings below sum to 23 rather than to the 18
-actually missed: five of those entries were closed by Tasks 8 through
-13, chiefly the `std::mem::swap` and boundary-validation work, and the
+**Mutation score: 92.5%** (222 caught of 240 viable), up from 92%, 91%,
+89% and originally 83%. The M1a work added 16 mutants and killed all of
+them: +13 caught, +3 unviable, **+0 missed**. The survivor set is
+unchanged in substance from the M0 close-out sweep.
+
+The group headings below sum to 23 rather than to the 18 actually
+missed: five of those entries were closed by Tasks 8 through 13,
+chiefly the `std::mem::swap` and boundary-validation work, and the
 headings still describe the pre-Task-8 state. (This sentence previously
 said 26. That was the count before `Path::is_complete`'s three came out
 of Group A, and it was not updated when they did.)
+
+**Three baseline entries were re-anchored, not added.** The refactor
+shifted `select_action`'s tiebreak from `action.rs:60:82` to `67:82`,
+and the `score_advertisement` NaN guard from `advertise.rs:31` to `32`.
+Because baseline entries are line-anchored, the CI comparison saw those
+three as new survivors *and* their old positions as stale entries at the
+same time - six diff lines describing three unmoved mutants. Normalising
+line numbers makes the measured set and the previous baseline identical,
+which is the check worth running before believing a survivor is new:
+**a survivor at a shifted line is not a new survivor, and the difference
+matters because one requires a test and the other requires a renumber.**
 
 **The close-out amendment is now measured rather than expected.**
 Deleting `Path::is_complete` removed three mutants from the codebase
@@ -150,9 +166,10 @@ The group totals were right, the heading was not.)
 
 ### Scoring boundaries (2)
 
-`advertise.rs:31` - the NaN guard's `>` versus `>=`, on both the deficit
+`advertise.rs:32` - the NaN guard's `>` versus `>=`, on both the deficit
 and the delta term. The `advertise.rs:59` denominator guard that used to
-sit here is now closed.
+sit here is now closed. The guard gained a third term, `distance >= 0.0`,
+in the M1a work; that one is caught, so it is not listed here.
 
 ### Hash (2)
 
@@ -165,7 +182,7 @@ Already recorded as a gap in Task 7's review.
 Not debt. These cannot be killed by any correctness test, so a future
 run that reports them is reporting nothing actionable.
 
-### `action.rs:60:82` `<` to `<=`
+### `action.rs:67:82` `<` to `<=`
 
 `object.index() < best_e.index()` versus `<=`. The two differ on exactly
 one input, `object.index() == best_e.index()`, and that state is
