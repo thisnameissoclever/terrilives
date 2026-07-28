@@ -37,6 +37,16 @@ pub fn interaction(
         .map(|(need, delta)| (need.index() as u8, *delta))
         .collect();
     advertises.sort_unstable_by_key(|(index, _)| *index);
+    // Authored adverts are a `BTreeMap<String, f32>` keyed by need name,
+    // and `compile` pushes one entry per key, so a compiled pack cannot
+    // name the same need twice. Same reasoning as the sort above: a
+    // fixture able to express that would be testing a pack the pipeline
+    // cannot build. Checked after sorting, where duplicates are adjacent.
+    assert!(
+        advertises.windows(2).all(|w| w[0].0 != w[1].0),
+        "`compile` emits at most one advert per need, so no fixture may \
+         name one twice"
+    );
     CompiledInteraction {
         id: id.to_string(),
         advertises,
