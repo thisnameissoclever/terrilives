@@ -1,10 +1,15 @@
-use crate::components::{NEED_MAX, NEED_MIN};
 use bevy_ecs::prelude::Component;
 
 /// Number of distinct needs. Fixed at compile time on purpose: it sets
 /// the world-hash shape, and a variable count would make a determinism
 /// regression and a content edit produce the same failure.
 pub const NEED_COUNT: usize = 7;
+
+/// The range every need level is held inside. It bounds the whole notion
+/// of a need, so it lives beside `NeedId` and `Needs` rather than in
+/// `components.rs`, which no longer declares a need type at all.
+pub const NEED_MAX: f32 = 100.0;
+pub const NEED_MIN: f32 = 0.0;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u8)]

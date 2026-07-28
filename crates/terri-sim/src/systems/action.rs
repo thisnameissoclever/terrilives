@@ -4,6 +4,7 @@ use terri_core::{
 };
 
 use super::advertise::score_advertisement;
+use crate::Content;
 
 /// Below this score nothing is worth doing, so the agent stays idle.
 const ACTION_THRESHOLD: f32 = 0.05;
@@ -20,27 +21,27 @@ const ACTION_THRESHOLD: f32 = 0.05;
 pub fn select_action(
     mut commands: Commands,
     grid: Res<TileGrid>,
+    content: Res<Content>,
     agents: Query<(Entity, &Position, &Needs), (With<Agent>, Without<Target>, Without<Eating>)>,
     objects: Query<(Entity, &Position, &SmartObject), Without<Reserved>>,
 ) {
     // Collect and sort so iteration order cannot vary between runs.
     //
-    // Only the hunger deficit is read, because `SmartObject` still
-    // advertises a single hardcoded need. Once an advert is a list of
-    // (NeedId, delta) pairs from the content pack, scoring sums over the
-    // pairs and this becomes the whole `Needs` component.
-    let mut idle: Vec<(Entity, Position, f32)> = agents
+    // The whole `Needs` component is carried rather than one deficit,
+    // because an advert is a sparse list of (need, delta) pairs: which
+    // needs get scored is a property of the candidate, not of the agent.
+    let mut idle: Vec<(Entity, Position, Needs)> = agents
         .iter()
-        .map(|(e, pos, needs)| (e, *pos, needs.deficit(NeedId::Hunger)))
+        .map(|(e, pos, needs)| (e, *pos, *needs))
         .collect();
     idle.sort_by_key(|(e, _, _)| e.index());
 
     let mut claimed: Vec<Entity> = Vec::new();
 
-    for (agent, agent_pos, deficit) in idle {
-        let mut best: Option<(Entity, Position, f32)> = None;
+    for (agent, agent_pos, needs) in idle {
+        let mut best: Option<(Entity, Position, u32, f32)> = None;
 
-        for (object, object_pos, advert) in &objects {
+        for (object, object_pos, placed) in &objects {
             if claimed.contains(&object) {
                 continue;
             }
@@ -54,26 +55,51 @@ pub fn select_action(
             let dx = object_pos.x - agent_pos.x;
             let dy = object_pos.y - agent_pos.y;
             let distance = (dx * dx + dy * dy).sqrt();
-            let score = score_advertisement(
-                deficit,
-                advert.hunger_delta,
-                advert.duration_ticks,
-                distance,
-            );
-            let better = match best {
-                // Tiebreak on entity index so equal scores resolve
-                // identically every run.
-                Some((best_e, _, best_score)) => {
-                    score > best_score || (score == best_score && object.index() < best_e.index())
+
+            // An object offers a list of interactions and an agent
+            // performs one of them, so each is scored separately and the
+            // winner is carried forward; see `Target::interaction`.
+            for (index, advert) in content.0.object(placed.0).interactions.iter().enumerate() {
+                // Summing the per-need scores is a design decision, not
+                // an implementation detail. An object that satisfies two
+                // needs modestly should be able to beat one that
+                // satisfies a single need slightly better, which a max
+                // or a first-advert-wins rule would not allow.
+                // `an_object_advertising_two_needs_beats_one_advertising_a_bigger_single_delta`
+                // is what pins it.
+                let mut score = 0.0;
+                for (need_index, delta) in &advert.advertises {
+                    // In range by construction: content validation
+                    // rejects an advert naming a need rustc does not
+                    // know, so a compiled pack cannot hold a bad index.
+                    let id = NeedId::ALL[*need_index as usize];
+                    score += score_advertisement(
+                        needs.deficit(id),
+                        *delta,
+                        advert.duration_ticks,
+                        distance,
+                    );
                 }
-                None => true,
-            };
-            if score > ACTION_THRESHOLD && better {
-                best = Some((object, *object_pos, score));
+                let better = match best {
+                    // Tiebreak on entity index so equal scores resolve
+                    // identically every run. Two interactions on the
+                    // SAME object compare equal here, so a tied later
+                    // interaction cannot displace an earlier one - the
+                    // same strictness that settles ties between objects
+                    // settles ties within one.
+                    Some((best_e, _, _, best_score)) => {
+                        score > best_score
+                            || (score == best_score && object.index() < best_e.index())
+                    }
+                    None => true,
+                };
+                if score > ACTION_THRESHOLD && better {
+                    best = Some((object, *object_pos, index as u32, score));
+                }
             }
         }
 
-        let Some((object, object_pos, _)) = best else {
+        let Some((object, object_pos, interaction, _)) = best else {
             continue;
         };
 
@@ -85,39 +111,63 @@ pub fn select_action(
 
         claimed.push(object);
         commands.entity(object).insert(Reserved);
-        commands
-            .entity(agent)
-            .insert((Target(object), Path { steps, cursor: 0 }));
+        commands.entity(agent).insert((
+            Target {
+                object,
+                interaction,
+            },
+            Path { steps, cursor: 0 },
+        ));
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::systems::needs::HUNGER_DECAY_PER_TICK;
+    use crate::test_content;
     use crate::Sim;
+    use terri_core::ObjectDefId;
+    use terri_data::ContentPack;
 
     /// The advert used wherever two candidates must be indistinguishable
     /// apart from where they stand, so the only thing that can decide
-    /// between them is the distance term.
-    const IDENTICAL_ADVERT: SmartObject = SmartObject {
-        hunger_delta: 40.0,
-        duration_ticks: 15,
-        slots: 1,
-    };
+    /// between them is the distance term. These are the shipped fridge's
+    /// numbers, so the tests below score the magnitudes the game
+    /// actually produces.
+    const IDENTICAL_DELTA: f32 = 40.0;
+    const IDENTICAL_DURATION: u32 = 15;
 
-    fn spawn_object(sim: &mut Sim, x: f32, y: f32, advert: SmartObject) -> Entity {
-        sim.world_mut().spawn((Position { x, y }, advert)).id()
+    /// One definition with that advert. Two placed entities can share a
+    /// single definition, which is precisely what "two objects with
+    /// identical adverts" means once the advert lives in the pack.
+    fn identical_advert_content() -> &'static ContentPack {
+        test_content::pack(vec![test_content::object(
+            "identical",
+            &[(NeedId::Hunger, IDENTICAL_DELTA)],
+            IDENTICAL_DURATION,
+        )])
+    }
+
+    fn def(content: &ContentPack, id: &str) -> ObjectDefId {
+        content
+            .find(id)
+            .unwrap_or_else(|| panic!("the fixture must declare '{id}'"))
+    }
+
+    fn spawn_object(sim: &mut Sim, x: f32, y: f32, def: ObjectDefId) -> Entity {
+        sim.world_mut()
+            .spawn((Position { x, y }, SmartObject(def)))
+            .id()
+    }
+
+    fn spawn_agent_with(sim: &mut Sim, x: f32, y: f32, needs: Needs) -> Entity {
+        sim.world_mut()
+            .spawn((Agent, Position { x, y }, needs))
+            .id()
     }
 
     fn spawn_agent(sim: &mut Sim, x: f32, y: f32, hunger: f32) -> Entity {
-        sim.world_mut()
-            .spawn((
-                Agent,
-                Position { x, y },
-                Needs::with(NeedId::Hunger, hunger),
-            ))
-            .id()
+        spawn_agent_with(sim, x, y, Needs::with(NeedId::Hunger, hunger))
     }
 
     /// The deficit `select_action` scored with, read back after the tick.
@@ -128,11 +178,11 @@ mod tests {
     /// POSITION is not, because `follow_path` runs after selection and
     /// has already moved it, which is why every helper below takes the
     /// spawn coordinates as arguments instead of reading them back.
-    fn deficit_after_tick(sim: &Sim, agent: Entity) -> f32 {
+    fn deficit_after_tick(sim: &Sim, agent: Entity, need: NeedId) -> f32 {
         sim.world()
             .get::<Needs>(agent)
             .expect("the agent must still have Needs")
-            .deficit(NeedId::Hunger)
+            .deficit(need)
     }
 
     /// An independent restatement of the straight-line distance
@@ -149,16 +199,19 @@ mod tests {
         (dx * dx + dy * dy).sqrt()
     }
 
+    /// The score one advertised need contributes, restated for the same
+    /// reason as `straight_line`.
     fn score_of(
         deficit: f32,
         agent_at: (f32, f32),
         object_at: (f32, f32),
-        advert: SmartObject,
+        delta: f32,
+        duration_ticks: u32,
     ) -> f32 {
         score_advertisement(
             deficit,
-            advert.hunger_delta,
-            advert.duration_ticks,
+            delta,
+            duration_ticks,
             straight_line(agent_at, object_at),
         )
     }
@@ -171,7 +224,7 @@ mod tests {
             .world()
             .get::<Target>(agent)
             .unwrap_or_else(|| panic!("the agent must have chosen an object; {why}"));
-        assert_eq!(target.0, winner, "{why}");
+        assert_eq!(target.object, winner, "{why}");
         assert!(
             sim.world().get::<Reserved>(winner).is_some(),
             "the winning object must be reserved; {why}"
@@ -209,17 +262,31 @@ mod tests {
         // every object - then hands the win to the far one via the index
         // tiebreak, and this test fails rather than passing on a tie it
         // never meant to create.
-        let mut sim = Sim::new_with_lot(16, 16);
-        let far = spawn_object(&mut sim, 1.0, 8.0, IDENTICAL_ADVERT);
-        let near = spawn_object(&mut sim, 11.0, 8.0, IDENTICAL_ADVERT);
+        let content = identical_advert_content();
+        let mut sim = test_content::sim_with(16, 16, content);
+        let identical = def(content, "identical");
+        let far = spawn_object(&mut sim, 1.0, 8.0, identical);
+        let near = spawn_object(&mut sim, 11.0, 8.0, identical);
         let agent = spawn_agent(&mut sim, 8.0, 8.0, 20.0);
 
         sim.tick();
 
-        let deficit = deficit_after_tick(&sim, agent);
+        let deficit = deficit_after_tick(&sim, agent, NeedId::Hunger);
         let (near_score, far_score) = (
-            score_of(deficit, (8.0, 8.0), (11.0, 8.0), IDENTICAL_ADVERT),
-            score_of(deficit, (8.0, 8.0), (1.0, 8.0), IDENTICAL_ADVERT),
+            score_of(
+                deficit,
+                (8.0, 8.0),
+                (11.0, 8.0),
+                IDENTICAL_DELTA,
+                IDENTICAL_DURATION,
+            ),
+            score_of(
+                deficit,
+                (8.0, 8.0),
+                (1.0, 8.0),
+                IDENTICAL_DELTA,
+                IDENTICAL_DURATION,
+            ),
         );
         // Preconditions. Both candidates must be genuinely selectable, or
         // "the near one won" could be satisfied by the far one being
@@ -255,25 +322,39 @@ mod tests {
         // line: with dx zero for both objects, only
         // `object_pos.y - agent_pos.y` can separate them.
         //
-        // Rotating also changes which mutations of line 49 it sees.
-        // `dx * dx + dy * dy` becoming `dx * dx - dy * dy` takes the
+        // Rotating also changes which mutations of the distance line it
+        // sees. `dx * dx + dy * dy` becoming `dx * dx - dy * dy` takes the
         // square root of a negative number here, so both candidates score
         // NaN, fall to zero through the scoring guard, and the agent
         // chooses nothing at all - which the non-emptiness assertion in
         // `assert_chose` catches. The x-axis version above cannot see
         // that mutation, because subtracting a zero y term changes
         // nothing.
-        let mut sim = Sim::new_with_lot(16, 16);
-        let far = spawn_object(&mut sim, 8.0, 1.0, IDENTICAL_ADVERT);
-        let near = spawn_object(&mut sim, 8.0, 11.0, IDENTICAL_ADVERT);
+        let content = identical_advert_content();
+        let mut sim = test_content::sim_with(16, 16, content);
+        let identical = def(content, "identical");
+        let far = spawn_object(&mut sim, 8.0, 1.0, identical);
+        let near = spawn_object(&mut sim, 8.0, 11.0, identical);
         let agent = spawn_agent(&mut sim, 8.0, 8.0, 20.0);
 
         sim.tick();
 
-        let deficit = deficit_after_tick(&sim, agent);
+        let deficit = deficit_after_tick(&sim, agent, NeedId::Hunger);
         let (near_score, far_score) = (
-            score_of(deficit, (8.0, 8.0), (8.0, 11.0), IDENTICAL_ADVERT),
-            score_of(deficit, (8.0, 8.0), (8.0, 1.0), IDENTICAL_ADVERT),
+            score_of(
+                deficit,
+                (8.0, 8.0),
+                (8.0, 11.0),
+                IDENTICAL_DELTA,
+                IDENTICAL_DURATION,
+            ),
+            score_of(
+                deficit,
+                (8.0, 8.0),
+                (8.0, 1.0),
+                IDENTICAL_DELTA,
+                IDENTICAL_DURATION,
+            ),
         );
         assert_eq!(straight_line((8.0, 8.0), (8.0, 11.0)), 3.0);
         assert_eq!(straight_line((8.0, 8.0), (8.0, 1.0)), 7.0);
@@ -322,30 +403,27 @@ mod tests {
         // and this test fails. Neither axis-aligned test above can see
         // that mutation, because doubling a zero y offset changes
         // nothing.
-        const NEAR_ADVERT: SmartObject = SmartObject {
-            hunger_delta: 10.0,
-            duration_ticks: 15,
-            slots: 1,
-        };
-        const FAR_ADVERT: SmartObject = SmartObject {
-            hunger_delta: 60.0,
-            duration_ticks: 15,
-            slots: 1,
-        };
+        const NEAR_DELTA: f32 = 10.0;
+        const FAR_DELTA: f32 = 60.0;
+        const DURATION: u32 = 15;
         const AGENT_AT: (f32, f32) = (10.0, 14.0);
         const NEAR_AT: (f32, f32) = (13.0, 18.0);
         const FAR_AT: (f32, f32) = (12.0, 4.0);
 
-        let mut sim = Sim::new_with_lot(24, 24);
-        let near = spawn_object(&mut sim, NEAR_AT.0, NEAR_AT.1, NEAR_ADVERT);
-        let far = spawn_object(&mut sim, FAR_AT.0, FAR_AT.1, FAR_ADVERT);
+        let content = test_content::pack(vec![
+            test_content::object("near", &[(NeedId::Hunger, NEAR_DELTA)], DURATION),
+            test_content::object("far", &[(NeedId::Hunger, FAR_DELTA)], DURATION),
+        ]);
+        let mut sim = test_content::sim_with(24, 24, content);
+        let near = spawn_object(&mut sim, NEAR_AT.0, NEAR_AT.1, def(content, "near"));
+        let far = spawn_object(&mut sim, FAR_AT.0, FAR_AT.1, def(content, "far"));
         let agent = spawn_agent(&mut sim, AGENT_AT.0, AGENT_AT.1, 20.0);
 
         sim.tick();
 
-        let deficit = deficit_after_tick(&sim, agent);
-        let near_score = score_of(deficit, AGENT_AT, NEAR_AT, NEAR_ADVERT);
-        let far_score = score_of(deficit, AGENT_AT, FAR_AT, FAR_ADVERT);
+        let deficit = deficit_after_tick(&sim, agent, NeedId::Hunger);
+        let near_score = score_of(deficit, AGENT_AT, NEAR_AT, NEAR_DELTA, DURATION);
+        let far_score = score_of(deficit, AGENT_AT, FAR_AT, FAR_DELTA, DURATION);
         // Preconditions: the near object really is nearer, really is a
         // live candidate, and really does lose anyway.
         assert_eq!(straight_line(AGENT_AT, NEAR_AT), 5.0);
@@ -376,6 +454,285 @@ mod tests {
     }
 
     #[test]
+    fn an_object_advertising_two_needs_beats_one_advertising_a_bigger_single_delta() {
+        // Scoring SUMS the per-need scores across an interaction's
+        // advertised deltas. That is a design decision rather than a
+        // mechanical consequence of moving adverts into content, so it is
+        // pinned here rather than left implicit: an object that satisfies
+        // two needs modestly must be able to beat one that satisfies a
+        // single need slightly better.
+        //
+        // The arithmetic, with both deficits at 0.5 (urgency 0.125), both
+        // objects 3 tiles away and both taking 15 ticks, so the
+        // denominator is 12 + 15 + 1 = 28 throughout:
+        //
+        //   one_need   0.125 * 30 / 28              = 0.1339
+        //   two_need   0.125 * 20 / 28  twice       = 0.1786
+        //   two_need's HUNGER TERM ALONE            = 0.0893
+        //
+        // The third line is what makes this a test of the sum rather than
+        // of the numbers. Replace `score +=` with `score =` and the
+        // two-need object keeps only its last term; take just the first
+        // advert and it keeps only 0.0893. Either way it drops BELOW the
+        // one-need object and the golden winner flips. It is asserted as
+        // a precondition rather than described, so a later edit to the
+        // deltas cannot quietly destroy the property.
+        //
+        // GOLDEN assertion, and the one-need object is spawned FIRST so
+        // it holds the lower index: any mutation that flattens the two
+        // scores into a tie also hands it the win through the index
+        // tiebreak, and this test fails rather than passing on a tie.
+        const ONE_NEED_DELTA: f32 = 30.0;
+        const TWO_NEED_DELTA: f32 = 20.0;
+        const DURATION: u32 = 15;
+        const AGENT_AT: (f32, f32) = (8.0, 8.0);
+        const ONE_NEED_AT: (f32, f32) = (5.0, 8.0);
+        const TWO_NEED_AT: (f32, f32) = (11.0, 8.0);
+
+        let content = test_content::pack(vec![
+            test_content::object("one_need", &[(NeedId::Hunger, ONE_NEED_DELTA)], DURATION),
+            test_content::object(
+                "two_need",
+                &[
+                    (NeedId::Hunger, TWO_NEED_DELTA),
+                    (NeedId::Energy, TWO_NEED_DELTA),
+                ],
+                DURATION,
+            ),
+        ]);
+        let mut sim = test_content::sim_with(16, 16, content);
+        let one_need = spawn_object(
+            &mut sim,
+            ONE_NEED_AT.0,
+            ONE_NEED_AT.1,
+            def(content, "one_need"),
+        );
+        let two_need = spawn_object(
+            &mut sim,
+            TWO_NEED_AT.0,
+            TWO_NEED_AT.1,
+            def(content, "two_need"),
+        );
+
+        // Both needs decay before selection, at DIFFERENT rates, so each
+        // is spawned one tick's worth of its OWN rate higher; both are at
+        // 50.0 by the time anything is scored. Offsetting both by the
+        // same number would leave them 0.035 apart, which is what this
+        // test measured when Task 7 widened decay from hunger alone to
+        // all seven. The equality is asserted below rather than assumed,
+        // because it is what makes this a comparison of adverts rather
+        // than of deficits.
+        let mut needs = Needs::all_at(terri_core::NEED_MAX);
+        needs.set(
+            NeedId::Hunger,
+            50.0 + test_content::decay_per_tick(NeedId::Hunger),
+        );
+        needs.set(
+            NeedId::Energy,
+            50.0 + test_content::decay_per_tick(NeedId::Energy),
+        );
+        let agent = spawn_agent_with(&mut sim, AGENT_AT.0, AGENT_AT.1, needs);
+
+        sim.tick();
+
+        let hunger_deficit = deficit_after_tick(&sim, agent, NeedId::Hunger);
+        let energy_deficit = deficit_after_tick(&sim, agent, NeedId::Energy);
+        assert_eq!(
+            hunger_deficit, energy_deficit,
+            "the two needs must be felt equally, or the winner could be \
+             explained by the deficits rather than by the adverts"
+        );
+        assert!(
+            hunger_deficit > 0.0,
+            "both needs must actually be felt; got {hunger_deficit}"
+        );
+        assert_eq!(
+            straight_line(AGENT_AT, ONE_NEED_AT),
+            straight_line(AGENT_AT, TWO_NEED_AT),
+            "the two objects must be equally far away, or distance could \
+             explain the winner"
+        );
+
+        let one_need_score = score_of(
+            hunger_deficit,
+            AGENT_AT,
+            ONE_NEED_AT,
+            ONE_NEED_DELTA,
+            DURATION,
+        );
+        let two_need_hunger_term = score_of(
+            hunger_deficit,
+            AGENT_AT,
+            TWO_NEED_AT,
+            TWO_NEED_DELTA,
+            DURATION,
+        );
+        let two_need_energy_term = score_of(
+            energy_deficit,
+            AGENT_AT,
+            TWO_NEED_AT,
+            TWO_NEED_DELTA,
+            DURATION,
+        );
+        assert!(
+            one_need_score > ACTION_THRESHOLD,
+            "the losing object must still clear the threshold; got {one_need_score}"
+        );
+        assert!(
+            two_need_hunger_term < one_need_score,
+            "either single advert of the two-need object must LOSE to the \
+             one-need object, or summing is not what decides this test; \
+             {two_need_hunger_term} vs {one_need_score}"
+        );
+        assert!(
+            two_need_hunger_term + two_need_energy_term > one_need_score,
+            "the two adverts together must beat the single bigger one; \
+             {two_need_hunger_term} + {two_need_energy_term} vs {one_need_score}"
+        );
+
+        assert_chose(
+            &sim,
+            agent,
+            two_need,
+            one_need,
+            "an object satisfying two needs modestly must beat one \
+             satisfying a single need slightly better; picking the \
+             one-need object means scoring stopped summing across the \
+             advertised deltas",
+        );
+    }
+
+    #[test]
+    fn selection_scores_every_interaction_and_records_the_one_that_won() {
+        // An object offers a LIST of interactions and an agent performs
+        // one of them, so selection has to compare them and carry the
+        // winner forward. Two mutations this pins, neither of which any
+        // other test can see because every other fixture offers exactly
+        // one interaction:
+        //
+        //   - scoring only `interactions[0]` and ignoring the rest,
+        //   - scoring all of them but recording a constant index.
+        //
+        // The strong interaction is deliberately SECOND, and the weak one
+        // is deliberately below the action threshold on its own, so
+        // "scores the first and stops" produces no selection at all
+        // rather than a wrong one.
+        const WEAK_DELTA: f32 = 0.5;
+        const STRONG_DELTA: f32 = 40.0;
+        const DURATION: u32 = 15;
+        const AGENT_AT: (f32, f32) = (8.0, 8.0);
+        const OBJECT_AT: (f32, f32) = (11.0, 8.0);
+
+        let content = test_content::pack(vec![test_content::object_offering(
+            "cupboard",
+            vec![
+                test_content::interaction("nibble", &[(NeedId::Hunger, WEAK_DELTA)], DURATION),
+                test_content::interaction("feast", &[(NeedId::Hunger, STRONG_DELTA)], DURATION),
+            ],
+        )]);
+        let mut sim = test_content::sim_with(16, 16, content);
+        let cupboard = spawn_object(&mut sim, OBJECT_AT.0, OBJECT_AT.1, def(content, "cupboard"));
+        let agent = spawn_agent(&mut sim, AGENT_AT.0, AGENT_AT.1, 20.0);
+
+        sim.tick();
+
+        let deficit = deficit_after_tick(&sim, agent, NeedId::Hunger);
+        let weak = score_of(deficit, AGENT_AT, OBJECT_AT, WEAK_DELTA, DURATION);
+        let strong = score_of(deficit, AGENT_AT, OBJECT_AT, STRONG_DELTA, DURATION);
+        assert!(
+            weak < ACTION_THRESHOLD,
+            "the first interaction must be too weak to select on its own, \
+             or this test cannot tell 'scored both' from 'scored the \
+             first'; got {weak}"
+        );
+        assert!(
+            strong > ACTION_THRESHOLD,
+            "the second interaction must be worth doing; got {strong}"
+        );
+
+        let target = sim
+            .world()
+            .get::<Target>(agent)
+            .expect("the agent must have chosen the object's second interaction");
+        assert_eq!(target.object, cupboard);
+        assert_eq!(
+            target.interaction, 1,
+            "the interaction that won selection must be the one recorded; \
+             index 0 here means the choice is not carried forward and the \
+             agent would perform whichever interaction happens to be first"
+        );
+    }
+
+    #[test]
+    fn a_tied_later_interaction_cannot_displace_an_earlier_one_on_the_same_object() {
+        // `object.index() < best_e.index()` does two jobs now that an
+        // object offers a list of interactions, and only one of them was
+        // tested.
+        //
+        // Between two OBJECTS it is the argmax tiebreak, which
+        // `tied_scores_resolve_by_object_index_not_archetype_order` and
+        // `a_tied_object_with_a_higher_index_cannot_displace_the_incumbent`
+        // pin. Neither of them can see this case: distinct entities never
+        // hold equal indices, so `<` and `<=` agree for every pair of
+        // objects. That is exactly why `replace < with <= in
+        // select_action` has survived every mutation sweep since M0 - it
+        // was an equivalent mutant while an object had one advert.
+        //
+        // Within ONE object it stopped being equivalent. Both candidates
+        // carry the same entity index, so `idx < idx` is false and the
+        // incumbent stands. Relaxed to `<=`, the later interaction takes
+        // over, and which interaction an agent performs starts depending
+        // on declaration order in content with nothing saying so.
+        const DELTA: f32 = 40.0;
+        const DURATION: u32 = 15;
+        const AGENT_AT: (f32, f32) = (8.0, 8.0);
+        const OBJECT_AT: (f32, f32) = (11.0, 8.0);
+
+        // Identical adverts, so the two scores are computed from
+        // identical inputs and are bit-identical by construction rather
+        // than by a fixture that happens to balance.
+        let content = test_content::pack(vec![test_content::object_offering(
+            "twin",
+            vec![
+                test_content::interaction("first", &[(NeedId::Hunger, DELTA)], DURATION),
+                test_content::interaction("second", &[(NeedId::Hunger, DELTA)], DURATION),
+            ],
+        )]);
+        let twin = def(content, "twin");
+        let mut sim = test_content::sim_with(16, 16, content);
+        let object = spawn_object(&mut sim, OBJECT_AT.0, OBJECT_AT.1, twin);
+        let agent = spawn_agent(&mut sim, AGENT_AT.0, AGENT_AT.1, 20.0);
+
+        sim.tick();
+
+        // Preconditions: there really are two candidates, and the score
+        // they tie on really is worth acting on, so the tiebreak is what
+        // decides rather than one of them being ineligible.
+        assert_eq!(
+            content.object(twin).interactions.len(),
+            2,
+            "the object must offer two interactions or there is no tie to break"
+        );
+        let deficit = deficit_after_tick(&sim, agent, NeedId::Hunger);
+        let score = score_of(deficit, AGENT_AT, OBJECT_AT, DELTA, DURATION);
+        assert!(
+            score > ACTION_THRESHOLD,
+            "the tied score must clear the action threshold; got {score}"
+        );
+
+        let target = sim
+            .world()
+            .get::<Target>(agent)
+            .expect("the agent must have chosen one of the tied interactions");
+        assert_eq!(target.object, object);
+        assert_eq!(
+            target.interaction, 0,
+            "the FIRST of two equally good interactions must win; a later \
+             one taking over means the index comparison is no longer strict"
+        );
+    }
+
+    #[test]
     fn a_score_exactly_at_the_action_threshold_selects_nothing() {
         // The threshold comparison is `score > ACTION_THRESHOLD`. The
         // only input that can tell `>` from `>=` is a score that lands
@@ -389,9 +746,20 @@ mod tests {
         // 16. 6.4, 0.8 and 0.05 share a mantissa, so 0.125 * 6.4 / 16 is
         // 0.05f32 with no rounding anywhere.
         //
-        // The other six needs spawn satisfied and never decay, so they
-        // contribute nothing to the score and cannot perturb the
-        // arithmetic away from the constant.
+        // **Summing across needs does not move this arithmetic**, and
+        // that is a property of the fixture rather than luck: the
+        // boundary object advertises exactly ONE need, so the sum in
+        // `select_action` has a single term. The agent's other six needs
+        // are not advertised by it at all - which is not the same as
+        // being advertised at zero - so they cannot perturb the total
+        // however they decay. The bit-equality precondition below is what
+        // would catch it if that ever stopped being true.
+        //
+        // Task 7 tested that claim by making all seven needs decay, and
+        // this test stayed green: the other six now fall every tick and
+        // the score is unchanged, because none of them is advertised.
+        // Only hunger's own rate can move this arithmetic, and it did not
+        // change.
         //
         // The above and below cases are not decoration: without them
         // "selects nothing" would also be satisfied by a world that can
@@ -406,30 +774,26 @@ mod tests {
         /// Builds a one-object world, ticks once, and reports whether the
         /// agent selected anything.
         fn selects(delta: f32) -> bool {
-            let mut sim = Sim::new_with_lot(16, 16);
-            let object = spawn_object(
-                &mut sim,
-                OBJECT_AT.0,
-                OBJECT_AT.1,
-                SmartObject {
-                    hunger_delta: delta,
-                    duration_ticks: DURATION,
-                    slots: 1,
-                },
-            );
+            let content = test_content::pack(vec![test_content::object(
+                "boundary",
+                &[(NeedId::Hunger, delta)],
+                DURATION,
+            )]);
+            let mut sim = test_content::sim_with(16, 16, content);
+            let object = spawn_object(&mut sim, OBJECT_AT.0, OBJECT_AT.1, def(content, "boundary"));
             // Decay runs before selection, so start one tick's worth
             // above the level the arithmetic below assumes.
             let agent = spawn_agent(
                 &mut sim,
                 AGENT_AT.0,
                 AGENT_AT.1,
-                50.0 + HUNGER_DECAY_PER_TICK,
+                50.0 + test_content::decay_per_tick(NeedId::Hunger),
             );
 
             sim.tick();
 
             assert_eq!(
-                deficit_after_tick(&sim, agent),
+                deficit_after_tick(&sim, agent, NeedId::Hunger),
                 0.5,
                 "the deficit scoring saw must be exactly 0.5 or the \
                  boundary arithmetic below does not land on the constant"
@@ -437,7 +801,7 @@ mod tests {
             match sim.world().get::<Target>(agent) {
                 Some(target) => {
                     assert_eq!(
-                        target.0, object,
+                        target.object, object,
                         "the only object in the world must be the one selected"
                     );
                     true
@@ -496,12 +860,14 @@ mod tests {
         // GOLDEN assertion, and for the same reason as its companion: a
         // two-run comparison in one process shares an archetype layout
         // and would agree with itself while being wrong.
-        let mut sim = Sim::new_with_lot(16, 16);
+        let content = identical_advert_content();
+        let mut sim = test_content::sim_with(16, 16, content);
+        let identical = def(content, "identical");
         // Mirrored about the agent, so both are exactly 3 tiles away and
         // score bit-identically. Spawned before the agent so object index
         // ascends with spawn order.
-        let incumbent = spawn_object(&mut sim, 5.0, 8.0, IDENTICAL_ADVERT);
-        let challenger = spawn_object(&mut sim, 11.0, 8.0, IDENTICAL_ADVERT);
+        let incumbent = spawn_object(&mut sim, 5.0, 8.0, identical);
+        let challenger = spawn_object(&mut sim, 11.0, 8.0, identical);
         let agent = spawn_agent(&mut sim, 8.0, 8.0, 20.0);
 
         sim.tick();
@@ -509,9 +875,21 @@ mod tests {
         // The precondition the whole test rests on: the two scores must
         // be BIT-identical, not merely close, or `score > best_score`
         // settles the winner and the tiebreak never fires.
-        let deficit = deficit_after_tick(&sim, agent);
-        let incumbent_score = score_of(deficit, (8.0, 8.0), (5.0, 8.0), IDENTICAL_ADVERT);
-        let challenger_score = score_of(deficit, (8.0, 8.0), (11.0, 8.0), IDENTICAL_ADVERT);
+        let deficit = deficit_after_tick(&sim, agent, NeedId::Hunger);
+        let incumbent_score = score_of(
+            deficit,
+            (8.0, 8.0),
+            (5.0, 8.0),
+            IDENTICAL_DELTA,
+            IDENTICAL_DURATION,
+        );
+        let challenger_score = score_of(
+            deficit,
+            (8.0, 8.0),
+            (11.0, 8.0),
+            IDENTICAL_DELTA,
+            IDENTICAL_DURATION,
+        );
         assert_eq!(
             incumbent_score.to_bits(),
             challenger_score.to_bits(),
@@ -564,37 +942,22 @@ mod tests {
         // two lines what a handful of meals does naturally. Without the
         // sort, who wins a contended object becomes a function of
         // interaction history.
-        let mut sim = Sim::new_with_lot(16, 16);
+        let content = identical_advert_content();
+        let mut sim = test_content::sim_with(16, 16, content);
+        let identical = def(content, "identical");
 
         // Spawn agents first so entity index ascends with spawn order.
         let agents: Vec<Entity> = (0..3)
-            .map(|_| {
-                sim.world_mut()
-                    .spawn((
-                        Agent,
-                        Position { x: 1.0, y: 1.0 },
-                        Needs::with(NeedId::Hunger, 20.0),
-                    ))
-                    .id()
-            })
+            .map(|_| spawn_agent(&mut sim, 1.0, 1.0, 20.0))
             .collect();
-        let fridge = sim
-            .world_mut()
-            .spawn((
-                Position { x: 5.0, y: 5.0 },
-                SmartObject {
-                    hunger_delta: 40.0,
-                    duration_ticks: 15,
-                    slots: 1,
-                },
-            ))
-            .id();
+        let fridge = spawn_object(&mut sim, 5.0, 5.0, identical);
 
         // Archetype churn. Moves the lowest-index agent to the back of
         // the table, so iteration order and index order now disagree.
         sim.world_mut().entity_mut(agents[0]).insert(Eating {
+            object: identical,
+            interaction: 0,
             remaining_ticks: 1,
-            delta_per_tick: 0.0,
         });
         sim.world_mut().entity_mut(agents[0]).remove::<Eating>();
 
@@ -619,7 +982,7 @@ mod tests {
              a different winner means the deterministic sort is gone"
         );
         assert_eq!(
-            sim.world().get::<Target>(holders[0]).unwrap().0,
+            sim.world().get::<Target>(holders[0]).unwrap().object,
             fridge,
             "the winner must target the fridge"
         );
@@ -648,32 +1011,16 @@ mod tests {
         // above: do NOT rewrite this as a two-run comparison. Two runs in
         // one process share one archetype layout, so they would agree
         // with each other while both being wrong.
-        let mut sim = Sim::new_with_lot(16, 16);
+        let content = identical_advert_content();
+        let mut sim = test_content::sim_with(16, 16, content);
+        let identical = def(content, "identical");
 
-        let advert = SmartObject {
-            hunger_delta: 40.0,
-            duration_ticks: 15,
-            slots: 1,
-        };
         // Mirrored about the agent at x = 8, so both are exactly 3 tiles
         // away. Spawned before the agent so object index ascends with
         // spawn order.
-        let left = sim
-            .world_mut()
-            .spawn((Position { x: 5.0, y: 8.0 }, advert))
-            .id();
-        let right = sim
-            .world_mut()
-            .spawn((Position { x: 11.0, y: 8.0 }, advert))
-            .id();
-        let agent = sim
-            .world_mut()
-            .spawn((
-                Agent,
-                Position { x: 8.0, y: 8.0 },
-                Needs::with(NeedId::Hunger, 20.0),
-            ))
-            .id();
+        let left = spawn_object(&mut sim, 5.0, 8.0, identical);
+        let right = spawn_object(&mut sim, 11.0, 8.0, identical);
+        let agent = spawn_agent(&mut sim, 8.0, 8.0, 20.0);
 
         // Archetype churn on the objects, which is how it happens for
         // real: an object leaves and re-enters the unreserved archetype
@@ -693,18 +1040,21 @@ mod tests {
         // nothing else touches hunger on a tick where the agent only
         // starts walking, so the post-tick level is exactly the one
         // scoring saw.
-        let deficit = sim
-            .world()
-            .get::<Needs>(agent)
-            .unwrap()
-            .deficit(NeedId::Hunger);
-        let distance = |ox: f32| {
-            let dx = ox - 8.0;
-            let dy = 8.0f32 - 8.0;
-            (dx * dx + dy * dy).sqrt()
-        };
-        let score_left = score_advertisement(deficit, 40.0, 15, distance(5.0));
-        let score_right = score_advertisement(deficit, 40.0, 15, distance(11.0));
+        let deficit = deficit_after_tick(&sim, agent, NeedId::Hunger);
+        let score_left = score_of(
+            deficit,
+            (8.0, 8.0),
+            (5.0, 8.0),
+            IDENTICAL_DELTA,
+            IDENTICAL_DURATION,
+        );
+        let score_right = score_of(
+            deficit,
+            (8.0, 8.0),
+            (11.0, 8.0),
+            IDENTICAL_DELTA,
+            IDENTICAL_DURATION,
+        );
         assert_eq!(
             score_left.to_bits(),
             score_right.to_bits(),
@@ -716,23 +1066,14 @@ mod tests {
             "the tied score must clear the action threshold; got {score_left}"
         );
 
-        let target = sim
-            .world()
-            .get::<Target>(agent)
-            .expect("the agent must have chosen one of the tied objects");
-        assert_eq!(
-            target.0, left,
+        assert_chose(
+            &sim,
+            agent,
+            left,
+            right,
             "the lower object index must win a tied score regardless of \
              archetype order; a different winner means the score tiebreak \
-             is gone"
-        );
-        assert!(
-            sim.world().get::<Reserved>(left).is_some(),
-            "the winning object must be reserved"
-        );
-        assert!(
-            sim.world().get::<Reserved>(right).is_none(),
-            "the losing object must stay free"
+             is gone",
         );
     }
 }

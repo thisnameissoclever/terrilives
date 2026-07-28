@@ -8,10 +8,8 @@ pub mod ids;
 pub mod needs;
 
 pub use clock::{SimClock, TICKS_PER_SIM_HOUR, TICK_HZ};
-pub use components::{
-    Agent, Eating, Path, Position, Reserved, SmartObject, Target, NEED_MAX, NEED_MIN,
-};
+pub use components::{Agent, Eating, Path, Position, Reserved, SmartObject, Target};
 pub use grid::TileGrid;
 pub use hash::FnvHasher;
 pub use ids::ObjectDefId;
-pub use needs::{NeedId, Needs, NEED_COUNT};
+pub use needs::{NeedId, Needs, NEED_COUNT, NEED_MAX, NEED_MIN};

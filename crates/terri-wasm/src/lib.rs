@@ -2,7 +2,7 @@
 //! Nothing in here may contain simulation logic.
 
 use terri_core::{Agent, NeedId, Needs, Position, SmartObject, NEED_MAX, NEED_MIN};
-use terri_sim::Sim;
+use terri_sim::{Content, Sim};
 use wasm_bindgen::prelude::*;
 
 /// The level a non-finite hunger argument is replaced with. Either end of
@@ -109,20 +109,44 @@ impl SimHandle {
         self.sim.sync_render_buffer();
     }
 
-    /// Coordinates are sanitised here rather than trusted. See
-    /// [`sanitize_coord`].
-    pub fn spawn_object(&mut self, x: f32, y: f32) {
+    /// Places the object `content_id` names. Returns `false`, having
+    /// spawned nothing, when the content pack declares no such id.
+    ///
+    /// Coordinates are sanitised here rather than trusted; see
+    /// [`sanitize_coord`]. The id is untrusted for the same reason and
+    /// is handled differently, because the two failures are not alike:
+    /// a non-finite coordinate has a sensible substitute, whereas
+    /// guessing which object an unrecognised name meant would put an
+    /// object the caller never asked for into the world. So the
+    /// coordinate is repaired and the id is rejected.
+    ///
+    /// **Rejecting rather than panicking is the point of this
+    /// signature.** A panic inside a `#[wasm_bindgen]` export unwinds
+    /// into a JS exception and leaves the module trapped for the rest
+    /// of the page's life, so one mistyped id would freeze the whole
+    /// game instead of failing one call. The `expect` this replaced was
+    /// safe only while the id was a literal in this file; the moment it
+    /// became an argument from JavaScript it became a way for the
+    /// caller to halt the simulation. That is the [L12] mistake pointed
+    /// the other way: `debug_assert!` is a check that does not ship,
+    /// and `expect` on caller input is a check that ships and overreacts.
+    ///
+    /// The pack is read through the sim's own `Content` resource rather
+    /// than by calling `terri_data::pack()`, so the id resolves against
+    /// the pack the running simulation will actually use.
+    pub fn spawn_object(&mut self, x: f32, y: f32, content_id: &str) -> bool {
         let x = sanitize_coord(x);
         let y = sanitize_coord(y);
-        self.sim.world_mut().spawn((
-            Position { x, y },
-            SmartObject {
-                hunger_delta: 40.0,
-                duration_ticks: 15,
-                slots: 1,
-            },
-        ));
+        // `ObjectDefId` is `Copy`, so the immutable borrow of the world
+        // ends with this statement and `world_mut` below is free.
+        let Some(def) = self.sim.world().resource::<Content>().0.find(content_id) else {
+            return false;
+        };
+        self.sim
+            .world_mut()
+            .spawn((Position { x, y }, SmartObject(def)));
         self.sim.sync_render_buffer();
+        true
     }
 
     pub fn entity_count(&self) -> usize {
@@ -138,9 +162,12 @@ impl SimHandle {
     /// exchanges the two `Vec`s' pointer/length/capacity triples, so
     /// **`positions_ptr()` and `prev_positions_ptr()` trade values on
     /// every single sync** - unconditionally, with no reallocation and no
-    /// growth involved. Since `tick`, `spawn_agent` and `spawn_object`
-    /// each sync, a pointer read before any of them is already stale
-    /// afterwards and will be pointing at the other frame's data.
+    /// growth involved. Since `tick`, `spawn_agent` and every accepted
+    /// `spawn_object` each sync, a pointer read before any of them is
+    /// already stale afterwards and will be pointing at the other
+    /// frame's data. A `spawn_object` that rejects its id does not sync,
+    /// but treating that as a reason to keep a pointer would be relying
+    /// on a failure path.
     ///
     /// Re-read both pointers on every access.
     pub fn positions_ptr(&self) -> *const f32 {
@@ -283,7 +310,7 @@ mod boundary_tests {
     fn spawn_object_replaces_non_finite_coordinates_with_finite_ones() {
         for poison in [f32::NAN, f32::INFINITY, f32::NEG_INFINITY] {
             let mut handle = SimHandle::new(8, 8);
-            handle.spawn_object(poison, poison);
+            assert!(handle.spawn_object(poison, poison, "fridge"));
             let stored = stored_positions(&handle);
             assert_eq!(stored.len(), 1, "the object must have been spawned");
             assert!(
@@ -300,8 +327,39 @@ mod boundary_tests {
         // that returned 0.0 unconditionally would satisfy every assertion
         // above.
         let mut handle = SimHandle::new(8, 8);
-        handle.spawn_object(3.5, 6.25);
+        assert!(handle.spawn_object(3.5, 6.25, "fridge"));
         assert_eq!(stored_positions(&handle), vec![(3.5, 6.25)]);
+    }
+
+    #[test]
+    fn spawning_an_unknown_content_id_is_rejected_rather_than_panicking() {
+        // The mutation this is written against: resolve the id with
+        // `expect` (or `unwrap`) instead of returning `false`. That
+        // compiles, ships, and survives `--release` - which is exactly
+        // what makes it worse than the [L12] `debug_assert!`, not
+        // better. A panic in a `#[wasm_bindgen]` export leaves the
+        // module trapped for the life of the page, so a single bad id
+        // from JavaScript freezes the game rather than failing one call.
+        let mut sim = SimHandle::new(16, 16);
+        assert!(sim.spawn_object(4.0, 5.0, "fridge"));
+        assert!(!sim.spawn_object(4.0, 6.0, "no_such_object"));
+        assert_eq!(sim.entity_count(), 1);
+
+        // `entity_count` reads the render buffer, which only refreshes
+        // on a successful spawn, so on its own it cannot tell "nothing
+        // was spawned" from "something was spawned and never synced".
+        // Reading the ECS directly is what distinguishes them, and the
+        // position pins that the entity present is the accepted one.
+        assert_eq!(
+            stored_positions(&sim),
+            vec![(4.0, 5.0)],
+            "the rejected spawn must leave nothing behind in the world"
+        );
+
+        // A rejection must not poison the handle either: the boundary's
+        // job is to fail one call, not to end the session.
+        assert!(sim.spawn_object(7.0, 8.0, "fridge"));
+        assert_eq!(sim.entity_count(), 2);
     }
 
     #[test]
@@ -334,7 +392,7 @@ mod boundary_tests {
         agent_at_sentinel_level.spawn_agent(1.0, 2.0, -1.0);
 
         let mut entity_with_no_needs = SimHandle::new(8, 8);
-        entity_with_no_needs.spawn_object(1.0, 2.0);
+        assert!(entity_with_no_needs.spawn_object(1.0, 2.0, "fridge"));
 
         assert_ne!(
             agent_at_sentinel_level.world_hash(),

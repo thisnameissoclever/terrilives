@@ -1,0 +1,36 @@
+[package]
+name = "terri-data"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+terri-core = { path = "../terri-core" }
+# `std` is added on top of the workspace entry rather than replacing it.
+# The workspace entry is `default-features = false` for `terri-core`'s
+# sake, but the derives here cover `String`, `Vec` and `BTreeMap`, whose
+# `Deserialize` impls live behind serde's alloc/std features, and
+# `ContentError` implements `std::error::Error`.
+#
+# Naming it here looks redundant and is not: with the feature dropped the
+# crate still builds, because `postcard`'s `alloc` feature enables
+# `serde/alloc` and feature unification hands it over. That is a sibling
+# dependency accidentally satisfying our requirement, and it breaks the
+# day `postcard` moves or loses `alloc`. Declare what this crate uses.
+serde = { workspace = true, features = ["std"] }
+postcard = { workspace = true }
+
+# `build.rs` (Task 5) validates content at build time and needs `NeedId`
+# to do it. Build dependencies are compiled separately from normal ones,
+# so `terri-core` has to be named in both places. There is no cycle:
+# `terri-core` has no build script of its own.
+[build-dependencies]
+terri-core = { path = "../terri-core" }
+serde = { workspace = true, features = ["std"] }
+toml = { workspace = true }
+postcard = { workspace = true }
+
+# The schema tests parse TOML directly, so `toml` is a dev-dependency as
+# well as a build-dependency. Build dependencies are not on the test
+# target's path.
+[dev-dependencies]
+toml = { workspace = true }

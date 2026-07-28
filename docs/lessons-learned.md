@@ -586,6 +586,19 @@ constant, assert it from both, and say in each place that the other exists -
 otherwise the next person to legitimately move the constant updates one copy
 and the pair silently stops being a comparison.
 
+**Numbers in this entry are stale by design; the procedure is not. Noted at
+the M1a close-out, 2026-07-28.** `0xEF601D5047905825` was the vector when this
+was written and it has legitimately moved twice since: to
+`0x6C3757F1848175C1` when `Hunger` became `Needs` (M1a Task 2), and to
+`0x2FC669EFA7254F2D` when all seven needs started decaying (M1a Task 7). Both
+moves were re-observed on native and on wasm32 separately rather than assumed
+equal, which is the practice this entry exists to establish. The
+`expected 14804735595947770788n to be 17248818803464230949n` below is likewise
+the failure output of that era. **Read every constant here as an example of
+the shape, and take the current value from
+`crates/terri-sim/src/lib.rs`.** A golden vector that never moves is a golden
+vector nobody is exercising.
+
 **How to verify:** the constant now appears twice, in
 `crates/terri-sim/src/lib.rs` and `web/tests/bridge.test.ts`, each pointing at
 the other. To confirm the web side is real rather than decorative, delete
@@ -1095,3 +1108,508 @@ stopped run.
 
 **How to verify:** snapshot two same-named files from different crates and
 confirm the harness produces two distinct keys.
+
+---
+
+## [L23] A crate can compile on a serde feature a *sibling* dependency turned on
+
+**What happened:** `terri-data`'s manifest was written with
+`serde = { workspace = true, features = ["std"] }`, deviating from the Task 3
+brief's plain `serde = { workspace = true }`. The reasoning was that the
+workspace entry is `default-features = false`, so `String`, `Vec` and `BTreeMap`
+would have no `Deserialize` impls. Removing the feature to confirm that, per
+`testing-protocol.md` rule 1, produced the **opposite** of the expected result:
+`cargo build -p terri-data` succeeded anyway.
+
+`cargo tree -p terri-data -e features` says why:
+
+```
+terri-data
+|-- postcard feature "alloc"
+|   +-- serde feature "alloc"
+```
+
+`postcard`'s `alloc` feature enables `serde/alloc`, and feature unification hands
+it to `terri-data`. The derives compiled because of a dependency that has nothing
+to do with them.
+
+**Root cause:** Cargo unifies features across a package's whole dependency graph,
+so a crate's declared features describe what it *asked for*, never what it
+*gets*. Nothing warns when the two differ. The failure only appears later, when
+whoever removes or re-scopes the unrelated dependency gets a compile error in
+code they did not touch, naming a trait impl they did not know was conditional.
+
+**The compounding trap:** `cargo test -p terri-data` passes under **both**
+configurations, because the `toml` dev-dependency drags in `serde/std` for the
+test target. Dev-dependencies are unified into the lib build when building tests
+and are absent from `cargo build`, so the test command is systematically more
+permissive about features than the build command. Checking a feature question
+with `cargo test` answers a different question.
+
+**Prevention rule:** declare every feature your own code needs, even when it
+already builds without it, and verify feature questions with `cargo build`
+(no dev-dependencies) rather than `cargo test`. When a feature looks redundant,
+run `cargo tree -e features` before deleting it; "it compiles without this" is
+not evidence the crate does not need it.
+
+**How to verify:** drop `features = ["std"]` from `serde` in
+`crates/terri-data/Cargo.toml` and run `cargo build -p terri-data`. It succeeds.
+Then also set `default-features = false` on `postcard`'s `alloc` feature, or
+remove `postcard` from `[dependencies]`, and it stops succeeding. Two edits are
+needed to observe a requirement that one manifest line claims to own.
+
+---
+
+## [L24] A brief's own tests can be blind to the property the same brief calls load-bearing
+
+**What happened:** the **seventh** instance of the family ([L2], [L3], [L5],
+[L6], [L7], [L11]), and the new part is where the blind spot originated. Task 3's
+instructions stated, in bold, that `InteractionDef::advertises` must be a
+`BTreeMap` rather than a `HashMap`, because the compiled pack is serialised in
+iteration order and feeds a determinism hash. The same brief supplied three
+tests. Swapping in a `HashMap` left **all three green**:
+
+```
+test schema::tests::parses_a_needs_file ... ok
+test schema::tests::an_object_may_declare_no_interactions ... ok
+test schema::tests::parses_an_object_with_a_sparse_advert ... ok
+
+test result: ok. 3 passed; 0 failed
+```
+
+The two assertions that touch the map are `advertises.get("hunger")` and
+`advertises.len()`, and both behave identically under either map type. The
+brief argued for the mechanism carefully and then tested everything about the
+map except it.
+
+**Root cause:** a brief that explains *why* a choice matters reads as though it
+has covered the choice. Prose justification and test coverage are independent,
+and the more convincing the prose, the less likely anybody checks the tests
+against it. [L16] recorded a brief whose code contradicted its own stated
+requirement; this is the quieter version, where the code is right and nothing
+holds it in place.
+
+**Prevention rule:** for every property a brief calls load-bearing, find the test
+that would fail if it were violated **before** writing any code. If there is not
+one, that is the first thing to add, and it is not scope creep. Expect the
+predicted test count in a plan to be a floor rather than a target.
+
+**How to verify:** apply `use std::collections::HashMap as BTreeMap;` to
+`crates/terri-data/src/schema.rs` (an alias keeps every use site identical, so
+the mutation is a single clean variable) and run `cargo test -p terri-data`.
+Exactly `schema::tests::advert_iteration_is_sorted_not_hash_ordered` must fail,
+with a `left` showing hash order and a `right` showing sorted order. If the
+suite is green, the ordering is unprotected again.
+
+Note the test is probabilistic against a `HashMap`, though not against the
+correct code: seven keys have 5040 orderings and one of them is sorted, so it
+fails about 99.98% of runs. It is fully deterministic under `BTreeMap`. The
+airtight version is a golden vector over a compiled pack, which needs the
+compile step to exist first.
+
+---
+
+## [L25] The Bash tool is Git Bash, so PowerShell here-string syntax lands as a literal argument
+
+**What happened:** a commit was made from the Bash tool with
+`git commit -m @'...'@`, which is PowerShell here-string syntax. Bash has no such
+form, so `@` was passed through as an ordinary character: the commit subject
+became a bare `@` and the real subject dropped to line two, silently, with
+exit 0.
+
+**Root cause:** this environment exposes a PowerShell tool and a Bash tool side
+by side, and the two take different quoting for exactly the operation that most
+needs multi-line strings. Neither shell errors on the other's syntax here; both
+produce a valid command with the wrong content.
+
+**Prevention rule:** in the Bash tool use a quoted heredoc,
+`git commit -F - <<'EOF'`, and in the PowerShell tool use `@'...'@` with the
+closing delimiter at column 0. Pick the form from the tool, not from habit. After
+any scripted commit, run `git log -1 --format=%s` and read the subject back;
+`git commit` reports success for a message that is entirely wrong.
+
+**How to verify:** `git log -1 --format=%B | head -3` after committing. A subject
+line consisting of a stray delimiter character is the signature of this mistake.
+
+---
+
+## [L26] A wall of rejection tests says nothing about what the validator builds
+
+**What happened:** Task 4's brief supplied twelve tests for `compile`, and
+eleven of them assert that bad content is *rejected*: unknown need, missing
+decay, duplicate id, zero duration, zero slots, non-finite, negative. The
+coverage of the failure paths is genuinely thorough. Mutating the single line
+that maps a validated need onto its slot in the pack -
+`decay[id.index()] = def.decay_per_tick` changed to `decay[0] = ...` - left
+**all twelve green**.
+
+The mutation is not subtle. It makes six of the seven needs decay at `NaN` and
+the seventh at hunger's rate, for every agent, forever. It survived because the
+one fixture every test shares gives all seven needs the same decay rate of
+`0.1`, so a value written to the wrong slot is indistinguishable from one
+written to the right slot.
+
+**Root cause:** a validator has two halves - what it refuses, and what it
+produces from what it accepts - and they need separate tests. Rejection tests
+are easy to enumerate, because each one is named by an error variant, so a
+brief that works down the error enum feels complete when it has covered every
+variant. Nothing in that process ever looks at the output. The eighth instance
+of the family ([L2], [L3], [L5], [L6], [L7], [L11], [L24]), and the specific
+new lesson is that **an error enum is a checklist for half the surface**.
+
+Compounding it: uniform fixtures are the natural thing to write, and they are
+exactly what makes a mapping unobservable. `full_needs()` giving every need
+`0.1` is the tidier fixture and the blind one.
+
+**Prevention rule:** for any function returning `Result<T, E>`, count the tests
+that inspect `T`. Enumerating `E` is not coverage. Where the output is a
+mapping - index to value, name to slot, id to position - **the fixture must
+make every key distinguishable**, or the test cannot tell the mapping from a
+constant. Distinct values per key, and where order matters, a source order that
+differs from the expected output order.
+
+**How to verify:** in `crates/terri-data/src/compile.rs`, change
+`decay[id.index()]` to `decay[0]` and run `cargo test -p terri-data`. Exactly
+`decay_rates_land_at_their_own_need_index` and
+`a_compiled_pack_serialises_to_a_stable_golden_vector` fail; the twelve tests
+from the brief all pass. Both of those were added for this reason.
+
+---
+
+## [L27] `cargo mutants` only mutates the packages you name
+
+**What happened:** CI's mutation sweep ran
+`cargo mutants --package terri-core --package terri-sim`. That list was correct
+when it was written and silently stopped being correct when `terri-data` gained
+a validator: the new crate held the project's most branch-heavy code, every
+branch of it a [D9] guarantee, and the mandated backstop was not looking at it.
+Nothing failed. The sweep reported success over the packages it was told about.
+
+Note this is not the same as `--test-workspace true`, which was already set and
+which controls *which tests judge* a mutant. That flag was doing its job; the
+package list decides *what gets mutated*, and no flag makes it follow the
+workspace.
+
+**Root cause:** an explicit allowlist in CI is a snapshot of the crate layout on
+the day it was written, and adding a crate is exactly the moment nobody rereads
+the CI file. The failure is silent in the worst direction: the gate still passes,
+so it reads as evidence.
+
+**Prevention rule:** adding a workspace member is incomplete until the crate is
+named in every CI loop that takes a package list - the mutation sweep and the
+dependency-purity check both do here. Run the sweep against the new crate before
+adding it, so it joins with a measured survivor count rather than an assumed one.
+
+**How to verify:** `cargo mutants --package <new-crate> --test-workspace true`
+should report a survivor count you have read. `terri-data` reported 16 mutants,
+1 missed on first run - `check_number`'s `value < 0.0` mutated to `<= 0.0`,
+meaning nothing in the suite pinned whether zero is legal content. It is: a
+decay rate of zero is a need that does not decay. A test now says so, and the
+crate joined CI at 13 caught, 3 unviable, 0 missed.
+
+---
+
+## [L28] A build-time validation gate converts caught mutants into unviable ones
+
+**What happened:** M1a Task 5 gave `terri-data` a `build.rs` that includes
+`src/compile.rs` via `#[path]` and aborts the build on invalid content. The
+sweep was re-run afterwards. No test changed, and neither `compile.rs` nor
+`pack.rs` changed:
+
+```
+terri-data alone
+  Task 4: 16 mutants tested: 13 caught,  3 unviable, 0 missed
+  Task 5: 17 mutants tested:  6 caught, 11 unviable, 0 missed
+
+all three packages
+  Task 4: 266 mutants: 18 missed, 235 caught, 13 unviable
+  Task 5: 267 mutants: 18 missed, 222 caught, 27 unviable
+```
+
+**Thirteen** mutants moved from **caught** to **unviable**, matching the
+235-to-222 fall exactly. Seven are in `terri-data`, among them
+`compile.rs:65:12: delete ! in compile` (the missing-need loop) and
+`compile.rs:94:35: replace == with != in compile` (the zero-duration check).
+
+**The other six are in `terri-core`, and that is the part worth remembering.**
+`NeedId::index`, `NeedId::as_str` and `NeedId::from_name` were all caught by
+`terri-core`'s own tests before this task, and are now unviable:
+
+```
+crates/terri-core/src/needs.rs:36:9: replace NeedId::index -> usize with 0
+  content is invalid: needs.toml declares 'energy' more than once
+crates/terri-core/src/needs.rs:54:9: replace NeedId::from_name -> Option<NeedId> with None
+  content is invalid: needs.toml declares unknown need 'hunger'
+```
+
+**Root cause:** `compile.rs` is now compiled into two units, the library and the
+build script, and the build script also pulls in `terri-core` as a build
+dependency. When `cargo mutants` mutates either crate, the mutated code runs
+inside `build.rs` against the real `content/*.toml`, rejects it, and the package
+never builds. `cargo mutants` classifies any build failure as unviable, so the
+mutant never reaches the test suite that used to kill it.
+
+The blast radius is therefore **not confined to the crate that owns the build
+script**. It covers everything the build script transitively depends on, which
+is exactly the direction nobody looks: the change was made in `terri-data` and
+the evidence quietly degraded in `terri-core`.
+
+**Why this is not a regression in safety and is one in evidence.** Every one of
+those mutants is still detected, and the build gate detecting them is precisely
+the [D9] guarantee the build script exists to provide. But by [L21], an unviable
+mutant says nothing about the tests. The sweep can no longer tell you whether
+`rejects_a_missing_need_decay` and its siblings still work, and the CI gate
+stays green either way, because unviable is neither caught nor missed. That is
+this project's recurring shape wearing yet another costume: **the check still
+passes, over less.**
+
+**Prevention rule:** when a validator gains a build-time caller that consumes
+real data, re-measure the **whole sweep's** caught/unviable split and record
+both numbers, not just the missed count and not just the crate you edited. A
+fall in *caught* with a matching rise in *unviable* means coverage moved out of
+the test suite and into the build. No `cargo mutants` flag converts a build
+failure back into a catch; `--help` offers only `-V, --unviable`, which lists
+them. Do not delete the tests that used to catch those mutants on the grounds
+that the sweep has stopped crediting them: they are still the only thing that
+would catch a regression if the build gate were ever relaxed, and the sweep will
+not tell you when they rot.
+
+**How to verify:** run the sweep, then
+
+```
+grep -lE "content is invalid" mutants.out/log/*.log | wc -l
+```
+
+Every hit is a mutant killed by `build.rs` rather than by a test. Measured here:
+**13**, which is exactly the fall in *caught* from 235 to 222. If that count and
+the fall in caught disagree, something other than the content gate also changed.
+Anything unviable for a different reason shows an `error[E...]` instead, which
+is the ordinary [L21] case and was already there.
+
+---
+
+## [L29] A field read for exactly one purpose is only observable through that purpose
+
+**What happened:** the **ninth** instance of the family ([L2], [L3], [L5], [L6],
+[L7], [L11], [L24], [L26]), found during M1a Task 6 by the mandatory hand sweep
+rather than by review or by `cargo mutants`, and found in code written minutes
+earlier.
+
+Task 6 made an object offer a *list* of interactions, so `select_action` records
+which one won in `Target::interaction` and `follow_path` resolves that index
+when it starts the meal. A test was written for exactly that -
+`the_interaction_recorded_at_selection_is_the_one_that_fills` - with a fixture
+object offering a weak `nibble` and a strong `feast`. It asserted the agent ends
+up performing the second one.
+
+Replacing `interactions[target.interaction as usize]` with `interactions[0]` in
+`follow_path` left **all 91 workspace tests green**, that one included.
+
+**Root cause, and it is narrower and more useful than "the fixture was weak".**
+`follow_path` reads the resolved interaction for **one** value: its
+`duration_ticks`. Everything else flows through `Eating`, whose `interaction`
+field is copied from `Target` and re-resolved by `tick_interactions`. The
+fixture gave both interactions a duration of **15**, so the wrong lookup
+returned a different object with the same number in the only field anybody read.
+The test asserted `Eating.interaction == 1` and got it, because that field never
+passed through the mutated expression at all.
+
+So the test exercised the line, the line returned the wrong value, and the
+assertion could not see it. **The reachable-but-unobservable case is not the
+same as the untested case, and it does not look different from the outside.**
+
+The generalisable rule: *before writing the fixture, ask which single value the
+code under test actually extracts, and make the candidates differ in **that**
+value.* Making them differ in something adjacent - here, the advertised delta -
+feels like the same thing and is not, because the delta reaches the assertion by
+a route that bypasses the mutated line.
+
+**Prevention rule:**
+
+1. For any lookup, indirection or index resolution, **name the field the caller
+   reads** and give the fixture's alternatives different values *for that
+   field*. A fixture whose candidates agree on the read field cannot test the
+   read.
+2. `cargo mutants` would not have found this either. It rewrites expressions,
+   and `interactions[i]` to `interactions[0]` is a constant substitution inside
+   an index expression that is outside its grammar, exactly as statement
+   deletion is ([L11]). Hand mutation is what caught it, which is rule 1 of
+   `testing-protocol.md` earning its place for the ninth time.
+3. When the fix is to make a fixture's values differ, **say in the test comment
+   that the difference is load-bearing and that the equal version was measured
+   green.** Otherwise the next reader tidies the two durations back to one
+   constant and the test silently returns to being decorative.
+
+**How to verify:** in `crates/terri-sim/src/systems/movement.rs`, replace
+`interactions[target.interaction as usize]` with `interactions[0]` and run
+`cargo test -p terri-sim`. Exactly
+`systems::interact::tests::the_interaction_recorded_at_selection_is_the_one_that_fills`
+must fail, with
+`left: Eating { object: ObjectDefId(0), interaction: 1, remaining_ticks: 4 }`
+against `right: ... remaining_ticks: 14`. Then set both fixture interactions to
+the same `duration_ticks`, apply the same mutation, and confirm the suite is
+green again - that second half is the finding, not the first. Restore from a
+scratchpad byte snapshot, never with `git checkout` ([L9]), and touch the file
+([L8]).
+
+---
+
+## [L30] An equivalent mutant stops being equivalent when the code around it changes shape
+
+**What happened:** `crates/terri-sim/src/systems/action.rs`'s
+`replace < with <= in select_action` had been in `docs/mutants-baseline.txt`
+since M0, and correctly so. The clause is
+
+```rust
+score == best_score && object.index() < best_e.index()
+```
+
+and while an object carried a single advert, the two sides were always
+**different entities**. Distinct entity indices are never equal, so `<` and
+`<=` agree on every input the program can produce. It was an equivalent
+mutant: unkillable, and rightly recorded as accepted debt rather than chased.
+
+M1a Task 6 gave an object a *list* of interactions and made `select_action`
+score each one, so the same clause now also compares an object **against
+itself**. There `idx < idx` is false and `idx <= idx` is true, and the
+difference decides which of two equally good interactions an agent performs -
+a real determinism property, silently governed by declaration order in
+content. The mutant became killable, and nothing killed it.
+
+Nothing in the sweep said so. It reported the entry as missed, exactly as it
+had for five milestones, and the `comm` against the baseline was clean. **A
+survivor that was already a survivor produces no signal when its meaning
+changes.**
+
+**Root cause:** "equivalent mutant" is a judgement about the code *as it was*,
+not a property of the line. A baseline entry records the judgement and not the
+argument behind it, so nothing prompts a re-read when the argument expires.
+Same family as [L27] and [L28]: the check still passes, over something
+different from what it used to cover.
+
+**Prevention rule:** when a change widens what an existing expression compares -
+a new caller, a new loop, a new pair of operands - **look up whether that
+expression already has a baseline entry, and re-derive the argument for it**.
+If the argument no longer holds, the entry is a missing test, not debt.
+Practically: grep `docs/mutants-baseline.txt` for the file you are editing
+before you start, not after the sweep.
+
+Corollary for `docs/mutation-baseline.md`: an accepted-survivor entry should
+record *why* it is unkillable, because that sentence is what a future reader
+can check against the new code. "Equivalent" alone cannot expire visibly.
+
+**How to verify:** replace `<` with `<=` in that clause and run
+`cargo test -p terri-sim`. Exactly
+`systems::action::tests::a_tied_later_interaction_cannot_displace_an_earlier_one_on_the_same_object`
+must fail, with `left: 1, right: 0`. Delete that test and the same mutation
+leaves the workspace green, which is the state the baseline described.
+
+---
+
+## [L31] Widening a mechanism does not fail the tests that only covered part of it
+
+**What happened:** M1a Task 7 widened `decay_needs` from hunger alone to all
+seven needs. The brief predicted, correctly, which tests would go red, and every
+one of them did. What no prediction covered was `hunger_never_goes_negative`,
+because it stayed **green** - and it stayed green while silently losing six
+sevenths of the surface it was written to protect.
+
+That test pinned the floor at zero. Before this task there was exactly one need
+that could reach the floor, so covering hunger covered the mechanism. After it
+there are seven, and the test still covered one. Measured: make `Needs::drain`
+clamp hunger and write the other six straight into the array, and
+`no_need_goes_negative` is the **only** failure in the workspace, at
+`energy fell past the floor, left: -68.0002`. Read where that lands - the loop
+reaches *energy*, so hunger's assertion passed, and hunger's assertion is the
+whole of what `hunger_never_goes_negative` checked. The version it replaces was
+green under that mutation, and so was everything else, all 93 of them.
+
+The golden vectors cannot help here and it is worth knowing why: their scenario
+runs 100 ticks from full, which never drives any need below zero, so a broken
+floor is simply not on their path.
+
+**Root cause:** a red test announces that it needs attention. A test that merely
+**narrowed** announces nothing, because passing is what it did yesterday too.
+Task 6 saw this coming for the tests it could make fail - it deliberately left
+`hunger_decays_at_the_rate_content_declares` asserting that the other six needs
+do *not* move, so Task 7 would have to update it on purpose ([C2] in that
+report). That device works, and it only works for the tests somebody thought to
+point at the change.
+
+Same family as [L27], [L28] and [L30] - "the check still passes, over less" -
+but the trigger is new. Those were CI package lists and mutation-baseline
+entries, artefacts a reader already treats as configuration. This is an ordinary
+unit test with a name that still reads as true.
+
+**Prevention rule:** when a change takes a mechanism from operating on one
+instance to operating on N, **grep for the tests naming that mechanism and ask
+of each whether its fixture still spans the mechanism's whole domain**. Do this
+for the tests that stay green; the red ones will find you. A test whose name
+carries the single instance - `hunger_never_goes_negative`, `..._for_hunger`,
+`..._the_first_...` - is the visible marker, and renaming it to the general
+claim is the fix, not a tidy-up.
+
+**How to verify:** in `crates/terri-core/src/needs.rs`, change `drain` to
+`if id == NeedId::Hunger { self.set(id, next) } else { self.0[id.index()] = next }`
+and run `cargo test --workspace`. Exactly
+`systems::needs::tests::no_need_goes_negative` must fail. Note `terri-core`'s
+own `needs_clamp_to_range` stays green under it, because it too only drains
+hunger. Restore from a scratchpad byte snapshot, never with `git checkout`
+([L9]), and touch the file ([L8]).
+
+---
+
+## [L32] Most accepted mutation debt was cheaper to kill than to keep arguing for
+
+**What happened:** the M1a close-out triaged all 16 surviving mutants properly
+for the first time, instead of confirming the count had not grown. **Eleven of
+the sixteen died to four small tests and no production change at all.** They
+had been in `docs/mutants-baseline.txt` for five milestones, each behind a
+one-line justification in `docs/mutation-baseline.md` that read as settled:
+
+| Baselined as | Actually |
+|---|---|
+| "No consumer until M3" (`is_hour_boundary`) | 12 lines of test, and the "tick 0 is a boundary" decision was undocumented in code |
+| "Unused accessors" (`width`, `height`) | Reachable all along; a **square** fixture made them interchangeable |
+| "Real test gap", pathfinding (4) | Three of the four were one direct assertion on `heuristic` |
+| "Hash (2)" | A latent NaN/`i64::MIN` digest collision, one `assert_ne!` away |
+
+None of that required insight. It required someone to ask, per survivor,
+"what would kill this?" rather than "is this the same set as last time?"
+
+**Root cause, and it is about the gate rather than about the code.** The CI
+gate is *no new survivors*, which is the right gate: a wall of known noise gets
+ignored, and that is the failure this whole discipline exists to prevent. But
+"no new survivors" makes an existing survivor **free**. Nothing costs anything
+until the day the set changes, so an entry written once is never re-read, and
+the cheapest possible action at every sweep is to confirm the diff is empty.
+The file drifts from a ledger of deliberate decisions into a list of things
+nobody has looked at, and it looks identical either way.
+
+The two flavours compound. A **wrong** justification ([L30]: an equivalent
+mutant that stopped being equivalent) and a **lazy** one ("unused accessors")
+produce the same green diff, so no amount of watching the gate distinguishes
+them.
+
+**Prevention rule:**
+
+1. **If the argument for accepting a survivor is shorter to write than the test
+   that would kill it, write the test.** That is a genuinely usable threshold,
+   and it disqualified eleven of sixteen entries here.
+2. **"Nothing uses it" is a reason to test it, not a reason to baseline it.**
+   An unused public function is behaviour with *no* constraint on it rather
+   than weak constraint, and it will acquire its first caller in a task that is
+   busy doing something else.
+3. **Re-derive every accepted argument at each milestone close-out, and say in
+   the file which ones you actually re-derived and which you carried on
+   trust.** [L30] says an argument expires; this says the expiry is invisible
+   unless someone schedules the check. The close-out is the schedule.
+4. Where the survivor is genuinely equivalent, **write down the condition that
+   would end the equivalence** - "`NEIGHBOURS` is closed under negation",
+   "`score_advertisement` is a plain product over a clamped urgency" - so the
+   next reader can check one sentence instead of re-deriving the proof.
+
+**How to verify:** the eleven closures are listed with their killing tests in
+`docs/mutation-baseline.md`. The survivor count went from 16 to 5 with no
+production code changed, so `cargo test --workspace` before and after the
+tests differs by exactly 4 tests and the world-hash golden vectors do not move.

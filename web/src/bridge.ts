@@ -69,8 +69,24 @@ export class SimBridge {
     this.handle.spawn_agent(x, y, hunger);
   }
 
-  spawnObject(x: number, y: number): void {
-    this.handle.spawn_object(x, y);
+  /**
+   * Places the smart object `contentId` names, and returns whether it
+   * was placed. `false` means the compiled content pack declares no
+   * object with that id and nothing was spawned.
+   *
+   * The id is checked in Rust rather than here. A string arriving from
+   * JavaScript is untrusted input at the FFI boundary, and this class is
+   * not the boundary - anything that holds the `SimHandle` can call
+   * `spawn_object` directly. The check belongs where the input enters,
+   * which is `crates/terri-wasm/src/lib.rs`; see docs/testing-protocol.md
+   * rule 8.
+   *
+   * Worth returning rather than swallowing: an unknown id is a silent
+   * no-op otherwise, and [L17] records what a missing smart object costs
+   * to diagnose from the rendered picture.
+   */
+  spawnObject(x: number, y: number, contentId: string): boolean {
+    return this.handle.spawn_object(x, y, contentId);
   }
 
   /**

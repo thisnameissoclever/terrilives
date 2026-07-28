@@ -22,8 +22,11 @@ jobs:
         run: cargo clippy --workspace --all-targets -- -D warnings
       - name: Test
         run: cargo test --workspace
-      # Mechanically enforces [D1]: terri-core and terri-sim never depend
-      # on a web crate. Explicit targets are load-bearing, not tidiness.
+      # Mechanically enforces [D1]: terri-core, terri-data and terri-sim
+      # never depend on a web crate. terri-data is in the list from the
+      # commit that created it, because a purity rule that a crate has to
+      # be remembered into is one nobody remembers.
+      # Explicit targets are load-bearing, not tidiness.
       # Cargo.lock records unactivated optional dependencies, and under
       # --target all there is a real-looking but inert path:
       #   terri-core -> bevy_ecs -> bevy_reflect -> bevy_reflect_derive
@@ -47,7 +50,7 @@ jobs:
         run: |
           set -eu
           for target in x86_64-unknown-linux-gnu wasm32-unknown-unknown; do
-            for crate in terri-core terri-sim; do
+            for crate in terri-core terri-data terri-sim; do
               tree=$(cargo tree -p "$crate" --target "$target")
               if printf '%s\n' "$tree" | grep -E 'wasm-bindgen|web-sys|js-sys'; then
                 echo "FAIL: $crate depends on a web crate for $target"
@@ -95,6 +98,7 @@ jobs:
       - name: Full mutation sweep
         run: |
           cargo mutants --package terri-core --package terri-sim \
+            --package terri-data \
             --test-workspace true --timeout 60 || true
       - name: Fail on survivors not in the baseline
         run: |

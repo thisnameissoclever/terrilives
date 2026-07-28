@@ -2,10 +2,21 @@
 
 pub mod render_buffer;
 pub mod systems;
+#[cfg(test)]
+pub mod test_content;
 
 use bevy_ecs::prelude::*;
 use bevy_ecs::schedule::ExecutorKind;
 use terri_core::SimClock;
+
+/// The content pack, as a resource so systems can resolve object ids and
+/// decay rates. Holds a `&'static` because the pack is embedded at build
+/// time and deserialised once.
+///
+/// Systems read this rather than calling `terri_data::pack()` directly,
+/// which is what lets a test point a world at a pack of its own.
+#[derive(Resource, Debug, Clone, Copy)]
+pub struct Content(pub &'static terri_data::ContentPack);
 
 /// Owns the ECS world and the tick schedule.
 pub struct Sim {
@@ -31,6 +42,7 @@ impl Sim {
         // A placeholder lot so Res<TileGrid> never panics. Callers that
         // care about the lot use new_with_lot, which replaces this.
         world.insert_resource(terri_core::TileGrid::new(1, 1));
+        world.insert_resource(Content(terri_data::pack()));
 
         // Register components eagerly. This is NOT optional bookkeeping:
         // World::try_query returns None if ANY component in the query is
@@ -175,11 +187,12 @@ impl Sim {
         // NO_NEEDS for entities carrying no `Needs` at all, which
         // distinguishes "no needs" from "desperate on all of them".
         //
-        // All seven are hashed rather than only the one that currently
-        // decays. The digest is a published format across the WASM
-        // boundary, so fixing its shape once - now, while only hunger
-        // moves - costs one golden-vector update instead of one per need
-        // as the others come alive.
+        // All seven are hashed. The shape was fixed while only hunger
+        // moved, deliberately: the digest is a published format across
+        // the WASM boundary, so settling it once cost one golden-vector
+        // update instead of one per need as the others came alive. Task 7
+        // made all seven decay and moved the vector's VALUE without
+        // touching its shape, which is the payoff.
         const NO_NEEDS: f32 = -1.0;
 
         let mut rows: Vec<(u32, f32, f32, [f32; NEED_COUNT])> = Vec::new();
@@ -236,18 +249,16 @@ fn advance_clock(mut clock: ResMut<SimClock>) {
 #[cfg(test)]
 mod determinism_tests {
     use super::*;
-    use terri_core::{Agent, Eating, NeedId, Needs, Position, SmartObject};
+    use crate::test_content::shipped_fridge;
+    use terri_core::{Agent, Eating, NeedId, Needs, Position};
 
     fn build_scenario() -> Sim {
         let mut sim = Sim::new_with_lot(24, 24);
-        sim.world_mut().spawn((
-            Position { x: 18.0, y: 14.0 },
-            SmartObject {
-                hunger_delta: 40.0,
-                duration_ticks: 15,
-                slots: 1,
-            },
-        ));
+        // The shipped fridge, deliberately: the golden vector below is
+        // only a statement about the game if the scenario is built out of
+        // the content the game ships.
+        sim.world_mut()
+            .spawn((Position { x: 18.0, y: 14.0 }, shipped_fridge()));
         for i in 0..8 {
             sim.world_mut().spawn((
                 Agent,
@@ -397,12 +408,15 @@ mod determinism_tests {
 
     #[test]
     fn hash_observes_every_need_not_only_hunger() {
-        // Hunger is the only need that decays, the only one an
-        // interaction fills, and the only one selection scores, so every
-        // other test in the workspace would stay green with the other six
-        // levels absent from the digest. They would then diverge silently
-        // between peers the moment M1b gives any of them behaviour, and
-        // the golden vector would have to move a second time.
+        // Written when hunger was the only need that decayed, the only
+        // one an interaction filled and the only one selection scored, so
+        // that every other test in the workspace would have stayed green
+        // with the other six levels absent from the digest. Task 7 made
+        // all seven decay, so the golden vector would now move if a level
+        // went missing - but only for a need whose rate is non-zero, and
+        // only in that one scenario. This test still isolates each level
+        // one at a time, on a frozen clock, which is the only thing here
+        // that can name WHICH one stopped reaching the digest.
         //
         // Causal rather than comparative, per docs/testing-protocol.md
         // rule 3: perturb exactly one level, require the digest to move,
@@ -477,18 +491,27 @@ mod determinism_tests {
     #[test]
     fn world_hash_matches_its_golden_vector() {
         const TICKS: usize = 100;
-        // Moved deliberately at the Hunger-to-Needs migration: the digest
-        // now covers all seven need levels per entity rather than one
-        // hunger level, and a `Needs`-less entity contributes seven
-        // sentinels rather than one. The simulation still computes the
-        // same thing - the same eight agents eat at the same ticks - so
-        // this is an encoding change, and it is the only one this
-        // milestone plans to make. Previous value: 0xEF60_1D50_4790_5825.
+        // Moved deliberately at Task 7's content-driven decay, and this
+        // time it is a SIMULATION change rather than an encoding one.
+        // Every need now drains at the rate `content/needs.toml`
+        // declares for it, so the six levels that used to sit pinned at
+        // their spawn value for all 100 ticks now fall - six of the seven
+        // per-entity f32s in every agent's row move, on every tick. The
+        // digest's shape is untouched.
         //
-        // The new value was measured on wasm32 as well as natively, per
-        // [L13], rather than assumed to carry across: the two agree. The
-        // boundary copy lives in web/tests/bridge.test.ts.
-        const GOLDEN: u64 = 0x6C37_57F1_8481_75C1;
+        // Positions and hunger are unchanged: the fridge advertises
+        // hunger only, so nothing the other six do can reach scoring, and
+        // the same eight agents still eat at the same ticks. Only the
+        // levels moved.
+        //
+        // Previous values: 0x6C37_57F1_8481_75C1 (Task 6, at the
+        // Hunger-to-Needs encoding change), 0xEF60_1D50_4790_5825 before
+        // that.
+        //
+        // Measured on wasm32 as well as natively, per [L13], rather than
+        // assumed to carry across: the two agree. The boundary copy lives
+        // in web/tests/bridge.test.ts.
+        const GOLDEN: u64 = 0x2FC6_69EF_A725_4F2D;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {
@@ -561,8 +584,9 @@ mod determinism_tests {
         let bystander = b.world_mut().spawn(Position { x: 23.0, y: 23.0 }).id();
         let victim = lowest_indexed_agent(&b);
         b.world_mut().entity_mut(victim).insert(Eating {
+            object: shipped_fridge().0,
+            interaction: 0,
             remaining_ticks: 1,
-            delta_per_tick: 0.0,
         });
         b.world_mut().entity_mut(victim).remove::<Eating>();
 

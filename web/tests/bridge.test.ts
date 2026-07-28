@@ -21,7 +21,7 @@ beforeAll(async () => {
 describe('SimBridge', () => {
   it('reads spawned positions without copying', () => {
     const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
-    bridge.spawnObject(4, 5);
+    bridge.spawnObject(4, 5, 'fridge');
     bridge.spawnAgent(1, 2, 50);
 
     expect(bridge.count).toBe(2);
@@ -38,16 +38,42 @@ describe('SimBridge', () => {
 
   it('tags agents and objects distinctly', () => {
     const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
-    bridge.spawnObject(4, 5);
+    bridge.spawnObject(4, 5, 'fridge');
     bridge.spawnAgent(1, 2, 50);
     const kinds = bridge.kinds();
     expect(kinds[0]).toBe(1);
     expect(kinds[1]).toBe(0);
   });
 
+  it('rejects an unknown content id without trapping the wasm module', () => {
+    // The Rust-side twin of this lives in crates/terri-wasm/src/lib.rs.
+    // This one is not redundant with it, and the reason is [L12]: the
+    // native test runs in a debug build, and the artifact that ships is
+    // the release build wasm-pack produces. A check that exists only in
+    // debug passes there and is absent here. This test runs against the
+    // real released module, so it is the one that shows the check ships.
+    //
+    // The mutation it is written against is `expect`/`unwrap` on the
+    // lookup. Note what that does to a wasm module specifically: a panic
+    // unwinds into a JS exception AND leaves the instance permanently
+    // trapped, so it is not one failed call, it is the end of the
+    // session. The two assertions after the rejection are what tell a
+    // returned `false` apart from a trap, since on a trapped module
+    // every later call throws instead of returning.
+    const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
+    expect(bridge.spawnObject(4, 5, 'fridge')).toBe(true);
+
+    expect(bridge.spawnObject(4, 6, 'no_such_object')).toBe(false);
+    expect(bridge.count).toBe(1);
+
+    expect(bridge.spawnObject(6, 7, 'fridge')).toBe(true);
+    bridge.tick();
+    expect(bridge.count).toBe(2);
+  });
+
   it('moves an agent toward the fridge over ticks', () => {
     const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
-    bridge.spawnObject(12, 1);
+    bridge.spawnObject(12, 1, 'fridge');
     bridge.spawnAgent(1, 1, 20);
 
     const startX = bridge.positions()[2];
@@ -126,7 +152,7 @@ describe('SimBridge', () => {
     // finding about this project's determinism guarantees. Do not adjust
     // the constant to match; report the divergence.
     const bridge = new SimBridge(new SimHandle(24, 24), wasmMemory);
-    bridge.spawnObject(18, 14);
+    bridge.spawnObject(18, 14, 'fridge');
     for (let i = 0; i < 8; i++) {
       bridge.spawnAgent(1 + i, 1, 30 + 5 * i);
     }
@@ -141,19 +167,30 @@ describe('SimBridge', () => {
     // bigint, not Number. Number() coercion silently drops the low bits
     // of a u64, and the low bits are the whole point of a digest.
     //
-    // Moved at the Hunger-to-Needs migration, together with the native
-    // constant it mirrors: the digest now covers seven need levels per
-    // entity instead of one. **Measured on wasm32 rather than copied from
-    // native** ([L13]) - the wasm build was rebuilt first, this test was
-    // run against the old constant, and the value it reported was read
-    // off the failure. The two targets agree. Previous value:
-    // 0xef60_1d50_4790_5825n.
-    expect(bridge.worldHash()).toBe(0x6c37_57f1_8481_75c1n);
+    // Moved at Task 7's content-driven decay, together with the native
+    // constant it mirrors: all seven needs now drain at the rates
+    // content/needs.toml declares, so the six levels that used to hold at
+    // their spawn value for all 100 ticks now fall. The digest's shape is
+    // unchanged; only the values it covers moved.
+    //
+    // **Measured on wasm32 rather than copied from native** ([L13]) - the
+    // wasm build was rebuilt with `wasm-pack build crates/terri-wasm
+    // --target web --out-dir ../../web/src/wasm` FIRST, this test was then
+    // run against the old constant, and the value it reported was read off
+    // the failure. Skipping the rebuild reads the previous artifact and
+    // measures nothing ([L8]). The two targets agree, which is a
+    // measurement each time and not a guarantee: `write_f32` calls
+    // `f32::round`, whose rounding mode differs from wasm's `f32.nearest`
+    // on a half-way value.
+    //
+    // Previous values: 0x6c37_57f1_8481_75c1n (Task 6, at the
+    // Hunger-to-Needs encoding change), 0xef60_1d50_4790_5825n before that.
+    expect(bridge.worldHash()).toBe(0x2fc6_69ef_a725_4f2dn);
   });
 
   it('exposes the world hash as a bigint that tracks simulation state', () => {
     const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
-    bridge.spawnObject(12, 1);
+    bridge.spawnObject(12, 1, 'fridge');
     bridge.spawnAgent(1, 1, 20);
 
     const before = bridge.worldHash();
