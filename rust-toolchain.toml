@@ -1,0 +1,21 @@
+# Single source of truth for the Rust toolchain, honoured by rustup in
+# both local shells and CI. Pinned rather than floating on stable.
+#
+# The reason is specific to this project rather than general caution.
+# The golden world-hash vectors in terri-sim and web/tests assert that
+# native and wasm32 produce bit-identical digests, which is what backs
+# the determinism guarantees the planned multiplayer depends on. With a
+# floating toolchain, a real determinism regression and a routine rustc
+# bump produce the same red, and telling those two apart is the entire
+# value of having the vectors.
+#
+# This is not hypothetical: an unpinned wasm-pack broke the build once
+# already, with wasm-opt failing to parse what a newer rustc emitted.
+#
+# Bumping this is a deliberate act. Do it in its own commit, and re-run
+# the golden vectors on both targets before believing the result.
+[toolchain]
+channel = "1.94.1"
+components = ["clippy", "rustfmt"]
+targets = ["wasm32-unknown-unknown"]
+profile = "minimal"

@@ -10,10 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy, rustfmt
-          targets: wasm32-unknown-unknown
+      # rust-toolchain.toml is the single source for the channel,
+      # components and targets, and rustup installs from it on first
+      # use. Naming any of them here too would create a second copy that
+      # nothing keeps in sync.
+      - name: Install the pinned toolchain
+        run: rustup show
       - name: Format check
         run: cargo fmt --all -- --check
       - name: Clippy
@@ -83,7 +85,8 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Install the pinned toolchain
+        run: rustup show
       - name: Install cargo-mutants
         run: cargo install cargo-mutants --locked
       # cargo-mutants exits 2 whenever any mutant survives, so its exit
@@ -132,9 +135,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-unknown
+      - name: Install the pinned toolchain
+        run: rustup show
       # Pinned. Unpinned, this action installs whatever wasm-pack is
       # latest, and its bundled wasm-opt then has to parse whatever the
       # current rustc emits. That skew broke the build once already:
