@@ -98,6 +98,7 @@ jobs:
       - name: Full mutation sweep
         run: |
           cargo mutants --package terri-core --package terri-sim \
+            --package terri-data \
             --test-workspace true --timeout 60 || true
       - name: Fail on survivors not in the baseline
         run: |

@@ -12,6 +12,25 @@ cargo mutants --package terri-core --package terri-sim --test-workspace true --t
 250 mutants tested in 9m: 18 missed, 222 caught, 10 unviable
 ```
 
+**`terri-data` joined the sweep in M1a Task 4, at zero survivors.** The CI
+package list had been `terri-core` plus `terri-sim` since it was written, and
+it silently stopped covering the workspace the moment `terri-data` gained a
+validator; see [L27]. Measured before it was added, rather than added and
+hoped for:
+
+```
+cargo mutants --package terri-data --test-workspace true --timeout 60
+16 mutants tested in 60s: 13 caught, 3 unviable, 0 missed
+```
+
+The first run of that command reported **1 missed**,
+`compile.rs:24:14: replace < with <= in check_number` - nothing pinned whether
+a value of exactly zero was legal content. It is, and
+`zero_is_a_legal_decay_rate_and_a_legal_advert` now says so, which is why the
+crate contributes **no new entries to `mutants-baseline.txt`**. Note the
+survivor was a boundary question that no amount of reading the code would have
+settled, because the code cannot state which side of `<` was intended.
+
 **Mutation score: 92.5%** (222 caught of 240 viable), up from 92%, 91%,
 89% and originally 83%. The M1a work added 16 mutants and killed all of
 them: +13 caught, +3 unviable, **+0 missed**. The survivor set is

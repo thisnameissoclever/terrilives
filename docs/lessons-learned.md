@@ -1217,3 +1217,79 @@ any scripted commit, run `git log -1 --format=%s` and read the subject back;
 
 **How to verify:** `git log -1 --format=%B | head -3` after committing. A subject
 line consisting of a stray delimiter character is the signature of this mistake.
+
+---
+
+## [L26] A wall of rejection tests says nothing about what the validator builds
+
+**What happened:** Task 4's brief supplied twelve tests for `compile`, and
+eleven of them assert that bad content is *rejected*: unknown need, missing
+decay, duplicate id, zero duration, zero slots, non-finite, negative. The
+coverage of the failure paths is genuinely thorough. Mutating the single line
+that maps a validated need onto its slot in the pack -
+`decay[id.index()] = def.decay_per_tick` changed to `decay[0] = ...` - left
+**all twelve green**.
+
+The mutation is not subtle. It makes six of the seven needs decay at `NaN` and
+the seventh at hunger's rate, for every agent, forever. It survived because the
+one fixture every test shares gives all seven needs the same decay rate of
+`0.1`, so a value written to the wrong slot is indistinguishable from one
+written to the right slot.
+
+**Root cause:** a validator has two halves - what it refuses, and what it
+produces from what it accepts - and they need separate tests. Rejection tests
+are easy to enumerate, because each one is named by an error variant, so a
+brief that works down the error enum feels complete when it has covered every
+variant. Nothing in that process ever looks at the output. The eighth instance
+of the family ([L2], [L3], [L5], [L6], [L7], [L11], [L24]), and the specific
+new lesson is that **an error enum is a checklist for half the surface**.
+
+Compounding it: uniform fixtures are the natural thing to write, and they are
+exactly what makes a mapping unobservable. `full_needs()` giving every need
+`0.1` is the tidier fixture and the blind one.
+
+**Prevention rule:** for any function returning `Result<T, E>`, count the tests
+that inspect `T`. Enumerating `E` is not coverage. Where the output is a
+mapping - index to value, name to slot, id to position - **the fixture must
+make every key distinguishable**, or the test cannot tell the mapping from a
+constant. Distinct values per key, and where order matters, a source order that
+differs from the expected output order.
+
+**How to verify:** in `crates/terri-data/src/compile.rs`, change
+`decay[id.index()]` to `decay[0]` and run `cargo test -p terri-data`. Exactly
+`decay_rates_land_at_their_own_need_index` and
+`a_compiled_pack_serialises_to_a_stable_golden_vector` fail; the twelve tests
+from the brief all pass. Both of those were added for this reason.
+
+---
+
+## [L27] `cargo mutants` only mutates the packages you name
+
+**What happened:** CI's mutation sweep ran
+`cargo mutants --package terri-core --package terri-sim`. That list was correct
+when it was written and silently stopped being correct when `terri-data` gained
+a validator: the new crate held the project's most branch-heavy code, every
+branch of it a [D9] guarantee, and the mandated backstop was not looking at it.
+Nothing failed. The sweep reported success over the packages it was told about.
+
+Note this is not the same as `--test-workspace true`, which was already set and
+which controls *which tests judge* a mutant. That flag was doing its job; the
+package list decides *what gets mutated*, and no flag makes it follow the
+workspace.
+
+**Root cause:** an explicit allowlist in CI is a snapshot of the crate layout on
+the day it was written, and adding a crate is exactly the moment nobody rereads
+the CI file. The failure is silent in the worst direction: the gate still passes,
+so it reads as evidence.
+
+**Prevention rule:** adding a workspace member is incomplete until the crate is
+named in every CI loop that takes a package list - the mutation sweep and the
+dependency-purity check both do here. Run the sweep against the new crate before
+adding it, so it joins with a measured survivor count rather than an assumed one.
+
+**How to verify:** `cargo mutants --package <new-crate> --test-workspace true`
+should report a survivor count you have read. `terri-data` reported 16 mutants,
+1 missed on first run - `check_number`'s `value < 0.0` mutated to `<= 0.0`,
+meaning nothing in the suite pinned whether zero is legal content. It is: a
+decay rate of zero is a need that does not decay. A test now says so, and the
+crate joined CI at 13 caught, 3 unviable, 0 missed.
