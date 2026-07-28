@@ -1066,3 +1066,32 @@ the other.
 **How to verify:** read the failure output, not the exit code. `error[E0308]`
 means the type system caught it; a test-name-and-assertion failure means the
 test did.
+
+---
+
+## [L22] Snapshot harnesses must key on the full path, not the filename
+
+**What happened:** A mutation harness stored snapshots keyed on
+`parent_dir + filename`. In this workspace `crates/terri-sim/src/lib.rs` and
+`crates/terri-wasm/src/lib.rs` both reduce to `src__lib.rs`, so they collided
+and one restore wrote the other file's contents.
+
+**Root cause:** Rust workspaces put same-named files in every crate by
+construction - `lib.rs`, `mod.rs`, `error.rs`. Any key short of the full
+repo-relative path collides, and it collides *silently*, because writing a
+valid Rust file over another valid Rust file usually still compiles.
+
+**Why it was caught:** [L9]'s rule of asserting `git hash-object` after every
+restore. The hash did not match, the run stopped, and nothing was lost. The
+recovery deliberately avoided `git checkout` - the tree held uncommitted work -
+and instead replayed the edits from `HEAD`, each asserting a unique match, then
+re-verified byte identity plus a golden vector that independently pins the
+affected function.
+
+**Prevention rule:** key snapshots on the **full repo-relative path**, with
+separators replaced rather than dropped. And keep asserting the hash after every
+restore: that assertion is what turned a silent cross-file corruption into a
+stopped run.
+
+**How to verify:** snapshot two same-named files from different crates and
+confirm the harness produces two distinct keys.
