@@ -1,6 +1,11 @@
 [workspace]
 resolver = "2"
-members = ["crates/terri-core", "crates/terri-sim", "crates/terri-wasm"]
+members = [
+    "crates/terri-core",
+    "crates/terri-data",
+    "crates/terri-sim",
+    "crates/terri-wasm",
+]
 
 [workspace.package]
 edition = "2021"
@@ -12,4 +17,13 @@ bevy_ecs = "0.18"
 # and, more importantly, keeps the wasm32 dependency graph minimal; only
 # the derive macros are needed for content-pack ids.
 serde = { version = "1", default-features = false, features = ["derive"] }
+# The content pipeline's two formats: `toml` is what a designer authors and
+# `postcard` is what the build compiles it to. Both stay inside
+# `terri-data`; neither reaches `terri-core`.
+toml = "1"
+# `default-features = false` for the same reason as serde above. postcard's
+# default feature is `heapless-cas`, which drags in heapless, atomic-polyfill,
+# spin, lock_api, scopeguard, hash32 and two embedded-io versions: nine crates
+# of embedded scaffolding for a pack format that only ever needs `alloc`.
+postcard = { version = "1", default-features = false, features = ["alloc"] }
 wasm-bindgen = "0.2"

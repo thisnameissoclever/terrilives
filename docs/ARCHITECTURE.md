@@ -61,9 +61,10 @@ actually won or lost.
 
 ## [D1] Repository layout
 
-The load-bearing rule: **`terri-core` and `terri-sim` contain zero
+The load-bearing rule: **`terri-core`, `terri-data` and `terri-sim` contain zero
 `wasm-bindgen` and zero `web-sys`.** They compile natively and run under
-`cargo test` at full speed.
+`cargo test` at full speed. The CI job of the same name checks all three
+against explicit targets; see [L4] for why the targets are named.
 
 ```
 crates/
