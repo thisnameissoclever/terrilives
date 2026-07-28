@@ -8,4 +8,8 @@ version = "0.1.0"
 
 [workspace.dependencies]
 bevy_ecs = "0.18"
+# `default-features = false` keeps `terri-core` free of a std-only serde
+# and, more importantly, keeps the wasm32 dependency graph minimal; only
+# the derive macros are needed for content-pack ids.
+serde = { version = "1", default-features = false, features = ["derive"] }
 wasm-bindgen = "0.2"
