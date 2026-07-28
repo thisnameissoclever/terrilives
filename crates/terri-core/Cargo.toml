@@ -6,3 +6,9 @@ version.workspace = true
 [dependencies]
 bevy_ecs = { workspace = true }
 serde = { workspace = true }
+
+# Test-only. `SimCommand` is the wire format for [D8]'s save-file command
+# log and, later, for multiplayer, so the encoding is pinned by a test
+# here rather than left to whichever crate first writes a save.
+[dev-dependencies]
+postcard = { workspace = true }

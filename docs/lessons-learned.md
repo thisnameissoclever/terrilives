@@ -1613,3 +1613,56 @@ them.
 `docs/mutation-baseline.md`. The survivor count went from 16 to 5 with no
 production code changed, so `cargo test --workspace` before and after the
 tests differs by exactly 4 tests and the world-hash golden vectors do not move.
+
+---
+
+## [L33] A round trip cannot pin a wire format, because it is self-consistent under any encoding
+
+**What happened:** the **tenth** instance of the family ([L2], [L3], [L5], [L6],
+[L7], [L11], [L24], [L26], [L29]), and this time the blind test arrived already
+carrying a comment stating the property it did not check.
+
+M1b Task 1's brief supplied `commands_round_trip_through_postcard`, whose own
+comment reads: "Commands are the wire format for the save-file command log and,
+later, for multiplayer. A silent encoding change would break a replay long after
+the commit that caused it." The surrounding prose called the test load-bearing
+twice.
+
+Swapping the order of `SimCommand::Select` and `SimCommand::UseObject` in the
+enum - a two-line edit, and the single most likely way this format changes by
+accident - renumbers the postcard variant index of every command. Under that
+mutation `Select(Some(7))` encodes as `[1, 1, 7]` instead of `[0, 1, 7]`, so
+every previously written command log would replay as different commands. **The
+round-trip test passed.** So did the queue test. Nothing in the workspace went
+red.
+
+**Root cause:** a round trip asserts that the serialiser and the deserialiser
+agree *with each other*. They are generated from the same derive, so they agree
+by construction under **any** encoding. The encoding is a free variable that
+appears on both sides of the assertion and cancels. This is testing-protocol
+rule 3's "relation between two computed values" in its purest form, and it is
+unusually convincing because the two computed values genuinely are the thing you
+care about - they are just both downstream of the thing that changed.
+
+Note that `cargo mutants` would not have found this either. Reordering the
+members of a type declaration is outside its grammar, exactly as
+statement-deletion is (protocol rule 2).
+
+**Prevention rule:** for any type whose bytes are **persisted or sent**, a round
+trip is necessary and never sufficient. Pin the bytes with a golden vector
+beside it:
+
+1. Assert exact `expected` byte slices for at least one value of every variant.
+2. Include a value **above 127**, which is what makes the assertion sensitive to
+   varint-ness and to integer width. `SetSpeed(200)` is two bytes if the field
+   is ever widened from `u8` to `u32`, and one byte otherwise; `SetSpeed(2)`
+   cannot tell the two apart.
+3. Say in the type's doc comment that variant order and field widths **are** the
+   wire format, so the next person to insert a variant in the middle reads it
+   before rather than after.
+
+**How to verify:** swap any two variants of `SimCommand` and run
+`cargo test -p terri-core command`. `command_encoding_is_pinned_by_a_golden_byte_vector`
+fails naming the changed bytes; `commands_round_trip_through_postcard` passes.
+Restore from a scratchpad byte snapshot, never with `git checkout` ([L9]), and
+touch the file ([L8]).
