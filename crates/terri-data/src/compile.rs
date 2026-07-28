@@ -431,6 +431,36 @@ mod tests {
         ));
     }
 
+    /// Zero sits exactly on `check_number`'s boundary, and the boundary
+    /// is a content decision rather than an implementation detail, so it
+    /// is pinned rather than left to whichever comparison operator got
+    /// typed. Both meanings are legitimate content: a decay rate of zero
+    /// is a need that does not decay, and an advert of zero is a need
+    /// this interaction names but does nothing for, which the sparse
+    /// advert map treats as distinct from not naming it at all.
+    ///
+    /// Without this, `<` and `<=` are interchangeable in `check_number`
+    /// and nothing in the suite moves. `cargo mutants` found exactly
+    /// that survivor.
+    #[test]
+    fn zero_is_a_legal_decay_rate_and_a_legal_advert() {
+        let mut needs = full_needs();
+        needs.need[0].decay_per_tick = 0.0;
+        let mut act = snack();
+        act.advertises.insert("energy".into(), 0.0);
+
+        let pack = compile(needs, one_object(act)).expect("zero is in range, not invalid");
+        assert_eq!(pack.decay_per_tick[NeedId::Hunger.index()], 0.0);
+        assert_eq!(
+            pack.objects[0].interactions[0].advertises,
+            vec![
+                (NeedId::Hunger.index() as u8, 35.0),
+                (NeedId::Energy.index() as u8, 0.0),
+            ],
+            "a zero advert must survive compilation rather than being dropped"
+        );
+    }
+
     /// The pack is serialised and hashed downstream, so a
     /// nondeterministic order would surface as a spurious content diff
     /// rather than as an obvious bug.
