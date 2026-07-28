@@ -1701,3 +1701,56 @@ transposition. Zero hides almost everything.
 **How to verify:** apply the degenerate implementation - round it, take the
 absolute value, transpose the arguments - and check the suite fails. If it
 passes, the inputs are the problem, not the assertions.
+
+---
+
+## [L35] A hand-designed mutation must be survivable by the shipped content, or the build gate answers instead of the test
+
+**What happened:** M1b Task 3 added lot validation to `terri-data`'s
+`compile.rs`, which `build.rs` runs against the real `content/*.toml`. To
+verify the new `rejects_a_wall_outside_the_lot` test, the bounds check
+`x >= lot.width || y >= lot.height` was transposed to
+`x >= lot.height || y >= lot.width`. The shipped lot is 24 wide and 18 tall
+with walls out to `x = 23`, so the transposed check rejects real content and
+the build aborted:
+
+```
+thread 'main' panicked at crates\terri-data\build.rs:67:29:
+content is invalid: lot.toml has a wall at (18, 8), outside the 24x18 lot
+```
+
+**The test never ran.** Logged naively that is a "caught" row that is
+entirely true and says nothing about whether the test works.
+
+**Root cause:** this is [L21]'s shape with the compiler swapped out for the
+content gate, and it is worth its own entry because the defence is
+different. [L21] says to design a mutation around what the *type system*
+prevents, and the fix there is structural: change an array member rather
+than its length. Here nothing about the mutation is ill-typed. What blocks
+it is a *value* in a data file, so the fix is arithmetic: pick a mutation
+whose accept/reject boundary the shipped content sits comfortably inside.
+
+`x >= lot.width` mutated to `x > lot.width` is the version that works. It is
+an off-by-one, so the shipped lot (`max x = 23`, width 24) still passes and
+the build succeeds, while the test's deliberate `(5, 1)` on a 5x3 lot sits
+exactly on the boundary and fails. Same line, same operator, conclusive
+instead of inconclusive.
+
+**Prevention rule:** before applying a mutation to code that a build script
+runs over shipped content, ask **"does the real content still pass this?"**
+If not, the build gate will answer and the test will not. Prefer boundary
+mutations (`>=` to `>`, `<` to `<=`) over ones that change meaning wholesale
+(transposition, negation), because the shipped content usually sits well
+away from the boundary while the test fixture sits on it.
+
+Where the wholesale mutation is the one you actually need to guard against -
+a transposition genuinely is the realistic bug here - **put the guard
+somewhere the build gate cannot reach.**
+`is_wall_matches_both_coordinates_of_a_declared_wall` in `pack.rs` asserts
+the transposes and the cross products of its fixture's walls, and `pack.rs`
+is not on `build.rs`'s validation path, so that test stays conclusive.
+
+**How to verify:** read the failure output, not the exit code. A panic from
+`build.rs` saying "content is invalid" means the gate caught it; a test name
+and an assertion means the test did. Only the second is evidence about the
+test.

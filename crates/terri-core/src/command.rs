@@ -136,9 +136,22 @@ mod tests {
         // Order is load-bearing: two commands in one tick must apply in
         // the order the player issued them, or replay diverges.
         let mut q = CommandQueue::default();
+
+        // `is_empty` is asserted in BOTH directions, and the false case is
+        // the one that was missing. A queue holding two commands is the
+        // only input on which `is_empty -> true` is observable; with only
+        // the post-drain assertion below, that mutant survives the whole
+        // workspace. Task 1's report predicted it as an open concern and
+        // M1b Task 3's sweep confirmed it. Nothing outside this file
+        // consumes the queue yet, so no other test can stand in.
+        assert!(q.is_empty(), "a fresh queue holds nothing");
         q.push(SimCommand::Select(Some(1)));
         q.push(SimCommand::SetSpeed(3));
         assert_eq!(q.len(), 2);
+        assert!(
+            !q.is_empty(),
+            "a queue holding two commands must not report empty"
+        );
 
         let drained: Vec<_> = q.drain().collect();
         assert_eq!(

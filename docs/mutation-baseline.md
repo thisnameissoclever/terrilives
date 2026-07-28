@@ -4,17 +4,29 @@
 contract.** That file, not this one, is what CI compares against; it is the
 sorted contents of `mutants.out/missed.txt` from a full sweep.
 
-Re-recorded 2026-07-28 at the close of M1a, from a full sweep on a clean tree:
+Re-recorded 2026-07-28 at M1b Task 3, from a full sweep on a clean tree at
+`61b77fd`:
 
 ```
 cargo mutants --package terri-core --package terri-data --package terri-sim \
   --test-workspace true --timeout 60
-269 mutants tested in 14m: 5 missed, 237 caught, 27 unviable
+297 mutants tested in 15m: 5 missed, 252 caught, 40 unviable
 ```
 
-**Mutation score on viable mutants: 97.9%** (237 caught of 242 viable). The
-survivor set fell from 16 to 5 in this task, and the eleven closures are the
-whole of the change; no production code moved.
+**Mutation score on viable mutants: 98.1%** (252 caught of 257 viable).
+
+Read the survivor list carefully, because 5 is the same number as last time
+and means something different:
+
+- **Three** are the `grid.rs` entries carried since M1a Task 9.
+- **One** is `advertise.rs`, re-anchored from `42:18` to `79:18`; its
+  companion `42:36` was deleted outright rather than moved.
+- **One**, `command.rs:54:9`, is **not in the baseline file**, because it was
+  killed rather than accepted. It belongs to M1b Task 1 and this was the
+  first sweep to see it; the fix landed after this sweep ran, so the numbers
+  above are from a tree that still contains the gap.
+
+Net: `docs/mutants-baseline.txt` holds **four** entries, down from five.
 
 ## Read the three counts, not the score
 
@@ -29,24 +41,38 @@ say anything about the tests.
   not comparable across milestones, because [D9]'s build gate keeps moving
   mutants between the caught and unviable columns.
 
-**27 of the 269 are unviable, and 13 of those are unviable because of the
+**40 of the 297 are unviable, and 21 of those are unviable because of the
 content build gate rather than because of the type system.** They are mutants
 whose mutated code runs inside `terri-data`'s `build.rs`, rejects the real
-`content/*.toml`, and kills the build before any test runs. Six of the thirteen
-are in **`terri-core`**, not in the crate that owns the build script:
+`content/*.toml`, and kills the build before any test runs. Several are in
+**`terri-core`**, not in the crate that owns the build script:
 `NeedId::index`, `NeedId::as_str` and `NeedId::from_name` became build
 dependencies of the validator in M1a Task 5, and `terri-core`'s own tests used
 to catch them. Nothing is less safe - the build gate detects every one - but
-the sweep has stopped vouching for roughly a dozen tests that still exist and
-still work. See [L28]. To re-identify them in any future run:
+the sweep has stopped vouching for roughly two dozen tests that still exist
+and still work. See [L28], and [L35] for what that means when you are
+designing a mutation by hand. To re-identify them in any future run:
 
 ```bash
 grep -lE "content is invalid" mutants.out/log/*.log | wc -l
 ```
 
-Measured here: **13**, unchanged from Task 5. If that number and the caught
-count move together in opposite directions, coverage has shifted out of the
-test suite and into the build again.
+Measured: **13** at M1a Task 5, **21** at M1b Task 3. The jump is
+`content/lot.toml` entering the gate with five new validation rules over it.
+If that number and the caught count move together in opposite directions,
+coverage has shifted out of the test suite and into the build again.
+
+Unviable by file at M1b Task 3, for whoever compares next:
+
+| File | Unviable |
+|---|---|
+| `terri-data/src/compile.rs` | 17 |
+| `terri-core/src/needs.rs` | 9 |
+| `terri-core/src/hash.rs` | 5 |
+| `terri-core/src/command.rs` | 4 |
+| `terri-core/src/grid.rs` | 2 |
+| `terri-data/src/pack.rs` | 2 |
+| `terri-data/src/lib.rs` | 1 |
 
 ## What this file is for, and the failure mode it exists to avoid
 
@@ -75,11 +101,16 @@ introduces the whole codebase: the diff is everything, the run degenerates into
 a full sweep, and it fails on accepted debt. Diffing against a committed
 baseline needs no special case.
 
-## The five accepted survivors
+## The four accepted survivors
+
+Was five. M1b Task 3 removed one by removing the operator it mutated; see
+the `advertise.rs` section below.
 
 ### `grid.rs:102:43` and `102:63` - the neighbour offsets - EQUIVALENT
 
-**Re-derived in this task.** Argument:
+**Carried on trust since M1a Task 9.** `NEIGHBOURS` has not been touched
+since, and the expiry condition below names the edit that would invalidate
+it. Argument:
 
 ```rust
 const NEIGHBOURS: [(i32, i32); 4] = [(1, 0), (-1, 0), (0, 1), (0, -1)];
@@ -113,9 +144,11 @@ directional portal does not. Whoever edits that array owns re-checking this.
 
 ### `grid.rs:115:44` - the f-score - A REAL GAP, not an equivalent mutant
 
-**Re-derived in this task, and the conclusion changed from the previous
-wording.** The old file filed this under "real test gaps" with no analysis;
-here is the analysis, because it is what a future test has to exploit.
+**Analysed at M1a Task 9 and carried on trust since**, with one M1b Task 3
+update at the end of this section: the lot now has walls, which changes what
+it would take to kill this. The old file filed it under "real test gaps"
+with no analysis; here is the analysis, because it is what a future test has
+to exploit.
 
 ```rust
 f_score: tentative + heuristic(next, to),   // mutant: tentative * heuristic(...)
@@ -135,54 +168,75 @@ route to touch the goal is already a shortest one.
 
 **What would kill it:** a layout with two routes to the goal of *different*
 lengths where the longer one reaches the goal's neighbourhood first. Not
-attempted here, because finding one is search rather than reasoning and this
-task's budget went to the eleven closures below. It is the single most valuable
-remaining entry in this file - it is the only survivor that can produce a wrong
-answer rather than merely an unobservable one.
+attempted at M1a Task 9, because finding one is search rather than reasoning
+and that task's budget went to the eleven closures below. It is the single
+most valuable remaining entry in this file - it is the only survivor that can
+produce a wrong answer rather than merely an unobservable one.
 
-### `advertise.rs:42:18` and `42:36` - the NaN guard - EQUIVALENT
+**M1b Task 3 makes such a layout cheap to find, and that is new.**
+`content/lot.toml` walls a bathroom off behind a single doorway at
+`(16, 5)`, which is exactly the shape this needs: a goal inside the bathroom
+has one long route through the door, and the direct approach reaches the
+goal's neighbourhood first while being separated from it by a wall. Nobody
+had a reason to build such a layout before, because M0's lot was one open
+room. Whoever next attends to this entry should start from the shipped lot
+rather than inventing a grid.
 
-**Re-derived in this task**, and these are the two entries the CI gate was
-about to fail on: M1a Task 6 moved them from line 32 to line 42, and a
-byte-for-byte comparison reads a shifted line as a new survivor.
+### `advertise.rs:79:18` - the deficit clause of the NaN guard - EQUIVALENT
+
+**Re-derived in M1b Task 3**, where the guard changed shape and moved from
+line 42 to line 79. Both halves of that sentence matter: CI compares
+survivor strings byte for byte, so the line move alone would read as a new
+survivor plus a stale entry, and the shape change means the previous
+argument had to be redone rather than carried.
 
 ```rust
+// M1a
 if !(deficit > 0.0) || !(delta > 0.0) || !(distance >= 0.0) {
-    return 0.0;
-}
+// M1b Task 3
+if !(deficit > 0.0) || !delta.is_finite() || !(distance >= 0.0) {
 ```
 
-`>` and `>=` differ on exactly one input each: `deficit == 0.0`, and
-`delta == 0.0`. On both, the two programs return the same value.
+**The companion entry `42:36` is gone rather than re-anchored.** That was
+the `>` on the delta clause, and the clause is no longer a comparison:
+negative advertised deltas are legal content from M1b Task 3, so only a
+non-finite delta is rejected. There is no operator left to mutate. See
+`docs/specs/2026-07-28-m1b-playable-alpha-design.md` [D-6] for the decision
+and `score_advertisement`'s doc comment for what a negative delta means.
+
+The remaining entry is `>` mutated to `>=` on the deficit. The two differ on
+exactly one input, `deficit == 0.0`, and on that input they return the same
+value.
 
 - With `>`, the guard fires and the function returns `0.0`.
-- With `>=`, the guard does not fire, and the function computes
+- With `>=`, the guard does not fire and the function computes
   `(urgency * delta) / (time_cost + 1.0)`. `urgency` is `d * d * d` over a
-  value clamped to `0.0..=1.0`, so it is in `0.0..=1.0`; the denominator is at
-  least `1.0` because the third guard has already established
-  `distance >= 0.0`. Either the numerator's `urgency` is zero (the deficit
-  case) or its `delta` is zero (the delta case), so the quotient is `0.0`.
+  value clamped to `0.0..=1.0`, and here `d` is exactly `0.0`, so the
+  numerator is zero. The denominator is at least `1.0`, because the third
+  clause has already established `distance >= 0.0`. The quotient is `0.0`.
 
-The one input where the two genuinely take different branches is
-`delta == -0.0`, which content validation accepts because `-0.0 < 0.0` is
-false. There the mutant reaches the arithmetic and produces `-0.0`. That is
-still `== 0.0` under every f32 comparison the caller makes - `score += ...`,
-`score > best_score`, `score > ACTION_THRESHOLD` - so no observable behaviour
-differs, and no assertion could tell them apart without inspecting the sign
-bit.
+**The negative-delta case does not break this, and it is the part that had
+to be re-derived.** With `delta < 0.0` the mutant's numerator is
+`0.0 * negative`, which is `-0.0`. That is `== 0.0` under every comparison
+the caller makes - `score += ...`, `score > best_score`,
+`score > ACTION_THRESHOLD` - so no observable behaviour differs, and no
+assertion could separate them without inspecting the sign bit. The same
+argument that made the old `delta == -0.0` edge case unobservable now
+covers the whole negative half of the delta domain.
 
 **Note the asymmetry with the third clause.** `distance >= 0.0` mutated to
 `> 0.0` is **caught**, and correctly: a distance of exactly zero is an agent
 already standing on the object, which must score normally rather than zero.
-That clause is a range check; the other two are NaN rejections that happen to
-be written as comparisons. The guard is a single line doing two different jobs,
-which is why one third of it is killable and two thirds are not.
+That clause is a range check; the deficit clause is a NaN rejection that
+happens to be written as a comparison. One line, two jobs, which is why half
+of it is killable and half is not.
 
 **When this expires:** if `score_advertisement` ever returns something other
 than a plain product over the clamped urgency - a floor, an additive term, a
 different denominator - the "both sides reach 0.0" argument has to be redone.
+Adding a floor is the likely one now that scores can be negative.
 
-## Closed in this task (11 mutants, no production code changed)
+## Closed in M1a Task 9 (11 mutants, no production code changed)
 
 Every one was verified by hand as well as by the sweep, per rule 1 of
 `testing-protocol.md`: mutation applied, suite run, failing test recorded,
@@ -225,7 +279,7 @@ The sibling mutants on lines 16 and 17 are unviable rather than caught, because
 `i64::MIN * 2` overflows at compile time. That is [L21] again: the type system
 guards two of the three and only the third needed a test.
 
-## Removed from the baseline in this task (4 entries, none of them debt)
+## Removed from the baseline in M1a Task 9 (4 entries, none of them debt)
 
 | Entry | Why it went |
 |---|---|
@@ -241,6 +295,41 @@ job on the first PR of the branch. Task 7 measured this and left it for Task 9
 deliberately. Before believing a survivor is new, normalise the line numbers
 and compare again: **a survivor at a shifted line needs a renumber, and a
 genuinely new one needs a test.**
+
+## M1b Task 3 (lot content, walls and placements)
+
+**Negative advertised deltas are now legal content**, and this file records
+the decision because M1a's rejection of them was baselined behaviour rather
+than an accident. The argument is in `score_advertisement`'s doc comment and
+in [D-6]; the short version is that a cost is weighted by the cube of the
+deficit of the need it drains, exactly as a benefit is weighted by the need
+it fills, so an exhausted sim refuses a shower a rested one takes. The
+mutation-relevant consequence is that `advertise.rs`'s delta clause stopped
+being a comparison, which deleted one baseline entry outright rather than
+re-anchoring it.
+
+**One survivor closed, and it was not this task's code.** M1b Task 1 shipped
+`CommandQueue::is_empty` with no test that could see
+`is_empty -> true`: the only assertion was on an already-drained queue,
+where `true` is the right answer. Task 1's own report predicted it as an
+open concern ([C5]) and this was the first sweep to confirm it. Killed
+rather than baselined, per rule 1, by asserting `is_empty` in **both**
+directions in `the_queue_drains_in_order_and_empties`. Nothing outside
+`command.rs` consumes the queue yet, so no other test could have stood in.
+
+**Five new validation rules entered `terri-data`'s build gate**, which
+widens [L28] again: a mutation to `compile_lot` that rejects the shipped
+`content/lot.toml` aborts the build before any test runs, so it is reported
+unviable rather than caught. The recorded instance is transposing
+`x >= lot.width || y >= lot.height`, which the 24x18 shipped lot rejects at
+`(18, 8)`. By [L21] that is no evidence about the test. The transposition is
+guarded instead by `is_wall_matches_both_coordinates_of_a_declared_wall` in
+`pack.rs`, which the build gate cannot shadow because it never runs there.
+Re-measure the build-gated count each sweep:
+
+```bash
+grep -lE "content is invalid" mutants.out/log/*.log | wc -l
+```
 
 ## What the sweep cannot see, which is most of what matters
 
@@ -309,6 +398,14 @@ Task 4 and the build gate changed the caught/unviable split in Task 5.
 | M1a Task 6 | 269 | 16 | 226 | 27 | 2 closed by new selection tests |
 | M1a Task 7 | 269 | 16 | 226 | 27 | Every figure identical to Task 6 |
 | **M1a Task 9** | **269** | **5** | **237** | **27** | **11 closed; baseline rewritten** |
+| **M1b Task 3** | **297** | **5** | **252** | **40** | **1 closed, 1 deleted, 1 re-anchored; baseline down to 4** |
+
+The M1b Task 3 row is the one to read carefully. Missed stayed at 5 while
+the set changed completely in composition: `advertise.rs:42:36` ceased to
+exist, `command.rs:54:9` appeared from Task 1's untested `is_empty` and was
+killed, and the remaining four are the accepted set. **Twenty-eight new
+mutants entered the sweep** with the lot schema and validator, and **none of
+them survived**.
 
 The 2026-07-27 entry for Task 4 recorded a first `terri-data` run with **1**
 missed - `compile.rs:24:14: replace < with <= in check_number`, meaning nothing
