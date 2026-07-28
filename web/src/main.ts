@@ -86,7 +86,15 @@ async function main(): Promise<void> {
   // cosmetic mistake: `find_path` refuses an unwalkable destination, so
   // the agent would stand still forever with nothing logged anywhere.
   // See [L17], which cost a misdiagnosis of the renderer.
-  sim.spawnObject(12, 10);
+  //
+  // Checked rather than ignored: the id is resolved against the compiled
+  // content pack, so renaming the object in content/objects.toml without
+  // updating this line would otherwise leave a lot with a hungry agent
+  // and nothing to eat, which looks like a simulation bug rather than a
+  // content one. main()'s catch below surfaces it.
+  if (!sim.spawnObject(12, 10, 'fridge')) {
+    throw new Error("content declares no smart object with id 'fridge'");
+  }
   sim.spawnAgent(2, 3, 25);
 
   // ?stress=1000 spawns idle filler entities to exercise the M0 exit

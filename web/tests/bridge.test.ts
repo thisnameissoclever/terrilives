@@ -21,7 +21,7 @@ beforeAll(async () => {
 describe('SimBridge', () => {
   it('reads spawned positions without copying', () => {
     const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
-    bridge.spawnObject(4, 5);
+    bridge.spawnObject(4, 5, 'fridge');
     bridge.spawnAgent(1, 2, 50);
 
     expect(bridge.count).toBe(2);
@@ -38,16 +38,42 @@ describe('SimBridge', () => {
 
   it('tags agents and objects distinctly', () => {
     const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
-    bridge.spawnObject(4, 5);
+    bridge.spawnObject(4, 5, 'fridge');
     bridge.spawnAgent(1, 2, 50);
     const kinds = bridge.kinds();
     expect(kinds[0]).toBe(1);
     expect(kinds[1]).toBe(0);
   });
 
+  it('rejects an unknown content id without trapping the wasm module', () => {
+    // The Rust-side twin of this lives in crates/terri-wasm/src/lib.rs.
+    // This one is not redundant with it, and the reason is [L12]: the
+    // native test runs in a debug build, and the artifact that ships is
+    // the release build wasm-pack produces. A check that exists only in
+    // debug passes there and is absent here. This test runs against the
+    // real released module, so it is the one that shows the check ships.
+    //
+    // The mutation it is written against is `expect`/`unwrap` on the
+    // lookup. Note what that does to a wasm module specifically: a panic
+    // unwinds into a JS exception AND leaves the instance permanently
+    // trapped, so it is not one failed call, it is the end of the
+    // session. The two assertions after the rejection are what tell a
+    // returned `false` apart from a trap, since on a trapped module
+    // every later call throws instead of returning.
+    const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
+    expect(bridge.spawnObject(4, 5, 'fridge')).toBe(true);
+
+    expect(bridge.spawnObject(4, 6, 'no_such_object')).toBe(false);
+    expect(bridge.count).toBe(1);
+
+    expect(bridge.spawnObject(6, 7, 'fridge')).toBe(true);
+    bridge.tick();
+    expect(bridge.count).toBe(2);
+  });
+
   it('moves an agent toward the fridge over ticks', () => {
     const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
-    bridge.spawnObject(12, 1);
+    bridge.spawnObject(12, 1, 'fridge');
     bridge.spawnAgent(1, 1, 20);
 
     const startX = bridge.positions()[2];
@@ -126,7 +152,7 @@ describe('SimBridge', () => {
     // finding about this project's determinism guarantees. Do not adjust
     // the constant to match; report the divergence.
     const bridge = new SimBridge(new SimHandle(24, 24), wasmMemory);
-    bridge.spawnObject(18, 14);
+    bridge.spawnObject(18, 14, 'fridge');
     for (let i = 0; i < 8; i++) {
       bridge.spawnAgent(1 + i, 1, 30 + 5 * i);
     }
@@ -164,7 +190,7 @@ describe('SimBridge', () => {
 
   it('exposes the world hash as a bigint that tracks simulation state', () => {
     const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
-    bridge.spawnObject(12, 1);
+    bridge.spawnObject(12, 1, 'fridge');
     bridge.spawnAgent(1, 1, 20);
 
     const before = bridge.worldHash();

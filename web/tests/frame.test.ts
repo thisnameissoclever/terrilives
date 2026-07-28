@@ -435,7 +435,7 @@ describe('buildInstances over a real SimBridge', () => {
     // `a + (b - a) * 0`, which is exactly `a`, and both sides of each
     // comparison run the identical projection over identical inputs.
     const bridge = new SimBridge(new SimHandle(GRID, GRID), wasmMemory);
-    bridge.spawnObject(12, 2);
+    bridge.spawnObject(12, 2, 'fridge');
     bridge.spawnAgent(1, 1, 20);
     for (let i = 0; i < 5; i++) bridge.tick();
 
