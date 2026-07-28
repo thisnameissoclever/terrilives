@@ -7,10 +7,18 @@
 /// test fails.
 pub const TILES_PER_TICK: f32 = 0.25;
 
-/// Score one advertised interaction for one agent. Higher wins.
+/// Score ONE advertised need of one interaction, for one agent. Higher
+/// wins.
 ///
 /// The shape is: benefit scaled by how badly the need is felt, divided
 /// by the total time cost of getting there and doing it.
+///
+/// An interaction advertises a sparse list of (need, delta) pairs, and
+/// `select_action` sums this function over the list. Keeping the
+/// per-need score here rather than taking the whole advert is what makes
+/// the nonlinearity apply to each need separately: urgency is cubic, so
+/// summing the deltas first and cubing once would let a satisfied need
+/// inflate the weight given to a desperate one.
 pub fn score_advertisement(deficit: f32, delta: f32, duration_ticks: u32, distance: f32) -> f32 {
     // Written as negated `>` / `>=` rather than `<=` / `<` so that NaN
     // is rejected. Every comparison against NaN is false, so `NaN <= 0.0`
@@ -18,8 +26,10 @@ pub fn score_advertisement(deficit: f32, delta: f32, duration_ticks: u32, distan
     // arithmetic then propagates it all the way to the result. NaN is
     // reachable: `Needs::set` clamps, but `f32::clamp` PROPAGATES NaN
     // rather than replacing it, so a NaN level stores successfully and
-    // yields a NaN deficit. `SmartObject::hunger_delta` is public and
-    // will eventually be loaded from content files.
+    // yields a NaN deficit. The delta comes from the content pack, whose
+    // build-time validation rejects a non-finite one - but this function
+    // takes a bare `f32` and cannot see that, and the deficit has no
+    // such gate at all.
     //
     // The resulting failure is silent and total, which is what makes it
     // worth guarding. Selection compares scores with `>`, and NaN loses

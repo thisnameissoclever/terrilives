@@ -1,30 +1,35 @@
 use bevy_ecs::prelude::*;
 use terri_core::{NeedId, Needs};
 
-/// Hunger lost per tick (one sim-minute). At this rate a sim goes from
-/// full to empty in roughly 16 sim-hours, which leaves room for sleep.
-pub const HUNGER_DECAY_PER_TICK: f32 = 0.104;
+use crate::Content;
 
-/// Only hunger decays. All seven needs now exist and are hashed, but
-/// their decay rates come from the content pack, which does not exist
-/// yet; giving the other six a hardcoded rate here would be the very
-/// coupling this milestone removes. They hold at `NEED_MAX` until then,
-/// which is also what keeps existing behaviour unchanged: a satisfied
-/// need has zero deficit and scores zero against every advertisement.
-pub fn decay_needs(mut query: Query<&mut Needs>) {
+/// Only hunger decays, at the rate `content/needs.toml` declares for it.
+///
+/// The rate used to be a `HUNGER_DECAY_PER_TICK` constant here as well as
+/// a row in the content file: two copies of one number with nothing
+/// asserting they agreed. The content file is now the only copy.
+///
+/// The other six needs hold at their spawn level. All seven have decay
+/// rates in content already, and Task 7 is where the loop widens to use
+/// them; keeping this to hunger is what makes the `SmartObject` migration
+/// a behaviour-preserving change on its own, with the world-hash golden
+/// vectors as the evidence.
+pub fn decay_needs(content: Res<Content>, mut query: Query<&mut Needs>) {
+    let hunger = content.0.decay_per_tick[NeedId::Hunger.index()];
     for mut needs in &mut query {
-        needs.drain(NeedId::Hunger, HUNGER_DECAY_PER_TICK);
+        needs.drain(NeedId::Hunger, hunger);
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_content::hunger_decay_per_tick;
     use crate::Sim;
     use terri_core::{Agent, Position, SimClock};
 
     #[test]
-    fn hunger_decays_over_ticks() {
+    fn hunger_decays_at_the_rate_content_declares() {
         let mut sim = Sim::new();
         let id = sim
             .world_mut()
@@ -41,14 +46,22 @@ mod tests {
 
         let needs = sim.world().get::<Needs>(id).unwrap();
         let hunger = needs.get(NeedId::Hunger);
-        let expected = 100.0 - (HUNGER_DECAY_PER_TICK * 100.0);
+        // Read from the pack rather than restated as a literal. The
+        // rate has one home now, and a test that spelled 0.104 out again
+        // would recreate the duplication this task removed - and would
+        // pass while the simulation used a different number.
+        let rate = hunger_decay_per_tick();
+        assert!(rate > 0.0, "a zero rate would make this test vacuous");
+        let expected = 100.0 - (rate * 100.0);
         assert!(
             (hunger - expected).abs() < 0.001,
             "expected ~{expected}, got {hunger}"
         );
         // Decay must reach hunger and nothing else. Draining the whole
         // array would leave the assertion above green while silently
-        // starving six needs nothing has decay rates for yet.
+        // starving six needs the simulation does not yet apply rates to,
+        // and would move both world-hash golden vectors. Task 7 is where
+        // that becomes intended; until then it is a regression.
         for id in NeedId::ALL {
             if id != NeedId::Hunger {
                 assert_eq!(

@@ -5,4 +5,9 @@ version.workspace = true
 
 [dependencies]
 terri-core = { path = "../terri-core" }
+# The simulation resolves `SmartObject` ids and need decay rates through
+# the compiled content pack, so it depends on the content crate. This is
+# the layer where that is allowed: `terri-core` must not, because
+# `terri-data` depends on IT.
+terri-data = { path = "../terri-data" }
 bevy_ecs = { workspace = true }

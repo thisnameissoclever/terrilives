@@ -2,10 +2,21 @@
 
 pub mod render_buffer;
 pub mod systems;
+#[cfg(test)]
+pub mod test_content;
 
 use bevy_ecs::prelude::*;
 use bevy_ecs::schedule::ExecutorKind;
 use terri_core::SimClock;
+
+/// The content pack, as a resource so systems can resolve object ids and
+/// decay rates. Holds a `&'static` because the pack is embedded at build
+/// time and deserialised once.
+///
+/// Systems read this rather than calling `terri_data::pack()` directly,
+/// which is what lets a test point a world at a pack of its own.
+#[derive(Resource, Debug, Clone, Copy)]
+pub struct Content(pub &'static terri_data::ContentPack);
 
 /// Owns the ECS world and the tick schedule.
 pub struct Sim {
@@ -31,6 +42,7 @@ impl Sim {
         // A placeholder lot so Res<TileGrid> never panics. Callers that
         // care about the lot use new_with_lot, which replaces this.
         world.insert_resource(terri_core::TileGrid::new(1, 1));
+        world.insert_resource(Content(terri_data::pack()));
 
         // Register components eagerly. This is NOT optional bookkeeping:
         // World::try_query returns None if ANY component in the query is
@@ -236,18 +248,16 @@ fn advance_clock(mut clock: ResMut<SimClock>) {
 #[cfg(test)]
 mod determinism_tests {
     use super::*;
-    use terri_core::{Agent, Eating, NeedId, Needs, Position, SmartObject};
+    use crate::test_content::shipped_fridge;
+    use terri_core::{Agent, Eating, NeedId, Needs, Position};
 
     fn build_scenario() -> Sim {
         let mut sim = Sim::new_with_lot(24, 24);
-        sim.world_mut().spawn((
-            Position { x: 18.0, y: 14.0 },
-            SmartObject {
-                hunger_delta: 40.0,
-                duration_ticks: 15,
-                slots: 1,
-            },
-        ));
+        // The shipped fridge, deliberately: the golden vector below is
+        // only a statement about the game if the scenario is built out of
+        // the content the game ships.
+        sim.world_mut()
+            .spawn((Position { x: 18.0, y: 14.0 }, shipped_fridge()));
         for i in 0..8 {
             sim.world_mut().spawn((
                 Agent,
@@ -561,8 +571,9 @@ mod determinism_tests {
         let bystander = b.world_mut().spawn(Position { x: 23.0, y: 23.0 }).id();
         let victim = lowest_indexed_agent(&b);
         b.world_mut().entity_mut(victim).insert(Eating {
+            object: shipped_fridge().0,
+            interaction: 0,
             remaining_ticks: 1,
-            delta_per_tick: 0.0,
         });
         b.world_mut().entity_mut(victim).remove::<Eating>();
 

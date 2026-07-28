@@ -2,7 +2,7 @@
 //! Nothing in here may contain simulation logic.
 
 use terri_core::{Agent, NeedId, Needs, Position, SmartObject, NEED_MAX, NEED_MIN};
-use terri_sim::Sim;
+use terri_sim::{Content, Sim};
 use wasm_bindgen::prelude::*;
 
 /// The level a non-finite hunger argument is replaced with. Either end of
@@ -111,17 +111,29 @@ impl SimHandle {
 
     /// Coordinates are sanitised here rather than trusted. See
     /// [`sanitize_coord`].
+    ///
+    /// Which object gets placed is still hardcoded to the fridge; the
+    /// change here is only that its advert now comes from the content
+    /// pack instead of from a literal. Task 8 makes the content id a
+    /// caller-supplied argument, at which point it becomes untrusted
+    /// input and gets rejected rather than resolved with `expect`.
+    ///
+    /// The pack is read through the sim's own `Content` resource rather
+    /// than by calling `terri_data::pack()`, so this places the object
+    /// the running simulation will actually resolve.
     pub fn spawn_object(&mut self, x: f32, y: f32) {
         let x = sanitize_coord(x);
         let y = sanitize_coord(y);
-        self.sim.world_mut().spawn((
-            Position { x, y },
-            SmartObject {
-                hunger_delta: 40.0,
-                duration_ticks: 15,
-                slots: 1,
-            },
-        ));
+        let fridge = self
+            .sim
+            .world()
+            .resource::<Content>()
+            .0
+            .find("fridge")
+            .expect("content/objects.toml declares a fridge");
+        self.sim
+            .world_mut()
+            .spawn((Position { x, y }, SmartObject(fridge)));
         self.sim.sync_render_buffer();
     }
 

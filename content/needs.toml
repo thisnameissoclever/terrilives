@@ -7,11 +7,14 @@
 # Hunger keeps M0's rate; the rest are first guesses to be balanced in
 # M1b.
 #
-# Until the simulation reads this pack, hunger's rate exists twice: here
-# and as HUNGER_DECAY_PER_TICK in crates/terri-sim/src/systems/needs.rs,
-# which still owns decay. Nothing yet asserts the two agree, so change
-# both or neither. The duplication goes away when terri-sim starts
-# reading the pack.
+# This file is the ONLY home of hunger's rate: `decay_needs` reads it out
+# of the compiled pack. Changing the number here changes the simulation,
+# and the world-hash golden vectors in crates/terri-sim/src/lib.rs and
+# web/tests/bridge.test.ts will move - which is the intended signal, not
+# a rebase artifact.
+#
+# The other six rates are compiled and validated but not yet applied;
+# only hunger decays until Task 7 widens the loop.
 
 [[need]]
 id = "hunger"

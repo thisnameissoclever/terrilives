@@ -20,17 +20,10 @@ pub struct RenderBuffer {
 
 #[cfg(test)]
 mod tests {
+    use crate::test_content::shipped_fridge as a_smart_object;
     use crate::Sim;
     use bevy_ecs::prelude::*;
-    use terri_core::{Agent, Eating, NeedId, Needs, Position, SmartObject};
-
-    fn a_smart_object() -> SmartObject {
-        SmartObject {
-            hunger_delta: 40.0,
-            duration_ticks: 15,
-            slots: 1,
-        }
-    }
+    use terri_core::{Agent, Eating, NeedId, Needs, Position};
 
     /// Entity indices in the raw order `sync_render_buffer`'s query
     /// yields them, with no sorting applied. This is precisely the order
@@ -202,8 +195,9 @@ mod tests {
         // removed. Applied between syncs, where no system observes it, so
         // nothing about the simulation's own state changes.
         sim.world_mut().entity_mut(ids[0]).insert(Eating {
+            object: a_smart_object().0,
+            interaction: 0,
             remaining_ticks: 1,
-            delta_per_tick: 0.0,
         });
         sim.world_mut().entity_mut(ids[0]).remove::<Eating>();
 
