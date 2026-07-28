@@ -304,6 +304,66 @@ Demonstrate the gate: place an object outside the lot, confirm `cargo build` fai
 
 ---
 
+### Task 3b: Load the lot, and make scoring wall-aware
+
+**Added after Task 3, which found the plan had no task for either.** Both are
+prerequisites for Task 8's play session meaning anything.
+
+**Files:**
+- Modify: `crates/terri-sim/src/lib.rs`, `src/systems/action.rs`, `crates/terri-wasm/src/lib.rs`, `web/src/main.ts`
+
+**Interfaces:**
+- Produces: `Sim::new_from_lot(&CompiledLot) -> Sim`, which sizes the grid, marks walls unwalkable, and spawns the placed objects
+
+**[1] Nothing loads the lot.** `pack().lot` is validated and reachable, but
+`main.ts` still hardcodes a 16x16 room containing one fridge. The play session
+would be run on the old room, against none of the content Task 3 authored.
+
+This **will move the golden world hash**, because it is a real change to what
+gets spawned. Update both sites deliberately, observing the wasm32 value rather
+than assuming it matches native ([L13]).
+
+**[2] Scoring measures straight-line distance, and walls now exist.**
+`select_action`'s own comment says to revisit this "when walls become common".
+A sim will score the shower as one tile away through the bathroom wall, then
+walk around to the door - so its ranking disagrees with its own pathing, which
+reads as a sim that wants something and then changes its mind.
+
+**Use actual path length**, via the existing A*. At this scale - one agent,
+eight objects - pathing every candidate each tick is trivially cheap, and M0's
+"far too expensive" reasoning was about a thousand agents and a hundred thousand
+objects.
+
+**Why this is not a corner.** [D7] plans room-graph distance for exactly this
+problem at scale. Both A* length and room-graph length are **wall-aware**, so
+balance tuned against one survives the swap; tuning against Euclidean would not.
+The metric is what matters, not the implementation. Say so in a comment so the
+next person does not "optimise" it back to a straight line.
+
+Note `find_path` returns `None` for an unreachable object. That must score as
+unavailable rather than as free, and it interacts with the known debt that an
+unreachable best object currently retries every tick with no runner-up fallback.
+A lot with walls is the first configuration where that can actually happen.
+
+- [ ] **Step 1: Write a failing test that a walled-off object loses to a nearer-by-path one**
+
+Two objects advertising the same need with the same delta: one closer in a
+straight line but behind a wall, one further in a straight line but directly
+reachable. The reachable one must win. Assert the straight-line ordering is the
+opposite, as a precondition, or the test proves nothing.
+
+- [ ] **Step 2: Implement `Sim::new_from_lot`, verify, and update both golden vectors**
+
+- [ ] **Step 3: Switch scoring to path length, verify, mutation-check**
+
+Mutation: revert to Euclidean. The Step 1 test must fail.
+
+- [ ] **Step 4: Wire `main.ts` to the lot, look at it in a browser, full gate, commit**
+
+Confirm frames are genuinely produced ([L14]).
+
+---
+
 ### Task 4: `Selected` and `IntentQueue`
 
 **Files:**
