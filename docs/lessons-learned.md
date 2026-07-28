@@ -1666,3 +1666,38 @@ beside it:
 fails naming the changed bytes; `commands_round_trip_through_postcard` passes.
 Restore from a scratchpad byte snapshot, never with `git checkout` ([L9]), and
 touch the file ([L8]).
+
+---
+
+## [L34] A suite whose inputs are all integers cannot detect rounding
+
+**What happened:** `screenToWorld` shipped with three tests, including a
+round-trip over six coordinate pairs. Wrapping both results in `Math.round`
+left all three green. A fourth test with a fractional input caught it
+immediately.
+
+**Root cause:** every input was a point that `worldToScreen` had produced from
+**integer** world coordinates, so the correct answer was always an integer and
+rounding was a no-op. Adding more coordinate pairs would not have helped - the
+suite was not too small, its **input domain was degenerate**. Six points that
+all share the property you failed to vary are one point.
+
+This differs from the earlier entries in this file. [L5] and [L7] are about the
+shape of the assertion; this one is about the shape of the **inputs**. A test
+can assert exactly the right thing, causally, and still be blind because nothing
+it feeds in can distinguish the two implementations.
+
+**Why it matters that the mutation was realistic:** the caller wants a tile
+index, so "just make `screenToWorld` round to the tile" is the obvious-looking
+simplification someone makes later while tidying. The suite would have approved
+it, and picking would then be correct at tile centres and wrong everywhere else -
+which reads as a rendering problem, not an input one.
+
+**Prevention rule:** for any function over a continuous domain, **ask what
+property every input shares**, and add one that breaks it. Integers hide
+rounding and truncation. Positive values hide sign errors. Symmetric values hide
+transposition. Zero hides almost everything.
+
+**How to verify:** apply the degenerate implementation - round it, take the
+absolute value, transpose the arguments - and check the suite fails. If it
+passes, the inputs are the problem, not the assertions.
