@@ -586,6 +586,19 @@ constant, assert it from both, and say in each place that the other exists -
 otherwise the next person to legitimately move the constant updates one copy
 and the pair silently stops being a comparison.
 
+**Numbers in this entry are stale by design; the procedure is not. Noted at
+the M1a close-out, 2026-07-28.** `0xEF601D5047905825` was the vector when this
+was written and it has legitimately moved twice since: to
+`0x6C3757F1848175C1` when `Hunger` became `Needs` (M1a Task 2), and to
+`0x2FC669EFA7254F2D` when all seven needs started decaying (M1a Task 7). Both
+moves were re-observed on native and on wasm32 separately rather than assumed
+equal, which is the practice this entry exists to establish. The
+`expected 14804735595947770788n to be 17248818803464230949n` below is likewise
+the failure output of that era. **Read every constant here as an example of
+the shape, and take the current value from
+`crates/terri-sim/src/lib.rs`.** A golden vector that never moves is a golden
+vector nobody is exercising.
+
 **How to verify:** the constant now appears twice, in
 `crates/terri-sim/src/lib.rs` and `web/tests/bridge.test.ts`, each pointing at
 the other. To confirm the web side is real rather than decorative, delete
@@ -1543,3 +1556,60 @@ and run `cargo test --workspace`. Exactly
 own `needs_clamp_to_range` stays green under it, because it too only drains
 hunger. Restore from a scratchpad byte snapshot, never with `git checkout`
 ([L9]), and touch the file ([L8]).
+
+---
+
+## [L32] Most accepted mutation debt was cheaper to kill than to keep arguing for
+
+**What happened:** the M1a close-out triaged all 16 surviving mutants properly
+for the first time, instead of confirming the count had not grown. **Eleven of
+the sixteen died to four small tests and no production change at all.** They
+had been in `docs/mutants-baseline.txt` for five milestones, each behind a
+one-line justification in `docs/mutation-baseline.md` that read as settled:
+
+| Baselined as | Actually |
+|---|---|
+| "No consumer until M3" (`is_hour_boundary`) | 12 lines of test, and the "tick 0 is a boundary" decision was undocumented in code |
+| "Unused accessors" (`width`, `height`) | Reachable all along; a **square** fixture made them interchangeable |
+| "Real test gap", pathfinding (4) | Three of the four were one direct assertion on `heuristic` |
+| "Hash (2)" | A latent NaN/`i64::MIN` digest collision, one `assert_ne!` away |
+
+None of that required insight. It required someone to ask, per survivor,
+"what would kill this?" rather than "is this the same set as last time?"
+
+**Root cause, and it is about the gate rather than about the code.** The CI
+gate is *no new survivors*, which is the right gate: a wall of known noise gets
+ignored, and that is the failure this whole discipline exists to prevent. But
+"no new survivors" makes an existing survivor **free**. Nothing costs anything
+until the day the set changes, so an entry written once is never re-read, and
+the cheapest possible action at every sweep is to confirm the diff is empty.
+The file drifts from a ledger of deliberate decisions into a list of things
+nobody has looked at, and it looks identical either way.
+
+The two flavours compound. A **wrong** justification ([L30]: an equivalent
+mutant that stopped being equivalent) and a **lazy** one ("unused accessors")
+produce the same green diff, so no amount of watching the gate distinguishes
+them.
+
+**Prevention rule:**
+
+1. **If the argument for accepting a survivor is shorter to write than the test
+   that would kill it, write the test.** That is a genuinely usable threshold,
+   and it disqualified eleven of sixteen entries here.
+2. **"Nothing uses it" is a reason to test it, not a reason to baseline it.**
+   An unused public function is behaviour with *no* constraint on it rather
+   than weak constraint, and it will acquire its first caller in a task that is
+   busy doing something else.
+3. **Re-derive every accepted argument at each milestone close-out, and say in
+   the file which ones you actually re-derived and which you carried on
+   trust.** [L30] says an argument expires; this says the expiry is invisible
+   unless someone schedules the check. The close-out is the schedule.
+4. Where the survivor is genuinely equivalent, **write down the condition that
+   would end the equivalence** - "`NEIGHBOURS` is closed under negation",
+   "`score_advertisement` is a plain product over a clamped urgency" - so the
+   next reader can check one sentence instead of re-deriving the proof.
+
+**How to verify:** the eleven closures are listed with their killing tests in
+`docs/mutation-baseline.md`. The survivor count went from 16 to 5 with no
+production code changed, so `cargo test --workspace` before and after the
+tests differs by exactly 4 tests and the world-hash golden vectors do not move.

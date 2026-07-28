@@ -1,14 +1,15 @@
 # Features
 
-Status: proposed scope, not yet agreed in detail. Milestones exist primarily
-to control [R6], which is the risk most likely to actually kill this project.
+Status: M0 shipped; M1a shipped. Everything from M1b onwards is proposed scope,
+not yet agreed in detail. Milestones exist primarily to control [R6], which is
+the risk most likely to actually kill this project.
 
 The rule: **each milestone must end in something playable.** No milestone is
 allowed to be pure infrastructure with a payoff deferred to the next one.
 
 ## v1 scope = M0 through M4
 
-### M0 - Walking skeleton
+### M0 - Walking skeleton - COMPLETE
 
 The most important milestone, because it de-risks the entire toolchain and
 [R1] before any content exists.
@@ -28,11 +29,65 @@ fridge, it eats, hunger recovers. Rendered isometrically in the browser.
 entities on screen, measured in CI on a mid-range target machine. If the bridge
 is going to be a problem, it must surface here and not in M3.
 
+**Exit criterion met, by a wide margin, and measured in a visible browser
+rather than inferred.** 1,002 entities at 1280x720 in a release build:
+7,202 rAF frames in 60.02 s - a sustained 120 fps with no dropped frames -
+mean 0.261 ms, p95 0.33 ms, max 0.805 ms, and **zero frames over 16.6 ms**.
+One draw call and one queue submit per frame. Read [L19] before quoting any
+of those numbers: an earlier hidden-tab harness reported a p95 five times
+better *and* five times less meaningful, because driving frames flat out
+sampled the tick frames out of the percentile. The headline number is the
+visible-browser one for that reason. Full detail in `docs/gpu-verification.md`.
+
+The one deliberate deviation from the list above: the milestone ships **no
+texture atlas**. Sprites are flat-coloured instanced quads. The atlas is a
+content problem rather than an architecture one, and [D10]'s one-draw-call
+claim is already measured without it.
+
+### M1a - Content pipeline - COMPLETE
+
+Not in the original milestone list. Split out of M1 once it became clear that
+authoring traits, moodlets and forty smart objects against Rust literals would
+mean rewriting all of them when the content pipeline landed. Almost nothing
+here is player-visible.
+
+- **`Hunger(f32)` became `Needs([f32; 7])`** indexed by a `NeedId` enum, so all
+  seven M1 needs exist and decay ([D6] scoring already sums over a sparse
+  advert, so nothing had to change to feel more than one need)
+- **`SmartObject` stopped naming a need** and became `SmartObject(ObjectDefId)`,
+  an index into a content pack
+- **New `terri-data` crate**: TOML schema, validation, and a `postcard`-encoded
+  pack. Its `build.rs` compiles `content/*.toml` at build time and **aborts the
+  build** on invalid content, which is [D9]'s dangling-reference guarantee
+  working rather than planned
+- **Decay rates and advertised deltas are content**, not constants. The fridge
+  is a row in `content/objects.toml`
+- **The WASM boundary spawns by content string id** (`spawn_object(x, y,
+  "fridge")`), returning `false` for an unknown id rather than panicking
+
+**Exit criterion:** a hungry sim still paths to the fridge and eats, and the
+world hash moves only where the milestone intended it to. Met, and the second
+half is worth stating precisely rather than as "behaviour is unchanged",
+because the digest did move - twice, both times for a declared reason:
+
+| Moved by | To | Why |
+|---|---|---|
+| Task 2 | `0x6C3757F1848175C1` | `world_hash` went from one need level per row to seven. A shape change, done once and deliberately early, so later needs coming alive would cost no further vector updates |
+| Task 7 | `0x2FC669EFA7254F2D` | The other six needs started decaying, so they hold different values after 100 ticks |
+
+Task 6, which moved the fridge itself out of Rust and into TOML, left the
+vector **unmoved** - that is the reading which says the port changed no
+behaviour. Every move was observed on native and on wasm32 separately rather
+than assumed equal, once in a real browser ([L13]).
+
 ### M1 - Core loop
 
-The point at which it starts being a game.
+The point at which it starts being a game. M1a above is the first slice of
+this milestone and is done; what follows is M1b onwards.
 
-- **Needs:** hunger, energy, hygiene, bladder, social, fun, comfort
+- ~~**Needs:** hunger, energy, hygiene, bladder, social, fun, comfort~~ - done
+  in M1a. All seven exist and decay at content-declared rates. Only decay: the
+  *behaviour* each need drives beyond scoring an advert is still M1b
 - **Moods and moodlets** derived from needs, traits, and environment
 - **Traits:** ~15 to start, affecting utility scoring ([D6])
 - **Smart object library:** ~40 objects across the core need categories

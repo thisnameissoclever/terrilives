@@ -1,7 +1,10 @@
 # Architecture
 
-Status: agreed in principle, not yet implemented. Section IDs are stable and
-are referenced from other docs and from discussion. Do not renumber them.
+Status: agreed in principle. Most of it is not yet implemented; the sections
+that are say so and describe what exists rather than what was planned. As of
+M1a that is [D1], [D2], [D6], [D9], [D10], [D11] and part of [D12]. Section IDs
+are stable and are referenced from other docs and from discussion. Do not
+renumber them.
 
 ## Summary of decisions
 
@@ -161,23 +164,52 @@ predictable; an agent idling one extra tick is invisible, a 400ms hitch is not.
 
 Objects advertise what they satisfy; agents score the advertisements.
 
+Built in M1a. This is the shape `content/objects.toml` actually takes, and
+`crates/terri-data/src/schema.rs` is the authority on it:
+
 ```toml
-[fridge.interactions.grab_snack]
-advertises = { Hunger = 35 }
-duration   = "15min"
-requires   = ["has_power", "stocked"]
-slots      = 1
-trait_mods = { Glutton = 1.4, Neat = 0.8 }
+[[object]]
+id   = "fridge"
+name = "Chill-o-Matic 3000"
+
+  [[object.interaction]]
+  id             = "grab_snack"
+  advertises     = { hunger = 40.0 }
+  duration_ticks = 15
+  slots          = 1
 ```
 
-Agent scoring weights each advertised delta by the agent's current deficit on a
-**steeply nonlinear curve** (a sim at 5% hunger wants food enormously more than
-one at 60%, not 12x more), applies trait modifiers, divides by travel plus
-duration cost, and takes the argmax with small seeded jitter for variety.
+Three differences from the sketch this section used to carry, each a decision
+rather than a simplification. **Duration is in ticks, not a `"15min"` string:**
+a tick is a sim-minute ([D2]) so the two are the same number, and parsing a
+duration grammar buys nothing while adding a way for content to be wrong.
+**Need names are lower-case and match `NeedId::as_str`,** which is what the
+build-time check in [D9] validates against. **`requires` and `trait_mods` are
+not implemented yet** - predicates and traits are M1b, and adding the fields
+before anything reads them would mean content that validates and lies.
+
+Agent scoring (`crates/terri-sim/src/systems/advertise.rs`) weights each
+advertised delta by the agent's current deficit on a **steeply nonlinear
+curve** - the deficit is **cubed**, so a sim at 5% hunger wants food about 13x
+more than one at 60%, not 2.4x - and divides by travel plus duration cost. An
+advert is a sparse list of (need, delta) pairs and each pair is scored
+separately before summing, so an object satisfying two needs modestly can beat
+one satisfying a single need slightly better. Trait modifiers and seeded jitter
+are M1b; selection today takes a plain argmax with a deterministic tiebreak on
+entity index.
 
 Two properties matter. Adding content means adding a data file rather than
 touching AI code, so a modder's new object is used correctly on day one. And
 cost is bounded by the spatial query in [A7], not by world size.
+
+The first is now literally true: the fridge is a row in a TOML file, and the
+only places outside `content/` that name it are test fixtures and the one line
+in `web/src/main.ts` that asks the pack to place one. No simulation code knows
+the word. **The second is still a design claim.** `select_action` scans
+every unreserved object every tick; [A7]'s uniform grid is not built, and until
+it is, selection is O(agents x objects). That is fine at M1's one lot and is
+exactly the thing [D3]'s scale target breaks, so it is tracked as work for M3
+rather than as a property the code already has.
 
 This is roughly 200 lines of code and it is the entire personality of the game.
 
@@ -208,14 +240,51 @@ saves later.
 ## [D9] Content pipeline
 
 Content is authored in TOML and compiled to a validated binary pack at build
-time, with hot reload in development.
+time. **Built in M1a**, apart from hot reload, which is M1e.
 
-The build **fails on dangling references**: an interaction citing an undefined
-need, an object requiring an undefined predicate. Cheap to write early, and it
-eliminates an entire category of runtime bug.
+`content/needs.toml` and `content/objects.toml` are the sources.
+`crates/terri-data/build.rs` parses them with `serde`/`toml`, runs the
+validation below, encodes the result with `postcard`, and writes
+`$OUT_DIR/content_pack.postcard`. `lib.rs` embeds those bytes with
+`include_bytes!` and deserialises them once behind a `OnceLock`. So there is
+**no runtime content I/O on any target** - which is what lets [D1] hold for a
+crate whose whole job is reading data files, and what makes the pack available
+under `wasm32` at all.
+
+`build.rs` pulls the validator in with `#[path]` rather than depending on the
+library, so one copy of `compile.rs` is both the build-time gate and a
+unit-testable function. That is why the validation rules have direct tests
+instead of only being observable as build failures.
+
+The build **fails on dangling references and on content that is merely
+nonsense**, with the message naming the offending id:
+
+- a need name `NeedId::from_name` does not know
+- a `NeedId` variant missing from `needs.toml`, or declared twice
+- a duplicate object or interaction id
+- a zero `duration_ticks` (an interaction that finishes before it starts) or
+  zero `slots`
+- a non-finite or negative number anywhere
+
+Predicates (`requires`) are not yet a content concept, so "an object requiring
+an undefined predicate" is still a promise rather than a check; it lands with
+[D6]'s M1b work.
+
+**Three consequences worth stating, because two of them are not obvious.**
+First, this eliminates a category of runtime bug outright: a bad need name is a
+failed `cargo build`, not a sim that silently never eats. Second, the pack is
+serialised in iteration order and feeds the determinism hash, so every map in
+the schema is a `BTreeMap` and the compiled advert list is a sorted `Vec`;
+`HashMap` here would surface as a spurious content diff rather than as an
+obvious bug (see [L24]). Third, and this one cost real evidence: **the build
+gate converts mutants that tests used to catch into mutants that never
+compile**, including six in `terri-core` whose methods the validator now calls.
+They are still detected, by the build, but an unviable mutant says nothing
+about the test suite. See [L21], [L28], and `docs/mutation-baseline.md`.
 
 Mod support then falls out nearly free. A mod is another content pack merged
-over the base.
+over the base - not built, and note that merging is the part the current
+single-pack `OnceLock` does not anticipate.
 
 ## [D10] Renderer
 
