@@ -13,12 +13,6 @@ pub struct Position {
 #[derive(Component, Debug, Clone, Copy)]
 pub struct Agent;
 
-/// The range every need level is held inside. Lives here rather than in
-/// `needs.rs` because it bounds the whole notion of a need, not just the
-/// component that stores them; `Needs` imports it.
-pub const NEED_MAX: f32 = 100.0;
-pub const NEED_MIN: f32 = 0.0;
-
 /// A placed object. See [D6] and [D-1]. The advertised interactions live
 /// in the content pack, not here, which is what lets an advert be a
 /// variable-length list of need deltas rather than one named field.
