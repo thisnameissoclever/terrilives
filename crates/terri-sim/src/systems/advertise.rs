@@ -19,6 +19,35 @@ pub const TILES_PER_TICK: f32 = 0.25;
 /// the nonlinearity apply to each need separately: urgency is cubic, so
 /// summing the deltas first and cubing once would let a satisfied need
 /// inflate the weight given to a desperate one.
+///
+/// # A negative delta is a cost, and it is weighted the same way
+///
+/// Content may advertise a negative delta - a shower that drains energy -
+/// and the sign is carried straight through the same cubed urgency the
+/// benefit gets. That is a decision rather than a fallout of the
+/// arithmetic, and the alternative it was chosen over is weighting the
+/// cost by a flat constant.
+///
+/// `urgency` answers "how much does this agent care about this need right
+/// now", and that question has the same answer whether the need is about
+/// to be filled or about to be drained. An agent with full energy loses
+/// almost nothing by spending some, and one about to collapse loses
+/// nearly everything, so the cost has to scale with the deficit of the
+/// need it drains - not with the deficit of the need being satisfied, and
+/// not with nothing at all. Because the scaling is cubic, the cost stays
+/// nearly free until the drained need is genuinely low and then bites
+/// hard, which is exactly the "I want to be clean but I am exhausted"
+/// hesitation the trade-off exists to produce.
+///
+/// Consequences worth knowing:
+///
+/// - **A score may now be negative**, where before it was in
+///   `0.0..=delta`. Every consumer compares with `>` against a positive
+///   `ACTION_THRESHOLD`, so a net-negative advert is simply never chosen,
+///   which is the intended reading of "the costs outweigh the benefits".
+/// - **The clamp still binds.** `urgency` is in `0.0..=1.0`, so a cost
+///   can never exceed its own delta in magnitude however large the
+///   deficit argument is.
 pub fn score_advertisement(deficit: f32, delta: f32, duration_ticks: u32, distance: f32) -> f32 {
     // Written as negated `>` / `>=` rather than `<=` / `<` so that NaN
     // is rejected. Every comparison against NaN is false, so `NaN <= 0.0`
@@ -36,10 +65,18 @@ pub fn score_advertisement(deficit: f32, delta: f32, duration_ticks: u32, distan
     // every comparison, so an affected sim would simply never choose to
     // do anything, forever, with no panic and no log.
     //
+    // The delta clause is `is_finite` rather than a comparison, because
+    // a negative delta is legal content and only a non-finite one is
+    // meaningless. It rejects infinity as well as NaN, and that half is
+    // load-bearing now rather than tidy: an interaction advertising
+    // `+inf` on one need and `-inf` on another sums to NaN in
+    // `select_action`, reintroducing the exact silent failure the NaN
+    // guard exists to prevent.
+    //
     // The distance guard also rejects negatives, which would otherwise
     // shrink the denominator and inflate the score without bound.
     #[allow(clippy::neg_cmp_op_on_partial_ord)]
-    if !(deficit > 0.0) || !(delta > 0.0) || !(distance >= 0.0) {
+    if !(deficit > 0.0) || !delta.is_finite() || !(distance >= 0.0) {
         return 0.0;
     }
     // Clamp before cubing. This parameter is a bare `f32`, so nothing at
@@ -204,5 +241,113 @@ mod tests {
         let quick = score_advertisement(0.5, 35.0, 10, 5.0);
         let slow = score_advertisement(0.5, 35.0, 120, 5.0);
         assert!(quick > slow);
+    }
+
+    /// The negative-delta decision, stated as a number.
+    ///
+    /// Until M1b a negative delta was rejected by content validation, and
+    /// this function's guard turned one into a score of `0.0` - so a
+    /// shower that costs energy would have scored as though it were free.
+    /// That is the failure mode this test exists to keep out: silently
+    /// ignoring the cost, rather than weighing it.
+    ///
+    /// The assertion is exact rather than "is negative", because
+    /// negativity alone is satisfied by any number of wrong formulas -
+    /// `-delta`, `-urgency`, a flat penalty. Only the exact mirror of the
+    /// benefit formula produces this value.
+    #[test]
+    fn a_negative_delta_is_a_cost_weighted_by_the_same_cubic_urgency() {
+        // 0.5^3 * 12.0 / (0.0/0.25 + 3 + 1) = 1.5 / 4 = 0.375
+        assert_eq!(score_advertisement(0.5, 12.0, 3, 0.0), 0.375);
+        // The cost is the same magnitude with the sign flipped, and
+        // nothing else about the shape changes.
+        assert_eq!(score_advertisement(0.5, -12.0, 3, 0.0), -0.375);
+    }
+
+    /// The behavioural claim the sign carries: a cost is nearly free to
+    /// an agent whose drained need is full, and severe to one whose
+    /// drained need is nearly empty. Cubic, so the two are far apart
+    /// rather than merely ordered.
+    ///
+    /// Written as a ratio for the same reason
+    /// `deficit_weighting_is_cubic_not_merely_steep` is: "the penalty
+    /// grows with the deficit" is satisfied by a linear weighting too,
+    /// and a linear penalty would make an exhausted sim shower almost as
+    /// readily as a rested one. The window 12.0..15.0 admits only
+    /// exponents in roughly (2.87, 3.13).
+    #[test]
+    fn a_cost_bites_harder_the_emptier_the_need_it_drains_already_is() {
+        let exhausted = score_advertisement(0.95, -12.0, 45, 5.0);
+        let rested = score_advertisement(0.40, -12.0, 45, 5.0);
+
+        assert!(
+            exhausted < rested,
+            "{exhausted} must be worse than {rested}"
+        );
+        assert!(rested < 0.0, "a cost is a cost even to a rested agent");
+
+        let ratio = exhausted / rested;
+        assert!(
+            (12.0..15.0).contains(&ratio),
+            "a cost must be weighted cubically like a benefit, not linearly \
+             and not flatly: ratio was {ratio}"
+        );
+    }
+
+    /// What the sign is FOR, at the level `select_action` works on.
+    ///
+    /// `select_action` sums this function across an interaction's
+    /// advertised needs, so an object whose costs exceed its benefits has
+    /// to produce a net score below `ACTION_THRESHOLD` and lose. The
+    /// shipped shower is the real instance of the interesting half: it
+    /// stays worth doing for a rested sim and stops being worth it for an
+    /// exhausted one, on the same hygiene deficit.
+    #[test]
+    fn summed_costs_can_outweigh_summed_benefits() {
+        // A grubby, rested agent: hygiene deficit high, energy deficit
+        // low. The shower's numbers, from content/objects.toml.
+        let worth_it =
+            score_advertisement(0.8, 70.0, 45, 4.0) + score_advertisement(0.05, -12.0, 45, 4.0);
+        // The same grubbiness, but the agent is running on empty.
+        let not_worth_it =
+            score_advertisement(0.8, 70.0, 45, 4.0) + score_advertisement(0.99, -12.0, 45, 4.0);
+
+        assert!(
+            worth_it > 0.0,
+            "a rested agent must still want a shower; got {worth_it}"
+        );
+        assert!(
+            not_worth_it < worth_it,
+            "the same shower must appeal less to an exhausted agent: \
+             {not_worth_it} vs {worth_it}"
+        );
+
+        // And a cost large enough to dominate must take the whole sum
+        // negative, or "the costs outweigh the benefits" has no way to
+        // express itself.
+        let net =
+            score_advertisement(0.2, 70.0, 45, 4.0) + score_advertisement(1.0, -60.0, 45, 4.0);
+        assert!(
+            net < 0.0,
+            "an interaction whose costs dominate must score below zero, \
+             not merely low; got {net}"
+        );
+    }
+
+    /// The delta guard widened from `> 0.0` to `is_finite`, and infinity
+    /// is the input where those two disagree in the dangerous direction:
+    /// the old guard let `+inf` straight through to the arithmetic.
+    ///
+    /// It matters more now than it did, because two infinite deltas of
+    /// opposite sign on one interaction sum to `NaN` in `select_action` -
+    /// which is precisely the silent, permanent "the sim never chooses
+    /// anything" failure the NaN guard exists for.
+    #[test]
+    fn an_infinite_delta_scores_zero_rather_than_beating_every_rival() {
+        for delta in [f32::INFINITY, f32::NEG_INFINITY] {
+            let score = score_advertisement(0.5, delta, 15, 5.0);
+            assert!(score.is_finite(), "a delta of {delta} produced {score}");
+            assert_eq!(score, 0.0, "a delta of {delta} must score zero");
+        }
     }
 }

@@ -6,21 +6,36 @@
 //! "every `NeedId` appears exactly once" are not shapes.
 
 use crate::error::ContentError;
-use crate::pack::{CompiledInteraction, CompiledObject, ContentPack};
-use crate::schema::{NeedsFile, ObjectsFile};
+use crate::pack::{
+    CompiledInteraction, CompiledLot, CompiledObject, CompiledPlacement, ContentPack, ObjectDefId,
+};
+use crate::schema::{LotFile, NeedsFile, ObjectsFile};
 use std::collections::BTreeSet;
 use terri_core::{NeedId, NEED_COUNT};
 
-/// Rejects the two ways an authored number is meaningless rather than
-/// merely wrong. `NaN` is the dangerous one: it propagates silently
-/// through the scoring arithmetic instead of failing anywhere near the
-/// content that produced it.
-fn check_number(value: f32, context: &str) -> Result<(), ContentError> {
+/// Rejects a number that is meaningless rather than merely wrong. `NaN`
+/// is the dangerous one: it propagates silently through the scoring
+/// arithmetic instead of failing anywhere near the content that produced
+/// it. Infinity is rejected with it, because a single infinite advert
+/// makes every score on the object infinite and two of them summing with
+/// opposite signs produce a `NaN` after all.
+fn check_finite(value: f32, context: &str) -> Result<(), ContentError> {
     if !value.is_finite() {
         return Err(ContentError::NonFiniteValue {
             context: context.to_string(),
         });
     }
+    Ok(())
+}
+
+/// Finite, and non-negative as well.
+///
+/// Used where a negative number has no meaning at all rather than an
+/// inconvenient one: a decay rate that refills a need is a sign error,
+/// not a design. Advertised deltas deliberately do NOT go through this -
+/// see the negative-delta note on `compile` below.
+fn check_number(value: f32, context: &str) -> Result<(), ContentError> {
+    check_finite(value, context)?;
     if value < 0.0 {
         return Err(ContentError::NegativeValue {
             context: context.to_string(),
@@ -32,7 +47,21 @@ fn check_number(value: f32, context: &str) -> Result<(), ContentError> {
 /// Validates content and compiles it to a pack. Every failure mode here
 /// is a build failure by design: a broken pack must not be constructible,
 /// so it can never reach runtime. See [D9].
-pub fn compile(needs: NeedsFile, objects: ObjectsFile) -> Result<ContentPack, ContentError> {
+///
+/// **Advertised deltas may be negative.** M1a rejected them, which
+/// foreclosed a shower that costs energy, and trade-off interactions are
+/// a real part of how this genre reads: a sim weighing "I want to be
+/// clean but I am already exhausted" is the emergent behaviour M1b
+/// exists to evaluate. `score_advertisement` carries the sign through the
+/// same cubed-urgency weighting it applies to a benefit, so a cost is
+/// felt in proportion to how badly the need it drains is already felt.
+/// A non-finite delta is still rejected; that check moved from
+/// `check_number` to `check_finite` rather than being dropped.
+pub fn compile(
+    needs: NeedsFile,
+    objects: ObjectsFile,
+    lot: LotFile,
+) -> Result<ContentPack, ContentError> {
     let mut decay = [f32::NAN; NEED_COUNT];
     // A fixed-size array rather than a set: `NeedId` is `Eq + Hash` but
     // not `Ord`, and the need space is closed and small, so indexing it
@@ -113,7 +142,9 @@ pub fn compile(needs: NeedsFile, objects: ObjectsFile) -> Result<ContentPack, Co
                         need: need_name.clone(),
                     });
                 };
-                check_number(*delta, &format!("advert '{}' on '{}'", need_name, act.id))?;
+                // `check_finite`, not `check_number`: a negative delta is
+                // legal content. See the note on this function.
+                check_finite(*delta, &format!("advert '{}' on '{}'", need_name, act.id))?;
                 advertises.push((id.index() as u8, *delta));
             }
             // BTreeMap iterates by name; the pack is keyed by index, so
@@ -135,9 +166,123 @@ pub fn compile(needs: NeedsFile, objects: ObjectsFile) -> Result<ContentPack, Co
         });
     }
 
+    let lot = compile_lot(lot, &compiled)?;
+
     Ok(ContentPack {
         decay_per_tick: decay,
         objects: compiled,
+        lot,
+    })
+}
+
+/// Validates the lot against the objects that were just compiled, and
+/// resolves every placement's object id to its index in them.
+///
+/// Taking the compiled objects rather than the authored ones is what
+/// makes the last rule a real dangling-reference check: a placement can
+/// only name something that survived object validation.
+fn compile_lot(lot: LotFile, objects: &[CompiledObject]) -> Result<CompiledLot, ContentError> {
+    // A zero dimension is not merely odd; `TileGrid::new(0, h)` has no
+    // walkable tile at all, so every agent on it silently never moves.
+    // That is the shape of failure [D9] exists to convert into a build
+    // error.
+    if lot.width == 0 || lot.height == 0 {
+        return Err(ContentError::EmptyLot {
+            width: lot.width,
+            height: lot.height,
+        });
+    }
+
+    let mut walls = Vec::with_capacity(lot.wall.len());
+    // Membership is asked once per placement, so a set rather than a
+    // scan over `walls`. Ordered, because nothing here may depend on
+    // hash iteration order; see `CompiledInteraction::advertises`.
+    let mut wall_tiles = BTreeSet::new();
+
+    for wall in &lot.wall {
+        // Both bounds, both axes, in one place. `u32::try_from` is what
+        // rejects a negative coordinate; writing `wall.x as u32 <
+        // lot.width` instead would wrap -1 to 4294967295 and reject it
+        // for the wrong reason today, and accept it the day someone
+        // authors a lot wider than 4 billion tiles.
+        let (Ok(x), Ok(y)) = (u32::try_from(wall.x), u32::try_from(wall.y)) else {
+            return Err(ContentError::WallOutOfBounds {
+                x: wall.x,
+                y: wall.y,
+                width: lot.width,
+                height: lot.height,
+            });
+        };
+        if x >= lot.width || y >= lot.height {
+            return Err(ContentError::WallOutOfBounds {
+                x: wall.x,
+                y: wall.y,
+                width: lot.width,
+                height: lot.height,
+            });
+        }
+        walls.push((x, y));
+        wall_tiles.insert((x, y));
+    }
+
+    let mut placements = Vec::with_capacity(lot.place.len());
+
+    for place in &lot.place {
+        // The object id is resolved FIRST, so a typo in the name is
+        // reported as a typo rather than as whatever geometric
+        // consequence it happens to have.
+        let Some(index) = objects.iter().position(|o| o.id == place.object) else {
+            return Err(ContentError::UnknownPlacedObject {
+                object: place.object.clone(),
+            });
+        };
+
+        // Finiteness before the bounds comparison, because every
+        // comparison against NaN is false: `NaN < 0.0` and
+        // `NaN >= width` are both false, so a NaN coordinate would sail
+        // through an in-bounds check and land as a tile of 0 after the
+        // cast.
+        check_finite(place.x, &format!("placement x for '{}'", place.object))?;
+        check_finite(place.y, &format!("placement y for '{}'", place.object))?;
+
+        if place.x < 0.0
+            || place.y < 0.0
+            || place.x >= lot.width as f32
+            || place.y >= lot.height as f32
+        {
+            return Err(ContentError::PlacementOutOfBounds {
+                object: place.object.clone(),
+                x: place.x,
+                y: place.y,
+                width: lot.width,
+                height: lot.height,
+            });
+        }
+
+        // Non-negative and below the width by the check above, so the
+        // cast truncates towards zero, which for a non-negative value is
+        // the floor: the tile the object stands in.
+        let tile = (place.x as u32, place.y as u32);
+        if wall_tiles.contains(&tile) {
+            return Err(ContentError::PlacementOnWall {
+                object: place.object.clone(),
+                x: tile.0,
+                y: tile.1,
+            });
+        }
+
+        placements.push(CompiledPlacement {
+            object: ObjectDefId(index as u32),
+            x: place.x,
+            y: place.y,
+        });
+    }
+
+    Ok(CompiledLot {
+        width: lot.width,
+        height: lot.height,
+        walls,
+        placements,
     })
 }
 
@@ -147,8 +292,7 @@ mod tests {
     // NeedId and NEED_COUNT. Only the types production code does not
     // name are imported here.
     use super::*;
-    use crate::pack::ObjectDefId;
-    use crate::schema::{InteractionDef, NeedDef, ObjectDef};
+    use crate::schema::{InteractionDef, NeedDef, ObjectDef, PlacementDef, WallDef};
 
     /// A decay rate that differs per need. `0.1` everywhere would let a
     /// compile step that wrote every rate into slot 0 pass unnoticed.
@@ -160,10 +304,11 @@ mod tests {
     /// `a_compiled_pack_serialises_to_a_stable_golden_vector`.
     ///
     /// Annotated because an opaque byte blob is a vector nobody can
-    /// review. The two annotations that matter are the decay block,
-    /// which is in index order while the fixture declares it in reverse,
-    /// and the advert block, which is in index order while the fixture's
-    /// map iterates it by name.
+    /// review. Three annotations matter: the decay block, which is in
+    /// index order while the fixture declares it in reverse; the advert
+    /// block, which is in index order while the fixture's map iterates it
+    /// by name; and the wall block, which is in DECLARATION order while
+    /// the fixture declares it out of sorted order.
     #[rustfmt::skip]
     const GOLDEN_PACK_BYTES: &[u8] = &[
         // decay_per_tick: seven LE f32 in NeedId index order.
@@ -185,7 +330,76 @@ mod tests {
         0x06, 0x00, 0x00, 0xA0, 0x40, // comfort  5.0
         0x0F, // duration_ticks: 15
         0x01, // slots: 1
+        // lot: width, height, walls, placements.
+        0x05, // width:  5
+        0x03, // height: 3, so the two are not interchangeable
+        0x02, // walls: 2, in DECLARATION order, not sorted
+        0x03, 0x02, // (3, 2)
+        0x01, 0x00, // (1, 0)
+        0x01, // placements: 1
+        0x00, // 'fridge' resolved to ObjectDefId(0)
+        0x00, 0x00, 0x20, 0x40, // x 2.5, fractional on purpose
+        0x00, 0x00, 0xA0, 0x3F, // y 1.25
     ];
+
+    /// The object tests are about objects, so they compile against a lot
+    /// with room for nothing in it. The lot tests below build their own.
+    fn compile_objects(
+        needs: NeedsFile,
+        objects: ObjectsFile,
+    ) -> Result<ContentPack, ContentError> {
+        compile(needs, objects, bare_lot())
+    }
+
+    fn bare_lot() -> LotFile {
+        LotFile {
+            width: 1,
+            height: 1,
+            wall: Vec::new(),
+            place: Vec::new(),
+        }
+    }
+
+    /// A lot whose every number is distinguishable from every other:
+    /// non-square, walls declared out of sorted order, and a placement
+    /// on fractional coordinates whose tile is neither `(0, 0)` nor
+    /// either wall.
+    fn distinct_lot() -> LotFile {
+        LotFile {
+            width: 5,
+            height: 3,
+            wall: vec![WallDef { x: 3, y: 2 }, WallDef { x: 1, y: 0 }],
+            place: vec![PlacementDef {
+                object: "fridge".into(),
+                x: 2.5,
+                y: 1.25,
+            }],
+        }
+    }
+
+    /// `distinct_lot` with `mutate` applied, for the rejection tests.
+    fn lot_where(mutate: impl FnOnce(&mut LotFile)) -> LotFile {
+        let mut lot = distinct_lot();
+        mutate(&mut lot);
+        lot
+    }
+
+    /// Three objects, so a placement resolving to index 0 is
+    /// distinguishable from a placement resolving correctly. `fridge`
+    /// stays first because `one_object` and the golden vector both
+    /// assume it.
+    fn three_objects() -> ObjectsFile {
+        ObjectsFile {
+            object: ["fridge", "bed", "sink"]
+                .iter()
+                .map(|id| ObjectDef {
+                    id: (*id).to_string(),
+                    name: id.to_uppercase(),
+                    interaction: vec![snack()],
+                })
+                .collect(),
+        }
+    }
 
     fn full_needs() -> NeedsFile {
         NeedsFile {
@@ -245,7 +459,7 @@ mod tests {
 
     #[test]
     fn compiles_valid_content() {
-        let pack = compile(full_needs(), one_object(snack())).expect("valid");
+        let pack = compile_objects(full_needs(), one_object(snack())).expect("valid");
         assert_eq!(pack.objects.len(), 1);
         assert_eq!(pack.decay_per_tick.len(), NEED_COUNT);
         let act = &pack.objects[0].interactions[0];
@@ -261,7 +475,7 @@ mod tests {
     fn rejects_an_advert_naming_an_unknown_need() {
         let mut act = snack();
         act.advertises.insert("vibes".into(), 1.0);
-        let err = compile(full_needs(), one_object(act)).unwrap_err();
+        let err = compile_objects(full_needs(), one_object(act)).unwrap_err();
         assert_eq!(
             err,
             ContentError::UnknownNeed {
@@ -276,7 +490,7 @@ mod tests {
     fn rejects_a_missing_need_decay() {
         let mut needs = full_needs();
         needs.need.retain(|n| n.id != "comfort");
-        let err = compile(needs, one_object(snack())).unwrap_err();
+        let err = compile_objects(needs, one_object(snack())).unwrap_err();
         assert_eq!(
             err,
             ContentError::MissingNeedDecay {
@@ -292,7 +506,7 @@ mod tests {
             id: "vibes".into(),
             decay_per_tick: 0.1,
         });
-        let err = compile(needs, one_object(snack())).unwrap_err();
+        let err = compile_objects(needs, one_object(snack())).unwrap_err();
         assert_eq!(
             err,
             ContentError::UnknownNeedDecay {
@@ -308,7 +522,7 @@ mod tests {
             id: "hunger".into(),
             decay_per_tick: 0.2,
         });
-        let err = compile(needs, one_object(snack())).unwrap_err();
+        let err = compile_objects(needs, one_object(snack())).unwrap_err();
         assert_eq!(
             err,
             ContentError::DuplicateNeedDecay {
@@ -325,7 +539,7 @@ mod tests {
             name: "Another".into(),
             interaction: vec![],
         });
-        let err = compile(full_needs(), objects).unwrap_err();
+        let err = compile_objects(full_needs(), objects).unwrap_err();
         assert_eq!(
             err,
             ContentError::DuplicateObjectId {
@@ -338,7 +552,7 @@ mod tests {
     fn rejects_duplicate_interaction_ids_within_one_object() {
         let mut objects = one_object(snack());
         objects.object[0].interaction.push(snack());
-        let err = compile(full_needs(), objects).unwrap_err();
+        let err = compile_objects(full_needs(), objects).unwrap_err();
         assert_eq!(
             err,
             ContentError::DuplicateInteractionId {
@@ -356,14 +570,14 @@ mod tests {
             name: "Vending".into(),
             interaction: vec![snack()],
         });
-        compile(full_needs(), objects).expect("ids are scoped to their object");
+        compile_objects(full_needs(), objects).expect("ids are scoped to their object");
     }
 
     #[test]
     fn rejects_zero_duration() {
         let mut act = snack();
         act.duration_ticks = 0;
-        let err = compile(full_needs(), one_object(act)).unwrap_err();
+        let err = compile_objects(full_needs(), one_object(act)).unwrap_err();
         assert_eq!(
             err,
             ContentError::ZeroDuration {
@@ -377,7 +591,7 @@ mod tests {
     fn rejects_zero_slots() {
         let mut act = snack();
         act.slots = 0;
-        let err = compile(full_needs(), one_object(act)).unwrap_err();
+        let err = compile_objects(full_needs(), one_object(act)).unwrap_err();
         assert_eq!(
             err,
             ContentError::ZeroSlots {
@@ -387,19 +601,24 @@ mod tests {
         );
     }
 
-    /// `check_number` guards two error kinds at two call sites, and the
-    /// obvious version of this test covers one diagonal of that 2x2.
-    /// Both off-diagonal cells are reachable mutations: replacing either
-    /// call with a bespoke `value < 0.0` test would drop a finiteness
-    /// check while leaving the diagonal green. All four are asserted.
+    /// `check_finite` guards three call sites - adverts, placement x and
+    /// placement y - and `check_number` adds the sign check on top of it
+    /// for decay rates. Every one of those is asserted here, because the
+    /// realistic mutation is to replace one call with a bespoke test and
+    /// silently drop half of what it checked.
+    ///
+    /// Infinity is asserted alongside `NaN` rather than assumed to follow
+    /// from it: `!value.is_finite()` mutated to `value.is_nan()` accepts
+    /// infinity, and an infinite advert makes every score on the object
+    /// infinite while an infinite coordinate lands outside every lot.
     #[test]
-    fn rejects_non_finite_and_negative_numbers() {
-        for bad in [f32::NAN, f32::INFINITY] {
+    fn rejects_non_finite_numbers_everywhere_a_number_is_authored() {
+        for bad in [f32::NAN, f32::INFINITY, f32::NEG_INFINITY] {
             let mut act = snack();
             act.advertises.insert("hunger".into(), bad);
             assert!(
                 matches!(
-                    compile(full_needs(), one_object(act)).unwrap_err(),
+                    compile_objects(full_needs(), one_object(act)).unwrap_err(),
                     ContentError::NonFiniteValue { .. }
                 ),
                 "an advert of {bad} must be rejected"
@@ -409,26 +628,62 @@ mod tests {
             needs.need[0].decay_per_tick = bad;
             assert!(
                 matches!(
-                    compile(needs, one_object(snack())).unwrap_err(),
+                    compile_objects(needs, one_object(snack())).unwrap_err(),
                     ContentError::NonFiniteValue { .. }
                 ),
                 "a decay rate of {bad} must be rejected"
             );
+
+            for axis in 0..2 {
+                let lot = lot_where(|lot| {
+                    if axis == 0 {
+                        lot.place[0].x = bad;
+                    } else {
+                        lot.place[0].y = bad;
+                    }
+                });
+                assert!(
+                    matches!(
+                        compile(full_needs(), one_object(snack()), lot).unwrap_err(),
+                        ContentError::NonFiniteValue { .. }
+                    ),
+                    "a placement coordinate of {bad} on axis {axis} must be rejected"
+                );
+            }
         }
+    }
 
-        let mut act = snack();
-        act.advertises.insert("hunger".into(), -1.0);
-        assert!(matches!(
-            compile(full_needs(), one_object(act)).unwrap_err(),
-            ContentError::NegativeValue { .. }
-        ));
-
+    /// The sign check applies to decay rates and NOT to adverts, and that
+    /// asymmetry is the deliberate M1b decision rather than an oversight.
+    /// A negative decay rate refills a need on its own, which is a sign
+    /// error with no design behind it. A negative advert is a cost - a
+    /// shower that drains energy - and scoring weighs it.
+    ///
+    /// Both halves are asserted, because a mutation that pointed adverts
+    /// back at `check_number`, or decay rates at `check_finite`, would
+    /// leave one half of this file's coverage green either way.
+    #[test]
+    fn a_negative_decay_rate_is_rejected_but_a_negative_advert_is_content() {
         let mut needs = full_needs();
         needs.need[0].decay_per_tick = -1.0;
         assert!(matches!(
-            compile(needs, one_object(snack())).unwrap_err(),
+            compile_objects(needs, one_object(snack())).unwrap_err(),
             ContentError::NegativeValue { .. }
         ));
+
+        let mut act = snack();
+        act.advertises.insert("energy".into(), -12.0);
+        let pack = compile_objects(full_needs(), one_object(act))
+            .expect("a negative advert is a cost, not invalid content");
+        assert_eq!(
+            pack.objects[0].interactions[0].advertises,
+            vec![
+                (NeedId::Hunger.index() as u8, 35.0),
+                (NeedId::Energy.index() as u8, -12.0),
+            ],
+            "the negative delta must reach the pack with its sign intact, \
+             and on its own need"
+        );
     }
 
     /// Zero sits exactly on `check_number`'s boundary, and the boundary
@@ -449,7 +704,7 @@ mod tests {
         let mut act = snack();
         act.advertises.insert("energy".into(), 0.0);
 
-        let pack = compile(needs, one_object(act)).expect("zero is in range, not invalid");
+        let pack = compile_objects(needs, one_object(act)).expect("zero is in range, not invalid");
         assert_eq!(pack.decay_per_tick[NeedId::Hunger.index()], 0.0);
         assert_eq!(
             pack.objects[0].interactions[0].advertises,
@@ -492,7 +747,7 @@ mod tests {
             "name order must differ from index order, or this test proves nothing"
         );
 
-        let pack = compile(full_needs(), one_object(act)).expect("valid");
+        let pack = compile_objects(full_needs(), one_object(act)).expect("valid");
         let advertises = &pack.objects[0].interactions[0].advertises;
 
         assert_eq!(
@@ -517,7 +772,7 @@ mod tests {
     /// need's name and not from its position in the file.
     #[test]
     fn decay_rates_land_at_their_own_need_index() {
-        let pack = compile(distinct_needs(), one_object(snack())).expect("valid");
+        let pack = compile_objects(distinct_needs(), one_object(snack())).expect("valid");
 
         for id in NeedId::ALL {
             assert_eq!(
@@ -540,8 +795,9 @@ mod tests {
     /// pipeline moves them.
     ///
     /// The fixture is chosen so the bytes are sensitive rather than
-    /// decorative: seven distinct decay rates declared in reverse, and
-    /// three adverts whose name order reverses their index order.
+    /// decorative: seven distinct decay rates declared in reverse, three
+    /// adverts whose name order reverses their index order, and a
+    /// non-square lot whose two walls are declared out of sorted order.
     ///
     /// If this fails, ask which of two things happened. A deliberate
     /// change to the pack format needs the vector regenerated and every
@@ -552,6 +808,7 @@ mod tests {
         let pack = compile(
             distinct_needs(),
             one_object(snack_advertising_three_needs()),
+            distinct_lot(),
         )
         .expect("valid");
         let bytes = postcard::to_allocvec(&pack).expect("pack must serialise");
@@ -560,6 +817,231 @@ mod tests {
             "an emptied vector would assert nothing"
         );
         assert_eq!(bytes, GOLDEN_PACK_BYTES);
+    }
+
+    // ---- The lot -------------------------------------------------------
+    //
+    // Per [L26], enumerating the error variants is coverage of half the
+    // surface. `compiles_a_lot_into_the_pack` and
+    // `placements_resolve_to_the_declared_object_index` are the other
+    // half: what the validator BUILDS out of content it accepts.
+
+    /// The accepting half. Every field of the compiled lot is read back,
+    /// against a fixture where no two of them are interchangeable: the
+    /// lot is non-square, the walls are declared out of sorted order, and
+    /// the placement's coordinates are fractional and unequal.
+    #[test]
+    fn compiles_a_lot_into_the_pack() {
+        let pack = compile(full_needs(), one_object(snack()), distinct_lot()).expect("valid");
+        let lot = &pack.lot;
+
+        assert_eq!((lot.width, lot.height), (5, 3));
+        assert_eq!(
+            lot.walls,
+            vec![(3, 2), (1, 0)],
+            "walls must keep declaration order; sorting them would be a \
+             mechanism with nothing to disambiguate"
+        );
+        assert_eq!(lot.placements.len(), 1);
+        assert_eq!(lot.placements[0].object, ObjectDefId(0));
+        assert_eq!((lot.placements[0].x, lot.placements[0].y), (2.5, 1.25));
+    }
+
+    /// A placement's object id is an index into the pack, and one object
+    /// cannot tell a resolved index from a hardcoded zero. Three objects
+    /// placed in an order that is not their declaration order make both
+    /// `position(...)` collapsing to 0 and the list being reordered
+    /// visible. This is [L29] in the lot's costume.
+    #[test]
+    fn placements_resolve_to_the_declared_object_index() {
+        let lot = LotFile {
+            width: 4,
+            height: 4,
+            wall: Vec::new(),
+            place: ["sink", "fridge", "bed"]
+                .iter()
+                .enumerate()
+                .map(|(i, id)| PlacementDef {
+                    object: (*id).to_string(),
+                    x: i as f32,
+                    y: 3.0,
+                })
+                .collect(),
+        };
+
+        let pack = compile(full_needs(), three_objects(), lot).expect("valid");
+        assert_eq!(
+            pack.objects.len(),
+            3,
+            "the resolver needs something to find"
+        );
+
+        // sink is declared third, fridge first, bed second; the placement
+        // order deliberately matches none of that.
+        let resolved: Vec<u32> = pack.lot.placements.iter().map(|p| p.object.0).collect();
+        assert_eq!(resolved, vec![2, 0, 1]);
+        for placement in &pack.lot.placements {
+            // Stated through the pack's own lookup as well, so the
+            // numbers above cannot both be wrong in the same direction.
+            assert_eq!(
+                pack.object(placement.object).id,
+                match placement.object.0 {
+                    0 => "fridge",
+                    1 => "bed",
+                    _ => "sink",
+                }
+            );
+        }
+    }
+
+    /// Zero in either dimension. Both are asserted because
+    /// `lot.width == 0 || lot.height == 0` mutated to `&&` still rejects
+    /// a 0x0 lot, so testing only that would leave the mutant alive.
+    #[test]
+    fn rejects_a_lot_with_a_zero_dimension() {
+        for (width, height) in [(0, 3), (5, 0), (0, 0)] {
+            let lot = lot_where(|lot| {
+                lot.width = width;
+                lot.height = height;
+                // A zero-sized lot can hold neither, and this test is
+                // about the size rather than about what is on it.
+                lot.wall.clear();
+                lot.place.clear();
+            });
+            assert_eq!(
+                compile(full_needs(), one_object(snack()), lot).unwrap_err(),
+                ContentError::EmptyLot { width, height },
+                "a {width}x{height} lot has no walkable tile"
+            );
+        }
+    }
+
+    /// Walls, on all four sides of the lot.
+    ///
+    /// The negative cases are the ones that matter most: the coordinate
+    /// type is `i32`, so `wall.x as u32` would wrap -1 to 4294967295 and
+    /// happen to reject it, and would accept it again the day the bound
+    /// moved. `u32::try_from` is what makes the lower bound real, and a
+    /// negative on ONE axis with a valid value on the other is what
+    /// stops the two checks from being collapsed into one.
+    #[test]
+    fn rejects_a_wall_outside_the_lot() {
+        // distinct_lot is 5 wide and 3 tall, so 5 and 3 are the first
+        // out-of-range values on their own axes - the off-by-one a `<=`
+        // would let through.
+        for (x, y) in [(5, 1), (1, 3), (-1, 1), (1, -1), (-1, -1)] {
+            let lot = lot_where(|lot| lot.wall = vec![WallDef { x, y }]);
+            assert_eq!(
+                compile(full_needs(), one_object(snack()), lot).unwrap_err(),
+                ContentError::WallOutOfBounds {
+                    x,
+                    y,
+                    width: 5,
+                    height: 3
+                },
+                "a wall at ({x}, {y}) is outside a 5x3 lot"
+            );
+        }
+
+        // The boundary from the other side, so the test cannot pass by
+        // rejecting everything. (4, 2) is the far corner of a 5x3 lot.
+        let lot = lot_where(|lot| lot.wall = vec![WallDef { x: 4, y: 2 }]);
+        let pack = compile(full_needs(), one_object(snack()), lot)
+            .expect("(4, 2) is the far corner of a 5x3 lot, not outside it");
+        assert_eq!(pack.lot.walls, vec![(4, 2)]);
+    }
+
+    /// Placements, on all four sides.
+    ///
+    /// Coordinates are `f32`, so the boundary is `x < width` rather than
+    /// `x <= width - 1`: `4.999` is inside a 5-wide lot and `5.0` is
+    /// not. Both are asserted, because a bound written with `>` instead
+    /// of `>=` differs on exactly `5.0` and on nothing else.
+    #[test]
+    fn rejects_a_placement_outside_the_lot() {
+        for (x, y) in [(5.0, 1.0), (2.0, 3.0), (-0.5, 1.0), (2.0, -0.5)] {
+            let lot = lot_where(|lot| {
+                lot.place[0].x = x;
+                lot.place[0].y = y;
+            });
+            assert_eq!(
+                compile(full_needs(), one_object(snack()), lot).unwrap_err(),
+                ContentError::PlacementOutOfBounds {
+                    object: "fridge".into(),
+                    x,
+                    y,
+                    width: 5,
+                    height: 3
+                },
+                "({x}, {y}) is outside a 5x3 lot"
+            );
+        }
+
+        let lot = lot_where(|lot| {
+            lot.place[0].x = 4.999;
+            lot.place[0].y = 0.0;
+            // (4, 0) must not be a wall, or this would fail for the
+            // other reason and prove nothing about the bound.
+            lot.wall.clear();
+        });
+        let pack = compile(full_needs(), one_object(snack()), lot)
+            .expect("4.999 is inside a 5-wide lot; only 5.0 is not");
+        assert_eq!(pack.lot.placements[0].x, 4.999);
+    }
+
+    /// An object standing inside a wall would be unreachable: scoring
+    /// would keep advertising it and `find_path` would return `None`
+    /// every tick, so the sim looks alive and simply never goes there.
+    /// Exactly the silent failure [D9] exists to turn into a build error.
+    #[test]
+    fn rejects_a_placement_on_a_wall_tile() {
+        // distinct_lot walls (3, 2) and (1, 0). The placement is on
+        // FRACTIONAL coordinates inside the second of those, so the test
+        // also pins that the tile is the floor of the coordinates rather
+        // than the coordinates themselves.
+        let lot = lot_where(|lot| {
+            lot.place[0].x = 3.75;
+            lot.place[0].y = 2.5;
+        });
+        assert_eq!(
+            compile(full_needs(), one_object(snack()), lot).unwrap_err(),
+            ContentError::PlacementOnWall {
+                object: "fridge".into(),
+                x: 3,
+                y: 2
+            }
+        );
+
+        // The transpose is not a wall, so the check cannot be comparing
+        // one coordinate or comparing them the wrong way round.
+        let lot = lot_where(|lot| {
+            lot.place[0].x = 2.5;
+            lot.place[0].y = 0.5;
+        });
+        compile(full_needs(), one_object(snack()), lot)
+            .expect("(2, 0) is not a wall; (3, 2) and (1, 0) are");
+    }
+
+    /// The dangling-reference check, and the reason this pipeline exists
+    /// ([D9]). A lot naming an object that `objects.toml` does not
+    /// declare must not compile, because after compilation a placement is
+    /// an index and a bad index has no representation at all.
+    #[test]
+    fn rejects_a_placement_naming_an_object_that_does_not_exist() {
+        let lot = lot_where(|lot| lot.place[0].object = "hovercraft".into());
+        assert_eq!(
+            compile(full_needs(), one_object(snack()), lot).unwrap_err(),
+            ContentError::UnknownPlacedObject {
+                object: "hovercraft".into()
+            }
+        );
+
+        // The same name against a pack that DOES declare it compiles, so
+        // the rejection is about the reference rather than about the
+        // rule firing unconditionally.
+        let lot = lot_where(|lot| lot.place[0].object = "sink".into());
+        let pack = compile(full_needs(), three_objects(), lot).expect("'sink' is declared");
+        assert_eq!(pack.lot.placements[0].object, ObjectDefId(2));
     }
 
     /// These strings are read by whoever just broke the build, usually
@@ -572,7 +1054,7 @@ mod tests {
         let mut act = snack();
         act.advertises.insert("vibes".into(), 1.0);
         assert_eq!(
-            compile(full_needs(), one_object(act))
+            compile_objects(full_needs(), one_object(act))
                 .unwrap_err()
                 .to_string(),
             "object 'fridge' interaction 'grab_snack' advertises unknown need 'vibes'"
@@ -581,7 +1063,7 @@ mod tests {
         let mut act = snack();
         act.advertises.insert("hunger".into(), f32::NAN);
         assert_eq!(
-            compile(full_needs(), one_object(act))
+            compile_objects(full_needs(), one_object(act))
                 .unwrap_err()
                 .to_string(),
             "advert 'hunger' on 'grab_snack' is not a finite number"
@@ -590,15 +1072,68 @@ mod tests {
         let mut needs = full_needs();
         needs.need.retain(|n| n.id != "comfort");
         assert_eq!(
-            compile(needs, one_object(snack())).unwrap_err().to_string(),
+            compile_objects(needs, one_object(snack()))
+                .unwrap_err()
+                .to_string(),
             "needs.toml is missing a decay rate for 'comfort'"
         );
 
         let mut needs = full_needs();
         needs.need[0].decay_per_tick = -1.0;
         assert_eq!(
-            compile(needs, one_object(snack())).unwrap_err().to_string(),
+            compile_objects(needs, one_object(snack()))
+                .unwrap_err()
+                .to_string(),
             "decay_per_tick for 'hunger' is negative"
         );
+    }
+
+    /// The lot half of the message test above, kept separate only
+    /// because it is a different file the author has to go and edit.
+    ///
+    /// Each message has to be readable by somebody who has just broken
+    /// the build from a TOML edit, so each names the offending object or
+    /// coordinate AND the lot it is being judged against - "outside the
+    /// lot" without the size is not actionable.
+    #[test]
+    fn lot_error_messages_name_the_offending_placement() {
+        let cases: Vec<(LotFile, &str)> = vec![
+            (
+                lot_where(|lot| {
+                    lot.width = 0;
+                    lot.wall.clear();
+                    lot.place.clear();
+                }),
+                "lot.toml declares a 0x3 lot; both dimensions must be at least 1",
+            ),
+            (
+                lot_where(|lot| lot.wall = vec![WallDef { x: -1, y: 7 }]),
+                "lot.toml has a wall at (-1, 7), outside the 5x3 lot",
+            ),
+            (
+                lot_where(|lot| lot.place[0].x = 9.5),
+                "lot.toml places 'fridge' at (9.5, 1.25), outside the 5x3 lot",
+            ),
+            (
+                lot_where(|lot| {
+                    lot.place[0].x = 1.5;
+                    lot.place[0].y = 0.5;
+                }),
+                "lot.toml places 'fridge' on the wall tile (1, 0)",
+            ),
+            (
+                lot_where(|lot| lot.place[0].object = "hovercraft".into()),
+                "lot.toml places 'hovercraft', which objects.toml does not declare",
+            ),
+        ];
+
+        for (lot, expected) in cases {
+            assert_eq!(
+                compile(full_needs(), one_object(snack()), lot)
+                    .unwrap_err()
+                    .to_string(),
+                expected
+            );
+        }
     }
 }

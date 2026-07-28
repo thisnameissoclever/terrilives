@@ -83,6 +83,12 @@ pub fn pack(objects: Vec<CompiledObject>) -> &'static ContentPack {
     Box::leak(Box::new(ContentPack {
         decay_per_tick: terri_data::pack().decay_per_tick,
         objects,
+        // Same reasoning as the decay rates: copy the shipped lot rather
+        // than invent one. Nothing in `terri-sim` reads `pack.lot` yet -
+        // `sim_with` builds its own `TileGrid` and spawns objects
+        // explicitly - so a fixture lot would be an invented constant
+        // with no reader, which is worse than a real one with no reader.
+        lot: terri_data::pack().lot.clone(),
     }))
 }
 

@@ -11,8 +11,12 @@ pub mod schema;
 
 pub use compile::compile;
 pub use error::ContentError;
-pub use pack::{CompiledInteraction, CompiledObject, ContentPack, ObjectDefId};
-pub use schema::{InteractionDef, NeedDef, NeedsFile, ObjectDef, ObjectsFile};
+pub use pack::{
+    CompiledInteraction, CompiledLot, CompiledObject, CompiledPlacement, ContentPack, ObjectDefId,
+};
+pub use schema::{
+    InteractionDef, LotFile, NeedDef, NeedsFile, ObjectDef, ObjectsFile, PlacementDef, WallDef,
+};
 
 use std::sync::OnceLock;
 
@@ -69,5 +73,136 @@ mod tests {
             std::ptr::eq(pack(), pack()),
             "pack must be deserialised once"
         );
+    }
+
+    /// [D6] calls for roughly eight objects so that a sim has something
+    /// to decide between; with one, selection is a threshold rather than
+    /// a decision. Asserting the count is what keeps a content edit that
+    /// deletes half the house from being invisible to the suite.
+    ///
+    /// Every id is named rather than just counted, because eight objects
+    /// with the wrong names is the same number.
+    #[test]
+    fn the_shipped_pack_declares_every_object_the_design_calls_for() {
+        let p = pack();
+        let mut ids: Vec<&str> = p.objects.iter().map(|o| o.id.as_str()).collect();
+        ids.sort_unstable();
+        assert_eq!(
+            ids,
+            [
+                "bed",
+                "bookshelf",
+                "fridge",
+                "shower",
+                "sink",
+                "sofa",
+                "television",
+                "toilet"
+            ]
+        );
+    }
+
+    /// The sofa is the one object in shipped content that advertises two
+    /// needs, and [D6]'s scoring SUMS across advertised deltas. Until it
+    /// existed, that summing was exercised only by in-memory fixtures.
+    ///
+    /// The shower is the one that advertises a NEGATIVE delta, which M1a
+    /// rejected outright. Both are asserted here because both are claims
+    /// about shipped content that a rebalance could quietly drop.
+    #[test]
+    fn the_shipped_pack_carries_a_multi_need_advert_and_a_negative_one() {
+        let p = pack();
+
+        let sofa = p.object(p.find("sofa").expect("objects.toml declares a sofa"));
+        let lounge = &sofa.interactions[0];
+        assert_eq!(
+            lounge.advertises,
+            vec![
+                (terri_core::NeedId::Fun.index() as u8, 18.0),
+                (terri_core::NeedId::Comfort.index() as u8, 34.0),
+            ],
+            "the sofa must advertise two needs, index-ordered"
+        );
+
+        let shower = p.object(p.find("shower").expect("objects.toml declares a shower"));
+        let take = &shower.interactions[0];
+        let energy = take
+            .advertises
+            .iter()
+            .find(|(index, _)| *index == terri_core::NeedId::Energy.index() as u8)
+            .expect("the shower must advertise energy");
+        assert!(
+            energy.1 < 0.0,
+            "the shower's energy delta is a COST and must stay negative; got {}",
+            energy.1
+        );
+    }
+
+    /// The lot the game actually loads. `compile` rejects a wall or a
+    /// placement outside the lot, so these assertions cannot fail on
+    /// shipped content without the build having failed first - which is
+    /// the point: this test is what fails if the lot is ever loaded from
+    /// somewhere the build gate does not cover.
+    #[test]
+    fn the_shipped_lot_places_every_object_inside_the_lot_and_off_the_walls() {
+        let p = pack();
+        let lot = &p.lot;
+
+        assert!(lot.width > 0 && lot.height > 0);
+        assert!(!lot.walls.is_empty(), "the lot must have interior walls");
+        assert!(
+            !lot.placements.is_empty(),
+            "an empty lot would satisfy every assertion below vacuously"
+        );
+
+        for (x, y) in &lot.walls {
+            assert!(
+                *x < lot.width && *y < lot.height,
+                "wall ({x}, {y}) is outside the {}x{} lot",
+                lot.width,
+                lot.height
+            );
+        }
+
+        for placement in &lot.placements {
+            let object = p.object(placement.object);
+            assert!(
+                placement.x >= 0.0
+                    && placement.y >= 0.0
+                    && placement.x < lot.width as f32
+                    && placement.y < lot.height as f32,
+                "'{}' at ({}, {}) is outside the lot",
+                object.id,
+                placement.x,
+                placement.y
+            );
+            assert!(
+                !lot.is_wall(placement.x as u32, placement.y as u32),
+                "'{}' stands on a wall and would be unreachable",
+                object.id
+            );
+        }
+    }
+
+    /// Every object the design declares is actually placed. An object in
+    /// `objects.toml` that nothing puts on the lot cannot be chosen, so
+    /// it contributes nothing to the decision the milestone exists to
+    /// evaluate - and nothing else in the pipeline notices.
+    #[test]
+    fn every_declared_object_is_placed_on_the_lot() {
+        let p = pack();
+        let mut placed: Vec<&str> = p
+            .lot
+            .placements
+            .iter()
+            .map(|placement| p.object(placement.object).id.as_str())
+            .collect();
+        placed.sort_unstable();
+        placed.dedup();
+
+        let mut declared: Vec<&str> = p.objects.iter().map(|o| o.id.as_str()).collect();
+        declared.sort_unstable();
+
+        assert_eq!(placed, declared, "every declared object must be placed");
     }
 }

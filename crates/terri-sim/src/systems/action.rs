@@ -602,6 +602,157 @@ mod tests {
         );
     }
 
+    /// The other half of "scoring sums across advertised deltas": a
+    /// delta may be NEGATIVE, and the sum has to be able to go down.
+    ///
+    /// `an_object_advertising_two_needs_beats_one_advertising_a_bigger_single_delta`
+    /// above pins that two benefits add. Every advert in it is positive,
+    /// so `score += x` and `score += x.abs()` are indistinguishable to
+    /// it, and so are `score += x` and `score += x.max(0.0)`. This is the
+    /// input domain that separates them ([L34]).
+    ///
+    /// The shape is deliberately a FLIP rather than a comparison. The two
+    /// objects, their adverts, their distances and the agent's hygiene
+    /// are byte-identical between the two runs; the only thing that
+    /// differs is how much energy the agent has, which is a need the
+    /// cheap object does not mention at all. Nothing but the cost term
+    /// can account for the winner changing.
+    #[test]
+    fn a_negative_delta_can_flip_which_object_an_agent_chooses() {
+        // Denominator is 12 + 15 + 1 = 28 for both objects throughout.
+        // With hygiene deficit 0.5 (urgency 0.125):
+        //
+        //   cheap                    0.125 * 30 / 28           = 0.1339
+        //   costly, hygiene term     0.125 * 50 / 28           = 0.2232
+        //   costly, energy term at deficit 0.10   0.001 * -40 / 28 = -0.0014
+        //   costly, energy term at deficit 0.90   0.729 * -40 / 28 = -1.0414
+        //
+        // so costly wins outright when the agent is rested and scores
+        // NEGATIVE when it is exhausted. Both are asserted below as
+        // preconditions rather than described.
+        const CHEAP_DELTA: f32 = 30.0;
+        const COSTLY_DELTA: f32 = 50.0;
+        const ENERGY_COST: f32 = -40.0;
+        const DURATION: u32 = 15;
+        const AGENT_AT: (f32, f32) = (8.0, 8.0);
+        const CHEAP_AT: (f32, f32) = (5.0, 8.0);
+        const COSTLY_AT: (f32, f32) = (11.0, 8.0);
+
+        /// Builds the scenario with the agent's energy set so that its
+        /// deficit is exactly `energy_deficit` once decay has run, and
+        /// returns the sim plus the two object entities and the agent.
+        fn scenario(energy_deficit: f32) -> (Sim, Entity, Entity, Entity) {
+            let content = test_content::pack(vec![
+                test_content::object("cheap", &[(NeedId::Hygiene, CHEAP_DELTA)], DURATION),
+                test_content::object(
+                    "costly",
+                    &[
+                        (NeedId::Hygiene, COSTLY_DELTA),
+                        (NeedId::Energy, ENERGY_COST),
+                    ],
+                    DURATION,
+                ),
+            ]);
+            let mut sim = test_content::sim_with(16, 16, content);
+            // cheap is spawned FIRST, so it holds the lower entity index
+            // and wins any tie. A mutation that flattens the two scores
+            // together therefore fails the rested case rather than
+            // passing it.
+            let cheap = spawn_object(&mut sim, CHEAP_AT.0, CHEAP_AT.1, def(content, "cheap"));
+            let costly = spawn_object(&mut sim, COSTLY_AT.0, COSTLY_AT.1, def(content, "costly"));
+
+            // Decay runs immediately before selection, so each level is
+            // spawned one tick's worth of its OWN rate high; the rates
+            // differ per need, so a shared offset would leave the
+            // deficits slightly off the intended numbers.
+            let mut needs = Needs::all_at(terri_core::NEED_MAX);
+            needs.set(
+                NeedId::Hygiene,
+                terri_core::NEED_MAX * 0.5 + test_content::decay_per_tick(NeedId::Hygiene),
+            );
+            needs.set(
+                NeedId::Energy,
+                terri_core::NEED_MAX * (1.0 - energy_deficit)
+                    + test_content::decay_per_tick(NeedId::Energy),
+            );
+            let agent = spawn_agent_with(&mut sim, AGENT_AT.0, AGENT_AT.1, needs);
+
+            sim.tick();
+            (sim, cheap, costly, agent)
+        }
+
+        for (energy_deficit, winner_is_costly) in [(0.10, true), (0.90, false)] {
+            let (sim, cheap, costly, agent) = scenario(energy_deficit);
+
+            let hygiene = deficit_after_tick(&sim, agent, NeedId::Hygiene);
+            let energy = deficit_after_tick(&sim, agent, NeedId::Energy);
+            assert!(
+                (hygiene - 0.5).abs() < 1e-6,
+                "hygiene must be the same in both runs; got {hygiene}"
+            );
+            assert!(
+                (energy - energy_deficit).abs() < 1e-6,
+                "energy deficit must be {energy_deficit}; got {energy}"
+            );
+            assert_eq!(
+                straight_line(AGENT_AT, CHEAP_AT),
+                straight_line(AGENT_AT, COSTLY_AT),
+                "the two objects must be equally far away, or distance \
+                 could explain the winner"
+            );
+
+            let cheap_score = score_of(hygiene, AGENT_AT, CHEAP_AT, CHEAP_DELTA, DURATION);
+            let costly_benefit = score_of(hygiene, AGENT_AT, COSTLY_AT, COSTLY_DELTA, DURATION);
+            let costly_cost = score_of(energy, AGENT_AT, COSTLY_AT, ENERGY_COST, DURATION);
+            let costly_score = costly_benefit + costly_cost;
+
+            assert!(
+                cheap_score > ACTION_THRESHOLD,
+                "the cheap object must always be selectable, or the \
+                 exhausted case proves nothing; got {cheap_score}"
+            );
+            assert!(
+                costly_benefit > cheap_score,
+                "ignoring the cost entirely must make the costly object \
+                 win BOTH runs, or this test cannot see the cost; \
+                 {costly_benefit} vs {cheap_score}"
+            );
+            assert!(
+                costly_cost < 0.0,
+                "the energy term must be a genuine cost; got {costly_cost}"
+            );
+
+            let (winner, loser, why) = if winner_is_costly {
+                assert!(
+                    costly_score > cheap_score,
+                    "a rested agent must still prefer the costly object; \
+                     {costly_score} vs {cheap_score}"
+                );
+                (
+                    costly,
+                    cheap,
+                    "a rested agent must take the bigger benefit despite \
+                     its energy cost",
+                )
+            } else {
+                assert!(
+                    costly_score < 0.0,
+                    "an exhausted agent's cost must take the whole sum \
+                     below zero; got {costly_score}"
+                );
+                (
+                    cheap,
+                    costly,
+                    "an exhausted agent must refuse the energy cost and \
+                     take the cheaper object; choosing the costly one \
+                     means the negative delta is being ignored or \
+                     absolute-valued rather than summed",
+                )
+            };
+            assert_chose(&sim, agent, winner, loser, why);
+        }
+    }
+
     #[test]
     fn selection_scores_every_interaction_and_records_the_one_that_won() {
         // An object offers a LIST of interactions and an agent performs

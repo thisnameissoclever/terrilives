@@ -39,6 +39,7 @@ fn main() {
 
     let needs_path = root.join("needs.toml");
     let objects_path = root.join("objects.toml");
+    let lot_path = root.join("lot.toml");
 
     // Without these, editing content does not trigger a rebuild and you
     // silently run the previous pack. The content lives outside this
@@ -46,19 +47,24 @@ fn main() {
     // not cover it and nothing else would notice the edit.
     println!("cargo:rerun-if-changed={}", needs_path.display());
     println!("cargo:rerun-if-changed={}", objects_path.display());
+    println!("cargo:rerun-if-changed={}", lot_path.display());
 
     let needs_src = fs::read_to_string(&needs_path)
         .unwrap_or_else(|e| panic!("cannot read {}: {e}", needs_path.display()));
     let objects_src = fs::read_to_string(&objects_path)
         .unwrap_or_else(|e| panic!("cannot read {}: {e}", objects_path.display()));
+    let lot_src = fs::read_to_string(&lot_path)
+        .unwrap_or_else(|e| panic!("cannot read {}: {e}", lot_path.display()));
 
     let needs: schema::NeedsFile = toml::from_str(&needs_src)
         .unwrap_or_else(|e| panic!("{} is not valid TOML: {e}", needs_path.display()));
     let objects: schema::ObjectsFile = toml::from_str(&objects_src)
         .unwrap_or_else(|e| panic!("{} is not valid TOML: {e}", objects_path.display()));
+    let lot: schema::LotFile = toml::from_str(&lot_src)
+        .unwrap_or_else(|e| panic!("{} is not valid TOML: {e}", lot_path.display()));
 
     let pack =
-        compile::compile(needs, objects).unwrap_or_else(|e| panic!("content is invalid: {e}"));
+        compile::compile(needs, objects, lot).unwrap_or_else(|e| panic!("content is invalid: {e}"));
 
     let bytes = postcard::to_allocvec(&pack).expect("pack serialises");
     let out = PathBuf::from(env::var("OUT_DIR").unwrap()).join("content_pack.postcard");

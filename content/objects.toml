@@ -1,6 +1,19 @@
 # Smart objects. Each interaction advertises what it satisfies; agents
 # score those adverts against their own deficits. Adding an object here
 # is all it takes for agents to start using it.
+#
+# The numbers are a balance decision, not a port detail. Two properties
+# the next person to rebalance should preserve:
+#
+# 1. No two durations and no two deltas are equal, and that is
+#    load-bearing rather than flavour. `select_action` looks a delta up
+#    by need index and an interaction up by position, and no test can
+#    tell one slot from another if two slots hold the same value. See
+#    [L26] and [L29] for the two recorded instances of exactly that bug.
+# 2. A delta may be NEGATIVE, and one of them is: a shower costs energy.
+#    Scoring weighs a cost by the cube of the deficit of the need it
+#    drains, so an already-exhausted sim refuses a shower that a rested
+#    one takes happily. See `score_advertisement`.
 
 [[object]]
 id = "fridge"
@@ -8,9 +21,109 @@ name = "Chill-o-Matic 3000"
 
   # 40.0 and 15 are M0's hardcoded values, reproduced exactly so moving
   # the fridge into content changes no behaviour. Changing either is a
-  # balance decision, not a port detail.
+  # balance decision, not a port detail. The world-hash golden vectors in
+  # crates/terri-sim/src/lib.rs and web/tests/bridge.test.ts are built on
+  # this object, so these two numbers move them.
   [[object.interaction]]
   id = "grab_snack"
   advertises = { hunger = 40.0 }
   duration_ticks = 15
+  slots = 1
+
+[[object]]
+id = "bed"
+name = "Sleepeazy Deluxe"
+
+  # The largest single restore in the game and by far the longest, both
+  # deliberately. Energy drains slowly (0.069 per tick), so sleeping
+  # should be a rare whole-night commitment rather than a top-up squeezed
+  # in between meals, and the long duration is what stops it winning on a
+  # mild deficit.
+  [[object.interaction]]
+  id = "sleep"
+  advertises = { energy = 100.0 }
+  duration_ticks = 180
+  slots = 1
+
+[[object]]
+id = "shower"
+name = "Rainfall Cubicle"
+
+  # The trade-off object, and the reason negative deltas are allowed. It
+  # restores a lot of hygiene and costs some energy, so a tired sim puts
+  # it off - which is precisely the interaction this milestone exists to
+  # make visible. Contrast the sink below: less hygiene, no cost, and a
+  # fraction of the time.
+  [[object.interaction]]
+  id = "take_shower"
+  advertises = { hygiene = 70.0, energy = -12.0 }
+  duration_ticks = 45
+  slots = 1
+
+[[object]]
+id = "toilet"
+name = "Porcelain Standard"
+
+  # Cheap, fast and near-total. Bladder is the fastest-draining need
+  # (0.139 per tick), so this has to be able to interrupt anything, which
+  # 12 ticks and a 95 delta achieve without needing a special case.
+  [[object.interaction]]
+  id = "relieve_self"
+  advertises = { bladder = 95.0 }
+  duration_ticks = 12
+  slots = 1
+
+[[object]]
+id = "television"
+name = "Cathode Companion"
+
+  # Two slots, so it does not become contended when households grow past
+  # one sim. More fun per tick than either the sofa or the bookshelf, and
+  # no comfort at all, which is what the sofa trades against.
+  [[object.interaction]]
+  id = "watch_tv"
+  advertises = { fun = 30.0 }
+  duration_ticks = 55
+  slots = 2
+
+[[object]]
+id = "sofa"
+name = "Chesterfield Regret"
+
+  # Two advertised needs, deliberately. [D6]'s scoring SUMS across
+  # advertised deltas, and this is the first object in shipped content
+  # where that is observable in the running game rather than only in a
+  # test: neither 18 fun nor 34 comfort would beat the television's 30
+  # fun on its own, and together they can.
+  [[object.interaction]]
+  id = "lounge"
+  advertises = { fun = 18.0, comfort = 34.0 }
+  duration_ticks = 50
+  slots = 2
+
+[[object]]
+id = "sink"
+name = "Basin Basic"
+
+  # The quick partial fix for hygiene, and its whole reason for existing
+  # is to give the shower something to lose to: 8 ticks and no energy
+  # cost against 45 ticks and a 12-energy cost. Which one wins depends on
+  # how tired the sim is rather than on a threshold.
+  [[object.interaction]]
+  id = "wash_hands"
+  advertises = { hygiene = 22.0 }
+  duration_ticks = 8
+  slots = 1
+
+[[object]]
+id = "bookshelf"
+name = "Wall of Intent"
+
+  # The slowest fun in the house. It is here as the low end of the fun
+  # range, so the three fun objects span a real spread instead of
+  # clustering and making the choice between them arbitrary.
+  [[object.interaction]]
+  id = "read"
+  advertises = { fun = 26.0 }
+  duration_ticks = 70
   slots = 1

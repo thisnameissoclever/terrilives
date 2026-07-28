@@ -1,4 +1,4 @@
-//! Serde mirrors of the two TOML content files.
+//! Serde mirrors of the three TOML content files.
 //!
 //! These types describe the *shape* content must have; they say nothing
 //! about whether it is valid. Serde cannot express "every `NeedId`
@@ -56,6 +56,51 @@ pub struct InteractionDef {
     pub advertises: BTreeMap<String, f32>,
     pub duration_ticks: u32,
     pub slots: u8,
+}
+
+/// Mirrors `content/lot.toml`: the size of the lot, its interior wall
+/// tiles, and where each object stands.
+///
+/// Walls and placements both default, so an empty lot of a given size is
+/// expressible without writing two empty arrays. A lot with no size is
+/// not: `width` and `height` are required, because a defaulted zero is
+/// exactly the silent-nothing case [D9] exists to prevent.
+#[derive(Debug, Deserialize)]
+pub struct LotFile {
+    pub width: u32,
+    pub height: u32,
+    #[serde(default)]
+    pub wall: Vec<WallDef>,
+    #[serde(default)]
+    pub place: Vec<PlacementDef>,
+}
+
+/// One impassable tile.
+///
+/// `i32` rather than `u32`, and that is a decision rather than a default.
+/// `i32` is the tile coordinate type everywhere else - `TileGrid::
+/// is_walkable` and `find_path` both take `(i32, i32)` - and it lets a
+/// negative coordinate reach the validator, which reports it against the
+/// lot it is outside of. A `u32` would make `x = -1` a serde type error
+/// naming neither the lot nor the wall.
+#[derive(Debug, Deserialize)]
+pub struct WallDef {
+    pub x: i32,
+    pub y: i32,
+}
+
+/// One object, placed. `object` is the string id of an entry in
+/// `objects.toml`; the compile step resolves it to an `ObjectDefId`, so
+/// a dangling reference has no representation once a pack exists.
+///
+/// Coordinates are `f32` rather than tile indices because `Position` is
+/// an f32 pair: an object may stand anywhere, and the tile it occupies
+/// is the tile its coordinates fall in.
+#[derive(Debug, Deserialize)]
+pub struct PlacementDef {
+    pub object: String,
+    pub x: f32,
+    pub y: f32,
 }
 
 #[cfg(test)]
@@ -167,5 +212,72 @@ mod tests {
         )
         .expect("objects with no interaction should parse");
         assert!(parsed.object[0].interaction.is_empty());
+    }
+
+    /// The shipped `lot.toml` uses inline tables inside an array, which
+    /// is the only form in which fifteen wall tiles are readable. Serde
+    /// accepts both that and `[[wall]]` sections, so this pins the one
+    /// the authored file actually uses.
+    ///
+    /// The fixture is deliberately non-square and its walls are declared
+    /// out of sorted order, so a transposed `width`/`height` and a
+    /// silently reordered wall list are both visible here.
+    #[test]
+    fn parses_a_lot_with_walls_and_placements() {
+        let parsed: LotFile = toml::from_str(
+            r#"
+            width = 6
+            height = 4
+
+            wall = [
+              { x = 3, y = 2 },
+              { x = 1, y = 0 },
+            ]
+
+            place = [
+              { object = "fridge", x = 2.5, y = 1.25 },
+            ]
+            "#,
+        )
+        .expect("valid lot toml");
+
+        assert_eq!((parsed.width, parsed.height), (6, 4));
+        assert_eq!(
+            parsed.wall.iter().map(|w| (w.x, w.y)).collect::<Vec<_>>(),
+            vec![(3, 2), (1, 0)],
+            "walls must keep the order they were declared in"
+        );
+        assert_eq!(parsed.place.len(), 1);
+        assert_eq!(parsed.place[0].object, "fridge");
+        // Fractional on purpose. Every coordinate being an integer would
+        // make a truncating parse indistinguishable from a correct one;
+        // see [L34].
+        assert_eq!((parsed.place[0].x, parsed.place[0].y), (2.5, 1.25));
+    }
+
+    /// A lot with nothing in it yet is a legitimate authoring state, and
+    /// the `#[serde(default)]` on both lists is what allows it. Without
+    /// them, deleting the last object from a lot would turn a size-only
+    /// file into a parse error.
+    #[test]
+    fn a_lot_may_declare_no_walls_and_no_placements() {
+        let parsed: LotFile =
+            toml::from_str("width = 2\nheight = 3\n").expect("a bare lot size should parse");
+        assert!(parsed.wall.is_empty());
+        assert!(parsed.place.is_empty());
+        assert_eq!((parsed.width, parsed.height), (2, 3));
+    }
+
+    /// The size is the one thing that has no sensible default: a lot
+    /// silently defaulting to 0x0 has no walkable tile at all, and every
+    /// agent in it would simply never move. Serde must reject the file
+    /// rather than compile a lot nobody can stand in.
+    #[test]
+    fn a_lot_without_a_size_is_a_parse_error_rather_than_a_zero_lot() {
+        let err = toml::from_str::<LotFile>("wall = []\n").unwrap_err();
+        assert!(
+            err.to_string().contains("width"),
+            "the error must name the missing field; got {err}"
+        );
     }
 }
