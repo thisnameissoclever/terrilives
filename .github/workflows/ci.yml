@@ -1,0 +1,167 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+          targets: wasm32-unknown-unknown
+      - name: Format check
+        run: cargo fmt --all -- --check
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: Test
+        run: cargo test --workspace
+      # Mechanically enforces [D1]: terri-core and terri-sim never depend
+      # on a web crate. Explicit targets are load-bearing, not tidiness.
+      # Cargo.lock records unactivated optional dependencies, and under
+      # --target all there is a real-looking but inert path:
+      #   terri-core -> bevy_ecs -> bevy_reflect -> bevy_reflect_derive
+      #     -> uuid -> js-sys -> wasm-bindgen
+      # bevy_reflect_derive is a proc-macro, so it always builds for the
+      # host, where uuid's cfg(target_arch = "wasm32") block is inactive.
+      # Nothing links into terri-core on any real target. Checking the two
+      # targets that actually get built is both correct and meaningful; a
+      # check that fails spuriously trains everyone to ignore it. See
+      # lessons-learned [L4].
+      #
+      # The tree is captured before it is grepped, on purpose. A pipeline
+      # used directly as an `if` condition is exempt from errexit, and
+      # `pipefail` does not help because grep's no-match exit 1 is the
+      # rightmost status anyway - so `if cargo tree | grep` reports "no
+      # web crates found" when cargo itself fails. A renamed crate, a
+      # crate moved out of the workspace, a bad target triple, or a
+      # registry hiccup would all make this check vacuously green.
+      # Assigning to a variable puts the failure back under errexit.
+      - name: Verify sim core has no web dependencies
+        run: |
+          set -eu
+          for target in x86_64-unknown-linux-gnu wasm32-unknown-unknown; do
+            for crate in terri-core terri-sim; do
+              tree=$(cargo tree -p "$crate" --target "$target")
+              if printf '%s\n' "$tree" | grep -E 'wasm-bindgen|web-sys|js-sys'; then
+                echo "FAIL: $crate depends on a web crate for $target"
+                exit 1
+              fi
+            done
+          done
+
+  # Mutation testing. A surviving mutant is behaviour nothing constrains.
+  # Five separate tests in this project were permanently green while
+  # protecting nothing, and prose rules failed to prevent the recurrence
+  # three times, because the family does not look like itself. This is the
+  # mechanical backstop. See docs/testing-protocol.md.
+  #
+  # The gate is "no NEW survivors", not "zero survivors". It runs a full
+  # sweep and compares the survivor list against a committed baseline,
+  # rather than using --in-diff to restrict mutants to changed lines.
+  #
+  # --in-diff was tried first and is the wrong tool here. It implements
+  # "no new survivors" only by proxy, and that proxy breaks on the one PR
+  # that introduces the whole codebase: the diff is everything, so the run
+  # degenerates into a full sweep and fails on accepted debt. Diffing
+  # against a checked-in baseline needs no special case, and it turns the
+  # known survivors into reviewable data instead of a number in a doc that
+  # nothing enforces.
+  #
+  # --test-workspace true is load-bearing, not tidiness. By default each
+  # mutant is tested only against its own package's suite, so a mutation in
+  # terri-core is judged by terri-core's tests alone. Most of terri-core's
+  # behaviour is exercised through terri-sim, so the default produced 11
+  # false survivors on the first run, including Path::next_step -> None,
+  # which the real suite catches instantly.
+  mutants:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install cargo-mutants
+        run: cargo install cargo-mutants --locked
+      # cargo-mutants exits 2 whenever any mutant survives, so its exit
+      # code cannot be the signal for a no-new-survivors gate. The
+      # comparison in the next step is.
+      - name: Full mutation sweep
+        run: |
+          cargo mutants --package terri-core --package terri-sim \
+            --test-workspace true --timeout 60 || true
+      - name: Fail on survivors not in the baseline
+        run: |
+          set -eu
+          sort mutants.out/missed.txt > actual.txt
+          sort docs/mutants-baseline.txt > baseline.txt
+
+          new=$(comm -23 actual.txt baseline.txt)
+          if [ -n "$new" ]; then
+            echo "NEW surviving mutants, absent from docs/mutants-baseline.txt:"
+            printf '%s\n' "$new"
+            echo ""
+            echo "Each is behaviour that nothing constrains. Either add a test"
+            echo "that kills it, or - if it is genuinely an equivalent mutant -"
+            echo "add it to the baseline with the argument written down in"
+            echo "docs/mutation-baseline.md. Do not add it silently."
+            exit 1
+          fi
+
+          echo "No new survivors. Baseline holds at $(wc -l < baseline.txt)."
+
+          # A baseline that only ever grows becomes a permission slip, so
+          # report entries that are now caught. Not a failure; a nudge.
+          fixed=$(comm -13 actual.txt baseline.txt)
+          if [ -n "$fixed" ]; then
+            echo ""
+            echo "These baseline entries are now caught and should be removed:"
+            printf '%s\n' "$fixed"
+          fi
+      - name: Upload mutants report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutants-out
+          path: mutants.out/
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      # Pinned. Unpinned, this action installs whatever wasm-pack is
+      # latest, and its bundled wasm-opt then has to parse whatever the
+      # current rustc emits. That skew broke the build once already:
+      # "Fatal: error in parsing input" from wasm-opt, on a commit whose
+      # Rust changes were a dead-code deletion. 0.15.0 is the version
+      # verified working against rustc 1.94.1.
+      #
+      # Reproducibility is load-bearing in this repo rather than merely
+      # tidy: the golden world-hash vectors assert that native and wasm32
+      # agree bit for bit, and a floating toolchain would turn a genuine
+      # determinism regression and a toolchain bump into the same red.
+      - uses: jetli/wasm-pack-action@v0.4.0
+        with:
+          version: 'v0.15.0'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # web/src/wasm/ is gitignored build output, so a fresh clone has no
+      # WASM package. It must be built before the web tests can import it.
+      - name: Build WASM package
+        run: wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm
+      - name: Install web dependencies
+        working-directory: web
+        run: npm ci
+      - name: Type check
+        working-directory: web
+        run: npm run typecheck
+      - name: Test
+        working-directory: web
+        run: npm test

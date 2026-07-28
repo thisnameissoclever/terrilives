@@ -1,0 +1,18 @@
+crates/terri-core/src/clock.rs:32:9: replace SimClock::is_hour_boundary -> bool with false
+crates/terri-core/src/clock.rs:32:9: replace SimClock::is_hour_boundary -> bool with true
+crates/terri-core/src/grid.rs:102:43: replace + with - in TileGrid::find_path
+crates/terri-core/src/grid.rs:102:63: replace + with - in TileGrid::find_path
+crates/terri-core/src/grid.rs:115:44: replace + with * in TileGrid::find_path
+crates/terri-core/src/grid.rs:128:31: replace - with + in heuristic
+crates/terri-core/src/grid.rs:128:5: replace heuristic -> u32 with 0
+crates/terri-core/src/grid.rs:128:5: replace heuristic -> u32 with 1
+crates/terri-core/src/grid.rs:28:9: replace TileGrid::width -> usize with 0
+crates/terri-core/src/grid.rs:28:9: replace TileGrid::width -> usize with 1
+crates/terri-core/src/grid.rs:32:9: replace TileGrid::height -> usize with 0
+crates/terri-core/src/grid.rs:32:9: replace TileGrid::height -> usize with 1
+crates/terri-core/src/grid.rs:72:42: replace || with && in TileGrid::find_path
+crates/terri-core/src/hash.rs:15:38: replace + with *
+crates/terri-sim/src/systems/action.rs:60:82: replace < with <= in select_action
+crates/terri-sim/src/systems/advertise.rs:31:18: replace > with >= in score_advertisement
+crates/terri-sim/src/systems/advertise.rs:31:36: replace > with >= in score_advertisement
+crates/terri-sim/src/systems/movement.rs:28:53: replace / with % in follow_path

@@ -1,0 +1,8 @@
+[package]
+name = "terri-sim"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+terri-core = { path = "../terri-core" }
+bevy_ecs = { workspace = true }

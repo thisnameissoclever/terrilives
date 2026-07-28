@@ -18,8 +18,17 @@
 - **Single-threaded executor for M0.** Set `ExecutorKind::SingleThreaded` explicitly. Parallelism is [D4]/[A9] and arrives later; keeping it off now makes determinism trivially safe.
 - **Zero-copy bridge: no per-entity JavaScript objects, ever.** This is [D11].
 - **Determinism test runs in CI from Task 7 onward.** This is [D12].
-- **Rust edition 2021.** Pin `bevy_ecs` in `Cargo.toml`; if the API differs from the code below, check `docs.rs/bevy_ecs` for the pinned version and adjust. The API shapes used here (`World`, `Schedule`, `Query`, `Res`/`ResMut`, `#[derive(Component)]`, `#[derive(Resource)]`) have been stable across recent releases, but verify rather than assume.
+- **Rust edition 2021. `bevy_ecs` resolves to 0.18.1**, locked by the committed `Cargo.lock`. The workspace manifest requests `"0.18"`, which floats the patch version; the lockfile is what actually pins it, and it is committed because this is an application rather than a library. Verified during Task 1. 0.19.0 exists but requires Rust 1.95.0 against the installed 1.94.1, so 0.18.1 is a hard ceiling rather than a preference. All code below was compiled and its assertions run against 0.18.1.
+- **Two 0.18 API facts that differ from older bevy_ecs and are easy to get wrong:**
+  - `World::iter_entities()` no longer exists. Use `World::query::<D>()` where you hold `&mut World`, or `World::try_query::<D>()` where you only hold `&World`. Both return an owned `QueryState` that must be bound `mut`, then iterated as `state.iter(&world)`. Note `World::entities()` is **not** the replacement; it returns `&Entities` metadata.
+  - `Entity::index()` returns `EntityIndex`, not `u32`. `EntityIndex` derives `Ord`, and sorting by it was verified to match sorting by the raw integer, so it is safe for ordering. Use `index_u32() -> u32` only where a literal `u32` is required.
 - **Every task ends with a commit.**
+- **Mutation-test every load-bearing invariant, and report the evidence.** For any test that guards an invariant (determinism, ordering, a guard, an architectural rule): delete the mechanism, confirm the test fails, restore it, confirm the tree is byte-identical. Paste the actual failure. **You cannot determine whether a test tests something by reading it; only by breaking the thing and watching the test fail.** Five separate tests in this project were permanently green while protecting nothing, and every one was found this way rather than by running the suite. See [L3], [L5], [L6], [L7] in `docs/lessons-learned.md`.
+- **Prefer causal assertions over equality assertions.** All five of those failures asserted a relation between two computed values, which is easy to satisfy by accident. The stronger shape is: change the input, assert the output moved; restore the input, assert the output came back. That pins a causal relationship rather than a coincidence.
+- **A guard is a mechanism like any other.** An untested guard is indistinguishable from no guard, and a guard must hold everything else constant to isolate what it claims to check. See [L7].
+- **Declare `pub mod foo;` in the same step that creates `foo.rs`, never in a later step.** Several tasks below are written to create a file containing tests first and wire it into the module tree afterward. **Follow the intent, not that ordering.** Rust does not compile a `.rs` file that no `mod` declaration references, so the intervening "verify it fails" checkpoint would report success with `0 filtered out` - a test that never ran, mistaken for a red. This applies to Tasks 3, 4, and 5, and to `systems/mod.rs` as much as to `lib.rs`.
+- **When verifying a red checkpoint, read the test count, not just the exit status.** A genuine red for a missing symbol is a compile error such as `E0433: failed to resolve: use of undeclared type`. `0 passed; 0 failed` is not a red; it is a test that did not run.
+- **Bare `cargo` does not link on the development machine.** See [L1] in `docs/lessons-learned.md` for the cause and the `vcvars64.bat` workaround. CI runs on Linux and is unaffected.
 
 ## File Structure
 
@@ -101,7 +110,7 @@ edition = "2021"
 version = "0.1.0"
 
 [workspace.dependencies]
-bevy_ecs = "0.16"
+bevy_ecs = "0.18"
 wasm-bindgen = "0.2"
 ```
 
@@ -206,16 +215,20 @@ Expected: `[INFO]: :-) Done in ...`, and `web/src/wasm/terri_wasm.js` exists.
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "typescript": "^5.5.0",
-    "vite": "^5.4.0",
-    "vitest": "^2.0.0",
+    "vite": "^8.1.5",
+    "vitest": "^4.1.10",
+    "@types/node": "^24.13.3",
     "@webgpu/types": "^0.1.44"
   }
 }
 ```
+
+Vite 8 and Vitest 4 were adopted immediately after Task 1: Vite 5 pulled `esbuild <=0.24.2` with five audit vulnerabilities, and Vitest 4 is the first line that peers with Vite 8. Post-upgrade audit is clean. `@types/node` is required because the tests import `node:fs`.
 
 `web/tsconfig.json`:
 
@@ -227,11 +240,13 @@ Expected: `[INFO]: :-) Done in ...`, and `web/src/wasm/terri_wasm.js` exists.
     "moduleResolution": "bundler",
     "strict": true,
     "skipLibCheck": true,
-    "types": ["@webgpu/types", "vitest/globals"]
+    "types": ["@webgpu/types"]
   },
-  "include": ["src", "tests"]
+  "include": ["src", "tests", "vite.config.ts"]
 }
 ```
+
+`vitest/globals` is deliberately absent: globals are not enabled, and tests import `describe`/`it`/`expect` explicitly. `vite.config.ts` is included so it is actually type-checked.
 
 `web/vite.config.ts`:
 
@@ -307,7 +322,9 @@ architecture, so it gets validated first."
 
 **Interfaces:**
 - Consumes: nothing
-- Produces: `SimClock { tick: u64 }` (a `bevy_ecs` `Resource`), `SimClock::advance(&mut self)`, `SimClock::sim_minutes(&self) -> u64`, `SimClock::sim_hours(&self) -> u64`, constant `TICKS_PER_SIM_HOUR: u64 = 60`
+- Produces: `SimClock { tick: u64 }` (a `bevy_ecs` `Resource`), `SimClock::advance(&mut self)`, `SimClock::sim_minutes(&self) -> u64`, `SimClock::sim_hours(&self) -> u64`, `SimClock::is_hour_boundary(&self) -> bool`, constants `TICKS_PER_SIM_HOUR: u64 = 60` and `TICK_HZ: f64 = 10.0`
+
+Note on `is_hour_boundary`: it returns `true` at `tick == 0`, which is correct since tick 0 does begin sim-hour 0. The unpinned part is the calling convention - whether a consumer running before or after `advance()` sees that first boundary. Nothing consumes it in M0. **Whichever task first adds a consumer (Tier 2 story progression, per [D3]) must pin the run order in a doc comment and lock it with a test.**
 
 - [ ] **Step 1: Write the failing test**
 
@@ -626,6 +643,21 @@ impl Sim {
     pub fn new() -> Self {
         let mut world = World::new();
         world.insert_resource(SimClock::default());
+
+        // Register components eagerly. This is NOT optional bookkeeping:
+        // World::try_query returns None if ANY component in the query is
+        // unregistered, including one behind Option<&T>. Task 7's
+        // world_hash uses try_query, so without this a world that never
+        // spawned a Hunger would hash zero rows and the determinism test
+        // would pass by comparing two empty hashes - green while testing
+        // nothing. Later tasks must add their components here too.
+        world.register_component::<terri_core::Position>();
+        world.register_component::<terri_core::Agent>();
+        world.register_component::<terri_core::Hunger>();
+        // Task 6 must extend this list with SmartObject, Reserved, Path,
+        // Target, and Eating as it introduces them. Forgetting one is
+        // silent: try_query yields None and the determinism hash sees
+        // zero rows.
 
         let mut schedule = Schedule::default();
         // M0 runs single-threaded on purpose. Parallelism is [A9]/[D4]
@@ -1015,6 +1047,17 @@ mod tests {
     }
 
     #[test]
+    fn out_of_range_deficit_cannot_inflate_a_score() {
+        // Hunger's field is public, so callers can construct values
+        // outside 0..=100 and deficit() can return outside 0.0..=1.0.
+        // Raising such a value to DEFICIT_EXPONENT would inflate the
+        // score without bound, so scoring clamps its input.
+        let sane = score_advertisement(1.0, 35.0, 15, 5.0);
+        assert_eq!(score_advertisement(1.6, 35.0, 15, 5.0), sane);
+        assert_eq!(score_advertisement(-0.4, 35.0, 15, 5.0), 0.0);
+    }
+
+    #[test]
     fn closer_objects_score_higher() {
         let near = score_advertisement(0.5, 35.0, 15, 1.0);
         let far = score_advertisement(0.5, 35.0, 15, 40.0);
@@ -1054,7 +1097,12 @@ const DEFICIT_EXPONENT: f32 = 3.0;
 
 /// Tiles per tick an agent walks. Used to convert distance into a time
 /// cost so travel and duration are commensurable.
-const TILES_PER_TICK: f32 = 0.25;
+///
+/// Public and shared on purpose: Task 6's movement system consumes this
+/// same constant rather than declaring its own. If the two ever drift,
+/// the scoring function's travel estimate silently becomes a lie and no
+/// test fails.
+pub const TILES_PER_TICK: f32 = 0.25;
 
 /// Score one advertised interaction for one agent. Higher wins.
 ///
@@ -1069,7 +1117,12 @@ pub fn score_advertisement(
     if deficit <= 0.0 || delta <= 0.0 {
         return 0.0;
     }
-    let urgency = deficit.powf(DEFICIT_EXPONENT);
+    // Clamp before exponentiating. Hunger's field is public, so nothing
+    // structurally prevents a level outside 0..=100 and therefore a
+    // deficit outside 0.0..=1.0; cubing 1.6 would inflate the score by
+    // 4x with no bound. Clamping here rather than trusting callers keeps
+    // the guarantee local to the function that depends on it.
+    let urgency = deficit.clamp(0.0, 1.0).powf(DEFICIT_EXPONENT);
     let travel_ticks = distance / TILES_PER_TICK;
     let time_cost = travel_ticks + duration_ticks as f32;
     // The +1 keeps a zero-cost interaction from producing infinity.
@@ -1306,6 +1359,13 @@ pub fn select_action(
             if claimed.contains(&object) {
                 continue;
             }
+            // Euclidean straight-line distance, deliberately, not A*
+            // path length. Scoring runs against every candidate object
+            // every tick, so pathing each one first would be far too
+            // expensive. The cost is that an object one tile away
+            // through a wall scores as near and is then walked around.
+            // Acceptable in M0's single open room; revisit when [D7]'s
+            // room and portal graph lands and walls become common.
             let dx = object_pos.x - agent_pos.x;
             let dy = object_pos.y - agent_pos.y;
             let distance = (dx * dx + dy * dy).sqrt();
@@ -1355,9 +1415,12 @@ pub fn select_action(
 use bevy_ecs::prelude::*;
 use terri_core::{Eating, Path, Position, SmartObject, Target};
 
-/// Tiles travelled per tick. Matches TILES_PER_TICK in advertise.rs so
-/// the scoring function's travel estimate stays honest.
-const SPEED: f32 = 0.25;
+use super::advertise::TILES_PER_TICK;
+
+/// Tiles travelled per tick. Imported rather than redeclared so the
+/// scoring function's travel estimate cannot silently drift out of step
+/// with actual movement.
+const SPEED: f32 = TILES_PER_TICK;
 
 /// Advances agents along their path. On arrival, converts the target
 /// into an in-progress interaction.
@@ -1516,6 +1579,19 @@ mod determinism_tests {
             b.tick();
         }
 
+        // Guard against the empty-hash trap before asserting equality.
+        // If any queried component were unregistered, try_query would
+        // yield zero rows and this test would pass by comparing two
+        // identical empty hashes - permanently green while testing
+        // nothing. See lessons-learned [L3]. Any test that can pass on
+        // empty input needs an assertion that the input was not empty.
+        let empty = Sim::new_with_lot(24, 24);
+        assert_ne!(
+            a.world_hash(),
+            empty.world_hash(),
+            "world hash equals an empty world's; the hash is seeing no entities"
+        );
+
         assert_eq!(
             a.world_hash(),
             b.world_hash(),
@@ -1615,13 +1691,18 @@ Add to `impl Sim` in `crates/terri-sim/src/lib.rs`:
         // (entity index, x, y, hunger). Hunger is -1.0 for entities that
         // have none, which distinguishes "no need" from "starving".
         let mut rows: Vec<(u32, f32, f32, f32)> = Vec::new();
-        for entity in self.world.iter_entities() {
-            let Some(pos) = entity.get::<Position>() else {
-                continue;
-            };
-            let hunger = entity.get::<Hunger>().map_or(-1.0, |h| h.0);
-            rows.push((entity.id().index(), pos.x, pos.y, hunger));
+        if let Some(mut state) = self
+            .world
+            .try_query::<(Entity, &Position, Option<&Hunger>)>()
+        {
+            for (entity, pos, hunger) in state.iter(&self.world) {
+                let hunger = hunger.map_or(-1.0, |h| h.0);
+                rows.push((entity.index_u32(), pos.x, pos.y, hunger));
+            }
         }
+        // The sort is load-bearing: query iteration is archetype order,
+        // not entity order, and archetype order shifts as components are
+        // added and removed.
         rows.sort_by_key(|(index, _, _, _)| *index);
 
         for (index, x, y, hunger) in rows {
@@ -1635,7 +1716,9 @@ Add to `impl Sim` in `crates/terri-sim/src/lib.rs`:
     }
 ```
 
-This mirrors the shape used by `sync_render_buffer` in Task 8 on purpose; if one needs adjusting for the pinned `bevy_ecs` API, the other will need the same change. The only hard requirement is that rows are sorted by entity index before hashing, because ECS iteration order is not a stable contract.
+`try_query` takes `&self`, so `world_hash`'s signature survives. It returns `Option<QueryState>`, and the state must be bound `mut` because `iter` takes `&mut self` on it; since the state is owned, `let Some(mut state)` then `state.iter(&self.world)` has no borrow conflict.
+
+**Do not replace the `if let Some` with `.expect(..)` without reading the note in `Sim::new` about `register_component`.** Either form is a trap if components are unregistered: `expect` panics, and `if let Some` silently hashes zero rows, which makes the determinism test pass by comparing two empty hashes. Registration in `Sim::new` is what makes this correct.
 
 - [ ] **Step 5: Run to verify it passes**
 
@@ -1662,6 +1745,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt
+          targets: wasm32-unknown-unknown
       - name: Format check
         run: cargo fmt --all -- --check
       - name: Clippy
@@ -1670,10 +1754,52 @@ jobs:
         run: cargo test --workspace
       - name: Verify sim core has no web dependencies
         run: |
-          ! cargo tree -p terri-core -p terri-sim | grep -E 'wasm-bindgen|web-sys'
+          set -e
+          for target in x86_64-unknown-linux-gnu wasm32-unknown-unknown; do
+            for crate in terri-core terri-sim; do
+              if cargo tree -p "$crate" --target "$target" \
+                   | grep -E 'wasm-bindgen|web-sys|js-sys'; then
+                echo "FAIL: $crate depends on a web crate for $target"
+                exit 1
+              fi
+            done
+          done
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: jetli/wasm-pack-action@v0.4.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # web/src/wasm/ is gitignored build output, so a fresh clone has no
+      # WASM package. It must be built before the web tests can import it.
+      - name: Build WASM package
+        run: wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm
+      - name: Install web dependencies
+        working-directory: web
+        run: npm ci
+      - name: Type check
+        working-directory: web
+        run: npm run typecheck
+      - name: Test
+        working-directory: web
+        run: npm test
 ```
 
-That last step mechanically enforces [D1]. If it ever fails, the architecture's load-bearing rule has been broken.
+The dependency check mechanically enforces [D1]. If it ever fails, the architecture's load-bearing rule has been broken.
+
+**Why the check names explicit targets rather than running bare `cargo tree`.** `Cargo.lock` legitimately contains `wasm-bindgen`, `web-sys`, and `js-sys` entries as unactivated optional-dependency records, and under `--target all` there is a real-looking path:
+
+```
+terri-core -> bevy_ecs -> bevy_reflect -> bevy_reflect_derive -> uuid -> js-sys -> wasm-bindgen
+```
+
+That path is inert. `bevy_reflect_derive` is a proc-macro, so it always builds for the host, where `uuid`'s `cfg(all(target_arch = "wasm32", target_os = "unknown"))` block is inactive. Nothing links into `terri-core` on any real target. A bare `cargo tree` or a `--target all` check would therefore fail spuriously and train everyone to ignore it. Checking the two targets that actually get built is both correct and meaningful.
 
 - [ ] **Step 7: Run the checks locally**
 
@@ -1801,13 +1927,15 @@ Add `pub mod render_buffer;` to `crates/terri-sim/src/lib.rs`, add `render: rend
         self.render.positions.clear();
         self.render.kinds.clear();
 
+        // World::query (not try_query) registers components on demand and
+        // cannot fail, so there is no Option to handle here. It returns an
+        // owned QueryState, which ends the &mut borrow immediately and
+        // leaves self.render free to write below.
+        let mut state = self.world.query::<(Entity, &Position, Has<Agent>)>();
         let mut rows: Vec<(u32, f32, f32, u32)> = Vec::new();
-        for entity in self.world.iter_entities() {
-            let Some(pos) = entity.get::<Position>() else {
-                continue;
-            };
-            let kind = if entity.get::<Agent>().is_some() { 0 } else { 1 };
-            rows.push((entity.id().index(), pos.x, pos.y, kind));
+        for (entity, pos, is_agent) in state.iter(&self.world) {
+            let kind = if is_agent { 0 } else { 1 };
+            rows.push((entity.index_u32(), pos.x, pos.y, kind));
         }
         rows.sort_by_key(|(index, _, _, _)| *index);
 
@@ -2404,8 +2532,11 @@ describe('isometric projection', () => {
     expect(worldToScreen(0, 0, 640, 360)).toEqual([640, 360]);
   });
 
-  it('gives farther tiles smaller depth so they draw behind', () => {
-    expect(worldDepth(0, 0, 64)).toBeLessThan(worldDepth(10, 10, 64));
+  it('gives nearer tiles smaller depth so they win the depth test', () => {
+    // The pipeline compares with 'less' against a clear of 1.0, so the
+    // SMALLER depth wins the pixel. Larger x + y is nearer the camera
+    // (it draws lower on screen), so near must carry smaller depth.
+    expect(worldDepth(10, 10, 64)).toBeLessThan(worldDepth(0, 0, 64));
   });
 
   it('keeps depth inside the clip range', () => {
@@ -2448,14 +2579,25 @@ export function worldToScreen(
 }
 
 /**
- * Depth for the depth buffer, in [0, 1]. Tiles farther from the camera
- * (lower x + y) get smaller values and therefore draw behind, since the
- * pipeline compares with 'less'. Using the depth buffer avoids sorting
- * entirely, which matters at high object counts.
+ * Depth for the depth buffer, in [0, 1].
+ *
+ * The pipeline compares with 'less' against a depth clear of 1.0, so the
+ * SMALLER value wins the pixel. Larger x + y is nearer the camera, since
+ * worldToScreen puts it lower on screen and the shader flips Y. Nearer
+ * must therefore carry the smaller depth, which is why this subtracts
+ * from 1 rather than returning the ratio directly.
+ *
+ * Getting this backwards is not subtle in effect: every entity would be
+ * occluded by whatever stands behind it. An earlier draft of this plan
+ * had it inverted, and its test asserted the negation of its own name,
+ * so it would have been permanently green. See lessons-learned [L16].
+ *
+ * Using the depth buffer at all avoids CPU-side sorting entirely, which
+ * is what makes high object counts cheap.
  */
 export function worldDepth(wx: number, wy: number, gridSize: number): number {
   const maxSum = Math.max(1, (gridSize - 1) * 2);
-  return Math.min(1, Math.max(0, (wx + wy) / maxSum));
+  return Math.min(1, Math.max(0, 1 - (wx + wy) / maxSum));
 }
 ```
 
@@ -2648,7 +2790,15 @@ import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
 import { FixedStepDriver, buildInstances } from './frame.js';
 
-const GRID = 32;
+// GRID is 16, not 32, so the lot actually fits the 1280x720 canvas.
+// Isometric extents are (GRID - 1) * 2 * TILE_HALF_WIDTH wide and
+// (GRID - 1) * 2 * TILE_HALF_HEIGHT tall, so 32 would be 1984 px wide
+// with its near corner at y = 1072 - most of the lot off screen. At 16
+// it is 960 by 480, which leaves room for the origin offset.
+//
+// Worth knowing because the symptom of getting this wrong looks like a
+// broken projection rather than a camera that is simply too zoomed in.
+const GRID = 16;
 const TICK_HZ = 10;
 const MAX_TICKS_PER_FRAME = 5;
 
@@ -2662,7 +2812,12 @@ async function main(): Promise<void> {
   const renderer = new SpriteRenderer(gpu);
   const bridge = new SimBridge(new SimHandle(GRID, GRID));
 
-  bridge.spawnObject(24, 20);
+  // Both must sit inside the GRID x GRID lot. Out-of-bounds tiles are
+  // unwalkable, so find_path returns None every tick and the agent
+  // simply never moves - no panic, no log. That presents as "the
+  // renderer is broken" rather than "the fridge is off the lot", which
+  // is a genuinely expensive misdiagnosis. See lessons-learned [L17].
+  bridge.spawnObject(12, 10);
   bridge.spawnAgent(2, 3, 25);
 
   const driver = new FixedStepDriver(TICK_HZ, MAX_TICKS_PER_FRAME);
@@ -2818,7 +2973,12 @@ Replace the two spawn lines with:
 ```ts
   // ?stress=1000 spawns idle entities to exercise the M0 exit criterion.
   const stress = Number(new URLSearchParams(location.search).get('stress') ?? 0);
-  bridge.spawnObject(24, 20);
+  // Both must sit inside the GRID x GRID lot. Out-of-bounds tiles are
+  // unwalkable, so find_path returns None every tick and the agent
+  // simply never moves - no panic, no log. That presents as "the
+  // renderer is broken" rather than "the fridge is off the lot", which
+  // is a genuinely expensive misdiagnosis. See lessons-learned [L17].
+  bridge.spawnObject(12, 10);
   bridge.spawnAgent(2, 3, 25);
   for (let i = 0; i < stress; i++) {
     // Hunger is high so these stay idle and do not all path at once;
