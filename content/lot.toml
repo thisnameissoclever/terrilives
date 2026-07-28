@@ -17,30 +17,29 @@
 # blocked, so authoring a perimeter here would be 80 redundant entries
 # that no code would read differently.
 
-width = 24
-height = 18
+# Sized so the room reads as a home rather than a warehouse. The first
+# version was 24 x 18, which is 432 tiles holding nine things, and it
+# looked like a furniture showroom with the lights off. Density is what
+# makes a space legible, and it is also what makes travel distance a
+# real cost in scoring - across an empty hall every object is equally
+# far, so distance stops discriminating and only need deficit decides.
+width = 14
+height = 10
 
 wall = [
   # The bathroom's west wall, running north-south, with a doorway at
-  # y = 5. The gap in this list IS the doorway; there is no separate
+  # y = 2. The gap in this list IS the doorway; there is no separate
   # door concept yet.
-  { x = 16, y = 0 },
-  { x = 16, y = 1 },
-  { x = 16, y = 2 },
-  { x = 16, y = 3 },
-  { x = 16, y = 4 },
-  { x = 16, y = 6 },
-  { x = 16, y = 7 },
-  { x = 16, y = 8 },
+  { x = 9, y = 0 },
+  { x = 9, y = 1 },
+  { x = 9, y = 3 },
 
-  # Its south wall, running east from the corner above to the lot edge.
-  { x = 17, y = 8 },
-  { x = 18, y = 8 },
-  { x = 19, y = 8 },
-  { x = 20, y = 8 },
-  { x = 21, y = 8 },
-  { x = 22, y = 8 },
-  { x = 23, y = 8 },
+  # Its south wall, running east from below the doorway to the lot edge.
+  { x = 9, y = 4 },
+  { x = 10, y = 4 },
+  { x = 11, y = 4 },
+  { x = 12, y = 4 },
+  { x = 13, y = 4 },
 ]
 
 place = [
@@ -48,18 +47,20 @@ place = [
   # rather than in the bathroom deliberately: it gives the shower a
   # cheap, no-cost hygiene rival on the far side of the lot, which is
   # what turns "wash" into a decision rather than a threshold.
-  { object = "fridge", x = 2.0, y = 2.0 },
-  { object = "sink", x = 5.0, y = 2.0 },
+  { object = "fridge", x = 1.0, y = 1.0 },
+  { object = "sink", x = 3.0, y = 1.0 },
 
-  # Bathroom, reached through the doorway at (16, 5).
-  { object = "shower", x = 18.0, y = 2.0 },
-  { object = "toilet", x = 22.0, y = 2.0 },
+  # Bathroom, reached only through the doorway at (9, 2).
+  { object = "shower", x = 11.0, y = 1.0 },
+  { object = "toilet", x = 13.0, y = 1.0 },
 
-  # Living space.
-  { object = "bookshelf", x = 2.0, y = 10.0 },
-  { object = "sofa", x = 7.0, y = 13.0 },
-  { object = "television", x = 11.0, y = 15.0 },
+  # Living space, along the west and south.
+  { object = "bookshelf", x = 1.0, y = 5.0 },
+  { object = "sofa", x = 3.0, y = 8.0 },
+  { object = "television", x = 6.0, y = 8.0 },
 
-  # Sleeping corner, south of the bathroom's south wall.
-  { object = "bed", x = 20.0, y = 13.0 },
+  # Sleeping corner, south of the bathroom's south wall. Deliberately
+  # far from the sofa and television, so "I am tired" and "I want fun"
+  # pull in opposite directions across the room.
+  { object = "bed", x = 12.0, y = 7.0 },
 ]

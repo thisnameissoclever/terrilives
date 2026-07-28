@@ -450,23 +450,26 @@ mod lot_tests {
             placed_objects(&sim).len()
         );
 
-        // The bathroom's west wall is solid at y = 4 and y = 6 and OPEN at
-        // y = 5. That gap is the doorway, and it is the property the whole
+        // The bathroom's west wall is solid at y = 1 and y = 3 and OPEN at
+        // y = 2. That gap is the doorway, and it is the property the whole
         // lot turns on: without it the bathroom is sealed and the shower
         // and toilet are unreachable, which is a silent behaviour change
         // rather than a visible one ([L17]).
-        assert!(!grid.is_walkable(16, 4), "the bathroom wall must be solid");
-        assert!(!grid.is_walkable(16, 6), "the bathroom wall must be solid");
-        assert!(
-            grid.is_walkable(16, 5),
-            "the doorway at (16, 5) must be open"
-        );
+        //
+        // These coordinates are deliberately literal rather than derived
+        // from the content, so that editing the lot fails this test and
+        // forces someone to look at whether the room still works. It has
+        // already done that job once, when the lot shrank from 24x18 to
+        // 14x10.
+        assert!(!grid.is_walkable(9, 1), "the bathroom wall must be solid");
+        assert!(!grid.is_walkable(9, 3), "the bathroom wall must be solid");
+        assert!(grid.is_walkable(9, 2), "the doorway at (9, 2) must be open");
 
         // And the bathroom is genuinely reachable from the living space,
         // stated as a path rather than as a hole in a wall, because that
         // is the thing the game depends on.
         assert!(
-            grid.find_path((2, 2), (18, 2)).is_some(),
+            grid.find_path((2, 2), (11, 1)).is_some(),
             "the shower must be reachable from the kitchen"
         );
     }

@@ -86,14 +86,14 @@ describe('SimBridge', () => {
       pairs.add(`${walls[i]},${walls[i + 1]}`);
     }
     // Rule 5: an empty list would satisfy the two absence checks below.
-    expect(pairs.size).toBeGreaterThanOrEqual(15);
+    expect(pairs.size).toBeGreaterThanOrEqual(8);
     expect(pairs.size * 2).toBe(walls.length);
 
-    expect(pairs.has('16,4')).toBe(true);
-    expect(pairs.has('16,6')).toBe(true);
+    expect(pairs.has('9,1')).toBe(true);
+    expect(pairs.has('9,3')).toBe(true);
     // The doorway. Drawn as a wall, the bathroom would look sealed while
     // the sim walked straight through the picture of one.
-    expect(pairs.has('16,5')).toBe(false);
+    expect(pairs.has('9,2')).toBe(false);
     // Every tile is inside the lot; the boundary is drawn from the lot's
     // dimensions instead, because no tile exists off the grid to report.
     for (const key of pairs) {

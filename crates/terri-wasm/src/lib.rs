@@ -576,7 +576,18 @@ mod boundary_tests {
         );
         // The page derives its camera and its depth scale from these, so
         // they have to be the lot's own numbers rather than a default.
-        assert!(width >= 16 && height >= 8, "got {width}x{height}");
+        //
+        // There was a `width >= 16 && height >= 8` bound here. It was a
+        // magic number that said nothing about correctness and broke the
+        // moment the lot was legitimately resized from 24x18 to 14x10.
+        // Asserting against `terri_data` instead would mean giving this
+        // crate a dependency it does not otherwise need, to strengthen a
+        // sanity check that was never where the teeth are: transposition
+        // is caught by `assert_ne!` above, and whether these are the
+        // LOT's numbers rather than some other grid's is established
+        // behaviourally by `moves_from` below, which drops an agent on a
+        // tile and watches whether it can walk.
+        assert!(width > 1 && height > 1, "got {width}x{height}");
 
         /// Whether a hungry agent dropped on `tile` of the SHIPPED lot
         /// moves at all in ten ticks.
@@ -787,10 +798,10 @@ mod boundary_tests {
         // included it would draw the bathroom sealed while the sim walked
         // straight through the picture of a wall.
         assert!(
-            !pairs.contains(&(16, 5)),
-            "the doorway at (16, 5) is walkable and must not be drawn as a wall"
+            !pairs.contains(&(9, 2)),
+            "the doorway at (9, 2) is walkable and must not be drawn as a wall"
         );
-        assert!(pairs.contains(&(16, 4)) && pairs.contains(&(16, 6)));
+        assert!(pairs.contains(&(9, 1)) && pairs.contains(&(9, 3)));
     }
 
     #[test]
