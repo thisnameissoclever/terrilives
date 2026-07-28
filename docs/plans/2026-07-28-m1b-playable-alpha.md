@@ -364,6 +364,91 @@ Confirm frames are genuinely produced ([L14]).
 
 ---
 
+### Task 3c: Make it look like a room
+
+**Added mid-milestone.** The plan scoped art out on the reasoning that flat
+shapes were enough to judge decision-making. That judges the *simulation*, not
+the *game*, and the milestone's deliverable is a play session. Task 3b's own
+report makes the case: **walls are invisible**, so a detour to a doorway reads
+as inexplicable, and **a sim standing on an object vanishes behind it** because
+they share a depth.
+
+Nine identical blue diamonds on near-black is not something anyone can form a
+useful opinion from.
+
+**Files:**
+- Create: `web/src/render/atlas.ts`, `assets/sprites/` (generated), `web/src/render/tiles.ts`
+- Modify: `web/src/render/sprites.wgsl`, `src/render/sprites.ts`, `src/frame.ts`, `crates/terri-sim/src/render_buffer.rs`, `crates/terri-wasm/src/lib.rs`
+
+**Assets are already downloaded**: `assets/vendor/kenney_furniture-kit.zip`, CC0,
+560 pre-rendered isometric PNGs at four rotations each. All eight objects are
+covered - `kitchenFridgeBuiltIn`, `bedBunk`, `showerRound`, `toiletSquare`,
+`cabinetTelevisionDoors`, `loungeDesignSofaCorner`, `bathroomSinkSquare`,
+`bookcaseClosedDoors`. **CC0 means these are safe to commit to a public repo**,
+unlike paid packs; record provenance in `ASSETS.md` per [TECH_STACK.md]'s
+licensing note.
+
+- [ ] **Step 1: Fix the depth tie**
+
+A sim on an object shares its depth, and `depthCompare: 'less'` makes the draw
+order decide. Give agents a small depth bias so they always draw in front of
+floor-level furniture. **Pin it with a test** that puts an agent and an object on
+one tile and asserts the agent's depth is strictly smaller.
+
+This is the single most likely thing to be misread as an AI bug during the play
+session, so it comes first.
+
+- [ ] **Step 2: Draw the floor and the walls**
+
+Both are in `content/lot.toml` and nothing renders them. They are static for the
+whole session, so build their instance buffer **once at load** rather than per
+frame - they do not belong in `buildInstances`, which runs every frame and is
+governed by [D11]'s no-allocation rule.
+
+Walls need a height offset so they read as vertical rather than as floor tiles
+of a different colour.
+
+- [ ] **Step 3: Extract and atlas the sprites**
+
+Take one rotation (`_SE`) of the eight objects plus a character, pack them into
+a single texture atlas, and commit the atlas rather than the source zip. One
+atlas keeps [D10]'s one-instanced-draw-call property intact.
+
+Record each sprite's atlas rect in a generated TypeScript module so nothing
+hardcodes pixel offsets in two places.
+
+- [ ] **Step 4: Widen `kind` from a boolean to a sprite index**
+
+`kind` is currently 0 for agent and 1 for object, which is why all eight objects
+look identical. It becomes an index into the atlas.
+
+**That index must come from content, not from a hardcoded switch in the shell.**
+The object's content definition gains a `sprite` field; the render buffer carries
+the index; the shader samples the atlas rect. Anything else puts a second copy
+of the object list in TypeScript, which is exactly the coupling [D1] exists to
+prevent.
+
+Validation gains a rule: every object's `sprite` must name a sprite present in
+the atlas manifest. That is another dangling-reference check, and it needs a
+failing-case test like every other.
+
+- [ ] **Step 5: Texture the shader**
+
+The pipeline currently outputs flat colours. Add a texture binding and sample by
+atlas rect, keeping the single instanced draw. Preserve alpha so sprites are not
+rectangles.
+
+- [ ] **Step 6: Look at it, and say honestly whether it reads as a room**
+
+[L14]: an agent-driven tab does not composite and reports zero frames as a
+beautiful pass. Confirm real frames, report the count, and describe what you
+actually see. If it does not read as a room, say so - that is a finding, and
+better found here than in Task 8.
+
+- [ ] **Step 7: Full gate, mutation sweep, commit**
+
+---
+
 ### Task 4: `Selected` and `IntentQueue`
 
 **Files:**
