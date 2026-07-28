@@ -31,10 +31,26 @@ crate contributes **no new entries to `mutants-baseline.txt`**. Note the
 survivor was a boundary question that no amount of reading the code would have
 settled, because the code cannot state which side of `<` was intended.
 
-**Mutation score: 92.5%** (222 caught of 240 viable), up from 92%, 91%,
-89% and originally 83%. The M1a work added 16 mutants and killed all of
-them: +13 caught, +3 unviable, **+0 missed**. The survivor set is
-unchanged in substance from the M0 close-out sweep.
+The combined sweep CI now runs was then measured end to end, rather than the
+three-package result being inferred from the two runs above:
+
+```
+cargo mutants --package terri-core --package terri-sim --package terri-data \
+  --test-workspace true --timeout 60
+266 mutants tested in 11m: 18 missed, 235 caught, 13 unviable
+```
+
+`comm` against `mutants-baseline.txt` reports **no new survivors and no stale
+entries** - the missed set is identical, not merely the same size, so none of
+the line-anchor churn described further down applies to this change.
+
+**Mutation score: 92.9%** (235 caught of 253 viable), up from 92.5%, 92%, 91%,
+89% and originally 83%. Task 4 added 16 mutants and killed all of them: +13
+caught, +3 unviable, **+0 missed**. The survivor set is unchanged in substance
+from the M0 close-out sweep.
+
+The 92.5% figure below the previous sweep refers to the two-package run and is
+kept for continuity of the series.
 
 The group headings below sum to 23 rather than to the 18 actually
 missed: five of those entries were closed by Tasks 8 through 13,
