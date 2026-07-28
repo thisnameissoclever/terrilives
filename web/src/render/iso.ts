@@ -90,6 +90,54 @@ export function worldToScreen(
 }
 
 /**
+ * Screen pixels back to world tile coordinates: the exact inverse of
+ * `worldToScreen`, in closed form.
+ *
+ * The derivation, with x and y taken relative to the origin. Forward,
+ * `x = (wx - wy) * TILE_HALF_WIDTH` and `y = (wx + wy) * TILE_HALF_HEIGHT`,
+ * so `x / TILE_HALF_WIDTH` is `wx - wy` and `y / TILE_HALF_HEIGHT` is
+ * `wx + wy`. Their sum is `2 * wx` and their difference is `2 * wy`, which
+ * is the whole of the code below. The two halves therefore differ only in
+ * one sign, and that sign is the entire correctness of picking: get it
+ * wrong and clicks land one tile off in some directions and dead on in
+ * others, which reads as a flaky game rather than as a bug in this file.
+ *
+ * **The result is fractional and stays fractional.** The caller decides
+ * what the fraction means, because the answers differ: hit-testing a tile
+ * wants the floor, while a future drag or camera gesture wants the
+ * sub-tile remainder. Rounding here would destroy that before anyone
+ * could choose.
+ *
+ * **Why this returns a tuple when `worldToScreen` is banned from doing so
+ * in the render loop.** [D11] forbids per-entity JS objects per frame, and
+ * [V11] measured 57.8 MB of exactly that allocation before `buildInstances`
+ * was moved onto `screenX`/`screenY`. This function is called from pointer
+ * event handlers, so it runs at most a handful of times a second and never
+ * once per entity. One short-lived array per click is not on any hot path,
+ * and a tuple reads better at the call site than two scalar calls do.
+ *
+ * **Picking inverts the projection; it does not hit-test the rendered
+ * quads.** Per [D-4]: invert to a world tile, then ask the simulation what
+ * is standing on that tile. Quad-space picking would couple input to the
+ * renderer's current sprite size, so changing the art would silently
+ * change where clicks land. Keeping input in world space lets the two move
+ * independently.
+ */
+export function screenToWorld(
+  sx: number,
+  sy: number,
+  originX: number,
+  originY: number,
+): [number, number] {
+  const x = sx - originX;
+  const y = sy - originY;
+  return [
+    (x / TILE_HALF_WIDTH + y / TILE_HALF_HEIGHT) / 2,
+    (y / TILE_HALF_HEIGHT - x / TILE_HALF_WIDTH) / 2,
+  ];
+}
+
+/**
  * Depth for the depth buffer, in [0, 1].
  *
  * Depth is derived from world position and written to the depth buffer

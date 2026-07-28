@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import {
   worldToScreen,
+  screenToWorld,
   screenX,
   screenY,
   worldDepth,
@@ -96,6 +97,74 @@ describe('worldToScreen', () => {
     expect(TILE_HALF_WIDTH).toBe(32);
     expect(TILE_HALF_HEIGHT).toBe(16);
     expect(TILE_HALF_WIDTH).toBe(TILE_HALF_HEIGHT * 2);
+  });
+});
+
+describe('screenToWorld', () => {
+  it('round-trips every world coordinate back through worldToScreen exactly', () => {
+    // A sign error here produces picking that is subtly off rather than
+    // obviously broken, which is the kind that survives manual testing:
+    // clicks land one tile away in some directions and correctly in
+    // others, and the blame goes somewhere else weeks later.
+    //
+    // Several coordinates rather than one, because the degenerate
+    // alternatives all agree with the real inverse at the origin.
+    // Swapping the `+` and the `-` between the two returned expressions,
+    // or duplicating one expression into the other, both map (0, 0) back
+    // to (0, 0); they disagree the moment either world axis is non-zero.
+    // (0, 0) is kept anyway to pin that no constant term crept in.
+    let checked = 0;
+    for (const [wx, wy] of [[0, 0], [1, 0], [0, 1], [5, 3], [12, 10], [15, 15]]) {
+      const [sx, sy] = worldToScreen(wx, wy, 640, 60);
+      const [bx, by] = screenToWorld(sx, sy, 640, 60);
+      expect(bx).toBeCloseTo(wx, 6);
+      expect(by).toBeCloseTo(wy, 6);
+      checked += 1;
+    }
+    // Protocol rule 5: an empty table would make every assertion above
+    // vacuous while the test still reported green.
+    expect(checked).toBe(6);
+  });
+
+  it('maps the two screen axes onto different world axes', () => {
+    // Both output formulas read both inputs, so a copy-paste slip that
+    // made them identical is not visible in their shape - and it would
+    // still round-trip the origin. One screen-space displacement along a
+    // single axis separates them: +x screen is +1 on world x and -1 on
+    // world y, so identical formulas would return the same number twice.
+    const [ax, ay] = screenToWorld(64, 0, 0, 0);
+    expect(ax).not.toBeCloseTo(ay, 3);
+  });
+
+  it('subtracts the same screen origin that worldToScreen added', () => {
+    // Fails on adding the origin instead of subtracting it, on using
+    // originX for both axes, and on dropping either subtraction. Honest
+    // caveat: the round trip above already catches all three, because it
+    // also passes a non-zero origin whose two components differ. This is
+    // a second origin pair rather than a new invariant, and it is worth
+    // its four lines only because origin handling is the half of picking
+    // that a camera pan will eventually start exercising.
+    const [sx, sy] = worldToScreen(4, 7, 300, 200);
+    const [wx, wy] = screenToWorld(sx, sy, 300, 200);
+    expect(wx).toBeCloseTo(4, 6);
+    expect(wy).toBeCloseTo(7, 6);
+  });
+
+  it('returns a fractional tile coordinate rather than a rounded one', () => {
+    // Not in the task brief, and added because the brief's three tests
+    // all pass with `Math.round` wrapped around both results: every world
+    // coordinate they round-trip is an integer, so rounding is invisible
+    // to them. Verified by running that mutation, not by reading them.
+    //
+    // It is a real invariant rather than a mutation-score trophy. The
+    // caller decides what a fraction means, and the answers differ:
+    // hit-testing a tile wants the floor, a sub-tile gesture wants the
+    // remainder. Rounding inside here would throw that away before anyone
+    // could choose. Half a tile down the screen from the origin is
+    // (0.5, 0.5) in world space, and both components must survive.
+    const [wx, wy] = screenToWorld(0, TILE_HALF_HEIGHT, 0, 0);
+    expect(wx).toBeCloseTo(0.5, 6);
+    expect(wy).toBeCloseTo(0.5, 6);
   });
 });
 
