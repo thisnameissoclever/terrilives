@@ -65,6 +65,19 @@ impl Needs {
         Needs([level.clamp(NEED_MIN, NEED_MAX); NEED_COUNT])
     }
 
+    /// One need at `level`, every other need fully satisfied.
+    ///
+    /// This is the faithful reading of the single-need spawns M0 wrote as
+    /// `Hunger(v)`: the agent felt exactly one need and nothing else could
+    /// influence what it did. Starting the other six at `NEED_MAX` keeps
+    /// that true, since a satisfied need has zero deficit and therefore
+    /// scores zero against every advertisement.
+    pub fn with(id: NeedId, level: f32) -> Self {
+        let mut needs = Needs::all_at(NEED_MAX);
+        needs.set(id, level);
+        needs
+    }
+
     pub fn get(&self, id: NeedId) -> f32 {
         self.0[id.index()]
     }
@@ -123,6 +136,26 @@ mod tests {
         assert_eq!(n.get(NeedId::Hunger), 0.0);
         n.fill(NeedId::Hunger, 500.0);
         assert_eq!(n.get(NeedId::Hunger), 100.0);
+    }
+
+    #[test]
+    fn with_sets_one_need_and_leaves_every_other_satisfied() {
+        // Both halves matter. `with` returning `all_at(level)` would pass
+        // an assertion about the named need alone while quietly making
+        // every agent in the sim feel all seven needs at once; `with`
+        // ignoring `level` would pass an assertion about the other six.
+        let needs = Needs::with(NeedId::Bladder, 12.5);
+        assert_eq!(needs.get(NeedId::Bladder), 12.5);
+        for id in NeedId::ALL {
+            if id != NeedId::Bladder {
+                assert_eq!(
+                    needs.get(id),
+                    NEED_MAX,
+                    "{} must start satisfied, not at the named level",
+                    id.as_str()
+                );
+            }
+        }
     }
 
     #[test]

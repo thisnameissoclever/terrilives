@@ -1,14 +1,19 @@
 use bevy_ecs::prelude::*;
-use terri_core::{Eating, Hunger, Reserved, Target};
+use terri_core::{Eating, NeedId, Needs, Reserved, Target};
 
 /// Advances in-progress interactions. When one finishes, the agent
 /// releases its reservation and becomes idle again.
+///
+/// The refill lands on hunger alone, because `Eating::delta_per_tick` is
+/// derived from `SmartObject::hunger_delta` and so names one need. When
+/// an interaction becomes a list of (NeedId, delta) pairs from the
+/// content pack, this fills each pair in turn.
 pub fn tick_interactions(
     mut commands: Commands,
-    mut agents: Query<(Entity, &mut Eating, &mut Hunger, &Target)>,
+    mut agents: Query<(Entity, &mut Eating, &mut Needs, &Target)>,
 ) {
-    for (entity, mut eating, mut hunger, target) in &mut agents {
-        hunger.fill(eating.delta_per_tick);
+    for (entity, mut eating, mut needs, target) in &mut agents {
+        needs.fill(NeedId::Hunger, eating.delta_per_tick);
         eating.remaining_ticks = eating.remaining_ticks.saturating_sub(1);
 
         if eating.remaining_ticks == 0 {
@@ -31,7 +36,7 @@ pub fn tick_interactions(
             //   - the target loses its `SmartObject` mid-walk, so
             //     `follow_path` drops `Path` and `Target` without
             //     releasing the reservation;
-            //   - `Hunger` is removed from an eating agent, dropping it
+            //   - `Needs` is removed from an eating agent, dropping it
             //     out of this query with `Eating` and `Target` intact.
             // Reclaiming those needs a dedicated system, which is a
             // later milestone, not a patch here.
@@ -43,7 +48,16 @@ pub fn tick_interactions(
 #[cfg(test)]
 mod tests {
     use crate::Sim;
-    use terri_core::{Agent, Eating, Hunger, Position, Reserved, SmartObject, Target};
+    use terri_core::{Agent, Eating, NeedId, Needs, Position, Reserved, SmartObject, Target};
+
+    /// The agent's hunger level, which is the only need any interaction
+    /// in M1a moves.
+    fn hunger_of(sim: &Sim, agent: bevy_ecs::entity::Entity) -> f32 {
+        sim.world()
+            .get::<Needs>(agent)
+            .expect("the agent must still have Needs")
+            .get(NeedId::Hunger)
+    }
 
     #[test]
     fn hungry_sim_walks_to_the_fridge_and_eats() {
@@ -72,7 +86,11 @@ mod tests {
 
         let sim_entity = sim
             .world_mut()
-            .spawn((Agent, Position { x: 1.0, y: 1.0 }, Hunger(20.0)))
+            .spawn((
+                Agent,
+                Position { x: 1.0, y: 1.0 },
+                Needs::with(NeedId::Hunger, 20.0),
+            ))
             .id();
 
         // Drive until the meal starts. Bounded, and the bound failing is
@@ -95,7 +113,7 @@ mod tests {
         let dist = ((pos.x - 10.0).powi(2) + (pos.y - 8.0).powi(2)).sqrt();
         assert!(dist < 2.0, "sim should be at the fridge; distance {dist}");
 
-        let before = sim.world().get::<Hunger>(sim_entity).unwrap().0;
+        let before = hunger_of(&sim, sim_entity);
 
         // Break on completion rather than counting ticks: counting
         // exactly duration_ticks lands on the re-target tick, where
@@ -119,7 +137,7 @@ mod tests {
             "reservation must be released"
         );
 
-        let after = sim.world().get::<Hunger>(sim_entity).unwrap().0;
+        let after = hunger_of(&sim, sim_entity);
         assert!(
             after > before + 30.0,
             "meal must deliver most of hunger_delta; {before} -> {after}"
@@ -139,7 +157,11 @@ mod tests {
         ));
         let sim_entity = sim
             .world_mut()
-            .spawn((Agent, Position { x: 1.0, y: 1.0 }, Hunger(100.0)))
+            .spawn((
+                Agent,
+                Position { x: 1.0, y: 1.0 },
+                Needs::with(NeedId::Hunger, 100.0),
+            ))
             .id();
 
         for _ in 0..5 {

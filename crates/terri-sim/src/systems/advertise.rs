@@ -16,9 +16,10 @@ pub fn score_advertisement(deficit: f32, delta: f32, duration_ticks: u32, distan
     // is rejected. Every comparison against NaN is false, so `NaN <= 0.0`
     // is false and a `<=` guard would pass NaN straight through; f32
     // arithmetic then propagates it all the way to the result. NaN is
-    // reachable: `Hunger`'s field is public, so `Hunger(f32::NAN)`
-    // yields a NaN deficit, and `SmartObject::hunger_delta` is public
-    // and will eventually be loaded from content files.
+    // reachable: `Needs::set` clamps, but `f32::clamp` PROPAGATES NaN
+    // rather than replacing it, so a NaN level stores successfully and
+    // yields a NaN deficit. `SmartObject::hunger_delta` is public and
+    // will eventually be loaded from content files.
     //
     // The resulting failure is silent and total, which is what makes it
     // worth guarding. Selection compares scores with `>`, and NaN loses
@@ -31,9 +32,9 @@ pub fn score_advertisement(deficit: f32, delta: f32, duration_ticks: u32, distan
     if !(deficit > 0.0) || !(delta > 0.0) || !(distance >= 0.0) {
         return 0.0;
     }
-    // Clamp before cubing. Hunger's field is public, so nothing
-    // structurally prevents a level outside 0..=100 and therefore a
-    // deficit outside 0.0..=1.0; cubing 1.6 would inflate the score by
+    // Clamp before cubing. This parameter is a bare `f32`, so nothing at
+    // this boundary constrains it to 0.0..=1.0 whatever `Needs::deficit`
+    // happens to guarantee today; cubing 1.6 would inflate the score by
     // 4x with no bound. Clamping here rather than trusting callers keeps
     // the guarantee local to the function that depends on it.
     let d = deficit.clamp(0.0, 1.0);
@@ -130,10 +131,10 @@ mod tests {
 
     #[test]
     fn out_of_range_deficit_cannot_inflate_a_score() {
-        // Hunger's field is public, so callers can construct values
-        // outside 0..=100 and deficit() can return outside 0.0..=1.0.
-        // Cubing such a value would inflate the score without bound, so
-        // scoring clamps its input.
+        // `deficit` is passed as a bare f32, so this function cannot rely
+        // on `Needs` having produced it: any caller can hand it anything.
+        // Cubing an out-of-range value would inflate the score without
+        // bound, so scoring clamps its own input.
         let sane = score_advertisement(1.0, 35.0, 15, 5.0);
         assert_eq!(score_advertisement(1.6, 35.0, 15, 5.0), sane);
         assert_eq!(score_advertisement(-0.4, 35.0, 15, 5.0), 0.0);

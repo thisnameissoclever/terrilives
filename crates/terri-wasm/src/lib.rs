@@ -1,7 +1,7 @@
 //! The ONLY crate that knows JavaScript exists.
 //! Nothing in here may contain simulation logic.
 
-use terri_core::{Agent, Hunger, Position, SmartObject, NEED_MAX, NEED_MIN};
+use terri_core::{Agent, NeedId, Needs, Position, SmartObject, NEED_MAX, NEED_MIN};
 use terri_sim::Sim;
 use wasm_bindgen::prelude::*;
 
@@ -24,17 +24,26 @@ const COORD_FOR_NON_FINITE: f32 = 0.0;
 /// since every `f32` here arrives as an unconstrained JS number narrowed
 /// on the way in. Two specific values are why this function exists:
 ///
-/// 1. `-1.0` is `world_hash`'s in-band "this entity has no Hunger"
-///    sentinel. `Hunger(-1.0)` digests identically to a Hunger-less
+/// 1. `-1.0` is `world_hash`'s in-band "this entity has no `Needs`"
+///    sentinel. A level equal to it digests identically to a `Needs`-less
 ///    entity at the same position, so a JS caller could silently collapse
 ///    a real distinction the determinism hash depends on. `terri-sim`
 ///    guards that with a `debug_assert!`, which is **compiled out of the
 ///    release build** - and `wasm-pack build` produces a release build,
 ///    so on the only target that ships, the guard is not there.
-/// 2. `f32::NAN` does not self-heal. `f32::clamp` propagates NaN rather
-///    than replacing it, and `advertise.rs` documents where a NaN need
-///    ends up: NaN loses every comparison, so the agent would simply
-///    never choose to do anything, forever, with no panic and no log.
+///
+///    **Since the `Hunger` to `Needs` migration this half is redundant**:
+///    `Needs` holds a private array and `Needs::set` clamps, so a
+///    negative level is no longer constructible at all. Kept because the
+///    boundary should not depend on a callee's internals for a guarantee
+///    it states itself, but note that removing the clamp here would no
+///    longer be observable - see reason 2 for the half that would be.
+/// 2. `f32::NAN` does not self-heal, and **nothing downstream catches
+///    it**: `f32::clamp` propagates NaN rather than replacing it, so
+///    `Needs::set` stores a NaN faithfully. `advertise.rs` documents
+///    where it ends up: NaN loses every comparison, so the agent would
+///    simply never choose to do anything, forever, with no panic and no
+///    log. This branch is the only thing standing in the way.
 fn sanitize_hunger(hunger: f32) -> f32 {
     if hunger.is_nan() {
         HUNGER_FOR_NON_FINITE
@@ -88,9 +97,15 @@ impl SimHandle {
         let x = sanitize_coord(x);
         let y = sanitize_coord(y);
         let hunger = sanitize_hunger(hunger);
-        self.sim
-            .world_mut()
-            .spawn((Agent, Position { x, y }, Hunger(hunger)));
+        // Hunger is the only need JavaScript can set, because it is the
+        // only one anything advertises against. The other six start
+        // satisfied, which is what keeps a spawned agent's behaviour
+        // identical to the single-need version.
+        self.sim.world_mut().spawn((
+            Agent,
+            Position { x, y },
+            Needs::with(NeedId::Hunger, hunger),
+        ));
         self.sim.sync_render_buffer();
     }
 
@@ -162,9 +177,12 @@ mod boundary_tests {
     fn stored_hungers(handle: &SimHandle) -> Vec<f32> {
         let world = handle.sim.world();
         let mut state = world
-            .try_query::<&Hunger>()
-            .expect("Hunger is registered eagerly in Sim::new");
-        state.iter(world).map(|hunger| hunger.0).collect()
+            .try_query::<&Needs>()
+            .expect("Needs is registered eagerly in Sim::new");
+        state
+            .iter(world)
+            .map(|needs| needs.get(NeedId::Hunger))
+            .collect()
     }
 
     /// Positions as the ECS actually stored them.
@@ -176,6 +194,20 @@ mod boundary_tests {
         state.iter(world).map(|pos| (pos.x, pos.y)).collect()
     }
 
+    /// The two clamp tests below assert an **end-to-end property** - a
+    /// level arriving from JavaScript is stored in range - which is now
+    /// enforced twice over: by `sanitize_hunger` here and by
+    /// `Needs::set`'s own clamp in terri-core. Deleting either one alone
+    /// therefore leaves them green.
+    ///
+    /// That is stated rather than hidden, because a test that cannot
+    /// detect the mechanism it appears to name is the failure mode
+    /// docs/testing-protocol.md exists to prevent. They are kept because
+    /// the property is worth pinning and because defence in depth at a
+    /// trust boundary is deliberate, not because they still isolate
+    /// `sanitize_hunger`. The half of that function nothing else covers
+    /// is NaN, and `spawn_agent_replaces_non_finite_hunger_with_a_finite_level`
+    /// is the test that isolates it.
     #[test]
     fn spawn_agent_clamps_hunger_up_to_the_need_floor() {
         let mut handle = SimHandle::new(8, 8);
@@ -206,6 +238,12 @@ mod boundary_tests {
         // asserted "in range" would pass on NaN as well: every comparison
         // against NaN is false, including the range assertions a careless
         // test would write. Assert finiteness explicitly.
+        //
+        // The NaN case is what still isolates `sanitize_hunger`, and it
+        // is the only one that does. `Needs::set` clamps, so it handles
+        // the two infinities on its own; it propagates NaN, so this
+        // branch here is the only thing between a JS `NaN` and an agent
+        // that never chooses to do anything again.
         for poison in [f32::NAN, f32::INFINITY, f32::NEG_INFINITY] {
             let mut handle = SimHandle::new(8, 8);
             handle.spawn_agent(1.0, 1.0, poison);
@@ -267,33 +305,45 @@ mod boundary_tests {
     }
 
     #[test]
-    fn hunger_from_js_cannot_alias_the_world_hash_no_hunger_sentinel() {
-        // The causal form, and the finding this whole boundary exists for.
-        // `world_hash` encodes "this entity has no Hunger" as the in-band
-        // value -1.0, so an unsanitised `Hunger(-1.0)` hashes exactly like
-        // a Hunger-less entity at the same position. Measured before the
-        // fix: both worlds below digested to 0x06ef64bc902dd05f.
+    fn a_need_level_from_js_cannot_alias_the_world_hash_no_needs_sentinel() {
+        // The finding this whole boundary exists for, in its causal form.
+        // `world_hash` encodes "this entity has no `Needs`" as the in-band
+        // value -1.0 in every slot, so a component actually holding -1.0
+        // hashed exactly like a `Needs`-less entity at the same position.
+        // Measured before the fix, back when the component was
+        // `Hunger(pub f32)`: both worlds below digested to
+        // 0x06ef64bc902dd05f.
         //
-        // Everything except the hunger term is held constant, per [L7]:
+        // **What now enforces it has changed, and saying so is the point.**
+        // `Needs` holds a private array and every mutator clamps at
+        // NEED_MIN = 0.0, so -1.0 is no longer constructible however this
+        // crate behaves. `sanitize_hunger` is therefore no longer the
+        // mechanism this test isolates; the type is. Kept as a regression
+        // pin on `world_hash`'s sentinel encoding, which it does still
+        // detect: drop the need levels from the digest and the two worlds
+        // below collapse to the same value again.
+        //
+        // Everything except the need term is held constant, per [L7]:
         // both handles are built by the same constructor, both spawn
         // exactly one entity as their first spawn (so the entity indices
         // match), neither ticks (so the clock term matches), and both sit
         // at the same position. `world_hash` reads only the clock, the
-        // entity index, the position and the hunger, so the hunger term is
-        // the only thing that can move the digest.
-        let mut agent_at_sentinel_hunger = SimHandle::new(8, 8);
-        agent_at_sentinel_hunger.spawn_agent(1.0, 2.0, -1.0);
+        // entity index, the position and the seven levels, so the levels
+        // are the only thing that can move the digest.
+        let mut agent_at_sentinel_level = SimHandle::new(8, 8);
+        agent_at_sentinel_level.spawn_agent(1.0, 2.0, -1.0);
 
-        let mut entity_with_no_hunger = SimHandle::new(8, 8);
-        entity_with_no_hunger.spawn_object(1.0, 2.0);
+        let mut entity_with_no_needs = SimHandle::new(8, 8);
+        entity_with_no_needs.spawn_object(1.0, 2.0);
 
         assert_ne!(
-            agent_at_sentinel_hunger.world_hash(),
-            entity_with_no_hunger.world_hash(),
-            "Hunger(-1.0) arriving from JavaScript hashed identically to an \
-             entity with no Hunger at all; world_hash's in-band sentinel is \
-             reachable across the boundary and terri-sim's debug_assert \
-             guard is compiled out of the release wasm build that ships"
+            agent_at_sentinel_level.world_hash(),
+            entity_with_no_needs.world_hash(),
+            "a need level of -1.0 arriving from JavaScript hashed \
+             identically to an entity with no Needs at all; world_hash's \
+             in-band sentinel is reachable across the boundary and \
+             terri-sim's debug_assert guard is compiled out of the release \
+             wasm build that ships"
         );
     }
 }

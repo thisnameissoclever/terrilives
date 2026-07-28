@@ -22,7 +22,7 @@ pub struct RenderBuffer {
 mod tests {
     use crate::Sim;
     use bevy_ecs::prelude::*;
-    use terri_core::{Agent, Eating, Hunger, Position, SmartObject};
+    use terri_core::{Agent, Eating, NeedId, Needs, Position, SmartObject};
 
     fn a_smart_object() -> SmartObject {
         SmartObject {
@@ -51,8 +51,11 @@ mod tests {
         let mut sim = Sim::new_with_lot(16, 16);
         sim.world_mut()
             .spawn((Position { x: 4.0, y: 5.0 }, a_smart_object()));
-        sim.world_mut()
-            .spawn((Agent, Position { x: 1.0, y: 2.0 }, Hunger(50.0)));
+        sim.world_mut().spawn((
+            Agent,
+            Position { x: 1.0, y: 2.0 },
+            Needs::with(NeedId::Hunger, 50.0),
+        ));
 
         sim.sync_render_buffer();
         let buf = sim.render_buffer();
@@ -93,7 +96,11 @@ mod tests {
         let mut sim = Sim::new_with_lot(16, 16);
         let id = sim
             .world_mut()
-            .spawn((Agent, Position { x: 0.0, y: 0.0 }, Hunger(50.0)))
+            .spawn((
+                Agent,
+                Position { x: 0.0, y: 0.0 },
+                Needs::with(NeedId::Hunger, 50.0),
+            ))
             .id();
         sim.sync_render_buffer();
 
@@ -117,8 +124,11 @@ mod tests {
     #[test]
     fn a_first_sync_seeds_prev_positions_rather_than_leaving_them_empty() {
         let mut sim = Sim::new_with_lot(16, 16);
-        sim.world_mut()
-            .spawn((Agent, Position { x: 7.0, y: 9.0 }, Hunger(50.0)));
+        sim.world_mut().spawn((
+            Agent,
+            Position { x: 7.0, y: 9.0 },
+            Needs::with(NeedId::Hunger, 50.0),
+        ));
 
         sim.sync_render_buffer();
         assert_eq!(sim.render_buffer().count, 1, "the spawn must be visible");
@@ -169,7 +179,7 @@ mod tests {
                             x: i as f32,
                             y: 0.0,
                         },
-                        Hunger(50.0),
+                        Needs::with(NeedId::Hunger, 50.0),
                     ))
                     .id()
             })

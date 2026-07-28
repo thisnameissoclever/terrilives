@@ -1,5 +1,7 @@
 use bevy_ecs::prelude::*;
-use terri_core::{Agent, Eating, Hunger, Path, Position, Reserved, SmartObject, Target, TileGrid};
+use terri_core::{
+    Agent, Eating, NeedId, Needs, Path, Position, Reserved, SmartObject, Target, TileGrid,
+};
 
 use super::advertise::score_advertisement;
 
@@ -18,13 +20,18 @@ const ACTION_THRESHOLD: f32 = 0.05;
 pub fn select_action(
     mut commands: Commands,
     grid: Res<TileGrid>,
-    agents: Query<(Entity, &Position, &Hunger), (With<Agent>, Without<Target>, Without<Eating>)>,
+    agents: Query<(Entity, &Position, &Needs), (With<Agent>, Without<Target>, Without<Eating>)>,
     objects: Query<(Entity, &Position, &SmartObject), Without<Reserved>>,
 ) {
     // Collect and sort so iteration order cannot vary between runs.
+    //
+    // Only the hunger deficit is read, because `SmartObject` still
+    // advertises a single hardcoded need. Once an advert is a list of
+    // (NeedId, delta) pairs from the content pack, scoring sums over the
+    // pairs and this becomes the whole `Needs` component.
     let mut idle: Vec<(Entity, Position, f32)> = agents
         .iter()
-        .map(|(e, pos, hunger)| (e, *pos, hunger.deficit()))
+        .map(|(e, pos, needs)| (e, *pos, needs.deficit(NeedId::Hunger)))
         .collect();
     idle.sort_by_key(|(e, _, _)| e.index());
 
@@ -105,7 +112,11 @@ mod tests {
 
     fn spawn_agent(sim: &mut Sim, x: f32, y: f32, hunger: f32) -> Entity {
         sim.world_mut()
-            .spawn((Agent, Position { x, y }, Hunger(hunger)))
+            .spawn((
+                Agent,
+                Position { x, y },
+                Needs::with(NeedId::Hunger, hunger),
+            ))
             .id()
     }
 
@@ -119,9 +130,9 @@ mod tests {
     /// spawn coordinates as arguments instead of reading them back.
     fn deficit_after_tick(sim: &Sim, agent: Entity) -> f32 {
         sim.world()
-            .get::<Hunger>(agent)
-            .expect("the agent must still have Hunger")
-            .deficit()
+            .get::<Needs>(agent)
+            .expect("the agent must still have Needs")
+            .deficit(NeedId::Hunger)
     }
 
     /// An independent restatement of the straight-line distance
@@ -378,6 +389,10 @@ mod tests {
         // 16. 6.4, 0.8 and 0.05 share a mantissa, so 0.125 * 6.4 / 16 is
         // 0.05f32 with no rounding anywhere.
         //
+        // The other six needs spawn satisfied and never decay, so they
+        // contribute nothing to the score and cannot perturb the
+        // arithmetic away from the constant.
+        //
         // The above and below cases are not decoration: without them
         // "selects nothing" would also be satisfied by a world that can
         // never select anything.
@@ -555,7 +570,11 @@ mod tests {
         let agents: Vec<Entity> = (0..3)
             .map(|_| {
                 sim.world_mut()
-                    .spawn((Agent, Position { x: 1.0, y: 1.0 }, Hunger(20.0)))
+                    .spawn((
+                        Agent,
+                        Position { x: 1.0, y: 1.0 },
+                        Needs::with(NeedId::Hunger, 20.0),
+                    ))
                     .id()
             })
             .collect();
@@ -649,7 +668,11 @@ mod tests {
             .id();
         let agent = sim
             .world_mut()
-            .spawn((Agent, Position { x: 8.0, y: 8.0 }, Hunger(20.0)))
+            .spawn((
+                Agent,
+                Position { x: 8.0, y: 8.0 },
+                Needs::with(NeedId::Hunger, 20.0),
+            ))
             .id();
 
         // Archetype churn on the objects, which is how it happens for
@@ -670,7 +693,11 @@ mod tests {
         // nothing else touches hunger on a tick where the agent only
         // starts walking, so the post-tick level is exactly the one
         // scoring saw.
-        let deficit = sim.world().get::<Hunger>(agent).unwrap().deficit();
+        let deficit = sim
+            .world()
+            .get::<Needs>(agent)
+            .unwrap()
+            .deficit(NeedId::Hunger);
         let distance = |ox: f32| {
             let dx = ox - 8.0;
             let dy = 8.0f32 - 8.0;

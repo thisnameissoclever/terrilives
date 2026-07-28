@@ -115,7 +115,7 @@ describe('SimBridge', () => {
     // `f32::round`, which is round-half-away-from-zero in Rust and does
     // NOT map to wasm's `f32.nearest` (round-half-to-even), so rustc has
     // to emit a different code path there for wasm32. Every position and
-    // every hunger level in the digest goes through it.
+    // every one of the seven need levels in the digest goes through it.
     //
     // Spawn order below matches the native `build_scenario` exactly: the
     // smart object first, so it holds the lower entity index, then eight
@@ -140,7 +140,15 @@ describe('SimBridge', () => {
 
     // bigint, not Number. Number() coercion silently drops the low bits
     // of a u64, and the low bits are the whole point of a digest.
-    expect(bridge.worldHash()).toBe(0xef60_1d50_4790_5825n);
+    //
+    // Moved at the Hunger-to-Needs migration, together with the native
+    // constant it mirrors: the digest now covers seven need levels per
+    // entity instead of one. **Measured on wasm32 rather than copied from
+    // native** ([L13]) - the wasm build was rebuilt first, this test was
+    // run against the old constant, and the value it reported was read
+    // off the failure. The two targets agree. Previous value:
+    // 0xef60_1d50_4790_5825n.
+    expect(bridge.worldHash()).toBe(0x6c37_57f1_8481_75c1n);
   });
 
   it('exposes the world hash as a bigint that tracks simulation state', () => {
