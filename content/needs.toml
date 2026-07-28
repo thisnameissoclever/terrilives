@@ -7,14 +7,18 @@
 # Hunger keeps M0's rate; the rest are first guesses to be balanced in
 # M1b.
 #
-# This file is the ONLY home of hunger's rate: `decay_needs` reads it out
-# of the compiled pack. Changing the number here changes the simulation,
-# and the world-hash golden vectors in crates/terri-sim/src/lib.rs and
-# web/tests/bridge.test.ts will move - which is the intended signal, not
-# a rebase artifact.
+# This file is the ONLY home of these rates: `decay_needs` drains all
+# seven straight out of the compiled pack. Changing a number here changes
+# the simulation, and the world-hash golden vectors in
+# crates/terri-sim/src/lib.rs and web/tests/bridge.test.ts will move -
+# which is the intended signal, not a rebase artifact.
 #
-# The other six rates are compiled and validated but not yet applied;
-# only hunger decays until Task 7 widens the loop.
+# The seven rates are deliberately all DIFFERENT, and that is load-bearing
+# rather than flavour. `decay_needs` looks a rate up by need index, and a
+# test cannot tell one slot from another if two slots hold the same value.
+# `needs_decay_at_different_rates` in crates/terri-sim/src/systems/needs.rs
+# fails if a balance pass ever makes two of them equal; see [L26] for the
+# instance where a uniform fixture hid exactly this bug one layer down.
 
 [[need]]
 id = "hunger"

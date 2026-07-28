@@ -83,14 +83,16 @@ pub fn sim_with(width: usize, height: usize, content: &'static ContentPack) -> S
     sim
 }
 
-/// The rate `decay_needs` actually drains hunger at, read from the same
+/// The rate `decay_needs` actually drains `need` at, read from the same
 /// content the simulation reads rather than restated as a literal.
 ///
 /// Spawning one tick's worth above a level is how several tests arrange
 /// for scoring to see an exact number: decay runs immediately before
-/// selection.
-pub fn hunger_decay_per_tick() -> f32 {
-    terri_data::pack().decay_per_tick[NeedId::Hunger.index()]
+/// selection. Every need decays from Task 7 onward, so a test that pins
+/// two needs to the same post-tick level has to offset both, each by its
+/// own rate - the rates are deliberately all different.
+pub fn decay_per_tick(need: NeedId) -> f32 {
+    terri_data::pack().decay_per_tick[need.index()]
 }
 
 /// The shipped fridge as a component.

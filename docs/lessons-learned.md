@@ -1490,3 +1490,56 @@ can check against the new code. "Equivalent" alone cannot expire visibly.
 `systems::action::tests::a_tied_later_interaction_cannot_displace_an_earlier_one_on_the_same_object`
 must fail, with `left: 1, right: 0`. Delete that test and the same mutation
 leaves the workspace green, which is the state the baseline described.
+
+---
+
+## [L31] Widening a mechanism does not fail the tests that only covered part of it
+
+**What happened:** M1a Task 7 widened `decay_needs` from hunger alone to all
+seven needs. The brief predicted, correctly, which tests would go red, and every
+one of them did. What no prediction covered was `hunger_never_goes_negative`,
+because it stayed **green** - and it stayed green while silently losing six
+sevenths of the surface it was written to protect.
+
+That test pinned the floor at zero. Before this task there was exactly one need
+that could reach the floor, so covering hunger covered the mechanism. After it
+there are seven, and the test still covered one. Measured: make `Needs::drain`
+clamp hunger and write the other six straight into the array, and
+`no_need_goes_negative` is the **only** failure in the workspace, at
+`energy fell past the floor, left: -68.0002`. Read where that lands - the loop
+reaches *energy*, so hunger's assertion passed, and hunger's assertion is the
+whole of what `hunger_never_goes_negative` checked. The version it replaces was
+green under that mutation, and so was everything else, all 93 of them.
+
+The golden vectors cannot help here and it is worth knowing why: their scenario
+runs 100 ticks from full, which never drives any need below zero, so a broken
+floor is simply not on their path.
+
+**Root cause:** a red test announces that it needs attention. A test that merely
+**narrowed** announces nothing, because passing is what it did yesterday too.
+Task 6 saw this coming for the tests it could make fail - it deliberately left
+`hunger_decays_at_the_rate_content_declares` asserting that the other six needs
+do *not* move, so Task 7 would have to update it on purpose ([C2] in that
+report). That device works, and it only works for the tests somebody thought to
+point at the change.
+
+Same family as [L27], [L28] and [L30] - "the check still passes, over less" -
+but the trigger is new. Those were CI package lists and mutation-baseline
+entries, artefacts a reader already treats as configuration. This is an ordinary
+unit test with a name that still reads as true.
+
+**Prevention rule:** when a change takes a mechanism from operating on one
+instance to operating on N, **grep for the tests naming that mechanism and ask
+of each whether its fixture still spans the mechanism's whole domain**. Do this
+for the tests that stay green; the red ones will find you. A test whose name
+carries the single instance - `hunger_never_goes_negative`, `..._for_hunger`,
+`..._the_first_...` - is the visible marker, and renaming it to the general
+claim is the fix, not a tidy-up.
+
+**How to verify:** in `crates/terri-core/src/needs.rs`, change `drain` to
+`if id == NeedId::Hunger { self.set(id, next) } else { self.0[id.index()] = next }`
+and run `cargo test --workspace`. Exactly
+`systems::needs::tests::no_need_goes_negative` must fail. Note `terri-core`'s
+own `needs_clamp_to_range` stays green under it, because it too only drains
+hunger. Restore from a scratchpad byte snapshot, never with `git checkout`
+([L9]), and touch the file ([L8]).

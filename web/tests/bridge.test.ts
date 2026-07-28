@@ -141,14 +141,25 @@ describe('SimBridge', () => {
     // bigint, not Number. Number() coercion silently drops the low bits
     // of a u64, and the low bits are the whole point of a digest.
     //
-    // Moved at the Hunger-to-Needs migration, together with the native
-    // constant it mirrors: the digest now covers seven need levels per
-    // entity instead of one. **Measured on wasm32 rather than copied from
-    // native** ([L13]) - the wasm build was rebuilt first, this test was
-    // run against the old constant, and the value it reported was read
-    // off the failure. The two targets agree. Previous value:
-    // 0xef60_1d50_4790_5825n.
-    expect(bridge.worldHash()).toBe(0x6c37_57f1_8481_75c1n);
+    // Moved at Task 7's content-driven decay, together with the native
+    // constant it mirrors: all seven needs now drain at the rates
+    // content/needs.toml declares, so the six levels that used to hold at
+    // their spawn value for all 100 ticks now fall. The digest's shape is
+    // unchanged; only the values it covers moved.
+    //
+    // **Measured on wasm32 rather than copied from native** ([L13]) - the
+    // wasm build was rebuilt with `wasm-pack build crates/terri-wasm
+    // --target web --out-dir ../../web/src/wasm` FIRST, this test was then
+    // run against the old constant, and the value it reported was read off
+    // the failure. Skipping the rebuild reads the previous artifact and
+    // measures nothing ([L8]). The two targets agree, which is a
+    // measurement each time and not a guarantee: `write_f32` calls
+    // `f32::round`, whose rounding mode differs from wasm's `f32.nearest`
+    // on a half-way value.
+    //
+    // Previous values: 0x6c37_57f1_8481_75c1n (Task 6, at the
+    // Hunger-to-Needs encoding change), 0xef60_1d50_4790_5825n before that.
+    expect(bridge.worldHash()).toBe(0x2fc6_69ef_a725_4f2dn);
   });
 
   it('exposes the world hash as a bigint that tracks simulation state', () => {

@@ -514,14 +514,23 @@ mod tests {
             def(content, "two_need"),
         );
 
-        // Hunger decays before selection and energy does not, so hunger
-        // is spawned one tick's worth higher; both are at 50.0 by the
-        // time anything is scored. The equality is asserted below rather
-        // than assumed, because it is what makes this a comparison of
-        // adverts rather than of deficits.
+        // Both needs decay before selection, at DIFFERENT rates, so each
+        // is spawned one tick's worth of its OWN rate higher; both are at
+        // 50.0 by the time anything is scored. Offsetting both by the
+        // same number would leave them 0.035 apart, which is what this
+        // test measured when Task 7 widened decay from hunger alone to
+        // all seven. The equality is asserted below rather than assumed,
+        // because it is what makes this a comparison of adverts rather
+        // than of deficits.
         let mut needs = Needs::all_at(terri_core::NEED_MAX);
-        needs.set(NeedId::Hunger, 50.0 + test_content::hunger_decay_per_tick());
-        needs.set(NeedId::Energy, 50.0);
+        needs.set(
+            NeedId::Hunger,
+            50.0 + test_content::decay_per_tick(NeedId::Hunger),
+        );
+        needs.set(
+            NeedId::Energy,
+            50.0 + test_content::decay_per_tick(NeedId::Energy),
+        );
         let agent = spawn_agent_with(&mut sim, AGENT_AT.0, AGENT_AT.1, needs);
 
         sim.tick();
@@ -746,6 +755,12 @@ mod tests {
         // however they decay. The bit-equality precondition below is what
         // would catch it if that ever stopped being true.
         //
+        // Task 7 tested that claim by making all seven needs decay, and
+        // this test stayed green: the other six now fall every tick and
+        // the score is unchanged, because none of them is advertised.
+        // Only hunger's own rate can move this arithmetic, and it did not
+        // change.
+        //
         // The above and below cases are not decoration: without them
         // "selects nothing" would also be satisfied by a world that can
         // never select anything.
@@ -772,7 +787,7 @@ mod tests {
                 &mut sim,
                 AGENT_AT.0,
                 AGENT_AT.1,
-                50.0 + test_content::hunger_decay_per_tick(),
+                50.0 + test_content::decay_per_tick(NeedId::Hunger),
             );
 
             sim.tick();
