@@ -1,5 +1,4 @@
 crates/terri-core/src/grid.rs:102:43: replace + with - in TileGrid::find_path
 crates/terri-core/src/grid.rs:102:63: replace + with - in TileGrid::find_path
 crates/terri-core/src/grid.rs:115:44: replace + with * in TileGrid::find_path
-crates/terri-sim/src/systems/advertise.rs:42:18: replace > with >= in score_advertisement
-crates/terri-sim/src/systems/advertise.rs:42:36: replace > with >= in score_advertisement
+crates/terri-sim/src/systems/advertise.rs:79:18: replace > with >= in score_advertisement

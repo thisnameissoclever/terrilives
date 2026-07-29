@@ -45,6 +45,64 @@ describe('SimBridge', () => {
     expect(kinds[1]).toBe(0);
   });
 
+  it('carries a content-resolved sprite index per entity', () => {
+    // The Rust twin is in crates/terri-wasm/src/lib.rs; this one is not
+    // redundant with it for [L12]'s reason - that one is a debug build of
+    // the rlib, and the artifact the page loads is the release wasm.
+    //
+    // The specific mistake this is written against is the one that made
+    // Task 3b's screen nine identical blue diamonds: every entity
+    // reaching the GPU with the same number. Two DIFFERENT objects plus a
+    // sim is the smallest fixture that can see it; two of the same object
+    // could not.
+    const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
+    expect(bridge.spawnObject(4, 5, 'fridge')).toBe(true);
+    expect(bridge.spawnObject(6, 7, 'bed')).toBe(true);
+    bridge.spawnAgent(1, 2, 50);
+
+    const sprites = bridge.sprites();
+    expect(sprites.length).toBe(3);
+    expect(new Set(sprites).size).toBe(3);
+    // A zero-copy view like every other accessor here, not a snapshot.
+    expect(sprites.buffer).toBe(wasmMemory.buffer);
+    // And the two objects differ from the sim as well as from each
+    // other, so a sprite column filled with `sim_sprite` throughout -
+    // the mutation that looks most like working code - fails.
+    expect(sprites[0]).not.toBe(sprites[2]);
+    expect(sprites[1]).not.toBe(sprites[2]);
+  });
+
+  it('reports the shipped lot walls, with the doorway left open', () => {
+    // The renderer draws these, so if they disagreed with the grid the
+    // page would show a wall where a sim walks through, or a gap where
+    // one detours. Both read as an AI fault rather than a drawing one.
+    const handle = SimHandle.from_lot();
+    const bridge = new SimBridge(handle, wasmMemory);
+    const walls = bridge.wallTiles();
+
+    expect(walls.length % 2).toBe(0);
+    const pairs = new Set<string>();
+    for (let i = 0; i < walls.length; i += 2) {
+      pairs.add(`${walls[i]},${walls[i + 1]}`);
+    }
+    // Rule 5: an empty list would satisfy the two absence checks below.
+    expect(pairs.size).toBeGreaterThanOrEqual(8);
+    expect(pairs.size * 2).toBe(walls.length);
+
+    expect(pairs.has('9,1')).toBe(true);
+    expect(pairs.has('9,3')).toBe(true);
+    // The doorway. Drawn as a wall, the bathroom would look sealed while
+    // the sim walked straight through the picture of one.
+    expect(pairs.has('9,2')).toBe(false);
+    // Every tile is inside the lot; the boundary is drawn from the lot's
+    // dimensions instead, because no tile exists off the grid to report.
+    for (const key of pairs) {
+      const [x, y] = key.split(',').map(Number);
+      expect(x).toBeLessThan(handle.lot_width());
+      expect(y).toBeLessThan(handle.lot_height());
+    }
+  });
+
   it('rejects an unknown content id without trapping the wasm module', () => {
     // The Rust-side twin of this lives in crates/terri-wasm/src/lib.rs.
     // This one is not redundant with it, and the reason is [L12]: the
@@ -130,6 +188,54 @@ describe('SimBridge', () => {
     expect(fresh[1]).toBe(2);
   });
 
+  it('loads the shipped lot through from_lot before the first tick', () => {
+    // The Rust twin of this lives in crates/terri-wasm/src/lib.rs, and
+    // this one is not redundant with it for [L12]'s reason: the native
+    // test is a debug build of the rlib, and the artifact that ships is
+    // the release wasm wasm-pack emits. Only this side runs the thing the
+    // page runs.
+    //
+    // `from_lot` is what replaced main.ts's hardcoded 16x16 room and its
+    // single hand-placed fridge. That hardcoding is the failure this test
+    // exists to keep out: the game would run against none of the authored
+    // content, and would look completely normal doing it.
+    const handle = SimHandle.from_lot();
+    const bridge = new SimBridge(handle, wasmMemory);
+
+    // Nothing ticks first, on purpose: `from_lot` has to sync the render
+    // buffer itself, or the opening frame draws an empty lot.
+    expect(bridge.count).toBeGreaterThanOrEqual(8);
+    const kinds = bridge.kinds();
+    expect([...kinds].every((k) => k === 1)).toBe(true);
+
+    const width = handle.lot_width();
+    const height = handle.lot_height();
+    // Non-square, which is what makes the two accessors distinguishable
+    // at all; without this the checks below would pass with them swapped.
+    expect(width).not.toBe(height);
+
+    const positions = bridge.positions();
+    expect(positions.length).toBe(bridge.count * 2);
+    for (let i = 0; i < bridge.count; i++) {
+      expect(positions[i * 2]).toBeLessThan(width);
+      expect(positions[i * 2 + 1]).toBeLessThan(height);
+    }
+    // At least one object sits at an x the lot's HEIGHT would reject, so
+    // the bounds above are genuinely testing x against width rather than
+    // passing under either reading.
+    const xs = [...positions].filter((_, i) => i % 2 === 0);
+    expect(xs.some((x) => x >= height)).toBe(true);
+
+    // And the loaded grid is walkable: a hungry sim dropped into the
+    // living space paths to something. A lot whose walls were applied to
+    // every tile would satisfy every assertion above and leave the sim
+    // standing still forever ([L17]).
+    bridge.spawnAgent(8, 6, 20);
+    const before = [...bridge.positions()];
+    for (let i = 0; i < 10; i++) bridge.tick();
+    expect([...bridge.positions()]).not.toEqual(before);
+  });
+
   it('reproduces the native golden world hash across the wasm boundary', () => {
     // The native `world_hash_matches_its_golden_vector` in
     // crates/terri-sim/src/lib.rs claims to be a free cross-platform
@@ -185,6 +291,14 @@ describe('SimBridge', () => {
     //
     // Previous values: 0x6c37_57f1_8481_75c1n (Task 6, at the
     // Hunger-to-Needs encoding change), 0xef60_1d50_4790_5825n before that.
+    //
+    // M1b Task 3b changed selection from Euclidean distance to A* path
+    // length and this vector did NOT move, on either target. That is a
+    // property of the scenario rather than of the change - one object
+    // means there is nothing to rank - and it is written up as [L36]. The
+    // wasm was rebuilt before this was re-run, per [L8]; skipping that
+    // would have measured the previous artifact and proved nothing either
+    // way.
     expect(bridge.worldHash()).toBe(0x2fc6_69ef_a725_4f2dn);
   });
 

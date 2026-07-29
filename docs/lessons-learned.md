@@ -1613,3 +1613,294 @@ them.
 `docs/mutation-baseline.md`. The survivor count went from 16 to 5 with no
 production code changed, so `cargo test --workspace` before and after the
 tests differs by exactly 4 tests and the world-hash golden vectors do not move.
+
+---
+
+## [L33] A round trip cannot pin a wire format, because it is self-consistent under any encoding
+
+**What happened:** the **tenth** instance of the family ([L2], [L3], [L5], [L6],
+[L7], [L11], [L24], [L26], [L29]), and this time the blind test arrived already
+carrying a comment stating the property it did not check.
+
+M1b Task 1's brief supplied `commands_round_trip_through_postcard`, whose own
+comment reads: "Commands are the wire format for the save-file command log and,
+later, for multiplayer. A silent encoding change would break a replay long after
+the commit that caused it." The surrounding prose called the test load-bearing
+twice.
+
+Swapping the order of `SimCommand::Select` and `SimCommand::UseObject` in the
+enum - a two-line edit, and the single most likely way this format changes by
+accident - renumbers the postcard variant index of every command. Under that
+mutation `Select(Some(7))` encodes as `[1, 1, 7]` instead of `[0, 1, 7]`, so
+every previously written command log would replay as different commands. **The
+round-trip test passed.** So did the queue test. Nothing in the workspace went
+red.
+
+**Root cause:** a round trip asserts that the serialiser and the deserialiser
+agree *with each other*. They are generated from the same derive, so they agree
+by construction under **any** encoding. The encoding is a free variable that
+appears on both sides of the assertion and cancels. This is testing-protocol
+rule 3's "relation between two computed values" in its purest form, and it is
+unusually convincing because the two computed values genuinely are the thing you
+care about - they are just both downstream of the thing that changed.
+
+Note that `cargo mutants` would not have found this either. Reordering the
+members of a type declaration is outside its grammar, exactly as
+statement-deletion is (protocol rule 2).
+
+**Prevention rule:** for any type whose bytes are **persisted or sent**, a round
+trip is necessary and never sufficient. Pin the bytes with a golden vector
+beside it:
+
+1. Assert exact `expected` byte slices for at least one value of every variant.
+2. Include a value **above 127**, which is what makes the assertion sensitive to
+   varint-ness and to integer width. `SetSpeed(200)` is two bytes if the field
+   is ever widened from `u8` to `u32`, and one byte otherwise; `SetSpeed(2)`
+   cannot tell the two apart.
+3. Say in the type's doc comment that variant order and field widths **are** the
+   wire format, so the next person to insert a variant in the middle reads it
+   before rather than after.
+
+**How to verify:** swap any two variants of `SimCommand` and run
+`cargo test -p terri-core command`. `command_encoding_is_pinned_by_a_golden_byte_vector`
+fails naming the changed bytes; `commands_round_trip_through_postcard` passes.
+Restore from a scratchpad byte snapshot, never with `git checkout` ([L9]), and
+touch the file ([L8]).
+
+---
+
+## [L34] A suite whose inputs are all integers cannot detect rounding
+
+**What happened:** `screenToWorld` shipped with three tests, including a
+round-trip over six coordinate pairs. Wrapping both results in `Math.round`
+left all three green. A fourth test with a fractional input caught it
+immediately.
+
+**Root cause:** every input was a point that `worldToScreen` had produced from
+**integer** world coordinates, so the correct answer was always an integer and
+rounding was a no-op. Adding more coordinate pairs would not have helped - the
+suite was not too small, its **input domain was degenerate**. Six points that
+all share the property you failed to vary are one point.
+
+This differs from the earlier entries in this file. [L5] and [L7] are about the
+shape of the assertion; this one is about the shape of the **inputs**. A test
+can assert exactly the right thing, causally, and still be blind because nothing
+it feeds in can distinguish the two implementations.
+
+**Why it matters that the mutation was realistic:** the caller wants a tile
+index, so "just make `screenToWorld` round to the tile" is the obvious-looking
+simplification someone makes later while tidying. The suite would have approved
+it, and picking would then be correct at tile centres and wrong everywhere else -
+which reads as a rendering problem, not an input one.
+
+**Prevention rule:** for any function over a continuous domain, **ask what
+property every input shares**, and add one that breaks it. Integers hide
+rounding and truncation. Positive values hide sign errors. Symmetric values hide
+transposition. Zero hides almost everything.
+
+**How to verify:** apply the degenerate implementation - round it, take the
+absolute value, transpose the arguments - and check the suite fails. If it
+passes, the inputs are the problem, not the assertions.
+
+---
+
+## [L35] A hand-designed mutation must be survivable by the shipped content, or the build gate answers instead of the test
+
+**What happened:** M1b Task 3 added lot validation to `terri-data`'s
+`compile.rs`, which `build.rs` runs against the real `content/*.toml`. To
+verify the new `rejects_a_wall_outside_the_lot` test, the bounds check
+`x >= lot.width || y >= lot.height` was transposed to
+`x >= lot.height || y >= lot.width`. The shipped lot is 24 wide and 18 tall
+with walls out to `x = 23`, so the transposed check rejects real content and
+the build aborted:
+
+```
+thread 'main' panicked at crates\terri-data\build.rs:67:29:
+content is invalid: lot.toml has a wall at (18, 8), outside the 24x18 lot
+```
+
+**The test never ran.** Logged naively that is a "caught" row that is
+entirely true and says nothing about whether the test works.
+
+**Root cause:** this is [L21]'s shape with the compiler swapped out for the
+content gate, and it is worth its own entry because the defence is
+different. [L21] says to design a mutation around what the *type system*
+prevents, and the fix there is structural: change an array member rather
+than its length. Here nothing about the mutation is ill-typed. What blocks
+it is a *value* in a data file, so the fix is arithmetic: pick a mutation
+whose accept/reject boundary the shipped content sits comfortably inside.
+
+`x >= lot.width` mutated to `x > lot.width` is the version that works. It is
+an off-by-one, so the shipped lot (`max x = 23`, width 24) still passes and
+the build succeeds, while the test's deliberate `(5, 1)` on a 5x3 lot sits
+exactly on the boundary and fails. Same line, same operator, conclusive
+instead of inconclusive.
+
+**Prevention rule:** before applying a mutation to code that a build script
+runs over shipped content, ask **"does the real content still pass this?"**
+If not, the build gate will answer and the test will not. Prefer boundary
+mutations (`>=` to `>`, `<` to `<=`) over ones that change meaning wholesale
+(transposition, negation), because the shipped content usually sits well
+away from the boundary while the test fixture sits on it.
+
+Where the wholesale mutation is the one you actually need to guard against -
+a transposition genuinely is the realistic bug here - **put the guard
+somewhere the build gate cannot reach.**
+`is_wall_matches_both_coordinates_of_a_declared_wall` in `pack.rs` asserts
+the transposes and the cross products of its fixture's walls, and `pack.rs`
+is not on `build.rs`'s validation path, so that test stays conclusive.
+
+**How to verify:** read the failure output, not the exit code. A panic from
+`build.rs` saying "content is invalid" means the gate caught it; a test name
+and an assertion means the test did. Only the second is evidence about the
+test.
+
+---
+
+## [L36] A golden vector over a one-candidate fixture cannot see a change to how candidates are ranked
+
+**What happened:** M1b Task 3b's brief predicted, in bold, that switching
+`select_action` from Euclidean distance to A* path length would move the
+world-hash golden vectors, and instructed that both copies be updated
+deliberately. **They did not move.** `0x2FC6_69EF_A725_4F2D` before the
+change and `0x2FC6_69EF_A725_4F2D` after it, on native and on wasm32, with
+the wasm rebuilt first ([L8], [L13]).
+
+The prediction was reasonable and the fixture is what refutes it.
+`build_scenario` in `crates/terri-sim/src/lib.rs` is a 24x24 **open** room
+holding **one** smart object and eight agents. Three things follow, and all
+three have to hold:
+
+1. With one object there is nothing to rank, so the metric can only act
+   through the `ACTION_THRESHOLD` comparison. It does change that - agent 4
+   clears the threshold at Euclidean 21.4 tiles and fails it at a path
+   length of 30 - but only the lowest-index agent that clears it ever gets
+   the object, because the rest find it in `claimed` and skip.
+2. That agent's walk is **30 tiles at 0.25 tiles per tick = 120 ticks**, and
+   the vector is taken at tick 100. It is still walking. Nothing else in the
+   scenario ever selects anything.
+3. Movement always used A*. So the agent's position at tick 100 is the same
+   under both metrics, every other agent is stationary, and the digest is
+   bit-identical.
+
+**Root cause:** a golden vector pins *what the simulation computes in that
+scenario*, and a scenario with one candidate exercises no comparison between
+candidates. This is [L27], [L28], [L30] and [L31] again - "the check still
+passes, over less" - but the trigger is new and worse, because the check did
+not merely narrow: it never covered the mechanism at all, and its *stability*
+was read as reassurance. A vector that does not move is normally evidence
+that nothing changed.
+
+**Prevention rule:**
+
+1. **Before predicting that a golden vector will move, name the mechanism and
+   check the fixture exercises it.** "Does this scenario contain two things
+   the change would order differently?" is a one-line check and it is the
+   whole of it.
+2. **An unchanged golden vector after a deliberate behaviour change is a
+   finding, not a relief.** Work out why before writing it down as a pass.
+   The two answers - "the change is inert" and "the fixture is blind" - look
+   identical from the outside and mean opposite things.
+3. Do not fix this by tuning the fixture until the vector moves. The vector's
+   job is a stable reference scenario; the mechanism's job belongs to a test
+   named for it. Task 3b's
+   `an_object_behind_a_wall_loses_to_a_further_one_the_agent_can_walk_to` is
+   that test, and it is what mutation-verifying the metric proved.
+
+**How to verify:** revert `let distance = steps.len() as f32;` in
+`crates/terri-sim/src/systems/action.rs` to the Euclidean form and run
+`cargo test --workspace`. Exactly one test fails, and it is **not**
+`world_hash_matches_its_golden_vector`. Restore from a scratchpad byte
+snapshot, never with `git checkout` ([L9]), and touch the file ([L8]).
+
+**A second, smaller instance from the same task, recorded because the shape
+recurs.** A boundary test for `lot_width` and `lot_height` built its own
+`SimHandle::new(width, height)` out of the two numbers under test and then
+asked whether a corner was inside it. That helper is **self-consistent under
+a swap of the pair**: with both accessors transposed it constructs an 18x24
+lot, agrees with itself, and passes. Measured. The fix was to ask the
+question of `from_lot()`'s real lot instead. **A control that rebuilds its
+world from the values it is testing is not a control.**
+
+---
+
+## [L37] A WebGPU canvas read outside a rAF callback is black, and the screenshot is what proves it
+
+**What happened:** Task 3b's browser check read the canvas back with
+`drawImage` + `getImageData` from a plain `page.evaluate`, and got
+`0,0,0` across all 921,600 pixels - the exact reading [L14] records for a
+renderer that never ran. The frame counters in the same probe said 1,114
+rAF callbacks, 1,114 `draw` calls and 1,114 `submit` calls, and the
+Playwright screenshot taken seconds later plainly showed eight blue
+diamonds and an orange sim.
+
+**Root cause:** a WebGPU canvas presents at the **end of the task**, so a
+readback issued in an arbitrary task samples a surface with nothing in it.
+Task 10's notes already said to await `queue.onSubmittedWorkDone()` and a
+macrotask; what they did not say is that the failure is not a *dim* or
+*partial* reading, it is the identical all-zero reading that means "the
+renderer never ran". The two most different diagnoses in this project
+produce the same 921,600 zeroes.
+
+**Prevention rule:**
+
+1. **Do the readback inside a `requestAnimationFrame` callback registered
+   during a frame**, so it runs after the page's own callback has drawn.
+2. **Never accept an all-zero canvas without a second, independent
+   instrument.** A frame counter on a platform global and a screenshot are
+   both cheap, and here they disagreed with the readback immediately. This
+   is [L20]'s "when a measurement of a hot path returns zero, treat the
+   instrument as the suspect" with a different instrument.
+3. State the expected magnitude first. Eight 24x24 quads is 4,608 pixels
+   and one sim is 576; "zero" is then recognisable as impossible rather
+   than as a finding about the page.
+
+**How to verify:** move the `drawImage` out of the rAF callback in the
+Task 3b browser script and re-run against a page that is demonstrably
+drawing. The colour tally collapses to a single `0,0,0` entry while the
+submit counter keeps climbing.
+
+## [L38] A borrowed asset pack's grid is not this project's grid, and the difference reads as a level-design problem
+
+**What happened:** Task 3c scaled Kenney's isometric furniture by their
+floor tile, which is the obvious reading: their `floorFull` renders 208 px
+across and our tile diamond is 64 px, so the factor is 64/208. Everything
+tiled, nothing overlapped, and the rendered lot looked wrong in a way that
+had nothing obviously to do with scaling: an enormous empty floor with
+doll's-house props scattered on it. The first instinct was that
+`content/lot.toml` had authored too big a lot.
+
+**Root cause:** **their tile is about 1.7 m and ours is roughly 1 m.**
+`grid.rs` says so about ours; theirs has to be measured, and can be. An
+isometric box of footprint w by d renders `(w + d) * halfTile` wide, so
+their 0.4 x 0.7 m toilet at 66 px and their 1.0 x 2.0 m bunk bed at 172 px
+both put their metre near 118 source pixels rather than 208. Scaling by
+their tile therefore drew every object at 58% of its real size. Nothing in
+the pipeline could notice: the atlas packed, the manifests agreed, every
+test passed, and the only symptom was an aesthetic judgement about a room.
+
+**Prevention rule:**
+
+1. **Scale a borrowed pack by a shared physical unit, not by its grid.**
+   Derive the unit from two objects of known real size and check they
+   agree; one object cannot distinguish a scale error from an unusual
+   model.
+2. **Say what the unit is in the file that applies it.** `build-atlas.ps1`
+   names 118 px as one metre and shows the arithmetic, so the next person
+   changing the scale is changing a measured quantity rather than a magic
+   number.
+3. **A rendering bug can present as a content bug.** Before re-authoring
+   content because the picture looks wrong, check that the picture is
+   drawing the content at the right size.
+
+**Also recorded here because it cost a second iteration:** scale both axes
+of a borrowed isometric sprite or neither. Their wall panel is 1.8 of our
+tile edges wide at the metre scale, so a run of them overlaps; narrowing
+only the width to one tile edge looks like the fix and is worse, because
+the panel's top and bottom edges are diagonals cut to the tile slope and
+scaling x without y re-slopes them. The run then opens into a picket fence
+with the floor showing through.
+
+**How to verify:** set `$KENNEY_METRE_PX` in `assets/sprites/build-atlas.ps1`
+to 208, regenerate, and look at the page. Every object shrinks to 58% while
+the floor, which is generated at exactly 64 x 32, does not move at all.

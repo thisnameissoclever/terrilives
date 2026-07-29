@@ -83,6 +83,13 @@ jobs:
   # behaviour is exercised through terri-sim, so the default produced 11
   # false survivors on the first run, including Path::next_step -> None,
   # which the real suite catches instantly.
+  #
+  # terri-wasm is swept too, and is the package where a survivor costs the
+  # most. Its exports are the untrusted-input boundary, so behaviour that
+  # nothing constrains there is behaviour JavaScript is the first to find.
+  # Its tests run on the host like any other, so this needs no wasm target.
+  # It was omitted until #4, which left `SimHandle::tick` free to be a
+  # no-op behind a green suite.
   mutants:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
@@ -98,7 +105,7 @@ jobs:
       - name: Full mutation sweep
         run: |
           cargo mutants --package terri-core --package terri-sim \
-            --package terri-data \
+            --package terri-data --package terri-wasm \
             --test-workspace true --timeout 60 || true
       - name: Fail on survivors not in the baseline
         run: |

@@ -65,6 +65,35 @@ export class SimBridge {
     );
   }
 
+  /**
+   * The atlas sprite index for each entity, resolved from content when
+   * the pack was compiled.
+   *
+   * Same three-part re-read rule as every accessor here; see the class
+   * comment. Nothing in TypeScript decides what an object looks like,
+   * which is why this is a view over simulation memory rather than a
+   * lookup table on this side.
+   */
+  sprites(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.sprites_ptr(),
+      this.count,
+    );
+  }
+
+  /**
+   * Every impassable tile inside the lot, interleaved `[x, y, ...]`.
+   *
+   * A **copy**, not a view, and called once at load: the renderer keeps
+   * the result for the session, so a zero-copy view would have to
+   * survive every later reallocation of WASM memory for no benefit. It
+   * is also not per-frame data, so [D11] has nothing to say about it.
+   */
+  wallTiles(): Uint32Array {
+    return this.handle.wall_tiles();
+  }
+
   spawnAgent(x: number, y: number, hunger: number): void {
     this.handle.spawn_agent(x, y, hunger);
   }

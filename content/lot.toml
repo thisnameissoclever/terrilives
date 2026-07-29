@@ -1,0 +1,66 @@
+# The starter lot: one open living space with a bathroom walled off in
+# the north-east corner.
+#
+# Hand-authored on purpose, and this file is the precursor to build mode
+# rather than a shortcut around it. Build mode later becomes an editor
+# that writes exactly this format, so the FORMAT is the part worth
+# getting right now; the layout is not, and is expected to be replaced by
+# whatever the editor writes.
+#
+# Coordinates are tile indices with (0, 0) at the north-west corner.
+# Placements are continuous rather than tile-snapped, because `Position`
+# is an f32 pair and an object's tile is the tile its coordinates fall
+# in - `x = 7.5` is legal and sits on tile 7.
+#
+# Walls list INTERIOR tiles only. The lot boundary is already solid,
+# because `TileGrid::is_walkable` treats everything outside the grid as
+# blocked, so authoring a perimeter here would be 80 redundant entries
+# that no code would read differently.
+
+# Sized so the room reads as a home rather than a warehouse. The first
+# version was 24 x 18, which is 432 tiles holding nine things, and it
+# looked like a furniture showroom with the lights off. Density is what
+# makes a space legible, and it is also what makes travel distance a
+# real cost in scoring - across an empty hall every object is equally
+# far, so distance stops discriminating and only need deficit decides.
+width = 14
+height = 10
+
+wall = [
+  # The bathroom's west wall, running north-south, with a doorway at
+  # y = 2. The gap in this list IS the doorway; there is no separate
+  # door concept yet.
+  { x = 9, y = 0 },
+  { x = 9, y = 1 },
+  { x = 9, y = 3 },
+
+  # Its south wall, running east from below the doorway to the lot edge.
+  { x = 9, y = 4 },
+  { x = 10, y = 4 },
+  { x = 11, y = 4 },
+  { x = 12, y = 4 },
+  { x = 13, y = 4 },
+]
+
+place = [
+  # Kitchen, along the north wall of the living space. The sink is here
+  # rather than in the bathroom deliberately: it gives the shower a
+  # cheap, no-cost hygiene rival on the far side of the lot, which is
+  # what turns "wash" into a decision rather than a threshold.
+  { object = "fridge", x = 1.0, y = 1.0 },
+  { object = "sink", x = 3.0, y = 1.0 },
+
+  # Bathroom, reached only through the doorway at (9, 2).
+  { object = "shower", x = 11.0, y = 1.0 },
+  { object = "toilet", x = 13.0, y = 1.0 },
+
+  # Living space, along the west and south.
+  { object = "bookshelf", x = 1.0, y = 5.0 },
+  { object = "sofa", x = 3.0, y = 8.0 },
+  { object = "television", x = 6.0, y = 8.0 },
+
+  # Sleeping corner, south of the bathroom's south wall. Deliberately
+  # far from the sofa and television, so "I am tired" and "I want fun"
+  # pull in opposite directions across the room.
+  { object = "bed", x = 12.0, y = 7.0 },
+]

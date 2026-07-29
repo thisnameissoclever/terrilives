@@ -90,6 +90,54 @@ export function worldToScreen(
 }
 
 /**
+ * Screen pixels back to world tile coordinates: the exact inverse of
+ * `worldToScreen`, in closed form.
+ *
+ * The derivation, with x and y taken relative to the origin. Forward,
+ * `x = (wx - wy) * TILE_HALF_WIDTH` and `y = (wx + wy) * TILE_HALF_HEIGHT`,
+ * so `x / TILE_HALF_WIDTH` is `wx - wy` and `y / TILE_HALF_HEIGHT` is
+ * `wx + wy`. Their sum is `2 * wx` and their difference is `2 * wy`, which
+ * is the whole of the code below. The two halves therefore differ only in
+ * one sign, and that sign is the entire correctness of picking: get it
+ * wrong and clicks land one tile off in some directions and dead on in
+ * others, which reads as a flaky game rather than as a bug in this file.
+ *
+ * **The result is fractional and stays fractional.** The caller decides
+ * what the fraction means, because the answers differ: hit-testing a tile
+ * wants the floor, while a future drag or camera gesture wants the
+ * sub-tile remainder. Rounding here would destroy that before anyone
+ * could choose.
+ *
+ * **Why this returns a tuple when `worldToScreen` is banned from doing so
+ * in the render loop.** [D11] forbids per-entity JS objects per frame, and
+ * [V11] measured 57.8 MB of exactly that allocation before `buildInstances`
+ * was moved onto `screenX`/`screenY`. This function is called from pointer
+ * event handlers, so it runs at most a handful of times a second and never
+ * once per entity. One short-lived array per click is not on any hot path,
+ * and a tuple reads better at the call site than two scalar calls do.
+ *
+ * **Picking inverts the projection; it does not hit-test the rendered
+ * quads.** Per [D-4]: invert to a world tile, then ask the simulation what
+ * is standing on that tile. Quad-space picking would couple input to the
+ * renderer's current sprite size, so changing the art would silently
+ * change where clicks land. Keeping input in world space lets the two move
+ * independently.
+ */
+export function screenToWorld(
+  sx: number,
+  sy: number,
+  originX: number,
+  originY: number,
+): [number, number] {
+  const x = sx - originX;
+  const y = sy - originY;
+  return [
+    (x / TILE_HALF_WIDTH + y / TILE_HALF_HEIGHT) / 2,
+    (y / TILE_HALF_HEIGHT - x / TILE_HALF_WIDTH) / 2,
+  ];
+}
+
+/**
  * Depth for the depth buffer, in [0, 1].
  *
  * Depth is derived from world position and written to the depth buffer
@@ -120,4 +168,88 @@ export function worldDepth(wx: number, wy: number, gridSize: number): number {
   const maxSum = Math.max(1, (gridSize - 1) * 2);
   const nearness = (wx + wy) / maxSum;
   return Math.min(1, Math.max(0, 1 - nearness));
+}
+
+/**
+ * How many things may stand on one tile and still be ordered.
+ *
+ * Three: the floor, whatever furniture or wall is on it, and the sim
+ * standing on that furniture. Raising this costs depth precision at the
+ * near end of the lot and nothing else.
+ */
+export const DEPTH_LAYERS = 3;
+
+/** Floor tiles. Furthest of the three, so everything covers them. */
+export const LAYER_FLOOR = 0;
+/** Walls and smart objects. */
+export const LAYER_PROP = 1;
+/** Sims. Nearest, so a sim standing on an object is never swallowed. */
+export const LAYER_SIM = 2;
+
+/**
+ * The depth one layer is worth.
+ *
+ * It has to be small enough that a layer bias never reorders two
+ * different tiles, and large enough to survive being stored as an f32 in
+ * the instance array and interpolated to a `depth24plus` buffer. One tile
+ * of separation is `2 / ((gridSize - 1) * 2)`, which on the shipped 24 x
+ * 18 lot (`gridSize` 24) is 1/23 = 0.0435, so this is 178 times smaller
+ * than the gap it must not cross, and 24-bit depth resolves 1/16,777,216.
+ */
+export const DEPTH_LAYER_STEP = 1 / 4096;
+
+/**
+ * How far outside the lot `layeredDepth` still returns a usable depth,
+ * in tiles.
+ *
+ * `worldDepth` maps tile (0, 0) to exactly 1 and clamps anything beyond
+ * it, so every tile with a negative coordinate sum collapses onto the far
+ * plane together. `tiles.ts` draws the lot's own boundary a tile outside
+ * the north and west edges - the boundary is impassable in the
+ * simulation whether or not `lot.toml` lists it, because `is_walkable`
+ * refuses everything off the grid - and without this margin those panels
+ * would all share one depth with each other and with the corner tile,
+ * leaving the order to fall back on draw order.
+ *
+ * Applied as a translation of both axes, which shifts every depth by the
+ * same amount and therefore changes no ordering at all.
+ */
+export const DEPTH_MARGIN = 1;
+
+/**
+ * `worldDepth` with a within-tile layer applied, so that two entities on
+ * the same tile still have a defined order.
+ *
+ * **Why this exists.** [V12] recorded a sim standing on the fridge
+ * vanishing: both quads took the same world position, so both took the
+ * same depth, and `depthCompare: 'less'` rejected whichever was drawn
+ * second. The orange pixels were simply absent from the frame. During a
+ * play session that reads as the sim having disappeared, which is an AI
+ * bug to anybody watching, and it is not one.
+ *
+ * **Why the base depth is squeezed rather than the layers clamped.**
+ * Subtracting a bias from `worldDepth`'s raw output would leave the range
+ * at the near corner, where `worldDepth` already returns 0; the clamp
+ * would then collapse all three layers onto 0 and the tie would be back
+ * on exactly the tiles nearest the camera. Reserving `DEPTH_LAYERS` steps
+ * at the top instead means the result is in
+ * `[DEPTH_LAYER_STEP, 1]` for every input, and the three layers are
+ * strictly ordered on every tile including both corners.
+ *
+ * Smaller wins the pixel, so a **larger** layer draws in front. See
+ * `worldDepth` above for why that is the sense.
+ */
+export function layeredDepth(
+  wx: number,
+  wy: number,
+  gridSize: number,
+  layer: number,
+): number {
+  const headroom = DEPTH_LAYERS * DEPTH_LAYER_STEP;
+  const nearness = worldDepth(
+    wx + DEPTH_MARGIN,
+    wy + DEPTH_MARGIN,
+    gridSize + DEPTH_MARGIN,
+  );
+  return headroom + nearness * (1 - headroom) - layer * DEPTH_LAYER_STEP;
 }

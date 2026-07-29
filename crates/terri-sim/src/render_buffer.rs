@@ -14,7 +14,22 @@ pub struct RenderBuffer {
     /// Same layout, previous tick. The renderer interpolates between them.
     pub prev_positions: Vec<f32>,
     /// 0 = agent, 1 = smart object.
+    ///
+    /// Not what the renderer draws - `sprites` is - and kept because the
+    /// two answer different questions. This one is a simulation fact
+    /// (does the row carry `Agent`), and the renderer uses it to decide
+    /// which within-tile depth layer the row belongs on, so that a sim
+    /// standing on an object is drawn in front of it rather than losing
+    /// the depth test to it.
     pub kinds: Vec<u32>,
+    /// Index into the sprite atlas, one per row.
+    ///
+    /// It is here rather than derived in the shell because it comes from
+    /// **content**: an object's `sprite` field is resolved against the
+    /// atlas manifest when the pack is compiled. A lookup table in
+    /// TypeScript keyed on object id would be a second copy of the object
+    /// list, which is the coupling [D1] exists to prevent.
+    pub sprites: Vec<u32>,
     pub count: usize,
 }
 
@@ -23,7 +38,7 @@ mod tests {
     use crate::test_content::shipped_fridge as a_smart_object;
     use crate::Sim;
     use bevy_ecs::prelude::*;
-    use terri_core::{Agent, Eating, NeedId, Needs, Position};
+    use terri_core::{Agent, Eating, NeedId, Needs, Position, SmartObject};
 
     /// Entity indices in the raw order `sync_render_buffer`'s query
     /// yields them, with no sorting applied. This is precisely the order
@@ -61,6 +76,68 @@ mod tests {
         assert_eq!(buf.positions[1], 5.0);
         assert_eq!(buf.kinds[0], 1);
         assert_eq!(buf.kinds[1], 0);
+    }
+
+    /// The sprite column, against SHIPPED content.
+    ///
+    /// Two objects with different `sprite` fields plus one agent, so the
+    /// three mutations that matter are all visible: writing the sim's
+    /// sprite everywhere, writing sprite 0 everywhere, and writing the
+    /// object's own `ObjectDefId` instead of its sprite. The last is the
+    /// realistic one, because both are `u32` and both are indices, so it
+    /// compiles and type-checks and draws the wrong furniture.
+    ///
+    /// It reads the expectations out of the pack rather than restating
+    /// them, so a re-skin of `objects.toml` does not break it - but it
+    /// asserts up front that the three indices differ, because on
+    /// content where they happened to agree this test could not see any
+    /// of those mutations ([L34]).
+    #[test]
+    fn each_row_carries_its_own_content_sprite_not_its_object_id() {
+        let pack = terri_data::pack();
+        let fridge = pack.find("fridge").expect("shipped content has a fridge");
+        let sofa = pack.find("sofa").expect("shipped content has a sofa");
+
+        let fridge_sprite = pack.object(fridge).sprite;
+        let sofa_sprite = pack.object(sofa).sprite;
+        assert!(
+            fridge_sprite != sofa_sprite
+                && fridge_sprite != pack.sim_sprite
+                && sofa_sprite != pack.sim_sprite,
+            "the two objects and the sim must draw as three different \
+             sprites, or this test cannot tell them apart"
+        );
+        assert!(
+            fridge_sprite != fridge.0 || sofa_sprite != sofa.0,
+            "at least one object's sprite index must differ from its own \
+             ObjectDefId, or writing the id in place of the sprite is \
+             invisible here"
+        );
+
+        let mut sim = Sim::new_with_lot(16, 16);
+        sim.world_mut()
+            .spawn((Position { x: 1.0, y: 1.0 }, SmartObject(fridge)));
+        sim.world_mut()
+            .spawn((Position { x: 2.0, y: 2.0 }, SmartObject(sofa)));
+        sim.world_mut().spawn((
+            Agent,
+            Position { x: 3.0, y: 3.0 },
+            Needs::with(NeedId::Hunger, 50.0),
+        ));
+
+        sim.sync_render_buffer();
+
+        assert_eq!(
+            sim.render_buffer().sprites,
+            vec![fridge_sprite, sofa_sprite, pack.sim_sprite],
+            "sorted by entity index, so the fridge spawned first comes first"
+        );
+        assert_eq!(
+            sim.render_buffer().sprites.len(),
+            sim.render_buffer().count,
+            "every row must have a sprite; a short array leaves the last \
+             entities reading whatever is past the end of the view"
+        );
     }
 
     #[test]

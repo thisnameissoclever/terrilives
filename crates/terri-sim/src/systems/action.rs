@@ -39,22 +39,57 @@ pub fn select_action(
     let mut claimed: Vec<Entity> = Vec::new();
 
     for (agent, agent_pos, needs) in idle {
-        let mut best: Option<(Entity, Position, u32, f32)> = None;
+        let mut best: Option<(Entity, Vec<(i32, i32)>, u32, f32)> = None;
+        let from = (agent_pos.x.round() as i32, agent_pos.y.round() as i32);
 
         for (object, object_pos, placed) in &objects {
             if claimed.contains(&object) {
                 continue;
             }
-            // Euclidean straight-line distance, deliberately, not A*
-            // path length. Scoring runs against every candidate object
-            // every tick, so pathing each one first would be far too
-            // expensive. The cost is that an object one tile away
-            // through a wall scores as near and is then walked around.
-            // Acceptable in M0's single open room; revisit when [D7]'s
-            // room and portal graph lands and walls become common.
-            let dx = object_pos.x - agent_pos.x;
-            let dy = object_pos.y - agent_pos.y;
-            let distance = (dx * dx + dy * dy).sqrt();
+            // **Distance here is WALL-AWARE by contract**, and the
+            // contract is the part to preserve; A* is only today's way of
+            // honouring it.
+            //
+            // M0 used Euclidean distance and said to revisit it "when
+            // walls become common". They are: M1b's lot has a walled
+            // bathroom, and a straight line scores the shower as one tile
+            // away through its wall. The agent then walks round to the
+            // door, so its ranking disagrees with its own movement -
+            // which reads on screen as a sim that wants something and
+            // then changes its mind, not as a distance-metric bug.
+            //
+            // M0's "far too expensive" reasoning was about a thousand
+            // agents and a hundred thousand objects. At M1b's scale - one
+            // agent, eight objects - this is one A* over a 24x18 grid per
+            // candidate per tick, which is nothing. The cost is
+            // O(idle agents * unclaimed objects) A* searches per tick and
+            // grows with both, so it is the SCALE that will force a
+            // change here, not the metric.
+            //
+            // **Do not "optimise" this back to a straight line.** [D7]
+            // plans room and portal graph distance for exactly this
+            // problem at scale, and a room-graph length is wall-aware too,
+            // so balance tuned against A* length survives that swap.
+            // Balance tuned against a straight line would survive
+            // neither. The metric is the commitment; the implementation
+            // is not.
+            let to = (object_pos.x.round() as i32, object_pos.y.round() as i32);
+            // An object with no path to it is UNAVAILABLE, not free and
+            // not adjacent: skipping it here is what lets the agent fall
+            // back to the best object it can actually reach. Scoring it
+            // instead would hand the highest score in the world to
+            // something the agent then cannot walk to, and the agent
+            // would stand still forever while its needs decayed - [L17]'s
+            // failure with a wall in place of an out-of-bounds
+            // coordinate.
+            //
+            // This also replaces the second `find_path` that used to run
+            // after selection: the winning path is carried out of the
+            // loop rather than recomputed.
+            let Some(steps) = grid.find_path(from, to) else {
+                continue;
+            };
+            let distance = steps.len() as f32;
 
             // An object offers a list of interactions and an agent
             // performs one of them, so each is scored separately and the
@@ -80,7 +115,7 @@ pub fn select_action(
                         distance,
                     );
                 }
-                let better = match best {
+                let better = match &best {
                     // Tiebreak on entity index so equal scores resolve
                     // identically every run. Two interactions on the
                     // SAME object compare equal here, so a tied later
@@ -88,24 +123,26 @@ pub fn select_action(
                     // same strictness that settles ties between objects
                     // settles ties within one.
                     Some((best_e, _, _, best_score)) => {
-                        score > best_score
-                            || (score == best_score && object.index() < best_e.index())
+                        score > *best_score
+                            || (score == *best_score && object.index() < best_e.index())
                     }
                     None => true,
                 };
                 if score > ACTION_THRESHOLD && better {
-                    best = Some((object, *object_pos, index as u32, score));
+                    // The clone is at most a few short paths per agent
+                    // per tick, and it buys keeping this comparison
+                    // byte-identical to the one three tests pin. Hoisting
+                    // the interaction scores into a per-object maximum
+                    // first would avoid it and would also move the
+                    // within-object tie from the index clause to the
+                    // score clause, which is exactly the silent change of
+                    // meaning [L30] is about.
+                    best = Some((object, steps.clone(), index as u32, score));
                 }
             }
         }
 
-        let Some((object, object_pos, interaction, _)) = best else {
-            continue;
-        };
-
-        let from = (agent_pos.x.round() as i32, agent_pos.y.round() as i32);
-        let to = (object_pos.x.round() as i32, object_pos.y.round() as i32);
-        let Some(steps) = grid.find_path(from, to) else {
+        let Some((object, steps, interaction, _)) = best else {
             continue;
         };
 
@@ -185,14 +222,37 @@ mod tests {
             .deficit(need)
     }
 
-    /// An independent restatement of the straight-line distance
-    /// `select_action` computes, used only to assert preconditions.
+    /// An independent restatement of the distance `select_action`
+    /// measures: the number of tiles the agent actually walks.
     ///
     /// Restating it here rather than calling into the system is the whole
-    /// point: a mutation of the production arithmetic does not follow the
-    /// helper, so the preconditions keep holding and the golden
-    /// winner assertion is what fails. If this ever calls production code
-    /// the tests below stop being able to see the bug they exist for.
+    /// point: a mutation of the production metric does not follow the
+    /// helper, so the preconditions keep holding and the golden winner
+    /// assertion is what fails. If this ever calls production code the
+    /// tests below stop being able to see the bug they exist for.
+    ///
+    /// **Manhattan distance is the A* path length only on an OPEN grid**,
+    /// where the heuristic is exact - `the_heuristic_equals_the_true_cost_on_an_open_grid`
+    /// in terri-core's `grid.rs` is what pins that. Every fixture in this
+    /// module is an open room except the two walled tests, which state
+    /// their path lengths explicitly rather than using this helper.
+    ///
+    /// The coordinates are rounded first because `select_action` rounds
+    /// them to tile indices before pathing.
+    fn walk_tiles(agent_at: (f32, f32), object_at: (f32, f32)) -> f32 {
+        let dx = object_at.0.round() - agent_at.0.round();
+        let dy = object_at.1.round() - agent_at.1.round();
+        dx.abs() + dy.abs()
+    }
+
+    /// An independent restatement of the straight-line distance
+    /// `select_action` **used to** measure, kept solely as the
+    /// counterfactual the walled tests below assert against.
+    ///
+    /// Nothing in production computes this any more. Its job is to let a
+    /// test say "a Euclidean implementation would have picked the other
+    /// one", which is what stops those tests passing for an
+    /// implementation that happens to get the right answer.
     fn straight_line(agent_at: (f32, f32), object_at: (f32, f32)) -> f32 {
         let dx = object_at.0 - agent_at.0;
         let dy = object_at.1 - agent_at.1;
@@ -200,7 +260,7 @@ mod tests {
     }
 
     /// The score one advertised need contributes, restated for the same
-    /// reason as `straight_line`.
+    /// reason as `walk_tiles`.
     fn score_of(
         deficit: f32,
         agent_at: (f32, f32),
@@ -212,7 +272,7 @@ mod tests {
             deficit,
             delta,
             duration_ticks,
-            straight_line(agent_at, object_at),
+            walk_tiles(agent_at, object_at),
         )
     }
 
@@ -236,32 +296,27 @@ mod tests {
     }
 
     #[test]
-    fn distance_uses_the_x_offset_between_agent_and_object() {
+    fn distance_counts_the_x_axis_steps_between_agent_and_object() {
         // Two objects advertising exactly the same interaction, both on
-        // the agent's own row so the y term is zero for each. The only
-        // thing that can separate them is `object_pos.x - agent_pos.x`.
+        // the agent's own row, three tiles east and seven tiles west. On
+        // an open grid the walked path is the Manhattan distance, so the
+        // only thing that can separate them here is the number of steps
+        // along x.
         //
         // GOLDEN assertion, for the reason spelled out in the tie and
         // contention tests below: do NOT rewrite it as a comparison of
         // two scores or two runs.
         //
-        // The geometry is chosen, not arbitrary. The far object sits at a
-        // SMALLER x than the agent and the near one at a LARGER x, which
-        // is what makes the two arithmetic mutations of that subtraction
-        // visible:
-        //   `x + x` gives far 1+8 = 9 against near 11+8 = 19,
-        //   `x / x` gives far 1/8 = 0.125 against near 11/8 = 1.375,
-        // so both flip the winner. Placing both objects on the same side
-        // of the agent would leave the division order-preserving and the
-        // test would pass with it in place.
-        //
-        // The far object is also spawned FIRST, so it holds the lower
-        // entity index. Any mutation that collapses the two distances
-        // into a tie - `dx * dx` to `dx / dx`, or `+ dy * dy` to
-        // `* dy * dy`, both of which make the distance identical for
-        // every object - then hands the win to the far one via the index
-        // tiebreak, and this test fails rather than passing on a tie it
-        // never meant to create.
+        // The mutations this sees, now that the metric is `steps.len()`
+        // rather than a subtraction:
+        //   - a constant distance, or dropping the distance term from the
+        //     score entirely, ties the two candidates;
+        //   - measuring only the y axis ties them as well, since both sit
+        //     on the agent's row.
+        // The far object is spawned FIRST, so it holds the lower entity
+        // index and wins any tie through the index tiebreak - which is
+        // what turns each of those into a FAILURE here rather than a pass
+        // on a tie this test never meant to create.
         let content = identical_advert_content();
         let mut sim = test_content::sim_with(16, 16, content);
         let identical = def(content, "identical");
@@ -291,8 +346,8 @@ mod tests {
         // Preconditions. Both candidates must be genuinely selectable, or
         // "the near one won" could be satisfied by the far one being
         // ineligible for some unrelated reason.
-        assert_eq!(straight_line((8.0, 8.0), (11.0, 8.0)), 3.0);
-        assert_eq!(straight_line((8.0, 8.0), (1.0, 8.0)), 7.0);
+        assert_eq!(walk_tiles((8.0, 8.0), (11.0, 8.0)), 3.0);
+        assert_eq!(walk_tiles((8.0, 8.0), (1.0, 8.0)), 7.0);
         assert!(
             far_score > ACTION_THRESHOLD,
             "the losing object must still clear the threshold, or this \
@@ -310,26 +365,24 @@ mod tests {
             near,
             far,
             "the nearer of two identical objects must win; a different \
-             winner means the x offset no longer reaches the score",
+             winner means the walked distance along x no longer reaches \
+             the score",
         );
     }
 
     #[test]
-    fn distance_uses_the_y_offset_between_agent_and_object() {
-        // The mirror of the test above, rotated onto the y axis so the x
-        // term is zero for both candidates. It is a separate test rather
-        // than a second case in the same one because it pins a different
-        // line: with dx zero for both objects, only
-        // `object_pos.y - agent_pos.y` can separate them.
+    fn distance_counts_the_y_axis_steps_between_agent_and_object() {
+        // The mirror of the test above, rotated onto the y axis. It is a
+        // separate test rather than a second case in the same one because
+        // it covers the other half of the same claim: with both
+        // candidates on the agent's own COLUMN, only steps along y can
+        // separate them.
         //
-        // Rotating also changes which mutations of the distance line it
-        // sees. `dx * dx + dy * dy` becoming `dx * dx - dy * dy` takes the
-        // square root of a negative number here, so both candidates score
-        // NaN, fall to zero through the scoring guard, and the agent
-        // chooses nothing at all - which the non-emptiness assertion in
-        // `assert_chose` catches. The x-axis version above cannot see
-        // that mutation, because subtracting a zero y term changes
-        // nothing.
+        // That pairing is what pins the metric being a genuine path
+        // length rather than a cheaper one-axis approximation. Measuring
+        // `|dx|` alone passes the x-axis test above and ties this one;
+        // measuring `|dy|` alone does the reverse. Neither test can see
+        // its own blind spot, which is why both exist.
         let content = identical_advert_content();
         let mut sim = test_content::sim_with(16, 16, content);
         let identical = def(content, "identical");
@@ -356,8 +409,8 @@ mod tests {
                 IDENTICAL_DURATION,
             ),
         );
-        assert_eq!(straight_line((8.0, 8.0), (8.0, 11.0)), 3.0);
-        assert_eq!(straight_line((8.0, 8.0), (8.0, 1.0)), 7.0);
+        assert_eq!(walk_tiles((8.0, 8.0), (8.0, 11.0)), 3.0);
+        assert_eq!(walk_tiles((8.0, 8.0), (8.0, 1.0)), 7.0);
         assert!(
             far_score > ACTION_THRESHOLD,
             "the losing object must still clear the threshold; got {far_score}"
@@ -374,7 +427,8 @@ mod tests {
             near,
             far,
             "the nearer of two identical objects must win; a different \
-             winner means the y offset no longer reaches the score",
+             winner means the walked distance along y no longer reaches \
+             the score",
         );
     }
 
@@ -385,24 +439,21 @@ mod tests {
         // pins the trade: a big enough benefit must be able to outrank a
         // shorter walk.
         //
-        // The near object is worth 10 hunger at 5 tiles, the far one 60
-        // at sqrt(104) ~= 10.2 tiles, both taking 15 ticks. Scoring
-        // divides benefit by 4*distance + duration + 1, so the far object
-        // wins 60/56.8 against 10/36, a factor of about 3.8. Distance is
-        // still doing real work: it costs the far object a third of its
-        // score.
+        // The near object is worth 10 hunger at 7 walked tiles, the far
+        // one 60 at 12, both taking 15 ticks. Scoring divides benefit by
+        // 4*distance + duration + 1, so the far object wins 60/64 against
+        // 10/44, a factor of about 4.1. Distance is still doing real
+        // work: it costs the far object nearly a third of its score.
         //
         // GOLDEN assertion. The near object is spawned first and so holds
         // the lower index, which means any mutation that flattens the two
         // distances into a tie also fails this test through the index
         // tiebreak.
         //
-        // The offsets are picked so `dy * dy` becoming `dy + dy` is
-        // visible: the far object's radicand is then 2*2 + 2*(-10) = -16,
-        // its distance NaN and its score zero, so the near object wins
-        // and this test fails. Neither axis-aligned test above can see
-        // that mutation, because doubling a zero y offset changes
-        // nothing.
+        // Both offsets are off-axis in BOTH coordinates, deliberately:
+        // this is the only distance test whose candidates a one-axis
+        // metric would rank differently from a real path length, and the
+        // two axis-aligned tests above cannot see that on their own.
         const NEAR_DELTA: f32 = 10.0;
         const FAR_DELTA: f32 = 60.0;
         const DURATION: u32 = 15;
@@ -426,9 +477,9 @@ mod tests {
         let far_score = score_of(deficit, AGENT_AT, FAR_AT, FAR_DELTA, DURATION);
         // Preconditions: the near object really is nearer, really is a
         // live candidate, and really does lose anyway.
-        assert_eq!(straight_line(AGENT_AT, NEAR_AT), 5.0);
+        assert_eq!(walk_tiles(AGENT_AT, NEAR_AT), 7.0);
         assert!(
-            straight_line(AGENT_AT, FAR_AT) > straight_line(AGENT_AT, NEAR_AT),
+            walk_tiles(AGENT_AT, FAR_AT) > walk_tiles(AGENT_AT, NEAR_AT),
             "the high-benefit object must be the farther one or this test \
              is not a trade-off at all"
         );
@@ -547,8 +598,8 @@ mod tests {
             "both needs must actually be felt; got {hunger_deficit}"
         );
         assert_eq!(
-            straight_line(AGENT_AT, ONE_NEED_AT),
-            straight_line(AGENT_AT, TWO_NEED_AT),
+            walk_tiles(AGENT_AT, ONE_NEED_AT),
+            walk_tiles(AGENT_AT, TWO_NEED_AT),
             "the two objects must be equally far away, or distance could \
              explain the winner"
         );
@@ -600,6 +651,157 @@ mod tests {
              one-need object means scoring stopped summing across the \
              advertised deltas",
         );
+    }
+
+    /// The other half of "scoring sums across advertised deltas": a
+    /// delta may be NEGATIVE, and the sum has to be able to go down.
+    ///
+    /// `an_object_advertising_two_needs_beats_one_advertising_a_bigger_single_delta`
+    /// above pins that two benefits add. Every advert in it is positive,
+    /// so `score += x` and `score += x.abs()` are indistinguishable to
+    /// it, and so are `score += x` and `score += x.max(0.0)`. This is the
+    /// input domain that separates them ([L34]).
+    ///
+    /// The shape is deliberately a FLIP rather than a comparison. The two
+    /// objects, their adverts, their distances and the agent's hygiene
+    /// are byte-identical between the two runs; the only thing that
+    /// differs is how much energy the agent has, which is a need the
+    /// cheap object does not mention at all. Nothing but the cost term
+    /// can account for the winner changing.
+    #[test]
+    fn a_negative_delta_can_flip_which_object_an_agent_chooses() {
+        // Denominator is 12 + 15 + 1 = 28 for both objects throughout.
+        // With hygiene deficit 0.5 (urgency 0.125):
+        //
+        //   cheap                    0.125 * 30 / 28           = 0.1339
+        //   costly, hygiene term     0.125 * 50 / 28           = 0.2232
+        //   costly, energy term at deficit 0.10   0.001 * -40 / 28 = -0.0014
+        //   costly, energy term at deficit 0.90   0.729 * -40 / 28 = -1.0414
+        //
+        // so costly wins outright when the agent is rested and scores
+        // NEGATIVE when it is exhausted. Both are asserted below as
+        // preconditions rather than described.
+        const CHEAP_DELTA: f32 = 30.0;
+        const COSTLY_DELTA: f32 = 50.0;
+        const ENERGY_COST: f32 = -40.0;
+        const DURATION: u32 = 15;
+        const AGENT_AT: (f32, f32) = (8.0, 8.0);
+        const CHEAP_AT: (f32, f32) = (5.0, 8.0);
+        const COSTLY_AT: (f32, f32) = (11.0, 8.0);
+
+        /// Builds the scenario with the agent's energy set so that its
+        /// deficit is exactly `energy_deficit` once decay has run, and
+        /// returns the sim plus the two object entities and the agent.
+        fn scenario(energy_deficit: f32) -> (Sim, Entity, Entity, Entity) {
+            let content = test_content::pack(vec![
+                test_content::object("cheap", &[(NeedId::Hygiene, CHEAP_DELTA)], DURATION),
+                test_content::object(
+                    "costly",
+                    &[
+                        (NeedId::Hygiene, COSTLY_DELTA),
+                        (NeedId::Energy, ENERGY_COST),
+                    ],
+                    DURATION,
+                ),
+            ]);
+            let mut sim = test_content::sim_with(16, 16, content);
+            // cheap is spawned FIRST, so it holds the lower entity index
+            // and wins any tie. A mutation that flattens the two scores
+            // together therefore fails the rested case rather than
+            // passing it.
+            let cheap = spawn_object(&mut sim, CHEAP_AT.0, CHEAP_AT.1, def(content, "cheap"));
+            let costly = spawn_object(&mut sim, COSTLY_AT.0, COSTLY_AT.1, def(content, "costly"));
+
+            // Decay runs immediately before selection, so each level is
+            // spawned one tick's worth of its OWN rate high; the rates
+            // differ per need, so a shared offset would leave the
+            // deficits slightly off the intended numbers.
+            let mut needs = Needs::all_at(terri_core::NEED_MAX);
+            needs.set(
+                NeedId::Hygiene,
+                terri_core::NEED_MAX * 0.5 + test_content::decay_per_tick(NeedId::Hygiene),
+            );
+            needs.set(
+                NeedId::Energy,
+                terri_core::NEED_MAX * (1.0 - energy_deficit)
+                    + test_content::decay_per_tick(NeedId::Energy),
+            );
+            let agent = spawn_agent_with(&mut sim, AGENT_AT.0, AGENT_AT.1, needs);
+
+            sim.tick();
+            (sim, cheap, costly, agent)
+        }
+
+        for (energy_deficit, winner_is_costly) in [(0.10, true), (0.90, false)] {
+            let (sim, cheap, costly, agent) = scenario(energy_deficit);
+
+            let hygiene = deficit_after_tick(&sim, agent, NeedId::Hygiene);
+            let energy = deficit_after_tick(&sim, agent, NeedId::Energy);
+            assert!(
+                (hygiene - 0.5).abs() < 1e-6,
+                "hygiene must be the same in both runs; got {hygiene}"
+            );
+            assert!(
+                (energy - energy_deficit).abs() < 1e-6,
+                "energy deficit must be {energy_deficit}; got {energy}"
+            );
+            assert_eq!(
+                walk_tiles(AGENT_AT, CHEAP_AT),
+                walk_tiles(AGENT_AT, COSTLY_AT),
+                "the two objects must be equally far away, or distance \
+                 could explain the winner"
+            );
+
+            let cheap_score = score_of(hygiene, AGENT_AT, CHEAP_AT, CHEAP_DELTA, DURATION);
+            let costly_benefit = score_of(hygiene, AGENT_AT, COSTLY_AT, COSTLY_DELTA, DURATION);
+            let costly_cost = score_of(energy, AGENT_AT, COSTLY_AT, ENERGY_COST, DURATION);
+            let costly_score = costly_benefit + costly_cost;
+
+            assert!(
+                cheap_score > ACTION_THRESHOLD,
+                "the cheap object must always be selectable, or the \
+                 exhausted case proves nothing; got {cheap_score}"
+            );
+            assert!(
+                costly_benefit > cheap_score,
+                "ignoring the cost entirely must make the costly object \
+                 win BOTH runs, or this test cannot see the cost; \
+                 {costly_benefit} vs {cheap_score}"
+            );
+            assert!(
+                costly_cost < 0.0,
+                "the energy term must be a genuine cost; got {costly_cost}"
+            );
+
+            let (winner, loser, why) = if winner_is_costly {
+                assert!(
+                    costly_score > cheap_score,
+                    "a rested agent must still prefer the costly object; \
+                     {costly_score} vs {cheap_score}"
+                );
+                (
+                    costly,
+                    cheap,
+                    "a rested agent must take the bigger benefit despite \
+                     its energy cost",
+                )
+            } else {
+                assert!(
+                    costly_score < 0.0,
+                    "an exhausted agent's cost must take the whole sum \
+                     below zero; got {costly_score}"
+                );
+                (
+                    cheap,
+                    costly,
+                    "an exhausted agent must refuse the energy cost and \
+                     take the cheaper object; choosing the costly one \
+                     means the negative delta is being ignored or \
+                     absolute-valued rather than summed",
+                )
+            };
+            assert_chose(&sim, agent, winner, loser, why);
+        }
     }
 
     #[test]
@@ -811,12 +1013,8 @@ mod tests {
         }
 
         // Precondition: the middle case really is the boundary, bitwise.
-        let exact = score_advertisement(
-            0.5,
-            EXACT_DELTA,
-            DURATION,
-            straight_line(AGENT_AT, OBJECT_AT),
-        );
+        let exact =
+            score_advertisement(0.5, EXACT_DELTA, DURATION, walk_tiles(AGENT_AT, OBJECT_AT));
         assert_eq!(
             exact.to_bits(),
             ACTION_THRESHOLD.to_bits(),
@@ -914,6 +1112,260 @@ mod tests {
             "a tied object with a higher index must not displace the \
              object already held as best; if it does, the score \
              comparison is no longer strict",
+        );
+    }
+
+    /// Blocks tiles in the sim's grid, so a fixture can have walls.
+    ///
+    /// Every other fixture in this module is an open room, which is
+    /// exactly the input domain in which a straight line and a walked
+    /// path are the same number ([L34]). These are the tests that leave
+    /// it.
+    fn block(sim: &mut Sim, tiles: &[(usize, usize)]) {
+        let mut grid = sim
+            .world_mut()
+            .get_resource_mut::<TileGrid>()
+            .expect("Sim::new inserts a TileGrid");
+        for &(x, y) in tiles {
+            grid.set_blocked(x, y, true);
+        }
+    }
+
+    /// The A* path length in tiles between two spawn coordinates, read
+    /// from the sim's own grid.
+    ///
+    /// This one DOES call production code, unlike `walk_tiles` and
+    /// `straight_line`, and that is the right trade here: it is used to
+    /// state facts about the GRID - "this object is reachable, in
+    /// fourteen steps" - rather than facts about `select_action`. A
+    /// mutation of the metric in `select_action` does not follow it, so
+    /// the preconditions keep holding and the golden winner assertion is
+    /// still what fails. A mutation of `find_path` itself would follow
+    /// it, and that function is pinned by its own golden tests in
+    /// terri-core's `grid.rs`.
+    fn path_tiles(sim: &Sim, from: (f32, f32), to: (f32, f32)) -> Option<usize> {
+        sim.world()
+            .resource::<TileGrid>()
+            .find_path(
+                (from.0.round() as i32, from.1.round() as i32),
+                (to.0.round() as i32, to.1.round() as i32),
+            )
+            .map(|steps| steps.len())
+    }
+
+    /// The test the wall-aware metric exists for.
+    ///
+    /// One object is nearer in a straight line but stands behind a wall;
+    /// the other is farther in a straight line and directly reachable.
+    /// The reachable one must win, because that is the one the agent will
+    /// actually reach sooner - and because a ranking that disagrees with
+    /// the agent's own pathing reads on screen as a sim that wants
+    /// something and then changes its mind.
+    ///
+    /// **The straight-line ordering is asserted to be the opposite**, as
+    /// a precondition. Without it this test would pass for an
+    /// implementation that got the right answer for the wrong reason, and
+    /// it would go on passing if the metric were reverted.
+    ///
+    /// It is deliberately about DISTANCE rather than availability: the
+    /// walled-off object is genuinely reachable, and its path length is
+    /// asserted, so "it lost because it was unreachable" is excluded.
+    /// `an_unreachable_object_is_unavailable_rather_than_free...` below
+    /// covers that case separately.
+    #[test]
+    fn an_object_behind_a_wall_loses_to_a_further_one_the_agent_can_walk_to() {
+        // An 11x9 room with a wall running north-south at x = 6 from the
+        // north edge down to y = 6, so the only way past it is round the
+        // southern end at y = 7.
+        //
+        //   behind_wall is 2 tiles away in a straight line and 14 by path
+        //   reachable   is 4 tiles away by both measures
+        //
+        // With the shipped fridge's advert on both, the denominators are
+        // 14/0.25 + 15 + 1 = 72 against 4/0.25 + 16 = 32 by path, and
+        // 2/0.25 + 16 = 24 against 32 by straight line. The two metrics
+        // therefore name DIFFERENT winners, which is the whole point.
+        const AGENT_AT: (f32, f32) = (5.0, 1.0);
+        const BEHIND_WALL_AT: (f32, f32) = (7.0, 1.0);
+        const REACHABLE_AT: (f32, f32) = (1.0, 1.0);
+
+        let content = identical_advert_content();
+        let mut sim = test_content::sim_with(11, 9, content);
+        let identical = def(content, "identical");
+        block(
+            &mut sim,
+            &[(6, 0), (6, 1), (6, 2), (6, 3), (6, 4), (6, 5), (6, 6)],
+        );
+        // behind_wall is spawned FIRST, so it holds the lower entity
+        // index and wins any tie. A mutation that flattens the two
+        // distances together - a constant metric, or one that ignores the
+        // grid - therefore fails this test through the index tiebreak
+        // rather than passing on a tie it never meant to create.
+        let behind_wall = spawn_object(&mut sim, BEHIND_WALL_AT.0, BEHIND_WALL_AT.1, identical);
+        let reachable = spawn_object(&mut sim, REACHABLE_AT.0, REACHABLE_AT.1, identical);
+        let agent = spawn_agent(&mut sim, AGENT_AT.0, AGENT_AT.1, 20.0);
+
+        sim.tick();
+
+        // Preconditions about the GRID: both objects are reachable, and
+        // the one behind the wall is much farther to walk to. Asserting
+        // the exact lengths is what stops this test quietly becoming a
+        // test about an unreachable object if the wall ever grows.
+        assert_eq!(
+            path_tiles(&sim, AGENT_AT, BEHIND_WALL_AT),
+            Some(14),
+            "the walled-off object must be REACHABLE, just farther; if it \
+             is unreachable this test is about availability instead"
+        );
+        assert_eq!(path_tiles(&sim, AGENT_AT, REACHABLE_AT), Some(4));
+
+        let deficit = deficit_after_tick(&sim, agent, NeedId::Hunger);
+        // Explicit path lengths rather than `score_of`: its `walk_tiles`
+        // helper is Manhattan distance, which is the walked distance only
+        // on an open grid, and this fixture is precisely the one that is
+        // not.
+        let by_path = |tiles: usize| {
+            score_advertisement(deficit, IDENTICAL_DELTA, IDENTICAL_DURATION, tiles as f32)
+        };
+        let by_straight_line = |at: (f32, f32)| {
+            score_advertisement(
+                deficit,
+                IDENTICAL_DELTA,
+                IDENTICAL_DURATION,
+                straight_line(AGENT_AT, at),
+            )
+        };
+
+        // The precondition that makes this test mean anything: measured
+        // in a straight line, the object behind the wall is the NEARER
+        // one and scores HIGHER, so a Euclidean implementation picks it.
+        assert!(
+            straight_line(AGENT_AT, BEHIND_WALL_AT) < straight_line(AGENT_AT, REACHABLE_AT),
+            "the walled-off object must be nearer in a straight line, or \
+             this test would pass with the metric reverted"
+        );
+        assert!(
+            by_straight_line(BEHIND_WALL_AT) > by_straight_line(REACHABLE_AT),
+            "a straight-line metric must rank the walled-off object FIRST, \
+             or reverting to one would leave this test green; {} vs {}",
+            by_straight_line(BEHIND_WALL_AT),
+            by_straight_line(REACHABLE_AT)
+        );
+        // Both are live candidates on the real metric, so the winner is
+        // decided by the comparison rather than by one of them being
+        // ineligible.
+        assert!(
+            by_path(14) > ACTION_THRESHOLD,
+            "the losing object must still clear the threshold, or this \
+             test proves nothing about choosing between them; got {}",
+            by_path(14)
+        );
+        assert!(
+            by_path(4) > by_path(14),
+            "walked distance must rank the reachable object higher; {} vs {}",
+            by_path(4),
+            by_path(14)
+        );
+
+        assert_chose(
+            &sim,
+            agent,
+            reachable,
+            behind_wall,
+            "an object one tile away through a wall must lose to a farther \
+             one the agent can walk straight to; picking the walled-off \
+             object means scoring measures a straight line while movement \
+             measures a path",
+        );
+    }
+
+    /// An object the agent cannot reach at all must score as
+    /// **unavailable**, not as free and not as zero-distance, and the
+    /// agent must fall back to the best object it can reach.
+    ///
+    /// Both halves matter and they fail differently. Scoring an
+    /// unreachable object as though it were adjacent hands it the highest
+    /// score in the world, so it wins every tick; the agent then has
+    /// nowhere to walk and does nothing at all, forever, with the sim
+    /// looking alive because needs keep decaying. That is [L17]'s failure
+    /// with a wall in place of an out-of-bounds coordinate, and a lot with
+    /// walls is the first configuration where it can actually happen.
+    #[test]
+    fn an_unreachable_object_is_unavailable_rather_than_free_and_a_runner_up_wins() {
+        // An 11x7 room cut in two by a full-height wall at x = 8. The
+        // eastern strip is sealed: nothing can path into it.
+        const AGENT_AT: (f32, f32) = (5.0, 3.0);
+        const SEALED_AT: (f32, f32) = (9.0, 3.0);
+        const RUNNER_UP_AT: (f32, f32) = (2.0, 3.0);
+        const SEALED_DELTA: f32 = 200.0;
+        const RUNNER_UP_DELTA: f32 = 40.0;
+        const DURATION: u32 = 15;
+
+        let content = test_content::pack(vec![
+            test_content::object("sealed", &[(NeedId::Hunger, SEALED_DELTA)], DURATION),
+            test_content::object("runner_up", &[(NeedId::Hunger, RUNNER_UP_DELTA)], DURATION),
+        ]);
+        let mut sim = test_content::sim_with(11, 7, content);
+        block(
+            &mut sim,
+            &[(8, 0), (8, 1), (8, 2), (8, 3), (8, 4), (8, 5), (8, 6)],
+        );
+        // Sealed first, so it holds the lower entity index and wins any
+        // tie: a metric that collapses to a constant fails here too.
+        let sealed = spawn_object(&mut sim, SEALED_AT.0, SEALED_AT.1, def(content, "sealed"));
+        let runner_up = spawn_object(
+            &mut sim,
+            RUNNER_UP_AT.0,
+            RUNNER_UP_AT.1,
+            def(content, "runner_up"),
+        );
+        let agent = spawn_agent(&mut sim, AGENT_AT.0, AGENT_AT.1, 20.0);
+
+        sim.tick();
+
+        assert_eq!(
+            path_tiles(&sim, AGENT_AT, SEALED_AT),
+            None,
+            "the sealed object must be genuinely unreachable or this test \
+             is a second copy of the walled-distance one"
+        );
+        assert_eq!(path_tiles(&sim, AGENT_AT, RUNNER_UP_AT), Some(3));
+
+        let deficit = deficit_after_tick(&sim, agent, NeedId::Hunger);
+        let runner_up_score = score_of(deficit, AGENT_AT, RUNNER_UP_AT, RUNNER_UP_DELTA, DURATION);
+        // The two wrong answers this test exists to exclude, asserted
+        // rather than described. Scoring the sealed object as free, or at
+        // its straight-line distance, both hand it the win.
+        assert!(
+            score_advertisement(deficit, SEALED_DELTA, DURATION, 0.0) > runner_up_score,
+            "an unreachable object scored as FREE must outrank the runner \
+             up, or this test cannot see that mistake"
+        );
+        assert!(
+            score_advertisement(
+                deficit,
+                SEALED_DELTA,
+                DURATION,
+                straight_line(AGENT_AT, SEALED_AT)
+            ) > runner_up_score,
+            "an unreachable object scored at its straight-line distance \
+             must outrank the runner up, or this test cannot see that one \
+             either"
+        );
+        assert!(
+            runner_up_score > ACTION_THRESHOLD,
+            "the runner up must be worth doing on its own; got {runner_up_score}"
+        );
+
+        assert_chose(
+            &sim,
+            agent,
+            runner_up,
+            sealed,
+            "an unreachable object must be unavailable rather than free, \
+             and the agent must take the best object it can actually \
+             reach; no target at all means the unreachable one won \
+             selection and then failed to path",
         );
     }
 

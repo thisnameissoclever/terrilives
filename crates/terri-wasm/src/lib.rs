@@ -1,7 +1,7 @@
 //! The ONLY crate that knows JavaScript exists.
 //! Nothing in here may contain simulation logic.
 
-use terri_core::{Agent, NeedId, Needs, Position, SmartObject, NEED_MAX, NEED_MIN};
+use terri_core::{Agent, NeedId, Needs, Position, SmartObject, TileGrid, NEED_MAX, NEED_MIN};
 use terri_sim::{Content, Sim};
 use wasm_bindgen::prelude::*;
 
@@ -82,6 +82,77 @@ impl SimHandle {
         SimHandle {
             sim: Sim::new_with_lot(width, height),
         }
+    }
+
+    /// The shipped lot from `content/lot.toml`: sized, walled, and with
+    /// every authored object already standing on it.
+    ///
+    /// This is how the game starts. The constructor above builds an empty
+    /// room of a caller-chosen size and stays for tests and for anything
+    /// that wants a blank lot; it is **not** what the page should use,
+    /// because a hand-typed size and a hand-typed object list are a
+    /// second copy of content that nothing keeps in sync ([L17] is what
+    /// that costs to diagnose).
+    ///
+    /// No arguments, so nothing to sanitise: the lot comes from the
+    /// compiled pack, which `build.rs` validated at build time.
+    ///
+    /// It syncs the render buffer, so the objects are visible to
+    /// JavaScript before the first `tick`.
+    pub fn from_lot() -> SimHandle {
+        let mut handle = SimHandle {
+            sim: Sim::new_from_shipped_lot(),
+        };
+        handle.sim.sync_render_buffer();
+        handle
+    }
+
+    /// The lot's width in tiles. The page needs it to place the camera
+    /// and to scale depth, and reading it back from the simulation is
+    /// what stops those from being a second hand-maintained copy of the
+    /// lot's dimensions.
+    pub fn lot_width(&self) -> usize {
+        self.sim.world().resource::<TileGrid>().width()
+    }
+
+    /// The lot's height in tiles. See [`SimHandle::lot_width`].
+    pub fn lot_height(&self) -> usize {
+        self.sim.world().resource::<TileGrid>().height()
+    }
+
+    /// Every impassable tile inside the lot, interleaved `[x0, y0, x1,
+    /// y1, ...]`, so the renderer can draw the walls the sim paths
+    /// around.
+    ///
+    /// Read off the `TileGrid` rather than off `pack().lot.walls`, and
+    /// that is the point rather than an implementation detail: the grid
+    /// is what `find_path` consults, so what this returns is what the
+    /// simulation actually treats as solid. Reading the content list
+    /// instead would let the two drift, and the drift would look like a
+    /// sim detouring around nothing - which is exactly the class of
+    /// confusion drawing walls exists to remove.
+    ///
+    /// It copies, unlike the render pointers, because it is called once
+    /// at load and the caller keeps the result for the session. A zero-
+    /// copy view would have to survive every later `Vec` reallocation
+    /// for no benefit at all.
+    ///
+    /// The lot BOUNDARY is not in here and cannot be: `is_walkable`
+    /// treats everything off the grid as blocked without any tile
+    /// existing to report. The renderer draws that separately, from the
+    /// lot's dimensions.
+    pub fn wall_tiles(&self) -> Vec<u32> {
+        let grid = self.sim.world().resource::<TileGrid>();
+        let mut tiles = Vec::new();
+        for y in 0..grid.height() {
+            for x in 0..grid.width() {
+                if !grid.is_walkable(x as i32, y as i32) {
+                    tiles.push(x as u32);
+                    tiles.push(y as u32);
+                }
+            }
+        }
+        tiles
     }
 
     /// Advances one fixed tick and refreshes the render buffer.
@@ -182,6 +253,12 @@ impl SimHandle {
         self.sim.render_buffer().kinds.as_ptr()
     }
 
+    /// Atlas sprite index per row. Same caching hazard as every other
+    /// pointer here; re-read it on every access.
+    pub fn sprites_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().sprites.as_ptr()
+    }
+
     pub fn world_hash(&self) -> u64 {
         self.sim.world_hash()
     }
@@ -199,6 +276,7 @@ mod boundary_tests {
     //! out of the world it was spawned into.
 
     use super::*;
+    use terri_core::SimClock;
 
     /// Hunger levels as the ECS actually stored them.
     fn stored_hungers(handle: &SimHandle) -> Vec<f32> {
@@ -402,6 +480,362 @@ mod boundary_tests {
              in-band sentinel is reachable across the boundary and \
              terri-sim's debug_assert guard is compiled out of the release \
              wasm build that ships"
+        );
+    }
+
+    // The rest of this module exists because `cargo mutants` reported
+    // these four exports as the only survivors in this crate: `tick`
+    // replaced with `()`, and each pointer accessor replaced with
+    // `Default::default()`, which for a raw pointer is null. Raised in
+    // review on #4, where the crate was also added to the CI sweep.
+    //
+    // A survivor is behaviour nothing constrains, and every one of these
+    // is on the path JavaScript drives every frame. The `()` mutant is
+    // the one that matters: a boundary tick that does nothing renders a
+    // frozen world with no panic, no log, and a green suite.
+
+    /// The clock term, read from the world rather than from the buffer.
+    fn clock_tick(handle: &SimHandle) -> u64 {
+        handle.sim.world().resource::<SimClock>().tick
+    }
+
+    /// The `len` elements an exported pointer addresses.
+    ///
+    /// Null is checked **before** the read. `from_raw_parts` requires a
+    /// non-null aligned pointer even at zero length, and null is exactly
+    /// what the mutants these tests kill return, so reading first would
+    /// trade a named assertion for undefined behaviour. Every call site
+    /// derives `len` from `entity_count`.
+    fn addressed<T: Copy>(ptr: *const T, len: usize, what: &str) -> Vec<T> {
+        assert!(
+            !ptr.is_null(),
+            "{what} handed JavaScript a null pointer; the view built on it \
+             would read from address zero"
+        );
+        // SAFETY: non-null is asserted above, `handle` owns the buffer and
+        // outlives this call, and `len` is the row count that same buffer
+        // was built with.
+        unsafe { std::slice::from_raw_parts(ptr, len) }.to_vec()
+    }
+
+    #[test]
+    fn from_lot_hands_javascript_the_shipped_objects_without_a_tick_first() {
+        // Two mechanisms, and they fail differently.
+        //
+        // The SPAWN half is `Sim::new_from_lot`, pinned in terri-sim. The
+        // half that only exists here is the `sync_render_buffer` call: the
+        // render buffer is the only thing JavaScript can see, and without
+        // that call `entity_count` reads zero and the first frame draws an
+        // empty lot. The page would then look exactly like a lot that
+        // failed to load, which is [L17]'s diagnosis cost again.
+        //
+        // Nothing ticks, so the sync under test is the one `from_lot`
+        // does rather than the one `tick` does.
+        let handle = SimHandle::from_lot();
+
+        let placed = stored_positions(&handle);
+        assert!(
+            placed.len() >= 8,
+            "[D-6] calls for roughly eight authored objects; got {}",
+            placed.len()
+        );
+        assert_eq!(
+            handle.entity_count(),
+            placed.len(),
+            "every object in the world must be in the render buffer before \
+             the first tick; a count of 0 means from_lot never synced and \
+             the page would draw an empty lot"
+        );
+        assert_eq!(
+            addressed(
+                handle.positions_ptr(),
+                handle.entity_count() * 2,
+                "positions_ptr"
+            )
+            .len(),
+            placed.len() * 2,
+            "the exported pointer must address the same rows entity_count \
+             promises"
+        );
+    }
+
+    #[test]
+    fn lot_width_and_lot_height_report_the_lot_in_that_order() {
+        // The shipped lot is NOT square, which is what makes a transposed
+        // pair of accessors visible here at all. Asserted rather than
+        // assumed, because a future lot that happens to be square would
+        // silently turn this test into a tautology - the [L34] shape,
+        // where the input domain rather than the assertion is what fails.
+        let handle = SimHandle::from_lot();
+        let (width, height) = (handle.lot_width(), handle.lot_height());
+
+        assert_ne!(
+            width, height,
+            "the lot must not be square or these two accessors are \
+             interchangeable and this test proves nothing"
+        );
+        // The page derives its camera and its depth scale from these, so
+        // they have to be the lot's own numbers rather than a default.
+        //
+        // There was a `width >= 16 && height >= 8` bound here. It was a
+        // magic number that said nothing about correctness and broke the
+        // moment the lot was legitimately resized from 24x18 to 14x10.
+        // Asserting against `terri_data` instead would mean giving this
+        // crate a dependency it does not otherwise need, to strengthen a
+        // sanity check that was never where the teeth are: transposition
+        // is caught by `assert_ne!` above, and whether these are the
+        // LOT's numbers rather than some other grid's is established
+        // behaviourally by `moves_from` below, which drops an agent on a
+        // tile and watches whether it can walk.
+        assert!(width > 1 && height > 1, "got {width}x{height}");
+
+        /// Whether a hungry agent dropped on `tile` of the SHIPPED lot
+        /// moves at all in ten ticks.
+        ///
+        /// An agent standing outside the lot is a silent no-op:
+        /// `find_path` refuses an unwalkable origin, so it never gets a
+        /// target and stands still forever with nothing logged ([L17]).
+        /// Nothing else in the world moves, so the whole position array
+        /// is a sound thing to compare.
+        ///
+        /// The world comes from `from_lot`, NOT from a lot rebuilt out of
+        /// the two numbers under test. That is the load-bearing part: a
+        /// helper that constructed its own lot from `width` and `height`
+        /// would be self-consistent under a swap of the pair and could
+        /// not see it.
+        fn moves_from(tile: (f32, f32)) -> bool {
+            let mut handle = SimHandle::from_lot();
+            handle.spawn_agent(tile.0, tile.1, 20.0);
+            let start = stored_positions(&handle);
+            for _ in 0..10 {
+                handle.tick();
+            }
+            stored_positions(&handle) != start
+        }
+
+        // The claim through behaviour, so the pair cannot both be
+        // satisfied by a lot that is really height by width. On a
+        // non-square lot the far corner is inside and its transpose is
+        // outside, and only the correct orientation makes these two runs
+        // disagree.
+        let far_corner = ((width - 1) as f32, (height - 1) as f32);
+        let transposed = ((height - 1) as f32, (width - 1) as f32);
+        assert!(
+            moves_from(far_corner),
+            "{far_corner:?} must be inside the lot, so a hungry sim \
+             standing there can path somewhere"
+        );
+        assert!(
+            !moves_from(transposed),
+            "{transposed:?} must be OUTSIDE a {width}x{height} lot; a sim \
+             that walks from there too means lot_width and lot_height are \
+             swapped"
+        );
+    }
+
+    #[test]
+    fn tick_advances_the_world_clock() {
+        // Isolates the `self.sim.tick()` half of `SimHandle::tick`.
+        let mut handle = SimHandle::new(8, 8);
+        handle.spawn_agent(1.0, 1.0, 80.0);
+        assert_eq!(
+            clock_tick(&handle),
+            0,
+            "spawning must not advance the clock, or the assertion below \
+             cannot attribute the movement to the tick"
+        );
+
+        handle.tick();
+
+        assert_eq!(
+            clock_tick(&handle),
+            1,
+            "the boundary tick did not advance the simulation; JavaScript \
+             would drive a frozen world and have nothing to show for it"
+        );
+    }
+
+    #[test]
+    fn tick_refreshes_the_render_buffer() {
+        // Isolates the `self.sim.sync_render_buffer()` half. Spawning
+        // through the ECS directly rather than through `spawn_agent` is
+        // what makes the two halves separable: `spawn_agent` syncs on its
+        // own, so an entity added behind its back reaches the renderer
+        // only if `tick` is what syncs.
+        let mut handle = SimHandle::new(8, 8);
+        handle.spawn_agent(1.0, 1.0, 80.0);
+        assert_eq!(handle.entity_count(), 1);
+
+        handle.sim.world_mut().spawn((
+            Agent,
+            Position { x: 2.0, y: 3.0 },
+            Needs::with(NeedId::Hunger, 50.0),
+        ));
+        assert_eq!(
+            handle.entity_count(),
+            1,
+            "the direct spawn must not be visible before a sync, or this \
+             test cannot tell a refreshed buffer from a stale one"
+        );
+
+        handle.tick();
+
+        assert_eq!(
+            handle.entity_count(),
+            2,
+            "the boundary tick advanced the world without refreshing the \
+             render buffer; JavaScript would redraw the previous frame \
+             forever while the simulation ran on without it"
+        );
+    }
+
+    #[test]
+    fn positions_ptr_addresses_the_current_frame_coordinates() {
+        let mut handle = SimHandle::new(16, 16);
+        handle.spawn_agent(3.5, 6.25, 50.0);
+
+        assert_eq!(
+            addressed(
+                handle.positions_ptr(),
+                handle.entity_count() * 2,
+                "positions_ptr"
+            ),
+            vec![3.5, 6.25],
+            "positions_ptr must address the interleaved x, y pairs of the \
+             current frame"
+        );
+    }
+
+    #[test]
+    fn kinds_ptr_addresses_the_entity_kind_tags() {
+        // One of each kind, because an all-agent lot tags every row 0 and
+        // could not distinguish the real array from a zeroed one.
+        let mut handle = SimHandle::new(16, 16);
+        assert!(handle.spawn_object(1.0, 1.0, "fridge"));
+        handle.spawn_agent(2.0, 2.0, 50.0);
+
+        assert_eq!(
+            addressed(handle.kinds_ptr(), handle.entity_count(), "kinds_ptr"),
+            vec![1, 0],
+            "kinds_ptr must address the 0 = agent, 1 = smart object tags, \
+             sorted by entity index, so the object spawned first comes first"
+        );
+    }
+
+    #[test]
+    fn sprites_ptr_addresses_the_content_resolved_atlas_indices() {
+        // One object and one agent, because an all-object lot would tag
+        // every row the same and could not distinguish the real array
+        // from a constant. The expectations are read out of the pack so
+        // a re-skin does not break this, and asserted to differ so that
+        // reading them out cannot make the comparison vacuous.
+        let mut handle = SimHandle::new(16, 16);
+        assert!(handle.spawn_object(1.0, 1.0, "sofa"));
+        handle.spawn_agent(2.0, 2.0, 50.0);
+
+        // Through the sim's own `Content` resource rather than by
+        // depending on `terri-data`. This crate deliberately does not
+        // name that crate in its manifest, and it does not have to:
+        // inherent methods on `ContentPack` are callable without naming
+        // the type.
+        let pack = handle.sim.world().resource::<Content>().0;
+        let sofa = pack.object(pack.find("sofa").expect("shipped content has a sofa"));
+        assert_ne!(
+            sofa.sprite, pack.sim_sprite,
+            "the sofa and the sim must draw differently or this proves nothing"
+        );
+
+        assert_eq!(
+            addressed(handle.sprites_ptr(), handle.entity_count(), "sprites_ptr"),
+            vec![sofa.sprite, pack.sim_sprite],
+            "sprites_ptr must address the atlas index per row, sorted by \
+             entity index, so the object spawned first comes first"
+        );
+    }
+
+    #[test]
+    fn wall_tiles_reports_the_blocked_tiles_of_the_shipped_lot_and_only_those() {
+        // The shipped lot, because the point of this export is that the
+        // page draws the walls the simulation actually paths around.
+        let handle = SimHandle::from_lot();
+        let tiles = handle.wall_tiles();
+
+        assert_eq!(tiles.len() % 2, 0, "the pairs must be interleaved x, y");
+        let pairs: Vec<(u32, u32)> = tiles.chunks_exact(2).map(|c| (c[0], c[1])).collect();
+        assert!(
+            !pairs.is_empty(),
+            "the shipped lot has interior walls; an empty result means the \
+             page would draw none of them"
+        );
+
+        // Against the grid rather than against `lot.toml`, because the
+        // grid is what `find_path` consults and therefore what the
+        // renderer has to agree with.
+        let grid = handle.sim.world().resource::<TileGrid>();
+        let mut blocked = 0;
+        for y in 0..grid.height() {
+            for x in 0..grid.width() {
+                let listed = pairs.contains(&(x as u32, y as u32));
+                assert_eq!(
+                    listed,
+                    !grid.is_walkable(x as i32, y as i32),
+                    "({x}, {y}) is {} in the grid and {} in wall_tiles",
+                    if grid.is_walkable(x as i32, y as i32) {
+                        "walkable"
+                    } else {
+                        "blocked"
+                    },
+                    if listed { "listed" } else { "absent" }
+                );
+                if listed {
+                    blocked += 1;
+                }
+            }
+        }
+        assert_eq!(blocked, pairs.len(), "wall_tiles must not repeat a tile");
+
+        // The doorway, stated positively as well. A wall list that
+        // included it would draw the bathroom sealed while the sim walked
+        // straight through the picture of a wall.
+        assert!(
+            !pairs.contains(&(9, 2)),
+            "the doorway at (9, 2) is walkable and must not be drawn as a wall"
+        );
+        assert!(pairs.contains(&(9, 1)) && pairs.contains(&(9, 3)));
+    }
+
+    #[test]
+    fn prev_positions_ptr_addresses_the_frame_before_the_last_sync() {
+        // Two frames with DIFFERENT coordinates. On a first sync prev is
+        // seeded from the current frame, so a single-frame test would be
+        // unable to tell `prev_positions_ptr` from `positions_ptr` - both
+        // hypotheses predict the same numbers, per testing-protocol rule 7.
+        //
+        // The second frame is produced by syncing directly rather than by
+        // ticking, which keeps this test about the pointer instead of
+        // about what the systems do to an idle agent.
+        let mut handle = SimHandle::new(16, 16);
+        handle.spawn_agent(1.0, 1.0, 80.0);
+
+        let mut state = handle.sim.world_mut().query::<&mut Position>();
+        for mut position in state.iter_mut(handle.sim.world_mut()) {
+            position.x = 5.0;
+            position.y = 7.0;
+        }
+        handle.sim.sync_render_buffer();
+
+        let rows = handle.entity_count() * 2;
+        assert_eq!(
+            addressed(handle.prev_positions_ptr(), rows, "prev_positions_ptr"),
+            vec![1.0, 1.0],
+            "prev_positions_ptr must address the frame before the last sync; \
+             the renderer interpolates from it towards the current frame"
+        );
+        assert_eq!(
+            addressed(handle.positions_ptr(), rows, "positions_ptr"),
+            vec![5.0, 7.0],
+            "the two pointers must address different buffers; aliasing them \
+             would interpolate every entity from itself and freeze motion"
         );
     }
 }

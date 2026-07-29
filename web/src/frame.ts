@@ -6,9 +6,16 @@
  * testable in Node. `main.ts` is the thin wiring that does.
  */
 
-import { screenX, screenY, worldDepth } from './render/iso.js';
+import {
+  LAYER_PROP,
+  LAYER_SIM,
+  layeredDepth,
+  screenX,
+  screenY,
+} from './render/iso.js';
 import {
   FLOATS_PER_INSTANCE,
+  KIND_AGENT,
   writeInstance,
   type InstanceArray,
 } from './render/instances.js';
@@ -82,7 +89,18 @@ export interface RenderSource {
   readonly count: number;
   positions(): Float32Array;
   prevPositions(): Float32Array;
+  /** 0 for a sim, 1 for a smart object. Picks the depth layer, nothing else. */
   kinds(): Uint32Array;
+  /**
+   * Index into the sprite atlas, one per entity.
+   *
+   * It comes from the simulation because it comes from **content**: an
+   * object's `sprite` field is resolved against the atlas manifest when
+   * the content pack is compiled. Deriving it here from the entity's kind
+   * or id would put a second copy of the object list in TypeScript, which
+   * is exactly the coupling [D1] exists to prevent.
+   */
+  sprites(): Uint32Array;
 }
 
 /**
@@ -129,6 +147,7 @@ export function buildInstances(
   const current = source.positions();
   const previous = source.prevPositions();
   const kinds = source.kinds();
+  const sprites = source.sprites();
 
   for (let i = 0; i < count; i++) {
     const wx = lerp(previous[i * 2], current[i * 2], alpha);
@@ -143,13 +162,23 @@ export function buildInstances(
     // Depth from the interpolated position, not from the current tick:
     // sorting an entity as though it were a tile ahead of where it is
     // drawn flickers rather than sorting stably wrong.
+    //
+    // The layer is what stops a sim standing on an object from sharing
+    // its depth and losing the pixel to it - measured as an actual
+    // disappearance in [V12], where the sim's 576 orange pixels were
+    // simply absent from the frame in which it reached the fridge.
     writeInstance(
       scratch,
       i,
       screenX(wx, wy, originX),
       screenY(wx, wy, originY),
-      worldDepth(wx, wy, gridSize),
-      kinds[i],
+      layeredDepth(
+        wx,
+        wy,
+        gridSize,
+        kinds[i] === KIND_AGENT ? LAYER_SIM : LAYER_PROP,
+      ),
+      sprites[i],
     );
   }
 

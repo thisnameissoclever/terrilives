@@ -39,10 +39,18 @@ better *and* five times less meaningful, because driving frames flat out
 sampled the tick frames out of the percentile. The headline number is the
 visible-browser one for that reason. Full detail in `docs/gpu-verification.md`.
 
-The one deliberate deviation from the list above: the milestone ships **no
-texture atlas**. Sprites are flat-coloured instanced quads. The atlas is a
-content problem rather than an architecture one, and [D10]'s one-draw-call
-claim is already measured without it.
+The one deliberate deviation from the list above: **M0 shipped no texture
+atlas.** Sprites were flat-coloured instanced quads. The atlas was treated as a
+content problem rather than an architecture one, and [D10]'s one-draw-call claim
+was measured without it.
+
+That was the right call for M0's exit gate and the wrong shape for M1b's, whose
+deliverable is a play session rather than a number. **M1b Task 3c added the
+atlas**: one CC0 texture, twelve sprites, the object-to-sprite mapping in
+`content/objects.toml` rather than in the shell, and the floor and walls drawn
+from the lot. The single instanced draw survived it - measured at
+`instanceCount` 499 with one `draw` and one `submit` per frame, in
+`docs/gpu-verification.md` [V14].
 
 ### M1a - Content pipeline - COMPLETE
 

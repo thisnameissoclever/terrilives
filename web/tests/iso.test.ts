@@ -2,9 +2,16 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import {
   worldToScreen,
+  screenToWorld,
   screenX,
   screenY,
   worldDepth,
+  layeredDepth,
+  DEPTH_LAYER_STEP,
+  DEPTH_MARGIN,
+  LAYER_FLOOR,
+  LAYER_PROP,
+  LAYER_SIM,
   TILE_HALF_WIDTH,
   TILE_HALF_HEIGHT,
 } from '../src/render/iso.js';
@@ -99,6 +106,74 @@ describe('worldToScreen', () => {
   });
 });
 
+describe('screenToWorld', () => {
+  it('round-trips every world coordinate back through worldToScreen exactly', () => {
+    // A sign error here produces picking that is subtly off rather than
+    // obviously broken, which is the kind that survives manual testing:
+    // clicks land one tile away in some directions and correctly in
+    // others, and the blame goes somewhere else weeks later.
+    //
+    // Several coordinates rather than one, because the degenerate
+    // alternatives all agree with the real inverse at the origin.
+    // Swapping the `+` and the `-` between the two returned expressions,
+    // or duplicating one expression into the other, both map (0, 0) back
+    // to (0, 0); they disagree the moment either world axis is non-zero.
+    // (0, 0) is kept anyway to pin that no constant term crept in.
+    let checked = 0;
+    for (const [wx, wy] of [[0, 0], [1, 0], [0, 1], [5, 3], [12, 10], [15, 15]]) {
+      const [sx, sy] = worldToScreen(wx, wy, 640, 60);
+      const [bx, by] = screenToWorld(sx, sy, 640, 60);
+      expect(bx).toBeCloseTo(wx, 6);
+      expect(by).toBeCloseTo(wy, 6);
+      checked += 1;
+    }
+    // Protocol rule 5: an empty table would make every assertion above
+    // vacuous while the test still reported green.
+    expect(checked).toBe(6);
+  });
+
+  it('maps the two screen axes onto different world axes', () => {
+    // Both output formulas read both inputs, so a copy-paste slip that
+    // made them identical is not visible in their shape - and it would
+    // still round-trip the origin. One screen-space displacement along a
+    // single axis separates them: +x screen is +1 on world x and -1 on
+    // world y, so identical formulas would return the same number twice.
+    const [ax, ay] = screenToWorld(64, 0, 0, 0);
+    expect(ax).not.toBeCloseTo(ay, 3);
+  });
+
+  it('subtracts the same screen origin that worldToScreen added', () => {
+    // Fails on adding the origin instead of subtracting it, on using
+    // originX for both axes, and on dropping either subtraction. Honest
+    // caveat: the round trip above already catches all three, because it
+    // also passes a non-zero origin whose two components differ. This is
+    // a second origin pair rather than a new invariant, and it is worth
+    // its four lines only because origin handling is the half of picking
+    // that a camera pan will eventually start exercising.
+    const [sx, sy] = worldToScreen(4, 7, 300, 200);
+    const [wx, wy] = screenToWorld(sx, sy, 300, 200);
+    expect(wx).toBeCloseTo(4, 6);
+    expect(wy).toBeCloseTo(7, 6);
+  });
+
+  it('returns a fractional tile coordinate rather than a rounded one', () => {
+    // Not in the task brief, and added because the brief's three tests
+    // all pass with `Math.round` wrapped around both results: every world
+    // coordinate they round-trip is an integer, so rounding is invisible
+    // to them. Verified by running that mutation, not by reading them.
+    //
+    // It is a real invariant rather than a mutation-score trophy. The
+    // caller decides what a fraction means, and the answers differ:
+    // hit-testing a tile wants the floor, a sub-tile gesture wants the
+    // remainder. Rounding inside here would throw that away before anyone
+    // could choose. Half a tile down the screen from the origin is
+    // (0.5, 0.5) in world space, and both components must survive.
+    const [wx, wy] = screenToWorld(0, TILE_HALF_HEIGHT, 0, 0);
+    expect(wx).toBeCloseTo(0.5, 6);
+    expect(wy).toBeCloseTo(0.5, 6);
+  });
+});
+
 describe('worldDepth', () => {
   it('orders the far corner behind the near corner for a less-than test', () => {
     // The load-bearing one. sprites.ts sets depthCompare 'less' with a
@@ -152,6 +227,97 @@ describe('worldDepth', () => {
     expect(worldDepth(0, 0, 1)).toBe(1);
     expect(worldDepth(0, 0, 0)).toBe(1);
     expect(Number.isFinite(worldDepth(5, 5, 1))).toBe(true);
+  });
+});
+
+describe('layeredDepth', () => {
+  // What this exists for, in one sentence: two things on the same tile
+  // used to take the same depth, and under `depthCompare: 'less'` the
+  // second one drawn simply did not appear. [V12] recorded it - a sim
+  // reaching the fridge stopped being in the frame at all - and during a
+  // play session that reads as the sim having disappeared.
+
+  it('orders sim in front of prop in front of floor on every tile', () => {
+    // Every tile, not one, because the two ends of the range are where a
+    // naive "subtract a bias" implementation breaks: `worldDepth`
+    // returns exactly 1 at the far corner and 0 at the near one, and a
+    // clamp there collapses all three layers onto the same number.
+    let checked = 0;
+    for (let x = -1; x <= 8; x++) {
+      for (let y = -1; y <= 8; y++) {
+        const floor = layeredDepth(x, y, 8, LAYER_FLOOR);
+        const prop = layeredDepth(x, y, 8, LAYER_PROP);
+        const sim = layeredDepth(x, y, 8, LAYER_SIM);
+        expect(sim).toBeLessThan(prop);
+        expect(prop).toBeLessThan(floor);
+        checked += 1;
+      }
+    }
+    // Rule 5: an empty loop would satisfy every assertion above.
+    expect(checked).toBe(100);
+  });
+
+  it('keeps every layer inside the clip range, including outside the lot', () => {
+    // A depth outside [0, 1] does not sort wrong, it fails the clip test
+    // and the quad vanishes - trading the bug this function fixes for a
+    // different one with the same symptom. The boundary walls are drawn
+    // at -1, so the range has to hold there too.
+    let checked = 0;
+    for (const [x, y] of [
+      [-1, -1],
+      [0, 0],
+      [3, 4],
+      [7, 7],
+      [40, 40],
+      [-9, -9],
+    ]) {
+      for (const layer of [LAYER_FLOOR, LAYER_PROP, LAYER_SIM]) {
+        const depth = layeredDepth(x, y, 8, layer);
+        expect(depth).toBeGreaterThan(0);
+        expect(depth).toBeLessThanOrEqual(1);
+        checked += 1;
+      }
+    }
+    expect(checked).toBe(18);
+  });
+
+  it('lets one tile of distance outrank any layer bias', () => {
+    // The bias has to be big enough to break a tie and small enough not
+    // to create one. A sim one tile further from the camera than a prop
+    // must still draw behind it, however favoured its layer is - so this
+    // is the assertion that stops a residual tie being "fixed" by
+    // enlarging DEPTH_LAYER_STEP until it reorders the room.
+    //
+    // Both single-axis steps, because x and y contribute to nearness
+    // equally and a bias that only cleared one of them would be half a
+    // fix.
+    expect(layeredDepth(4, 5, 8, LAYER_SIM)).toBeGreaterThan(
+      layeredDepth(5, 5, 8, LAYER_FLOOR),
+    );
+    expect(layeredDepth(5, 4, 8, LAYER_SIM)).toBeGreaterThan(
+      layeredDepth(5, 5, 8, LAYER_FLOOR),
+    );
+    // Stated as the arithmetic as well, so the margin is visible rather
+    // than merely sufficient on these two samples: one tile is worth
+    // 1 / ((gridSize - 1 + margin) * 2) of depth, and three layers must
+    // fit inside that with room to spare.
+    const oneTile = 1 / ((8 - 1 + DEPTH_MARGIN) * 2);
+    expect(DEPTH_LAYER_STEP * 3).toBeLessThan(oneTile / 8);
+  });
+
+  it('preserves worldDepth ordering between different tiles', () => {
+    // The layer offsets and the margin are both translations; neither
+    // may change which of two tiles is in front. Held at one layer so
+    // only the position varies.
+    const far = layeredDepth(0, 0, 8, LAYER_PROP);
+    const middle = layeredDepth(3, 3, 8, LAYER_PROP);
+    const near = layeredDepth(7, 7, 8, LAYER_PROP);
+    expect(far).toBeGreaterThan(middle);
+    expect(middle).toBeGreaterThan(near);
+    // And it really is `worldDepth` underneath, rather than a second
+    // projection that happens to be monotonic too.
+    expect(far).toBeGreaterThan(layeredDepth(1, 0, 8, LAYER_PROP));
+    expect(worldDepth(0, 0, 8)).toBeGreaterThan(worldDepth(1, 0, 8));
   });
 });
 
