@@ -1,16 +1,19 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  clientToCanvas,
   clientToTile,
   dispatch,
   handleLeftClick,
   handleRightClick,
   pickAt,
+  pickSprite,
   resolveLeftClick,
   type ClickAction,
   type CommandSink,
   type Pick,
   type PickSource,
 } from '../src/input.js';
+import { SPRITES } from '../src/render/atlas.js';
 import { KIND_AGENT } from '../src/render/instances.js';
 import { screenX, screenY } from '../src/render/iso.js';
 
@@ -28,12 +31,41 @@ const UNSCALED = { left: 0, top: 0, width: 1280, height: 720 };
  */
 function source(
   entities: readonly [number, number, number, number][],
+  spriteName = 'sim',
 ): PickSource {
+  const sprite = SPRITES.findIndex((s) => s.name === spriteName);
+  if (sprite < 0) throw new Error(`no atlas sprite named ${spriteName}`);
   return {
     count: entities.length,
     positions: () => new Float32Array(entities.flatMap(([, , x, y]) => [x, y])),
     kinds: () => new Uint32Array(entities.map(([, kind]) => kind)),
     ids: () => new Uint32Array(entities.map(([id]) => id)),
+    sprites: () => new Uint32Array(entities.map(() => sprite)),
+  };
+}
+
+/** The atlas entry for a sprite, by name. */
+function atlas(name: string) {
+  const found = SPRITES.find((s) => s.name === name);
+  if (!found) throw new Error(`no atlas sprite named ${name}`);
+  return found;
+}
+
+/**
+ * Where a sprite is actually DRAWN for an entity on `tile`, in canvas pixels -
+ * restated from `sprites.wgsl`'s bottom-centre anchoring rather than imported,
+ * so a change in the shader does not silently follow into the expectations.
+ */
+function drawnBox(tile: readonly [number, number], spriteName: string, originX = 0, originY = 0) {
+  const s = atlas(spriteName);
+  const anchorX = screenX(tile[0], tile[1], originX);
+  const anchorY = screenY(tile[0], tile[1], originY) + 16;
+  return {
+    left: anchorX - s.w / 2,
+    right: anchorX + s.w / 2,
+    top: anchorY - s.h,
+    bottom: anchorY,
+    centreX: anchorX,
   };
 }
 
@@ -366,37 +398,230 @@ describe('dispatch', () => {
  * `buildTimeControls` is - there is no jsdom here and the project's
  * convention is structural fakes rather than a browser environment.
  */
+/**
+ * Sprite-space picking: what the player actually aims at.
+ */
+describe('pickSprite', () => {
+  /**
+   * **The regression test for the bug a real person found.**
+   *
+   * Tile picking resolved only about a third of the sim's own sprite to the
+   * sim's own tile: the head landed two tiles away, the feet one tile past.
+   * Clicking the sim did nothing, and the arithmetic was never wrong - it was
+   * answering a question a mouse does not ask.
+   *
+   * Nine points down the sprite's centre line, every one of which must select
+   * it. `pickAt` is asserted to MISS most of them in the same test, because
+   * that contrast is the whole finding: without it, this passes for any
+   * implementation that happens to be generous.
+   */
+  it('selects a sim from anywhere on its drawn body, where tile picking did not', () => {
+    const tile = [8, 6] as const;
+    const rows = source([[7, KIND_AGENT, tile[0], tile[1]]]);
+    const box = drawnBox(tile, 'sim');
+
+    let tileHits = 0;
+    for (let i = 0; i <= 8; i++) {
+      const y = box.top + (i / 8) * (box.bottom - box.top);
+      expect(
+        pickSprite(rows, box.centreX, y, 0, 0)?.entity,
+        `${Math.round((100 * i) / 8)}% down the sprite must select the sim`,
+      ).toBe(7);
+
+      const asTile = clientToTile(box.centreX, y, UNSCALED, 1280, 720, 0, 0);
+      if (asTile && pickAt(rows, asTile[0], asTile[1]) !== null) tileHits++;
+    }
+    expect(
+      tileHits,
+      'tile picking must MISS most of the sprite, or this test is not showing why sprite picking was needed',
+    ).toBeLessThan(6);
+  });
+
+  it('finds nothing on bare floor far from any entity', () => {
+    const rows = source([[1, KIND_AGENT, 8, 6]]);
+    const box = drawnBox([8, 6], 'sim');
+    expect(pickSprite(rows, box.left - 200, box.top - 200, 0, 0)).toBeNull();
+  });
+
+  /** Just outside each edge of the box, so a `<=` / `<` slip is visible. */
+  it('does not select from just outside the sprite box', () => {
+    const rows = source([[1, KIND_AGENT, 8, 6]]);
+    const box = drawnBox([8, 6], 'sim');
+    const mid = (box.top + box.bottom) / 2;
+    expect(pickSprite(rows, box.left - 1, mid, 0, 0)).toBeNull();
+    expect(pickSprite(rows, box.right + 1, mid, 0, 0)).toBeNull();
+    expect(pickSprite(rows, box.centreX, box.top - 1, 0, 0)).toBeNull();
+    expect(pickSprite(rows, box.centreX, box.bottom + 1, 0, 0)).toBeNull();
+  });
+
+  /**
+   * The entity index out of `ids`, never the row number - the same property
+   * `pickAt` has, restated because this is a different function.
+   */
+  it('returns the entity index in the row, not the row number', () => {
+    const rows = source([
+      [4, KIND_AGENT, 2, 2],
+      [7, KIND_AGENT, 8, 6],
+    ]);
+    const box = drawnBox([8, 6], 'sim');
+    expect(pickSprite(rows, box.centreX, box.bottom - 4, 0, 0)?.entity).toBe(7);
+  });
+
+  /**
+   * **Overlapping sprites resolve to whatever is drawn in front**, which is
+   * the nearer tile - larger x + y.
+   *
+   * Two sims one tile apart on the same screen column overlap heavily, because
+   * a 78-pixel sprite is far taller than the 16 pixels of screen a tile step
+   * moves it. Asserted in both row orders, since a "first match wins"
+   * implementation passes one of them by luck.
+   */
+  it('prefers the nearer entity where two sprites overlap', () => {
+    const near = [9, 7] as const;
+    const far = [8, 6] as const;
+    const box = drawnBox(near, 'sim');
+    const px = box.centreX;
+    const py = box.top + 8;
+
+    const farRow: [number, number, number, number] = [50, KIND_AGENT, far[0], far[1]];
+    const nearRow: [number, number, number, number] = [51, KIND_AGENT, near[0], near[1]];
+
+    // Precondition: the point really is inside both sprites, or "the nearer
+    // one won" is satisfied by the far one simply not being there.
+    expect(pickSprite(source([farRow]), px, py, 0, 0)?.entity).toBe(50);
+    expect(pickSprite(source([nearRow]), px, py, 0, 0)?.entity).toBe(51);
+
+    expect(pickSprite(source([farRow, nearRow]), px, py, 0, 0)?.entity).toBe(51);
+    expect(pickSprite(source([nearRow, farRow]), px, py, 0, 0)?.entity).toBe(51);
+  });
+
+  /**
+   * A sim and an object on the SAME tile resolve to the sim, matching the
+   * depth layers `frame.ts` assigns. Both orders, for the same reason as
+   * above.
+   */
+  it('prefers a sim to an object on the same tile', () => {
+    const tile = [5, 5] as const;
+    const box = drawnBox(tile, 'sim');
+    const px = box.centreX;
+    const py = box.bottom - 4;
+    const simSprite = SPRITES.findIndex((s) => s.name === 'sim');
+    const fridgeSprite = SPRITES.findIndex((s) => s.name === 'kitchenFridgeBuiltIn');
+
+    const mixed = (kinds: number[], ids: number[], sprites: number[]): PickSource => ({
+      count: 2,
+      positions: () => new Float32Array([tile[0], tile[1], tile[0], tile[1]]),
+      kinds: () => new Uint32Array(kinds),
+      ids: () => new Uint32Array(ids),
+      sprites: () => new Uint32Array(sprites),
+    });
+
+    expect(
+      pickSprite(mixed([KIND_OBJECT, KIND_AGENT], [3, 8], [fridgeSprite, simSprite]), px, py, 0, 0),
+    ).toEqual({ entity: 8, isAgent: true });
+    expect(
+      pickSprite(mixed([KIND_AGENT, KIND_OBJECT], [8, 3], [simSprite, fridgeSprite]), px, py, 0, 0),
+    ).toEqual({ entity: 8, isAgent: true });
+  });
+
+  /** Rows past `count` are not read. */
+  it('ignores rows beyond the live count', () => {
+    const rows = source([
+      [1, KIND_AGENT, 2, 2],
+      [2, KIND_AGENT, 8, 6],
+    ]);
+    const truncated: PickSource = { ...rows, count: 1 };
+    const box = drawnBox([8, 6], 'sim');
+    expect(pickSprite(truncated, box.centreX, box.bottom - 4, 0, 0)).toBeNull();
+  });
+
+  /** The camera offset is applied, not ignored. */
+  it('respects the camera origin', () => {
+    const rows = source([[1, KIND_AGENT, 8, 6]]);
+    const box = drawnBox([8, 6], 'sim', 300, 120);
+    expect(pickSprite(rows, box.centreX, box.bottom - 4, 300, 120)?.entity).toBe(1);
+    expect(pickSprite(rows, box.centreX, box.bottom - 4, 0, 0)).toBeNull();
+  });
+
+  /**
+   * A sprite index the atlas does not hold is skipped rather than throwing. A
+   * click is not the place to discover a content mismatch.
+   */
+  it('skips a row whose sprite index is out of range', () => {
+    const rows: PickSource = {
+      count: 1,
+      positions: () => new Float32Array([8, 6]),
+      kinds: () => new Uint32Array([KIND_AGENT]),
+      ids: () => new Uint32Array([1]),
+      sprites: () => new Uint32Array([9999]),
+    };
+    expect(() => pickSprite(rows, 0, 0, 0, 0)).not.toThrow();
+    expect(pickSprite(rows, 0, 0, 0, 0)).toBeNull();
+  });
+});
+
+describe('clientToCanvas', () => {
+  it('maps a client point into drawing-buffer pixels', () => {
+    expect(clientToCanvas(100, 50, UNSCALED, 1280, 720)).toEqual({ x: 100, y: 50 });
+  });
+
+  it('scales by the ratio between the rect and the drawing buffer', () => {
+    const halved = { left: 0, top: 0, width: 640, height: 360 };
+    expect(clientToCanvas(100, 50, halved, 1280, 720)).toEqual({ x: 200, y: 100 });
+  });
+
+  it('subtracts the rect offset', () => {
+    const offset = { left: 30, top: 17, width: 1280, height: 720 };
+    expect(clientToCanvas(130, 117, offset, 1280, 720)).toEqual({ x: 100, y: 100 });
+  });
+
+  it('returns null for a canvas with no area', () => {
+    expect(clientToCanvas(10, 10, { left: 0, top: 0, width: 0, height: 0 }, 1280, 720)).toBeNull();
+  });
+});
+
+/**
+ * The end-to-end path a click takes, minus the DOM: a canvas point in,
+ * commands out. `attachPointerInput` itself is the untested wiring, exactly as
+ * `buildTimeControls` is - there is no jsdom here and the project's convention
+ * is structural fakes rather than a browser environment.
+ */
 describe('handleLeftClick', () => {
   function target(selected: number | null, rows: PickSource) {
     return { ...recordingSink(selected), ...rows };
   }
+  /** A point on the drawn body of whatever stands on `tile`. */
+  function bodyOf(tile: readonly [number, number], spriteName = 'sim') {
+    const box = drawnBox(tile, spriteName);
+    return { x: box.centreX, y: box.bottom - 6 };
+  }
 
-  it('selects the sim on the clicked tile', () => {
+  it('selects the sim whose sprite was clicked', () => {
     const sink = target(null, source([[6, KIND_AGENT, 4, 2]]));
-    handleLeftClick(sink, [4, 2]);
+    handleLeftClick(sink, bodyOf([4, 2]), 0, 0);
     expect(sink.calls).toEqual(['select 6']);
   });
 
-  it('directs the selected sim at the object on the clicked tile', () => {
+  it('directs the selected sim at the object whose sprite was clicked', () => {
     const sink = target(6, source([[9, KIND_OBJECT, 7, 3]]));
-    handleLeftClick(sink, [7, 3]);
+    handleLeftClick(sink, bodyOf([7, 3]), 0, 0);
     expect(sink.calls).toEqual(['use 6 9']);
   });
 
-  it('clears the selection when the tile is bare floor', () => {
+  it('clears the selection when the click lands on bare floor', () => {
     const sink = target(6, source([[9, KIND_OBJECT, 7, 3]]));
-    handleLeftClick(sink, [1, 1]);
+    handleLeftClick(sink, { x: -400, y: -400 }, 0, 0);
     expect(sink.calls).toEqual(['select null']);
   });
 
   /**
-   * A tile the projection could not place does nothing - it must not fall
+   * A point the projection could not place does nothing - it must not fall
    * through to the bare-floor case, or a click on a collapsed canvas would
    * deselect the sim the player is watching.
    */
   it('does nothing at all for an unplaceable click', () => {
     const sink = target(6, source([[9, KIND_OBJECT, 7, 3]]));
-    handleLeftClick(sink, null);
+    handleLeftClick(sink, null, 0, 0);
     expect(sink.calls).toEqual([]);
   });
 
@@ -404,10 +629,10 @@ describe('handleLeftClick', () => {
    * The selection is read BEFORE the dispatch, which is the ordering this
    * function exists to pin.
    *
-   * Two objects clicked in turn with one sim selected must queue against
-   * the same sim both times. An implementation that re-read the selection
-   * from a sink it had already written to would still pass the single-click
-   * test above; this needs the second click to name sim 6 as well.
+   * Two objects clicked in turn with one sim selected must queue against the
+   * same sim both times. An implementation that re-read the selection from a
+   * sink it had already written to would still pass the single-click test
+   * above; this needs the second click to name sim 6 as well.
    */
   it('queues a second object against the same sim', () => {
     const rows = source([
@@ -415,8 +640,8 @@ describe('handleLeftClick', () => {
       [10, KIND_OBJECT, 2, 5],
     ]);
     const sink = target(6, rows);
-    handleLeftClick(sink, [7, 3]);
-    handleLeftClick(sink, [2, 5]);
+    handleLeftClick(sink, bodyOf([7, 3]), 0, 0);
+    handleLeftClick(sink, bodyOf([2, 5]), 0, 0);
     expect(sink.calls).toEqual(['use 6 9', 'use 6 10']);
   });
 });

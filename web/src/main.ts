@@ -18,6 +18,7 @@ import { FrameTimer } from './perf.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
 import { buildTimeControls } from './ui/time-controls.js';
 import { attachPointerInput } from './input.js';
+import { KIND_AGENT } from './render/instances.js';
 
 /** [D2]: the simulation's one true rate. Speed controls change how many
  * ticks run per frame, never how long a tick is. */
@@ -160,6 +161,43 @@ async function main(): Promise<void> {
     throw new Error('the compiled lot placed no objects');
   }
   sim.spawnAgent(START_TILE.x, START_TILE.y, START_TILE.hunger);
+
+  // **Select it immediately, because an unselected sim makes the whole HUD
+  // invisible.**
+  //
+  // Selection lives in the simulation ([D-5]) and started out empty, which
+  // meant the page opened with the need panel `hidden` and nothing on screen
+  // to say why. The first report from someone opening it cold was "it does not
+  // show the need bars or allow any control" - and every part of it worked.
+  // The bars were built and hidden, and selecting meant finding a 38 x 78
+  // sprite somewhere on a 1280 x 720 canvas with nothing marking it as
+  // clickable.
+  //
+  // That is not a rendering bug or an input bug; it is the game withholding
+  // its only readout until the player guesses. With one sim in the household
+  // there is no ambiguity about who to select, so selecting it is strictly
+  // better than making the player find it - and it is what The Sims does with
+  // a single-sim household too.
+  //
+  // It goes through a command like every other selection rather than reaching
+  // into the world, so a replay of this session reproduces it ([D-2]). It
+  // applies on the first tick, which is before the first frame the player can
+  // see.
+  //
+  // Read out of the render buffer rather than remembered from `spawnAgent`,
+  // because a raw entity index is the simulation's to hand out: `ids()` is the
+  // row-to-entity mapping and `kinds()` says which rows are agents. This runs
+  // BEFORE any filler is spawned below, so the single agent row here is the
+  // sim the player is meant to be watching rather than whichever filler
+  // happens to sort first.
+  const ids = sim.ids();
+  const kinds = sim.kinds();
+  for (let row = 0; row < sim.count; row++) {
+    if (kinds[row] === KIND_AGENT) {
+      sim.select(ids[row]);
+      break;
+    }
+  }
 
   // ?stress=1000 spawns idle filler entities to exercise the M0 exit
   // criterion: p95 frame time at or under 16.6 ms with 1,000 entities.

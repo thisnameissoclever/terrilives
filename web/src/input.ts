@@ -13,8 +13,9 @@
  * and is what a Layer 2 client would send over a wire.
  */
 
+import { SPRITES } from './render/atlas.js';
 import { KIND_AGENT } from './render/instances.js';
-import { screenToWorld } from './render/iso.js';
+import { TILE_HALF_HEIGHT, screenToWorld, screenX, screenY } from './render/iso.js';
 
 /**
  * What picking needs from the simulation. `SimBridge` satisfies it
@@ -32,6 +33,12 @@ export interface PickSource {
   kinds(): Uint32Array;
   /** The raw entity index in each row. NOT the row number; see `pickAt`. */
   ids(): Uint32Array;
+  /**
+   * Atlas sprite index per row, which is what gives each entity its drawn
+   * SIZE. Picking needs it because the thing a player aims at is the sprite,
+   * not the tile - see `pickSprite`.
+   */
+  sprites(): Uint32Array;
 }
 
 /** The rectangle a canvas occupies on the page, as `getBoundingClientRect` reports it. */
@@ -106,7 +113,117 @@ export function clientToTile(
 }
 
 /**
+ * The entity whose **drawn sprite** covers the canvas point `(px, py)`, or
+ * `null` if the click landed on bare floor.
+ *
+ * # Why this replaced tile picking, with the numbers
+ *
+ * Picking used to invert the projection to a tile and ask what stood on it.
+ * That is the right model for "walk to here" and the wrong one for "click that
+ * sim", because **sprites are bottom-anchored and much taller than a tile**.
+ * A sim is 38 x 78 px standing on a 64 x 32 diamond, so most of its visible
+ * body is drawn 50-plus pixels above the tile it occupies.
+ *
+ * Measured against the shipped projection, sampling nine points down the sim's
+ * own sprite: **three of the nine selected it.** Its head resolved to a tile
+ * two away diagonally, its midriff to a tile one away, and its feet to a tile
+ * one PAST it. Only a band between roughly 60% and 90% of the way down worked.
+ * The first person to open the page cold reported that clicking the sim did
+ * nothing, and they were right; the tile arithmetic was never wrong, it was
+ * answering a different question from the one a mouse asks.
+ *
+ * # The coupling this accepts, deliberately
+ *
+ * `iso.ts` argued against exactly this - that quad-space picking couples input
+ * to the renderer's sprite sizes, so changing the art silently changes where
+ * clicks land. That coupling is real and it is now considered a FEATURE rather
+ * than a cost: if the art changes, clicks should follow the art, because the
+ * player is aiming at the art. The alternative, as measured above, is sims that
+ * cannot be clicked.
+ *
+ * Tile picking has not been deleted - `clientToTile` is still here and still
+ * tested, because click-to-walk needs precisely that question answered.
+ *
+ * # Front-to-back, matching what won the pixel
+ *
+ * A click must resolve to whatever is drawn ON TOP at that point, which is what
+ * the depth buffer decided:
+ *
+ *  1. **Nearer first.** Depth comes from `x + y`, and a larger sum is nearer
+ *     the camera, so the entity with the greatest `x + y` wins.
+ *  2. **Sims over props on the same tile**, because `frame.ts` puts sims on
+ *     `LAYER_SIM` and props on `LAYER_PROP`.
+ *  3. **Earlier row otherwise.** Equal depth means the first drawn keeps the
+ *     pixel, since `depthCompare` is `less` and equal is not less.
+ *
+ * # What this does not do
+ *
+ * The hit box is the sprite's **rectangle**, not its opaque pixels, so a click
+ * in the transparent corner above a bed's headboard still selects the bed. The
+ * shader discards those fragments, so the player sees floor there. Reading the
+ * atlas's alpha would fix it and needs the decoded image on this side; the
+ * rectangle is a large improvement on a 32-pixel-tall diamond and the
+ * imprecision is in the player's favour - it makes things easier to hit.
+ */
+export function pickSprite(
+  source: PickSource,
+  px: number,
+  py: number,
+  originX: number,
+  originY: number,
+): Pick | null {
+  const count = source.count;
+  const positions = source.positions();
+  const kinds = source.kinds();
+  const ids = source.ids();
+  const spriteIndices = source.sprites();
+
+  let best: Pick | null = null;
+  let bestNearness = -Infinity;
+  let bestLayer = -Infinity;
+
+  for (let row = 0; row < count; row++) {
+    const wx = positions[row * 2];
+    const wy = positions[row * 2 + 1];
+    const sprite = SPRITES[spriteIndices[row]];
+    // A row whose sprite index is out of range would otherwise throw on
+    // `.w`. It cannot happen from compiled content, and a click is not the
+    // place to discover that it did.
+    if (sprite === undefined) continue;
+
+    // The same arithmetic `sprites.wgsl` does: bottom-centre anchored, with
+    // the anchor half a tile below the entity's screen position so the sprite
+    // stands on the diamond's south corner. Restated here rather than shared
+    // because the shader's copy is WGSL; `input.test.ts` pins the two
+    // together by reading the shader as text.
+    const anchorX = screenX(wx, wy, originX);
+    const anchorY = screenY(wx, wy, originY) + TILE_HALF_HEIGHT;
+    const left = anchorX - sprite.w / 2;
+    const top = anchorY - sprite.h;
+    if (px < left || px > left + sprite.w) continue;
+    if (py < top || py > anchorY) continue;
+
+    const nearness = wx + wy;
+    const layer = kinds[row] === KIND_AGENT ? 1 : 0;
+    // Strictly greater on both, so an equal-depth equal-layer tie keeps the
+    // EARLIER row - the one that won the pixel.
+    if (nearness > bestNearness || (nearness === bestNearness && layer > bestLayer)) {
+      bestNearness = nearness;
+      bestLayer = layer;
+      best = { entity: ids[row], isAgent: kinds[row] === KIND_AGENT };
+    }
+  }
+  return best;
+}
+
+/**
  * The entity standing on `(tileX, tileY)`, or `null` for bare floor.
+ *
+ * **Superseded for mouse picking by `pickSprite`**, which is what the click
+ * handler uses: a player aims at a sprite and this answers about a tile, and
+ * for a 78-pixel-tall sim standing on a 32-pixel-tall diamond those are
+ * different places. Kept because it is the right question for click-to-walk
+ * and for anything that reasons in tiles.
  *
  * **It returns the entity index out of `ids`, never the row number.** Rows
  * are sorted by entity index, so a row is a rank; the two agree only while
@@ -213,8 +330,14 @@ export function dispatch(sink: CommandSink, action: ClickAction): void {
 /** Everything a click handler needs of its sim: pick from it, command it. */
 export type InputTarget = CommandSink & PickSource;
 
+/** A point in canvas drawing-buffer pixels, which is the space the camera works in. */
+export interface CanvasPoint {
+  readonly x: number;
+  readonly y: number;
+}
+
 /**
- * The whole of a left click, given the tile it landed on.
+ * The whole of a left click, given the canvas point it landed on.
  *
  * This exists as its own function so that the composition is testable and
  * not only its three parts: pick, resolve, dispatch is an order that can be
@@ -223,16 +346,47 @@ export type InputTarget = CommandSink & PickSource;
  * stopped looking at. There is no DOM in it, matching how `time-controls.ts`
  * keeps its testable half separate from its wiring.
  *
- * A `null` tile is a click the projection could not place, and it does
- * nothing rather than clearing the selection; see `clientToTile`.
+ * It takes a **point, not a tile**, because `pickSprite` needs the pixel: the
+ * player aims at a drawn sprite and a tile is a different place, by up to two
+ * tiles for something as tall as a sim. `null` is a click that could not be
+ * placed at all, and it does nothing rather than clearing the selection.
  */
 export function handleLeftClick(
   target: InputTarget,
-  tile: readonly [number, number] | null,
+  point: CanvasPoint | null,
+  originX: number,
+  originY: number,
 ): void {
-  if (tile === null) return;
-  const pick = pickAt(target, tile[0], tile[1]);
+  if (point === null) return;
+  const pick = pickSprite(target, point.x, point.y, originX, originY);
   dispatch(target, resolveLeftClick(pick, target.selectedIndex()));
+}
+
+/**
+ * A pointer event's position in canvas drawing-buffer pixels, or `null` if the
+ * canvas has no area.
+ *
+ * The ratio between the rect and the drawing buffer is applied rather than
+ * assumed to be 1, which makes this correct at any browser zoom and any device
+ * pixel ratio: the camera offsets are in buffer pixels and the rect is in CSS
+ * pixels, so their ratio is exactly the correction needed.
+ *
+ * `null` rather than dividing by a zero-sized rect: the quotient would be
+ * `Infinity`, no sprite box would contain it, and the click would read as bare
+ * floor and clear the selection.
+ */
+export function clientToCanvas(
+  clientX: number,
+  clientY: number,
+  rect: ViewRect,
+  canvasWidth: number,
+  canvasHeight: number,
+): CanvasPoint | null {
+  if (rect.width <= 0 || rect.height <= 0) return null;
+  return {
+    x: ((clientX - rect.left) * canvasWidth) / rect.width,
+    y: ((clientY - rect.top) * canvasHeight) / rect.height,
+  };
 }
 
 /** Anything that can suppress its own default action. `MouseEvent` satisfies it. */
@@ -286,15 +440,15 @@ export function attachPointerInput(
   canvas.addEventListener('click', (event) => {
     handleLeftClick(
       target,
-      clientToTile(
+      clientToCanvas(
         event.clientX,
         event.clientY,
         canvas.getBoundingClientRect(),
         canvas.width,
         canvas.height,
-        originX,
-        originY,
       ),
+      originX,
+      originY,
     );
   });
 
