@@ -2108,3 +2108,60 @@ later one is hidden.
 **How to verify:** delete the guard and run the whole workspace, not the test
 whose name mentions it. If everything stays green, the guard is unprotected
 regardless of how many tests appear to be about it.
+
+---
+
+## [L42] A "did the commands do anything" guard can be satisfied by the one command that changes no world state
+
+**What happened:** M1b Task 5's replay test is the milestone's determinism
+guarantee: a recorded command script must replay to the same world hash. The
+equality on its own is [L5]'s shape - two runs in one process - so it was
+surrounded by guards, one of which was meant to be the strong one:
+
+```rust
+assert_ne!(a, run_unscripted(TICKS), "the scripted run must differ ...");
+```
+
+`run_scripted` returns a tuple: the world hash **and** the selected entity's
+index, because `world_hash` does not observe `Selected` and the selection had
+to be asserted somewhere. That convenience quietly broke the guard. The script
+holds three commands - `Select`, `UseObject`, `CancelIntents` - and only the
+first has an effect that reaches the *tuple* without reaching the *hash*.
+
+Measured during the task's hand-mutation pass: with the `UseObject` and
+`CancelIntents` arms replaced by no-ops and only `Select` left working, the
+tuples still differed and the assertion stayed green. The guard was answering
+"did **any** command do anything" when the claim it exists to defend is "did
+the commands change the **world**". Two thirds of the drain could have been
+deleted with that line reporting success.
+
+It was caught because the mutation pass ran a mutation nobody had predicted a
+failure for - "only Select works" - rather than only the ones with a named
+victim test, and then read *which assertion* fired rather than being satisfied
+that the test went red. The per-command causal guards below it (drop the
+`UseObject`, drop the `CancelIntents`, each must change the outcome) are what
+actually caught it.
+
+**Root cause:** the return value carried two things at different levels of
+consequence - simulation state, and a projection of it that nothing in the
+simulation reads - and a single `assert_ne!` over the pair cannot say which one
+moved. A disjunction is the weakest assertion shape there is: it is satisfied by
+its easiest term, and the easiest term here was the one with no causal power at
+all.
+
+**Prevention rule:**
+
+1. **Never assert a difference over a tuple whose fields differ in
+   consequence.** Assert on the field that carries the claim. If two fields both
+   need asserting, that is two assertions.
+2. When a test bundles a value into its result "because it had to be checked
+   somewhere", check whether any *other* assertion in that test now ranges over
+   the bundle. Adding a field to a return type silently weakens every
+   inequality over it.
+3. A mutation pass should include at least one mutation with **no predicted
+   victim**. The ones with a named test confirm what you already believe; the
+   unpredicted one is what finds the guard that was never load-bearing.
+
+**How to verify:** disable every mechanism the test claims to cover except the
+cheapest one, and confirm the test still fails. If it passes, the guard is
+measuring the cheap mechanism.
