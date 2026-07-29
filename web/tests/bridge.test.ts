@@ -349,6 +349,14 @@ describe('SimBridge', () => {
     //
     // Previous value: 0x2fc6_69ef_a725_4f2dn (Task 7's content-driven
     // decay, unmoved by M1b Task 3b and by M1c Tasks 3 and 4).
+    //
+    // The [C2] fix - the television gaining a `social` advert so the need
+    // stops being unfillable - did NOT move it, on either target, and that
+    // was predicted rather than discovered: this scenario holds one object
+    // and it is the fridge, so a television advert cannot reach the digest.
+    // The wasm was rebuilt before this was re-run, per [L8]; without that
+    // the run reads the previous artifact and an unchanged value would mean
+    // nothing either way. See the fuller note on the native constant.
     expect(bridge.worldHash()).toBe(0x5a49_3ba9_f7fb_f23bn);
   });
 

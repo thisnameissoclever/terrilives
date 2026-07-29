@@ -92,9 +92,64 @@ sprite = "cabinetTelevisionDoors"
   # Two slots, so it does not become contended when households grow past
   # one sim. More fun per tick than either the sofa or the bookshelf, and
   # no comfort at all, which is what the sofa trades against.
+  #
+  # THE `social` DELTA IS A PLACEHOLDER, and saying so here is the point.
+  # `social` is meant to be satisfied by other sims, which is M2; until
+  # then this is the one object in the house where a lone sim can plausibly
+  # be kept company, and its two slots are also where two sims will watch
+  # together.
+  #
+  # It exists because the alternative was worse. Until M1c's close-out no
+  # object advertised `social` at all: it drained at 0.035 a tick, hit zero
+  # at about tick 2 857 - 4.8 minutes at 1x - and stayed there for the rest
+  # of the session, which would have shipped M1b's need bars with one bar
+  # permanently empty and no action in the game able to fill it. Recorded
+  # as [C2] in docs/alpha-feel-notes.md, and now a build-time rule:
+  # `every_declared_need_can_be_satisfied_by_some_interaction` in
+  # crates/terri-data/src/lib.rs fails if any declared need loses its last
+  # positive advert.
+  #
+  # **24 IS MEASURED, AND THE OBVIOUS DIRECTION IS BACKWARDS.** Over 12 000
+  # ticks of the shipped lot with the [O1] agent, matched pairs varying only
+  # this number:
+  #
+  #   delta   social band        television's share of interactions
+  #   none    0 from t=2857      6.6% (8 of 121)
+  #   8       0 on 699 ticks     30.1% (44 of 146)
+  #   14      21-52, floor 17    21.1% (28 of 133)
+  #   24      33-69, floor 30    14.4% (18 of 125)
+  #
+  # A SMALLER delta makes the television MORE dominant, not less, which is
+  # the opposite of what "keep the placeholder subtle" would suggest. The
+  # reason is that urgency is CUBED: equilibrium sits where
+  # `delta * deficit^3 / time_cost` matches what else the sim could be
+  # doing, so halving the delta buys back only a cube root of deficit - the
+  # sim holds social lower AND visits more often, because each visit
+  # delivers less. Anybody tuning this should move it UP to make the
+  # television less central.
+  #
+  # 24 is where every other need returns to roughly its no-advert level
+  # (hygiene 79.0 against 79.2, bladder 72.6 against 75.7, 125 interactions
+  # against 121) while social holds a live band instead of a floor. It is
+  # still the lowest need in the house by 14 points, which is the intended
+  # reading: a sim with only a television for company stays lonely, and M2
+  # is what fixes that rather than a bigger number here.
+  #
+  # Not 22 or 26: rule 1 above, which requires exact uniqueness and those
+  # are the sink's and the bookshelf's. Not 12 either, and that one is a
+  # precaution BEYOND rule 1 rather than an application of it - 12 and the
+  # shower's -12.0 are already distinct values, so rule 1 permits it. The
+  # reason to avoid it anyway is the same reason rule 1 exists: a mutation
+  # dropping a negation would collapse the two into one value, and no test
+  # could then tell the slots apart.
+  #
+  # One thing this DID cost, recorded as [C6] in docs/alpha-feel-notes.md
+  # rather than hidden here: the bookshelf goes from 3 interactions to zero
+  # and stays there at every delta tried, including 8. It was already the
+  # least-used object in the house.
   [[object.interaction]]
   id = "watch_tv"
-  advertises = { fun = 30.0 }
+  advertises = { social = 24.0, fun = 30.0 }
   duration_ticks = 55
   slots = 2
 

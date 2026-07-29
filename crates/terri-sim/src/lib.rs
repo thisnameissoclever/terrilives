@@ -1045,6 +1045,21 @@ mod determinism_tests {
         // Previous value: 0x2FC6_69EF_A725_4F2D (Task 7's content-driven
         // decay, unmoved by M1b Task 3b and by M1c Tasks 3 and 4).
         //
+        // **The [C2] fix did not move it, and that was predicted rather
+        // than discovered.** Giving the television a `social` advert is a
+        // content change that alters what the shipped house affords, but
+        // this scenario holds ONE object and it is the fridge, so no
+        // television advert can reach the digest: the seven need levels
+        // still decay at the same rates, the same agent still eats at the
+        // same tick, and nothing else was touched. Confirmed on both
+        // targets after a wasm rebuild rather than assumed. This is [L36]
+        // in its expected form - the vector is silent because the fixture
+        // is blind to the change, not because the change did nothing, and
+        // the behaviour it DOES have is pinned by the 12 000-tick trace in
+        // docs/alpha-feel-notes.md and by
+        // `every_declared_need_can_be_satisfied_by_some_interaction` in
+        // terri-data.
+        //
         // Measured on wasm32 as well as natively, per [L13], rather than
         // assumed to carry across: the two agree. The boundary copy lives
         // in web/tests/bridge.test.ts.
