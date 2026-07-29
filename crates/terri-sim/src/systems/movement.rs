@@ -1,7 +1,8 @@
 use bevy_ecs::prelude::*;
-use terri_core::{Eating, Path, Position, SmartObject, Target};
+use terri_core::{Eating, Path, Position, SimRng, SmartObject, Target};
 
 use super::advertise::TILES_PER_TICK;
+use super::interact::sample_duration;
 use crate::Content;
 
 /// Tiles travelled per tick. Imported rather than redeclared so the
@@ -14,6 +15,7 @@ const SPEED: f32 = TILES_PER_TICK;
 pub fn follow_path(
     mut commands: Commands,
     content: Res<Content>,
+    mut rng: ResMut<SimRng>,
     mut agents: Query<(Entity, &mut Position, &mut Path, &Target)>,
     objects: Query<&SmartObject>,
 ) {
@@ -26,15 +28,30 @@ pub fn follow_path(
             };
             // Both indices are in range by construction: `select_action`
             // read them out of this same pack when it scored the advert,
-            // and the pack is fixed at build time. The duration needs no
-            // floor either, because content validation rejects a zero
-            // one, so a compiled pack cannot hold an interaction that
-            // finishes before it starts.
+            // and the pack is fixed at build time.
             let act = &content.0.object(placed.0).interactions[target.interaction as usize];
+            // The content duration is a CENTRE, per [D-4]. This is the
+            // one place the actual length of an interaction is decided,
+            // so it is the one place that draws for it - and it draws
+            // from the world's seeded generator like every other
+            // decision, which is what keeps a replay a replay.
+            //
+            // The draw happens here rather than at selection on purpose.
+            // Scoring weighs an interaction by its content duration
+            // because that is what an advert can honestly promise; the
+            // sim only finds out how long this particular meal took by
+            // sitting through it.
+            let tuning = &content.0.tuning;
+            let remaining_ticks = sample_duration(
+                act.duration_ticks,
+                tuning.duration_variance,
+                tuning.min_interaction_ticks,
+                &mut rng,
+            );
             commands.entity(entity).remove::<Path>().insert(Eating {
                 object: placed.0,
                 interaction: target.interaction,
-                remaining_ticks: act.duration_ticks,
+                remaining_ticks,
             });
             continue;
         };

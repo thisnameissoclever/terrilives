@@ -830,6 +830,26 @@ mod determinism_tests {
         // `a_higher_scoring_object_is_chosen_more_often_and_a_lower_one_still_sometimes`
         // and by the two tie tests, all of which are robust to a
         // last-bit difference.
+        //
+        // **M1c Task 4 did not move it either, and this time for a
+        // SECOND, independent reason worth knowing.** [D-4] made every
+        // interaction's length a sampled value and put a 25-tick floor
+        // under it, which raises the fridge's snack from 15 ticks. This
+        // scenario cannot see that because **no agent ever eats in it**:
+        // the fridge sits 30 tiles from the nearest agent, movement
+        // covers 0.25 tiles a tick, so arrival is at tick ~121 and this
+        // vector stops at 100. Measured, not deduced - a probe over the
+        // 100 ticks found no `Eating` component at any point and exactly
+        // one agent still walking at the end.
+        //
+        // So the scenario is blind to durations AND to the PRNG draw
+        // durations consume, on top of being blind to how candidates are
+        // ranked. Read together with the two paragraphs above, that is a
+        // statement about this fixture rather than about the milestone:
+        // one object 30 tiles away exercises decay, movement and the
+        // digest, and nothing else. **Anyone who wants this vector to
+        // cover selection or duration has to change the scenario**, and
+        // the paragraph above sets out what a second object would cost.
         const GOLDEN: u64 = 0x2FC6_69EF_A725_4F2D;
 
         let mut sim = build_scenario();

@@ -1,7 +1,60 @@
 use bevy_ecs::prelude::*;
-use terri_core::{Eating, NeedId, Needs, Reserved, Target};
+use terri_core::{Eating, NeedId, Needs, Reserved, SimRng, Target};
 
 use crate::Content;
+
+/// How many ticks an interaction actually takes, sampled around the
+/// `duration_ticks` its content declares - [D-4].
+///
+/// The content number is a **centre**, not a fixed value. Two sims
+/// grabbing the same snack should not take the same number of ticks to
+/// the tick, because that is one of the few things that reads
+/// unmistakably as a machine rather than a person.
+///
+/// # The three properties, and which is which
+///
+/// **`centre` is still the centre.** With `variance` at zero the factor
+/// below is exactly `1.0` in `f32` - `1.0 - 0.0 + 2.0 * 0.0 * anything` -
+/// so the result is the content value itself, unrounded and unshifted.
+/// That is what `with_variance_at_zero_a_meal_takes_exactly_its_content_duration`
+/// pins, and it is the property that separates "sampled around the
+/// content number" from "the content number is ignored".
+///
+/// **The sample is biased SHORTER.** The draw is squared before it is
+/// spread across the band, which pushes its mass toward the low end:
+/// `roll * roll` is below a half for about 71% of draws rather than 50%,
+/// so the mean factor is `1 - variance / 3` rather than `1`. Longer than
+/// the centre is still reachable, at the top of the band - a bias, not a
+/// cap. Being able to run long matters as much as the bias does: a rule
+/// that only ever shortens would make the content number a maximum, and
+/// a designer authoring 60 would never see 60.
+///
+/// **The floor is a REAL-TIME floor.** `min_interaction_ticks` is stated
+/// in ticks because that is what the simulation counts, but the reason it
+/// exists is wall-clock: at 1x speed the sim runs `TICK_HZ` = 10 ticks a
+/// second, so the shipped 25 is 2.5 seconds. Anything shorter reads as a
+/// sim teleporting through an action however sensible the tick count
+/// looks. The clamp is what raises the fridge's 15-tick snack - 1.5
+/// seconds - to something a player can see happen.
+///
+/// # One draw, always
+///
+/// The draw is taken before anything is decided with it, including when
+/// `variance` is zero and its value cannot matter. That keeps PRNG
+/// consumption a function of what the simulation DOES rather than of how
+/// the knobs happen to be set: turning variance down to zero to debug
+/// something would otherwise shift every subsequent draw in the run and
+/// change behaviour that has nothing to do with durations.
+///
+/// `variance` is in `[0, 1)` and `floor` is at least 1 by content
+/// validation, so neither is re-checked here.
+pub fn sample_duration(centre: u32, variance: f32, floor: u32, rng: &mut SimRng) -> u32 {
+    let roll = rng.next_f32();
+    let biased = roll * roll;
+    let factor = 1.0 - variance + 2.0 * variance * biased;
+    let ticks = (centre as f32 * factor).round() as u32;
+    ticks.max(floor)
+}
 
 /// Advances in-progress interactions. When one finishes, the agent
 /// releases its reservation and becomes idle again.
@@ -11,6 +64,21 @@ use crate::Content;
 /// over `duration_ticks` delivers `delta / duration_ticks` a tick. A need
 /// the interaction does not name is left alone, which is not the same as
 /// filling it by zero - the advert list is sparse.
+///
+/// **The divisor is the CONTENT duration, not the sampled one**, and that
+/// is a decision rather than an oversight now that [D-4] makes the two
+/// differ. Content declares a rate: `delta` per `duration_ticks`. A meal
+/// that runs short delivers less and one that runs long delivers more,
+/// which keeps benefit-per-tick exactly the quantity `score_advertisement`
+/// weighed when the interaction was chosen. Dividing by the sampled
+/// duration instead would hold the total constant and make a short meal a
+/// strictly better deal than the one that was scored.
+///
+/// The visible consequence is the shipped fridge, whose 15-tick snack the
+/// real-time floor stretches to 25: it now delivers about 67 hunger
+/// rather than 40. That is a balance shift, it is the one [D-4]
+/// anticipated, and `content/objects.toml` is where to correct it if the
+/// tuning pass decides it is too much.
 pub fn tick_interactions(
     mut commands: Commands,
     content: Res<Content>,
@@ -60,10 +128,15 @@ pub fn tick_interactions(
 
 #[cfg(test)]
 mod tests {
+    use super::sample_duration;
     use crate::test_content;
     use crate::Sim;
     use bevy_ecs::entity::Entity;
-    use terri_core::{Agent, Eating, NeedId, Needs, Position, Reserved, SmartObject, Target};
+    use std::collections::BTreeSet;
+    use terri_core::{
+        Agent, Eating, NeedId, Needs, Position, Reserved, SimRng, SmartObject, Target, TICK_HZ,
+    };
+    use terri_data::{ContentPack, Tuning};
 
     fn level_of(sim: &Sim, agent: Entity, need: NeedId) -> f32 {
         sim.world()
@@ -89,14 +162,83 @@ mod tests {
     /// Breaks on completion rather than counting ticks: counting exactly
     /// `duration_ticks` lands on the re-target tick, where `Eating` is
     /// re-inserted in the same tick because the path is empty.
+    ///
+    /// The bound is generous rather than tight because [D-4] made the
+    /// real length of an interaction a sampled value; a bound just above
+    /// the longest fixture would start failing on an unlucky draw. It is
+    /// a runaway detector, not an assertion about duration - the
+    /// duration tests below measure that directly.
     fn tick_until_done(sim: &mut Sim, agent: Entity) {
-        for _ in 0..64 {
+        for _ in 0..1024 {
             sim.tick();
             if sim.world().get::<Eating>(agent).is_none() {
                 return;
             }
         }
         panic!("the interaction must terminate");
+    }
+
+    /// The number of ticks the agent's next interaction lasts, measured
+    /// through the running simulation rather than by calling the sampler.
+    ///
+    /// `tick_interactions` runs after `follow_path` in the same tick, so
+    /// the first `remaining_ticks` an observer can ever see is already
+    /// one short of the sampled total - hence the `+ 1`. The existing
+    /// `the_interaction_recorded_at_selection_is_the_one_that_fills`
+    /// asserts the same offset explicitly.
+    ///
+    /// The hunger reset is what makes repeated observation possible: a
+    /// fed agent has nothing worth doing and would never start a second
+    /// interaction. It is done through the world rather than by waiting
+    /// for decay so the fixture does not depend on how long a meal
+    /// happens to run, which is the very thing under test.
+    fn observe_one_interaction(sim: &mut Sim, agent: Entity) -> u32 {
+        sim.world_mut()
+            .get_mut::<Needs>(agent)
+            .expect("the agent must still have Needs")
+            .set(NeedId::Hunger, 5.0);
+        tick_until_eating(sim, agent);
+        let remaining = sim
+            .world()
+            .get::<Eating>(agent)
+            .expect("tick_until_eating already checked this")
+            .remaining_ticks;
+        tick_until_done(sim, agent);
+        remaining + 1
+    }
+
+    /// `count` consecutive interaction lengths at the same object.
+    fn observe_interactions(sim: &mut Sim, agent: Entity, count: usize) -> Vec<u32> {
+        (0..count)
+            .map(|_| observe_one_interaction(sim, agent))
+            .collect()
+    }
+
+    /// A 16x16 sim holding one object next to one agent, both from
+    /// `content`, ready for [`observe_interactions`].
+    ///
+    /// The agent is spawned one tile from the object so the walk is a
+    /// single step: these tests are about how long an interaction lasts,
+    /// and a long commute would only add ticks to wait through.
+    fn eating_scenario(content: &'static ContentPack, object_id: &str) -> (Sim, Entity) {
+        let mut sim = test_content::sim_with(16, 16, content);
+        sim.world_mut().spawn((
+            Position { x: 10.0, y: 8.0 },
+            SmartObject(
+                content
+                    .find(object_id)
+                    .unwrap_or_else(|| panic!("the fixture must declare '{object_id}'")),
+            ),
+        ));
+        let agent = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 9.0, y: 8.0 },
+                Needs::with(NeedId::Hunger, 5.0),
+            ))
+            .id();
+        (sim, agent)
     }
 
     #[test]
@@ -279,26 +421,60 @@ mod tests {
         // with `interactions[0]` in `follow_path` left the whole
         // workspace green. The `remaining_ticks` assertion below is what
         // closes that.
+        //
+        // **[D-4] put that mechanism under two new threats and the
+        // fixture answers both.** The real duration is now sampled
+        // around the content value and clamped up to
+        // `min_interaction_ticks`, so:
+        //
+        //   - the two durations must both CLEAR the floor, or the clamp
+        //     flattens them into one number and the test stops being able
+        //     to tell the interactions apart. That is not hypothetical:
+        //     at the original 5 and 15 against a floor of 25, both became
+        //     25. It is asserted below rather than left to a reader to
+        //     notice.
+        //   - the variance is turned to zero for this fixture, so the
+        //     exact `remaining_ticks` assertion is a statement about
+        //     WHICH interaction was resolved rather than about a draw.
+        //     Same move as `DECISIVE_TEMPERATURE` in action.rs: hold the
+        //     knob that is not under test still.
         const NIBBLE_DELTA: f32 = 0.5;
-        const NIBBLE_DURATION: u32 = 5;
-        const FEAST_DELTA: f32 = 40.0;
-        const FEAST_DURATION: u32 = 15;
+        const NIBBLE_DURATION: u32 = 30;
+        const FEAST_DELTA: f32 = 60.0;
+        const FEAST_DURATION: u32 = 100;
 
-        let content = test_content::pack(vec![test_content::object_offering(
-            "cupboard",
-            vec![
-                test_content::interaction(
-                    "nibble",
-                    &[(NeedId::Hunger, NIBBLE_DELTA)],
-                    NIBBLE_DURATION,
-                ),
-                test_content::interaction(
-                    "feast",
-                    &[(NeedId::Hunger, FEAST_DELTA)],
-                    FEAST_DURATION,
-                ),
-            ],
-        )]);
+        // The shorter of the two is the one that has to clear the floor;
+        // clippy will not let both be stated, since the constants are
+        // ordered here in the source.
+        let floor = test_content::tuning().min_interaction_ticks;
+        assert!(
+            NIBBLE_DURATION.min(FEAST_DURATION) > floor,
+            "both durations must clear the {floor} tick floor, or the \
+             clamp collapses them to the same number and this test can no \
+             longer tell one interaction from the other"
+        );
+
+        let content = test_content::pack_tuned(
+            vec![test_content::object_offering(
+                "cupboard",
+                vec![
+                    test_content::interaction(
+                        "nibble",
+                        &[(NeedId::Hunger, NIBBLE_DELTA)],
+                        NIBBLE_DURATION,
+                    ),
+                    test_content::interaction(
+                        "feast",
+                        &[(NeedId::Hunger, FEAST_DELTA)],
+                        FEAST_DURATION,
+                    ),
+                ],
+            )],
+            Tuning {
+                duration_variance: 0.0,
+                ..test_content::tuning()
+            },
+        );
         let cupboard = content.find("cupboard").expect("the fixture declares it");
         let mut sim = test_content::sim_with(16, 16, content);
         sim.world_mut()
@@ -339,6 +515,249 @@ mod tests {
             "the meal must deliver the SECOND interaction's delta; a gain \
              near zero means the first one was performed instead. \
              {before} -> {after}"
+        );
+    }
+
+    // ---------------------------------------------------------------
+    // [D-4] Varied interaction duration.
+    //
+    // Four claims, and each is written where it can see the mutation it
+    // exists for. Three run through the whole simulation, because
+    // `sample_duration` being right is worth nothing if `follow_path`
+    // does not call it: replacing the call with `act.duration_ticks`
+    // leaves every unit test on the sampler green.
+    // ---------------------------------------------------------------
+
+    /// The centre used by the fixtures below that must clear the
+    /// real-time floor, so the floor cannot be what produces their
+    /// answer. Comfortably above the shipped 25, and not a round
+    /// multiple of it.
+    const LONG_DURATION: u32 = 96;
+
+    /// An object whose single interaction takes [`LONG_DURATION`] ticks
+    /// and restores enough hunger to be worth walking one tile for.
+    fn long_interaction_object() -> terri_data::CompiledObject {
+        test_content::object("banquet", &[(NeedId::Hunger, 40.0)], LONG_DURATION)
+    }
+
+    fn floor() -> u32 {
+        test_content::tuning().min_interaction_ticks
+    }
+
+    #[test]
+    fn repeated_interactions_at_one_object_do_not_all_take_the_same_time() {
+        // The milestone's visible claim, and the one that pins the
+        // WIRING: with `follow_path` still writing `act.duration_ticks`
+        // straight into `Eating`, every one of these is identical and
+        // this fails. Nothing else here can see that.
+        //
+        // Same object, same agent, same content duration, six meals. The
+        // agent is re-hungered between them rather than left to decay,
+        // so the only thing that differs between the six is the draw.
+        const MEALS: usize = 6;
+
+        let content = test_content::pack(vec![long_interaction_object()]);
+        let (mut sim, agent) = eating_scenario(content, "banquet");
+        let durations = observe_interactions(&mut sim, agent, MEALS);
+
+        // Rule 5: an empty list satisfies "not all the same" vacuously.
+        assert_eq!(
+            durations.len(),
+            MEALS,
+            "every meal must actually have been observed"
+        );
+        assert!(
+            test_content::tuning().duration_variance > 0.0,
+            "the shipped variance must be non-zero, or this test is \
+             asking the simulation for something it was told not to do"
+        );
+        let distinct: BTreeSet<u32> = durations.iter().copied().collect();
+        assert!(
+            distinct.len() > 1,
+            "six meals at one object all took the same number of ticks, \
+             so the content duration is being used as a fixed value \
+             rather than as a centre: {durations:?}"
+        );
+    }
+
+    #[test]
+    fn a_sampled_duration_is_biased_shorter_than_its_centre_without_being_capped_at_it() {
+        // BOTH halves are the claim. Biased shorter distinguishes this
+        // from a symmetric jitter; still reaching past the centre
+        // distinguishes it from a rule that only ever shortens, which
+        // would quietly turn every authored duration into a maximum.
+        //
+        // A unit test rather than a simulation one because it is
+        // statistical: the shape of the distribution is what is being
+        // asserted, and a thousand draws through the ECS would be a
+        // thousand meals.
+        //
+        // Mutations this sees, measured rather than asserted from
+        // reading: `roll * roll` -> `roll + roll` puts the mean ABOVE
+        // the centre; `roll * roll` -> `roll - roll` collapses the
+        // sample to a constant and fails the spread assertions;
+        // `1.0 - variance` -> `1.0 + variance` puts the whole band above
+        // the centre. The floor is set to 1 so that it cannot be what
+        // shapes any of this.
+        const CENTRE: u32 = 1_000;
+        const VARIANCE: f32 = 0.4;
+        const SAMPLES: usize = 4_000;
+
+        let mut rng = SimRng::from_seed(4_242);
+        let samples: Vec<u32> = (0..SAMPLES)
+            .map(|_| sample_duration(CENTRE, VARIANCE, 1, &mut rng))
+            .collect();
+
+        let mean = samples.iter().map(|t| *t as f64).sum::<f64>() / SAMPLES as f64;
+        let low = *samples.iter().min().expect("SAMPLES is non-zero");
+        let high = *samples.iter().max().expect("SAMPLES is non-zero");
+
+        // The band. `1 - v` and `1 + v` either side of the centre, and
+        // nothing outside it, which is what "within duration_variance
+        // either side" means.
+        assert!(
+            low as f32 >= CENTRE as f32 * (1.0 - VARIANCE),
+            "a sample fell below the band: {low}"
+        );
+        assert!(
+            high as f32 <= CENTRE as f32 * (1.0 + VARIANCE),
+            "a sample rose above the band: {high}"
+        );
+
+        // The bias. Squaring the draw puts the mean at
+        // `centre * (1 - variance / 3)`, which is 866.7 here; a
+        // symmetric spread would sit at 1000. The window is wide enough
+        // that sampling noise cannot reach either edge - the standard
+        // error at 4000 samples is about 3 ticks - and narrow enough
+        // that neither the symmetric nor the doubled-draw alternative
+        // lands in it.
+        let expected = CENTRE as f64 * (1.0 - VARIANCE as f64 / 3.0);
+        assert!(
+            (mean - expected).abs() < 20.0,
+            "the mean must sit near centre * (1 - variance / 3) = \
+             {expected:.1}; got {mean:.1}. A mean near {CENTRE} means the \
+             draw is not biased at all"
+        );
+
+        // Not a cap. Longer than the centre has to remain reachable, or
+        // an authored duration is really a maximum.
+        assert!(
+            samples.iter().any(|t| *t > CENTRE),
+            "no sample ran longer than the centre, so this is a cap \
+             rather than a bias; the longest was {high}"
+        );
+        assert!(
+            samples.iter().any(|t| *t < CENTRE),
+            "no sample ran shorter than the centre; the shortest was {low}"
+        );
+    }
+
+    #[test]
+    fn an_interaction_shorter_than_the_real_time_floor_is_stretched_up_to_it() {
+        // The floor is a REAL-TIME floor. `min_interaction_ticks` is
+        // counted in ticks because that is the unit the simulation has,
+        // but the reason for the number is wall-clock: at 1x the sim
+        // runs TICK_HZ = 10 ticks a second, so the shipped 25 is 2.5
+        // seconds, and anything below that reads as a sim teleporting
+        // through an action. Asserting a bare `>= 25` would keep the
+        // number and lose the reason, so the seconds are computed and
+        // named here.
+        //
+        // The fixture is the SHIPPED fridge, deliberately: its 15-tick
+        // snack is the object [D-4] names as the one the floor raises,
+        // so this is a statement about the game rather than about a
+        // fixture invented to have the property.
+        //
+        // Equality rather than `>=`, and the precondition below is what
+        // earns it: the widest draw the variance allows is still under
+        // the floor, so the clamp decides EVERY meal here and a `>=`
+        // would also be satisfied by an unclamped 21.
+        let tuning = test_content::tuning();
+        let mut sim = Sim::new_with_lot(16, 16);
+        sim.world_mut()
+            .spawn((Position { x: 10.0, y: 8.0 }, test_content::shipped_fridge()));
+        let agent = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 9.0, y: 8.0 },
+                Needs::with(NeedId::Hunger, 5.0),
+            ))
+            .id();
+
+        let centre = terri_data::pack()
+            .object(test_content::shipped_fridge().0)
+            .interactions[0]
+            .duration_ticks;
+        let longest_unclamped = centre as f32 * (1.0 + tuning.duration_variance);
+        assert!(
+            longest_unclamped < floor() as f32,
+            "the fixture's longest possible draw is {longest_unclamped} \
+             ticks, which is not below the {} tick floor, so the clamp is \
+             not what decides this test",
+            floor()
+        );
+
+        let durations = observe_interactions(&mut sim, agent, 4);
+        assert_eq!(durations.len(), 4, "every meal must have been observed");
+
+        let floor_seconds = floor() as f64 / TICK_HZ;
+        for ticks in &durations {
+            assert_eq!(
+                *ticks,
+                floor(),
+                "a {centre} tick interaction - {:.1} real seconds at 1x - \
+                 came out at {ticks} ticks. The floor exists so that no \
+                 action is over in less than {} ticks, which is \
+                 {floor_seconds:.1} real seconds at {TICK_HZ} ticks a \
+                 second; below that a sim teleports through the action \
+                 instead of being seen to do it",
+                centre as f64 / TICK_HZ,
+                floor()
+            );
+        }
+    }
+
+    #[test]
+    fn with_variance_at_zero_an_interaction_takes_exactly_its_content_duration() {
+        // The one people skip, and the one that proves the content
+        // number is still the CENTRE rather than an input the sampler
+        // ignores. Every other duration test here is satisfied by a
+        // sampler that invents a length out of the floor and the
+        // variance alone.
+        //
+        // Three meals rather than one, because a single observation
+        // cannot tell "exactly the centre" from "happened to draw the
+        // centre this time".
+        //
+        // The centre is deliberately well above the floor, and that is
+        // asserted rather than eyeballed: with a centre below the floor
+        // the clamp would produce a constant and this test would pass
+        // while proving nothing about the centre at all.
+        let content = test_content::pack_tuned(
+            vec![long_interaction_object()],
+            Tuning {
+                duration_variance: 0.0,
+                ..test_content::tuning()
+            },
+        );
+        assert!(
+            LONG_DURATION > floor(),
+            "the fixture's centre ({LONG_DURATION}) must clear the floor \
+             ({}), or the clamp rather than the centre decides the answer",
+            floor()
+        );
+
+        let (mut sim, agent) = eating_scenario(content, "banquet");
+        let durations = observe_interactions(&mut sim, agent, 3);
+
+        assert_eq!(
+            durations,
+            vec![LONG_DURATION; 3],
+            "with duration_variance at zero every interaction must last \
+             exactly the number of ticks its content declares; anything \
+             else means the content value is not the centre it is \
+             documented to be"
         );
     }
 }

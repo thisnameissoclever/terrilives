@@ -315,6 +315,16 @@ describe('SimBridge', () => {
     // that is not a regression. It computes `exp(0.0)` here, which is
     // exactly 1.0 everywhere. Adding a second object to this scenario
     // changes what it is exposed to.
+    //
+    // M1c Task 4 varied every interaction's length around its content
+    // duration and put a 25-tick floor under it, and this vector did not
+    // move on either target for a different reason again: **no agent
+    // eats at all here.** The fridge is 30 tiles from the nearest agent
+    // and movement covers 0.25 tiles a tick, so the first arrival is
+    // around tick 121 and this runs to 100. Measured natively with a
+    // probe over the 100 ticks; the wasm was rebuilt before this was
+    // re-run. The scenario therefore covers decay, movement and the
+    // digest, and nothing about how a sim chooses or how long it takes.
     expect(bridge.worldHash()).toBe(0x2fc6_69ef_a725_4f2dn);
   });
 
