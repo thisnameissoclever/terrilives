@@ -201,6 +201,21 @@ pub fn drain_commands(
                 // reason: an autonomous action that happens to match the
                 // front intent exactly is treated as that intent being
                 // carried out.
+                //
+                // **Both halves of the `&&` are load-bearing and the
+                // interaction half is the one that looks redundant.**
+                // `UseObject` always names interaction 0, and an
+                // autonomously chosen interaction is 0 on every
+                // single-interaction object - so an intent for the bed and
+                // a target on the fridge agree on the interaction index
+                // while naming different objects entirely. Relaxed to
+                // `||` this releases an autonomous target the moment the
+                // player queues a click on anything else, which is the
+                // very interruption the guard exists to prevent.
+                // `a_cancel_does_not_release_an_autonomous_target_that_only_shares_the_intents_interaction_index`
+                // is what fails on it, and it was found by the mutation
+                // sweep rather than by hand - every fixture until then had
+                // BOTH fields agreeing, which is [L34].
                 let serving = match (queue.as_deref().and_then(|q| q.front()), target) {
                     (Some(intent), Some(target)) => {
                         intent.object == target.object && intent.interaction == target.interaction
@@ -810,6 +825,105 @@ mod tests {
         assert!(
             sim.world().get::<Reserved>(fridge).is_some(),
             "and it must not release the reservation"
+        );
+    }
+
+    #[test]
+    fn a_cancel_does_not_release_an_autonomous_target_that_only_shares_the_intents_interaction_index(
+    ) {
+        // **Found by the mutation sweep, not by hand.** The guard above is
+        // `object == object && interaction == interaction`, and the second
+        // clause looks redundant until you notice that `UseObject` always
+        // names interaction 0 and an autonomously chosen interaction is 0
+        // on every single-interaction object. So an intent for the BED and
+        // a target on the FRIDGE agree on the interaction index while
+        // naming completely different objects.
+        //
+        // Relaxed to `||` the cancel then releases the sim's autonomous
+        // target the moment the player has queued a click on anything
+        // else - the exact interruption the guard exists to prevent,
+        // arriving through the clause nobody was watching. Every other
+        // cancel fixture has BOTH fields agreeing, which is the input
+        // domain that cannot see it ([L34]).
+        //
+        // The two drains are deliberately not separated by a tick:
+        // `serve_intents` would convert the intent into a target in
+        // between, and then the two really would agree.
+        let mut sim = test_content::sim_with(16, 16, content());
+        let bed = spawn_object(&mut sim, BED_AT, "bed");
+        let fridge = spawn_object(&mut sim, FRIDGE_AT, "fridge");
+        let agent = spawn_agent(&mut sim, FRIDGE_AT, hungry());
+
+        let mut eating = None;
+        for _ in 0..64 {
+            sim.tick();
+            if let Some(state) = sim.world().get::<Eating>(agent) {
+                eating = Some(*state);
+                break;
+            }
+        }
+        let eating = eating.expect("the sim must choose the fridge for itself");
+        assert!(
+            eating.remaining_ticks > 1,
+            "the meal must have time left on it"
+        );
+
+        enqueue(
+            &mut sim,
+            SimCommand::UseObject {
+                agent: agent.index_u32(),
+                object: bed.index_u32(),
+            },
+        );
+        drain_only(&mut sim);
+
+        // The precondition that makes this fixture the one the mutant
+        // needs: same interaction index, different object.
+        let target = target_of(&sim, agent).expect("the autonomous target must still be held");
+        let intent = queue_of(&sim, agent)
+            .front()
+            .expect("the click must have queued an intent");
+        assert_eq!(
+            (target.object, target.interaction),
+            (fridge, 0),
+            "the sim must still be on its own choice"
+        );
+        assert_ne!(
+            intent.object, target.object,
+            "the intent must name a DIFFERENT object, or `&&` and `||` \
+             agree here and this test proves nothing"
+        );
+        assert_eq!(
+            intent.interaction, target.interaction,
+            "and it must share the interaction index, or `||` never fires \
+             and this test proves nothing"
+        );
+
+        enqueue(
+            &mut sim,
+            SimCommand::CancelIntents {
+                agent: agent.index_u32(),
+            },
+        );
+        drain_only(&mut sim);
+
+        assert!(
+            queue_of(&sim, agent).is_empty(),
+            "the cancel must still empty the queue"
+        );
+        assert_eq!(
+            target_of(&sim, agent),
+            Some(target),
+            "the sim's OWN choice must survive a cancel of an intent that \
+             was never served"
+        );
+        assert!(
+            sim.world().get::<Eating>(agent).is_some(),
+            "and the meal it chose must not be abandoned"
+        );
+        assert!(
+            sim.world().get::<Reserved>(fridge).is_some(),
+            "and the object it chose must stay reserved"
         );
     }
 
