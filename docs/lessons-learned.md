@@ -2165,3 +2165,71 @@ all.
 **How to verify:** disable every mechanism the test claims to cover except the
 cheapest one, and confirm the test still fails. If it passes, the guard is
 measuring the cheap mechanism.
+
+---
+
+## [L43] A full mutation sweep stopped early is not a partial answer, it is a clean-looking one
+
+**What happened:** M1b Task 5 found, and killed, a guard whose second clause
+nothing constrained: `intent.object == target.object && intent.interaction ==
+target.interaction` in `drain_commands`. Its own report and the code comment it
+left both noted, correctly, that **`tick_interactions` uses the same
+comparison** for the same reason.
+
+The twin was never swept. Task 5's full sweep was stopped at 204 of roughly 420
+mutants after 45 minutes, and its report says so honestly - it records that
+`advertise.rs` was past the stopping point and reasons about which baseline
+entries the prefix could and could not have reached. `interact.rs` was further
+past it still and is not mentioned at all.
+
+M1b Task 6 ran the first sweep since to complete, and it reported:
+
+```
+crates/terri-sim/src/systems/interact.rs:139:52: replace && with || in tick_interactions
+```
+
+Six survivors, five of them the baseline's. The sixth had been sitting in
+`main` for two tasks with a green CI gate over it the whole time, because
+`missed.txt` from a stopped run contains only what was reached, and the gate
+compares set difference against the baseline. **A survivor the sweep never
+tested is indistinguishable, in that file, from one it cleared.**
+
+The relaxed form is a real bug and the same one Task 5 fixed: `UseObject`
+always names interaction 0 and an autonomously chosen interaction is 0 on every
+single-interaction object, so a sim finishing the meal it chose for itself with
+a click for a *different* object waiting behind it would have that click
+silently discarded. The player's instruction disappears with no error.
+
+**Root cause:** two failures compounding, and the second is the one worth
+remembering.
+
+1. A finding of the form "this exact comparison also appears over there" was
+   written down and not acted on. It is the single cheapest lead a mutation
+   sweep ever produces - the bug's location is already known - and it was left
+   as prose.
+2. **A stopped sweep's `missed.txt` was compared against a full baseline.** The
+   comparison is only sound when the run covers at least what the baseline
+   covers. Task 5 knew this and reasoned about it for the *entries in* the
+   baseline; the case it could not reason about is the entry that is not in the
+   baseline yet, because there is nothing to notice its absence against.
+
+**Prevention rule:**
+
+1. When a sweep or a review finds an unconstrained guard, **grep for the same
+   comparison elsewhere in the same commit** and either kill or sweep every
+   copy. A twin named in a comment is a to-do, not an observation.
+2. A sweep that did not finish may **add** to the baseline argument and must
+   never be treated as **clearing** anything. Record the stopping point as a
+   list of files not reached, so the next task can sweep those first rather
+   than re-deriving what was missed.
+3. Prefer a **scoped sweep that finishes** over a full sweep that does not. The
+   scoped run over every file a task touched is minutes, not an hour, and it
+   answers the question the gate actually asks. Run both; believe the scoped
+   one about your own changes and the full one about everything else.
+
+**How to verify:** `cargo mutants --package terri-sim -f
+crates/terri-sim/src/systems/interact.rs --test-workspace true --timeout 60`
+reports 21 mutants, 21 caught, 0 missed. Before
+`a_finished_interaction_pops_only_the_intent_that_named_the_object_it_finished`
+it reported one missed, and that test fails on the `||` mutant and on deleting
+`queue.pop()`, which is what stops it being a one-sided assertion.
