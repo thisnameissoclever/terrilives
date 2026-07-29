@@ -2050,3 +2050,75 @@ ticking 12 000 times while logging, per tick, the best score any candidate
 offers. The measured percentiles are recorded in `content/tuning.toml` beside
 each value and in `docs/alpha-feel-notes.md`; if a re-measurement disagrees with
 them, the content changed and the knobs need re-deriving rather than defending.
+
+---
+
+## [L41] A need nothing advertises is invisible to the suite for the same reason it is inert
+
+**What happened:** `content/needs.toml` declared `social`, `content/tuning.toml`
+gave it a decay rate of 0.035 a tick, and no interaction in
+`content/objects.toml` advertised it. It drained to zero at about tick 2 857 -
+4.8 minutes at 1x - and stayed pinned there for the rest of every session. It
+had done so since the need was declared. 188 tests were green.
+
+**Root cause: the two facts are one fact.** Selection scores an agent's deficit
+against what objects advertise, so a need no object advertises contributes
+nothing to any score. Having no behavioural effect is exactly what makes it
+untestable by any behavioural test - there is no observable difference between
+"declared and unsatisfiable" and "not declared", from inside the simulation.
+Every test in the suite asks a question about behaviour, so none of them could
+have a reason to notice. This is not a coverage gap that more behavioural tests
+would close; more of them would all be equally blind.
+
+The general shape: **content that exists and does nothing is invisible to any
+test that observes what the game does.** `every_declared_object_is_placed_on_the_lot`
+already existed for the same class one layer out - an object nothing places
+cannot be chosen - which is the precedent that made the fix obvious once the
+class was named.
+
+It was found by a human watching the game for twenty minutes and writing down
+what it did, recorded as [C2] in `docs/alpha-feel-notes.md`. That instrument
+found three things the suite structurally could not.
+
+**Prevention rule:**
+
+1. **Check declarations against uses, statically, over the compiled pack.** Not
+   over behaviour - a static check is the only kind that can see content whose
+   defining property is having no behaviour.
+   `every_declared_need_can_be_satisfied_by_some_interaction` in
+   `crates/terri-data/src/lib.rs` is the instance.
+2. **Require the delta to be POSITIVE, not merely present.** A delta may legally
+   be negative - the shower's `energy = -12.0` is a cost that scoring weighs - so
+   "the need appears in some advert list" is satisfied by a need that can only
+   ever be *drained*, which is exactly as unfillable. Energy is separately
+   advertised `+100` by the bed, so the weaker rule passes today and would go on
+   passing through the content edit that broke it.
+3. **When a declaration/use check is added, say in the failure message what both
+   ways out are.** This one names the need and offers "advertise it" or "stop
+   declaring it", because those were the two coherent fixes and whoever trips it
+   next inherits the same choice rather than a bare assertion.
+
+**A second finding, about the tuning rather than the gap.** The delta was first
+set to 14 by arithmetic - solve `delta * deficit^3 / time_cost` against the
+measured median score - and the measurement said the estimate was in the right
+band but the *direction of the knob* was backwards. **A smaller social delta
+makes the television MORE dominant, not less:** 8 gave it 30.1% of all
+interactions, 14 gave 21.1%, 24 gave 14.4%. Because urgency is cubed, halving
+the delta buys back only a cube root of deficit, so the sim holds the need lower
+*and* visits more often, since each visit delivers less. Anyone reasoning "keep
+the placeholder small so it does not distort behaviour" would have tuned it in
+precisely the wrong direction, and no test would have said so. See [L40], which
+is the same lesson about a different knob.
+
+**How to verify:** set the television's `watch_tv` advert back to
+`{ fun = 30.0 }` and run `cargo test -p terri-data every_declared_need`; it
+fails naming `social`. Set it to `{ social = -24.0, fun = 30.0 }` - present in
+the advert list, so the weaker "appears at all" rule would pass - and it fails
+identically, which is what pins rule 2 above. Restore by inverting the exact
+edit and confirm `git hash-object content/objects.toml` matches the value from
+before the mutation ([L9]), then touch the file ([L8]).
+
+The trace harness behind the delta table is not in the repo, per [L40]:
+rebuild it as `Sim::new_from_shipped_lot()` plus the agent `web/src/main.ts`
+spawns, 12 000 ticks. It reproduces [O1]'s 121 interactions exactly on the
+no-advert content, which is what makes the four rows comparable.

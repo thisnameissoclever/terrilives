@@ -380,6 +380,48 @@ remaining need-bar task lands: the player will see a bar that is always
 empty, that no action in the game can fill, with no explanation. Either an
 object must advertise it or the need should not be declared yet.
 
+**Resolved, 2026-07-29.** The television's `watch_tv` now advertises
+`social = 24.0`. The alternative - dropping `social` from `content/needs.toml`
+until something can satisfy it - was rejected on cost rather than on
+principle: removing the `NeedId` variant renumbers `Fun` and `Comfort`
+across six files including two byte-level golden fixtures, and M2 puts the
+variant straight back. The advert is a placeholder and is commented as one;
+`social` is meant to be satisfied by other sims, which is M2.
+
+Measured the same way as everything else here - matched pairs over 12 000
+ticks of the shipped lot with the [O1] agent, only the delta moved:
+
+| delta | social band | television's share |
+| --- | --- | --- |
+| none | 0 from tick 2 857 on, 9 143 ticks pinned | 6.6% (8 of 121) |
+| 8 | 0 on 699 ticks, mean 8.3 | 30.1% (44 of 146) |
+| 14 | 21-52, floor 17.1, mean 36.9 | 21.1% (28 of 133) |
+| **24** | **33-69, floor 30.0, mean 48.9** | **14.4% (18 of 125)** |
+
+**The surprise is the direction.** A smaller delta makes the television MORE
+dominant, not less, which is the opposite of what "keep the placeholder
+subtle" predicts. Urgency is cubed, so equilibrium sits where
+`delta * deficit^3 / time_cost` matches whatever else the sim could be
+doing: halving the delta buys back only a cube root of deficit, and the sim
+holds `social` lower *and* visits more often, because each visit delivers
+less. At 24 every other need is back to roughly its no-advert level - hygiene
+79.0 against 79.2, bladder 72.6 against 75.7, 125 interactions against 121 -
+while `social` holds a live band. It is still the lowest need in the house by
+14 points, which is the intended reading rather than a shortfall.
+
+Neither world-hash golden vector moved, on either target, and that was
+predicted rather than discovered: `build_scenario` holds one object and it is
+the fridge, so no television advert can reach the digest. Same [L36] shape as
+the three knobs in [C3] below.
+
+The gap this exposed is now a build-time rule.
+`every_declared_need_can_be_satisfied_by_some_interaction` in
+`crates/terri-data/src/lib.rs` fails if any declared `NeedId` has no
+interaction advertising a **positive** delta for it. Positive rather than
+merely present, because a negative delta is legal content - the shower's
+`energy = -12.0` is a cost - and a need that can only ever be drained is
+exactly as unfillable as `social` was.
+
 ### [C3] An agent beaten to an object is told nothing is worth doing
 
 `select_action` skips an object already `claimed` this tick **before** it
@@ -418,6 +460,37 @@ second use quite likely. It happened on 7 of 121 interactions. At 5.8% it
 reads as plausible ("it went back for seconds") rather than as a bug, so
 nothing was changed, but it is the mechanism to look at first if the rate
 ever climbs.
+
+### [C6] The bookshelf is now never used at all
+
+Found while measuring [C2]'s fix, and recorded rather than absorbed. Before
+the television advertised `social` the bookshelf was used **3 times in 12 000
+ticks** - already the least-used object in the house by a factor of four.
+After, it is used **zero** times, and that holds at every delta tried,
+including the 8 that made the television *most* dominant. Any pull toward
+the television is enough to squeeze it out entirely.
+
+The bookshelf exists to be the low end of the fun range, so that the three
+fun objects span a real spread instead of clustering ([content/objects.toml]).
+At zero uses it is not the low end of anything: it is furniture the sim walks
+past, and the spread it was authored to create is between the television and
+the sofa only.
+
+Two things worth separating. It is **not** what [C2]'s new test catches -
+`fun` is still advertised by the television and the sofa, so the need remains
+satisfiable, and "an object nothing ever chooses" is a different invariant
+from "a need nothing can satisfy". It is also not statically checkable at
+all: whether an object is ever chosen is a property of a 12 000-tick run
+against a particular lot and seed, not of the compiled pack. The closest
+existing check is `every_declared_object_is_placed_on_the_lot`, which the
+bookshelf passes.
+
+Fixes worth weighing, none applied here: raise its `fun` delta above the
+sofa's 18 so it wins something; shorten its 70-tick duration, which is the
+longest of the three and the term dividing its score; or move it, since it
+sits at (1, 5) while the sofa and television share the south wall. All three
+are balance changes that move both golden vectors' *inputs* without moving
+the vectors, and belong in a content pass rather than here.
 
 ---
 
