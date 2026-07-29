@@ -54,6 +54,9 @@ pub struct TuningFile {
     /// least 1; it is what bounds the QUEUE rather than one sim's share
     /// of it.
     pub max_queued_commands: u32,
+    /// How often the shell re-reads a selected sim's needs for the need
+    /// bars, in real milliseconds. Zero means every frame and is legal.
+    pub need_bar_refresh_ms: u32,
     /// Need name to how much of that need drains per tick.
     ///
     /// A decay rate is a system-wide balance knob rather than part of a
@@ -206,15 +209,15 @@ pub struct PlacementDef {
 mod tests {
     use super::*;
 
-    /// The nine scalar knobs, with pairwise distinct values so that a
+    /// The eleven scalar knobs, with pairwise distinct values so that a
     /// field read off the wrong key is visible. Two knobs sharing a value
     /// would make a transposed pair of fields parse identically, which
     /// is [L34] in the tuning file's costume.
     ///
-    /// The five `u32`s and the `u64` are deliberately different numbers
+    /// The six `u32`s and the `u64` are deliberately different numbers
     /// for the same reason, and every float is exact in binary32 so the
     /// assertions can be equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 10] = [
+    const TUNING_LINES: [(&str, &str); 11] = [
         ("action_threshold", "0.25"),
         ("choice_temperature", "0.5"),
         ("idle_threshold", "0.125"),
@@ -225,9 +228,10 @@ mod tests {
         ("rng_seed", "300"),
         ("max_queued_intents", "7"),
         ("max_queued_commands", "11"),
+        ("need_bar_refresh_ms", "13"),
     ];
 
-    /// The decay table, which is the tenth knob and the only one that is
+    /// The decay table, which is the twelfth knob and the only one that is
     /// not a scalar. Its key is named separately because a TOML table has
     /// to be emitted after every top-level key rather than in line with
     /// them.
@@ -278,6 +282,7 @@ mod tests {
         assert_eq!(parsed.rng_seed, 300);
         assert_eq!(parsed.max_queued_intents, 7);
         assert_eq!(parsed.max_queued_commands, 11);
+        assert_eq!(parsed.need_bar_refresh_ms, 13);
 
         assert_eq!(parsed.decay_per_tick.len(), DECAY_LINES.len());
         for (need, rate) in DECAY_LINES {

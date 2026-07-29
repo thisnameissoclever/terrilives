@@ -33,13 +33,23 @@ export function lerp(a: number, b: number, t: number): number {
  * This is [D2], and it is what keeps the simulation deterministic. A
  * variable `dt` would make two machines fed the same inputs diverge, which
  * costs replays, the world hash, and the lockstep multiplayer Layer 2
- * plans on. Speed controls will multiply ticks per frame; they must never
- * change the tick duration, and `onTick` deliberately takes no argument so
- * there is no `dt` to hand them.
+ * plans on. Speed controls multiply ticks per frame; they never change the
+ * tick duration, and `onTick` deliberately takes no argument so there is
+ * no `dt` to hand them.
  */
 export class FixedStepDriver {
   private accumulatorMs = 0;
   private readonly stepMs: number;
+
+  /**
+   * How many simulation steps one unit of real time buys. 0 is paused, 1
+   * is real time, higher is faster.
+   *
+   * This is the ONLY thing a speed control may move. It is a count, and
+   * `stepMs` beside it is a duration; nothing may ever make the second a
+   * function of the first.
+   */
+  private speed = 1;
 
   constructor(
     tickHz: number,
@@ -49,12 +59,67 @@ export class FixedStepDriver {
   }
 
   /**
+   * How much simulated time one step covers, in milliseconds. Fixed at
+   * construction, and **independent of speed**.
+   *
+   * It is exposed because otherwise the guarantee is unobservable. A test
+   * that only counts steps cannot tell "twice as many steps of the same
+   * size" from "the same steps at half the size": over any elapsed time
+   * the two produce an identical step count AND an identical
+   * interpolation alpha, because scaling the accumulator by `k` and
+   * dividing `stepMs` by `k` are the same arithmetic. The count is
+   * therefore half a test, and this getter is the other half - the one
+   * assertion that separates [D2] from its violation.
+   */
+  get stepDurationMs(): number {
+    return this.stepMs;
+  }
+
+  /** The current tick multiplier. 0 while paused. */
+  get ticksPerUnitTime(): number {
+    return this.speed;
+  }
+
+  /**
+   * Sets the tick multiplier: 0 pauses, 1 is real time, 2 and 3 are
+   * faster.
+   *
+   * **Pause is zero steps, not a smaller step**, and speed is a step
+   * COUNT, not a step size. [D2] is the oldest constraint in the project
+   * and everything downstream sits on it: a variable step size makes two
+   * machines fed the same inputs diverge, which costs the world hash,
+   * replays, and the lockstep multiplayer Layer 2 plans on.
+   *
+   * Rejects rather than clamps. Every caller is a fixed option list, so a
+   * value that is not a non-negative integer is a programming mistake,
+   * and a silently clamped one would be a game running at a speed nobody
+   * chose.
+   */
+  setSpeed(multiplier: number): void {
+    if (!Number.isInteger(multiplier) || multiplier < 0) {
+      throw new RangeError(
+        `speed must be a non-negative integer, got ${multiplier}`,
+      );
+    }
+    this.speed = multiplier;
+  }
+
+  /**
    * Runs every tick the elapsed time has paid for, then returns the
    * interpolation alpha in `[0, 1)`: how far the display is between the
    * tick that just ran and the one that has not yet.
    */
   advance(deltaMs: number, onTick: () => void): number {
-    this.accumulatorMs += deltaMs;
+    // The multiplier is applied to the ELAPSED TIME, which is what buys
+    // steps, and never to `stepMs`, which is what a step costs. At speed
+    // 2 a frame pays for twice as many steps of exactly the same size.
+    //
+    // At speed 0 this adds nothing, so the loop below runs no ticks and
+    // the accumulator keeps whatever fraction of a step it was holding.
+    // That is deliberate: a pause that BANKED real time would spend the
+    // whole paused duration in one burst on resume, which is the sim
+    // teleporting through however long the player was reading the bars.
+    this.accumulatorMs += deltaMs * this.speed;
 
     let ticks = 0;
     while (this.accumulatorMs >= this.stepMs && ticks < this.maxTicksPerFrame) {

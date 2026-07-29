@@ -303,6 +303,50 @@ export class SimBridge {
   }
 
   /**
+   * The seven need names in `NeedId` index order, which is the order
+   * `needsOf` returns levels in.
+   *
+   * The need bars label themselves from this rather than from a list in
+   * TypeScript. Seven strings on this side would be a second copy of the
+   * need list kept in sync by nobody, and it would fail in the worst
+   * available way: every bar drawn, every number right, and the labels
+   * shifted against them. See `SimHandle::need_names`.
+   *
+   * Called once at load, so the seven strings it allocates are not on
+   * any per-frame path.
+   */
+  needNames(): string[] {
+    return this.handle.need_names();
+  }
+
+  /**
+   * The level a fully satisfied need sits at - the denominator every need
+   * bar is drawn against.
+   *
+   * Across the boundary rather than a `100` in the panel, for the same
+   * reason the labels are: a ceiling written here is the shell owning a
+   * piece of the need model, and if it ever drifted every bar would be
+   * drawn at the wrong scale with every number behind it still correct.
+   */
+  needMax(): number {
+    return this.handle.need_max();
+  }
+
+  /**
+   * How often the shell should re-read a selected sim's needs, in real
+   * milliseconds. `need_bar_refresh_ms` in `content/tuning.toml`.
+   *
+   * A display rate, not a simulation one: it cannot change what the
+   * simulation does, only how often the panel asks what it did. It comes
+   * from the tuning file rather than a `const` here because that is where
+   * a knob somebody tuning the game will look, and that rule has no
+   * exception for the shell.
+   */
+  needBarRefreshMs(): number {
+    return this.handle.need_bar_refresh_ms();
+  }
+
+  /**
    * The u64 world digest. Stays a bigint on purpose: coercing it through
    * `Number()` silently drops the low bits, which is exactly the part a
    * digest comparison depends on.

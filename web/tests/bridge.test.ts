@@ -515,6 +515,58 @@ describe('SimBridge', () => {
     expect(bridge.needsOf(0xffffffff).length).toBe(0);
   });
 
+  it('labels the need slots from the simulation, in the order it fills them', () => {
+    // The panel puts name `i` on level `i`, so the two lists are a PAIR
+    // and this is where the pairing crosses the boundary. A disagreement
+    // between them draws seven correct numbers under seven wrong labels:
+    // nothing errors, nothing looks broken, and every reading of the
+    // panel is off by however far the lists have slipped. That is why
+    // there is no list of seven strings in TypeScript to compare against
+    // - a third copy would agree with `needNames` by construction and
+    // say nothing about `needsOf`.
+    const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
+    const names = bridge.needNames();
+    expect(names.length).toBe(7);
+    expect(new Set(names).size).toBe(7);
+
+    // `spawnAgent` sets HUNGER and leaves the other six satisfied, so the
+    // levels themselves say which slot hunger is in. The label on that
+    // slot has to be the one that says so.
+    bridge.spawnAgent(1, 1, 12.5);
+    const levels = bridge.needsOf(0);
+    expect(levels.length).toBe(names.length);
+
+    const dipped = levels.findIndex((level) => level < 100);
+    expect(dipped).toBeGreaterThanOrEqual(0);
+    expect(levels[dipped]).toBeCloseTo(12.5, 4);
+    expect(names[dipped]).toBe('hunger');
+  });
+
+  it('reports the need ceiling and the refresh interval the content authors', () => {
+    // Neither is a number the shell may invent. The ceiling is the
+    // denominator every bar is drawn against, and the refresh interval is
+    // `need_bar_refresh_ms` from `content/tuning.toml` - a knob somebody
+    // tuning the game turns, which is why it is not a `const` in
+    // TypeScript.
+    const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
+
+    // Behavioural rather than a literal 100: a need cannot exceed the
+    // ceiling, which is the property the bars depend on. Feeding a sim
+    // spawned at the top of the range must leave it there.
+    const ceiling = bridge.needMax();
+    expect(ceiling).toBeGreaterThan(0);
+    bridge.spawnAgent(1, 1, ceiling * 10);
+    expect(bridge.needsOf(0)[0]).toBeCloseTo(ceiling, 4);
+
+    const refreshMs = bridge.needBarRefreshMs();
+    expect(Number.isInteger(refreshMs)).toBe(true);
+    // Zero would mean the panel reads every frame, which is the thing the
+    // throttle exists to prevent; a value past a second means bars that
+    // describe a decision already made.
+    expect(refreshMs).toBeGreaterThan(0);
+    expect(refreshMs).toBeLessThanOrEqual(1000);
+  });
+
   it('refuses a command the wire format cannot express rather than coercing it', () => {
     // `value >>> 0` would turn -1 into 4294967295 and 3.7 into 3, so a
     // caller's mistake would arrive as a perfectly well-formed command

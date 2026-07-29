@@ -15,6 +15,8 @@ import { FixedStepDriver, buildInstances } from './frame.js';
 import { TILE_HALF_HEIGHT, TILE_HALF_WIDTH } from './render/iso.js';
 import { buildStaticInstances } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
+import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
+import { buildTimeControls } from './ui/time-controls.js';
 
 /** [D2]: the simulation's one true rate. Speed controls change how many
  * ticks run per frame, never how long a tick is. */
@@ -27,6 +29,12 @@ const TICK_HZ = 10;
  * more than the frame that fell behind.
  */
 const MAX_TICKS_PER_FRAME = 5;
+
+/**
+ * The speed the page opens at: real time. Not paused, because a game that
+ * starts frozen looks broken rather than paused.
+ */
+const START_SPEED = 1;
 
 /**
  * Where the sim starts, in tiles. Open living space, a few tiles from the
@@ -138,6 +146,40 @@ async function main(): Promise<void> {
   }
 
   const driver = new FixedStepDriver(TICK_HZ, MAX_TICKS_PER_FRAME);
+  driver.setSpeed(START_SPEED);
+
+  // The two readouts. Both render simulation state and own nothing
+  // ([D-5]): the bars' labels, the seven levels, the selection and the
+  // refresh interval all come from the simulation, and the only thing
+  // either panel remembers is when it last read.
+  //
+  // Absent elements are thrown on rather than skipped. A page whose
+  // markup no longer matches this file would otherwise run with no bars
+  // and no speed buttons, which reads as an unimplemented feature rather
+  // than as a broken page - the same confusion [L17] cost a session to
+  // diagnose from a rendered picture.
+  const needsRoot = document.querySelector<HTMLElement>('#needs-panel');
+  const speedRoot = document.querySelector<HTMLElement>('#time-controls');
+  if (!needsRoot || !speedRoot) {
+    throw new Error('missing #needs-panel or #time-controls');
+  }
+  const needsPanel = new NeedsPanel(
+    needsRoot,
+    buildNeedBars(document, needsRoot, sim.needNames()),
+    sim.needBarRefreshMs(),
+    sim.needMax(),
+  );
+  buildTimeControls(document, speedRoot, START_SPEED, (ticksPerFrame) => {
+    // Both halves, in one place so neither can be forgotten.
+    //
+    // The command is what a replay and Layer 2 multiplayer would carry
+    // ([D-2]), even though the simulation applies nothing for it today;
+    // the driver call is what actually changes the speed. [D2]: it
+    // multiplies how many steps run per frame and never how long a step
+    // is.
+    sim.setSpeed(ticksPerFrame);
+    driver.setSpeed(ticksPerFrame);
+  });
 
   // Centre the lot's screen-space bounding box on the canvas, derived
   // from the lot rather than hand-tuned. `screenX` spans
@@ -192,6 +234,12 @@ async function main(): Promise<void> {
     const alpha = driver.advance(deltaMs, () => sim.tick());
     const instances = buildInstances(sim, alpha, originX, originY, depthScale);
     renderer.draw(instances, sim.count);
+
+    // Inside the sample below rather than outside it, deliberately: the
+    // panel is work the frame does, and a periodic cost measured outside
+    // the budget is a budget that does not describe the frame ([L19]).
+    // On five frames in six this is two comparisons and a return.
+    needsPanel.update(nowMs, sim);
 
     timer.sample(performance.now() - nowMs);
     if (nowMs - lastReportMs > REPORT_INTERVAL_MS) {

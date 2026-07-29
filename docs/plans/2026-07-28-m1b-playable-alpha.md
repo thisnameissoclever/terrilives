@@ -564,19 +564,23 @@ Commands cross as postcard bytes, so the wire format is the same one the save lo
 
 **The rule, from [D-5]:** these render simulation state and send commands. They own nothing. The only state either may hold is a throttle timestamp.
 
-- [ ] **Step 1: Need bars**
+- [x] **Step 1: Need bars**
 
 Seven bars for the selected sim, read from `needsOf` each frame at a throttled rate (60Hz is unnecessary; 10Hz matches the tick). Label each with its need name so a decision can be read against the bars.
 
-- [ ] **Step 2: Time controls**
+The throttle is `need_bar_refresh_ms` in `content/tuning.toml`, not a `const`, and the labels and the full-need ceiling come across the boundary from `need_names` and `need_max` rather than being written in TypeScript.
+
+- [x] **Step 2: Time controls**
 
 Pause, 1x, 2x, 3x, each dispatching `SetSpeed`. **The driver multiplies ticks per frame; it never touches `dt`** ([D2]). A test must pin that: at speed 2, twice as many ticks run for the same elapsed time, and the tick duration is unchanged.
 
-- [ ] **Step 3: Verify, and look at it in a real browser**
+The tick-count half of that test turned out to be vacuous on its own - see [L44]. `FixedStepDriver.stepDurationMs` is what pins the step size.
+
+- [x] **Step 3: Verify, and look at it in a real browser**
 
 [L14]: an agent-driven tab does not composite and reports zero frames as a beautiful pass. Confirm frames are genuinely produced and report the count.
 
-- [ ] **Step 4: Commit**
+3,743 rAF callbacks, draws and submits in a visible Chrome; the speed arms measured off the page's own bars. [V15].
 
 ---
 

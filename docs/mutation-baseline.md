@@ -4,7 +4,45 @@
 contract.** That file, not this one, is what CI compares against; it is the
 sorted contents of `mutants.out/missed.txt` from a full sweep.
 
-**Latest sweep: M1b Task 6, the WASM boundary, 2026-07-29**, full, on the
+**Latest sweep: M1b Task 7, the need bars and time controls, 2026-07-29**,
+full, run to completion on the finished tree, CI's package list and CI's exact
+single-job invocation:
+
+```
+cargo mutants --package terri-core --package terri-sim   --package terri-data --package terri-wasm --test-workspace true --timeout 60
+461 mutants tested in 27m: 5 missed, 397 caught, 56 unviable, 3 timeouts
+```
+
+**Five missed, and they are exactly the five in `docs/mutants-baseline.txt`.**
+`diff` on the sorted files is empty. **No new survivors.** The three timeouts
+are the known `rng.rs` ones, which are detections rather than survivors. The
+baseline file is unchanged and was not regenerated.
+
+**Scoped run over every file Task 7 touched**, which is the check that answers
+the gate's question about the task's own code ([L43] rule 3: believe the scoped
+one about your own changes and the full one about everything else):
+
+```
+cargo mutants --package terri-data --package terri-wasm   -f crates/terri-data/src/compile.rs -f crates/terri-wasm/src/lib.rs   --test-workspace true --timeout 60
+89 mutants tested in 3m: 62 caught, 27 unviable, 0 missed
+```
+
+**The mutant count rose from 456 to 461**, which is the expected reading for a
+task that added three boundary exports and one tuning knob.
+
+**What `cargo mutants` could not answer here, and what did.** The task's
+load-bearing invariant is [D2] - speed multiplies step COUNT and never step
+SIZE - and it lives entirely in TypeScript, which this tool does not touch. It
+was pinned by hand instead, and the first attempt at that pin was itself
+faulty: the step-count assertion killed the dt-mutation only because 100/3 is
+inexact in binary64. See [L44] and `.superpowers/sdd/m1b-task-7-report.md`
+[S2]. Fourteen hand-written mutations across `frame.ts`, `needs-panel.ts`,
+`terri-wasm/src/lib.rs` and `terri-data/src/compile.rs`, each with a named
+prediction: all fourteen killed, every prediction matched.
+
+---
+
+**Previous sweep: M1b Task 6, the WASM boundary, 2026-07-29**, full, on the
 finished tree, CI's package list and CI's exact single-job invocation:
 
 ```

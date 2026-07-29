@@ -2233,3 +2233,102 @@ reports 21 mutants, 21 caught, 0 missed. Before
 `a_finished_interaction_pops_only_the_intent_that_named_the_object_it_finished`
 it reported one missed, and that test fails on the `||` mutant and on deleting
 `queue.pop()`, which is what stops it being a one-sided assertion.
+
+---
+
+## [L44] Scaling elapsed time and shrinking the step are the same arithmetic, so a step count cannot tell them apart
+
+**What happened:** M1b Task 7 added the speed controls, whose one binding
+constraint is [D2]: speed multiplies how many simulation steps run, and never
+how long a step is. The test written for it asserted both halves - the step
+count scales with speed, and `stepDurationMs` does not - and the hand-written
+mutation for it was a driver that implements "2x" by halving `stepMs` instead
+of doubling the accumulator.
+
+It was killed, and **by the wrong assertion**. The failure was
+`expected [10, 20, 29] to deeply equal [10, 20, 30]`: at 3x the mutated
+driver's step is `100/3 = 33.333...`, which is not exact in binary64, so a
+1,000 ms frame lost one tick to rounding. The count assertion caught a
+floating-point artifact, not the violation.
+
+**Root cause, and it is arithmetic rather than an oversight.** For an
+accumulator driver, scaling the elapsed time by `k` and dividing the step by
+`k` produce *identical* observable behaviour:
+
+```
+ticks   = floor(k*d / S)         = floor(d / (S/k))
+alpha   = (k*d mod S) / S        = (d mod (S/k)) / (S/k)
+```
+
+Both the step count and the interpolation alpha agree at every elapsed time
+and under every frame pacing. **The count half of the test is therefore
+vacuous with respect to the thing it was written for**, and it only appeared
+to work because 100/3 is inexact. Speed 2 - where 100/2 is exact - is the case
+that shows it: a mutation confined to 2x produced the *identical* count
+`[10, 20, 30]` and was caught only by `expected [100, 50, 100] to deeply equal
+[100, 100, 100]`.
+
+This is the [L11] family with a new denominator: two mechanisms that agree on
+every sample the obvious instrument can take.
+
+**Prevention rule:**
+
+1. **A driver's step duration must be observable, or [D2] is unpinned.**
+   `FixedStepDriver.stepDurationMs` exists for exactly this and for nothing
+   else; it is the only assertion that separates the constraint from its
+   violation.
+2. When a mutation is killed, **check which assertion killed it**, not just
+   that the test went red. A pass/fail is not evidence about which line is
+   load-bearing, and here the two answers were different.
+3. When designing the mutation, **pick the arithmetic where the two candidate
+   mechanisms are exactly equal**, not where they merely should be. Inexact
+   division hid the equality at 3x and revealed it at 2x.
+
+**How to verify:** confine the dt-violation to speed 2 -
+`stepMs = base / 2` when `multiplier === 2`, with the accumulator left
+unscaled at that speed - and run
+`npm test -- -t "multiplies the number of steps"`. The count assertion on
+line 305 passes; the duration assertion on line 309 fails. Delete the
+duration assertion and the mutation survives the whole suite.
+
+---
+
+## [L45] Chrome no longer carries CSS property accessors where a probe expects them, and the probe reads zero
+
+**What happened:** Task 7's browser check counted panel writes by wrapping the
+`width` setter on `CSSStyleDeclaration.prototype`. It reported **0 bar writes
+over 3,743 frames** while the bars were visibly moving on screen and the
+screenshot showed all seven of them.
+
+`Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, 'width')` is
+`undefined` in current Chrome, and so is the whole prototype chain above an
+element's `style`: the individual CSS property attributes are not own
+properties of that object. Nothing threw. The patch simply never installed,
+and the counter it initialised stayed at its initial value, which is the
+reading that means "the panel never wrote a bar".
+
+**Root cause:** the same shape as [L20] half two and [L37] - an instrument
+that cannot observe the phenomenon returns the number that means the
+phenomenon did not happen. A patch that silently declines to install is worse
+than one that throws, because the zero it leaves behind is a plausible
+measurement.
+
+**Prevention rule:**
+
+1. **A monkey-patch must record that it installed**, and the probe must print
+   that flag beside the count. `patchedOn: null` next to `widthWrites: 0` is a
+   broken instrument; `patchedOn: "CSSStyleDeclaration"` next to
+   `widthWrites: 0` is a finding about the page.
+2. Prefer an observer over a patch where one exists. A `MutationObserver` with
+   `attributeFilter: ['style']` sees what the page actually wrote and does not
+   depend on where the engine chooses to define an accessor.
+3. Best of all, count the thing at its **source**: the panel calls `needsOf`
+   exactly once per read and nothing else on the page calls it, so wrapping
+   that is a direct count of reads rather than a proxy for one. Measured that
+   way: 97 reads in 10 s over 1,202 frames, one read per 12.4 frames, against
+   a 100 ms tuned interval.
+
+**How to verify:** in any current Chrome,
+`Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, 'width')`
+returns `undefined`, and walking `Object.getPrototypeOf(document.body.style)`
+to the top finds no own `width` descriptor on any link of the chain.

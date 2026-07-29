@@ -100,6 +100,20 @@ means three ticks per rendered frame. Variable `dt` would destroy determinism
 and take Layer 2 multiplayer with it. Cheap to honor now, near-impossible to
 retrofit.
 
+**The multiplier lives in the shell's `FixedStepDriver`, not in the
+simulation**, and that is forced rather than chosen: commands are drained
+inside `tick`, so a paused game drains nothing and a `SetSpeed` the simulation
+owned could be set to 0 and never read back to 1 - the game would have no way
+out of its own pause. Speed is a rate at which the shell asks for steps, not a
+property of the world. It still crosses the boundary as a command so the
+command log can replay a session's pauses ([D-2] in the M1b design), and the
+simulation deliberately applies nothing for it.
+
+Because the two are so easy to confuse, the driver exposes `stepDurationMs`
+purely so the constraint is testable: scaling elapsed time by `k` and dividing
+the step by `k` produce identical tick counts and identical interpolation
+alphas, so a step count cannot tell [D2] from its violation. See [L44].
+
 ## [D3] Simulation LOD tiers
 
 | Tier | Population | Cadence | What runs |

@@ -217,6 +217,43 @@ max_queued_intents = 4
 # makes while looking entirely normal doing it.
 max_queued_commands = 64
 
+# How often the shell re-reads a selected sim's needs for the need bars,
+# in real milliseconds.
+#
+# This is a DISPLAY rate, not a simulation rate, and it is the only knob
+# here that is: nothing downstream of it can change what the simulation
+# does, only how often the panel asks. It lives here anyway because it is
+# a knob somebody tuning the game will want to turn, and the standing rule
+# in this file's header is that such a knob has one home rather than being
+# a `const` buried in TypeScript nobody opens.
+#
+# The number is matched to the TICK, not to the display. The simulation
+# advances 10 times a second at 1x and the browser paints 60 or more times
+# a second, so at 100 ms the panel reads once per tick and five in six
+# frames cost nothing but a timestamp comparison. Reading every frame
+# would return the same seven numbers six times over, and each read is a
+# call across the WASM boundary that allocates a seven-float array.
+#
+# Both directions have a visible cost, which is why this is a knob rather
+# than a constant. Far below 100 spends boundary calls for numbers that
+# have not changed. Far above it makes the bars lag behind the sim's
+# behaviour, and the whole point of the panel is that a decision can be
+# read against the bars afterwards - bars a second stale describe a
+# decision that has already been made.
+#
+# Zero is legal and means "read every frame". It is not rejected at build
+# time because it does not fail quietly: it is merely wasteful, and the
+# panel still shows the truth. Contrast `max_queued_commands` above, where
+# zero is a game that silently ignores every click.
+#
+# AT SPEED 2 AND 3 THE SIMULATION OUTRUNS THIS, deliberately. Speed
+# multiplies ticks per frame and leaves the tick duration alone ([D2]), so
+# 3x runs 30 ticks a second while the panel still reads 10 times a second
+# and shows every third tick's levels. That is a display decision, not a
+# simulation one, and it is why this is measured in real milliseconds
+# rather than in ticks.
+need_bar_refresh_ms = 100
+
 # Need decay per tick. One tick is one sim-minute, so 0.104 drains a full
 # need in roughly 16 sim-hours.
 #
