@@ -14,13 +14,35 @@ pub enum ContentError {
         interaction: String,
         need: String,
     },
+    /// `needs.toml` names something that is not a `NeedId` variant.
+    UnknownDeclaredNeed {
+        need: String,
+    },
+    /// `needs.toml` declares the same need twice. It is a list rather
+    /// than a table, so serde cannot reject this on its own.
+    DuplicateDeclaredNeed {
+        need: String,
+    },
+    /// A `NeedId` variant that `needs.toml` does not declare. Without
+    /// this the need would exist in Rust, decay at whatever the tuning
+    /// table happened to hold for it, and be invisible in content.
+    MissingDeclaredNeed {
+        need: String,
+    },
+    /// `tuning.toml`'s `[decay_per_tick]` table has no rate for a need
+    /// `needs.toml` declares.
+    ///
+    /// A missing rate is not a rate of zero: the compile step seeds the
+    /// table with `NaN`, and a `NaN` decay rate poisons that need's level
+    /// on the first tick with nothing pointing back at the content.
     MissingNeedDecay {
         need: String,
     },
+    /// `tuning.toml`'s `[decay_per_tick]` table gives a rate for a name
+    /// that is not a `NeedId` variant. There is no duplicate counterpart:
+    /// the table is a map, so a repeated key is a TOML parse error before
+    /// this module sees it.
     UnknownNeedDecay {
-        need: String,
-    },
-    DuplicateNeedDecay {
         need: String,
     },
     DuplicateObjectId {
@@ -136,14 +158,26 @@ impl fmt::Display for ContentError {
                 f,
                 "object '{object}' interaction '{interaction}' advertises unknown need '{need}'"
             ),
-            ContentError::MissingNeedDecay { need } => {
-                write!(f, "needs.toml is missing a decay rate for '{need}'")
-            }
-            ContentError::UnknownNeedDecay { need } => {
+            ContentError::UnknownDeclaredNeed { need } => {
                 write!(f, "needs.toml declares unknown need '{need}'")
             }
-            ContentError::DuplicateNeedDecay { need } => {
+            ContentError::DuplicateDeclaredNeed { need } => {
                 write!(f, "needs.toml declares '{need}' more than once")
+            }
+            ContentError::MissingDeclaredNeed { need } => {
+                write!(f, "needs.toml does not declare '{need}'")
+            }
+            ContentError::MissingNeedDecay { need } => {
+                write!(
+                    f,
+                    "tuning.toml's [decay_per_tick] is missing a rate for '{need}'"
+                )
+            }
+            ContentError::UnknownNeedDecay { need } => {
+                write!(
+                    f,
+                    "tuning.toml's [decay_per_tick] gives a rate for unknown need '{need}'"
+                )
             }
             ContentError::DuplicateObjectId { id } => {
                 write!(f, "duplicate object id '{id}'")

@@ -9,7 +9,8 @@
 # describe one thing, or does it govern how everything behaves? The
 # first is content, the second is tuning. Existing scattered constants
 # migrate here as they are touched; `action_threshold` below was the
-# first.
+# first, and the seven need decay rates at the bottom followed, out of
+# needs.toml.
 #
 # Validated at build time like every other content file, so a missing or
 # malformed knob fails cargo build rather than surfacing later as
@@ -26,6 +27,13 @@ action_threshold = 0.05
 # picked as a round number. Observed range on the shipped lot with one
 # sim: roughly 0.001 to 1.0. Record new observations here when the
 # content changes.
+#
+# What 0.15 buys, measured rather than asserted: two candidates 0.165
+# apart - which is the gap between a 39-delta and a 30-delta object at
+# the same distance, on a sim at 80% hunger - go to the better one about
+# 75% of the time. Below roughly 0.02 the choice is effectively an
+# argmax at these magnitudes; above roughly 1.0 it is effectively a coin
+# toss.
 choice_temperature = 0.15
 
 # Below this, nothing is urgent enough to act on and the sim wanders
@@ -50,3 +58,34 @@ min_interaction_ticks = 25
 # Seed for the simulation PRNG. Constant for now; it becomes part of the
 # save file at M1d, which is what makes a saved game replayable.
 rng_seed = 20260728
+
+# Need decay per tick. One tick is one sim-minute, so 0.104 drains a full
+# need in roughly 16 sim-hours.
+#
+# These are here rather than in needs.toml because a decay rate is system
+# BALANCE, not part of a need's identity: needs.toml declares which needs
+# exist, and this table says how fast the simulation drains them. That is
+# the same split the header states, applied to the case that used to be
+# the exception.
+#
+# Every NeedId variant that needs.toml declares must appear here exactly
+# once. A missing or unknown entry fails the build.
+#
+# Changing a number here changes the simulation, and the world-hash golden
+# vectors in crates/terri-sim/src/lib.rs and web/tests/bridge.test.ts will
+# move - which is the intended signal, not a rebase artifact.
+#
+# The seven rates are deliberately all DIFFERENT, and that is load-bearing
+# rather than flavour. `decay_needs` looks a rate up by need index, and a
+# test cannot tell one slot from another if two slots hold the same value.
+# `needs_decay_at_different_rates` in crates/terri-sim/src/systems/needs.rs
+# fails if a balance pass ever makes two of them equal; see [L26] for the
+# instance where a uniform fixture hid exactly this bug one layer down.
+[decay_per_tick]
+hunger = 0.104
+energy = 0.069
+hygiene = 0.052
+bladder = 0.139
+social = 0.035
+fun = 0.042
+comfort = 0.028

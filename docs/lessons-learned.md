@@ -1813,6 +1813,29 @@ that nothing changed.
 `world_hash_matches_its_golden_vector`. Restore from a scratchpad byte
 snapshot, never with `git checkout` ([L9]), and touch the file ([L8]).
 
+**It recurred at M1c Task 3, on the same fixture, against the same
+prediction, and that is why this entry is worth more than its first
+instance.** That brief said in bold that both vectors "will move" when
+`select_action` switched from argmax to a softmax-weighted draw - the central
+change of a whole milestone. They did not: `0x2FC6_69EF_A725_4F2D` before and
+after, native and wasm32, wasm rebuilt first. **One object means every agent
+that gets a candidate gets exactly one, and a one-candidate draw has one
+answer at every temperature and every seed.** The check in prevention rule 1
+would have taken ten seconds and was not run either time.
+
+Two things follow for whoever is next. First, this scenario is now known
+*not* to cover candidate ranking or candidate sampling, so stop expecting it
+to; ranking is pinned by
+`an_object_behind_a_wall_loses_to_a_further_one_the_agent_can_walk_to` and
+sampling by
+`a_higher_scoring_object_is_chosen_more_often_and_a_lower_one_still_sometimes`.
+Second, its blindness became load-bearing in a new way: softmax calls
+`f32::exp`, which is a platform libm call with no cross-target bit-identity
+guarantee, and this vector is compared across native and wasm32. It stays
+safe *because* the fixture has one candidate, whose weight is `exp(0.0)` -
+exactly 1.0 on every target. Adding a second object to `build_scenario` would
+change what the vector is exposed to, not just what it covers.
+
 **A second, smaller instance from the same task, recorded because the shape
 recurs.** A boundary test for `lot_width` and `lot_height` built its own
 `SimHandle::new(width, height)` out of the two numbers under test and then

@@ -44,11 +44,26 @@ pub struct TuningFile {
     pub min_interaction_ticks: u32,
     /// Seed for the simulation PRNG.
     pub rng_seed: u64,
+    /// Need name to how much of that need drains per tick.
+    ///
+    /// A decay rate is a system-wide balance knob rather than part of a
+    /// need's identity, so it lives here and not in `needs.toml`, which
+    /// declares only which needs exist. The compile step checks that this
+    /// table covers exactly the needs that file declares.
+    ///
+    /// `BTreeMap` rather than `HashMap` for the same reason
+    /// [`InteractionDef::advertises`] is one: the compiled pack feeds a
+    /// determinism hash, and nothing on the way there may depend on hash
+    /// iteration order. A map rather than a list also makes a repeated
+    /// need a TOML parse error rather than something the compile step has
+    /// to catch.
+    pub decay_per_tick: BTreeMap<String, f32>,
 }
 
-/// Mirrors `content/needs.toml`. Every `NeedId` variant must appear
-/// exactly once; that is checked in the compile step, not here, because
-/// serde cannot express it.
+/// Mirrors `content/needs.toml`, which declares which needs exist and
+/// nothing else. Every `NeedId` variant must appear exactly once; that is
+/// checked in the compile step, not here, because serde cannot express
+/// it.
 #[derive(Debug, Deserialize)]
 pub struct NeedsFile {
     pub need: Vec<NeedDef>,
@@ -59,7 +74,6 @@ pub struct NeedDef {
     /// Matches `NeedId::as_str`. An unknown name is a content error, not
     /// a parse error, so this stays a `String` here.
     pub id: String,
-    pub decay_per_tick: f32,
 }
 
 /// Mirrors `content/objects.toml`.
@@ -182,8 +196,8 @@ pub struct PlacementDef {
 mod tests {
     use super::*;
 
-    /// The seven knobs, with pairwise distinct values so that a field
-    /// read off the wrong key is visible. Two knobs sharing a value
+    /// The seven scalar knobs, with pairwise distinct values so that a
+    /// field read off the wrong key is visible. Two knobs sharing a value
     /// would make a transposed pair of fields parse identically, which
     /// is [L34] in the tuning file's costume.
     ///
@@ -200,14 +214,40 @@ mod tests {
         ("rng_seed", "300"),
     ];
 
+    /// The decay table, which is the eighth knob and the only one that is
+    /// not a scalar. Its key is named separately because a TOML table has
+    /// to be emitted after every top-level key rather than in line with
+    /// them.
+    const DECAY_KEY: &str = "decay_per_tick";
+
+    /// Three needs rather than seven: this module tests SHAPE, and
+    /// "exactly the seven `NeedId` variants" is a compile-step rule.
+    /// Distinct rates, again so a value read off the wrong key is visible,
+    /// and declared out of alphabetical order so a map that preserved
+    /// insertion order would be distinguishable from a sorted one.
+    const DECAY_LINES: [(&str, &str); 3] = [
+        ("social", "0.0625"),
+        ("hunger", "0.03125"),
+        ("energy", "0.015625"),
+    ];
+
     /// The fixture above as TOML, minus the named knob. Passing a name
     /// no knob has yields the complete file.
     fn tuning_toml_without(omitted: &str) -> String {
-        TUNING_LINES
+        let mut out: String = TUNING_LINES
             .iter()
             .filter(|(key, _)| *key != omitted)
             .map(|(key, value)| format!("{key} = {value}\n"))
-            .collect()
+            .collect();
+        // The table goes last, because everything after a `[table]`
+        // header in TOML belongs to that table.
+        if omitted != DECAY_KEY {
+            out.push_str(&format!("\n[{DECAY_KEY}]\n"));
+            for (need, rate) in DECAY_LINES {
+                out.push_str(&format!("{need} = {rate}\n"));
+            }
+        }
+        out
     }
 
     #[test]
@@ -222,6 +262,42 @@ mod tests {
         assert_eq!(parsed.duration_variance, 0.75);
         assert_eq!(parsed.min_interaction_ticks, 3);
         assert_eq!(parsed.rng_seed, 300);
+
+        assert_eq!(parsed.decay_per_tick.len(), DECAY_LINES.len());
+        for (need, rate) in DECAY_LINES {
+            assert_eq!(
+                parsed.decay_per_tick.get(need),
+                Some(&rate.parse::<f32>().expect("the fixture rates are numbers")),
+                "'{need}' did not reach the decay table with its own rate"
+            );
+        }
+    }
+
+    /// The decay table is keyed by need NAME while the compiled pack is
+    /// keyed by need INDEX, so two orders exist and something has to pick
+    /// one. `BTreeMap` iterates sorted; a `HashMap` would iterate in an
+    /// order that varies from process to process, and the compiled pack
+    /// feeds a determinism hash. Same mechanism, and the same reasoning,
+    /// as `advert_iteration_is_sorted_not_hash_ordered` below.
+    #[test]
+    fn decay_iteration_is_sorted_not_hash_ordered() {
+        let declared: Vec<&str> = DECAY_LINES.iter().map(|(need, _)| *need).collect();
+        let mut sorted = declared.clone();
+        sorted.sort_unstable();
+        assert_ne!(
+            declared, sorted,
+            "the declared order must differ from sorted order, or this \
+             test cannot tell an insertion-ordered map from a sorted one"
+        );
+
+        let parsed: TuningFile =
+            toml::from_str(&tuning_toml_without("")).expect("valid tuning toml");
+        let keys: Vec<&str> = parsed
+            .decay_per_tick
+            .keys()
+            .map(String::as_str)
+            .collect::<Vec<_>>();
+        assert_eq!(keys, sorted, "decay iteration order is not sorted");
     }
 
     /// The rejecting half, and the reason `TuningFile` has no
@@ -245,7 +321,11 @@ mod tests {
              prove nothing"
         );
 
-        for (omitted, _) in TUNING_LINES {
+        let omissions = TUNING_LINES
+            .iter()
+            .map(|(key, _)| *key)
+            .chain(std::iter::once(DECAY_KEY));
+        for omitted in omissions {
             let err = match toml::from_str::<TuningFile>(&tuning_toml_without(omitted)) {
                 Ok(parsed) => {
                     panic!("a tuning file missing '{omitted}' must not parse; got {parsed:?}")
@@ -265,13 +345,21 @@ mod tests {
             r#"
             [[need]]
             id = "hunger"
-            decay_per_tick = 0.104
+
+            [[need]]
+            id = "energy"
             "#,
         )
         .expect("valid needs toml");
-        assert_eq!(parsed.need.len(), 1);
-        assert_eq!(parsed.need[0].id, "hunger");
-        assert_eq!(parsed.need[0].decay_per_tick, 0.104);
+        assert_eq!(
+            parsed
+                .need
+                .iter()
+                .map(|n| n.id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["hunger", "energy"],
+            "needs.toml declares which needs exist, in declaration order"
+        );
     }
 
     #[test]

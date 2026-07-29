@@ -279,6 +279,10 @@ nonsense**, with the message naming the offending id:
 
 - a need name `NeedId::from_name` does not know
 - a `NeedId` variant missing from `needs.toml`, or declared twice
+- a need `needs.toml` declares that `tuning.toml`'s `[decay_per_tick]` gives no
+  rate for, or a rate for a need nothing declares. The two files answer
+  different questions - which needs exist, and how fast the simulation drains
+  them - and the build fails unless they agree
 - a duplicate object or interaction id
 - a zero `duration_ticks` (an interaction that finishes before it starts) or
   zero `slots`
@@ -295,7 +299,9 @@ standing rule rather than one file's convention: **a new knob goes there rather
 than into a Rust `const`.** See [D-1] in the M1c design. The person tuning game
 feel iterates, and wants one file to open rather than a hunt through Rust; a
 constant buried in a system is a knob nobody finds. `ACTION_THRESHOLD` was the
-first migration, from ten places in `select_action`.
+first migration, from ten places in `select_action`; the seven need decay rates
+followed at M1c Task 3, out of `needs.toml`, which now declares only which
+needs exist.
 
 Predicates (`requires`) are not yet a content concept, so "an object requiring
 an undefined predicate" is still a promise rather than a check; it lands with

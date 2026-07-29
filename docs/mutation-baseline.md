@@ -4,7 +4,71 @@
 contract.** That file, not this one, is what CI compares against; it is the
 sorted contents of `mutants.out/missed.txt` from a full sweep.
 
-**Latest sweep: M1c Task 1, 2026-07-28**, full, on a clean tree at `f4458fb`,
+**Latest sweep: M1c Task 3, 2026-07-28**, full, on the finished Task 3 tree,
+with the package list CI uses:
+
+```
+cargo mutants --package terri-core --package terri-sim \
+  --package terri-data --package terri-wasm --test-workspace true --timeout 60 \
+  --jobs 4
+359 mutants tested in 10m: 5 missed, 303 caught, 48 unviable, 3 timeouts
+```
+
+**Mutation score on viable mutants: 97.4%** (303 caught of 311 viable, counting
+the 3 timeouts as not-caught, which is the pessimistic reading).
+
+`--jobs 4` is the only difference from CI's invocation, and it is a wall-clock
+concession on this machine rather than a change to what is measured: which
+mutants survive is not a function of how many run at once, and the test phase
+is under two seconds so the 60s timeout is nowhere near contended. **CI's own
+command is unchanged.** Single-job was measured at about 20s per mutant here
+against CI's 3.3s, which would have been over two hours.
+
+**The survivor list is byte-identical to `docs/mutants-baseline.txt`.** CI's
+comparison gives an empty new-survivor list and an empty now-caught list, so
+the baseline file is unchanged by this task.
+
+Seventeen new mutants entered the sweep (359 against 342 at Task 1), from
+`sample_softmax`, the object sort, the reshaped per-object comparison and the
+decay split across two content files. All were caught, but **one of them was
+not caught first time and that is the entry worth reading:**
+
+```
+crates/terri-sim/src/systems/action.rs:445:52: replace > with < in select_action
+```
+
+That is `score > *best_score`, the comparison that picks which of an object's
+interactions an agent performs, flipped to keep the WORST one. It survived the
+first sweep of the task with all 172 tests green. Two fixtures look like they
+cover it and neither does: `selection_scores_every_interaction_and_records_the_one_that_won`
+deliberately puts its weak interaction below the action threshold, so `best` is
+still `None` when the strong one is scored and the comparison never runs against
+an incumbent; and `a_tied_later_interaction_cannot_displace_an_earlier_one_on_the_same_object`
+runs it only on EQUAL scores, where `>` and `<` agree. The missing input domain
+is two interactions on one object that both clear the threshold and differ,
+which no fixture had. That is [L34], and
+`the_better_of_two_worthwhile_interactions_on_one_object_is_the_one_recorded`
+is the test written for it.
+
+Worth recording twice over. The mutation was **killable before this task**,
+when the same comparison ranged over objects as well as interactions and
+several fixtures place two objects with different scores; scoping it to within
+one object is what made the existing coverage stop reaching it. That is [L30]
+running in the opposite direction - not an equivalent mutant becoming killable,
+but a killed mutant becoming a survivor because the code around it changed
+shape. **Neither a reviewer nor the eight hand mutations run for this task
+found it; the sweep did.**
+
+**No baseline entry re-anchored.** The brief warned that the baseline is
+line-keyed and that an entry can move on a comment edit alone. It did not
+happen here, and the reason is checkable rather than lucky: all five baseline
+entries live in `grid.rs`, `rng.rs` and `advertise.rs`, none of which this task
+touched. Normalising on `(file, column, mutation)` was therefore unnecessary,
+and the raw line-keyed comparison is sound for this task specifically.
+
+---
+
+**Previous sweep: M1c Task 1, 2026-07-28**, full, on a clean tree at `f4458fb`,
 with the package list CI uses:
 
 ```

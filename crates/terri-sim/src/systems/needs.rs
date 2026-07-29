@@ -3,8 +3,14 @@ use terri_core::{NeedId, Needs};
 
 use crate::Content;
 
-/// Every need decays, each at the rate `content/needs.toml` declares for
-/// it.
+/// Every need decays, each at the rate `content/tuning.toml` declares
+/// for it.
+///
+/// The rates moved there from `needs.toml` at M1c, per [D-1]: a decay
+/// rate is system BALANCE rather than part of a need's identity, and
+/// every knob a designer tunes lives in one file. `needs.toml` still
+/// declares which needs exist, and the compile step checks the two
+/// files agree.
 ///
 /// The rates used to be a `HUNGER_DECAY_PER_TICK` constant here as well
 /// as rows in the content file: two copies of one number with nothing
@@ -69,7 +75,7 @@ mod tests {
             //
             // Measured, per testing-protocol rule 1 applied to the guard
             // and not only to the mechanism: set comfort's rate to 0.0 in
-            // content/needs.toml and it is THIS line that fails, with
+            // content/tuning.toml and it is THIS line that fails, with
             // "comfort decays at zero". The level assertion below stays
             // green, because 100.0 - 0.0 * 100 is where comfort already
             // sits.

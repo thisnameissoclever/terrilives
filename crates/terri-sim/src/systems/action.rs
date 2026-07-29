@@ -1,14 +1,281 @@
 use bevy_ecs::prelude::*;
 use terri_core::{
-    Agent, Eating, NeedId, Needs, Path, Position, Reserved, SmartObject, Target, TileGrid,
+    Agent, Eating, NeedId, Needs, Path, Position, Reserved, SimRng, SmartObject, Target, TileGrid,
 };
 
 use super::advertise::score_advertisement;
 use crate::Content;
 
-/// Idle agents scan advertisements, pick the best, reserve it, and path
-/// to it. Serialized on purpose: reservation is contended state, so it
-/// runs in deterministic entity order per [D4].
+/// Picks one candidate at random, weighted by `exp(score / temperature)`
+/// - the softmax of [D-2].
+///
+/// **Low temperature approaches argmax; high temperature approaches
+/// uniform.** That is the whole knob: a designer slides
+/// `choice_temperature` from "always the most urgent thing" to "barely
+/// cares" without a rebuild. What it buys is that urgency raises the
+/// PROBABILITY a need is served next without making it certain, which is
+/// the difference between a sim and a robot working down a priority list.
+///
+/// # Three properties that are correctness rather than style
+///
+/// **The maximum score is subtracted before exponentiating.** `exp` of a
+/// large score overflows to infinity, infinity divided by infinity is
+/// `NaN`, and `NaN` loses every comparison - so an affected sim would
+/// stop choosing anything forever, with no panic and no log. Subtracting
+/// the maximum is mathematically identity: every weight is scaled by the
+/// same `exp(-max/T)`, which cancels in the normalisation. It is what
+/// `a_large_score_does_not_overflow_to_nan` pins, and that test is not
+/// decoration - it fails on the unshifted version.
+///
+/// **The caller's order is the bucket order.** Weights are laid end to
+/// end and a single draw picks the interval it lands in, so which
+/// candidate sits in `[0, p_0)` and which in `[p_0, p_0 + p_1)` is
+/// decided entirely by the order of `scores`. Two runs that disagree
+/// about that order disagree about the outcome for the same draw. Every
+/// caller therefore has to hand candidates over in an order that is a
+/// function of the world's state and not of its archetype layout; see
+/// the object sort in [`select_action`].
+///
+/// **Softmax is scale-sensitive**, unlike proportionate selection.
+/// Because urgency is cubed, scores span orders of magnitude, so `T` has
+/// to be tuned against the real range rather than picked as a round
+/// number. `content/tuning.toml` carries the observed range.
+///
+/// `temperature` is strictly positive by content validation, so this does
+/// not re-check it; a pack holding a zero or negative temperature cannot
+/// be built.
+///
+/// # `exp` is the one platform call in the simulation's causal chain
+///
+/// Everything else the sim computes is IEEE-exact and therefore
+/// bit-identical on every target - `score_advertisement` cubes urgency by
+/// repeated multiplication rather than `powf` for exactly that reason,
+/// and `SimRng` is in-repo rather than taken from `rand` for it too.
+/// `f32::exp` is not: it lowers to a platform libm call whose last bit is
+/// not guaranteed to agree between the MSVC CRT that `cargo test` uses,
+/// glibc on CI, and the wasm32 build that actually ships.
+///
+/// **A last-bit difference changes the outcome only when the draw falls
+/// within one ulp of a bucket boundary**, which is about one decision in
+/// 2^24 and only on targets that disagree at all. So this is a small
+/// residual risk rather than a broken guarantee - but it is a real one
+/// for replay and for the planned multiplayer, and it is unavoidable
+/// while [D-2] specifies a softmax. Softmax needs an exponential.
+///
+/// It is written down rather than fixed because the fix - an in-repo
+/// `exp` approximation, the same move the PRNG made - is a decision about
+/// how much determinism this project is buying, not an implementation
+/// detail to slip in. The tests that cover weighted selection are all
+/// robust to a last-bit difference by construction: the tie tests weigh
+/// candidates at `exp(0.0)`, which is exactly 1.0 everywhere, the
+/// decisive-temperature fixtures underflow the loser to exactly 0.0, and
+/// the distribution test is statistical over 500 seeds. Both golden world
+/// hashes are over one-candidate scenarios and so never depend on an
+/// `exp` result at all.
+pub fn sample_softmax(scores: &[f32], temperature: f32, rng: &mut SimRng) -> usize {
+    assert!(
+        !scores.is_empty(),
+        "sample_softmax has no candidate to choose between"
+    );
+
+    // `fold` with `f32::max` rather than `max_by`, because `f32` is not
+    // `Ord` and the fold states the identity element explicitly.
+    let max = scores.iter().copied().fold(f32::NEG_INFINITY, f32::max);
+
+    let mut weights = Vec::with_capacity(scores.len());
+    let mut total = 0.0;
+    for score in scores {
+        let weight = ((score - max) / temperature).exp();
+        total += weight;
+        weights.push(weight);
+    }
+
+    // `total` is at least 1.0, because the maximum scores `exp(0.0)`, so
+    // the draw cannot land past the end of the last bucket except
+    // through rounding in the multiply below - and the running index
+    // handles that case by falling out of the loop on the last
+    // candidate, which is the answer the comparison would have given for
+    // a draw one ulp lower.
+    //
+    // Written as a running index rather than as an early `return` with a
+    // trailing `scores.len() - 1` deliberately. That trailing expression
+    // is unreachable by construction, and **unreachable arithmetic is
+    // exactly what a mutation sweep cannot judge**: `- 1` becoming
+    // `+ 1`, `* 1`, `/ 1` or `% 1` there would survive every test, and
+    // four survivors that mean nothing are how a baseline turns into
+    // wallpaper. This shape has no arithmetic to mutate.
+    let draw = rng.next_f32() * total;
+    let mut cumulative = 0.0;
+    let mut chosen = 0;
+    for (index, weight) in weights.iter().enumerate() {
+        chosen = index;
+        cumulative += weight;
+        if draw < cumulative {
+            break;
+        }
+    }
+    chosen
+}
+
+#[cfg(test)]
+mod sampler_tests {
+    //! `sample_softmax` is the piece with real maths in it, so it is
+    //! tested standalone before anything about the ECS is involved.
+    //! Nothing here builds a world; every input is a slice of scores.
+
+    use super::sample_softmax;
+    use terri_core::SimRng;
+
+    /// The fraction of draws that pick index 0, which every caller below
+    /// arranges to be the highest-scoring candidate.
+    ///
+    /// Ten thousand samples from one seeded generator: the point is the
+    /// SHAPE of the distribution, so the sample has to be large enough
+    /// that the shape is what the number reports.
+    fn share_of_best(scores: &[f32], temperature: f32) -> f32 {
+        const SAMPLES: u32 = 10_000;
+        assert!(
+            scores.iter().skip(1).all(|s| *s < scores[0]),
+            "index 0 must be the single best score, or 'share of best' \
+             names the wrong thing: {scores:?}"
+        );
+
+        let mut rng = SimRng::from_seed(17);
+        let mut best = 0u32;
+        for _ in 0..SAMPLES {
+            if sample_softmax(scores, temperature, &mut rng) == 0 {
+                best += 1;
+            }
+        }
+        best as f32 / SAMPLES as f32
+    }
+
+    #[test]
+    fn a_much_better_option_wins_most_of_the_time_but_not_always() {
+        // Both halves matter. The first distinguishes this from uniform
+        // random; the second is the entire point of the milestone and is
+        // what distinguishes it from argmax.
+        let scores = [1.0, 0.25];
+        let mut rng = SimRng::from_seed(3);
+        let mut wins = [0u32; 2];
+        for _ in 0..10_000 {
+            wins[sample_softmax(&scores, 0.15, &mut rng)] += 1;
+        }
+        assert_eq!(
+            wins[0] + wins[1],
+            10_000,
+            "every draw must land on a candidate: {wins:?}"
+        );
+        assert!(
+            wins[0] > wins[1] * 3,
+            "the better option must dominate: {wins:?}"
+        );
+        assert!(
+            wins[1] > 0,
+            "the worse option must still happen sometimes: {wins:?}"
+        );
+    }
+
+    #[test]
+    fn temperature_moves_the_distribution_between_argmax_and_uniform() {
+        let scores = [1.0, 0.8];
+        let cold = share_of_best(&scores, 0.01);
+        let warm = share_of_best(&scores, 10.0);
+        assert!(
+            cold > 0.95,
+            "low temperature must approach argmax, got {cold}"
+        );
+        assert!(
+            (warm - 0.5).abs() < 0.1,
+            "high temperature must approach uniform, got {warm}"
+        );
+    }
+
+    #[test]
+    fn a_large_score_does_not_overflow_to_nan() {
+        // `exp` of a large score is infinity, and infinity over infinity
+        // is NaN. NaN loses every comparison, so a sim would stop
+        // choosing anything forever with no panic and no log. The fix is
+        // to subtract the max before exponentiating, which is
+        // mathematically identity.
+        //
+        // Mutation-verified: without the shift this returns index 1 -
+        // both weights become `inf`, the running total becomes `inf`,
+        // and `draw` becomes `NaN`, so `draw < cumulative` is false at
+        // every bucket and the loop falls through to its last-resort
+        // return. Green with the shift, red without.
+        //
+        // 1000.0 is not a contrived magnitude at the tuned temperature:
+        // it is divided by `choice_temperature`, so the shipped 0.15
+        // turns any score above about 88 into an infinite weight.
+        let scores = [1000.0, 1.0];
+        let mut rng = SimRng::from_seed(5);
+        let picked = sample_softmax(&scores, 0.15, &mut rng);
+        assert_eq!(picked, 0);
+    }
+
+    #[test]
+    fn a_single_candidate_is_always_chosen() {
+        let mut rng = SimRng::from_seed(9);
+        assert_eq!(sample_softmax(&[0.3], 0.15, &mut rng), 0);
+    }
+
+    /// A candidate whose weight underflows to exactly zero must be
+    /// unreachable, including on a draw of exactly `0.0`.
+    ///
+    /// This is what `assert_decisive` in the system tests below relies
+    /// on, and it is the one place the `<` in the bucket walk is
+    /// distinguishable from `<=`. `next_f32` can return exactly 0.0 -
+    /// one draw in 2^24 - and under `<=` that draw would pick a
+    /// zero-probability candidate sitting in front, which is precisely
+    /// the "impossible outcome happens once in a blue moon" bug that is
+    /// unreproducible by the time anybody notices.
+    ///
+    /// The zero-weight candidate is deliberately FIRST, because that is
+    /// the only position from which it could be picked.
+    ///
+    /// The seed is not arbitrary and is not a magic number: it is the
+    /// smallest one whose FIRST draw is exactly `0.0`, found by search,
+    /// because a draw of zero is the only input on which `<` and `<=`
+    /// disagree here and it arrives once in 2^24 draws. Ten thousand
+    /// random samples would miss it about 99.94% of the time, which is
+    /// the difference between a test and a coincidence. The precondition
+    /// below asserts the seed still has that property, so a change to
+    /// `SimRng` fails here loudly instead of quietly making this a test
+    /// of an ordinary draw.
+    #[test]
+    fn a_zero_weight_candidate_is_never_picked_even_on_a_draw_of_zero() {
+        const ZERO_DRAW_SEED: u64 = 55_392_234;
+        let scores: [f32; 2] = [0.0, 1.0];
+        let temperature: f32 = 0.001;
+
+        let weight = ((scores[0] - scores[1]) / temperature).exp();
+        assert_eq!(
+            weight, 0.0,
+            "the fixture must genuinely underflow, or this test is about \
+             a small weight rather than a zero one; got {weight}"
+        );
+        let first = SimRng::from_seed(ZERO_DRAW_SEED).next_f32();
+        assert_eq!(
+            first, 0.0,
+            "the seed must draw exactly zero first, or this test cannot \
+             tell `<` from `<=`; got {first}"
+        );
+
+        let mut rng = SimRng::from_seed(ZERO_DRAW_SEED);
+        assert_eq!(
+            sample_softmax(&scores, temperature, &mut rng),
+            1,
+            "a candidate whose probability is exactly zero was picked; \
+             the bucket walk must reject a draw that merely REACHES the \
+             running total rather than exceeding it"
+        );
+    }
+}
+
+/// Idle agents scan advertisements, sample one weighted by score, reserve
+/// it, and path to it. Serialized on purpose: reservation is contended
+/// state, so it runs in deterministic entity order per [D4].
 ///
 /// The type_complexity allow is unavoidable: the filter tuple that keeps
 /// busy agents out of selection is exactly what pushes the query type
@@ -19,6 +286,7 @@ pub fn select_action(
     mut commands: Commands,
     grid: Res<TileGrid>,
     content: Res<Content>,
+    mut rng: ResMut<SimRng>,
     agents: Query<(Entity, &Position, &Needs), (With<Agent>, Without<Target>, Without<Eating>)>,
     objects: Query<(Entity, &Position, &SmartObject), Without<Reserved>>,
 ) {
@@ -30,6 +298,7 @@ pub fn select_action(
     // pack's copy is validated at build time, so nothing here re-checks
     // it.
     let action_threshold = content.0.tuning.action_threshold;
+    let temperature = content.0.tuning.choice_temperature;
 
     // Collect and sort so iteration order cannot vary between runs.
     //
@@ -42,13 +311,47 @@ pub fn select_action(
         .collect();
     idle.sort_by_key(|(e, _, _)| e.index());
 
+    // **The objects are sorted for the same reason, and that became
+    // load-bearing at M1c rather than being tidiness.**
+    //
+    // Until selection became probabilistic this query iterated unsorted,
+    // and that was safe only because the argmax was unique regardless of
+    // order: the score comparison plus its entity-index tiebreak left no
+    // room for iteration order to decide anything. Weighted sampling
+    // removes that protection. `sample_softmax` lays the candidates'
+    // probabilities end to end and takes one draw, so **the order sets
+    // the bucket boundaries** and the same draw picks a different object
+    // depending on which one came first.
+    //
+    // Query iteration is archetype order, and an object leaves and
+    // re-enters the unreserved archetype every time it is claimed and
+    // released - leaving swap-removes it from its table and re-entering
+    // appends it at the back. So without this line the outcome of a die
+    // roll becomes a function of which objects have been used recently,
+    // which is a silent determinism break of exactly the class [D-3] and
+    // [L5] are about. `tied_scores_resolve_by_object_index_not_archetype_order`
+    // is what pins it; deleting this line must fail that test.
+    let mut placed_objects: Vec<(Entity, Position, SmartObject)> = objects
+        .iter()
+        .map(|(e, pos, object)| (e, *pos, *object))
+        .collect();
+    placed_objects.sort_by_key(|(e, _, _)| e.index());
+
     let mut claimed: Vec<Entity> = Vec::new();
 
     for (agent, agent_pos, needs) in idle {
-        let mut best: Option<(Entity, Vec<(i32, i32)>, u32, f32)> = None;
+        // One candidate per object, in object-index order. An object
+        // offers a LIST of interactions and an agent performs ONE of
+        // them, so the interactions are resolved against each other
+        // first and the object enters the draw once, carrying whichever
+        // of its interactions this agent would pick. Entering every
+        // (object, interaction) pair separately would instead give an
+        // object weight in proportion to how many ways it can be used.
+        let mut candidates: Vec<(Entity, Vec<(i32, i32)>, u32, f32)> = Vec::new();
         let from = (agent_pos.x.round() as i32, agent_pos.y.round() as i32);
 
-        for (object, object_pos, placed) in &objects {
+        for (object, object_pos, placed) in &placed_objects {
+            let object = *object;
             if claimed.contains(&object) {
                 continue;
             }
@@ -100,6 +403,7 @@ pub fn select_action(
             // An object offers a list of interactions and an agent
             // performs one of them, so each is scored separately and the
             // winner is carried forward; see `Target::interaction`.
+            let mut best: Option<(u32, f32)> = None;
             for (index, advert) in content.0.object(placed.0).interactions.iter().enumerate() {
                 // Summing the per-need scores is a design decision, not
                 // an implementation detail. An object that satisfies two
@@ -121,36 +425,50 @@ pub fn select_action(
                         distance,
                     );
                 }
+                // STRICTLY greater, and that is the mechanism rather
+                // than a default: two interactions on the same object
+                // that score equally must resolve to the EARLIER one, or
+                // which interaction an agent performs starts depending on
+                // declaration order in content with nothing saying so.
+                // Relaxed to `>=` the later one takes over, which is what
+                // `a_tied_later_interaction_cannot_displace_an_earlier_one_on_the_same_object`
+                // fails on.
+                //
+                // The entity-index clause that used to sit here settled
+                // ties between OBJECTS as well, and that half is gone
+                // because the argmax it protected is gone: under weighted
+                // sampling two tied objects both enter the draw, and what
+                // decides which of them occupies the first probability
+                // bucket is the sort above. [D-3] is where that handover
+                // is written down.
                 let better = match &best {
-                    // Tiebreak on entity index so equal scores resolve
-                    // identically every run. Two interactions on the
-                    // SAME object compare equal here, so a tied later
-                    // interaction cannot displace an earlier one - the
-                    // same strictness that settles ties between objects
-                    // settles ties within one.
-                    Some((best_e, _, _, best_score)) => {
-                        score > *best_score
-                            || (score == *best_score && object.index() < best_e.index())
-                    }
+                    Some((_, best_score)) => score > *best_score,
                     None => true,
                 };
                 if score > action_threshold && better {
-                    // The clone is at most a few short paths per agent
-                    // per tick, and it buys keeping this comparison
-                    // byte-identical to the one three tests pin. Hoisting
-                    // the interaction scores into a per-object maximum
-                    // first would avoid it and would also move the
-                    // within-object tie from the index clause to the
-                    // score clause, which is exactly the silent change of
-                    // meaning [L30] is about.
-                    best = Some((object, steps.clone(), index as u32, score));
+                    best = Some((index as u32, score));
                 }
+            }
+
+            if let Some((interaction, score)) = best {
+                candidates.push((object, steps, interaction, score));
             }
         }
 
-        let Some((object, steps, interaction, _)) = best else {
+        if candidates.is_empty() {
             continue;
-        };
+        }
+
+        // The draw. **Nothing between building `candidates` and this line
+        // may reorder it**: its order is the bucket order `sample_softmax`
+        // documents, and it is the object-index order the sort above
+        // established. The `swap_remove` afterwards does reorder it, which
+        // is harmless only because the vector is dropped on the next
+        // iteration - move it above the draw and the determinism goes with
+        // it.
+        let scores: Vec<f32> = candidates.iter().map(|(_, _, _, score)| *score).collect();
+        let picked = sample_softmax(&scores, temperature, &mut rng);
+        let (object, steps, interaction, _) = candidates.swap_remove(picked);
 
         claimed.push(object);
         commands.entity(object).insert(Reserved);
@@ -170,7 +488,7 @@ mod tests {
     use crate::test_content;
     use crate::Sim;
     use terri_core::ObjectDefId;
-    use terri_data::ContentPack;
+    use terri_data::{CompiledObject, ContentPack, Tuning};
 
     /// The advert used wherever two candidates must be indistinguishable
     /// apart from where they stand, so the only thing that can decide
@@ -180,15 +498,101 @@ mod tests {
     const IDENTICAL_DELTA: f32 = 40.0;
     const IDENTICAL_DURATION: u32 = 15;
 
+    /// The temperature every GOLDEN-winner fixture in this module runs
+    /// at, and the reason those tests did not have to change shape when
+    /// selection stopped being an argmax.
+    ///
+    /// Selection is a WEIGHTED DRAW now. At the shipped temperature a
+    /// better candidate merely wins *more often*, so "the near object
+    /// won" would be an assertion about one roll of the dice - true for
+    /// this seed, false for the next, and green either way for reasons
+    /// that have nothing to do with what the test is about. Those tests
+    /// are about SCORING, so they hold the draw constant and vary the
+    /// scores, which is docs/testing-protocol.md rule 4 applied to a
+    /// knob rather than to a guard.
+    ///
+    /// Low rather than zero because zero is not valid content:
+    /// `compile_tuning` rejects a non-positive temperature, since
+    /// selection divides by it. [`assert_decisive`] is what checks that
+    /// this particular value is low enough for a given pair of scores,
+    /// rather than leaving "low enough" as a hope.
+    ///
+    /// **The distribution tests deliberately do NOT use it.** They run at
+    /// the shipped temperature, because a fixture that makes the choice
+    /// certain is a fixture that cannot see the milestone's whole point.
+    const DECISIVE_TEMPERATURE: f32 = 0.0001;
+
+    /// The shipped knobs with the temperature turned down.
+    ///
+    /// Spread from [`test_content::tuning`] rather than written out, so
+    /// `action_threshold` and everything else stay exactly what the game
+    /// runs on and only the one knob under test moves.
+    fn decisive_tuning() -> Tuning {
+        Tuning {
+            choice_temperature: DECISIVE_TEMPERATURE,
+            ..test_content::tuning()
+        }
+    }
+
+    fn decisive_pack(objects: Vec<CompiledObject>) -> &'static ContentPack {
+        test_content::pack_tuned(objects, decisive_tuning())
+    }
+
+    /// Asserts the fixture makes the draw a formality, so a golden winner
+    /// assertion below is a statement about scoring rather than about one
+    /// roll of the dice.
+    ///
+    /// The criterion is exact rather than probabilistic: the loser's
+    /// softmax weight has to UNDERFLOW to zero in `f32`, which happens
+    /// once `(winner - loser) / T` exceeds about 104. The winner's bucket
+    /// then covers the entire `[0, total)` interval, so every draw
+    /// `next_f32` can produce picks it - there is no tail to be unlucky
+    /// in. A merely small weight would leave one.
+    ///
+    /// This is also what stops `DECISIVE_TEMPERATURE` from silently
+    /// becoming too high for some future fixture whose two candidates sit
+    /// closer together: that fixture fails here, naming the numbers,
+    /// rather than becoming intermittently wrong.
+    fn assert_decisive(winner_score: f32, loser_score: f32) {
+        assert!(
+            winner_score > loser_score,
+            "the intended winner must actually score higher; \
+             {winner_score} vs {loser_score}"
+        );
+        let weight = ((loser_score - winner_score) / DECISIVE_TEMPERATURE).exp();
+        assert_eq!(
+            weight, 0.0,
+            "at temperature {DECISIVE_TEMPERATURE} the losing candidate \
+             still carries weight {weight}, so the winner below is a draw \
+             rather than a conclusion; scores were {winner_score} and \
+             {loser_score}"
+        );
+    }
+
     /// One definition with that advert. Two placed entities can share a
     /// single definition, which is precisely what "two objects with
     /// identical adverts" means once the advert lives in the pack.
+    ///
+    /// At the SHIPPED temperature, for the tie and contention tests. Two
+    /// bit-identical scores weigh the same at every temperature, so
+    /// turning it down would change nothing for them and would only hide
+    /// that they run on the knob the game runs on.
     fn identical_advert_content() -> &'static ContentPack {
-        test_content::pack(vec![test_content::object(
+        test_content::pack(vec![identical_object()])
+    }
+
+    /// The same content at [`DECISIVE_TEMPERATURE`], for the tests whose
+    /// two candidates score DIFFERENTLY and which name a winner.
+    fn decisive_identical_advert_content() -> &'static ContentPack {
+        decisive_pack(vec![identical_object()])
+    }
+
+    fn identical_object() -> CompiledObject {
+        test_content::object(
             "identical",
             &[(NeedId::Hunger, IDENTICAL_DELTA)],
             IDENTICAL_DURATION,
-        )])
+        )
     }
 
     /// The threshold `select_action` actually compares against.
@@ -295,6 +699,54 @@ mod tests {
         )
     }
 
+    /// The entity indices `select_action`'s object query yields in raw
+    /// ECS order, with no sorting applied.
+    ///
+    /// This is precisely the order the candidate list must NOT be built
+    /// in, so comparing it against index order is how the two tie tests
+    /// prove they are exercising a real ordering difference - or a real
+    /// absence of one - rather than passing decoratively. Modelled on
+    /// `raw_iteration_order` in `lib.rs`, which does the same job for the
+    /// world hash.
+    ///
+    /// The fetch and filter match `select_action`'s query exactly, so
+    /// this reports the order that system would see rather than a
+    /// different query's order that happens to agree today.
+    #[allow(clippy::type_complexity)]
+    fn raw_object_order(sim: &Sim) -> Vec<u32> {
+        let mut state = sim
+            .world()
+            .try_query_filtered::<(Entity, &Position, &SmartObject), Without<Reserved>>()
+            .expect("every component in the object query is registered in Sim::new");
+        state
+            .iter(sim.world())
+            .map(|(entity, _, _)| entity.index_u32())
+            .collect()
+    }
+
+    /// Asserts that the first draw of `content`'s seeded PRNG lands in
+    /// the FIRST of two equal buckets.
+    ///
+    /// Two bit-identical scores split the interval exactly in half, so
+    /// "the lower-index object wins" is only the claim those tests intend
+    /// while the draw is below one half. Stating that here turns the
+    /// seed from an invisible dependency into a checked precondition: if
+    /// `rng_seed` is ever retuned past the halfway point, this fails and
+    /// names the reason instead of the two tests silently inverting.
+    ///
+    /// It is the FIRST draw because selection is the only consumer of the
+    /// PRNG so far, and each of those tests has exactly one agent that
+    /// chooses on exactly one tick.
+    fn assert_first_draw_takes_the_first_of_two_tied_buckets(content: &ContentPack) {
+        let draw = SimRng::from_seed(content.tuning.rng_seed).next_f32();
+        assert!(
+            draw < 0.5,
+            "the seeded first draw is {draw}, which lands in the SECOND \
+             of two equal buckets, so the golden winner below would be \
+             the higher-index object rather than the lower one"
+        );
+    }
+
     /// Asserts the single object `agent` chose, with the non-emptiness
     /// guard [L3] requires: "the right one won" must not be satisfiable
     /// by "nothing won at all".
@@ -333,10 +785,11 @@ mod tests {
         //   - measuring only the y axis ties them as well, since both sit
         //     on the agent's row.
         // The far object is spawned FIRST, so it holds the lower entity
-        // index and wins any tie through the index tiebreak - which is
-        // what turns each of those into a FAILURE here rather than a pass
-        // on a tie this test never meant to create.
-        let content = identical_advert_content();
+        // index and therefore the first probability bucket: a mutation
+        // that ties the two scores hands it the win, which turns each of
+        // those into a FAILURE here rather than a pass on a tie this test
+        // never meant to create.
+        let content = decisive_identical_advert_content();
         let mut sim = test_content::sim_with(16, 16, content);
         let identical = def(content, "identical");
         let far = spawn_object(&mut sim, 1.0, 8.0, identical);
@@ -377,6 +830,7 @@ mod tests {
             "identical adverts must score the nearer object higher; \
              {near_score} vs {far_score}"
         );
+        assert_decisive(near_score, far_score);
 
         assert_chose(
             &sim,
@@ -402,7 +856,7 @@ mod tests {
         // `|dx|` alone passes the x-axis test above and ties this one;
         // measuring `|dy|` alone does the reverse. Neither test can see
         // its own blind spot, which is why both exist.
-        let content = identical_advert_content();
+        let content = decisive_identical_advert_content();
         let mut sim = test_content::sim_with(16, 16, content);
         let identical = def(content, "identical");
         let far = spawn_object(&mut sim, 8.0, 1.0, identical);
@@ -439,6 +893,7 @@ mod tests {
             "identical adverts must score the nearer object higher; \
              {near_score} vs {far_score}"
         );
+        assert_decisive(near_score, far_score);
 
         assert_chose(
             &sim,
@@ -480,7 +935,7 @@ mod tests {
         const NEAR_AT: (f32, f32) = (13.0, 18.0);
         const FAR_AT: (f32, f32) = (12.0, 4.0);
 
-        let content = test_content::pack(vec![
+        let content = decisive_pack(vec![
             test_content::object("near", &[(NeedId::Hunger, NEAR_DELTA)], DURATION),
             test_content::object("far", &[(NeedId::Hunger, FAR_DELTA)], DURATION),
         ]);
@@ -511,6 +966,7 @@ mod tests {
             "the far object's benefit must outweigh its extra travel; \
              {far_score} vs {near_score}"
         );
+        assert_decisive(far_score, near_score);
 
         assert_chose(
             &sim,
@@ -559,7 +1015,7 @@ mod tests {
         const ONE_NEED_AT: (f32, f32) = (5.0, 8.0);
         const TWO_NEED_AT: (f32, f32) = (11.0, 8.0);
 
-        let content = test_content::pack(vec![
+        let content = decisive_pack(vec![
             test_content::object("one_need", &[(NeedId::Hunger, ONE_NEED_DELTA)], DURATION),
             test_content::object(
                 "two_need",
@@ -659,6 +1115,7 @@ mod tests {
             "the two adverts together must beat the single bigger one; \
              {two_need_hunger_term} + {two_need_energy_term} vs {one_need_score}"
         );
+        assert_decisive(two_need_hunger_term + two_need_energy_term, one_need_score);
 
         assert_chose(
             &sim,
@@ -712,7 +1169,7 @@ mod tests {
         /// deficit is exactly `energy_deficit` once decay has run, and
         /// returns the sim plus the two object entities and the agent.
         fn scenario(energy_deficit: f32) -> (Sim, Entity, Entity, Entity) {
-            let content = test_content::pack(vec![
+            let content = decisive_pack(vec![
                 test_content::object("cheap", &[(NeedId::Hygiene, CHEAP_DELTA)], DURATION),
                 test_content::object(
                     "costly",
@@ -798,6 +1255,11 @@ mod tests {
                     "a rested agent must still prefer the costly object; \
                      {costly_score} vs {cheap_score}"
                 );
+                // Only the rested run is a choice between two candidates.
+                // In the exhausted run the costly object scores below the
+                // action threshold, so it never enters the draw at all -
+                // which the `costly_score < 0.0` assertion below states.
+                assert_decisive(costly_score, cheap_score);
                 (
                     costly,
                     cheap,
@@ -881,6 +1343,80 @@ mod tests {
             "the interaction that won selection must be the one recorded; \
              index 0 here means the choice is not carried forward and the \
              agent would perform whichever interaction happens to be first"
+        );
+    }
+
+    /// Two interactions on one object, both worth doing, and the BETTER
+    /// one has to win.
+    ///
+    /// **Found by `cargo mutants`, and it is [L34] in a new costume.**
+    /// `selection_scores_every_interaction_and_records_the_one_that_won`
+    /// above deliberately puts the weak interaction BELOW the action
+    /// threshold, so that "scored the first and stopped" produces no
+    /// selection rather than a wrong one. That is the right fixture for
+    /// what it tests and it has a blind spot: the weak interaction is
+    /// never accepted, so `best` is still `None` when the strong one is
+    /// scored, and the comparison between two incumbents never runs.
+    /// `a_tied_later_interaction_cannot_displace_an_earlier_one_on_the_same_object`
+    /// below does run it, but only on EQUAL scores, where `>` and `<`
+    /// agree.
+    ///
+    /// So the whole suite could not tell "keep the best interaction" from
+    /// "keep the WORST one": `score > *best_score` mutated to `score <
+    /// *best_score` survived. Two interactions that both clear the
+    /// threshold and differ is the input domain that separates them, and
+    /// it is a domain every other fixture in this module happens to lack.
+    ///
+    /// The weaker interaction is declared FIRST, so "keep the first",
+    /// "keep the last" and "keep the worst" all produce index 0 and fail.
+    #[test]
+    fn the_better_of_two_worthwhile_interactions_on_one_object_is_the_one_recorded() {
+        const SNACK_DELTA: f32 = 20.0;
+        const FEAST_DELTA: f32 = 40.0;
+        const DURATION: u32 = 15;
+        const AGENT_AT: (f32, f32) = (8.0, 8.0);
+        const OBJECT_AT: (f32, f32) = (11.0, 8.0);
+
+        let content = test_content::pack(vec![test_content::object_offering(
+            "larder",
+            vec![
+                test_content::interaction("snack", &[(NeedId::Hunger, SNACK_DELTA)], DURATION),
+                test_content::interaction("feast", &[(NeedId::Hunger, FEAST_DELTA)], DURATION),
+            ],
+        )]);
+        let mut sim = test_content::sim_with(16, 16, content);
+        let larder = spawn_object(&mut sim, OBJECT_AT.0, OBJECT_AT.1, def(content, "larder"));
+        let agent = spawn_agent(&mut sim, AGENT_AT.0, AGENT_AT.1, 20.0);
+
+        sim.tick();
+
+        // Preconditions. **Both** must clear the threshold - that is the
+        // whole difference between this test and the one above - and they
+        // must differ, or `>` and `<` agree and this proves nothing.
+        let deficit = deficit_after_tick(&sim, agent, NeedId::Hunger);
+        let snack = score_of(deficit, AGENT_AT, OBJECT_AT, SNACK_DELTA, DURATION);
+        let feast = score_of(deficit, AGENT_AT, OBJECT_AT, FEAST_DELTA, DURATION);
+        assert!(
+            snack > action_threshold(),
+            "the WEAKER interaction must also be worth doing on its own, \
+             or `best` is never set before the stronger one is scored and \
+             the comparison never runs; got {snack}"
+        );
+        assert!(
+            feast > snack,
+            "the two interactions must score differently; {feast} vs {snack}"
+        );
+
+        let target = sim
+            .world()
+            .get::<Target>(agent)
+            .expect("the agent must have chosen one of the two interactions");
+        assert_eq!(target.object, larder);
+        assert_eq!(
+            target.interaction, 1,
+            "the BETTER of two worthwhile interactions must be the one \
+             recorded; index 0 here means selection keeps the first, the \
+             last, or the worst rather than the best"
         );
     }
 
@@ -1075,22 +1611,23 @@ mod tests {
     }
 
     #[test]
-    fn a_tied_object_with_a_higher_index_cannot_displace_the_incumbent() {
+    fn a_tied_object_with_a_higher_index_stays_in_the_later_probability_bucket() {
         // The companion to the `tied_scores_resolve_by_object_index...`
         // test below, and it exists because that test only covers one of
         // the two iteration orders a tie can arrive in.
         //
-        // There, the lower-index object iterates LAST, so it has to
-        // actively displace the incumbent and the tiebreak clause is what
-        // lets it. Here there is no archetype churn, so the lower-index
-        // object iterates FIRST and must be left alone. That is the case
-        // that pins the comparison being STRICT:
+        // Two bit-identical scores weigh the same, so `sample_softmax`
+        // gives them one bucket each of exactly half the interval and the
+        // ORDER of the candidate list is the whole answer. There, the
+        // lower-index object iterates LAST and the sort has to move it to
+        // the front. Here there is no archetype churn, so the two orders
+        // already agree - which is what makes this the case that pins the
+        // sort's DIRECTION rather than its presence:
         //
-        //   `score > best_score` relaxed to `score >= best_score` lets
-        //   the tied later object take over, and `&&` in the tiebreak
-        //   relaxed to `||` does the same. Both leave the churned test
-        //   green, because there the later object is the one that ought
-        //   to win anyway.
+        //   ascending to descending flips the winner here and in the
+        //   churned test both, whereas deleting the sort outright is
+        //   invisible here and fails there. Neither test sees the other's
+        //   mutation, which is why both exist.
         //
         // GOLDEN assertion, and for the same reason as its companion: a
         // two-run comparison in one process shares an archetype layout
@@ -1104,6 +1641,19 @@ mod tests {
         let incumbent = spawn_object(&mut sim, 5.0, 8.0, identical);
         let challenger = spawn_object(&mut sim, 11.0, 8.0, identical);
         let agent = spawn_agent(&mut sim, 8.0, 8.0, 20.0);
+
+        // Read BEFORE the tick, because the winner gains `Reserved` and
+        // leaves the queried archetype. Here it must AGREE with index
+        // order: that is the half of the pair this test covers.
+        let iteration_order = raw_object_order(&sim);
+        let mut index_order = iteration_order.clone();
+        index_order.sort_unstable();
+        assert_eq!(
+            iteration_order, index_order,
+            "this test is the unchurned half of the pair, so the query \
+             must already yield the objects in index order"
+        );
+        assert_first_draw_takes_the_first_of_two_tied_buckets(content);
 
         sim.tick();
 
@@ -1146,9 +1696,10 @@ mod tests {
             agent,
             incumbent,
             challenger,
-            "a tied object with a higher index must not displace the \
-             object already held as best; if it does, the score \
-             comparison is no longer strict",
+            "the lower object index must occupy the first probability \
+             bucket, so the draw below one half must pick it; the other \
+             object winning means the candidates are ordered by something \
+             other than an ascending entity index",
         );
     }
 
@@ -1226,7 +1777,7 @@ mod tests {
         const BEHIND_WALL_AT: (f32, f32) = (7.0, 1.0);
         const REACHABLE_AT: (f32, f32) = (1.0, 1.0);
 
-        let content = identical_advert_content();
+        let content = decisive_identical_advert_content();
         let mut sim = test_content::sim_with(11, 9, content);
         let identical = def(content, "identical");
         block(
@@ -1303,6 +1854,7 @@ mod tests {
             by_path(4),
             by_path(14)
         );
+        assert_decisive(by_path(4), by_path(14));
 
         assert_chose(
             &sim,
@@ -1338,6 +1890,13 @@ mod tests {
         const RUNNER_UP_DELTA: f32 = 40.0;
         const DURATION: u32 = 15;
 
+        // The SHIPPED temperature, unlike the golden-winner tests above,
+        // and that is a property of this fixture rather than an
+        // oversight: the sealed object is unreachable, so it never
+        // becomes a candidate and the runner up is the only thing in the
+        // draw. A one-candidate draw returns that candidate at every
+        // temperature. Making it decisive would only obscure that the
+        // thing under test here is availability, not weighting.
         let content = test_content::pack(vec![
             test_content::object("sealed", &[(NeedId::Hunger, SEALED_DELTA)], DURATION),
             test_content::object("runner_up", &[(NeedId::Hunger, RUNNER_UP_DELTA)], DURATION),
@@ -1403,6 +1962,133 @@ mod tests {
              and the agent must take the best object it can actually \
              reach; no target at all means the unreachable one won \
              selection and then failed to path",
+        );
+    }
+
+    /// **The test the milestone exists for**, at the level a player would
+    /// see it: a hungrier option is served more often without being
+    /// served always.
+    ///
+    /// Both halves matter and they exclude different things.
+    ///
+    /// - The better object winning most of the runs is what separates
+    ///   this from UNIFORM randomness, which would split them evenly.
+    /// - The worse object winning some of the runs is what separates it
+    ///   from ARGMAX, which would never pick it at all. **A test
+    ///   asserting only the first would have passed before this task
+    ///   changed anything.**
+    ///
+    /// Runs are separated by SEED rather than by ticking one world,
+    /// because an agent chooses once and is then busy. Each run rebuilds
+    /// the same world and reseeds the PRNG, so the seed is the only thing
+    /// that differs between them - which is also what makes this a test
+    /// of the sampling rather than of anything the world remembers.
+    ///
+    /// The worse object is spawned FIRST, so it holds the lower index and
+    /// therefore the first probability bucket. That kills the two
+    /// degenerate samplers a middling assertion would otherwise admit:
+    /// "always take the first bucket" hands every run to the worse object
+    /// and fails the dominance assertion; "always take the last" hands
+    /// every run to the better one and fails the never-zero assertion.
+    #[test]
+    fn a_higher_scoring_object_is_chosen_more_often_and_a_lower_one_still_sometimes() {
+        // 500 runs, and the arithmetic behind the assertion windows.
+        // Both objects are 3 tiles away and take 15 ticks, so the
+        // denominator is 12 + 15 + 1 = 28 for both. The agent spawns at
+        // hunger 20 and decays to 19.896, a deficit of 0.80104 and an
+        // urgency of 0.5140:
+        //
+        //   better  0.5140 * 39 / 28 = 0.7159
+        //   worse   0.5140 * 30 / 28 = 0.5507
+        //
+        // A gap of 0.1652 at the shipped temperature of 0.15 is a weight
+        // ratio of exp(1.101) = 3.01, so the better object should take
+        // about 75% of the runs. Measured: 371 to 129. Uniform would be
+        // 250 to 250 and argmax 500 to 0, and the windows below are wide
+        // enough that neither is a near miss.
+        const RUNS: u64 = 500;
+        const BETTER_DELTA: f32 = 39.0;
+        const WORSE_DELTA: f32 = 30.0;
+        const DURATION: u32 = 15;
+        const AGENT_AT: (f32, f32) = (8.0, 8.0);
+        const WORSE_AT: (f32, f32) = (5.0, 8.0);
+        const BETTER_AT: (f32, f32) = (11.0, 8.0);
+
+        // The SHIPPED temperature, deliberately. A fixture that turned it
+        // down would make the choice certain, which is exactly the thing
+        // this test exists to show it is not.
+        let content = test_content::pack(vec![
+            test_content::object("worse", &[(NeedId::Hunger, WORSE_DELTA)], DURATION),
+            test_content::object("better", &[(NeedId::Hunger, BETTER_DELTA)], DURATION),
+        ]);
+
+        let mut wins = (0u32, 0u32);
+        let mut deficit = 0.0;
+        for seed in 0..RUNS {
+            let mut sim = test_content::sim_with(16, 16, content);
+            let worse = spawn_object(&mut sim, WORSE_AT.0, WORSE_AT.1, def(content, "worse"));
+            let better = spawn_object(&mut sim, BETTER_AT.0, BETTER_AT.1, def(content, "better"));
+            let agent = spawn_agent(&mut sim, AGENT_AT.0, AGENT_AT.1, 20.0);
+            assert!(
+                worse.index() < better.index(),
+                "the worse object must hold the lower index, or 'always \
+                 pick the first bucket' would satisfy this test"
+            );
+            // Every run is the same world drawing from a different
+            // stream. `sim_with` seeds from the pack, which is one shared
+            // seed, so this is what makes the runs independent.
+            sim.world_mut().insert_resource(SimRng::from_seed(seed));
+
+            sim.tick();
+
+            deficit = deficit_after_tick(&sim, agent, NeedId::Hunger);
+            let target = sim
+                .world()
+                .get::<Target>(agent)
+                .expect("the agent must choose one of the two objects");
+            if target.object == better {
+                wins.0 += 1;
+            } else {
+                assert_eq!(target.object, worse, "an unexpected object won");
+                wins.1 += 1;
+            }
+        }
+
+        // Preconditions: both candidates really are live, and the better
+        // one really is better, at the numbers the runs above produced.
+        let better_score = score_of(deficit, AGENT_AT, BETTER_AT, BETTER_DELTA, DURATION);
+        let worse_score = score_of(deficit, AGENT_AT, WORSE_AT, WORSE_DELTA, DURATION);
+        assert_eq!(
+            walk_tiles(AGENT_AT, WORSE_AT),
+            walk_tiles(AGENT_AT, BETTER_AT),
+            "the two objects must be equally far away, or distance could \
+             explain the split"
+        );
+        assert!(
+            worse_score > action_threshold(),
+            "the worse object must be worth doing on its own, or it is \
+             excluded rather than merely unlikely; got {worse_score}"
+        );
+        assert!(
+            better_score > worse_score,
+            "the better object must score higher; {better_score} vs {worse_score}"
+        );
+        assert_eq!(
+            u64::from(wins.0 + wins.1),
+            RUNS,
+            "every run must have produced a choice: {wins:?}"
+        );
+
+        assert!(
+            wins.0 > wins.1 * 2,
+            "the higher-scoring object must win most of the runs, or \
+             selection is no better than a coin toss: {wins:?}"
+        );
+        assert!(
+            wins.1 > 0,
+            "the lower-scoring object must still be chosen sometimes, or \
+             this is argmax with extra steps and the milestone changed \
+             nothing: {wins:?}"
         );
     }
 
@@ -1481,20 +2167,101 @@ mod tests {
         );
     }
 
+    /// The seed reaches selection from the CONTENT PACK, not from a
+    /// constant and not from whatever `Sim::new` happened to install.
+    ///
+    /// Causal rather than comparative, per docs/testing-protocol.md rule
+    /// 3: the two runs below differ in exactly one authored value, and
+    /// the winner changes. Nothing else in the fixture moves - same
+    /// objects, same positions, same adverts, same agent - so only the
+    /// seed can account for it.
+    ///
+    /// This is what `test_content::sim_with`'s reseed line is for, and
+    /// until this existed that line was invisible: every fixture carried
+    /// the shipped `rng_seed`, so deleting the reseed changed nothing and
+    /// the first fixture to want its own seed would have been silently
+    /// ignored.
+    ///
+    /// Two tied objects make the seed's effect maximal and readable: the
+    /// buckets are exactly half each, so the winner is simply which half
+    /// the first draw lands in.
+    #[test]
+    fn the_seed_selection_draws_from_is_the_one_the_content_pack_carries() {
+        /// Builds the tied two-object world on a pack seeded with `seed`,
+        /// ticks once, and reports which object won.
+        fn winner(seed: u64) -> (Entity, Entity, Option<Entity>) {
+            let content = test_content::pack_tuned(
+                vec![identical_object()],
+                Tuning {
+                    rng_seed: seed,
+                    ..test_content::tuning()
+                },
+            );
+            let mut sim = test_content::sim_with(16, 16, content);
+            let identical = def(content, "identical");
+            let low = spawn_object(&mut sim, 5.0, 8.0, identical);
+            let high = spawn_object(&mut sim, 11.0, 8.0, identical);
+            let agent = spawn_agent(&mut sim, 8.0, 8.0, 20.0);
+            sim.tick();
+            let chosen = sim.world().get::<Target>(agent).map(|t| t.object);
+            (low, high, chosen)
+        }
+
+        // Preconditions: the two seeds must land on opposite sides of the
+        // halfway point, or the runs below cannot disagree for the reason
+        // this test claims. The first is the shipped seed, so the second
+        // run is the one that can only be right if the fixture's seed is
+        // the one selection used.
+        let shipped = test_content::tuning().rng_seed;
+        const OTHER_SEED: u64 = 9;
+        let shipped_draw = SimRng::from_seed(shipped).next_f32();
+        let other_draw = SimRng::from_seed(OTHER_SEED).next_f32();
+        assert!(
+            shipped_draw < 0.5,
+            "the shipped seed must draw into the first bucket; got {shipped_draw}"
+        );
+        assert!(
+            other_draw >= 0.5,
+            "the other seed must draw into the SECOND bucket, or both runs \
+             agree and this test proves nothing; got {other_draw}"
+        );
+
+        let (low, high, chosen) = winner(shipped);
+        assert!(low.index() < high.index(), "spawn order sets the indices");
+        assert_eq!(
+            chosen,
+            Some(low),
+            "the shipped seed draws below one half, so the lower-index \
+             object must win"
+        );
+
+        let (low, high, chosen) = winner(OTHER_SEED);
+        assert!(low.index() < high.index(), "spawn order sets the indices");
+        assert_eq!(
+            chosen,
+            Some(high),
+            "a fixture that sets its own rng_seed must actually be the \
+             seed selection draws from; the lower-index object winning \
+             here means the shipped seed was used instead"
+        );
+    }
+
     #[test]
     fn tied_scores_resolve_by_object_index_not_archetype_order() {
-        // One agent, two objects whose scores are exactly equal. Which
-        // one wins is decided entirely by the second half of the `better`
-        // expression in `select_action`:
+        // **The test the object sort exists for.**
         //
-        //     score == best_score && object.index() < best_e.index()
+        // One agent, two objects whose scores are exactly equal. Equal
+        // scores weigh equally, so `sample_softmax` hands each of them a
+        // bucket of exactly half the interval and the ORDER of the
+        // candidate list decides which half a given draw lands in. There
+        // is no argmax left to be unique, and no tiebreak clause to make
+        // it one: `placed_objects.sort_by_key` in `select_action` is the
+        // entire mechanism, and this is the test that fails without it.
         //
-        // That clause is what makes the argmax unique. The `objects`
-        // query iterates UNSORTED, which is only safe because this
-        // tiebreak leaves no room for iteration order to matter. Delete
-        // the clause and the winner becomes whichever tied object the
-        // archetype happened to yield first, and archetype order shifts
-        // as objects gain and lose `Reserved`.
+        // Until M1c the `objects` query iterated UNSORTED, and that was
+        // safe because the score comparison plus an entity-index tiebreak
+        // named one winner regardless of order. Weighted sampling removed
+        // that protection - see [D-3] - and this test moved with it.
         //
         // GOLDEN assertion, for the same reason as the contention test
         // above: do NOT rewrite this as a two-run comparison. Two runs in
@@ -1516,8 +2283,28 @@ mod tests {
         // every time it is claimed and released. Leaving swap-removes it
         // from its table and re-entering appends it at the end, so the
         // lower-index object now iterates LAST.
+        //
+        // **Without this the test would pass with the sort deleted**, per
+        // [L5]: a plain sequence of spawns puts every object in one
+        // archetype, where table order already equals index order, so the
+        // sorted and unsorted candidate lists are the same list.
         sim.world_mut().entity_mut(left).insert(Reserved);
         sim.world_mut().entity_mut(left).remove::<Reserved>();
+
+        // The precondition that makes the churn real, read BEFORE the
+        // tick because the winner gains `Reserved` and leaves the queried
+        // archetype. Without it this test would silently degrade into a
+        // copy of its unchurned companion above.
+        let iteration_order = raw_object_order(&sim);
+        let mut index_order = iteration_order.clone();
+        index_order.sort_unstable();
+        assert_ne!(
+            iteration_order, index_order,
+            "the query must yield the objects in an order that is NOT \
+             index order, or the sort has nothing to do and deleting it \
+             would leave this test green; got {iteration_order:?}"
+        );
+        assert_first_draw_takes_the_first_of_two_tied_buckets(content);
 
         sim.tick();
 
@@ -1561,8 +2348,9 @@ mod tests {
             left,
             right,
             "the lower object index must win a tied score regardless of \
-             archetype order; a different winner means the score tiebreak \
-             is gone",
+             archetype order; the other object winning means the \
+             candidates reached the draw in table order, so which object \
+             a die roll picks depends on which objects were used recently",
         );
     }
 }

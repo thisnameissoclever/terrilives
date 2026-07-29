@@ -299,6 +299,22 @@ describe('SimBridge', () => {
     // wasm was rebuilt before this was re-run, per [L8]; skipping that
     // would have measured the previous artifact and proved nothing either
     // way.
+    //
+    // M1c Task 3 made selection a softmax-weighted draw rather than an
+    // argmax, and this vector did NOT move on either target either. Same
+    // reason as above and the same [L36]: one object means every agent
+    // that has a candidate has exactly one, and a one-candidate draw has
+    // one answer at every temperature and every seed. The wasm was
+    // rebuilt before this was re-run.
+    //
+    // That is also what keeps this comparison meaningful now that
+    // selection calls `exp`. `f32::exp` is a platform libm call with no
+    // cross-target bit-identity guarantee, so a scenario with two live
+    // candidates would put one inside the digest's causal chain and this
+    // native-versus-wasm32 check could start disagreeing for a reason
+    // that is not a regression. It computes `exp(0.0)` here, which is
+    // exactly 1.0 everywhere. Adding a second object to this scenario
+    // changes what it is exposed to.
     expect(bridge.worldHash()).toBe(0x2fc6_69ef_a725_4f2dn);
   });
 

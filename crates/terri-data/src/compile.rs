@@ -80,36 +80,60 @@ pub fn compile(
         sprite: SIM_SPRITE.to_string(),
     })? as u32;
 
-    let mut decay = [f32::NAN; NEED_COUNT];
+    // Two files, two rules, in that order. `needs.toml` says which needs
+    // EXIST; `tuning.toml`'s `[decay_per_tick]` says how fast the
+    // simulation drains them. Declaration is checked first so that a
+    // typo'd need name is reported against the file that named it rather
+    // than as a missing rate for something nobody declared.
+    //
     // A fixed-size array rather than a set: `NeedId` is `Eq + Hash` but
     // not `Ord`, and the need space is closed and small, so indexing it
     // directly needs no allocation and no ordering it does not have.
-    let mut seen_needs = [false; NEED_COUNT];
+    let mut declared = [false; NEED_COUNT];
 
     for def in &needs.need {
         let Some(id) = NeedId::from_name(&def.id) else {
-            return Err(ContentError::UnknownNeedDecay {
+            return Err(ContentError::UnknownDeclaredNeed {
                 need: def.id.clone(),
             });
         };
-        if seen_needs[id.index()] {
-            return Err(ContentError::DuplicateNeedDecay {
+        if declared[id.index()] {
+            return Err(ContentError::DuplicateDeclaredNeed {
                 need: def.id.clone(),
             });
         }
-        seen_needs[id.index()] = true;
-        check_number(
-            def.decay_per_tick,
-            &format!("decay_per_tick for '{}'", def.id),
-        )?;
-        decay[id.index()] = def.decay_per_tick;
+        declared[id.index()] = true;
     }
 
-    // Without this loop a need omitted from the file keeps the `NaN`
+    for id in NeedId::ALL {
+        if !declared[id.index()] {
+            return Err(ContentError::MissingDeclaredNeed {
+                need: id.as_str().to_string(),
+            });
+        }
+    }
+
+    let mut decay = [f32::NAN; NEED_COUNT];
+    let mut rated = [false; NEED_COUNT];
+
+    for (need_name, rate) in &tuning.decay_per_tick {
+        let Some(id) = NeedId::from_name(need_name) else {
+            return Err(ContentError::UnknownNeedDecay {
+                need: need_name.clone(),
+            });
+        };
+        // No duplicate check: the table is a `BTreeMap`, so a repeated
+        // key is a TOML parse error long before this runs.
+        rated[id.index()] = true;
+        check_number(*rate, &format!("decay_per_tick for '{need_name}'"))?;
+        decay[id.index()] = *rate;
+    }
+
+    // Without this loop a need omitted from the table keeps the `NaN`
     // seeded above, and a `NaN` decay rate poisons that need's level on
     // the first tick with nothing pointing back at the content.
     for id in NeedId::ALL {
-        if !seen_needs[id.index()] {
+        if !rated[id.index()] {
             return Err(ContentError::MissingNeedDecay {
                 need: id.as_str().to_string(),
             });
@@ -490,7 +514,17 @@ mod tests {
         needs: NeedsFile,
         objects: ObjectsFile,
     ) -> Result<ContentPack, ContentError> {
-        compile(needs, objects, bare_lot(), test_atlas(), full_tuning())
+        compile_all(needs, objects, full_tuning())
+    }
+
+    /// The three-way version, for the two tests that have to vary the
+    /// needs file and the tuning file in the same compilation.
+    fn compile_all(
+        needs: NeedsFile,
+        objects: ObjectsFile,
+        tuning: TuningFile,
+    ) -> Result<ContentPack, ContentError> {
+        compile(needs, objects, bare_lot(), test_atlas(), tuning)
     }
 
     fn bare_lot() -> LotFile {
@@ -554,6 +588,11 @@ mod tests {
     /// `idle_threshold` is deliberately BELOW `action_threshold` rather
     /// than equal to it, so `rejects_an_idle_threshold_above_the_action_threshold`
     /// has somewhere to move it to on either side of the boundary.
+    ///
+    /// The decay table is the exception: it is UNIFORM here, so a compile
+    /// step that wrote every rate into one slot would pass. That is what
+    /// `distinct_tuning` below exists for, and keeping the two apart is
+    /// what lets every other test in this module ignore decay entirely.
     fn full_tuning() -> TuningFile {
         TuningFile {
             action_threshold: 0.25,
@@ -563,7 +602,21 @@ mod tests {
             duration_variance: 0.75,
             min_interaction_ticks: 3,
             rng_seed: 300,
+            decay_per_tick: NeedId::ALL
+                .iter()
+                .map(|id| (id.as_str().to_string(), 0.1))
+                .collect(),
         }
+    }
+
+    /// `full_tuning` with every need on its own decay rate.
+    fn distinct_tuning() -> TuningFile {
+        tuning_where(|t| {
+            t.decay_per_tick = NeedId::ALL
+                .iter()
+                .map(|id| (id.as_str().to_string(), distinct_decay(*id)))
+                .collect();
+        })
     }
 
     /// `full_tuning` with `mutate` applied, for the rejection tests.
@@ -585,13 +638,20 @@ mod tests {
         )
     }
 
+    /// Every need declared, and nothing else: `needs.toml` says which
+    /// needs exist, and `tuning.toml` says how fast they drain.
+    ///
+    /// Declared in REVERSE `NeedId` order, so a compile step that
+    /// confused a need's position in this file with its index would be
+    /// visible. The rates cannot be confused that way at all any more,
+    /// because they arrive keyed by name.
     fn full_needs() -> NeedsFile {
         NeedsFile {
             need: NeedId::ALL
                 .iter()
+                .rev()
                 .map(|id| NeedDef {
                     id: id.as_str().to_string(),
-                    decay_per_tick: 0.1,
                 })
                 .collect(),
         }
@@ -614,21 +674,6 @@ mod tests {
             advertises: [("hunger".to_string(), 35.0)].into_iter().collect(),
             duration_ticks: 15,
             slots: 1,
-        }
-    }
-
-    /// Every need present with its own rate, declared in reverse order
-    /// so that position in the file and slot in the pack disagree.
-    fn distinct_needs() -> NeedsFile {
-        NeedsFile {
-            need: NeedId::ALL
-                .iter()
-                .rev()
-                .map(|id| NeedDef {
-                    id: id.as_str().to_string(),
-                    decay_per_tick: distinct_decay(*id),
-                })
-                .collect(),
         }
     }
 
@@ -779,11 +824,23 @@ mod tests {
         );
     }
 
+    /// Which needs exist and how fast they drain are now two rules over
+    /// two files, and the four tests below are one per way each can be
+    /// wrong. They are separate tests rather than one, because the whole
+    /// point of splitting the files is that a rate missing from
+    /// `tuning.toml` and a need missing from `needs.toml` are different
+    /// mistakes with different fixes, and a shared assertion could not
+    /// tell an author which one they made.
+    ///
+    /// There is deliberately no duplicate-rate case: the decay table is a
+    /// map, so a repeated key is a TOML parse error before `compile` is
+    /// reached.
     #[test]
-    fn rejects_a_missing_need_decay() {
-        let mut needs = full_needs();
-        needs.need.retain(|n| n.id != "comfort");
-        let err = compile_objects(needs, one_object(snack())).unwrap_err();
+    fn rejects_a_declared_need_with_no_decay_rate() {
+        let tuning = tuning_where(|t| {
+            t.decay_per_tick.remove("comfort");
+        });
+        let err = compile_tuned(tuning).unwrap_err();
         assert_eq!(
             err,
             ContentError::MissingNeedDecay {
@@ -793,13 +850,11 @@ mod tests {
     }
 
     #[test]
-    fn rejects_an_unknown_need_decay() {
-        let mut needs = full_needs();
-        needs.need.push(NeedDef {
-            id: "vibes".into(),
-            decay_per_tick: 0.1,
+    fn rejects_a_decay_rate_for_a_need_rustc_does_not_know() {
+        let tuning = tuning_where(|t| {
+            t.decay_per_tick.insert("vibes".into(), 0.1);
         });
-        let err = compile_objects(needs, one_object(snack())).unwrap_err();
+        let err = compile_tuned(tuning).unwrap_err();
         assert_eq!(
             err,
             ContentError::UnknownNeedDecay {
@@ -809,17 +864,53 @@ mod tests {
     }
 
     #[test]
-    fn rejects_a_duplicate_need_decay() {
+    fn rejects_an_unknown_declared_need() {
+        let mut needs = full_needs();
+        needs.need.push(NeedDef { id: "vibes".into() });
+        let err = compile_objects(needs, one_object(snack())).unwrap_err();
+        assert_eq!(
+            err,
+            ContentError::UnknownDeclaredNeed {
+                need: "vibes".into()
+            }
+        );
+    }
+
+    #[test]
+    fn rejects_a_duplicate_declared_need() {
         let mut needs = full_needs();
         needs.need.push(NeedDef {
             id: "hunger".into(),
-            decay_per_tick: 0.2,
         });
         let err = compile_objects(needs, one_object(snack())).unwrap_err();
         assert_eq!(
             err,
-            ContentError::DuplicateNeedDecay {
+            ContentError::DuplicateDeclaredNeed {
                 need: "hunger".into()
+            }
+        );
+    }
+
+    /// A `NeedId` variant `needs.toml` does not declare at all.
+    ///
+    /// The tuning table still carries its rate, so this is genuinely the
+    /// declaration rule firing rather than the rate rule: without the
+    /// completeness check on `needs.toml` the compilation would succeed
+    /// and the need would exist in Rust while being invisible in content.
+    #[test]
+    fn rejects_a_need_variant_that_content_does_not_declare() {
+        let mut needs = full_needs();
+        needs.need.retain(|n| n.id != "comfort");
+        assert!(
+            full_tuning().decay_per_tick.contains_key("comfort"),
+            "the tuning table must still rate comfort, or this test cannot \
+             tell the declaration rule from the rate rule"
+        );
+        let err = compile_objects(needs, one_object(snack())).unwrap_err();
+        assert_eq!(
+            err,
+            ContentError::MissingDeclaredNeed {
+                need: "comfort".into()
             }
         );
     }
@@ -919,11 +1010,12 @@ mod tests {
                 "an advert of {bad} must be rejected"
             );
 
-            let mut needs = full_needs();
-            needs.need[0].decay_per_tick = bad;
+            let tuning = tuning_where(|t| {
+                t.decay_per_tick.insert("hunger".into(), bad);
+            });
             assert!(
                 matches!(
-                    compile_objects(needs, one_object(snack())).unwrap_err(),
+                    compile_tuned(tuning).unwrap_err(),
                     ContentError::NonFiniteValue { .. }
                 ),
                 "a decay rate of {bad} must be rejected"
@@ -966,10 +1058,11 @@ mod tests {
     /// leave one half of this file's coverage green either way.
     #[test]
     fn a_negative_decay_rate_is_rejected_but_a_negative_advert_is_content() {
-        let mut needs = full_needs();
-        needs.need[0].decay_per_tick = -1.0;
+        let tuning = tuning_where(|t| {
+            t.decay_per_tick.insert("hunger".into(), -1.0);
+        });
         assert!(matches!(
-            compile_objects(needs, one_object(snack())).unwrap_err(),
+            compile_tuned(tuning).unwrap_err(),
             ContentError::NegativeValue { .. }
         ));
 
@@ -1001,12 +1094,14 @@ mod tests {
     /// that survivor.
     #[test]
     fn zero_is_a_legal_decay_rate_and_a_legal_advert() {
-        let mut needs = full_needs();
-        needs.need[0].decay_per_tick = 0.0;
+        let tuning = tuning_where(|t| {
+            t.decay_per_tick.insert("hunger".into(), 0.0);
+        });
         let mut act = snack();
         act.advertises.insert("energy".into(), 0.0);
 
-        let pack = compile_objects(needs, one_object(act)).expect("zero is in range, not invalid");
+        let pack = compile_all(full_needs(), one_object(act), tuning)
+            .expect("zero is in range, not invalid");
         assert_eq!(pack.decay_per_tick[NeedId::Hunger.index()], 0.0);
         assert_eq!(
             pack.objects[0].interactions[0].advertises,
@@ -1069,12 +1164,33 @@ mod tests {
 
     /// Every other test in this module gives all seven needs the same
     /// decay rate, so writing every rate into one slot, or into the
-    /// wrong slot, would leave them all green. Declaring the needs in
-    /// reverse order additionally pins that the slot comes from the
-    /// need's name and not from its position in the file.
+    /// wrong slot, would leave them all green.
+    ///
+    /// The table's iteration order pins the slot mapping for free now
+    /// that the rates are keyed by name: a `BTreeMap` hands them over
+    /// alphabetically - bladder, comfort, energy, fun, hunger, hygiene,
+    /// social, which is indices 3, 6, 1, 5, 0, 2, 4 - so writing them out
+    /// in arrival order would produce a completely different array. The
+    /// precondition below states that rather than leaving it to the
+    /// reader, so renumbering `NeedId` fails loudly here instead of
+    /// quietly decaying this into a tautology.
     #[test]
     fn decay_rates_land_at_their_own_need_index() {
-        let pack = compile_objects(distinct_needs(), one_object(snack())).expect("valid");
+        let tuning = distinct_tuning();
+        let arrival: Vec<usize> = tuning
+            .decay_per_tick
+            .keys()
+            .map(|name| NeedId::from_name(name).expect("known need").index())
+            .collect();
+        let mut sorted = arrival.clone();
+        sorted.sort_unstable();
+        assert_ne!(
+            arrival, sorted,
+            "the table's name order must differ from index order, or this \
+             test cannot see a rate written into the slot it arrived in"
+        );
+
+        let pack = compile_tuned(tuning).expect("valid");
 
         for id in NeedId::ALL {
             assert_eq!(
@@ -1097,7 +1213,8 @@ mod tests {
     /// pipeline moves them.
     ///
     /// The fixture is chosen so the bytes are sensitive rather than
-    /// decorative: seven distinct decay rates declared in reverse, three
+    /// decorative: seven distinct decay rates whose alphabetical arrival
+    /// order is nothing like the index order they are stored in, three
     /// adverts whose name order reverses their index order, and a
     /// non-square lot whose two walls are declared out of sorted order.
     ///
@@ -1108,11 +1225,11 @@ mod tests {
     #[test]
     fn a_compiled_pack_serialises_to_a_stable_golden_vector() {
         let pack = compile(
-            distinct_needs(),
+            full_needs(),
             one_object(snack_advertising_three_needs()),
             distinct_lot(),
             test_atlas(),
-            full_tuning(),
+            distinct_tuning(),
         )
         .expect("valid");
         let bytes = postcard::to_allocvec(&pack).expect("pack must serialise");
@@ -1666,15 +1783,24 @@ mod tests {
             compile_objects(needs, one_object(snack()))
                 .unwrap_err()
                 .to_string(),
-            "needs.toml is missing a decay rate for 'comfort'"
+            "needs.toml does not declare 'comfort'"
         );
 
-        let mut needs = full_needs();
-        needs.need[0].decay_per_tick = -1.0;
         assert_eq!(
-            compile_objects(needs, one_object(snack()))
-                .unwrap_err()
-                .to_string(),
+            compile_tuned(tuning_where(|t| {
+                t.decay_per_tick.remove("comfort");
+            }))
+            .unwrap_err()
+            .to_string(),
+            "tuning.toml's [decay_per_tick] is missing a rate for 'comfort'"
+        );
+
+        assert_eq!(
+            compile_tuned(tuning_where(|t| {
+                t.decay_per_tick.insert("hunger".into(), -1.0);
+            }))
+            .unwrap_err()
+            .to_string(),
             "decay_per_tick for 'hunger' is negative"
         );
 
