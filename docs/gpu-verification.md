@@ -417,6 +417,13 @@ pause that is indistinguishable from its own absence - the exact shape of
 `SimBridge` exposes no hunger accessor, and adding one was explicitly
 deferred, so hunger cannot be read directly either.
 
+*(True when this was written and no longer true: M1b Task 6 added
+`SimBridge.needsOf(entityIndex)` for the need-bar panel, so a meal is
+now directly observable. The finding above is left as it was measured -
+the reservation-based observable it goes on to describe is still the
+better one, because it is causal rather than a level that other things
+also move.)*
+
 ### Reservation supplies the missing observable, causally
 
 `select_action` queries objects `Without<Reserved>`, so a claimed fridge
