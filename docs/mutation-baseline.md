@@ -4,7 +4,58 @@
 contract.** That file, not this one, is what CI compares against; it is the
 sorted contents of `mutants.out/missed.txt` from a full sweep.
 
-**Latest sweep: M1b Task 3b, 2026-07-28**, with the package list CI actually
+**Latest sweep: M1c Task 1, 2026-07-28.** A **scoped** sweep, not a full one:
+
+```
+cargo mutants --package terri-core --file crates/terri-core/src/rng.rs \
+  --test-workspace true --timeout 60
+25 mutants tested in 6m: 1 missed, 20 caught, 1 unviable, 3 timeouts
+```
+
+Scoped is defensible here and would not be in general. Task 1 adds exactly one
+file of mutable code; its only other change is two lines in `lib.rs`, a `mod`
+declaration and a `pub use`, neither of which `cargo mutants` can mutate. The
+task's new tests exercise `SimRng` alone, so they cannot have closed any of the
+four existing survivors either. The expected new baseline is therefore the old
+four plus whatever `rng.rs` misses, which is what this sweep measures. **The
+authoritative full sweep is the one CI runs on the pull request**; if it
+disagrees with the arithmetic above, believe it and correct this file.
+
+**One addition, and it is genuinely equivalent rather than untested:**
+
+`crates/terri-core/src/rng.rs:32:30: replace | with ^ in SimRng::from_seed`
+
+The line is `inc: (seed << 1) | 1`. `seed << 1` has bit 0 clear for **every**
+`u64`, so `| 1` sets a bit that is already 0 and `^ 1` flips a bit that is
+already 0. The two agree on the entire input domain; no test can separate them,
+so per [L32] rule 4 the thing to record is the condition that ends the
+equivalence rather than an excuse:
+
+> The equivalence holds **only** because the operand is left-shifted by at
+> least one. It ends the moment that expression changes shape - a rotate
+> instead of a shift, a shift of 0, or `inc` seeded from anything not shifted.
+> At that point bit 0 can be 1, `|` and `^` diverge, and
+> `a_golden_sequence_pins_the_algorithm` should start failing on the mutant.
+
+`| 1` was kept rather than rewritten as `+ 1`, which would have made the mutant
+killable. It is the canonical PCG idiom and states the real constraint, that
+the stream increment must be odd. Changing shipped code to give a tool
+something to find is the wrong trade when the alternative is one sentence of
+recorded reasoning.
+
+**Three timeouts, which are detections and are reported separately** per [L15]
+rule 4. `next_u32 -> 0`, `next_u32 -> 1` and `replace >= with < in range` all
+make the rejection loop in `SimRng::range` spin forever: the loop only exits on
+a draw at or above the threshold, and each of these mutants guarantees no such
+draw. The suite never goes green, which is what "caught" means, but a hang
+burns the job timeout instead of printing an assertion, so it is a weaker
+signal than a failure. They cost about 180s of CI time and land in
+`timeout.txt`, not `missed.txt`, so the gate does not see them. An unbounded
+rejection loop is inherent to debiased sampling and is not worth capping.
+
+---
+
+**Previous sweep: M1b Task 3b, 2026-07-28**, with the package list CI actually
 uses, which includes `terri-wasm`:
 
 ```
@@ -418,6 +469,8 @@ Task 4 and the build gate changed the caught/unviable split in Task 5.
 | M1a Task 7 | 269 | 16 | 226 | 27 | Every figure identical to Task 6 |
 | **M1a Task 9** | **269** | **5** | **237** | **27** | **11 closed; baseline rewritten** |
 | **M1b Task 3** | **297** | **5** | **252** | **40** | **1 closed, 1 deleted, 1 re-anchored; baseline down to 4** |
+| M1b Task 3b | 311 | 4 | 266 | 41 | 14 new mutants, all caught; baseline unchanged |
+| **M1c Task 1** | **25** | **1** | **20** | **1** | **Scoped to `rng.rs`; 3 timeouts; baseline up to 5** |
 
 The M1b Task 3 row is the one to read carefully. Missed stayed at 5 while
 the set changed completely in composition: `advertise.rs:42:36` ceased to
