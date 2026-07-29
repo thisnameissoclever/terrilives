@@ -22,14 +22,34 @@
 export const TILE_HALF_WIDTH = 32;
 
 /**
- * Half a tile's height in pixels; a full diamond is 32 px tall.
+ * Half a tile's height in pixels; a full diamond is 42 px tall.
  *
- * The 2:1 ratio against TILE_HALF_WIDTH is the camera angle. Changing
- * either constant alone re-pitches the camera and invalidates every asset
- * authored against it, which is the one thing [G2] promises will not
- * happen.
+ * The ratio against TILE_HALF_WIDTH is the camera angle, and this one is
+ * **measured off the art rather than chosen**. It was 16 - a round 2:1, the
+ * SimCity and Sims pitch - and that was wrong for the assets the game
+ * actually ships, which is what made wall runs look jagged.
+ *
+ * A vertical wall's top edge is parallel to the ground edge it stands on, so
+ * it is a direct probe of the art's ground plane. `Isometric/wall_SE.png` in
+ * the Kenney kit climbs 69 px over 104 px of run, a slope of 0.663, so one of
+ * our 32 px tile edges has to drop `32 * 0.663 = 21` px. At 16 the grid
+ * climbed at 0.5 while every sprite was drawn for 0.663, and along a run of
+ * wall tiles the two diverged by about 5 px per tile and accumulated into a
+ * sawtooth.
+ *
+ * **Do not measure this off the floor sprite**, which gives 0.72: it is a slab
+ * with visible side faces, so its widest scanline sits below the top face's
+ * midline. That measurement is where the old "Kenney is about 1.42:1" note in
+ * `assets/sprites/build-atlas.ps1` came from.
+ *
+ * Changing either constant alone re-pitches the camera and invalidates every
+ * asset authored against it - which is exactly what happened here, in reverse:
+ * the assets were authored against a pitch the code did not have, and this is
+ * the code being corrected to match them. `$TILE_H` in the atlas build script
+ * is `2 *` this, and the generated floor diamond is drawn from it, so the two
+ * cannot drift without the atlas visibly changing shape.
  */
-export const TILE_HALF_HEIGHT = 16;
+export const TILE_HALF_HEIGHT = 21;
 
 /**
  * Screen x for a world tile coordinate. The sign on `wy` is the whole

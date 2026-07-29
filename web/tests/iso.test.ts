@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { SPRITES } from '../src/render/atlas.js';
 import {
   worldToScreen,
   screenToWorld,
@@ -41,7 +42,7 @@ describe('worldToScreen', () => {
     // steps by half its width per tile. Swapping the two constants, or
     // using the same one for both axes, moves both numbers here.
     expect(worldToScreen(1, 0, 0, 0)).toEqual([TILE_HALF_WIDTH, TILE_HALF_HEIGHT]);
-    expect(worldToScreen(1, 0, 0, 0)).toEqual([32, 16]);
+    expect(worldToScreen(1, 0, 0, 0)).toEqual([TILE_HALF_WIDTH, TILE_HALF_HEIGHT]);
   });
 
   it('sends +y left and down the screen by exactly half a tile', () => {
@@ -49,7 +50,7 @@ describe('worldToScreen', () => {
     // Testing only +x would pass for `(wx + wy) * TILE_HALF_WIDTH`, which
     // collapses the diamond into a line along one diagonal.
     expect(worldToScreen(0, 1, 0, 0)).toEqual([-TILE_HALF_WIDTH, TILE_HALF_HEIGHT]);
-    expect(worldToScreen(0, 1, 0, 0)).toEqual([-32, 16]);
+    expect(worldToScreen(0, 1, 0, 0)).toEqual([-TILE_HALF_WIDTH, TILE_HALF_HEIGHT]);
   });
 
   it('adds the screen origin to each axis once, unscaled', () => {
@@ -58,18 +59,21 @@ describe('worldToScreen', () => {
     // origin is a translation rather than a factor, and the four distinct
     // arguments mean transposing originX and originY moves it.
     expect(worldToScreen(0, 0, 640, 360)).toEqual([640, 360]);
-    expect(worldToScreen(1, 0, 640, 360)).toEqual([672, 376]);
+    expect(worldToScreen(1, 0, 640, 360)).toEqual([
+      640 + TILE_HALF_WIDTH,
+      360 + TILE_HALF_HEIGHT,
+    ]);
   });
 
   it('combines both world axes into both screen axes linearly', () => {
     // Superposition: the axis tests fix each basis vector, this fixes that
     // nothing else happens between them. All four arguments differ, so any
     // permutation of them changes at least one component.
-    // x: (2 - 3) * 32 + 100 = 68.   y: (2 + 3) * 16 + 50 = 130.
-    expect(worldToScreen(2, 3, 100, 50)).toEqual([68, 130]);
+    // x: (2 - 3) * 32 + 100 = 68.   y: (2 + 3) * 21 + 50 = 155.
+    expect(worldToScreen(2, 3, 100, 50)).toEqual([68, 5 * TILE_HALF_HEIGHT + 50]);
     // Doubling the world coordinates doubles the offset from the origin,
     // which excludes a per-tile constant step masquerading as a scale.
-    expect(worldToScreen(4, 6, 100, 50)).toEqual([36, 210]);
+    expect(worldToScreen(4, 6, 100, 50)).toEqual([36, 10 * TILE_HALF_HEIGHT + 50]);
   });
 
   it('agrees with the scalar helpers the render loop actually calls', () => {
@@ -95,14 +99,67 @@ describe('worldToScreen', () => {
     }
   });
 
-  it('pins the 2 to 1 tile ratio that the fixed camera angle is', () => {
+  it('pins the tile ratio that the fixed camera angle is', () => {
     // A golden assertion rather than a relation between two computed
     // values, per [L5]. The ratio is not a free parameter: it *is* the
     // camera angle that TECH_STACK.md [G2] spends its whole art budget
-    // assuming never changes. Art authored for 2:1 does not tile at 1.8:1.
+    // assuming never changes, and art authored for one pitch does not tile
+    // at another.
+    //
+    // **It was 2:1 and that was wrong for the shipped art.** A round 2:1 is
+    // the SimCity and Sims pitch, and the Kenney kit is not drawn at it: a
+    // wall panel's top edge - which is parallel to the ground edge it stands
+    // on, and therefore a direct probe of the art's ground plane - climbs
+    // 69 px over 104 px, a slope of 0.663. A 2:1 grid climbs at 0.5, so the
+    // grid and every sprite on it disagreed by about 5 px per tile, which
+    // accumulated along a wall run into the sawtooth this fixed.
+    //
+    // 21 = round(32 * 0.663). The relation asserted below is the measured
+    // slope, not a round number, which is why it is stated as a tolerance on
+    // the ratio rather than as an exact multiple.
     expect(TILE_HALF_WIDTH).toBe(32);
-    expect(TILE_HALF_HEIGHT).toBe(16);
-    expect(TILE_HALF_WIDTH).toBe(TILE_HALF_HEIGHT * 2);
+    expect(TILE_HALF_HEIGHT).toBe(21);
+
+    // The art's measured slope, and a tolerance of one pixel over a tile
+    // edge - which is the precision the source PNG's antialiased edge
+    // supports in the first place.
+    const ART_SLOPE = 69 / 104;
+    expect(Math.abs(TILE_HALF_HEIGHT - TILE_HALF_WIDTH * ART_SLOPE)).toBeLessThan(1);
+  });
+
+  it('draws the floor sprite at exactly one tile', () => {
+    // The generated floor diamond comes out of the atlas build script at
+    // `2 * TILE_HALF_WIDTH` by `2 * TILE_HALF_HEIGHT`, so it is the one
+    // sprite whose dimensions ARE the projection. If the constant above moves
+    // and the atlas is not rebuilt, 140 floor tiles tile with visible seams or
+    // overlaps - which is a whole-screen artifact with no error anywhere.
+    const floor = SPRITES.find((sprite) => sprite.name === 'floor');
+    expect(floor, 'the atlas must carry a generated floor sprite').toBeDefined();
+    expect(floor?.w).toBe(TILE_HALF_WIDTH * 2);
+    expect(floor?.h).toBe(TILE_HALF_HEIGHT * 2);
+  });
+
+  it('draws a wall panel exactly one tile edge wide, and taller than a sim', () => {
+    // Both halves are the wall fix, stated as the two things that were wrong.
+    //
+    // WIDTH: a panel wider than one tile edge overlaps its neighbour, which is
+    // what `wall_*` did at 59 px against a 32 px edge and what read as
+    // overlapping boards. `wallHalf_*` scaled to exactly the edge is the fix.
+    //
+    // HEIGHT: the reason the obvious alternative - scaling `wall_*` down until
+    // it fitted - was rejected. It would have come out 62 px tall against a
+    // 78 px sim, so the walls would have been shorter than the people.
+    const sim = SPRITES.find((sprite) => sprite.name === 'sim');
+    expect(sim).toBeDefined();
+    for (const name of ['wallNS', 'wallEW']) {
+      const wall = SPRITES.find((sprite) => sprite.name === name);
+      expect(wall, `the atlas must carry ${name}`).toBeDefined();
+      expect(wall?.w, `${name} must be exactly one tile edge wide`).toBe(TILE_HALF_WIDTH);
+      expect(
+        wall?.h ?? 0,
+        `${name} must stand taller than a sim or it reads as a skirting board`,
+      ).toBeGreaterThan(sim?.h ?? 0);
+    }
   });
 });
 

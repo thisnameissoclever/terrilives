@@ -15,7 +15,7 @@ import {
 } from '../src/input.js';
 import { SPRITES } from '../src/render/atlas.js';
 import { KIND_AGENT } from '../src/render/instances.js';
-import { screenX, screenY } from '../src/render/iso.js';
+import { TILE_HALF_HEIGHT, screenX, screenY } from '../src/render/iso.js';
 
 const KIND_OBJECT = 1;
 
@@ -59,7 +59,7 @@ function atlas(name: string) {
 function drawnBox(tile: readonly [number, number], spriteName: string, originX = 0, originY = 0) {
   const s = atlas(spriteName);
   const anchorX = screenX(tile[0], tile[1], originX);
-  const anchorY = screenY(tile[0], tile[1], originY) + 16;
+  const anchorY = screenY(tile[0], tile[1], originY) + TILE_HALF_HEIGHT;
   return {
     left: anchorX - s.w / 2,
     right: anchorX + s.w / 2,
@@ -126,7 +126,7 @@ describe('clientToTile', () => {
   it('does not award a diamond corner to the tile it is anchored on', () => {
     const tile = clientToTile(
       screenX(4, 4, 0),
-      screenY(4, 4, 0) + 16,
+      screenY(4, 4, 0) + TILE_HALF_HEIGHT,
       UNSCALED,
       1280,
       720,
