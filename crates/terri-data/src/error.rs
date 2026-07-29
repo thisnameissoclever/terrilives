@@ -14,13 +14,35 @@ pub enum ContentError {
         interaction: String,
         need: String,
     },
+    /// `needs.toml` names something that is not a `NeedId` variant.
+    UnknownDeclaredNeed {
+        need: String,
+    },
+    /// `needs.toml` declares the same need twice. It is a list rather
+    /// than a table, so serde cannot reject this on its own.
+    DuplicateDeclaredNeed {
+        need: String,
+    },
+    /// A `NeedId` variant that `needs.toml` does not declare. Without
+    /// this the need would exist in Rust, decay at whatever the tuning
+    /// table happened to hold for it, and be invisible in content.
+    MissingDeclaredNeed {
+        need: String,
+    },
+    /// `tuning.toml`'s `[decay_per_tick]` table has no rate for a need
+    /// `needs.toml` declares.
+    ///
+    /// A missing rate is not a rate of zero: the compile step seeds the
+    /// table with `NaN`, and a `NaN` decay rate poisons that need's level
+    /// on the first tick with nothing pointing back at the content.
     MissingNeedDecay {
         need: String,
     },
+    /// `tuning.toml`'s `[decay_per_tick]` table gives a rate for a name
+    /// that is not a `NeedId` variant. There is no duplicate counterpart:
+    /// the table is a map, so a repeated key is a TOML parse error before
+    /// this module sees it.
     UnknownNeedDecay {
-        need: String,
-    },
-    DuplicateNeedDecay {
         need: String,
     },
     DuplicateObjectId {
@@ -90,6 +112,44 @@ pub enum ContentError {
     MissingSimSprite {
         sprite: String,
     },
+    /// Weighted selection divides by the temperature, so zero is a
+    /// division by zero and a negative one inverts the whole
+    /// distribution: the least urgent option would become the most
+    /// likely.
+    ///
+    /// The value is always finite, because `compile_tuning` checks
+    /// finiteness before this range, which also keeps this variant's
+    /// derived `PartialEq` from having to reason about NaN. Same
+    /// reasoning as [`ContentError::PlacementOutOfBounds`].
+    NonPositiveTemperature {
+        value: f32,
+    },
+    /// A floor of zero ticks is not a short interaction; it is an
+    /// interaction that can complete on the tick it starts, which reads
+    /// as a sim teleporting through an action.
+    ZeroInteractionFloor,
+    /// Zero attempts is not "wander less"; it is a sim that can never
+    /// roll a destination and therefore never wanders at all, which is
+    /// exactly the standing-still behaviour [D-5] exists to remove -
+    /// and it would look like the feature had simply not been built.
+    ZeroWanderAttempts,
+    /// Variance is a FRACTION either side of the authored duration. At
+    /// 1.0 the lower bound reaches zero, so the floor rather than the
+    /// content would decide every duration; above 1.0 it goes negative.
+    /// Finite by the time this is reported, as above.
+    DurationVarianceOutOfRange {
+        value: f32,
+    },
+    /// An idle threshold above the action threshold means a sim wanders
+    /// off while something is worth doing. That is incoherent rather
+    /// than merely odd: the two knobs answer "is anything worth doing"
+    /// and "is nothing worth doing enough that I should mill about", and
+    /// in this order the second contradicts the first. Both values are
+    /// finite by the time this is reported.
+    IdleThresholdAboveAction {
+        idle: f32,
+        action: f32,
+    },
 }
 
 impl fmt::Display for ContentError {
@@ -103,14 +163,26 @@ impl fmt::Display for ContentError {
                 f,
                 "object '{object}' interaction '{interaction}' advertises unknown need '{need}'"
             ),
-            ContentError::MissingNeedDecay { need } => {
-                write!(f, "needs.toml is missing a decay rate for '{need}'")
-            }
-            ContentError::UnknownNeedDecay { need } => {
+            ContentError::UnknownDeclaredNeed { need } => {
                 write!(f, "needs.toml declares unknown need '{need}'")
             }
-            ContentError::DuplicateNeedDecay { need } => {
+            ContentError::DuplicateDeclaredNeed { need } => {
                 write!(f, "needs.toml declares '{need}' more than once")
+            }
+            ContentError::MissingDeclaredNeed { need } => {
+                write!(f, "needs.toml does not declare '{need}'")
+            }
+            ContentError::MissingNeedDecay { need } => {
+                write!(
+                    f,
+                    "tuning.toml's [decay_per_tick] is missing a rate for '{need}'"
+                )
+            }
+            ContentError::UnknownNeedDecay { need } => {
+                write!(
+                    f,
+                    "tuning.toml's [decay_per_tick] gives a rate for unknown need '{need}'"
+                )
             }
             ContentError::DuplicateObjectId { id } => {
                 write!(f, "duplicate object id '{id}'")
@@ -180,6 +252,26 @@ impl fmt::Display for ContentError {
             ContentError::MissingSimSprite { sprite } => write!(
                 f,
                 "atlas.toml has no '{sprite}' sprite, so no sim could be drawn"
+            ),
+            ContentError::NonPositiveTemperature { value } => write!(
+                f,
+                "tuning.toml has choice_temperature of {value}; it must be greater than 0 because selection divides by it"
+            ),
+            ContentError::ZeroInteractionFloor => write!(
+                f,
+                "tuning.toml has min_interaction_ticks of 0; must be at least 1"
+            ),
+            ContentError::ZeroWanderAttempts => write!(
+                f,
+                "tuning.toml has wander_attempts of 0, so an idle sim could never roll a destination and would never wander; must be at least 1"
+            ),
+            ContentError::DurationVarianceOutOfRange { value } => write!(
+                f,
+                "tuning.toml has duration_variance of {value}; must be at least 0 and less than 1"
+            ),
+            ContentError::IdleThresholdAboveAction { idle, action } => write!(
+                f,
+                "tuning.toml has idle_threshold {idle} above action_threshold {action}; a sim would wander off while something is worth doing"
             ),
         }
     }

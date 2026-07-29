@@ -42,9 +42,12 @@ pub const TILES_PER_TICK: f32 = 0.25;
 /// Consequences worth knowing:
 ///
 /// - **A score may now be negative**, where before it was in
-///   `0.0..=delta`. Every consumer compares with `>` against a positive
-///   `ACTION_THRESHOLD`, so a net-negative advert is simply never chosen,
-///   which is the intended reading of "the costs outweigh the benefits".
+///   `0.0..=delta`. Every consumer compares with `>` against
+///   `action_threshold`, which `content/tuning.toml` authors above zero,
+///   so a net-negative advert is simply never chosen - the intended
+///   reading of "the costs outweigh the benefits". Tuning it below zero
+///   would change that, which is a reason the knob is somewhere a
+///   designer can see rather than buried in a `const`.
 /// - **The clamp still binds.** `urgency` is in `0.0..=1.0`, so a cost
 ///   can never exceed its own delta in magnitude however large the
 ///   deficit argument is.
@@ -298,7 +301,7 @@ mod tests {
     ///
     /// `select_action` sums this function across an interaction's
     /// advertised needs, so an object whose costs exceed its benefits has
-    /// to produce a net score below `ACTION_THRESHOLD` and lose. The
+    /// to produce a net score below `action_threshold` and lose. The
     /// shipped shower is the real instance of the interesting half: it
     /// stays worth doing for a rested sim and stops being worth it for an
     /// exhausted one, on the same hygiene deficit.

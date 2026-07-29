@@ -1,49 +1,35 @@
-# Need decay per tick. One tick is one sim-minute, so 0.104 drains a
-# full need in roughly 16 sim-hours.
+# Which needs exist. Nothing else: a need's DECAY RATE is system balance
+# rather than part of its identity, so the rates live in
+# content/tuning.toml alongside every other knob a designer tunes. This
+# file answers "what needs are there", tuning.toml answers "how fast does
+# the simulation drain them".
 #
-# Every NeedId variant must appear exactly once. A missing or unknown
-# entry fails the build.
+# Every NeedId variant must appear exactly once. A missing, unknown or
+# repeated entry fails the build, and so does a tuning.toml whose
+# decay_per_tick table does not cover exactly the needs declared here.
 #
-# Hunger keeps M0's rate; the rest are first guesses to be balanced in
-# M1b.
-#
-# This file is the ONLY home of these rates: `decay_needs` drains all
-# seven straight out of the compiled pack. Changing a number here changes
-# the simulation, and the world-hash golden vectors in
-# crates/terri-sim/src/lib.rs and web/tests/bridge.test.ts will move -
-# which is the intended signal, not a rebase artifact.
-#
-# The seven rates are deliberately all DIFFERENT, and that is load-bearing
-# rather than flavour. `decay_needs` looks a rate up by need index, and a
-# test cannot tell one slot from another if two slots hold the same value.
-# `needs_decay_at_different_rates` in crates/terri-sim/src/systems/needs.rs
-# fails if a balance pass ever makes two of them equal; see [L26] for the
-# instance where a uniform fixture hid exactly this bug one layer down.
+# The file is deliberately not empty of purpose even though `NeedId::ALL`
+# already lists the same seven in Rust: it is what the tuning table is
+# validated against, so adding a need is a content edit that fails the
+# build until its rate exists too.
 
 [[need]]
 id = "hunger"
-decay_per_tick = 0.104
 
 [[need]]
 id = "energy"
-decay_per_tick = 0.069
 
 [[need]]
 id = "hygiene"
-decay_per_tick = 0.052
 
 [[need]]
 id = "bladder"
-decay_per_tick = 0.139
 
 [[need]]
 id = "social"
-decay_per_tick = 0.035
 
 [[need]]
 id = "fun"
-decay_per_tick = 0.042
 
 [[need]]
 id = "comfort"
-decay_per_tick = 0.028

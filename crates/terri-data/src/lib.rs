@@ -13,10 +13,11 @@ pub use compile::{compile, SIM_SPRITE};
 pub use error::ContentError;
 pub use pack::{
     CompiledInteraction, CompiledLot, CompiledObject, CompiledPlacement, ContentPack, ObjectDefId,
+    Tuning,
 };
 pub use schema::{
     AtlasFile, AtlasSpriteDef, InteractionDef, LotFile, NeedDef, NeedsFile, ObjectDef, ObjectsFile,
-    PlacementDef, WallDef,
+    PlacementDef, TuningFile, WallDef,
 };
 
 use std::sync::OnceLock;
@@ -210,6 +211,33 @@ mod tests {
             "two shipped objects share a sprite, or one of them is drawn \
              as the sim; every id in objects.toml must name its own"
         );
+    }
+
+    /// The knobs `content/tuning.toml` authors, read back off the pack
+    /// the game actually loads.
+    ///
+    /// `compile` rejects an incoherent set, so these cannot be wrong on
+    /// shipped content without the build having failed first. What this
+    /// adds is the wiring: that the file is read at all, that each value
+    /// lands on its own field, and that a knob is not quietly reading
+    /// its neighbour. Every asserted value differs from every other, so
+    /// a transposed pair moves it.
+    ///
+    /// The numbers are restated here rather than read from the file
+    /// because that is the point - a tuning pass that changes one of
+    /// them should have to say so here, which is where somebody
+    /// reviewing a balance change will look.
+    #[test]
+    fn the_shipped_pack_carries_the_authored_tuning() {
+        let t = pack().tuning;
+
+        assert_eq!(t.action_threshold, 0.05);
+        assert_eq!(t.choice_temperature, 0.06);
+        assert_eq!(t.idle_threshold, 0.04);
+        assert_eq!(t.wander_pause_ticks, 20);
+        assert_eq!(t.duration_variance, 0.4);
+        assert_eq!(t.min_interaction_ticks, 12);
+        assert_eq!(t.rng_seed, 20260728);
     }
 
     /// Every object the design declares is actually placed. An object in

@@ -146,6 +146,12 @@ Ordered, per tick. `||` marks parallel, `->` marks serialized.
 3. `|| mood` - moodlets from needs, traits, environment
 4. `|| advertisement_scan` - spatial query for nearby smart objects, score them
 5. `-> action_selection` - pick winning interaction
+5a. `-> idle_wander` - a sim whose best option scores below `idle_threshold`
+    walks to a random reachable tile instead of standing still ([D-5] of the
+    M1c design). Lettered rather than numbered so the step numbers other
+    sections cite stay put. Serialized because it draws from the shared PRNG,
+    and it sits here rather than earlier so that a sim which just found
+    something worth doing never reaches it.
 6. `-> reservation` - claim object slots, deterministic order by entity ID
 7. `|| pathfinding_request`
 8. `-> path_solve` - **budgeted: max N paths per tick, overflow queues**
@@ -257,7 +263,10 @@ saves later.
 Content is authored in TOML and compiled to a validated binary pack at build
 time. **Built in M1a**, apart from hot reload, which is M1e.
 
-`content/needs.toml` and `content/objects.toml` are the sources.
+`content/needs.toml`, `content/objects.toml`, `content/lot.toml` and
+`content/tuning.toml` are the authored sources, plus the generated
+`assets/sprites/atlas.toml`, which is an input here so that "this object names
+a sprite the atlas holds" is a build failure rather than a blank quad.
 `crates/terri-data/build.rs` parses them with `serde`/`toml`, runs the
 validation below, encodes the result with `postcard`, and writes
 `$OUT_DIR/content_pack.postcard`. `lib.rs` embeds those bytes with
@@ -276,10 +285,29 @@ nonsense**, with the message naming the offending id:
 
 - a need name `NeedId::from_name` does not know
 - a `NeedId` variant missing from `needs.toml`, or declared twice
+- a need `needs.toml` declares that `tuning.toml`'s `[decay_per_tick]` gives no
+  rate for, or a rate for a need nothing declares. The two files answer
+  different questions - which needs exist, and how fast the simulation drains
+  them - and the build fails unless they agree
 - a duplicate object or interaction id
 - a zero `duration_ticks` (an interaction that finishes before it starts) or
   zero `slots`
 - a non-finite or negative number anywhere
+- a missing or incoherent tuning knob: an absent field, a `choice_temperature`
+  of zero or below (selection divides by it), a `min_interaction_ticks` of
+  zero, a `duration_variance` outside `[0, 1)`, or an `idle_threshold` above
+  `action_threshold`, which would have a sim wander off while something is
+  worth doing
+
+**`content/tuning.toml` is the single home for every value that governs the
+system**, as opposed to values describing one piece of content, and that is a
+standing rule rather than one file's convention: **a new knob goes there rather
+than into a Rust `const`.** See [D-1] in the M1c design. The person tuning game
+feel iterates, and wants one file to open rather than a hunt through Rust; a
+constant buried in a system is a knob nobody finds. `ACTION_THRESHOLD` was the
+first migration, from ten places in `select_action`; the seven need decay rates
+followed at M1c Task 3, out of `needs.toml`, which now declares only which
+needs exist.
 
 Predicates (`requires`) are not yet a content concept, so "an object requiring
 an undefined predicate" is still a promise rather than a check; it lands with

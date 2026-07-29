@@ -44,6 +44,18 @@ impl Sim {
         // care about the lot use new_with_lot, which replaces this.
         world.insert_resource(terri_core::TileGrid::new(1, 1));
         world.insert_resource(Content(terri_data::pack()));
+        // The simulation PRNG, as a world resource per [D-3]. Randomness
+        // must not mean nondeterminism: the golden hashes, replay, the
+        // save-file command log and the planned multiplayer all rest on
+        // the simulation being bit-reproducible, so every draw comes from
+        // here and the seed is content rather than a wall clock.
+        //
+        // Seeded from the pack, which means from `content/tuning.toml`.
+        // A test that installs its own pack must reseed to match - see
+        // `test_content::sim_with`, which does.
+        world.insert_resource(terri_core::SimRng::from_seed(
+            terri_data::pack().tuning.rng_seed,
+        ));
 
         // Register components eagerly. This is NOT optional bookkeeping:
         // World::try_query returns None if ANY component in the query is
@@ -60,6 +72,8 @@ impl Sim {
         world.register_component::<terri_core::Path>();
         world.register_component::<terri_core::Target>();
         world.register_component::<terri_core::Eating>();
+        world.register_component::<terri_core::Restless>();
+        world.register_component::<terri_core::Wander>();
 
         let mut schedule = Schedule::default();
         // M0 runs single-threaded on purpose. Parallelism is [A9]/[D4]
@@ -73,6 +87,15 @@ impl Sim {
                 advance_clock,
                 systems::needs::decay_needs,
                 systems::action::select_action,
+                // Strictly after selection and strictly before movement,
+                // and both halves matter. After, because it reads the
+                // `Restless` marker selection has just written, so a sim
+                // that found something worth doing this tick never gets
+                // as far as considering a stroll. Before, because a
+                // wander path is then walked on the tick it is chosen,
+                // exactly like a path to an object - a wander that had
+                // to wait a tick would read as a hesitation.
+                systems::idle::wander,
                 systems::movement::follow_path,
                 systems::interact::tick_interactions,
             )
@@ -565,6 +588,50 @@ mod determinism_tests {
             .expect("the scenario spawns agents")
     }
 
+    /// The world's PRNG exists and is seeded from `content/tuning.toml`,
+    /// which is the [D-3] claim that "randomness must not mean
+    /// nondeterminism" rests on. A generator seeded from a wall clock, or
+    /// from a constant somebody typed, would satisfy every other test in
+    /// this module.
+    ///
+    /// Read through `Sim::new_with_lot` rather than by reaching into
+    /// `Sim::new`, because that is what every caller uses.
+    ///
+    /// The `assert_ne` is the vacuity guard: comparing against the tuned
+    /// seed alone would also be satisfied by a generator seeded from
+    /// literally anything, if the comparison were computed the same wrong
+    /// way twice. A second seed that must NOT match is what excludes it.
+    #[test]
+    fn the_worlds_prng_is_seeded_from_the_tuned_rng_seed() {
+        use terri_core::SimRng;
+
+        let sim = Sim::new_with_lot(8, 8);
+        let mut world_rng = sim.world().resource::<SimRng>().clone();
+        let seed = terri_data::pack().tuning.rng_seed;
+
+        let mut tuned = SimRng::from_seed(seed);
+        let mut other = SimRng::from_seed(seed.wrapping_add(1));
+        let from_world: Vec<u32> = (0..4).map(|_| world_rng.next_u32()).collect();
+
+        assert_ne!(
+            from_world[0], from_world[1],
+            "a frozen generator would satisfy the rest of this test"
+        );
+        assert_ne!(
+            from_world,
+            (0..4).map(|_| other.next_u32()).collect::<Vec<_>>(),
+            "the world's generator must not agree with a DIFFERENT seed, \
+             or this test cannot tell the tuned value from any other"
+        );
+        assert_eq!(
+            from_world,
+            (0..4).map(|_| tuned.next_u32()).collect::<Vec<_>>(),
+            "the world's generator must be the one content/tuning.toml's \
+             rng_seed produces, and must not have been advanced before any \
+             system ran"
+        );
+    }
+
     #[test]
     fn identical_scenarios_produce_identical_world_hashes() {
         const TICKS: usize = 500;
@@ -722,7 +789,7 @@ mod determinism_tests {
         const TICKS: usize = 100;
         // Moved deliberately at Task 7's content-driven decay, and this
         // time it is a SIMULATION change rather than an encoding one.
-        // Every need now drains at the rate `content/needs.toml`
+        // Every need now drains at the rate `content/tuning.toml`
         // declares for it, so the six levels that used to sit pinned at
         // their spawn value for all 100 ticks now fall - six of the seven
         // per-entity f32s in every agent's row move, on every tick. The
@@ -751,7 +818,73 @@ mod determinism_tests {
         // `an_object_behind_a_wall_loses_to_a_further_one_the_agent_can_walk_to`
         // instead. Recorded as [L36]; do not read this vector as covering
         // how candidates are ordered.
-        const GOLDEN: u64 = 0x2FC6_69EF_A725_4F2D;
+        //
+        // **M1c Task 3 did not move it either, for the same reason, and
+        // that was predicted to be otherwise.** Selection became a
+        // softmax-weighted draw rather than an argmax - the milestone's
+        // central change - and this scenario still cannot see it. There
+        // is one object, so every agent that gets a candidate at all gets
+        // exactly one, and a one-candidate draw has one answer at every
+        // temperature and every seed. `sample_softmax` even computes the
+        // same weight for it, `exp(0.0)`, which is exactly 1.0 on every
+        // target.
+        //
+        // That last sentence is load-bearing rather than trivia: it is
+        // why this vector stays safe to compare across native and wasm32
+        // now that selection calls `exp`. A scenario with two live
+        // candidates would put a libm result inside the digest's causal
+        // chain, and `f32::exp` is a platform call with no cross-target
+        // bit-identity guarantee - the same hazard `score_advertisement`
+        // avoids by refusing `powf`. **Anybody adding a second object to
+        // this scenario is changing what this vector is exposed to, not
+        // just what it covers.** Weighted selection is pinned by
+        // `a_higher_scoring_object_is_chosen_more_often_and_a_lower_one_still_sometimes`
+        // and by the two tie tests, all of which are robust to a
+        // last-bit difference.
+        //
+        // **M1c Task 4 did not move it either, and this time for a
+        // SECOND, independent reason worth knowing.** [D-4] made every
+        // interaction's length a sampled value and put a 25-tick floor
+        // under it, which raises the fridge's snack from 15 ticks. This
+        // scenario cannot see that because **no agent ever eats in it**:
+        // the fridge sits 30 tiles from the nearest agent, movement
+        // covers 0.25 tiles a tick, so arrival is at tick ~121 and this
+        // vector stops at 100. Measured, not deduced - a probe over the
+        // 100 ticks found no `Eating` component at any point and exactly
+        // one agent still walking at the end.
+        //
+        // So the scenario is blind to durations AND to the PRNG draw
+        // durations consume, on top of being blind to how candidates are
+        // ranked. Read together with the two paragraphs above, that is a
+        // statement about this fixture rather than about the milestone:
+        // one object 30 tiles away exercises decay, movement and the
+        // digest, and nothing else. **Anyone who wants this vector to
+        // cover selection or duration has to change the scenario**, and
+        // the paragraph above sets out what a second object would cost.
+        //
+        // **M1c Task 5 DID move it, and this is the first M1c change that
+        // this scenario could see.** [D-5] sends a sim with nothing worth
+        // doing for a stroll instead of leaving it standing still, and
+        // seven of these eight agents have nothing worth doing from tick
+        // one: the single fridge is claimed by the lowest-indexed agent
+        // and every other agent skips a reserved object, so its best
+        // score is nothing at all and it is marked restless. Those seven
+        // now wander. Fourteen of the sixteen coordinates in the digest
+        // move, on almost every tick.
+        //
+        // That is a behaviour change and it is the intended one. It also
+        // means this vector now covers the seeded PRNG for the first
+        // time, because a wander destination is drawn from it - so a
+        // change to `SimRng`, to the draw ORDER, or to the wander
+        // roll will now surface here rather than only in the unit tests.
+        //
+        // Previous value: 0x2FC6_69EF_A725_4F2D (Task 7's content-driven
+        // decay, unmoved by M1b Task 3b and by M1c Tasks 3 and 4).
+        //
+        // Measured on wasm32 as well as natively, per [L13], rather than
+        // assumed to carry across: the two agree. The boundary copy lives
+        // in web/tests/bridge.test.ts.
+        const GOLDEN: u64 = 0x5A49_3BA9_F7FB_F23B;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

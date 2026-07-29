@@ -299,7 +299,57 @@ describe('SimBridge', () => {
     // wasm was rebuilt before this was re-run, per [L8]; skipping that
     // would have measured the previous artifact and proved nothing either
     // way.
-    expect(bridge.worldHash()).toBe(0x2fc6_69ef_a725_4f2dn);
+    //
+    // M1c Task 3 made selection a softmax-weighted draw rather than an
+    // argmax, and this vector did NOT move on either target either. Same
+    // reason as above and the same [L36]: one object means every agent
+    // that has a candidate has exactly one, and a one-candidate draw has
+    // one answer at every temperature and every seed. The wasm was
+    // rebuilt before this was re-run.
+    //
+    // That is also what keeps this comparison meaningful now that
+    // selection calls `exp`. `f32::exp` is a platform libm call with no
+    // cross-target bit-identity guarantee, so a scenario with two live
+    // candidates would put one inside the digest's causal chain and this
+    // native-versus-wasm32 check could start disagreeing for a reason
+    // that is not a regression. It computes `exp(0.0)` here, which is
+    // exactly 1.0 everywhere. Adding a second object to this scenario
+    // changes what it is exposed to.
+    //
+    // M1c Task 4 varied every interaction's length around its content
+    // duration and put a 25-tick floor under it, and this vector did not
+    // move on either target for a different reason again: **no agent
+    // eats at all here.** The fridge is 30 tiles from the nearest agent
+    // and movement covers 0.25 tiles a tick, so the first arrival is
+    // around tick 121 and this runs to 100. Measured natively with a
+    // probe over the 100 ticks; the wasm was rebuilt before this was
+    // re-run. The scenario therefore covers decay, movement and the
+    // digest, and nothing about how a sim chooses or how long it takes.
+    //
+    // **M1c Task 5 DID move it, and it is the first M1c change this
+    // scenario could see.** [D-5] sends a sim with nothing worth doing
+    // for a stroll rather than leaving it standing still, and seven of
+    // these eight agents have nothing worth doing from tick one: the
+    // single fridge is claimed by the lowest-indexed agent and every
+    // other agent skips a reserved object, so its best score is nothing
+    // at all. Those seven now wander, and fourteen of the sixteen
+    // coordinates in this digest move on almost every tick.
+    //
+    // It also means this comparison now covers the seeded PRNG for the
+    // first time - a wander destination is drawn from it - so a
+    // native/wasm32 divergence in the generator or in the draw order
+    // would surface here rather than nowhere.
+    //
+    // Measured on wasm32, not copied from native ([L13]): the wasm was
+    // rebuilt with `wasm-pack build crates/terri-wasm --target web
+    // --out-dir ../../web/src/wasm` FIRST, this test was run against the
+    // old constant, and the reported 6505796737909387835n was read off
+    // the failure. It equals the native value, which is a measurement
+    // each time rather than a guarantee.
+    //
+    // Previous value: 0x2fc6_69ef_a725_4f2dn (Task 7's content-driven
+    // decay, unmoved by M1b Task 3b and by M1c Tasks 3 and 4).
+    expect(bridge.worldHash()).toBe(0x5a49_3ba9_f7fb_f23bn);
   });
 
   it('exposes the world hash as a bigint that tracks simulation state', () => {

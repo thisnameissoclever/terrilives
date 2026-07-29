@@ -4,7 +4,242 @@
 contract.** That file, not this one, is what CI compares against; it is the
 sorted contents of `mutants.out/missed.txt` from a full sweep.
 
-**Latest sweep: M1b Task 3b, 2026-07-28**, with the package list CI actually
+**Latest sweep: M1c Task 6, the alpha feel pass, 2026-07-28**, full, on the
+finished Task 6 tree, with the package list CI uses and **CI's exact
+invocation** - single-job, unlike the two sweeps below:
+
+```
+cargo mutants --package terri-core --package terri-sim \
+  --package terri-data --package terri-wasm --test-workspace true --timeout 60
+392 mutants tested in 25m: 5 missed, 335 caught, 49 unviable, 3 timeouts
+```
+
+**Mutation score on viable mutants: 98.0%** (335 caught of 342 viable, counting
+the 3 timeouts as not-caught, which is the pessimistic reading).
+
+**The survivor list is byte-identical to `docs/mutants-baseline.txt`**, checked
+line-keyed **and** normalised on `(file, column, mutation)`. Both comparisons
+give an empty new-survivor list and an empty now-caught list. The two agree for
+a checkable reason rather than a lucky one: all five baseline entries live in
+`grid.rs`, `rng.rs` and `advertise.rs`, and this task touched none of the
+three.
+
+**No new mutants entered the sweep** - 392 against 392 at Tasks 4 and 5 - which
+is the expected reading for a task whose code change is three numbers in a
+content file plus comments and tests. Test-only code is not mutated, so the two
+new helpers in `interact.rs` and `test_content.rs` add nothing to the count.
+
+**One mutant moved from unviable to caught**, 50 to 49 unviable against 334 to
+335 caught, with the missed set unchanged. That is the *opposite* of the
+movement [L28] warns about: coverage moved out of the build gate and back into
+the test suite, which is the safe direction, and the gate is unaffected either
+way because unviable is neither caught nor missed.
+
+**It was not isolated, and the leading explanation is the harness rather than
+the code.** This run was single-job and the Tasks 4 and 5 run used `--jobs 4`;
+a transient build failure under parallelism on this machine classifies as
+unviable, and [L15] already records that this box handles concurrent build
+processes badly. The semantic alternatives were checked and rejected: every
+branch of `compile_tuning` evaluates the same way against both the old and the
+new knob values, so no build-gate kill can have been created or removed by the
+retune. `grep -lE "content is invalid" mutants.out/log/*.log` counts **27**
+mutants killed by `build.rs` rather than by a test, up from the 13 [L28]
+measured at M1a Task 5, which is content validation having grown across M1b and
+M1c rather than anything moving in this task.
+
+---
+
+**Previous sweep: M1c Tasks 4 and 5, 2026-07-28**, full, on the finished Task 5
+tree, with the package list CI uses:
+
+```
+cargo mutants --package terri-core --package terri-sim \
+  --package terri-data --package terri-wasm --test-workspace true --timeout 60 \
+  --jobs 4
+392 mutants tested in 11m: 5 missed, 334 caught, 50 unviable, 3 timeouts
+```
+
+**Mutation score on viable mutants: 97.7%** (334 caught of 342 viable, counting
+the 3 timeouts as not-caught, which is the pessimistic reading).
+
+**The survivor list is byte-identical to `docs/mutants-baseline.txt`.** CI's
+comparison gives an empty new-survivor list and an empty now-caught list, so the
+baseline file is unchanged by these two tasks. It was checked line-keyed **and**
+normalised on `(file, column, mutation)`, per the standing warning that the
+baseline is line-keyed and an entry can re-anchor on a comment edit alone; both
+comparisons are empty, and the two agree because none of the three files holding
+baseline entries was touched.
+
+Thirty-three new mutants entered the sweep (392 against 359 at Task 3), from
+`sample_duration`, `roll_wander_path`, the wander system, the restlessness
+branch in `select_action`, the optional target in `follow_path`, and the
+`wander_attempts` validation.
+
+**One of them survived the first sweep, and it was equivalent rather than
+untested:**
+
+```
+crates/terri-sim/src/systems/action.rs:454:26: replace > with >= in select_action
+```
+
+That was `if score > best_seen { best_seen = score; }`, the running maximum that
+`idle_threshold` is compared against. Relaxed to `>=` it reassigns a value equal
+to the one already held, which changes nothing on any input - including the
+`f32` corner cases, since `-0.0` and `0.0` compare identically against a
+threshold and `NaN` fails both forms. No test can separate the two.
+
+**It was removed rather than baselined**, and that choice is the point. A
+genuinely equivalent mutant is a legitimate baseline entry, but this one had a
+cheaper fix: `best_seen = best_seen.max(score)` has no comparison operator to
+mutate, so the mutant is not generated at all. The same idiom the fold in
+`sample_softmax` already uses. A baseline that only ever grows becomes a
+permission slip; the second sweep above is the one with the entry gone, and it
+matches the committed baseline exactly.
+
+**Two sorts in this change are invisible to the sweep and are covered by hand.**
+`cargo mutants` emits no statement-deletion mutant, so a `sort_by_key` whose
+only effect is on state is outside its grammar entirely - a clean report over
+those two lines is true and is simultaneously no evidence (rule 2 of
+`testing-protocol.md`, and [L11]). Both were deleted by hand:
+`arrival_draws_follow_entity_order_not_archetype_order` fails without the sort
+in `follow_path`, and `wander_destinations_follow_entity_order_not_archetype_order`
+fails without the one in `idle::wander`.
+
+---
+
+**Previous sweep: M1c Task 3, 2026-07-28**, full, on the finished Task 3 tree,
+with the package list CI uses:
+
+```
+cargo mutants --package terri-core --package terri-sim \
+  --package terri-data --package terri-wasm --test-workspace true --timeout 60 \
+  --jobs 4
+359 mutants tested in 10m: 5 missed, 303 caught, 48 unviable, 3 timeouts
+```
+
+**Mutation score on viable mutants: 97.4%** (303 caught of 311 viable, counting
+the 3 timeouts as not-caught, which is the pessimistic reading).
+
+`--jobs 4` is the only difference from CI's invocation, and it is a wall-clock
+concession on this machine rather than a change to what is measured: which
+mutants survive is not a function of how many run at once, and the test phase
+is under two seconds so the 60s timeout is nowhere near contended. **CI's own
+command is unchanged.** Single-job was measured at about 20s per mutant here
+against CI's 3.3s, which would have been over two hours.
+
+**The survivor list is byte-identical to `docs/mutants-baseline.txt`.** CI's
+comparison gives an empty new-survivor list and an empty now-caught list, so
+the baseline file is unchanged by this task.
+
+Seventeen new mutants entered the sweep (359 against 342 at Task 1), from
+`sample_softmax`, the object sort, the reshaped per-object comparison and the
+decay split across two content files. All were caught, but **one of them was
+not caught first time and that is the entry worth reading:**
+
+```
+crates/terri-sim/src/systems/action.rs:445:52: replace > with < in select_action
+```
+
+That is `score > *best_score`, the comparison that picks which of an object's
+interactions an agent performs, flipped to keep the WORST one. It survived the
+first sweep of the task with all 172 tests green. Two fixtures look like they
+cover it and neither does: `selection_scores_every_interaction_and_records_the_one_that_won`
+deliberately puts its weak interaction below the action threshold, so `best` is
+still `None` when the strong one is scored and the comparison never runs against
+an incumbent; and `a_tied_later_interaction_cannot_displace_an_earlier_one_on_the_same_object`
+runs it only on EQUAL scores, where `>` and `<` agree. The missing input domain
+is two interactions on one object that both clear the threshold and differ,
+which no fixture had. That is [L34], and
+`the_better_of_two_worthwhile_interactions_on_one_object_is_the_one_recorded`
+is the test written for it.
+
+Worth recording twice over. The mutation was **killable before this task**,
+when the same comparison ranged over objects as well as interactions and
+several fixtures place two objects with different scores; scoping it to within
+one object is what made the existing coverage stop reaching it. That is [L30]
+running in the opposite direction - not an equivalent mutant becoming killable,
+but a killed mutant becoming a survivor because the code around it changed
+shape. **Neither a reviewer nor the eight hand mutations run for this task
+found it; the sweep did.**
+
+**No baseline entry re-anchored.** The brief warned that the baseline is
+line-keyed and that an entry can move on a comment edit alone. It did not
+happen here, and the reason is checkable rather than lucky: all five baseline
+entries live in `grid.rs`, `rng.rs` and `advertise.rs`, none of which this task
+touched. Normalising on `(file, column, mutation)` was therefore unnecessary,
+and the raw line-keyed comparison is sound for this task specifically.
+
+---
+
+**Previous sweep: M1c Task 1, 2026-07-28**, full, on a clean tree at `f4458fb`,
+with the package list CI uses:
+
+```
+cargo mutants --package terri-core --package terri-sim \
+  --package terri-data --package terri-wasm --test-workspace true --timeout 60
+342 mutants tested in 19m: 5 missed, 292 caught, 42 unviable, 3 timeouts
+```
+
+**Mutation score on viable mutants: 97.3%** (292 caught of 300 viable, counting
+the 3 timeouts as not-caught, which is the pessimistic reading).
+
+The five missed are **exactly** the five in `docs/mutants-baseline.txt`. Running
+CI's own comparison against the updated baseline gives an empty new-survivor
+list and an empty now-caught list.
+
+A scoped sweep over `rng.rs` alone was run first and predicted this:
+
+```
+cargo mutants --package terri-core --file crates/terri-core/src/rng.rs \
+  --test-workspace true --timeout 60
+25 mutants tested in 6m: 1 missed, 20 caught, 1 unviable, 3 timeouts
+```
+
+The reasoning was that Task 1 adds exactly one file of mutable code, its only
+other change being two lines in `lib.rs` that `cargo mutants` cannot mutate, and
+that its new tests exercise `SimRng` alone so they cannot close any existing
+survivor. The full sweep confirmed it. **Both are recorded because the scoped
+run is the cheap check and the full run is the one that is allowed to be
+believed**; had they disagreed, the full one wins.
+
+Thirty-one new mutants entered the sweep with `rng.rs` (342 against 311 at Task
+3b) and one survived.
+
+**One addition, and it is genuinely equivalent rather than untested:**
+
+`crates/terri-core/src/rng.rs:32:30: replace | with ^ in SimRng::from_seed`
+
+The line is `inc: (seed << 1) | 1`. `seed << 1` has bit 0 clear for **every**
+`u64`, so `| 1` sets a bit that is already 0 and `^ 1` flips a bit that is
+already 0. The two agree on the entire input domain; no test can separate them,
+so per [L32] rule 4 the thing to record is the condition that ends the
+equivalence rather than an excuse:
+
+> The equivalence holds **only** because the operand is left-shifted by at
+> least one. It ends the moment that expression changes shape - a rotate
+> instead of a shift, a shift of 0, or `inc` seeded from anything not shifted.
+> At that point bit 0 can be 1, `|` and `^` diverge, and
+> `a_golden_sequence_pins_the_algorithm` should start failing on the mutant.
+
+`| 1` was kept rather than rewritten as `+ 1`, which would have made the mutant
+killable. It is the canonical PCG idiom and states the real constraint, that
+the stream increment must be odd. Changing shipped code to give a tool
+something to find is the wrong trade when the alternative is one sentence of
+recorded reasoning.
+
+**Three timeouts, which are detections and are reported separately** per [L15]
+rule 4. `next_u32 -> 0`, `next_u32 -> 1` and `replace >= with < in range` all
+make the rejection loop in `SimRng::range` spin forever: the loop only exits on
+a draw at or above the threshold, and each of these mutants guarantees no such
+draw. The suite never goes green, which is what "caught" means, but a hang
+burns the job timeout instead of printing an assertion, so it is a weaker
+signal than a failure. They cost about 180s of CI time and land in
+`timeout.txt`, not `missed.txt`, so the gate does not see them. An unbounded
+rejection loop is inherent to debiased sampling and is not worth capping.
+
+---
+
+**Previous sweep: M1b Task 3b, 2026-07-28**, with the package list CI actually
 uses, which includes `terri-wasm`:
 
 ```
@@ -201,13 +436,23 @@ had a reason to build such a layout before, because M0's lot was one open
 room. Whoever next attends to this entry should start from the shipped lot
 rather than inventing a grid.
 
-### `advertise.rs:79:18` - the deficit clause of the NaN guard - EQUIVALENT
+### `advertise.rs:82:18` - the deficit clause of the NaN guard - EQUIVALENT
 
 **Re-derived in M1b Task 3**, where the guard changed shape and moved from
 line 42 to line 79. Both halves of that sentence matter: CI compares
 survivor strings byte for byte, so the line move alone would read as a new
 survivor plus a stale entry, and the shape change means the previous
 argument had to be redone rather than carried.
+
+**Re-anchored again from `79:18` to `82:18` in M1c Task 2**, and this time
+the code did not change at all: `ACTION_THRESHOLD` became
+`content/tuning.toml`'s `action_threshold`, and the doc comment above this
+function that named the old constant grew three lines while being corrected.
+That is the recurring cost of a line-keyed baseline - **an edit to a COMMENT
+above a survivor invalidates its entry** - so re-derive the coordinate with
+`cargo mutants --file` after touching a file that holds one, rather than
+assuming the entry still points at it. The argument below is unchanged; only
+the anchor moved.
 
 ```rust
 // M1a
@@ -418,6 +663,8 @@ Task 4 and the build gate changed the caught/unviable split in Task 5.
 | M1a Task 7 | 269 | 16 | 226 | 27 | Every figure identical to Task 6 |
 | **M1a Task 9** | **269** | **5** | **237** | **27** | **11 closed; baseline rewritten** |
 | **M1b Task 3** | **297** | **5** | **252** | **40** | **1 closed, 1 deleted, 1 re-anchored; baseline down to 4** |
+| M1b Task 3b | 311 | 4 | 266 | 41 | 14 new mutants, all caught; baseline unchanged |
+| **M1c Task 1** | **342** | **5** | **292** | **42** | **31 new mutants from `rng.rs`; 3 timeouts; baseline up to 5** |
 
 The M1b Task 3 row is the one to read carefully. Missed stayed at 5 while
 the set changed completely in composition: `advertise.rs:42:36` ceased to

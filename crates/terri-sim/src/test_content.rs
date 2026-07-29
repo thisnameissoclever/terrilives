@@ -13,8 +13,8 @@
 //! compilation unit and would not see one.
 
 use crate::{Content, Sim};
-use terri_core::{NeedId, SmartObject};
-use terri_data::{CompiledInteraction, CompiledObject, ContentPack};
+use terri_core::{NeedId, SimRng, SmartObject};
+use terri_data::{CompiledInteraction, CompiledObject, ContentPack, Tuning};
 
 /// One interaction advertising the given (need, delta) pairs.
 ///
@@ -87,6 +87,21 @@ pub fn object_offering(id: &str, interactions: Vec<CompiledInteraction>) -> Comp
 /// Leaked because [`Content`] holds a `&'static`. One small allocation
 /// per call, in a test process, bounded by the number of tests.
 pub fn pack(objects: Vec<CompiledObject>) -> &'static ContentPack {
+    pack_tuned(objects, tuning())
+}
+
+/// A pack holding these objects with the given knobs, for the tests that
+/// have to vary one.
+///
+/// Two knobs are varied today, both because selection became a WEIGHTED
+/// draw. `choice_temperature` is turned down where a test names a golden
+/// winner, so the assertion is about scoring rather than about the
+/// outcome of a coin toss; `rng_seed` is varied where the draw itself is
+/// what is under test. Every caller builds its override by spreading
+/// [`tuning`] rather than writing literals, so nothing else moves with
+/// it - `action_threshold` in particular stays the number every scoring
+/// assertion in the suite is written against.
+pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static ContentPack {
     Box::leak(Box::new(ContentPack {
         decay_per_tick: terri_data::pack().decay_per_tick,
         objects,
@@ -97,13 +112,39 @@ pub fn pack(objects: Vec<CompiledObject>) -> &'static ContentPack {
         // explicitly - so a fixture lot would be an invented constant
         // with no reader, which is worse than a real one with no reader.
         lot: terri_data::pack().lot.clone(),
+        // And again: `select_action` compares against
+        // `tuning.action_threshold`, so a fixture with its own knobs
+        // would silently change the threshold every scoring assertion in
+        // the suite is written against. `pack` passes `tuning()` here,
+        // so a test stating the threshold and the pack the sim reads it
+        // from have ONE source rather than two that agree today.
+        tuning,
     }))
 }
 
+/// The knobs the simulation actually runs on, read from the same content
+/// the shipped pack carries rather than restated as a literal.
+///
+/// This is what a test asserting "the losing candidate still clears the
+/// action threshold" must compare against. Hardcoding `0.05` there would
+/// leave the test green while silently no longer testing the real
+/// threshold, from the first time anybody tunes it.
+pub fn tuning() -> terri_data::Tuning {
+    terri_data::pack().tuning
+}
+
 /// A sim reading `content` instead of the shipped pack.
+///
+/// The PRNG is reseeded from `content` as well, because `Sim::new` seeds
+/// it from the SHIPPED pack and selection draws from it. Without this a
+/// fixture that set its own `rng_seed` would be silently ignored, and a
+/// test written around a specific draw would be testing the shipped seed
+/// while claiming to test its own.
 pub fn sim_with(width: usize, height: usize, content: &'static ContentPack) -> Sim {
     let mut sim = Sim::new_with_lot(width, height);
     sim.world_mut().insert_resource(Content(content));
+    sim.world_mut()
+        .insert_resource(SimRng::from_seed(content.tuning.rng_seed));
     sim
 }
 
@@ -119,14 +160,19 @@ pub fn decay_per_tick(need: NeedId) -> f32 {
     terri_data::pack().decay_per_tick[need.index()]
 }
 
-/// The shipped fridge as a component.
+/// A shipped object as a component, by its `content/objects.toml` id.
 ///
 /// Tests that are about the simulation rather than about scoring use
 /// real content on purpose, so they pin behaviour the game actually has.
-pub fn shipped_fridge() -> SmartObject {
+pub fn shipped_object(id: &str) -> SmartObject {
     SmartObject(
         terri_data::pack()
-            .find("fridge")
-            .expect("content/objects.toml declares a fridge"),
+            .find(id)
+            .unwrap_or_else(|| panic!("content/objects.toml declares no '{id}'")),
     )
+}
+
+/// The shipped fridge as a component.
+pub fn shipped_fridge() -> SmartObject {
+    shipped_object("fridge")
 }

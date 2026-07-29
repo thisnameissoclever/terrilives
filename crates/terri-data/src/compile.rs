@@ -8,8 +8,9 @@
 use crate::error::ContentError;
 use crate::pack::{
     CompiledInteraction, CompiledLot, CompiledObject, CompiledPlacement, ContentPack, ObjectDefId,
+    Tuning,
 };
-use crate::schema::{AtlasFile, LotFile, NeedsFile, ObjectsFile};
+use crate::schema::{AtlasFile, LotFile, NeedsFile, ObjectsFile, TuningFile};
 use std::collections::BTreeSet;
 use terri_core::{NeedId, NEED_COUNT};
 
@@ -72,42 +73,67 @@ pub fn compile(
     objects: ObjectsFile,
     lot: LotFile,
     atlas: AtlasFile,
+    tuning: TuningFile,
 ) -> Result<ContentPack, ContentError> {
     let sprite_index = |name: &str| atlas.sprite.iter().position(|s| s.name == name);
     let sim_sprite = sprite_index(SIM_SPRITE).ok_or_else(|| ContentError::MissingSimSprite {
         sprite: SIM_SPRITE.to_string(),
     })? as u32;
 
-    let mut decay = [f32::NAN; NEED_COUNT];
+    // Two files, two rules, in that order. `needs.toml` says which needs
+    // EXIST; `tuning.toml`'s `[decay_per_tick]` says how fast the
+    // simulation drains them. Declaration is checked first so that a
+    // typo'd need name is reported against the file that named it rather
+    // than as a missing rate for something nobody declared.
+    //
     // A fixed-size array rather than a set: `NeedId` is `Eq + Hash` but
     // not `Ord`, and the need space is closed and small, so indexing it
     // directly needs no allocation and no ordering it does not have.
-    let mut seen_needs = [false; NEED_COUNT];
+    let mut declared = [false; NEED_COUNT];
 
     for def in &needs.need {
         let Some(id) = NeedId::from_name(&def.id) else {
-            return Err(ContentError::UnknownNeedDecay {
+            return Err(ContentError::UnknownDeclaredNeed {
                 need: def.id.clone(),
             });
         };
-        if seen_needs[id.index()] {
-            return Err(ContentError::DuplicateNeedDecay {
+        if declared[id.index()] {
+            return Err(ContentError::DuplicateDeclaredNeed {
                 need: def.id.clone(),
             });
         }
-        seen_needs[id.index()] = true;
-        check_number(
-            def.decay_per_tick,
-            &format!("decay_per_tick for '{}'", def.id),
-        )?;
-        decay[id.index()] = def.decay_per_tick;
+        declared[id.index()] = true;
     }
 
-    // Without this loop a need omitted from the file keeps the `NaN`
+    for id in NeedId::ALL {
+        if !declared[id.index()] {
+            return Err(ContentError::MissingDeclaredNeed {
+                need: id.as_str().to_string(),
+            });
+        }
+    }
+
+    let mut decay = [f32::NAN; NEED_COUNT];
+    let mut rated = [false; NEED_COUNT];
+
+    for (need_name, rate) in &tuning.decay_per_tick {
+        let Some(id) = NeedId::from_name(need_name) else {
+            return Err(ContentError::UnknownNeedDecay {
+                need: need_name.clone(),
+            });
+        };
+        // No duplicate check: the table is a `BTreeMap`, so a repeated
+        // key is a TOML parse error long before this runs.
+        rated[id.index()] = true;
+        check_number(*rate, &format!("decay_per_tick for '{need_name}'"))?;
+        decay[id.index()] = *rate;
+    }
+
+    // Without this loop a need omitted from the table keeps the `NaN`
     // seeded above, and a `NaN` decay rate poisons that need's level on
     // the first tick with nothing pointing back at the content.
     for id in NeedId::ALL {
-        if !seen_needs[id.index()] {
+        if !rated[id.index()] {
             return Err(ContentError::MissingNeedDecay {
                 need: id.as_str().to_string(),
             });
@@ -194,12 +220,75 @@ pub fn compile(
     }
 
     let lot = compile_lot(lot, &compiled)?;
+    let tuning = compile_tuning(tuning)?;
 
     Ok(ContentPack {
         decay_per_tick: decay,
         objects: compiled,
         sim_sprite,
         lot,
+        tuning,
+    })
+}
+
+/// Validates the system knobs from `content/tuning.toml`.
+///
+/// Presence is serde's job - `TuningFile` defaults nothing, so a missing
+/// knob is a parse error naming the field before this is reached. What
+/// is left is the meaning: a value can be present, well-typed, and still
+/// describe a simulation that divides by zero or contradicts itself.
+///
+/// Every rule here exists because breaking it fails **quietly**, which
+/// is what [D9] converts into a build failure. A zero temperature makes
+/// every selection weight `NaN`, and `NaN` loses every comparison, so a
+/// sim would simply stop choosing anything with no panic and no log.
+fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
+    // Finiteness first, for the same reason placement coordinates are
+    // checked before their bounds: every comparison against NaN is
+    // false, so `NaN <= 0.0` would let a NaN temperature through the
+    // range check below and into the arithmetic it exists to protect.
+    // Checking it first is also what makes the range errors' `f32`
+    // payloads safe to compare with a derived `PartialEq`.
+    check_finite(tuning.action_threshold, "action_threshold in tuning.toml")?;
+    check_finite(
+        tuning.choice_temperature,
+        "choice_temperature in tuning.toml",
+    )?;
+    check_finite(tuning.idle_threshold, "idle_threshold in tuning.toml")?;
+    check_finite(tuning.duration_variance, "duration_variance in tuning.toml")?;
+
+    if tuning.choice_temperature <= 0.0 {
+        return Err(ContentError::NonPositiveTemperature {
+            value: tuning.choice_temperature,
+        });
+    }
+    if tuning.min_interaction_ticks == 0 {
+        return Err(ContentError::ZeroInteractionFloor);
+    }
+    if tuning.wander_attempts == 0 {
+        return Err(ContentError::ZeroWanderAttempts);
+    }
+    if !(0.0..1.0).contains(&tuning.duration_variance) {
+        return Err(ContentError::DurationVarianceOutOfRange {
+            value: tuning.duration_variance,
+        });
+    }
+    if tuning.idle_threshold > tuning.action_threshold {
+        return Err(ContentError::IdleThresholdAboveAction {
+            idle: tuning.idle_threshold,
+            action: tuning.action_threshold,
+        });
+    }
+
+    Ok(Tuning {
+        action_threshold: tuning.action_threshold,
+        choice_temperature: tuning.choice_temperature,
+        idle_threshold: tuning.idle_threshold,
+        wander_pause_ticks: tuning.wander_pause_ticks,
+        wander_attempts: tuning.wander_attempts,
+        duration_variance: tuning.duration_variance,
+        min_interaction_ticks: tuning.min_interaction_ticks,
+        rng_seed: tuning.rng_seed,
     })
 }
 
@@ -369,6 +458,11 @@ mod tests {
     /// block, which is in index order while the fixture's map iterates it
     /// by name; and the wall block, which is in DECLARATION order while
     /// the fixture declares it out of sorted order.
+    ///
+    /// The tuning block was APPENDED when `content/tuning.toml` arrived,
+    /// deliberately: `ContentPack` grew a field at the end, so every
+    /// earlier block above kept its offset and stayed reviewable against
+    /// the annotations it already had.
     #[rustfmt::skip]
     const GOLDEN_PACK_BYTES: &[u8] = &[
         // decay_per_tick: seven LE f32 in NeedId index order.
@@ -404,6 +498,19 @@ mod tests {
         0x00, // 'fridge' resolved to ObjectDefId(0)
         0x00, 0x00, 0x20, 0x40, // x 2.5, fractional on purpose
         0x00, 0x00, 0xA0, 0x3F, // y 1.25
+        // tuning: four LE f32 and four varints, in `Tuning`'s field
+        // order. Every value differs, so a field encoded into the wrong
+        // slot moves these bytes.
+        0x00, 0x00, 0x80, 0x3E, // action_threshold      0.25
+        0x00, 0x00, 0x00, 0x3F, // choice_temperature    0.5
+        0x00, 0x00, 0x00, 0x3E, // idle_threshold        0.125
+        0x09,                   // wander_pause_ticks    9
+        0x06,                   // wander_attempts       6
+        0x00, 0x00, 0x40, 0x3F, // duration_variance     0.75
+        0x03,                   // min_interaction_ticks 3
+        0xAC, 0x02,             // rng_seed              300, a two-byte
+                                // varint, so the u64 is not silently a
+                                // single byte like the two u32s above
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -412,7 +519,17 @@ mod tests {
         needs: NeedsFile,
         objects: ObjectsFile,
     ) -> Result<ContentPack, ContentError> {
-        compile(needs, objects, bare_lot(), test_atlas())
+        compile_all(needs, objects, full_tuning())
+    }
+
+    /// The three-way version, for the two tests that have to vary the
+    /// needs file and the tuning file in the same compilation.
+    fn compile_all(
+        needs: NeedsFile,
+        objects: ObjectsFile,
+        tuning: TuningFile,
+    ) -> Result<ContentPack, ContentError> {
+        compile(needs, objects, bare_lot(), test_atlas(), tuning)
     }
 
     fn bare_lot() -> LotFile {
@@ -466,13 +583,81 @@ mod tests {
         }
     }
 
+    /// Valid tuning, with every knob a different value.
+    ///
+    /// Shared values would let a field written into the wrong slot pass
+    /// unnoticed, which is [L29] in the tuning file's costume, and the
+    /// golden vector below reads these bytes directly. The floats are
+    /// all exact in binary32 so the assertions can be equalities.
+    ///
+    /// `idle_threshold` is deliberately BELOW `action_threshold` rather
+    /// than equal to it, so `rejects_an_idle_threshold_above_the_action_threshold`
+    /// has somewhere to move it to on either side of the boundary.
+    ///
+    /// The decay table is the exception: it is UNIFORM here, so a compile
+    /// step that wrote every rate into one slot would pass. That is what
+    /// `distinct_tuning` below exists for, and keeping the two apart is
+    /// what lets every other test in this module ignore decay entirely.
+    fn full_tuning() -> TuningFile {
+        TuningFile {
+            action_threshold: 0.25,
+            choice_temperature: 0.5,
+            idle_threshold: 0.125,
+            wander_pause_ticks: 9,
+            wander_attempts: 6,
+            duration_variance: 0.75,
+            min_interaction_ticks: 3,
+            rng_seed: 300,
+            decay_per_tick: NeedId::ALL
+                .iter()
+                .map(|id| (id.as_str().to_string(), 0.1))
+                .collect(),
+        }
+    }
+
+    /// `full_tuning` with every need on its own decay rate.
+    fn distinct_tuning() -> TuningFile {
+        tuning_where(|t| {
+            t.decay_per_tick = NeedId::ALL
+                .iter()
+                .map(|id| (id.as_str().to_string(), distinct_decay(*id)))
+                .collect();
+        })
+    }
+
+    /// `full_tuning` with `mutate` applied, for the rejection tests.
+    fn tuning_where(mutate: impl FnOnce(&mut TuningFile)) -> TuningFile {
+        let mut tuning = full_tuning();
+        mutate(&mut tuning);
+        tuning
+    }
+
+    /// Compiles otherwise-valid content against the given tuning, so the
+    /// tests below vary one knob and nothing else.
+    fn compile_tuned(tuning: TuningFile) -> Result<ContentPack, ContentError> {
+        compile(
+            full_needs(),
+            one_object(snack()),
+            bare_lot(),
+            test_atlas(),
+            tuning,
+        )
+    }
+
+    /// Every need declared, and nothing else: `needs.toml` says which
+    /// needs exist, and `tuning.toml` says how fast they drain.
+    ///
+    /// Declared in REVERSE `NeedId` order, so a compile step that
+    /// confused a need's position in this file with its index would be
+    /// visible. The rates cannot be confused that way at all any more,
+    /// because they arrive keyed by name.
     fn full_needs() -> NeedsFile {
         NeedsFile {
             need: NeedId::ALL
                 .iter()
+                .rev()
                 .map(|id| NeedDef {
                     id: id.as_str().to_string(),
-                    decay_per_tick: 0.1,
                 })
                 .collect(),
         }
@@ -495,21 +680,6 @@ mod tests {
             advertises: [("hunger".to_string(), 35.0)].into_iter().collect(),
             duration_ticks: 15,
             slots: 1,
-        }
-    }
-
-    /// Every need present with its own rate, declared in reverse order
-    /// so that position in the file and slot in the pack disagree.
-    fn distinct_needs() -> NeedsFile {
-        NeedsFile {
-            need: NeedId::ALL
-                .iter()
-                .rev()
-                .map(|id| NeedDef {
-                    id: id.as_str().to_string(),
-                    decay_per_tick: distinct_decay(*id),
-                })
-                .collect(),
         }
     }
 
@@ -618,7 +788,14 @@ mod tests {
             "an empty atlas would fail for the other reason and prove nothing"
         );
         assert_eq!(
-            compile(full_needs(), one_object(snack()), bare_lot(), atlas).unwrap_err(),
+            compile(
+                full_needs(),
+                one_object(snack()),
+                bare_lot(),
+                atlas,
+                full_tuning()
+            )
+            .unwrap_err(),
             ContentError::MissingSimSprite {
                 sprite: SIM_SPRITE.into()
             }
@@ -653,11 +830,23 @@ mod tests {
         );
     }
 
+    /// Which needs exist and how fast they drain are now two rules over
+    /// two files, and the four tests below are one per way each can be
+    /// wrong. They are separate tests rather than one, because the whole
+    /// point of splitting the files is that a rate missing from
+    /// `tuning.toml` and a need missing from `needs.toml` are different
+    /// mistakes with different fixes, and a shared assertion could not
+    /// tell an author which one they made.
+    ///
+    /// There is deliberately no duplicate-rate case: the decay table is a
+    /// map, so a repeated key is a TOML parse error before `compile` is
+    /// reached.
     #[test]
-    fn rejects_a_missing_need_decay() {
-        let mut needs = full_needs();
-        needs.need.retain(|n| n.id != "comfort");
-        let err = compile_objects(needs, one_object(snack())).unwrap_err();
+    fn rejects_a_declared_need_with_no_decay_rate() {
+        let tuning = tuning_where(|t| {
+            t.decay_per_tick.remove("comfort");
+        });
+        let err = compile_tuned(tuning).unwrap_err();
         assert_eq!(
             err,
             ContentError::MissingNeedDecay {
@@ -667,13 +856,11 @@ mod tests {
     }
 
     #[test]
-    fn rejects_an_unknown_need_decay() {
-        let mut needs = full_needs();
-        needs.need.push(NeedDef {
-            id: "vibes".into(),
-            decay_per_tick: 0.1,
+    fn rejects_a_decay_rate_for_a_need_rustc_does_not_know() {
+        let tuning = tuning_where(|t| {
+            t.decay_per_tick.insert("vibes".into(), 0.1);
         });
-        let err = compile_objects(needs, one_object(snack())).unwrap_err();
+        let err = compile_tuned(tuning).unwrap_err();
         assert_eq!(
             err,
             ContentError::UnknownNeedDecay {
@@ -683,17 +870,53 @@ mod tests {
     }
 
     #[test]
-    fn rejects_a_duplicate_need_decay() {
+    fn rejects_an_unknown_declared_need() {
+        let mut needs = full_needs();
+        needs.need.push(NeedDef { id: "vibes".into() });
+        let err = compile_objects(needs, one_object(snack())).unwrap_err();
+        assert_eq!(
+            err,
+            ContentError::UnknownDeclaredNeed {
+                need: "vibes".into()
+            }
+        );
+    }
+
+    #[test]
+    fn rejects_a_duplicate_declared_need() {
         let mut needs = full_needs();
         needs.need.push(NeedDef {
             id: "hunger".into(),
-            decay_per_tick: 0.2,
         });
         let err = compile_objects(needs, one_object(snack())).unwrap_err();
         assert_eq!(
             err,
-            ContentError::DuplicateNeedDecay {
+            ContentError::DuplicateDeclaredNeed {
                 need: "hunger".into()
+            }
+        );
+    }
+
+    /// A `NeedId` variant `needs.toml` does not declare at all.
+    ///
+    /// The tuning table still carries its rate, so this is genuinely the
+    /// declaration rule firing rather than the rate rule: without the
+    /// completeness check on `needs.toml` the compilation would succeed
+    /// and the need would exist in Rust while being invisible in content.
+    #[test]
+    fn rejects_a_need_variant_that_content_does_not_declare() {
+        let mut needs = full_needs();
+        needs.need.retain(|n| n.id != "comfort");
+        assert!(
+            full_tuning().decay_per_tick.contains_key("comfort"),
+            "the tuning table must still rate comfort, or this test cannot \
+             tell the declaration rule from the rate rule"
+        );
+        let err = compile_objects(needs, one_object(snack())).unwrap_err();
+        assert_eq!(
+            err,
+            ContentError::MissingDeclaredNeed {
+                need: "comfort".into()
             }
         );
     }
@@ -793,11 +1016,12 @@ mod tests {
                 "an advert of {bad} must be rejected"
             );
 
-            let mut needs = full_needs();
-            needs.need[0].decay_per_tick = bad;
+            let tuning = tuning_where(|t| {
+                t.decay_per_tick.insert("hunger".into(), bad);
+            });
             assert!(
                 matches!(
-                    compile_objects(needs, one_object(snack())).unwrap_err(),
+                    compile_tuned(tuning).unwrap_err(),
                     ContentError::NonFiniteValue { .. }
                 ),
                 "a decay rate of {bad} must be rejected"
@@ -813,7 +1037,14 @@ mod tests {
                 });
                 assert!(
                     matches!(
-                        compile(full_needs(), one_object(snack()), lot, test_atlas()).unwrap_err(),
+                        compile(
+                            full_needs(),
+                            one_object(snack()),
+                            lot,
+                            test_atlas(),
+                            full_tuning()
+                        )
+                        .unwrap_err(),
                         ContentError::NonFiniteValue { .. }
                     ),
                     "a placement coordinate of {bad} on axis {axis} must be rejected"
@@ -833,10 +1064,11 @@ mod tests {
     /// leave one half of this file's coverage green either way.
     #[test]
     fn a_negative_decay_rate_is_rejected_but_a_negative_advert_is_content() {
-        let mut needs = full_needs();
-        needs.need[0].decay_per_tick = -1.0;
+        let tuning = tuning_where(|t| {
+            t.decay_per_tick.insert("hunger".into(), -1.0);
+        });
         assert!(matches!(
-            compile_objects(needs, one_object(snack())).unwrap_err(),
+            compile_tuned(tuning).unwrap_err(),
             ContentError::NegativeValue { .. }
         ));
 
@@ -868,12 +1100,14 @@ mod tests {
     /// that survivor.
     #[test]
     fn zero_is_a_legal_decay_rate_and_a_legal_advert() {
-        let mut needs = full_needs();
-        needs.need[0].decay_per_tick = 0.0;
+        let tuning = tuning_where(|t| {
+            t.decay_per_tick.insert("hunger".into(), 0.0);
+        });
         let mut act = snack();
         act.advertises.insert("energy".into(), 0.0);
 
-        let pack = compile_objects(needs, one_object(act)).expect("zero is in range, not invalid");
+        let pack = compile_all(full_needs(), one_object(act), tuning)
+            .expect("zero is in range, not invalid");
         assert_eq!(pack.decay_per_tick[NeedId::Hunger.index()], 0.0);
         assert_eq!(
             pack.objects[0].interactions[0].advertises,
@@ -936,12 +1170,33 @@ mod tests {
 
     /// Every other test in this module gives all seven needs the same
     /// decay rate, so writing every rate into one slot, or into the
-    /// wrong slot, would leave them all green. Declaring the needs in
-    /// reverse order additionally pins that the slot comes from the
-    /// need's name and not from its position in the file.
+    /// wrong slot, would leave them all green.
+    ///
+    /// The table's iteration order pins the slot mapping for free now
+    /// that the rates are keyed by name: a `BTreeMap` hands them over
+    /// alphabetically - bladder, comfort, energy, fun, hunger, hygiene,
+    /// social, which is indices 3, 6, 1, 5, 0, 2, 4 - so writing them out
+    /// in arrival order would produce a completely different array. The
+    /// precondition below states that rather than leaving it to the
+    /// reader, so renumbering `NeedId` fails loudly here instead of
+    /// quietly decaying this into a tautology.
     #[test]
     fn decay_rates_land_at_their_own_need_index() {
-        let pack = compile_objects(distinct_needs(), one_object(snack())).expect("valid");
+        let tuning = distinct_tuning();
+        let arrival: Vec<usize> = tuning
+            .decay_per_tick
+            .keys()
+            .map(|name| NeedId::from_name(name).expect("known need").index())
+            .collect();
+        let mut sorted = arrival.clone();
+        sorted.sort_unstable();
+        assert_ne!(
+            arrival, sorted,
+            "the table's name order must differ from index order, or this \
+             test cannot see a rate written into the slot it arrived in"
+        );
+
+        let pack = compile_tuned(tuning).expect("valid");
 
         for id in NeedId::ALL {
             assert_eq!(
@@ -964,7 +1219,8 @@ mod tests {
     /// pipeline moves them.
     ///
     /// The fixture is chosen so the bytes are sensitive rather than
-    /// decorative: seven distinct decay rates declared in reverse, three
+    /// decorative: seven distinct decay rates whose alphabetical arrival
+    /// order is nothing like the index order they are stored in, three
     /// adverts whose name order reverses their index order, and a
     /// non-square lot whose two walls are declared out of sorted order.
     ///
@@ -975,10 +1231,11 @@ mod tests {
     #[test]
     fn a_compiled_pack_serialises_to_a_stable_golden_vector() {
         let pack = compile(
-            distinct_needs(),
+            full_needs(),
             one_object(snack_advertising_three_needs()),
             distinct_lot(),
             test_atlas(),
+            distinct_tuning(),
         )
         .expect("valid");
         let bytes = postcard::to_allocvec(&pack).expect("pack must serialise");
@@ -987,6 +1244,240 @@ mod tests {
             "an emptied vector would assert nothing"
         );
         assert_eq!(bytes, GOLDEN_PACK_BYTES);
+    }
+
+    // ---- Tuning --------------------------------------------------------
+    //
+    // Presence is serde's rule and lives in `schema.rs`; these are the
+    // rules about MEANING, each of which a well-typed file can break.
+    // Per [L26] the rejection tests are half the surface, so
+    // `compiles_tuning_into_the_pack` states what the validator builds
+    // and every rejection below is paired with the value on the other
+    // side of its boundary.
+
+    /// The accepting half. Every knob is read back, against a fixture
+    /// where no two of them are interchangeable, so a field written into
+    /// a neighbouring slot is visible.
+    #[test]
+    fn compiles_tuning_into_the_pack() {
+        let tuning = compile_tuned(full_tuning()).expect("valid").tuning;
+
+        assert_eq!(tuning.action_threshold, 0.25);
+        assert_eq!(tuning.choice_temperature, 0.5);
+        assert_eq!(tuning.idle_threshold, 0.125);
+        assert_eq!(tuning.wander_pause_ticks, 9);
+        assert_eq!(tuning.duration_variance, 0.75);
+        assert_eq!(tuning.min_interaction_ticks, 3);
+        assert_eq!(tuning.rng_seed, 300);
+    }
+
+    /// Weighted selection divides by the temperature, so zero is a
+    /// division by zero whose result is `NaN`, and `NaN` loses every
+    /// comparison: a sim would stop choosing anything at all, forever,
+    /// with no panic and no log. A negative temperature is worse than
+    /// meaningless - it inverts the softmax, so the least urgent option
+    /// becomes the most likely.
+    ///
+    /// Zero is the case that pins `<=` rather than `<`, and the smallest
+    /// positive float is the other side of that boundary.
+    #[test]
+    fn rejects_a_non_positive_choice_temperature() {
+        for bad in [0.0, -0.5, -f32::MIN_POSITIVE] {
+            assert_eq!(
+                compile_tuned(tuning_where(|t| t.choice_temperature = bad)).unwrap_err(),
+                ContentError::NonPositiveTemperature { value: bad },
+                "a choice_temperature of {bad} divides selection by zero or inverts it"
+            );
+        }
+
+        let pack = compile_tuned(tuning_where(|t| t.choice_temperature = f32::MIN_POSITIVE))
+            .expect("any positive temperature is legal, however small");
+        assert_eq!(pack.tuning.choice_temperature, f32::MIN_POSITIVE);
+    }
+
+    /// A floor of zero ticks is an interaction that can finish on the
+    /// tick it starts. Nothing downstream divides by it, so it fails by
+    /// looking wrong rather than by crashing, which is exactly the shape
+    /// [D9] exists to catch at build time.
+    ///
+    /// One tick is asserted as legal on the other side of the boundary,
+    /// so the rule cannot be "at least 2" and pass this test.
+    #[test]
+    fn rejects_a_zero_interaction_floor() {
+        assert_eq!(
+            compile_tuned(tuning_where(|t| t.min_interaction_ticks = 0)).unwrap_err(),
+            ContentError::ZeroInteractionFloor
+        );
+
+        let pack = compile_tuned(tuning_where(|t| t.min_interaction_ticks = 1))
+            .expect("one tick is a legal floor, if a short one");
+        assert_eq!(pack.tuning.min_interaction_ticks, 1);
+    }
+
+    /// Zero wander attempts does not mean "wander less". A wander
+    /// destination is drawn and then pathed to, and the attempt count is
+    /// how many draws a sim gets, so zero means the loop never runs and
+    /// the sim never wanders at all - the standing-still behaviour [D-5]
+    /// exists to remove, back again and looking exactly like a feature
+    /// that was never built.
+    ///
+    /// One attempt is asserted legal on the other side of the boundary,
+    /// so the rule cannot be "at least 2" and pass this test.
+    #[test]
+    fn rejects_zero_wander_attempts() {
+        assert_eq!(
+            compile_tuned(tuning_where(|t| t.wander_attempts = 0)).unwrap_err(),
+            ContentError::ZeroWanderAttempts
+        );
+
+        let pack = compile_tuned(tuning_where(|t| t.wander_attempts = 1))
+            .expect("a single attempt is legal, if a stubborn sim it is not");
+        assert_eq!(pack.tuning.wander_attempts, 1);
+    }
+
+    /// Variance is a FRACTION either side of an interaction's authored
+    /// duration. At 1.0 the lower bound reaches zero, so the floor
+    /// rather than the content would decide every duration; above 1.0
+    /// the lower bound is negative. Zero is legal and means "use the
+    /// authored duration exactly".
+    ///
+    /// Both ends are asserted from both sides. `0.0` is the case that
+    /// makes the lower bound INCLUSIVE and `1.0` the case that makes the
+    /// upper bound EXCLUSIVE; without them `(0.0..1.0)`, `(0.0..=1.0)`
+    /// and an exclusive lower bound are interchangeable.
+    #[test]
+    fn rejects_a_duration_variance_outside_zero_to_one() {
+        for bad in [-f32::MIN_POSITIVE, -0.5, 1.0, 1.5] {
+            assert_eq!(
+                compile_tuned(tuning_where(|t| t.duration_variance = bad)).unwrap_err(),
+                ContentError::DurationVarianceOutOfRange { value: bad },
+                "a duration_variance of {bad} is outside [0, 1)"
+            );
+        }
+
+        for good in [0.0, 0.9999999] {
+            let pack = compile_tuned(tuning_where(|t| t.duration_variance = good))
+                .unwrap_or_else(|e| panic!("{good} is inside [0, 1); got {e}"));
+            assert_eq!(pack.tuning.duration_variance, good);
+        }
+    }
+
+    /// An idle threshold above the action threshold means a sim wanders
+    /// off while something is worth doing. The two knobs answer "is
+    /// anything worth doing" and "is nothing worth doing enough that I
+    /// should mill about", and in that order the second contradicts the
+    /// first - so it is incoherent rather than merely aggressive tuning,
+    /// and the simulation that results looks like a pathfinding bug
+    /// rather than like a tuning mistake.
+    ///
+    /// Equal is LEGAL, and that is the case that pins `>` rather than
+    /// `>=`. The rejected case is the next representable float above it,
+    /// so the rule cannot be a comparison with slack in it and still
+    /// pass.
+    #[test]
+    fn rejects_an_idle_threshold_above_the_action_threshold() {
+        const ACTION: f32 = 0.25;
+        let just_above = f32::from_bits(ACTION.to_bits() + 1);
+        assert!(
+            just_above > ACTION,
+            "the fixture must actually straddle the boundary; got {just_above}"
+        );
+
+        for bad in [just_above, 0.5] {
+            assert_eq!(
+                compile_tuned(tuning_where(|t| {
+                    t.action_threshold = ACTION;
+                    t.idle_threshold = bad;
+                }))
+                .unwrap_err(),
+                ContentError::IdleThresholdAboveAction {
+                    idle: bad,
+                    action: ACTION
+                },
+                "an idle threshold of {bad} sits above an action threshold of {ACTION}"
+            );
+        }
+
+        let pack = compile_tuned(tuning_where(|t| {
+            t.action_threshold = ACTION;
+            t.idle_threshold = ACTION;
+        }))
+        .expect("equal thresholds are coherent: nothing worth doing is also nothing to idle over");
+        assert_eq!(pack.tuning.idle_threshold, ACTION);
+    }
+
+    /// Every authored float in the tuning file, against every non-finite
+    /// value.
+    ///
+    /// All four are asserted rather than one, because the realistic
+    /// mutation is to drop a single `check_finite` call, and a
+    /// three-quarters-covered guard is indistinguishable from a whole
+    /// one to a test that checks a single field.
+    ///
+    /// The variant matters as much as the rejection. `NaN` would be
+    /// caught by the range rules too - every comparison against it is
+    /// false, so `NaN <= 0.0` is false but `!(0.0..1.0).contains(&NaN)`
+    /// is true - and being caught there would report the wrong error and
+    /// would leave `action_threshold`, which has no range rule, with no
+    /// guard at all. Asserting `NonFiniteValue` specifically is what
+    /// pins the finiteness check running FIRST.
+    #[test]
+    fn rejects_a_non_finite_tuning_value() {
+        type Setter = fn(&mut TuningFile, f32);
+        const KNOBS: [(&str, Setter); 4] = [
+            ("action_threshold", |t, v| t.action_threshold = v),
+            ("choice_temperature", |t, v| t.choice_temperature = v),
+            ("idle_threshold", |t, v| t.idle_threshold = v),
+            ("duration_variance", |t, v| t.duration_variance = v),
+        ];
+
+        for bad in [f32::NAN, f32::INFINITY, f32::NEG_INFINITY] {
+            for (knob, set) in KNOBS {
+                assert_eq!(
+                    compile_tuned(tuning_where(|t| set(t, bad))).unwrap_err(),
+                    ContentError::NonFiniteValue {
+                        context: format!("{knob} in tuning.toml")
+                    },
+                    "a {knob} of {bad} must be rejected as non-finite"
+                );
+            }
+        }
+    }
+
+    /// The tuning half of the message tests, for the same reason as the
+    /// other two: these strings are read by whoever just broke the build
+    /// from a TOML edit, and nothing else asserts them.
+    ///
+    /// Each names the knob AND the file, because "must be at least 1"
+    /// without either is not actionable.
+    #[test]
+    fn tuning_error_messages_name_the_offending_knob() {
+        let cases: Vec<(TuningFile, &str)> = vec![
+            (
+                tuning_where(|t| t.choice_temperature = 0.0),
+                "tuning.toml has choice_temperature of 0; it must be greater than 0 because selection divides by it",
+            ),
+            (
+                tuning_where(|t| t.min_interaction_ticks = 0),
+                "tuning.toml has min_interaction_ticks of 0; must be at least 1",
+            ),
+            (
+                tuning_where(|t| t.duration_variance = 1.5),
+                "tuning.toml has duration_variance of 1.5; must be at least 0 and less than 1",
+            ),
+            (
+                tuning_where(|t| t.idle_threshold = 0.5),
+                "tuning.toml has idle_threshold 0.5 above action_threshold 0.25; a sim would wander off while something is worth doing",
+            ),
+            (
+                tuning_where(|t| t.action_threshold = f32::NAN),
+                "action_threshold in tuning.toml is not a finite number",
+            ),
+        ];
+
+        for (tuning, expected) in cases {
+            assert_eq!(compile_tuned(tuning).unwrap_err().to_string(), expected);
+        }
     }
 
     // ---- The lot -------------------------------------------------------
@@ -1007,6 +1498,7 @@ mod tests {
             one_object(snack()),
             distinct_lot(),
             test_atlas(),
+            full_tuning(),
         )
         .expect("valid");
         let lot = &pack.lot;
@@ -1045,7 +1537,14 @@ mod tests {
                 .collect(),
         };
 
-        let pack = compile(full_needs(), three_objects(), lot, test_atlas()).expect("valid");
+        let pack = compile(
+            full_needs(),
+            three_objects(),
+            lot,
+            test_atlas(),
+            full_tuning(),
+        )
+        .expect("valid");
         assert_eq!(
             pack.objects.len(),
             3,
@@ -1085,7 +1584,14 @@ mod tests {
                 lot.place.clear();
             });
             assert_eq!(
-                compile(full_needs(), one_object(snack()), lot, test_atlas()).unwrap_err(),
+                compile(
+                    full_needs(),
+                    one_object(snack()),
+                    lot,
+                    test_atlas(),
+                    full_tuning()
+                )
+                .unwrap_err(),
                 ContentError::EmptyLot { width, height },
                 "a {width}x{height} lot has no walkable tile"
             );
@@ -1108,7 +1614,14 @@ mod tests {
         for (x, y) in [(5, 1), (1, 3), (-1, 1), (1, -1), (-1, -1)] {
             let lot = lot_where(|lot| lot.wall = vec![WallDef { x, y }]);
             assert_eq!(
-                compile(full_needs(), one_object(snack()), lot, test_atlas()).unwrap_err(),
+                compile(
+                    full_needs(),
+                    one_object(snack()),
+                    lot,
+                    test_atlas(),
+                    full_tuning()
+                )
+                .unwrap_err(),
                 ContentError::WallOutOfBounds {
                     x,
                     y,
@@ -1122,8 +1635,14 @@ mod tests {
         // The boundary from the other side, so the test cannot pass by
         // rejecting everything. (4, 2) is the far corner of a 5x3 lot.
         let lot = lot_where(|lot| lot.wall = vec![WallDef { x: 4, y: 2 }]);
-        let pack = compile(full_needs(), one_object(snack()), lot, test_atlas())
-            .expect("(4, 2) is the far corner of a 5x3 lot, not outside it");
+        let pack = compile(
+            full_needs(),
+            one_object(snack()),
+            lot,
+            test_atlas(),
+            full_tuning(),
+        )
+        .expect("(4, 2) is the far corner of a 5x3 lot, not outside it");
         assert_eq!(pack.lot.walls, vec![(4, 2)]);
     }
 
@@ -1141,7 +1660,14 @@ mod tests {
                 lot.place[0].y = y;
             });
             assert_eq!(
-                compile(full_needs(), one_object(snack()), lot, test_atlas()).unwrap_err(),
+                compile(
+                    full_needs(),
+                    one_object(snack()),
+                    lot,
+                    test_atlas(),
+                    full_tuning()
+                )
+                .unwrap_err(),
                 ContentError::PlacementOutOfBounds {
                     object: "fridge".into(),
                     x,
@@ -1160,8 +1686,14 @@ mod tests {
             // other reason and prove nothing about the bound.
             lot.wall.clear();
         });
-        let pack = compile(full_needs(), one_object(snack()), lot, test_atlas())
-            .expect("4.999 is inside a 5-wide lot; only 5.0 is not");
+        let pack = compile(
+            full_needs(),
+            one_object(snack()),
+            lot,
+            test_atlas(),
+            full_tuning(),
+        )
+        .expect("4.999 is inside a 5-wide lot; only 5.0 is not");
         assert_eq!(pack.lot.placements[0].x, 4.999);
     }
 
@@ -1180,7 +1712,14 @@ mod tests {
             lot.place[0].y = 2.5;
         });
         assert_eq!(
-            compile(full_needs(), one_object(snack()), lot, test_atlas()).unwrap_err(),
+            compile(
+                full_needs(),
+                one_object(snack()),
+                lot,
+                test_atlas(),
+                full_tuning()
+            )
+            .unwrap_err(),
             ContentError::PlacementOnWall {
                 object: "fridge".into(),
                 x: 3,
@@ -1194,8 +1733,14 @@ mod tests {
             lot.place[0].x = 2.5;
             lot.place[0].y = 0.5;
         });
-        compile(full_needs(), one_object(snack()), lot, test_atlas())
-            .expect("(2, 0) is not a wall; (3, 2) and (1, 0) are");
+        compile(
+            full_needs(),
+            one_object(snack()),
+            lot,
+            test_atlas(),
+            full_tuning(),
+        )
+        .expect("(2, 0) is not a wall; (3, 2) and (1, 0) are");
     }
 
     /// The dangling-reference check, and the reason this pipeline exists
@@ -1206,7 +1751,14 @@ mod tests {
     fn rejects_a_placement_naming_an_object_that_does_not_exist() {
         let lot = lot_where(|lot| lot.place[0].object = "hovercraft".into());
         assert_eq!(
-            compile(full_needs(), one_object(snack()), lot, test_atlas()).unwrap_err(),
+            compile(
+                full_needs(),
+                one_object(snack()),
+                lot,
+                test_atlas(),
+                full_tuning()
+            )
+            .unwrap_err(),
             ContentError::UnknownPlacedObject {
                 object: "hovercraft".into()
             }
@@ -1216,8 +1768,14 @@ mod tests {
         // the rejection is about the reference rather than about the
         // rule firing unconditionally.
         let lot = lot_where(|lot| lot.place[0].object = "sink".into());
-        let pack =
-            compile(full_needs(), three_objects(), lot, test_atlas()).expect("'sink' is declared");
+        let pack = compile(
+            full_needs(),
+            three_objects(),
+            lot,
+            test_atlas(),
+            full_tuning(),
+        )
+        .expect("'sink' is declared");
         assert_eq!(pack.lot.placements[0].object, ObjectDefId(2));
     }
 
@@ -1252,15 +1810,24 @@ mod tests {
             compile_objects(needs, one_object(snack()))
                 .unwrap_err()
                 .to_string(),
-            "needs.toml is missing a decay rate for 'comfort'"
+            "needs.toml does not declare 'comfort'"
         );
 
-        let mut needs = full_needs();
-        needs.need[0].decay_per_tick = -1.0;
         assert_eq!(
-            compile_objects(needs, one_object(snack()))
-                .unwrap_err()
-                .to_string(),
+            compile_tuned(tuning_where(|t| {
+                t.decay_per_tick.remove("comfort");
+            }))
+            .unwrap_err()
+            .to_string(),
+            "tuning.toml's [decay_per_tick] is missing a rate for 'comfort'"
+        );
+
+        assert_eq!(
+            compile_tuned(tuning_where(|t| {
+                t.decay_per_tick.insert("hunger".into(), -1.0);
+            }))
+            .unwrap_err()
+            .to_string(),
             "decay_per_tick for 'hunger' is negative"
         );
 
@@ -1315,9 +1882,15 @@ mod tests {
 
         for (lot, expected) in cases {
             assert_eq!(
-                compile(full_needs(), one_object(snack()), lot, test_atlas())
-                    .unwrap_err()
-                    .to_string(),
+                compile(
+                    full_needs(),
+                    one_object(snack()),
+                    lot,
+                    test_atlas(),
+                    full_tuning()
+                )
+                .unwrap_err()
+                .to_string(),
                 expected
             );
         }
