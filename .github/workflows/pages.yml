@@ -1,0 +1,93 @@
+name: Deploy to GitHub Pages
+
+# Publishes the playable alpha so it can be looked at from any device,
+# including a phone that is not on the same network.
+#
+# Deliberately separate from ci.yml. This workflow ships something to the
+# public internet, and a deploy failing should not read as the test suite
+# failing, nor the reverse.
+#
+# KNOWN LIMIT, recorded because it contradicts TIM-TODO [T18]: GitHub
+# Pages cannot set response headers, so it cannot send COOP and COEP.
+# Those are required for SharedArrayBuffer, and therefore for WASM
+# threads. Nothing needs threads today - the simulation is single
+# threaded by design ([D4]) - but [A9] plans parallel systems, and the
+# day that lands this host stops being sufficient. Moving is cheap while
+# the artifact is a static bundle; it will not get cheaper.
+
+on:
+  push:
+    branches: [main]
+  # Lets a deploy be re-run from the Actions tab without an empty commit.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time. Cancelling an in-flight run would be wrong here:
+# unlike a test run, a half-finished deploy is a state someone might be
+# looking at, so let it finish and queue the next.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # rust-toolchain.toml is the single source for the version,
+      # components and targets. See ci.yml for why it is pinned.
+      - name: Install the pinned toolchain
+        run: rustup show
+
+      - uses: jetli/wasm-pack-action@v0.4.0
+        with:
+          version: 'v0.15.0'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # web/src/wasm/ is gitignored build output, so a fresh clone has
+      # none. This must run before the Vite build imports it.
+      - name: Build the WASM package
+        run: wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm
+
+      - name: Install web dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Build the site
+        working-directory: web
+        run: npm run build
+
+      # Fail loudly rather than deploying an empty directory. A Pages
+      # deploy of nothing succeeds and serves a 404, which reads as a
+      # broken URL rather than a broken build.
+      - name: Verify the build produced something
+        run: |
+          set -eu
+          test -f web/dist/index.html
+          wasm=$(find web/dist -name '*.wasm' | head -1)
+          test -n "$wasm"
+          echo "index.html and $wasm present"
+          du -sh web/dist
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
