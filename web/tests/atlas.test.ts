@@ -98,6 +98,35 @@ describe('the atlas manifest', () => {
     ]);
   });
 
+  it('declares the dimensions the atlas.png file actually has', () => {
+    // **Both manifests agreeing with each other is not the same as either
+    // agreeing with the texture.** They are written in one pass so they cannot
+    // disagree, and the test above pins that - but nothing checked either
+    // against the PNG, and every UV in the shader is computed as
+    // `x / ATLAS_WIDTH`. A regenerated texture with a stale manifest, or the
+    // reverse, would place every sprite at the wrong fraction of the sheet:
+    // recognisable art, all of it sliced wrong, no error anywhere.
+    //
+    // That is not hypothetical - the atlas was regenerated at the alpha pass
+    // and went from 256 x 343 to 256 x 282 when the wall sprites changed.
+    //
+    // The PNG header is read directly rather than decoded. A PNG begins with
+    // an 8-byte signature and then the IHDR chunk, whose width and height are
+    // big-endian u32s at byte offsets 16 and 20. No image decoder needed, and
+    // nothing to add to the dependency list for one assertion.
+    const png = readFileSync('../assets/sprites/atlas.png');
+    expect(
+      png.subarray(1, 4).toString('ascii'),
+      'the file must actually be a PNG for the offsets below to mean anything',
+    ).toBe('PNG');
+    expect(png.subarray(12, 16).toString('ascii')).toBe('IHDR');
+
+    expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([
+      ATLAS_WIDTH,
+      ATLAS_HEIGHT,
+    ]);
+  });
+
   it('holds the three sprites the shell draws itself, and the sim', () => {
     // Object sprites deliberately do NOT appear here. They come from
     // content, resolved before they ever reach TypeScript, so naming one

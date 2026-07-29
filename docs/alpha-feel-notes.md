@@ -663,3 +663,152 @@ observable, which is the same gap [P8] describes.
   neither a test nor a player can tell them apart ([P8]).
 - **Does it thrash between objects?** Not answered, and the note says so
   rather than guessing ([P9]).
+
+---
+
+# Alpha Pass: the deferred bugs, measured
+
+The M1c and M1b sessions above each ended with a list of things a knob could
+not fix. This is the pass that fixed them, and the measurements come from
+`cargo run -p terri-sim --example trace -- 12000` - **which is now in the repo**
+rather than rebuilt from scratch each time, per [L40].
+
+Every number below is the same 12 000-tick run of the shipped lot with the
+agent `web/src/main.ts` spawns.
+
+## [A-1] The headline: the sim spends its time differently
+
+| | M1c baseline | after durations | after adjacency | after slower needs |
+| --- | --- | --- | --- | --- |
+| interactions | 124 | 127 | 126 | 94 |
+| walking | 47.4% | 45.1% | 41.8% | 39.0% |
+| interacting | 40.4% | 46.0% | 46.1% | 35.5% |
+| motionless | 12.2% | 8.9% | 12.0% | **25.4%** |
+| repeats [C5] | 5.8% | - | 5.6% | 3.2% |
+
+The middle two columns are the improvement: more of the sim's life spent
+visibly doing something and less spent milling about. **The last column undoes
+part of it**, and that is the honest cost of slower needs rather than a
+regression to hunt - a sim whose worst need sits at 35% has no reason to hurry.
+`idle_threshold` is the knob that trades it back, and diminishing returns
+([N4] in `docs/specs/2026-07-29-needs-modulation-design.md`) is the mechanic
+that would fix it properly by making variety worth more than repetition.
+
+## [A-2] What each fix actually did
+
+**[C1] Clipped durations - fixed, and made unrepresentable.** The sink declared
+8 ticks and 22 hygiene, ran for exactly 12 on 6 of 6 measured interactions, and
+delivered 33. Now 21 ticks and 32 hygiene; measured 14 to 27, mean 20.8. The
+fridge and toilet were clipped at the bottom of their bands and are now 30 and
+24. No interaction is pinned any more, and `ClippedDuration` in terri-data fails
+the build for any that would be.
+
+**The sink needed its delta raised too, and that is not cosmetic.** Raising the
+duration alone moved its score denominator from `4d + 9` to `4d + 22` while its
+only competitor - the shower - kept its 45 and lost nothing. Usage fell from 6
+interactions to **1**, which is within a rounding error of the bookshelf's zero.
+Fixing a duration by turning the object into furniture is not a fix. At 32 the
+two score within about 2% at observed mid-run levels, so which one a sim picks
+genuinely turns on how tired it is - which is what the object was always
+documented to do and never did.
+
+**[C3] The outbid sim - fixed, both halves.** The notes described the
+within-tick case. The longer-lived half was the object query filtering
+`Without<Reserved>`, so a sim waiting on the only fridge never saw it at all and
+was told nothing was worth doing for the whole of the other sim's walk *and*
+interaction. Not visible on the shipped page, which has one sim; the first thing
+that would have broken with two.
+
+**Sims stand beside objects now, not on them.** Verified in the browser against
+real WASM: across 3 000 ticks the sim came to rest 7 times and stood on
+furniture 0 of those times. This was reported as a visual complaint and was a
+movement bug.
+
+**[C5] Repetition - diluted three times, never fixed.** 5.8%, then 5.6% after
+adjacency, then 3.2% after the retune. Adjacency was *supposed* to help, on the
+theory that a finished sim standing at distance zero from what it just used sees
+that object at its maximum score. It did not: the score divides by
+`4 * distance + duration + 1`, so moving from distance 0 to 1 costs the fridge
+about 12%, and every other object came a tile closer at the same time. The claim
+is now recorded in `find_path_adjacent`'s docs as withdrawn, with the number, so
+nobody makes it again.
+
+**[C6] The bookshelf is still used zero times.** Unchanged by everything here.
+It is waiting for diminishing returns; raising its numbers until it wins on
+merit it does not have is the wrong fix.
+
+## [A-3] The input bug the tests could not see
+
+**Clicking the sim did not work, and every test passed.**
+
+Picking inverted the projection to a tile and asked what stood there, which is
+right for "walk to this spot" and wrong for "click that sim": sprites are
+bottom-anchored and far taller than a tile, so most of a sim's visible body is
+drawn 50-plus pixels above the tile it occupies. Sampling nine points down the
+sim's own sprite, **three selected it** - the head resolved two tiles away, the
+feet one tile past.
+
+**Why the tests were green.** They dispatched synthetic clicks at *tile*
+coordinates, which is what the code expects rather than what a hand aims at. So
+the verification and the implementation shared the same wrong assumption, and
+agreed with each other perfectly. It took a person opening the page cold to find
+it, and their report - "clicking on anything, anywhere, just does not do
+anything" - was exactly right.
+
+Picking now hit-tests the drawn sprite. The regression test samples the sprite
+and asserts in the same breath that tile picking MISSES most of it, so the
+contrast is what fails if anyone reverts it.
+
+**A second discoverability bug rode along.** The need panel was `hidden` until
+something was selected, so the page opened with no readout and nothing
+explaining why - and selecting meant finding that small sprite. The page now
+selects the sim it spawns.
+
+## [A-4] Walls: two wrongs that compounded
+
+The build script had recorded half of this and concluded there was no fix.
+
+**Wrong sprite.** `wall_*` covers one of Kenney's tile edges, 1.84 of ours, so
+one per tile overlapped neighbours by about 27 px. The script's note is correct
+that narrowing the width alone is worse - it re-slopes the panel's diagonals
+into a picket fence - and concluded the panel had to be used as-is. The kit has
+the piece that was wanted the whole time: **`wallHalf_*` is half WIDTH, not half
+height**, 57 x 175 against 109 x 212. Scaled uniformly to one tile edge it is
+32 x 98: one tile wide, still taller than the 78 px sim.
+
+**Wrong grid, and the bigger half.** Even a tile-wide panel sawtooths if the
+panel's top edge and the tile grid climb at different angles, and they did. A
+vertical wall's top edge is parallel to the ground edge it stands on, so it
+measures the art's ground plane directly: `wall_SE.png` climbs 69 px over
+104 px, slope 0.663, against a 2:1 grid's 0.5. Every sprite in the kit was drawn
+for a pitch the code did not have, and the error accumulated along a run.
+
+`TILE_HALF_HEIGHT` is now 21 = round(32 * 0.663). The script had considered only
+squashing the sprites to fit our grid, which costs 0.69 of every object's
+height, and missed reshaping the grid to fit the sprites, which costs nothing.
+
+**Do not measure this off the floor sprite**, which gives 0.72: it is a slab
+with side faces, so its widest scanline sits below the top face's midline. That
+is where the old "Kenney is about 1.42:1" note came from.
+
+## [A-5] What is still not verified: how any of it LOOKS
+
+**No frame has been seen.** The Browser pane does not composite in this
+environment, so there is no screenshot and no aesthetic judgement in this
+document. What was verified instead, and it is worth being precise about the
+difference:
+
+- the regenerated atlas draws the floor at exactly one tile and each wall at
+  exactly one tile edge, both asserted against the projection constant;
+- the wall panel's top edge drops 21.0 px across its 32 px width, so a panel's
+  top-right corner lands on its neighbour's top-left;
+- every vertically adjacent wall pair in the shipped lot chains flush, measured
+  through the real bridge;
+- the lot occupies 704 x 462 of the 1280 x 720 canvas with room for the tallest
+  sprite at the far corner;
+- the atlas PNG's real dimensions match what the manifests declare - a gap
+  nothing covered before, and every UV in the shader is a fraction of them.
+
+That is geometry, not appearance. The walls are provably flush and the
+proportions provably match the source art; whether the room reads as a room
+needs eyes on a composited frame.
