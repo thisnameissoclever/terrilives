@@ -2050,3 +2050,61 @@ ticking 12 000 times while logging, per tick, the best score any candidate
 offers. The measured percentiles are recorded in `content/tuning.toml` beside
 each value and in `docs/alpha-feel-notes.md`; if a re-measurement disagrees with
 them, the content changed and the knobs need re-deriving rather than defending.
+
+---
+
+## [L41] A guard shadowed by a second guard is only testable where the shadow is absent
+
+**What happened:** M1b Task 4 added the autonomy override of [D-3]: a
+player-issued intent suppresses `select_action`. Two mechanisms implement it
+and they overlap almost completely.
+
+1. `serve_intents` runs first and turns the front intent into a `Target`.
+2. `select_action` skips any agent whose `IntentQueue` is non-empty.
+
+`select_action`'s query already carries `Without<Target>`, so on almost every
+tick mechanism 1 alone is sufficient and mechanism 2 decides nothing. The
+milestone's headline test - `a_queued_intent_suppresses_autonomy`, the one the
+task brief specified - passes with the emptiness filter **deleted**, because
+the agent it checks has a `Target` by the time selection runs. Written as
+specified, the task would have shipped an untested guard behind a test whose
+name claims to cover it, which is exactly the failure family
+`docs/testing-protocol.md` exists for.
+
+The guard was verified only after asking, deliberately, *on what input is this
+line the thing that decides?* The answer turned out to be a state the obvious
+fixtures never reach: an agent whose intent names an object another agent has
+reserved. It waits, so it has no `Target`, no `Eating` and an instruction it
+still means to carry out - and with the filter gone it wanders off to something
+else instead.
+`a_sim_waiting_for_a_reserved_object_does_not_fall_back_to_autonomy` is that
+fixture, and deleting the filter makes it red with the sim holding a target for
+the wrong object.
+
+**Root cause:** this is [L34]'s shape - a suite whose inputs all share a
+property cannot detect a change that only shows on inputs lacking it - but the
+property is invisible in a way [L34]'s was not. There, the shared property was
+of the *fixture data* (all integers, all open grids), which a reader can see by
+looking at the fixtures. Here it is a property of the *pipeline*: an earlier
+system's effect masks a later system's guard, so the shared property is "the
+earlier mechanism worked", which every fixture has because the code is correct.
+**Defence in depth and untested code are indistinguishable from inside the
+suite**, and the more thorough the earlier mechanism, the more completely the
+later one is hidden.
+
+**Prevention rule:**
+
+1. When two mechanisms both enforce one rule, do not test the rule - test each
+   mechanism. For each one, name the input on which it is **the only thing**
+   standing between the code and the wrong answer. If no such input exists, the
+   mechanism is dead code and should be deleted rather than tested.
+2. That input is usually a *failure* of the other mechanism, not a variation of
+   the happy path. Ask what happens when the earlier system cannot do its job:
+   here, "the object is busy" was the only state that reached the later guard.
+3. Write the answer into the comment beside the guard, naming the test. A
+   reader who cannot see why a line matters is one refactor away from deleting
+   it as redundant - and they would be right about every tick but one.
+
+**How to verify:** delete the guard and run the whole workspace, not the test
+whose name mentions it. If everything stays green, the guard is unprotected
+regardless of how many tests appear to be about it.

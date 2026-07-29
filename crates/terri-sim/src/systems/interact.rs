@@ -1,5 +1,5 @@
 use bevy_ecs::prelude::*;
-use terri_core::{Eating, NeedId, Needs, Reserved, SimRng, Target};
+use terri_core::{Eating, IntentQueue, NeedId, Needs, Reserved, SimRng, Target};
 
 use crate::Content;
 
@@ -96,9 +96,15 @@ pub fn sample_duration(centre: u32, variance: f32, floor: u32, rng: &mut SimRng)
 pub fn tick_interactions(
     mut commands: Commands,
     content: Res<Content>,
-    mut agents: Query<(Entity, &mut Eating, &mut Needs, &Target)>,
+    mut agents: Query<(
+        Entity,
+        &mut Eating,
+        &mut Needs,
+        &Target,
+        Option<&mut IntentQueue>,
+    )>,
 ) {
-    for (entity, mut eating, mut needs, target) in &mut agents {
+    for (entity, mut eating, mut needs, target, queue) in &mut agents {
         // Every index here is in range by construction. The object and
         // interaction ids were read out of this same pack when
         // `follow_path` began the interaction, content validation rejects
@@ -112,6 +118,29 @@ pub fn tick_interactions(
         eating.remaining_ticks = eating.remaining_ticks.saturating_sub(1);
 
         if eating.remaining_ticks == 0 {
+            // **A player-issued intent lives until the interaction it
+            // named finishes** - [D-3]'s "until it completes or is
+            // cancelled" - so completing it is what pops it. Without
+            // this the sim would re-serve the same intent for ever and a
+            // single click would become a loop the player can only
+            // escape with a cancel.
+            //
+            // Guarded on the front intent MATCHING what just finished,
+            // rather than popping unconditionally, because an agent can
+            // finish an autonomously chosen interaction with an intent it
+            // has never started sitting at the front of its queue. The
+            // reachable case: the click named an object another agent had
+            // reserved, so `serve_intents` left the sim to finish its
+            // meal and kept the intent for when the object frees up.
+            // Popping there would discard an instruction that was never
+            // carried out.
+            if let Some(mut queue) = queue {
+                if queue.front().is_some_and(|intent| {
+                    intent.object == target.object && intent.interaction == target.interaction
+                }) {
+                    queue.pop();
+                }
+            }
             commands
                 .entity(entity)
                 .remove::<Eating>()

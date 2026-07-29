@@ -74,6 +74,16 @@ impl Sim {
         world.register_component::<terri_core::Eating>();
         world.register_component::<terri_core::Restless>();
         world.register_component::<terri_core::Wander>();
+        // M1b Task 4's two. Neither is in `world_hash`'s query today, so
+        // an unregistered one would not silently empty the digest the way
+        // [L3] describes - but `try_query` is what every determinism test
+        // in this file reaches for, and a component missing from this
+        // list turns those into panics for a reason that has nothing to
+        // do with what they test.
+        // `the_components_m1b_added_are_registered_before_any_system_runs`
+        // is what fails if either line goes.
+        world.register_component::<terri_core::Selected>();
+        world.register_component::<terri_core::IntentQueue>();
 
         let mut schedule = Schedule::default();
         // M0 runs single-threaded on purpose. Parallelism is [A9]/[D4]
@@ -86,6 +96,19 @@ impl Sim {
             (
                 advance_clock,
                 systems::needs::decay_needs,
+                // Strictly before selection, because a player-issued
+                // intent overrides autonomy rather than competing with
+                // it - [D-3]. Running it first means the object is
+                // already `Reserved` and the agent already has a
+                // `Target` by the time `select_action` looks, so no
+                // other agent can be handed the thing the player just
+                // asked for.
+                //
+                // It also sees agents that are mid-walk or mid-meal,
+                // which `select_action` deliberately does not, because
+                // an intent PREEMPTS a running interaction. See that
+                // function's docs for why that is the choice.
+                systems::action::serve_intents,
                 systems::action::select_action,
                 // Strictly after selection and strictly before movement,
                 // and both halves matter. After, because it reads the
@@ -629,6 +652,53 @@ mod determinism_tests {
             "the world's generator must be the one content/tuning.toml's \
              rng_seed produces, and must not have been advanced before any \
              system ran"
+        );
+    }
+
+    /// The two components M1b Task 4 added are registered by `Sim::new`
+    /// itself, before any system has run.
+    ///
+    /// **This world is deliberately never ticked**, which is the whole
+    /// mechanism: running the schedule initialises every system's query
+    /// and registers their components as a side effect, so a ticked world
+    /// would report success no matter what `Sim::new` did. `try_query` is
+    /// the read that cares - it returns `None` on any unregistered
+    /// component rather than registering on demand, which is [L3] - and
+    /// several fixtures in this crate `expect` it.
+    ///
+    /// `Selected` has no reader at all until Task 5's command drain, so
+    /// this is the only thing constraining its registration line.
+    #[test]
+    fn the_components_m1b_added_are_registered_before_any_system_runs() {
+        use terri_core::{IntentQueue, Selected};
+
+        let sim = Sim::new_with_lot(8, 8);
+        assert!(
+            sim.world()
+                .try_query_filtered::<Entity, With<Selected>>()
+                .is_some(),
+            "Selected is not registered, so try_query returns None and \
+             every fixture that reads it panics for the wrong reason"
+        );
+        assert!(
+            sim.world()
+                .try_query_filtered::<Entity, With<IntentQueue>>()
+                .is_some(),
+            "IntentQueue is not registered"
+        );
+        // The guard on the guard: a component this world has genuinely
+        // never heard of must come back None, or `try_query` is not the
+        // discriminating read this test assumes it is and both assertions
+        // above would hold for an empty registration list.
+        #[derive(Component)]
+        struct NeverRegistered;
+        assert!(
+            sim.world()
+                .try_query_filtered::<Entity, With<NeverRegistered>>()
+                .is_none(),
+            "try_query answered for a component nothing ever registered, \
+             so it cannot tell a registered component from an unregistered \
+             one and this test proves nothing"
         );
     }
 

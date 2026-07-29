@@ -145,7 +145,16 @@ Ordered, per tick. `||` marks parallel, `->` marks serialized.
 2. `|| need_decay`
 3. `|| mood` - moodlets from needs, traits, environment
 4. `|| advertisement_scan` - spatial query for nearby smart objects, score them
-5. `-> action_selection` - pick winning interaction
+4a. `-> intent_serve` - turn each directed sim's front player-issued intent
+    into a target ([D-3] of the M1b design). Serialized because it claims
+    object slots, and it sits BEFORE selection because a directed action
+    overrides autonomy rather than competing with it. It is the one step that
+    sees sims which are already walking or already mid-interaction: a player
+    intent **preempts** a running interaction rather than queueing behind it,
+    since a sim asleep for 24 seconds would otherwise leave a click with no
+    visible response for the whole of it. Lettered for the same reason 5a is.
+5. `-> action_selection` - pick winning interaction, **for sims with no queued
+    intent**. That filter is what makes a directed action beat autonomy.
 5a. `-> idle_wander` - a sim whose best option scores below `idle_threshold`
     walks to a random reachable tile instead of standing still ([D-5] of the
     M1c design). Lettered rather than numbered so the step numbers other

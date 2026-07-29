@@ -98,6 +98,104 @@ pub struct Wander {
     pub pause_ticks: u32,
 }
 
+/// Marks the one agent the player has selected.
+///
+/// **Selection lives in the simulation rather than in the shell**, per
+/// [D-5], and that is a determinism decision rather than a tidiness one:
+/// a replay has to reproduce it, and the only state a replay reproduces
+/// is state the simulation owns. The DOM holds an entity index and reads
+/// everything else back through the bridge each frame.
+///
+/// A marker rather than a resource holding an `Entity`, because "which
+/// entities carry this component" is a question the ECS already answers
+/// and an `Entity` in a resource can outlive the entity it names.
+/// Uniqueness - at most one agent selected - is the command drain's
+/// invariant, not this type's.
+#[derive(Component, Debug, Clone, Copy)]
+pub struct Selected;
+
+/// One player-issued instruction: use this object, this way.
+///
+/// The interaction is a `u32` rather than the `usize` the milestone plan
+/// sketched, so that it is the same width as [`Target::interaction`] and
+/// [`Eating::interaction`] - the two fields it is copied into. A `usize`
+/// is 64 bits natively and 32 on wasm32, and a platform-width integer
+/// inside simulation state is the shape of a determinism bug even when
+/// today's values could never reach the difference.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Intent {
+    pub object: Entity,
+    /// Index into that object's `interactions` in the content pack.
+    pub interaction: u32,
+}
+
+/// An agent's player-issued intents, front first - [D-3].
+///
+/// **This is a simulation structure, not UI scaffolding.** A directed
+/// action has to beat autonomy or clicking feels ignored, so
+/// `select_action` skips any agent whose queue is non-empty and
+/// `serve_intents` turns the front intent into a `Target`. The front
+/// entry is the sim's current commitment and is popped when the
+/// interaction it names completes.
+///
+/// # `pop` takes from the FRONT
+///
+/// It pairs with [`IntentQueue::front`], not with `Vec::pop`. A queue
+/// whose `pop` returned the back would silently serve the player's
+/// instructions in reverse, which is the kind of thing that reads as
+/// "the game ignored my click" rather than as an inverted container.
+/// `pop_removes_the_front_so_intents_are_served_in_the_order_issued` is
+/// what pins it.
+///
+/// `Vec` rather than `VecDeque` because the depth is a handful of
+/// entries: removing from the front is a memmove of at most a few
+/// elements, which is cheaper than the extra indirection, and it keeps
+/// the type as plain as `CommandQueue`.
+#[derive(Component, Debug, Clone, Default, PartialEq, Eq)]
+pub struct IntentQueue(Vec<Intent>);
+
+impl IntentQueue {
+    /// A queue already holding these intents, front first. For tests and
+    /// for whoever restores a save.
+    pub fn from_intents(intents: Vec<Intent>) -> Self {
+        Self(intents)
+    }
+
+    /// Adds an intent at the BACK, so it is served after everything
+    /// already queued.
+    pub fn push(&mut self, intent: Intent) {
+        self.0.push(intent);
+    }
+
+    /// The intent being served right now, or `None` when the agent is
+    /// back on autonomy.
+    pub fn front(&self) -> Option<Intent> {
+        self.0.first().copied()
+    }
+
+    /// Removes and returns the FRONT intent. See the type's docs.
+    pub fn pop(&mut self) -> Option<Intent> {
+        if self.0.is_empty() {
+            return None;
+        }
+        Some(self.0.remove(0))
+    }
+
+    /// Drops every intent, returning the agent to autonomy. This is what
+    /// `SimCommand::CancelIntents` reaches.
+    pub fn clear(&mut self) {
+        self.0.clear();
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+}
+
 /// An in-progress interaction: a reference into the content pack plus how
 /// much of it is left.
 ///
@@ -111,4 +209,146 @@ pub struct Eating {
     /// Index into that object's `interactions` in the content pack.
     pub interaction: u32,
     pub remaining_ticks: u32,
+}
+
+#[cfg(test)]
+mod intent_queue_tests {
+    //! `IntentQueue`'s methods are the kind `cargo mutants` is blind to:
+    //! `push`, `clear` and `remove` are statements whose only effect is on
+    //! state, and the sweep rewrites expressions rather than deleting
+    //! statements. Deleting the body of `push` leaves a clean report and
+    //! a queue that never holds anything. See docs/testing-protocol.md
+    //! rule 2; these tests are the thing standing in for the sweep.
+
+    use super::{Intent, IntentQueue};
+    use bevy_ecs::prelude::{Entity, World};
+
+    /// Three distinct live entities to point intents at.
+    ///
+    /// Spawned from a real `World` rather than built from raw indices so
+    /// these tests keep compiling against whatever `Entity`'s
+    /// construction API is, and so the three are genuinely distinct
+    /// rather than distinct by assumption.
+    fn three_objects() -> (Entity, Entity, Entity) {
+        let mut world = World::new();
+        let a = world.spawn_empty().id();
+        let b = world.spawn_empty().id();
+        let c = world.spawn_empty().id();
+        assert!(
+            a != b && b != c && a != c,
+            "the fixture needs three distinct entities or order is \
+             unobservable"
+        );
+        (a, b, c)
+    }
+
+    fn intent(object: Entity, interaction: u32) -> Intent {
+        Intent {
+            object,
+            interaction,
+        }
+    }
+
+    #[test]
+    fn pop_removes_the_front_so_intents_are_served_in_the_order_issued() {
+        // **The mutation this exists for:** `pop` taking from the back.
+        // `Vec::pop` does exactly that and is one keystroke away, and a
+        // queue that served the player's last click first would read as
+        // the game ignoring the earlier ones.
+        //
+        // Three entries rather than two, deliberately. With two, "front
+        // first" and "back first" are the only orders and a suite could
+        // not tell either from "reverse the whole thing"; with three,
+        // front-first is the only order that produces this sequence.
+        let (a, b, c) = three_objects();
+        let mut queue = IntentQueue::default();
+        queue.push(intent(a, 0));
+        queue.push(intent(b, 1));
+        queue.push(intent(c, 2));
+
+        assert_eq!(
+            queue.len(),
+            3,
+            "push must actually add; a no-op body leaves every assertion \
+             below satisfiable by an empty queue"
+        );
+        assert_eq!(queue.front(), Some(intent(a, 0)), "front is the oldest");
+
+        assert_eq!(queue.pop(), Some(intent(a, 0)));
+        assert_eq!(
+            queue.front(),
+            Some(intent(b, 1)),
+            "popping the front must promote the NEXT intent, not the last"
+        );
+        assert_eq!(queue.pop(), Some(intent(b, 1)));
+        assert_eq!(queue.pop(), Some(intent(c, 2)));
+        assert_eq!(queue.pop(), None, "an exhausted queue yields nothing");
+        assert!(queue.is_empty());
+    }
+
+    #[test]
+    fn an_empty_queue_pops_nothing_rather_than_panicking() {
+        // `Vec::remove(0)` panics on an empty vector, so the guard in
+        // `pop` is a real mechanism rather than a formality. Nothing
+        // outside this type checks emptiness before popping.
+        let mut queue = IntentQueue::default();
+        assert!(queue.is_empty(), "a fresh queue holds nothing");
+        assert_eq!(queue.front(), None);
+        assert_eq!(queue.pop(), None);
+        assert_eq!(queue.len(), 0);
+    }
+
+    #[test]
+    fn clear_empties_a_queue_that_was_not_empty() {
+        // Both halves matter. `is_empty` is asserted FALSE first, because
+        // that is the only input on which `clear` is observable at all -
+        // the same gap `the_queue_drains_in_order_and_empties` had to
+        // close for `CommandQueue`.
+        let (a, b, _) = three_objects();
+        let mut queue = IntentQueue::from_intents(vec![intent(a, 0), intent(b, 0)]);
+        assert!(
+            !queue.is_empty(),
+            "the queue must start non-empty or clear has nothing to do"
+        );
+        assert_eq!(queue.len(), 2);
+
+        queue.clear();
+
+        assert!(queue.is_empty(), "clear must empty the queue");
+        assert_eq!(queue.len(), 0);
+        assert_eq!(queue.front(), None);
+    }
+
+    #[test]
+    fn from_intents_preserves_the_order_it_was_given() {
+        // The constructor a save file and every fixture below reach for.
+        // Reversing it here would invert the order the sim serves them
+        // in, which no other test in this module could see.
+        let (a, b, c) = three_objects();
+        let mut queue = IntentQueue::from_intents(vec![intent(c, 2), intent(a, 0), intent(b, 1)]);
+        assert_eq!(queue.pop(), Some(intent(c, 2)));
+        assert_eq!(queue.pop(), Some(intent(a, 0)));
+        assert_eq!(queue.pop(), Some(intent(b, 1)));
+    }
+
+    #[test]
+    fn an_intent_carries_its_own_interaction_index_rather_than_a_shared_one() {
+        // Two intents naming the SAME object and different interactions.
+        // Without this, an `Intent` that dropped its interaction field -
+        // or a `push` that stamped a constant into it - would be
+        // invisible: every other fixture here uses interaction 0 on
+        // distinct objects, which is the input domain that cannot see it
+        // ([L34]).
+        let (a, _, _) = three_objects();
+        let mut queue = IntentQueue::default();
+        queue.push(intent(a, 0));
+        queue.push(intent(a, 3));
+
+        assert_eq!(queue.pop(), Some(intent(a, 0)));
+        assert_eq!(
+            queue.pop(),
+            Some(intent(a, 3)),
+            "the second intent must keep its own interaction index"
+        );
+    }
 }
