@@ -86,6 +86,40 @@ impl CompiledLot {
     }
 }
 
+/// The validated system knobs, compiled from `content/tuning.toml`.
+///
+/// Every value here has been through `compile`, so a reader may assume
+/// the ranges rather than re-check them: `choice_temperature` is finite
+/// and strictly positive, `duration_variance` is in `[0, 1)`,
+/// `min_interaction_ticks` is at least 1, and `idle_threshold` does not
+/// exceed `action_threshold`. That is [D9] applied to tuning: a knob
+/// that would divide by zero or make a sim wander while something is
+/// worth doing has no representation once a pack exists.
+///
+/// `Copy` because it is seven scalars and every system that reads a knob
+/// reads it through a `&ContentPack` it does not own.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct Tuning {
+    /// Below this score, an option is not worth doing at all.
+    pub action_threshold: f32,
+    /// Softmax temperature for weighted selection. Strictly positive.
+    pub choice_temperature: f32,
+    /// Below this, nothing is urgent enough to act on and the sim
+    /// wanders instead of standing still.
+    pub idle_threshold: f32,
+    /// Ticks a sim pauses between wanders.
+    pub wander_pause_ticks: u32,
+    /// Fraction either side of an interaction's content duration within
+    /// which the real duration is sampled. In `[0, 1)`.
+    pub duration_variance: f32,
+    /// Hard floor on any interaction, in ticks. At least 1.
+    pub min_interaction_ticks: u32,
+    /// Seed for the simulation PRNG. Constant for now; it becomes part
+    /// of the save file at M1d, which is what makes a saved game
+    /// replayable.
+    pub rng_seed: u64,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ContentPack {
     pub decay_per_tick: [f32; NEED_COUNT],
@@ -99,10 +133,13 @@ pub struct ContentPack {
     /// every row without the simulation or the shell knowing what a sim
     /// looks like.
     pub sim_sprite: u32,
-    /// Last, so that the pack's byte encoding grows by appending. The
-    /// golden vector in `compile.rs` annotates the earlier blocks, and
-    /// keeping them at fixed offsets is what makes it reviewable.
+    /// The pack's byte encoding grows by APPENDING: a new field goes
+    /// after the existing ones, so every earlier block keeps its offset.
+    /// The golden vector in `compile.rs` annotates those blocks, and
+    /// keeping them where they are is what makes it reviewable. `lot`
+    /// was last until tuning arrived; `tuning` is last now.
     pub lot: CompiledLot,
+    pub tuning: Tuning,
 }
 
 impl ContentPack {
@@ -159,6 +196,21 @@ mod tests {
         }
     }
 
+    /// Seven knobs, no two of which share a value, so a field that
+    /// round-trips into the wrong slot is visible rather than hidden by
+    /// a fixture where two of them agree.
+    fn a_tuning() -> Tuning {
+        Tuning {
+            action_threshold: 0.25,
+            choice_temperature: 0.5,
+            idle_threshold: 0.125,
+            wander_pause_ticks: 9,
+            duration_variance: 0.75,
+            min_interaction_ticks: 3,
+            rng_seed: 300,
+        }
+    }
+
     fn three_objects() -> ContentPack {
         ContentPack {
             decay_per_tick: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
@@ -177,6 +229,7 @@ mod tests {
                 .collect(),
             sim_sprite: 1,
             lot: a_lot(),
+            tuning: a_tuning(),
         }
     }
 

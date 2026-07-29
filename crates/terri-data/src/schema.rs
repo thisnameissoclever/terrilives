@@ -1,4 +1,4 @@
-//! Serde mirrors of the three TOML content files.
+//! Serde mirrors of the authored TOML content files.
 //!
 //! These types describe the *shape* content must have; they say nothing
 //! about whether it is valid. Serde cannot express "every `NeedId`
@@ -7,6 +7,44 @@
 
 use serde::Deserialize;
 use std::collections::BTreeMap;
+
+/// Mirrors `content/tuning.toml`, the single home for every value that
+/// governs the **system** rather than describing one piece of content.
+///
+/// The split is a standing project rule rather than this file's private
+/// convention, and the TOML states it too: a fridge's hunger delta is
+/// content and belongs in `objects.toml`; the temperature governing how
+/// randomly any sim chooses is tuning and belongs here. **A new knob
+/// goes in that file rather than into a Rust `const`**, because the
+/// person tuning game feel is iterating and wants one file to open, and
+/// a constant buried in a system is a knob they will never find.
+///
+/// **Nothing here defaults.** Every other rule in this module is a
+/// compile-step check reporting a `ContentError`; presence is the one
+/// serde can express on its own, and it expresses it by making the field
+/// required. A defaulted knob is the silent-nothing case [D9] exists to
+/// prevent: a `duration_variance` quietly defaulting to zero is a
+/// simulation that is merely metronomic rather than one that fails.
+#[derive(Debug, Deserialize)]
+pub struct TuningFile {
+    /// Below this score, an option is not worth doing at all.
+    pub action_threshold: f32,
+    /// Softmax temperature for choosing among candidates. Must be
+    /// strictly positive: selection divides by it.
+    pub choice_temperature: f32,
+    /// Below this, nothing is urgent enough to act on and the sim
+    /// wanders. Must not exceed `action_threshold`.
+    pub idle_threshold: f32,
+    /// Ticks a sim pauses between wanders.
+    pub wander_pause_ticks: u32,
+    /// Fraction either side of an interaction's content duration that
+    /// the real duration is sampled within. In `[0, 1)`.
+    pub duration_variance: f32,
+    /// Hard floor on any interaction, in ticks. At least 1.
+    pub min_interaction_ticks: u32,
+    /// Seed for the simulation PRNG.
+    pub rng_seed: u64,
+}
 
 /// Mirrors `content/needs.toml`. Every `NeedId` variant must appear
 /// exactly once; that is checked in the compile step, not here, because
@@ -143,6 +181,83 @@ pub struct PlacementDef {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The seven knobs, with pairwise distinct values so that a field
+    /// read off the wrong key is visible. Two knobs sharing a value
+    /// would make a transposed pair of fields parse identically, which
+    /// is [L34] in the tuning file's costume.
+    ///
+    /// The two `u32`s and the `u64` are deliberately different numbers
+    /// for the same reason, and every float is exact in binary32 so the
+    /// assertions can be equalities rather than tolerances.
+    const TUNING_LINES: [(&str, &str); 7] = [
+        ("action_threshold", "0.25"),
+        ("choice_temperature", "0.5"),
+        ("idle_threshold", "0.125"),
+        ("wander_pause_ticks", "9"),
+        ("duration_variance", "0.75"),
+        ("min_interaction_ticks", "3"),
+        ("rng_seed", "300"),
+    ];
+
+    /// The fixture above as TOML, minus the named knob. Passing a name
+    /// no knob has yields the complete file.
+    fn tuning_toml_without(omitted: &str) -> String {
+        TUNING_LINES
+            .iter()
+            .filter(|(key, _)| *key != omitted)
+            .map(|(key, value)| format!("{key} = {value}\n"))
+            .collect()
+    }
+
+    #[test]
+    fn parses_a_tuning_file() {
+        let parsed: TuningFile =
+            toml::from_str(&tuning_toml_without("")).expect("valid tuning toml");
+
+        assert_eq!(parsed.action_threshold, 0.25);
+        assert_eq!(parsed.choice_temperature, 0.5);
+        assert_eq!(parsed.idle_threshold, 0.125);
+        assert_eq!(parsed.wander_pause_ticks, 9);
+        assert_eq!(parsed.duration_variance, 0.75);
+        assert_eq!(parsed.min_interaction_ticks, 3);
+        assert_eq!(parsed.rng_seed, 300);
+    }
+
+    /// The rejecting half, and the reason `TuningFile` has no
+    /// `#[serde(default)]` anywhere.
+    ///
+    /// A knob is not merely nicer to require than to default: an
+    /// omitted `choice_temperature` defaulting to zero divides by zero
+    /// in selection, and an omitted `duration_variance` defaulting to
+    /// zero produces a simulation that runs and is simply metronomic.
+    /// Both are the silent-nothing case [D9] exists to convert into a
+    /// build failure.
+    ///
+    /// Every field is tried rather than one, because a `#[serde(default)]`
+    /// added to a single knob is exactly the edit a one-field test
+    /// cannot see.
+    #[test]
+    fn every_tuning_knob_is_required_rather_than_defaulted() {
+        assert!(
+            toml::from_str::<TuningFile>(&tuning_toml_without("")).is_ok(),
+            "the complete fixture must parse, or the omissions below \
+             prove nothing"
+        );
+
+        for (omitted, _) in TUNING_LINES {
+            let err = match toml::from_str::<TuningFile>(&tuning_toml_without(omitted)) {
+                Ok(parsed) => {
+                    panic!("a tuning file missing '{omitted}' must not parse; got {parsed:?}")
+                }
+                Err(err) => err,
+            };
+            assert!(
+                err.to_string().contains(omitted),
+                "the error must name the missing knob '{omitted}'; got {err}"
+            );
+        }
+    }
 
     #[test]
     fn parses_a_needs_file() {

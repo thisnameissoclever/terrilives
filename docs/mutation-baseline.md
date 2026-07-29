@@ -269,13 +269,23 @@ had a reason to build such a layout before, because M0's lot was one open
 room. Whoever next attends to this entry should start from the shipped lot
 rather than inventing a grid.
 
-### `advertise.rs:79:18` - the deficit clause of the NaN guard - EQUIVALENT
+### `advertise.rs:82:18` - the deficit clause of the NaN guard - EQUIVALENT
 
 **Re-derived in M1b Task 3**, where the guard changed shape and moved from
 line 42 to line 79. Both halves of that sentence matter: CI compares
 survivor strings byte for byte, so the line move alone would read as a new
 survivor plus a stale entry, and the shape change means the previous
 argument had to be redone rather than carried.
+
+**Re-anchored again from `79:18` to `82:18` in M1c Task 2**, and this time
+the code did not change at all: `ACTION_THRESHOLD` became
+`content/tuning.toml`'s `action_threshold`, and the doc comment above this
+function that named the old constant grew three lines while being corrected.
+That is the recurring cost of a line-keyed baseline - **an edit to a COMMENT
+above a survivor invalidates its entry** - so re-derive the coordinate with
+`cargo mutants --file` after touching a file that holds one, rather than
+assuming the entry still points at it. The argument below is unchanged; only
+the anchor moved.
 
 ```rust
 // M1a

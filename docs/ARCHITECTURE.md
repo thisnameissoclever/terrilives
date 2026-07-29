@@ -257,7 +257,10 @@ saves later.
 Content is authored in TOML and compiled to a validated binary pack at build
 time. **Built in M1a**, apart from hot reload, which is M1e.
 
-`content/needs.toml` and `content/objects.toml` are the sources.
+`content/needs.toml`, `content/objects.toml`, `content/lot.toml` and
+`content/tuning.toml` are the authored sources, plus the generated
+`assets/sprites/atlas.toml`, which is an input here so that "this object names
+a sprite the atlas holds" is a build failure rather than a blank quad.
 `crates/terri-data/build.rs` parses them with `serde`/`toml`, runs the
 validation below, encodes the result with `postcard`, and writes
 `$OUT_DIR/content_pack.postcard`. `lib.rs` embeds those bytes with
@@ -280,6 +283,19 @@ nonsense**, with the message naming the offending id:
 - a zero `duration_ticks` (an interaction that finishes before it starts) or
   zero `slots`
 - a non-finite or negative number anywhere
+- a missing or incoherent tuning knob: an absent field, a `choice_temperature`
+  of zero or below (selection divides by it), a `min_interaction_ticks` of
+  zero, a `duration_variance` outside `[0, 1)`, or an `idle_threshold` above
+  `action_threshold`, which would have a sim wander off while something is
+  worth doing
+
+**`content/tuning.toml` is the single home for every value that governs the
+system**, as opposed to values describing one piece of content, and that is a
+standing rule rather than one file's convention: **a new knob goes there rather
+than into a Rust `const`.** See [D-1] in the M1c design. The person tuning game
+feel iterates, and wants one file to open rather than a hunt through Rust; a
+constant buried in a system is a knob nobody finds. `ACTION_THRESHOLD` was the
+first migration, from ten places in `select_action`.
 
 Predicates (`requires`) are not yet a content concept, so "an object requiring
 an undefined predicate" is still a promise rather than a check; it lands with

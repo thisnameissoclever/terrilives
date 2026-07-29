@@ -1,0 +1,52 @@
+# Every knob that governs the SYSTEM lives here. Values describing a
+# specific piece of content - a fridge's hunger delta - stay in
+# objects.toml. This split is deliberate and permanent: a designer
+# tuning feel should have one file to open, not a hunt through Rust
+# constants.
+#
+# So: when you add a value somebody might want to change, it goes here
+# rather than into a `const`. Ask which side it falls on - does it
+# describe one thing, or does it govern how everything behaves? The
+# first is content, the second is tuning. Existing scattered constants
+# migrate here as they are touched; `action_threshold` below was the
+# first.
+#
+# Validated at build time like every other content file, so a missing or
+# malformed knob fails cargo build rather than surfacing later as
+# inexplicable behaviour.
+
+# Below this score, an option is not worth doing at all.
+action_threshold = 0.05
+
+# Softmax temperature for choosing among candidates. Low approaches
+# always-pick-the-best; high approaches pick-at-random.
+#
+# SCALE-SENSITIVE. Because urgency is cubed, scores span orders of
+# magnitude, so this must be tuned against the real range rather than
+# picked as a round number. Observed range on the shipped lot with one
+# sim: roughly 0.001 to 1.0. Record new observations here when the
+# content changes.
+choice_temperature = 0.15
+
+# Below this, nothing is urgent enough to act on and the sim wanders
+# instead of standing still. Separate from action_threshold on purpose:
+# one asks "is anything worth doing", this asks "is nothing worth doing
+# enough that I should mill about".
+idle_threshold = 0.02
+
+# Ticks a sim pauses between wanders.
+wander_pause_ticks = 20
+
+# An interaction's content duration_ticks is a CENTRE. The real duration
+# is sampled within this fraction either side, biased shorter, so
+# repeated actions are not metronomic.
+duration_variance = 0.4
+
+# Hard floor on any interaction, in ticks. At 1x speed the simulation
+# runs 10 ticks per second, so 25 ticks is 2.5 real seconds. Anything
+# shorter reads as a sim teleporting through an action.
+min_interaction_ticks = 25
+
+# Seed for the simulation PRNG. Constant for now; it becomes part of the
+# save file at M1d, which is what makes a saved game replayable.
+rng_seed = 20260728

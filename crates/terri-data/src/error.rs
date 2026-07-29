@@ -90,6 +90,39 @@ pub enum ContentError {
     MissingSimSprite {
         sprite: String,
     },
+    /// Weighted selection divides by the temperature, so zero is a
+    /// division by zero and a negative one inverts the whole
+    /// distribution: the least urgent option would become the most
+    /// likely.
+    ///
+    /// The value is always finite, because `compile_tuning` checks
+    /// finiteness before this range, which also keeps this variant's
+    /// derived `PartialEq` from having to reason about NaN. Same
+    /// reasoning as [`ContentError::PlacementOutOfBounds`].
+    NonPositiveTemperature {
+        value: f32,
+    },
+    /// A floor of zero ticks is not a short interaction; it is an
+    /// interaction that can complete on the tick it starts, which reads
+    /// as a sim teleporting through an action.
+    ZeroInteractionFloor,
+    /// Variance is a FRACTION either side of the authored duration. At
+    /// 1.0 the lower bound reaches zero, so the floor rather than the
+    /// content would decide every duration; above 1.0 it goes negative.
+    /// Finite by the time this is reported, as above.
+    DurationVarianceOutOfRange {
+        value: f32,
+    },
+    /// An idle threshold above the action threshold means a sim wanders
+    /// off while something is worth doing. That is incoherent rather
+    /// than merely odd: the two knobs answer "is anything worth doing"
+    /// and "is nothing worth doing enough that I should mill about", and
+    /// in this order the second contradicts the first. Both values are
+    /// finite by the time this is reported.
+    IdleThresholdAboveAction {
+        idle: f32,
+        action: f32,
+    },
 }
 
 impl fmt::Display for ContentError {
@@ -180,6 +213,22 @@ impl fmt::Display for ContentError {
             ContentError::MissingSimSprite { sprite } => write!(
                 f,
                 "atlas.toml has no '{sprite}' sprite, so no sim could be drawn"
+            ),
+            ContentError::NonPositiveTemperature { value } => write!(
+                f,
+                "tuning.toml has choice_temperature of {value}; it must be greater than 0 because selection divides by it"
+            ),
+            ContentError::ZeroInteractionFloor => write!(
+                f,
+                "tuning.toml has min_interaction_ticks of 0; must be at least 1"
+            ),
+            ContentError::DurationVarianceOutOfRange { value } => write!(
+                f,
+                "tuning.toml has duration_variance of {value}; must be at least 0 and less than 1"
+            ),
+            ContentError::IdleThresholdAboveAction { idle, action } => write!(
+                f,
+                "tuning.toml has idle_threshold {idle} above action_threshold {action}; a sim would wander off while something is worth doing"
             ),
         }
     }

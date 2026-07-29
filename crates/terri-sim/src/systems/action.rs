@@ -6,9 +6,6 @@ use terri_core::{
 use super::advertise::score_advertisement;
 use crate::Content;
 
-/// Below this score nothing is worth doing, so the agent stays idle.
-const ACTION_THRESHOLD: f32 = 0.05;
-
 /// Idle agents scan advertisements, pick the best, reserve it, and path
 /// to it. Serialized on purpose: reservation is contended state, so it
 /// runs in deterministic entity order per [D4].
@@ -25,6 +22,15 @@ pub fn select_action(
     agents: Query<(Entity, &Position, &Needs), (With<Agent>, Without<Target>, Without<Eating>)>,
     objects: Query<(Entity, &Position, &SmartObject), Without<Reserved>>,
 ) {
+    // Below this score nothing is worth doing, so the agent stays idle.
+    //
+    // Read from the pack rather than held in a `const` here, per [D-1]:
+    // every value governing the SYSTEM lives in `content/tuning.toml`,
+    // so a tuning pass is one file rather than a hunt through Rust. The
+    // pack's copy is validated at build time, so nothing here re-checks
+    // it.
+    let action_threshold = content.0.tuning.action_threshold;
+
     // Collect and sort so iteration order cannot vary between runs.
     //
     // The whole `Needs` component is carried rather than one deficit,
@@ -128,7 +134,7 @@ pub fn select_action(
                     }
                     None => true,
                 };
-                if score > ACTION_THRESHOLD && better {
+                if score > action_threshold && better {
                     // The clone is at most a few short paths per agent
                     // per tick, and it buys keeping this comparison
                     // byte-identical to the one three tests pin. Hoisting
@@ -183,6 +189,19 @@ mod tests {
             &[(NeedId::Hunger, IDENTICAL_DELTA)],
             IDENTICAL_DURATION,
         )])
+    }
+
+    /// The threshold `select_action` actually compares against.
+    ///
+    /// Read from content rather than restated as `0.05`, because the
+    /// threshold is TUNING now: it lives in `content/tuning.toml` per
+    /// [D-1], and `test_content::pack` copies the shipped knobs into
+    /// every fixture in this module, so this is the same number the
+    /// system used on the tick each test just ran. A literal here would
+    /// leave every precondition below green while silently no longer
+    /// testing the real threshold, from the first time anybody tunes it.
+    fn action_threshold() -> f32 {
+        test_content::tuning().action_threshold
     }
 
     fn def(content: &ContentPack, id: &str) -> ObjectDefId {
@@ -349,7 +368,7 @@ mod tests {
         assert_eq!(walk_tiles((8.0, 8.0), (11.0, 8.0)), 3.0);
         assert_eq!(walk_tiles((8.0, 8.0), (1.0, 8.0)), 7.0);
         assert!(
-            far_score > ACTION_THRESHOLD,
+            far_score > action_threshold(),
             "the losing object must still clear the threshold, or this \
              test proves nothing about choosing between them; got {far_score}"
         );
@@ -412,7 +431,7 @@ mod tests {
         assert_eq!(walk_tiles((8.0, 8.0), (8.0, 11.0)), 3.0);
         assert_eq!(walk_tiles((8.0, 8.0), (8.0, 1.0)), 7.0);
         assert!(
-            far_score > ACTION_THRESHOLD,
+            far_score > action_threshold(),
             "the losing object must still clear the threshold; got {far_score}"
         );
         assert!(
@@ -484,7 +503,7 @@ mod tests {
              is not a trade-off at all"
         );
         assert!(
-            near_score > ACTION_THRESHOLD,
+            near_score > action_threshold(),
             "the near object must be selectable on its own; got {near_score}"
         );
         assert!(
@@ -626,7 +645,7 @@ mod tests {
             DURATION,
         );
         assert!(
-            one_need_score > ACTION_THRESHOLD,
+            one_need_score > action_threshold(),
             "the losing object must still clear the threshold; got {one_need_score}"
         );
         assert!(
@@ -758,7 +777,7 @@ mod tests {
             let costly_score = costly_benefit + costly_cost;
 
             assert!(
-                cheap_score > ACTION_THRESHOLD,
+                cheap_score > action_threshold(),
                 "the cheap object must always be selectable, or the \
                  exhausted case proves nothing; got {cheap_score}"
             );
@@ -842,13 +861,13 @@ mod tests {
         let weak = score_of(deficit, AGENT_AT, OBJECT_AT, WEAK_DELTA, DURATION);
         let strong = score_of(deficit, AGENT_AT, OBJECT_AT, STRONG_DELTA, DURATION);
         assert!(
-            weak < ACTION_THRESHOLD,
+            weak < action_threshold(),
             "the first interaction must be too weak to select on its own, \
              or this test cannot tell 'scored both' from 'scored the \
              first'; got {weak}"
         );
         assert!(
-            strong > ACTION_THRESHOLD,
+            strong > action_threshold(),
             "the second interaction must be worth doing; got {strong}"
         );
 
@@ -918,7 +937,7 @@ mod tests {
         let deficit = deficit_after_tick(&sim, agent, NeedId::Hunger);
         let score = score_of(deficit, AGENT_AT, OBJECT_AT, DELTA, DURATION);
         assert!(
-            score > ACTION_THRESHOLD,
+            score > action_threshold(),
             "the tied score must clear the action threshold; got {score}"
         );
 
@@ -936,9 +955,9 @@ mod tests {
 
     #[test]
     fn a_score_exactly_at_the_action_threshold_selects_nothing() {
-        // The threshold comparison is `score > ACTION_THRESHOLD`. The
+        // The threshold comparison is `score > action_threshold`. The
         // only input that can tell `>` from `>=` is a score that lands
-        // exactly on the constant, so this test constructs one bit
+        // exactly on the tuned value, so this test constructs one bit
         // exactly rather than approaching it.
         //
         // Every term is chosen to be exact in binary32: hunger decays to
@@ -947,6 +966,19 @@ mod tests {
         // plus 7 ticks of interaction plus 1 is a denominator of exactly
         // 16. 6.4, 0.8 and 0.05 share a mantissa, so 0.125 * 6.4 / 16 is
         // 0.05f32 with no rounding anywhere.
+        //
+        // **The deltas below stay literal, and 0.05 stays the authored
+        // `action_threshold`.** This is the one test in the module whose
+        // fixture is arithmetic rather than an inequality, so it is also
+        // the one that cannot follow a tuned value: a threshold that is
+        // not exactly representable, or that no product of these terms
+        // lands on, breaks the construction rather than shifting it. The
+        // bit-equality precondition below is what says so out loud, and
+        // it is deliberately an equality of BIT PATTERNS rather than an
+        // ordinary inequality - the moment it relaxes, this test stops
+        // being able to tell `>` from `>=` at all. If a tuning pass ever
+        // fails it, re-derive the fixture against the new value; do not
+        // weaken the assertion.
         //
         // **Summing across needs does not move this arithmetic**, and
         // that is a property of the fixture rather than luck: the
@@ -1013,13 +1045,18 @@ mod tests {
         }
 
         // Precondition: the middle case really is the boundary, bitwise.
+        // Against the TUNED threshold, not against a second copy of
+        // 0.05 - the fixture is derived from the authored value, and
+        // this is what fails loudly if that value ever moves.
         let exact =
             score_advertisement(0.5, EXACT_DELTA, DURATION, walk_tiles(AGENT_AT, OBJECT_AT));
         assert_eq!(
             exact.to_bits(),
-            ACTION_THRESHOLD.to_bits(),
-            "the boundary case must score bit-identically to the \
-             threshold or it tests an ordinary inequality; got {exact}"
+            action_threshold().to_bits(),
+            "the boundary case must score bit-identically to the tuned \
+             action_threshold or it tests an ordinary inequality; got \
+             {exact} against {}",
+            action_threshold()
         );
 
         assert!(
@@ -1029,7 +1066,7 @@ mod tests {
         assert!(
             !selects(EXACT_DELTA),
             "the threshold is strict: a score exactly equal to \
-             ACTION_THRESHOLD is not worth doing"
+             action_threshold is not worth doing"
         );
         assert!(
             !selects(BELOW_DELTA),
@@ -1095,7 +1132,7 @@ mod tests {
              pins nothing; got {incumbent_score} and {challenger_score}"
         );
         assert!(
-            incumbent_score > ACTION_THRESHOLD,
+            incumbent_score > action_threshold(),
             "the tied score must clear the action threshold; got {incumbent_score}"
         );
         assert!(
@@ -1255,7 +1292,7 @@ mod tests {
         // decided by the comparison rather than by one of them being
         // ineligible.
         assert!(
-            by_path(14) > ACTION_THRESHOLD,
+            by_path(14) > action_threshold(),
             "the losing object must still clear the threshold, or this \
              test proves nothing about choosing between them; got {}",
             by_path(14)
@@ -1353,7 +1390,7 @@ mod tests {
              either"
         );
         assert!(
-            runner_up_score > ACTION_THRESHOLD,
+            runner_up_score > action_threshold(),
             "the runner up must be worth doing on its own; got {runner_up_score}"
         );
 
@@ -1514,7 +1551,7 @@ mod tests {
              pins nothing; got {score_left} and {score_right}"
         );
         assert!(
-            score_left > ACTION_THRESHOLD,
+            score_left > action_threshold(),
             "the tied score must clear the action threshold; got {score_left}"
         );
 

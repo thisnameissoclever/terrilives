@@ -97,7 +97,25 @@ pub fn pack(objects: Vec<CompiledObject>) -> &'static ContentPack {
         // explicitly - so a fixture lot would be an invented constant
         // with no reader, which is worse than a real one with no reader.
         lot: terri_data::pack().lot.clone(),
+        // And again: `select_action` compares against
+        // `tuning.action_threshold`, so a fixture with its own knobs
+        // would silently change the threshold every scoring assertion in
+        // the suite is written against. Through `tuning()` rather than
+        // inline, so a test stating the threshold and the pack the sim
+        // reads it from have ONE source rather than two that agree today.
+        tuning: tuning(),
     }))
+}
+
+/// The knobs the simulation actually runs on, read from the same content
+/// the shipped pack carries rather than restated as a literal.
+///
+/// This is what a test asserting "the losing candidate still clears the
+/// action threshold" must compare against. Hardcoding `0.05` there would
+/// leave the test green while silently no longer testing the real
+/// threshold, from the first time anybody tunes it.
+pub fn tuning() -> terri_data::Tuning {
+    terri_data::pack().tuning
 }
 
 /// A sim reading `content` instead of the shipped pack.
