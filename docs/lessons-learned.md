@@ -1904,3 +1904,51 @@ with the floor showing through.
 **How to verify:** set `$KENNEY_METRE_PX` in `assets/sprites/build-atlas.ps1`
 to 208, regenerate, and look at the page. Every object shrinks to 58% while
 the floor, which is generated at exactly 64 x 32, does not move at all.
+
+---
+
+## [L39] A PCG output hides a low-bit state difference for one extra draw
+
+**What happened:** M1c Task 1's `a_resumed_rng_continues_the_same_sequence`
+compares a `SimRng` restored from a save against a reference that was never
+serialised. It was written with eight draws and a comment predicting that a
+save which dropped the `inc` field would agree on the first draw and part
+company from the second. Running that mutation - `#[serde(skip)]` on `inc` -
+showed the first **two** draws agree, and the third is where it breaks:
+
+```
+resumed   [3398805763, 2211399277, 3474744281, 1141141794, ...]
+reference [3398805763, 2211399277, 3248241063, 2122662297, ...]
+```
+
+The test caught the mutation, so nothing shipped wrong. What was wrong was the
+stated reason, and the reason is what a later reader would use to decide how
+many draws are enough.
+
+**Root cause:** the output function is
+`rotate_right((((old >> 18) ^ old) >> 27) as u32, old >> 59)`, which keeps only
+bits 27 and up. After one step the two generators' states differ by exactly
+`inc`, which is 2469 for seed 1234, so the difference lives entirely in the
+bottom twelve bits of `old` and never reaches bit 27. It only becomes visible
+once the `wrapping_mul` carries it upward, one step later.
+
+**Prevention rule:** [L11] and testing-protocol rule 7 say to take N + 2
+observations, where N comes from the relation under test. This is the case
+where **N is larger than the mechanism suggests, because the function under
+test discards part of its input.** Any transform that truncates, shifts,
+rounds, quantises or hashes can swallow a real state difference for one or
+more steps, so a divergence test sized by reasoning alone will be sized too
+small.
+
+Do not derive the sample count. **Apply the mutation, read the index where
+divergence actually starts, and take comfortably more than that.** Then write
+the measured index into the test, not the predicted one.
+
+Note the shape this shares with [L34]: both are tests whose assertions are
+correct and whose *inputs* cannot express the difference. There it was a
+degenerate input domain; here it is a domain too short in time.
+
+**How to verify:** put `#[serde(skip)]` on `SimRng::inc` in
+`crates/terri-core/src/rng.rs` and run `cargo test -p terri-core --lib`. The
+two printed vectors agree at indices 0 and 1 and differ from index 2, so a
+one-draw or two-draw version of that test would pass the mutation.
