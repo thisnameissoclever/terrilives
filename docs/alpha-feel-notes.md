@@ -812,3 +812,33 @@ difference:
 That is geometry, not appearance. The walls are provably flush and the
 proportions provably match the source art; whether the room reads as a room
 needs eyes on a composited frame.
+
+### [A-6] A new one, found while checking sprite proportions
+
+Every smart object occupies **exactly one tile** in the simulation, regardless
+of how wide it is drawn. Measured against the regenerated atlas, with the sim's
+78 px as the reference:
+
+| sprite | w x h | tiles wide |
+| --- | --- | --- |
+| loungeDesignSofaCorner | 152 x 90 | **2.4** |
+| bedBunk | 93 x 114 | 1.5 |
+| showerRound | 63 x 94 | 1.0 |
+| cabinetTelevisionDoors | 59 x 60 | 0.9 |
+| wallNS / wallEW | 32 x 98 | 0.5 |
+
+The corner sofa is drawn across nearly two and a half tiles and owns one. So it
+visually covers tiles it does not occupy, a sim can stand "beside" it on a tile
+the sofa is drawn over, and the reserved-tile logic has no idea. Nothing here
+addressed that, and the walls are the only sprite whose drawn width was made to
+match its footprint.
+
+That is a **footprint** problem rather than a scaling one: it wants objects to
+declare a width and depth in tiles, which is also what build mode will need in
+order to stop the player putting two things in the same place. Worth its own
+task, and it is not the cause of the reported jaggedness.
+
+Separately, [C4]'s complaint that the television reads as a flat plank is **not**
+a scaling error - at 59 x 60 it is proportioned like what it is, a TV cabinet
+rather than a screen. That is an asset-choice problem and no projection change
+will fix it.
