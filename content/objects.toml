@@ -135,9 +135,13 @@ sprite = "cabinetTelevisionDoors"
   # reading: a sim with only a television for company stays lonely, and M2
   # is what fixes that rather than a bigger number here.
   #
-  # Not 22 or 26: rule 1 above. Not 12 either - the shower's delta is
-  # -12.0, and rule 1 is about MAGNITUDES, because a mutation dropping a
-  # negation would make the two indistinguishable.
+  # Not 22 or 26: rule 1 above, which requires exact uniqueness and those
+  # are the sink's and the bookshelf's. Not 12 either, and that one is a
+  # precaution BEYOND rule 1 rather than an application of it - 12 and the
+  # shower's -12.0 are already distinct values, so rule 1 permits it. The
+  # reason to avoid it anyway is the same reason rule 1 exists: a mutation
+  # dropping a negation would collapse the two into one value, and no test
+  # could then tell the slots apart.
   #
   # One thing this DID cost, recorded as [C6] in docs/alpha-feel-notes.md
   # rather than hidden here: the bookshelf goes from 3 interactions to zero

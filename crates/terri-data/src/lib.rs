@@ -104,13 +104,18 @@ mod tests {
         );
     }
 
-    /// The sofa was the first object in shipped content to advertise two
-    /// needs, and [D6]'s scoring SUMS across advertised deltas. Until it
-    /// existed, that summing was exercised only by in-memory fixtures. The
-    /// television joined it when `watch_tv` gained a `social` advert, but
-    /// the sofa is still the object the summing is TUNED around - neither
-    /// 18 fun nor 34 comfort beats the television's 30 fun alone, and
-    /// together they can - so this is where the claim is pinned.
+    /// The sofa is where [D6]'s scoring SUMS across advertised deltas is
+    /// TUNED to be observable: neither 18 fun nor 34 comfort beats the
+    /// television's 30 fun alone, and together they can. Until it existed
+    /// that summing was exercised only by in-memory fixtures.
+    ///
+    /// "Two needs" alone would not be the claim, because the shower has
+    /// advertised two since M1b and is declared earlier in the file. Its
+    /// pair is a benefit and a COST, which exercises the sign carried
+    /// through `score_advertisement` rather than the summing - which is
+    /// why this test asserts the two separately. The television's
+    /// `social` + `fun` is a third case again, two positive deltas that
+    /// were not chosen to make the summing decide anything.
     ///
     /// The shower is the one that advertises a NEGATIVE delta, which M1a
     /// rejected outright. Both are asserted here because both are claims
