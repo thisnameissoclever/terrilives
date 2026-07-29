@@ -41,11 +41,15 @@ use crate::Content;
 /// 25. An interaction whose whole sampled band sits under the floor has a
 /// FIXED length, so [D-4] is inert for it, and it also delivers
 /// `floor / duration_ticks` times what its content advertises, because
-/// the refill below divides by the content duration. `content/tuning.toml`
-/// carries the condition for the floor to be inert
-/// (`duration_ticks >= floor / (1 - duration_variance)`) and the
-/// measurements; `docs/alpha-feel-notes.md` carries the objects that
-/// still fail it.
+/// the refill below divides by the content duration.
+///
+/// **That is now impossible to author.** `ClippedDuration` in terri-data
+/// fails the build for any interaction whose band bottoms out below the
+/// floor - the condition is
+/// `duration_ticks * (1 - duration_variance) >= min_interaction_ticks` -
+/// so the floor here is a genuine safety net rather than a balance lever.
+/// No shipped interaction is within reach of it, which
+/// `no_shipped_interaction_is_clipped_by_the_interaction_floor` asserts.
 ///
 /// # One draw, always
 ///
@@ -86,13 +90,18 @@ pub fn sample_duration(centre: u32, variance: f32, floor: u32, rng: &mut SimRng)
 ///
 /// The visible consequence used to be the shipped fridge, whose 15-tick
 /// snack a 25-tick floor stretched to a flat 25, so it delivered about 67
-/// hunger rather than 40. **The alpha feel pass decided that was too
-/// much** and lowered the floor to 12 rather than raising the fridge's
-/// content number, because the floor was binding on the majority of
-/// interactions and was therefore acting as a balance lever rather than a
-/// safety net. Measured after the change: the fridge samples 12 to 20
-/// ticks, averages 14.4 against its declared 15, and delivers about 38
-/// hunger against its declared 40. See `docs/alpha-feel-notes.md`.
+/// hunger rather than 40. That took two passes to actually fix. The feel
+/// pass lowered the floor from 25 to 12, which brought the fridge out from
+/// under it but left the sink wholly beneath and the fridge and toilet
+/// clipped at the bottom of their bands. The alpha pass then raised the
+/// three content durations above the line and made being under it a build
+/// error.
+///
+/// Measured after both, over 12 000 ticks of the shipped lot: the fridge
+/// declares 30, samples 18 to 40, and averages 25.0 - below its centre
+/// because the draw is biased shorter, which is [D-4] working rather than
+/// the floor binding. Nothing is pinned to a single length any more. Rerun
+/// it with `cargo run -p terri-sim --example trace`.
 pub fn tick_interactions(
     mut commands: Commands,
     content: Res<Content>,
@@ -771,25 +780,55 @@ mod tests {
         // number and lose the reason, so the seconds are computed and
         // named here.
         //
-        // The fixture is a SHIPPED object, deliberately, so this is a
-        // statement about the game rather than about a fixture invented
-        // to have the property. **It is the sink rather than the fridge,
-        // and that swap is a finding rather than housekeeping.** At the
-        // original 25-tick floor the fridge's whole band was underneath
-        // it, along with the toilet's and the sink's, so 61% of measured
-        // interactions ran for exactly the floor and [D-4] was inert for
-        // them. The alpha feel pass lowered the floor to 12 and the
-        // fridge came out from under it; the sink, whose band tops out
-        // at 8 * 1.4 = 11 ticks, did not. See docs/alpha-feel-notes.md.
+        // **This used to use a shipped object and deliberately cannot any
+        // more.** It was the sink, chosen because the sink's whole band sat
+        // under the floor: at 8 declared ticks its widest draw was 11.2
+        // against a floor of 12, so the clamp decided every one of its
+        // interactions. That was a bug in shipped content, recorded as [C1],
+        // and this test was quietly relying on it.
+        //
+        // The alpha balance pass fixed it and then made it unrepresentable:
+        // `ClippedDuration` in terri-data now fails the BUILD for any
+        // interaction whose band bottoms out below the floor, and
+        // `no_shipped_interaction_is_clipped_by_the_interaction_floor` asserts
+        // shipped content stays clear of the line. So there is no longer a
+        // shipped object this test could use, and if one ever appears the
+        // build breaks before this test runs.
+        //
+        // The clamp is still a real mechanism and still worth pinning, so the
+        // fixture is now an invented object that the compiler would reject as
+        // content - which fixtures may be, because `test_content` builds a
+        // `CompiledObject` directly rather than going through `compile()`.
+        // The trade is explicit: this is a statement about the CLAMP rather
+        // than about the game, and the statement about the game is the
+        // terri-data test named above.
         //
         // Equality rather than `>=`, and the precondition below is what
         // earns it: the widest draw the variance allows is still under
         // the floor, so the clamp decides EVERY interaction here and a
-        // `>=` would also be satisfied by an unclamped 11.
+        // `>=` would also be satisfied by an unclamped shorter draw.
         const NEED: NeedId = NeedId::Hygiene;
+        // 6 ticks against the shipped floor of 12 and variance of 0.4: the
+        // band is 3.6 to 8.4, entirely underneath. Derived from the tuning
+        // below rather than written as a literal, so a floor change cannot
+        // leave this fixture accidentally above the line with the test still
+        // asserting equality.
         let tuning = test_content::tuning();
-        let object = test_content::shipped_object("sink");
-        let mut sim = Sim::new_with_lot(16, 16);
+        let centre = ((tuning.min_interaction_ticks as f32 / (1.0 + tuning.duration_variance))
+            .floor() as u32)
+            .saturating_sub(1)
+            .max(1);
+        let content = test_content::pack(vec![test_content::object(
+            "quick_rinse",
+            &[(NEED, 30.0)],
+            centre,
+        )]);
+        let mut sim = test_content::sim_with(16, 16, content);
+        let object = SmartObject(
+            content
+                .find("quick_rinse")
+                .expect("the fixture declares it"),
+        );
         sim.world_mut()
             .spawn((Position { x: 10.0, y: 8.0 }, object));
         let agent = sim
@@ -797,7 +836,6 @@ mod tests {
             .spawn((Agent, Position { x: 9.0, y: 8.0 }, Needs::with(NEED, 5.0)))
             .id();
 
-        let centre = terri_data::pack().object(object.0).interactions[0].duration_ticks;
         let longest_unclamped = centre as f32 * (1.0 + tuning.duration_variance);
         assert!(
             longest_unclamped < floor() as f32,

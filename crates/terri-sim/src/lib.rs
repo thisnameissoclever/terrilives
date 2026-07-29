@@ -1060,10 +1060,50 @@ mod determinism_tests {
         // `every_declared_need_can_be_satisfied_by_some_interaction` in
         // terri-data.
         //
+        // **The [C3] fix DID move it, and that is the whole point.**
+        // Previous value: 0x5A49_3BA9_F7FB_F23B.
+        //
+        // Which of the two causes the assertion below asks about: **the
+        // simulation no longer computes what it did**, deliberately. The
+        // digest encoding is untouched.
+        //
+        // This scenario is the exact shape the fix changes, which is why it
+        // is the one golden vector that could see it. `build_scenario` holds
+        // **eight agents and one object**: agent 0 claims the object and the
+        // other seven used to see an empty candidate list - the object was
+        // filtered out of their query by `Without<Reserved>` - come out with
+        // `best_seen` at negative infinity, and be marked `Restless`. Being
+        // `Restless` is what `idle::wander` reads as permission to stroll,
+        // and a wander destination is a PRNG draw, so seven spurious strolls
+        // per tick were both moving those agents and consuming the seeded
+        // random stream.
+        //
+        // After the fix the seven score the object they cannot have, are not
+        // marked `Restless`, and stand and wait. So the vector moves for
+        // three compounding reasons: different positions, a different number
+        // of draws taken from `SimRng`, and therefore a different alignment
+        // of every draw after them.
+        //
+        // Note the contrast with the [C2] entry this replaces: that fixture
+        // was blind to a content change and the vector was correctly silent
+        // ([L36]). Here the fixture is maximally sensitive, and a vector that
+        // had NOT moved would have been the finding.
+        //
+        // **The alpha duration pass moved it again**, from
+        // 0x822C_A9CD_3813_3321, and again the cause is "the simulation no
+        // longer computes what it did" rather than a digest change.
+        //
+        // This scenario's one object is the fridge, whose `duration_ticks`
+        // went from 15 to 30, so the agent that eats in it now eats for twice
+        // as long and fills hunger at half the per-tick rate. Both the
+        // position and the need levels of that agent differ at tick 100.
+        // Unlike the [C2] case, this fixture is directly sensitive: the fridge
+        // is the object it holds.
+        //
         // Measured on wasm32 as well as natively, per [L13], rather than
         // assumed to carry across: the two agree. The boundary copy lives
         // in web/tests/bridge.test.ts.
-        const GOLDEN: u64 = 0x5A49_3BA9_F7FB_F23B;
+        const GOLDEN: u64 = 0xD993_6100_876C_D55A;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

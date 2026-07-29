@@ -222,6 +222,53 @@ pub fn compile(
     let lot = compile_lot(lot, &compiled)?;
     let tuning = compile_tuning(tuning)?;
 
+    // **An interaction the floor is longer than does not do what it says.**
+    //
+    // Checked here rather than beside the other per-interaction rules above
+    // because it is the only rule that needs two files at once: the duration
+    // is content and both `min_interaction_ticks` and `duration_variance` are
+    // tuning, so neither file is wrong on its own.
+    //
+    // The failure it prevents is quiet in three ways at once, which is what
+    // earns it a build error under [D9]. An interaction below the line runs
+    // for exactly the floor **every single time**, so `duration_variance` is
+    // silently inert for it; and because `tick_interactions` refills at
+    // `delta / duration_ticks` per tick, running for `floor` ticks instead of
+    // `duration_ticks` delivers `floor / duration_ticks` times the advertised
+    // amount. Nothing errors, nothing logs, and the object simply is not the
+    // thing its content describes.
+    //
+    // All three were true of shipped content and none was noticed by a test.
+    // The sink declared 8 ticks and 22 hygiene, ran for 12 ticks on 6 of 6
+    // measured interactions, and delivered 33 - recorded as [C1] in
+    // docs/alpha-feel-notes.md, found by a 12 000-tick trace rather than by
+    // the suite. `cargo run -p terri-sim --example trace` is that trace, kept
+    // in the repo this time.
+    //
+    // `div_ceil` because the boundary belongs to the safe side: the condition
+    // is `duration * (1 - variance) >= floor`, and integer ticks mean the
+    // smallest duration satisfying it is the ceiling of the quotient.
+    let variance = tuning.duration_variance;
+    let floor = tuning.min_interaction_ticks;
+    for object in &compiled {
+        for act in &object.interactions {
+            if (act.duration_ticks as f32) * (1.0 - variance) < floor as f32 {
+                // Safe: `duration_variance` is validated to [0, 1) above, so
+                // the denominator is in (0, 1] and the scaled floor cannot
+                // overflow a u32 for any floor a build accepts.
+                let minimum = ((floor as f32) / (1.0 - variance)).ceil() as u32;
+                return Err(ContentError::ClippedDuration {
+                    object: object.id.clone(),
+                    interaction: act.id.clone(),
+                    duration_ticks: act.duration_ticks,
+                    minimum,
+                    floor,
+                    variance,
+                });
+            }
+        }
+    }
+
     Ok(ContentPack {
         decay_per_tick: decay,
         objects: compiled,
@@ -1439,10 +1486,164 @@ mod tests {
             );
         }
 
-        for good in [0.0, 0.9999999] {
+        // In-range values, and they have to be in range **for the fixture's
+        // interaction as well**, which is a coupling worth stating rather
+        // than working around.
+        //
+        // `snack()` runs 15 ticks against a floor of 12, so its band clears
+        // the floor only while `15 * (1 - variance) >= 12`, which is
+        // `variance <= 0.2`. That is not this rule's business - it is
+        // `ClippedDuration`'s - but it means this loop cannot use a variance
+        // near 1 to demonstrate the upper bound, because such content is
+        // genuinely invalid for a different and correct reason.
+        //
+        // The upper bound's EXCLUSIVITY is proven by `1.0` in the `bad` loop
+        // above, so nothing is lost; and the case below pins the coupling
+        // directly, which the old `0.9999999` silently depended on.
+        for good in [0.0, 0.2] {
             let pack = compile_tuned(tuning_where(|t| t.duration_variance = good))
                 .unwrap_or_else(|e| panic!("{good} is inside [0, 1); got {e}"));
             assert_eq!(pack.tuning.duration_variance, good);
+        }
+    }
+
+    /// **A variance near 1 makes every finite duration clipped**, and the
+    /// error must say so rather than blaming the range.
+    ///
+    /// `minimum` is `floor / (1 - variance)`, so as the variance approaches 1
+    /// it grows without bound: at 0.9999999 and a floor of 12 no duration a
+    /// designer would ever write survives. The range check accepts the value
+    /// - it is inside `[0, 1)` - and the cross-file rule is what rejects the
+    ///   combination, which is the division of labour this pins.
+    ///
+    /// Without this test the two rules could be reordered or merged and
+    /// nothing would notice; with it, a build that refuses a near-1 variance
+    /// has to name the interaction it cannot satisfy.
+    #[test]
+    fn a_variance_near_one_is_in_range_but_leaves_no_duration_unclipped() {
+        let err = compile_tuned(tuning_where(|t| t.duration_variance = 0.9999999)).unwrap_err();
+
+        match err {
+            ContentError::ClippedDuration {
+                interaction,
+                minimum,
+                ..
+            } => {
+                assert_eq!(interaction, "grab_snack");
+                assert!(
+                    minimum > 1_000_000,
+                    "at a variance this close to 1 the required duration must \
+                     be absurd, which is the point; got {minimum}"
+                );
+            }
+            other => panic!(
+                "a variance of 0.9999999 is inside [0, 1), so it must be \
+                 rejected by the clipping rule naming the interaction it \
+                 cannot satisfy, not by the range rule; got {other:?}"
+            ),
+        }
+    }
+
+    /// The rule that would have caught [C1] before it shipped.
+    ///
+    /// The sink is the real case: 8 declared ticks against a floor of 12 and a
+    /// variance of 0.4, so its whole band was 4.8 to 11.2 and every use ran
+    /// for exactly 12, delivering 1.5x its advertised hygiene. The numbers
+    /// below are that situation.
+    #[test]
+    fn rejects_an_interaction_the_floor_would_set_the_length_of() {
+        let mut act = snack();
+        act.duration_ticks = 8;
+        let err = compile(
+            full_needs(),
+            one_object(act),
+            bare_lot(),
+            test_atlas(),
+            tuning_where(|t| {
+                t.min_interaction_ticks = 12;
+                t.duration_variance = 0.4;
+            }),
+        )
+        .unwrap_err();
+
+        assert_eq!(
+            err,
+            ContentError::ClippedDuration {
+                object: "fridge".into(),
+                interaction: "grab_snack".into(),
+                duration_ticks: 8,
+                // 12 / 0.6 = 20 exactly, so the ceiling is 20 and not 21.
+                minimum: 20,
+                floor: 12,
+                variance: 0.4,
+            }
+        );
+    }
+
+    /// The boundary, from both sides, because `<` and `<=` are one character
+    /// apart and the difference is a duration that is exactly inert.
+    ///
+    /// At a floor of 12 and a variance of 0.4 the line is exactly 20: a
+    /// 20-tick interaction bottoms out at 12.0, which the floor does not
+    /// raise, so it is fine; 19 bottoms out at 11.4 and is not.
+    #[test]
+    fn the_clipping_line_is_inclusive_at_exactly_the_floor() {
+        let at_the_line = |ticks: u32| {
+            let mut act = snack();
+            act.duration_ticks = ticks;
+            compile(
+                full_needs(),
+                one_object(act),
+                bare_lot(),
+                test_atlas(),
+                tuning_where(|t| {
+                    t.min_interaction_ticks = 12;
+                    t.duration_variance = 0.4;
+                }),
+            )
+        };
+
+        assert!(
+            at_the_line(20).is_ok(),
+            "a 20-tick interaction bottoms out at exactly the 12-tick floor, \
+             so the floor never raises it and the content is honest"
+        );
+        assert!(
+            at_the_line(19).is_err(),
+            "19 bottoms out at 11.4, below the floor, so part of its band is \
+             clipped; accepting it means the rule is off by one"
+        );
+    }
+
+    /// **Shipped content, not a fixture.** The rule above is only worth
+    /// having if it is actually true of the game, and the three interactions
+    /// that violated it did so for months.
+    #[test]
+    fn no_shipped_interaction_is_clipped_by_the_interaction_floor() {
+        let pack = crate::pack();
+        let floor = pack.tuning.min_interaction_ticks;
+        let variance = pack.tuning.duration_variance;
+        assert!(
+            floor > 0 && variance > 0.0,
+            "with a zero floor or zero variance this test cannot fail and \
+             therefore proves nothing; floor {floor}, variance {variance}"
+        );
+
+        for object in &pack.objects {
+            for act in &object.interactions {
+                let band_bottom = act.duration_ticks as f32 * (1.0 - variance);
+                assert!(
+                    band_bottom >= floor as f32,
+                    "'{}' interaction '{}' declares {} ticks, whose band \
+                     bottoms out at {band_bottom:.1} against a floor of \
+                     {floor}: it would run at the floor every time and \
+                     deliver {:.2}x its advertised deltas",
+                    object.id,
+                    act.id,
+                    act.duration_ticks,
+                    floor as f32 / act.duration_ticks as f32,
+                );
+            }
         }
     }
 

@@ -132,16 +132,29 @@ duration_variance = 0.4
 # (12) and sink (8) all had their entire bands under the floor, so 31 of
 # 51 measured interactions - 61% - ran for exactly 25 ticks every single
 # time, and the fridge delivered 67 hunger instead of the 40 it
-# advertises. At 12 the fridge samples 12 to 20 and averages 14.4, which
-# is its declared 15, and the floor is a safety net again rather than
-# the thing setting the length.
+# advertises.
 #
-# The sink is still pinned at exactly 12 every time, and no value here
-# can fix it: its band tops out at 8 * 1.4 = 11 ticks, so any floor a
-# player can see clips all of it, and a floor below 12 is under 1.2
-# seconds - which is the thing this knob exists to prevent. That is a
-# CONTENT problem, recorded as one in docs/alpha-feel-notes.md. Raise
-# the sink's duration_ticks; do not lower this.
+# **THIS IS NOW A BUILD RULE RATHER THAN A WARNING.** `ClippedDuration` in
+# crates/terri-data/src/compile.rs fails `cargo build` for any interaction
+# whose band bottoms out below this value, so lowering the floor is safe and
+# RAISING it is what needs care: raise it past 20 and every shipped object
+# whose duration is under `new_floor / 0.6` stops compiling, which is the
+# intended outcome rather than an obstacle - it forces the content decision
+# instead of silently overriding it.
+#
+# The three offenders were fixed in content rather than here, because the
+# floor was acting as a balance lever: the sink went from 8 ticks to 21 (and
+# its hygiene delta from 22 to 32, without which raising the duration alone
+# dropped it from 6 interactions to 1), the toilet from 12 to 24 and the
+# fridge from 15 to 30. Measured over 12 000 ticks afterwards, every object
+# now shows real spread and none is pinned:
+#
+#   fridge 18-40 (declares 30)    toilet 24 -> 14-32
+#   sink   14-27 (declares 21)    shower 27-54
+#   sofa   30-55                  television 33-74    bed 108-244
+#
+# Reproduce with `cargo run -p terri-sim --example trace -- 12000`, which is
+# in the repo this time rather than rebuilt from scratch per [L40].
 min_interaction_ticks = 12
 
 # Seed for the simulation PRNG. Constant for now; it becomes part of the

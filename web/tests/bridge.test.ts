@@ -357,7 +357,24 @@ describe('SimBridge', () => {
     // The wasm was rebuilt before this was re-run, per [L8]; without that
     // the run reads the previous artifact and an unchanged value would mean
     // nothing either way. See the fuller note on the native constant.
-    expect(bridge.worldHash()).toBe(0x5a49_3ba9_f7fb_f23bn);
+    //
+    // **The [C3] fix DID move it**, from 0x5a49_3ba9_f7fb_f23bn, and this
+    // scenario is the one that could see it: eight agents contending for one
+    // object, where the seven losers used to be told nothing was worth doing
+    // and wander off. They now wait, which changes their positions AND how
+    // many draws come out of the seeded PRNG. The fuller argument is on the
+    // native constant in crates/terri-sim/src/lib.rs.
+    //
+    // **The alpha duration pass moved it again**, from
+    // 0x822c_a9cd_3813_3321n. This scenario's one object is the fridge, whose
+    // duration_ticks went from 15 to 30, so the agent eats for twice as long
+    // and fills hunger at half the per-tick rate - both its position and its
+    // need levels differ at tick 100.
+    //
+    // Read off the wasm32 failure after a rebuild, per [L13], not copied
+    // across from native - the two agree, which is a measurement each time
+    // rather than a guarantee.
+    expect(bridge.worldHash()).toBe(0xd993_6100_876c_d55an);
   });
 
   // ---- Player commands -------------------------------------------------

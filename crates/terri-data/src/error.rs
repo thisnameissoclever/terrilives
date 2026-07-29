@@ -60,6 +60,24 @@ pub enum ContentError {
         object: String,
         interaction: String,
     },
+    /// An interaction whose whole sampled length sits at or below
+    /// `min_interaction_ticks`, so the floor sets its duration instead of its
+    /// content, `duration_variance` does nothing for it, and it delivers
+    /// `floor / duration_ticks` times what it advertises.
+    ///
+    /// A **cross-file** rule: it needs `content/objects.toml` and
+    /// `content/tuning.toml` together, which is why it is checked after both
+    /// have compiled rather than beside the other per-interaction rules.
+    ClippedDuration {
+        object: String,
+        interaction: String,
+        duration_ticks: u32,
+        /// The smallest `duration_ticks` that escapes the floor, which is
+        /// `min_interaction_ticks / (1 - duration_variance)` rounded up.
+        minimum: u32,
+        floor: u32,
+        variance: f32,
+    },
     NonFiniteValue {
         context: String,
     },
@@ -221,6 +239,26 @@ impl fmt::Display for ContentError {
             } => write!(
                 f,
                 "object '{object}' interaction '{interaction}' has slots of 0; must be at least 1"
+            ),
+            ContentError::ClippedDuration {
+                object,
+                interaction,
+                duration_ticks,
+                minimum,
+                floor,
+                variance,
+            } => write!(
+                f,
+                "object '{object}' interaction '{interaction}' has duration_ticks of \
+                 {duration_ticks}, whose sampled band bottoms out at \
+                 {:.1} ticks - at or below min_interaction_ticks of {floor}. \
+                 The floor would set its length on every use, duration_variance \
+                 of {variance} would do nothing for it, and it would deliver \
+                 {:.2}x its advertised deltas because the refill rate is per \
+                 content tick. Raise duration_ticks to at least {minimum}, or \
+                 lower min_interaction_ticks in tuning.toml",
+                *duration_ticks as f32 * (1.0 - variance),
+                *floor as f32 / *duration_ticks as f32,
             ),
             ContentError::NonFiniteValue { context } => {
                 write!(f, "{context} is not a finite number")

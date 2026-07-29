@@ -52,7 +52,11 @@ mod tests {
         assert_eq!(fridge.interactions.len(), 1);
         let act = &fridge.interactions[0];
         assert_eq!(act.id, "grab_snack");
-        assert_eq!(act.duration_ticks, 15);
+        // 30 since the alpha balance pass; it was 15, which sat below the
+        // clipping line and made the fridge deliver more hunger than it
+        // advertised. `no_shipped_interaction_is_clipped_by_the_interaction_floor`
+        // in compile.rs is the rule; this is just deserialisation.
+        assert_eq!(act.duration_ticks, 30);
         assert_eq!(
             act.advertises,
             vec![(terri_core::NeedId::Hunger.index() as u8, 40.0)]

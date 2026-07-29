@@ -484,7 +484,27 @@ pub fn select_action(
         (Entity, &Position, &Needs, Option<&IntentQueue>),
         (With<Agent>, Without<Target>, Without<Eating>),
     >,
-    objects: Query<(Entity, &Position, &SmartObject), Without<Reserved>>,
+    // **Reserved objects are INCLUDED, and `Has<Reserved>` is read per
+    // object below instead.**
+    //
+    // This query used to carry `Without<Reserved>`, which looks like the
+    // obvious way to say "you cannot have what somebody else has" and is
+    // wrong for one specific reason: an object filtered out here is invisible
+    // to `best_seen` as well as to the candidate list, and `best_seen` is
+    // what decides whether the agent is told **nothing is worth doing**. A
+    // sim waiting for the only fridge in the house was therefore marked
+    // `Restless` and sent for a stroll, for the whole of the other sim's walk
+    // and meal.
+    //
+    // The two questions are genuinely different and the filter conflated
+    // them: "may I have this?" is answered by the reservation, "is anything
+    // here worth wanting?" is not. Availability is now applied at the one
+    // place it belongs - whether the object enters `candidates` - and the
+    // score still reaches `best_seen` either way. [C3] in
+    // docs/alpha-feel-notes.md is the report;
+    // `an_agent_waiting_on_an_object_reserved_earlier_waits_rather_than_wandering_off`
+    // is what fails if the filter comes back.
+    objects: Query<(Entity, &Position, &SmartObject, Has<Reserved>)>,
 ) {
     // Below this score nothing is worth doing, so the agent stays idle.
     //
@@ -573,11 +593,11 @@ pub fn select_action(
     // which is a silent determinism break of exactly the class [D-3] and
     // [L5] are about. `tied_scores_resolve_by_object_index_not_archetype_order`
     // is what pins it; deleting this line must fail that test.
-    let mut placed_objects: Vec<(Entity, Position, SmartObject)> = objects
+    let mut placed_objects: Vec<(Entity, Position, SmartObject, bool)> = objects
         .iter()
-        .map(|(e, pos, object)| (e, *pos, *object))
+        .map(|(e, pos, object, reserved)| (e, *pos, *object, reserved))
         .collect();
-    placed_objects.sort_by_key(|(e, _, _)| e.index());
+    placed_objects.sort_by_key(|(e, _, _, _)| e.index());
 
     let mut claimed: Vec<Entity> = Vec::new();
 
@@ -604,11 +624,19 @@ pub fn select_action(
         // out of this loop restless rather than merely uninterested.
         let mut best_seen = f32::NEG_INFINITY;
 
-        for (object, object_pos, placed) in &placed_objects {
+        for (object, object_pos, placed, reserved) in &placed_objects {
             let object = *object;
-            if claimed.contains(&object) {
-                continue;
-            }
+            // **Contested, not absent.** An object somebody else already
+            // holds is still scored, and its score still reaches `best_seen`;
+            // what it does not do is enter `candidates`. See the note on the
+            // `objects` query above for why those are two different
+            // questions, and [C3] for what conflating them looked like.
+            //
+            // Two ways to be contested and they cover different spans:
+            // `reserved` is a claim made on an earlier tick, which lasts the
+            // holder's whole walk and interaction, and `claimed` is a claim
+            // made by a lower-indexed agent inside this very tick.
+            let contested = *reserved || claimed.contains(&object);
             // **Distance here is WALL-AWARE by contract**, and the
             // contract is the part to preserve; A* is only today's way of
             // honouring it.
@@ -723,8 +751,15 @@ pub fn select_action(
                 }
             }
 
+            // **The one place availability is applied.** The score above has
+            // already reached `best_seen`, which is the whole point: the agent
+            // now knows something here was worth wanting even though it cannot
+            // have this one, so it waits instead of being told the house is
+            // boring.
             if let Some((interaction, score)) = best {
-                candidates.push((object, steps, interaction, score));
+                if !contested {
+                    candidates.push((object, steps, interaction, score));
+                }
             }
         }
 
@@ -1995,6 +2030,165 @@ mod tests {
             "the nearer of two identical objects must win; a different \
              winner means the walked distance along y no longer reaches \
              the score",
+        );
+    }
+
+    /// A lot with exactly one thing worth doing and two agents that both
+    /// want it, plus the tuning that makes the outcome a formality.
+    ///
+    /// The object is placed so both agents can reach it and the agents are
+    /// spawned in a known index order, because which of them wins is
+    /// entity-index order by [D4] and the *loser* is what these tests are
+    /// about.
+    /// The object an agent is currently committed to, if any.
+    ///
+    /// A local rather than a reach into `intent_tests`, which has its own
+    /// copy: two private test modules sharing three lines would couple them
+    /// more than it saves, and the same reasoning is already recorded for
+    /// `DECISIVE_TEMPERATURE`.
+    fn target_object(sim: &Sim, agent: Entity) -> Option<Entity> {
+        sim.world().get::<Target>(agent).map(|t| t.object)
+    }
+
+    fn one_object_two_agents() -> (Sim, Entity, Entity, Entity) {
+        const OBJECT_AT: (f32, f32) = (8.0, 8.0);
+        let content = decisive_pack(vec![test_content::object(
+            "fridge",
+            &[(NeedId::Hunger, 40.0)],
+            15,
+        )]);
+        let mut sim = test_content::sim_with(16, 16, content);
+        let fridge = spawn_object(&mut sim, OBJECT_AT.0, OBJECT_AT.1, def(content, "fridge"));
+        // Both starving, both three tiles out on opposite sides, so neither
+        // has a distance advantage and both score identically.
+        let winner = spawn_agent(&mut sim, 5.0, 8.0, 5.0);
+        let loser = spawn_agent(&mut sim, 11.0, 8.0, 5.0);
+        (sim, fridge, winner, loser)
+    }
+
+    /// **An agent outbid WITHIN a tick must not be told nothing is worth
+    /// doing.**
+    ///
+    /// `Restless` means "nothing this agent can reach scored above
+    /// `idle_threshold`", and `idle::wander` reads it as permission to send
+    /// the sim for a stroll. An agent that wanted the fridge and lost it to
+    /// a lower-indexed agent this tick has a false claim written about it,
+    /// and the visible result is a sim walking away from the thing it
+    /// wanted rather than waiting near it.
+    ///
+    /// The cause is ordering inside the candidate loop: a `claimed` object
+    /// was skipped by `continue` *before* its score could be folded into
+    /// `best_seen`, so the loser came out with `best_seen` still at
+    /// negative infinity - the value that means "no reachable object at
+    /// all".
+    ///
+    /// Recorded as [C3] in `docs/alpha-feel-notes.md`, and noted there as
+    /// unobservable on the shipped page because it has one sim. This test
+    /// is the two-sim world that observes it.
+    #[test]
+    fn an_agent_outbid_within_a_tick_waits_rather_than_wandering_off() {
+        let (mut sim, fridge, winner, loser) = one_object_two_agents();
+
+        sim.tick();
+
+        // Preconditions. Without these, "the loser is not restless" is
+        // satisfied by a world where the loser simply won.
+        assert_eq!(
+            target_object(&sim, winner),
+            Some(fridge),
+            "the lower-indexed agent must take the fridge, or nobody was \
+             outbid and this test is about nothing"
+        );
+        assert_eq!(
+            target_object(&sim, loser),
+            None,
+            "the higher-indexed agent must have been denied the fridge; if \
+             it also got a target then the object was not contended"
+        );
+
+        assert!(
+            sim.world().get::<Restless>(loser).is_none(),
+            "an agent beaten to the only worthwhile object must not be \
+             marked Restless - it wanted something, it simply could not \
+             have it this tick, and Restless sends it wandering away from \
+             the thing it is waiting for"
+        );
+    }
+
+    /// **The same falsehood by the other route, and this one lasts far
+    /// longer.**
+    ///
+    /// `claimed` only covers agents contending on the *same* tick. An
+    /// object reserved on an earlier tick carries `Reserved`, and the
+    /// object query used to filter those out entirely - so a waiting agent
+    /// never saw the object at all, scored nothing, and was marked
+    /// `Restless` for the whole of the other sim's walk *and* meal. On the
+    /// shipped lot that is tens of ticks rather than one, which makes this
+    /// the more visible half of [C3] even though the notes describe the
+    /// within-tick case.
+    ///
+    /// Two ticks, because the reservation has to already exist when the
+    /// second one runs: on tick one the winner claims the fridge and both
+    /// agents are inside the same `claimed` list, which is the case the
+    /// test above covers.
+    #[test]
+    fn an_agent_waiting_on_an_object_reserved_earlier_waits_rather_than_wandering_off() {
+        let (mut sim, fridge, winner, loser) = one_object_two_agents();
+
+        sim.tick();
+        sim.tick();
+
+        assert!(
+            sim.world().get::<Reserved>(fridge).is_some(),
+            "the fridge must still be reserved on the second tick, or the \
+             loser is not waiting on anything"
+        );
+        assert_eq!(
+            target_object(&sim, winner),
+            Some(fridge),
+            "the winner must still hold it"
+        );
+        assert_eq!(
+            target_object(&sim, loser),
+            None,
+            "the loser must still be without a target"
+        );
+
+        assert!(
+            sim.world().get::<Restless>(loser).is_none(),
+            "an agent waiting on an object somebody else reserved on an \
+             EARLIER tick must not be marked Restless either; this is the \
+             long-lived half of the bug and it lasts as long as the other \
+             sim's walk and interaction combined"
+        );
+    }
+
+    /// The guard against the obvious over-correction: an agent with genuinely
+    /// nothing to do **must** still be marked `Restless`, or the fix above
+    /// deletes wandering entirely.
+    ///
+    /// This is the assertion that stops "never mark Restless" from passing
+    /// the two tests above. It is the same world with the object removed, so
+    /// the only difference from the fixture is whether anything worth doing
+    /// exists at all.
+    #[test]
+    fn an_agent_with_nothing_reachable_is_still_marked_restless() {
+        let content = decisive_pack(vec![test_content::object(
+            "fridge",
+            &[(NeedId::Hunger, 40.0)],
+            15,
+        )]);
+        let mut sim = test_content::sim_with(16, 16, content);
+        // No object spawned at all, so there is nothing to score.
+        let agent = spawn_agent(&mut sim, 5.0, 8.0, 5.0);
+
+        sim.tick();
+
+        assert!(
+            sim.world().get::<Restless>(agent).is_some(),
+            "an agent in an empty room has nothing worth doing and must be \
+             Restless; without this, the contested-object fix could suppress \
+             the marker unconditionally and delete idle wandering"
         );
     }
 
