@@ -304,6 +304,75 @@ impl Sim {
         &self.render
     }
 
+    /// The seven need levels of the entity carrying `index`, or `None`
+    /// if nothing live carries it or what does has no `Needs`.
+    ///
+    /// # Why this takes a raw index and tolerates a bad one
+    ///
+    /// The caller is the need-bar panel, which reads this every frame for
+    /// whichever entity the shell is showing - and the shell only ever
+    /// knows a raw `u32`, because JavaScript cannot construct an
+    /// `Entity`. So the same two hazards `drain_commands::resolve`
+    /// documents apply: the index may be stale, and it may name something
+    /// that is not a sim at all. Both answer `None` here rather than
+    /// panicking, which is what lets the boundary return an empty array
+    /// and the panel draw nothing.
+    ///
+    /// A scan rather than a lookup, for the same reason `resolve` is one:
+    /// `Entities` could answer liveness but not KIND, and at most one live
+    /// entity carries any given index, so the answer does not depend on
+    /// iteration order.
+    ///
+    /// **`Needs` is the filter, and that is the kind check.** A smart
+    /// object has no `Needs`, so a click that selected the fridge cannot
+    /// reach a level here to show.
+    ///
+    /// This lives in the simulation crate rather than at the boundary
+    /// because it is a query over the world, and `terri-wasm` is
+    /// forbidden simulation logic. The boundary's job is the `u32`, not
+    /// the walk.
+    pub fn needs_of(&self, index: u32) -> Option<[f32; terri_core::NEED_COUNT]> {
+        let mut state = self.world.try_query::<(Entity, &terri_core::Needs)>()?;
+        state
+            .iter(&self.world)
+            .find(|(entity, _)| entity.index_u32() == index)
+            .map(|(_, needs)| *needs.as_slice())
+    }
+
+    /// The raw index of the selected sim, or `None` when nothing is
+    /// selected.
+    ///
+    /// Selection lives in the simulation rather than in the shell ([D-5]):
+    /// it is state a replay has to reproduce, so the DOM renders it back
+    /// out rather than owning it. This is the read half of that, and
+    /// `SimCommand::Select` is the write half.
+    ///
+    /// At most one entity carries `Selected` - `drain_commands` is its
+    /// only writer and maintains that. `min` is the answer that does not
+    /// depend on query order if a future writer ever breaks the
+    /// invariant, matching what the drain itself does.
+    ///
+    /// **`min` is deliberately untested and this says so rather than
+    /// hiding it.** Swapping it for `max` was hand-mutated at M1b Task 6
+    /// and the whole workspace stayed green, because on a set of at most
+    /// one element the two agree - so no legal world can tell them
+    /// apart, and the only fixture that could is one that inserts a
+    /// second `Selected` behind the drain's back. That would pin an
+    /// arbitrary tie-break rather than a behaviour. What IS pinned is
+    /// everything above the tie-break: `selected_index_tracks_the_
+    /// selection_the_simulation_holds` in `terri-wasm` fails on `None`,
+    /// on any constant, and on reporting a sim the command did not name.
+    /// The mutation is also outside `cargo mutants`' grammar, which
+    /// replaces return values rather than rewriting an iterator method,
+    /// so the sweep will not report it either. Whoever gives `Selected`
+    /// a second writer owns making this observable.
+    pub fn selected_index(&self) -> Option<u32> {
+        let mut state = self
+            .world
+            .try_query_filtered::<Entity, With<terri_core::Selected>>()?;
+        state.iter(&self.world).map(|e| e.index_u32()).min()
+    }
+
     /// Hashes all simulation-visible state. Entities are sorted by index
     /// first, because ECS iteration order is an implementation detail and
     /// must not affect the result.

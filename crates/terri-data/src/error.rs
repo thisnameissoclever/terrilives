@@ -157,6 +157,14 @@ pub enum ContentError {
     /// failure - the game would run, the sim would behave, and directing
     /// it would simply have no effect.
     ZeroQueuedIntents,
+    /// A cap of zero on the staging queue is a game that accepts no
+    /// player input at all: `SimHandle::enqueue_command` refuses every
+    /// command that would take the queue past this, so at zero it
+    /// refuses the first one. Same silent-nothing shape as
+    /// `ZeroQueuedIntents` and the same reason for being a build
+    /// failure - the page would load, the sim would behave, and nothing
+    /// the player did would reach it.
+    ZeroQueuedCommands,
 }
 
 impl fmt::Display for ContentError {
@@ -283,6 +291,10 @@ impl fmt::Display for ContentError {
             ContentError::ZeroQueuedIntents => write!(
                 f,
                 "tuning.toml has max_queued_intents of 0, so directing a sim at an object could never do anything; must be at least 1"
+            ),
+            ContentError::ZeroQueuedCommands => write!(
+                f,
+                "tuning.toml has max_queued_commands of 0, so the boundary would refuse every player command and nothing the player did would reach the simulation; must be at least 1"
             ),
         }
     }

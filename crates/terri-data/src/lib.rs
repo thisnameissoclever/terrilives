@@ -239,6 +239,7 @@ mod tests {
         assert_eq!(t.min_interaction_ticks, 12);
         assert_eq!(t.rng_seed, 20260728);
         assert_eq!(t.max_queued_intents, 4);
+        assert_eq!(t.max_queued_commands, 64);
     }
 
     /// Every object the design declares is actually placed. An object in

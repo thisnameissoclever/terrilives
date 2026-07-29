@@ -96,7 +96,7 @@ impl CompiledLot {
 /// that would divide by zero or make a sim wander while something is
 /// worth doing has no representation once a pack exists.
 ///
-/// `Copy` because it is seven scalars and every system that reads a knob
+/// `Copy` because it is ten scalars and every system that reads a knob
 /// reads it through a `&ContentPack` it does not own.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Tuning {
@@ -138,11 +138,28 @@ pub struct Tuning {
     /// budget the number is derived from and why the overflow drops the
     /// newest intent rather than the oldest.
     ///
-    /// **Last in this struct on purpose.** The pack's byte encoding
-    /// grows by appending, so a knob added here keeps every earlier
-    /// block's offset and the golden vector in `compile.rs` stays
-    /// reviewable against the annotations it already has.
+    /// The pack's byte encoding grows by appending, so a knob added
+    /// here keeps every earlier block's offset and the golden vector in
+    /// `compile.rs` stays reviewable against the annotations it already
+    /// has. `max_queued_intents` was last until `max_queued_commands`
+    /// arrived; that one is last now.
     pub max_queued_intents: u32,
+    /// The most commands the WASM boundary will hold between two drains.
+    /// At least 1.
+    ///
+    /// `max_queued_intents` bounds what one sim can be told to do;
+    /// this bounds the QUEUE, and the two are different failures.
+    /// `SimHandle::enqueue_command` refuses a command that would take
+    /// the queue past this, so a JavaScript loop - or a mouse held down
+    /// over a sim that no longer exists - cannot grow the staging queue
+    /// without limit. Nothing downstream could: an intent cap only ever
+    /// sees commands that resolved to a live agent, and `Select`,
+    /// `SetSpeed` and every rejected index reach the queue without
+    /// touching it.
+    ///
+    /// **Last in this struct on purpose**, for the appending reason
+    /// above.
+    pub max_queued_commands: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -221,7 +238,7 @@ mod tests {
         }
     }
 
-    /// Nine knobs, no two of which share a value, so a field that
+    /// Ten knobs, no two of which share a value, so a field that
     /// round-trips into the wrong slot is visible rather than hidden by
     /// a fixture where two of them agree.
     fn a_tuning() -> Tuning {
@@ -235,6 +252,7 @@ mod tests {
             min_interaction_ticks: 3,
             rng_seed: 300,
             max_queued_intents: 7,
+            max_queued_commands: 11,
         }
     }
 

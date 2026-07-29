@@ -809,6 +809,7 @@ dependencies = [
 name = "terri-wasm"
 version = "0.1.0"
 dependencies = [
+ "postcard",
  "terri-core",
  "terri-sim",
  "wasm-bindgen",

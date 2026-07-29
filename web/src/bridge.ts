@@ -1,6 +1,52 @@
 import type { SimHandle } from './wasm/terri_wasm.js';
 
 /**
+ * `SimCommand`'s variant indices, which are **wire format** rather than
+ * an internal detail. They are the numbers postcard writes for the enum
+ * declared in `crates/terri-core/src/command.rs`, in declaration order,
+ * and the golden byte vector in that file's tests is where they are
+ * pinned. Renumbering one here without renumbering it there would send
+ * a command that decodes as a different command entirely.
+ */
+const VARIANT_SELECT = 0;
+const VARIANT_USE_OBJECT = 1;
+const VARIANT_CANCEL_INTENTS = 2;
+const VARIANT_SET_SPEED = 3;
+
+/** postcard's `Option` discriminant: one byte, 0 for none, 1 for some. */
+const OPTION_NONE = 0;
+const OPTION_SOME = 1;
+
+/**
+ * Whether `value` is something a postcard `u32` can hold.
+ *
+ * Checked before encoding rather than coerced, and the difference
+ * matters: `value >>> 0` would turn `-1` into 4294967295 and `3.7` into
+ * 3, so a caller's mistake would arrive at the simulation as a
+ * perfectly well-formed command naming an entity it never meant. A
+ * command that is refused is a bug someone can see.
+ */
+function isU32(value: number): boolean {
+  return Number.isInteger(value) && value >= 0 && value <= 0xffffffff;
+}
+
+/**
+ * Appends `value` as postcard's unsigned LEB128 varint: seven payload
+ * bits per byte, low group first, high bit set on every byte but the
+ * last. Callers check `isU32` first.
+ */
+function pushVarint(out: number[], value: number): void {
+  let remaining = value >>> 0;
+  while (remaining >= 0x80) {
+    out.push((remaining & 0x7f) | 0x80);
+    // Unsigned shift, so the 32nd bit does not sign-extend the way `>>`
+    // would and a value above 2^31 still terminates.
+    remaining >>>= 7;
+  }
+  out.push(remaining);
+}
+
+/**
  * Zero-copy view over simulation state living in WASM linear memory.
  *
  * CRITICAL: WASM memory can grow, and growth DETACHES every existing
@@ -116,6 +162,144 @@ export class SimBridge {
    */
   spawnObject(x: number, y: number, contentId: string): boolean {
     return this.handle.spawn_object(x, y, contentId);
+  }
+
+  /**
+   * Stages one player command, already encoded as postcard bytes, and
+   * returns whether the simulation accepted it.
+   *
+   * This is the **only** way the shell affects the simulation ([D-2]).
+   * Nothing here reaches into the world; a command is data that
+   * `drain_commands` applies at one fixed point in the tick, which is
+   * what keeps a replay reproducible, gives the save-file command log
+   * something to record, and leaves multiplayer possible - what you
+   * would send over a wire is exactly these bytes.
+   *
+   * Two reasons it returns `false`, and the shell cannot tell them
+   * apart on purpose, because the useful response to both is the same:
+   * the bytes were malformed, or the staging queue is full. The cap is
+   * `max_queued_commands` in `content/tuning.toml`.
+   *
+   * **The validation is in Rust, not here.** This class is not the
+   * boundary - anything holding a `SimHandle` can call
+   * `enqueue_command` directly - so the check belongs where the input
+   * enters, which is `crates/terri-wasm/src/lib.rs`; see
+   * docs/testing-protocol.md rule 8. The methods below encode; they do
+   * not vet.
+   */
+  enqueueCommand(bytes: Uint8Array): boolean {
+    return this.handle.enqueue_command(bytes);
+  }
+
+  /**
+   * Selects the sim at `entityIndex`, or clears the selection with
+   * `null`.
+   *
+   * The two are genuinely different commands rather than one with a
+   * sentinel: an index that no longer resolves leaves the selection
+   * alone, because a click on a sim that has just gone away should not
+   * deselect the one the player is watching. Only `null` clears.
+   *
+   * Selection lives in the simulation, not here ([D-5]). Read it back
+   * with `selectedIndex`.
+   */
+  select(entityIndex: number | null): boolean {
+    if (entityIndex === null) {
+      return this.enqueueCommand(
+        new Uint8Array([VARIANT_SELECT, OPTION_NONE]),
+      );
+    }
+    if (!isU32(entityIndex)) return false;
+    const bytes = [VARIANT_SELECT, OPTION_SOME];
+    pushVarint(bytes, entityIndex);
+    return this.enqueueCommand(new Uint8Array(bytes));
+  }
+
+  /**
+   * Directs `agent` to use `object`, overriding whatever it had chosen
+   * for itself ([D-3]).
+   *
+   * Both are raw entity indices, because JavaScript cannot construct
+   * the simulation's own entity type. A stale one is ignored by the
+   * drain rather than resolved blindly, so this returning `true` means
+   * the command was queued, not that either entity still exists.
+   */
+  useObject(agent: number, object: number): boolean {
+    if (!isU32(agent) || !isU32(object)) return false;
+    const bytes = [VARIANT_USE_OBJECT];
+    pushVarint(bytes, agent);
+    pushVarint(bytes, object);
+    return this.enqueueCommand(new Uint8Array(bytes));
+  }
+
+  /** Clears `agent`'s queued orders, returning it to autonomy. */
+  cancelIntents(agent: number): boolean {
+    if (!isU32(agent)) return false;
+    const bytes = [VARIANT_CANCEL_INTENTS];
+    pushVarint(bytes, agent);
+    return this.enqueueCommand(new Uint8Array(bytes));
+  }
+
+  /**
+   * Sets the tick multiplier: 0 pauses, 1 is real time, higher is
+   * faster. Never changes `dt` ([D2]) - it changes how many times the
+   * driver calls `tick` per frame.
+   *
+   * It travels as a command even though the simulation applies nothing
+   * for it, and that is deliberate: the command log has to record it to
+   * replay a session faithfully, and a second channel for "the one
+   * player action that is not a command" is exactly the crack [D-2]
+   * exists to close.
+   *
+   * A `u8`, so this is one raw byte rather than a varint.
+   */
+  setSpeed(ticksPerFrame: number): boolean {
+    if (!Number.isInteger(ticksPerFrame)) return false;
+    if (ticksPerFrame < 0 || ticksPerFrame > 0xff) return false;
+    return this.enqueueCommand(
+      new Uint8Array([VARIANT_SET_SPEED, ticksPerFrame]),
+    );
+  }
+
+  /**
+   * The seven need levels of the entity at `entityIndex`, in `NeedId`
+   * index order, or an **empty array** when that index names nothing
+   * live or names something with no needs - a smart object, or a sim
+   * that despawned between the frame and the click.
+   *
+   * The need-bar panel calls this each frame for whichever sim is
+   * selected and holds nothing of its own ([D-5]): the DOM renders
+   * simulation state and never owns it, so there is no cached "the
+   * selected sim's hunger" here for a replay to disagree with.
+   *
+   * A **copy**, not a view, unlike the render arrays: seven floats for
+   * one entity is not per-frame bulk data, and a view would have to
+   * survive every later reallocation of WASM memory for no benefit -
+   * the same trade `wallTiles` makes.
+   */
+  needsOf(entityIndex: number): Float32Array {
+    if (!isU32(entityIndex)) return new Float32Array(0);
+    return this.handle.needs_of(entityIndex);
+  }
+
+  /**
+   * The raw index of the selected sim, or `null` when nothing is
+   * selected.
+   *
+   * Read from the simulation rather than remembered here, which is the
+   * whole of [D-5]: selection is state a replay has to reproduce, so a
+   * copy in the shell would be a second source of truth the simulation
+   * could not see.
+   *
+   * `undefined` is normalised to `null` because that is what wasm-bindgen
+   * produces for an absent `Option`, and a shell that tested `=== null`
+   * against `undefined` would read "nothing selected" as "something
+   * selected" - a `!= null` check is the only one that survives both,
+   * and relying on every caller to remember that is the bug.
+   */
+  selectedIndex(): number | null {
+    const index = this.handle.selected_index();
+    return index === undefined ? null : index;
   }
 
   /**

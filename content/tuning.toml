@@ -180,6 +180,43 @@ rng_seed = 20260728
 # is a game where clicking an object never does anything.
 max_queued_intents = 4
 
+# The most commands the WASM boundary will hold between two drains. A
+# command that would take the queue past this is refused, and
+# `SimHandle.enqueue_command` returns false so the shell can see that it
+# was.
+#
+# THIS IS THE BOUND ON THE QUEUE ITSELF, and it is a different failure
+# from `max_queued_intents` above rather than a second copy of it. That
+# one bounds what a single sim can be told to do, and it is only ever
+# reached by a `UseObject` that resolved to a live agent. Everything
+# else a player can send - every `Select`, every `SetSpeed`, every
+# command naming an index that no longer exists - reaches this staging
+# queue and never touches an intent queue at all. So without a bound
+# here, a JavaScript loop enqueueing `Select(u32::MAX)` grows memory
+# without limit while the simulation looks perfectly healthy.
+#
+# The number is a BURST budget rather than a rate. The queue drains
+# completely on every tick, and at 1x the simulation runs 10 ticks a
+# second, so a player clicking as fast as a human can never accumulates
+# more than a handful. What makes the burst larger than that is PAUSE:
+# at speed 0 the driver stops calling `tick`, nothing drains, and every
+# command issued while paused waits. 64 is therefore roughly six
+# seconds of continuous clicking at a rate no hand sustains, or a
+# comfortable number of orders issued to a paused lot before unpausing -
+# and it is still four orders of magnitude below anything that would
+# cost a browser tab memory it noticed.
+#
+# **The overflow drops the NEWEST command**, matching
+# `max_queued_intents` and for the same reason: every command already
+# accepted was accepted in an order the player chose and a replay must
+# reproduce, so evicting from the front would silently rewrite history
+# that [D8]'s command log has already recorded.
+#
+# Zero is rejected at build time: a cap of zero is not "no queueing", it
+# is a game that ignores every click, keypress and pause the player ever
+# makes while looking entirely normal doing it.
+max_queued_commands = 64
+
 # Need decay per tick. One tick is one sim-minute, so 0.104 drains a full
 # need in roughly 16 sim-hours.
 #

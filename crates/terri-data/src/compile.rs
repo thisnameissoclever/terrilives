@@ -271,6 +271,9 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
     if tuning.max_queued_intents == 0 {
         return Err(ContentError::ZeroQueuedIntents);
     }
+    if tuning.max_queued_commands == 0 {
+        return Err(ContentError::ZeroQueuedCommands);
+    }
     if !(0.0..1.0).contains(&tuning.duration_variance) {
         return Err(ContentError::DurationVarianceOutOfRange {
             value: tuning.duration_variance,
@@ -293,6 +296,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
         min_interaction_ticks: tuning.min_interaction_ticks,
         rng_seed: tuning.rng_seed,
         max_queued_intents: tuning.max_queued_intents,
+        max_queued_commands: tuning.max_queued_commands,
     })
 }
 
@@ -518,6 +522,12 @@ mod tests {
         0x07,                   // max_queued_intents    7, APPENDED at
                                 // M1b Task 5 so every block above kept
                                 // its offset and its annotation
+        0x0B,                   // max_queued_commands   11, APPENDED at
+                                // M1b Task 6 for the same reason, and
+                                // deliberately different from 7 so a
+                                // compile step that filled one of the
+                                // two caps from the other moves these
+                                // bytes
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -616,6 +626,7 @@ mod tests {
             min_interaction_ticks: 3,
             rng_seed: 300,
             max_queued_intents: 7,
+            max_queued_commands: 11,
             decay_per_tick: NeedId::ALL
                 .iter()
                 .map(|id| (id.as_str().to_string(), 0.1))
@@ -1278,6 +1289,9 @@ mod tests {
         assert_eq!(tuning.min_interaction_ticks, 3);
         assert_eq!(tuning.rng_seed, 300);
         assert_eq!(tuning.max_queued_intents, 7);
+        // 11 rather than 7, so a compile step that filled either cap
+        // from the other is visible here as well as in the golden bytes.
+        assert_eq!(tuning.max_queued_commands, 11);
     }
 
     /// Weighted selection divides by the temperature, so zero is a
@@ -1363,6 +1377,28 @@ mod tests {
         let pack = compile_tuned(tuning_where(|t| t.max_queued_intents = 1))
             .expect("a single queued intent is legal, if an impatient sim it is not");
         assert_eq!(pack.tuning.max_queued_intents, 1);
+    }
+
+    /// The staging queue's cap, which bounds a different failure from
+    /// the intent cap above. `SimHandle::enqueue_command` refuses a
+    /// command that would take the queue past this, so at zero the
+    /// boundary refuses the FIRST command and nothing the player does
+    /// reaches the simulation at all - not a click, not a selection, not
+    /// a pause. The page would look entirely normal doing it.
+    ///
+    /// One is asserted legal on the other side of the boundary for the
+    /// same reason as above: the rule must not be able to be "at least
+    /// 2" and still pass.
+    #[test]
+    fn rejects_zero_max_queued_commands() {
+        assert_eq!(
+            compile_tuned(tuning_where(|t| t.max_queued_commands = 0)).unwrap_err(),
+            ContentError::ZeroQueuedCommands
+        );
+
+        let pack = compile_tuned(tuning_where(|t| t.max_queued_commands = 1))
+            .expect("a single queued command is legal, if a twitchy player it is not");
+        assert_eq!(pack.tuning.max_queued_commands, 1);
     }
 
     /// Variance is a FRACTION either side of an interaction's authored
@@ -1502,6 +1538,10 @@ mod tests {
             (
                 tuning_where(|t| t.max_queued_intents = 0),
                 "tuning.toml has max_queued_intents of 0, so directing a sim at an object could never do anything; must be at least 1",
+            ),
+            (
+                tuning_where(|t| t.max_queued_commands = 0),
+                "tuning.toml has max_queued_commands of 0, so the boundary would refuse every player command and nothing the player did would reach the simulation; must be at least 1",
             ),
             (
                 tuning_where(|t| t.action_threshold = f32::NAN),
