@@ -100,6 +100,18 @@ related through the tick rate and a reader will otherwise guess.
 Note this raises the current fridge meal, which is 15 ticks or 1.5 seconds, so
 existing balance shifts and the golden vectors move.
 
+**Corrected at the Task 6 alpha feel pass, 2026-07-28.** The 2.5 second figure
+was chosen a priori and measured badly: at 25 ticks the floor was above the
+*entire* sampled band of the fridge (15), toilet (12) and sink (8), so 61% of
+interactions ran for exactly 25 ticks with no variance at all, and each
+delivered `floor / duration_ticks` times its advertised benefit - the fridge
+gave 67 hunger rather than 40. **A floor that binds is a duration, not a
+floor.** The shipped value is now 12 ticks (1.2 s), and the condition for the
+floor to be inert is `duration_ticks >= min_interaction_ticks / (1 -
+duration_variance)`. The remaining conflict is content: the sink's whole band
+tops out at 11 ticks, so no floor a player can see leaves it free.
+`docs/alpha-feel-notes.md` has the measurements.
+
 ## [D-5] Idle wandering
 
 When no candidate scores above `idle_threshold`, a sim currently stands

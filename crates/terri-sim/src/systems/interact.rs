@@ -32,10 +32,20 @@ use crate::Content;
 /// **The floor is a REAL-TIME floor.** `min_interaction_ticks` is stated
 /// in ticks because that is what the simulation counts, but the reason it
 /// exists is wall-clock: at 1x speed the sim runs `TICK_HZ` = 10 ticks a
-/// second, so the shipped 25 is 2.5 seconds. Anything shorter reads as a
+/// second, so the shipped 12 is 1.2 seconds. Anything shorter reads as a
 /// sim teleporting through an action however sensible the tick count
-/// looks. The clamp is what raises the fridge's 15-tick snack - 1.5
-/// seconds - to something a player can see happen.
+/// looks.
+///
+/// **A floor that binds is a duration, not a floor**, and the alpha feel
+/// pass measured this one binding on 61% of interactions at its original
+/// 25. An interaction whose whole sampled band sits under the floor has a
+/// FIXED length, so [D-4] is inert for it, and it also delivers
+/// `floor / duration_ticks` times what its content advertises, because
+/// the refill below divides by the content duration. `content/tuning.toml`
+/// carries the condition for the floor to be inert
+/// (`duration_ticks >= floor / (1 - duration_variance)`) and the
+/// measurements; `docs/alpha-feel-notes.md` carries the objects that
+/// still fail it.
 ///
 /// # One draw, always
 ///
@@ -74,11 +84,15 @@ pub fn sample_duration(centre: u32, variance: f32, floor: u32, rng: &mut SimRng)
 /// duration instead would hold the total constant and make a short meal a
 /// strictly better deal than the one that was scored.
 ///
-/// The visible consequence is the shipped fridge, whose 15-tick snack the
-/// real-time floor stretches to 25: it now delivers about 67 hunger
-/// rather than 40. That is a balance shift, it is the one [D-4]
-/// anticipated, and `content/objects.toml` is where to correct it if the
-/// tuning pass decides it is too much.
+/// The visible consequence used to be the shipped fridge, whose 15-tick
+/// snack a 25-tick floor stretched to a flat 25, so it delivered about 67
+/// hunger rather than 40. **The alpha feel pass decided that was too
+/// much** and lowered the floor to 12 rather than raising the fridge's
+/// content number, because the floor was binding on the majority of
+/// interactions and was therefore acting as a balance lever rather than a
+/// safety net. Measured after the change: the fridge samples 12 to 20
+/// ticks, averages 14.4 against its declared 15, and delivers about 38
+/// hunger against its declared 40. See `docs/alpha-feel-notes.md`.
 pub fn tick_interactions(
     mut commands: Commands,
     content: Res<Content>,
@@ -187,16 +201,21 @@ mod tests {
     /// `the_interaction_recorded_at_selection_is_the_one_that_fills`
     /// asserts the same offset explicitly.
     ///
-    /// The hunger reset is what makes repeated observation possible: a
-    /// fed agent has nothing worth doing and would never start a second
-    /// interaction. It is done through the world rather than by waiting
-    /// for decay so the fixture does not depend on how long a meal
-    /// happens to run, which is the very thing under test.
-    fn observe_one_interaction(sim: &mut Sim, agent: Entity) -> u32 {
+    /// The need reset is what makes repeated observation possible: a
+    /// satisfied agent has nothing worth doing and would never start a
+    /// second interaction. It is done through the world rather than by
+    /// waiting for decay so the fixture does not depend on how long an
+    /// interaction happens to run, which is the very thing under test.
+    ///
+    /// `need` is a parameter rather than always hunger because the object
+    /// whose whole sampled band sits under the real-time floor is not the
+    /// fridge any more; see
+    /// `an_interaction_shorter_than_the_real_time_floor_is_stretched_up_to_it`.
+    fn observe_one_interaction_of(sim: &mut Sim, agent: Entity, need: NeedId) -> u32 {
         sim.world_mut()
             .get_mut::<Needs>(agent)
             .expect("the agent must still have Needs")
-            .set(NeedId::Hunger, 5.0);
+            .set(need, 5.0);
         tick_until_eating(sim, agent);
         let remaining = sim
             .world()
@@ -207,10 +226,26 @@ mod tests {
         remaining + 1
     }
 
+    fn observe_one_interaction(sim: &mut Sim, agent: Entity) -> u32 {
+        observe_one_interaction_of(sim, agent, NeedId::Hunger)
+    }
+
     /// `count` consecutive interaction lengths at the same object.
     fn observe_interactions(sim: &mut Sim, agent: Entity, count: usize) -> Vec<u32> {
         (0..count)
             .map(|_| observe_one_interaction(sim, agent))
+            .collect()
+    }
+
+    /// `count` consecutive interaction lengths, driven by `need`.
+    fn observe_interactions_of(
+        sim: &mut Sim,
+        agent: Entity,
+        need: NeedId,
+        count: usize,
+    ) -> Vec<u32> {
+        (0..count)
+            .map(|_| observe_one_interaction_of(sim, agent, need))
             .collect()
     }
 
@@ -284,6 +319,16 @@ mod tests {
         assert!(dist < 2.0, "sim should be at the fridge; distance {dist}");
 
         let before = level_of(&sim, sim_entity, NeedId::Hunger);
+        // How many fills are still to come. Taken here rather than
+        // assumed, because [D-4] made the real length of a meal a
+        // sampled value: `tick_interactions` has already run once by the
+        // time `before` is readable, so the remaining count is what the
+        // rest of this meal will deliver.
+        let fills_left = sim
+            .world()
+            .get::<Eating>(sim_entity)
+            .expect("tick_until_eating already checked this")
+            .remaining_ticks;
 
         tick_until_done(&mut sim, sim_entity);
         assert!(
@@ -295,11 +340,45 @@ mod tests {
             "reservation must be released"
         );
 
+        // The rise is DERIVED, not a threshold picked to be comfortably
+        // true. `tick_interactions` fills `delta / duration_ticks` a tick
+        // and `decay_needs` drains `decay_per_tick` on the same tick, so
+        // the net is exact arithmetic over `fills_left` ticks.
+        //
+        // A threshold is what this used to be, and the alpha feel pass is
+        // what showed that up: `after > before + 30.0` was chosen while a
+        // 25-tick floor stretched the fridge's 15-tick snack, so the meal
+        // over-delivered by a factor of 5/3 and the bound had 30 points
+        // of slack it was never going to use. Lowering the floor to 12
+        // put the real delivery at 28.2 and the test went red for a
+        // change in tuning rather than in behaviour. Derived, it moves
+        // with the tuning and still fails if the refill stops happening.
+        let snack = &terri_data::pack()
+            .object(test_content::shipped_fridge().0)
+            .interactions[0];
+        let delta = snack
+            .advertises
+            .iter()
+            .find(|(need, _)| usize::from(*need) == NeedId::Hunger.index())
+            .map(|(_, delta)| *delta)
+            .expect("the shipped snack advertises hunger");
+        let per_tick =
+            delta / snack.duration_ticks as f32 - test_content::decay_per_tick(NeedId::Hunger);
+        let expected = fills_left as f32 * per_tick;
+        assert!(
+            expected > 0.0,
+            "the fixture must gain ground on hunger, or 'the meal fills \
+             it' is not what this test would be showing; {expected}"
+        );
+
         let after = level_of(&sim, sim_entity, NeedId::Hunger);
         assert!(
-            after > before + 30.0,
-            "the meal must deliver most of the advertised hunger delta; \
-             {before} -> {after}"
+            (after - before - expected).abs() < 0.05,
+            "the meal delivered {} over {fills_left} ticks, but its \
+             advertised rate of {delta} per {} ticks minus decay predicts \
+             {expected}; {before} -> {after}",
+            after - before,
+            snack.duration_ticks
         );
     }
 
@@ -657,38 +736,39 @@ mod tests {
         // The floor is a REAL-TIME floor. `min_interaction_ticks` is
         // counted in ticks because that is the unit the simulation has,
         // but the reason for the number is wall-clock: at 1x the sim
-        // runs TICK_HZ = 10 ticks a second, so the shipped 25 is 2.5
+        // runs TICK_HZ = 10 ticks a second, so the shipped 12 is 1.2
         // seconds, and anything below that reads as a sim teleporting
-        // through an action. Asserting a bare `>= 25` would keep the
+        // through an action. Asserting a bare `>= 12` would keep the
         // number and lose the reason, so the seconds are computed and
         // named here.
         //
-        // The fixture is the SHIPPED fridge, deliberately: its 15-tick
-        // snack is the object [D-4] names as the one the floor raises,
-        // so this is a statement about the game rather than about a
-        // fixture invented to have the property.
+        // The fixture is a SHIPPED object, deliberately, so this is a
+        // statement about the game rather than about a fixture invented
+        // to have the property. **It is the sink rather than the fridge,
+        // and that swap is a finding rather than housekeeping.** At the
+        // original 25-tick floor the fridge's whole band was underneath
+        // it, along with the toilet's and the sink's, so 61% of measured
+        // interactions ran for exactly the floor and [D-4] was inert for
+        // them. The alpha feel pass lowered the floor to 12 and the
+        // fridge came out from under it; the sink, whose band tops out
+        // at 8 * 1.4 = 11 ticks, did not. See docs/alpha-feel-notes.md.
         //
         // Equality rather than `>=`, and the precondition below is what
         // earns it: the widest draw the variance allows is still under
-        // the floor, so the clamp decides EVERY meal here and a `>=`
-        // would also be satisfied by an unclamped 21.
+        // the floor, so the clamp decides EVERY interaction here and a
+        // `>=` would also be satisfied by an unclamped 11.
+        const NEED: NeedId = NeedId::Hygiene;
         let tuning = test_content::tuning();
+        let object = test_content::shipped_object("sink");
         let mut sim = Sim::new_with_lot(16, 16);
         sim.world_mut()
-            .spawn((Position { x: 10.0, y: 8.0 }, test_content::shipped_fridge()));
+            .spawn((Position { x: 10.0, y: 8.0 }, object));
         let agent = sim
             .world_mut()
-            .spawn((
-                Agent,
-                Position { x: 9.0, y: 8.0 },
-                Needs::with(NeedId::Hunger, 5.0),
-            ))
+            .spawn((Agent, Position { x: 9.0, y: 8.0 }, Needs::with(NEED, 5.0)))
             .id();
 
-        let centre = terri_data::pack()
-            .object(test_content::shipped_fridge().0)
-            .interactions[0]
-            .duration_ticks;
+        let centre = terri_data::pack().object(object.0).interactions[0].duration_ticks;
         let longest_unclamped = centre as f32 * (1.0 + tuning.duration_variance);
         assert!(
             longest_unclamped < floor() as f32,
@@ -698,8 +778,8 @@ mod tests {
             floor()
         );
 
-        let durations = observe_interactions(&mut sim, agent, 4);
-        assert_eq!(durations.len(), 4, "every meal must have been observed");
+        let durations = observe_interactions_of(&mut sim, agent, NEED, 4);
+        assert_eq!(durations.len(), 4, "every interaction must be observed");
 
         let floor_seconds = floor() as f64 / TICK_HZ;
         for ticks in &durations {

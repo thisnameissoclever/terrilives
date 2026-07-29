@@ -160,14 +160,19 @@ pub fn decay_per_tick(need: NeedId) -> f32 {
     terri_data::pack().decay_per_tick[need.index()]
 }
 
-/// The shipped fridge as a component.
+/// A shipped object as a component, by its `content/objects.toml` id.
 ///
 /// Tests that are about the simulation rather than about scoring use
 /// real content on purpose, so they pin behaviour the game actually has.
-pub fn shipped_fridge() -> SmartObject {
+pub fn shipped_object(id: &str) -> SmartObject {
     SmartObject(
         terri_data::pack()
-            .find("fridge")
-            .expect("content/objects.toml declares a fridge"),
+            .find(id)
+            .unwrap_or_else(|| panic!("content/objects.toml declares no '{id}'")),
     )
+}
+
+/// The shipped fridge as a component.
+pub fn shipped_fridge() -> SmartObject {
+    shipped_object("fridge")
 }

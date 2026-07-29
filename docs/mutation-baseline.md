@@ -4,7 +4,52 @@
 contract.** That file, not this one, is what CI compares against; it is the
 sorted contents of `mutants.out/missed.txt` from a full sweep.
 
-**Latest sweep: M1c Tasks 4 and 5, 2026-07-28**, full, on the finished Task 5
+**Latest sweep: M1c Task 6, the alpha feel pass, 2026-07-28**, full, on the
+finished Task 6 tree, with the package list CI uses and **CI's exact
+invocation** - single-job, unlike the two sweeps below:
+
+```
+cargo mutants --package terri-core --package terri-sim \
+  --package terri-data --package terri-wasm --test-workspace true --timeout 60
+392 mutants tested in 25m: 5 missed, 335 caught, 49 unviable, 3 timeouts
+```
+
+**Mutation score on viable mutants: 98.0%** (335 caught of 342 viable, counting
+the 3 timeouts as not-caught, which is the pessimistic reading).
+
+**The survivor list is byte-identical to `docs/mutants-baseline.txt`**, checked
+line-keyed **and** normalised on `(file, column, mutation)`. Both comparisons
+give an empty new-survivor list and an empty now-caught list. The two agree for
+a checkable reason rather than a lucky one: all five baseline entries live in
+`grid.rs`, `rng.rs` and `advertise.rs`, and this task touched none of the
+three.
+
+**No new mutants entered the sweep** - 392 against 392 at Tasks 4 and 5 - which
+is the expected reading for a task whose code change is three numbers in a
+content file plus comments and tests. Test-only code is not mutated, so the two
+new helpers in `interact.rs` and `test_content.rs` add nothing to the count.
+
+**One mutant moved from unviable to caught**, 50 to 49 unviable against 334 to
+335 caught, with the missed set unchanged. That is the *opposite* of the
+movement [L28] warns about: coverage moved out of the build gate and back into
+the test suite, which is the safe direction, and the gate is unaffected either
+way because unviable is neither caught nor missed.
+
+**It was not isolated, and the leading explanation is the harness rather than
+the code.** This run was single-job and the Tasks 4 and 5 run used `--jobs 4`;
+a transient build failure under parallelism on this machine classifies as
+unviable, and [L15] already records that this box handles concurrent build
+processes badly. The semantic alternatives were checked and rejected: every
+branch of `compile_tuning` evaluates the same way against both the old and the
+new knob values, so no build-gate kill can have been created or removed by the
+retune. `grep -lE "content is invalid" mutants.out/log/*.log` counts **27**
+mutants killed by `build.rs` rather than by a test, up from the 13 [L28]
+measured at M1a Task 5, which is content validation having grown across M1b and
+M1c rather than anything moving in this task.
+
+---
+
+**Previous sweep: M1c Tasks 4 and 5, 2026-07-28**, full, on the finished Task 5
 tree, with the package list CI uses:
 
 ```

@@ -1975,3 +1975,78 @@ degenerate input domain; here it is a domain too short in time.
 `crates/terri-core/src/rng.rs` and run `cargo test -p terri-core --lib`. The
 two printed vectors agree at indices 0 and 1 and differ from index 2, so a
 one-draw or two-draw version of that test would pass the mutation.
+
+---
+
+## [L40] A threshold picked before the distribution was measured decides everything, and the suite has no opinion
+
+**What happened:** M1c's alpha feel pass (Task 6) measured a 12 000-tick
+behaviour trace of the shipped lot for the first time. **Two of the three
+knobs it had to retune were wrong in the same way, and the whole test suite
+was green throughout both.**
+
+1. `choice_temperature` was 0.15, and `content/tuning.toml` justified it with
+   a worked example: "two candidates 0.165 apart go to the better one about
+   75% of the time". The arithmetic was correct and the 0.165 was a **guess**.
+   Measured, the gap between the top two candidates in real play is 0.0045 at
+   the 10th percentile, 0.032 at the median and 0.142 at the 90th - the guess
+   sat *above the 90th percentile* of what the game produces. Softmax is
+   exponential in the difference, so at the real gaps the sim was choosing
+   almost uniformly: one recorded six-way decision spread from p 0.143 to
+   p 0.191 across all six options. The mechanism was correct, the temperature
+   was tuned against a distribution nobody had looked at, and the result was a
+   sim that picked at random while every test asserting "weighted, not argmax"
+   passed.
+2. `min_interaction_ticks` was 25 because 2.5 real seconds sounded like the
+   shortest visible action. Measured, that floor sat above the **entire**
+   sampled band of the fridge (9 to 21 ticks), the toilet (7 to 17) and the
+   sink (5 to 11), which are the three most-used objects. **31 of 51
+   interactions ran for exactly 25 ticks with no variance at all**, so [D-4]
+   was inert for 61% of them, and because the refill divides by the *content*
+   duration each also delivered `floor / duration_ticks` times its advertised
+   benefit - the fridge gave 67 hunger instead of 40.
+
+**Root cause.** Both are the same shape and it is a new one for this file. The
+recorded family ([L5] through [L36]) is about tests that cannot observe a
+mechanism. Here every mechanism is observable and every test observes it
+correctly. What nothing observes is the **distribution of the inputs the
+mechanism runs on**, and a threshold's entire meaning is where it falls in that
+distribution. A limit with all the real data on one side of it is not a limit;
+it is the mechanism. `min_interaction_ticks` stopped being a floor and became
+the duration, and no assertion about "the floor clamps short interactions" can
+tell those two apart, because both are true.
+
+Note the second one had a *documented rationale* attached, which made it worse
+rather than better: [L24] recorded that prose justification and test coverage
+are independent, and this is the same trick played on a number. A comment
+explaining why 0.15 is right reads exactly like evidence that somebody checked.
+
+**Prevention rule:**
+
+1. **A threshold is a claim about a distribution. Before shipping one, measure
+   the distribution and write the percentiles next to the value.** Not the
+   range - the range is nearly always wide enough to look fine. The percentiles
+   of the quantity the threshold is actually compared against.
+2. **Ask which side of the threshold the real data lies on.** If it is all on
+   one side, the threshold is not a bound, it is a constant, and everything
+   downstream is a function of it rather than of the mechanism it guards.
+3. **A worked example in a comment is not a measurement**, and one containing
+   an invented input value is a guess wearing a measurement's clothes. Say
+   where each number came from.
+4. **Keep the guard that refuses to be decorative.** The one test that fired
+   correctly here was
+   `an_interaction_shorter_than_the_real_time_floor_is_stretched_up_to_it`,
+   whose precondition asserts that the fixture's *longest possible* draw is
+   still under the floor. Lowering the floor to 12 made that false and the test
+   went red with "the clamp is not what decides this test" - which is the
+   protocol's rule 4 doing its job on a tuning change rather than on a code
+   change. Without it the test would have kept passing while quietly becoming a
+   statement about something else.
+
+**How to verify:** the trace harness is not in the repo, deliberately - a stale
+committed instrument is worse than none. Reproduce it by building
+`Sim::new_from_shipped_lot()`, spawning the agent `web/src/main.ts` spawns, and
+ticking 12 000 times while logging, per tick, the best score any candidate
+offers. The measured percentiles are recorded in `content/tuning.toml` beside
+each value and in `docs/alpha-feel-notes.md`; if a re-measurement disagrees with
+them, the content changed and the knobs need re-deriving rather than defending.

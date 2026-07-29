@@ -156,6 +156,16 @@ mod sampler_tests {
         // Both halves matter. The first distinguishes this from uniform
         // random; the second is the entire point of the milestone and is
         // what distinguishes it from argmax.
+        //
+        // 0.15 is a FIXTURE temperature and deliberately not the shipped
+        // 0.06. A gap of 0.75 at 0.06 is a weight ratio of exp(12.5),
+        // which is argmax to within four parts in a million, so the
+        // second assertion below would fail at the shipped value - not
+        // because the sampler is wrong but because these two scores are
+        // nowhere near each other on the scale the game runs at. The
+        // shipped temperature is exercised by
+        // `a_higher_scoring_object_is_chosen_more_often_and_a_lower_one_still_sometimes`,
+        // whose fixture sits at a realistic gap.
         let scores = [1.0, 0.25];
         let mut rng = SimRng::from_seed(3);
         let mut wins = [0u32; 2];
@@ -207,8 +217,12 @@ mod sampler_tests {
         // return. Green with the shift, red without.
         //
         // 1000.0 is not a contrived magnitude at the tuned temperature:
-        // it is divided by `choice_temperature`, so the shipped 0.15
-        // turns any score above about 88 into an infinite weight.
+        // it is divided by `choice_temperature`, so the 0.15 used here
+        // turns any score above about 88 into an infinite weight, and
+        // the shipped 0.06 lowers that to about 35. Retuning the
+        // temperature DOWN makes this failure easier to reach, not
+        // harder, which is why the guard is a shift rather than a range
+        // check on the input.
         let scores = [1000.0, 1.0];
         let mut rng = SimRng::from_seed(5);
         let picked = sample_softmax(&scores, 0.15, &mut rng);
@@ -2063,11 +2077,20 @@ mod tests {
         //   better  0.5140 * 39 / 28 = 0.7159
         //   worse   0.5140 * 30 / 28 = 0.5507
         //
-        // A gap of 0.1652 at the shipped temperature of 0.15 is a weight
-        // ratio of exp(1.101) = 3.01, so the better object should take
-        // about 75% of the runs. Measured: 371 to 129. Uniform would be
+        // A gap of 0.1652 at the shipped temperature of 0.06 is a weight
+        // ratio of exp(2.753) = 15.7, so the better object should take
+        // about 94% of the runs. Measured: 471 to 29. Uniform would be
         // 250 to 250 and argmax 500 to 0, and the windows below are wide
         // enough that neither is a near miss.
+        //
+        // **The 29 is the load-bearing number and it is not large.** The
+        // alpha feel pass took the temperature from 0.15 to 0.06 and
+        // this count fell from 129 to 29; a further cut to 0.03 would
+        // put it near 2, at which point `wins.1 > 0` becomes a coin toss
+        // over the seed range rather than an assertion. Anyone tuning
+        // the temperature lower must widen the fixture's gap - move the
+        // two deltas closer together - rather than accept a test that
+        // passes by luck.
         const RUNS: u64 = 500;
         const BETTER_DELTA: f32 = 39.0;
         const WORSE_DELTA: f32 = 30.0;

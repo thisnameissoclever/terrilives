@@ -232,11 +232,11 @@ mod tests {
         let t = pack().tuning;
 
         assert_eq!(t.action_threshold, 0.05);
-        assert_eq!(t.choice_temperature, 0.15);
-        assert_eq!(t.idle_threshold, 0.02);
+        assert_eq!(t.choice_temperature, 0.06);
+        assert_eq!(t.idle_threshold, 0.04);
         assert_eq!(t.wander_pause_ticks, 20);
         assert_eq!(t.duration_variance, 0.4);
-        assert_eq!(t.min_interaction_ticks, 25);
+        assert_eq!(t.min_interaction_ticks, 12);
         assert_eq!(t.rng_seed, 20260728);
     }
 

@@ -1,8 +1,9 @@
 # Features
 
-Status: M0 shipped; M1a shipped. Everything from M1b onwards is proposed scope,
-not yet agreed in detail. Milestones exist primarily to control [R6], which is
-the risk most likely to actually kill this project.
+Status: M0 shipped; M1a shipped; M1b partly shipped (the authored lot, the
+command queue and the drawn room); M1c shipped. Everything else is proposed
+scope, not yet agreed in detail. Milestones exist primarily to control [R6],
+which is the risk most likely to actually kill this project.
 
 The rule: **each milestone must end in something playable.** No milestone is
 allowed to be pure infrastructure with a payoff deferred to the next one.
@@ -87,6 +88,59 @@ Task 6, which moved the fridge itself out of Rust and into TOML, left the
 vector **unmoved** - that is the reading which says the port changed no
 behaviour. Every move was observed on native and on wasm32 separately rather
 than assumed equal, once in a real browser ([L13]).
+
+### M1c - Probabilistic behaviour - COMPLETE
+
+Argmax selection made a sim read as a robot working down a priority list:
+given the same state it always did the same thing, in the same order, and the
+seams showed immediately. M1c makes urgency raise the *probability* that a
+need is served next without making it certain.
+
+- **`content/tuning.toml`**, the single home for every knob governing the
+  system rather than a piece of content. `ACTION_THRESHOLD` and the seven need
+  decay rates moved into it; the standing rule is that new tunables go there
+  rather than into a Rust `const`. Build-validated like every other content
+  file
+- **Softmax-weighted selection** at a temperature read from tuning, with the
+  max subtracted before exponentiating so a large score cannot overflow to
+  `NaN` and silently stop a sim choosing anything forever
+- **An in-repo seeded PCG** held as a world resource, rather than `rand`,
+  because `rand` does not guarantee bit-identical algorithms across major
+  versions and a routine bump would move every replay and golden hash with no
+  way to tell that from a regression
+- **Objects sorted before sampling.** Under argmax the score tie-break made
+  iteration order irrelevant; under weighted sampling the order sets the
+  cumulative-probability bucket boundaries, so archetype layout would have
+  decided outcomes
+- **Interaction durations sampled** around their content value, biased shorter,
+  floored at a real-time minimum
+- **Idle wandering** through the same intent path as any other action, so it
+  stays overridable and reproducible
+
+**Exit criterion:** the sim stops reading as a robot, judged by watching it
+rather than by a test - no test can answer it. **Met, with two caveats that are
+written down rather than smoothed over**, in `docs/alpha-feel-notes.md`:
+
+- It does not dither, and structurally cannot, because `select_action` skips
+  any sim that already holds a `Target`. It **over-commits** instead, which
+  will read as obliviousness once anything in the balance becomes urgent.
+- The self-regulating half of the design - desperate sims decisive, comfortable
+  ones whimsical - is real in the code and **never reached in the shipped lot**,
+  because with eight objects on a 14 x 10 lot no need ever gets low enough to
+  produce a large score gap. That is a content problem, and raising
+  `action_threshold` was tried and measured worse.
+
+Three knobs were retuned against a measured behaviour trace rather than by
+taste: `choice_temperature` 0.15 to 0.06, `idle_threshold` 0.02 to 0.04, and
+`min_interaction_ticks` 25 to 12. The largest single finding is that the
+interaction floor was above the *entire* sampled band of the three most-used
+objects, so 61% of interactions ran for exactly the floor with no variance at
+all and delivered up to three times their advertised benefit - the fridge gave
+67 hunger instead of 40. A floor that binds is a duration, not a floor.
+
+Frames were confirmed in a real, visible Chrome on the production build rather
+than assumed: 7,859 draw calls and 7,859 submits in 91.4 s at `instanceCount`
+182, `visibilityState` `visible`. See [L14] for why that sentence is necessary.
 
 ### M1 - Core loop
 

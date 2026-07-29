@@ -15,6 +15,14 @@
 # Validated at build time like every other content file, so a missing or
 # malformed knob fails cargo build rather than surfacing later as
 # inexplicable behaviour.
+#
+# Three of these were retuned at the M1c alpha feel pass against a
+# measured behaviour trace rather than by taste: choice_temperature,
+# idle_threshold and min_interaction_ticks. The measurements, and the
+# things the pass found that a knob CANNOT fix, are in
+# docs/alpha-feel-notes.md. Every number quoted in the comments below
+# came from that trace; replace them with new measurements rather than
+# with new guesses.
 
 # Below this score, an option is not worth doing at all.
 action_threshold = 0.05
@@ -24,23 +32,59 @@ action_threshold = 0.05
 #
 # SCALE-SENSITIVE. Because urgency is cubed, scores span orders of
 # magnitude, so this must be tuned against the real range rather than
-# picked as a round number. Observed range on the shipped lot with one
-# sim: roughly 0.001 to 1.0. Record new observations here when the
-# content changes.
+# picked as a round number.
 #
-# What 0.15 buys, measured rather than asserted: two candidates 0.165
-# apart - which is the gap between a 39-delta and a 30-delta object at
-# the same distance, on a sim at 80% hunger - go to the better one about
-# 75% of the time. Below roughly 0.02 the choice is effectively an
-# argmax at these magnitudes; above roughly 1.0 it is effectively a coin
-# toss.
-choice_temperature = 0.15
+# The number that matters is not the score range but the GAP between the
+# top two candidates, because softmax is exponential in the difference
+# rather than in the ratio. Measured over 12 000 ticks of the shipped lot
+# with one sim (docs/alpha-feel-notes.md): the gap is 0.0045 at the 10th
+# percentile, 0.032 at the median and 0.142 at the 90th. Record new
+# figures here when the content or the lot changes; the previous value
+# was tuned against a guessed gap of 0.165, which is above the 90th
+# percentile of what the game actually produces.
+#
+# What 0.06 buys at those gaps, stated for two candidates so the
+# arithmetic is checkable: a median gap goes to the better option 63% of
+# the time, a 10th-percentile gap is a 52/48 coin toss, and a
+# 90th-percentile gap is 91/9. At the previous 0.15 the same three were
+# 55%, 51% and 72% - which is to say the sim was choosing close to
+# uniformly among everything it could see. One measured six-way decision
+# at 0.15 spread from p 0.143 to p 0.191 across all six options, which
+# is a coin toss with extra steps.
+#
+# Below roughly 0.005 the choice is effectively an argmax at these
+# magnitudes; above roughly 0.5 it is effectively a coin toss.
+choice_temperature = 0.06
 
 # Below this, nothing is urgent enough to act on and the sim wanders
 # instead of standing still. Separate from action_threshold on purpose:
 # one asks "is anything worth doing", this asks "is nothing worth doing
 # enough that I should mill about".
-idle_threshold = 0.02
+#
+# The gap between the two knobs is a DEAD BAND in which the sim neither
+# acts nor strolls, and it stands perfectly still for the whole of it.
+# That band therefore has to be tuned against where the sim's best
+# available score actually sits, not chosen for looking small.
+#
+# Measured over 12 000 ticks of the shipped lot: the best score visible
+# to an unoccupied sim is 0.017 at the 5th percentile, 0.039 at the
+# median and 0.050 at the 95th - so the whole operating range lies
+# between these two knobs, and at the previous 0.02 the band swallowed
+# 91% of every tick on which the sim was free to choose. It stood
+# motionless for 23% of the run, in stretches of up to 15.8 real
+# seconds, and wandered on 1.3% of ticks: three strolls in ten minutes,
+# all of them in the first minute. At 0.04 the band takes 44%, standing
+# still falls to 8.9% with a worst stretch of 6.9 s, and wandering rises
+# to 9.6%.
+#
+# Raising it further has little left to give, because a wander PAUSE is
+# also standing still. Measured as a matched pair - same seed, same
+# length, only this knob moved - going from 0.04 to 0.045 converts
+# frozen time into paused time and takes the total motionless share from
+# 16.8% to 14.7%, while closing the dead band from 44% to 18% of free
+# ticks. That is two points of stillness in exchange for most of what
+# this knob exists to express.
+idle_threshold = 0.04
 
 # Ticks a sim pauses between wanders.
 wander_pause_ticks = 20
@@ -68,9 +112,37 @@ wander_attempts = 8
 duration_variance = 0.4
 
 # Hard floor on any interaction, in ticks. At 1x speed the simulation
-# runs 10 ticks per second, so 25 ticks is 2.5 real seconds. Anything
+# runs 10 ticks per second, so 12 ticks is 1.2 real seconds. Anything
 # shorter reads as a sim teleporting through an action.
-min_interaction_ticks = 25
+#
+# THE FLOOR AND THE SHORTEST CONTENT DURATIONS FIGHT EACH OTHER, and the
+# condition is arithmetic rather than a matter of taste. The sampled
+# length spans `duration_ticks * (1 - duration_variance)` upward, so the
+# floor is inert only where
+#
+#     duration_ticks >= min_interaction_ticks / (1 - duration_variance)
+#
+# which at these values is 20 ticks. Every interaction below that line
+# has part of its band clipped, and one whose whole band is below the
+# floor has a FIXED length: the variance does nothing, and the
+# interaction also delivers floor/duration_ticks times what its content
+# declares, because the refill rate is per content tick.
+#
+# That is not hypothetical. At the previous 25 the fridge (15), toilet
+# (12) and sink (8) all had their entire bands under the floor, so 31 of
+# 51 measured interactions - 61% - ran for exactly 25 ticks every single
+# time, and the fridge delivered 67 hunger instead of the 40 it
+# advertises. At 12 the fridge samples 12 to 20 and averages 14.4, which
+# is its declared 15, and the floor is a safety net again rather than
+# the thing setting the length.
+#
+# The sink is still pinned at exactly 12 every time, and no value here
+# can fix it: its band tops out at 8 * 1.4 = 11 ticks, so any floor a
+# player can see clips all of it, and a floor below 12 is under 1.2
+# seconds - which is the thing this knob exists to prevent. That is a
+# CONTENT problem, recorded as one in docs/alpha-feel-notes.md. Raise
+# the sink's duration_ticks; do not lower this.
+min_interaction_ticks = 12
 
 # Seed for the simulation PRNG. Constant for now; it becomes part of the
 # save file at M1d, which is what makes a saved game replayable.
