@@ -4,6 +4,84 @@
 contract.** That file, not this one, is what CI compares against; it is the
 sorted contents of `mutants.out/missed.txt` from a full sweep.
 
+**Latest sweep: M1b Task 5, the command drain, 2026-07-29. PARTIAL, and the
+partiality is the first thing to read.** The full sweep was started on the
+finished, committed tree with CI's package list, and was stopped at **204 of
+roughly 420 mutants** after 45 minutes because it was pacing at about another
+45 and had not yet reached the file the task actually added. What ran instead
+was the full sweep's completed prefix plus a **scoped sweep over every file
+this task touched**, which is the split `docs/mutants-baseline.md` already
+endorses: the scoped run is the cheap check, the full run is the one that is
+allowed to be believed.
+
+```
+# full sweep, stopped at 204/~420
+cargo mutants --package terri-core --package terri-sim \
+  --package terri-data --package terri-wasm --test-workspace true --timeout 60 --jobs 4
+204 tested: 4 missed, 175 caught, 23 unviable, 2 timeouts
+
+# scoped, on each file the task changed
+crates/terri-sim/src/systems/command.rs   18 mutants: 0 missed, 17 caught,  1 unviable
+crates/terri-sim/src/lib.rs               13 mutants: 0 missed, 13 caught,  0 unviable
+crates/terri-data/src/{compile,pack,schema,error}.rs
+                                          49 mutants: 0 missed, 22 caught, 27 unviable
+```
+
+**No new survivors on any file this task touched.** The four survivors in the
+full sweep's prefix are **exactly** four of the five entries in
+`docs/mutants-baseline.txt` - the three in `grid.rs` and the one in `rng.rs`.
+The fifth, `advertise.rs:82:18`, lives in `terri-sim` and the prefix stopped
+before reaching it; that file is byte-unchanged by this task, so its entry
+cannot have moved. Compared line-keyed **and** normalised on
+`(file, column, mutation)`; both give an empty new-survivor list. The baseline
+file is unchanged and was **not** regenerated - a scoped run's `missed.txt`
+must never be written over it, because a scoped run cannot see the entries it
+did not mutate.
+
+**The two timeouts are two of the three `rng.rs` ones recorded at M1c Task 1**
+(`next_u32 -> 0` and `next_u32 -> 1`), which are detections rather than
+survivors and land in `timeout.txt`, not `missed.txt`. The third,
+`replace >= with < in range`, was past the stopping point.
+
+**The scoped run found one survivor that eleven hand mutations had not, and it
+was killed rather than baselined:**
+
+```
+crates/terri-sim/src/systems/command.rs:206:56: replace && with || in drain_commands
+```
+
+That is the guard deciding whether `CancelIntents` releases the sim's current
+commitment: `intent.object == target.object && intent.interaction ==
+target.interaction`. The second clause looks redundant, and every fixture in
+the module had **both** fields agreeing - which is [L34], and is why the hand
+pass missed it. It is not equivalent and the relaxed form is a real bug:
+`UseObject` always names interaction 0 and an autonomously chosen interaction
+is 0 on every single-interaction object, so an intent for the bed and a target
+on the fridge agree on the interaction index while naming different objects
+entirely. Under `||` a cancel then releases the sim's own choice the moment the
+player has queued a click on anything else - the very interruption the guard
+exists to prevent.
+`a_cancel_does_not_release_an_autonomous_target_that_only_shares_the_intents_interaction_index`
+is the fixture written for it; it asserts both preconditions, so it cannot
+decay into a copy of its neighbours. Re-running the scoped sweep after it:
+**0 missed.**
+
+**Twenty-seven of the 49 terri-data mutants are unviable**, against 22 caught,
+which is [L28] at its widest yet: a mutation to `compile_tuning` that rejects
+the shipped `content/tuning.toml` aborts `build.rs` before any test runs. The
+new `max_queued_intents == 0` check is one of them - the shipped value is 4, so
+flipping the comparison rejects real content. By [L21] that is **no evidence
+about the test**; `rejects_zero_max_queued_intents` in `compile.rs` is what
+constrains it, and the build gate is what would catch the flip in practice.
+
+**Outstanding:** a full sweep on this tree, for the totals row in the history
+table below and for the `terri-sim` and `terri-wasm` portion of the survivor
+list. Whoever runs it next should expect roughly 420 mutants and about 90
+minutes single-machine at `--jobs 4`, and should compare against the unchanged
+`docs/mutants-baseline.txt`.
+
+---
+
 **Latest sweep: M1c Task 6, the alpha feel pass, 2026-07-28**, full, on the
 finished Task 6 tree, with the package list CI uses and **CI's exact
 invocation** - single-job, unlike the two sweeps below:
@@ -665,6 +743,7 @@ Task 4 and the build gate changed the caught/unviable split in Task 5.
 | **M1b Task 3** | **297** | **5** | **252** | **40** | **1 closed, 1 deleted, 1 re-anchored; baseline down to 4** |
 | M1b Task 3b | 311 | 4 | 266 | 41 | 14 new mutants, all caught; baseline unchanged |
 | **M1c Task 1** | **342** | **5** | **292** | **42** | **31 new mutants from `rng.rs`; 3 timeouts; baseline up to 5** |
+| M1b Task 5 | *partial* | 4 | 175 | 23 | Stopped at 204/~420; scoped sweeps over all changed files gave 0 missed; baseline unchanged at 5 |
 
 The M1b Task 3 row is the one to read carefully. Missed stayed at 5 while
 the set changed completely in composition: `advertise.rs:42:36` ceased to
