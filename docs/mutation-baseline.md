@@ -4,7 +4,60 @@
 contract.** That file, not this one, is what CI compares against; it is the
 sorted contents of `mutants.out/missed.txt` from a full sweep.
 
-**Latest sweep: M1b Task 5, the command drain, 2026-07-29. PARTIAL, and the
+**Latest sweep: M1b Task 6, the WASM boundary, 2026-07-29**, full, on the
+finished tree, CI's package list and CI's exact single-job invocation:
+
+```
+cargo mutants --package terri-core --package terri-sim   --package terri-data --package terri-wasm --test-workspace true --timeout 60
+456 mutants tested in 28m: 6 missed, 392 caught, 55 unviable, 3 timeouts
+```
+
+**Read that 6 as the state of the tree the sweep ran on, which is Task 6's
+code before its last commit.** One of the six was killed in response, and the
+scoped re-sweep below is the measurement of the fixed tree rather than a
+prediction about it. Test code is not mutated, so the kill adds a test without
+adding a mutant: the projected full-sweep figure is 456 tested, 5 missed, and
+those five are exactly `docs/mutants-baseline.txt`.
+
+**It found a survivor outside the baseline, and it is the first sweep since
+M1b Task 5 to run to completion.**
+
+```
+crates/terri-sim/src/systems/interact.rs:139:52: replace && with || in tick_interactions
+```
+
+That is the twin of the guard Task 5 killed in `drain_commands`, named in that
+task's own code comment as using the same comparison and never swept, because
+Task 5's full run was stopped at 204 of ~420 and this file was well past the
+stopping point. It was **killed rather than baselined** -
+`a_finished_interaction_pops_only_the_intent_that_named_the_object_it_finished`
+in `interact.rs` - and the scoped re-sweep of that file reports **21 mutants,
+21 caught, 0 missed**. `docs/mutants-baseline.txt` is unchanged: the other five
+survivors are exactly its five entries, and the three timeouts are the known
+`rng.rs` ones, which are detections rather than survivors. [L43] records why a
+stopped sweep's missed list can never clear anything.
+
+**Scoped run over every file Task 6 touched**, which is the check that answers
+the gate's question about the task's own code:
+
+```
+cargo mutants --package terri-wasm --package terri-sim --package terri-data   -f crates/terri-wasm/src/lib.rs -f crates/terri-sim/src/lib.rs   -f crates/terri-data/src/{compile,pack,schema,error}.rs   --test-workspace true --timeout 60
+109 mutants tested in 6m: 80 caught, 29 unviable, 0 missed
+```
+
+`terri-wasm` alone: 37 caught, 1 unviable, 0 missed. The mutants that matter
+are all caught, including `delete ! in SimHandle::enqueue_command` - the
+trailing-byte guard - and `replace >= with < in SimHandle::enqueue_command` -
+the staging-queue cap, which a test that only checked "the queue stops growing"
+could not have seen. `grep -lE "content is invalid"` counts **23** of the 29
+unviable, which is [L28] again and not a coverage regression.
+
+**The mutant count rose from 392 to 456**, which is the expected reading for a
+task that added three exports, two `Sim` accessors and a tuning knob.
+
+---
+
+**Previous sweep: M1b Task 5, the command drain, 2026-07-29. PARTIAL, and the
 partiality is the first thing to read.** The full sweep was started on the
 finished, committed tree with CI's package list, and was stopped at **204 of
 roughly 420 mutants** after 45 minutes because it was pacing at about another
