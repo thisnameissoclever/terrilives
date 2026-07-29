@@ -69,6 +69,17 @@ placeholder M2 replaces with actual sims.
 **That is an estimate, not a measurement**, which is why [D5] exists. The
 number that ships in the comment is the measured one.
 
+> **Superseded by measurement, 2026-07-29: the delta shipped is 24, not 14,
+> and the reasoning above is backwards.** The estimate landed in the right
+> band - 14 does hold `social` at 21-52 - but "small so it does not distort
+> behaviour" tunes the knob in the wrong direction. Because urgency is
+> cubed, a smaller delta makes the television MORE dominant: 8 gave it 30.1%
+> of interactions, 14 gave 21.1%, 24 gave 14.4%. At 24 every other need
+> returns to roughly its no-advert level while `social` still sits lowest in
+> the house. The table is in [D5]'s outcome below and in [C2] of
+> `docs/alpha-feel-notes.md`. The uniqueness argument for avoiding 12 stands
+> unchanged and applies to 22 and 26 as well.
+
 ## [D2] The new test
 
 `every_declared_need_can_be_satisfied`, in `crates/terri-data/src/lib.rs`
@@ -143,6 +154,32 @@ eating, 14 is the wrong number and the measurement comes back before any
 change to it. The measured figures replace the [D1] estimate in the
 objects.toml comment, per `content/tuning.toml`'s standing instruction to
 "replace them with new measurements rather than with new guesses".
+
+### Outcome
+
+The harness reproduced [O1]'s 121 interactions exactly on the no-advert
+content, which is what makes the rows comparable.
+
+| delta | social band | television's share |
+| --- | --- | --- |
+| none | 0 from tick 2 857, 9 143 ticks pinned | 6.6% (8 of 121) |
+| 8 | 0 on 699 ticks, mean 8.3 | 30.1% (44 of 146) |
+| 14 | 21-52, floor 17.1, mean 36.9 | 21.1% (28 of 133) |
+| **24, shipped** | **33-69, floor 30.0, mean 48.9** | **14.4% (18 of 125)** |
+
+24 chosen: every other need is back to roughly its no-advert level (hygiene
+79.0 against 79.2, bladder 72.6 against 75.7, 125 interactions against 121)
+while `social` holds a live band and is still the lowest need in the house
+by 14 points - the intended placeholder reading.
+
+**One regression found and recorded rather than absorbed:** the bookshelf
+goes from 3 interactions to zero, and stays at zero for every delta tried
+including 8. Written up as [C6] in `docs/alpha-feel-notes.md` with three
+candidate fixes; not fixed here, because it is a balance change of the same
+kind as [C1] and belongs in a content pass. It is deliberately not something
+[D2]'s test catches - `fun` is still satisfiable - and it is not statically
+checkable at all, since "an object nothing ever chooses" is a property of a
+12 000-tick run rather than of the compiled pack.
 
 ## [D6] Documentation
 

@@ -104,9 +104,13 @@ mod tests {
         );
     }
 
-    /// The sofa is the one object in shipped content that advertises two
+    /// The sofa was the first object in shipped content to advertise two
     /// needs, and [D6]'s scoring SUMS across advertised deltas. Until it
-    /// existed, that summing was exercised only by in-memory fixtures.
+    /// existed, that summing was exercised only by in-memory fixtures. The
+    /// television joined it when `watch_tv` gained a `social` advert, but
+    /// the sofa is still the object the summing is TUNED around - neither
+    /// 18 fun nor 34 comfort beats the television's 30 fun alone, and
+    /// together they can - so this is where the claim is pinned.
     ///
     /// The shower is the one that advertises a NEGATIVE delta, which M1a
     /// rejected outright. Both are asserted here because both are claims
@@ -260,5 +264,65 @@ mod tests {
         declared.sort_unstable();
 
         assert_eq!(placed, declared, "every declared object must be placed");
+    }
+
+    /// Every declared need has some way to be satisfied.
+    ///
+    /// The same shape of check as
+    /// `every_declared_object_is_placed_on_the_lot` above, one layer in: an
+    /// object nothing places cannot be chosen, and a need nothing
+    /// advertises cannot be filled. Both are content that exists and does
+    /// nothing, and neither has any behavioural effect - which is precisely
+    /// why nothing else in the pipeline notices. `social` was in exactly
+    /// this state until M1c's close-out: declared, decaying at 0.035 a
+    /// tick, pinned at zero from about tick 2 857 onward, and invisible to
+    /// the entire suite because **nothing scored it and nothing tested it,
+    /// which are the same condition.** Recorded as [C2] in
+    /// `docs/alpha-feel-notes.md`.
+    ///
+    /// The rule is a POSITIVE delta rather than mere presence, and that is
+    /// load-bearing rather than pedantic. A delta may legally be negative -
+    /// the shower's `energy = -12.0` is a cost, and scoring weighs it - so
+    /// "appears somewhere in an advert list" is satisfied by a need that
+    /// can only ever be *drained*, which is exactly as unfillable as
+    /// `social` was. Energy is separately advertised `+100` by the bed, so
+    /// the weaker rule would pass today either way and would go on passing
+    /// through the content edit that broke it.
+    ///
+    /// This composes with its neighbour rather than repeating it: every
+    /// declared object is placed, so an advert found here is one a sim can
+    /// actually walk to.
+    #[test]
+    fn every_declared_need_can_be_satisfied_by_some_interaction() {
+        let p = pack();
+
+        // Per testing-protocol rule 5. A pack with no objects, or objects
+        // with no interactions, would fail every assertion below for a
+        // reason that is not the one this test names.
+        assert!(!p.objects.is_empty(), "an empty pack advertises nothing");
+        assert!(
+            p.objects.iter().any(|o| !o.interactions.is_empty()),
+            "objects with no interactions advertise nothing"
+        );
+
+        for id in terri_core::NeedId::ALL {
+            let index = id.index() as u8;
+            let satisfied_by = p.objects.iter().find(|object| {
+                object.interactions.iter().any(|act| {
+                    act.advertises
+                        .iter()
+                        .any(|(need, delta)| *need == index && *delta > 0.0)
+                })
+            });
+            assert!(
+                satisfied_by.is_some(),
+                "'{}' is declared in content/needs.toml, drains every tick, \
+                 and no interaction advertises a positive delta for it - so \
+                 its bar can only ever empty. Either give an object an \
+                 advert that fills it, or stop declaring the need until \
+                 something can. See [C2] in docs/alpha-feel-notes.md.",
+                id.as_str()
+            );
+        }
     }
 }
