@@ -1,4 +1,8 @@
 /target
+# Any sibling build directory. A review agent created `target-review/` with a
+# separate CARGO_TARGET_DIR and 1 510 build artifacts went into a commit,
+# including two 80 MB rlibs, because `git add -A` does not ask questions.
+target-*/
 node_modules/
 web/src/wasm/
 web/dist/

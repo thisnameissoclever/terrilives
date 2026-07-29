@@ -144,9 +144,18 @@ each implies:
 - **Fed up with** - plain, funny, fits the dark-comedy register, unusable as an
   identifier.
 
-**Recommendation: `satiation` in code, whatever the UI wants on screen.** The
-two need not match, and the code name should be the one that will still make
-sense to somebody reading `score_advertisement` in a year.
+**SUPERSEDED. The name is `habituation`**, and this section's whole naming
+discussion is kept only as the record of how it got there. `satiation` was
+wrong for the reason the shortlist above should have made obvious: it imports a
+food metaphor into a mechanic that has nothing to do with food, and the
+mechanic applies identically to the same television, the same gym and the same
+person. `habituation` is the psychological term for a diminished response to a
+repeated stimulus, which is exactly the mechanic.
+ 
+The design moved on as well as the name. See
+`2026-07-29-satisfaction-and-traits-design.md`, which reframes this as one of
+three sources feeding a single per-(sim, thing) multiplier, and which is where
+the satisfaction axis this mechanic feeds is defined.
 
 ### This is the mechanic two recorded problems are waiting for
 
