@@ -1125,7 +1125,12 @@ mod determinism_tests {
         // Measured on wasm32 as well as natively, per [L13], rather than
         // assumed to carry across: the two agree. The boundary copy lives
         // in web/tests/bridge.test.ts.
-        const GOLDEN: u64 = 0xD993_6100_876C_D55A;
+        // **And the needs retune moved it again**, from
+        // 0xD993_6100_876C_D55A. Every one of the seven `decay_per_tick`
+        // rates was slowed, and this fixture's digest includes need levels, so
+        // all eight agents differ at tick 100 by construction. The most
+        // directly sensitive change of the four the vector saw today.
+        const GOLDEN: u64 = 0xCB2C_8122_2251_D840;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

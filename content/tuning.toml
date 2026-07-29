@@ -290,10 +290,36 @@ need_bar_refresh_ms = 100
 # fails if a balance pass ever makes two of them equal; see [L26] for the
 # instance where a uniform fixture hid exactly this bug one layer down.
 [decay_per_tick]
-hunger = 0.104
-energy = 0.069
-hygiene = 0.052
-bladder = 0.139
-social = 0.035
-fun = 0.042
-comfort = 0.028
+# ALL SEVEN WERE SLOWED at the alpha pass, and hunger by more than the rest.
+#
+# The old rates drained a need in 12 to 60 real minutes at 1x, which sounds
+# leisurely and was not: the sim's whole day was eating and using the toilet,
+# because those two drained fastest and everything else never got a turn. The
+# measured share bears it out - fridge 28% and toilet 26% of all interactions
+# between them, against 8% for the shower and 0% for the bookshelf.
+#
+# Every rate is multiplied by roughly 0.75, and hunger by 0.6 so it stops
+# dominating. Hunger now takes 1 613 ticks to drain from full, which is 2.7
+# real minutes at 1x and about 27 sim-hours.
+#
+# **All seven must stay DISTINCT.** `decay_needs` looks a rate up by need
+# index, and no test can tell one slot from another if two slots hold the same
+# value; `needs_decay_at_different_rates` fails if a balance pass ever makes
+# two equal. See [L26] for the instance where a uniform fixture hid exactly
+# that bug one layer down.
+#
+# **These are the BASE rates and they are about to stop being the whole
+# story.** Three things are designed to modulate them and none is built:
+# per-sim affinities so a social butterfly and an introvert drain `social` at
+# different speeds, activity coupling so effort drains hunger faster than
+# resting does, and a small seeded jitter so two sims are never metronomic
+# together. See docs/specs/2026-07-29-needs-modulation-design.md; the shape
+# those take is why this table is a table of base rates rather than the final
+# numbers.
+hunger = 0.062
+energy = 0.051
+hygiene = 0.039
+bladder = 0.102
+social = 0.026
+fun = 0.031
+comfort = 0.021

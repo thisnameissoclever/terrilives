@@ -374,7 +374,11 @@ describe('SimBridge', () => {
     // Read off the wasm32 failure after a rebuild, per [L13], not copied
     // across from native - the two agree, which is a measurement each time
     // rather than a guarantee.
-    expect(bridge.worldHash()).toBe(0xd993_6100_876c_d55an);
+    // Moved again by the needs retune, from 0xd993_6100_876c_d55an: all seven
+    // decay rates were slowed and this digest includes need levels, so every
+    // agent differs at tick 100. Read off the wasm32 failure after a rebuild
+    // per [L13], not copied from native.
+    expect(bridge.worldHash()).toBe(0xcb2c_8122_2251_d840n);
   });
 
   // ---- Player commands -------------------------------------------------
