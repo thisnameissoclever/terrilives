@@ -146,6 +146,12 @@ Ordered, per tick. `||` marks parallel, `->` marks serialized.
 3. `|| mood` - moodlets from needs, traits, environment
 4. `|| advertisement_scan` - spatial query for nearby smart objects, score them
 5. `-> action_selection` - pick winning interaction
+5a. `-> idle_wander` - a sim whose best option scores below `idle_threshold`
+    walks to a random reachable tile instead of standing still ([D-5] of the
+    M1c design). Lettered rather than numbered so the step numbers other
+    sections cite stay put. Serialized because it draws from the shared PRNG,
+    and it sits here rather than earlier so that a sim which just found
+    something worth doing never reaches it.
 6. `-> reservation` - claim object slots, deterministic order by entity ID
 7. `|| pathfinding_request`
 8. `-> path_solve` - **budgeted: max N paths per tick, overflow queues**

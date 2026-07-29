@@ -45,6 +45,23 @@ idle_threshold = 0.02
 # Ticks a sim pauses between wanders.
 wander_pause_ticks = 20
 
+# How many random tiles a sim will try before giving up on wandering for
+# this tick.
+#
+# A wander destination is drawn at random and then pathed to, and a tile
+# that is walled off has no path, so a roll can fail. This is what makes
+# the retry BOUNDED: a sim sealed into a room with nowhere to walk
+# re-rolls this many times, stands still for the tick, and tries again on
+# the next one. An unbounded retry would not fail - it would HANG, and a
+# hang is a far weaker signal than a red test: it burns a CI job timeout
+# instead of printing an assertion. See [L15].
+#
+# Raise it in a lot that is mostly wall, where a uniform roll lands on
+# something reachable less often. It is here rather than in a Rust `const`
+# for the reason the header gives: it governs how everything behaves
+# rather than describing one piece of content.
+wander_attempts = 8
+
 # An interaction's content duration_ticks is a CENTRE. The real duration
 # is sampled within this fraction either side, biased shorter, so
 # repeated actions are not metronomic.

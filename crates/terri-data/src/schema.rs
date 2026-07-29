@@ -37,6 +37,9 @@ pub struct TuningFile {
     pub idle_threshold: f32,
     /// Ticks a sim pauses between wanders.
     pub wander_pause_ticks: u32,
+    /// How many random tiles a wandering sim tries before giving up for
+    /// the tick. At least 1; it is what bounds the re-roll.
+    pub wander_attempts: u32,
     /// Fraction either side of an interaction's content duration that
     /// the real duration is sampled within. In `[0, 1)`.
     pub duration_variance: f32,
@@ -201,14 +204,15 @@ mod tests {
     /// would make a transposed pair of fields parse identically, which
     /// is [L34] in the tuning file's costume.
     ///
-    /// The two `u32`s and the `u64` are deliberately different numbers
+    /// The three `u32`s and the `u64` are deliberately different numbers
     /// for the same reason, and every float is exact in binary32 so the
     /// assertions can be equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 7] = [
+    const TUNING_LINES: [(&str, &str); 8] = [
         ("action_threshold", "0.25"),
         ("choice_temperature", "0.5"),
         ("idle_threshold", "0.125"),
         ("wander_pause_ticks", "9"),
+        ("wander_attempts", "6"),
         ("duration_variance", "0.75"),
         ("min_interaction_ticks", "3"),
         ("rng_seed", "300"),
@@ -259,6 +263,7 @@ mod tests {
         assert_eq!(parsed.choice_temperature, 0.5);
         assert_eq!(parsed.idle_threshold, 0.125);
         assert_eq!(parsed.wander_pause_ticks, 9);
+        assert_eq!(parsed.wander_attempts, 6);
         assert_eq!(parsed.duration_variance, 0.75);
         assert_eq!(parsed.min_interaction_ticks, 3);
         assert_eq!(parsed.rng_seed, 300);

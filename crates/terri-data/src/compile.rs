@@ -265,6 +265,9 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
     if tuning.min_interaction_ticks == 0 {
         return Err(ContentError::ZeroInteractionFloor);
     }
+    if tuning.wander_attempts == 0 {
+        return Err(ContentError::ZeroWanderAttempts);
+    }
     if !(0.0..1.0).contains(&tuning.duration_variance) {
         return Err(ContentError::DurationVarianceOutOfRange {
             value: tuning.duration_variance,
@@ -282,6 +285,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
         choice_temperature: tuning.choice_temperature,
         idle_threshold: tuning.idle_threshold,
         wander_pause_ticks: tuning.wander_pause_ticks,
+        wander_attempts: tuning.wander_attempts,
         duration_variance: tuning.duration_variance,
         min_interaction_ticks: tuning.min_interaction_ticks,
         rng_seed: tuning.rng_seed,
@@ -494,13 +498,14 @@ mod tests {
         0x00, // 'fridge' resolved to ObjectDefId(0)
         0x00, 0x00, 0x20, 0x40, // x 2.5, fractional on purpose
         0x00, 0x00, 0xA0, 0x3F, // y 1.25
-        // tuning: four LE f32 and three varints, in `Tuning`'s field
+        // tuning: four LE f32 and four varints, in `Tuning`'s field
         // order. Every value differs, so a field encoded into the wrong
         // slot moves these bytes.
         0x00, 0x00, 0x80, 0x3E, // action_threshold      0.25
         0x00, 0x00, 0x00, 0x3F, // choice_temperature    0.5
         0x00, 0x00, 0x00, 0x3E, // idle_threshold        0.125
         0x09,                   // wander_pause_ticks    9
+        0x06,                   // wander_attempts       6
         0x00, 0x00, 0x40, 0x3F, // duration_variance     0.75
         0x03,                   // min_interaction_ticks 3
         0xAC, 0x02,             // rng_seed              300, a two-byte
@@ -599,6 +604,7 @@ mod tests {
             choice_temperature: 0.5,
             idle_threshold: 0.125,
             wander_pause_ticks: 9,
+            wander_attempts: 6,
             duration_variance: 0.75,
             min_interaction_ticks: 3,
             rng_seed: 300,
@@ -1306,6 +1312,27 @@ mod tests {
         let pack = compile_tuned(tuning_where(|t| t.min_interaction_ticks = 1))
             .expect("one tick is a legal floor, if a short one");
         assert_eq!(pack.tuning.min_interaction_ticks, 1);
+    }
+
+    /// Zero wander attempts does not mean "wander less". A wander
+    /// destination is drawn and then pathed to, and the attempt count is
+    /// how many draws a sim gets, so zero means the loop never runs and
+    /// the sim never wanders at all - the standing-still behaviour [D-5]
+    /// exists to remove, back again and looking exactly like a feature
+    /// that was never built.
+    ///
+    /// One attempt is asserted legal on the other side of the boundary,
+    /// so the rule cannot be "at least 2" and pass this test.
+    #[test]
+    fn rejects_zero_wander_attempts() {
+        assert_eq!(
+            compile_tuned(tuning_where(|t| t.wander_attempts = 0)).unwrap_err(),
+            ContentError::ZeroWanderAttempts
+        );
+
+        let pack = compile_tuned(tuning_where(|t| t.wander_attempts = 1))
+            .expect("a single attempt is legal, if a stubborn sim it is not");
+        assert_eq!(pack.tuning.wander_attempts, 1);
     }
 
     /// Variance is a FRACTION either side of an interaction's authored

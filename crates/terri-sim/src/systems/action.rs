@@ -1,6 +1,7 @@
 use bevy_ecs::prelude::*;
 use terri_core::{
-    Agent, Eating, NeedId, Needs, Path, Position, Reserved, SimRng, SmartObject, Target, TileGrid,
+    Agent, Eating, NeedId, Needs, Path, Position, Reserved, Restless, SimRng, SmartObject, Target,
+    TileGrid,
 };
 
 use super::advertise::score_advertisement;
@@ -299,6 +300,14 @@ pub fn select_action(
     // it.
     let action_threshold = content.0.tuning.action_threshold;
     let temperature = content.0.tuning.choice_temperature;
+    // The OTHER threshold, and it is deliberately a second knob rather
+    // than a second use of the first - [D-5]. `action_threshold` answers
+    // "is anything worth doing"; this one answers "is nothing worth
+    // doing enough that I should mill about". Between them sits a band
+    // where an agent neither acts nor wanders, which is a sim that has
+    // noticed something mildly interesting and is staying near it.
+    // Collapsing the two deletes that band and the knob with it.
+    let idle_threshold = content.0.tuning.idle_threshold;
 
     // Collect and sort so iteration order cannot vary between runs.
     //
@@ -349,6 +358,18 @@ pub fn select_action(
         // object weight in proportion to how many ways it can be used.
         let mut candidates: Vec<(Entity, Vec<(i32, i32)>, u32, f32)> = Vec::new();
         let from = (agent_pos.x.round() as i32, agent_pos.y.round() as i32);
+
+        // The best score this agent saw ANYWHERE, whether or not it
+        // cleared the action threshold, and the only reason it is
+        // tracked separately from `candidates`: a candidate list is
+        // filtered at `action_threshold`, so it cannot answer the
+        // weaker question `idle_threshold` asks.
+        //
+        // Negative infinity rather than zero, because a score may be
+        // negative - an interaction whose costs outweigh its benefits -
+        // and because an agent with no reachable object at all must come
+        // out of this loop restless rather than merely uninterested.
+        let mut best_seen = f32::NEG_INFINITY;
 
         for (object, object_pos, placed) in &placed_objects {
             let object = *object;
@@ -425,6 +446,25 @@ pub fn select_action(
                         distance,
                     );
                 }
+                // Every score is offered to `best_seen`, including ones
+                // no candidate list will ever hold. That is the whole
+                // point of tracking it: `idle_threshold` asks a weaker
+                // question than `action_threshold`, so it has to see the
+                // scores the action filter throws away.
+                //
+                // `f32::max` rather than `if score > best_seen`, and the
+                // reason is mutation coverage rather than brevity. That
+                // comparison relaxed to `>=` is an EQUIVALENT mutant -
+                // reassigning a value equal to the one already held
+                // changes nothing - so it would survive every possible
+                // test and land in the baseline as permanent noise. A
+                // baseline that only ever grows becomes a permission
+                // slip, so the better fix is code with no comparison to
+                // mutate. Same idiom, and the same reasoning, as the
+                // fold in `sample_softmax`; `f32` is not `Ord`, which is
+                // why this is a method rather than `std::cmp::max`.
+                best_seen = best_seen.max(score);
+
                 // STRICTLY greater, and that is the mechanism rather
                 // than a default: two interactions on the same object
                 // that score equally must resolve to the EARLIER one, or
@@ -453,6 +493,28 @@ pub fn select_action(
             if let Some((interaction, score)) = best {
                 candidates.push((object, steps, interaction, score));
             }
+        }
+
+        // Publish restlessness before returning, whichever way this goes.
+        // `idle::wander` is the only reader; this system is the only
+        // writer, because it is the only one that scores anything.
+        //
+        // The condition needs no `candidates.is_empty()` clause and
+        // deliberately does not have one: any candidate at all scored
+        // above `action_threshold`, and content validation forbids
+        // `idle_threshold` from exceeding it, so a non-empty candidate
+        // list already implies `best_seen > idle_threshold`. Adding the
+        // clause would be a second statement of the same fact, and the
+        // two could later disagree.
+        if best_seen <= idle_threshold {
+            commands.entity(agent).insert(Restless);
+        } else {
+            // Removed rather than left stale. Nothing depends on that
+            // today - `wander`'s filters exclude an agent that has a
+            // target - but a marker that means "nothing is worth doing"
+            // sitting on a sim walking to the fridge is a lie waiting
+            // for its second reader.
+            commands.entity(agent).remove::<Restless>();
         }
 
         if candidates.is_empty() {

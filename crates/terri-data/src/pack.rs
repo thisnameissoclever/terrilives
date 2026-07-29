@@ -109,6 +109,15 @@ pub struct Tuning {
     pub idle_threshold: f32,
     /// Ticks a sim pauses between wanders.
     pub wander_pause_ticks: u32,
+    /// How many random tiles a wandering sim tries before giving up for
+    /// the tick. At least 1.
+    ///
+    /// This is what makes the re-roll bounded. A destination is drawn at
+    /// random and pathed to, so a tile behind a wall simply has no path
+    /// and the roll fails; without a bound, a sim sealed in with nowhere
+    /// to walk would spin rather than fail, and a hang is a much weaker
+    /// signal than an assertion ([L15]).
+    pub wander_attempts: u32,
     /// Fraction either side of an interaction's content duration within
     /// which the real duration is sampled. In `[0, 1)`.
     pub duration_variance: f32,
@@ -196,7 +205,7 @@ mod tests {
         }
     }
 
-    /// Seven knobs, no two of which share a value, so a field that
+    /// Eight knobs, no two of which share a value, so a field that
     /// round-trips into the wrong slot is visible rather than hidden by
     /// a fixture where two of them agree.
     fn a_tuning() -> Tuning {
@@ -205,6 +214,7 @@ mod tests {
             choice_temperature: 0.5,
             idle_threshold: 0.125,
             wander_pause_ticks: 9,
+            wander_attempts: 6,
             duration_variance: 0.75,
             min_interaction_ticks: 3,
             rng_seed: 300,

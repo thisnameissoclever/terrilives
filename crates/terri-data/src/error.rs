@@ -128,6 +128,11 @@ pub enum ContentError {
     /// interaction that can complete on the tick it starts, which reads
     /// as a sim teleporting through an action.
     ZeroInteractionFloor,
+    /// Zero attempts is not "wander less"; it is a sim that can never
+    /// roll a destination and therefore never wanders at all, which is
+    /// exactly the standing-still behaviour [D-5] exists to remove -
+    /// and it would look like the feature had simply not been built.
+    ZeroWanderAttempts,
     /// Variance is a FRACTION either side of the authored duration. At
     /// 1.0 the lower bound reaches zero, so the floor rather than the
     /// content would decide every duration; above 1.0 it goes negative.
@@ -255,6 +260,10 @@ impl fmt::Display for ContentError {
             ContentError::ZeroInteractionFloor => write!(
                 f,
                 "tuning.toml has min_interaction_ticks of 0; must be at least 1"
+            ),
+            ContentError::ZeroWanderAttempts => write!(
+                f,
+                "tuning.toml has wander_attempts of 0, so an idle sim could never roll a destination and would never wander; must be at least 1"
             ),
             ContentError::DurationVarianceOutOfRange { value } => write!(
                 f,

@@ -72,6 +72,8 @@ impl Sim {
         world.register_component::<terri_core::Path>();
         world.register_component::<terri_core::Target>();
         world.register_component::<terri_core::Eating>();
+        world.register_component::<terri_core::Restless>();
+        world.register_component::<terri_core::Wander>();
 
         let mut schedule = Schedule::default();
         // M0 runs single-threaded on purpose. Parallelism is [A9]/[D4]
@@ -85,6 +87,15 @@ impl Sim {
                 advance_clock,
                 systems::needs::decay_needs,
                 systems::action::select_action,
+                // Strictly after selection and strictly before movement,
+                // and both halves matter. After, because it reads the
+                // `Restless` marker selection has just written, so a sim
+                // that found something worth doing this tick never gets
+                // as far as considering a stroll. Before, because a
+                // wander path is then walked on the tick it is chosen,
+                // exactly like a path to an object - a wander that had
+                // to wait a tick would read as a hesitation.
+                systems::idle::wander,
                 systems::movement::follow_path,
                 systems::interact::tick_interactions,
             )
@@ -850,7 +861,30 @@ mod determinism_tests {
         // digest, and nothing else. **Anyone who wants this vector to
         // cover selection or duration has to change the scenario**, and
         // the paragraph above sets out what a second object would cost.
-        const GOLDEN: u64 = 0x2FC6_69EF_A725_4F2D;
+        //
+        // **M1c Task 5 DID move it, and this is the first M1c change that
+        // this scenario could see.** [D-5] sends a sim with nothing worth
+        // doing for a stroll instead of leaving it standing still, and
+        // seven of these eight agents have nothing worth doing from tick
+        // one: the single fridge is claimed by the lowest-indexed agent
+        // and every other agent skips a reserved object, so its best
+        // score is nothing at all and it is marked restless. Those seven
+        // now wander. Fourteen of the sixteen coordinates in the digest
+        // move, on almost every tick.
+        //
+        // That is a behaviour change and it is the intended one. It also
+        // means this vector now covers the seeded PRNG for the first
+        // time, because a wander destination is drawn from it - so a
+        // change to `SimRng`, to the draw ORDER, or to the wander
+        // roll will now surface here rather than only in the unit tests.
+        //
+        // Previous value: 0x2FC6_69EF_A725_4F2D (Task 7's content-driven
+        // decay, unmoved by M1b Task 3b and by M1c Tasks 3 and 4).
+        //
+        // Measured on wasm32 as well as natively, per [L13], rather than
+        // assumed to carry across: the two agree. The boundary copy lives
+        // in web/tests/bridge.test.ts.
+        const GOLDEN: u64 = 0x5A49_3BA9_F7FB_F23B;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

@@ -4,7 +4,65 @@
 contract.** That file, not this one, is what CI compares against; it is the
 sorted contents of `mutants.out/missed.txt` from a full sweep.
 
-**Latest sweep: M1c Task 3, 2026-07-28**, full, on the finished Task 3 tree,
+**Latest sweep: M1c Tasks 4 and 5, 2026-07-28**, full, on the finished Task 5
+tree, with the package list CI uses:
+
+```
+cargo mutants --package terri-core --package terri-sim \
+  --package terri-data --package terri-wasm --test-workspace true --timeout 60 \
+  --jobs 4
+392 mutants tested in 11m: 5 missed, 334 caught, 50 unviable, 3 timeouts
+```
+
+**Mutation score on viable mutants: 97.7%** (334 caught of 342 viable, counting
+the 3 timeouts as not-caught, which is the pessimistic reading).
+
+**The survivor list is byte-identical to `docs/mutants-baseline.txt`.** CI's
+comparison gives an empty new-survivor list and an empty now-caught list, so the
+baseline file is unchanged by these two tasks. It was checked line-keyed **and**
+normalised on `(file, column, mutation)`, per the standing warning that the
+baseline is line-keyed and an entry can re-anchor on a comment edit alone; both
+comparisons are empty, and the two agree because none of the three files holding
+baseline entries was touched.
+
+Thirty-three new mutants entered the sweep (392 against 359 at Task 3), from
+`sample_duration`, `roll_wander_path`, the wander system, the restlessness
+branch in `select_action`, the optional target in `follow_path`, and the
+`wander_attempts` validation.
+
+**One of them survived the first sweep, and it was equivalent rather than
+untested:**
+
+```
+crates/terri-sim/src/systems/action.rs:454:26: replace > with >= in select_action
+```
+
+That was `if score > best_seen { best_seen = score; }`, the running maximum that
+`idle_threshold` is compared against. Relaxed to `>=` it reassigns a value equal
+to the one already held, which changes nothing on any input - including the
+`f32` corner cases, since `-0.0` and `0.0` compare identically against a
+threshold and `NaN` fails both forms. No test can separate the two.
+
+**It was removed rather than baselined**, and that choice is the point. A
+genuinely equivalent mutant is a legitimate baseline entry, but this one had a
+cheaper fix: `best_seen = best_seen.max(score)` has no comparison operator to
+mutate, so the mutant is not generated at all. The same idiom the fold in
+`sample_softmax` already uses. A baseline that only ever grows becomes a
+permission slip; the second sweep above is the one with the entry gone, and it
+matches the committed baseline exactly.
+
+**Two sorts in this change are invisible to the sweep and are covered by hand.**
+`cargo mutants` emits no statement-deletion mutant, so a `sort_by_key` whose
+only effect is on state is outside its grammar entirely - a clean report over
+those two lines is true and is simultaneously no evidence (rule 2 of
+`testing-protocol.md`, and [L11]). Both were deleted by hand:
+`arrival_draws_follow_entity_order_not_archetype_order` fails without the sort
+in `follow_path`, and `wander_destinations_follow_entity_order_not_archetype_order`
+fails without the one in `idle::wander`.
+
+---
+
+**Previous sweep: M1c Task 3, 2026-07-28**, full, on the finished Task 3 tree,
 with the package list CI uses:
 
 ```

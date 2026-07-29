@@ -325,7 +325,31 @@ describe('SimBridge', () => {
     // probe over the 100 ticks; the wasm was rebuilt before this was
     // re-run. The scenario therefore covers decay, movement and the
     // digest, and nothing about how a sim chooses or how long it takes.
-    expect(bridge.worldHash()).toBe(0x2fc6_69ef_a725_4f2dn);
+    //
+    // **M1c Task 5 DID move it, and it is the first M1c change this
+    // scenario could see.** [D-5] sends a sim with nothing worth doing
+    // for a stroll rather than leaving it standing still, and seven of
+    // these eight agents have nothing worth doing from tick one: the
+    // single fridge is claimed by the lowest-indexed agent and every
+    // other agent skips a reserved object, so its best score is nothing
+    // at all. Those seven now wander, and fourteen of the sixteen
+    // coordinates in this digest move on almost every tick.
+    //
+    // It also means this comparison now covers the seeded PRNG for the
+    // first time - a wander destination is drawn from it - so a
+    // native/wasm32 divergence in the generator or in the draw order
+    // would surface here rather than nowhere.
+    //
+    // Measured on wasm32, not copied from native ([L13]): the wasm was
+    // rebuilt with `wasm-pack build crates/terri-wasm --target web
+    // --out-dir ../../web/src/wasm` FIRST, this test was run against the
+    // old constant, and the reported 6505796737909387835n was read off
+    // the failure. It equals the native value, which is a measurement
+    // each time rather than a guarantee.
+    //
+    // Previous value: 0x2fc6_69ef_a725_4f2dn (Task 7's content-driven
+    // decay, unmoved by M1b Task 3b and by M1c Tasks 3 and 4).
+    expect(bridge.worldHash()).toBe(0x5a49_3ba9_f7fb_f23bn);
   });
 
   it('exposes the world hash as a bigint that tracks simulation state', () => {
