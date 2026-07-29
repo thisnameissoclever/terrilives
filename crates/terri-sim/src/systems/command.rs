@@ -1235,15 +1235,24 @@ mod tests {
 
         // The causal half: each command removed on its own, so the
         // outcome cannot be produced by the other two.
+        //
+        // On the DIGEST rather than the tuple, for the reason above and
+        // per [L42]. Both of these scripts keep the `Select`, so the
+        // selection term is identical in each pair and a tuple comparison
+        // would be carried entirely by the hash anyway - but that is a
+        // property of today's script rather than of the assertion, and an
+        // inequality over a pair is satisfied by whichever term is
+        // cheapest. Stating the field is what stops a fourth command
+        // added to this script later from quietly making these vacuous.
         let without_direction: Vec<_> = script
             .iter()
             .filter(|(_, command)| !matches!(command, SimCommand::UseObject { .. }))
             .cloned()
             .collect();
         assert_ne!(
-            run_scripted(&without_direction, TICKS),
-            a,
-            "dropping the UseObject must change the outcome, or the \
+            run_scripted(&without_direction, TICKS).0,
+            a.0,
+            "dropping the UseObject must change the world, or the \
              direction was doing nothing and the replay says nothing \
              about it"
         );
@@ -1254,9 +1263,9 @@ mod tests {
             .cloned()
             .collect();
         assert_ne!(
-            run_scripted(&without_cancel, TICKS),
-            a,
-            "dropping the CancelIntents must change the outcome, or the \
+            run_scripted(&without_cancel, TICKS).0,
+            a.0,
+            "dropping the CancelIntents must change the world, or the \
              cancel was doing nothing"
         );
 
