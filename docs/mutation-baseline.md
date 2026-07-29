@@ -4,7 +4,23 @@
 contract.** That file, not this one, is what CI compares against; it is the
 sorted contents of `mutants.out/missed.txt` from a full sweep.
 
-**Latest sweep: M1c Task 1, 2026-07-28.** A **scoped** sweep, not a full one:
+**Latest sweep: M1c Task 1, 2026-07-28**, full, on a clean tree at `f4458fb`,
+with the package list CI uses:
+
+```
+cargo mutants --package terri-core --package terri-sim \
+  --package terri-data --package terri-wasm --test-workspace true --timeout 60
+342 mutants tested in 19m: 5 missed, 292 caught, 42 unviable, 3 timeouts
+```
+
+**Mutation score on viable mutants: 97.3%** (292 caught of 300 viable, counting
+the 3 timeouts as not-caught, which is the pessimistic reading).
+
+The five missed are **exactly** the five in `docs/mutants-baseline.txt`. Running
+CI's own comparison against the updated baseline gives an empty new-survivor
+list and an empty now-caught list.
+
+A scoped sweep over `rng.rs` alone was run first and predicted this:
 
 ```
 cargo mutants --package terri-core --file crates/terri-core/src/rng.rs \
@@ -12,14 +28,15 @@ cargo mutants --package terri-core --file crates/terri-core/src/rng.rs \
 25 mutants tested in 6m: 1 missed, 20 caught, 1 unviable, 3 timeouts
 ```
 
-Scoped is defensible here and would not be in general. Task 1 adds exactly one
-file of mutable code; its only other change is two lines in `lib.rs`, a `mod`
-declaration and a `pub use`, neither of which `cargo mutants` can mutate. The
-task's new tests exercise `SimRng` alone, so they cannot have closed any of the
-four existing survivors either. The expected new baseline is therefore the old
-four plus whatever `rng.rs` misses, which is what this sweep measures. **The
-authoritative full sweep is the one CI runs on the pull request**; if it
-disagrees with the arithmetic above, believe it and correct this file.
+The reasoning was that Task 1 adds exactly one file of mutable code, its only
+other change being two lines in `lib.rs` that `cargo mutants` cannot mutate, and
+that its new tests exercise `SimRng` alone so they cannot close any existing
+survivor. The full sweep confirmed it. **Both are recorded because the scoped
+run is the cheap check and the full run is the one that is allowed to be
+believed**; had they disagreed, the full one wins.
+
+Thirty-one new mutants entered the sweep with `rng.rs` (342 against 311 at Task
+3b) and one survived.
 
 **One addition, and it is genuinely equivalent rather than untested:**
 
@@ -470,7 +487,7 @@ Task 4 and the build gate changed the caught/unviable split in Task 5.
 | **M1a Task 9** | **269** | **5** | **237** | **27** | **11 closed; baseline rewritten** |
 | **M1b Task 3** | **297** | **5** | **252** | **40** | **1 closed, 1 deleted, 1 re-anchored; baseline down to 4** |
 | M1b Task 3b | 311 | 4 | 266 | 41 | 14 new mutants, all caught; baseline unchanged |
-| **M1c Task 1** | **25** | **1** | **20** | **1** | **Scoped to `rng.rs`; 3 timeouts; baseline up to 5** |
+| **M1c Task 1** | **342** | **5** | **292** | **42** | **31 new mutants from `rng.rs`; 3 timeouts; baseline up to 5** |
 
 The M1b Task 3 row is the one to read carefully. Missed stayed at 5 while
 the set changed completely in composition: `advertise.rs:42:36` ceased to
