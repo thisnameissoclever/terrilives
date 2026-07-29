@@ -149,6 +149,17 @@ fn main() {
             .push(entry.ticks);
     }
 
+    // Back-to-back use of the same object, which is [C5]. It was a symptom of
+    // sims standing ON what they used: a finished sim was at distance zero
+    // from that object, which is its maximum possible score, so choosing it
+    // again was unusually likely. Standing beside it costs a tile. Counted
+    // rather than assumed, because "it should be better now" is exactly the
+    // kind of claim this harness exists to check.
+    let repeats = interactions
+        .windows(2)
+        .filter(|pair| pair[0].object == pair[1].object)
+        .count();
+
     println!("\n{ticks} ticks ({:.1} min at 1x)\n", ticks as f64 / 600.0);
 
     println!("INTERACTIONS  {} total", interactions.len());
@@ -210,6 +221,12 @@ fn main() {
             }
         }
     }
+
+    println!(
+        "\nrepeated the same object back to back: {repeats} of {} ({:.1}%)  [C5]",
+        interactions.len().saturating_sub(1),
+        100.0 * repeats as f64 / interactions.len().saturating_sub(1).max(1) as f64
+    );
 
     println!("\nNEED BANDS");
     for (index, id) in NeedId::ALL.iter().enumerate() {

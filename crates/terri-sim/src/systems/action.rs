@@ -437,7 +437,12 @@ pub fn serve_intents(
         }
         let from = (agent_pos.x.round() as i32, agent_pos.y.round() as i32);
         let to = (object_pos.x.round() as i32, object_pos.y.round() as i32);
-        let Some(steps) = grid.find_path(from, to) else {
+        // **Beside it, not on it.** See `TileGrid::find_path_adjacent` for
+        // the four separate problems standing on the furniture caused. `None`
+        // still means unreachable and still drops the intent, which is the
+        // same handling as before - it now also covers an object whose every
+        // neighbour is walled off.
+        let Some(steps) = grid.find_path_adjacent(from, to) else {
             queue.pop();
             continue;
         };
@@ -677,7 +682,19 @@ pub fn select_action(
             // This also replaces the second `find_path` that used to run
             // after selection: the winning path is carried out of the
             // loop rather than recomputed.
-            let Some(steps) = grid.find_path(from, to) else {
+            // **Beside it, not on it** - `find_path_adjacent`, whose docs carry
+            // the reasoning. The distance this yields is therefore the walk to
+            // the tile the sim will actually stand on, which is one less than
+            // the old metric on an open approach; every balance number
+            // measured before that change shifted slightly with it, and
+            // `docs/alpha-feel-notes.md` carries the re-measurement.
+            //
+            // It matters for scoring beyond tidiness: an agent that has just
+            // finished with an object used to be standing on it at distance
+            // zero, which is that object's own maximum score, and it chose the
+            // same object again on 5.8% of interactions ([C5]). Standing
+            // beside it costs one tile, which is small but no longer zero.
+            let Some(steps) = grid.find_path_adjacent(from, to) else {
                 continue;
             };
             let distance = steps.len() as f32;
@@ -1789,10 +1806,23 @@ mod tests {
     ///
     /// The coordinates are rounded first because `select_action` rounds
     /// them to tile indices before pathing.
+    /// **One less than the Manhattan distance, because the agent stops
+    /// beside the object rather than on it.**
+    ///
+    /// Selection paths with `find_path_adjacent`, so the walk ends on a
+    /// neighbour of the object's tile: on an open grid that is exactly one
+    /// step fewer than reaching the tile itself. This helper restates the
+    /// metric independently, so it has to restate *that* metric - and the
+    /// subtraction is the part a reader will want to query, which is why it is
+    /// the first line of this comment rather than a footnote.
+    ///
+    /// An agent standing **on** the object walks 1, not 0 or -1: it steps off.
+    /// That case is the reason for the `max`, and it is reachable - it was the
+    /// normal resting state before objects stopped being stood on.
     pub(super) fn walk_tiles(agent_at: (f32, f32), object_at: (f32, f32)) -> f32 {
         let dx = object_at.0.round() - agent_at.0.round();
         let dy = object_at.1.round() - agent_at.1.round();
-        dx.abs() + dy.abs()
+        (dx.abs() + dy.abs() - 1.0).max(1.0)
     }
 
     /// An independent restatement of the straight-line distance
@@ -1945,8 +1975,10 @@ mod tests {
         // Preconditions. Both candidates must be genuinely selectable, or
         // "the near one won" could be satisfied by the far one being
         // ineligible for some unrelated reason.
-        assert_eq!(walk_tiles((8.0, 8.0), (11.0, 8.0)), 3.0);
-        assert_eq!(walk_tiles((8.0, 8.0), (1.0, 8.0)), 7.0);
+        // Placed 3 and 7 tiles out; WALKED 2 and 6, because the agent stops
+        // beside the object rather than on it.
+        assert_eq!(walk_tiles((8.0, 8.0), (11.0, 8.0)), 2.0);
+        assert_eq!(walk_tiles((8.0, 8.0), (1.0, 8.0)), 6.0);
         assert!(
             far_score > action_threshold(),
             "the losing object must still clear the threshold, or this \
@@ -2009,8 +2041,10 @@ mod tests {
                 IDENTICAL_DURATION,
             ),
         );
-        assert_eq!(walk_tiles((8.0, 8.0), (8.0, 11.0)), 3.0);
-        assert_eq!(walk_tiles((8.0, 8.0), (8.0, 1.0)), 7.0);
+        // Placed 3 and 7 tiles out; WALKED 2 and 6, because the agent stops
+        // beside the object rather than on it.
+        assert_eq!(walk_tiles((8.0, 8.0), (8.0, 11.0)), 2.0);
+        assert_eq!(walk_tiles((8.0, 8.0), (8.0, 1.0)), 6.0);
         assert!(
             far_score > action_threshold(),
             "the losing object must still clear the threshold; got {far_score}"
@@ -2237,7 +2271,8 @@ mod tests {
         let far_score = score_of(deficit, AGENT_AT, FAR_AT, FAR_DELTA, DURATION);
         // Preconditions: the near object really is nearer, really is a
         // live candidate, and really does lose anyway.
-        assert_eq!(walk_tiles(AGENT_AT, NEAR_AT), 7.0);
+        // Placed 7 tiles out, walked 6: the agent stops beside it.
+        assert_eq!(walk_tiles(AGENT_AT, NEAR_AT), 6.0);
         assert!(
             walk_tiles(AGENT_AT, FAR_AT) > walk_tiles(AGENT_AT, NEAR_AT),
             "the high-benefit object must be the farther one or this test \
@@ -2789,6 +2824,14 @@ mod tests {
         // 16. 6.4, 0.8 and 0.05 share a mantissa, so 0.125 * 6.4 / 16 is
         // 0.05f32 with no rounding anywhere.
         //
+        // **The object sits THREE tiles away and the agent walks two**,
+        // because selection paths to a neighbour of the object rather than
+        // onto it. That is the one term the adjacency change moved: it was
+        // placed two tiles out and walked two, and re-deriving meant pushing
+        // the placement out by one so the walk - which is what the score
+        // divides by - stays at two and the denominator stays at exactly 16.
+        // Re-derived rather than relaxed, exactly as the note below demands.
+        //
         // **The deltas below stay literal, and 0.05 stays the authored
         // `action_threshold`.** This is the one test in the module whose
         // fixture is arithmetic rather than an inequality, so it is also
@@ -2824,7 +2867,7 @@ mod tests {
         const ABOVE_DELTA: f32 = 6.5;
         const BELOW_DELTA: f32 = 6.3;
         const AGENT_AT: (f32, f32) = (5.0, 5.0);
-        const OBJECT_AT: (f32, f32) = (7.0, 5.0);
+        const OBJECT_AT: (f32, f32) = (8.0, 5.0);
         const DURATION: u32 = 7;
 
         /// Builds a one-object world, ticks once, and reports whether the

@@ -1100,6 +1100,28 @@ mod determinism_tests {
         // Unlike the [C2] case, this fixture is directly sensitive: the fridge
         // is the object it holds.
         //
+        // **The adjacency change did NOT move it, and that is a blindness
+        // rather than a reassurance** - [L36] again, in the form that needs
+        // stating. Sims now path to a tile BESIDE an object instead of onto
+        // it, which alters where every sim in the game finishes its walk. This
+        // vector is silent about it because of arithmetic in the fixture:
+        //
+        //   the agents start at (1..8, 1) and the fridge is at (18, 14), so
+        //   the walk is 17 + 13 = 30 tiles; at TILES_PER_TICK = 0.25 that is
+        //   120 ticks, and TICKS is 100.
+        //
+        // **No agent ever arrives.** The adjacent path differs from the
+        // on-tile path only in its last step, so the first 100 ticks of
+        // walking are identical tile for tile and the digest cannot see the
+        // difference.
+        //
+        // What that means for whoever changes pathing next: this vector covers
+        // route CHOICE - a different heuristic, a different tiebreak, a
+        // different neighbour order all move it - and is blind to anything
+        // about ARRIVAL. Do not read a green vector as coverage of the end of
+        // a path. Raising TICKS above 120 would close it, at the cost of
+        // rewriting the constant and every note attached to it.
+        //
         // Measured on wasm32 as well as natively, per [L13], rather than
         // assumed to carry across: the two agree. The boundary copy lives
         // in web/tests/bridge.test.ts.
