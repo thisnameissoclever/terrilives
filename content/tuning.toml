@@ -148,6 +148,38 @@ min_interaction_ticks = 12
 # save file at M1d, which is what makes a saved game replayable.
 rng_seed = 20260728
 
+# The most player-issued intents one sim may hold at once. A click that
+# would exceed it is refused rather than queued.
+#
+# THIS IS A BOUND ON THE PLAYER, not on the simulation, and it is the only
+# thing rate-limiting a click. `drain_commands` pushes one intent per
+# `UseObject` command and nothing else trims the queue, so without a cap a
+# JavaScript loop - or a player leaning on the mouse - grows one sim's
+# queue without limit, and every entry in it is a stretch of time that sim
+# is not choosing for itself.
+#
+# The number is a TIME budget rather than a count. Measured over the
+# shipped lot (docs/alpha-feel-notes.md): an interaction runs 12 to 25
+# ticks and the walk to it costs up to about 80 more on a 14x10 lot at
+# 0.25 tiles a tick, so one queued intent is roughly 2 to 10 real seconds
+# at 1x. Four is therefore up to about 40 seconds of directed work
+# already promised before a fifth click is even considered, which is well
+# past the point where a player can still remember what they asked for.
+#
+# **The overflow drops the NEWEST intent, not the oldest**, and that is a
+# deliberate trade rather than the obvious one. Dropping the oldest would
+# mean evicting the intent the sim is currently carrying out, which would
+# have to release its target and its reservation from inside the drain and
+# would make a click able to cancel an earlier click's work silently.
+# Refusing the new one keeps every accepted instruction honoured. The cost
+# is real and is why this number is not smaller: the fifth rapid click
+# does nothing at all, and a click that does nothing is the exact failure
+# [D-3] exists to prevent. Raise it before lowering it.
+#
+# Zero is rejected at build time: a cap of zero is not "no queueing", it
+# is a game where clicking an object never does anything.
+max_queued_intents = 4
+
 # Need decay per tick. One tick is one sim-minute, so 0.104 drains a full
 # need in roughly 16 sim-hours.
 #

@@ -56,6 +56,11 @@ impl Sim {
         world.insert_resource(terri_core::SimRng::from_seed(
             terri_data::pack().tuning.rng_seed,
         ));
+        // The staging area for player input - [D-2]. It has to exist from
+        // construction rather than on first use, because `drain_commands`
+        // takes it as `ResMut` and a missing resource is a panic on the
+        // first tick rather than a command that quietly does nothing.
+        world.insert_resource(terri_core::CommandQueue::default());
 
         // Register components eagerly. This is NOT optional bookkeeping:
         // World::try_query returns None if ANY component in the query is
@@ -94,6 +99,21 @@ impl Sim {
         // reduced to the systems M0 needs.
         schedule.add_systems(
             (
+                // **First, before anything else in the tick** - [D-2].
+                // Player input is asynchronous and lands in a staging
+                // queue; this is the one fixed point at which it becomes
+                // simulation state, which is what makes a recorded
+                // command log replay to the same world.
+                //
+                // Before `serve_intents` specifically, because an intent
+                // pushed here has to be servable on the same tick: a
+                // click that took a tick to have any effect would leave
+                // the sim choosing for itself in the meantime, and at 10
+                // ticks a second the player would see the sim start
+                // walking somewhere else first.
+                // `a_use_object_command_is_served_on_the_tick_it_arrives`
+                // is what fails if this line moves.
+                systems::command::drain_commands,
                 advance_clock,
                 systems::needs::decay_needs,
                 // Strictly before selection, because a player-issued

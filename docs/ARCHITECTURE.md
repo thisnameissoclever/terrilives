@@ -141,6 +141,17 @@ as [R2].
 
 Ordered, per tick. `||` marks parallel, `->` marks serialized.
 
+0. `-> command_drain` - apply every queued player command, in the order the
+   player issued them ([D-2] of the M1b design). Numbered zero rather than
+   inserted as 1, so the step numbers other sections cite stay put, for the
+   same reason 4a and 5a are lettered. It is **first**, and both halves of
+   that matter: player input is asynchronous, so it has to land at one fixed
+   point for a recorded command log to replay to the same world; and an
+   intent pushed here has to be servable by step 4a on the same tick, or a
+   click would take a tick to have any effect and the sim would spend that
+   tick choosing for itself. Entity references arrive from JavaScript as raw
+   `u32` indices, so resolution tolerates a stale one - a panic here traps
+   the WASM module for the rest of the page's life.
 1. `|| time` - advance clock, fire calendar events
 2. `|| need_decay`
 3. `|| mood` - moodlets from needs, traits, environment

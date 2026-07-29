@@ -150,6 +150,13 @@ pub enum ContentError {
         idle: f32,
         action: f32,
     },
+    /// A cap of zero is not "no queueing"; it is a game in which clicking
+    /// an object never does anything at all, because `drain_commands`
+    /// refuses every intent that would take a queue past this. That is
+    /// the silent-nothing case [D9] exists to convert into a build
+    /// failure - the game would run, the sim would behave, and directing
+    /// it would simply have no effect.
+    ZeroQueuedIntents,
 }
 
 impl fmt::Display for ContentError {
@@ -272,6 +279,10 @@ impl fmt::Display for ContentError {
             ContentError::IdleThresholdAboveAction { idle, action } => write!(
                 f,
                 "tuning.toml has idle_threshold {idle} above action_threshold {action}; a sim would wander off while something is worth doing"
+            ),
+            ContentError::ZeroQueuedIntents => write!(
+                f,
+                "tuning.toml has max_queued_intents of 0, so directing a sim at an object could never do anything; must be at least 1"
             ),
         }
     }

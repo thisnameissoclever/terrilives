@@ -268,6 +268,9 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
     if tuning.wander_attempts == 0 {
         return Err(ContentError::ZeroWanderAttempts);
     }
+    if tuning.max_queued_intents == 0 {
+        return Err(ContentError::ZeroQueuedIntents);
+    }
     if !(0.0..1.0).contains(&tuning.duration_variance) {
         return Err(ContentError::DurationVarianceOutOfRange {
             value: tuning.duration_variance,
@@ -289,6 +292,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
         duration_variance: tuning.duration_variance,
         min_interaction_ticks: tuning.min_interaction_ticks,
         rng_seed: tuning.rng_seed,
+        max_queued_intents: tuning.max_queued_intents,
     })
 }
 
@@ -498,7 +502,7 @@ mod tests {
         0x00, // 'fridge' resolved to ObjectDefId(0)
         0x00, 0x00, 0x20, 0x40, // x 2.5, fractional on purpose
         0x00, 0x00, 0xA0, 0x3F, // y 1.25
-        // tuning: four LE f32 and four varints, in `Tuning`'s field
+        // tuning: four LE f32 and five varints, in `Tuning`'s field
         // order. Every value differs, so a field encoded into the wrong
         // slot moves these bytes.
         0x00, 0x00, 0x80, 0x3E, // action_threshold      0.25
@@ -511,6 +515,9 @@ mod tests {
         0xAC, 0x02,             // rng_seed              300, a two-byte
                                 // varint, so the u64 is not silently a
                                 // single byte like the two u32s above
+        0x07,                   // max_queued_intents    7, APPENDED at
+                                // M1b Task 5 so every block above kept
+                                // its offset and its annotation
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -608,6 +615,7 @@ mod tests {
             duration_variance: 0.75,
             min_interaction_ticks: 3,
             rng_seed: 300,
+            max_queued_intents: 7,
             decay_per_tick: NeedId::ALL
                 .iter()
                 .map(|id| (id.as_str().to_string(), 0.1))
@@ -1269,6 +1277,7 @@ mod tests {
         assert_eq!(tuning.duration_variance, 0.75);
         assert_eq!(tuning.min_interaction_ticks, 3);
         assert_eq!(tuning.rng_seed, 300);
+        assert_eq!(tuning.max_queued_intents, 7);
     }
 
     /// Weighted selection divides by the temperature, so zero is a
@@ -1333,6 +1342,27 @@ mod tests {
         let pack = compile_tuned(tuning_where(|t| t.wander_attempts = 1))
             .expect("a single attempt is legal, if a stubborn sim it is not");
         assert_eq!(pack.tuning.wander_attempts, 1);
+    }
+
+    /// A queue cap of zero is not "no queueing"; `drain_commands` refuses
+    /// any intent that would take the queue past this, so at zero every
+    /// `UseObject` command is refused and directing a sim silently does
+    /// nothing. The game would run and the sim would behave; only the
+    /// player's clicks would stop mattering, which is the shape [D9]
+    /// exists to convert into a build failure rather than a puzzled hour.
+    ///
+    /// One is asserted legal on the other side of the boundary, so the
+    /// rule cannot be "at least 2" and pass this test.
+    #[test]
+    fn rejects_zero_max_queued_intents() {
+        assert_eq!(
+            compile_tuned(tuning_where(|t| t.max_queued_intents = 0)).unwrap_err(),
+            ContentError::ZeroQueuedIntents
+        );
+
+        let pack = compile_tuned(tuning_where(|t| t.max_queued_intents = 1))
+            .expect("a single queued intent is legal, if an impatient sim it is not");
+        assert_eq!(pack.tuning.max_queued_intents, 1);
     }
 
     /// Variance is a FRACTION either side of an interaction's authored
@@ -1468,6 +1498,10 @@ mod tests {
             (
                 tuning_where(|t| t.idle_threshold = 0.5),
                 "tuning.toml has idle_threshold 0.5 above action_threshold 0.25; a sim would wander off while something is worth doing",
+            ),
+            (
+                tuning_where(|t| t.max_queued_intents = 0),
+                "tuning.toml has max_queued_intents of 0, so directing a sim at an object could never do anything; must be at least 1",
             ),
             (
                 tuning_where(|t| t.action_threshold = f32::NAN),

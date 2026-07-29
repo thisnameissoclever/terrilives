@@ -127,6 +127,22 @@ pub struct Tuning {
     /// of the save file at M1d, which is what makes a saved game
     /// replayable.
     pub rng_seed: u64,
+    /// The most player-issued intents one sim may hold at once. At least
+    /// 1.
+    ///
+    /// This is the only thing rate-limiting a click. `drain_commands`
+    /// pushes one intent per `UseObject` command and nothing trims the
+    /// queue, so without it a JavaScript loop grows one agent's queue
+    /// without bound and every entry is a stretch of time that sim is
+    /// not choosing for itself. `content/tuning.toml` carries the time
+    /// budget the number is derived from and why the overflow drops the
+    /// newest intent rather than the oldest.
+    ///
+    /// **Last in this struct on purpose.** The pack's byte encoding
+    /// grows by appending, so a knob added here keeps every earlier
+    /// block's offset and the golden vector in `compile.rs` stays
+    /// reviewable against the annotations it already has.
+    pub max_queued_intents: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -205,7 +221,7 @@ mod tests {
         }
     }
 
-    /// Eight knobs, no two of which share a value, so a field that
+    /// Nine knobs, no two of which share a value, so a field that
     /// round-trips into the wrong slot is visible rather than hidden by
     /// a fixture where two of them agree.
     fn a_tuning() -> Tuning {
@@ -218,6 +234,7 @@ mod tests {
             duration_variance: 0.75,
             min_interaction_ticks: 3,
             rng_seed: 300,
+            max_queued_intents: 7,
         }
     }
 
