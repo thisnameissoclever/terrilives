@@ -240,6 +240,7 @@ impl Sim {
         self.render.positions.clear();
         self.render.kinds.clear();
         self.render.sprites.clear();
+        self.render.ids.clear();
 
         // Read before the query, because `Content` is a resource and the
         // query below borrows the world. `ContentPack` is behind a
@@ -266,11 +267,15 @@ impl Sim {
         }
         rows.sort_by_key(|(index, _, _, _, _)| *index);
 
-        for (_, x, y, kind, sprite) in &rows {
+        for (index, x, y, kind, sprite) in &rows {
             self.render.positions.push(*x);
             self.render.positions.push(*y);
             self.render.kinds.push(*kind);
             self.render.sprites.push(*sprite);
+            // The row's occupant, carried across so a click on a row can
+            // name an entity in a command. See `RenderBuffer::ids` for why
+            // the row number will not do.
+            self.render.ids.push(*index);
         }
         self.render.count = rows.len();
 

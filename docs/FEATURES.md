@@ -1,9 +1,19 @@
 # Features
 
-Status: M0 shipped; M1a shipped; M1b partly shipped (the authored lot, the
-command queue and the drawn room); M1c shipped. Everything else is proposed
-scope, not yet agreed in detail. Milestones exist primarily to control [R6],
-which is the risk most likely to actually kill this project.
+Status: M0 shipped; M1a shipped; M1b shipped; M1c shipped. Everything else is
+proposed scope, not yet agreed in detail. Milestones exist primarily to
+control [R6], which is the risk most likely to actually kill this project.
+
+**M1b closed with one item of its deliverable unmet, deliberately recorded
+rather than quietly ticked.** Every definition-of-done line passes, and the
+play session that is the milestone's actual payoff was run and written up -
+but *instrumented* rather than watched, because the agent-driven browser
+never composited a frame ([L14] once more). So the game's behaviour under
+player control is measured and the game's *appearance* is not. The two
+open visual complaints - wall panels that cannot sit flush at 1.8 tile-widths,
+and a sim standing on furniture rather than beside it - are unexamined, and
+`docs/alpha-feel-notes.md` [P1] and [P10] say so. The second of those turns
+out not to be cosmetic; see [P8] there.
 
 The rule: **each milestone must end in something playable.** No milestone is
 allowed to be pure infrastructure with a payoff deferred to the next one.

@@ -17,6 +17,7 @@ import { buildStaticInstances } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
 import { buildTimeControls } from './ui/time-controls.js';
+import { attachPointerInput } from './input.js';
 
 /** [D2]: the simulation's one true rate. Speed controls change how many
  * ticks run per frame, never how long a tick is. */
@@ -65,8 +66,52 @@ const REPORT_INTERVAL_MS = 2000;
 export interface StressHandle {
   readonly timer: FrameTimer;
   readonly entities: number;
-  /** Runs one frame's real work, exactly as the rAF callback would. */
-  step(): void;
+  /**
+   * Runs one frame's real work, exactly as the rAF callback would.
+   *
+   * `nowMs` defaults to `performance.now()`, which is what a **timing**
+   * harness wants: the M0 exit gate measures how long a real frame takes, so
+   * it must not fabricate the clock.
+   *
+   * A **behaviour** harness has the opposite need and the default actively
+   * defeats it. `frame` derives its elapsed time from the gap between
+   * successive `nowMs` values, so stepping in a tight loop passes deltas of
+   * roughly zero, the fixed-step accumulator never fills, and the simulation
+   * advances almost no ticks - while `timer.frames` climbs and the harness
+   * reports hundreds of frames of nothing. That is [L14]'s failure with the
+   * numbers moving instead of frozen, which is the harder version to spot,
+   * and it is what the first run of Task 8's play session did before this
+   * parameter existed.
+   *
+   * So: pass a monotonically increasing `nowMs` when you need the simulation
+   * to actually run, and omit it when you need to know what a frame costs.
+   */
+  step(nowMs?: number): void;
+  /**
+   * The live bridge, and the camera offsets the projection was built with.
+   *
+   * Exposed for the same reason `step` is. [L14] is not only about frame
+   * timing: in an agent-driven browser the tab does not composite, so
+   * nothing that waits on a rendered frame can be verified at all - and a
+   * click is exactly such a thing, because the command it enqueues is only
+   * applied by a tick, and ticks come from the frame loop. Without this,
+   * verifying that a click selects a sim means asking a person to look at a
+   * picture, which is what [L17] cost a session to.
+   *
+   * `origin` is here rather than recomputed by the harness because a second
+   * copy of the camera arithmetic is a harness that can agree with itself
+   * while disagreeing with the game - it would compute a click position from
+   * one camera and the renderer would draw from another, and the test would
+   * fail for a reason that is not in the code under test.
+   *
+   * Present only under `?stress=N`, so the shipping page carries no extra
+   * surface. It is a read-only view plus the command methods the player
+   * already has through the mouse; it is not a back door into the world,
+   * because [D-2] means there is no such thing - everything still goes
+   * through a serialised command.
+   */
+  readonly sim: SimBridge;
+  readonly origin: { readonly x: number; readonly y: number };
 }
 
 declare global {
@@ -118,7 +163,17 @@ async function main(): Promise<void> {
 
   // ?stress=1000 spawns idle filler entities to exercise the M0 exit
   // criterion: p95 frame time at or under 16.6 ms with 1,000 entities.
-  const stress = Number(new URLSearchParams(location.search).get('stress') ?? 0);
+  //
+  // The parameter's PRESENCE is what installs the harness handle, and the
+  // number only says how much filler to add - so `?stress=0` means "give me
+  // the harness on the world the player actually gets". That distinction was
+  // added during Task 8's play session, where filler sims turned out to
+  // contend for object reservations with the real one; measuring input
+  // latency needs a lot with exactly one sim in it, and before this the only
+  // way to get the harness was to add a second sim to the world being
+  // measured.
+  const stressParam = new URLSearchParams(location.search).get('stress');
+  const stress = Number(stressParam ?? 0);
   const spawnStartMs = performance.now();
   for (let i = 0; i < stress; i++) {
     // Hunger 100 starts them satisfied, so they neither path nor eat at
@@ -212,6 +267,12 @@ async function main(): Promise<void> {
   // the content pack, so what is drawn is what `find_path` refuses to
   // walk through. A sim detouring to the doorway is then legible instead
   // of looking like an AI fault.
+  // Clicks, last of the wiring because it needs the camera offsets above.
+  // Left click selects a sim or directs the selected one at an object;
+  // right click hands it back to its own judgement. Every one of those is
+  // a serialised command ([D-2]) - nothing here reaches into the world.
+  attachPointerInput(canvas, sim, originX, originY);
+
   const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles() };
   const staticGeometry = buildStaticInstances(lot, originX, originY, depthScale);
   renderer.setStaticGeometry(staticGeometry.instances, staticGeometry.count);
@@ -248,11 +309,13 @@ async function main(): Promise<void> {
     }
   }
 
-  if (stress > 0) {
+  if (stressParam !== null) {
     globalThis.__terriStress = {
       timer,
       entities: sim.count,
-      step: () => frame(performance.now()),
+      step: (nowMs = performance.now()) => frame(nowMs),
+      sim,
+      origin: { x: originX, y: originY },
     };
   }
 

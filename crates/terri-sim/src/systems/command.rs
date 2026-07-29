@@ -1158,6 +1158,93 @@ mod tests {
         );
     }
 
+    /// Runs whole ticks until `agent` is actually mid-interaction, and
+    /// returns how many that took.
+    ///
+    /// "Mid-interaction" is `Eating`, not "standing on the object's tile".
+    /// The two look identical from outside the simulation and Task 8's play
+    /// session initially conflated them, which made a click on an idle sim
+    /// loitering on a tile look like a click being ignored for twelve
+    /// seconds. They are different states and only one of them is busy.
+    fn tick_until_interacting(sim: &mut Sim, agent: Entity) -> u32 {
+        for elapsed in 1..=200 {
+            sim.tick();
+            if sim.world().get::<Eating>(agent).is_some() {
+                return elapsed;
+            }
+        }
+        panic!("the agent never began an interaction");
+    }
+
+    /// **A click interrupts an interaction that is already running.**
+    ///
+    /// This is the question Task 8's play session raised and could not
+    /// settle from outside: interrupting a sim mid-action measured anywhere
+    /// from 1 to 18 ticks, and the fridge cases clustered suspiciously
+    /// close to its own sampled duration - which is exactly what "the click
+    /// waits politely for the action to finish" would look like.
+    ///
+    /// It does not wait. `serve_intents` removes `Eating` and installs the
+    /// new `Target` and `Path` on the tick the command arrives, and this
+    /// asserts that rather than leaving it as a reading of the source.
+    ///
+    /// **Why it matters beyond responsiveness.**
+    /// `docs/specs/2026-07-29-multi-step-interactions-design.md` [M-4]
+    /// rests on this: if a click preempts, then terminal-only satisfaction
+    /// means a mis-click can destroy a whole cooking chain, and chain
+    /// progress has to be stored state that survives interruption. If a
+    /// click queued instead, that tension would not exist. The design
+    /// depends on which of the two this is, so it is pinned here.
+    ///
+    /// Three assertions, because preemption is three separate effects and a
+    /// partial one is the dangerous outcome: dropping `Eating` without
+    /// re-targeting freezes the sim, and re-targeting without releasing the
+    /// old reservation leaks a claim on the fridge for ever.
+    #[test]
+    fn a_click_preempts_an_interaction_already_running() {
+        let (mut sim, bed, fridge, agent) = scenario();
+
+        let elapsed = tick_until_interacting(&mut sim, agent);
+        assert_eq!(
+            target_of(&sim, agent).map(|t| t.object),
+            Some(fridge),
+            "autonomy must have taken the fridge, or the interruption below \
+             is interrupting nothing"
+        );
+        assert!(
+            elapsed < DURATION,
+            "the fixture must interrupt an interaction with time left on it; \
+             the agent took {elapsed} ticks to start one that lasts {DURATION}"
+        );
+
+        enqueue(
+            &mut sim,
+            SimCommand::UseObject {
+                agent: agent.index_u32(),
+                object: bed.index_u32(),
+            },
+        );
+        sim.tick();
+
+        assert_eq!(
+            target_of(&sim, agent).map(|t| t.object),
+            Some(bed),
+            "a click must retarget a busy sim on the tick it arrives, not \
+             when the sim happens to finish what it was doing"
+        );
+        assert!(
+            sim.world().get::<Eating>(agent).is_none(),
+            "the abandoned interaction must end; an `Eating` left behind \
+             alongside a new Target is a sim that is both walking and using \
+             something"
+        );
+        assert!(
+            sim.world().get::<Reserved>(fridge).is_none(),
+            "the abandoned object must be released, or it stays claimed by \
+             a sim that is never coming back"
+        );
+    }
+
     #[test]
     fn commands_are_applied_once_rather_than_re_applied_on_every_tick() {
         // The drain must EMPTY the queue. Iterating it instead would

@@ -129,6 +129,29 @@ export class SimBridge {
   }
 
   /**
+   * The raw entity index standing in each row.
+   *
+   * **A row number is not an entity index.** Rows are sorted by entity
+   * index, so a row is that entity's rank among the live ones. The two
+   * agree exactly while indices run 0..count with no gaps, which is every
+   * world the game can currently produce - and that is precisely why this
+   * exists rather than being assumed. Picking reads a row and then has to
+   * name that entity in a `select` or `useObject` command; passing the row
+   * number works right up until the first despawn leaves a hole, after
+   * which clicks quietly resolve to the wrong entity.
+   *
+   * Same three-part re-read rule as every accessor here; see the class
+   * comment.
+   */
+  ids(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.ids_ptr(),
+      this.count,
+    );
+  }
+
+  /**
    * Every impassable tile inside the lot, interleaved `[x, y, ...]`.
    *
    * A **copy**, not a view, and called once at load: the renderer keeps

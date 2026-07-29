@@ -262,6 +262,21 @@ impl SimHandle {
         self.sim.render_buffer().sprites.as_ptr()
     }
 
+    /// The raw entity index occupying each row - the number a `Select` or
+    /// `UseObject` command has to carry.
+    ///
+    /// Exported because **a row number is not an entity index**: rows are
+    /// sorted by index, so a row is a rank. See `RenderBuffer::ids` for the
+    /// full argument and for the despawn that ends the coincidence. Picking
+    /// resolves a click to a row and then reads the entity out of here
+    /// rather than assuming the two agree.
+    ///
+    /// Same caching hazard as every other pointer here; re-read it on every
+    /// access.
+    pub fn ids_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().ids.as_ptr()
+    }
+
     /// Stages one player command, given as postcard bytes. Returns
     /// whether it was accepted.
     ///
@@ -912,6 +927,59 @@ mod boundary_tests {
             vec![1, 0],
             "kinds_ptr must address the 0 = agent, 1 = smart object tags, \
              sorted by entity index, so the object spawned first comes first"
+        );
+    }
+
+    /// `ids_ptr` must hand JavaScript a live view of the **id** column.
+    ///
+    /// Found by the mutation sweep rather than by hand: replacing this
+    /// accessor with `Default::default()` - a null pointer straight into a
+    /// `Uint32Array` constructor - survived every other test in this crate,
+    /// because nothing on the Rust side read through it at all.
+    ///
+    /// **What this test covers and what it does not.** The three `u32`
+    /// columns - `ids`, `kinds` and `sprites` - are the same type and the
+    /// same length, so returning the wrong one compiles and type-checks.
+    /// The fixture is one object plus one agent precisely so that all three
+    /// hold *different* values, which is what lets this distinguish them;
+    /// the assertions below therefore catch a null pointer and catch
+    /// `ids_ptr` addressing either sibling array.
+    ///
+    /// It does **not** distinguish an entity index from a row number, because
+    /// the two are equal on any world this crate can build - creating a hole
+    /// in the index space needs a despawn, and that needs `bevy_ecs`, which
+    /// `terri-wasm` deliberately does not depend on. That distinction is
+    /// pinned one layer down instead, by
+    /// `a_row_is_not_its_entity_index_once_an_index_is_freed` in
+    /// `terri-sim`'s `render_buffer` tests, which can despawn. See [L47].
+    #[test]
+    fn ids_ptr_addresses_the_id_column_and_not_a_sibling_u32_column() {
+        let mut handle = SimHandle::new(16, 16);
+        assert!(handle.spawn_object(1.0, 1.0, "sofa"));
+        handle.spawn_agent(2.0, 2.0, 50.0);
+
+        let rows = handle.entity_count();
+        let ids = addressed(handle.ids_ptr(), rows, "ids_ptr");
+        let kinds = addressed(handle.kinds_ptr(), rows, "kinds_ptr");
+        let sprites = addressed(handle.sprites_ptr(), rows, "sprites_ptr");
+
+        assert_ne!(
+            ids, kinds,
+            "the fixture must make the id and kind columns differ, or \
+             returning the kinds array here is invisible"
+        );
+        assert_ne!(
+            ids, sprites,
+            "the fixture must make the id and sprite columns differ, or \
+             returning the sprites array here is invisible"
+        );
+        assert_eq!(
+            ids,
+            vec![0, 1],
+            "ids_ptr must address the entity index of each row, ascending, \
+             so the object spawned first comes first - this is the number a \
+             click becomes in a Select or UseObject command, and a wrong one \
+             directs a different sim"
         );
     }
 

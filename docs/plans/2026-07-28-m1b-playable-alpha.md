@@ -589,32 +589,46 @@ The tick-count half of that test turned out to be vacuous on its own - see [L44]
 **Files:**
 - Create: `web/src/input.ts`
 - Modify: `web/src/main.ts`
+- Modify (added): `crates/terri-sim/src/render_buffer.rs`, `crates/terri-sim/src/lib.rs`, `crates/terri-wasm/src/lib.rs`, `web/src/bridge.ts`
 
-- [ ] **Step 1: Pointer to tile to command**
+- [x] **Step 1: Pointer to tile to command**
 
 `screenToWorld` gives a tile; ask the bridge what is on it; dispatch `Select` for an agent or `UseObject` for an object when an agent is selected.
 
-- [ ] **Step 2: Play it and write down what you find**
+**Two things the step as written would have got wrong.**
+
+**A row is not an entity index.** The render buffer is sorted by entity index and carried no id column, so "ask the bridge what is on that tile" returns a *row*, while `Select` and `UseObject` carry raw indices. The two agree only while indices run 0..count with no gaps, which is every world the game can currently produce - so this would have shipped correct and broken silently at the first despawn. The buffer now carries `ids`, and `a_row_is_not_its_entity_index_once_an_index_is_freed` fails if it ever collapses back to the identity.
+
+**`Math.round`, not `Math.floor`.** `worldToScreen` puts a tile at the *centre* of its floor diamond, so the screen region belonging to a tile is the diamond within half a tile of it. Flooring offsets every pick by half a tile in both axes, which lands dead on near the middle of the lot and one tile out towards the edges - a flaky game rather than a visible bug.
+
+- [x] **Step 2: Play it and write down what you find**
 
 Run the app and use it for several minutes. **Write observations to `docs/alpha-feel-notes.md`**: does the sim read as having priorities or as erratic? Does it thrash between objects? Does directing it feel responsive? Does anything about the decision-making look wrong in a way the tests would not catch?
 
 **This is the milestone's actual deliverable.** The code is the means; the notes are the point. Be specific and do not flatter it.
 
-- [ ] **Step 3: Full gate, mutation sweep, commit**
+Written up as the `M1b Task 8` section of `docs/alpha-feel-notes.md`, appended to M1c's pass rather than replacing it. The headline findings:
+
+- Directing a free sim is instant, 0.2 to 1 tick ([P5]), and a click preempts a running interaction on the tick it arrives ([P6], now a Rust test because it could not be settled from outside the simulation).
+- **A click can be silently discarded and nothing can detect it** ([P7]). `max_queued_intents` is enforced *inside* `drain_commands`, one tick after `enqueue_command` has already returned `true`, so there is no return path for the refusal. Eight rapid clicks were all accepted and four thrown away.
+- **A sim using an object and a sim loitering on its tile are the same picture** ([P8]). That corrupted this session's first measurement pass, and a player is in exactly the same position. It is the user-reported furniture-overlap complaint seen from the simulation side, and multi-step interactions make it structural rather than cosmetic.
+- The **visual** pass is not done ([P1], [P10]): the Browser pane was never displayed, so nothing composited and no frame was ever presented.
+
+- [x] **Step 3: Full gate, mutation sweep, commit**
 
 ---
 
 ## Definition of done
 
-- [ ] Five needs drive behaviour; the sim visibly changes priority as they compete
-- [ ] Eight objects, all content-authored; the lot including walls is in `content/`
-- [ ] Need bars for every need on the selected sim
-- [ ] Pause, 1x, 2x, 3x as tick multipliers, pinned by a test
-- [ ] Click selects a sim; click directs it to an object
-- [ ] **Every player action crosses as a serialised command**, drained at a fixed tick step
-- [ ] **A recorded command sequence replays to the same world hash**
-- [ ] Full gate passes; no new mutation survivors without a written argument
-- [ ] `docs/alpha-feel-notes.md` written from actually playing it
+- [x] Five needs drive behaviour; the sim visibly changes priority as they compete
+- [x] Eight objects, all content-authored; the lot including walls is in `content/`
+- [x] Need bars for every need on the selected sim
+- [x] Pause, 1x, 2x, 3x as tick multipliers, pinned by a test
+- [x] Click selects a sim; click directs it to an object
+- [x] **Every player action crosses as a serialised command**, drained at a fixed tick step
+- [x] **A recorded command sequence replays to the same world hash**
+- [x] Full gate passes; no new mutation survivors without a written argument
+- [x] `docs/alpha-feel-notes.md` written from actually playing it - **with one gap stated in it**: the session was instrumented rather than watched, because the Browser pane never composited ([P1]), so nothing about how the game *looks* was judged
 
 ## Out of scope
 

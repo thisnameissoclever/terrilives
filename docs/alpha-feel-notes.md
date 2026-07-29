@@ -435,3 +435,158 @@ ever climbs.
   for exactly the floor with no variance, and delivered up to 3x their
   advertised benefit. The floor is now 12 ticks and the fridge delivers
   what it advertises; the sink still cannot ([F6], [C1]).
+
+---
+
+# M1b Task 8: Directing a Sim
+
+A second session, appended rather than replacing the M1c pass above. That
+one asked whether the sim's *own* decisions read well. This one asks whether
+**taking control of it** feels like anything, which is the question M1b was
+built to answer.
+
+Same rule as above: nothing here is a test result, and where a claim has a
+number behind it the number is given.
+
+## How this was observed
+
+**[P1] The Browser pane was never displayed, so nothing composited.** That
+is [L14] again and it is not a footnote: with no compositing there is no
+`requestAnimationFrame`, with no rAF there are no frames, with no frames
+there are no ticks, and with no ticks a command sits in the staging queue
+for ever. A click cannot be verified by clicking and looking.
+
+So the session drove the real frame body directly through the `?stress`
+harness, dispatching **real `MouseEvent`s at real canvas coordinates** into
+the real listeners, against the real WASM simulation, and read the result
+out of simulation state rather than off the screen. Every number below comes
+from that. Two things had to change before it worked, and both are worth
+recording because both produced convincing wrong answers first:
+
+- **[P2] `step()` fabricated its own clock.** It read `performance.now()`
+  internally, so stepping in a loop passed deltas of roughly zero, the
+  fixed-step accumulator never filled, and the simulation advanced almost
+  nothing while `timer.frames` climbed to 250. The first run of this session
+  reported that *every* click was ignored and the sim was frozen. Both were
+  artefacts. `step(nowMs?)` now lets a behaviour harness supply a monotonic
+  clock, and the default is unchanged so the M0 timing gate still measures a
+  real frame. This is [L14]'s failure mode with the numbers *moving*, which
+  is materially harder to spot than the frozen version.
+- **[P3] The harness required a second sim to exist.** The handle was gated
+  on `?stress=N` with `N > 0`, so the only way to get it was to add filler
+  agents - which contend for object reservations with the sim being
+  measured. The gate is now the parameter's *presence*, so `?stress=0` gives
+  the harness on the world the player actually gets.
+
+**What this session therefore cannot say anything about: how it looks.** The
+wall seams, the sim standing on furniture rather than beside it, and the
+general readability of the scene are all unexamined here, because no frame
+was ever presented. That needs a displayed pane and a human.
+
+## What works
+
+**[P4] Every binding does what it says, verified against simulation state.**
+Clicking a sim sets `Selected` on that sim and opens the need panel;
+clicking an object makes the selected sim walk to it; clicking bare floor
+clears the selection; right-clicking hands the sim back to autonomy. The
+cancel is the most legible of the four: a sim walking east under orders
+(x = 2.0 to 5.75) reversed and went back west to x = 1.0 after the right
+click, which reads unmistakably as being released rather than as stopping.
+
+**[P5] Directing a free sim is effectively instant: 0.2 to 1 tick.** Across
+four measurements the first position change came 1 to 6 frames after the
+click - 20 to 100 ms - which is at most one tick, the soonest anything can
+happen by construction. There is no input lag to chase here.
+
+**[P6] A click preempts an interaction already running, on the tick it
+arrives.** This one is *not* a measurement, deliberately - it is now
+`a_click_preempts_an_interaction_already_running` in
+`crates/terri-sim/src/systems/command.rs`, because from outside the
+simulation it was indistinguishable from its opposite (see [P8]) and because
+the multi-step interaction design depends on which of the two it is.
+`docs/specs/2026-07-29-multi-step-interactions-design.md` [M-4] argues that
+terminal-only satisfaction plus immediate preemption means a mis-click can
+destroy a whole cooking chain, and therefore that chain progress must be
+stored state. That argument rests on preemption being real. It is.
+
+## What does not work
+
+**[P7] A click can be discarded with no way for anything to know - and it
+is reachable with a mouse.** This is the session's one real finding.
+
+There are two caps and they fail differently. `max_queued_commands` (64)
+bounds the WASM staging queue and `enqueue_command` returns `false` when it
+refuses, so that one is at least *observable*. `max_queued_intents` (4)
+bounds what one sim may be told to do, and it is enforced **inside
+`drain_commands`**, one tick later, by an `if queue.len() < cap` that drops
+the intent and returns nothing to anybody.
+
+Measured: eight `useObject` calls in one burst were **all eight accepted**
+by the bridge - every one returned `true` - and four of them were then
+thrown away silently. The boolean the shell gets back reports that the
+*command* was staged, not that the *instruction* survived. There is no
+return path from the drain to the shell, so this is not something the shell
+is failing to check; it is a channel that does not exist.
+
+`content/tuning.toml` names this exact outcome as the thing to avoid, in its
+own words: the fifth rapid click "does nothing at all, and a click that does
+nothing is the exact failure [D-3] exists to prevent." It is now reachable
+by leaning on the mouse.
+
+Worth adding: `input.ts` currently discards the return value of every
+command it sends, so even the *observable* half - a full staging queue,
+which is easiest to reach while paused, since nothing drains at speed 0 - is
+thrown away. Fixing that is a small change and fixes the smaller half of the
+problem. The larger half needs a decision rather than a patch: either the
+drain reports refusals back across the boundary, or the shell stops being
+able to over-promise by refusing the click itself at the cap.
+
+**[P8] From outside the simulation, a sim *using* an object and a sim
+*loitering on* an object's tile are the same picture, and it corrupted the
+first pass of this session.** Position is all the render buffer exports, and
+both states put the sim on the same tile at the same integer coordinates.
+Classifying "busy" as "standing on an object tile" produced click latencies
+of 2, 4, 4, 5, 14, 16, 43 and **124 ticks** - up to 12.4 real seconds - and
+the natural conclusion was that clicks on a busy sim were being ignored for
+a very long time. That conclusion was wrong; the sim in those cases was
+idle, and what varied was something else entirely.
+
+Two consequences, and the second is the important one:
+
+- The measurement had to be redone against a need actually *rising*, which
+  is the only externally visible sign of an interaction.
+- **A player is in exactly the same position as the harness was.** A sim
+  standing on the sofa looks identical whether it is using the sofa or has
+  finished and not moved. This is the user-reported "sim overlaps the
+  furniture" problem seen from the simulation side rather than the rendering
+  side, and it stops being cosmetic here: multi-step interactions are a
+  *sequence* of steps at different objects, so "which step is this sim on"
+  becomes something the player has to be able to read. An idle pose, an
+  adjacent standing tile, or a progress indicator - one of them becomes
+  necessary rather than nice.
+
+## Left open
+
+**[P9] Whether the sim thrashes between objects is still unmeasured.** The
+attempt logged which object tiles the sim stood on, which counts *walking
+over* a tile as visiting it - on a 14 x 10 lot with four objects in a row
+along y = 1, a single traverse registers as three visits. The trace read
+`2, 1, 0, 1, 2, 3, 7, 5` for a queue of `0..7`, which is unreadable: it
+mixes queued intents, autonomous choices made after the queue drained, and
+tiles merely crossed. Answering it needs the interaction *start* to be
+observable, which is the same gap [P8] describes.
+
+**[P10] The visual pass.** Unexamined, per [P1].
+
+## The one-line answer to each question the task asked
+
+- **Does directing it feel responsive?** On a free sim, yes - 20 to 100 ms,
+  at most one tick ([P5]). On a busy sim it interrupts immediately too
+  ([P6]). The responsiveness problem is not latency; it is that the fifth
+  click in a burst is silently discarded ([P7]).
+- **Does anything about the decision-making look wrong in a way the tests
+  would not catch?** Yes, and it was caught the hard way: nothing in the
+  render buffer distinguishes a sim working from a sim standing about, so
+  neither a test nor a player can tell them apart ([P8]).
+- **Does it thrash between objects?** Not answered, and the note says so
+  rather than guessing ([P9]).

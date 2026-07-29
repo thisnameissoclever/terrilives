@@ -2332,3 +2332,131 @@ measurement.
 `Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, 'width')`
 returns `undefined`, and walking `Object.getPrototypeOf(document.body.style)`
 to the top finds no own `width` descriptor on any link of the chain.
+
+---
+
+## [L46] A harness that supplies its own clock measures nothing, and the frame counter still climbs
+
+**What happened:** M1b Task 8's play session drove the frame loop through
+`__terriStress.step()` in a tight loop, 250 times, and reported that every
+click was ignored and the sim was frozen at one position. Both conclusions
+were false. `step()` called `performance.now()` internally, so successive
+calls passed deltas of roughly zero milliseconds, the fixed-step accumulator
+never reached one step, and the simulation advanced almost no ticks. The
+commands were sitting in the staging queue because nothing was draining it.
+
+**Root cause:** the same family as [L14], with one crucial difference.
+[L14] is "the frame callback never fires, so the counter reads zero and the
+harness reports a flawless p95 over no data" - a *frozen* instrument, and
+`timer.frames` was added specifically so a zero would be visible. Here the
+counter climbed to 250. A moving counter reads as a working harness, so the
+tell that saved [L14] was absent. The instrument was not stopped; it was
+running on a clock that never advanced.
+
+Worth naming precisely: `frame(nowMs)` derives elapsed time from the *gap*
+between calls, so a harness that supplies the wall clock and a harness that
+supplies nothing are the same thing when the harness is faster than the
+wall clock. Real rAF works only because the browser spaces the calls.
+
+**Prevention rule:**
+
+1. **A behaviour harness must own the clock; a timing harness must not.**
+   These are opposite requirements and one function cannot default to both.
+   `step(nowMs?)` now takes an optional timestamp: omit it to measure what a
+   frame costs, pass a monotonic sequence to make the simulation actually
+   run.
+2. **Never accept a frame count as evidence that a simulation advanced.**
+   They are different quantities and this is the case that separates them.
+   Assert on something the simulation owns - the tick count, the clock
+   resource, or a need level that must have decayed.
+3. A harness's first assertion should be that its subject *moved*. This
+   session's first run would have failed instantly on "the sim's position
+   after N steps differs from its position before".
+
+**How to verify:** call `step()` in a loop with no delay and read a need
+level before and after. With the clock defaulted it barely changes; with a
+monotonic `nowMs` at 16.67 ms per step it decays at the tuned rate.
+
+---
+
+## [L47] A mapping that is the identity by coincidence is a bug with a scheduled arrival date
+
+**What happened:** picking a clicked entity means finding the render-buffer
+row standing on a tile and then naming that entity in a `Select` or
+`UseObject` command. The buffer is sorted by entity index and carried no id
+column, so the row number was the only thing available - and it is correct,
+exactly, for as long as live entity indices run `0..count` with no gaps.
+Nothing in the shipped game despawns, so that held on every world a player
+could produce. It would have gone in green.
+
+**Root cause:** the coincidence is load-bearing and invisible. Row number and
+entity index are both `u32`, both are indices, and they are equal in every
+test anyone would naturally write - so no type error, no failing assertion,
+and no wrong behaviour until the first despawn leaves a hole. After that,
+every click past the hole selects or directs *a different live entity*, which
+is the worst available failure: not a crash, not a no-op, but a plausible
+wrong answer.
+
+M1d adds death. The expiry date was already on the calendar.
+
+**Prevention rule:**
+
+1. **When two identifier spaces coincide, export the mapping rather than
+   relying on the coincidence.** `RenderBuffer::ids` costs one `u32` per
+   entity and removes the whole class.
+2. **A fixture for a mapping must break the coincidence**, or it cannot see
+   the identity mutation. `a_row_is_not_its_entity_index_once_an_index_is_freed`
+   despawns the *second* of four entities on purpose: despawning the last
+   would leave rows 0..2 still equal to indices 0..2, and the test would pass
+   against `push(row_number)`. It asserts `ids != [0, 1, 2]` first, as a
+   precondition, so it cannot go quietly green if entity-index reuse ever
+   closes the hole. This is [L34] applied before the fact rather than after.
+3. Ask of any index crossing a boundary: **whose numbering is this, and what
+   makes it survive the other side's edits?**
+
+**How to verify:** replace `ids[row]` with `row` in `pickAt` and the web
+suite fails; replace `push(*index)` with a row counter in
+`sync_render_buffer` and the Rust test fails.
+
+---
+
+## [L48] Two different states that render identically will be conflated by the measurement as readily as by the player
+
+**What happened:** measuring how fast a click retargets a *busy* sim needed a
+way to tell a busy sim from a free one. Position is all the render buffer
+exports, and a sim using an object stands on that object's tile - so "busy"
+was classified as "standing on an object's tile". The resulting latencies ran
+2, 4, 4, 5, 14, 16, 43 and 124 ticks, up to 12.4 real seconds, and supported
+a confident and completely wrong conclusion: that clicks on a working sim are
+ignored for a very long time.
+
+The sim in those cases was **idle**, standing on a tile it had finished with.
+Re-measured against a need actually *rising* - the only externally visible
+sign of an interaction - interrupting a genuinely busy sim takes 1 to 18
+ticks, and a Rust test now pins that a click preempts on the tick it arrives.
+
+**Root cause:** the two states are one picture. Nothing in the exported state
+distinguishes "using the sofa" from "standing on the sofa having finished",
+so any classifier built from exported state must conflate them. The error was
+not the arithmetic; it was believing an observable existed.
+
+**Prevention rule:**
+
+1. **Before measuring a state, name the observable that distinguishes it from
+   its neighbours** - and if there isn't one, that absence is the finding.
+   Here it is a real finding: a player cannot tell either, and multi-step
+   interactions turn "which step is this sim on" into something the player
+   must be able to read.
+2. **Prefer a simulation-side test to an outside-in measurement for a
+   simulation question.** The preemption question took hours from the outside
+   and produced the wrong answer; from inside it is one deterministic test
+   with three assertions and no timing at all.
+3. Treat a wide spread in a latency measurement as a **classifier** problem
+   before treating it as a *subject* problem. A 60x range (2 to 124) across
+   supposedly identical conditions means the conditions were not identical.
+
+**How to verify:** `a_click_preempts_an_interaction_already_running` in
+`crates/terri-sim/src/systems/command.rs` asserts the retarget, the dropped
+`Eating` and the released `Reserved` on the tick the command arrives. Its
+`tick_until_interacting` helper is the distinction the outside-in pass
+lacked.
