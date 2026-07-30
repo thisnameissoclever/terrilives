@@ -15,7 +15,7 @@ pub use components::{
     Agent, Eating, Habituation, Intent, IntentQueue, Path, Position, Reserved, Restless, Selected,
     SmartObject, Target, Wander,
 };
-pub use grid::TileGrid;
+pub use grid::{Footprint, TileGrid};
 pub use hash::FnvHasher;
 pub use ids::ObjectDefId;
 pub use needs::{NeedId, Needs, NEED_COUNT, NEED_MAX, NEED_MIN};

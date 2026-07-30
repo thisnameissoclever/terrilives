@@ -127,13 +127,27 @@ impl SimHandle {
     /// y1, ...]`, so the renderer can draw the walls the sim paths
     /// around.
     ///
-    /// Read off the `TileGrid` rather than off `pack().lot.walls`, and
-    /// that is the point rather than an implementation detail: the grid
-    /// is what `find_path` consults, so what this returns is what the
-    /// simulation actually treats as solid. Reading the content list
-    /// instead would let the two drift, and the drift would look like a
-    /// sim detouring around nothing - which is exactly the class of
-    /// confusion drawing walls exists to remove.
+    /// **Read off the authored wall list, NOT off the `TileGrid`, and that
+    /// reverses an earlier decision for a reason worth recording.**
+    ///
+    /// It used to read the grid, on the argument that the grid is what
+    /// `find_path` consults - so what got drawn was what the simulation
+    /// treats as solid, and the two could not drift into a sim detouring
+    /// around nothing.
+    ///
+    /// Object footprints broke that argument by putting a second KIND of
+    /// impassable tile in the grid. Furniture is now blocked there too, and
+    /// furniture draws its own sprite. Measured on the shipped lot the
+    /// moment footprints landed: this returned **17 tiles instead of 8**,
+    /// and the renderer would have painted a 98 px wall sprite on top of
+    /// every one of the nine object tiles.
+    ///
+    /// So the question this answers had to narrow, from "what is solid" to
+    /// "what is a wall". The original concern is still real and is now
+    /// covered by a test rather than by the implementation:
+    /// `every_reported_wall_is_actually_impassable` asserts the drawn walls
+    /// are a subset of the blocked tiles, so a wall that content declares
+    /// and pathing ignores still fails.
     ///
     /// It copies, unlike the render pointers, because it is called once
     /// at load and the caller keeps the result for the session. A zero-
@@ -145,15 +159,11 @@ impl SimHandle {
     /// existing to report. The renderer draws that separately, from the
     /// lot's dimensions.
     pub fn wall_tiles(&self) -> Vec<u32> {
-        let grid = self.sim.world().resource::<TileGrid>();
-        let mut tiles = Vec::new();
-        for y in 0..grid.height() {
-            for x in 0..grid.width() {
-                if !grid.is_walkable(x as i32, y as i32) {
-                    tiles.push(x as u32);
-                    tiles.push(y as u32);
-                }
-            }
+        let lot = &self.sim.world().resource::<Content>().0.lot;
+        let mut tiles = Vec::with_capacity(lot.walls.len() * 2);
+        for &(x, y) in &lot.walls {
+            tiles.push(x);
+            tiles.push(y);
         }
         tiles
     }
@@ -1014,6 +1024,83 @@ mod boundary_tests {
         );
     }
 
+    /// **Every reported wall is genuinely impassable**, which is the half of
+    /// the old contract worth keeping.
+    ///
+    /// `wall_tiles` used to be read straight off the `TileGrid`, so this was
+    /// true by construction and needed no test. It now reads the authored wall
+    /// list, which can drift from the grid - and the drift would look like a sim
+    /// detouring around nothing, or walking through a wall it can see. So the
+    /// property moves from the implementation into an assertion.
+    ///
+    /// Subset, not equality: the grid is deliberately a superset now, because
+    /// object footprints are impassable too and draw their own sprites.
+    #[test]
+    fn every_reported_wall_is_actually_impassable() {
+        let handle = SimHandle::from_lot();
+        let tiles = handle.wall_tiles();
+        assert!(!tiles.is_empty(), "an empty list would assert nothing");
+
+        let grid = handle.sim.world().resource::<TileGrid>();
+        for pair in tiles.chunks_exact(2) {
+            let (x, y) = (pair[0] as i32, pair[1] as i32);
+            assert!(
+                !grid.is_walkable(x, y),
+                "({x}, {y}) is drawn as a wall but the simulation would let a \
+                 sim walk through it"
+            );
+        }
+    }
+
+    /// **No object tile is reported as a wall**, which is the half that broke.
+    ///
+    /// The moment footprints made furniture impassable, reading walls off the
+    /// grid returned 17 tiles for the shipped lot instead of 8 - the 8 authored
+    /// walls plus all 9 tiles covered by the 8 objects, one of which is the
+    /// bed's second tile. The renderer would have drawn a 98 px wall sprite on
+    /// top of every piece of furniture in the house.
+    ///
+    /// Nothing else could see it: the Rust and web tests both compared the
+    /// export against the grid, which is what had changed underneath them.
+    #[test]
+    fn no_object_footprint_tile_is_reported_as_a_wall() {
+        let handle = SimHandle::from_lot();
+        let walls: std::collections::BTreeSet<(u32, u32)> = handle
+            .wall_tiles()
+            .chunks_exact(2)
+            .map(|p| (p[0], p[1]))
+            .collect();
+
+        let pack = handle.sim.world().resource::<Content>().0;
+        let mut covered = 0usize;
+        for placement in &pack.lot.placements {
+            let object = pack.object(placement.object);
+            let footprint = object.footprint;
+            for dx in 0..footprint.width {
+                for dy in 0..footprint.depth {
+                    let tile = (
+                        placement.x.round() as u32 + dx,
+                        placement.y.round() as u32 + dy,
+                    );
+                    covered += 1;
+                    assert!(
+                        !walls.contains(&tile),
+                        "{:?} is covered by '{}' but is drawn as a wall",
+                        tile,
+                        object.id
+                    );
+                }
+            }
+        }
+        // The precondition: there ARE object tiles, and at least one object is
+        // wider than a single tile - otherwise the multi-tile half of this is
+        // untested and the whole thing could pass on an empty lot.
+        assert!(
+            covered > 8,
+            "expected more tiles than objects; got {covered}"
+        );
+    }
+
     #[test]
     fn wall_tiles_reports_the_blocked_tiles_of_the_shipped_lot_and_only_those() {
         // The shipped lot, because the point of this export is that the
@@ -1029,31 +1116,39 @@ mod boundary_tests {
              page would draw none of them"
         );
 
-        // Against the grid rather than against `lot.toml`, because the
-        // grid is what `find_path` consults and therefore what the
-        // renderer has to agree with.
-        let grid = handle.sim.world().resource::<TileGrid>();
-        let mut blocked = 0;
-        for y in 0..grid.height() {
-            for x in 0..grid.width() {
-                let listed = pairs.contains(&(x as u32, y as u32));
-                assert_eq!(
-                    listed,
-                    !grid.is_walkable(x as i32, y as i32),
-                    "({x}, {y}) is {} in the grid and {} in wall_tiles",
-                    if grid.is_walkable(x as i32, y as i32) {
-                        "walkable"
-                    } else {
-                        "blocked"
-                    },
-                    if listed { "listed" } else { "absent" }
-                );
-                if listed {
-                    blocked += 1;
-                }
-            }
-        }
-        assert_eq!(blocked, pairs.len(), "wall_tiles must not repeat a tile");
+        // **Against the authored wall list, not against the grid, and this
+        // assertion was inverted deliberately.**
+        //
+        // It used to require the export and the grid's blocked set to be
+        // EQUAL, which held while walls were the only impassable thing.
+        // Footprints made furniture impassable too, and the equality then
+        // demanded the renderer draw a wall on every object - which is exactly
+        // what it started doing, 17 tiles instead of 8. The subset direction is
+        // pinned by `every_reported_wall_is_actually_impassable` and the
+        // furniture direction by `no_object_footprint_tile_is_reported_as_a_wall`;
+        // between them they say everything the equality used to, minus the part
+        // that was wrong.
+        let pack = handle.sim.world().resource::<Content>().0;
+        let authored: Vec<(u32, u32)> = pack.lot.walls.clone();
+        assert_eq!(
+            pairs, authored,
+            "the export must be exactly the authored wall list, in order"
+        );
+        assert!(
+            !authored.is_empty(),
+            "the shipped lot has interior walls; an empty list would make \
+             every assertion here vacuous"
+        );
+
+        // No tile twice. The old version got this from the grid scan; stated
+        // directly now, because the authored list is a `Vec` and nothing
+        // upstream forbids a duplicate entry.
+        let unique: std::collections::BTreeSet<(u32, u32)> = pairs.iter().copied().collect();
+        assert_eq!(
+            unique.len(),
+            pairs.len(),
+            "wall_tiles must not repeat a tile"
+        );
 
         // The doorway, stated positively as well. A wall list that
         // included it would draw the bathroom sealed while the sim walked

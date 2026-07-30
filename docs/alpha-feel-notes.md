@@ -853,6 +853,23 @@ declare a width and depth in tiles, which is also what build mode will need in
 order to stop the player putting two things in the same place. Worth its own
 task, and it is not the cause of the reported jaggedness.
 
+**Resolved, 2026-07-30.** `content/objects.toml` takes an optional
+`footprint = { width = N, depth = N }` per object, defaulting to 1x1; the tiles
+it covers are impassable; `TileGrid::find_path_adjacent` targets the rectangle,
+with its heuristic changed to the Manhattan distance to the rectangle's nearest
+tile so the optimality argument in its own docs still holds; and three build-time
+rules reject overlapping footprints, footprints crossing a wall or the lot edge,
+and a lot an object has split into unreachable regions. The decisions are in
+`docs/specs/2026-07-30-object-footprints-design.md`.
+
+**Only the bed is declared multi-tile so far, at 2x1.** The corner sofa measured
+above is the worse offender at 2.4 tiles and is still 1x1, because widening it
+is a lot-layout change rather than a one-line content edit: the shipped lot was
+authored against one-tile objects, and re-siting furniture to fit real
+rectangles is a separate task. The build gate now makes that visible instead of
+silent - a footprint that does not fit fails the build rather than drawing over
+a tile it does not own.
+
 Separately, [C4]'s complaint that the television reads as a flat plank is **not**
 a scaling error - at 59 x 60 it is proportioned like what it is, a TV cabinet
 rather than a screen. That is an asset-choice problem and no projection change

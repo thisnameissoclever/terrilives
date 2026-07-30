@@ -172,26 +172,61 @@ impl Sim {
     }
 
     /// Creates a sim holding a compiled lot: the grid sized to it, its
-    /// walls marked unwalkable, and every placed object spawned.
+    /// walls **and every placed object's footprint** marked unwalkable, and
+    /// every placed object spawned.
     ///
     /// This is what makes `content/lot.toml` reach the game. Everything
     /// it reads is post-validation, so nothing here re-checks it:
     /// `terri-data`'s `compile` rejects a wall or a placement outside the
-    /// lot, and `build.rs` runs that validation over the shipped content
-    /// at build time, so a pack that exists cannot hold either. That is
-    /// what lets `set_blocked` be called without a bounds test - it
-    /// asserts, and an assertion firing here would mean the content gate
-    /// had been removed rather than that this function needs a guard.
+    /// lot, a footprint that leaves it or crosses a wall, two footprints
+    /// that overlap, and an object nothing can walk up to; and `build.rs`
+    /// runs that validation over the shipped content at build time, so a
+    /// pack that exists cannot hold any of them. That is what lets
+    /// `set_blocked` be called without a bounds test - it asserts, and an
+    /// assertion firing here would mean the content gate had been removed
+    /// rather than that this function needs a guard.
     ///
-    /// The lot is passed in rather than read from `terri_data::pack()` so
-    /// a test can build one, for the same reason [`Content`] is a
-    /// resource rather than a direct call into the content crate.
-    pub fn new_from_lot(lot: &terri_data::CompiledLot) -> Self {
+    /// **Footprint tiles are blocked rather than merely used for adjacency**,
+    /// which is [F3]. Leaving them walkable would be cheaper and would leave
+    /// sims pathing straight through the furniture, which is the defect
+    /// footprints exist to fix wearing a different hat; blocking them is
+    /// also what makes "two objects cannot overlap" enforceable at all. The
+    /// risk it creates - an object in a doorway sealing a room - is what
+    /// [F5]'s reachability rule exists to catch, and it catches it at build
+    /// time rather than here.
+    ///
+    /// **`objects` is needed because a footprint is a property of the object
+    /// DEFINITION, not of the placement.** A placement carries an
+    /// `ObjectDefId`, so the extent has to be looked up; the alternative -
+    /// copying each footprint into `CompiledPlacement` - would put the same
+    /// fact in the pack twice with nothing to disambiguate the copies.
+    ///
+    /// Both are passed in rather than read from `terri_data::pack()` so a
+    /// test can build them, for the same reason [`Content`] is a resource
+    /// rather than a direct call into the content crate.
+    pub fn new_from_lot(
+        lot: &terri_data::CompiledLot,
+        objects: &[terri_data::CompiledObject],
+    ) -> Self {
         let mut sim = Self::new();
 
         let mut grid = terri_core::TileGrid::new(lot.width as usize, lot.height as usize);
         for &(x, y) in &lot.walls {
             grid.set_blocked(x as usize, y as usize, true);
+        }
+
+        for placement in &lot.placements {
+            // The tile the object stands in is the tile its coordinates fall
+            // in, which for a non-negative `f32` is the truncating cast. Same
+            // rule `compile_lot` applies when it validates the rectangle, so
+            // the tiles blocked here are exactly the tiles it checked.
+            let (tile_x, tile_y) = (placement.x as u32, placement.y as u32);
+            let footprint = objects[placement.object.0 as usize].footprint;
+            for y in tile_y..tile_y + footprint.depth {
+                for x in tile_x..tile_x + footprint.width {
+                    grid.set_blocked(x as usize, y as usize, true);
+                }
+            }
         }
         sim.world.insert_resource(grid);
 
@@ -216,7 +251,8 @@ impl Sim {
     /// out of its manifest keeps its dependency list as small as the [D1]
     /// purity rule can make it.
     pub fn new_from_shipped_lot() -> Self {
-        Self::new_from_lot(&terri_data::pack().lot)
+        let pack = terri_data::pack();
+        Self::new_from_lot(&pack.lot, &pack.objects)
     }
 
     pub fn tick(&mut self) {
@@ -503,8 +539,37 @@ mod lot_tests {
     //! read untestable.
 
     use super::*;
-    use terri_core::{Position, SmartObject, TileGrid};
-    use terri_data::{CompiledLot, CompiledPlacement, ObjectDefId};
+    use terri_core::{Footprint, Position, SmartObject, TileGrid};
+    use terri_data::{CompiledLot, CompiledObject, CompiledPlacement, ObjectDefId};
+
+    /// The definitions the fixture lots' placements point at, with
+    /// `footprints[i]` belonging to `ObjectDefId(i)`.
+    ///
+    /// Three, because the fixtures place `ObjectDefId(2)` and a two-entry
+    /// list would make that index a panic rather than a lookup. Index 1 is
+    /// placed by nothing and is deliberately given an absurd rectangle by
+    /// the callers below, so an implementation that looked a footprint up by
+    /// the placement's POSITION in the list rather than by the id it names
+    /// blocks a visibly wrong region instead of coincidentally the right one.
+    fn object_defs(footprints: [Footprint; 3]) -> Vec<CompiledObject> {
+        footprints
+            .iter()
+            .enumerate()
+            .map(|(index, footprint)| CompiledObject {
+                id: format!("object_{index}"),
+                name: format!("Object {index}"),
+                sprite: 0,
+                interactions: Vec::new(),
+                footprint: *footprint,
+            })
+            .collect()
+    }
+
+    /// Every object one tile, which is what the three mapping tests below
+    /// were written against and what all but one shipped object still is.
+    fn one_tile_defs() -> Vec<CompiledObject> {
+        object_defs([Footprint::SINGLE; 3])
+    }
 
     /// A 6x4 lot: wider than it is tall, so a transposed `TileGrid::new`
     /// is visible; walls whose transposes and cross products are free, so
@@ -549,7 +614,7 @@ mod lot_tests {
 
     #[test]
     fn new_from_lot_sizes_the_grid_to_the_lot_rather_than_transposing_it() {
-        let sim = Sim::new_from_lot(&a_lot());
+        let sim = Sim::new_from_lot(&a_lot(), &one_tile_defs());
         let grid = sim.world().resource::<TileGrid>();
 
         assert_eq!(grid.width(), 6);
@@ -560,10 +625,15 @@ mod lot_tests {
         assert!(!grid.is_walkable(3, 5), "(3, 5) is outside a 6x4 lot");
     }
 
+    /// Renamed from `..._and_only_those` when footprints arrived: walls are
+    /// no longer the only blocked tiles, since [F3] blocks every footprint
+    /// tile as well. The four tiles asserted walkable below are chosen clear
+    /// of both objects, so the mutation this kills is unchanged - a
+    /// transposed or single-coordinate `set_blocked`.
     #[test]
-    fn new_from_lot_blocks_every_declared_wall_and_only_those() {
+    fn new_from_lot_blocks_every_declared_wall_and_not_its_transpose() {
         let lot = a_lot();
-        let sim = Sim::new_from_lot(&lot);
+        let sim = Sim::new_from_lot(&lot, &one_tile_defs());
         let grid = sim.world().resource::<TileGrid>();
 
         assert!(!lot.walls.is_empty(), "a lot with no walls blocks nothing");
@@ -586,10 +656,123 @@ mod lot_tests {
         }
     }
 
+    /// The one-tile half of [F3]: a placement's own tile is impassable, so a
+    /// sim paths round the furniture rather than through it.
+    #[test]
+    fn new_from_lot_blocks_the_tile_every_object_stands_on() {
+        let sim = Sim::new_from_lot(&a_lot(), &one_tile_defs());
+        let grid = sim.world().resource::<TileGrid>();
+
+        // The two placements are at (2.5, 1.25) and (4.0, 3.5), so their
+        // tiles are (2, 1) and (4, 3) - fractional on purpose, so a tile
+        // taken from the raw coordinate rather than its floor is visible.
+        assert!(
+            !grid.is_walkable(2, 1),
+            "the object at (2.5, 1.25) sits on (2, 1)"
+        );
+        assert!(
+            !grid.is_walkable(4, 3),
+            "the object at (4.0, 3.5) sits on (4, 3)"
+        );
+        // And their transposes, so a swapped pair is visible here too.
+        assert!(grid.is_walkable(1, 2), "(1, 2) is (2, 1) transposed");
+        assert!(
+            grid.is_walkable(3, 0),
+            "(3, 0) is a wall's cross product, not an object"
+        );
+    }
+
+    /// A 7x5 lot holding ONE object at the fractional coordinates
+    /// `(2.5, 1.25)`, so its origin tile is `(2, 1)`, plus one wall well
+    /// clear of it at `(6, 0)` so walls and footprints are seen to coexist.
+    ///
+    /// Purpose-built rather than `a_lot` widened, because every tile around
+    /// the rectangle has to be free for the test below to assert it walkable,
+    /// and in `a_lot` the tile below the second column is a wall - which
+    /// would make "a 2x1 is one tile deep" pass for the wrong reason.
+    fn a_wide_lot() -> CompiledLot {
+        CompiledLot {
+            width: 7,
+            height: 5,
+            walls: vec![(6, 0)],
+            placements: vec![CompiledPlacement {
+                object: ObjectDefId(2),
+                x: 2.5,
+                y: 1.25,
+            }],
+        }
+    }
+
+    /// **A 2x1 footprint blocks BOTH of its tiles**, and every other
+    /// assertion in this module is satisfied by an implementation that blocks
+    /// only the origin - which is exactly why this test exists rather than an
+    /// extra line on the one above.
+    ///
+    /// Four things are pinned, and each names a different way to get the
+    /// rectangle wrong:
+    ///
+    /// - `(3, 1)` is blocked. **The only assertion here that a
+    ///   block-the-origin-only mapping fails.**
+    /// - `(4, 1)` is walkable, so "blocks two tiles" is distinguishable from
+    ///   "blocks the rest of the row".
+    /// - `(2, 2)` and `(3, 2)` are walkable, so a 2x1 read as 1x2 or as 2x2 -
+    ///   a transposed or squared rectangle - is visible.
+    /// - `(1, 1)` is walkable, so a rectangle extending -x from the origin
+    ///   instead of +x is visible. [F2] fixes the direction and nothing else
+    ///   in the codebase would notice it reversed.
+    ///
+    /// The definitions give `ObjectDefId(1)` a 4x4 rectangle that nothing
+    /// places, so a lookup by the placement's position in the list rather
+    /// than by the id it names blocks `(2..6, 1..5)` and fails three of the
+    /// assertions rather than passing by luck.
+    #[test]
+    fn new_from_lot_blocks_every_tile_of_a_multi_tile_footprint_and_nothing_past_it() {
+        let defs = object_defs([
+            Footprint::SINGLE,
+            Footprint { width: 4, depth: 4 },
+            Footprint { width: 2, depth: 1 },
+        ]);
+        let sim = Sim::new_from_lot(&a_wide_lot(), &defs);
+        let grid = sim.world().resource::<TileGrid>();
+
+        assert!(
+            !grid.is_walkable(2, 1),
+            "the origin tile must be blocked; every 1x1 test already says so"
+        );
+        assert!(
+            !grid.is_walkable(3, 1),
+            "a 2x1 footprint must block its SECOND tile too, and this is the \
+             one assertion here that an origin-only mapping fails"
+        );
+        assert!(
+            grid.is_walkable(4, 1),
+            "(4, 1) is one past the rectangle and must stay walkable, or the \
+             mapping is blocking the row rather than the footprint"
+        );
+        assert!(
+            grid.is_walkable(2, 2),
+            "a 2x1 footprint is one tile DEEP; blocking (2, 2) means width and \
+             depth are transposed or the rectangle is square"
+        );
+        assert!(
+            grid.is_walkable(3, 2),
+            "and that holds under the second column as well"
+        );
+        assert!(
+            grid.is_walkable(1, 1),
+            "the rectangle runs +x from the origin, not -x - [F2]"
+        );
+        // The wall still blocks, so footprints did not replace walls.
+        assert!(
+            !grid.is_walkable(6, 0),
+            "the declared wall must still block"
+        );
+    }
+
     #[test]
     fn new_from_lot_spawns_each_placement_at_its_own_position_and_definition() {
         assert_eq!(
-            placed_objects(&Sim::new_from_lot(&a_lot())),
+            placed_objects(&Sim::new_from_lot(&a_lot(), &one_tile_defs())),
             vec![(2.5, 1.25, ObjectDefId(2)), (4.0, 3.5, ObjectDefId(0))],
             "each placement must reach the world with its own coordinates \
              and its own definition; a shared definition means the id is \
@@ -648,9 +831,38 @@ mod lot_tests {
         // And the bathroom is genuinely reachable from the living space,
         // stated as a path rather than as a hole in a wall, because that
         // is the thing the game depends on.
+        //
+        // `find_path_adjacent_to_tile` rather than `find_path`, and the change
+        // is the point rather than a workaround: since [F3] the shower's own
+        // tile is impassable, so `find_path((2, 2), (11, 1))` now returns
+        // `None` for a reason that has nothing to do with the doorway. What a
+        // sim actually needs is a tile BESIDE the shower, which is what
+        // selection asks for, so that is what this asserts. The shower is 1x1,
+        // hence the one-tile form.
         assert!(
-            grid.find_path((2, 2), (11, 1)).is_some(),
-            "the shower must be reachable from the kitchen"
+            !grid.is_walkable(11, 1),
+            "the shower's own tile must be solid, or the adjacency below is \
+             not testing what it claims"
+        );
+        assert!(
+            grid.find_path_adjacent_to_tile((2, 2), (11, 1)).is_some(),
+            "the shower must be approachable from the kitchen"
+        );
+
+        // **The shipped bed is the multi-tile object, and both of its tiles
+        // are solid.** Literal coordinates for the same reason as the doorway
+        // above: re-siting the bed has to fail this test and make somebody
+        // check that the east wall of the lot still has room for it, because
+        // (13, 7) is the last column of a 14-wide lot and there is no margin.
+        assert!(!grid.is_walkable(12, 7), "the bed's origin tile");
+        assert!(
+            !grid.is_walkable(13, 7),
+            "and the tile its 2x1 footprint adds; a 1x1 bed leaves this \
+             walkable and a sim walks through the bed"
+        );
+        assert!(
+            grid.is_walkable(11, 7),
+            "(11, 7) is beside the bed and is where a sim sleeps from"
         );
     }
 }
@@ -1187,6 +1399,28 @@ mod determinism_tests {
         // habituation column is written for every agent on every tick whether
         // they arrive or not, and the empty-vector case is length-prefixed
         // rather than absent.
+        //
+        // **Object footprints did NOT move it, and that is a blindness rather
+        // than a reassurance** - [L36] again, and the second time on the same
+        // fixture. It was expected to move, because [F3] makes every footprint
+        // tile impassable and that changes where sims can walk. Two properties
+        // of this fixture, and not one, are what silence it:
+        //
+        //   - `build_scenario` calls `Sim::new_with_lot`, so no lot is loaded
+        //     and nothing blocks any tile. Footprint blocking happens in
+        //     `Sim::new_from_lot`, which this scenario never touches.
+        //   - Its one object is the shipped FRIDGE, which is 1x1. The bed is
+        //     the only wider object in shipped content, and the rectangle
+        //     search reduces to the old single-tile search exactly - the
+        //     heuristic `rect_distance(n, to, 1x1)` IS `Manhattan(n, to)` - so
+        //     even a loaded lot would produce identical arithmetic for it.
+        //
+        // Either property alone would be enough to hide the change, which is
+        // why both are written down: closing one of them does not close the
+        // gap. What this vector still covers is unchanged; what it does not
+        // cover now includes the whole of footprints. The rectangle search is
+        // pinned in `terri-core`'s `grid.rs`, the blocking in `lot_tests`
+        // here, and the two production call sites in `action.rs`.
         const GOLDEN: u64 = 0xFB84_8515_2C59_2AD8;
 
         let mut sim = build_scenario();

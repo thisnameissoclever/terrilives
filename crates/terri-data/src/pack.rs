@@ -15,6 +15,11 @@ use terri_core::NEED_COUNT;
 /// `terri-core` must not depend on the content crate.
 pub use terri_core::ObjectDefId;
 
+/// Also defined in `terri-core` and re-exported for the same reason:
+/// `TileGrid::find_path_adjacent` takes one, so it has to live below the
+/// content crate rather than inside it.
+pub use terri_core::Footprint;
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CompiledInteraction {
     pub id: String,
@@ -39,6 +44,24 @@ pub struct CompiledObject {
     /// has no representation.
     pub sprite: u32,
     pub interactions: Vec<CompiledInteraction>,
+    /// The tiles this object occupies, running +x and +y from whatever tile
+    /// a placement puts it on. 1x1 unless `content/objects.toml` says
+    /// otherwise.
+    ///
+    /// Post-validation like everything else here: `compile` rejects a zero
+    /// dimension, a rectangle that leaves the lot or crosses a wall, two
+    /// rectangles that overlap, and an object nothing can walk up to. A
+    /// reader may assume all of that rather than re-check it, which is what
+    /// lets `Sim::new_from_lot` block these tiles without a bounds test.
+    ///
+    /// **Last in this struct on purpose**, for the appending reason on
+    /// [`ContentPack::lot`]: the pack's byte encoding grows by appending, so
+    /// an object's sprite and interaction blocks keep their offsets and the
+    /// golden vector in `compile.rs` stays reviewable against the
+    /// annotations it already carries. It is deliberately NOT grouped beside
+    /// `sprite`, which would also be the wrong signal: [F1] exists to keep
+    /// the drawn width and the occupied width separate facts.
+    pub footprint: Footprint,
 }
 
 /// One object, placed on the lot.
@@ -296,6 +319,16 @@ mod tests {
                     name: id.to_uppercase(),
                     sprite: (i as u32) + 4,
                     interactions: vec![interaction("use_it")],
+                    // A different rectangle per object, none of them square
+                    // and none of them 1x1 twice, so the postcard round-trip
+                    // below can see a footprint dropped from the encoding, a
+                    // width and depth transposed, or every object handed the
+                    // first one's rectangle. This pack is never validated
+                    // against a lot, so the tiles need not fit anywhere.
+                    footprint: Footprint {
+                        width: (i as u32) + 1,
+                        depth: (i as u32) + 3,
+                    },
                 })
                 .collect(),
             sim_sprite: 1,

@@ -51,7 +51,7 @@ fn main() {
         .unwrap_or(12_000);
 
     let pack = terri_data::pack();
-    let mut sim = Sim::new_from_lot(&pack.lot);
+    let mut sim = Sim::new_from_lot(&pack.lot, &pack.objects);
     let agent = sim
         .world_mut()
         .spawn((
@@ -263,7 +263,11 @@ CANDIDATE TABLE at tick {ticks}, agent at {from:?}"
         for (pos, object) in placed {
             let def = pack.object(object.0);
             let to = (pos.x.round() as i32, pos.y.round() as i32);
-            let Some(steps) = grid.find_path_adjacent(from, to) else {
+            // The object's own rectangle, matching `select_action`. Passing
+            // 1x1 here would print a distance the simulation does not use for
+            // any object wider than a tile, which is the trace lying about
+            // exactly the thing it exists to explain.
+            let Some(steps) = grid.find_path_adjacent(from, to, def.footprint) else {
                 println!("{:<12} unreachable", def.id);
                 continue;
             };

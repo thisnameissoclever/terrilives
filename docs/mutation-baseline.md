@@ -530,13 +530,23 @@ Five at M1c; six after the alpha branch, which added
 `TileGrid::find_path_adjacent` and with it a second copy of the two neighbour-
 offset mutants. It was five before that and four before M1b Task 3, which
 removed one by removing the operator it mutated; see the `advertise.rs` section.
+Object footprints added two more, both in `rect_distance` and both with a
+one-line proof; see that section.
 
 The count is deliberately not in this heading any more. It was wrong twice in one
 day - the heading said four while the file held five - because a number in a
 heading is a second copy of `wc -l docs/mutants-baseline.txt` that nothing keeps
 in sync. Count the file.
 
-### `grid.rs:102:43` and `102:63` - the neighbour offsets - EQUIVALENT
+**Every `grid.rs` line number below moved when footprints landed**, because the
+`Footprint` type was declared above `impl TileGrid`. The mutants and their
+arguments are unchanged; only the lines are. `find_path`'s pair went 102 to 151
+and its f-score went 115 to 164; `find_path_adjacent`'s pair went 263 to 352.
+Re-derived by a full `cargo mutants --file crates/terri-core/src/grid.rs
+--package terri-core` sweep on 2026-07-30: 150 mutants, 139 caught, 2 unviable,
+7 missed, and the 7 are exactly the file's `grid.rs` rows.
+
+### `grid.rs:151:43` and `151:63` - the neighbour offsets - EQUIVALENT
 
 **Carried on trust since M1a Task 9.** `NEIGHBOURS` has not been touched
 since, and the expiry condition below names the edit that would invalidate
@@ -572,7 +582,7 @@ it is worth pinning rather than waving at:
 diagonals keeps it symmetric; adding a one-way movement rule, a ledge, or a
 directional portal does not. Whoever edits that array owns re-checking this.
 
-#### The same two, in `find_path_adjacent` - added 2026-07-29
+#### The same two, in `find_path_adjacent` - added 2026-07-29, now at 352
 
 `TileGrid::find_path_adjacent` arrived on the alpha branch and reuses
 `find_path`'s expansion loop verbatim, including this expression, so it
@@ -620,7 +630,32 @@ would very likely kill it too, and nobody has tried since the tooling to do so
 now exists. It is left in the baseline for now rather than removed on a guess,
 but it should be treated as a to-do rather than as settled debt.
 
-### `grid.rs:115:44` - the f-score - A REAL GAP, not an equivalent mutant
+#### And the g-score comparison, in `find_path_adjacent` - KILLED, 2026-07-30
+
+The footprint sweep turned up a **third** `find_path_adjacent` survivor that had
+never been in the baseline: `tentative < g_score[next_idx]` relaxed to `<=`, at
+what is now `grid.rs:361:30`. The identical mutant in `find_path` was caught,
+and the asymmetry was the whole diagnosis: `find_path` has
+`tie_breaking_pins_one_specific_path_among_equals`, which asserts an exact
+route, and `find_path_adjacent` had no equivalent. Relaxing the comparison
+re-parents a tile already reached at equal cost, so the returned path changes
+ROUTE while keeping its length, its arrival tile, its contiguity and its
+walkability - which is every property the adjacency tests asserted.
+
+It is **not** in the baseline, because it is now dead:
+`the_adjacent_route_among_equally_short_ones_is_pinned` asserts the exact route
+for a diagonal query on an open 6x6 grid. Measured: `<` returns
+`[(1, 0), (2, 0), (3, 0), (3, 1), (3, 2)]` and `<=` returns
+`[(0, 1), (0, 2), (1, 2), (2, 2), (3, 2)]` - same length, same arrival, the
+other side of the room.
+
+**Worth generalising:** when a function is created by copying another's search
+loop, it inherits the original's mutants and NOT the original's tests. Both
+neighbour-offset copies were noticed at the time because CI's gate reported them
+as new survivors; this one apparently was not, which means the sweep that added
+them did not cover the whole file. A scoped sweep is not a baseline.
+
+### `grid.rs:164:44` - the f-score - A REAL GAP, not an equivalent mutant
 
 **Analysed at M1a Task 9 and carried on trust since**, with one M1b Task 3
 update at the end of this section: the lot now has walls, which changes what
@@ -659,6 +694,43 @@ goal's neighbourhood first while being separated from it by a wall. Nobody
 had a reason to build such a layout before, because M0's lot was one open
 room. Whoever next attends to this entry should start from the shipped lot
 rather than inventing a grid.
+
+### `grid.rs:418:14` and `420:21` - the rect clamps - EQUIVALENT
+
+**Derived 2026-07-30, when object footprints added `rect_distance`.** Both are
+the boundary of a three-way clamp, and both are equivalent for the same
+one-line reason:
+
+```rust
+let axis = |v: i32, lo: i32, hi: i32| {
+    if v < lo {
+        lo - v
+    } else if v > hi {
+        v - hi
+    } else {
+        0
+    }
+};
+```
+
+`<` to `<=` moves `v == lo` from the `else` branch into the first one, which
+computes `lo - v` - and at `v == lo` that is **0**, exactly what the `else`
+branch returns. `>` to `>=` is the mirror image at `v == hi`: `v - hi` is 0
+there too. Neither mutant can change the function's value for any input, so no
+test can distinguish them.
+
+This is a stronger claim than the `NEIGHBOURS` entries above, which rest on a
+property of a separate array that a future edit could break. This one is
+arithmetic on the two lines shown, and the boundary values are pinned anyway:
+`the_rectangle_distance_is_zero_inside_the_footprint_and_the_true_cost_outside_it`
+asserts `rect_distance` at `v == lo` and `v == hi` on both axes - `(4, 2)` is
+the origin corner and `(6, 3)` the far one - so the value the equivalence
+argument depends on is a checked number rather than an assumption.
+
+**When this expires:** if either branch ever returns something other than the
+distance past the boundary - a weighted or clamped cost, say - the two branches
+stop agreeing at the boundary and both mutants become real. Whoever changes the
+body of `axis` owns re-deriving this.
 
 ### `advertise.rs:82:18` - the deficit clause of the NaN guard - EQUIVALENT
 

@@ -24,7 +24,7 @@ import {
   writeInstance,
   type InstanceArray,
 } from './instances.js';
-import { LAYER_FLOOR, LAYER_PROP, layeredDepth, screenX, screenY } from './iso.js';
+import { FLOOR_DEPTH, LAYER_PROP, layeredDepth, screenX, screenY } from './iso.js';
 
 /** What `buildStaticInstances` needs to know about the lot. */
 export interface Lot {
@@ -112,6 +112,7 @@ export function buildStaticInstances(
   const instances: InstanceArray = new Float32Array(count * FLOATS_PER_INSTANCE);
   let slot = 0;
 
+  /** A prop - a wall - which is depth-sorted per tile like any entity. */
   const write = (x: number, y: number, layer: number, sprite: number): void => {
     writeInstance(
       instances,
@@ -123,9 +124,27 @@ export function buildStaticInstances(
     );
   };
 
+  /**
+   * A floor tile, at the single shared `FLOOR_DEPTH` rather than a per-tile one.
+   *
+   * Separate from `write` above because the difference is the whole fix: a
+   * per-tile floor depth let a nearer tile draw over a sim's feet. See
+   * `FLOOR_DEPTH`.
+   */
+  const writeFloor = (x: number, y: number, sprite: number): void => {
+    writeInstance(
+      instances,
+      slot++,
+      screenX(x, y, originX),
+      screenY(x, y, originY),
+      FLOOR_DEPTH,
+      sprite,
+    );
+  };
+
   for (let y = 0; y < lot.height; y++) {
     for (let x = 0; x < lot.width; x++) {
-      write(x, y, LAYER_FLOOR, floorSprite);
+      writeFloor(x, y, floorSprite);
     }
   }
   // Interior walls are read back out of the set rather than off

@@ -199,7 +199,10 @@ export function worldDepth(wx: number, wy: number, gridSize: number): number {
  */
 export const DEPTH_LAYERS = 3;
 
-/** Floor tiles. Furthest of the three, so everything covers them. */
+/**
+ * Floor tiles. **Kept for the layer arithmetic's sake and no longer used to
+ * draw the floor**; see `FLOOR_DEPTH`.
+ */
 export const LAYER_FLOOR = 0;
 /** Walls and smart objects. */
 export const LAYER_PROP = 1;
@@ -235,6 +238,50 @@ export const DEPTH_LAYER_STEP = 1 / 4096;
  * same amount and therefore changes no ordering at all.
  */
 export const DEPTH_MARGIN = 1;
+
+/**
+ * The one depth every floor tile is drawn at.
+ *
+ * # Why the floor is not depth-sorted at all
+ *
+ * Per-tile floor depth is wrong, and it was visibly wrong: **a floor tile one
+ * step nearer the camera drew over the bottom of a sim's sprite.** Measured on a
+ * shipped frame with the sim at (8, 3.75), the tiles at (9, 3.75) and (8, 4.75)
+ * each overlapped its sprite by 19 x 21 px and each had a smaller depth - 0.4736
+ * against the sim's 0.5088 - so both won those pixels. On screen that is a sim
+ * standing shin-deep in the floor.
+ *
+ * The layer scheme cannot fix this and it is worth being exact about why.
+ * `DEPTH_LAYER_STEP` is 1/4096, about 0.00024, while one tile of depth on the
+ * shipped lot is 1/28, about 0.036 - a hundred and fifty times larger. So
+ * `LAYER_SIM` only ever outranks something on the **same** tile. Against a
+ * nearer tile it loses, and a floor diamond is 42 px tall while a tile step is
+ * only 21 px, so a nearer floor tile always covers the lower half of the
+ * previous tile's screen area, which is exactly where a sim's feet are.
+ *
+ * # So the floor stops competing
+ *
+ * The floor is the ground. Nothing is ever behind it and it should never occlude
+ * anything, so it does not need a per-tile depth - it needs one depth, further
+ * than everything else. Floor diamonds tile edge to edge and their opaque pixels
+ * do not overlap each other, so they need no ordering among themselves either;
+ * the 672-sample seam check in `docs/alpha-feel-notes.md` [A-7] is the evidence.
+ *
+ * # Why this exact value
+ *
+ * It has to sit **behind every `layeredDepth` result** and **in front of the
+ * clear value**, and both bounds are tight:
+ *
+ * - `layeredDepth`'s maximum is `1 - DEPTH_LAYER_STEP`, reached by a prop at the
+ *   far corner. Half a step beyond that clears it.
+ * - `sprites.ts` clears depth to 1.0 and compares with `less`. A fragment at
+ *   exactly 1.0 is **not** less than 1.0, so a floor at 1.0 would fail the depth
+ *   test and the entire floor would silently vanish.
+ *
+ * Derived from `DEPTH_LAYER_STEP` rather than written as a literal like 0.9999,
+ * so the relationship survives that constant changing.
+ */
+export const FLOOR_DEPTH = 1 - DEPTH_LAYER_STEP / 2;
 
 /**
  * `worldDepth` with a within-tile layer applied, so that two entities on

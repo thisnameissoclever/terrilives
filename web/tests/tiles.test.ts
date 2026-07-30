@@ -9,8 +9,10 @@ import {
   OFFSET_SPRITE,
 } from '../src/render/instances.js';
 import {
+  FLOOR_DEPTH,
   LAYER_FLOOR,
   LAYER_PROP,
+  LAYER_SIM,
   layeredDepth,
   screenX,
   screenY,
@@ -201,10 +203,42 @@ describe('buildStaticInstances', () => {
     expect(floorAt22).toBeDefined();
     expect(wallAt22).toBeDefined();
     expect(wallAt22!.depth).toBeLessThan(floorAt22!.depth);
-    // And both are the values `iso.ts` would produce, so the layers are
-    // the shared ones rather than a second set invented here.
-    expect(floorAt22!.depth).toBeCloseTo(layeredDepth(2, 2, GRID, LAYER_FLOOR), 12);
+    // The wall is still the value `iso.ts` would produce, so the layers are the
+    // shared ones rather than a second set invented here.
     expect(wallAt22!.depth).toBeCloseTo(layeredDepth(2, 2, GRID, LAYER_PROP), 12);
+    // **The floor is NOT**, and that is the fix rather than a slip.** It carries
+    // one shared `FLOOR_DEPTH` instead of a per-tile one, because a per-tile
+    // floor depth let a nearer tile draw over a sim's feet - measured at 19 x 21
+    // px of overlap. See `FLOOR_DEPTH`.
+    expect(floorAt22!.depth).toBe(FLOOR_DEPTH);
+  });
+
+  it('puts every floor tile behind everything a layer can produce, and in front of the clear value', () => {
+    // The two bounds `FLOOR_DEPTH` has to sit between, asserted against the
+    // real extremes rather than against the constant's own arithmetic - so a
+    // change to `DEPTH_LAYER_STEP`, to `DEPTH_LAYERS` or to the margin has to
+    // keep the relationship rather than merely keep the formula.
+    //
+    // The upper bound is the one that fails silently: `sprites.ts` clears depth
+    // to 1.0 and compares with `less`, and a fragment at exactly 1.0 is not less
+    // than 1.0 - so a floor at 1.0 would make the ENTIRE FLOOR vanish with no
+    // error anywhere.
+    let worstLayered = -Infinity;
+    for (const layer of [LAYER_FLOOR, LAYER_PROP, LAYER_SIM]) {
+      for (let x = 0; x < GRID; x++) {
+        for (let y = 0; y < GRID; y++) {
+          worstLayered = Math.max(worstLayered, layeredDepth(x, y, GRID, layer));
+        }
+      }
+    }
+    expect(FLOOR_DEPTH).toBeGreaterThan(worstLayered);
+    expect(FLOOR_DEPTH).toBeLessThan(1);
+
+    // And every floor tile the builder emits really is at it, so the invariant
+    // is about the drawn lot and not only about the constant.
+    const floors = all.filter((r) => r.sprite === spriteIndex('floor'));
+    expect(floors.length).toBeGreaterThan(0);
+    expect(floors.every((r) => r.depth === FLOOR_DEPTH)).toBe(true);
   });
 
   it('reports a count that matches the array it filled', () => {

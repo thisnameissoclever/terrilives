@@ -7,6 +7,7 @@
 
 use serde::Deserialize;
 use std::collections::BTreeMap;
+use terri_core::Footprint;
 
 /// Mirrors `content/tuning.toml`, the single home for every value that
 /// governs the **system** rather than describing one piece of content.
@@ -122,6 +123,33 @@ pub struct ObjectDef {
     /// reason a need name is: after compilation a sprite that the atlas
     /// does not hold has no representation.
     pub sprite: String,
+    /// How many tiles this object occupies, as
+    /// `footprint = { width = 2, depth = 1 }`.
+    ///
+    /// **Defaulted rather than required, which is the one place in this
+    /// module that is a deliberate exception** to the "a defaulted zero is
+    /// the silent-nothing case" reasoning on [`TuningFile`]. It defaults to
+    /// 1x1 - see `Footprint`'s `Default`, which is hand-written for exactly
+    /// this - so every object authored before footprints existed keeps the
+    /// behaviour it had. [F1] in
+    /// `docs/specs/2026-07-30-object-footprints-design.md` records why, and
+    /// also why this is content rather than something derived from the
+    /// sprite's pixel width: the sprite is presentation and the footprint is
+    /// simulation, so a re-skin must not be able to change collision,
+    /// pathing, or where a sim stands.
+    ///
+    /// A partial table is still a parse error, because `Footprint`'s own
+    /// fields are required: `footprint = { width = 2 }` names no depth and
+    /// serde says so. Only omitting the whole table is defaulting.
+    ///
+    /// `terri_core::Footprint` directly rather than an authored mirror
+    /// alongside a compiled twin, unlike `sprite` or a placement's object
+    /// id. Those two are NAMES that compilation resolves to indices, so the
+    /// two representations differ; a footprint is the same two integers on
+    /// both sides of the pipeline, and a mirror would be a second copy of
+    /// one fact with nothing to disambiguate.
+    #[serde(default)]
+    pub footprint: Footprint,
     /// Absent rather than empty is the common case for scenery, so this
     /// defaults instead of being required.
     #[serde(default)]
@@ -479,6 +507,80 @@ mod tests {
             .map(String::as_str)
             .collect();
         assert_eq!(keys, sorted, "advert iteration order is not sorted");
+    }
+
+    /// The two halves of `#[serde(default)]` on `footprint`.
+    ///
+    /// **Omitting it must leave the object 1x1**, because that is what makes
+    /// [F1]'s "existing content is unchanged" true: every object authored
+    /// before footprints existed says nothing about one. A derived `Default`
+    /// on `Footprint` would give 0x0 here and quietly make every such object
+    /// unusable, so this is checking a mechanism rather than a formality -
+    /// see `the_default_footprint_is_one_tile_rather_than_no_tiles` in
+    /// `terri-core`, which pins the other end of the same claim.
+    ///
+    /// And declaring it must land the two numbers the right way round. The
+    /// fixture is 2x3, deliberately not square, so a `width` read off `depth`
+    /// moves an assertion.
+    #[test]
+    fn an_object_footprint_defaults_to_one_tile_and_is_read_unswapped_when_declared() {
+        let object = |extra: &str| -> ObjectDef {
+            let parsed: ObjectsFile = toml::from_str(&format!(
+                r#"
+                [[object]]
+                id = "bed"
+                name = "Sleepeazy"
+                sprite = "bedBunk"
+                {extra}
+                "#
+            ))
+            .expect("valid objects toml");
+            parsed.object.into_iter().next().expect("one object")
+        };
+
+        assert_eq!(
+            object("").footprint,
+            Footprint::SINGLE,
+            "an object that says nothing about a footprint occupies one tile"
+        );
+
+        let declared = object("footprint = { width = 2, depth = 3 }").footprint;
+        assert_eq!(declared.width, 2);
+        assert_eq!(declared.depth, 3);
+        assert_ne!(
+            declared,
+            Footprint::SINGLE,
+            "the declared case must differ from the default, or the assertion \
+             above cannot tell a parsed footprint from a defaulted one"
+        );
+    }
+
+    /// A HALF-declared footprint is a parse error rather than half a default.
+    ///
+    /// `#[serde(default)]` applies to the whole table, not to its fields, so
+    /// `footprint = { width = 2 }` is a missing `depth` and serde names it.
+    /// That is the behaviour worth pinning: the alternative - a `depth` that
+    /// quietly fell back to 1 - is the silent-nothing case the rest of this
+    /// module exists to prevent, and it would be indistinguishable from a
+    /// deliberate 2x1.
+    #[test]
+    fn a_half_declared_footprint_is_a_parse_error_rather_than_half_a_default() {
+        for (partial, missing) in [("width = 2", "depth"), ("depth = 2", "width")] {
+            let err = toml::from_str::<ObjectsFile>(&format!(
+                r#"
+                [[object]]
+                id = "bed"
+                name = "Sleepeazy"
+                sprite = "bedBunk"
+                footprint = {{ {partial} }}
+                "#
+            ))
+            .unwrap_err();
+            assert!(
+                err.to_string().contains(missing),
+                "the error must name the missing dimension '{missing}'; got {err}"
+            );
+        }
     }
 
     #[test]

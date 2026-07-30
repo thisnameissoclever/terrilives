@@ -12,8 +12,8 @@ pub mod schema;
 pub use compile::{compile, SIM_SPRITE};
 pub use error::ContentError;
 pub use pack::{
-    CompiledInteraction, CompiledLot, CompiledObject, CompiledPlacement, ContentPack, ObjectDefId,
-    Tuning,
+    CompiledInteraction, CompiledLot, CompiledObject, CompiledPlacement, ContentPack, Footprint,
+    ObjectDefId, Tuning,
 };
 pub use schema::{
     AtlasFile, AtlasSpriteDef, InteractionDef, LotFile, NeedDef, NeedsFile, ObjectDef, ObjectsFile,

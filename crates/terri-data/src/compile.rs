@@ -11,8 +11,8 @@ use crate::pack::{
     Tuning,
 };
 use crate::schema::{AtlasFile, LotFile, NeedsFile, ObjectsFile, TuningFile};
-use std::collections::BTreeSet;
-use terri_core::{NeedId, NEED_COUNT};
+use std::collections::{BTreeMap, BTreeSet};
+use terri_core::{Footprint, NeedId, NEED_COUNT};
 
 /// The atlas sprite every sim is drawn with.
 ///
@@ -160,6 +160,22 @@ pub fn compile(
             });
         };
 
+        // A zero dimension is the silent-nothing case one layer down from
+        // `EmptyLot`: the rectangle covers no tiles, so nothing is
+        // orthogonally adjacent to it, `find_path_adjacent` finds nowhere to
+        // stand, and scoring quietly treats the object as unavailable for
+        // ever. Checked here rather than in the lot, because it is wrong
+        // about the OBJECT and stays wrong wherever it is placed - and
+        // because every rectangle computation below assumes at least one
+        // tile.
+        if object.footprint.width == 0 || object.footprint.depth == 0 {
+            return Err(ContentError::ZeroFootprint {
+                object: object.id.clone(),
+                width: object.footprint.width,
+                depth: object.footprint.depth,
+            });
+        }
+
         // Scoped to the object, so two objects may each declare a
         // `use` interaction without colliding.
         let mut seen_interactions = BTreeSet::new();
@@ -216,6 +232,7 @@ pub fn compile(
             name: object.name.clone(),
             sprite: sprite as u32,
             interactions,
+            footprint: object.footprint,
         });
     }
 
@@ -452,6 +469,12 @@ fn compile_lot(lot: LotFile, objects: &[CompiledObject]) -> Result<CompiledLot, 
     }
 
     let mut placements = Vec::with_capacity(lot.place.len());
+    // What the footprint rules below need, collected as the placements are
+    // resolved: the object's id for the messages, the tile it stands on, and
+    // the rectangle that tile is the origin of. Declaration order is
+    // preserved, which is what makes `FootprintsOverlap` name the earlier
+    // object first rather than whichever one a map happened to yield.
+    let mut rects: Vec<(String, (u32, u32), Footprint)> = Vec::with_capacity(lot.place.len());
 
     for place in &lot.place {
         // The object id is resolved FIRST, so a typo in the name is
@@ -497,11 +520,178 @@ fn compile_lot(lot: LotFile, objects: &[CompiledObject]) -> Result<CompiledLot, 
             });
         }
 
+        rects.push((place.object.clone(), tile, objects[index].footprint));
         placements.push(CompiledPlacement {
             object: ObjectDefId(index as u32),
             x: place.x,
             y: place.y,
         });
+    }
+
+    // ---- [F5]: the three footprint rules -------------------------------
+    //
+    // Run in this order so that an author with two problems at once is told
+    // about the more fundamental one. A rectangle running off the lot is
+    // wrong on its own; an overlap needs two objects to agree they are wrong
+    // together; and reachability is a property of the whole lot rather than
+    // of any one placement. Reporting them the other way round would send
+    // somebody to move a sofa when the real problem is that a bed is three
+    // tiles wide.
+    //
+    // The origin tile itself is checked twice - once above by
+    // `PlacementOutOfBounds` and `PlacementOnWall`, once here as the first
+    // tile of the rectangle - and that is deliberate. The checks above report
+    // the authored `f32` pair, which is the number in the file; these report
+    // a TILE, which for anything wider than 1x1 is a number the author has to
+    // derive. Two messages for two different mistakes, and the origin check
+    // runs first so a 1x1 object never reports the derived one.
+    let far_corner = |tile: (u32, u32), footprint: Footprint| -> Option<(u32, u32)> {
+        // `checked_*` because these are authored numbers: `width = 4294967295`
+        // is expressible in TOML, and a wrapping far corner would put the
+        // rectangle behind its own origin and make every check below pass
+        // vacuously. The `- 1` is because the origin tile is the FIRST of
+        // `width`. The `checked_sub` cannot fail - `compile` rejects a zero
+        // dimension before this runs - and is written this way so that a
+        // future reordering is a `None` rather than a panic.
+        Some((
+            tile.0.checked_add(footprint.width.checked_sub(1)?)?,
+            tile.1.checked_add(footprint.depth.checked_sub(1)?)?,
+        ))
+    };
+
+    // Rule 2, both halves. Bounds for the whole rectangle before walls for
+    // the whole rectangle, for the same "most fundamental first" reason: a
+    // tile off the lot is not a tile that could hold a wall.
+    let mut corners = Vec::with_capacity(rects.len());
+    for (object, tile, footprint) in &rects {
+        let out_of_bounds = |x: u32, y: u32| ContentError::FootprintOutOfBounds {
+            object: object.clone(),
+            x,
+            y,
+            width: lot.width,
+            height: lot.height,
+        };
+        let Some(far) = far_corner(*tile, *footprint) else {
+            return Err(out_of_bounds(tile.0, tile.1));
+        };
+        for y in tile.1..=far.1 {
+            for x in tile.0..=far.0 {
+                if x >= lot.width || y >= lot.height {
+                    return Err(out_of_bounds(x, y));
+                }
+            }
+        }
+        for y in tile.1..=far.1 {
+            for x in tile.0..=far.0 {
+                if wall_tiles.contains(&(x, y)) {
+                    return Err(ContentError::FootprintOnWall {
+                        object: object.clone(),
+                        x,
+                        y,
+                    });
+                }
+            }
+        }
+        corners.push(far);
+    }
+
+    // Rule 1. `BTreeSet`/`BTreeMap` rather than the hash flavours for the
+    // reason `CompiledInteraction::advertises` gives: nothing on the way to
+    // the pack may depend on hash iteration order. Here it also decides which
+    // tile a multi-tile overlap is reported at, so an unordered map would
+    // make the error MESSAGE vary from build to build.
+    let mut occupied: BTreeMap<(u32, u32), usize> = BTreeMap::new();
+    for (index, ((object, tile, _), far)) in rects.iter().zip(&corners).enumerate() {
+        for y in tile.1..=far.1 {
+            for x in tile.0..=far.0 {
+                if let Some(previous) = occupied.insert((x, y), index) {
+                    return Err(ContentError::FootprintsOverlap {
+                        // `previous < index`, because placements are walked in
+                        // declaration order, so `first` is always the one
+                        // declared earlier.
+                        first: rects[previous].0.clone(),
+                        second: object.clone(),
+                        x,
+                        y,
+                    });
+                }
+            }
+        }
+    }
+
+    // Rule 3, and the one that pays for [F3]. Everything the walls and the
+    // footprints between them make impassable, which is exactly what
+    // `Sim::new_from_lot` will block.
+    let mut blocked = wall_tiles.clone();
+    blocked.extend(occupied.keys().copied());
+
+    // Every tile beside a rectangle that is inside the lot and walkable.
+    // `i64` so a rectangle touching x = 0 can name the column before it
+    // without wrapping.
+    let approaches = |tile: (u32, u32), far: (u32, u32)| -> Vec<(u32, u32)> {
+        let (x0, y0) = (tile.0 as i64, tile.1 as i64);
+        let (x1, y1) = (far.0 as i64, far.1 as i64);
+        let mut ring: Vec<(i64, i64)> = Vec::new();
+        for x in x0..=x1 {
+            ring.push((x, y0 - 1));
+            ring.push((x, y1 + 1));
+        }
+        for y in y0..=y1 {
+            ring.push((x0 - 1, y));
+            ring.push((x1 + 1, y));
+        }
+        ring.into_iter()
+            .filter(|&(x, y)| x >= 0 && y >= 0 && x < lot.width as i64 && y < lot.height as i64)
+            .map(|(x, y)| (x as u32, y as u32))
+            .filter(|tile| !blocked.contains(tile))
+            .collect()
+    };
+
+    // Half one, for every object, before half two for any of them: "this
+    // object is walled in" and "the lot is split in two" are different
+    // mistakes with different fixes, and the first is the more local.
+    let mut approach_sets = Vec::with_capacity(rects.len());
+    for ((object, tile, _), far) in rects.iter().zip(&corners) {
+        let beside = approaches(*tile, *far);
+        if beside.is_empty() {
+            return Err(ContentError::NoWalkableApproach {
+                object: object.clone(),
+                x: tile.0,
+                y: tile.1,
+            });
+        }
+        approach_sets.push(beside);
+    }
+
+    // Half two: every approach tile has to be in ONE region, so a sim can
+    // get from any object to any other. The flood fill starts at the first
+    // walkable tile in the lot, which is where an agent-carrying lot will
+    // have its earliest legal spawn, and is what makes "unreachable" a
+    // statement about a fixed origin rather than about an arbitrary pair.
+    //
+    // A lot with no walkable tile at all reaches this with `root` at `None`,
+    // and there is nothing to check: any object in it has already failed half
+    // one, and a lot with no objects and no floor is a different problem that
+    // no [F5] rule claims.
+    let root = (0..lot.height)
+        .flat_map(|y| (0..lot.width).map(move |x| (x, y)))
+        .find(|tile| !blocked.contains(tile));
+    if let Some(root) = root {
+        let reached = flood_fill(lot.width, lot.height, &blocked, root);
+        let index_of = |x: u32, y: u32| (y as usize) * (lot.width as usize) + (x as usize);
+        for ((object, _, _), beside) in rects.iter().zip(&approach_sets) {
+            for &(x, y) in beside {
+                if !reached[index_of(x, y)] {
+                    return Err(ContentError::UnreachableApproach {
+                        object: object.clone(),
+                        x,
+                        y,
+                        root_x: root.0,
+                        root_y: root.1,
+                    });
+                }
+            }
+        }
     }
 
     Ok(CompiledLot {
@@ -510,6 +700,48 @@ fn compile_lot(lot: LotFile, objects: &[CompiledObject]) -> Result<CompiledLot, 
         walls,
         placements,
     })
+}
+
+/// Which tiles are reachable from `root` by four-way movement over the
+/// unblocked tiles, as a `width * height` row-major bitmap.
+///
+/// Four-way rather than eight, matching `TileGrid::NEIGHBOURS`: a diagonal
+/// flood fill would call two rooms connected through a corner that no sim
+/// can actually walk through, which is the reachability check passing for a
+/// reason the simulation does not share.
+///
+/// Iterative rather than recursive. A 14x10 lot would recurse fine, but the
+/// depth is bounded by the tile count and a lot is authored content that
+/// nothing caps, so a deep lot would blow the build script's stack.
+fn flood_fill(
+    width: u32,
+    height: u32,
+    blocked: &BTreeSet<(u32, u32)>,
+    root: (u32, u32),
+) -> Vec<bool> {
+    let (w, h) = (width as usize, height as usize);
+    let mut reached = vec![false; w * h];
+    let index_of = |x: u32, y: u32| (y as usize) * w + (x as usize);
+    let mut stack = vec![root];
+    reached[index_of(root.0, root.1)] = true;
+
+    while let Some((x, y)) = stack.pop() {
+        for (dx, dy) in [(1i64, 0i64), (-1, 0), (0, 1), (0, -1)] {
+            let (nx, ny) = (x as i64 + dx, y as i64 + dy);
+            if nx < 0 || ny < 0 || nx >= width as i64 || ny >= height as i64 {
+                continue;
+            }
+            let next = (nx as u32, ny as u32);
+            let index = index_of(next.0, next.1);
+            if reached[index] || blocked.contains(&next) {
+                continue;
+            }
+            reached[index] = true;
+            stack.push(next);
+        }
+    }
+
+    reached
 }
 
 #[cfg(test)]
@@ -581,6 +813,15 @@ mod tests {
     /// lot and atlas blocks, and those are unaffected - the whole cost was 12
     /// bytes of tuning moving, which is exactly what this test exists to
     /// report. Regenerated from the failing assertion, not hand-edited.
+    ///
+    /// **Footprints moved it twice over, for two independent and both
+    /// deliberate reasons.** `CompiledObject` gained a `footprint`, appended
+    /// after `interactions` so nothing before it shifts - that is the
+    /// `1, 1` immediately after the `15, 1` duration and slots on row 7, the
+    /// fixture object's default 1x1. And `distinct_lot`'s second wall moved
+    /// from `(3, 2)` to `(4, 2)`, which is the `4, 2` two bytes later; see
+    /// that fixture for why, because the reason is a rule doing its job
+    /// rather than a fixture being tidied.
     #[rustfmt::skip]
     const GOLDEN_PACK_BYTES: &[u8] = &[
         205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62,
@@ -589,11 +830,11 @@ mod tests {
         6, 70, 114, 105, 100, 103, 101, 2, 1, 10, 103, 114,
         97, 98, 95, 115, 110, 97, 99, 107, 3, 0, 0, 0,
         12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64,
-        15, 1, 1, 5, 3, 2, 3, 2, 1, 0, 1, 0,
-        0, 0, 32, 64, 0, 0, 160, 63, 0, 0, 128, 62,
-        0, 0, 0, 63, 0, 0, 0, 62, 9, 6, 0, 0,
-        160, 62, 10, 215, 35, 59, 0, 0, 32, 63, 0, 0,
-        64, 63, 3, 172, 2, 7, 11, 13,
+        15, 1, 1, 1, 1, 5, 3, 2, 4, 2, 1, 0,
+        1, 0, 0, 0, 32, 64, 0, 0, 160, 63, 0, 0,
+        128, 62, 0, 0, 0, 63, 0, 0, 0, 62, 9, 6,
+        0, 0, 160, 62, 10, 215, 35, 59, 0, 0, 32, 63,
+        0, 0, 64, 63, 3, 172, 2, 7, 11, 13,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -628,11 +869,24 @@ mod tests {
     /// non-square, walls declared out of sorted order, and a placement
     /// on fractional coordinates whose tile is neither `(0, 0)` nor
     /// either wall.
+    ///
+    /// **The second wall moved from `(3, 2)` to `(4, 2)` when footprints
+    /// arrived, and it moved because [F5] rule 3 rejected the old one.** With
+    /// `(1, 0)` walled, `(3, 2)` walled and the fridge's own tile `(2, 1)`
+    /// now impassable, a 5x3 lot splits into two regions of six tiles each -
+    /// and the fridge's approach tiles land in both, `(1, 1)` and `(2, 2)` on
+    /// one side and `(2, 0)` and `(3, 1)` on the other. That is precisely the
+    /// doorway-seal failure the rule exists to catch, arriving unprompted in
+    /// a fixture nobody wrote to demonstrate it, which is the strongest
+    /// evidence available that the rule has teeth. `(4, 2)` leaves the same
+    /// asymmetries in place - still out of sorted order relative to
+    /// `(1, 0)`, still the far corner - and leaves the lot connected through
+    /// row 2.
     fn distinct_lot() -> LotFile {
         LotFile {
             width: 5,
             height: 3,
-            wall: vec![WallDef { x: 3, y: 2 }, WallDef { x: 1, y: 0 }],
+            wall: vec![WallDef { x: 4, y: 2 }, WallDef { x: 1, y: 0 }],
             place: vec![PlacementDef {
                 object: "fridge".into(),
                 x: 2.5,
@@ -660,6 +914,13 @@ mod tests {
                     id: (*id).to_string(),
                     name: id.to_uppercase(),
                     sprite: format!("{id}_art"),
+                    // Every fixture in this module is 1x1 unless it is about
+                    // footprints, and the footprint tests below build their own
+                    // objects. Widening one here would silently change what
+                    // `placements_resolve_to_the_declared_object_index` and the
+                    // golden vector are looking at, and the first symptom would
+                    // be an overlap error in a test about index resolution.
+                    footprint: Footprint::SINGLE,
                     interaction: vec![snack()],
                 })
                 .collect(),
@@ -753,11 +1014,17 @@ mod tests {
     }
 
     fn one_object(interaction: InteractionDef) -> ObjectsFile {
+        one_object_sized(interaction, Footprint::SINGLE)
+    }
+
+    /// `one_object` with a footprint, for the rules that need a rectangle.
+    fn one_object_sized(interaction: InteractionDef, footprint: Footprint) -> ObjectsFile {
         ObjectsFile {
             object: vec![ObjectDef {
                 id: "fridge".into(),
                 name: "Fridge".into(),
                 sprite: "fridge_art".into(),
+                footprint,
                 interaction: vec![interaction],
             }],
         }
@@ -1017,6 +1284,7 @@ mod tests {
             id: "fridge".into(),
             name: "Another".into(),
             sprite: "fridge_art".into(),
+            footprint: Footprint::SINGLE,
             interaction: vec![],
         });
         let err = compile_objects(full_needs(), objects).unwrap_err();
@@ -1049,6 +1317,7 @@ mod tests {
             id: "vending".into(),
             name: "Vending".into(),
             sprite: "fridge_art".into(),
+            footprint: Footprint::SINGLE,
             interaction: vec![snack()],
         });
         compile_objects(full_needs(), objects).expect("ids are scoped to their object");
@@ -1811,7 +2080,7 @@ mod tests {
         assert_eq!((lot.width, lot.height), (5, 3));
         assert_eq!(
             lot.walls,
-            vec![(3, 2), (1, 0)],
+            vec![(4, 2), (1, 0)],
             "walls must keep declaration order; sorting them would be a \
              mechanism with nothing to disambiguate"
         );
@@ -2008,12 +2277,12 @@ mod tests {
     /// Exactly the silent failure [D9] exists to turn into a build error.
     #[test]
     fn rejects_a_placement_on_a_wall_tile() {
-        // distinct_lot walls (3, 2) and (1, 0). The placement is on
-        // FRACTIONAL coordinates inside the second of those, so the test
+        // distinct_lot walls (4, 2) and (1, 0). The placement is on
+        // FRACTIONAL coordinates inside the first of those, so the test
         // also pins that the tile is the floor of the coordinates rather
         // than the coordinates themselves.
         let lot = lot_where(|lot| {
-            lot.place[0].x = 3.75;
+            lot.place[0].x = 4.75;
             lot.place[0].y = 2.5;
         });
         assert_eq!(
@@ -2027,7 +2296,7 @@ mod tests {
             .unwrap_err(),
             ContentError::PlacementOnWall {
                 object: "fridge".into(),
-                x: 3,
+                x: 4,
                 y: 2
             }
         );
@@ -2045,7 +2314,7 @@ mod tests {
             test_atlas(),
             full_tuning(),
         )
-        .expect("(2, 0) is not a wall; (3, 2) and (1, 0) are");
+        .expect("(2, 0) is not a wall; (4, 2) and (1, 0) are");
     }
 
     /// The dangling-reference check, and the reason this pipeline exists
@@ -2199,5 +2468,539 @@ mod tests {
                 expected
             );
         }
+    }
+
+    // ---- Footprints ----------------------------------------------------
+    //
+    // [F5]'s three rules, one test each, and each paired with the case on
+    // the other side of its boundary per [L26]. The boundaries are where
+    // these rules are easy to get wrong by one tile: a rectangle whose far
+    // edge is exactly the lot's last column is legal, two rectangles that
+    // TOUCH are legal, and an object with exactly one walkable tile beside
+    // it is legal. All three of those look like the rejected case from a
+    // distance.
+    //
+    // These build their own lots rather than reusing `distinct_lot`, which
+    // is 5x3 and has no room for a rectangle plus the walls needed to
+    // constrain it. Keeping them apart also keeps `distinct_lot`'s tests
+    // about the authored COORDINATE and these about the RECTANGLE, which are
+    // separately checked and separately reported.
+
+    /// Objects with footprints. Ids are limited to the three `test_atlas`
+    /// holds art for, which is enough: no rule below needs a fourth object.
+    fn sized_objects(sized: &[(&str, u32, u32)]) -> ObjectsFile {
+        ObjectsFile {
+            object: sized
+                .iter()
+                .map(|(id, width, depth)| ObjectDef {
+                    id: (*id).to_string(),
+                    name: id.to_uppercase(),
+                    sprite: format!("{id}_art"),
+                    footprint: Footprint {
+                        width: *width,
+                        depth: *depth,
+                    },
+                    interaction: vec![snack()],
+                })
+                .collect(),
+        }
+    }
+
+    fn lot_of(
+        width: u32,
+        height: u32,
+        walls: &[(i32, i32)],
+        places: &[(&str, f32, f32)],
+    ) -> LotFile {
+        LotFile {
+            width,
+            height,
+            wall: walls.iter().map(|&(x, y)| WallDef { x, y }).collect(),
+            place: places
+                .iter()
+                .map(|&(object, x, y)| PlacementDef {
+                    object: object.to_string(),
+                    x,
+                    y,
+                })
+                .collect(),
+        }
+    }
+
+    /// Compiles a geometry fixture against valid needs, tuning and atlas, so
+    /// each test below varies only the objects and the lot.
+    fn compile_geometry(objects: ObjectsFile, lot: LotFile) -> Result<ContentPack, ContentError> {
+        compile(full_needs(), objects, lot, test_atlas(), full_tuning())
+    }
+
+    /// The accepting half of the whole feature: a declared footprint reaches
+    /// the pack, on the right object, with width and depth the right way
+    /// round.
+    ///
+    /// 3x2 rather than square, so a transposed field moves an assertion; and
+    /// a second object left at its default, so "every object gets the first
+    /// one's rectangle" is visible. Without the second object a compile step
+    /// that wrote one footprint over all of them would pass.
+    #[test]
+    fn an_objects_footprint_reaches_the_pack_with_its_width_and_depth_unswapped() {
+        let pack = compile_geometry(
+            sized_objects(&[("fridge", 3, 2), ("bed", 1, 1)]),
+            lot_of(8, 6, &[], &[("fridge", 1.0, 1.0), ("bed", 6.0, 4.0)]),
+        )
+        .expect("a 3x2 rectangle at (1, 1) fits an 8x6 lot with room to walk");
+
+        assert_eq!(
+            pack.objects.len(),
+            2,
+            "one object cannot see a shared write"
+        );
+        assert_eq!(
+            pack.objects[0].footprint,
+            Footprint { width: 3, depth: 2 },
+            "the fridge's own rectangle, 3 wide and 2 deep and not the transpose"
+        );
+        assert_eq!(
+            pack.objects[1].footprint,
+            Footprint::SINGLE,
+            "the bed declared 1x1 and must still be 1x1"
+        );
+    }
+
+    /// A zero dimension covers no tiles, so nothing is beside the object,
+    /// `find_path_adjacent` finds nowhere to stand, and scoring drops it
+    /// silently for ever - the object is furniture with an interaction
+    /// nobody can reach.
+    ///
+    /// All three zero shapes, because `width == 0 || depth == 0` mutated to
+    /// `&&` still rejects 0x0: a test of that case alone leaves the mutant
+    /// alive. Same reasoning as `rejects_a_lot_with_a_zero_dimension`.
+    ///
+    /// 1x1 is asserted legal on the other side of the boundary, so the rule
+    /// cannot be "at least 2" and pass this test.
+    #[test]
+    fn rejects_a_zero_footprint_dimension() {
+        for (width, depth) in [(0, 1), (2, 0), (0, 0)] {
+            assert_eq!(
+                compile_geometry(
+                    sized_objects(&[("fridge", width, depth)]),
+                    lot_of(6, 4, &[], &[("fridge", 1.0, 1.0)]),
+                )
+                .unwrap_err(),
+                ContentError::ZeroFootprint {
+                    object: "fridge".into(),
+                    width,
+                    depth
+                },
+                "a {width}x{depth} footprint occupies no tiles"
+            );
+        }
+
+        let pack = compile_geometry(
+            sized_objects(&[("fridge", 1, 1)]),
+            lot_of(6, 4, &[], &[("fridge", 1.0, 1.0)]),
+        )
+        .expect("one tile is the smallest legal object, and the default");
+        assert_eq!(pack.objects[0].footprint, Footprint::SINGLE);
+    }
+
+    /// [F5] rule 2, first half. **The placement coordinate is inside the lot
+    /// in every case here**, which is the whole reason this is not
+    /// `PlacementOutOfBounds`: only the rectangle leaves, and an author told
+    /// to look at the placement would find nothing wrong with it.
+    ///
+    /// Both axes, because a check written on one of them is invisible to a
+    /// test of the other; and the far edge is asserted legal on both, so the
+    /// rule cannot be off by one and still pass.
+    #[test]
+    fn rejects_a_footprint_that_runs_off_the_lot_though_its_placement_does_not() {
+        // 3 wide from x = 4 covers 4, 5 and 6, and 6 is off a 6-wide lot.
+        // 3 deep from y = 1 covers 1, 2 and 3, and 3 is off a 4-tall lot.
+        for (footprint, at, offending) in
+            [((3, 1), (4.0, 1.0), (6, 1)), ((1, 3), (1.0, 2.0), (1, 4))]
+        {
+            let lot = lot_of(6, 4, &[], &[("fridge", at.0, at.1)]);
+            assert!(
+                at.0 < 6.0 && at.1 < 4.0,
+                "the placement itself must be inside the lot, or this test is \
+                 `rejects_a_placement_outside_the_lot` wearing a hat"
+            );
+            assert_eq!(
+                compile_geometry(sized_objects(&[("fridge", footprint.0, footprint.1)]), lot)
+                    .unwrap_err(),
+                ContentError::FootprintOutOfBounds {
+                    object: "fridge".into(),
+                    x: offending.0,
+                    y: offending.1,
+                    width: 6,
+                    height: 4,
+                },
+                "a {}x{} rectangle at {at:?} runs off a 6x4 lot at {offending:?}",
+                footprint.0,
+                footprint.1
+            );
+        }
+
+        // The other side of both boundaries: a rectangle ending ON the last
+        // column, and one ending on the last row, are both inside.
+        for (footprint, at) in [((3, 1), (3.0, 1.0)), ((1, 3), (1.0, 1.0))] {
+            compile_geometry(
+                sized_objects(&[("fridge", footprint.0, footprint.1)]),
+                lot_of(6, 4, &[], &[("fridge", at.0, at.1)]),
+            )
+            .unwrap_or_else(|e| {
+                panic!(
+                    "a {}x{} rectangle at {at:?} ends on the last tile of a 6x4 \
+                     lot, which is inside it; got {e}",
+                    footprint.0, footprint.1
+                )
+            });
+        }
+    }
+
+    /// [F5] rule 2, second half. The placement tile is clear of every wall in
+    /// both halves, so this is the rectangle reaching one rather than
+    /// `PlacementOnWall` under another name - the wall is two tiles east of
+    /// where the author put the object.
+    #[test]
+    fn rejects_a_footprint_that_covers_a_wall_though_its_placement_does_not() {
+        let wall = (5, 2);
+        let at = (3.0, 2.0);
+
+        assert_eq!(
+            compile_geometry(
+                sized_objects(&[("fridge", 3, 1)]),
+                lot_of(8, 5, &[wall], &[("fridge", at.0, at.1)]),
+            )
+            .unwrap_err(),
+            ContentError::FootprintOnWall {
+                object: "fridge".into(),
+                x: 5,
+                y: 2,
+            },
+            "3 wide from x = 3 reaches the wall at (5, 2)"
+        );
+
+        // Two wide stops at x = 4, one tile short of the wall.
+        compile_geometry(
+            sized_objects(&[("fridge", 2, 1)]),
+            lot_of(8, 5, &[wall], &[("fridge", at.0, at.1)]),
+        )
+        .expect("2 wide from x = 3 covers 3 and 4 and never touches (5, 2)");
+    }
+
+    /// [F5] rule 1, **the rule the whole feature was asked for**, and its
+    /// boundary is the one the brief calls out: rectangles that TOUCH are
+    /// fine, and only a shared tile is not.
+    ///
+    /// The two objects are the same shape and differ only in x, so the
+    /// rejected and accepted cases are one tile apart. A fixture where they
+    /// differed in size as well could not tell "overlaps" from "is too big".
+    #[test]
+    fn rejects_two_footprints_that_cover_the_same_tile_but_accepts_two_that_touch() {
+        let objects = || sized_objects(&[("fridge", 2, 1), ("bed", 2, 1)]);
+
+        // fridge covers (2, 1) and (3, 1); bed covers (3, 1) and (4, 1).
+        assert_eq!(
+            compile_geometry(
+                objects(),
+                lot_of(8, 4, &[], &[("fridge", 2.0, 1.0), ("bed", 3.0, 1.0)]),
+            )
+            .unwrap_err(),
+            ContentError::FootprintsOverlap {
+                // Declaration order, so the message does not depend on which
+                // object a map happened to yield first.
+                first: "fridge".into(),
+                second: "bed".into(),
+                x: 3,
+                y: 1,
+            },
+            "both rectangles claim (3, 1)"
+        );
+
+        // One tile further east: fridge covers (2, 1) and (3, 1), bed covers
+        // (4, 1) and (5, 1). They share an EDGE and no tile, which is a sofa
+        // pushed up against a bookshelf and is exactly what a real lot does.
+        let pack = compile_geometry(
+            objects(),
+            lot_of(8, 4, &[], &[("fridge", 2.0, 1.0), ("bed", 4.0, 1.0)]),
+        )
+        .expect("touching is not overlapping");
+        assert_eq!(
+            pack.lot.placements.len(),
+            2,
+            "both placements must survive, or 'accepted' means one was dropped"
+        );
+    }
+
+    /// [F5] rule 3, first half. An object with nothing walkable beside it is
+    /// unusable: `find_path_adjacent` returns `None`, scoring treats it as
+    /// unavailable, and the sim looks perfectly alive while never touching
+    /// it - for as long as the lot exists, which is why this is a build
+    /// failure rather than a runtime one.
+    ///
+    /// The boundary is ONE walkable tile, because "at least one" and "all
+    /// four" are the same thing on an open lot and differ only here.
+    #[test]
+    fn rejects_an_object_with_no_walkable_tile_beside_it_but_accepts_one_with_exactly_one() {
+        // A 5x5 lot with the four tiles around (2, 2) walled.
+        let boxed_in = [(1, 2), (3, 2), (2, 1), (2, 3)];
+        assert_eq!(
+            compile_geometry(
+                sized_objects(&[("fridge", 1, 1)]),
+                lot_of(5, 5, &boxed_in, &[("fridge", 2.0, 2.0)]),
+            )
+            .unwrap_err(),
+            ContentError::NoWalkableApproach {
+                object: "fridge".into(),
+                x: 2,
+                y: 2,
+            }
+        );
+
+        // Open the north side only. One approach tile is enough, and it is
+        // reachable from (0, 0), so the object is usable.
+        let one_way: Vec<(i32, i32)> = boxed_in
+            .into_iter()
+            .filter(|&tile| tile != (2, 1))
+            .collect();
+        compile_geometry(
+            sized_objects(&[("fridge", 1, 1)]),
+            lot_of(5, 5, &one_way, &[("fridge", 2.0, 2.0)]),
+        )
+        .expect("one walkable tile beside an object is enough to use it");
+    }
+
+    /// [F5] rule 3, second half, **and the rule that pays for [F3]**: an
+    /// object placed in a doorway seals a room, because footprint tiles are
+    /// impassable.
+    ///
+    /// The fixture is two rooms divided by a wall at x = 4 with a single
+    /// doorway at (4, 2). A 2x1 object at (3, 2) covers (3, 2) and (4, 2), so
+    /// the doorway is gone and its own approach tile (5, 2) is left stranded
+    /// in the east room. Nothing else about the lot is wrong: every rectangle
+    /// is inside the lot, off the walls, non-overlapping, and has four
+    /// walkable tiles beside it. Only the connectivity fails, which is
+    /// precisely why the first two rules cannot cover this.
+    ///
+    /// The accepted case is the SAME object with the same rectangle two tiles
+    /// west, so what changed is where it stands rather than what it is.
+    #[test]
+    fn rejects_a_footprint_that_seals_a_doorway_but_accepts_one_clear_of_it() {
+        let divided = [(4, 0), (4, 1), (4, 3), (4, 4)];
+
+        let err = compile_geometry(
+            sized_objects(&[("bed", 2, 1)]),
+            lot_of(7, 5, &divided, &[("bed", 3.0, 2.0)]),
+        )
+        .unwrap_err();
+        assert_eq!(
+            err,
+            ContentError::UnreachableApproach {
+                object: "bed".into(),
+                x: 5,
+                y: 2,
+                root_x: 0,
+                root_y: 0,
+            },
+            "a 2x1 at (3, 2) covers the doorway at (4, 2), so (5, 2) is cut off"
+        );
+
+        let pack = compile_geometry(
+            sized_objects(&[("bed", 2, 1)]),
+            lot_of(7, 5, &divided, &[("bed", 1.0, 2.0)]),
+        )
+        .expect("two tiles west of the doorway, the corridor through (3, 2) to (4, 2) is open");
+        assert_eq!(
+            pack.lot.placements.len(),
+            1,
+            "the placement must survive, or 'accepted' means it was dropped"
+        );
+
+        // The precondition the accepted case rests on, stated rather than
+        // assumed: the doorway is a SINGLE tile, so sealing it really does
+        // divide the lot. A second gap would make the rejected case pass and
+        // this test would quietly stop being about connectivity.
+        let gaps = (0..5)
+            .filter(|y| !divided.contains(&(4, *y)))
+            .collect::<Vec<i32>>();
+        assert_eq!(gaps, vec![2], "the dividing wall must have one gap");
+    }
+
+    /// **The reachability flood fill moves four ways, like the simulation.**
+    ///
+    /// `TileGrid::NEIGHBOURS` is orthogonal-only, so two rooms touching at a
+    /// corner are NOT connected for a sim. A diagonal flood fill would call
+    /// them connected and accept a lot no sim can cross, which is the
+    /// reachability rule passing for a reason the simulation does not share -
+    /// and the failure would be invisible: the build goes green and half the
+    /// house is quietly never used.
+    ///
+    /// **This test exists because the diagonal mutation SURVIVED the rest of
+    /// this module.** Every other fixture here is connected or divided by a
+    /// straight wall, and a straight wall blocks both movement rules equally,
+    /// so none of them can tell the two apart. This one is the corner pinch:
+    ///
+    /// ```text
+    ///        x=0 1 2 3
+    ///   y=0    . . # #
+    ///   y=1    . A # #        A = (1, 1), the region holding the root
+    ///   y=2    # # B .        B = (2, 2), which only touches A diagonally
+    ///   y=3    # # . O        O = the object at (3, 3)
+    /// ```
+    ///
+    /// The accepted case opens `(2, 1)`, giving A and B a shared EDGE, so what
+    /// changed between the two runs is one tile of wall rather than anything
+    /// about the object.
+    #[test]
+    fn the_reachability_check_uses_four_way_movement_like_the_simulation_does() {
+        // Two 2x2 rooms on the diagonal, mutually reachable only through the
+        // (1, 1)/(2, 2) corner.
+        let pinched = [
+            (2, 0),
+            (3, 0),
+            (2, 1),
+            (3, 1),
+            (0, 2),
+            (1, 2),
+            (0, 3),
+            (1, 3),
+        ];
+        let objects = || sized_objects(&[("fridge", 1, 1)]);
+        let place = [("fridge", 3.0, 3.0)];
+
+        assert_eq!(
+            compile_geometry(objects(), lot_of(4, 4, &pinched, &place)).unwrap_err(),
+            ContentError::UnreachableApproach {
+                object: "fridge".into(),
+                x: 3,
+                y: 2,
+                root_x: 0,
+                root_y: 0,
+            },
+            "the object's room touches the root's room only at a corner, which \
+             four-way movement cannot cross"
+        );
+
+        // Open the pinch into a doorway. One tile of wall is the whole
+        // difference between the two runs.
+        let opened: Vec<(i32, i32)> = pinched.into_iter().filter(|&tile| tile != (2, 1)).collect();
+        compile_geometry(objects(), lot_of(4, 4, &opened, &place))
+            .expect("with (2, 1) open the two rooms share an edge and a sim can walk between them");
+    }
+
+    /// **Shipped content, not a fixture**, and the same shape of check as
+    /// `no_shipped_interaction_is_clipped_by_the_interaction_floor`: the
+    /// rules are only worth having if the game actually satisfies them.
+    ///
+    /// This cannot fail without the build having failed first, since
+    /// `build.rs` runs the same `compile` over the same files. What it adds is
+    /// that the properties are stated where somebody re-authoring the lot will
+    /// read them, that the SHIPPED bed is asserted to be the multi-tile object
+    /// the design calls for, and that the flood fill is exercised against a
+    /// real house rather than only against a seven-tile fixture. Rule 5 of the
+    /// testing protocol applies with force here, so the preconditions are
+    /// asserted first: with every object 1x1 this test cannot see a footprint
+    /// rule at all.
+    #[test]
+    fn the_shipped_lot_satisfies_every_footprint_rule() {
+        let pack = crate::pack();
+        let lot = &pack.lot;
+
+        assert!(
+            !lot.placements.is_empty(),
+            "an empty lot satisfies all three rules vacuously"
+        );
+        let wide: Vec<&str> = pack
+            .objects
+            .iter()
+            .filter(|object| object.footprint != Footprint::SINGLE)
+            .map(|object| object.id.as_str())
+            .collect();
+        assert_eq!(
+            wide,
+            vec!["bed"],
+            "the bed is the shipped multi-tile object; with every object 1x1 \
+             this test cannot distinguish a footprint rule from no rule"
+        );
+
+        // Rule 2 and rule 1 in one pass, because both are statements about
+        // one tile at a time. Rebuilt from the pack rather than read out of
+        // `compile`, so the two are separate statements of the same claim.
+        let walls: BTreeSet<(u32, u32)> = lot.walls.iter().copied().collect();
+        let mut occupied: BTreeMap<(u32, u32), &str> = BTreeMap::new();
+        for placement in &lot.placements {
+            let object = pack.object(placement.object);
+            let tile = (placement.x as u32, placement.y as u32);
+            for y in tile.1..tile.1 + object.footprint.depth {
+                for x in tile.0..tile.0 + object.footprint.width {
+                    assert!(
+                        x < lot.width && y < lot.height,
+                        "'{}' covers ({x}, {y}), outside the {}x{} lot",
+                        object.id,
+                        lot.width,
+                        lot.height
+                    );
+                    assert!(
+                        !walls.contains(&(x, y)),
+                        "'{}' covers the wall tile ({x}, {y})",
+                        object.id
+                    );
+                    if let Some(previous) = occupied.insert((x, y), object.id.as_str()) {
+                        panic!("'{previous}' and '{}' both cover ({x}, {y})", object.id);
+                    }
+                }
+            }
+        }
+
+        // Rule 3, over the tiles the simulation will actually treat as solid.
+        let mut blocked = walls;
+        blocked.extend(occupied.keys().copied());
+        let root = (0..lot.height)
+            .flat_map(|y| (0..lot.width).map(move |x| (x, y)))
+            .find(|tile| !blocked.contains(tile))
+            .expect("the shipped lot has somewhere to stand");
+        let reached = flood_fill(lot.width, lot.height, &blocked, root);
+
+        let mut checked = 0;
+        for placement in &lot.placements {
+            let object = pack.object(placement.object);
+            let tile = (placement.x as i64, placement.y as i64);
+            let far = (
+                tile.0 + object.footprint.width as i64 - 1,
+                tile.1 + object.footprint.depth as i64 - 1,
+            );
+            let mut beside = 0;
+            for (x, y) in (tile.0..=far.0)
+                .flat_map(|x| [(x, tile.1 - 1), (x, far.1 + 1)])
+                .chain((tile.1..=far.1).flat_map(|y| [(tile.0 - 1, y), (far.0 + 1, y)]))
+            {
+                if x < 0 || y < 0 || x >= lot.width as i64 || y >= lot.height as i64 {
+                    continue;
+                }
+                let approach = (x as u32, y as u32);
+                if blocked.contains(&approach) {
+                    continue;
+                }
+                beside += 1;
+                assert!(
+                    reached[(approach.1 as usize) * (lot.width as usize) + approach.0 as usize],
+                    "the tile {approach:?} beside '{}' is cut off from {root:?}; \
+                     the shipped lot is split into regions a sim cannot walk \
+                     between",
+                    object.id
+                );
+            }
+            assert!(
+                beside > 0,
+                "'{}' has no walkable tile beside it and could never be used",
+                object.id
+            );
+            checked += 1;
+        }
+        assert_eq!(
+            checked,
+            lot.placements.len(),
+            "every placement must have been checked"
+        );
     }
 }

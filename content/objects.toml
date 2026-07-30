@@ -52,6 +52,22 @@ id = "bed"
 name = "Sleepeazy Deluxe"
 sprite = "bedBunk"
 
+  # The one object in shipped content that is not 1x1, and the measurement
+  # that forced it: `bedBunk` is drawn 93 px wide against a 32 px tile, so at
+  # one tile a sim standing "beside" it had 88% of its own sprite inside the
+  # bed's. No asset choice fixes that - every bed in the kit is at least 1.46
+  # tiles wide - because a bed genuinely is a multi-tile object. Recorded as
+  # [A-6] in docs/alpha-feel-notes.md.
+  #
+  # 2 wide and 1 deep, not the other way round: the sprite is drawn wider than
+  # a tile and no deeper than one, and the footprint is the SIMULATION fact
+  # that has to agree with the projection rather than with the art's bounding
+  # box ([F1]). The origin is the placement tile and the extra tile runs +x
+  # ([F2]), so the bed at x = 12.0 in content/lot.toml owns (12, 7) and
+  # (13, 7) - which is the far east edge of a 14-wide lot, with nothing to
+  # spare. Moving it east by one tile is a build failure, not a nudge.
+  footprint = { width = 2, depth = 1 }
+
   # The largest single restore in the game and by far the longest, both
   # deliberately. Energy drains slowly (0.069 per tick), so sleeping
   # should be a rare whole-night commitment rather than a top-up squeezed

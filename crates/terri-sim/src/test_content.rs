@@ -13,7 +13,7 @@
 //! compilation unit and would not see one.
 
 use crate::{Content, Sim};
-use terri_core::{NeedId, SimRng, SmartObject};
+use terri_core::{Footprint, NeedId, SimRng, SmartObject};
 use terri_data::{CompiledInteraction, CompiledObject, ContentPack, Tuning};
 
 /// One interaction advertising the given (need, delta) pairs.
@@ -68,11 +68,27 @@ pub fn object(id: &str, advertises: &[(NeedId, f32)], duration_ticks: u32) -> Co
 /// actually pinned, and it uses shipped content so the index means
 /// something.
 pub fn object_offering(id: &str, interactions: Vec<CompiledInteraction>) -> CompiledObject {
+    object_sized(id, interactions, Footprint::SINGLE)
+}
+
+/// An object of a given size, for the tests that are about footprints.
+///
+/// One tile is the default everywhere else on purpose. Every distance,
+/// arrival tile and score in this crate's fixtures was written against a
+/// one-tile object, so widening the shared helper would silently move all
+/// of them at once - and the first symptom would be an unrelated scoring
+/// assertion off by one step.
+pub fn object_sized(
+    id: &str,
+    interactions: Vec<CompiledInteraction>,
+    footprint: Footprint,
+) -> CompiledObject {
     CompiledObject {
         id: id.to_string(),
         name: id.to_string(),
         sprite: terri_data::pack().sim_sprite,
         interactions,
+        footprint,
     }
 }
 
