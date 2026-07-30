@@ -1075,6 +1075,159 @@ mod tests {
     }
 
     #[test]
+    fn a_cancel_then_a_use_in_one_batch_replaces_the_queue_rather_than_appending_to_it() {
+        // **The shape a plain left click now sends** - [I3] in
+        // `docs/specs/2026-07-30-selection-and-input-design.md`. The shell
+        // enqueues `CancelIntents` immediately followed by `UseObject`, and
+        // the pair is a REPLACE only because both land in the same drain,
+        // in that order. Nothing in `SimCommand` says so; this is where the
+        // claim lives.
+        //
+        // `two_commands_in_one_tick_apply_in_the_order_the_player_issued_them`
+        // already touches the same pair, and deliberately does not replace
+        // this: there the agent's queue is empty when the cancel arrives,
+        // so "the cancel emptied it" and "there was nothing in it" agree on
+        // every number. The redirect only means something against a sim
+        // that is already under orders and already walking, which is what
+        // this fixture builds and what its preconditions assert.
+        //
+        // Three separate effects, because a partial replace is the
+        // dangerous outcome and each fails differently:
+        //
+        //   - the queue holds exactly the NEW intent. Drop the cancel and
+        //     it holds two, which is the append this decision reversed.
+        //   - the old object is released. Send the two in the other order
+        //     and the cancel wipes the intent the use just staged, so the
+        //     sim is left with nothing queued at all - the opposite bug,
+        //     and the one a naive "cancel afterwards" would produce.
+        //   - the new intent is served on this same tick, so the redirect
+        //     is visible immediately rather than a tick later.
+        let (mut sim, bed, fridge, agent) = scenario();
+
+        enqueue(
+            &mut sim,
+            SimCommand::UseObject {
+                agent: agent.index_u32(),
+                object: bed.index_u32(),
+            },
+        );
+        sim.tick();
+
+        // Preconditions. Without these, "the queue holds one intent" is
+        // satisfied by a sim that was never directed anywhere in the first
+        // place, and "the bed was released" by a bed never reserved.
+        assert_eq!(
+            queue_of(&sim, agent).len(),
+            1,
+            "the sim must already be under orders, or there is nothing for \
+             the redirect to replace"
+        );
+        assert_eq!(
+            target_of(&sim, agent).map(|t| t.object),
+            Some(bed),
+            "and it must be on its way to the bed"
+        );
+        assert!(sim.world().get::<Reserved>(bed).is_some());
+
+        enqueue(
+            &mut sim,
+            SimCommand::CancelIntents {
+                agent: agent.index_u32(),
+            },
+        );
+        enqueue(
+            &mut sim,
+            SimCommand::UseObject {
+                agent: agent.index_u32(),
+                object: fridge.index_u32(),
+            },
+        );
+        sim.tick();
+
+        let queue = queue_of(&sim, agent);
+        assert_eq!(
+            queue.len(),
+            1,
+            "a cancel followed by a use must leave exactly the new \
+             instruction; two entries means the cancel did not run and the \
+             click appended, which is the behaviour [I3] replaced"
+        );
+        assert_eq!(
+            queue.front().map(|intent| intent.object),
+            Some(fridge),
+            "and the one entry must be the NEW object; the bed still being \
+             at the front means the two commands were applied out of order"
+        );
+        assert!(
+            sim.world().get::<Reserved>(bed).is_none(),
+            "the abandoned object must be released, or the bed stays \
+             claimed by a sim that is not coming"
+        );
+        assert_eq!(
+            target_of(&sim, agent).map(|t| t.object),
+            Some(fridge),
+            "and the redirect must take effect on the tick it arrives, not \
+             on the next one"
+        );
+    }
+
+    #[test]
+    fn the_reverse_order_does_not_replace_and_is_why_the_shell_sends_cancel_first() {
+        // **The counterfactual for the test above, and the reason the
+        // ordering is load-bearing rather than tidy.**
+        //
+        // `UseObject` then `CancelIntents` is the same two commands in the
+        // other order, and it leaves the sim with NOTHING queued: the
+        // cancel's `fresh.retain` and `queue.clear()` both see the intent
+        // the use has just staged, so the redirect cancels itself. A shell
+        // that emitted the pair the wrong way round would look like clicks
+        // being ignored at random, and the drain would be behaving exactly
+        // as documented.
+        //
+        // Asserted here rather than left as a reading of the source,
+        // because "the order matters" is a claim about two runs and only
+        // one of them is pinned above.
+        let (mut sim, bed, fridge, agent) = scenario();
+
+        enqueue(
+            &mut sim,
+            SimCommand::UseObject {
+                agent: agent.index_u32(),
+                object: bed.index_u32(),
+            },
+        );
+        sim.tick();
+        assert_eq!(
+            queue_of(&sim, agent).len(),
+            1,
+            "the sim must be under orders, matching the fixture above"
+        );
+
+        enqueue(
+            &mut sim,
+            SimCommand::UseObject {
+                agent: agent.index_u32(),
+                object: fridge.index_u32(),
+            },
+        );
+        enqueue(
+            &mut sim,
+            SimCommand::CancelIntents {
+                agent: agent.index_u32(),
+            },
+        );
+        drain_only(&mut sim);
+
+        assert!(
+            queue_of(&sim, agent).is_empty(),
+            "use-then-cancel must leave the queue EMPTY; if this ever \
+             starts leaving the new intent behind, the two orders have \
+             become interchangeable and the shell's ordering stops being \
+             the thing that makes a click a redirect"
+        );
+    }
+
+    #[test]
     fn two_clicks_on_a_sim_with_no_queue_yet_both_survive_the_same_tick() {
         // The staging bug this exists for: an agent with no `IntentQueue`
         // gains one through `Commands`, which the rest of the drain cannot

@@ -97,6 +97,47 @@
       #time-controls input:focus-visible + label {
         outline: 2px solid var(--need-fill);
       }
+      /* The right-click flyout. `fixed` rather than `absolute`, because
+         the menu is positioned from a MouseEvent's clientX/clientY and
+         those are viewport coordinates - an absolutely positioned menu
+         would drift by the scroll offset the moment the page had one. */
+      #object-menu {
+        position: fixed;
+        display: flex;
+        flex-direction: column;
+        min-width: 150px;
+        padding: 4px;
+        background: var(--hud-bg);
+        border: 1px solid var(--hud-edge);
+        border-radius: 6px;
+        /* Above the HUD, which is the only other overlay. A menu opened
+           over the need panel that drew behind it would look like a
+           right click that did nothing. */
+        z-index: 10;
+      }
+      #object-menu[hidden] {
+        display: none;
+      }
+      /* Buttons, so the rows are keyboard-reachable and announced as
+         controls; these rules only undo the browser's own chrome. */
+      .menu-entry {
+        appearance: none;
+        background: none;
+        border: 0;
+        border-radius: 4px;
+        color: inherit;
+        font: inherit;
+        text-align: left;
+        padding: 5px 10px;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .menu-entry:hover,
+      .menu-entry:focus-visible {
+        background: var(--need-fill);
+        color: #10131a;
+        outline: none;
+      }
     </style>
   </head>
   <body>
@@ -113,6 +154,12 @@
       <section id="needs-panel" aria-label="Needs of the selected sim" hidden></section>
       <section id="time-controls" aria-label="Simulation speed"></section>
     </div>
+    <!-- The right-click flyout. Outside #hud on purpose: the HUD is a
+         fixed column in the top-left corner and this is positioned at the
+         pointer, so nesting it would inherit a layout it has to fight.
+         Empty and `hidden` because its rows come from whichever object was
+         right-clicked, read from the simulation on every open. -->
+    <div id="object-menu" aria-label="Object interactions" hidden></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

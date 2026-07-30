@@ -60,6 +60,22 @@ pub enum ContentError {
         object: String,
         interaction: String,
     },
+    /// An interaction whose `label` is present but blank, or is nothing but
+    /// whitespace.
+    ///
+    /// The same silent-nothing shape as [`ContentError::ZeroSlots`] carried
+    /// into the UI: the right-click flyout builds one row per interaction, so
+    /// a blank label is a clickable row of empty space. It still directs the
+    /// sim when picked, which makes it worse than a missing row - the player
+    /// sees a gap in the menu and the game responds to it.
+    ///
+    /// Unreachable by omitting the field, because omitting it falls back to
+    /// the interaction's `id`. This fires only on an author who typed
+    /// `label = ""`.
+    EmptyInteractionLabel {
+        object: String,
+        interaction: String,
+    },
     /// An interaction whose whole sampled length sits at or below
     /// `min_interaction_ticks`, so the floor sets its duration instead of its
     /// content, `duration_variance` does nothing for it, and it delivers
@@ -329,6 +345,16 @@ impl fmt::Display for ContentError {
             } => write!(
                 f,
                 "object '{object}' interaction '{interaction}' has slots of 0; must be at least 1"
+            ),
+            ContentError::EmptyInteractionLabel {
+                object,
+                interaction,
+            } => write!(
+                f,
+                "object '{object}' interaction '{interaction}' has a blank \
+                 label; the right-click menu would draw a clickable row of \
+                 empty space that still directs the sim. Omit the field \
+                 entirely to fall back to '{interaction}', or write a label"
             ),
             ContentError::ClippedDuration {
                 object,

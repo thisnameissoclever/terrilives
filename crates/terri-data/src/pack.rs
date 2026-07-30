@@ -29,6 +29,20 @@ pub struct CompiledInteraction {
     pub advertises: Vec<(u8, f32)>,
     pub duration_ticks: u32,
     pub slots: u8,
+    /// What the right-click flyout calls this interaction.
+    ///
+    /// Never empty and always present: the compile step falls back to the
+    /// authored `id` when `content/objects.toml` declares no `label`, and
+    /// rejects a label that is blank. So a reader may show this directly
+    /// rather than testing it, which is [D9] applied to a string - a menu
+    /// entry with no text has no representation once a pack exists.
+    ///
+    /// **Last in this struct on purpose**, for the appending reason on
+    /// [`ContentPack::lot`]: the pack's byte encoding grows by appending, so
+    /// an interaction's id, advert, duration and slot blocks keep their
+    /// offsets and the golden vector in `compile.rs` stays reviewable
+    /// against the annotations it already carries.
+    pub label: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -255,6 +269,10 @@ mod tests {
             advertises: vec![(0, 35.0), (6, 5.0)],
             duration_ticks: 15,
             slots: 1,
+            // Deliberately not the id and not a substring of it, so the
+            // postcard round-trip below can see a label dropped from the
+            // encoding or read off the `id` slot ([L34]).
+            label: "Use it, then".to_string(),
         }
     }
 

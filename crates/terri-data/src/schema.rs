@@ -159,6 +159,32 @@ pub struct ObjectDef {
 #[derive(Debug, Deserialize)]
 pub struct InteractionDef {
     pub id: String,
+    /// What the right-click flyout calls this interaction, as
+    /// `label = "Eat standing up"`.
+    ///
+    /// **Defaulted rather than required, and the default is the `id`** -
+    /// the second exception in this module to the "a defaulted value is
+    /// the silent-nothing case" reasoning on [`TuningFile`], and it is
+    /// safe for the same reason `footprint`'s is. There is no zero-like
+    /// fallback available to be quietly wrong: an unlabelled interaction
+    /// falls back to a string the author definitely wrote, so the worst
+    /// case is a menu entry reading `grab_snack` rather than a menu entry
+    /// reading nothing. A required field would instead make every object
+    /// authored before the flyout existed a parse error, for a string
+    /// that is presentation and not simulation.
+    ///
+    /// An EMPTY label is a different matter and the compile step rejects
+    /// it - see `ContentError::EmptyInteractionLabel`. A blank entry is a
+    /// clickable row of nothing, which is exactly the silent-nothing shape
+    /// [D9] converts into a build failure, and it is unreachable by the
+    /// default because the default is a non-empty id.
+    ///
+    /// It is content rather than a table in TypeScript for the same reason
+    /// `sprite` is: a lookup keyed by interaction id living in the shell
+    /// would be a second copy of this list, so adding an interaction would
+    /// be a two-file edit and mislabelling one would be a two-file bug.
+    #[serde(default)]
+    pub label: Option<String>,
     /// Need name to the delta this interaction advertises. Sparse: a
     /// need absent from the map is not advertised at all, which is not
     /// the same as advertising zero.
@@ -451,6 +477,62 @@ mod tests {
         assert_eq!(act.advertises.get("hunger"), Some(&35.0));
         assert_eq!(act.advertises.len(), 1, "advert must stay sparse");
         assert_eq!(act.duration_ticks, 15);
+    }
+
+    /// Both halves of `#[serde(default)]` on `label`.
+    ///
+    /// **Omitting it must leave the field ABSENT rather than empty**, because
+    /// absent is what the compile step turns into the interaction's `id`. A
+    /// `String` field defaulting to `""` would compile to a blank menu entry,
+    /// which is the shape this whole module exists to reject; the `Option` is
+    /// what makes "the author said nothing" a state the compile step can see.
+    ///
+    /// And declaring one must land the author's string rather than the id, so
+    /// the fixture's label is deliberately nothing like `grab_snack` - a
+    /// default that overwrote a declared label would be invisible against a
+    /// label that merely resembled its id ([L34]).
+    #[test]
+    fn an_interaction_label_defaults_to_absent_and_is_kept_verbatim_when_declared() {
+        let interaction = |extra: &str| -> InteractionDef {
+            let parsed: ObjectsFile = toml::from_str(&format!(
+                r#"
+                [[object]]
+                id = "fridge"
+                name = "Chill-o-Matic 3000"
+                sprite = "kitchenFridgeBuiltIn"
+
+                  [[object.interaction]]
+                  id = "grab_snack"
+                  {extra}
+                  advertises = {{ hunger = 35.0 }}
+                  duration_ticks = 15
+                  slots = 1
+                "#
+            ))
+            .expect("valid objects toml");
+            parsed
+                .object
+                .into_iter()
+                .next()
+                .expect("one object")
+                .interaction
+                .into_iter()
+                .next()
+                .expect("one interaction")
+        };
+
+        assert_eq!(
+            interaction("").label,
+            None,
+            "an interaction that says nothing about a label must parse as \
+             absent, not as an empty string; the compile step needs to tell \
+             the two apart"
+        );
+        assert_eq!(
+            interaction(r#"label = "Eat standing up""#).label.as_deref(),
+            Some("Eat standing up"),
+            "a declared label must reach the schema verbatim"
+        );
     }
 
     /// The advert map is written into the compiled pack in iteration

@@ -391,6 +391,57 @@ impl Sim {
             .map(|(_, needs)| *needs.as_slice())
     }
 
+    /// The labels of the interactions the smart object carrying `index`
+    /// offers, in the order `content/objects.toml` declares them, or
+    /// `None` when nothing live carries that index or what does is not a
+    /// smart object.
+    ///
+    /// # Why the shell needs this at all
+    ///
+    /// The right-click flyout lists one row per interaction, and a row's
+    /// POSITION is `Intent::interaction`. So this is not decoration: the
+    /// order is the index space, and a list built in TypeScript would be a
+    /// second copy of every object's interaction list, kept in sync by
+    /// nobody. It would fail the way a mislabelled need bar fails - every
+    /// row drawn, every click accepted, and the wording attached to the
+    /// wrong verb - which is the coupling [D1] exists to prevent.
+    ///
+    /// # A scan, a raw index, and a tolerated bad one
+    ///
+    /// All three for the same reasons [`Sim::needs_of`] gives: the caller
+    /// only ever knows a `u32` because JavaScript cannot construct an
+    /// `Entity`, the index may be stale, and it may name something that is
+    /// not an object. Every one of those answers `None` rather than
+    /// panicking, which is what lets the boundary hand back an empty list
+    /// and the shell open no menu.
+    ///
+    /// **`SmartObject` is the filter, and that is the kind check.** A sim
+    /// does not carry one, so a right click that landed on a sim cannot
+    /// reach a label here - which is what makes "this pick has no
+    /// interactions" and "this pick is not an object" the same answer,
+    /// deliberately, because the useful response to both is identical.
+    ///
+    /// It lives here rather than at the boundary because it is a query over
+    /// the world and `terri-wasm` is forbidden simulation logic. The
+    /// borrowed strings come from the `&'static` pack, so no allocation
+    /// happens until the boundary copies them across.
+    pub fn interaction_labels(&self, index: u32) -> Option<Vec<&'static str>> {
+        let pack = self.world.get_resource::<Content>()?.0;
+        let mut state = self
+            .world
+            .try_query::<(Entity, &terri_core::SmartObject)>()?;
+        let (_, object) = state
+            .iter(&self.world)
+            .find(|(entity, _)| entity.index_u32() == index)?;
+        Some(
+            pack.object(object.0)
+                .interactions
+                .iter()
+                .map(|act| act.label.as_str())
+                .collect(),
+        )
+    }
+
     /// The raw index of the selected sim, or `None` when nothing is
     /// selected.
     ///

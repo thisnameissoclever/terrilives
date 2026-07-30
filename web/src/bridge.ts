@@ -306,6 +306,30 @@ export class SimBridge {
   }
 
   /**
+   * The labels of the interactions the object at `entityIndex` offers, in
+   * interaction-index order, or an **empty array** when that index names
+   * nothing live or names something that is not a smart object - a sim, or
+   * an object that despawned between the right click and the handler.
+   *
+   * The right-click flyout builds one row per entry and holds no list of
+   * its own ([D-5]). A table of labels on this side would be a second copy
+   * of every object's interaction list, kept in sync by nobody, and it
+   * would fail the way a mislabelled need bar fails: every row drawn,
+   * every click accepted, and the wording attached to the wrong verb.
+   *
+   * **The order is the interaction index**, so nothing here may sort or
+   * filter it; row `n` is `Intent::interaction` `n`.
+   *
+   * A **copy**, not a view, like `wallTiles` and `needNames`: it is read on
+   * a right click rather than per frame, so [D11] has nothing to say about
+   * it.
+   */
+  interactionLabels(entityIndex: number): string[] {
+    if (!isU32(entityIndex)) return [];
+    return this.handle.interaction_labels(entityIndex);
+  }
+
+  /**
    * The raw index of the selected sim, or `null` when nothing is
    * selected.
    *

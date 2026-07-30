@@ -402,6 +402,38 @@ impl SimHandle {
             .unwrap_or_default()
     }
 
+    /// What the right-click flyout should list for the object carrying
+    /// `entity_index`: one label per interaction, in the order
+    /// `content/objects.toml` declares them, or an EMPTY array when that
+    /// index names nothing live or names something that is not a smart
+    /// object.
+    ///
+    /// An empty array is a normal answer rather than an error, exactly as
+    /// it is for [`SimHandle::needs_of`]: a right click on a sim, on a sim
+    /// that despawned between the frame and the handler, and on an object
+    /// with no interactions authored all arrive here the same way, and all
+    /// three should open no interaction rows. The shell does not have to
+    /// tell them apart because the useful response is identical.
+    ///
+    /// **The array's ORDER is the interaction index.** Row `n` is
+    /// `Intent::interaction` `n`, which is the whole reason the flyout is
+    /// worth building before any object has a second verb - see [I4] in
+    /// `docs/specs/2026-07-30-selection-and-input-design.md`. A shell that
+    /// sorted or filtered this list would be renumbering an index the
+    /// simulation owns.
+    ///
+    /// A copy rather than a pointer into linear memory, like `wall_tiles`
+    /// and `need_names` and unlike the render arrays: it is read on a right
+    /// click rather than per frame, so [D11] has nothing to say about it,
+    /// and a view would have to survive every later reallocation for no
+    /// benefit.
+    pub fn interaction_labels(&self, entity_index: u32) -> Vec<String> {
+        self.sim
+            .interaction_labels(entity_index)
+            .map(|labels| labels.into_iter().map(str::to_string).collect())
+            .unwrap_or_default()
+    }
+
     /// The raw index of the selected sim, or `None` when nothing is
     /// selected.
     ///
@@ -1473,6 +1505,107 @@ mod boundary_tests {
         );
         assert!(
             handle.needs_of(u32::MAX).is_empty(),
+            "and so must u32::MAX, which is where a clamp or a wrap would \
+             show"
+        );
+    }
+
+    #[test]
+    fn interaction_labels_report_the_named_objects_own_interactions() {
+        // **The flyout's entire input.** The menu builds one row per entry
+        // and the row's position is `Intent::interaction`, so an export
+        // that reported the wrong object's list would label a verb with
+        // another object's wording and still accept the click.
+        //
+        // TWO objects, with DIFFERENT labels, and both are asserted. An
+        // export returning "the first object's interactions" satisfies a
+        // single-object fixture, and so does one returning a constant;
+        // that is [L34] wearing the flyout's costume.
+        //
+        // The expectations are read out of the pack rather than written as
+        // literals, so re-wording a label in content/objects.toml does not
+        // break this - and they are asserted to DIFFER, so reading them out
+        // cannot make the comparison vacuous.
+        let mut handle = SimHandle::new(16, 16);
+        assert!(handle.spawn_object(1.0, 1.0, "fridge"));
+        assert!(handle.spawn_object(3.0, 1.0, "toilet"));
+        let (fridge, toilet) = (0, 1);
+
+        let pack = handle.sim.world().resource::<Content>().0;
+        let authored = |id: &str| -> Vec<String> {
+            pack.object(pack.find(id).expect("shipped content declares it"))
+                .interactions
+                .iter()
+                .map(|act| act.label.clone())
+                .collect()
+        };
+        assert_ne!(
+            authored("fridge"),
+            authored("toilet"),
+            "the two objects must be labelled differently, or this test \
+             cannot see an export that ignores which one was named"
+        );
+        assert!(
+            !authored("fridge").is_empty(),
+            "an object with no interactions would make every assertion \
+             below satisfied by an export that returns nothing"
+        );
+
+        assert_eq!(handle.interaction_labels(fridge), authored("fridge"));
+        assert_eq!(handle.interaction_labels(toilet), authored("toilet"));
+
+        // And the labels are the AUTHORED wording rather than the
+        // interaction ids they fall back to. Shipped content labels every
+        // interaction, so an implementation that reported `act.id` would
+        // reach here with `grab_snack` and the menu would show a
+        // placeholder for the rest of the game's life.
+        assert_ne!(
+            handle.interaction_labels(fridge),
+            pack.object(pack.find("fridge").expect("shipped"))
+                .interactions
+                .iter()
+                .map(|act| act.id.clone())
+                .collect::<Vec<_>>(),
+            "shipped content must label its interactions with something \
+             other than their ids, or the fallback and the label are \
+             indistinguishable here"
+        );
+    }
+
+    #[test]
+    fn interaction_labels_are_empty_for_anything_that_is_not_a_smart_object() {
+        // Three ways an index has no interactions to offer, all of which
+        // must answer the same harmless way rather than panicking: a sim,
+        // which carries no `SmartObject`; an index past anything ever
+        // allocated, which is what a right click on a despawned entity
+        // looks like; and `u32::MAX`, where a clamp or a wrap would show.
+        //
+        // The live object is asserted non-empty in the same test, so
+        // "returns empty" cannot be satisfied by an export that returns
+        // empty for everything - the [L50] rule, one must-be-positive case
+        // beside the must-be-negative ones.
+        let mut handle = SimHandle::new(16, 16);
+        assert!(handle.spawn_object(2.0, 2.0, "fridge"));
+        let agent = spawn_agent_at(&mut handle, 1.0, 1.0, 40.0);
+        let object = agent - 1;
+
+        assert!(
+            !handle.interaction_labels(object).is_empty(),
+            "the live object must report its interactions, or every \
+             assertion below is satisfied by an export that reports \
+             nothing for anything"
+        );
+        assert!(
+            handle.interaction_labels(agent).is_empty(),
+            "a sim offers no interactions; the flyout must not draw rows \
+             for one, and it cannot tell a sim from an object by index"
+        );
+        assert!(
+            handle.interaction_labels(9_999).is_empty(),
+            "an index past anything ever allocated must be ignored"
+        );
+        assert!(
+            handle.interaction_labels(u32::MAX).is_empty(),
             "and so must u32::MAX, which is where a clamp or a wrap would \
              show"
         );

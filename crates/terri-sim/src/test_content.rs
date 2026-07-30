@@ -52,6 +52,12 @@ pub fn interaction(
         advertises,
         duration_ticks,
         slots: 1,
+        // What `compile` produces for an interaction that declares no
+        // label: the id itself, never an empty string. A fixture with a
+        // blank label would be a pack the pipeline refuses to build, for
+        // the same reason the sort and the duplicate check above are
+        // asserted rather than assumed.
+        label: id.to_string(),
     }
 }
 

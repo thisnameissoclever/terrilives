@@ -1,9 +1,8 @@
 # Depth, Selection and the Input Model - Decisions
 
-Status: **the depth fix is built and measured; the rest is decided, not yet
-built.** All of it came out of one play session's reports, and all of it is goal
-item 10 - "at a glance: which sim is selected, what it is doing, what it is about
-to do, and why".
+Status: **all four are built.** All of it came out of one play session's
+reports, and all of it is goal item 10 - "at a glance: which sim is selected,
+what it is doing, what it is about to do, and why".
 
 ---
 
@@ -59,7 +58,7 @@ changed.
 
 ---
 
-## [I2] A ring on the floor marks the selected sim
+## [I2] A ring on the floor marks the selected sim. BUILT.
 
 **Reported:** there is no way to tell which sim is selected. Three options were
 offered: a head icon, an outline, or a floor circle.
@@ -89,7 +88,7 @@ one.
 
 ---
 
-## [I3] Click redirects, ctrl-click queues
+## [I3] Click redirects, ctrl-click queues. BUILT.
 
 **Reported:** clicking a second object while the sim is still walking should
 **redirect** it, and ctrl-click should add to the queue instead.
@@ -127,7 +126,7 @@ documents do not drift.
 
 ---
 
-## [I4] Right-click opens a flyout of that object's interactions
+## [I4] Right-click opens a flyout of that object's interactions. BUILT.
 
 **Reported:** right-click should open a menu for advanced interactions and for
 objects with more than one, "even if there is only one interaction for every
@@ -154,3 +153,26 @@ right-click; giving the rare action the conventional gesture is backwards.
 **Rejected: wait for a second interaction to exist before building the menu.**
 That is the order that guarantees the first object with two verbs also has to ship
 a UI, and it is how `UseObject`'s hardcoded 0 got there in the first place.
+
+**Built, and one half of the index is still missing.** The menu lists an
+object's real interactions - `content/objects.toml` gained an optional `label`
+per interaction and `SimHandle::interaction_labels` carries them across the
+boundary in index order - and each row carries its own interaction index. But
+`SimCommand::UseObject` still names only an object, so picking row `n` sends
+what row 0 would. That was left alone deliberately: widening the command moves a
+published byte encoding and its golden vector, which is a decision about the
+wire format rather than about what a right click means. **Whoever adds the first
+object with two verbs owns that change**, and the shell side is already waiting
+for it.
+
+Two smaller things this decision did not settle, resolved in the build and
+recorded here so they are not re-litigated:
+
+- **Nothing selected: no menu at all**, rather than rows drawn disabled. Every
+  row acts on the selected sim, so a menu with no selection could only be a list
+  of things that do nothing, and the player's actual next move is to click a sim,
+  which an open menu is in the way of. The browser's own context menu is still
+  suppressed.
+- **Right-clicking a sim, bare floor or a wall opens a menu of just "Never
+  mind".** The cancel moved into the menu rather than being deleted, so a flyout
+  that only appeared over furniture would take the binding away everywhere else.

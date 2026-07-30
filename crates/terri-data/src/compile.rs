@@ -201,6 +201,27 @@ pub fn compile(
                 });
             }
 
+            // **Absent falls back to the id; blank is rejected.** The two
+            // are different authoring states and only the `Option` in the
+            // schema can tell them apart: saying nothing means "the id will
+            // do", and `label = ""` means a menu row with no text in it.
+            //
+            // `trim` rather than `is_empty`, because a label of `" "` draws
+            // exactly the same nothing as `""` and TOML preserves it
+            // faithfully. The stored label keeps the author's own spacing;
+            // only the emptiness TEST trims, since trimming what is stored
+            // would silently rewrite content.
+            let label = match &act.label {
+                Some(label) if label.trim().is_empty() => {
+                    return Err(ContentError::EmptyInteractionLabel {
+                        object: object.id.clone(),
+                        interaction: act.id.clone(),
+                    })
+                }
+                Some(label) => label.clone(),
+                None => act.id.clone(),
+            };
+
             let mut advertises = Vec::with_capacity(act.advertises.len());
             for (need_name, delta) in &act.advertises {
                 let Some(id) = NeedId::from_name(need_name) else {
@@ -224,6 +245,7 @@ pub fn compile(
                 advertises,
                 duration_ticks: act.duration_ticks,
                 slots: act.slots,
+                label,
             });
         }
 
@@ -822,6 +844,20 @@ mod tests {
     /// from `(3, 2)` to `(4, 2)`, which is the `4, 2` two bytes later; see
     /// that fixture for why, because the reason is a rule doing its job
     /// rather than a fixture being tidied.
+    ///
+    /// **Interaction labels moved it once more, by exactly one appended
+    /// block, and this was regenerated from the failing assertion rather
+    /// than hand-edited.** `CompiledInteraction` gained a `label` after
+    /// `slots`, so every byte up to and including the `15, 1` duration and
+    /// slots pair on row 7 kept its offset, and what follows it is new:
+    /// `15` for the string's length and then `Eat standing up` in ASCII,
+    /// ending `117, 112` on row 8. The `1, 1` immediately after that is the
+    /// object's default 1x1 footprint, unmoved and still the next block,
+    /// which is what the append discipline buys. 134 bytes to 146.
+    ///
+    /// The label is a DECLARED one rather than the id fallback - see
+    /// `snack_advertising_three_needs` - so these bytes also pin that the
+    /// author's wording, and not `grab_snack`, is what reaches the pack.
     #[rustfmt::skip]
     const GOLDEN_PACK_BYTES: &[u8] = &[
         205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62,
@@ -830,11 +866,13 @@ mod tests {
         6, 70, 114, 105, 100, 103, 101, 2, 1, 10, 103, 114,
         97, 98, 95, 115, 110, 97, 99, 107, 3, 0, 0, 0,
         12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64,
-        15, 1, 1, 1, 1, 5, 3, 2, 4, 2, 1, 0,
-        1, 0, 0, 0, 32, 64, 0, 0, 160, 63, 0, 0,
-        128, 62, 0, 0, 0, 63, 0, 0, 0, 62, 9, 6,
-        0, 0, 160, 62, 10, 215, 35, 59, 0, 0, 32, 63,
-        0, 0, 64, 63, 3, 172, 2, 7, 11, 13,
+        15, 1, 15, 69, 97, 116, 32, 115, 116, 97, 110, 100,
+        105, 110, 103, 32, 117, 112, 1, 1, 1, 5, 3, 2,
+        4, 2, 1, 0, 1, 0, 0, 0, 32, 64, 0, 0,
+        160, 63, 0, 0, 128, 62, 0, 0, 0, 63, 0, 0,
+        0, 62, 9, 6, 0, 0, 160, 62, 10, 215, 35, 59,
+        0, 0, 32, 63, 0, 0, 64, 63, 3, 172, 2, 7,
+        11, 13,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -1033,6 +1071,12 @@ mod tests {
     fn snack() -> InteractionDef {
         InteractionDef {
             id: "grab_snack".into(),
+            // Unlabelled, which is the DEFAULTING path and therefore the
+            // one most tests should exercise: an object authored before
+            // the flyout existed says nothing about a label, and every
+            // rule in this module has to keep working for it. The
+            // labelled path gets its own fixtures below.
+            label: None,
             advertises: [("hunger".to_string(), 35.0)].into_iter().collect(),
             duration_ticks: 15,
             slots: 1,
@@ -1042,8 +1086,14 @@ mod tests {
     /// comfort (6), energy (1), hunger (0): the `BTreeMap`'s name order
     /// is the exact reverse of the index order the pack wants, so the
     /// two can never coincide by accident.
+    ///
+    /// The golden vector compiles this one, so it also carries a DECLARED
+    /// label - and one that shares no characters with `grab_snack`, so a
+    /// label encoded off the `id` slot moves the bytes rather than
+    /// reproducing them.
     fn snack_advertising_three_needs() -> InteractionDef {
         let mut act = snack();
+        act.label = Some("Eat standing up".into());
         act.advertises.insert("comfort".into(), 5.0);
         act.advertises.insert("energy".into(), 3.0);
         act
@@ -1349,6 +1399,60 @@ mod tests {
                 interaction: "grab_snack".into()
             }
         );
+    }
+
+    /// **The label rule, all three of its states in one run**, because two
+    /// of them are only meaningful against each other.
+    ///
+    /// A declared label must survive compilation verbatim; an omitted one
+    /// must become the interaction's own `id`; and a blank one must be
+    /// rejected. Split into three tests, the middle one would pass on an
+    /// implementation that ignored `label` entirely and always used the id,
+    /// and the first would pass on one that never defaulted - so the pair
+    /// has to be asserted together, and the fixture's declared label shares
+    /// no characters with its id so the two answers cannot be confused.
+    ///
+    /// The blank case covers `" "` as well as `""`. They draw the same
+    /// nothing in the menu, and a rule written as `is_empty` accepts the
+    /// first while rejecting the second, which is a build that passes and a
+    /// menu row that is still blank.
+    #[test]
+    fn an_interaction_label_defaults_to_its_id_is_kept_verbatim_and_is_never_blank() {
+        let compiled = |act: InteractionDef| -> Result<String, ContentError> {
+            compile_objects(full_needs(), one_object(act))
+                .map(|pack| pack.objects[0].interactions[0].label.clone())
+        };
+
+        assert_eq!(
+            compiled(snack()).expect("valid"),
+            "grab_snack",
+            "an interaction that declares no label must fall back to its \
+             own id; an empty string here is a blank menu row"
+        );
+
+        let mut labelled = snack();
+        labelled.label = Some("Eat standing up".into());
+        assert_eq!(
+            compiled(labelled).expect("valid"),
+            "Eat standing up",
+            "a declared label must reach the pack verbatim, or the flyout \
+             shows the id and content/objects.toml has stopped being where \
+             the wording lives"
+        );
+
+        for blank in ["", " ", "\t"] {
+            let mut act = snack();
+            act.label = Some(blank.into());
+            assert_eq!(
+                compiled(act).unwrap_err(),
+                ContentError::EmptyInteractionLabel {
+                    object: "fridge".into(),
+                    interaction: "grab_snack".into()
+                },
+                "a label of {blank:?} must be rejected rather than compiled \
+                 into a clickable row of empty space"
+            );
+        }
     }
 
     /// `check_finite` guards three call sites - adverts, placement x and

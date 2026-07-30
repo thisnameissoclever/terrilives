@@ -17,7 +17,8 @@ import { buildStaticInstances } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
 import { buildTimeControls } from './ui/time-controls.js';
-import { attachPointerInput } from './input.js';
+import { ObjectMenu, createMenuSurface } from './ui/object-menu.js';
+import { attachPointerInput, dispatchMenuAction } from './input.js';
 import { KIND_AGENT } from './render/instances.js';
 
 /** [D2]: the simulation's one true rate. Speed controls change how many
@@ -253,8 +254,9 @@ async function main(): Promise<void> {
   // diagnose from a rendered picture.
   const needsRoot = document.querySelector<HTMLElement>('#needs-panel');
   const speedRoot = document.querySelector<HTMLElement>('#time-controls');
-  if (!needsRoot || !speedRoot) {
-    throw new Error('missing #needs-panel or #time-controls');
+  const menuRoot = document.querySelector<HTMLElement>('#object-menu');
+  if (!needsRoot || !speedRoot || !menuRoot) {
+    throw new Error('missing #needs-panel, #time-controls or #object-menu');
   }
   const needsPanel = new NeedsPanel(
     needsRoot,
@@ -305,11 +307,25 @@ async function main(): Promise<void> {
   // the content pack, so what is drawn is what `find_path` refuses to
   // walk through. A sim detouring to the doorway is then legible instead
   // of looking like an AI fault.
+  // The right-click flyout. It renders simulation state and owns none of
+  // it ([D-5]): the rows come from the object's own interaction list, read
+  // across the boundary on every open, and the sim a row acts on is read
+  // when the row is picked rather than when the menu appeared.
+  //
+  // The action goes back through `dispatchMenuAction`, which sends
+  // commands like everything else - the menu is a nicer way to name a
+  // command, not a second way to reach the world.
+  const menu = new ObjectMenu(
+    createMenuSurface(document, menuRoot),
+    (action) => dispatchMenuAction(sim, action),
+  );
+
   // Clicks, last of the wiring because it needs the camera offsets above.
-  // Left click selects a sim or directs the selected one at an object;
-  // right click hands it back to its own judgement. Every one of those is
-  // a serialised command ([D-2]) - nothing here reaches into the world.
-  attachPointerInput(canvas, sim, originX, originY);
+  // Left click selects a sim or redirects the selected one at an object,
+  // ctrl or cmd click queues instead, and right click opens the flyout.
+  // Every one of those is a serialised command ([D-2]) - nothing here
+  // reaches into the world.
+  attachPointerInput(canvas, sim, menu, menuRoot, originX, originY);
 
   const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles() };
   const staticGeometry = buildStaticInstances(lot, originX, originY, depthScale);
