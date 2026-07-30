@@ -5,6 +5,19 @@ than rediscovering any of it.
 
 Entries are append-only and numbered. Do not renumber.
 
+**One exception happened, on 2026-07-29, and it is recorded here rather than
+hidden because the rule above is what makes these IDs citable.** Two branches
+independently added an `[L41]`: `m1b-interaction` added `[L41]`-`[L48]` and
+`main` added a different `[L41]`. A merge cannot keep both under one number, so
+main's entry became `[L49]`. It was the one to move because nothing in the repo
+cited it, while `[L41]`-`[L48]` were already referenced from code comments.
+
+The rule as written assumed linear history and cannot survive parallel branches
+on its own. **The way to keep it: claim a number by appending the heading in a
+tiny commit before writing the entry**, so a second branch sees the number
+taken. Renumbering is the fallback, and if it happens again the moved entry
+keeps a note saying what it used to be.
+
 ---
 
 ## [L1] Bare `cargo` does not link on this machine - RESOLVED 2026-07-27
@@ -2043,8 +2056,24 @@ explaining why 0.15 is right reads exactly like evidence that somebody checked.
    change. Without it the test would have kept passing while quietly becoming a
    statement about something else.
 
-**How to verify:** the trace harness is not in the repo, deliberately - a stale
-committed instrument is worse than none. Reproduce it by building
+**How to verify:** run `cargo run -p terri-sim --example trace -- 12000`.
+
+**AMENDED, 2026-07-29.** This rule used to end "the trace harness is not in the
+repo, deliberately - a stale committed instrument is worse than none", and the
+branch that added `crates/terri-sim/examples/trace.rs` cited *this lesson* as
+the reason for committing it. A review caught the contradiction: four comments
+pointed at [L40] to justify the opposite of what [L40] said.
+
+The original reasoning was wrong, and the way it was wrong is instructive. A
+stale instrument is worse than none only if nobody notices it is stale - and an
+instrument in the repo is exactly the thing a reviewer can re-run and catch. It
+was re-run on this branch and it *did* disagree with four recorded figures,
+which is how those got corrected. A harness that is deleted after every pass
+cannot be re-run, so its numbers can never be falsified; that is the worse
+failure, not the better one.
+
+So: **keep the harness, and treat disagreement between it and a recorded number
+as the number being stale.** Do not defend the number. Reproduce it by building
 `Sim::new_from_shipped_lot()`, spawning the agent `web/src/main.ts` spawns, and
 ticking 12 000 times while logging, per tick, the best score any candidate
 offers. The measured percentiles are recorded in `content/tuning.toml` beside

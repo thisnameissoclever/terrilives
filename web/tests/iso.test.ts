@@ -42,7 +42,10 @@ describe('worldToScreen', () => {
     // steps by half its width per tile. Swapping the two constants, or
     // using the same one for both axes, moves both numbers here.
     expect(worldToScreen(1, 0, 0, 0)).toEqual([TILE_HALF_WIDTH, TILE_HALF_HEIGHT]);
-    expect(worldToScreen(1, 0, 0, 0)).toEqual([TILE_HALF_WIDTH, TILE_HALF_HEIGHT]);
+    // And the scalars the render loop actually calls, which is the pair that
+    // would still fail if only the tuple form were fixed.
+    expect(screenX(1, 0, 0)).toBe(TILE_HALF_WIDTH);
+    expect(screenY(1, 0, 0)).toBe(TILE_HALF_HEIGHT);
   });
 
   it('sends +y left and down the screen by exactly half a tile', () => {
@@ -50,7 +53,8 @@ describe('worldToScreen', () => {
     // Testing only +x would pass for `(wx + wy) * TILE_HALF_WIDTH`, which
     // collapses the diamond into a line along one diagonal.
     expect(worldToScreen(0, 1, 0, 0)).toEqual([-TILE_HALF_WIDTH, TILE_HALF_HEIGHT]);
-    expect(worldToScreen(0, 1, 0, 0)).toEqual([-TILE_HALF_WIDTH, TILE_HALF_HEIGHT]);
+    expect(screenX(0, 1, 0)).toBe(-TILE_HALF_WIDTH);
+    expect(screenY(0, 1, 0)).toBe(TILE_HALF_HEIGHT);
   });
 
   it('adds the screen origin to each axis once, unscaled', () => {

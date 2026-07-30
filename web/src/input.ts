@@ -15,7 +15,14 @@
 
 import { SPRITES } from './render/atlas.js';
 import { KIND_AGENT } from './render/instances.js';
-import { TILE_HALF_HEIGHT, screenToWorld, screenX, screenY } from './render/iso.js';
+import {
+  LAYER_PROP,
+  LAYER_SIM,
+  TILE_HALF_HEIGHT,
+  screenToWorld,
+  screenX,
+  screenY,
+} from './render/iso.js';
 
 /**
  * What picking needs from the simulation. `SimBridge` satisfies it
@@ -164,6 +171,21 @@ export function clientToTile(
  * atlas's alpha would fix it and needs the decoded image on this side; the
  * rectangle is a large improvement on a 32-pixel-tall diamond and the
  * imprecision is in the player's favour - it makes things easier to hit.
+ *
+ * **Walls and floor tiles are invisible to this.** They are static geometry
+ * uploaded once, not render-buffer rows, so nothing here can return one. A
+ * click on a wall therefore reads as bare floor and clears the selection - and
+ * a click on a wall drawn IN FRONT of a sim selects the sim behind it, because
+ * only the sim is a candidate. Harmless today; it stops being harmless when
+ * walls become clickable in build mode.
+ *
+ * **Positions are the current tick's, not the interpolated ones the renderer
+ * draws**, matching `pickAt`. For tile picking that is a rounding difference; on
+ * a sprite box it is up to a quarter tile of real offset at the edges, so a
+ * click at the very edge of a fast-moving sim can miss. Fixing it means
+ * threading the frame's `alpha` in here, which couples input to the render
+ * loop's timing; the miss is small and only at the boundary, so it has not been
+ * done.
  */
 export function pickSprite(
   source: PickSource,
@@ -193,9 +215,14 @@ export function pickSprite(
 
     // The same arithmetic `sprites.wgsl` does: bottom-centre anchored, with
     // the anchor half a tile below the entity's screen position so the sprite
-    // stands on the diamond's south corner. Restated here rather than shared
-    // because the shader's copy is WGSL; `input.test.ts` pins the two
-    // together by reading the shader as text.
+    // stands on the diamond's south corner.
+    //
+    // The anchor is not duplicated - it reaches the shader as a UNIFORM, which
+    // `sprites.ts` fills from this same `TILE_HALF_HEIGHT`, so both sides read
+    // one constant and cannot drift. What IS restated here is the quad layout
+    // (half the width left, the full height up), and nothing pins that against
+    // the shader; a change to `CORNERS` or to the `topLeft` expression in
+    // `sprites.wgsl` would move the drawn sprite without moving the hit box.
     const anchorX = screenX(wx, wy, originX);
     const anchorY = screenY(wx, wy, originY) + TILE_HALF_HEIGHT;
     const left = anchorX - sprite.w / 2;
@@ -204,7 +231,11 @@ export function pickSprite(
     if (py < top || py > anchorY) continue;
 
     const nearness = wx + wy;
-    const layer = kinds[row] === KIND_AGENT ? 1 : 0;
+    // The renderer's own layer constants rather than 1 and 0, so that swapping
+    // them in `iso.ts` moves the drawn order and the hit order together. Two
+    // hand-written numbers here would leave picking silently disagreeing with
+    // what is on top.
+    const layer = kinds[row] === KIND_AGENT ? LAYER_SIM : LAYER_PROP;
     // Strictly greater on both, so an equal-depth equal-layer tie keeps the
     // EARLIER row - the one that won the pixel.
     if (nearness > bestNearness || (nearness === bestNearness && layer > bestLayer)) {

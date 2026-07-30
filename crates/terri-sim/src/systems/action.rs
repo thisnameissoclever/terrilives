@@ -657,10 +657,15 @@ pub fn select_action(
             // M0's "far too expensive" reasoning was about a thousand
             // agents and a hundred thousand objects. At M1b's scale - one
             // agent, eight objects - this is one A* over a 24x18 grid per
-            // candidate per tick, which is nothing. The cost is
-            // O(idle agents * unclaimed objects) A* searches per tick and
-            // grows with both, so it is the SCALE that will force a
-            // change here, not the metric.
+            // candidate per tick, which is nothing.
+            //
+            // The cost is O(idle agents * ALL placed objects) A* searches per
+            // tick - every object, not only the available ones. That changed
+            // when the query stopped filtering `Without<Reserved>`: a contested
+            // object is still pathed to, because its score still has to reach
+            // `best_seen`. Deliberate, and the reason is right above; the point
+            // here is that it is the SCALE that will force a change, not the
+            // metric, and the scale is now slightly larger than it looks.
             //
             // **Do not "optimise" this back to a straight line.** [D7]
             // plans room and portal graph distance for exactly this
@@ -689,11 +694,14 @@ pub fn select_action(
             // measured before that change shifted slightly with it, and
             // `docs/alpha-feel-notes.md` carries the re-measurement.
             //
-            // It matters for scoring beyond tidiness: an agent that has just
-            // finished with an object used to be standing on it at distance
-            // zero, which is that object's own maximum score, and it chose the
-            // same object again on 5.8% of interactions ([C5]). Standing
-            // beside it costs one tile, which is small but no longer zero.
+            // **It does NOT change the [C5] repeat-use effect, and an earlier
+            // version of this comment said it did.** `find_path_adjacent`
+            // returns an EMPTY path for an agent that is already adjacent, so
+            // an agent that has just finished an interaction scores that object
+            // at distance 0 - the same maximum score it got when the agent
+            // stood on top of it. The distance term did not move, and the
+            // measurement agrees: repeat use went 5.8% to 5.6%. See the note on
+            // `find_path_adjacent` itself.
             let Some(steps) = grid.find_path_adjacent(from, to) else {
                 continue;
             };

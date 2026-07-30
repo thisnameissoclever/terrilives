@@ -146,15 +146,35 @@ duration_variance = 0.4
 # floor was acting as a balance lever: the sink went from 8 ticks to 21 (and
 # its hygiene delta from 22 to 32, without which raising the duration alone
 # dropped it from 6 interactions to 1), the toilet from 12 to 24 and the
-# fridge from 15 to 30. Measured over 12 000 ticks afterwards, every object
-# now shows real spread and none is pinned:
+# fridge from 15 to 30.
 #
-#   fridge 18-40 (declares 30)    toilet 24 -> 14-32
-#   sink   14-27 (declares 21)    shower 27-54
-#   sofa   30-55                  television 33-74    bed 108-244
+# Measured over 12 000 ticks against the CURRENT content, after the decay
+# retune below - every object shows real spread and none is pinned:
 #
-# Reproduce with `cargo run -p terri-sim --example trace -- 12000`, which is
-# in the repo this time rather than rebuilt from scratch per [L40].
+#   fridge 18-41 (declares 30)    toilet 14-32 (declares 24)
+#   sink   13-24 (declares 21)    shower 27-53 (declares 45)
+#   sofa   31-50                  television 33-72   bed 108-218
+#
+# These replace an earlier set taken before the adjacency and decay changes,
+# which a review caught as stale. [L40]'s rule is that a re-measurement which
+# disagrees means re-deriving rather than defending, so: reproduce with
+# `cargo run -p terri-sim --example trace -- 12000`, and replace these numbers
+# rather than arguing with them.
+#
+# **ONE JUSTIFICATION HERE NO LONGER HOLDS, and it is recorded rather than
+# quietly fixed.** The sink's delta was raised to 32 on the argument that it
+# would then score within about 2% of the shower, so which one a sim picks
+# would turn on how tired it is. That was measured before the decay rates were
+# slowed. It is now **3 sink uses against 9 shower uses** in 12 000 ticks, and
+# the sink's share of all interactions fell from 11.8% before the pass to 3.2%
+# after. The sink is closer to the bookshelf's zero than to a real choice.
+#
+# Do NOT chase it with a third delta change. Two objects are now near-unused
+# for the same reason - nothing in the game makes repetition less attractive -
+# and that is what habituation is for; see
+# docs/specs/2026-07-29-satisfaction-and-traits-design.md. Raising numbers until
+# an object wins on merit it does not have is the fix that was already rejected
+# for the bookshelf in [C6].
 min_interaction_ticks = 12
 
 # Seed for the simulation PRNG. Constant for now; it becomes part of the

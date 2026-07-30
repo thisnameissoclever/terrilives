@@ -698,19 +698,34 @@ that would fix it properly by making variety worth more than repetition.
 
 **[C1] Clipped durations - fixed, and made unrepresentable.** The sink declared
 8 ticks and 22 hygiene, ran for exactly 12 on 6 of 6 measured interactions, and
-delivered 33. Now 21 ticks and 32 hygiene; measured 14 to 27, mean 20.8. The
+delivered 33. Now 21 ticks and 32 hygiene; measured **13 to 24, mean 17.3**. The
 fridge and toilet were clipped at the bottom of their bands and are now 30 and
 24. No interaction is pinned any more, and `ClippedDuration` in terri-data fails
 the build for any that would be.
+
+**The per-object numbers in this section were re-measured after a review found
+them stale.** They had been taken before the adjacency change and before the
+decay retune, both of which landed later on the same branch, and [L40]'s rule is
+that a disagreeing re-measurement means re-deriving rather than defending. The
+current figures are in `content/tuning.toml`.
 
 **The sink needed its delta raised too, and that is not cosmetic.** Raising the
 duration alone moved its score denominator from `4d + 9` to `4d + 22` while its
 only competitor - the shower - kept its 45 and lost nothing. Usage fell from 6
 interactions to **1**, which is within a rounding error of the bookshelf's zero.
-Fixing a duration by turning the object into furniture is not a fix. At 32 the
-two score within about 2% at observed mid-run levels, so which one a sim picks
-genuinely turns on how tired it is - which is what the object was always
-documented to do and never did.
+Fixing a duration by turning the object into furniture is not a fix.
+
+**And then the decay retune moved the goalposts again, which I did not
+re-check.** The delta of 32 was justified on the two scoring within about 2% of
+each other, so that the choice would turn on how tired the sim is. Measured
+after the retune: **3 sink uses against 9 shower uses**, and the sink's share of
+all interactions down from 11.8% before the pass to 3.2% after. The
+justification does not survive its own follow-up change, and a review caught it.
+
+Recorded rather than fixed with a third delta. Two objects are now near-unused
+for one shared reason - nothing makes repetition less attractive - and
+habituation is the mechanic aimed at it. Raising numbers until an object wins on
+merit it does not have is the fix already rejected for the bookshelf in [C6].
 
 **[C3] The outbid sim - fixed, both halves.** The notes described the
 within-tick case. The longer-lived half was the object query filtering

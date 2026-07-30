@@ -808,11 +808,18 @@ mod tests {
         // the floor, so the clamp decides EVERY interaction here and a
         // `>=` would also be satisfied by an unclamped shorter draw.
         const NEED: NeedId = NeedId::Hygiene;
-        // 6 ticks against the shipped floor of 12 and variance of 0.4: the
-        // band is 3.6 to 8.4, entirely underneath. Derived from the tuning
-        // below rather than written as a literal, so a floor change cannot
-        // leave this fixture accidentally above the line with the test still
-        // asserting equality.
+        // The largest centre whose whole band still sits under the floor.
+        //
+        // At the shipped floor of 12 and variance of 0.4 the expression below
+        // yields 7, whose band is 4.2 to 9.8 - entirely underneath. It is
+        // derived from the tuning rather than written as a literal so that a
+        // floor change cannot leave this fixture accidentally above the line
+        // with the test still asserting equality.
+        //
+        // An earlier version of this comment said "6 ticks... band 3.6 to 8.4",
+        // which is a different fixture from the one the code builds. A review
+        // caught it. That is the shape [L40] warns about: a worked example in a
+        // comment is not a measurement, and this one was never run.
         let tuning = test_content::tuning();
         let centre = ((tuning.min_interaction_ticks as f32 / (1.0 + tuning.duration_variance))
             .floor() as u32)

@@ -398,9 +398,7 @@ describe('dispatch', () => {
  * `buildTimeControls` is - there is no jsdom here and the project's
  * convention is structural fakes rather than a browser environment.
  */
-/**
- * Sprite-space picking: what the player actually aims at.
- */
+/** Sprite-space picking: what the player actually aims at. */
 describe('pickSprite', () => {
   /**
    * **The regression test for the bug a real person found.**
@@ -522,6 +520,48 @@ describe('pickSprite', () => {
     expect(
       pickSprite(mixed([KIND_AGENT, KIND_OBJECT], [8, 3], [simSprite, fridgeSprite]), px, py, 0, 0),
     ).toEqual({ entity: 8, isAgent: true });
+  });
+
+  /**
+   * **Two entities of the SAME kind on the same tile resolve to the earlier
+   * row**, which is documented rule 3 and had no test.
+   *
+   * A code review found the gap: relaxing the layer comparison from `>` to
+   * `>=` makes the LATER row win on an equal-depth, equal-layer tie, and all
+   * 159 web tests still passed. `pickAt` has the equivalent test; `pickSprite`
+   * did not.
+   *
+   * The rule is not arbitrary - it is what the depth buffer does. Both rows get
+   * the same depth, `depthCompare` is `less`, and equal is not less, so the
+   * first one drawn keeps the pixel. Picking has to agree with that or a click
+   * selects something the player cannot see.
+   *
+   * Two objects rather than two sims, because two sims on a tile only happens
+   * under `?stress=N` while two props on a tile is a lot-authoring mistake
+   * waiting to happen - and the earlier-row rule is what makes the outcome
+   * defined either way.
+   */
+  it('picks the earlier row when two entities share a tile and a layer', () => {
+    const tile = [6, 4] as const;
+    const box = drawnBox(tile, 'kitchenFridgeBuiltIn');
+    const fridge = SPRITES.findIndex((sp) => sp.name === 'kitchenFridgeBuiltIn');
+    const rows: PickSource = {
+      count: 2,
+      positions: () => new Float32Array([tile[0], tile[1], tile[0], tile[1]]),
+      kinds: () => new Uint32Array([KIND_OBJECT, KIND_OBJECT]),
+      ids: () => new Uint32Array([21, 22]),
+      sprites: () => new Uint32Array([fridge, fridge]),
+    };
+
+    // Precondition: the point is inside the box at all, or "the earlier row
+    // won" is satisfied by neither row being hit.
+    expect(pickSprite(rows, box.centreX, box.bottom - 6, 0, 0)).not.toBeNull();
+    expect(pickSprite(rows, box.centreX, box.bottom - 6, 0, 0)?.entity).toBe(21);
+
+    // And with the ids swapped, so the assertion cannot pass on "returns the
+    // smaller entity index" instead of "returns the earlier row".
+    const swapped: PickSource = { ...rows, ids: () => new Uint32Array([22, 21]) };
+    expect(pickSprite(swapped, box.centreX, box.bottom - 6, 0, 0)?.entity).toBe(22);
   });
 
   /** Rows past `count` are not read. */

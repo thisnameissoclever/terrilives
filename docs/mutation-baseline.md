@@ -524,10 +524,17 @@ introduces the whole codebase: the diff is everything, the run degenerates into
 a full sweep, and it fails on accepted debt. Diffing against a committed
 baseline needs no special case.
 
-## The four accepted survivors
+## The accepted survivors
 
-Was five. M1b Task 3 removed one by removing the operator it mutated; see
-the `advertise.rs` section below.
+Five at M1c; six after the alpha branch, which added
+`TileGrid::find_path_adjacent` and with it a second copy of the two neighbour-
+offset mutants. It was five before that and four before M1b Task 3, which
+removed one by removing the operator it mutated; see the `advertise.rs` section.
+
+The count is deliberately not in this heading any more. It was wrong twice in one
+day - the heading said four while the file held five - because a number in a
+heading is a second copy of `wc -l docs/mutants-baseline.txt` that nothing keeps
+in sync. Count the file.
 
 ### `grid.rs:102:43` and `102:63` - the neighbour offsets - EQUIVALENT
 
@@ -564,6 +571,54 @@ it is worth pinning rather than waving at:
 **When this expires:** the moment `NEIGHBOURS` stops being symmetric. Adding
 diagonals keeps it symmetric; adding a one-way movement rule, a ledge, or a
 directional portal does not. Whoever edits that array owns re-checking this.
+
+#### The same two, in `find_path_adjacent` - added 2026-07-29
+
+`TileGrid::find_path_adjacent` arrived on the alpha branch and reuses
+`find_path`'s expansion loop verbatim, including this expression, so it
+contributes its own copy of both mutants. CI's gate caught them as new
+survivors, which is the gate working.
+
+**The argument above transfers without modification.** It rests entirely on two
+things: that `NEIGHBOURS` is closed under negation, and that `OpenNode`'s `Ord`
+is total with no ties. Both are properties of code shared by the two functions -
+the same array and the same `Ord` impl - so neither can hold for one and fail
+for the other. The only difference between the functions is the goal test, and
+the goal test does not appear in the argument.
+
+**When this expires:** exactly when the entry above does, and for the same
+reason. Whoever edits `NEIGHBOURS` owns re-checking both.
+
+#### And the f-score, in `find_path_adjacent` - KILLED rather than accepted
+
+`find_path_adjacent` also contributed a copy of the `tentative + heuristic(..)`
+to `tentative * heuristic(..)` mutant recorded below as "A REAL GAP". It is
+**not** in the baseline, because it is now dead:
+`the_adjacent_path_is_the_shortest_one_and_not_merely_a_valid_one` in
+`grid.rs` kills it.
+
+Two things about how, because both are reusable:
+
+**The fixture was found by brute force, not by hand.** Multiplying makes the
+priority inadmissible *and* inconsistent, so it only returns a wrong answer on a
+maze where the cheap-looking direction is a detour - which is genuinely hard to
+draw by eye, and is presumably why the `find_path` twin was carried on trust for
+three milestones. `crates/terri-core/examples/find_fscore_counterexample.rs`
+implements the real search, the mutated search and a BFS optimum side by side and
+walks random small grids until they disagree. It found a 4x7 grid on which the
+optimum is 11 steps and the mutant returns 13, after 11 107 596 cases. That
+example is committed, so the next person does not have to rediscover the
+technique.
+
+**The assertion is an exact length.** Every other test on this function checked
+contiguity, walkability, the endpoint and a plausible length, and a range is
+precisely what let the mutant through - it returns a *valid* path, just not the
+shortest one. Do not relax it.
+
+**This makes the `find_path` entry below newly suspicious.** The same technique
+would very likely kill it too, and nobody has tried since the tooling to do so
+now exists. It is left in the baseline for now rather than removed on a guess,
+but it should be treated as a to-do rather than as settled debt.
 
 ### `grid.rs:115:44` - the f-score - A REAL GAP, not an equivalent mutant
 

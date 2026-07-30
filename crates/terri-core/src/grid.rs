@@ -143,18 +143,24 @@ impl TileGrid {
     ///   which is that object's maximum possible score, so it is unusually
     ///   likely to use it again immediately ([C5]).
     ///
-    ///   **That last one turned out NOT to be fixed by this, and the number is
-    ///   recorded here so nobody claims it again.** Back-to-back reuse was
-    ///   5.8% of interactions before and 5.6% after, over 12 000 ticks - no
-    ///   change worth the name at n = 125. The reason is the shape of the
-    ///   denominator: the score divides by `4 * distance + duration + 1`, so
-    ///   moving the just-used object from distance 0 to 1 costs it only
-    ///   `4/(duration + 5)`, which for the fridge is about 12% - not enough to
-    ///   reorder anything, especially since every OTHER object also came one
-    ///   tile closer. If [C5] is ever worth fixing it needs a mechanism aimed
-    ///   at repetition, such as a short per-object cooldown, rather than a
-    ///   distance nudge. Measured with
-    ///   `cargo run -p terri-sim --example trace`.
+    ///   **This does NOT address that, and an earlier version of this comment
+    ///   claimed it did. The claim was wrong twice over.** It said standing
+    ///   beside an object costs it one tile of distance. It costs it nothing:
+    ///   the early return above yields `Some(vec![])` for an agent that is
+    ///   already adjacent, so `steps.len()` is **0**, and a sim that has just
+    ///   finished an interaction is by definition adjacent. It scores that
+    ///   object at distance 0 exactly as it did when it stood on top of it.
+    ///
+    ///   The measurement was right and the explanation was not: back-to-back
+    ///   reuse went 5.8% to 5.6% over 12 000 ticks, which is no change at
+    ///   n = 125 - and now reads as exactly what you would predict from a term
+    ///   that did not move. **A distance nudge has therefore never been
+    ///   tried**, which is the opposite of what the old comment told the next
+    ///   person. If [C5] is worth fixing, a per-interaction cooldown or the
+    ///   habituation mechanic in
+    ///   `docs/specs/2026-07-29-satisfaction-and-traits-design.md` is the
+    ///   aimed-at mechanism; a nudge is the untested cheap option. Measure
+    ///   with `cargo run -p terri-sim --example trace`.
     /// - Multi-step interactions need it anyway: a chain of steps at different
     ///   objects has to put the sim somewhere it can plausibly reach two
     ///   things from.
@@ -172,15 +178,37 @@ impl TileGrid {
     /// finds the closest approach for free, because A* expands in order of
     /// cost so the first neighbour it pops is the cheapest one to reach.
     ///
-    /// # Determinism
+    /// # Why this is optimal, which is NOT because the heuristic is admissible
     ///
-    /// The heuristic still targets `to` itself, which is admissible for this
-    /// goal set: every neighbour of `to` is one step from `to`, so the
-    /// heuristic overestimates the true remaining cost by at most 1 and can
-    /// only ever make the search explore slightly more, never return a
-    /// non-optimal path. Ties resolve through `OpenNode`'s index ordering
-    /// exactly as in `find_path`, so the same query always yields the same
-    /// path and the same length.
+    /// The heuristic still targets `to` itself, and **that is inadmissible for
+    /// this goal set** - it returns `h*(n) + 1` at every goal, because every
+    /// neighbour of `to` is one step from `to` and the search stops there. An
+    /// earlier version of this comment claimed the opposite, and claimed that
+    /// overestimating makes the search "explore slightly more"; both are
+    /// backwards. Overestimating is what inadmissible MEANS, and it makes A*
+    /// explore less, which is exactly how an inadmissible heuristic returns
+    /// non-optimal paths.
+    ///
+    /// It is optimal anyway, for two properties that do hold:
+    ///
+    /// - `h` is **consistent**: it changes by at most 1 across any edge, so
+    ///   nodes pop in non-decreasing `f` order with their optimal `g`.
+    /// - `h` is **exactly 1 at every goal in the set**. Uniform `h` across the
+    ///   goals means `f` ordering among them is `g` ordering, so the first goal
+    ///   popped really is the cheapest to reach.
+    ///
+    /// **The second property is the load-bearing one, and it is fragile.** It
+    /// holds only because every goal is exactly one step from `to`. Two changes
+    /// already on the horizon would break it: multi-tile object footprints,
+    /// where goals sit at different distances from the object's origin (the
+    /// mismatch is recorded in `docs/alpha-feel-notes.md` [A-6]), and admitting
+    /// diagonal movement, where `h` at a goal would be 1 or 2 depending on the
+    /// direction. **Either change requires the heuristic to become
+    /// `min over goals` (or 0) rather than `Manhattan(n, to)`**, or this
+    /// function silently starts picking a reachable-but-not-nearest tile.
+    ///
+    /// Ties resolve through `OpenNode`'s index ordering exactly as in
+    /// `find_path`, so the same query always yields the same path and length.
     ///
     /// # The cases that are not the general one
     ///
@@ -530,6 +558,98 @@ mod tests {
         let mut grid = TileGrid::new(7, 7);
         grid.set_blocked(1, 1, true);
         assert!(grid.find_path_adjacent((1, 1), (5, 5)).is_none());
+    }
+
+    /// **The path is the SHORTEST one, not merely a valid one, and this is the
+    /// test that says so.**
+    ///
+    /// Every other test here checks that the path is contiguous, walkable, ends
+    /// beside the target and has a plausible length. None of them constrains the
+    /// PRIORITY the search expands in, so the f-score expression was free: a
+    /// mutation replacing `tentative + heuristic(..)` with `tentative *
+    /// heuristic(..)` survived the entire workspace suite. CI's mutation gate
+    /// caught it as a new survivor.
+    ///
+    /// `docs/mutation-baseline.md` files the identical mutant in `find_path` as
+    /// "A REAL GAP, not an equivalent mutant", carried on trust since M1a Task 9.
+    /// Adding a second copy of a known gap to the baseline is what that document
+    /// warns against - a baseline that only ever grows becomes a permission slip
+    /// - so this kills it instead.
+    ///
+    /// **The fixture is not hand-drawn.** Multiplying makes the priority both
+    /// inadmissible and inconsistent, which only produces a wrong answer on a
+    /// maze where the cheap-looking direction is a detour, and such a maze is
+    /// hard to invent by eye. It was found by brute force:
+    /// `cargo run -p terri-core --example find_fscore_counterexample` walks
+    /// random small grids comparing the real search, the mutated search, and a
+    /// BFS optimum, and reports the first disagreement. This grid is its output
+    /// after 11 107 596 cases. On it the true optimum is 11 steps and the mutant
+    /// returns 13.
+    ///
+    /// So the assertion is the exact length. Do not relax it to a range: the
+    /// range is what let the mutant through.
+    #[test]
+    fn the_adjacent_path_is_the_shortest_one_and_not_merely_a_valid_one() {
+        // 4 x 7, from the counterexample search. Rendered as the search prints
+        // it, so the shape is checkable against the tool that found it:
+        //
+        //     ...#
+        //     .#..
+        //     .#..
+        //     .#..
+        //     #...
+        //     .#.#
+        //     .#..
+        let mut grid = TileGrid::new(4, 7);
+        for (x, y) in [
+            (3, 0),
+            (1, 1),
+            (1, 2),
+            (1, 3),
+            (0, 4),
+            (1, 5),
+            (3, 5),
+            (1, 6),
+        ] {
+            grid.set_blocked(x, y, true);
+        }
+        let from = (0, 3);
+        let to = (3, 6);
+
+        let path = grid
+            .find_path_adjacent(from, to)
+            .expect("the target has a reachable neighbour on this grid");
+
+        // The optimum, independently established by the BFS in the
+        // counterexample example rather than by reading this A* back.
+        assert_eq!(
+            path.len(),
+            11,
+            "the search must return the SHORTEST approach, not a valid one; a              corrupted f-score returns 13 here. Path was {path:?}"
+        );
+
+        // And it is a real path, so the length above cannot be met by cheating.
+        assert!(
+            is_adjacent(*path.last().unwrap(), to),
+            "must end beside the target; got {:?}",
+            path.last()
+        );
+        assert!(
+            !path.contains(&to),
+            "must not step onto the target; got {path:?}"
+        );
+        let mut cursor = from;
+        for step in &path {
+            assert!(
+                is_adjacent(cursor, *step),
+                "path must be contiguous: {cursor:?} to {step:?} in {path:?}"
+            );
+            assert!(
+                grid.is_walkable(step.0, step.1),
+                "every step must be walkable; {step:?} is not"
+            );
+            cursor = *step;
+        }
     }
 
     /// Same query, same answer, every time - the determinism [D4] rests on.

@@ -149,12 +149,15 @@ fn main() {
             .push(entry.ticks);
     }
 
-    // Back-to-back use of the same object, which is [C5]. It was a symptom of
-    // sims standing ON what they used: a finished sim was at distance zero
-    // from that object, which is its maximum possible score, so choosing it
-    // again was unusually likely. Standing beside it costs a tile. Counted
-    // rather than assumed, because "it should be better now" is exactly the
-    // kind of claim this harness exists to check.
+    // Back-to-back use of the same object, which is [C5]. A finished sim is at
+    // distance zero from what it just used - that object's maximum possible
+    // score - so choosing it again is unusually likely.
+    //
+    // **Standing beside the object instead of on it did not change this**, and
+    // this comment used to say it cost a tile. It costs nothing:
+    // `find_path_adjacent` returns an empty path for an already-adjacent agent,
+    // so the distance is 0 either way. Counted rather than assumed, which is
+    // how the claim was caught.
     let repeats = interactions
         .windows(2)
         .filter(|pair| pair[0].object == pair[1].object)
