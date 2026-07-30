@@ -135,6 +135,48 @@ jobs:
             echo "These baseline entries are now caught and should be removed:"
             printf '%s\n' "$fixed"
           fi
+      # The step above reads missed.txt, so it is blind to a mutant that
+      # HANGS: a timeout is neither caught nor a survivor, it lands in
+      # timeout.txt, and the gate never looks there. Three of them lived in
+      # `SimRng::range` for the whole of M1c that way, costing 180s a run and
+      # reporting nothing, while the sweep summary said "3 timeouts" and no
+      # committed file said which.
+      #
+      # This gate is zero-tolerance rather than a second baseline, because
+      # the set is empty and expected to stay so. A hang is always a weaker
+      # signal than an assertion ([L15] rule 4), so the answer to a new one
+      # is to bound the loop, never to widen an allowance - and a baseline
+      # that can grow is an invitation to do the latter.
+      #
+      # The existence check is the load-bearing half. `[ -s missing_file ]`
+      # is simply false, so without it a renamed or relocated output file
+      # would make this step report success while checking nothing, which is
+      # the same vacuous-green trap the cargo tree step above documents.
+      - name: Fail on mutants that hang instead of failing
+        run: |
+          set -eu
+          if [ ! -f mutants.out/timeout.txt ]; then
+            echo "FAIL: mutants.out/timeout.txt does not exist."
+            echo "cargo-mutants always writes it, so this means its output"
+            echo "layout changed and this check is no longer looking at"
+            echo "anything. Fix the path rather than deleting the step."
+            exit 1
+          fi
+
+          if [ -s mutants.out/timeout.txt ]; then
+            echo "Mutants that HANG rather than fail an assertion:"
+            cat mutants.out/timeout.txt
+            echo ""
+            echo "Each burns the job timeout instead of printing an assertion,"
+            echo "and the survivor gate above cannot see it: a timeout lands in"
+            echo "timeout.txt, not missed.txt. Find the unbounded loop the"
+            echo "mutant spins in and give it a bound that panics, the way"
+            echo "SimRng::draw_below_bound and roll_wander_path do. Raising"
+            echo "--timeout is not a fix."
+            exit 1
+          fi
+
+          echo "No mutants timed out."
       - name: Upload mutants report
         if: always()
         uses: actions/upload-artifact@v4
