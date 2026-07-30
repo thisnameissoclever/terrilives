@@ -14,19 +14,22 @@
  * Every shipped object declares exactly one interaction today, so every
  * menu built here has two rows. [I4] in
  * `docs/specs/2026-07-30-selection-and-input-design.md` decided to build
- * it anyway: `Intent::interaction` has always been an index and
- * `UseObject` has always hardcoded 0, with a comment saying a click names
- * an object rather than one of its uses. A menu is the thing that makes
- * that index reachable, and building it after the first two-verb object
- * exists is how a hardcoded 0 got there in the first place.
+ * it anyway: `Intent::interaction` has always been an index, and a menu is
+ * the thing that makes that index reachable. Building it after the first
+ * two-verb object exists is how `UseObject`'s hardcoded 0 got there in the
+ * first place.
  *
- * **The one half that is not here yet**: `SimCommand::UseObject` still
- * carries no interaction index, so picking row `n` sends the same command
- * row 0 would. The rows carry their index and the labels arrive in index
- * order, so the shell is ready; what remains is a wire-format change to
- * the command, which is a different decision from this one and moves a
- * published byte encoding. Until then a menu row is a nicer way to say
- * what a left click says.
+ * **The index now reaches the simulation.** `SimCommand::UseObject` carries
+ * an `interaction` field, so picking row `n` runs interaction `n` rather
+ * than whatever row 0 would have run. That means nothing here may sort,
+ * filter or renumber the rows: a row's POSITION is the index it sends, and
+ * the one place that is stated is `menuEntries` below.
+ *
+ * The consequence for testing is that the shipped game cannot demonstrate
+ * this. Every object has one interaction, so row 0 is the only row, and a
+ * menu that always sent 0 would look perfectly correct on the whole lot.
+ * The tests that can tell the difference are in Rust, against fixtures with
+ * a two-verb object.
  *
  * # The DOM split
  *
@@ -54,8 +57,9 @@ export type MenuAction =
       readonly object: number;
       /**
        * The interaction's position in the object's own list, which IS
-       * `Intent::interaction`. Carried rather than dropped even though
-       * `UseObject` cannot yet express it; see the module comment.
+       * `Intent::interaction` and the last field of
+       * `SimCommand::UseObject`. `dispatchMenuAction` in `input.ts` is what
+       * puts it into the command.
        */
       readonly interaction: number;
     }

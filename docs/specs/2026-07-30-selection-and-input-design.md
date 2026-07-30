@@ -137,11 +137,11 @@ right-click currently performs.**
 
 Building the menu before there is anything to put in it is deliberate. The
 simulation has always supported several interactions per object -
-`Intent::interaction` is an index and `UseObject` hardcodes 0 with a comment
+`Intent::interaction` is an index, and `UseObject` hardcoded 0 with a comment
 saying a click names an object rather than one of its uses. The menu is the thing
 that makes that index reachable, and every later feature that wants a second verb
 on an object - cook versus snack, nap versus sleep, chat versus argue - needs it
-to exist first.
+to exist first. (The hardcode is gone; see the build note below.)
 
 Right-click currently cancels the selected sim's orders. That binding moves into
 the menu as "Never mind", so the gesture keeps a cancel and gains everything else.
@@ -154,16 +154,48 @@ right-click; giving the rare action the conventional gesture is backwards.
 That is the order that guarantees the first object with two verbs also has to ship
 a UI, and it is how `UseObject`'s hardcoded 0 got there in the first place.
 
-**Built, and one half of the index is still missing.** The menu lists an
+**Built, and the index now reaches the simulation.** The menu lists an
 object's real interactions - `content/objects.toml` gained an optional `label`
 per interaction and `SimHandle::interaction_labels` carries them across the
-boundary in index order - and each row carries its own interaction index. But
-`SimCommand::UseObject` still names only an object, so picking row `n` sends
-what row 0 would. That was left alone deliberately: widening the command moves a
-published byte encoding and its golden vector, which is a decision about the
-wire format rather than about what a right click means. **Whoever adds the first
-object with two verbs owns that change**, and the shell side is already waiting
-for it.
+boundary in index order - each row carries its own interaction index, and
+`SimCommand::UseObject` grew an `interaction: u32` field as its LAST member, so
+picking row `n` runs interaction `n`.
+
+The first build stopped short of that field, on the grounds that widening the
+command moves a published byte encoding. **Closed immediately afterwards, and
+the timing is the argument:**
+
+- The encoding is a wire format for [D8]'s save-file command log and for Layer 2
+  multiplayer, and `command_encoding_is_pinned_by_a_golden_byte_vector` exists to
+  make a change to it loud. But **nothing has been persisted yet** - the save
+  format is goal item 9 and is not built. Appending a field now costs one byte in
+  a golden vector and nothing else. Doing it after the first save file exists
+  costs a migration, and the same field would still be needed.
+- **Appending is the cheapest shape available.** Postcard writes a struct
+  variant's fields in declaration order, so `UseObject` grows from
+  `[0x01, agent, object]` to `[0x01, agent, object, interaction]` and every other
+  variant's bytes are untouched. Putting `interaction` anywhere but last would
+  move `object`, which is the same class of break as renumbering a variant.
+- **A plain click sends 0**, which is what it always effectively sent, so the
+  shipped game's behaviour and its world hash are unchanged. The field is only
+  observable on an object with a second verb, of which there are none yet - which
+  is why the tests that pin it use a two-interaction fixture in
+  `crates/terri-sim/src/test_content.rs` whose two interactions advertise
+  different needs for different lengths. A fixture whose verbs agreed on either
+  would make "interaction 1 ran" and "interaction 0 ran" indistinguishable, which
+  is [L34].
+
+**Rejected: a separate `UseInteraction` variant alongside `UseObject`.** Two
+commands meaning "use this thing" is two code paths for the queue cap, for the
+staging in `fresh`, and for the `serving` guard in `CancelIntents` - all three of
+which are already subtle, and the last of which had a mutation survive in it
+once already.
+
+One thing the field made obvious rather than changed: the `serving` guard's
+`intent.interaction == target.interaction` clause used to be justified by
+"`UseObject` always names 0", which was true and is no longer. The clause is
+plainly load-bearing now, because two rows of one object's flyout name the same
+object and different interactions, and its comment says so.
 
 Two smaller things this decision did not settle, resolved in the build and
 recorded here so they are not re-litigated:

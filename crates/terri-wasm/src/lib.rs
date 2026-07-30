@@ -1182,14 +1182,25 @@ mod boundary_tests {
             "wall_tiles must not repeat a tile"
         );
 
-        // The doorway, stated positively as well. A wall list that
-        // included it would draw the bathroom sealed while the sim walked
-        // straight through the picture of a wall.
-        assert!(
-            !pairs.contains(&(9, 2)),
-            "the doorway at (9, 2) is walkable and must not be drawn as a wall"
-        );
-        assert!(pairs.contains(&(9, 1)) && pairs.contains(&(9, 3)));
+        // **There is deliberately no doorway assertion here, and that is a
+        // change from what this test used to do.**
+        //
+        // It used to name `(9, 2)` and require it absent, which the five-room
+        // lot broke for a reason this export does not care about. The obvious
+        // replacement was to FIND the doorways - tiles absent from the list
+        // with entries either side - and require at least five. That was
+        // written, and then noticed to be incapable of failing: `pairs` was
+        // asserted equal to `pack.lot.walls` twenty lines above, so any
+        // property computed from `pairs` is a property of the content, and
+        // this test would be reporting on `lot.toml` rather than on the
+        // export. It could only ever go red for an edit that
+        // `the_shipped_lot_loads_its_walls_its_doorway_and_all_of_its_objects`
+        // in terri-sim already catches with literal coordinates and a
+        // reachability check.
+        //
+        // The doorways are load-bearing and they are pinned there. What is
+        // pinned HERE is the export, and the equality above is the whole of
+        // it.
     }
 
     // ---- Player commands ----------------------------------------------
@@ -1213,11 +1224,43 @@ mod boundary_tests {
         vec![0x00, 0x01, index as u8]
     }
 
-    /// `SimCommand::UseObject { agent, object }`: variant 1, then two
-    /// varints.
-    fn use_object_bytes(agent: u32, object: u32) -> Vec<u8> {
+    /// `SimCommand::UseObject { agent, object, interaction }`: variant 1,
+    /// then three varints, in that order.
+    ///
+    /// The interaction is a parameter rather than a hardcoded `0x00`
+    /// because a fixture that always sends 0 cannot tell "the shell's
+    /// chosen interaction crossed the boundary" from "the boundary
+    /// substituted 0" - [L34] in the one place the whole field matters.
+    fn use_object_bytes(agent: u32, object: u32, interaction: u32) -> Vec<u8> {
+        assert!(
+            agent < 128 && object < 128 && interaction < 128,
+            "one-byte varints only"
+        );
+        vec![0x01, agent as u8, object as u8, interaction as u8]
+    }
+
+    /// The same command with `interaction: u32::MAX`, which one-byte
+    /// varints cannot express.
+    ///
+    /// Five bytes for the index, because a 32-bit value needs five groups
+    /// of seven bits and the last carries only four. Copied from the
+    /// `u32::MAX` row of `command_encoding_is_pinned_by_a_golden_byte_vector`
+    /// rather than computed here, which is the same rule the rest of this
+    /// module follows: bytes are written by hand so that they are not a
+    /// round trip through the encoder under test, and the golden vector is
+    /// the single place that says what they are.
+    fn use_object_bytes_saturated_interaction(agent: u32, object: u32) -> Vec<u8> {
         assert!(agent < 128 && object < 128, "one-byte varints only");
-        vec![0x01, agent as u8, object as u8]
+        vec![
+            0x01,
+            agent as u8,
+            object as u8,
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0x0F,
+        ]
     }
 
     /// How many commands are staged and not yet drained.
@@ -1338,6 +1381,13 @@ mod boundary_tests {
                 vec![0x00, 0x01],
             ),
             ("UseObject missing its second field", vec![0x01, 0x03]),
+            (
+                "UseObject with an agent and an object but no interaction, \
+                 which is exactly what a shell still writing the old \
+                 three-byte form sends; accepting it as interaction 0 \
+                 would make the format silently two formats",
+                vec![0x01, 0x03, 0x09],
+            ),
             (
                 "a valid SetSpeed(2) followed by junk; accepting the \
                  prefix would make the format ambiguous",
@@ -1817,7 +1867,7 @@ mod boundary_tests {
         autonomous.tick();
         let undirected = autonomous.world_hash();
 
-        assert!(handle.enqueue_command(&use_object_bytes(agent, bed)));
+        assert!(handle.enqueue_command(&use_object_bytes(agent, bed, 0)));
         handle.tick();
 
         assert_ne!(
@@ -1848,6 +1898,109 @@ mod boundary_tests {
              at x={x}, which is towards the fridge it would have chosen \
              for itself"
         );
+    }
+
+    /// Directs `agent` at `object` with `interaction`, runs `ticks` whole
+    /// ticks, and returns how far east or west the sim got.
+    ///
+    /// Shared by the two runs the test below compares so that the only
+    /// difference between them is the interaction index. A second
+    /// hand-written fixture would be the place a stray extra tick or a
+    /// different hunger crept in, and the whole claim is an inequality
+    /// between two runs.
+    fn directed_x(command: &[u8], agent: u32, ticks: u32) -> f32 {
+        let mut handle = SimHandle::new(16, 16);
+        assert!(handle.spawn_object(2.0, 8.0, "bed"));
+        assert!(handle.spawn_object(11.0, 8.0, "fridge"));
+        assert_eq!(
+            spawn_agent_at(&mut handle, 8.0, 8.0, 20.0),
+            agent,
+            "the caller names the agent by literal index"
+        );
+        assert!(
+            handle.enqueue_command(command),
+            "the command must be accepted, or the two runs differ in \
+             whether anything was sent rather than in the index"
+        );
+        for _ in 0..ticks {
+            handle.tick();
+        }
+        let rows = addressed(
+            handle.positions_ptr(),
+            handle.entity_count() * 2,
+            "positions_ptr",
+        );
+        rows[agent as usize * 2]
+    }
+
+    #[test]
+    fn an_interaction_index_the_object_does_not_have_is_dropped_rather_than_clamped_or_trapping() {
+        // **The interaction index is hostile input, exactly like the two
+        // entity indices beside it** (docs/testing-protocol.md rule 8).
+        // JavaScript writes all three, and `u32::MAX` is what a bug, a
+        // stale menu, or someone typing into the console produces. Three
+        // separate wrong answers are possible here and this rules out all
+        // three:
+        //
+        //   - **a panic.** Nothing downstream indexes with this number
+        //     until `serve_intents` has checked it, but a range check
+        //     added here later "for safety" that used `expect` would trap
+        //     the module for the rest of the page's life.
+        //   - **a rejection at the boundary.** A well-formed command
+        //     naming an index the content pack does not have is precisely
+        //     what a saved command log replayed against a newer pack looks
+        //     like, and `enqueue_command` deliberately leaves that to the
+        //     drain rather than keeping a second, weaker copy of the rule -
+        //     the same reasoning it applies to a stale entity index.
+        //   - **a silent clamp.** This is the dangerous one, because it
+        //     looks like it works: `min(interaction, len - 1)` or an
+        //     `unwrap_or(0)` anywhere on the path would turn "use the verb
+        //     that does not exist" into "use the first verb", so a shell
+        //     bug would silently feed the sim instead of doing nothing.
+        //
+        // The clamp is what the two runs below distinguish, and nothing
+        // cheaper can: interaction 0 IS a real interaction on the bed, so
+        // a clamped `u32::MAX` and an honest 0 produce the same world.
+        // Only comparing them says which happened.
+        const TICKS: u32 = 20;
+        let agent = 2;
+
+        let honest = directed_x(&use_object_bytes(agent, 0, 0), agent, TICKS);
+        assert!(
+            honest < 8.0,
+            "interaction 0 must send the sim WEST to the bed at x=2, or \
+             the comparison below is between two sims that both ignored \
+             their orders; it is at x={honest}"
+        );
+
+        let saturated = directed_x(
+            &use_object_bytes_saturated_interaction(agent, 0),
+            agent,
+            TICKS,
+        );
+        assert!(
+            saturated > 8.0,
+            "an interaction the bed does not have must be DROPPED, leaving \
+             the sim free to walk east to the fridge its hunger wanted; at \
+             x={saturated} it went to the bed instead, which is the silent \
+             clamp"
+        );
+
+        // And the module is still alive afterwards. On a genuinely trapped
+        // module every later call throws rather than returning, so a test
+        // that only measured positions could not tell a dropped intent
+        // from a wasm trap that happened after the last tick.
+        let mut handle = SimHandle::new(8, 8);
+        let live = spawn_agent_at(&mut handle, 1.0, 1.0, 80.0);
+        assert!(handle.enqueue_command(&use_object_bytes_saturated_interaction(live, 9)));
+        handle.tick();
+        assert!(
+            handle.enqueue_command(&select_bytes(live)),
+            "the boundary's job is to fail one command, not to end the \
+             session"
+        );
+        handle.tick();
+        assert_eq!(handle.selected_index(), Some(live));
     }
 
     #[test]

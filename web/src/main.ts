@@ -12,7 +12,8 @@ import { SimBridge } from './bridge.js';
 import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
 import { FixedStepDriver, buildInstances, instanceCount } from './frame.js';
-import { TILE_HALF_HEIGHT, TILE_HALF_WIDTH } from './render/iso.js';
+import { cameraOrigin } from './render/iso.js';
+import { SPRITES } from './render/atlas.js';
 import { buildStaticInstances } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
@@ -40,13 +41,18 @@ const MAX_TICKS_PER_FRAME = 5;
 const START_SPEED = 1;
 
 /**
- * Where the sim starts, in tiles. Open living space, a few tiles from the
- * kitchen and well clear of the bathroom wall at x = 16.
+ * Where the sim starts, in tiles: open floor in the middle of the living
+ * room, on the five-room lot in `content/lot.toml`.
+ *
+ * The living room rather than the kitchen, even though hunger is what the sim
+ * opens with, so that the first thing the player sees is a sim WALKING
+ * somewhere. A sim that spawns beside the thing it wants starts eating before
+ * the first frame is composited, which reads as a still picture.
  *
  * The hunger is low enough to give it something to do the moment the page
  * loads, which is what makes the opening seconds worth watching.
  */
-const START_TILE = { x: 8, y: 6, hunger: 25 };
+const START_TILE = { x: 9, y: 2, hunger: 25 };
 
 /** Frames of history behind the rolling mean and p95. Four seconds at 60 Hz. */
 const FRAME_WINDOW = 240;
@@ -276,20 +282,27 @@ async function main(): Promise<void> {
     driver.setSpeed(ticksPerFrame);
   });
 
-  // Centre the lot's screen-space bounding box on the canvas, derived
-  // from the lot rather than hand-tuned. `screenX` spans
-  // -(h - 1) to (w - 1) tile half-widths and `screenY` spans 0 to
-  // (w - 1) + (h - 1) tile half-heights, so the two offsets below put the
-  // middle of each range in the middle of the canvas. For the shipped
-  // 24 x 18 lot that is originX 544, originY 40, and the diamond fits
-  // 1280 x 720 exactly.
+  // Centre the lot's DRAWN extent on the canvas, derived from the lot and
+  // the atlas rather than hand-tuned. Doing it by hand is how the lot ends
+  // up half off screen, which reads as a broken projection rather than as a
+  // badly placed camera.
   //
-  // Doing this by hand is how the lot ends up half off screen, which
-  // looks like a broken projection rather than a badly placed camera.
-  const originX =
-    canvas.width / 2 - ((lotWidth - lotHeight) * TILE_HALF_WIDTH) / 2;
-  const originY =
-    (canvas.height - (lotWidth + lotHeight - 2) * TILE_HALF_HEIGHT) / 2;
+  // The arithmetic is in `cameraOrigin` so it can be tested; the two things
+  // it accounts for that the obvious version missed - sprites drawing above
+  // their anchor, and `tiles.ts`'s boundary rows at -1 - are written up
+  // there, along with the measurement that caught it.
+  //
+  // The tallest sprite is read off the atlas rather than named, so adding a
+  // taller piece of furniture cannot silently push the top of the house off
+  // the canvas.
+  const tallestSprite = Math.max(...SPRITES.map((sprite) => sprite.h));
+  const { x: originX, y: originY } = cameraOrigin(
+    canvas.width,
+    canvas.height,
+    lotWidth,
+    lotHeight,
+    tallestSprite,
+  );
 
   // `worldDepth` divides by (gridSize - 1) * 2, so this has to be at
   // least (w - 1) + (h - 1) for the far corner to keep a depth inside
@@ -314,7 +327,10 @@ async function main(): Promise<void> {
   //
   // The action goes back through `dispatchMenuAction`, which sends
   // commands like everything else - the menu is a nicer way to name a
-  // command, not a second way to reach the world.
+  // command, not a second way to reach the world. A row carries its own
+  // interaction index and `SimCommand::UseObject` carries one too, so
+  // picking row `n` runs interaction `n`; the shipped lot cannot show that
+  // off, because every object on it offers exactly one.
   const menu = new ObjectMenu(
     createMenuSurface(document, menuRoot),
     (action) => dispatchMenuAction(sim, action),

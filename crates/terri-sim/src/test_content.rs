@@ -66,6 +66,43 @@ pub fn object(id: &str, advertises: &[(NeedId, f32)], duration_ticks: u32) -> Co
     object_offering(id, vec![interaction("use_it", advertises, duration_ticks)])
 }
 
+/// An object offering exactly TWO interactions, each given as
+/// `(need, delta, duration_ticks)`.
+///
+/// **All three components differ between the two on purpose, and the
+/// helper exists so that they cannot accidentally stop differing.** An
+/// interaction index is only observable through what running it DOES, so a
+/// fixture whose two interactions advertise the same need for the same
+/// amount over the same number of ticks makes "interaction 1 ran" and
+/// "interaction 0 ran" agree on every measurement - which is [L34] applied
+/// to the one field the whole index exists to carry. With the two
+/// separated, three independent things say which one ran: the need that
+/// moved, how far it moved, and how long the sim was busy.
+///
+/// The ids are positional rather than taken from the caller because they
+/// are what `compile` uses as the default LABEL, and a menu row's position
+/// is its interaction index - so a fixture whose rows read "first" and
+/// "second" states the mapping the flyout depends on. `compile` rejects a
+/// repeated interaction id within one object, so they must differ anyway.
+pub fn object_with_two_interactions(
+    id: &str,
+    first: (NeedId, f32, u32),
+    second: (NeedId, f32, u32),
+) -> CompiledObject {
+    assert!(
+        first.0 != second.0 && first.1 != second.1 && first.2 != second.2,
+        "the two interactions must differ in need, delta AND duration, or \
+         a test cannot tell which of them ran"
+    );
+    object_offering(
+        id,
+        vec![
+            interaction("first", &[(first.0, first.1)], first.2),
+            interaction("second", &[(second.0, second.1)], second.2),
+        ],
+    )
+}
+
 /// An object offering several interactions, in the given order.
 ///
 /// The sprite is the sim's, because nothing in `terri-sim` renders and
@@ -115,11 +152,16 @@ pub fn pack(objects: Vec<CompiledObject>) -> &'static ContentPack {
 /// A pack holding these objects with the given knobs, for the tests that
 /// have to vary one.
 ///
-/// Two knobs are varied today, both because selection became a WEIGHTED
-/// draw. `choice_temperature` is turned down where a test names a golden
-/// winner, so the assertion is about scoring rather than about the
-/// outcome of a coin toss; `rng_seed` is varied where the draw itself is
-/// what is under test. Every caller builds its override by spreading
+/// Three knobs are varied today. Two are because selection became a
+/// WEIGHTED draw: `choice_temperature` is turned down where a test names a
+/// golden winner, so the assertion is about scoring rather than about the
+/// outcome of a coin toss, and `rng_seed` is varied where the draw itself
+/// is what is under test. The third is `duration_variance`, turned to zero
+/// where a test names an interaction by how LONG it ran - [D-4] samples a
+/// duration around the content number, and two interactions' sampled bands
+/// can overlap even when their content durations differ, so a measured
+/// length cannot otherwise name the interaction it came from. Every caller
+/// builds its override by spreading
 /// [`tuning`] rather than writing literals, so nothing else moves with
 /// it - `action_threshold` in particular stays the number every scoring
 /// assertion in the suite is written against.

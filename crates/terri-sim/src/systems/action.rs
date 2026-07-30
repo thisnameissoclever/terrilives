@@ -4,7 +4,7 @@ use terri_core::{
     SimRng, SmartObject, Target, TileGrid,
 };
 
-use super::advertise::score_advertisement;
+use super::advertise::{benefit_scale, scaled_delta, score_advertisement};
 use crate::Content;
 
 /// Picks one candidate at random, weighted by `exp(score / temperature)`
@@ -761,15 +761,17 @@ pub fn select_action(
                 // the shape `2026-07-29-satisfaction-and-traits-design.md` [S4]
                 // asks for: dispositions and per-sim affinities compose into
                 // this same multiplier rather than each getting a mechanism.
+                //
+                // The two lines of arithmetic live in `advertise.rs` rather
+                // than here, and that is not tidiness: inline, they were
+                // unconstrained by the whole suite and the M2b sweep found
+                // seven survivors across them. See `benefit_scale` for why no
+                // existing test could see it.
                 let hab = habituation.get(placed.0, index as u32);
-                let benefit_scale = 1.0 - hab * (1.0 - content.0.tuning.habituation_floor);
+                let scale = benefit_scale(hab, content.0.tuning.habituation_floor);
                 let mut score = 0.0;
                 for (need_index, delta) in &advert.advertises {
-                    let delta = if *delta > 0.0 {
-                        delta * benefit_scale
-                    } else {
-                        *delta
-                    };
+                    let delta = scaled_delta(*delta, scale);
                     // In range by construction: content validation
                     // rejects an advert naming a need rustc does not
                     // know, so a compiled pack cannot hold a bad index.

@@ -37,7 +37,7 @@ use terri_sim::Sim;
 /// Where `web/src/main.ts` spawns the sim, and the hunger it starts with.
 /// Kept in step with `START_TILE` there by hand; a divergence makes this
 /// trace describe a game nobody plays.
-const START: (f32, f32, f32) = (8.0, 6.0, 25.0);
+const START: (f32, f32, f32) = (9.0, 2.0, 25.0);
 
 struct Interaction {
     object: String,
@@ -167,8 +167,8 @@ fn main() {
 
     println!("INTERACTIONS  {} total", interactions.len());
     println!(
-        "{:<12} {:>5} {:>6} {:>5} {:>5} {:>6}  content",
-        "object", "count", "share", "min", "max", "mean"
+        "{:<20} {:>5} {:>6} {:>5} {:>5} {:>6}  {:<12}",
+        "object", "count", "share", "min", "max", "mean", "content"
     );
     for object in &pack.objects {
         let lengths = per_object.get(object.id.as_str());
@@ -178,8 +178,21 @@ fn main() {
             .map(|i| i.duration_ticks.to_string())
             .collect();
         match lengths {
+            // **"Never used" and "not usable" are different rows, and telling
+            // them apart is worth the branch.** Since the five-room house,
+            // roughly half the objects in the lot advertise nothing at all -
+            // the counter, the coat rack, the box nobody unpacked - and they
+            // are meant to. Flagging those as a finding buried the six
+            // interactive objects that really were at zero under twelve that
+            // never could be anything else, which is the failure mode
+            // docs/testing-protocol.md rule 5 describes from the other end: a
+            // signal that fires on everything says nothing.
+            None if object.interactions.is_empty() => println!(
+                "{:<20} {:>5} {:>6} {:>5} {:>5} {:>6}  {:<12} (scenery)",
+                object.id, "-", "-", "-", "-", "-", ""
+            ),
             None => println!(
-                "{:<12} {:>5} {:>6} {:>5} {:>5} {:>6}  {}   <-- NEVER USED",
+                "{:<20} {:>5} {:>6} {:>5} {:>5} {:>6}  {:<12} <-- NEVER USED",
                 object.id,
                 0,
                 "0.0%",
@@ -211,7 +224,7 @@ fn main() {
                     ""
                 };
                 println!(
-                    "{:<12} {:>5} {:>5.1}% {:>5} {:>5} {:>6.1}  {}{}",
+                    "{:<20} {:>5} {:>5.1}% {:>5} {:>5} {:>6.1}  {:<12}{}",
                     object.id,
                     lengths.len(),
                     100.0 * lengths.len() as f64 / interactions.len().max(1) as f64,

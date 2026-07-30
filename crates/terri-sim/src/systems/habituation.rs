@@ -205,6 +205,56 @@ mod tests {
         );
     }
 
+    /// **An entry that lands EXACTLY on zero is dropped**, which the test
+    /// above cannot see.
+    ///
+    /// It decays a 0.05 entry for `ceil(0.05 / rate) + 2` ticks, so the value
+    /// sails past zero and goes negative - and a negative is dropped by
+    /// `> 0.0` and by `>= 0.0` alike. The mutation is only observable on the
+    /// one value where the two comparisons disagree, and no fixture in the
+    /// workspace produced it: found by the M2b mutation sweep as a survivor
+    /// in `Habituation::decay`.
+    ///
+    /// Landing on zero exactly is arranged rather than hoped for. `decay`
+    /// subtracts the tuned rate, so an entry bumped to exactly that rate is
+    /// at `rate - rate` after one tick, which is exactly 0.0 in IEEE
+    /// arithmetic for any finite rate - no tolerance needed, and it does not
+    /// depend on the rate's value.
+    ///
+    /// Kept at zero rather than dropped, a spent entry is a `world_hash`
+    /// column that differs between two sims which will behave identically
+    /// from now on, for ever.
+    #[test]
+    fn an_entry_that_decays_to_exactly_zero_is_dropped_rather_than_kept() {
+        let pack = content();
+        let mut sim = test_content::sim_with(16, 16, pack);
+        let agent = sim.world_mut().spawn((Agent, Needs::all_at(NEED_MAX))).id();
+
+        let rate = test_content::tuning().habituation_decay_per_tick;
+        assert!(rate > 0.0, "a zero rate could not decay anything");
+
+        let mut fresh = Habituation::default();
+        fresh.bump(def(pack), 0, rate);
+        sim.world_mut().entity_mut(agent).insert(fresh);
+        assert_eq!(
+            habituation_of(&sim, agent),
+            rate,
+            "the entry must start at exactly the decay rate, or one tick              does not land on zero and this test is the one above"
+        );
+
+        sim.tick();
+
+        assert_eq!(
+            sim.world()
+                .get::<Habituation>(agent)
+                .unwrap()
+                .entries()
+                .len(),
+            0,
+            "an entry at exactly 0.0 must be dropped; holding it makes two              sims that behave identically hash differently for ever"
+        );
+    }
+
     /// **Habituation scales BENEFIT and never COST**, which is the one part of
     /// this mechanic that is easy to get backwards and impossible to notice.
     ///

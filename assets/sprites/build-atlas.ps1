@@ -112,7 +112,15 @@ $SCALE = $TILE_W / $KENNEY_METRE_PX
 # TILE_HALF_HEIGHT, not here; see PROJECTION in the notes at the top.
 
 # Atlas width in texels. Everything packs into shelves this wide.
-$ATLAS_W = 256
+#
+# 512 rather than 256 since the house grew from 8 objects to 33. Shelf
+# packing wastes the tail of every shelf, and at 256 a 93 px bed left
+# almost nothing usable beside it, so 36 sprites packed into a texture
+# 700 px tall and mostly empty. Widening halves the shelf count and lets
+# the tall pieces sit beside each other. Nothing downstream reads the
+# dimensions as a constant: both manifests are written from `$ATLAS_W` and
+# the measured height in the same pass.
+$ATLAS_W = 512
 # Transparent gutter between sprites, so linear filtering at a quad edge
 # cannot pick up its neighbour.
 $PAD = 1
@@ -161,6 +169,50 @@ $SOURCES = @(
   # so inserting anywhere but the end renumbers every sprite after it and
   # silently redraws the lot.
   @{ name = 'selectionRing';          from = 'generated:selectionRing' }
+
+  # ---- M2b: the five-room house -------------------------------------------
+  #
+  # Appended in one block, after the selection ring, for the same append-only
+  # reason: the index is the render buffer's, not this file's, and grouping
+  # these by room would have meant inserting `kitchenStove` next to
+  # `kitchenFridgeBuiltIn` and renumbering everything below it.
+  #
+  # **Every piece here stands on the floor, and that is a rule rather than an
+  # accident of taste.** A footprint BLOCKS its tiles, and the simulation has
+  # no notion of a decoration a sim may walk over or of a thing mounted on a
+  # wall. So the kit's rugs, doormats, wall mirrors, upper cabinets, ceiling
+  # fans and worktop appliances are all deliberately absent: each would either
+  # be an invisible obstacle in the middle of a room, or a floating object
+  # occupying the tile a sim needs in order to reach the thing underneath it.
+  # docs/specs/2026-07-30-the-house-design.md [B4] records the alternative
+  # that was rejected, which is a `blocks = false` flag on a footprint.
+  @{ name = 'kitchenStove';           from = 'kitchenStove_SE' }
+  @{ name = 'kitchenCabinet';         from = 'kitchenCabinet_SE' }
+  @{ name = 'kitchenSink';            from = 'kitchenSink_SE' }
+  @{ name = 'table';                  from = 'table_SE' }
+  @{ name = 'chair';                  from = 'chair_SE' }
+  @{ name = 'trashcan';               from = 'trashcan_SE' }
+  @{ name = 'loungeSofaLong';         from = 'loungeSofaLong_SE' }
+  @{ name = 'loungeChair';            from = 'loungeChair_SE' }
+  @{ name = 'loungeChairRelax';       from = 'loungeChairRelax_SE' }
+  @{ name = 'radio';                  from = 'radio_SE' }
+  @{ name = 'pottedPlant';            from = 'pottedPlant_SE' }
+  # `cardboardBoxOpen` and not the kit's `plantSmall1`/`plantSmall2`, which
+  # were tried first and measured at 8 x 10 px after scaling - a speck
+  # occupying a whole blocked tile, which reads as an invisible obstacle
+  # rather than as an ornament. Anything standing on a tile has to be big
+  # enough to explain why a sim cannot walk there.
+  @{ name = 'cardboardBoxOpen';       from = 'cardboardBoxOpen_SE' }
+  @{ name = 'lampRoundFloor';         from = 'lampRoundFloor_SE' }
+  @{ name = 'coatRackStanding';       from = 'coatRackStanding_SE' }
+  @{ name = 'bedDouble';              from = 'bedDouble_SE' }
+  @{ name = 'sideTableDrawers';       from = 'sideTableDrawers_SE' }
+  @{ name = 'cabinetBedDrawer';       from = 'cabinetBedDrawer_SE' }
+  @{ name = 'desk';                   from = 'desk_SE' }
+  @{ name = 'chairDesk';              from = 'chairDesk_SE' }
+  @{ name = 'bookcaseClosedWide';     from = 'bookcaseClosedWide_SE' }
+  @{ name = 'bathtub';                from = 'bathtub_SE' }
+  @{ name = 'washerDryerStacked';     from = 'washerDryerStacked_SE' }
 )
 
 function New-HighQualityGraphics([System.Drawing.Bitmap] $target) {

@@ -962,6 +962,7 @@ Task 4 and the build gate changed the caught/unviable split in Task 5.
 | M1b Task 3b | 311 | 4 | 266 | 41 | 14 new mutants, all caught; baseline unchanged |
 | **M1c Task 1** | **342** | **5** | **292** | **42** | **31 new mutants from `rng.rs`; 3 timeouts; baseline up to 5** |
 | M1b Task 5 | *partial* | 4 | 175 | 23 | Stopped at 204/~420; scoped sweeps over all changed files gave 0 missed; baseline unchanged at 5 |
+| M1b `UseObject::interaction` | *scoped* | 0 | 43 | 5 | 48 mutants over the four files the change touched; 0 missed, baseline unchanged at 5 |
 
 The M1b Task 3 row is the one to read carefully. Missed stayed at 5 while
 the set changed completely in composition: `advertise.rs:42:36` ceased to
@@ -976,3 +977,129 @@ pinned whether a decay rate of exactly zero is legal content. It is;
 `zero_is_a_legal_decay_rate_and_a_legal_advert` now says so. Worth keeping
 because no amount of reading the code could have settled it: the code cannot
 state which side of `<` was intended.
+
+---
+
+## M2b: the five-room house
+
+The sweep over the house found **six** survivors that the baseline did not
+list. Four were killed; two were accepted, and the argument is below.
+
+### Killed
+
+- `crates/terri-data/src/compile.rs:403` - three mutants on
+  `habituation_floor <= 0.0 || habituation_floor > 1.0`: `||` to `&&`, and
+  `> 1.0` to `== 1.0` and to `>= 1.0`. There was **no test for this bound at
+  all**; the knob had a range check and nothing constrained it. Killed by
+  `rejects_a_habituation_floor_outside_zero_exclusive_to_one_inclusive`, whose
+  four rejected values and two accepted ones are each the only input that
+  separates one of the three mutants - the doc comment on the test says which
+  is which.
+
+- `crates/terri-core/src/components.rs:265` - `> 0.0` to `>= 0.0` in
+  `Habituation::decay`, which decides whether an entry that has decayed away
+  is dropped. There WAS a test for the drop, and it could not see this:
+  `habituation_decays_and_spent_entries_are_dropped` runs two extra ticks past
+  the crossing point, so the value goes negative, and a negative is dropped by
+  both comparisons. The mutation is observable on exactly one value.
+  `an_entry_that_decays_to_exactly_zero_is_dropped_rather_than_kept` arranges
+  it: bump an entry to exactly the tuned decay rate and tick once, so it lands
+  on `rate - rate`, which is exactly 0.0 for any finite rate.
+
+  Worth noting as a shape rather than as a bug. A test that walks a value
+  *past* a boundary looks like a boundary test and is not one; the fixture has
+  to stop ON it.
+
+### Accepted, with the argument
+
+```
+crates/terri-data/src/compile.rs:752:38: replace + with - in flood_fill
+crates/terri-data/src/compile.rs:752:53: replace + with - in flood_fill
+```
+
+**Genuinely equivalent mutants.** The line is
+
+```rust
+let (nx, ny) = (x as i64 + dx, y as i64 + dy);
+```
+
+inside `for (dx, dy) in [(1i64, 0i64), (-1, 0), (0, 1), (0, -1)]`. The offset
+set is symmetric about the origin on both axes, so negating `dx` maps
+`(1, 0)` to `(-1, 0)` and `(-1, 0)` to `(1, 0)`: the four neighbours VISITED
+are the same four tiles, merely enumerated in a different order. The same
+holds for `dy`. A flood fill's result does not depend on the order it pushes
+neighbours, so no observable behaviour changes and no test can distinguish
+them.
+
+They are new to the baseline rather than newly surviving: the five-room lot is
+the first content to make `flood_fill` do real work, so these mutants are the
+first to be *reachable* rather than unviable.
+
+The fix that would kill them is to write the offsets asymmetrically - two
+loops, or `[(1, 0), (0, 1)]` plus explicit negation - and that is worse code
+for the sake of a mutation score.
+
+### The habituation multiplier: seven survivors from one untested line
+
+The sweep's largest single finding, and it was not caused by anything M2b
+changed - it was uncovered by it.
+
+`select_action` carried the habituation arithmetic inline:
+
+```rust
+let benefit_scale = 1.0 - hab * (1.0 - content.0.tuning.habituation_floor);
+let delta = if *delta > 0.0 { delta * benefit_scale } else { *delta };
+```
+
+Eight mutants on those two lines, seven of them real. Hand-mutation confirmed
+each survived the ENTIRE workspace suite.
+
+**Why nothing caught it.**
+`habituation_scales_the_benefit_and_leaves_a_cost_at_full_strength` exists to
+pin exactly this behaviour and cannot: it never calls `select_action`. It
+computes `BENEFIT * scale` itself and compares its own arithmetic against
+itself, so it stays green with the production guard deleted. That is
+testing-protocol rule 3's forbidden shape, and [L5]'s family. Every other
+habituation test reads the component rather than scoring with it, and the
+world-hash golden vector's scenario holds ONE object, so a wrongly scaled
+score has nothing to out-rank and the sim's choice is unchanged at any
+multiplier ([L36]).
+
+**Why a behavioural test would not have been enough either.** The obvious
+repair is "habituate the sim on object A, assert it picks B". Three of the
+four `benefit_scale` mutants still yield a multiplier below 1 for a partly
+habituated sim, so A still loses and the test still passes. Only magnitudes
+separate them: at full habituation the four give 1.55, -0.818, -0.45 and
+-1.22 against the correct 0.45.
+
+**The fix** extracts `benefit_scale` and `scaled_delta` into `advertise.rs`
+and pins them with golden values at both ends of the range plus the midpoint.
+Verified by hand-mutation, with the harness calibrated first on a mutation
+known to be caught: seven killed, one survivor left, listed below.
+
+Worth recording as a shape: **arithmetic that cannot be called cannot be
+pinned with a golden value**, and a multiplier needs one. Inlining it into a
+system whose only observable output is a choice means the best any test can do
+is bound its sign.
+
+### Accepted: the sign guard's boundary
+
+```
+crates/terri-sim/src/systems/advertise.rs:59:14: replace > with >= in scaled_delta
+```
+
+`if delta > 0.0 { delta * scale } else { delta }`. The two comparisons differ
+only at `delta == 0.0`, and there both arms return `0.0` - the multiplied arm
+gives `0.0 * scale`, which is `0.0` for every finite scale, and content
+validation rejects a non-finite one. `-0.0` behaves the same way. Equivalent,
+and unkillable without inventing a distinction the type does not have.
+
+Its sibling `advertise.rs:138:18` in `score_advertisement` is the same
+comparison for the same reason and has been in the baseline since M1c; it
+moved from line 82 only because the two new functions sit above it.
+
+**A note on the baseline's format.** Entries are file:line:column, so adding
+code above a baselined mutant moves it and it reads as one entry disappearing
+and another appearing. That happened here. Whoever sees an unfamiliar entry
+should check whether it is the same mutation at a new line before treating it
+as new.

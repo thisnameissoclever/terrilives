@@ -139,22 +139,37 @@ pub fn drain_commands(
             }
             SimCommand::Select(None) => selection = None,
 
-            SimCommand::UseObject { agent, object } => {
+            SimCommand::UseObject {
+                agent,
+                object,
+                interaction,
+            } => {
                 let Some(agent) = resolve(agent, agents.iter().map(|(entity, _, _)| entity)) else {
                     continue;
                 };
                 let Some(object) = resolve(object, objects.iter()) else {
                     continue;
                 };
-                // Interaction 0, because `UseObject` carries no
-                // interaction index: a click names an object, not one of
-                // its uses. An object with no interactions at all makes
-                // this out of range, which `serve_intents` drops on the
-                // next tick rather than carrying into a panic - the same
-                // path a command log recorded against an older pack takes.
+                // **The index is copied across, not validated here.** The
+                // two entity indices above are resolved because a raw
+                // index promises neither liveness nor kind and nothing
+                // downstream re-checks; the interaction index is
+                // different, because `serve_intents` already drops a front
+                // intent whose interaction is past the end of the object's
+                // list, before anything indexes with it. A second range
+                // check here would be a weaker copy of that one - weaker
+                // because it would need the object's definition, which
+                // this system does not query - and it would have to agree
+                // with it for ever.
+                //
+                // So out of range remains `serve_intents`' problem, and it
+                // must stay a drop rather than a panic: it is what a
+                // command log recorded against an older content pack
+                // replays as, and what an object with no interactions at
+                // all makes of any index whatsoever.
                 let intent = Intent {
                     object,
-                    interaction: 0,
+                    interaction,
                 };
 
                 // **Refused at the cap, not trimmed.** See
@@ -202,20 +217,27 @@ pub fn drain_commands(
                 // front intent exactly is treated as that intent being
                 // carried out.
                 //
-                // **Both halves of the `&&` are load-bearing and the
-                // interaction half is the one that looks redundant.**
-                // `UseObject` always names interaction 0, and an
-                // autonomously chosen interaction is 0 on every
-                // single-interaction object - so an intent for the bed and
-                // a target on the fridge agree on the interaction index
-                // while naming different objects entirely. Relaxed to
-                // `||` this releases an autonomous target the moment the
-                // player queues a click on anything else, which is the
-                // very interruption the guard exists to prevent.
+                // **Both halves of the `&&` are load-bearing, and the
+                // interaction half is now obviously so.** A commitment is
+                // an (object, interaction) pair and so is an intent, so
+                // neither field alone identifies one: an intent for the
+                // BED and a target on the FRIDGE can share an interaction
+                // index, and two rows of one object's flyout name the same
+                // object and different interactions. Relaxed to `||`
+                // either of those releases a commitment that is not the
+                // one being cancelled - the very interruption the guard
+                // exists to prevent.
+                //
+                // **This comment used to argue the clause was only subtly
+                // load-bearing, on the grounds that `UseObject` always
+                // named interaction 0.** That premise is gone: the command
+                // carries the player's chosen index now, so sharing an
+                // interaction index is an ordinary coincidence rather than
+                // a consequence of one field being hardcoded.
                 // `a_cancel_does_not_release_an_autonomous_target_that_only_shares_the_intents_interaction_index`
-                // is what fails on it, and it was found by the mutation
-                // sweep rather than by hand - every fixture until then had
-                // BOTH fields agreeing, which is [L34].
+                // is what fails on the `||`; it was found by the mutation
+                // sweep back when every fixture had BOTH fields agreeing,
+                // which is [L34].
                 let serving = match (queue.as_deref().and_then(|q| q.front()), target) {
                     (Some(intent), Some(target)) => {
                         intent.object == target.object && intent.interaction == target.interaction
@@ -356,7 +378,24 @@ mod tests {
     }
 
     fn spawn_object(sim: &mut Sim, at: (f32, f32), id: &str) -> Entity {
-        let def = content()
+        spawn_object_from(content(), sim, at, id)
+    }
+
+    /// The same, from a named pack, for the two-verb fixture below.
+    ///
+    /// The pack is a parameter rather than read from the sim's `Content`
+    /// resource because a `SmartObject` holds an `ObjectDefId` that indexes
+    /// one specific pack: spawning from a different pack than the sim was
+    /// built with would produce an id that resolves to some other object
+    /// entirely, with no error anywhere. Passing the pack in makes the two
+    /// obviously come from one place at the call site.
+    fn spawn_object_from(
+        pack: &'static ContentPack,
+        sim: &mut Sim,
+        at: (f32, f32),
+        id: &str,
+    ) -> Entity {
+        let def = pack
             .find(id)
             .unwrap_or_else(|| panic!("the fixture must declare '{id}'"));
         sim.world_mut()
@@ -424,6 +463,85 @@ mod tests {
         let fridge = spawn_object(&mut sim, FRIDGE_AT, "fridge");
         let agent = spawn_agent(&mut sim, AGENT_AT, hungry());
         (sim, bed, fridge, agent)
+    }
+
+    // ---- The two-verb fixture ------------------------------------------
+    //
+    // Everything above runs against objects with exactly ONE interaction,
+    // which is all `content/objects.toml` ships. That is the input domain
+    // in which "the command's interaction index was used" and "0 was
+    // hardcoded" agree on every observation, so an object with two
+    // genuinely different verbs is the minimum needed to tell them apart -
+    // [L34], in the place the whole change lives.
+
+    const DESK: &str = "desk";
+    const DESK_AT: (f32, f32) = (5.0, 8.0);
+
+    /// Interaction 0 of the desk: `fun`, a small delta, a short run.
+    const FIRST: (NeedId, f32, u32) = (NeedId::Fun, 30.0, 20);
+    /// Interaction 1 of the desk: `comfort`, a bigger delta, a long run.
+    /// Every component differs from `FIRST`, so which one ran is visible
+    /// three separate ways.
+    const SECOND: (NeedId, f32, u32) = (NeedId::Comfort, 48.0, 40);
+
+    /// The level the two modulated needs start at: low enough that filling
+    /// them is not clamped away at `NEED_MAX`, high enough that neither is
+    /// so desperate it beats hunger in autonomous scoring.
+    const HALF_FULL: f32 = 50.0;
+
+    /// A desk with two interactions, plus the fridge, at **zero duration
+    /// variance**.
+    ///
+    /// The variance override is what makes "it ran for interaction 1's
+    /// duration" a testable claim at all. [D-4] samples a duration within
+    /// `duration_variance` either side of the content number, and at the
+    /// shipped 0.4 the two bands here are 12-28 ticks and 24-56 - which
+    /// OVERLAP, so a measured length could not name the interaction it came
+    /// from. At zero the sample is exactly the content value.
+    ///
+    /// Kept apart from [`content`] rather than folded into it, because that
+    /// pack is what every other test in this module runs against and pinning
+    /// its durations would silently change the timing every one of them was
+    /// written against - the same reasoning `test_content::object_sized`
+    /// gives for not widening the shared object helper.
+    fn two_verb_content() -> &'static ContentPack {
+        test_content::pack_tuned(
+            vec![
+                test_content::object("fridge", &[(NeedId::Hunger, DELTA)], DURATION),
+                test_content::object_with_two_interactions(DESK, FIRST, SECOND),
+            ],
+            Tuning {
+                choice_temperature: DECISIVE_TEMPERATURE,
+                duration_variance: 0.0,
+                ..test_content::tuning()
+            },
+        )
+    }
+
+    /// A 16x16 lot holding the two-verb desk, the fridge, and one agent
+    /// standing ON the desk so it starts interacting within a tick or two.
+    ///
+    /// The agent is hungry, exactly as in [`scenario`], so autonomy wants
+    /// the fridge and BOTH desk interactions are instructions it would
+    /// never have given itself. `fun` and `comfort` sit at [`HALF_FULL`]
+    /// so that whichever verb runs has somewhere to fill.
+    fn two_verb_scenario() -> (Sim, Entity, Entity, Entity) {
+        let pack = two_verb_content();
+        let mut sim = test_content::sim_with(16, 16, pack);
+        let desk = spawn_object_from(pack, &mut sim, DESK_AT, DESK);
+        let fridge = spawn_object_from(pack, &mut sim, FRIDGE_AT, "fridge");
+        let mut needs = hungry();
+        needs.set(FIRST.0, HALF_FULL);
+        needs.set(SECOND.0, HALF_FULL);
+        let agent = spawn_agent(&mut sim, DESK_AT, needs);
+        (sim, desk, fridge, agent)
+    }
+
+    fn level(sim: &Sim, agent: Entity, need: NeedId) -> f32 {
+        sim.world()
+            .get::<Needs>(agent)
+            .expect("the agent must carry needs")
+            .get(need)
     }
 
     // ---- Select --------------------------------------------------------
@@ -516,6 +634,7 @@ mod tests {
             SimCommand::UseObject {
                 agent: second.index_u32(),
                 object: bed.index_u32(),
+                interaction: 0,
             },
         );
         drain_only(&mut sim);
@@ -535,6 +654,137 @@ mod tests {
     }
 
     #[test]
+    fn use_object_queues_the_interaction_index_the_command_named_rather_than_zero() {
+        // **The whole of the field this task added, at the drain.** The
+        // command names interaction 1 of a two-verb desk, and the intent
+        // has to carry a 1. A `0` anywhere on this path - the hardcode the
+        // change replaced, or a `..Default::default()` slipped in later -
+        // fails only here and only because the index sent is NON-ZERO;
+        // that is [L34] in one line.
+        //
+        // Drain-only, because this is a claim about what the drain writes.
+        // What the simulation then DOES with the index is the end-to-end
+        // test below, and the two are separate because a drain that stored
+        // the right number and a `serve_intents` that ignored it would look
+        // identical through either one alone.
+        //
+        // The second command names interaction 0 of the SAME object, so the
+        // queue holds two intents that differ in nothing but the index. A
+        // fixture with one entry could be satisfied by a drain that always
+        // wrote the LAST index it saw, or the first.
+        let (mut sim, desk, _fridge, agent) = two_verb_scenario();
+
+        enqueue(
+            &mut sim,
+            SimCommand::UseObject {
+                agent: agent.index_u32(),
+                object: desk.index_u32(),
+                interaction: 1,
+            },
+        );
+        enqueue(
+            &mut sim,
+            SimCommand::UseObject {
+                agent: agent.index_u32(),
+                object: desk.index_u32(),
+                interaction: 0,
+            },
+        );
+        drain_only(&mut sim);
+
+        assert_eq!(
+            queue_of(&sim, agent).len(),
+            2,
+            "both clicks must reach the queue"
+        );
+        // Read by popping, because `IntentQueue` exposes only its front -
+        // deliberately, since `serve_intents` only ever looks at the front.
+        // Widening that API for a test would add production surface nothing
+        // in the simulation wants.
+        let mut queue = sim
+            .world_mut()
+            .get_mut::<IntentQueue>(agent)
+            .expect("the agent must have been directed");
+        assert_eq!(
+            queue.front(),
+            Some(Intent {
+                object: desk,
+                interaction: 1,
+            }),
+            "the first intent must carry the index its command named; a 1 \
+             here is the only thing a hardcoded 0 cannot produce"
+        );
+        queue.pop();
+        assert_eq!(
+            queue.front(),
+            Some(Intent {
+                object: desk,
+                interaction: 0,
+            }),
+            "and the second must carry its own, so the two are not one \
+             index copied twice"
+        );
+    }
+
+    #[test]
+    fn an_interaction_index_past_the_end_is_queued_here_and_dropped_by_serve_intents() {
+        // **The out-of-range case is deliberately NOT rejected at the
+        // drain**, and that has to be asserted rather than left as a
+        // reading of the source, because "the drain refuses it" and "the
+        // drain accepts it and the server drops it" are indistinguishable
+        // from the outside two ticks later. The distinction matters: a
+        // range check here would need the object's definition, which this
+        // system does not query, so it could only be a weaker second copy
+        // of `serve_intents`' check that has to agree with it for ever.
+        //
+        // `u32::MAX` rather than 2, because it is what the WASM boundary
+        // lets through unchanged and because a clamp or a wrap anywhere on
+        // the path shows up on it and on nothing smaller.
+        let (mut sim, desk, _fridge, agent) = two_verb_scenario();
+
+        enqueue(
+            &mut sim,
+            SimCommand::UseObject {
+                agent: agent.index_u32(),
+                object: desk.index_u32(),
+                interaction: u32::MAX,
+            },
+        );
+        drain_only(&mut sim);
+
+        assert_eq!(
+            queue_of(&sim, agent).front(),
+            Some(Intent {
+                object: desk,
+                interaction: u32::MAX,
+            }),
+            "the drain must pass the index through untouched; a saturating \
+             clamp to the last real interaction would turn 'use the verb \
+             that is not there' into 'use the last verb'"
+        );
+
+        // And the simulation survives it. `serve_intents` drops the intent
+        // rather than indexing with it, which is what keeps
+        // `tick_interactions`' `interactions[i]` safe by construction.
+        for _ in 0..20 {
+            sim.tick();
+        }
+        assert!(
+            sim.world()
+                .get::<IntentQueue>(agent)
+                .is_none_or(IntentQueue::is_empty),
+            "the unservable intent must be dropped, or the sim is pinned to \
+             an instruction that can never complete"
+        );
+        assert!(
+            sim.world().get::<Eating>(agent).is_none()
+                || target_of(&sim, agent).map(|t| t.interaction) != Some(u32::MAX),
+            "and nothing may have started an interaction under an index the \
+             desk does not have"
+        );
+    }
+
+    #[test]
     fn use_object_ignores_an_index_that_is_not_a_smart_object() {
         // Directing a sim at another sim. `serve_intents` looks the object
         // up in a `(&Position, &SmartObject, Has<Reserved>)` query and
@@ -549,6 +799,7 @@ mod tests {
             SimCommand::UseObject {
                 agent: agent.index_u32(),
                 object: other.index_u32(),
+                interaction: 0,
             },
         );
         drain_only(&mut sim);
@@ -580,6 +831,7 @@ mod tests {
                 SimCommand::UseObject {
                     agent: agent.index_u32(),
                     object: bed.index_u32(),
+                    interaction: 0,
                 },
             );
         }
@@ -607,6 +859,7 @@ mod tests {
             SimCommand::UseObject {
                 agent: agent.index_u32(),
                 object: bed.index_u32(),
+                interaction: 0,
             },
         );
         drain_only(&mut sim);
@@ -622,6 +875,7 @@ mod tests {
                 SimCommand::UseObject {
                     agent: agent.index_u32(),
                     object: bed.index_u32(),
+                    interaction: 0,
                 },
             );
         }
@@ -651,6 +905,7 @@ mod tests {
             SimCommand::UseObject {
                 agent: agent.index_u32(),
                 object: bed.index_u32(),
+                interaction: 0,
             },
         );
         sim.tick();
@@ -719,6 +974,7 @@ mod tests {
             SimCommand::UseObject {
                 agent: agent.index_u32(),
                 object: bed.index_u32(),
+                interaction: 0,
             },
         );
 
@@ -832,19 +1088,30 @@ mod tests {
     fn a_cancel_does_not_release_an_autonomous_target_that_only_shares_the_intents_interaction_index(
     ) {
         // **Found by the mutation sweep, not by hand.** The guard above is
-        // `object == object && interaction == interaction`, and the second
-        // clause looks redundant until you notice that `UseObject` always
-        // names interaction 0 and an autonomously chosen interaction is 0
-        // on every single-interaction object. So an intent for the BED and
-        // a target on the FRIDGE agree on the interaction index while
-        // naming completely different objects.
-        //
-        // Relaxed to `||` the cancel then releases the sim's autonomous
-        // target the moment the player has queued a click on anything
-        // else - the exact interruption the guard exists to prevent,
-        // arriving through the clause nobody was watching. Every other
-        // cancel fixture has BOTH fields agreeing, which is the input
+        // `object == object && interaction == interaction`, and relaxing
+        // it to `||` releases the sim's autonomous target the moment the
+        // player has queued a click on anything ELSE that happens to share
+        // an interaction index - the exact interruption the guard exists to
+        // prevent, arriving through the clause nobody was watching. Every
+        // other cancel fixture has BOTH fields agreeing, which is the input
         // domain that cannot see it ([L34]).
+        //
+        // **This fixture used to be awkward to build and no longer is, and
+        // the reason is the point.** When `UseObject` hardcoded interaction
+        // 0, "an intent and a target that share an index but not an object"
+        // was a coincidence you had to arrange: the click's index came from
+        // the command's hardcode and the target's from autonomy picking the
+        // only interaction a single-verb object has. The command carries a
+        // chosen index now, so the `interaction: 0` below is a DELIBERATE
+        // match with what autonomy chose rather than an inherited constant,
+        // and the input domain is one line to reach. The mutant it kills is
+        // unchanged; only the effort of cornering it moved.
+        //
+        // The mirrored domain - same object, DIFFERENT interaction - is
+        // `a_cancel_does_not_release_an_autonomous_target_on_the_same_object_under_another_interaction`
+        // below, which the two-verb desk made expressible for the first
+        // time. Neither test implies the other: they disagree about which
+        // half of the `&&` is the false one.
         //
         // The two drains are deliberately not separated by a tick:
         // `serve_intents` would convert the intent into a target in
@@ -873,6 +1140,9 @@ mod tests {
             SimCommand::UseObject {
                 agent: agent.index_u32(),
                 object: bed.index_u32(),
+                // Chosen to MATCH the interaction autonomy took on the
+                // fridge, not inherited from a hardcode. See above.
+                interaction: 0,
             },
         );
         drain_only(&mut sim);
@@ -927,6 +1197,110 @@ mod tests {
         );
     }
 
+    #[test]
+    fn a_cancel_does_not_release_an_autonomous_target_on_the_same_object_under_another_interaction()
+    {
+        // **The mirror of the test above, and the input domain that did not
+        // exist until `UseObject` could name an interaction.** There the
+        // intent and the target share an index and differ in the object;
+        // here they share the OBJECT and differ in the index, which needs
+        // both a two-verb object and a command able to name its second
+        // verb. The two together are what make each half of
+        // `object == object && interaction == interaction` separately
+        // load-bearing:
+        //
+        //   - relaxed to `||`, both tests fail;
+        //   - with the interaction clause forced true, only this one does,
+        //     because there the objects already differ and the `&&` is
+        //     false either way.
+        //
+        // What the bug costs a player: a sim reading at the desk, a click
+        // on the desk's OTHER verb queued behind it, and then a cancel -
+        // and the reading stops, the desk is unreserved, and the sim stands
+        // up for an instruction it was never carrying out.
+        //
+        // The desk alone, with `fun` the only need worth anything, so
+        // autonomy has an unambiguous reason to pick interaction 0 and
+        // interaction 1 is genuinely the one it did NOT choose.
+        let pack = two_verb_content();
+        let mut sim = test_content::sim_with(16, 16, pack);
+        let desk = spawn_object_from(pack, &mut sim, DESK_AT, DESK);
+        let mut needs = Needs::all_at(NEED_MAX);
+        needs.set(FIRST.0, 10.0);
+        let agent = spawn_agent(&mut sim, DESK_AT, needs);
+
+        for _ in 0..64 {
+            sim.tick();
+            if sim.world().get::<Eating>(agent).is_some() {
+                break;
+            }
+        }
+        let target = target_of(&sim, agent).expect("the sim must choose the desk for itself");
+        assert_eq!(
+            (target.object, target.interaction),
+            (desk, 0),
+            "autonomy must have taken interaction 0; if it took 1 the \
+             fixture is the same test upside down and proves nothing"
+        );
+        assert!(
+            sim.world().get::<IntentQueue>(agent).is_none(),
+            "and it must be acting on its own, or the guard is not the \
+             thing deciding"
+        );
+
+        enqueue(
+            &mut sim,
+            SimCommand::UseObject {
+                agent: agent.index_u32(),
+                object: desk.index_u32(),
+                interaction: 1,
+            },
+        );
+        drain_only(&mut sim);
+
+        let intent = queue_of(&sim, agent)
+            .front()
+            .expect("the click must have queued an intent");
+        assert_eq!(
+            intent.object, target.object,
+            "the intent must name the SAME object, or `&&` and `||` agree \
+             here and this test proves nothing"
+        );
+        assert_ne!(
+            intent.interaction, target.interaction,
+            "and a DIFFERENT interaction, or there is no disagreement for \
+             the second clause to notice"
+        );
+
+        enqueue(
+            &mut sim,
+            SimCommand::CancelIntents {
+                agent: agent.index_u32(),
+            },
+        );
+        drain_only(&mut sim);
+
+        assert!(
+            queue_of(&sim, agent).is_empty(),
+            "the cancel must still empty the queue"
+        );
+        assert_eq!(
+            target_of(&sim, agent),
+            Some(target),
+            "the sim's own choice must survive; releasing it here is the \
+             `||` mutant, and the player sees a sim abandon what it was \
+             doing because they cancelled something it never started"
+        );
+        assert!(
+            sim.world().get::<Eating>(agent).is_some(),
+            "and the interaction it chose must not be abandoned"
+        );
+        assert!(
+            sim.world().get::<Reserved>(desk).is_some(),
+            "and the desk must stay reserved to it"
+        );
+    }
+
     // ---- Hostile input -------------------------------------------------
 
     #[test]
@@ -967,6 +1341,7 @@ mod tests {
                 SimCommand::UseObject {
                     agent: bad,
                     object: bed.index_u32(),
+                    interaction: 0,
                 },
             );
             enqueue(
@@ -974,6 +1349,7 @@ mod tests {
                 SimCommand::UseObject {
                     agent: agent.index_u32(),
                     object: bad,
+                    interaction: 0,
                 },
             );
             enqueue(&mut sim, SimCommand::CancelIntents { agent: bad });
@@ -1036,6 +1412,7 @@ mod tests {
             SimCommand::UseObject {
                 agent: first.index_u32(),
                 object: bed.index_u32(),
+                interaction: 0,
             },
         );
         enqueue(
@@ -1064,6 +1441,7 @@ mod tests {
             SimCommand::UseObject {
                 agent: first.index_u32(),
                 object: bed.index_u32(),
+                interaction: 0,
             },
         );
         drain_only(&mut sim);
@@ -1109,6 +1487,7 @@ mod tests {
             SimCommand::UseObject {
                 agent: agent.index_u32(),
                 object: bed.index_u32(),
+                interaction: 0,
             },
         );
         sim.tick();
@@ -1140,6 +1519,7 @@ mod tests {
             SimCommand::UseObject {
                 agent: agent.index_u32(),
                 object: fridge.index_u32(),
+                interaction: 0,
             },
         );
         sim.tick();
@@ -1194,6 +1574,7 @@ mod tests {
             SimCommand::UseObject {
                 agent: agent.index_u32(),
                 object: bed.index_u32(),
+                interaction: 0,
             },
         );
         sim.tick();
@@ -1208,6 +1589,7 @@ mod tests {
             SimCommand::UseObject {
                 agent: agent.index_u32(),
                 object: fridge.index_u32(),
+                interaction: 0,
             },
         );
         enqueue(
@@ -1249,6 +1631,7 @@ mod tests {
             SimCommand::UseObject {
                 agent: agent.index_u32(),
                 object: fridge.index_u32(),
+                interaction: 0,
             },
         );
         enqueue(
@@ -1256,6 +1639,7 @@ mod tests {
             SimCommand::UseObject {
                 agent: agent.index_u32(),
                 object: bed.index_u32(),
+                interaction: 0,
             },
         );
         drain_only(&mut sim);
@@ -1295,6 +1679,7 @@ mod tests {
             SimCommand::UseObject {
                 agent: agent.index_u32(),
                 object: bed.index_u32(),
+                interaction: 0,
             },
         );
         sim.tick();
@@ -1308,6 +1693,125 @@ mod tests {
         assert!(
             sim.world().get::<Reserved>(fridge).is_none(),
             "autonomy must not have run for a directed agent"
+        );
+        // The index the click sent, all the way through to the commitment.
+        // Interaction 0 is what the shipped game sends and it is what this
+        // must stay; the NON-zero half of the same claim is
+        // `a_use_object_naming_the_second_interaction_runs_the_second_one`
+        // below, and neither statement implies the other.
+        assert_eq!(
+            target_of(&sim, agent).map(|t| t.interaction),
+            Some(0),
+            "a plain click sends interaction 0 and the target must hold it"
+        );
+    }
+
+    #[test]
+    fn a_use_object_naming_the_second_interaction_runs_the_second_one() {
+        // **The end-to-end claim of this whole change, through the real
+        // schedule rather than through `drain_only`.** A drain that stored
+        // the index faithfully and a `serve_intents` that ignored it would
+        // both satisfy the drain-level test above; only running the tick
+        // pipeline says which interaction actually happened.
+        //
+        // Three independent measurements, because the index is not
+        // observable in itself - only in what running it DOES, and any one
+        // of the three could agree with interaction 0 by coincidence:
+        //
+        //   1. the index the sim is COMMITTED to, in `Eating` and `Target`;
+        //   2. how long it runs, which is interaction 1's duration and not
+        //      interaction 0's - the fixture pins `duration_variance` to
+        //      zero precisely so the two lengths cannot overlap;
+        //   3. **the need that moved**, which is the one a hardcoded 0
+        //      cannot satisfy under any circumstances: interaction 0
+        //      advertises `fun` and interaction 1 advertises `comfort`, so
+        //      running the wrong one fills the wrong bar. `fun` is asserted
+        //      to have FALLEN, not merely to be unchanged, because it
+        //      decays every tick and "unchanged" would be a claim the
+        //      simulation cannot produce.
+        let (mut sim, desk, _fridge, agent) = two_verb_scenario();
+        let fun_before = level(&sim, agent, FIRST.0);
+        let comfort_before = level(&sim, agent, SECOND.0);
+
+        enqueue(
+            &mut sim,
+            SimCommand::UseObject {
+                agent: agent.index_u32(),
+                object: desk.index_u32(),
+                interaction: 1,
+            },
+        );
+
+        let began = tick_until_interacting(&mut sim, agent);
+        let eating = *sim
+            .world()
+            .get::<Eating>(agent)
+            .expect("tick_until_interacting returned, so this is present");
+        assert_eq!(
+            eating.interaction, 1,
+            "the sim must be running the interaction the command named"
+        );
+        assert_eq!(
+            target_of(&sim, agent).map(|t| t.interaction),
+            Some(1),
+            "and the target it is holding the desk under must agree; a \
+             Target and an Eating that disagree would release the wrong \
+             reservation on the way out"
+        );
+        // The `- 1` is the schedule, not slack. `follow_path` inserts
+        // `Eating` and `tick_interactions` runs after it in the SAME tick,
+        // so it has already decremented once by the time a whole `tick()`
+        // returns and this can look. Asserted exactly rather than as a
+        // range, so reordering those two systems fails here.
+        assert_eq!(
+            eating.remaining_ticks,
+            SECOND.2 - 1,
+            "the interaction must be interaction 1's length; interaction \
+             0 declares {} ticks and would be visibly shorter",
+            FIRST.2
+        );
+
+        // Run it out. Bounded by interaction 1's own length plus slack, so
+        // a loop that never terminated would fail rather than hang - [L15].
+        let mut ran = 0;
+        for _ in 0..SECOND.2 + 8 {
+            if sim.world().get::<Eating>(agent).is_none() {
+                break;
+            }
+            sim.tick();
+            ran += 1;
+        }
+        assert!(
+            sim.world().get::<Eating>(agent).is_none(),
+            "the interaction must end; it began on tick {began} and was \
+             still running {ran} ticks later"
+        );
+        assert!(
+            ran > FIRST.2,
+            "it must have run longer than interaction 0's {} ticks; it ran \
+             {ran}, which is the length of the wrong verb",
+            FIRST.2
+        );
+
+        let fun_after = level(&sim, agent, FIRST.0);
+        let comfort_after = level(&sim, agent, SECOND.0);
+        assert!(
+            fun_after < fun_before,
+            "interaction 0 advertises `fun` and it did not run, so `fun` \
+             must only have decayed: {fun_before} -> {fun_after}"
+        );
+        let gained = comfort_after - comfort_before;
+        assert!(
+            gained > FIRST.1,
+            "interaction 1 advertises {} of `comfort`, so the gain must \
+             exceed interaction 0's {} delta; it was {gained}",
+            SECOND.1,
+            FIRST.1
+        );
+        assert!(
+            gained <= SECOND.1,
+            "and it cannot exceed what interaction 1 advertises, because \
+             `comfort` decays alongside the refill; it was {gained}"
         );
     }
 
@@ -1375,6 +1879,7 @@ mod tests {
             SimCommand::UseObject {
                 agent: agent.index_u32(),
                 object: bed.index_u32(),
+                interaction: 0,
             },
         );
         sim.tick();
@@ -1409,6 +1914,7 @@ mod tests {
             SimCommand::UseObject {
                 agent: agent.index_u32(),
                 object: bed.index_u32(),
+                interaction: 0,
             },
         );
 
@@ -1551,6 +2057,7 @@ mod tests {
                 SimCommand::UseObject {
                     agent: 1,
                     object: 0,
+                    interaction: 0,
                 },
             ),
             (40, SimCommand::CancelIntents { agent: 1 }),

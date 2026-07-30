@@ -9,33 +9,33 @@
 # size on screen: the quad is drawn one texel to one pixel.
 
 image = "atlas.png"
-width = 256
-height = 247
+width = 512
+height = 303
 
 [[sprite]]
 name = "floor"
-x = 43
-y = 200
+x = 1
+y = 260
 w = 64
 h = 42
 
 [[sprite]]
 name = "sim"
-x = 51
+x = 93
 y = 116
 w = 38
 h = 78
 
 [[sprite]]
 name = "wallNS"
-x = 128
+x = 246
 y = 1
 w = 32
 h = 98
 
 [[sprite]]
 name = "wallEW"
-x = 95
+x = 213
 y = 1
 w = 32
 h = 99
@@ -49,43 +49,43 @@ h = 83
 
 [[sprite]]
 name = "bathroomSinkSquare"
-x = 1
+x = 401
 y = 200
 w = 41
 h = 46
 
 [[sprite]]
 name = "showerRound"
-x = 161
+x = 279
 y = 1
 w = 63
 h = 94
 
 [[sprite]]
 name = "toiletSquare"
-x = 127
-y = 116
+x = 313
+y = 200
 w = 36
 h = 50
 
 [[sprite]]
 name = "bookcaseClosedDoors"
-x = 90
+x = 230
 y = 116
 w = 36
 h = 74
 
 [[sprite]]
 name = "loungeSofaOttoman"
-x = 164
-y = 116
+x = 350
+y = 200
 w = 50
 h = 47
 
 [[sprite]]
 name = "televisionVintage"
-x = 173
-y = 200
+x = 131
+y = 260
 w = 34
 h = 40
 
@@ -98,7 +98,161 @@ h = 114
 
 [[sprite]]
 name = "selectionRing"
-x = 108
-y = 200
+x = 66
+y = 260
 w = 64
 h = 42
+
+[[sprite]]
+name = "kitchenStove"
+x = 1
+y = 200
+w = 50
+h = 59
+
+[[sprite]]
+name = "kitchenCabinet"
+x = 52
+y = 200
+w = 50
+h = 59
+
+[[sprite]]
+name = "kitchenSink"
+x = 103
+y = 200
+w = 50
+h = 59
+
+[[sprite]]
+name = "table"
+x = 325
+y = 116
+w = 72
+h = 70
+
+[[sprite]]
+name = "chair"
+x = 459
+y = 200
+w = 23
+h = 43
+
+[[sprite]]
+name = "trashcan"
+x = 200
+y = 260
+w = 18
+h = 35
+
+[[sprite]]
+name = "loungeSofaLong"
+x = 132
+y = 116
+w = 97
+h = 76
+
+[[sprite]]
+name = "loungeChair"
+x = 154
+y = 200
+w = 49
+h = 57
+
+[[sprite]]
+name = "loungeChairRelax"
+x = 267
+y = 116
+w = 57
+h = 72
+
+[[sprite]]
+name = "radio"
+x = 247
+y = 260
+w = 22
+h = 27
+
+[[sprite]]
+name = "pottedPlant"
+x = 443
+y = 200
+w = 15
+h = 46
+
+[[sprite]]
+name = "cardboardBoxOpen"
+x = 166
+y = 260
+w = 33
+h = 36
+
+[[sprite]]
+name = "lampRoundFloor"
+x = 204
+y = 200
+w = 13
+h = 57
+
+[[sprite]]
+name = "coatRackStanding"
+x = 218
+y = 200
+w = 17
+h = 54
+
+[[sprite]]
+name = "bedDouble"
+x = 95
+y = 1
+w = 117
+h = 103
+
+[[sprite]]
+name = "sideTableDrawers"
+x = 270
+y = 200
+w = 42
+h = 52
+
+[[sprite]]
+name = "cabinetBedDrawer"
+x = 219
+y = 260
+w = 27
+h = 34
+
+[[sprite]]
+name = "desk"
+x = 398
+y = 116
+w = 63
+h = 66
+
+[[sprite]]
+name = "chairDesk"
+x = 236
+y = 200
+w = 33
+h = 53
+
+[[sprite]]
+name = "bookcaseClosedWide"
+x = 440
+y = 1
+w = 59
+h = 87
+
+[[sprite]]
+name = "bathtub"
+x = 343
+y = 1
+w = 96
+h = 88
+
+[[sprite]]
+name = "washerDryerStacked"
+x = 51
+y = 116
+w = 41
+h = 82

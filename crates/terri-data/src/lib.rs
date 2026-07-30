@@ -81,13 +81,19 @@ mod tests {
         );
     }
 
-    /// [D6] calls for roughly eight objects so that a sim has something
-    /// to decide between; with one, selection is a threshold rather than
-    /// a decision. Asserting the count is what keeps a content edit that
-    /// deletes half the house from being invisible to the suite.
+    /// [D6] calls for enough objects that a sim has something to decide
+    /// between; with one, selection is a threshold rather than a decision.
+    /// Asserting the roster is what keeps a content edit that deletes half
+    /// the house from being invisible to the suite.
     ///
-    /// Every id is named rather than just counted, because eight objects
+    /// Every id is named rather than just counted, because thirty objects
     /// with the wrong names is the same number.
+    ///
+    /// The list grew from eight to thirty with the five-room house; see
+    /// `docs/specs/2026-07-30-the-house-design.md`. About half of the new
+    /// entries advertise nothing at all, which is a category rather than an
+    /// omission - see `at_least_a_third_of_the_house_is_furniture_nobody_uses`
+    /// below.
     #[test]
     fn the_shipped_pack_declares_every_object_the_design_calls_for() {
         let p = pack();
@@ -96,15 +102,92 @@ mod tests {
         assert_eq!(
             ids,
             [
+                "armchair",
+                "bathtub",
                 "bed",
                 "bookshelf",
+                "chair",
+                "coat_rack",
+                "counter",
+                "desk",
+                "desk_chair",
+                "dining_table",
+                "double_bed",
+                "dresser",
+                "floor_lamp",
                 "fridge",
+                "kitchen_sink",
+                "laundry",
+                "long_sofa",
+                "moving_box",
+                "nightstand",
+                "potted_plant",
+                "radio",
+                "reading_chair",
+                "reference_shelf",
                 "shower",
                 "sink",
                 "sofa",
+                "stove",
                 "television",
-                "toilet"
+                "toilet",
+                "trashcan",
             ]
+        );
+    }
+
+    /// **The house has at least 25 things standing in it.** That is goal
+    /// item 8 stated as a number, and it is about PLACEMENTS rather than
+    /// definitions: two counters and two chairs share one definition each,
+    /// so counting `objects` would undercount what a player sees.
+    ///
+    /// A floor rather than an equality, because adding another chair should
+    /// not be a test edit. The roster test above is what pins the exact set
+    /// of definitions; this pins that the lot is furnished.
+    #[test]
+    fn the_shipped_lot_stands_at_least_twenty_five_objects_in_the_house() {
+        let placed = pack().lot.placements.len();
+        assert!(
+            placed >= 25,
+            "goal item 8 asks for a home worth living in, which was written \
+             down as 25 or more placed objects; the lot places {placed}"
+        );
+    }
+
+    /// **Some of the house is furniture nobody uses, on purpose.**
+    ///
+    /// A counter, a coat rack, a box that was going to be unpacked: they
+    /// advertise nothing, so `select_action` never scores them, and they
+    /// exist because a room reads as a room when it holds things that are
+    /// not all affordances. `an_object_may_declare_no_interactions` in
+    /// `schema.rs` is what keeps that legal at the parse layer; this is what
+    /// says the shipped content actually uses it.
+    ///
+    /// Both directions are asserted and the second is the one with a bug
+    /// behind it. A pipeline that silently dropped interactions - a bad
+    /// merge, a `#[serde(default)]` on the wrong field - would leave every
+    /// object advertising nothing, and the house would look identical while
+    /// every sim stood still for ever ([L17]). "At least one has none" alone
+    /// is green in that world.
+    #[test]
+    fn at_least_a_third_of_the_house_is_furniture_nobody_uses() {
+        let p = pack();
+        let silent = p
+            .objects
+            .iter()
+            .filter(|o| o.interactions.is_empty())
+            .count();
+        assert!(
+            silent * 3 >= p.objects.len(),
+            "only {silent} of {} objects are scenery; the house is meant to \
+             hold things that are not all affordances",
+            p.objects.len()
+        );
+        assert!(
+            silent < p.objects.len(),
+            "every object advertises nothing, so no sim can ever choose to \
+             do anything; the interactions have been dropped somewhere in \
+             the pipeline"
         );
     }
 
@@ -213,7 +296,18 @@ mod tests {
     fn every_shipped_object_draws_as_a_different_sprite() {
         let p = pack();
         let mut sprites: Vec<u32> = p.objects.iter().map(|o| o.sprite).collect();
-        assert_eq!(sprites.len(), 8, "the design calls for eight objects");
+        // A floor rather than the exact count, which used to be `== 8`: the
+        // roster is pinned by
+        // `the_shipped_pack_declares_every_object_the_design_calls_for`, and
+        // restating a number here only meant two tests to edit whenever the
+        // house gained a chair. What this needs is that the house is big
+        // enough for a shared sprite to be a plausible copy-paste at all.
+        assert!(
+            sprites.len() > 8,
+            "the house is meant to hold more than the original eight objects; \
+             got {}",
+            sprites.len()
+        );
         sprites.push(p.sim_sprite);
         let before = sprites.len();
         sprites.sort_unstable();

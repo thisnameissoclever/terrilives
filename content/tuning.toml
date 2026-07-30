@@ -434,4 +434,38 @@ social = 0.026
 # Raising the rate is the fix rather than stripping fun off the sofa, because the
 # sofa genuinely is a fun object and the surplus is what was wrong.
 fun = 0.048
-comfort = 0.021
+# **0.032, raised from 0.021, and this is [C6] again in a different object.**
+#
+# The five-room house added five comfort objects - dining table 44, long sofa
+# 52, armchair 38, reading chair 29, bathtub 47 - and the first trace over it
+# had every single one of them at ZERO uses in 12 000 ticks. Same shape as the
+# bookshelf, same reason, found the same way: the candidate table showed
+# `comfort` sitting at level 87, so a deficit of 0.13, and score is
+# `delta * deficit^3 / (distance / 0.25 + duration + 1)`. Cubed, that deficit
+# is 0.0022. The armchair's 38 comfort - the best comfort-per-tick in the
+# house - scored 0.0007 from across the lot and 0.0071 standing beside it,
+# against an `action_threshold` of 0.05. No delta and no duration fixes a
+# number an order of magnitude short at point-blank range.
+#
+# The distance matters to the diagnosis and is easy to drop: the same 0.0007
+# still appears in the candidate table AFTER this fix, from nineteen tiles
+# away, and reads as if nothing changed. What changed is the score standing
+# next to the thing.
+#
+# Comfort was over-supplied and barely drained: 298 points delivered against
+# 252 drained over 12 000 ticks, with a floor of 60.8, so it never got low
+# enough to want. At 0.021 it was also the slowest-draining need in the file,
+# 1.24 times slower than `social`'s 0.026 behind it.
+#
+# **Two changes together, and the other one matters more.** The double bed's
+# comfort delta went from 27 to 10, because eight nights' sleep was supplying
+# 216 of those 298 points - comfort was being kept topped up as a side effect
+# of an action taken for a different need entirely, which is exactly what was
+# wrong with `fun` above. This rate then went up by half so that comfort
+# genuinely presses on a sim over a day rather than drifting.
+#
+# At 0.032 it is now the second slowest, behind `social`'s 0.026, and that is
+# deliberate on both counts: comfort should be a background ache rather than
+# an alarm, and social is meant to stay under-served until sims can satisfy
+# each other.
+comfort = 0.032

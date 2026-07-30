@@ -63,6 +63,22 @@ function find(all: Row[], wx: number, wy: number): Row[] {
 }
 
 /**
+ * The WALL panels at a tile, with the floor tile that shares its screen
+ * position filtered out.
+ *
+ * `find` matches on position, so it always returns the floor as well. That
+ * was harmless while every assertion used `toContain`, and it stops being
+ * harmless once a junction tile has to be checked for having exactly two
+ * panels: the floor makes every count one too high and every sprite set one
+ * member too large.
+ */
+function wallsAt(all: Row[], wx: number, wy: number): Row[] {
+  const ns = spriteIndex('wallNS');
+  const ew = spriteIndex('wallEW');
+  return find(all, wx, wy).filter((r) => r.sprite === ns || r.sprite === ew);
+}
+
+/**
  * A 5 x 3 lot - non-square, so a transposed loop is visible - with an
  * L-shaped wall run: three tiles going down the y axis from (2, 0) and
  * two going along the x axis from (3, 2). The corner at (2, 2) belongs to
@@ -113,6 +129,12 @@ describe('buildStaticInstances', () => {
     const boundary = LOT.height + LOT.width + 1;
     expect(walls).toHaveLength(5 + boundary);
 
+    // **One panel per tile, the corner included.** Two coincident quads at
+    // one tile share a depth, and `depthCompare: 'less'` rejects the second
+    // ([V12]); they also share their 32 px of screen, because the shader
+    // centres a quad on its anchor. Drawing both was tried and measured -
+    // 14% of the second panel survived - and the through-run rule replaced
+    // it. This count is what fails if anyone tries it again.
     for (const [wx, wy] of [
       [2, 0],
       [2, 1],
@@ -146,9 +168,94 @@ describe('buildStaticInstances', () => {
     // The east-west run. (3, 2) and (4, 2) have x-axis neighbours only.
     expect(find(all, 3, 2).map((r) => r.sprite)).toContain(ew);
     expect(find(all, 4, 2).map((r) => r.sprite)).toContain(ew);
-    // The corner qualifies both ways and goes to the north-south run, so
-    // the two runs meet at a tile rather than doubling up on one.
-    expect(find(all, 2, 2).map((r) => r.sprite)).toContain(ns);
+    // The L corner qualifies both ways with a neighbour on ONE side of
+    // each axis, so neither run passes through it and the tie-break
+    // decides. Either panel closes an L, which is exactly why this fixture
+    // could not see the bug the T-junction test below covers.
+    expect(wallsAt(all, 2, 2).map((r) => r.sprite)).toEqual([ns]);
+    expect(ew).not.toBe(ns);
+  });
+
+  /**
+   * **A T-junction, which is what a real floor plan is made of and what the
+   * L-shaped fixture above cannot express.**
+   *
+   * `content/lot.toml`'s spine runs east-west with three north-south
+   * dividers hanging off it. Each of those tiles has east-west neighbours
+   * on BOTH sides and a north-south one on only one side, so the run
+   * PASSES THROUGH east-west and merely ends against it going south. The
+   * original rule turned the tile 90 degrees and the spine read as a wall
+   * with holes punched in it. An L corner cannot see that: it has a
+   * neighbour on one side of each axis, so nothing passes through and both
+   * rules agree.
+   *
+   * Three separate claims, and the run tiles either side are what make the
+   * first one mean something - "everything is east-west" would satisfy the
+   * junction assertion on its own.
+   */
+  it('gives a T-junction the orientation of the run that passes through it', () => {
+    const ns = spriteIndex('wallNS');
+    const ew = spriteIndex('wallEW');
+    // An east-west run across y = 1, with a spur going south from (2, 1).
+    // Non-square lot again, so a transposed loop is visible.
+    const tee = {
+      width: 5,
+      height: 4,
+      walls: Uint32Array.from([0, 1, 1, 1, 2, 1, 3, 1, 4, 1, 2, 2, 2, 3]),
+    };
+    const built = buildStaticInstances(tee, ORIGIN_X, ORIGIN_Y, GRID);
+    const rowsOf = rows(built.instances, built.count);
+
+    // The junction goes with the through-run, not with the spur.
+    expect(wallsAt(rowsOf, 2, 1).map((r) => r.sprite)).toEqual([ew]);
+    // The run either side of it is unbroken and single.
+    for (const wx of [0, 1, 3, 4]) {
+      expect(wallsAt(rowsOf, wx, 1).map((r) => r.sprite)).toEqual([ew]);
+    }
+    // And the spur is still a north-south wall, including its far end,
+    // which has a neighbour on one axis only.
+    expect(wallsAt(rowsOf, 2, 2).map((r) => r.sprite)).toEqual([ns]);
+    expect(wallsAt(rowsOf, 2, 3).map((r) => r.sprite)).toEqual([ns]);
+  });
+
+  /**
+   * **The transposed T: a north-south run with an east-west spur.**
+   *
+   * The rule reads two booleans and returns one of two sprites, so the
+   * mutation that survives every fixture above is "always prefer
+   * east-west at a junction" - which the T-junction test cannot see,
+   * because there the through-run IS east-west. This is the same case with
+   * the axes swapped, and between them the two pin that the rule reads
+   * which run is through rather than which axis it likes.
+   */
+  it('gives a transposed T-junction the other orientation, so the rule is not a fixed preference', () => {
+    const ns = spriteIndex('wallNS');
+    const ew = spriteIndex('wallEW');
+    const tee = {
+      width: 4,
+      height: 5,
+      walls: Uint32Array.from([1, 0, 1, 1, 1, 2, 1, 3, 1, 4, 2, 2, 3, 2]),
+    };
+    const built = buildStaticInstances(tee, ORIGIN_X, ORIGIN_Y, GRID);
+    const rowsOf = rows(built.instances, built.count);
+
+    expect(wallsAt(rowsOf, 1, 2).map((r) => r.sprite)).toEqual([ns]);
+    for (const wy of [0, 1, 3, 4]) {
+      expect(wallsAt(rowsOf, 1, wy).map((r) => r.sprite)).toEqual([ns]);
+    }
+    expect(wallsAt(rowsOf, 2, 2).map((r) => r.sprite)).toEqual([ew]);
+    expect(wallsAt(rowsOf, 3, 2).map((r) => r.sprite)).toEqual([ew]);
+  });
+
+  /**
+   * An isolated wall tile - no neighbour on either axis - gets exactly one
+   * panel, like every other tile. Nothing in the rule can produce two, and
+   * this is the cheapest input that would catch a version that did.
+   */
+  it('gives a free-standing wall tile one panel', () => {
+    const lone = { width: 3, height: 3, walls: Uint32Array.from([1, 1]) };
+    const built = buildStaticInstances(lone, ORIGIN_X, ORIGIN_Y, GRID);
+    expect(wallsAt(rows(built.instances, built.count), 1, 1)).toHaveLength(1);
   });
 
   it('draws the lot boundary the simulation treats as solid but content never lists', () => {

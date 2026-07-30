@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { SPRITES } from '../src/render/atlas.js';
 import {
+  cameraOrigin,
   worldToScreen,
   screenToWorld,
   screenX,
@@ -438,5 +439,88 @@ describe('depth sense contract with the render pipeline', () => {
     const writes = [...sprites.matchAll(/depthWriteEnabled:\s*(true|false)/g)];
     expect(writes).toHaveLength(1);
     expect(writes[0][1]).toBe('true');
+  });
+});
+
+describe('cameraOrigin', () => {
+  const CANVAS_W = 1280;
+  const CANVAS_H = 720;
+  /** The shipped lot, so this is a statement about the game. */
+  const LOT_W = 16;
+  const LOT_H = 12;
+  const TALLEST = Math.max(...SPRITES.map((sprite) => sprite.h));
+
+  /**
+   * The topmost pixel anything drawn reaches, and the bottommost.
+   *
+   * `tiles.ts` draws a boundary at x = -1 and y = -1, so the topmost row is
+   * world -1 rather than 0 - which is exactly what the shipped version of
+   * this arithmetic left out. A sprite occupies
+   * `[screenY + anchor - h, screenY + anchor]`, and the anchor is half a
+   * tile down.
+   */
+  function drawnBounds(originY: number, spriteH: number) {
+    const topRowY = screenY(-1, -1, originY);
+    const lastRowY = screenY(LOT_W - 1, LOT_H - 1, originY);
+    return {
+      top: topRowY + TILE_HALF_HEIGHT - spriteH,
+      bottom: lastRowY + TILE_HALF_HEIGHT,
+    };
+  }
+
+  it('keeps the whole lot, its boundary walls and its tallest sprite on the canvas', () => {
+    // **This is the regression.** Before it existed the origin centred the
+    // TILE span and came out at 87, which put the tops of the boundary
+    // panels at (-1, -1), (0, -1) and (-1, 0) at y = -33, -12 and -11. The
+    // north-west corner of the house was cut off the top of the page, and
+    // the sizing rule that was meant to prevent that is the one that missed
+    // it, because it reasoned about tiles rather than about pixels.
+    const { y } = cameraOrigin(CANVAS_W, CANVAS_H, LOT_W, LOT_H, TALLEST);
+    const bounds = drawnBounds(y, TALLEST);
+
+    expect(bounds.top).toBeGreaterThanOrEqual(0);
+    expect(bounds.bottom).toBeLessThanOrEqual(CANVAS_H);
+
+    // And the old formula really does fail here, so this test is about a
+    // change rather than about a tautology. Written out rather than
+    // imported, because it no longer exists in the source.
+    const centredOnTiles =
+      (CANVAS_H - (LOT_W + LOT_H - 2) * TILE_HALF_HEIGHT) / 2;
+    expect(drawnBounds(centredOnTiles, TALLEST).top).toBeLessThan(0);
+  });
+
+  it('leaves the horizontal axis centred on the lot', () => {
+    // The vertical fix must not have moved x. `screenX` is symmetric about
+    // the origin for a square lot, so the midpoint of the extremes lands on
+    // the canvas centre.
+    const { x } = cameraOrigin(CANVAS_W, CANVAS_H, LOT_W, LOT_H, TALLEST);
+    const west = screenX(0, LOT_H - 1, x);
+    const east = screenX(LOT_W - 1, 0, x);
+    expect((west + east) / 2).toBe(CANVAS_W / 2);
+  });
+
+  it('gives a taller sprite more room above rather than ignoring it', () => {
+    // The parameter has to be READ. A version that took it and centred the
+    // tile span anyway passes the first test on the shipped atlas by luck
+    // if the margin happens to be generous, and this is what it cannot do:
+    // two different sprite heights must produce two different origins, in
+    // the direction that makes room for the taller one.
+    const short = cameraOrigin(CANVAS_W, CANVAS_H, LOT_W, LOT_H, 40).y;
+    const tall = cameraOrigin(CANVAS_W, CANVAS_H, LOT_W, LOT_H, 200).y;
+    expect(tall).toBeGreaterThan(short);
+    // Half the extra height, since the extent is centred: the top grows by
+    // 160 and the origin moves down by 80.
+    expect(tall - short).toBe(80);
+  });
+
+  it('still fits a lot as large as the one that shipped before this', () => {
+    // 14 x 10 was the previous lot and it was never clipped. A fix that
+    // over-corrected - pushing the origin so far down that a smaller lot
+    // fell off the BOTTOM - would be the same bug mirrored.
+    const { y } = cameraOrigin(CANVAS_W, CANVAS_H, 14, 10, TALLEST);
+    const topRowY = screenY(-1, -1, y);
+    const lastRowY = screenY(13, 9, y);
+    expect(topRowY + TILE_HALF_HEIGHT - TALLEST).toBeGreaterThanOrEqual(0);
+    expect(lastRowY + TILE_HALF_HEIGHT).toBeLessThanOrEqual(CANVAS_H);
   });
 });

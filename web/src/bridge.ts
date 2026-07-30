@@ -239,19 +239,42 @@ export class SimBridge {
   }
 
   /**
-   * Directs `agent` to use `object`, overriding whatever it had chosen
-   * for itself ([D-3]).
+   * Directs `agent` to use one of `object`'s interactions, overriding
+   * whatever it had chosen for itself ([D-3]).
    *
-   * Both are raw entity indices, because JavaScript cannot construct
-   * the simulation's own entity type. A stale one is ignored by the
-   * drain rather than resolved blindly, so this returning `true` means
+   * The first two are raw entity indices, because JavaScript cannot
+   * construct the simulation's own entity type. A stale one is ignored by
+   * the drain rather than resolved blindly, so this returning `true` means
    * the command was queued, not that either entity still exists.
+   *
+   * `interaction` indexes that object's own interaction list, which is the
+   * order `interactionLabels` returns and the order the flyout draws its
+   * rows in: row `n` is interaction `n`. A plain click and a ctrl-click
+   * both send 0, which is the only interaction any shipped object has; a
+   * menu row sends its own index.
+   *
+   * **Required rather than defaulted to 0.** A default would let a caller
+   * that forgot the argument compile and silently send the first
+   * interaction, which is the exact bug this parameter was added to
+   * remove - and it is invisible today, because every shipped object's
+   * first interaction is also its only one.
+   *
+   * An index the object does not have is NOT rejected here, and nor is it
+   * rejected in Rust. It is a well-formed command, it is what a saved
+   * command log replayed against a newer content pack looks like, and
+   * `serve_intents` drops such an intent rather than indexing with it.
    */
-  useObject(agent: number, object: number): boolean {
-    if (!isU32(agent) || !isU32(object)) return false;
+  useObject(agent: number, object: number, interaction: number): boolean {
+    if (!isU32(agent) || !isU32(object) || !isU32(interaction)) return false;
     const bytes = [VARIANT_USE_OBJECT];
     pushVarint(bytes, agent);
     pushVarint(bytes, object);
+    // Last, because postcard writes a struct variant's fields in
+    // declaration order and `interaction` is declared last in
+    // `SimCommand::UseObject`. Emitting it before `object` would produce
+    // bytes that decode without error into a command naming a different
+    // object entirely.
+    pushVarint(bytes, interaction);
     return this.enqueueCommand(new Uint8Array(bytes));
   }
 

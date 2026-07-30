@@ -93,6 +93,18 @@ export type ClickAction =
       readonly agent: number;
       readonly object: number;
       /**
+       * Which of the object's interactions to run - `Intent::interaction`,
+       * and the last field of `SimCommand::UseObject`.
+       *
+       * **A left click always names 0**, which is the only interaction any
+       * shipped object has. It is carried as a field rather than left for
+       * `dispatch` to supply so that there is exactly one place in this
+       * shell that decides what a gesture's interaction is, and so that a
+       * left click and a menu row reach `useObject` through the same
+       * parameter instead of one of them going through a default.
+       */
+      readonly interaction: number;
+      /**
        * Whether this instruction is the sim's ONLY instruction.
        *
        * `true` for a plain click and `false` for a ctrl-click, per [I3].
@@ -381,6 +393,13 @@ export function pickAt(
  *
  * Directing does NOT change the selection, so a player can ctrl-click three
  * objects in a row and queue all three for the sim they are watching.
+ *
+ * **A left click always names interaction 0**, and that is a statement
+ * about the gesture rather than a placeholder: a click names an OBJECT, and
+ * "the first thing this object offers" is the only reading of that which
+ * does not require the player to have chosen. Choosing is what the
+ * right-click flyout is for, and `dispatchMenuAction` is where a row's own
+ * index enters.
  */
 export function resolveLeftClick(
   pick: Pick | null,
@@ -394,14 +413,32 @@ export function resolveLeftClick(
     kind: 'use',
     agent: selected,
     object: pick.entity,
+    interaction: LEFT_CLICK_INTERACTION,
     replace: !additive,
   };
 }
 
+/**
+ * The interaction a left click names: the object's first.
+ *
+ * A named constant rather than a literal `0`, because a bare zero at a call
+ * site is indistinguishable from the hardcode `SimCommand::UseObject`
+ * carried until this field existed. Naming it says the value was chosen.
+ * It is not a tuning knob - it is the arithmetic identity of "the first
+ * entry in a list" - so it does not belong in `content/tuning.toml`.
+ */
+const LEFT_CLICK_INTERACTION = 0;
+
 /** The subset of `SimBridge` the click handler dispatches through. */
 export interface CommandSink {
   select(entityIndex: number | null): boolean;
-  useObject(agent: number, object: number): boolean;
+  /**
+   * `interaction` is required, matching `SimBridge.useObject`. A default of
+   * 0 here would let a caller omit it and silently direct the sim at the
+   * object's first verb, which is invisible while every shipped object has
+   * exactly one.
+   */
+  useObject(agent: number, object: number, interaction: number): boolean;
   cancelIntents(agent: number): boolean;
   selectedIndex(): number | null;
 }
@@ -435,7 +472,7 @@ export function dispatch(sink: CommandSink, action: ClickAction): void {
       break;
     case 'use':
       if (action.replace) sink.cancelIntents(action.agent);
-      sink.useObject(action.agent, action.object);
+      sink.useObject(action.agent, action.object, action.interaction);
       break;
     case 'none':
       break;
@@ -618,6 +655,14 @@ export function handleRightClick(
  * long way round to the same instruction, so it would be strange for the
  * two to differ; ctrl-click stays the one gesture that appends, which
  * keeps "how do I queue" a single answer rather than two.
+ *
+ * **The row's own interaction index is what is sent**, which is the only
+ * thing that makes a second row mean anything: the rows come back from the
+ * simulation in interaction order, `menuEntries` numbers them by position,
+ * and that number goes into the command unchanged. Substituting 0 here
+ * would leave a flyout whose every row did the same thing, and it would
+ * look correct on every object the game currently ships because each has
+ * exactly one row above the cancel.
  */
 export function dispatchMenuAction(
   sink: CommandSink,
@@ -629,7 +674,7 @@ export function dispatchMenuAction(
     case 'use':
       // Cancel first, then use: the replace pair. See `dispatch`.
       sink.cancelIntents(agent);
-      sink.useObject(agent, action.object);
+      sink.useObject(agent, action.object, action.interaction);
       break;
     case 'cancel':
       sink.cancelIntents(agent);

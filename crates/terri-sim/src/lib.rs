@@ -859,61 +859,133 @@ mod lot_tests {
             "every placement in the shipped lot must be spawned"
         );
         assert!(
-            placed_objects(&sim).len() >= 8,
-            "[D-6] calls for roughly eight objects; got {}",
+            placed_objects(&sim).len() >= 25,
+            "goal item 8 calls for a home worth living in, written down as 25 \
+             or more placed objects; got {}",
             placed_objects(&sim).len()
         );
 
-        // The bathroom's west wall is solid at y = 1 and y = 3 and OPEN at
-        // y = 2. That gap is the doorway, and it is the property the whole
-        // lot turns on: without it the bathroom is sealed and the shower
-        // and toilet are unreachable, which is a silent behaviour change
-        // rather than a visible one ([L17]).
+        // **The five-room house's doorways, one per wall run.** A doorway is
+        // a GAP in a run rather than an entry of its own, so each is asserted
+        // as the open tile between two solid ones - which is the shape a
+        // missing gap actually breaks. Sealing a room is a silent behaviour
+        // change rather than a visible one ([L17]): the sim simply stops
+        // choosing anything in there, and nothing reports it.
         //
-        // These coordinates are deliberately literal rather than derived
-        // from the content, so that editing the lot fails this test and
-        // forces someone to look at whether the room still works. It has
-        // already done that job once, when the lot shrank from 24x18 to
-        // 14x10.
-        assert!(!grid.is_walkable(9, 1), "the bathroom wall must be solid");
-        assert!(!grid.is_walkable(9, 3), "the bathroom wall must be solid");
-        assert!(grid.is_walkable(9, 2), "the doorway at (9, 2) must be open");
+        // These coordinates are deliberately literal rather than derived from
+        // the content, so that re-authoring the lot fails this test and forces
+        // someone to look at whether the rooms still connect. It has already
+        // done that job twice, when the lot shrank from 24x18 to 14x10 and
+        // again when it grew to 16x12.
+        for (open, solid_before, solid_after, what) in [
+            ((7, 2), (7, 1), (7, 3), "kitchen to living room"),
+            ((3, 5), (2, 5), (4, 5), "kitchen to bedroom"),
+            ((13, 5), (12, 5), (14, 5), "living room to bathroom"),
+            ((5, 9), (5, 8), (5, 10), "bedroom to study"),
+            ((11, 8), (11, 7), (11, 9), "study to bathroom"),
+        ] {
+            assert!(
+                grid.is_walkable(open.0, open.1),
+                "the {what} doorway at {open:?} must be open"
+            );
+            assert!(
+                !grid.is_walkable(solid_before.0, solid_before.1)
+                    && !grid.is_walkable(solid_after.0, solid_after.1),
+                "the {what} wall must be solid either side of {open:?}, or \
+                 the gap is not a doorway and this asserts nothing"
+            );
+        }
 
-        // And the bathroom is genuinely reachable from the living space,
-        // stated as a path rather than as a hole in a wall, because that
-        // is the thing the game depends on.
+        // **The circulation is a RING, and this is what says so.**
+        //
+        // Plain reachability is already guaranteed by `compile`'s rule 3, so
+        // asserting it again would say nothing. The ring is a stronger and
+        // separate property: there are TWO routes between any pair of rooms,
+        // so BLOCKING ANY ONE DOORWAY still leaves the whole house connected.
+        // That is a fact about this floor plan rather than about the
+        // validator, it is the reason the plan was drawn this way rather than
+        // around a corridor, and losing it would be silent - the house would
+        // still work, only worse.
+        //
+        // Written as "seal each doorway in turn and re-check", because that
+        // is the claim. Two paths that merely both succeed would not be: on a
+        // tree they would both succeed too, by sharing the one corridor.
+        //
+        // The counterfactual is the second half and it is what stops this
+        // being vacuous. Sealing TWO doorways of the same room must cut that
+        // room off - otherwise "sealing one is survivable" would be equally
+        // true of a house with no walls in it at all.
+        let ring = [(7, 2), (3, 5), (13, 5), (5, 9), (11, 8)];
+        let probes = [
+            (1, 1),  // kitchen
+            (9, 2),  // living room
+            (3, 8),  // bedroom
+            (8, 8),  // study
+            (13, 7), // bathroom
+        ];
+        for sealed in ring {
+            let mut cut = grid.clone();
+            cut.set_blocked(sealed.0 as usize, sealed.1 as usize, true);
+            for probe in probes {
+                // No `|| probe == probes[0]` escape: `find_path` returns
+                // `Some(empty)` when from == to, so the kitchen probe against
+                // itself is already satisfied by the real call. A guard there
+                // would be dead code that looked like a special case.
+                assert!(
+                    cut.find_path(probes[0], probe).is_some(),
+                    "with the doorway at {sealed:?} sealed, {probe:?} is cut \
+                     off from the kitchen; the circulation is a tree rather \
+                     than a ring and one blocked door strands a room"
+                );
+            }
+        }
+        // The bedroom's two doorways are (3, 5) and (5, 9). Seal both and it
+        // has to become unreachable, or the ring test above is measuring a
+        // house whose walls do nothing.
+        let mut sealed_bedroom = grid.clone();
+        sealed_bedroom.set_blocked(3, 5, true);
+        sealed_bedroom.set_blocked(5, 9, true);
+        assert!(
+            sealed_bedroom.find_path((1, 1), (3, 8)).is_none(),
+            "with both of the bedroom's doorways sealed it must be cut off; \
+             still reachable means there is a third way in and the ring above \
+             is not the structure being tested"
+        );
+
+        // And the bathroom is genuinely approachable, stated as a path to a
+        // tile beside the shower rather than as a hole in a wall.
         //
         // `find_path_adjacent_to_tile` rather than `find_path`, and the change
         // is the point rather than a workaround: since [F3] the shower's own
-        // tile is impassable, so `find_path((2, 2), (11, 1))` now returns
-        // `None` for a reason that has nothing to do with the doorway. What a
-        // sim actually needs is a tile BESIDE the shower, which is what
-        // selection asks for, so that is what this asserts. The shower is 1x1,
-        // hence the one-tile form.
+        // tile is impassable, so `find_path` to it returns `None` for a reason
+        // that has nothing to do with the doorway. What a sim actually needs
+        // is a tile BESIDE the shower, which is what selection asks for. The
+        // shower is 1x1, hence the one-tile form.
         assert!(
-            !grid.is_walkable(11, 1),
+            !grid.is_walkable(14, 6),
             "the shower's own tile must be solid, or the adjacency below is \
              not testing what it claims"
         );
         assert!(
-            grid.find_path_adjacent_to_tile((2, 2), (11, 1)).is_some(),
-            "the shower must be approachable from the kitchen"
+            grid.find_path_adjacent_to_tile((1, 1), (14, 6)).is_some(),
+            "the shower must be approachable from the far corner of the kitchen"
         );
 
-        // **The shipped bed is the multi-tile object, and both of its tiles
-        // are solid.** Literal coordinates for the same reason as the doorway
-        // above: re-siting the bed has to fail this test and make somebody
-        // check that the east wall of the lot still has room for it, because
-        // (13, 7) is the last column of a 14-wide lot and there is no margin.
-        assert!(!grid.is_walkable(12, 7), "the bed's origin tile");
+        // **The double bed is the 2x2 object, and all four of its tiles are
+        // solid.** Literal coordinates for the same reason as the doorways
+        // above. The depth axis matters as much as the width: a rule that
+        // walked `width` twice would leave (0, 7) and (1, 7) walkable and a
+        // sim would path straight through the bed, which is the transposition
+        // trap in [L34] wearing a footprint.
+        for tile in [(0, 6), (1, 6), (0, 7), (1, 7)] {
+            assert!(
+                !grid.is_walkable(tile.0, tile.1),
+                "the double bed covers {tile:?} and it must be solid"
+            );
+        }
         assert!(
-            !grid.is_walkable(13, 7),
-            "and the tile its 2x1 footprint adds; a 1x1 bed leaves this \
-             walkable and a sim walks through the bed"
-        );
-        assert!(
-            grid.is_walkable(11, 7),
-            "(11, 7) is beside the bed and is where a sim sleeps from"
+            grid.is_walkable(2, 7),
+            "(2, 7) is beside the bed and is where a sim sleeps from"
         );
     }
 }
@@ -1472,7 +1544,26 @@ mod determinism_tests {
         // cover now includes the whole of footprints. The rectangle search is
         // pinned in `terri-core`'s `grid.rs`, the blocking in `lot_tests`
         // here, and the two production call sites in `action.rs`.
-        const GOLDEN: u64 = 0xFB84_8515_2C59_2AD8;
+        // **Moved by M2b's balance pass, and it is a SIMULATION change rather
+        // than an encoding one.** `content/tuning.toml` raised `comfort`'s decay
+        // from 0.021 to 0.032, and this digest includes all seven need levels
+        // for every agent - so one of the seven columns in eight agent rows
+        // differs at every tick from the first.
+        //
+        // What did NOT move it, and is worth writing down because it looks like
+        // it should have: the five-room lot, the twenty-two new objects, and
+        // the five re-tuned interactions. `build_scenario` calls
+        // `Sim::new_with_lot`, so it never loads `content/lot.toml` at all, and
+        // its one object is the shipped fridge, which this pass did not touch.
+        // A vector built on a synthetic scenario is deliberately insensitive
+        // to content it does not use; see [L36] for what that insensitivity
+        // has already hidden once.
+        //
+        // Read off the wasm32 failure after a rebuild per [L13] rather than
+        // copied from native - the two agree, which is a measurement each
+        // time. Previous values: 0xFB84_8515_2C59_2AD8 (habituation),
+        // 0xCB2C_8122_2251_D840 before that.
+        const GOLDEN: u64 = 0x7E3F_CBE2_7849_036C;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

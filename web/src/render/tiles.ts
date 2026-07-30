@@ -10,9 +10,10 @@
  * in `frame.ts` runs every frame under [D11]'s no-allocation rule, and
  * [V11] measured what a single unexamined allocation on that path costs:
  * 57.76 MB over 2,394 frames, from a two-element array nobody had
- * checked. The shipped lot is 432 floor tiles and 39 wall panels, so
- * rebuilding this per frame would be that mistake an order of magnitude
- * larger, for geometry that is incapable of changing.
+ * checked. The shipped lot is 192 floor tiles, 28 interior wall panels and
+ * 29 boundary panels, so rebuilding this per frame would be that mistake
+ * an order of magnitude larger, for geometry that is incapable of
+ * changing.
  *
  * Pure arithmetic and no GPU, like `iso.ts` and `instances.ts`, so it is
  * testable in Node.
@@ -45,24 +46,60 @@ export interface StaticGeometry {
 }
 
 /**
- * Which of the two wall sprites a tile gets.
+ * Which of the two wall sprites a tile draws.
  *
- * A wall panel is drawn along one axis, so a run of them only looks like
- * a wall if every tile in the run picks the same orientation. The rule is
- * "if this tile has a wall neighbour to the north or south it is part of
- * a north-south run", which resolves every tile of the shipped lot's two
- * runs correctly and gives a corner tile - which qualifies both ways -
- * to the north-south run, so the two runs meet rather than overlapping.
+ * A wall panel is drawn along one axis, so a run only looks like a wall if
+ * every tile in the run picks the same orientation. A tile with a wall
+ * neighbour to the north or south is part of a north-south run; one with a
+ * neighbour east or west is part of an east-west run.
  *
- * An isolated wall tile has no neighbour either way and gets the
- * east-west panel. There is no better answer; a single free-standing
- * panel has no run to agree with.
+ * **The interesting case is a tile that qualifies both ways, and the rule
+ * is: the run that PASSES THROUGH wins.** A T-junction has neighbours on
+ * both sides of one axis and on only one side of the other, and that
+ * asymmetry is the answer - the through-run is a continuous surface and
+ * the spur is a wall that ends against it. Drawing the spur's orientation
+ * there puts a panel turned 90 degrees in the middle of the through-run,
+ * which reads as a hole punched in it.
+ *
+ * This was got wrong twice, and both attempts are worth recording because
+ * the second one looked like it worked.
+ *
+ * The FIRST rule was `ns ? NS : EW` - one panel, ties to north-south. It
+ * was correct on the one-room flat, whose two runs met at a single L
+ * corner where either panel closes the join, and it was wrong the moment
+ * a T-junction existed. `content/lot.toml`'s spine runs east-west and
+ * three of its tiles carry a north-south divider hanging off them; all
+ * three took the north-south panel. Found by looking at a PNG of the
+ * running game, not by a test. [L52].
+ *
+ * The SECOND was to draw BOTH panels at such a tile, on the reasoning
+ * that a 32 px panel on a 64 px tile leaves room for two. **That
+ * reasoning was false and the fix mostly did not work.** `sprites.wgsl`
+ * centres every quad on its anchor, so two panels written at one tile
+ * occupy the same 32 px rather than two halves; measured off the atlas,
+ * only 14% of the east-west panel's opaque pixels fall where the
+ * north-south panel is transparent. A pixel diff of the two frames showed
+ * exactly that 14% changing and nothing else - the junction still read as
+ * a north-south panel with a sliver behind it. Two coincident quads is
+ * also [V12]'s depth conflict waiting to happen, since `layeredDepth`
+ * gives them the same value and `depthCompare` is `less`.
+ *
+ * So: one panel per tile, and pick the through-run.
+ *
+ * A true crossroads - through on both axes - has no right answer with one
+ * sprite per tile, and falls through to north-south. The shipped lot has
+ * none. An isolated tile has no neighbour either way and gets the
+ * east-west panel; a single free-standing panel has no run to agree with.
  */
 function wallOrientation(
   x: number,
   y: number,
   isWall: (x: number, y: number) => boolean,
 ): 'wallNS' | 'wallEW' {
+  const nsThrough = isWall(x, y - 1) && isWall(x, y + 1);
+  const ewThrough = isWall(x - 1, y) && isWall(x + 1, y);
+  if (ewThrough && !nsThrough) return 'wallEW';
+  if (nsThrough && !ewThrough) return 'wallNS';
   return isWall(x, y - 1) || isWall(x, y + 1) ? 'wallNS' : 'wallEW';
 }
 
@@ -149,7 +186,8 @@ export function buildStaticInstances(
   }
   // Interior walls are read back out of the set rather than off
   // `lot.walls`, so a duplicated tile in the export cannot produce two
-  // quads fighting for one pixel.
+  // quads fighting for one pixel - which at one tile means one depth, and
+  // `depthCompare: 'less'` rejects the second outright ([V12]).
   for (const key of walls) {
     const [x, y] = key.split(',').map(Number);
     write(x, y, LAYER_PROP, wallSprites[wallOrientation(x, y, isWall)]);

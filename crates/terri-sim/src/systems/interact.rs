@@ -972,10 +972,16 @@ mod tests {
         use terri_core::{Intent, IntentQueue};
 
         // Two objects, and the interaction index is 0 on BOTH, which is
-        // the whole point of the fixture: `UseObject` always names
-        // interaction 0 and an autonomously chosen interaction is 0 on
-        // every single-interaction object, so the two fields disagree on
-        // the object and agree on the index.
+        // the whole point of the fixture: the two fields disagree on the
+        // object and agree on the index, so a guard that read only the
+        // index would see a match where there is none.
+        //
+        // Both are single-interaction objects, so 0 is the only index
+        // either of them has. That used to be the ONLY way to reach this
+        // input domain, because `UseObject` hardcoded interaction 0; it now
+        // carries a chosen index, so the agreement here is a property of
+        // the fixture rather than of the command. The domain is the same
+        // one either way and the mutant it corners is unchanged.
         let content = test_content::pack(vec![
             test_content::object("fridge", &[(NeedId::Hunger, 40.0)], 15),
             test_content::object("bed", &[(NeedId::Energy, 40.0)], 15),
@@ -1046,11 +1052,11 @@ mod tests {
         // stopped before it reached this file, so this is the first
         // complete sweep since the guard was written.
         //
-        // What the relaxed form costs: `UseObject` always names
-        // interaction 0, and an autonomously chosen interaction is 0 on
-        // every single-interaction object. So a sim finishing the meal it
-        // chose for itself, with a click for a DIFFERENT object waiting
-        // behind it, would have that click silently discarded - the
+        // What the relaxed form costs: every shipped object offers exactly
+        // one interaction, so an autonomously chosen index and a clicked
+        // one are both 0 across the whole shipped lot. A sim finishing the
+        // meal it chose for itself, with a click for a DIFFERENT object
+        // waiting behind it, would have that click silently discarded - the
         // player's instruction disappears with no error and the sim goes
         // back to autonomy as though nothing was ever asked of it.
         //

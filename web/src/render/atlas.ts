@@ -18,23 +18,45 @@ export interface AtlasSprite {
   readonly h: number;
 }
 
-export const ATLAS_WIDTH = 256;
-export const ATLAS_HEIGHT = 247;
+export const ATLAS_WIDTH = 512;
+export const ATLAS_HEIGHT = 303;
 
 export const SPRITES: readonly AtlasSprite[] = [
-  { name: 'floor', x: 43, y: 200, w: 64, h: 42 },
-  { name: 'sim', x: 51, y: 116, w: 38, h: 78 },
-  { name: 'wallNS', x: 128, y: 1, w: 32, h: 98 },
-  { name: 'wallEW', x: 95, y: 1, w: 32, h: 99 },
+  { name: 'floor', x: 1, y: 260, w: 64, h: 42 },
+  { name: 'sim', x: 93, y: 116, w: 38, h: 78 },
+  { name: 'wallNS', x: 246, y: 1, w: 32, h: 98 },
+  { name: 'wallEW', x: 213, y: 1, w: 32, h: 99 },
   { name: 'kitchenFridgeBuiltIn', x: 1, y: 116, w: 49, h: 83 },
-  { name: 'bathroomSinkSquare', x: 1, y: 200, w: 41, h: 46 },
-  { name: 'showerRound', x: 161, y: 1, w: 63, h: 94 },
-  { name: 'toiletSquare', x: 127, y: 116, w: 36, h: 50 },
-  { name: 'bookcaseClosedDoors', x: 90, y: 116, w: 36, h: 74 },
-  { name: 'loungeSofaOttoman', x: 164, y: 116, w: 50, h: 47 },
-  { name: 'televisionVintage', x: 173, y: 200, w: 34, h: 40 },
+  { name: 'bathroomSinkSquare', x: 401, y: 200, w: 41, h: 46 },
+  { name: 'showerRound', x: 279, y: 1, w: 63, h: 94 },
+  { name: 'toiletSquare', x: 313, y: 200, w: 36, h: 50 },
+  { name: 'bookcaseClosedDoors', x: 230, y: 116, w: 36, h: 74 },
+  { name: 'loungeSofaOttoman', x: 350, y: 200, w: 50, h: 47 },
+  { name: 'televisionVintage', x: 131, y: 260, w: 34, h: 40 },
   { name: 'bedBunk', x: 1, y: 1, w: 93, h: 114 },
-  { name: 'selectionRing', x: 108, y: 200, w: 64, h: 42 },
+  { name: 'selectionRing', x: 66, y: 260, w: 64, h: 42 },
+  { name: 'kitchenStove', x: 1, y: 200, w: 50, h: 59 },
+  { name: 'kitchenCabinet', x: 52, y: 200, w: 50, h: 59 },
+  { name: 'kitchenSink', x: 103, y: 200, w: 50, h: 59 },
+  { name: 'table', x: 325, y: 116, w: 72, h: 70 },
+  { name: 'chair', x: 459, y: 200, w: 23, h: 43 },
+  { name: 'trashcan', x: 200, y: 260, w: 18, h: 35 },
+  { name: 'loungeSofaLong', x: 132, y: 116, w: 97, h: 76 },
+  { name: 'loungeChair', x: 154, y: 200, w: 49, h: 57 },
+  { name: 'loungeChairRelax', x: 267, y: 116, w: 57, h: 72 },
+  { name: 'radio', x: 247, y: 260, w: 22, h: 27 },
+  { name: 'pottedPlant', x: 443, y: 200, w: 15, h: 46 },
+  { name: 'cardboardBoxOpen', x: 166, y: 260, w: 33, h: 36 },
+  { name: 'lampRoundFloor', x: 204, y: 200, w: 13, h: 57 },
+  { name: 'coatRackStanding', x: 218, y: 200, w: 17, h: 54 },
+  { name: 'bedDouble', x: 95, y: 1, w: 117, h: 103 },
+  { name: 'sideTableDrawers', x: 270, y: 200, w: 42, h: 52 },
+  { name: 'cabinetBedDrawer', x: 219, y: 260, w: 27, h: 34 },
+  { name: 'desk', x: 398, y: 116, w: 63, h: 66 },
+  { name: 'chairDesk', x: 236, y: 200, w: 33, h: 53 },
+  { name: 'bookcaseClosedWide', x: 440, y: 1, w: 59, h: 87 },
+  { name: 'bathtub', x: 343, y: 1, w: 96, h: 88 },
+  { name: 'washerDryerStacked', x: 51, y: 116, w: 41, h: 82 },
 ];
 
 /**

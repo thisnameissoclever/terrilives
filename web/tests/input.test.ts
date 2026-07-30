@@ -98,17 +98,29 @@ function drawnBox(tile: readonly [number, number], spriteName: string, originX =
  */
 function recordingSink(selected: number | null = null): CommandSink & {
   readonly calls: string[];
-  /** Object indices the sim would be holding, oldest first. */
-  readonly queue: number[];
+  /**
+   * The intents the sim would be holding, oldest first, as
+   * `[object, interaction]`.
+   *
+   * The pair rather than the object alone, because an intent IS a pair -
+   * `Intent { object, interaction }` in Rust - and a model that recorded
+   * only the object could not tell two rows of one object's flyout apart.
+   */
+  readonly queue: [number, number][];
 } {
   const calls: string[] = [];
-  const queue: number[] = [];
+  const queue: [number, number][] = [];
   return {
     calls,
     queue,
     select: (index) => (calls.push(`select ${index}`), true),
-    useObject: (agent, object) => (
-      calls.push(`use ${agent} ${object}`), queue.push(object), true
+    // The interaction is in the recorded string, so a dispatcher that
+    // dropped it or substituted 0 shows up in `calls` and not only in the
+    // queue model.
+    useObject: (agent, object, interaction) => (
+      calls.push(`use ${agent} ${object} ${interaction}`),
+      queue.push([object, interaction]),
+      true
     ),
     cancelIntents: (agent) => (
       calls.push(`cancel ${agent}`), (queue.length = 0), true
@@ -439,14 +451,39 @@ describe('resolveLeftClick', () => {
       kind: 'use',
       agent: 4,
       object: 9,
+      interaction: 0,
       replace: true,
     });
     expect(resolveLeftClick(object, 4, ADDITIVE)).toEqual({
       kind: 'use',
       agent: 4,
       object: 9,
+      interaction: 0,
       replace: false,
     });
+  });
+
+  /**
+   * **A left click names interaction 0, and that has to be asserted rather
+   * than assumed.** `toEqual` above is exhaustive over the object's own
+   * keys, so it already fails if the field goes missing - but it would also
+   * pass if the field arrived as `undefined` from a source that had stopped
+   * setting it, and `undefined` is what `pushVarint` would turn into `NaN`
+   * and `isU32` would then refuse. Reading the number back explicitly says
+   * what the gesture means: a click picks an OBJECT, so it takes that
+   * object's first interaction, and choosing among several is the flyout's
+   * job.
+   *
+   * The modifier is asserted not to change it either. Ctrl-click alters
+   * whether the instruction replaces or appends, not which verb it names.
+   */
+  it('names the objects first interaction, whatever the modifier', () => {
+    for (const additive of [PLAIN, ADDITIVE]) {
+      const action = resolveLeftClick(object, 4, additive);
+      expect(action.kind).toBe('use');
+      if (action.kind !== 'use') throw new Error('narrowing');
+      expect(action.interaction).toBe(0);
+    }
   });
 
   /**
@@ -459,6 +496,7 @@ describe('resolveLeftClick', () => {
       kind: 'use',
       agent: 0,
       object: 9,
+      interaction: 0,
       replace: true,
     });
   });
@@ -499,8 +537,38 @@ describe('dispatch', () => {
 
   it('sends an append as the use alone', () => {
     const sink = recordingSink();
-    dispatch(sink, { kind: 'use', agent: 1, object: 6, replace: false });
-    expect(sink.calls).toEqual(['use 1 6']);
+    dispatch(sink, {
+      kind: 'use',
+      agent: 1,
+      object: 6,
+      interaction: 0,
+      replace: false,
+    });
+    expect(sink.calls).toEqual(['use 1 6 0']);
+  });
+
+  /**
+   * **The action's interaction index reaches the command.** A left click
+   * always carries 0, so every other test in this describe block is an
+   * input domain in which "the index was forwarded" and "0 was hardcoded"
+   * agree on every observation - [L34]. A menu row is where a non-zero one
+   * comes from, and `dispatch` is on that path too: `handleLeftClick` is
+   * not the only caller.
+   *
+   * 3 rather than 1, so an off-by-one - forwarding `interaction + 1`, or a
+   * boolean coerced from it - is visible as well as a substituted 0.
+   */
+  it('forwards the interaction index rather than substituting the first', () => {
+    const sink = recordingSink();
+    dispatch(sink, {
+      kind: 'use',
+      agent: 1,
+      object: 6,
+      interaction: 3,
+      replace: true,
+    });
+    expect(sink.calls).toEqual(['cancel 1', 'use 1 6 3']);
+    expect(sink.queue).toEqual([[6, 3]]);
   });
 
   /**
@@ -520,8 +588,14 @@ describe('dispatch', () => {
    */
   it('sends a replace as cancel first and then use, in that order', () => {
     const sink = recordingSink();
-    dispatch(sink, { kind: 'use', agent: 1, object: 6, replace: true });
-    expect(sink.calls).toEqual(['cancel 1', 'use 1 6']);
+    dispatch(sink, {
+      kind: 'use',
+      agent: 1,
+      object: 6,
+      interaction: 0,
+      replace: true,
+    });
+    expect(sink.calls).toEqual(['cancel 1', 'use 1 6 0']);
   });
 
   /**
@@ -535,9 +609,25 @@ describe('dispatch', () => {
    */
   it('leaves the replaced sim holding exactly the new instruction', () => {
     const sink = recordingSink(1);
-    dispatch(sink, { kind: 'use', agent: 1, object: 6, replace: false });
-    dispatch(sink, { kind: 'use', agent: 1, object: 7, replace: true });
-    expect(sink.queue).toEqual([7]);
+    dispatch(sink, {
+      kind: 'use',
+      agent: 1,
+      object: 6,
+      interaction: 0,
+      replace: false,
+    });
+    dispatch(sink, {
+      kind: 'use',
+      agent: 1,
+      object: 7,
+      interaction: 1,
+      replace: true,
+    });
+    // The replacement carries its OWN interaction index, so this also
+    // fails on a dispatcher that reused the index of the intent it
+    // replaced - which a fixture whose two actions both named 0 could not
+    // see.
+    expect(sink.queue).toEqual([[7, 1]]);
   });
 
   it('sends nothing at all for none', () => {
@@ -816,7 +906,7 @@ describe('handleLeftClick', () => {
   it('directs the selected sim at the object whose sprite was clicked', () => {
     const sink = target(6, source([[9, KIND_OBJECT, 7, 3]]));
     handleLeftClick(sink, bodyOf([7, 3]), 0, 0, PLAIN);
-    expect(sink.calls).toEqual(['cancel 6', 'use 6 9']);
+    expect(sink.calls).toEqual(['cancel 6', 'use 6 9 0']);
   });
 
   it('clears the selection when the click lands on bare floor', () => {
@@ -859,7 +949,7 @@ describe('handleLeftClick', () => {
     expect(
       redirected.queue,
       'a plain click must replace, so only the object clicked last survives',
-    ).toEqual([10]);
+    ).toEqual([[10, 0]]);
 
     const queued = target(6, TWO_OBJECTS);
     handleLeftClick(queued, bodyOf([7, 3]), 0, 0, PLAIN);
@@ -867,7 +957,10 @@ describe('handleLeftClick', () => {
     expect(
       queued.queue,
       'a ctrl-click must append, so both objects survive in click order',
-    ).toEqual([9, 10]);
+    ).toEqual([
+      [9, 0],
+      [10, 0],
+    ]);
   });
 
   /**
@@ -880,14 +973,14 @@ describe('handleLeftClick', () => {
   it('sends the cancel before the use on a plain click and neither on a ctrl-click', () => {
     const redirected = target(6, TWO_OBJECTS);
     handleLeftClick(redirected, bodyOf([2, 5]), 0, 0, PLAIN);
-    expect(redirected.calls).toEqual(['cancel 6', 'use 6 10']);
+    expect(redirected.calls).toEqual(['cancel 6', 'use 6 10 0']);
 
     const queued = target(6, TWO_OBJECTS);
     handleLeftClick(queued, bodyOf([2, 5]), 0, 0, ADDITIVE);
     expect(
       queued.calls,
       'a ctrl-click must send no cancel, or appending is a replace wearing a modifier',
-    ).toEqual(['use 6 10']);
+    ).toEqual(['use 6 10 0']);
   });
 
   /**
@@ -903,7 +996,7 @@ describe('handleLeftClick', () => {
     const sink = target(6, TWO_OBJECTS);
     handleLeftClick(sink, bodyOf([7, 3]), 0, 0, ADDITIVE);
     handleLeftClick(sink, bodyOf([2, 5]), 0, 0, ADDITIVE);
-    expect(sink.calls).toEqual(['use 6 9', 'use 6 10']);
+    expect(sink.calls).toEqual(['use 6 9 0', 'use 6 10 0']);
   });
 });
 
@@ -1093,8 +1186,26 @@ describe('dispatchMenuAction', () => {
   it('sends cancel then use for an interaction row', () => {
     const sink = recordingSink(6);
     dispatchMenuAction(sink, { kind: 'use', object: 9, interaction: 0 });
-    expect(sink.calls).toEqual(['cancel 6', 'use 6 9']);
-    expect(sink.queue).toEqual([9]);
+    expect(sink.calls).toEqual(['cancel 6', 'use 6 9 0']);
+    expect(sink.queue).toEqual([[9, 0]]);
+  });
+
+  /**
+   * **The row's own index reaches the command, and this is the assertion
+   * the whole flyout exists for.** Row 0 and row 2 differ in nothing else:
+   * same object, same sim, same replace pair. A dispatcher that sent 0 for
+   * every row would pass the test above and fail only here, and it would
+   * also look completely correct in the shipped game, where every object
+   * offers exactly one interaction and row 0 is the only row.
+   *
+   * 2 rather than 1, so `interaction - 1` and a boolean coercion are
+   * visible alongside a substituted 0.
+   */
+  it('sends the row interaction index rather than the first one', () => {
+    const sink = recordingSink(6);
+    dispatchMenuAction(sink, { kind: 'use', object: 9, interaction: 2 });
+    expect(sink.calls).toEqual(['cancel 6', 'use 6 9 2']);
+    expect(sink.queue).toEqual([[9, 2]]);
   });
 
   it('sends the cancel alone for the Never mind row', () => {

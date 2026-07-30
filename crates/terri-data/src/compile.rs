@@ -1751,6 +1751,52 @@ mod tests {
     /// meaningless - it inverts the softmax, so the least urgent option
     /// becomes the most likely.
     ///
+    /// **The habituation floor's two bounds, and there was no test for
+    /// either.** Three mutants survived the whole workspace here, found by
+    /// the M2b sweep: `||` to `&&`, and `> 1.0` to `== 1.0` and to `>= 1.0`.
+    ///
+    /// The floor is a MULTIPLIER applied to a fully habituated
+    /// interaction's benefit, so each bound fails in its own quiet way and
+    /// neither fails loudly:
+    ///
+    /// - **Zero** makes a saturated interaction worth exactly nothing, so
+    ///   the last object satisfying some need can become permanently
+    ///   unselectable. That is a need going unsatisfiable dynamically,
+    ///   which `every_declared_need_can_be_satisfied_by_some_interaction`
+    ///   is static and cannot see.
+    /// - **Above one** turns habituation into a REWARD for repetition: the
+    ///   more a sim does something the better it scores, which is the
+    ///   mechanic inverted rather than disabled.
+    ///
+    /// Four cases, and each one is the only input that kills one of the
+    /// three mutants:
+    ///
+    /// - `0.0` is `<= 0.0` and NOT `> 1.0`, so it separates `||` from `&&`;
+    /// - `1.5` is `> 1.0` and NOT `<= 0.0`, so it separates them the other
+    ///   way, and it also kills `> 1.0` becoming `== 1.0`;
+    /// - `1.0` must be ACCEPTED, which is what kills `>` becoming `>=`.
+    ///   A floor of 1 disables the effect and that is legal;
+    /// - a negative, because the range is a range and not a sign check.
+    #[test]
+    fn rejects_a_habituation_floor_outside_zero_exclusive_to_one_inclusive() {
+        for bad in [0.0, -0.25, 1.5, f32::MAX] {
+            assert_eq!(
+                compile_tuned(tuning_where(|t| t.habituation_floor = bad)).unwrap_err(),
+                ContentError::HabituationFloorOutOfRange { value: bad },
+                "a habituation_floor of {bad} either makes an interaction                  permanently worthless or rewards repetition"
+            );
+        }
+
+        // Both ends of what IS legal. 1.0 is the one that pins `>` rather
+        // than `>=`; the smallest positive float is the other side of the
+        // `<=` boundary, and is legal however useless.
+        for good in [1.0, f32::MIN_POSITIVE] {
+            let pack = compile_tuned(tuning_where(|t| t.habituation_floor = good))
+                .unwrap_or_else(|e| panic!("a floor of {good} is legal; got {e}"));
+            assert_eq!(pack.tuning.habituation_floor, good);
+        }
+    }
+
     /// Zero is the case that pins `<=` rather than `<`, and the smallest
     /// positive float is the other side of that boundary.
     #[test]
@@ -3022,9 +3068,29 @@ mod tests {
             .collect();
         assert_eq!(
             wide,
-            vec!["bed"],
-            "the bed is the shipped multi-tile object; with every object 1x1 \
-             this test cannot distinguish a footprint rule from no rule"
+            vec![
+                "bed",
+                "dining_table",
+                "long_sofa",
+                "double_bed",
+                "desk",
+                "bathtub",
+            ],
+            "these are the shipped multi-tile objects, in declaration order; \
+             with every object 1x1 this test cannot distinguish a footprint \
+             rule from no rule"
+        );
+        // And one of them is wider in BOTH directions, which the list above
+        // cannot say on its own. Every entry there could be 2x1, and a rule
+        // that walked `width` twice instead of `width` then `depth` would be
+        // invisible against a house of nothing but 2x1 furniture - the
+        // transposition trap in [L34], in a footprint's costume.
+        assert!(
+            pack.objects
+                .iter()
+                .any(|object| object.footprint.width > 1 && object.footprint.depth > 1),
+            "no shipped object covers more than one row AND more than one \
+             column, so the depth axis of every rule below is untested"
         );
 
         // Rule 2 and rule 1 in one pass, because both are statements about

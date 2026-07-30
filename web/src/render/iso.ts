@@ -74,6 +74,66 @@ export function screenY(wx: number, wy: number, originY: number): number {
 }
 
 /**
+ * Where the lot's origin has to sit for the whole thing to be on screen.
+ *
+ * Not a camera: the game has none, the lot is fixed for the session, and
+ * this runs once at load. It is the arithmetic that decides whether the
+ * player can see the top of their house.
+ *
+ * # What it accounts for that the obvious version does not
+ *
+ * The obvious version centres the TILE span - `(w + h - 2)` half-tile
+ * heights - and it shipped, and it was wrong in two ways that only showed
+ * up when the lot grew:
+ *
+ * - **Sprites are drawn ABOVE their anchor.** A tile's screen position is
+ *   the bottom of the diamond it stands on; a 99 px wall panel reaches 78
+ *   px above that. Centring the tile span puts the top row's anchor near
+ *   the top of the canvas and everything the sprite adds off it.
+ * - **`tiles.ts` draws a boundary at x = -1 and y = -1**, two half-tile
+ *   rows further up again, which the tile span does not include at all.
+ *
+ * Measured on the five-room lot before this existed: `originY` came out at
+ * 87, and the boundary panels at (-1, -1), (0, -1) and (-1, 0) had their
+ * tops at y = -33, -12 and -11. The north-west corner of the house was cut
+ * off, and the rule that was supposed to prevent exactly that is the rule
+ * that missed it.
+ *
+ * So the extent centred here is the DRAWN one: from the top of the tallest
+ * sprite standing on the boundary row down to the bottom of the last tile
+ * row.
+ *
+ * `tallestSprite` is passed in rather than imported so this file stays
+ * arithmetic with no dependency on the atlas; `main.ts` reads it off
+ * `SPRITES`. Using the tallest sprite in the whole atlas rather than the
+ * tallest WALL is deliberately conservative: it also guarantees that a tall
+ * object placed on the lot's first row is not clipped.
+ *
+ * The horizontal axis is not treated the same way and does not need to be.
+ * `screenX` spans `(w + h - 2)` half-tile widths, which is 832 px on the
+ * shipped lot, and the widest sprite adds 117 - comfortably inside 1280.
+ * If a lot ever gets wide enough for that to matter, this is where it goes.
+ */
+export function cameraOrigin(
+  canvasWidth: number,
+  canvasHeight: number,
+  lotWidth: number,
+  lotHeight: number,
+  tallestSprite: number,
+): { x: number; y: number } {
+  // Relative to `originY`: the topmost pixel any sprite reaches, and the
+  // bottommost. The boundary row is at world -1, so its screen y is
+  // -2 * TILE_HALF_HEIGHT, and a sprite's top is `screenY + anchor - h`
+  // with the anchor half a tile down.
+  const top = -2 * TILE_HALF_HEIGHT + TILE_HALF_HEIGHT - tallestSprite;
+  const bottom = (lotWidth + lotHeight - 2) * TILE_HALF_HEIGHT + TILE_HALF_HEIGHT;
+  return {
+    x: canvasWidth / 2 - ((lotWidth - lotHeight) * TILE_HALF_WIDTH) / 2,
+    y: (canvasHeight - (bottom - top)) / 2 - top,
+  };
+}
+
+/**
  * Both screen coordinates as a tuple. Reads better at a call site than
  * two calls do, so it is what tests and any non-per-frame caller should
  * use - but **not** the render loop.

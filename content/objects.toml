@@ -46,11 +46,13 @@ sprite = "kitchenFridgeBuiltIn"
   # comment at the top of this file for the arithmetic that forced it, and
   # `min_interaction_ticks` in content/tuning.toml for the rule.
   #
-  # 30 ticks is 3 real seconds at 1x. A meal is the most-performed action in
-  # the house - 28% of all interactions over a 12 000-tick trace - so it is
-  # also the action a player watches most, and at the old 15 it sampled 12 to
-  # 20 with a mean of 13.9, which is 1.4 seconds of a sim standing at a
-  # fridge. Long enough to happen, too short to read as eating.
+  # 30 ticks is 3 real seconds at 1x. A meal is one of the two most-performed
+  # actions in the house - 13.6% of all interactions over a 12 000-tick trace
+  # on the five-room lot, second to the toilet's 26.4%, and 28% back when the
+  # house had eight objects in it - so it is also among the actions a player
+  # watches most. At the old 15 it sampled 12 to 20 with a mean of 13.9, which
+  # is 1.4 seconds of a sim standing at a fridge. Long enough to happen, too
+  # short to read as eating.
   #
   # The world-hash golden vectors in crates/terri-sim/src/lib.rs and
   # web/tests/bridge.test.ts are built on this object, so both numbers move
@@ -70,8 +72,9 @@ id = "bed"
 name = "Sleepeazy Deluxe"
 sprite = "bedBunk"
 
-  # The one object in shipped content that is not 1x1, and the measurement
-  # that forced it: `bedBunk` is drawn 93 px wide against a 32 px tile, so at
+  # The FIRST object in shipped content that was not 1x1 - there are six now,
+  # listed in `the_shipped_lot_satisfies_every_footprint_rule` - and the
+  # measurement that forced it: `bedBunk` is drawn 93 px wide against a 32 px tile, so at
   # one tile a sim standing "beside" it had 88% of its own sprite inside the
   # bed's. No asset choice fixes that - every bed in the kit is at least 1.46
   # tiles wide - because a bed genuinely is a multi-tile object. Recorded as
@@ -81,9 +84,10 @@ sprite = "bedBunk"
   # a tile and no deeper than one, and the footprint is the SIMULATION fact
   # that has to agree with the projection rather than with the art's bounding
   # box ([F1]). The origin is the placement tile and the extra tile runs +x
-  # ([F2]), so the bed at x = 12.0 in content/lot.toml owns (12, 7) and
-  # (13, 7) - which is the far east edge of a 14-wide lot, with nothing to
-  # spare. Moving it east by one tile is a build failure, not a nudge.
+  # ([F2]), so the bunk at x = 9.0, y = 6.0 in content/lot.toml owns (9, 6)
+  # and (10, 6) - the study's north wall, ending one tile short of the
+  # divider at x = 11. Moving it east by two tiles is a build failure, not a
+  # nudge.
   footprint = { width = 2, depth = 1 }
 
   # The largest single restore in the game and by far the longest, both
@@ -135,9 +139,10 @@ sprite = "toiletSquare"
   # **The delta is what makes this interrupt things, not the duration**, so
   # doubling the length costs it less than it looks: at five tiles of travel
   # the score falls to 0.72 of its old value while still carrying the largest
-  # delta in the house by 25 points. It remains the second-shortest action,
-  # which is the "fast" this comment is about, and it is still comfortably
-  # the most-chosen after the fridge.
+  # delta in the house by 25 points. It is the third-shortest action, behind
+  # the bathroom sink's 21 and the kitchen sink's 23, which is still the
+  # "fast" this comment is about - and on the five-room lot it is now the
+  # most-chosen action outright at 26.4%, ahead of the fridge.
   # "Use the facilities" is the object's own bureaucratic euphemism, which
   # is the register the whole game is written in: an institution's word for
   # a thing, applied to a house. It pairs with the object's name.
@@ -335,3 +340,486 @@ sprite = "bookcaseClosedDoors"
   advertises = { fun = 26.0 }
   duration_ticks = 34
   slots = 1
+
+# ============================================================================
+# M2b: the rest of the house
+# ============================================================================
+#
+# Everything above this line is the eight objects the one-room flat had.
+# Everything below it is what turned that flat into five rooms; see
+# docs/specs/2026-07-30-the-house-design.md and content/lot.toml.
+#
+# **Appended rather than grouped by room, and that is not laziness.** An
+# object's position in this file is its `ObjectDefId`, which the compiled
+# pack, every placement, and each sim's habituation table all carry. Moving
+# `stove` up next to `fridge` because they share a room would renumber every
+# definition after it. The rooms are a property of `lot.toml`, which is where
+# a reader should go to find out what is next to what.
+#
+# **Roughly half of these have no interactions at all**, and that is a
+# category rather than an omission. A house reads as a house because of the
+# things in it that nobody uses on purpose: the counter, the coat rack, the
+# box that was going to be unpacked. They are declared here because a
+# footprint has to come from somewhere and because a name is a joke; they
+# advertise nothing, so `select_action` never scores them, and they cost one
+# entity each. `an_object_may_declare_no_interactions` in
+# crates/terri-data/src/schema.rs is what keeps that legal.
+#
+# **The two rules at the top of this file still hold across all 30.** No two
+# durations and no two deltas are equal anywhere in the file, which took some
+# arranging at this size and is worth preserving: a test cannot tell one slot
+# from another when two slots hold the same number ([L26], [L29]).
+
+# ---- Kitchen ---------------------------------------------------------------
+
+[[object]]
+id = "stove"
+name = "The Combustible Optimist"
+sprite = "kitchenStove"
+
+  # **The fridge's rival, and the pair is the point rather than either one.**
+  #
+  # 62 hunger against the fridge's 40, at 95 ticks against its 30. Score is
+  # `delta * deficit^3 / (distance / 0.25 + duration + 1)`, so at equal distance
+  # the fridge scores 40/31 = 1.29 per unit of urgency and this scores
+  # 62/96 = 0.65. The fridge wins outright on that arithmetic - which is
+  # correct, and is what makes this object interesting rather than pointless:
+  # it comes into its own once habituation has worn the fridge down towards
+  # the 0.45 floor, where the fridge falls to 0.58 and the stove, freshly
+  # unused, still holds 0.65.
+  #
+  # So the sim eats standing up until it is sick of eating standing up, and
+  # then it cooks. That rotation is exactly what habituation was added for,
+  # and this is the first pair in the house tuned deliberately to produce it
+  # rather than to produce it by accident.
+  #
+  # 8 comfort as well, because a cooked meal is a small kindness to yourself,
+  # and because a second need on the advert means the stove can also win on a
+  # comfort deficit the fridge cannot touch.
+  [[object.interaction]]
+  id = "cook_meal"
+  label = "Cook something ambitious"
+  advertises = { hunger = 62.0, comfort = 8.0 }
+  duration_ticks = 95
+  slots = 1
+
+[[object]]
+id = "counter"
+name = "Surface of Deferred Decisions"
+sprite = "kitchenCabinet"
+
+  # No interactions, deliberately. This is the counter the cooking chain in
+  # docs/specs/2026-07-29-multi-step-interactions-design.md will use as its
+  # middle step, and it is placed now so the kitchen has the geometry that
+  # chain needs before the chain exists. Giving it a standalone "wipe the
+  # counter" today would be an interaction the chain then has to work around.
+  #
+  # Placed twice in lot.toml. One definition, two placements: a run of
+  # cabinets is several of the same cabinet, and modelling it as one wide
+  # object would give the kitchen a single 3x1 obstacle instead of separate
+  # approach points.
+
+[[object]]
+id = "kitchen_sink"
+name = "Basin, Communal"
+sprite = "kitchenSink"
+
+  # **The chore.** 20 hygiene is the smallest of the four hygiene deltas - a
+  # third of the shower's 70 - and it costs 6 comfort, which makes this the
+  # only object in the house that a sim can be talked out of by being
+  # uncomfortable rather than by being busy.
+  #
+  # That is deliberate, and it is the same mechanism the shower's energy cost
+  # uses: scoring weighs a cost by the CUBE of the deficit of the need it
+  # drains, so a sim whose comfort is already low refuses to do the washing
+  # up, and a sim fresh off the sofa gets on with it. The joke is that this is
+  # exactly how people behave.
+  #
+  # It is a bad way to get clean and it is meant to be - the bathroom sink
+  # gives 32 for 21 ticks. What this offers is proximity: it is in the
+  # kitchen, on the far side of the house from the bathroom, so a sim that is
+  # only slightly grubby and already standing by the fridge has a local
+  # option. That is the same "cheap rival on the far side of the lot"
+  # argument the bathroom sink was introduced with, applied one level down.
+  [[object.interaction]]
+  id = "wash_up"
+  label = "Deal with the dishes"
+  # **20 and 23, raised from 14 and 27 after the first trace.** At 14 hygiene
+  # this was at zero uses in 12 000 ticks, and the candidate table said why: it
+  # is the fourth hygiene option in a house where hygiene is over-supplied
+  # 1.44 to 1, so a delta a fifth of the shower's could not win from anywhere.
+  # 20 for 23 ticks makes it the second-fastest action in the house, behind
+  # the bathroom sink's 21 - which is the right axis for a chore. The case
+  # for it is that it is quick and it is here, never that it is thorough.
+  #
+  # 23 rather than 19, which was tried first: `min_interaction_ticks` is 12 and
+  # `duration_variance` is 0.4, so 19 samples down to 11.4 and the bottom of
+  # the band gets clipped by the floor. 23 * 0.6 = 13.8 clears it.
+  advertises = { hygiene = 20.0, comfort = -6.0 }
+  duration_ticks = 23
+  slots = 1
+
+[[object]]
+id = "dining_table"
+name = "The Table Nobody Sits At"
+sprite = "table"
+footprint = { width = 2, depth = 1 }
+
+  # 37 comfort over 62 ticks is 0.597 per tick standing beside it, against the
+  # long sofa's 0.597, the ottoman sofa's 0.667 and the armchair's 0.707. So
+  # it is the joint-worst seat in the house by a small margin rather than by
+  # half, which is the whole of what the second balance pass changed - see
+  # below. What it has on top is 11 social, which no other seat advertises at
+  # all, so a sim that is both uncomfortable and lonely comes here and a sim
+  # that is merely uncomfortable does not.
+  #
+  # **37 rather than the 23 this shipped with for one trace, and the 44 before
+  # that.** [B6] halved every new comfort delta to stop comfort being
+  # over-supplied, and overshot: at 23 this and the long sofa were worth about
+  # 0.37 per tick against the pre-existing ottoman sofa's 0.667, so the
+  # ottoman took every comfort decision in the house - 72 uses in a
+  # 120 000-tick trace against zero for either of these. Halving fixed the
+  # supply and created a monopoly. Matching the rate is what fixes both.
+  #
+  # Two slots, so two sims can sit down together. That is this object's real
+  # job once there is a household: it is the only piece of furniture in the
+  # house whose social value is the point rather than a side effect, and it
+  # is where the cooking chain's meal ends up.
+  #
+  # The name is the joke and the placement is the punchline: it is three tiles
+  # from the fridge, and the fridge's own label is "Eat standing up".
+  [[object.interaction]]
+  id = "sit_properly"
+  label = "Sit down like a person"
+  advertises = { comfort = 37.0, social = 11.0 }
+  duration_ticks = 62
+  slots = 2
+
+[[object]]
+id = "chair"
+name = "Chair, Standard Issue"
+sprite = "chair"
+
+  # No interactions. A chair at a table is where a sim sits when it uses the
+  # TABLE; it is not a separate thing to sit on. Modelling it as one would put
+  # two competing comfort adverts a tile apart and let a sim satisfy itself on
+  # the chair while ignoring the meal on the table beside it.
+  #
+  # Placed twice, flanking the table rather than tucked under it, because a
+  # footprint blocks its tile: a chair under the table would be an overlap and
+  # the build would refuse it.
+
+[[object]]
+id = "trashcan"
+name = "Receptacle for Later"
+sprite = "trashcan"
+
+  # No interactions. Scenery, and a promise.
+
+# ---- Living room -----------------------------------------------------------
+
+[[object]]
+id = "long_sofa"
+name = "The Sectional Compromise"
+sprite = "loungeSofaLong"
+footprint = { width = 2, depth = 1 }
+
+  # **Three slots, which is the highest in the house, and the reason this
+  # object exists.** Every other seat holds one or two. When there is a
+  # household rather than a single sim, this is the only place three of them
+  # can be at once, so this is where they will end up - which is where they
+  # should end up.
+  #
+  # 43 comfort, 13 fun - the smallest fun delta in the file - and 9 energy,
+  # which is the only POSITIVE energy delta outside the two beds. Lying on the
+  # sofa is genuinely restful and genuinely not sleep: 9 against the double
+  # bed's 108 means it can take the edge off tiredness without ever being a
+  # substitute for a night.
+  #
+  # 43 is the largest comfort delta in the house, but over 72 ticks it is
+  # 0.597 per tick, which is the LOWEST rate of the four seats - the ottoman
+  # sofa manages 0.667 in 50 ticks and the armchair 0.707 in 41. So this is
+  # the one you commit to rather than the one you pick, which is what a
+  # sectional is. What it has that none of them has is room for three.
+  #
+  # **43 rather than the 27 this shipped with for one trace, and the 52 before
+  # that**; the dining table's comment carries the measurement, because the
+  # two were wrong together and for the same reason.
+  #
+  # 72 ticks, longer than the ottoman's 50, so the two sofas are not
+  # interchangeable: the small one is a perch and this one is a commitment.
+  [[object.interaction]]
+  id = "stretch_out"
+  label = "Stretch out properly"
+  advertises = { comfort = 43.0, fun = 13.0, energy = 9.0 }
+  duration_ticks = 72
+  slots = 3
+
+[[object]]
+id = "armchair"
+name = "The Chair That Is His"
+sprite = "loungeChair"
+
+  # One slot, and 29 comfort at 41 ticks - the best comfort-per-tick in the
+  # house, at 0.707 standing beside it against the ottoman sofa's 0.667 and
+  # 0.597 for both of the big seats. So it is narrowly the better choice and
+  # there is exactly one of it, which is the entire joke: with a household,
+  # whoever gets there first has it and everybody else has the sectional
+  # compromise.
+  #
+  # Narrowly is the point, and it is the second thing [B6]'s halving got
+  # wrong. At 38 - what this shipped with originally - it beat every other
+  # seat by a third and the choice was not a choice; at 29 against a field of
+  # 0.60 to 0.67 it is a preference rather than a verdict.
+  #
+  # This is also the cleanest contention fixture in the lot.
+  [[object.interaction]]
+  id = "take_the_chair"
+  label = "Take the good chair"
+  advertises = { comfort = 29.0 }
+  duration_ticks = 41
+  slots = 1
+
+[[object]]
+id = "radio"
+name = "Frequency of Record"
+sprite = "radio"
+
+  # 22 fun and 5 social at 38 ticks. Deliberately sat just under the
+  # bookshelf's 26 fun at 34 ticks, so the two are close enough that
+  # habituation decides between them rather than raw score - which gives the
+  # least-used corner of the house something to rotate with.
+  #
+  # The social is the smallest delta in the file, and it is honest: the radio
+  # is company in the way the television is company, which is to say barely.
+  #
+  # **5 rather than 7, and the reason is the rule the television's comment
+  # states**: the desk advertises `energy = -7.0`, so a mutation dropping that
+  # negation would produce a 7.0 identical to this one and no test could tell
+  # the two slots apart. No |value| appears in both signs anywhere in the
+  # file, and this was the one pair that broke it.
+  # Both are placeholders for other sims and both should lose to a real one
+  # the moment sims can satisfy each other.
+  [[object.interaction]]
+  id = "listen"
+  label = "Listen to the shipping forecast"
+  advertises = { fun = 22.0, social = 5.0 }
+  duration_ticks = 38
+  slots = 2
+
+[[object]]
+id = "potted_plant"
+name = "Ficus, Under Review"
+sprite = "pottedPlant"
+
+  # No interactions. Placed twice.
+
+[[object]]
+id = "floor_lamp"
+name = "Illumination, Ambient"
+sprite = "lampRoundFloor"
+
+  # No interactions. The house has no lighting model, so this lamp lights
+  # nothing; it is here because a living room without one reads as an office.
+
+[[object]]
+id = "coat_rack"
+name = "Vertical Filing for Outerwear"
+sprite = "coatRackStanding"
+
+  # No interactions.
+
+# ---- Bedroom ---------------------------------------------------------------
+
+[[object]]
+id = "double_bed"
+name = "The Restorative Unit"
+sprite = "bedDouble"
+footprint = { width = 2, depth = 2 }
+
+  # **The only 2x2 object in the house**, and the one that most needed real
+  # footprints to exist: a bed is genuinely a four-tile thing, and before [F1]
+  # a sim standing "beside" one had 88% of its own sprite inside the bed's.
+  #
+  # 108 energy against the bunk's 100, over 210 ticks against its 180. The
+  # bunk is therefore the better rate and this is the better night, which is
+  # the same shape as the fridge-and-stove pair: the quick option wins until
+  # habituation wears it down. 10 comfort on top, which the bunk does not
+  # offer at all, so this is also what a sim picks when it is not especially
+  # tired but wants to lie down.
+  #
+  # **10 and not the 27 this shipped with for one trace.** At 27, eight nights
+  # of sleep supplied 216 of the 298 comfort points delivered in 12 000 ticks,
+  # and comfort never fell below level 60.8 - so all five of the house's
+  # comfort objects, the ones a player would actually recognise as somewhere to
+  # sit, were at ZERO uses. Sleeping was quietly satisfying the need that the
+  # armchair and the sofas exist for, which is the same mistake `fun` had made
+  # through the television. See `comfort` in content/tuning.toml for the
+  # measurement and the second half of the fix.
+  #
+  # 210 ticks is 21 seconds at 1x and the longest action in the game by a wide
+  # margin. That is intentional - see the bunk's note on why sleep should be a
+  # commitment rather than a top-up - and it is the single best demonstration
+  # that the speed controls do something.
+  [[object.interaction]]
+  id = "sleep_properly"
+  label = "Sleep the whole night"
+  advertises = { energy = 108.0, comfort = 10.0 }
+  duration_ticks = 210
+  slots = 2
+
+[[object]]
+id = "nightstand"
+name = "Repository of Unread Nightstand Books"
+sprite = "sideTableDrawers"
+
+  # No interactions.
+
+[[object]]
+id = "dresser"
+name = "Storage, Personal Effects"
+sprite = "cabinetBedDrawer"
+
+  # No interactions. It will hold clothes when there are clothes.
+
+[[object]]
+id = "moving_box"
+name = "Box, Unpacked Eventually"
+sprite = "cardboardBoxOpen"
+
+  # No interactions.
+
+# ---- Study -----------------------------------------------------------------
+
+[[object]]
+id = "desk"
+name = "Station of Ongoing Concern"
+sprite = "desk"
+footprint = { width = 2, depth = 1 }
+
+  # **This is where the career goes**, and until it does, it is a hobby that
+  # tires you out: 36 fun for 58 ticks, at a cost of 7 energy.
+  #
+  # The temptation was to make it a bad deal now on the grounds that work is a
+  # bad deal, and that was rejected. An object nothing ever chooses is an
+  # object nobody ever sees, and the house has one recorded instance of
+  # exactly that already - the bookshelf spent 12 000 ticks at zero uses
+  # ([C6]) because its arithmetic could not win, not because its idea was
+  # wrong. 36 fun puts this above the bookshelf's 26 and below the
+  # television's 30-plus-24, so it is a real third option in the fun rotation.
+  #
+  # The energy cost is what makes it recognisably work rather than recreation,
+  # and it is the mechanism the wage will hang off: once there is a career,
+  # the cost stays and the payoff moves from `fun` to money.
+  [[object.interaction]]
+  id = "attend_correspondence"
+  label = "Attend to correspondence"
+  advertises = { fun = 36.0, energy = -7.0 }
+  duration_ticks = 58
+  slots = 1
+
+[[object]]
+id = "desk_chair"
+name = "Ergonomic, Allegedly"
+sprite = "chairDesk"
+
+  # No interactions, for the same reason as the dining chairs.
+
+[[object]]
+id = "reading_chair"
+name = "The Wingback Sabbatical"
+sprite = "loungeChairRelax"
+
+  # 15 comfort and 16 fun. Both numbers are middling on purpose: this is the
+  # object that wins when a sim is moderately short of two things at once, and
+  # loses to anything that is the best answer to one of them.
+  #
+  # Placed in the study rather than the living room, so that "sit somewhere
+  # comfortable" has an answer in a room a sim might otherwise never enter.
+  #
+  # **51 ticks, down from 66, and the margin was 0.0004.** At 66 this was at
+  # zero uses over 12 000 ticks, and the candidate table caught it standing two
+  # tiles from an idle sim scoring 0.0497 against an `action_threshold` of
+  # 0.0500. Nothing was wrong with either delta; the duration is in the
+  # denominator, and 66 put it a rounding error below the line. 51 scores
+  # 0.062 from the same spot. Worth recording as a shape rather than as a
+  # number: an object can be at zero uses and be four ten-thousandths away
+  # from working.
+  [[object.interaction]]
+  id = "settle_in"
+  label = "Settle in with something long"
+  advertises = { comfort = 15.0, fun = 16.0 }
+  duration_ticks = 51
+  slots = 1
+
+[[object]]
+id = "reference_shelf"
+name = "Reference Section, Personal"
+sprite = "bookcaseClosedWide"
+
+  # **No interactions, and this one is a balance decision rather than a
+  # category.** A second readable bookshelf would split the fun rotation three
+  # ways and take use away from the object that has only just stopped being at
+  # zero ([C6]). It is a bookshelf that is furniture, which is what most
+  # bookshelves are.
+
+# ---- Bathroom --------------------------------------------------------------
+
+[[object]]
+id = "bathtub"
+name = "The Long Soak Directive"
+sprite = "bathtub"
+footprint = { width = 2, depth = 1 }
+
+  # **The shower's opposite number.** 58 hygiene against the shower's 70, but
+  # 31 comfort where the shower gives none, and 3 energy of cost against the
+  # shower's 12.
+  #
+  # So: the shower is how you get clean when you need to be clean, and this is
+  # how you get clean when what you actually want is to lie down. The shower
+  # wins on hygiene alone and always will; this takes the decision only when
+  # comfort is short as well, which is precisely the state a tired grubby sim
+  # is in at the end of a day.
+  #
+  # The energy cost is small rather than absent because a very hot bath does
+  # take something out of you, and because a cost of zero would make this
+  # strictly better than the shower on every axis but speed.
+  #
+  # **78 ticks, down from 130, and no sane delta would have rescued the 130.**
+  # At 130 this was at zero uses over 12 000 ticks, and the reason is
+  # structural rather than a matter of taste: duration sits in the score's
+  # denominator, so a 130-tick action needs about three times the delta of a
+  # 45-tick one to compete, and its direct rival is the 45-tick shower. With
+  # hygiene and comfort both at their measured floors it scored 0.15 against
+  # the shower's 0.32, which at a temperature of 0.06 is a draw it loses about
+  # nineteen times in twenty. A big enough delta could in principle have
+  # closed a 1.7x gap; nothing that would still read as a bath could.
+  #
+  # 78 ticks is 7.8 seconds at 1x and still the third-longest action in the
+  # house behind the two beds, so "long soak" survives the change. The comfort
+  # delta then came down from 64 to 31 with the rest of them in [B6], so this
+  # wins on hygiene-plus-comfort together and never on comfort alone.
+  [[object.interaction]]
+  id = "soak"
+  label = "Soak until reconsidered"
+  advertises = { hygiene = 58.0, comfort = 31.0, energy = -3.0 }
+  duration_ticks = 78
+  slots = 1
+
+[[object]]
+id = "laundry"
+name = "Cycle, Perpetual"
+sprite = "washerDryerStacked"
+
+  # **No interactions, and this is the one that was hardest to leave alone.**
+  # A chore that costs time and returns nothing is perfect for this game's
+  # register, and it is unimplementable today for a boring reason: utility
+  # scoring only ever chooses the best-scoring advert, so an interaction that
+  # advertises nothing positive is an interaction no sim will ever pick. It
+  # would be a joke told to an empty room.
+  #
+  # It becomes possible the moment there is a satisfaction axis to spend
+  # against - see docs/specs/2026-07-29-satisfaction-and-traits-design.md,
+  # where "neglected needs subtract" gives a chore something to prevent rather
+  # than something to provide. The washer is placed now so that it is already
+  # in the room when that lands.
