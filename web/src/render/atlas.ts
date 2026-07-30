@@ -32,8 +32,9 @@ export const SPRITES: readonly AtlasSprite[] = [
   { name: 'toiletSquare', x: 127, y: 116, w: 36, h: 50 },
   { name: 'bookcaseClosedDoors', x: 90, y: 116, w: 36, h: 74 },
   { name: 'loungeSofaOttoman', x: 164, y: 116, w: 50, h: 47 },
-  { name: 'televisionVintage', x: 108, y: 200, w: 34, h: 40 },
+  { name: 'televisionVintage', x: 173, y: 200, w: 34, h: 40 },
   { name: 'bedBunk', x: 1, y: 1, w: 93, h: 114 },
+  { name: 'selectionRing', x: 108, y: 200, w: 64, h: 42 },
 ];
 
 /**

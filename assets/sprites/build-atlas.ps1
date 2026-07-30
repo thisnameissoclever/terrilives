@@ -157,6 +157,10 @@ $SOURCES = @(
   @{ name = 'loungeSofaOttoman';      from = 'loungeSofaOttoman_SE' }
   @{ name = 'televisionVintage';      from = 'televisionVintage_SE' }
   @{ name = 'bedBunk';                from = 'bedBunk_SE' }
+  # Appended last, deliberately. The index IS what the render buffer carries,
+  # so inserting anywhere but the end renumbers every sprite after it and
+  # silently redraws the lot.
+  @{ name = 'selectionRing';          from = 'generated:selectionRing' }
 )
 
 function New-HighQualityGraphics([System.Drawing.Bitmap] $target) {
@@ -225,6 +229,45 @@ function New-FloorSprite {
   return $out
 }
 
+# Which sim is selected, drawn on the ground at its feet.
+#
+# A floor ring rather than an outline or a head icon, and
+# docs/specs/2026-07-30-selection-and-input-design.md [I2] carries the argument:
+# an outline needs the sprite's silhouette, which means a second pre-rendered
+# outline per sprite or a shader pass sampling neighbouring alpha; a head icon
+# leaves the canvas above a sim standing at the top of a lot, because sprites
+# here reach 114 px and the camera is fixed.
+#
+# **Exactly the floor tile's dimensions**, so it is bottom-centre anchored to the
+# same point and lands concentric with the tile the sim occupies rather than
+# needing an offset nobody would maintain. An ellipse inscribed in the diamond
+# rather than a diamond outline: the ring should read as lying ON the ground, and
+# a diamond outline reads as a second floor tile.
+#
+# The colour is the HUD's existing accent, so the selection cue and the need bars
+# agree without introducing a palette entry.
+function New-SelectionRingSprite {
+  $scale = 4
+  $w = $TILE_W * $scale
+  $h = $TILE_H * $scale
+  $big = [System.Drawing.Bitmap]::new($w, $h, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+  $g = New-HighQualityGraphics $big
+
+  # Inset so the stroke stays inside the sprite instead of being clipped by it,
+  # and so the ring sits within its tile rather than bleeding onto the next one.
+  $inset = 5 * $scale
+  $pen = New-Object System.Drawing.Pen(
+    [System.Drawing.Color]::FromArgb(235, 111, 178, 210), ($scale * 2.5))
+  $g.DrawEllipse($pen, $inset, $inset, ($w - 2 * $inset), ($h - 2 * $inset))
+  $pen.Dispose(); $g.Dispose()
+
+  $out = [System.Drawing.Bitmap]::new($TILE_W, $TILE_H, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+  $g2 = New-HighQualityGraphics $out
+  $g2.DrawImage($big, (New-Object System.Drawing.Rectangle(0, 0, $TILE_W, $TILE_H)))
+  $g2.Dispose(); $big.Dispose()
+  return $out
+}
+
 # The kit has 140 pieces of furniture and no people, so the one sprite
 # the game most needs is the one nothing ships. Drawn from primitives at
 # 4x and downsampled, which is enough antialiasing to sit next to
@@ -275,6 +318,7 @@ try {
     $bitmap = switch ($spec.from) {
       'generated:floor' { New-FloorSprite }
       'generated:sim' { New-SimSprite }
+      'generated:selectionRing' { New-SelectionRingSprite }
       default {
         # `width` is optional and only the wall panels set it; absent, it is
         # $null, which the [int] parameter takes as 0 and the function reads

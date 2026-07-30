@@ -19,6 +19,18 @@ import {
   writeInstance,
   type InstanceArray,
 } from './render/instances.js';
+import { spriteIndex } from './render/atlas.js';
+
+/**
+ * The atlas slot for the selection ring, resolved once at module load.
+ *
+ * By name rather than by a literal index, because the index is assigned by
+ * declaration order in the atlas build and a hardcoded number here would
+ * silently draw whatever sprite later took that slot. `spriteIndex` throws on an
+ * unknown name, so a missing ring is a startup failure rather than a wrong
+ * picture.
+ */
+const SELECTION_RING_SPRITE = spriteIndex('selectionRing');
 
 /** Linear interpolation. `t` of 0 gives `a` exactly, 1 gives `b` exactly. */
 export function lerp(a: number, b: number, t: number): number {
@@ -154,6 +166,11 @@ export interface RenderSource {
   readonly count: number;
   positions(): Float32Array;
   prevPositions(): Float32Array;
+  /**
+   * The raw entity index in each row, so the selection ring can find the
+   * selected sim's row. A row number would not do; see `RenderBuffer::ids`.
+   */
+  ids(): Uint32Array;
   /** 0 for a sim, 1 for a smart object. Picks the depth layer, nothing else. */
   kinds(): Uint32Array;
   /**
@@ -198,9 +215,13 @@ export function buildInstances(
   originX: number,
   originY: number,
   gridSize: number,
+  selected: number | null = null,
 ): InstanceArray {
   const count = source.count;
-  const needed = count * FLOATS_PER_INSTANCE;
+  // One slot more than the entity count, for the selection ring. It is a single
+  // extra instance rather than one per entity, so [D11]'s no-allocation rule is
+  // untouched: the scratch buffer grows once and is reused.
+  const needed = (count + 1) * FLOATS_PER_INSTANCE;
   if (scratch.length < needed) {
     scratch = new Float32Array(needed);
   }
@@ -247,5 +268,55 @@ export function buildInstances(
     );
   }
 
+  // **The selection ring, last, in the slot past the live entities.**
+  //
+  // Drawn from the same interpolated position as the sim itself rather than
+  // from the tick position, so it tracks a walking sim instead of stepping
+  // behind it.
+  //
+  // `LAYER_PROP` puts it above the floor and below the sim: a ring drawn OVER
+  // the sim would obscure the thing it is pointing at, and one at
+  // `LAYER_FLOOR`'s old depth would be invisible now that the floor shares one
+  // depth in front of nothing.
+  const ringRow = findSelectedRow(source, selected);
+  if (ringRow !== null) {
+    const wx = lerp(previous[ringRow * 2], current[ringRow * 2], alpha);
+    const wy = lerp(previous[ringRow * 2 + 1], current[ringRow * 2 + 1], alpha);
+    writeInstance(
+      scratch,
+      count,
+      screenX(wx, wy, originX),
+      screenY(wx, wy, originY),
+      layeredDepth(wx, wy, gridSize, LAYER_PROP),
+      SELECTION_RING_SPRITE,
+    );
+  }
+
   return scratch;
+}
+
+/**
+ * How many instances `buildInstances` filled, which is the entity count plus a
+ * selection ring if one was drawn.
+ *
+ * Returned separately rather than folded into the array because the caller
+ * passes a count to `draw`, and the scratch buffer is deliberately longer than
+ * the live data. Getting this wrong uploads uninitialised zeroes - quads at
+ * screen (0, 0) with depth 0, which draw in front of everything.
+ */
+export function instanceCount(source: RenderSource, selected: number | null): number {
+  return source.count + (findSelectedRow(source, selected) === null ? 0 : 1);
+}
+
+/** The row holding `selected`, or null if nothing is selected or it is gone. */
+function findSelectedRow(source: RenderSource, selected: number | null): number | null {
+  if (selected === null) return null;
+  const ids = source.ids();
+  for (let row = 0; row < source.count; row++) {
+    if (ids[row] === selected) return row;
+  }
+  // A selected entity that is no longer in the buffer. Not an error: the
+  // simulation keeps a selection whose index has gone away rather than
+  // clearing it, deliberately, so the ring simply is not drawn.
+  return null;
 }

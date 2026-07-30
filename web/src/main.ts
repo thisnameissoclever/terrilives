@@ -11,7 +11,7 @@ import init, { SimHandle } from './wasm/terri_wasm.js';
 import { SimBridge } from './bridge.js';
 import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
-import { FixedStepDriver, buildInstances } from './frame.js';
+import { FixedStepDriver, buildInstances, instanceCount } from './frame.js';
 import { TILE_HALF_HEIGHT, TILE_HALF_WIDTH } from './render/iso.js';
 import { buildStaticInstances } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
@@ -331,8 +331,12 @@ async function main(): Promise<void> {
     // The sim advances in whole ticks; alpha is how far this frame sits
     // between the last one that ran and the next one that has not.
     const alpha = driver.advance(deltaMs, () => sim.tick());
-    const instances = buildInstances(sim, alpha, originX, originY, depthScale);
-    renderer.draw(instances, sim.count);
+    // The selection comes from the simulation every frame rather than being
+    // remembered here ([D-5]), so the ring cannot disagree with what the need
+    // panel is showing.
+    const selected = sim.selectedIndex();
+    const instances = buildInstances(sim, alpha, originX, originY, depthScale, selected);
+    renderer.draw(instances, instanceCount(sim, selected));
 
     // Inside the sample below rather than outside it, deliberately: the
     // panel is work the frame does, and a periodic cost measured outside
