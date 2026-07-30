@@ -30,6 +30,29 @@ pub struct RenderBuffer {
     /// TypeScript keyed on object id would be a second copy of the object
     /// list, which is the coupling [D1] exists to prevent.
     pub sprites: Vec<u32>,
+    /// The raw entity index occupying each row.
+    ///
+    /// **A ROW IS NOT AN ENTITY INDEX.** `sync_render_buffer` sorts rows by
+    /// entity index for determinism, so a row number is that entity's
+    /// *rank* among the live ones, not its index. The two coincide exactly
+    /// while entities occupy 0..count with no gaps, which is every
+    /// situation the game has been in so far and is why this column did
+    /// not exist until something needed it.
+    ///
+    /// What needed it is **picking**. A click inverts the projection to a
+    /// tile, finds the row standing there, and has to name that entity in a
+    /// `Select` or `UseObject` command - and those carry raw indices,
+    /// because JavaScript cannot construct an `Entity`. Sending the row
+    /// number instead works until the first despawn leaves a hole, after
+    /// which every click past the hole selects or directs the wrong entity,
+    /// with nothing in the type system or the tests to say so. That is the
+    /// [L3] family again: correct by coincidence, and the coincidence is
+    /// scheduled to end at M1d when sims can die.
+    ///
+    /// So the shell reads the mapping rather than assuming it.
+    /// `a_row_is_not_its_entity_index_once_an_index_is_freed` is the test
+    /// that fails if this ever silently becomes the identity again.
+    pub ids: Vec<u32>,
     pub count: usize,
 }
 
@@ -138,6 +161,108 @@ mod tests {
             "every row must have a sprite; a short array leaves the last \
              entities reading whatever is past the end of the view"
         );
+    }
+
+    /// The `ids` column against the case that motivates it: a freed entity
+    /// index.
+    ///
+    /// Nothing in the shipped game despawns yet, so on every world the
+    /// player can currently produce, row `n` holds entity index `n` and a
+    /// shell that used the row number as the index would be perfectly
+    /// correct. **That is what this test exists to stop being load-bearing.**
+    ///
+    /// The despawn is the whole fixture. Without it the expected `ids` are
+    /// `[0, 1, 2]`, which is also what a `push(row_number)` mutation
+    /// produces and what `ids.iter().enumerate()` produces - so a test on a
+    /// dense world cannot see any of the ways this column can be wrong
+    /// ([L34]: a degenerate fixture whose input domain cannot express the
+    /// bug). With a hole in the middle, the identity mapping and the true
+    /// mapping disagree on two of the three rows.
+    ///
+    /// The assertion that the two disagree is stated first and separately,
+    /// because if `bevy_ecs` ever reused the freed index eagerly enough to
+    /// close the hole, this test would go on passing while testing nothing.
+    #[test]
+    fn a_row_is_not_its_entity_index_once_an_index_is_freed() {
+        let mut sim = Sim::new_with_lot(16, 16);
+        let spawned: Vec<Entity> = (0..4)
+            .map(|i| {
+                sim.world_mut()
+                    .spawn((
+                        Position {
+                            x: i as f32,
+                            y: 0.0,
+                        },
+                        a_smart_object(),
+                    ))
+                    .id()
+            })
+            .collect();
+
+        // The second of four, so the hole is in the middle and every later
+        // row's index is one above its row number. Despawning the last
+        // would leave rows 0..2 still equal to indices 0..2.
+        sim.world_mut().despawn(spawned[1]);
+        sim.sync_render_buffer();
+
+        let ids = sim.render_buffer().ids.clone();
+        let identity: Vec<u32> = (0..ids.len() as u32).collect();
+        assert_ne!(
+            ids, identity,
+            "the fixture must produce a world where the row number and the \
+             entity index disagree, or nothing below is being tested"
+        );
+
+        let expected: Vec<u32> = spawned
+            .iter()
+            .enumerate()
+            .filter(|(i, _)| *i != 1)
+            .map(|(_, entity)| entity.index_u32())
+            .collect();
+        assert_eq!(
+            ids, expected,
+            "each row must carry the entity actually standing in it, in the \
+             same sorted order as positions and kinds"
+        );
+        assert_eq!(
+            ids.len(),
+            sim.render_buffer().count,
+            "a short ids array leaves the last rows reading past the end of \
+             the view, which resolves clicks to whatever integer is there"
+        );
+    }
+
+    /// Every column is the same length as `count`, sync after sync.
+    ///
+    /// `sync_render_buffer` clears four vectors and fills four vectors, and
+    /// the failure mode of forgetting one is not a crash: `ids` would keep
+    /// growing while the other three restarted, so the view handed to
+    /// JavaScript would be the right length but hold the FIRST sync's ids
+    /// for ever. Every click would then resolve against a stale mapping.
+    ///
+    /// Three syncs with a spawn between them, because a single sync cannot
+    /// tell a cleared vector from one that has never been written.
+    #[test]
+    fn every_column_is_recleared_on_each_sync() {
+        let mut sim = Sim::new_with_lot(16, 16);
+        sim.world_mut()
+            .spawn((Position { x: 1.0, y: 1.0 }, a_smart_object()));
+
+        for expected_count in 1..=3 {
+            sim.sync_render_buffer();
+            let buf = sim.render_buffer();
+            assert_eq!(buf.count, expected_count);
+            assert_eq!(buf.ids.len(), expected_count, "ids grew or was not cleared");
+            assert_eq!(buf.kinds.len(), expected_count);
+            assert_eq!(buf.sprites.len(), expected_count);
+            assert_eq!(buf.positions.len(), expected_count * 2);
+
+            sim.world_mut().spawn((
+                Agent,
+                Position { x: 2.0, y: 2.0 },
+                Needs::with(NeedId::Hunger, 50.0),
+            ));
+        }
     }
 
     #[test]

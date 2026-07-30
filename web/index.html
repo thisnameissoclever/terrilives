@@ -1,11 +1,118 @@
 <!doctype html>
 <html lang="en">
-  <head><meta charset="utf-8" /><title>terrilives</title></head>
+  <head>
+    <meta charset="utf-8" />
+    <title>terrilives</title>
+    <style>
+      /* Flat shapes and a coherent palette; [D-7] puts art out of scope
+         for this milestone, and the readouts only have to be legible
+         enough to read a decision against. */
+      :root {
+        color-scheme: dark;
+        --hud-bg: #16161c;
+        --hud-edge: #2c2c36;
+        --hud-text: #d8d8e0;
+        --need-track: #2c2c36;
+        --need-fill: #6fb2d2;
+      }
+      body {
+        margin: 0;
+        background: #0d0d10;
+        color: var(--hud-text);
+        font: 13px/1.4 system-ui, sans-serif;
+      }
+      #stage {
+        display: block;
+      }
+      /* Overlaid rather than beside the canvas, which is fixed at
+         1280x720: a side-by-side layout would push the canvas off a
+         1280-wide window. */
+      #hud {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        pointer-events: none;
+      }
+      #hud > * {
+        pointer-events: auto;
+        background: var(--hud-bg);
+        border: 1px solid var(--hud-edge);
+        border-radius: 6px;
+        padding: 8px 10px;
+      }
+      #needs-panel {
+        display: grid;
+        gap: 4px;
+        min-width: 190px;
+      }
+      #needs-panel[hidden] {
+        display: none;
+      }
+      .need-row {
+        display: grid;
+        grid-template-columns: 62px 1fr;
+        align-items: center;
+        gap: 8px;
+      }
+      /* The label is the point of the panel: an unlabelled row of bars
+         says a number changed, not which need it was. */
+      .need-label {
+        text-transform: capitalize;
+        opacity: 0.85;
+      }
+      .need-track {
+        height: 9px;
+        background: var(--need-track);
+        border-radius: 5px;
+        overflow: hidden;
+      }
+      .need-fill {
+        height: 100%;
+        width: 0%;
+        background: var(--need-fill);
+      }
+      #time-controls {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+      }
+      #time-controls input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+      #time-controls label {
+        padding: 3px 9px;
+        border-radius: 4px;
+        cursor: pointer;
+        user-select: none;
+      }
+      #time-controls input:checked + label {
+        background: var(--need-fill);
+        color: #10131a;
+      }
+      #time-controls input:focus-visible + label {
+        outline: 2px solid var(--need-fill);
+      }
+    </style>
+  </head>
   <body>
     <canvas id="stage" width="1280" height="720" aria-label="Simulation view">
       This game renders to a canvas and needs WebGPU, which this browser does
       not appear to support.
     </canvas>
+    <div id="hud">
+      <!-- Both are filled from the simulation at load: the bars from the
+           need names it reports, the buttons from the speeds [D-8] names.
+           Empty here on purpose, so neither is a second copy of a list
+           that lives somewhere else. `hidden` because nothing is selected
+           until the player clicks. -->
+      <section id="needs-panel" aria-label="Needs of the selected sim" hidden></section>
+      <section id="time-controls" aria-label="Simulation speed"></section>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

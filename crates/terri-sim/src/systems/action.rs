@@ -1,7 +1,7 @@
 use bevy_ecs::prelude::*;
 use terri_core::{
-    Agent, Eating, NeedId, Needs, Path, Position, Reserved, Restless, SimRng, SmartObject, Target,
-    TileGrid,
+    Agent, Eating, IntentQueue, NeedId, Needs, Path, Position, Reserved, Restless, SimRng,
+    SmartObject, Target, TileGrid,
 };
 
 use super::advertise::score_advertisement;
@@ -288,6 +288,189 @@ mod sampler_tests {
     }
 }
 
+/// Turns each directed agent's front intent into a `Target`, taking
+/// precedence over whatever the sim had decided for itself - [D-3].
+///
+/// # A player intent PREEMPTS a running interaction; it does not queue
+/// behind one
+///
+/// This is the milestone's central feel decision and it goes the other
+/// way from the obvious reading of "queue". The alpha feel pass measured
+/// a 24-second sleep, and a walk plus a sleep leaving a sim unreachable
+/// for over half a minute (`docs/alpha-feel-notes.md`). A click that
+/// waited for that to finish would produce no visible response for the
+/// whole time, and the player would conclude the click was lost - which
+/// is precisely the failure [D-3] exists to prevent, arriving through a
+/// different door than the one it was written for. **In-progress
+/// autonomy is still autonomy.**
+///
+/// So this system deliberately sees agents that already hold a `Target`
+/// or an `Eating`, which is exactly why it cannot live inside
+/// [`select_action`]: that query filters both out, and widening it would
+/// make an agent that is mid-meal a candidate for autonomous selection
+/// as well.
+///
+/// Preempting means releasing the old reservation, dropping `Eating`,
+/// and pathing afresh. The interaction is abandoned, not suspended.
+/// Resuming would need to remember how much of it was left and is a
+/// decision about what an interruption *means*, not an implementation
+/// detail; nothing in M1b needs it.
+///
+/// # What happens to an intent that cannot be served
+///
+/// Three outcomes, and the split is what stops the two failure modes
+/// this system could have. An intent that can never be served must not
+/// suppress autonomy forever - a sim would stand still while its needs
+/// drained, which looks exactly like [L17]'s frozen agent. An intent
+/// that could be served in a moment must not be thrown away, or a click
+/// on a busy object is silently ignored.
+///
+/// - **Serve it**, when the object exists, is free, and can be walked
+///   to.
+/// - **Drop it**, when the object has been despawned, is not a smart
+///   object, names an interaction its definition does not have, or has
+///   no path to it. None of those can resolve on their own.
+/// - **Wait**, when the object is reserved by another agent. That does
+///   resolve on its own, because interactions end. The agent stands
+///   still, keeps the intent, and [`select_action`] leaves it alone -
+///   which is the main situation in which that system's empty-queue
+///   check is the only thing keeping the sim on task, and the one its
+///   test is built on.
+///
+/// A dropped intent is dropped SILENTLY, which is a real limitation
+/// rather than a decision: there is no channel back to the shell yet, so
+/// a player who clicks a sealed-off object sees the sim ignore them. The
+/// feedback belongs with the selection UI in Task 7.
+///
+/// **Exactly one intent is considered per agent per tick.** Dropping an
+/// unservable front intent therefore costs a tick before the next one is
+/// looked at, which is invisible at 10 ticks a second and keeps this a
+/// straight line rather than a loop whose exit conditions are one more
+/// thing to get right. The consequence is a transient state - a
+/// non-empty queue with no target - that [`select_action`]'s empty-queue
+/// filter is what covers.
+///
+/// # The order is load-bearing, for the same reason as everywhere else
+///
+/// Reservation is contended state and two agents can intend the same
+/// object on the same tick, so agents are visited in entity-index order
+/// rather than in query order. Query iteration is archetype order, which
+/// is allocation history rather than simulation state. `claimed` covers
+/// the same tick, because `Commands` are deferred and the `Has<Reserved>`
+/// read below cannot see an insert this system has just queued. Same
+/// rule and same reason as the sorts in [`select_action`], `follow_path`
+/// and `wander`; see [D-3] and [L5].
+///
+/// The type_complexity allow is for the same reason it is on
+/// [`select_action`]: the query tuple is what pushes past clippy's
+/// threshold, and a type alias would only move it somewhere less
+/// readable.
+#[allow(clippy::type_complexity)]
+pub fn serve_intents(
+    mut commands: Commands,
+    grid: Res<TileGrid>,
+    content: Res<Content>,
+    mut agents: Query<(Entity, &Position, &mut IntentQueue, Option<&Target>), With<Agent>>,
+    objects: Query<(&Position, &SmartObject, Has<Reserved>)>,
+) {
+    let mut directed: Vec<Entity> = agents
+        .iter()
+        .filter(|(_, _, queue, _)| !queue.is_empty())
+        .map(|(entity, _, _, _)| entity)
+        .collect();
+    directed.sort_by_key(|entity| entity.index());
+
+    let mut claimed: Vec<Entity> = Vec::new();
+
+    for agent in directed {
+        // Infallible: the list was just collected from this query and
+        // nothing between here and there removes a component.
+        let Ok((_, agent_pos, mut queue, target)) = agents.get_mut(agent) else {
+            continue;
+        };
+        let Some(intent) = queue.front() else {
+            continue;
+        };
+
+        // **An agent the player has directed is not an agent with
+        // nothing to do.** `select_action` is the only writer of
+        // `Restless` and it skips directed agents entirely, so a marker
+        // set on the tick before the intent arrived would otherwise sit
+        // there and send a sim that is waiting its turn off for a
+        // stroll. Removing a component an entity does not have is a
+        // no-op and does not move it between archetypes.
+        commands.entity(agent).remove::<Restless>();
+
+        // Already serving this exact intent, so there is nothing to do
+        // and re-pathing would be actively wrong: `find_path` starts
+        // from the agent's ROUNDED tile, and an agent a quarter of the
+        // way into the next tile would be sent back to the one behind
+        // it, every tick, for ever. The sim would shuffle on the spot
+        // instead of arriving.
+        if target.is_some_and(|t| t.object == intent.object && t.interaction == intent.interaction)
+        {
+            continue;
+        }
+
+        // Whether the reservation on the intended object, if there is
+        // one, is this agent's own. Re-targeting the same object with a
+        // different interaction is a legitimate move and must not be
+        // mistaken for contention with somebody else.
+        let held_here = target.is_some_and(|t| t.object == intent.object);
+
+        let Ok((object_pos, placed, reserved)) = objects.get(intent.object) else {
+            queue.pop();
+            continue;
+        };
+        // Out of range means the pack changed under a saved command log,
+        // since a live click cannot name an interaction that is not
+        // there. Dropping it is what keeps the indexing in `follow_path`
+        // and `tick_interactions` safe by construction rather than by
+        // hope - those two index straight into `interactions` with this
+        // number.
+        if intent.interaction as usize >= content.0.object(placed.0).interactions.len() {
+            queue.pop();
+            continue;
+        }
+        if (reserved && !held_here) || claimed.contains(&intent.object) {
+            continue;
+        }
+        let from = (agent_pos.x.round() as i32, agent_pos.y.round() as i32);
+        let to = (object_pos.x.round() as i32, object_pos.y.round() as i32);
+        // **Beside it, not on it.** See `TileGrid::find_path_adjacent` for
+        // the four separate problems standing on the furniture caused. `None`
+        // still means unreachable and still drops the intent, which is the
+        // same handling as before - it now also covers an object whose every
+        // neighbour is walled off.
+        let Some(steps) = grid.find_path_adjacent(from, to) else {
+            queue.pop();
+            continue;
+        };
+
+        // Release whatever the agent was holding before, unless it is
+        // the same object - re-targeting one object's other interaction
+        // must not hand it to somebody else in between.
+        if let Some(target) = target {
+            if target.object != intent.object {
+                // try_remove for the same reason `tick_interactions`
+                // uses it: `Commands::entity` does not validate, so a
+                // stale `Target` would otherwise route a removal to the
+                // command error handler.
+                commands.entity(target.object).try_remove::<Reserved>();
+            }
+        }
+        claimed.push(intent.object);
+        commands.entity(intent.object).insert(Reserved);
+        commands.entity(agent).remove::<Eating>().insert((
+            Target {
+                object: intent.object,
+                interaction: intent.interaction,
+            },
+            Path { steps, cursor: 0 },
+        ));
+    }
+}
+
 /// Idle agents scan advertisements, sample one weighted by score, reserve
 /// it, and path to it. Serialized on purpose: reservation is contended
 /// state, so it runs in deterministic entity order per [D4].
@@ -302,8 +485,31 @@ pub fn select_action(
     grid: Res<TileGrid>,
     content: Res<Content>,
     mut rng: ResMut<SimRng>,
-    agents: Query<(Entity, &Position, &Needs), (With<Agent>, Without<Target>, Without<Eating>)>,
-    objects: Query<(Entity, &Position, &SmartObject), Without<Reserved>>,
+    agents: Query<
+        (Entity, &Position, &Needs, Option<&IntentQueue>),
+        (With<Agent>, Without<Target>, Without<Eating>),
+    >,
+    // **Reserved objects are INCLUDED, and `Has<Reserved>` is read per
+    // object below instead.**
+    //
+    // This query used to carry `Without<Reserved>`, which looks like the
+    // obvious way to say "you cannot have what somebody else has" and is
+    // wrong for one specific reason: an object filtered out here is invisible
+    // to `best_seen` as well as to the candidate list, and `best_seen` is
+    // what decides whether the agent is told **nothing is worth doing**. A
+    // sim waiting for the only fridge in the house was therefore marked
+    // `Restless` and sent for a stroll, for the whole of the other sim's walk
+    // and meal.
+    //
+    // The two questions are genuinely different and the filter conflated
+    // them: "may I have this?" is answered by the reservation, "is anything
+    // here worth wanting?" is not. Availability is now applied at the one
+    // place it belongs - whether the object enters `candidates` - and the
+    // score still reaches `best_seen` either way. [C3] in
+    // docs/alpha-feel-notes.md is the report;
+    // `an_agent_waiting_on_an_object_reserved_earlier_waits_rather_than_wandering_off`
+    // is what fails if the filter comes back.
+    objects: Query<(Entity, &Position, &SmartObject, Has<Reserved>)>,
 ) {
     // Below this score nothing is worth doing, so the agent stays idle.
     //
@@ -330,7 +536,45 @@ pub fn select_action(
     // needs get scored is a property of the candidate, not of the agent.
     let mut idle: Vec<(Entity, Position, Needs)> = agents
         .iter()
-        .map(|(e, pos, needs)| (e, *pos, *needs))
+        // **A directed sim does not choose for itself** - [D-3]. This is
+        // the whole autonomy override: a player-issued intent suppresses
+        // selection until it completes or is cancelled, because a
+        // directed action that autonomy could talk the sim out of would
+        // make clicking feel ignored.
+        //
+        // It is a filter on emptiness rather than a `Without<IntentQueue>`
+        // in the query, and the difference matters: the component stays
+        // on an agent whose queue has run dry, so "has an IntentQueue"
+        // and "is under orders" are different questions. `is_none_or`
+        // covers the agents that have never been directed at all and
+        // therefore carry no queue.
+        //
+        // Filtering here rather than skipping inside the loop below also
+        // means a directed agent never has `Restless` written for it,
+        // which is what leaves `serve_intents` the single writer of that
+        // marker for such an agent instead of the two of them fighting.
+        //
+        // **Most of the time this filter is redundant, and the exceptions
+        // are what it is for.** `serve_intents` runs first and normally
+        // converts the intent into a `Target`, which this query's
+        // `Without<Target>` already excludes - so on almost every tick
+        // the suppression is achieved twice over and deleting this line
+        // would change nothing. Two windows are left, both of which leave
+        // an agent with no target, no interaction and an instruction it
+        // still means to carry out:
+        //
+        //   - it is WAITING for an object somebody else has reserved;
+        //   - `serve_intents` dropped an unservable front intent and the
+        //     queue still holds the next one, which it considers on the
+        //     following tick.
+        //
+        // `a_sim_waiting_for_a_reserved_object_does_not_fall_back_to_autonomy`
+        // covers the first and is the test that fails without this line.
+        // See [L41]: a guard normally shadowed by another guard is only
+        // observable on the input where the shadow is absent, so that
+        // fixture had to be built deliberately rather than found.
+        .filter(|(_, _, _, queue)| queue.is_none_or(|queue| queue.is_empty()))
+        .map(|(e, pos, needs, _)| (e, *pos, *needs))
         .collect();
     idle.sort_by_key(|(e, _, _)| e.index());
 
@@ -354,11 +598,11 @@ pub fn select_action(
     // which is a silent determinism break of exactly the class [D-3] and
     // [L5] are about. `tied_scores_resolve_by_object_index_not_archetype_order`
     // is what pins it; deleting this line must fail that test.
-    let mut placed_objects: Vec<(Entity, Position, SmartObject)> = objects
+    let mut placed_objects: Vec<(Entity, Position, SmartObject, bool)> = objects
         .iter()
-        .map(|(e, pos, object)| (e, *pos, *object))
+        .map(|(e, pos, object, reserved)| (e, *pos, *object, reserved))
         .collect();
-    placed_objects.sort_by_key(|(e, _, _)| e.index());
+    placed_objects.sort_by_key(|(e, _, _, _)| e.index());
 
     let mut claimed: Vec<Entity> = Vec::new();
 
@@ -385,11 +629,19 @@ pub fn select_action(
         // out of this loop restless rather than merely uninterested.
         let mut best_seen = f32::NEG_INFINITY;
 
-        for (object, object_pos, placed) in &placed_objects {
+        for (object, object_pos, placed, reserved) in &placed_objects {
             let object = *object;
-            if claimed.contains(&object) {
-                continue;
-            }
+            // **Contested, not absent.** An object somebody else already
+            // holds is still scored, and its score still reaches `best_seen`;
+            // what it does not do is enter `candidates`. See the note on the
+            // `objects` query above for why those are two different
+            // questions, and [C3] for what conflating them looked like.
+            //
+            // Two ways to be contested and they cover different spans:
+            // `reserved` is a claim made on an earlier tick, which lasts the
+            // holder's whole walk and interaction, and `claimed` is a claim
+            // made by a lower-indexed agent inside this very tick.
+            let contested = *reserved || claimed.contains(&object);
             // **Distance here is WALL-AWARE by contract**, and the
             // contract is the part to preserve; A* is only today's way of
             // honouring it.
@@ -405,10 +657,15 @@ pub fn select_action(
             // M0's "far too expensive" reasoning was about a thousand
             // agents and a hundred thousand objects. At M1b's scale - one
             // agent, eight objects - this is one A* over a 24x18 grid per
-            // candidate per tick, which is nothing. The cost is
-            // O(idle agents * unclaimed objects) A* searches per tick and
-            // grows with both, so it is the SCALE that will force a
-            // change here, not the metric.
+            // candidate per tick, which is nothing.
+            //
+            // The cost is O(idle agents * ALL placed objects) A* searches per
+            // tick - every object, not only the available ones. That changed
+            // when the query stopped filtering `Without<Reserved>`: a contested
+            // object is still pathed to, because its score still has to reach
+            // `best_seen`. Deliberate, and the reason is right above; the point
+            // here is that it is the SCALE that will force a change, not the
+            // metric, and the scale is now slightly larger than it looks.
             //
             // **Do not "optimise" this back to a straight line.** [D7]
             // plans room and portal graph distance for exactly this
@@ -430,7 +687,22 @@ pub fn select_action(
             // This also replaces the second `find_path` that used to run
             // after selection: the winning path is carried out of the
             // loop rather than recomputed.
-            let Some(steps) = grid.find_path(from, to) else {
+            // **Beside it, not on it** - `find_path_adjacent`, whose docs carry
+            // the reasoning. The distance this yields is therefore the walk to
+            // the tile the sim will actually stand on, which is one less than
+            // the old metric on an open approach; every balance number
+            // measured before that change shifted slightly with it, and
+            // `docs/alpha-feel-notes.md` carries the re-measurement.
+            //
+            // **It does NOT change the [C5] repeat-use effect, and an earlier
+            // version of this comment said it did.** `find_path_adjacent`
+            // returns an EMPTY path for an agent that is already adjacent, so
+            // an agent that has just finished an interaction scores that object
+            // at distance 0 - the same maximum score it got when the agent
+            // stood on top of it. The distance term did not move, and the
+            // measurement agrees: repeat use went 5.8% to 5.6%. See the note on
+            // `find_path_adjacent` itself.
+            let Some(steps) = grid.find_path_adjacent(from, to) else {
                 continue;
             };
             let distance = steps.len() as f32;
@@ -504,8 +776,15 @@ pub fn select_action(
                 }
             }
 
+            // **The one place availability is applied.** The score above has
+            // already reached `best_seen`, which is the whole point: the agent
+            // now knows something here was worth wanting even though it cannot
+            // have this one, so it waits instead of being told the house is
+            // boring.
             if let Some((interaction, score)) = best {
-                candidates.push((object, steps, interaction, score));
+                if !contested {
+                    candidates.push((object, steps, interaction, score));
+                }
             }
         }
 
@@ -559,6 +838,803 @@ pub fn select_action(
 }
 
 #[cfg(test)]
+mod intent_tests {
+    //! [D-3]'s autonomy override, tested end to end through the running
+    //! schedule rather than by calling [`serve_intents`] directly.
+    //!
+    //! Every fixture here runs at `tests::DECISIVE_TEMPERATURE`
+    //! wherever it names an autonomous winner, for the reason that
+    //! constant documents: selection is a weighted draw, so "autonomy
+    //! would have picked the fridge" is a statement about one roll of the
+    //! dice unless the loser's weight underflows to zero. Each such test
+    //! asserts that precondition with `assert_decisive` rather than
+    //! assuming it, and most also RUN the control - the same world with
+    //! no intent queued - so that "the intent won" is measured against
+    //! what actually happens without one rather than against a prediction.
+
+    use super::tests::{
+        action_threshold, assert_decisive, decisive_pack, def, spawn_agent, spawn_agent_with,
+        spawn_object, walk_tiles,
+    };
+    use super::*;
+    use crate::test_content;
+    use crate::Sim;
+    use terri_core::{Intent, IntentQueue, NEED_MAX};
+    use terri_data::ContentPack;
+
+    /// The two objects every fixture below chooses between: a fridge on
+    /// the agent's right that autonomy wants, and a bed on its left that
+    /// it does not.
+    ///
+    /// They advertise DIFFERENT needs on purpose. An intent that beat a
+    /// candidate advertising the same need would only show that the
+    /// override outranks a rival for the same appetite; the point of
+    /// [D-3] is that it outranks whatever the sim thought was most
+    /// urgent, full stop.
+    const DELTA: f32 = 40.0;
+    const DURATION: u32 = 15;
+    const AGENT_AT: (f32, f32) = (8.0, 8.0);
+    const FRIDGE_AT: (f32, f32) = (11.0, 8.0);
+    const BED_AT: (f32, f32) = (2.0, 8.0);
+    /// Hunger and energy levels that survive one tick of decay as
+    /// deficits of exactly 0.8 and 0.5. The spawn helper adds one tick's
+    /// worth of each need's OWN rate, because the rates differ.
+    const HUNGRY: f32 = 20.0;
+    const RESTED_ENOUGH: f32 = 50.0;
+
+    fn directed_content() -> &'static ContentPack {
+        decisive_pack(vec![
+            test_content::object("fridge", &[(NeedId::Hunger, DELTA)], DURATION),
+            test_content::object("bed", &[(NeedId::Energy, DELTA)], DURATION),
+        ])
+    }
+
+    /// Needs leaving the agent hungrier than it is tired, so autonomy has
+    /// an unambiguous preference for the fridge.
+    fn hungry_and_tired() -> Needs {
+        let mut needs = Needs::all_at(NEED_MAX);
+        needs.set(
+            NeedId::Hunger,
+            HUNGRY + test_content::decay_per_tick(NeedId::Hunger),
+        );
+        needs.set(
+            NeedId::Energy,
+            RESTED_ENOUGH + test_content::decay_per_tick(NeedId::Energy),
+        );
+        needs
+    }
+
+    /// The world both halves of the core test share: a bed the agent
+    /// walks past and a fridge it wants.
+    ///
+    /// **The bed is spawned FIRST**, so it holds the lower entity index
+    /// and therefore the first probability bucket. Any mutation that
+    /// flattens the two scores into a tie hands the bed the autonomous
+    /// win, which fails the control run rather than passing on a tie the
+    /// fixture never meant to create.
+    fn two_object_scenario() -> (Sim, Entity, Entity, Entity) {
+        let content = directed_content();
+        let mut sim = test_content::sim_with(16, 16, content);
+        let bed = spawn_object(&mut sim, BED_AT.0, BED_AT.1, def(content, "bed"));
+        let fridge = spawn_object(&mut sim, FRIDGE_AT.0, FRIDGE_AT.1, def(content, "fridge"));
+        let agent = spawn_agent_with(&mut sim, AGENT_AT.0, AGENT_AT.1, hungry_and_tired());
+        (sim, bed, fridge, agent)
+    }
+
+    /// Puts one intent at the back of `agent`'s queue, giving it a queue
+    /// if it has never been directed before.
+    ///
+    /// This is what `drain_commands` will do in Task 5. An agent does not
+    /// carry an `IntentQueue` until something directs it, so the absent
+    /// case is the normal one rather than an edge case.
+    fn queue_intent(sim: &mut Sim, agent: Entity, object: Entity, interaction: u32) {
+        let intent = Intent {
+            object,
+            interaction,
+        };
+        let mut entity = sim.world_mut().entity_mut(agent);
+        if let Some(mut queue) = entity.get_mut::<IntentQueue>() {
+            queue.push(intent);
+            return;
+        }
+        entity.insert(IntentQueue::from_intents(vec![intent]));
+    }
+
+    fn queue_of(sim: &Sim, agent: Entity) -> &IntentQueue {
+        sim.world()
+            .get::<IntentQueue>(agent)
+            .expect("the agent must have been directed at least once")
+    }
+
+    fn target_of(sim: &Sim, agent: Entity) -> Option<Target> {
+        sim.world().get::<Target>(agent).copied()
+    }
+
+    /// Ticks until the agent is mid-interaction, or fails loudly.
+    fn tick_until_eating(sim: &mut Sim, agent: Entity) -> Eating {
+        for _ in 0..400 {
+            sim.tick();
+            if let Some(eating) = sim.world().get::<Eating>(agent) {
+                return *eating;
+            }
+        }
+        panic!("the agent must reach its object and begin interacting");
+    }
+
+    /// The scores autonomy computes for the two objects at the deficits
+    /// the fixture produces, restated here rather than read out of the
+    /// system so that a mutation of the metric does not follow them.
+    fn fridge_and_bed_scores(sim: &Sim, agent: Entity) -> (f32, f32) {
+        let needs = sim
+            .world()
+            .get::<Needs>(agent)
+            .expect("the agent must still have Needs");
+        (
+            score_advertisement(
+                needs.deficit(NeedId::Hunger),
+                DELTA,
+                DURATION,
+                walk_tiles(AGENT_AT, FRIDGE_AT),
+            ),
+            score_advertisement(
+                needs.deficit(NeedId::Energy),
+                DELTA,
+                DURATION,
+                walk_tiles(AGENT_AT, BED_AT),
+            ),
+        )
+    }
+
+    /// Asserts the fixture really does give autonomy an unambiguous
+    /// preference for the fridge, at the numbers the run just produced.
+    ///
+    /// Without this the milestone's headline test would be satisfiable by
+    /// a world in which the bed was the autonomous choice anyway, which
+    /// is [L34] in the shape this milestone can most easily produce:
+    /// selection is probabilistic now, so "autonomy would have picked the
+    /// fridge" is a claim about a distribution unless the fixture makes
+    /// it a certainty.
+    fn assert_autonomy_prefers_the_fridge(sim: &Sim, agent: Entity) {
+        let (fridge_score, bed_score) = fridge_and_bed_scores(sim, agent);
+        assert!(
+            bed_score > action_threshold(),
+            "the BED must be worth doing on its own, or the intent below \
+             beats an option autonomy had already excluded and this proves \
+             nothing about overriding a choice; got {bed_score}"
+        );
+        assert!(
+            fridge_score > bed_score,
+            "autonomy must prefer the fridge, or there is nothing for the \
+             intent to override; {fridge_score} vs {bed_score}"
+        );
+        assert_decisive(fridge_score, bed_score);
+    }
+
+    #[test]
+    fn a_queued_intent_suppresses_autonomy() {
+        // **The test the task exists for.** Directing a sim must beat
+        // autonomy or clicking feels ignored, so `select_action` runs only
+        // for agents whose queue is empty and `serve_intents` turns the
+        // front intent into the target instead.
+        //
+        // The control run is not decoration. Selection is a weighted draw
+        // since M1c, so "autonomy alone would have picked the fridge" is a
+        // statement about probability rather than about this world - and a
+        // fixture in which the bed won anyway would make the assertion
+        // below true for entirely the wrong reason. The control run is the
+        // same world with the same seed and one difference, which is
+        // docs/testing-protocol.md rule 4 applied to a whole system.
+        let (mut control, _, control_fridge, control_agent) = two_object_scenario();
+        control.tick();
+        assert_autonomy_prefers_the_fridge(&control, control_agent);
+        assert_eq!(
+            target_of(&control, control_agent).map(|t| t.object),
+            Some(control_fridge),
+            "with no intent queued the sim must go to the fridge, or the \
+             fixture is not one in which an intent has anything to override"
+        );
+
+        let (mut sim, bed, fridge, agent) = two_object_scenario();
+        queue_intent(&mut sim, agent, bed, 0);
+
+        sim.tick();
+
+        assert_autonomy_prefers_the_fridge(&sim, agent);
+        let target = target_of(&sim, agent).expect("a target was chosen");
+        assert_eq!(
+            target.object, bed,
+            "the queued intent must win over autonomy; the fridge winning \
+             means selection still ran for a directed agent"
+        );
+        assert_eq!(target.interaction, 0);
+        assert!(
+            sim.world().get::<Reserved>(bed).is_some(),
+            "the directed object must be reserved, or another agent could \
+             be sent to the same slot"
+        );
+        assert!(
+            sim.world().get::<Reserved>(fridge).is_none(),
+            "the object autonomy wanted must be left free"
+        );
+        assert!(
+            sim.world().get::<Path>(agent).is_some(),
+            "the sim must actually set off for the bed"
+        );
+    }
+
+    #[test]
+    fn a_sim_waiting_for_a_reserved_object_does_not_fall_back_to_autonomy() {
+        // **The only test that can see `select_action`'s empty-queue
+        // filter**, and it exists because every other test in this module
+        // would stay green with that filter deleted.
+        //
+        // The reason is worth stating rather than discovering later.
+        // `serve_intents` runs first and normally converts the intent into
+        // a `Target`, and `select_action`'s query already excludes an
+        // agent that has one - so the suppression is achieved twice over
+        // and the explicit filter never decides anything. The exception is
+        // an intent that could not be served THIS tick: the object is
+        // reserved by somebody else, so the sim waits, and for that one
+        // tick it has no target, no interaction, and an instruction it
+        // still means to carry out. Delete the filter and it wanders off
+        // to the fridge instead.
+        //
+        // Both halves are asserted. Waiting is not the same as doing
+        // nothing at all, so the control run below shows the sim would
+        // have acted.
+        let content = directed_content();
+
+        let build = || {
+            let mut sim = test_content::sim_with(16, 16, content);
+            let bed = spawn_object(&mut sim, BED_AT.0, BED_AT.1, def(content, "bed"));
+            let fridge = spawn_object(&mut sim, FRIDGE_AT.0, FRIDGE_AT.1, def(content, "fridge"));
+            let agent = spawn_agent_with(&mut sim, AGENT_AT.0, AGENT_AT.1, hungry_and_tired());
+            // Somebody else is using the bed. One sim ships in M1b, so
+            // the reservation is placed directly rather than by spawning
+            // a second agent to make it - what matters to `serve_intents`
+            // is that the marker is there and is not this agent's.
+            sim.world_mut().entity_mut(bed).insert(Reserved);
+            (sim, bed, fridge, agent)
+        };
+
+        let (mut control, _, control_fridge, control_agent) = build();
+        control.tick();
+        assert_eq!(
+            target_of(&control, control_agent).map(|t| t.object),
+            Some(control_fridge),
+            "with no intent queued the sim must take the fridge, or \
+             'it did not fall back to autonomy' is satisfied by a world \
+             where autonomy had nothing to offer"
+        );
+
+        let (mut sim, bed, fridge, agent) = build();
+        queue_intent(&mut sim, agent, bed, 0);
+
+        sim.tick();
+
+        assert_eq!(
+            target_of(&sim, agent),
+            None,
+            "a sim waiting its turn must not be handed a different object; \
+             autonomy ran for an agent that is under orders"
+        );
+        assert!(
+            sim.world().get::<Reserved>(fridge).is_none(),
+            "the fridge must be left free, since nothing chose it"
+        );
+        assert!(
+            sim.world().get::<Path>(agent).is_none(),
+            "the sim must stand and wait rather than set off somewhere"
+        );
+        assert!(
+            sim.world().get::<Restless>(agent).is_none(),
+            "a sim under orders is not a sim with nothing to do; a \
+             `Restless` marker here would send it wandering while it waits"
+        );
+        assert_eq!(
+            queue_of(&sim, agent).front(),
+            Some(Intent {
+                object: bed,
+                interaction: 0,
+            }),
+            "the intent must be KEPT: a reservation ends on its own, so \
+             discarding it would silently ignore a click on a busy object"
+        );
+    }
+
+    #[test]
+    fn a_queued_intent_preempts_an_interaction_already_under_way() {
+        // **The feel decision this task had to make.** The alpha pass
+        // measured a 24-second sleep, so an intent that queued behind a
+        // running interaction would leave a click with no visible
+        // response for half a minute - which is the failure [D-3] exists
+        // to prevent, arriving by a different route. An in-progress
+        // autonomous action is still autonomy, so the intent takes over.
+        //
+        // The agent is spawned ON the fridge so it is mid-meal after one
+        // tick, and the remaining duration is asserted before the intent
+        // is queued: without that, "the interaction ended" would be
+        // satisfied by it simply having run out.
+        let content = directed_content();
+        let mut sim = test_content::sim_with(16, 16, content);
+        let bed = spawn_object(&mut sim, BED_AT.0, BED_AT.1, def(content, "bed"));
+        let fridge = spawn_object(&mut sim, FRIDGE_AT.0, FRIDGE_AT.1, def(content, "fridge"));
+        let agent = spawn_agent_with(&mut sim, FRIDGE_AT.0, FRIDGE_AT.1, hungry_and_tired());
+
+        let eating = tick_until_eating(&mut sim, agent);
+        assert_eq!(
+            target_of(&sim, agent).map(|t| t.object),
+            Some(fridge),
+            "the sim must have chosen the fridge for itself"
+        );
+        assert!(
+            eating.remaining_ticks > 1,
+            "the interaction must have real time left on it, or 'it \
+             stopped' is satisfied by it finishing on its own; got {}",
+            eating.remaining_ticks
+        );
+        assert!(
+            sim.world().get::<Reserved>(fridge).is_some(),
+            "the fridge must be reserved before the intent arrives, or the \
+             release below is unobservable"
+        );
+
+        queue_intent(&mut sim, agent, bed, 0);
+        sim.tick();
+
+        assert!(
+            sim.world().get::<Eating>(agent).is_none(),
+            "the interaction under way must be abandoned; a sim that \
+             finishes its meal first leaves the player's click looking lost"
+        );
+        assert_eq!(
+            target_of(&sim, agent).map(|t| t.object),
+            Some(bed),
+            "the intent must become the new target"
+        );
+        assert!(
+            sim.world().get::<Reserved>(fridge).is_none(),
+            "the abandoned object's reservation must be released, or the \
+             fridge is claimed for ever by a sim that walked away from it"
+        );
+        assert!(
+            sim.world().get::<Reserved>(bed).is_some(),
+            "the newly directed object must be reserved"
+        );
+    }
+
+    #[test]
+    fn a_queued_intent_preempts_a_wander() {
+        // A wandering sim is not idle in the old sense: it holds a `Path`
+        // and it is `Restless`, and neither of those clears itself while
+        // it walks. So "the intent beats autonomy" has to be shown
+        // against a stroll as well as against a meal - [D-5] made this a
+        // live state on almost every free tick, and the two are reached by
+        // different branches of `serve_intents`.
+        //
+        // A sated sim has nothing worth doing, which is exactly the
+        // condition `wander` waits for.
+        let content = directed_content();
+        let mut sim = test_content::sim_with(16, 16, content);
+        let bed = spawn_object(&mut sim, BED_AT.0, BED_AT.1, def(content, "bed"));
+        let _fridge = spawn_object(&mut sim, FRIDGE_AT.0, FRIDGE_AT.1, def(content, "fridge"));
+        let agent = spawn_agent_with(&mut sim, AGENT_AT.0, AGENT_AT.1, Needs::all_at(NEED_MAX));
+
+        // Tick until the sim is genuinely mid-stroll rather than assuming
+        // it is: a path with no target is what a wander looks like from
+        // outside.
+        let mut wandering = false;
+        for _ in 0..40 {
+            sim.tick();
+            if sim.world().get::<Path>(agent).is_some() && target_of(&sim, agent).is_none() {
+                wandering = true;
+                break;
+            }
+        }
+        assert!(
+            wandering,
+            "the sated sim must be wandering before the intent arrives, or \
+             this test is a second copy of the suppression one"
+        );
+        assert!(
+            sim.world().get::<Restless>(agent).is_some(),
+            "a wandering sim carries `Restless`, and that marker is what \
+             the intent has to clear"
+        );
+
+        queue_intent(&mut sim, agent, bed, 0);
+        sim.tick();
+
+        assert_eq!(
+            target_of(&sim, agent).map(|t| t.object),
+            Some(bed),
+            "the intent must interrupt the stroll on the very next tick"
+        );
+        assert!(
+            sim.world().get::<Restless>(agent).is_none(),
+            "a directed sim is not a sim with nothing to do; leaving \
+             `Restless` set means it would be sent for another stroll the \
+             moment the walk ends"
+        );
+
+        // And it actually gets there, which is what rules out a target
+        // that is overwritten by a fresh wander a few ticks later.
+        let eating = tick_until_eating(&mut sim, agent);
+        assert_eq!(
+            eating.object,
+            def(content, "bed"),
+            "the sim must arrive at the object the player picked"
+        );
+    }
+
+    #[test]
+    fn completing_a_directed_interaction_pops_the_intent_and_returns_the_sim_to_autonomy() {
+        // The other end of the intent's life. [D-3] says an intent
+        // suppresses autonomy "until it completes or is cancelled", so the
+        // front entry has to survive the whole walk and the whole
+        // interaction and then go.
+        //
+        // Two failures this rules out, and they are opposite. Popping too
+        // early - on arrival, say - would let autonomy re-decide mid-meal.
+        // Never popping would make one click a loop: the sim would finish,
+        // be re-served the same intent, and use the bed for ever while the
+        // player wondered why it was ignoring a fridge three tiles away.
+        let (mut sim, bed, fridge, agent) = two_object_scenario();
+        queue_intent(&mut sim, agent, bed, 0);
+
+        sim.tick();
+        assert_eq!(
+            queue_of(&sim, agent).len(),
+            1,
+            "the intent must survive being served; it is the sim's \
+             standing commitment, not a one-tick trigger"
+        );
+
+        let eating = tick_until_eating(&mut sim, agent);
+        assert_eq!(eating.object, def(content_of(&sim), "bed"));
+        assert_eq!(
+            queue_of(&sim, agent).len(),
+            1,
+            "the intent must still be held while the interaction runs"
+        );
+
+        // Run the interaction out. The bound is a runaway detector rather
+        // than an assertion about duration, which [D-4] made a sampled
+        // value.
+        let mut finished = false;
+        for _ in 0..1024 {
+            sim.tick();
+            if sim.world().get::<Eating>(agent).is_none() {
+                finished = true;
+                break;
+            }
+        }
+        assert!(finished, "the directed interaction must terminate");
+        assert!(
+            queue_of(&sim, agent).is_empty(),
+            "completing the interaction must pop the intent, or one click \
+             becomes a loop"
+        );
+
+        // Autonomy resumes, and it resumes on the thing it wanted all
+        // along. Hunger has only grown while the sim slept.
+        let mut chose_the_fridge = false;
+        for _ in 0..200 {
+            sim.tick();
+            if target_of(&sim, agent).map(|t| t.object) == Some(fridge) {
+                chose_the_fridge = true;
+                break;
+            }
+        }
+        assert!(
+            chose_the_fridge,
+            "the sim must choose for itself again once the intent is done; \
+             still being pinned to the bed means the queue never emptied"
+        );
+        assert!(
+            sim.world().get::<Reserved>(bed).is_none(),
+            "the finished object must be released"
+        );
+    }
+
+    /// The pack a running sim is reading, for tests that need to resolve a
+    /// definition id after the world is built.
+    fn content_of(sim: &Sim) -> &'static ContentPack {
+        sim.world().resource::<Content>().0
+    }
+
+    #[test]
+    fn an_intent_to_an_unreachable_object_is_dropped_so_the_sim_does_not_stall() {
+        // An intent that can never be served must not suppress autonomy
+        // for ever. The sim would stand still while its needs drained,
+        // with no panic and no log - [L17]'s frozen agent, reached by a
+        // click instead of by a bad distance metric.
+        //
+        // Dropping it in the same tick is what lets autonomy pick up
+        // immediately, which is the observable half: "the queue is empty"
+        // alone would also be satisfied by a queue that never took the
+        // intent at all.
+        const AGENT_AT: (f32, f32) = (5.0, 3.0);
+        const SEALED_AT: (f32, f32) = (9.0, 3.0);
+        const REACHABLE_AT: (f32, f32) = (2.0, 3.0);
+
+        let content = test_content::pack(vec![test_content::object(
+            "identical",
+            &[(NeedId::Hunger, DELTA)],
+            DURATION,
+        )]);
+        let mut sim = test_content::sim_with(11, 7, content);
+        {
+            let mut grid = sim
+                .world_mut()
+                .get_resource_mut::<TileGrid>()
+                .expect("Sim::new inserts a TileGrid");
+            for y in 0..7 {
+                grid.set_blocked(8, y, true);
+            }
+        }
+        let identical = def(content, "identical");
+        let sealed = spawn_object(&mut sim, SEALED_AT.0, SEALED_AT.1, identical);
+        let reachable = spawn_object(&mut sim, REACHABLE_AT.0, REACHABLE_AT.1, identical);
+        let agent = spawn_agent(&mut sim, AGENT_AT.0, AGENT_AT.1, HUNGRY);
+
+        // Precondition: the sealed object really is sealed, and the other
+        // really is not.
+        let grid = sim.world().resource::<TileGrid>();
+        assert_eq!(
+            grid.find_path((5, 3), (9, 3)),
+            None,
+            "the intended object must be genuinely unreachable"
+        );
+        assert!(grid.find_path((5, 3), (2, 3)).is_some());
+
+        queue_intent(&mut sim, agent, sealed, 0);
+        sim.tick();
+
+        assert!(
+            queue_of(&sim, agent).is_empty(),
+            "an intent nothing can ever serve must be dropped, or the sim \
+             stands still for ever while its needs drain"
+        );
+        assert_eq!(
+            target_of(&sim, agent).map(|t| t.object),
+            Some(reachable),
+            "autonomy must pick up in the same tick the intent is dropped"
+        );
+    }
+
+    #[test]
+    fn an_intent_naming_a_despawned_object_is_dropped_rather_than_panicking() {
+        // The index a `UseObject` command carries comes from JavaScript
+        // and is resolved to an `Entity` at the boundary, but an entity
+        // that was alive when the command was enqueued can be gone by the
+        // time the intent reaches the front of the queue. A panic inside
+        // the WASM module traps it for the rest of the page's life, so
+        // this must be a no-op rather than a crash ([L12], and the same
+        // reasoning as `spawn_object`'s rejection path).
+        let content = test_content::pack(vec![test_content::object(
+            "identical",
+            &[(NeedId::Hunger, DELTA)],
+            DURATION,
+        )]);
+        let mut sim = test_content::sim_with(16, 16, content);
+        let identical = def(content, "identical");
+        let doomed = spawn_object(&mut sim, BED_AT.0, BED_AT.1, identical);
+        let survivor = spawn_object(&mut sim, FRIDGE_AT.0, FRIDGE_AT.1, identical);
+        let agent = spawn_agent(&mut sim, AGENT_AT.0, AGENT_AT.1, HUNGRY);
+
+        queue_intent(&mut sim, agent, doomed, 0);
+        assert!(
+            sim.world_mut().despawn(doomed),
+            "the object must actually be despawned or this test is about a \
+             live entity"
+        );
+
+        sim.tick();
+
+        assert!(
+            queue_of(&sim, agent).is_empty(),
+            "an intent naming an entity that no longer exists must be \
+             dropped"
+        );
+        assert_eq!(
+            target_of(&sim, agent).map(|t| t.object),
+            Some(survivor),
+            "and the sim must go back to choosing for itself"
+        );
+    }
+
+    #[test]
+    fn an_intent_for_another_interaction_on_the_object_in_use_keeps_the_reservation() {
+        // The one branch that is neither "serve" nor "wait": the object
+        // the player picked is already reserved, and the reservation is
+        // this agent's OWN. Without the `held_here` clause the sim would
+        // read its own claim as contention and wait for itself for ever,
+        // which is a deadlock a player could reach by clicking twice on
+        // the thing their sim is already using.
+        const OBJECT_AT: (f32, f32) = (11.0, 8.0);
+        let content = decisive_pack(vec![test_content::object_offering(
+            "larder",
+            vec![
+                // The stronger interaction is FIRST, so autonomy picks
+                // index 0 and the intent below is a genuine change.
+                test_content::interaction("feast", &[(NeedId::Hunger, DELTA)], DURATION),
+                test_content::interaction("nibble", &[(NeedId::Hunger, DELTA / 2.0)], DURATION),
+            ],
+        )]);
+        let mut sim = test_content::sim_with(16, 16, content);
+        let larder = spawn_object(&mut sim, OBJECT_AT.0, OBJECT_AT.1, def(content, "larder"));
+        let agent = spawn_agent(&mut sim, OBJECT_AT.0, OBJECT_AT.1, HUNGRY);
+
+        let eating = tick_until_eating(&mut sim, agent);
+        assert_eq!(
+            eating.interaction, 0,
+            "autonomy must have picked the stronger interaction, or the \
+             intent below is not a change"
+        );
+        assert!(sim.world().get::<Reserved>(larder).is_some());
+
+        queue_intent(&mut sim, agent, larder, 1);
+        sim.tick();
+
+        let target = target_of(&sim, agent).expect("the sim must still be on the larder");
+        assert_eq!(target.object, larder);
+        assert_eq!(
+            target.interaction, 1,
+            "the intent must switch which interaction is performed"
+        );
+        assert!(
+            sim.world().get::<Reserved>(larder).is_some(),
+            "the reservation must be kept across the switch, or the object \
+             is briefly free for somebody else to take out from under a sim \
+             standing on it"
+        );
+        assert_eq!(
+            sim.world().get::<Eating>(agent).map(|e| e.interaction),
+            Some(1),
+            "the sim is already standing on the object, so the new \
+             interaction begins on the same tick"
+        );
+    }
+
+    #[test]
+    fn an_intent_naming_an_interaction_the_object_does_not_have_is_dropped() {
+        // `follow_path` and `tick_interactions` both index straight into
+        // `interactions` with this number, so an out-of-range index would
+        // be a panic two systems away from where it entered. It cannot
+        // come from a live click, but a command log recorded against an
+        // older pack is exactly [D8]'s save model.
+        let content = test_content::pack(vec![test_content::object(
+            "identical",
+            &[(NeedId::Hunger, DELTA)],
+            DURATION,
+        )]);
+        let mut sim = test_content::sim_with(16, 16, content);
+        let identical = def(content, "identical");
+        let object = spawn_object(&mut sim, FRIDGE_AT.0, FRIDGE_AT.1, identical);
+        let agent = spawn_agent(&mut sim, AGENT_AT.0, AGENT_AT.1, HUNGRY);
+        assert_eq!(
+            content.object(identical).interactions.len(),
+            1,
+            "index 1 must be out of range for this fixture"
+        );
+
+        queue_intent(&mut sim, agent, object, 1);
+        sim.tick();
+
+        assert!(
+            queue_of(&sim, agent).is_empty(),
+            "an intent naming an interaction that does not exist must be \
+             dropped rather than carried into a panic"
+        );
+        assert_eq!(
+            target_of(&sim, agent).map(|t| t.interaction),
+            Some(0),
+            "and the sim must choose an interaction that does exist"
+        );
+    }
+
+    /// The order `serve_intents`'s query yields directed agents in, with
+    /// no sorting applied - precisely the order the winner must NOT
+    /// depend on.
+    ///
+    /// The fetch and filter match that system's query, so this reports the
+    /// order it would see rather than a different query's order that
+    /// happens to agree today. Modelled on `raw_object_order`.
+    #[allow(clippy::type_complexity)]
+    fn raw_directed_order(sim: &Sim) -> Vec<u32> {
+        let mut state = sim
+            .world()
+            .try_query_filtered::<(Entity, &Position, &IntentQueue, Option<&Target>), With<Agent>>()
+            .expect("every component in the intent query is registered in Sim::new");
+        state
+            .iter(sim.world())
+            .map(|(entity, _, _, _)| entity.index_u32())
+            .collect()
+    }
+
+    #[test]
+    fn two_sims_intending_one_object_resolve_by_entity_order_not_archetype_order() {
+        // `serve_intents` writes contended state - a reservation - so the
+        // order it visits agents in decides who gets the object, and query
+        // iteration is archetype order rather than simulation state. Same
+        // rule and same reason as the sorts in `select_action`,
+        // `follow_path` and `wander`; see [D-3] and [L5].
+        //
+        // `cargo mutants` cannot see a `sort_by_key` at all - a statement
+        // whose only effect is on state is outside its grammar - so this
+        // test is the only thing standing between that line and someone
+        // deleting it as tidiness. docs/testing-protocol.md rule 2.
+        //
+        // It pins the `claimed` list too, and that half is separable: the
+        // reservation the first agent takes is queued through `Commands`,
+        // so the `Has<Reserved>` read cannot see it within the same tick.
+        // Without `claimed` both agents would be sent to the same slot.
+        let content = test_content::pack(vec![test_content::object(
+            "identical",
+            &[(NeedId::Hunger, DELTA)],
+            DURATION,
+        )]);
+        let mut sim = test_content::sim_with(16, 16, content);
+        let object = spawn_object(&mut sim, 5.0, 5.0, def(content, "identical"));
+        let first = spawn_agent(&mut sim, 1.0, 1.0, HUNGRY);
+        let second = spawn_agent(&mut sim, 2.0, 1.0, HUNGRY);
+        assert!(
+            first.index() < second.index(),
+            "spawn order sets the indices"
+        );
+
+        queue_intent(&mut sim, first, object, 0);
+        queue_intent(&mut sim, second, object, 0);
+
+        // Archetype churn, which is how it happens for real: an agent
+        // leaves and re-enters its table every time it starts or stops
+        // eating, and leaving swap-removes it while re-entering appends
+        // it at the back. So the lower-indexed agent now iterates LAST.
+        sim.world_mut().entity_mut(first).insert(Eating {
+            object: def(content, "identical"),
+            interaction: 0,
+            remaining_ticks: 1,
+        });
+        sim.world_mut().entity_mut(first).remove::<Eating>();
+
+        // The precondition that makes the churn real. Without it this
+        // test would pass with the sort deleted, per [L5].
+        let iteration_order = raw_directed_order(&sim);
+        let mut index_order = iteration_order.clone();
+        index_order.sort_unstable();
+        assert_ne!(
+            iteration_order, index_order,
+            "the query must yield the directed agents in an order that is \
+             NOT index order, or the sort has nothing to do; got \
+             {iteration_order:?}"
+        );
+
+        sim.tick();
+
+        assert_eq!(
+            target_of(&sim, first).map(|t| t.object),
+            Some(object),
+            "the lowest entity index must win the contended object \
+             regardless of table order; the other agent winning means the \
+             deterministic sort is gone"
+        );
+        assert_eq!(
+            target_of(&sim, second),
+            None,
+            "exactly one agent may claim a single-slot object, and the \
+             loser must not be handed it as well; a target here means the \
+             same-tick claim list is gone"
+        );
+        assert_eq!(
+            queue_of(&sim, second).len(),
+            1,
+            "the agent that lost the race must keep its intent and wait"
+        );
+    }
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
     use crate::test_content;
@@ -596,7 +1672,7 @@ mod tests {
     /// **The distribution tests deliberately do NOT use it.** They run at
     /// the shipped temperature, because a fixture that makes the choice
     /// certain is a fixture that cannot see the milestone's whole point.
-    const DECISIVE_TEMPERATURE: f32 = 0.0001;
+    pub(super) const DECISIVE_TEMPERATURE: f32 = 0.0001;
 
     /// The shipped knobs with the temperature turned down.
     ///
@@ -610,7 +1686,7 @@ mod tests {
         }
     }
 
-    fn decisive_pack(objects: Vec<CompiledObject>) -> &'static ContentPack {
+    pub(super) fn decisive_pack(objects: Vec<CompiledObject>) -> &'static ContentPack {
         test_content::pack_tuned(objects, decisive_tuning())
     }
 
@@ -629,7 +1705,7 @@ mod tests {
     /// becoming too high for some future fixture whose two candidates sit
     /// closer together: that fixture fails here, naming the numbers,
     /// rather than becoming intermittently wrong.
-    fn assert_decisive(winner_score: f32, loser_score: f32) {
+    pub(super) fn assert_decisive(winner_score: f32, loser_score: f32) {
         assert!(
             winner_score > loser_score,
             "the intended winner must actually score higher; \
@@ -680,29 +1756,29 @@ mod tests {
     /// system used on the tick each test just ran. A literal here would
     /// leave every precondition below green while silently no longer
     /// testing the real threshold, from the first time anybody tunes it.
-    fn action_threshold() -> f32 {
+    pub(super) fn action_threshold() -> f32 {
         test_content::tuning().action_threshold
     }
 
-    fn def(content: &ContentPack, id: &str) -> ObjectDefId {
+    pub(super) fn def(content: &ContentPack, id: &str) -> ObjectDefId {
         content
             .find(id)
             .unwrap_or_else(|| panic!("the fixture must declare '{id}'"))
     }
 
-    fn spawn_object(sim: &mut Sim, x: f32, y: f32, def: ObjectDefId) -> Entity {
+    pub(super) fn spawn_object(sim: &mut Sim, x: f32, y: f32, def: ObjectDefId) -> Entity {
         sim.world_mut()
             .spawn((Position { x, y }, SmartObject(def)))
             .id()
     }
 
-    fn spawn_agent_with(sim: &mut Sim, x: f32, y: f32, needs: Needs) -> Entity {
+    pub(super) fn spawn_agent_with(sim: &mut Sim, x: f32, y: f32, needs: Needs) -> Entity {
         sim.world_mut()
             .spawn((Agent, Position { x, y }, needs))
             .id()
     }
 
-    fn spawn_agent(sim: &mut Sim, x: f32, y: f32, hunger: f32) -> Entity {
+    pub(super) fn spawn_agent(sim: &mut Sim, x: f32, y: f32, hunger: f32) -> Entity {
         spawn_agent_with(sim, x, y, Needs::with(NeedId::Hunger, hunger))
     }
 
@@ -738,10 +1814,23 @@ mod tests {
     ///
     /// The coordinates are rounded first because `select_action` rounds
     /// them to tile indices before pathing.
-    fn walk_tiles(agent_at: (f32, f32), object_at: (f32, f32)) -> f32 {
+    /// **One less than the Manhattan distance, because the agent stops
+    /// beside the object rather than on it.**
+    ///
+    /// Selection paths with `find_path_adjacent`, so the walk ends on a
+    /// neighbour of the object's tile: on an open grid that is exactly one
+    /// step fewer than reaching the tile itself. This helper restates the
+    /// metric independently, so it has to restate *that* metric - and the
+    /// subtraction is the part a reader will want to query, which is why it is
+    /// the first line of this comment rather than a footnote.
+    ///
+    /// An agent standing **on** the object walks 1, not 0 or -1: it steps off.
+    /// That case is the reason for the `max`, and it is reachable - it was the
+    /// normal resting state before objects stopped being stood on.
+    pub(super) fn walk_tiles(agent_at: (f32, f32), object_at: (f32, f32)) -> f32 {
         let dx = object_at.0.round() - agent_at.0.round();
         let dy = object_at.1.round() - agent_at.1.round();
-        dx.abs() + dy.abs()
+        (dx.abs() + dy.abs() - 1.0).max(1.0)
     }
 
     /// An independent restatement of the straight-line distance
@@ -894,8 +1983,10 @@ mod tests {
         // Preconditions. Both candidates must be genuinely selectable, or
         // "the near one won" could be satisfied by the far one being
         // ineligible for some unrelated reason.
-        assert_eq!(walk_tiles((8.0, 8.0), (11.0, 8.0)), 3.0);
-        assert_eq!(walk_tiles((8.0, 8.0), (1.0, 8.0)), 7.0);
+        // Placed 3 and 7 tiles out; WALKED 2 and 6, because the agent stops
+        // beside the object rather than on it.
+        assert_eq!(walk_tiles((8.0, 8.0), (11.0, 8.0)), 2.0);
+        assert_eq!(walk_tiles((8.0, 8.0), (1.0, 8.0)), 6.0);
         assert!(
             far_score > action_threshold(),
             "the losing object must still clear the threshold, or this \
@@ -958,8 +2049,10 @@ mod tests {
                 IDENTICAL_DURATION,
             ),
         );
-        assert_eq!(walk_tiles((8.0, 8.0), (8.0, 11.0)), 3.0);
-        assert_eq!(walk_tiles((8.0, 8.0), (8.0, 1.0)), 7.0);
+        // Placed 3 and 7 tiles out; WALKED 2 and 6, because the agent stops
+        // beside the object rather than on it.
+        assert_eq!(walk_tiles((8.0, 8.0), (8.0, 11.0)), 2.0);
+        assert_eq!(walk_tiles((8.0, 8.0), (8.0, 1.0)), 6.0);
         assert!(
             far_score > action_threshold(),
             "the losing object must still clear the threshold; got {far_score}"
@@ -979,6 +2072,165 @@ mod tests {
             "the nearer of two identical objects must win; a different \
              winner means the walked distance along y no longer reaches \
              the score",
+        );
+    }
+
+    /// A lot with exactly one thing worth doing and two agents that both
+    /// want it, plus the tuning that makes the outcome a formality.
+    ///
+    /// The object is placed so both agents can reach it and the agents are
+    /// spawned in a known index order, because which of them wins is
+    /// entity-index order by [D4] and the *loser* is what these tests are
+    /// about.
+    /// The object an agent is currently committed to, if any.
+    ///
+    /// A local rather than a reach into `intent_tests`, which has its own
+    /// copy: two private test modules sharing three lines would couple them
+    /// more than it saves, and the same reasoning is already recorded for
+    /// `DECISIVE_TEMPERATURE`.
+    fn target_object(sim: &Sim, agent: Entity) -> Option<Entity> {
+        sim.world().get::<Target>(agent).map(|t| t.object)
+    }
+
+    fn one_object_two_agents() -> (Sim, Entity, Entity, Entity) {
+        const OBJECT_AT: (f32, f32) = (8.0, 8.0);
+        let content = decisive_pack(vec![test_content::object(
+            "fridge",
+            &[(NeedId::Hunger, 40.0)],
+            15,
+        )]);
+        let mut sim = test_content::sim_with(16, 16, content);
+        let fridge = spawn_object(&mut sim, OBJECT_AT.0, OBJECT_AT.1, def(content, "fridge"));
+        // Both starving, both three tiles out on opposite sides, so neither
+        // has a distance advantage and both score identically.
+        let winner = spawn_agent(&mut sim, 5.0, 8.0, 5.0);
+        let loser = spawn_agent(&mut sim, 11.0, 8.0, 5.0);
+        (sim, fridge, winner, loser)
+    }
+
+    /// **An agent outbid WITHIN a tick must not be told nothing is worth
+    /// doing.**
+    ///
+    /// `Restless` means "nothing this agent can reach scored above
+    /// `idle_threshold`", and `idle::wander` reads it as permission to send
+    /// the sim for a stroll. An agent that wanted the fridge and lost it to
+    /// a lower-indexed agent this tick has a false claim written about it,
+    /// and the visible result is a sim walking away from the thing it
+    /// wanted rather than waiting near it.
+    ///
+    /// The cause is ordering inside the candidate loop: a `claimed` object
+    /// was skipped by `continue` *before* its score could be folded into
+    /// `best_seen`, so the loser came out with `best_seen` still at
+    /// negative infinity - the value that means "no reachable object at
+    /// all".
+    ///
+    /// Recorded as [C3] in `docs/alpha-feel-notes.md`, and noted there as
+    /// unobservable on the shipped page because it has one sim. This test
+    /// is the two-sim world that observes it.
+    #[test]
+    fn an_agent_outbid_within_a_tick_waits_rather_than_wandering_off() {
+        let (mut sim, fridge, winner, loser) = one_object_two_agents();
+
+        sim.tick();
+
+        // Preconditions. Without these, "the loser is not restless" is
+        // satisfied by a world where the loser simply won.
+        assert_eq!(
+            target_object(&sim, winner),
+            Some(fridge),
+            "the lower-indexed agent must take the fridge, or nobody was \
+             outbid and this test is about nothing"
+        );
+        assert_eq!(
+            target_object(&sim, loser),
+            None,
+            "the higher-indexed agent must have been denied the fridge; if \
+             it also got a target then the object was not contended"
+        );
+
+        assert!(
+            sim.world().get::<Restless>(loser).is_none(),
+            "an agent beaten to the only worthwhile object must not be \
+             marked Restless - it wanted something, it simply could not \
+             have it this tick, and Restless sends it wandering away from \
+             the thing it is waiting for"
+        );
+    }
+
+    /// **The same falsehood by the other route, and this one lasts far
+    /// longer.**
+    ///
+    /// `claimed` only covers agents contending on the *same* tick. An
+    /// object reserved on an earlier tick carries `Reserved`, and the
+    /// object query used to filter those out entirely - so a waiting agent
+    /// never saw the object at all, scored nothing, and was marked
+    /// `Restless` for the whole of the other sim's walk *and* meal. On the
+    /// shipped lot that is tens of ticks rather than one, which makes this
+    /// the more visible half of [C3] even though the notes describe the
+    /// within-tick case.
+    ///
+    /// Two ticks, because the reservation has to already exist when the
+    /// second one runs: on tick one the winner claims the fridge and both
+    /// agents are inside the same `claimed` list, which is the case the
+    /// test above covers.
+    #[test]
+    fn an_agent_waiting_on_an_object_reserved_earlier_waits_rather_than_wandering_off() {
+        let (mut sim, fridge, winner, loser) = one_object_two_agents();
+
+        sim.tick();
+        sim.tick();
+
+        assert!(
+            sim.world().get::<Reserved>(fridge).is_some(),
+            "the fridge must still be reserved on the second tick, or the \
+             loser is not waiting on anything"
+        );
+        assert_eq!(
+            target_object(&sim, winner),
+            Some(fridge),
+            "the winner must still hold it"
+        );
+        assert_eq!(
+            target_object(&sim, loser),
+            None,
+            "the loser must still be without a target"
+        );
+
+        assert!(
+            sim.world().get::<Restless>(loser).is_none(),
+            "an agent waiting on an object somebody else reserved on an \
+             EARLIER tick must not be marked Restless either; this is the \
+             long-lived half of the bug and it lasts as long as the other \
+             sim's walk and interaction combined"
+        );
+    }
+
+    /// The guard against the obvious over-correction: an agent with genuinely
+    /// nothing to do **must** still be marked `Restless`, or the fix above
+    /// deletes wandering entirely.
+    ///
+    /// This is the assertion that stops "never mark Restless" from passing
+    /// the two tests above. It is the same world with the object removed, so
+    /// the only difference from the fixture is whether anything worth doing
+    /// exists at all.
+    #[test]
+    fn an_agent_with_nothing_reachable_is_still_marked_restless() {
+        let content = decisive_pack(vec![test_content::object(
+            "fridge",
+            &[(NeedId::Hunger, 40.0)],
+            15,
+        )]);
+        let mut sim = test_content::sim_with(16, 16, content);
+        // No object spawned at all, so there is nothing to score.
+        let agent = spawn_agent(&mut sim, 5.0, 8.0, 5.0);
+
+        sim.tick();
+
+        assert!(
+            sim.world().get::<Restless>(agent).is_some(),
+            "an agent in an empty room has nothing worth doing and must be \
+             Restless; without this, the contested-object fix could suppress \
+             the marker unconditionally and delete idle wandering"
         );
     }
 
@@ -1027,7 +2279,8 @@ mod tests {
         let far_score = score_of(deficit, AGENT_AT, FAR_AT, FAR_DELTA, DURATION);
         // Preconditions: the near object really is nearer, really is a
         // live candidate, and really does lose anyway.
-        assert_eq!(walk_tiles(AGENT_AT, NEAR_AT), 7.0);
+        // Placed 7 tiles out, walked 6: the agent stops beside it.
+        assert_eq!(walk_tiles(AGENT_AT, NEAR_AT), 6.0);
         assert!(
             walk_tiles(AGENT_AT, FAR_AT) > walk_tiles(AGENT_AT, NEAR_AT),
             "the high-benefit object must be the farther one or this test \
@@ -1579,6 +2832,14 @@ mod tests {
         // 16. 6.4, 0.8 and 0.05 share a mantissa, so 0.125 * 6.4 / 16 is
         // 0.05f32 with no rounding anywhere.
         //
+        // **The object sits THREE tiles away and the agent walks two**,
+        // because selection paths to a neighbour of the object rather than
+        // onto it. That is the one term the adjacency change moved: it was
+        // placed two tiles out and walked two, and re-deriving meant pushing
+        // the placement out by one so the walk - which is what the score
+        // divides by - stays at two and the denominator stays at exactly 16.
+        // Re-derived rather than relaxed, exactly as the note below demands.
+        //
         // **The deltas below stay literal, and 0.05 stays the authored
         // `action_threshold`.** This is the one test in the module whose
         // fixture is arithmetic rather than an inequality, so it is also
@@ -1614,7 +2875,7 @@ mod tests {
         const ABOVE_DELTA: f32 = 6.5;
         const BELOW_DELTA: f32 = 6.3;
         const AGENT_AT: (f32, f32) = (5.0, 5.0);
-        const OBJECT_AT: (f32, f32) = (7.0, 5.0);
+        const OBJECT_AT: (f32, f32) = (8.0, 5.0);
         const DURATION: u32 = 7;
 
         /// Builds a one-object world, ticks once, and reports whether the

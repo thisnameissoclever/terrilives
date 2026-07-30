@@ -1,5 +1,5 @@
 use bevy_ecs::prelude::*;
-use terri_core::{Eating, NeedId, Needs, Reserved, SimRng, Target};
+use terri_core::{Eating, IntentQueue, NeedId, Needs, Reserved, SimRng, Target};
 
 use crate::Content;
 
@@ -41,11 +41,15 @@ use crate::Content;
 /// 25. An interaction whose whole sampled band sits under the floor has a
 /// FIXED length, so [D-4] is inert for it, and it also delivers
 /// `floor / duration_ticks` times what its content advertises, because
-/// the refill below divides by the content duration. `content/tuning.toml`
-/// carries the condition for the floor to be inert
-/// (`duration_ticks >= floor / (1 - duration_variance)`) and the
-/// measurements; `docs/alpha-feel-notes.md` carries the objects that
-/// still fail it.
+/// the refill below divides by the content duration.
+///
+/// **That is now impossible to author.** `ClippedDuration` in terri-data
+/// fails the build for any interaction whose band bottoms out below the
+/// floor - the condition is
+/// `duration_ticks * (1 - duration_variance) >= min_interaction_ticks` -
+/// so the floor here is a genuine safety net rather than a balance lever.
+/// No shipped interaction is within reach of it, which
+/// `no_shipped_interaction_is_clipped_by_the_interaction_floor` asserts.
 ///
 /// # One draw, always
 ///
@@ -86,19 +90,30 @@ pub fn sample_duration(centre: u32, variance: f32, floor: u32, rng: &mut SimRng)
 ///
 /// The visible consequence used to be the shipped fridge, whose 15-tick
 /// snack a 25-tick floor stretched to a flat 25, so it delivered about 67
-/// hunger rather than 40. **The alpha feel pass decided that was too
-/// much** and lowered the floor to 12 rather than raising the fridge's
-/// content number, because the floor was binding on the majority of
-/// interactions and was therefore acting as a balance lever rather than a
-/// safety net. Measured after the change: the fridge samples 12 to 20
-/// ticks, averages 14.4 against its declared 15, and delivers about 38
-/// hunger against its declared 40. See `docs/alpha-feel-notes.md`.
+/// hunger rather than 40. That took two passes to actually fix. The feel
+/// pass lowered the floor from 25 to 12, which brought the fridge out from
+/// under it but left the sink wholly beneath and the fridge and toilet
+/// clipped at the bottom of their bands. The alpha pass then raised the
+/// three content durations above the line and made being under it a build
+/// error.
+///
+/// Measured after both, over 12 000 ticks of the shipped lot: the fridge
+/// declares 30, samples 18 to 40, and averages 25.0 - below its centre
+/// because the draw is biased shorter, which is [D-4] working rather than
+/// the floor binding. Nothing is pinned to a single length any more. Rerun
+/// it with `cargo run -p terri-sim --example trace`.
 pub fn tick_interactions(
     mut commands: Commands,
     content: Res<Content>,
-    mut agents: Query<(Entity, &mut Eating, &mut Needs, &Target)>,
+    mut agents: Query<(
+        Entity,
+        &mut Eating,
+        &mut Needs,
+        &Target,
+        Option<&mut IntentQueue>,
+    )>,
 ) {
-    for (entity, mut eating, mut needs, target) in &mut agents {
+    for (entity, mut eating, mut needs, target, queue) in &mut agents {
         // Every index here is in range by construction. The object and
         // interaction ids were read out of this same pack when
         // `follow_path` began the interaction, content validation rejects
@@ -112,6 +127,29 @@ pub fn tick_interactions(
         eating.remaining_ticks = eating.remaining_ticks.saturating_sub(1);
 
         if eating.remaining_ticks == 0 {
+            // **A player-issued intent lives until the interaction it
+            // named finishes** - [D-3]'s "until it completes or is
+            // cancelled" - so completing it is what pops it. Without
+            // this the sim would re-serve the same intent for ever and a
+            // single click would become a loop the player can only
+            // escape with a cancel.
+            //
+            // Guarded on the front intent MATCHING what just finished,
+            // rather than popping unconditionally, because an agent can
+            // finish an autonomously chosen interaction with an intent it
+            // has never started sitting at the front of its queue. The
+            // reachable case: the click named an object another agent had
+            // reserved, so `serve_intents` left the sim to finish its
+            // meal and kept the intent for when the object frees up.
+            // Popping there would discard an instruction that was never
+            // carried out.
+            if let Some(mut queue) = queue {
+                if queue.front().is_some_and(|intent| {
+                    intent.object == target.object && intent.interaction == target.interaction
+                }) {
+                    queue.pop();
+                }
+            }
             commands
                 .entity(entity)
                 .remove::<Eating>()
@@ -742,25 +780,62 @@ mod tests {
         // number and lose the reason, so the seconds are computed and
         // named here.
         //
-        // The fixture is a SHIPPED object, deliberately, so this is a
-        // statement about the game rather than about a fixture invented
-        // to have the property. **It is the sink rather than the fridge,
-        // and that swap is a finding rather than housekeeping.** At the
-        // original 25-tick floor the fridge's whole band was underneath
-        // it, along with the toilet's and the sink's, so 61% of measured
-        // interactions ran for exactly the floor and [D-4] was inert for
-        // them. The alpha feel pass lowered the floor to 12 and the
-        // fridge came out from under it; the sink, whose band tops out
-        // at 8 * 1.4 = 11 ticks, did not. See docs/alpha-feel-notes.md.
+        // **This used to use a shipped object and deliberately cannot any
+        // more.** It was the sink, chosen because the sink's whole band sat
+        // under the floor: at 8 declared ticks its widest draw was 11.2
+        // against a floor of 12, so the clamp decided every one of its
+        // interactions. That was a bug in shipped content, recorded as [C1],
+        // and this test was quietly relying on it.
+        //
+        // The alpha balance pass fixed it and then made it unrepresentable:
+        // `ClippedDuration` in terri-data now fails the BUILD for any
+        // interaction whose band bottoms out below the floor, and
+        // `no_shipped_interaction_is_clipped_by_the_interaction_floor` asserts
+        // shipped content stays clear of the line. So there is no longer a
+        // shipped object this test could use, and if one ever appears the
+        // build breaks before this test runs.
+        //
+        // The clamp is still a real mechanism and still worth pinning, so the
+        // fixture is now an invented object that the compiler would reject as
+        // content - which fixtures may be, because `test_content` builds a
+        // `CompiledObject` directly rather than going through `compile()`.
+        // The trade is explicit: this is a statement about the CLAMP rather
+        // than about the game, and the statement about the game is the
+        // terri-data test named above.
         //
         // Equality rather than `>=`, and the precondition below is what
         // earns it: the widest draw the variance allows is still under
         // the floor, so the clamp decides EVERY interaction here and a
-        // `>=` would also be satisfied by an unclamped 11.
+        // `>=` would also be satisfied by an unclamped shorter draw.
         const NEED: NeedId = NeedId::Hygiene;
+        // The largest centre whose whole band still sits under the floor.
+        //
+        // At the shipped floor of 12 and variance of 0.4 the expression below
+        // yields 7, whose band is 4.2 to 9.8 - entirely underneath. It is
+        // derived from the tuning rather than written as a literal so that a
+        // floor change cannot leave this fixture accidentally above the line
+        // with the test still asserting equality.
+        //
+        // An earlier version of this comment said "6 ticks... band 3.6 to 8.4",
+        // which is a different fixture from the one the code builds. A review
+        // caught it. That is the shape [L40] warns about: a worked example in a
+        // comment is not a measurement, and this one was never run.
         let tuning = test_content::tuning();
-        let object = test_content::shipped_object("sink");
-        let mut sim = Sim::new_with_lot(16, 16);
+        let centre = ((tuning.min_interaction_ticks as f32 / (1.0 + tuning.duration_variance))
+            .floor() as u32)
+            .saturating_sub(1)
+            .max(1);
+        let content = test_content::pack(vec![test_content::object(
+            "quick_rinse",
+            &[(NEED, 30.0)],
+            centre,
+        )]);
+        let mut sim = test_content::sim_with(16, 16, content);
+        let object = SmartObject(
+            content
+                .find("quick_rinse")
+                .expect("the fixture declares it"),
+        );
         sim.world_mut()
             .spawn((Position { x: 10.0, y: 8.0 }, object));
         let agent = sim
@@ -768,7 +843,6 @@ mod tests {
             .spawn((Agent, Position { x: 9.0, y: 8.0 }, Needs::with(NEED, 5.0)))
             .id();
 
-        let centre = terri_data::pack().object(object.0).interactions[0].duration_ticks;
         let longest_unclamped = centre as f32 * (1.0 + tuning.duration_variance);
         assert!(
             longest_unclamped < floor() as f32,
@@ -838,6 +912,135 @@ mod tests {
              exactly the number of ticks its content declares; anything \
              else means the content value is not the centre it is \
              documented to be"
+        );
+    }
+
+    // ---- The pop guard -------------------------------------------------
+
+    /// A world with a fridge and a bed, and an agent one tick from
+    /// finishing an interaction at `finishing`, holding a queued intent
+    /// for `queued` that it has never started.
+    ///
+    /// Built by hand rather than reached through autonomy, deliberately.
+    /// The state IS reachable - `serve_intents` leaves an intent queued
+    /// when the object it names is reserved by somebody else, so a sim
+    /// finishes the meal it chose for itself with a click still waiting -
+    /// but reaching it through the schedule would put decay, selection
+    /// and a second agent's reservation inside a test about one `if`.
+    /// Rule 4 asks a guard's fixture to hold everything else constant.
+    ///
+    /// Returns the sim, the agent, and the two object entities.
+    fn agent_finishing_with_a_queued_intent(
+        same_object: bool,
+    ) -> (Sim, Entity, terri_core::IntentQueue) {
+        use bevy_ecs::schedule::Schedule;
+        use terri_core::{Intent, IntentQueue};
+
+        // Two objects, and the interaction index is 0 on BOTH, which is
+        // the whole point of the fixture: `UseObject` always names
+        // interaction 0 and an autonomously chosen interaction is 0 on
+        // every single-interaction object, so the two fields disagree on
+        // the object and agree on the index.
+        let content = test_content::pack(vec![
+            test_content::object("fridge", &[(NeedId::Hunger, 40.0)], 15),
+            test_content::object("bed", &[(NeedId::Energy, 40.0)], 15),
+        ]);
+        let mut sim = test_content::sim_with(16, 16, content);
+        let fridge_def = content
+            .find("fridge")
+            .expect("the fixture declares a fridge");
+        let fridge = sim
+            .world_mut()
+            .spawn((Position { x: 10.0, y: 8.0 }, SmartObject(fridge_def)))
+            .id();
+        let bed = sim
+            .world_mut()
+            .spawn((
+                Position { x: 2.0, y: 8.0 },
+                SmartObject(content.find("bed").expect("the fixture declares a bed")),
+            ))
+            .id();
+
+        let queued = if same_object { fridge } else { bed };
+        let agent = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 10.0, y: 8.0 },
+                Needs::with(NeedId::Hunger, 5.0),
+                Target {
+                    object: fridge,
+                    interaction: 0,
+                },
+                Eating {
+                    object: fridge_def,
+                    interaction: 0,
+                    remaining_ticks: 1,
+                },
+                IntentQueue::from_intents(vec![Intent {
+                    object: queued,
+                    interaction: 0,
+                }]),
+            ))
+            .id();
+
+        // Only `tick_interactions`, so what is asserted afterwards is
+        // what the guard did rather than what `serve_intents` did in
+        // response to it on the same tick.
+        let mut schedule = Schedule::default();
+        schedule.add_systems(super::tick_interactions);
+        schedule.run(sim.world_mut());
+
+        let queue = sim
+            .world()
+            .get::<IntentQueue>(agent)
+            .expect("the agent was spawned with a queue")
+            .clone();
+        (sim, agent, queue)
+    }
+
+    #[test]
+    fn a_finished_interaction_pops_only_the_intent_that_named_the_object_it_finished() {
+        // **Found by M1b Task 6's mutation sweep, and it is the twin of
+        // the guard Task 5 fixed one file over.** The mutant is
+        // `intent.object == target.object && intent.interaction ==
+        // target.interaction` relaxed to `||`, and nothing in the
+        // workspace could see it: every other fixture that reaches this
+        // line has both fields agreeing, which is [L34]'s input domain
+        // again. The full sweep that would have caught it at Task 5 was
+        // stopped before it reached this file, so this is the first
+        // complete sweep since the guard was written.
+        //
+        // What the relaxed form costs: `UseObject` always names
+        // interaction 0, and an autonomously chosen interaction is 0 on
+        // every single-interaction object. So a sim finishing the meal it
+        // chose for itself, with a click for a DIFFERENT object waiting
+        // behind it, would have that click silently discarded - the
+        // player's instruction disappears with no error and the sim goes
+        // back to autonomy as though nothing was ever asked of it.
+        //
+        // Both directions are asserted, because they fail to different
+        // mutations. Keeping the non-matching intent is what `||` breaks;
+        // popping the matching one is what deleting `queue.pop()`
+        // altogether breaks, and without that half this test would pass
+        // on a guard that never pops anything and turns one click into a
+        // loop the player can only escape with a cancel.
+        let (_sim, _agent, kept) = agent_finishing_with_a_queued_intent(false);
+        assert_eq!(
+            kept.len(),
+            1,
+            "an intent naming a DIFFERENT object must survive the \
+             interaction the sim finished on its own; it shares only the \
+             interaction index, and popping it throws away an instruction \
+             that was never carried out"
+        );
+
+        let (_sim, _agent, popped) = agent_finishing_with_a_queued_intent(true);
+        assert!(
+            popped.is_empty(),
+            "an intent naming the object that just finished must be \
+             popped, or the sim re-serves it for ever and one click \
+             becomes a loop"
         );
     }
 }

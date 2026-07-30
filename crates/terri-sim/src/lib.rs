@@ -56,6 +56,11 @@ impl Sim {
         world.insert_resource(terri_core::SimRng::from_seed(
             terri_data::pack().tuning.rng_seed,
         ));
+        // The staging area for player input - [D-2]. It has to exist from
+        // construction rather than on first use, because `drain_commands`
+        // takes it as `ResMut` and a missing resource is a panic on the
+        // first tick rather than a command that quietly does nothing.
+        world.insert_resource(terri_core::CommandQueue::default());
 
         // Register components eagerly. This is NOT optional bookkeeping:
         // World::try_query returns None if ANY component in the query is
@@ -74,6 +79,16 @@ impl Sim {
         world.register_component::<terri_core::Eating>();
         world.register_component::<terri_core::Restless>();
         world.register_component::<terri_core::Wander>();
+        // M1b Task 4's two. Neither is in `world_hash`'s query today, so
+        // an unregistered one would not silently empty the digest the way
+        // [L3] describes - but `try_query` is what every determinism test
+        // in this file reaches for, and a component missing from this
+        // list turns those into panics for a reason that has nothing to
+        // do with what they test.
+        // `the_components_m1b_added_are_registered_before_any_system_runs`
+        // is what fails if either line goes.
+        world.register_component::<terri_core::Selected>();
+        world.register_component::<terri_core::IntentQueue>();
 
         let mut schedule = Schedule::default();
         // M0 runs single-threaded on purpose. Parallelism is [A9]/[D4]
@@ -84,8 +99,36 @@ impl Sim {
         // reduced to the systems M0 needs.
         schedule.add_systems(
             (
+                // **First, before anything else in the tick** - [D-2].
+                // Player input is asynchronous and lands in a staging
+                // queue; this is the one fixed point at which it becomes
+                // simulation state, which is what makes a recorded
+                // command log replay to the same world.
+                //
+                // Before `serve_intents` specifically, because an intent
+                // pushed here has to be servable on the same tick: a
+                // click that took a tick to have any effect would leave
+                // the sim choosing for itself in the meantime, and at 10
+                // ticks a second the player would see the sim start
+                // walking somewhere else first.
+                // `a_use_object_command_is_served_on_the_tick_it_arrives`
+                // is what fails if this line moves.
+                systems::command::drain_commands,
                 advance_clock,
                 systems::needs::decay_needs,
+                // Strictly before selection, because a player-issued
+                // intent overrides autonomy rather than competing with
+                // it - [D-3]. Running it first means the object is
+                // already `Reserved` and the agent already has a
+                // `Target` by the time `select_action` looks, so no
+                // other agent can be handed the thing the player just
+                // asked for.
+                //
+                // It also sees agents that are mid-walk or mid-meal,
+                // which `select_action` deliberately does not, because
+                // an intent PREEMPTS a running interaction. See that
+                // function's docs for why that is the choice.
+                systems::action::serve_intents,
                 systems::action::select_action,
                 // Strictly after selection and strictly before movement,
                 // and both halves matter. After, because it reads the
@@ -197,6 +240,7 @@ impl Sim {
         self.render.positions.clear();
         self.render.kinds.clear();
         self.render.sprites.clear();
+        self.render.ids.clear();
 
         // Read before the query, because `Content` is a resource and the
         // query below borrows the world. `ContentPack` is behind a
@@ -223,11 +267,15 @@ impl Sim {
         }
         rows.sort_by_key(|(index, _, _, _, _)| *index);
 
-        for (_, x, y, kind, sprite) in &rows {
+        for (index, x, y, kind, sprite) in &rows {
             self.render.positions.push(*x);
             self.render.positions.push(*y);
             self.render.kinds.push(*kind);
             self.render.sprites.push(*sprite);
+            // The row's occupant, carried across so a click on a row can
+            // name an entity in a command. See `RenderBuffer::ids` for why
+            // the row number will not do.
+            self.render.ids.push(*index);
         }
         self.render.count = rows.len();
 
@@ -259,6 +307,75 @@ impl Sim {
 
     pub fn render_buffer(&self) -> &render_buffer::RenderBuffer {
         &self.render
+    }
+
+    /// The seven need levels of the entity carrying `index`, or `None`
+    /// if nothing live carries it or what does has no `Needs`.
+    ///
+    /// # Why this takes a raw index and tolerates a bad one
+    ///
+    /// The caller is the need-bar panel, which reads this every frame for
+    /// whichever entity the shell is showing - and the shell only ever
+    /// knows a raw `u32`, because JavaScript cannot construct an
+    /// `Entity`. So the same two hazards `drain_commands::resolve`
+    /// documents apply: the index may be stale, and it may name something
+    /// that is not a sim at all. Both answer `None` here rather than
+    /// panicking, which is what lets the boundary return an empty array
+    /// and the panel draw nothing.
+    ///
+    /// A scan rather than a lookup, for the same reason `resolve` is one:
+    /// `Entities` could answer liveness but not KIND, and at most one live
+    /// entity carries any given index, so the answer does not depend on
+    /// iteration order.
+    ///
+    /// **`Needs` is the filter, and that is the kind check.** A smart
+    /// object has no `Needs`, so a click that selected the fridge cannot
+    /// reach a level here to show.
+    ///
+    /// This lives in the simulation crate rather than at the boundary
+    /// because it is a query over the world, and `terri-wasm` is
+    /// forbidden simulation logic. The boundary's job is the `u32`, not
+    /// the walk.
+    pub fn needs_of(&self, index: u32) -> Option<[f32; terri_core::NEED_COUNT]> {
+        let mut state = self.world.try_query::<(Entity, &terri_core::Needs)>()?;
+        state
+            .iter(&self.world)
+            .find(|(entity, _)| entity.index_u32() == index)
+            .map(|(_, needs)| *needs.as_slice())
+    }
+
+    /// The raw index of the selected sim, or `None` when nothing is
+    /// selected.
+    ///
+    /// Selection lives in the simulation rather than in the shell ([D-5]):
+    /// it is state a replay has to reproduce, so the DOM renders it back
+    /// out rather than owning it. This is the read half of that, and
+    /// `SimCommand::Select` is the write half.
+    ///
+    /// At most one entity carries `Selected` - `drain_commands` is its
+    /// only writer and maintains that. `min` is the answer that does not
+    /// depend on query order if a future writer ever breaks the
+    /// invariant, matching what the drain itself does.
+    ///
+    /// **`min` is deliberately untested and this says so rather than
+    /// hiding it.** Swapping it for `max` was hand-mutated at M1b Task 6
+    /// and the whole workspace stayed green, because on a set of at most
+    /// one element the two agree - so no legal world can tell them
+    /// apart, and the only fixture that could is one that inserts a
+    /// second `Selected` behind the drain's back. That would pin an
+    /// arbitrary tie-break rather than a behaviour. What IS pinned is
+    /// everything above the tie-break: `selected_index_tracks_the_
+    /// selection_the_simulation_holds` in `terri-wasm` fails on `None`,
+    /// on any constant, and on reporting a sim the command did not name.
+    /// The mutation is also outside `cargo mutants`' grammar, which
+    /// replaces return values rather than rewriting an iterator method,
+    /// so the sweep will not report it either. Whoever gives `Selected`
+    /// a second writer owns making this observable.
+    pub fn selected_index(&self) -> Option<u32> {
+        let mut state = self
+            .world
+            .try_query_filtered::<Entity, With<terri_core::Selected>>()?;
+        state.iter(&self.world).map(|e| e.index_u32()).min()
     }
 
     /// Hashes all simulation-visible state. Entities are sorted by index
@@ -632,6 +749,53 @@ mod determinism_tests {
         );
     }
 
+    /// The two components M1b Task 4 added are registered by `Sim::new`
+    /// itself, before any system has run.
+    ///
+    /// **This world is deliberately never ticked**, which is the whole
+    /// mechanism: running the schedule initialises every system's query
+    /// and registers their components as a side effect, so a ticked world
+    /// would report success no matter what `Sim::new` did. `try_query` is
+    /// the read that cares - it returns `None` on any unregistered
+    /// component rather than registering on demand, which is [L3] - and
+    /// several fixtures in this crate `expect` it.
+    ///
+    /// `Selected` has no reader at all until Task 5's command drain, so
+    /// this is the only thing constraining its registration line.
+    #[test]
+    fn the_components_m1b_added_are_registered_before_any_system_runs() {
+        use terri_core::{IntentQueue, Selected};
+
+        let sim = Sim::new_with_lot(8, 8);
+        assert!(
+            sim.world()
+                .try_query_filtered::<Entity, With<Selected>>()
+                .is_some(),
+            "Selected is not registered, so try_query returns None and \
+             every fixture that reads it panics for the wrong reason"
+        );
+        assert!(
+            sim.world()
+                .try_query_filtered::<Entity, With<IntentQueue>>()
+                .is_some(),
+            "IntentQueue is not registered"
+        );
+        // The guard on the guard: a component this world has genuinely
+        // never heard of must come back None, or `try_query` is not the
+        // discriminating read this test assumes it is and both assertions
+        // above would hold for an empty registration list.
+        #[derive(Component)]
+        struct NeverRegistered;
+        assert!(
+            sim.world()
+                .try_query_filtered::<Entity, With<NeverRegistered>>()
+                .is_none(),
+            "try_query answered for a component nothing ever registered, \
+             so it cannot tell a registered component from an unregistered \
+             one and this test proves nothing"
+        );
+    }
+
     #[test]
     fn identical_scenarios_produce_identical_world_hashes() {
         const TICKS: usize = 500;
@@ -896,10 +1060,77 @@ mod determinism_tests {
         // `every_declared_need_can_be_satisfied_by_some_interaction` in
         // terri-data.
         //
+        // **The [C3] fix DID move it, and that is the whole point.**
+        // Previous value: 0x5A49_3BA9_F7FB_F23B.
+        //
+        // Which of the two causes the assertion below asks about: **the
+        // simulation no longer computes what it did**, deliberately. The
+        // digest encoding is untouched.
+        //
+        // This scenario is the exact shape the fix changes, which is why it
+        // is the one golden vector that could see it. `build_scenario` holds
+        // **eight agents and one object**: agent 0 claims the object and the
+        // other seven used to see an empty candidate list - the object was
+        // filtered out of their query by `Without<Reserved>` - come out with
+        // `best_seen` at negative infinity, and be marked `Restless`. Being
+        // `Restless` is what `idle::wander` reads as permission to stroll,
+        // and a wander destination is a PRNG draw, so seven spurious strolls
+        // per tick were both moving those agents and consuming the seeded
+        // random stream.
+        //
+        // After the fix the seven score the object they cannot have, are not
+        // marked `Restless`, and stand and wait. So the vector moves for
+        // three compounding reasons: different positions, a different number
+        // of draws taken from `SimRng`, and therefore a different alignment
+        // of every draw after them.
+        //
+        // Note the contrast with the [C2] entry this replaces: that fixture
+        // was blind to a content change and the vector was correctly silent
+        // ([L36]). Here the fixture is maximally sensitive, and a vector that
+        // had NOT moved would have been the finding.
+        //
+        // **The alpha duration pass moved it again**, from
+        // 0x822C_A9CD_3813_3321, and again the cause is "the simulation no
+        // longer computes what it did" rather than a digest change.
+        //
+        // This scenario's one object is the fridge, whose `duration_ticks`
+        // went from 15 to 30, so the agent that eats in it now eats for twice
+        // as long and fills hunger at half the per-tick rate. Both the
+        // position and the need levels of that agent differ at tick 100.
+        // Unlike the [C2] case, this fixture is directly sensitive: the fridge
+        // is the object it holds.
+        //
+        // **The adjacency change did NOT move it, and that is a blindness
+        // rather than a reassurance** - [L36] again, in the form that needs
+        // stating. Sims now path to a tile BESIDE an object instead of onto
+        // it, which alters where every sim in the game finishes its walk. This
+        // vector is silent about it because of arithmetic in the fixture:
+        //
+        //   the agents start at (1..8, 1) and the fridge is at (18, 14), so
+        //   the walk is 17 + 13 = 30 tiles; at TILES_PER_TICK = 0.25 that is
+        //   120 ticks, and TICKS is 100.
+        //
+        // **No agent ever arrives.** The adjacent path differs from the
+        // on-tile path only in its last step, so the first 100 ticks of
+        // walking are identical tile for tile and the digest cannot see the
+        // difference.
+        //
+        // What that means for whoever changes pathing next: this vector covers
+        // route CHOICE - a different heuristic, a different tiebreak, a
+        // different neighbour order all move it - and is blind to anything
+        // about ARRIVAL. Do not read a green vector as coverage of the end of
+        // a path. Raising TICKS above 120 would close it, at the cost of
+        // rewriting the constant and every note attached to it.
+        //
         // Measured on wasm32 as well as natively, per [L13], rather than
         // assumed to carry across: the two agree. The boundary copy lives
         // in web/tests/bridge.test.ts.
-        const GOLDEN: u64 = 0x5A49_3BA9_F7FB_F23B;
+        // **And the needs retune moved it again**, from
+        // 0xD993_6100_876C_D55A. Every one of the seven `decay_per_tick`
+        // rates was slowed, and this fixture's digest includes need levels, so
+        // all eight agents differ at tick 100 by construction. The most
+        // directly sensitive change of the four the vector saw today.
+        const GOLDEN: u64 = 0xCB2C_8122_2251_D840;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

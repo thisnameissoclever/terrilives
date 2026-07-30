@@ -5,6 +5,19 @@ than rediscovering any of it.
 
 Entries are append-only and numbered. Do not renumber.
 
+**One exception happened, on 2026-07-29, and it is recorded here rather than
+hidden because the rule above is what makes these IDs citable.** Two branches
+independently added an `[L41]`: `m1b-interaction` added `[L41]`-`[L48]` and
+`main` added a different `[L41]`. A merge cannot keep both under one number, so
+main's entry became `[L49]`. It was the one to move because nothing in the repo
+cited it, while `[L41]`-`[L48]` were already referenced from code comments.
+
+The rule as written assumed linear history and cannot survive parallel branches
+on its own. **The way to keep it: claim a number by appending the heading in a
+tiny commit before writing the entry**, so a second branch sees the number
+taken. Renumbering is the fallback, and if it happens again the moved entry
+keeps a note saying what it used to be.
+
 ---
 
 ## [L1] Bare `cargo` does not link on this machine - RESOLVED 2026-07-27
@@ -2043,8 +2056,24 @@ explaining why 0.15 is right reads exactly like evidence that somebody checked.
    change. Without it the test would have kept passing while quietly becoming a
    statement about something else.
 
-**How to verify:** the trace harness is not in the repo, deliberately - a stale
-committed instrument is worse than none. Reproduce it by building
+**How to verify:** run `cargo run -p terri-sim --example trace -- 12000`.
+
+**AMENDED, 2026-07-29.** This rule used to end "the trace harness is not in the
+repo, deliberately - a stale committed instrument is worse than none", and the
+branch that added `crates/terri-sim/examples/trace.rs` cited *this lesson* as
+the reason for committing it. A review caught the contradiction: four comments
+pointed at [L40] to justify the opposite of what [L40] said.
+
+The original reasoning was wrong, and the way it was wrong is instructive. A
+stale instrument is worse than none only if nobody notices it is stale - and an
+instrument in the repo is exactly the thing a reviewer can re-run and catch. It
+was re-run on this branch and it *did* disagree with four recorded figures,
+which is how those got corrected. A harness that is deleted after every pass
+cannot be re-run, so its numbers can never be falsified; that is the worse
+failure, not the better one.
+
+So: **keep the harness, and treat disagreement between it and a recorded number
+as the number being stale.** Do not defend the number. Reproduce it by building
 `Sim::new_from_shipped_lot()`, spawning the agent `web/src/main.ts` spawns, and
 ticking 12 000 times while logging, per tick, the best score any candidate
 offers. The measured percentiles are recorded in `content/tuning.toml` beside
@@ -2053,7 +2082,414 @@ them, the content changed and the knobs need re-deriving rather than defending.
 
 ---
 
-## [L41] A need nothing advertises is invisible to the suite for the same reason it is inert
+## [L41] A guard shadowed by a second guard is only testable where the shadow is absent
+
+**What happened:** M1b Task 4 added the autonomy override of [D-3]: a
+player-issued intent suppresses `select_action`. Two mechanisms implement it
+and they overlap almost completely.
+
+1. `serve_intents` runs first and turns the front intent into a `Target`.
+2. `select_action` skips any agent whose `IntentQueue` is non-empty.
+
+`select_action`'s query already carries `Without<Target>`, so on almost every
+tick mechanism 1 alone is sufficient and mechanism 2 decides nothing. The
+milestone's headline test - `a_queued_intent_suppresses_autonomy`, the one the
+task brief specified - passes with the emptiness filter **deleted**, because
+the agent it checks has a `Target` by the time selection runs. Written as
+specified, the task would have shipped an untested guard behind a test whose
+name claims to cover it, which is exactly the failure family
+`docs/testing-protocol.md` exists for.
+
+The guard was verified only after asking, deliberately, *on what input is this
+line the thing that decides?* The answer turned out to be a state the obvious
+fixtures never reach: an agent whose intent names an object another agent has
+reserved. It waits, so it has no `Target`, no `Eating` and an instruction it
+still means to carry out - and with the filter gone it wanders off to something
+else instead.
+`a_sim_waiting_for_a_reserved_object_does_not_fall_back_to_autonomy` is that
+fixture, and deleting the filter makes it red with the sim holding a target for
+the wrong object.
+
+**Root cause:** this is [L34]'s shape - a suite whose inputs all share a
+property cannot detect a change that only shows on inputs lacking it - but the
+property is invisible in a way [L34]'s was not. There, the shared property was
+of the *fixture data* (all integers, all open grids), which a reader can see by
+looking at the fixtures. Here it is a property of the *pipeline*: an earlier
+system's effect masks a later system's guard, so the shared property is "the
+earlier mechanism worked", which every fixture has because the code is correct.
+**Defence in depth and untested code are indistinguishable from inside the
+suite**, and the more thorough the earlier mechanism, the more completely the
+later one is hidden.
+
+**Prevention rule:**
+
+1. When two mechanisms both enforce one rule, do not test the rule - test each
+   mechanism. For each one, name the input on which it is **the only thing**
+   standing between the code and the wrong answer. If no such input exists, the
+   mechanism is dead code and should be deleted rather than tested.
+2. That input is usually a *failure* of the other mechanism, not a variation of
+   the happy path. Ask what happens when the earlier system cannot do its job:
+   here, "the object is busy" was the only state that reached the later guard.
+3. Write the answer into the comment beside the guard, naming the test. A
+   reader who cannot see why a line matters is one refactor away from deleting
+   it as redundant - and they would be right about every tick but one.
+
+**How to verify:** delete the guard and run the whole workspace, not the test
+whose name mentions it. If everything stays green, the guard is unprotected
+regardless of how many tests appear to be about it.
+
+---
+
+## [L42] A "did the commands do anything" guard can be satisfied by the one command that changes no world state
+
+**What happened:** M1b Task 5's replay test is the milestone's determinism
+guarantee: a recorded command script must replay to the same world hash. The
+equality on its own is [L5]'s shape - two runs in one process - so it was
+surrounded by guards, one of which was meant to be the strong one:
+
+```rust
+assert_ne!(a, run_unscripted(TICKS), "the scripted run must differ ...");
+```
+
+`run_scripted` returns a tuple: the world hash **and** the selected entity's
+index, because `world_hash` does not observe `Selected` and the selection had
+to be asserted somewhere. That convenience quietly broke the guard. The script
+holds three commands - `Select`, `UseObject`, `CancelIntents` - and only the
+first has an effect that reaches the *tuple* without reaching the *hash*.
+
+Measured during the task's hand-mutation pass: with the `UseObject` and
+`CancelIntents` arms replaced by no-ops and only `Select` left working, the
+tuples still differed and the assertion stayed green. The guard was answering
+"did **any** command do anything" when the claim it exists to defend is "did
+the commands change the **world**". Two thirds of the drain could have been
+deleted with that line reporting success.
+
+It was caught because the mutation pass ran a mutation nobody had predicted a
+failure for - "only Select works" - rather than only the ones with a named
+victim test, and then read *which assertion* fired rather than being satisfied
+that the test went red. The per-command causal guards below it (drop the
+`UseObject`, drop the `CancelIntents`, each must change the outcome) are what
+actually caught it.
+
+**Root cause:** the return value carried two things at different levels of
+consequence - simulation state, and a projection of it that nothing in the
+simulation reads - and a single `assert_ne!` over the pair cannot say which one
+moved. A disjunction is the weakest assertion shape there is: it is satisfied by
+its easiest term, and the easiest term here was the one with no causal power at
+all.
+
+**Prevention rule:**
+
+1. **Never assert a difference over a tuple whose fields differ in
+   consequence.** Assert on the field that carries the claim. If two fields both
+   need asserting, that is two assertions.
+2. When a test bundles a value into its result "because it had to be checked
+   somewhere", check whether any *other* assertion in that test now ranges over
+   the bundle. Adding a field to a return type silently weakens every
+   inequality over it.
+3. A mutation pass should include at least one mutation with **no predicted
+   victim**. The ones with a named test confirm what you already believe; the
+   unpredicted one is what finds the guard that was never load-bearing.
+
+**How to verify:** disable every mechanism the test claims to cover except the
+cheapest one, and confirm the test still fails. If it passes, the guard is
+measuring the cheap mechanism.
+
+---
+
+## [L43] A full mutation sweep stopped early is not a partial answer, it is a clean-looking one
+
+**What happened:** M1b Task 5 found, and killed, a guard whose second clause
+nothing constrained: `intent.object == target.object && intent.interaction ==
+target.interaction` in `drain_commands`. Its own report and the code comment it
+left both noted, correctly, that **`tick_interactions` uses the same
+comparison** for the same reason.
+
+The twin was never swept. Task 5's full sweep was stopped at 204 of roughly 420
+mutants after 45 minutes, and its report says so honestly - it records that
+`advertise.rs` was past the stopping point and reasons about which baseline
+entries the prefix could and could not have reached. `interact.rs` was further
+past it still and is not mentioned at all.
+
+M1b Task 6 ran the first sweep since to complete, and it reported:
+
+```
+crates/terri-sim/src/systems/interact.rs:139:52: replace && with || in tick_interactions
+```
+
+Six survivors, five of them the baseline's. The sixth had been sitting in
+`main` for two tasks with a green CI gate over it the whole time, because
+`missed.txt` from a stopped run contains only what was reached, and the gate
+compares set difference against the baseline. **A survivor the sweep never
+tested is indistinguishable, in that file, from one it cleared.**
+
+The relaxed form is a real bug and the same one Task 5 fixed: `UseObject`
+always names interaction 0 and an autonomously chosen interaction is 0 on every
+single-interaction object, so a sim finishing the meal it chose for itself with
+a click for a *different* object waiting behind it would have that click
+silently discarded. The player's instruction disappears with no error.
+
+**Root cause:** two failures compounding, and the second is the one worth
+remembering.
+
+1. A finding of the form "this exact comparison also appears over there" was
+   written down and not acted on. It is the single cheapest lead a mutation
+   sweep ever produces - the bug's location is already known - and it was left
+   as prose.
+2. **A stopped sweep's `missed.txt` was compared against a full baseline.** The
+   comparison is only sound when the run covers at least what the baseline
+   covers. Task 5 knew this and reasoned about it for the *entries in* the
+   baseline; the case it could not reason about is the entry that is not in the
+   baseline yet, because there is nothing to notice its absence against.
+
+**Prevention rule:**
+
+1. When a sweep or a review finds an unconstrained guard, **grep for the same
+   comparison elsewhere in the same commit** and either kill or sweep every
+   copy. A twin named in a comment is a to-do, not an observation.
+2. A sweep that did not finish may **add** to the baseline argument and must
+   never be treated as **clearing** anything. Record the stopping point as a
+   list of files not reached, so the next task can sweep those first rather
+   than re-deriving what was missed.
+3. Prefer a **scoped sweep that finishes** over a full sweep that does not. The
+   scoped run over every file a task touched is minutes, not an hour, and it
+   answers the question the gate actually asks. Run both; believe the scoped
+   one about your own changes and the full one about everything else.
+
+**How to verify:** `cargo mutants --package terri-sim -f
+crates/terri-sim/src/systems/interact.rs --test-workspace true --timeout 60`
+reports 21 mutants, 21 caught, 0 missed. Before
+`a_finished_interaction_pops_only_the_intent_that_named_the_object_it_finished`
+it reported one missed, and that test fails on the `||` mutant and on deleting
+`queue.pop()`, which is what stops it being a one-sided assertion.
+
+---
+
+## [L44] Scaling elapsed time and shrinking the step are the same arithmetic, so a step count cannot tell them apart
+
+**What happened:** M1b Task 7 added the speed controls, whose one binding
+constraint is [D2]: speed multiplies how many simulation steps run, and never
+how long a step is. The test written for it asserted both halves - the step
+count scales with speed, and `stepDurationMs` does not - and the hand-written
+mutation for it was a driver that implements "2x" by halving `stepMs` instead
+of doubling the accumulator.
+
+It was killed, and **by the wrong assertion**. The failure was
+`expected [10, 20, 29] to deeply equal [10, 20, 30]`: at 3x the mutated
+driver's step is `100/3 = 33.333...`, which is not exact in binary64, so a
+1,000 ms frame lost one tick to rounding. The count assertion caught a
+floating-point artifact, not the violation.
+
+**Root cause, and it is arithmetic rather than an oversight.** For an
+accumulator driver, scaling the elapsed time by `k` and dividing the step by
+`k` produce *identical* observable behaviour:
+
+```
+ticks   = floor(k*d / S)         = floor(d / (S/k))
+alpha   = (k*d mod S) / S        = (d mod (S/k)) / (S/k)
+```
+
+Both the step count and the interpolation alpha agree at every elapsed time
+and under every frame pacing. **The count half of the test is therefore
+vacuous with respect to the thing it was written for**, and it only appeared
+to work because 100/3 is inexact. Speed 2 - where 100/2 is exact - is the case
+that shows it: a mutation confined to 2x produced the *identical* count
+`[10, 20, 30]` and was caught only by `expected [100, 50, 100] to deeply equal
+[100, 100, 100]`.
+
+This is the [L11] family with a new denominator: two mechanisms that agree on
+every sample the obvious instrument can take.
+
+**Prevention rule:**
+
+1. **A driver's step duration must be observable, or [D2] is unpinned.**
+   `FixedStepDriver.stepDurationMs` exists for exactly this and for nothing
+   else; it is the only assertion that separates the constraint from its
+   violation.
+2. When a mutation is killed, **check which assertion killed it**, not just
+   that the test went red. A pass/fail is not evidence about which line is
+   load-bearing, and here the two answers were different.
+3. When designing the mutation, **pick the arithmetic where the two candidate
+   mechanisms are exactly equal**, not where they merely should be. Inexact
+   division hid the equality at 3x and revealed it at 2x.
+
+**How to verify:** confine the dt-violation to speed 2 -
+`stepMs = base / 2` when `multiplier === 2`, with the accumulator left
+unscaled at that speed - and run
+`npm test -- -t "multiplies the number of steps"`. The count assertion on
+line 305 passes; the duration assertion on line 309 fails. Delete the
+duration assertion and the mutation survives the whole suite.
+
+---
+
+## [L45] Chrome no longer carries CSS property accessors where a probe expects them, and the probe reads zero
+
+**What happened:** Task 7's browser check counted panel writes by wrapping the
+`width` setter on `CSSStyleDeclaration.prototype`. It reported **0 bar writes
+over 3,743 frames** while the bars were visibly moving on screen and the
+screenshot showed all seven of them.
+
+`Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, 'width')` is
+`undefined` in current Chrome, and so is the whole prototype chain above an
+element's `style`: the individual CSS property attributes are not own
+properties of that object. Nothing threw. The patch simply never installed,
+and the counter it initialised stayed at its initial value, which is the
+reading that means "the panel never wrote a bar".
+
+**Root cause:** the same shape as [L20] half two and [L37] - an instrument
+that cannot observe the phenomenon returns the number that means the
+phenomenon did not happen. A patch that silently declines to install is worse
+than one that throws, because the zero it leaves behind is a plausible
+measurement.
+
+**Prevention rule:**
+
+1. **A monkey-patch must record that it installed**, and the probe must print
+   that flag beside the count. `patchedOn: null` next to `widthWrites: 0` is a
+   broken instrument; `patchedOn: "CSSStyleDeclaration"` next to
+   `widthWrites: 0` is a finding about the page.
+2. Prefer an observer over a patch where one exists. A `MutationObserver` with
+   `attributeFilter: ['style']` sees what the page actually wrote and does not
+   depend on where the engine chooses to define an accessor.
+3. Best of all, count the thing at its **source**: the panel calls `needsOf`
+   exactly once per read and nothing else on the page calls it, so wrapping
+   that is a direct count of reads rather than a proxy for one. Measured that
+   way: 97 reads in 10 s over 1,202 frames, one read per 12.4 frames, against
+   a 100 ms tuned interval.
+
+**How to verify:** in any current Chrome,
+`Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, 'width')`
+returns `undefined`, and walking `Object.getPrototypeOf(document.body.style)`
+to the top finds no own `width` descriptor on any link of the chain.
+
+---
+
+## [L46] A harness that supplies its own clock measures nothing, and the frame counter still climbs
+
+**What happened:** M1b Task 8's play session drove the frame loop through
+`__terriStress.step()` in a tight loop, 250 times, and reported that every
+click was ignored and the sim was frozen at one position. Both conclusions
+were false. `step()` called `performance.now()` internally, so successive
+calls passed deltas of roughly zero milliseconds, the fixed-step accumulator
+never reached one step, and the simulation advanced almost no ticks. The
+commands were sitting in the staging queue because nothing was draining it.
+
+**Root cause:** the same family as [L14], with one crucial difference.
+[L14] is "the frame callback never fires, so the counter reads zero and the
+harness reports a flawless p95 over no data" - a *frozen* instrument, and
+`timer.frames` was added specifically so a zero would be visible. Here the
+counter climbed to 250. A moving counter reads as a working harness, so the
+tell that saved [L14] was absent. The instrument was not stopped; it was
+running on a clock that never advanced.
+
+Worth naming precisely: `frame(nowMs)` derives elapsed time from the *gap*
+between calls, so a harness that supplies the wall clock and a harness that
+supplies nothing are the same thing when the harness is faster than the
+wall clock. Real rAF works only because the browser spaces the calls.
+
+**Prevention rule:**
+
+1. **A behaviour harness must own the clock; a timing harness must not.**
+   These are opposite requirements and one function cannot default to both.
+   `step(nowMs?)` now takes an optional timestamp: omit it to measure what a
+   frame costs, pass a monotonic sequence to make the simulation actually
+   run.
+2. **Never accept a frame count as evidence that a simulation advanced.**
+   They are different quantities and this is the case that separates them.
+   Assert on something the simulation owns - the tick count, the clock
+   resource, or a need level that must have decayed.
+3. A harness's first assertion should be that its subject *moved*. This
+   session's first run would have failed instantly on "the sim's position
+   after N steps differs from its position before".
+
+**How to verify:** call `step()` in a loop with no delay and read a need
+level before and after. With the clock defaulted it barely changes; with a
+monotonic `nowMs` at 16.67 ms per step it decays at the tuned rate.
+
+---
+
+## [L47] A mapping that is the identity by coincidence is a bug with a scheduled arrival date
+
+**What happened:** picking a clicked entity means finding the render-buffer
+row standing on a tile and then naming that entity in a `Select` or
+`UseObject` command. The buffer is sorted by entity index and carried no id
+column, so the row number was the only thing available - and it is correct,
+exactly, for as long as live entity indices run `0..count` with no gaps.
+Nothing in the shipped game despawns, so that held on every world a player
+could produce. It would have gone in green.
+
+**Root cause:** the coincidence is load-bearing and invisible. Row number and
+entity index are both `u32`, both are indices, and they are equal in every
+test anyone would naturally write - so no type error, no failing assertion,
+and no wrong behaviour until the first despawn leaves a hole. After that,
+every click past the hole selects or directs *a different live entity*, which
+is the worst available failure: not a crash, not a no-op, but a plausible
+wrong answer.
+
+M1d adds death. The expiry date was already on the calendar.
+
+**Prevention rule:**
+
+1. **When two identifier spaces coincide, export the mapping rather than
+   relying on the coincidence.** `RenderBuffer::ids` costs one `u32` per
+   entity and removes the whole class.
+2. **A fixture for a mapping must break the coincidence**, or it cannot see
+   the identity mutation. `a_row_is_not_its_entity_index_once_an_index_is_freed`
+   despawns the *second* of four entities on purpose: despawning the last
+   would leave rows 0..2 still equal to indices 0..2, and the test would pass
+   against `push(row_number)`. It asserts `ids != [0, 1, 2]` first, as a
+   precondition, so it cannot go quietly green if entity-index reuse ever
+   closes the hole. This is [L34] applied before the fact rather than after.
+3. Ask of any index crossing a boundary: **whose numbering is this, and what
+   makes it survive the other side's edits?**
+
+**How to verify:** replace `ids[row]` with `row` in `pickAt` and the web
+suite fails; replace `push(*index)` with a row counter in
+`sync_render_buffer` and the Rust test fails.
+
+---
+
+## [L48] Two different states that render identically will be conflated by the measurement as readily as by the player
+
+**What happened:** measuring how fast a click retargets a *busy* sim needed a
+way to tell a busy sim from a free one. Position is all the render buffer
+exports, and a sim using an object stands on that object's tile - so "busy"
+was classified as "standing on an object's tile". The resulting latencies ran
+2, 4, 4, 5, 14, 16, 43 and 124 ticks, up to 12.4 real seconds, and supported
+a confident and completely wrong conclusion: that clicks on a working sim are
+ignored for a very long time.
+
+The sim in those cases was **idle**, standing on a tile it had finished with.
+Re-measured against a need actually *rising* - the only externally visible
+sign of an interaction - interrupting a genuinely busy sim takes 1 to 18
+ticks, and a Rust test now pins that a click preempts on the tick it arrives.
+
+**Root cause:** the two states are one picture. Nothing in the exported state
+distinguishes "using the sofa" from "standing on the sofa having finished",
+so any classifier built from exported state must conflate them. The error was
+not the arithmetic; it was believing an observable existed.
+
+**Prevention rule:**
+
+1. **Before measuring a state, name the observable that distinguishes it from
+   its neighbours** - and if there isn't one, that absence is the finding.
+   Here it is a real finding: a player cannot tell either, and multi-step
+   interactions turn "which step is this sim on" into something the player
+   must be able to read.
+2. **Prefer a simulation-side test to an outside-in measurement for a
+   simulation question.** The preemption question took hours from the outside
+   and produced the wrong answer; from inside it is one deterministic test
+   with three assertions and no timing at all.
+3. Treat a wide spread in a latency measurement as a **classifier** problem
+   before treating it as a *subject* problem. A 60x range (2 to 124) across
+   supposedly identical conditions means the conditions were not identical.
+
+**How to verify:** `a_click_preempts_an_interaction_already_running` in
+`crates/terri-sim/src/systems/command.rs` asserts the retarget, the dropped
+`Eating` and the released `Reserved` on the tick the command arrives. Its
+`tick_until_interacting` helper is the distinction the outside-in pass
+lacked.
+## [L49] A need nothing advertises is invisible to the suite for the same reason it is inert
 
 **What happened:** `content/needs.toml` declared `social`, `content/tuning.toml`
 gave it a decay rate of 0.035 a tick, and no interaction in

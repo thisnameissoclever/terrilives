@@ -27,15 +27,24 @@ id = "fridge"
 name = "Chill-o-Matic 3000"
 sprite = "kitchenFridgeBuiltIn"
 
-  # 40.0 and 15 are M0's hardcoded values, reproduced exactly so moving
-  # the fridge into content changes no behaviour. Changing either is a
-  # balance decision, not a port detail. The world-hash golden vectors in
-  # crates/terri-sim/src/lib.rs and web/tests/bridge.test.ts are built on
-  # this object, so these two numbers move them.
+  # 40.0 was M0's hardcoded delta and is unchanged. The duration was 15,
+  # also M0's, and it was raised to 30 in the alpha pass - see the block
+  # comment at the top of this file for the arithmetic that forced it, and
+  # `min_interaction_ticks` in content/tuning.toml for the rule.
+  #
+  # 30 ticks is 3 real seconds at 1x. A meal is the most-performed action in
+  # the house - 28% of all interactions over a 12 000-tick trace - so it is
+  # also the action a player watches most, and at the old 15 it sampled 12 to
+  # 20 with a mean of 13.9, which is 1.4 seconds of a sim standing at a
+  # fridge. Long enough to happen, too short to read as eating.
+  #
+  # The world-hash golden vectors in crates/terri-sim/src/lib.rs and
+  # web/tests/bridge.test.ts are built on this object, so both numbers move
+  # them.
   [[object.interaction]]
   id = "grab_snack"
   advertises = { hunger = 40.0 }
-  duration_ticks = 15
+  duration_ticks = 30
   slots = 1
 
 [[object]]
@@ -76,12 +85,20 @@ name = "Porcelain Standard"
 sprite = "toiletSquare"
 
   # Cheap, fast and near-total. Bladder is the fastest-draining need
-  # (0.139 per tick), so this has to be able to interrupt anything, which
-  # 12 ticks and a 95 delta achieve without needing a special case.
+  # (0.139 per tick), so this has to be able to interrupt anything, and the
+  # 95 delta is what achieves that without needing a special case.
+  #
+  # The duration was 12 - exactly `min_interaction_ticks` - and is now 24.
+  # **The delta is what makes this interrupt things, not the duration**, so
+  # doubling the length costs it less than it looks: at five tiles of travel
+  # the score falls to 0.72 of its old value while still carrying the largest
+  # delta in the house by 25 points. It remains the second-shortest action,
+  # which is the "fast" this comment is about, and it is still comfortably
+  # the most-chosen after the fridge.
   [[object.interaction]]
   id = "relieve_self"
   advertises = { bladder = 95.0 }
-  duration_ticks = 12
+  duration_ticks = 24
   slots = 1
 
 [[object]]
@@ -175,13 +192,46 @@ name = "Basin Basic"
 sprite = "bathroomSinkSquare"
 
   # The quick partial fix for hygiene, and its whole reason for existing
-  # is to give the shower something to lose to: 8 ticks and no energy
-  # cost against 45 ticks and a 12-energy cost. Which one wins depends on
-  # how tired the sim is rather than on a threshold.
+  # is to give the shower something to lose to: a short action with no
+  # energy cost against 45 ticks and a 12-energy cost. Which one wins
+  # depends on how tired the sim is rather than on a threshold.
+  #
+  # **This was the worst-clipped interaction in the game and the reason the
+  # alpha pass raised all three.** At 8 ticks its entire sampled band was
+  # 4.8 to 11.2, which sits wholly below `min_interaction_ticks`, so every
+  # single one of its interactions ran for exactly 12 ticks - measured, 6 of
+  # 6 over 12 000 ticks, min and max both 12 - and it delivered 12/8 = 1.5x
+  # its advertised hygiene, 33 rather than 22. `duration_variance` did
+  # nothing at all for it.
+  #
+  # 21 is above the clipping line of 20 (`min_interaction_ticks / (1 -
+  # duration_variance)`) with a tick of margin, so the floor is a safety net
+  # again rather than the thing setting the length. It is still less than
+  # half the shower's 45, which is the trade this object exists to offer.
+  #
+  # **THE DELTA WENT UP WITH THE DURATION, AND THAT IS NOT A COINCIDENCE -
+  # 22 WOULD HAVE KILLED THIS OBJECT.** Raising the duration alone moved this
+  # interaction's score denominator from `4*distance + 9` to
+  # `4*distance + 22`, a factor of 0.69 at typical range, while its only
+  # competitor - the shower - kept its 45 and lost nothing. Measured over
+  # 12 000 ticks: sink usage fell from 6 interactions to **1**, which is
+  # within a rounding error of the bookshelf's zero ([C6]). Fixing a duration
+  # by making an object furniture is not a fix.
+  #
+  # 32 restores the ratio the duration change cost it: the two now score
+  # within about 2% of each other at the observed mid-run need levels, so
+  # which one a sim picks genuinely turns on how tired it is - which is the
+  # sentence at the top of this comment, finally true rather than merely
+  # intended. At the softmax temperature in content/tuning.toml a gap that
+  # small is close to a coin toss, and that is the correct reading of "it
+  # depends".
+  #
+  # 32 and not 33: rule 1 at the top of this file. 34 is the sofa's comfort
+  # and 30 is the television's fun.
   [[object.interaction]]
   id = "wash_hands"
-  advertises = { hygiene = 22.0 }
-  duration_ticks = 8
+  advertises = { hygiene = 32.0 }
+  duration_ticks = 21
   slots = 1
 
 [[object]]

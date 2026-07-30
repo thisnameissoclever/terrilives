@@ -4,6 +4,175 @@
 contract.** That file, not this one, is what CI compares against; it is the
 sorted contents of `mutants.out/missed.txt` from a full sweep.
 
+**Latest sweep: M1b Task 7, the need bars and time controls, 2026-07-29**,
+full, run to completion on the finished tree, CI's package list and CI's exact
+single-job invocation:
+
+```
+cargo mutants --package terri-core --package terri-sim   --package terri-data --package terri-wasm --test-workspace true --timeout 60
+461 mutants tested in 27m: 5 missed, 397 caught, 56 unviable, 3 timeouts
+```
+
+**Five missed, and they are exactly the five in `docs/mutants-baseline.txt`.**
+`diff` on the sorted files is empty. **No new survivors.** The three timeouts
+are the known `rng.rs` ones, which are detections rather than survivors. The
+baseline file is unchanged and was not regenerated.
+
+**Scoped run over every file Task 7 touched**, which is the check that answers
+the gate's question about the task's own code ([L43] rule 3: believe the scoped
+one about your own changes and the full one about everything else):
+
+```
+cargo mutants --package terri-data --package terri-wasm   -f crates/terri-data/src/compile.rs -f crates/terri-wasm/src/lib.rs   --test-workspace true --timeout 60
+89 mutants tested in 3m: 62 caught, 27 unviable, 0 missed
+```
+
+**The mutant count rose from 456 to 461**, which is the expected reading for a
+task that added three boundary exports and one tuning knob.
+
+**What `cargo mutants` could not answer here, and what did.** The task's
+load-bearing invariant is [D2] - speed multiplies step COUNT and never step
+SIZE - and it lives entirely in TypeScript, which this tool does not touch. It
+was pinned by hand instead, and the first attempt at that pin was itself
+faulty: the step-count assertion killed the dt-mutation only because 100/3 is
+inexact in binary64. See [L44] and `.superpowers/sdd/m1b-task-7-report.md`
+[S2]. Fourteen hand-written mutations across `frame.ts`, `needs-panel.ts`,
+`terri-wasm/src/lib.rs` and `terri-data/src/compile.rs`, each with a named
+prediction: all fourteen killed, every prediction matched.
+
+---
+
+**Previous sweep: M1b Task 6, the WASM boundary, 2026-07-29**, full, on the
+finished tree, CI's package list and CI's exact single-job invocation:
+
+```
+cargo mutants --package terri-core --package terri-sim   --package terri-data --package terri-wasm --test-workspace true --timeout 60
+456 mutants tested in 28m: 6 missed, 392 caught, 55 unviable, 3 timeouts
+```
+
+**Read that 6 as the state of the tree the sweep ran on, which is Task 6's
+code before its last commit.** One of the six was killed in response, and the
+scoped re-sweep below is the measurement of the fixed tree rather than a
+prediction about it. Test code is not mutated, so the kill adds a test without
+adding a mutant: the projected full-sweep figure is 456 tested, 5 missed, and
+those five are exactly `docs/mutants-baseline.txt`.
+
+**It found a survivor outside the baseline, and it is the first sweep since
+M1b Task 5 to run to completion.**
+
+```
+crates/terri-sim/src/systems/interact.rs:139:52: replace && with || in tick_interactions
+```
+
+That is the twin of the guard Task 5 killed in `drain_commands`, named in that
+task's own code comment as using the same comparison and never swept, because
+Task 5's full run was stopped at 204 of ~420 and this file was well past the
+stopping point. It was **killed rather than baselined** -
+`a_finished_interaction_pops_only_the_intent_that_named_the_object_it_finished`
+in `interact.rs` - and the scoped re-sweep of that file reports **21 mutants,
+21 caught, 0 missed**. `docs/mutants-baseline.txt` is unchanged: the other five
+survivors are exactly its five entries, and the three timeouts are the known
+`rng.rs` ones, which are detections rather than survivors. [L43] records why a
+stopped sweep's missed list can never clear anything.
+
+**Scoped run over every file Task 6 touched**, which is the check that answers
+the gate's question about the task's own code:
+
+```
+cargo mutants --package terri-wasm --package terri-sim --package terri-data   -f crates/terri-wasm/src/lib.rs -f crates/terri-sim/src/lib.rs   -f crates/terri-data/src/{compile,pack,schema,error}.rs   --test-workspace true --timeout 60
+109 mutants tested in 6m: 80 caught, 29 unviable, 0 missed
+```
+
+`terri-wasm` alone: 37 caught, 1 unviable, 0 missed. The mutants that matter
+are all caught, including `delete ! in SimHandle::enqueue_command` - the
+trailing-byte guard - and `replace >= with < in SimHandle::enqueue_command` -
+the staging-queue cap, which a test that only checked "the queue stops growing"
+could not have seen. `grep -lE "content is invalid"` counts **23** of the 29
+unviable, which is [L28] again and not a coverage regression.
+
+**The mutant count rose from 392 to 456**, which is the expected reading for a
+task that added three exports, two `Sim` accessors and a tuning knob.
+
+---
+
+**Previous sweep: M1b Task 5, the command drain, 2026-07-29. PARTIAL, and the
+partiality is the first thing to read.** The full sweep was started on the
+finished, committed tree with CI's package list, and was stopped at **204 of
+roughly 420 mutants** after 45 minutes because it was pacing at about another
+45 and had not yet reached the file the task actually added. What ran instead
+was the full sweep's completed prefix plus a **scoped sweep over every file
+this task touched**, which is the split `docs/mutants-baseline.md` already
+endorses: the scoped run is the cheap check, the full run is the one that is
+allowed to be believed.
+
+```
+# full sweep, stopped at 204/~420
+cargo mutants --package terri-core --package terri-sim \
+  --package terri-data --package terri-wasm --test-workspace true --timeout 60 --jobs 4
+204 tested: 4 missed, 175 caught, 23 unviable, 2 timeouts
+
+# scoped, on each file the task changed
+crates/terri-sim/src/systems/command.rs   18 mutants: 0 missed, 17 caught,  1 unviable
+crates/terri-sim/src/lib.rs               13 mutants: 0 missed, 13 caught,  0 unviable
+crates/terri-data/src/{compile,pack,schema,error}.rs
+                                          49 mutants: 0 missed, 22 caught, 27 unviable
+```
+
+**No new survivors on any file this task touched.** The four survivors in the
+full sweep's prefix are **exactly** four of the five entries in
+`docs/mutants-baseline.txt` - the three in `grid.rs` and the one in `rng.rs`.
+The fifth, `advertise.rs:82:18`, lives in `terri-sim` and the prefix stopped
+before reaching it; that file is byte-unchanged by this task, so its entry
+cannot have moved. Compared line-keyed **and** normalised on
+`(file, column, mutation)`; both give an empty new-survivor list. The baseline
+file is unchanged and was **not** regenerated - a scoped run's `missed.txt`
+must never be written over it, because a scoped run cannot see the entries it
+did not mutate.
+
+**The two timeouts are two of the three `rng.rs` ones recorded at M1c Task 1**
+(`next_u32 -> 0` and `next_u32 -> 1`), which are detections rather than
+survivors and land in `timeout.txt`, not `missed.txt`. The third,
+`replace >= with < in range`, was past the stopping point.
+
+**The scoped run found one survivor that eleven hand mutations had not, and it
+was killed rather than baselined:**
+
+```
+crates/terri-sim/src/systems/command.rs:206:56: replace && with || in drain_commands
+```
+
+That is the guard deciding whether `CancelIntents` releases the sim's current
+commitment: `intent.object == target.object && intent.interaction ==
+target.interaction`. The second clause looks redundant, and every fixture in
+the module had **both** fields agreeing - which is [L34], and is why the hand
+pass missed it. It is not equivalent and the relaxed form is a real bug:
+`UseObject` always names interaction 0 and an autonomously chosen interaction
+is 0 on every single-interaction object, so an intent for the bed and a target
+on the fridge agree on the interaction index while naming different objects
+entirely. Under `||` a cancel then releases the sim's own choice the moment the
+player has queued a click on anything else - the very interruption the guard
+exists to prevent.
+`a_cancel_does_not_release_an_autonomous_target_that_only_shares_the_intents_interaction_index`
+is the fixture written for it; it asserts both preconditions, so it cannot
+decay into a copy of its neighbours. Re-running the scoped sweep after it:
+**0 missed.**
+
+**Twenty-seven of the 49 terri-data mutants are unviable**, against 22 caught,
+which is [L28] at its widest yet: a mutation to `compile_tuning` that rejects
+the shipped `content/tuning.toml` aborts `build.rs` before any test runs. The
+new `max_queued_intents == 0` check is one of them - the shipped value is 4, so
+flipping the comparison rejects real content. By [L21] that is **no evidence
+about the test**; `rejects_zero_max_queued_intents` in `compile.rs` is what
+constrains it, and the build gate is what would catch the flip in practice.
+
+**Outstanding:** a full sweep on this tree, for the totals row in the history
+table below and for the `terri-sim` and `terri-wasm` portion of the survivor
+list. Whoever runs it next should expect roughly 420 mutants and about 90
+minutes single-machine at `--jobs 4`, and should compare against the unchanged
+`docs/mutants-baseline.txt`.
+
+---
+
 **Latest sweep: M1c Task 6, the alpha feel pass, 2026-07-28**, full, on the
 finished Task 6 tree, with the package list CI uses and **CI's exact
 invocation** - single-job, unlike the two sweeps below:
@@ -355,10 +524,17 @@ introduces the whole codebase: the diff is everything, the run degenerates into
 a full sweep, and it fails on accepted debt. Diffing against a committed
 baseline needs no special case.
 
-## The four accepted survivors
+## The accepted survivors
 
-Was five. M1b Task 3 removed one by removing the operator it mutated; see
-the `advertise.rs` section below.
+Five at M1c; six after the alpha branch, which added
+`TileGrid::find_path_adjacent` and with it a second copy of the two neighbour-
+offset mutants. It was five before that and four before M1b Task 3, which
+removed one by removing the operator it mutated; see the `advertise.rs` section.
+
+The count is deliberately not in this heading any more. It was wrong twice in one
+day - the heading said four while the file held five - because a number in a
+heading is a second copy of `wc -l docs/mutants-baseline.txt` that nothing keeps
+in sync. Count the file.
 
 ### `grid.rs:102:43` and `102:63` - the neighbour offsets - EQUIVALENT
 
@@ -395,6 +571,54 @@ it is worth pinning rather than waving at:
 **When this expires:** the moment `NEIGHBOURS` stops being symmetric. Adding
 diagonals keeps it symmetric; adding a one-way movement rule, a ledge, or a
 directional portal does not. Whoever edits that array owns re-checking this.
+
+#### The same two, in `find_path_adjacent` - added 2026-07-29
+
+`TileGrid::find_path_adjacent` arrived on the alpha branch and reuses
+`find_path`'s expansion loop verbatim, including this expression, so it
+contributes its own copy of both mutants. CI's gate caught them as new
+survivors, which is the gate working.
+
+**The argument above transfers without modification.** It rests entirely on two
+things: that `NEIGHBOURS` is closed under negation, and that `OpenNode`'s `Ord`
+is total with no ties. Both are properties of code shared by the two functions -
+the same array and the same `Ord` impl - so neither can hold for one and fail
+for the other. The only difference between the functions is the goal test, and
+the goal test does not appear in the argument.
+
+**When this expires:** exactly when the entry above does, and for the same
+reason. Whoever edits `NEIGHBOURS` owns re-checking both.
+
+#### And the f-score, in `find_path_adjacent` - KILLED rather than accepted
+
+`find_path_adjacent` also contributed a copy of the `tentative + heuristic(..)`
+to `tentative * heuristic(..)` mutant recorded below as "A REAL GAP". It is
+**not** in the baseline, because it is now dead:
+`the_adjacent_path_is_the_shortest_one_and_not_merely_a_valid_one` in
+`grid.rs` kills it.
+
+Two things about how, because both are reusable:
+
+**The fixture was found by brute force, not by hand.** Multiplying makes the
+priority inadmissible *and* inconsistent, so it only returns a wrong answer on a
+maze where the cheap-looking direction is a detour - which is genuinely hard to
+draw by eye, and is presumably why the `find_path` twin was carried on trust for
+three milestones. `crates/terri-core/examples/find_fscore_counterexample.rs`
+implements the real search, the mutated search and a BFS optimum side by side and
+walks random small grids until they disagree. It found a 4x7 grid on which the
+optimum is 11 steps and the mutant returns 13, after 11 107 596 cases. That
+example is committed, so the next person does not have to rediscover the
+technique.
+
+**The assertion is an exact length.** Every other test on this function checked
+contiguity, walkability, the endpoint and a plausible length, and a range is
+precisely what let the mutant through - it returns a *valid* path, just not the
+shortest one. Do not relax it.
+
+**This makes the `find_path` entry below newly suspicious.** The same technique
+would very likely kill it too, and nobody has tried since the tooling to do so
+now exists. It is left in the baseline for now rather than removed on a guess,
+but it should be treated as a to-do rather than as settled debt.
 
 ### `grid.rs:115:44` - the f-score - A REAL GAP, not an equivalent mutant
 
@@ -665,6 +889,7 @@ Task 4 and the build gate changed the caught/unviable split in Task 5.
 | **M1b Task 3** | **297** | **5** | **252** | **40** | **1 closed, 1 deleted, 1 re-anchored; baseline down to 4** |
 | M1b Task 3b | 311 | 4 | 266 | 41 | 14 new mutants, all caught; baseline unchanged |
 | **M1c Task 1** | **342** | **5** | **292** | **42** | **31 new mutants from `rng.rs`; 3 timeouts; baseline up to 5** |
+| M1b Task 5 | *partial* | 4 | 175 | 23 | Stopped at 204/~420; scoped sweeps over all changed files gave 0 missed; baseline unchanged at 5 |
 
 The M1b Task 3 row is the one to read carefully. Missed stayed at 5 while
 the set changed completely in composition: `advertise.rs:42:36` ceased to

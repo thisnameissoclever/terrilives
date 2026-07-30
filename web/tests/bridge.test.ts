@@ -357,7 +357,317 @@ describe('SimBridge', () => {
     // The wasm was rebuilt before this was re-run, per [L8]; without that
     // the run reads the previous artifact and an unchanged value would mean
     // nothing either way. See the fuller note on the native constant.
-    expect(bridge.worldHash()).toBe(0x5a49_3ba9_f7fb_f23bn);
+    //
+    // **The [C3] fix DID move it**, from 0x5a49_3ba9_f7fb_f23bn, and this
+    // scenario is the one that could see it: eight agents contending for one
+    // object, where the seven losers used to be told nothing was worth doing
+    // and wander off. They now wait, which changes their positions AND how
+    // many draws come out of the seeded PRNG. The fuller argument is on the
+    // native constant in crates/terri-sim/src/lib.rs.
+    //
+    // **The alpha duration pass moved it again**, from
+    // 0x822c_a9cd_3813_3321n. This scenario's one object is the fridge, whose
+    // duration_ticks went from 15 to 30, so the agent eats for twice as long
+    // and fills hunger at half the per-tick rate - both its position and its
+    // need levels differ at tick 100.
+    //
+    // Read off the wasm32 failure after a rebuild, per [L13], not copied
+    // across from native - the two agree, which is a measurement each time
+    // rather than a guarantee.
+    // Moved again by the needs retune, from 0xd993_6100_876c_d55an: all seven
+    // decay rates were slowed and this digest includes need levels, so every
+    // agent differs at tick 100. Read off the wasm32 failure after a rebuild
+    // per [L13], not copied from native.
+    expect(bridge.worldHash()).toBe(0xcb2c_8122_2251_d840n);
+  });
+
+  // ---- Player commands -------------------------------------------------
+  //
+  // Everything below runs against the RELEASE wasm the page loads, which
+  // is the only reason it is not redundant with the Rust twins in
+  // crates/terri-wasm/src/lib.rs. Those run in a debug build of the rlib,
+  // and [L12] is this project's recorded instance of a check that exists
+  // in debug and is absent from what ships. A panic here would not be one
+  // failed call: it traps the module for the life of the page, so from
+  // the player's side the whole game freezes with no recovery short of a
+  // reload.
+
+  it('rejects malformed command bytes without trapping the wasm module', () => {
+    // **The mutation this is written against is `unwrap` on the decode.**
+    // It compiles, it ships, and it survives `--release`, which is what
+    // makes it worse than a `debug_assert!` rather than better.
+    //
+    // Six shapes, because they fail at different points in the decoder.
+    // The last is a VALID command with junk after it: rejected rather
+    // than silently accepted as its prefix, or the format is ambiguous
+    // the day somebody concatenates two commands and expects both.
+    const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
+    bridge.spawnAgent(1, 1, 80);
+
+    const malformed: [string, number[]][] = [
+      ['empty', []],
+      ['variant index 4, one past the four that exist', [0x04, 0x00]],
+      ['variant index 0xFF', [0xff]],
+      ['Select with an Option tag and no payload', [0x00, 0x01]],
+      ['UseObject missing its second field', [0x01, 0x03]],
+      ['a valid SetSpeed(2) with junk after it', [0x03, 0x02, 0xaa, 0xbb]],
+    ];
+    for (const [what, bytes] of malformed) {
+      expect(
+        bridge.enqueueCommand(new Uint8Array(bytes)),
+        `accepted ${what}`,
+      ).toBe(false);
+    }
+
+    // The module is still alive, and these are what tell a returned
+    // `false` apart from a trap: on a trapped instance every later call
+    // throws instead of returning. A well-formed command after the six
+    // bad ones is also the counterfactual - without it, an
+    // `enqueue_command` that refused everything would pass every
+    // assertion above.
+    expect(bridge.select(0)).toBe(true);
+    bridge.tick();
+    expect(bridge.selectedIndex()).toBe(0);
+    expect(bridge.count).toBe(1);
+  });
+
+  it('carries a selection into the simulation and reads it back out', () => {
+    // [D-5]'s round trip. Selection is simulation state, so the shell
+    // asks for it with a command and reads the answer back rather than
+    // remembering it - a cached copy here is exactly what makes a
+    // simulation unreplayable without its UI.
+    //
+    // TWO sims, because "reports the only agent" and "reports the first
+    // agent" both satisfy a one-agent fixture.
+    const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
+    bridge.spawnAgent(1, 1, 80);
+    bridge.spawnAgent(3, 1, 80);
+    expect(bridge.selectedIndex()).toBe(null);
+
+    expect(bridge.select(1)).toBe(true);
+    // Staged, not applied: JavaScript never mutates the world ([D-2]).
+    expect(bridge.selectedIndex()).toBe(null);
+    bridge.tick();
+    expect(bridge.selectedIndex()).toBe(1);
+
+    expect(bridge.select(0)).toBe(true);
+    bridge.tick();
+    expect(bridge.selectedIndex()).toBe(0);
+
+    // `null` is a different command from a stale index, not a sentinel
+    // for one: only this clears.
+    expect(bridge.select(null)).toBe(true);
+    bridge.tick();
+    expect(bridge.selectedIndex()).toBe(null);
+  });
+
+  it('encodes an entity index above 127 as a multi-byte varint', () => {
+    // **The only real encoding logic on this side, and the one mutation
+    // that would look like working code**: an encoder that pushed the
+    // index as a single byte is correct for every index below 128 and
+    // silently wrong above it. 130 & 0x7f is 2, so a truncating encoder
+    // does not fail - it selects a different sim, which reads as a
+    // picking bug and would be looked for in the isometric maths.
+    //
+    // 130 rather than 128, so an off-by-one in the continuation
+    // threshold is visible too.
+    const bridge = new SimBridge(new SimHandle(64, 64), wasmMemory);
+    for (let i = 0; i < 200; i++) bridge.spawnAgent(1 + (i % 60), 1, 80);
+    expect(bridge.count).toBe(200);
+
+    expect(bridge.select(130)).toBe(true);
+    bridge.tick();
+    expect(bridge.selectedIndex()).toBe(130);
+  });
+
+  it('directs a sim at an object, overriding what it chose for itself', () => {
+    // [D-3] through the boundary. The sim is hungry and the two objects
+    // advertise different needs, so autonomy has an unambiguous
+    // preference for the fridge; directing it at the BED is therefore an
+    // instruction it would never have given itself. A command that
+    // agrees with autonomy proves nothing ([L36]).
+    const build = () => {
+      const b = new SimBridge(new SimHandle(16, 16), wasmMemory);
+      expect(b.spawnObject(2, 8, 'bed')).toBe(true);
+      expect(b.spawnObject(11, 8, 'fridge')).toBe(true);
+      b.spawnAgent(8, 8, 20);
+      return b;
+    };
+
+    // What the sim does when nothing tells it otherwise, measured rather
+    // than assumed - without it the assertions below could be describing
+    // autonomy's own choice.
+    const undirected = build();
+    for (let i = 0; i < 20; i++) undirected.tick();
+    const undirectedX = undirected.positions()[4];
+
+    const bridge = build();
+    expect(bridge.useObject(2, 0)).toBe(true);
+    for (let i = 0; i < 20; i++) bridge.tick();
+    const directedX = bridge.positions()[4];
+
+    expect(directedX).toBeLessThan(8);
+    expect(undirectedX).toBeGreaterThan(8);
+    expect(bridge.worldHash()).not.toBe(undirected.worldHash());
+
+    // And a cancel returns it to autonomy rather than freezing it.
+    expect(bridge.cancelIntents(2)).toBe(true);
+    bridge.tick();
+    const afterCancel = bridge.positions()[4];
+    for (let i = 0; i < 60; i++) bridge.tick();
+    expect(bridge.positions()[4]).not.toBe(afterCancel);
+  });
+
+  it('reads a sim needs back out of the simulation, and nothing for anything else', () => {
+    // The need-bar panel's whole input ([D-5]). An empty array is a
+    // normal answer rather than an error: a deselected panel, a
+    // just-despawned sim and a click that landed on a fridge all look
+    // like this, and all three should draw no bars.
+    //
+    // The live sim is asserted non-empty in the same test, so "returns
+    // empty" cannot be satisfied by an accessor that returns empty for
+    // everything.
+    const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
+    expect(bridge.spawnObject(2, 2, 'fridge')).toBe(true);
+    bridge.spawnAgent(1, 1, 37.5);
+
+    const levels = bridge.needsOf(1);
+    expect(levels.length).toBe(7);
+    // Hunger is index 0 and is the only need spawnAgent sets; the other
+    // six start satisfied. Both halves are asserted, so an array of one
+    // value repeated seven times fails.
+    expect(levels[0]).toBeCloseTo(37.5, 4);
+    for (let i = 1; i < 7; i++) expect(levels[i]).toBeCloseTo(100, 4);
+
+    expect(bridge.needsOf(0).length).toBe(0);
+    expect(bridge.needsOf(9999).length).toBe(0);
+    expect(bridge.needsOf(0xffffffff).length).toBe(0);
+  });
+
+  it('labels the need slots from the simulation, in the order it fills them', () => {
+    // The panel puts name `i` on level `i`, so the two lists are a PAIR
+    // and this is where the pairing crosses the boundary. A disagreement
+    // between them draws seven correct numbers under seven wrong labels:
+    // nothing errors, nothing looks broken, and every reading of the
+    // panel is off by however far the lists have slipped. That is why
+    // there is no list of seven strings in TypeScript to compare against
+    // - a third copy would agree with `needNames` by construction and
+    // say nothing about `needsOf`.
+    const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
+    const names = bridge.needNames();
+    expect(names.length).toBe(7);
+    expect(new Set(names).size).toBe(7);
+
+    // `spawnAgent` sets HUNGER and leaves the other six satisfied, so the
+    // levels themselves say which slot hunger is in. The label on that
+    // slot has to be the one that says so.
+    bridge.spawnAgent(1, 1, 12.5);
+    const levels = bridge.needsOf(0);
+    expect(levels.length).toBe(names.length);
+
+    const dipped = levels.findIndex((level) => level < 100);
+    expect(dipped).toBeGreaterThanOrEqual(0);
+    expect(levels[dipped]).toBeCloseTo(12.5, 4);
+    expect(names[dipped]).toBe('hunger');
+  });
+
+  it('reports the need ceiling and the refresh interval the content authors', () => {
+    // Neither is a number the shell may invent. The ceiling is the
+    // denominator every bar is drawn against, and the refresh interval is
+    // `need_bar_refresh_ms` from `content/tuning.toml` - a knob somebody
+    // tuning the game turns, which is why it is not a `const` in
+    // TypeScript.
+    const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
+
+    // Behavioural rather than a literal 100: a need cannot exceed the
+    // ceiling, which is the property the bars depend on. Feeding a sim
+    // spawned at the top of the range must leave it there.
+    const ceiling = bridge.needMax();
+    expect(ceiling).toBeGreaterThan(0);
+    bridge.spawnAgent(1, 1, ceiling * 10);
+    expect(bridge.needsOf(0)[0]).toBeCloseTo(ceiling, 4);
+
+    const refreshMs = bridge.needBarRefreshMs();
+    expect(Number.isInteger(refreshMs)).toBe(true);
+    // Zero would mean the panel reads every frame, which is the thing the
+    // throttle exists to prevent; a value past a second means bars that
+    // describe a decision already made.
+    expect(refreshMs).toBeGreaterThan(0);
+    expect(refreshMs).toBeLessThanOrEqual(1000);
+  });
+
+  it('refuses a command the wire format cannot express rather than coercing it', () => {
+    // `value >>> 0` would turn -1 into 4294967295 and 3.7 into 3, so a
+    // caller's mistake would arrive as a perfectly well-formed command
+    // naming an entity it never meant - a click that selects the wrong
+    // sim rather than one that visibly does nothing.
+    //
+    // The world digest is compared before and after, which is what makes
+    // this a statement about the SIMULATION rather than about a return
+    // value: a refusal that still queued something would move it.
+    const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
+    bridge.spawnAgent(1, 1, 80);
+    bridge.select(0);
+    bridge.tick();
+    const before = bridge.worldHash();
+
+    expect(bridge.select(-1)).toBe(false);
+    expect(bridge.select(3.7)).toBe(false);
+    expect(bridge.select(2 ** 32)).toBe(false);
+    expect(bridge.select(NaN)).toBe(false);
+    expect(bridge.useObject(0, -5)).toBe(false);
+    expect(bridge.cancelIntents(1.5)).toBe(false);
+    expect(bridge.setSpeed(-1)).toBe(false);
+    expect(bridge.setSpeed(256)).toBe(false);
+    expect(bridge.setSpeed(1.5)).toBe(false);
+
+    bridge.tick();
+    // A tick with an empty queue still advances the clock, so compare
+    // against a second run of the same length rather than against
+    // `before` directly.
+    const control = new SimBridge(new SimHandle(16, 16), wasmMemory);
+    control.spawnAgent(1, 1, 80);
+    control.select(0);
+    control.tick();
+    control.tick();
+    expect(bridge.worldHash()).toBe(control.worldHash());
+    expect(bridge.selectedIndex()).toBe(0);
+    expect(before).not.toBe(0n);
+
+    // And the well-formed edges of the same ranges are accepted, so the
+    // rule cannot be "refuse everything" and pass.
+    expect(bridge.setSpeed(0)).toBe(true);
+    expect(bridge.setSpeed(255)).toBe(true);
+    expect(bridge.select(0xffffffff)).toBe(true);
+  });
+
+  it('caps the staging queue so rapid clicking cannot grow it without bound', () => {
+    // Nothing downstream bounds this queue. The per-sim intent cap is
+    // only ever reached by a command that resolved to a live agent;
+    // every Select, every SetSpeed and every command naming an index
+    // that no longer exists lands here and touches no intent queue at
+    // all. Nothing ticks until the end, which is also what a PAUSED game
+    // looks like - the case where this queue does not drain at all.
+    //
+    // The cap is `max_queued_commands` in content/tuning.toml and is not
+    // restated here: a literal would leave this green while silently no
+    // longer testing the shipped value. What is asserted is the shape -
+    // it stops, it stops somewhere sane, and draining makes room again.
+    const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
+    bridge.spawnAgent(1, 1, 80);
+
+    let accepted = 0;
+    const attempts = 10000;
+    for (let i = 0; i < attempts; i++) {
+      if (bridge.select(0)) accepted++;
+    }
+    expect(accepted).toBeGreaterThan(0);
+    expect(accepted).toBeLessThan(attempts);
+
+    // Not a latch on the handle: draining has to make room, or the game
+    // would stop accepting input permanently after one burst.
+    bridge.tick();
+    expect(bridge.select(0)).toBe(true);
   });
 
   it('exposes the world hash as a bigint that tracks simulation state', () => {

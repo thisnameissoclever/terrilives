@@ -27,13 +27,29 @@
   our tile diamond is 2 * TILE_HALF_WIDTH = 64, so every borrowed sprite
   is scaled by 64/208 and drawn at that size, one texel per screen pixel.
 
-  The two projections are not identical and this is the honest place to
-  say so. Kenney renders a 1x1 floor tile as roughly 208 x 146, a ratio
-  of about 1.42:1, while iso.ts is 2:1. Scaling uniformly by width keeps
-  furniture proportioned and leaves its base diamond about 7 px taller
-  than the tile it stands on; scaling to match the ratio instead would
-  align the footprint exactly and squash every object's height by 0.69,
-  which is the more visible of the two errors. Width wins.
+  PROJECTION. The kit's ground plane and ours used to disagree, and that
+  disagreement was what made wall runs look jagged. This note used to say
+  the choice was between scaling uniformly by width - leaving footprints
+  a few pixels off - and squashing every object's height by 0.69 to match
+  the ratio, and that width won.
+
+  That framing missed the third option, which is the one that ships now:
+  **reshape OUR tile grid to match the art instead of reshaping the art
+  to match our grid.** Squashing sprites costs height; changing
+  TILE_HALF_HEIGHT costs nothing, because the sprites are untouched and
+  only the diamond they stand on changes.
+
+  Measured rather than guessed. A vertical wall's top edge is parallel to
+  the ground edge it stands on, so it is a direct probe of the ground
+  plane: Isometric/wall_SE.png climbs 69 px over 104 px of run, a slope
+  of 0.663, so one of our 32 px tile edges must drop 21 px rather than 16.
+  iso.ts therefore carries TILE_HALF_HEIGHT = 21 and this script's
+  $TILE_H = 42.
+
+  The floor sprite is the WRONG thing to measure and gives 0.72: it is a
+  slab with visible side faces, so its widest scanline sits below the top
+  face's midline. That is the measurement that produced the 1.42:1 figure
+  this note used to quote.
 #>
 [CmdletBinding()]
 param(
@@ -51,7 +67,10 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 # floor diamond uses $TILE_H, because only it has to align with the tile
 # grid exactly.
 $TILE_W = 64
-$TILE_H = 32
+# 42, not 32, and it is 2 * TILE_HALF_HEIGHT from iso.ts. See PROJECTION in
+# the notes above: it is measured off the kit's own wall geometry so that a
+# run of wall panels chains into one flat surface instead of a sawtooth.
+$TILE_H = 42
 
 # One metre in Kenney source pixels, and it is NOT their floor tile.
 #
@@ -69,16 +88,28 @@ $TILE_H = 32
 $KENNEY_METRE_PX = 118
 $SCALE = $TILE_W / $KENNEY_METRE_PX
 
-# A note on the walls, because the obvious improvement does not work.
+# THE WALLS. Two things were wrong and they compounded, which is why the
+# first two attempts each fixed half of it and still looked broken.
 #
-# One wall panel covers one of THEIR tile edges, which at the metre scale
-# above is 1.8 of ours, so consecutive wall tiles overlap by about 27 px
-# and the top of the run reads as overlapping boards rather than as one
-# flat surface. Narrowing just the width to 34 px - one of our tile edges
-# - was tried and is worse: the panel's top and bottom edges are diagonals
-# cut to the tile slope, and scaling x without y re-slopes them, so the
-# run opens into a picket fence with the floor showing through. Either
-# scale both axes or neither. Both, uniformly, is what ships.
+# **Wrong sprite.** `wall_*` covers one of THEIR tile edges, which at the
+# metre scale above is 1.84 of ours, so drawing one per tile overlapped
+# consecutive panels by about 27 px and the run read as overlapping
+# boards. Narrowing the width alone was tried and is worse - the panel's
+# top and bottom edges are diagonals cut to the tile slope, and scaling x
+# without y re-slopes them, so the run opens into a picket fence.
+#
+# The kit has the piece that was wanted all along: **`wallHalf_*` is half
+# WIDTH, not half height** - 57 x 175 against the full panel's 109 x 212.
+# One of those covers one of our tile edges almost exactly, and it is
+# still taller than the sim, so it reads as a wall rather than a skirting
+# board. It is scaled to exactly $TILE_W / 2 px wide by
+# `Get-ScaledKenneySprite -TargetWidth`, uniformly on both axes, so no
+# edge is re-sloped.
+#
+# **Wrong grid.** Even a tile-wide panel sawtooths if the panel's top edge
+# and the tile grid climb at different angles, and they did: the art
+# climbs at 0.663 and a 2:1 grid climbs at 0.5. That is fixed in iso.ts by
+# TILE_HALF_HEIGHT, not here; see PROJECTION in the notes at the top.
 
 # Atlas width in texels. Everything packs into shelves this wide.
 $ATLAS_W = 256
@@ -93,8 +124,10 @@ $PAD = 1
 $SOURCES = @(
   @{ name = 'floor';                  from = 'generated:floor' }
   @{ name = 'sim';                    from = 'generated:sim' }
-  @{ name = 'wallNS';                 from = 'wall_SE' }
-  @{ name = 'wallEW';                 from = 'wall_SW' }
+  # `wallHalf`, not `wall`, and scaled to one tile edge exactly. See THE
+  # WALLS above.
+  @{ name = 'wallNS';                 from = 'wallHalf_SE'; width = ($TILE_W / 2) }
+  @{ name = 'wallEW';                 from = 'wallHalf_SW'; width = ($TILE_W / 2) }
   @{ name = 'kitchenFridgeBuiltIn';   from = 'kitchenFridgeBuiltIn_SE' }
   @{ name = 'bathroomSinkSquare';     from = 'bathroomSinkSquare_SE' }
   @{ name = 'showerRound';            from = 'showerRound_SE' }
@@ -114,15 +147,24 @@ function New-HighQualityGraphics([System.Drawing.Bitmap] $target) {
   return $g
 }
 
-function Get-ScaledKenneySprite([string] $entry) {
+# `TargetWidth` overrides $SCALE for sprites whose width has to land on an
+# exact number of screen pixels rather than on a shared metre. Only the two
+# wall panels use it, because only they have to tile: everything else is a
+# freestanding object where a pixel either way is invisible.
+#
+# **It scales both axes by the same factor.** Forcing the width and leaving
+# the height alone re-slopes every diagonal edge in the sprite, which is the
+# picket-fence failure recorded in THE WALLS above.
+function Get-ScaledKenneySprite([string] $entry, [int] $TargetWidth = 0) {
   $item = $script:archive.Entries | Where-Object { $_.FullName -eq "Isometric/$entry.png" }
   if (-not $item) { throw "the kit has no Isometric/$entry.png" }
   $stream = $item.Open()
   $source = [System.Drawing.Bitmap]::new($stream)
   $stream.Dispose()
 
-  $w = [Math]::Max(1, [int][Math]::Round($source.Width * $SCALE))
-  $h = [Math]::Max(1, [int][Math]::Round($source.Height * $SCALE))
+  $factor = if ($TargetWidth -gt 0) { $TargetWidth / $source.Width } else { $SCALE }
+  $w = [Math]::Max(1, [int][Math]::Round($source.Width * $factor))
+  $h = [Math]::Max(1, [int][Math]::Round($source.Height * $factor))
   $scaled = [System.Drawing.Bitmap]::new($w, $h, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
   $g = New-HighQualityGraphics $scaled
   $g.DrawImage($source, (New-Object System.Drawing.Rectangle(0, 0, $w, $h)))
@@ -212,7 +254,12 @@ try {
     $bitmap = switch ($spec.from) {
       'generated:floor' { New-FloorSprite }
       'generated:sim' { New-SimSprite }
-      default { Get-ScaledKenneySprite $spec.from }
+      default {
+        # `width` is optional and only the wall panels set it; absent, it is
+        # $null, which the [int] parameter takes as 0 and the function reads
+        # as "use $SCALE".
+        Get-ScaledKenneySprite $spec.from -TargetWidth $spec.width
+      }
     }
     $sprites += [pscustomobject]@{
       name   = $spec.name

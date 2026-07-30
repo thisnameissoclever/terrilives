@@ -60,6 +60,24 @@ pub enum ContentError {
         object: String,
         interaction: String,
     },
+    /// An interaction whose whole sampled length sits at or below
+    /// `min_interaction_ticks`, so the floor sets its duration instead of its
+    /// content, `duration_variance` does nothing for it, and it delivers
+    /// `floor / duration_ticks` times what it advertises.
+    ///
+    /// A **cross-file** rule: it needs `content/objects.toml` and
+    /// `content/tuning.toml` together, which is why it is checked after both
+    /// have compiled rather than beside the other per-interaction rules.
+    ClippedDuration {
+        object: String,
+        interaction: String,
+        duration_ticks: u32,
+        /// The smallest `duration_ticks` that escapes the floor, which is
+        /// `min_interaction_ticks / (1 - duration_variance)` rounded up.
+        minimum: u32,
+        floor: u32,
+        variance: f32,
+    },
     NonFiniteValue {
         context: String,
     },
@@ -150,6 +168,21 @@ pub enum ContentError {
         idle: f32,
         action: f32,
     },
+    /// A cap of zero is not "no queueing"; it is a game in which clicking
+    /// an object never does anything at all, because `drain_commands`
+    /// refuses every intent that would take a queue past this. That is
+    /// the silent-nothing case [D9] exists to convert into a build
+    /// failure - the game would run, the sim would behave, and directing
+    /// it would simply have no effect.
+    ZeroQueuedIntents,
+    /// A cap of zero on the staging queue is a game that accepts no
+    /// player input at all: `SimHandle::enqueue_command` refuses every
+    /// command that would take the queue past this, so at zero it
+    /// refuses the first one. Same silent-nothing shape as
+    /// `ZeroQueuedIntents` and the same reason for being a build
+    /// failure - the page would load, the sim would behave, and nothing
+    /// the player did would reach it.
+    ZeroQueuedCommands,
 }
 
 impl fmt::Display for ContentError {
@@ -206,6 +239,26 @@ impl fmt::Display for ContentError {
             } => write!(
                 f,
                 "object '{object}' interaction '{interaction}' has slots of 0; must be at least 1"
+            ),
+            ContentError::ClippedDuration {
+                object,
+                interaction,
+                duration_ticks,
+                minimum,
+                floor,
+                variance,
+            } => write!(
+                f,
+                "object '{object}' interaction '{interaction}' has duration_ticks of \
+                 {duration_ticks}, whose sampled band bottoms out at \
+                 {:.1} ticks - at or below min_interaction_ticks of {floor}. \
+                 The floor would set its length on every use, duration_variance \
+                 of {variance} would do nothing for it, and it would deliver \
+                 {:.2}x its advertised deltas because the refill rate is per \
+                 content tick. Raise duration_ticks to at least {minimum}, or \
+                 lower min_interaction_ticks in tuning.toml",
+                *duration_ticks as f32 * (1.0 - variance),
+                *floor as f32 / *duration_ticks as f32,
             ),
             ContentError::NonFiniteValue { context } => {
                 write!(f, "{context} is not a finite number")
@@ -272,6 +325,14 @@ impl fmt::Display for ContentError {
             ContentError::IdleThresholdAboveAction { idle, action } => write!(
                 f,
                 "tuning.toml has idle_threshold {idle} above action_threshold {action}; a sim would wander off while something is worth doing"
+            ),
+            ContentError::ZeroQueuedIntents => write!(
+                f,
+                "tuning.toml has max_queued_intents of 0, so directing a sim at an object could never do anything; must be at least 1"
+            ),
+            ContentError::ZeroQueuedCommands => write!(
+                f,
+                "tuning.toml has max_queued_commands of 0, so the boundary would refuse every player command and nothing the player did would reach the simulation; must be at least 1"
             ),
         }
     }

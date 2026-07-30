@@ -274,6 +274,90 @@ describe('FixedStepDriver', () => {
     });
     expect(argCounts).toEqual([0, 0, 0]);
   });
+
+  it('multiplies the number of steps with speed and leaves the step duration alone', () => {
+    // **Both halves, and the second is the one that matters.** A test
+    // that only counted steps would be satisfied by the exact violation
+    // [D2] forbids: a driver implementing "2x" as `stepMs / 2` runs
+    // twenty steps over a second too, and it also returns the identical
+    // interpolation alpha, because scaling the accumulator by k and
+    // dividing the step by k are the same arithmetic. Step COUNT cannot
+    // tell the two apart at any elapsed time, with any frame pacing.
+    // `stepDurationMs` is the only observable that can, which is why it
+    // is exposed.
+    //
+    // Three speeds rather than two, so "the count scales with speed" is
+    // distinguishable from "the count doubles once".
+    const ELAPSED_MS = 1000;
+    const counts: number[] = [];
+    const durations: number[] = [];
+    for (const speed of [1, 2, 3]) {
+      const driver = new FixedStepDriver(10, 1000);
+      driver.setSpeed(speed);
+      let ticks = 0;
+      driver.advance(ELAPSED_MS, () => ticks++);
+      counts.push(ticks);
+      durations.push(driver.stepDurationMs);
+      expect(driver.ticksPerUnitTime).toBe(speed);
+    }
+
+    // The count half: 1x, 2x and 3x over one second of a 10 Hz sim.
+    expect(counts).toEqual([10, 20, 30]);
+    // The size half: one step is a tenth of a second at every one of
+    // them. Identical values are the point here rather than the hazard -
+    // this is the assertion that a speed changing dt would move.
+    expect(durations).toEqual([100, 100, 100]);
+  });
+
+  it('pauses by running zero steps rather than by shrinking the step', () => {
+    // Pause is speed 0, so the same two halves apply: no steps run, and
+    // the step is still a tenth of a second when they resume.
+    //
+    // The elapsed times are deliberately NOT multiples of the step, so
+    // the accumulator carries a remainder across the pause. That is what
+    // separates the intended mechanism from its two degenerate
+    // neighbours - a pause that zeroes the accumulator, and a pause that
+    // banks real time and spends it in one burst on resume. All three
+    // agree on a pause that starts from an empty accumulator.
+    const driver = new FixedStepDriver(10, 1000);
+    let ticks = 0;
+
+    driver.advance(1050, () => ticks++);
+    expect(ticks).toBe(10); // 50 ms left in the accumulator
+
+    driver.setSpeed(0);
+    driver.advance(5000, () => ticks++);
+    expect(ticks).toBe(10);
+    expect(driver.stepDurationMs).toBe(100);
+
+    driver.setSpeed(1);
+    // The banking alternative would spend the paused 5,000 ms here and
+    // run 50 more steps.
+    driver.advance(300, () => ticks++);
+    expect(ticks).toBe(13);
+
+    // And the sample that separates carrying from zeroing: with the 50 ms
+    // remainder still there, 60 ms reaches the next step. Without it, 60
+    // ms reaches nothing. The two agree on every sample before this one.
+    driver.advance(60, () => ticks++);
+    expect(ticks).toBe(14);
+  });
+
+  it('rejects a speed that is not a whole number of steps', () => {
+    // A speed is a step COUNT. A fractional one has only one possible
+    // meaning - a fractional step - which is the thing [D2] forbids, so
+    // it is refused at the door rather than quietly floored into
+    // something the player did not choose.
+    const driver = new FixedStepDriver(10, 1000);
+    for (const bad of [-1, 1.5, NaN, Infinity]) {
+      expect(() => driver.setSpeed(bad)).toThrow(RangeError);
+    }
+    // Refused, not absorbed: the driver still runs at the speed it had.
+    expect(driver.ticksPerUnitTime).toBe(1);
+    let ticks = 0;
+    driver.advance(1000, () => ticks++);
+    expect(ticks).toBe(10);
+  });
 });
 
 describe('lerp', () => {

@@ -10,3 +10,14 @@ crate-type = ["cdylib", "rlib"]
 terri-core = { path = "../terri-core" }
 terri-sim = { path = "../terri-sim" }
 wasm-bindgen = { workspace = true }
+# Player commands cross this boundary as postcard bytes, so the wire
+# format the save-file command log and Layer 2 multiplayer would use is
+# the same one JavaScript already writes. Decoding therefore happens
+# HERE, in the crate untrusted input enters, rather than behind a helper
+# in `terri-core`: docs/testing-protocol.md rule 8 puts the validation
+# where the input arrives, and a `Result` this crate turns into `false`
+# is the whole of that validation. The workspace entry is already
+# `default-features = false, features = ["alloc"]`, so this adds nothing
+# to the wasm dependency graph that `terri-data` was not already
+# pulling in.
+postcard = { workspace = true }

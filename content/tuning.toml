@@ -132,21 +132,160 @@ duration_variance = 0.4
 # (12) and sink (8) all had their entire bands under the floor, so 31 of
 # 51 measured interactions - 61% - ran for exactly 25 ticks every single
 # time, and the fridge delivered 67 hunger instead of the 40 it
-# advertises. At 12 the fridge samples 12 to 20 and averages 14.4, which
-# is its declared 15, and the floor is a safety net again rather than
-# the thing setting the length.
+# advertises.
 #
-# The sink is still pinned at exactly 12 every time, and no value here
-# can fix it: its band tops out at 8 * 1.4 = 11 ticks, so any floor a
-# player can see clips all of it, and a floor below 12 is under 1.2
-# seconds - which is the thing this knob exists to prevent. That is a
-# CONTENT problem, recorded as one in docs/alpha-feel-notes.md. Raise
-# the sink's duration_ticks; do not lower this.
+# **THIS IS NOW A BUILD RULE RATHER THAN A WARNING.** `ClippedDuration` in
+# crates/terri-data/src/compile.rs fails `cargo build` for any interaction
+# whose band bottoms out below this value, so lowering the floor is safe and
+# RAISING it is what needs care: raise it past 20 and every shipped object
+# whose duration is under `new_floor / 0.6` stops compiling, which is the
+# intended outcome rather than an obstacle - it forces the content decision
+# instead of silently overriding it.
+#
+# The three offenders were fixed in content rather than here, because the
+# floor was acting as a balance lever: the sink went from 8 ticks to 21 (and
+# its hygiene delta from 22 to 32, without which raising the duration alone
+# dropped it from 6 interactions to 1), the toilet from 12 to 24 and the
+# fridge from 15 to 30.
+#
+# Measured over 12 000 ticks against the CURRENT content, after the decay
+# retune below - every object shows real spread and none is pinned:
+#
+#   fridge 18-41 (declares 30)    toilet 14-32 (declares 24)
+#   sink   13-24 (declares 21)    shower 27-53 (declares 45)
+#   sofa   31-50                  television 33-72   bed 108-218
+#
+# These replace an earlier set taken before the adjacency and decay changes,
+# which a review caught as stale. [L40]'s rule is that a re-measurement which
+# disagrees means re-deriving rather than defending, so: reproduce with
+# `cargo run -p terri-sim --example trace -- 12000`, and replace these numbers
+# rather than arguing with them.
+#
+# **ONE JUSTIFICATION HERE NO LONGER HOLDS, and it is recorded rather than
+# quietly fixed.** The sink's delta was raised to 32 on the argument that it
+# would then score within about 2% of the shower, so which one a sim picks
+# would turn on how tired it is. That was measured before the decay rates were
+# slowed. It is now **3 sink uses against 9 shower uses** in 12 000 ticks, and
+# the sink's share of all interactions fell from 11.8% before the pass to 3.2%
+# after. The sink is closer to the bookshelf's zero than to a real choice.
+#
+# Do NOT chase it with a third delta change. Two objects are now near-unused
+# for the same reason - nothing in the game makes repetition less attractive -
+# and that is what habituation is for; see
+# docs/specs/2026-07-29-satisfaction-and-traits-design.md. Raising numbers until
+# an object wins on merit it does not have is the fix that was already rejected
+# for the bookshelf in [C6].
 min_interaction_ticks = 12
 
 # Seed for the simulation PRNG. Constant for now; it becomes part of the
 # save file at M1d, which is what makes a saved game replayable.
 rng_seed = 20260728
+
+# The most player-issued intents one sim may hold at once. A click that
+# would exceed it is refused rather than queued.
+#
+# THIS IS A BOUND ON THE PLAYER, not on the simulation, and it is the only
+# thing rate-limiting a click. `drain_commands` pushes one intent per
+# `UseObject` command and nothing else trims the queue, so without a cap a
+# JavaScript loop - or a player leaning on the mouse - grows one sim's
+# queue without limit, and every entry in it is a stretch of time that sim
+# is not choosing for itself.
+#
+# The number is a TIME budget rather than a count. Measured over the
+# shipped lot (docs/alpha-feel-notes.md): an interaction runs 12 to 25
+# ticks and the walk to it costs up to about 80 more on a 14x10 lot at
+# 0.25 tiles a tick, so one queued intent is roughly 2 to 10 real seconds
+# at 1x. Four is therefore up to about 40 seconds of directed work
+# already promised before a fifth click is even considered, which is well
+# past the point where a player can still remember what they asked for.
+#
+# **The overflow drops the NEWEST intent, not the oldest**, and that is a
+# deliberate trade rather than the obvious one. Dropping the oldest would
+# mean evicting the intent the sim is currently carrying out, which would
+# have to release its target and its reservation from inside the drain and
+# would make a click able to cancel an earlier click's work silently.
+# Refusing the new one keeps every accepted instruction honoured. The cost
+# is real and is why this number is not smaller: the fifth rapid click
+# does nothing at all, and a click that does nothing is the exact failure
+# [D-3] exists to prevent. Raise it before lowering it.
+#
+# Zero is rejected at build time: a cap of zero is not "no queueing", it
+# is a game where clicking an object never does anything.
+max_queued_intents = 4
+
+# The most commands the WASM boundary will hold between two drains. A
+# command that would take the queue past this is refused, and
+# `SimHandle.enqueue_command` returns false so the shell can see that it
+# was.
+#
+# THIS IS THE BOUND ON THE QUEUE ITSELF, and it is a different failure
+# from `max_queued_intents` above rather than a second copy of it. That
+# one bounds what a single sim can be told to do, and it is only ever
+# reached by a `UseObject` that resolved to a live agent. Everything
+# else a player can send - every `Select`, every `SetSpeed`, every
+# command naming an index that no longer exists - reaches this staging
+# queue and never touches an intent queue at all. So without a bound
+# here, a JavaScript loop enqueueing `Select(u32::MAX)` grows memory
+# without limit while the simulation looks perfectly healthy.
+#
+# The number is a BURST budget rather than a rate. The queue drains
+# completely on every tick, and at 1x the simulation runs 10 ticks a
+# second, so a player clicking as fast as a human can never accumulates
+# more than a handful. What makes the burst larger than that is PAUSE:
+# at speed 0 the driver stops calling `tick`, nothing drains, and every
+# command issued while paused waits. 64 is therefore roughly six
+# seconds of continuous clicking at a rate no hand sustains, or a
+# comfortable number of orders issued to a paused lot before unpausing -
+# and it is still four orders of magnitude below anything that would
+# cost a browser tab memory it noticed.
+#
+# **The overflow drops the NEWEST command**, matching
+# `max_queued_intents` and for the same reason: every command already
+# accepted was accepted in an order the player chose and a replay must
+# reproduce, so evicting from the front would silently rewrite history
+# that [D8]'s command log has already recorded.
+#
+# Zero is rejected at build time: a cap of zero is not "no queueing", it
+# is a game that ignores every click, keypress and pause the player ever
+# makes while looking entirely normal doing it.
+max_queued_commands = 64
+
+# How often the shell re-reads a selected sim's needs for the need bars,
+# in real milliseconds.
+#
+# This is a DISPLAY rate, not a simulation rate, and it is the only knob
+# here that is: nothing downstream of it can change what the simulation
+# does, only how often the panel asks. It lives here anyway because it is
+# a knob somebody tuning the game will want to turn, and the standing rule
+# in this file's header is that such a knob has one home rather than being
+# a `const` buried in TypeScript nobody opens.
+#
+# The number is matched to the TICK, not to the display. The simulation
+# advances 10 times a second at 1x and the browser paints 60 or more times
+# a second, so at 100 ms the panel reads once per tick and five in six
+# frames cost nothing but a timestamp comparison. Reading every frame
+# would return the same seven numbers six times over, and each read is a
+# call across the WASM boundary that allocates a seven-float array.
+#
+# Both directions have a visible cost, which is why this is a knob rather
+# than a constant. Far below 100 spends boundary calls for numbers that
+# have not changed. Far above it makes the bars lag behind the sim's
+# behaviour, and the whole point of the panel is that a decision can be
+# read against the bars afterwards - bars a second stale describe a
+# decision that has already been made.
+#
+# Zero is legal and means "read every frame". It is not rejected at build
+# time because it does not fail quietly: it is merely wasteful, and the
+# panel still shows the truth. Contrast `max_queued_commands` above, where
+# zero is a game that silently ignores every click.
+#
+# AT SPEED 2 AND 3 THE SIMULATION OUTRUNS THIS, deliberately. Speed
+# multiplies ticks per frame and leaves the tick duration alone ([D2]), so
+# 3x runs 30 ticks a second while the panel still reads 10 times a second
+# and shows every third tick's levels. That is a display decision, not a
+# simulation one, and it is why this is measured in real milliseconds
+# rather than in ticks.
+need_bar_refresh_ms = 100
 
 # Need decay per tick. One tick is one sim-minute, so 0.104 drains a full
 # need in roughly 16 sim-hours.
@@ -171,10 +310,36 @@ rng_seed = 20260728
 # fails if a balance pass ever makes two of them equal; see [L26] for the
 # instance where a uniform fixture hid exactly this bug one layer down.
 [decay_per_tick]
-hunger = 0.104
-energy = 0.069
-hygiene = 0.052
-bladder = 0.139
-social = 0.035
-fun = 0.042
-comfort = 0.028
+# ALL SEVEN WERE SLOWED at the alpha pass, and hunger by more than the rest.
+#
+# The old rates drained a need in 12 to 60 real minutes at 1x, which sounds
+# leisurely and was not: the sim's whole day was eating and using the toilet,
+# because those two drained fastest and everything else never got a turn. The
+# measured share bears it out - fridge 28% and toilet 26% of all interactions
+# between them, against 8% for the shower and 0% for the bookshelf.
+#
+# Every rate is multiplied by roughly 0.75, and hunger by 0.6 so it stops
+# dominating. Hunger now takes 1 613 ticks to drain from full, which is 2.7
+# real minutes at 1x and about 27 sim-hours.
+#
+# **All seven must stay DISTINCT.** `decay_needs` looks a rate up by need
+# index, and no test can tell one slot from another if two slots hold the same
+# value; `needs_decay_at_different_rates` fails if a balance pass ever makes
+# two equal. See [L26] for the instance where a uniform fixture hid exactly
+# that bug one layer down.
+#
+# **These are the BASE rates and they are about to stop being the whole
+# story.** Three things are designed to modulate them and none is built:
+# per-sim affinities so a social butterfly and an introvert drain `social` at
+# different speeds, activity coupling so effort drains hunger faster than
+# resting does, and a small seeded jitter so two sims are never metronomic
+# together. See docs/specs/2026-07-29-needs-modulation-design.md; the shape
+# those take is why this table is a table of base rates rather than the final
+# numbers.
+hunger = 0.062
+energy = 0.051
+hygiene = 0.039
+bladder = 0.102
+social = 0.026
+fun = 0.031
+comfort = 0.021

@@ -417,6 +417,13 @@ pause that is indistinguishable from its own absence - the exact shape of
 `SimBridge` exposes no hunger accessor, and adding one was explicitly
 deferred, so hunger cannot be read directly either.
 
+*(True when this was written and no longer true: M1b Task 6 added
+`SimBridge.needsOf(entityIndex)` for the need-bar panel, so a meal is
+now directly observable. The finding above is left as it was measured -
+the reservation-based observable it goes on to describe is still the
+better one, because it is causal rather than a level that other things
+also move.)*
+
 ### Reservation supplies the missing observable, causally
 
 `select_action` queries objects `Without<Reserved>`, so a claimed fridge
@@ -743,6 +750,74 @@ build toolchain on one machine - not the renderer. [V13] already warned that
 this session's environment differs from the M0 close-out's by more than the
 thing being measured; the same caution applies here, and the control is why a
 conclusion is available anyway.
+
+## [V15] The need bars and the speed controls, measured in a visible Chrome
+
+M1b Task 7, `http://localhost:5173/` with no query parameters, real installed
+Chrome driven headed by Playwright so rAF is paced by the compositor. Frames
+counted at platform globals ([L20] rule 1).
+
+| | value |
+| --- | --- |
+| `document.visibilityState` | **`visible`** |
+| rAF callbacks over the run | **3,743** |
+| `GPURenderPassEncoder.draw` calls | **3,743** |
+| `GPUQueue.submit` calls | **3,743** |
+| console errors | one, a pre-existing `favicon.ico` 404 |
+
+**The bars.** Seven rows, each labelled with a need name the SIMULATION
+reported, in the order `needsOf` fills. Read out of the rendered DOM at 1x
+shortly after selecting the sim:
+
+| label | `aria-label` | width |
+| --- | --- | --- |
+| hunger | hunger | 21.4% |
+| energy | energy | 97.6% |
+| hygiene | hygiene | 98.2% |
+| bladder | bladder | 95.1% |
+| social | social | 98.8% |
+| fun | fun | 98.5% |
+| comfort | comfort | 99% |
+
+Before a sim is selected the panel is `hidden` and asks for no needs at all: 29
+`selectedIndex` reads and **0** `needsOf` reads over 3 s. Selection is set with
+`SimCommand::Select` through the page's own bridge, because clicking is Task 8.
+
+**The read throttle**, counted at `SimBridge.needsOf`, which the panel calls
+exactly once per read and which nothing else on the page calls:
+
+| | value |
+| --- | --- |
+| frames in the window | 1,201 |
+| panel reads | **97** in 10 s, 9.7/s |
+| frames per read | **12.4** |
+| `need_bar_refresh_ms` | 100 |
+
+So the panel reads once per tick while the display runs at ~120 fps, which is
+what the knob is for. A first attempt to count this by wrapping the `width`
+setter on `CSSStyleDeclaration.prototype` read **0**; that is [L45], not a
+finding about the page.
+
+**Speed, measured off the page's own bars rather than off any counter this
+harness installed.** Nothing in the lot advertises `social`, so it only falls,
+and how far it falls over a fixed wall-clock window is how many ticks ran. Five
+arms, 5 s each, in this order:
+
+| arm | ticks | `social` drop | per tick | frames | submits |
+| --- | --- | --- | --- | --- | --- |
+| 1x | 50 | 1.8 | 0.036 | 601 | 601 |
+| Pause | **0** | **0** | - | 601 | 601 |
+| 2x | 100 | 3.5 | 0.035 | 600 | 600 |
+| 3x | 150 | 5.2 | 0.0347 | 600 | 600 |
+| 1x again | 50 | 1.7 | 0.034 | 600 | 600 |
+
+**The per-tick column is [D2] measured in the running game.** The tick count
+scales 0, 1, 2, 3 with the button while the amount of simulation each tick
+delivers stays at `social`'s authored 0.035 per tick. A speed that changed the
+step size instead would move that column and leave the tick count alone.
+
+Frames are unaffected by speed - 600 in every arm including Pause - which is
+the other half: pausing stops the simulation, not the renderer.
 
 ## What Task 3c did not establish
 

@@ -170,19 +170,48 @@ mod tests {
         )])
     }
 
-    /// A 16x16 sim with that object next to one agent whose needs are
-    /// all at `hunger`, ready to be ticked.
+    /// The object's tile and the agent's, and the walk between them.
+    ///
+    /// **Four tiles apart, walked three**, and the gap is load-bearing rather
+    /// than arbitrary. Selection paths to a NEIGHBOUR of the object, so an
+    /// agent spawned one tile away - which this fixture used to do - is already
+    /// where it needs to be: `find_path_adjacent` returns an empty path and
+    /// `follow_path` starts the interaction on the very first tick.
+    ///
+    /// That silently emptied the window in
+    /// `a_sim_with_an_urgent_need_does_not_wander`, whose whole subject is
+    /// what a sim does *while walking somewhere hungry*. Its own
+    /// "the window must contain at least one tick" guard caught it, which is
+    /// the only reason it did not become a test of nothing.
+    const OBJECT_TILE: (f32, f32) = (10.0, 8.0);
+    const AGENT_TILE: (f32, f32) = (6.0, 8.0);
+    /// What `select_action` divides by for this fixture: the walk to the tile
+    /// BESIDE the object, which is one less than the four tiles between them.
+    const WALKED_TILES: f32 = 3.0;
+
+    /// A 16x16 sim with that object a short walk from one agent whose needs
+    /// are all at `hunger`, ready to be ticked.
     fn scenario(content: &'static ContentPack, hunger: f32) -> (Sim, Entity) {
         let mut sim = test_content::sim_with(16, 16, content);
         sim.world_mut().spawn((
-            Position { x: 10.0, y: 8.0 },
+            Position {
+                x: OBJECT_TILE.0,
+                y: OBJECT_TILE.1,
+            },
             SmartObject(content.find("fridge_ish").expect("the fixture declares it")),
         ));
         let mut needs = Needs::all_at(NEED_MAX);
         needs.set(NeedId::Hunger, hunger);
         let agent = sim
             .world_mut()
-            .spawn((Agent, Position { x: 9.0, y: 8.0 }, needs))
+            .spawn((
+                Agent,
+                Position {
+                    x: AGENT_TILE.0,
+                    y: AGENT_TILE.1,
+                },
+                needs,
+            ))
             .id();
         (sim, agent)
     }
@@ -657,7 +686,12 @@ mod tests {
             .get::<Needs>(agent)
             .expect("the agent must still have Needs")
             .deficit(NeedId::Hunger);
-        let score = crate::systems::advertise::score_advertisement(deficit, DELTA, DURATION, 1.0);
+        // WALKED_TILES, not the four tiles between the two positions: the
+        // agent stops beside the object, and this restatement has to divide by
+        // the same distance the system did or the band it checks is not the
+        // band the sim saw.
+        let score =
+            crate::systems::advertise::score_advertisement(deficit, DELTA, DURATION, WALKED_TILES);
         assert!(
             score > IDLE,
             "the option must clear the idle threshold, or the sim is \

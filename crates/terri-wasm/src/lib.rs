@@ -1,7 +1,10 @@
 //! The ONLY crate that knows JavaScript exists.
 //! Nothing in here may contain simulation logic.
 
-use terri_core::{Agent, NeedId, Needs, Position, SmartObject, TileGrid, NEED_MAX, NEED_MIN};
+use terri_core::{
+    Agent, CommandQueue, NeedId, Needs, Position, SimCommand, SmartObject, TileGrid, NEED_MAX,
+    NEED_MIN,
+};
 use terri_sim::{Content, Sim};
 use wasm_bindgen::prelude::*;
 
@@ -259,6 +262,211 @@ impl SimHandle {
         self.sim.render_buffer().sprites.as_ptr()
     }
 
+    /// The raw entity index occupying each row - the number a `Select` or
+    /// `UseObject` command has to carry.
+    ///
+    /// Exported because **a row number is not an entity index**: rows are
+    /// sorted by index, so a row is a rank. See `RenderBuffer::ids` for the
+    /// full argument and for the despawn that ends the coincidence. Picking
+    /// resolves a click to a row and then reads the entity out of here
+    /// rather than assuming the two agree.
+    ///
+    /// Same caching hazard as every other pointer here; re-read it on every
+    /// access.
+    pub fn ids_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().ids.as_ptr()
+    }
+
+    /// Stages one player command, given as postcard bytes. Returns
+    /// whether it was accepted.
+    ///
+    /// This is the **only** way the shell affects the simulation, which
+    /// is the whole of [D-2]: JavaScript never touches the world, it
+    /// enqueues serialisable data that `drain_commands` applies at one
+    /// fixed point in the tick. That is what keeps a replay reproducible,
+    /// gives [D8]'s save-file command log something to record, and leaves
+    /// Layer 2 multiplayer possible - what you would send over a wire is
+    /// exactly these bytes.
+    ///
+    /// # Why bytes rather than four typed exports
+    ///
+    /// A `select(id)` export would work today and would be a second
+    /// encoding of the same commands, diverging from the one a save file
+    /// replays. Sending the postcard bytes means the format is exercised
+    /// on every single click rather than only when somebody saves.
+    ///
+    /// # Malformed input returns `false`, and that is the point of the
+    /// signature
+    ///
+    /// Every byte here is attacker-controlled in principle and
+    /// typo-controlled in practice. **A panic inside a `#[wasm_bindgen]`
+    /// export leaves the module trapped for the rest of the page's life**,
+    /// so from the player's side one bad frame of input is the entire game
+    /// freezing with no recovery short of a reload. `unwrap` on the decode
+    /// would compile, ship, and survive `--release`, which is what makes
+    /// it worse than the [L12] `debug_assert!` rather than better. Four
+    /// shapes of bad input reach this and all four return `false`:
+    ///
+    /// - **empty** - no variant index at all;
+    /// - **an unknown variant index** - a byte past the four `SimCommand`
+    ///   declares, which is also what an OLDER shell sending a NEWER
+    ///   format looks like;
+    /// - **a truncated payload** - a variant index with its fields
+    ///   missing, which is what a partial write or a sliced buffer looks
+    ///   like;
+    /// - **trailing bytes** - a valid command followed by junk, rejected
+    ///   rather than silently ignored. That one is a deliberate strictness
+    ///   choice: `take_from_bytes` is used rather than `from_bytes` so
+    ///   this crate decides the rule instead of inheriting whatever a
+    ///   postcard upgrade decides. A buffer holding one command plus
+    ///   anything else is not a message this side wrote, and accepting the
+    ///   prefix would make the wire format ambiguous the day someone
+    ///   concatenates two commands and expects both to run.
+    ///
+    /// A stale or invented entity index is NOT rejected here, and that is
+    /// also deliberate: it is a perfectly well-formed command, and
+    /// `drain_commands` already resolves indices against live entities and
+    /// ignores the ones that resolve to nothing. Rejecting it here would
+    /// mean this crate holding a second, weaker copy of that rule.
+    ///
+    /// # The cap is the bound on the queue itself
+    ///
+    /// `max_queued_intents` bounds what one sim can be told to do, and
+    /// nothing reaches it except a `UseObject` that resolved to a live
+    /// agent. Everything else a player can send - every `Select`, every
+    /// `SetSpeed`, every command naming an index that no longer exists -
+    /// lands in the staging queue and never touches an intent queue at
+    /// all, so a JavaScript loop could grow this without limit. It is also
+    /// the queue that does not drain while the game is PAUSED, since
+    /// nothing calls `tick`. `max_queued_commands` in
+    /// `content/tuning.toml` carries the burst budget and why the overflow
+    /// refuses the newest rather than evicting the oldest.
+    pub fn enqueue_command(&mut self, bytes: &[u8]) -> bool {
+        // `take_from_bytes` rather than `from_bytes`, so the trailing-byte
+        // rule is this crate's rather than postcard's; see above.
+        let Ok((command, rest)) = postcard::take_from_bytes::<SimCommand>(bytes) else {
+            return false;
+        };
+        if !rest.is_empty() {
+            return false;
+        }
+
+        // Read before the queue is borrowed mutably. `Tuning` is `Copy`
+        // behind a `&'static ContentPack`, so this is a load rather than
+        // a clone.
+        let cap = self
+            .sim
+            .world()
+            .resource::<Content>()
+            .0
+            .tuning
+            .max_queued_commands as usize;
+        let mut queue = self.sim.world_mut().resource_mut::<CommandQueue>();
+        if queue.len() >= cap {
+            return false;
+        }
+        queue.push(command);
+        true
+    }
+
+    /// The seven need levels of the entity carrying `entity_index`, in
+    /// `NeedId` index order, or an EMPTY array when nothing live carries
+    /// that index or what does has no needs.
+    ///
+    /// The panel reads this every frame for whichever sim is selected and
+    /// holds nothing of its own ([D-5]): the DOM renders simulation state,
+    /// it never owns it. An empty array is therefore a normal answer
+    /// rather than an error - it is what a deselected panel, a
+    /// just-despawned sim and a click that landed on a fridge all look
+    /// like, and all three should draw no bars.
+    ///
+    /// A copy rather than a pointer into linear memory, unlike the render
+    /// arrays. Seven floats for one entity at a throttled rate is not
+    /// per-frame bulk data, and a view would have to survive every later
+    /// reallocation for no benefit at all - the same trade `wall_tiles`
+    /// makes.
+    pub fn needs_of(&self, entity_index: u32) -> Vec<f32> {
+        self.sim
+            .needs_of(entity_index)
+            .map(|levels| levels.to_vec())
+            .unwrap_or_default()
+    }
+
+    /// The raw index of the selected sim, or `None` when nothing is
+    /// selected.
+    ///
+    /// Selection is simulation state, not shell state ([D-5]). The shell
+    /// asks for a change with `SimCommand::Select` and reads the result
+    /// back here, so a replay reproduces what the player had selected
+    /// rather than depending on what the DOM happened to remember.
+    pub fn selected_index(&self) -> Option<u32> {
+        self.sim.selected_index()
+    }
+
+    /// The seven need names in `NeedId` index order, which is the order
+    /// [`SimHandle::needs_of`] returns levels in.
+    ///
+    /// The need-bar panel labels its bars from this rather than from a
+    /// list of its own. Seven strings in a TypeScript array would be a
+    /// second copy of the need list, kept in sync by nobody, and the way
+    /// it would fail is the worst available: every bar still drawn, every
+    /// number still right, and the labels shifted by one against them.
+    /// The panel would then be actively misleading rather than broken,
+    /// and reading a decision against the bars - which is the entire
+    /// reason the panel exists - would give the wrong answer. That is the
+    /// coupling [D1] exists to prevent, in the same shape as an object's
+    /// sprite.
+    ///
+    /// Called once at load and it allocates seven `String`s, so it is not
+    /// on the throttled read path and has nothing to do with [D11].
+    ///
+    /// `&self` is unused: the names come from `NeedId`, which is a
+    /// compile-time list rather than simulation state. It stays a method
+    /// so that the shell reaches it through the same handle as everything
+    /// else, rather than the shell needing to know that this one fact
+    /// about the simulation is free-standing.
+    pub fn need_names(&self) -> Vec<String> {
+        NeedId::ALL
+            .iter()
+            .map(|id| id.as_str().to_string())
+            .collect()
+    }
+
+    /// The level a fully satisfied need sits at, which is what a need bar
+    /// draws as full.
+    ///
+    /// Read across the boundary rather than written as `100` in the
+    /// panel, for the same reason the labels are: a hardcoded ceiling is
+    /// the shell owning a piece of the need model. If `NEED_MAX` ever
+    /// moved, a panel with its own copy would draw every bar at the wrong
+    /// scale while every number behind it stayed correct - and a bar at
+    /// half its true height is a decision misread rather than a visible
+    /// fault.
+    pub fn need_max(&self) -> f32 {
+        NEED_MAX
+    }
+
+    /// How often the shell should re-read a selected sim's needs, in real
+    /// milliseconds, from `content/tuning.toml`.
+    ///
+    /// The one knob in the pack that no simulation system reads. It
+    /// crosses here because the standing rule is that a value somebody
+    /// tuning the game will want to turn lives in `content/tuning.toml`
+    /// and not in a `const` buried in TypeScript - a rule with no
+    /// exception for the shell. The file carries why 100 is matched to
+    /// the tick rate rather than to the display refresh rate.
+    ///
+    /// It is a display rate and nothing else: it cannot change what the
+    /// simulation does, only how often the panel asks what it did.
+    pub fn need_bar_refresh_ms(&self) -> u32 {
+        self.sim
+            .world()
+            .resource::<Content>()
+            .0
+            .tuning
+            .need_bar_refresh_ms
+    }
+
     pub fn world_hash(&self) -> u64 {
         self.sim.world_hash()
     }
@@ -276,7 +484,7 @@ mod boundary_tests {
     //! out of the world it was spawned into.
 
     use super::*;
-    use terri_core::SimClock;
+    use terri_core::{SimClock, NEED_COUNT};
 
     /// Hunger levels as the ECS actually stored them.
     fn stored_hungers(handle: &SimHandle) -> Vec<f32> {
@@ -722,6 +930,59 @@ mod boundary_tests {
         );
     }
 
+    /// `ids_ptr` must hand JavaScript a live view of the **id** column.
+    ///
+    /// Found by the mutation sweep rather than by hand: replacing this
+    /// accessor with `Default::default()` - a null pointer straight into a
+    /// `Uint32Array` constructor - survived every other test in this crate,
+    /// because nothing on the Rust side read through it at all.
+    ///
+    /// **What this test covers and what it does not.** The three `u32`
+    /// columns - `ids`, `kinds` and `sprites` - are the same type and the
+    /// same length, so returning the wrong one compiles and type-checks.
+    /// The fixture is one object plus one agent precisely so that all three
+    /// hold *different* values, which is what lets this distinguish them;
+    /// the assertions below therefore catch a null pointer and catch
+    /// `ids_ptr` addressing either sibling array.
+    ///
+    /// It does **not** distinguish an entity index from a row number, because
+    /// the two are equal on any world this crate can build - creating a hole
+    /// in the index space needs a despawn, and that needs `bevy_ecs`, which
+    /// `terri-wasm` deliberately does not depend on. That distinction is
+    /// pinned one layer down instead, by
+    /// `a_row_is_not_its_entity_index_once_an_index_is_freed` in
+    /// `terri-sim`'s `render_buffer` tests, which can despawn. See [L47].
+    #[test]
+    fn ids_ptr_addresses_the_id_column_and_not_a_sibling_u32_column() {
+        let mut handle = SimHandle::new(16, 16);
+        assert!(handle.spawn_object(1.0, 1.0, "sofa"));
+        handle.spawn_agent(2.0, 2.0, 50.0);
+
+        let rows = handle.entity_count();
+        let ids = addressed(handle.ids_ptr(), rows, "ids_ptr");
+        let kinds = addressed(handle.kinds_ptr(), rows, "kinds_ptr");
+        let sprites = addressed(handle.sprites_ptr(), rows, "sprites_ptr");
+
+        assert_ne!(
+            ids, kinds,
+            "the fixture must make the id and kind columns differ, or \
+             returning the kinds array here is invisible"
+        );
+        assert_ne!(
+            ids, sprites,
+            "the fixture must make the id and sprite columns differ, or \
+             returning the sprites array here is invisible"
+        );
+        assert_eq!(
+            ids,
+            vec![0, 1],
+            "ids_ptr must address the entity index of each row, ascending, \
+             so the object spawned first comes first - this is the number a \
+             click becomes in a Select or UseObject command, and a wrong one \
+             directs a different sim"
+        );
+    }
+
     #[test]
     fn sprites_ptr_addresses_the_content_resolved_atlas_indices() {
         // One object and one agent, because an all-object lot would tag
@@ -802,6 +1063,563 @@ mod boundary_tests {
             "the doorway at (9, 2) is walkable and must not be drawn as a wall"
         );
         assert!(pairs.contains(&(9, 1)) && pairs.contains(&(9, 3)));
+    }
+
+    // ---- Player commands ----------------------------------------------
+    //
+    // Everything below is about `enqueue_command`, which is where the
+    // shell stops being a renderer and starts being an input. The bytes
+    // are written as LITERALS rather than produced by `postcard::
+    // to_allocvec`, and that is the load-bearing part rather than a
+    // stylistic one: encoding with the same library that decodes is a
+    // round trip, and a round trip is self-consistent under any encoding
+    // at all ([L33]). What crosses this boundary in the browser is bytes
+    // JavaScript wrote by hand, so bytes written by hand are what these
+    // send. They match the golden vector in `terri_core::command`, which
+    // is the one place the format is stated.
+
+    /// `SimCommand::Select(Some(index))`: variant 0, `Option` tag 1, then
+    /// the index as a varint. Single-byte indices only, which is all any
+    /// of these fixtures uses.
+    fn select_bytes(index: u32) -> Vec<u8> {
+        assert!(index < 128, "the varint below is one byte only");
+        vec![0x00, 0x01, index as u8]
+    }
+
+    /// `SimCommand::UseObject { agent, object }`: variant 1, then two
+    /// varints.
+    fn use_object_bytes(agent: u32, object: u32) -> Vec<u8> {
+        assert!(agent < 128 && object < 128, "one-byte varints only");
+        vec![0x01, agent as u8, object as u8]
+    }
+
+    /// How many commands are staged and not yet drained.
+    fn staged(handle: &SimHandle) -> usize {
+        handle.sim.world().resource::<CommandQueue>().len()
+    }
+
+    /// The staging cap the boundary actually enforces, read from the same
+    /// content it read rather than restated as a literal. A number here
+    /// would leave the cap test green while silently no longer testing
+    /// the shipped value, from the first time anybody tunes it.
+    fn command_cap(handle: &SimHandle) -> usize {
+        handle
+            .sim
+            .world()
+            .resource::<Content>()
+            .0
+            .tuning
+            .max_queued_commands as usize
+    }
+
+    /// Spawns an agent through the ECS rather than through
+    /// `spawn_agent`, because these tests need its raw index and the
+    /// export does not return one. Same fixture shape `spawn_agent`
+    /// builds: hunger set, the other six satisfied.
+    fn spawn_agent_at(handle: &mut SimHandle, x: f32, y: f32, hunger: f32) -> u32 {
+        handle
+            .sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x, y },
+                Needs::with(NeedId::Hunger, hunger),
+            ))
+            .id()
+            .index_u32()
+    }
+
+    #[test]
+    fn a_well_formed_command_reaches_the_simulation() {
+        // **The counterfactual for every rejection test below.** Without
+        // it, `enqueue_command` returning `false` unconditionally - or
+        // staging the command and never letting the drain see it - would
+        // satisfy all of them, and the boundary would be closed rather
+        // than open. This is the test that says it is open.
+        //
+        // Selection is what it checks, because selection is the one
+        // command whose whole effect is observable through another
+        // export: the shell asks with `Select` and reads back with
+        // `selected_index`, which is [D-5]'s round trip.
+        let mut handle = SimHandle::new(8, 8);
+        let agent = spawn_agent_at(&mut handle, 1.0, 1.0, 80.0);
+        assert_eq!(
+            handle.selected_index(),
+            None,
+            "nothing is selected until a command says so, or the \
+             assertion below cannot attribute the selection to the command"
+        );
+
+        assert!(
+            handle.enqueue_command(&select_bytes(agent)),
+            "a well-formed Select must be accepted"
+        );
+        assert_eq!(
+            staged(&handle),
+            1,
+            "an accepted command must be STAGED rather than applied; \
+             applying it here would be JavaScript mutating the world, \
+             which is the one thing [D-2] forbids"
+        );
+        assert_eq!(
+            handle.selected_index(),
+            None,
+            "and it must not have taken effect before the tick that \
+             drains it"
+        );
+
+        handle.tick();
+
+        assert_eq!(
+            handle.selected_index(),
+            Some(agent),
+            "the command must reach the simulation on the tick that \
+             drains it"
+        );
+        assert_eq!(staged(&handle), 0, "and the drain must empty the queue");
+    }
+
+    #[test]
+    fn malformed_command_bytes_are_rejected_rather_than_trapping_the_module() {
+        // **The mutation this is written against: `unwrap` or `expect` on
+        // the decode.** That compiles, ships, and survives `--release` -
+        // which is what makes it worse than the [L12] `debug_assert!`
+        // rather than better. A panic inside a `#[wasm_bindgen]` export
+        // unwinds into a JS exception AND leaves the module trapped for
+        // the rest of the page's life, so one malformed frame of input is
+        // the whole game freezing rather than one click failing.
+        //
+        // Six shapes, because they fail at different points in the
+        // decoder and a guard could plausibly catch some and not others.
+        let mut handle = SimHandle::new(8, 8);
+        let agent = spawn_agent_at(&mut handle, 1.0, 1.0, 80.0);
+        handle.enqueue_command(&select_bytes(agent));
+        handle.tick();
+        let baseline = handle.world_hash();
+
+        let cases: Vec<(&str, Vec<u8>)> = vec![
+            ("empty - no variant index at all", vec![]),
+            (
+                "variant index 4, one past the four SimCommand declares; \
+                 also what an older shell sending a newer format looks like",
+                vec![0x04, 0x00],
+            ),
+            ("variant index 0xFF", vec![0xFF]),
+            (
+                "Select with its Option tag but no payload - a truncated \
+                 write, or a sliced buffer",
+                vec![0x00, 0x01],
+            ),
+            ("UseObject missing its second field", vec![0x01, 0x03]),
+            (
+                "a valid SetSpeed(2) followed by junk; accepting the \
+                 prefix would make the format ambiguous",
+                vec![0x03, 0x02, 0xAA, 0xBB],
+            ),
+        ];
+
+        for (what, bytes) in cases {
+            assert!(
+                !handle.enqueue_command(&bytes),
+                "enqueue_command accepted {what}: {bytes:02X?}"
+            );
+            assert_eq!(
+                staged(&handle),
+                0,
+                "a rejected command must leave nothing staged ({what})"
+            );
+        }
+
+        assert_eq!(
+            handle.world_hash(),
+            baseline,
+            "a rejected command must change nothing at all"
+        );
+
+        // **A rejection must not poison the handle.** On a genuinely
+        // trapped module every later call throws rather than returning,
+        // so these two are what tell a returned `false` apart from a
+        // trap - the same role the follow-up spawn plays in
+        // `spawning_an_unknown_content_id_is_rejected_rather_than_panicking`.
+        assert!(
+            handle.enqueue_command(&select_bytes(agent)),
+            "the boundary's job is to fail one call, not to end the session"
+        );
+        handle.tick();
+        assert_eq!(handle.selected_index(), Some(agent));
+    }
+
+    #[test]
+    fn the_staging_queue_is_capped_at_the_tuned_depth_rather_than_growing_without_bound() {
+        // Nothing downstream bounds this queue. `max_queued_intents`
+        // bounds one sim's orders and is only ever reached by a
+        // `UseObject` that resolved to a live agent; every `Select`,
+        // every `SetSpeed` and every command naming an index that no
+        // longer exists lands here and touches no intent queue at all.
+        // The commands below are deliberately of the kind that could
+        // never reach the intent cap, so a test that passed because THAT
+        // cap fired would be visible as a failure here.
+        //
+        // The queue is also what does not drain while the game is paused,
+        // since nothing calls `tick`. Nothing ticks in this test for
+        // exactly that reason.
+        //
+        // Three past the cap rather than one, so a cap off by one in
+        // either direction is still visible.
+        let mut handle = SimHandle::new(8, 8);
+        let cap = command_cap(&handle);
+        assert!(cap >= 1, "a cap of zero is rejected at build time");
+
+        let mut accepted = 0;
+        for _ in 0..cap + 3 {
+            if handle.enqueue_command(&select_bytes(9)) {
+                accepted += 1;
+            }
+        }
+
+        assert_eq!(
+            accepted,
+            cap,
+            "exactly the first {cap} commands must be accepted; \
+             {} were issued",
+            cap + 3
+        );
+        assert_eq!(
+            staged(&handle),
+            cap,
+            "the queue must stop at the tuned cap rather than growing \
+             with every click"
+        );
+
+        // And the cap is a bound on the QUEUE rather than a latch on the
+        // handle: draining makes room again. Without this, refusing every
+        // command after the first burst forever would pass everything
+        // above and make the game unplayable after six seconds of
+        // clicking.
+        handle.tick();
+        assert_eq!(staged(&handle), 0, "the tick must have drained it");
+        assert!(
+            handle.enqueue_command(&select_bytes(9)),
+            "a drained queue must accept commands again"
+        );
+    }
+
+    #[test]
+    fn needs_of_reports_the_seven_levels_of_the_entity_the_index_names() {
+        // The need-bar panel's whole input. [D-5] says the DOM renders
+        // simulation state and owns none of it, so this is read every
+        // frame rather than cached, and it has to be readable for an
+        // arbitrary raw index because a raw index is all the shell has.
+        //
+        // The levels are made pairwise DISTINCT before the read, so an
+        // implementation returning a constant array, or one need's level
+        // seven times, is visible. A fixture where every level agreed
+        // could not tell those apart ([L34]).
+        let mut handle = SimHandle::new(16, 16);
+        let mut needs = Needs::all_at(NEED_MAX);
+        for (offset, id) in NeedId::ALL.into_iter().enumerate() {
+            needs.set(id, 10.0 + offset as f32);
+        }
+        let agent = handle
+            .sim
+            .world_mut()
+            .spawn((Agent, Position { x: 1.0, y: 1.0 }, needs))
+            .id()
+            .index_u32();
+
+        let levels = handle.needs_of(agent);
+        assert_eq!(
+            levels.len(),
+            NEED_COUNT,
+            "all seven levels must cross, in NeedId index order"
+        );
+        for (offset, _) in NeedId::ALL.into_iter().enumerate() {
+            assert_eq!(
+                levels[offset],
+                10.0 + offset as f32,
+                "slot {offset} must carry the need at that NeedId index; \
+                 a transposed or constant array is what this catches"
+            );
+        }
+    }
+
+    #[test]
+    fn needs_of_returns_an_empty_array_for_an_index_with_no_needs_to_report() {
+        // Three ways an index can have nothing to show, and all three
+        // must answer the same harmless way rather than panicking: the
+        // panel draws no bars. A stale index is the hostile one - it is
+        // what a click on a sim that despawned between the frame and the
+        // handler looks like - and an object index is the ordinary one,
+        // because a fridge has no needs and the shell cannot tell a
+        // fridge from a sim by its number alone.
+        //
+        // The live agent is asserted non-empty in the same test, so
+        // "returns empty" cannot be satisfied by an accessor that returns
+        // empty for everything.
+        let mut handle = SimHandle::new(16, 16);
+        assert!(handle.spawn_object(2.0, 2.0, "fridge"));
+        let agent = spawn_agent_at(&mut handle, 1.0, 1.0, 40.0);
+        let object = agent - 1;
+
+        assert_eq!(
+            handle.needs_of(agent).len(),
+            NEED_COUNT,
+            "the live sim must report levels, or every assertion below is \
+             satisfied by an accessor that reports nothing for anything"
+        );
+        assert!(
+            handle.needs_of(object).is_empty(),
+            "a smart object has no needs; the panel must draw nothing \
+             rather than seven zeroes, which would read as a desperate sim"
+        );
+        assert!(
+            handle.needs_of(9_999).is_empty(),
+            "an index past anything ever allocated must be ignored"
+        );
+        assert!(
+            handle.needs_of(u32::MAX).is_empty(),
+            "and so must u32::MAX, which is where a clamp or a wrap would \
+             show"
+        );
+    }
+
+    #[test]
+    fn need_names_label_the_slots_needs_of_returns_in_the_same_order() {
+        // The two exports are a PAIR, and this is the only place the
+        // pairing is checkable: the panel puts name `i` on level `i`, so
+        // an ordering that disagreed between them would draw seven
+        // correct numbers under seven wrong labels. Nothing renders
+        // wrong, nothing errors, and every reading of the panel is off
+        // by however far the lists have slipped.
+        //
+        // So this does not assert a literal list of names. A literal
+        // list is a third copy that agrees with `need_names` by
+        // construction and says nothing about `needs_of`. It sets each
+        // need to a level that identifies its own INDEX and reads the
+        // pair back together.
+        let mut handle = SimHandle::new(16, 16);
+        // A level per slot that no other slot shares, so a `needs_of`
+        // returning one need's level seven times, or a constant array,
+        // cannot agree with the labels by accident ([L34]).
+        let mut needs = Needs::all_at(NEED_MAX);
+        for (offset, id) in NeedId::ALL.into_iter().enumerate() {
+            needs.set(id, 10.0 + offset as f32);
+        }
+        let agent = handle
+            .sim
+            .world_mut()
+            .spawn((Agent, Position { x: 1.0, y: 1.0 }, needs))
+            .id()
+            .index_u32();
+
+        let names = handle.need_names();
+        assert_eq!(
+            names.len(),
+            NEED_COUNT,
+            "one label per need, or a bar goes unlabelled"
+        );
+
+        let levels = handle.needs_of(agent);
+        assert_eq!(levels.len(), names.len());
+        for (offset, id) in NeedId::ALL.into_iter().enumerate() {
+            assert_eq!(
+                names[offset],
+                id.as_str(),
+                "slot {offset} must be labelled with the need whose level \
+                 needs_of puts there"
+            );
+            assert_eq!(
+                levels[offset],
+                10.0 + offset as f32,
+                "slot {offset} must carry that need's level, or the two \
+                 lists agree with each other and with nothing else"
+            );
+        }
+    }
+
+    #[test]
+    fn need_max_is_the_level_a_satisfied_need_actually_reaches() {
+        // Not `assert_eq!(handle.need_max(), 100.0)`, which is a second
+        // copy of the constant agreeing with the first ([L29] again).
+        // What the panel needs is that a need CANNOT exceed this, because
+        // it is the denominator every bar is drawn against. So the check
+        // is behavioural: fill a need past any plausible ceiling and read
+        // back where it landed.
+        let handle = SimHandle::new(8, 8);
+        let ceiling = handle.need_max();
+
+        let mut needs = Needs::all_at(NEED_MIN);
+        needs.fill(NeedId::Hunger, ceiling * 10.0);
+        assert_eq!(
+            needs.get(NeedId::Hunger),
+            ceiling,
+            "a need saturates at what need_max reports, or every bar is \
+             drawn against the wrong denominator"
+        );
+        assert!(ceiling > 0.0, "a ceiling of zero divides every bar by zero");
+    }
+
+    #[test]
+    fn need_bar_refresh_ms_reports_the_authored_knob_rather_than_a_constant() {
+        // This knob is read by NOTHING in the workspace - the shell reads
+        // it across this boundary - so [L29] applies in full: its only
+        // observable is this export. Without this test, a boundary that
+        // returned a hardcoded 100 would be indistinguishable from one
+        // that read the pack, and the tuning file would have stopped
+        // being the knob's home the moment somebody edited it.
+        //
+        // So it is asserted CAUSALLY rather than by equality against the
+        // shipped number. Comparing the export to the pack's own field
+        // would pass for a body that returned the literal 100, since the
+        // shipped knob IS 100; comparing it to the literal 100 would pass
+        // for the same body even more easily. Both are the coincidence
+        // docs/testing-protocol.md rule 3 warns about.
+        //
+        // Instead the world is pointed at a pack with a different value
+        // and the export must MOVE. `Content` is a resource rather than a
+        // direct call into `terri_data` precisely so a test can do this.
+        let mut handle = SimHandle::from_lot();
+        let shipped = handle.need_bar_refresh_ms();
+        assert_ne!(
+            shipped, 0,
+            "the shipped value must not be zero, or the panel reads every \
+             frame and the throttle this knob exists for does nothing"
+        );
+
+        // A value no other knob in the pack holds, so an export reading
+        // its neighbour would report the neighbour's unchanged number.
+        const RETUNED: u32 = 4_242;
+        assert_ne!(shipped, RETUNED);
+        let mut retuned = handle.sim.world().resource::<Content>().0.clone();
+        retuned.tuning.need_bar_refresh_ms = RETUNED;
+        // Leaked because `Content` holds a `&'static` - the shipped pack
+        // is embedded and deserialised once. One leak in one test process
+        // is the whole cost.
+        handle
+            .sim
+            .world_mut()
+            .insert_resource(Content(Box::leak(Box::new(retuned))));
+
+        assert_eq!(
+            handle.need_bar_refresh_ms(),
+            RETUNED,
+            "the boundary must report the pack's knob, not a constant of \
+             its own and not a neighbouring field"
+        );
+    }
+
+    #[test]
+    fn selected_index_tracks_the_selection_the_simulation_holds() {
+        // [D-5]'s round trip in full: the shell asks with a command and
+        // reads the answer back out of the simulation, so a replay
+        // reproduces the selection rather than the DOM remembering it.
+        //
+        // TWO agents, because an accessor returning "the first agent" or
+        // "the only agent" would satisfy a single-agent fixture. And the
+        // clear is asserted as well, because `Select(None)` is a separate
+        // arm from a stale index and the two must not be conflated - one
+        // clears, the other leaves the selection alone.
+        let mut handle = SimHandle::new(16, 16);
+        let first = spawn_agent_at(&mut handle, 1.0, 1.0, 80.0);
+        let second = spawn_agent_at(&mut handle, 3.0, 1.0, 80.0);
+        assert_ne!(first, second);
+
+        assert!(handle.enqueue_command(&select_bytes(second)));
+        handle.tick();
+        assert_eq!(
+            handle.selected_index(),
+            Some(second),
+            "the sim the command named must be the one reported, not \
+             whichever the query yields first"
+        );
+
+        assert!(handle.enqueue_command(&select_bytes(first)));
+        handle.tick();
+        assert_eq!(
+            handle.selected_index(),
+            Some(first),
+            "and selecting another must move it rather than leaving two \
+             marked, which is a state the shell cannot render"
+        );
+
+        // `Select(None)`: variant 0, Option tag 0, no payload.
+        assert!(handle.enqueue_command(&[0x00, 0x00]));
+        handle.tick();
+        assert_eq!(
+            handle.selected_index(),
+            None,
+            "Select(None) must clear, or the player cannot deselect at all"
+        );
+    }
+
+    #[test]
+    fn a_directed_sim_overrides_what_it_would_have_chosen_for_itself() {
+        // **The end-to-end claim of the whole milestone, measured through
+        // the boundary rather than inside the simulation.** [D-3] says a
+        // player-issued intent beats autonomy, and the simulation-side
+        // test for that lives in `terri_sim::systems::command`. This one
+        // exists because that test cannot see the boundary: every
+        // assertion it makes would still hold with `enqueue_command`
+        // returning `false` for every byte it is given.
+        //
+        // The sim is HUNGRY and the two objects advertise different
+        // needs, so autonomy has an unambiguous preference for the
+        // fridge. Directing it at the BED is therefore an instruction it
+        // would never have given itself - a script whose commands agree
+        // with autonomy proves nothing ([L36]).
+        let mut handle = SimHandle::new(16, 16);
+        assert!(handle.spawn_object(2.0, 8.0, "bed"));
+        assert!(handle.spawn_object(11.0, 8.0, "fridge"));
+        let bed = 0;
+        let agent = spawn_agent_at(&mut handle, 8.0, 8.0, 20.0);
+        assert_eq!(
+            (bed, agent),
+            (0, 2),
+            "the assertions below read the render buffer by row, and rows \
+             are sorted by entity index"
+        );
+
+        // What the sim does when nothing tells it otherwise, measured
+        // rather than assumed. Without this the assertion below could be
+        // describing autonomy's own choice.
+        let mut autonomous = SimHandle::new(16, 16);
+        assert!(autonomous.spawn_object(2.0, 8.0, "bed"));
+        assert!(autonomous.spawn_object(11.0, 8.0, "fridge"));
+        spawn_agent_at(&mut autonomous, 8.0, 8.0, 20.0);
+        autonomous.tick();
+        let undirected = autonomous.world_hash();
+
+        assert!(handle.enqueue_command(&use_object_bytes(agent, bed)));
+        handle.tick();
+
+        assert_ne!(
+            handle.world_hash(),
+            undirected,
+            "the directed run must reach a different world from the \
+             undirected one; equal digests mean the command never reached \
+             the simulation and this test would pass with the whole \
+             boundary sealed shut"
+        );
+
+        // And it walks WEST, towards the bed, rather than east towards
+        // the fridge autonomy wanted. The digest inequality above cannot
+        // say which way it went; this can.
+        for _ in 0..20 {
+            handle.tick();
+        }
+        assert_eq!(handle.entity_count(), 3);
+        let rows = addressed(
+            handle.positions_ptr(),
+            handle.entity_count() * 2,
+            "positions_ptr",
+        );
+        let x = rows[agent as usize * 2];
+        assert!(
+            x < 8.0,
+            "a sim directed at the bed at x=2 must move towards it; it is \
+             at x={x}, which is towards the fridge it would have chosen \
+             for itself"
+        );
     }
 
     #[test]

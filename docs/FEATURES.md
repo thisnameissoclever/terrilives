@@ -1,9 +1,33 @@
 # Features
 
-Status: M0 shipped; M1a shipped; M1b partly shipped (the authored lot, the
-command queue and the drawn room); M1c shipped. Everything else is proposed
-scope, not yet agreed in detail. Milestones exist primarily to control [R6],
-which is the risk most likely to actually kill this project.
+Status: M0 shipped; M1a shipped; M1b shipped; M1c shipped. Everything else is
+proposed scope, not yet agreed in detail. Milestones exist primarily to
+control [R6], which is the risk most likely to actually kill this project.
+
+**M1b closed with one item of its deliverable unmet, deliberately recorded
+rather than quietly ticked.** Every definition-of-done line passes, and the
+play session that is the milestone's actual payoff was run and written up -
+but *instrumented* rather than watched, because the agent-driven browser
+never composited a frame ([L14] once more). So the game's behaviour under
+player control is measured and the game's *appearance* is not.
+
+**Both visual complaints named here have since been fixed**, in the alpha pass
+that followed:
+
+- wall panels that could not sit flush have been, by switching to the kit's
+  `wallHalf` piece and by correcting `TILE_HALF_HEIGHT` from 16 to 21 to match
+  the ground-plane slope the art was actually drawn at;
+- a sim standing on furniture rather than beside it is fixed by
+  `TileGrid::find_path_adjacent`, and that was a movement bug wearing a
+  rendering costume.
+
+What remains unmet is narrower than it was: **nobody has judged how the game
+looks.** The geometry is verified - flush wall runs, seamless floor, the atlas
+matching its manifest - by reading pixels back off a canvas that draws but never
+presents. Whether the room reads as a room is still unexamined.
+`docs/alpha-feel-notes.md` [A-5] carries the distinction, and [A-6] records a
+new one found on the way: objects have no footprint, so a sofa drawn 2.4 tiles
+wide still occupies one.
 
 The rule: **each milestone must end in something playable.** No milestone is
 allowed to be pure infrastructure with a payoff deferred to the next one.
