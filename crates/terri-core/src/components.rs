@@ -82,6 +82,57 @@ pub struct Target {
 #[derive(Component, Debug, Clone, Copy)]
 pub struct Restless;
 
+/// Marks an agent whose **best option is held by somebody else** - the
+/// highest-scoring thing it could see is reserved by another agent, or
+/// was claimed by one earlier on the same tick.
+///
+/// # It is not the opposite of `Restless`, and the two co-occur
+///
+/// [`Restless`] asks "was anything worth doing at all"; this asks "was
+/// the best thing available". An agent can carry both, and that pair is
+/// informative rather than contradictory: **it wanted a contested thing,
+/// but not enough to wait for it.** A contested object's score is
+/// attenuated by `contested_score_multiplier`, so an agent that only
+/// mildly wanted the thing falls under `idle_threshold` and strolls off,
+/// while one that wanted it badly stays put. That knob is the dial
+/// between the two, and before it existed every outbid sim waited.
+///
+/// # Two writers, deliberately, unlike `Restless`
+///
+/// `select_action` sets it for an agent choosing for itself.
+/// `serve_intents` sets it for an agent the player has directed at an
+/// object somebody else is using, which is the case this name most
+/// obviously describes.
+///
+/// That is a departure from `Restless`'s single writer, and it is cheap
+/// for a reason that does not apply there. `Restless` has one writer to
+/// stop the A*-per-candidate scoring sweep running twice a tick, and to
+/// stop two copies of the scoring rule drifting apart. `serve_intents`
+/// needs no scoring at all to know the object it was told to use is
+/// reserved, so there is no rule here to duplicate - only a fact. The two
+/// cannot disagree about one agent on one tick either, because
+/// `select_action` filters directed agents out before it scores anything.
+///
+/// # It has no reader yet, and that is deliberate rather than an oversight
+///
+/// [L41] says a mechanism nothing depends on is dead code and should be
+/// deleted rather than tested. **That rule is about a GUARD** - a second
+/// line enforcing a rule an earlier line already enforces, where defence
+/// in depth and untested code are indistinguishable from inside the
+/// suite. This is not a guard. Nothing depends on it being right, so it
+/// cannot silently fail to decide something; it is one system publishing
+/// one fact, which is exactly what `Restless` was before `wander` existed
+/// to read it.
+///
+/// The intended readers are the selection UI, which wants to say why a
+/// sim is standing there, and the local wander that
+/// `docs/alpha-feel-notes.md` [F2] records as the highest-value change to
+/// the wander system - a blocked sim should hover near the thing it
+/// wants, not commute across the lot. Until one of those lands, the tests
+/// named beside each writer are what hold this up.
+#[derive(Component, Debug, Clone, Copy)]
+pub struct Blocked;
+
 /// How long an idle agent waits before strolling somewhere new.
 ///
 /// Counted down only while the agent is standing still, since the wander

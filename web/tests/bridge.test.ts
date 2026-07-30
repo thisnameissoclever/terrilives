@@ -378,7 +378,30 @@ describe('SimBridge', () => {
     // decay rates were slowed and this digest includes need levels, so every
     // agent differs at tick 100. Read off the wasm32 failure after a rebuild
     // per [L13], not copied from native.
-    expect(bridge.worldHash()).toBe(0xcb2c_8122_2251_d840n);
+    //
+    // **And `contested_score_multiplier` moved it once more**, from
+    // 0xcb2c_8122_2251_d840n. Eight agents and one fridge means seven are
+    // outbid every tick, and the knob decides for each of them whether
+    // wanting a thing it cannot have is enough to stand still for.
+    //
+    // Measured natively at tick 100 across four values:
+    //
+    //   0.10 -> 7 restless, 7 blocked, 0x4cd7_2153_f594_282dn
+    //   0.40 -> 3 restless, 7 blocked, 0x6894_80f2_3870_c65cn
+    //   0.75 -> 1 restless, 7 blocked, 0xf211_07b6_1d74_69den
+    //   1.00 -> 0 restless, 7 blocked, 0xcb2c_8122_2251_d840n
+    //
+    // The last line is the control and it is exact: a multiplier of 1.0
+    // attenuates nothing, so every outbid sim waits, which is what [C3]'s
+    // fix did on its own - and the digest is bit-identical to the value
+    // this constant held before the knob existed. The knob is a pure
+    // addition and the movement is caused by it alone.
+    //
+    // Measured on wasm32, not copied from native ([L13]): the wasm was
+    // rebuilt FIRST, this test was run against the old constant, and the
+    // reported 17442731310542252510n was read off the failure. It equals
+    // the native value.
+    expect(bridge.worldHash()).toBe(0xf211_07b6_1d74_69den);
   });
 
   // ---- Player commands -------------------------------------------------

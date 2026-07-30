@@ -96,7 +96,7 @@ impl CompiledLot {
 /// that would divide by zero or make a sim wander while something is
 /// worth doing has no representation once a pack exists.
 ///
-/// `Copy` because it is eleven scalars and every system that reads a knob
+/// `Copy` because it is twelve scalars and every system that reads a knob
 /// reads it through a `&ContentPack` it does not own.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Tuning {
@@ -172,6 +172,24 @@ pub struct Tuning {
     /// earlier block keeps its offset and the golden vector in
     /// `compile.rs` stays reviewable against the annotations it has.
     pub need_bar_refresh_ms: u32,
+    /// How much of its score an object somebody else is using keeps,
+    /// in `[0, 1]`.
+    ///
+    /// Selection scores a contested object so that "nothing is worth
+    /// doing" stays a TRUE statement about an agent that has just been
+    /// beaten to something - that is [C3] and it is already fixed. This
+    /// decides what the agent does about it, and nothing else: a
+    /// contested object is never a candidate at any value, so this is a
+    /// knob on WAITING alone. A sim waits when the attenuated score
+    /// clears `idle_threshold` and strolls off when it does not.
+    ///
+    /// APPENDED after `need_bar_refresh_ms` rather than filed beside the
+    /// other thresholds, for the reason that field's own note gives: the
+    /// pack's byte encoding grows at the end, so a knob added here keeps
+    /// every earlier block's offset and the golden vector in `compile.rs`
+    /// stays reviewable against the annotations it already has. This one
+    /// is last now.
+    pub contested_score_multiplier: f32,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -250,7 +268,7 @@ mod tests {
         }
     }
 
-    /// Eleven knobs, no two of which share a value, so a field that
+    /// Twelve knobs, no two of which share a value, so a field that
     /// round-trips into the wrong slot is visible rather than hidden by
     /// a fixture where two of them agree.
     fn a_tuning() -> Tuning {
@@ -262,6 +280,7 @@ mod tests {
             wander_attempts: 6,
             duration_variance: 0.75,
             min_interaction_ticks: 3,
+            contested_score_multiplier: 0.375,
             rng_seed: 300,
             max_queued_intents: 7,
             max_queued_commands: 11,

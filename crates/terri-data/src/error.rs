@@ -158,6 +158,17 @@ pub enum ContentError {
     DurationVarianceOutOfRange {
         value: f32,
     },
+    /// A multiplier above 1.0 would make an object somebody else is using
+    /// worth MORE than the same object free, which is incoherent rather
+    /// than merely extreme; below 0.0 it flips the sign of every
+    /// contested score. Both ends of `[0, 1]` are legal and meaningful:
+    /// 0.0 is "never wait for a contested object", and 1.0 is "wait for
+    /// anything you would have acted on", which is how selection behaved
+    /// between the [C3] fix and this knob. Finite by the time this is
+    /// reported, as above.
+    ContestedScoreMultiplierOutOfRange {
+        value: f32,
+    },
     /// An idle threshold above the action threshold means a sim wanders
     /// off while something is worth doing. That is incoherent rather
     /// than merely odd: the two knobs answer "is anything worth doing"
@@ -321,6 +332,10 @@ impl fmt::Display for ContentError {
             ContentError::DurationVarianceOutOfRange { value } => write!(
                 f,
                 "tuning.toml has duration_variance of {value}; must be at least 0 and less than 1"
+            ),
+            ContentError::ContestedScoreMultiplierOutOfRange { value } => write!(
+                f,
+                "tuning.toml has contested_score_multiplier of {value}; must be at least 0 and at most 1"
             ),
             ContentError::IdleThresholdAboveAction { idle, action } => write!(
                 f,

@@ -1,6 +1,6 @@
 use bevy_ecs::prelude::*;
 use terri_core::{
-    Agent, Eating, IntentQueue, NeedId, Needs, Path, Position, Reserved, Restless, SimRng,
+    Agent, Blocked, Eating, IntentQueue, NeedId, Needs, Path, Position, Reserved, Restless, SimRng,
     SmartObject, Target, TileGrid,
 };
 
@@ -400,6 +400,13 @@ pub fn serve_intents(
         // stroll. Removing a component an entity does not have is a
         // no-op and does not move it between archetypes.
         commands.entity(agent).remove::<Restless>();
+        // `Blocked` is cleared for every directed agent here and put back
+        // below only if this one turns out to still be waiting.
+        // `Commands` are a queue applied in order, so an insert queued
+        // after this removal wins; the pair is what stops a marker set on
+        // an earlier tick outliving the condition that set it, on every
+        // path through this loop that does not wait.
+        commands.entity(agent).remove::<Blocked>();
 
         // Already serving this exact intent, so there is nothing to do
         // and re-pathing would be actively wrong: `find_path` starts
@@ -433,6 +440,12 @@ pub fn serve_intents(
             continue;
         }
         if (reserved && !held_here) || claimed.contains(&intent.object) {
+            // **Waiting its turn, which is exactly what `Blocked` says.**
+            // This is the second writer of that marker and the only one
+            // that ever sees a directed agent, because `select_action`
+            // filters them out before it scores anything - so the two
+            // cannot disagree about one agent on one tick.
+            commands.entity(agent).insert(Blocked);
             continue;
         }
         let from = (agent_pos.x.round() as i32, agent_pos.y.round() as i32);
@@ -469,6 +482,28 @@ pub fn serve_intents(
             Path { steps, cursor: 0 },
         ));
     }
+}
+
+/// What an agent thinks of something it can see but cannot have yet.
+///
+/// `min` rather than a bare multiply, and the reason is the sign. A score
+/// can be negative, for an interaction whose costs outweigh its benefits,
+/// and a negative number multiplied by a factor in `[0, 1]` moves UP,
+/// toward zero. The bare multiply would therefore make a contested object
+/// an agent actively dislikes score BETTER than the same object free.
+///
+/// The invariant, stated once: **a contested object is never worth more
+/// than the same object free.** `min` says exactly that, and says it
+/// without branching on the sign - which matters because such a branch is
+/// unreachable at any threshold a designer would author, so its mutants
+/// would survive every possible test and settle into the mutation
+/// baseline as permanent noise. Same reasoning, and the same idiom, as
+/// the `f32::max` folds either side of the call site.
+///
+/// `multiplier` is in `[0, 1]` by content validation, so this does not
+/// re-check it.
+fn contested_score(score: f32, multiplier: f32) -> f32 {
+    score.min(score * multiplier)
 }
 
 /// Idle agents scan advertisements, sample one weighted by score, reserve
@@ -528,6 +563,14 @@ pub fn select_action(
     // noticed something mildly interesting and is staying near it.
     // Collapsing the two deletes that band and the knob with it.
     let idle_threshold = content.0.tuning.idle_threshold;
+    // How much of its score an object somebody else is holding keeps.
+    // [C3] made a contested object visible again; this decides what the
+    // agent does about it. An attenuated score still has to clear
+    // `idle_threshold` for the agent to stand its ground rather than
+    // stroll off, so the knob sets how badly a sim must want a thing
+    // before it will queue for it. At 1.0 every outbid sim waits, which
+    // is how this behaved before the knob existed.
+    let contested_multiplier = content.0.tuning.contested_score_multiplier;
 
     // Collect and sort so iteration order cannot vary between runs.
     //
@@ -628,6 +671,15 @@ pub fn select_action(
         // and because an agent with no reachable object at all must come
         // out of this loop restless rather than merely uninterested.
         let mut best_seen = f32::NEG_INFINITY;
+
+        // The best score among objects the agent could actually TAKE.
+        //
+        // A second fold rather than a flag recording which object produced
+        // `best_seen`, because a flag needs a comparison inside the hot
+        // loop and the fold above deliberately has none. The two differ
+        // exactly when the best thing the agent saw belongs to somebody
+        // else, which is what `Blocked` means.
+        let mut best_available = f32::NEG_INFINITY;
 
         for (object, object_pos, placed, reserved) in &placed_objects {
             let object = *object;
@@ -749,7 +801,20 @@ pub fn select_action(
                 // mutate. Same idiom, and the same reasoning, as the
                 // fold in `sample_softmax`; `f32` is not `Ord`, which is
                 // why this is a method rather than `std::cmp::max`.
-                best_seen = best_seen.max(score);
+                //
+                // A contested object is offered here ATTENUATED. It is
+                // still the best thing this agent can see, so it still
+                // answers `idle_threshold`'s question - but it is worth
+                // less than the same object free, because the agent
+                // cannot have it yet, and how much less is the knob.
+                best_seen = best_seen.max(if contested {
+                    contested_score(score, contested_multiplier)
+                } else {
+                    score
+                });
+                if !contested {
+                    best_available = best_available.max(score);
+                }
 
                 // STRICTLY greater, and that is the mechanism rather
                 // than a default: two interactions on the same object
@@ -808,6 +873,25 @@ pub fn select_action(
             // sitting on a sim walking to the fridge is a lie waiting
             // for its second reader.
             commands.entity(agent).remove::<Restless>();
+        }
+
+        // And publish whether the best thing it saw was somebody else's.
+        //
+        // STRICTLY greater, and both halves of that matter. Equal means
+        // something the agent can have is just as good as the thing it
+        // cannot, so it is not blocked by anybody. And an agent that saw
+        // no object at all leaves both maxima at negative infinity, which
+        // relaxed to `>=` would mark it blocked in an empty room -
+        // `an_agent_in_an_empty_room_is_restless_but_not_blocked` is what
+        // that fails.
+        //
+        // This can be true at the same time as `Restless` above, and the
+        // pair is the design rather than a contradiction: it wanted a
+        // contested thing, but not enough to wait for it. See `Blocked`.
+        if best_seen > best_available {
+            commands.entity(agent).insert(Blocked);
+        } else {
+            commands.entity(agent).remove::<Blocked>();
         }
 
         if candidates.is_empty() {
@@ -1139,6 +1223,83 @@ mod intent_tests {
             }),
             "the intent must be KEPT: a reservation ends on its own, so \
              discarding it would silently ignore a click on a busy object"
+        );
+    }
+
+    /// The `serve_intents` writer of `Blocked`.
+    ///
+    /// A player clicked an object somebody else is using. The sim keeps the
+    /// instruction and waits, which is the most literal reading of that
+    /// marker's name, and this is the **only** place a DIRECTED agent can get
+    /// it: `select_action` filters directed agents out before it scores
+    /// anything, so it never writes either marker for them. That is why the
+    /// marker has two writers where `Restless` has one - see `Blocked` for
+    /// why the reason `Restless` needs a single writer does not apply here.
+    #[test]
+    fn a_sim_waiting_for_a_reserved_object_is_marked_blocked() {
+        let content = directed_content();
+        let mut sim = test_content::sim_with(16, 16, content);
+        let bed = spawn_object(&mut sim, BED_AT.0, BED_AT.1, def(content, "bed"));
+        spawn_object(&mut sim, FRIDGE_AT.0, FRIDGE_AT.1, def(content, "fridge"));
+        let agent = spawn_agent_with(&mut sim, AGENT_AT.0, AGENT_AT.1, hungry_and_tired());
+        // Somebody else is using the bed. The marker is placed directly
+        // rather than by spawning a second agent to make it: what
+        // `serve_intents` reads is that the marker is there and is not this
+        // agent's own.
+        sim.world_mut().entity_mut(bed).insert(Reserved);
+        queue_intent(&mut sim, agent, bed, 0);
+
+        sim.tick();
+
+        assert!(
+            sim.world().get::<Target>(agent).is_none(),
+            "the sim must be waiting, or this test is not about waiting"
+        );
+        assert!(
+            sim.world().get::<Blocked>(agent).is_some(),
+            "a sim standing still because the object it was told to use is \
+             somebody else's is the definition of blocked"
+        );
+        assert!(
+            sim.world().get::<Restless>(agent).is_none(),
+            "it is under orders, so it is not a sim out of ideas"
+        );
+    }
+
+    /// The clearing half, which the test above cannot see.
+    ///
+    /// A marker that is only ever set accumulates, and a sim that has since
+    /// been handed its object would carry a claim that somebody else has it.
+    /// The removal sits at the top of the loop and the insert in the waiting
+    /// branch, which works because `Commands` are a queue applied in order.
+    #[test]
+    fn a_blocked_sim_stops_being_blocked_when_its_object_frees_up() {
+        let content = directed_content();
+        let mut sim = test_content::sim_with(16, 16, content);
+        let bed = spawn_object(&mut sim, BED_AT.0, BED_AT.1, def(content, "bed"));
+        spawn_object(&mut sim, FRIDGE_AT.0, FRIDGE_AT.1, def(content, "fridge"));
+        let agent = spawn_agent_with(&mut sim, AGENT_AT.0, AGENT_AT.1, hungry_and_tired());
+        sim.world_mut().entity_mut(bed).insert(Reserved);
+        queue_intent(&mut sim, agent, bed, 0);
+
+        sim.tick();
+        assert!(
+            sim.world().get::<Blocked>(agent).is_some(),
+            "precondition: it must be blocked while the bed is somebody \
+             else's, or the release below proves nothing"
+        );
+
+        sim.world_mut().entity_mut(bed).remove::<Reserved>();
+        sim.tick();
+
+        assert_eq!(
+            sim.world().get::<Target>(agent).map(|t| t.object),
+            Some(bed),
+            "the sim must get the bed once nobody else holds it"
+        );
+        assert!(
+            sim.world().get::<Blocked>(agent).is_none(),
+            "a sim walking to the object it asked for is blocked by nobody"
         );
     }
 
@@ -2232,6 +2393,138 @@ mod tests {
              Restless; without this, the contested-object fix could suppress \
              the marker unconditionally and delete idle wandering"
         );
+        // And the companion half, which is what makes `Blocked`'s
+        // comparison strict rather than `>=`. Both running maxima are at
+        // negative infinity here, so a non-strict comparison would report
+        // this agent as blocked by nobody, in a room with nothing in it.
+        assert!(
+            sim.world().get::<Blocked>(agent).is_none(),
+            "there is nobody to be blocked by and nothing to be blocked from; \
+             a marker here means the comparison that publishes it is not strict"
+        );
+    }
+
+    /// **The knob, and the only test on which it decides anything.**
+    ///
+    /// A matched pair against `an_agent_outbid_within_a_tick_...` above:
+    /// the same one-object two-agent world, the same winner, and **only the
+    /// loser's hunger moved**. Per docs/testing-protocol.md rule 3 that is
+    /// what makes this causal rather than a comparison of two unrelated
+    /// worlds.
+    ///
+    /// The loser now wants the fridge only slightly. Its raw score is above
+    /// `idle_threshold`, so at a multiplier of 1.0 - which is exactly how
+    /// selection behaved between the [C3] fix and this knob - it would stand
+    /// and wait. Attenuated it falls below, so it gives up and strolls.
+    ///
+    /// Both markers are asserted. `Blocked` says the best thing it saw was
+    /// somebody else's; `Restless` says it did not want it enough to wait.
+    /// **The pair is the design**, not a contradiction.
+    #[test]
+    fn a_contested_object_a_sim_barely_wants_still_sends_it_for_a_stroll() {
+        // NOT the shipped 0.75. The band the loser has to land in is
+        // `(idle_threshold, idle_threshold / m]`, which at 0.75 is 0.04 to
+        // 0.053 - a knife edge a future tuning pass would close by accident.
+        // At 0.5 it is 0.04 to 0.08, which the arithmetic below sits
+        // comfortably inside. The shipped value is asserted where it belongs,
+        // in `the_shipped_pack_carries_the_authored_tuning`.
+        const MULTIPLIER: f32 = 0.5;
+        // Hungry enough to want the fridge, not hungry enough to queue.
+        const BARELY: f32 = 67.0;
+        const OBJECT_AT: (f32, f32) = (8.0, 8.0);
+        const LOSER_AT: (f32, f32) = (11.0, 8.0);
+
+        let content = test_content::pack_tuned(
+            vec![test_content::object(
+                "fridge",
+                &[(NeedId::Hunger, 40.0)],
+                15,
+            )],
+            Tuning {
+                contested_score_multiplier: MULTIPLIER,
+                ..decisive_tuning()
+            },
+        );
+        let mut sim = test_content::sim_with(16, 16, content);
+        let fridge = spawn_object(&mut sim, OBJECT_AT.0, OBJECT_AT.1, def(content, "fridge"));
+        let winner = spawn_agent(&mut sim, 5.0, 8.0, 5.0);
+        let loser = spawn_agent(&mut sim, LOSER_AT.0, LOSER_AT.1, BARELY);
+
+        sim.tick();
+
+        assert_eq!(
+            target_object(&sim, winner),
+            Some(fridge),
+            "the winner must still take the fridge, or there is no contention \
+             for the loser to be blocked by"
+        );
+
+        // The band this test lives in, asserted rather than assumed. Miss it
+        // on either side and the test still passes, for a reason that has
+        // nothing to do with the multiplier.
+        //
+        // The distance is one tile short of the gap between them, because
+        // selection paths to a tile ADJACENT to the object rather than onto
+        // it, so it is restated here rather than taken from `walk_tiles`.
+        let raw = score_advertisement(
+            deficit_after_tick(&sim, loser, NeedId::Hunger),
+            40.0,
+            15,
+            walk_tiles(LOSER_AT, OBJECT_AT) - 1.0,
+        );
+        let idle_threshold = test_content::tuning().idle_threshold;
+        assert!(
+            raw > idle_threshold,
+            "without attenuation this sim would have waited; if its raw score \
+             is already below the threshold then the multiplier decides \
+             nothing here. {raw} vs {idle_threshold}"
+        );
+        let attenuated = contested_score(raw, MULTIPLIER);
+        assert!(
+            attenuated <= idle_threshold,
+            "attenuation must be what pushes this sim under the threshold; \
+             {attenuated} vs {idle_threshold}"
+        );
+
+        assert!(
+            sim.world().get::<Restless>(loser).is_some(),
+            "a sim that barely wanted the contested object must give up on it \
+             and stroll, rather than standing and staring at it"
+        );
+        assert!(
+            sim.world().get::<Blocked>(loser).is_some(),
+            "it is still true that the best thing it saw was taken; Blocked \
+             and Restless together mean 'wanted it, not enough'"
+        );
+    }
+
+    /// **The attenuation invariant, stated as arithmetic.**
+    ///
+    /// A contested object is never worth MORE than the same object free. The
+    /// negative case is the whole reason this is a `min` rather than a bare
+    /// multiply: a score can be negative when an interaction's costs outweigh
+    /// its benefits, and a negative times a factor in `[0, 1]` moves UP,
+    /// toward zero.
+    #[test]
+    fn a_contested_object_is_never_worth_more_than_the_same_object_free() {
+        for multiplier in [0.0, 0.25, 0.5, 0.75, 1.0] {
+            for score in [-4.0, -0.2, 0.0, 0.05, 3.0] {
+                let held = contested_score(score, multiplier);
+                assert!(
+                    held <= score,
+                    "a contested object scored {held} against {score} free, \
+                     at multiplier {multiplier}"
+                );
+            }
+        }
+
+        // Genuinely attenuated rather than merely not-greater, or `min` could
+        // be replaced by a constant and the loop above would still pass.
+        assert_eq!(contested_score(1.0, 0.5), 0.5);
+        assert_eq!(contested_score(1.0, 1.0), 1.0, "1.0 must be an identity");
+        assert_eq!(contested_score(1.0, 0.0), 0.0);
+        // And the negative case is left exactly alone.
+        assert_eq!(contested_score(-1.0, 0.5), -1.0);
     }
 
     #[test]

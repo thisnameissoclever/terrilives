@@ -2622,3 +2622,57 @@ the cap it never terminates; after it, `draw_below_bound` panics and the run
 reports failures. Do it under the [L15] harness rules - output to a file,
 `taskkill /F /T` the tree, restore in a `finally` - and confirm
 `git hash-object crates/terri-core/src/rng.rs` matches the pre-mutation value.
+
+---
+
+## [L51] Two sessions fixed the same finding independently, and neither could have known
+
+**What happened:** [C3] of `docs/alpha-feel-notes.md` - an agent beaten to an
+object being told nothing was worth doing - was fixed **twice**, in parallel, by
+two sessions working in two git worktrees off the same branch. Neither fix was
+pushed while the other was being written. The two arrived at structurally the
+same core change, down to the same variable, the same guard placement, and the
+same three test cases including the empty-room control.
+
+The duplication cost a full implementation. What made it recoverable is that the
+two differed in what they added around the core fix, so one could be reduced to
+the difference rather than thrown away: this branch keeps only the knob deciding
+how much a contested object is worth and the marker recording that an agent's
+best option is somebody else's, both of which the other fix lacks.
+
+**Root cause:** parallel worktrees make it cheap to run several sessions at once,
+and there is no cheap way for one to see what another has committed but not
+pushed. A worktree's branch is invisible to `git branch -r`, absent from the PR
+list, and reachable only by reading another checkout's local refs - which
+nothing prompts anyone to do. **The findings list itself was the collision
+point:** a numbered list of known defects is exactly the artifact two sessions
+will independently pick the most interesting item from.
+
+**Prevention rule:**
+
+1. **Before implementing a numbered finding from a shared list, check every
+   worktree's local branch, not just the remote.** `git worktree list` then
+   `git log --oneline <remote>..<each local branch>` is two commands and it is
+   the whole check. A branch that exists only in another checkout still contains
+   the work.
+2. **Push early on a branch nobody else can see.** An unpushed commit is
+   invisible to every collision check anybody else could reasonably run,
+   including the one above if they check the remote instead of the worktree.
+3. **When duplication is found, diff the two before choosing.** The instinct is
+   to keep the one that landed first and discard the other whole. The useful
+   question is what each has that the other does not: here one had a tuning knob
+   and a marker, the other had unrelated duration work in the same commit, and
+   the answer was to keep the first fix and port only the difference.
+4. This is a process failure rather than a code one, and it does not have a test.
+   That is why it is written down.
+
+**How to verify:** `git worktree list` shows every checkout. For each, compare
+its branch against the remote it tracks. Any commit that appears there and not
+on the remote is work no PR and no remote-branch listing will show you.
+
+**A second, smaller observation from the same collision.** The two independent
+implementations chose different names for the same concept - one called a taken
+object "busy", the other "contested" - and the merged result had to pick one.
+Naming is where parallel work diverges first and most visibly, and it is the
+cheapest thing to standardise in advance if a findings list is going to be split
+across sessions.
