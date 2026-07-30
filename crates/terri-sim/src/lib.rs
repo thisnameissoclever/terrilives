@@ -89,6 +89,11 @@ impl Sim {
         // is what fails if either line goes.
         world.register_component::<terri_core::Selected>();
         world.register_component::<terri_core::IntentQueue>();
+        // Habituation, and this one IS in `world_hash`'s query, so [L3] bites
+        // directly: unregistered, `try_query` returns None and the digest goes
+        // empty rather than wrong, which compares equal to another empty digest
+        // and passes every determinism test while testing nothing.
+        world.register_component::<terri_core::Habituation>();
 
         let mut schedule = Schedule::default();
         // M0 runs single-threaded on purpose. Parallelism is [A9]/[D4]
@@ -141,6 +146,12 @@ impl Sim {
                 systems::idle::wander,
                 systems::movement::follow_path,
                 systems::interact::tick_interactions,
+                // Last, and its position is genuinely free - unlike every
+                // other line here. It reads and writes one component per
+                // agent, shares no state, and nothing else reads habituation
+                // on a tick this writes it: `select_action` ran earlier and saw
+                // the previous tick's values. See `decay_habituation`.
+                systems::habituation::decay_habituation,
             )
                 .chain(),
         );
@@ -382,7 +393,7 @@ impl Sim {
     /// first, because ECS iteration order is an implementation detail and
     /// must not affect the result.
     pub fn world_hash(&self) -> u64 {
-        use terri_core::{Needs, Position, NEED_COUNT};
+        use terri_core::{Habituation, Needs, Position, NEED_COUNT};
 
         let mut hasher = terri_core::FnvHasher::default();
         hasher.write_u64(self.world.resource::<SimClock>().tick);
@@ -399,12 +410,18 @@ impl Sim {
         // touching its shape, which is the payoff.
         const NO_NEEDS: f32 = -1.0;
 
-        let mut rows: Vec<(u32, f32, f32, [f32; NEED_COUNT])> = Vec::new();
+        // **Habituation is in the digest, and it has to be.** It changes what a
+        // sim chooses, so a replay that did not reproduce it would diverge from
+        // the run it is replaying - which is the whole thing [D12] exists to
+        // prevent. Its entries are a sorted `Vec`, so hashing them in order is
+        // reproducible; see `Habituation`'s own note on why that container.
+        type Row = (u32, f32, f32, [f32; NEED_COUNT], Vec<(u32, u32, f32)>);
+        let mut rows: Vec<Row> = Vec::new();
         if let Some(mut state) = self
             .world
-            .try_query::<(Entity, &Position, Option<&Needs>)>()
+            .try_query::<(Entity, &Position, Option<&Needs>, Option<&Habituation>)>()
         {
-            for (entity, pos, needs) in state.iter(&self.world) {
+            for (entity, pos, needs, habituation) in state.iter(&self.world) {
                 // The sentinel is in-band, so a real level equal to it
                 // would hash as if the component were absent. `Needs`
                 // holds a private array and every mutator clamps to
@@ -418,21 +435,44 @@ impl Sim {
                     "a need level of {NO_NEEDS} aliases world_hash's no-Needs sentinel"
                 );
                 let levels = needs.map_or([NO_NEEDS; NEED_COUNT], |n| *n.as_slice());
-                rows.push((entity.index_u32(), pos.x, pos.y, levels));
+                // Flattened to plain numbers so the digest does not depend on
+                // `ObjectDefId`'s representation, and empty for an agent that
+                // has never finished an interaction - which is the same value
+                // an agent whose entries have all decayed away reads, because
+                // `Habituation::decay` drops them. Two sims that will behave
+                // identically therefore hash identically.
+                let hab: Vec<(u32, u32, f32)> = habituation.map_or_else(Vec::new, |h| {
+                    h.entries()
+                        .iter()
+                        .map(|(object, interaction, value)| (object.0, *interaction, *value))
+                        .collect()
+                });
+                rows.push((entity.index_u32(), pos.x, pos.y, levels, hab));
             }
         }
         // The sort is load-bearing: query iteration is archetype order,
         // not entity order, and archetype order shifts as components are
         // added and removed. `hash_ignores_archetype_layout_and_entity_history`
         // is what pins it; deleting this line must fail that test.
-        rows.sort_by_key(|(index, _, _, _)| *index);
+        rows.sort_by_key(|(index, _, _, _, _)| *index);
 
-        for (index, x, y, levels) in rows {
+        for (index, x, y, levels, habituation) in rows {
             hasher.write_u64(index as u64);
             hasher.write_f32(x);
             hasher.write_f32(y);
             for level in levels {
                 hasher.write_f32(level);
+            }
+            // The COUNT first, then the entries. Without the count, a sim with
+            // entries [(0,0,0.5)] and a sim with [(0,0,0.5),(1,0,0.0)] would
+            // write the same bytes if the second entry happened to be zeroed -
+            // a length-prefix is what keeps a variable-length field from
+            // aliasing a shorter one.
+            hasher.write_u64(habituation.len() as u64);
+            for (object, interaction, value) in habituation {
+                hasher.write_u64(object as u64);
+                hasher.write_u64(interaction as u64);
+                hasher.write_f32(value);
             }
         }
 
@@ -1130,7 +1170,24 @@ mod determinism_tests {
         // rates was slowed, and this fixture's digest includes need levels, so
         // all eight agents differ at tick 100 by construction. The most
         // directly sensitive change of the four the vector saw today.
-        const GOLDEN: u64 = 0xCB2C_8122_2251_D840;
+        // **Habituation moved it, and this fixture is directly sensitive to it
+        // for a reason the earlier notes here did not have to consider: the
+        // digest now carries a fifth column.**
+        //
+        // Two things changed at once and both are real. The digest gained
+        // habituation entries per agent, so a sim that has finished an
+        // interaction hashes differently from one that has not; and scoring now
+        // scales a repeated interaction's benefit, so what the eight agents
+        // choose differs from tick to tick. Either alone would have moved it.
+        //
+        // Previous value: 0xCB2C_8122_2251_D840.
+        //
+        // Note the fixture is NOT blind to this the way it was blind to the
+        // adjacency change: its agents reach nothing in 100 ticks, but the
+        // habituation column is written for every agent on every tick whether
+        // they arrive or not, and the empty-vector case is length-prefixed
+        // rather than absent.
+        const GOLDEN: u64 = 0xFB84_8515_2C59_2AD8;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

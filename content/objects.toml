@@ -239,11 +239,29 @@ id = "bookshelf"
 name = "Wall of Intent"
 sprite = "bookcaseClosedDoors"
 
-  # The slowest fun in the house. It is here as the low end of the fun
-  # range, so the three fun objects span a real spread instead of
-  # clustering and making the choice between them arbitrary.
+  # The low end of the fun range, so the three fun objects span a real spread
+  # instead of clustering and making the choice between them arbitrary.
+  #
+  # **34 ticks, not 70, and habituation is why the change finally works.** This
+  # object was used ZERO times in 12 000 ticks across every measurement taken
+  # before habituation existed - recorded as [C6] - and the reason was
+  # arithmetic rather than taste. Score divides by `4 * distance + duration + 1`,
+  # so its 70 ticks made it the most heavily penalised option in the house, and
+  # nothing about it ever became less appealing to compete with.
+  #
+  # At 70 ticks even a FULLY habituated television still won: 30 fun and 24
+  # social at the 0.45 floor is about 0.32 against this object's 0.29 at five
+  # tiles. So habituation alone could not fix it, and raising its delta until it
+  # won on merit it does not have is the fix [C6] rejected.
+  #
+  # At 34 it scores about 0.47 - it loses to a FRESH television at 0.71 and beats
+  # a habituated one, which is the rotation the two mechanics are meant to
+  # produce together. Still the shortest fun option, so "the low end of the
+  # range" now means less fun per sitting rather than unusable.
+  #
+  # 34 * 0.6 = 20.4 clears `min_interaction_ticks`, so the band is not clipped.
   [[object.interaction]]
   id = "read"
   advertises = { fun = 26.0 }
-  duration_ticks = 70
+  duration_ticks = 34
   slots = 1

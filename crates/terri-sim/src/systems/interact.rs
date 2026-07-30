@@ -1,5 +1,5 @@
 use bevy_ecs::prelude::*;
-use terri_core::{Eating, IntentQueue, NeedId, Needs, Reserved, SimRng, Target};
+use terri_core::{Eating, Habituation, IntentQueue, NeedId, Needs, Reserved, SimRng, Target};
 
 use crate::Content;
 
@@ -102,6 +102,11 @@ pub fn sample_duration(centre: u32, variance: f32, floor: u32, rng: &mut SimRng)
 /// because the draw is biased shorter, which is [D-4] working rather than
 /// the floor binding. Nothing is pinned to a single length any more. Rerun
 /// it with `cargo run -p terri-sim --example trace`.
+/// The type_complexity allow is for the same reason it sits on `select_action`
+/// and `drain_commands`: the query tuple is what pushes past clippy's threshold,
+/// and a type alias would only move the same type somewhere less readable. It
+/// grew a sixth member when habituation arrived.
+#[allow(clippy::type_complexity)]
 pub fn tick_interactions(
     mut commands: Commands,
     content: Res<Content>,
@@ -111,9 +116,10 @@ pub fn tick_interactions(
         &mut Needs,
         &Target,
         Option<&mut IntentQueue>,
+        Option<&mut Habituation>,
     )>,
 ) {
-    for (entity, mut eating, mut needs, target, queue) in &mut agents {
+    for (entity, mut eating, mut needs, target, queue, habituation) in &mut agents {
         // Every index here is in range by construction. The object and
         // interaction ids were read out of this same pack when
         // `follow_path` began the interaction, content validation rejects
@@ -127,6 +133,35 @@ pub fn tick_interactions(
         eating.remaining_ticks = eating.remaining_ticks.saturating_sub(1);
 
         if eating.remaining_ticks == 0 {
+            // **Habituation rises on COMPLETION, not per tick** - [S2]. The sim
+            // is tired of the activity, not of the minutes, so a 180-tick sleep
+            // and a 21-tick hand-wash habituate by the same amount. Per-tick
+            // would make long interactions punish themselves and turn the
+            // mechanic into a second duration penalty, which scoring already
+            // has.
+            //
+            // It is raised for the interaction that just FINISHED, so an
+            // interrupted one costs nothing - which is the same "only the
+            // completed thing counts" rule the intent queue uses two lines
+            // below, and the rule multi-step interactions will need.
+            //
+            // `Option<&mut Habituation>` because an agent gains the component
+            // the first time it finishes anything. A fresh sim carries none,
+            // and `Habituation::get` reads absent as zero, so nothing has to
+            // special-case it - but the component has to be INSERTED here for
+            // the first entry to exist at all.
+            let amount = content.0.tuning.habituation_per_use;
+            match habituation {
+                Some(mut habituation) => {
+                    habituation.bump(eating.object, eating.interaction, amount)
+                }
+                None => {
+                    let mut fresh = Habituation::default();
+                    fresh.bump(eating.object, eating.interaction, amount);
+                    commands.entity(entity).insert(fresh);
+                }
+            }
+
             // **A player-issued intent lives until the interaction it
             // named finishes** - [D-3]'s "until it completes or is
             // cancelled" - so completing it is what pops it. Without

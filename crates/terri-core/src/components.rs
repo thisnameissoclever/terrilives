@@ -196,6 +196,84 @@ impl IntentQueue {
     }
 }
 
+/// How tired of each interaction a sim currently is - [S2].
+///
+/// **The name is `habituation`**, the psychological term for a diminished
+/// response to a repeated stimulus. It applies identically to the same meal,
+/// the same television, the same gym and the same person, which is why it is not
+/// called satiation: that word imports a food metaphor into a mechanic with
+/// nothing to do with food.
+///
+/// # What it is keyed on, and why not the object
+///
+/// One value per `(ObjectDefId, interaction index)` - an **interaction**, not a
+/// placed entity and not a need.
+///
+/// Not the entity, because eating at three different tables is one activity
+/// while eating three different meals is not, and keying on the entity would
+/// make a household with four identical chairs four separate novelties. Not the
+/// need, because "tired of reading" and "tired of watching television" are
+/// different feelings that both satisfy `fun`.
+///
+/// # Why a sorted Vec rather than a map
+///
+/// It is iterated by `world_hash`, and a digest over an unordered container is
+/// a digest that depends on insertion history - which is [D12]'s whole problem.
+/// `HashMap` iteration order is unspecified; `BTreeMap` would work but costs a
+/// dependency-shaped decision for a container that holds one entry per
+/// interaction a sim has ever performed, which is single digits.
+///
+/// So: a `Vec` kept sorted by key, with a binary search to find an entry. The
+/// invariant is maintained by [`Self::bump`], which is the only thing that
+/// inserts.
+#[derive(Component, Debug, Clone, Default, PartialEq)]
+pub struct Habituation(Vec<(ObjectDefId, u32, f32)>);
+
+impl Habituation {
+    /// How habituated this sim is to one interaction, in `0.0..=1.0`. An
+    /// interaction never performed reads 0.
+    pub fn get(&self, object: ObjectDefId, interaction: u32) -> f32 {
+        match self.find(object, interaction) {
+            Ok(i) => self.0[i].2,
+            Err(_) => 0.0,
+        }
+    }
+    /// Raises one interaction's habituation by `amount`, capped at 1.
+    ///
+    /// Inserting at the searched position is what keeps the Vec sorted, and the
+    /// sort is what makes `world_hash` reproducible.
+    pub fn bump(&mut self, object: ObjectDefId, interaction: u32, amount: f32) {
+        match self.find(object, interaction) {
+            Ok(i) => self.0[i].2 = (self.0[i].2 + amount).min(1.0),
+            Err(i) => self
+                .0
+                .insert(i, (object, interaction, amount.clamp(0.0, 1.0))),
+        }
+    }
+    /// Decays every entry by `amount`, dropping any that reach zero.
+    ///
+    /// **Dropping is not just tidiness.** An entry pinned at 0.0 is
+    /// indistinguishable in behaviour from an absent one, so keeping it would
+    /// let two sims with identical behaviour hold different `Habituation`
+    /// values - and therefore hash differently - purely because of what they
+    /// had done hours ago. Removing them keeps the digest a function of state
+    /// that matters.
+    pub fn decay(&mut self, amount: f32) {
+        for entry in self.0.iter_mut() {
+            entry.2 -= amount;
+        }
+        self.0.retain(|entry| entry.2 > 0.0);
+    }
+    /// Every entry, in key order. For `world_hash` and for tests.
+    pub fn entries(&self) -> &[(ObjectDefId, u32, f32)] {
+        &self.0
+    }
+    fn find(&self, object: ObjectDefId, interaction: u32) -> Result<usize, usize> {
+        self.0
+            .binary_search_by(|(o, i, _)| (o.0, *i).cmp(&(object.0, interaction)))
+    }
+}
+
 /// An in-progress interaction: a reference into the content pack plus how
 /// much of it is left.
 ///

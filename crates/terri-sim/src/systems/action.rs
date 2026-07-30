@@ -1,7 +1,7 @@
 use bevy_ecs::prelude::*;
 use terri_core::{
-    Agent, Eating, IntentQueue, NeedId, Needs, Path, Position, Reserved, Restless, SimRng,
-    SmartObject, Target, TileGrid,
+    Agent, Eating, Habituation, IntentQueue, NeedId, Needs, Path, Position, Reserved, Restless,
+    SimRng, SmartObject, Target, TileGrid,
 };
 
 use super::advertise::score_advertisement;
@@ -486,7 +486,13 @@ pub fn select_action(
     content: Res<Content>,
     mut rng: ResMut<SimRng>,
     agents: Query<
-        (Entity, &Position, &Needs, Option<&IntentQueue>),
+        (
+            Entity,
+            &Position,
+            &Needs,
+            Option<&IntentQueue>,
+            Option<&Habituation>,
+        ),
         (With<Agent>, Without<Target>, Without<Eating>),
     >,
     // **Reserved objects are INCLUDED, and `Has<Reserved>` is read per
@@ -534,7 +540,7 @@ pub fn select_action(
     // The whole `Needs` component is carried rather than one deficit,
     // because an advert is a sparse list of (need, delta) pairs: which
     // needs get scored is a property of the candidate, not of the agent.
-    let mut idle: Vec<(Entity, Position, Needs)> = agents
+    let mut idle: Vec<(Entity, Position, Needs, Habituation)> = agents
         .iter()
         // **A directed sim does not choose for itself** - [D-3]. This is
         // the whole autonomy override: a player-issued intent suppresses
@@ -573,10 +579,13 @@ pub fn select_action(
         // See [L41]: a guard normally shadowed by another guard is only
         // observable on the input where the shadow is absent, so that
         // fixture had to be built deliberately rather than found.
-        .filter(|(_, _, _, queue)| queue.is_none_or(|queue| queue.is_empty()))
-        .map(|(e, pos, needs, _)| (e, *pos, *needs))
+        .filter(|(_, _, _, queue, _)| queue.is_none_or(|queue| queue.is_empty()))
+        // Cloned rather than borrowed because the loop below takes `commands`
+        // mutably; the Vec is one entry per interaction a sim has performed, so
+        // single digits.
+        .map(|(e, pos, needs, _, hab)| (e, *pos, *needs, hab.cloned().unwrap_or_default()))
         .collect();
-    idle.sort_by_key(|(e, _, _)| e.index());
+    idle.sort_by_key(|(e, _, _, _)| e.index());
 
     // **The objects are sorted for the same reason, and that became
     // load-bearing at M1c rather than being tidiness.**
@@ -606,7 +615,7 @@ pub fn select_action(
 
     let mut claimed: Vec<Entity> = Vec::new();
 
-    for (agent, agent_pos, needs) in idle {
+    for (agent, agent_pos, needs, habituation) in idle {
         // One candidate per object, in object-index order. An object
         // offers a LIST of interactions and an agent performs ONE of
         // them, so the interactions are resolved against each other
@@ -719,15 +728,37 @@ pub fn select_action(
                 // or a first-advert-wins rule would not allow.
                 // `an_object_advertising_two_needs_beats_one_advertising_a_bigger_single_delta`
                 // is what pins it.
+                // **Habituation scales the BENEFIT and never a cost** - [S2].
+                //
+                // The multiplier runs from 1.0 for something never done to
+                // `habituation_floor` for something done to death, and it is
+                // applied only to POSITIVE deltas. A fourth shower in a row is
+                // less refreshing but it does not become less tiring, and
+                // scaling its `energy = -12` toward zero would make a
+                // habituated shower cheaper and therefore MORE attractive -
+                // the mechanic running backwards.
+                //
+                // Read from a per-agent component, which is the first thing in
+                // scoring that is not a property of the world alone. That is
+                // the shape `2026-07-29-satisfaction-and-traits-design.md` [S4]
+                // asks for: dispositions and per-sim affinities compose into
+                // this same multiplier rather than each getting a mechanism.
+                let hab = habituation.get(placed.0, index as u32);
+                let benefit_scale = 1.0 - hab * (1.0 - content.0.tuning.habituation_floor);
                 let mut score = 0.0;
                 for (need_index, delta) in &advert.advertises {
+                    let delta = if *delta > 0.0 {
+                        delta * benefit_scale
+                    } else {
+                        *delta
+                    };
                     // In range by construction: content validation
                     // rejects an advert naming a need rustc does not
                     // know, so a compiled pack cannot hold a bad index.
                     let id = NeedId::ALL[*need_index as usize];
                     score += score_advertisement(
                         needs.deficit(id),
-                        *delta,
+                        delta,
                         advert.duration_ticks,
                         distance,
                     );

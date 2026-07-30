@@ -118,6 +118,16 @@ pub struct Tuning {
     /// to walk would spin rather than fail, and a hang is a much weaker
     /// signal than an assertion ([L15]).
     pub wander_attempts: u32,
+    /// How much one completed interaction raises this sim's habituation to
+    /// it, in `0.0..=1.0`. Zero disables the mechanic.
+    pub habituation_per_use: f32,
+    /// How much every habituation entry decays each tick. Strictly
+    /// positive, or habituation would be a one-way ratchet.
+    pub habituation_decay_per_tick: f32,
+    /// The multiplier a fully habituated interaction's benefit is reduced
+    /// to. In `(0, 1]`; 1 disables the effect, and 0 is rejected because
+    /// it would make an interaction permanently worthless.
+    pub habituation_floor: f32,
     /// Fraction either side of an interaction's content duration within
     /// which the real duration is sampled. In `[0, 1)`.
     pub duration_variance: f32,
@@ -261,6 +271,9 @@ mod tests {
             wander_pause_ticks: 9,
             wander_attempts: 6,
             duration_variance: 0.75,
+            habituation_per_use: 0.3125,
+            habituation_decay_per_tick: 0.0025,
+            habituation_floor: 0.625,
             min_interaction_ticks: 3,
             rng_seed: 300,
             max_queued_intents: 7,

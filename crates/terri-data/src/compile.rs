@@ -303,6 +303,15 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
     )?;
     check_finite(tuning.idle_threshold, "idle_threshold in tuning.toml")?;
     check_finite(tuning.duration_variance, "duration_variance in tuning.toml")?;
+    check_finite(
+        tuning.habituation_per_use,
+        "habituation_per_use in tuning.toml",
+    )?;
+    check_finite(
+        tuning.habituation_decay_per_tick,
+        "habituation_decay_per_tick in tuning.toml",
+    )?;
+    check_finite(tuning.habituation_floor, "habituation_floor in tuning.toml")?;
 
     if tuning.choice_temperature <= 0.0 {
         return Err(ContentError::NonPositiveTemperature {
@@ -321,6 +330,42 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
     if tuning.max_queued_commands == 0 {
         return Err(ContentError::ZeroQueuedCommands);
     }
+    // Habituation. Each rule guards a value that fails QUIETLY rather than
+    // loudly, which is the standard this function applies.
+    //
+    // A rise outside [0, 1] either does nothing (0 is a legal way to disable
+    // the mechanic) or saturates every entry on first use, which reads as an
+    // object a sim will never touch twice and looks like a scoring bug.
+    if !(0.0..=1.0).contains(&tuning.habituation_per_use) {
+        return Err(ContentError::HabituationPerUseOutOfRange {
+            value: tuning.habituation_per_use,
+        });
+    }
+    // **A zero decay is rejected rather than treated as "never recover".** It
+    // would make habituation a one-way ratchet: every interaction a sim has
+    // ever performed would sink to the floor and stay there, so after long
+    // enough the whole house is equally unappealing and selection is choosing
+    // between identical numbers. That is [C6] applied to everything at once,
+    // and it arrives silently over tens of minutes.
+    // A plain comparison rather than the negated form used in
+    // `score_advertisement`, and safe here for a reason that is not true there:
+    // `check_finite` has already rejected NaN a few lines above, so `<=` cannot
+    // silently pass an incomparable value through.
+    if tuning.habituation_decay_per_tick <= 0.0 {
+        return Err(ContentError::NonPositiveHabituationDecay {
+            value: tuning.habituation_decay_per_tick,
+        });
+    }
+    // The floor is a MULTIPLIER, so 1 disables the effect and 0 would make a
+    // fully habituated interaction worth exactly nothing - permanently
+    // unselectable, which is a need becoming unsatisfiable by a route
+    // `every_declared_need_can_be_satisfied_by_some_interaction` cannot see
+    // because it is dynamic rather than static.
+    if tuning.habituation_floor <= 0.0 || tuning.habituation_floor > 1.0 {
+        return Err(ContentError::HabituationFloorOutOfRange {
+            value: tuning.habituation_floor,
+        });
+    }
     if !(0.0..1.0).contains(&tuning.duration_variance) {
         return Err(ContentError::DurationVarianceOutOfRange {
             value: tuning.duration_variance,
@@ -334,6 +379,9 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
     }
 
     Ok(Tuning {
+        habituation_per_use: tuning.habituation_per_use,
+        habituation_decay_per_tick: tuning.habituation_decay_per_tick,
+        habituation_floor: tuning.habituation_floor,
         action_threshold: tuning.action_threshold,
         choice_temperature: tuning.choice_temperature,
         idle_threshold: tuning.idle_threshold,
@@ -524,67 +572,28 @@ mod tests {
     /// deliberately: `ContentPack` grew a field at the end, so every
     /// earlier block above kept its offset and stayed reviewable against
     /// the annotations it already had.
+    ///
+    /// **Habituation broke that discipline and this vector was regenerated
+    /// rather than patched.** Its three knobs were inserted in the MIDDLE of
+    /// `Tuning`, next to the other behaviour knobs where a designer will look
+    /// for them, which shifts every tuning byte after them. Grouping won over
+    /// append-only here because the annotations above only cover the object,
+    /// lot and atlas blocks, and those are unaffected - the whole cost was 12
+    /// bytes of tuning moving, which is exactly what this test exists to
+    /// report. Regenerated from the failing assertion, not hand-edited.
     #[rustfmt::skip]
     const GOLDEN_PACK_BYTES: &[u8] = &[
-        // decay_per_tick: seven LE f32 in NeedId index order.
-        0xCD, 0xCC, 0xCC, 0x3D, // [0] hunger  0.1
-        0xCD, 0xCC, 0x4C, 0x3E, // [1] energy  0.2
-        0x9A, 0x99, 0x99, 0x3E, // [2] hygiene 0.3
-        0xCD, 0xCC, 0xCC, 0x3E, // [3] bladder 0.4
-        0x00, 0x00, 0x00, 0x3F, // [4] social  0.5
-        0x9A, 0x99, 0x19, 0x3F, // [5] fun     0.6
-        0x33, 0x33, 0x33, 0x3F, // [6] comfort 0.7
-        0x01, // objects: 1
-        0x06, b'f', b'r', b'i', b'd', b'g', b'e',
-        0x06, b'F', b'r', b'i', b'd', b'g', b'e',
-        0x02, // sprite: 'fridge_art' is at index 2 of the fixture atlas,
-              // NOT 0, which is where a resolver reading the object's own
-              // position would put it
-        0x01, // interactions: 1
-        0x0A, b'g', b'r', b'a', b'b', b'_', b's', b'n', b'a', b'c', b'k',
-        0x03, // advertises: 3, index-ordered
-        0x00, 0x00, 0x00, 0x0C, 0x42, // hunger  35.0
-        0x01, 0x00, 0x00, 0x40, 0x40, // energy   3.0
-        0x06, 0x00, 0x00, 0xA0, 0x40, // comfort  5.0
-        0x0F, // duration_ticks: 15
-        0x01, // slots: 1
-        0x01, // sim_sprite: 'sim' is at index 1 of the fixture atlas
-        // lot: width, height, walls, placements.
-        0x05, // width:  5
-        0x03, // height: 3, so the two are not interchangeable
-        0x02, // walls: 2, in DECLARATION order, not sorted
-        0x03, 0x02, // (3, 2)
-        0x01, 0x00, // (1, 0)
-        0x01, // placements: 1
-        0x00, // 'fridge' resolved to ObjectDefId(0)
-        0x00, 0x00, 0x20, 0x40, // x 2.5, fractional on purpose
-        0x00, 0x00, 0xA0, 0x3F, // y 1.25
-        // tuning: four LE f32 and five varints, in `Tuning`'s field
-        // order. Every value differs, so a field encoded into the wrong
-        // slot moves these bytes.
-        0x00, 0x00, 0x80, 0x3E, // action_threshold      0.25
-        0x00, 0x00, 0x00, 0x3F, // choice_temperature    0.5
-        0x00, 0x00, 0x00, 0x3E, // idle_threshold        0.125
-        0x09,                   // wander_pause_ticks    9
-        0x06,                   // wander_attempts       6
-        0x00, 0x00, 0x40, 0x3F, // duration_variance     0.75
-        0x03,                   // min_interaction_ticks 3
-        0xAC, 0x02,             // rng_seed              300, a two-byte
-                                // varint, so the u64 is not silently a
-                                // single byte like the two u32s above
-        0x07,                   // max_queued_intents    7, APPENDED at
-                                // M1b Task 5 so every block above kept
-                                // its offset and its annotation
-        0x0B,                   // max_queued_commands   11, APPENDED at
-                                // M1b Task 6 for the same reason, and
-                                // deliberately different from 7 so a
-                                // compile step that filled one of the
-                                // two caps from the other moves these
-                                // bytes
-        0x0D,                   // need_bar_refresh_ms   13, APPENDED at
-                                // M1b Task 7, again keeping every offset
-                                // above it, and again a value no other
-                                // knob shares
+        205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62,
+        205, 204, 204, 62, 0, 0, 0, 63, 154, 153, 25, 63,
+        51, 51, 51, 63, 1, 6, 102, 114, 105, 100, 103, 101,
+        6, 70, 114, 105, 100, 103, 101, 2, 1, 10, 103, 114,
+        97, 98, 95, 115, 110, 97, 99, 107, 3, 0, 0, 0,
+        12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64,
+        15, 1, 1, 5, 3, 2, 3, 2, 1, 0, 1, 0,
+        0, 0, 32, 64, 0, 0, 160, 63, 0, 0, 128, 62,
+        0, 0, 0, 63, 0, 0, 0, 62, 9, 6, 0, 0,
+        160, 62, 10, 215, 35, 59, 0, 0, 32, 63, 0, 0,
+        64, 63, 3, 172, 2, 7, 11, 13,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -680,6 +689,9 @@ mod tests {
             wander_pause_ticks: 9,
             wander_attempts: 6,
             duration_variance: 0.75,
+            habituation_per_use: 0.3125,
+            habituation_decay_per_tick: 0.0025,
+            habituation_floor: 0.625,
             min_interaction_ticks: 3,
             rng_seed: 300,
             max_queued_intents: 7,

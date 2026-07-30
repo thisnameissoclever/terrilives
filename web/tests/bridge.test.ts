@@ -378,7 +378,12 @@ describe('SimBridge', () => {
     // decay rates were slowed and this digest includes need levels, so every
     // agent differs at tick 100. Read off the wasm32 failure after a rebuild
     // per [L13], not copied from native.
-    expect(bridge.worldHash()).toBe(0xcb2c_8122_2251_d840n);
+    // Moved by habituation, from 0xcb2c_8122_2251_d840n. Two real causes at
+    // once: the digest gained a per-agent habituation column, and scoring now
+    // scales a repeated interaction's benefit so what the eight agents choose
+    // differs. Read off the wasm32 failure after a rebuild per [L13], not copied
+    // from native - the two agree, which is a measurement each time.
+    expect(bridge.worldHash()).toBe(0xfb84_8515_2c59_2ad8n);
   });
 
   // ---- Player commands -------------------------------------------------

@@ -45,6 +45,16 @@ pub struct TuningFile {
     pub duration_variance: f32,
     /// Hard floor on any interaction, in ticks. At least 1.
     pub min_interaction_ticks: u32,
+    /// How much one completed interaction raises this sim's habituation to
+    /// it, in `0.0..=1.0`. Zero disables the mechanic.
+    pub habituation_per_use: f32,
+    /// How much every habituation entry decays each tick. Strictly
+    /// positive, or habituation would be a one-way ratchet.
+    pub habituation_decay_per_tick: f32,
+    /// The multiplier a fully habituated interaction's benefit is reduced
+    /// to. In `(0, 1]`; 1 disables the effect, and 0 is rejected because
+    /// it would make an interaction permanently worthless.
+    pub habituation_floor: f32,
     /// Seed for the simulation PRNG.
     pub rng_seed: u64,
     /// The most player-issued intents one sim may hold at once. At least
@@ -209,7 +219,7 @@ pub struct PlacementDef {
 mod tests {
     use super::*;
 
-    /// The eleven scalar knobs, with pairwise distinct values so that a
+    /// The fourteen scalar knobs, with pairwise distinct values so that a
     /// field read off the wrong key is visible. Two knobs sharing a value
     /// would make a transposed pair of fields parse identically, which
     /// is [L34] in the tuning file's costume.
@@ -217,13 +227,16 @@ mod tests {
     /// The six `u32`s and the `u64` are deliberately different numbers
     /// for the same reason, and every float is exact in binary32 so the
     /// assertions can be equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 11] = [
+    const TUNING_LINES: [(&str, &str); 14] = [
         ("action_threshold", "0.25"),
         ("choice_temperature", "0.5"),
         ("idle_threshold", "0.125"),
         ("wander_pause_ticks", "9"),
         ("wander_attempts", "6"),
         ("duration_variance", "0.75"),
+        ("habituation_per_use", "0.3125"),
+        ("habituation_decay_per_tick", "0.0625"),
+        ("habituation_floor", "0.625"),
         ("min_interaction_ticks", "3"),
         ("rng_seed", "300"),
         ("max_queued_intents", "7"),
@@ -278,6 +291,9 @@ mod tests {
         assert_eq!(parsed.wander_pause_ticks, 9);
         assert_eq!(parsed.wander_attempts, 6);
         assert_eq!(parsed.duration_variance, 0.75);
+        assert_eq!(parsed.habituation_per_use, 0.3125);
+        assert_eq!(parsed.habituation_decay_per_tick, 0.0625);
+        assert_eq!(parsed.habituation_floor, 0.625);
         assert_eq!(parsed.min_interaction_ticks, 3);
         assert_eq!(parsed.rng_seed, 300);
         assert_eq!(parsed.max_queued_intents, 7);

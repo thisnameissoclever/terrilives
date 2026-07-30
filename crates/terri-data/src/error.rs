@@ -146,6 +146,15 @@ pub enum ContentError {
     /// interaction that can complete on the tick it starts, which reads
     /// as a sim teleporting through an action.
     ZeroInteractionFloor,
+    HabituationPerUseOutOfRange {
+        value: f32,
+    },
+    NonPositiveHabituationDecay {
+        value: f32,
+    },
+    HabituationFloorOutOfRange {
+        value: f32,
+    },
     /// Zero attempts is not "wander less"; it is a sim that can never
     /// roll a destination and therefore never wanders at all, which is
     /// exactly the standing-still behaviour [D-5] exists to remove -
@@ -309,6 +318,18 @@ impl fmt::Display for ContentError {
             ContentError::NonPositiveTemperature { value } => write!(
                 f,
                 "tuning.toml has choice_temperature of {value}; it must be greater than 0 because selection divides by it"
+            ),
+            ContentError::HabituationPerUseOutOfRange { value } => write!(
+                f,
+                "habituation_per_use is {value}; must be in [0, 1]. 0 disables                  habituation; above 1 saturates on first use, so an object                  would never be chosen twice"
+            ),
+            ContentError::NonPositiveHabituationDecay { value } => write!(
+                f,
+                "habituation_decay_per_tick is {value}; must be strictly                  positive. Zero makes habituation a one-way ratchet, so every                  interaction a sim has performed sinks to the floor and stays                  there and the whole house becomes equally unappealing"
+            ),
+            ContentError::HabituationFloorOutOfRange { value } => write!(
+                f,
+                "habituation_floor is {value}; must be in (0, 1]. It is a                  MULTIPLIER, so 1 disables the effect and 0 would make a fully                  habituated interaction permanently worthless"
             ),
             ContentError::ZeroInteractionFloor => write!(
                 f,

@@ -231,6 +231,145 @@ fn main() {
         100.0 * repeats as f64 / interactions.len().saturating_sub(1).max(1) as f64
     );
 
+    // WHY an object never wins, rather than only that it does not. Recomputes
+    // what selection saw for every object at the end of the run: the same
+    // score_advertisement, the same habituation multiplier, the same distance.
+    {
+        use terri_core::{Habituation, Position, SmartObject, TileGrid};
+        let agent_pos = *sim
+            .world()
+            .get::<Position>(agent)
+            .expect("agent has a position");
+        let hab = sim
+            .world()
+            .get::<Habituation>(agent)
+            .cloned()
+            .unwrap_or_default();
+        let needs = *sim.world().get::<Needs>(agent).expect("agent has needs");
+        let grid = sim.world().resource::<TileGrid>().clone();
+        let from = (agent_pos.x.round() as i32, agent_pos.y.round() as i32);
+
+        println!(
+            "
+CANDIDATE TABLE at tick {ticks}, agent at {from:?}"
+        );
+        println!(
+            "{:<12} {:>5} {:>6} {:>6} {:>9}  contributions",
+            "object", "dist", "hab", "scale", "score"
+        );
+        let mut state = sim.world_mut().query::<(&Position, &SmartObject)>();
+        let placed: Vec<(Position, SmartObject)> =
+            state.iter(sim.world()).map(|(p, o)| (*p, *o)).collect();
+        for (pos, object) in placed {
+            let def = pack.object(object.0);
+            let to = (pos.x.round() as i32, pos.y.round() as i32);
+            let Some(steps) = grid.find_path_adjacent(from, to) else {
+                println!("{:<12} unreachable", def.id);
+                continue;
+            };
+            let distance = steps.len() as f32;
+            for (index, act) in def.interactions.iter().enumerate() {
+                let h = hab.get(object.0, index as u32);
+                let scale = 1.0 - h * (1.0 - pack.tuning.habituation_floor);
+                let mut total = 0.0;
+                let mut parts = String::new();
+                for (need_index, delta) in &act.advertises {
+                    let id = NeedId::ALL[*need_index as usize];
+                    let d = if *delta > 0.0 { delta * scale } else { *delta };
+                    let c = terri_sim::systems::advertise::score_advertisement(
+                        needs.deficit(id),
+                        d,
+                        act.duration_ticks,
+                        distance,
+                    );
+                    total += c;
+                    parts.push_str(&format!("{id:?} {c:.4} (lvl {:.0}) ", needs.get(id)));
+                }
+                println!(
+                    "{:<12} {:>5.0} {:>6.2} {:>6.2} {:>9.4}  {}",
+                    def.id, distance, h, scale, total, parts
+                );
+            }
+        }
+        println!(
+            "(action_threshold {:.3}, idle_threshold {:.3}, temperature {:.3})",
+            pack.tuning.action_threshold,
+            pack.tuning.idle_threshold,
+            pack.tuning.choice_temperature
+        );
+    }
+
+    // SUPPLY AGAINST DEMAND, per need. The column that would have found [C6] and
+    // the sink immediately instead of after five wrong guesses between them.
+    //
+    // A need whose suppliers deliver more than it drains sits near full for the
+    // whole run, so its deficit stays tiny - and because score is
+    // `delta * deficit^3`, a cubed tiny deficit is indistinguishable from zero.
+    // Any object that advertises ONLY that need is then permanently worthless,
+    // whatever its delta and whatever its duration. That is not a balance nudge
+    // away from working; it is a zero, and both `fun` and `hygiene` were in that
+    // state on shipped content.
+    {
+        let mut supply = [0.0f32; NEED_COUNT];
+        for entry in &interactions {
+            let def = pack
+                .objects
+                .iter()
+                .find(|o| o.id == entry.object)
+                .expect("traced object is in the pack");
+            // The FIRST interaction, matching what UseObject and single-
+            // interaction content both do. Good enough for a supply estimate.
+            for (need_index, delta) in &def.interactions[0].advertises {
+                if *delta > 0.0 {
+                    supply[*need_index as usize] += delta;
+                }
+            }
+        }
+        println!(
+            "
+SUPPLY vs DRAIN over {ticks} ticks"
+        );
+        println!(
+            "{:<10} {:>9} {:>9} {:>8} {:>7}",
+            "need", "supplied", "drained", "ratio", "floor"
+        );
+        for (index, id) in NeedId::ALL.iter().enumerate() {
+            let drained = pack.decay_per_tick[index] * ticks as f32;
+            let ratio = supply[index] / drained.max(0.0001);
+            // **The FLOOR is the diagnostic, not the ratio**, and calibrating
+            // this the other way round was a mistake worth leaving a note about.
+            //
+            // A first version flagged any ratio above 1.35 as over-supplied, and
+            // it fingered `bladder` at 2.02 - while the toilet was the
+            // most-used object in the house. High ratios are normal: a sim tops
+            // a need up before it empties, so supply always exceeds drain by
+            // whatever headroom it leaves.
+            //
+            // What actually kills a single-need object is the need's LEVEL never
+            // falling far, because score is `delta * deficit^3` and a cubed
+            // small deficit is indistinguishable from zero. `fun` sat at a floor
+            // of 98 and `hygiene` at 93; both their single-need objects were
+            // used zero and one times. So the flag reads the floor, and the
+            // ratio is kept beside it as the explanation rather than the test.
+            let flag = if low[index] > 75.0 {
+                "  <-- FLOOR TOO HIGH: an object advertising only this scores ~0"
+            } else if low[index] < 8.0 {
+                "  <-- floor near zero: this need is barely being served"
+            } else {
+                ""
+            };
+            println!(
+                "{:<10} {:>9.0} {:>9.0} {:>8.2} {:>7.1}{}",
+                format!("{id:?}").to_lowercase(),
+                supply[index],
+                drained,
+                ratio,
+                low[index],
+                flag
+            );
+        }
+    }
+
     println!("\nNEED BANDS");
     for (index, id) in NeedId::ALL.iter().enumerate() {
         let pinned = if low[index] <= 0.0 {
