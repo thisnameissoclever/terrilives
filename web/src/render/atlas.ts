@@ -19,20 +19,20 @@ export interface AtlasSprite {
 }
 
 export const ATLAS_WIDTH = 256;
-export const ATLAS_HEIGHT = 282;
+export const ATLAS_HEIGHT = 247;
 
 export const SPRITES: readonly AtlasSprite[] = [
-  { name: 'floor', x: 177, y: 207, w: 64, h: 42 },
-  { name: 'sim', x: 204, y: 116, w: 38, h: 78 },
+  { name: 'floor', x: 43, y: 200, w: 64, h: 42 },
+  { name: 'sim', x: 51, y: 116, w: 38, h: 78 },
   { name: 'wallNS', x: 128, y: 1, w: 32, h: 98 },
   { name: 'wallEW', x: 95, y: 1, w: 32, h: 99 },
-  { name: 'kitchenFridgeBuiltIn', x: 154, y: 116, w: 49, h: 83 },
-  { name: 'bathroomSinkSquare', x: 135, y: 207, w: 41, h: 46 },
+  { name: 'kitchenFridgeBuiltIn', x: 1, y: 116, w: 49, h: 83 },
+  { name: 'bathroomSinkSquare', x: 1, y: 200, w: 41, h: 46 },
   { name: 'showerRound', x: 161, y: 1, w: 63, h: 94 },
-  { name: 'toiletSquare', x: 98, y: 207, w: 36, h: 50 },
-  { name: 'bookcaseClosedDoors', x: 1, y: 207, w: 36, h: 74 },
-  { name: 'loungeDesignSofaCorner', x: 1, y: 116, w: 152, h: 90 },
-  { name: 'cabinetTelevisionDoors', x: 38, y: 207, w: 59, h: 60 },
+  { name: 'toiletSquare', x: 127, y: 116, w: 36, h: 50 },
+  { name: 'bookcaseClosedDoors', x: 90, y: 116, w: 36, h: 74 },
+  { name: 'loungeSofaOttoman', x: 164, y: 116, w: 50, h: 47 },
+  { name: 'televisionVintage', x: 108, y: 200, w: 34, h: 40 },
   { name: 'bedBunk', x: 1, y: 1, w: 93, h: 114 },
 ];
 

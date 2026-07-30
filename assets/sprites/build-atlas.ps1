@@ -133,8 +133,29 @@ $SOURCES = @(
   @{ name = 'showerRound';            from = 'showerRound_SE' }
   @{ name = 'toiletSquare';           from = 'toiletSquare_SE' }
   @{ name = 'bookcaseClosedDoors';    from = 'bookcaseClosedDoors_SE' }
-  @{ name = 'loungeDesignSofaCorner'; from = 'loungeDesignSofaCorner_SE' }
-  @{ name = 'cabinetTelevisionDoors'; from = 'cabinetTelevisionDoors_SE' }
+  # **Both of these were swapped for pieces that fit their footprint.**
+  #
+  # Objects occupy exactly ONE tile in the simulation whatever their sprite's
+  # width, so a sprite much wider than a tile is drawn over ground it does not
+  # own - and since sims now stand on an ADJACENT tile, "adjacent" can land
+  # underneath the sprite. Measured on the old pair: a sim standing beside the
+  # 2.38-tile corner sofa had 88% of its own sprite inside the sofa's.
+  #
+  # `loungeSofaOttoman` is 0.78 tiles wide, so one tile of separation actually
+  # clears it. `televisionVintage` replaces `cabinetTelevisionDoors`, which was
+  # never a television at all - it is a cabinet, 109x110 in the source and
+  # therefore square, which is why [C4] recorded it reading as a plank lying on
+  # the floor. The vintage set is also the better joke for an object named
+  # Cathode Companion.
+  #
+  # **The bed cannot be fixed this way and is deliberately left alone.** Every
+  # bed in the kit is at least 1.46 tiles wide, because a bed genuinely is a
+  # multi-tile object; there is no asset that would make one tile of separation
+  # enough. That is the case for real footprints, recorded as [A-6] in
+  # docs/alpha-feel-notes.md, not something to paper over with a smaller
+  # picture of a bed.
+  @{ name = 'loungeSofaOttoman';      from = 'loungeSofaOttoman_SE' }
+  @{ name = 'televisionVintage';      from = 'televisionVintage_SE' }
   @{ name = 'bedBunk';                from = 'bedBunk_SE' }
 )
 

@@ -10,18 +10,18 @@
 
 image = "atlas.png"
 width = 256
-height = 282
+height = 247
 
 [[sprite]]
 name = "floor"
-x = 177
-y = 207
+x = 43
+y = 200
 w = 64
 h = 42
 
 [[sprite]]
 name = "sim"
-x = 204
+x = 51
 y = 116
 w = 38
 h = 78
@@ -42,15 +42,15 @@ h = 99
 
 [[sprite]]
 name = "kitchenFridgeBuiltIn"
-x = 154
+x = 1
 y = 116
 w = 49
 h = 83
 
 [[sprite]]
 name = "bathroomSinkSquare"
-x = 135
-y = 207
+x = 1
+y = 200
 w = 41
 h = 46
 
@@ -63,31 +63,31 @@ h = 94
 
 [[sprite]]
 name = "toiletSquare"
-x = 98
-y = 207
+x = 127
+y = 116
 w = 36
 h = 50
 
 [[sprite]]
 name = "bookcaseClosedDoors"
-x = 1
-y = 207
+x = 90
+y = 116
 w = 36
 h = 74
 
 [[sprite]]
-name = "loungeDesignSofaCorner"
-x = 1
+name = "loungeSofaOttoman"
+x = 164
 y = 116
-w = 152
-h = 90
+w = 50
+h = 47
 
 [[sprite]]
-name = "cabinetTelevisionDoors"
-x = 38
-y = 207
-w = 59
-h = 60
+name = "televisionVintage"
+x = 108
+y = 200
+w = 34
+h = 40
 
 [[sprite]]
 name = "bedBunk"

@@ -104,7 +104,7 @@ sprite = "toiletSquare"
 [[object]]
 id = "television"
 name = "Cathode Companion"
-sprite = "cabinetTelevisionDoors"
+sprite = "televisionVintage"
 
   # Two slots, so it does not become contended when households grow past
   # one sim. More fun per tick than either the sofa or the bookshelf, and
@@ -173,7 +173,7 @@ sprite = "cabinetTelevisionDoors"
 [[object]]
 id = "sofa"
 name = "Chesterfield Regret"
-sprite = "loungeDesignSofaCorner"
+sprite = "loungeSofaOttoman"
 
   # Two advertised needs, deliberately. [D6]'s scoring SUMS across
   # advertised deltas, and this is the first object in shipped content
