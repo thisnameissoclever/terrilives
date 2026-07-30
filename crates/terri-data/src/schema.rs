@@ -231,6 +231,90 @@ pub struct WallDef {
     pub y: i32,
 }
 
+/// Mirrors `content/personalities.toml`: the archetypes a household
+/// member can be, each a bundle of multipliers - [H3] in
+/// `docs/specs/2026-07-30-household-and-relationships-design.md`.
+#[derive(Debug, Deserialize)]
+pub struct PersonalitiesFile {
+    /// Defaulted so a project with no archetypes yet parses; a household
+    /// member naming one that does not exist is the compile step's error,
+    /// not serde's.
+    #[serde(default)]
+    pub archetype: Vec<ArchetypeDef>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ArchetypeDef {
+    pub id: String,
+    /// Need name to a multiplier on how fast that need DRAINS for this
+    /// sim. Sparse, and an absent need multiplies by 1.0: most archetypes
+    /// are ordinary about most needs, and a file that had to restate
+    /// seven 1.0s per archetype would bury the two numbers that make it a
+    /// personality.
+    ///
+    /// `BTreeMap` for the reason every map in this module is one: the
+    /// compiled pack feeds a determinism hash, and nothing on the way
+    /// there may depend on hash iteration order.
+    #[serde(default)]
+    pub drain: BTreeMap<String, f32>,
+    /// Need name to a multiplier on how much a positive delta RESTORES
+    /// for this sim - and, through selection, how attractive it looks.
+    /// Sparse like `drain`, absent is 1.0.
+    ///
+    /// The two maps are deliberately separate fields rather than one map
+    /// of pairs, because the request that started this was explicit: an
+    /// introvert's social should drain slowly AND refill generously, and
+    /// those are different numbers read by different systems.
+    #[serde(default)]
+    pub satisfaction: BTreeMap<String, f32>,
+    /// Per-interaction weights - "loves reading", "fears the couch". A
+    /// weight of 0 is legal and IS the fear: the interaction scores as
+    /// nothing, so the sim never chooses it on its own.
+    #[serde(default)]
+    pub disposition: Vec<DispositionDef>,
+}
+
+/// One archetype's feeling about one interaction, by name. The compile
+/// step resolves both names to indices, so a dangling reference has no
+/// representation once a pack exists.
+#[derive(Debug, Deserialize)]
+pub struct DispositionDef {
+    pub object: String,
+    pub interaction: String,
+    pub weight: f32,
+}
+
+/// Mirrors `content/household.toml`: who lives on the lot - [H2].
+///
+/// The household is CONTENT, not something the shell spawns. The shell
+/// used to call `spawnAgent(8, 6, 25)` with coordinates written in
+/// TypeScript, which is the same hardcoded-copy mistake the lot made
+/// before M1b Task 3b.
+#[derive(Debug, Deserialize)]
+pub struct HouseholdFile {
+    /// Defaulted: an empty household is a furnished lot with nobody home,
+    /// which is a legitimate authoring state and the state every content
+    /// fixture predating M2c was written in.
+    #[serde(default)]
+    pub sim: Vec<HouseholdSimDef>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct HouseholdSimDef {
+    pub name: String,
+    /// Names an `[[archetype]]` in `content/personalities.toml`.
+    pub archetype: String,
+    /// Spawn position, `f32` like a placement's because `Position` is an
+    /// f32 pair; the tile is the tile the coordinates fall in.
+    pub x: f32,
+    pub y: f32,
+    /// Starting need levels. Sparse: an absent need starts full, because
+    /// the interesting authoring statement is "Terri arrives hungry", not
+    /// a seven-line restatement of contentment.
+    #[serde(default)]
+    pub needs: BTreeMap<String, f32>,
+}
+
 /// Mirrors `assets/sprites/atlas.toml`, which is **generated** by
 /// `assets/sprites/build-atlas.ps1` rather than authored.
 ///
@@ -679,6 +763,87 @@ mod tests {
         assert!(parsed.object[0].interaction.is_empty());
     }
 
+    /// Both defaults on the two new files, and one full parse each.
+    ///
+    /// The sparse maps are the load-bearing part: an archetype that says
+    /// nothing about a need must parse with that need ABSENT, because the
+    /// compile step fills absences with 1.0 and a serde default of 0.0
+    /// would freeze decay or nullify benefits silently. The values are
+    /// pairwise distinct and exact in binary32 ([L34]).
+    #[test]
+    fn parses_an_archetype_with_sparse_maps_and_dispositions() {
+        let parsed: PersonalitiesFile = toml::from_str(
+            r#"
+            [[archetype]]
+            id = "the_settled"
+            drain = { comfort = 1.5, energy = 0.75 }
+            satisfaction = { comfort = 1.25 }
+
+              [[archetype.disposition]]
+              object = "armchair"
+              interaction = "take_the_chair"
+              weight = 1.875
+            "#,
+        )
+        .expect("valid personalities toml");
+
+        let archetype = &parsed.archetype[0];
+        assert_eq!(archetype.id, "the_settled");
+        assert_eq!(archetype.drain.get("comfort"), Some(&1.5));
+        assert_eq!(archetype.drain.get("energy"), Some(&0.75));
+        assert_eq!(archetype.drain.len(), 2, "the drain map must stay sparse");
+        assert_eq!(archetype.satisfaction.get("comfort"), Some(&1.25));
+        assert_eq!(archetype.satisfaction.len(), 1);
+        assert_eq!(archetype.disposition.len(), 1);
+        assert_eq!(archetype.disposition[0].object, "armchair");
+        assert_eq!(archetype.disposition[0].interaction, "take_the_chair");
+        assert_eq!(archetype.disposition[0].weight, 1.875);
+    }
+
+    #[test]
+    fn an_archetype_may_say_nothing_beyond_its_id() {
+        // All three fields default. An archetype that is ordinary about
+        // everything is expressible as one line, which is what makes the
+        // interesting numbers in a real file stand out.
+        let parsed: PersonalitiesFile = toml::from_str(
+            "[[archetype]]
+id = \"beige\"
+",
+        )
+        .expect("bare archetype parses");
+        let archetype = &parsed.archetype[0];
+        assert!(archetype.drain.is_empty());
+        assert!(archetype.satisfaction.is_empty());
+        assert!(archetype.disposition.is_empty());
+    }
+
+    #[test]
+    fn parses_a_household_and_an_empty_one() {
+        let parsed: HouseholdFile = toml::from_str(
+            r#"
+            [[sim]]
+            name = "Terri"
+            archetype = "the_striver"
+            x = 9.5
+            y = 2.25
+            needs = { hunger = 62.5 }
+            "#,
+        )
+        .expect("valid household toml");
+        let sim = &parsed.sim[0];
+        assert_eq!(sim.name, "Terri");
+        assert_eq!(sim.archetype, "the_striver");
+        // Fractional on purpose: every coordinate being an integer would
+        // make a truncating parse invisible ([L34]).
+        assert_eq!((sim.x, sim.y), (9.5, 2.25));
+        assert_eq!(sim.needs.get("hunger"), Some(&62.5));
+        assert_eq!(sim.needs.len(), 1, "the needs map must stay sparse");
+
+        // Nobody home is a state, not an error; every fixture predating
+        // M2c is this state.
+        let empty: HouseholdFile = toml::from_str("").expect("an empty household parses");
+        assert!(empty.sim.is_empty());
+    }
     /// The shipped `lot.toml` uses inline tables inside an array, which
     /// is the only form in which fifteen wall tiles are readable. Serde
     /// accepts both that and `[[wall]]` sections, so this pins the one

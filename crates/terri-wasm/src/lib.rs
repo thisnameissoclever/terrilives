@@ -853,14 +853,40 @@ mod boundary_tests {
         /// helper that constructed its own lot from `width` and `height`
         /// would be self-consistent under a swap of the pair and could
         /// not see it.
+        ///
+        /// **Only the probe agent's own position is compared.** It used to
+        /// compare every stored position, which was equivalent while the
+        /// probe was the lot's only agent - and stopped being so when
+        /// `from_lot` began spawning the household, whose three sims start
+        /// moving immediately and would make ANY probe read as mobile.
+        ///
+        /// The probe is found by HIGHEST ENTITY INDEX, not by row: it is
+        /// the newest spawn and nothing despawns during the run, so the
+        /// index is unambiguous, while query rows come out in archetype
+        /// order and the probe - which carries no `SimId` - sits in a
+        /// different archetype from the household ([L47]'s row-is-not-an-id
+        /// lesson, met in a test helper).
         fn moves_from(tile: (f32, f32)) -> bool {
+            fn probe_position(handle: &SimHandle) -> (f32, f32) {
+                use terri_core::Entity;
+                let world = handle.sim.world();
+                let mut state = world
+                    .try_query::<(Entity, &Position)>()
+                    .expect("Position is registered eagerly in Sim::new");
+                state
+                    .iter(world)
+                    .max_by_key(|(entity, _): &(Entity, &Position)| entity.index())
+                    .map(|(_, pos)| (pos.x, pos.y))
+                    .expect("the probe agent was just spawned")
+            }
+
             let mut handle = SimHandle::from_lot();
             handle.spawn_agent(tile.0, tile.1, 20.0);
-            let start = stored_positions(&handle);
+            let start = probe_position(&handle);
             for _ in 0..10 {
                 handle.tick();
             }
-            stored_positions(&handle) != start
+            probe_position(&handle) != start
         }
 
         // The claim through behaviour, so the pair cannot both be

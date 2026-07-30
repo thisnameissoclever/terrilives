@@ -289,6 +289,106 @@ pub enum ContentError {
     /// failure - the page would load, the sim would behave, and nothing
     /// the player did would reach it.
     ZeroQueuedCommands,
+    /// Two archetypes with one id: the household resolves by name, so the
+    /// second is unreachable and every sim naming it silently gets the
+    /// first - two definitions for one fact, resolved by declaration
+    /// order nobody chose.
+    DuplicateArchetype {
+        id: String,
+    },
+    /// An archetype's `drain` or `satisfaction` map names a need rustc
+    /// does not know. Same dangling-reference shape as
+    /// [`ContentError::UnknownNeed`], one file over.
+    UnknownPersonalityNeed {
+        archetype: String,
+        map: &'static str,
+        need: String,
+    },
+    /// A satisfaction multiplier of zero makes every positive delta on
+    /// that need worth nothing TO THIS SIM - the need becomes dynamically
+    /// unsatisfiable for one person, which is [C2] with a face on it, and
+    /// `every_declared_need_can_be_satisfied_by_some_interaction` is
+    /// static and cannot see it. Drain multipliers may be zero - a need
+    /// that never drains is a placid trait, not a trap - which is why the
+    /// two maps have different floors.
+    NonPositiveSatisfaction {
+        archetype: String,
+        need: String,
+        value: f32,
+    },
+    /// A disposition names an object `objects.toml` does not declare.
+    UnknownDispositionObject {
+        archetype: String,
+        object: String,
+    },
+    /// A disposition names an interaction its object does not offer.
+    /// Reported separately from the object case because the fixes are
+    /// different edits: one is a typo in an object id, the other is
+    /// usually an interaction renamed after the archetype was written.
+    UnknownDispositionInteraction {
+        archetype: String,
+        object: String,
+        interaction: String,
+    },
+    /// One archetype declares two weights for one interaction. Ambiguous
+    /// rather than merely redundant: nothing says which wins, and the
+    /// answer would be declaration order nobody chose.
+    DuplicateDisposition {
+        archetype: String,
+        object: String,
+        interaction: String,
+    },
+    /// A household member names an archetype `personalities.toml` does
+    /// not declare.
+    UnknownArchetype {
+        sim: String,
+        archetype: String,
+    },
+    /// A sim with no name renders a blank needs-panel header and a blank
+    /// row in every future UI that lists the household. Same
+    /// silent-nothing shape as a blank interaction label.
+    EmptySimName,
+    /// A household member spawns outside the lot.
+    SpawnOutOfBounds {
+        sim: String,
+        x: f32,
+        y: f32,
+        width: u32,
+        height: u32,
+    },
+    /// A household member spawns inside a wall or a footprint. Movement
+    /// paths FROM the sim's tile, so a sim born in a blocked tile can
+    /// never leave it: every neighbour expansion starts from a tile the
+    /// grid says nothing can stand on.
+    SpawnOnBlockedTile {
+        sim: String,
+        x: u32,
+        y: u32,
+    },
+    /// A household member spawns on a walkable tile that is cut off from
+    /// the rest of the lot - born in a sealed pocket, able to starve and
+    /// not to leave. Same flood fill as
+    /// [`ContentError::UnreachableApproach`], same root.
+    SpawnUnreachable {
+        sim: String,
+        x: u32,
+        y: u32,
+        root_x: u32,
+        root_y: u32,
+    },
+    /// A starting need names a need rustc does not know.
+    UnknownStartingNeed {
+        sim: String,
+        need: String,
+    },
+    /// A starting need outside `[0, 100]`. Clamping silently would hide
+    /// an authoring typo - `hunger = 620.0` for `62.0` - behind a sim
+    /// that merely behaves oddly for its first sim-day.
+    StartingNeedOutOfRange {
+        sim: String,
+        need: String,
+        value: f32,
+    },
 }
 
 impl fmt::Display for ContentError {
@@ -520,6 +620,106 @@ impl fmt::Display for ContentError {
             ContentError::ZeroQueuedCommands => write!(
                 f,
                 "tuning.toml has max_queued_commands of 0, so the boundary would refuse every player command and nothing the player did would reach the simulation; must be at least 1"
+            ),
+            ContentError::DuplicateArchetype { id } => write!(
+                f,
+                "personalities.toml declares archetype '{id}' more than once; \
+                 the household resolves by name, so the second definition \
+                 could never be reached"
+            ),
+            ContentError::UnknownPersonalityNeed {
+                archetype,
+                map,
+                need,
+            } => write!(
+                f,
+                "archetype '{archetype}' gives a {map} multiplier for unknown need '{need}'"
+            ),
+            ContentError::NonPositiveSatisfaction {
+                archetype,
+                need,
+                value,
+            } => write!(
+                f,
+                "archetype '{archetype}' has a satisfaction multiplier of \
+                 {value} for '{need}'; it must be greater than 0, or that \
+                 need becomes unsatisfiable for every sim with this \
+                 personality - no interaction could ever refill it. A drain \
+                 multiplier of 0 is the legal way to say a need does not \
+                 trouble this sim"
+            ),
+            ContentError::UnknownDispositionObject { archetype, object } => write!(
+                f,
+                "archetype '{archetype}' has a disposition toward '{object}', \
+                 which objects.toml does not declare"
+            ),
+            ContentError::UnknownDispositionInteraction {
+                archetype,
+                object,
+                interaction,
+            } => write!(
+                f,
+                "archetype '{archetype}' has a disposition toward \
+                 '{object}.{interaction}', but '{object}' offers no \
+                 interaction with that id"
+            ),
+            ContentError::DuplicateDisposition {
+                archetype,
+                object,
+                interaction,
+            } => write!(
+                f,
+                "archetype '{archetype}' declares two dispositions toward \
+                 '{object}.{interaction}'; nothing says which weight wins"
+            ),
+            ContentError::UnknownArchetype { sim, archetype } => write!(
+                f,
+                "household.toml gives '{sim}' the archetype '{archetype}', \
+                 which personalities.toml does not declare"
+            ),
+            ContentError::EmptySimName => write!(
+                f,
+                "household.toml declares a sim with a blank name; the needs \
+                 panel and every future household list would show an empty row"
+            ),
+            ContentError::SpawnOutOfBounds {
+                sim,
+                x,
+                y,
+                width,
+                height,
+            } => write!(
+                f,
+                "household.toml spawns '{sim}' at ({x}, {y}), outside the \
+                 {width}x{height} lot"
+            ),
+            ContentError::SpawnOnBlockedTile { sim, x, y } => write!(
+                f,
+                "household.toml spawns '{sim}' on the blocked tile ({x}, {y}); \
+                 movement paths FROM a sim's tile, so a sim born inside a wall \
+                 or a footprint can never take a step"
+            ),
+            ContentError::SpawnUnreachable {
+                sim,
+                x,
+                y,
+                root_x,
+                root_y,
+            } => write!(
+                f,
+                "household.toml spawns '{sim}' at ({x}, {y}), which is cut off \
+                 from ({root_x}, {root_y}): the sim would be born in a sealed \
+                 pocket, able to starve and not to leave"
+            ),
+            ContentError::UnknownStartingNeed { sim, need } => write!(
+                f,
+                "household.toml gives '{sim}' a starting level for unknown need '{need}'"
+            ),
+            ContentError::StartingNeedOutOfRange { sim, need, value } => write!(
+                f,
+                "household.toml starts '{sim}' with {need} at {value}; levels \
+                 are 0 to 100, and clamping silently would hide a typo behind \
+                 a sim that merely behaves oddly for a day"
             ),
         }
     }

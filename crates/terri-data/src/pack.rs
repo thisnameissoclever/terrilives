@@ -221,6 +221,40 @@ pub struct Tuning {
     pub need_bar_refresh_ms: u32,
 }
 
+/// One personality archetype, compiled - [H3].
+///
+/// Dense arrays where the authored TOML was sparse: the compile step
+/// fills absences with 1.0, so every read site is an index rather than a
+/// lookup-with-default each caller could write differently. Multipliers
+/// are validated - finite, drains non-negative, satisfactions strictly
+/// positive - so a reader may assume the ranges rather than re-check.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CompiledPersonality {
+    pub id: String,
+    pub drain: [f32; NEED_COUNT],
+    pub satisfaction: [f32; NEED_COUNT],
+    /// (object, interaction index, weight), sorted by key because it is
+    /// copied into a component `world_hash` iterates. The names are
+    /// resolved: a disposition toward an interaction that does not exist
+    /// has no representation once a pack exists.
+    pub dispositions: Vec<(ObjectDefId, u32, f32)>,
+}
+
+/// One member of the authored household - [H2].
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CompiledHouseholdMember {
+    pub name: String,
+    /// Index into [`ContentPack::personalities`]. An index rather than
+    /// the authored string for the standing reason: once a pack exists, a
+    /// sim with a personality nobody declared has no representation.
+    pub personality: u32,
+    pub x: f32,
+    pub y: f32,
+    /// Starting need levels, dense by need index, absences filled with
+    /// `NEED_MAX`. Validated into `[0, 100]`.
+    pub needs: [f32; NEED_COUNT],
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ContentPack {
     pub decay_per_tick: [f32; NEED_COUNT],
@@ -238,9 +272,15 @@ pub struct ContentPack {
     /// after the existing ones, so every earlier block keeps its offset.
     /// The golden vector in `compile.rs` annotates those blocks, and
     /// keeping them where they are is what makes it reviewable. `lot`
-    /// was last until tuning arrived; `tuning` is last now.
+    /// was last until tuning arrived, `tuning` until the household did;
+    /// `household` is last now.
     pub lot: CompiledLot,
     pub tuning: Tuning,
+    pub personalities: Vec<CompiledPersonality>,
+    /// Spawned in declaration order by `Sim::new_from_lot`, which is what
+    /// fixes each member's `SimId`: the first sim in the file is SimId 0
+    /// for as long as nobody is born or dies before load finishes.
+    pub household: Vec<CompiledHouseholdMember>,
 }
 
 impl ContentPack {
@@ -352,6 +392,23 @@ mod tests {
             sim_sprite: 1,
             lot: a_lot(),
             tuning: a_tuning(),
+            personalities: vec![CompiledPersonality {
+                id: "the_settled".to_string(),
+                // Pairwise distinct across BOTH arrays, so a round trip
+                // that wrote satisfaction into drain's slot - or dropped
+                // one array and duplicated the other - moves the equality
+                // below ([L34]).
+                drain: [1.5, 0.75, 1.0, 1.125, 0.875, 1.25, 0.9375],
+                satisfaction: [0.5, 1.75, 2.0, 0.625, 1.375, 0.8125, 1.0625],
+                dispositions: vec![(ObjectDefId(1), 0, 1.875), (ObjectDefId(2), 1, 0.25)],
+            }],
+            household: vec![CompiledHouseholdMember {
+                name: "Terri".to_string(),
+                personality: 0,
+                x: 4.5,
+                y: 3.25,
+                needs: [62.5, 100.0, 87.5, 93.75, 100.0, 81.25, 96.875],
+            }],
         }
     }
 

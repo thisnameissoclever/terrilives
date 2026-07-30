@@ -1,0 +1,101 @@
+# Personality archetypes - [H3] in
+# docs/specs/2026-07-30-household-and-relationships-design.md.
+#
+# An archetype is three kinds of multiplier, and every one of them
+# defaults to 1.0 when absent, so the two or three numbers written here
+# ARE the personality rather than being buried in restated defaults:
+#
+#   drain          how fast a need falls for this sim
+#   satisfaction   how much a positive delta restores for them - and,
+#                  through selection, how attractive it looks
+#   disposition    a weight on one specific interaction; 0 is a refusal
+#                  ("fear of couches"), above 1 is a love
+#
+# **Every multiplier in this file and every starting need in
+# household.toml is pairwise distinct**, the same [L26]/[L29] discipline
+# objects.toml keeps: a test cannot tell one slot from another when two
+# slots hold the same number, and a drain written into a satisfaction
+# column would be invisible the moment any two values matched.
+#
+# The three shipped archetypes are built to be told apart from across the
+# room in the first minute of watching, because that is goal item 1's
+# actual test: "visibly different behaviour traceable to personality
+# data". Each one's numbers point at a different room of the house.
+
+# The one who is going to sort her life out any day now. Bores fast,
+# hard to entertain, doesn't notice discomfort - and drawn to the two
+# objects the house keeps for the person you meant to become: the desk
+# and the Wall of Intent. Disdains the television, which is how the
+# house's biggest fun-dispenser stays available for everyone else.
+[[archetype]]
+id = "the_correspondent"
+drain = { fun = 1.3, comfort = 0.7 }
+satisfaction = { fun = 0.85, energy = 1.15 }
+
+  [[archetype.disposition]]
+  object = "desk"
+  interaction = "attend_correspondence"
+  weight = 1.7
+
+  [[archetype.disposition]]
+  object = "bookshelf"
+  interaction = "read"
+  weight = 1.45
+
+  [[archetype.disposition]]
+  object = "television"
+  interaction = "watch_tv"
+  weight = 0.55
+
+# The one the armchair belongs to. Comfort aches constantly and nothing
+# else hurries him; the 1.85 on "Take the good chair" is what turns the
+# house's single-slot best seat into a contested territory with an
+# incumbent, which is the contention fixture goal item 1 asks to watch.
+# The 0.45 on the desk is the same fact from the other side.
+[[archetype]]
+id = "the_settled"
+drain = { comfort = 1.5, energy = 0.8 }
+satisfaction = { comfort = 1.25 }
+
+  [[archetype.disposition]]
+  object = "armchair"
+  interaction = "take_the_chair"
+  weight = 1.85
+
+  [[archetype.disposition]]
+  object = "long_sofa"
+  interaction = "stretch_out"
+  weight = 1.35
+
+  [[archetype.disposition]]
+  object = "desk"
+  interaction = "attend_correspondence"
+  weight = 0.45
+
+# The one the house is too quiet for. Social drains almost half again as
+# fast as anyone else's and each dose restores LESS (0.75), so she works
+# the house's three thin social taps - television, radio, dining table -
+# harder than anyone. **She is deliberately under-served**: the only real
+# social supply is other sims, which is M2d, and this archetype is the
+# demand side of that feature built first. Watch her social floor in the
+# trace; if it ever pins near zero that is [C2] and the number to soften
+# is the 1.4.
+[[archetype]]
+id = "the_flitting"
+drain = { social = 1.4, hygiene = 0.9 }
+satisfaction = { social = 0.75, hunger = 1.1 }
+
+  [[archetype.disposition]]
+  object = "radio"
+  interaction = "listen"
+  weight = 1.6
+
+  [[archetype.disposition]]
+  object = "dining_table"
+  interaction = "sit_properly"
+  weight = 1.05
+
+  [[archetype.disposition]]
+  object = "television"
+  interaction = "watch_tv"
+  weight = 1.2

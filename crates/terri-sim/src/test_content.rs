@@ -183,6 +183,15 @@ pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static Cont
         // so a test stating the threshold and the pack the sim reads it
         // from have ONE source rather than two that agree today.
         tuning,
+        // Empty rather than the shipped people, deliberately, and the
+        // opposite call from the lot above. `sim_with` spawns its own
+        // agents explicitly, so a fixture pack that also carried Terri,
+        // Doug and Nadia would let `spawn_household` in some future test
+        // add three extra sims nobody's assertions account for - the
+        // shipped household is content for the shipped GAME, and a
+        // fixture household is whatever the test spawns.
+        personalities: Vec::new(),
+        household: Vec::new(),
     }))
 }
 

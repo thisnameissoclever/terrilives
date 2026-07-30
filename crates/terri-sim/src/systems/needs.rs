@@ -1,5 +1,5 @@
 use bevy_ecs::prelude::*;
-use terri_core::{NeedId, Needs};
+use terri_core::{NeedId, Needs, Personality};
 
 use crate::Content;
 
@@ -23,11 +23,24 @@ use crate::Content;
 /// what keeps that precondition true; see [L26] for the one-layer-down
 /// version of the same trap, where a uniform fixture hid
 /// `decay[id.index()]` becoming `decay[0]`.
-pub fn decay_needs(content: Res<Content>, mut query: Query<&mut Needs>) {
+///
+/// A sim's `Personality` multiplies each rate - [H3]'s `drain` array. An
+/// introvert's social falls slowly; a comfort creature's comfort aches
+/// fast. `Option` because objects and every pre-M2c fixture carry no
+/// personality, and absent must mean all-ones: that is the contract that
+/// keeps the world-hash golden vectors still, since their scenarios spawn
+/// bare agents whose behaviour must not have moved.
+///
+/// The multiplication is here rather than baked into a per-sim rate table
+/// at spawn, because a rate that can change - a condition lifting, a
+/// trait mutating, which is M2e - has to be computed from its sources on
+/// read or the copy goes stale.
+pub fn decay_needs(content: Res<Content>, mut query: Query<(&mut Needs, Option<&Personality>)>) {
     let rates = &content.0.decay_per_tick;
-    for mut needs in &mut query {
+    for (mut needs, personality) in &mut query {
         for id in NeedId::ALL {
-            needs.drain(id, rates[id.index()]);
+            let multiplier = personality.map_or(1.0, |p| p.drain[id.index()]);
+            needs.drain(id, rates[id.index()] * multiplier);
         }
     }
 }
@@ -37,6 +50,66 @@ mod tests {
     use super::*;
     use crate::Sim;
     use terri_core::{Agent, SimClock};
+
+    /// **A personality's drain multiplier scales decay per need, and a sim
+    /// with no personality decays at exactly the content rate.**
+    ///
+    /// Two agents in one world, one bare and one wearing a personality
+    /// whose fun drains at 2.5x - deliberately not 1.0, not 0.0, and
+    /// unequal to any shipped multiplier. Comparing the two after the same
+    /// ticks pins three things at once: the multiplier is READ (the worn
+    /// sim's fun differs), it applies to THAT need only (the other six
+    /// stay equal between the two sims), and absence means neutral - the
+    /// contract that keeps the world-hash golden vectors still, since
+    /// their scenarios spawn bare agents.
+    #[test]
+    fn a_personality_drain_multiplier_scales_one_need_and_absence_means_neutral() {
+        use terri_core::Personality;
+        const TICKS: usize = 50;
+        const MULTIPLIER: f32 = 2.5;
+
+        let mut sim = Sim::new();
+        let bare = sim
+            .world_mut()
+            .spawn((Agent, Needs::all_at(terri_core::NEED_MAX)))
+            .id();
+        let mut personality = Personality::neutral();
+        personality.drain[NeedId::Fun.index()] = MULTIPLIER;
+        let worn = sim
+            .world_mut()
+            .spawn((Agent, Needs::all_at(terri_core::NEED_MAX), personality))
+            .id();
+
+        for _ in 0..TICKS {
+            sim.tick();
+        }
+
+        let bare_needs = *sim.world().get::<Needs>(bare).unwrap();
+        let worn_needs = *sim.world().get::<Needs>(worn).unwrap();
+        let rates = terri_data::pack().decay_per_tick;
+        assert!(
+            rates[NeedId::Fun.index()] > 0.0,
+            "a zero fun rate would make the multiplied assertion vacuous"
+        );
+
+        for id in NeedId::ALL {
+            if id == NeedId::Fun {
+                let expected = terri_core::NEED_MAX - rates[id.index()] * MULTIPLIER * TICKS as f32;
+                assert!(
+                    (worn_needs.get(id) - expected).abs() < 1e-3,
+                    "fun must drain at {MULTIPLIER}x for the worn sim; got {} against {expected}",
+                    worn_needs.get(id)
+                );
+            } else {
+                assert_eq!(
+                    worn_needs.get(id),
+                    bare_needs.get(id),
+                    "{} carries no multiplier and must match the bare sim exactly",
+                    id.as_str()
+                );
+            }
+        }
+    }
 
     /// Replaces `hunger_decays_at_the_rate_content_declares`, which
     /// asserted the OPPOSITE of this for the other six needs: that they
