@@ -857,3 +857,59 @@ Separately, [C4]'s complaint that the television reads as a flat plank is **not*
 a scaling error - at 59 x 60 it is proportioned like what it is, a TV cabinet
 rather than a screen. That is an asset-choice problem and no projection change
 will fix it.
+
+### [A-7] The visual verification, done densely - and the instrument that nearly lied
+
+[A-5] above said the geometry was verified but that "whether the room reads as a
+room needs eyes on a composited frame". Part of that was too pessimistic: the
+Browser pane does not *present* frames, but the canvas still *draws* them, and
+`canvas.toDataURL()` returns a real 208 KB PNG. So the pixels were available all
+along and the earlier passes did not look for them.
+
+What that made possible, all measured against the shipped lot through the real
+WASM build:
+
+| check | result |
+| --- | --- |
+| floor tiles, background-coloured gaps | **0** of 672 samples |
+| wall runs, empty columns | **0** of 864 columns |
+| wall runs, notches deeper than 6 px | **0**, worst 0 px |
+| sprite-on-sprite overlaps between placed objects | **none** |
+| sim resting on furniture | **0** of 7 resting spots |
+
+The wall scan is the one worth trusting: it walks every pixel column across the
+north boundary (15 panels), the west boundary (10) and the bathroom wall, finds
+the topmost drawn pixel in each, and looks for a column whose top edge sits more
+than 6 px below both of its neighbours. That is what a seam between two panels
+would look like. There are none, which is the strongest available statement that
+the runs are flush.
+
+**Two instruments were wrong before they were right, and both failures were the
+same shape.**
+
+The first pixel test classified "nothing drawn here" as `alpha < 128`. The render
+target is **opaque**, so alpha is 255 on every pixel of the canvas, and the test
+passed trivially - it reported `paintedCoveragePct: 100`, which is what gave it
+away. Rewritten to classify against the background *colour* instead, with the
+canvas corners asserted to read as background and the lot centre asserted not to,
+so the detector cannot silently invert.
+
+The second was a text render of the frame - the canvas downsampled to a grid of
+characters - built to inspect the layout cheaply. It showed apparent **gaps in
+the wall runs**, which read as exactly the jaggedness the alpha pass had claimed
+to fix. They were artifacts: the grid sampled one pixel per 10 across and one per
+15 down, and the classifier binned antialiased edge pixels as background. The
+dense per-column scan above is what settled it.
+
+Both are [L3]'s family again, and the lesson is narrower than "test your tests":
+**a detector needs a case it must report as negative and a case it must report as
+positive, asserted in the same run.** The alpha version had neither. The text
+render had neither. The column scan has both, in the form of the empty-column
+count next to the notch count.
+
+**What is still not verified, precisely stated.** Nobody has formed an aesthetic
+opinion. The geometry is flush, the proportions match the source art, nothing
+overlaps and nothing is missing - but "does this look like a room somebody
+lives in" is not a measurement, and it is the question the alpha exists to
+answer. That belongs to a person looking at
+`https://thisnameissoclever.github.io/terrilives/` or a local dev server.

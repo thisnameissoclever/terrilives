@@ -2558,3 +2558,47 @@ The trace harness behind the delta table is not in the repo, per [L40]:
 rebuild it as `Sim::new_from_shipped_lot()` plus the agent `web/src/main.ts`
 spawns, 12 000 ticks. It reproduces [O1]'s 121 interactions exactly on the
 no-advert content, which is what makes the four rows comparable.
+
+---
+
+## [L50] A detector needs a must-be-negative case and a must-be-positive case, asserted in the same run
+
+**What happened:** three instruments built to verify the alpha's rendering and
+behaviour were wrong before they were right, and each was wrong in a way that
+produced a confident answer.
+
+1. A pixel test for "is anything drawn here" classified emptiness as
+   `alpha < 128`. The WebGPU render target is **opaque**, so alpha is 255 on
+   every pixel of the canvas. It reported zero gaps in the floor and zero gaps
+   in the walls, and both were vacuous. The tell was a fourth number printed
+   beside them - `paintedCoveragePct: 100` - which cannot be true of a
+   704 x 462 lot on a 1280 x 720 canvas.
+2. A text render of the frame, built to inspect the layout cheaply, showed
+   apparent **gaps in the wall runs** - exactly the defect the pass had just
+   claimed to fix. Artifacts: it sampled one pixel in ten across and one in
+   fifteen down, and binned antialiased edge pixels as background. A dense
+   per-column scan found 0 gaps in 864 columns.
+3. A behaviour-trace harness classified every tick of every meal as a wander
+   pause, because it tested for the `Wander` marker before the `Eating` one. It
+   reported 52.3% of a run paused against 0.2% interacting, for 124 interactions
+   averaging 30 ticks - two numbers that cannot both be true.
+
+**Root cause:** each detector had only one kind of case. Nothing in the run
+established that it could say "no" when the answer was no, or "yes" when the
+answer was yes - so its output was unfalsifiable, and a vacuous pass looked
+identical to a real one.
+
+**Prevention rule:** a detector must assert, in the same run that uses it, both
+that it reports **negative on a case that must be negative** and **positive on a
+case that must be positive**. The column scan that finally settled the wall
+question does this structurally: it prints the empty-column count next to the
+notch count, and a broken classifier moves both to absurd values at once. The
+colour-based pixel test asserts the canvas corners read as background and the lot
+centre does not, before it reports anything.
+
+This is [L3], [L7] and [L34]'s family, but the rule is sharper than "test your
+tests": it names the two specific cases to include. Where a detector's output is
+a count, print a second count that must move the other way.
+
+**How to verify:** invert the classifier - swap background for foreground - and
+confirm the sanity assertions fail rather than the counts merely changing.
