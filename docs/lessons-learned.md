@@ -2558,3 +2558,67 @@ The trace harness behind the delta table is not in the repo, per [L40]:
 rebuild it as `Sim::new_from_shipped_lot()` plus the agent `web/src/main.ts`
 spawns, 12 000 ticks. It reproduces [O1]'s 121 interactions exactly on the
 no-advert content, which is what makes the four rows comparable.
+
+## [L50] A hanging test suppresses every assertion that already failed in the same run
+
+**What happened:** three `rng.rs` mutants - `next_u32 -> 0`, `next_u32 -> 1` and
+`replace >= with < in SimRng::range` - reported TIMEOUT in every sweep from M1c
+Task 1 to M1b Task 7, about seven runs. They cost 180s of the mutation job each
+time and were invisible to the gate, which compares `missed.txt` while a
+timeout lands in `timeout.txt`. `docs/mutation-baseline.md` recorded them
+correctly as detections, and concluded: *"An unbounded rejection loop is
+inherent to debiased sampling and is not worth capping."*
+
+**That conclusion rested on a misreading of the outcome column.** Measured
+properly - each mutant applied alone, each test run alone under an 8s deadline -
+**all three fail real assertions.** `next_u32 -> 0` fails 14 tests,
+`next_u32 -> 1` fails 15, and the comparison flip fails 2, among them
+`a_golden_sequence_pins_the_algorithm` and
+`range_is_uniform_at_a_bound_that_divides_badly_into_2_32`. Every one of the
+three was already killed by an assertion.
+
+**Root cause: the outcome column describes the worst-behaved test in the run,
+not the strength of the detection.** `cargo test` does not exit until every
+test finishes, so one test spinning inside `SimRng::range`'s unbounded
+rejection loop means the process never reports the failures that had already
+happened. The hanging tests and the detecting tests were **different tests**.
+TIMEOUT therefore said "something in this run hangs", and was read as "this
+mutant is only detected by a hang", which is a different and much weaker claim.
+
+The inconsistency this created is worth seeing. `roll_wander_path`, one crate
+away, bounds its re-roll loop and its doc comment says the bound *"is what
+stops that becoming a hang"*, citing [L15]. The identical argument had already
+been accepted for the identical shape of bug; it did not transfer, because a
+rejection loop and a re-roll loop do not look alike.
+
+Once the assertions were known to exist, the cap was free. A rejection needs a
+draw below `2^32 % bound`, which is under `2^31` for every bound, so one
+rejection is always less likely than a coin flip and 128 in a row is under
+2^-128. It cannot fire on a working generator and it changes no draw, so no
+golden hash and no replay moved.
+
+**Prevention rules:**
+
+1. **A TIMEOUT is a statement about the run, not about the mutant. Find the
+   hanging test before concluding anything.** Run each test alone under a
+   deadline; expect the hang and the detection to be in different tests.
+2. **Bound every loop in production code, and panic on overrun** - however
+   unreachable the bound is, and with the arithmetic for "unreachable" written
+   next to it. `debug_assert!` will not do: `wasm-pack` builds release, so per
+   [L12] the shipped target would keep the hang while `cargo mutants`, which
+   builds debug, reported it fixed.
+3. **Make the guard reachable by a test.** The cap can only fire on a broken
+   generator, so `range`'s loop was extracted as `draw_below_bound(bound,
+   draw)` taking its draws from a closure. A test hands it `|| 0`; without
+   that seam the cap would be an untested guard, indistinguishable from no
+   guard.
+4. **Gate on `timeout.txt` as well as `missed.txt`.** Zero tolerance, not a
+   second baseline: the fix for a hang is a bound, and an allowance that can
+   grow invites raising `--timeout` instead.
+
+**How to verify:** apply any of the three mutations to
+`crates/terri-core/src/rng.rs` and run `cargo test -p terri-core --lib`. Before
+the cap it never terminates; after it, `draw_below_bound` panics and the run
+reports failures. Do it under the [L15] harness rules - output to a file,
+`taskkill /F /T` the tree, restore in a `finally` - and confirm
+`git hash-object crates/terri-core/src/rng.rs` matches the pre-mutation value.

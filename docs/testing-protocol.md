@@ -43,6 +43,18 @@ surviving mutant is, by definition, behaviour that nothing constrains.
 - It mutates **production** code, so it finds untested production behaviour. A
   test vacuous in a way not tied to a production mutation can still slip
   through. It is a backstop, not a replacement for rule 1.
+- **A mutant that HANGS is invisible to the gate, and no production loop may
+  be unbounded.** The gate compares `missed.txt`; a hang lands in
+  `timeout.txt` and is neither caught nor a survivor, so nothing mechanical
+  sees it. Worse, a hang **suppresses the assertions that did fire**: the test
+  process never exits, so failures elsewhere in the same run are never
+  reported, and the mutant looks detected only by the hang. [L50] is the
+  recorded instance - three `SimRng` mutants each failed real assertions and
+  all three reported TIMEOUT for a whole milestone. Every loop in production
+  code therefore gets a bound whose overrun panics, however unreachable that
+  bound is: `SimRng::draw_below_bound` and `roll_wander_path` are the two
+  worked examples. CI now fails on a non-empty `timeout.txt`; the fix for one
+  is a bound, never a longer `--timeout`.
 - **It does not emit statement-deletion mutants.** It rewrites expressions and
   return values, so a whole statement whose only effect is on state - `swap`,
   `clear`, `sort`, `push`, `insert` - is outside its grammar. A clean report
