@@ -956,6 +956,24 @@ deliberately. Before believing a survivor is new, normalise the line numbers
 and compare again: **a survivor at a shifted line needs a renumber, and a
 genuinely new one needs a test.**
 
+## `contested_score_multiplier` (the contested-object waiting knob)
+
+**Two entries re-anchored, nothing added and nothing removed.**
+`compile.rs:1024:38` and `1024:53` - the two `+` operators in `flood_fill` -
+moved to `1040:38` and `1040:53`. The knob's validation added sixteen lines to
+`compile_tuning`, which sits above `flood_fill` in the same file.
+
+This is exactly the failure the `advertise.rs` row above predicts, arriving on
+schedule: the sharded sweep reported "2 missed", both of them mutants nobody
+had touched, and the job failed on the first push of the branch. The sweep
+itself was otherwise clean - 17 caught, 73 unviable in that shard, and no
+survivor anywhere in the new code.
+
+**Nothing in this change earned a baseline entry**, which is the number worth
+recording. The knob's attenuation, the strict comparison behind `Blocked` and
+both writers of that marker were each verified by deletion before the sweep ran,
+and the sweep found nothing they missed.
+
 ## M1b Task 3 (lot content, walls and placements)
 
 **Negative advertised deltas are now legal content**, and this file records
