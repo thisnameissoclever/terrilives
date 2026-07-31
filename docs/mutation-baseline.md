@@ -1207,3 +1207,22 @@ code above a baselined mutant moves it and it reads as one entry disappearing
 and another appearing. That happened here. Whoever sees an unfamiliar entry
 should check whether it is the same mutation at a new line before treating it
 as new.
+
+### M2c: the drift note above came due, and three real survivors were killed
+
+The flood_fill equivalents moved from `compile.rs:752` to `compile.rs:1011`
+when `compile_personalities` and `compile_household` were inserted above
+them - the same mutations, the same argument, new coordinates. The baseline
+entries were updated in place; nothing about their equivalence changed.
+
+The same sweep found three REAL survivors on `compile_household`'s spawn
+bounds check, all on the negative side: with no test spawning at a negative
+coordinate, `sim.x < 0.0` was free to become `== 0.0` or `<= 0.0` and the
+first `||` to become `&&`. Killed by extending
+`rejects_a_spawn_off_the_lot_or_inside_something_solid` with one negative
+per axis (the `&&` mutant is only visible when exactly one clause fires)
+plus `x = 0.0` accepted, which is the input that separates `<` from `<=`.
+Worth keeping as a shape: a bounds check tested only from its positive
+side is half a bounds check, and `as u32` saturates a negative to 0, so
+the untested half fails as a silently wrong spawn position rather than as
+an error.

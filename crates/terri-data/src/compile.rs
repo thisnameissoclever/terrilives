@@ -3276,6 +3276,35 @@ mod tests {
                 height: 3
             }
         );
+        // **The negative side, per axis, separately - three mutants lived
+        // here.** The bounds check is four clauses joined by `||`, and the
+        // positive-overflow case above exercises only the third: with
+        // nothing spawning at a negative coordinate, `< 0.0` was free to
+        // become `== 0.0` or `<= 0.0`, and the first `||` free to become
+        // `&&`, all three surviving the whole workspace - found by the M2c
+        // targeted sweep. One axis negative at a time, because the `&&`
+        // mutant is only visible on an input where exactly one clause
+        // fires; both-negative would satisfy either operator.
+        //
+        // A negative spawn that slipped past this check would not stay a
+        // bounds problem: `sim.x as u32` saturates a negative to 0 in Rust,
+        // so the sim would silently spawn on the west wall's column instead
+        // of failing - an authoring typo turned into a wrong position with
+        // no error anywhere.
+        assert!(matches!(
+            people(-0.5, 1.0).unwrap_err(),
+            ContentError::SpawnOutOfBounds { .. }
+        ));
+        assert!(matches!(
+            people(0.5, -0.5).unwrap_err(),
+            ContentError::SpawnOutOfBounds { .. }
+        ));
+        // And exactly 0.0 is LEGAL - the north-west walkable corner is a
+        // real spawn tile, and this is the input that pins `<` against
+        // `<=`. (0.0, 2.0) rather than (0.0, 0.0) because row 0 of this
+        // fixture holds the wall and the check being pinned is bounds,
+        // not blockedness.
+        people(0.0, 2.0).expect("the lot's west edge is a legal spawn column");
         assert_eq!(
             people(2.5, 1.5).unwrap_err(),
             ContentError::SpawnOnBlockedTile {
