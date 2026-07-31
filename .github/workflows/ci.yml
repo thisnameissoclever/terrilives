@@ -121,7 +121,10 @@ jobs:
       # comparison in the next step is.
       - name: Mutation sweep (shard ${{ matrix.shard }} of 4)
         run: |
-          cargo mutants --package terri-core --package terri-sim             --package terri-data --package terri-wasm             --test-workspace true --timeout 60             --shard ${{ matrix.shard }}/4 || true
+          cargo mutants --package terri-core --package terri-sim \
+            --package terri-data --package terri-wasm \
+            --test-workspace true --timeout 60 \
+            --shard ${{ matrix.shard }}/4 || true
       # Per shard, "no new survivors" composes: each shard's missed set
       # must be a subset of the baseline, and a union of subsets is a
       # subset, so four green shards mean exactly what one green full
@@ -143,8 +146,7 @@ jobs:
           new=$(comm -23 actual.txt baseline.txt)
           if [ -n "$new" ]; then
             echo "NEW surviving mutants, absent from docs/mutants-baseline.txt:"
-            printf '%s
-' "$new"
+            printf '%s\n' "$new"
             echo ""
             echo "Each is behaviour that nothing constrains. Either add a test"
             echo "that kills it, or - if it is genuinely an equivalent mutant -"
