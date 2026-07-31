@@ -1062,11 +1062,9 @@ Task 4 and the build gate changed the caught/unviable split in Task 5.
 | M1b Task 3b | 311 | 4 | 266 | 41 | 14 new mutants, all caught; baseline unchanged |
 | **M1c Task 1** | **342** | **5** | **292** | **42** | **31 new mutants from `rng.rs`; 3 timeouts; baseline up to 5** |
 | M1b Task 5 | *partial* | 4 | 175 | 23 | Stopped at 204/~420; scoped sweeps over all changed files gave 0 missed; baseline unchanged at 5 |
-<<<<<<< HEAD
 | M1b `UseObject::interaction` | *scoped* | 0 | 43 | 5 | 48 mutants over the four files the change touched; 0 missed, baseline unchanged at 5 |
-=======
 | **`range` timeout fix** | **513** | **7** | **450** | **56** | **First sweep with 0 timeouts; the 3 `rng.rs` hangs became CAUGHT; baseline unchanged at 7** |
->>>>>>> origin/main
+| M2c targeted | *scoped* | 5 | 237 | 122 | 364 mutants over the seven files M2c touched; 3 real spawn-bounds survivors found and killed, the 2 remaining missed are the baselined `flood_fill` equivalents |
 
 The M1b Task 3 row is the one to read carefully. Missed stayed at 5 while
 the set changed completely in composition: `advertise.rs:42:36` ceased to
@@ -1117,8 +1115,8 @@ list. Four were killed; two were accepted, and the argument is below.
 ### Accepted, with the argument
 
 ```
-crates/terri-data/src/compile.rs:752:38: replace + with - in flood_fill
-crates/terri-data/src/compile.rs:752:53: replace + with - in flood_fill
+crates/terri-data/src/compile.rs:765:38: replace + with - in flood_fill
+crates/terri-data/src/compile.rs:765:53: replace + with - in flood_fill
 ```
 
 **Genuinely equivalent mutants.** The line is
@@ -1208,9 +1206,17 @@ and another appearing. That happened here. Whoever sees an unfamiliar entry
 should check whether it is the same mutation at a new line before treating it
 as new.
 
+  (These two entries have moved once already, 752 to 765, when the loop
+  bound below was inserted above them. A baseline entry is file:line:column,
+  so code added above a baselined mutant silently invalidates the entry and
+  the gate reports it as NEW; when that happens, the fix is to re-point the
+  entry at the same mutation's new coordinates, and the argument above
+  carries over unchanged.)
+
 ### M2c: the drift note above came due, and three real survivors were killed
 
 The flood_fill equivalents moved from `compile.rs:752` to `compile.rs:1011`
+(the coordinates on the pre-merge M2c tree; see the merge note below)
 when `compile_personalities` and `compile_household` were inserted above
 them - the same mutations, the same argument, new coordinates. The baseline
 entries were updated in place; nothing about their equivalence changed.
@@ -1226,3 +1232,26 @@ Worth keeping as a shape: a bounds check tested only from its positive
 side is half a bounds check, and `as u32` saturates a negative to 0, so
 the untested half fails as a silently wrong spawn position rather than as
 an error.
+
+### M2b follow-up: the hang the eight-way split finally named
+
+The first eight-shard run put shard 4's timeout gate to work:
+`flood_fill`'s `reached[index] ||` guard mutated to `&&` un-gates
+revisiting, and because build.rs compiles the shipped content, the mutant
+is an infinite loop in the BUILD phase - the same mutant that got the
+unsharded job and then four-shard shard 2 runner-reclaimed, finally visible
+as a named 600s Timeout once --build-timeout existed. Per the gate's own
+doctrine the loop now carries a bound: a pushed-tiles counter asserted
+against the tile count, which correct marking-before-push can never exceed.
+The mutant now dies on the assertion during the build (unviable) in
+seconds instead of hanging anything.
+
+The bound needed a witness of its own: `pushed += 1` mutated into a no-op
+left the guard comparing 1 against the tile count forever, a fresh survivor
+on the guard itself. Marking-before-push makes pushes and marked tiles the
+same events, so `flood_fill` now asserts on exit that the counter equals
+the reached-tile count, which every caller exercises - the counter mutant
+is unviable for the same build.rs reason, and nothing here needed a
+baseline entry.
+
+After the M2b and M2c branches merged, the pair sits at `compile.rs:1024` - the third address for the same two mutations, because each branch had grown different code above them. The committed baseline always matches the tree it is committed with; the argument has never changed.
