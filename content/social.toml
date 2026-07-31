@@ -30,10 +30,13 @@ label = "Compare complaints"
 # over 55, on purpose: the television is the placeholder company a lone
 # sim falls back on, and the real thing should win when a person is
 # actually available. Fun rides along at a token 6 - a conversation in
-# this house is at least faintly entertaining - which also keeps the
-# entry honest about why two sims sometimes chat with full social bars
-# on a rainy afternoon: they don't; the fun alone is below
-# action_threshold at any distance.
+# this house is at least faintly entertaining. Two sims standing
+# together CAN chat on the fun rider alone: at distance zero the rider
+# scores deficit-cubed x 6 / 41, which clears the 0.05 action threshold
+# once fun is below about 30 - a bored sim bothering whoever is beside
+# it is intended colour, not a leak. The social need's own cubed
+# urgency is still the main brake ([H7]); the rider only opens the
+# door when fun is genuinely low.
 advertises = { social = 30.0, fun = 6.0 }
 # 40 ticks is 4 seconds at speed 1 - long enough to watch two sims stand
 # together and be visibly IN a conversation (the A2 rule: an interaction

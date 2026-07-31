@@ -46,11 +46,16 @@ struct Interaction {
     /// Index into the `sims` vec, so per-sim and aggregate views come off
     /// one list rather than two that could disagree.
     sim: usize,
+    /// Display name only - "fridge", or "chat with Doug". Never parsed
+    /// back: the indices below carry the machine-readable identity, so a
+    /// social id containing " with " cannot corrupt a lookup.
     object: String,
     ticks: u32,
-    /// `Some(partner index)` when this was a conversation rather than an
-    /// object use - which is what routes it around the object tables and
-    /// into both sides of the social supply estimate.
+    /// `Some(index into pack.social)` when this was a conversation - the
+    /// discriminant that routes it around the object tables.
+    social: Option<u32>,
+    /// The partner's index in `sims`, when the partner was still a known
+    /// household member at recording time.
     partner: Option<usize>,
 }
 
@@ -119,7 +124,11 @@ fn main() {
     // harness counted by observation and reported a minimum of 11 ticks
     // against a floor of 12, which reads as the floor being violated rather
     // than as the observer being off by one.
-    let mut running: Vec<Option<(String, u32, Option<usize>)>> = vec![None; sims.len()];
+    // (display name, sampled length, social interaction index if a
+    // conversation, partner index if known) - the same fields
+    // `Interaction` records, before the record is closed.
+    type Open = (String, u32, Option<u32>, Option<usize>);
+    let mut running: Vec<Option<Open>> = vec![None; sims.len()];
     let mut interactions: Vec<Interaction> = Vec::new();
 
     let mut low = vec![[f32::INFINITY; NEED_COUNT]; sims.len()];
@@ -183,11 +192,12 @@ fn main() {
             // correction for both: the ticking system runs after the
             // inserting one inside a single tick, so the first observable
             // value is already one lower than the sample.
-            let open_now: Option<(String, u32, Option<usize>)> =
+            let open_now: Option<(String, u32, Option<u32>, Option<usize>)> =
                 if let Some(eating) = world.get::<Eating>(agent) {
                     Some((
                         pack.object(eating.object).id.clone(),
                         eating.remaining_ticks + 1,
+                        None,
                         None,
                     ))
                 } else {
@@ -199,6 +209,7 @@ fn main() {
                         (
                             format!("{} with {}", pack.social[s.interaction as usize].id, with),
                             s.remaining_ticks + 1,
+                            Some(s.interaction),
                             partner,
                         )
                     })
@@ -208,18 +219,21 @@ fn main() {
                 // Already counted; carry it forward untouched.
                 (Some(_), Some(open)) => running[index] = Some(open),
                 (Some(fresh), None) => running[index] = Some(fresh),
-                (None, Some((object, sampled, partner))) => interactions.push(Interaction {
-                    sim: index,
-                    object,
-                    ticks: sampled,
-                    partner,
-                }),
+                (None, Some((object, sampled, social, partner))) => {
+                    interactions.push(Interaction {
+                        sim: index,
+                        object,
+                        ticks: sampled,
+                        social,
+                        partner,
+                    })
+                }
                 (None, None) => {}
             }
         }
     }
     for (index, open) in running.iter().enumerate() {
-        if let Some((object, elapsed, _)) = open {
+        if let Some((object, elapsed, _, _)) = open {
             // Counted, and flagged, because an interaction still running at
             // the end is truncated and its length is a floor, not a sample.
             println!(
@@ -233,7 +247,7 @@ fn main() {
     // Conversations are routed to their own table: the object table below
     // iterates `pack.objects`, and a chat has no object behind it.
     let mut per_object: BTreeMap<&str, Vec<u32>> = BTreeMap::new();
-    for entry in interactions.iter().filter(|i| i.partner.is_none()) {
+    for entry in interactions.iter().filter(|i| i.social.is_none()) {
         per_object
             .entry(entry.object.as_str())
             .or_default()
@@ -323,16 +337,18 @@ fn main() {
     // on purpose, because "Nadia chats Doug up 9 times and Doug never once
     // returns the favour" is exactly the asymmetry [H5] stores.
     {
-        let talks: Vec<&Interaction> = interactions
-            .iter()
-            .filter(|i| i.partner.is_some())
-            .collect();
+        let talks: Vec<&Interaction> = interactions.iter().filter(|i| i.social.is_some()).collect();
         println!("\nCONVERSATIONS  {} total", talks.len());
         if !talks.is_empty() {
             let mut per_pair: BTreeMap<(usize, usize), Vec<u32>> = BTreeMap::new();
             for entry in &talks {
+                // A talk whose partner left the household is counted in
+                // the total above but has no pair row to sit in.
+                let Some(partner) = entry.partner else {
+                    continue;
+                };
                 per_pair
-                    .entry((entry.sim, entry.partner.expect("filtered on it")))
+                    .entry((entry.sim, partner))
                     .or_default()
                     .push(entry.ticks);
             }
@@ -456,11 +472,16 @@ fn main() {
                     );
                 }
             }
-            // The PEOPLE, scored the way selection scores them: no
+            // The PEOPLE, with the same ARITHMETIC selection uses: no
             // habituation, no disposition, the relationship through
             // `relationship_scale` in their place - [H7]/[H8]. A table
             // that showed only the furniture would be the trace lying
-            // about the newest thing selection weighs.
+            // about the newest thing selection weighs. Eligibility is a
+            // separate question from arithmetic, and rows the live query
+            // would filter out - a sim mid-meal, mid-walk, or already in
+            // a conversation - are printed anyway with a (busy) marker,
+            // because "what would this be worth if they were free" is
+            // exactly what a balance pass wants to know.
             let feelings = world
                 .get::<Relationships>(agent)
                 .cloned()
@@ -469,6 +490,11 @@ fn main() {
                 if *other == agent {
                     continue;
                 }
+                let busy = world.get::<terri_core::Target>(*other).is_some()
+                    || world.get::<Eating>(*other).is_some()
+                    || world.get::<Socialising>(*other).is_some()
+                    || world.get::<Path>(*other).is_some()
+                    || world.get::<Reserved>(*other).is_some();
                 let other_pos = world.get::<Position>(*other).expect("a sim has a position");
                 let other_id = world.get::<SimId>(*other).expect("a sim has an id");
                 let to = (other_pos.x.round() as i32, other_pos.y.round() as i32);
@@ -495,8 +521,16 @@ fn main() {
                         parts.push_str(&format!("{id:?} {c:.4} (lvl {:.0}) ", needs.get(id)));
                     }
                     println!(
-                        "{:<14} {:>5.0} {:>6} {:>6.2} {:>6.2} {:>9.4}  {} ({})",
-                        other_name, distance, "-", feeling, scale, total, parts, act.id
+                        "{:<14} {:>5.0} {:>6} {:>6.2} {:>6.2} {:>9.4}  {} ({}){}",
+                        other_name,
+                        distance,
+                        "-",
+                        feeling,
+                        scale,
+                        total,
+                        parts,
+                        act.id,
+                        if busy { " (busy)" } else { "" }
                     );
                 }
             }
@@ -570,29 +604,23 @@ fn main() {
             .collect();
         let mut supply = [0.0f32; NEED_COUNT];
         for entry in &interactions {
-            match entry.partner {
+            match entry.social {
                 // A conversation supplies BOTH participants, each through
-                // their own satisfaction. The relationship multiplier is
-                // deliberately omitted: it drifts across the run as
-                // feelings form and cool, so any single factor here would
-                // be wrong for most of the interactions it multiplied.
-                // This column is an estimate and now says so twice over.
-                Some(partner) => {
-                    let id = entry
-                        .object
-                        .split(" with ")
-                        .next()
-                        .expect("split always yields a first piece");
-                    let act = pack
-                        .social
-                        .iter()
-                        .find(|s| s.id == id)
-                        .expect("traced conversation is in the vocabulary");
+                // their own satisfaction - the partner half only while the
+                // partner is a known household member. The relationship
+                // multiplier is deliberately omitted: it drifts across the
+                // run as feelings form and cool, so any single factor here
+                // would be wrong for most of the interactions it
+                // multiplied. This column is an estimate and says so.
+                Some(social) => {
+                    let act = &pack.social[social as usize];
                     for (need_index, delta) in &act.advertises {
                         if *delta > 0.0 {
-                            supply[*need_index as usize] += delta
-                                * (satisfaction_of[entry.sim][*need_index as usize]
-                                    + satisfaction_of[partner][*need_index as usize]);
+                            let mut earned = satisfaction_of[entry.sim][*need_index as usize];
+                            if let Some(partner) = entry.partner {
+                                earned += satisfaction_of[partner][*need_index as usize];
+                            }
+                            supply[*need_index as usize] += delta * earned;
                         }
                     }
                 }

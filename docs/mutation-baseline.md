@@ -1255,3 +1255,37 @@ is unviable for the same build.rs reason, and nothing here needed a
 baseline entry.
 
 After the M2b and M2c branches merged, the pair sits at `compile.rs:1024` - the third address for the same two mutations, because each branch had grown different code above them. The committed baseline always matches the tree it is committed with; the argument has never changed.
+
+### M2d targeted sweep (459 mutants over ten files, 24 minutes)
+
+Fifteen missed. Five were baseline entries at drifted coordinates - the
+flood_fill pair moved a THIRD time (1024 to 1179; `compile_social` grew
+above it) and `score_advertisement`'s boundary entry moved 138 to 160
+when `relationship_scale` was added above it; all re-pointed, arguments
+unchanged. Nine were real and are killed by named tests: the social
+scoring compose (`a_sim_that_barely_enjoys_company_stays_put`), the
+social vocabulary tie and win rules
+(`social_interactions_resolve_ties_to_the_earlier_and_wins_to_the_better`),
+the social threshold boundary
+(`a_social_score_exactly_at_the_threshold_selects_nothing`), and the
+delivery compose plus per-tick rate, pinned by absolute golden values in
+`delivery_fills_a_warm_initiator_by_the_relationship_scale` - absolute
+rather than difference-based on purpose, because `*` mutated to `+`
+shifts warm and stranger runs by the same amount and a difference
+assertion stayed green under it, measured.
+
+The fifteenth is accepted:
+
+```
+crates/terri-core/src/components.rs:334:24: replace > with >= in Relationships::decay
+```
+
+**Genuinely equivalent.** The comparison chooses which decay branch an
+entry takes, and `>` versus `>=` differ only for an entry holding
+exactly 0.0. Both branches map 0.0 to 0.0 - `(0 - amount).max(0)` and
+`(0 + amount).min(0)` - and the `retain` on the next line drops any
+zero either way, so the two operators produce identical component
+state on every input. A zero entry is itself transient: only
+`bump` can create one (a gain and a loss cancelling exactly), and it
+lives at most one tick before `decay` removes it. No test can
+distinguish the operators because no observable state differs.

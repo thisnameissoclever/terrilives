@@ -1,8 +1,8 @@
 # A Household, Personality and Relationships - Decisions
 
-Status: **[H1], [H2] and [H3] are built and measured; [H4] and [H5] are
-decided and waiting on M2d.** Each decision carries the alternative rejected
-and why.
+Status: **All of [H1] through [H5] are built and measured**, with the
+build-time decisions recorded as [H6] through [H11] at the bottom. Each
+decision carries the alternative rejected and why.
 
 The through-line: **three sims who differ because of their own data** (goal item
 1), **social satisfied by each other rather than by a television** (item 2), and
@@ -93,7 +93,7 @@ Archetypes live in `content/personalities.toml` and are referenced by name from
 the household. The uniqueness discipline applies: two archetypes whose arrays are
 equal are untestable apart, which is [L26].
 
-## [H4] A sim is an advertiser, and that is the real change. NOT YET BUILT - M2d.
+## [H4] A sim is an advertiser, and that is the real change. BUILT.
 
 Today `select_action` scores placed objects. To satisfy `social` from other sims,
 it must also score **other sims** - so the candidate list becomes objects *and*
@@ -129,7 +129,7 @@ realistic and much worse: two sims would have to independently pick each other o
 the same tick, which at the shipped softmax temperature is rare, so conversations
 would almost never happen.
 
-## [H5] Relationships are one number per ordered pair. NOT YET BUILT - M2d.
+## [H5] Relationships are one number per ordered pair. BUILT.
 
 `Relationships { Vec<(SimId, f32)> }` on each sim, sorted, same container shape
 as `Habituation` and for the same reason - `world_hash` iterates it.

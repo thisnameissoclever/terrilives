@@ -2894,3 +2894,32 @@ and beware that `cargo test` prints `error: test failed` to **stderr**, so a
 harness that scans stderr for "error:" before reading the failing-test names
 reports every real kill as a compile error. That happened on the first run of
 this very check.
+
+## [L56] A hand-mutation restored with `mv` reports the mutant's verdict against the original's source
+
+**What happened.** Verifying two M2d guards by hand-deletion (they are
+query filters and statement blocks, outside cargo-mutants' grammar): the
+deletion failed the named test as hoped, the file was restored with
+`mv file.bak file`, and the next `cargo test` run FAILED the same test
+again - against source code that was demonstrably correct, confirmed by
+a probe example that showed the mechanism working perfectly. Fifteen
+minutes went to debugging phantom breakage in correct code.
+
+**Root cause.** `mv` preserves the backup's modification time, which
+predates the mutated build. Cargo's freshness check therefore considered
+the mutated binary current and reran IT, while every tool reading the
+file - grep, diff, the editor - showed the restored, correct source. The
+test output and the source code were describing two different programs.
+
+**Prevention rule.** After restoring a hand-mutated file, force the
+rebuild: `touch` the file, or restore by writing content rather than by
+renaming. Treat a hand-verification's second run as valid only if the
+test output shows the crate actually recompiled. The same trap arms
+itself in reverse: a hand-mutation applied with a backdated mtime would
+"pass" without the mutant ever being built, making the whole
+verification vacuous.
+
+**How to verify.** Both orders of the M2d verification were rerun with a
+`touch` between: delete guard, test fails; restore plus touch, test
+passes, with a visible `Compiling terri-sim` line in each run.
+

@@ -432,12 +432,17 @@ pub enum ContentError {
     SocialZeroSlots {
         interaction: String,
     },
-    /// A social interaction with a blank label - a clickable row of
-    /// empty space, as [`ContentError::EmptyInteractionLabel`] explains.
+    /// A social interaction with a blank label. Nothing renders social
+    /// labels yet - the flyout is built from an object's interactions -
+    /// but the rule mirrors [`ContentError::EmptyInteractionLabel`] so
+    /// that the day a social menu exists, blank rows are already
+    /// unrepresentable rather than newly discovered.
     SocialEmptyLabel {
         interaction: String,
     },
-    /// A social interaction advertises a need rustc does not know.
+    /// A social interaction advertises a need `needs.toml` does not
+    /// declare - the same rule as [`ContentError::UnknownNeed`], against
+    /// the social file.
     SocialUnknownNeed {
         interaction: String,
         need: String,
@@ -822,9 +827,9 @@ impl fmt::Display for ContentError {
             ContentError::SocialEmptyLabel { interaction } => write!(
                 f,
                 "social.toml interaction '{interaction}' has a blank label; \
-                 the menu would draw a clickable row of empty space. Omit \
-                 the field entirely to fall back to '{interaction}', or \
-                 write a label"
+                 any future social menu would draw a clickable row of empty \
+                 space. Omit the field entirely to fall back to \
+                 '{interaction}', or write a label"
             ),
             ContentError::SocialUnknownNeed { interaction, need } => write!(
                 f,

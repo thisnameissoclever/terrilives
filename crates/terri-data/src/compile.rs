@@ -4267,7 +4267,7 @@ mod tests {
         );
         assert!(
             compile_bare_with_social(vec![talk(12)]).is_ok(),
-            "the smallest unclipped duration must compile, or the boundary              is off by one on the safe-looking side"
+            "the smallest unclipped duration must compile, or the boundary is off by one on the safe-looking side"
         );
     }
 

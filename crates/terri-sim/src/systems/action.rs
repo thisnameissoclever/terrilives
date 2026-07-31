@@ -469,13 +469,26 @@ pub fn serve_intents(
         }
         claimed.push(intent.object);
         commands.entity(intent.object).insert(Reserved);
-        commands.entity(agent).remove::<Eating>().insert((
-            Target {
-                object: intent.object,
-                interaction: intent.interaction,
-            },
-            Path { steps, cursor: 0 },
-        ));
+        // BOTH kinds of running interaction are preempted, and forgetting
+        // the second was a measured deadlock rather than a hypothetical: a
+        // command aimed at a sim mid-conversation left `Socialising`
+        // ticking while the sim walked to the fridge, and its completion
+        // then destroyed the PLAYER'S `Target` - stranding the sim with a
+        // live intent it could never serve and a fridge reserved forever,
+        // both sims starving. `tick_social` also self-terminates when its
+        // partner stops being reserved, so the released partner does not
+        // keep receiving a conversation from across the house.
+        commands
+            .entity(agent)
+            .remove::<Eating>()
+            .remove::<Socialising>()
+            .insert((
+                Target {
+                    object: intent.object,
+                    interaction: intent.interaction,
+                },
+                Path { steps, cursor: 0 },
+            ));
     }
 }
 
@@ -518,6 +531,14 @@ pub fn select_action(
     >,
     // Every sim that could be TALKED TO - [H4]/[H10]. Only an idle sim
     // is a valid target: no walk, no meal, no conversation of its own.
+    //
+    // `&SimId` is REQUIRED here while the agents query above never reads
+    // one, and the asymmetry is quietly load-bearing: a sim without an
+    // identity can initiate but can never be a target. That is the only
+    // reason the world-hash golden scenario's eight plain agents have no
+    // social behaviour, which is what makes its "M2d moved the digest by
+    // encoding, not behaviour" note honest - give `build_scenario` sims
+    // SimIds and that vector moves for a second, behavioural reason.
     // `Has<Reserved>` rather than `Without`, for exactly the [C3] reason
     // the objects query gives: a reserved person still has to reach
     // `best_seen`, so a sim whose only company is spoken for waits by
