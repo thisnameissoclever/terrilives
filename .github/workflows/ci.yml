@@ -90,9 +90,26 @@ jobs:
   # Its tests run on the host like any other, so this needs no wasm target.
   # It was omitted until #4, which left `SimHandle::tick` free to be a
   # no-op behind a green suite.
+  # SHARDED, and the sharding is survival rather than speed. The M2b house
+  # grew the sweep from ~250 mutants to ~650, the single job's wall time
+  # grew past an hour, and GitHub's hosted runners killed it three times in
+  # a row mid-sweep with "The runner has received a shutdown signal" - at
+  # 35, 36 and 72 minutes, so it is capacity reclaim rather than a limit a
+  # timeout setting could dodge. Four shards each run a quarter of the
+  # mutants (roughly 20 minutes), which fits inside the window the runner
+  # reliably survives, and a reclaimed shard costs one quarter of the sweep
+  # to retry rather than all of it.
+  #
+  # cargo-mutants assigns mutants to shards by a deterministic hash, so the
+  # union of the four shards is exactly the full sweep and nothing is
+  # tested twice.
   mutants:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
     steps:
       - uses: actions/checkout@v4
       - name: Install the pinned toolchain
@@ -102,11 +119,21 @@ jobs:
       # cargo-mutants exits 2 whenever any mutant survives, so its exit
       # code cannot be the signal for a no-new-survivors gate. The
       # comparison in the next step is.
-      - name: Full mutation sweep
+      - name: Mutation sweep (shard ${{ matrix.shard }} of 4)
         run: |
-          cargo mutants --package terri-core --package terri-sim \
-            --package terri-data --package terri-wasm \
-            --test-workspace true --timeout 60 || true
+          cargo mutants --package terri-core --package terri-sim             --package terri-data --package terri-wasm             --test-workspace true --timeout 60             --shard ${{ matrix.shard }}/4 || true
+      # Per shard, "no new survivors" composes: each shard's missed set
+      # must be a subset of the baseline, and a union of subsets is a
+      # subset, so four green shards mean exactly what one green full
+      # sweep meant.
+      #
+      # What does NOT compose is the old "these baseline entries are now
+      # caught" nudge, and it is deliberately gone rather than kept per
+      # shard: a baseline entry absent from this shard's missed list is
+      # usually just a mutant HASHED INTO ANOTHER SHARD, so the nudge
+      # would nag about entries that are alive and well. Finding genuinely
+      # stale entries takes a full local sweep; docs/mutation-baseline.md
+      # says so too.
       - name: Fail on survivors not in the baseline
         run: |
           set -eu
@@ -116,7 +143,8 @@ jobs:
           new=$(comm -23 actual.txt baseline.txt)
           if [ -n "$new" ]; then
             echo "NEW surviving mutants, absent from docs/mutants-baseline.txt:"
-            printf '%s\n' "$new"
+            printf '%s
+' "$new"
             echo ""
             echo "Each is behaviour that nothing constrains. Either add a test"
             echo "that kills it, or - if it is genuinely an equivalent mutant -"
@@ -125,21 +153,12 @@ jobs:
             exit 1
           fi
 
-          echo "No new survivors. Baseline holds at $(wc -l < baseline.txt)."
-
-          # A baseline that only ever grows becomes a permission slip, so
-          # report entries that are now caught. Not a failure; a nudge.
-          fixed=$(comm -13 actual.txt baseline.txt)
-          if [ -n "$fixed" ]; then
-            echo ""
-            echo "These baseline entries are now caught and should be removed:"
-            printf '%s\n' "$fixed"
-          fi
+          echo "No new survivors in shard ${{ matrix.shard }}."
       - name: Upload mutants report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: mutants-out
+          name: mutants-out-shard-${{ matrix.shard }}
           path: mutants.out/
 
   web:
