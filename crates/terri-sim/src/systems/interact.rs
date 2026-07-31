@@ -1200,7 +1200,7 @@ mod personality_delivery_tests {
 
         assert_eq!(
             bare_ticks, worn_ticks,
-            "the two runs must occupy the same ticks, or decay time leaks              into the cost comparison below and this test is about scoring              timing rather than about delivery"
+            "the two runs must occupy the same ticks, or decay time leaks into the cost comparison below and this test is about scoring timing rather than about delivery"
         );
         assert!(
             worn_hunger < bare_hunger - 1.0,

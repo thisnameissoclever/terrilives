@@ -1071,7 +1071,7 @@ caption together (Doug, Nadia, Terri, read back off the DOM). Left alone for
 four or five of the five rooms - and the frame captured at the end had them
 in three different rooms: Doug eating standing up at the fridge, Nadia in
 the bedroom, Terri by the bunk with the selection ring at her feet (65
-ring-coloured pixels, counted, since [L52] retired trusting a thumbnail).
+ring-coloured pixels, counted, since [L53] retired trusting a thumbnail).
 
 ### The trace, now per sim
 
@@ -1108,8 +1108,8 @@ the biggest social tap in a house with no people-as-suppliers yet.
   desk and bookshelf survive habituation well enough to repeat. That is a
   personality being a creature of habit rather than a scoring defect; noted,
   not tuned away.
-- **Nobody froze**: 1 frozen tick in 36 000 x 3 sim-ticks. Idle 12.8 to
-  17.4% per sim.
+- **Nobody froze**: 1 frozen tick in 36 000 x 3 sim-ticks. Idle 14.4 to
+  17.0% per sim (12.8 to 17.4% on the shorter 12 000-tick run).
 - **Contention without deadlock**: the single-slot armchair changed hands
   Doug/Nadia, the toilet took ~25% of everyone's actions through one slot,
   and the ring layout gave crossing sims separate routes; no [L17]-shaped
@@ -1119,11 +1119,14 @@ the biggest social tap in a house with no people-as-suppliers yet.
 
 social, per sim, 36 000 ticks: Terri 20.2 to 100, Doug 36.7 to 100,
 **Nadia 27.0 to 70.1** - the only need in the household that never reaches
-full. Her 1.4x drain and 0.75 satisfaction cannot be topped up by a
-television, and that is the authored point: she is the demand side of M2d
-built first, and the day sims can talk, her ceiling should jump. If M2d
-slips and her floor sinks toward zero instead, that is [C2] arriving on
-schedule and the knob to soften is the 1.4.
+full. The 70.1 is an equilibrium, not a cap: one television session
+delivers 18 social at her 0.75 satisfaction, and nothing forbids two in a
+row, but her 1.4x drain plus how often the television actually out-scores
+everything else keep her from ever getting there. That is the authored
+point - she is the demand side of M2d built first, and the day sims can
+talk, her ceiling should jump. If M2d slips and her floor sinks toward
+zero instead, that is [C2] arriving on schedule and the knob to soften is
+the 1.4.
 
 ### What this did not need
 

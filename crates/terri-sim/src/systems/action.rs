@@ -3924,12 +3924,16 @@ mod tests {
 #[cfg(test)]
 mod personality_choice_tests {
     //! The personality multipliers as CHOICES a fixture can watch, which
-    //! is what [L54] says a multiplier alone cannot provide and a
+    //! is what [L55] says a multiplier alone cannot provide and a
     //! behavioural test alone cannot pin. The factor arithmetic is pinned
     //! by golden values in `advertise.rs` and `terri-core`; these are the
-    //! composition reaching a real decision, with fixtures built so the
-    //! wrong-direction mutants - `*` to `/` on the composition, a lookup
-    //! ignoring half its key - each land on a different object.
+    //! composition reaching a real decision, built so the wrong-direction
+    //! mutant - `*` to `/` on the composition - lands on the other
+    //! object. The key-lookup halves are NOT pinned here: both fixture
+    //! objects offer one interaction at index 0, so a lookup ignoring the
+    //! interaction index reads the same weight, and
+    //! `a_disposition_reads_back_by_its_own_key_and_unlisted_reads_neutral`
+    //! in terri-core is what covers both halves of the key.
 
     use crate::test_content;
     use terri_core::{
@@ -3937,11 +3941,16 @@ mod personality_choice_tests {
         NEED_MAX,
     };
 
-    /// Two objects with IDENTICAL adverts and durations, equidistant, at a
-    /// decisive temperature: undecorated, the tie breaks to the lower
-    /// entity index, which is spawned first. That precondition is asserted
-    /// rather than assumed, because both personality cases below are only
-    /// meaningful against it.
+    /// Two objects with IDENTICAL adverts and durations, equidistant. An
+    /// EXACT tie is not broken by any rule: `select_action` deleted its
+    /// entity-index tiebreak when selection became a weighted draw, and
+    /// two equal scores get equal softmax weight at every temperature -
+    /// `exp(0) = 1` for both - so the winner is one draw on the seeded
+    /// stream, a coin flip whose outcome is fixed by `rng_seed`. On the
+    /// shipped seed it lands on `a`, and THAT measured fact - not a rule -
+    /// is the baseline the personality cases below must overturn; it is
+    /// asserted first because without it "the disposition won" cannot be
+    /// told from "the coin landed there".
     fn chosen(personality: Option<Personality>) -> u32 {
         let content = test_content::pack_tuned(
             vec![
@@ -3991,10 +4000,16 @@ mod personality_choice_tests {
 
     #[test]
     fn a_disposition_steers_a_tie_and_a_zero_one_refuses_outright() {
-        // The precondition: undecorated, the tie breaks to the
-        // first-spawned object. Without this line, "the disposition won"
-        // is indistinguishable from "b wins ties anyway".
-        assert_eq!(chosen(None), 0, "undecorated, the tie must break to a");
+        // The measured baseline: on the shipped seed, the undecorated
+        // coin lands on a. Without this line, "the disposition won" is
+        // indistinguishable from "the coin landed on b anyway".
+        assert_eq!(
+            chosen(None),
+            0,
+            "the shipped seed's tie coin must land on a; if a seed or rng \
+             change moves this, the two personality cases below need a new \
+             baseline, not deletion"
+        );
 
         let neutral = Personality::neutral();
         let loves_b = Personality::with_dispositions(
@@ -4042,34 +4057,66 @@ mod personality_choice_tests {
             },
         );
 
-        let mut sim = test_content::sim_with(16, 16, content);
-        sim.world_mut()
-            .spawn((Position { x: 5.0, y: 8.0 }, SmartObject(ObjectDefId(0))));
-        let bed = sim
-            .world_mut()
-            .spawn((Position { x: 11.0, y: 8.0 }, SmartObject(ObjectDefId(1))))
-            .id();
-        let mut needs = Needs::all_at(NEED_MAX);
-        needs.set(NeedId::Hunger, 20.0);
-        needs.set(NeedId::Energy, 20.0);
+        // Which object does a sim short of BOTH needs pick? Undecorated,
+        // the two candidates tie exactly and the winner is one draw on the
+        // seeded stream - see the coin-flip note on `chosen` above.
+        let picks_bed = |personality: Option<Personality>| -> bool {
+            let mut sim = test_content::sim_with(16, 16, content);
+            let fridge = sim
+                .world_mut()
+                .spawn((Position { x: 5.0, y: 8.0 }, SmartObject(ObjectDefId(0))))
+                .id();
+            let bed = sim
+                .world_mut()
+                .spawn((Position { x: 11.0, y: 8.0 }, SmartObject(ObjectDefId(1))))
+                .id();
+            let mut needs = Needs::all_at(NEED_MAX);
+            needs.set(NeedId::Hunger, 20.0);
+            needs.set(NeedId::Energy, 20.0);
+            let agent = match personality {
+                Some(p) => sim
+                    .world_mut()
+                    .spawn((Agent, Position { x: 8.0, y: 8.0 }, needs, p))
+                    .id(),
+                None => sim
+                    .world_mut()
+                    .spawn((Agent, Position { x: 8.0, y: 8.0 }, needs))
+                    .id(),
+            };
+            for _ in 0..40 {
+                sim.tick();
+                if let Some(target) = sim.world().get::<Target>(agent) {
+                    if target.object == bed {
+                        return true;
+                    }
+                    if target.object == fridge {
+                        return false;
+                    }
+                }
+            }
+            panic!("the sim never chose anything");
+        };
+
+        // **The measured baseline, and it is what makes the second half
+        // mean anything.** On the shipped seed the undecorated coin lands
+        // on the FRIDGE, so a mutant that flattened the satisfaction read
+        // to a constant - the [L26] failure one slot down - recreates the
+        // exact tie and lands here, where this assertion sees it, rather
+        // than surviving on whichever way the coin happened to fall.
+        assert!(
+            !picks_bed(None),
+            "the shipped seed's tie coin must land on the fridge; if a seed \
+             change moves this, the steering case below needs a new \
+             baseline, not deletion"
+        );
+
         let mut personality = Personality::neutral();
         personality.satisfaction[NeedId::Energy.index()] = 2.0;
-        let agent = sim
-            .world_mut()
-            .spawn((Agent, Position { x: 8.0, y: 8.0 }, needs, personality))
-            .id();
-
-        for _ in 0..40 {
-            sim.tick();
-            if let Some(target) = sim.world().get::<Target>(agent) {
-                assert_eq!(
-                    target.object, bed,
-                    "energy is worth double to this sim, so the bed must \
-                     beat the equidistant, equally-urgent fridge"
-                );
-                return;
-            }
-        }
-        panic!("the sim never chose anything");
+        assert!(
+            picks_bed(Some(personality)),
+            "energy is worth double to this sim, so the bed must beat the \
+             equidistant, equally-urgent fridge - and beat the tie coin \
+             that the baseline above shows falls the other way"
+        );
     }
 }

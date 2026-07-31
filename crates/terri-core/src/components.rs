@@ -373,7 +373,10 @@ impl Personality {
     }
 
     /// A personality with the given dispositions, sorted here so no caller
-    /// can construct an unsorted list for `world_hash` to iterate.
+    /// can construct an unsorted one: `disposition` binary-searches, and
+    /// the list's iteration order must be deterministic for anything that
+    /// ever walks it - including `world_hash`, IF personality ever enters
+    /// it. It does not today; see the exclusion note on `Sim::world_hash`.
     pub fn with_dispositions(
         drain: [f32; NEED_COUNT],
         satisfaction: [f32; NEED_COUNT],
@@ -399,7 +402,9 @@ impl Personality {
         }
     }
 
-    /// Every disposition, in key order. For `world_hash` and for tests.
+    /// Every disposition, in key order. For tests today, and for
+    /// `world_hash` the day personality becomes mutable and has to enter
+    /// it - see the exclusion note on `Sim::world_hash`.
     pub fn dispositions(&self) -> &[(ObjectDefId, u32, f32)] {
         &self.dispositions
     }

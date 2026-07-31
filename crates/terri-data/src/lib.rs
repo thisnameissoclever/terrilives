@@ -342,7 +342,7 @@ mod tests {
         assert_eq!(
             worn.len(),
             p.household.len(),
-            "two household members share an archetype; the household would              be N copies of fewer people"
+            "two household members share an archetype; the household would be N copies of fewer people"
         );
 
         for member in &p.household {
@@ -386,7 +386,7 @@ mod tests {
             }
             assert!(
                 differs,
-                "archetype '{}' is neutral everywhere; a sim wearing it is                  indistinguishable from a sim with no personality at all",
+                "archetype '{}' is neutral everywhere; a sim wearing it is indistinguishable from a sim with no personality at all",
                 personality.id
             );
         }
@@ -402,7 +402,7 @@ mod tests {
         assert_eq!(
             bits.len(),
             before,
-            "two personality multipliers share a value; [L26] is why that              makes them untestable apart"
+            "two personality multipliers share a value; [L26] is why that makes them untestable apart"
         );
     }
 
@@ -423,7 +423,7 @@ mod tests {
                 .collect();
             assert!(
                 !below.is_empty(),
-                "'{}' arrives perfectly content and will stand still for                  the whole opening minute",
+                "'{}' arrives perfectly content and will stand still for the whole opening minute",
                 member.name
             );
             lowered.extend(below.iter().map(|v| v.to_bits()));

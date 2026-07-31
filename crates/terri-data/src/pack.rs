@@ -234,9 +234,13 @@ pub struct CompiledPersonality {
     pub drain: [f32; NEED_COUNT],
     pub satisfaction: [f32; NEED_COUNT],
     /// (object, interaction index, weight), sorted by key because it is
-    /// copied into a component `world_hash` iterates. The names are
-    /// resolved: a disposition toward an interaction that does not exist
-    /// has no representation once a pack exists.
+    /// copied verbatim into a component whose iteration order must be
+    /// deterministic - `Personality::disposition` binary-searches it, and
+    /// it is what `world_hash` would iterate if personality ever enters
+    /// the digest (it does not today; `Sim::world_hash` carries the
+    /// exclusion note). The names are resolved: a disposition toward an
+    /// interaction that does not exist has no representation once a pack
+    /// exists.
     pub dispositions: Vec<(ObjectDefId, u32, f32)>,
 }
 
@@ -277,9 +281,11 @@ pub struct ContentPack {
     pub lot: CompiledLot,
     pub tuning: Tuning,
     pub personalities: Vec<CompiledPersonality>,
-    /// Spawned in declaration order by `Sim::new_from_lot`, which is what
-    /// fixes each member's `SimId`: the first sim in the file is SimId 0
-    /// for as long as nobody is born or dies before load finishes.
+    /// Spawned in declaration order by `Sim::spawn_household` - which
+    /// `Sim::new_from_shipped_lot` calls after placing the furniture - and
+    /// the order is what fixes each member's `SimId`: the first sim in the
+    /// file is SimId 0 for as long as nobody is born or dies before load
+    /// finishes.
     pub household: Vec<CompiledHouseholdMember>,
 }
 

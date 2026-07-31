@@ -62,13 +62,20 @@ fn main() {
         .nth(1)
         .and_then(|a| a.parse().ok())
         .unwrap_or(12_000);
+    if ticks == 0 {
+        // Zero ticks traces nothing, and the per-sim percentage lines
+        // would divide by it and print NaN, which reads as a broken
+        // harness rather than as an empty ask.
+        eprintln!("zero ticks traces nothing; pass a positive count");
+        return;
+    }
 
     let pack = terri_data::pack();
     let mut sim = Sim::new_from_shipped_lot();
 
     // The household, in SimId order - which is declaration order in
     // content/household.toml, so this trace's "sim 0" is the page's Terri.
-    let mut sims: Vec<(Entity, String)> = {
+    let sims: Vec<(Entity, String)> = {
         let world = sim.world_mut();
         let mut state = world
             .query::<(Entity, &SimId, &SimName)>()
@@ -87,8 +94,6 @@ fn main() {
         eprintln!("the shipped household is empty; nothing to trace");
         return;
     }
-    sims.truncate(sims.len()); // (fixed size from here on; indices are stable)
-
     // The interaction in progress per sim, as (object name, sampled length).
     //
     // **The length is read once, on first sighting, and it is
@@ -372,6 +377,21 @@ fn main() {
     {
         use terri_core::Personality;
 
+        // Supply is what was DELIVERED, so each earning sim's satisfaction
+        // multiplier applies - the same asymmetry the drain column already
+        // honours, and it matters most on the social row this table exists
+        // to watch: Nadia receives 0.75x every social delta she earns, and
+        // counting her at full strength would overstate exactly the need
+        // [A-9] singles out.
+        let satisfaction_of: Vec<[f32; NEED_COUNT]> = sims
+            .iter()
+            .map(|(agent, _)| {
+                sim.world()
+                    .get::<terri_core::Personality>(*agent)
+                    .map(|p| p.satisfaction)
+                    .unwrap_or([1.0; NEED_COUNT])
+            })
+            .collect();
         let mut supply = [0.0f32; NEED_COUNT];
         for entry in &interactions {
             let def = pack
@@ -383,7 +403,8 @@ fn main() {
             // interaction content both do. Good enough for a supply estimate.
             for (need_index, delta) in &def.interactions[0].advertises {
                 if *delta > 0.0 {
-                    supply[*need_index as usize] += delta;
+                    supply[*need_index as usize] +=
+                        delta * satisfaction_of[entry.sim][*need_index as usize];
                 }
             }
         }

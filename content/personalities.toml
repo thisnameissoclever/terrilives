@@ -17,6 +17,18 @@
 # slots hold the same number, and a drain written into a satisfaction
 # column would be invisible the moment any two values matched.
 #
+# One KNOWN collision crosses files: the_settled's desk weight of 0.45
+# equals `habituation_floor` in tuning.toml, and the two meet in one
+# expression - `benefit_scale(hab, floor) * disposition` - where a fresh
+# sim's desk row prints scale 0.45 from either factor. Tolerated for now
+# rather than renumbered, because any content change reshuffles every
+# weighted draw and invalidates the measured session in
+# docs/alpha-feel-notes.md [A-9], and because the factor confusion the
+# collision could hide is pinned by golden-value tests that do not read
+# shipped content (`benefit_scale_runs_from_one_...` uses its own 0.45
+# constant; `a_disposition_reads_back_by_its_own_key_...` uses 0.25 and
+# 1.75). Whoever next rebalances this file owns moving the 0.45.
+#
 # The three shipped archetypes are built to be told apart from across the
 # room in the first minute of watching, because that is goal item 1's
 # actual test: "visibly different behaviour traceable to personality
@@ -74,12 +86,24 @@ satisfaction = { comfort = 1.25 }
 
 # The one the house is too quiet for. Social drains almost half again as
 # fast as anyone else's and each dose restores LESS (0.75), so she works
-# the house's three thin social taps - television, radio, dining table -
-# harder than anyone. **She is deliberately under-served**: the only real
-# social supply is other sims, which is M2d, and this archetype is the
-# demand side of that feature built first. Watch her social floor in the
-# trace; if it ever pins near zero that is [C2] and the number to soften
-# is the 1.4.
+# the house's social taps harder than anyone: measured over 36 000 ticks,
+# television 69 uses to Doug's 42 and Terri's 34, dining table 20 to
+# their 3 and 13. **The radio is the exception and the 1.6 below is a
+# muted preference, knowingly kept**: the radio is mostly a fun object
+# (fun 22, social 5), her fun runs the highest floor in the household
+# because everything she does for social also pays fun, and a cubed
+# near-zero fun deficit kills the radio's dominant term before the weight
+# can act - she used it zero times in that trace while unweighted Terri
+# used it twelve. That is [L54]'s shape one layer up: a weight tuned
+# against an object's headline need rather than against what decides
+# between it and its competitor. It stays because it is honest character
+# data that will matter whenever her fun is not full, and because M2d is
+# about to change what "social tap" means anyway.
+#
+# **She is deliberately under-served**: the only real social supply is
+# other sims, which is M2d, and this archetype is the demand side of that
+# feature built first. Watch her social floor in the trace; if it ever
+# pins near zero that is [C2] and the number to soften is the 1.4.
 [[archetype]]
 id = "the_flitting"
 drain = { social = 1.4, hygiene = 0.9 }

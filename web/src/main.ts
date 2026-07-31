@@ -185,11 +185,22 @@ async function main(): Promise<void> {
   // This runs BEFORE any stress filler is spawned below.
   const ids = sim.ids();
   const kinds = sim.kinds();
+  let selectedSomebody = false;
   for (let row = 0; row < sim.count; row++) {
     if (kinds[row] === KIND_AGENT) {
       sim.select(ids[row]);
+      selectedSomebody = true;
       break;
     }
+  }
+  // Thrown for the same reason the zero-objects case above is: an empty
+  // household is legal CONTENT - the schema says so - but a shipped page
+  // with nobody home renders furniture, selects nothing, and leaves the
+  // needs panel permanently hidden with no error anywhere, which is
+  // verbatim the "it does not show the need bars" failure this selection
+  // exists to prevent. main()'s catch surfaces it instead.
+  if (!selectedSomebody) {
+    throw new Error('the compiled household has nobody in it');
   }
 
   // ?stress=1000 spawns idle filler entities to exercise the M0 exit

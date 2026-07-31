@@ -440,9 +440,10 @@ fn compile_personalities(
             }
             dispositions.push((key.0, key.1, disposition.weight));
         }
-        // Sorted because the list is copied verbatim into a component that
-        // `world_hash` iterates; authored order is a fact about the TOML,
-        // not about the sim.
+        // Sorted because `Personality::disposition` binary-searches the
+        // list, and because its iteration order has to be deterministic
+        // for anything that ever walks it; authored order is a fact about
+        // the TOML, not about the sim.
         dispositions.sort_by_key(|(object, interaction, _)| (object.0, *interaction));
 
         compiled.push(CompiledPersonality {
@@ -491,9 +492,9 @@ fn compile_household(
     let reached = root.map(|root| flood_fill(lot.width, lot.height, &blocked, root));
 
     let mut compiled = Vec::with_capacity(household.sim.len());
-    for sim in &household.sim {
+    for (index, sim) in household.sim.iter().enumerate() {
         if sim.name.trim().is_empty() {
-            return Err(ContentError::EmptySimName);
+            return Err(ContentError::EmptySimName { index });
         }
         let Some(personality) = personalities.iter().position(|p| p.id == sim.archetype) else {
             return Err(ContentError::UnknownArchetype {
@@ -3041,9 +3042,10 @@ mod tests {
     }
 
     /// Dispositions are stored SORTED whatever order authoring used,
-    /// because they are copied verbatim into a component `world_hash`
-    /// iterates. Declared out of order with distinct weights, so a sort
-    /// that dropped or duplicated an entry is visible in the values.
+    /// because the component binary-searches them and their iteration
+    /// order must be deterministic. Declared out of order with distinct
+    /// weights, so a sort that dropped or duplicated an entry is visible
+    /// in the values.
     #[test]
     fn dispositions_compile_sorted_by_key_not_by_declaration_order() {
         let mut hostile = archetype("the_settled");
@@ -3247,7 +3249,7 @@ mod tests {
                 vec![member("   ", "the_settled", 0.5, 2.0)]
             )
             .unwrap_err(),
-            ContentError::EmptySimName
+            ContentError::EmptySimName { index: 0 }
         );
     }
 

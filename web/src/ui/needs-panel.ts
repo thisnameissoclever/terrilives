@@ -137,14 +137,18 @@ export class NeedsPanel {
     // Read, never remembered. `selectedIndex` is the simulation's answer
     // to "what is the player looking at", so asking it every read is what
     // makes the panel follow a selection that changed inside a tick.
-    const selected = source.selectedIndex();
-    const levels =
-      selected === null ? EMPTY_LEVELS : source.needsOf(selected);
-
+    //
     // Nothing selected, a sim that despawned between the click and this
-    // frame, and a click that landed on a fridge all arrive here as an
-    // empty array, and all three should draw no bars. Collapsing them is
-    // deliberate: the useful response to all three is identical.
+    // frame, and a click that landed on a fridge all draw no bars, and
+    // collapsing them is deliberate: the useful response to all three is
+    // identical. The null case exits before `needsOf` so a deselected
+    // panel costs no boundary call - the test counting reads pins that.
+    const selected = source.selectedIndex();
+    if (selected === null) {
+      this.root.hidden = true;
+      return true;
+    }
+    const levels = source.needsOf(selected);
     if (levels.length === 0) {
       this.root.hidden = true;
       return true;
@@ -157,8 +161,8 @@ export class NeedsPanel {
     // throttled with the bars, and an unchanged string is a no-op for
     // the browser. An empty name - a stress filler agent - captions as
     // empty rather than as the previous sim's name, which is the stale
-    // caption this line's placement exists to prevent.
-    this.caption.textContent = selected === null ? '' : source.simName(selected);
+    // caption this placement exists to prevent.
+    this.caption.textContent = source.simName(selected);
 
     for (let i = 0; i < this.bars.length; i++) {
       // A bar past the levels the simulation reported reads empty rather

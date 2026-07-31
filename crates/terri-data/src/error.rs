@@ -347,7 +347,13 @@ pub enum ContentError {
     /// A sim with no name renders a blank needs-panel header and a blank
     /// row in every future UI that lists the household. Same
     /// silent-nothing shape as a blank interaction label.
-    EmptySimName,
+    ///
+    /// Carries the POSITION rather than the name, because the name is
+    /// what is missing: every other household error points at its sim by
+    /// name, and this is the one mistake where that pointer is blank.
+    EmptySimName {
+        index: usize,
+    },
     /// A household member spawns outside the lot.
     SpawnOutOfBounds {
         sim: String,
@@ -677,10 +683,12 @@ impl fmt::Display for ContentError {
                 "household.toml gives '{sim}' the archetype '{archetype}', \
                  which personalities.toml does not declare"
             ),
-            ContentError::EmptySimName => write!(
+            ContentError::EmptySimName { index } => write!(
                 f,
-                "household.toml declares a sim with a blank name; the needs \
-                 panel and every future household list would show an empty row"
+                "household.toml's sim number {} (counting from 1) has a blank \
+                 name; the needs panel and every future household list would \
+                 show an empty row",
+                index + 1
             ),
             ContentError::SpawnOutOfBounds {
                 sim,

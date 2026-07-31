@@ -580,6 +580,20 @@ impl Sim {
         // the run it is replaying - which is the whole thing [D12] exists to
         // prevent. Its entries are a sorted `Vec`, so hashing them in order is
         // reproducible; see `Habituation`'s own note on why that container.
+        //
+        // **`Personality`, `SimId` and `SimName` are deliberately NOT in the
+        // digest, each for its own reason.** `SimName` is presentation: a
+        // rename must not diverge a replay. `SimId` duplicates the entity
+        // index for as long as nothing dies, and enters the digest the day
+        // relationships do, keyed on it. `Personality` DOES change what a sim
+        // chooses - the same argument that put habituation in - and is
+        // excluded anyway because today it is static: derived from content at
+        // spawn and never written afterwards, so two replays from one pack
+        // cannot disagree about it, and digesting it would only restate the
+        // content. That argument EXPIRES the moment anything mutates a
+        // personality at runtime - M2e's traits are the scheduled arrival -
+        // and whoever writes the first mutation owns adding all three fields
+        // to this digest and re-measuring both golden vectors.
         type Row = (u32, f32, f32, [f32; NEED_COUNT], Vec<(u32, u32, f32)>);
         let mut rows: Vec<Row> = Vec::new();
         if let Some(mut state) = self
