@@ -34,8 +34,8 @@ Borrowed sprites, by the id in `content/objects.toml` that names each:
 | `shower` | `showerRound_SE` |
 | `toilet` | `toiletSquare_SE` |
 | `bookshelf` | `bookcaseClosedDoors_SE` |
-| `sofa` | `loungeDesignSofaCorner_SE` |
-| `television` | `cabinetTelevisionDoors_SE` |
+| `sofa` | `loungeSofaOttoman_SE` |
+| `television` | `televisionVintage_SE` |
 | `bed` | `bedBunk_SE` |
 
 Plus `wall_SE` and `wall_SW`, which the renderer draws as `wallNS` and

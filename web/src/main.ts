@@ -11,13 +11,15 @@ import init, { SimHandle } from './wasm/terri_wasm.js';
 import { SimBridge } from './bridge.js';
 import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
-import { FixedStepDriver, buildInstances } from './frame.js';
-import { TILE_HALF_HEIGHT, TILE_HALF_WIDTH } from './render/iso.js';
+import { FixedStepDriver, buildInstances, instanceCount } from './frame.js';
+import { cameraOrigin } from './render/iso.js';
+import { SPRITES } from './render/atlas.js';
 import { buildStaticInstances } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
 import { buildTimeControls } from './ui/time-controls.js';
-import { attachPointerInput } from './input.js';
+import { ObjectMenu, createMenuSurface } from './ui/object-menu.js';
+import { attachPointerInput, dispatchMenuAction } from './input.js';
 import { KIND_AGENT } from './render/instances.js';
 
 /** [D2]: the simulation's one true rate. Speed controls change how many
@@ -37,15 +39,6 @@ const MAX_TICKS_PER_FRAME = 5;
  * starts frozen looks broken rather than paused.
  */
 const START_SPEED = 1;
-
-/**
- * Where the sim starts, in tiles. Open living space, a few tiles from the
- * kitchen and well clear of the bathroom wall at x = 16.
- *
- * The hunger is low enough to give it something to do the moment the page
- * loads, which is what makes the opening seconds worth watching.
- */
-const START_TILE = { x: 8, y: 6, hunger: 25 };
 
 /** Frames of history behind the rolling mean and p95. Four seconds at 60 Hz. */
 const FRAME_WINDOW = 240;
@@ -160,43 +153,54 @@ async function main(): Promise<void> {
   if (sim.count === 0) {
     throw new Error('the compiled lot placed no objects');
   }
-  sim.spawnAgent(START_TILE.x, START_TILE.y, START_TILE.hunger);
+  // NOBODY is spawned here any more. The household - Terri, Doug and
+  // Nadia - comes out of content/household.toml through the compiled
+  // pack, spawned by the same `from_lot` call that placed the furniture.
+  // The `spawnAgent(8, 6, 25)` that used to sit on this line was the
+  // last hardcoded copy of content in the shell, and [H2] records why it
+  // had to go: coordinates in TypeScript are a second copy of a fact
+  // nothing keeps in sync.
 
-  // **Select it immediately, because an unselected sim makes the whole HUD
-  // invisible.**
+  // **Select the first household sim immediately, because an unselected
+  // sim makes the whole HUD invisible.**
   //
   // Selection lives in the simulation ([D-5]) and started out empty, which
   // meant the page opened with the need panel `hidden` and nothing on screen
   // to say why. The first report from someone opening it cold was "it does not
   // show the need bars or allow any control" - and every part of it worked.
-  // The bars were built and hidden, and selecting meant finding a 38 x 78
-  // sprite somewhere on a 1280 x 720 canvas with nothing marking it as
-  // clickable.
   //
-  // That is not a rendering bug or an input bug; it is the game withholding
-  // its only readout until the player guesses. With one sim in the household
-  // there is no ambiguity about who to select, so selecting it is strictly
-  // better than making the player find it - and it is what The Sims does with
-  // a single-sim household too.
+  // With three sims the choice of WHICH is no longer empty, and the lowest
+  // entity index among the agents is the first household member in file
+  // order - Terri, the title character - which is as close to an authored
+  // answer as exists. The other two are one click away, and the click is
+  // taught by the ring appearing under Terri.
   //
   // It goes through a command like every other selection rather than reaching
   // into the world, so a replay of this session reproduces it ([D-2]). It
-  // applies on the first tick, which is before the first frame the player can
-  // see.
+  // applies on the first tick, before the first frame the player can see.
   //
-  // Read out of the render buffer rather than remembered from `spawnAgent`,
-  // because a raw entity index is the simulation's to hand out: `ids()` is the
-  // row-to-entity mapping and `kinds()` says which rows are agents. This runs
-  // BEFORE any filler is spawned below, so the single agent row here is the
-  // sim the player is meant to be watching rather than whichever filler
-  // happens to sort first.
+  // Read out of the render buffer rather than assumed: `ids()` is the
+  // row-to-entity mapping and `kinds()` says which rows are agents. Rows
+  // are entity-index order, so the first agent row IS the lowest index.
+  // This runs BEFORE any stress filler is spawned below.
   const ids = sim.ids();
   const kinds = sim.kinds();
+  let selectedSomebody = false;
   for (let row = 0; row < sim.count; row++) {
     if (kinds[row] === KIND_AGENT) {
       sim.select(ids[row]);
+      selectedSomebody = true;
       break;
     }
+  }
+  // Thrown for the same reason the zero-objects case above is: an empty
+  // household is legal CONTENT - the schema says so - but a shipped page
+  // with nobody home renders furniture, selects nothing, and leaves the
+  // needs panel permanently hidden with no error anywhere, which is
+  // verbatim the "it does not show the need bars" failure this selection
+  // exists to prevent. main()'s catch surfaces it instead.
+  if (!selectedSomebody) {
+    throw new Error('the compiled household has nobody in it');
   }
 
   // ?stress=1000 spawns idle filler entities to exercise the M0 exit
@@ -253,11 +257,20 @@ async function main(): Promise<void> {
   // diagnose from a rendered picture.
   const needsRoot = document.querySelector<HTMLElement>('#needs-panel');
   const speedRoot = document.querySelector<HTMLElement>('#time-controls');
-  if (!needsRoot || !speedRoot) {
-    throw new Error('missing #needs-panel or #time-controls');
+  const menuRoot = document.querySelector<HTMLElement>('#object-menu');
+  if (!needsRoot || !speedRoot || !menuRoot) {
+    throw new Error('missing #needs-panel, #time-controls or #object-menu');
+  }
+  // The caption is queried like the roots above and thrown on when
+  // absent, for the same [L17] reason: a panel silently missing its
+  // caption reads as an unbuilt feature, not a broken page.
+  const needsCaption = document.querySelector<HTMLElement>('#needs-caption');
+  if (!needsCaption) {
+    throw new Error('missing #needs-caption');
   }
   const needsPanel = new NeedsPanel(
     needsRoot,
+    needsCaption,
     buildNeedBars(document, needsRoot, sim.needNames()),
     sim.needBarRefreshMs(),
     sim.needMax(),
@@ -274,20 +287,27 @@ async function main(): Promise<void> {
     driver.setSpeed(ticksPerFrame);
   });
 
-  // Centre the lot's screen-space bounding box on the canvas, derived
-  // from the lot rather than hand-tuned. `screenX` spans
-  // -(h - 1) to (w - 1) tile half-widths and `screenY` spans 0 to
-  // (w - 1) + (h - 1) tile half-heights, so the two offsets below put the
-  // middle of each range in the middle of the canvas. For the shipped
-  // 24 x 18 lot that is originX 544, originY 40, and the diamond fits
-  // 1280 x 720 exactly.
+  // Centre the lot's DRAWN extent on the canvas, derived from the lot and
+  // the atlas rather than hand-tuned. Doing it by hand is how the lot ends
+  // up half off screen, which reads as a broken projection rather than as a
+  // badly placed camera.
   //
-  // Doing this by hand is how the lot ends up half off screen, which
-  // looks like a broken projection rather than a badly placed camera.
-  const originX =
-    canvas.width / 2 - ((lotWidth - lotHeight) * TILE_HALF_WIDTH) / 2;
-  const originY =
-    (canvas.height - (lotWidth + lotHeight - 2) * TILE_HALF_HEIGHT) / 2;
+  // The arithmetic is in `cameraOrigin` so it can be tested; the two things
+  // it accounts for that the obvious version missed - sprites drawing above
+  // their anchor, and `tiles.ts`'s boundary rows at -1 - are written up
+  // there, along with the measurement that caught it.
+  //
+  // The tallest sprite is read off the atlas rather than named, so adding a
+  // taller piece of furniture cannot silently push the top of the house off
+  // the canvas.
+  const tallestSprite = Math.max(...SPRITES.map((sprite) => sprite.h));
+  const { x: originX, y: originY } = cameraOrigin(
+    canvas.width,
+    canvas.height,
+    lotWidth,
+    lotHeight,
+    tallestSprite,
+  );
 
   // `worldDepth` divides by (gridSize - 1) * 2, so this has to be at
   // least (w - 1) + (h - 1) for the far corner to keep a depth inside
@@ -305,11 +325,28 @@ async function main(): Promise<void> {
   // the content pack, so what is drawn is what `find_path` refuses to
   // walk through. A sim detouring to the doorway is then legible instead
   // of looking like an AI fault.
+  // The right-click flyout. It renders simulation state and owns none of
+  // it ([D-5]): the rows come from the object's own interaction list, read
+  // across the boundary on every open, and the sim a row acts on is read
+  // when the row is picked rather than when the menu appeared.
+  //
+  // The action goes back through `dispatchMenuAction`, which sends
+  // commands like everything else - the menu is a nicer way to name a
+  // command, not a second way to reach the world. A row carries its own
+  // interaction index and `SimCommand::UseObject` carries one too, so
+  // picking row `n` runs interaction `n`; the shipped lot cannot show that
+  // off, because every object on it offers exactly one.
+  const menu = new ObjectMenu(
+    createMenuSurface(document, menuRoot),
+    (action) => dispatchMenuAction(sim, action),
+  );
+
   // Clicks, last of the wiring because it needs the camera offsets above.
-  // Left click selects a sim or directs the selected one at an object;
-  // right click hands it back to its own judgement. Every one of those is
-  // a serialised command ([D-2]) - nothing here reaches into the world.
-  attachPointerInput(canvas, sim, originX, originY);
+  // Left click selects a sim or redirects the selected one at an object,
+  // ctrl or cmd click queues instead, and right click opens the flyout.
+  // Every one of those is a serialised command ([D-2]) - nothing here
+  // reaches into the world.
+  attachPointerInput(canvas, sim, menu, menuRoot, originX, originY);
 
   const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles() };
   const staticGeometry = buildStaticInstances(lot, originX, originY, depthScale);
@@ -331,8 +368,12 @@ async function main(): Promise<void> {
     // The sim advances in whole ticks; alpha is how far this frame sits
     // between the last one that ran and the next one that has not.
     const alpha = driver.advance(deltaMs, () => sim.tick());
-    const instances = buildInstances(sim, alpha, originX, originY, depthScale);
-    renderer.draw(instances, sim.count);
+    // The selection comes from the simulation every frame rather than being
+    // remembered here ([D-5]), so the ring cannot disagree with what the need
+    // panel is showing.
+    const selected = sim.selectedIndex();
+    const instances = buildInstances(sim, alpha, originX, originY, depthScale, selected);
+    renderer.draw(instances, instanceCount(sim, selected));
 
     // Inside the sample below rather than outside it, deliberately: the
     // panel is work the frame does, and a periodic cost measured outside

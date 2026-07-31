@@ -65,8 +65,22 @@ export const KIND_AGENT = 0;
  * the array, and WGSL **clamps** an out-of-range index rather than
  * trapping, so every sprite past the end would silently draw as the last
  * one in the table.
+ *
+ * **128, raised from 32 when the house went from 8 objects to 33.** The atlas
+ * reached 35 sprites, the guard in `packSpriteTable` fired, and the choice was
+ * between raising this and splitting the art - which [D10] rules out, because
+ * one atlas is what keeps the whole frame a single instanced draw call.
+ *
+ * Raising it is close to free and the arithmetic is worth writing down: each
+ * entry is `FLOATS_PER_SPRITE` = 8 floats = 32 bytes, so the uniform buffer is
+ * `MAX_SPRITES * 32` bytes - 4 KiB here, against WebGPU's guaranteed minimum
+ * `maxUniformBufferBindingSize` of 64 KiB. Unused entries cost 32 bytes of
+ * zeroes each and nothing else: the shader indexes the array rather than
+ * iterating it. So the headroom is 2048 sprites before the limit bites, and
+ * 128 was picked as the next power of two with real room to grow rather than
+ * the smallest number that fits today.
  */
-export const MAX_SPRITES = 32;
+export const MAX_SPRITES = 128;
 
 /**
  * Writes one entity into slot `index` of a packed instance array.

@@ -6,13 +6,16 @@
 //! "every `NeedId` appears exactly once" are not shapes.
 
 use crate::error::ContentError;
+use crate::pack::{CompiledHouseholdMember, CompiledPersonality};
 use crate::pack::{
     CompiledInteraction, CompiledLot, CompiledObject, CompiledPlacement, ContentPack, ObjectDefId,
     Tuning,
 };
-use crate::schema::{AtlasFile, LotFile, NeedsFile, ObjectsFile, TuningFile};
-use std::collections::BTreeSet;
-use terri_core::{NeedId, NEED_COUNT};
+use crate::schema::{
+    AtlasFile, HouseholdFile, LotFile, NeedsFile, ObjectsFile, PersonalitiesFile, TuningFile,
+};
+use std::collections::{BTreeMap, BTreeSet};
+use terri_core::{Footprint, NeedId, NEED_COUNT, NEED_MAX, NEED_MIN};
 
 /// The atlas sprite every sim is drawn with.
 ///
@@ -74,6 +77,8 @@ pub fn compile(
     lot: LotFile,
     atlas: AtlasFile,
     tuning: TuningFile,
+    personalities: PersonalitiesFile,
+    household: HouseholdFile,
 ) -> Result<ContentPack, ContentError> {
     let sprite_index = |name: &str| atlas.sprite.iter().position(|s| s.name == name);
     let sim_sprite = sprite_index(SIM_SPRITE).ok_or_else(|| ContentError::MissingSimSprite {
@@ -160,6 +165,22 @@ pub fn compile(
             });
         };
 
+        // A zero dimension is the silent-nothing case one layer down from
+        // `EmptyLot`: the rectangle covers no tiles, so nothing is
+        // orthogonally adjacent to it, `find_path_adjacent` finds nowhere to
+        // stand, and scoring quietly treats the object as unavailable for
+        // ever. Checked here rather than in the lot, because it is wrong
+        // about the OBJECT and stays wrong wherever it is placed - and
+        // because every rectangle computation below assumes at least one
+        // tile.
+        if object.footprint.width == 0 || object.footprint.depth == 0 {
+            return Err(ContentError::ZeroFootprint {
+                object: object.id.clone(),
+                width: object.footprint.width,
+                depth: object.footprint.depth,
+            });
+        }
+
         // Scoped to the object, so two objects may each declare a
         // `use` interaction without colliding.
         let mut seen_interactions = BTreeSet::new();
@@ -185,6 +206,27 @@ pub fn compile(
                 });
             }
 
+            // **Absent falls back to the id; blank is rejected.** The two
+            // are different authoring states and only the `Option` in the
+            // schema can tell them apart: saying nothing means "the id will
+            // do", and `label = ""` means a menu row with no text in it.
+            //
+            // `trim` rather than `is_empty`, because a label of `" "` draws
+            // exactly the same nothing as `""` and TOML preserves it
+            // faithfully. The stored label keeps the author's own spacing;
+            // only the emptiness TEST trims, since trimming what is stored
+            // would silently rewrite content.
+            let label = match &act.label {
+                Some(label) if label.trim().is_empty() => {
+                    return Err(ContentError::EmptyInteractionLabel {
+                        object: object.id.clone(),
+                        interaction: act.id.clone(),
+                    })
+                }
+                Some(label) => label.clone(),
+                None => act.id.clone(),
+            };
+
             let mut advertises = Vec::with_capacity(act.advertises.len());
             for (need_name, delta) in &act.advertises {
                 let Some(id) = NeedId::from_name(need_name) else {
@@ -208,6 +250,7 @@ pub fn compile(
                 advertises,
                 duration_ticks: act.duration_ticks,
                 slots: act.slots,
+                label,
             });
         }
 
@@ -216,6 +259,7 @@ pub fn compile(
             name: object.name.clone(),
             sprite: sprite as u32,
             interactions,
+            footprint: object.footprint,
         });
     }
 
@@ -269,13 +313,267 @@ pub fn compile(
         }
     }
 
+    // Personalities before the household, because a household member
+    // resolves an archetype by name and the typo should be reported
+    // against whichever file actually contains it.
+    let personalities = compile_personalities(personalities, &compiled)?;
+    let household = compile_household(household, &personalities, &compiled, &lot)?;
+
     Ok(ContentPack {
         decay_per_tick: decay,
         objects: compiled,
         sim_sprite,
         lot,
         tuning,
+        personalities,
+        household,
     })
+}
+
+/// Validates `content/personalities.toml` against the compiled objects and
+/// densifies the sparse authored maps - [H3].
+///
+/// Absent map entries become 1.0, so a read site is an index rather than a
+/// lookup-with-default each caller could write differently. The floors
+/// differ between the two maps on purpose: a DRAIN of 0 is a placid trait
+/// (the need never troubles this sim), while a SATISFACTION of 0 makes the
+/// need dynamically unsatisfiable for this one sim - [C2] with a face on
+/// it, and invisible to the static
+/// `every_declared_need_can_be_satisfied_by_some_interaction`.
+fn compile_personalities(
+    personalities: PersonalitiesFile,
+    objects: &[CompiledObject],
+) -> Result<Vec<CompiledPersonality>, ContentError> {
+    let mut compiled: Vec<CompiledPersonality> = Vec::with_capacity(personalities.archetype.len());
+
+    for archetype in &personalities.archetype {
+        if compiled.iter().any(|p| p.id == archetype.id) {
+            return Err(ContentError::DuplicateArchetype {
+                id: archetype.id.clone(),
+            });
+        }
+
+        let mut drain = [1.0f32; NEED_COUNT];
+        for (need_name, value) in &archetype.drain {
+            let Some(id) = NeedId::from_name(need_name) else {
+                return Err(ContentError::UnknownPersonalityNeed {
+                    archetype: archetype.id.clone(),
+                    map: "drain",
+                    need: need_name.clone(),
+                });
+            };
+            check_number(
+                *value,
+                &format!("archetype '{}' drain for '{need_name}'", archetype.id),
+            )?;
+            drain[id.index()] = *value;
+        }
+
+        let mut satisfaction = [1.0f32; NEED_COUNT];
+        for (need_name, value) in &archetype.satisfaction {
+            let Some(id) = NeedId::from_name(need_name) else {
+                return Err(ContentError::UnknownPersonalityNeed {
+                    archetype: archetype.id.clone(),
+                    map: "satisfaction",
+                    need: need_name.clone(),
+                });
+            };
+            check_finite(
+                *value,
+                &format!(
+                    "archetype '{}' satisfaction for '{need_name}'",
+                    archetype.id
+                ),
+            )?;
+            if *value <= 0.0 {
+                return Err(ContentError::NonPositiveSatisfaction {
+                    archetype: archetype.id.clone(),
+                    need: need_name.clone(),
+                    value: *value,
+                });
+            }
+            satisfaction[id.index()] = *value;
+        }
+
+        let mut dispositions: Vec<(ObjectDefId, u32, f32)> = Vec::new();
+        for disposition in &archetype.disposition {
+            // Object first, then the interaction ON that object, so a typo
+            // is reported as the mistake it is rather than as its
+            // consequence - the same ordering the placement checks use.
+            let Some(object_index) = objects.iter().position(|o| o.id == disposition.object) else {
+                return Err(ContentError::UnknownDispositionObject {
+                    archetype: archetype.id.clone(),
+                    object: disposition.object.clone(),
+                });
+            };
+            let Some(interaction_index) = objects[object_index]
+                .interactions
+                .iter()
+                .position(|i| i.id == disposition.interaction)
+            else {
+                return Err(ContentError::UnknownDispositionInteraction {
+                    archetype: archetype.id.clone(),
+                    object: disposition.object.clone(),
+                    interaction: disposition.interaction.clone(),
+                });
+            };
+            // Weight 0 is legal and IS the "fear of couches" the design
+            // brief asks for, so `check_number` (non-negative) rather than
+            // a strict-positive rule.
+            check_number(
+                disposition.weight,
+                &format!(
+                    "archetype '{}' disposition toward '{}.{}'",
+                    archetype.id, disposition.object, disposition.interaction
+                ),
+            )?;
+            let key = (ObjectDefId(object_index as u32), interaction_index as u32);
+            if dispositions
+                .iter()
+                .any(|(object, interaction, _)| (*object, *interaction) == key)
+            {
+                return Err(ContentError::DuplicateDisposition {
+                    archetype: archetype.id.clone(),
+                    object: disposition.object.clone(),
+                    interaction: disposition.interaction.clone(),
+                });
+            }
+            dispositions.push((key.0, key.1, disposition.weight));
+        }
+        // Sorted because `Personality::disposition` binary-searches the
+        // list, and because its iteration order has to be deterministic
+        // for anything that ever walks it; authored order is a fact about
+        // the TOML, not about the sim.
+        dispositions.sort_by_key(|(object, interaction, _)| (object.0, *interaction));
+
+        compiled.push(CompiledPersonality {
+            id: archetype.id.clone(),
+            drain,
+            satisfaction,
+            dispositions,
+        });
+    }
+
+    Ok(compiled)
+}
+
+/// Validates `content/household.toml` against everything else - [H2].
+///
+/// The geometric rules mirror the placement rules and exist for the same
+/// [D9] reason, with one twist that earns the flood fill a second caller:
+/// a sim spawned on a WALKABLE tile inside a sealed pocket is not a build
+/// error anywhere else, because no OBJECT is unreachable - the sim itself
+/// is what cannot get out, and it would starve there with no error from
+/// anything.
+fn compile_household(
+    household: HouseholdFile,
+    personalities: &[CompiledPersonality],
+    objects: &[CompiledObject],
+    lot: &CompiledLot,
+) -> Result<Vec<CompiledHouseholdMember>, ContentError> {
+    // The blocked set the simulation will actually enforce - walls plus
+    // footprint tiles - rebuilt the same way `Sim::new_from_lot` builds
+    // it. Everything in it is in bounds: `compile_lot` has already
+    // rejected anything that is not, which is what makes the additions
+    // here unable to overflow.
+    let mut blocked: BTreeSet<(u32, u32)> = lot.walls.iter().copied().collect();
+    for placement in &lot.placements {
+        let object = &objects[placement.object.0 as usize];
+        let tile = (placement.x as u32, placement.y as u32);
+        for dy in 0..object.footprint.depth {
+            for dx in 0..object.footprint.width {
+                blocked.insert((tile.0 + dx, tile.1 + dy));
+            }
+        }
+    }
+    let root = (0..lot.height)
+        .flat_map(|y| (0..lot.width).map(move |x| (x, y)))
+        .find(|tile| !blocked.contains(tile));
+    let reached = root.map(|root| flood_fill(lot.width, lot.height, &blocked, root));
+
+    let mut compiled = Vec::with_capacity(household.sim.len());
+    for (index, sim) in household.sim.iter().enumerate() {
+        if sim.name.trim().is_empty() {
+            return Err(ContentError::EmptySimName { index });
+        }
+        let Some(personality) = personalities.iter().position(|p| p.id == sim.archetype) else {
+            return Err(ContentError::UnknownArchetype {
+                sim: sim.name.clone(),
+                archetype: sim.archetype.clone(),
+            });
+        };
+
+        // Finiteness before the bounds comparison, for the reason the
+        // placement checks give: every comparison against NaN is false, so
+        // a NaN coordinate would sail through the range check and land on
+        // tile 0 after the cast.
+        check_finite(sim.x, &format!("household spawn x for '{}'", sim.name))?;
+        check_finite(sim.y, &format!("household spawn y for '{}'", sim.name))?;
+        if sim.x < 0.0 || sim.y < 0.0 || sim.x >= lot.width as f32 || sim.y >= lot.height as f32 {
+            return Err(ContentError::SpawnOutOfBounds {
+                sim: sim.name.clone(),
+                x: sim.x,
+                y: sim.y,
+                width: lot.width,
+                height: lot.height,
+            });
+        }
+        let tile = (sim.x as u32, sim.y as u32);
+        if blocked.contains(&tile) {
+            return Err(ContentError::SpawnOnBlockedTile {
+                sim: sim.name.clone(),
+                x: tile.0,
+                y: tile.1,
+            });
+        }
+        if let (Some(root), Some(reached)) = (root, reached.as_ref()) {
+            let index = (tile.1 as usize) * (lot.width as usize) + tile.0 as usize;
+            if !reached[index] {
+                return Err(ContentError::SpawnUnreachable {
+                    sim: sim.name.clone(),
+                    x: tile.0,
+                    y: tile.1,
+                    root_x: root.0,
+                    root_y: root.1,
+                });
+            }
+        }
+
+        // Absent needs start FULL, not at zero: the interesting authoring
+        // statement is "Terri arrives hungry", and a default of zero would
+        // spawn every under-specified sim in simultaneous crisis.
+        let mut needs = [NEED_MAX; NEED_COUNT];
+        for (need_name, value) in &sim.needs {
+            let Some(id) = NeedId::from_name(need_name) else {
+                return Err(ContentError::UnknownStartingNeed {
+                    sim: sim.name.clone(),
+                    need: need_name.clone(),
+                });
+            };
+            check_finite(
+                *value,
+                &format!("household starting '{need_name}' for '{}'", sim.name),
+            )?;
+            if !(NEED_MIN..=NEED_MAX).contains(value) {
+                return Err(ContentError::StartingNeedOutOfRange {
+                    sim: sim.name.clone(),
+                    need: need_name.clone(),
+                    value: *value,
+                });
+            }
+            needs[id.index()] = *value;
+        }
+
+        compiled.push(CompiledHouseholdMember {
+            name: sim.name.clone(),
+            personality: personality as u32,
+            x: sim.x,
+            y: sim.y,
+            needs,
+        });
+    }
+
+    Ok(compiled)
 }
 
 /// Validates the system knobs from `content/tuning.toml`.
@@ -307,6 +605,15 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
         tuning.contested_score_multiplier,
         "contested_score_multiplier in tuning.toml",
     )?;
+    check_finite(
+        tuning.habituation_per_use,
+        "habituation_per_use in tuning.toml",
+    )?;
+    check_finite(
+        tuning.habituation_decay_per_tick,
+        "habituation_decay_per_tick in tuning.toml",
+    )?;
+    check_finite(tuning.habituation_floor, "habituation_floor in tuning.toml")?;
 
     if tuning.choice_temperature <= 0.0 {
         return Err(ContentError::NonPositiveTemperature {
@@ -324,6 +631,42 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
     }
     if tuning.max_queued_commands == 0 {
         return Err(ContentError::ZeroQueuedCommands);
+    }
+    // Habituation. Each rule guards a value that fails QUIETLY rather than
+    // loudly, which is the standard this function applies.
+    //
+    // A rise outside [0, 1] either does nothing (0 is a legal way to disable
+    // the mechanic) or saturates every entry on first use, which reads as an
+    // object a sim will never touch twice and looks like a scoring bug.
+    if !(0.0..=1.0).contains(&tuning.habituation_per_use) {
+        return Err(ContentError::HabituationPerUseOutOfRange {
+            value: tuning.habituation_per_use,
+        });
+    }
+    // **A zero decay is rejected rather than treated as "never recover".** It
+    // would make habituation a one-way ratchet: every interaction a sim has
+    // ever performed would sink to the floor and stay there, so after long
+    // enough the whole house is equally unappealing and selection is choosing
+    // between identical numbers. That is [C6] applied to everything at once,
+    // and it arrives silently over tens of minutes.
+    // A plain comparison rather than the negated form used in
+    // `score_advertisement`, and safe here for a reason that is not true there:
+    // `check_finite` has already rejected NaN a few lines above, so `<=` cannot
+    // silently pass an incomparable value through.
+    if tuning.habituation_decay_per_tick <= 0.0 {
+        return Err(ContentError::NonPositiveHabituationDecay {
+            value: tuning.habituation_decay_per_tick,
+        });
+    }
+    // The floor is a MULTIPLIER, so 1 disables the effect and 0 would make a
+    // fully habituated interaction worth exactly nothing - permanently
+    // unselectable, which is a need becoming unsatisfiable by a route
+    // `every_declared_need_can_be_satisfied_by_some_interaction` cannot see
+    // because it is dynamic rather than static.
+    if tuning.habituation_floor <= 0.0 || tuning.habituation_floor > 1.0 {
+        return Err(ContentError::HabituationFloorOutOfRange {
+            value: tuning.habituation_floor,
+        });
     }
     if !(0.0..1.0).contains(&tuning.duration_variance) {
         return Err(ContentError::DurationVarianceOutOfRange {
@@ -349,6 +692,9 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
     }
 
     Ok(Tuning {
+        habituation_per_use: tuning.habituation_per_use,
+        habituation_decay_per_tick: tuning.habituation_decay_per_tick,
+        habituation_floor: tuning.habituation_floor,
         action_threshold: tuning.action_threshold,
         choice_temperature: tuning.choice_temperature,
         idle_threshold: tuning.idle_threshold,
@@ -420,6 +766,12 @@ fn compile_lot(lot: LotFile, objects: &[CompiledObject]) -> Result<CompiledLot, 
     }
 
     let mut placements = Vec::with_capacity(lot.place.len());
+    // What the footprint rules below need, collected as the placements are
+    // resolved: the object's id for the messages, the tile it stands on, and
+    // the rectangle that tile is the origin of. Declaration order is
+    // preserved, which is what makes `FootprintsOverlap` name the earlier
+    // object first rather than whichever one a map happened to yield.
+    let mut rects: Vec<(String, (u32, u32), Footprint)> = Vec::with_capacity(lot.place.len());
 
     for place in &lot.place {
         // The object id is resolved FIRST, so a typo in the name is
@@ -465,11 +817,178 @@ fn compile_lot(lot: LotFile, objects: &[CompiledObject]) -> Result<CompiledLot, 
             });
         }
 
+        rects.push((place.object.clone(), tile, objects[index].footprint));
         placements.push(CompiledPlacement {
             object: ObjectDefId(index as u32),
             x: place.x,
             y: place.y,
         });
+    }
+
+    // ---- [F5]: the three footprint rules -------------------------------
+    //
+    // Run in this order so that an author with two problems at once is told
+    // about the more fundamental one. A rectangle running off the lot is
+    // wrong on its own; an overlap needs two objects to agree they are wrong
+    // together; and reachability is a property of the whole lot rather than
+    // of any one placement. Reporting them the other way round would send
+    // somebody to move a sofa when the real problem is that a bed is three
+    // tiles wide.
+    //
+    // The origin tile itself is checked twice - once above by
+    // `PlacementOutOfBounds` and `PlacementOnWall`, once here as the first
+    // tile of the rectangle - and that is deliberate. The checks above report
+    // the authored `f32` pair, which is the number in the file; these report
+    // a TILE, which for anything wider than 1x1 is a number the author has to
+    // derive. Two messages for two different mistakes, and the origin check
+    // runs first so a 1x1 object never reports the derived one.
+    let far_corner = |tile: (u32, u32), footprint: Footprint| -> Option<(u32, u32)> {
+        // `checked_*` because these are authored numbers: `width = 4294967295`
+        // is expressible in TOML, and a wrapping far corner would put the
+        // rectangle behind its own origin and make every check below pass
+        // vacuously. The `- 1` is because the origin tile is the FIRST of
+        // `width`. The `checked_sub` cannot fail - `compile` rejects a zero
+        // dimension before this runs - and is written this way so that a
+        // future reordering is a `None` rather than a panic.
+        Some((
+            tile.0.checked_add(footprint.width.checked_sub(1)?)?,
+            tile.1.checked_add(footprint.depth.checked_sub(1)?)?,
+        ))
+    };
+
+    // Rule 2, both halves. Bounds for the whole rectangle before walls for
+    // the whole rectangle, for the same "most fundamental first" reason: a
+    // tile off the lot is not a tile that could hold a wall.
+    let mut corners = Vec::with_capacity(rects.len());
+    for (object, tile, footprint) in &rects {
+        let out_of_bounds = |x: u32, y: u32| ContentError::FootprintOutOfBounds {
+            object: object.clone(),
+            x,
+            y,
+            width: lot.width,
+            height: lot.height,
+        };
+        let Some(far) = far_corner(*tile, *footprint) else {
+            return Err(out_of_bounds(tile.0, tile.1));
+        };
+        for y in tile.1..=far.1 {
+            for x in tile.0..=far.0 {
+                if x >= lot.width || y >= lot.height {
+                    return Err(out_of_bounds(x, y));
+                }
+            }
+        }
+        for y in tile.1..=far.1 {
+            for x in tile.0..=far.0 {
+                if wall_tiles.contains(&(x, y)) {
+                    return Err(ContentError::FootprintOnWall {
+                        object: object.clone(),
+                        x,
+                        y,
+                    });
+                }
+            }
+        }
+        corners.push(far);
+    }
+
+    // Rule 1. `BTreeSet`/`BTreeMap` rather than the hash flavours for the
+    // reason `CompiledInteraction::advertises` gives: nothing on the way to
+    // the pack may depend on hash iteration order. Here it also decides which
+    // tile a multi-tile overlap is reported at, so an unordered map would
+    // make the error MESSAGE vary from build to build.
+    let mut occupied: BTreeMap<(u32, u32), usize> = BTreeMap::new();
+    for (index, ((object, tile, _), far)) in rects.iter().zip(&corners).enumerate() {
+        for y in tile.1..=far.1 {
+            for x in tile.0..=far.0 {
+                if let Some(previous) = occupied.insert((x, y), index) {
+                    return Err(ContentError::FootprintsOverlap {
+                        // `previous < index`, because placements are walked in
+                        // declaration order, so `first` is always the one
+                        // declared earlier.
+                        first: rects[previous].0.clone(),
+                        second: object.clone(),
+                        x,
+                        y,
+                    });
+                }
+            }
+        }
+    }
+
+    // Rule 3, and the one that pays for [F3]. Everything the walls and the
+    // footprints between them make impassable, which is exactly what
+    // `Sim::new_from_lot` will block.
+    let mut blocked = wall_tiles.clone();
+    blocked.extend(occupied.keys().copied());
+
+    // Every tile beside a rectangle that is inside the lot and walkable.
+    // `i64` so a rectangle touching x = 0 can name the column before it
+    // without wrapping.
+    let approaches = |tile: (u32, u32), far: (u32, u32)| -> Vec<(u32, u32)> {
+        let (x0, y0) = (tile.0 as i64, tile.1 as i64);
+        let (x1, y1) = (far.0 as i64, far.1 as i64);
+        let mut ring: Vec<(i64, i64)> = Vec::new();
+        for x in x0..=x1 {
+            ring.push((x, y0 - 1));
+            ring.push((x, y1 + 1));
+        }
+        for y in y0..=y1 {
+            ring.push((x0 - 1, y));
+            ring.push((x1 + 1, y));
+        }
+        ring.into_iter()
+            .filter(|&(x, y)| x >= 0 && y >= 0 && x < lot.width as i64 && y < lot.height as i64)
+            .map(|(x, y)| (x as u32, y as u32))
+            .filter(|tile| !blocked.contains(tile))
+            .collect()
+    };
+
+    // Half one, for every object, before half two for any of them: "this
+    // object is walled in" and "the lot is split in two" are different
+    // mistakes with different fixes, and the first is the more local.
+    let mut approach_sets = Vec::with_capacity(rects.len());
+    for ((object, tile, _), far) in rects.iter().zip(&corners) {
+        let beside = approaches(*tile, *far);
+        if beside.is_empty() {
+            return Err(ContentError::NoWalkableApproach {
+                object: object.clone(),
+                x: tile.0,
+                y: tile.1,
+            });
+        }
+        approach_sets.push(beside);
+    }
+
+    // Half two: every approach tile has to be in ONE region, so a sim can
+    // get from any object to any other. The flood fill starts at the first
+    // walkable tile in the lot, which is where an agent-carrying lot will
+    // have its earliest legal spawn, and is what makes "unreachable" a
+    // statement about a fixed origin rather than about an arbitrary pair.
+    //
+    // A lot with no walkable tile at all reaches this with `root` at `None`,
+    // and there is nothing to check: any object in it has already failed half
+    // one, and a lot with no objects and no floor is a different problem that
+    // no [F5] rule claims.
+    let root = (0..lot.height)
+        .flat_map(|y| (0..lot.width).map(move |x| (x, y)))
+        .find(|tile| !blocked.contains(tile));
+    if let Some(root) = root {
+        let reached = flood_fill(lot.width, lot.height, &blocked, root);
+        let index_of = |x: u32, y: u32| (y as usize) * (lot.width as usize) + (x as usize);
+        for ((object, _, _), beside) in rects.iter().zip(&approach_sets) {
+            for &(x, y) in beside {
+                if !reached[index_of(x, y)] {
+                    return Err(ContentError::UnreachableApproach {
+                        object: object.clone(),
+                        x,
+                        y,
+                        root_x: root.0,
+                        root_y: root.1,
+                    });
+                }
+            }
+        }
     }
 
     Ok(CompiledLot {
@@ -480,14 +999,114 @@ fn compile_lot(lot: LotFile, objects: &[CompiledObject]) -> Result<CompiledLot, 
     })
 }
 
+/// Which tiles are reachable from `root` by four-way movement over the
+/// unblocked tiles, as a `width * height` row-major bitmap.
+///
+/// Four-way rather than eight, matching `TileGrid::NEIGHBOURS`: a diagonal
+/// flood fill would call two rooms connected through a corner that no sim
+/// can actually walk through, which is the reachability check passing for a
+/// reason the simulation does not share.
+///
+/// Iterative rather than recursive. A 14x10 lot would recurse fine, but the
+/// depth is bounded by the tile count and a lot is authored content that
+/// nothing caps, so a deep lot would blow the build script's stack.
+fn flood_fill(
+    width: u32,
+    height: u32,
+    blocked: &BTreeSet<(u32, u32)>,
+    root: (u32, u32),
+) -> Vec<bool> {
+    let (w, h) = (width as usize, height as usize);
+    let mut reached = vec![false; w * h];
+    let index_of = |x: u32, y: u32| (y as usize) * w + (x as usize);
+    let mut stack = vec![root];
+    reached[index_of(root.0, root.1)] = true;
+
+    // Every push marks its tile reached first, so correct code pushes each
+    // tile at most once and this counter can never pass the tile count.
+    // The bound exists because this loop RUNS INSIDE THE BUILD: build.rs
+    // compiles the shipped content, so an unbounded revisit here is not a
+    // slow test but a build that never returns. Exactly that happened -
+    // mutating the `reached[index] ||` guard below into `&&` un-gates
+    // revisits, and the mutant burned a full CI build-timeout (and, before
+    // that timeout existed, entire runner-reclaimed jobs) instead of
+    // failing anything. A hang is always a weaker signal than an assertion
+    // ([L15] rule 4), so the loop carries its own bound, the same shape as
+    // SimRng::draw_below_bound and roll_wander_path.
+    let mut pushed = 1usize;
+
+    while let Some((x, y)) = stack.pop() {
+        for (dx, dy) in [(1i64, 0i64), (-1, 0), (0, 1), (0, -1)] {
+            let (nx, ny) = (x as i64 + dx, y as i64 + dy);
+            if nx < 0 || ny < 0 || nx >= width as i64 || ny >= height as i64 {
+                continue;
+            }
+            let next = (nx as u32, ny as u32);
+            let index = index_of(next.0, next.1);
+            if reached[index] || blocked.contains(&next) {
+                continue;
+            }
+            reached[index] = true;
+            pushed += 1;
+            assert!(
+                pushed <= reached.len(),
+                "flood_fill pushed more tiles than the lot holds; a tile \
+                 is being revisited, which marking-before-push makes \
+                 impossible in correct code"
+            );
+            stack.push(next);
+        }
+    }
+
+    // The counter is the bound's only witness, so it must be observable on
+    // CORRECT runs too: without this, `pushed += 1` mutated into a no-op
+    // (`*= 1`) leaves the bound above comparing 1 against the tile count
+    // forever - a guard that can be silently disabled is behaviour nothing
+    // constrains, which is the exact disease the mutation gate exists to
+    // catch. Marking-before-push makes pushes and marked tiles the same
+    // events, so the two counts are equal by construction, and any drift
+    // in the counter's arithmetic fails every test that reaches here.
+    assert_eq!(
+        pushed,
+        reached.iter().filter(|r| **r).count(),
+        "flood_fill's push counter disagrees with the reached bitmap"
+    );
+
+    reached
+}
+
 #[cfg(test)]
 mod tests {
+    /// `compile` with no personalities and no household, which is the
+    /// state every fixture predating M2c was written in. An empty
+    /// household is legal content - a furnished lot with nobody home -
+    /// so these fixtures stay statements about the thing each names
+    /// rather than about people.
+    fn compile_bare(
+        needs: NeedsFile,
+        objects: ObjectsFile,
+        lot: LotFile,
+        atlas: AtlasFile,
+        tuning: TuningFile,
+    ) -> Result<ContentPack, ContentError> {
+        compile(
+            needs,
+            objects,
+            lot,
+            atlas,
+            tuning,
+            PersonalitiesFile { archetype: vec![] },
+            HouseholdFile { sim: vec![] },
+        )
+    }
+
     // `super::*` already supplies ContentError, NeedsFile, ObjectsFile,
     // NeedId and NEED_COUNT. Only the types production code does not
     // name are imported here.
     use super::*;
     use crate::schema::{
-        AtlasSpriteDef, InteractionDef, NeedDef, ObjectDef, PlacementDef, WallDef,
+        ArchetypeDef, AtlasSpriteDef, DispositionDef, HouseholdSimDef, InteractionDef, NeedDef,
+        ObjectDef, PlacementDef, WallDef,
     };
 
     /// The atlas every test compiles against.
@@ -540,71 +1159,65 @@ mod tests {
     /// deliberately: `ContentPack` grew a field at the end, so every
     /// earlier block above kept its offset and stayed reviewable against
     /// the annotations it already had.
+    ///
+    /// **Habituation broke that discipline and this vector was regenerated
+    /// rather than patched.** Its three knobs were inserted in the MIDDLE of
+    /// `Tuning`, next to the other behaviour knobs where a designer will look
+    /// for them, which shifts every tuning byte after them. Grouping won over
+    /// append-only here because the annotations above only cover the object,
+    /// lot and atlas blocks, and those are unaffected - the whole cost was 12
+    /// bytes of tuning moving, which is exactly what this test exists to
+    /// report. Regenerated from the failing assertion, not hand-edited.
+    ///
+    /// **Footprints moved it twice over, for two independent and both
+    /// deliberate reasons.** `CompiledObject` gained a `footprint`, appended
+    /// after `interactions` so nothing before it shifts - that is the
+    /// `1, 1` immediately after the `15, 1` duration and slots on row 7, the
+    /// fixture object's default 1x1. And `distinct_lot`'s second wall moved
+    /// from `(3, 2)` to `(4, 2)`, which is the `4, 2` two bytes later; see
+    /// that fixture for why, because the reason is a rule doing its job
+    /// rather than a fixture being tidied.
+    ///
+    /// **Interaction labels moved it once more, by exactly one appended
+    /// block, and this was regenerated from the failing assertion rather
+    /// than hand-edited.** `CompiledInteraction` gained a `label` after
+    /// `slots`, so every byte up to and including the `15, 1` duration and
+    /// slots pair on row 7 kept its offset, and what follows it is new:
+    /// `15` for the string's length and then `Eat standing up` in ASCII,
+    /// ending `117, 112` on row 8. The `1, 1` immediately after that is the
+    /// object's default 1x1 footprint, unmoved and still the next block,
+    /// which is what the append discipline buys. 134 bytes to 146.
+    ///
+    /// The label is a DECLARED one rather than the id fallback - see
+    /// `snack_advertising_three_needs` - so these bytes also pin that the
+    /// author's wording, and not `grab_snack`, is what reaches the pack.
     #[rustfmt::skip]
     const GOLDEN_PACK_BYTES: &[u8] = &[
-        // decay_per_tick: seven LE f32 in NeedId index order.
-        0xCD, 0xCC, 0xCC, 0x3D, // [0] hunger  0.1
-        0xCD, 0xCC, 0x4C, 0x3E, // [1] energy  0.2
-        0x9A, 0x99, 0x99, 0x3E, // [2] hygiene 0.3
-        0xCD, 0xCC, 0xCC, 0x3E, // [3] bladder 0.4
-        0x00, 0x00, 0x00, 0x3F, // [4] social  0.5
-        0x9A, 0x99, 0x19, 0x3F, // [5] fun     0.6
-        0x33, 0x33, 0x33, 0x3F, // [6] comfort 0.7
-        0x01, // objects: 1
-        0x06, b'f', b'r', b'i', b'd', b'g', b'e',
-        0x06, b'F', b'r', b'i', b'd', b'g', b'e',
-        0x02, // sprite: 'fridge_art' is at index 2 of the fixture atlas,
-              // NOT 0, which is where a resolver reading the object's own
-              // position would put it
-        0x01, // interactions: 1
-        0x0A, b'g', b'r', b'a', b'b', b'_', b's', b'n', b'a', b'c', b'k',
-        0x03, // advertises: 3, index-ordered
-        0x00, 0x00, 0x00, 0x0C, 0x42, // hunger  35.0
-        0x01, 0x00, 0x00, 0x40, 0x40, // energy   3.0
-        0x06, 0x00, 0x00, 0xA0, 0x40, // comfort  5.0
-        0x0F, // duration_ticks: 15
-        0x01, // slots: 1
-        0x01, // sim_sprite: 'sim' is at index 1 of the fixture atlas
-        // lot: width, height, walls, placements.
-        0x05, // width:  5
-        0x03, // height: 3, so the two are not interchangeable
-        0x02, // walls: 2, in DECLARATION order, not sorted
-        0x03, 0x02, // (3, 2)
-        0x01, 0x00, // (1, 0)
-        0x01, // placements: 1
-        0x00, // 'fridge' resolved to ObjectDefId(0)
-        0x00, 0x00, 0x20, 0x40, // x 2.5, fractional on purpose
-        0x00, 0x00, 0xA0, 0x3F, // y 1.25
-        // tuning: five LE f32 and five varints, in `Tuning`'s field
-        // order. Every value differs, so a field encoded into the wrong
-        // slot moves these bytes.
-        0x00, 0x00, 0x80, 0x3E, // action_threshold      0.25
-        0x00, 0x00, 0x00, 0x3F, // choice_temperature    0.5
-        0x00, 0x00, 0x00, 0x3E, // idle_threshold        0.125
-        0x09,                   // wander_pause_ticks    9
-        0x06,                   // wander_attempts       6
-        0x00, 0x00, 0x40, 0x3F, // duration_variance     0.75
-        0x03,                   // min_interaction_ticks 3
-        0xAC, 0x02,             // rng_seed              300, a two-byte
-                                // varint, so the u64 is not silently a
-                                // single byte like the two u32s above
-        0x07,                   // max_queued_intents    7, APPENDED at
-                                // M1b Task 5 so every block above kept
-                                // its offset and its annotation
-        0x0B,                   // max_queued_commands   11, APPENDED at
-                                // M1b Task 6 for the same reason, and
-                                // deliberately different from 7 so a
-                                // compile step that filled one of the
-                                // two caps from the other moves these
-                                // bytes
-        0x0D,                   // need_bar_refresh_ms   13, APPENDED at
-                                // M1b Task 7, again keeping every offset
-                                // above it, and again a value no other
-                                // knob shares
-        0x00, 0x00, 0xC0, 0x3E, // contested_score_multiplier 0.375,
-                                // APPENDED for the same reason again, and
-                                // exact in binary32 so the assertion above
-                                // it can stay an equality
+        205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62,
+        205, 204, 204, 62, 0, 0, 0, 63, 154, 153, 25, 63,
+        51, 51, 51, 63, 1, 6, 102, 114, 105, 100, 103, 101,
+        6, 70, 114, 105, 100, 103, 101, 2, 1, 10, 103, 114,
+        97, 98, 95, 115, 110, 97, 99, 107, 3, 0, 0, 0,
+        12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64,
+        15, 1, 15, 69, 97, 116, 32, 115, 116, 97, 110, 100,
+        105, 110, 103, 32, 117, 112, 1, 1, 1, 5, 3, 2,
+        4, 2, 1, 0, 1, 0, 0, 0, 32, 64, 0, 0,
+        160, 63, 0, 0, 128, 62, 0, 0, 0, 63, 0, 0,
+        0, 62, 9, 6, 0, 0, 160, 62, 10, 215, 35, 59,
+        0, 0, 32, 63, 0, 0, 64, 63, 3, 172, 2, 7,
+        11, 13,
+        // `contested_score_multiplier` 0.375, appended after
+        // `need_bar_refresh_ms` and before the two Vec blocks below, so
+        // every earlier byte keeps the offset its annotation was written
+        // against. Read off the failing assertion, not derived by hand.
+        0, 0, 192, 62,
+        // M2c appended two Vec blocks to the pack - `personalities`, then
+        // `household` - and this fixture compiles through `compile_bare`,
+        // which passes both empty, so each is one varint length byte of 0.
+        // Every earlier byte kept its offset, which is the appending rule
+        // on `ContentPack::lot` doing its job. Read off the failing
+        // assertion after the change, not derived by hand.
+        0, 0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -623,7 +1236,7 @@ mod tests {
         objects: ObjectsFile,
         tuning: TuningFile,
     ) -> Result<ContentPack, ContentError> {
-        compile(needs, objects, bare_lot(), test_atlas(), tuning)
+        compile_bare(needs, objects, bare_lot(), test_atlas(), tuning)
     }
 
     fn bare_lot() -> LotFile {
@@ -639,11 +1252,24 @@ mod tests {
     /// non-square, walls declared out of sorted order, and a placement
     /// on fractional coordinates whose tile is neither `(0, 0)` nor
     /// either wall.
+    ///
+    /// **The second wall moved from `(3, 2)` to `(4, 2)` when footprints
+    /// arrived, and it moved because [F5] rule 3 rejected the old one.** With
+    /// `(1, 0)` walled, `(3, 2)` walled and the fridge's own tile `(2, 1)`
+    /// now impassable, a 5x3 lot splits into two regions of six tiles each -
+    /// and the fridge's approach tiles land in both, `(1, 1)` and `(2, 2)` on
+    /// one side and `(2, 0)` and `(3, 1)` on the other. That is precisely the
+    /// doorway-seal failure the rule exists to catch, arriving unprompted in
+    /// a fixture nobody wrote to demonstrate it, which is the strongest
+    /// evidence available that the rule has teeth. `(4, 2)` leaves the same
+    /// asymmetries in place - still out of sorted order relative to
+    /// `(1, 0)`, still the far corner - and leaves the lot connected through
+    /// row 2.
     fn distinct_lot() -> LotFile {
         LotFile {
             width: 5,
             height: 3,
-            wall: vec![WallDef { x: 3, y: 2 }, WallDef { x: 1, y: 0 }],
+            wall: vec![WallDef { x: 4, y: 2 }, WallDef { x: 1, y: 0 }],
             place: vec![PlacementDef {
                 object: "fridge".into(),
                 x: 2.5,
@@ -671,6 +1297,13 @@ mod tests {
                     id: (*id).to_string(),
                     name: id.to_uppercase(),
                     sprite: format!("{id}_art"),
+                    // Every fixture in this module is 1x1 unless it is about
+                    // footprints, and the footprint tests below build their own
+                    // objects. Widening one here would silently change what
+                    // `placements_resolve_to_the_declared_object_index` and the
+                    // golden vector are looking at, and the first symptom would
+                    // be an overlap error in a test about index resolution.
+                    footprint: Footprint::SINGLE,
                     interaction: vec![snack()],
                 })
                 .collect(),
@@ -700,6 +1333,9 @@ mod tests {
             wander_pause_ticks: 9,
             wander_attempts: 6,
             duration_variance: 0.75,
+            habituation_per_use: 0.3125,
+            habituation_decay_per_tick: 0.0025,
+            habituation_floor: 0.625,
             min_interaction_ticks: 3,
             contested_score_multiplier: 0.375,
             rng_seed: 300,
@@ -733,7 +1369,7 @@ mod tests {
     /// Compiles otherwise-valid content against the given tuning, so the
     /// tests below vary one knob and nothing else.
     fn compile_tuned(tuning: TuningFile) -> Result<ContentPack, ContentError> {
-        compile(
+        compile_bare(
             full_needs(),
             one_object(snack()),
             bare_lot(),
@@ -762,11 +1398,17 @@ mod tests {
     }
 
     fn one_object(interaction: InteractionDef) -> ObjectsFile {
+        one_object_sized(interaction, Footprint::SINGLE)
+    }
+
+    /// `one_object` with a footprint, for the rules that need a rectangle.
+    fn one_object_sized(interaction: InteractionDef, footprint: Footprint) -> ObjectsFile {
         ObjectsFile {
             object: vec![ObjectDef {
                 id: "fridge".into(),
                 name: "Fridge".into(),
                 sprite: "fridge_art".into(),
+                footprint,
                 interaction: vec![interaction],
             }],
         }
@@ -775,6 +1417,12 @@ mod tests {
     fn snack() -> InteractionDef {
         InteractionDef {
             id: "grab_snack".into(),
+            // Unlabelled, which is the DEFAULTING path and therefore the
+            // one most tests should exercise: an object authored before
+            // the flyout existed says nothing about a label, and every
+            // rule in this module has to keep working for it. The
+            // labelled path gets its own fixtures below.
+            label: None,
             advertises: [("hunger".to_string(), 35.0)].into_iter().collect(),
             duration_ticks: 15,
             slots: 1,
@@ -784,8 +1432,14 @@ mod tests {
     /// comfort (6), energy (1), hunger (0): the `BTreeMap`'s name order
     /// is the exact reverse of the index order the pack wants, so the
     /// two can never coincide by accident.
+    ///
+    /// The golden vector compiles this one, so it also carries a DECLARED
+    /// label - and one that shares no characters with `grab_snack`, so a
+    /// label encoded off the `id` slot moves the bytes rather than
+    /// reproducing them.
     fn snack_advertising_three_needs() -> InteractionDef {
         let mut act = snack();
+        act.label = Some("Eat standing up".into());
         act.advertises.insert("comfort".into(), 5.0);
         act.advertises.insert("energy".into(), 3.0);
         act
@@ -886,7 +1540,7 @@ mod tests {
             "an empty atlas would fail for the other reason and prove nothing"
         );
         assert_eq!(
-            compile(
+            compile_bare(
                 full_needs(),
                 one_object(snack()),
                 bare_lot(),
@@ -1026,6 +1680,7 @@ mod tests {
             id: "fridge".into(),
             name: "Another".into(),
             sprite: "fridge_art".into(),
+            footprint: Footprint::SINGLE,
             interaction: vec![],
         });
         let err = compile_objects(full_needs(), objects).unwrap_err();
@@ -1058,6 +1713,7 @@ mod tests {
             id: "vending".into(),
             name: "Vending".into(),
             sprite: "fridge_art".into(),
+            footprint: Footprint::SINGLE,
             interaction: vec![snack()],
         });
         compile_objects(full_needs(), objects).expect("ids are scoped to their object");
@@ -1089,6 +1745,60 @@ mod tests {
                 interaction: "grab_snack".into()
             }
         );
+    }
+
+    /// **The label rule, all three of its states in one run**, because two
+    /// of them are only meaningful against each other.
+    ///
+    /// A declared label must survive compilation verbatim; an omitted one
+    /// must become the interaction's own `id`; and a blank one must be
+    /// rejected. Split into three tests, the middle one would pass on an
+    /// implementation that ignored `label` entirely and always used the id,
+    /// and the first would pass on one that never defaulted - so the pair
+    /// has to be asserted together, and the fixture's declared label shares
+    /// no characters with its id so the two answers cannot be confused.
+    ///
+    /// The blank case covers `" "` as well as `""`. They draw the same
+    /// nothing in the menu, and a rule written as `is_empty` accepts the
+    /// first while rejecting the second, which is a build that passes and a
+    /// menu row that is still blank.
+    #[test]
+    fn an_interaction_label_defaults_to_its_id_is_kept_verbatim_and_is_never_blank() {
+        let compiled = |act: InteractionDef| -> Result<String, ContentError> {
+            compile_objects(full_needs(), one_object(act))
+                .map(|pack| pack.objects[0].interactions[0].label.clone())
+        };
+
+        assert_eq!(
+            compiled(snack()).expect("valid"),
+            "grab_snack",
+            "an interaction that declares no label must fall back to its \
+             own id; an empty string here is a blank menu row"
+        );
+
+        let mut labelled = snack();
+        labelled.label = Some("Eat standing up".into());
+        assert_eq!(
+            compiled(labelled).expect("valid"),
+            "Eat standing up",
+            "a declared label must reach the pack verbatim, or the flyout \
+             shows the id and content/objects.toml has stopped being where \
+             the wording lives"
+        );
+
+        for blank in ["", " ", "\t"] {
+            let mut act = snack();
+            act.label = Some(blank.into());
+            assert_eq!(
+                compiled(act).unwrap_err(),
+                ContentError::EmptyInteractionLabel {
+                    object: "fridge".into(),
+                    interaction: "grab_snack".into()
+                },
+                "a label of {blank:?} must be rejected rather than compiled \
+                 into a clickable row of empty space"
+            );
+        }
     }
 
     /// `check_finite` guards three call sites - adverts, placement x and
@@ -1135,7 +1845,7 @@ mod tests {
                 });
                 assert!(
                     matches!(
-                        compile(
+                        compile_bare(
                             full_needs(),
                             one_object(snack()),
                             lot,
@@ -1328,7 +2038,7 @@ mod tests {
     /// regression, and the vector is doing its job.
     #[test]
     fn a_compiled_pack_serialises_to_a_stable_golden_vector() {
-        let pack = compile(
+        let pack = compile_bare(
             full_needs(),
             one_object(snack_advertising_three_needs()),
             distinct_lot(),
@@ -1387,6 +2097,52 @@ mod tests {
     /// meaningless - it inverts the softmax, so the least urgent option
     /// becomes the most likely.
     ///
+    /// **The habituation floor's two bounds, and there was no test for
+    /// either.** Three mutants survived the whole workspace here, found by
+    /// the M2b sweep: `||` to `&&`, and `> 1.0` to `== 1.0` and to `>= 1.0`.
+    ///
+    /// The floor is a MULTIPLIER applied to a fully habituated
+    /// interaction's benefit, so each bound fails in its own quiet way and
+    /// neither fails loudly:
+    ///
+    /// - **Zero** makes a saturated interaction worth exactly nothing, so
+    ///   the last object satisfying some need can become permanently
+    ///   unselectable. That is a need going unsatisfiable dynamically,
+    ///   which `every_declared_need_can_be_satisfied_by_some_interaction`
+    ///   is static and cannot see.
+    /// - **Above one** turns habituation into a REWARD for repetition: the
+    ///   more a sim does something the better it scores, which is the
+    ///   mechanic inverted rather than disabled.
+    ///
+    /// Four cases, and each one is the only input that kills one of the
+    /// three mutants:
+    ///
+    /// - `0.0` is `<= 0.0` and NOT `> 1.0`, so it separates `||` from `&&`;
+    /// - `1.5` is `> 1.0` and NOT `<= 0.0`, so it separates them the other
+    ///   way, and it also kills `> 1.0` becoming `== 1.0`;
+    /// - `1.0` must be ACCEPTED, which is what kills `>` becoming `>=`.
+    ///   A floor of 1 disables the effect and that is legal;
+    /// - a negative, because the range is a range and not a sign check.
+    #[test]
+    fn rejects_a_habituation_floor_outside_zero_exclusive_to_one_inclusive() {
+        for bad in [0.0, -0.25, 1.5, f32::MAX] {
+            assert_eq!(
+                compile_tuned(tuning_where(|t| t.habituation_floor = bad)).unwrap_err(),
+                ContentError::HabituationFloorOutOfRange { value: bad },
+                "a habituation_floor of {bad} either makes an interaction                  permanently worthless or rewards repetition"
+            );
+        }
+
+        // Both ends of what IS legal. 1.0 is the one that pins `>` rather
+        // than `>=`; the smallest positive float is the other side of the
+        // `<=` boundary, and is legal however useless.
+        for good in [1.0, f32::MIN_POSITIVE] {
+            let pack = compile_tuned(tuning_where(|t| t.habituation_floor = good))
+                .unwrap_or_else(|e| panic!("a floor of {good} is legal; got {e}"));
+            assert_eq!(pack.tuning.habituation_floor, good);
+        }
+    }
+
     /// Zero is the case that pins `<=` rather than `<`, and the smallest
     /// positive float is the other side of that boundary.
     #[test]
@@ -1575,7 +2331,7 @@ mod tests {
     fn rejects_an_interaction_the_floor_would_set_the_length_of() {
         let mut act = snack();
         act.duration_ticks = 8;
-        let err = compile(
+        let err = compile_bare(
             full_needs(),
             one_object(act),
             bare_lot(),
@@ -1612,7 +2368,7 @@ mod tests {
         let at_the_line = |ticks: u32| {
             let mut act = snack();
             act.duration_ticks = ticks;
-            compile(
+            compile_bare(
                 full_needs(),
                 one_object(act),
                 bare_lot(),
@@ -1839,7 +2595,7 @@ mod tests {
     /// the placement's coordinates are fractional and unequal.
     #[test]
     fn compiles_a_lot_into_the_pack() {
-        let pack = compile(
+        let pack = compile_bare(
             full_needs(),
             one_object(snack()),
             distinct_lot(),
@@ -1852,7 +2608,7 @@ mod tests {
         assert_eq!((lot.width, lot.height), (5, 3));
         assert_eq!(
             lot.walls,
-            vec![(3, 2), (1, 0)],
+            vec![(4, 2), (1, 0)],
             "walls must keep declaration order; sorting them would be a \
              mechanism with nothing to disambiguate"
         );
@@ -1883,7 +2639,7 @@ mod tests {
                 .collect(),
         };
 
-        let pack = compile(
+        let pack = compile_bare(
             full_needs(),
             three_objects(),
             lot,
@@ -1930,7 +2686,7 @@ mod tests {
                 lot.place.clear();
             });
             assert_eq!(
-                compile(
+                compile_bare(
                     full_needs(),
                     one_object(snack()),
                     lot,
@@ -1960,7 +2716,7 @@ mod tests {
         for (x, y) in [(5, 1), (1, 3), (-1, 1), (1, -1), (-1, -1)] {
             let lot = lot_where(|lot| lot.wall = vec![WallDef { x, y }]);
             assert_eq!(
-                compile(
+                compile_bare(
                     full_needs(),
                     one_object(snack()),
                     lot,
@@ -1981,7 +2737,7 @@ mod tests {
         // The boundary from the other side, so the test cannot pass by
         // rejecting everything. (4, 2) is the far corner of a 5x3 lot.
         let lot = lot_where(|lot| lot.wall = vec![WallDef { x: 4, y: 2 }]);
-        let pack = compile(
+        let pack = compile_bare(
             full_needs(),
             one_object(snack()),
             lot,
@@ -2006,7 +2762,7 @@ mod tests {
                 lot.place[0].y = y;
             });
             assert_eq!(
-                compile(
+                compile_bare(
                     full_needs(),
                     one_object(snack()),
                     lot,
@@ -2032,7 +2788,7 @@ mod tests {
             // other reason and prove nothing about the bound.
             lot.wall.clear();
         });
-        let pack = compile(
+        let pack = compile_bare(
             full_needs(),
             one_object(snack()),
             lot,
@@ -2049,16 +2805,16 @@ mod tests {
     /// Exactly the silent failure [D9] exists to turn into a build error.
     #[test]
     fn rejects_a_placement_on_a_wall_tile() {
-        // distinct_lot walls (3, 2) and (1, 0). The placement is on
-        // FRACTIONAL coordinates inside the second of those, so the test
+        // distinct_lot walls (4, 2) and (1, 0). The placement is on
+        // FRACTIONAL coordinates inside the first of those, so the test
         // also pins that the tile is the floor of the coordinates rather
         // than the coordinates themselves.
         let lot = lot_where(|lot| {
-            lot.place[0].x = 3.75;
+            lot.place[0].x = 4.75;
             lot.place[0].y = 2.5;
         });
         assert_eq!(
-            compile(
+            compile_bare(
                 full_needs(),
                 one_object(snack()),
                 lot,
@@ -2068,7 +2824,7 @@ mod tests {
             .unwrap_err(),
             ContentError::PlacementOnWall {
                 object: "fridge".into(),
-                x: 3,
+                x: 4,
                 y: 2
             }
         );
@@ -2079,14 +2835,14 @@ mod tests {
             lot.place[0].x = 2.5;
             lot.place[0].y = 0.5;
         });
-        compile(
+        compile_bare(
             full_needs(),
             one_object(snack()),
             lot,
             test_atlas(),
             full_tuning(),
         )
-        .expect("(2, 0) is not a wall; (3, 2) and (1, 0) are");
+        .expect("(2, 0) is not a wall; (4, 2) and (1, 0) are");
     }
 
     /// The dangling-reference check, and the reason this pipeline exists
@@ -2097,7 +2853,7 @@ mod tests {
     fn rejects_a_placement_naming_an_object_that_does_not_exist() {
         let lot = lot_where(|lot| lot.place[0].object = "hovercraft".into());
         assert_eq!(
-            compile(
+            compile_bare(
                 full_needs(),
                 one_object(snack()),
                 lot,
@@ -2114,7 +2870,7 @@ mod tests {
         // the rejection is about the reference rather than about the
         // rule firing unconditionally.
         let lot = lot_where(|lot| lot.place[0].object = "sink".into());
-        let pack = compile(
+        let pack = compile_bare(
             full_needs(),
             three_objects(),
             lot,
@@ -2228,7 +2984,7 @@ mod tests {
 
         for (lot, expected) in cases {
             assert_eq!(
-                compile(
+                compile_bare(
                     full_needs(),
                     one_object(snack()),
                     lot,
@@ -2240,5 +2996,1012 @@ mod tests {
                 expected
             );
         }
+    }
+
+    // ---- Footprints ----------------------------------------------------
+    //
+    // [F5]'s three rules, one test each, and each paired with the case on
+    // the other side of its boundary per [L26]. The boundaries are where
+    // these rules are easy to get wrong by one tile: a rectangle whose far
+    // edge is exactly the lot's last column is legal, two rectangles that
+    // TOUCH are legal, and an object with exactly one walkable tile beside
+    // it is legal. All three of those look like the rejected case from a
+    // distance.
+    //
+    // These build their own lots rather than reusing `distinct_lot`, which
+    // is 5x3 and has no room for a rectangle plus the walls needed to
+    // constrain it. Keeping them apart also keeps `distinct_lot`'s tests
+    // about the authored COORDINATE and these about the RECTANGLE, which are
+    // separately checked and separately reported.
+
+    /// Objects with footprints. Ids are limited to the three `test_atlas`
+    /// holds art for, which is enough: no rule below needs a fourth object.
+    fn sized_objects(sized: &[(&str, u32, u32)]) -> ObjectsFile {
+        ObjectsFile {
+            object: sized
+                .iter()
+                .map(|(id, width, depth)| ObjectDef {
+                    id: (*id).to_string(),
+                    name: id.to_uppercase(),
+                    sprite: format!("{id}_art"),
+                    footprint: Footprint {
+                        width: *width,
+                        depth: *depth,
+                    },
+                    interaction: vec![snack()],
+                })
+                .collect(),
+        }
+    }
+
+    // ---- Personalities and the household - [H2], [H3] -------------------
+
+    /// One archetype whose every number is distinguishable from every
+    /// other and from 1.0, so a value landing in the wrong slot moves an
+    /// assertion ([L34]).
+    fn archetype(id: &str) -> ArchetypeDef {
+        ArchetypeDef {
+            id: id.to_string(),
+            drain: [("fun".to_string(), 1.5)].into_iter().collect(),
+            satisfaction: [("hunger".to_string(), 0.75)].into_iter().collect(),
+            disposition: vec![DispositionDef {
+                object: "fridge".to_string(),
+                interaction: "grab_snack".to_string(),
+                weight: 1.25,
+            }],
+        }
+    }
+
+    fn member(name: &str, archetype: &str, x: f32, y: f32) -> HouseholdSimDef {
+        HouseholdSimDef {
+            name: name.to_string(),
+            archetype: archetype.to_string(),
+            x,
+            y,
+            needs: [("hunger".to_string(), 62.5)].into_iter().collect(),
+        }
+    }
+
+    /// Compiles the standard object fixtures plus the given people, on a
+    /// 4x3 lot whose fridge sits at (2, 1) with a wall at (1, 0) - so
+    /// there is real walkable floor to spawn on, a real footprint to
+    /// spawn into, and a real wall to spawn onto.
+    fn compile_people(
+        archetypes: Vec<ArchetypeDef>,
+        sims: Vec<HouseholdSimDef>,
+    ) -> Result<ContentPack, ContentError> {
+        compile(
+            full_needs(),
+            one_object(snack()),
+            lot_of(4, 3, &[(1, 0)], &[("fridge", 2.0, 1.0)]),
+            test_atlas(),
+            full_tuning(),
+            PersonalitiesFile {
+                archetype: archetypes,
+            },
+            HouseholdFile { sim: sims },
+        )
+    }
+
+    /// The happy path, with every landing slot asserted. Sparse authored
+    /// maps become dense arrays with 1.0 in every unnamed slot - not 0.0,
+    /// which would freeze decay and nullify benefits silently - and the
+    /// household member's absent needs start at NEED_MAX.
+    #[test]
+    fn compiles_an_archetype_and_a_household_member_into_their_slots() {
+        let pack = compile_people(
+            vec![archetype("the_settled")],
+            vec![member("Terri", "the_settled", 0.5, 2.25)],
+        )
+        .expect("valid people");
+
+        let personality = &pack.personalities[0];
+        assert_eq!(personality.id, "the_settled");
+        for id in NeedId::ALL {
+            let expected_drain = if id == NeedId::Fun { 1.5 } else { 1.0 };
+            let expected_satisfaction = if id == NeedId::Hunger { 0.75 } else { 1.0 };
+            assert_eq!(
+                personality.drain[id.index()],
+                expected_drain,
+                "drain for {}",
+                id.as_str()
+            );
+            assert_eq!(
+                personality.satisfaction[id.index()],
+                expected_satisfaction,
+                "satisfaction for {}",
+                id.as_str()
+            );
+        }
+        assert_eq!(
+            personality.dispositions,
+            vec![(ObjectDefId(0), 0, 1.25)],
+            "the disposition must resolve both names to indices"
+        );
+
+        let sim = &pack.household[0];
+        assert_eq!(sim.name, "Terri");
+        assert_eq!(sim.personality, 0);
+        assert_eq!((sim.x, sim.y), (0.5, 2.25), "coordinates kept verbatim");
+        for id in NeedId::ALL {
+            let expected = if id == NeedId::Hunger { 62.5 } else { NEED_MAX };
+            assert_eq!(sim.needs[id.index()], expected, "{}", id.as_str());
+        }
+    }
+
+    /// Dispositions are stored SORTED whatever order authoring used,
+    /// because the component binary-searches them and their iteration
+    /// order must be deterministic. Declared out of order with distinct
+    /// weights, so a sort that dropped or duplicated an entry is visible
+    /// in the values.
+    #[test]
+    fn dispositions_compile_sorted_by_key_not_by_declaration_order() {
+        let mut hostile = archetype("the_settled");
+        hostile.disposition = vec![
+            DispositionDef {
+                object: "couch".to_string(),
+                interaction: "lounge".to_string(),
+                weight: 1.75,
+            },
+            DispositionDef {
+                object: "fridge".to_string(),
+                interaction: "grab_snack".to_string(),
+                weight: 0.25,
+            },
+        ];
+        // A second object so there are two ObjectDefIds to sort between.
+        let mut objects = one_object(snack());
+        objects.object.push(ObjectDef {
+            id: "couch".into(),
+            name: "Couch".into(),
+            sprite: "couch_art".into(),
+            footprint: Footprint::SINGLE,
+            interaction: vec![InteractionDef {
+                id: "lounge".into(),
+                label: None,
+                advertises: [("comfort".to_string(), 20.0)].into_iter().collect(),
+                duration_ticks: 25,
+                slots: 1,
+            }],
+        });
+        let pack = compile(
+            full_needs(),
+            objects,
+            lot_of(5, 3, &[], &[("fridge", 2.0, 1.0), ("couch", 4.0, 1.0)]),
+            test_atlas(),
+            full_tuning(),
+            PersonalitiesFile {
+                archetype: vec![hostile],
+            },
+            HouseholdFile { sim: vec![] },
+        )
+        .expect("two dispositions on two objects are valid");
+
+        // fridge is ObjectDefId 0 and couch is 1, so sorted order is the
+        // reverse of the declaration order above.
+        assert_eq!(
+            pack.personalities[0].dispositions,
+            vec![(ObjectDefId(0), 0, 0.25), (ObjectDefId(1), 0, 1.75)]
+        );
+    }
+
+    #[test]
+    fn rejects_a_duplicate_archetype_id() {
+        assert_eq!(
+            compile_people(
+                vec![archetype("the_settled"), archetype("the_settled")],
+                vec![]
+            )
+            .unwrap_err(),
+            ContentError::DuplicateArchetype {
+                id: "the_settled".into()
+            }
+        );
+    }
+
+    /// Both maps, because they are validated by separate loops and the
+    /// `map` field in the error is what tells the author which line to
+    /// fix.
+    #[test]
+    fn rejects_an_unknown_need_in_either_personality_map() {
+        let mut bad_drain = archetype("a");
+        bad_drain.drain.insert("moxie".into(), 1.1);
+        assert_eq!(
+            compile_people(vec![bad_drain], vec![]).unwrap_err(),
+            ContentError::UnknownPersonalityNeed {
+                archetype: "a".into(),
+                map: "drain",
+                need: "moxie".into()
+            }
+        );
+
+        let mut bad_satisfaction = archetype("a");
+        bad_satisfaction.satisfaction.insert("moxie".into(), 1.1);
+        assert_eq!(
+            compile_people(vec![bad_satisfaction], vec![]).unwrap_err(),
+            ContentError::UnknownPersonalityNeed {
+                archetype: "a".into(),
+                map: "satisfaction",
+                need: "moxie".into()
+            }
+        );
+    }
+
+    /// **The floors DIFFER between the two maps, and the asymmetry is the
+    /// rule.** A drain of 0 is a placid trait - the need never troubles
+    /// this sim - and must compile. A satisfaction of 0 makes the need
+    /// dynamically unsatisfiable for this one sim, which is [C2] with a
+    /// face on it, and must not.
+    #[test]
+    fn a_zero_drain_is_a_trait_and_a_zero_satisfaction_is_a_trap() {
+        let mut placid = archetype("a");
+        placid.drain.insert("social".into(), 0.0);
+        compile_people(vec![placid], vec![]).expect("a need that never drains is legal content");
+
+        let mut trapped = archetype("a");
+        trapped.satisfaction.insert("social".into(), 0.0);
+        assert_eq!(
+            compile_people(vec![trapped], vec![]).unwrap_err(),
+            ContentError::NonPositiveSatisfaction {
+                archetype: "a".into(),
+                need: "social".into(),
+                value: 0.0
+            }
+        );
+        // And the smallest positive float is legal, pinning `<=` rather
+        // than `<`.
+        let mut barely = archetype("a");
+        barely
+            .satisfaction
+            .insert("social".into(), f32::MIN_POSITIVE);
+        compile_people(vec![barely], vec![]).expect("any positive satisfaction is legal");
+    }
+
+    /// A weight of 0 is the "fear of couches" the design brief asks for
+    /// and must compile; a negative weight would flip a benefit's sign
+    /// inside scoring and is rejected as the sign error it is.
+    #[test]
+    fn a_zero_disposition_is_a_fear_and_a_negative_one_is_rejected() {
+        let mut fearful = archetype("a");
+        fearful.disposition[0].weight = 0.0;
+        compile_people(vec![fearful], vec![]).expect("a refusal is legal content");
+
+        let mut backwards = archetype("a");
+        backwards.disposition[0].weight = -0.5;
+        assert!(matches!(
+            compile_people(vec![backwards], vec![]).unwrap_err(),
+            ContentError::NegativeValue { .. }
+        ));
+    }
+
+    #[test]
+    fn rejects_a_disposition_toward_missing_content() {
+        let mut no_object = archetype("a");
+        no_object.disposition[0].object = "hovercraft".into();
+        assert_eq!(
+            compile_people(vec![no_object], vec![]).unwrap_err(),
+            ContentError::UnknownDispositionObject {
+                archetype: "a".into(),
+                object: "hovercraft".into()
+            }
+        );
+
+        let mut no_interaction = archetype("a");
+        no_interaction.disposition[0].interaction = "defrost".into();
+        assert_eq!(
+            compile_people(vec![no_interaction], vec![]).unwrap_err(),
+            ContentError::UnknownDispositionInteraction {
+                archetype: "a".into(),
+                object: "fridge".into(),
+                interaction: "defrost".into()
+            }
+        );
+    }
+
+    #[test]
+    fn rejects_two_dispositions_for_one_interaction() {
+        let mut doubled = archetype("a");
+        // Different WEIGHT, same key: the ambiguity is which weight wins,
+        // and a fixture with equal weights could not show it mattered.
+        let first_weight = doubled.disposition[0].weight;
+        doubled.disposition.push(DispositionDef {
+            object: "fridge".to_string(),
+            interaction: "grab_snack".to_string(),
+            weight: 0.5,
+        });
+        assert_ne!(doubled.disposition[1].weight, first_weight);
+        assert_eq!(
+            compile_people(vec![doubled], vec![]).unwrap_err(),
+            ContentError::DuplicateDisposition {
+                archetype: "a".into(),
+                object: "fridge".into(),
+                interaction: "grab_snack".into()
+            }
+        );
+    }
+
+    #[test]
+    fn rejects_a_household_member_with_a_missing_archetype_or_a_blank_name() {
+        assert_eq!(
+            compile_people(vec![], vec![member("Terri", "the_settled", 0.5, 2.0)]).unwrap_err(),
+            ContentError::UnknownArchetype {
+                sim: "Terri".into(),
+                archetype: "the_settled".into()
+            }
+        );
+        // Whitespace, not just empty: "   " renders exactly as blank in
+        // the needs panel, and a trim is what the rule uses.
+        assert_eq!(
+            compile_people(
+                vec![archetype("the_settled")],
+                vec![member("   ", "the_settled", 0.5, 2.0)]
+            )
+            .unwrap_err(),
+            ContentError::EmptySimName { index: 0 }
+        );
+    }
+
+    /// The three geometric spawn rules, each against the mistake it
+    /// exists for: off the lot, inside the fridge's footprint, on the
+    /// wall tile - plus NaN, which must be rejected as non-finite BEFORE
+    /// the bounds comparison every NaN would pass.
+    #[test]
+    fn rejects_a_spawn_off_the_lot_or_inside_something_solid() {
+        let people = |x, y| {
+            compile_people(
+                vec![archetype("the_settled")],
+                vec![member("Terri", "the_settled", x, y)],
+            )
+        };
+
+        assert_eq!(
+            people(4.0, 1.0).unwrap_err(),
+            ContentError::SpawnOutOfBounds {
+                sim: "Terri".into(),
+                x: 4.0,
+                y: 1.0,
+                width: 4,
+                height: 3
+            }
+        );
+        // **The negative side, per axis, separately - three mutants lived
+        // here.** The bounds check is four clauses joined by `||`, and the
+        // positive-overflow case above exercises only the third: with
+        // nothing spawning at a negative coordinate, `< 0.0` was free to
+        // become `== 0.0` or `<= 0.0`, and the first `||` free to become
+        // `&&`, all three surviving the whole workspace - found by the M2c
+        // targeted sweep. One axis negative at a time, because the `&&`
+        // mutant is only visible on an input where exactly one clause
+        // fires; both-negative would satisfy either operator.
+        //
+        // A negative spawn that slipped past this check would not stay a
+        // bounds problem: `sim.x as u32` saturates a negative to 0 in Rust,
+        // so the sim would silently spawn on the west wall's column instead
+        // of failing - an authoring typo turned into a wrong position with
+        // no error anywhere.
+        assert!(matches!(
+            people(-0.5, 1.0).unwrap_err(),
+            ContentError::SpawnOutOfBounds { .. }
+        ));
+        assert!(matches!(
+            people(0.5, -0.5).unwrap_err(),
+            ContentError::SpawnOutOfBounds { .. }
+        ));
+        // And exactly 0.0 is LEGAL - the north-west walkable corner is a
+        // real spawn tile, and this is the input that pins `<` against
+        // `<=`. (0.0, 2.0) rather than (0.0, 0.0) because row 0 of this
+        // fixture holds the wall and the check being pinned is bounds,
+        // not blockedness.
+        people(0.0, 2.0).expect("the lot's west edge is a legal spawn column");
+        assert_eq!(
+            people(2.5, 1.5).unwrap_err(),
+            ContentError::SpawnOnBlockedTile {
+                sim: "Terri".into(),
+                x: 2,
+                y: 1
+            },
+            "the fridge's own tile; a sim born inside a footprint can never step out"
+        );
+        assert_eq!(
+            people(1.0, 0.0).unwrap_err(),
+            ContentError::SpawnOnBlockedTile {
+                sim: "Terri".into(),
+                x: 1,
+                y: 0
+            },
+            "the wall tile"
+        );
+        assert!(matches!(
+            people(f32::NAN, 1.0).unwrap_err(),
+            ContentError::NonFiniteValue { .. }
+        ));
+    }
+
+    /// A sim spawned on a walkable tile inside a sealed pocket is a
+    /// failure no other rule can see: no OBJECT is unreachable, so [F5]
+    /// rule 3 passes - the sim itself is what cannot get out.
+    #[test]
+    fn rejects_a_spawn_sealed_off_from_the_rest_of_the_lot() {
+        let err = compile(
+            full_needs(),
+            one_object(snack()),
+            lot_of(4, 3, &[(2, 0), (2, 1), (2, 2)], &[("fridge", 0.0, 0.0)]),
+            test_atlas(),
+            full_tuning(),
+            PersonalitiesFile {
+                archetype: vec![archetype("the_settled")],
+            },
+            HouseholdFile {
+                sim: vec![member("Terri", "the_settled", 3.0, 1.0)],
+            },
+        )
+        .unwrap_err();
+        assert_eq!(
+            err,
+            ContentError::SpawnUnreachable {
+                sim: "Terri".into(),
+                x: 3,
+                y: 1,
+                root_x: 1,
+                root_y: 0
+            },
+            "root is (1, 0): (0, 0) holds the fridge, so the first \
+             walkable tile scanning row-major is the one east of it"
+        );
+    }
+
+    #[test]
+    fn rejects_a_starting_need_that_is_unknown_or_out_of_range() {
+        let with_need = |need: &str, value: f32| {
+            let mut sim = member("Terri", "the_settled", 0.5, 2.0);
+            sim.needs = [(need.to_string(), value)].into_iter().collect();
+            compile_people(vec![archetype("the_settled")], vec![sim])
+        };
+
+        assert_eq!(
+            with_need("moxie", 50.0).unwrap_err(),
+            ContentError::UnknownStartingNeed {
+                sim: "Terri".into(),
+                need: "moxie".into()
+            }
+        );
+        assert_eq!(
+            with_need("hunger", 620.0).unwrap_err(),
+            ContentError::StartingNeedOutOfRange {
+                sim: "Terri".into(),
+                need: "hunger".into(),
+                value: 620.0
+            },
+            "the typo this rule exists for: 620.0 written for 62.0"
+        );
+        assert_eq!(
+            with_need("hunger", -0.5).unwrap_err(),
+            ContentError::StartingNeedOutOfRange {
+                sim: "Terri".into(),
+                need: "hunger".into(),
+                value: -0.5
+            }
+        );
+        // Both boundaries are legal: 0 is desperate, not invalid.
+        with_need("hunger", 0.0).expect("a sim may arrive at rock bottom");
+        with_need("hunger", 100.0).expect("or perfectly content");
+    }
+
+    fn lot_of(
+        width: u32,
+        height: u32,
+        walls: &[(i32, i32)],
+        places: &[(&str, f32, f32)],
+    ) -> LotFile {
+        LotFile {
+            width,
+            height,
+            wall: walls.iter().map(|&(x, y)| WallDef { x, y }).collect(),
+            place: places
+                .iter()
+                .map(|&(object, x, y)| PlacementDef {
+                    object: object.to_string(),
+                    x,
+                    y,
+                })
+                .collect(),
+        }
+    }
+
+    /// Compiles a geometry fixture against valid needs, tuning and atlas, so
+    /// each test below varies only the objects and the lot.
+    fn compile_geometry(objects: ObjectsFile, lot: LotFile) -> Result<ContentPack, ContentError> {
+        compile_bare(full_needs(), objects, lot, test_atlas(), full_tuning())
+    }
+
+    /// The accepting half of the whole feature: a declared footprint reaches
+    /// the pack, on the right object, with width and depth the right way
+    /// round.
+    ///
+    /// 3x2 rather than square, so a transposed field moves an assertion; and
+    /// a second object left at its default, so "every object gets the first
+    /// one's rectangle" is visible. Without the second object a compile step
+    /// that wrote one footprint over all of them would pass.
+    #[test]
+    fn an_objects_footprint_reaches_the_pack_with_its_width_and_depth_unswapped() {
+        let pack = compile_geometry(
+            sized_objects(&[("fridge", 3, 2), ("bed", 1, 1)]),
+            lot_of(8, 6, &[], &[("fridge", 1.0, 1.0), ("bed", 6.0, 4.0)]),
+        )
+        .expect("a 3x2 rectangle at (1, 1) fits an 8x6 lot with room to walk");
+
+        assert_eq!(
+            pack.objects.len(),
+            2,
+            "one object cannot see a shared write"
+        );
+        assert_eq!(
+            pack.objects[0].footprint,
+            Footprint { width: 3, depth: 2 },
+            "the fridge's own rectangle, 3 wide and 2 deep and not the transpose"
+        );
+        assert_eq!(
+            pack.objects[1].footprint,
+            Footprint::SINGLE,
+            "the bed declared 1x1 and must still be 1x1"
+        );
+    }
+
+    /// A zero dimension covers no tiles, so nothing is beside the object,
+    /// `find_path_adjacent` finds nowhere to stand, and scoring drops it
+    /// silently for ever - the object is furniture with an interaction
+    /// nobody can reach.
+    ///
+    /// All three zero shapes, because `width == 0 || depth == 0` mutated to
+    /// `&&` still rejects 0x0: a test of that case alone leaves the mutant
+    /// alive. Same reasoning as `rejects_a_lot_with_a_zero_dimension`.
+    ///
+    /// 1x1 is asserted legal on the other side of the boundary, so the rule
+    /// cannot be "at least 2" and pass this test.
+    #[test]
+    fn rejects_a_zero_footprint_dimension() {
+        for (width, depth) in [(0, 1), (2, 0), (0, 0)] {
+            assert_eq!(
+                compile_geometry(
+                    sized_objects(&[("fridge", width, depth)]),
+                    lot_of(6, 4, &[], &[("fridge", 1.0, 1.0)]),
+                )
+                .unwrap_err(),
+                ContentError::ZeroFootprint {
+                    object: "fridge".into(),
+                    width,
+                    depth
+                },
+                "a {width}x{depth} footprint occupies no tiles"
+            );
+        }
+
+        let pack = compile_geometry(
+            sized_objects(&[("fridge", 1, 1)]),
+            lot_of(6, 4, &[], &[("fridge", 1.0, 1.0)]),
+        )
+        .expect("one tile is the smallest legal object, and the default");
+        assert_eq!(pack.objects[0].footprint, Footprint::SINGLE);
+    }
+
+    /// [F5] rule 2, first half. **The placement coordinate is inside the lot
+    /// in every case here**, which is the whole reason this is not
+    /// `PlacementOutOfBounds`: only the rectangle leaves, and an author told
+    /// to look at the placement would find nothing wrong with it.
+    ///
+    /// Both axes, because a check written on one of them is invisible to a
+    /// test of the other; and the far edge is asserted legal on both, so the
+    /// rule cannot be off by one and still pass.
+    #[test]
+    fn rejects_a_footprint_that_runs_off_the_lot_though_its_placement_does_not() {
+        // 3 wide from x = 4 covers 4, 5 and 6, and 6 is off a 6-wide lot.
+        // 3 deep from y = 1 covers 1, 2 and 3, and 3 is off a 4-tall lot.
+        for (footprint, at, offending) in
+            [((3, 1), (4.0, 1.0), (6, 1)), ((1, 3), (1.0, 2.0), (1, 4))]
+        {
+            let lot = lot_of(6, 4, &[], &[("fridge", at.0, at.1)]);
+            assert!(
+                at.0 < 6.0 && at.1 < 4.0,
+                "the placement itself must be inside the lot, or this test is \
+                 `rejects_a_placement_outside_the_lot` wearing a hat"
+            );
+            assert_eq!(
+                compile_geometry(sized_objects(&[("fridge", footprint.0, footprint.1)]), lot)
+                    .unwrap_err(),
+                ContentError::FootprintOutOfBounds {
+                    object: "fridge".into(),
+                    x: offending.0,
+                    y: offending.1,
+                    width: 6,
+                    height: 4,
+                },
+                "a {}x{} rectangle at {at:?} runs off a 6x4 lot at {offending:?}",
+                footprint.0,
+                footprint.1
+            );
+        }
+
+        // The other side of both boundaries: a rectangle ending ON the last
+        // column, and one ending on the last row, are both inside.
+        for (footprint, at) in [((3, 1), (3.0, 1.0)), ((1, 3), (1.0, 1.0))] {
+            compile_geometry(
+                sized_objects(&[("fridge", footprint.0, footprint.1)]),
+                lot_of(6, 4, &[], &[("fridge", at.0, at.1)]),
+            )
+            .unwrap_or_else(|e| {
+                panic!(
+                    "a {}x{} rectangle at {at:?} ends on the last tile of a 6x4 \
+                     lot, which is inside it; got {e}",
+                    footprint.0, footprint.1
+                )
+            });
+        }
+    }
+
+    /// [F5] rule 2, second half. The placement tile is clear of every wall in
+    /// both halves, so this is the rectangle reaching one rather than
+    /// `PlacementOnWall` under another name - the wall is two tiles east of
+    /// where the author put the object.
+    #[test]
+    fn rejects_a_footprint_that_covers_a_wall_though_its_placement_does_not() {
+        let wall = (5, 2);
+        let at = (3.0, 2.0);
+
+        assert_eq!(
+            compile_geometry(
+                sized_objects(&[("fridge", 3, 1)]),
+                lot_of(8, 5, &[wall], &[("fridge", at.0, at.1)]),
+            )
+            .unwrap_err(),
+            ContentError::FootprintOnWall {
+                object: "fridge".into(),
+                x: 5,
+                y: 2,
+            },
+            "3 wide from x = 3 reaches the wall at (5, 2)"
+        );
+
+        // Two wide stops at x = 4, one tile short of the wall.
+        compile_geometry(
+            sized_objects(&[("fridge", 2, 1)]),
+            lot_of(8, 5, &[wall], &[("fridge", at.0, at.1)]),
+        )
+        .expect("2 wide from x = 3 covers 3 and 4 and never touches (5, 2)");
+    }
+
+    /// [F5] rule 1, **the rule the whole feature was asked for**, and its
+    /// boundary is the one the brief calls out: rectangles that TOUCH are
+    /// fine, and only a shared tile is not.
+    ///
+    /// The two objects are the same shape and differ only in x, so the
+    /// rejected and accepted cases are one tile apart. A fixture where they
+    /// differed in size as well could not tell "overlaps" from "is too big".
+    #[test]
+    fn rejects_two_footprints_that_cover_the_same_tile_but_accepts_two_that_touch() {
+        let objects = || sized_objects(&[("fridge", 2, 1), ("bed", 2, 1)]);
+
+        // fridge covers (2, 1) and (3, 1); bed covers (3, 1) and (4, 1).
+        assert_eq!(
+            compile_geometry(
+                objects(),
+                lot_of(8, 4, &[], &[("fridge", 2.0, 1.0), ("bed", 3.0, 1.0)]),
+            )
+            .unwrap_err(),
+            ContentError::FootprintsOverlap {
+                // Declaration order, so the message does not depend on which
+                // object a map happened to yield first.
+                first: "fridge".into(),
+                second: "bed".into(),
+                x: 3,
+                y: 1,
+            },
+            "both rectangles claim (3, 1)"
+        );
+
+        // One tile further east: fridge covers (2, 1) and (3, 1), bed covers
+        // (4, 1) and (5, 1). They share an EDGE and no tile, which is a sofa
+        // pushed up against a bookshelf and is exactly what a real lot does.
+        let pack = compile_geometry(
+            objects(),
+            lot_of(8, 4, &[], &[("fridge", 2.0, 1.0), ("bed", 4.0, 1.0)]),
+        )
+        .expect("touching is not overlapping");
+        assert_eq!(
+            pack.lot.placements.len(),
+            2,
+            "both placements must survive, or 'accepted' means one was dropped"
+        );
+    }
+
+    /// [F5] rule 3, first half. An object with nothing walkable beside it is
+    /// unusable: `find_path_adjacent` returns `None`, scoring treats it as
+    /// unavailable, and the sim looks perfectly alive while never touching
+    /// it - for as long as the lot exists, which is why this is a build
+    /// failure rather than a runtime one.
+    ///
+    /// The boundary is ONE walkable tile, because "at least one" and "all
+    /// four" are the same thing on an open lot and differ only here.
+    #[test]
+    fn rejects_an_object_with_no_walkable_tile_beside_it_but_accepts_one_with_exactly_one() {
+        // A 5x5 lot with the four tiles around (2, 2) walled.
+        let boxed_in = [(1, 2), (3, 2), (2, 1), (2, 3)];
+        assert_eq!(
+            compile_geometry(
+                sized_objects(&[("fridge", 1, 1)]),
+                lot_of(5, 5, &boxed_in, &[("fridge", 2.0, 2.0)]),
+            )
+            .unwrap_err(),
+            ContentError::NoWalkableApproach {
+                object: "fridge".into(),
+                x: 2,
+                y: 2,
+            }
+        );
+
+        // Open the north side only. One approach tile is enough, and it is
+        // reachable from (0, 0), so the object is usable.
+        let one_way: Vec<(i32, i32)> = boxed_in
+            .into_iter()
+            .filter(|&tile| tile != (2, 1))
+            .collect();
+        compile_geometry(
+            sized_objects(&[("fridge", 1, 1)]),
+            lot_of(5, 5, &one_way, &[("fridge", 2.0, 2.0)]),
+        )
+        .expect("one walkable tile beside an object is enough to use it");
+    }
+
+    /// [F5] rule 3, second half, **and the rule that pays for [F3]**: an
+    /// object placed in a doorway seals a room, because footprint tiles are
+    /// impassable.
+    ///
+    /// The fixture is two rooms divided by a wall at x = 4 with a single
+    /// doorway at (4, 2). A 2x1 object at (3, 2) covers (3, 2) and (4, 2), so
+    /// the doorway is gone and its own approach tile (5, 2) is left stranded
+    /// in the east room. Nothing else about the lot is wrong: every rectangle
+    /// is inside the lot, off the walls, non-overlapping, and has four
+    /// walkable tiles beside it. Only the connectivity fails, which is
+    /// precisely why the first two rules cannot cover this.
+    ///
+    /// The accepted case is the SAME object with the same rectangle two tiles
+    /// west, so what changed is where it stands rather than what it is.
+    #[test]
+    fn rejects_a_footprint_that_seals_a_doorway_but_accepts_one_clear_of_it() {
+        let divided = [(4, 0), (4, 1), (4, 3), (4, 4)];
+
+        let err = compile_geometry(
+            sized_objects(&[("bed", 2, 1)]),
+            lot_of(7, 5, &divided, &[("bed", 3.0, 2.0)]),
+        )
+        .unwrap_err();
+        assert_eq!(
+            err,
+            ContentError::UnreachableApproach {
+                object: "bed".into(),
+                x: 5,
+                y: 2,
+                root_x: 0,
+                root_y: 0,
+            },
+            "a 2x1 at (3, 2) covers the doorway at (4, 2), so (5, 2) is cut off"
+        );
+
+        let pack = compile_geometry(
+            sized_objects(&[("bed", 2, 1)]),
+            lot_of(7, 5, &divided, &[("bed", 1.0, 2.0)]),
+        )
+        .expect("two tiles west of the doorway, the corridor through (3, 2) to (4, 2) is open");
+        assert_eq!(
+            pack.lot.placements.len(),
+            1,
+            "the placement must survive, or 'accepted' means it was dropped"
+        );
+
+        // The precondition the accepted case rests on, stated rather than
+        // assumed: the doorway is a SINGLE tile, so sealing it really does
+        // divide the lot. A second gap would make the rejected case pass and
+        // this test would quietly stop being about connectivity.
+        let gaps = (0..5)
+            .filter(|y| !divided.contains(&(4, *y)))
+            .collect::<Vec<i32>>();
+        assert_eq!(gaps, vec![2], "the dividing wall must have one gap");
+    }
+
+    /// **The reachability flood fill moves four ways, like the simulation.**
+    ///
+    /// `TileGrid::NEIGHBOURS` is orthogonal-only, so two rooms touching at a
+    /// corner are NOT connected for a sim. A diagonal flood fill would call
+    /// them connected and accept a lot no sim can cross, which is the
+    /// reachability rule passing for a reason the simulation does not share -
+    /// and the failure would be invisible: the build goes green and half the
+    /// house is quietly never used.
+    ///
+    /// **This test exists because the diagonal mutation SURVIVED the rest of
+    /// this module.** Every other fixture here is connected or divided by a
+    /// straight wall, and a straight wall blocks both movement rules equally,
+    /// so none of them can tell the two apart. This one is the corner pinch:
+    ///
+    /// ```text
+    ///        x=0 1 2 3
+    ///   y=0    . . # #
+    ///   y=1    . A # #        A = (1, 1), the region holding the root
+    ///   y=2    # # B .        B = (2, 2), which only touches A diagonally
+    ///   y=3    # # . O        O = the object at (3, 3)
+    /// ```
+    ///
+    /// The accepted case opens `(2, 1)`, giving A and B a shared EDGE, so what
+    /// changed between the two runs is one tile of wall rather than anything
+    /// about the object.
+    #[test]
+    fn the_reachability_check_uses_four_way_movement_like_the_simulation_does() {
+        // Two 2x2 rooms on the diagonal, mutually reachable only through the
+        // (1, 1)/(2, 2) corner.
+        let pinched = [
+            (2, 0),
+            (3, 0),
+            (2, 1),
+            (3, 1),
+            (0, 2),
+            (1, 2),
+            (0, 3),
+            (1, 3),
+        ];
+        let objects = || sized_objects(&[("fridge", 1, 1)]);
+        let place = [("fridge", 3.0, 3.0)];
+
+        assert_eq!(
+            compile_geometry(objects(), lot_of(4, 4, &pinched, &place)).unwrap_err(),
+            ContentError::UnreachableApproach {
+                object: "fridge".into(),
+                x: 3,
+                y: 2,
+                root_x: 0,
+                root_y: 0,
+            },
+            "the object's room touches the root's room only at a corner, which \
+             four-way movement cannot cross"
+        );
+
+        // Open the pinch into a doorway. One tile of wall is the whole
+        // difference between the two runs.
+        let opened: Vec<(i32, i32)> = pinched.into_iter().filter(|&tile| tile != (2, 1)).collect();
+        compile_geometry(objects(), lot_of(4, 4, &opened, &place))
+            .expect("with (2, 1) open the two rooms share an edge and a sim can walk between them");
+    }
+
+    /// **Shipped content, not a fixture**, and the same shape of check as
+    /// `no_shipped_interaction_is_clipped_by_the_interaction_floor`: the
+    /// rules are only worth having if the game actually satisfies them.
+    ///
+    /// This cannot fail without the build having failed first, since
+    /// `build.rs` runs the same `compile` over the same files. What it adds is
+    /// that the properties are stated where somebody re-authoring the lot will
+    /// read them, that the SHIPPED bed is asserted to be the multi-tile object
+    /// the design calls for, and that the flood fill is exercised against a
+    /// real house rather than only against a seven-tile fixture. Rule 5 of the
+    /// testing protocol applies with force here, so the preconditions are
+    /// asserted first: with every object 1x1 this test cannot see a footprint
+    /// rule at all.
+    #[test]
+    fn the_shipped_lot_satisfies_every_footprint_rule() {
+        let pack = crate::pack();
+        let lot = &pack.lot;
+
+        assert!(
+            !lot.placements.is_empty(),
+            "an empty lot satisfies all three rules vacuously"
+        );
+        let wide: Vec<&str> = pack
+            .objects
+            .iter()
+            .filter(|object| object.footprint != Footprint::SINGLE)
+            .map(|object| object.id.as_str())
+            .collect();
+        assert_eq!(
+            wide,
+            vec![
+                "bed",
+                "dining_table",
+                "long_sofa",
+                "double_bed",
+                "desk",
+                "bathtub",
+            ],
+            "these are the shipped multi-tile objects, in declaration order; \
+             with every object 1x1 this test cannot distinguish a footprint \
+             rule from no rule"
+        );
+        // And one of them is wider in BOTH directions, which the list above
+        // cannot say on its own. Every entry there could be 2x1, and a rule
+        // that walked `width` twice instead of `width` then `depth` would be
+        // invisible against a house of nothing but 2x1 furniture - the
+        // transposition trap in [L34], in a footprint's costume.
+        assert!(
+            pack.objects
+                .iter()
+                .any(|object| object.footprint.width > 1 && object.footprint.depth > 1),
+            "no shipped object covers more than one row AND more than one \
+             column, so the depth axis of every rule below is untested"
+        );
+
+        // Rule 2 and rule 1 in one pass, because both are statements about
+        // one tile at a time. Rebuilt from the pack rather than read out of
+        // `compile`, so the two are separate statements of the same claim.
+        let walls: BTreeSet<(u32, u32)> = lot.walls.iter().copied().collect();
+        let mut occupied: BTreeMap<(u32, u32), &str> = BTreeMap::new();
+        for placement in &lot.placements {
+            let object = pack.object(placement.object);
+            let tile = (placement.x as u32, placement.y as u32);
+            for y in tile.1..tile.1 + object.footprint.depth {
+                for x in tile.0..tile.0 + object.footprint.width {
+                    assert!(
+                        x < lot.width && y < lot.height,
+                        "'{}' covers ({x}, {y}), outside the {}x{} lot",
+                        object.id,
+                        lot.width,
+                        lot.height
+                    );
+                    assert!(
+                        !walls.contains(&(x, y)),
+                        "'{}' covers the wall tile ({x}, {y})",
+                        object.id
+                    );
+                    if let Some(previous) = occupied.insert((x, y), object.id.as_str()) {
+                        panic!("'{previous}' and '{}' both cover ({x}, {y})", object.id);
+                    }
+                }
+            }
+        }
+
+        // Rule 3, over the tiles the simulation will actually treat as solid.
+        let mut blocked = walls;
+        blocked.extend(occupied.keys().copied());
+        let root = (0..lot.height)
+            .flat_map(|y| (0..lot.width).map(move |x| (x, y)))
+            .find(|tile| !blocked.contains(tile))
+            .expect("the shipped lot has somewhere to stand");
+        let reached = flood_fill(lot.width, lot.height, &blocked, root);
+
+        let mut checked = 0;
+        for placement in &lot.placements {
+            let object = pack.object(placement.object);
+            let tile = (placement.x as i64, placement.y as i64);
+            let far = (
+                tile.0 + object.footprint.width as i64 - 1,
+                tile.1 + object.footprint.depth as i64 - 1,
+            );
+            let mut beside = 0;
+            for (x, y) in (tile.0..=far.0)
+                .flat_map(|x| [(x, tile.1 - 1), (x, far.1 + 1)])
+                .chain((tile.1..=far.1).flat_map(|y| [(tile.0 - 1, y), (far.0 + 1, y)]))
+            {
+                if x < 0 || y < 0 || x >= lot.width as i64 || y >= lot.height as i64 {
+                    continue;
+                }
+                let approach = (x as u32, y as u32);
+                if blocked.contains(&approach) {
+                    continue;
+                }
+                beside += 1;
+                assert!(
+                    reached[(approach.1 as usize) * (lot.width as usize) + approach.0 as usize],
+                    "the tile {approach:?} beside '{}' is cut off from {root:?}; \
+                     the shipped lot is split into regions a sim cannot walk \
+                     between",
+                    object.id
+                );
+            }
+            assert!(
+                beside > 0,
+                "'{}' has no walkable tile beside it and could never be used",
+                object.id
+            );
+            checked += 1;
+        }
+        assert_eq!(
+            checked,
+            lot.placements.len(),
+            "every placement must have been checked"
+        );
     }
 }

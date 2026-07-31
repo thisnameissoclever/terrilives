@@ -892,7 +892,284 @@ declare a width and depth in tiles, which is also what build mode will need in
 order to stop the player putting two things in the same place. Worth its own
 task, and it is not the cause of the reported jaggedness.
 
+**Resolved, 2026-07-30.** `content/objects.toml` takes an optional
+`footprint = { width = N, depth = N }` per object, defaulting to 1x1; the tiles
+it covers are impassable; `TileGrid::find_path_adjacent` targets the rectangle,
+with its heuristic changed to the Manhattan distance to the rectangle's nearest
+tile so the optimality argument in its own docs still holds; and three build-time
+rules reject overlapping footprints, footprints crossing a wall or the lot edge,
+and a lot an object has split into unreachable regions. The decisions are in
+`docs/specs/2026-07-30-object-footprints-design.md`.
+
+**Only the bed is declared multi-tile so far, at 2x1.** The corner sofa measured
+above is the worse offender at 2.4 tiles and is still 1x1, because widening it
+is a lot-layout change rather than a one-line content edit: the shipped lot was
+authored against one-tile objects, and re-siting furniture to fit real
+rectangles is a separate task. The build gate now makes that visible instead of
+silent - a footprint that does not fit fails the build rather than drawing over
+a tile it does not own.
+
 Separately, [C4]'s complaint that the television reads as a flat plank is **not**
 a scaling error - at 59 x 60 it is proportioned like what it is, a TV cabinet
 rather than a screen. That is an asset-choice problem and no projection change
 will fix it.
+
+### [A-7] The visual verification, done densely - and the instruments that nearly lied
+
+[A-5] above said the geometry was verified but that "whether the room reads as a
+room needs eyes on a composited frame". Part of that was too pessimistic: the
+Browser pane does not *present* frames, but the canvas still *draws* them, and
+`canvas.toDataURL()` returns a real 208 KB PNG. So the pixels were available all
+along and the earlier passes did not look for them.
+
+What that made possible, all measured against the shipped lot through the real
+WASM build:
+
+| check | result |
+| --- | --- |
+| floor tiles, background-coloured gaps | **0** of 672 samples |
+| wall runs, empty columns | **0** of 864 columns |
+| wall runs, notches deeper than 6 px | **0**, worst 0 px |
+| sprite-on-sprite overlaps between placed objects | **none** |
+| sim resting on furniture | **0** of 7 resting spots |
+
+The wall scan is the one worth trusting: it walks every pixel column across the
+north boundary (15 panels), the west boundary (10) and the bathroom wall, finds
+the topmost drawn pixel in each, and looks for a column whose top edge sits more
+than 6 px below both of its neighbours. That is what a seam between two panels
+would look like. There are none, which is the strongest available statement that
+the runs are flush.
+
+**Two instruments were wrong before they were right, and both failures were the
+same shape.**
+
+The first pixel test classified "nothing drawn here" as `alpha < 128`. The render
+target is **opaque**, so alpha is 255 on every pixel of the canvas, and the test
+passed trivially - it reported `paintedCoveragePct: 100`, which is what gave it
+away. Rewritten to classify against the background *colour* instead, with the
+canvas corners asserted to read as background and the lot centre asserted not to,
+so the detector cannot silently invert.
+
+The second was a text render of the frame - the canvas downsampled to a grid of
+characters - built to inspect the layout cheaply. It showed apparent **gaps in
+the wall runs**, which read as exactly the jaggedness the alpha pass had claimed
+to fix. They were artifacts: the grid sampled one pixel per 10 across and one per
+15 down, and the classifier binned antialiased edge pixels as background. The
+dense per-column scan above is what settled it.
+
+Both are [L3]'s family again, and the lesson is narrower than "test your tests":
+**a detector needs a case it must report as negative and a case it must report as
+positive, asserted in the same run.** The alpha version had neither. The text
+render had neither. The column scan has both, in the form of the empty-column
+count next to the notch count.
+
+**What is still not verified, precisely stated.** Nobody has formed an aesthetic
+opinion. The geometry is flush, the proportions match the source art, nothing
+overlaps and nothing is missing - but "does this look like a room somebody
+lives in" is not a measurement, and it is the question the alpha exists to
+answer. That belongs to a person looking at
+`https://thisnameissoclever.github.io/terrilives/` or a local dev server.
+
+---
+
+## [A-8] The five-room house, and three things a green gate could not see
+
+Goal item 8. The lot went from one open room plus a bathroom, 14 x 10 holding 8
+objects, to five rooms, 16 x 12 holding 33. `docs/specs/2026-07-30-the-house-design.md`
+carries the decisions; this is what the running game did afterwards, and what
+looking at it caught.
+
+**A frame was captured and looked at, which is new.** [A-5] and [A-7] both ended
+by saying the geometry was verified but that "does this look like a room somebody
+lives in" needed eyes on a composited frame, and that the Browser pane does not
+composite ([L14]). It still does not. The way round it is smaller than it looked:
+the canvas still DRAWS, `toDataURL()` in the same task as the draw returns a real
+322 KB PNG ([L37] is why "same task" matters), and the only thing missing was a
+way to get 322 KB out of a `javascript_tool` return value. A 20-line Node sink
+using nothing but built-ins - the page POSTs the data URL, the script writes the
+file - closed that, with no dependency added.
+
+**It looks like a house.** Five rooms read as rooms, the furniture reads as
+furniture at the right scale, nothing overlaps, and the selected sim is legible
+with its floor ring. That is a subjective judgement and it is recorded as one.
+
+### Three defects the gate was green for
+
+**1. The wall junctions were broken, and then the fix for them was broken.**
+
+The spine runs east-west across the lot with three north-south dividers hanging
+off it, and each junction tile drew a panel turned 90 degrees, so the spine read
+as a wall with holes punched in it. Caught by looking at a PNG.
+
+The fix - draw both panels at such a tile - was itself wrong, and this is the
+part worth remembering, because it *looked* right in the after-shot. The shader
+centres a quad on its anchor, so two panels at one tile occupy the same 32 px
+rather than two halves. A pixel diff settled it: the whole frame changed by 726
+pixels, all inside the three junction boxes, and one box changed by exactly 356
+- which is precisely the count of second-panel pixels falling where the first
+panel is transparent, measured independently off the atlas. So 86% of the second
+panel was hidden and the junction still read as the wrong orientation.
+
+What ships is a third rule: the run that PASSES THROUGH the junction wins, one
+panel per tile. [B5] has the full account.
+
+**2. Three boundary wall panels were being clipped off the top of the canvas.**
+
+`lot.toml` and the spec both carried a derivation for how large the lot could
+be: "the tallest sprite reaches 98 px above its anchor, so width plus height
+must stay at or under about 28." The lot is 28. Both halves of the derivation
+were wrong - the tallest sprite is the 114 px bunk bed, and the arithmetic
+reasoned about the tile span while the renderer draws a boundary two half-tile
+rows further up again.
+
+Measured: the topmost painted row of the frame was **0**, meaning something was
+cut off. After moving the origin from 87 to 144 it is **25**, with the bottom at
+710 of 720. `cameraOrigin` in `iso.ts` now centres the drawn extent, reads the
+tallest sprite off the atlas, and has four tests including the counterfactual
+that the old formula fails.
+
+**3. Fourteen claims in comments were false.** Found by an adversarial review of
+the diff rather than by any test. The load-bearing ones were arithmetic: a score
+formula written as `urgency^3 * delta` when `urgency` is already the cube (so it
+read as `deficit^9`); a pair of quoted scores, "0.66 against 0.71", that no
+common distance can produce; "the smallest positive delta in the house" naming a
+value that was neither smallest nor current; and five objects whose comments
+still quoted the comfort deltas from before they were halved. Also a delta of
+7.0 sitting alongside another object's -7.0, which is the sign collision the
+file's own rules warn against.
+
+### The behaviour trace
+
+`cargo run --release -p terri-sim --example trace -- N`, one sim, shipped
+content, shipped lot.
+
+| | first trace | shipped, 12 000 | shipped, 120 000 |
+| --- | --- | --- | --- |
+| interactions | 99 | 106 | 1 079 |
+| interactive objects at zero uses | **6 of 18** | **4 of 18** | **0 of 18** |
+| back-to-back repeats | 1.0% | 1.0% | 0.7% |
+| interacting / walking / idle | 42.9 / 40.8 / 16.3% | 43.1 / 39.8 / 17.0% | - / - / 15.8% |
+| comfort floor | 60.8 | 50.3 | 47.4 |
+
+The six-at-zero column was the first finding. Every one of the house's five new
+comfort objects was unused, and the candidate table gave the reason in one line:
+`comfort` sat at level 87, so `deficit^3` was 0.0022, and the armchair - the best
+comfort-per-tick object in the house - scored 0.0071 standing right beside it,
+against a threshold of 0.05. That is [C6] again with a different need.
+
+**The fix took three passes and the second one overshot.** Halving the five new
+comfort deltas fixed the over-supply and created a monopoly: at 23 and 27 per
+seat against the pre-existing ottoman sofa's 34-in-50-ticks, the ottoman won
+every comfort decision in the house - 72 uses in 120 000 ticks against zero for
+the dining table and the long sofa. Matching the *rate* rather than halving the
+*delta* is what worked; duration is in the denominator, so the two operations are
+not the same. [B6] has the numbers.
+
+### The 12 000-tick horizon is measuring the sample, not the house
+
+The two right-hand columns above are the same content. Four objects at zero
+becomes zero objects at zero purely by looking for ten times as long.
+
+That was found by accident, which is the best part of it. Correcting the radio's
+`social` delta from 7 to 5 - done for the sign-collision reason above, nothing to
+do with balance - moved **five** objects from non-zero to zero at 12 000 ticks. A
+two-point change to one object cannot make five others unreachable, so whatever
+the zero-set was measuring, it was not those objects.
+
+One sim makes about 106 choices in 12 000 ticks across 18 objects, and the draw
+is deliberately skewed - the toilet takes 26.7% because bladder drains fastest.
+At 1 079 choices the tail is thin (armchair 2, kitchen sink 1) but nothing is
+absent. So the honest statement is: *every object in the house earns its place,
+and one sim cannot visit eighteen of them in 12 000 ticks.*
+
+Read the 12 000-tick numbers for feel - that is twenty minutes at 1x, which is
+what a player sees. Read the 120 000-tick numbers for reachability. Quoting the
+first as the second is the mistake this section exists to prevent.
+
+### Still not verified
+
+Nobody has watched three sims in this house, because there are not three sims
+yet. Everything above is one sim, and the two things the house was drawn for -
+contention over the single-slot armchair, and the ring giving two sims separate
+routes - cannot be observed at all until M2c.
+
+---
+
+## [A-9] Three people, told apart from across the room
+
+Goal item 1: a household of at least three whose behaviour differs visibly,
+traceably to personality data, with contention and no deadlock. M2c shipped
+Terri, Doug and Nadia - `content/household.toml` and
+`content/personalities.toml`, spawned by the lot load, nobody spawned from
+TypeScript any more.
+
+**Watched in the browser first.** Auto-selection lands on Terri with her name
+captioned over the need bars; clicking each sim moves the ring and the
+caption together (Doug, Nadia, Terri, read back off the DOM). Left alone for
+90 simulated seconds the three spread over the whole house - each visited
+four or five of the five rooms - and the frame captured at the end had them
+in three different rooms: Doug eating standing up at the fridge, Nadia in
+the bedroom, Terri by the bunk with the selection ring at her feet (65
+ring-coloured pixels, counted, since [L53] retired trusting a thumbnail).
+
+### The trace, now per sim
+
+`cargo run --release -p terri-sim --example trace -- N`, shipped everything.
+The harness spawns the household rather than one synthetic sim, and its
+candidate table now applies the personality multipliers - a table that
+skipped them would be the trace lying about exactly the thing it exists to
+explain.
+
+Over 36 000 ticks, 1 000 completed interactions:
+
+| object | Terri | Doug | Nadia | the authored reason |
+| --- | --- | --- | --- | --- |
+| desk | **30** | 0 | 0 | Terri 1.7 disposition; Doug 0.45 |
+| bookshelf | **23** | 11 | 0 | Terri 1.45 |
+| television | 34 | 42 | **69** | Nadia 1.2 and social-starved; Terri 0.55 |
+| dining table | 13 | 3 | **20** | Nadia 1.05 and it is the social seat |
+| armchair | 0 | **11** | 1 | Doug 1.85 - The Chair That Is His |
+| long sofa | 0 | **13** | 0 | Doug 1.35 |
+
+Three sims, three different lives, every difference traceable to a line of
+content. Doug owns his chair 11 to 1. Terri is the only one who works at
+the desk. Nadia watches twice as much television as anyone because it is
+the biggest social tap in a house with no people-as-suppliers yet.
+
+- **Interactions**: 1 000 in 36 000 ticks, 321 in 12 000 - roughly 3x the
+  single-sim rate, as it should be.
+- **Every interactive object used** at 36 000 ticks, reading chair (2, both
+  Doug) and kitchen sink (11) included. At 12 000 the reading chair sits at
+  zero, which is [B9]'s horizon effect again, not a regression.
+- **Back-to-back repeats**: 14 of 997 aggregate, 1.4% - under the 2%
+  criterion. Terri alone runs 2.8% (10 of 357): her 1.3x fun drain and 0.85
+  fun satisfaction keep her chronically under-entertained, and her amplified
+  desk and bookshelf survive habituation well enough to repeat. That is a
+  personality being a creature of habit rather than a scoring defect; noted,
+  not tuned away.
+- **Nobody froze**: 1 frozen tick in 36 000 x 3 sim-ticks. Idle 14.4 to
+  17.0% per sim (12.8 to 17.4% on the shorter 12 000-tick run).
+- **Contention without deadlock**: the single-slot armchair changed hands
+  Doug/Nadia, the toilet took ~25% of everyone's actions through one slot,
+  and the ring layout gave crossing sims separate routes; no [L17]-shaped
+  stall appeared in either the trace or the watched session.
+
+### Nadia's social band is the number to keep watching
+
+social, per sim, 36 000 ticks: Terri 20.2 to 100, Doug 36.7 to 100,
+**Nadia 27.0 to 70.1** - the only need in the household that never reaches
+full. The 70.1 is an equilibrium, not a cap: one television session
+delivers 18 social at her 0.75 satisfaction, and nothing forbids two in a
+row, but her 1.4x drain plus how often the television actually out-scores
+everything else keep her from ever getting there. That is the authored
+point - she is the demand side of M2d built first, and the day sims can
+talk, her ceiling should jump. If M2d slips and her floor sinks toward
+zero instead, that is [C2] arriving on schedule and the knob to soften is
+the 1.4.
+
+### What this did not need
+
+No new mechanism. Personality is three multipliers entering the two places
+scoring and delivery already computed - [S4]'s one-mechanism rule held, and
+the diff to `select_action` is four lines reading two components. The work
+was almost entirely content, validation, and tests.

@@ -2625,7 +2625,277 @@ reports failures. Do it under the [L15] harness rules - output to a file,
 
 ---
 
-## [L51] Two sessions fixed the same finding independently, and neither could have known
+## [L51] A detector needs a must-be-negative case and a must-be-positive case, asserted in the same run
+
+**What happened:** three instruments built to verify the alpha's rendering and
+behaviour were wrong before they were right, and each was wrong in a way that
+produced a confident answer.
+
+1. A pixel test for "is anything drawn here" classified emptiness as
+   `alpha < 128`. The WebGPU render target is **opaque**, so alpha is 255 on
+   every pixel of the canvas. It reported zero gaps in the floor and zero gaps
+   in the walls, and both were vacuous. The tell was a fourth number printed
+   beside them - `paintedCoveragePct: 100` - which cannot be true of a
+   704 x 462 lot on a 1280 x 720 canvas.
+2. A text render of the frame, built to inspect the layout cheaply, showed
+   apparent **gaps in the wall runs** - exactly the defect the pass had just
+   claimed to fix. Artifacts: it sampled one pixel in ten across and one in
+   fifteen down, and binned antialiased edge pixels as background. A dense
+   per-column scan found 0 gaps in 864 columns.
+3. A behaviour-trace harness classified every tick of every meal as a wander
+   pause, because it tested for the `Wander` marker before the `Eating` one. It
+   reported 52.3% of a run paused against 0.2% interacting, for 124 interactions
+   averaging 30 ticks - two numbers that cannot both be true.
+
+**Root cause:** each detector had only one kind of case. Nothing in the run
+established that it could say "no" when the answer was no, or "yes" when the
+answer was yes - so its output was unfalsifiable, and a vacuous pass looked
+identical to a real one.
+
+**Prevention rule:** a detector must assert, in the same run that uses it, both
+that it reports **negative on a case that must be negative** and **positive on a
+case that must be positive**. The column scan that finally settled the wall
+question does this structurally: it prints the empty-column count next to the
+notch count, and a broken classifier moves both to absurd values at once. The
+colour-based pixel test asserts the canvas corners read as background and the lot
+centre does not, before it reports anything.
+
+This is [L3], [L7] and [L34]'s family, but the rule is sharper than "test your
+tests": it names the two specific cases to include. Where a detector's output is
+a count, print a second count that must move the other way.
+
+**How to verify:** invert the classifier - swap background for foreground - and
+confirm the sanity assertions fail rather than the counts merely changing.
+
+---
+
+## [L52] A hand-mutation harness must be calibrated on a mutation that is known to be caught
+
+**What happened:** this task's hand-mutation pass over the web shell - five
+mutations of the new `interaction` argument, each applied, tested and reverted by
+a script - reported **"NOTHING FAILED" for all five**. Taken at face value that
+would have meant the entire TypeScript side of the change was untested, and the
+honest response would have been to write five more tests.
+
+All five were in fact caught. The script scraped vitest's output for lines
+beginning with `×`, which the reporter in use does not emit; the failure lines
+are `FAIL  tests/<file> > <suite> > <name>`. Applying one mutation by hand and
+reading the raw output took under a minute and showed the named test failing with
+the expected diff.
+
+A second, quieter instance in the same script: it captured output as text with
+the platform's default `cp1252` codec, vitest writes UTF-8 box-drawing
+characters, and the resulting `UnicodeDecodeError` killed the runner thread
+**after the mutation had been written and before it was reverted**. The
+mutation sat in `web/src/input.ts` until the next `grep`.
+
+**Root cause:** the harness had no positive control. Its "no test failed" branch
+and its "the parser matched nothing" branch produce the same output, which is
+[L51]'s missing must-be-positive case applied to a tool rather than to a
+detector - and it is worse here, because the failure direction is *reassuring*.
+A parser that silently matches nothing reports every mutation as undetected,
+which reads as "write more tests" rather than as "fix the harness". The
+unreverted mutation is the ordinary version of the same thing: the revert was in
+the happy path instead of a `finally`.
+
+**Prevention rule:** any script that decides whether a mutation was caught must
+**first run a mutation whose answer is known**, and abort if the answer comes
+back wrong. Calibrating on a known-caught mutation is one extra iteration and it
+converts a silent parser into a loud one. Two corollaries:
+
+- Put the revert in a `finally`, and hash the file before and after so
+  "restored byte-identical" is printed rather than assumed. Testing-protocol
+  rule 1 asks for that assertion; it also has to survive the runner crashing.
+- Decode subprocess output as UTF-8 explicitly on Windows. `capture_output=True,
+  text=True` uses the ANSI code page, and every modern test runner emits box
+  drawing.
+
+**How to verify:** point the harness at a mutation that a named test definitely
+catches - here, hardcoding `interaction: 0` back into `drain_commands` - and
+confirm it reports that test by name. If it reports nothing, the harness is
+broken, not the suite.
+
+---
+
+## [L53] A rule that is correct for every case the fixture can express is not a correct rule
+
+`tiles.ts` decided which of two wall sprites a tile draws:
+
+```ts
+return isWall(x, y - 1) || isWall(x, y + 1) ? 'wallNS' : 'wallEW';
+```
+
+One panel per tile, ties resolved towards north-south. It had a paragraph of
+comment justifying the tie-break, three tests, and it was **wrong**, and neither
+the comment nor the tests could tell.
+
+The lot it was written against had two wall runs meeting at a single L corner.
+At an L corner the tile has a neighbour on one side of each axis, so either
+panel closes the join and both possible rules produce an identical picture. The
+fixture was an L. The tests asserted the corner's sprite with
+`expect(...).toContain(ns)`, which the correct rule also satisfies.
+
+Then the lot became five rooms. Its spine runs east-west across the lot with
+three north-south dividers hanging off it, and a T-junction tile has neighbours
+on BOTH sides of one axis. All three took the north-south panel, so the spine had
+three panels turned ninety degrees in the middle of it and read as a wall with
+holes punched through it - at exactly the three places a viewer looks first.
+
+**What caught it was a screenshot.** Not a test, not a review, not the type
+system: a PNG of the running game, looked at. The full gate was green before and
+after.
+
+### The fix was also wrong, and that is the more useful half
+
+The obvious repair was to draw BOTH panels at a junction tile, reasoning that a
+32 px panel on a 64 px tile diamond leaves room for two - one on the tile's east
+half, one on its west, abutting rather than overlapping. Tests were written, the
+gate went green, a new screenshot was taken, and it **looked** fixed.
+
+It was not. `sprites.wgsl` centres every quad on its anchor, so two panels
+written at the same tile occupy the same 32 px rather than two halves. Measured
+off the atlas: only 356 of the second panel's 2540 opaque pixels - 14% - fall
+where the first is transparent. A pixel diff of the before and after frames
+matched that exactly: 726 pixels changed in the whole 1280 x 720 frame, every one
+inside the three junction boxes, and the most exposed box changed by precisely
+356. So 86% of the "fix" was hidden behind the panel it was meant to replace, and
+the junction still read as the wrong orientation.
+
+What ships is a third rule: at a junction, the run that PASSES THROUGH wins - a
+T has neighbours on both sides of one axis and one side of the other, and that
+asymmetry is the answer. One panel per tile, which also avoids [V12]'s depth
+conflict, since two quads at one tile share a depth and `depthCompare` is
+`less`.
+
+### What to take from it
+
+1. **"Correct on every input the fixture can express" is the trap, and it is not
+   the same as [L34].** [L34] is about a fixture whose values coincide, so a
+   transposition is invisible. This is about a fixture whose SHAPE excludes the
+   case - an L-shaped wall run cannot contain a T-junction, however its
+   coordinates are chosen. Ask what shapes the fixture cannot be, not only what
+   values it happens to hold.
+2. **`toContain` cannot see a missing element.** The original bug was an absent
+   panel, and "the answer includes X" is satisfied by the too-small answer as
+   well. Reach for an exact list whenever the defect you fear is omission.
+3. **A comment that argues for a tie-break is a signal that the tie is real.**
+   The old comment said a corner "qualifies both ways" and then explained which
+   way it was given. That sentence contained the whole bug.
+4. **A screenshot is not a measurement, and it will confirm what you expect.**
+   The second wrong version was signed off on an after-shot that looked better.
+   The pixel diff took two minutes and was decisive. When the claim is "this
+   changed what is drawn", diff the pixels and predict the number first - the
+   356 matching on both sides is what turned a hunch into a finding.
+
+**How to verify:** the fixture set is now an L, a T, a **transposed** T - because
+the T alone cannot see "always prefer east-west at a junction", where the
+through-run already is east-west - and a free-standing tile. See [B5] in
+`docs/specs/2026-07-30-the-house-design.md`.
+
+---
+
+## [L54] Halving a delta and halving a rate are different operations
+
+The house gained five comfort objects and all five went unused, because comfort
+never dropped low enough for `deficit^3` to make them worth anything. Two of the
+three fixes were right. The third was to **halve the five new comfort deltas**,
+on the reasoning that a smaller top-up means a sim has to sit down more often, so
+comfort settles at a lower level where the seats are worth choosing.
+
+That reasoning is sound and the change was still wrong, because it ignored what
+the five objects were being compared *against*. Score is
+
+```
+delta * deficit^3 / (distance / TILES_PER_TICK + duration + 1)
+```
+
+so what decides between two seats at similar distance is `delta / duration` - a
+rate. The five new seats had durations from 41 to 78 ticks; the pre-existing
+ottoman sofa is 34 comfort in 50 ticks, a rate of 0.667. Halving put the two
+biggest new seats at about 0.37, which is not "less generous", it is **strictly
+dominated**. Over 120 000 ticks the ottoman took 72 uses and those two took
+zero.
+
+So the first pass had comfort objects that were never wanted, and the second had
+comfort objects that were wanted and never best. The fix was to raise the two
+deltas until their RATES matched the field - 37 in 62 ticks and 43 in 72, both
+0.597 against the ottoman's 0.667 and the armchair's 0.707 - which left the
+supply where pass two had put it while spreading the demand.
+
+**The rule:** when tuning a value that appears in a numerator over a duration,
+tune the quotient. Halving a numerator is only a halving if every alternative
+was halved too, and the alternatives here included an object that predated the
+change by two milestones.
+
+**How to verify:** compute `delta / duration` for every object advertising the
+need before and after any delta edit, and check the ordering has not inverted.
+The trace's candidate table prints per-need contributions at a fixed moment,
+which is the same information from the other end.
+
+---
+
+## [L55] Arithmetic that cannot be called cannot be pinned with a golden value
+
+`select_action` carried the habituation multiplier inline:
+
+```rust
+let benefit_scale = 1.0 - hab * (1.0 - content.0.tuning.habituation_floor);
+let delta = if *delta > 0.0 { delta * benefit_scale } else { *delta };
+```
+
+Two lines, eight mutants, **seven of them surviving the entire workspace
+suite** - confirmed by hand-mutation, not just by the sweep. This is the
+mechanic that makes sims rotate between objects instead of repeating one, and
+nothing constrained its arithmetic at all.
+
+Three separate reasons nothing caught it, and each is worth recognising on
+sight.
+
+**1. The test that names the behaviour computes it itself.**
+`habituation_scales_the_benefit_and_leaves_a_cost_at_full_strength` exists for
+exactly this rule. It never calls `select_action`. It computes
+`BENEFIT * scale` in the test body and compares that against other values it
+also computed, so it is green with the production guard deleted. Rule 3 and
+[L5]'s family, in a test whose name is a promise it does not keep.
+
+**2. The end-to-end check has one candidate.** The world-hash golden vector's
+scenario holds a single object, so a wrongly scaled score has nothing to
+out-rank, the sim's choice is identical at any multiplier, and the digest does
+not move. [L36] already recorded that this scenario cannot see how candidates
+are ORDERED; it cannot see how they are WEIGHTED either.
+
+**3. A behavioural test would not have been enough.** The obvious repair -
+"habituate the sim on A, assert it picks B" - passes for three of the four
+`benefit_scale` mutants, because they all still produce a multiplier below 1
+for a partly habituated sim. Only magnitudes separate them: at full
+habituation the four give 1.55, -0.818, -0.45 and -1.22 against the correct
+0.45. Two of those are negative, which turns a benefit into a repellent.
+
+### The rule
+
+**A multiplier needs a golden value, and a golden value needs a callable
+function.** Arithmetic inlined into a system whose only observable output is a
+discrete choice can be bounded in sign and nothing more, because a choice
+throws away the magnitude that produced it.
+
+So: when a formula is the mechanic rather than a step in one, give it a name
+and a signature. `benefit_scale(habituation, floor)` and
+`scaled_delta(delta, scale)` are three lines of code between them, and pinning
+them takes six assertions at the ends of the range and the midpoint.
+
+The smell to watch for is a test whose body performs the operation it is
+testing. If the fixture computes `expected` using the same arithmetic the
+production code uses, the test is a statement about arithmetic in general
+rather than about this program.
+
+**How to verify:** hand-mutate the extracted function and confirm a NAMED test
+fails. Calibrate the harness first on a mutation known to be caught ([L52]) -
+and beware that `cargo test` prints `error: test failed` to **stderr**, so a
+harness that scans stderr for "error:" before reading the failing-test names
+reports every real kill as a compile error. That happened on the first run of
+this very check.
+
+## [L56] Two sessions fixed the same finding independently, and neither could have known
 
 **What happened:** [C3] of `docs/alpha-feel-notes.md` - an agent beaten to an
 object being told nothing was worth doing - was fixed **twice**, in parallel, by

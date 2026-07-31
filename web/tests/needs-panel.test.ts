@@ -36,11 +36,13 @@ function widths(fills: readonly BarFill[]): string[] {
 class CountingSource implements NeedsSource {
   selectionReads = 0;
   needsReads = 0;
+  nameReads = 0;
   lastIndexAsked: number | null = null;
 
   constructor(
     public selected: number | null,
     public levels: Float32Array,
+    public name = 'Terri',
   ) {}
 
   selectedIndex(): number | null {
@@ -53,6 +55,16 @@ class CountingSource implements NeedsSource {
     this.lastIndexAsked = entityIndex;
     return this.levels;
   }
+
+  simName(_entityIndex: number): string {
+    this.nameReads++;
+    return this.name;
+  }
+}
+
+/** A caption whose text is readable, standing in for an element. */
+function caption(): { textContent: string | null } {
+  return { textContent: null };
 }
 
 const SEVEN = new Float32Array([100, 90, 80, 70, 60, 50, 40]);
@@ -93,7 +105,7 @@ describe('NeedsPanel', () => {
     // green against a single "did it read" assertion. The full read
     // pattern over twenty frames disagrees with both.
     const fills = bars(7);
-    const panel = new NeedsPanel({ hidden: false }, fills, 100, 100);
+    const panel = new NeedsPanel({ hidden: false }, caption(), fills, 100, 100);
     const source = new CountingSource(3, SEVEN);
 
     const readAt: number[] = [];
@@ -122,7 +134,7 @@ describe('NeedsPanel', () => {
     // same test result on every assertion about widths, while making
     // every boundary call the throttle exists to avoid.
     const fills = bars(7);
-    const panel = new NeedsPanel({ hidden: false }, fills, 100, 100);
+    const panel = new NeedsPanel({ hidden: false }, caption(), fills, 100, 100);
     const source = new CountingSource(3, SEVEN);
 
     expect(panel.update(0, source)).toBe(true);
@@ -144,7 +156,7 @@ describe('NeedsPanel', () => {
     // watching - and would be a second source of truth the simulation
     // cannot see, which is what stops a session being replayable.
     const fills = bars(7);
-    const panel = new NeedsPanel({ hidden: false }, fills, 0, 100);
+    const panel = new NeedsPanel({ hidden: false }, caption(), fills, 0, 100);
     const source = new CountingSource(3, SEVEN);
 
     panel.update(0, source);
@@ -163,7 +175,7 @@ describe('NeedsPanel', () => {
     // the null branch and the empty-array branch are different code.
     const fills = bars(7);
     const root: PanelRoot = { hidden: false };
-    const panel = new NeedsPanel(root, fills, 0, 100);
+    const panel = new NeedsPanel(root, caption(), fills, 0, 100);
 
     const nothingSelected = new CountingSource(null, SEVEN);
     panel.update(0, nothingSelected);
@@ -187,7 +199,7 @@ describe('NeedsPanel', () => {
     // every bar, or reversing them, is visible. A fixture where the seven
     // agreed could not tell those apart ([L34]).
     const fills = bars(7);
-    const panel = new NeedsPanel({ hidden: false }, fills, 0, 100);
+    const panel = new NeedsPanel({ hidden: false }, caption(), fills, 0, 100);
     panel.update(0, new CountingSource(1, SEVEN));
 
     expect(widths(fills)).toEqual([
@@ -206,11 +218,44 @@ describe('NeedsPanel', () => {
     // frame's numbers. A stale bar is worse than an empty one: it is
     // indistinguishable from a need that stopped changing.
     const fills = bars(7);
-    const panel = new NeedsPanel({ hidden: false }, fills, 0, 100);
+    const panel = new NeedsPanel({ hidden: false }, caption(), fills, 0, 100);
     panel.update(0, new CountingSource(1, SEVEN));
     expect(widths(fills)[6]).toBe('40%');
 
     panel.update(1, new CountingSource(1, new Float32Array([10, 20, 30])));
     expect(widths(fills)).toEqual(['10%', '20%', '30%', '0%', '0%', '0%', '0%']);
+  });
+
+  it('captions the bars with the selected sims name, re-read like everything else', () => {
+    // Whose bars these are stopped being obvious when the household grew
+    // past one sim. Re-read rather than cached on selection change, so a
+    // rename reaches the caption without the panel being told - the same
+    // [D-5] rule as the selection itself, and the same failure if broken:
+    // a caption frozen on the sim the player stopped watching.
+    const title = caption();
+    const panel = new NeedsPanel({ hidden: false }, title, bars(7), 0, 100);
+    const source = new CountingSource(3, SEVEN, 'Terri');
+
+    panel.update(0, source);
+    expect(title.textContent).toBe('Terri');
+
+    // The name changes underneath - a different sim selected, or the same
+    // one renamed; the panel cannot tell and must not need to.
+    source.name = 'Doug';
+    panel.update(1, source);
+    expect(title.textContent).toBe('Doug');
+  });
+
+  it('captions a nameless sim as empty rather than keeping the previous name', () => {
+    // A stress filler agent has needs and no name. The stale caption is
+    // the bug: bars switching to the filler while the caption still says
+    // Terri is a panel lying about whose crisis is on screen.
+    const title = caption();
+    const panel = new NeedsPanel({ hidden: false }, title, bars(7), 0, 100);
+    panel.update(0, new CountingSource(3, SEVEN, 'Terri'));
+    expect(title.textContent).toBe('Terri');
+
+    panel.update(1, new CountingSource(8, SEVEN, ''));
+    expect(title.textContent).toBe('');
   });
 });

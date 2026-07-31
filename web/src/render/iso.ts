@@ -74,6 +74,66 @@ export function screenY(wx: number, wy: number, originY: number): number {
 }
 
 /**
+ * Where the lot's origin has to sit for the whole thing to be on screen.
+ *
+ * Not a camera: the game has none, the lot is fixed for the session, and
+ * this runs once at load. It is the arithmetic that decides whether the
+ * player can see the top of their house.
+ *
+ * # What it accounts for that the obvious version does not
+ *
+ * The obvious version centres the TILE span - `(w + h - 2)` half-tile
+ * heights - and it shipped, and it was wrong in two ways that only showed
+ * up when the lot grew:
+ *
+ * - **Sprites are drawn ABOVE their anchor.** A tile's screen position is
+ *   the bottom of the diamond it stands on; a 99 px wall panel reaches 78
+ *   px above that. Centring the tile span puts the top row's anchor near
+ *   the top of the canvas and everything the sprite adds off it.
+ * - **`tiles.ts` draws a boundary at x = -1 and y = -1**, two half-tile
+ *   rows further up again, which the tile span does not include at all.
+ *
+ * Measured on the five-room lot before this existed: `originY` came out at
+ * 87, and the boundary panels at (-1, -1), (0, -1) and (-1, 0) had their
+ * tops at y = -33, -12 and -11. The north-west corner of the house was cut
+ * off, and the rule that was supposed to prevent exactly that is the rule
+ * that missed it.
+ *
+ * So the extent centred here is the DRAWN one: from the top of the tallest
+ * sprite standing on the boundary row down to the bottom of the last tile
+ * row.
+ *
+ * `tallestSprite` is passed in rather than imported so this file stays
+ * arithmetic with no dependency on the atlas; `main.ts` reads it off
+ * `SPRITES`. Using the tallest sprite in the whole atlas rather than the
+ * tallest WALL is deliberately conservative: it also guarantees that a tall
+ * object placed on the lot's first row is not clipped.
+ *
+ * The horizontal axis is not treated the same way and does not need to be.
+ * `screenX` spans `(w + h - 2)` half-tile widths, which is 832 px on the
+ * shipped lot, and the widest sprite adds 117 - comfortably inside 1280.
+ * If a lot ever gets wide enough for that to matter, this is where it goes.
+ */
+export function cameraOrigin(
+  canvasWidth: number,
+  canvasHeight: number,
+  lotWidth: number,
+  lotHeight: number,
+  tallestSprite: number,
+): { x: number; y: number } {
+  // Relative to `originY`: the topmost pixel any sprite reaches, and the
+  // bottommost. The boundary row is at world -1, so its screen y is
+  // -2 * TILE_HALF_HEIGHT, and a sprite's top is `screenY + anchor - h`
+  // with the anchor half a tile down.
+  const top = -2 * TILE_HALF_HEIGHT + TILE_HALF_HEIGHT - tallestSprite;
+  const bottom = (lotWidth + lotHeight - 2) * TILE_HALF_HEIGHT + TILE_HALF_HEIGHT;
+  return {
+    x: canvasWidth / 2 - ((lotWidth - lotHeight) * TILE_HALF_WIDTH) / 2,
+    y: (canvasHeight - (bottom - top)) / 2 - top,
+  };
+}
+
+/**
  * Both screen coordinates as a tuple. Reads better at a call site than
  * two calls do, so it is what tests and any non-per-frame caller should
  * use - but **not** the render loop.
@@ -199,7 +259,10 @@ export function worldDepth(wx: number, wy: number, gridSize: number): number {
  */
 export const DEPTH_LAYERS = 3;
 
-/** Floor tiles. Furthest of the three, so everything covers them. */
+/**
+ * Floor tiles. **Kept for the layer arithmetic's sake and no longer used to
+ * draw the floor**; see `FLOOR_DEPTH`.
+ */
 export const LAYER_FLOOR = 0;
 /** Walls and smart objects. */
 export const LAYER_PROP = 1;
@@ -235,6 +298,50 @@ export const DEPTH_LAYER_STEP = 1 / 4096;
  * same amount and therefore changes no ordering at all.
  */
 export const DEPTH_MARGIN = 1;
+
+/**
+ * The one depth every floor tile is drawn at.
+ *
+ * # Why the floor is not depth-sorted at all
+ *
+ * Per-tile floor depth is wrong, and it was visibly wrong: **a floor tile one
+ * step nearer the camera drew over the bottom of a sim's sprite.** Measured on a
+ * shipped frame with the sim at (8, 3.75), the tiles at (9, 3.75) and (8, 4.75)
+ * each overlapped its sprite by 19 x 21 px and each had a smaller depth - 0.4736
+ * against the sim's 0.5088 - so both won those pixels. On screen that is a sim
+ * standing shin-deep in the floor.
+ *
+ * The layer scheme cannot fix this and it is worth being exact about why.
+ * `DEPTH_LAYER_STEP` is 1/4096, about 0.00024, while one tile of depth on the
+ * shipped lot is 1/28, about 0.036 - a hundred and fifty times larger. So
+ * `LAYER_SIM` only ever outranks something on the **same** tile. Against a
+ * nearer tile it loses, and a floor diamond is 42 px tall while a tile step is
+ * only 21 px, so a nearer floor tile always covers the lower half of the
+ * previous tile's screen area, which is exactly where a sim's feet are.
+ *
+ * # So the floor stops competing
+ *
+ * The floor is the ground. Nothing is ever behind it and it should never occlude
+ * anything, so it does not need a per-tile depth - it needs one depth, further
+ * than everything else. Floor diamonds tile edge to edge and their opaque pixels
+ * do not overlap each other, so they need no ordering among themselves either;
+ * the 672-sample seam check in `docs/alpha-feel-notes.md` [A-7] is the evidence.
+ *
+ * # Why this exact value
+ *
+ * It has to sit **behind every `layeredDepth` result** and **in front of the
+ * clear value**, and both bounds are tight:
+ *
+ * - `layeredDepth`'s maximum is `1 - DEPTH_LAYER_STEP`, reached by a prop at the
+ *   far corner. Half a step beyond that clears it.
+ * - `sprites.ts` clears depth to 1.0 and compares with `less`. A fragment at
+ *   exactly 1.0 is **not** less than 1.0, so a floor at 1.0 would fail the depth
+ *   test and the entire floor would silently vanish.
+ *
+ * Derived from `DEPTH_LAYER_STEP` rather than written as a literal like 0.9999,
+ * so the relationship survives that constant changing.
+ */
+export const FLOOR_DEPTH = 1 - DEPTH_LAYER_STEP / 2;
 
 /**
  * `worldDepth` with a within-tile layer applied, so that two entities on

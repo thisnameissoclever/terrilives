@@ -12,11 +12,12 @@ pub mod schema;
 pub use compile::{compile, SIM_SPRITE};
 pub use error::ContentError;
 pub use pack::{
-    CompiledInteraction, CompiledLot, CompiledObject, CompiledPlacement, ContentPack, ObjectDefId,
-    Tuning,
+    CompiledHouseholdMember, CompiledInteraction, CompiledLot, CompiledObject, CompiledPersonality,
+    CompiledPlacement, ContentPack, Footprint, ObjectDefId, Tuning,
 };
 pub use schema::{
-    AtlasFile, AtlasSpriteDef, InteractionDef, LotFile, NeedDef, NeedsFile, ObjectDef, ObjectsFile,
+    ArchetypeDef, AtlasFile, AtlasSpriteDef, DispositionDef, HouseholdFile, HouseholdSimDef,
+    InteractionDef, LotFile, NeedDef, NeedsFile, ObjectDef, ObjectsFile, PersonalitiesFile,
     PlacementDef, TuningFile, WallDef,
 };
 
@@ -81,13 +82,19 @@ mod tests {
         );
     }
 
-    /// [D6] calls for roughly eight objects so that a sim has something
-    /// to decide between; with one, selection is a threshold rather than
-    /// a decision. Asserting the count is what keeps a content edit that
-    /// deletes half the house from being invisible to the suite.
+    /// [D6] calls for enough objects that a sim has something to decide
+    /// between; with one, selection is a threshold rather than a decision.
+    /// Asserting the roster is what keeps a content edit that deletes half
+    /// the house from being invisible to the suite.
     ///
-    /// Every id is named rather than just counted, because eight objects
+    /// Every id is named rather than just counted, because thirty objects
     /// with the wrong names is the same number.
+    ///
+    /// The list grew from eight to thirty with the five-room house; see
+    /// `docs/specs/2026-07-30-the-house-design.md`. About half of the new
+    /// entries advertise nothing at all, which is a category rather than an
+    /// omission - see `at_least_a_third_of_the_house_is_furniture_nobody_uses`
+    /// below.
     #[test]
     fn the_shipped_pack_declares_every_object_the_design_calls_for() {
         let p = pack();
@@ -96,15 +103,92 @@ mod tests {
         assert_eq!(
             ids,
             [
+                "armchair",
+                "bathtub",
                 "bed",
                 "bookshelf",
+                "chair",
+                "coat_rack",
+                "counter",
+                "desk",
+                "desk_chair",
+                "dining_table",
+                "double_bed",
+                "dresser",
+                "floor_lamp",
                 "fridge",
+                "kitchen_sink",
+                "laundry",
+                "long_sofa",
+                "moving_box",
+                "nightstand",
+                "potted_plant",
+                "radio",
+                "reading_chair",
+                "reference_shelf",
                 "shower",
                 "sink",
                 "sofa",
+                "stove",
                 "television",
-                "toilet"
+                "toilet",
+                "trashcan",
             ]
+        );
+    }
+
+    /// **The house has at least 25 things standing in it.** That is goal
+    /// item 8 stated as a number, and it is about PLACEMENTS rather than
+    /// definitions: two counters and two chairs share one definition each,
+    /// so counting `objects` would undercount what a player sees.
+    ///
+    /// A floor rather than an equality, because adding another chair should
+    /// not be a test edit. The roster test above is what pins the exact set
+    /// of definitions; this pins that the lot is furnished.
+    #[test]
+    fn the_shipped_lot_stands_at_least_twenty_five_objects_in_the_house() {
+        let placed = pack().lot.placements.len();
+        assert!(
+            placed >= 25,
+            "goal item 8 asks for a home worth living in, which was written \
+             down as 25 or more placed objects; the lot places {placed}"
+        );
+    }
+
+    /// **Some of the house is furniture nobody uses, on purpose.**
+    ///
+    /// A counter, a coat rack, a box that was going to be unpacked: they
+    /// advertise nothing, so `select_action` never scores them, and they
+    /// exist because a room reads as a room when it holds things that are
+    /// not all affordances. `an_object_may_declare_no_interactions` in
+    /// `schema.rs` is what keeps that legal at the parse layer; this is what
+    /// says the shipped content actually uses it.
+    ///
+    /// Both directions are asserted and the second is the one with a bug
+    /// behind it. A pipeline that silently dropped interactions - a bad
+    /// merge, a `#[serde(default)]` on the wrong field - would leave every
+    /// object advertising nothing, and the house would look identical while
+    /// every sim stood still for ever ([L17]). "At least one has none" alone
+    /// is green in that world.
+    #[test]
+    fn at_least_a_third_of_the_house_is_furniture_nobody_uses() {
+        let p = pack();
+        let silent = p
+            .objects
+            .iter()
+            .filter(|o| o.interactions.is_empty())
+            .count();
+        assert!(
+            silent * 3 >= p.objects.len(),
+            "only {silent} of {} objects are scenery; the house is meant to \
+             hold things that are not all affordances",
+            p.objects.len()
+        );
+        assert!(
+            silent < p.objects.len(),
+            "every object advertises nothing, so no sim can ever choose to \
+             do anything; the interactions have been dropped somewhere in \
+             the pipeline"
         );
     }
 
@@ -213,7 +297,18 @@ mod tests {
     fn every_shipped_object_draws_as_a_different_sprite() {
         let p = pack();
         let mut sprites: Vec<u32> = p.objects.iter().map(|o| o.sprite).collect();
-        assert_eq!(sprites.len(), 8, "the design calls for eight objects");
+        // A floor rather than the exact count, which used to be `== 8`: the
+        // roster is pinned by
+        // `the_shipped_pack_declares_every_object_the_design_calls_for`, and
+        // restating a number here only meant two tests to edit whenever the
+        // house gained a chair. What this needs is that the house is big
+        // enough for a shared sprite to be a plausible copy-paste at all.
+        assert!(
+            sprites.len() > 8,
+            "the house is meant to hold more than the original eight objects; \
+             got {}",
+            sprites.len()
+        );
         sprites.push(p.sim_sprite);
         let before = sprites.len();
         sprites.sort_unstable();
@@ -226,6 +321,118 @@ mod tests {
         );
     }
 
+    /// **The shipped household: three sims, three archetypes, and the
+    /// numbers that make them tellable apart.** Goal item 1 stated as
+    /// content: at least three, every member on a DIFFERENT archetype -
+    /// three sims sharing one personality would satisfy "three sims" while
+    /// failing "visibly different behaviour traceable to personality
+    /// data", which is the actual criterion.
+    #[test]
+    fn the_shipped_household_is_three_sims_on_three_different_archetypes() {
+        let p = pack();
+        assert!(
+            p.household.len() >= 3,
+            "goal item 1 asks for a household of at least three; got {}",
+            p.household.len()
+        );
+
+        let mut worn: Vec<u32> = p.household.iter().map(|m| m.personality).collect();
+        worn.sort_unstable();
+        worn.dedup();
+        assert_eq!(
+            worn.len(),
+            p.household.len(),
+            "two household members share an archetype; the household would be N copies of fewer people"
+        );
+
+        for member in &p.household {
+            assert!(
+                (member.personality as usize) < p.personalities.len(),
+                "'{}' points past the personality list",
+                member.name
+            );
+            assert!(!member.name.trim().is_empty());
+        }
+    }
+
+    /// Every shipped archetype differs from neutral somewhere, and every
+    /// multiplier in the file is pairwise distinct - the [L26]/[L29]
+    /// discipline the file's header promises, checked mechanically
+    /// because at 20-odd values nobody keeps it by eye.
+    #[test]
+    fn every_shipped_archetype_is_distinct_and_none_is_secretly_neutral() {
+        let p = pack();
+        assert!(
+            p.personalities.len() >= 3,
+            "three sims on three archetypes need three archetypes"
+        );
+
+        let mut values: Vec<f32> = Vec::new();
+        for personality in &p.personalities {
+            let mut differs = false;
+            for i in 0..terri_core::NEED_COUNT {
+                if personality.drain[i] != 1.0 {
+                    differs = true;
+                    values.push(personality.drain[i]);
+                }
+                if personality.satisfaction[i] != 1.0 {
+                    differs = true;
+                    values.push(personality.satisfaction[i]);
+                }
+            }
+            for (_, _, weight) in &personality.dispositions {
+                differs = true;
+                values.push(*weight);
+            }
+            assert!(
+                differs,
+                "archetype '{}' is neutral everywhere; a sim wearing it is indistinguishable from a sim with no personality at all",
+                personality.id
+            );
+        }
+
+        // Pairwise distinct across the whole file. Two equal multipliers
+        // in different slots make a transposition invisible; sorting and
+        // comparing neighbours finds any collision in one pass. Bitwise
+        // comparison via to_bits, because every authored value is exact.
+        let mut bits: Vec<u32> = values.iter().map(|v| v.to_bits()).collect();
+        let before = bits.len();
+        bits.sort_unstable();
+        bits.dedup();
+        assert_eq!(
+            bits.len(),
+            before,
+            "two personality multipliers share a value; [L26] is why that makes them untestable apart"
+        );
+    }
+
+    /// The starting needs across the household are pairwise distinct too,
+    /// and each sim starts short of something: a household spawning fully
+    /// content has no first move to watch, and the opening minute is the
+    /// only minute a new player is guaranteed to give it.
+    #[test]
+    fn every_shipped_sim_arrives_wanting_something_different() {
+        let p = pack();
+        let mut lowered: Vec<u32> = Vec::new();
+        for member in &p.household {
+            let below: Vec<f32> = member
+                .needs
+                .iter()
+                .copied()
+                .filter(|level| *level < terri_core::NEED_MAX)
+                .collect();
+            assert!(
+                !below.is_empty(),
+                "'{}' arrives perfectly content and will stand still for the whole opening minute",
+                member.name
+            );
+            lowered.extend(below.iter().map(|v| v.to_bits()));
+        }
+        let before = lowered.len();
+        lowered.sort_unstable();
+        lowered.dedup();
+        assert_eq!(lowered.len(), before, "two starting needs share a value");
+    }
     /// The knobs `content/tuning.toml` authors, read back off the pack
     /// the game actually loads.
     ///

@@ -60,6 +60,22 @@ pub enum ContentError {
         object: String,
         interaction: String,
     },
+    /// An interaction whose `label` is present but blank, or is nothing but
+    /// whitespace.
+    ///
+    /// The same silent-nothing shape as [`ContentError::ZeroSlots`] carried
+    /// into the UI: the right-click flyout builds one row per interaction, so
+    /// a blank label is a clickable row of empty space. It still directs the
+    /// sim when picked, which makes it worse than a missing row - the player
+    /// sees a gap in the menu and the game responds to it.
+    ///
+    /// Unreachable by omitting the field, because omitting it falls back to
+    /// the interaction's `id`. This fires only on an author who typed
+    /// `label = ""`.
+    EmptyInteractionLabel {
+        object: String,
+        interaction: String,
+    },
     /// An interaction whose whole sampled length sits at or below
     /// `min_interaction_ticks`, so the floor sets its duration instead of its
     /// content, `duration_variance` does nothing for it, and it delivers
@@ -114,6 +130,87 @@ pub enum ContentError {
         x: u32,
         y: u32,
     },
+    /// A `footprint` with a zero dimension. Not in [F5]'s three rules and
+    /// added anyway, because it is the same silent-nothing shape as
+    /// [`ContentError::EmptyLot`] one layer down: an object occupying no
+    /// tiles has an empty adjacency set, so `find_path_adjacent` finds
+    /// nowhere to stand, scoring treats the object as unavailable, and the
+    /// object simply is furniture nobody ever uses. It is also what makes
+    /// the rectangle arithmetic below safe to write without saturating
+    /// subtraction.
+    ZeroFootprint {
+        object: String,
+        width: u32,
+        depth: u32,
+    },
+    /// [F5] rule 2, first half: part of an object's footprint is off the lot.
+    ///
+    /// The tile is the OFFENDING one rather than the placement's origin,
+    /// which is the whole reason this is not
+    /// [`ContentError::PlacementOutOfBounds`]: an object placed legally at
+    /// `(12, 7)` whose 3x1 footprint runs off a 14-wide lot has an origin
+    /// that is perfectly in bounds, and reporting that coordinate would send
+    /// the author looking at the wrong number. Silent otherwise: the object
+    /// draws fine and the tiles outside the lot are simply gone.
+    FootprintOutOfBounds {
+        object: String,
+        x: u32,
+        y: u32,
+        width: u32,
+        height: u32,
+    },
+    /// [F5] rule 2, second half: part of an object's footprint sits on a
+    /// wall tile.
+    ///
+    /// Distinct from [`ContentError::PlacementOnWall`] for the same reason as
+    /// above - that one names the tile the author typed, this one names a
+    /// tile the author has to derive - and equally silent: the wall wins, so
+    /// the object loses a tile it believes it has.
+    FootprintOnWall {
+        object: String,
+        x: u32,
+        y: u32,
+    },
+    /// [F5] rule 1: two objects' footprints claim the same tile.
+    ///
+    /// **The rule the whole feature was asked for.** Both objects are named
+    /// because either could be the one in the wrong place, and neither is
+    /// identifiable from the tile alone. `first` is whichever is declared
+    /// earlier in `lot.toml`, so the message is stable rather than depending
+    /// on iteration order.
+    FootprintsOverlap {
+        first: String,
+        second: String,
+        x: u32,
+        y: u32,
+    },
+    /// [F5] rule 3, first half: an object with no walkable tile beside it.
+    ///
+    /// The tile is the object's ORIGIN, because with nothing beside it there
+    /// is no more specific tile to name. Runtime already handles this -
+    /// `find_path_adjacent` returns `None` and scoring treats the object as
+    /// unavailable - and that is exactly the problem: the sim looks alive and
+    /// simply never uses the thing, for as long as the lot exists.
+    NoWalkableApproach {
+        object: String,
+        x: u32,
+        y: u32,
+    },
+    /// [F5] rule 3, second half, and the rule that pays for [F3]: a tile
+    /// beside an object is walkable but **cut off** from the rest of the lot.
+    ///
+    /// Blocking footprint tiles makes an object placed in a doorway able to
+    /// seal a room. The flood fill starts from `root`, the first walkable
+    /// tile in the lot, so a failure means the named approach tile and `root`
+    /// are in different regions - which is reported as the object's problem
+    /// because an object is what the author can move.
+    UnreachableApproach {
+        object: String,
+        x: u32,
+        y: u32,
+        root_x: u32,
+        root_y: u32,
+    },
     UnknownPlacedObject {
         object: String,
     },
@@ -146,6 +243,15 @@ pub enum ContentError {
     /// interaction that can complete on the tick it starts, which reads
     /// as a sim teleporting through an action.
     ZeroInteractionFloor,
+    HabituationPerUseOutOfRange {
+        value: f32,
+    },
+    NonPositiveHabituationDecay {
+        value: f32,
+    },
+    HabituationFloorOutOfRange {
+        value: f32,
+    },
     /// Zero attempts is not "wander less"; it is a sim that can never
     /// roll a destination and therefore never wanders at all, which is
     /// exactly the standing-still behaviour [D-5] exists to remove -
@@ -194,6 +300,112 @@ pub enum ContentError {
     /// failure - the page would load, the sim would behave, and nothing
     /// the player did would reach it.
     ZeroQueuedCommands,
+    /// Two archetypes with one id: the household resolves by name, so the
+    /// second is unreachable and every sim naming it silently gets the
+    /// first - two definitions for one fact, resolved by declaration
+    /// order nobody chose.
+    DuplicateArchetype {
+        id: String,
+    },
+    /// An archetype's `drain` or `satisfaction` map names a need rustc
+    /// does not know. Same dangling-reference shape as
+    /// [`ContentError::UnknownNeed`], one file over.
+    UnknownPersonalityNeed {
+        archetype: String,
+        map: &'static str,
+        need: String,
+    },
+    /// A satisfaction multiplier of zero makes every positive delta on
+    /// that need worth nothing TO THIS SIM - the need becomes dynamically
+    /// unsatisfiable for one person, which is [C2] with a face on it, and
+    /// `every_declared_need_can_be_satisfied_by_some_interaction` is
+    /// static and cannot see it. Drain multipliers may be zero - a need
+    /// that never drains is a placid trait, not a trap - which is why the
+    /// two maps have different floors.
+    NonPositiveSatisfaction {
+        archetype: String,
+        need: String,
+        value: f32,
+    },
+    /// A disposition names an object `objects.toml` does not declare.
+    UnknownDispositionObject {
+        archetype: String,
+        object: String,
+    },
+    /// A disposition names an interaction its object does not offer.
+    /// Reported separately from the object case because the fixes are
+    /// different edits: one is a typo in an object id, the other is
+    /// usually an interaction renamed after the archetype was written.
+    UnknownDispositionInteraction {
+        archetype: String,
+        object: String,
+        interaction: String,
+    },
+    /// One archetype declares two weights for one interaction. Ambiguous
+    /// rather than merely redundant: nothing says which wins, and the
+    /// answer would be declaration order nobody chose.
+    DuplicateDisposition {
+        archetype: String,
+        object: String,
+        interaction: String,
+    },
+    /// A household member names an archetype `personalities.toml` does
+    /// not declare.
+    UnknownArchetype {
+        sim: String,
+        archetype: String,
+    },
+    /// A sim with no name renders a blank needs-panel header and a blank
+    /// row in every future UI that lists the household. Same
+    /// silent-nothing shape as a blank interaction label.
+    ///
+    /// Carries the POSITION rather than the name, because the name is
+    /// what is missing: every other household error points at its sim by
+    /// name, and this is the one mistake where that pointer is blank.
+    EmptySimName {
+        index: usize,
+    },
+    /// A household member spawns outside the lot.
+    SpawnOutOfBounds {
+        sim: String,
+        x: f32,
+        y: f32,
+        width: u32,
+        height: u32,
+    },
+    /// A household member spawns inside a wall or a footprint. Movement
+    /// paths FROM the sim's tile, so a sim born in a blocked tile can
+    /// never leave it: every neighbour expansion starts from a tile the
+    /// grid says nothing can stand on.
+    SpawnOnBlockedTile {
+        sim: String,
+        x: u32,
+        y: u32,
+    },
+    /// A household member spawns on a walkable tile that is cut off from
+    /// the rest of the lot - born in a sealed pocket, able to starve and
+    /// not to leave. Same flood fill as
+    /// [`ContentError::UnreachableApproach`], same root.
+    SpawnUnreachable {
+        sim: String,
+        x: u32,
+        y: u32,
+        root_x: u32,
+        root_y: u32,
+    },
+    /// A starting need names a need rustc does not know.
+    UnknownStartingNeed {
+        sim: String,
+        need: String,
+    },
+    /// A starting need outside `[0, 100]`. Clamping silently would hide
+    /// an authoring typo - `hunger = 620.0` for `62.0` - behind a sim
+    /// that merely behaves oddly for its first sim-day.
+    StartingNeedOutOfRange {
+        sim: String,
+        need: String,
+        value: f32,
+    },
 }
 
 impl fmt::Display for ContentError {
@@ -251,6 +463,16 @@ impl fmt::Display for ContentError {
                 f,
                 "object '{object}' interaction '{interaction}' has slots of 0; must be at least 1"
             ),
+            ContentError::EmptyInteractionLabel {
+                object,
+                interaction,
+            } => write!(
+                f,
+                "object '{object}' interaction '{interaction}' has a blank \
+                 label; the right-click menu would draw a clickable row of \
+                 empty space that still directs the sim. Omit the field \
+                 entirely to fall back to '{interaction}', or write a label"
+            ),
             ContentError::ClippedDuration {
                 object,
                 interaction,
@@ -303,6 +525,65 @@ impl fmt::Display for ContentError {
             ContentError::PlacementOnWall { object, x, y } => {
                 write!(f, "lot.toml places '{object}' on the wall tile ({x}, {y})")
             }
+            ContentError::ZeroFootprint {
+                object,
+                width,
+                depth,
+            } => write!(
+                f,
+                "object '{object}' declares a {width}x{depth} footprint; both \
+                 dimensions must be at least 1. An object occupying no tiles \
+                 has nowhere to stand beside it, so no sim could ever use it"
+            ),
+            ContentError::FootprintOutOfBounds {
+                object,
+                x,
+                y,
+                width,
+                height,
+            } => write!(
+                f,
+                "lot.toml places '{object}' so that its footprint covers \
+                 ({x}, {y}), outside the {width}x{height} lot. The placement \
+                 coordinate is inside the lot; its width or depth is what \
+                 runs off the edge"
+            ),
+            ContentError::FootprintOnWall { object, x, y } => write!(
+                f,
+                "lot.toml places '{object}' so that its footprint covers the \
+                 wall tile ({x}, {y}). The placement coordinate is clear of \
+                 the walls; its width or depth is what reaches one"
+            ),
+            ContentError::FootprintsOverlap {
+                first,
+                second,
+                x,
+                y,
+            } => write!(
+                f,
+                "lot.toml places '{first}' and '{second}' so that both \
+                 footprints cover the tile ({x}, {y}); move one of them"
+            ),
+            ContentError::NoWalkableApproach { object, x, y } => write!(
+                f,
+                "lot.toml places '{object}' at tile ({x}, {y}) with no \
+                 walkable tile beside its footprint, so no sim can ever \
+                 stand next to it and the object would be scenery"
+            ),
+            ContentError::UnreachableApproach {
+                object,
+                x,
+                y,
+                root_x,
+                root_y,
+            } => write!(
+                f,
+                "lot.toml leaves the tile ({x}, {y}) beside '{object}' cut off \
+                 from ({root_x}, {root_y}): the lot is split into regions a sim \
+                 cannot walk between, so part of the house would never be \
+                 used. An object placed in a doorway seals it, because \
+                 footprint tiles are impassable"
+            ),
             ContentError::UnknownPlacedObject { object } => {
                 write!(
                     f,
@@ -320,6 +601,18 @@ impl fmt::Display for ContentError {
             ContentError::NonPositiveTemperature { value } => write!(
                 f,
                 "tuning.toml has choice_temperature of {value}; it must be greater than 0 because selection divides by it"
+            ),
+            ContentError::HabituationPerUseOutOfRange { value } => write!(
+                f,
+                "habituation_per_use is {value}; must be in [0, 1]. 0 disables                  habituation; above 1 saturates on first use, so an object                  would never be chosen twice"
+            ),
+            ContentError::NonPositiveHabituationDecay { value } => write!(
+                f,
+                "habituation_decay_per_tick is {value}; must be strictly                  positive. Zero makes habituation a one-way ratchet, so every                  interaction a sim has performed sinks to the floor and stays                  there and the whole house becomes equally unappealing"
+            ),
+            ContentError::HabituationFloorOutOfRange { value } => write!(
+                f,
+                "habituation_floor is {value}; must be in (0, 1]. It is a                  MULTIPLIER, so 1 disables the effect and 0 would make a fully                  habituated interaction permanently worthless"
             ),
             ContentError::ZeroInteractionFloor => write!(
                 f,
@@ -348,6 +641,108 @@ impl fmt::Display for ContentError {
             ContentError::ZeroQueuedCommands => write!(
                 f,
                 "tuning.toml has max_queued_commands of 0, so the boundary would refuse every player command and nothing the player did would reach the simulation; must be at least 1"
+            ),
+            ContentError::DuplicateArchetype { id } => write!(
+                f,
+                "personalities.toml declares archetype '{id}' more than once; \
+                 the household resolves by name, so the second definition \
+                 could never be reached"
+            ),
+            ContentError::UnknownPersonalityNeed {
+                archetype,
+                map,
+                need,
+            } => write!(
+                f,
+                "archetype '{archetype}' gives a {map} multiplier for unknown need '{need}'"
+            ),
+            ContentError::NonPositiveSatisfaction {
+                archetype,
+                need,
+                value,
+            } => write!(
+                f,
+                "archetype '{archetype}' has a satisfaction multiplier of \
+                 {value} for '{need}'; it must be greater than 0, or that \
+                 need becomes unsatisfiable for every sim with this \
+                 personality - no interaction could ever refill it. A drain \
+                 multiplier of 0 is the legal way to say a need does not \
+                 trouble this sim"
+            ),
+            ContentError::UnknownDispositionObject { archetype, object } => write!(
+                f,
+                "archetype '{archetype}' has a disposition toward '{object}', \
+                 which objects.toml does not declare"
+            ),
+            ContentError::UnknownDispositionInteraction {
+                archetype,
+                object,
+                interaction,
+            } => write!(
+                f,
+                "archetype '{archetype}' has a disposition toward \
+                 '{object}.{interaction}', but '{object}' offers no \
+                 interaction with that id"
+            ),
+            ContentError::DuplicateDisposition {
+                archetype,
+                object,
+                interaction,
+            } => write!(
+                f,
+                "archetype '{archetype}' declares two dispositions toward \
+                 '{object}.{interaction}'; nothing says which weight wins"
+            ),
+            ContentError::UnknownArchetype { sim, archetype } => write!(
+                f,
+                "household.toml gives '{sim}' the archetype '{archetype}', \
+                 which personalities.toml does not declare"
+            ),
+            ContentError::EmptySimName { index } => write!(
+                f,
+                "household.toml's sim number {} (counting from 1) has a blank \
+                 name; the needs panel and every future household list would \
+                 show an empty row",
+                index + 1
+            ),
+            ContentError::SpawnOutOfBounds {
+                sim,
+                x,
+                y,
+                width,
+                height,
+            } => write!(
+                f,
+                "household.toml spawns '{sim}' at ({x}, {y}), outside the \
+                 {width}x{height} lot"
+            ),
+            ContentError::SpawnOnBlockedTile { sim, x, y } => write!(
+                f,
+                "household.toml spawns '{sim}' on the blocked tile ({x}, {y}); \
+                 movement paths FROM a sim's tile, so a sim born inside a wall \
+                 or a footprint can never take a step"
+            ),
+            ContentError::SpawnUnreachable {
+                sim,
+                x,
+                y,
+                root_x,
+                root_y,
+            } => write!(
+                f,
+                "household.toml spawns '{sim}' at ({x}, {y}), which is cut off \
+                 from ({root_x}, {root_y}): the sim would be born in a sealed \
+                 pocket, able to starve and not to leave"
+            ),
+            ContentError::UnknownStartingNeed { sim, need } => write!(
+                f,
+                "household.toml gives '{sim}' a starting level for unknown need '{need}'"
+            ),
+            ContentError::StartingNeedOutOfRange { sim, need, value } => write!(
+                f,
+                "household.toml starts '{sim}' with {need} at {value}; levels \
+                 are 0 to 100, and clamping silently would hide a typo behind \
+                 a sim that merely behaves oddly for a day"
             ),
         }
     }

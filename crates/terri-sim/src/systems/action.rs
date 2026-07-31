@@ -1,10 +1,10 @@
 use bevy_ecs::prelude::*;
 use terri_core::{
-    Agent, Blocked, Eating, IntentQueue, NeedId, Needs, Path, Position, Reserved, Restless, SimRng,
-    SmartObject, Target, TileGrid,
+    Agent, Blocked, Eating, Habituation, IntentQueue, NeedId, Needs, Path, Personality, Position,
+    Reserved, Restless, SimRng, SmartObject, Target, TileGrid,
 };
 
-use super::advertise::score_advertisement;
+use super::advertise::{benefit_scale, scaled_delta, score_advertisement};
 use crate::Content;
 
 /// Picks one candidate at random, weighted by `exp(score / temperature)`
@@ -455,7 +455,15 @@ pub fn serve_intents(
         // still means unreachable and still drops the intent, which is the
         // same handling as before - it now also covers an object whose every
         // neighbour is walled off.
-        let Some(steps) = grid.find_path_adjacent(from, to) else {
+        //
+        // **Beside the whole RECTANGLE**, not beside the origin tile - [F4].
+        // The footprint comes from the object's definition rather than from
+        // its placement, so a click on the east end of a 2x1 bed sends the sim
+        // to the tile beside that end rather than round to the origin. A
+        // 1x1 default here would be the bug footprints exist to remove, which
+        // is why the argument is required rather than optional.
+        let footprint = content.0.object(placed.0).footprint;
+        let Some(steps) = grid.find_path_adjacent(from, to, footprint) else {
             queue.pop();
             continue;
         };
@@ -521,7 +529,14 @@ pub fn select_action(
     content: Res<Content>,
     mut rng: ResMut<SimRng>,
     agents: Query<
-        (Entity, &Position, &Needs, Option<&IntentQueue>),
+        (
+            Entity,
+            &Position,
+            &Needs,
+            Option<&IntentQueue>,
+            Option<&Habituation>,
+            Option<&Personality>,
+        ),
         (With<Agent>, Without<Target>, Without<Eating>),
     >,
     // **Reserved objects are INCLUDED, and `Has<Reserved>` is read per
@@ -577,7 +592,7 @@ pub fn select_action(
     // The whole `Needs` component is carried rather than one deficit,
     // because an advert is a sparse list of (need, delta) pairs: which
     // needs get scored is a property of the candidate, not of the agent.
-    let mut idle: Vec<(Entity, Position, Needs)> = agents
+    let mut idle: Vec<(Entity, Position, Needs, Habituation, Personality)> = agents
         .iter()
         // **A directed sim does not choose for itself** - [D-3]. This is
         // the whole autonomy override: a player-issued intent suppresses
@@ -616,10 +631,23 @@ pub fn select_action(
         // See [L41]: a guard normally shadowed by another guard is only
         // observable on the input where the shadow is absent, so that
         // fixture had to be built deliberately rather than found.
-        .filter(|(_, _, _, queue)| queue.is_none_or(|queue| queue.is_empty()))
-        .map(|(e, pos, needs, _)| (e, *pos, *needs))
+        .filter(|(_, _, _, queue, _, _)| queue.is_none_or(|queue| queue.is_empty()))
+        // Cloned rather than borrowed because the loop below takes `commands`
+        // mutably; both Vecs are single digits long. A sim with no
+        // `Personality` gets the neutral one - all multipliers 1.0 - which
+        // is what keeps every fixture and golden vector predating M2c
+        // behaving exactly as it did.
+        .map(|(e, pos, needs, _, hab, personality)| {
+            (
+                e,
+                *pos,
+                *needs,
+                hab.cloned().unwrap_or_default(),
+                personality.cloned().unwrap_or_default(),
+            )
+        })
         .collect();
-    idle.sort_by_key(|(e, _, _)| e.index());
+    idle.sort_by_key(|(e, _, _, _, _)| e.index());
 
     // **The objects are sorted for the same reason, and that became
     // load-bearing at M1c rather than being tidiness.**
@@ -649,7 +677,7 @@ pub fn select_action(
 
     let mut claimed: Vec<Entity> = Vec::new();
 
-    for (agent, agent_pos, needs) in idle {
+    for (agent, agent_pos, needs, habituation, personality) in idle {
         // One candidate per object, in object-index order. An object
         // offers a LIST of interactions and an agent performs ONE of
         // them, so the interactions are resolved against each other
@@ -754,7 +782,17 @@ pub fn select_action(
             // stood on top of it. The distance term did not move, and the
             // measurement agrees: repeat use went 5.8% to 5.6%. See the note on
             // `find_path_adjacent` itself.
-            let Some(steps) = grid.find_path_adjacent(from, to) else {
+            //
+            // **Beside the whole RECTANGLE**, not beside the origin tile -
+            // [F4]. That makes the distance term the walk to the tile the sim
+            // will really stand on for a multi-tile object too: approaching a
+            // 2x1 bed from the east used to be scored as a walk all the way
+            // round to its origin, so the bed read as further away than it is
+            // and the sim's ranking disagreed with its own movement. Same
+            // class of error as scoring a walled-off object by straight-line
+            // distance, one object-width smaller.
+            let footprint = content.0.object(placed.0).footprint;
+            let Some(steps) = grid.find_path_adjacent(from, to, footprint) else {
                 continue;
             };
             let distance = steps.len() as f32;
@@ -771,15 +809,55 @@ pub fn select_action(
                 // or a first-advert-wins rule would not allow.
                 // `an_object_advertising_two_needs_beats_one_advertising_a_bigger_single_delta`
                 // is what pins it.
+                // **Habituation scales the BENEFIT and never a cost** - [S2].
+                //
+                // The multiplier runs from 1.0 for something never done to
+                // `habituation_floor` for something done to death, and it is
+                // applied only to POSITIVE deltas. A fourth shower in a row is
+                // less refreshing but it does not become less tiring, and
+                // scaling its `energy = -12` toward zero would make a
+                // habituated shower cheaper and therefore MORE attractive -
+                // the mechanic running backwards.
+                //
+                // Read from a per-agent component, which is the first thing in
+                // scoring that is not a property of the world alone. That is
+                // the shape `2026-07-29-satisfaction-and-traits-design.md` [S4]
+                // asks for: dispositions and per-sim affinities compose into
+                // this same multiplier rather than each getting a mechanism.
+                //
+                // The two lines of arithmetic live in `advertise.rs` rather
+                // than here, and that is not tidiness: inline, they were
+                // unconstrained by the whole suite and the M2b sweep found
+                // seven survivors across them. See `benefit_scale` for why no
+                // existing test could see it.
+                // **Personality composes into the same multiplier** - [S4]'s
+                // one-mechanism rule, now with its second and third sources.
+                // The disposition is per-interaction like habituation; the
+                // satisfaction multiplier is per-NEED, so it joins inside
+                // the advert loop. All of them scale BENEFITS only, through
+                // `scaled_delta`, and for the same reason: a sim that fears
+                // the couch is not exempt from the couch's costs, and a sim
+                // that gets little from eating still gets tired walking.
+                //
+                // A disposition of 0 - the authored "fear" - zeroes every
+                // benefit and leaves every cost, so the net score cannot
+                // clear `action_threshold` and the sim never chooses it on
+                // its own. A COMMAND still works: `serve_intents` does not
+                // score.
+                let hab = habituation.get(placed.0, index as u32);
+                let scale = benefit_scale(hab, content.0.tuning.habituation_floor)
+                    * personality.disposition(placed.0, index as u32);
                 let mut score = 0.0;
                 for (need_index, delta) in &advert.advertises {
+                    let satisfaction = personality.satisfaction[*need_index as usize];
+                    let delta = scaled_delta(*delta, scale * satisfaction);
                     // In range by construction: content validation
                     // rejects an advert naming a need rustc does not
                     // know, so a compiled pack cannot hold a bad index.
                     let id = NeedId::ALL[*need_index as usize];
                     score += score_advertisement(
                         needs.deficit(id),
-                        *delta,
+                        delta,
                         advert.duration_ticks,
                         distance,
                     );
@@ -937,8 +1015,8 @@ mod intent_tests {
     //! what actually happens without one rather than against a prediction.
 
     use super::tests::{
-        action_threshold, assert_decisive, decisive_pack, def, spawn_agent, spawn_agent_with,
-        spawn_object, walk_tiles,
+        action_threshold, assert_decisive, decisive_pack, def, object_of_width, planned_route,
+        spawn_agent, spawn_agent_with, spawn_object, walk_tiles,
     };
     use super::*;
     use crate::test_content;
@@ -1032,6 +1110,55 @@ mod intent_tests {
 
     fn target_of(sim: &Sim, agent: Entity) -> Option<Target> {
         sim.world().get::<Target>(agent).copied()
+    }
+
+    /// **The footprint reaches `serve_intents` too**, which is a *separate*
+    /// call to `find_path_adjacent` in a separate system: a player clicking a
+    /// wide object must get the same arrival tile autonomy would have chosen,
+    /// and a footprint dropped from one of the two call sites leaves the other
+    /// one green. `selection_paths_beside_a_wide_objects_far_edge_rather_than_round_to_its_origin`
+    /// in `tests` is the other half, and carries the geometry.
+    ///
+    /// The agent is spawned SATISFIED, so autonomy scores the object below
+    /// `action_threshold` and would never target it. The control run measures
+    /// that rather than predicting it: no intent, no `Target`. It checks the
+    /// `Target` rather than the path because `wander` does hand a restless
+    /// agent a `Path` - a wander is a path from nowhere in particular, and
+    /// only `serve_intents` and `select_action` write a `Target`.
+    #[test]
+    fn a_directed_sim_paths_beside_a_wide_objects_far_edge_as_well() {
+        let content = decisive_pack(vec![object_of_width(2)]);
+
+        let mut control = test_content::sim_with(16, 16, content);
+        spawn_object(&mut control, 4.0, 8.0, def(content, "wide"));
+        let idle = spawn_agent(&mut control, 10.0, 8.0, NEED_MAX);
+        control.tick();
+        assert!(
+            target_of(&control, idle).is_none(),
+            "a satisfied agent must not target the object on its own, or the \
+             route below could be autonomy's rather than the player's"
+        );
+
+        let mut sim = test_content::sim_with(16, 16, content);
+        let object = spawn_object(&mut sim, 4.0, 8.0, def(content, "wide"));
+        let agent = spawn_agent(&mut sim, 10.0, 8.0, NEED_MAX);
+        queue_intent(&mut sim, agent, object, 0);
+        sim.tick();
+
+        assert_eq!(
+            target_of(&sim, agent).map(|t| t.object),
+            Some(object),
+            "the intent must have been served"
+        );
+        let route = planned_route(&sim, agent);
+        assert_eq!(
+            *route.last().unwrap(),
+            (6, 8),
+            "a directed sim must stop beside the object's FAR tile too; a \
+             1x1 footprint here sends it to (5, 8), onto the object. Got \
+             {route:?}"
+        );
+        assert_eq!(route.len(), 4, "which is four tiles, not five");
     }
 
     /// Ticks until the agent is mid-interaction, or fails loudly.
@@ -2601,6 +2728,99 @@ mod tests {
         );
     }
 
+    // ---- Footprints ----------------------------------------------------
+
+    /// The one-tile and two-tile versions of the same object, with the same
+    /// advert every distance test in this module uses, so the score
+    /// arithmetic is unchanged and the rectangle is the only new thing.
+    pub(super) fn object_of_width(width: u32) -> CompiledObject {
+        test_content::object_sized(
+            "wide",
+            vec![test_content::interaction(
+                "use_it",
+                &[(NeedId::Hunger, IDENTICAL_DELTA)],
+                IDENTICAL_DURATION,
+            )],
+            terri_core::Footprint { width, depth: 1 },
+        )
+    }
+
+    /// The plan selection or `serve_intents` wrote, before `follow_path`
+    /// consumed any of it. `steps` is the whole route, so `last()` is the tile
+    /// the agent is heading for.
+    pub(super) fn planned_route(sim: &Sim, agent: Entity) -> Vec<(i32, i32)> {
+        sim.world()
+            .get::<Path>(agent)
+            .expect("the agent must have been given a path")
+            .steps
+            .clone()
+    }
+
+    /// A 16x16 room holding one object of the given width at `(4, 8)`, and an
+    /// agent to its EAST at `(10, 8)`.
+    ///
+    /// East is the one direction where the two widths disagree: approaching a
+    /// wide object from its origin side is the same walk whatever its width,
+    /// which is why every existing distance test in this module is blind to
+    /// the difference.
+    fn agent_east_of_an_object_of_width(width: u32) -> (Sim, Entity, Entity) {
+        let content = decisive_pack(vec![object_of_width(width)]);
+        let mut sim = test_content::sim_with(16, 16, content);
+        let object = spawn_object(&mut sim, 4.0, 8.0, def(content, "wide"));
+        let agent = spawn_agent(&mut sim, 10.0, 8.0, 20.0);
+        (sim, object, agent)
+    }
+
+    /// **Selection paths to the RECTANGLE, not to the origin tile** - [F4] in
+    /// the system rather than in `TileGrid`.
+    ///
+    /// A 2x1 object at `(4, 8)` owns `(4, 8)` and `(5, 8)`, so an agent
+    /// arriving from the east should stop at `(6, 8)`, four tiles away. If
+    /// `select_action` passes `Footprint::SINGLE` - or reads the footprint off
+    /// some other object - the goal set is the four neighbours of `(4, 8)`
+    /// alone, the nearest of those is `(5, 8)`, and the agent walks five tiles
+    /// to stand on a tile the object occupies.
+    ///
+    /// **The fixture leaves the object's tiles walkable**, and that is
+    /// deliberate: on a real lot they are impassable, so the wrong answer
+    /// would be `None` and the agent would visibly do nothing. Here it is a
+    /// wrong DESTINATION reached by a perfectly valid path, which is the
+    /// version of this bug that no other assertion in the module can see.
+    ///
+    /// The counterfactual is RUN rather than described. Holding the fixture
+    /// constant and varying only `width` is what makes this a causal
+    /// assertion rather than a pair of numbers that happen to be right;
+    /// without it, an implementation measuring to a hardcoded rectangle would
+    /// satisfy every line above.
+    #[test]
+    fn selection_paths_beside_a_wide_objects_far_edge_rather_than_round_to_its_origin() {
+        let (mut sim, _, agent) = agent_east_of_an_object_of_width(2);
+        sim.tick();
+        let wide = planned_route(&sim, agent);
+
+        assert_eq!(
+            *wide.last().unwrap(),
+            (6, 8),
+            "the agent must stop beside the object's FAR tile; got {wide:?}"
+        );
+        assert_eq!(wide.len(), 4, "which is four tiles, not five");
+        assert!(
+            !wide.contains(&(5, 8)),
+            "and it must never step onto the tile the footprint adds; got {wide:?}"
+        );
+
+        let (mut narrow_sim, _, narrow_agent) = agent_east_of_an_object_of_width(1);
+        narrow_sim.tick();
+        let narrow = planned_route(&narrow_sim, narrow_agent);
+        assert_eq!(
+            *narrow.last().unwrap(),
+            (5, 8),
+            "the same object one tile narrower must send the agent to (5, 8), \
+             or width is not what decided the route above; got {narrow:?}"
+        );
+        assert_eq!(narrow.len(), 5);
+    }
+
     #[test]
     fn an_object_advertising_two_needs_beats_one_advertising_a_bigger_single_delta() {
         // Scoring SUMS the per-need scores across an interaction's
@@ -3990,6 +4210,206 @@ mod tests {
              archetype order; the other object winning means the \
              candidates reached the draw in table order, so which object \
              a die roll picks depends on which objects were used recently",
+        );
+    }
+}
+
+#[cfg(test)]
+mod personality_choice_tests {
+    //! The personality multipliers as CHOICES a fixture can watch, which
+    //! is what [L55] says a multiplier alone cannot provide and a
+    //! behavioural test alone cannot pin. The factor arithmetic is pinned
+    //! by golden values in `advertise.rs` and `terri-core`; these are the
+    //! composition reaching a real decision, built so the wrong-direction
+    //! mutant - `*` to `/` on the composition - lands on the other
+    //! object. The key-lookup halves are NOT pinned here: both fixture
+    //! objects offer one interaction at index 0, so a lookup ignoring the
+    //! interaction index reads the same weight, and
+    //! `a_disposition_reads_back_by_its_own_key_and_unlisted_reads_neutral`
+    //! in terri-core is what covers both halves of the key.
+
+    use crate::test_content;
+    use terri_core::{
+        Agent, NeedId, Needs, ObjectDefId, Personality, Position, SmartObject, Target, NEED_COUNT,
+        NEED_MAX,
+    };
+
+    /// Two objects with IDENTICAL adverts and durations, equidistant. An
+    /// EXACT tie is not broken by any rule: `select_action` deleted its
+    /// entity-index tiebreak when selection became a weighted draw, and
+    /// two equal scores get equal softmax weight at every temperature -
+    /// `exp(0) = 1` for both - so the winner is one draw on the seeded
+    /// stream, a coin flip whose outcome is fixed by `rng_seed`. On the
+    /// shipped seed it lands on `a`, and THAT measured fact - not a rule -
+    /// is the baseline the personality cases below must overturn; it is
+    /// asserted first because without it "the disposition won" cannot be
+    /// told from "the coin landed there".
+    fn chosen(personality: Option<Personality>) -> u32 {
+        let content = test_content::pack_tuned(
+            vec![
+                test_content::object("fridge_a", &[(NeedId::Hunger, 40.0)], 15),
+                test_content::object("fridge_b", &[(NeedId::Hunger, 40.0)], 15),
+            ],
+            terri_data::Tuning {
+                choice_temperature: 0.0001,
+                duration_variance: 0.0,
+                ..test_content::tuning()
+            },
+        );
+        let mut sim = test_content::sim_with(16, 16, content);
+        let a = sim
+            .world_mut()
+            .spawn((Position { x: 5.0, y: 8.0 }, SmartObject(ObjectDefId(0))))
+            .id();
+        let b = sim
+            .world_mut()
+            .spawn((Position { x: 11.0, y: 8.0 }, SmartObject(ObjectDefId(1))))
+            .id();
+        let mut needs = Needs::all_at(NEED_MAX);
+        needs.set(NeedId::Hunger, 20.0);
+        let agent = match personality {
+            Some(p) => sim
+                .world_mut()
+                .spawn((Agent, Position { x: 8.0, y: 8.0 }, needs, p))
+                .id(),
+            None => sim
+                .world_mut()
+                .spawn((Agent, Position { x: 8.0, y: 8.0 }, needs))
+                .id(),
+        };
+        for _ in 0..40 {
+            sim.tick();
+            if let Some(target) = sim.world().get::<Target>(agent) {
+                if target.object == a {
+                    return 0;
+                }
+                if target.object == b {
+                    return 1;
+                }
+            }
+        }
+        panic!("the hungry sim never chose either fridge");
+    }
+
+    #[test]
+    fn a_disposition_steers_a_tie_and_a_zero_one_refuses_outright() {
+        // The measured baseline: on the shipped seed, the undecorated
+        // coin lands on a. Without this line, "the disposition won" is
+        // indistinguishable from "the coin landed on b anyway".
+        assert_eq!(
+            chosen(None),
+            0,
+            "the shipped seed's tie coin must land on a; if a seed or rng \
+             change moves this, the two personality cases below need a new \
+             baseline, not deletion"
+        );
+
+        let neutral = Personality::neutral();
+        let loves_b = Personality::with_dispositions(
+            neutral.drain,
+            neutral.satisfaction,
+            vec![(ObjectDefId(1), 0, 2.0)],
+        );
+        assert_eq!(
+            chosen(Some(loves_b)),
+            1,
+            "a 2.0 disposition must win the tie; a `/` in the composition \
+             turns it into a penalty and this fails back to a"
+        );
+
+        let fears_a = Personality::with_dispositions(
+            [1.0; NEED_COUNT],
+            [1.0; NEED_COUNT],
+            vec![(ObjectDefId(0), 0, 0.0)],
+        );
+        assert_eq!(
+            chosen(Some(fears_a)),
+            1,
+            "a 0.0 disposition is a refusal; the authored fear must send \
+             the sim to the other object even against the tie break"
+        );
+    }
+
+    /// **The satisfaction multiplier steers choice between different
+    /// NEEDS, so what a sim seeks agrees with what delivery will give
+    /// it.** Two objects feeding two different needs, both equally short,
+    /// symmetric deltas and durations; satisfaction 2.0 on energy must
+    /// pull the choice to the bed against the same first-spawned tie
+    /// break the test above pins.
+    #[test]
+    fn a_satisfaction_multiplier_steers_choice_toward_the_need_it_amplifies() {
+        let content = test_content::pack_tuned(
+            vec![
+                test_content::object("fridge", &[(NeedId::Hunger, 40.0)], 15),
+                test_content::object("bed", &[(NeedId::Energy, 40.0)], 15),
+            ],
+            terri_data::Tuning {
+                choice_temperature: 0.0001,
+                duration_variance: 0.0,
+                ..test_content::tuning()
+            },
+        );
+
+        // Which object does a sim short of BOTH needs pick? Undecorated,
+        // the two candidates tie exactly and the winner is one draw on the
+        // seeded stream - see the coin-flip note on `chosen` above.
+        let picks_bed = |personality: Option<Personality>| -> bool {
+            let mut sim = test_content::sim_with(16, 16, content);
+            let fridge = sim
+                .world_mut()
+                .spawn((Position { x: 5.0, y: 8.0 }, SmartObject(ObjectDefId(0))))
+                .id();
+            let bed = sim
+                .world_mut()
+                .spawn((Position { x: 11.0, y: 8.0 }, SmartObject(ObjectDefId(1))))
+                .id();
+            let mut needs = Needs::all_at(NEED_MAX);
+            needs.set(NeedId::Hunger, 20.0);
+            needs.set(NeedId::Energy, 20.0);
+            let agent = match personality {
+                Some(p) => sim
+                    .world_mut()
+                    .spawn((Agent, Position { x: 8.0, y: 8.0 }, needs, p))
+                    .id(),
+                None => sim
+                    .world_mut()
+                    .spawn((Agent, Position { x: 8.0, y: 8.0 }, needs))
+                    .id(),
+            };
+            for _ in 0..40 {
+                sim.tick();
+                if let Some(target) = sim.world().get::<Target>(agent) {
+                    if target.object == bed {
+                        return true;
+                    }
+                    if target.object == fridge {
+                        return false;
+                    }
+                }
+            }
+            panic!("the sim never chose anything");
+        };
+
+        // **The measured baseline, and it is what makes the second half
+        // mean anything.** On the shipped seed the undecorated coin lands
+        // on the FRIDGE, so a mutant that flattened the satisfaction read
+        // to a constant - the [L26] failure one slot down - recreates the
+        // exact tie and lands here, where this assertion sees it, rather
+        // than surviving on whichever way the coin happened to fall.
+        assert!(
+            !picks_bed(None),
+            "the shipped seed's tie coin must land on the fridge; if a seed \
+             change moves this, the steering case below needs a new \
+             baseline, not deletion"
+        );
+
+        let mut personality = Personality::neutral();
+        personality.satisfaction[NeedId::Energy.index()] = 2.0;
+        assert!(
+            picks_bed(Some(personality)),
+            "energy is worth double to this sim, so the bed must beat the \
+             equidistant, equally-urgent fridge - and beat the tie coin \
+             that the baseline above shows falls the other way"
         );
     }
 }

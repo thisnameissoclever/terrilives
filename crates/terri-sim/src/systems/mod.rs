@@ -5,6 +5,9 @@ pub mod advertise;
 // is never compiled, so its tests report `0 filtered out` rather than
 // failing.
 pub mod command;
+// Declared in the same commit that creates `habituation.rs`, per [L2], for the
+// same reason as the two above and below.
+pub mod habituation;
 // Declared in the same commit that creates `idle.rs`, per [L2]: rustc
 // does not compile a `.rs` file no `mod` declaration references, so a
 // file added without this line has its tests reported as `0 filtered

@@ -1,5 +1,7 @@
 use bevy_ecs::prelude::*;
-use terri_core::{Eating, IntentQueue, NeedId, Needs, Reserved, SimRng, Target};
+use terri_core::{
+    Eating, Habituation, IntentQueue, NeedId, Needs, Personality, Reserved, SimRng, Target,
+};
 
 use crate::Content;
 
@@ -102,6 +104,11 @@ pub fn sample_duration(centre: u32, variance: f32, floor: u32, rng: &mut SimRng)
 /// because the draw is biased shorter, which is [D-4] working rather than
 /// the floor binding. Nothing is pinned to a single length any more. Rerun
 /// it with `cargo run -p terri-sim --example trace`.
+/// The type_complexity allow is for the same reason it sits on `select_action`
+/// and `drain_commands`: the query tuple is what pushes past clippy's threshold,
+/// and a type alias would only move the same type somewhere less readable. It
+/// grew a sixth member when habituation arrived.
+#[allow(clippy::type_complexity)]
 pub fn tick_interactions(
     mut commands: Commands,
     content: Res<Content>,
@@ -111,9 +118,11 @@ pub fn tick_interactions(
         &mut Needs,
         &Target,
         Option<&mut IntentQueue>,
+        Option<&mut Habituation>,
+        Option<&Personality>,
     )>,
 ) {
-    for (entity, mut eating, mut needs, target, queue) in &mut agents {
+    for (entity, mut eating, mut needs, target, queue, habituation, personality) in &mut agents {
         // Every index here is in range by construction. The object and
         // interaction ids were read out of this same pack when
         // `follow_path` began the interaction, content validation rejects
@@ -122,11 +131,54 @@ pub fn tick_interactions(
         let act = &content.0.object(eating.object).interactions[eating.interaction as usize];
         let duration = act.duration_ticks as f32;
         for (need_index, delta) in &act.advertises {
+            // **The satisfaction multiplier scales what a positive delta
+            // DELIVERS, matching what selection advertised** - [H3]. The two
+            // read the same array so a sim seeks exactly what delivery
+            // gives it; scaling only one side would make personalities
+            // either chase phantom value or receive windfalls they never
+            // wanted. Through `scaled_delta`, so a COST arrives at full
+            // strength: a sim who gets little from showers still pays the
+            // whole energy price of one.
+            //
+            // `map_or(1.0, ..)` and not a default of 0: absent personality
+            // means neutral, which is what keeps every pre-M2c fixture and
+            // both world-hash golden vectors exactly where they were.
+            let satisfaction = personality.map_or(1.0, |p| p.satisfaction[*need_index as usize]);
+            let delta = super::advertise::scaled_delta(*delta, satisfaction);
             needs.fill(NeedId::ALL[*need_index as usize], delta / duration);
         }
         eating.remaining_ticks = eating.remaining_ticks.saturating_sub(1);
 
         if eating.remaining_ticks == 0 {
+            // **Habituation rises on COMPLETION, not per tick** - [S2]. The sim
+            // is tired of the activity, not of the minutes, so a 180-tick sleep
+            // and a 21-tick hand-wash habituate by the same amount. Per-tick
+            // would make long interactions punish themselves and turn the
+            // mechanic into a second duration penalty, which scoring already
+            // has.
+            //
+            // It is raised for the interaction that just FINISHED, so an
+            // interrupted one costs nothing - which is the same "only the
+            // completed thing counts" rule the intent queue uses two lines
+            // below, and the rule multi-step interactions will need.
+            //
+            // `Option<&mut Habituation>` because an agent gains the component
+            // the first time it finishes anything. A fresh sim carries none,
+            // and `Habituation::get` reads absent as zero, so nothing has to
+            // special-case it - but the component has to be INSERTED here for
+            // the first entry to exist at all.
+            let amount = content.0.tuning.habituation_per_use;
+            match habituation {
+                Some(mut habituation) => {
+                    habituation.bump(eating.object, eating.interaction, amount)
+                }
+                None => {
+                    let mut fresh = Habituation::default();
+                    fresh.bump(eating.object, eating.interaction, amount);
+                    commands.entity(entity).insert(fresh);
+                }
+            }
+
             // **A player-issued intent lives until the interaction it
             // named finishes** - [D-3]'s "until it completes or is
             // cancelled" - so completing it is what pops it. Without
@@ -937,10 +989,16 @@ mod tests {
         use terri_core::{Intent, IntentQueue};
 
         // Two objects, and the interaction index is 0 on BOTH, which is
-        // the whole point of the fixture: `UseObject` always names
-        // interaction 0 and an autonomously chosen interaction is 0 on
-        // every single-interaction object, so the two fields disagree on
-        // the object and agree on the index.
+        // the whole point of the fixture: the two fields disagree on the
+        // object and agree on the index, so a guard that read only the
+        // index would see a match where there is none.
+        //
+        // Both are single-interaction objects, so 0 is the only index
+        // either of them has. That used to be the ONLY way to reach this
+        // input domain, because `UseObject` hardcoded interaction 0; it now
+        // carries a chosen index, so the agreement here is a property of
+        // the fixture rather than of the command. The domain is the same
+        // one either way and the mutant it corners is unchanged.
         let content = test_content::pack(vec![
             test_content::object("fridge", &[(NeedId::Hunger, 40.0)], 15),
             test_content::object("bed", &[(NeedId::Energy, 40.0)], 15),
@@ -1011,11 +1069,11 @@ mod tests {
         // stopped before it reached this file, so this is the first
         // complete sweep since the guard was written.
         //
-        // What the relaxed form costs: `UseObject` always names
-        // interaction 0, and an autonomously chosen interaction is 0 on
-        // every single-interaction object. So a sim finishing the meal it
-        // chose for itself, with a click for a DIFFERENT object waiting
-        // behind it, would have that click silently discarded - the
+        // What the relaxed form costs: every shipped object offers exactly
+        // one interaction, so an autonomously chosen index and a clicked
+        // one are both 0 across the whole shipped lot. A sim finishing the
+        // meal it chose for itself, with a click for a DIFFERENT object
+        // waiting behind it, would have that click silently discarded - the
         // player's instruction disappears with no error and the sim goes
         // back to autonomy as though nothing was ever asked of it.
         //
@@ -1041,6 +1099,119 @@ mod tests {
             "an intent naming the object that just finished must be \
              popped, or the sim re-serves it for ever and one click \
              becomes a loop"
+        );
+    }
+}
+
+#[cfg(test)]
+mod personality_delivery_tests {
+    //! The delivery half of the satisfaction multiplier. The scoring half
+    //! lives in `action.rs`; the two must read the same array, or a sim
+    //! seeks what delivery does not give.
+
+    use crate::test_content;
+    use terri_core::{
+        Agent, Eating, NeedId, Needs, ObjectDefId, Personality, Position, SmartObject,
+    };
+
+    /// **Satisfaction scales what a positive delta DELIVERS, and a cost
+    /// arrives whole.**
+    ///
+    /// One object advertising a benefit and a cost; the worn personality
+    /// halves the benefit's need and DOUBLES the cost's need - the second
+    /// half of which must do nothing, because a cost is never scaled.
+    /// 0.5 and 2.0 are chosen so both wrong behaviours move a number:
+    /// scaling the cost shows in energy, and a transposed array read
+    /// shows in hunger.
+    #[test]
+    fn satisfaction_scales_delivery_of_benefits_and_never_of_costs() {
+        const DURATION: u32 = 20;
+        const BENEFIT: f32 = 40.0;
+        const COST: f32 = -12.0;
+        let content = test_content::pack_tuned(
+            vec![test_content::object(
+                "shower",
+                &[(NeedId::Hunger, BENEFIT), (NeedId::Energy, COST)],
+                DURATION,
+            )],
+            terri_data::Tuning {
+                duration_variance: 0.0,
+                ..test_content::tuning()
+            },
+        );
+
+        // **Hunger starts URGENT, and the number is doing load-bearing
+        // work.** At an even 50 everywhere, the worn sim's halved benefit
+        // scored 0.048 against the 0.05 action threshold, so it stood
+        // decaying for ten ticks before its urgency grew enough to act -
+        // and those ten ticks of decay landed in the energy comparison as
+        // an inexplicable 0.51. At hunger 30 both sims clear the threshold
+        // on the first tick, so their interactions occupy the SAME ticks
+        // and the only energy difference left is the one under test. The
+        // tick counts are returned and asserted equal, so a rebalance that
+        // reintroduces the skew fails as "timing diverged" rather than as
+        // a cost mysteriously changing.
+        let run = |personality: Option<Personality>| -> (f32, f32, usize) {
+            let mut sim = test_content::sim_with(8, 8, content);
+            sim.world_mut()
+                .spawn((Position { x: 2.0, y: 2.0 }, SmartObject(ObjectDefId(0))));
+            let mut needs = Needs::all_at(50.0);
+            needs.set(NeedId::Hunger, 30.0);
+            let agent = match personality {
+                Some(p) => sim
+                    .world_mut()
+                    .spawn((Agent, Position { x: 2.0, y: 3.0 }, needs, p))
+                    .id(),
+                None => sim
+                    .world_mut()
+                    .spawn((Agent, Position { x: 2.0, y: 3.0 }, needs))
+                    .id(),
+            };
+            // Let it choose, start, and FINISH exactly one interaction -
+            // completion is when `Eating` has come and gone, observed via
+            // habituation, which only ever rises on completion.
+            let mut elapsed = 0;
+            for tick in 1..=(DURATION as usize * 4) {
+                sim.tick();
+                let finished = sim.world().get::<Eating>(agent).is_none()
+                    && sim
+                        .world()
+                        .get::<terri_core::Habituation>(agent)
+                        .is_some_and(|h| !h.entries().is_empty());
+                if finished {
+                    elapsed = tick;
+                    break;
+                }
+            }
+            assert!(elapsed > 0, "the interaction never completed");
+            let after = sim.world().get::<Needs>(agent).unwrap();
+            (
+                after.get(NeedId::Hunger),
+                after.get(NeedId::Energy),
+                elapsed,
+            )
+        };
+
+        let (bare_hunger, bare_energy, bare_ticks) = run(None);
+        let mut worn = Personality::neutral();
+        worn.satisfaction[NeedId::Hunger.index()] = 0.5;
+        worn.satisfaction[NeedId::Energy.index()] = 2.0;
+        let (worn_hunger, worn_energy, worn_ticks) = run(Some(worn));
+
+        assert_eq!(
+            bare_ticks, worn_ticks,
+            "the two runs must occupy the same ticks, or decay time leaks into the cost comparison below and this test is about scoring timing rather than about delivery"
+        );
+        assert!(
+            worn_hunger < bare_hunger - 1.0,
+            "half satisfaction must deliver visibly less hunger: \
+             {worn_hunger} against {bare_hunger}"
+        );
+        assert!(
+            (worn_energy - bare_energy).abs() < 1e-3,
+            "the energy COST must be identical - satisfaction never scales \
+             a cost, however large its multiplier: {worn_energy} against \
+             {bare_energy}"
         );
     }
 }

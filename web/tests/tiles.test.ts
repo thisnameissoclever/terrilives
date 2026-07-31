@@ -9,8 +9,10 @@ import {
   OFFSET_SPRITE,
 } from '../src/render/instances.js';
 import {
+  FLOOR_DEPTH,
   LAYER_FLOOR,
   LAYER_PROP,
+  LAYER_SIM,
   layeredDepth,
   screenX,
   screenY,
@@ -58,6 +60,22 @@ function at(wx: number, wy: number): { x: number; y: number } {
 function find(all: Row[], wx: number, wy: number): Row[] {
   const want = at(wx, wy);
   return all.filter((r) => r.x === want.x && r.y === want.y);
+}
+
+/**
+ * The WALL panels at a tile, with the floor tile that shares its screen
+ * position filtered out.
+ *
+ * `find` matches on position, so it always returns the floor as well. That
+ * was harmless while every assertion used `toContain`, and it stops being
+ * harmless once a junction tile has to be checked for having exactly two
+ * panels: the floor makes every count one too high and every sprite set one
+ * member too large.
+ */
+function wallsAt(all: Row[], wx: number, wy: number): Row[] {
+  const ns = spriteIndex('wallNS');
+  const ew = spriteIndex('wallEW');
+  return find(all, wx, wy).filter((r) => r.sprite === ns || r.sprite === ew);
 }
 
 /**
@@ -111,6 +129,12 @@ describe('buildStaticInstances', () => {
     const boundary = LOT.height + LOT.width + 1;
     expect(walls).toHaveLength(5 + boundary);
 
+    // **One panel per tile, the corner included.** Two coincident quads at
+    // one tile share a depth, and `depthCompare: 'less'` rejects the second
+    // ([V12]); they also share their 32 px of screen, because the shader
+    // centres a quad on its anchor. Drawing both was tried and measured -
+    // 14% of the second panel survived - and the through-run rule replaced
+    // it. This count is what fails if anyone tries it again.
     for (const [wx, wy] of [
       [2, 0],
       [2, 1],
@@ -144,9 +168,94 @@ describe('buildStaticInstances', () => {
     // The east-west run. (3, 2) and (4, 2) have x-axis neighbours only.
     expect(find(all, 3, 2).map((r) => r.sprite)).toContain(ew);
     expect(find(all, 4, 2).map((r) => r.sprite)).toContain(ew);
-    // The corner qualifies both ways and goes to the north-south run, so
-    // the two runs meet at a tile rather than doubling up on one.
-    expect(find(all, 2, 2).map((r) => r.sprite)).toContain(ns);
+    // The L corner qualifies both ways with a neighbour on ONE side of
+    // each axis, so neither run passes through it and the tie-break
+    // decides. Either panel closes an L, which is exactly why this fixture
+    // could not see the bug the T-junction test below covers.
+    expect(wallsAt(all, 2, 2).map((r) => r.sprite)).toEqual([ns]);
+    expect(ew).not.toBe(ns);
+  });
+
+  /**
+   * **A T-junction, which is what a real floor plan is made of and what the
+   * L-shaped fixture above cannot express.**
+   *
+   * `content/lot.toml`'s spine runs east-west with three north-south
+   * dividers hanging off it. Each of those tiles has east-west neighbours
+   * on BOTH sides and a north-south one on only one side, so the run
+   * PASSES THROUGH east-west and merely ends against it going south. The
+   * original rule turned the tile 90 degrees and the spine read as a wall
+   * with holes punched in it. An L corner cannot see that: it has a
+   * neighbour on one side of each axis, so nothing passes through and both
+   * rules agree.
+   *
+   * Three separate claims, and the run tiles either side are what make the
+   * first one mean something - "everything is east-west" would satisfy the
+   * junction assertion on its own.
+   */
+  it('gives a T-junction the orientation of the run that passes through it', () => {
+    const ns = spriteIndex('wallNS');
+    const ew = spriteIndex('wallEW');
+    // An east-west run across y = 1, with a spur going south from (2, 1).
+    // Non-square lot again, so a transposed loop is visible.
+    const tee = {
+      width: 5,
+      height: 4,
+      walls: Uint32Array.from([0, 1, 1, 1, 2, 1, 3, 1, 4, 1, 2, 2, 2, 3]),
+    };
+    const built = buildStaticInstances(tee, ORIGIN_X, ORIGIN_Y, GRID);
+    const rowsOf = rows(built.instances, built.count);
+
+    // The junction goes with the through-run, not with the spur.
+    expect(wallsAt(rowsOf, 2, 1).map((r) => r.sprite)).toEqual([ew]);
+    // The run either side of it is unbroken and single.
+    for (const wx of [0, 1, 3, 4]) {
+      expect(wallsAt(rowsOf, wx, 1).map((r) => r.sprite)).toEqual([ew]);
+    }
+    // And the spur is still a north-south wall, including its far end,
+    // which has a neighbour on one axis only.
+    expect(wallsAt(rowsOf, 2, 2).map((r) => r.sprite)).toEqual([ns]);
+    expect(wallsAt(rowsOf, 2, 3).map((r) => r.sprite)).toEqual([ns]);
+  });
+
+  /**
+   * **The transposed T: a north-south run with an east-west spur.**
+   *
+   * The rule reads two booleans and returns one of two sprites, so the
+   * mutation that survives every fixture above is "always prefer
+   * east-west at a junction" - which the T-junction test cannot see,
+   * because there the through-run IS east-west. This is the same case with
+   * the axes swapped, and between them the two pin that the rule reads
+   * which run is through rather than which axis it likes.
+   */
+  it('gives a transposed T-junction the other orientation, so the rule is not a fixed preference', () => {
+    const ns = spriteIndex('wallNS');
+    const ew = spriteIndex('wallEW');
+    const tee = {
+      width: 4,
+      height: 5,
+      walls: Uint32Array.from([1, 0, 1, 1, 1, 2, 1, 3, 1, 4, 2, 2, 3, 2]),
+    };
+    const built = buildStaticInstances(tee, ORIGIN_X, ORIGIN_Y, GRID);
+    const rowsOf = rows(built.instances, built.count);
+
+    expect(wallsAt(rowsOf, 1, 2).map((r) => r.sprite)).toEqual([ns]);
+    for (const wy of [0, 1, 3, 4]) {
+      expect(wallsAt(rowsOf, 1, wy).map((r) => r.sprite)).toEqual([ns]);
+    }
+    expect(wallsAt(rowsOf, 2, 2).map((r) => r.sprite)).toEqual([ew]);
+    expect(wallsAt(rowsOf, 3, 2).map((r) => r.sprite)).toEqual([ew]);
+  });
+
+  /**
+   * An isolated wall tile - no neighbour on either axis - gets exactly one
+   * panel, like every other tile. Nothing in the rule can produce two, and
+   * this is the cheapest input that would catch a version that did.
+   */
+  it('gives a free-standing wall tile one panel', () => {
+    const lone = { width: 3, height: 3, walls: Uint32Array.from([1, 1]) };
+    const built = buildStaticInstances(lone, ORIGIN_X, ORIGIN_Y, GRID);
+    expect(wallsAt(rows(built.instances, built.count), 1, 1)).toHaveLength(1);
   });
 
   it('draws the lot boundary the simulation treats as solid but content never lists', () => {
@@ -201,10 +310,42 @@ describe('buildStaticInstances', () => {
     expect(floorAt22).toBeDefined();
     expect(wallAt22).toBeDefined();
     expect(wallAt22!.depth).toBeLessThan(floorAt22!.depth);
-    // And both are the values `iso.ts` would produce, so the layers are
-    // the shared ones rather than a second set invented here.
-    expect(floorAt22!.depth).toBeCloseTo(layeredDepth(2, 2, GRID, LAYER_FLOOR), 12);
+    // The wall is still the value `iso.ts` would produce, so the layers are the
+    // shared ones rather than a second set invented here.
     expect(wallAt22!.depth).toBeCloseTo(layeredDepth(2, 2, GRID, LAYER_PROP), 12);
+    // **The floor is NOT**, and that is the fix rather than a slip.** It carries
+    // one shared `FLOOR_DEPTH` instead of a per-tile one, because a per-tile
+    // floor depth let a nearer tile draw over a sim's feet - measured at 19 x 21
+    // px of overlap. See `FLOOR_DEPTH`.
+    expect(floorAt22!.depth).toBe(FLOOR_DEPTH);
+  });
+
+  it('puts every floor tile behind everything a layer can produce, and in front of the clear value', () => {
+    // The two bounds `FLOOR_DEPTH` has to sit between, asserted against the
+    // real extremes rather than against the constant's own arithmetic - so a
+    // change to `DEPTH_LAYER_STEP`, to `DEPTH_LAYERS` or to the margin has to
+    // keep the relationship rather than merely keep the formula.
+    //
+    // The upper bound is the one that fails silently: `sprites.ts` clears depth
+    // to 1.0 and compares with `less`, and a fragment at exactly 1.0 is not less
+    // than 1.0 - so a floor at 1.0 would make the ENTIRE FLOOR vanish with no
+    // error anywhere.
+    let worstLayered = -Infinity;
+    for (const layer of [LAYER_FLOOR, LAYER_PROP, LAYER_SIM]) {
+      for (let x = 0; x < GRID; x++) {
+        for (let y = 0; y < GRID; y++) {
+          worstLayered = Math.max(worstLayered, layeredDepth(x, y, GRID, layer));
+        }
+      }
+    }
+    expect(FLOOR_DEPTH).toBeGreaterThan(worstLayered);
+    expect(FLOOR_DEPTH).toBeLessThan(1);
+
+    // And every floor tile the builder emits really is at it, so the invariant
+    // is about the drawn lot and not only about the constant.
+    const floors = all.filter((r) => r.sprite === spriteIndex('floor'));
+    expect(floors.length).toBeGreaterThan(0);
+    expect(floors.every((r) => r.depth === FLOOR_DEPTH)).toBe(true);
   });
 
   it('reports a count that matches the array it filled', () => {

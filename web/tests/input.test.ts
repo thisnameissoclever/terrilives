@@ -3,16 +3,21 @@ import {
   clientToCanvas,
   clientToTile,
   dispatch,
+  dispatchMenuAction,
   handleLeftClick,
   handleRightClick,
   pickAt,
   pickSprite,
   resolveLeftClick,
+  resolveRightClick,
   type ClickAction,
   type CommandSink,
+  type InteractionSource,
+  type MenuController,
   type Pick,
   type PickSource,
 } from '../src/input.js';
+import { NEVER_MIND, type MenuEntry } from '../src/ui/object-menu.js';
 import { SPRITES } from '../src/render/atlas.js';
 import { KIND_AGENT } from '../src/render/instances.js';
 import { TILE_HALF_HEIGHT, screenX, screenY } from '../src/render/iso.js';
@@ -69,17 +74,97 @@ function drawnBox(tile: readonly [number, number], spriteName: string, originX =
   };
 }
 
+/**
+ * A `CommandSink` that records the commands it was sent AND models what
+ * they would leave in the sim's intent queue.
+ *
+ * **The model is the point, and it is three lines of `drain_commands`
+ * rather than a guess**: a `CancelIntents` empties the named agent's
+ * queue, a `UseObject` pushes one intent onto it, and a batch is applied
+ * in issue order. That is exactly what
+ * `a_cancel_then_a_use_in_one_batch_replaces_the_queue_rather_than_appending_to_it`
+ * and `the_reverse_order_does_not_replace_and_is_why_the_shell_sends_cancel_first`
+ * pin on the Rust side, which is what keeps this from being a fake that
+ * merely agrees with itself.
+ *
+ * It exists because "replace" and "append" are claims about the QUEUE, and
+ * a list of emitted commands cannot state them: `cancel, use, cancel, use`
+ * and `use, use` are both four-symbol strings, and only one of them leaves
+ * the sim with one instruction. `queue` is what makes the difference
+ * countable.
+ *
+ * The cap is deliberately not modelled. `max_queued_intents` refuses
+ * anything past it, and every fixture here queues two at most.
+ */
 function recordingSink(selected: number | null = null): CommandSink & {
   readonly calls: string[];
+  /**
+   * The intents the sim would be holding, oldest first, as
+   * `[object, interaction]`.
+   *
+   * The pair rather than the object alone, because an intent IS a pair -
+   * `Intent { object, interaction }` in Rust - and a model that recorded
+   * only the object could not tell two rows of one object's flyout apart.
+   */
+  readonly queue: [number, number][];
 } {
   const calls: string[] = [];
+  const queue: [number, number][] = [];
   return {
     calls,
+    queue,
     select: (index) => (calls.push(`select ${index}`), true),
-    useObject: (agent, object) => (calls.push(`use ${agent} ${object}`), true),
-    cancelIntents: (agent) => (calls.push(`cancel ${agent}`), true),
+    // The interaction is in the recorded string, so a dispatcher that
+    // dropped it or substituted 0 shows up in `calls` and not only in the
+    // queue model.
+    useObject: (agent, object, interaction) => (
+      calls.push(`use ${agent} ${object} ${interaction}`),
+      queue.push([object, interaction]),
+      true
+    ),
+    cancelIntents: (agent) => (
+      calls.push(`cancel ${agent}`), (queue.length = 0), true
+    ),
     selectedIndex: () => selected,
   };
+}
+
+/**
+ * The labels a fake object offers, keyed by entity index. Anything not in
+ * the table reports none, which is what a sim and a stale index both look
+ * like across the boundary.
+ */
+function labelsFrom(
+  table: Readonly<Record<number, readonly string[]>>,
+): InteractionSource {
+  return { interactionLabels: (entity) => table[entity] ?? [] };
+}
+
+/** A flyout that records what it was asked to do and nothing else. */
+function recordingMenu(): MenuController & {
+  readonly calls: string[];
+  opened: readonly MenuEntry[] | null;
+} {
+  const calls: string[] = [];
+  const menu = {
+    calls,
+    opened: null as readonly MenuEntry[] | null,
+    open(entries: readonly MenuEntry[], clientX: number, clientY: number) {
+      calls.push(`open ${clientX},${clientY}`);
+      menu.opened = entries;
+    },
+    close() {
+      calls.push('close');
+      menu.opened = null;
+    },
+  };
+  return menu;
+}
+
+/** A right click at a page position, recording whether it was suppressed. */
+function rightClick(clientX = 0, clientY = 0) {
+  const prevented = vi.fn();
+  return { clientX, clientY, preventDefault: prevented, prevented };
 }
 
 describe('clientToTile', () => {
@@ -318,21 +403,87 @@ describe('pickAt', () => {
 describe('resolveLeftClick', () => {
   const sim: Pick = { entity: 4, isAgent: true };
   const object: Pick = { entity: 9, isAgent: false };
+  /** A plain click, which is [I3]'s redirect. */
+  const PLAIN = false;
+  /** Ctrl or cmd held, which is [I3]'s queue. */
+  const ADDITIVE = true;
 
   it('selects a clicked sim', () => {
-    expect(resolveLeftClick(sim, null)).toEqual({ kind: 'select', entity: 4 });
+    expect(resolveLeftClick(sim, null, PLAIN)).toEqual({
+      kind: 'select',
+      entity: 4,
+    });
   });
 
   it('selects a clicked sim even when another is already selected', () => {
-    expect(resolveLeftClick(sim, 2)).toEqual({ kind: 'select', entity: 4 });
+    expect(resolveLeftClick(sim, 2, PLAIN)).toEqual({
+      kind: 'select',
+      entity: 4,
+    });
   });
 
-  it('directs the selected sim at a clicked object', () => {
-    expect(resolveLeftClick(object, 4)).toEqual({
+  /**
+   * **The modifier must not change what a click on a SIM means.**
+   *
+   * Ctrl-click is the queue gesture and a sim is not something to queue,
+   * so it has to stay a plain selection. A resolution that branched on the
+   * modifier before it branched on what was picked would swallow the
+   * ctrl-click entirely, and the player would find that holding ctrl made
+   * sims unclickable with nothing on screen to say why.
+   */
+  it('selects a clicked sim whether or not the queue modifier is held', () => {
+    expect(resolveLeftClick(sim, 2, ADDITIVE)).toEqual({
+      kind: 'select',
+      entity: 4,
+    });
+  });
+
+  /**
+   * **The decision [I3] reversed**, stated as the two actions it produces.
+   *
+   * A plain click carries `replace`; a ctrl-click does not. Asserted as a
+   * pair in one test rather than two, because either one alone passes on
+   * an implementation that ignores the modifier and hardcodes its own
+   * answer - which is precisely the code that was here before.
+   */
+  it('replaces on a plain click and appends when the modifier is held', () => {
+    expect(resolveLeftClick(object, 4, PLAIN)).toEqual({
       kind: 'use',
       agent: 4,
       object: 9,
+      interaction: 0,
+      replace: true,
     });
+    expect(resolveLeftClick(object, 4, ADDITIVE)).toEqual({
+      kind: 'use',
+      agent: 4,
+      object: 9,
+      interaction: 0,
+      replace: false,
+    });
+  });
+
+  /**
+   * **A left click names interaction 0, and that has to be asserted rather
+   * than assumed.** `toEqual` above is exhaustive over the object's own
+   * keys, so it already fails if the field goes missing - but it would also
+   * pass if the field arrived as `undefined` from a source that had stopped
+   * setting it, and `undefined` is what `pushVarint` would turn into `NaN`
+   * and `isU32` would then refuse. Reading the number back explicitly says
+   * what the gesture means: a click picks an OBJECT, so it takes that
+   * object's first interaction, and choosing among several is the flyout's
+   * job.
+   *
+   * The modifier is asserted not to change it either. Ctrl-click alters
+   * whether the instruction replaces or appends, not which verb it names.
+   */
+  it('names the objects first interaction, whatever the modifier', () => {
+    for (const additive of [PLAIN, ADDITIVE]) {
+      const action = resolveLeftClick(object, 4, additive);
+      expect(action.kind).toBe('use');
+      if (action.kind !== 'use') throw new Error('narrowing');
+      expect(action.interaction).toBe(0);
+    }
   });
 
   /**
@@ -341,19 +492,24 @@ describe('resolveLeftClick', () => {
    * only sim the game currently has.
    */
   it('directs sim zero, which a falsy check would refuse', () => {
-    expect(resolveLeftClick(object, 0)).toEqual({
+    expect(resolveLeftClick(object, 0, PLAIN)).toEqual({
       kind: 'use',
       agent: 0,
       object: 9,
+      interaction: 0,
+      replace: true,
     });
   });
 
   it('does nothing when an object is clicked with nothing selected', () => {
-    expect(resolveLeftClick(object, null)).toEqual({ kind: 'none' });
+    expect(resolveLeftClick(object, null, PLAIN)).toEqual({ kind: 'none' });
   });
 
   it('clears the selection on bare floor', () => {
-    expect(resolveLeftClick(null, 4)).toEqual({ kind: 'select', entity: null });
+    expect(resolveLeftClick(null, 4, PLAIN)).toEqual({
+      kind: 'select',
+      entity: null,
+    });
   });
 
   /**
@@ -361,7 +517,7 @@ describe('resolveLeftClick', () => {
    * queued pair would have nothing to queue against.
    */
   it('leaves the selection alone when directing', () => {
-    const action = resolveLeftClick(object, 4);
+    const action = resolveLeftClick(object, 4, PLAIN);
     expect(action.kind).toBe('use');
   });
 });
@@ -379,10 +535,99 @@ describe('dispatch', () => {
     expect(sink.calls).toEqual(['select null']);
   });
 
-  it('sends a use', () => {
+  it('sends an append as the use alone', () => {
     const sink = recordingSink();
-    dispatch(sink, { kind: 'use', agent: 1, object: 6 });
-    expect(sink.calls).toEqual(['use 1 6']);
+    dispatch(sink, {
+      kind: 'use',
+      agent: 1,
+      object: 6,
+      interaction: 0,
+      replace: false,
+    });
+    expect(sink.calls).toEqual(['use 1 6 0']);
+  });
+
+  /**
+   * **The action's interaction index reaches the command.** A left click
+   * always carries 0, so every other test in this describe block is an
+   * input domain in which "the index was forwarded" and "0 was hardcoded"
+   * agree on every observation - [L34]. A menu row is where a non-zero one
+   * comes from, and `dispatch` is on that path too: `handleLeftClick` is
+   * not the only caller.
+   *
+   * 3 rather than 1, so an off-by-one - forwarding `interaction + 1`, or a
+   * boolean coerced from it - is visible as well as a substituted 0.
+   */
+  it('forwards the interaction index rather than substituting the first', () => {
+    const sink = recordingSink();
+    dispatch(sink, {
+      kind: 'use',
+      agent: 1,
+      object: 6,
+      interaction: 3,
+      replace: true,
+    });
+    expect(sink.calls).toEqual(['cancel 1', 'use 1 6 3']);
+    expect(sink.queue).toEqual([[6, 3]]);
+  });
+
+  /**
+   * **The order, and it is the whole of "replace".**
+   *
+   * `drain_commands` applies a batch in issue order, so cancel-then-use
+   * empties the queue and puts the new instruction in it, while
+   * use-then-cancel stages the new instruction and then wipes it - the
+   * cancel's `fresh.retain` and `clear()` both see what the same batch just
+   * staged. The sim would end up holding nothing and the click would look
+   * ignored.
+   *
+   * `toEqual` on the whole array rather than two `toContain`s, because
+   * containment is order-blind and order is the only thing under test here.
+   * Swapping the two lines in `dispatch` fails this and nothing else in the
+   * file, which is why the queue model below exists as well.
+   */
+  it('sends a replace as cancel first and then use, in that order', () => {
+    const sink = recordingSink();
+    dispatch(sink, {
+      kind: 'use',
+      agent: 1,
+      object: 6,
+      interaction: 0,
+      replace: true,
+    });
+    expect(sink.calls).toEqual(['cancel 1', 'use 1 6 0']);
+  });
+
+  /**
+   * The same ordering claim measured on the QUEUE rather than on the call
+   * list, so it survives someone rewording the recorded strings - and so
+   * that the reversal is visible as the behaviour it produces rather than
+   * as a permuted array.
+   *
+   * Reversed, the model ends at zero instructions rather than one, which is
+   * a sim standing still after a click.
+   */
+  it('leaves the replaced sim holding exactly the new instruction', () => {
+    const sink = recordingSink(1);
+    dispatch(sink, {
+      kind: 'use',
+      agent: 1,
+      object: 6,
+      interaction: 0,
+      replace: false,
+    });
+    dispatch(sink, {
+      kind: 'use',
+      agent: 1,
+      object: 7,
+      interaction: 1,
+      replace: true,
+    });
+    // The replacement carries its OWN interaction index, so this also
+    // fails on a dispatcher that reused the index of the intent it
+    // replaced - which a fixture whose two actions both named 0 could not
+    // see.
+    expect(sink.queue).toEqual([[7, 1]]);
   });
 
   it('sends nothing at all for none', () => {
@@ -627,6 +872,11 @@ describe('clientToCanvas', () => {
  * is structural fakes rather than a browser environment.
  */
 describe('handleLeftClick', () => {
+  /** A plain click, which is [I3]'s redirect. */
+  const PLAIN = false;
+  /** Ctrl or cmd held, which is [I3]'s queue. */
+  const ADDITIVE = true;
+
   function target(selected: number | null, rows: PickSource) {
     return { ...recordingSink(selected), ...rows };
   }
@@ -636,21 +886,32 @@ describe('handleLeftClick', () => {
     return { x: box.centreX, y: box.bottom - 6 };
   }
 
+  /**
+   * TWO objects on separate tiles, which is the fixture the whole
+   * replace-versus-append question needs: with one object, "clicked the
+   * same thing twice" and "replaced the first instruction" predict the same
+   * single-entry queue, so a one-object lot cannot tell them apart at all.
+   */
+  const TWO_OBJECTS = source([
+    [9, KIND_OBJECT, 7, 3],
+    [10, KIND_OBJECT, 2, 5],
+  ]);
+
   it('selects the sim whose sprite was clicked', () => {
     const sink = target(null, source([[6, KIND_AGENT, 4, 2]]));
-    handleLeftClick(sink, bodyOf([4, 2]), 0, 0);
+    handleLeftClick(sink, bodyOf([4, 2]), 0, 0, PLAIN);
     expect(sink.calls).toEqual(['select 6']);
   });
 
   it('directs the selected sim at the object whose sprite was clicked', () => {
     const sink = target(6, source([[9, KIND_OBJECT, 7, 3]]));
-    handleLeftClick(sink, bodyOf([7, 3]), 0, 0);
-    expect(sink.calls).toEqual(['use 6 9']);
+    handleLeftClick(sink, bodyOf([7, 3]), 0, 0, PLAIN);
+    expect(sink.calls).toEqual(['cancel 6', 'use 6 9 0']);
   });
 
   it('clears the selection when the click lands on bare floor', () => {
     const sink = target(6, source([[9, KIND_OBJECT, 7, 3]]));
-    handleLeftClick(sink, { x: -400, y: -400 }, 0, 0);
+    handleLeftClick(sink, { x: -400, y: -400 }, 0, 0, PLAIN);
     expect(sink.calls).toEqual(['select null']);
   });
 
@@ -661,8 +922,65 @@ describe('handleLeftClick', () => {
    */
   it('does nothing at all for an unplaceable click', () => {
     const sink = target(6, source([[9, KIND_OBJECT, 7, 3]]));
-    handleLeftClick(sink, null, 0, 0);
+    handleLeftClick(sink, null, 0, 0, PLAIN);
     expect(sink.calls).toEqual([]);
+  });
+
+  /**
+   * **[I3], end to end and countable: a plain click on a SECOND object
+   * leaves one instruction, and a ctrl-click leaves two.**
+   *
+   * Both halves in one test, against the same two-object lot, because
+   * either alone is satisfied by an implementation that ignores the
+   * modifier: assert only the plain case and a shell that always replaces
+   * passes; assert only the additive case and the shell this task replaced
+   * - which always appended - passes. The pair is what pins that the
+   * modifier decides.
+   *
+   * The queue is asserted by CONTENT rather than by length, so "one
+   * instruction" cannot be satisfied by the wrong one: a replace that kept
+   * the first object would also leave a single entry, and it is the second
+   * object the player just clicked.
+   */
+  it('leaves one instruction after a plain second click and two after a ctrl-click', () => {
+    const redirected = target(6, TWO_OBJECTS);
+    handleLeftClick(redirected, bodyOf([7, 3]), 0, 0, PLAIN);
+    handleLeftClick(redirected, bodyOf([2, 5]), 0, 0, PLAIN);
+    expect(
+      redirected.queue,
+      'a plain click must replace, so only the object clicked last survives',
+    ).toEqual([[10, 0]]);
+
+    const queued = target(6, TWO_OBJECTS);
+    handleLeftClick(queued, bodyOf([7, 3]), 0, 0, PLAIN);
+    handleLeftClick(queued, bodyOf([2, 5]), 0, 0, ADDITIVE);
+    expect(
+      queued.queue,
+      'a ctrl-click must append, so both objects survive in click order',
+    ).toEqual([
+      [9, 0],
+      [10, 0],
+    ]);
+  });
+
+  /**
+   * The commands behind the counts above, so a broken model in the fake
+   * cannot hide a broken shell. The redirect is two commands and the queue
+   * is one - `toEqual` on the array, because the cancel arriving after the
+   * use is the reversal that produces an empty queue instead of a replaced
+   * one.
+   */
+  it('sends the cancel before the use on a plain click and neither on a ctrl-click', () => {
+    const redirected = target(6, TWO_OBJECTS);
+    handleLeftClick(redirected, bodyOf([2, 5]), 0, 0, PLAIN);
+    expect(redirected.calls).toEqual(['cancel 6', 'use 6 10 0']);
+
+    const queued = target(6, TWO_OBJECTS);
+    handleLeftClick(queued, bodyOf([2, 5]), 0, 0, ADDITIVE);
+    expect(
+      queued.calls,
+      'a ctrl-click must send no cancel, or appending is a replace wearing a modifier',
+    ).toEqual(['use 6 10 0']);
   });
 
   /**
@@ -675,51 +993,245 @@ describe('handleLeftClick', () => {
    * above; this needs the second click to name sim 6 as well.
    */
   it('queues a second object against the same sim', () => {
-    const rows = source([
-      [9, KIND_OBJECT, 7, 3],
-      [10, KIND_OBJECT, 2, 5],
+    const sink = target(6, TWO_OBJECTS);
+    handleLeftClick(sink, bodyOf([7, 3]), 0, 0, ADDITIVE);
+    handleLeftClick(sink, bodyOf([2, 5]), 0, 0, ADDITIVE);
+    expect(sink.calls).toEqual(['use 6 9 0', 'use 6 10 0']);
+  });
+});
+
+/**
+ * Which rows a right click asks the flyout for. The rows themselves, and
+ * everything about when the flyout goes away, are `ObjectMenu`'s and live
+ * in `object-menu.test.ts`.
+ */
+describe('resolveRightClick', () => {
+  /** Two objects on separate tiles, offering DIFFERENT interaction lists. */
+  const OBJECTS = source([
+    [9, KIND_OBJECT, 7, 3],
+    [10, KIND_OBJECT, 2, 5],
+  ]);
+  const LABELS = labelsFrom({
+    9: ['Eat standing up'],
+    10: ['Sink into it', 'Nap on it'],
+  });
+
+  function target(selected: number | null, rows: PickSource = OBJECTS) {
+    return { ...recordingSink(selected), ...rows, ...LABELS };
+  }
+  function bodyOf(tile: readonly [number, number], spriteName = 'sim') {
+    const box = drawnBox(tile, spriteName);
+    return { x: box.centreX, y: box.bottom - 6 };
+  }
+
+  /**
+   * **The rows come from the object's own interaction list, and every part
+   * of that sentence is asserted here.**
+   *
+   * Two objects with lists of DIFFERENT LENGTHS and different wording, both
+   * checked in the same run. A menu built from a hardcoded single entry
+   * passes on neither; one that reported whichever object it found first
+   * passes on one of the two; one that returned a constant list passes on
+   * neither. A fixture with one object, or with two identical lists, would
+   * see none of those - [L34].
+   *
+   * The order is asserted too, because a row's position IS
+   * `Intent::interaction`, so a sorted or reversed list would renumber an
+   * index the simulation owns.
+   */
+  it('lists the interactions of the object that was clicked, in interaction order', () => {
+    const sink = target(6);
+
+    expect(resolveRightClick(sink, bodyOf([7, 3]), 0, 0)).toEqual([
+      { label: 'Eat standing up', action: { kind: 'use', object: 9, interaction: 0 } },
+      NEVER_MIND,
     ]);
-    const sink = target(6, rows);
-    handleLeftClick(sink, bodyOf([7, 3]), 0, 0);
-    handleLeftClick(sink, bodyOf([2, 5]), 0, 0);
-    expect(sink.calls).toEqual(['use 6 9', 'use 6 10']);
+    expect(resolveRightClick(sink, bodyOf([2, 5]), 0, 0)).toEqual([
+      { label: 'Sink into it', action: { kind: 'use', object: 10, interaction: 0 } },
+      { label: 'Nap on it', action: { kind: 'use', object: 10, interaction: 1 } },
+      NEVER_MIND,
+    ]);
+  });
+
+  /**
+   * A right click that hits no object still offers the cancel, because
+   * that is the binding [I4] MOVED into the menu rather than deleted. Both
+   * misses are asserted - bare floor and a sim - since they reach the same
+   * branch by different routes and only one of them involves a pick at all.
+   */
+  it('offers the cancel alone on bare floor and on a sim', () => {
+    const sink = target(6, source([[6, KIND_AGENT, 4, 2]]));
+    expect(resolveRightClick(sink, { x: -400, y: -400 }, 0, 0)).toEqual([
+      NEVER_MIND,
+    ]);
+    expect(resolveRightClick(sink, bodyOf([4, 2]), 0, 0)).toEqual([
+      NEVER_MIND,
+    ]);
+  });
+
+  /**
+   * **The documented answer to "what if nothing is selected".** Every row
+   * acts on the selected sim, so with no selection there is no menu at all
+   * rather than a menu of rows that do nothing.
+   *
+   * The same click WITH a selection is asserted beside it, so "returns
+   * null" cannot be satisfied by a resolution that never opens anything.
+   */
+  it('opens no menu at all when nothing is selected', () => {
+    expect(resolveRightClick(target(null), bodyOf([7, 3]), 0, 0)).toBeNull();
+    expect(
+      resolveRightClick(target(6), bodyOf([7, 3]), 0, 0),
+      'the same click must produce rows once a sim is selected, or this test is green on a resolution that never opens anything',
+    ).not.toBeNull();
+  });
+
+  /** Sim zero is a real selection; a falsy check would refuse it a menu. */
+  it('opens for sim zero, which a falsy check would refuse', () => {
+    expect(resolveRightClick(target(0), bodyOf([7, 3]), 0, 0)).not.toBeNull();
+  });
+
+  /**
+   * A point the projection could not place is a miss rather than a throw,
+   * and it still offers the cancel - the same answer bare floor gets, for
+   * the same reason.
+   */
+  it('treats an unplaceable point as a miss rather than throwing', () => {
+    expect(resolveRightClick(target(6), null, 0, 0)).toEqual([NEVER_MIND]);
   });
 });
 
 describe('handleRightClick', () => {
-  /** A `Cancellable` that records whether it was cancelled. */
-  function event() {
-    const calls = vi.fn();
-    return { preventDefault: calls, prevented: calls };
+  const OBJECTS = source([[9, KIND_OBJECT, 7, 3]]);
+  const LABELS = labelsFrom({ 9: ['Eat standing up'] });
+
+  function target(selected: number | null) {
+    return { ...recordingSink(selected), ...OBJECTS, ...LABELS };
+  }
+  function bodyOf(tile: readonly [number, number], spriteName = 'sim') {
+    const box = drawnBox(tile, spriteName);
+    return { x: box.centreX, y: box.bottom - 6 };
   }
 
-  it('cancels the selected sim and eats the context menu', () => {
-    const sink = { ...recordingSink(6), ...source([]) };
-    const e = event();
-    handleRightClick(sink, e);
-    expect(sink.calls).toEqual(['cancel 6']);
-    expect(e.prevented).toHaveBeenCalled();
+  it('opens the flyout at the pointer and eats the browser menu', () => {
+    const sink = target(6);
+    const menu = recordingMenu();
+    const event = rightClick(310, 47);
+
+    handleRightClick(sink, menu, event, bodyOf([7, 3]), 0, 0);
+
+    expect(event.prevented).toHaveBeenCalled();
+    expect(
+      menu.calls,
+      'the menu must open at the CLIENT point the event carried, not at the canvas point',
+    ).toEqual(['open 310,47']);
+    expect(menu.opened?.map((entry) => entry.label)).toEqual([
+      'Eat standing up',
+      NEVER_MIND.label,
+    ]);
   });
 
   /**
-   * With nothing selected there is nobody to release, so no command is
-   * sent - but the menu is still suppressed. The suppression comes first
-   * and unconditionally, and this is the case that tells the two orderings
-   * apart: check the selection first and the browser menu opens over the
-   * lot on every right click made with nothing selected.
+   * **A right click sends no command by itself any more.** Cancelling is
+   * now a row the player has to pick, and a handler that still cancelled on
+   * the way to opening the menu would release the sim before showing it a
+   * menu that offers to release the sim.
    */
-  it('suppresses the context menu even with nothing selected', () => {
-    const sink = { ...recordingSink(null), ...source([]) };
-    const e = event();
-    handleRightClick(sink, e);
+  it('sends no command of its own', () => {
+    const sink = target(6);
+    handleRightClick(sink, recordingMenu(), rightClick(), bodyOf([7, 3]), 0, 0);
     expect(sink.calls).toEqual([]);
-    expect(e.prevented).toHaveBeenCalled();
   });
 
-  /** Sim zero is a real selection; a falsy check would refuse to release it. */
-  it('cancels sim zero, which a falsy check would refuse', () => {
-    const sink = { ...recordingSink(0), ...source([]) };
-    handleRightClick(sink, event());
+  /**
+   * With nothing selected no menu opens - but the browser's is still
+   * suppressed, and that suppression comes first and unconditionally. This
+   * is the case that tells the two orderings apart: check the selection
+   * first and the browser menu opens over the lot on every right click made
+   * with nothing selected, which is now the COMMON case rather than an edge
+   * one.
+   */
+  it('suppresses the browser menu even when it opens no flyout', () => {
+    const menu = recordingMenu();
+    const event = rightClick();
+
+    handleRightClick(target(null), menu, event, bodyOf([7, 3]), 0, 0);
+
+    expect(event.prevented).toHaveBeenCalled();
+    expect(menu.opened).toBeNull();
+  });
+
+  /**
+   * A right click that resolves to no menu must CLOSE one already open, not
+   * merely decline to open another. Otherwise deselecting and right-clicking
+   * leaves a live menu over the lot naming an object the player has moved
+   * on from.
+   */
+  it('closes an open flyout when the click resolves to no menu', () => {
+    const menu = recordingMenu();
+    handleRightClick(target(null), menu, rightClick(), bodyOf([7, 3]), 0, 0);
+    expect(menu.calls).toEqual(['close']);
+  });
+});
+
+/**
+ * What a picked row sends. The rows and the closing are `ObjectMenu`'s;
+ * this is only the command half.
+ */
+describe('dispatchMenuAction', () => {
+  /**
+   * A row's `use` is a replace, exactly as a plain left click is, and the
+   * cancel comes first for the same reason. `toEqual` on the array because
+   * the order is the claim.
+   */
+  it('sends cancel then use for an interaction row', () => {
+    const sink = recordingSink(6);
+    dispatchMenuAction(sink, { kind: 'use', object: 9, interaction: 0 });
+    expect(sink.calls).toEqual(['cancel 6', 'use 6 9 0']);
+    expect(sink.queue).toEqual([[9, 0]]);
+  });
+
+  /**
+   * **The row's own index reaches the command, and this is the assertion
+   * the whole flyout exists for.** Row 0 and row 2 differ in nothing else:
+   * same object, same sim, same replace pair. A dispatcher that sent 0 for
+   * every row would pass the test above and fail only here, and it would
+   * also look completely correct in the shipped game, where every object
+   * offers exactly one interaction and row 0 is the only row.
+   *
+   * 2 rather than 1, so `interaction - 1` and a boolean coercion are
+   * visible alongside a substituted 0.
+   */
+  it('sends the row interaction index rather than the first one', () => {
+    const sink = recordingSink(6);
+    dispatchMenuAction(sink, { kind: 'use', object: 9, interaction: 2 });
+    expect(sink.calls).toEqual(['cancel 6', 'use 6 9 2']);
+    expect(sink.queue).toEqual([[9, 2]]);
+  });
+
+  it('sends the cancel alone for the Never mind row', () => {
+    const sink = recordingSink(6);
+    dispatchMenuAction(sink, NEVER_MIND.action);
+    expect(sink.calls).toEqual(['cancel 6']);
+  });
+
+  /**
+   * **The selection is read when the row is picked, not when the menu
+   * opened**, so a menu left open across a deselection sends nothing rather
+   * than naming a sim that is no longer chosen. The selected case is
+   * asserted above, so this cannot pass on a dispatcher that never sends
+   * anything.
+   */
+  it('sends nothing when the selection has gone since the menu opened', () => {
+    const sink = recordingSink(null);
+    dispatchMenuAction(sink, { kind: 'use', object: 9, interaction: 0 });
+    dispatchMenuAction(sink, NEVER_MIND.action);
+    expect(sink.calls).toEqual([]);
+  });
+
+  /** Sim zero is a real selection; a falsy check would refuse to command it. */
+  it('commands sim zero, which a falsy check would refuse', () => {
+    const sink = recordingSink(0);
+    dispatchMenuAction(sink, NEVER_MIND.action);
     expect(sink.calls).toEqual(['cancel 0']);
   });
 });

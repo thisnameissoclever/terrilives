@@ -262,7 +262,7 @@ the thing stands and waits while one that barely wants it strolls off. The
 `Blocked` marker records that an agent's best option is somebody else's; it can
 be set alongside `Restless`, and that pair means "wanted it, not enough to
 wait". Nothing reads `Blocked` yet - the intended readers are the selection UI
-and a local wander for blocked sims. See [L51] for how this arrived twice.
+and a local wander for blocked sims. See [L56] for how this arrived twice.
 
 The cost is one extra path search per reserved object per idle agent per tick,
 which is nothing at eight objects and is part of what the M3 work above has to
