@@ -1,10 +1,10 @@
 use bevy_ecs::prelude::*;
 use terri_core::{
-    Agent, Eating, Habituation, IntentQueue, NeedId, Needs, Path, Personality, Position, Reserved,
-    Restless, SimRng, SmartObject, Target, TileGrid,
+    Agent, Eating, Habituation, IntentQueue, NeedId, Needs, Path, Personality, Position,
+    Relationships, Reserved, Restless, SimId, SimRng, SmartObject, Socialising, Target, TileGrid,
 };
 
-use super::advertise::{benefit_scale, scaled_delta, score_advertisement};
+use super::advertise::{benefit_scale, relationship_scale, scaled_delta, score_advertisement};
 use crate::Content;
 
 /// Picks one candidate at random, weighted by `exp(score / temperature)`
@@ -501,8 +501,45 @@ pub fn select_action(
             Option<&IntentQueue>,
             Option<&Habituation>,
             Option<&Personality>,
+            Option<&Relationships>,
         ),
-        (With<Agent>, Without<Target>, Without<Eating>),
+        // `Without<Reserved>` is new with [H4] and applies to the AGENT:
+        // a sim somebody reserved on an earlier tick is spoken for, and
+        // "stands still" is implemented as never entering selection at
+        // all. Within-tick reservations cannot use this filter - they
+        // are deferred commands - so the loop below carries a `claimed`
+        // guard for the same rule.
+        (
+            With<Agent>,
+            Without<Target>,
+            Without<Eating>,
+            Without<Reserved>,
+        ),
+    >,
+    // Every sim that could be TALKED TO - [H4]/[H10]. Only an idle sim
+    // is a valid target: no walk, no meal, no conversation of its own.
+    // `Has<Reserved>` rather than `Without`, for exactly the [C3] reason
+    // the objects query gives: a reserved person still has to reach
+    // `best_seen`, so a sim whose only company is spoken for waits by
+    // them instead of being told nothing is worth doing.
+    //
+    // `Without<Path>` excludes wanderers, deliberately, and it is a
+    // narrower rule than "idle" sounds: a strolling sim's tile changes
+    // every tick, so a path planned to it this tick is stale by
+    // arrival. Reserving mid-stride and having the walker freeze is
+    // [H10]'s "stands still" applied one tick early - rejected because
+    // the initiator's path is already planned against the OLD tile by
+    // the time the freeze lands. A sim that has paused between wander
+    // legs has no Path and is a legal target standing on a stable tile.
+    people: Query<
+        (Entity, &Position, &SimId, Has<Reserved>),
+        (
+            With<Agent>,
+            Without<Target>,
+            Without<Eating>,
+            Without<Socialising>,
+            Without<Path>,
+        ),
     >,
     // **Reserved objects are INCLUDED, and `Has<Reserved>` is read per
     // object below instead.**
@@ -549,7 +586,14 @@ pub fn select_action(
     // The whole `Needs` component is carried rather than one deficit,
     // because an advert is a sparse list of (need, delta) pairs: which
     // needs get scored is a property of the candidate, not of the agent.
-    let mut idle: Vec<(Entity, Position, Needs, Habituation, Personality)> = agents
+    let mut idle: Vec<(
+        Entity,
+        Position,
+        Needs,
+        Habituation,
+        Personality,
+        Relationships,
+    )> = agents
         .iter()
         // **A directed sim does not choose for itself** - [D-3]. This is
         // the whole autonomy override: a player-issued intent suppresses
@@ -588,23 +632,24 @@ pub fn select_action(
         // See [L41]: a guard normally shadowed by another guard is only
         // observable on the input where the shadow is absent, so that
         // fixture had to be built deliberately rather than found.
-        .filter(|(_, _, _, queue, _, _)| queue.is_none_or(|queue| queue.is_empty()))
+        .filter(|(_, _, _, queue, _, _, _)| queue.is_none_or(|queue| queue.is_empty()))
         // Cloned rather than borrowed because the loop below takes `commands`
         // mutably; both Vecs are single digits long. A sim with no
         // `Personality` gets the neutral one - all multipliers 1.0 - which
         // is what keeps every fixture and golden vector predating M2c
         // behaving exactly as it did.
-        .map(|(e, pos, needs, _, hab, personality)| {
+        .map(|(e, pos, needs, _, hab, personality, relationships)| {
             (
                 e,
                 *pos,
                 *needs,
                 hab.cloned().unwrap_or_default(),
                 personality.cloned().unwrap_or_default(),
+                relationships.cloned().unwrap_or_default(),
             )
         })
         .collect();
-    idle.sort_by_key(|(e, _, _, _, _)| e.index());
+    idle.sort_by_key(|(e, ..)| e.index());
 
     // **The objects are sorted for the same reason, and that became
     // load-bearing at M1c rather than being tidiness.**
@@ -632,9 +677,29 @@ pub fn select_action(
         .collect();
     placed_objects.sort_by_key(|(e, _, _, _)| e.index());
 
+    // The people who could be talked to, sorted for the same
+    // bucket-order reason as the objects. Collected once, before the
+    // loop, so every agent this tick scores the same field of
+    // candidates; who is actually still available is `claimed`'s job.
+    let mut company: Vec<(Entity, Position, SimId, bool)> = people
+        .iter()
+        .map(|(e, pos, id, reserved)| (e, *pos, *id, reserved))
+        .collect();
+    company.sort_by_key(|(e, ..)| e.index());
+
     let mut claimed: Vec<Entity> = Vec::new();
 
-    for (agent, agent_pos, needs, habituation, personality) in idle {
+    for (agent, agent_pos, needs, habituation, personality, relationships) in idle {
+        // Reserved WITHIN this tick, by a lower-indexed initiator. The
+        // query filter above handles reservations from earlier ticks;
+        // commands are deferred, so this tick's are visible only here.
+        // Standing still includes not being marked restless - a sim
+        // about to be talked at has something happening to it - and the
+        // stale-marker removal matches the else branch below.
+        if claimed.contains(&agent) {
+            commands.entity(agent).remove::<Restless>();
+            continue;
+        }
         // One candidate per object, in object-index order. An object
         // offers a LIST of interactions and an agent performs ONE of
         // them, so the interactions are resolved against each other
@@ -866,6 +931,83 @@ pub fn select_action(
             }
         }
 
+        // **The other sims, scored with the same arithmetic** - [H4]. A
+        // person enters the draw exactly as a fridge does: pathed to,
+        // scored per advertised need, filtered at the same thresholds.
+        // They append AFTER the objects, so the bucket order stays a
+        // function of world state - objects by entity index, then people
+        // by entity index - and a tied draw between a person and an
+        // object resolves the way tied objects already do, by list
+        // position.
+        //
+        // What replaces the object-side multipliers: no habituation and
+        // no disposition ([H7] - the cubed urgency of a FILLED social
+        // need is the brake on talk loops), and in their place the
+        // relationship toward this specific person, through
+        // `relationship_scale` ([H8]). Satisfaction still joins per
+        // need, because a personality that enjoys company less is
+        // harder to top up in conversation too.
+        for (other, other_pos, other_id, reserved) in &company {
+            let other = *other;
+            // A sim does not talk to itself, and the exclusion is by
+            // ENTITY rather than by SimId on purpose: entity identity is
+            // what reservation and pathing run on, and a SimId
+            // comparison would quietly do the wrong thing if an id were
+            // ever duplicated by a bug rather than loudly double-booking.
+            if other == agent {
+                continue;
+            }
+            // Contested for [C3]'s reasons, spans and all: `reserved` is
+            // an earlier tick's claim, `claimed` is this tick's - which
+            // also covers a lower-indexed agent that CHOSE anything this
+            // tick, initiators included, since choosing makes a sim no
+            // longer idle and [H10] says only idle sims are targets.
+            let contested = *reserved || claimed.contains(&other);
+            let to = (other_pos.x.round() as i32, other_pos.y.round() as i32);
+            // Beside the person, 1x1: a sim occupies one tile and blocks
+            // none, so the whole-rectangle form collapses to this. An
+            // unreachable person is skipped for [L17]'s reason, same as
+            // an unreachable object.
+            let Some(steps) = grid.find_path_adjacent_to_tile(from, to) else {
+                continue;
+            };
+            let distance = steps.len() as f32;
+
+            let scale = relationship_scale(
+                relationships.feeling(*other_id),
+                content.0.tuning.relationship_delta_scale,
+            );
+            let mut best: Option<(u32, f32)> = None;
+            for (index, advert) in content.0.social.iter().enumerate() {
+                let mut score = 0.0;
+                for (need_index, delta) in &advert.advertises {
+                    let satisfaction = personality.satisfaction[*need_index as usize];
+                    let delta = scaled_delta(*delta, scale * satisfaction);
+                    let id = NeedId::ALL[*need_index as usize];
+                    score += score_advertisement(
+                        needs.deficit(id),
+                        delta,
+                        advert.duration_ticks,
+                        distance,
+                    );
+                }
+                best_seen = best_seen.max(score);
+                let better = match &best {
+                    Some((_, best_score)) => score > *best_score,
+                    None => true,
+                };
+                if score > action_threshold && better {
+                    best = Some((index as u32, score));
+                }
+            }
+
+            if let Some((interaction, score)) = best {
+                if !contested {
+                    candidates.push((other, steps, interaction, score));
+                }
+            }
+        }
+
         // Publish restlessness before returning, whichever way this goes.
         // `idle::wander` is the only reader; this system is the only
         // writer, because it is the only one that scores anything.
@@ -904,6 +1046,17 @@ pub fn select_action(
         let (object, steps, interaction, _) = candidates.swap_remove(picked);
 
         claimed.push(object);
+        // The INITIATOR is claimed as well as the winner, and it matters
+        // only when the winner list holds people: this agent just chose
+        // something, so it is no longer idle, and [H10] says a
+        // later-indexed agent must not plan a conversation with it. Its
+        // `Target` says the same thing, but that is a deferred command
+        // this tick's iterations cannot see. Harmless for the object
+        // half - the object loop only ever compares object entities.
+        claimed.push(agent);
+        // `Reserved` works unchanged whether the winner is a fridge or a
+        // person - [H4]'s whole contention decision is this one line
+        // reusing the existing mechanism, including the [C3] fix.
         commands.entity(object).insert(Reserved);
         commands.entity(agent).insert((
             Target {

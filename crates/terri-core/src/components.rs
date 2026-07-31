@@ -504,6 +504,29 @@ pub struct Eating {
     pub remaining_ticks: u32,
 }
 
+/// An in-progress conversation, carried by the INITIATOR only - [H4].
+///
+/// The partner carries nothing but `Reserved`, exactly as a fridge in use
+/// does: one talk is one interaction with a person where the object would
+/// be, and `tick_social` delivers to both participants from this single
+/// record. Giving the partner a mirror component would mean two counters
+/// that have to agree, and the first interruption would leave one behind.
+///
+/// A separate component from [`Eating`] rather than a variant inside it,
+/// because `Eating` names an [`ObjectDefId`] and a social interaction has
+/// no object behind it: `interaction` here indexes the pack's SOCIAL
+/// vocabulary. The partner is an `Entity` rather than a `SimId` because
+/// releasing the reservation on completion needs the entity, the same
+/// reason `Target` holds one; the relationship bump resolves the `SimId`
+/// at delivery time.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Socialising {
+    /// Index into the content pack's `social` vocabulary.
+    pub interaction: u32,
+    pub partner: Entity,
+    pub remaining_ticks: u32,
+}
+
 #[cfg(test)]
 mod intent_queue_tests {
     //! `IntentQueue`'s methods are the kind `cargo mutants` is blind to:

@@ -102,10 +102,14 @@ impl Sim {
         world.register_component::<terri_core::SimId>();
         world.register_component::<terri_core::SimName>();
         world.register_component::<terri_core::Personality>();
-        // M2d's, and it is in `world_hash`'s query, so [L3] bites the way
-        // it does for Habituation: unregistered, the digest goes EMPTY
-        // rather than wrong, and empty compares equal to empty.
+        // M2d's two. `Relationships` is in `world_hash`'s query, so [L3]
+        // bites the way it does for Habituation: unregistered, the digest
+        // goes EMPTY rather than wrong, and empty compares equal to
+        // empty. `Socialising` is not in the digest, but `select_action`
+        // filters on it and `try_query` panics tests for unregistered
+        // components even behind filters.
         world.register_component::<terri_core::Relationships>();
+        world.register_component::<terri_core::Socialising>();
         // The identity counter - [H1]. From construction rather than on
         // first spawn, so a save file can restore it before any sim exists.
         world.insert_resource(terri_core::SimIdAllocator::default());
@@ -161,12 +165,19 @@ impl Sim {
                 systems::idle::wander,
                 systems::movement::follow_path,
                 systems::interact::tick_interactions,
-                // Last, and its position is genuinely free - unlike every
-                // other line here. It reads and writes one component per
-                // agent, shares no state, and nothing else reads habituation
-                // on a tick this writes it: `select_action` ran earlier and saw
-                // the previous tick's values. See `decay_habituation`.
+                // Beside `tick_interactions` because it is the same job
+                // for conversations: deliver per tick, complete, release
+                // the reservation. After `follow_path` so a conversation
+                // begins delivering on the tick after arrival, exactly
+                // as a meal does.
+                systems::social::tick_social,
+                // Last two, and their positions are genuinely free - unlike
+                // every other line here. Each reads and writes one component
+                // per agent, shares no state, and nothing else reads its
+                // component on a tick it writes: `select_action` ran earlier
+                // and saw the previous tick's values. See `decay_habituation`.
                 systems::habituation::decay_habituation,
+                systems::social::decay_relationships,
             )
                 .chain(),
         );

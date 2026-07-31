@@ -165,6 +165,24 @@ pub fn pack(objects: Vec<CompiledObject>) -> &'static ContentPack {
 /// [`tuning`] rather than writing literals, so nothing else moves with
 /// it - `action_threshold` in particular stays the number every scoring
 /// assertion in the suite is written against.
+/// A pack with a SOCIAL vocabulary as well as objects - the explicit
+/// opt-in `pack_tuned`'s empty default requires of every test about sims
+/// talking. The entries come from [`interaction`], because a social
+/// interaction IS a `CompiledInteraction`; the vocabulary is what a sim
+/// advertises instead of what an object does.
+pub fn pack_with_social(
+    objects: Vec<CompiledObject>,
+    social: Vec<CompiledInteraction>,
+    tuning: Tuning,
+) -> &'static ContentPack {
+    let pack = pack_tuned(objects, tuning);
+    // Leaked like everything here; one clone per call in a test process.
+    Box::leak(Box::new(ContentPack {
+        social,
+        ..pack.clone()
+    }))
+}
+
 pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static ContentPack {
     Box::leak(Box::new(ContentPack {
         decay_per_tick: terri_data::pack().decay_per_tick,

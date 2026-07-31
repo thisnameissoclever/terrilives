@@ -109,6 +109,12 @@ pub fn wander(
             Without<Target>,
             Without<Eating>,
             Without<Path>,
+            // A sim somebody reserved stands STILL - [H4]. The initiator's
+            // path was planned against this sim's tile, and a stroll that
+            // moves the tile makes the walk arrive beside nobody. The
+            // `Restless` marker can be stale here precisely because
+            // `select_action` no longer sees reserved sims to update it.
+            Without<terri_core::Reserved>,
         ),
     >,
 ) {
