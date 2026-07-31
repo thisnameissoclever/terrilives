@@ -2559,9 +2559,73 @@ rebuild it as `Sim::new_from_shipped_lot()` plus the agent `web/src/main.ts`
 spawns, 12 000 ticks. It reproduces [O1]'s 121 interactions exactly on the
 no-advert content, which is what makes the four rows comparable.
 
+## [L50] A hanging test suppresses every assertion that already failed in the same run
+
+**What happened:** three `rng.rs` mutants - `next_u32 -> 0`, `next_u32 -> 1` and
+`replace >= with < in SimRng::range` - reported TIMEOUT in every sweep from M1c
+Task 1 to M1b Task 7, about seven runs. They cost 180s of the mutation job each
+time and were invisible to the gate, which compares `missed.txt` while a
+timeout lands in `timeout.txt`. `docs/mutation-baseline.md` recorded them
+correctly as detections, and concluded: *"An unbounded rejection loop is
+inherent to debiased sampling and is not worth capping."*
+
+**That conclusion rested on a misreading of the outcome column.** Measured
+properly - each mutant applied alone, each test run alone under an 8s deadline -
+**all three fail real assertions.** `next_u32 -> 0` fails 14 tests,
+`next_u32 -> 1` fails 15, and the comparison flip fails 2, among them
+`a_golden_sequence_pins_the_algorithm` and
+`range_is_uniform_at_a_bound_that_divides_badly_into_2_32`. Every one of the
+three was already killed by an assertion.
+
+**Root cause: the outcome column describes the worst-behaved test in the run,
+not the strength of the detection.** `cargo test` does not exit until every
+test finishes, so one test spinning inside `SimRng::range`'s unbounded
+rejection loop means the process never reports the failures that had already
+happened. The hanging tests and the detecting tests were **different tests**.
+TIMEOUT therefore said "something in this run hangs", and was read as "this
+mutant is only detected by a hang", which is a different and much weaker claim.
+
+The inconsistency this created is worth seeing. `roll_wander_path`, one crate
+away, bounds its re-roll loop and its doc comment says the bound *"is what
+stops that becoming a hang"*, citing [L15]. The identical argument had already
+been accepted for the identical shape of bug; it did not transfer, because a
+rejection loop and a re-roll loop do not look alike.
+
+Once the assertions were known to exist, the cap was free. A rejection needs a
+draw below `2^32 % bound`, which is under `2^31` for every bound, so one
+rejection is always less likely than a coin flip and 128 in a row is under
+2^-128. It cannot fire on a working generator and it changes no draw, so no
+golden hash and no replay moved.
+
+**Prevention rules:**
+
+1. **A TIMEOUT is a statement about the run, not about the mutant. Find the
+   hanging test before concluding anything.** Run each test alone under a
+   deadline; expect the hang and the detection to be in different tests.
+2. **Bound every loop in production code, and panic on overrun** - however
+   unreachable the bound is, and with the arithmetic for "unreachable" written
+   next to it. `debug_assert!` will not do: `wasm-pack` builds release, so per
+   [L12] the shipped target would keep the hang while `cargo mutants`, which
+   builds debug, reported it fixed.
+3. **Make the guard reachable by a test.** The cap can only fire on a broken
+   generator, so `range`'s loop was extracted as `draw_below_bound(bound,
+   draw)` taking its draws from a closure. A test hands it `|| 0`; without
+   that seam the cap would be an untested guard, indistinguishable from no
+   guard.
+4. **Gate on `timeout.txt` as well as `missed.txt`.** Zero tolerance, not a
+   second baseline: the fix for a hang is a bound, and an allowance that can
+   grow invites raising `--timeout` instead.
+
+**How to verify:** apply any of the three mutations to
+`crates/terri-core/src/rng.rs` and run `cargo test -p terri-core --lib`. Before
+the cap it never terminates; after it, `draw_below_bound` panics and the run
+reports failures. Do it under the [L15] harness rules - output to a file,
+`taskkill /F /T` the tree, restore in a `finally` - and confirm
+`git hash-object crates/terri-core/src/rng.rs` matches the pre-mutation value.
+
 ---
 
-## [L50] A detector needs a must-be-negative case and a must-be-positive case, asserted in the same run
+## [L51] A detector needs a must-be-negative case and a must-be-positive case, asserted in the same run
 
 **What happened:** three instruments built to verify the alpha's rendering and
 behaviour were wrong before they were right, and each was wrong in a way that
@@ -2605,7 +2669,7 @@ confirm the sanity assertions fail rather than the counts merely changing.
 
 ---
 
-## [L51] A hand-mutation harness must be calibrated on a mutation that is known to be caught
+## [L52] A hand-mutation harness must be calibrated on a mutation that is known to be caught
 
 **What happened:** this task's hand-mutation pass over the web shell - five
 mutations of the new `interaction` argument, each applied, tested and reverted by
@@ -2627,7 +2691,7 @@ mutation sat in `web/src/input.ts` until the next `grep`.
 
 **Root cause:** the harness had no positive control. Its "no test failed" branch
 and its "the parser matched nothing" branch produce the same output, which is
-[L50]'s missing must-be-positive case applied to a tool rather than to a
+[L51]'s missing must-be-positive case applied to a tool rather than to a
 detector - and it is worse here, because the failure direction is *reassuring*.
 A parser that silently matches nothing reports every mutation as undetected,
 which reads as "write more tests" rather than as "fix the harness". The
@@ -2653,7 +2717,7 @@ broken, not the suite.
 
 ---
 
-## [L52] A rule that is correct for every case the fixture can express is not a correct rule
+## [L53] A rule that is correct for every case the fixture can express is not a correct rule
 
 `tiles.ts` decided which of two wall sprites a tile draws:
 
@@ -2730,7 +2794,7 @@ through-run already is east-west - and a free-standing tile. See [B5] in
 
 ---
 
-## [L53] Halving a delta and halving a rate are different operations
+## [L54] Halving a delta and halving a rate are different operations
 
 The house gained five comfort objects and all five went unused, because comfort
 never dropped low enough for `deficit^3` to make them worth anything. Two of the
@@ -2770,7 +2834,7 @@ which is the same information from the other end.
 
 ---
 
-## [L54] Arithmetic that cannot be called cannot be pinned with a golden value
+## [L55] Arithmetic that cannot be called cannot be pinned with a golden value
 
 `select_action` carried the habituation multiplier inline:
 
@@ -2825,7 +2889,7 @@ production code uses, the test is a statement about arithmetic in general
 rather than about this program.
 
 **How to verify:** hand-mutate the extracted function and confirm a NAMED test
-fails. Calibrate the harness first on a mutation known to be caught ([L51]) -
+fails. Calibrate the harness first on a mutation known to be caught ([L52]) -
 and beware that `cargo test` prints `error: test failed` to **stderr**, so a
 harness that scans stderr for "error:" before reading the failing-test names
 reports every real kill as a compile error. That happened on the first run of

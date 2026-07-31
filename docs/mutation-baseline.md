@@ -4,7 +4,84 @@
 contract.** That file, not this one, is what CI compares against; it is the
 sorted contents of `mutants.out/missed.txt` from a full sweep.
 
-**Latest sweep: M1b Task 7, the need bars and time controls, 2026-07-29**,
+**Latest sweep: the `SimRng::range` timeout fix, 2026-07-29**, full, run to
+completion on the finished tree, CI's package list and CI's exact single-job
+invocation:
+
+```
+cargo mutants --package terri-core --package terri-sim \
+  --package terri-data --package terri-wasm --test-workspace true --timeout 60
+513 mutants tested in 27m: 7 missed, 450 caught, 56 unviable
+```
+
+**Zero timeouts - the first sweep with none since `rng.rs` entered the count at
+M1c Task 1.** That line used to end "3 timeouts", and this is the whole point of
+the task: `SimRng::range`'s rejection loop is now bounded, so the three mutants
+that used to spin forever fail an assertion instead. **Mutation score on viable
+mutants: 98.5%** (450 caught of 457 viable), and for the first time the
+pessimistic and optimistic readings are the same number, because there is no
+timeout column left to argue about.
+
+**Seven missed, and they are exactly the seven in `docs/mutants-baseline.txt`.**
+CI's own comparison, run locally against this output, gives an empty
+new-survivor list *and* an empty now-caught list. **The baseline file is
+unchanged and was not regenerated** - `rng.rs:32:30` did not re-anchor, which
+was checked rather than assumed: `MAX_REJECTED_DRAWS` and `draw_below_bound`
+were deliberately sited *below* `from_seed` so the line-keyed entry could not
+move, and the sweep's `missed.txt` confirms it still reads `32:30`.
+
+**The count is seven, and the section below says five. The section below is the
+stale one.** `fe8b5d7` accepted two `find_path_adjacent` survivors into the
+baseline after the M1b Task 7 sweep was recorded, without re-running the full
+sweep, so that section's "exactly the five" claim and its `diff`-is-empty claim
+both describe a file with two fewer lines than the one now committed. The
+contract file was right; the argument document had drifted. This sweep is the
+run that settles it.
+
+**Fifty-two new mutants entered the sweep, and only two of them are this
+task's.** The scoped run below pins this task's contribution at exactly two;
+the other fifty arrived with `fe8b5d7`, which merged after M1b Task 7's sweep
+and added `TileGrid::find_path_adjacent` among other code.
+
+**Scoped run over the one file this task changed**, per [L43] rule 3 - believe
+the scoped one about your own changes and the full one about everything else:
+
+```
+cargo mutants --package terri-core -f crates/terri-core/src/rng.rs \
+  --test-workspace true --timeout 60
+27 mutants tested in 2m: 1 missed, 25 caught, 1 unviable
+```
+
+Against M1c Task 1's scoped run over the same file - `25 mutants: 1 missed, 20
+caught, 1 unviable, 3 timeouts` - the accounting is exact and worth writing out,
+because it is the evidence that nothing was traded away:
+
+- **Caught went 20 to 25.** Three of those five are the former timeouts:
+  `rng.rs:41:9 next_u32 -> 0`, `rng.rs:41:9 next_u32 -> 1`, and the comparison
+  flip, which now reads `rng.rs:100:14: replace >= with < in draw_below_bound`
+  because the loop moved out of `range`. All three are CAUGHT.
+- **The other two are new**, and are the ones the extraction created:
+  `draw_below_bound -> u32 with 0` and `with 1`. Both caught.
+- **Missed is still the one accepted `from_seed` entry**, unchanged, and
+  unviable is still the one `Default::default()` mutant.
+
+Every operator mutant the loop carries - the two `%` on the threshold and the
+modulo, and the `>=` - moved from `range` to `draw_below_bound` and is caught
+there. None of them can hang any more, which is the property the cap buys.
+
+**What the sweep still cannot say.** The cap itself is unreachable through
+`SimRng`, so no mutation of the *generator* can exercise it; that is why
+`draw_below_bound` takes its draws from a closure and why
+`a_frozen_generator_panics_instead_of_spinning_forever` exists. And the
+before/after claim rests on evidence `cargo mutants` does not produce: each of
+the three mutants was applied alone and every test in `terri-core` and
+`terri-sim` run alone under an 8s deadline, before and after. Before: 7, 6 and
+11 hanging tests. After: **zero**, with the failures intact - 22, 22 and 17
+tests failing an assertion. See [L50].
+
+---
+
+**Previous sweep: M1b Task 7, the need bars and time controls, 2026-07-29**,
 full, run to completion on the finished tree, CI's package list and CI's exact
 single-job invocation:
 
@@ -406,6 +483,22 @@ signal than a failure. They cost about 180s of CI time and land in
 `timeout.txt`, not `missed.txt`, so the gate does not see them. An unbounded
 rejection loop is inherent to debiased sampling and is not worth capping.
 
+> **That last sentence was reversed on 2026-07-29, and the error was in its
+> premise rather than in the trade it made.** These three are not detected
+> *only* by a hang. Measured one mutant and one test at a time under a
+> deadline, all three fail real assertions - 14, 15 and 2 of them respectively
+> - and the TIMEOUT verdict came from a **different** test in the same run
+> spinning inside the rejection loop, which stopped `cargo test` exiting and so
+> stopped it reporting the failures that had already happened. Once that was
+> known the cap was free: it cannot fire on a working generator and it changes
+> no draw. `SimRng::range` now delegates to a bounded `draw_below_bound`, all
+> three report CAUGHT, and CI fails on a non-empty `timeout.txt`. See [L50] and
+> the latest sweep section at the top of this file.
+>
+> Left standing rather than quietly corrected, because [L30] is this file's own
+> warning that a recorded argument expires, and an expiry that is edited away
+> teaches nobody.
+
 ---
 
 **Previous sweep: M1b Task 3b, 2026-07-28**, with the package list CI actually
@@ -451,15 +544,22 @@ and means something different:
 
 Net: `docs/mutants-baseline.txt` holds **four** entries, down from five.
 
-## Read the three counts, not the score
+## Read the four counts, not the score
 
-A sweep reports **caught**, **missed** and **unviable**, and only the first two
-say anything about the tests.
+A sweep reports **caught**, **missed**, **unviable** and **timeout**, and only
+the first two say anything about the tests.
 
 - **Missed** is behaviour nothing constrains. That is the gate.
 - **Unviable** means the mutated code did not compile or did not build, so the
   test suite never ran against it. By [L21] that is **no evidence at all about
   the tests** - not a pass, not a failure. It must never be added to caught.
+- **Timeout** is a fourth column, and reading it as "caught by a hang" is the
+  mistake [L50] records. It means *some* test in that run never terminated,
+  which also stops `cargo test` reporting the failures that had already fired,
+  so it says nothing about whether the mutant was detected - all three of the
+  `rng.rs` timeouts turned out to fail assertions the whole time. It must be
+  zero, and CI now fails if it is not; the fix for one is to bound the loop the
+  mutant spins in, never to raise `--timeout`.
 - The score above is therefore quoted over *viable* mutants, and even that is
   not comparable across milestones, because [D9]'s build gate keeps moving
   mutants between the caught and unviable columns.
@@ -962,7 +1062,11 @@ Task 4 and the build gate changed the caught/unviable split in Task 5.
 | M1b Task 3b | 311 | 4 | 266 | 41 | 14 new mutants, all caught; baseline unchanged |
 | **M1c Task 1** | **342** | **5** | **292** | **42** | **31 new mutants from `rng.rs`; 3 timeouts; baseline up to 5** |
 | M1b Task 5 | *partial* | 4 | 175 | 23 | Stopped at 204/~420; scoped sweeps over all changed files gave 0 missed; baseline unchanged at 5 |
+<<<<<<< HEAD
 | M1b `UseObject::interaction` | *scoped* | 0 | 43 | 5 | 48 mutants over the four files the change touched; 0 missed, baseline unchanged at 5 |
+=======
+| **`range` timeout fix** | **513** | **7** | **450** | **56** | **First sweep with 0 timeouts; the 3 `rng.rs` hangs became CAUGHT; baseline unchanged at 7** |
+>>>>>>> origin/main
 
 The M1b Task 3 row is the one to read carefully. Missed stayed at 5 while
 the set changed completely in composition: `advertise.rs:42:36` ceased to

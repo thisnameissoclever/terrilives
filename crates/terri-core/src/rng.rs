@@ -59,15 +59,53 @@ impl SimRng {
     /// candidates, so it is a small count.
     pub fn range(&mut self, bound: usize) -> usize {
         assert!(bound > 0, "range(0) has no valid result");
-        let bound = bound as u32;
-        let threshold = bound.wrapping_neg() % bound;
-        loop {
-            let r = self.next_u32();
-            if r >= threshold {
-                return (r % bound) as usize;
-            }
+        draw_below_bound(bound as u32, || self.next_u32()) as usize
+    }
+}
+
+/// How many rejected draws `draw_below_bound` tolerates before it calls the
+/// generator broken rather than unlucky.
+///
+/// A rejection needs a draw below `threshold`, which is `2^32 % bound` and
+/// is therefore below `2^31` for every possible `bound`: at `bound <= 2^31`
+/// the threshold is smaller than the bound and so smaller still, and above
+/// that the threshold is `2^32 - bound`. One rejection is thus always less
+/// likely than a coin flip, and 128 of them in a row is under 2^-128. The
+/// worst case a real bound can produce is `3 << 30`, where the threshold is
+/// `2^30` and a rejection runs one in four.
+///
+/// So the cap is not a concession on uniformity - it cannot fire on a
+/// working generator, and it does not change a single draw of one. It is
+/// there for the other direction: a generator that cannot produce a
+/// qualifying draw at all makes the loop spin forever. Per [L15] a hang is a
+/// far weaker signal than a failure, because it burns a CI job timeout
+/// instead of printing an assertion, and the mutation gate compares
+/// `missed.txt`, so a hang is invisible to it. `roll_wander_path` bounds its
+/// re-roll loop for exactly this reason; this is the same argument applied
+/// to the loop one layer down.
+const MAX_REJECTED_DRAWS: u32 = 128;
+
+/// The rejection loop behind [`SimRng::range`].
+///
+/// Split out of `range`, and taking its draws through a closure rather than
+/// from `&mut SimRng`, for one reason: the cap can only be reached by a
+/// generator that is broken, so no state of `SimRng` can reach it, and a
+/// guard nothing exercises is indistinguishable from no guard. The closure
+/// is what lets `a_frozen_generator_panics_instead_of_spinning_forever`
+/// supply a draw source a real generator cannot be.
+fn draw_below_bound(bound: u32, mut draw: impl FnMut() -> u32) -> u32 {
+    let threshold = bound.wrapping_neg() % bound;
+    for _ in 0..MAX_REJECTED_DRAWS {
+        let r = draw();
+        if r >= threshold {
+            return r % bound;
         }
     }
+    panic!(
+        "range({bound}) rejected {MAX_REJECTED_DRAWS} draws in a row, all below \
+         the debias threshold {threshold}; the generator is not producing uniform \
+         u32s"
+    );
 }
 
 #[cfg(test)]
@@ -194,6 +232,48 @@ mod tests {
                 "third {i} took {share} of the draws, not about a third: {thirds:?}"
             );
         }
+    }
+
+    #[test]
+    fn the_rejection_loop_returns_in_range_on_draws_a_real_generator_produces() {
+        // The companion to the panic test below, and the reason that one is
+        // not the only coverage the extracted loop has: this drives
+        // `draw_below_bound` on ordinary draws and pins that splitting it out
+        // of `range` kept it doing its job. Without this, replacing the whole
+        // helper with a constant would only be caught one layer up.
+        let mut r = SimRng::from_seed(99);
+        let mut seen = [false; 7];
+        for _ in 0..500 {
+            let v = draw_below_bound(7, || r.next_u32());
+            assert!(v < 7, "draw_below_bound(7) returned {v}");
+            seen[v as usize] = true;
+        }
+        // Rule 5: a constant 0 satisfies the bound check on its own.
+        assert!(
+            seen.iter().all(|s| *s),
+            "some index is unreachable: {seen:?}"
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "draws in a row, all below the debias threshold")]
+    fn a_frozen_generator_panics_instead_of_spinning_forever() {
+        // Bound 5 has a threshold of 1, so a source frozen at 0 is rejected
+        // on every draw and the unbounded form of this loop never returns.
+        // That is precisely the `next_u32 -> 0` mutant, which reported
+        // TIMEOUT rather than CAUGHT: the suite never went green, which is
+        // what "caught" means, but a hang lands in `timeout.txt` while the
+        // gate compares `missed.txt`, so nothing mechanical could see it. See
+        // [L50], and `docs/mutation-baseline.md` for the reversal of the
+        // earlier decision to leave the loop unbounded.
+        //
+        // `expected` is load-bearing, not decoration. `draw_below_bound`'s
+        // caller also panics - `assert!(bound > 0)` - and a bare
+        // `#[should_panic]` would be satisfied by either, so it would pass
+        // while saying nothing about the cap. The substring omits the count
+        // so that retuning the cap does not have to touch this test, and
+        // still cannot match the other panic.
+        let _ = draw_below_bound(5, || 0);
     }
 
     #[test]
