@@ -745,11 +745,24 @@ sprite = "loungeChairRelax"
   # 0.062 from the same spot. Worth recording as a shape rather than as a
   # number: an object can be at zero uses and be four ten-thousandths away
   # from working.
+  #
+  # **46 ticks and fun 19, from 51 and 16, at M2d - the SAME cliff a
+  # second time, and one lever was not enough to climb it.** Conversations
+  # arrived, chat carries a 6-fun rider, and every talk a sim has is idle
+  # time this chair used to be the answer to: the measured 12 000-tick run
+  # had it back at zero. Trimming the duration alone (51 to 46) recovered
+  # three uses over 36 000 ticks and still zero over 12 000, so the fun
+  # delta moved too - 19 keeps it below the bookshelf's 26 and the
+  # television's 30, so "middling" survives as a role even though the
+  # number crept. The object sits a rounding error above the action
+  # threshold BY DESIGN, so any new competitor for its needs will shave
+  # this margin again; expect a rethink of "middling on purpose" when
+  # M2e's hobbies land.
   [[object.interaction]]
   id = "settle_in"
   label = "Settle in with something long"
-  advertises = { comfort = 15.0, fun = 16.0 }
-  duration_ticks = 51
+  advertises = { comfort = 15.0, fun = 19.0 }
+  duration_ticks = 46
   slots = 1
 
 [[object]]
