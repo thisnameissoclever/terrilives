@@ -3,20 +3,26 @@ import path from 'node:path';
 import { defineConfig } from 'vite';
 
 /**
- * Self-signed TLS for the PREVIEW server, when the material exists.
+ * Self-signed TLS, when the material exists.
  *
  * WebGPU only exists in secure contexts - https, or localhost - so the
  * dev build that runs perfectly at http://localhost:5173 renders a
- * void from any other device's plain-http address. The preview server
- * (`npm run build && npm run preview`, port 4173) therefore serves the
- * built bundle over https for phones and other machines, while the dev
- * server stays plain http so localhost tooling never fights a
- * certificate interstitial.
+ * void from any other device's plain-http address. Three servers,
+ * three answers:
+ *
+ *   - `npm run dev` (5173): plain http, localhost work. Deliberately
+ *     NOT https, so local tooling never fights a certificate
+ *     interstitial.
+ *   - `npm run dev:lan` (5174): the SAME live dev server over https,
+ *     for phones and other machines - one URL that is always the
+ *     current game, hot reload included.
+ *   - `npm run preview` (4173): the built bundle over https, the
+ *     closer-to-shipping copy.
  *
  * The material is deliberately optional and gitignored: a fresh clone
- * works without it (preview simply serves http, fine on localhost),
- * and a private key never enters history even a throwaway one.
- * Regenerate with:
+ * works without it (every server simply serves http, fine on
+ * localhost), and a private key never enters history even a throwaway
+ * one. Regenerate with:
  *
  *   openssl req -x509 -newkey rsa:2048 -sha256 -days 825 -nodes \
  *     -keyout web/.cert/key.pem -out web/.cert/cert.pem \
@@ -35,7 +41,7 @@ const https = fs.existsSync(path.join(certDir, 'cert.pem'))
     }
   : undefined;
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   // Relative asset URLs, so the build works from any path. GitHub Pages
   // serves a project site from /<repo>/ rather than /, and an absolute
   // base would 404 every asset there while working fine locally, which
@@ -50,6 +56,10 @@ export default defineConfig({
     // visiting device still applies: recent Chrome or Edge works,
     // Safari and older Android browsers may not.
     host: true,
+    // https only in `dev:lan` mode - the mode exists so the plain
+    // localhost workflow and the phone-reachable one can run side by
+    // side on their own ports rather than fighting over one.
+    https: mode === 'lan' ? https : undefined,
     // Required for SharedArrayBuffer / WASM threads later. Harmless now.
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin',
@@ -72,4 +82,4 @@ export default defineConfig({
     host: true,
     https,
   },
-});
+}));
