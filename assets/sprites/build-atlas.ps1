@@ -112,7 +112,15 @@ $SCALE = $TILE_W / $KENNEY_METRE_PX
 # TILE_HALF_HEIGHT, not here; see PROJECTION in the notes at the top.
 
 # Atlas width in texels. Everything packs into shelves this wide.
-$ATLAS_W = 256
+#
+# 512 rather than 256 since the house grew from 8 objects to 33. Shelf
+# packing wastes the tail of every shelf, and at 256 a 93 px bed left
+# almost nothing usable beside it, so 36 sprites packed into a texture
+# 700 px tall and mostly empty. Widening halves the shelf count and lets
+# the tall pieces sit beside each other. Nothing downstream reads the
+# dimensions as a constant: both manifests are written from `$ATLAS_W` and
+# the measured height in the same pass.
+$ATLAS_W = 512
 # Transparent gutter between sprites, so linear filtering at a quad edge
 # cannot pick up its neighbour.
 $PAD = 1
@@ -133,9 +141,78 @@ $SOURCES = @(
   @{ name = 'showerRound';            from = 'showerRound_SE' }
   @{ name = 'toiletSquare';           from = 'toiletSquare_SE' }
   @{ name = 'bookcaseClosedDoors';    from = 'bookcaseClosedDoors_SE' }
-  @{ name = 'loungeDesignSofaCorner'; from = 'loungeDesignSofaCorner_SE' }
-  @{ name = 'cabinetTelevisionDoors'; from = 'cabinetTelevisionDoors_SE' }
+  # **Both of these were swapped for pieces that fit their footprint.**
+  #
+  # Objects occupy exactly ONE tile in the simulation whatever their sprite's
+  # width, so a sprite much wider than a tile is drawn over ground it does not
+  # own - and since sims now stand on an ADJACENT tile, "adjacent" can land
+  # underneath the sprite. Measured on the old pair: a sim standing beside the
+  # 2.38-tile corner sofa had 88% of its own sprite inside the sofa's.
+  #
+  # `loungeSofaOttoman` is 0.78 tiles wide, so one tile of separation actually
+  # clears it. `televisionVintage` replaces `cabinetTelevisionDoors`, which was
+  # never a television at all - it is a cabinet, 109x110 in the source and
+  # therefore square, which is why [C4] recorded it reading as a plank lying on
+  # the floor. The vintage set is also the better joke for an object named
+  # Cathode Companion.
+  #
+  # **The bed cannot be fixed this way and is deliberately left alone.** Every
+  # bed in the kit is at least 1.46 tiles wide, because a bed genuinely is a
+  # multi-tile object; there is no asset that would make one tile of separation
+  # enough. That is the case for real footprints, recorded as [A-6] in
+  # docs/alpha-feel-notes.md, not something to paper over with a smaller
+  # picture of a bed.
+  @{ name = 'loungeSofaOttoman';      from = 'loungeSofaOttoman_SE' }
+  @{ name = 'televisionVintage';      from = 'televisionVintage_SE' }
   @{ name = 'bedBunk';                from = 'bedBunk_SE' }
+  # Appended last, deliberately. The index IS what the render buffer carries,
+  # so inserting anywhere but the end renumbers every sprite after it and
+  # silently redraws the lot.
+  @{ name = 'selectionRing';          from = 'generated:selectionRing' }
+
+  # ---- M2b: the five-room house -------------------------------------------
+  #
+  # Appended in one block, after the selection ring, for the same append-only
+  # reason: the index is the render buffer's, not this file's, and grouping
+  # these by room would have meant inserting `kitchenStove` next to
+  # `kitchenFridgeBuiltIn` and renumbering everything below it.
+  #
+  # **Every piece here stands on the floor, and that is a rule rather than an
+  # accident of taste.** A footprint BLOCKS its tiles, and the simulation has
+  # no notion of a decoration a sim may walk over or of a thing mounted on a
+  # wall. So the kit's rugs, doormats, wall mirrors, upper cabinets, ceiling
+  # fans and worktop appliances are all deliberately absent: each would either
+  # be an invisible obstacle in the middle of a room, or a floating object
+  # occupying the tile a sim needs in order to reach the thing underneath it.
+  # docs/specs/2026-07-30-the-house-design.md [B4] records the alternative
+  # that was rejected, which is a `blocks = false` flag on a footprint.
+  @{ name = 'kitchenStove';           from = 'kitchenStove_SE' }
+  @{ name = 'kitchenCabinet';         from = 'kitchenCabinet_SE' }
+  @{ name = 'kitchenSink';            from = 'kitchenSink_SE' }
+  @{ name = 'table';                  from = 'table_SE' }
+  @{ name = 'chair';                  from = 'chair_SE' }
+  @{ name = 'trashcan';               from = 'trashcan_SE' }
+  @{ name = 'loungeSofaLong';         from = 'loungeSofaLong_SE' }
+  @{ name = 'loungeChair';            from = 'loungeChair_SE' }
+  @{ name = 'loungeChairRelax';       from = 'loungeChairRelax_SE' }
+  @{ name = 'radio';                  from = 'radio_SE' }
+  @{ name = 'pottedPlant';            from = 'pottedPlant_SE' }
+  # `cardboardBoxOpen` and not the kit's `plantSmall1`/`plantSmall2`, which
+  # were tried first and measured at 8 x 10 px after scaling - a speck
+  # occupying a whole blocked tile, which reads as an invisible obstacle
+  # rather than as an ornament. Anything standing on a tile has to be big
+  # enough to explain why a sim cannot walk there.
+  @{ name = 'cardboardBoxOpen';       from = 'cardboardBoxOpen_SE' }
+  @{ name = 'lampRoundFloor';         from = 'lampRoundFloor_SE' }
+  @{ name = 'coatRackStanding';       from = 'coatRackStanding_SE' }
+  @{ name = 'bedDouble';              from = 'bedDouble_SE' }
+  @{ name = 'sideTableDrawers';       from = 'sideTableDrawers_SE' }
+  @{ name = 'cabinetBedDrawer';       from = 'cabinetBedDrawer_SE' }
+  @{ name = 'desk';                   from = 'desk_SE' }
+  @{ name = 'chairDesk';              from = 'chairDesk_SE' }
+  @{ name = 'bookcaseClosedWide';     from = 'bookcaseClosedWide_SE' }
+  @{ name = 'bathtub';                from = 'bathtub_SE' }
+  @{ name = 'washerDryerStacked';     from = 'washerDryerStacked_SE' }
 )
 
 function New-HighQualityGraphics([System.Drawing.Bitmap] $target) {
@@ -204,6 +281,45 @@ function New-FloorSprite {
   return $out
 }
 
+# Which sim is selected, drawn on the ground at its feet.
+#
+# A floor ring rather than an outline or a head icon, and
+# docs/specs/2026-07-30-selection-and-input-design.md [I2] carries the argument:
+# an outline needs the sprite's silhouette, which means a second pre-rendered
+# outline per sprite or a shader pass sampling neighbouring alpha; a head icon
+# leaves the canvas above a sim standing at the top of a lot, because sprites
+# here reach 114 px and the camera is fixed.
+#
+# **Exactly the floor tile's dimensions**, so it is bottom-centre anchored to the
+# same point and lands concentric with the tile the sim occupies rather than
+# needing an offset nobody would maintain. An ellipse inscribed in the diamond
+# rather than a diamond outline: the ring should read as lying ON the ground, and
+# a diamond outline reads as a second floor tile.
+#
+# The colour is the HUD's existing accent, so the selection cue and the need bars
+# agree without introducing a palette entry.
+function New-SelectionRingSprite {
+  $scale = 4
+  $w = $TILE_W * $scale
+  $h = $TILE_H * $scale
+  $big = [System.Drawing.Bitmap]::new($w, $h, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+  $g = New-HighQualityGraphics $big
+
+  # Inset so the stroke stays inside the sprite instead of being clipped by it,
+  # and so the ring sits within its tile rather than bleeding onto the next one.
+  $inset = 5 * $scale
+  $pen = New-Object System.Drawing.Pen(
+    [System.Drawing.Color]::FromArgb(235, 111, 178, 210), ($scale * 2.5))
+  $g.DrawEllipse($pen, $inset, $inset, ($w - 2 * $inset), ($h - 2 * $inset))
+  $pen.Dispose(); $g.Dispose()
+
+  $out = [System.Drawing.Bitmap]::new($TILE_W, $TILE_H, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+  $g2 = New-HighQualityGraphics $out
+  $g2.DrawImage($big, (New-Object System.Drawing.Rectangle(0, 0, $TILE_W, $TILE_H)))
+  $g2.Dispose(); $big.Dispose()
+  return $out
+}
+
 # The kit has 140 pieces of furniture and no people, so the one sprite
 # the game most needs is the one nothing ships. Drawn from primitives at
 # 4x and downsampled, which is enough antialiasing to sit next to
@@ -254,6 +370,7 @@ try {
     $bitmap = switch ($spec.from) {
       'generated:floor' { New-FloorSprite }
       'generated:sim' { New-SimSprite }
+      'generated:selectionRing' { New-SelectionRingSprite }
       default {
         # `width` is optional and only the wall panels set it; absent, it is
         # $null, which the [int] parameter takes as 0 and the function reads

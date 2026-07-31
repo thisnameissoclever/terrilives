@@ -1,5 +1,4 @@
-# The starter lot: one open living space with a bathroom walled off in
-# the north-east corner.
+# The house: five rooms around a closed loop.
 #
 # Hand-authored on purpose, and this file is the precursor to build mode
 # rather than a shortcut around it. Build mode later becomes an editor
@@ -14,53 +13,198 @@
 #
 # Walls list INTERIOR tiles only. The lot boundary is already solid,
 # because `TileGrid::is_walkable` treats everything outside the grid as
-# blocked, so authoring a perimeter here would be 80 redundant entries
+# blocked, so authoring a perimeter here would be 52 redundant entries
 # that no code would read differently.
-
-# Sized so the room reads as a home rather than a warehouse. The first
-# version was 24 x 18, which is 432 tiles holding nine things, and it
-# looked like a furniture showroom with the lights off. Density is what
-# makes a space legible, and it is also what makes travel distance a
-# real cost in scoring - across an empty hall every object is equally
-# far, so distance stops discriminating and only need deficit decides.
-width = 14
-height = 10
+#
+# **A doorway is a GAP in a wall run, not an entry of its own.** There is
+# no door concept; a tile is either impassable or it is not. Every gap
+# below is annotated, because a missing gap seals a room and the symptom
+# is a sim that stops choosing anything rather than an error.
+#
+# ---------------------------------------------------------------------------
+# THE PLAN
+# ---------------------------------------------------------------------------
+#
+# One character per tile, read off the wall list below. `#` is wall, `.` is
+# a doorway - a GAP in a run rather than an entry of its own - and a space
+# is floor.
+#
+#          x = 0 1 2 3 4 5 6 7 8 9 . . . . . 15
+#   y = 0                      #                  KITCHEN  |  LIVING ROOM
+#   y = 1                      #
+#   y = 2                      .                  kitchen to living room
+#   y = 3                      #
+#   y = 4                      #
+#   y = 5      # # # . # # # # # # # # # . # #    the spine
+#   y = 6                #           #            BEDROOM | STUDY | BATH
+#   y = 7                #           #
+#   y = 8                #           .            study to bathroom
+#   y = 9                .           #            bedroom to study
+#   y = 10               #           #
+#   y = 11               #           #
+#
+# The spine's two gaps are at x = 3 and x = 13; the bedroom/study divider
+# is the column at x = 5 with its gap at y = 9; the study/bathroom divider
+# is at x = 11 with its gap at y = 8.
+#
+# Five rooms, and the circulation is a **ring** rather than a tree:
+# kitchen to living, living to bathroom, bathroom to study, study to
+# bedroom, bedroom back to the kitchen. That was a deliberate choice over
+# the obvious central corridor, and it earns its keep twice.
+#
+# - **Two routes between any pair of rooms.** A* has something to choose
+#   between, and two sims heading opposite ways do not have to pass
+#   through the same tile. With one corridor every journey shares it, and
+#   contention would be an artefact of the floor plan rather than of the
+#   furniture.
+# - **No dead ends.** A tree layout has a leaf room that is only ever
+#   entered on purpose. On a ring a sim crosses every room in the course
+#   of ordinary business, which is what makes the whole house worth
+#   drawing.
+#
+# The cost is that there is no hall, so a sim walks THROUGH rooms rather
+# than past them. For a flat this size that is what a flat this size is
+# actually like.
+#
+# Sized so the whole lot fits the fixed 1280 x 720 canvas with no camera.
+#
+# **Do not derive that bound here.** It was derived here, in this comment,
+# and it was wrong: it reasoned about the TILE span, which is
+# `(width + height - 2)` half-tile heights of 21 px, and missed both that a
+# sprite is drawn above its anchor and that `tiles.ts` draws a boundary two
+# half-tile rows further up again at x = -1 and y = -1. The bound it gave
+# was 28, this lot is 28, and three boundary panels were being cut off the
+# top of the page.
+#
+# `cameraOrigin` in web/src/render/iso.ts owns the arithmetic now and reads
+# the tallest sprite off the atlas, so a taller piece of furniture cannot
+# silently push the house off screen. What that leaves as the authoring
+# rule is one number: the drawn extent is
+# `(width + height - 2) * 21 + 21 + 21 + tallestSprite` px tall, which at
+# 16 x 12 and a 114 px bunk bed is 702 against 720. **Adding one to either
+# dimension costs 21 px and there are 18 to spare**, so 16 x 12 really is
+# the largest this lot gets without a camera - just not for the reason
+# this comment used to give.
+width = 16
+height = 12
 
 wall = [
-  # The bathroom's west wall, running north-south, with a doorway at
-  # y = 2. The gap in this list IS the doorway; there is no separate
-  # door concept yet.
-  { x = 9, y = 0 },
-  { x = 9, y = 1 },
-  { x = 9, y = 3 },
+  # ---- Kitchen / living room, running north-south at x = 7 --------------
+  # The gap at y = 2 is the doorway between them.
+  { x = 7, y = 0 },
+  { x = 7, y = 1 },
+  { x = 7, y = 3 },
+  { x = 7, y = 4 },
 
-  # Its south wall, running east from below the doorway to the lot edge.
-  { x = 9, y = 4 },
-  { x = 10, y = 4 },
-  { x = 11, y = 4 },
-  { x = 12, y = 4 },
-  { x = 13, y = 4 },
+  # ---- The spine, running east-west at y = 5 ----------------------------
+  # It separates the two north rooms from the three south ones and it runs
+  # the full width of the lot. Two gaps: x = 3 joins the kitchen to the
+  # bedroom, and x = 13 joins the living room to the bathroom. Those two
+  # are what close the ring, so removing either one turns the loop into a
+  # dead-ended tree.
+  { x = 0, y = 5 },
+  { x = 1, y = 5 },
+  { x = 2, y = 5 },
+  { x = 4, y = 5 },
+  { x = 5, y = 5 },
+  { x = 6, y = 5 },
+  { x = 7, y = 5 },
+  { x = 8, y = 5 },
+  { x = 9, y = 5 },
+  { x = 10, y = 5 },
+  { x = 11, y = 5 },
+  { x = 12, y = 5 },
+  { x = 14, y = 5 },
+  { x = 15, y = 5 },
+
+  # ---- Bedroom / study, running north-south at x = 5 --------------------
+  # Doorway at y = 9.
+  { x = 5, y = 6 },
+  { x = 5, y = 7 },
+  { x = 5, y = 8 },
+  { x = 5, y = 10 },
+  { x = 5, y = 11 },
+
+  # ---- Study / bathroom, running north-south at x = 11 ------------------
+  # Doorway at y = 8.
+  { x = 11, y = 6 },
+  { x = 11, y = 7 },
+  { x = 11, y = 9 },
+  { x = 11, y = 10 },
+  { x = 11, y = 11 },
 ]
 
 place = [
-  # Kitchen, along the north wall of the living space. The sink is here
-  # rather than in the bathroom deliberately: it gives the shower a
-  # cheap, no-cost hygiene rival on the far side of the lot, which is
-  # what turns "wash" into a decision rather than a threshold.
-  { object = "fridge", x = 1.0, y = 1.0 },
-  { object = "sink", x = 3.0, y = 1.0 },
+  # ---- Kitchen, x 0..6, y 0..4 -----------------------------------------
+  #
+  # The working run is along the north wall, so every station is
+  # approached from the same open row at y = 1 and a sim never has to
+  # squeeze between two of them. The order along that run is the order the
+  # cooking chain will walk it - fridge, counter, stove, counter, sink -
+  # which costs nothing today and is free to have got right when
+  # docs/specs/2026-07-29-multi-step-interactions-design.md lands.
+  { object = "fridge", x = 0.0, y = 0.0 },
+  { object = "counter", x = 1.0, y = 0.0 },
+  { object = "stove", x = 2.0, y = 0.0 },
+  { object = "counter", x = 3.0, y = 0.0 },
+  { object = "kitchen_sink", x = 4.0, y = 0.0 },
+  { object = "trashcan", x = 6.0, y = 0.0 },
 
-  # Bathroom, reached only through the doorway at (9, 2).
-  { object = "shower", x = 11.0, y = 1.0 },
-  { object = "toilet", x = 13.0, y = 1.0 },
+  # The table is three tiles from the fridge and the fridge's own label is
+  # "Eat standing up". The chairs flank it rather than tucking under it,
+  # because a footprint blocks its tiles and a chair under the table would
+  # be an overlap the build refuses.
+  { object = "dining_table", x = 2.0, y = 3.0 },
+  { object = "chair", x = 1.0, y = 3.0 },
+  { object = "chair", x = 4.0, y = 3.0 },
 
-  # Living space, along the west and south.
-  { object = "bookshelf", x = 1.0, y = 5.0 },
-  { object = "sofa", x = 3.0, y = 8.0 },
-  { object = "television", x = 6.0, y = 8.0 },
+  # ---- Living room, x 8..15, y 0..4 ------------------------------------
+  #
+  # Seating along the north wall and facing back across the room, with the
+  # television and the ottoman sofa on the south side of it. The armchair -
+  # one slot, best comfort per tick in the house - goes in the middle of that
+  # run rather than in a corner of the lot, so two sims arriving at once
+  # happens where the player is already looking.
+  { object = "bookshelf", x = 8.0, y = 0.0 },
+  { object = "long_sofa", x = 10.0, y = 0.0 },
+  { object = "armchair", x = 13.0, y = 0.0 },
+  { object = "potted_plant", x = 15.0, y = 0.0 },
+  { object = "coat_rack", x = 15.0, y = 1.0 },
+  { object = "floor_lamp", x = 14.0, y = 2.0 },
+  { object = "radio", x = 8.0, y = 3.0 },
+  { object = "television", x = 10.0, y = 3.0 },
+  { object = "sofa", x = 12.0, y = 3.0 },
 
-  # Sleeping corner, south of the bathroom's south wall. Deliberately
-  # far from the sofa and television, so "I am tired" and "I want fun"
-  # pull in opposite directions across the room.
-  { object = "bed", x = 12.0, y = 7.0 },
+  # ---- Bedroom, x 0..4, y 6..11 ----------------------------------------
+  #
+  # The double bed is in the corner furthest from everything, which is
+  # what makes "I am tired" a journey rather than a step to the left.
+  { object = "double_bed", x = 0.0, y = 6.0 },
+  { object = "nightstand", x = 2.0, y = 6.0 },
+  { object = "dresser", x = 0.0, y = 10.0 },
+  { object = "moving_box", x = 4.0, y = 11.0 },
+
+  # ---- Study, x 6..10, y 6..11 -----------------------------------------
+  #
+  # The bunk bed lives here rather than in the bedroom, which is the joke
+  # and also the mechanism: two beds in two different rooms means "go to
+  # bed" has a choice in it, and the bunk is the faster, worse one.
+  { object = "desk", x = 6.0, y = 6.0 },
+  { object = "desk_chair", x = 6.0, y = 7.0 },
+  { object = "bed", x = 9.0, y = 6.0 },
+  { object = "reading_chair", x = 9.0, y = 9.0 },
+  { object = "reference_shelf", x = 6.0, y = 10.0 },
+  { object = "potted_plant", x = 10.0, y = 11.0 },
+
+  # ---- Bathroom, x 12..15, y 6..11 -------------------------------------
+  #
+  # Four hygiene options exist in the house and three of them are in this
+  # room; the fourth is the kitchen sink, deliberately at the opposite
+  # corner of the lot so that "wash" is a decision about distance as well
+  # as about how dirty you are.
+  { object = "toilet", x = 12.0, y = 6.0 },
+  { object = "shower", x = 14.0, y = 6.0 },
+  { object = "bathtub", x = 14.0, y = 9.0 },
+  { object = "sink", x = 12.0, y = 10.0 },
+  { object = "laundry", x = 12.0, y = 11.0 },
 ]

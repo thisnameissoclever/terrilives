@@ -1,4 +1,5 @@
 use bevy_ecs::prelude::Resource;
+use serde::{Deserialize, Serialize};
 use std::collections::BinaryHeap;
 
 /// A single lot's walkability grid. One tile is roughly one metre.
@@ -9,6 +10,54 @@ pub struct TileGrid {
     width: usize,
     height: usize,
     blocked: Vec<bool>,
+}
+
+/// The tile rectangle an object occupies. `width` runs along +x and
+/// `depth` along +y from the object's **origin** tile, so a 2x1 footprint
+/// placed at `(4, 7)` covers `(4, 7)` and `(5, 7)` - [F2] in
+/// `docs/specs/2026-07-30-object-footprints-design.md`, where the rejected
+/// centre-anchored alternative is also recorded.
+///
+/// It lives here rather than in `terri-data` for the same reason
+/// [`crate::ObjectDefId`] does: [`TileGrid::find_path_adjacent`] takes one,
+/// and `terri-core` is the lowest layer and must not depend on the content
+/// crate. `terri-data` re-exports it and `CompiledObject` holds one.
+///
+/// **Axis-aligned, with no rotation.** Every sprite in the kit is
+/// pre-rendered at one facing and the projection is fixed, so a rotation
+/// concept has nothing to act on yet; when build mode adds one it will need
+/// a facing on the placement and a swap of `width` and `depth`. Nothing
+/// here may assume square.
+///
+/// Content declares it and `terri-data`'s `compile` is what enforces that
+/// both dimensions are at least 1 and that the whole rectangle fits inside
+/// the lot and clears its walls. This crate assumes all of that, per [L12]
+/// rule 1: the sim crates keep the right to assume valid inputs, and that
+/// assumption is what makes them testable.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Footprint {
+    pub width: u32,
+    pub depth: u32,
+}
+
+impl Footprint {
+    /// One tile: what every object was before footprints existed, and what
+    /// all but one still is.
+    pub const SINGLE: Self = Self { width: 1, depth: 1 };
+}
+
+/// One tile, **not** the derived zero.
+///
+/// A zero-sized footprint is not a smaller object; it is one whose
+/// adjacency set is empty, so every caller here would read it as
+/// unreachable and a sim would simply never use it. Deriving `Default`
+/// would produce exactly that, and the authored schema leans on this
+/// default so that an object omitting `footprint` keeps the 1x1 behaviour
+/// it had before the field existed ([F1]).
+impl Default for Footprint {
+    fn default() -> Self {
+        Self::SINGLE
+    }
 }
 
 /// Four-way movement only. Diagonals would need corner-cutting checks
@@ -123,9 +172,16 @@ impl TileGrid {
         None
     }
 
-    /// A* to any tile **orthogonally adjacent** to `to`, rather than to `to`
-    /// itself. Returns the path excluding `from`, or None if no neighbour of
-    /// `to` is reachable.
+    /// A* to any tile **orthogonally adjacent** to the footprint rectangle
+    /// whose origin tile is `to`, rather than to a tile of the rectangle
+    /// itself. Returns the path excluding `from`, or None if no tile beside
+    /// the rectangle is reachable.
+    ///
+    /// `footprint` is the object's declared extent: `(width, depth)` tiles
+    /// running +x and +y from `to`, so `Footprint::SINGLE` reproduces the
+    /// original one-tile behaviour exactly. [`TileGrid::
+    /// find_path_adjacent_to_tile`] is that case spelled out, and is what
+    /// most callers want.
     ///
     /// # Why this exists
     ///
@@ -167,68 +223,101 @@ impl TileGrid {
     ///
     /// # Why one search and not four
     ///
-    /// The obvious implementation runs `find_path` to each of the four
-    /// neighbours and keeps the shortest, which is four A* searches per
-    /// candidate object per idle agent per tick - and selection already scores
-    /// every candidate this way, so it would quadruple the most expensive
-    /// thing in the tick.
+    /// The obvious implementation runs `find_path` to each tile beside the
+    /// rectangle and keeps the shortest, which is up to `2 * (width + depth)`
+    /// A* searches per candidate object per idle agent per tick - and
+    /// selection already scores every candidate this way, so it would multiply
+    /// the most expensive thing in the tick. The single-tile version of that
+    /// argument said "four searches"; widening the footprint makes it worse
+    /// rather than better.
     ///
     /// This changes the **goal test** instead: the search is identical except
-    /// that it succeeds on reaching any neighbour of `to`. One search, and it
-    /// finds the closest approach for free, because A* expands in order of
-    /// cost so the first neighbour it pops is the cheapest one to reach.
+    /// that it succeeds on reaching any tile beside the rectangle. One search,
+    /// and it finds the closest approach for free, because A* expands in order
+    /// of cost so the first such tile it pops is the cheapest one to reach.
     ///
     /// # Why this is optimal, which is NOT because the heuristic is admissible
     ///
-    /// The heuristic still targets `to` itself, and **that is inadmissible for
-    /// this goal set** - it returns `h*(n) + 1` at every goal, because every
-    /// neighbour of `to` is one step from `to` and the search stops there. An
-    /// earlier version of this comment claimed the opposite, and claimed that
-    /// overestimating makes the search "explore slightly more"; both are
-    /// backwards. Overestimating is what inadmissible MEANS, and it makes A*
-    /// explore less, which is exactly how an inadmissible heuristic returns
-    /// non-optimal paths.
+    /// The heuristic is `rect_distance(n, to, footprint)`, the Manhattan
+    /// distance from `n` to the **nearest tile of the rectangle**. That is
+    /// inadmissible for this goal set - it returns `h*(n) + 1` at every goal,
+    /// because every goal is one step from the rectangle and the search stops
+    /// there. An early version of this comment claimed the opposite, and
+    /// claimed that overestimating makes the search "explore slightly more";
+    /// both are backwards. Overestimating is what inadmissible MEANS, and it
+    /// makes A* explore less, which is exactly how an inadmissible heuristic
+    /// returns non-optimal paths.
     ///
     /// It is optimal anyway, for two properties that do hold:
     ///
-    /// - `h` is **consistent**: it changes by at most 1 across any edge, so
-    ///   nodes pop in non-decreasing `f` order with their optimal `g`.
+    /// - `h` is **consistent**: `rect_distance` is a clamped Manhattan
+    ///   distance, so one orthogonal step changes it by at most 1. Nodes
+    ///   therefore pop in non-decreasing `f` order with their optimal `g`.
     /// - `h` is **exactly 1 at every goal in the set**. Uniform `h` across the
     ///   goals means `f` ordering among them is `g` ordering, so the first goal
     ///   popped really is the cheapest to reach.
     ///
-    /// **The second property is the load-bearing one, and it is fragile.** It
-    /// holds only because every goal is exactly one step from `to`. Two changes
-    /// already on the horizon would break it: multi-tile object footprints,
-    /// where goals sit at different distances from the object's origin (the
-    /// mismatch is recorded in `docs/alpha-feel-notes.md` [A-6]), and admitting
-    /// diagonal movement, where `h` at a goal would be 1 or 2 depending on the
-    /// direction. **Either change requires the heuristic to become
-    /// `min over goals` (or 0) rather than `Manhattan(n, to)`**, or this
-    /// function silently starts picking a reachable-but-not-nearest tile.
+    /// **The second property is the load-bearing one, and it is what the
+    /// footprint change had to preserve.** An earlier version of this function
+    /// used `Manhattan(n, to)` - the distance to the origin TILE - and this
+    /// comment warned that multi-tile footprints would break it, because goals
+    /// along a wide object sit at different distances from its origin: the goal
+    /// beside the far end of a 3x1 object is 3 away from the origin, not 1, so
+    /// `h` stopped being uniform and the search would happily return a
+    /// reachable-but-not-nearest tile. **That is exactly what
+    /// `rect_distance` fixes, and it is why the heuristic is the nearest tile
+    /// of the rectangle rather than its origin**: measured to the rectangle,
+    /// every goal is at 1 again and the argument above transfers verbatim.
+    /// [F4] in `docs/specs/2026-07-30-object-footprints-design.md` records the
+    /// decision, including why `h = 0` (plain Dijkstra) was rejected - correct,
+    /// but selection runs one of these searches per candidate object per idle
+    /// agent per tick.
+    ///
+    /// Note there is no separate goal-set arithmetic to keep in step: the goal
+    /// test **is** `rect_distance(..) == 1`, so "h is 1 at every goal" holds by
+    /// construction rather than by two pieces of code agreeing about what
+    /// "beside" means.
+    ///
+    /// The other change that would break the uniformity is still outstanding:
+    /// **admitting diagonal movement**, where `h` at a goal would be 1 or 2
+    /// depending on the direction. That one needs a different fix from this,
+    /// because no metric measured to the rectangle is 1 at a diagonal
+    /// neighbour; it wants `h = 0`, or a diagonal-aware distance and an
+    /// adjacency rule that agrees with it.
     ///
     /// Ties resolve through `OpenNode`'s index ordering exactly as in
     /// `find_path`, so the same query always yields the same path and length.
     ///
     /// # The cases that are not the general one
     ///
-    /// `to` itself is **not** an accepted goal, even when it is walkable: the
-    /// whole point is to stop short of it. An agent standing on `to` therefore
-    /// gets a real path off it and onto a neighbour, which is the correct
-    /// behaviour for a sim that has been told to use the thing it is standing
-    /// on top of.
+    /// **No tile of the rectangle is an accepted goal**, even where one is
+    /// walkable: the whole point is to stop short of it. An agent standing on
+    /// the object therefore gets a real path off it and onto a tile beside it,
+    /// which is the correct behaviour for a sim that has been told to use the
+    /// thing it is standing on top of.
     ///
-    /// An agent already adjacent gets `Some(empty)`, mirroring `find_path`'s
-    /// `from == to` case: it is already where it needs to be, and an empty
-    /// path is what makes `follow_path` start the interaction immediately.
+    /// An agent already beside the rectangle gets `Some(empty)`, mirroring
+    /// `find_path`'s `from == to` case: it is already where it needs to be, and
+    /// an empty path is what makes `follow_path` start the interaction
+    /// immediately.
     ///
-    /// `to` does **not** need to be walkable. That is deliberate and is what
-    /// lets a future change make object tiles solid without touching this.
-    pub fn find_path_adjacent(&self, from: (i32, i32), to: (i32, i32)) -> Option<Vec<(i32, i32)>> {
+    /// The rectangle does **not** need to be walkable, and since [F3] it
+    /// generally is not - `Sim::new_from_lot` marks every footprint tile
+    /// blocked. This function never needed a change for that, which is what
+    /// the original one-tile note predicted. Where footprint tiles happen to
+    /// be walkable, a path may cross the rectangle rather than round it; that
+    /// is a legal shortest path and the optimality argument does not depend on
+    /// which.
+    pub fn find_path_adjacent(
+        &self,
+        from: (i32, i32),
+        to: (i32, i32),
+        footprint: Footprint,
+    ) -> Option<Vec<(i32, i32)>> {
         if !self.is_walkable(from.0, from.1) {
             return None;
         }
-        if is_adjacent(from, to) {
+        if is_adjacent_to_rect(from, to, footprint) {
             return Some(Vec::new());
         }
 
@@ -242,7 +331,7 @@ impl TileGrid {
 
         let mut open = BinaryHeap::new();
         open.push(OpenNode {
-            f_score: heuristic(from, to),
+            f_score: rect_distance(from, to, footprint),
             index: start,
             pos: from,
         });
@@ -251,7 +340,7 @@ impl TileGrid {
             // The one difference from `find_path`. Tested on POP rather than
             // on push, so the first adjacent tile accepted is the cheapest
             // one to reach rather than the first one stumbled across.
-            if is_adjacent(current.pos, to) {
+            if is_adjacent_to_rect(current.pos, to, footprint) {
                 return Some(reconstruct(&came_from, self.width, start, current.index));
             }
             if closed[current.index] {
@@ -273,7 +362,7 @@ impl TileGrid {
                     g_score[next_idx] = tentative;
                     came_from[next_idx] = current.index;
                     open.push(OpenNode {
-                        f_score: tentative + heuristic(next, to),
+                        f_score: tentative + rect_distance(next, to, footprint),
                         index: next_idx,
                         pos: next,
                     });
@@ -283,18 +372,71 @@ impl TileGrid {
 
         None
     }
+
+    /// [`TileGrid::find_path_adjacent`] for a one-tile object, which is what
+    /// every object was before footprints existed and what all but one still
+    /// is.
+    ///
+    /// A named wrapper rather than making the footprint argument optional,
+    /// because the two callers that matter - selection and `serve_intents` -
+    /// always have a real footprint to hand and must not be able to forget it.
+    /// A defaulted argument is exactly how a 2x1 bed would silently get
+    /// approached as though it were 1x1, which is the bug the footprint work
+    /// exists to remove.
+    pub fn find_path_adjacent_to_tile(
+        &self,
+        from: (i32, i32),
+        to: (i32, i32),
+    ) -> Option<Vec<(i32, i32)>> {
+        self.find_path_adjacent(from, to, Footprint::SINGLE)
+    }
 }
 
-/// Whether `a` shares an edge with `b`. **Orthogonal only**, matching
-/// `NEIGHBOURS`, so a sim never stands diagonally against something it is
-/// using - the four-way movement rule and the adjacency rule have to agree or
-/// a sim could be "adjacent" to a place it cannot step to.
+/// The Manhattan distance from `p` to the **nearest tile** of the footprint
+/// rectangle whose origin tile is `origin`. Zero anywhere inside it.
 ///
-/// A tile is not adjacent to itself.
-fn is_adjacent(a: (i32, i32), b: (i32, i32)) -> bool {
-    let dx = (a.0 - b.0).abs();
-    let dy = (a.1 - b.1).abs();
-    dx + dy == 1
+/// This is the whole of the footprint geometry, and both the goal test and
+/// the heuristic in `find_path_adjacent` are defined in terms of it. That is
+/// deliberate rather than economical: the two have to agree about what
+/// "beside the rectangle" means or the search stops being optimal, and one
+/// function cannot disagree with itself. See `find_path_adjacent`'s
+/// optimality note for the argument that rests on it.
+fn rect_distance(p: (i32, i32), origin: (i32, i32), footprint: Footprint) -> u32 {
+    // `- 1` because the origin tile is the FIRST of `width`, so a 1-wide
+    // footprint's far edge is the origin itself. Content validation bounds
+    // the rectangle to the lot and the lot to a grid that has to be
+    // allocatable, so neither add can overflow for a pack that exists; a
+    // zero dimension would put `far` behind `origin` and is rejected at
+    // build time as `ContentError::ZeroFootprint`.
+    let far = (
+        origin.0 + footprint.width as i32 - 1,
+        origin.1 + footprint.depth as i32 - 1,
+    );
+    // Clamp to the interval on each axis independently, which is what makes
+    // this the distance to the nearest tile rather than to a corner.
+    let axis = |v: i32, lo: i32, hi: i32| {
+        if v < lo {
+            lo - v
+        } else if v > hi {
+            v - hi
+        } else {
+            0
+        }
+    };
+    (axis(p.0, origin.0, far.0) + axis(p.1, origin.1, far.1)) as u32
+}
+
+/// Whether `p` shares an edge with the footprint rectangle at `origin`
+/// without being inside it.
+///
+/// **Orthogonal only**, matching `NEIGHBOURS`, so a sim never stands
+/// diagonally against something it is using - the four-way movement rule and
+/// the adjacency rule have to agree or a sim could be "adjacent" to a place
+/// it cannot step to. A diagonal neighbour of a corner is at
+/// `rect_distance` 2 and is therefore excluded, and so is every tile of the
+/// rectangle itself, which sits at 0.
+fn is_adjacent_to_rect(p: (i32, i32), origin: (i32, i32), footprint: Footprint) -> bool {
+    rect_distance(p, origin, footprint) == 1
 }
 
 fn heuristic(a: (i32, i32), b: (i32, i32)) -> u32 {
@@ -339,6 +481,14 @@ impl PartialOrd for OpenNode {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The one-tile case of the production goal test, delegating rather than
+    /// restating the arithmetic, so the tests that predate footprints keep
+    /// reading as "beside this tile" and cannot drift from the rule they are
+    /// checking.
+    fn is_adjacent(a: (i32, i32), b: (i32, i32)) -> bool {
+        is_adjacent_to_rect(a, b, Footprint::SINGLE)
+    }
 
     #[test]
     fn straight_path_on_open_grid() {
@@ -398,7 +548,7 @@ mod tests {
         );
 
         let beside = grid
-            .find_path_adjacent((0, 0), target)
+            .find_path_adjacent_to_tile((0, 0), target)
             .expect("path exists");
         assert_eq!(*beside.last().unwrap(), (4, 0));
         assert!(
@@ -423,7 +573,7 @@ mod tests {
         let target = (5, 5);
         for from in [(4, 5), (6, 5), (5, 4), (5, 6)] {
             assert_eq!(
-                grid.find_path_adjacent(from, target),
+                grid.find_path_adjacent_to_tile(from, target),
                 Some(vec![]),
                 "an agent at {from:?} is already beside {target:?}"
             );
@@ -438,7 +588,7 @@ mod tests {
     fn a_diagonal_neighbour_is_not_adjacent_enough() {
         let grid = TileGrid::new(10, 10);
         let path = grid
-            .find_path_adjacent((4, 4), (5, 5))
+            .find_path_adjacent_to_tile((4, 4), (5, 5))
             .expect("path exists");
         assert_eq!(
             path.len(),
@@ -464,7 +614,7 @@ mod tests {
     fn an_agent_standing_on_the_target_is_moved_off_it() {
         let grid = TileGrid::new(10, 10);
         let path = grid
-            .find_path_adjacent((5, 5), (5, 5))
+            .find_path_adjacent_to_tile((5, 5), (5, 5))
             .expect("neighbours are reachable");
         assert_eq!(
             path.len(),
@@ -495,7 +645,7 @@ mod tests {
         let target = (4, 2);
 
         let path = grid
-            .find_path_adjacent((0, 2), target)
+            .find_path_adjacent_to_tile((0, 2), target)
             .expect("the far side is reachable through the gap at y = 0");
         let arrival = *path.last().unwrap();
         assert!(
@@ -527,7 +677,7 @@ mod tests {
             grid.set_blocked((target.0 + dx) as usize, (target.1 + dy) as usize, true);
         }
         assert!(
-            grid.find_path_adjacent((0, 0), target).is_none(),
+            grid.find_path_adjacent_to_tile((0, 0), target).is_none(),
             "every neighbour is walled off, so there is nowhere to stand"
         );
     }
@@ -541,7 +691,7 @@ mod tests {
         grid.set_blocked(3, 3, true);
 
         let path = grid
-            .find_path_adjacent((0, 3), target)
+            .find_path_adjacent_to_tile((0, 3), target)
             .expect("a blocked target is still approachable");
         assert_eq!(*path.last().unwrap(), (2, 3));
         assert!(
@@ -557,7 +707,7 @@ mod tests {
     fn an_agent_on_a_blocked_tile_cannot_path_to_a_neighbour() {
         let mut grid = TileGrid::new(7, 7);
         grid.set_blocked(1, 1, true);
-        assert!(grid.find_path_adjacent((1, 1), (5, 5)).is_none());
+        assert!(grid.find_path_adjacent_to_tile((1, 1), (5, 5)).is_none());
     }
 
     /// **The path is the SHORTEST one, not merely a valid one, and this is the
@@ -617,7 +767,7 @@ mod tests {
         let to = (3, 6);
 
         let path = grid
-            .find_path_adjacent(from, to)
+            .find_path_adjacent_to_tile(from, to)
             .expect("the target has a reachable neighbour on this grid");
 
         // The optimum, independently established by the BFS in the
@@ -652,6 +802,55 @@ mod tests {
         }
     }
 
+    /// **Which of several equally short routes comes back is pinned, and this
+    /// is the only test that pins it** - the `find_path_adjacent` counterpart
+    /// of `tie_breaking_pins_one_specific_path_among_equals`.
+    ///
+    /// A diagonal query on an open grid has many routes of the same length, so
+    /// every other assertion on this function - the endpoint, the exact length,
+    /// contiguity, walkability - is satisfied by all of them. What decides
+    /// among them is the strict `<` in `tentative < g_score[next_idx]`, which
+    /// refuses to re-parent a tile already reached at equal cost.
+    ///
+    /// **`cargo mutants` reported `<` relaxed to `<=` as a survivor here while
+    /// it was caught in `find_path`**, and the asymmetry was exactly this test
+    /// being absent. Measured: with `<=` this query returns
+    /// `[(0, 1), (0, 2), (1, 2), (2, 2), (3, 2)]` instead - the same length,
+    /// the same arrival tile, down the west side rather than along the north.
+    ///
+    /// What the strictness buys is the same thing the heap's index tiebreak
+    /// buys, and it is not aesthetics: the world hash and the [D4] replay rest
+    /// on the same query returning the same path across Rust versions and
+    /// across future changes to push order. A same-process A/B cannot see that
+    /// ([L5]), so the assertion has to be a golden route.
+    #[test]
+    fn the_adjacent_route_among_equally_short_ones_is_pinned() {
+        let grid = TileGrid::new(6, 6);
+        let path = grid
+            .find_path_adjacent_to_tile((0, 0), (3, 3))
+            .expect("an open grid is reachable");
+        assert_eq!(path, vec![(1, 0), (2, 0), (3, 0), (3, 1), (3, 2)]);
+
+        // The precondition that makes the golden route a CHOICE rather than
+        // the only answer: a route of the same length exists down the other
+        // side, so something had to pick between them.
+        let mirrored = vec![(0, 1), (0, 2), (1, 2), (2, 2), (3, 2)];
+        assert_eq!(
+            mirrored.len(),
+            path.len(),
+            "the alternative is equally short"
+        );
+        let mut cursor = (0, 0);
+        for step in &mirrored {
+            assert!(
+                is_adjacent(cursor, *step) && grid.is_walkable(step.0, step.1),
+                "the alternative must be a real path, or it is not an alternative"
+            );
+            cursor = *step;
+        }
+        assert!(is_adjacent(*mirrored.last().unwrap(), (3, 3)));
+    }
+
     /// Same query, same answer, every time - the determinism [D4] rests on.
     #[test]
     fn the_adjacent_path_is_stable_across_repeated_queries() {
@@ -659,10 +858,299 @@ mod tests {
         for y in 2..7 {
             grid.set_blocked(4, y, true);
         }
-        let first = grid.find_path_adjacent((0, 4), (5, 4));
+        let first = grid.find_path_adjacent_to_tile((0, 4), (5, 4));
         for _ in 0..16 {
-            assert_eq!(grid.find_path_adjacent((0, 4), (5, 4)), first);
+            assert_eq!(grid.find_path_adjacent_to_tile((0, 4), (5, 4)), first);
         }
+    }
+
+    // ---- footprints --------------------------------------------------------
+
+    /// A footprint that occupies no tiles has an empty adjacency set, so every
+    /// caller would read the object as unreachable and a sim would simply
+    /// never use it. The authored schema also leans on this default: an object
+    /// that omits `footprint` has to keep the 1x1 behaviour it had before the
+    /// field existed, and `#[serde(default)]` is what gives it that.
+    ///
+    /// Stated as a test because `#[derive(Default)]` on this struct compiles
+    /// and yields 0x0, so the manual impl is a mechanism rather than a
+    /// formality.
+    #[test]
+    fn the_default_footprint_is_one_tile_rather_than_no_tiles() {
+        assert_eq!(Footprint::default(), Footprint::SINGLE);
+        assert_eq!(Footprint::SINGLE.width, 1);
+        assert_eq!(Footprint::SINGLE.depth, 1);
+    }
+
+    /// The rectangle a 3x2 footprint at `(4, 2)` covers, so the numbers below
+    /// read against something concrete:
+    ///
+    /// ```text
+    ///        x=3 4 5 6 7
+    ///   y=1      . . .
+    ///   y=2    . # # # .
+    ///   y=3    . # # # .
+    ///   y=4      . . .
+    /// ```
+    const WIDE: Footprint = Footprint { width: 3, depth: 2 };
+    const WIDE_ORIGIN: (i32, i32) = (4, 2);
+
+    /// **`rect_distance` is the whole of the footprint geometry**, and both
+    /// the goal test and the heuristic are it, so this is the test that says
+    /// what it means.
+    ///
+    /// Two claims, and the second is what makes the first more than a
+    /// restatement of the implementation:
+    ///
+    /// 1. The stated distance, per tile, for a rectangle that is **not
+    ///    square**. 3 wide by 2 deep, so a transposed implementation gives
+    ///    different answers at `(7, 3)` and at `(4, 5)` rather than agreeing
+    ///    by symmetry - the [L34] shape, where a tidy fixture cannot express
+    ///    the bug.
+    /// 2. On an **open grid** that distance is the true remaining cost plus
+    ///    one: the cheapest approach costs `rect_distance - 1` steps, because
+    ///    every approach tile sits at `rect_distance` 1. That is the same
+    ///    equality `the_heuristic_equals_the_true_cost_on_an_open_grid` pins
+    ///    for the single-tile heuristic, and it is what makes "inadmissible by
+    ///    exactly one, uniformly" a measured claim rather than an argument in
+    ///    a comment.
+    ///
+    /// Interior tiles are excluded from claim 2 on purpose: their distance is
+    /// 0 and no path can be `-1` steps long. What happens to an agent standing
+    /// inside is
+    /// `an_agent_standing_anywhere_on_a_wide_footprint_is_moved_off_it`.
+    #[test]
+    fn the_rectangle_distance_is_zero_inside_the_footprint_and_the_true_cost_outside_it() {
+        // A grid roomy enough that no case below is clipped by an edge; the
+        // farthest probe is (9, 7).
+        let grid = TileGrid::new(12, 10);
+
+        for (probe, expected) in [
+            // Inside, including both corners and a middle tile.
+            ((4, 2), 0u32),
+            ((5, 2), 0),
+            ((6, 3), 0),
+            // Beside it, on all four sides.
+            ((3, 2), 1),
+            ((7, 3), 1),
+            ((5, 1), 1),
+            ((6, 4), 1),
+            // Diagonally off both corners. Movement is four-way, so these are
+            // 2 rather than 1 and are NOT approach tiles.
+            ((3, 1), 2),
+            ((7, 4), 2),
+            // Two out on each axis separately, which is where a transposed
+            // width and depth diverge from the truth.
+            ((2, 3), 2),
+            ((4, 5), 2),
+            // Well clear, on both diagonals, so neither axis term can be
+            // dropped without moving a number.
+            ((0, 0), 6),
+            ((9, 7), 7),
+        ] {
+            assert_eq!(
+                rect_distance(probe, WIDE_ORIGIN, WIDE),
+                expected,
+                "rect_distance from {probe:?} to the 3x2 rectangle at {WIDE_ORIGIN:?}"
+            );
+
+            if expected == 0 {
+                continue;
+            }
+            let path = grid
+                .find_path_adjacent(probe, WIDE_ORIGIN, WIDE)
+                .expect("an open grid reaches every approach tile");
+            assert_eq!(
+                path.len() as u32,
+                expected - 1,
+                "on an open grid the cheapest approach from {probe:?} must \
+                 cost rect_distance - 1 steps; got {path:?}"
+            );
+        }
+    }
+
+    /// **The test that catches a heuristic measured to the origin tile rather
+    /// than to the rectangle**, which is the one way to get footprints wrong
+    /// that no other test here can see.
+    ///
+    /// The fixture is an alcove: a 4x1 object at `(4, 2)` filling the middle
+    /// of a 4x3 obstacle, so the eight approach tiles above and below the
+    /// object are walled off and the only two left are its two ENDS.
+    ///
+    /// ```text
+    ///        x=0 1 2 3 4 5 6 7 8 9 10 11
+    ///   y=0    . . . . . . . . . .  .  .
+    ///   y=1    . . . . # # # # . .  .  .
+    ///   y=2    . . . W # # # # E .  .  .     W = (3,2)  E = (8,2)
+    ///   y=3    . . . . # # # # . .  .  .
+    ///   y=4    . . . . . . . . . .  .  .
+    ///   y=5    . . . . . . S . . .  .  .     S = the agent, (6,5)
+    /// ```
+    ///
+    /// From `(6, 5)` the far end `E` costs 5 steps and the origin end `W`
+    /// costs 6, so the cheapest approach is `E`. A heuristic of
+    /// `Manhattan(n, origin)` scores `W` at `6 + 1 = 7` and `E` at
+    /// `5 + 4 = 9`, because `E` is four tiles from the ORIGIN even though it
+    /// is one tile from the rectangle - so it pops `W` first and returns a
+    /// reachable, walkable, contiguous path that ends beside the object and is
+    /// **one step longer than it needs to be**. Every other assertion in this
+    /// file is satisfied by that answer.
+    ///
+    /// Both ends are asserted reachable and their costs stated, so the test is
+    /// about the CHOICE rather than about one of them being walled off. And
+    /// the assertion is the exact length, for the reason
+    /// `the_adjacent_path_is_the_shortest_one_and_not_merely_a_valid_one`
+    /// gives: a range is what lets a wrong-but-valid path through.
+    #[test]
+    fn the_chosen_approach_to_a_wide_footprint_is_the_cheapest_to_reach_not_the_nearest_to_its_origin(
+    ) {
+        let footprint = Footprint { width: 4, depth: 1 };
+        let origin = (4, 2);
+        let start = (6, 5);
+
+        let mut grid = TileGrid::new(12, 6);
+        // The object's own tiles are solid, per [F3], and so are the alcove
+        // walls immediately above and below them.
+        for x in 4..8 {
+            for y in 1..4 {
+                grid.set_blocked(x, y, true);
+            }
+        }
+
+        // The precondition, measured rather than assumed: both ends are
+        // reachable, and the far end is the cheaper by exactly one step.
+        // Without this the test could pass because the origin end was sealed,
+        // which is a different test and a much weaker one.
+        let to_west = grid
+            .find_path(start, (3, 2))
+            .expect("the west end is reachable");
+        let to_east = grid
+            .find_path(start, (8, 2))
+            .expect("the east end is reachable");
+        assert_eq!(to_west.len(), 6, "the origin end costs 6 steps");
+        assert_eq!(to_east.len(), 5, "the far end costs 5");
+        assert!(
+            rect_distance((8, 2), origin, footprint) == 1
+                && rect_distance((3, 2), origin, footprint) == 1,
+            "both ends must be approach tiles, or the search is not choosing \
+             between them"
+        );
+        assert!(
+            (8i32 - origin.0) > 1,
+            "the far end must be more than one tile from the ORIGIN, or a \
+             heuristic measured to the origin gives the same answer and this \
+             test proves nothing"
+        );
+
+        let path = grid
+            .find_path_adjacent(start, origin, footprint)
+            .expect("both ends are reachable");
+        assert_eq!(
+            *path.last().unwrap(),
+            (8, 2),
+            "the cheapest approach is the far end; arriving at (3, 2) means \
+             the heuristic is measured to the origin tile rather than to the \
+             rectangle. Path was {path:?}"
+        );
+        assert_eq!(path.len(), 5, "and it must cost 5 steps, not 6");
+
+        // A real path, so the length above cannot be met by cheating.
+        let mut cursor = start;
+        for step in &path {
+            assert!(
+                is_adjacent(cursor, *step),
+                "path must be contiguous: {cursor:?} to {step:?} in {path:?}"
+            );
+            assert!(
+                grid.is_walkable(step.0, step.1),
+                "every step must be walkable; {step:?} is not"
+            );
+            assert!(
+                rect_distance(*step, origin, footprint) >= 1,
+                "no step may land inside the object; {step:?} did"
+            );
+            cursor = *step;
+        }
+    }
+
+    /// Standing anywhere on a wide object is "on the furniture", not "beside
+    /// it" - and **every** tile of it, not only the origin.
+    ///
+    /// Three separate mistakes end here, which is why the loop covers all
+    /// three tiles rather than one:
+    ///
+    /// - An adjacency rule of `rect_distance <= 1` would call a tile inside
+    ///   the rectangle a valid place to stand, so the agent would be handed an
+    ///   empty path and would use the object from on top of it.
+    /// - An adjacency rule measured to the ORIGIN tile calls `(5, 4)` adjacent,
+    ///   since it is one tile away, so an agent standing on the middle of a
+    ///   sofa would never move and an agent on the far tile would step onto
+    ///   the middle of it and stop there.
+    /// - The same origin-only rule sends an agent on the far tile `(6, 4)` to
+    ///   `(5, 4)`, which is one step and lands *inside* the object. The length
+    ///   assertion alone cannot see that; the distance assertion is what does.
+    #[test]
+    fn an_agent_standing_anywhere_on_a_wide_footprint_is_moved_off_it() {
+        let footprint = Footprint { width: 3, depth: 1 };
+        let origin = (4, 4);
+        let grid = TileGrid::new(10, 10);
+
+        for from in [(4, 4), (5, 4), (6, 4)] {
+            let path = grid
+                .find_path_adjacent(from, origin, footprint)
+                .expect("the rectangle is not sealed in");
+            assert_eq!(
+                path.len(),
+                1,
+                "an agent on {from:?} must take exactly one step to get \
+                 beside the object; got {path:?}"
+            );
+            assert_eq!(
+                rect_distance(path[0], origin, footprint),
+                1,
+                "and that step must land BESIDE the rectangle rather than on \
+                 another of its tiles; {:?} is at distance {}",
+                path[0],
+                rect_distance(path[0], origin, footprint)
+            );
+        }
+    }
+
+    /// The wrapper passes `Footprint::SINGLE` and not a wider default.
+    ///
+    /// Asserted as an equality against the explicit call AND as an inequality
+    /// against a 2x1 one, because the equality alone is satisfied by a wrapper
+    /// that passes anything at all as long as both sides pass the same thing -
+    /// which is exactly what a defaulted footprint argument would do.
+    ///
+    /// The approach is from the EAST, deliberately. From the west both
+    /// footprints put the agent on `(3, 4)` and the two are indistinguishable;
+    /// a wider object is only wider on its far side.
+    #[test]
+    fn find_path_adjacent_to_tile_targets_one_tile_and_not_a_wider_default() {
+        let grid = TileGrid::new(10, 10);
+        let (from, to) = ((9, 4), (4, 4));
+
+        let single = grid
+            .find_path_adjacent_to_tile(from, to)
+            .expect("an open grid is reachable");
+        assert_eq!(
+            Some(single.clone()),
+            grid.find_path_adjacent(from, to, Footprint::SINGLE),
+            "the wrapper must be the 1x1 case of the general search"
+        );
+        assert_eq!(*single.last().unwrap(), (5, 4));
+        assert_eq!(single.len(), 4);
+
+        let wide = grid
+            .find_path_adjacent(from, to, Footprint { width: 2, depth: 1 })
+            .expect("an open grid is reachable");
+        assert_ne!(
+            single, wide,
+            "a 2x1 object must be approachable one tile sooner from the east, \
+             or the equality above cannot tell SINGLE from anything else"
+        );
+        assert_eq!(*wide.last().unwrap(), (6, 4));
     }
 
     #[test]

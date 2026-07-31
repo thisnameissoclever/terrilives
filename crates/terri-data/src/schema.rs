@@ -7,6 +7,7 @@
 
 use serde::Deserialize;
 use std::collections::BTreeMap;
+use terri_core::Footprint;
 
 /// Mirrors `content/tuning.toml`, the single home for every value that
 /// governs the **system** rather than describing one piece of content.
@@ -45,6 +46,16 @@ pub struct TuningFile {
     pub duration_variance: f32,
     /// Hard floor on any interaction, in ticks. At least 1.
     pub min_interaction_ticks: u32,
+    /// How much one completed interaction raises this sim's habituation to
+    /// it, in `0.0..=1.0`. Zero disables the mechanic.
+    pub habituation_per_use: f32,
+    /// How much every habituation entry decays each tick. Strictly
+    /// positive, or habituation would be a one-way ratchet.
+    pub habituation_decay_per_tick: f32,
+    /// The multiplier a fully habituated interaction's benefit is reduced
+    /// to. In `(0, 1]`; 1 disables the effect, and 0 is rejected because
+    /// it would make an interaction permanently worthless.
+    pub habituation_floor: f32,
     /// Seed for the simulation PRNG.
     pub rng_seed: u64,
     /// The most player-issued intents one sim may hold at once. At least
@@ -112,6 +123,33 @@ pub struct ObjectDef {
     /// reason a need name is: after compilation a sprite that the atlas
     /// does not hold has no representation.
     pub sprite: String,
+    /// How many tiles this object occupies, as
+    /// `footprint = { width = 2, depth = 1 }`.
+    ///
+    /// **Defaulted rather than required, which is the one place in this
+    /// module that is a deliberate exception** to the "a defaulted zero is
+    /// the silent-nothing case" reasoning on [`TuningFile`]. It defaults to
+    /// 1x1 - see `Footprint`'s `Default`, which is hand-written for exactly
+    /// this - so every object authored before footprints existed keeps the
+    /// behaviour it had. [F1] in
+    /// `docs/specs/2026-07-30-object-footprints-design.md` records why, and
+    /// also why this is content rather than something derived from the
+    /// sprite's pixel width: the sprite is presentation and the footprint is
+    /// simulation, so a re-skin must not be able to change collision,
+    /// pathing, or where a sim stands.
+    ///
+    /// A partial table is still a parse error, because `Footprint`'s own
+    /// fields are required: `footprint = { width = 2 }` names no depth and
+    /// serde says so. Only omitting the whole table is defaulting.
+    ///
+    /// `terri_core::Footprint` directly rather than an authored mirror
+    /// alongside a compiled twin, unlike `sprite` or a placement's object
+    /// id. Those two are NAMES that compilation resolves to indices, so the
+    /// two representations differ; a footprint is the same two integers on
+    /// both sides of the pipeline, and a mirror would be a second copy of
+    /// one fact with nothing to disambiguate.
+    #[serde(default)]
+    pub footprint: Footprint,
     /// Absent rather than empty is the common case for scenery, so this
     /// defaults instead of being required.
     #[serde(default)]
@@ -121,6 +159,32 @@ pub struct ObjectDef {
 #[derive(Debug, Deserialize)]
 pub struct InteractionDef {
     pub id: String,
+    /// What the right-click flyout calls this interaction, as
+    /// `label = "Eat standing up"`.
+    ///
+    /// **Defaulted rather than required, and the default is the `id`** -
+    /// the second exception in this module to the "a defaulted value is
+    /// the silent-nothing case" reasoning on [`TuningFile`], and it is
+    /// safe for the same reason `footprint`'s is. There is no zero-like
+    /// fallback available to be quietly wrong: an unlabelled interaction
+    /// falls back to a string the author definitely wrote, so the worst
+    /// case is a menu entry reading `grab_snack` rather than a menu entry
+    /// reading nothing. A required field would instead make every object
+    /// authored before the flyout existed a parse error, for a string
+    /// that is presentation and not simulation.
+    ///
+    /// An EMPTY label is a different matter and the compile step rejects
+    /// it - see `ContentError::EmptyInteractionLabel`. A blank entry is a
+    /// clickable row of nothing, which is exactly the silent-nothing shape
+    /// [D9] converts into a build failure, and it is unreachable by the
+    /// default because the default is a non-empty id.
+    ///
+    /// It is content rather than a table in TypeScript for the same reason
+    /// `sprite` is: a lookup keyed by interaction id living in the shell
+    /// would be a second copy of this list, so adding an interaction would
+    /// be a two-file edit and mislabelling one would be a two-file bug.
+    #[serde(default)]
+    pub label: Option<String>,
     /// Need name to the delta this interaction advertises. Sparse: a
     /// need absent from the map is not advertised at all, which is not
     /// the same as advertising zero.
@@ -209,7 +273,7 @@ pub struct PlacementDef {
 mod tests {
     use super::*;
 
-    /// The eleven scalar knobs, with pairwise distinct values so that a
+    /// The fourteen scalar knobs, with pairwise distinct values so that a
     /// field read off the wrong key is visible. Two knobs sharing a value
     /// would make a transposed pair of fields parse identically, which
     /// is [L34] in the tuning file's costume.
@@ -217,13 +281,16 @@ mod tests {
     /// The six `u32`s and the `u64` are deliberately different numbers
     /// for the same reason, and every float is exact in binary32 so the
     /// assertions can be equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 11] = [
+    const TUNING_LINES: [(&str, &str); 14] = [
         ("action_threshold", "0.25"),
         ("choice_temperature", "0.5"),
         ("idle_threshold", "0.125"),
         ("wander_pause_ticks", "9"),
         ("wander_attempts", "6"),
         ("duration_variance", "0.75"),
+        ("habituation_per_use", "0.3125"),
+        ("habituation_decay_per_tick", "0.0625"),
+        ("habituation_floor", "0.625"),
         ("min_interaction_ticks", "3"),
         ("rng_seed", "300"),
         ("max_queued_intents", "7"),
@@ -278,6 +345,9 @@ mod tests {
         assert_eq!(parsed.wander_pause_ticks, 9);
         assert_eq!(parsed.wander_attempts, 6);
         assert_eq!(parsed.duration_variance, 0.75);
+        assert_eq!(parsed.habituation_per_use, 0.3125);
+        assert_eq!(parsed.habituation_decay_per_tick, 0.0625);
+        assert_eq!(parsed.habituation_floor, 0.625);
         assert_eq!(parsed.min_interaction_ticks, 3);
         assert_eq!(parsed.rng_seed, 300);
         assert_eq!(parsed.max_queued_intents, 7);
@@ -409,6 +479,62 @@ mod tests {
         assert_eq!(act.duration_ticks, 15);
     }
 
+    /// Both halves of `#[serde(default)]` on `label`.
+    ///
+    /// **Omitting it must leave the field ABSENT rather than empty**, because
+    /// absent is what the compile step turns into the interaction's `id`. A
+    /// `String` field defaulting to `""` would compile to a blank menu entry,
+    /// which is the shape this whole module exists to reject; the `Option` is
+    /// what makes "the author said nothing" a state the compile step can see.
+    ///
+    /// And declaring one must land the author's string rather than the id, so
+    /// the fixture's label is deliberately nothing like `grab_snack` - a
+    /// default that overwrote a declared label would be invisible against a
+    /// label that merely resembled its id ([L34]).
+    #[test]
+    fn an_interaction_label_defaults_to_absent_and_is_kept_verbatim_when_declared() {
+        let interaction = |extra: &str| -> InteractionDef {
+            let parsed: ObjectsFile = toml::from_str(&format!(
+                r#"
+                [[object]]
+                id = "fridge"
+                name = "Chill-o-Matic 3000"
+                sprite = "kitchenFridgeBuiltIn"
+
+                  [[object.interaction]]
+                  id = "grab_snack"
+                  {extra}
+                  advertises = {{ hunger = 35.0 }}
+                  duration_ticks = 15
+                  slots = 1
+                "#
+            ))
+            .expect("valid objects toml");
+            parsed
+                .object
+                .into_iter()
+                .next()
+                .expect("one object")
+                .interaction
+                .into_iter()
+                .next()
+                .expect("one interaction")
+        };
+
+        assert_eq!(
+            interaction("").label,
+            None,
+            "an interaction that says nothing about a label must parse as \
+             absent, not as an empty string; the compile step needs to tell \
+             the two apart"
+        );
+        assert_eq!(
+            interaction(r#"label = "Eat standing up""#).label.as_deref(),
+            Some("Eat standing up"),
+            "a declared label must reach the schema verbatim"
+        );
+    }
+
     /// The advert map is written into the compiled pack in iteration
     /// order, and that pack feeds a determinism hash, so the ordering is
     /// a mechanism rather than a detail. `BTreeMap` iterates sorted; a
@@ -463,6 +589,80 @@ mod tests {
             .map(String::as_str)
             .collect();
         assert_eq!(keys, sorted, "advert iteration order is not sorted");
+    }
+
+    /// The two halves of `#[serde(default)]` on `footprint`.
+    ///
+    /// **Omitting it must leave the object 1x1**, because that is what makes
+    /// [F1]'s "existing content is unchanged" true: every object authored
+    /// before footprints existed says nothing about one. A derived `Default`
+    /// on `Footprint` would give 0x0 here and quietly make every such object
+    /// unusable, so this is checking a mechanism rather than a formality -
+    /// see `the_default_footprint_is_one_tile_rather_than_no_tiles` in
+    /// `terri-core`, which pins the other end of the same claim.
+    ///
+    /// And declaring it must land the two numbers the right way round. The
+    /// fixture is 2x3, deliberately not square, so a `width` read off `depth`
+    /// moves an assertion.
+    #[test]
+    fn an_object_footprint_defaults_to_one_tile_and_is_read_unswapped_when_declared() {
+        let object = |extra: &str| -> ObjectDef {
+            let parsed: ObjectsFile = toml::from_str(&format!(
+                r#"
+                [[object]]
+                id = "bed"
+                name = "Sleepeazy"
+                sprite = "bedBunk"
+                {extra}
+                "#
+            ))
+            .expect("valid objects toml");
+            parsed.object.into_iter().next().expect("one object")
+        };
+
+        assert_eq!(
+            object("").footprint,
+            Footprint::SINGLE,
+            "an object that says nothing about a footprint occupies one tile"
+        );
+
+        let declared = object("footprint = { width = 2, depth = 3 }").footprint;
+        assert_eq!(declared.width, 2);
+        assert_eq!(declared.depth, 3);
+        assert_ne!(
+            declared,
+            Footprint::SINGLE,
+            "the declared case must differ from the default, or the assertion \
+             above cannot tell a parsed footprint from a defaulted one"
+        );
+    }
+
+    /// A HALF-declared footprint is a parse error rather than half a default.
+    ///
+    /// `#[serde(default)]` applies to the whole table, not to its fields, so
+    /// `footprint = { width = 2 }` is a missing `depth` and serde names it.
+    /// That is the behaviour worth pinning: the alternative - a `depth` that
+    /// quietly fell back to 1 - is the silent-nothing case the rest of this
+    /// module exists to prevent, and it would be indistinguishable from a
+    /// deliberate 2x1.
+    #[test]
+    fn a_half_declared_footprint_is_a_parse_error_rather_than_half_a_default() {
+        for (partial, missing) in [("width = 2", "depth"), ("depth = 2", "width")] {
+            let err = toml::from_str::<ObjectsFile>(&format!(
+                r#"
+                [[object]]
+                id = "bed"
+                name = "Sleepeazy"
+                sprite = "bedBunk"
+                footprint = {{ {partial} }}
+                "#
+            ))
+            .unwrap_err();
+            assert!(
+                err.to_string().contains(missing),
+                "the error must name the missing dimension '{missing}'; got {err}"
+            );
+        }
     }
 
     #[test]

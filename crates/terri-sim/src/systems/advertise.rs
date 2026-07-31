@@ -7,6 +7,62 @@
 /// test fails.
 pub const TILES_PER_TICK: f32 = 0.25;
 
+/// How much of an interaction's BENEFIT a sim still gets, given how
+/// habituated it is to that interaction - [S2].
+///
+/// Runs from 1.0 for something never done to `floor` for something done to
+/// death, linearly in between. `habituation` is in `0.0..=1.0` because
+/// `Habituation::bump` caps it there, and `floor` is in `(0.0, 1.0]`
+/// because `compile_tuning` rejects anything else.
+///
+/// # Why this is a function rather than one line inside `select_action`
+///
+/// **It was one line inside `select_action`, and nothing constrained it.**
+/// The M2b mutation sweep found four survivors on it at once - `-` to `+`,
+/// `*` to `/`, and two more on the inner subtraction - and hand-mutation
+/// confirmed all of them survive the entire workspace suite.
+///
+/// The reason is worth more than the fix.
+/// `habituation_scales_the_benefit_and_leaves_a_cost_at_full_strength`
+/// exists precisely to pin this behaviour, and it never calls
+/// `select_action`: it computes `BENEFIT * scale` **itself** and asserts a
+/// relation between two values it just calculated. That is the shape
+/// docs/testing-protocol.md rule 3 forbids and [L5] records three
+/// instances of - a test that would stay green if the production line it
+/// names were deleted.
+///
+/// Nothing else could catch it either. Every other habituation test reads
+/// the component rather than scoring with it, and the world-hash golden
+/// vector's scenario holds one object, so a scaled score has nothing to
+/// out-rank and the sim's choice is the same at any multiplier ([L36]).
+///
+/// Pulling the arithmetic out is what makes a golden-value test possible,
+/// and a golden value is what pins a multiplier: "the habituated one
+/// loses" is satisfied by any scale below 1, including three of the four
+/// mutants.
+pub fn benefit_scale(habituation: f32, floor: f32) -> f32 {
+    1.0 - habituation * (1.0 - floor)
+}
+
+/// One advertised delta, with habituation applied - benefit only.
+///
+/// **A cost keeps its full strength however habituated the sim is.** A
+/// fourth shower in a row is less refreshing but it does not become less
+/// tiring, and scaling `energy = -12` toward zero would make a habituated
+/// shower CHEAPER and therefore more attractive: the mechanic running
+/// backwards.
+///
+/// Split out alongside [`benefit_scale`] and for the same reason - the sign
+/// guard was inline and unconstrained, and the sweep found three survivors
+/// on it.
+pub fn scaled_delta(delta: f32, scale: f32) -> f32 {
+    if delta > 0.0 {
+        delta * scale
+    } else {
+        delta
+    }
+}
+
 /// Score ONE advertised need of one interaction, for one agent. Higher
 /// wins.
 ///
@@ -113,6 +169,79 @@ pub fn score_advertisement(deficit: f32, delta: f32, duration_ticks: u32, distan
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// **Golden values, because a multiplier needs magnitudes.**
+    ///
+    /// The four mutants the M2b sweep found on this line - `-` to `+`, `*`
+    /// to `/`, and two on the inner subtraction - all produce a scale that
+    /// is still WRONG but still less than 1 for a partly habituated sim. So
+    /// a behavioural test of the obvious shape, "the habituated object
+    /// loses to the fresh one", is satisfied by three of the four. Only the
+    /// numbers separate them, and only at the ends of the range.
+    ///
+    /// Three points, and each is load-bearing:
+    ///
+    /// - **0 habituation gives exactly 1.0** - something never done is
+    ///   worth its full advertised benefit. This is the anchor and it kills
+    ///   nothing on its own: every mutant agrees here, because they all
+    ///   multiply by `habituation`.
+    /// - **Full habituation gives exactly the floor.** This is where all
+    ///   four separate: the mutants give 1.55, -0.818, -0.45 and -1.22
+    ///   against the correct 0.45. Two of them are NEGATIVE, which would
+    ///   turn a benefit into a cost and make a well-used object actively
+    ///   repellent.
+    /// - **Half gives the midpoint**, which pins that the interpolation is
+    ///   linear rather than merely monotonic between two correct ends.
+    ///
+    /// Exact equality rather than a tolerance: every value here is exact in
+    /// binary32, and `1.0 - 1.0 * (1.0 - floor)` is `floor` exactly for any
+    /// representable floor.
+    #[test]
+    fn benefit_scale_runs_from_one_when_fresh_to_the_floor_when_saturated() {
+        const FLOOR: f32 = 0.45;
+        assert_eq!(benefit_scale(0.0, FLOOR), 1.0);
+        assert_eq!(benefit_scale(1.0, FLOOR), FLOOR);
+        assert_eq!(benefit_scale(0.5, FLOOR), 0.725);
+
+        // A floor of 1 disables the mechanic, which `compile_tuning` allows
+        // deliberately. It must be a no-op at every habituation, not just at
+        // zero - a mutant that reads the floor with the wrong sign passes the
+        // three assertions above and fails here.
+        for hab in [0.0, 0.25, 1.0] {
+            assert_eq!(
+                benefit_scale(hab, 1.0),
+                1.0,
+                "a floor of 1 must disable the effect at habituation {hab}"
+            );
+        }
+    }
+
+    /// **Habituation scales BENEFIT and never COST**, pinned on the
+    /// function the simulation actually calls.
+    ///
+    /// `habituation_scales_the_benefit_and_leaves_a_cost_at_full_strength`
+    /// in `habituation.rs` states the same rule and cannot enforce it: it
+    /// computes `BENEFIT * scale` itself and compares its own arithmetic
+    /// against itself, so it stays green with this whole guard deleted.
+    /// Three mutants lived behind that gap. This is the version with the
+    /// production function in it.
+    ///
+    /// The negative case is the rule; the positive case is what stops a
+    /// mutant passing by scaling nothing at all.
+    #[test]
+    fn a_cost_keeps_its_full_strength_however_habituated_the_sim_is() {
+        // A benefit IS scaled. `/` instead of `*` gives 80, `<` instead of
+        // `>` leaves it at 40; the golden 20 excludes both.
+        assert_eq!(scaled_delta(40.0, 0.5), 20.0);
+        // A cost is NOT. `<` instead of `>` gives -6, which is a habituated
+        // shower becoming cheaper and therefore more attractive - the
+        // mechanic running backwards.
+        assert_eq!(scaled_delta(-12.0, 0.5), -12.0);
+        // And at a scale of 1 nothing moves either way, so the guard cannot
+        // be passing by accident of the fixture's scale.
+        assert_eq!(scaled_delta(40.0, 1.0), 40.0);
+        assert_eq!(scaled_delta(-12.0, 1.0), -12.0);
+    }
 
     #[test]
     fn desperate_agents_score_far_higher_than_comfortable_ones() {

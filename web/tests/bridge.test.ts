@@ -89,11 +89,30 @@ describe('SimBridge', () => {
     expect(pairs.size).toBeGreaterThanOrEqual(8);
     expect(pairs.size * 2).toBe(walls.length);
 
-    expect(pairs.has('9,1')).toBe(true);
-    expect(pairs.has('9,3')).toBe(true);
-    // The doorway. Drawn as a wall, the bathroom would look sealed while
-    // the sim walked straight through the picture of one.
-    expect(pairs.has('9,2')).toBe(false);
+    // **The doorways, found rather than named.** This used to assert the
+    // literal tiles `9,1`, `9,3` and `9,2` of the one-room flat, and the
+    // five-room lot broke it for a reason this export does not care about:
+    // which tile is a door is `content/lot.toml`'s business, and whether a
+    // GAP gets drawn as a wall is this export's.
+    //
+    // A doorway is a tile absent from the list with list entries on both
+    // sides along one axis - which is exactly "the gap IS the doorway" as
+    // lot.toml puts it. Drawn as a wall, a room would look sealed while the
+    // sim walked straight through the picture of one.
+    const solid = (x: number, y: number) => pairs.has(`${x},${y}`);
+    let gaps = 0;
+    for (let y = 0; y < handle.lot_height(); y++) {
+      for (let x = 0; x < handle.lot_width(); x++) {
+        if (solid(x, y)) continue;
+        const vertical = solid(x, y - 1) && solid(x, y + 1);
+        const horizontal = solid(x - 1, y) && solid(x + 1, y);
+        if (vertical || horizontal) gaps++;
+      }
+    }
+    // Five in the shipped house, one per wall run. A floor rather than an
+    // equality, so adding a room is not a test edit; zero would mean every
+    // gap had been filled in and the rooms sealed.
+    expect(gaps).toBeGreaterThanOrEqual(5);
     // Every tile is inside the lot; the boundary is drawn from the lot's
     // dimensions instead, because no tile exists off the grid to report.
     for (const key of pairs) {
@@ -378,7 +397,20 @@ describe('SimBridge', () => {
     // decay rates were slowed and this digest includes need levels, so every
     // agent differs at tick 100. Read off the wasm32 failure after a rebuild
     // per [L13], not copied from native.
-    expect(bridge.worldHash()).toBe(0xcb2c_8122_2251_d840n);
+    // Moved by habituation, from 0xcb2c_8122_2251_d840n. Two real causes at
+    // once: the digest gained a per-agent habituation column, and scoring now
+    // scales a repeated interaction's benefit so what the eight agents choose
+    // differs. Read off the wasm32 failure after a rebuild per [L13], not copied
+    // from native - the two agree, which is a measurement each time.
+    // Moved by M2b's balance pass, from 0xfb84_8515_2c59_2ad8n, and by ONE
+    // knob: `comfort`'s decay went from 0.021 to 0.032 in content/tuning.toml,
+    // so one of the seven need columns in each of the eight agent rows differs
+    // from the first tick. The five-room lot and the twenty-two new objects did
+    // NOT move it - this scenario builds its own 24x24 room and spawns one
+    // fridge, so it never reads content/lot.toml and never sees them. Measured
+    // on wasm32 after a rebuild and found equal to the native constant in
+    // crates/terri-sim/src/lib.rs.
+    expect(bridge.worldHash()).toBe(0x7e3f_cbe2_7849_036cn);
   });
 
   // ---- Player commands -------------------------------------------------
@@ -410,6 +442,12 @@ describe('SimBridge', () => {
       ['variant index 0xFF', [0xff]],
       ['Select with an Option tag and no payload', [0x00, 0x01]],
       ['UseObject missing its second field', [0x01, 0x03]],
+      // The OLD three-byte form, from before `UseObject` carried an
+      // interaction. It has to be refused rather than read as interaction
+      // 0: a wire format that accepts both lengths is two formats, and a
+      // command log written by either one would replay as whichever the
+      // decoder guessed.
+      ['UseObject with no interaction - the old three-byte form', [0x01, 0x03, 0x09]],
       ['a valid SetSpeed(2) with junk after it', [0x03, 0x02, 0xaa, 0xbb]],
     ];
     for (const [what, bytes] of malformed) {
@@ -502,7 +540,7 @@ describe('SimBridge', () => {
     const undirectedX = undirected.positions()[4];
 
     const bridge = build();
-    expect(bridge.useObject(2, 0)).toBe(true);
+    expect(bridge.useObject(2, 0, 0)).toBe(true);
     for (let i = 0; i < 20; i++) bridge.tick();
     const directedX = bridge.positions()[4];
 
@@ -516,6 +554,46 @@ describe('SimBridge', () => {
     const afterCancel = bridge.positions()[4];
     for (let i = 0; i < 60; i++) bridge.tick();
     expect(bridge.positions()[4]).not.toBe(afterCancel);
+  });
+
+  it('sends the interaction index through to the simulation unclamped', () => {
+    // **The interaction index across the RELEASE wasm the page loads**,
+    // which is the only reason this is not redundant with the Rust twin in
+    // `crates/terri-wasm/src/lib.rs`: that one runs against a debug rlib,
+    // and [L12] is this project's recorded instance of a check present in
+    // debug and absent from what ships.
+    //
+    // Every shipped object offers exactly one interaction, so the shipped
+    // game cannot show a second row doing something different. What it CAN
+    // show is the difference between an index the object has and one it does
+    // not, and that is enough to rule out the dangerous wrong answer: a
+    // clamp. `min(interaction, len - 1)` or a `NaN >>> 0` anywhere on the
+    // path turns "the verb that is not there" into "the first verb", so the
+    // two runs below would agree - and a shell bug would silently feed the
+    // sim instead of doing nothing.
+    //
+    // 200 rather than 1, so it is also above 127 and therefore exercises the
+    // multi-byte varint path. A single-byte encoder would emit
+    // `[0x01, 2, 0, 0xC8]`; 0xC8 has the varint continuation bit set, so
+    // postcard sees a truncated varint and rejects the whole command, and the
+    // sim would go to the fridge for the wrong reason. That still fails this
+    // test - the two runs would agree - but it fails as a rejected command
+    // rather than as a dropped intent, which is worth knowing when it does.
+    const run = (interaction: number): number => {
+      const b = new SimBridge(new SimHandle(16, 16), wasmMemory);
+      expect(b.spawnObject(2, 8, 'bed')).toBe(true);
+      expect(b.spawnObject(11, 8, 'fridge')).toBe(true);
+      b.spawnAgent(8, 8, 20);
+      expect(b.useObject(2, 0, interaction)).toBe(true);
+      for (let i = 0; i < 20; i++) b.tick();
+      return b.positions()[4];
+    };
+
+    // Interaction 0 exists on the bed, so the sim obeys and walks WEST.
+    expect(run(0)).toBeLessThan(8);
+    // Interaction 200 does not, so `serve_intents` drops the intent and the
+    // sim is left free to walk EAST to the fridge its hunger wanted.
+    expect(run(200)).toBeGreaterThan(8);
   });
 
   it('reads a sim needs back out of the simulation, and nothing for anything else', () => {
@@ -615,7 +693,16 @@ describe('SimBridge', () => {
     expect(bridge.select(3.7)).toBe(false);
     expect(bridge.select(2 ** 32)).toBe(false);
     expect(bridge.select(NaN)).toBe(false);
-    expect(bridge.useObject(0, -5)).toBe(false);
+    expect(bridge.useObject(0, -5, 0)).toBe(false);
+    // And the interaction index is vetted like the two beside it. Without
+    // these three the field would be the one argument a caller could pass
+    // anything to, and `pushVarint` would encode `NaN >>> 0` as 0 - a
+    // command naming the object's FIRST interaction, which looks like it
+    // worked.
+    expect(bridge.useObject(0, 1, -1)).toBe(false);
+    expect(bridge.useObject(0, 1, 3.7)).toBe(false);
+    expect(bridge.useObject(0, 1, NaN)).toBe(false);
+    expect(bridge.useObject(0, 1, 2 ** 32)).toBe(false);
     expect(bridge.cancelIntents(1.5)).toBe(false);
     expect(bridge.setSpeed(-1)).toBe(false);
     expect(bridge.setSpeed(256)).toBe(false);
@@ -639,6 +726,7 @@ describe('SimBridge', () => {
     expect(bridge.setSpeed(0)).toBe(true);
     expect(bridge.setSpeed(255)).toBe(true);
     expect(bridge.select(0xffffffff)).toBe(true);
+    expect(bridge.useObject(0, 1, 0xffffffff)).toBe(true);
   });
 
   it('caps the staging queue so rapid clicking cannot grow it without bound', () => {

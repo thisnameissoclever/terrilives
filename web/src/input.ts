@@ -11,6 +11,20 @@
  * module can do is enqueue a command, which `drain_commands` applies at one
  * fixed point in the tick. That is what keeps a recorded session replayable
  * and is what a Layer 2 client would send over a wire.
+ *
+ * # The gestures, as [I3] and [I4] settled them
+ *
+ * | input | effect |
+ * | --- | --- |
+ * | click a sim | select it |
+ * | click an object | **replace** the selected sim's queue with this |
+ * | ctrl or cmd click an object | **append** to the queue |
+ * | click bare floor | clear the selection |
+ * | right click | open the flyout in `ui/object-menu.ts` |
+ *
+ * Replace is two existing commands in one tick's drain rather than a new
+ * one; see `dispatch`. The flyout's own rules live beside it, and this file
+ * holds only the part that needs a pick: which rows a right click asks for.
  */
 
 import { SPRITES } from './render/atlas.js';
@@ -23,6 +37,12 @@ import {
   screenX,
   screenY,
 } from './render/iso.js';
+import {
+  NEVER_MIND,
+  menuEntries,
+  type MenuAction,
+  type MenuEntry,
+} from './ui/object-menu.js';
 
 /**
  * What picking needs from the simulation. `SimBridge` satisfies it
@@ -68,7 +88,32 @@ export interface Pick {
  */
 export type ClickAction =
   | { readonly kind: 'select'; readonly entity: number | null }
-  | { readonly kind: 'use'; readonly agent: number; readonly object: number }
+  | {
+      readonly kind: 'use';
+      readonly agent: number;
+      readonly object: number;
+      /**
+       * Which of the object's interactions to run - `Intent::interaction`,
+       * and the last field of `SimCommand::UseObject`.
+       *
+       * **A left click always names 0**, which is the only interaction any
+       * shipped object has. It is carried as a field rather than left for
+       * `dispatch` to supply so that there is exactly one place in this
+       * shell that decides what a gesture's interaction is, and so that a
+       * left click and a menu row reach `useObject` through the same
+       * parameter instead of one of them going through a default.
+       */
+      readonly interaction: number;
+      /**
+       * Whether this instruction is the sim's ONLY instruction.
+       *
+       * `true` for a plain click and `false` for a ctrl-click, per [I3].
+       * It is carried here rather than decided in `dispatch` because it
+       * is a property of the gesture the player made, and `dispatch`
+       * only ever sees an action.
+       */
+      readonly replace: boolean;
+    }
   | { readonly kind: 'none' };
 
 /**
@@ -311,11 +356,34 @@ export function pickAt(
  *
  * - A sim: select it. Selection lives in the simulation ([D-5]), so this is
  *   a command like everything else rather than a variable in the shell.
- * - An object with a sim selected: direct that sim to use it. Repeated
- *   clicks queue, up to `max_queued_intents`.
+ * - An object with a sim selected: direct that sim to use it, **replacing
+ *   whatever it was doing**. With `additive` - ctrl or cmd held - the
+ *   instruction is appended instead, up to `max_queued_intents`.
  * - An object with nothing selected: nothing. There is no sim to direct,
  *   and selecting furniture is not a thing the game has a meaning for.
  * - Bare floor or a wall: clear the selection.
+ *
+ * # Why a plain click replaces
+ *
+ * It appended until [I3] in
+ * `docs/specs/2026-07-30-selection-and-input-design.md`, which reversed
+ * it on one observation: **the common case is correcting yourself and the
+ * rare case is planning a sequence**, so the plain gesture should be the
+ * correction and the modifier should be the plan. Appending by default
+ * meant a mis-click could not be taken back except by waiting out the
+ * queue or right-clicking to cancel the lot.
+ *
+ * Nothing new crosses the boundary for it. Replace is `CancelIntents`
+ * followed by `UseObject`, two commands that already existed, which is why
+ * this is a change to what the shell SENDS rather than to what the
+ * simulation understands. `dispatch` is where the pair is emitted and
+ * `a_cancel_then_a_use_in_one_batch_replaces_the_queue_rather_than_appending_to_it`
+ * in `crates/terri-sim/src/systems/command.rs` is what pins that the two
+ * mean "replace" when they land in one drain, in that order.
+ *
+ * **`additive` is the gesture, not the modifier key.** Which physical keys
+ * produce it is `attachPointerInput`'s business, and it accepts two of
+ * them for a reason worth reading there.
  *
  * **Empty floor clearing the selection is a choice, not a fallback.** It is
  * the only way the player can reach `Select(None)`, and the alternative -
@@ -323,35 +391,88 @@ export function pickAt(
  * is that a near-miss on a sim deselects it; the play notes are where that
  * gets judged.
  *
- * Directing does NOT change the selection, so a player can click three
+ * Directing does NOT change the selection, so a player can ctrl-click three
  * objects in a row and queue all three for the sim they are watching.
+ *
+ * **A left click always names interaction 0**, and that is a statement
+ * about the gesture rather than a placeholder: a click names an OBJECT, and
+ * "the first thing this object offers" is the only reading of that which
+ * does not require the player to have chosen. Choosing is what the
+ * right-click flyout is for, and `dispatchMenuAction` is where a row's own
+ * index enters.
  */
 export function resolveLeftClick(
   pick: Pick | null,
   selected: number | null,
+  additive: boolean,
 ): ClickAction {
   if (pick === null) return { kind: 'select', entity: null };
   if (pick.isAgent) return { kind: 'select', entity: pick.entity };
   if (selected === null) return { kind: 'none' };
-  return { kind: 'use', agent: selected, object: pick.entity };
+  return {
+    kind: 'use',
+    agent: selected,
+    object: pick.entity,
+    interaction: LEFT_CLICK_INTERACTION,
+    replace: !additive,
+  };
 }
+
+/**
+ * The interaction a left click names: the object's first.
+ *
+ * A named constant rather than a literal `0`, because a bare zero at a call
+ * site is indistinguishable from the hardcode `SimCommand::UseObject`
+ * carried until this field existed. Naming it says the value was chosen.
+ * It is not a tuning knob - it is the arithmetic identity of "the first
+ * entry in a list" - so it does not belong in `content/tuning.toml`.
+ */
+const LEFT_CLICK_INTERACTION = 0;
 
 /** The subset of `SimBridge` the click handler dispatches through. */
 export interface CommandSink {
   select(entityIndex: number | null): boolean;
-  useObject(agent: number, object: number): boolean;
+  /**
+   * `interaction` is required, matching `SimBridge.useObject`. A default of
+   * 0 here would let a caller omit it and silently direct the sim at the
+   * object's first verb, which is invisible while every shipped object has
+   * exactly one.
+   */
+  useObject(agent: number, object: number, interaction: number): boolean;
   cancelIntents(agent: number): boolean;
   selectedIndex(): number | null;
 }
 
-/** Applies a resolved action. Separated so the resolution can be tested without a bridge. */
+/**
+ * Applies a resolved action. Separated so the resolution can be tested
+ * without a bridge.
+ *
+ * **The cancel goes first, and that ordering is the whole of "replace".**
+ * Both commands land in the same tick's drain, and `drain_commands`
+ * applies a batch in issue order, so:
+ *
+ *  - cancel then use empties the queue and then puts the new instruction
+ *    in it - one entry, the new one, with the abandoned object's
+ *    reservation released;
+ *  - use then cancel stages the new instruction and then wipes it, because
+ *    the cancel's `fresh.retain` and `clear()` both see what the same batch
+ *    just staged. The sim ends up with nothing queued and the click looks
+ *    like it was ignored.
+ *
+ * Two Rust tests hold the pair apart -
+ * `a_cancel_then_a_use_in_one_batch_replaces_the_queue_rather_than_appending_to_it`
+ * and `the_reverse_order_does_not_replace_and_is_why_the_shell_sends_cancel_first` -
+ * because "the order matters" is a claim about two runs and pinning one of
+ * them says nothing about the other.
+ */
 export function dispatch(sink: CommandSink, action: ClickAction): void {
   switch (action.kind) {
     case 'select':
       sink.select(action.entity);
       break;
     case 'use':
-      sink.useObject(action.agent, action.object);
+      if (action.replace) sink.cancelIntents(action.agent);
+      sink.useObject(action.agent, action.object, action.interaction);
       break;
     case 'none':
       break;
@@ -360,6 +481,25 @@ export function dispatch(sink: CommandSink, action: ClickAction): void {
 
 /** Everything a click handler needs of its sim: pick from it, command it. */
 export type InputTarget = CommandSink & PickSource;
+
+/**
+ * What the flyout reads: the labels of one object's own interactions, in
+ * interaction-index order. `SimBridge` satisfies it structurally, and an
+ * EMPTY array is the normal answer for a sim, a stale index, or an object
+ * with nothing to offer.
+ */
+export interface InteractionSource {
+  interactionLabels(entity: number): readonly string[];
+}
+
+/** Everything a right click needs: pick, read the labels, command. */
+export type MenuTarget = InputTarget & InteractionSource;
+
+/** What a right click drives on the flyout. `ObjectMenu` satisfies it. */
+export interface MenuController {
+  open(entries: readonly MenuEntry[], clientX: number, clientY: number): void;
+  close(): void;
+}
 
 /** A point in canvas drawing-buffer pixels, which is the space the camera works in. */
 export interface CanvasPoint {
@@ -387,10 +527,11 @@ export function handleLeftClick(
   point: CanvasPoint | null,
   originX: number,
   originY: number,
+  additive: boolean,
 ): void {
   if (point === null) return;
   const pick = pickSprite(target, point.x, point.y, originX, originY);
-  dispatch(target, resolveLeftClick(pick, target.selectedIndex()));
+  dispatch(target, resolveLeftClick(pick, target.selectedIndex(), additive));
 }
 
 /**
@@ -420,42 +561,170 @@ export function clientToCanvas(
   };
 }
 
-/** Anything that can suppress its own default action. `MouseEvent` satisfies it. */
-export interface Cancellable {
+/**
+ * A right click, as much of `MouseEvent` as the handler needs: where it
+ * landed on the page, and the ability to suppress the browser's own menu.
+ */
+export interface RightClickEvent {
+  readonly clientX: number;
+  readonly clientY: number;
   preventDefault(): void;
 }
 
 /**
- * The whole of a right click: **hand the selected sim back to its own
- * judgement**, and never let the browser menu open over the lot.
+ * The rows a right click should open, or `null` for no menu at all.
  *
- * Without a binding for `CancelIntents` there is no way to stop directing a
- * sim short of waiting out its queue, and "can I give it back" is one of the
- * questions the play session exists to answer.
+ * Three cases, and the middle one is the decision [I4] left open:
  *
- * `preventDefault` runs first and unconditionally, before the selection is
- * even read. A right click that does nothing is fine; one that opens the
- * context menu over the game is not, and the version of this that checks the
- * selection first pops the menu whenever nothing is selected.
+ *  - **nothing selected: no menu.** Every row acts on the selected sim -
+ *    the interactions direct it and the cancel releases it - so with no
+ *    selection a menu could only be a list of things that do nothing. The
+ *    alternative the spec offered was to draw the rows disabled, and that
+ *    was rejected here: a menu whose every row is greyed out explains
+ *    nothing about why, and the player's actual next move is to click a
+ *    sim, which an open menu is in the way of. The browser's own menu is
+ *    still suppressed, so the gesture is inert rather than jarring.
+ *  - **an object: its interactions, then the cancel.**
+ *  - **a sim, bare floor or a wall: the cancel alone.** Right click used
+ *    to cancel from anywhere, and [I4] moved that binding into the menu
+ *    rather than deleting it; a menu that only appeared over furniture
+ *    would take the cancel away everywhere else. One row is a thin menu
+ *    and it is strictly more than the gesture used to offer, because it
+ *    now says what it is about to do before it does it.
+ *
+ * The labels are read from the simulation on every open rather than cached,
+ * so a menu cannot show an object's old interaction list ([D-5]).
  */
-export function handleRightClick(
-  target: InputTarget,
-  event: Cancellable,
-): void {
-  event.preventDefault();
-  const selected = target.selectedIndex();
-  if (selected !== null) target.cancelIntents(selected);
+export function resolveRightClick(
+  target: MenuTarget,
+  point: CanvasPoint | null,
+  originX: number,
+  originY: number,
+): MenuEntry[] | null {
+  if (target.selectedIndex() === null) return null;
+  const pick =
+    point === null
+      ? null
+      : pickSprite(target, point.x, point.y, originX, originY);
+  if (pick === null || pick.isAgent) return [NEVER_MIND];
+  return menuEntries(target.interactionLabels(pick.entity), pick.entity);
 }
 
 /**
- * Wires the canvas to the two handlers above. The only function here that
- * needs a DOM, and therefore the only one with no test - the same division
- * `buildTimeControls` draws, where the list it builds from is tested and the
- * `addEventListener` calls are not.
+ * The whole of a right click: **open the flyout for whatever is under the
+ * pointer**, and never let the browser menu open over the lot.
+ *
+ * `preventDefault` runs first and unconditionally, before the selection is
+ * even read. A right click that does nothing is fine; one that opens the
+ * context menu over the game is not, and the version of this that checks
+ * the selection first pops the browser menu whenever nothing is selected -
+ * which is now the common case for a right click that opens no flyout.
+ *
+ * A right click that resolves to no menu **closes** any menu already open,
+ * rather than leaving it. Otherwise a right click on empty floor with
+ * nothing selected would leave a menu from a previous click sitting over
+ * the lot, still live, still naming an object the player has moved on from.
+ */
+export function handleRightClick(
+  target: MenuTarget,
+  menu: MenuController,
+  event: RightClickEvent,
+  point: CanvasPoint | null,
+  originX: number,
+  originY: number,
+): void {
+  event.preventDefault();
+  const entries = resolveRightClick(target, point, originX, originY);
+  if (entries === null) {
+    menu.close();
+    return;
+  }
+  menu.open(entries, event.clientX, event.clientY);
+}
+
+/**
+ * Applies a picked menu row.
+ *
+ * The selected sim is read HERE rather than captured when the menu opened,
+ * for the same [D-5] reason the labels are re-read: between opening a menu
+ * and picking from it the player may have selected someone else, or the
+ * sim may have gone away. Reading now means the row acts on whoever the
+ * simulation currently says is selected, or on nobody.
+ *
+ * **A row's `use` replaces, like a plain left click.** The menu is the
+ * long way round to the same instruction, so it would be strange for the
+ * two to differ; ctrl-click stays the one gesture that appends, which
+ * keeps "how do I queue" a single answer rather than two.
+ *
+ * **The row's own interaction index is what is sent**, which is the only
+ * thing that makes a second row mean anything: the rows come back from the
+ * simulation in interaction order, `menuEntries` numbers them by position,
+ * and that number goes into the command unchanged. Substituting 0 here
+ * would leave a flyout whose every row did the same thing, and it would
+ * look correct on every object the game currently ships because each has
+ * exactly one row above the cancel.
+ */
+export function dispatchMenuAction(
+  sink: CommandSink,
+  action: MenuAction,
+): void {
+  const agent = sink.selectedIndex();
+  if (agent === null) return;
+  switch (action.kind) {
+    case 'use':
+      // Cancel first, then use: the replace pair. See `dispatch`.
+      sink.cancelIntents(agent);
+      sink.useObject(agent, action.object, action.interaction);
+      break;
+    case 'cancel':
+      sink.cancelIntents(agent);
+      break;
+  }
+}
+
+/**
+ * What the wiring drives on the flyout beyond opening and closing it: the
+ * two dismissals that arrive from the document rather than from the canvas.
+ * `ObjectMenu` satisfies it.
+ */
+export interface MenuHandle extends MenuController {
+  handleKey(key: string): boolean;
+  pointerDown(insideMenu: boolean): void;
+}
+
+/**
+ * Wires the canvas and the document to the handlers above. The only
+ * function here that needs a DOM, and therefore the only one with no test -
+ * the same division `buildTimeControls` draws, where the list it builds
+ * from is tested and the `addEventListener` calls are not.
  *
  * `contextmenu` is the right-click event rather than `mousedown` with
  * `button === 2`, because it is the one the browser menu hangs off: handling
- * the other and not this one pops the menu over the lot on every cancel.
+ * the other and not this one pops the menu over the lot on every right
+ * click.
+ *
+ * # The two dismissals live on the document, not the canvas
+ *
+ * Escape and click-away have to fire wherever the pointer or the focus is,
+ * and the flyout deliberately sits outside the canvas in the DOM. A
+ * `keydown` on the canvas would need the canvas focused, which it never is;
+ * a `pointerdown` on the canvas would miss a click on the HUD.
+ *
+ * `pointerdown` rather than `click` for the dismissal, because it has to
+ * beat the row's own `click` in the ordering - and `menuRoot.contains` is
+ * what keeps a pointer-down on a row from closing the menu before that
+ * click arrives. A dismissing click on the canvas is NOT swallowed: it
+ * closes the menu and also acts, on the grounds that a player who clicks a
+ * sim while a menu is open meant to click the sim.
+ *
+ * # Ctrl and cmd both append
+ *
+ * [I3] names ctrl-click, and this accepts `metaKey` as well. On macOS
+ * `ctrl`-click IS the context-menu gesture - the browser fires
+ * `contextmenu` for it - so a mac player can never produce a plain
+ * ctrl-click at all, and cmd is that platform's modifier for the same
+ * meaning everywhere else. Accepting only `ctrlKey` would leave macOS with
+ * no way to queue a second instruction and no indication why.
  *
  * The handlers read `originX`/`originY` from the closure. Both are derived
  * from the lot at load and neither changes for the session; a camera that
@@ -464,26 +733,45 @@ export function handleRightClick(
  */
 export function attachPointerInput(
   canvas: HTMLCanvasElement,
-  target: InputTarget,
+  target: MenuTarget,
+  menu: MenuHandle,
+  menuRoot: Node,
   originX: number,
   originY: number,
 ): void {
+  const canvasPoint = (event: MouseEvent): CanvasPoint | null =>
+    clientToCanvas(
+      event.clientX,
+      event.clientY,
+      canvas.getBoundingClientRect(),
+      canvas.width,
+      canvas.height,
+    );
+
   canvas.addEventListener('click', (event) => {
     handleLeftClick(
       target,
-      clientToCanvas(
-        event.clientX,
-        event.clientY,
-        canvas.getBoundingClientRect(),
-        canvas.width,
-        canvas.height,
-      ),
+      canvasPoint(event),
       originX,
       originY,
+      event.ctrlKey || event.metaKey,
     );
   });
 
   canvas.addEventListener('contextmenu', (event) => {
-    handleRightClick(target, event);
+    handleRightClick(target, menu, event, canvasPoint(event), originX, originY);
+  });
+
+  const doc = canvas.ownerDocument;
+  doc.addEventListener('pointerdown', (event) => {
+    // `instanceof Node` rather than a cast: `event.target` is an
+    // `EventTarget`, and a pointer-down on something that is not a node -
+    // the window itself - must count as outside rather than throw.
+    const inside =
+      event.target instanceof Node && menuRoot.contains(event.target);
+    menu.pointerDown(inside);
+  });
+  doc.addEventListener('keydown', (event) => {
+    menu.handleKey(event.key);
   });
 }

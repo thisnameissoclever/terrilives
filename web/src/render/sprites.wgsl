@@ -23,7 +23,7 @@
 // CLAMPS an out-of-range index rather than trapping, so an atlas longer
 // than this would draw every sprite past the end as the last one in the
 // table, with no error from anywhere.
-const MAX_SPRITES = 32u;
+const MAX_SPRITES = 128u;
 
 struct Uniforms {
   viewport: vec2<f32>,

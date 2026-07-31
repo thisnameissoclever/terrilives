@@ -1,5 +1,5 @@
 use bevy_ecs::prelude::*;
-use terri_core::{Eating, IntentQueue, NeedId, Needs, Reserved, SimRng, Target};
+use terri_core::{Eating, Habituation, IntentQueue, NeedId, Needs, Reserved, SimRng, Target};
 
 use crate::Content;
 
@@ -102,6 +102,11 @@ pub fn sample_duration(centre: u32, variance: f32, floor: u32, rng: &mut SimRng)
 /// because the draw is biased shorter, which is [D-4] working rather than
 /// the floor binding. Nothing is pinned to a single length any more. Rerun
 /// it with `cargo run -p terri-sim --example trace`.
+/// The type_complexity allow is for the same reason it sits on `select_action`
+/// and `drain_commands`: the query tuple is what pushes past clippy's threshold,
+/// and a type alias would only move the same type somewhere less readable. It
+/// grew a sixth member when habituation arrived.
+#[allow(clippy::type_complexity)]
 pub fn tick_interactions(
     mut commands: Commands,
     content: Res<Content>,
@@ -111,9 +116,10 @@ pub fn tick_interactions(
         &mut Needs,
         &Target,
         Option<&mut IntentQueue>,
+        Option<&mut Habituation>,
     )>,
 ) {
-    for (entity, mut eating, mut needs, target, queue) in &mut agents {
+    for (entity, mut eating, mut needs, target, queue, habituation) in &mut agents {
         // Every index here is in range by construction. The object and
         // interaction ids were read out of this same pack when
         // `follow_path` began the interaction, content validation rejects
@@ -127,6 +133,35 @@ pub fn tick_interactions(
         eating.remaining_ticks = eating.remaining_ticks.saturating_sub(1);
 
         if eating.remaining_ticks == 0 {
+            // **Habituation rises on COMPLETION, not per tick** - [S2]. The sim
+            // is tired of the activity, not of the minutes, so a 180-tick sleep
+            // and a 21-tick hand-wash habituate by the same amount. Per-tick
+            // would make long interactions punish themselves and turn the
+            // mechanic into a second duration penalty, which scoring already
+            // has.
+            //
+            // It is raised for the interaction that just FINISHED, so an
+            // interrupted one costs nothing - which is the same "only the
+            // completed thing counts" rule the intent queue uses two lines
+            // below, and the rule multi-step interactions will need.
+            //
+            // `Option<&mut Habituation>` because an agent gains the component
+            // the first time it finishes anything. A fresh sim carries none,
+            // and `Habituation::get` reads absent as zero, so nothing has to
+            // special-case it - but the component has to be INSERTED here for
+            // the first entry to exist at all.
+            let amount = content.0.tuning.habituation_per_use;
+            match habituation {
+                Some(mut habituation) => {
+                    habituation.bump(eating.object, eating.interaction, amount)
+                }
+                None => {
+                    let mut fresh = Habituation::default();
+                    fresh.bump(eating.object, eating.interaction, amount);
+                    commands.entity(entity).insert(fresh);
+                }
+            }
+
             // **A player-issued intent lives until the interaction it
             // named finishes** - [D-3]'s "until it completes or is
             // cancelled" - so completing it is what pops it. Without
@@ -937,10 +972,16 @@ mod tests {
         use terri_core::{Intent, IntentQueue};
 
         // Two objects, and the interaction index is 0 on BOTH, which is
-        // the whole point of the fixture: `UseObject` always names
-        // interaction 0 and an autonomously chosen interaction is 0 on
-        // every single-interaction object, so the two fields disagree on
-        // the object and agree on the index.
+        // the whole point of the fixture: the two fields disagree on the
+        // object and agree on the index, so a guard that read only the
+        // index would see a match where there is none.
+        //
+        // Both are single-interaction objects, so 0 is the only index
+        // either of them has. That used to be the ONLY way to reach this
+        // input domain, because `UseObject` hardcoded interaction 0; it now
+        // carries a chosen index, so the agreement here is a property of
+        // the fixture rather than of the command. The domain is the same
+        // one either way and the mutant it corners is unchanged.
         let content = test_content::pack(vec![
             test_content::object("fridge", &[(NeedId::Hunger, 40.0)], 15),
             test_content::object("bed", &[(NeedId::Energy, 40.0)], 15),
@@ -1011,11 +1052,11 @@ mod tests {
         // stopped before it reached this file, so this is the first
         // complete sweep since the guard was written.
         //
-        // What the relaxed form costs: `UseObject` always names
-        // interaction 0, and an autonomously chosen interaction is 0 on
-        // every single-interaction object. So a sim finishing the meal it
-        // chose for itself, with a click for a DIFFERENT object waiting
-        // behind it, would have that click silently discarded - the
+        // What the relaxed form costs: every shipped object offers exactly
+        // one interaction, so an autonomously chosen index and a clicked
+        // one are both 0 across the whole shipped lot. A sim finishing the
+        // meal it chose for itself, with a click for a DIFFERENT object
+        // waiting behind it, would have that click silently discarded - the
         // player's instruction disappears with no error and the sim goes
         // back to autonomy as though nothing was ever asked of it.
         //

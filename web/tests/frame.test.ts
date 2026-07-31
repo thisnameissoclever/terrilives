@@ -6,18 +6,25 @@ import {
   FixedStepDriver,
   lerp,
   buildInstances,
+  instanceCount,
   type RenderSource,
 } from '../src/frame.js';
+import { spriteIndex } from '../src/render/atlas.js';
 import {
+  FLOOR_DEPTH,
   LAYER_PROP,
   LAYER_SIM,
   layeredDepth,
+  screenX,
+  screenY,
   worldToScreen,
 } from '../src/render/iso.js';
 import {
   FLOATS_PER_INSTANCE,
   KIND_AGENT,
   OFFSET_DEPTH,
+  OFFSET_SCREEN_X,
+  OFFSET_SCREEN_Y,
   OFFSET_SPRITE,
 } from '../src/render/instances.js';
 
@@ -125,6 +132,18 @@ class FakeEntities implements RenderSource {
 
   sprites(): Uint32Array {
     return Uint32Array.from(this.entities.map((e) => e[5]));
+  }
+
+  /**
+   * Entity indices offset from the row number on purpose.
+   *
+   * A row is not an entity index - the render buffer sorts by index, so a row
+   * is a rank ([L47]) - and a fake that returned 0, 1, 2 would let the
+   * selection ring pass while looking the selected sim up by row. The +100
+   * makes the two impossible to confuse.
+   */
+  ids(): Uint32Array {
+    return Uint32Array.from(this.entities.map((_, row) => 100 + row));
   }
 }
 
@@ -644,5 +663,100 @@ describe('buildInstances over a real SimBridge', () => {
 
     expect(previous2).toEqual(current1);
     expect(previous3).toEqual(current2);
+  });
+});
+
+describe('the selection ring', () => {
+  const RING = spriteIndex('selectionRing');
+  const ORIGIN_X = 100;
+  const ORIGIN_Y = 50;
+  const GRID = 16;
+
+  /** Reads instance `n` back out of the packed array. */
+  function slot(instances: Float32Array, n: number) {
+    const b = n * FLOATS_PER_INSTANCE;
+    return {
+      x: instances[b + OFFSET_SCREEN_X],
+      y: instances[b + OFFSET_SCREEN_Y],
+      depth: instances[b + OFFSET_DEPTH],
+      sprite: instances[b + OFFSET_SPRITE],
+    };
+  }
+
+  function twoSims(): FakeEntities {
+    const source = new FakeEntities();
+    // Ids will be 100 and 101; positions deliberately different so the ring
+    // landing on the wrong one is visible in its coordinates.
+    source.set([
+      [2, 2, 2, 2, KIND_AGENT, 1],
+      [9, 7, 9, 7, KIND_AGENT, 1],
+    ]);
+    return source;
+  }
+
+  it('draws nothing extra when nothing is selected', () => {
+    const source = twoSims();
+    const instances = buildInstances(source, 1, ORIGIN_X, ORIGIN_Y, GRID, null);
+    expect(instanceCount(source, null)).toBe(2);
+    // The slot past the entities must be untouched, or `draw` would upload a
+    // stale ring from a previous frame.
+    expect(slot(instances, 2).sprite).not.toBe(RING);
+  });
+
+  it('draws one ring, at the selected sim, on top of the floor and under the sim', () => {
+    const source = twoSims();
+    // 101 is the SECOND row. Selecting it rather than the first is what makes
+    // the coordinate assertion meaningful.
+    const instances = buildInstances(source, 1, ORIGIN_X, ORIGIN_Y, GRID, 101);
+    expect(instanceCount(source, 101)).toBe(3);
+
+    const ring = slot(instances, 2);
+    expect(ring.sprite).toBe(RING);
+    expect(ring.x).toBe(screenX(9, 7, ORIGIN_X));
+    expect(ring.y).toBe(screenY(9, 7, ORIGIN_Y));
+
+    // Between the floor and the sim it belongs to. Both directions matter: over
+    // the sim it would hide the thing it points at, and behind the floor it
+    // would be invisible now that the floor shares one depth.
+    const sim = slot(instances, 1);
+    expect(ring.depth).toBeGreaterThan(sim.depth);
+    expect(ring.depth).toBeLessThan(FLOOR_DEPTH);
+  });
+
+  /**
+   * **The ring finds its sim by ENTITY INDEX, not by row.**
+   *
+   * The fake's ids are 100 and 101 for rows 0 and 1, so an implementation that
+   * treated the selection as a row number would either draw nothing (no row
+   * 101) or draw at the wrong sim. A fake whose ids were 0 and 1 could not tell
+   * the two apart, which is [L47] and [L34] in one.
+   */
+  it('resolves the selection by entity index rather than by row', () => {
+    const source = twoSims();
+    const instances = buildInstances(source, 1, ORIGIN_X, ORIGIN_Y, GRID, 100);
+    expect(instanceCount(source, 100)).toBe(3);
+    const ring = slot(instances, 2);
+    expect(ring.sprite).toBe(RING);
+    // Row 0's position, because id 100 is row 0.
+    expect(ring.x).toBe(screenX(2, 2, ORIGIN_X));
+
+    // And a selection naming no live row draws nothing rather than throwing or
+    // drawing at row 1. The simulation deliberately keeps a stale selection
+    // rather than clearing it, so this case is reachable.
+    expect(instanceCount(source, 999)).toBe(2);
+  });
+
+  it('tracks a walking sim between ticks rather than stepping behind it', () => {
+    const source = new FakeEntities();
+    source.set([[4, 4, 6, 4, KIND_AGENT, 1]]);
+    // Half way between the two ticks.
+    const instances = buildInstances(source, 0.5, ORIGIN_X, ORIGIN_Y, GRID, 100);
+    const ring = slot(instances, 1);
+    const sim = slot(instances, 0);
+    expect(ring.x).toBe(sim.x);
+    expect(ring.y).toBe(sim.y);
+    // And that really is the interpolated point, not either endpoint - so a
+    // ring drawn from the tick position instead would fail here.
+    expect(ring.x).toBe(screenX(5, 4, ORIGIN_X));
   });
 });

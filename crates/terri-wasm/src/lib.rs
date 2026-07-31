@@ -127,13 +127,27 @@ impl SimHandle {
     /// y1, ...]`, so the renderer can draw the walls the sim paths
     /// around.
     ///
-    /// Read off the `TileGrid` rather than off `pack().lot.walls`, and
-    /// that is the point rather than an implementation detail: the grid
-    /// is what `find_path` consults, so what this returns is what the
-    /// simulation actually treats as solid. Reading the content list
-    /// instead would let the two drift, and the drift would look like a
-    /// sim detouring around nothing - which is exactly the class of
-    /// confusion drawing walls exists to remove.
+    /// **Read off the authored wall list, NOT off the `TileGrid`, and that
+    /// reverses an earlier decision for a reason worth recording.**
+    ///
+    /// It used to read the grid, on the argument that the grid is what
+    /// `find_path` consults - so what got drawn was what the simulation
+    /// treats as solid, and the two could not drift into a sim detouring
+    /// around nothing.
+    ///
+    /// Object footprints broke that argument by putting a second KIND of
+    /// impassable tile in the grid. Furniture is now blocked there too, and
+    /// furniture draws its own sprite. Measured on the shipped lot the
+    /// moment footprints landed: this returned **17 tiles instead of 8**,
+    /// and the renderer would have painted a 98 px wall sprite on top of
+    /// every one of the nine object tiles.
+    ///
+    /// So the question this answers had to narrow, from "what is solid" to
+    /// "what is a wall". The original concern is still real and is now
+    /// covered by a test rather than by the implementation:
+    /// `every_reported_wall_is_actually_impassable` asserts the drawn walls
+    /// are a subset of the blocked tiles, so a wall that content declares
+    /// and pathing ignores still fails.
     ///
     /// It copies, unlike the render pointers, because it is called once
     /// at load and the caller keeps the result for the session. A zero-
@@ -145,15 +159,11 @@ impl SimHandle {
     /// existing to report. The renderer draws that separately, from the
     /// lot's dimensions.
     pub fn wall_tiles(&self) -> Vec<u32> {
-        let grid = self.sim.world().resource::<TileGrid>();
-        let mut tiles = Vec::new();
-        for y in 0..grid.height() {
-            for x in 0..grid.width() {
-                if !grid.is_walkable(x as i32, y as i32) {
-                    tiles.push(x as u32);
-                    tiles.push(y as u32);
-                }
-            }
+        let lot = &self.sim.world().resource::<Content>().0.lot;
+        let mut tiles = Vec::with_capacity(lot.walls.len() * 2);
+        for &(x, y) in &lot.walls {
+            tiles.push(x);
+            tiles.push(y);
         }
         tiles
     }
@@ -389,6 +399,38 @@ impl SimHandle {
         self.sim
             .needs_of(entity_index)
             .map(|levels| levels.to_vec())
+            .unwrap_or_default()
+    }
+
+    /// What the right-click flyout should list for the object carrying
+    /// `entity_index`: one label per interaction, in the order
+    /// `content/objects.toml` declares them, or an EMPTY array when that
+    /// index names nothing live or names something that is not a smart
+    /// object.
+    ///
+    /// An empty array is a normal answer rather than an error, exactly as
+    /// it is for [`SimHandle::needs_of`]: a right click on a sim, on a sim
+    /// that despawned between the frame and the handler, and on an object
+    /// with no interactions authored all arrive here the same way, and all
+    /// three should open no interaction rows. The shell does not have to
+    /// tell them apart because the useful response is identical.
+    ///
+    /// **The array's ORDER is the interaction index.** Row `n` is
+    /// `Intent::interaction` `n`, which is the whole reason the flyout is
+    /// worth building before any object has a second verb - see [I4] in
+    /// `docs/specs/2026-07-30-selection-and-input-design.md`. A shell that
+    /// sorted or filtered this list would be renumbering an index the
+    /// simulation owns.
+    ///
+    /// A copy rather than a pointer into linear memory, like `wall_tiles`
+    /// and `need_names` and unlike the render arrays: it is read on a right
+    /// click rather than per frame, so [D11] has nothing to say about it,
+    /// and a view would have to survive every later reallocation for no
+    /// benefit.
+    pub fn interaction_labels(&self, entity_index: u32) -> Vec<String> {
+        self.sim
+            .interaction_labels(entity_index)
+            .map(|labels| labels.into_iter().map(str::to_string).collect())
             .unwrap_or_default()
     }
 
@@ -1014,6 +1056,83 @@ mod boundary_tests {
         );
     }
 
+    /// **Every reported wall is genuinely impassable**, which is the half of
+    /// the old contract worth keeping.
+    ///
+    /// `wall_tiles` used to be read straight off the `TileGrid`, so this was
+    /// true by construction and needed no test. It now reads the authored wall
+    /// list, which can drift from the grid - and the drift would look like a sim
+    /// detouring around nothing, or walking through a wall it can see. So the
+    /// property moves from the implementation into an assertion.
+    ///
+    /// Subset, not equality: the grid is deliberately a superset now, because
+    /// object footprints are impassable too and draw their own sprites.
+    #[test]
+    fn every_reported_wall_is_actually_impassable() {
+        let handle = SimHandle::from_lot();
+        let tiles = handle.wall_tiles();
+        assert!(!tiles.is_empty(), "an empty list would assert nothing");
+
+        let grid = handle.sim.world().resource::<TileGrid>();
+        for pair in tiles.chunks_exact(2) {
+            let (x, y) = (pair[0] as i32, pair[1] as i32);
+            assert!(
+                !grid.is_walkable(x, y),
+                "({x}, {y}) is drawn as a wall but the simulation would let a \
+                 sim walk through it"
+            );
+        }
+    }
+
+    /// **No object tile is reported as a wall**, which is the half that broke.
+    ///
+    /// The moment footprints made furniture impassable, reading walls off the
+    /// grid returned 17 tiles for the shipped lot instead of 8 - the 8 authored
+    /// walls plus all 9 tiles covered by the 8 objects, one of which is the
+    /// bed's second tile. The renderer would have drawn a 98 px wall sprite on
+    /// top of every piece of furniture in the house.
+    ///
+    /// Nothing else could see it: the Rust and web tests both compared the
+    /// export against the grid, which is what had changed underneath them.
+    #[test]
+    fn no_object_footprint_tile_is_reported_as_a_wall() {
+        let handle = SimHandle::from_lot();
+        let walls: std::collections::BTreeSet<(u32, u32)> = handle
+            .wall_tiles()
+            .chunks_exact(2)
+            .map(|p| (p[0], p[1]))
+            .collect();
+
+        let pack = handle.sim.world().resource::<Content>().0;
+        let mut covered = 0usize;
+        for placement in &pack.lot.placements {
+            let object = pack.object(placement.object);
+            let footprint = object.footprint;
+            for dx in 0..footprint.width {
+                for dy in 0..footprint.depth {
+                    let tile = (
+                        placement.x.round() as u32 + dx,
+                        placement.y.round() as u32 + dy,
+                    );
+                    covered += 1;
+                    assert!(
+                        !walls.contains(&tile),
+                        "{:?} is covered by '{}' but is drawn as a wall",
+                        tile,
+                        object.id
+                    );
+                }
+            }
+        }
+        // The precondition: there ARE object tiles, and at least one object is
+        // wider than a single tile - otherwise the multi-tile half of this is
+        // untested and the whole thing could pass on an empty lot.
+        assert!(
+            covered > 8,
+            "expected more tiles than objects; got {covered}"
+        );
+    }
+
     #[test]
     fn wall_tiles_reports_the_blocked_tiles_of_the_shipped_lot_and_only_those() {
         // The shipped lot, because the point of this export is that the
@@ -1029,40 +1148,59 @@ mod boundary_tests {
              page would draw none of them"
         );
 
-        // Against the grid rather than against `lot.toml`, because the
-        // grid is what `find_path` consults and therefore what the
-        // renderer has to agree with.
-        let grid = handle.sim.world().resource::<TileGrid>();
-        let mut blocked = 0;
-        for y in 0..grid.height() {
-            for x in 0..grid.width() {
-                let listed = pairs.contains(&(x as u32, y as u32));
-                assert_eq!(
-                    listed,
-                    !grid.is_walkable(x as i32, y as i32),
-                    "({x}, {y}) is {} in the grid and {} in wall_tiles",
-                    if grid.is_walkable(x as i32, y as i32) {
-                        "walkable"
-                    } else {
-                        "blocked"
-                    },
-                    if listed { "listed" } else { "absent" }
-                );
-                if listed {
-                    blocked += 1;
-                }
-            }
-        }
-        assert_eq!(blocked, pairs.len(), "wall_tiles must not repeat a tile");
-
-        // The doorway, stated positively as well. A wall list that
-        // included it would draw the bathroom sealed while the sim walked
-        // straight through the picture of a wall.
-        assert!(
-            !pairs.contains(&(9, 2)),
-            "the doorway at (9, 2) is walkable and must not be drawn as a wall"
+        // **Against the authored wall list, not against the grid, and this
+        // assertion was inverted deliberately.**
+        //
+        // It used to require the export and the grid's blocked set to be
+        // EQUAL, which held while walls were the only impassable thing.
+        // Footprints made furniture impassable too, and the equality then
+        // demanded the renderer draw a wall on every object - which is exactly
+        // what it started doing, 17 tiles instead of 8. The subset direction is
+        // pinned by `every_reported_wall_is_actually_impassable` and the
+        // furniture direction by `no_object_footprint_tile_is_reported_as_a_wall`;
+        // between them they say everything the equality used to, minus the part
+        // that was wrong.
+        let pack = handle.sim.world().resource::<Content>().0;
+        let authored: Vec<(u32, u32)> = pack.lot.walls.clone();
+        assert_eq!(
+            pairs, authored,
+            "the export must be exactly the authored wall list, in order"
         );
-        assert!(pairs.contains(&(9, 1)) && pairs.contains(&(9, 3)));
+        assert!(
+            !authored.is_empty(),
+            "the shipped lot has interior walls; an empty list would make \
+             every assertion here vacuous"
+        );
+
+        // No tile twice. The old version got this from the grid scan; stated
+        // directly now, because the authored list is a `Vec` and nothing
+        // upstream forbids a duplicate entry.
+        let unique: std::collections::BTreeSet<(u32, u32)> = pairs.iter().copied().collect();
+        assert_eq!(
+            unique.len(),
+            pairs.len(),
+            "wall_tiles must not repeat a tile"
+        );
+
+        // **There is deliberately no doorway assertion here, and that is a
+        // change from what this test used to do.**
+        //
+        // It used to name `(9, 2)` and require it absent, which the five-room
+        // lot broke for a reason this export does not care about. The obvious
+        // replacement was to FIND the doorways - tiles absent from the list
+        // with entries either side - and require at least five. That was
+        // written, and then noticed to be incapable of failing: `pairs` was
+        // asserted equal to `pack.lot.walls` twenty lines above, so any
+        // property computed from `pairs` is a property of the content, and
+        // this test would be reporting on `lot.toml` rather than on the
+        // export. It could only ever go red for an edit that
+        // `the_shipped_lot_loads_its_walls_its_doorway_and_all_of_its_objects`
+        // in terri-sim already catches with literal coordinates and a
+        // reachability check.
+        //
+        // The doorways are load-bearing and they are pinned there. What is
+        // pinned HERE is the export, and the equality above is the whole of
+        // it.
     }
 
     // ---- Player commands ----------------------------------------------
@@ -1086,11 +1224,43 @@ mod boundary_tests {
         vec![0x00, 0x01, index as u8]
     }
 
-    /// `SimCommand::UseObject { agent, object }`: variant 1, then two
-    /// varints.
-    fn use_object_bytes(agent: u32, object: u32) -> Vec<u8> {
+    /// `SimCommand::UseObject { agent, object, interaction }`: variant 1,
+    /// then three varints, in that order.
+    ///
+    /// The interaction is a parameter rather than a hardcoded `0x00`
+    /// because a fixture that always sends 0 cannot tell "the shell's
+    /// chosen interaction crossed the boundary" from "the boundary
+    /// substituted 0" - [L34] in the one place the whole field matters.
+    fn use_object_bytes(agent: u32, object: u32, interaction: u32) -> Vec<u8> {
+        assert!(
+            agent < 128 && object < 128 && interaction < 128,
+            "one-byte varints only"
+        );
+        vec![0x01, agent as u8, object as u8, interaction as u8]
+    }
+
+    /// The same command with `interaction: u32::MAX`, which one-byte
+    /// varints cannot express.
+    ///
+    /// Five bytes for the index, because a 32-bit value needs five groups
+    /// of seven bits and the last carries only four. Copied from the
+    /// `u32::MAX` row of `command_encoding_is_pinned_by_a_golden_byte_vector`
+    /// rather than computed here, which is the same rule the rest of this
+    /// module follows: bytes are written by hand so that they are not a
+    /// round trip through the encoder under test, and the golden vector is
+    /// the single place that says what they are.
+    fn use_object_bytes_saturated_interaction(agent: u32, object: u32) -> Vec<u8> {
         assert!(agent < 128 && object < 128, "one-byte varints only");
-        vec![0x01, agent as u8, object as u8]
+        vec![
+            0x01,
+            agent as u8,
+            object as u8,
+            0xFF,
+            0xFF,
+            0xFF,
+            0xFF,
+            0x0F,
+        ]
     }
 
     /// How many commands are staged and not yet drained.
@@ -1211,6 +1381,13 @@ mod boundary_tests {
                 vec![0x00, 0x01],
             ),
             ("UseObject missing its second field", vec![0x01, 0x03]),
+            (
+                "UseObject with an agent and an object but no interaction, \
+                 which is exactly what a shell still writing the old \
+                 three-byte form sends; accepting it as interaction 0 \
+                 would make the format silently two formats",
+                vec![0x01, 0x03, 0x09],
+            ),
             (
                 "a valid SetSpeed(2) followed by junk; accepting the \
                  prefix would make the format ambiguous",
@@ -1378,6 +1555,107 @@ mod boundary_tests {
         );
         assert!(
             handle.needs_of(u32::MAX).is_empty(),
+            "and so must u32::MAX, which is where a clamp or a wrap would \
+             show"
+        );
+    }
+
+    #[test]
+    fn interaction_labels_report_the_named_objects_own_interactions() {
+        // **The flyout's entire input.** The menu builds one row per entry
+        // and the row's position is `Intent::interaction`, so an export
+        // that reported the wrong object's list would label a verb with
+        // another object's wording and still accept the click.
+        //
+        // TWO objects, with DIFFERENT labels, and both are asserted. An
+        // export returning "the first object's interactions" satisfies a
+        // single-object fixture, and so does one returning a constant;
+        // that is [L34] wearing the flyout's costume.
+        //
+        // The expectations are read out of the pack rather than written as
+        // literals, so re-wording a label in content/objects.toml does not
+        // break this - and they are asserted to DIFFER, so reading them out
+        // cannot make the comparison vacuous.
+        let mut handle = SimHandle::new(16, 16);
+        assert!(handle.spawn_object(1.0, 1.0, "fridge"));
+        assert!(handle.spawn_object(3.0, 1.0, "toilet"));
+        let (fridge, toilet) = (0, 1);
+
+        let pack = handle.sim.world().resource::<Content>().0;
+        let authored = |id: &str| -> Vec<String> {
+            pack.object(pack.find(id).expect("shipped content declares it"))
+                .interactions
+                .iter()
+                .map(|act| act.label.clone())
+                .collect()
+        };
+        assert_ne!(
+            authored("fridge"),
+            authored("toilet"),
+            "the two objects must be labelled differently, or this test \
+             cannot see an export that ignores which one was named"
+        );
+        assert!(
+            !authored("fridge").is_empty(),
+            "an object with no interactions would make every assertion \
+             below satisfied by an export that returns nothing"
+        );
+
+        assert_eq!(handle.interaction_labels(fridge), authored("fridge"));
+        assert_eq!(handle.interaction_labels(toilet), authored("toilet"));
+
+        // And the labels are the AUTHORED wording rather than the
+        // interaction ids they fall back to. Shipped content labels every
+        // interaction, so an implementation that reported `act.id` would
+        // reach here with `grab_snack` and the menu would show a
+        // placeholder for the rest of the game's life.
+        assert_ne!(
+            handle.interaction_labels(fridge),
+            pack.object(pack.find("fridge").expect("shipped"))
+                .interactions
+                .iter()
+                .map(|act| act.id.clone())
+                .collect::<Vec<_>>(),
+            "shipped content must label its interactions with something \
+             other than their ids, or the fallback and the label are \
+             indistinguishable here"
+        );
+    }
+
+    #[test]
+    fn interaction_labels_are_empty_for_anything_that_is_not_a_smart_object() {
+        // Three ways an index has no interactions to offer, all of which
+        // must answer the same harmless way rather than panicking: a sim,
+        // which carries no `SmartObject`; an index past anything ever
+        // allocated, which is what a right click on a despawned entity
+        // looks like; and `u32::MAX`, where a clamp or a wrap would show.
+        //
+        // The live object is asserted non-empty in the same test, so
+        // "returns empty" cannot be satisfied by an export that returns
+        // empty for everything - the [L51] rule, one must-be-positive case
+        // beside the must-be-negative ones.
+        let mut handle = SimHandle::new(16, 16);
+        assert!(handle.spawn_object(2.0, 2.0, "fridge"));
+        let agent = spawn_agent_at(&mut handle, 1.0, 1.0, 40.0);
+        let object = agent - 1;
+
+        assert!(
+            !handle.interaction_labels(object).is_empty(),
+            "the live object must report its interactions, or every \
+             assertion below is satisfied by an export that reports \
+             nothing for anything"
+        );
+        assert!(
+            handle.interaction_labels(agent).is_empty(),
+            "a sim offers no interactions; the flyout must not draw rows \
+             for one, and it cannot tell a sim from an object by index"
+        );
+        assert!(
+            handle.interaction_labels(9_999).is_empty(),
+            "an index past anything ever allocated must be ignored"
+        );
+        assert!(
+            handle.interaction_labels(u32::MAX).is_empty(),
             "and so must u32::MAX, which is where a clamp or a wrap would \
              show"
         );
@@ -1589,7 +1867,7 @@ mod boundary_tests {
         autonomous.tick();
         let undirected = autonomous.world_hash();
 
-        assert!(handle.enqueue_command(&use_object_bytes(agent, bed)));
+        assert!(handle.enqueue_command(&use_object_bytes(agent, bed, 0)));
         handle.tick();
 
         assert_ne!(
@@ -1620,6 +1898,109 @@ mod boundary_tests {
              at x={x}, which is towards the fridge it would have chosen \
              for itself"
         );
+    }
+
+    /// Directs `agent` at `object` with `interaction`, runs `ticks` whole
+    /// ticks, and returns how far east or west the sim got.
+    ///
+    /// Shared by the two runs the test below compares so that the only
+    /// difference between them is the interaction index. A second
+    /// hand-written fixture would be the place a stray extra tick or a
+    /// different hunger crept in, and the whole claim is an inequality
+    /// between two runs.
+    fn directed_x(command: &[u8], agent: u32, ticks: u32) -> f32 {
+        let mut handle = SimHandle::new(16, 16);
+        assert!(handle.spawn_object(2.0, 8.0, "bed"));
+        assert!(handle.spawn_object(11.0, 8.0, "fridge"));
+        assert_eq!(
+            spawn_agent_at(&mut handle, 8.0, 8.0, 20.0),
+            agent,
+            "the caller names the agent by literal index"
+        );
+        assert!(
+            handle.enqueue_command(command),
+            "the command must be accepted, or the two runs differ in \
+             whether anything was sent rather than in the index"
+        );
+        for _ in 0..ticks {
+            handle.tick();
+        }
+        let rows = addressed(
+            handle.positions_ptr(),
+            handle.entity_count() * 2,
+            "positions_ptr",
+        );
+        rows[agent as usize * 2]
+    }
+
+    #[test]
+    fn an_interaction_index_the_object_does_not_have_is_dropped_rather_than_clamped_or_trapping() {
+        // **The interaction index is hostile input, exactly like the two
+        // entity indices beside it** (docs/testing-protocol.md rule 8).
+        // JavaScript writes all three, and `u32::MAX` is what a bug, a
+        // stale menu, or someone typing into the console produces. Three
+        // separate wrong answers are possible here and this rules out all
+        // three:
+        //
+        //   - **a panic.** Nothing downstream indexes with this number
+        //     until `serve_intents` has checked it, but a range check
+        //     added here later "for safety" that used `expect` would trap
+        //     the module for the rest of the page's life.
+        //   - **a rejection at the boundary.** A well-formed command
+        //     naming an index the content pack does not have is precisely
+        //     what a saved command log replayed against a newer pack looks
+        //     like, and `enqueue_command` deliberately leaves that to the
+        //     drain rather than keeping a second, weaker copy of the rule -
+        //     the same reasoning it applies to a stale entity index.
+        //   - **a silent clamp.** This is the dangerous one, because it
+        //     looks like it works: `min(interaction, len - 1)` or an
+        //     `unwrap_or(0)` anywhere on the path would turn "use the verb
+        //     that does not exist" into "use the first verb", so a shell
+        //     bug would silently feed the sim instead of doing nothing.
+        //
+        // The clamp is what the two runs below distinguish, and nothing
+        // cheaper can: interaction 0 IS a real interaction on the bed, so
+        // a clamped `u32::MAX` and an honest 0 produce the same world.
+        // Only comparing them says which happened.
+        const TICKS: u32 = 20;
+        let agent = 2;
+
+        let honest = directed_x(&use_object_bytes(agent, 0, 0), agent, TICKS);
+        assert!(
+            honest < 8.0,
+            "interaction 0 must send the sim WEST to the bed at x=2, or \
+             the comparison below is between two sims that both ignored \
+             their orders; it is at x={honest}"
+        );
+
+        let saturated = directed_x(
+            &use_object_bytes_saturated_interaction(agent, 0),
+            agent,
+            TICKS,
+        );
+        assert!(
+            saturated > 8.0,
+            "an interaction the bed does not have must be DROPPED, leaving \
+             the sim free to walk east to the fridge its hunger wanted; at \
+             x={saturated} it went to the bed instead, which is the silent \
+             clamp"
+        );
+
+        // And the module is still alive afterwards. On a genuinely trapped
+        // module every later call throws rather than returning, so a test
+        // that only measured positions could not tell a dropped intent
+        // from a wasm trap that happened after the last tick.
+        let mut handle = SimHandle::new(8, 8);
+        let live = spawn_agent_at(&mut handle, 1.0, 1.0, 80.0);
+        assert!(handle.enqueue_command(&use_object_bytes_saturated_interaction(live, 9)));
+        handle.tick();
+        assert!(
+            handle.enqueue_command(&select_bytes(live)),
+            "the boundary's job is to fail one command, not to end the \
+             session"
+        );
+        handle.tick();
+        assert_eq!(handle.selected_index(), Some(live));
     }
 
     #[test]

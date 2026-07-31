@@ -630,13 +630,23 @@ Five at M1c; six after the alpha branch, which added
 `TileGrid::find_path_adjacent` and with it a second copy of the two neighbour-
 offset mutants. It was five before that and four before M1b Task 3, which
 removed one by removing the operator it mutated; see the `advertise.rs` section.
+Object footprints added two more, both in `rect_distance` and both with a
+one-line proof; see that section.
 
 The count is deliberately not in this heading any more. It was wrong twice in one
 day - the heading said four while the file held five - because a number in a
 heading is a second copy of `wc -l docs/mutants-baseline.txt` that nothing keeps
 in sync. Count the file.
 
-### `grid.rs:102:43` and `102:63` - the neighbour offsets - EQUIVALENT
+**Every `grid.rs` line number below moved when footprints landed**, because the
+`Footprint` type was declared above `impl TileGrid`. The mutants and their
+arguments are unchanged; only the lines are. `find_path`'s pair went 102 to 151
+and its f-score went 115 to 164; `find_path_adjacent`'s pair went 263 to 352.
+Re-derived by a full `cargo mutants --file crates/terri-core/src/grid.rs
+--package terri-core` sweep on 2026-07-30: 150 mutants, 139 caught, 2 unviable,
+7 missed, and the 7 are exactly the file's `grid.rs` rows.
+
+### `grid.rs:151:43` and `151:63` - the neighbour offsets - EQUIVALENT
 
 **Carried on trust since M1a Task 9.** `NEIGHBOURS` has not been touched
 since, and the expiry condition below names the edit that would invalidate
@@ -672,7 +682,7 @@ it is worth pinning rather than waving at:
 diagonals keeps it symmetric; adding a one-way movement rule, a ledge, or a
 directional portal does not. Whoever edits that array owns re-checking this.
 
-#### The same two, in `find_path_adjacent` - added 2026-07-29
+#### The same two, in `find_path_adjacent` - added 2026-07-29, now at 352
 
 `TileGrid::find_path_adjacent` arrived on the alpha branch and reuses
 `find_path`'s expansion loop verbatim, including this expression, so it
@@ -720,7 +730,32 @@ would very likely kill it too, and nobody has tried since the tooling to do so
 now exists. It is left in the baseline for now rather than removed on a guess,
 but it should be treated as a to-do rather than as settled debt.
 
-### `grid.rs:115:44` - the f-score - A REAL GAP, not an equivalent mutant
+#### And the g-score comparison, in `find_path_adjacent` - KILLED, 2026-07-30
+
+The footprint sweep turned up a **third** `find_path_adjacent` survivor that had
+never been in the baseline: `tentative < g_score[next_idx]` relaxed to `<=`, at
+what is now `grid.rs:361:30`. The identical mutant in `find_path` was caught,
+and the asymmetry was the whole diagnosis: `find_path` has
+`tie_breaking_pins_one_specific_path_among_equals`, which asserts an exact
+route, and `find_path_adjacent` had no equivalent. Relaxing the comparison
+re-parents a tile already reached at equal cost, so the returned path changes
+ROUTE while keeping its length, its arrival tile, its contiguity and its
+walkability - which is every property the adjacency tests asserted.
+
+It is **not** in the baseline, because it is now dead:
+`the_adjacent_route_among_equally_short_ones_is_pinned` asserts the exact route
+for a diagonal query on an open 6x6 grid. Measured: `<` returns
+`[(1, 0), (2, 0), (3, 0), (3, 1), (3, 2)]` and `<=` returns
+`[(0, 1), (0, 2), (1, 2), (2, 2), (3, 2)]` - same length, same arrival, the
+other side of the room.
+
+**Worth generalising:** when a function is created by copying another's search
+loop, it inherits the original's mutants and NOT the original's tests. Both
+neighbour-offset copies were noticed at the time because CI's gate reported them
+as new survivors; this one apparently was not, which means the sweep that added
+them did not cover the whole file. A scoped sweep is not a baseline.
+
+### `grid.rs:164:44` - the f-score - A REAL GAP, not an equivalent mutant
 
 **Analysed at M1a Task 9 and carried on trust since**, with one M1b Task 3
 update at the end of this section: the lot now has walls, which changes what
@@ -759,6 +794,43 @@ goal's neighbourhood first while being separated from it by a wall. Nobody
 had a reason to build such a layout before, because M0's lot was one open
 room. Whoever next attends to this entry should start from the shipped lot
 rather than inventing a grid.
+
+### `grid.rs:418:14` and `420:21` - the rect clamps - EQUIVALENT
+
+**Derived 2026-07-30, when object footprints added `rect_distance`.** Both are
+the boundary of a three-way clamp, and both are equivalent for the same
+one-line reason:
+
+```rust
+let axis = |v: i32, lo: i32, hi: i32| {
+    if v < lo {
+        lo - v
+    } else if v > hi {
+        v - hi
+    } else {
+        0
+    }
+};
+```
+
+`<` to `<=` moves `v == lo` from the `else` branch into the first one, which
+computes `lo - v` - and at `v == lo` that is **0**, exactly what the `else`
+branch returns. `>` to `>=` is the mirror image at `v == hi`: `v - hi` is 0
+there too. Neither mutant can change the function's value for any input, so no
+test can distinguish them.
+
+This is a stronger claim than the `NEIGHBOURS` entries above, which rest on a
+property of a separate array that a future edit could break. This one is
+arithmetic on the two lines shown, and the boundary values are pinned anyway:
+`the_rectangle_distance_is_zero_inside_the_footprint_and_the_true_cost_outside_it`
+asserts `rect_distance` at `v == lo` and `v == hi` on both axes - `(4, 2)` is
+the origin corner and `(6, 3)` the far one - so the value the equivalence
+argument depends on is a checked number rather than an assumption.
+
+**When this expires:** if either branch ever returns something other than the
+distance past the boundary - a weighted or clamped cost, say - the two branches
+stop agreeing at the boundary and both mutants become real. Whoever changes the
+body of `axis` owns re-deriving this.
 
 ### `advertise.rs:82:18` - the deficit clause of the NaN guard - EQUIVALENT
 
@@ -990,7 +1062,11 @@ Task 4 and the build gate changed the caught/unviable split in Task 5.
 | M1b Task 3b | 311 | 4 | 266 | 41 | 14 new mutants, all caught; baseline unchanged |
 | **M1c Task 1** | **342** | **5** | **292** | **42** | **31 new mutants from `rng.rs`; 3 timeouts; baseline up to 5** |
 | M1b Task 5 | *partial* | 4 | 175 | 23 | Stopped at 204/~420; scoped sweeps over all changed files gave 0 missed; baseline unchanged at 5 |
+<<<<<<< HEAD
+| M1b `UseObject::interaction` | *scoped* | 0 | 43 | 5 | 48 mutants over the four files the change touched; 0 missed, baseline unchanged at 5 |
+=======
 | **`range` timeout fix** | **513** | **7** | **450** | **56** | **First sweep with 0 timeouts; the 3 `rng.rs` hangs became CAUGHT; baseline unchanged at 7** |
+>>>>>>> origin/main
 
 The M1b Task 3 row is the one to read carefully. Missed stayed at 5 while
 the set changed completely in composition: `advertise.rs:42:36` ceased to
@@ -1005,3 +1081,157 @@ pinned whether a decay rate of exactly zero is legal content. It is;
 `zero_is_a_legal_decay_rate_and_a_legal_advert` now says so. Worth keeping
 because no amount of reading the code could have settled it: the code cannot
 state which side of `<` was intended.
+
+---
+
+## M2b: the five-room house
+
+The sweep over the house found **six** survivors that the baseline did not
+list. Four were killed; two were accepted, and the argument is below.
+
+### Killed
+
+- `crates/terri-data/src/compile.rs:403` - three mutants on
+  `habituation_floor <= 0.0 || habituation_floor > 1.0`: `||` to `&&`, and
+  `> 1.0` to `== 1.0` and to `>= 1.0`. There was **no test for this bound at
+  all**; the knob had a range check and nothing constrained it. Killed by
+  `rejects_a_habituation_floor_outside_zero_exclusive_to_one_inclusive`, whose
+  four rejected values and two accepted ones are each the only input that
+  separates one of the three mutants - the doc comment on the test says which
+  is which.
+
+- `crates/terri-core/src/components.rs:265` - `> 0.0` to `>= 0.0` in
+  `Habituation::decay`, which decides whether an entry that has decayed away
+  is dropped. There WAS a test for the drop, and it could not see this:
+  `habituation_decays_and_spent_entries_are_dropped` runs two extra ticks past
+  the crossing point, so the value goes negative, and a negative is dropped by
+  both comparisons. The mutation is observable on exactly one value.
+  `an_entry_that_decays_to_exactly_zero_is_dropped_rather_than_kept` arranges
+  it: bump an entry to exactly the tuned decay rate and tick once, so it lands
+  on `rate - rate`, which is exactly 0.0 for any finite rate.
+
+  Worth noting as a shape rather than as a bug. A test that walks a value
+  *past* a boundary looks like a boundary test and is not one; the fixture has
+  to stop ON it.
+
+### Accepted, with the argument
+
+```
+crates/terri-data/src/compile.rs:765:38: replace + with - in flood_fill
+crates/terri-data/src/compile.rs:765:53: replace + with - in flood_fill
+```
+
+**Genuinely equivalent mutants.** The line is
+
+```rust
+let (nx, ny) = (x as i64 + dx, y as i64 + dy);
+```
+
+inside `for (dx, dy) in [(1i64, 0i64), (-1, 0), (0, 1), (0, -1)]`. The offset
+set is symmetric about the origin on both axes, so negating `dx` maps
+`(1, 0)` to `(-1, 0)` and `(-1, 0)` to `(1, 0)`: the four neighbours VISITED
+are the same four tiles, merely enumerated in a different order. The same
+holds for `dy`. A flood fill's result does not depend on the order it pushes
+neighbours, so no observable behaviour changes and no test can distinguish
+them.
+
+They are new to the baseline rather than newly surviving: the five-room lot is
+the first content to make `flood_fill` do real work, so these mutants are the
+first to be *reachable* rather than unviable.
+
+The fix that would kill them is to write the offsets asymmetrically - two
+loops, or `[(1, 0), (0, 1)]` plus explicit negation - and that is worse code
+for the sake of a mutation score.
+
+### The habituation multiplier: seven survivors from one untested line
+
+The sweep's largest single finding, and it was not caused by anything M2b
+changed - it was uncovered by it.
+
+`select_action` carried the habituation arithmetic inline:
+
+```rust
+let benefit_scale = 1.0 - hab * (1.0 - content.0.tuning.habituation_floor);
+let delta = if *delta > 0.0 { delta * benefit_scale } else { *delta };
+```
+
+Eight mutants on those two lines, seven of them real. Hand-mutation confirmed
+each survived the ENTIRE workspace suite.
+
+**Why nothing caught it.**
+`habituation_scales_the_benefit_and_leaves_a_cost_at_full_strength` exists to
+pin exactly this behaviour and cannot: it never calls `select_action`. It
+computes `BENEFIT * scale` itself and compares its own arithmetic against
+itself, so it stays green with the production guard deleted. That is
+testing-protocol rule 3's forbidden shape, and [L5]'s family. Every other
+habituation test reads the component rather than scoring with it, and the
+world-hash golden vector's scenario holds ONE object, so a wrongly scaled
+score has nothing to out-rank and the sim's choice is unchanged at any
+multiplier ([L36]).
+
+**Why a behavioural test would not have been enough either.** The obvious
+repair is "habituate the sim on object A, assert it picks B". Three of the
+four `benefit_scale` mutants still yield a multiplier below 1 for a partly
+habituated sim, so A still loses and the test still passes. Only magnitudes
+separate them: at full habituation the four give 1.55, -0.818, -0.45 and
+-1.22 against the correct 0.45.
+
+**The fix** extracts `benefit_scale` and `scaled_delta` into `advertise.rs`
+and pins them with golden values at both ends of the range plus the midpoint.
+Verified by hand-mutation, with the harness calibrated first on a mutation
+known to be caught: seven killed, one survivor left, listed below.
+
+Worth recording as a shape: **arithmetic that cannot be called cannot be
+pinned with a golden value**, and a multiplier needs one. Inlining it into a
+system whose only observable output is a choice means the best any test can do
+is bound its sign.
+
+### Accepted: the sign guard's boundary
+
+```
+crates/terri-sim/src/systems/advertise.rs:59:14: replace > with >= in scaled_delta
+```
+
+`if delta > 0.0 { delta * scale } else { delta }`. The two comparisons differ
+only at `delta == 0.0`, and there both arms return `0.0` - the multiplied arm
+gives `0.0 * scale`, which is `0.0` for every finite scale, and content
+validation rejects a non-finite one. `-0.0` behaves the same way. Equivalent,
+and unkillable without inventing a distinction the type does not have.
+
+Its sibling `advertise.rs:138:18` in `score_advertisement` is the same
+comparison for the same reason and has been in the baseline since M1c; it
+moved from line 82 only because the two new functions sit above it.
+
+**A note on the baseline's format.** Entries are file:line:column, so adding
+code above a baselined mutant moves it and it reads as one entry disappearing
+and another appearing. That happened here. Whoever sees an unfamiliar entry
+should check whether it is the same mutation at a new line before treating it
+as new.
+
+  (These two entries have moved once already, 752 to 765, when the loop
+  bound below was inserted above them. A baseline entry is file:line:column,
+  so code added above a baselined mutant silently invalidates the entry and
+  the gate reports it as NEW; when that happens, the fix is to re-point the
+  entry at the same mutation's new coordinates, and the argument above
+  carries over unchanged.)
+
+### M2b follow-up: the hang the eight-way split finally named
+
+The first eight-shard run put shard 4's timeout gate to work:
+`flood_fill`'s `reached[index] ||` guard mutated to `&&` un-gates
+revisiting, and because build.rs compiles the shipped content, the mutant
+is an infinite loop in the BUILD phase - the same mutant that got the
+unsharded job and then four-shard shard 2 runner-reclaimed, finally visible
+as a named 600s Timeout once --build-timeout existed. Per the gate's own
+doctrine the loop now carries a bound: a pushed-tiles counter asserted
+against the tile count, which correct marking-before-push can never exceed.
+The mutant now dies on the assertion during the build (unviable) in
+seconds instead of hanging anything.
+
+The bound needed a witness of its own: `pushed += 1` mutated into a no-op
+left the guard comparing 1 against the tile count forever, a fresh survivor
+on the guard itself. Marking-before-push makes pushes and marked tiles the
+same events, so `flood_fill` now asserts on exit that the counter equals
+the reached-tile count, which every caller exercises - the counter mutant
+is unviable for the same build.rs reason, and nothing here needed a
+baseline entry.

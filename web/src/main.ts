@@ -11,13 +11,15 @@ import init, { SimHandle } from './wasm/terri_wasm.js';
 import { SimBridge } from './bridge.js';
 import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
-import { FixedStepDriver, buildInstances } from './frame.js';
-import { TILE_HALF_HEIGHT, TILE_HALF_WIDTH } from './render/iso.js';
+import { FixedStepDriver, buildInstances, instanceCount } from './frame.js';
+import { cameraOrigin } from './render/iso.js';
+import { SPRITES } from './render/atlas.js';
 import { buildStaticInstances } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
 import { buildTimeControls } from './ui/time-controls.js';
-import { attachPointerInput } from './input.js';
+import { ObjectMenu, createMenuSurface } from './ui/object-menu.js';
+import { attachPointerInput, dispatchMenuAction } from './input.js';
 import { KIND_AGENT } from './render/instances.js';
 
 /** [D2]: the simulation's one true rate. Speed controls change how many
@@ -39,13 +41,18 @@ const MAX_TICKS_PER_FRAME = 5;
 const START_SPEED = 1;
 
 /**
- * Where the sim starts, in tiles. Open living space, a few tiles from the
- * kitchen and well clear of the bathroom wall at x = 16.
+ * Where the sim starts, in tiles: open floor in the middle of the living
+ * room, on the five-room lot in `content/lot.toml`.
+ *
+ * The living room rather than the kitchen, even though hunger is what the sim
+ * opens with, so that the first thing the player sees is a sim WALKING
+ * somewhere. A sim that spawns beside the thing it wants starts eating before
+ * the first frame is composited, which reads as a still picture.
  *
  * The hunger is low enough to give it something to do the moment the page
  * loads, which is what makes the opening seconds worth watching.
  */
-const START_TILE = { x: 8, y: 6, hunger: 25 };
+const START_TILE = { x: 9, y: 2, hunger: 25 };
 
 /** Frames of history behind the rolling mean and p95. Four seconds at 60 Hz. */
 const FRAME_WINDOW = 240;
@@ -253,8 +260,9 @@ async function main(): Promise<void> {
   // diagnose from a rendered picture.
   const needsRoot = document.querySelector<HTMLElement>('#needs-panel');
   const speedRoot = document.querySelector<HTMLElement>('#time-controls');
-  if (!needsRoot || !speedRoot) {
-    throw new Error('missing #needs-panel or #time-controls');
+  const menuRoot = document.querySelector<HTMLElement>('#object-menu');
+  if (!needsRoot || !speedRoot || !menuRoot) {
+    throw new Error('missing #needs-panel, #time-controls or #object-menu');
   }
   const needsPanel = new NeedsPanel(
     needsRoot,
@@ -274,20 +282,27 @@ async function main(): Promise<void> {
     driver.setSpeed(ticksPerFrame);
   });
 
-  // Centre the lot's screen-space bounding box on the canvas, derived
-  // from the lot rather than hand-tuned. `screenX` spans
-  // -(h - 1) to (w - 1) tile half-widths and `screenY` spans 0 to
-  // (w - 1) + (h - 1) tile half-heights, so the two offsets below put the
-  // middle of each range in the middle of the canvas. For the shipped
-  // 24 x 18 lot that is originX 544, originY 40, and the diamond fits
-  // 1280 x 720 exactly.
+  // Centre the lot's DRAWN extent on the canvas, derived from the lot and
+  // the atlas rather than hand-tuned. Doing it by hand is how the lot ends
+  // up half off screen, which reads as a broken projection rather than as a
+  // badly placed camera.
   //
-  // Doing this by hand is how the lot ends up half off screen, which
-  // looks like a broken projection rather than a badly placed camera.
-  const originX =
-    canvas.width / 2 - ((lotWidth - lotHeight) * TILE_HALF_WIDTH) / 2;
-  const originY =
-    (canvas.height - (lotWidth + lotHeight - 2) * TILE_HALF_HEIGHT) / 2;
+  // The arithmetic is in `cameraOrigin` so it can be tested; the two things
+  // it accounts for that the obvious version missed - sprites drawing above
+  // their anchor, and `tiles.ts`'s boundary rows at -1 - are written up
+  // there, along with the measurement that caught it.
+  //
+  // The tallest sprite is read off the atlas rather than named, so adding a
+  // taller piece of furniture cannot silently push the top of the house off
+  // the canvas.
+  const tallestSprite = Math.max(...SPRITES.map((sprite) => sprite.h));
+  const { x: originX, y: originY } = cameraOrigin(
+    canvas.width,
+    canvas.height,
+    lotWidth,
+    lotHeight,
+    tallestSprite,
+  );
 
   // `worldDepth` divides by (gridSize - 1) * 2, so this has to be at
   // least (w - 1) + (h - 1) for the far corner to keep a depth inside
@@ -305,11 +320,28 @@ async function main(): Promise<void> {
   // the content pack, so what is drawn is what `find_path` refuses to
   // walk through. A sim detouring to the doorway is then legible instead
   // of looking like an AI fault.
+  // The right-click flyout. It renders simulation state and owns none of
+  // it ([D-5]): the rows come from the object's own interaction list, read
+  // across the boundary on every open, and the sim a row acts on is read
+  // when the row is picked rather than when the menu appeared.
+  //
+  // The action goes back through `dispatchMenuAction`, which sends
+  // commands like everything else - the menu is a nicer way to name a
+  // command, not a second way to reach the world. A row carries its own
+  // interaction index and `SimCommand::UseObject` carries one too, so
+  // picking row `n` runs interaction `n`; the shipped lot cannot show that
+  // off, because every object on it offers exactly one.
+  const menu = new ObjectMenu(
+    createMenuSurface(document, menuRoot),
+    (action) => dispatchMenuAction(sim, action),
+  );
+
   // Clicks, last of the wiring because it needs the camera offsets above.
-  // Left click selects a sim or directs the selected one at an object;
-  // right click hands it back to its own judgement. Every one of those is
-  // a serialised command ([D-2]) - nothing here reaches into the world.
-  attachPointerInput(canvas, sim, originX, originY);
+  // Left click selects a sim or redirects the selected one at an object,
+  // ctrl or cmd click queues instead, and right click opens the flyout.
+  // Every one of those is a serialised command ([D-2]) - nothing here
+  // reaches into the world.
+  attachPointerInput(canvas, sim, menu, menuRoot, originX, originY);
 
   const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles() };
   const staticGeometry = buildStaticInstances(lot, originX, originY, depthScale);
@@ -331,8 +363,12 @@ async function main(): Promise<void> {
     // The sim advances in whole ticks; alpha is how far this frame sits
     // between the last one that ran and the next one that has not.
     const alpha = driver.advance(deltaMs, () => sim.tick());
-    const instances = buildInstances(sim, alpha, originX, originY, depthScale);
-    renderer.draw(instances, sim.count);
+    // The selection comes from the simulation every frame rather than being
+    // remembered here ([D-5]), so the ring cannot disagree with what the need
+    // panel is showing.
+    const selected = sim.selectedIndex();
+    const instances = buildInstances(sim, alpha, originX, originY, depthScale, selected);
+    renderer.draw(instances, instanceCount(sim, selected));
 
     // Inside the sample below rather than outside it, deliberately: the
     // panel is work the frame does, and a periodic cost measured outside

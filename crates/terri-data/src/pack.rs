@@ -15,6 +15,11 @@ use terri_core::NEED_COUNT;
 /// `terri-core` must not depend on the content crate.
 pub use terri_core::ObjectDefId;
 
+/// Also defined in `terri-core` and re-exported for the same reason:
+/// `TileGrid::find_path_adjacent` takes one, so it has to live below the
+/// content crate rather than inside it.
+pub use terri_core::Footprint;
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CompiledInteraction {
     pub id: String,
@@ -24,6 +29,20 @@ pub struct CompiledInteraction {
     pub advertises: Vec<(u8, f32)>,
     pub duration_ticks: u32,
     pub slots: u8,
+    /// What the right-click flyout calls this interaction.
+    ///
+    /// Never empty and always present: the compile step falls back to the
+    /// authored `id` when `content/objects.toml` declares no `label`, and
+    /// rejects a label that is blank. So a reader may show this directly
+    /// rather than testing it, which is [D9] applied to a string - a menu
+    /// entry with no text has no representation once a pack exists.
+    ///
+    /// **Last in this struct on purpose**, for the appending reason on
+    /// [`ContentPack::lot`]: the pack's byte encoding grows by appending, so
+    /// an interaction's id, advert, duration and slot blocks keep their
+    /// offsets and the golden vector in `compile.rs` stays reviewable
+    /// against the annotations it already carries.
+    pub label: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -39,6 +58,24 @@ pub struct CompiledObject {
     /// has no representation.
     pub sprite: u32,
     pub interactions: Vec<CompiledInteraction>,
+    /// The tiles this object occupies, running +x and +y from whatever tile
+    /// a placement puts it on. 1x1 unless `content/objects.toml` says
+    /// otherwise.
+    ///
+    /// Post-validation like everything else here: `compile` rejects a zero
+    /// dimension, a rectangle that leaves the lot or crosses a wall, two
+    /// rectangles that overlap, and an object nothing can walk up to. A
+    /// reader may assume all of that rather than re-check it, which is what
+    /// lets `Sim::new_from_lot` block these tiles without a bounds test.
+    ///
+    /// **Last in this struct on purpose**, for the appending reason on
+    /// [`ContentPack::lot`]: the pack's byte encoding grows by appending, so
+    /// an object's sprite and interaction blocks keep their offsets and the
+    /// golden vector in `compile.rs` stays reviewable against the
+    /// annotations it already carries. It is deliberately NOT grouped beside
+    /// `sprite`, which would also be the wrong signal: [F1] exists to keep
+    /// the drawn width and the occupied width separate facts.
+    pub footprint: Footprint,
 }
 
 /// One object, placed on the lot.
@@ -118,6 +155,16 @@ pub struct Tuning {
     /// to walk would spin rather than fail, and a hang is a much weaker
     /// signal than an assertion ([L15]).
     pub wander_attempts: u32,
+    /// How much one completed interaction raises this sim's habituation to
+    /// it, in `0.0..=1.0`. Zero disables the mechanic.
+    pub habituation_per_use: f32,
+    /// How much every habituation entry decays each tick. Strictly
+    /// positive, or habituation would be a one-way ratchet.
+    pub habituation_decay_per_tick: f32,
+    /// The multiplier a fully habituated interaction's benefit is reduced
+    /// to. In `(0, 1]`; 1 disables the effect, and 0 is rejected because
+    /// it would make an interaction permanently worthless.
+    pub habituation_floor: f32,
     /// Fraction either side of an interaction's content duration within
     /// which the real duration is sampled. In `[0, 1)`.
     pub duration_variance: f32,
@@ -222,6 +269,10 @@ mod tests {
             advertises: vec![(0, 35.0), (6, 5.0)],
             duration_ticks: 15,
             slots: 1,
+            // Deliberately not the id and not a substring of it, so the
+            // postcard round-trip below can see a label dropped from the
+            // encoding or read off the `id` slot ([L34]).
+            label: "Use it, then".to_string(),
         }
     }
 
@@ -261,6 +312,9 @@ mod tests {
             wander_pause_ticks: 9,
             wander_attempts: 6,
             duration_variance: 0.75,
+            habituation_per_use: 0.3125,
+            habituation_decay_per_tick: 0.0025,
+            habituation_floor: 0.625,
             min_interaction_ticks: 3,
             rng_seed: 300,
             max_queued_intents: 7,
@@ -283,6 +337,16 @@ mod tests {
                     name: id.to_uppercase(),
                     sprite: (i as u32) + 4,
                     interactions: vec![interaction("use_it")],
+                    // A different rectangle per object, none of them square
+                    // and none of them 1x1 twice, so the postcard round-trip
+                    // below can see a footprint dropped from the encoding, a
+                    // width and depth transposed, or every object handed the
+                    // first one's rectangle. This pack is never validated
+                    // against a lot, so the tiles need not fit anywhere.
+                    footprint: Footprint {
+                        width: (i as u32) + 1,
+                        depth: (i as u32) + 3,
+                    },
                 })
                 .collect(),
             sim_sprite: 1,
