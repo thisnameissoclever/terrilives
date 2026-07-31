@@ -747,6 +747,19 @@ fn flood_fill(
     let mut stack = vec![root];
     reached[index_of(root.0, root.1)] = true;
 
+    // Every push marks its tile reached first, so correct code pushes each
+    // tile at most once and this counter can never pass the tile count.
+    // The bound exists because this loop RUNS INSIDE THE BUILD: build.rs
+    // compiles the shipped content, so an unbounded revisit here is not a
+    // slow test but a build that never returns. Exactly that happened -
+    // mutating the `reached[index] ||` guard below into `&&` un-gates
+    // revisits, and the mutant burned a full CI build-timeout (and, before
+    // that timeout existed, entire runner-reclaimed jobs) instead of
+    // failing anything. A hang is always a weaker signal than an assertion
+    // ([L15] rule 4), so the loop carries its own bound, the same shape as
+    // SimRng::draw_below_bound and roll_wander_path.
+    let mut pushed = 1usize;
+
     while let Some((x, y)) = stack.pop() {
         for (dx, dy) in [(1i64, 0i64), (-1, 0), (0, 1), (0, -1)] {
             let (nx, ny) = (x as i64 + dx, y as i64 + dy);
@@ -759,9 +772,30 @@ fn flood_fill(
                 continue;
             }
             reached[index] = true;
+            pushed += 1;
+            assert!(
+                pushed <= reached.len(),
+                "flood_fill pushed more tiles than the lot holds; a tile \
+                 is being revisited, which marking-before-push makes \
+                 impossible in correct code"
+            );
             stack.push(next);
         }
     }
+
+    // The counter is the bound's only witness, so it must be observable on
+    // CORRECT runs too: without this, `pushed += 1` mutated into a no-op
+    // (`*= 1`) leaves the bound above comparing 1 against the tile count
+    // forever - a guard that can be silently disabled is behaviour nothing
+    // constrains, which is the exact disease the mutation gate exists to
+    // catch. Marking-before-push makes pushes and marked tiles the same
+    // events, so the two counts are equal by construction, and any drift
+    // in the counter's arithmetic fails every test that reaches here.
+    assert_eq!(
+        pushed,
+        reached.iter().filter(|r| **r).count(),
+        "flood_fill's push counter disagrees with the reached bitmap"
+    );
 
     reached
 }

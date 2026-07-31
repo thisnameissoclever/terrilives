@@ -1117,8 +1117,8 @@ list. Four were killed; two were accepted, and the argument is below.
 ### Accepted, with the argument
 
 ```
-crates/terri-data/src/compile.rs:752:38: replace + with - in flood_fill
-crates/terri-data/src/compile.rs:752:53: replace + with - in flood_fill
+crates/terri-data/src/compile.rs:765:38: replace + with - in flood_fill
+crates/terri-data/src/compile.rs:765:53: replace + with - in flood_fill
 ```
 
 **Genuinely equivalent mutants.** The line is
@@ -1207,3 +1207,31 @@ code above a baselined mutant moves it and it reads as one entry disappearing
 and another appearing. That happened here. Whoever sees an unfamiliar entry
 should check whether it is the same mutation at a new line before treating it
 as new.
+
+  (These two entries have moved once already, 752 to 765, when the loop
+  bound below was inserted above them. A baseline entry is file:line:column,
+  so code added above a baselined mutant silently invalidates the entry and
+  the gate reports it as NEW; when that happens, the fix is to re-point the
+  entry at the same mutation's new coordinates, and the argument above
+  carries over unchanged.)
+
+### M2b follow-up: the hang the eight-way split finally named
+
+The first eight-shard run put shard 4's timeout gate to work:
+`flood_fill`'s `reached[index] ||` guard mutated to `&&` un-gates
+revisiting, and because build.rs compiles the shipped content, the mutant
+is an infinite loop in the BUILD phase - the same mutant that got the
+unsharded job and then four-shard shard 2 runner-reclaimed, finally visible
+as a named 600s Timeout once --build-timeout existed. Per the gate's own
+doctrine the loop now carries a bound: a pushed-tiles counter asserted
+against the tile count, which correct marking-before-push can never exceed.
+The mutant now dies on the assertion during the build (unviable) in
+seconds instead of hanging anything.
+
+The bound needed a witness of its own: `pushed += 1` mutated into a no-op
+left the guard comparing 1 against the tile count forever, a fresh survivor
+on the guard itself. Marking-before-push makes pushes and marked tiles the
+same events, so `flood_fill` now asserts on exit that the counter equals
+the reached-tile count, which every caller exercises - the counter mutant
+is unviable for the same build.rs reason, and nothing here needed a
+baseline entry.
