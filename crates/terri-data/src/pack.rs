@@ -133,8 +133,8 @@ impl CompiledLot {
 /// that would divide by zero or make a sim wander while something is
 /// worth doing has no representation once a pack exists.
 ///
-/// `Copy` because it is eleven scalars and every system that reads a knob
-/// reads it through a `&ContentPack` it does not own.
+/// `Copy` because it is a handful of scalars and every system that reads
+/// a knob reads it through a `&ContentPack` it does not own.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Tuning {
     /// Below this score, an option is not worth doing at all.
@@ -214,11 +214,31 @@ pub struct Tuning {
     /// an exception for the shell. `content/tuning.toml` carries why 100
     /// is matched to the tick rate rather than to the display.
     ///
-    /// **Last in this struct on purpose**, for the appending reason
-    /// above: the pack's byte encoding grows by appending, so every
-    /// earlier block keeps its offset and the golden vector in
-    /// `compile.rs` stays reviewable against the annotations it has.
+    /// It was last in this struct until the relationship trio arrived;
+    /// they are last now, for the appending reason above: the pack's
+    /// byte encoding grows by appending, so every earlier block keeps
+    /// its offset and the golden vector in `compile.rs` stays
+    /// reviewable against the annotations it has.
     pub need_bar_refresh_ms: u32,
+    /// How much one completed social interaction raises EACH
+    /// participant's relationship toward the other, in `0.0..=1.0`.
+    /// Zero disables the mechanic - the same contract as
+    /// `habituation_per_use`.
+    pub relationship_gain_per_talk: f32,
+    /// How much every relationship drifts toward zero each tick.
+    /// Strictly positive, or a relationship would be a one-way ratchet -
+    /// the rule `habituation_decay_per_tick` carries, for the same
+    /// reason.
+    pub relationship_decay_per_tick: f32,
+    /// How strongly a relationship scales a social advert's benefit:
+    /// the multiplier is `1 + relationship * scale`. With relationships
+    /// clamped to `-1..=1`, a scale in `0.0..=1.0` keeps the multiplier
+    /// in `[1 - scale, 1 + scale]` and therefore never negative, which
+    /// is what stops a hated sim's talk turning from "worthless" into
+    /// "actively repellent benefit-turned-cost" behind nobody's
+    /// decision. Zero disables the effect. **Last in this struct on
+    /// purpose**, per the appending rule.
+    pub relationship_delta_scale: f32,
 }
 
 /// One personality archetype, compiled - [H3].
@@ -285,8 +305,23 @@ pub struct ContentPack {
     /// `Sim::new_from_shipped_lot` calls after placing the furniture - and
     /// the order is what fixes each member's `SimId`: the first sim in the
     /// file is SimId 0 for as long as nobody is born or dies before load
-    /// finishes.
+    /// finishes. It was last in this struct until `social` arrived.
     pub household: Vec<CompiledHouseholdMember>,
+    /// The interactions every sim advertises to other sims - [H4]/[H6].
+    ///
+    /// The same compiled shape as an object's interactions, indexed the
+    /// same way (`Target::interaction` is an index into this list when
+    /// the target is a sim), because a talk IS an interaction with a
+    /// person where the fridge would be. Selection scales its benefits
+    /// by the initiator's relationship toward the target; nothing here
+    /// is per-sim, and per-sim variation enters through personality and
+    /// relationships rather than through the vocabulary.
+    ///
+    /// May be empty in a test pack; the shipped pack is required to
+    /// carry at least one positively social entry by
+    /// `the_shipped_pack_gives_sims_a_way_to_talk`. **Last in this
+    /// struct on purpose**, per the appending rule on `lot`.
+    pub social: Vec<CompiledInteraction>,
 }
 
 impl ContentPack {
@@ -366,6 +401,9 @@ mod tests {
             max_queued_intents: 7,
             max_queued_commands: 11,
             need_bar_refresh_ms: 13,
+            relationship_gain_per_talk: 0.15,
+            relationship_decay_per_tick: 0.00001,
+            relationship_delta_scale: 0.5,
         }
     }
 
@@ -414,6 +452,16 @@ mod tests {
                 x: 4.5,
                 y: 3.25,
                 needs: [62.5, 100.0, 87.5, 93.75, 100.0, 81.25, 96.875],
+            }],
+            // A different id, duration and slot count from the object
+            // interaction above, so the round trip can see the social
+            // list written into the objects' slot or vice versa.
+            social: vec![CompiledInteraction {
+                id: "chat".to_string(),
+                advertises: vec![(4, 30.0), (5, 6.0)],
+                duration_ticks: 40,
+                slots: 2,
+                label: "Compare complaints".to_string(),
             }],
         }
     }

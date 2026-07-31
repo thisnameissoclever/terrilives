@@ -192,6 +192,14 @@ pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static Cont
         // fixture household is whatever the test spawns.
         personalities: Vec::new(),
         household: Vec::new(),
+        // Empty, the same call as the household above and for the same
+        // reason: the social vocabulary makes every OTHER sim a
+        // candidate, so a fixture pack that silently carried the shipped
+        // "chat" would let two-agent contention fixtures start choosing
+        // each other - candidates nobody's assertions account for. A
+        // test about sims talking installs a vocabulary explicitly, the
+        // way a test about an object spawns the object.
+        social: Vec::new(),
     }))
 }
 
