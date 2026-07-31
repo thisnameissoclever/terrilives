@@ -70,7 +70,7 @@ export interface StaticGeometry {
  * a T-junction existed. `content/lot.toml`'s spine runs east-west and
  * three of its tiles carry a north-south divider hanging off them; all
  * three took the north-south panel. Found by looking at a PNG of the
- * running game, not by a test. [L52].
+ * running game, not by a test. [L53].
  *
  * The SECOND was to draw BOTH panels at such a tile, on the reasoning
  * that a 32 px panel on a 64 px tile leaves room for two. **That

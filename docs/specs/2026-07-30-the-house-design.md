@@ -137,7 +137,7 @@ a table. Whoever wants a rug owns that change.
 ## [B5] A wall tile at a junction takes the orientation of the run that passes through it
 
 **Got wrong twice, and the second wrong version looked like it worked.** Worth
-recording in full because the failure mode is general; [L52] is the short form.
+recording in full because the failure mode is general; [L53] is the short form.
 
 `wallOrientation` picks one of two sprites per wall tile: north-south if the
 tile has a wall neighbour on the y axis, east-west otherwise.

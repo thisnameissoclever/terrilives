@@ -1632,7 +1632,7 @@ mod boundary_tests {
         //
         // The live object is asserted non-empty in the same test, so
         // "returns empty" cannot be satisfied by an export that returns
-        // empty for everything - the [L50] rule, one must-be-positive case
+        // empty for everything - the [L51] rule, one must-be-positive case
         // beside the must-be-negative ones.
         let mut handle = SimHandle::new(16, 16);
         assert!(handle.spawn_object(2.0, 2.0, "fridge"));
