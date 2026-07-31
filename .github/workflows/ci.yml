@@ -95,13 +95,21 @@ jobs:
   # grew past an hour, and GitHub's hosted runners killed it three times in
   # a row mid-sweep with "The runner has received a shutdown signal" - at
   # 35, 36 and 72 minutes, so it is capacity reclaim rather than a limit a
-  # timeout setting could dodge. Four shards each run a quarter of the
-  # mutants (roughly 20 minutes), which fits inside the window the runner
-  # reliably survives, and a reclaimed shard costs one quarter of the sweep
-  # to retry rather than all of it.
+  # timeout setting could dodge.
+  #
+  # EIGHT shards, not the four this started with, and the count is a
+  # measurement rather than a preference. At four, shards 0, 1 and 3 ran
+  # 6 to 9 minutes while shard 2 ran 24 and then 64 minutes and was
+  # reclaimed both times: a shard's COST is lumpy even when its COUNT is
+  # even, because a mutant in a widely-depended-on file forces a large
+  # incremental rebuild while a mutant in a leaf test file costs a second,
+  # and the deterministic hash happened to pile the expensive cluster into
+  # one shard. Eight ways splits that cluster and keeps every shard inside
+  # the window the runner reliably survives; a reclaimed shard costs an
+  # eighth of the sweep to retry rather than all of it.
   #
   # cargo-mutants assigns mutants to shards by a deterministic hash, so the
-  # union of the four shards is exactly the full sweep and nothing is
+  # union of the eight shards is exactly the full sweep and nothing is
   # tested twice.
   mutants:
     runs-on: ubuntu-latest
@@ -109,7 +117,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3]
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
     steps:
       - uses: actions/checkout@v4
       - name: Install the pinned toolchain
@@ -119,12 +127,18 @@ jobs:
       # cargo-mutants exits 2 whenever any mutant survives, so its exit
       # code cannot be the signal for a no-new-survivors gate. The
       # comparison in the next step is.
-      - name: Mutation sweep (shard ${{ matrix.shard }} of 4)
+      # --build-timeout bounds the phase --timeout does not: --timeout caps
+      # a mutant's TEST run, and both of shard 2's reclaimed attempts died
+      # in phase=Build, where nothing bounded a compile at all. Ten minutes
+      # is far above any legitimate incremental rebuild here and far below
+      # the reclaim horizon, so a pathological build costs ten minutes and
+      # a named Timeout instead of the whole job.
+      - name: Mutation sweep (shard ${{ matrix.shard }} of 8)
         run: |
           cargo mutants --package terri-core --package terri-sim \
             --package terri-data --package terri-wasm \
-            --test-workspace true --timeout 60 \
-            --shard ${{ matrix.shard }}/4 || true
+            --test-workspace true --timeout 60 --build-timeout 600 \
+            --shard ${{ matrix.shard }}/8 || true
       # Per shard, "no new survivors" composes: each shard's missed set
       # must be a subset of the baseline, and a union of subsets is a
       # subset, so four green shards mean exactly what one green full
@@ -155,7 +169,7 @@ jobs:
             exit 1
           fi
 
-          echo "No new survivors in shard ${{ matrix.shard }}."
+          echo "No new survivors in shard ${{ matrix.shard }} of 8."
 
       # The step above reads missed.txt, so it is blind to a mutant that
       # HANGS: a timeout is neither caught nor a survivor, it lands in

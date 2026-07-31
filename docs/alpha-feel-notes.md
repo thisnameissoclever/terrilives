@@ -875,7 +875,7 @@ a scaling error - at 59 x 60 it is proportioned like what it is, a TV cabinet
 rather than a screen. That is an asset-choice problem and no projection change
 will fix it.
 
-### [A-7] The visual verification, done densely - and the instrument that nearly lied
+### [A-7] The visual verification, done densely - and the instruments that nearly lied
 
 [A-5] above said the geometry was verified but that "whether the room reads as a
 room needs eyes on a composited frame". Part of that was too pessimistic: the
