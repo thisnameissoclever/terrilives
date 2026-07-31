@@ -1,4 +1,39 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { defineConfig } from 'vite';
+
+/**
+ * Self-signed TLS for the PREVIEW server, when the material exists.
+ *
+ * WebGPU only exists in secure contexts - https, or localhost - so the
+ * dev build that runs perfectly at http://localhost:5173 renders a
+ * void from any other device's plain-http address. The preview server
+ * (`npm run build && npm run preview`, port 4173) therefore serves the
+ * built bundle over https for phones and other machines, while the dev
+ * server stays plain http so localhost tooling never fights a
+ * certificate interstitial.
+ *
+ * The material is deliberately optional and gitignored: a fresh clone
+ * works without it (preview simply serves http, fine on localhost),
+ * and a private key never enters history even a throwaway one.
+ * Regenerate with:
+ *
+ *   openssl req -x509 -newkey rsa:2048 -sha256 -days 825 -nodes \
+ *     -keyout web/.cert/key.pem -out web/.cert/cert.pem \
+ *     -subj "//CN=terrilives-dev" \
+ *     -addext "subjectAltName=DNS:localhost,IP:127.0.0.1,IP:<your LAN IP>"
+ *
+ * Visiting browsers show a one-time "connection not private" warning
+ * for a self-signed certificate; proceeding past it still counts as a
+ * secure context, which is all WebGPU asks.
+ */
+const certDir = path.resolve(__dirname, '.cert');
+const https = fs.existsSync(path.join(certDir, 'cert.pem'))
+  ? {
+      key: fs.readFileSync(path.join(certDir, 'key.pem')),
+      cert: fs.readFileSync(path.join(certDir, 'cert.pem')),
+    }
+  : undefined;
 
 export default defineConfig({
   // Relative asset URLs, so the build works from any path. GitHub Pages
@@ -30,8 +65,11 @@ export default defineConfig({
   },
   preview: {
     // Same LAN exposure for `npm run preview`, which serves the built
-    // bundle on 4173 - the closer-to-shipping check a phone should be
-    // able to reach for the same reason the dev server is.
+    // bundle on 4173 - and over https when the local cert material
+    // exists, because that is the server phones are pointed at and
+    // WebGPU does not exist for them on plain http. See the note on
+    // `https` above.
     host: true,
+    https,
   },
 });

@@ -11,3 +11,7 @@ mutants.out/
 mutants.out.old/
 assets/vendor/
 .vs/
+# Local self-signed TLS material for LAN HTTPS. Private keys never
+# enter history, even throwaway dev ones - regenerate with the openssl
+# one-liner in web/vite.config.ts.
+web/.cert/

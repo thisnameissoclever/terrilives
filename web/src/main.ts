@@ -17,6 +17,7 @@ import { SPRITES } from './render/atlas.js';
 import { buildStaticInstances } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
+import { describeStartupFailure, renderStartupFailure } from './ui/startup-failure.js';
 import { buildTimeControls } from './ui/time-controls.js';
 import { ObjectMenu, createMenuSurface } from './ui/object-menu.js';
 import { attachPointerInput, dispatchMenuAction } from './input.js';
@@ -406,9 +407,21 @@ async function main(): Promise<void> {
   requestAnimationFrame(loop);
 }
 
-// Surfaced rather than swallowed: initDevice throws a distinct message
-// for each way WebGPU can be unavailable, and a blank canvas is otherwise
-// indistinguishable between them.
+// Surfaced rather than swallowed, ON SCREEN as well as in the console:
+// initDevice throws a distinct message for each way WebGPU can be
+// unavailable, and a blank canvas is otherwise indistinguishable between
+// them. The console line alone turned out to be swallowing it for the
+// audience that matters - a player on another device saw a dark void
+// with one floating pause button, because http:// over the LAN is not a
+// secure context and WebGPU never existed there. The card names that
+// case in words a player can act on.
 void main().catch((error: unknown) => {
   console.error('terrilives failed to start:', error);
+  renderStartupFailure(
+    describeStartupFailure(error, {
+      webgpu: 'gpu' in navigator && navigator.gpu !== undefined,
+      secure: window.isSecureContext,
+    }),
+    document.body,
+  );
 });
