@@ -102,6 +102,10 @@ impl Sim {
         world.register_component::<terri_core::SimId>();
         world.register_component::<terri_core::SimName>();
         world.register_component::<terri_core::Personality>();
+        // M2d's, and it is in `world_hash`'s query, so [L3] bites the way
+        // it does for Habituation: unregistered, the digest goes EMPTY
+        // rather than wrong, and empty compares equal to empty.
+        world.register_component::<terri_core::Relationships>();
         // The identity counter - [H1]. From construction rather than on
         // first spawn, so a save file can restore it before any sim exists.
         world.insert_resource(terri_core::SimIdAllocator::default());
@@ -558,7 +562,7 @@ impl Sim {
     /// first, because ECS iteration order is an implementation detail and
     /// must not affect the result.
     pub fn world_hash(&self) -> u64 {
-        use terri_core::{Habituation, Needs, Position, NEED_COUNT};
+        use terri_core::{Habituation, Needs, Position, Relationships, SimId, NEED_COUNT};
 
         let mut hasher = terri_core::FnvHasher::default();
         hasher.write_u64(self.world.resource::<SimClock>().tick);
@@ -581,26 +585,50 @@ impl Sim {
         // prevent. Its entries are a sorted `Vec`, so hashing them in order is
         // reproducible; see `Habituation`'s own note on why that container.
         //
-        // **`Personality`, `SimId` and `SimName` are deliberately NOT in the
+        // **`Relationships` and `SimId` are in the digest, as of M2d.**
+        // Relationships change what a sim chooses - the same argument that
+        // put habituation in - and they are keyed on `SimId`, so the key
+        // space enters with them exactly as the M2c exclusion note
+        // promised: a digest carrying "SimId 3 likes SimId 5" without
+        // carrying which sim IS SimId 3 would let two differently-labelled
+        // worlds hash identically.
+        //
+        // **`Personality` and `SimName` are deliberately NOT in the
         // digest, each for its own reason.** `SimName` is presentation: a
-        // rename must not diverge a replay. `SimId` duplicates the entity
-        // index for as long as nothing dies, and enters the digest the day
-        // relationships do, keyed on it. `Personality` DOES change what a sim
-        // chooses - the same argument that put habituation in - and is
-        // excluded anyway because today it is static: derived from content at
-        // spawn and never written afterwards, so two replays from one pack
-        // cannot disagree about it, and digesting it would only restate the
-        // content. That argument EXPIRES the moment anything mutates a
-        // personality at runtime - M2e's traits are the scheduled arrival -
-        // and whoever writes the first mutation owns adding all three fields
-        // to this digest and re-measuring both golden vectors.
-        type Row = (u32, f32, f32, [f32; NEED_COUNT], Vec<(u32, u32, f32)>);
+        // rename must not diverge a replay. `Personality` DOES change what
+        // a sim chooses and is excluded anyway because today it is static:
+        // derived from content at spawn and never written afterwards, so
+        // two replays from one pack cannot disagree about it, and
+        // digesting it would only restate the content. That argument
+        // EXPIRES the moment anything mutates a personality at runtime -
+        // M2e's traits are the scheduled arrival - and whoever writes the
+        // first mutation owns adding it to this digest and re-measuring
+        // both golden vectors.
+        //
+        // NO_SIM_ID is in-band the way NO_NEEDS is, and safer: `SimId`
+        // wraps a u32 allocated monotonically from 0, so u64::MAX is
+        // unreachable by construction rather than merely unclamped.
+        const NO_SIM_ID: u64 = u64::MAX;
+        type Row = (
+            u32,
+            f32,
+            f32,
+            [f32; NEED_COUNT],
+            Vec<(u32, u32, f32)>,
+            u64,
+            Vec<(u32, f32)>,
+        );
         let mut rows: Vec<Row> = Vec::new();
-        if let Some(mut state) = self
-            .world
-            .try_query::<(Entity, &Position, Option<&Needs>, Option<&Habituation>)>()
-        {
-            for (entity, pos, needs, habituation) in state.iter(&self.world) {
+        if let Some(mut state) = self.world.try_query::<(
+            Entity,
+            &Position,
+            Option<&Needs>,
+            Option<&Habituation>,
+            Option<&SimId>,
+            Option<&Relationships>,
+        )>() {
+            for (entity, pos, needs, habituation, sim_id, relationships) in state.iter(&self.world)
+            {
                 // The sentinel is in-band, so a real level equal to it
                 // would hash as if the component were absent. `Needs`
                 // holds a private array and every mutator clamps to
@@ -626,16 +654,34 @@ impl Sim {
                         .map(|(object, interaction, value)| (object.0, *interaction, *value))
                         .collect()
                 });
-                rows.push((entity.index_u32(), pos.x, pos.y, levels, hab));
+                // Flattened for `ObjectDefId`'s reason applied to `SimId`,
+                // and empty-for-absent for `Habituation`'s: a sim who has
+                // met nobody and a sim whose feelings have all decayed
+                // away behave identically, so they hash identically.
+                let rel: Vec<(u32, f32)> = relationships.map_or_else(Vec::new, |r| {
+                    r.entries()
+                        .iter()
+                        .map(|(other, feeling)| (other.0, *feeling))
+                        .collect()
+                });
+                rows.push((
+                    entity.index_u32(),
+                    pos.x,
+                    pos.y,
+                    levels,
+                    hab,
+                    sim_id.map_or(NO_SIM_ID, |id| id.0 as u64),
+                    rel,
+                ));
             }
         }
         // The sort is load-bearing: query iteration is archetype order,
         // not entity order, and archetype order shifts as components are
         // added and removed. `hash_ignores_archetype_layout_and_entity_history`
         // is what pins it; deleting this line must fail that test.
-        rows.sort_by_key(|(index, _, _, _, _)| *index);
+        rows.sort_by_key(|(index, ..)| *index);
 
-        for (index, x, y, levels, habituation) in rows {
+        for (index, x, y, levels, habituation, sim_id, relationships) in rows {
             hasher.write_u64(index as u64);
             hasher.write_f32(x);
             hasher.write_f32(y);
@@ -652,6 +698,13 @@ impl Sim {
                 hasher.write_u64(object as u64);
                 hasher.write_u64(interaction as u64);
                 hasher.write_f32(value);
+            }
+            hasher.write_u64(sim_id);
+            // Length-prefixed for the same aliasing reason as habituation.
+            hasher.write_u64(relationships.len() as u64);
+            for (other, feeling) in relationships {
+                hasher.write_u64(other as u64);
+                hasher.write_f32(feeling);
             }
         }
 
@@ -1430,6 +1483,65 @@ mod determinism_tests {
     }
 
     #[test]
+    fn hash_observes_relationships_and_sim_ids() {
+        use terri_core::{Relationships, SimId};
+
+        // The same frozen-world shape as
+        // `hash_observes_entity_state_not_only_the_clock`, for the same
+        // reason: nothing ticks, so the only term that can move the
+        // digest is the one this test moves.
+        let mut sim = build_scenario();
+        let baseline = sim.world_hash();
+        let agent = lowest_indexed_agent(&sim);
+
+        // A feeling forms: the digest must move. Restoring an EMPTY
+        // component must restore it - a sim who has met nobody and a sim
+        // carrying no component behave identically, so they must hash
+        // identically, or the digest depends on archaeology.
+        let mut warm = Relationships::default();
+        warm.bump(SimId(7), 0.5);
+        sim.world_mut().entity_mut(agent).insert(warm);
+        let with_feeling = sim.world_hash();
+        assert_ne!(baseline, with_feeling, "world_hash ignores Relationships");
+        sim.world_mut()
+            .entity_mut(agent)
+            .insert(Relationships::default());
+        assert_eq!(
+            baseline,
+            sim.world_hash(),
+            "an empty Relationships must hash exactly like no component"
+        );
+
+        // WHO the feeling is about is part of the state, not only that
+        // one exists - two sims warm toward different people must not
+        // collide.
+        let mut warm_to_other = Relationships::default();
+        warm_to_other.bump(SimId(8), 0.5);
+        sim.world_mut().entity_mut(agent).insert(warm_to_other);
+        assert_ne!(
+            with_feeling,
+            sim.world_hash(),
+            "world_hash ignores WHO a relationship points at"
+        );
+        sim.world_mut().entity_mut(agent).remove::<Relationships>();
+        assert_eq!(baseline, sim.world_hash());
+
+        // And the key space itself: the same world with a different
+        // SimId on one sim is a different world, per the M2c exclusion
+        // note's promise that ids enter the digest the day relationships
+        // do.
+        sim.world_mut().entity_mut(agent).insert(SimId(41));
+        let labelled = sim.world_hash();
+        assert_ne!(baseline, labelled, "world_hash ignores SimId");
+        sim.world_mut().entity_mut(agent).insert(SimId(42));
+        assert_ne!(
+            labelled,
+            sim.world_hash(),
+            "world_hash ignores WHICH SimId a sim carries"
+        );
+    }
+
+    #[test]
     fn hash_observes_entity_state_not_only_the_clock() {
         // The other tests all move the clock, and world_hash writes the
         // clock as well as the entity rows, so a digest difference there
@@ -1793,11 +1905,25 @@ mod determinism_tests {
         // to content it does not use; see [L36] for what that insensitivity
         // has already hidden once.
         //
+        // **M2d moved it by ENCODING, not behaviour: the digest gained two
+        // columns.** Every row now carries a SimId (the in-band
+        // `u64::MAX` sentinel here, since `build_scenario` spawns plain
+        // agents with no identity) and a length-prefixed relationships
+        // list (empty here - nobody has met anybody). Both are written
+        // for every entity whether populated or not, which is exactly why
+        // the vector moved with zero sims and zero feelings in the
+        // fixture: the SHAPE is the published format, per the same
+        // decision that fixed all seven need columns while only hunger
+        // decayed. Nothing about what the eight agents do changed;
+        // `identical_scenarios_produce_identical_world_hashes` and every
+        // behavioural test passed untouched across this move.
+        //
         // Read off the wasm32 failure after a rebuild per [L13] rather than
         // copied from native - the two agree, which is a measurement each
-        // time. Previous values: 0xFB84_8515_2C59_2AD8 (habituation),
-        // 0xCB2C_8122_2251_D840 before that.
-        const GOLDEN: u64 = 0x7E3F_CBE2_7849_036C;
+        // time. Previous values: 0x7E3F_CBE2_7849_036C (M2c era),
+        // 0xFB84_8515_2C59_2AD8 (habituation), 0xCB2C_8122_2251_D840
+        // before that.
+        const GOLDEN: u64 = 0xABD8_02C9_5586_2654;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

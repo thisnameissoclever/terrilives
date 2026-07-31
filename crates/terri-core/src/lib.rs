@@ -18,8 +18,8 @@ pub use bevy_ecs::prelude::Entity;
 pub use clock::{SimClock, TICKS_PER_SIM_HOUR, TICK_HZ};
 pub use command::{CommandQueue, SimCommand};
 pub use components::{
-    Agent, Eating, Habituation, Intent, IntentQueue, Path, Personality, Position, Reserved,
-    Restless, Selected, SimId, SimIdAllocator, SimName, SmartObject, Target, Wander,
+    Agent, Eating, Habituation, Intent, IntentQueue, Path, Personality, Position, Relationships,
+    Reserved, Restless, Selected, SimId, SimIdAllocator, SimName, SmartObject, Target, Wander,
 };
 pub use grid::{Footprint, TileGrid};
 pub use hash::FnvHasher;
