@@ -177,6 +177,49 @@ duration_variance = 0.4
 # for the bookshelf in [C6].
 min_interaction_ticks = 12
 
+# How much of its score an object somebody else is using keeps.
+#
+# [C3] made a contested object visible to a sim again, so that being
+# beaten to something stopped being reported as "nothing here is worth
+# wanting". This knob decides what the sim does about it, and it does
+# exactly one thing: it sets HOW BADLY A SIM MUST WANT A CONTESTED OBJECT
+# BEFORE IT WILL STAND AND WAIT rather than stroll off. It never changes
+# what a sim DOES, because a contested object is never a candidate at any
+# value of this - only whether the sim stands still.
+#
+# A sim waits when `contested_score * this > idle_threshold`, so the raw
+# score at which waiting begins is `idle_threshold / this`. At 0.04 and
+# 0.75 that is 0.053, just above action_threshold, which is the design
+# stance in one line: ANYTHING A SIM WOULD HAVE ACTED ON, IT WILL WAIT
+# FOR. The band in which it wants a contested object and abandons it
+# anyway is only 0.04 to 0.053.
+#
+# **THIS NUMBER IS A PRIORI AND UNMEASURED**, unlike the knobs the M1c
+# feel pass tuned, and it is the only one in this file that is. No trace
+# can produce it yet: the knob has no effect below two sims and the
+# shipped page spawns one. What is behind it is arithmetic against
+# measured quantities. From docs/alpha-feel-notes.md [F3] the shipped
+# lot's decisions span scores of 0.059 to 0.276; from [F4] the best
+# AVAILABLE score is clipped from above at action_threshold, because a
+# sim acts the instant anything crosses it - but a contested object's
+# score is NOT clipped that way and keeps climbing while the sim waits.
+# So a 0.053 bar sits inside the real range rather than above it.
+#
+# **Before this knob existed the behaviour was this value pinned at 1.0**,
+# so every outbid sim waited however little it wanted the thing. The cost
+# of a value near the top is that it largely keeps the standing-still
+# problem [F4] was written about. What bounds it is content: eight objects
+# on the shipped lot means a blocked sim usually has something else above
+# action_threshold and acts instead. The freeze needs EVERY alternative to
+# be below the bar, which is why the eight-agent one-object reference
+# scenario in crates/terri-sim/src/lib.rs is its worst case.
+#
+# Replace this with a measurement rather than another guess. The trace
+# that settles it is the [O1] harness against a lot with two or more sims,
+# reporting the distribution of contested scores and the share of ticks
+# spent waiting.
+contested_score_multiplier = 0.75
+
 # HABITUATION - [S2]. Doing the same thing repeatedly makes it worth less.
 #
 # The psychological term for a diminished response to a repeated stimulus, and

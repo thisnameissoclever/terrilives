@@ -246,11 +246,27 @@ The first is now literally true: the fridge is a row in a TOML file, and
 nothing outside `content/` and the test fixtures names it at all - M1b's
 `Sim::new_from_lot` reads `content/lot.toml` and spawns whatever it says, so
 even the placement is content. No simulation code knows the word. **The second
-is still a design claim.** `select_action` scans every unreserved object every
+is still a design claim.** `select_action` scans **every** object every
 tick; [A7]'s uniform grid is not built, and until it is, selection is
 O(agents x objects). That is fine at M1's one lot and is exactly the thing
 [D3]'s scale target breaks, so it is tracked as work for M3 rather than as a
 property the code already has.
+
+Reserved objects are scanned rather than filtered out because an agent has to be
+able to SEE a thing somebody else is using, or it cannot tell "beaten to it"
+from "nothing here at all" - and it was getting the second answer ([C3]). It
+still cannot be given one: a contested object is scored but never enters the
+draw. What the agent does about it is `contested_score_multiplier`, which
+attenuates the score a contested object contributes, so a sim that badly wants
+the thing stands and waits while one that barely wants it strolls off. The
+`Blocked` marker records that an agent's best option is somebody else's; it can
+be set alongside `Restless`, and that pair means "wanted it, not enough to
+wait". Nothing reads `Blocked` yet - the intended readers are the selection UI
+and a local wander for blocked sims. See [L56] for how this arrived twice.
+
+The cost is one extra path search per reserved object per idle agent per tick,
+which is nothing at eight objects and is part of what the M3 work above has to
+address.
 
 **The travel term is wall-aware, and that is a commitment rather than an
 implementation detail.** M0 measured a straight line, which was fine in a

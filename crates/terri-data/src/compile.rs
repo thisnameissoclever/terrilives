@@ -602,6 +602,10 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
     check_finite(tuning.idle_threshold, "idle_threshold in tuning.toml")?;
     check_finite(tuning.duration_variance, "duration_variance in tuning.toml")?;
     check_finite(
+        tuning.contested_score_multiplier,
+        "contested_score_multiplier in tuning.toml",
+    )?;
+    check_finite(
         tuning.habituation_per_use,
         "habituation_per_use in tuning.toml",
     )?;
@@ -669,6 +673,17 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
             value: tuning.duration_variance,
         });
     }
+    // INCLUSIVE at both ends, unlike the variance immediately above, and
+    // the difference is not an oversight. 1.0 means a contested object is
+    // worth exactly what a free one is, so a sim waits for anything it
+    // would have acted on - that is coherent, and it is what shipped
+    // between the [C3] fix and this knob. 0.0 means it never waits.
+    // Neither end is degenerate, so neither is excluded.
+    if !(0.0..=1.0).contains(&tuning.contested_score_multiplier) {
+        return Err(ContentError::ContestedScoreMultiplierOutOfRange {
+            value: tuning.contested_score_multiplier,
+        });
+    }
     if tuning.idle_threshold > tuning.action_threshold {
         return Err(ContentError::IdleThresholdAboveAction {
             idle: tuning.idle_threshold,
@@ -696,6 +711,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
         // a panel that refreshes too often is neither quiet nor a
         // failure.
         need_bar_refresh_ms: tuning.need_bar_refresh_ms,
+        contested_score_multiplier: tuning.contested_score_multiplier,
     })
 }
 
@@ -1190,6 +1206,11 @@ mod tests {
         0, 62, 9, 6, 0, 0, 160, 62, 10, 215, 35, 59,
         0, 0, 32, 63, 0, 0, 64, 63, 3, 172, 2, 7,
         11, 13,
+        // `contested_score_multiplier` 0.375, appended after
+        // `need_bar_refresh_ms` and before the two Vec blocks below, so
+        // every earlier byte keeps the offset its annotation was written
+        // against. Read off the failing assertion, not derived by hand.
+        0, 0, 192, 62,
         // M2c appended two Vec blocks to the pack - `personalities`, then
         // `household` - and this fixture compiles through `compile_bare`,
         // which passes both empty, so each is one varint length byte of 0.
@@ -1316,6 +1337,7 @@ mod tests {
             habituation_decay_per_tick: 0.0025,
             habituation_floor: 0.625,
             min_interaction_ticks: 3,
+            contested_score_multiplier: 0.375,
             rng_seed: 300,
             max_queued_intents: 7,
             max_queued_commands: 11,
@@ -2446,10 +2468,31 @@ mod tests {
         assert_eq!(pack.tuning.idle_threshold, ACTION);
     }
 
+    /// `contested_score_multiplier` is closed at BOTH ends, and both ends
+    /// are meaningful content rather than merely tolerated.
+    ///
+    /// 0.0 is "never wait for an object somebody else is using". 1.0 is
+    /// "wait for anything you would have acted on", which is exactly how
+    /// selection behaved between the [C3] fix and this knob, so a pack is
+    /// entitled to ask for it.
+    ///
+    /// Asserted because the realistic mutation is to an EXCLUSIVE range,
+    /// `0.0..1.0`, copied from `duration_variance` a few lines above it in
+    /// the source. That would reject a perfectly good pack, and no
+    /// rejection test would notice.
+    #[test]
+    fn accepts_a_contested_score_multiplier_at_either_end_of_its_range() {
+        for good in [0.0, 1.0] {
+            let pack = compile_tuned(tuning_where(|t| t.contested_score_multiplier = good))
+                .expect("both ends of the range are legal content");
+            assert_eq!(pack.tuning.contested_score_multiplier, good);
+        }
+    }
+
     /// Every authored float in the tuning file, against every non-finite
     /// value.
     ///
-    /// All four are asserted rather than one, because the realistic
+    /// All five are asserted rather than one, because the realistic
     /// mutation is to drop a single `check_finite` call, and a
     /// three-quarters-covered guard is indistinguishable from a whole
     /// one to a test that checks a single field.
@@ -2464,11 +2507,14 @@ mod tests {
     #[test]
     fn rejects_a_non_finite_tuning_value() {
         type Setter = fn(&mut TuningFile, f32);
-        const KNOBS: [(&str, Setter); 4] = [
+        const KNOBS: [(&str, Setter); 5] = [
             ("action_threshold", |t, v| t.action_threshold = v),
             ("choice_temperature", |t, v| t.choice_temperature = v),
             ("idle_threshold", |t, v| t.idle_threshold = v),
             ("duration_variance", |t, v| t.duration_variance = v),
+            ("contested_score_multiplier", |t, v| {
+                t.contested_score_multiplier = v
+            }),
         ];
 
         for bad in [f32::NAN, f32::INFINITY, f32::NEG_INFINITY] {
@@ -2504,6 +2550,14 @@ mod tests {
             (
                 tuning_where(|t| t.duration_variance = 1.5),
                 "tuning.toml has duration_variance of 1.5; must be at least 0 and less than 1",
+            ),
+            (
+                tuning_where(|t| t.contested_score_multiplier = 1.5),
+                "tuning.toml has contested_score_multiplier of 1.5; must be at least 0 and at most 1",
+            ),
+            (
+                tuning_where(|t| t.contested_score_multiplier = -0.5),
+                "tuning.toml has contested_score_multiplier of -0.5; must be at least 0 and at most 1",
             ),
             (
                 tuning_where(|t| t.idle_threshold = 0.5),

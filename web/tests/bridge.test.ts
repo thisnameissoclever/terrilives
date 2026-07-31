@@ -420,7 +420,30 @@ describe('SimBridge', () => {
     // fridge, so it never reads content/lot.toml and never sees them. Measured
     // on wasm32 after a rebuild and found equal to the native constant in
     // crates/terri-sim/src/lib.rs.
-    expect(bridge.worldHash()).toBe(0x7e3f_cbe2_7849_036cn);
+    //
+    // **And `contested_score_multiplier` moved it again**, from
+    // 0x7e3f_cbe2_7849_036cn. Eight agents and one fridge means seven are
+    // outbid every tick, and the knob decides for each of them whether
+    // wanting a thing it cannot have is enough to stand still for.
+    //
+    // Measured natively at tick 100 across four values:
+    //
+    //   0.10 -> 7 restless, 7 blocked, 0x9ca3_2684_8584_1091n
+    //   0.40 -> 3 restless, 7 blocked, 0xec57_7c0b_cf22_05e0n
+    //   0.75 -> 1 restless, 7 blocked, 0xeee5_892c_001e_dd92n
+    //   1.00 -> 0 restless, 7 blocked, 0x7e3f_cbe2_7849_036cn
+    //
+    // The last line is the control and it is exact: 1.0 attenuates nothing,
+    // so every outbid sim waits, which is what the [C3] fix did on its own -
+    // and the digest is bit-identical to the value this constant held before
+    // the knob existed. The knob is a pure addition and the movement is
+    // caused by it alone.
+    //
+    // Measured on wasm32, not copied from native ([L13]): the wasm was
+    // rebuilt FIRST, this test was run against the old constant, and the
+    // reported 17214315972767178130n was read off the failure. It equals the
+    // native value.
+    expect(bridge.worldHash()).toBe(0xeee5_892c_001e_dd92n);
   });
 
   // ---- Player commands -------------------------------------------------

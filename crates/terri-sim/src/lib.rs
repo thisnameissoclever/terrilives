@@ -1797,7 +1797,32 @@ mod determinism_tests {
         // copied from native - the two agree, which is a measurement each
         // time. Previous values: 0xFB84_8515_2C59_2AD8 (habituation),
         // 0xCB2C_8122_2251_D840 before that.
-        const GOLDEN: u64 = 0x7E3F_CBE2_7849_036C;
+        //
+        // **And `contested_score_multiplier` moved it again**, from
+        // 0x7E3F_CBE2_7849_036C. This scenario is eight agents and one
+        // fridge, so seven are outbid on every tick and the knob decides,
+        // for each of them, whether wanting a thing it cannot have is enough
+        // to stand still for.
+        //
+        // Measured at tick 100 across four values, which is what makes "this
+        // fixture exercises the knob" a reading rather than a claim:
+        //
+        //   0.10 -> 7 restless, 7 blocked, 0x9CA3_2684_8584_1091
+        //   0.40 -> 3 restless, 7 blocked, 0xEC57_7C0B_CF22_05E0
+        //   0.75 -> 1 restless, 7 blocked, 0xEEE5_892C_001E_DD92
+        //   1.00 -> 0 restless, 7 blocked, 0x7E3F_CBE2_7849_036C
+        //
+        // **The last line is the control, and it is exact.** At a multiplier
+        // of 1.0 the digest is bit-identical to the value this constant held
+        // before the knob existed, which is the arithmetic working out: 1.0
+        // attenuates nothing, so every outbid sim waits, which is precisely
+        // what the [C3] fix did on its own. The knob is a pure addition and
+        // the movement below is caused by it alone.
+        //
+        // It also means this fixture is sensitive to the knob AND to
+        // `idle_threshold`, which the two are compared against each other
+        // through. Both were previously recorded as invisible here.
+        const GOLDEN: u64 = 0xEEE5_892C_001E_DD92;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {
