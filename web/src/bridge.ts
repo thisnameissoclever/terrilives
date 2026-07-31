@@ -353,6 +353,21 @@ export class SimBridge {
   }
 
   /**
+   * The display name of the sim at `entityIndex`, or the **empty string**
+   * for anything else - an object, a stale index, or a stress-mode filler
+   * agent, none of which have names to show. The needs panel treats empty
+   * as "hide the caption" rather than telling the cases apart, because the
+   * useful response to all of them is identical.
+   *
+   * Read on selection change and throttled with the bars, so the string
+   * copy across the boundary is off every per-frame path.
+   */
+  simName(entityIndex: number): string {
+    if (!isU32(entityIndex)) return '';
+    return this.handle.sim_name(entityIndex);
+  }
+
+  /**
    * The raw index of the selected sim, or `null` when nothing is
    * selected.
    *

@@ -40,20 +40,6 @@ const MAX_TICKS_PER_FRAME = 5;
  */
 const START_SPEED = 1;
 
-/**
- * Where the sim starts, in tiles: open floor in the middle of the living
- * room, on the five-room lot in `content/lot.toml`.
- *
- * The living room rather than the kitchen, even though hunger is what the sim
- * opens with, so that the first thing the player sees is a sim WALKING
- * somewhere. A sim that spawns beside the thing it wants starts eating before
- * the first frame is composited, which reads as a still picture.
- *
- * The hunger is low enough to give it something to do the moment the page
- * loads, which is what makes the opening seconds worth watching.
- */
-const START_TILE = { x: 9, y: 2, hunger: 25 };
-
 /** Frames of history behind the rolling mean and p95. Four seconds at 60 Hz. */
 const FRAME_WINDOW = 240;
 
@@ -167,36 +153,36 @@ async function main(): Promise<void> {
   if (sim.count === 0) {
     throw new Error('the compiled lot placed no objects');
   }
-  sim.spawnAgent(START_TILE.x, START_TILE.y, START_TILE.hunger);
+  // NOBODY is spawned here any more. The household - Terri, Doug and
+  // Nadia - comes out of content/household.toml through the compiled
+  // pack, spawned by the same `from_lot` call that placed the furniture.
+  // The `spawnAgent(8, 6, 25)` that used to sit on this line was the
+  // last hardcoded copy of content in the shell, and [H2] records why it
+  // had to go: coordinates in TypeScript are a second copy of a fact
+  // nothing keeps in sync.
 
-  // **Select it immediately, because an unselected sim makes the whole HUD
-  // invisible.**
+  // **Select the first household sim immediately, because an unselected
+  // sim makes the whole HUD invisible.**
   //
   // Selection lives in the simulation ([D-5]) and started out empty, which
   // meant the page opened with the need panel `hidden` and nothing on screen
   // to say why. The first report from someone opening it cold was "it does not
   // show the need bars or allow any control" - and every part of it worked.
-  // The bars were built and hidden, and selecting meant finding a 38 x 78
-  // sprite somewhere on a 1280 x 720 canvas with nothing marking it as
-  // clickable.
   //
-  // That is not a rendering bug or an input bug; it is the game withholding
-  // its only readout until the player guesses. With one sim in the household
-  // there is no ambiguity about who to select, so selecting it is strictly
-  // better than making the player find it - and it is what The Sims does with
-  // a single-sim household too.
+  // With three sims the choice of WHICH is no longer empty, and the lowest
+  // entity index among the agents is the first household member in file
+  // order - Terri, the title character - which is as close to an authored
+  // answer as exists. The other two are one click away, and the click is
+  // taught by the ring appearing under Terri.
   //
   // It goes through a command like every other selection rather than reaching
   // into the world, so a replay of this session reproduces it ([D-2]). It
-  // applies on the first tick, which is before the first frame the player can
-  // see.
+  // applies on the first tick, before the first frame the player can see.
   //
-  // Read out of the render buffer rather than remembered from `spawnAgent`,
-  // because a raw entity index is the simulation's to hand out: `ids()` is the
-  // row-to-entity mapping and `kinds()` says which rows are agents. This runs
-  // BEFORE any filler is spawned below, so the single agent row here is the
-  // sim the player is meant to be watching rather than whichever filler
-  // happens to sort first.
+  // Read out of the render buffer rather than assumed: `ids()` is the
+  // row-to-entity mapping and `kinds()` says which rows are agents. Rows
+  // are entity-index order, so the first agent row IS the lowest index.
+  // This runs BEFORE any stress filler is spawned below.
   const ids = sim.ids();
   const kinds = sim.kinds();
   for (let row = 0; row < sim.count; row++) {
@@ -264,8 +250,16 @@ async function main(): Promise<void> {
   if (!needsRoot || !speedRoot || !menuRoot) {
     throw new Error('missing #needs-panel, #time-controls or #object-menu');
   }
+  // The caption is queried like the roots above and thrown on when
+  // absent, for the same [L17] reason: a panel silently missing its
+  // caption reads as an unbuilt feature, not a broken page.
+  const needsCaption = document.querySelector<HTMLElement>('#needs-caption');
+  if (!needsCaption) {
+    throw new Error('missing #needs-caption');
+  }
   const needsPanel = new NeedsPanel(
     needsRoot,
+    needsCaption,
     buildNeedBars(document, needsRoot, sim.needNames()),
     sim.needBarRefreshMs(),
     sim.needMax(),

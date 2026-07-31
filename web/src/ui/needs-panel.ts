@@ -30,6 +30,19 @@ export interface NeedsSource {
    * index names nothing live or names something with no needs.
    */
   needsOf(entityIndex: number): Float32Array;
+  /**
+   * The selected sim's display name, or the empty string for anything
+   * that has none. Whose bars these are stopped being obvious the moment
+   * the household grew past one sim, and the caption is what makes a
+   * glance at the panel answer it - goal item 10's "which sim is
+   * selected", in words as well as in the floor ring.
+   */
+  simName(entityIndex: number): string;
+}
+
+/** The one property the panel writes on its caption. */
+export interface CaptionText {
+  textContent: string | null;
 }
 
 /** The one property the panel writes on a bar. `HTMLElement` satisfies it. */
@@ -93,6 +106,7 @@ export class NeedsPanel {
    */
   constructor(
     private readonly root: PanelRoot,
+    private readonly caption: CaptionText,
     private readonly bars: readonly BarFill[],
     private readonly refreshMs: number,
     private readonly levelMax: number,
@@ -136,6 +150,15 @@ export class NeedsPanel {
       return true;
     }
     this.root.hidden = false;
+
+    // Re-read like everything else, not cached on selection change: a
+    // future rename - sims will have editable names eventually - must
+    // reach the caption without the panel being told. The write is
+    // throttled with the bars, and an unchanged string is a no-op for
+    // the browser. An empty name - a stress filler agent - captions as
+    // empty rather than as the previous sim's name, which is the stale
+    // caption this line's placement exists to prevent.
+    this.caption.textContent = selected === null ? '' : source.simName(selected);
 
     for (let i = 0; i < this.bars.length; i++) {
       // A bar past the levels the simulation reported reads empty rather

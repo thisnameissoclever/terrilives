@@ -1053,3 +1053,81 @@ Nobody has watched three sims in this house, because there are not three sims
 yet. Everything above is one sim, and the two things the house was drawn for -
 contention over the single-slot armchair, and the ring giving two sims separate
 routes - cannot be observed at all until M2c.
+
+---
+
+## [A-9] Three people, told apart from across the room
+
+Goal item 1: a household of at least three whose behaviour differs visibly,
+traceably to personality data, with contention and no deadlock. M2c shipped
+Terri, Doug and Nadia - `content/household.toml` and
+`content/personalities.toml`, spawned by the lot load, nobody spawned from
+TypeScript any more.
+
+**Watched in the browser first.** Auto-selection lands on Terri with her name
+captioned over the need bars; clicking each sim moves the ring and the
+caption together (Doug, Nadia, Terri, read back off the DOM). Left alone for
+90 simulated seconds the three spread over the whole house - each visited
+four or five of the five rooms - and the frame captured at the end had them
+in three different rooms: Doug eating standing up at the fridge, Nadia in
+the bedroom, Terri by the bunk with the selection ring at her feet (65
+ring-coloured pixels, counted, since [L52] retired trusting a thumbnail).
+
+### The trace, now per sim
+
+`cargo run --release -p terri-sim --example trace -- N`, shipped everything.
+The harness spawns the household rather than one synthetic sim, and its
+candidate table now applies the personality multipliers - a table that
+skipped them would be the trace lying about exactly the thing it exists to
+explain.
+
+Over 36 000 ticks, 1 000 completed interactions:
+
+| object | Terri | Doug | Nadia | the authored reason |
+| --- | --- | --- | --- | --- |
+| desk | **30** | 0 | 0 | Terri 1.7 disposition; Doug 0.45 |
+| bookshelf | **23** | 11 | 0 | Terri 1.45 |
+| television | 34 | 42 | **69** | Nadia 1.2 and social-starved; Terri 0.55 |
+| dining table | 13 | 3 | **20** | Nadia 1.05 and it is the social seat |
+| armchair | 0 | **11** | 1 | Doug 1.85 - The Chair That Is His |
+| long sofa | 0 | **13** | 0 | Doug 1.35 |
+
+Three sims, three different lives, every difference traceable to a line of
+content. Doug owns his chair 11 to 1. Terri is the only one who works at
+the desk. Nadia watches twice as much television as anyone because it is
+the biggest social tap in a house with no people-as-suppliers yet.
+
+- **Interactions**: 1 000 in 36 000 ticks, 321 in 12 000 - roughly 3x the
+  single-sim rate, as it should be.
+- **Every interactive object used** at 36 000 ticks, reading chair (2, both
+  Doug) and kitchen sink (11) included. At 12 000 the reading chair sits at
+  zero, which is [B9]'s horizon effect again, not a regression.
+- **Back-to-back repeats**: 14 of 997 aggregate, 1.4% - under the 2%
+  criterion. Terri alone runs 2.8% (10 of 357): her 1.3x fun drain and 0.85
+  fun satisfaction keep her chronically under-entertained, and her amplified
+  desk and bookshelf survive habituation well enough to repeat. That is a
+  personality being a creature of habit rather than a scoring defect; noted,
+  not tuned away.
+- **Nobody froze**: 1 frozen tick in 36 000 x 3 sim-ticks. Idle 12.8 to
+  17.4% per sim.
+- **Contention without deadlock**: the single-slot armchair changed hands
+  Doug/Nadia, the toilet took ~25% of everyone's actions through one slot,
+  and the ring layout gave crossing sims separate routes; no [L17]-shaped
+  stall appeared in either the trace or the watched session.
+
+### Nadia's social band is the number to keep watching
+
+social, per sim, 36 000 ticks: Terri 20.2 to 100, Doug 36.7 to 100,
+**Nadia 27.0 to 70.1** - the only need in the household that never reaches
+full. Her 1.4x drain and 0.75 satisfaction cannot be topped up by a
+television, and that is the authored point: she is the demand side of M2d
+built first, and the day sims can talk, her ceiling should jump. If M2d
+slips and her floor sinks toward zero instead, that is [C2] arriving on
+schedule and the knob to soften is the 1.4.
+
+### What this did not need
+
+No new mechanism. Personality is three multipliers entering the two places
+scoring and delivery already computed - [S4]'s one-mechanism rule held, and
+the diff to `select_action` is four lines reading two components. The work
+was almost entirely content, validation, and tests.

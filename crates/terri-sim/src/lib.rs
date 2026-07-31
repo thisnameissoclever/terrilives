@@ -452,6 +452,23 @@ impl Sim {
             .map(|(_, needs)| *needs.as_slice())
     }
 
+    /// The display name of the sim carrying `index`, or `None` when
+    /// nothing live carries it or what does has no name - which includes
+    /// every object and every bare test agent, so `SimName` is the kind
+    /// check the way `Needs` is for [`Sim::needs_of`].
+    ///
+    /// A scan over a raw index tolerating a stale one, for the reasons
+    /// `needs_of` gives; it lives here rather than at the boundary
+    /// because it is a query over the world, and `terri-wasm` is
+    /// forbidden simulation logic.
+    pub fn name_of(&self, index: u32) -> Option<&str> {
+        let mut state = self.world.try_query::<(Entity, &terri_core::SimName)>()?;
+        state
+            .iter(&self.world)
+            .find(|(entity, _)| entity.index_u32() == index)
+            .map(|(_, name)| name.0.as_str())
+    }
+
     /// The labels of the interactions the smart object carrying `index`
     /// offers, in the order `content/objects.toml` declares them, or
     /// `None` when nothing live carries that index or what does is not a
