@@ -35,6 +35,13 @@
 # phrase that says exactly what the sim will do, nothing else. The
 # game's voice (goal item 11) lives elsewhere and is authored with the
 # owner, not smuggled into menu rows.
+#
+# A second rule from the same session: a label never NAMES the object it
+# sits on. The flyout opens on the thing the player clicked, so "Sit in
+# the armchair" is redundant at best - and wrong the day players place a
+# second armchair, because "the armchair" asserts there is one. "Sit
+# down" is complete. Nouns appear only as generic idiom that does not
+# point at an instance: "Watch TV", "Take a shower", "Use the toilet".
 
 [[object]]
 id = "fridge"
@@ -230,7 +237,7 @@ sprite = "loungeSofaOttoman"
   # rather than clever, so it still reads as an instruction.
   [[object.interaction]]
   id = "lounge"
-  label = "Sit on the sofa"
+  label = "Sit down"
   advertises = { fun = 18.0, comfort = 34.0 }
   duration_ticks = 50
   slots = 2
@@ -469,7 +476,7 @@ footprint = { width = 2, depth = 1 }
   #
   [[object.interaction]]
   id = "sit_properly"
-  label = "Eat at the table"
+  label = "Sit down to eat"
   advertises = { comfort = 37.0, social = 11.0 }
   duration_ticks = 62
   slots = 2
@@ -529,7 +536,7 @@ footprint = { width = 2, depth = 1 }
   # interchangeable: the small one is a perch and this one is a commitment.
   [[object.interaction]]
   id = "stretch_out"
-  label = "Lie on the sofa"
+  label = "Lie down"
   advertises = { comfort = 43.0, fun = 13.0, energy = 9.0 }
   duration_ticks = 72
   slots = 3
@@ -554,7 +561,7 @@ sprite = "loungeChair"
   # This is also the cleanest contention fixture in the lot.
   [[object.interaction]]
   id = "take_the_chair"
-  label = "Sit in the armchair"
+  label = "Sit down"
   advertises = { comfort = 29.0 }
   duration_ticks = 41
   slots = 1
@@ -692,7 +699,7 @@ footprint = { width = 2, depth = 1 }
   # the cost stays and the payoff moves from `fun` to money.
   [[object.interaction]]
   id = "attend_correspondence"
-  label = "Work at the desk"
+  label = "Work"
   advertises = { fun = 36.0, energy = -7.0 }
   duration_ticks = 58
   slots = 1
@@ -739,7 +746,7 @@ sprite = "loungeChairRelax"
   # M2e's hobbies land.
   [[object.interaction]]
   id = "settle_in"
-  label = "Read in the chair"
+  label = "Sit and read"
   advertises = { comfort = 15.0, fun = 19.0 }
   duration_ticks = 46
   slots = 1
