@@ -123,8 +123,8 @@ jobs:
         run: |
           cargo mutants --package terri-core --package terri-sim \
             --package terri-data --package terri-wasm \
-            --test-workspace true --timeout 60 \
-            --shard ${{ matrix.shard }}/4 || true
+            --test-workspace true --timeout 60 --build-timeout 600 \
+            --shard ${{ matrix.shard }}/8 || true
       # Per shard, "no new survivors" composes: each shard's missed set
       # must be a subset of the baseline, and a union of subsets is a
       # subset, so four green shards mean exactly what one green full
