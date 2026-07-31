@@ -223,9 +223,19 @@ describe('SimBridge', () => {
 
     // Nothing ticks first, on purpose: `from_lot` has to sync the render
     // buffer itself, or the opening frame draws an empty lot.
-    expect(bridge.count).toBeGreaterThanOrEqual(8);
+    //
+    // Both kinds, counted separately. This asserted `every k === 1` until
+    // M2c, when `from_lot` began spawning the household as well as the
+    // furniture: the house ships 25-plus objects and a household of at
+    // least three, and a lot arriving with either half missing is the
+    // silent failure this test exists for - all furniture and nobody home,
+    // or three sims standing in an empty field.
     const kinds = bridge.kinds();
-    expect([...kinds].every((k) => k === 1)).toBe(true);
+    const objects = [...kinds].filter((k) => k === 1).length;
+    const agents = [...kinds].filter((k) => k === 0).length;
+    expect(objects).toBeGreaterThanOrEqual(25);
+    expect(agents).toBeGreaterThanOrEqual(3);
+    expect(objects + agents).toBe(bridge.count);
 
     const width = handle.lot_width();
     const height = handle.lot_height();

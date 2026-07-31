@@ -434,6 +434,22 @@ impl SimHandle {
             .unwrap_or_default()
     }
 
+    /// The display name of the sim carrying `entity_index`, or the empty
+    /// string when nothing live carries it or what does is not a named
+    /// sim - an object, or a stress-mode filler agent. Empty rather than
+    /// an `Option` because wasm-bindgen turns `Option<String>` into
+    /// `string | undefined` and every caller would write the same
+    /// `?? ''`; the needs panel treats an empty name as "hide the line".
+    ///
+    /// Read on selection change rather than per frame, so the copy across
+    /// the boundary is outside [D11]'s concern, like `interaction_labels`.
+    pub fn sim_name(&self, entity_index: u32) -> String {
+        self.sim
+            .name_of(entity_index)
+            .map(str::to_string)
+            .unwrap_or_default()
+    }
+
     /// The raw index of the selected sim, or `None` when nothing is
     /// selected.
     ///
@@ -853,14 +869,40 @@ mod boundary_tests {
         /// helper that constructed its own lot from `width` and `height`
         /// would be self-consistent under a swap of the pair and could
         /// not see it.
+        ///
+        /// **Only the probe agent's own position is compared.** It used to
+        /// compare every stored position, which was equivalent while the
+        /// probe was the lot's only agent - and stopped being so when
+        /// `from_lot` began spawning the household, whose three sims start
+        /// moving immediately and would make ANY probe read as mobile.
+        ///
+        /// The probe is found by HIGHEST ENTITY INDEX, not by row: it is
+        /// the newest spawn and nothing despawns during the run, so the
+        /// index is unambiguous, while query rows come out in archetype
+        /// order and the probe - which carries no `SimId` - sits in a
+        /// different archetype from the household ([L47]'s row-is-not-an-id
+        /// lesson, met in a test helper).
         fn moves_from(tile: (f32, f32)) -> bool {
+            fn probe_position(handle: &SimHandle) -> (f32, f32) {
+                use terri_core::Entity;
+                let world = handle.sim.world();
+                let mut state = world
+                    .try_query::<(Entity, &Position)>()
+                    .expect("Position is registered eagerly in Sim::new");
+                state
+                    .iter(world)
+                    .max_by_key(|(entity, _): &(Entity, &Position)| entity.index())
+                    .map(|(_, pos)| (pos.x, pos.y))
+                    .expect("the probe agent was just spawned")
+            }
+
             let mut handle = SimHandle::from_lot();
             handle.spawn_agent(tile.0, tile.1, 20.0);
-            let start = stored_positions(&handle);
+            let start = probe_position(&handle);
             for _ in 0..10 {
                 handle.tick();
             }
-            stored_positions(&handle) != start
+            probe_position(&handle) != start
         }
 
         // The claim through behaviour, so the pair cannot both be
@@ -1201,6 +1243,45 @@ mod boundary_tests {
         // The doorways are load-bearing and they are pinned there. What is
         // pinned HERE is the export, and the equality above is the whole of
         // it.
+    }
+
+    /// `sim_name` is the needs panel's header. Three answers matter and
+    /// each is a different row of the fixture: a household sim yields its
+    /// authored name, an OBJECT yields the empty string (the kind check -
+    /// a click that selected the fridge must not caption the panel
+    /// "fridge"), and a stale or absurd index yields the empty string
+    /// rather than trapping the module, because indices arrive from
+    /// JavaScript and are hostile like every other.
+    #[test]
+    fn sim_name_reports_household_names_and_nothing_for_anything_else() {
+        let handle = SimHandle::from_lot();
+        // Through the Content resource rather than terri_data::pack():
+        // terri-wasm deliberately does not depend on the content crate,
+        // and the resource is the same &'static pack either way.
+        let pack = handle.sim.world().resource::<Content>().0;
+        assert!(
+            !pack.household.is_empty(),
+            "the shipped household is the fixture; empty proves nothing"
+        );
+
+        // The household spawns after the objects, in declaration order,
+        // so its indices follow the placements'.
+        let objects = pack.lot.placements.len() as u32;
+        for (offset, member) in pack.household.iter().enumerate() {
+            assert_eq!(
+                handle.sim_name(objects + offset as u32),
+                member.name,
+                "member {offset} must answer with its authored name"
+            );
+        }
+
+        assert_eq!(
+            handle.sim_name(0),
+            "",
+            "index 0 is a placed object, and an object has no name to show"
+        );
+        assert_eq!(handle.sim_name(9_999), "");
+        assert_eq!(handle.sim_name(u32::MAX), "");
     }
 
     // ---- Player commands ----------------------------------------------

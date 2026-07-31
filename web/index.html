@@ -51,6 +51,15 @@
       #needs-panel[hidden] {
         display: none;
       }
+      .needs-caption {
+        margin: 0 0 2px;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+      .needs-caption:empty {
+        display: none;
+      }
       .need-row {
         display: grid;
         grid-template-columns: 62px 1fr;
@@ -151,7 +160,12 @@
            Empty here on purpose, so neither is a second copy of a list
            that lives somewhere else. `hidden` because nothing is selected
            until the player clicks. -->
-      <section id="needs-panel" aria-label="Needs of the selected sim" hidden></section>
+      <section id="needs-panel" aria-label="Needs of the selected sim" hidden>
+        <!-- Whose bars these are. Filled by NeedsPanel from the
+             simulation; empty for a sim with no name, and the CSS hides
+             an empty caption so the panel does not carry a blank line. -->
+        <h2 id="needs-caption" class="needs-caption"></h2>
+      </section>
       <section id="time-controls" aria-label="Simulation speed"></section>
     </div>
     <!-- The right-click flyout. Outside #hud on purpose: the HUD is a

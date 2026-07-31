@@ -94,6 +94,17 @@ impl Sim {
         // empty rather than wrong, which compares equal to another empty digest
         // and passes every determinism test while testing nothing.
         world.register_component::<terri_core::Habituation>();
+        // M2c's three. `Personality` sits behind `Option<&Personality>` in
+        // three systems' queries, and `try_query` returns None for an
+        // unregistered component even behind an Option, so this line is
+        // what keeps every determinism test in this file from panicking
+        // for an unrelated reason.
+        world.register_component::<terri_core::SimId>();
+        world.register_component::<terri_core::SimName>();
+        world.register_component::<terri_core::Personality>();
+        // The identity counter - [H1]. From construction rather than on
+        // first spawn, so a save file can restore it before any sim exists.
+        world.insert_resource(terri_core::SimIdAllocator::default());
 
         let mut schedule = Schedule::default();
         // M0 runs single-threaded on purpose. Parallelism is [A9]/[D4]
@@ -243,7 +254,8 @@ impl Sim {
         sim
     }
 
-    /// The lot the game ships, compiled from `content/lot.toml`.
+    /// The lot the game ships, compiled from `content/lot.toml`, with the
+    /// household from `content/household.toml` living in it.
     ///
     /// A convenience over [`Sim::new_from_lot`] for callers that do not
     /// depend on `terri-data` themselves. `terri-wasm` is the one that
@@ -252,7 +264,56 @@ impl Sim {
     /// purity rule can make it.
     pub fn new_from_shipped_lot() -> Self {
         let pack = terri_data::pack();
-        Self::new_from_lot(&pack.lot, &pack.objects)
+        let mut sim = Self::new_from_lot(&pack.lot, &pack.objects);
+        sim.spawn_household(&pack.personalities, &pack.household);
+        sim
+    }
+
+    /// Spawns the authored household - [H2] - in declaration order, which
+    /// is what fixes each member's [`terri_core::SimId`]: the first sim in
+    /// the file is SimId 0, for as long as nobody is born or dies before
+    /// load finishes.
+    ///
+    /// Separate from [`Sim::new_from_lot`] rather than folded into it, so
+    /// the lot-geometry tests stay statements about geometry and a test
+    /// can put ANY household on any lot. Everything read here is
+    /// post-validation: `compile` has already rejected a member whose
+    /// archetype does not resolve, whose spawn tile is blocked or sealed
+    /// off, or whose starting needs leave `[0, 100]` - which is what
+    /// makes the `personalities[..]` index below unable to panic on a
+    /// pack that exists.
+    pub fn spawn_household(
+        &mut self,
+        personalities: &[terri_data::CompiledPersonality],
+        household: &[terri_data::CompiledHouseholdMember],
+    ) {
+        for member in household {
+            let sim_id = self
+                .world
+                .resource_mut::<terri_core::SimIdAllocator>()
+                .issue();
+            let compiled = &personalities[member.personality as usize];
+            let personality = terri_core::Personality::with_dispositions(
+                compiled.drain,
+                compiled.satisfaction,
+                compiled.dispositions.clone(),
+            );
+            let mut needs = terri_core::Needs::all_at(terri_core::NEED_MAX);
+            for id in terri_core::NeedId::ALL {
+                needs.set(id, member.needs[id.index()]);
+            }
+            self.world.spawn((
+                terri_core::Agent,
+                terri_core::Position {
+                    x: member.x,
+                    y: member.y,
+                },
+                needs,
+                sim_id,
+                terri_core::SimName(member.name.clone()),
+                personality,
+            ));
+        }
     }
 
     pub fn tick(&mut self) {
@@ -391,6 +452,23 @@ impl Sim {
             .map(|(_, needs)| *needs.as_slice())
     }
 
+    /// The display name of the sim carrying `index`, or `None` when
+    /// nothing live carries it or what does has no name - which includes
+    /// every object and every bare test agent, so `SimName` is the kind
+    /// check the way `Needs` is for [`Sim::needs_of`].
+    ///
+    /// A scan over a raw index tolerating a stale one, for the reasons
+    /// `needs_of` gives; it lives here rather than at the boundary
+    /// because it is a query over the world, and `terri-wasm` is
+    /// forbidden simulation logic.
+    pub fn name_of(&self, index: u32) -> Option<&str> {
+        let mut state = self.world.try_query::<(Entity, &terri_core::SimName)>()?;
+        state
+            .iter(&self.world)
+            .find(|(entity, _)| entity.index_u32() == index)
+            .map(|(_, name)| name.0.as_str())
+    }
+
     /// The labels of the interactions the smart object carrying `index`
     /// offers, in the order `content/objects.toml` declares them, or
     /// `None` when nothing live carries that index or what does is not a
@@ -502,6 +580,20 @@ impl Sim {
         // the run it is replaying - which is the whole thing [D12] exists to
         // prevent. Its entries are a sorted `Vec`, so hashing them in order is
         // reproducible; see `Habituation`'s own note on why that container.
+        //
+        // **`Personality`, `SimId` and `SimName` are deliberately NOT in the
+        // digest, each for its own reason.** `SimName` is presentation: a
+        // rename must not diverge a replay. `SimId` duplicates the entity
+        // index for as long as nothing dies, and enters the digest the day
+        // relationships do, keyed on it. `Personality` DOES change what a sim
+        // chooses - the same argument that put habituation in - and is
+        // excluded anyway because today it is static: derived from content at
+        // spawn and never written afterwards, so two replays from one pack
+        // cannot disagree about it, and digesting it would only restate the
+        // content. That argument EXPIRES the moment anything mutates a
+        // personality at runtime - M2e's traits are the scheduled arrival -
+        // and whoever writes the first mutation owns adding all three fields
+        // to this digest and re-measuring both golden vectors.
         type Row = (u32, f32, f32, [f32; NEED_COUNT], Vec<(u32, u32, f32)>);
         let mut rows: Vec<Row> = Vec::new();
         if let Some(mut state) = self
@@ -987,6 +1079,148 @@ mod lot_tests {
             grid.is_walkable(2, 7),
             "(2, 7) is beside the bed and is where a sim sleeps from"
         );
+    }
+}
+
+#[cfg(test)]
+mod household_tests {
+    //! `spawn_household` is a mapping from compiled content to components,
+    //! and every field is load-bearing for a different consumer: `SimId`
+    //! for relationships and the save file, `SimName` for the needs
+    //! panel, `Personality` for three systems, the needs array for the
+    //! opening minute.
+
+    use super::*;
+    use terri_core::{Agent, NeedId, Needs, Personality, Position, SimId, SimName};
+
+    fn people() -> (
+        Vec<terri_data::CompiledPersonality>,
+        Vec<terri_data::CompiledHouseholdMember>,
+    ) {
+        // Two archetypes and two sims wearing them CROSSED - each sim
+        // wears the OTHER one's index - so a spawn that handed member N
+        // personality N is visible ([L34]). Every multiplier and level is
+        // pairwise distinct for the same reason.
+        let personalities = vec![
+            terri_data::CompiledPersonality {
+                id: "a".into(),
+                drain: [1.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+                satisfaction: [1.0, 0.75, 1.0, 1.0, 1.0, 1.0, 1.0],
+                dispositions: vec![(terri_core::ObjectDefId(3), 1, 0.25)],
+            },
+            terri_data::CompiledPersonality {
+                id: "b".into(),
+                drain: [1.0, 1.0, 2.25, 1.0, 1.0, 1.0, 1.0],
+                satisfaction: [1.0, 1.0, 1.0, 1.125, 1.0, 1.0, 1.0],
+                dispositions: vec![],
+            },
+        ];
+        let household = vec![
+            terri_data::CompiledHouseholdMember {
+                name: "Terri".into(),
+                personality: 1,
+                x: 3.5,
+                y: 2.25,
+                needs: [62.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0],
+            },
+            terri_data::CompiledHouseholdMember {
+                name: "Doug".into(),
+                personality: 0,
+                x: 5.0,
+                y: 6.0,
+                needs: [100.0, 83.0, 100.0, 100.0, 100.0, 100.0, 55.0],
+            },
+        ];
+        (personalities, household)
+    }
+
+    #[test]
+    fn spawn_household_maps_every_field_and_issues_ids_in_declaration_order() {
+        let (personalities, household) = people();
+        let mut sim = Sim::new_with_lot(8, 8);
+        sim.spawn_household(&personalities, &household);
+
+        let world = sim.world_mut();
+        let mut state = world
+            .try_query::<(&SimId, &SimName, &Position, &Needs, &Personality)>()
+            .expect("all five components are registered eagerly in Sim::new");
+        let mut rows: Vec<_> = state
+            .iter(world)
+            .map(|(id, name, pos, needs, personality)| {
+                (
+                    id.0,
+                    name.0.clone(),
+                    (pos.x, pos.y),
+                    *needs,
+                    personality.clone(),
+                )
+            })
+            .collect();
+        rows.sort_by_key(|(id, ..)| *id);
+
+        assert_eq!(rows.len(), 2, "one spawn per member, no extras");
+
+        let (id, name, pos, needs, personality) = &rows[0];
+        assert_eq!(
+            (*id, name.as_str()),
+            (0, "Terri"),
+            "declaration order fixes SimId 0"
+        );
+        assert_eq!(*pos, (3.5, 2.25), "coordinates land verbatim, not snapped");
+        assert_eq!(needs.get(NeedId::Hunger), 62.0);
+        assert_eq!(needs.get(NeedId::Comfort), 100.0);
+        // The CROSS: Terri wears archetype "b", so a spawn that used the
+        // member's own index would hand her "a" and fail here.
+        assert_eq!(personality.drain[NeedId::Hygiene.index()], 2.25);
+        assert_eq!(personality.satisfaction[NeedId::Bladder.index()], 1.125);
+
+        let (id, name, _, needs, personality) = &rows[1];
+        assert_eq!((*id, name.as_str()), (1, "Doug"));
+        assert_eq!(needs.get(NeedId::Comfort), 55.0);
+        assert_eq!(personality.drain[NeedId::Hunger.index()], 1.5);
+        assert_eq!(
+            personality.disposition(terri_core::ObjectDefId(3), 1),
+            0.25,
+            "the disposition list must arrive on the sim wearing archetype a"
+        );
+
+        let mut agents = world
+            .try_query_filtered::<&SimId, With<Agent>>()
+            .expect("Agent is registered");
+        assert_eq!(agents.iter(world).count(), 2, "each member is an Agent");
+    }
+
+    #[test]
+    fn the_shipped_lot_spawns_the_shipped_household() {
+        // Through `new_from_shipped_lot`, which is the entry point the page
+        // uses, so what is pinned is the wiring from pack to world rather
+        // than the helper alone. Names are read from the pack rather than
+        // restated, so re-authoring the household is not a test edit HERE;
+        // the roster itself is pinned in terri-data.
+        let mut sim = Sim::new_from_shipped_lot();
+        let pack = terri_data::pack();
+        assert!(
+            pack.household.len() >= 3,
+            "the shipped household is the fixture; an empty one proves nothing"
+        );
+
+        let world = sim.world_mut();
+        let mut state = world
+            .try_query::<(&SimId, &SimName)>()
+            .expect("registered eagerly");
+        let mut rows: Vec<(u32, String)> = state
+            .iter(world)
+            .map(|(id, name)| (id.0, name.0.clone()))
+            .collect();
+        rows.sort_by_key(|(id, _)| *id);
+
+        let expected: Vec<(u32, String)> = pack
+            .household
+            .iter()
+            .enumerate()
+            .map(|(i, member)| (i as u32, member.name.clone()))
+            .collect();
+        assert_eq!(rows, expected);
     }
 }
 

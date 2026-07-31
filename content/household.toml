@@ -1,0 +1,48 @@
+# Who lives here - [H2] in
+# docs/specs/2026-07-30-household-and-relationships-design.md.
+#
+# The household is CONTENT. The shell used to spawn one sim from
+# coordinates written in TypeScript, which was the same hardcoded-copy
+# mistake the lot made before M1b Task 3b; now `Sim::new_from_shipped_lot`
+# spawns exactly what this file declares, in declaration order - which is
+# what fixes each member's `SimId`: Terri is SimId 0, for as long as
+# nobody is born or dies before load finishes.
+#
+# An absent need starts at 100. The ones written here are what each sim
+# wants in the opening minute, so the first thing a player watches is
+# three people going three different ways: Terri to the kitchen, Doug to
+# his chair, Nadia to whichever machine is making human noises.
+#
+# Spawn tiles are validated like placements - inside the lot, not inside
+# a wall or a footprint, and connected to the rest of the house - and
+# each sim opens in a different room, so the first frame already reads
+# as a household rather than a queue.
+
+# The title character. Arrives hungry and under-stimulated, which points
+# her at the kitchen first and the desk soon after.
+[[sim]]
+name = "Terri"
+archetype = "the_correspondent"
+x = 9.0
+y = 2.0
+needs = { hunger = 62.0, fun = 78.0 }
+
+# Doug came with the armchair, or possibly the armchair came with Doug;
+# the paperwork is unclear. Spawns in the bedroom aching for comfort,
+# and the good chair is two doorways away.
+[[sim]]
+name = "Doug"
+archetype = "the_settled"
+x = 2.0
+y = 8.0
+needs = { comfort = 55.0, energy = 83.0 }
+
+# Nadia moved in for the company and is still looking for it. Spawns in
+# the kitchen with nobody to talk to, which at this stage of the game is
+# a permanent condition - see her archetype's note about M2d.
+[[sim]]
+name = "Nadia"
+archetype = "the_flitting"
+x = 5.0
+y = 1.0
+needs = { social = 58.0, hygiene = 71.0 }

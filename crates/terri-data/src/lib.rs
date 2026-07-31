@@ -12,11 +12,12 @@ pub mod schema;
 pub use compile::{compile, SIM_SPRITE};
 pub use error::ContentError;
 pub use pack::{
-    CompiledInteraction, CompiledLot, CompiledObject, CompiledPlacement, ContentPack, Footprint,
-    ObjectDefId, Tuning,
+    CompiledHouseholdMember, CompiledInteraction, CompiledLot, CompiledObject, CompiledPersonality,
+    CompiledPlacement, ContentPack, Footprint, ObjectDefId, Tuning,
 };
 pub use schema::{
-    AtlasFile, AtlasSpriteDef, InteractionDef, LotFile, NeedDef, NeedsFile, ObjectDef, ObjectsFile,
+    ArchetypeDef, AtlasFile, AtlasSpriteDef, DispositionDef, HouseholdFile, HouseholdSimDef,
+    InteractionDef, LotFile, NeedDef, NeedsFile, ObjectDef, ObjectsFile, PersonalitiesFile,
     PlacementDef, TuningFile, WallDef,
 };
 
@@ -320,6 +321,118 @@ mod tests {
         );
     }
 
+    /// **The shipped household: three sims, three archetypes, and the
+    /// numbers that make them tellable apart.** Goal item 1 stated as
+    /// content: at least three, every member on a DIFFERENT archetype -
+    /// three sims sharing one personality would satisfy "three sims" while
+    /// failing "visibly different behaviour traceable to personality
+    /// data", which is the actual criterion.
+    #[test]
+    fn the_shipped_household_is_three_sims_on_three_different_archetypes() {
+        let p = pack();
+        assert!(
+            p.household.len() >= 3,
+            "goal item 1 asks for a household of at least three; got {}",
+            p.household.len()
+        );
+
+        let mut worn: Vec<u32> = p.household.iter().map(|m| m.personality).collect();
+        worn.sort_unstable();
+        worn.dedup();
+        assert_eq!(
+            worn.len(),
+            p.household.len(),
+            "two household members share an archetype; the household would be N copies of fewer people"
+        );
+
+        for member in &p.household {
+            assert!(
+                (member.personality as usize) < p.personalities.len(),
+                "'{}' points past the personality list",
+                member.name
+            );
+            assert!(!member.name.trim().is_empty());
+        }
+    }
+
+    /// Every shipped archetype differs from neutral somewhere, and every
+    /// multiplier in the file is pairwise distinct - the [L26]/[L29]
+    /// discipline the file's header promises, checked mechanically
+    /// because at 20-odd values nobody keeps it by eye.
+    #[test]
+    fn every_shipped_archetype_is_distinct_and_none_is_secretly_neutral() {
+        let p = pack();
+        assert!(
+            p.personalities.len() >= 3,
+            "three sims on three archetypes need three archetypes"
+        );
+
+        let mut values: Vec<f32> = Vec::new();
+        for personality in &p.personalities {
+            let mut differs = false;
+            for i in 0..terri_core::NEED_COUNT {
+                if personality.drain[i] != 1.0 {
+                    differs = true;
+                    values.push(personality.drain[i]);
+                }
+                if personality.satisfaction[i] != 1.0 {
+                    differs = true;
+                    values.push(personality.satisfaction[i]);
+                }
+            }
+            for (_, _, weight) in &personality.dispositions {
+                differs = true;
+                values.push(*weight);
+            }
+            assert!(
+                differs,
+                "archetype '{}' is neutral everywhere; a sim wearing it is indistinguishable from a sim with no personality at all",
+                personality.id
+            );
+        }
+
+        // Pairwise distinct across the whole file. Two equal multipliers
+        // in different slots make a transposition invisible; sorting and
+        // comparing neighbours finds any collision in one pass. Bitwise
+        // comparison via to_bits, because every authored value is exact.
+        let mut bits: Vec<u32> = values.iter().map(|v| v.to_bits()).collect();
+        let before = bits.len();
+        bits.sort_unstable();
+        bits.dedup();
+        assert_eq!(
+            bits.len(),
+            before,
+            "two personality multipliers share a value; [L26] is why that makes them untestable apart"
+        );
+    }
+
+    /// The starting needs across the household are pairwise distinct too,
+    /// and each sim starts short of something: a household spawning fully
+    /// content has no first move to watch, and the opening minute is the
+    /// only minute a new player is guaranteed to give it.
+    #[test]
+    fn every_shipped_sim_arrives_wanting_something_different() {
+        let p = pack();
+        let mut lowered: Vec<u32> = Vec::new();
+        for member in &p.household {
+            let below: Vec<f32> = member
+                .needs
+                .iter()
+                .copied()
+                .filter(|level| *level < terri_core::NEED_MAX)
+                .collect();
+            assert!(
+                !below.is_empty(),
+                "'{}' arrives perfectly content and will stand still for the whole opening minute",
+                member.name
+            );
+            lowered.extend(below.iter().map(|v| v.to_bits()));
+        }
+        let before = lowered.len();
+        lowered.sort_unstable();
+        lowered.dedup();
+        assert_eq!(lowered.len(), before, "two starting needs share a value");
+    }
     /// The knobs `content/tuning.toml` authors, read back off the pack
     /// the game actually loads.
     ///

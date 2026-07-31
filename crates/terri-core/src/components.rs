@@ -1,5 +1,6 @@
 use crate::ids::ObjectDefId;
-use bevy_ecs::prelude::{Component, Entity};
+use crate::needs::NEED_COUNT;
+use bevy_ecs::prelude::{Component, Entity, Resource};
 
 /// World-space position in tiles. Not screen space; the renderer
 /// applies the isometric projection.
@@ -274,6 +275,147 @@ impl Habituation {
     }
 }
 
+/// A sim's stable identity - [H1] in
+/// `docs/specs/2026-07-30-household-and-relationships-design.md`.
+///
+/// **This is deliberately not the entity index**, and the difference has a
+/// scheduled arrival date rather than being theoretical. `bevy_ecs` reuses a
+/// despawned entity's index for the next spawn, so anything keyed on the
+/// index silently transfers to the new occupant - [L47] records the render
+/// buffer learning this, and `drain_commands::resolve` documents living with
+/// it at the wire boundary because JavaScript cannot carry a generation.
+/// Three things need a name for a sim that survives all of that:
+/// relationships (per-pair state pointing at *that* one), the save file
+/// (an `Entity` is meaningless outside the `World` that minted it), and
+/// eventually death, which is what makes index reuse reachable at all.
+///
+/// Allocated by [`SimIdAllocator`], monotonically, never reused.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub struct SimId(pub u32);
+
+/// The counter [`SimId`]s come from. A world resource rather than a static,
+/// so two `Sim`s in one process - every test file - cannot interleave their
+/// sequences, and so a save file can restore it and keep the guarantee.
+#[derive(Resource, Debug, Default)]
+pub struct SimIdAllocator(u32);
+
+impl SimIdAllocator {
+    /// Issues the next identity. Every call returns a fresh one; nothing
+    /// hands them back. Named `issue` rather than `next` so it cannot be
+    /// confused with `Iterator::next`, which clippy rightly flags: an
+    /// allocator is not an iterator, and `for id in allocator` should not
+    /// come close to compiling by accident.
+    pub fn issue(&mut self) -> SimId {
+        let id = SimId(self.0);
+        self.0 += 1;
+        id
+    }
+    /// How many have been issued, for the save file and for tests.
+    pub fn issued(&self) -> u32 {
+        self.0
+    }
+}
+
+/// A sim's display name.
+///
+/// Presentation, not simulation: nothing scores it, `world_hash` must not
+/// read it (a rename should not diverge a replay), and it is deliberately
+/// NOT an identity - two sims may share a name, which is one of the reasons
+/// [H1] rejected keying relationships on it.
+#[derive(Component, Debug, Clone, PartialEq, Eq)]
+pub struct SimName(pub String);
+
+/// Who this sim is, as numbers - [H3].
+///
+/// Two dense arrays indexed by `NeedId::index`, plus a per-interaction
+/// weight list. Two arrays and not one because the request that started
+/// this was explicit: an introvert's `social` should drain slowly AND
+/// refill generously, and those are different numbers read by different
+/// systems - `decay_needs` reads `drain`, `tick_interactions` reads
+/// `satisfaction`, and selection reads both `satisfaction` and
+/// `dispositions` so what a sim seeks agrees with what delivery gives it.
+///
+/// Dense `[f32; NEED_COUNT]` here even though the authored TOML is sparse:
+/// the compile step fills absences with 1.0, so every read site is an
+/// index rather than a lookup-with-default that each caller could write
+/// differently.
+///
+/// **Every multiplier defaults to 1.0 and every consumer treats a missing
+/// `Personality` component as all-ones.** That is what keeps the world-hash
+/// golden vectors still: their scenarios spawn bare agents, and a bare
+/// agent must behave exactly as it did before personalities existed.
+///
+/// `dispositions` is the same shape as [`Habituation`] - a sorted
+/// `Vec<(ObjectDefId, u32, f32)>` keyed per interaction - and that is
+/// [S4]'s decision rather than a coincidence: dispositions, habituation
+/// and affinities are one mechanism with several sources, and selection
+/// multiplies them rather than each growing its own lookup system. A
+/// weight of 0 is legal and is the "fear of couches" the design brief
+/// asks for: the interaction's benefit scores as nothing, so the sim
+/// never chooses it, while a commanded use still works because commands
+/// do not consult scoring.
+#[derive(Component, Debug, Clone, PartialEq)]
+pub struct Personality {
+    pub drain: [f32; NEED_COUNT],
+    pub satisfaction: [f32; NEED_COUNT],
+    dispositions: Vec<(ObjectDefId, u32, f32)>,
+}
+
+impl Personality {
+    /// Multipliers of 1.0 everywhere: the sim personalities were bolted
+    /// onto, behaving exactly as before they existed.
+    pub fn neutral() -> Self {
+        Personality {
+            drain: [1.0; NEED_COUNT],
+            satisfaction: [1.0; NEED_COUNT],
+            dispositions: Vec::new(),
+        }
+    }
+
+    /// A personality with the given dispositions, sorted here so no caller
+    /// can construct an unsorted one: `disposition` binary-searches, and
+    /// the list's iteration order must be deterministic for anything that
+    /// ever walks it - including `world_hash`, IF personality ever enters
+    /// it. It does not today; see the exclusion note on `Sim::world_hash`.
+    pub fn with_dispositions(
+        drain: [f32; NEED_COUNT],
+        satisfaction: [f32; NEED_COUNT],
+        mut dispositions: Vec<(ObjectDefId, u32, f32)>,
+    ) -> Self {
+        dispositions.sort_by_key(|(object, interaction, _)| (object.0, *interaction));
+        Personality {
+            drain,
+            satisfaction,
+            dispositions,
+        }
+    }
+
+    /// This sim's weight on one interaction. Unlisted reads 1.0 - most
+    /// sims feel nothing in particular about most furniture.
+    pub fn disposition(&self, object: ObjectDefId, interaction: u32) -> f32 {
+        match self
+            .dispositions
+            .binary_search_by(|(o, i, _)| (o.0, *i).cmp(&(object.0, interaction)))
+        {
+            Ok(i) => self.dispositions[i].2,
+            Err(_) => 1.0,
+        }
+    }
+
+    /// Every disposition, in key order. For tests today, and for
+    /// `world_hash` the day personality becomes mutable and has to enter
+    /// it - see the exclusion note on `Sim::world_hash`.
+    pub fn dispositions(&self) -> &[(ObjectDefId, u32, f32)] {
+        &self.dispositions
+    }
+}
+
+impl Default for Personality {
+    fn default() -> Self {
+        Personality::neutral()
+    }
+}
+
 /// An in-progress interaction: a reference into the content pack plus how
 /// much of it is left.
 ///
@@ -428,5 +570,83 @@ mod intent_queue_tests {
             Some(intent(a, 3)),
             "the second intent must keep its own interaction index"
         );
+    }
+}
+
+#[cfg(test)]
+mod identity_tests {
+    //! `SimIdAllocator` and `Personality::disposition` are exactly the shape
+    //! docs/testing-protocol.md rule 2 warns the sweep is blind to: state
+    //! mutation and a lookup whose wrong answer is a plausible default.
+
+    use super::*;
+
+    #[test]
+    fn sim_ids_are_issued_in_order_and_never_repeat() {
+        // The whole contract: monotonic, no reuse. An `issue` that returned
+        // the id BEFORE incrementing and one after differ in every value,
+        // so the literal sequence pins which one shipped; `issued` is
+        // asserted alongside because the save file restores it, and an
+        // off-by-one there re-issues the newest sim's identity to the next
+        // one born.
+        let mut allocator = SimIdAllocator::default();
+        assert_eq!(allocator.issued(), 0, "a fresh allocator has issued none");
+        assert_eq!(allocator.issue(), SimId(0));
+        assert_eq!(allocator.issue(), SimId(1));
+        assert_eq!(allocator.issue(), SimId(2));
+        assert_eq!(allocator.issued(), 3);
+    }
+
+    #[test]
+    fn a_disposition_reads_back_by_its_own_key_and_unlisted_reads_neutral() {
+        // Three entries inserted UNSORTED with pairwise distinct weights,
+        // so a lookup that returned the wrong entry - the classic
+        // binary-search-over-unsorted failure - is visible in the value
+        // rather than only in principle ([L34]). `with_dispositions` owns
+        // the sort; this is what fails if it stops doing so.
+        let personality = Personality::with_dispositions(
+            [1.0; NEED_COUNT],
+            [1.0; NEED_COUNT],
+            vec![
+                (ObjectDefId(7), 1, 0.25),
+                (ObjectDefId(2), 0, 1.75),
+                (ObjectDefId(7), 0, 0.5),
+            ],
+        );
+
+        assert_eq!(personality.disposition(ObjectDefId(2), 0), 1.75);
+        assert_eq!(personality.disposition(ObjectDefId(7), 0), 0.5);
+        assert_eq!(personality.disposition(ObjectDefId(7), 1), 0.25);
+        // Unlisted is neutral, not zero: most sims feel nothing about most
+        // furniture, and a default of 0 would make every sim refuse every
+        // interaction nobody wrote a feeling for.
+        assert_eq!(personality.disposition(ObjectDefId(9), 0), 1.0);
+        // Same object, unlisted interaction - the half of the key a lookup
+        // matching on object alone would get wrong.
+        assert_eq!(personality.disposition(ObjectDefId(2), 1), 1.0);
+
+        // And the stored order is sorted whatever order authoring used,
+        // because `world_hash` iterates it.
+        let keys: Vec<(u32, u32)> = personality
+            .dispositions()
+            .iter()
+            .map(|(o, i, _)| (o.0, *i))
+            .collect();
+        assert_eq!(keys, vec![(2, 0), (7, 0), (7, 1)]);
+    }
+
+    #[test]
+    fn a_neutral_personality_is_all_ones_everywhere() {
+        // The default every consumer leans on: a sim with no Personality
+        // component must behave as before personalities existed, which is
+        // what keeps the world-hash golden vectors still. All ones, not
+        // all zeros - zeros would freeze decay and nullify every benefit.
+        let neutral = Personality::neutral();
+        for i in 0..NEED_COUNT {
+            assert_eq!(neutral.drain[i], 1.0);
+            assert_eq!(neutral.satisfaction[i], 1.0);
+        }
+        assert!(neutral.dispositions().is_empty());
+        assert_eq!(neutral.disposition(ObjectDefId(0), 0), 1.0);
     }
 }
