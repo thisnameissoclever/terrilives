@@ -2923,3 +2923,36 @@ verification vacuous.
 `touch` between: delete guard, test fails; restore plus touch, test
 passes, with a visible `Compiling terri-sim` line in each run.
 
+## [L57] Humour shipped without the owner's eyes is a bug report waiting in a flyout
+
+**What happened.** Every interaction label was written as a deadpan
+joke in the game's intended register - "Take the good chair", "Shower
+at length", "Soak until reconsidered" - and shipped through several
+milestones unreviewed, because labels rode along with balance work.
+The first time the owner actually played over the network, the labels
+were the first thing he hit: one was ambiguous enough to misread
+("TAKE the good chair"), others were "cringy and awkward", and the
+direction was blunt - stop trying to be clever in interaction names.
+All nineteen labels were rewritten to plain verb phrases the same day.
+
+**Root cause.** Two errors compounding. First, jokes were placed where
+they had the least room to work: a menu row is read in half a second
+and the game renders no object descriptions, so a joke premised on
+"there is exactly one good chair" had no way to establish itself.
+Second and larger: tone is art direction, and art direction is one of
+the five things the rules of engagement explicitly reserve to the
+owner - shipping humour without his eyes on it was a scope violation
+that happened to be spelled like content.
+
+**Prevention rule.** Player-visible STRINGS are two categories with
+different rules. Functional text (labels, buttons, errors) is plain
+and says exactly what happens - the startup-failure card got this
+right on the same day the labels got it wrong. Voice text (goal item
+11's dark comedy) is drafted, shown to the owner, and only shipped
+approved. Nothing in the second category ships as a side effect of a
+milestone about mechanics.
+
+**How to verify.** content/objects.toml's header carries the rule;
+every current label is a plain verb phrase; the memory file
+interaction-labels-stay-plain.md carries the standing direction.
+

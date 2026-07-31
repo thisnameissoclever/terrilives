@@ -25,7 +25,7 @@
 
 [[interaction]]
 id = "chat"
-label = "Compare complaints"
+label = "Chat"
 # 30 social over 40 ticks. Stronger per tick than the television's 24
 # over 55, on purpose: the television is the placeholder company a lone
 # sim falls back on, and the real thing should win when a person is
