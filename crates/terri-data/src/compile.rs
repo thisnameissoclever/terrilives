@@ -908,6 +908,11 @@ fn compile_household(
 
         // Traits resolve to indices, the standing rule for every id
         // space; a worn trait nobody declared has no representation.
+        // Neither has one worn twice: `Traits` keys its state by index
+        // with a binary search, so a duplicate entry would leave one
+        // copy stale behind every `set_state` - the review finding this
+        // check answers. Rejected here so the component's sorted-unique
+        // invariant is a fact about any pack that exists ([D9]).
         let mut worn = Vec::with_capacity(sim.traits.len());
         for trait_id in &sim.traits {
             let Some(index) = traits.iter().position(|t| &t.id == trait_id) else {
@@ -916,6 +921,12 @@ fn compile_household(
                     trait_id: trait_id.clone(),
                 });
             };
+            if worn.contains(&(index as u32)) {
+                return Err(ContentError::DuplicateWornTrait {
+                    sim: sim.name.clone(),
+                    trait_id: trait_id.clone(),
+                });
+            }
             worn.push(index as u32);
         }
 
@@ -3681,6 +3692,40 @@ mod tests {
             crate::pack::CompiledTraitKind::Disposition {
                 score_multiplier: 0.0
             }
+        );
+    }
+
+    /// One trait, worn once - the review finding: `Traits` keys state
+    /// by index with a binary search, so a duplicate entry would sit
+    /// stale behind every write. Two DIFFERENT traits stay legal, so
+    /// the test separates "repeated id" from "more than one trait".
+    #[test]
+    fn rejects_a_sim_wearing_the_same_trait_twice() {
+        let mut sim = member("Terri", "the_settled", 0.5, 2.25);
+        sim.traits = vec!["first".to_string(), "first".to_string()];
+        assert_eq!(
+            compile_people_with_traits(
+                vec![archetype("the_settled")],
+                vec![sim],
+                vec![a_trait("first"), a_trait("second")]
+            )
+            .unwrap_err(),
+            ContentError::DuplicateWornTrait {
+                sim: "Terri".into(),
+                trait_id: "first".into()
+            }
+        );
+
+        let mut sim = member("Terri", "the_settled", 0.5, 2.25);
+        sim.traits = vec!["first".to_string(), "second".to_string()];
+        assert!(
+            compile_people_with_traits(
+                vec![archetype("the_settled")],
+                vec![sim],
+                vec![a_trait("first"), a_trait("second")]
+            )
+            .is_ok(),
+            "two different traits are an outfit, not a duplicate"
         );
     }
 

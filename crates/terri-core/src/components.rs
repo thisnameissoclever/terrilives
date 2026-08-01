@@ -462,8 +462,19 @@ pub struct Traits(Vec<(u32, f32)>);
 impl Traits {
     /// Built at spawn from the worn trait indices and each one's
     /// starting state (level, severity, or 0.0 for a disposition).
+    ///
+    /// Indices must be unique: `set_state`'s binary search would update
+    /// one duplicate and leave the other stale. The content gate makes a
+    /// duplicate unbuildable (`DuplicateWornTrait` in terri-data), so
+    /// the assert documents the contract for any FUTURE caller - trait
+    /// acquisition, a save loader - rather than guarding live content.
     pub fn from_entries(mut entries: Vec<(u32, f32)>) -> Self {
         entries.sort_unstable_by_key(|(index, _)| *index);
+        debug_assert!(
+            entries.windows(2).all(|w| w[0].0 != w[1].0),
+            "duplicate trait index in Traits::from_entries - the compile \
+             step rejects a trait worn twice, so this caller bypassed it"
+        );
         Self(entries)
     }
     /// The state of the worn trait at `index`, or `None` if this sim

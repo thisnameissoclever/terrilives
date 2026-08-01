@@ -581,6 +581,13 @@ pub enum ContentError {
         sim: String,
         trait_id: String,
     },
+    /// A household sim wearing the same trait twice. The `Traits`
+    /// component keys state by index with a binary search, so a
+    /// duplicate entry would leave one copy stale behind every write.
+    DuplicateWornTrait {
+        sim: String,
+        trait_id: String,
+    },
 }
 
 impl fmt::Display for ContentError {
@@ -1062,6 +1069,11 @@ impl fmt::Display for ContentError {
                 f,
                 "household sim '{sim}' wears '{trait_id}', which \
                  traits.toml does not declare"
+            ),
+            ContentError::DuplicateWornTrait { sim, trait_id } => write!(
+                f,
+                "household sim '{sim}' wears '{trait_id}' twice - a \
+                 trait is worn once or not at all"
             ),
         }
     }
