@@ -101,6 +101,10 @@ pub fn start_shift(
             .remove::<Path>()
             .remove::<Eating>()
             .remove::<Socialising>()
+            // A half-run chain STEP is dropped like a half-run meal;
+            // the chain itself survives in its counter, and the worker
+            // comes home and finishes cooking ([K4]).
+            .remove::<terri_core::StepWork>()
             .remove::<Fumbled>()
             // The worker may itself be claimed - see the doc comment.
             .remove::<Reserved>();

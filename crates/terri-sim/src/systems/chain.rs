@@ -18,9 +18,9 @@
 
 use bevy_ecs::prelude::*;
 use terri_core::{
-    Agent, AtWork, Blocked, Carrying, ChainState, Commuting, Eating, Fumbled, Hobbies, IntentQueue,
-    NeedId, Needs, Path, Personality, Position, Reserved, Restless, Satisfaction, SmartObject,
-    Socialising, StepWork, Target, TileGrid, Traits,
+    Agent, AtWork, Blocked, Carrying, ChainState, Commuting, Eating, Hobbies, IntentQueue, NeedId,
+    Needs, Path, Personality, Position, Reserved, Restless, Satisfaction, SmartObject, Socialising,
+    StepWork, Target, TileGrid, Traits,
 };
 
 use super::advertise::scaled_delta;
@@ -177,7 +177,6 @@ pub fn tick_chain_steps(
             Option<&Hobbies>,
             Option<&mut Satisfaction>,
             Option<&mut Traits>,
-            Option<&Fumbled>,
             Option<&Carrying>,
         ),
         With<Agent>,
@@ -197,7 +196,6 @@ pub fn tick_chain_steps(
             hobbies,
             satisfaction,
             mut traits,
-            fumbled,
             carrying,
         )) = working.get_mut(sim)
         else {
@@ -247,9 +245,10 @@ pub fn tick_chain_steps(
         }
 
         // The terminal payoff, whole, once - [M-1]. Delivery composes
-        // exactly as tick_interactions' does; the fumble scales
-        // benefits only and zeroes the satisfaction.
-        let fumble = fumbled.map_or(1.0, |f| f.delta_scale);
+        // exactly as tick_interactions' does; the fumble - carried in
+        // the counter itself, preemption-proof - scales benefits only
+        // and zeroes the satisfaction.
+        let fumble = chain_state.fumble_scale;
         for (need_index, delta) in &chain.advertises {
             let per_need = personality.map_or(1.0, |p| p.satisfaction[*need_index as usize]);
             let delta = scaled_delta(*delta, per_need * fumble);
@@ -271,7 +270,7 @@ pub fn tick_chain_steps(
         });
 
         if let Some(mut satisfaction) = satisfaction {
-            if fumbled.is_none() {
+            if !chain_state.fumbled() {
                 let tags = all_tags(chain);
                 let payout =
                     super::satisfaction::hobby_payout(
@@ -284,10 +283,7 @@ pub fn tick_chain_steps(
             }
         }
 
-        commands
-            .entity(sim)
-            .remove::<ChainState>()
-            .remove::<Fumbled>();
+        commands.entity(sim).remove::<ChainState>();
     }
 }
 

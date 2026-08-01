@@ -521,6 +521,7 @@ pub fn serve_intents(
                 .entity(agent)
                 .remove::<Eating>()
                 .remove::<Socialising>()
+                .remove::<terri_core::StepWork>()
                 .remove::<terri_core::Fumbled>()
                 .insert((
                     Target {
@@ -602,6 +603,7 @@ pub fn serve_intents(
             .entity(agent)
             .remove::<Eating>()
             .remove::<Socialising>()
+            .remove::<terri_core::StepWork>()
             .remove::<terri_core::Fumbled>()
             .insert((
                 Target {
@@ -677,6 +679,11 @@ pub fn select_action(
             // shape) would select something and overwrite its commute.
             Without<terri_core::AtWork>,
             Without<terri_core::Commuting>,
+            // Resume outranks adverts - [K4]. A sim mid-chain never
+            // re-enters selection; advance_chains owns it until the
+            // terminal completion or an explicit cancel. The player
+            // can still redirect: serve_intents does not score.
+            Without<terri_core::ChainState>,
         ),
     >,
     // Every sim that could be TALKED TO - [H4]/[H10]. Only an idle sim

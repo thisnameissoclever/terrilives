@@ -120,6 +120,11 @@ pub fn wander(
             // selection never sees a working sim to update it. A
             // commuter is already excluded by Without<Path>.
             Without<terri_core::AtWork>,
+            // Nor does a sim mid-dinner - [K4]. Its Restless marker
+            // can be stale for the same selection-never-sees-it
+            // reason, and a stroll would fight advance_chains for the
+            // same tick's walk.
+            Without<terri_core::ChainState>,
         ),
     >,
 ) {

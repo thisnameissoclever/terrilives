@@ -54,7 +54,7 @@ pub fn follow_path(
         &mut Path,
         Option<&Target>,
         Option<&terri_core::Traits>,
-        Option<&terri_core::ChainState>,
+        Option<&mut terri_core::ChainState>,
     )>,
     objects: Query<&SmartObject>,
     sims: Query<(), With<Agent>>,
@@ -68,7 +68,8 @@ pub fn follow_path(
     for entity in walking {
         // Infallible: the list was just collected from this query and
         // nothing between here and there removes a component.
-        let Ok((_, mut pos, mut path, target, traits, chain_state)) = agents.get_mut(entity) else {
+        let Ok((_, mut pos, mut path, target, traits, mut chain_state)) = agents.get_mut(entity)
+        else {
             continue;
         };
         let Some((tx, ty)) = path.next_step() else {
@@ -93,7 +94,7 @@ pub fn follow_path(
             // the terminal delivery.
             let tuning = &content.0.tuning;
             if target.interaction == super::chain::CHAIN_STEP {
-                let Some(chain_state) = chain_state else {
+                let Some(chain_state) = chain_state.as_deref_mut() else {
                     // A chain target with no counter is a preemption
                     // artefact (the cancel removed the chain but the
                     // walk survived a tick); the walk just ends.
@@ -108,14 +109,16 @@ pub fn follow_path(
                     tuning.min_interaction_ticks,
                     &mut rng,
                 );
+                // The roll writes into the COUNTER, not into Fumbled:
+                // a ruined dinner must stay ruined through the
+                // preemptions that clear the transient marker. The
+                // worst roll wins if two tagged steps both fail.
                 if !step.tags.is_empty() {
                     if let Some(traits) = traits {
                         if let Some(delta_scale) = super::trait_effects::roll_fumble(
                             traits, content.0, &step.tags, &mut rng,
                         ) {
-                            commands
-                                .entity(entity)
-                                .insert(terri_core::Fumbled { delta_scale });
+                            chain_state.fumble_scale = chain_state.fumble_scale.min(delta_scale);
                         }
                     }
                 }

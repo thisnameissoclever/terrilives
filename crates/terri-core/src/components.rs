@@ -554,10 +554,33 @@ pub struct Funds(pub i64);
 /// Survives every preemption on purpose - a player click, a career
 /// shift - and is removed by exactly two things: the terminal step's
 /// completion, and an explicit `CancelIntents` (stop means stop).
-#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+///
+/// `fumble_scale` is the chain's own fumble record, IN here rather
+/// than on the transient `Fumbled` deliberately: a ruined dinner must
+/// stay ruined through a preemption, and `Fumbled` is cleared by
+/// every preemption path on purpose. 1.0 is a clean run; a tagged
+/// step's failed roll writes its `fail_delta_scale` here and the
+/// terminal delivery reads it.
+#[derive(Component, Debug, Clone, Copy, PartialEq)]
 pub struct ChainState {
     pub chain: u32,
     pub step: u32,
+    pub fumble_scale: f32,
+}
+
+impl ChainState {
+    /// A fresh chain at its first step, unfumbled.
+    pub fn begin(chain: u32) -> Self {
+        Self {
+            chain,
+            step: 0,
+            fumble_scale: 1.0,
+        }
+    }
+    /// Whether any step's capability roll failed so far.
+    pub fn fumbled(&self) -> bool {
+        self.fumble_scale < 1.0
+    }
 }
 
 /// The item in this sim's hands, as an index into the pack's item

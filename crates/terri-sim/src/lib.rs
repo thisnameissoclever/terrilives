@@ -1047,7 +1047,7 @@ impl Sim {
             f32,
             Vec<(u32, f32)>,
             u64,
-            (u64, u64),
+            (u64, u64, f32),
             u64,
         );
         let mut rows: Vec<Row> = Vec::new();
@@ -1128,7 +1128,9 @@ impl Sim {
                     satisfaction.map_or(NO_SATISFACTION, |s| s.value()),
                     worn,
                     at_work.map_or(NOT_AT_WORK, |w| w.remaining_ticks as u64),
-                    chain.map_or((NO_CHAIN, 0), |c| (c.chain as u64, c.step as u64)),
+                    chain.map_or((NO_CHAIN, 0, 1.0), |c| {
+                        (c.chain as u64, c.step as u64, c.fumble_scale)
+                    }),
                     carrying.map_or(NOT_CARRYING, |c| c.0 as u64),
                 ));
             }
@@ -1150,7 +1152,7 @@ impl Sim {
             satisfaction,
             worn,
             at_work,
-            (chain, step),
+            (chain, step, fumble),
             carrying,
         ) in rows
         {
@@ -1191,6 +1193,7 @@ impl Sim {
             // rule the seven need columns set.
             hasher.write_u64(chain);
             hasher.write_u64(step);
+            hasher.write_f32(fumble);
             hasher.write_u64(carrying);
         }
 
@@ -2547,14 +2550,16 @@ mod determinism_tests {
         // was 0x5FEB_C18C_2EFE_AC10.
         //
         // **M2f PR 2 moved it by encoding again**: every row gained a
-        // trailing ChainState pair (chain u64 + step u64 - the
-        // out-of-band u64::MAX sentinel plus a step of 0 here, written
-        // even under the sentinel per the published-shape rule) and a
-        // Carrying u64 (u64::MAX here). The program counter is the
-        // resume state ([K4]) and the carried item is what it counts,
-        // so both are replay state. Behaviour untouched: no chain has
-        // a runtime yet when this moved.
-        const GOLDEN: u64 = 0xAEBB_1D02_9786_B6C0;
+        // trailing ChainState triple (chain u64 + step u64 + fumble
+        // f32 - the out-of-band u64::MAX sentinel plus 0 plus the
+        // clean 1.0 here, all written even under the sentinel per the
+        // published-shape rule) and a Carrying u64 (u64::MAX here).
+        // The program counter is the resume state ([K4]), the fumble
+        // rides in it so a ruined dinner survives preemption, and the
+        // carried item is what the counter is about - all replay
+        // state. Behaviour untouched: nothing inserts a ChainState in
+        // this scenario, whose agents own no chain.
+        const GOLDEN: u64 = 0x20E2_32DE_F1EB_AFF5;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

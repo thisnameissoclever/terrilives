@@ -287,6 +287,28 @@ pub fn drain_commands(
                         // the attempt closes it unfinished, unlearned.
                         .remove::<terri_core::Fumbled>();
                 }
+
+                // **A chain is abandoned by an explicit cancel
+                // REGARDLESS of the serving guard** - [K4]'s one
+                // destructive path. The guard protects autonomous
+                // actions from "stop doing what I told you", but a
+                // chain is a long visible errand whose starting intent
+                // is already spent, so stop means stop. The chain walk
+                // is identifiable by its sentinel, which is what lets
+                // the station release here without touching the guard
+                // above; the counter and the carried item go
+                // unconditionally, no-ops for everyone else.
+                if let Some(target) = released {
+                    if target.interaction == crate::systems::chain::CHAIN_STEP {
+                        commands.entity(target.object).try_remove::<Reserved>();
+                        commands.entity(agent).remove::<Target>().remove::<Path>();
+                    }
+                }
+                commands
+                    .entity(agent)
+                    .remove::<terri_core::ChainState>()
+                    .remove::<terri_core::Carrying>()
+                    .remove::<terri_core::StepWork>();
             }
 
             SimCommand::TalkTo {
