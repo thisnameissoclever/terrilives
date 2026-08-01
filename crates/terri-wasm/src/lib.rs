@@ -409,6 +409,28 @@ impl SimHandle {
             .unwrap_or_default()
     }
 
+    /// The sim's stable identity, or `u32::MAX` when the index names
+    /// nothing that carries one - in-band the way the digest's sentinel
+    /// is, and unreachable by real ids for the same widening reason.
+    pub fn sim_id_of(&self, entity_index: u32) -> u32 {
+        self.sim.sim_id_of(entity_index).unwrap_or(u32::MAX)
+    }
+
+    /// Fourteen floats - drain then satisfaction, seven each - or empty.
+    /// The [A-11] debug overlay's read; see `Sim::personality_of`.
+    pub fn personality_of(&self, entity_index: u32) -> Vec<f32> {
+        self.sim
+            .personality_of(entity_index)
+            .map(|values| values.to_vec())
+            .unwrap_or_default()
+    }
+
+    /// Interleaved `[sim_id, feeling, ...]` pairs, or empty. See
+    /// `Sim::relationships_of` for the f32-id bound.
+    pub fn relationships_of(&self, entity_index: u32) -> Vec<f32> {
+        self.sim.relationships_of(entity_index).unwrap_or_default()
+    }
+
     /// What the right-click flyout should list for the object carrying
     /// `entity_index`: one label per interaction, in the order
     /// `content/objects.toml` declares them, or an EMPTY array when that
@@ -1567,6 +1589,67 @@ mod boundary_tests {
             handle.enqueue_command(&select_bytes(9)),
             "a drained queue must accept commands again"
         );
+    }
+
+    /// The [A-11] debug trio, at the boundary they actually cross.
+    /// Asymmetric personality halves per [L34]: drain heads 1.5 and
+    /// satisfaction tails 0.75, so swapped halves fail rather than
+    /// agree. The relationship pairs interleave in key order, and the
+    /// absent cases flatten to empty exactly like needs_of.
+    #[test]
+    fn the_debug_trio_reports_identity_personality_and_feelings() {
+        use terri_core::{Personality, Relationships, SimId};
+
+        let mut handle = SimHandle::new(16, 16);
+        let mut personality = Personality::neutral();
+        personality.drain[0] = 1.5;
+        personality.satisfaction[NEED_COUNT - 1] = 0.75;
+        let mut feelings = Relationships::default();
+        feelings.bump(SimId(9), 0.5);
+        feelings.bump(SimId(2), -0.25);
+        let agent = handle
+            .sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 1.0, y: 1.0 },
+                Needs::all_at(NEED_MAX),
+                SimId(4),
+                personality,
+                feelings,
+            ))
+            .id()
+            .index_u32();
+        let bare = handle
+            .sim
+            .world_mut()
+            .spawn((Agent, Position { x: 2.0, y: 2.0 }, Needs::all_at(NEED_MAX)))
+            .id()
+            .index_u32();
+
+        assert_eq!(handle.sim_id_of(agent), 4);
+        assert_eq!(
+            handle.sim_id_of(bare),
+            u32::MAX,
+            "no identity flattens to the in-band absent value"
+        );
+
+        let personality = handle.personality_of(agent);
+        assert_eq!(personality.len(), NEED_COUNT * 2);
+        assert_eq!(personality[0], 1.5, "drain rides FIRST");
+        assert_eq!(
+            personality[NEED_COUNT * 2 - 1],
+            0.75,
+            "satisfaction rides second"
+        );
+        assert!(handle.personality_of(bare).is_empty());
+
+        assert_eq!(
+            handle.relationships_of(agent),
+            vec![2.0, -0.25, 9.0, 0.5],
+            "interleaved pairs in the component's key-sorted order"
+        );
+        assert!(handle.relationships_of(bare).is_empty());
     }
 
     #[test]

@@ -574,6 +574,67 @@ impl Sim {
             .map(|(_, needs)| *needs.as_slice())
     }
 
+    /// The stable identity of the sim carrying `index` - the key the
+    /// relationships in [`Sim::relationships_of`] point at. `None` for
+    /// objects, stale indices, and bare test agents, the same contract
+    /// as every scan here.
+    pub fn sim_id_of(&self, index: u32) -> Option<u32> {
+        let mut state = self.world.try_query::<(Entity, &terri_core::SimId)>()?;
+        state
+            .iter(&self.world)
+            .find(|(entity, _)| entity.index_u32() == index)
+            .map(|(_, id)| id.0)
+    }
+
+    /// The personality multipliers of the sim carrying `index`: `drain`
+    /// for all seven needs, then `satisfaction` for all seven - drain
+    /// FIRST, pinned by a test with asymmetric halves, because fourteen
+    /// floats have no field names once they cross the boundary.
+    ///
+    /// Read-only debug surface for the [A-11] stats overlay; nothing on
+    /// a frame path calls it.
+    pub fn personality_of(&self, index: u32) -> Option<[f32; terri_core::NEED_COUNT * 2]> {
+        let mut state = self
+            .world
+            .try_query::<(Entity, &terri_core::Personality)>()?;
+        state
+            .iter(&self.world)
+            .find(|(entity, _)| entity.index_u32() == index)
+            .map(|(_, personality)| {
+                let mut out = [0.0; terri_core::NEED_COUNT * 2];
+                out[..terri_core::NEED_COUNT].copy_from_slice(&personality.drain);
+                out[terri_core::NEED_COUNT..].copy_from_slice(&personality.satisfaction);
+                out
+            })
+    }
+
+    /// How the sim carrying `index` feels about everyone it knows, as
+    /// interleaved `[sim_id, feeling, sim_id, feeling, ...]` pairs in
+    /// the component's own key-sorted order.
+    ///
+    /// The ids ride as `f32` because wasm-bindgen cannot return a vector
+    /// of tuples and two parallel arrays would need an atomicity
+    /// contract between two boundary calls. Lossless below 2^24, and
+    /// `SimId`s are allocated monotonically from zero in a game whose
+    /// household is single digits - the margin is seven orders of
+    /// magnitude. Debug surface only, like `personality_of`.
+    pub fn relationships_of(&self, index: u32) -> Option<Vec<f32>> {
+        let mut state = self
+            .world
+            .try_query::<(Entity, &terri_core::Relationships)>()?;
+        state
+            .iter(&self.world)
+            .find(|(entity, _)| entity.index_u32() == index)
+            .map(|(_, relationships)| {
+                let mut out = Vec::with_capacity(relationships.entries().len() * 2);
+                for (id, feeling) in relationships.entries() {
+                    out.push(id.0 as f32);
+                    out.push(*feeling);
+                }
+                out
+            })
+    }
+
     /// The display name of the sim carrying `index`, or `None` when
     /// nothing live carries it or what does has no name - which includes
     /// every object and every bare test agent, so `SimName` is the kind

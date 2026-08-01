@@ -383,6 +383,36 @@ export class SimBridge {
   }
 
   /**
+   * The sim's stable identity, or `null` for objects, stale indices and
+   * bare agents. The boundary carries u32::MAX as the in-band absent
+   * value; it is normalised to `null` here so no caller compares
+   * against a sentinel.
+   */
+  simIdOf(entityIndex: number): number | null {
+    if (!isU32(entityIndex)) return null;
+    const id = this.handle.sim_id_of(entityIndex);
+    return id === 0xffff_ffff ? null : id;
+  }
+
+  /**
+   * Fourteen floats, drain then satisfaction, or empty. A copy across
+   * the boundary; debug-overlay read, never per-frame.
+   */
+  personalityOf(entityIndex: number): Float32Array {
+    if (!isU32(entityIndex)) return new Float32Array(0);
+    return this.handle.personality_of(entityIndex);
+  }
+
+  /**
+   * Interleaved [simId, feeling, ...] pairs in key order, or empty.
+   * Same copy-and-cadence contract as `personalityOf`.
+   */
+  relationshipsOf(entityIndex: number): Float32Array {
+    if (!isU32(entityIndex)) return new Float32Array(0);
+    return this.handle.relationships_of(entityIndex);
+  }
+
+  /**
    * The raw index of the selected sim, or `null` when nothing is
    * selected.
    *

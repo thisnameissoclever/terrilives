@@ -147,6 +147,27 @@
         color: #10131a;
         outline: none;
       }
+      /* The developer overlay: monospace, top-right, scrolls rather
+         than grows past the window, and sits under the flyout so a
+         debug session does not eat right-clicks. */
+      #debug-panel {
+        position: fixed;
+        top: 8px;
+        right: 8px;
+        max-width: 44em;
+        max-height: calc(100vh - 16px);
+        overflow-y: auto;
+        background: rgba(20, 22, 26, 0.92);
+        color: #e8e6e3;
+        border-radius: 6px;
+        padding: 10px 14px;
+        z-index: 9;
+      }
+      #debug-panel pre {
+        margin: 0;
+        font: 11px/1.5 Consolas, monospace;
+        white-space: pre-wrap;
+      }
     </style>
   </head>
   <body>
@@ -168,6 +189,13 @@
       </section>
       <section id="time-controls" aria-label="Simulation speed"></section>
     </div>
+    <!-- The developer stats overlay - [A-11]. Present in the markup but
+         inert unless the page is loaded with ?debug=1, which is also the
+         only time main.ts wires the backtick toggle. Hidden by default
+         either way. -->
+    <section id="debug-panel" aria-label="Developer statistics" hidden>
+      <pre id="debug-report"></pre>
+    </section>
     <!-- The right-click flyout. Outside #hud on purpose: the HUD is a
          fixed column in the top-left corner and this is positioned at the
          pointer, so nesting it would inherit a layout it has to fight.
