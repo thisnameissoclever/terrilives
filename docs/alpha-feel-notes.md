@@ -1370,5 +1370,20 @@ energy 15, satisfaction 1.0. Reproduce with
   Terri out-earning Doug answered itself from the other direction -
   the job flips the order (471.0 over 344.9), and a life's ranking
   now turns on choices (who works, who loves what) rather than on a
-  static table. Watched in the pane before the PR per the standing
-  protocol; the played notes are with the milestone wrap.
+  static table.
+- **The watched session, honestly described.** The pane could not
+  composite during this pass (nobody had it displayed, and an
+  undisplayed pane fires no animation frames), so the watch ran in a
+  real headless Chromium via Playwright against the dev server: the
+  house renders, all three sims move at 3x across screenshots, and
+  the ?debug=1 overlay showed every new line live against shipped
+  content - funds: 0 at the top, works: Office clerk under Terri,
+  wears: Low spirits (condition, severity 0.60), and Doug's
+  disposition worded without a state. The departure-vanish-return
+  itself could not be caught in pixels there (headless Chromium loses
+  the WebGPU adapter on reload and would not give it back), so it is
+  pinned instead by a permanent boundary test that runs the shipped
+  1440-tick day through the RELEASE wasm - Terri's row flagged
+  AT_WORK at tick 600, back and exactly 120 richer by tick 900. First
+  displayed-pane session should confirm the vanish reads well on
+  screen; filed as the one open eye-test.

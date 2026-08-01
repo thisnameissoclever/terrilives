@@ -1,0 +1,3 @@
+- generic [active] [ref=e1]:
+  - generic "Simulation view" [ref=e2]: This game renders to a canvas and needs WebGPU, which this browser does not appear to support.
+  - region "Simulation speed" [ref=e3]

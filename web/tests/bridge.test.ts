@@ -265,6 +265,40 @@ describe('SimBridge', () => {
     expect([...bridge.positions()]).not.toEqual(before);
   });
 
+  it('runs the shipped day through the boundary: Terri leaves, hides, returns paid', () => {
+    // The E4 loop against REAL content through the release wasm, which
+    // is the artifact the page runs ([L12]): the shipped day is 1440
+    // ticks with the office shift at 360-840, so by tick 600 Terri is
+    // off the lot (her row flagged AT_WORK, code 6) and by tick 900
+    // she is back and the household is exactly one pay packet richer.
+    const handle = SimHandle.from_lot();
+    const bridge = new SimBridge(handle, wasmMemory);
+    const terri = (() => {
+      for (let index = 0; index < 64; index++) {
+        if (handle.sim_name(index) === 'Terri') return index;
+      }
+      throw new Error('the shipped lot houses Terri');
+    })();
+
+    expect(bridge.funds()).toBe(0);
+    expect(bridge.careerOf(terri)).toBe('Office clerk');
+    const rowOf = (entity: number) => {
+      const ids = bridge.ids();
+      for (let row = 0; row < bridge.count; row++) {
+        if (ids[row] === entity) return row;
+      }
+      throw new Error('Terri lost her render row');
+    };
+
+    for (let t = 0; t < 600; t++) bridge.tick();
+    expect(bridge.activities()[rowOf(terri)]).toBe(6);
+    expect(bridge.funds()).toBe(0);
+
+    for (let t = 0; t < 300; t++) bridge.tick();
+    expect(bridge.activities()[rowOf(terri)]).not.toBe(6);
+    expect(bridge.funds()).toBe(120);
+  });
+
   it('reproduces the native golden world hash across the wasm boundary', () => {
     // The native `world_hash_matches_its_golden_vector` in
     // crates/terri-sim/src/lib.rs claims to be a free cross-platform

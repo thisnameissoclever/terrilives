@@ -451,6 +451,57 @@ mod tests {
         );
     }
 
+    /// The cancellation is AIMED: only walks toward the departing
+    /// worker are cut. A bystander mid-walk to the fridge keeps its
+    /// Target through the shift tick - the `&&`-to-`||` mutant cancels
+    /// every walk in the house, and this is what catches it.
+    #[test]
+    fn a_shift_start_leaves_an_unrelated_walk_alone() {
+        let pack = career_pack(vec![test_content::object(
+            "fridge",
+            &[(NeedId::Hunger, 40.0)],
+            30,
+        )]);
+        let mut sim = test_content::sim_with(16, 12, pack);
+        a_worker(&mut sim, 15.0, 2.0);
+        let fridge_def = pack.find("fridge").expect("fixture");
+        let fridge = sim
+            .world_mut()
+            .spawn((
+                Position { x: 10.0, y: 8.0 },
+                terri_core::SmartObject(fridge_def),
+                Reserved,
+            ))
+            .id();
+        let bystander = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 2.0, y: 8.0 },
+                Needs::all_at(80.0),
+                Target {
+                    object: fridge,
+                    interaction: 0,
+                },
+                Path {
+                    steps: vec![(3, 8), (4, 8), (5, 8), (6, 8), (7, 8), (8, 8), (9, 8)],
+                    cursor: 0,
+                },
+            ))
+            .id();
+
+        sim.tick();
+        sim.tick();
+        sim.tick(); // day-tick 3: the worker leaves.
+
+        assert_eq!(
+            sim.world().get::<Target>(bystander).map(|t| t.object),
+            Some(fridge),
+            "an errand that has nothing to do with the worker survives \
+             the shift tick"
+        );
+    }
+
     /// A working sim is GONE to autonomy: desperate needs, an
     /// available fridge, and it selects nothing until the shift ends.
     #[test]

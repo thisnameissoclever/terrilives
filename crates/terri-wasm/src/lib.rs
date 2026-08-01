@@ -1797,7 +1797,7 @@ mod boundary_tests {
     /// broke.
     #[test]
     fn the_career_and_trait_reads_cross_the_boundary() {
-        let handle = SimHandle::from_lot();
+        let mut handle = SimHandle::from_lot();
         // Entity indices are dense from zero at spawn, so a bounded
         // scan by name needs no buffer sync.
         let index_of = |name: &str| {
@@ -1808,7 +1808,13 @@ mod boundary_tests {
         let terri = index_of("Terri");
         let doug = index_of("Doug");
 
+        // Zero at move-in AND a nonzero read-through, because a funds()
+        // stubbed to 0.0 satisfies the first alone - the sweep found
+        // exactly that mutant surviving.
         assert_eq!(handle.funds(), 0.0, "move-in day, before any shift");
+        handle.sim.world_mut().resource_mut::<terri_core::Funds>().0 = 260;
+        assert_eq!(handle.funds(), 260.0, "the boundary reads the ledger");
+        handle.sim.world_mut().resource_mut::<terri_core::Funds>().0 = 0;
         assert_eq!(handle.career_of(terri), "Office clerk");
         assert_eq!(
             handle.career_of(doug),
