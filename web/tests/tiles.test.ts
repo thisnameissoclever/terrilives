@@ -94,10 +94,12 @@ describe('buildStaticInstances', () => {
   const built = buildStaticInstances(LOT, ORIGIN_X, ORIGIN_Y, GRID);
   const all = rows(built.instances, built.count);
 
-  it('emits one floor tile per tile of the lot, at its own screen position', () => {
+  it('emits one floor tile per tile of the lot plus the boundary ring', () => {
     const floor = spriteIndex('floor');
     const floors = all.filter((r) => r.sprite === floor);
-    expect(floors).toHaveLength(LOT.width * LOT.height);
+    // The ring at x = -1 and y = -1 is floored too, so the boundary
+    // walls stand on ground instead of past the slab's edge - [A-11].
+    expect(floors).toHaveLength((LOT.width + 1) * (LOT.height + 1));
 
     // The four corners by name, so a loop that transposed width and
     // height - which on a 5 x 3 lot would still emit 15 tiles - fails.
@@ -116,6 +118,11 @@ describe('buildStaticInstances', () => {
     expect(floors.some((r) => r.x === at(0, 4).x && r.y === at(0, 4).y)).toBe(
       false,
     );
+    // The ring's own far corner is floored - the tile the wall corner
+    // piece stands on.
+    expect(
+      floors.filter((r) => r.x === at(-1, -1).x && r.y === at(-1, -1).y),
+    ).toHaveLength(1);
   });
 
   it('emits one wall per blocked tile and none anywhere else', () => {
@@ -124,9 +131,10 @@ describe('buildStaticInstances', () => {
     const walls = all.filter((r) => r.sprite === ns || r.sprite === ew);
 
     // Five interior walls, plus the boundary: one panel per row down the
-    // west side and one per column along the north side, with the corner
-    // making an extra.
-    const boundary = LOT.height + LOT.width + 1;
+    // west side and one per column along the north side. The meeting
+    // tile at (-1,-1) is the CORNER piece now, not a flat panel, so it
+    // is deliberately absent from this ns/ew count.
+    const boundary = LOT.height + LOT.width;
     expect(walls).toHaveLength(5 + boundary);
 
     // **One panel per tile, the corner included.** Two coincident quads at
@@ -265,12 +273,21 @@ describe('buildStaticInstances', () => {
     const ns = spriteIndex('wallNS');
     const ew = spriteIndex('wallEW');
 
+    const floor = spriteIndex('floor');
+    const panelsAt = (wx: number, wy: number): number[] =>
+      find(all, wx, wy)
+        .filter((r) => r.sprite !== floor)
+        .map((r) => r.sprite);
+
     for (let y = 0; y < LOT.height; y++) {
-      expect(find(all, -1, y).map((r) => r.sprite)).toEqual([ns]);
+      expect(panelsAt(-1, y)).toEqual([ns]);
     }
-    for (let x = -1; x < LOT.width; x++) {
-      expect(find(all, x, -1).map((r) => r.sprite)).toContain(ew);
+    for (let x = 0; x < LOT.width; x++) {
+      expect(panelsAt(x, -1)).toEqual([ew]);
     }
+    // Where the two runs meet: the corner piece, closing the join two
+    // flat panels left open - [A-11].
+    expect(panelsAt(-1, -1)).toEqual([spriteIndex('wallCornerNW')]);
     // Only the two FAR sides. The near ones would stand between the
     // camera and the room.
     expect(find(all, LOT.width, 0)).toHaveLength(0);
@@ -291,8 +308,12 @@ describe('buildStaticInstances', () => {
     // Distinct, among the boundary panels specifically. Clamping would
     // collapse the far ones onto one value and leave draw order to
     // decide which covers which.
+    const floorSprite = spriteIndex('floor');
     const boundaryDepths = new Set(
-      Array.from({ length: LOT.height }, (_, y) => find(all, -1, y)[0].depth),
+      Array.from(
+        { length: LOT.height },
+        (_, y) => find(all, -1, y).filter((r) => r.sprite !== floorSprite)[0].depth,
+      ),
     );
     expect(boundaryDepths.size).toBe(LOT.height);
   });
@@ -353,7 +374,50 @@ describe('buildStaticInstances', () => {
     // larger than what was written uploads uninitialised zeroes - quads
     // at screen (0, 0) with depth 0, which draw in front of everything.
     expect(built.instances.length).toBe(built.count * FLOATS_PER_INSTANCE);
-    expect(built.count).toBe(LOT.width * LOT.height + 5 + LOT.height + LOT.width + 1);
+    // Ring-inclusive floor, five interior walls, the two boundary runs,
+    // and the corner piece. This fixture has no doorway gaps.
+    expect(built.count).toBe(
+      (LOT.width + 1) * (LOT.height + 1) + 5 + LOT.height + LOT.width + 1,
+    );
+  });
+
+  /**
+   * A doorway is a GAP in a wall run in the data ([B7] defers real
+   * doors to build mode), and the renderer now says what the gap means:
+   * a floor tile with wall neighbours on both sides along one axis gets
+   * the kit's doorway piece, oriented with the run it interrupts.
+   */
+  it('marks a gap in a wall run with a doorway piece oriented like the run', () => {
+    // An east-west run with a gap at (2, 1), and a north-south run with
+    // a gap at (4, 2) - both on one non-square lot so the axes cannot
+    // be conflated.
+    const gapped = {
+      width: 6,
+      height: 5,
+      walls: Uint32Array.from([
+        0, 1, 1, 1, 3, 1, // EW run, gap at (2, 1)
+        4, 1, // shared tile: continues the EW run
+        4, 3, 4, 4, // NS run below, gap at (4, 2)
+      ]),
+    };
+    const built = buildStaticInstances(gapped, ORIGIN_X, ORIGIN_Y, GRID);
+    const rowsOf = rows(built.instances, built.count);
+    const doorNS = spriteIndex('doorwayNS');
+    const doorEW = spriteIndex('doorwayEW');
+
+    const sprites = (wx: number, wy: number): number[] =>
+      rowsOf
+        .filter((r) => r.x === at(wx, wy).x && r.y === at(wx, wy).y)
+        .map((r) => r.sprite);
+
+    expect(sprites(2, 1)).toContain(doorEW);
+    expect(sprites(4, 2)).toContain(doorNS);
+    // A doorway does not replace the floor: a sim walks through it.
+    expect(sprites(2, 1)).toContain(spriteIndex('floor'));
+    // And an ordinary open tile beside a single wall gets no doorway -
+    // one wall neighbour is a wall's SIDE, not a gap in a run.
+    expect(sprites(2, 2)).not.toContain(doorEW);
+    expect(sprites(2, 2)).not.toContain(doorNS);
   });
 
   it('ignores a repeated wall tile rather than stacking two quads on it', () => {

@@ -277,7 +277,11 @@ pub fn compile(
         });
     }
 
-    let lot = compile_lot(lot, &compiled)?;
+    // The authored sprite names ride beside the compiled objects only
+    // for the length of this call: facing resolution needs the NAME to
+    // suffix, and the compiled object deliberately holds the index.
+    let sprite_names: Vec<String> = objects.object.iter().map(|o| o.sprite.clone()).collect();
+    let lot = compile_lot(lot, &compiled, &sprite_names, &sprite_index)?;
     let tuning = compile_tuning(tuning)?;
 
     // **An interaction the floor is longer than does not do what it says.**
@@ -876,7 +880,15 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
 /// Taking the compiled objects rather than the authored ones is what
 /// makes the last rule a real dangling-reference check: a placement can
 /// only name something that survived object validation.
-fn compile_lot(lot: LotFile, objects: &[CompiledObject]) -> Result<CompiledLot, ContentError> {
+fn compile_lot(
+    lot: LotFile,
+    objects: &[CompiledObject],
+    // The authored atlas NAME per compiled object, in the same order as
+    // `objects`, because facing resolution is string arithmetic on the
+    // name and the compiled object holds only the resolved index.
+    sprite_names: &[String],
+    sprite_index: &dyn Fn(&str) -> Option<usize>,
+) -> Result<CompiledLot, ContentError> {
     // A zero dimension is not merely odd; `TileGrid::new(0, h)` has no
     // walkable tile at all, so every agent on it silently never moves.
     // That is the shape of failure [D9] exists to convert into a build
@@ -972,11 +984,41 @@ fn compile_lot(lot: LotFile, objects: &[CompiledObject]) -> Result<CompiledLot, 
             });
         }
 
+        // A facing is presentation, resolved here so a variant nobody
+        // imported has no representation past this point ([D9]). The
+        // variant naming convention is the atlas's: the plain name is
+        // the `_SE` import and a directional variant appends its facing,
+        // so `kitchenCabinet` facing SW is the atlas entry
+        // `kitchenCabinetSW`.
+        let sprite = match &place.facing {
+            None => objects[index].sprite,
+            Some(facing) => {
+                if !crate::schema::FACINGS.contains(&facing.as_str()) {
+                    return Err(ContentError::UnknownFacing {
+                        object: place.object.clone(),
+                        facing: facing.clone(),
+                    });
+                }
+                let variant = format!("{}{}", sprite_names[index], facing);
+                match sprite_index(&variant) {
+                    Some(resolved) => resolved as u32,
+                    None => {
+                        return Err(ContentError::FacingSpriteMissing {
+                            object: place.object.clone(),
+                            facing: facing.clone(),
+                            sprite: variant,
+                        })
+                    }
+                }
+            }
+        };
+
         rects.push((place.object.clone(), tile, objects[index].footprint));
         placements.push(CompiledPlacement {
             object: ObjectDefId(index as u32),
             x: place.x,
             y: place.y,
+            sprite,
         });
     }
 
@@ -1351,6 +1393,15 @@ mod tests {
     /// author's wording, and not `grab_snack`, is what reaches the pack.
     #[rustfmt::skip]
     const GOLDEN_PACK_BYTES: &[u8] = &[
+        // **Regenerated wholesale at A-11**, the second wholesale regen
+        // in the file's history: `CompiledPlacement` grew a `sprite`
+        // field (one varint byte inside the lot block per placement -
+        // this fixture's lot has one), on top of the merged tuning tail
+        // (contested_score_multiplier 0.375, then the relationship trio
+        // 0.1875 / 0.046875 / 0.8125) and the three empty Vec blocks.
+        // The object-block annotations in the doc comment above remain
+        // valid; the fully-annotated predecessors are one `git log -p`
+        // away. Read off the failing assertion, per the standing rule.
         205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62,
         205, 204, 204, 62, 0, 0, 0, 63, 154, 153, 25, 63,
         51, 51, 51, 63, 1, 6, 102, 114, 105, 100, 103, 101,
@@ -1360,26 +1411,11 @@ mod tests {
         15, 1, 15, 69, 97, 116, 32, 115, 116, 97, 110, 100,
         105, 110, 103, 32, 117, 112, 1, 1, 1, 5, 3, 2,
         4, 2, 1, 0, 1, 0, 0, 0, 32, 64, 0, 0,
-        160, 63, 0, 0, 128, 62, 0, 0, 0, 63, 0, 0,
-        0, 62, 9, 6, 0, 0, 160, 62, 10, 215, 35, 59,
-        0, 0, 32, 63, 0, 0, 64, 63, 3, 172, 2, 7,
-        11, 13,
-        // `contested_score_multiplier` 0.375, then M2d's relationship
-        // trio (gain 0.1875, decay 0.046875, delta scale 0.8125), all
-        // appended after `need_bar_refresh_ms` in the struct order the
-        // merge of the two parallel branches settled. Each is four LE
-        // bytes, exact in binary32. Read off the failing assertion on
-        // the merged tree, not derived by hand.
-        0, 0, 192, 62,
-        0, 0, 64, 62, 0, 0, 64, 61, 0, 0, 80, 63,
-        // M2c appended two Vec blocks to the pack - `personalities`, then
-        // `household` - and this fixture compiles through `compile_bare`,
-        // which passes both empty, so each is one varint length byte of 0.
-        // M2d appended `social` after them, empty here too. Every byte
-        // before the tuning trio kept its offset, which is the appending
-        // rule on `ContentPack::lot` doing its job. Read off the failing
-        // assertion after the change, not derived by hand.
-        0, 0, 0,
+        160, 63, 2, 0, 0, 128, 62, 0, 0, 0, 63, 0,
+        0, 0, 62, 9, 6, 0, 0, 160, 62, 10, 215, 35,
+        59, 0, 0, 32, 63, 0, 0, 64, 63, 3, 172, 2,
+        7, 11, 13, 0, 0, 192, 62, 0, 0, 64, 62, 0,
+        0, 64, 61, 0, 0, 80, 63, 0, 0, 0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -1436,6 +1472,7 @@ mod tests {
                 object: "fridge".into(),
                 x: 2.5,
                 y: 1.25,
+                facing: None,
             }],
         }
     }
@@ -2803,6 +2840,7 @@ mod tests {
                     object: (*id).to_string(),
                     x: i as f32,
                     y: 3.0,
+                    facing: None,
                 })
                 .collect(),
         };
@@ -3680,6 +3718,7 @@ mod tests {
                     object: object.to_string(),
                     x,
                     y,
+                    facing: None,
                 })
                 .collect(),
         }
@@ -4316,6 +4355,73 @@ mod tests {
         assert!(
             compile_bare_with_social(vec![talk(12)]).is_ok(),
             "the smallest unclipped duration must compile, or the boundary is off by one on the safe-looking side"
+        );
+    }
+
+    /// The [A-11] facing pipeline: a placement's `facing` resolves at
+    /// compile time to a directional sprite variant by name suffix, and
+    /// both ways it can be wrong are its OWN errors so lot.toml is
+    /// blamed with the exact missing import named.
+    #[test]
+    fn a_placement_facing_resolves_a_sprite_variant_or_fails_by_name() {
+        let atlas = || AtlasFile {
+            sprite: ["couch_art", SIM_SPRITE, "fridge_art", "fridge_artSW"]
+                .iter()
+                .map(|name| AtlasSpriteDef {
+                    name: (*name).to_string(),
+                })
+                .collect(),
+        };
+        let compile_facing = |facing: Option<&str>| {
+            let mut lot = lot_of(4, 3, &[], &[("fridge", 2.0, 1.0)]);
+            lot.place[0].facing = facing.map(str::to_string);
+            compile(
+                full_needs(),
+                one_object(snack()),
+                lot,
+                atlas(),
+                full_tuning(),
+                PersonalitiesFile { archetype: vec![] },
+                HouseholdFile { sim: vec![] },
+                SocialFile {
+                    interaction: vec![],
+                },
+            )
+        };
+
+        // Resolved: the SW variant's own index, not the definition's.
+        let pack = compile_facing(Some("SW")).expect("an imported facing compiles");
+        assert_eq!(
+            pack.lot.placements[0].sprite, 3,
+            "the placement must carry fridge_artSW's index"
+        );
+        assert_eq!(
+            pack.objects[0].sprite, 2,
+            "the object definition keeps its own plain sprite"
+        );
+
+        // Absent: the definition's sprite, byte for byte.
+        let pack = compile_facing(None).expect("no facing is the old world");
+        assert_eq!(pack.lot.placements[0].sprite, 2);
+
+        // A typo'd facing is a typo, not a missing import.
+        assert_eq!(
+            compile_facing(Some("SSW")).unwrap_err(),
+            ContentError::UnknownFacing {
+                object: "fridge".into(),
+                facing: "SSW".into()
+            }
+        );
+
+        // A legal facing nobody imported names the exact atlas entry to
+        // add.
+        assert_eq!(
+            compile_facing(Some("NE")).unwrap_err(),
+            ContentError::FacingSpriteMissing {
+                object: "fridge".into(),
+                facing: "NE".into(),
+                sprite: "fridge_artNE".into()
+            }
         );
     }
 

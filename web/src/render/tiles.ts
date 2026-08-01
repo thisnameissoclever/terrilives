@@ -121,6 +121,11 @@ export function buildStaticInstances(
     wallNS: spriteIndex('wallNS'),
     wallEW: spriteIndex('wallEW'),
   };
+  const cornerSprite = spriteIndex('wallCornerNW');
+  const doorwaySprites = {
+    doorwayNS: spriteIndex('doorwayNS'),
+    doorwayEW: spriteIndex('doorwayEW'),
+  };
 
   const walls = new Set<string>();
   for (let i = 0; i + 1 < lot.walls.length; i += 2) {
@@ -137,15 +142,50 @@ export function buildStaticInstances(
   // Only the two FAR sides, at x = -1 and y = -1. The near sides would
   // stand between the camera and the room and hide most of it, which is
   // why isometric games have never drawn them.
-  const boundary: [number, number, number][] = [];
+  //
+  // The north-west tile (-1,-1) is where the two runs MEET, and it gets
+  // the corner piece: it was previously an east-west panel butted
+  // against a north-south one, two differently-oriented half-tile
+  // panels meeting at an offset with nothing closing the join - one of
+  // [A-11]'s "wall segments don't touch" sightings.
+  const boundary: [number, number, number][] = [[-1, -1, cornerSprite]];
   for (let y = 0; y < lot.height; y++) {
     boundary.push([-1, y, wallSprites.wallNS]);
   }
-  for (let x = -1; x < lot.width; x++) {
+  for (let x = 0; x < lot.width; x++) {
     boundary.push([x, -1, wallSprites.wallEW]);
   }
 
-  const count = lot.width * lot.height + walls.size + boundary.length;
+  // **Doorways are drawn out loud.** In the data a doorway is a GAP in a
+  // wall run - lot.toml says so, and the deferred [B7] wall-on-edge
+  // redesign is where doors become real things. But a 32 px panel on a
+  // 64 px tile already leaves floor showing beside every wall, so a gap
+  // read as "the wall just stops", not as "you may walk through here" -
+  // [A-11]'s "no doors" report. The renderer can SAY what the gap means
+  // without the data changing: a floor tile whose two neighbours along
+  // one axis are both walls is a doorway in that run, and gets the
+  // kit's doorway piece - one tile-edge wide, 18 px shorter than a wall
+  // panel, which reads as a lintel over an opening.
+  const doorways: [number, number, number][] = [];
+  for (let y = 0; y < lot.height; y++) {
+    for (let x = 0; x < lot.width; x++) {
+      if (isWall(x, y)) continue;
+      const nsGap = isWall(x, y - 1) && isWall(x, y + 1);
+      const ewGap = isWall(x - 1, y) && isWall(x + 1, y);
+      if (nsGap) {
+        doorways.push([x, y, doorwaySprites.doorwayNS]);
+      } else if (ewGap) {
+        doorways.push([x, y, doorwaySprites.doorwayEW]);
+      }
+    }
+  }
+
+  // Floor extends one ring outward to sit under the boundary walls.
+  // Without it the north and west runs stood on nothing and read as
+  // extending past the slab's edge - the other half of [A-11]'s wall
+  // report. The ring is (width+1) x (height+1) minus the interior.
+  const floorCount = (lot.width + 1) * (lot.height + 1);
+  const count = floorCount + walls.size + boundary.length + doorways.length;
   const instances: InstanceArray = new Float32Array(count * FLOATS_PER_INSTANCE);
   let slot = 0;
 
@@ -179,8 +219,8 @@ export function buildStaticInstances(
     );
   };
 
-  for (let y = 0; y < lot.height; y++) {
-    for (let x = 0; x < lot.width; x++) {
+  for (let y = -1; y < lot.height; y++) {
+    for (let x = -1; x < lot.width; x++) {
       writeFloor(x, y, floorSprite);
     }
   }
@@ -193,6 +233,9 @@ export function buildStaticInstances(
     write(x, y, LAYER_PROP, wallSprites[wallOrientation(x, y, isWall)]);
   }
   for (const [x, y, sprite] of boundary) {
+    write(x, y, LAYER_PROP, sprite);
+  }
+  for (const [x, y, sprite] of doorways) {
     write(x, y, LAYER_PROP, sprite);
   }
 

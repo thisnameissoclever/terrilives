@@ -10,18 +10,18 @@
 
 image = "atlas.png"
 width = 512
-height = 303
+height = 356
 
 [[sprite]]
 name = "floor"
-x = 1
-y = 260
+x = 281
+y = 267
 w = 64
 h = 42
 
 [[sprite]]
 name = "sim"
-x = 93
+x = 159
 y = 116
 w = 38
 h = 78
@@ -49,8 +49,8 @@ h = 83
 
 [[sprite]]
 name = "bathroomSinkSquare"
-x = 401
-y = 200
+x = 199
+y = 267
 w = 41
 h = 46
 
@@ -63,29 +63,29 @@ h = 94
 
 [[sprite]]
 name = "toiletSquare"
-x = 313
-y = 200
+x = 78
+y = 267
 w = 36
 h = 50
 
 [[sprite]]
 name = "bookcaseClosedDoors"
-x = 230
+x = 296
 y = 116
 w = 36
 h = 74
 
 [[sprite]]
 name = "loungeSofaOttoman"
-x = 350
-y = 200
+x = 148
+y = 267
 w = 50
 h = 47
 
 [[sprite]]
 name = "televisionVintage"
-x = 131
-y = 260
+x = 411
+y = 267
 w = 34
 h = 40
 
@@ -98,105 +98,105 @@ h = 114
 
 [[sprite]]
 name = "selectionRing"
-x = 66
-y = 260
+x = 346
+y = 267
 w = 64
 h = 42
 
 [[sprite]]
 name = "kitchenStove"
-x = 1
+x = 267
 y = 200
 w = 50
 h = 59
 
 [[sprite]]
 name = "kitchenCabinet"
-x = 52
+x = 318
 y = 200
 w = 50
 h = 59
 
 [[sprite]]
 name = "kitchenSink"
-x = 103
+x = 369
 y = 200
 w = 50
 h = 59
 
 [[sprite]]
 name = "table"
-x = 325
+x = 391
 y = 116
 w = 72
 h = 70
 
 [[sprite]]
 name = "chair"
-x = 459
-y = 200
+x = 257
+y = 267
 w = 23
 h = 43
 
 [[sprite]]
 name = "trashcan"
-x = 200
-y = 260
+x = 480
+y = 267
 w = 18
 h = 35
 
 [[sprite]]
 name = "loungeSofaLong"
-x = 132
+x = 198
 y = 116
 w = 97
 h = 76
 
 [[sprite]]
 name = "loungeChair"
-x = 154
+x = 420
 y = 200
 w = 49
 h = 57
 
 [[sprite]]
 name = "loungeChairRelax"
-x = 267
+x = 333
 y = 116
 w = 57
 h = 72
 
 [[sprite]]
 name = "radio"
-x = 247
-y = 260
+x = 29
+y = 321
 w = 22
 h = 27
 
 [[sprite]]
 name = "pottedPlant"
-x = 443
-y = 200
+x = 241
+y = 267
 w = 15
 h = 46
 
 [[sprite]]
 name = "cardboardBoxOpen"
-x = 166
-y = 260
+x = 446
+y = 267
 w = 33
 h = 36
 
 [[sprite]]
 name = "lampRoundFloor"
-x = 204
+x = 470
 y = 200
 w = 13
 h = 57
 
 [[sprite]]
 name = "coatRackStanding"
-x = 218
+x = 484
 y = 200
 w = 17
 h = 54
@@ -210,29 +210,29 @@ h = 103
 
 [[sprite]]
 name = "sideTableDrawers"
-x = 270
-y = 200
+x = 35
+y = 267
 w = 42
 h = 52
 
 [[sprite]]
 name = "cabinetBedDrawer"
-x = 219
-y = 260
+x = 1
+y = 321
 w = 27
 h = 34
 
 [[sprite]]
 name = "desk"
-x = 398
-y = 116
+x = 1
+y = 200
 w = 63
 h = 66
 
 [[sprite]]
 name = "chairDesk"
-x = 236
-y = 200
+x = 1
+y = 267
 w = 33
 h = 53
 
@@ -256,3 +256,52 @@ x = 51
 y = 116
 w = 41
 h = 82
+
+[[sprite]]
+name = "wallCornerNW"
+x = 115
+y = 267
+w = 32
+h = 49
+
+[[sprite]]
+name = "doorwayNS"
+x = 93
+y = 116
+w = 32
+h = 80
+
+[[sprite]]
+name = "doorwayEW"
+x = 126
+y = 116
+w = 32
+h = 79
+
+[[sprite]]
+name = "kitchenStoveSW"
+x = 117
+y = 200
+w = 49
+h = 60
+
+[[sprite]]
+name = "kitchenCabinetSW"
+x = 167
+y = 200
+w = 49
+h = 60
+
+[[sprite]]
+name = "kitchenSinkSW"
+x = 217
+y = 200
+w = 49
+h = 60
+
+[[sprite]]
+name = "kitchenCabinetCornerInnerSW"
+x = 65
+y = 200
+w = 51
+h = 62

@@ -89,6 +89,15 @@ pub struct CompiledPlacement {
     pub object: ObjectDefId,
     pub x: f32,
     pub y: f32,
+    /// The atlas sprite THIS placement is drawn with - the object
+    /// definition's sprite unless the placement authored a `facing`,
+    /// in which case the directional variant was resolved at compile
+    /// time and a variant nobody imported has no representation ([D9]).
+    ///
+    /// Appended last per the pack's growth rule; note this grows every
+    /// PLACEMENT block rather than the pack's tail, so the golden
+    /// vector was regenerated rather than extended.
+    pub sprite: u32,
 }
 
 /// The lot: its size, its interior wall tiles, and what stands on it.
@@ -385,15 +394,20 @@ mod tests {
             height: 4,
             walls: vec![(3, 2), (1, 0)],
             placements: vec![
+                // Sprites distinct from each other AND from the ids, so
+                // a round trip writing the sprite into the object slot
+                // or duplicating one across placements moves an assert.
                 CompiledPlacement {
                     object: ObjectDefId(2),
                     x: 2.5,
                     y: 1.25,
+                    sprite: 9,
                 },
                 CompiledPlacement {
                     object: ObjectDefId(0),
                     x: 4.0,
                     y: 3.5,
+                    sprite: 6,
                 },
             ],
         }

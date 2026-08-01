@@ -20,7 +20,7 @@ pub use command::{CommandQueue, SimCommand};
 pub use components::{
     Agent, Blocked, Eating, Habituation, Intent, IntentQueue, Path, Personality, Position,
     Relationships, Reserved, Restless, Selected, SimId, SimIdAllocator, SimName, SmartObject,
-    Socialising, Target, Wander,
+    Socialising, SpriteVariant, Target, Wander,
 };
 pub use grid::{Footprint, TileGrid};
 pub use hash::FnvHasher;

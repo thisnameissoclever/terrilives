@@ -77,6 +77,70 @@ mod tests {
             .collect()
     }
 
+    /// The [A-11] anchor rule: an object's ROW is centred on its
+    /// footprint rectangle while its Position component stays on the
+    /// origin tile. Every other fixture in this module is 1x1, where
+    /// centring is the identity - so without this test the whole
+    /// mechanism deletes cleanly ([L53]'s shape: a rule correct for
+    /// every case the fixtures can express is not a tested rule).
+    #[test]
+    fn a_multi_tile_object_row_is_centred_on_its_rectangle_not_its_origin_tile() {
+        let mut sim = Sim::new_with_lot(16, 16);
+        let bed = terri_data::pack()
+            .find("double_bed")
+            .expect("the shipped pack declares the 2x2 bed");
+        let entity = sim
+            .world_mut()
+            .spawn((Position { x: 3.0, y: 6.0 }, SmartObject(bed)))
+            .id();
+
+        sim.sync_render_buffer();
+        let buf = sim.render_buffer();
+        assert_eq!(buf.count, 1);
+        assert_eq!(
+            (buf.positions[0], buf.positions[1]),
+            (3.5, 6.5),
+            "a 2x2 footprint's centre is origin plus half a tile on each \
+             axis; the origin-anchored row is what drew the bed through \
+             the bedroom wall"
+        );
+
+        // The component is simulation state and must not move: scoring
+        // distance, pathing, and the world hash all read it.
+        let pos = sim.world().get::<Position>(entity).expect("still placed");
+        assert_eq!((pos.x, pos.y), (3.0, 6.0));
+    }
+
+    /// A `SpriteVariant` - the compiled form of a placement's `facing` -
+    /// outranks the object definition's sprite in the buffer, and its
+    /// absence changes nothing. Without this, dropping the variant read
+    /// deletes the whole facing feature silently: every placement falls
+    /// back to the definition sprite, which is exactly the wrong-facing
+    /// kitchen [A-11] reported.
+    #[test]
+    fn a_sprite_variant_outranks_the_definition_sprite() {
+        let mut sim = Sim::new_with_lot(8, 8);
+        sim.world_mut().spawn((
+            Position { x: 2.0, y: 2.0 },
+            a_smart_object(),
+            terri_core::SpriteVariant(7),
+        ));
+        sim.world_mut()
+            .spawn((Position { x: 4.0, y: 4.0 }, a_smart_object()));
+
+        sim.sync_render_buffer();
+        let buf = sim.render_buffer();
+        assert_eq!(buf.count, 2);
+        assert_eq!(
+            buf.sprites[0], 7,
+            "the faced placement draws its resolved variant"
+        );
+        assert_ne!(
+            buf.sprites[1], 7,
+            "the plain placement still draws the definition's sprite"
+        );
+    }
+
     #[test]
     fn render_buffer_matches_world_state() {
         let mut sim = Sim::new_with_lot(16, 16);

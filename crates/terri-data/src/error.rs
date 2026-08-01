@@ -425,6 +425,22 @@ pub enum ContentError {
     RelationshipDeltaScaleOutOfRange {
         value: f32,
     },
+    /// A placement's `facing` is not one of the kit's four. Caught
+    /// before sprite lookup so a typo reads as a typo rather than as a
+    /// missing atlas entry.
+    UnknownFacing {
+        object: String,
+        facing: String,
+    },
+    /// A placement's facing resolves to a sprite the atlas does not
+    /// hold - legal facing, unimported art. The atlas imports variants
+    /// as the lot needs them rather than all four of everything, so
+    /// this is the error that says which import is missing.
+    FacingSpriteMissing {
+        object: String,
+        facing: String,
+        sprite: String,
+    },
     /// `social.toml` declares the same interaction twice. Own variants
     /// rather than the object family's, so the message points at the
     /// file that actually contains the mistake - the same reason the
@@ -824,6 +840,18 @@ impl fmt::Display for ContentError {
                  The multiplier is 1 + relationship * scale with \
                  relationships in -1..=1, so a scale above 1 would let a \
                  bad relationship turn an advertised benefit negative"
+            ),
+            ContentError::UnknownFacing { object, facing } => write!(
+                f,
+                "lot.toml places '{object}' facing '{facing}'; a facing is                  one of NE, NW, SE, SW"
+            ),
+            ContentError::FacingSpriteMissing {
+                object,
+                facing,
+                sprite,
+            } => write!(
+                f,
+                "lot.toml places '{object}' facing '{facing}', which needs                  sprite '{sprite}' - the atlas does not hold it. Add the                  variant to assets/sprites/build-atlas.ps1 and regenerate"
             ),
             ContentError::DuplicateSocialInteraction { id } => write!(
                 f,
