@@ -30,6 +30,7 @@
 import { ACTIVITY_AT_WORK } from './frame.js';
 import { SPRITES } from './render/atlas.js';
 import {
+  DRAG_THRESHOLD_PX,
   pinchZoom,
   pointerDistance,
   wheelZoom,
@@ -307,7 +308,10 @@ export function pickSprite(
     const layer = kinds[row] === KIND_AGENT ? LAYER_SIM : LAYER_PROP;
     // Strictly greater on both, so an equal-depth equal-layer tie keeps the
     // EARLIER row - the one that won the pixel.
-    if (nearness > bestNearness || (nearness === bestNearness && layer > bestLayer)) {
+    if (
+      nearness > bestNearness ||
+      (nearness === bestNearness && layer > bestLayer)
+    ) {
       bestNearness = nearness;
       bestLayer = layer;
       best = { entity: ids[row], isAgent: kinds[row] === KIND_AGENT };
@@ -783,42 +787,58 @@ export interface MenuHandle extends MenuController {
  * meaning everywhere else. Accepting only `ctrlKey` would leave macOS with
  * no way to queue a second instruction and no indication why.
  *
- * # The camera is a live reference, and the zoom goes back through a callback
+ * # The camera is a live reference, and gestures go back through callbacks
  *
  * The handlers used to read `originX`/`originY` from the closure, which was
  * right while both were fixed for the session. The camera made them live:
- * every gesture reads `camera` AT EVENT TIME, so a click after a zoom picks
- * against the projection the player is looking at, not the one from page
- * load. The zoom gestures do not write `camera.scale` themselves - they
- * hand the new scale to `onZoom`, because the scale's owner (`main.ts`)
- * also owns the dirty flag that rebuilds the origin and the static
- * geometry, and a scale written here would zoom the sprites one frame
- * before the floor.
+ * every gesture reads `camera` AT EVENT TIME, so a click after a zoom or a
+ * drag picks against the projection the player is looking at. The gestures
+ * never write the camera themselves - they hand new values to `gestures`,
+ * because the camera's owner (`main.ts`) also owns the clamp and the dirty
+ * flag that rebuilds the origin-baked static geometry, and a value written
+ * here would move the sprites one frame before the floor.
  *
- * # Two zoom routes, one state
+ * # Three camera routes, one state
  *
- * - **Wheel**: smooth multiplicative steps via `wheelZoom`, wheel-up in.
+ * - **Wheel**: smooth multiplicative steps via `wheelZoom`, wheel-up in,
+ *   ANCHORED AT THE CURSOR - the point under the wheel stays put.
  *   `preventDefault`, so the page never scrolls under the lot.
  * - **Pinch**: two pointers tracked by id via Pointer Events - not the
  *   iOS-only `gesturechange` - so Android Chrome and iOS Safari take the
  *   same path. The scale is anchored to the gesture's START (see
- *   `pinchZoom`), and the canvas takes `touch-action: none` in the page
- *   CSS so the browser does not claim the gesture for page-pinch first.
+ *   `pinchZoom`) and to the fingers' MIDPOINT, whose movement also pans -
+ *   one gesture, both hands of the map idiom. `touch-action: none` in the
+ *   page CSS keeps the browser from claiming it for page-pinch first.
+ * - **Drag**: one finger or the mouse's primary button pans, in buffer
+ *   pixels so a drag moves the world exactly as far as the pointer moved.
+ *   Below `DRAG_THRESHOLD_PX` of total travel it is still a click, which
+ *   is what keeps a slightly shaky tap a selection rather than a
+ *   one-pixel pan that eats it.
  *
- * A pinch must not ALSO select: both fingers lifting fire a `click` on
- * some browsers, and a two-finger gesture that ends by selecting whatever
- * was under one finger reads as a haunted camera. Any multi-touch
- * contact poisons the NEXT click, which is consumed and cleared.
+ * A pan or a pinch must not ALSO select: the pointer lifting fires a
+ * `click` on some browsers, and a camera gesture that ends by selecting
+ * whatever was under a finger reads as a haunted camera. Either gesture
+ * poisons the NEXT click, which is consumed and cleared.
  */
+export interface CameraGestures {
+  /** Zoom to `scale` holding buffer point (anchorX, anchorY) still. */
+  zoomAt(anchorX: number, anchorY: number, scale: number): void;
+  /** Move the origin by a buffer-pixel delta. */
+  panBy(dx: number, dy: number): void;
+}
+
 export function attachPointerInput(
   canvas: HTMLCanvasElement,
   target: MenuTarget,
   menu: MenuHandle,
   menuRoot: Node,
   camera: Readonly<Camera>,
-  onZoom: (scale: number) => void,
+  gestures: CameraGestures,
 ): void {
-  const canvasPoint = (event: MouseEvent): CanvasPoint | null =>
+  const canvasPoint = (event: {
+    clientX: number;
+    clientY: number;
+  }): CanvasPoint | null =>
     clientToCanvas(
       event.clientX,
       event.clientY,
@@ -826,47 +846,115 @@ export function attachPointerInput(
       canvas.width,
       canvas.height,
     );
+  /** Client-to-buffer pixel ratio, live because the window resizes. */
+  const bufferRatio = (): number => {
+    const rect = canvas.getBoundingClientRect();
+    return rect.width > 0 ? canvas.width / rect.width : 1;
+  };
 
-  // The pinch's whole state: where each touching pointer is, and the
-  // scale/spread the gesture started from. Mouse pointers never enter
-  // `touches`, so a wheel user cannot strand a phantom finger.
-  const touches = new Map<number, { x: number; y: number }>();
+  // The gesture state: every touching pointer plus at most one mouse
+  // drag, by pointer id. `moved` accumulates total travel so the click
+  // threshold judges the WHOLE gesture, not the last event.
+  const pointers = new Map<
+    number,
+    { x: number; y: number; startX: number; startY: number }
+  >();
+  let touchCount = 0;
+  let moved = 0;
   let pinchStartDistance = 0;
   let pinchStartScale = 1;
   let suppressNextClick = false;
 
+  const touchPoints = () => [...pointers.values()].slice(0, 2);
   const spread = (): number => {
-    const [a, b] = [...touches.values()];
+    const [a, b] = touchPoints();
     return pointerDistance(a.x, a.y, b.x, b.y);
+  };
+  const midpoint = (): { x: number; y: number } => {
+    const [a, b] = touchPoints();
+    return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
   };
 
   canvas.addEventListener('pointerdown', (event) => {
-    if (event.pointerType !== 'touch') return;
-    touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
-    if (touches.size === 2) {
+    const isTouch = event.pointerType === 'touch';
+    // The mouse pans only with its primary button; a right-button drag
+    // belongs to the flyout gesture.
+    if (!isTouch && event.button !== 0) return;
+    pointers.set(event.pointerId, {
+      x: event.clientX,
+      y: event.clientY,
+      startX: event.clientX,
+      startY: event.clientY,
+    });
+    if (isTouch) touchCount++;
+    moved = 0;
+    // Capture, so a drag that leaves the canvas keeps panning instead
+    // of stranding mid-gesture.
+    canvas.setPointerCapture(event.pointerId);
+    if (isTouch && touchCount === 2) {
       pinchStartDistance = spread();
       pinchStartScale = camera.scale;
       suppressNextClick = true;
     }
   });
+
   canvas.addEventListener('pointermove', (event) => {
-    if (!touches.has(event.pointerId)) return;
-    touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
-    if (touches.size === 2) {
-      onZoom(pinchZoom(pinchStartScale, pinchStartDistance, spread()));
+    const entry = pointers.get(event.pointerId);
+    if (!entry) return;
+    const dx = event.clientX - entry.x;
+    const dy = event.clientY - entry.y;
+    const beforeMid =
+      event.pointerType === 'touch' && touchCount === 2 ? midpoint() : null;
+    entry.x = event.clientX;
+    entry.y = event.clientY;
+    moved += Math.hypot(dx, dy);
+
+    if (event.pointerType === 'touch' && touchCount === 2) {
+      // Pinch: the midpoint's travel pans and the spread's ratio zooms,
+      // both in one move event - the standard two-finger map gesture.
+      const mid = midpoint();
+      const ratio = bufferRatio();
+      if (beforeMid) {
+        gestures.panBy(
+          (mid.x - beforeMid.x) * ratio,
+          (mid.y - beforeMid.y) * ratio,
+        );
+      }
+      const anchor = canvasPoint({ clientX: mid.x, clientY: mid.y });
+      const next = pinchZoom(pinchStartScale, pinchStartDistance, spread());
+      if (anchor) gestures.zoomAt(anchor.x, anchor.y, next);
+      return;
+    }
+
+    // One pointer: a pan once the travel says so. The threshold is on
+    // TOTAL travel, so a slow deliberate drag cannot sneak under it one
+    // pixel at a time.
+    if (pointers.size === 1 && moved > DRAG_THRESHOLD_PX) {
+      suppressNextClick = true;
+      const ratio = bufferRatio();
+      gestures.panBy(dx * ratio, dy * ratio);
     }
   });
-  const endTouch = (event: PointerEvent): void => {
-    touches.delete(event.pointerId);
+
+  const endPointer = (event: PointerEvent): void => {
+    if (pointers.delete(event.pointerId) && event.pointerType === 'touch') {
+      touchCount = Math.max(0, touchCount - 1);
+    }
   };
-  canvas.addEventListener('pointerup', endTouch);
-  canvas.addEventListener('pointercancel', endTouch);
+  canvas.addEventListener('pointerup', endPointer);
+  canvas.addEventListener('pointercancel', endPointer);
 
   canvas.addEventListener(
     'wheel',
     (event) => {
       event.preventDefault();
-      onZoom(wheelZoom(camera.scale, event.deltaY));
+      const anchor = canvasPoint(event);
+      if (!anchor) return;
+      gestures.zoomAt(
+        anchor.x,
+        anchor.y,
+        wheelZoom(camera.scale, event.deltaY),
+      );
     },
     // Required for `preventDefault` to be legal on a wheel listener:
     // they are passive by default on the document tree.

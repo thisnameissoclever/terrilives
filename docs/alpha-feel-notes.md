@@ -1268,6 +1268,26 @@ its "Chat" flyout row over housemates.
   it is one row; the vocabulary can grow without touching the shell.
 
 
+### The pan addendum, from the first real phone verdict
+
+Tim pinched on real glass: **"zoom works but I obviously need to be
+able to drag"** - the first play feedback ever delivered against a
+feature the same hour it shipped, which is the loop this whole pass
+exists to create. Pan landed in the same PR ([V8]): drag with a
+finger or the mouse, pinch midpoint pans while the spread zooms, the
+wheel now anchors at the cursor (retiring [V6]'s lot-centred
+deviation), and a clamp keeps 96 px of lot reachable after any fling.
+
+Verified headlessly this time - the pane was not displayed, so rAF
+never fired ([L14] again), but event handlers do not need
+compositing: a synthetic 20 px drag moved the live origin exactly
+(20, 20) through the real listeners, and a synthetic wheel at an
+arbitrary anchor moved the origin to the anchored-zoom formula's
+answer to the last float digit (598.4394458779701 predicted and
+observed). The eyes-on pass is Tim's phone, which is the merge gate
+anyway: drag, pinch, and a tap that still selects.
+
+
 ## [A-12] The second axis, measured
 
 M2e PR 1: satisfaction and hobbies, the trace re-run at 36 000 ticks

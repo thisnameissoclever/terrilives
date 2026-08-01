@@ -27,7 +27,13 @@ import {
   writeInstance,
   type InstanceArray,
 } from './instances.js';
-import { FLOOR_DEPTH, LAYER_PROP, layeredDepth, screenX, screenY } from './iso.js';
+import {
+  FLOOR_DEPTH,
+  LAYER_PROP,
+  layeredDepth,
+  screenX,
+  screenY,
+} from './iso.js';
 
 /** What `buildStaticInstances` needs to know about the lot. */
 export interface Lot {
@@ -46,6 +52,16 @@ export interface StaticGeometry {
   readonly instances: InstanceArray;
   readonly count: number;
 }
+
+/**
+ * The one static-instance array, reused across rebuilds - the same
+ * pattern and the same reason as `frame.ts`'s scratch. Rebuilds were
+ * once-per-session when this file was written; pan made them
+ * once-per-FRAME during a drag, and a per-frame 11 KB allocation is
+ * [V11]'s mistake at a smaller size. The returned array is only valid
+ * until the next call, which `setStaticGeometry` uploads immediately.
+ */
+let scratch: InstanceArray = new Float32Array(0);
 
 /**
  * Which of the two wall sprites a tile draws.
@@ -189,7 +205,10 @@ export function buildStaticInstances(
   // report. The ring is (width+1) x (height+1) minus the interior.
   const floorCount = (lot.width + 1) * (lot.height + 1);
   const count = floorCount + walls.size + boundary.length + doorways.length;
-  const instances: InstanceArray = new Float32Array(count * FLOATS_PER_INSTANCE);
+  if (scratch.length < count * FLOATS_PER_INSTANCE) {
+    scratch = new Float32Array(count * FLOATS_PER_INSTANCE);
+  }
+  const instances = scratch;
   let slot = 0;
 
   /** A prop - a wall - which is depth-sorted per tile like any entity. */

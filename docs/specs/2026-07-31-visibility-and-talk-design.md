@@ -126,3 +126,31 @@ tracks `clientWidth x devicePixelRatio` per change, and index.html
 gained the viewport meta tag without which a phone lays the page out
 at a ~980px virtual width and renders the lot as a thumbnail - found
 the moment the canvas learned to fill the window.
+
+## [V8] Pan frees the origin, and the anchored zoom comes with it
+
+Tim's phone verdict on [V7] ("zoom works but I obviously need to be
+able to drag"), same PR. One finger or the mouse's primary button
+pans, in buffer pixels so the world moves exactly as far as the
+pointer; below a 5 px total-travel threshold (the platforms' own tap
+slop) the gesture is still a click, and past it the eventual `click`
+is poisoned so a pan never ends by selecting what was under the
+finger. The pinch's midpoint movement pans too - one gesture, both
+halves of the map idiom.
+
+This is the change that made the origin FREE STATE, which [V6] said
+was the price of cursor-centred zoom - so that ships now too, retiring
+[V6]'s lot-centred deviation: the wheel anchors at the cursor and the
+pinch at its midpoint, via one similarity
+(`origin' = anchor - (anchor - origin) * scaleRatio`). `clampOrigin`
+bounds every writer so at least 96 px of lot stays on screen - a
+flung lot always leaves a handle to drag back. On resize the origin
+shifts by half the size delta (the view centre holds) instead of
+re-deriving, which would erase the player's pan.
+
+**Rejected: momentum/inertia** (a feel feature to judge in play before
+buying its state machine) and **unclamped pan** (a lot flung fully off
+screen is [L17]'s blank-canvas "looks broken" with no way back).
+`buildStaticInstances` gained frame.ts's scratch-reuse pattern because
+pan rebuilds statics once per FRAME during a drag, and a per-frame
+allocation there is [V11]'s mistake at a smaller size.

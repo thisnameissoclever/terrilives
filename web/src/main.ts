@@ -13,12 +13,16 @@ import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
 import { FixedStepDriver, buildInstances, instanceCount } from './frame.js';
 import { cameraOrigin } from './render/iso.js';
+import { clampOrigin, lotExtent, zoomAnchoredOrigin } from './render/camera.js';
 import { SPRITES } from './render/atlas.js';
 import { buildStaticInstances } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
 import { DebugPanel } from './ui/debug-panel.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
-import { describeStartupFailure, renderStartupFailure } from './ui/startup-failure.js';
+import {
+  describeStartupFailure,
+  renderStartupFailure,
+} from './ui/startup-failure.js';
 import { buildTimeControls } from './ui/time-controls.js';
 import { ObjectMenu, createMenuSurface } from './ui/object-menu.js';
 import { attachPointerInput, dispatchMenuAction } from './input.js';
@@ -352,33 +356,65 @@ async function main(): Promise<void> {
   const stage: HTMLCanvasElement = canvas;
 
   /**
+   * Bounds the origin so at least a corner of the lot stays on screen,
+   * whatever the gesture asked for. Every writer of the origin funnels
+   * through here; a clamp applied by SOME writers is a lot that can
+   * still be flung away by the one that forgot.
+   */
+  function clampCamera(): void {
+    const bounded = clampOrigin(
+      camera.originX,
+      camera.originY,
+      lotExtent(lotWidth, lotHeight, tallestSprite, camera.scale),
+      stage.width,
+      stage.height,
+    );
+    camera.originX = bounded.x;
+    camera.originY = bounded.y;
+  }
+
+  /**
    * Everything that must agree when the camera or the window moves, in
    * one place so no half can be forgotten: the drawing buffer's size
    * (the window's CSS size times the device pixel ratio, so the canvas
-   * is sharp on a phone instead of upscaled), the derived origin, and
+   * is sharp on a phone instead of upscaled), the clamped origin, and
    * the static floor-and-walls block, which bakes screen positions and
    * so must be rebuilt - the one legitimate rebuild, gated by the dirty
    * flag rather than run per frame ([V11] is what an ungated rebuild
-   * costs).
+   * costs; during a drag this runs once per FRAME, not per event).
+   *
+   * The origin is FREE STATE since pan landed ([V8]): it starts at
+   * `cameraOrigin`'s centred answer and belongs to the gestures from
+   * then on, so this must never re-derive it - only keep the view's
+   * centre steady across a buffer resize by shifting half the delta.
    */
+  let cameraInitialised = false;
   function applyCamera(): void {
     const ratio = window.devicePixelRatio || 1;
     const width = Math.max(1, Math.round(stage.clientWidth * ratio));
     const height = Math.max(1, Math.round(stage.clientHeight * ratio));
     if (stage.width !== width || stage.height !== height) {
+      const dx = (width - stage.width) / 2;
+      const dy = (height - stage.height) / 2;
       stage.width = width;
       stage.height = height;
+      camera.originX += dx;
+      camera.originY += dy;
     }
-    const origin = cameraOrigin(
-      stage.width,
-      stage.height,
-      lotWidth,
-      lotHeight,
-      tallestSprite,
-      camera.scale,
-    );
-    camera.originX = origin.x;
-    camera.originY = origin.y;
+    if (!cameraInitialised) {
+      const origin = cameraOrigin(
+        stage.width,
+        stage.height,
+        lotWidth,
+        lotHeight,
+        tallestSprite,
+        camera.scale,
+      );
+      camera.originX = origin.x;
+      camera.originY = origin.y;
+      cameraInitialised = true;
+    }
+    clampCamera();
     const staticGeometry = buildStaticInstances(
       lot,
       camera.originX,
@@ -406,22 +442,41 @@ async function main(): Promise<void> {
   // interaction index and `SimCommand::UseObject` carries one too, so
   // picking row `n` runs interaction `n`; the shipped lot cannot show that
   // off, because every object on it offers exactly one.
-  const menu = new ObjectMenu(
-    createMenuSurface(document, menuRoot),
-    (action) => dispatchMenuAction(sim, action),
+  const menu = new ObjectMenu(createMenuSurface(document, menuRoot), (action) =>
+    dispatchMenuAction(sim, action),
   );
 
-  // Clicks and both zoom gestures, last of the wiring because they need
-  // the camera above. Left click selects a sim or redirects the selected
-  // one at an object, ctrl or cmd click queues instead, right click opens
-  // the flyout, and the wheel or a two-finger pinch zooms. Every command
-  // among those is serialised ([D-2]); the zoom is not a command at all,
-  // because the camera is presentation - two players watching one
-  // simulation at different zooms is the ordinary multiplayer picture.
-  attachPointerInput(canvas, sim, menu, menuRoot, camera, (scale) => {
-    if (scale === camera.scale) return;
-    camera.scale = scale;
-    cameraDirty = true;
+  // Clicks and every camera gesture, last of the wiring because they
+  // need the camera above. Left click selects a sim or redirects the
+  // selected one at an object, ctrl or cmd click queues instead, right
+  // click opens the flyout; the wheel zooms at the cursor, a pinch
+  // zooms at its midpoint, and a drag pans. Every command among those
+  // is serialised ([D-2]); the camera is not a command at all, because
+  // it is presentation - two players watching one simulation at
+  // different zooms is the ordinary multiplayer picture.
+  attachPointerInput(canvas, sim, menu, menuRoot, camera, {
+    zoomAt(anchorX, anchorY, scale) {
+      if (scale === camera.scale) return;
+      const origin = zoomAnchoredOrigin(
+        camera.originX,
+        camera.originY,
+        anchorX,
+        anchorY,
+        camera.scale,
+        scale,
+      );
+      camera.scale = scale;
+      camera.originX = origin.x;
+      camera.originY = origin.y;
+      clampCamera();
+      cameraDirty = true;
+    },
+    panBy(dx, dy) {
+      camera.originX += dx;
+      camera.originY += dy;
+      clampCamera();
+      cameraDirty = true;
+    },
   });
 
   const timer = new FrameTimer(FRAME_WINDOW);
