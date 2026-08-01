@@ -138,6 +138,8 @@ pub fn object_sized(
         sprite: terri_data::pack().sim_sprite,
         interactions,
         footprint,
+        // Roleless, like most furniture; chain tests wear their own.
+        roles: Vec::new(),
     }
 }
 
@@ -232,6 +234,13 @@ pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static Cont
         // times nobody's assertions account for. A test about careers
         // installs one explicitly.
         careers: Vec::new(),
+        // Empty, the same call once more: a fixture pack that silently
+        // carried the shipped dinner chain would give every hungry
+        // test sim a four-station errand nobody's assertions account
+        // for. A test about chains installs one explicitly.
+        roles: Vec::new(),
+        item_kinds: Vec::new(),
+        chains: Vec::new(),
     }))
 }
 

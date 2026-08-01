@@ -203,6 +203,15 @@ pub struct ObjectDef {
     /// defaults instead of being required.
     #[serde(default)]
     pub interaction: Vec<InteractionDef>,
+    /// The station roles this object can serve in a chain -
+    /// "eating_surface", "hob" ([K1]). A NEW vocabulary, deliberately
+    /// not the activity-tag space: "this is a surface you can eat at"
+    /// is a fact about furniture, "this is cooking" is a fact about an
+    /// activity, and one word meaning both would be [S3]'s vocabulary
+    /// collapse one file over. Defaulted: most furniture serves in no
+    /// chain.
+    #[serde(default)]
+    pub roles: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -437,6 +446,82 @@ pub const TRAIT_KINDS: [&str; 3] = ["disposition", "capability", "condition"];
 
 /// Mirrors `content/careers.toml` - the rabbit-hole jobs of [E4] and
 /// [D15] Tier 2: the sim leaves the lot and returns with an outcome.
+/// Mirrors `content/chains.toml` - the multi-step interactions, [K1]
+/// in docs/specs/2026-08-01-m2f-multi-step-working-design.md.
+#[derive(Debug, Deserialize)]
+pub struct ChainsFile {
+    /// Defaulted so a project with no chains parses; an advertiser
+    /// naming an object that does not exist is the compile step's
+    /// error.
+    #[serde(default)]
+    pub chain: Vec<ChainDef>,
+}
+
+/// One chain: a sequence of steps across station ROLES, with the whole
+/// payoff at the last step's completion and nowhere else ([M-1]).
+#[derive(Debug, Deserialize)]
+pub struct ChainDef {
+    pub id: String,
+    /// What the flyout calls it. Required and non-blank, like a
+    /// trait's label - there is no id-shaped fallback that reads as
+    /// anything but a bug in a menu.
+    pub label: String,
+    /// The object DEFINITION whose flyout and adverts carry this
+    /// chain - the fridge, for the shipped one. A string id resolved
+    /// at compile time, the standing rule for every reference.
+    pub advertised_by: String,
+    /// Need name to delta, delivered whole at the terminal step's
+    /// completion. The same map shape as an interaction's, validated
+    /// by the same rules.
+    pub advertises: BTreeMap<String, f32>,
+    /// Satisfaction paid at the terminal completion, before the hobby
+    /// multiplier. Finite and non-negative, like an interaction's.
+    #[serde(default)]
+    pub satisfaction: f32,
+    /// The steps, in order. At least one; the LAST is implicitly
+    /// terminal.
+    pub step: Vec<ChainStepDef>,
+}
+
+/// One step of a chain: where it happens (a role, not an object -
+/// "a surface you can eat at", resolved against the lot at run time),
+/// what it is called, and how long it takes.
+#[derive(Debug, Deserialize)]
+pub struct ChainStepDef {
+    /// The station role this step happens at. Must be worn by at
+    /// least one object on the shipped lot; see `ObjectDef::roles`.
+    pub role: String,
+    /// What the activity indicator and any future UI call this step.
+    /// Required and non-blank.
+    pub label: String,
+    pub duration_ticks: u32,
+    /// The activity tags THIS STEP carries - the same tag space
+    /// hobbies and traits key on, so a capability's roll fires at the
+    /// tagged step and a hobby pays on the chain that contains one.
+    #[serde(default)]
+    pub tags: Vec<String>,
+    /// The item kind this step puts in the sim's hands, by name -
+    /// "ingredients". At most one of `yields`/`transforms` per step.
+    #[serde(default)]
+    pub yields: Option<String>,
+    /// Rewrites the carried item: `{ from = "...", to = "..." }`.
+    #[serde(default)]
+    pub transforms: Option<TransformDef>,
+    /// The item kind the step consumes; the compile step requires the
+    /// TERMINAL step to consume whatever is still carried, so a chain
+    /// cannot end with a full hand.
+    #[serde(default)]
+    pub consumes: Option<String>,
+}
+
+/// A `transforms` entry: what the carried item was, and what it
+/// becomes.
+#[derive(Debug, Deserialize)]
+pub struct TransformDef {
+    pub from: String,
+    pub to: String,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct CareersFile {
     /// Defaulted so a project with no careers parses; a household

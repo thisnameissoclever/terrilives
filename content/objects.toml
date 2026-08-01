@@ -47,6 +47,10 @@
 id = "fridge"
 name = "Chill-o-Matic 3000"
 sprite = "kitchenFridgeBuiltIn"
+# Station roles - [K1] in the M2f working design. A role is a fact
+# about furniture ("this is where ingredients live"), kept apart from
+# the activity tags on interactions.
+roles = ["cold_storage"]
 
   # 40.0 was M0's hardcoded delta and is unchanged. The duration was 15,
   # also M0's, and it was raised to 30 in the alpha pass - see the block
@@ -373,6 +377,7 @@ sprite = "bookcaseClosedDoors"
 id = "stove"
 name = "The Combustible Optimist"
 sprite = "kitchenStove"
+roles = ["hob"]
 
   # **The fridge's rival, and the pair is the point rather than either one.**
   #
@@ -409,6 +414,9 @@ sprite = "kitchenStove"
 id = "counter"
 name = "Surface of Deferred Decisions"
 sprite = "kitchenCabinet"
+# The middle step this object was placed for, per the comment below -
+# the chain has arrived.
+roles = ["prep_surface"]
 
   # No interactions, deliberately. This is the counter the cooking chain in
   # docs/specs/2026-07-29-multi-step-interactions-design.md will use as its
@@ -425,6 +433,9 @@ sprite = "kitchenCabinet"
 id = "kitchen_sink"
 name = "Basin, Communal"
 sprite = "kitchenSink"
+# A second prep station, so two cooks do not serialise on one counter
+# tile and a one-counter lot still compiles.
+roles = ["prep_surface"]
 
   # **The chore.** 20 hygiene is the smallest of the four hygiene deltas - a
   # third of the shower's 70 - and it costs 6 comfort, which makes this the
@@ -466,6 +477,9 @@ id = "dining_table"
 name = "The Table Nobody Sits At"
 sprite = "table"
 footprint = { width = 2, depth = 1 }
+# The chain's terminal station: the table finally gets somebody to
+# sit at it.
+roles = ["eating_surface"]
 
   # 37 comfort over 62 ticks is 0.597 per tick standing beside it, against the
   # long sofa's 0.597, the ottoman sofa's 0.667 and the armchair's 0.707. So
@@ -696,6 +710,10 @@ id = "desk"
 name = "Station of Ongoing Concern"
 sprite = "desk"
 footprint = { width = 2, depth = 1 }
+# A second eating surface, so meals do not funnel through one table
+# tile - and eating at the desk is a life the game should be able to
+# depict.
+roles = ["eating_surface"]
 
   # **This is where the career goes**, and until it does, it is a hobby that
   # tires you out: 36 fun for 58 ticks, at a cost of 7 energy.

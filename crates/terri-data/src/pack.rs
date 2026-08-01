@@ -76,14 +76,19 @@ pub struct CompiledObject {
     /// reader may assume all of that rather than re-check it, which is what
     /// lets `Sim::new_from_lot` block these tiles without a bounds test.
     ///
-    /// **Last in this struct on purpose**, for the appending reason on
-    /// [`ContentPack::lot`]: the pack's byte encoding grows by appending, so
-    /// an object's sprite and interaction blocks keep their offsets and the
-    /// golden vector in `compile.rs` stays reviewable against the
-    /// annotations it already carries. It is deliberately NOT grouped beside
-    /// `sprite`, which would also be the wrong signal: [F1] exists to keep
-    /// the drawn width and the occupied width separate facts.
+    /// It was last in this struct until `roles` arrived, for the
+    /// appending reason on [`ContentPack::lot`]: the pack's byte encoding
+    /// grows by appending, so an object's sprite and interaction blocks
+    /// keep their offsets and the golden vector in `compile.rs` stays
+    /// reviewable against the annotations it already carries. It is
+    /// deliberately NOT grouped beside `sprite`, which would also be the
+    /// wrong signal: [F1] exists to keep the drawn width and the occupied
+    /// width separate facts.
     pub footprint: Footprint,
+    /// The station roles this object serves in a chain, as indices
+    /// into [`ContentPack::roles`] - [K1]. Sorted, usually empty.
+    /// **Last in this struct on purpose**, per the appending rule.
+    pub roles: Vec<u32>,
 }
 
 /// One object, placed on the lot.
@@ -435,9 +440,60 @@ pub struct ContentPack {
     /// career arrived.
     pub traits: Vec<CompiledTrait>,
     /// The careers household members index into - [E4], the [D15]
-    /// Tier 2 rabbit hole. May be empty in a test pack. **Last in this
-    /// struct on purpose**, per the appending rule on `lot`.
+    /// Tier 2 rabbit hole. May be empty in a test pack. It was last
+    /// until the chain trio below arrived.
     pub careers: Vec<CompiledCareer>,
+    /// The station-role vocabulary, in first-appearance order across
+    /// `objects.toml` - what `CompiledObject::roles` and
+    /// `CompiledChainStep::role` index into ([K1]).
+    pub roles: Vec<String>,
+    /// The carried-item kinds, in first-appearance order across
+    /// `chains.toml` - what a sim's `Carrying` component indexes into
+    /// ([K3]).
+    pub item_kinds: Vec<String>,
+    /// The multi-step chains - [K1]. May be empty in a test pack.
+    /// **Last in this struct on purpose**, per the appending rule on
+    /// `lot`.
+    pub chains: Vec<CompiledChain>,
+}
+
+/// One chain, compiled: steps across station roles, the whole payoff
+/// terminal ([M-1]). Every role and item kind is an index, so a step
+/// at a station nobody built has no representation ([D9]).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CompiledChain {
+    pub id: String,
+    pub label: String,
+    /// The object definition whose flyout and adverts carry this
+    /// chain.
+    pub advertised_by: ObjectDefId,
+    /// (`NeedId` index, delta), sorted by index - the terminal payoff,
+    /// the same shape as an interaction's `advertises`.
+    pub advertises: Vec<(u8, f32)>,
+    /// Paid at the terminal completion, before the hobby multiplier.
+    pub satisfaction: f32,
+    /// At least one; the last is terminal.
+    pub steps: Vec<CompiledChainStep>,
+}
+
+/// One step: where (a role index), what it is called, how long, what
+/// it does to the sim's hands.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CompiledChainStep {
+    /// Index into [`ContentPack::roles`].
+    pub role: u32,
+    pub label: String,
+    pub duration_ticks: u32,
+    /// The activity tags this step carries - hobbies and traits key
+    /// on these, per step rather than per chain.
+    pub tags: Vec<String>,
+    /// Item kind this step puts in the sim's hands, as an index into
+    /// [`ContentPack::item_kinds`].
+    pub yields: Option<u32>,
+    /// (from, to) item-kind indices.
+    pub transforms: Option<(u32, u32)>,
+    /// Item kind this step consumes.
+    pub consumes: Option<u32>,
 }
 
 /// One career, compiled and validated: the shift fits inside the day,
@@ -584,6 +640,11 @@ mod tests {
                         width: (i as u32) + 1,
                         depth: (i as u32) + 3,
                     },
+                    // A different role list per object - empty, one,
+                    // two - so the round trip can see the lists
+                    // transposed, dropped, or stamped from one object
+                    // onto all ([L34]).
+                    roles: (0..i as u32).collect(),
                 })
                 .collect(),
             sim_sprite: 1,
@@ -687,6 +748,43 @@ mod tests {
                     satisfaction: 0.375,
                 },
             ],
+            // Two vocabulary entries each, out of alphabetical order,
+            // so a round trip that sorted (or dropped) either list is
+            // visible.
+            roles: vec!["hob".to_string(), "cold_storage".to_string()],
+            item_kinds: vec!["dinner".to_string(), "ingredients".to_string()],
+            // One chain with every field populated and pairwise
+            // distinct: steps at DIFFERENT roles, a yield, a transform
+            // (whose halves differ) and a consume, so the encoding
+            // cannot transpose or collapse any of them silently
+            // ([L34]).
+            chains: vec![CompiledChain {
+                id: "cook_dinner".to_string(),
+                label: "Cook dinner".to_string(),
+                advertised_by: ObjectDefId(2),
+                advertises: vec![(0, 55.0), (6, 10.5)],
+                satisfaction: 3.25,
+                steps: vec![
+                    CompiledChainStep {
+                        role: 1,
+                        label: "Get ingredients".to_string(),
+                        duration_ticks: 21,
+                        tags: vec![],
+                        yields: Some(1),
+                        transforms: None,
+                        consumes: None,
+                    },
+                    CompiledChainStep {
+                        role: 0,
+                        label: "Cook".to_string(),
+                        duration_ticks: 63,
+                        tags: vec!["cooking".to_string()],
+                        yields: None,
+                        transforms: Some((1, 0)),
+                        consumes: None,
+                    },
+                ],
+            }],
         }
     }
 
