@@ -356,7 +356,52 @@ rates.
 
 ## Things a knob cannot fix
 
-### [C1] The sink can never vary, and that is content
+### [C1] The sink can never vary, and that is content - FIXED
+
+**Status: fixed.** It landed in "Make actions long enough to see, and stop
+lying to an outbid sim": the sink went from 8 ticks to **21**, the toilet
+from 12 to **24**, the fridge from 15 to **30**, all clear of the 20-tick
+line with margin. The finding is left in full below, because what it got
+wrong is worth more than what it got right.
+
+**What it got right.** The line and the arithmetic behind it, and the
+prediction that both world-hash golden vectors would move. They did, and
+they were confirmed on wasm32 by rebuilding and reading the failure rather
+than by copying the native value.
+
+**What it missed, and it is the whole difficulty.** The finding frames this
+as a duration change, and a duration change on its own would have been a
+worse bug than the one it fixed. Raising the sink's duration moves its
+score denominator from `4d + 9` to `4d + 22` while the shower keeps its 45
+and loses nothing, which dropped the sink from 6 interactions to 1. That
+trades a metronome for a piece of furniture. The sink's hygiene delta had
+to move with it, 22 to 32, and at 32 the two score within about 2% of each
+other, so which one a sim picks turns on how tired it is - which is what
+the object was always documented to do.
+
+**Read that as a rule rather than as an anecdote: a duration is not
+tunable on its own when the object's entire role is a comparison against a
+rival.** The floor was clipping three interactions and the fix touched
+four numbers, because the third of them had a competitor and the other two
+did not.
+
+**It is now unrepresentable rather than merely fixed.**
+`ContentError::ClippedDuration` fails `cargo build` for any interaction
+whose sampled band bottoms out below `min_interaction_ticks`. It is the
+project's first cross-file content rule, and it has to be: the duration is
+content, both knobs are tuning, and neither file is wrong on its own.
+`no_shipped_interaction_is_clipped_by_the_interaction_floor` in
+`crates/terri-data/src/compile.rs` is the shipped-content half of it.
+
+One existing test had been quietly resting on the bug.
+`an_interaction_shorter_than_the_real_time_floor_is_stretched_up_to_it` in
+`crates/terri-sim/src/systems/interact.rs` used the sink *because* shipped
+content happened to carry a clipped interaction; its own precondition
+caught that the moment the content moved, and it now builds a fixture. No
+shipped object can serve that test again, and the build would fail before
+one could.
+
+The original finding follows, unedited.
 
 Its band tops out at 8 x 1.4 = 11 ticks, so any floor a player can see
 clips all of it, and a floor below 12 is under 1.2 seconds. It ran for
