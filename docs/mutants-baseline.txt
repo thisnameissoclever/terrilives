@@ -12,6 +12,6 @@ crates/terri-data/src/compile.rs:1338:53: replace + with - in flood_fill
 crates/terri-sim/src/systems/action.rs:467:61: replace || with && in serve_intents
 crates/terri-sim/src/systems/advertise.rs:160:18: replace > with >= in score_advertisement
 crates/terri-sim/src/systems/advertise.rs:59:14: replace > with >= in scaled_delta
-crates/terri-sim/src/systems/interact.rs:235:27: replace > with >= in tick_interactions
+crates/terri-sim/src/systems/interact.rs:251:27: replace > with >= in tick_interactions
 crates/terri-sim/src/systems/satisfaction.rs:59:19: replace > with >= in bleed_neglect
-crates/terri-sim/src/systems/social.rs:149:27: replace > with >= in tick_social
+crates/terri-sim/src/systems/social.rs:157:27: replace > with >= in tick_social

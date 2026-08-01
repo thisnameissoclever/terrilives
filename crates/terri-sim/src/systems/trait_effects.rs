@@ -121,6 +121,7 @@ pub fn learn_and_manage(traits: &mut Traits, pack: &ContentPack, tags: &[String]
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::Sim;
     use terri_data::{CompiledTrait, CompiledTraitKind};
 
     fn pack_with_traits(traits: Vec<CompiledTrait>) -> &'static ContentPack {
@@ -405,6 +406,291 @@ mod tests {
                 "worn={worn}: a zero disposition must silence the only                  candidate, and its absence must leave it irresistible"
             );
         }
+    }
+
+    /// A condition SCALES what a completed hobby pays - by the exact
+    /// interpolated factor, which is the input on which the payout's
+    /// multiply and a mutated divide give different numbers (at scale 1
+    /// they agree, which is why no earlier test could see it). Severity
+    /// 1.0 and accrual_scale 0.5, so the loved payout of 6 becomes
+    /// exactly 3 - and 12 under the divide. Management runs AFTER the
+    /// payout, so the severity read afterwards has already eased.
+    #[test]
+    fn a_condition_halves_a_loved_payout_and_eases_on_the_tagged_completion() {
+        let mut act =
+            crate::test_content::interaction("whittle", &[(terri_core::NeedId::Fun, 30.0)], 18);
+        act.tags = vec!["whittling".to_string()];
+        act.satisfaction = 2.0;
+        let base = crate::test_content::pack_tuned(
+            vec![crate::test_content::object_offering("bench", vec![act])],
+            terri_data::Tuning {
+                hobby_multiplier: 3.0,
+                duration_variance: 0.0,
+                ..crate::test_content::tuning()
+            },
+        );
+        let pack: &'static ContentPack = Box::leak(Box::new(ContentPack {
+            traits: vec![CompiledTrait {
+                id: "heavy".to_string(),
+                label: "Heavy".to_string(),
+                tag: "whittling".to_string(),
+                kind: CompiledTraitKind::Condition {
+                    accrual_scale: 0.5,
+                    manage_per_completion: 0.25,
+                    start_severity: 1.0,
+                },
+            }],
+            ..base.clone()
+        }));
+        let mut sim = crate::test_content::sim_with(8, 8, pack);
+        let bench = pack.find("bench").expect("fixture");
+        sim.world_mut().spawn((
+            terri_core::Position { x: 3.0, y: 1.0 },
+            terri_core::SmartObject(bench),
+        ));
+        let mut needs = terri_core::Needs::all_at(terri_core::NEED_MAX);
+        needs.set(terri_core::NeedId::Fun, 20.0);
+        let agent = sim
+            .world_mut()
+            .spawn((
+                terri_core::Agent,
+                terri_core::Position { x: 2.0, y: 1.0 },
+                needs,
+                terri_core::Satisfaction::default(),
+                terri_core::Hobbies(vec!["whittling".to_string()]),
+                Traits::from_entries(vec![(0, 1.0)]),
+            ))
+            .id();
+
+        for _ in 0..80 {
+            sim.tick();
+            let paid = sim
+                .world()
+                .get::<terri_core::Satisfaction>(agent)
+                .unwrap()
+                .value();
+            if paid > 0.0 {
+                assert_eq!(
+                    paid, 3.0,
+                    "loved 6, scaled by the full-severity 0.5 - a divide pays 12 here"
+                );
+                assert_eq!(
+                    sim.world().get::<Traits>(agent).unwrap().state(0),
+                    Some(0.75),
+                    "the tagged completion eased the severity"
+                );
+                return;
+            }
+        }
+        panic!("the hobby never completed");
+    }
+
+    /// The chat copy of the same scale, on the initiator only: the
+    /// partner collects the full base while the burdened initiator
+    /// collects half of triple. One conversation, both arithmetic paths.
+    #[test]
+    fn a_condition_scales_a_chats_payout_for_its_own_bearer_only() {
+        let mut chat =
+            crate::test_content::interaction("chat", &[(terri_core::NeedId::Social, 30.0)], 40);
+        chat.tags = vec!["socialising".to_string()];
+        chat.satisfaction = 2.0;
+        let base = crate::test_content::pack_with_social(
+            vec![],
+            vec![chat],
+            terri_data::Tuning {
+                hobby_multiplier: 3.0,
+                ..crate::test_content::tuning()
+            },
+        );
+        let pack: &'static ContentPack = Box::leak(Box::new(ContentPack {
+            traits: vec![CompiledTrait {
+                id: "weary".to_string(),
+                label: "Weary".to_string(),
+                tag: "socialising".to_string(),
+                kind: CompiledTraitKind::Condition {
+                    accrual_scale: 0.5,
+                    manage_per_completion: 0.25,
+                    start_severity: 1.0,
+                },
+            }],
+            ..base.clone()
+        }));
+        let mut sim = crate::test_content::sim_with(8, 8, pack);
+        let lonely = sim
+            .world_mut()
+            .spawn((
+                terri_core::Agent,
+                terri_core::SimId(0),
+                terri_core::Position { x: 1.0, y: 1.0 },
+                terri_core::Needs::with(terri_core::NeedId::Social, 20.0),
+                terri_core::Satisfaction::default(),
+                terri_core::Hobbies(vec!["socialising".to_string()]),
+                Traits::from_entries(vec![(0, 1.0)]),
+            ))
+            .id();
+        let listener = sim
+            .world_mut()
+            .spawn((
+                terri_core::Agent,
+                terri_core::SimId(1),
+                terri_core::Position { x: 4.0, y: 1.0 },
+                terri_core::Needs::with(terri_core::NeedId::Social, 60.0),
+                terri_core::Satisfaction::default(),
+            ))
+            .id();
+
+        let paid = |sim: &Sim, who| {
+            sim.world()
+                .get::<terri_core::Satisfaction>(who)
+                .unwrap()
+                .value()
+        };
+        for _ in 0..200 {
+            sim.tick();
+            if paid(&sim, lonely) > 0.0 {
+                assert_eq!(paid(&sim, lonely), 3.0, "loved 6, halved by the burden");
+                assert_eq!(paid(&sim, listener), 2.0, "the unburdened side takes base");
+                return;
+            }
+        }
+        panic!("no conversation completed");
+    }
+
+    /// A devotee 1.5 STEERS between two otherwise-equal objects at a
+    /// decisive temperature - and the mutated divide (0.667) steers the
+    /// other way, toward the strictly-better untagged rival. The fear
+    /// test cannot see this: dividing by its 0.0 makes an infinity the
+    /// scoring guard silently rejects, which mimics the fear exactly.
+    #[test]
+    fn a_devotees_pull_wins_a_close_call_it_would_otherwise_lose() {
+        let mut loved =
+            crate::test_content::interaction("watch", &[(terri_core::NeedId::Fun, 30.0)], 20);
+        loved.tags = vec!["television".to_string()];
+        let rival =
+            crate::test_content::interaction("read", &[(terri_core::NeedId::Fun, 31.0)], 20);
+        let base = crate::test_content::pack_tuned(
+            vec![
+                crate::test_content::object_offering("television", vec![loved]),
+                crate::test_content::object_offering("bookshelf", vec![rival]),
+            ],
+            terri_data::Tuning {
+                choice_temperature: 0.0001,
+                ..crate::test_content::tuning()
+            },
+        );
+        let pack: &'static ContentPack = Box::leak(Box::new(ContentPack {
+            traits: vec![CompiledTrait {
+                id: "devotee".to_string(),
+                label: "Devotee".to_string(),
+                tag: "television".to_string(),
+                kind: CompiledTraitKind::Disposition {
+                    score_multiplier: 1.5,
+                },
+            }],
+            ..base.clone()
+        }));
+        let mut sim = crate::test_content::sim_with(9, 8, pack);
+        let tv = pack.find("television").expect("fixture");
+        let shelf = pack.find("bookshelf").expect("fixture");
+        // Equidistant from the sim, so distance decides nothing.
+        let tv_entity = sim
+            .world_mut()
+            .spawn((
+                terri_core::Position { x: 2.0, y: 1.0 },
+                terri_core::SmartObject(tv),
+            ))
+            .id();
+        sim.world_mut().spawn((
+            terri_core::Position { x: 6.0, y: 1.0 },
+            terri_core::SmartObject(shelf),
+        ));
+        let mut needs = terri_core::Needs::all_at(terri_core::NEED_MAX);
+        needs.set(terri_core::NeedId::Fun, 20.0);
+        let agent = sim
+            .world_mut()
+            .spawn((
+                terri_core::Agent,
+                terri_core::Position { x: 4.0, y: 1.0 },
+                needs,
+                Traits::from_entries(vec![(0, 0.0)]),
+            ))
+            .id();
+
+        for _ in 0..10 {
+            sim.tick();
+            if let Some(target) = sim.world().get::<terri_core::Target>(agent) {
+                assert_eq!(
+                    target.object, tv_entity,
+                    "30 x 1.5 beats 31; 30 / 1.5 loses to it"
+                );
+                return;
+            }
+        }
+        panic!("the sim never chose");
+    }
+
+    /// The people loop copy: two chats in the vocabulary, the untagged
+    /// one strictly better on paper, and the devotee picks the loved
+    /// one anyway - by interaction INDEX, the only place the choice is
+    /// visible.
+    #[test]
+    fn a_devotee_picks_the_loved_chat_over_a_better_plain_one() {
+        let mut loved =
+            crate::test_content::interaction("gossip", &[(terri_core::NeedId::Social, 30.0)], 40);
+        loved.tags = vec!["gossiping".to_string()];
+        let plain = crate::test_content::interaction(
+            "smalltalk",
+            &[(terri_core::NeedId::Social, 31.0)],
+            40,
+        );
+        let base = crate::test_content::pack_with_social(
+            vec![],
+            vec![loved, plain],
+            terri_data::Tuning {
+                choice_temperature: 0.0001,
+                ..crate::test_content::tuning()
+            },
+        );
+        let pack: &'static ContentPack = Box::leak(Box::new(ContentPack {
+            traits: vec![CompiledTrait {
+                id: "gossip_hound".to_string(),
+                label: "Gossip hound".to_string(),
+                tag: "gossiping".to_string(),
+                kind: CompiledTraitKind::Disposition {
+                    score_multiplier: 1.5,
+                },
+            }],
+            ..base.clone()
+        }));
+        let mut sim = crate::test_content::sim_with(8, 8, pack);
+        let hound = sim
+            .world_mut()
+            .spawn((
+                terri_core::Agent,
+                terri_core::SimId(0),
+                terri_core::Position { x: 1.0, y: 1.0 },
+                terri_core::Needs::with(terri_core::NeedId::Social, 20.0),
+                Traits::from_entries(vec![(0, 0.0)]),
+            ))
+            .id();
+        sim.world_mut().spawn((
+            terri_core::Agent,
+            terri_core::SimId(1),
+            terri_core::Position { x: 3.0, y: 1.0 },
+            terri_core::Needs::with(terri_core::NeedId::Social, 60.0),
+        ));
+
+        for _ in 0..60 {
+            sim.tick();
+            if let Some(talk) = sim.world().get::<terri_core::Socialising>(hound) {
+                assert_eq!(
+                    talk.interaction, 0,
+                    "gossip at 30 x 1.5 beats smalltalk 31; the divide hands smalltalk the talk"
+                );
+                return;
+            }
+        }
+        panic!("no conversation began");
     }
 
     #[test]

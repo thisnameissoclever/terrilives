@@ -1578,7 +1578,7 @@ mod tests {
     use super::*;
     use crate::schema::{
         ArchetypeDef, AtlasSpriteDef, DispositionDef, HouseholdSimDef, InteractionDef, NeedDef,
-        ObjectDef, PlacementDef, WallDef,
+        ObjectDef, PlacementDef, TraitDef, WallDef,
     };
 
     /// The atlas every test compiles against.
@@ -3602,9 +3602,26 @@ mod tests {
         archetypes: Vec<ArchetypeDef>,
         sims: Vec<HouseholdSimDef>,
     ) -> Result<ContentPack, ContentError> {
+        compile_people_with_traits(archetypes, sims, vec![])
+    }
+
+    /// The same, with a trait file - the trait tests' entry point. The
+    /// snack fixture carries no tags, so trait fixtures tag their own
+    /// interaction via `one_object` variants or key on the snack's need
+    /// space through a tagged copy below.
+    fn compile_people_with_traits(
+        archetypes: Vec<ArchetypeDef>,
+        sims: Vec<HouseholdSimDef>,
+        trait_def: Vec<TraitDef>,
+    ) -> Result<ContentPack, ContentError> {
+        // The snack gains one tag so traits have something real to key
+        // on; untagged fixtures elsewhere are untouched because this
+        // helper is the traits tests' own.
+        let mut snack = snack();
+        snack.tags = vec!["snacking".to_string()];
         compile(
             full_needs(),
-            one_object(snack()),
+            one_object(snack),
             lot_of(4, 3, &[(1, 0)], &[("fridge", 2.0, 1.0)]),
             test_atlas(),
             full_tuning(),
@@ -3615,8 +3632,78 @@ mod tests {
             SocialFile {
                 interaction: vec![],
             },
-            TraitsFile { trait_def: vec![] },
+            TraitsFile { trait_def },
         )
+    }
+
+    fn a_trait(id: &str) -> TraitDef {
+        TraitDef {
+            id: id.to_string(),
+            label: format!("The {id} one"),
+            kind: "disposition".to_string(),
+            tag: "snacking".to_string(),
+            score_multiplier: Some(1.25),
+            start_level: None,
+            fail_delta_scale: None,
+            learn_per_attempt: None,
+            accrual_scale: None,
+            manage_per_completion: None,
+            start_severity: None,
+        }
+    }
+
+    /// A disposition's one range rule, pinned from BOTH sides of its
+    /// boundary: negative is rejected (a benefit turned cost behind
+    /// nobody's decision) and ZERO is accepted, because zero IS the
+    /// authored fear ([S4]). -0.5 separates `<` from `==`; 0.0 accepted
+    /// separates `<` from `<=`.
+    #[test]
+    fn rejects_a_negative_disposition_and_accepts_the_fear() {
+        for bad in [-0.5, -f32::MIN_POSITIVE] {
+            let mut t = a_trait("wary");
+            t.score_multiplier = Some(bad);
+            assert_eq!(
+                compile_people_with_traits(vec![], vec![], vec![t]).unwrap_err(),
+                ContentError::TraitFieldOutOfRange {
+                    id: "wary".to_string(),
+                    field: "score_multiplier".to_string(),
+                    value: bad,
+                },
+                "a negative disposition turns benefits into costs"
+            );
+        }
+        let mut fear = a_trait("terrified");
+        fear.score_multiplier = Some(0.0);
+        let pack = compile_people_with_traits(vec![], vec![], vec![fear])
+            .expect("zero IS the fear and must compile");
+        assert_eq!(
+            pack.traits[0].kind,
+            crate::pack::CompiledTraitKind::Disposition {
+                score_multiplier: 0.0
+            }
+        );
+    }
+
+    /// A worn trait resolves BY ID to its index - and the fixture wears
+    /// the SECOND declared trait, because a resolver that matched any
+    /// non-equal id (the `==`-to-`!=` mutant) or always answered zero is
+    /// only visible when the right answer is not the first entry.
+    #[test]
+    fn a_worn_trait_resolves_to_the_index_of_its_own_id() {
+        let mut sim = member("Terri", "the_settled", 0.5, 2.25);
+        sim.traits = vec!["second".to_string()];
+        let pack = compile_people_with_traits(
+            vec![archetype("the_settled")],
+            vec![sim],
+            vec![a_trait("first"), a_trait("second")],
+        )
+        .expect("valid");
+        assert_eq!(
+            pack.household[0].traits,
+            vec![1],
+            "wearing 'second' must resolve to index 1, not to whichever \
+             entry a broken comparison matched first"
+        );
     }
 
     /// The happy path, with every landing slot asserted. Sparse authored
