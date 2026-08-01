@@ -378,25 +378,45 @@ impl Sim {
         self.render.kinds.clear();
         self.render.sprites.clear();
         self.render.ids.clear();
+        self.render.activities.clear();
 
         // Read before the query, because `Content` is a resource and the
         // query below borrows the world. `ContentPack` is behind a
         // &'static so this is a pointer copy, not a clone.
         let content = self.world.resource::<Content>().0;
 
+        // The receiving side of every conversation, collected first: a
+        // partner carries only `Reserved`, so "is being talked TO" is a
+        // fact about some OTHER entity's `Socialising` and needs its own
+        // pass before the per-row loop can answer it.
+        let mut partners: Vec<Entity> = Vec::new();
+        {
+            let mut talks = self.world.query::<&terri_core::Socialising>();
+            for talk in talks.iter(&self.world) {
+                partners.push(talk.partner);
+            }
+        }
+
         // World::query (not try_query) registers components on demand and
         // cannot fail, so there is no Option to handle here. It returns an
         // owned QueryState, which ends the &mut borrow immediately and
         // leaves self.render free to write below.
+        #[allow(clippy::type_complexity)]
         let mut state = self.world.query::<(
             Entity,
             &Position,
             Has<Agent>,
             Option<&SmartObject>,
             Option<&terri_core::SpriteVariant>,
+            Option<&terri_core::Eating>,
+            Has<terri_core::Socialising>,
+            Has<terri_core::Path>,
+            Has<terri_core::Reserved>,
         )>();
-        let mut rows: Vec<(u32, f32, f32, u32, u32)> = Vec::new();
-        for (entity, pos, is_agent, object, variant) in state.iter(&self.world) {
+        let mut rows: Vec<(u32, f32, f32, u32, u32, u32)> = Vec::new();
+        for (entity, pos, is_agent, object, variant, eating, talking, walking, reserved) in
+            state.iter(&self.world)
+        {
             let kind = if is_agent { 0 } else { 1 };
             // An entity that is neither an agent nor a smart object has
             // no sprite of its own; the sim's is the only sensible
@@ -438,11 +458,45 @@ impl Sim {
                 }
                 None => (pos.x, pos.y),
             };
-            rows.push((entity.index_u32(), x, y, kind, sprite));
+            // What this row is DOING, for the [A-11] indicator bubbles.
+            // Precedence mirrors the trace's motion classifier and for
+            // its reasons: a conversation's partner still carries
+            // `Reserved`, so talking is tested before waiting; and an
+            // eating sim keeps whatever `Wander` marker it had, so
+            // interaction states come before movement ones. Sleeping is
+            // told apart from eating by the interaction's own data - its
+            // biggest advertised benefit is energy - because a Zzz over
+            // a bed reads and cutlery over a bed lies, and a name match
+            // on "bed" would silently miss the next nap-capable object.
+            let activity = if !is_agent {
+                render_buffer::activity::NONE
+            } else if talking || partners.contains(&entity) {
+                render_buffer::activity::TALKING
+            } else if let Some(eating) = eating {
+                let act = &content.object(eating.object).interactions[eating.interaction as usize];
+                let dominant = act
+                    .advertises
+                    .iter()
+                    .filter(|(_, delta)| *delta > 0.0)
+                    .max_by(|a, b| a.1.total_cmp(&b.1))
+                    .map(|(need, _)| *need);
+                if dominant == Some(terri_core::NeedId::Energy.index() as u8) {
+                    render_buffer::activity::SLEEPING
+                } else {
+                    render_buffer::activity::EATING
+                }
+            } else if walking {
+                render_buffer::activity::WALKING
+            } else if reserved {
+                render_buffer::activity::WAITING
+            } else {
+                render_buffer::activity::NONE
+            };
+            rows.push((entity.index_u32(), x, y, kind, sprite, activity));
         }
-        rows.sort_by_key(|(index, _, _, _, _)| *index);
+        rows.sort_by_key(|(index, ..)| *index);
 
-        for (index, x, y, kind, sprite) in &rows {
+        for (index, x, y, kind, sprite, activity) in &rows {
             self.render.positions.push(*x);
             self.render.positions.push(*y);
             self.render.kinds.push(*kind);
@@ -451,6 +505,7 @@ impl Sim {
             // name an entity in a command. See `RenderBuffer::ids` for why
             // the row number will not do.
             self.render.ids.push(*index);
+            self.render.activities.push(*activity);
         }
         self.render.count = rows.len();
 
@@ -519,6 +574,67 @@ impl Sim {
             .map(|(_, needs)| *needs.as_slice())
     }
 
+    /// The stable identity of the sim carrying `index` - the key the
+    /// relationships in [`Sim::relationships_of`] point at. `None` for
+    /// objects, stale indices, and bare test agents, the same contract
+    /// as every scan here.
+    pub fn sim_id_of(&self, index: u32) -> Option<u32> {
+        let mut state = self.world.try_query::<(Entity, &terri_core::SimId)>()?;
+        state
+            .iter(&self.world)
+            .find(|(entity, _)| entity.index_u32() == index)
+            .map(|(_, id)| id.0)
+    }
+
+    /// The personality multipliers of the sim carrying `index`: `drain`
+    /// for all seven needs, then `satisfaction` for all seven - drain
+    /// FIRST, pinned by a test with asymmetric halves, because fourteen
+    /// floats have no field names once they cross the boundary.
+    ///
+    /// Read-only debug surface for the [A-11] stats overlay; nothing on
+    /// a frame path calls it.
+    pub fn personality_of(&self, index: u32) -> Option<[f32; terri_core::NEED_COUNT * 2]> {
+        let mut state = self
+            .world
+            .try_query::<(Entity, &terri_core::Personality)>()?;
+        state
+            .iter(&self.world)
+            .find(|(entity, _)| entity.index_u32() == index)
+            .map(|(_, personality)| {
+                let mut out = [0.0; terri_core::NEED_COUNT * 2];
+                out[..terri_core::NEED_COUNT].copy_from_slice(&personality.drain);
+                out[terri_core::NEED_COUNT..].copy_from_slice(&personality.satisfaction);
+                out
+            })
+    }
+
+    /// How the sim carrying `index` feels about everyone it knows, as
+    /// interleaved `[sim_id, feeling, sim_id, feeling, ...]` pairs in
+    /// the component's own key-sorted order.
+    ///
+    /// The ids ride as `f32` because wasm-bindgen cannot return a vector
+    /// of tuples and two parallel arrays would need an atomicity
+    /// contract between two boundary calls. Lossless below 2^24, and
+    /// `SimId`s are allocated monotonically from zero in a game whose
+    /// household is single digits - the margin is seven orders of
+    /// magnitude. Debug surface only, like `personality_of`.
+    pub fn relationships_of(&self, index: u32) -> Option<Vec<f32>> {
+        let mut state = self
+            .world
+            .try_query::<(Entity, &terri_core::Relationships)>()?;
+        state
+            .iter(&self.world)
+            .find(|(entity, _)| entity.index_u32() == index)
+            .map(|(_, relationships)| {
+                let mut out = Vec::with_capacity(relationships.entries().len() * 2);
+                for (id, feeling) in relationships.entries() {
+                    out.push(id.0 as f32);
+                    out.push(*feeling);
+                }
+                out
+            })
+    }
+
     /// The display name of the sim carrying `index`, or `None` when
     /// nothing live carries it or what does has no name - which includes
     /// every object and every bare test agent, so `SimName` is the kind
@@ -585,6 +701,25 @@ impl Sim {
                 .map(|act| act.label.as_str())
                 .collect(),
         )
+    }
+
+    /// One label per entry in the pack's SOCIAL vocabulary, in index
+    /// order - the same order-IS-the-index contract as
+    /// [`Sim::interaction_labels`], for the flyout drawn over a fellow
+    /// sim. Not per-target: the vocabulary is what a sim advertises,
+    /// and per-sim variation enters through relationships, not menus.
+    pub fn social_labels(&self) -> Vec<&'static str> {
+        self.world
+            .get_resource::<Content>()
+            .map(|content| {
+                content
+                    .0
+                    .social
+                    .iter()
+                    .map(|act| act.label.as_str())
+                    .collect()
+            })
+            .unwrap_or_default()
     }
 
     /// The raw index of the selected sim, or `None` when nothing is

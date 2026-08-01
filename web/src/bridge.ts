@@ -12,6 +12,7 @@ const VARIANT_SELECT = 0;
 const VARIANT_USE_OBJECT = 1;
 const VARIANT_CANCEL_INTENTS = 2;
 const VARIANT_SET_SPEED = 3;
+const VARIANT_TALK_TO = 4;
 
 /** postcard's `Option` discriminant: one byte, 0 for none, 1 for some. */
 const OPTION_NONE = 0;
@@ -107,6 +108,21 @@ export class SimBridge {
     return new Uint32Array(
       this.memory.buffer,
       this.handle.kinds_ptr(),
+      this.count,
+    );
+  }
+
+  /**
+   * What each row is DOING, as the activity codes the render buffer
+   * documents: 0 none, 1 walking, 2 waiting, 3 eating, 4 talking,
+   * 5 sleeping. The [A-11] indicator column - a zero-copy view like
+   * every accessor here, re-created per call for the growth hazard the
+   * class doc explains.
+   */
+  activities(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.activities_ptr(),
       this.count,
     );
   }
@@ -278,6 +294,29 @@ export class SimBridge {
     return this.enqueueCommand(new Uint8Array(bytes));
   }
 
+  /**
+   * Directs `agent` to start social interaction `interaction` (an index
+   * into the pack's social vocabulary) with the sim `target`. Field
+   * order matches `SimCommand::TalkTo`'s declaration, same discipline
+   * as `useObject`; the Rust golden vector carries matching rows.
+   */
+  talkTo(agent: number, target: number, interaction: number): boolean {
+    if (!isU32(agent) || !isU32(target) || !isU32(interaction)) return false;
+    const bytes = [VARIANT_TALK_TO];
+    pushVarint(bytes, agent);
+    pushVarint(bytes, target);
+    pushVarint(bytes, interaction);
+    return this.enqueueCommand(new Uint8Array(bytes));
+  }
+
+  /**
+   * One label per social-vocabulary entry, in the index order `talkTo`'s
+   * `interaction` uses - the rows for a flyout over a fellow sim.
+   */
+  socialLabels(): string[] {
+    return this.handle.social_labels();
+  }
+
   /** Clears `agent`'s queued orders, returning it to autonomy. */
   cancelIntents(agent: number): boolean {
     if (!isU32(agent)) return false;
@@ -365,6 +404,36 @@ export class SimBridge {
   simName(entityIndex: number): string {
     if (!isU32(entityIndex)) return '';
     return this.handle.sim_name(entityIndex);
+  }
+
+  /**
+   * The sim's stable identity, or `null` for objects, stale indices and
+   * bare agents. The boundary carries u32::MAX as the in-band absent
+   * value; it is normalised to `null` here so no caller compares
+   * against a sentinel.
+   */
+  simIdOf(entityIndex: number): number | null {
+    if (!isU32(entityIndex)) return null;
+    const id = this.handle.sim_id_of(entityIndex);
+    return id === 0xffff_ffff ? null : id;
+  }
+
+  /**
+   * Fourteen floats, drain then satisfaction, or empty. A copy across
+   * the boundary; debug-overlay read, never per-frame.
+   */
+  personalityOf(entityIndex: number): Float32Array {
+    if (!isU32(entityIndex)) return new Float32Array(0);
+    return this.handle.personality_of(entityIndex);
+  }
+
+  /**
+   * Interleaved [simId, feeling, ...] pairs in key order, or empty.
+   * Same copy-and-cadence contract as `personalityOf`.
+   */
+  relationshipsOf(entityIndex: number): Float32Array {
+    if (!isU32(entityIndex)) return new Float32Array(0);
+    return this.handle.relationships_of(entityIndex);
   }
 
   /**

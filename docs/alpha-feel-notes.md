@@ -1225,9 +1225,45 @@ to best-friend range, decay negligible inside one session (0.36 over
 the whole hour if nobody spoke, which nobody household-shaped lets
 happen).
 
-**Watched session: PENDING.** The browser pane was not displayable at
-measurement time (the page loads, the loop is rAF-driven and pauses
-hidden). Per the standing rule this section does not claim the system
-works on screen until it has been watched; the watch and its notes are
-the outstanding half of this entry.
+**Watched session: done, 2026-07-31, in the [A-11] visibility pass
+below.** The pane was displayable again; an autonomous conversation was
+watched end to end (two sims face to face in the kitchen, both wearing
+talk bubbles), and the debug overlay showed the completion move both
+sides of the pair live: Doug "feels: Nadia +0.15" and Nadia "feels:
+Doug +0.15" appearing together the moment the chat ended. That is the
+outstanding half of this entry discharged; the notes are in [A-11].
+
+## [A-11] Watching them do things, and telling one to
+
+PR 2 of the visibility pass, watched in the displayed pane at
+localhost:5173 (WebGPU live, console clean) on the a11-visibility
+branch before its PR. What shipped: activity indicator bubbles over
+every sim, the `?debug=1` stats overlay, and the TalkTo command with
+its "Chat" flyout row over housemates.
+
+- **Indicators answer Tim's top complaint in one glance.** Standing in
+  one viewport: a sim under a "z" bubble walking to bed, one under
+  cutlery heading to eat, a reserved partner under an ellipsis "wait"
+  bubble, and two talkers under speech bubbles. Sim intent is legible
+  from across the room for the first time; nobody has to open a panel
+  to know a sim is mid-anything.
+- **The directed talk works as a player gesture, not just a wire
+  format.** Left-click selected a sim; right-click on a housemate
+  opened exactly two rows, "Chat" and "Never mind"; picking Chat made
+  the target stop and wear the wait bubble (reserved, standing still by
+  filter) while the ordered sim crossed two rooms to it, and the pair
+  ended face to face under matching speech bubbles. The whole loop -
+  click to conversation - reads at 1x without any UI beyond the flyout.
+- **The debug overlay is the M2c/M2d microscope it was meant to be.**
+  Identity (name, entity, SimId), the activity word, all seven needs,
+  both personality halves, and the relationships line, refreshed live.
+  Watching "feels: nobody yet" become "feels: Nadia +0.15" on BOTH
+  sims' rows at a conversation's end is goal item 2 observable on
+  screen, not just in the trace.
+- **Rough edges, known and scheduled:** the canvas still does not
+  reflow (the pane scrolled in both axes; PR 3's camera work), and the
+  backquote toggle needs the page to have keyboard focus before it
+  lands - not a bug, but worth remembering while the pane is driven
+  remotely. The talk-order flyout labels come from the pack, so today
+  it is one row; the vocabulary can grow without touching the shell.
 

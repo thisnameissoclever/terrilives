@@ -9,5 +9,6 @@ crates/terri-core/src/grid.rs:420:21: replace > with >= in rect_distance
 crates/terri-core/src/rng.rs:32:30: replace | with ^ in SimRng::from_seed
 crates/terri-data/src/compile.rs:1237:38: replace + with - in flood_fill
 crates/terri-data/src/compile.rs:1237:53: replace + with - in flood_fill
+crates/terri-sim/src/systems/action.rs:467:61: replace || with && in serve_intents
 crates/terri-sim/src/systems/advertise.rs:160:18: replace > with >= in score_advertisement
 crates/terri-sim/src/systems/advertise.rs:59:14: replace > with >= in scaled_delta

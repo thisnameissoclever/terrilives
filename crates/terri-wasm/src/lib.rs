@@ -272,6 +272,13 @@ impl SimHandle {
         self.sim.render_buffer().sprites.as_ptr()
     }
 
+    /// What each row is doing, as `render_buffer::activity` codes -
+    /// the [A-11] indicator column. Same caching hazard as every other
+    /// pointer here; re-read it on every access.
+    pub fn activities_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().activities.as_ptr()
+    }
+
     /// The raw entity index occupying each row - the number a `Select` or
     /// `UseObject` command has to carry.
     ///
@@ -400,6 +407,39 @@ impl SimHandle {
             .needs_of(entity_index)
             .map(|levels| levels.to_vec())
             .unwrap_or_default()
+    }
+
+    /// One label per social-vocabulary entry, in the index order the
+    /// TalkTo command's `interaction` field uses - the flyout over a
+    /// fellow sim, mirroring `interaction_labels` for objects.
+    pub fn social_labels(&self) -> Vec<String> {
+        self.sim
+            .social_labels()
+            .into_iter()
+            .map(str::to_string)
+            .collect()
+    }
+
+    /// The sim's stable identity, or `u32::MAX` when the index names
+    /// nothing that carries one - in-band the way the digest's sentinel
+    /// is, and unreachable by real ids for the same widening reason.
+    pub fn sim_id_of(&self, entity_index: u32) -> u32 {
+        self.sim.sim_id_of(entity_index).unwrap_or(u32::MAX)
+    }
+
+    /// Fourteen floats - drain then satisfaction, seven each - or empty.
+    /// The [A-11] debug overlay's read; see `Sim::personality_of`.
+    pub fn personality_of(&self, entity_index: u32) -> Vec<f32> {
+        self.sim
+            .personality_of(entity_index)
+            .map(|values| values.to_vec())
+            .unwrap_or_default()
+    }
+
+    /// Interleaved `[sim_id, feeling, ...]` pairs, or empty. See
+    /// `Sim::relationships_of` for the f32-id bound.
+    pub fn relationships_of(&self, entity_index: u32) -> Vec<f32> {
+        self.sim.relationships_of(entity_index).unwrap_or_default()
     }
 
     /// What the right-click flyout should list for the object carrying
@@ -1014,6 +1054,54 @@ mod boundary_tests {
         );
     }
 
+    #[test]
+    fn activities_ptr_addresses_the_activity_column() {
+        // The [A-11] indicator bubbles' whole input. Same
+        // null-pointer-from-`Default::default()` hazard as `ids_ptr`
+        // below: nothing else on the Rust side reads through it, and a
+        // null crossed into a `Uint32Array` view fails only in the page.
+        //
+        // The agent is hungry with the fridge across the lot, so after
+        // two ticks it is mid-walk and its row reads WALKING while the
+        // object's reads NONE - two different values, which is what
+        // rules out a zeroed sibling column as well as a null.
+        let mut handle = SimHandle::new(16, 16);
+        assert!(handle.spawn_object(2.0, 2.0, "fridge"));
+        handle.spawn_agent(12.0, 2.0, 20.0);
+        handle.tick();
+        handle.tick();
+
+        assert_eq!(
+            addressed(
+                handle.activities_ptr(),
+                handle.entity_count(),
+                "activities_ptr"
+            ),
+            vec![
+                terri_sim::render_buffer::activity::NONE,
+                terri_sim::render_buffer::activity::WALKING
+            ],
+            "activities_ptr must address the per-row activity tags: the \
+             object does nothing and the hungry agent is walking to eat"
+        );
+    }
+
+    #[test]
+    fn social_labels_reports_the_shipped_vocabulary_in_index_order() {
+        // The rows of the flyout drawn over a fellow sim, and the index
+        // space `TalkTo::interaction` lives in - the same order-IS-the-
+        // index contract `interaction_labels` carries for objects. The
+        // expectation is the shipped `content/social.toml`; when the
+        // vocabulary grows, this list grows with it, and that edit is
+        // exactly the review this test wants a human to make.
+        let handle = SimHandle::new(8, 8);
+        assert_eq!(
+            handle.social_labels(),
+            vec!["Chat"],
+            "one label per social interaction, in pack order"
+        );
+    }
+
     /// `ids_ptr` must hand JavaScript a live view of the **id** column.
     ///
     /// Found by the mutation sweep rather than by hand: replacing this
@@ -1560,6 +1648,67 @@ mod boundary_tests {
             handle.enqueue_command(&select_bytes(9)),
             "a drained queue must accept commands again"
         );
+    }
+
+    /// The [A-11] debug trio, at the boundary they actually cross.
+    /// Asymmetric personality halves per [L34]: drain heads 1.5 and
+    /// satisfaction tails 0.75, so swapped halves fail rather than
+    /// agree. The relationship pairs interleave in key order, and the
+    /// absent cases flatten to empty exactly like needs_of.
+    #[test]
+    fn the_debug_trio_reports_identity_personality_and_feelings() {
+        use terri_core::{Personality, Relationships, SimId};
+
+        let mut handle = SimHandle::new(16, 16);
+        let mut personality = Personality::neutral();
+        personality.drain[0] = 1.5;
+        personality.satisfaction[NEED_COUNT - 1] = 0.75;
+        let mut feelings = Relationships::default();
+        feelings.bump(SimId(9), 0.5);
+        feelings.bump(SimId(2), -0.25);
+        let agent = handle
+            .sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 1.0, y: 1.0 },
+                Needs::all_at(NEED_MAX),
+                SimId(4),
+                personality,
+                feelings,
+            ))
+            .id()
+            .index_u32();
+        let bare = handle
+            .sim
+            .world_mut()
+            .spawn((Agent, Position { x: 2.0, y: 2.0 }, Needs::all_at(NEED_MAX)))
+            .id()
+            .index_u32();
+
+        assert_eq!(handle.sim_id_of(agent), 4);
+        assert_eq!(
+            handle.sim_id_of(bare),
+            u32::MAX,
+            "no identity flattens to the in-band absent value"
+        );
+
+        let personality = handle.personality_of(agent);
+        assert_eq!(personality.len(), NEED_COUNT * 2);
+        assert_eq!(personality[0], 1.5, "drain rides FIRST");
+        assert_eq!(
+            personality[NEED_COUNT * 2 - 1],
+            0.75,
+            "satisfaction rides second"
+        );
+        assert!(handle.personality_of(bare).is_empty());
+
+        assert_eq!(
+            handle.relationships_of(agent),
+            vec![2.0, -0.25, 9.0, 0.5],
+            "interleaved pairs in the component's key-sorted order"
+        );
+        assert!(handle.relationships_of(bare).is_empty());
     }
 
     #[test]

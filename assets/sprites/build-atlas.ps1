@@ -242,6 +242,18 @@ $SOURCES = @(
   @{ name = 'kitchenCabinetSW';       from = 'kitchenCabinet_SW' }
   @{ name = 'kitchenSinkSW';          from = 'kitchenSink_SW' }
   @{ name = 'kitchenCabinetCornerInnerSW'; from = 'kitchenCabinetCornerInner_SW' }
+
+  # ---- A-11 PR 2: activity indicator bubbles --------------------------------
+  #
+  # Generated, like the floor and the ring: the kit ships no UI glyphs.
+  # One bubble per activity the render buffer's `activities` column can
+  # report (walking and none draw nothing - motion is its own indicator).
+  # The owner's direction made these the priority: "if you can't see
+  # what they're doing, they may as well not be doing anything."
+  @{ name = 'indicatorTalk';          from = 'generated:indicatorTalk' }
+  @{ name = 'indicatorEat';           from = 'generated:indicatorEat' }
+  @{ name = 'indicatorSleep';         from = 'generated:indicatorSleep' }
+  @{ name = 'indicatorWait';          from = 'generated:indicatorWait' }
 )
 
 function New-HighQualityGraphics([System.Drawing.Bitmap] $target) {
@@ -349,6 +361,86 @@ function New-SelectionRingSprite {
   return $out
 }
 
+# An activity bubble: a rounded white balloon (with a tail for speech)
+# holding a simple glyph drawn from primitives - dots for talking, a
+# fork for eating, an hourglass for waiting - or floating Zz text for
+# sleeping. Same 4x-then-downsample recipe as every generated sprite.
+function New-IndicatorSprite([string] $kind) {
+  $scale = 4
+  $side = 26
+  $w = $side * $scale
+  $h = $side * $scale
+  $big = [System.Drawing.Bitmap]::new($w, $h, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+  $g = New-HighQualityGraphics $big
+
+  $white = [System.Drawing.Color]::FromArgb(235, 250, 250, 248)
+  $ink = [System.Drawing.Color]::FromArgb(255, 40, 44, 52)
+  $brush = New-Object System.Drawing.SolidBrush($white)
+  $inkBrush = New-Object System.Drawing.SolidBrush($ink)
+  $inkPen = New-Object System.Drawing.Pen($ink, (2 * $scale))
+
+  if ($kind -ne 'sleep') {
+    # The balloon. Sleeping skips it: floating letters read as sleep on
+    # their own, and a boxed Zz reads as a text-message notification.
+    $g.FillEllipse($brush, (2 * $scale), (1 * $scale), ($w - 4 * $scale), ($h - 9 * $scale))
+    if ($kind -eq 'talk') {
+      # The tail that makes it a SPEECH bubble rather than a badge.
+      $tail = @(
+        (New-Object System.Drawing.PointF((9 * $scale), ($h - 10 * $scale))),
+        (New-Object System.Drawing.PointF((13 * $scale), ($h - 10 * $scale))),
+        (New-Object System.Drawing.PointF((8 * $scale), ($h - 2 * $scale)))
+      )
+      $g.FillPolygon($brush, $tail)
+    }
+  }
+
+  switch ($kind) {
+    'talk' {
+      foreach ($cx in @(8, 13, 18)) {
+        $g.FillEllipse($inkBrush, (($cx - 1.4) * $scale), (7.6 * $scale), (2.8 * $scale), (2.8 * $scale))
+      }
+    }
+    'eat' {
+      # A fork: three prongs into a spine, then a handle.
+      foreach ($px in @(10, 13, 16)) {
+        $g.DrawLine($inkPen, ($px * $scale), (4 * $scale), ($px * $scale), (8 * $scale))
+      }
+      $g.DrawLine($inkPen, (10 * $scale), (8 * $scale), (16 * $scale), (8 * $scale))
+      $g.DrawLine($inkPen, (13 * $scale), (8 * $scale), (13 * $scale), (14 * $scale))
+    }
+    'wait' {
+      # An hourglass: two triangles tip to tip.
+      $top = @(
+        (New-Object System.Drawing.PointF((9 * $scale), (4 * $scale))),
+        (New-Object System.Drawing.PointF((17 * $scale), (4 * $scale))),
+        (New-Object System.Drawing.PointF((13 * $scale), (9 * $scale)))
+      )
+      $bottom = @(
+        (New-Object System.Drawing.PointF((13 * $scale), (9 * $scale))),
+        (New-Object System.Drawing.PointF((9 * $scale), (14 * $scale))),
+        (New-Object System.Drawing.PointF((17 * $scale), (14 * $scale)))
+      )
+      $g.FillPolygon($inkBrush, $top)
+      $g.FillPolygon($inkBrush, $bottom)
+    }
+    'sleep' {
+      $fontBig = New-Object System.Drawing.Font('Segoe UI', (9 * $scale), [System.Drawing.FontStyle]::Bold)
+      $fontSmall = New-Object System.Drawing.Font('Segoe UI', (6 * $scale), [System.Drawing.FontStyle]::Bold)
+      $textBrush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(235, 250, 250, 248))
+      $g.DrawString('Z', $fontBig, $textBrush, (3 * $scale), (6 * $scale))
+      $g.DrawString('z', $fontSmall, $textBrush, (13 * $scale), (2 * $scale))
+      $fontBig.Dispose(); $fontSmall.Dispose(); $textBrush.Dispose()
+    }
+  }
+  $brush.Dispose(); $inkBrush.Dispose(); $inkPen.Dispose(); $g.Dispose()
+
+  $out = [System.Drawing.Bitmap]::new($side, $side, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+  $g2 = New-HighQualityGraphics $out
+  $g2.DrawImage($big, (New-Object System.Drawing.Rectangle(0, 0, $side, $side)))
+  $g2.Dispose(); $big.Dispose()
+  return $out
+}
+
 # The kit has 140 pieces of furniture and no people, so the one sprite
 # the game most needs is the one nothing ships. Drawn from primitives at
 # 4x and downsampled, which is enough antialiasing to sit next to
@@ -400,6 +492,10 @@ try {
       'generated:floor' { New-FloorSprite }
       'generated:sim' { New-SimSprite }
       'generated:selectionRing' { New-SelectionRingSprite }
+      'generated:indicatorTalk' { New-IndicatorSprite 'talk' }
+      'generated:indicatorEat' { New-IndicatorSprite 'eat' }
+      'generated:indicatorSleep' { New-IndicatorSprite 'sleep' }
+      'generated:indicatorWait' { New-IndicatorSprite 'wait' }
       default {
         # `width` is optional and only the wall panels set it; absent, it is
         # $null, which the [int] parameter takes as 0 and the function reads

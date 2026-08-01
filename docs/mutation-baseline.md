@@ -638,6 +638,46 @@ day - the heading said four while the file held five - because a number in a
 heading is a second copy of `wc -l docs/mutants-baseline.txt` that nothing keeps
 in sync. Count the file.
 
+### `action.rs:467:61` - the third `||` in the people busy check - EQUIVALENT
+
+Added 2026-07-31 with the TalkTo command. The people branch of
+`serve_intents` computes
+
+```rust
+let busy = has_target || has_path || has_eating || has_talking;
+```
+
+and the mutant turns the THIRD `||` into `&&`, which by precedence is
+`has_target || has_path || (has_eating && has_talking)`. The two
+expressions differ only in a state where exactly one of `has_eating` /
+`has_talking` is true while `has_target` and `has_path` are BOTH false.
+No live agent reaches either state:
+
+- **`Eating` never stands without `Target`.** `follow_path` inserts
+  `Eating` while the arrival keeps `Target`; `tick_interactions`
+  removes the two together on completion; `CancelIntents` removes both
+  in one batch; serve-side preemption removes `Eating` while inserting
+  a new `Target`. (An `Eating` inserted WITHOUT `Target` also never
+  ends - the preemption test's doc records that trap - which is why no
+  fixture builds one either.)
+- **`Socialising` never stands without `Target`.** `movement` inserts
+  it with `Target` retained; `tick_social`'s disturbed branch and its
+  completion both remove `Socialising` and `Target` in the same batch;
+  the cancel and preemption paths mirror `Eating`'s.
+
+So wherever the mutated pair is evaluated at all, `has_target` is true
+and both expressions answer `true`. The two SIBLING mutants at 467:35
+and 467:47 are caught - `a_talk_order_waits_out_a_partners_stroll`
+builds the one state (`Path` alone, a wandering partner) that
+distinguishes them - so this entry is one column of one line, not the
+check.
+
+**When this expires:** the day `Eating` or `Socialising` can exist on
+an agent without `Target` - multi-step interaction chains (M2f) are the
+named risk, since a chain that hands off between steps is exactly a
+moment where the pairing might be loosened. Whoever decouples those
+components owns re-checking this.
+
 **Every `grid.rs` line number below moved when footprints landed**, because the
 `Footprint` type was declared above `impl TileGrid`. The mutants and their
 arguments are unchanged; only the lines are. `find_path`'s pair went 102 to 151

@@ -16,6 +16,7 @@ import { cameraOrigin } from './render/iso.js';
 import { SPRITES } from './render/atlas.js';
 import { buildStaticInstances } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
+import { DebugPanel } from './ui/debug-panel.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
 import { describeStartupFailure, renderStartupFailure } from './ui/startup-failure.js';
 import { buildTimeControls } from './ui/time-controls.js';
@@ -276,6 +277,42 @@ async function main(): Promise<void> {
     sim.needBarRefreshMs(),
     sim.needMax(),
   );
+  // The developer overlay, installed only under `?debug=1` - the same
+  // presence rule as `?stress`, so the shipping page carries no extra
+  // surface and no extra key binding. Backquote toggles it; that key
+  // collides with nothing (the only other keydown listener forwards to
+  // the flyout, which consumes Escape and arrows).
+  let debugPanel: DebugPanel | null = null;
+  if (new URLSearchParams(location.search).get('debug') === '1') {
+    const debugSection = document.querySelector<HTMLElement>('#debug-panel');
+    const debugReport = document.querySelector<HTMLElement>('#debug-report');
+    if (!debugSection || !debugReport) {
+      throw new Error('missing #debug-panel markup under ?debug=1');
+    }
+    const root = {
+      get hidden(): boolean {
+        return debugSection.hidden;
+      },
+      set hidden(value: boolean) {
+        debugSection.hidden = value;
+      },
+      get textContent(): string | null {
+        return debugReport.textContent;
+      },
+      set textContent(value: string | null) {
+        debugReport.textContent = value;
+      },
+    };
+    const panel = new DebugPanel(sim, root, sim.needBarRefreshMs());
+    debugPanel = panel;
+    document.addEventListener('keydown', (event) => {
+      if (event.code === 'Backquote') panel.toggle();
+    });
+    // Open immediately: someone who typed ?debug=1 wants the numbers,
+    // not a hidden panel and a keyboard shortcut to discover.
+    panel.toggle();
+  }
+
   buildTimeControls(document, speedRoot, START_SPEED, (ticksPerFrame) => {
     // Both halves, in one place so neither can be forgotten.
     //
@@ -381,6 +418,7 @@ async function main(): Promise<void> {
     // the budget is a budget that does not describe the frame ([L19]).
     // On five frames in six this is two comparisons and a return.
     needsPanel.update(nowMs, sim);
+    debugPanel?.update(nowMs);
 
     timer.sample(performance.now() - nowMs);
     if (nowMs - lastReportMs > REPORT_INTERVAL_MS) {
