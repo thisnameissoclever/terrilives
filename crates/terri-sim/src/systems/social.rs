@@ -1067,6 +1067,22 @@ mod tests {
             "the third sim SAW people worth talking to; being outbid must \
              read as waiting, not as a boring house - [C3] for persons"
         );
+        // And it is BLOCKED: its best option belongs to somebody else,
+        // which is that marker's exact meaning. The load-bearing half is
+        // that a contested person must NOT feed best_available - delete
+        // the negation on that guard and the two maxima tie, Blocked
+        // never fires, and this goes red. The initiator is the control:
+        // its best option was a person it could actually have.
+        assert!(
+            sim.world()
+                .get::<terri_core::Blocked>(odd_one_out)
+                .is_some(),
+            "a sim whose best option is somebody else's must be Blocked"
+        );
+        assert!(
+            sim.world().get::<terri_core::Blocked>(first).is_none(),
+            "a sim that just claimed an available partner is not blocked"
+        );
     }
 
     /// [H9]'s decay, through the running schedule: feelings drift toward
