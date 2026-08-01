@@ -69,6 +69,11 @@ struct Motion {
     /// own bucket because the career's whole antagonist quality is the
     /// TIME it eats, so the share has to be readable off this table.
     at_work: u64,
+    /// Mid-chain, any phase - walking between stations, working one,
+    /// waiting for one ([K4]). Its own bucket because a chain's cost
+    /// IS this time, and the balance question is whether the payoff
+    /// justifies the share.
+    chaining: u64,
     /// In a conversation, either side: the initiator carrying
     /// `Socialising` or the partner it points at.
     talking: u64,
@@ -135,6 +140,15 @@ fn main() {
     let mut running: Vec<Option<Open>> = vec![None; sims.len()];
     let mut interactions: Vec<Interaction> = Vec::new();
 
+    // Chain lifecycle counters, watched by transition: a counter
+    // appearing is a start; one disappearing while its last observed
+    // step was the final one is a completion, anything else an
+    // abandonment (cancel or replacement).
+    let mut chain_prev: Vec<Option<(u32, u32)>> = vec![None; sims.len()];
+    let mut chains_started = vec![0u64; sims.len()];
+    let mut chains_completed = vec![0u64; sims.len()];
+    let mut chains_abandoned = vec![0u64; sims.len()];
+
     let mut low = vec![[f32::INFINITY; NEED_COUNT]; sims.len()];
     let mut high = vec![[f32::NEG_INFINITY; NEED_COUNT]; sims.len()];
     let mut motion = vec![Motion::default(); sims.len()];
@@ -180,11 +194,14 @@ fn main() {
             // receiving end as waiting.
             // AtWork first: a working sim carries nothing else, and a
             // commuter's walk belongs to the job rather than to the
-            // errand tally.
+            // errand tally. The chain next, for the same whole-errand
+            // reason: its walks and waits belong to the dinner.
             if world.get::<terri_core::AtWork>(agent).is_some()
                 || world.get::<terri_core::Commuting>(agent).is_some()
             {
                 motion[index].at_work += 1;
+            } else if world.get::<terri_core::ChainState>(agent).is_some() {
+                motion[index].chaining += 1;
             } else if world.get::<Eating>(agent).is_some() {
                 motion[index].interacting += 1;
             } else if world.get::<Socialising>(agent).is_some() || is_partner {
@@ -198,6 +215,24 @@ fn main() {
             } else {
                 motion[index].frozen += 1;
             }
+
+            // The chain lifecycle, by transition against last tick.
+            let chain_now = world
+                .get::<terri_core::ChainState>(agent)
+                .map(|c| (c.chain, c.step));
+            match (chain_prev[index], chain_now) {
+                (None, Some(_)) => chains_started[index] += 1,
+                (Some((chain, step)), None) => {
+                    let terminal = step as usize + 1 == pack.chains[chain as usize].steps.len();
+                    if terminal {
+                        chains_completed[index] += 1;
+                    } else {
+                        chains_abandoned[index] += 1;
+                    }
+                }
+                (Some(_), Some(_)) | (None, None) => {}
+            }
+            chain_prev[index] = chain_now;
 
             // One record per meal OR conversation, the same off-by-one
             // correction for both: the ticking system runs after the
@@ -738,6 +773,7 @@ fn main() {
         walking: sum.walking + m.walking,
         interacting: sum.interacting + m.interacting,
         at_work: sum.at_work + m.at_work,
+        chaining: sum.chaining + m.chaining,
         talking: sum.talking + m.talking,
         waiting: sum.waiting + m.waiting,
         paused: sum.paused + m.paused,
@@ -779,6 +815,11 @@ fn main() {
         "at work     {:>6}  {:>5.1}%   <-- the rabbit hole, commute included",
         total.at_work,
         100.0 * total.at_work as f64 / sim_ticks as f64
+    );
+    println!(
+        "chaining    {:>6}  {:>5.1}%   <-- mid-errand: walks, stations, waits",
+        total.chaining,
+        100.0 * total.chaining as f64 / sim_ticks as f64
     );
     for (index, (_, name)) in sims.iter().enumerate() {
         let m = &motion[index];
@@ -836,6 +877,15 @@ fn main() {
                 println!("           wears: {} ({kind})", def.label);
             }
         }
+    }
+
+    // The chain ledger, per sim - what the errand share above BOUGHT.
+    println!("\nCHAINS (started / completed / abandoned)");
+    for (index, (_, name)) in sims.iter().enumerate() {
+        println!(
+            "  {:<8} {:>3} / {:>3} / {:>3}",
+            name, chains_started[index], chains_completed[index], chains_abandoned[index]
+        );
     }
 
     // The household's money - [E4]. One number; what earned it is

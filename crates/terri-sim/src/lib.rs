@@ -137,6 +137,15 @@ impl Sim {
         world.register_component::<terri_core::Career>();
         world.register_component::<terri_core::Commuting>();
         world.register_component::<terri_core::AtWork>();
+        // M2f's two. Both in `world_hash`'s query - [L3]'s empty-digest
+        // trap, the standing reason: the chain's program counter is
+        // the resume state, and the carried item is what the counter
+        // is about.
+        world.register_component::<terri_core::ChainState>();
+        world.register_component::<terri_core::Carrying>();
+        // Not hashed (the Eating class), but tests reach it through
+        // `try_query`.
+        world.register_component::<terri_core::StepWork>();
         // The household's money - [E4]. From construction like the
         // SimId allocator, so a save file can restore it before any
         // shift completes.
@@ -192,6 +201,12 @@ impl Sim {
                 // function's docs for why that is the choice.
                 systems::action::serve_intents,
                 systems::action::select_action,
+                // Directly after selection, so a chain chosen this
+                // tick (or resumed after an interruption) gets its
+                // station walk on the same tick a chosen fridge gets
+                // its path - and there is exactly ONE targeting code
+                // path for chains, this system ([K4]).
+                systems::chain::advance_chains,
                 // Strictly after selection and strictly before movement,
                 // and both halves matter. After, because it reads the
                 // `Restless` marker selection has just written, so a sim
@@ -209,6 +224,10 @@ impl Sim {
                 // paid return.
                 systems::career::commute_and_work,
                 systems::interact::tick_interactions,
+                // Beside tick_interactions because it is the same job
+                // for chain steps: run the clock at the station, and
+                // pay - whole, terminal-only - when the last one ends.
+                systems::chain::tick_chain_steps,
                 // Beside `tick_interactions` because it is the same job
                 // for conversations: deliver per tick, complete, release
                 // the reservation. After `follow_path` so a conversation
@@ -1006,9 +1025,17 @@ impl Sim {
         // reproduced by the day clock on any replay). The sentinel is
         // out-of-band by construction: a shift of u64::MAX ticks cannot
         // compile - shift_ticks < day_ticks, a u32.
+        // **`ChainState` and `Carrying` are in the digest, as of M2f
+        // PR 2** - the chain's program counter is the RESUME state
+        // ([K4]) and the carried item is what it is about, so two
+        // replays must agree on where every dinner stands. Sentinels
+        // out-of-band by construction, like AtWork's: both wrap u32
+        // index spaces.
         const NO_SATISFACTION: f32 = -1.0;
         const NO_SIM_ID: u64 = u64::MAX;
         const NOT_AT_WORK: u64 = u64::MAX;
+        const NO_CHAIN: u64 = u64::MAX;
+        const NOT_CARRYING: u64 = u64::MAX;
         type Row = (
             u32,
             f32,
@@ -1019,6 +1046,8 @@ impl Sim {
             Vec<(u32, f32)>,
             f32,
             Vec<(u32, f32)>,
+            u64,
+            (u64, u64, f32),
             u64,
         );
         let mut rows: Vec<Row> = Vec::new();
@@ -1032,6 +1061,8 @@ impl Sim {
             Option<&terri_core::Satisfaction>,
             Option<&terri_core::Traits>,
             Option<&terri_core::AtWork>,
+            Option<&terri_core::ChainState>,
+            Option<&terri_core::Carrying>,
         )>() {
             for (
                 entity,
@@ -1043,6 +1074,8 @@ impl Sim {
                 satisfaction,
                 traits,
                 at_work,
+                chain,
+                carrying,
             ) in state.iter(&self.world)
             {
                 // The sentinel is in-band, so a real level equal to it
@@ -1095,6 +1128,10 @@ impl Sim {
                     satisfaction.map_or(NO_SATISFACTION, |s| s.value()),
                     worn,
                     at_work.map_or(NOT_AT_WORK, |w| w.remaining_ticks as u64),
+                    chain.map_or((NO_CHAIN, 0, 1.0), |c| {
+                        (c.chain as u64, c.step as u64, c.fumble_scale)
+                    }),
+                    carrying.map_or(NOT_CARRYING, |c| c.0 as u64),
                 ));
             }
         }
@@ -1115,6 +1152,8 @@ impl Sim {
             satisfaction,
             worn,
             at_work,
+            (chain, step, fumble),
+            carrying,
         ) in rows
         {
             hasher.write_u64(index as u64);
@@ -1148,8 +1187,14 @@ impl Sim {
                 hasher.write_u64(trait_index as u64);
                 hasher.write_f32(state);
             }
-            // Last in the row because it arrived last.
             hasher.write_u64(at_work);
+            // Last in the row because they arrived last. The step is
+            // written even under the sentinel, per the published-shape
+            // rule the seven need columns set.
+            hasher.write_u64(chain);
+            hasher.write_u64(step);
+            hasher.write_f32(fumble);
+            hasher.write_u64(carrying);
         }
 
         // The household's money, after the rows the way the clock sits
@@ -2501,8 +2546,20 @@ mod determinism_tests {
         // gained ONE Funds u64 after the rows (zero here - the shift
         // countdown and the money are both replay state, the
         // Satisfaction argument). Behaviour untouched: these agents
-        // have no Career, so the career systems never fire.
-        const GOLDEN: u64 = 0x5FEB_C18C_2EFE_AC10;
+        // have no Career, so the career systems never fire. That value
+        // was 0x5FEB_C18C_2EFE_AC10.
+        //
+        // **M2f PR 2 moved it by encoding again**: every row gained a
+        // trailing ChainState triple (chain u64 + step u64 + fumble
+        // f32 - the out-of-band u64::MAX sentinel plus 0 plus the
+        // clean 1.0 here, all written even under the sentinel per the
+        // published-shape rule) and a Carrying u64 (u64::MAX here).
+        // The program counter is the resume state ([K4]), the fumble
+        // rides in it so a ruined dinner survives preemption, and the
+        // carried item is what the counter is about - all replay
+        // state. Behaviour untouched: nothing inserts a ChainState in
+        // this scenario, whose agents own no chain.
+        const GOLDEN: u64 = 0x20E2_32DE_F1EB_AFF5;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

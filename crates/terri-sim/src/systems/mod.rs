@@ -5,6 +5,11 @@ pub mod advertise;
 // file added without this line has its tests reported as `0 filtered
 // out` rather than as failures.
 pub mod career;
+// Declared in the same commit that creates `chain.rs`, per [L2]: rustc
+// does not compile a `.rs` file no `mod` declaration references, so a
+// file added without this line has its tests reported as `0 filtered
+// out` rather than as failures.
+pub mod chain;
 // Declared in the same commit that creates `command.rs`, per [L2], for
 // the same reason as `idle` below: a file no `mod` declaration references
 // is never compiled, so its tests report `0 filtered out` rather than

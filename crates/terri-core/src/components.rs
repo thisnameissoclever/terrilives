@@ -546,6 +546,62 @@ pub struct AtWork {
 #[derive(Resource, Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Funds(pub i64);
 
+/// The chain this sim is partway through - [K4]'s program counter.
+/// `chain` indexes the pack's chain list, `step` the next (or current)
+/// step to run. IN the world hash: it is the resume state, and two
+/// replays must agree on where every dinner stands.
+///
+/// Survives every preemption on purpose - a player click, a career
+/// shift - and is removed by exactly two things: the terminal step's
+/// completion, and an explicit `CancelIntents` (stop means stop).
+///
+/// `fumble_scale` is the chain's own fumble record, IN here rather
+/// than on the transient `Fumbled` deliberately: a ruined dinner must
+/// stay ruined through a preemption, and `Fumbled` is cleared by
+/// every preemption path on purpose. 1.0 is a clean run; a tagged
+/// step's failed roll writes its `fail_delta_scale` here and the
+/// terminal delivery reads it.
+#[derive(Component, Debug, Clone, Copy, PartialEq)]
+pub struct ChainState {
+    pub chain: u32,
+    pub step: u32,
+    pub fumble_scale: f32,
+}
+
+impl ChainState {
+    /// A fresh chain at its first step, unfumbled.
+    pub fn begin(chain: u32) -> Self {
+        Self {
+            chain,
+            step: 0,
+            fumble_scale: 1.0,
+        }
+    }
+    /// Whether any step's capability roll failed so far.
+    pub fn fumbled(&self) -> bool {
+        self.fumble_scale < 1.0
+    }
+}
+
+/// The item in this sim's hands, as an index into the pack's item
+/// kinds - [K3]. IN the world hash. A COMPONENT rather than an entity
+/// this milestone, deliberately: no shipped step puts anything down as
+/// a world object, and the entity upgrade (with the project's first
+/// despawn, [L47]'s minefield) lands with whatever first drops an
+/// item. The working design names the trap.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Carrying(pub u32);
+
+/// A chain step in progress at its station - the chain's `Eating`.
+/// Transient action state, deliberately NOT hashed (the Eating class:
+/// reproduced by the same PRNG draw on any replay); [`ChainState`] is
+/// the durable half. Which step is running is the counter's business,
+/// so this carries only the clock.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StepWork {
+    pub remaining_ticks: u32,
+}
+
 /// The atlas sprite this entity is drawn with, when it differs from its
 /// object definition's - [A-11]'s facing mechanism.
 ///

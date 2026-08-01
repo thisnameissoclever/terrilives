@@ -474,10 +474,16 @@ describe('SimBridge', () => {
     // **And M2e PR 3 moved it by encoding once more**: every row gained
     // a trailing AtWork u64 (the out-of-band u64::MAX sentinel here -
     // nobody in this scenario holds a job) and the digest gained one
-    // Funds u64 after the rows (zero here). Read off the wasm32
+    // Funds u64 after the rows (zero here). That value was
+    // 0x5feb_c18c_2efe_ac10n.
+    //
+    // **And M2f PR 2 the same way**: every row gained a ChainState
+    // triple (chain, step, fumble - sentinel, 0 and the clean 1.0
+    // here) and a Carrying u64 (sentinel here); the counter is the
+    // resume state and the fumble rides in it. Read off the wasm32
     // failure after a rebuild per [L13], equal to the native constant
     // in crates/terri-sim/src/lib.rs.
-    expect(bridge.worldHash()).toBe(0x5feb_c18c_2efe_ac10n);
+    expect(bridge.worldHash()).toBe(0x20e2_32de_f1eb_aff5n);
   });
 
   // ---- Player commands -------------------------------------------------

@@ -18,10 +18,10 @@ pub use bevy_ecs::prelude::Entity;
 pub use clock::{SimClock, TICKS_PER_SIM_HOUR, TICK_HZ};
 pub use command::{CommandQueue, SimCommand};
 pub use components::{
-    Agent, AtWork, Blocked, Career, Commuting, Eating, Fumbled, Funds, Habituation, Hobbies,
-    Intent, IntentQueue, Path, Personality, Position, Relationships, Reserved, Restless,
-    Satisfaction, Selected, SimId, SimIdAllocator, SimName, SmartObject, Socialising,
-    SpriteVariant, Target, Traits, Wander,
+    Agent, AtWork, Blocked, Career, Carrying, ChainState, Commuting, Eating, Fumbled, Funds,
+    Habituation, Hobbies, Intent, IntentQueue, Path, Personality, Position, Relationships,
+    Reserved, Restless, Satisfaction, Selected, SimId, SimIdAllocator, SimName, SmartObject,
+    Socialising, SpriteVariant, StepWork, Target, Traits, Wander,
 };
 pub use grid::{Footprint, TileGrid};
 pub use hash::FnvHasher;

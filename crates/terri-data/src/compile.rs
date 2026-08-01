@@ -386,13 +386,16 @@ pub fn compile(
     // key on the tag universe (so after social) and the household
     // resolves them by id (so before it).
     let social = compile_social(social, &tuning)?;
-    let traits = compile_traits(traits, &compiled, &social)?;
+    // Chains BEFORE traits and the household, because their step tags
+    // join the activity-tag universe both resolve against - a cooking
+    // capability keys on the hob step now that the stove's standalone
+    // interaction is retired. After the lot (the coverage rule needs
+    // the placements) and after tuning (steps obey the clipped rule).
+    let (chains, item_kinds) = compile_chains(chains, &compiled, &roles, &lot, &tuning)?;
+    let traits = compile_traits(traits, &compiled, &social, &chains)?;
     // Careers after tuning for the day-clock cross-check, before the
     // household which resolves them by id - the traits pattern again.
     let careers = compile_careers(careers, &tuning)?;
-    // Chains after the lot (the coverage rule needs the placements) and
-    // after tuning (steps obey the clipped-duration rule).
-    let (chains, item_kinds) = compile_chains(chains, &compiled, &roles, &lot, &tuning)?;
     let household = compile_household(
         household,
         &personalities,
@@ -400,6 +403,7 @@ pub fn compile(
         &social,
         &traits,
         &careers,
+        &chains,
         &lot,
     )?;
 
@@ -757,6 +761,7 @@ fn compile_traits(
     traits: TraitsFile,
     objects: &[CompiledObject],
     social: &[CompiledInteraction],
+    chains: &[crate::pack::CompiledChain],
 ) -> Result<Vec<crate::pack::CompiledTrait>, ContentError> {
     use crate::pack::{CompiledTrait, CompiledTraitKind};
 
@@ -765,6 +770,7 @@ fn compile_traits(
         .flat_map(|object| &object.interactions)
         .chain(social)
         .flat_map(|act| &act.tags)
+        .chain(chains.iter().flat_map(|c| &c.steps).flat_map(|s| &s.tags))
         .map(String::as_str)
         .collect();
 
@@ -1169,9 +1175,11 @@ fn compile_household(
     social: &[CompiledInteraction],
     traits: &[crate::pack::CompiledTrait],
     careers: &[crate::pack::CompiledCareer],
+    chains: &[crate::pack::CompiledChain],
     lot: &CompiledLot,
 ) -> Result<Vec<CompiledHouseholdMember>, ContentError> {
-    // Every tag any interaction in the pack carries - what a hobby must
+    // Every tag any activity in the pack carries - object and social
+    // interactions plus chain STEPS - which is what a hobby must
     // resolve against ([D9]: a hobby nothing can ever pay has no
     // representation once a pack exists). A set because the question is
     // membership; BTreeSet only for determinism discipline, though
@@ -1181,6 +1189,7 @@ fn compile_household(
         .flat_map(|object| &object.interactions)
         .chain(social)
         .flat_map(|act| &act.tags)
+        .chain(chains.iter().flat_map(|c| &c.steps).flat_map(|s| &s.tags))
         .map(String::as_str)
         .collect();
     // The blocked set the simulation will actually enforce - walls plus
