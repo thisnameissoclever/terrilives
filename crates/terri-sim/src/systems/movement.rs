@@ -43,17 +43,23 @@ pub fn follow_path(
     mut commands: Commands,
     content: Res<Content>,
     mut rng: ResMut<SimRng>,
-    mut agents: Query<(Entity, &mut Position, &mut Path, Option<&Target>)>,
+    mut agents: Query<(
+        Entity,
+        &mut Position,
+        &mut Path,
+        Option<&Target>,
+        Option<&terri_core::Traits>,
+    )>,
     objects: Query<&SmartObject>,
     sims: Query<(), With<Agent>>,
 ) {
-    let mut walking: Vec<Entity> = agents.iter().map(|(entity, _, _, _)| entity).collect();
+    let mut walking: Vec<Entity> = agents.iter().map(|(entity, _, _, _, _)| entity).collect();
     walking.sort_by_key(|entity| entity.index());
 
     for entity in walking {
         // Infallible: the list was just collected from this query and
         // nothing between here and there removes a component.
-        let Ok((_, mut pos, mut path, target)) = agents.get_mut(entity) else {
+        let Ok((_, mut pos, mut path, target, traits)) = agents.get_mut(entity) else {
             continue;
         };
         let Some((tx, ty)) = path.next_step() else {
@@ -91,6 +97,22 @@ pub fn follow_path(
                     tuning.min_interaction_ticks,
                     &mut rng,
                 );
+                // **The capability roll, at the attempt's start** - [E3].
+                // Rolled here beside the duration draw, from the same
+                // generator and in the same entity order, so PRNG
+                // consumption stays a function of world state. A fumble
+                // rides as its own component: the whole attempt then
+                // delivers `fail_delta_scale` of its benefits and pays
+                // no satisfaction, while still teaching at completion.
+                if let Some(traits) = traits {
+                    if let Some(delta_scale) =
+                        super::trait_effects::roll_fumble(traits, content.0, &act.tags, &mut rng)
+                    {
+                        commands
+                            .entity(entity)
+                            .insert(terri_core::Fumbled { delta_scale });
+                    }
+                }
                 commands.entity(entity).remove::<Path>().insert(Eating {
                     object: placed.0,
                     interaction: target.interaction,

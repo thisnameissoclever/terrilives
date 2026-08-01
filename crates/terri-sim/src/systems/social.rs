@@ -55,7 +55,11 @@ pub fn tick_social(
     mut relationships: Query<&mut Relationships>,
     partners: Query<(Has<Reserved>, Has<Target>), With<terri_core::Agent>>,
     mut queues: Query<&mut IntentQueue>,
-    mut ledgers: Query<(&mut terri_core::Satisfaction, Option<&terri_core::Hobbies>)>,
+    mut ledgers: Query<(
+        &mut terri_core::Satisfaction,
+        Option<&terri_core::Hobbies>,
+        Option<&mut terri_core::Traits>,
+    )>,
 ) {
     let tuning = content.0.tuning;
 
@@ -139,15 +143,22 @@ pub fn tick_social(
         // conversation is the one interaction where the object gets as
         // much out of being used as the user.
         for me in [initiator, partner] {
-            if let Ok((mut ledger, hobbies)) = ledgers.get_mut(me) {
-                let payout = super::satisfaction::hobby_payout(
-                    act.satisfaction,
-                    &act.tags,
-                    hobbies,
-                    tuning.hobby_multiplier,
-                );
+            if let Ok((mut ledger, hobbies, traits)) = ledgers.get_mut(me) {
+                // Conditions scale each side's OWN accrual, and a
+                // completed chat manages any condition its tags touch -
+                // company as treatment, when the content says so ([E3]).
+                let payout =
+                    super::satisfaction::hobby_payout(
+                        act.satisfaction,
+                        &act.tags,
+                        hobbies,
+                        tuning.hobby_multiplier,
+                    ) * super::trait_effects::condition_accrual_scale(traits.as_deref(), content.0);
                 if payout > 0.0 {
                     ledger.add(payout);
+                }
+                if let Some(mut traits) = traits {
+                    super::trait_effects::learn_and_manage(&mut traits, content.0, &act.tags);
                 }
             }
         }

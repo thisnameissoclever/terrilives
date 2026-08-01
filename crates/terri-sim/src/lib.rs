@@ -119,6 +119,12 @@ impl Sim {
         // it through `try_query`.
         world.register_component::<terri_core::Satisfaction>();
         world.register_component::<terri_core::Hobbies>();
+        // M2e PR 2's two. `Traits` is in `world_hash`'s query - [L3]'s
+        // empty-digest trap, the standing reason. `Fumbled` is not (the
+        // same transient-action class as Eating), but tests reach it
+        // through `try_query`.
+        world.register_component::<terri_core::Traits>();
+        world.register_component::<terri_core::Fumbled>();
         // A-11's facing carrier. In `sync_render_buffer`'s query (a
         // plain `World::query`, which self-registers) rather than the
         // digest's `try_query`, so this line is for the determinism
@@ -310,7 +316,7 @@ impl Sim {
     pub fn new_from_shipped_lot() -> Self {
         let pack = terri_data::pack();
         let mut sim = Self::new_from_lot(&pack.lot, &pack.objects);
-        sim.spawn_household(&pack.personalities, &pack.household);
+        sim.spawn_household(&pack.personalities, &pack.household, &pack.traits);
         sim
     }
 
@@ -331,6 +337,7 @@ impl Sim {
         &mut self,
         personalities: &[terri_data::CompiledPersonality],
         household: &[terri_data::CompiledHouseholdMember],
+        traits: &[terri_data::CompiledTrait],
     ) {
         for member in household {
             let sim_id = self
@@ -365,6 +372,27 @@ impl Sim {
                 // keeps the pre-M2e golden vectors still.
                 terri_core::Satisfaction::default(),
                 terri_core::Hobbies(member.hobbies.clone()),
+                // Worn traits open at their content-defined states: a
+                // capability at its start_level, a condition at its
+                // start_severity, a disposition stateless at 0 ([E3]).
+                terri_core::Traits::from_entries(
+                    member
+                        .traits
+                        .iter()
+                        .map(|&index| {
+                            let state = match traits[index as usize].kind {
+                                terri_data::CompiledTraitKind::Capability {
+                                    start_level, ..
+                                } => start_level,
+                                terri_data::CompiledTraitKind::Condition {
+                                    start_severity, ..
+                                } => start_severity,
+                                terri_data::CompiledTraitKind::Disposition { .. } => 0.0,
+                            };
+                            (index, state)
+                        })
+                        .collect(),
+                ),
             ));
         }
     }
@@ -855,6 +883,10 @@ impl Sim {
         // golden once as a shape change - the same one-settlement cost
         // the seven-need shape paid at M1a, and paid then for this
         // exact reason.
+        // **`Traits` is in the digest, as of M2e PR 2** - capabilities
+        // LEARN and conditions are MANAGED, so two replays must agree
+        // on both, which is the habituation argument verbatim. Entries
+        // ride length-prefixed like every variable-length field here.
         const NO_SATISFACTION: f32 = -1.0;
         const NO_SIM_ID: u64 = u64::MAX;
         type Row = (
@@ -866,6 +898,7 @@ impl Sim {
             u64,
             Vec<(u32, f32)>,
             f32,
+            Vec<(u32, f32)>,
         );
         let mut rows: Vec<Row> = Vec::new();
         if let Some(mut state) = self.world.try_query::<(
@@ -876,8 +909,9 @@ impl Sim {
             Option<&SimId>,
             Option<&Relationships>,
             Option<&terri_core::Satisfaction>,
+            Option<&terri_core::Traits>,
         )>() {
-            for (entity, pos, needs, habituation, sim_id, relationships, satisfaction) in
+            for (entity, pos, needs, habituation, sim_id, relationships, satisfaction, traits) in
                 state.iter(&self.world)
             {
                 // The sentinel is in-band, so a real level equal to it
@@ -915,6 +949,10 @@ impl Sim {
                         .map(|(other, feeling)| (other.0, *feeling))
                         .collect()
                 });
+                // Empty-for-absent like relationships: a sim wearing
+                // nothing and a sim with no component behave identically
+                // and hash identically.
+                let worn: Vec<(u32, f32)> = traits.map_or_else(Vec::new, |t| t.entries().to_vec());
                 rows.push((
                     entity.index_u32(),
                     pos.x,
@@ -924,6 +962,7 @@ impl Sim {
                     sim_id.map_or(NO_SIM_ID, |id| id.0 as u64),
                     rel,
                     satisfaction.map_or(NO_SATISFACTION, |s| s.value()),
+                    worn,
                 ));
             }
         }
@@ -933,7 +972,7 @@ impl Sim {
         // is what pins it; deleting this line must fail that test.
         rows.sort_by_key(|(index, ..)| *index);
 
-        for (index, x, y, levels, habituation, sim_id, relationships, satisfaction) in rows {
+        for (index, x, y, levels, habituation, sim_id, relationships, satisfaction, worn) in rows {
             hasher.write_u64(index as u64);
             hasher.write_f32(x);
             hasher.write_f32(y);
@@ -958,9 +997,14 @@ impl Sim {
                 hasher.write_u64(other as u64);
                 hasher.write_f32(feeling);
             }
-            // Last in the row because it arrived last; a fixed-width
-            // field, so no length prefix to alias.
             hasher.write_f32(satisfaction);
+            // Last in the row because it arrived last; length-prefixed
+            // for habituation's aliasing reason.
+            hasher.write_u64(worn.len() as u64);
+            for (trait_index, state) in worn {
+                hasher.write_u64(trait_index as u64);
+                hasher.write_f32(state);
+            }
         }
 
         hasher.finish()
@@ -1498,7 +1542,7 @@ mod household_tests {
     fn spawn_household_maps_every_field_and_issues_ids_in_declaration_order() {
         let (personalities, household) = people();
         let mut sim = Sim::new_with_lot(8, 8);
-        sim.spawn_household(&personalities, &household);
+        sim.spawn_household(&personalities, &household, &[]);
 
         let world = sim.world_mut();
         let mut state = world
@@ -2282,12 +2326,17 @@ mod determinism_tests {
         // **M2e moved it once more, by ENCODING alone**: every row gained
         // a trailing satisfaction f32 - the in-band -1.0 sentinel here,
         // since these bare agents carry no ledger - written for every
-        // entity per the published-shape rule above. BEHAVIOUR is
-        // untouched: this scenario has no household, so no sim earns or
-        // bleeds, and the movement is the field's bytes and nothing
-        // else. Measured on native and confirmed equal on wasm32 through
-        // the rebuilt module, per [L13].
-        const GOLDEN: u64 = 0xE89C_5E72_9378_E828;
+        // entity per the published-shape rule above. BEHAVIOUR was
+        // untouched, from 0x390E_E443_81C5_4B7A.
+        //
+        // **And M2e PR 2 moved it the same way**: a trailing
+        // length-prefixed Traits list per row, empty for these bare
+        // agents, so the movement is one zero-length u64 per row and
+        // nothing else - capabilities learn and conditions are managed,
+        // so worn state is replay state by habituation's own argument.
+        // Measured on native and confirmed equal on wasm32 through the
+        // rebuilt module, per [L13].
+        const GOLDEN: u64 = 0xB902_5674_0958_9E88;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

@@ -282,7 +282,10 @@ pub fn drain_commands(
                         // partner, and tick_social's disturbed check
                         // would self-heal one tick later - this makes
                         // the cancel whole on its own tick instead.
-                        .remove::<terri_core::Socialising>();
+                        .remove::<terri_core::Socialising>()
+                        // A fumble belongs to the attempt; cancelling
+                        // the attempt closes it unfinished, unlearned.
+                        .remove::<terri_core::Fumbled>();
                 }
             }
 

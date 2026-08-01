@@ -122,6 +122,8 @@ pub fn tick_interactions(
         Option<&Personality>,
         Option<&mut terri_core::Satisfaction>,
         Option<&terri_core::Hobbies>,
+        Option<&terri_core::Fumbled>,
+        Option<&mut terri_core::Traits>,
     )>,
 ) {
     for (
@@ -134,6 +136,8 @@ pub fn tick_interactions(
         personality,
         satisfaction,
         hobbies,
+        fumbled,
+        traits,
     ) in &mut agents
     {
         // Every index here is in range by construction. The object and
@@ -157,7 +161,12 @@ pub fn tick_interactions(
             // means neutral, which is what keeps every pre-M2c fixture and
             // both world-hash golden vectors exactly where they were.
             let satisfaction = personality.map_or(1.0, |p| p.satisfaction[*need_index as usize]);
-            let delta = super::advertise::scaled_delta(*delta, satisfaction);
+            // A fumbled attempt delivers `fail_delta_scale` of its
+            // BENEFITS - through `scaled_delta`, so the costs still
+            // bite in full: a ruined meal is exactly as tiring to cook
+            // as a good one ([E3]).
+            let fumble = fumbled.map_or(1.0, |f| f.delta_scale);
+            let delta = super::advertise::scaled_delta(*delta, satisfaction * fumble);
             needs.fill(NeedId::ALL[*need_index as usize], delta / duration);
         }
         eating.remaining_ticks = eating.remaining_ticks.saturating_sub(1);
@@ -223,12 +232,19 @@ pub fn tick_interactions(
             // nothing, which is what keeps the pre-M2e goldens still;
             // absent Hobbies reads as "no hobbies" and pays base.
             if let Some(mut ledger) = satisfaction {
-                let payout = super::satisfaction::hobby_payout(
-                    act.satisfaction,
-                    &act.tags,
-                    hobbies,
-                    content.0.tuning.hobby_multiplier,
-                );
+                // A fumbled completion pays NOTHING toward a life - a
+                // ruined meal fed nobody's soul - and conditions scale
+                // what a successful one pays ([E3]).
+                let payout = if fumbled.is_some() {
+                    0.0
+                } else {
+                    super::satisfaction::hobby_payout(
+                        act.satisfaction,
+                        &act.tags,
+                        hobbies,
+                        content.0.tuning.hobby_multiplier,
+                    ) * super::trait_effects::condition_accrual_scale(traits.as_deref(), content.0)
+                };
                 // Guarded so a chore's zero does not mark the component
                 // changed every meal - `add(0.0)` is arithmetic nothing
                 // but change-detection something.
@@ -236,6 +252,15 @@ pub fn tick_interactions(
                     ledger.add(payout);
                 }
             }
+
+            // **Every attempt teaches, pass or fail** - the capability's
+            // level rises and any condition this activity's tags manage
+            // eases, which is the resolving loop [S4] demands. Removing
+            // `Fumbled` closes the attempt either way.
+            if let Some(mut traits) = traits {
+                super::trait_effects::learn_and_manage(&mut traits, content.0, &act.tags);
+            }
+            commands.entity(entity).try_remove::<terri_core::Fumbled>();
             commands
                 .entity(entity)
                 .remove::<Eating>()
