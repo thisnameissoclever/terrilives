@@ -5897,6 +5897,23 @@ mod tests {
                 need: "moxie".into()
             }
         );
+
+        // The satisfaction sign, from both sides: negative rejected
+        // (content can never write the second axis downward, [S1]) and
+        // exactly zero accepted - a chore chain is legal - separating
+        // `<` from `<=`.
+        let mut drain = a_chain("drain");
+        drain.satisfaction = -0.25;
+        assert!(matches!(
+            compile_chain_world(vec![drain]).unwrap_err(),
+            ContentError::NegativeValue { .. }
+        ));
+        let mut chore = a_chain("chore");
+        chore.satisfaction = 0.0;
+        assert!(
+            compile_chain_world(vec![chore]).is_ok(),
+            "a chain that means nothing is legal content"
+        );
     }
 
     /// Every per-step rule, one rejection each - and the clipped
@@ -5925,13 +5942,23 @@ mod tests {
         );
 
         // full_tuning: floor 3, variance 0.75, so the smallest legal
-        // duration is 12 and 11 clips.
+        // duration is ceil(3 / 0.25) = 12 and 11 clips. The FULL
+        // variant is asserted, not a matches!: `minimum` is derived
+        // arithmetic the author has to act on, and the sweep proved a
+        // shape-only assertion leaves every operator in it free.
         let mut clipped = a_chain("clipped");
         clipped.step[0].duration_ticks = 11;
-        assert!(matches!(
+        assert_eq!(
             compile_chain_world(vec![clipped]).unwrap_err(),
-            ContentError::ClippedDuration { .. }
-        ));
+            ContentError::ClippedDuration {
+                object: "clipped".into(),
+                interaction: "Fetch".into(),
+                duration_ticks: 11,
+                minimum: 12,
+                floor: 3,
+                variance: 0.75
+            }
+        );
 
         let mut tagless = a_chain("blank_tag");
         tagless.step[1].tags = vec!["".to_string()];
