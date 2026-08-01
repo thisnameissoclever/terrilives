@@ -2121,10 +2121,69 @@ mod overlay_read_tests {
             ))
             .id()
             .index_u32();
+        // The remaining four, so that EVERY term of the busy check has
+        // a sim whose only busy state is that one. Without all eight,
+        // an `||` flipped to `&&` between two untested neighbours
+        // survives - which is exactly what the sweep found when this
+        // test covered four.
+        let target_of = sim.world_mut().spawn(()).id();
+        let committed = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 5.0, y: 5.0 },
+                Restless,
+                terri_core::Target {
+                    object: target_of,
+                    interaction: 0,
+                },
+            ))
+            .id()
+            .index_u32();
+        let talking = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 6.0, y: 6.0 },
+                Restless,
+                terri_core::Socialising {
+                    interaction: 0,
+                    partner: target_of,
+                    remaining_ticks: 10,
+                },
+            ))
+            .id()
+            .index_u32();
+        let stepping = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 7.0, y: 7.0 },
+                Restless,
+                terri_core::StepWork {
+                    remaining_ticks: 12,
+                },
+            ))
+            .id()
+            .index_u32();
+        let commuting = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 1.0, y: 7.0 },
+                Restless,
+                terri_core::Commuting,
+            ))
+            .id()
+            .index_u32();
         for (index, what) in [
             (eating, "eating"),
             (at_work, "at work"),
             (reserved, "reserved for a talk"),
+            (committed, "committed to a target"),
+            (talking, "in a conversation"),
+            (stepping, "working a chain step"),
+            (commuting, "commuting to work"),
         ] {
             assert_eq!(
                 sim.stall_reason_of(index),
