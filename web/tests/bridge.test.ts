@@ -435,7 +435,7 @@ describe('SimBridge', () => {
     // with nobody talking. The two movements merged from parallel
     // branches; this value is the MERGED measurement, read off the
     // wasm32 failure after a rebuild per [L13] and equal to native.
-    expect(bridge.worldHash()).toBe(0xe89c_5e72_9378_e828n);
+    expect(bridge.worldHash()).toBe(0xb902_5674_0958_9e88n);
   });
 
   // ---- Player commands -------------------------------------------------
