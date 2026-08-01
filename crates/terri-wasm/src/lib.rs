@@ -272,6 +272,13 @@ impl SimHandle {
         self.sim.render_buffer().sprites.as_ptr()
     }
 
+    /// What each row is doing, as `render_buffer::activity` codes -
+    /// the [A-11] indicator column. Same caching hazard as every other
+    /// pointer here; re-read it on every access.
+    pub fn activities_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().activities.as_ptr()
+    }
+
     /// The raw entity index occupying each row - the number a `Select` or
     /// `UseObject` command has to carry.
     ///

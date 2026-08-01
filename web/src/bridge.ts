@@ -112,6 +112,21 @@ export class SimBridge {
   }
 
   /**
+   * What each row is DOING, as the activity codes the render buffer
+   * documents: 0 none, 1 walking, 2 waiting, 3 eating, 4 talking,
+   * 5 sleeping. The [A-11] indicator column - a zero-copy view like
+   * every accessor here, re-created per call for the growth hazard the
+   * class doc explains.
+   */
+  activities(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.activities_ptr(),
+      this.count,
+    );
+  }
+
+  /**
    * The atlas sprite index for each entity, resolved from content when
    * the pack was compiled.
    *

@@ -378,25 +378,45 @@ impl Sim {
         self.render.kinds.clear();
         self.render.sprites.clear();
         self.render.ids.clear();
+        self.render.activities.clear();
 
         // Read before the query, because `Content` is a resource and the
         // query below borrows the world. `ContentPack` is behind a
         // &'static so this is a pointer copy, not a clone.
         let content = self.world.resource::<Content>().0;
 
+        // The receiving side of every conversation, collected first: a
+        // partner carries only `Reserved`, so "is being talked TO" is a
+        // fact about some OTHER entity's `Socialising` and needs its own
+        // pass before the per-row loop can answer it.
+        let mut partners: Vec<Entity> = Vec::new();
+        {
+            let mut talks = self.world.query::<&terri_core::Socialising>();
+            for talk in talks.iter(&self.world) {
+                partners.push(talk.partner);
+            }
+        }
+
         // World::query (not try_query) registers components on demand and
         // cannot fail, so there is no Option to handle here. It returns an
         // owned QueryState, which ends the &mut borrow immediately and
         // leaves self.render free to write below.
+        #[allow(clippy::type_complexity)]
         let mut state = self.world.query::<(
             Entity,
             &Position,
             Has<Agent>,
             Option<&SmartObject>,
             Option<&terri_core::SpriteVariant>,
+            Option<&terri_core::Eating>,
+            Has<terri_core::Socialising>,
+            Has<terri_core::Path>,
+            Has<terri_core::Reserved>,
         )>();
-        let mut rows: Vec<(u32, f32, f32, u32, u32)> = Vec::new();
-        for (entity, pos, is_agent, object, variant) in state.iter(&self.world) {
+        let mut rows: Vec<(u32, f32, f32, u32, u32, u32)> = Vec::new();
+        for (entity, pos, is_agent, object, variant, eating, talking, walking, reserved) in
+            state.iter(&self.world)
+        {
             let kind = if is_agent { 0 } else { 1 };
             // An entity that is neither an agent nor a smart object has
             // no sprite of its own; the sim's is the only sensible
@@ -438,11 +458,45 @@ impl Sim {
                 }
                 None => (pos.x, pos.y),
             };
-            rows.push((entity.index_u32(), x, y, kind, sprite));
+            // What this row is DOING, for the [A-11] indicator bubbles.
+            // Precedence mirrors the trace's motion classifier and for
+            // its reasons: a conversation's partner still carries
+            // `Reserved`, so talking is tested before waiting; and an
+            // eating sim keeps whatever `Wander` marker it had, so
+            // interaction states come before movement ones. Sleeping is
+            // told apart from eating by the interaction's own data - its
+            // biggest advertised benefit is energy - because a Zzz over
+            // a bed reads and cutlery over a bed lies, and a name match
+            // on "bed" would silently miss the next nap-capable object.
+            let activity = if !is_agent {
+                render_buffer::activity::NONE
+            } else if talking || partners.contains(&entity) {
+                render_buffer::activity::TALKING
+            } else if let Some(eating) = eating {
+                let act = &content.object(eating.object).interactions[eating.interaction as usize];
+                let dominant = act
+                    .advertises
+                    .iter()
+                    .filter(|(_, delta)| *delta > 0.0)
+                    .max_by(|a, b| a.1.total_cmp(&b.1))
+                    .map(|(need, _)| *need);
+                if dominant == Some(terri_core::NeedId::Energy.index() as u8) {
+                    render_buffer::activity::SLEEPING
+                } else {
+                    render_buffer::activity::EATING
+                }
+            } else if walking {
+                render_buffer::activity::WALKING
+            } else if reserved {
+                render_buffer::activity::WAITING
+            } else {
+                render_buffer::activity::NONE
+            };
+            rows.push((entity.index_u32(), x, y, kind, sprite, activity));
         }
-        rows.sort_by_key(|(index, _, _, _, _)| *index);
+        rows.sort_by_key(|(index, ..)| *index);
 
-        for (index, x, y, kind, sprite) in &rows {
+        for (index, x, y, kind, sprite, activity) in &rows {
             self.render.positions.push(*x);
             self.render.positions.push(*y);
             self.render.kinds.push(*kind);
@@ -451,6 +505,7 @@ impl Sim {
             // name an entity in a command. See `RenderBuffer::ids` for why
             // the row number will not do.
             self.render.ids.push(*index);
+            self.render.activities.push(*activity);
         }
         self.render.count = rows.len();
 

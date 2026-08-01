@@ -53,7 +53,31 @@ pub struct RenderBuffer {
     /// `a_row_is_not_its_entity_index_once_an_index_is_freed` is the test
     /// that fails if this ever silently becomes the identity again.
     pub ids: Vec<u32>,
+    /// What each row is DOING right now, as the [A-11] indicator codes:
+    /// 0 none, 1 walking, 2 waiting (reserved for a conversation whose
+    /// initiator is still inbound), 3 eating (any object interaction),
+    /// 4 talking (either side of a conversation), 5 sleeping (an object
+    /// interaction on a bed, split from eating because a Zzz over a bed
+    /// reads and cutlery over a bed lies).
+    ///
+    /// Exists because the owner's play report put it plainly: "if you
+    /// can't see what they're doing, they may as well not be doing
+    /// anything." The simulation had all of these as components; this
+    /// column is how the shell learns them without a query per frame.
+    /// Objects are always 0 - activity is a fact about agents.
+    pub activities: Vec<u32>,
     pub count: usize,
+}
+
+/// The `activities` codes, named. `u32` like every other column so the
+/// JavaScript view is one more `Uint32Array` over the same memory.
+pub mod activity {
+    pub const NONE: u32 = 0;
+    pub const WALKING: u32 = 1;
+    pub const WAITING: u32 = 2;
+    pub const EATING: u32 = 3;
+    pub const TALKING: u32 = 4;
+    pub const SLEEPING: u32 = 5;
 }
 
 #[cfg(test)]
@@ -138,6 +162,102 @@ mod tests {
         assert_ne!(
             buf.sprites[1], 7,
             "the plain placement still draws the definition's sprite"
+        );
+    }
+
+    /// The [A-11] activity column, every code from one world: a talker,
+    /// its partner, an eater, a sleeper, a walker, a waiter, an idler,
+    /// and an object. Each code has exactly one producer here, so a
+    /// classifier that collapses two states - the bug the precedence
+    /// comments exist to prevent - collides somewhere visible.
+    #[test]
+    fn the_activity_column_names_what_each_row_is_doing() {
+        use crate::render_buffer::activity;
+        use terri_core::{Path, Relationships, Reserved, Socialising, Target};
+
+        let pack = terri_data::pack();
+        let fridge = pack.find("fridge").expect("shipped");
+        let bed = pack.find("bed").expect("shipped");
+        let _ = Relationships::default();
+
+        let mut sim = Sim::new_with_lot(16, 16);
+        let object = sim
+            .world_mut()
+            .spawn((Position { x: 9.0, y: 9.0 }, SmartObject(fridge)))
+            .id();
+        let spawn_agent = |sim: &mut Sim, x: f32| {
+            sim.world_mut()
+                .spawn((
+                    Agent,
+                    Position { x, y: 1.0 },
+                    Needs::with(NeedId::Hunger, 50.0),
+                ))
+                .id()
+        };
+        let idler = spawn_agent(&mut sim, 1.0);
+        let eater = spawn_agent(&mut sim, 2.0);
+        let sleeper = spawn_agent(&mut sim, 3.0);
+        let walker = spawn_agent(&mut sim, 4.0);
+        let waiter = spawn_agent(&mut sim, 5.0);
+        let talker = spawn_agent(&mut sim, 6.0);
+        let partner = spawn_agent(&mut sim, 7.0);
+
+        sim.world_mut().entity_mut(eater).insert(Eating {
+            object: fridge,
+            interaction: 0,
+            remaining_ticks: 5,
+        });
+        // The bunk's one interaction restores energy above all else,
+        // which is what the classifier reads - not the object's name.
+        sim.world_mut().entity_mut(sleeper).insert(Eating {
+            object: bed,
+            interaction: 0,
+            remaining_ticks: 50,
+        });
+        sim.world_mut().entity_mut(walker).insert(Path {
+            steps: vec![(4, 2)],
+            cursor: 0,
+        });
+        sim.world_mut().entity_mut(waiter).insert(Reserved);
+        sim.world_mut().entity_mut(talker).insert((
+            Socialising {
+                interaction: 0,
+                partner,
+                remaining_ticks: 10,
+            },
+            Target {
+                object: partner,
+                interaction: 0,
+            },
+        ));
+        // The partner carries Reserved ONLY - discriminating it from the
+        // waiter is exactly the partner-set pass's job.
+        sim.world_mut().entity_mut(partner).insert(Reserved);
+
+        sim.sync_render_buffer();
+        let buf = sim.render_buffer();
+        let of = |entity: bevy_ecs::entity::Entity| -> u32 {
+            let row = buf
+                .ids
+                .iter()
+                .position(|&id| id == entity.index_u32())
+                .expect("every spawned entity has a row");
+            buf.activities[row]
+        };
+
+        assert_eq!(of(object), activity::NONE, "objects do nothing");
+        assert_eq!(of(idler), activity::NONE);
+        assert_eq!(of(eater), activity::EATING);
+        assert_eq!(of(sleeper), activity::SLEEPING);
+        assert_eq!(of(walker), activity::WALKING);
+        assert_eq!(of(waiter), activity::WAITING);
+        assert_eq!(of(talker), activity::TALKING);
+        assert_eq!(
+            of(partner),
+            activity::TALKING,
+            "the receiving side is talking too, though it carries only \
+             Reserved - the waiter above is what a wrong partner pass \
+             turns it into"
         );
     }
 

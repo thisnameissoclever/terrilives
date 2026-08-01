@@ -92,8 +92,10 @@ function packed(
   ];
 }
 
-/** prevX, prevY, curX, curY, kind, sprite. */
-type FakeEntity = readonly [number, number, number, number, number, number];
+/** prevX, prevY, curX, curY, kind, sprite, and an optional activity. */
+type FakeEntity =
+  | readonly [number, number, number, number, number, number]
+  | readonly [number, number, number, number, number, number, number];
 
 /**
  * A stand-in for `SimBridge` for the tests that do not need a real sim.
@@ -132,6 +134,10 @@ class FakeEntities implements RenderSource {
 
   sprites(): Uint32Array {
     return Uint32Array.from(this.entities.map((e) => e[5]));
+  }
+
+  activities(): Uint32Array {
+    return Uint32Array.from(this.entities.map((e) => e[6] ?? 0));
   }
 
   /**
@@ -610,6 +616,56 @@ describe('buildInstances', () => {
     const lastX = (many - 1) % GRID;
     const lastY = Math.floor((many - 1) / GRID) % GRID;
     expect(last).toEqual(packed(lastX, lastY, (many - 1) % 2, (many - 1) % 5));
+  });
+});
+
+describe('activity indicator bubbles', () => {
+  // The owner's requirement, as quads: a sim that is doing something
+  // shows it. Codes 0 and 1 draw nothing on purpose - motion is its own
+  // indicator - and every drawing code floats a bubble one lift above
+  // the sim, nudged nearer so the pair cannot tie on depth ([V12]).
+  const src = new FakeEntities();
+
+  it('floats one bubble over each sim whose activity draws, and none over walkers or idlers', () => {
+    src.set([
+      [1, 1, 1, 1, KIND_AGENT, 3, 4], // talking
+      [2, 2, 2, 2, KIND_AGENT, 3, 1], // walking - no bubble
+      [3, 3, 3, 3, KIND_AGENT, 3, 0], // idle - no bubble
+    ]);
+    expect(instanceCount(src, null)).toBe(4);
+
+    const built = buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID);
+    const bubbleBase = 3 * FLOATS_PER_INSTANCE;
+    const simBase = 0;
+    expect(built[bubbleBase + OFFSET_SCREEN_X]).toBe(
+      built[simBase + OFFSET_SCREEN_X],
+    );
+    expect(built[bubbleBase + OFFSET_SCREEN_Y]).toBe(
+      built[simBase + OFFSET_SCREEN_Y] - 84,
+    );
+    // Nearer than its own sim, by less than anything else could sit
+    // between: a tie discards one quad, a big nudge reorders strangers.
+    expect(built[bubbleBase + OFFSET_DEPTH]).toBeLessThan(
+      built[simBase + OFFSET_DEPTH],
+    );
+    expect(built[bubbleBase + OFFSET_DEPTH]).toBeCloseTo(
+      built[simBase + OFFSET_DEPTH],
+      3,
+    );
+  });
+
+  it('keeps the selection ring in the slot after the bubbles', () => {
+    src.set([
+      [1, 1, 1, 1, KIND_AGENT, 3, 4], // talking, id 100
+      [2, 2, 2, 2, KIND_AGENT, 3, 0], // idle, id 101
+    ]);
+    expect(instanceCount(src, 100)).toBe(4); // 2 sims + 1 bubble + ring
+    const built = buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID, 100);
+    const ringBase = 3 * FLOATS_PER_INSTANCE;
+    // The ring's sprite differs from the sims' fixture sprite, which is
+    // how "the ring landed after the bubble, not on top of it" is
+    // visible without restating the ring's atlas index here.
+    expect(built[ringBase + OFFSET_SPRITE]).not.toBe(3);
   });
 });
 

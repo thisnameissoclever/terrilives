@@ -64,6 +64,10 @@ export const SPRITES: readonly AtlasSprite[] = [
   { name: 'kitchenCabinetSW', x: 167, y: 200, w: 49, h: 60 },
   { name: 'kitchenSinkSW', x: 217, y: 200, w: 49, h: 60 },
   { name: 'kitchenCabinetCornerInnerSW', x: 65, y: 200, w: 51, h: 62 },
+  { name: 'indicatorTalk', x: 52, y: 321, w: 26, h: 26 },
+  { name: 'indicatorEat', x: 79, y: 321, w: 26, h: 26 },
+  { name: 'indicatorSleep', x: 106, y: 321, w: 26, h: 26 },
+  { name: 'indicatorWait', x: 133, y: 321, w: 26, h: 26 },
 ];
 
 /**

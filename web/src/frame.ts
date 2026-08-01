@@ -32,6 +32,37 @@ import { spriteIndex } from './render/atlas.js';
  */
 const SELECTION_RING_SPRITE = spriteIndex('selectionRing');
 
+/**
+ * The activity-indicator bubbles, one atlas slot per code that draws.
+ * Index 0 and 1 (none, walking) are deliberately null: an idle sim needs
+ * no badge and a walking sim's motion IS its indicator - a bubble on
+ * every walker would turn the house into a notification tray. The
+ * remaining codes match `render_buffer::activity` on the Rust side.
+ */
+const INDICATOR_SPRITES: readonly (number | null)[] = [
+  null,
+  null,
+  spriteIndex('indicatorWait'),
+  spriteIndex('indicatorEat'),
+  spriteIndex('indicatorTalk'),
+  spriteIndex('indicatorSleep'),
+];
+
+/**
+ * How far above a sim's anchor its bubble floats, in screen pixels: the
+ * sim sprite is 78 tall and the bubble hangs just over its head.
+ */
+const INDICATOR_LIFT = 84;
+
+/**
+ * Nudges a bubble NEARER than the sim it belongs to, without inventing a
+ * depth layer. Far smaller than the layer step, so it can never reorder
+ * a bubble against anything but its own sim - and without it the two
+ * share a depth exactly, where `depthCompare: 'less'` discards the
+ * second quad drawn ([V12]).
+ */
+const INDICATOR_DEPTH_NUDGE = 1e-5;
+
 /** Linear interpolation. `t` of 0 gives `a` exactly, 1 gives `b` exactly. */
 export function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
@@ -183,6 +214,11 @@ export interface RenderSource {
    * is exactly the coupling [D1] exists to prevent.
    */
   sprites(): Uint32Array;
+  /**
+   * What each row is doing, as `render_buffer::activity` codes - the
+   * [A-11] indicator column. Read every frame like every other view.
+   */
+  activities(): Uint32Array;
 }
 
 /**
@@ -218,10 +254,10 @@ export function buildInstances(
   selected: number | null = null,
 ): InstanceArray {
   const count = source.count;
-  // One slot more than the entity count, for the selection ring. It is a single
-  // extra instance rather than one per entity, so [D11]'s no-allocation rule is
-  // untouched: the scratch buffer grows once and is reused.
-  const needed = (count + 1) * FLOATS_PER_INSTANCE;
+  // Room for the entities, one bubble each in the worst case, and the
+  // selection ring. Still [D11]-clean: the scratch buffer grows once to
+  // the high-water mark and is reused; nothing per-frame allocates.
+  const needed = (count * 2 + 1) * FLOATS_PER_INSTANCE;
   if (scratch.length < needed) {
     scratch = new Float32Array(needed);
   }
@@ -234,6 +270,7 @@ export function buildInstances(
   const previous = source.prevPositions();
   const kinds = source.kinds();
   const sprites = source.sprites();
+  const activities = source.activities();
 
   for (let i = 0; i < count; i++) {
     const wx = lerp(previous[i * 2], current[i * 2], alpha);
@@ -268,7 +305,30 @@ export function buildInstances(
     );
   }
 
-  // **The selection ring, last, in the slot past the live entities.**
+  // **The indicator bubbles, in the slots after the entities.** One per
+  // sim whose activity draws, floated over the sim's interpolated
+  // position so it tracks a walker into a conversation, and nudged
+  // nearer than the sim itself so the two never tie on depth. This is
+  // the owner's "if you can't see what they're doing, they may as well
+  // not be doing anything", as quads.
+  let slot = count;
+  for (let i = 0; i < count; i++) {
+    const sprite = INDICATOR_SPRITES[activities[i]] ?? null;
+    if (sprite === null) continue;
+    const wx = lerp(previous[i * 2], current[i * 2], alpha);
+    const wy = lerp(previous[i * 2 + 1], current[i * 2 + 1], alpha);
+    writeInstance(
+      scratch,
+      slot++,
+      screenX(wx, wy, originX),
+      screenY(wx, wy, originY) - INDICATOR_LIFT,
+      layeredDepth(wx, wy, gridSize, LAYER_SIM) - INDICATOR_DEPTH_NUDGE,
+      sprite,
+    );
+  }
+
+  // **The selection ring, last, in the slot past the live entities and
+  // their bubbles.**
   //
   // Drawn from the same interpolated position as the sim itself rather than
   // from the tick position, so it tracks a walking sim instead of stepping
@@ -284,7 +344,7 @@ export function buildInstances(
     const wy = lerp(previous[ringRow * 2 + 1], current[ringRow * 2 + 1], alpha);
     writeInstance(
       scratch,
-      count,
+      slot,
       screenX(wx, wy, originX),
       screenY(wx, wy, originY),
       layeredDepth(wx, wy, gridSize, LAYER_PROP),
@@ -305,7 +365,12 @@ export function buildInstances(
  * screen (0, 0) with depth 0, which draw in front of everything.
  */
 export function instanceCount(source: RenderSource, selected: number | null): number {
-  return source.count + (findSelectedRow(source, selected) === null ? 0 : 1);
+  let bubbles = 0;
+  const activities = source.activities();
+  for (let i = 0; i < source.count; i++) {
+    if (INDICATOR_SPRITES[activities[i]] != null) bubbles++;
+  }
+  return source.count + bubbles + (findSelectedRow(source, selected) === null ? 0 : 1);
 }
 
 /** The row holding `selected`, or null if nothing is selected or it is gone. */
