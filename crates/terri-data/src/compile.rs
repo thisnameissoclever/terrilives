@@ -12,8 +12,8 @@ use crate::pack::{
     Tuning,
 };
 use crate::schema::{
-    AtlasFile, HouseholdFile, LotFile, NeedsFile, ObjectsFile, PersonalitiesFile, SocialFile,
-    TuningFile,
+    AtlasFile, HouseholdFile, InteractionDef, LotFile, NeedsFile, ObjectsFile, PersonalitiesFile,
+    SocialFile, TuningFile,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use terri_core::{Footprint, NeedId, NEED_COUNT, NEED_MAX, NEED_MIN};
@@ -259,12 +259,15 @@ pub fn compile(
             // sort explicitly rather than relying on the two agreeing.
             advertises.sort_unstable_by_key(|(i, _)| *i);
 
+            let (tags, satisfaction) = compile_activity_extras(act, &object.id)?;
             interactions.push(CompiledInteraction {
                 id: act.id.clone(),
                 advertises,
                 duration_ticks: act.duration_ticks,
                 slots: act.slots,
                 label,
+                tags,
+                satisfaction,
             });
         }
 
@@ -335,13 +338,17 @@ pub fn compile(
     // resolves an archetype by name and the typo should be reported
     // against whichever file actually contains it.
     let personalities = compile_personalities(personalities, &compiled)?;
-    let household = compile_household(household, &personalities, &compiled, &lot)?;
 
-    // After tuning, because the clipped-duration rule needs the floor and
-    // the variance, and social interactions are subject to it for exactly
-    // the reasons the object loop's copy documents: a talk below the line
-    // runs for the floor every time and delivers more than it advertises.
+    // Social BEFORE the household since M2e, and the order is
+    // load-bearing: a hobby resolves against the union of every tag any
+    // interaction carries, and the social vocabulary carries tags too -
+    // "socialising" is a hobby precisely because Chat is tagged with it.
+    // Social itself compiles after tuning, because the clipped-duration
+    // rule needs the floor and the variance, and social interactions are
+    // subject to it for exactly the reasons the object loop's copy
+    // documents.
     let social = compile_social(social, &tuning)?;
+    let household = compile_household(household, &personalities, &compiled, &social, &lot)?;
 
     Ok(ContentPack {
         decay_per_tick: decay,
@@ -437,16 +444,54 @@ fn compile_social(
             });
         }
 
+        let (tags, satisfaction) = compile_activity_extras(act, "social.toml")?;
         compiled.push(CompiledInteraction {
             id: act.id.clone(),
             advertises,
             duration_ticks: act.duration_ticks,
             slots: act.slots,
             label,
+            tags,
+            satisfaction,
         });
     }
 
     Ok(compiled)
+}
+
+/// Validates and copies an interaction's M2e activity fields - the tags
+/// hobbies and traits key on, and the completion satisfaction ([E1]/
+/// [E2] in the M2e design). One function shared VERBATIM by the object
+/// loop and [`compile_social`], because the two loops' mirror comments
+/// exist precisely to warn that a rule changed in one and not the other
+/// - a shared body is that warning made unnecessary for these fields.
+///
+/// `owner` is the object id, or `social.toml` for the vocabulary, so an
+/// error names the file that actually holds the mistake.
+fn compile_activity_extras(
+    act: &InteractionDef,
+    owner: &str,
+) -> Result<(Vec<String>, f32), ContentError> {
+    for tag in &act.tags {
+        if tag.trim().is_empty() {
+            return Err(ContentError::EmptyActivityTag {
+                owner: owner.to_string(),
+                interaction: act.id.clone(),
+            });
+        }
+    }
+    check_finite(
+        act.satisfaction,
+        &format!("satisfaction on '{}' of '{owner}'", act.id),
+    )?;
+    if act.satisfaction < 0.0 {
+        return Err(ContentError::NegativeSatisfaction {
+            owner: owner.to_string(),
+            interaction: act.id.clone(),
+            satisfaction: act.satisfaction,
+        });
+    }
+    Ok((act.tags.clone(), act.satisfaction))
 }
 
 /// Validates `content/personalities.toml` against the compiled objects and
@@ -588,8 +633,21 @@ fn compile_household(
     household: HouseholdFile,
     personalities: &[CompiledPersonality],
     objects: &[CompiledObject],
+    social: &[CompiledInteraction],
     lot: &CompiledLot,
 ) -> Result<Vec<CompiledHouseholdMember>, ContentError> {
+    // Every tag any interaction in the pack carries - what a hobby must
+    // resolve against ([D9]: a hobby nothing can ever pay has no
+    // representation once a pack exists). A set because the question is
+    // membership; BTreeSet only for determinism discipline, though
+    // nothing here iterates it.
+    let known_tags: BTreeSet<&str> = objects
+        .iter()
+        .flat_map(|object| &object.interactions)
+        .chain(social)
+        .flat_map(|act| &act.tags)
+        .map(String::as_str)
+        .collect();
     // The blocked set the simulation will actually enforce - walls plus
     // footprint tiles - rebuilt the same way `Sim::new_from_lot` builds
     // it. Everything in it is in bounds: `compile_lot` has already
@@ -683,12 +741,22 @@ fn compile_household(
             needs[id.index()] = *value;
         }
 
+        for hobby in &sim.hobbies {
+            if !known_tags.contains(hobby.as_str()) {
+                return Err(ContentError::UnknownHobby {
+                    sim: sim.name.clone(),
+                    hobby: hobby.clone(),
+                });
+            }
+        }
+
         compiled.push(CompiledHouseholdMember {
             name: sim.name.clone(),
             personality: personality as u32,
             x: sim.x,
             y: sim.y,
             needs,
+            hobbies: sim.hobbies.clone(),
         });
     }
 
@@ -846,6 +914,36 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
             action: tuning.action_threshold,
         });
     }
+    // The M2e satisfaction trio ([E1]/[E2]). Finiteness first like every
+    // other f32 knob, then the one range each fails quietly outside of.
+    check_finite(tuning.hobby_multiplier, "hobby_multiplier in tuning.toml")?;
+    check_finite(tuning.neglect_floor, "neglect_floor in tuning.toml")?;
+    check_finite(
+        tuning.neglect_bleed_per_tick,
+        "neglect_bleed_per_tick in tuning.toml",
+    )?;
+    // Below 1 a hobby pays LESS for being loved - the mechanic inverted
+    // by a typo, with no error anywhere and no test that knows what a
+    // hobby is supposed to feel like. Exactly 1 is the legal disable.
+    if tuning.hobby_multiplier < 1.0 {
+        return Err(ContentError::HobbyMultiplierBelowOne {
+            value: tuning.hobby_multiplier,
+        });
+    }
+    // The floor lives on the need scale. Above NEED_MAX every need is
+    // neglected from tick one and the accumulator only ever falls,
+    // which reads as a broken axis rather than as a knob set wrong.
+    if !(0.0..=terri_core::NEED_MAX).contains(&tuning.neglect_floor) {
+        return Err(ContentError::NeglectFloorOutOfRange {
+            value: tuning.neglect_floor,
+        });
+    }
+    // Zero is the legal disable; negative would make starvation EARN.
+    if tuning.neglect_bleed_per_tick < 0.0 {
+        return Err(ContentError::NegativeNeglectBleed {
+            value: tuning.neglect_bleed_per_tick,
+        });
+    }
 
     Ok(Tuning {
         habituation_per_use: tuning.habituation_per_use,
@@ -871,6 +969,9 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
         relationship_gain_per_talk: tuning.relationship_gain_per_talk,
         relationship_decay_per_tick: tuning.relationship_decay_per_tick,
         relationship_delta_scale: tuning.relationship_delta_scale,
+        hobby_multiplier: tuning.hobby_multiplier,
+        neglect_floor: tuning.neglect_floor,
+        neglect_bleed_per_tick: tuning.neglect_bleed_per_tick,
     })
 }
 
@@ -1393,13 +1494,17 @@ mod tests {
     /// author's wording, and not `grab_snack`, is what reaches the pack.
     #[rustfmt::skip]
     const GOLDEN_PACK_BYTES: &[u8] = &[
-        // **Regenerated wholesale at A-11**, the second wholesale regen
-        // in the file's history: `CompiledPlacement` grew a `sprite`
-        // field (one varint byte inside the lot block per placement -
-        // this fixture's lot has one), on top of the merged tuning tail
-        // (contested_score_multiplier 0.375, then the relationship trio
-        // 0.1875 / 0.046875 / 0.8125) and the three empty Vec blocks.
-        // The object-block annotations in the doc comment above remain
+        // **Regenerated wholesale at M2e PR 1**, the third wholesale
+        // regen: `CompiledInteraction` grew `tags` (the empty vec is the
+        // lone 0 after the label's `117, 112`) and `satisfaction` (the
+        // four zero bytes after it - this fixture's snack pays nothing),
+        // and the tuning tail grew the satisfaction trio: 1.75 is
+        // `0, 0, 224, 63`, 23.0 is `0, 0, 184, 65`, 0.0078125 is
+        // `0, 0, 0, 60`, between relationship_delta_scale's `0, 0, 80,
+        // 63` and the three empty personality/household/social vec
+        // bytes that close the pack. `CompiledHouseholdMember::hobbies`
+        // adds nothing here because this fixture has no household. The
+        // object-block annotations in the doc comment above remain
         // valid; the fully-annotated predecessors are one `git log -p`
         // away. Read off the failing assertion, per the standing rule.
         205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62,
@@ -1409,13 +1514,15 @@ mod tests {
         97, 98, 95, 115, 110, 97, 99, 107, 3, 0, 0, 0,
         12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64,
         15, 1, 15, 69, 97, 116, 32, 115, 116, 97, 110, 100,
-        105, 110, 103, 32, 117, 112, 1, 1, 1, 5, 3, 2,
-        4, 2, 1, 0, 1, 0, 0, 0, 32, 64, 0, 0,
-        160, 63, 2, 0, 0, 128, 62, 0, 0, 0, 63, 0,
-        0, 0, 62, 9, 6, 0, 0, 160, 62, 10, 215, 35,
-        59, 0, 0, 32, 63, 0, 0, 64, 63, 3, 172, 2,
-        7, 11, 13, 0, 0, 192, 62, 0, 0, 64, 62, 0,
-        0, 64, 61, 0, 0, 80, 63, 0, 0, 0,
+        105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1,
+        1, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0, 0,
+        0, 32, 64, 0, 0, 160, 63, 2, 0, 0, 128, 62,
+        0, 0, 0, 63, 0, 0, 0, 62, 9, 6, 0, 0,
+        160, 62, 10, 215, 35, 59, 0, 0, 32, 63, 0, 0,
+        64, 63, 3, 172, 2, 7, 11, 13, 0, 0, 192, 62,
+        0, 0, 64, 62, 0, 0, 64, 61, 0, 0, 80, 63,
+        0, 0, 224, 63, 0, 0, 184, 65, 0, 0, 0, 60,
+        0, 0, 0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -1526,6 +1633,12 @@ mod tests {
     /// what lets every other test in this module ignore decay entirely.
     fn full_tuning() -> TuningFile {
         TuningFile {
+            // The M2e trio, distinct like everything else here and exact
+            // in binary32; the golden vector reads these bytes directly,
+            // and a 0.0 would be indistinguishable from a dropped field.
+            hobby_multiplier: 1.75,
+            neglect_floor: 23.0,
+            neglect_bleed_per_tick: 0.0078125,
             action_threshold: 0.25,
             choice_temperature: 0.5,
             idle_threshold: 0.125,
@@ -1621,6 +1734,8 @@ mod tests {
 
     fn snack() -> InteractionDef {
         InteractionDef {
+            tags: vec![],
+            satisfaction: 0.0,
             id: "grab_snack".into(),
             // Unlabelled, which is the DEFAULTING path and therefore the
             // one most tests should exercise: an object authored before
@@ -2293,6 +2408,10 @@ mod tests {
         // `max_queued_commands` would be caught by the golden vector
         // alone, and a golden vector is regenerated by whoever breaks it.
         assert_eq!(tuning.need_bar_refresh_ms, 13);
+        // The M2e trio, distinct values per [L29] like everything above.
+        assert_eq!(tuning.hobby_multiplier, 1.75);
+        assert_eq!(tuning.neglect_floor, 23.0);
+        assert_eq!(tuning.neglect_bleed_per_tick, 0.0078125);
     }
 
     /// Weighted selection divides by the temperature, so zero is a
@@ -3260,6 +3379,7 @@ mod tests {
 
     fn member(name: &str, archetype: &str, x: f32, y: f32) -> HouseholdSimDef {
         HouseholdSimDef {
+            hobbies: vec![],
             name: name.to_string(),
             archetype: archetype.to_string(),
             x,
@@ -3366,6 +3486,8 @@ mod tests {
             sprite: "couch_art".into(),
             footprint: Footprint::SINGLE,
             interaction: vec![InteractionDef {
+                tags: vec![],
+                satisfaction: 0.0,
                 id: "lounge".into(),
                 label: None,
                 advertises: [("comfort".to_string(), 20.0)].into_iter().collect(),
@@ -4234,6 +4356,8 @@ mod tests {
     fn compiles_the_social_vocabulary_into_the_pack() {
         let pack = compile_bare_with_social(vec![
             InteractionDef {
+                tags: vec![],
+                satisfaction: 0.0,
                 id: "chat".into(),
                 label: Some("Compare complaints".into()),
                 advertises: [("social".to_string(), 30.0), ("fun".to_string(), 6.0)]
@@ -4243,6 +4367,8 @@ mod tests {
                 slots: 2,
             },
             InteractionDef {
+                tags: vec![],
+                satisfaction: 0.0,
                 id: "nod_politely".into(),
                 label: None,
                 advertises: [("social".to_string(), 8.0)].into_iter().collect(),
@@ -4275,6 +4401,8 @@ mod tests {
     fn rejects_social_content_that_breaks_each_rule() {
         let chat = |mutate: fn(&mut InteractionDef)| {
             let mut act = InteractionDef {
+                tags: vec![],
+                satisfaction: 0.0,
                 id: "chat".into(),
                 label: None,
                 advertises: [("social".to_string(), 30.0)].into_iter().collect(),
@@ -4335,6 +4463,8 @@ mod tests {
     #[test]
     fn rejects_a_social_interaction_the_duration_floor_would_clip() {
         let talk = |duration_ticks| InteractionDef {
+            tags: vec![],
+            satisfaction: 0.0,
             id: "chat".into(),
             label: None,
             advertises: [("social".to_string(), 30.0)].into_iter().collect(),

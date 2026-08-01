@@ -37,12 +37,20 @@ pub struct CompiledInteraction {
     /// rather than testing it, which is [D9] applied to a string - a menu
     /// entry with no text has no representation once a pack exists.
     ///
-    /// **Last in this struct on purpose**, for the appending reason on
-    /// [`ContentPack::lot`]: the pack's byte encoding grows by appending, so
-    /// an interaction's id, advert, duration and slot blocks keep their
-    /// offsets and the golden vector in `compile.rs` stays reviewable
-    /// against the annotations it already carries.
+    /// It was last in this struct until the M2e pair below arrived; they
+    /// are last now, for the appending reason on [`ContentPack::lot`].
     pub label: String,
+    /// The activity's identity tags - what hobbies, trait dispositions
+    /// and capabilities key on ([E2]/[E3] in the M2e design). Authored
+    /// order, non-empty strings by validation, usually empty: most
+    /// interactions are chores.
+    pub tags: Vec<String>,
+    /// Satisfaction paid on COMPLETION, before the hobby multiplier.
+    /// Finite and non-negative by validation - content can never write
+    /// the second axis downward ([S1]); neglect and conditions own that
+    /// direction. **Last in this struct on purpose**, per the appending
+    /// rule.
+    pub satisfaction: f32,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -262,9 +270,25 @@ pub struct Tuning {
     /// in `[1 - scale, 1 + scale]` and therefore never negative, which
     /// is what stops a hated sim's talk turning from "worthless" into
     /// "actively repellent benefit-turned-cost" behind nobody's
-    /// decision. Zero disables the effect. **Last in this struct on
-    /// purpose**, per the appending rule.
+    /// decision. Zero disables the effect. It ordered itself last until
+    /// the M2e satisfaction trio arrived; they are last now, per the
+    /// appending rule.
     pub relationship_delta_scale: f32,
+    /// What completing a loved activity's satisfaction is multiplied by
+    /// ([E2]). At least 1 and finite: below 1 a hobby would pay LESS for
+    /// being loved, which inverts the mechanic behind a tuning typo.
+    /// Exactly 1 disables hobbies without touching content.
+    pub hobby_multiplier: f32,
+    /// The need level below which a need counts as neglected, in
+    /// `[0, 100]` ([E1] writer 2). Zero disables neglect entirely - no
+    /// level is below zero for long enough to matter.
+    pub neglect_floor: f32,
+    /// Satisfaction lost PER NEGLECTED NEED per tick while it stays
+    /// below the floor. Non-negative and finite; each need below the
+    /// floor bleeds separately, because three crises are worse than
+    /// one and a flat rate would say otherwise. **Last in this struct
+    /// on purpose**, per the appending rule.
+    pub neglect_bleed_per_tick: f32,
 }
 
 /// One personality archetype, compiled - [H3].
@@ -303,6 +327,12 @@ pub struct CompiledHouseholdMember {
     /// Starting need levels, dense by need index, absences filled with
     /// `NEED_MAX`. Validated into `[0, 100]`.
     pub needs: [f32; NEED_COUNT],
+    /// The activity tags this sim loves ([E2]). Every entry names a tag
+    /// some interaction in the pack carries - a hobby with nothing to do
+    /// has no representation once a pack exists ([D9]). **Last in this
+    /// struct on purpose**, per the appending rule on
+    /// [`ContentPack::lot`].
+    pub hobbies: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -380,6 +410,10 @@ mod tests {
             // postcard round-trip below can see a label dropped from the
             // encoding or read off the `id` slot ([L34]).
             label: "Use it, then".to_string(),
+            // Two tags, neither the id nor the label, and a satisfaction
+            // distinct from every advert delta - same [L34] discipline.
+            tags: vec!["tinkering".to_string(), "puttering".to_string()],
+            satisfaction: 2.25,
         }
     }
 
@@ -436,6 +470,9 @@ mod tests {
             relationship_gain_per_talk: 0.15,
             relationship_decay_per_tick: 0.00001,
             relationship_delta_scale: 0.5,
+            hobby_multiplier: 3.5,
+            neglect_floor: 17.0,
+            neglect_bleed_per_tick: 0.0075,
         }
     }
 
@@ -484,6 +521,10 @@ mod tests {
                 x: 4.5,
                 y: 3.25,
                 needs: [62.5, 100.0, 87.5, 93.75, 100.0, 81.25, 96.875],
+                // A tag the object interaction does NOT carry, so a round
+                // trip that wrote hobbies into an interaction's tag slot
+                // (or vice versa) moves the equality below.
+                hobbies: vec!["gossip".to_string()],
             }],
             // A different id, duration and slot count from the object
             // interaction above, so the round trip can see the social
@@ -494,6 +535,8 @@ mod tests {
                 duration_ticks: 40,
                 slots: 2,
                 label: "Compare complaints".to_string(),
+                tags: vec!["gossip".to_string()],
+                satisfaction: 4.5,
             }],
         }
     }

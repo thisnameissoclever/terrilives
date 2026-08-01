@@ -58,6 +58,12 @@ pub fn interaction(
         // the same reason the sort and the duplicate check above are
         // asserted rather than assumed.
         label: id.to_string(),
+        // Untagged and unrewarding, which is what `compile` produces for
+        // an interaction that declares neither ([E2]) - most fixtures
+        // are chores. Satisfaction tests build their own tagged
+        // interactions.
+        tags: Vec::new(),
+        satisfaction: 0.0,
     }
 }
 

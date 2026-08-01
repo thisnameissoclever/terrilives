@@ -221,6 +221,11 @@ sprite = "televisionVintage"
   advertises = { social = 24.0, fun = 30.0 }
   duration_ticks = 55
   slots = 2
+  # An evening in front of it is a mild pleasure for anybody and a real
+  # one for a sim whose hobby it is ([E2]). Base 2 - below reading's 3,
+  # because watching is the passive end of the hobby spectrum.
+  tags = ["television"]
+  satisfaction = 2.0
 
 [[object]]
 id = "sofa"
@@ -328,6 +333,10 @@ sprite = "bookcaseClosedDoors"
   advertises = { fun = 26.0 }
   duration_ticks = 34
   slots = 1
+  # The same "reading" tag as the wingback's settle_in: a hobby is an
+  # ACTIVITY, not an object, so a reader loves both routes to it.
+  tags = ["reading"]
+  satisfaction = 3.0
 
 # ============================================================================
 # M2b: the rest of the house
@@ -390,6 +399,11 @@ sprite = "kitchenStove"
   advertises = { hunger = 62.0, comfort = 8.0 }
   duration_ticks = 95
   slots = 1
+  # Cooking is the canonical hobby-that-is-also-a-chore ([S3]'s worked
+  # example); base 2.5 sits between watching and reading, and M2e PR 2's
+  # cooking capability will hang its may-fail roll off this same tag.
+  tags = ["cooking"]
+  satisfaction = 2.5
 
 [[object]]
 id = "counter"
@@ -703,6 +717,11 @@ footprint = { width = 2, depth = 1 }
   advertises = { fun = 36.0, energy = -7.0 }
   duration_ticks = 58
   slots = 1
+  # Terri's whole archetype is named after this desk. Base 3 like
+  # reading: an absorbing, active hobby - and when PR 3's career lands,
+  # the tag is what will let the job and the hobby be told apart.
+  tags = ["correspondence"]
+  satisfaction = 3.0
 
 [[object]]
 id = "desk_chair"
@@ -750,6 +769,11 @@ sprite = "loungeChairRelax"
   advertises = { comfort = 15.0, fun = 19.0 }
   duration_ticks = 46
   slots = 1
+  # The bookshelf read's twin - one hobby, two chairs' worth of routes,
+  # which is also what keeps habituation from parking a reader on a
+  # single object forever.
+  tags = ["reading"]
+  satisfaction = 3.0
 
 [[object]]
 id = "reference_shelf"

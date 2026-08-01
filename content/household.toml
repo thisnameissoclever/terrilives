@@ -26,6 +26,11 @@ archetype = "the_correspondent"
 x = 9.0
 y = 2.0
 needs = { hunger = 62.0, fun = 78.0 }
+# The desk is the archetype's whole name, and reading is what a
+# correspondent does between letters ([E2]). Two hobbies rather than
+# one, because habituation forces rotation and a one-hobby life stalls
+# the moment its object is sick of her.
+hobbies = ["correspondence", "reading"]
 
 # Doug came with the armchair, or possibly the armchair came with Doug;
 # the paperwork is unclear. Spawns in the bedroom aching for comfort,
@@ -36,6 +41,9 @@ archetype = "the_settled"
 x = 2.0
 y = 8.0
 needs = { comfort = 55.0, energy = 83.0 }
+# Doug's idea of a full life is a cooked meal in front of the
+# television, which is two hobbies if you write them down.
+hobbies = ["television", "cooking"]
 
 # Nadia moved in for the company and is still looking for it. Spawns in
 # the kitchen with nobody to talk to, which at this stage of the game is
@@ -46,3 +54,9 @@ archetype = "the_flitting"
 x = 5.0
 y = 1.0
 needs = { social = 58.0, hygiene = 71.0 }
+# Nadia moved in for the company; now the company pays twice - the
+# social need M2d gave her, and the satisfaction a loved chat earns.
+# One hobby on purpose: her satisfaction depends on OTHER PEOPLE being
+# free, which is the most fragile hobby in the house and exactly the
+# life the flitting archetype describes.
+hobbies = ["socialising"]

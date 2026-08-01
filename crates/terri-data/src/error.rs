@@ -484,6 +484,54 @@ pub enum ContentError {
         floor: u32,
         variance: f32,
     },
+    /// An interaction tag that is blank once trimmed. A tag exists to be
+    /// matched against hobbies and traits, and an empty one can only
+    /// match an empty hobby - a pair of typos agreeing with each other,
+    /// which is exactly the silent-nothing shape [D9] rejects at build
+    /// time. `owner` is the object id, or `social.toml` for the social
+    /// vocabulary, so the message names the file that holds the mistake.
+    EmptyActivityTag {
+        owner: String,
+        interaction: String,
+    },
+    /// An interaction whose completion satisfaction is negative. Content
+    /// can never write the second axis DOWNWARD - [S1] routes every
+    /// downward write through neglect and conditions, where the player
+    /// can see why - so a negative yield here is either a typo or a
+    /// mechanic being smuggled in through the wrong door.
+    NegativeSatisfaction {
+        owner: String,
+        interaction: String,
+        satisfaction: f32,
+    },
+    /// A household sim loves a tag no interaction in the pack carries.
+    /// The hobby could never pay out: the sim would live its whole life
+    /// unable to do the thing it loves, with nothing anywhere saying so
+    /// - a dangling reference in [D9]'s exact sense, reported against
+    /// the sim so the typo is findable in `household.toml`.
+    UnknownHobby {
+        sim: String,
+        hobby: String,
+    },
+    /// `hobby_multiplier` below 1. A hobby would then pay LESS for being
+    /// loved, which silently inverts the mechanic ([E2]); exactly 1 is
+    /// the legal way to disable hobbies without touching content.
+    HobbyMultiplierBelowOne {
+        value: f32,
+    },
+    /// `neglect_floor` outside the need range `[0, 100]`. Above 100
+    /// every need is always neglected and satisfaction bleeds from tick
+    /// one, which reads as a broken accumulator rather than a tuning
+    /// mistake; below 0 is unreachable but explicitly nonsense.
+    NeglectFloorOutOfRange {
+        value: f32,
+    },
+    /// A negative `neglect_bleed_per_tick`, which would make starving a
+    /// sim EARN satisfaction - [S1]'s "needs never earn it" broken by a
+    /// sign error.
+    NegativeNeglectBleed {
+        value: f32,
+    },
 }
 
 impl fmt::Display for ContentError {
@@ -892,6 +940,41 @@ impl fmt::Display for ContentError {
                  with duration_variance {variance} clips anything under \
                  {minimum}: it would run for the floor every time, deliver \
                  more than it advertises, and never vary"
+            ),
+            ContentError::EmptyActivityTag { owner, interaction } => write!(
+                f,
+                "'{owner}' interaction '{interaction}' declares a blank \
+                 activity tag; a tag exists to be matched against hobbies \
+                 and traits, and an empty one can only match a typo"
+            ),
+            ContentError::NegativeSatisfaction {
+                owner,
+                interaction,
+                satisfaction,
+            } => write!(
+                f,
+                "'{owner}' interaction '{interaction}' declares satisfaction \
+                 {satisfaction}; content can never write the second axis \
+                 downward - neglect and conditions own that direction"
+            ),
+            ContentError::UnknownHobby { sim, hobby } => write!(
+                f,
+                "household sim '{sim}' loves '{hobby}', but no interaction \
+                 in the pack carries that tag; the hobby could never pay out"
+            ),
+            ContentError::HobbyMultiplierBelowOne { value } => write!(
+                f,
+                "hobby_multiplier is {value}; below 1 a hobby pays LESS for \
+                 being loved, and exactly 1 is the way to disable hobbies"
+            ),
+            ContentError::NeglectFloorOutOfRange { value } => write!(
+                f,
+                "neglect_floor is {value}, outside the need range 0..=100"
+            ),
+            ContentError::NegativeNeglectBleed { value } => write!(
+                f,
+                "neglect_bleed_per_tick is {value}; a negative bleed would \
+                 make starving a sim EARN satisfaction"
             ),
         }
     }
