@@ -581,10 +581,14 @@ mod tests {
     /// pack cannot hold a non-finite delta - `compile` rejects one.
     ///
     /// Both halves sort and compare neighbours rather than counting a
-    /// set, so a failure can name the two entries that collide. Each
-    /// entry carries `object/interaction` rather than the interaction id
-    /// alone, because `compile` deliberately allows two objects to use the
-    /// same interaction id.
+    /// set, so a failure can name the two entries that collide. Labelling
+    /// takes two steps to be unambiguous, and each answers a case that
+    /// actually occurs: `object/interaction` rather than the interaction
+    /// id alone, because `compile` deliberately allows two objects to use
+    /// the same interaction id; and the need name appended on the delta
+    /// side, because two needs on ONE interaction may collide with each
+    /// other - `{ fun = 18.0, comfort = 18.0 }` - and the object and
+    /// interaction are identical on both sides of that pair.
     #[test]
     fn no_two_shipped_interactions_share_a_duration_or_a_delta() {
         let p = pack();
@@ -595,23 +599,35 @@ mod tests {
             for act in &object.interactions {
                 let where_ = format!("{}/{}", object.id, act.id);
                 durations.push((act.duration_ticks, where_.clone()));
-                for (_, delta) in &act.advertises {
-                    deltas.push((delta.to_bits(), where_.clone()));
+                for (need, delta) in &act.advertises {
+                    // The need is part of the label rather than dropped,
+                    // because two needs on the SAME interaction may
+                    // collide - `{ fun = 18.0, comfort = 18.0 }` is the
+                    // shape - and `object/interaction` alone names both
+                    // sides of that identically. In range by
+                    // construction: `compile` rejects an advert naming a
+                    // need rustc does not know.
+                    let need = terri_core::NeedId::ALL[*need as usize].as_str();
+                    deltas.push((delta.to_bits(), format!("{where_} ({need})")));
                 }
             }
         }
 
-        // Per testing-protocol rule 5, and tied to the pack rather than to
-        // a literal so it cannot drift into passing over a short list. A
-        // one-entry list has no neighbouring pair, so both loops below
-        // would run zero times and the test would be green over content it
-        // never looked at.
+        // Per testing-protocol rule 5. Each list is guarded on its OWN
+        // length, because a `windows(2)` over fewer than two entries runs
+        // zero times and would leave that half green over content it never
+        // looked at.
+        //
+        // Deliberately NOT "every interaction advertises at least one
+        // need". That is a different rule, it is not one the pipeline
+        // holds - `advertises = {}` compiles, since `compile` validates
+        // the entries that are present and does not require any - and
+        // asserting it here would fail this test for content that is
+        // legal while saying nothing about uniqueness. If that rule is
+        // wanted it belongs in its own test, next to
+        // `at_least_a_third_of_the_house_is_furniture_nobody_uses`, which
+        // is the deliberate case of content that advertises nothing.
         let interactions: usize = p.objects.iter().map(|o| o.interactions.len()).sum();
-        assert!(
-            interactions >= 2,
-            "fewer than two shipped interactions, so there is no pair to \
-             compare and this test proves nothing; found {interactions}"
-        );
         assert_eq!(
             durations.len(),
             interactions,
@@ -620,10 +636,15 @@ mod tests {
              cover"
         );
         assert!(
-            deltas.len() >= interactions,
-            "every interaction advertises at least one need, so there must \
-             be no fewer deltas than interactions; {} deltas over \
-             {interactions} interactions",
+            durations.len() >= 2,
+            "fewer than two shipped durations, so there is no pair to \
+             compare and this half proves nothing; found {}",
+            durations.len()
+        );
+        assert!(
+            deltas.len() >= 2,
+            "fewer than two shipped deltas, so there is no pair to compare \
+             and this half proves nothing; found {}",
             deltas.len()
         );
 
