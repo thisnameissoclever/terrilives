@@ -379,36 +379,18 @@ name = "The Combustible Optimist"
 sprite = "kitchenStove"
 roles = ["hob"]
 
-  # **The fridge's rival, and the pair is the point rather than either one.**
-  #
-  # 62 hunger against the fridge's 40, at 95 ticks against its 30. Score is
-  # `delta * deficit^3 / (distance / 0.25 + duration + 1)`, so at equal distance
-  # the fridge scores 40/31 = 1.29 per unit of urgency and this scores
-  # 62/96 = 0.65. The fridge wins outright on that arithmetic - which is
-  # correct, and is what makes this object interesting rather than pointless:
-  # it comes into its own once habituation has worn the fridge down towards
-  # the 0.45 floor, where the fridge falls to 0.58 and the stove, freshly
-  # unused, still holds 0.65.
-  #
-  # So the sim eats standing up until it is sick of eating standing up, and
-  # then it cooks. That rotation is exactly what habituation was added for,
-  # and this is the first pair in the house tuned deliberately to produce it
-  # rather than to produce it by accident.
-  #
-  # 8 comfort as well, because a cooked meal is a small kindness to yourself,
-  # and because a second need on the advert means the stove can also win on a
-  # comfort deficit the fridge cannot touch.
-  [[object.interaction]]
-  id = "cook_meal"
-  label = "Cook a meal"
-  advertises = { hunger = 62.0, comfort = 8.0 }
-  duration_ticks = 95
-  slots = 1
-  # Cooking is the canonical hobby-that-is-also-a-chore ([S3]'s worked
-  # example); base 2.5 sits between watching and reading, and M2e PR 2's
-  # cooking capability will hang its may-fail roll off this same tag.
-  tags = ["cooking"]
-  satisfaction = 2.5
+  # **`cook_meal` RETIRED at M2f PR 2, superseded by the cook_dinner
+  # chain in content/chains.toml.** The standalone interaction was the
+  # fridge's rival - it came into its own once habituation wore the
+  # fridge toward the floor, the first deliberately-tuned rotation in
+  # the house - and the chain inherits that whole role with the walk
+  # made honest: the meal now costs the counter, the hob and the table
+  # it always pretended not to. Two cooking verbs in one kitchen would
+  # be a menu lie, so the stove keeps no interaction of its own; its
+  # `cooking` tag (Doug's hobby, Nadia's capability) lives on the
+  # chain's hob step, which happens HERE - the hob role above is what
+  # the chain resolves to. The pre-chain numbers, for whoever rebalances
+  # against them: hunger 62 + comfort 8 over 95 ticks, satisfaction 2.5.
 
 [[object]]
 id = "counter"
