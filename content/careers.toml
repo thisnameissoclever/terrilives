@@ -1,0 +1,42 @@
+# The jobs sims can hold - [E4] in
+# docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md.
+#
+# A career is a RABBIT HOLE: at shift_start (a tick of the day clock,
+# `tick % day_ticks`) the working sim drops what it holds, walks to the
+# doorway and is gone for shift_ticks. Return pays `pay` into the
+# household Funds, debits `energy_cost` from the worker, and adds
+# `satisfaction` to their life score.
+#
+# satisfaction is NON-NEGATIVE by build rule, and the number being small
+# is the point: the job pays money, not meaning. What a bad job costs a
+# life is the TIME it eats from hobbies and company - which the trace
+# can measure - rather than a subtraction nobody can see the reason for.
+# A job that actively drains a life is authored as a condition ([E4]'s
+# recorded amendment).
+#
+# Times are in ticks of the 1440-tick day (one tick is one sim-minute,
+# so read them as minutes past midnight).
+
+[[career]]
+id = "office_job"
+# Label plain per [L58]; the voice pass happens with Tim in M2g.
+label = "Office clerk"
+# 06:00. Late enough that the player watches the household wake and
+# scatter before anyone leaves; at 1x the first departure is 36 real
+# seconds in.
+shift_start = 360
+# An eight-hour day, 06:00 to 14:00 - a third of the day gone, which is
+# the whole antagonist. 48 real seconds absent at 1x, so a shift is
+# watchable end to end.
+shift_ticks = 480
+# Funds per completed shift. Money has nothing to buy until build mode;
+# the number is the score the job is FOR, and it only has to look like
+# a wage next to a future price list.
+pay = 120
+# Debited at return, on top of the ~24 points the energy decay rate
+# takes across the shift itself: a workday costs about 40 energy all
+# told, which the bed comfortably repays each night.
+energy_cost = 15.0
+# One completed shift is worth a third of one un-loved read (base 3).
+# Deliberately nearly nothing - see the header.
+satisfaction = 1.0

@@ -286,9 +286,13 @@ pub struct Tuning {
     /// Satisfaction lost PER NEGLECTED NEED per tick while it stays
     /// below the floor. Non-negative and finite; each need below the
     /// floor bleeds separately, because three crises are worse than
-    /// one and a flat rate would say otherwise. **Last in this struct
-    /// on purpose**, per the appending rule.
+    /// one and a flat rate would say otherwise. It ordered itself last
+    /// until the day arrived.
     pub neglect_bleed_per_tick: f32,
+    /// Ticks in one simulated day - `tick % day_ticks` is the clock
+    /// careers schedule against ([E4]). At least 1 by validation.
+    /// **Last in this struct on purpose**, per the appending rule.
+    pub day_ticks: u32,
 }
 
 /// One personality archetype, compiled - [H3].
@@ -367,9 +371,13 @@ pub struct CompiledHouseholdMember {
     /// this struct until `traits` arrived.
     pub hobbies: Vec<String>,
     /// Indices into [`ContentPack::traits`] - an index rather than the
-    /// authored id for the standing reason. **Last in this struct on
-    /// purpose**, per the appending rule on [`ContentPack::lot`].
+    /// authored id for the standing reason. It was last until the
+    /// career arrived.
     pub traits: Vec<u32>,
+    /// Index into [`ContentPack::careers`], or `None` for the
+    /// unemployed. **Last in this struct on purpose**, per the
+    /// appending rule on [`ContentPack::lot`].
+    pub career: Option<u32>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -416,9 +424,31 @@ pub struct ContentPack {
     /// struct until `traits` arrived.
     pub social: Vec<CompiledInteraction>,
     /// The trait definitions household members index into - [E3]. May
-    /// be empty in a test pack, like `social`. **Last in this struct on
-    /// purpose**, per the appending rule on `lot`.
+    /// be empty in a test pack, like `social`. It was last until the
+    /// career arrived.
     pub traits: Vec<CompiledTrait>,
+    /// The careers household members index into - [E4], the [D15]
+    /// Tier 2 rabbit hole. May be empty in a test pack. **Last in this
+    /// struct on purpose**, per the appending rule on `lot`.
+    pub careers: Vec<CompiledCareer>,
+}
+
+/// One career, compiled and validated: the shift fits inside the day,
+/// the energy cost fits a need bar, and the satisfaction is
+/// non-negative - a job that actively drains a LIFE is a condition's
+/// business, not a paycheck's, which keeps [S1]'s writer list honest.
+/// (The working design's [E4] floated a negative here; v1 rejects it
+/// and the spec carries the amendment - the antagonist quality of a
+/// job is the TIME it eats, which is [S1]'s own framing.)
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CompiledCareer {
+    pub id: String,
+    pub label: String,
+    pub shift_start: u32,
+    pub shift_ticks: u32,
+    pub pay: u32,
+    pub energy_cost: f32,
+    pub satisfaction: f32,
 }
 
 impl ContentPack {
@@ -514,6 +544,7 @@ mod tests {
             hobby_multiplier: 3.5,
             neglect_floor: 17.0,
             neglect_bleed_per_tick: 0.0075,
+            day_ticks: 23,
         }
     }
 
@@ -567,6 +598,10 @@ mod tests {
                 // trip that wrote hobbies into an interaction's tag slot
                 // (or vice versa) moves the equality below.
                 hobbies: vec!["gossip".to_string()],
+                // Index 1, NOT the careers list's first entry, so a round
+                // trip that collapsed the option to Some(0) - or to None -
+                // moves the equality ([L34]).
+                career: Some(1),
             }],
             // A different id, duration and slot count from the object
             // interaction above, so the round trip can see the social
@@ -614,6 +649,30 @@ mod tests {
                         manage_per_completion: 0.015625,
                         start_severity: 0.6875,
                     },
+                },
+            ],
+            // Two careers so the member's Some(1) above means "the
+            // second", with pairwise-distinct values across both entries
+            // so a round trip that transposed two fields, or stamped one
+            // career on both slots, moves the equality ([L34]).
+            careers: vec![
+                CompiledCareer {
+                    id: "night_watch".to_string(),
+                    label: "Night watch".to_string(),
+                    shift_start: 3,
+                    shift_ticks: 9,
+                    pay: 85,
+                    energy_cost: 21.5,
+                    satisfaction: 1.125,
+                },
+                CompiledCareer {
+                    id: "clerk".to_string(),
+                    label: "Clerk".to_string(),
+                    shift_start: 6,
+                    shift_ticks: 11,
+                    pay: 140,
+                    energy_cost: 17.25,
+                    satisfaction: 0.375,
                 },
             ],
         }

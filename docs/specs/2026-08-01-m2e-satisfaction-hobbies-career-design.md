@@ -89,7 +89,15 @@ voice pass happens WITH Tim in M2g).
 
 [D15] Tier 2 as FEATURES.md specifies. `content/careers.toml`: label,
 `shift_start` (tick of day), `shift_ticks`, `pay`, `energy_cost`,
-`satisfaction` (may be negative - a bad job is a real antagonist).
+`satisfaction`. **Amended at implementation: the satisfaction is
+NON-NEGATIVE.** The first draft floated a negative here ("a bad job is
+a real antagonist"), and building it showed the cost: a third
+subtractor breaks [S1]'s clean writer list (hobbies add, neglect and
+conditions subtract) for a quality the career already has - the
+antagonist is the TIME a shift eats from the resource satisfaction is
+made of, which is [S1]'s own framing. A job that actively drains a
+LIFE is authorable today as a condition; if play shows the direct
+form is needed, this is the recorded place to re-open it.
 The day arrives with it: `day_ticks` in tuning, `tick % day_ticks` as
 the clock - no calendar, no weekday, until something needs one.
 

@@ -12,8 +12,8 @@ use crate::pack::{
     Tuning,
 };
 use crate::schema::{
-    AtlasFile, HouseholdFile, InteractionDef, LotFile, NeedsFile, ObjectsFile, PersonalitiesFile,
-    SocialFile, TraitsFile, TuningFile,
+    AtlasFile, CareersFile, HouseholdFile, InteractionDef, LotFile, NeedsFile, ObjectsFile,
+    PersonalitiesFile, SocialFile, TraitsFile, TuningFile,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use terri_core::{Footprint, NeedId, NEED_COUNT, NEED_MAX, NEED_MIN};
@@ -90,6 +90,7 @@ pub fn compile(
     household: HouseholdFile,
     social: SocialFile,
     traits: TraitsFile,
+    careers: CareersFile,
 ) -> Result<ContentPack, ContentError> {
     let sprite_index = |name: &str| atlas.sprite.iter().position(|s| s.name == name);
     let sim_sprite = sprite_index(SIM_SPRITE).ok_or_else(|| ContentError::MissingSimSprite {
@@ -352,8 +353,18 @@ pub fn compile(
     // resolves them by id (so before it).
     let social = compile_social(social, &tuning)?;
     let traits = compile_traits(traits, &compiled, &social)?;
-    let household =
-        compile_household(household, &personalities, &compiled, &social, &traits, &lot)?;
+    // Careers after tuning for the day-clock cross-check, before the
+    // household which resolves them by id - the traits pattern again.
+    let careers = compile_careers(careers, &tuning)?;
+    let household = compile_household(
+        household,
+        &personalities,
+        &compiled,
+        &social,
+        &traits,
+        &careers,
+        &lot,
+    )?;
 
     Ok(ContentPack {
         decay_per_tick: decay,
@@ -365,7 +376,78 @@ pub fn compile(
         household,
         social,
         traits,
+        careers,
     })
+}
+
+/// Validates `content/careers.toml` - [E4]'s rabbit holes.
+///
+/// The one cross-file rule is the day clock: a shift that starts past
+/// the day never begins, and one as long as the day (or longer) sends
+/// the sim back out the moment it returns - both silent versions of
+/// "the career is the whole life", which is satire the SIMULATION
+/// should not commit by accident.
+fn compile_careers(
+    careers: CareersFile,
+    tuning: &Tuning,
+) -> Result<Vec<crate::pack::CompiledCareer>, ContentError> {
+    let mut seen = BTreeSet::new();
+    let mut compiled = Vec::with_capacity(careers.career.len());
+    for def in &careers.career {
+        if !seen.insert(def.id.clone()) {
+            return Err(ContentError::DuplicateCareer { id: def.id.clone() });
+        }
+        if def.label.trim().is_empty() {
+            return Err(ContentError::EmptyCareerLabel { id: def.id.clone() });
+        }
+        if def.shift_ticks == 0 {
+            return Err(ContentError::ZeroShift { id: def.id.clone() });
+        }
+        if def.shift_start >= tuning.day_ticks {
+            return Err(ContentError::ShiftStartsPastTheDay {
+                id: def.id.clone(),
+                shift_start: def.shift_start,
+                day_ticks: tuning.day_ticks,
+            });
+        }
+        if def.shift_ticks >= tuning.day_ticks {
+            return Err(ContentError::ShiftLongerThanTheDay {
+                id: def.id.clone(),
+                shift_ticks: def.shift_ticks,
+                day_ticks: tuning.day_ticks,
+            });
+        }
+        check_finite(
+            def.energy_cost,
+            &format!("energy_cost on career '{}'", def.id),
+        )?;
+        if !(0.0..=terri_core::NEED_MAX).contains(&def.energy_cost) {
+            return Err(ContentError::CareerEnergyCostOutOfRange {
+                id: def.id.clone(),
+                value: def.energy_cost,
+            });
+        }
+        check_finite(
+            def.satisfaction,
+            &format!("satisfaction on career '{}'", def.id),
+        )?;
+        if def.satisfaction < 0.0 {
+            return Err(ContentError::NegativeCareerSatisfaction {
+                id: def.id.clone(),
+                value: def.satisfaction,
+            });
+        }
+        compiled.push(crate::pack::CompiledCareer {
+            id: def.id.clone(),
+            label: def.label.clone(),
+            shift_start: def.shift_start,
+            shift_ticks: def.shift_ticks,
+            pay: def.pay,
+            energy_cost: def.energy_cost,
+            satisfaction: def.satisfaction,
+        });
+    }
+    Ok(compiled)
 }
 
 /// Validates `content/traits.toml` - [E3]'s three mechanisms, one file.
@@ -784,12 +866,14 @@ fn compile_personalities(
 /// error anywhere else, because no OBJECT is unreachable - the sim itself
 /// is what cannot get out, and it would starve there with no error from
 /// anything.
+#[allow(clippy::too_many_arguments)]
 fn compile_household(
     household: HouseholdFile,
     personalities: &[CompiledPersonality],
     objects: &[CompiledObject],
     social: &[CompiledInteraction],
     traits: &[crate::pack::CompiledTrait],
+    careers: &[crate::pack::CompiledCareer],
     lot: &CompiledLot,
 ) -> Result<Vec<CompiledHouseholdMember>, ContentError> {
     // Every tag any interaction in the pack carries - what a hobby must
@@ -930,6 +1014,21 @@ fn compile_household(
             worn.push(index as u32);
         }
 
+        // The career resolves by id like a trait, or stays None for
+        // the unemployed.
+        let career = match &sim.career {
+            None => None,
+            Some(id) => match careers.iter().position(|c| &c.id == id) {
+                Some(index) => Some(index as u32),
+                None => {
+                    return Err(ContentError::UnknownSimCareer {
+                        sim: sim.name.clone(),
+                        career: id.clone(),
+                    })
+                }
+            },
+        };
+
         compiled.push(CompiledHouseholdMember {
             name: sim.name.clone(),
             personality: personality as u32,
@@ -938,6 +1037,7 @@ fn compile_household(
             needs,
             hobbies: sim.hobbies.clone(),
             traits: worn,
+            career,
         });
     }
 
@@ -1125,6 +1225,11 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
             value: tuning.neglect_bleed_per_tick,
         });
     }
+    // A zero-tick day makes `tick % day_ticks` a division by zero the
+    // first time a career asks the hour.
+    if tuning.day_ticks == 0 {
+        return Err(ContentError::ZeroDayTicks);
+    }
 
     Ok(Tuning {
         habituation_per_use: tuning.habituation_per_use,
@@ -1153,6 +1258,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
         hobby_multiplier: tuning.hobby_multiplier,
         neglect_floor: tuning.neglect_floor,
         neglect_bleed_per_tick: tuning.neglect_bleed_per_tick,
+        day_ticks: tuning.day_ticks,
     })
 }
 
@@ -1580,6 +1686,7 @@ mod tests {
                 interaction: vec![],
             },
             TraitsFile { trait_def: vec![] },
+            CareersFile { career: vec![] },
         )
     }
 
@@ -1588,8 +1695,8 @@ mod tests {
     // name are imported here.
     use super::*;
     use crate::schema::{
-        ArchetypeDef, AtlasSpriteDef, DispositionDef, HouseholdSimDef, InteractionDef, NeedDef,
-        ObjectDef, PlacementDef, TraitDef, WallDef,
+        ArchetypeDef, AtlasSpriteDef, CareerDef, DispositionDef, HouseholdSimDef, InteractionDef,
+        NeedDef, ObjectDef, PlacementDef, TraitDef, WallDef,
     };
 
     /// The atlas every test compiles against.
@@ -1676,6 +1783,15 @@ mod tests {
     /// author's wording, and not `grab_snack`, is what reaches the pack.
     #[rustfmt::skip]
     const GOLDEN_PACK_BYTES: &[u8] = &[
+        // **Moved twice at M2e PR 3, both appends, read off the failing
+        // assertion per the standing rule.** `Tuning` gained a trailing
+        // `day_ticks` - the lone `19` after the `0, 0, 0, 60` that ends
+        // the neglect trio - and `ContentPack` a trailing `careers`
+        // list, one more empty-vec 0 at the very end (this fixture
+        // holds no careers; the round trip that exercises non-empty
+        // ones lives in pack.rs). Everything before the 19 kept its
+        // offset, which is what the append discipline buys.
+        //
         // **Regenerated wholesale at M2e PR 2**: `ContentPack` gained a
         // trailing `traits` list (empty in this fixture - the lone new
         // 0 at the very end), and `CompiledHouseholdMember` a trailing
@@ -1700,7 +1816,7 @@ mod tests {
         64, 63, 3, 172, 2, 7, 11, 13, 0, 0, 192, 62,
         0, 0, 64, 62, 0, 0, 64, 61, 0, 0, 80, 63,
         0, 0, 224, 63, 0, 0, 184, 65, 0, 0, 0, 60,
-        0, 0, 0, 0,
+        19, 0, 0, 0, 0, 0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -1838,6 +1954,7 @@ mod tests {
             relationship_gain_per_talk: 0.1875,
             relationship_decay_per_tick: 0.046875,
             relationship_delta_scale: 0.8125,
+            day_ticks: 19,
             decay_per_tick: NeedId::ALL
                 .iter()
                 .map(|id| (id.as_str().to_string(), 0.1))
@@ -3597,6 +3714,7 @@ mod tests {
         HouseholdSimDef {
             traits: vec![],
             hobbies: vec![],
+            career: None,
             name: name.to_string(),
             archetype: archetype.to_string(),
             x,
@@ -3625,6 +3743,17 @@ mod tests {
         sims: Vec<HouseholdSimDef>,
         trait_def: Vec<TraitDef>,
     ) -> Result<ContentPack, ContentError> {
+        compile_people_full(archetypes, sims, trait_def, vec![])
+    }
+
+    /// The same again with a careers file - the career tests' entry
+    /// point, and the widest of the people helpers.
+    fn compile_people_full(
+        archetypes: Vec<ArchetypeDef>,
+        sims: Vec<HouseholdSimDef>,
+        trait_def: Vec<TraitDef>,
+        career: Vec<CareerDef>,
+    ) -> Result<ContentPack, ContentError> {
         // The snack gains one tag so traits have something real to key
         // on; untagged fixtures elsewhere are untouched because this
         // helper is the traits tests' own.
@@ -3644,7 +3773,222 @@ mod tests {
                 interaction: vec![],
             },
             TraitsFile { trait_def },
+            CareersFile { career },
         )
+    }
+
+    /// A career that passes every rule against `full_tuning`'s 19-tick
+    /// day, with pairwise distinct values so a field written into the
+    /// wrong slot moves an assertion - [L34] again.
+    fn a_career(id: &str) -> CareerDef {
+        CareerDef {
+            id: id.to_string(),
+            label: format!("The {id} job"),
+            shift_start: 5,
+            shift_ticks: 7,
+            pay: 130,
+            energy_cost: 11.5,
+            satisfaction: 2.25,
+        }
+    }
+
+    /// The accepting half of the career rules: every compiled field read
+    /// back, the holder resolved to the SECOND entry's index so a
+    /// resolver collapsing to 0 (or to None) is visible, and a jobless
+    /// member staying None so the option is real - [L29] and [L34] in
+    /// the careers' costume.
+    #[test]
+    fn compiles_careers_and_resolves_the_household_holder() {
+        let mut worker = member("Terri", "the_settled", 0.5, 2.0);
+        worker.career = Some("second_job".to_string());
+        let idle = member("Doug", "the_settled", 0.5, 0.0);
+
+        let mut second = a_career("second_job");
+        second.shift_start = 2;
+        second.shift_ticks = 4;
+        second.pay = 55;
+        second.energy_cost = 8.75;
+        second.satisfaction = 0.5;
+
+        let pack = compile_people_full(
+            vec![archetype("the_settled")],
+            vec![worker, idle],
+            vec![],
+            vec![a_career("first_job"), second],
+        )
+        .expect("two valid careers and one holder");
+
+        assert_eq!(pack.careers.len(), 2);
+        let first = &pack.careers[0];
+        assert_eq!(first.id, "first_job");
+        assert_eq!(first.label, "The first_job job");
+        assert_eq!(first.shift_start, 5);
+        assert_eq!(first.shift_ticks, 7);
+        assert_eq!(first.pay, 130);
+        assert_eq!(first.energy_cost, 11.5);
+        assert_eq!(first.satisfaction, 2.25);
+
+        assert_eq!(
+            pack.household[0].career,
+            Some(1),
+            "Terri holds the SECOND career, not the list's first"
+        );
+        assert_eq!(pack.household[1].career, None, "Doug holds no job");
+    }
+
+    #[test]
+    fn rejects_a_duplicate_career_id() {
+        assert_eq!(
+            compile_people_full(
+                vec![],
+                vec![],
+                vec![],
+                vec![a_career("office_job"), a_career("office_job")]
+            )
+            .unwrap_err(),
+            ContentError::DuplicateCareer {
+                id: "office_job".into()
+            }
+        );
+    }
+
+    #[test]
+    fn rejects_a_blank_career_label() {
+        let mut blank = a_career("office_job");
+        blank.label = "   ".to_string();
+        assert_eq!(
+            compile_people_full(vec![], vec![], vec![], vec![blank]).unwrap_err(),
+            ContentError::EmptyCareerLabel {
+                id: "office_job".into()
+            }
+        );
+    }
+
+    #[test]
+    fn rejects_a_zero_tick_shift() {
+        let mut lazy = a_career("office_job");
+        lazy.shift_ticks = 0;
+        assert_eq!(
+            compile_people_full(vec![], vec![], vec![], vec![lazy]).unwrap_err(),
+            ContentError::ZeroShift {
+                id: "office_job".into()
+            }
+        );
+    }
+
+    /// Both day-clock rules against `full_tuning`'s 19-tick day, each
+    /// pinned from BOTH sides of its boundary: a start AT day_ticks is
+    /// rejected (the clock counts 0..19, so 19 never comes) and 18
+    /// accepted, separating `>=` from `>`; a shift OF day_ticks is
+    /// rejected (return lands exactly on the next departure and the sim
+    /// never lives) and 18 accepted, same separation.
+    #[test]
+    fn rejects_a_shift_the_day_cannot_hold() {
+        let with_times = |start: u32, ticks: u32| {
+            let mut career = a_career("office_job");
+            career.shift_start = start;
+            career.shift_ticks = ticks;
+            compile_people_full(vec![], vec![], vec![], vec![career])
+        };
+
+        assert_eq!(
+            with_times(19, 7).unwrap_err(),
+            ContentError::ShiftStartsPastTheDay {
+                id: "office_job".into(),
+                shift_start: 19,
+                day_ticks: 19
+            }
+        );
+        assert!(with_times(18, 7).is_ok(), "18 of 19 is a legal start");
+
+        assert_eq!(
+            with_times(5, 19).unwrap_err(),
+            ContentError::ShiftLongerThanTheDay {
+                id: "office_job".into(),
+                shift_ticks: 19,
+                day_ticks: 19
+            }
+        );
+        assert!(with_times(5, 18).is_ok(), "18 of 19 is a legal shift");
+    }
+
+    /// The two numeric field rules, each from both sides. Energy is on
+    /// the need scale: -0.5 and 100.5 rejected, 0.0 and 100.0 accepted,
+    /// separating the closed range from an open one; NaN is the shared
+    /// finiteness rule with the field named. Satisfaction: -0.25
+    /// rejected and 0.0 accepted, because a zero-meaning job is exactly
+    /// the satire [E4] ships.
+    #[test]
+    fn rejects_career_numbers_off_their_scales() {
+        let with_energy = |value: f32| {
+            let mut career = a_career("office_job");
+            career.energy_cost = value;
+            compile_people_full(vec![], vec![], vec![], vec![career])
+        };
+        for bad in [-0.5, 100.5] {
+            assert_eq!(
+                with_energy(bad).unwrap_err(),
+                ContentError::CareerEnergyCostOutOfRange {
+                    id: "office_job".into(),
+                    value: bad
+                }
+            );
+        }
+        for legal in [0.0, 100.0] {
+            assert!(with_energy(legal).is_ok(), "{legal} is on the scale");
+        }
+        assert!(matches!(
+            with_energy(f32::NAN).unwrap_err(),
+            ContentError::NonFiniteValue { .. }
+        ));
+
+        let with_satisfaction = |value: f32| {
+            let mut career = a_career("office_job");
+            career.satisfaction = value;
+            compile_people_full(vec![], vec![], vec![], vec![career])
+        };
+        assert_eq!(
+            with_satisfaction(-0.25).unwrap_err(),
+            ContentError::NegativeCareerSatisfaction {
+                id: "office_job".into(),
+                value: -0.25
+            }
+        );
+        assert!(
+            with_satisfaction(0.0).is_ok(),
+            "a job that means nothing is legal, and is the point"
+        );
+    }
+
+    #[test]
+    fn rejects_a_sim_holding_an_undeclared_career() {
+        let mut worker = member("Terri", "the_settled", 0.5, 2.0);
+        worker.career = Some("astronaut".to_string());
+        assert_eq!(
+            compile_people_full(
+                vec![archetype("the_settled")],
+                vec![worker],
+                vec![],
+                vec![a_career("office_job")]
+            )
+            .unwrap_err(),
+            ContentError::UnknownSimCareer {
+                sim: "Terri".into(),
+                career: "astronaut".into()
+            }
+        );
+    }
+
+    /// The day itself: zero rejected, one accepted - the smallest legal
+    /// day, absurd but arithmetically sound, separating `== 0` from a
+    /// stricter floor nobody declared.
+    #[test]
+    fn rejects_a_zero_tick_day() {
+        assert_eq!(
+            compile_tuned(tuning_where(|t| t.day_ticks = 0)).unwrap_err(),
+            ContentError::ZeroDayTicks
+        );
+        assert!(compile_tuned(tuning_where(|t| t.day_ticks = 1)).is_ok());
     }
 
     fn a_trait(id: &str) -> TraitDef {
@@ -3848,6 +4192,7 @@ mod tests {
                 interaction: vec![],
             },
             TraitsFile { trait_def: vec![] },
+            CareersFile { career: vec![] },
         )
         .expect("two dispositions on two objects are valid");
 
@@ -4112,6 +4457,7 @@ mod tests {
                 interaction: vec![],
             },
             TraitsFile { trait_def: vec![] },
+            CareersFile { career: vec![] },
         )
         .unwrap_err();
         assert_eq!(
@@ -4858,6 +5204,7 @@ mod tests {
                     interaction: vec![],
                 },
                 TraitsFile { trait_def: vec![] },
+                CareersFile { career: vec![] },
             )
         };
 
@@ -4912,6 +5259,7 @@ mod tests {
             HouseholdFile { sim: vec![] },
             SocialFile { interaction },
             TraitsFile { trait_def: vec![] },
+            CareersFile { career: vec![] },
         )
     }
 }

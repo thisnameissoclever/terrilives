@@ -1524,6 +1524,7 @@ mod household_tests {
                 // stamped on everybody" ([L34]).
                 hobbies: vec!["whittling".to_string()],
                 traits: vec![],
+                career: None,
             },
             terri_data::CompiledHouseholdMember {
                 name: "Doug".into(),
@@ -1533,6 +1534,7 @@ mod household_tests {
                 needs: [100.0, 83.0, 100.0, 100.0, 100.0, 100.0, 55.0],
                 hobbies: vec![],
                 traits: vec![],
+                career: None,
             },
         ];
         (personalities, household)
