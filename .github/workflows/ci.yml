@@ -4,6 +4,13 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Manual dispatch exists because pull_request event delivery has
+  # failed before: PR #13 was opened, closed, reopened and synchronized
+  # without one run appearing, while Copilot's internally-dispatched
+  # review ran fine - an upstream delivery fault nothing in this file
+  # can prevent. This is the lever that makes such an outage cost a
+  # command instead of an evening.
+  workflow_dispatch:
 
 jobs:
   rust:
@@ -113,7 +120,7 @@ jobs:
   # tested twice.
   mutants:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
