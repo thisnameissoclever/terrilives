@@ -477,6 +477,23 @@ export class SimBridge {
     return status === '' ? null : status;
   }
 
+  /**
+   * Why the sim is not acting - blocked, restless or both - or null
+   * when nothing holds it back. The boundary's empty string is in-band
+   * the way simName's is.
+   */
+  stallReasonOf(entityIndex: number): string | null {
+    if (!isU32(entityIndex)) return null;
+    const reason = this.handle.stall_reason_of(entityIndex);
+    return reason === '' ? null : reason;
+  }
+
+  /** How many player orders the sim still has waiting; 0 for none. */
+  queuedOrdersOf(entityIndex: number): number {
+    if (!isU32(entityIndex)) return 0;
+    return this.handle.queued_orders_of(entityIndex);
+  }
+
   /** The household's money - E4. One number for the lot, not per sim. */
   funds(): number {
     return this.handle.funds();

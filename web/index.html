@@ -2,6 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <!-- Without this a phone lays the page out at a ~980px virtual
+         width and scales it down, so the lot renders as a thumbnail and
+         every CSS pixel is a fraction of a real one - found the moment
+         the canvas learned to fill the window. `viewport-fit=cover`
+         lets the canvas run under a notch rather than letterboxing.
+         Page zoom stays ENABLED (no user-scalable=no): the canvas
+         claims its own gestures via touch-action, and disabling page
+         zoom is an accessibility cost for no gain. -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
     <title>terrilives</title>
     <style>
       /* Flat shapes and a coherent palette; [D-7] puts art out of scope
@@ -21,12 +33,26 @@
         color: var(--hud-text);
         font: 13px/1.4 system-ui, sans-serif;
       }
+      /* The canvas fills the window and the drawing buffer follows it:
+         `applyCamera` in main.ts sets width/height from this CSS size
+         times devicePixelRatio on every resize, so the buffer is always
+         one-to-one with real pixels rather than a fixed 1280x720
+         stretched to fit. `touch-action: none` is load-bearing for the
+         pinch zoom - without it the browser claims two-finger gestures
+         for page pan/zoom before the pointer events ever fire. */
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+      }
       #stage {
         display: block;
+        width: 100vw;
+        height: 100vh;
+        touch-action: none;
       }
-      /* Overlaid rather than beside the canvas, which is fixed at
-         1280x720: a side-by-side layout would push the canvas off a
-         1280-wide window. */
+      /* Overlaid rather than beside the canvas, which fills the window:
+         a side-by-side layout would fight it for the same space. */
       #hud {
         position: absolute;
         top: 12px;
@@ -149,22 +175,31 @@
       }
       /* The developer overlay: monospace, top-right, scrolls rather
          than grows past the window, and sits under the flyout so a
-         debug session does not eat right-clicks. */
+         debug session does not eat right-clicks. COLLAPSIBLE, from the
+         owner's small-screen report: the whole body lives in a
+         <details>, so on a laptop it folds to one pill and the game
+         stays visible. Never wider than the viewport either way. */
       #debug-panel {
         position: fixed;
         top: 8px;
         right: 8px;
-        max-width: 44em;
+        max-width: min(44em, calc(100vw - 16px));
         max-height: calc(100vh - 16px);
         overflow-y: auto;
         background: rgba(20, 22, 26, 0.92);
         color: #e8e6e3;
         border-radius: 6px;
-        padding: 10px 14px;
+        padding: 6px 10px;
         z-index: 9;
       }
+      #debug-panel summary {
+        cursor: pointer;
+        font: 12px/1.6 Consolas, monospace;
+        color: #9aa3ad;
+        user-select: none;
+      }
       #debug-panel pre {
-        margin: 0;
+        margin: 6px 0 0;
         font: 11px/1.5 Consolas, monospace;
         white-space: pre-wrap;
       }
@@ -194,7 +229,12 @@
          only time main.ts wires the backtick toggle. Hidden by default
          either way. -->
     <section id="debug-panel" aria-label="Developer statistics" hidden>
-      <pre id="debug-report"></pre>
+      <!-- Collapsed by default on narrow screens; main.ts opens it on
+           wide ones. The summary is the whole collapsed footprint. -->
+      <details id="debug-details">
+        <summary>debug stats</summary>
+        <pre id="debug-report"></pre>
+      </details>
     </section>
     <!-- The right-click flyout. Outside #hud on purpose: the HUD is a
          fixed column in the top-left corner and this is positioned at the

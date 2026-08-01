@@ -3043,3 +3043,77 @@ shipped-day career test is the pattern.
 **How to verify.** [A-14]'s watched-session paragraph records the
 episode; web/tests/bridge.test.ts runs the shipped day through the
 release artifact.
+
+## [L60] Names shipped that only their author understood, and nothing defined them
+
+**What happened.** The owner played two sessions and both times the
+report was about WORDS rather than behaviour. The debug overlay called
+a sim's traits `wears:` ("wtf is wears? that's a terrible name for it
+unless it's referring to a t-shirt"), and printed personality
+multipliers as two rows of seven `1.00`s labelled `drain:` and
+`satisfaction:` - which he read, correctly, as broken statistics,
+because a column of neutral values labelled like a reading looks like a
+reading that failed. The replacement line naming why a sim was stuck
+then shipped as `standing:`, which he caught in the same breath:
+"can't you see how that would be confusing?" It was also carrying a
+pending-order count, which is not a stall reason at all.
+
+Then the real question: was any of this written down anywhere? It was
+not. The project had 59 lessons and 13 design specs recording every
+decision in obsessive detail - and no glossary. To learn what a drain
+multiplier was, a reader had to find [S4] inside a spec named after a
+July date. The documentation was organised for its author, keyed by
+IDs, which is the same failure as the labels, one level up.
+
+**Root cause.** Naming was treated as a side effect of implementing,
+so labels came out as whatever the implementation called the thing
+internally, and the definition lived in the head of whoever wrote it.
+Nothing in the process ever asked "would this word mean anything to
+somebody who did not write it?"
+
+**Prevention rule.** `docs/glossary.md` now exists and carries the
+naming rules as its last section: a label names the thing rather than
+the implementation's mood; one label means one thing (if it needs "and
+also", it is two lines); a number's label says what the number DOES
+(`drains: fun x1.30`); show deviations, never rows of defaults; and
+**every player-visible or developer-visible word gets a glossary
+entry** - if it is not in there, either name it better or document it,
+those being the only two options. Functional text stays plain; the
+comedy lives in object names and the authored voice pass ([L58]).
+
+**How to verify.** `docs/glossary.md` defines every term the overlay
+prints; the overlay's own test asserts the current labels
+(`traits:`, `drains:`, `refills:`, `stalled:`, `orders waiting:`); and
+README.md points at the glossary first, so the next reader lands on
+definitions rather than on decisions.
+
+## [L61] A sweep is per code change, not per pull request
+
+**What happened.** Three CI failures in one afternoon, all the same
+shape: a change made AFTER the branch's local mutation sweep went out
+untested, and the sharded sweep in CI found the survivors instead of
+me. First the M2f overlay accessors, then `stall_reason_of` and
+`queued_orders_of` (added mid-conversation for the owner), then the
+busy check that fixed the stale stall reason - each one a small,
+obviously-correct edit made in response to live feedback, each one
+pushed within minutes of being written.
+
+**Root cause.** The sweep was being treated as a PR-shaped ritual -
+"sweep before opening the PR" - rather than as a gate on code. Every
+one of these changes landed after that moment, and none of them felt
+big enough to re-run a three-minute sweep for. The pattern is
+strongest exactly when feedback is arriving quickly, which is also
+when the pressure to push fast is highest.
+
+**Prevention rule.** Re-run the targeted sweep before EVERY push that
+changes Rust, not once per branch: `git diff origin/main HEAD --
+crates/ > patch` then `cargo mutants ... --in-diff patch`. It costs
+two to three minutes against a CI round trip of fifteen, and the
+sweep is the only gate that sees the class of bug these were -
+accessors nothing reads back, and boolean chains whose terms are only
+partly exercised.
+
+**How to verify.** The last push of this session ran the sweep first
+(21 mutants, 21 caught) and CI agreed. A red mutants shard on a
+branch whose last local sweep was clean means the sweep was run
+before the change rather than after it.

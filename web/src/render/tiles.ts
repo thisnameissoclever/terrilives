@@ -3,8 +3,10 @@
  *
  * These are the only things on screen that are not entities. They are
  * also the only things that cannot move: a lot's dimensions and its wall
- * tiles are fixed for the session, so this runs **once at load** and its
- * output is uploaded to the front of the instance buffer and left there.
+ * tiles are fixed for the session, so this runs **once per camera
+ * change** - at load, and again when the window resizes or the player
+ * zooms, gated by `main.ts`'s dirty flag - and its output is uploaded to
+ * the front of the instance buffer and left there between changes.
  *
  * That placement is deliberate rather than incidental. `buildInstances`
  * in `frame.ts` runs every frame under [D11]'s no-allocation rule, and
@@ -25,7 +27,13 @@ import {
   writeInstance,
   type InstanceArray,
 } from './instances.js';
-import { FLOOR_DEPTH, LAYER_PROP, layeredDepth, screenX, screenY } from './iso.js';
+import {
+  FLOOR_DEPTH,
+  LAYER_PROP,
+  layeredDepth,
+  screenX,
+  screenY,
+} from './iso.js';
 
 /** What `buildStaticInstances` needs to know about the lot. */
 export interface Lot {
@@ -44,6 +52,16 @@ export interface StaticGeometry {
   readonly instances: InstanceArray;
   readonly count: number;
 }
+
+/**
+ * The one static-instance array, reused across rebuilds - the same
+ * pattern and the same reason as `frame.ts`'s scratch. Rebuilds were
+ * once-per-session when this file was written; pan made them
+ * once-per-FRAME during a drag, and a per-frame 11 KB allocation is
+ * [V11]'s mistake at a smaller size. The returned array is only valid
+ * until the next call, which `setStaticGeometry` uploads immediately.
+ */
+let scratch: InstanceArray = new Float32Array(0);
 
 /**
  * Which of the two wall sprites a tile draws.
@@ -115,6 +133,7 @@ export function buildStaticInstances(
   originX: number,
   originY: number,
   gridSize: number,
+  scale = 1,
 ): StaticGeometry {
   const floorSprite = spriteIndex('floor');
   const wallSprites = {
@@ -186,7 +205,10 @@ export function buildStaticInstances(
   // report. The ring is (width+1) x (height+1) minus the interior.
   const floorCount = (lot.width + 1) * (lot.height + 1);
   const count = floorCount + walls.size + boundary.length + doorways.length;
-  const instances: InstanceArray = new Float32Array(count * FLOATS_PER_INSTANCE);
+  if (scratch.length < count * FLOATS_PER_INSTANCE) {
+    scratch = new Float32Array(count * FLOATS_PER_INSTANCE);
+  }
+  const instances = scratch;
   let slot = 0;
 
   /** A prop - a wall - which is depth-sorted per tile like any entity. */
@@ -194,8 +216,8 @@ export function buildStaticInstances(
     writeInstance(
       instances,
       slot++,
-      screenX(x, y, originX),
-      screenY(x, y, originY),
+      screenX(x, y, originX, scale),
+      screenY(x, y, originY, scale),
       layeredDepth(x, y, gridSize, layer),
       sprite,
     );
@@ -212,8 +234,8 @@ export function buildStaticInstances(
     writeInstance(
       instances,
       slot++,
-      screenX(x, y, originX),
-      screenY(x, y, originY),
+      screenX(x, y, originX, scale),
+      screenY(x, y, originY, scale),
       FLOOR_DEPTH,
       sprite,
     );

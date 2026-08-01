@@ -63,14 +63,21 @@ function atlas(name: string) {
  * restated from `sprites.wgsl`'s bottom-centre anchoring rather than imported,
  * so a change in the shader does not silently follow into the expectations.
  */
-function drawnBox(tile: readonly [number, number], spriteName: string, originX = 0, originY = 0) {
+function drawnBox(
+  tile: readonly [number, number],
+  spriteName: string,
+  originX = 0,
+  originY = 0,
+  scale = 1,
+) {
   const s = atlas(spriteName);
-  const anchorX = screenX(tile[0], tile[1], originX);
-  const anchorY = screenY(tile[0], tile[1], originY) + TILE_HALF_HEIGHT;
+  const anchorX = screenX(tile[0], tile[1], originX, scale);
+  const anchorY =
+    screenY(tile[0], tile[1], originY, scale) + TILE_HALF_HEIGHT * scale;
   return {
-    left: anchorX - s.w / 2,
-    right: anchorX + s.w / 2,
-    top: anchorY - s.h,
+    left: anchorX - (s.w / 2) * scale,
+    right: anchorX + (s.w / 2) * scale,
+    top: anchorY - s.h * scale,
     bottom: anchorY,
     centreX: anchorX,
   };
@@ -717,6 +724,34 @@ describe('pickSprite', () => {
     expect(pickSprite(rows, box.right + 1, mid, 0, 0)).toBeNull();
     expect(pickSprite(rows, box.centreX, box.top - 1, 0, 0)).toBeNull();
     expect(pickSprite(rows, box.centreX, box.bottom + 1, 0, 0)).toBeNull();
+  });
+
+  /**
+   * **The hit box is the ZOOMED quad.** Zoomed out to 0.5x the sprite
+   * is drawn half-size, and a click where its 1x head used to be is now
+   * bare floor - a hit box that ignored the camera would keep selecting
+   * from empty pixels there, and at 2.5x would refuse most of the drawn
+   * body. 0.5x rather than 2x for the positive case, because a SHRUNK
+   * box is the direction an unscaled hit box gets wrong visibly: the
+   * scaled-box top is inside the unscaled box, so only the shrunk
+   * fixture separates the two implementations in both assertions.
+   */
+  it('scales the hit box with the camera', () => {
+    const tile = [8, 6] as const;
+    const rows = source([[7, KIND_AGENT, tile[0], tile[1]]]);
+    const zoomedOut = drawnBox(tile, 'sim', 0, 0, 0.5);
+    const unzoomed = drawnBox(tile, 'sim');
+
+    // Every point of the zoomed body still selects.
+    for (let i = 0; i <= 4; i++) {
+      const y = zoomedOut.top + (i / 4) * (zoomedOut.bottom - zoomedOut.top);
+      expect(
+        pickSprite(rows, zoomedOut.centreX, y, 0, 0, 0.5)?.entity,
+        `${Math.round((100 * i) / 4)}% down the zoomed sprite must select`,
+      ).toBe(7);
+    }
+    // The 1x head height is EMPTY pixels at 0.5x: above the shrunk box.
+    expect(pickSprite(rows, unzoomed.centreX, unzoomed.top + 1, 0, 0, 0.5)).toBeNull();
   });
 
   /**

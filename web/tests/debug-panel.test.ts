@@ -46,7 +46,10 @@ function source(overrides: Partial<DebugSource> = {}): DebugSource {
     traitKinds: () => ['disposition', 'condition'],
     careerOf: (entity) => (entity === 7 ? 'Office clerk' : null),
     chainStatusOf: (entity) =>
-      entity === 7 ? 'Cook dinner: Cook (carrying ingredients)' : null,
+      entity === 7 ? 'Cook dinner - step: Cook (carrying ingredients)' : null,
+    stallReasonOf: (entity) =>
+      entity === 7 ? 'waiting on something in use' : null,
+    queuedOrdersOf: (entity) => (entity === 7 ? 2 : 0),
     ...overrides,
   };
 }
@@ -54,7 +57,7 @@ function source(overrides: Partial<DebugSource> = {}): DebugSource {
 describe('formatDebugReport', () => {
   it('reports each agent with identity, activity, needs and both personality halves', () => {
     const report = formatDebugReport(source());
-    expect(report).toContain('Terri  (entity 7, SimId 0)  talking');
+    expect(report).toContain('Terri  (entity 7, SimId 0)  doing: talking');
     expect(report).toContain('entity 9, SimId none');
     // Objects never appear - activity is a fact about agents.
     expect(report).not.toContain('entity 11');
@@ -65,33 +68,43 @@ describe('formatDebugReport', () => {
     // the bare word for its refill multipliers.
     expect(report).toContain('life satisfaction: 42.3');
     expect(report.split('entity 9')[1]).not.toContain('life satisfaction:');
-    // Drain first, satisfaction second: the asymmetric fixture halves
-    // (1.5 heads drain, 0.75 tails satisfaction) tell a swap apart.
-    expect(report).toContain('drain: hunger 1.50');
-    expect(report).toContain('satisfaction: hunger 0.50');
-    expect(report).toContain('comfort 0.75');
+    // Multipliers as DEVIATIONS only: the neutral 1.00 columns are
+    // noise the owner read as broken stats, so they are gone, and the
+    // x prefix says what the number does. The asymmetric fixture
+    // halves (1.5 heads drain, 0.75 tails refill) still tell a swap
+    // apart.
+    expect(report).toContain('need decay: hunger x1.50');
+    expect(report).toContain('need refill: hunger x0.50');
+    expect(report).toContain('comfort x0.75');
+    expect(report).not.toContain('x1.00');
   });
 
   it('prints the household funds once, at the top, before anybody', () => {
     const report = formatDebugReport(source());
-    expect(report.startsWith('funds: 375')).toBe(true);
+    expect(report.startsWith('household funds: 375')).toBe(true);
     // Once: the money is the lot's, not any sim's.
     expect(report.match(/funds:/g)).toHaveLength(1);
   });
 
   it('prints the job and the outfit for the sim that has them, and neither for the bare agent', () => {
     const report = formatDebugReport(source());
-    expect(report).toContain('works: Office clerk');
+    expect(report).toContain('career: Office clerk');
     // The mid-errand line rides between the job and the needs.
-    expect(report).toContain('errand: Cook dinner: Cook (carrying ingredients)');
-    expect(report.split('entity 9')[1]).not.toContain('errand:');
+    expect(report).toContain('chain: Cook dinner - step: Cook (carrying ingredients)');
+    expect(report.split('entity 9')[1]).not.toContain('chain:');
     // The fixture wears the SECOND pack trait, so a lookup collapsing
     // to index 0 would print the hound.
-    expect(report).toContain('wears: Low spirits (condition, severity 0.55)');
+    expect(report).toContain('traits: Low spirits (condition, severity 0.55)');
     expect(report).not.toContain('Gossip hound');
+    // The stalled line answers "why is she just standing there", and
+    // the orders line is a separate fact rather than a reason.
+    expect(report).toContain('stalled reason: waiting on something in use');
+    expect(report).toContain('player orders waiting: 2');
     const bareBlock = report.split('entity 9')[1];
-    expect(bareBlock).not.toContain('works:');
-    expect(bareBlock).not.toContain('wears:');
+    expect(bareBlock).not.toContain('career:');
+    expect(bareBlock).not.toContain('traits:');
+    expect(bareBlock).not.toContain('stalled reason:');
+    expect(bareBlock).not.toContain('player orders waiting:');
   });
 
   it('words a capability as a level and a disposition as nothing', () => {
@@ -105,9 +118,9 @@ describe('formatDebugReport', () => {
         traitLabels: () => ['All thumbs', 'Gossip hound'],
       }),
     );
-    expect(report).toContain('wears: All thumbs (capability, level 0.40)');
+    expect(report).toContain('traits: All thumbs (capability, level 0.40)');
     // A disposition carries no state, so none is invented for it.
-    expect(report).toContain('wears: Gossip hound (disposition)');
+    expect(report).toContain('traits: Gossip hound (disposition)');
   });
 
   it('names a known SimId and falls back for an unknown one', () => {
@@ -115,7 +128,7 @@ describe('formatDebugReport', () => {
     // departed. It prints as sim#3 rather than vanishing: a debug panel
     // that hides data is worse than none.
     const report = formatDebugReport(source());
-    expect(report).toContain('feels: sim#3 +0.42');
+    expect(report).toContain('relationships: sim#3 +0.42');
   });
 
   it('tolerates an odd-length pair array by ignoring the tail', () => {
@@ -135,7 +148,7 @@ describe('formatDebugReport', () => {
     const report = formatDebugReport(
       source({ relationshipsOf: () => new Float32Array(0) }),
     );
-    expect(report).toContain('feels: nobody yet');
+    expect(report).toContain('relationships: nobody yet');
   });
 });
 

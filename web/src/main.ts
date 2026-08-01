@@ -13,12 +13,16 @@ import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
 import { FixedStepDriver, buildInstances, instanceCount } from './frame.js';
 import { cameraOrigin } from './render/iso.js';
+import { clampOrigin, lotExtent, zoomAnchoredOrigin } from './render/camera.js';
 import { SPRITES } from './render/atlas.js';
 import { buildStaticInstances } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
 import { DebugPanel } from './ui/debug-panel.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
-import { describeStartupFailure, renderStartupFailure } from './ui/startup-failure.js';
+import {
+  describeStartupFailure,
+  renderStartupFailure,
+} from './ui/startup-failure.js';
 import { buildTimeControls } from './ui/time-controls.js';
 import { ObjectMenu, createMenuSurface } from './ui/object-menu.js';
 import { attachPointerInput, dispatchMenuAction } from './input.js';
@@ -285,13 +289,22 @@ async function main(): Promise<void> {
   let debugPanel: DebugPanel | null = null;
   if (new URLSearchParams(location.search).get('debug') === '1') {
     const debugSection = document.querySelector<HTMLElement>('#debug-panel');
+    const debugDetails = document.querySelector<HTMLDetailsElement>('#debug-details');
     const debugReport = document.querySelector<HTMLElement>('#debug-report');
-    if (!debugSection || !debugReport) {
+    if (!debugSection || !debugDetails || !debugReport) {
       throw new Error('missing #debug-panel markup under ?debug=1');
     }
+    // Open where there is room, folded to the pill where there is not -
+    // the owner's small-screen report. A live resize does not re-decide:
+    // once the player has a preference, the browser's own <details>
+    // state keeps it.
+    debugDetails.open = window.innerWidth > 900;
     const root = {
       get hidden(): boolean {
-        return debugSection.hidden;
+        // Folded counts as hidden for the panel's throttle, so a
+        // collapsed overlay costs no formatting per frame; the backtick
+        // toggle still owns the section's own visibility.
+        return debugSection.hidden || !debugDetails.open;
       },
       set hidden(value: boolean) {
         debugSection.hidden = value;
@@ -325,28 +338,6 @@ async function main(): Promise<void> {
     driver.setSpeed(ticksPerFrame);
   });
 
-  // Centre the lot's DRAWN extent on the canvas, derived from the lot and
-  // the atlas rather than hand-tuned. Doing it by hand is how the lot ends
-  // up half off screen, which reads as a broken projection rather than as a
-  // badly placed camera.
-  //
-  // The arithmetic is in `cameraOrigin` so it can be tested; the two things
-  // it accounts for that the obvious version missed - sprites drawing above
-  // their anchor, and `tiles.ts`'s boundary rows at -1 - are written up
-  // there, along with the measurement that caught it.
-  //
-  // The tallest sprite is read off the atlas rather than named, so adding a
-  // taller piece of furniture cannot silently push the top of the house off
-  // the canvas.
-  const tallestSprite = Math.max(...SPRITES.map((sprite) => sprite.h));
-  const { x: originX, y: originY } = cameraOrigin(
-    canvas.width,
-    canvas.height,
-    lotWidth,
-    lotHeight,
-    tallestSprite,
-  );
-
   // `worldDepth` divides by (gridSize - 1) * 2, so this has to be at
   // least (w - 1) + (h - 1) for the far corner to keep a depth inside
   // [0, 1]; taking the larger side guarantees it for any lot, since
@@ -354,15 +345,101 @@ async function main(): Promise<void> {
   // wrong, it clips the entity away entirely.
   const depthScale = Math.max(lotWidth, lotHeight);
 
-  // The floor and the walls, built once. They are static for the whole
-  // session, so they are uploaded here and never touched again rather
-  // than being rebuilt inside `frame` sixty times a second; see
-  // `tiles.ts` and [V11] for what an unexamined per-frame rebuild costs.
+  // **The camera.** One piece of free state - the zoom - and two derived
+  // origins. The origin is never written by a gesture: `applyCamera`
+  // recomputes it from the canvas, the lot and the scale, which is what
+  // makes v1 zoom LOT-CENTRED (see `camera.ts` for why cursor-centred
+  // zoom is pan wearing a hat, and ships when pan does).
   //
-  // The wall tiles come from the simulation's own `TileGrid`, not from
-  // the content pack, so what is drawn is what `find_path` refuses to
-  // walk through. A sim detouring to the doorway is then legible instead
-  // of looking like an AI fault.
+  // The tallest sprite is read off the atlas rather than named, so adding
+  // a taller piece of furniture cannot silently push the top of the house
+  // off the canvas; `cameraOrigin` centres the DRAWN extent, and the two
+  // things it accounts for that the obvious version missed are written up
+  // on it.
+  const tallestSprite = Math.max(...SPRITES.map((sprite) => sprite.h));
+  const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles() };
+  const camera = { scale: 1, originX: 0, originY: 0 };
+  let cameraDirty = true;
+  // A narrowed alias: the null check on `canvas` above does not survive
+  // into the closure below, and `applyCamera` runs long after it.
+  const stage: HTMLCanvasElement = canvas;
+
+  /**
+   * Bounds the origin so at least a corner of the lot stays on screen,
+   * whatever the gesture asked for. Every writer of the origin funnels
+   * through here; a clamp applied by SOME writers is a lot that can
+   * still be flung away by the one that forgot.
+   */
+  function clampCamera(): void {
+    const bounded = clampOrigin(
+      camera.originX,
+      camera.originY,
+      lotExtent(lotWidth, lotHeight, tallestSprite, camera.scale),
+      stage.width,
+      stage.height,
+    );
+    camera.originX = bounded.x;
+    camera.originY = bounded.y;
+  }
+
+  /**
+   * Everything that must agree when the camera or the window moves, in
+   * one place so no half can be forgotten: the drawing buffer's size
+   * (the window's CSS size times the device pixel ratio, so the canvas
+   * is sharp on a phone instead of upscaled), the clamped origin, and
+   * the static floor-and-walls block, which bakes screen positions and
+   * so must be rebuilt - the one legitimate rebuild, gated by the dirty
+   * flag rather than run per frame ([V11] is what an ungated rebuild
+   * costs; during a drag this runs once per FRAME, not per event).
+   *
+   * The origin is FREE STATE since pan landed ([V8]): it starts at
+   * `cameraOrigin`'s centred answer and belongs to the gestures from
+   * then on, so this must never re-derive it - only keep the view's
+   * centre steady across a buffer resize by shifting half the delta.
+   */
+  let cameraInitialised = false;
+  function applyCamera(): void {
+    const ratio = window.devicePixelRatio || 1;
+    const width = Math.max(1, Math.round(stage.clientWidth * ratio));
+    const height = Math.max(1, Math.round(stage.clientHeight * ratio));
+    if (stage.width !== width || stage.height !== height) {
+      const dx = (width - stage.width) / 2;
+      const dy = (height - stage.height) / 2;
+      stage.width = width;
+      stage.height = height;
+      camera.originX += dx;
+      camera.originY += dy;
+    }
+    if (!cameraInitialised) {
+      const origin = cameraOrigin(
+        stage.width,
+        stage.height,
+        lotWidth,
+        lotHeight,
+        tallestSprite,
+        camera.scale,
+      );
+      camera.originX = origin.x;
+      camera.originY = origin.y;
+      cameraInitialised = true;
+    }
+    clampCamera();
+    const staticGeometry = buildStaticInstances(
+      lot,
+      camera.originX,
+      camera.originY,
+      depthScale,
+      camera.scale,
+    );
+    renderer.setStaticGeometry(staticGeometry.instances, staticGeometry.count);
+    cameraDirty = false;
+  }
+  // Flagged rather than applied: a drag-resize fires this continuously,
+  // and the flag coalesces the burst into one rebuild on the next frame.
+  window.addEventListener('resize', () => {
+    cameraDirty = true;
+  });
+
   // The right-click flyout. It renders simulation state and owns none of
   // it ([D-5]): the rows come from the object's own interaction list, read
   // across the boundary on every open, and the sim a row acts on is read
@@ -374,21 +451,42 @@ async function main(): Promise<void> {
   // interaction index and `SimCommand::UseObject` carries one too, so
   // picking row `n` runs interaction `n`; the shipped lot cannot show that
   // off, because every object on it offers exactly one.
-  const menu = new ObjectMenu(
-    createMenuSurface(document, menuRoot),
-    (action) => dispatchMenuAction(sim, action),
+  const menu = new ObjectMenu(createMenuSurface(document, menuRoot), (action) =>
+    dispatchMenuAction(sim, action),
   );
 
-  // Clicks, last of the wiring because it needs the camera offsets above.
-  // Left click selects a sim or redirects the selected one at an object,
-  // ctrl or cmd click queues instead, and right click opens the flyout.
-  // Every one of those is a serialised command ([D-2]) - nothing here
-  // reaches into the world.
-  attachPointerInput(canvas, sim, menu, menuRoot, originX, originY);
-
-  const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles() };
-  const staticGeometry = buildStaticInstances(lot, originX, originY, depthScale);
-  renderer.setStaticGeometry(staticGeometry.instances, staticGeometry.count);
+  // Clicks and every camera gesture, last of the wiring because they
+  // need the camera above. Left click selects a sim or redirects the
+  // selected one at an object, ctrl or cmd click queues instead, right
+  // click opens the flyout; the wheel zooms at the cursor, a pinch
+  // zooms at its midpoint, and a drag pans. Every command among those
+  // is serialised ([D-2]); the camera is not a command at all, because
+  // it is presentation - two players watching one simulation at
+  // different zooms is the ordinary multiplayer picture.
+  attachPointerInput(canvas, sim, menu, menuRoot, camera, {
+    zoomAt(anchorX, anchorY, scale) {
+      if (scale === camera.scale) return;
+      const origin = zoomAnchoredOrigin(
+        camera.originX,
+        camera.originY,
+        anchorX,
+        anchorY,
+        camera.scale,
+        scale,
+      );
+      camera.scale = scale;
+      camera.originX = origin.x;
+      camera.originY = origin.y;
+      clampCamera();
+      cameraDirty = true;
+    },
+    panBy(dx, dy) {
+      camera.originX += dx;
+      camera.originY += dy;
+      clampCamera();
+      cameraDirty = true;
+    },
+  });
 
   const timer = new FrameTimer(FRAME_WINDOW);
   let previousFrameMs = performance.now();
@@ -403,6 +501,11 @@ async function main(): Promise<void> {
     const deltaMs = nowMs - previousFrameMs;
     previousFrameMs = nowMs;
 
+    // The camera settles before anything reads it, so the statics, the
+    // entities and the picking all see one projection per frame. On
+    // every frame without a zoom or a resize this is one boolean check.
+    if (cameraDirty) applyCamera();
+
     // The sim advances in whole ticks; alpha is how far this frame sits
     // between the last one that ran and the next one that has not.
     const alpha = driver.advance(deltaMs, () => sim.tick());
@@ -410,8 +513,16 @@ async function main(): Promise<void> {
     // remembered here ([D-5]), so the ring cannot disagree with what the need
     // panel is showing.
     const selected = sim.selectedIndex();
-    const instances = buildInstances(sim, alpha, originX, originY, depthScale, selected);
-    renderer.draw(instances, instanceCount(sim, selected));
+    const instances = buildInstances(
+      sim,
+      alpha,
+      camera.originX,
+      camera.originY,
+      depthScale,
+      selected,
+      camera.scale,
+    );
+    renderer.draw(instances, instanceCount(sim, selected), camera.scale);
 
     // Inside the sample below rather than outside it, deliberately: the
     // panel is work the frame does, and a periodic cost measured outside
@@ -433,7 +544,18 @@ async function main(): Promise<void> {
       entities: sim.count,
       step: (nowMs = performance.now()) => frame(nowMs),
       sim,
-      origin: { x: originX, y: originY },
+      // Getters over the live camera rather than a copy: the origin now
+      // changes with zoom and resize, and a harness computing a click
+      // from a stale origin would fail for a reason that is not in the
+      // code under test - the exact drift this field exists to prevent.
+      origin: {
+        get x() {
+          return camera.originX;
+        },
+        get y() {
+          return camera.originY;
+        },
+      },
     };
   }
 

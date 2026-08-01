@@ -128,7 +128,9 @@ export class SpriteRenderer {
   /**
    * Scratch for the per-frame uniform upload, allocated once and mutated
    * in place. Layout matches `struct Uniforms` in `sprites.wgsl`:
-   * viewport x, viewport y, anchor x, anchor y.
+   * viewport x, viewport y, anchor x, anchor y, then the camera scale at
+   * float 4 (byte offset 16) with three floats of padding to the 16-byte
+   * uniform stride.
    *
    * [D11] forbids per-frame allocation on the render path, and this is
    * the one allocation there that **no optimiser can remove**: the array
@@ -140,9 +142,20 @@ export class SpriteRenderer {
    * The viewport pair is rewritten each frame rather than cached because
    * the canvas can be resized under the caller at any time, and a stale
    * viewport silently rescales every quad's clip-space position instead
-   * of erroring.
+   * of erroring. The scale is rewritten each frame for the same reason:
+   * it is the caller's camera, and a cached copy is a zoom that applies
+   * to the sprite sizes one frame after it applied to the positions.
    */
-  private readonly uniformData = new Float32Array([0, 0, 0, TILE_HALF_HEIGHT]);
+  private readonly uniformData = new Float32Array([
+    0,
+    0,
+    0,
+    TILE_HALF_HEIGHT,
+    1,
+    0,
+    0,
+    0,
+  ]);
 
   /**
    * Builds the pipeline and uploads the atlas.
@@ -217,7 +230,10 @@ export class SpriteRenderer {
     });
 
     this.uniformBuffer = gpu.device.createBuffer({
-      size: 16,
+      // 32: viewport, anchor, then the camera scale padded to the
+      // 16-byte uniform stride. Must match `uniformData` above and
+      // `struct Uniforms` in sprites.wgsl.
+      size: 32,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
 
@@ -257,15 +273,21 @@ export class SpriteRenderer {
   }
 
   /**
-   * Uploads the lot's floor and walls once, for the whole session.
+   * Uploads the lot's floor and walls, once per CAMERA change.
    *
-   * They are static for as long as the page lives, so they are **not**
-   * rebuilt per frame. `buildInstances` runs every frame under [D11]'s
-   * no-allocation rule, and [V11] measured what happens when something
-   * on that path allocates without anybody checking: 57.76 MB over 2,394
-   * frames from a two-element array. Several hundred wall and floor
-   * quads rebuilt sixty times a second would be a far larger version of
-   * the same mistake, for geometry that cannot change.
+   * They are static between camera moves, so they are **not** rebuilt
+   * per frame - `main.ts`'s dirty flag calls this only when the zoom,
+   * the pan or the window actually moved. `buildInstances` runs every
+   * frame under [D11]'s no-allocation rule, and [V11] measured what
+   * happens when something on that path allocates without anybody
+   * checking: 57.76 MB over 2,394 frames from a two-element array.
+   *
+   * `instances` is `tiles.ts`'s reused scratch, so the field below
+   * ALIASES it: the held reference always sees the latest rebuild's
+   * content, and the pair stays coherent because every rebuild comes
+   * straight back through here with its own count. The re-upload in
+   * `ensureCapacity` therefore re-sends current data, never a stale
+   * snapshot.
    */
   setStaticGeometry(instances: InstanceArray, count: number): void {
     this.staticInstances = instances;
@@ -317,7 +339,7 @@ export class SpriteRenderer {
     return this.depthTexture;
   }
 
-  draw(instances: InstanceArray, count: number): void {
+  draw(instances: InstanceArray, count: number, scale = 1): void {
     const total = this.staticCount + count;
     if (total === 0) return;
     this.ensureCapacity(total);
@@ -325,6 +347,7 @@ export class SpriteRenderer {
     const canvas = this.gpu.context.canvas as HTMLCanvasElement;
     this.uniformData[0] = canvas.width;
     this.uniformData[1] = canvas.height;
+    this.uniformData[4] = scale;
     this.gpu.device.queue.writeBuffer(this.uniformBuffer, 0, this.uniformData);
     if (count > 0) {
       // dataOffset and size are in elements for a TypedArray source, so

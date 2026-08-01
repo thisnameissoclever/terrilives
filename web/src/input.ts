@@ -29,6 +29,13 @@
 
 import { ACTIVITY_AT_WORK } from './frame.js';
 import { SPRITES } from './render/atlas.js';
+import {
+  DRAG_THRESHOLD_PX,
+  pinchZoom,
+  pointerDistance,
+  wheelZoom,
+  type Camera,
+} from './render/camera.js';
 import { KIND_AGENT } from './render/instances.js';
 import {
   LAYER_PROP,
@@ -164,11 +171,12 @@ export function clientToTile(
   canvasHeight: number,
   originX: number,
   originY: number,
+  scale = 1,
 ): [number, number] | null {
   if (rect.width <= 0 || rect.height <= 0) return null;
   const bufferX = ((clientX - rect.left) * canvasWidth) / rect.width;
   const bufferY = ((clientY - rect.top) * canvasHeight) / rect.height;
-  const [wx, wy] = screenToWorld(bufferX, bufferY, originX, originY);
+  const [wx, wy] = screenToWorld(bufferX, bufferY, originX, originY, scale);
   return [Math.round(wx), Math.round(wy)];
 }
 
@@ -246,6 +254,7 @@ export function pickSprite(
   py: number,
   originX: number,
   originY: number,
+  scale = 1,
 ): Pick | null {
   const count = source.count;
   const positions = source.positions();
@@ -279,11 +288,16 @@ export function pickSprite(
     // (half the width left, the full height up), and nothing pins that against
     // the shader; a change to `CORNERS` or to the `topLeft` expression in
     // `sprites.wgsl` would move the drawn sprite without moving the hit box.
-    const anchorX = screenX(wx, wy, originX);
-    const anchorY = screenY(wx, wy, originY) + TILE_HALF_HEIGHT;
-    const left = anchorX - sprite.w / 2;
-    const top = anchorY - sprite.h;
-    if (px < left || px > left + sprite.w) continue;
+    // Every drawn distance scales with the camera - the anchor's
+    // half-tile drop and the sprite's box alike - so the hit box is the
+    // zoomed quad, not the 1x quad floating over it. The position's own
+    // scaling rides through `screenX`/`screenY` exactly as the renderer's
+    // does.
+    const anchorX = screenX(wx, wy, originX, scale);
+    const anchorY = screenY(wx, wy, originY, scale) + TILE_HALF_HEIGHT * scale;
+    const left = anchorX - (sprite.w / 2) * scale;
+    const top = anchorY - sprite.h * scale;
+    if (px < left || px > left + sprite.w * scale) continue;
     if (py < top || py > anchorY) continue;
 
     const nearness = wx + wy;
@@ -294,7 +308,10 @@ export function pickSprite(
     const layer = kinds[row] === KIND_AGENT ? LAYER_SIM : LAYER_PROP;
     // Strictly greater on both, so an equal-depth equal-layer tie keeps the
     // EARLIER row - the one that won the pixel.
-    if (nearness > bestNearness || (nearness === bestNearness && layer > bestLayer)) {
+    if (
+      nearness > bestNearness ||
+      (nearness === bestNearness && layer > bestLayer)
+    ) {
       bestNearness = nearness;
       bestLayer = layer;
       best = { entity: ids[row], isAgent: kinds[row] === KIND_AGENT };
@@ -551,9 +568,10 @@ export function handleLeftClick(
   originX: number,
   originY: number,
   additive: boolean,
+  scale = 1,
 ): void {
   if (point === null) return;
-  const pick = pickSprite(target, point.x, point.y, originX, originY);
+  const pick = pickSprite(target, point.x, point.y, originX, originY, scale);
   dispatch(target, resolveLeftClick(pick, target.selectedIndex(), additive));
 }
 
@@ -626,12 +644,13 @@ export function resolveRightClick(
   point: CanvasPoint | null,
   originX: number,
   originY: number,
+  scale = 1,
 ): MenuEntry[] | null {
   if (target.selectedIndex() === null) return null;
   const pick =
     point === null
       ? null
-      : pickSprite(target, point.x, point.y, originX, originY);
+      : pickSprite(target, point.x, point.y, originX, originY, scale);
   if (pick === null) return [NEVER_MIND];
   if (pick.isAgent) {
     // The selected sim itself: nothing to do but close. A DIFFERENT
@@ -667,9 +686,10 @@ export function handleRightClick(
   point: CanvasPoint | null,
   originX: number,
   originY: number,
+  scale = 1,
 ): void {
   event.preventDefault();
-  const entries = resolveRightClick(target, point, originX, originY);
+  const entries = resolveRightClick(target, point, originX, originY, scale);
   if (entries === null) {
     menu.close();
     return;
@@ -767,20 +787,58 @@ export interface MenuHandle extends MenuController {
  * meaning everywhere else. Accepting only `ctrlKey` would leave macOS with
  * no way to queue a second instruction and no indication why.
  *
- * The handlers read `originX`/`originY` from the closure. Both are derived
- * from the lot at load and neither changes for the session; a camera that
- * pans would have to make them live, and that is the one thing to change
- * here when it does.
+ * # The camera is a live reference, and gestures go back through callbacks
+ *
+ * The handlers used to read `originX`/`originY` from the closure, which was
+ * right while both were fixed for the session. The camera made them live:
+ * every gesture reads `camera` AT EVENT TIME, so a click after a zoom or a
+ * drag picks against the projection the player is looking at. The gestures
+ * never write the camera themselves - they hand new values to `gestures`,
+ * because the camera's owner (`main.ts`) also owns the clamp and the dirty
+ * flag that rebuilds the origin-baked static geometry, and a value written
+ * here would move the sprites one frame before the floor.
+ *
+ * # Three camera routes, one state
+ *
+ * - **Wheel**: smooth multiplicative steps via `wheelZoom`, wheel-up in,
+ *   ANCHORED AT THE CURSOR - the point under the wheel stays put.
+ *   `preventDefault`, so the page never scrolls under the lot.
+ * - **Pinch**: two pointers tracked by id via Pointer Events - not the
+ *   iOS-only `gesturechange` - so Android Chrome and iOS Safari take the
+ *   same path. The scale is anchored to the gesture's START (see
+ *   `pinchZoom`) and to the fingers' MIDPOINT, whose movement also pans -
+ *   one gesture, both hands of the map idiom. `touch-action: none` in the
+ *   page CSS keeps the browser from claiming it for page-pinch first.
+ * - **Drag**: one finger or the mouse's primary button pans, in buffer
+ *   pixels so a drag moves the world exactly as far as the pointer moved.
+ *   Below `DRAG_THRESHOLD_PX` of total travel it is still a click, which
+ *   is what keeps a slightly shaky tap a selection rather than a
+ *   one-pixel pan that eats it.
+ *
+ * A pan or a pinch must not ALSO select: the pointer lifting fires a
+ * `click` on some browsers, and a camera gesture that ends by selecting
+ * whatever was under a finger reads as a haunted camera. Either gesture
+ * poisons the NEXT click, which is consumed and cleared.
  */
+export interface CameraGestures {
+  /** Zoom to `scale` holding buffer point (anchorX, anchorY) still. */
+  zoomAt(anchorX: number, anchorY: number, scale: number): void;
+  /** Move the origin by a buffer-pixel delta. */
+  panBy(dx: number, dy: number): void;
+}
+
 export function attachPointerInput(
   canvas: HTMLCanvasElement,
   target: MenuTarget,
   menu: MenuHandle,
   menuRoot: Node,
-  originX: number,
-  originY: number,
+  camera: Readonly<Camera>,
+  gestures: CameraGestures,
 ): void {
-  const canvasPoint = (event: MouseEvent): CanvasPoint | null =>
+  const canvasPoint = (event: {
+    clientX: number;
+    clientY: number;
+  }): CanvasPoint | null =>
     clientToCanvas(
       event.clientX,
       event.clientY,
@@ -788,19 +846,152 @@ export function attachPointerInput(
       canvas.width,
       canvas.height,
     );
+  /** Client-to-buffer pixel ratio, live because the window resizes. */
+  const bufferRatio = (): number => {
+    const rect = canvas.getBoundingClientRect();
+    return rect.width > 0 ? canvas.width / rect.width : 1;
+  };
+
+  // The gesture state: every touching pointer plus at most one mouse
+  // drag, by pointer id. `moved` accumulates total travel so the click
+  // threshold judges the WHOLE gesture, not the last event.
+  const pointers = new Map<
+    number,
+    { x: number; y: number; startX: number; startY: number }
+  >();
+  let touchCount = 0;
+  let moved = 0;
+  let pinchStartDistance = 0;
+  let pinchStartScale = 1;
+  let suppressNextClick = false;
+
+  const touchPoints = () => [...pointers.values()].slice(0, 2);
+  const spread = (): number => {
+    const [a, b] = touchPoints();
+    return pointerDistance(a.x, a.y, b.x, b.y);
+  };
+  const midpoint = (): { x: number; y: number } => {
+    const [a, b] = touchPoints();
+    return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  };
+
+  canvas.addEventListener('pointerdown', (event) => {
+    const isTouch = event.pointerType === 'touch';
+    // The mouse pans with its primary button OR the middle one - the
+    // owner asked for both, and middle-drag is the desktop-native pan
+    // gesture anyway. A right-button drag still belongs to the flyout.
+    if (!isTouch && event.button !== 0 && event.button !== 1) return;
+    if (event.button === 1) {
+      // Otherwise the browser starts autoscroll and the two gestures
+      // fight over the same motion.
+      event.preventDefault();
+    }
+    pointers.set(event.pointerId, {
+      x: event.clientX,
+      y: event.clientY,
+      startX: event.clientX,
+      startY: event.clientY,
+    });
+    if (isTouch) touchCount++;
+    moved = 0;
+    // Capture, so a drag that leaves the canvas keeps panning instead
+    // of stranding mid-gesture.
+    canvas.setPointerCapture(event.pointerId);
+    if (isTouch && touchCount === 2) {
+      pinchStartDistance = spread();
+      pinchStartScale = camera.scale;
+      suppressNextClick = true;
+    }
+  });
+
+  canvas.addEventListener('pointermove', (event) => {
+    const entry = pointers.get(event.pointerId);
+    if (!entry) return;
+    const dx = event.clientX - entry.x;
+    const dy = event.clientY - entry.y;
+    const beforeMid =
+      event.pointerType === 'touch' && touchCount === 2 ? midpoint() : null;
+    entry.x = event.clientX;
+    entry.y = event.clientY;
+    moved += Math.hypot(dx, dy);
+
+    if (event.pointerType === 'touch' && touchCount === 2) {
+      // Pinch: the midpoint's travel pans and the spread's ratio zooms,
+      // both in one move event - the standard two-finger map gesture.
+      const mid = midpoint();
+      const ratio = bufferRatio();
+      if (beforeMid) {
+        gestures.panBy(
+          (mid.x - beforeMid.x) * ratio,
+          (mid.y - beforeMid.y) * ratio,
+        );
+      }
+      const anchor = canvasPoint({ clientX: mid.x, clientY: mid.y });
+      const next = pinchZoom(pinchStartScale, pinchStartDistance, spread());
+      if (anchor) gestures.zoomAt(anchor.x, anchor.y, next);
+      return;
+    }
+
+    // One pointer: a pan once the travel says so. The threshold is on
+    // TOTAL travel, so a slow deliberate drag cannot sneak under it one
+    // pixel at a time.
+    if (pointers.size === 1 && moved > DRAG_THRESHOLD_PX) {
+      suppressNextClick = true;
+      const ratio = bufferRatio();
+      gestures.panBy(dx * ratio, dy * ratio);
+    }
+  });
+
+  const endPointer = (event: PointerEvent): void => {
+    if (pointers.delete(event.pointerId) && event.pointerType === 'touch') {
+      touchCount = Math.max(0, touchCount - 1);
+    }
+  };
+  canvas.addEventListener('pointerup', endPointer);
+  canvas.addEventListener('pointercancel', endPointer);
+
+  canvas.addEventListener(
+    'wheel',
+    (event) => {
+      event.preventDefault();
+      const anchor = canvasPoint(event);
+      if (!anchor) return;
+      gestures.zoomAt(
+        anchor.x,
+        anchor.y,
+        wheelZoom(camera.scale, event.deltaY),
+      );
+    },
+    // Required for `preventDefault` to be legal on a wheel listener:
+    // they are passive by default on the document tree.
+    { passive: false },
+  );
 
   canvas.addEventListener('click', (event) => {
+    if (suppressNextClick) {
+      suppressNextClick = false;
+      return;
+    }
     handleLeftClick(
       target,
       canvasPoint(event),
-      originX,
-      originY,
+      camera.originX,
+      camera.originY,
       event.ctrlKey || event.metaKey,
+      camera.scale,
     );
   });
 
   canvas.addEventListener('contextmenu', (event) => {
-    handleRightClick(target, menu, event, canvasPoint(event), originX, originY);
+    handleRightClick(
+      target,
+      menu,
+      event,
+      canvasPoint(event),
+      camera.originX,
+      camera.originY,
+      camera.scale,
+    );
   });
 
   const doc = canvas.ownerDocument;

@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "terrilives-web",
+      "name": "live (working tree)",
       "runtimeExecutable": "npm",
       "runtimeArgs": [
         "--prefix",
@@ -10,10 +10,12 @@
         "run",
         "dev"
       ],
-      "port": 5173
+      "port": 5174,
+      "url": "https://localhost:5174",
+      "autoPort": false
     },
     {
-      "name": "terrilives-preview",
+      "name": "built (last dist build)",
       "runtimeExecutable": "npm",
       "runtimeArgs": [
         "--prefix",
@@ -21,19 +23,9 @@
         "run",
         "preview"
       ],
-      "port": 4173
-    },
-    {
-      "name": "terrilives-lan",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": [
-        "--prefix",
-        "web",
-        "run",
-        "dev:lan"
-      ],
-      "port": 5174,
-      "url": "https://localhost:5174"
+      "port": 4173,
+      "url": "https://localhost:4173",
+      "autoPort": false
     }
   ]
 }

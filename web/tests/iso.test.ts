@@ -168,6 +168,75 @@ describe('worldToScreen', () => {
   });
 });
 
+describe('the camera scale on the projection', () => {
+  it('multiplies the world term and never the origin', () => {
+    // The origin is already in screen pixels - where the lot's anchor
+    // lands on the canvas - so a scaled origin would zoom the lot's
+    // POSITION as well as its size and slide the house toward a corner.
+    // x: (2 - 1) * 32 * 2 + 100 = 164.   y: (2 + 1) * 21 * 2 + 50 = 176.
+    expect(screenX(2, 1, 100, 2)).toBe(164);
+    expect(screenY(2, 1, 50, 2)).toBe(176);
+    // And the tuple stays the two scalars, at scale as at 1.
+    expect(worldToScreen(2, 1, 100, 50, 2)).toEqual([164, 176]);
+  });
+
+  it('defaults to 1, leaving every pre-camera call site meaning what it meant', () => {
+    // The trailing default is the whole migration strategy: 62 call
+    // sites kept their signatures. If the default drifts, every one of
+    // them silently zooms.
+    expect(screenX(2, 1, 100)).toBe(screenX(2, 1, 100, 1));
+    expect(screenY(2, 1, 50)).toBe(screenY(2, 1, 50, 1));
+  });
+
+  it('inverts through screenToWorld at every zoom in the band', () => {
+    // The same round trip the unscaled test runs, at the band's edges
+    // and an interior point: a forward that scales and an inverse that
+    // does not puts every click 2x-or-half off, which reads as broken
+    // picking rather than a camera bug.
+    let checked = 0;
+    for (const scale of [0.5, 1.3, 2.5]) {
+      for (const [wx, wy] of [[0, 0], [5, 3], [12, 10]]) {
+        const [sx, sy] = worldToScreen(wx, wy, 640, 60, scale);
+        const [bx, by] = screenToWorld(sx, sy, 640, 60, scale);
+        expect(bx).toBeCloseTo(wx, 6);
+        expect(by).toBeCloseTo(wy, 6);
+        checked += 1;
+      }
+    }
+    expect(checked).toBe(9);
+  });
+
+  it('recentres the origin for the scaled drawn extent', () => {
+    // `cameraOrigin` centres what is DRAWN, and at a zoom everything
+    // drawn is `scale` times bigger - tile spans and sprite heights
+    // alike. The claim with teeth: the drawn extent's midpoint stays
+    // the canvas midpoint at every zoom. Top of the tallest boundary
+    // sprite and bottom of the last tile row, computed the way the
+    // renderer computes them.
+    for (const scale of [0.5, 1, 2]) {
+      const origin = cameraOrigin(1280, 720, 14, 10, 99, scale);
+      const spriteTop =
+        screenY(-1, -1, origin.y, scale) + (TILE_HALF_HEIGHT - 99) * scale;
+      const bottom =
+        screenY(13, 9, origin.y, scale) + TILE_HALF_HEIGHT * scale;
+      expect((spriteTop + bottom) / 2).toBeCloseTo(360, 6);
+      // Horizontal: the tile span's midline sits at the canvas's.
+      const left = screenX(0, 9, origin.x, scale);
+      const right = screenX(13, 0, origin.x, scale);
+      expect((left + right) / 2).toBeCloseTo(640, 6);
+    }
+  });
+
+  it('agrees with the unscaled cameraOrigin at scale 1', () => {
+    // The refactor guard: scale 1 must be byte-for-byte the origin the
+    // pre-camera game centred with, or every existing screenshot and
+    // pixel-derived assertion quietly describes a different frame.
+    expect(cameraOrigin(1280, 720, 14, 10, 99, 1)).toEqual(
+      cameraOrigin(1280, 720, 14, 10, 99),
+    );
+  });
+});
+
 describe('screenToWorld', () => {
   it('round-trips every world coordinate back through worldToScreen exactly', () => {
     // A sign error here produces picking that is subtly off rather than

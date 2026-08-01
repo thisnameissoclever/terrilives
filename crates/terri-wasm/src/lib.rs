@@ -517,6 +517,18 @@ impl SimHandle {
         self.sim.chain_status_of(entity_index).unwrap_or_default()
     }
 
+    /// Why the sim is not acting - `Blocked`, `Restless` or both - or
+    /// the empty string when nothing holds it back, sim_name's in-band
+    /// contract.
+    pub fn stall_reason_of(&self, entity_index: u32) -> String {
+        self.sim.stall_reason_of(entity_index).unwrap_or_default()
+    }
+
+    /// How many player orders the sim still has waiting.
+    pub fn queued_orders_of(&self, entity_index: u32) -> usize {
+        self.sim.queued_orders_of(entity_index)
+    }
+
     /// Fourteen floats - drain then satisfaction, seven each - or empty.
     /// The [A-11] debug overlay's read; see `Sim::personality_of`.
     pub fn personality_of(&self, entity_index: u32) -> Vec<f32> {
@@ -1851,6 +1863,52 @@ mod boundary_tests {
         assert!(handle.relationships_of(bare).is_empty());
     }
 
+    /// The overlay's two stall reads across the boundary, in-band
+    /// empty for "nothing holds this sim" - and two sims in different
+    /// states, so a boundary that ignored its index is visible.
+    #[test]
+    fn the_stall_reads_cross_the_boundary() {
+        let mut handle = SimHandle::new(8, 8);
+        let stuck = {
+            let world = handle.sim.world_mut();
+            let mut queue = terri_core::IntentQueue::default();
+            let object = world.spawn(()).id();
+            queue.push(terri_core::Intent {
+                object,
+                interaction: 0,
+            });
+            queue.push(terri_core::Intent {
+                object,
+                interaction: 1,
+            });
+            world
+                .spawn((
+                    terri_core::Agent,
+                    terri_core::Position { x: 1.0, y: 1.0 },
+                    terri_core::Blocked,
+                    queue,
+                ))
+                .id()
+                .index_u32()
+        };
+        let free = {
+            let world = handle.sim.world_mut();
+            world
+                .spawn((terri_core::Agent, terri_core::Position { x: 4.0, y: 4.0 }))
+                .id()
+                .index_u32()
+        };
+
+        assert_eq!(handle.stall_reason_of(stuck), "waiting on something in use");
+        assert_eq!(
+            handle.stall_reason_of(free),
+            "",
+            "nothing holding it reads as the in-band empty string"
+        );
+        assert_eq!(handle.queued_orders_of(stuck), 2);
+        assert_eq!(handle.queued_orders_of(free), 0);
+    }
+
     /// The M2f PR 3 reads: the kind list crosses in pack order, the
     /// status line composes label, step and carried kind from content,
     /// and empty hands or no errand read as the in-band empty string.
@@ -1886,7 +1944,7 @@ mod boundary_tests {
                 step: 2,
                 fumble_scale: 1.0,
             });
-        assert_eq!(handle.chain_status_of(terri), "Cook dinner: Cook");
+        assert_eq!(handle.chain_status_of(terri), "Cook dinner - step: Cook");
 
         handle
             .sim
@@ -1895,7 +1953,7 @@ mod boundary_tests {
             .insert(terri_core::Carrying(0));
         assert_eq!(
             handle.chain_status_of(terri),
-            "Cook dinner: Cook (carrying ingredients)"
+            "Cook dinner - step: Cook (carrying ingredients)"
         );
     }
 

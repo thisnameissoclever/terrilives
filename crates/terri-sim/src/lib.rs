@@ -829,11 +829,102 @@ impl Sim {
                             .get(item.0 as usize)
                             .map(String::as_str)
                             .unwrap_or("something unrecognisable");
-                        format!("{}: {} (carrying {})", chain.label, step.label, kind)
+                        // "Cook dinner - step: Cook", not "Cook
+                        // dinner: Cook": the panel prefixes this with a
+                        // label of its own, and three colons in one
+                        // line reads as nothing at all.
+                        format!("{} - step: {} (carrying {})", chain.label, step.label, kind)
                     }
-                    None => format!("{}: {}", chain.label, step.label),
+                    None => format!("{} - step: {}", chain.label, step.label),
                 })
             })
+    }
+
+    /// Why the sim carrying `index` is not acting, or `None` when
+    /// nothing is holding it back - the overlay's answer to "she is
+    /// starving at the front door and it says idle".
+    ///
+    /// **Exactly two reasons exist, and they are the two markers
+    /// selection writes**: `Blocked` (the best thing it could see is
+    /// somebody else's) and `Restless` (nothing it could see cleared
+    /// `idle_threshold`). Both can be true at once - it wanted a
+    /// contested thing, but not enough to wait for it - which is why
+    /// this returns a joined string rather than an enum.
+    ///
+    /// A pending player order is deliberately NOT in here: an order is
+    /// something a sim is about to DO, not a reason it is stuck, and
+    /// folding the two together is what made this function's first
+    /// name ("standing") mean nothing in particular. See
+    /// [`Sim::queued_orders_of`].
+    pub fn stall_reason_of(&self, index: u32) -> Option<String> {
+        let mut state = self.world.try_query::<(
+            Entity,
+            Has<terri_core::Blocked>,
+            Has<terri_core::Restless>,
+            Has<terri_core::Path>,
+            Has<terri_core::Target>,
+            Has<terri_core::Eating>,
+            Has<terri_core::Socialising>,
+            Has<terri_core::StepWork>,
+            Has<terri_core::AtWork>,
+            Has<terri_core::Commuting>,
+            Has<terri_core::Reserved>,
+        )>()?;
+        let (
+            _,
+            blocked,
+            restless,
+            walking,
+            committed,
+            eating,
+            talking,
+            stepping,
+            at_work,
+            commuting,
+            reserved,
+        ) = state
+            .iter(&self.world)
+            .find(|(entity, ..)| entity.index_u32() == index)?;
+        // **A sim that is DOING something is not stalled, whatever its
+        // markers still say.** Both markers are written by selection and
+        // outlive the moment they described: `Restless` is precisely
+        // what SENDS a sim wandering, so a strolling sim carries it for
+        // the length of the stroll, and the panel read "doing: walking"
+        // over "stalled reason: found nothing worth doing" - two lines
+        // contradicting each other about the same sim, which is worse
+        // than either alone. Caught by looking at the running game.
+        if walking || committed || eating || talking || stepping || at_work || commuting || reserved
+        {
+            return None;
+        }
+        let mut parts: Vec<String> = Vec::new();
+        if blocked {
+            parts.push("waiting on something in use".to_string());
+        }
+        if restless {
+            parts.push("found nothing worth doing".to_string());
+        }
+        if parts.is_empty() {
+            None
+        } else {
+            Some(parts.join("; "))
+        }
+    }
+
+    /// How many player-issued orders the sim carrying `index` still has
+    /// waiting - a FACT about the queue, reported on its own line
+    /// because it is not a stall reason. Zero for a sim with an empty
+    /// queue or no queue at all.
+    pub fn queued_orders_of(&self, index: u32) -> usize {
+        self.world
+            .try_query::<(Entity, &terri_core::IntentQueue)>()
+            .and_then(|mut state| {
+                state
+                    .iter(&self.world)
+                    .find(|(entity, _)| entity.index_u32() == index)
+                    .map(|(_, queue)| queue.len())
+            })
+            .unwrap_or(0)
     }
 
     /// The label of the career held by the sim carrying `index`, or
@@ -1920,6 +2011,250 @@ mod household_tests {
             .map(|(i, member)| (i as u32, member.name.clone()))
             .collect();
         assert_eq!(rows, expected);
+    }
+}
+
+#[cfg(test)]
+#[cfg(test)]
+mod overlay_read_tests {
+    //! The `?debug=1` overlay's own accessors. Nothing in the
+    //! simulation reads them back, so a stub returning a constant is
+    //! invisible to every behavioural test - which is exactly what the
+    //! CI sweep found. Each one is pinned here against a fixture where
+    //! two sims hold DIFFERENT states, so an accessor that ignores the
+    //! index it was handed (the `==`-to-`!=` mutant) is visible too.
+
+    use super::*;
+    use terri_core::{Agent, Blocked, Intent, IntentQueue, Position, Restless};
+
+    /// Two sims: one stalled both ways with two orders queued, one
+    /// perfectly free with none. Returns their raw indices in that
+    /// order.
+    fn two_sims() -> (Sim, u32, u32) {
+        let mut sim = Sim::new_with_lot(8, 8);
+        let mut queue = IntentQueue::default();
+        let fridge = sim.world_mut().spawn(()).id();
+        queue.push(Intent {
+            object: fridge,
+            interaction: 0,
+        });
+        queue.push(Intent {
+            object: fridge,
+            interaction: 1,
+        });
+        let stuck = sim
+            .world_mut()
+            .spawn((Agent, Position { x: 1.0, y: 1.0 }, Blocked, Restless, queue))
+            .id()
+            .index_u32();
+        let free = sim
+            .world_mut()
+            .spawn((Agent, Position { x: 5.0, y: 5.0 }, IntentQueue::default()))
+            .id()
+            .index_u32();
+        (sim, stuck, free)
+    }
+
+    /// A sim in MOTION has no stall reason, whatever markers it still
+    /// carries - `Restless` is what sent it wandering, so it rides
+    /// along for the whole stroll and would otherwise contradict the
+    /// panel's own "doing: walking" one line above.
+    #[test]
+    fn a_sim_that_is_doing_something_reports_no_stall_reason() {
+        let mut sim = Sim::new_with_lot(8, 8);
+        let strolling = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 1.0, y: 1.0 },
+                Restless,
+                terri_core::Path {
+                    steps: vec![(2, 1)],
+                    cursor: 0,
+                },
+            ))
+            .id()
+            .index_u32();
+        assert_eq!(
+            sim.stall_reason_of(strolling),
+            None,
+            "a wanderer is not stalled - the marker is why it LEFT"
+        );
+
+        // Every other busy shape, one at a time, so a check that
+        // covered only walking is visible. Each spawns with a stall
+        // marker deliberately set, which is exactly the stale state
+        // the running game showed.
+        let eating = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 2.0, y: 2.0 },
+                Blocked,
+                terri_core::Eating {
+                    object: terri_core::ObjectDefId(0),
+                    interaction: 0,
+                    remaining_ticks: 5,
+                },
+            ))
+            .id()
+            .index_u32();
+        let at_work = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 3.0, y: 3.0 },
+                Restless,
+                terri_core::AtWork {
+                    remaining_ticks: 40,
+                },
+            ))
+            .id()
+            .index_u32();
+        let reserved = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 4.0, y: 4.0 },
+                Restless,
+                terri_core::Reserved,
+            ))
+            .id()
+            .index_u32();
+        // The remaining four, so that EVERY term of the busy check has
+        // a sim whose only busy state is that one. Without all eight,
+        // an `||` flipped to `&&` between two untested neighbours
+        // survives - which is exactly what the sweep found when this
+        // test covered four.
+        let target_of = sim.world_mut().spawn(()).id();
+        let committed = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 5.0, y: 5.0 },
+                Restless,
+                terri_core::Target {
+                    object: target_of,
+                    interaction: 0,
+                },
+            ))
+            .id()
+            .index_u32();
+        let talking = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 6.0, y: 6.0 },
+                Restless,
+                terri_core::Socialising {
+                    interaction: 0,
+                    partner: target_of,
+                    remaining_ticks: 10,
+                },
+            ))
+            .id()
+            .index_u32();
+        let stepping = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 7.0, y: 7.0 },
+                Restless,
+                terri_core::StepWork {
+                    remaining_ticks: 12,
+                },
+            ))
+            .id()
+            .index_u32();
+        let commuting = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 1.0, y: 7.0 },
+                Restless,
+                terri_core::Commuting,
+            ))
+            .id()
+            .index_u32();
+        for (index, what) in [
+            (eating, "eating"),
+            (at_work, "at work"),
+            (reserved, "reserved for a talk"),
+            (committed, "committed to a target"),
+            (talking, "in a conversation"),
+            (stepping, "working a chain step"),
+            (commuting, "commuting to work"),
+        ] {
+            assert_eq!(
+                sim.stall_reason_of(index),
+                None,
+                "a sim {what} is not stalled"
+            );
+        }
+    }
+
+    #[test]
+    fn the_stall_reason_names_both_markers_and_only_for_the_sim_asked() {
+        let (sim, stuck, free) = two_sims();
+        assert_eq!(
+            sim.stall_reason_of(stuck).as_deref(),
+            Some("waiting on something in use; found nothing worth doing"),
+            "both markers, joined, in that order"
+        );
+        assert_eq!(
+            sim.stall_reason_of(free),
+            None,
+            "a sim nothing holds back reads as no reason at all"
+        );
+        assert_eq!(sim.stall_reason_of(9999), None, "and a stale index too");
+    }
+
+    /// Each marker alone, because the joined string above is satisfied
+    /// by an implementation that always writes both.
+    #[test]
+    fn each_marker_produces_only_its_own_phrase() {
+        let mut sim = Sim::new_with_lot(8, 8);
+        let blocked = sim
+            .world_mut()
+            .spawn((Agent, Position { x: 1.0, y: 1.0 }, Blocked))
+            .id()
+            .index_u32();
+        let restless = sim
+            .world_mut()
+            .spawn((Agent, Position { x: 2.0, y: 2.0 }, Restless))
+            .id()
+            .index_u32();
+        assert_eq!(
+            sim.stall_reason_of(blocked).as_deref(),
+            Some("waiting on something in use")
+        );
+        assert_eq!(
+            sim.stall_reason_of(restless).as_deref(),
+            Some("found nothing worth doing")
+        );
+    }
+
+    /// TWO orders rather than one, so a constant 1 is visible, and a
+    /// queueless sim rather than only an empty queue, so the absent
+    /// component's zero is exercised as well.
+    #[test]
+    fn queued_orders_counts_this_sims_own_queue() {
+        let (sim, stuck, free) = two_sims();
+        assert_eq!(sim.queued_orders_of(stuck), 2);
+        assert_eq!(sim.queued_orders_of(free), 0, "an empty queue is none");
+        assert_eq!(sim.queued_orders_of(9999), 0, "and a stale index is none");
+
+        let mut bare = Sim::new_with_lot(4, 4);
+        let queueless = bare
+            .world_mut()
+            .spawn((Agent, Position { x: 1.0, y: 1.0 }))
+            .id()
+            .index_u32();
+        assert_eq!(
+            bare.queued_orders_of(queueless),
+            0,
+            "no component at all is none, not a panic"
+        );
     }
 }
 

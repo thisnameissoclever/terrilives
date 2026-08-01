@@ -30,8 +30,18 @@ struct Uniforms {
   // Where a sprite's bottom centre sits relative to the entity's screen
   // position. Half a tile down, so a sprite bottom-anchored in the atlas
   // stands on the south corner of its tile's diamond rather than
-  // floating at the diamond's centre.
+  // floating at the diamond's centre. In UNSCALED pixels; the shader
+  // multiplies by the camera scale below, so this stays half a tile at
+  // every zoom.
   anchor: vec2<f32>,
+  // The camera zoom in x; yzw are padding to the 16-byte uniform
+  // stride, so the buffer is 32 bytes with the scale at offset 16.
+  //
+  // Instance POSITIONS arrive already scaled - `screenX`/`screenY` bake
+  // the zoom into the world term on the CPU, for statics and entities
+  // alike - so the shader's share is the sprite's SIZE and the anchor.
+  // Scaling positions here as well would zoom twice.
+  scale: vec4<f32>,
 };
 
 struct Sprite {
@@ -78,9 +88,11 @@ fn vs(
 
   // Bottom centre anchoring: the quad hangs upward and leftward from the
   // anchor point, so sprites of very different heights - a floor tile, a
-  // toilet, a wall - all stand on the same line.
-  let topLeft = instance.xy + u.anchor - vec2f(size.x * 0.5, size.y);
-  let screen = topLeft + corner * size;
+  // toilet, a wall - all stand on the same line. Everything drawn-sized
+  // scales with the camera; the instance position already did on the CPU.
+  let scale = u.scale.x;
+  let topLeft = instance.xy + (u.anchor - vec2f(size.x * 0.5, size.y)) * scale;
+  let screen = topLeft + corner * size * scale;
 
   // Screen pixels to clip space. Y is flipped because screen space
   // grows downward and clip space grows upward.
