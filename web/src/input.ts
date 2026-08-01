@@ -877,9 +877,15 @@ export function attachPointerInput(
 
   canvas.addEventListener('pointerdown', (event) => {
     const isTouch = event.pointerType === 'touch';
-    // The mouse pans only with its primary button; a right-button drag
-    // belongs to the flyout gesture.
-    if (!isTouch && event.button !== 0) return;
+    // The mouse pans with its primary button OR the middle one - the
+    // owner asked for both, and middle-drag is the desktop-native pan
+    // gesture anyway. A right-button drag still belongs to the flyout.
+    if (!isTouch && event.button !== 0 && event.button !== 1) return;
+    if (event.button === 1) {
+      // Otherwise the browser starts autoscroll and the two gestures
+      // fight over the same motion.
+      event.preventDefault();
+    }
     pointers.set(event.pointerId, {
       x: event.clientX,
       y: event.clientY,

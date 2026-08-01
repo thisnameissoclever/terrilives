@@ -695,9 +695,13 @@ describe('the carried badge', () => {
     const built = buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID);
     const badgeBase = 2 * FLOATS_PER_INSTANCE;
     const simBase = 0;
-    expect(built[badgeBase + OFFSET_SCREEN_X]).toBe(built[simBase + OFFSET_SCREEN_X]);
+    // Hand height and off to the side, so the bag reads as held
+    // rather than worn - the plate-hat report.
+    expect(built[badgeBase + OFFSET_SCREEN_X]).toBe(
+      built[simBase + OFFSET_SCREEN_X] + 14,
+    );
     expect(built[badgeBase + OFFSET_SCREEN_Y]).toBe(
-      built[simBase + OFFSET_SCREEN_Y] - 46,
+      built[simBase + OFFSET_SCREEN_Y] - 24,
     );
 
     // The transform, visible: the same row carrying kind 1 draws a

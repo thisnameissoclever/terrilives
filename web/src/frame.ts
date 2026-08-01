@@ -268,10 +268,14 @@ function carriedSprite(source: RenderSource, kind: number): number | null {
 }
 
 /**
- * How far above a sim's anchor its carried badge floats: below the
- * indicator bubble, at hand height rather than head height.
+ * Where a sim's carried badge sits: at HAND height - a third of the
+ * way up the 78 px figure - and nudged to its right side, so the bag
+ * reads as held rather than worn. The first cut floated it at 46,
+ * which under any zoom above 1x landed squarely on the head: the
+ * owner's report, verbatim, was "wearing a plate on their head".
  */
-const CARRIED_LIFT = 46;
+const CARRIED_LIFT = 24;
+const CARRIED_SIDE = 14;
 
 /**
  * The one instance array, reused for the life of the page.
@@ -397,6 +401,13 @@ export function buildInstances(
   // screen, and the transform made visible: the bag becomes a plate
   // between the hob and the table. Hand height, under the bubble, so
   // a talking carrier shows both.
+  //
+  // CAMERA-AWARE like every other pass, and this one learned it the
+  // hard way: written against a scaleless main and rebased under the
+  // camera, it was the single pass placing at 1x coordinates while
+  // zoomed sims moved at scaled ones - the owner saw the badge
+  // tracking its carrier "at a different rate". Both the position and
+  // the offsets take the scale.
   const carrying = source.carrying();
   for (let i = 0; i < count; i++) {
     if (carrying[i] === NOT_CARRYING) continue;
@@ -408,8 +419,8 @@ export function buildInstances(
     writeInstance(
       scratch,
       slot++,
-      screenX(wx, wy, originX),
-      screenY(wx, wy, originY) - CARRIED_LIFT,
+      screenX(wx, wy, originX, scale) + CARRIED_SIDE * scale,
+      screenY(wx, wy, originY, scale) - CARRIED_LIFT * scale,
       layeredDepth(wx, wy, gridSize, LAYER_SIM) - INDICATOR_DEPTH_NUDGE,
       sprite,
     );
