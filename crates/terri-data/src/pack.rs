@@ -314,6 +314,40 @@ pub struct CompiledPersonality {
     pub dispositions: Vec<(ObjectDefId, u32, f32)>,
 }
 
+/// One trait, compiled - [E3]. The kind-specific numbers live in an
+/// enum so a disposition carrying a severity has no representation,
+/// which is [D9] applied to the three-mechanisms split itself.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum CompiledTraitKind {
+    /// Weighs tagged candidates in scoring. Stateless.
+    Disposition { score_multiplier: f32 },
+    /// Gates tagged completions as may-attempt-may-fail, with a level
+    /// that learning raises toward 1.
+    Capability {
+        start_level: f32,
+        fail_delta_scale: f32,
+        learn_per_attempt: f32,
+    },
+    /// Scales satisfaction accrual, with a severity that management
+    /// lowers toward 0.
+    Condition {
+        accrual_scale: f32,
+        manage_per_completion: f32,
+        start_severity: f32,
+    },
+}
+
+/// See [`CompiledTraitKind`]. `tag` stays a string because the runtime
+/// compares it against `CompiledInteraction::tags`, which are strings;
+/// an interned index would need a tag table nothing else wants.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CompiledTrait {
+    pub id: String,
+    pub label: String,
+    pub tag: String,
+    pub kind: CompiledTraitKind,
+}
+
 /// One member of the authored household - [H2].
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CompiledHouseholdMember {
@@ -329,10 +363,13 @@ pub struct CompiledHouseholdMember {
     pub needs: [f32; NEED_COUNT],
     /// The activity tags this sim loves ([E2]). Every entry names a tag
     /// some interaction in the pack carries - a hobby with nothing to do
-    /// has no representation once a pack exists ([D9]). **Last in this
-    /// struct on purpose**, per the appending rule on
-    /// [`ContentPack::lot`].
+    /// has no representation once a pack exists ([D9]). It was last in
+    /// this struct until `traits` arrived.
     pub hobbies: Vec<String>,
+    /// Indices into [`ContentPack::traits`] - an index rather than the
+    /// authored id for the standing reason. **Last in this struct on
+    /// purpose**, per the appending rule on [`ContentPack::lot`].
+    pub traits: Vec<u32>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -375,9 +412,13 @@ pub struct ContentPack {
     ///
     /// May be empty in a test pack; the shipped pack is required to
     /// carry at least one positively social entry by
-    /// `the_shipped_pack_gives_sims_a_way_to_talk`. **Last in this
-    /// struct on purpose**, per the appending rule on `lot`.
+    /// `the_shipped_pack_gives_sims_a_way_to_talk`. It was last in this
+    /// struct until `traits` arrived.
     pub social: Vec<CompiledInteraction>,
+    /// The trait definitions household members index into - [E3]. May
+    /// be empty in a test pack, like `social`. **Last in this struct on
+    /// purpose**, per the appending rule on `lot`.
+    pub traits: Vec<CompiledTrait>,
 }
 
 impl ContentPack {
@@ -521,6 +562,7 @@ mod tests {
                 x: 4.5,
                 y: 3.25,
                 needs: [62.5, 100.0, 87.5, 93.75, 100.0, 81.25, 96.875],
+                traits: vec![2],
                 // A tag the object interaction does NOT carry, so a round
                 // trip that wrote hobbies into an interaction's tag slot
                 // (or vice versa) moves the equality below.
@@ -538,6 +580,42 @@ mod tests {
                 tags: vec!["gossip".to_string()],
                 satisfaction: 4.5,
             }],
+            // Three traits, one of each kind with pairwise-distinct
+            // numbers, so a round trip that transposed two kinds' fields
+            // or collapsed the enum to one variant moves the equality
+            // ([L34]). The member above wears index 2, which is NOT the
+            // list's first entry, pinning that indices ride rather than
+            // being re-derived.
+            traits: vec![
+                CompiledTrait {
+                    id: "gossip_hound".to_string(),
+                    label: "Gossip hound".to_string(),
+                    tag: "gossip".to_string(),
+                    kind: CompiledTraitKind::Disposition {
+                        score_multiplier: 1.375,
+                    },
+                },
+                CompiledTrait {
+                    id: "all_thumbs".to_string(),
+                    label: "All thumbs".to_string(),
+                    tag: "tinkering".to_string(),
+                    kind: CompiledTraitKind::Capability {
+                        start_level: 0.1875,
+                        fail_delta_scale: 0.0625,
+                        learn_per_attempt: 0.03125,
+                    },
+                },
+                CompiledTrait {
+                    id: "weary".to_string(),
+                    label: "Weary".to_string(),
+                    tag: "puttering".to_string(),
+                    kind: CompiledTraitKind::Condition {
+                        accrual_scale: 0.5625,
+                        manage_per_completion: 0.015625,
+                        start_severity: 0.6875,
+                    },
+                },
+            ],
         }
     }
 

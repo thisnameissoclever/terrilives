@@ -498,6 +498,7 @@ pub fn serve_intents(
                 .entity(agent)
                 .remove::<Eating>()
                 .remove::<Socialising>()
+                .remove::<terri_core::Fumbled>()
                 .insert((
                     Target {
                         object: intent.object,
@@ -578,6 +579,7 @@ pub fn serve_intents(
             .entity(agent)
             .remove::<Eating>()
             .remove::<Socialising>()
+            .remove::<terri_core::Fumbled>()
             .insert((
                 Target {
                     object: intent.object,
@@ -633,6 +635,7 @@ pub fn select_action(
             Option<&Habituation>,
             Option<&Personality>,
             Option<&Relationships>,
+            Option<&terri_core::Traits>,
         ),
         // `Without<Reserved>` is new with [H4] and applies to the AGENT:
         // a sim somebody reserved on an earlier tick is spoken for, and
@@ -740,6 +743,7 @@ pub fn select_action(
         Habituation,
         Personality,
         Relationships,
+        Option<terri_core::Traits>,
     )> = agents
         .iter()
         // **A directed sim does not choose for itself** - [D-3]. This is
@@ -779,22 +783,28 @@ pub fn select_action(
         // See [L41]: a guard normally shadowed by another guard is only
         // observable on the input where the shadow is absent, so that
         // fixture had to be built deliberately rather than found.
-        .filter(|(_, _, _, queue, _, _, _)| queue.is_none_or(|queue| queue.is_empty()))
+        .filter(|(_, _, _, queue, _, _, _, _)| queue.is_none_or(|queue| queue.is_empty()))
         // Cloned rather than borrowed because the loop below takes `commands`
         // mutably; both Vecs are single digits long. A sim with no
         // `Personality` gets the neutral one - all multipliers 1.0 - which
         // is what keeps every fixture and golden vector predating M2c
         // behaving exactly as it did.
-        .map(|(e, pos, needs, _, hab, personality, relationships)| {
-            (
-                e,
-                *pos,
-                *needs,
-                hab.cloned().unwrap_or_default(),
-                personality.cloned().unwrap_or_default(),
-                relationships.cloned().unwrap_or_default(),
-            )
-        })
+        .map(
+            |(e, pos, needs, _, hab, personality, relationships, traits)| {
+                (
+                    e,
+                    *pos,
+                    *needs,
+                    hab.cloned().unwrap_or_default(),
+                    personality.cloned().unwrap_or_default(),
+                    relationships.cloned().unwrap_or_default(),
+                    // An Option rather than a defaulted clone, because the
+                    // trait helpers already read absence as neutral and an
+                    // empty Traits would be an allocation restating that.
+                    traits.cloned(),
+                )
+            },
+        )
         .collect();
     idle.sort_by_key(|(e, ..)| e.index());
 
@@ -836,7 +846,7 @@ pub fn select_action(
 
     let mut claimed: Vec<Entity> = Vec::new();
 
-    for (agent, agent_pos, needs, habituation, personality, relationships) in idle {
+    for (agent, agent_pos, needs, habituation, personality, relationships, traits) in idle {
         // Reserved WITHIN this tick, by a lower-indexed initiator. The
         // query filter above handles reservations from earlier ticks;
         // commands are deferred, so this tick's are visible only here.
@@ -1022,8 +1032,18 @@ pub fn select_action(
                 // its own. A COMMAND still works: `serve_intents` does not
                 // score.
                 let hab = habituation.get(placed.0, index as u32);
+                // The FOURTH source into the one multiplier ([S4]):
+                // trait dispositions, keyed by TAG so one fear covers
+                // every couch-shaped route, beside the archetype
+                // dispositions keyed by (object, interaction). Two
+                // lookup keys, one slot.
                 let scale = benefit_scale(hab, content.0.tuning.habituation_floor)
-                    * personality.disposition(placed.0, index as u32);
+                    * personality.disposition(placed.0, index as u32)
+                    * super::trait_effects::disposition_multiplier(
+                        traits.as_ref(),
+                        content.0,
+                        &advert.tags,
+                    );
                 let mut score = 0.0;
                 for (need_index, delta) in &advert.advertises {
                     let satisfaction = personality.satisfaction[*need_index as usize];
@@ -1150,12 +1170,22 @@ pub fn select_action(
             };
             let distance = steps.len() as f32;
 
-            let scale = relationship_scale(
+            let relationship = relationship_scale(
                 relationships.feeling(*other_id),
                 content.0.tuning.relationship_delta_scale,
             );
             let mut best: Option<(u32, f32)> = None;
             for (index, advert) in content.0.social.iter().enumerate() {
+                // Trait dispositions weigh people-candidates exactly as
+                // they weigh objects - the vocabulary is tagged, so a
+                // sim who loves company scores every chat up through
+                // the same one slot ([S4]).
+                let scale = relationship
+                    * super::trait_effects::disposition_multiplier(
+                        traits.as_ref(),
+                        content.0,
+                        &advert.tags,
+                    );
                 let mut score = 0.0;
                 for (need_index, delta) in &advert.advertises {
                     let satisfaction = personality.satisfaction[*need_index as usize];

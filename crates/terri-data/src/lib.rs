@@ -13,12 +13,13 @@ pub use compile::{compile, SIM_SPRITE};
 pub use error::ContentError;
 pub use pack::{
     CompiledHouseholdMember, CompiledInteraction, CompiledLot, CompiledObject, CompiledPersonality,
-    CompiledPlacement, ContentPack, Footprint, ObjectDefId, Tuning,
+    CompiledPlacement, CompiledTrait, CompiledTraitKind, ContentPack, Footprint, ObjectDefId,
+    Tuning,
 };
 pub use schema::{
     ArchetypeDef, AtlasFile, AtlasSpriteDef, DispositionDef, HouseholdFile, HouseholdSimDef,
     InteractionDef, LotFile, NeedDef, NeedsFile, ObjectDef, ObjectsFile, PersonalitiesFile,
-    PlacementDef, TuningFile, WallDef,
+    PlacementDef, TraitDef, TraitsFile, TuningFile, WallDef, TRAIT_KINDS,
 };
 
 use std::sync::OnceLock;

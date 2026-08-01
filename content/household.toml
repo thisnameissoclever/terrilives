@@ -31,6 +31,10 @@ needs = { hunger = 62.0, fun = 78.0 }
 # one, because habituation forces rotation and a one-hobby life stalls
 # the moment its object is sick of her.
 hobbies = ["correspondence", "reading"]
+# Low spirits, managed at the desk: the same activity that is her
+# hobby is what lowers the severity, which makes her routine
+# self-treating in a way the trace can measure ([E3]).
+traits = ["low_spirits"]
 
 # Doug came with the armchair, or possibly the armchair came with Doug;
 # the paperwork is unclear. Spawns in the bedroom aching for comfort,
@@ -44,6 +48,8 @@ needs = { comfort = 55.0, energy = 83.0 }
 # Doug's idea of a full life is a cooked meal in front of the
 # television, which is two hobbies if you write them down.
 hobbies = ["television", "cooking"]
+# The pull toward the set, over what its need deltas earn.
+traits = ["television_devotee"]
 
 # Nadia moved in for the company and is still looking for it. Spawns in
 # the kitchen with nobody to talk to, which at this stage of the game is
@@ -60,3 +66,7 @@ needs = { social = 58.0, hygiene = 71.0 }
 # free, which is the most fragile hobby in the house and exactly the
 # life the flitting archetype describes.
 hobbies = ["socialising"]
+# Nadia may attempt the stove and will mostly fail at first -
+# failure is a scene, not a hidden option - and every attempt
+# teaches her ([S4]).
+traits = ["cannot_cook"]

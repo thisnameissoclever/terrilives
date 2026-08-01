@@ -1370,3 +1370,14 @@ state on every input. A zero entry is itself transient: only
 `bump` can create one (a gain and a loss cancelling exactly), and it
 lives at most one tick before `decay` removes it. No test can
 distinguish the operators because no observable state differs.
+
+### M2e PR 2 CI drift (the pair's FOURTH address)
+
+The flood_fill pair moved 1338 to 1508 - the traits PR grew
+`compile_traits` and its errors above it - and shard 4 of the merge-gate
+sweep went red on two mutants nobody touched, exactly the failure the
+[L40]-era note above predicts. Re-pointed, arguments unchanged, nothing
+added and nothing removed. (The 1338 address had itself been re-anchored
+within the same PR's earlier push; insertions above the function land at
+whatever line the tree has when the branch is swept, so a long-lived
+branch can re-anchor the same entry more than once before it merges.)
