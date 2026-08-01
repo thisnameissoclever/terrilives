@@ -546,6 +546,29 @@ pub struct AtWork {
 #[derive(Resource, Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Funds(pub i64);
 
+/// The chain this sim is partway through - [K4]'s program counter.
+/// `chain` indexes the pack's chain list, `step` the next (or current)
+/// step to run. IN the world hash: it is the resume state, and two
+/// replays must agree on where every dinner stands.
+///
+/// Survives every preemption on purpose - a player click, a career
+/// shift - and is removed by exactly two things: the terminal step's
+/// completion, and an explicit `CancelIntents` (stop means stop).
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ChainState {
+    pub chain: u32,
+    pub step: u32,
+}
+
+/// The item in this sim's hands, as an index into the pack's item
+/// kinds - [K3]. IN the world hash. A COMPONENT rather than an entity
+/// this milestone, deliberately: no shipped step puts anything down as
+/// a world object, and the entity upgrade (with the project's first
+/// despawn, [L47]'s minefield) lands with whatever first drops an
+/// item. The working design names the trap.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Carrying(pub u32);
+
 /// The atlas sprite this entity is drawn with, when it differs from its
 /// object definition's - [A-11]'s facing mechanism.
 ///
