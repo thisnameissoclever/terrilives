@@ -126,13 +126,21 @@ pub fn advance_chains(
             Some((station, steps)) => {
                 claimed.push(station);
                 commands.entity(station).insert(Reserved);
-                commands.entity(sim).remove::<Restless>().insert((
-                    Target {
-                        object: station,
-                        interaction: CHAIN_STEP,
-                    },
-                    Path { steps, cursor: 0 },
-                ));
+                commands
+                    .entity(sim)
+                    .remove::<Restless>()
+                    // The wait is over, so the marker that said why
+                    // goes too - nothing else can clear it, because
+                    // selection (Blocked's other janitor) excludes
+                    // chain-holders. A review caught it stuck.
+                    .remove::<Blocked>()
+                    .insert((
+                        Target {
+                            object: station,
+                            interaction: CHAIN_STEP,
+                        },
+                        Path { steps, cursor: 0 },
+                    ));
             }
             // Somebody is at every station (or none is reachable, which
             // shipped content cannot express - the coverage rule). The
@@ -201,7 +209,12 @@ pub fn tick_chain_steps(
         else {
             continue;
         };
-        step_work.remaining_ticks -= 1;
+        // Saturating, the Eating countdown's own idiom: this arm never
+        // re-enters below zero today, but a StepWork inserted at 0 by a
+        // future path would underflow-panic in debug rather than
+        // complete, and a countdown is not where that failure should
+        // surface.
+        step_work.remaining_ticks = step_work.remaining_ticks.saturating_sub(1);
         if step_work.remaining_ticks > 0 {
             continue;
         }
@@ -1267,6 +1280,12 @@ mod tests {
         );
 
         sim.world_mut().entity_mut(pantry).remove::<Reserved>();
+        sim.tick();
+        assert!(
+            sim.world().get::<terri_core::Blocked>(agent).is_none(),
+            "the wait's marker clears the moment the errand proceeds - \
+             the review found it stuck for the life of the chain"
+        );
         for _ in 0..200 {
             sim.tick();
             if sim.world().get::<ChainState>(agent).is_none() {
