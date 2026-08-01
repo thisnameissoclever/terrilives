@@ -47,6 +47,8 @@ function source(overrides: Partial<DebugSource> = {}): DebugSource {
     careerOf: (entity) => (entity === 7 ? 'Office clerk' : null),
     chainStatusOf: (entity) =>
       entity === 7 ? 'Cook dinner: Cook (carrying ingredients)' : null,
+    standingOf: (entity) =>
+      entity === 7 ? 'waiting on something in use; orders queued: 2' : null,
     ...overrides,
   };
 }
@@ -65,11 +67,15 @@ describe('formatDebugReport', () => {
     // the bare word for its refill multipliers.
     expect(report).toContain('life satisfaction: 42.3');
     expect(report.split('entity 9')[1]).not.toContain('life satisfaction:');
-    // Drain first, satisfaction second: the asymmetric fixture halves
-    // (1.5 heads drain, 0.75 tails satisfaction) tell a swap apart.
-    expect(report).toContain('drain: hunger 1.50');
-    expect(report).toContain('satisfaction: hunger 0.50');
-    expect(report).toContain('comfort 0.75');
+    // Multipliers as DEVIATIONS only: the neutral 1.00 columns are
+    // noise the owner read as broken stats, so they are gone, and the
+    // x prefix says what the number does. The asymmetric fixture
+    // halves (1.5 heads drain, 0.75 tails refill) still tell a swap
+    // apart.
+    expect(report).toContain('drains: hunger x1.50');
+    expect(report).toContain('refills: hunger x0.50');
+    expect(report).toContain('comfort x0.75');
+    expect(report).not.toContain('x1.00');
   });
 
   it('prints the household funds once, at the top, before anybody', () => {
@@ -87,11 +93,16 @@ describe('formatDebugReport', () => {
     expect(report.split('entity 9')[1]).not.toContain('errand:');
     // The fixture wears the SECOND pack trait, so a lookup collapsing
     // to index 0 would print the hound.
-    expect(report).toContain('wears: Low spirits (condition, severity 0.55)');
+    expect(report).toContain('traits: Low spirits (condition, severity 0.55)');
     expect(report).not.toContain('Gossip hound');
+    // The standing line answers "why is she just standing there".
+    expect(report).toContain(
+      'standing: waiting on something in use; orders queued: 2',
+    );
     const bareBlock = report.split('entity 9')[1];
     expect(bareBlock).not.toContain('works:');
-    expect(bareBlock).not.toContain('wears:');
+    expect(bareBlock).not.toContain('traits:');
+    expect(bareBlock).not.toContain('standing:');
   });
 
   it('words a capability as a level and a disposition as nothing', () => {
@@ -105,9 +116,9 @@ describe('formatDebugReport', () => {
         traitLabels: () => ['All thumbs', 'Gossip hound'],
       }),
     );
-    expect(report).toContain('wears: All thumbs (capability, level 0.40)');
+    expect(report).toContain('traits: All thumbs (capability, level 0.40)');
     // A disposition carries no state, so none is invented for it.
-    expect(report).toContain('wears: Gossip hound (disposition)');
+    expect(report).toContain('traits: Gossip hound (disposition)');
   });
 
   it('names a known SimId and falls back for an unknown one', () => {

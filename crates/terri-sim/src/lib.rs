@@ -836,6 +836,39 @@ impl Sim {
             })
     }
 
+    /// Why the sim carrying `index` is standing still, or `None` when
+    /// nothing is holding it - the overlay's answer to "she is
+    /// starving at the front door and it says idle". Functional text,
+    /// plain on purpose; the voice pass does not apply to diagnostics.
+    pub fn standing_of(&self, index: u32) -> Option<String> {
+        let mut state = self.world.try_query::<(
+            Entity,
+            Has<terri_core::Blocked>,
+            Has<terri_core::Restless>,
+            Option<&terri_core::IntentQueue>,
+        )>()?;
+        let (_, blocked, restless, queue) = state
+            .iter(&self.world)
+            .find(|(entity, ..)| entity.index_u32() == index)?;
+        let mut parts: Vec<String> = Vec::new();
+        if blocked {
+            parts.push("waiting on something in use".to_string());
+        }
+        if restless {
+            parts.push("found nothing worth doing".to_string());
+        }
+        if let Some(queue) = queue {
+            if !queue.is_empty() {
+                parts.push(format!("orders queued: {}", queue.len()));
+            }
+        }
+        if parts.is_empty() {
+            None
+        } else {
+            Some(parts.join("; "))
+        }
+    }
+
     /// The label of the career held by the sim carrying `index`, or
     /// `None` for the unemployed and everything else - [E4]'s overlay
     /// read. The label rather than the index, because the pack lookup

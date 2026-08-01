@@ -42,6 +42,8 @@ export interface DebugSource {
   careerOf(entityIndex: number): string | null;
   /** The sim's mid-errand status line, or null when it is not on one - K4. */
   chainStatusOf(entityIndex: number): string | null;
+  /** Why the sim is standing still, or null when nothing holds it. */
+  standingOf(entityIndex: number): string | null;
 }
 
 /** The one DOM dependency, structural like the needs panel's. */
@@ -141,8 +143,16 @@ export function formatDebugReport(source: DebugSource): string {
       const label = traitLabels[which] ?? `trait#${which}`;
       const kind = traitKinds[which] ?? 'unknown';
       lines.push(
-        `  wears: ${label} (${kind}${traitStateLabel(kind, worn[i + 1])})`,
+        `  traits: ${label} (${kind}${traitStateLabel(kind, worn[i + 1])})`,
       );
+    }
+
+    // Why a standing sim is standing - the owner's Terri-at-the-door
+    // report: "idle" with hunger at 2 is a question, and this is the
+    // panel answering it instead of the reader guessing.
+    const standing = source.standingOf(entity);
+    if (standing !== null) {
+      lines.push(`  standing: ${standing}`);
     }
 
     const needs = source.needsOf(entity);
@@ -151,15 +161,23 @@ export function formatDebugReport(source: DebugSource): string {
       .join('  ');
     if (needsLine) lines.push(`  needs: ${needsLine}`);
 
+    // Personality MULTIPLIERS, shown as deviations only: seven
+    // columns of neutral 1.00 read as broken stats (the owner read
+    // them exactly that way), while "drains: fun x1.30" says what the
+    // number does. A sim with a flat personality shows neither line.
     const personality = source.personalityOf(entity);
     if (personality.length === needNames.length * 2) {
       const half = needNames.length;
-      const fmt = (values: Float32Array | number[]): string =>
+      const deviations = (values: Float32Array | number[]): string =>
         Array.from(values)
-          .map((v, i) => `${needNames[i]} ${Number(v).toFixed(2)}`)
-          .join('  ');
-      lines.push(`  drain: ${fmt(personality.subarray(0, half))}`);
-      lines.push(`  satisfaction: ${fmt(personality.subarray(half))}`);
+          .map((v, i) => ({ need: needNames[i], v: Number(v) }))
+          .filter(({ v }) => Math.abs(v - 1) > 0.0001)
+          .map(({ need, v }) => `${need} x${v.toFixed(2)}`)
+          .join(', ');
+      const drains = deviations(personality.subarray(0, half));
+      const refills = deviations(personality.subarray(half));
+      if (drains) lines.push(`  drains: ${drains}`);
+      if (refills) lines.push(`  refills: ${refills}`);
     }
 
     const pairs = source.relationshipsOf(entity);

@@ -517,6 +517,12 @@ impl SimHandle {
         self.sim.chain_status_of(entity_index).unwrap_or_default()
     }
 
+    /// Why the sim is standing still, or the empty string when nothing
+    /// holds it - sim_name's in-band contract.
+    pub fn standing_of(&self, entity_index: u32) -> String {
+        self.sim.standing_of(entity_index).unwrap_or_default()
+    }
+
     /// Fourteen floats - drain then satisfaction, seven each - or empty.
     /// The [A-11] debug overlay's read; see `Sim::personality_of`.
     pub fn personality_of(&self, entity_index: u32) -> Vec<f32> {

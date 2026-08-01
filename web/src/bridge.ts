@@ -477,6 +477,16 @@ export class SimBridge {
     return status === '' ? null : status;
   }
 
+  /**
+   * Why the sim is standing still, or null when nothing holds it -
+   * the boundary's empty string is in-band the way simName's is.
+   */
+  standingOf(entityIndex: number): string | null {
+    if (!isU32(entityIndex)) return null;
+    const reason = this.handle.standing_of(entityIndex);
+    return reason === '' ? null : reason;
+  }
+
   /** The household's money - E4. One number for the lot, not per sim. */
   funds(): number {
     return this.handle.funds();
