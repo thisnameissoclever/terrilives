@@ -12,9 +12,9 @@ pub mod schema;
 pub use compile::{compile, SIM_SPRITE};
 pub use error::ContentError;
 pub use pack::{
-    CompiledHouseholdMember, CompiledInteraction, CompiledLot, CompiledObject, CompiledPersonality,
-    CompiledPlacement, CompiledTrait, CompiledTraitKind, ContentPack, Footprint, ObjectDefId,
-    Tuning,
+    CompiledCareer, CompiledHouseholdMember, CompiledInteraction, CompiledLot, CompiledObject,
+    CompiledPersonality, CompiledPlacement, CompiledTrait, CompiledTraitKind, ContentPack,
+    Footprint, ObjectDefId, Tuning,
 };
 pub use schema::{
     ArchetypeDef, AtlasFile, AtlasSpriteDef, DispositionDef, HouseholdFile, HouseholdSimDef,

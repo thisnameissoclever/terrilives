@@ -370,7 +370,18 @@ pub fn serve_intents(
     mut commands: Commands,
     grid: Res<TileGrid>,
     content: Res<Content>,
-    mut agents: Query<(Entity, &Position, &mut IntentQueue, Option<&Target>), With<Agent>>,
+    // Work outranks the queue - [E4]. serve_intents deliberately sees
+    // mid-walk and mid-meal sims because a player intent preempts, but
+    // the clock's preemption is not preemptable back: a commuting or
+    // working sim's queued intents wait and are served on the return.
+    mut agents: Query<
+        (Entity, &Position, &mut IntentQueue, Option<&Target>),
+        (
+            With<Agent>,
+            Without<terri_core::AtWork>,
+            Without<terri_core::Commuting>,
+        ),
+    >,
     objects: Query<(&Position, &SmartObject, Has<Reserved>)>,
     // Everything a TalkTo intent needs to know about its target: where
     // it stands, whether it is spoken for, and whether it is busy in
@@ -385,6 +396,11 @@ pub fn serve_intents(
             Has<Path>,
             Has<Eating>,
             Has<Socialising>,
+            // At work is BUSY, not gone - [E4] meets [C3]: a directed
+            // talk waits by the door for the worker's return exactly
+            // as it waits out a shower. A commuter is already busy
+            // through Has<Path>.
+            Has<terri_core::AtWork>,
         ),
         With<Agent>,
     >,
@@ -446,8 +462,15 @@ pub fn serve_intents(
             // carries the target sim's entity in the same field a
             // UseObject carries a fridge's, and this is where the two
             // part ways. Gone entirely: drop, like any stale index.
-            let Ok((target_pos, reserved_p, has_target, has_path, has_eating, has_talking)) =
-                people.get(intent.object)
+            let Ok((
+                target_pos,
+                reserved_p,
+                has_target,
+                has_path,
+                has_eating,
+                has_talking,
+                at_work,
+            )) = people.get(intent.object)
             else {
                 queue.pop();
                 continue;
@@ -464,7 +487,7 @@ pub fn serve_intents(
             // intent stays at the front and retries, select_action skips
             // the non-empty queue, and the sim stands rather than
             // strolls. `Blocked` says why out loud.
-            let busy = has_target || has_path || has_eating || has_talking;
+            let busy = has_target || has_path || has_eating || has_talking || at_work;
             if (reserved_p && !held_here) || claimed.contains(&intent.object) || busy {
                 commands.entity(agent).insert(Blocked);
                 continue;
@@ -648,6 +671,12 @@ pub fn select_action(
             Without<Target>,
             Without<Eating>,
             Without<Reserved>,
+            // The rabbit hole - [E4]. A working sim is gone, and a
+            // commuting one is spoken for by the clock: without the
+            // second filter, a commuter (Path, no Target - the wander
+            // shape) would select something and overwrite its commute.
+            Without<terri_core::AtWork>,
+            Without<terri_core::Commuting>,
         ),
     >,
     // Every sim that could be TALKED TO - [H4]/[H10]. Only an idle sim
@@ -681,6 +710,10 @@ pub fn select_action(
             Without<Eating>,
             Without<Socialising>,
             Without<Path>,
+            // Invisible to other sims' people loops while working -
+            // [E4]. A commuter is already excluded by Without<Path>,
+            // so this is the one addition the career needs here.
+            Without<terri_core::AtWork>,
         ),
     >,
     // **Reserved objects are INCLUDED, and `Has<Reserved>` is read per

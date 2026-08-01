@@ -78,6 +78,10 @@ pub mod activity {
     pub const EATING: u32 = 3;
     pub const TALKING: u32 = 4;
     pub const SLEEPING: u32 = 5;
+    /// Off the lot working - [E4]. Not an indicator: the shell skips
+    /// the whole row's draw (sprite, indicator, pick box), so the sim
+    /// is gone without its interpolation slot moving.
+    pub const AT_WORK: u32 = 6;
 }
 
 #[cfg(test)]

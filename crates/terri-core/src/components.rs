@@ -516,6 +516,36 @@ pub struct Fumbled {
     pub delta_scale: f32,
 }
 
+/// The job this sim holds - an index into the pack's career list
+/// ([E4]). Spawn-time content like [`Hobbies`], and NOT hashed for the
+/// Personality reason: derivable from the pack, immutable in M2e.
+/// **That exclusion expires the moment anything mutates one** - a quit
+/// or choose-career command - at which point this joins the hash the
+/// way `Traits` did.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Career(pub u32);
+
+/// This sim is walking to the front door to start a shift - [E4].
+/// Transient action state of the same class as `Eating` and `Fumbled`,
+/// deliberately NOT hashed: reproduced by the day clock on any replay.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Commuting;
+
+/// This sim is off the lot, working - the rabbit hole ([E4]). Counts
+/// down to the return. IN the world hash: it ticks, so two replays
+/// must agree on it, exactly the `Satisfaction` argument.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct AtWork {
+    pub remaining_ticks: u32,
+}
+
+/// The household's money - [E4]. One number for the whole lot rather
+/// than per sim, because the household is the economic unit build mode
+/// will spend from. `i64` so a future bill can take it negative
+/// without a wrap. In the world hash.
+#[derive(Resource, Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct Funds(pub i64);
+
 /// The atlas sprite this entity is drawn with, when it differs from its
 /// object definition's - [A-11]'s facing mechanism.
 ///
