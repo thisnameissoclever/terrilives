@@ -652,20 +652,6 @@ pub fn serve_intents(
     }
 }
 
-/// The union of a chain's step tags, for the disposition multiplier:
-/// loving cooking pulls a sim toward the dinner, wherever the tag sits.
-fn chain_tags(chain: &terri_data::CompiledChain) -> Vec<String> {
-    let mut tags: Vec<String> = Vec::new();
-    for step in &chain.steps {
-        for tag in &step.tags {
-            if !tags.contains(tag) {
-                tags.push(tag.clone());
-            }
-        }
-    }
-    tags
-}
-
 /// What an agent thinks of something it can see but cannot have yet.
 ///
 /// `min` rather than a bare multiply, and the reason is the sign. A score
@@ -1269,7 +1255,7 @@ pub fn select_action(
                     }
                 }
 
-                let tags = chain_tags(chain);
+                let tags = super::chain::chain_tags(chain);
                 let hab = habituation.get(placed.0, row);
                 let scale = benefit_scale(hab, content.0.tuning.habituation_floor)
                     * personality.disposition(placed.0, row)

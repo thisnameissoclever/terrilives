@@ -262,16 +262,24 @@ pub fn tick_chain_steps(
         commands.queue({
             let advertiser = chain.advertised_by;
             let per_use = content.0.tuning.habituation_per_use;
-            move |world: &mut World| {
-                if let Some(mut habituation) = world.get_mut::<terri_core::Habituation>(sim) {
-                    habituation.bump(advertiser, row, per_use);
+            // Insert-if-absent, the tick_interactions rule: an agent
+            // gains the component the first time it finishes anything,
+            // and a fresh sim's first dinner must leave a record too.
+            move |world: &mut World| match world.get_mut::<terri_core::Habituation>(sim) {
+                Some(mut habituation) => habituation.bump(advertiser, row, per_use),
+                None => {
+                    let mut fresh = terri_core::Habituation::default();
+                    fresh.bump(advertiser, row, per_use);
+                    if let Ok(mut entity) = world.get_entity_mut(sim) {
+                        entity.insert(fresh);
+                    }
                 }
             }
         });
 
         if let Some(mut satisfaction) = satisfaction {
             if !chain_state.fumbled() {
-                let tags = all_tags(chain);
+                let tags = chain_tags(chain);
                 let payout =
                     super::satisfaction::hobby_payout(
                         chain.satisfaction,
@@ -289,7 +297,9 @@ pub fn tick_chain_steps(
 
 /// The chain's position among its advertiser's chains - the second
 /// half of [K5]'s flyout row `interactions.len() + position`.
-fn chain_position(pack: &terri_data::ContentPack, chain: u32) -> u32 {
+/// `pub(crate)` for its unit test: the row arithmetic survived a
+/// sweep unconstrained while only integration outcomes were pinned.
+pub(crate) fn chain_position(pack: &terri_data::ContentPack, chain: u32) -> u32 {
     let advertiser = pack.chains[chain as usize].advertised_by;
     pack.chains[..chain as usize]
         .iter()
@@ -297,9 +307,14 @@ fn chain_position(pack: &terri_data::ContentPack, chain: u32) -> u32 {
         .count() as u32
 }
 
-/// The union of every step's tags, for the hobby payout: loving
-/// cooking makes the dinner loved, wherever the tag sits.
-fn all_tags(chain: &terri_data::CompiledChain) -> Vec<String> {
+/// The union of every step's tags, first-appearance order, no
+/// repeats - what the hobby payout and the disposition multiplier
+/// both read: loving cooking makes the dinner loved, wherever the
+/// tag sits. ONE function for both consumers ([S4]'s one-mechanism
+/// discipline applied to a Vec), with its own unit test because both
+/// consumers happen to be duplicate-insensitive and a sweep proved
+/// that leaves every line here unconstrained.
+pub(crate) fn chain_tags(chain: &terri_data::CompiledChain) -> Vec<String> {
     let mut tags: Vec<String> = Vec::new();
     for step in &chain.steps {
         for tag in &step.tags {
@@ -316,7 +331,7 @@ mod tests {
     use super::*;
     use crate::test_content;
     use crate::Sim;
-    use terri_core::{Agent, CommandQueue};
+    use terri_core::{Agent, CommandQueue, NEED_MAX};
     use terri_data::{CompiledChain, CompiledChainStep, ContentPack};
 
     /// A two-step chain over two roles with pairwise distinct numbers:
@@ -646,6 +661,478 @@ mod tests {
             }
         }
         panic!("the fumbled chain never completed");
+    }
+
+    // ---- The scoring sandwich -----------------------------------------
+    //
+    // The sweep's largest cluster: every operator in the chain-scoring
+    // block survived, because the outcome tests never pinned the
+    // NUMBER. The kill is a sandwich: the expected score is computed
+    // IN THE TEST from the same public pieces selection composes
+    // (benefit_scale, disposition_multiplier, scaled_delta,
+    // score_advertisement) against exactly known geometry, and the
+    // pack's action_threshold is then set fractionally below it (must
+    // choose), fractionally above it (must not), and exactly at it
+    // (must not - the strict `>`). Any mutant that moves the score by
+    // a fifth of a percent in either direction flips one slice. The
+    // fixture deliberately engages every term: two steps for the
+    // duration sum, two advertised needs on distinct non-1 personality
+    // satisfactions, a 0.5 trait disposition on a step tag, and a leg
+    // with both axes nonzero.
+
+    /// The scoring world: fridge (advertiser, NO interactions of its
+    /// own so the chain is the only candidate), pantry and table
+    /// wearing the two roles, a decoy chain declared FIRST and
+    /// advertised by the pantry so the target chain's global index (1)
+    /// differs from its local row (0). Returns everything the expected
+    /// score needs.
+    fn scoring_world(threshold_of: impl Fn(f32) -> f32) -> (Sim, Entity, u32) {
+        // Pass 1: a probe pack to measure the score with a threshold
+        // low enough that measurement is possible... instead computed
+        // analytically below - one pass, no probe.
+        let mut pantry = test_content::object_offering("pantry", vec![]);
+        pantry.roles = vec![0];
+        let mut table = test_content::object_offering("table", vec![]);
+        table.roles = vec![1];
+        let fridge = test_content::object_offering("fridge", vec![]);
+
+        let mut decoy = a_chain();
+        decoy.id = "decoy".to_string();
+        decoy.advertised_by = terri_data::ObjectDefId(1);
+        let target = a_chain();
+
+        // Geometry, exactly known: agent at (2, 4), fridge at (2, 1)
+        // (walk 2 - find_path_adjacent stops beside it), pantry at
+        // (5, 2) and table at (9, 5) so the one leg is |5-9| + |2-5|
+        // = 7 with both axes engaged.
+        let agent_tile = (2i32, 4i32);
+        let fridge_tile = (2i32, 1i32);
+        let leg = 7.0f32;
+
+        let hunger_start = 30.0f32;
+        let comfort_start = 55.0f32;
+        let hunger_rate = test_content::decay_per_tick(NeedId::Hunger);
+        let comfort_rate = test_content::decay_per_tick(NeedId::Comfort);
+
+        // The walk, measured on the same grid selection will use.
+        let grid = terri_core::TileGrid::new(12, 8);
+        let steps = grid
+            .find_path_adjacent(agent_tile, fridge_tile, terri_data::Footprint::SINGLE)
+            .expect("open grid");
+        let distance = steps.len() as f32;
+
+        let total_duration: u32 = target.steps.iter().map(|s| s.duration_ticks).sum();
+        let trait_disposition = 0.5f32;
+        let sat_hunger = 1.25f32;
+        let sat_comfort = 0.75f32;
+        // benefit_scale(0, floor) is 1, archetype dispositions absent
+        // are 1, so the slot is the trait disposition alone.
+        let scale = trait_disposition;
+        let mut expected = 0.0f32;
+        for (need, delta, start, rate, sat) in [
+            (
+                NeedId::Hunger,
+                48.0f32,
+                hunger_start,
+                hunger_rate,
+                sat_hunger,
+            ),
+            (
+                NeedId::Comfort,
+                12.0,
+                comfort_start,
+                comfort_rate,
+                sat_comfort,
+            ),
+        ] {
+            // Selection runs after one decay tick.
+            let level = start - rate;
+            let deficit = (NEED_MAX - level) / NEED_MAX;
+            let delta = crate::systems::advertise::scaled_delta(delta, scale * sat);
+            expected += crate::systems::advertise::score_advertisement(
+                deficit,
+                delta,
+                total_duration,
+                distance + leg,
+            );
+            let _ = need;
+        }
+
+        let base = test_content::pack_tuned(
+            vec![fridge, pantry, table],
+            terri_data::Tuning {
+                duration_variance: 0.0,
+                choice_temperature: 0.0001,
+                idle_threshold: 0.0,
+                action_threshold: threshold_of(expected),
+                ..test_content::tuning()
+            },
+        );
+        let pack: &'static ContentPack = Box::leak(Box::new(ContentPack {
+            roles: vec!["pantry_shelf".to_string(), "eating_surface".to_string()],
+            item_kinds: vec!["dinner".to_string()],
+            chains: vec![decoy, target],
+            traits: vec![terri_data::CompiledTrait {
+                id: "wary_cook".to_string(),
+                label: "Wary cook".to_string(),
+                tag: "cooking".to_string(),
+                kind: terri_data::CompiledTraitKind::Disposition {
+                    score_multiplier: trait_disposition,
+                },
+            }],
+            ..base.clone()
+        }));
+
+        let mut sim = test_content::sim_with(12, 8, pack);
+        let spawn_station = |sim: &mut Sim, id: &str, x: f32, y: f32| {
+            let def = pack.find(id).expect("fixture");
+            sim.world_mut()
+                .spawn((Position { x, y }, SmartObject(def)))
+                .id()
+        };
+        spawn_station(&mut sim, "fridge", 2.0, 1.0);
+        spawn_station(&mut sim, "pantry", 5.0, 2.0);
+        spawn_station(&mut sim, "table", 9.0, 5.0);
+
+        let mut needs = Needs::all_at(NEED_MAX);
+        needs.set(NeedId::Hunger, hunger_start);
+        needs.set(NeedId::Comfort, comfort_start);
+        let mut satisfaction = [1.0f32; terri_core::NEED_COUNT];
+        satisfaction[NeedId::Hunger.index()] = sat_hunger;
+        satisfaction[NeedId::Comfort.index()] = sat_comfort;
+        let personality = terri_core::Personality::with_dispositions(
+            [1.0; terri_core::NEED_COUNT],
+            satisfaction,
+            vec![],
+        );
+        let agent = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 2.0, y: 4.0 },
+                needs,
+                personality,
+                Traits::from_entries(vec![(0, 0.0)]),
+                Satisfaction::default(),
+            ))
+            .id();
+        // The target chain is global index 1: the decoy rides first.
+        (sim, agent, 1)
+    }
+
+    /// The sandwich, all three slices: fractionally below the score
+    /// chooses (and the STARTED chain is the right global index, the
+    /// decoy filter working); fractionally above does not; exactly at
+    /// it does not, because the comparison is strictly greater.
+    #[test]
+    fn chain_scoring_is_pinned_by_a_threshold_sandwich() {
+        let (mut sim, agent, global) = scoring_world(|expected| expected * 0.998);
+        sim.tick();
+        let state = sim
+            .world()
+            .get::<ChainState>(agent)
+            .expect("a score above the threshold starts the chain");
+        assert_eq!(
+            state.chain, global,
+            "the committed chain is the advertiser's own, not the decoy"
+        );
+
+        // ONE tick for the negative slices, deliberately: the score
+        // GROWS as needs decay, so a threshold set fractionally above
+        // the tick-1 score is crossed honestly a few ticks later - the
+        // first draft ran five ticks here and diagnosed its own
+        // modelling as wrong. The expectation models tick 1; tick 1 is
+        // what it pins.
+        let (mut sim, agent, _) = scoring_world(|expected| expected * 1.002);
+        sim.tick();
+        assert!(
+            sim.world().get::<ChainState>(agent).is_none(),
+            "a score below the threshold starts nothing; started {:?}",
+            sim.world().get::<ChainState>(agent)
+        );
+
+        let (mut sim, agent, _) = scoring_world(|expected| expected);
+        sim.tick();
+        assert!(
+            sim.world().get::<ChainState>(agent).is_none(),
+            "exactly at the threshold is not above it - the comparison \
+             is strictly greater"
+        );
+    }
+
+    /// The flyout arm resolves the same identity: a UseObject at the
+    /// row past the advertiser's interactions starts the advertiser's
+    /// FIRST chain - global index 1 past the decoy - through the
+    /// untouched wire.
+    #[test]
+    fn a_use_object_row_starts_the_advertisers_chain_not_the_decoys() {
+        let (mut sim, agent, global) = scoring_world(|expected| expected * 10.0);
+        let fridge = {
+            let world = sim.world_mut();
+            let mut state = world.query::<(Entity, &SmartObject)>();
+            state
+                .iter(world)
+                .find(|(_, o)| o.0 == terri_data::ObjectDefId(0))
+                .map(|(e, _)| e)
+                .expect("the fixture placed a fridge")
+        };
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(terri_core::SimCommand::UseObject {
+                agent: agent.index_u32(),
+                object: fridge.index_u32(),
+                // The fixture fridge has NO interactions, so row 0 is
+                // its first chain.
+                interaction: 0,
+            });
+        sim.tick();
+        let state = sim
+            .world()
+            .get::<ChainState>(agent)
+            .expect("the row starts the chain");
+        assert_eq!(state.chain, global);
+
+        // And a row past the chains is a stale click: dropped, not a
+        // panic and not the decoy.
+        let (mut sim, agent, _) = scoring_world(|expected| expected * 10.0);
+        let fridge = {
+            let world = sim.world_mut();
+            let mut state = world.query::<(Entity, &SmartObject)>();
+            state
+                .iter(world)
+                .find(|(_, o)| o.0 == terri_data::ObjectDefId(0))
+                .map(|(e, _)| e)
+                .expect("fixture")
+        };
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(terri_core::SimCommand::UseObject {
+                agent: agent.index_u32(),
+                object: fridge.index_u32(),
+                interaction: 7,
+            });
+        sim.tick();
+        assert!(
+            sim.world().get::<ChainState>(agent).is_none(),
+            "a row past the chains is dropped"
+        );
+    }
+
+    /// The tag union, pinned directly: both consumers (hobby payout,
+    /// disposition multiplier) are duplicate-insensitive, so only a
+    /// unit test can see the union's own shape - first appearance
+    /// order, every tag once, nothing invented.
+    #[test]
+    fn chain_tags_unions_step_tags_once_in_first_appearance_order() {
+        let mut chain = a_chain();
+        chain.steps[0].tags = vec!["cooking".to_string(), "baking".to_string()];
+        chain.steps[1].tags = vec!["baking".to_string(), "plating".to_string()];
+        assert_eq!(
+            chain_tags(&chain),
+            vec![
+                "cooking".to_string(),
+                "baking".to_string(),
+                "plating".to_string()
+            ]
+        );
+        chain.steps[0].tags.clear();
+        chain.steps[1].tags.clear();
+        assert!(chain_tags(&chain).is_empty());
+    }
+
+    /// The flyout-row arithmetic, pinned from positions 0 AND 1 with a
+    /// decoy advertiser in between - a constant 0 fails the second, a
+    /// constant 1 fails the first, and a broken advertiser filter
+    /// counts the decoy.
+    #[test]
+    fn chain_position_counts_only_the_same_advertisers_earlier_chains() {
+        let pack = chain_pack();
+        let mut decoy = a_chain();
+        decoy.id = "decoy".to_string();
+        decoy.advertised_by = terri_data::ObjectDefId(1);
+        let mut second = a_chain();
+        second.id = "second".to_string();
+        let pack = Box::leak(Box::new(ContentPack {
+            chains: vec![pack.chains[0].clone(), decoy, second],
+            ..pack.clone()
+        }));
+        assert_eq!(chain_position(pack, 0), 0, "the advertiser's first");
+        assert_eq!(
+            chain_position(pack, 2),
+            1,
+            "the decoy between them belongs to another advertiser"
+        );
+    }
+
+    /// The NEAREST free station wins, and the fixture makes wrong
+    /// comparisons visible: the FAR pantry is spawned first (lower
+    /// entity index), so a pick that fell to entity order - or that
+    /// relaxed the strictly-shorter rule - reserves the far one.
+    #[test]
+    fn the_nearest_free_station_is_picked_over_an_earlier_far_one() {
+        let pack = chain_pack();
+        let mut sim = test_content::sim_with(12, 8, pack);
+        let def = pack.find("pantry").expect("fixture");
+        let far = sim
+            .world_mut()
+            .spawn((Position { x: 10.0, y: 6.0 }, SmartObject(def)))
+            .id();
+        let near = sim
+            .world_mut()
+            .spawn((Position { x: 3.0, y: 4.0 }, SmartObject(def)))
+            .id();
+        let agent = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 2.0, y: 4.0 },
+                Needs::all_at(80.0),
+                Satisfaction::default(),
+            ))
+            .id();
+        start_chain(&mut sim, agent);
+        sim.tick();
+        assert!(
+            sim.world().get::<Reserved>(near).is_some(),
+            "the two-tile pantry outranks the earlier-spawned far one"
+        );
+        assert!(sim.world().get::<Reserved>(far).is_none());
+    }
+
+    /// A role with NO stations at all (a hand-built world the compile
+    /// gate would refuse) does nothing - no Blocked, because there is
+    /// nothing to wait FOR; Blocked is for a booked kitchen, not a
+    /// missing one.
+    #[test]
+    fn a_roleless_world_neither_proceeds_nor_claims_to_wait() {
+        let pack = chain_pack();
+        let mut sim = test_content::sim_with(12, 8, pack);
+        let agent = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 2.0, y: 4.0 },
+                Needs::all_at(80.0),
+                Satisfaction::default(),
+            ))
+            .id();
+        start_chain(&mut sim, agent);
+        for _ in 0..5 {
+            sim.tick();
+        }
+        let world = sim.world();
+        assert!(
+            world.get::<ChainState>(agent).is_some(),
+            "the counter holds"
+        );
+        assert!(
+            world.get::<terri_core::Blocked>(agent).is_none(),
+            "nothing to wait for is not the same as waiting"
+        );
+    }
+
+    /// The steps take their DECLARED time: at zero variance the two
+    /// stations cost at least 16 + 20 ticks of work on top of the
+    /// walking, so a completion before tick 36 means the countdown
+    /// comparison broke and steps are finishing early or instantly.
+    #[test]
+    fn steps_run_their_declared_durations() {
+        let (mut sim, agent, _pantry, _table) = chain_world();
+        start_chain(&mut sim, agent);
+        for tick in 1..=400u32 {
+            sim.tick();
+            if sim.world().get::<ChainState>(agent).is_none() {
+                assert!(
+                    tick >= 36,
+                    "two steps of 16 and 20 ticks cannot finish by tick {tick}"
+                );
+                return;
+            }
+        }
+        panic!("the chain never completed");
+    }
+
+    /// Habituation lands against the ADVERTISER under the chain's
+    /// flyout row - `interactions.len() + position`, here 1 + 0 - and
+    /// the component is inserted for a sim that had never finished
+    /// anything, the tick_interactions rule.
+    #[test]
+    fn completion_habituates_the_advertiser_under_the_flyout_row() {
+        let (mut sim, agent, _pantry, _table) = chain_world();
+        start_chain(&mut sim, agent);
+        for _ in 0..400 {
+            sim.tick();
+            if sim.world().get::<ChainState>(agent).is_none() {
+                let habituation = sim
+                    .world()
+                    .get::<terri_core::Habituation>(agent)
+                    .expect("the first dinner inserts the component");
+                // A range rather than an equality: decay_habituation
+                // runs later in the completion tick, so the fresh
+                // entry has already been nibbled by the time this
+                // reads. The kill only needs the RIGHT row nonzero
+                // near per_use and every wrong row at zero.
+                let per_use = test_content::tuning().habituation_per_use;
+                let entry = habituation.get(terri_data::ObjectDefId(0), 1);
+                assert!(
+                    entry > per_use * 0.9 && entry <= per_use,
+                    "one completion, keyed at interactions.len() 1 plus \
+                     chain position 0; read {entry} against {per_use}"
+                );
+                assert_eq!(
+                    habituation.get(terri_data::ObjectDefId(0), 0),
+                    0.0,
+                    "the snack row itself is untouched"
+                );
+                return;
+            }
+        }
+        panic!("the chain never completed");
+    }
+
+    /// A condition scales the terminal payout exactly as it scales an
+    /// interaction's: severity 1 at accrual_scale 0.5 halves the loved
+    /// dinner, asserted as arithmetic rather than direction.
+    #[test]
+    fn a_condition_taxes_the_terminal_payout() {
+        let (mut sim, agent, _pantry, _table) = chain_world();
+        let pack = sim
+            .world()
+            .get_resource::<crate::Content>()
+            .expect("content installed")
+            .0;
+        let pack = Box::leak(Box::new(ContentPack {
+            traits: vec![terri_data::CompiledTrait {
+                id: "weary".to_string(),
+                label: "Weary".to_string(),
+                tag: "resting".to_string(),
+                kind: terri_data::CompiledTraitKind::Condition {
+                    accrual_scale: 0.5,
+                    manage_per_completion: 0.0,
+                    start_severity: 1.0,
+                },
+            }],
+            ..pack.clone()
+        }));
+        sim.world_mut().insert_resource(crate::Content(pack));
+        sim.world_mut()
+            .entity_mut(agent)
+            .insert(Traits::from_entries(vec![(0, 1.0)]));
+        start_chain(&mut sim, agent);
+        for _ in 0..400 {
+            sim.tick();
+            if sim.world().get::<ChainState>(agent).is_none() {
+                let paid = sim.world().get::<Satisfaction>(agent).unwrap().value();
+                let expected = 2.5 * test_content::tuning().hobby_multiplier * 0.5;
+                assert!(
+                    (paid - expected).abs() < 0.001,
+                    "severity 1 at scale 0.5 halves the loved payout: got \
+                     {paid}, expected {expected}"
+                );
+                return;
+            }
+        }
+        panic!("the chain never completed");
     }
 
     /// Contention: with the pantry claimed by somebody else, the
