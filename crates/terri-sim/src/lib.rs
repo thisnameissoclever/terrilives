@@ -873,6 +873,48 @@ mod lot_tests {
         rows.into_iter().map(|(_, x, y, def)| (x, y, def)).collect()
     }
 
+    /// The facing guard in the spawn loop, exercised through the one
+    /// path that decides: a placement whose compiled sprite DIFFERS
+    /// from its definition's carries a `SpriteVariant`, and one whose
+    /// sprite matches carries nothing. The fixture's two placements are
+    /// one of each - sprite 2 against a definition sprite of 0, and
+    /// sprite 0 against the same - so flipping the guard's `!=` swaps
+    /// both outcomes and both assertions go red. The render-buffer test
+    /// for the variant inserts the component directly and cannot see
+    /// this decision.
+    #[test]
+    fn new_from_lot_gives_only_faced_placements_a_sprite_variant() {
+        let lot = a_lot();
+        let defs = one_tile_defs();
+        assert_ne!(
+            lot.placements[0].sprite, defs[2].sprite,
+            "precondition: the first placement is faced"
+        );
+        assert_eq!(
+            lot.placements[1].sprite, defs[0].sprite,
+            "precondition: the second placement is plain"
+        );
+
+        let mut sim = Sim::new_from_lot(&lot, &defs);
+        let mut variants: Vec<(f32, Option<u32>)> = {
+            let world = sim.world_mut();
+            let mut state =
+                world.query::<(&Position, &SmartObject, Option<&terri_core::SpriteVariant>)>();
+            state
+                .iter(world)
+                .map(|(pos, _, variant)| (pos.x, variant.map(|v| v.0)))
+                .collect()
+        };
+        variants.sort_by(|a, b| a.0.total_cmp(&b.0));
+
+        assert_eq!(
+            variants,
+            vec![(2.5, Some(2)), (4.0, None)],
+            "the faced placement carries its resolved variant and the \
+             plain one carries nothing - a flipped guard swaps both"
+        );
+    }
+
     #[test]
     fn new_from_lot_sizes_the_grid_to_the_lot_rather_than_transposing_it() {
         let sim = Sim::new_from_lot(&a_lot(), &one_tile_defs());
