@@ -697,6 +697,72 @@ impl Sim {
         self.world.resource::<terri_core::Funds>().0
     }
 
+    /// The worn traits of the sim carrying `index`, as (pack trait
+    /// index, live state) pairs in key order - the [E3] overlay read.
+    /// `None` for objects, stale indices, and bare agents, the same
+    /// contract as every scan here; the shell resolves the indices
+    /// against the pack's labels, which it reads once.
+    pub fn traits_of(&self, index: u32) -> Option<Vec<(u32, f32)>> {
+        let mut state = self.world.try_query::<(Entity, &terri_core::Traits)>()?;
+        state
+            .iter(&self.world)
+            .find(|(entity, _)| entity.index_u32() == index)
+            .map(|(_, worn)| worn.entries().to_vec())
+    }
+
+    /// One label per entry in the pack's trait list, in pack order -
+    /// what [`Sim::traits_of`]'s indices resolve against. Here rather
+    /// than in `terri-wasm` because the boundary crate is forbidden the
+    /// content crate ([D1]); the strings are borrowed from the
+    /// `&'static` pack like `interaction_labels`'.
+    pub fn trait_labels(&self) -> Vec<&'static str> {
+        self.world
+            .get_resource::<Content>()
+            .map(|content| {
+                content
+                    .0
+                    .traits
+                    .iter()
+                    .map(|def| def.label.as_str())
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// The kind of each pack trait - "disposition", "capability" or
+    /// "condition" - aligned with [`Sim::trait_labels`], so an overlay
+    /// can word a level and a severity differently.
+    pub fn trait_kinds(&self) -> Vec<&'static str> {
+        self.world
+            .get_resource::<Content>()
+            .map(|content| {
+                content
+                    .0
+                    .traits
+                    .iter()
+                    .map(|def| match def.kind {
+                        terri_data::CompiledTraitKind::Disposition { .. } => "disposition",
+                        terri_data::CompiledTraitKind::Capability { .. } => "capability",
+                        terri_data::CompiledTraitKind::Condition { .. } => "condition",
+                    })
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// The label of the career held by the sim carrying `index`, or
+    /// `None` for the unemployed and everything else - [E4]'s overlay
+    /// read. The label rather than the index, because the pack lookup
+    /// is a query over content this crate owns.
+    pub fn career_of(&self, index: u32) -> Option<&'static str> {
+        let pack = self.world.get_resource::<Content>()?.0;
+        let mut state = self.world.try_query::<(Entity, &terri_core::Career)>()?;
+        state
+            .iter(&self.world)
+            .find(|(entity, _)| entity.index_u32() == index)
+            .map(|(_, career)| pack.careers[career.0 as usize].label.as_str())
+    }
+
     /// The personality multipliers of the sim carrying `index`: `drain`
     /// for all seven needs, then `satisfaction` for all seven - drain
     /// FIRST, pinned by a test with asymmetric halves, because fourteen

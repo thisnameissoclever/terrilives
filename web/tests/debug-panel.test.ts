@@ -36,6 +36,15 @@ function source(overrides: Partial<DebugSource> = {}): DebugSource {
     relationshipsOf: (entity) =>
       entity === 7 ? Float32Array.from([3, 0.42]) : new Float32Array(0),
     needNames: () => ['hunger', 'energy', 'hygiene', 'bladder', 'social', 'fun', 'comfort'],
+    funds: () => 375,
+    // Terri wears the pack's SECOND trait - not the first, so a lookup
+    // collapsing to index 0 is visible - at a state only a condition
+    // words as severity.
+    traitsOf: (entity) =>
+      entity === 7 ? Float32Array.from([1, 0.55]) : new Float32Array(0),
+    traitLabels: () => ['Gossip hound', 'Low spirits'],
+    traitKinds: () => ['disposition', 'condition'],
+    careerOf: (entity) => (entity === 7 ? 'Office clerk' : null),
     ...overrides,
   };
 }
@@ -59,6 +68,41 @@ describe('formatDebugReport', () => {
     expect(report).toContain('drain: hunger 1.50');
     expect(report).toContain('satisfaction: hunger 0.50');
     expect(report).toContain('comfort 0.75');
+  });
+
+  it('prints the household funds once, at the top, before anybody', () => {
+    const report = formatDebugReport(source());
+    expect(report.startsWith('funds: 375')).toBe(true);
+    // Once: the money is the lot's, not any sim's.
+    expect(report.match(/funds:/g)).toHaveLength(1);
+  });
+
+  it('prints the job and the outfit for the sim that has them, and neither for the bare agent', () => {
+    const report = formatDebugReport(source());
+    expect(report).toContain('works: Office clerk');
+    // The fixture wears the SECOND pack trait, so a lookup collapsing
+    // to index 0 would print the hound.
+    expect(report).toContain('wears: Low spirits (condition, severity 0.55)');
+    expect(report).not.toContain('Gossip hound');
+    const bareBlock = report.split('entity 9')[1];
+    expect(bareBlock).not.toContain('works:');
+    expect(bareBlock).not.toContain('wears:');
+  });
+
+  it('words a capability as a level and a disposition as nothing', () => {
+    const report = formatDebugReport(
+      source({
+        traitsOf: (entity) =>
+          entity === 7
+            ? Float32Array.from([0, 0.4, 1, 0.25])
+            : new Float32Array(0),
+        traitKinds: () => ['capability', 'disposition'],
+        traitLabels: () => ['All thumbs', 'Gossip hound'],
+      }),
+    );
+    expect(report).toContain('wears: All thumbs (capability, level 0.40)');
+    // A disposition carries no state, so none is invented for it.
+    expect(report).toContain('wears: Gossip hound (disposition)');
   });
 
   it('names a known SimId and falls back for an unknown one', () => {

@@ -27,6 +27,7 @@
  * holds only the part that needs a pick: which rows a right click asks for.
  */
 
+import { ACTIVITY_AT_WORK } from './frame.js';
 import { SPRITES } from './render/atlas.js';
 import { KIND_AGENT } from './render/instances.js';
 import {
@@ -67,6 +68,12 @@ export interface PickSource {
    * not the tile - see `pickSprite`.
    */
   sprites(): Uint32Array;
+  /**
+   * Activity codes per row. Picking reads it for ONE code: a sim at work
+   * (ACTIVITY_AT_WORK) is not drawn, so it must not be clickable either -
+   * the pick box and the pixels move together, the standing rule.
+   */
+  activities(): Uint32Array;
 }
 
 /** The rectangle a canvas occupies on the page, as `getBoundingClientRect` reports it. */
@@ -245,12 +252,15 @@ export function pickSprite(
   const kinds = source.kinds();
   const ids = source.ids();
   const spriteIndices = source.sprites();
+  const activities = source.activities();
 
   let best: Pick | null = null;
   let bestNearness = -Infinity;
   let bestLayer = -Infinity;
 
   for (let row = 0; row < count; row++) {
+    // Not drawn, not clickable: frame.ts parks this row off-screen.
+    if (activities[row] === ACTIVITY_AT_WORK) continue;
     const wx = positions[row * 2];
     const wy = positions[row * 2 + 1];
     const sprite = SPRITES[spriteIndices[row]];
@@ -335,9 +345,13 @@ export function pickAt(
   const positions = source.positions();
   const kinds = source.kinds();
   const ids = source.ids();
+  const activities = source.activities();
 
   let object: Pick | null = null;
   for (let row = 0; row < count; row++) {
+    // The same skip as pickSprite: a worker frozen at the door tile
+    // must not swallow a click aimed at the doorway's floor.
+    if (activities[row] === ACTIVITY_AT_WORK) continue;
     if (Math.round(positions[row * 2]) !== tileX) continue;
     if (Math.round(positions[row * 2 + 1]) !== tileY) continue;
 

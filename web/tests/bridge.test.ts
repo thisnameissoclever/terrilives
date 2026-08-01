@@ -433,9 +433,17 @@ describe('SimBridge', () => {
     // spawns plain agents) and a length-prefixed relationships list
     // (empty here). The shape is the published format, so it moves even
     // with nobody talking. The two movements merged from parallel
-    // branches; this value is the MERGED measurement, read off the
-    // wasm32 failure after a rebuild per [L13] and equal to native.
-    expect(bridge.worldHash()).toBe(0xb902_5674_0958_9e88n);
+    // branches; that value (0xb902_5674_0958_9e88n) was the MERGED
+    // measurement, read off the wasm32 failure after a rebuild per
+    // [L13] and equal to native.
+    //
+    // **And M2e PR 3 moved it by encoding once more**: every row gained
+    // a trailing AtWork u64 (the out-of-band u64::MAX sentinel here -
+    // nobody in this scenario holds a job) and the digest gained one
+    // Funds u64 after the rows (zero here). Read off the wasm32
+    // failure after a rebuild per [L13], equal to the native constant
+    // in crates/terri-sim/src/lib.rs.
+    expect(bridge.worldHash()).toBe(0x5feb_c18c_2efe_ac10n);
   });
 
   // ---- Player commands -------------------------------------------------
