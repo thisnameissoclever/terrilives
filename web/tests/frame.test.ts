@@ -900,3 +900,64 @@ describe('the selection ring', () => {
     expect(ring.x).toBe(screenX(5, 4, ORIGIN_X));
   });
 });
+
+describe('the camera scale in buildInstances', () => {
+  const ORIGIN_X = 100;
+  const ORIGIN_Y = 50;
+  const GRID = 16;
+  const TALKING = 4;
+
+  function slot(instances: Float32Array, n: number) {
+    const b = n * FLOATS_PER_INSTANCE;
+    return {
+      x: instances[b + OFFSET_SCREEN_X],
+      y: instances[b + OFFSET_SCREEN_Y],
+      depth: instances[b + OFFSET_DEPTH],
+      sprite: instances[b + OFFSET_SPRITE],
+    };
+  }
+
+  it('scales entity positions but never their depth', () => {
+    const source = new FakeEntities();
+    source.set([[3, 2, 3, 2, KIND_AGENT, 1]]);
+
+    const at1 = slot(buildInstances(source, 1, ORIGIN_X, ORIGIN_Y, GRID), 0);
+    const at2 = slot(
+      buildInstances(source, 1, ORIGIN_X, ORIGIN_Y, GRID, null, 2),
+      0,
+    );
+
+    // The world term doubles around the origin; the origin itself does
+    // not move (a scaled origin would slide the lot toward a corner -
+    // main.ts recentres by deriving a NEW origin instead).
+    expect(at2.x).toBe(screenX(3, 2, ORIGIN_X, 2));
+    expect(at2.y).toBe(screenY(3, 2, ORIGIN_Y, 2));
+    expect(at2.x - ORIGIN_X).toBeCloseTo((at1.x - ORIGIN_X) * 2, 6);
+    // Depth stays in world terms: zoom changes how big things are
+    // drawn, never what covers what. A scaled depth would re-sort the
+    // whole lot at every notch of the wheel.
+    expect(at2.depth).toBe(at1.depth);
+  });
+
+  it('lifts an indicator bubble by the scaled height of its sim', () => {
+    // The sim sprite draws `scale` times taller, so an unscaled 84 px
+    // lift would sink the bubble into a zoomed head. The bubble sits at
+    // the sim's scaled screen y minus the scaled lift.
+    const source = new FakeEntities();
+    source.set([[3, 2, 3, 2, KIND_AGENT, 1, TALKING]]);
+
+    const instances = buildInstances(
+      source,
+      1,
+      ORIGIN_X,
+      ORIGIN_Y,
+      GRID,
+      null,
+      2,
+    );
+    const sim = slot(instances, 0);
+    const bubble = slot(instances, 1);
+    expect(bubble.x).toBe(sim.x);
+    expect(bubble.y).toBe(sim.y - 84 * 2);
+  });
+});

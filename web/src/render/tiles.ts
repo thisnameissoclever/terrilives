@@ -3,8 +3,10 @@
  *
  * These are the only things on screen that are not entities. They are
  * also the only things that cannot move: a lot's dimensions and its wall
- * tiles are fixed for the session, so this runs **once at load** and its
- * output is uploaded to the front of the instance buffer and left there.
+ * tiles are fixed for the session, so this runs **once per camera
+ * change** - at load, and again when the window resizes or the player
+ * zooms, gated by `main.ts`'s dirty flag - and its output is uploaded to
+ * the front of the instance buffer and left there between changes.
  *
  * That placement is deliberate rather than incidental. `buildInstances`
  * in `frame.ts` runs every frame under [D11]'s no-allocation rule, and
@@ -115,6 +117,7 @@ export function buildStaticInstances(
   originX: number,
   originY: number,
   gridSize: number,
+  scale = 1,
 ): StaticGeometry {
   const floorSprite = spriteIndex('floor');
   const wallSprites = {
@@ -194,8 +197,8 @@ export function buildStaticInstances(
     writeInstance(
       instances,
       slot++,
-      screenX(x, y, originX),
-      screenY(x, y, originY),
+      screenX(x, y, originX, scale),
+      screenY(x, y, originY, scale),
       layeredDepth(x, y, gridSize, layer),
       sprite,
     );
@@ -212,8 +215,8 @@ export function buildStaticInstances(
     writeInstance(
       instances,
       slot++,
-      screenX(x, y, originX),
-      screenY(x, y, originY),
+      screenX(x, y, originX, scale),
+      screenY(x, y, originY, scale),
       FLOOR_DEPTH,
       sprite,
     );

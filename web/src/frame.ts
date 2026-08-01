@@ -304,6 +304,7 @@ export function buildInstances(
   originY: number,
   gridSize: number,
   selected: number | null = null,
+  scale = 1,
 ): InstanceArray {
   const count = source.count;
   // Room for the entities, one bubble and one carried badge each in
@@ -353,8 +354,10 @@ export function buildInstances(
     writeInstance(
       scratch,
       i,
-      screenX(wx, wy, originX),
-      screenY(wx, wy, originY),
+      screenX(wx, wy, originX, scale),
+      screenY(wx, wy, originY, scale),
+      // Depth stays in WORLD terms on purpose: zoom changes how big
+      // things are drawn, never what covers what.
       layeredDepth(
         wx,
         wy,
@@ -380,8 +383,11 @@ export function buildInstances(
     writeInstance(
       scratch,
       slot++,
-      screenX(wx, wy, originX),
-      screenY(wx, wy, originY) - INDICATOR_LIFT,
+      screenX(wx, wy, originX, scale),
+      // The lift scales with the camera: the sim's sprite is drawn
+      // `scale` times taller, so an unscaled lift would sink the bubble
+      // into a zoomed head and orbit it high over a zoomed-out one.
+      screenY(wx, wy, originY, scale) - INDICATOR_LIFT * scale,
       layeredDepth(wx, wy, gridSize, LAYER_SIM) - INDICATOR_DEPTH_NUDGE,
       sprite,
     );
@@ -427,8 +433,8 @@ export function buildInstances(
     writeInstance(
       scratch,
       slot,
-      screenX(wx, wy, originX),
-      screenY(wx, wy, originY),
+      screenX(wx, wy, originX, scale),
+      screenY(wx, wy, originY, scale),
       layeredDepth(wx, wy, gridSize, LAYER_PROP),
       SELECTION_RING_SPRITE,
     );

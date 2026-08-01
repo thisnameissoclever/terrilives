@@ -59,18 +59,35 @@ export const TILE_HALF_HEIGHT = 21;
  * Fractional inputs are expected and supported: `frame.ts` interpolates
  * between the previous and current tick before calling this, so `wx` and
  * `wy` are usually between tiles rather than on one.
+ *
+ * `scale` is the camera zoom, defaulting to 1 so every pre-camera call
+ * site keeps meaning what it meant. It multiplies the WORLD term and
+ * never the origin: the origin is already in screen pixels - it is where
+ * the lot's anchor lands on the canvas - so scaling it too would zoom
+ * the lot's position as well as its size and slide everything toward a
+ * corner. `cameraOrigin` recentres for the scaled extent instead.
  */
-export function screenX(wx: number, wy: number, originX: number): number {
-  return (wx - wy) * TILE_HALF_WIDTH + originX;
+export function screenX(
+  wx: number,
+  wy: number,
+  originX: number,
+  scale = 1,
+): number {
+  return (wx - wy) * TILE_HALF_WIDTH * scale + originX;
 }
 
 /**
  * Screen y for a world tile coordinate. Both world axes increase
  * downward, which is what makes x + y the nearness ordering `worldDepth`
- * inverts.
+ * inverts. `scale` as on `screenX`: world term only, origin untouched.
  */
-export function screenY(wx: number, wy: number, originY: number): number {
-  return (wx + wy) * TILE_HALF_HEIGHT + originY;
+export function screenY(
+  wx: number,
+  wy: number,
+  originY: number,
+  scale = 1,
+): number {
+  return (wx + wy) * TILE_HALF_HEIGHT * scale + originY;
 }
 
 /**
@@ -120,15 +137,26 @@ export function cameraOrigin(
   lotWidth: number,
   lotHeight: number,
   tallestSprite: number,
+  scale = 1,
 ): { x: number; y: number } {
   // Relative to `originY`: the topmost pixel any sprite reaches, and the
   // bottommost. The boundary row is at world -1, so its screen y is
   // -2 * TILE_HALF_HEIGHT, and a sprite's top is `screenY + anchor - h`
   // with the anchor half a tile down.
-  const top = -2 * TILE_HALF_HEIGHT + TILE_HALF_HEIGHT - tallestSprite;
-  const bottom = (lotWidth + lotHeight - 2) * TILE_HALF_HEIGHT + TILE_HALF_HEIGHT;
+  //
+  // Everything here is a DRAWN distance, so everything scales with the
+  // camera: tile spans because `screenX`/`screenY` multiply their world
+  // terms by `scale`, and sprite heights because the renderer draws
+  // every quad at `size * scale`. Scaling one and not the other would
+  // recentre a zoomed lot against an unzoomed house and clip its roof.
+  // At `scale` 1 every term is exactly what it was before the camera
+  // existed, which is what keeps the pre-zoom golden assertions green.
+  const top =
+    (-2 * TILE_HALF_HEIGHT + TILE_HALF_HEIGHT) * scale - tallestSprite * scale;
+  const bottom =
+    ((lotWidth + lotHeight - 2) * TILE_HALF_HEIGHT + TILE_HALF_HEIGHT) * scale;
   return {
-    x: canvasWidth / 2 - ((lotWidth - lotHeight) * TILE_HALF_WIDTH) / 2,
+    x: canvasWidth / 2 - ((lotWidth - lotHeight) * TILE_HALF_WIDTH * scale) / 2,
     y: (canvasHeight - (bottom - top)) / 2 - top,
   };
 }
@@ -165,8 +193,9 @@ export function worldToScreen(
   wy: number,
   originX: number,
   originY: number,
+  scale = 1,
 ): [number, number] {
-  return [screenX(wx, wy, originX), screenY(wx, wy, originY)];
+  return [screenX(wx, wy, originX, scale), screenY(wx, wy, originY, scale)];
 }
 
 /**
@@ -208,9 +237,13 @@ export function screenToWorld(
   sy: number,
   originX: number,
   originY: number,
+  scale = 1,
 ): [number, number] {
-  const x = sx - originX;
-  const y = sy - originY;
+  // The exact inverse of the forward pair, so the scale divides where
+  // the forward multiplied - AFTER the origin is subtracted, because
+  // the forward added the origin after scaling.
+  const x = (sx - originX) / scale;
+  const y = (sy - originY) / scale;
   return [
     (x / TILE_HALF_WIDTH + y / TILE_HALF_HEIGHT) / 2,
     (y / TILE_HALF_HEIGHT - x / TILE_HALF_WIDTH) / 2,

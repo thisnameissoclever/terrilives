@@ -1,4 +1,4 @@
-# Visibility and the talk command - A-11 PR 2 design record
+# Visibility, the talk command, and the camera - A-11 PR 2 and PR 3 design record
 
 Decisions behind the activity indicators, the debug overlay, and the
 player-directed talk, with the alternatives that lost. The designs were
@@ -83,3 +83,46 @@ interaction rows. Labels come from the pack via `social_labels`, so the
 vocabulary can grow without touching the shell. **Rejected: per-target
 menus** - the vocabulary is what a sim advertises; per-sim variation
 enters through relationships, not menus.
+
+## [V6] The camera is one scale; the origin is always derived
+
+PR 3. The zoom is the only camera state a gesture owns; `cameraOrigin`
+re-derives the origin from the canvas, the lot and the scale on every
+change, gated by a dirty flag that also rebuilds the static
+floor-and-walls block (the one legitimate rebuild). Instance POSITIONS
+bake the scale on the CPU through `screenX`/`screenY`'s trailing
+`scale = 1` parameter - every pre-camera call site kept its meaning -
+while the shader scales sprite SIZE and anchor from a uniform grown 16
+to 32 bytes (scale at offset 16). Depth never scales: zoom changes how
+big things are drawn, never what covers what.
+
+**v1 zoom is LOT-CENTRED, flagged as a deviation from the "cursor
+centred" option text**: cursor-centred zoom is mathematically a pan
+(the origin becomes free state needing clamping), so it ships when pan
+does. At 0.5x-2.5x on a centred lot the difference is small; if it
+feels wrong in play, pan-plus-cursor-zoom is the recorded follow-up.
+**Rejected: shader-side position scaling** (scale positions around the
+canvas centre in the vertex shader, statics never rebuilt) - it leaves
+picking and rendering computing the projection in two different
+places, which is the drift `pickSprite` already documents accepting
+once for the hit box.
+
+## [V7] Two zoom routes, one clamped scale
+
+The wheel (smooth exponential steps, ~12% per notch, wheel-up in) and
+a two-finger pinch (spread ratio anchored to the gesture's start) both
+end in the same `clampZoom`ed scale - Tim's "make sure the zoom works
+on mobile as well", as one state with two doors. Pinch is built on
+Pointer Events, not iOS's `gesturechange`, so Android Chrome and iOS
+Safari take one code path; `touch-action: none` on the canvas keeps
+the browser from claiming the gesture, and any multi-touch contact
+poisons the next `click` so a pinch cannot end by selecting whatever
+was under a finger. **Rejected: per-move compounding** for the pinch
+(event-rate jitter becomes zoom jitter) and **stepped zoom presets**
+for the wheel (Tim chose smooth).
+
+The reflow half: the canvas fills the window (CSS), the drawing buffer
+tracks `clientWidth x devicePixelRatio` per change, and index.html
+gained the viewport meta tag without which a phone lays the page out
+at a ~980px virtual width and renders the lot as a thumbnail - found
+the moment the canvas learned to fill the window.
