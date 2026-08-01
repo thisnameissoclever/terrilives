@@ -1245,7 +1245,7 @@ pub fn select_action(
             // four sources reach the one multiplier slot unchanged.
             let interactions_len = content.0.object(placed.0).interactions.len() as u32;
             let mut chain_row = 0u32;
-            for (chain_index, chain) in content.0.chains.iter().enumerate() {
+            for chain in content.0.chains.iter() {
                 if chain.advertised_by != placed.0 {
                     continue;
                 }
