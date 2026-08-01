@@ -1177,6 +1177,41 @@ mod boundary_tests {
     }
 
     #[test]
+    fn carrying_ptr_addresses_the_carrying_column() {
+        // Same null-pointer-from-Default hazard as activities_ptr
+        // above, found the same way: the sweep stubbed it and nothing
+        // native noticed, because only the page reads through it. Two
+        // rows with two different values - one full hand, one empty
+        // sentinel - rule out a zeroed sibling as well as a null.
+        let mut handle = SimHandle::new(16, 16);
+        assert!(handle.spawn_object(2.0, 2.0, "fridge"));
+        handle.spawn_agent(12.0, 2.0, 20.0);
+        let carrier = {
+            let world = handle.sim.world_mut();
+            let mut state = world.query::<(terri_core::Entity, &terri_core::Needs)>();
+            state
+                .iter(world)
+                .map(|(entity, _)| entity)
+                .next()
+                .expect("the agent was just spawned")
+        };
+        handle
+            .sim
+            .world_mut()
+            .entity_mut(carrier)
+            .insert(terri_core::Carrying(1));
+        handle.tick();
+
+        assert_eq!(
+            addressed(handle.carrying_ptr(), handle.entity_count(), "carrying_ptr"),
+            vec![u32::MAX, 1],
+            "carrying_ptr must address the per-row item kinds: the \
+             object's hands read the sentinel and the agent carries \
+             kind 1"
+        );
+    }
+
+    #[test]
     fn social_labels_reports_the_shipped_vocabulary_in_index_order() {
         // The rows of the flyout drawn over a fellow sim, and the index
         // space `TalkTo::interaction` lives in - the same order-IS-the-
