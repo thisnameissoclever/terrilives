@@ -20,6 +20,15 @@ Then, by what you want:
 | Mistakes already made, so they are not made twice | [docs/lessons-learned.md](docs/lessons-learned.md) |
 | How the testing gates work | [docs/testing-protocol.md](docs/testing-protocol.md) |
 
-Run it: `npm --prefix web run dev:lan` (live tree, port 5174) or
-`npm --prefix web run preview` (built, port 4173). Add `?debug=1` for
-the developer overlay.
+Run it - there are exactly two instances, by standing rule, and no
+others should be started:
+
+| Port | Command | Serves |
+| --- | --- | --- |
+| 5174 | `npm --prefix web run dev` | the working tree, live |
+| 4173 | `npm --prefix web run preview` | the last `npm run build` |
+
+Both are HTTPS (a LAN address needs a secure context for WebGPU, so a
+phone on the same network can play at `https://<lan-ip>:5174`). Add
+`?debug=1` for the developer overlay - it folds to a pill on narrow
+screens, and every line it prints is defined in the glossary.
