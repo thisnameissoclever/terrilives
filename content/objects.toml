@@ -204,13 +204,19 @@ sprite = "televisionVintage"
   # reading: a sim with only a television for company stays lonely, and M2
   # is what fixes that rather than a bigger number here.
   #
-  # Not 22 or 26: rule 1 above, which requires exact uniqueness and those
-  # are the sink's and the bookshelf's. Not 12 either, and that one is a
-  # precaution BEYOND rule 1 rather than an application of it - 12 and the
-  # shower's -12.0 are already distinct values, so rule 1 permits it. The
-  # reason to avoid it anyway is the same reason rule 1 exists: a mutation
-  # dropping a negation would collapse the two into one value, and no test
-  # could then tell the slots apart.
+  # Not 22 or 26: rule 1 above, which requires exact uniqueness and both
+  # are taken - 22 by the radio's `listen` and 26 by the bookshelf's
+  # `read`. (22 was the SINK's when this was written, and the sink moved to
+  # 32 in the pass that raised the short durations. Both numbers are still
+  # unavailable, so the conclusion stands and only the owner changed -
+  # which is the drift `no_two_shipped_interactions_share_a_duration_or_a_delta`
+  # in crates/terri-data/src/lib.rs now catches, rather than leaving it to
+  # whoever reads this next.) Not 12 either, and that one is a precaution
+  # BEYOND rule 1 rather than an application of it - 12 and the shower's
+  # -12.0 are already distinct values, so rule 1 permits it. The reason to
+  # avoid it anyway is the same reason rule 1 exists: a mutation dropping a
+  # negation would collapse the two into one value, and no test could then
+  # tell the slots apart.
   #
   # One thing this DID cost, recorded as [C6] in docs/alpha-feel-notes.md
   # rather than hidden here: the bookshelf goes from 3 interactions to zero
