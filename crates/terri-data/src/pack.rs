@@ -127,6 +127,13 @@ pub struct CompiledLot {
     /// where one is not.
     pub walls: Vec<(u32, u32)>,
     pub placements: Vec<CompiledPlacement>,
+    /// The tile a career's commute ends at - where the worker vanishes
+    /// and reappears ([E4]). Post-validation: in bounds, walkable and
+    /// reachable, and present whenever any household member holds a
+    /// career, so the career system may unwrap it for a working sim
+    /// rather than re-check. **Appended last** per the pack's growth
+    /// rule.
+    pub front_door: Option<(u32, u32)>,
 }
 
 impl CompiledLot {
@@ -497,6 +504,11 @@ mod tests {
         CompiledLot {
             width: 6,
             height: 4,
+            // Present rather than None, with coordinates distinct from
+            // every wall and placement, so a round trip that dropped
+            // the option - or wrote a wall into its slot - moves the
+            // equality below ([L34]).
+            front_door: Some((5, 3)),
             walls: vec![(3, 2), (1, 0)],
             placements: vec![
                 // Sprites distinct from each other AND from the ids, so

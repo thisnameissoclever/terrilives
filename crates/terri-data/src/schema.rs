@@ -281,6 +281,24 @@ pub struct LotFile {
     pub wall: Vec<WallDef>,
     #[serde(default)]
     pub place: Vec<PlacementDef>,
+    /// The tile a sim leaves the lot through - where a career's commute
+    /// ends and the worker vanishes ([E4]). Optional, because a lot
+    /// with nobody employed needs no exit; the compile step requires it
+    /// the moment any household member holds a career, and validates it
+    /// like a spawn tile (in bounds, walkable, reachable). NOT a door
+    /// in [B7]'s sense - the tile is ordinary floor, and this merely
+    /// names it.
+    #[serde(default)]
+    pub front_door: Option<FrontDoorDef>,
+}
+
+/// The front door tile. `i32` for the same reporting reason as
+/// [`WallDef`]: a negative coordinate should reach the validator and be
+/// named, not die as a serde type error.
+#[derive(Debug, Deserialize)]
+pub struct FrontDoorDef {
+    pub x: i32,
+    pub y: i32,
 }
 
 /// One impassable tile.

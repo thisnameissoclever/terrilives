@@ -629,6 +629,29 @@ pub enum ContentError {
     },
     /// A zero-tick day - `tick % day_ticks` would divide by zero.
     ZeroDayTicks,
+    /// A front door off the lot.
+    FrontDoorOutOfBounds {
+        x: i32,
+        y: i32,
+        width: u32,
+        height: u32,
+    },
+    /// A front door inside a wall or a footprint.
+    FrontDoorBlocked {
+        x: u32,
+        y: u32,
+    },
+    /// A front door sealed off from the rest of the lot.
+    FrontDoorUnreachable {
+        x: u32,
+        y: u32,
+        root_x: u32,
+        root_y: u32,
+    },
+    /// A household with a worker on a lot that declares no front door.
+    CareerWithoutFrontDoor {
+        sim: String,
+    },
 }
 
 impl fmt::Display for ContentError {
@@ -1166,6 +1189,37 @@ impl fmt::Display for ContentError {
                 f,
                 "day_ticks must be at least 1 - a zero-tick day divides \
                  by zero the first time a career asks the hour"
+            ),
+            ContentError::FrontDoorOutOfBounds {
+                x,
+                y,
+                width,
+                height,
+            } => write!(
+                f,
+                "the front door at ({x}, {y}) is outside the \
+                 {width}x{height} lot"
+            ),
+            ContentError::FrontDoorBlocked { x, y } => write!(
+                f,
+                "the front door at ({x}, {y}) stands in a wall or a \
+                 footprint - nobody can leave through furniture"
+            ),
+            ContentError::FrontDoorUnreachable {
+                x,
+                y,
+                root_x,
+                root_y,
+            } => write!(
+                f,
+                "the front door at ({x}, {y}) cannot be reached from \
+                 ({root_x}, {root_y}) - a worker would path nowhere \
+                 forever"
+            ),
+            ContentError::CareerWithoutFrontDoor { sim } => write!(
+                f,
+                "household sim '{sim}' holds a career but the lot \
+                 declares no front_door - there is nowhere to leave from"
             ),
         }
     }

@@ -1076,6 +1076,7 @@ mod lot_tests {
         CompiledLot {
             width: 6,
             height: 4,
+            front_door: None,
             walls: vec![(3, 2), (1, 0)],
             placements: vec![
                 CompiledPlacement {
@@ -1233,6 +1234,7 @@ mod lot_tests {
         CompiledLot {
             width: 7,
             height: 5,
+            front_door: None,
             walls: vec![(6, 0)],
             placements: vec![CompiledPlacement {
                 object: ObjectDefId(2),

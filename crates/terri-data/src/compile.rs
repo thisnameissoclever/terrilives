@@ -1028,6 +1028,15 @@ fn compile_household(
                 }
             },
         };
+        // A worker needs somewhere to leave from. Checked here rather
+        // than in the lot's own validation because it is a property of
+        // the PAIR: a doorless lot is fine until somebody living on it
+        // holds a job.
+        if career.is_some() && lot.front_door.is_none() {
+            return Err(ContentError::CareerWithoutFrontDoor {
+                sim: sim.name.clone(),
+            });
+        }
 
         compiled.push(CompiledHouseholdMember {
             name: sim.name.clone(),
@@ -1555,6 +1564,37 @@ fn compile_lot(
     // and there is nothing to check: any object in it has already failed half
     // one, and a lot with no objects and no floor is a different problem that
     // no [F5] rule claims.
+    // The front door, validated like a spawn tile: in bounds, standing
+    // on floor rather than in a wall or a footprint, and connected to
+    // the rest of the lot ([E4]). Bounds and blockage here; the
+    // reachability half joins the flood fill below, where the bitmap
+    // already exists.
+    let front_door = match &lot.front_door {
+        None => None,
+        Some(door) => {
+            let (Ok(x), Ok(y)) = (u32::try_from(door.x), u32::try_from(door.y)) else {
+                return Err(ContentError::FrontDoorOutOfBounds {
+                    x: door.x,
+                    y: door.y,
+                    width: lot.width,
+                    height: lot.height,
+                });
+            };
+            if x >= lot.width || y >= lot.height {
+                return Err(ContentError::FrontDoorOutOfBounds {
+                    x: door.x,
+                    y: door.y,
+                    width: lot.width,
+                    height: lot.height,
+                });
+            }
+            if blocked.contains(&(x, y)) {
+                return Err(ContentError::FrontDoorBlocked { x, y });
+            }
+            Some((x, y))
+        }
+    };
+
     let root = (0..lot.height)
         .flat_map(|y| (0..lot.width).map(move |x| (x, y)))
         .find(|tile| !blocked.contains(tile));
@@ -1574,6 +1614,19 @@ fn compile_lot(
                 }
             }
         }
+        // A door in a sealed pocket is the spawn-in-a-pocket failure
+        // wearing the exit's costume: no rule about objects can see it,
+        // and the symptom would be a worker pathing nowhere forever.
+        if let Some((x, y)) = front_door {
+            if !reached[index_of(x, y)] {
+                return Err(ContentError::FrontDoorUnreachable {
+                    x,
+                    y,
+                    root_x: root.0,
+                    root_y: root.1,
+                });
+            }
+        }
     }
 
     Ok(CompiledLot {
@@ -1581,6 +1634,7 @@ fn compile_lot(
         height: lot.height,
         walls,
         placements,
+        front_door,
     })
 }
 
@@ -1783,13 +1837,17 @@ mod tests {
     /// author's wording, and not `grab_snack`, is what reaches the pack.
     #[rustfmt::skip]
     const GOLDEN_PACK_BYTES: &[u8] = &[
-        // **Moved twice at M2e PR 3, both appends, read off the failing
-        // assertion per the standing rule.** `Tuning` gained a trailing
-        // `day_ticks` - the lone `19` after the `0, 0, 0, 60` that ends
-        // the neglect trio - and `ContentPack` a trailing `careers`
-        // list, one more empty-vec 0 at the very end (this fixture
-        // holds no careers; the round trip that exercises non-empty
-        // ones lives in pack.rs). Everything before the 19 kept its
+        // **Moved three times at M2e PR 3, all appends, read off the
+        // failing assertion per the standing rule.** `Tuning` gained a
+        // trailing `day_ticks` - the lone `19` after the `0, 0, 0, 60`
+        // that ends the neglect trio - and `ContentPack` a trailing
+        // `careers` list, one more empty-vec 0 at the very end (this
+        // fixture holds no careers; the round trip that exercises
+        // non-empty ones lives in pack.rs). `CompiledLot` also gained a
+        // trailing `front_door` option: the extra 0 immediately after
+        // the placement's sprite `2`, this fixture's None. That one
+        // sits mid-pack because the lot block does, so the tuning
+        // bytes after it shifted by one; everything before it kept its
         // offset, which is what the append discipline buys.
         //
         // **Regenerated wholesale at M2e PR 2**: `ContentPack` gained a
@@ -1810,7 +1868,8 @@ mod tests {
         15, 1, 15, 69, 97, 116, 32, 115, 116, 97, 110, 100,
         105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1,
         1, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0, 0,
-        0, 32, 64, 0, 0, 160, 63, 2, 0, 0, 128, 62,
+        0, 32, 64, 0, 0, 160, 63, 2, 0, 0, 0, 128,
+        62,
         0, 0, 0, 63, 0, 0, 0, 62, 9, 6, 0, 0,
         160, 62, 10, 215, 35, 59, 0, 0, 32, 63, 0, 0,
         64, 63, 3, 172, 2, 7, 11, 13, 0, 0, 192, 62,
@@ -1844,6 +1903,7 @@ mod tests {
             height: 1,
             wall: Vec::new(),
             place: Vec::new(),
+            front_door: None,
         }
     }
 
@@ -1875,6 +1935,7 @@ mod tests {
                 y: 1.25,
                 facing: None,
             }],
+            front_door: None,
         }
     }
 
@@ -3282,6 +3343,7 @@ mod tests {
     #[test]
     fn placements_resolve_to_the_declared_object_index() {
         let lot = LotFile {
+            front_door: None,
             width: 4,
             height: 4,
             wall: Vec::new(),
@@ -3759,10 +3821,15 @@ mod tests {
         // helper is the traits tests' own.
         let mut snack = snack();
         snack.tags = vec!["snacking".to_string()];
+        // The far corner, free of the wall and the fridge, so the
+        // career tests' holders have somewhere to leave from; the
+        // doorless-lot rejection builds its own lot below.
+        let mut lot = lot_of(4, 3, &[(1, 0)], &[("fridge", 2.0, 1.0)]);
+        lot.front_door = Some(crate::schema::FrontDoorDef { x: 3, y: 2 });
         compile(
             full_needs(),
             one_object(snack),
-            lot_of(4, 3, &[(1, 0)], &[("fridge", 2.0, 1.0)]),
+            lot,
             test_atlas(),
             full_tuning(),
             PersonalitiesFile {
@@ -3976,6 +4043,122 @@ mod tests {
                 sim: "Terri".into(),
                 career: "astronaut".into()
             }
+        );
+    }
+
+    /// The front door's three rules, each with its accepting side. The
+    /// fixture is `compile_people_full`'s own 4x3 lot (wall at (1, 0),
+    /// fridge on (2, 1)) so the numbers below are checkable against one
+    /// map: -1 and 4 straddle the width from both directions, (1, 0)
+    /// IS the wall and (2, 1) IS the fridge's tile, and the legal door
+    /// at (3, 2) is the far corner.
+    #[test]
+    fn a_front_door_must_stand_on_reachable_floor() {
+        let with_door = |x: i32, y: i32| {
+            let mut lot = lot_of(4, 3, &[(1, 0)], &[("fridge", 2.0, 1.0)]);
+            lot.front_door = Some(crate::schema::FrontDoorDef { x, y });
+            compile_bare(
+                full_needs(),
+                one_object(snack()),
+                lot,
+                test_atlas(),
+                full_tuning(),
+            )
+        };
+
+        for (x, y) in [(-1, 1), (4, 1), (0, -1), (0, 3)] {
+            assert_eq!(
+                with_door(x, y).unwrap_err(),
+                ContentError::FrontDoorOutOfBounds {
+                    x,
+                    y,
+                    width: 4,
+                    height: 3
+                }
+            );
+        }
+        assert_eq!(
+            with_door(1, 0).unwrap_err(),
+            ContentError::FrontDoorBlocked { x: 1, y: 0 },
+            "the wall tile"
+        );
+        assert_eq!(
+            with_door(2, 1).unwrap_err(),
+            ContentError::FrontDoorBlocked { x: 2, y: 1 },
+            "the fridge's own tile"
+        );
+
+        let pack = with_door(3, 2).expect("the far corner is legal floor");
+        assert_eq!(
+            pack.lot.front_door,
+            Some((3, 2)),
+            "the compiled lot must carry the door it was authored"
+        );
+    }
+
+    /// The sealed-pocket half, on the sealed-spawn fixture's geometry: a
+    /// wall column at x = 2 splits the 4x3 lot, the flood fill roots at
+    /// (1, 0) beside the fridge on (0, 0), and a door east of the column
+    /// is in the other region.
+    #[test]
+    fn rejects_a_front_door_sealed_off_from_the_rest_of_the_lot() {
+        let mut lot = lot_of(4, 3, &[(2, 0), (2, 1), (2, 2)], &[("fridge", 0.0, 0.0)]);
+        lot.front_door = Some(crate::schema::FrontDoorDef { x: 3, y: 1 });
+        assert_eq!(
+            compile_bare(
+                full_needs(),
+                one_object(snack()),
+                lot,
+                test_atlas(),
+                full_tuning()
+            )
+            .unwrap_err(),
+            ContentError::FrontDoorUnreachable {
+                x: 3,
+                y: 1,
+                root_x: 1,
+                root_y: 0
+            }
+        );
+    }
+
+    /// The pair rule: a worker needs a door, checked against the PAIR
+    /// rather than either file alone - the same doorless lot is legal
+    /// under a jobless household, pinned here from both sides.
+    #[test]
+    fn rejects_a_worker_on_a_doorless_lot() {
+        let compile_doorless = |career: Option<&str>| {
+            let mut worker = member("Terri", "the_settled", 0.5, 2.0);
+            worker.career = career.map(str::to_string);
+            compile(
+                full_needs(),
+                one_object(snack()),
+                lot_of(4, 3, &[(1, 0)], &[("fridge", 2.0, 1.0)]),
+                test_atlas(),
+                full_tuning(),
+                PersonalitiesFile {
+                    archetype: vec![archetype("the_settled")],
+                },
+                HouseholdFile { sim: vec![worker] },
+                SocialFile {
+                    interaction: vec![],
+                },
+                TraitsFile { trait_def: vec![] },
+                CareersFile {
+                    career: vec![a_career("office_job")],
+                },
+            )
+        };
+
+        assert_eq!(
+            compile_doorless(Some("office_job")).unwrap_err(),
+            ContentError::CareerWithoutFrontDoor {
+                sim: "Terri".into()
+            }
+        );
+        assert!(
+            compile_doorless(None).is_ok(),
+            "the same doorless lot is legal until somebody on it works"
         );
     }
 
@@ -4518,6 +4701,7 @@ mod tests {
         places: &[(&str, f32, f32)],
     ) -> LotFile {
         LotFile {
+            front_door: None,
             width,
             height,
             wall: walls.iter().map(|&(x, y)| WallDef { x, y }).collect(),
