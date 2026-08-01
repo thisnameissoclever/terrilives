@@ -289,13 +289,22 @@ async function main(): Promise<void> {
   let debugPanel: DebugPanel | null = null;
   if (new URLSearchParams(location.search).get('debug') === '1') {
     const debugSection = document.querySelector<HTMLElement>('#debug-panel');
+    const debugDetails = document.querySelector<HTMLDetailsElement>('#debug-details');
     const debugReport = document.querySelector<HTMLElement>('#debug-report');
-    if (!debugSection || !debugReport) {
+    if (!debugSection || !debugDetails || !debugReport) {
       throw new Error('missing #debug-panel markup under ?debug=1');
     }
+    // Open where there is room, folded to the pill where there is not -
+    // the owner's small-screen report. A live resize does not re-decide:
+    // once the player has a preference, the browser's own <details>
+    // state keeps it.
+    debugDetails.open = window.innerWidth > 900;
     const root = {
       get hidden(): boolean {
-        return debugSection.hidden;
+        // Folded counts as hidden for the panel's throttle, so a
+        // collapsed overlay costs no formatting per frame; the backtick
+        // toggle still owns the section's own visibility.
+        return debugSection.hidden || !debugDetails.open;
       },
       set hidden(value: boolean) {
         debugSection.hidden = value;

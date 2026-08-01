@@ -175,22 +175,31 @@
       }
       /* The developer overlay: monospace, top-right, scrolls rather
          than grows past the window, and sits under the flyout so a
-         debug session does not eat right-clicks. */
+         debug session does not eat right-clicks. COLLAPSIBLE, from the
+         owner's small-screen report: the whole body lives in a
+         <details>, so on a laptop it folds to one pill and the game
+         stays visible. Never wider than the viewport either way. */
       #debug-panel {
         position: fixed;
         top: 8px;
         right: 8px;
-        max-width: 44em;
+        max-width: min(44em, calc(100vw - 16px));
         max-height: calc(100vh - 16px);
         overflow-y: auto;
         background: rgba(20, 22, 26, 0.92);
         color: #e8e6e3;
         border-radius: 6px;
-        padding: 10px 14px;
+        padding: 6px 10px;
         z-index: 9;
       }
+      #debug-panel summary {
+        cursor: pointer;
+        font: 12px/1.6 Consolas, monospace;
+        color: #9aa3ad;
+        user-select: none;
+      }
       #debug-panel pre {
-        margin: 0;
+        margin: 6px 0 0;
         font: 11px/1.5 Consolas, monospace;
         white-space: pre-wrap;
       }
@@ -220,7 +229,12 @@
          only time main.ts wires the backtick toggle. Hidden by default
          either way. -->
     <section id="debug-panel" aria-label="Developer statistics" hidden>
-      <pre id="debug-report"></pre>
+      <!-- Collapsed by default on narrow screens; main.ts opens it on
+           wide ones. The summary is the whole collapsed footprint. -->
+      <details id="debug-details">
+        <summary>debug stats</summary>
+        <pre id="debug-report"></pre>
+      </details>
     </section>
     <!-- The right-click flyout. Outside #hud on purpose: the HUD is a
          fixed column in the top-left corner and this is positioned at the
