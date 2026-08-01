@@ -1399,3 +1399,12 @@ boundary test now sets the ledger to 260 and reads it back.
 The third was `serve_intents`' busy-guard `||` at a drifted address:
 467 to 490, this PR's insertions above it. Re-anchored, argument
 unchanged - the same entry's third address.
+
+The pair's FIFTH address arrived one PR later, on schedule: 1508 to
+1679 when the career PR grew `compile_careers` and the front-door
+validation above the function. Re-pointed, arguments unchanged. Two
+consecutive PRs paying this tax is worth a note for whoever tires of
+it first: the durable fix is comparing baselines with line numbers
+normalised out (file plus mutation description), at the cost of
+masking a NEW identical mutation in the same function - a trade this
+file has so far declined to make silently.
