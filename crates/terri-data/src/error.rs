@@ -693,6 +693,25 @@ pub enum ContentError {
         chain: String,
         step: usize,
     },
+    /// A chain step whose whole sampled band sits at or below the
+    /// interaction floor - `ClippedDuration`'s rule, worded for a
+    /// step: "object 'cook_dinner' interaction 'Fetch'" would send
+    /// the author hunting objects.toml for a chain.
+    ClippedChainStepDuration {
+        chain: String,
+        step: usize,
+        duration_ticks: u32,
+        /// The smallest duration that escapes the floor.
+        minimum: u32,
+        floor: u32,
+        variance: f32,
+    },
+    /// A chain step naming a blank item kind - it would mint an empty
+    /// vocabulary entry and make every later hands error unreadable.
+    EmptyChainItemKind {
+        chain: String,
+        step: usize,
+    },
     /// A chain step carrying an empty tag.
     EmptyChainStepTag {
         chain: String,
@@ -1332,6 +1351,24 @@ impl fmt::Display for ContentError {
                 f,
                 "chain '{chain}' step {step} takes zero ticks - a step \
                  that never happens is not a step"
+            ),
+            ContentError::ClippedChainStepDuration {
+                chain,
+                step,
+                duration_ticks,
+                minimum,
+                floor,
+                variance,
+            } => write!(
+                f,
+                "chain '{chain}' step {step} declares {duration_ticks} \
+                 ticks, whose whole sampled band (variance {variance}) \
+                 sits at or below the {floor}-tick floor; the smallest \
+                 honest duration is {minimum}"
+            ),
+            ContentError::EmptyChainItemKind { chain, step } => write!(
+                f,
+                "chain '{chain}' step {step} names a blank item kind"
             ),
             ContentError::EmptyChainStepTag { chain, step } => write!(
                 f,

@@ -504,14 +504,16 @@ fn compile_chains(
                 });
             }
             // The same clipped-duration rule interactions obey, and
-            // for the same three-silent-failures reason.
+            // for the same three-silent-failures reason - under its own
+            // variant, because "object 'cook_dinner'" would send the
+            // author hunting objects.toml for a chain.
             let variance = tuning.duration_variance;
             let floor = tuning.min_interaction_ticks;
             if (step.duration_ticks as f32) * (1.0 - variance) < floor as f32 {
                 let minimum = ((floor as f32) / (1.0 - variance)).ceil() as u32;
-                return Err(ContentError::ClippedDuration {
-                    object: def.id.clone(),
-                    interaction: step.label.clone(),
+                return Err(ContentError::ClippedChainStepDuration {
+                    chain: def.id.clone(),
+                    step: index,
                     duration_ticks: step.duration_ticks,
                     minimum,
                     floor,
@@ -552,7 +554,24 @@ fn compile_chains(
 
             // The hands rule. Kinds are MINTED by yields/transforms.to
             // (first appearance); from/consumes must name what is
-            // actually in hand, which subsumes "unknown kind".
+            // actually in hand, which subsumes "unknown kind". Blank
+            // names reject first - a blank would mint an empty
+            // vocabulary entry and make every later hands error
+            // unreadable.
+            let blank = [
+                step.yields.as_deref(),
+                step.transforms.as_ref().map(|t| t.from.as_str()),
+                step.transforms.as_ref().map(|t| t.to.as_str()),
+                step.consumes.as_deref(),
+            ]
+            .iter()
+            .any(|name| name.is_some_and(|n| n.trim().is_empty()));
+            if blank {
+                return Err(ContentError::EmptyChainItemKind {
+                    chain: def.id.clone(),
+                    step: index,
+                });
+            }
             let mut yields = None;
             let mut transforms = None;
             let mut consumes = None;
@@ -5950,15 +5969,41 @@ mod tests {
         clipped.step[0].duration_ticks = 11;
         assert_eq!(
             compile_chain_world(vec![clipped]).unwrap_err(),
-            ContentError::ClippedDuration {
-                object: "clipped".into(),
-                interaction: "Fetch".into(),
+            ContentError::ClippedChainStepDuration {
+                chain: "clipped".into(),
+                step: 0,
                 duration_ticks: 11,
                 minimum: 12,
                 floor: 3,
                 variance: 0.75
             }
         );
+
+        // The blank-kind rule, on every field that names one.
+        for which in ["yields", "from", "to", "consumes"] {
+            let mut blank = a_chain("blank_kind");
+            match which {
+                "yields" => blank.step[0].yields = Some("  ".to_string()),
+                "consumes" => blank.step[1].consumes = Some(" ".to_string()),
+                from_or_to => {
+                    blank.step[1].consumes = None;
+                    blank.step[1].transforms = Some(crate::schema::TransformDef {
+                        from: if from_or_to == "from" {
+                            " "
+                        } else {
+                            "leftovers"
+                        }
+                        .to_string(),
+                        to: if from_or_to == "to" { " " } else { "dinner" }.to_string(),
+                    });
+                }
+            }
+            let err = compile_chain_world(vec![blank]).unwrap_err();
+            assert!(
+                matches!(err, ContentError::EmptyChainItemKind { .. }),
+                "a blank {which} must reject as a blank kind; got {err}"
+            );
+        }
 
         let mut tagless = a_chain("blank_tag");
         tagless.step[1].tags = vec!["".to_string()];

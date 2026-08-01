@@ -158,11 +158,23 @@ jobs:
       # would nag about entries that are alive and well. Finding genuinely
       # stale entries takes a full local sweep; docs/mutation-baseline.md
       # says so too.
+      # **Line and column numbers are NORMALISED OUT of the comparison.**
+      # A baseline entry's identity is (file, mutation, function); its
+      # line number is an address that moves every time code is added
+      # above it, and by M2f the flood_fill pair had been re-anchored at
+      # six different addresses across five PRs - a red CI job and a
+      # baseline edit per drift, each one pure noise. The cost of
+      # normalising is real and accepted, with eyes open, in
+      # docs/mutation-baseline.md: a NEW mutation identical in file,
+      # function and operator to a baselined one (a third `+` in
+      # flood_fill, say) would be silently excused. The baseline file
+      # keeps its line numbers for human navigation; only this
+      # comparison strips them.
       - name: Fail on survivors not in the baseline
         run: |
           set -eu
-          sort mutants.out/missed.txt > actual.txt
-          sort docs/mutants-baseline.txt > baseline.txt
+          sed 's/:[0-9]*:[0-9]*:/:/' mutants.out/missed.txt | sort > actual.txt
+          sed 's/:[0-9]*:[0-9]*:/:/' docs/mutants-baseline.txt | sort > baseline.txt
 
           new=$(comm -23 actual.txt baseline.txt)
           if [ -n "$new" ]; then

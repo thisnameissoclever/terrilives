@@ -783,6 +783,15 @@ mod tests {
                         transforms: Some((1, 0)),
                         consumes: None,
                     },
+                    CompiledChainStep {
+                        role: 1,
+                        label: "Eat".to_string(),
+                        duration_ticks: 42,
+                        tags: vec![],
+                        yields: None,
+                        transforms: None,
+                        consumes: Some(0),
+                    },
                 ],
             }],
         }

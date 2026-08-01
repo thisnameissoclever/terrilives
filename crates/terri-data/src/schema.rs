@@ -444,8 +444,6 @@ pub struct TraitDef {
 /// The three legal trait kinds, in the order the design names them.
 pub const TRAIT_KINDS: [&str; 3] = ["disposition", "capability", "condition"];
 
-/// Mirrors `content/careers.toml` - the rabbit-hole jobs of [E4] and
-/// [D15] Tier 2: the sim leaves the lot and returns with an outcome.
 /// Mirrors `content/chains.toml` - the multi-step interactions, [K1]
 /// in docs/specs/2026-08-01-m2f-multi-step-working-design.md.
 #[derive(Debug, Deserialize)]
@@ -522,6 +520,8 @@ pub struct TransformDef {
     pub to: String,
 }
 
+/// Mirrors `content/careers.toml` - the rabbit-hole jobs of [E4] and
+/// [D15] Tier 2: the sim leaves the lot and returns with an outcome.
 #[derive(Debug, Deserialize)]
 pub struct CareersFile {
     /// Defaulted so a project with no careers parses; a household
