@@ -1546,6 +1546,24 @@ mod household_tests {
             .try_query_filtered::<&SimId, With<Agent>>()
             .expect("Agent is registered");
         assert_eq!(agents.iter(world).count(), 2, "each member is an Agent");
+
+        // The M2e pair rides per member: Terri's whittling against
+        // Doug's empty list is what tells "copied per member" from "one
+        // list stamped on everybody" ([L34]), and both ledgers open at
+        // zero because a life is judged from move-in day.
+        let mut m2e = world
+            .try_query::<(&SimId, &terri_core::Hobbies, &terri_core::Satisfaction)>()
+            .expect("both registered eagerly in Sim::new");
+        let mut pairs: Vec<(u32, Vec<String>, f32)> = m2e
+            .iter(world)
+            .map(|(id, hobbies, ledger)| (id.0, hobbies.0.clone(), ledger.value()))
+            .collect();
+        pairs.sort_by_key(|(id, ..)| *id);
+        assert_eq!(
+            pairs,
+            vec![(0, vec!["whittling".to_string()], 0.0), (1, vec![], 0.0),],
+            "hobbies are the member's own and every ledger opens empty"
+        );
     }
 
     #[test]
