@@ -7,8 +7,13 @@ the A-11 visibility pass, PR 1 (the house looks right) and PR 2
 (activity indicator bubbles, the ?debug=1 stats overlay, and the
 right-click "Chat" talk command; see
 docs/specs/2026-07-31-visibility-and-talk-design.md) are shipped;
-PR 3 (camera reflow and wheel zoom) is next. The full alpha's eleven DONE criteria live in
-docs/alpha-goals.md.
+PR 3 (camera pan and anchored zoom, wheel and pinch) is code-complete
+and gated on the owner's on-phone check. M2e shipped whole - the
+satisfaction axis with hobbies (PR 1, [A-12]), the three trait
+mechanisms (PR 2, [A-13]), and the career rabbit hole with the day
+clock, the front door and household Funds (PR 3, [A-14]); see
+docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md. The
+full alpha's eleven DONE criteria live in docs/alpha-goals.md.
 Everything else is
 proposed scope, not yet agreed in detail. Milestones exist primarily to
 control [R6], which is the risk most likely to actually kill this project.
