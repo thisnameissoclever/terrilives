@@ -113,6 +113,20 @@ export class SimBridge {
   }
 
   /**
+   * What each row is carrying, as pack item-kind indices with a
+   * u32::MAX empty-hands sentinel - the chain's hands, made visible.
+   * Read every frame like every other view; resolve names via
+   * `itemKinds`.
+   */
+  carrying(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.carrying_ptr(),
+      this.count,
+    );
+  }
+
+  /**
    * What each row is DOING, as the activity codes the render buffer
    * documents: 0 none, 1 walking, 2 waiting, 3 eating, 4 talking,
    * 5 sleeping. The [A-11] indicator column - a zero-copy view like
@@ -446,6 +460,21 @@ export class SimBridge {
   relationshipsOf(entityIndex: number): Float32Array {
     if (!isU32(entityIndex)) return new Float32Array(0);
     return this.handle.relationships_of(entityIndex);
+  }
+
+  /** One name per pack item kind, in pack order. Read once, like needNames. */
+  itemKinds(): string[] {
+    return this.handle.item_kinds();
+  }
+
+  /**
+   * The sim's mid-errand status line, or null when it is not on one -
+   * the boundary's empty string is in-band the way simName's is.
+   */
+  chainStatusOf(entityIndex: number): string | null {
+    if (!isU32(entityIndex)) return null;
+    const status = this.handle.chain_status_of(entityIndex);
+    return status === '' ? null : status;
   }
 
   /** The household's money - E4. One number for the lot, not per sim. */

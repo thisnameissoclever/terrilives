@@ -95,7 +95,8 @@ function packed(
 /** prevX, prevY, curX, curY, kind, sprite, and an optional activity. */
 type FakeEntity =
   | readonly [number, number, number, number, number, number]
-  | readonly [number, number, number, number, number, number, number];
+  | readonly [number, number, number, number, number, number, number]
+  | readonly [number, number, number, number, number, number, number, number];
 
 /**
  * A stand-in for `SimBridge` for the tests that do not need a real sim.
@@ -138,6 +139,15 @@ class FakeEntities implements RenderSource {
 
   activities(): Uint32Array {
     return Uint32Array.from(this.entities.map((e) => e[6] ?? 0));
+  }
+
+  /** Item-kind index per row; 0xffff_ffff (the default) is empty hands. */
+  carrying(): Uint32Array {
+    return Uint32Array.from(this.entities.map((e) => e[7] ?? 0xffff_ffff));
+  }
+
+  itemKinds(): readonly string[] {
+    return ['ingredients', 'dinner'];
   }
 
   /**
@@ -666,6 +676,46 @@ describe('activity indicator bubbles', () => {
     // how "the ring landed after the bubble, not on top of it" is
     // visible without restating the ring's atlas index here.
     expect(built[ringBase + OFFSET_SPRITE]).not.toBe(3);
+  });
+});
+
+describe('the carried badge', () => {
+  // [K3]'s hands on screen: a badge floats at hand height under the
+  // bubble, resolved from the pack's own kind list through the
+  // carried_<kind> atlas convention, and the transform is visible
+  // because kind 0 and kind 1 resolve to different sprites.
+  const src = new FakeEntities();
+
+  it('floats the kind-matched badge under the carrier, and counts it', () => {
+    src.set([
+      [1, 1, 1, 1, KIND_AGENT, 3, 0, 0], // carrying ingredients
+      [4, 4, 4, 4, KIND_AGENT, 3, 0], // empty hands
+    ]);
+    expect(instanceCount(src, null)).toBe(3);
+    const built = buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID);
+    const badgeBase = 2 * FLOATS_PER_INSTANCE;
+    const simBase = 0;
+    expect(built[badgeBase + OFFSET_SCREEN_X]).toBe(built[simBase + OFFSET_SCREEN_X]);
+    expect(built[badgeBase + OFFSET_SCREEN_Y]).toBe(
+      built[simBase + OFFSET_SCREEN_Y] - 46,
+    );
+
+    // The transform, visible: the same row carrying kind 1 draws a
+    // DIFFERENT sprite - the bag became the plate.
+    const asIngredients = built[badgeBase + OFFSET_SPRITE];
+    src.set([[1, 1, 1, 1, KIND_AGENT, 3, 0, 1]]);
+    const cooked = buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID);
+    const asDinner = cooked[1 * FLOATS_PER_INSTANCE + OFFSET_SPRITE];
+    expect(asDinner).not.toBe(asIngredients);
+  });
+
+  it('hides the badge of a carrier who is at work', () => {
+    src.set([
+      [1, 1, 1, 1, KIND_AGENT, 3, 6, 0], // at work, carrying
+    ]);
+    // One instance: the parked row. The dinner went to the office in
+    // the worker's hands, and neither is drawn.
+    expect(instanceCount(src, null)).toBe(1);
   });
 });
 

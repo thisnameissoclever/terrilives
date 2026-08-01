@@ -12,8 +12,13 @@ and gated on the owner's on-phone check. M2e shipped whole - the
 satisfaction axis with hobbies (PR 1, [A-12]), the three trait
 mechanisms (PR 2, [A-13]), and the career rabbit hole with the day
 clock, the front door and household Funds (PR 3, [A-14]); see
-docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md. The
-full alpha's eleven DONE criteria live in docs/alpha-goals.md.
+docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md. M2f
+shipped whole the same day - chains as content with station roles and
+the hands rule (PR 1), the running chain with terminal-only payoff
+and resume through every preemption (PR 2), and the carried-item
+badges, flyout rows and errand line (PR 3, [A-15]); see
+docs/specs/2026-08-01-m2f-multi-step-working-design.md. The full
+alpha's eleven DONE criteria live in docs/alpha-goals.md.
 Everything else is
 proposed scope, not yet agreed in detail. Milestones exist primarily to
 control [R6], which is the risk most likely to actually kill this project.

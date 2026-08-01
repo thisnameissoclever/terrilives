@@ -19,7 +19,7 @@ import {
   writeInstance,
   type InstanceArray,
 } from './render/instances.js';
-import { spriteIndex } from './render/atlas.js';
+import { SPRITES, spriteIndex } from './render/atlas.js';
 
 /**
  * The atlas slot for the selection ring, resolved once at module load.
@@ -230,7 +230,48 @@ export interface RenderSource {
    * [A-11] indicator column. Read every frame like every other view.
    */
   activities(): Uint32Array;
+  /**
+   * What each row is carrying, as pack item-kind indices with a
+   * u32::MAX empty-hands sentinel. Read every frame.
+   */
+  carrying(): Uint32Array;
+  /**
+   * One name per pack item kind - `carried_<kind>` atlas resolution's
+   * input. Stable for the life of the pack; read lazily once.
+   */
+  itemKinds(): readonly string[];
 }
+
+/** The carrying column's empty-hands sentinel. */
+const NOT_CARRYING = 0xffff_ffff;
+
+/**
+ * Atlas indices per item kind, resolved once on first use from the
+ * source's own kind list via the `carried_<kind>` naming convention -
+ * a convention rather than a table so the shell holds no second copy
+ * of the content's kind list ([D1]). A kind whose badge nobody drew
+ * resolves to null and simply draws nothing, which is visible in play
+ * and cheap here.
+ */
+let carriedSprites: (number | null)[] | null = null;
+
+function carriedSprite(source: RenderSource, kind: number): number | null {
+  if (carriedSprites === null) {
+    carriedSprites = source.itemKinds().map((name) => {
+      const index = SPRITES.findIndex(
+        (sprite) => sprite.name === `carried_${name}`,
+      );
+      return index >= 0 ? index : null;
+    });
+  }
+  return carriedSprites[kind] ?? null;
+}
+
+/**
+ * How far above a sim's anchor its carried badge floats: below the
+ * indicator bubble, at hand height rather than head height.
+ */
+const CARRIED_LIFT = 46;
 
 /**
  * The one instance array, reused for the life of the page.
@@ -265,10 +306,11 @@ export function buildInstances(
   selected: number | null = null,
 ): InstanceArray {
   const count = source.count;
-  // Room for the entities, one bubble each in the worst case, and the
-  // selection ring. Still [D11]-clean: the scratch buffer grows once to
-  // the high-water mark and is reused; nothing per-frame allocates.
-  const needed = (count * 2 + 1) * FLOATS_PER_INSTANCE;
+  // Room for the entities, one bubble and one carried badge each in
+  // the worst case, and the selection ring. Still [D11]-clean: the
+  // scratch buffer grows once to the high-water mark and is reused;
+  // nothing per-frame allocates.
+  const needed = (count * 3 + 1) * FLOATS_PER_INSTANCE;
   if (scratch.length < needed) {
     scratch = new Float32Array(needed);
   }
@@ -345,8 +387,30 @@ export function buildInstances(
     );
   }
 
+  // **The carried badges, after the bubbles** - [K3]'s hands on
+  // screen, and the transform made visible: the bag becomes a plate
+  // between the hob and the table. Hand height, under the bubble, so
+  // a talking carrier shows both.
+  const carrying = source.carrying();
+  for (let i = 0; i < count; i++) {
+    if (carrying[i] === NOT_CARRYING) continue;
+    if (activities[i] === ACTIVITY_AT_WORK) continue;
+    const sprite = carriedSprite(source, carrying[i]);
+    if (sprite === null) continue;
+    const wx = lerp(previous[i * 2], current[i * 2], alpha);
+    const wy = lerp(previous[i * 2 + 1], current[i * 2 + 1], alpha);
+    writeInstance(
+      scratch,
+      slot++,
+      screenX(wx, wy, originX),
+      screenY(wx, wy, originY) - CARRIED_LIFT,
+      layeredDepth(wx, wy, gridSize, LAYER_SIM) - INDICATOR_DEPTH_NUDGE,
+      sprite,
+    );
+  }
+
   // **The selection ring, last, in the slot past the live entities and
-  // their bubbles.**
+  // their bubbles and badges.**
   //
   // Drawn from the same interpolated position as the sim itself rather than
   // from the tick position, so it tracks a walking sim instead of stepping
@@ -383,12 +447,20 @@ export function buildInstances(
  * screen (0, 0) with depth 0, which draw in front of everything.
  */
 export function instanceCount(source: RenderSource, selected: number | null): number {
-  let bubbles = 0;
+  let extras = 0;
   const activities = source.activities();
+  const carrying = source.carrying();
   for (let i = 0; i < source.count; i++) {
-    if (INDICATOR_SPRITES[activities[i]] != null) bubbles++;
+    if (INDICATOR_SPRITES[activities[i]] != null) extras++;
+    if (
+      carrying[i] !== NOT_CARRYING &&
+      activities[i] !== ACTIVITY_AT_WORK &&
+      carriedSprite(source, carrying[i]) !== null
+    ) {
+      extras++;
+    }
   }
-  return source.count + bubbles + (findSelectedRow(source, selected) === null ? 0 : 1);
+  return source.count + extras + (findSelectedRow(source, selected) === null ? 0 : 1);
 }
 
 /**

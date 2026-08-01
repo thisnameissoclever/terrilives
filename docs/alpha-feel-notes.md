@@ -1387,3 +1387,52 @@ energy 15, satisfaction 1.0. Reproduce with
   AT_WORK at tick 600, back and exactly 120 richer by tick 900. First
   displayed-pane session should confirm the vanish reads well on
   screen; filed as the one open eye-test.
+
+## [A-15] The chain, measured against the [A-14] hour
+
+M2f: the same 36 000-tick hour with cook_dinner live, the stove's
+standalone meal retired, and the career still running. Reproduce with
+`cargo run --release -p terri-sim --example trace -- 36000`.
+
+- **Nineteen dinners in 25 days, every one completed, none
+  abandoned** - Terri 7, Doug 5, Nadia 7 - and Terri's seven happened
+  AROUND her 25 work shifts, which is resume-through-preemption
+  proven at scale: the shift drops the step, never the errand, and
+  she comes home and finishes cooking. The errand share reads 3.9%
+  of the house's hour, walks and waits included.
+- **Nadia is UP (241.3 against 210.5)**: dinners gave the sim with
+  the fragile people-hobby something real to earn from, and her
+  cooking level climbs (0.35 by hour's end) through fumbles that
+  still teach. The trait loop and the chain compose exactly as
+  designed.
+- **Terri trades honestly (297.7 against 344.9)**: seven dinners eat
+  hours her desk would have monetised at a better rate, and her
+  severity still eases (0.41 against 0.45 - the comfort deltas and
+  the desk time she keeps).
+- **Doug is the finding (359.0 against 471.0), and it is recorded
+  rather than tuned away.** He LOVES cooking, so each dinner pays 9 -
+  but a ~200-tick errand at 9 is a worse hourly rate than the
+  television he is devoted to, so more cooking means a lower life
+  score for the house's one hobby cook. That is either the honest
+  economics of a slow hobby or a payout that undersells the fullest
+  meal the game can express, and WHICH is a fun-verdict call that
+  belongs to the owner: raising the chain's satisfaction (3.0 today)
+  is the one-knob fix if play says the cook should profit from
+  cooking. Deliberately left as measured, the [A-12] precedent.
+- **FUNDS 3000 and the day clock unchanged** - the career's whole
+  [A-14] behaviour survived the chain landing on top of it.
+
+- **The watched session, honestly described (the [L59] situation
+  again).** The pane had no display and the session's one headless
+  Chromium process was still holding its dead WebGPU adapter, so no
+  fresh pixels were available this pass. What pixels would have shown
+  is pinned instead by tests through the release wasm and the real
+  atlas: the shipped-day boundary test runs from_lot until a sim's
+  hands fill and asserts the badge's data source (the carrying row)
+  and the overlay's exact status line; the badge's screen position,
+  its kind-matched sprite (the bag visibly becomes the plate), the
+  at-work hide and the instance count are pinned over the atlas the
+  page ships; and the fridge's flyout row is asserted against shipped
+  content at the boundary. First displayed session should watch one
+  dinner end to end - pantry, counter, stove, table - and check the
+  badge reads at hand height; filed with [A-14]'s open eye-test.

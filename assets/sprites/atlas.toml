@@ -333,3 +333,17 @@ x = 133
 y = 321
 w = 26
 h = 26
+
+[[sprite]]
+name = "carried_ingredients"
+x = 160
+y = 321
+w = 18
+h = 18
+
+[[sprite]]
+name = "carried_dinner"
+x = 179
+y = 321
+w = 18
+h = 18

@@ -40,6 +40,8 @@ export interface DebugSource {
   traitKinds(): string[];
   /** The sim's job label, or null for the unemployed - E4. */
   careerOf(entityIndex: number): string | null;
+  /** The sim's mid-errand status line, or null when it is not on one - K4. */
+  chainStatusOf(entityIndex: number): string | null;
 }
 
 /** The one DOM dependency, structural like the needs panel's. */
@@ -128,6 +130,10 @@ export function formatDebugReport(source: DebugSource): string {
     const career = source.careerOf(entity);
     if (career !== null) {
       lines.push(`  works: ${career}`);
+    }
+    const errand = source.chainStatusOf(entity);
+    if (errand !== null) {
+      lines.push(`  errand: ${errand}`);
     }
     const worn = source.traitsOf(entity);
     for (let i = 0; i + 1 < worn.length; i += 2) {

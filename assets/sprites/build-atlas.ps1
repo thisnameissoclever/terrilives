@@ -254,6 +254,15 @@ $SOURCES = @(
   @{ name = 'indicatorEat';           from = 'generated:indicatorEat' }
   @{ name = 'indicatorSleep';         from = 'generated:indicatorSleep' }
   @{ name = 'indicatorWait';          from = 'generated:indicatorWait' }
+
+  # ---- M2f PR 3: carried-item badges -----------------------------------------
+  # One badge per item kind in content/chains.toml, named carried_<kind>
+  # so the shell can resolve them by convention from the pack's own
+  # item_kinds list rather than from a second table. The transform is
+  # the point: a sim's bag becoming a plate mid-errand is the chain
+  # made visible.
+  @{ name = 'carried_ingredients';    from = 'generated:carriedIngredients' }
+  @{ name = 'carried_dinner';         from = 'generated:carriedDinner' }
 )
 
 function New-HighQualityGraphics([System.Drawing.Bitmap] $target) {
@@ -441,6 +450,61 @@ function New-IndicatorSprite([string] $kind) {
   return $out
 }
 
+# A small held-item badge, no balloon: it rides the sim's hands rather
+# than its thoughts. 18 px, drawn 4x and downsampled like the
+# indicators.
+function New-CarriedItemSprite([string] $kind) {
+  $scale = 4
+  $side = 18
+  $w = $side * $scale
+  $h = $side * $scale
+  $big = [System.Drawing.Bitmap]::new($w, $h, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+  $g = New-HighQualityGraphics $big
+
+  $ink = [System.Drawing.Color]::FromArgb(255, 40, 44, 52)
+  $inkPen = New-Object System.Drawing.Pen($ink, (1.6 * $scale))
+
+  switch ($kind) {
+    'ingredients' {
+      # A grocery bag: a tan trapezoid with a folded top and a leafy
+      # something poking out.
+      $paper = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(255, 209, 174, 122))
+      $fold = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(255, 184, 148, 96))
+      $leaf = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(255, 106, 168, 79))
+      $bag = @(
+        (New-Object System.Drawing.PointF((4 * $scale), (6 * $scale))),
+        (New-Object System.Drawing.PointF((14 * $scale), (6 * $scale))),
+        (New-Object System.Drawing.PointF((13 * $scale), (16 * $scale))),
+        (New-Object System.Drawing.PointF((5 * $scale), (16 * $scale)))
+      )
+      $g.FillPolygon($paper, $bag)
+      $g.FillRectangle($fold, (4 * $scale), (6 * $scale), (10 * $scale), (2 * $scale))
+      $g.FillEllipse($leaf, (6 * $scale), (2 * $scale), (3 * $scale), (4.5 * $scale))
+      $g.FillEllipse($leaf, (9.5 * $scale), (2.5 * $scale), (3 * $scale), (4 * $scale))
+      $paper.Dispose(); $fold.Dispose(); $leaf.Dispose()
+    }
+    'dinner' {
+      # A plate with a steaming dome: white ellipse, domed lid, two
+      # wisps.
+      $china = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(255, 245, 245, 240))
+      $dome = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(255, 214, 217, 224))
+      $g.FillEllipse($china, (2 * $scale), (11 * $scale), (14 * $scale), (5 * $scale))
+      $g.FillPie($dome, (4 * $scale), (5 * $scale), (10 * $scale), (12 * $scale), 180, 180)
+      $steamPen = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(200, 250, 250, 248), (1.2 * $scale))
+      $g.DrawArc($steamPen, (6.5 * $scale), (1 * $scale), (2 * $scale), (3 * $scale), 90, 180)
+      $g.DrawArc($steamPen, (10 * $scale), (1 * $scale), (2 * $scale), (3 * $scale), 270, 180)
+      $steamPen.Dispose(); $china.Dispose(); $dome.Dispose()
+    }
+  }
+  $inkPen.Dispose(); $g.Dispose()
+
+  $out = [System.Drawing.Bitmap]::new($side, $side, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+  $g2 = New-HighQualityGraphics $out
+  $g2.DrawImage($big, (New-Object System.Drawing.Rectangle(0, 0, $side, $side)))
+  $g2.Dispose(); $big.Dispose()
+  return $out
+}
+
 # The kit has 140 pieces of furniture and no people, so the one sprite
 # the game most needs is the one nothing ships. Drawn from primitives at
 # 4x and downsampled, which is enough antialiasing to sit next to
@@ -496,6 +560,8 @@ try {
       'generated:indicatorEat' { New-IndicatorSprite 'eat' }
       'generated:indicatorSleep' { New-IndicatorSprite 'sleep' }
       'generated:indicatorWait' { New-IndicatorSprite 'wait' }
+      'generated:carriedIngredients' { New-CarriedItemSprite 'ingredients' }
+      'generated:carriedDinner' { New-CarriedItemSprite 'dinner' }
       default {
         # `width` is optional and only the wall panels set it; absent, it is
         # $null, which the [int] parameter takes as 0 and the function reads

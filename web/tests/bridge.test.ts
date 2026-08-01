@@ -299,6 +299,35 @@ describe('SimBridge', () => {
     expect(bridge.funds()).toBe(120);
   });
 
+  it('a shipped dinner becomes visible: hands fill, the status line reads', () => {
+    // The chain's whole VISIBLE pipeline through the release artifact:
+    // somewhere in the first few game days a sim starts cook_dinner,
+    // its carrying row leaves the empty-hands sentinel (what the badge
+    // draws from), and the status line composes from pack content
+    // (what the overlay prints). Deterministic - the seed is fixed -
+    // and the budget is generous because WHEN the first dinner starts
+    // is the simulation's own business.
+    const handle = SimHandle.from_lot();
+    const bridge = new SimBridge(handle, wasmMemory);
+    expect(bridge.itemKinds()).toEqual(['ingredients', 'dinner']);
+
+    const EMPTY_HANDS = 0xffff_ffff;
+    for (let t = 0; t < 6000; t++) {
+      bridge.tick();
+      const carrying = bridge.carrying();
+      const ids = bridge.ids();
+      for (let row = 0; row < bridge.count; row++) {
+        if (carrying[row] === EMPTY_HANDS) continue;
+        expect(carrying[row]).toBeLessThan(2);
+        const status = bridge.chainStatusOf(ids[row]);
+        expect(status).toContain('Cook dinner');
+        expect(status).toContain('carrying');
+        return;
+      }
+    }
+    throw new Error('nobody carried anything in six game days');
+  });
+
   it('reproduces the native golden world hash across the wasm boundary', () => {
     // The native `world_hash_matches_its_golden_vector` in
     // crates/terri-sim/src/lib.rs claims to be a free cross-platform
