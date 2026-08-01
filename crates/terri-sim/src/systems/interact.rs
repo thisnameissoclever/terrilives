@@ -120,9 +120,22 @@ pub fn tick_interactions(
         Option<&mut IntentQueue>,
         Option<&mut Habituation>,
         Option<&Personality>,
+        Option<&mut terri_core::Satisfaction>,
+        Option<&terri_core::Hobbies>,
     )>,
 ) {
-    for (entity, mut eating, mut needs, target, queue, habituation, personality) in &mut agents {
+    for (
+        entity,
+        mut eating,
+        mut needs,
+        target,
+        queue,
+        habituation,
+        personality,
+        satisfaction,
+        hobbies,
+    ) in &mut agents
+    {
         // Every index here is in range by construction. The object and
         // interaction ids were read out of this same pack when
         // `follow_path` began the interaction, content validation rejects
@@ -200,6 +213,27 @@ pub fn tick_interactions(
                     intent.object == target.object && intent.interaction == target.interaction
                 }) {
                     queue.pop();
+                }
+            }
+
+            // **The hobby payout - the second axis's only upward path**
+            // ([E1]/[E2]). On COMPLETION like habituation two blocks up
+            // and for its reason: an interrupted read fed nobody's life.
+            // Bare test agents carry no Satisfaction and receive
+            // nothing, which is what keeps the pre-M2e goldens still;
+            // absent Hobbies reads as "no hobbies" and pays base.
+            if let Some(mut ledger) = satisfaction {
+                let payout = super::satisfaction::hobby_payout(
+                    act.satisfaction,
+                    &act.tags,
+                    hobbies,
+                    content.0.tuning.hobby_multiplier,
+                );
+                // Guarded so a chore's zero does not mark the component
+                // changed every meal - `add(0.0)` is arithmetic nothing
+                // but change-detection something.
+                if payout > 0.0 {
+                    ledger.add(payout);
                 }
             }
             commands

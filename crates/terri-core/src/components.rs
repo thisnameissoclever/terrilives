@@ -399,6 +399,55 @@ impl Relationships {
     }
 }
 
+/// How well this sim's LIFE is going - the second axis, [E1] in
+/// `docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md`.
+///
+/// An accumulator, not an eighth need: it never drains on a clock, it
+/// has no ceiling, and no object advertises it. Exactly three writers
+/// exist by design - hobby completions add, neglect bleeds, and (from
+/// PR 2) conditions scale the accrual - and [S1]'s DECIDED rule that
+/// needs can only ever COST it is enforced upstream, where the compile
+/// step rejects a negative content yield.
+///
+/// Non-negative: a life cannot owe. [`Self::add`] holds the invariant
+/// so `world_hash`, which digests this, never sees a sign a replay
+/// could disagree about.
+#[derive(Component, Debug, Clone, Copy, Default, PartialEq)]
+pub struct Satisfaction(f32);
+
+impl Satisfaction {
+    /// The accumulated total, `>= 0`.
+    pub fn value(&self) -> f32 {
+        self.0
+    }
+    /// Moves the total by `amount` - negative for the neglect bleed -
+    /// clamped at zero from below and unbounded above.
+    pub fn add(&mut self, amount: f32) {
+        self.0 = (self.0 + amount).max(0.0);
+    }
+}
+
+/// The activity tags this sim loves - [E2]. Content, copied from the
+/// compiled household member at spawn, and NOT hashed: like
+/// `Personality`, it is derivable from the pack for as long as nothing
+/// mutates it, and the day something does (acquiring a hobby in play)
+/// it enters `world_hash` on the same expiry note personality carries.
+///
+/// A `Vec` of the pack's own strings rather than interned indices: it
+/// is read once per COMPLETION, not per tick, and the pack has no tag
+/// table to index into - inventing one for this read rate would be
+/// mechanism without a customer.
+#[derive(Component, Debug, Clone, Default, PartialEq)]
+pub struct Hobbies(pub Vec<String>);
+
+impl Hobbies {
+    /// Whether any of `tags` is a hobby of this sim - the one question
+    /// the payout asks.
+    pub fn loves_any(&self, tags: &[String]) -> bool {
+        tags.iter().any(|tag| self.0.contains(tag))
+    }
+}
+
 /// The atlas sprite this entity is drawn with, when it differs from its
 /// object definition's - [A-11]'s facing mechanism.
 ///

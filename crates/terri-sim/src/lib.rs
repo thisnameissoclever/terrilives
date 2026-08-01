@@ -110,6 +110,15 @@ impl Sim {
         // components even behind filters.
         world.register_component::<terri_core::Relationships>();
         world.register_component::<terri_core::Socialising>();
+        // M2e's two. `Satisfaction` is in `world_hash`'s query, so [L3]
+        // bites exactly as it does for Habituation and Relationships:
+        // unregistered, the digest goes EMPTY rather than wrong.
+        // `Hobbies` stays out of the digest (spawn-time content,
+        // derivable from the pack - the Personality precedent, with the
+        // same expiry the day something mutates one), but tests reach
+        // it through `try_query`.
+        world.register_component::<terri_core::Satisfaction>();
+        world.register_component::<terri_core::Hobbies>();
         // A-11's facing carrier. In `sync_render_buffer`'s query (a
         // plain `World::query`, which self-registers) rather than the
         // digest's `try_query`, so this line is for the determinism
@@ -183,6 +192,13 @@ impl Sim {
                 // and saw the previous tick's values. See `decay_habituation`.
                 systems::habituation::decay_habituation,
                 systems::social::decay_relationships,
+                // Third of the genuinely-free family: reads Needs (which
+                // nothing later writes) and writes Satisfaction (which
+                // nothing else reads mid-tick). The hobby PAYOUT is not
+                // here - completions pay inside tick_interactions and
+                // tick_social, where the completion-only rule already
+                // lives.
+                systems::satisfaction::bleed_neglect,
             )
                 .chain(),
         );
@@ -341,6 +357,14 @@ impl Sim {
                 sim_id,
                 terri_core::SimName(member.name.clone()),
                 personality,
+                // The second axis starts at zero - a life is judged from
+                // move-in day - and the hobbies ride as spawned content
+                // ([E1]/[E2]). Household sims carry both; bare test
+                // agents carry neither, and every consumer treats the
+                // absences as "no hobbies, no ledger", which is what
+                // keeps the pre-M2e golden vectors still.
+                terri_core::Satisfaction::default(),
+                terri_core::Hobbies(member.hobbies.clone()),
             ));
         }
     }
@@ -806,6 +830,18 @@ impl Sim {
         // NO_SIM_ID is in-band the way NO_NEEDS is, and safer: `SimId`
         // wraps a u32 allocated monotonically from 0, so u64::MAX is
         // unreachable by construction rather than merely unclamped.
+        // **`Satisfaction` is in the digest, as of M2e.** Not because it
+        // changes what a sim chooses - today nothing reads it back into
+        // scoring - but because it is the axis the PLAYER is scored on,
+        // and a replay that reproduced every footstep while disagreeing
+        // about whether the life went well would be a replay of the
+        // wrong game. In-band absent like needs: the component clamps at
+        // zero, so -1 is unreachable by a real ledger. The FIELD is
+        // written for every row, sentinel or not, so adding it moved the
+        // golden once as a shape change - the same one-settlement cost
+        // the seven-need shape paid at M1a, and paid then for this
+        // exact reason.
+        const NO_SATISFACTION: f32 = -1.0;
         const NO_SIM_ID: u64 = u64::MAX;
         type Row = (
             u32,
@@ -815,6 +851,7 @@ impl Sim {
             Vec<(u32, u32, f32)>,
             u64,
             Vec<(u32, f32)>,
+            f32,
         );
         let mut rows: Vec<Row> = Vec::new();
         if let Some(mut state) = self.world.try_query::<(
@@ -824,8 +861,10 @@ impl Sim {
             Option<&Habituation>,
             Option<&SimId>,
             Option<&Relationships>,
+            Option<&terri_core::Satisfaction>,
         )>() {
-            for (entity, pos, needs, habituation, sim_id, relationships) in state.iter(&self.world)
+            for (entity, pos, needs, habituation, sim_id, relationships, satisfaction) in
+                state.iter(&self.world)
             {
                 // The sentinel is in-band, so a real level equal to it
                 // would hash as if the component were absent. `Needs`
@@ -870,6 +909,7 @@ impl Sim {
                     hab,
                     sim_id.map_or(NO_SIM_ID, |id| id.0 as u64),
                     rel,
+                    satisfaction.map_or(NO_SATISFACTION, |s| s.value()),
                 ));
             }
         }
@@ -879,7 +919,7 @@ impl Sim {
         // is what pins it; deleting this line must fail that test.
         rows.sort_by_key(|(index, ..)| *index);
 
-        for (index, x, y, levels, habituation, sim_id, relationships) in rows {
+        for (index, x, y, levels, habituation, sim_id, relationships, satisfaction) in rows {
             hasher.write_u64(index as u64);
             hasher.write_f32(x);
             hasher.write_f32(y);
@@ -904,6 +944,9 @@ impl Sim {
                 hasher.write_u64(other as u64);
                 hasher.write_f32(feeling);
             }
+            // Last in the row because it arrived last; a fixed-width
+            // field, so no length prefix to alias.
+            hasher.write_f32(satisfaction);
         }
 
         hasher.finish()
@@ -2199,10 +2242,18 @@ mod determinism_tests {
         // populated or not - the SHAPE is the published format, per the
         // same decision that fixed all seven need columns while only
         // hunger decayed. The two movements merged from parallel
-        // branches, so this value is the MERGED measurement: the knob's
-        // behaviour at 0.75 digested in M2d's wider format, read off the
-        // wasm32 failure after a rebuild per [L13] and equal to native.
-        const GOLDEN: u64 = 0x390E_E443_81C5_4B7A;
+        // branches, so this value was the MERGED measurement, from
+        // 0x390E_E443_81C5_4B7A.
+        //
+        // **M2e moved it once more, by ENCODING alone**: every row gained
+        // a trailing satisfaction f32 - the in-band -1.0 sentinel here,
+        // since these bare agents carry no ledger - written for every
+        // entity per the published-shape rule above. BEHAVIOUR is
+        // untouched: this scenario has no household, so no sim earns or
+        // bleeds, and the movement is the field's bytes and nothing
+        // else. Measured on native and confirmed equal on wasm32 through
+        // the rebuilt module, per [L13].
+        const GOLDEN: u64 = 0xE89C_5E72_9378_E828;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {
