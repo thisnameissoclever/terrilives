@@ -814,16 +814,25 @@ impl Sim {
         state
             .iter(&self.world)
             .find(|(entity, _, _)| entity.index_u32() == index)
-            .map(|(_, chain_state, carrying)| {
-                let chain = &pack.chains[chain_state.chain as usize];
-                let step = &chain.steps[chain_state.step as usize];
-                match carrying {
-                    Some(item) => format!(
-                        "{}: {} (carrying {})",
-                        chain.label, step.label, pack.item_kinds[item.0 as usize]
-                    ),
+            .and_then(|(_, chain_state, carrying)| {
+                // Checked lookups, unlike the systems' own indexing: a
+                // system reads state it wrote against this pack, while
+                // this is a DISPLAY read that a stale component (a
+                // future save loaded over changed content) should turn
+                // into a blank line, not a panicked overlay.
+                let chain = pack.chains.get(chain_state.chain as usize)?;
+                let step = chain.steps.get(chain_state.step as usize)?;
+                Some(match carrying {
+                    Some(item) => {
+                        let kind = pack
+                            .item_kinds
+                            .get(item.0 as usize)
+                            .map(String::as_str)
+                            .unwrap_or("something unrecognisable");
+                        format!("{}: {} (carrying {})", chain.label, step.label, kind)
+                    }
                     None => format!("{}: {}", chain.label, step.label),
-                }
+                })
             })
     }
 
