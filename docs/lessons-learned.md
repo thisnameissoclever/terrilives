@@ -3086,3 +3086,34 @@ prints; the overlay's own test asserts the current labels
 (`traits:`, `drains:`, `refills:`, `stalled:`, `orders waiting:`); and
 README.md points at the glossary first, so the next reader lands on
 definitions rather than on decisions.
+
+## [L61] A sweep is per code change, not per pull request
+
+**What happened.** Three CI failures in one afternoon, all the same
+shape: a change made AFTER the branch's local mutation sweep went out
+untested, and the sharded sweep in CI found the survivors instead of
+me. First the M2f overlay accessors, then `stall_reason_of` and
+`queued_orders_of` (added mid-conversation for the owner), then the
+busy check that fixed the stale stall reason - each one a small,
+obviously-correct edit made in response to live feedback, each one
+pushed within minutes of being written.
+
+**Root cause.** The sweep was being treated as a PR-shaped ritual -
+"sweep before opening the PR" - rather than as a gate on code. Every
+one of these changes landed after that moment, and none of them felt
+big enough to re-run a three-minute sweep for. The pattern is
+strongest exactly when feedback is arriving quickly, which is also
+when the pressure to push fast is highest.
+
+**Prevention rule.** Re-run the targeted sweep before EVERY push that
+changes Rust, not once per branch: `git diff origin/main HEAD --
+crates/ > patch` then `cargo mutants ... --in-diff patch`. It costs
+two to three minutes against a CI round trip of fifteen, and the
+sweep is the only gate that sees the class of bug these were -
+accessors nothing reads back, and boolean chains whose terms are only
+partly exercised.
+
+**How to verify.** The last push of this session ran the sweep first
+(21 mutants, 21 caught) and CI agreed. A red mutants shard on a
+branch whose last local sweep was clean means the sweep was run
+before the change rather than after it.
