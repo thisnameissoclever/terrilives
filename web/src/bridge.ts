@@ -12,6 +12,7 @@ const VARIANT_SELECT = 0;
 const VARIANT_USE_OBJECT = 1;
 const VARIANT_CANCEL_INTENTS = 2;
 const VARIANT_SET_SPEED = 3;
+const VARIANT_TALK_TO = 4;
 
 /** postcard's `Option` discriminant: one byte, 0 for none, 1 for some. */
 const OPTION_NONE = 0;
@@ -291,6 +292,29 @@ export class SimBridge {
     // object entirely.
     pushVarint(bytes, interaction);
     return this.enqueueCommand(new Uint8Array(bytes));
+  }
+
+  /**
+   * Directs `agent` to start social interaction `interaction` (an index
+   * into the pack's social vocabulary) with the sim `target`. Field
+   * order matches `SimCommand::TalkTo`'s declaration, same discipline
+   * as `useObject`; the Rust golden vector carries matching rows.
+   */
+  talkTo(agent: number, target: number, interaction: number): boolean {
+    if (!isU32(agent) || !isU32(target) || !isU32(interaction)) return false;
+    const bytes = [VARIANT_TALK_TO];
+    pushVarint(bytes, agent);
+    pushVarint(bytes, target);
+    pushVarint(bytes, interaction);
+    return this.enqueueCommand(new Uint8Array(bytes));
+  }
+
+  /**
+   * One label per social-vocabulary entry, in the index order `talkTo`'s
+   * `interaction` uses - the rows for a flyout over a fellow sim.
+   */
+  socialLabels(): string[] {
+    return this.handle.social_labels();
   }
 
   /** Clears `agent`'s queued orders, returning it to autonomy. */

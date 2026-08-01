@@ -122,6 +122,11 @@ function recordingSink(selected: number | null = null): CommandSink & {
       queue.push([object, interaction]),
       true
     ),
+    talkTo: (agent, target, interaction) => (
+      calls.push(`talk ${agent} ${target} ${interaction}`),
+      queue.push([target, interaction]),
+      true
+    ),
     cancelIntents: (agent) => (
       calls.push(`cancel ${agent}`), (queue.length = 0), true
     ),
@@ -137,7 +142,10 @@ function recordingSink(selected: number | null = null): CommandSink & {
 function labelsFrom(
   table: Readonly<Record<number, readonly string[]>>,
 ): InteractionSource {
-  return { interactionLabels: (entity) => table[entity] ?? [] };
+  return {
+    interactionLabels: (entity) => table[entity] ?? [],
+    socialLabels: () => ['Chat'],
+  };
 }
 
 /** A flyout that records what it was asked to do and nothing else. */
@@ -1054,14 +1062,45 @@ describe('resolveRightClick', () => {
   });
 
   /**
-   * A right click that hits no object still offers the cancel, because
-   * that is the binding [I4] MOVED into the menu rather than deleted. Both
-   * misses are asserted - bare floor and a sim - since they reach the same
-   * branch by different routes and only one of them involves a pick at all.
+   * A right click that hits nothing actionable still offers the cancel,
+   * because that is the binding [I4] MOVED into the menu rather than
+   * deleted. Both misses are asserted - bare floor and the SELECTED sim
+   * itself - since they reach the same answer by different routes and
+   * only one of them involves a pick at all. A different sim is not a
+   * miss any more; that split is the test below.
    */
-  it('offers the cancel alone on bare floor and on a sim', () => {
+  it('offers the cancel alone on bare floor and on the selected sim itself', () => {
     const sink = target(6, source([[6, KIND_AGENT, 4, 2]]));
     expect(resolveRightClick(sink, { x: -400, y: -400 }, 0, 0)).toEqual([
+      NEVER_MIND,
+    ]);
+    expect(resolveRightClick(sink, bodyOf([4, 2]), 0, 0)).toEqual([
+      NEVER_MIND,
+    ]);
+  });
+
+  /**
+   * **The three-way split over sims** - the [A-11] talk command's front
+   * door. A housemate offers the social vocabulary; the selected sim
+   * itself only the cancel, asserted in the SAME fixture so the split is
+   * what distinguishes them rather than two fixtures happening to agree.
+   * Two labels, because row order IS `TalkTo`'s interaction index: a
+   * builder that hardcoded one row, or renumbered them, is visible only
+   * with a second row ([L34]).
+   */
+  it('offers the social verbs on a housemate, in vocabulary order', () => {
+    const rows = source([
+      [6, KIND_AGENT, 4, 2],
+      [8, KIND_AGENT, 7, 3],
+    ]);
+    const sink = {
+      ...target(6, rows),
+      socialLabels: () => ['Chat', 'Gossip'],
+    };
+
+    expect(resolveRightClick(sink, bodyOf([7, 3]), 0, 0)).toEqual([
+      { label: 'Chat', action: { kind: 'talk', target: 8, interaction: 0 } },
+      { label: 'Gossip', action: { kind: 'talk', target: 8, interaction: 1 } },
       NEVER_MIND,
     ]);
     expect(resolveRightClick(sink, bodyOf([4, 2]), 0, 0)).toEqual([
@@ -1208,6 +1247,20 @@ describe('dispatchMenuAction', () => {
     expect(sink.queue).toEqual([[9, 2]]);
   });
 
+  /**
+   * A social row is the same replace pair as `use`: cancel first, then
+   * the talk, so an ordered chat supersedes the queue rather than
+   * joining it. The index is 1 rather than 0, so a dispatcher that
+   * substituted the first social verb is visible here and nowhere in
+   * the shipped game, whose vocabulary has one entry ([L34]).
+   */
+  it('sends cancel then talk for a social row, carrying the row index', () => {
+    const sink = recordingSink(6);
+    dispatchMenuAction(sink, { kind: 'talk', target: 8, interaction: 1 });
+    expect(sink.calls).toEqual(['cancel 6', 'talk 6 8 1']);
+    expect(sink.queue).toEqual([[8, 1]]);
+  });
+
   it('sends the cancel alone for the Never mind row', () => {
     const sink = recordingSink(6);
     dispatchMenuAction(sink, NEVER_MIND.action);
@@ -1224,6 +1277,7 @@ describe('dispatchMenuAction', () => {
   it('sends nothing when the selection has gone since the menu opened', () => {
     const sink = recordingSink(null);
     dispatchMenuAction(sink, { kind: 'use', object: 9, interaction: 0 });
+    dispatchMenuAction(sink, { kind: 'talk', target: 8, interaction: 0 });
     dispatchMenuAction(sink, NEVER_MIND.action);
     expect(sink.calls).toEqual([]);
   });

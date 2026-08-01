@@ -372,6 +372,22 @@ pub fn serve_intents(
     content: Res<Content>,
     mut agents: Query<(Entity, &Position, &mut IntentQueue, Option<&Target>), With<Agent>>,
     objects: Query<(&Position, &SmartObject, Has<Reserved>)>,
+    // Everything a TalkTo intent needs to know about its target: where
+    // it stands, whether it is spoken for, and whether it is busy in
+    // any of the four ways [H10] rules out. Component reads rather than
+    // filters, so "busy" and "gone" stay distinguishable - a busy
+    // partner is waited for and a gone one drops the intent.
+    #[allow(clippy::type_complexity)] people: Query<
+        (
+            &Position,
+            Has<Reserved>,
+            Has<Target>,
+            Has<Path>,
+            Has<Eating>,
+            Has<Socialising>,
+        ),
+        With<Agent>,
+    >,
 ) {
     let mut directed: Vec<Entity> = agents
         .iter()
@@ -426,7 +442,69 @@ pub fn serve_intents(
         let held_here = target.is_some_and(|t| t.object == intent.object);
 
         let Ok((object_pos, placed, reserved)) = objects.get(intent.object) else {
-            queue.pop();
+            // **Not an object - perhaps a PERSON.** A TalkTo intent
+            // carries the target sim's entity in the same field a
+            // UseObject carries a fridge's, and this is where the two
+            // part ways. Gone entirely: drop, like any stale index.
+            let Ok((target_pos, reserved_p, has_target, has_path, has_eating, has_talking)) =
+                people.get(intent.object)
+            else {
+                queue.pop();
+                continue;
+            };
+            // Out of the social vocabulary's range: drop, mirroring the
+            // object arm below - follow_path indexes pack.social with
+            // this number and TalkTo is its second producer.
+            if intent.interaction as usize >= content.0.social.len() {
+                queue.pop();
+                continue;
+            }
+            // Spoken for, claimed this tick, or busy in any [H10] sense:
+            // WAIT, exactly as a sim waits for a reserved fridge - the
+            // intent stays at the front and retries, select_action skips
+            // the non-empty queue, and the sim stands rather than
+            // strolls. `Blocked` says why out loud.
+            let busy = has_target || has_path || has_eating || has_talking;
+            if (reserved_p && !held_here) || claimed.contains(&intent.object) || busy {
+                commands.entity(agent).insert(Blocked);
+                continue;
+            }
+            let from = (agent_pos.x.round() as i32, agent_pos.y.round() as i32);
+            let to = (target_pos.x.round() as i32, target_pos.y.round() as i32);
+            // Beside the person, 1x1, per the people loop in
+            // select_action. Unreachable drops rather than waits: the
+            // partner is idle, so its tile is stable, and a wall between
+            // the two is not a transient.
+            let Some(steps) = grid.find_path_adjacent_to_tile(from, to) else {
+                queue.pop();
+                continue;
+            };
+            if let Some(target) = target {
+                if target.object != intent.object {
+                    commands.entity(target.object).try_remove::<Reserved>();
+                }
+            }
+            // BOTH parties into the claimed list. The partner so no
+            // later-directed agent grabs it this tick; the AGENT so two
+            // sims each told to talk to the other form exactly one
+            // conversation - deferred commands make the second agent's
+            // Target invisible to this same run, and the list is the
+            // only within-tick truth, the same trap select_action's
+            // people loop documents.
+            claimed.push(intent.object);
+            claimed.push(agent);
+            commands.entity(intent.object).insert(Reserved);
+            commands
+                .entity(agent)
+                .remove::<Eating>()
+                .remove::<Socialising>()
+                .insert((
+                    Target {
+                        object: intent.object,
+                        interaction: intent.interaction,
+                    },
+                    Path { steps, cursor: 0 },
+                ));
             continue;
         };
         // Out of range means the pack changed under a saved command log,
@@ -481,6 +559,11 @@ pub fn serve_intents(
             }
         }
         claimed.push(intent.object);
+        // The agent too: it is now committed to furniture, so a TalkTo
+        // directed at IT later in this same run must wait rather than
+        // reserve a sim already walking away - the deferred-Target
+        // blindness again.
+        claimed.push(agent);
         commands.entity(intent.object).insert(Reserved);
         // BOTH kinds of running interaction are preempted, and forgetting
         // the second was a measured deadlock rather than a hypothetical: a

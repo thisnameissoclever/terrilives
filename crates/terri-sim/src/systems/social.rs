@@ -7,7 +7,9 @@
 //! toward zero once a tick.
 
 use bevy_ecs::prelude::*;
-use terri_core::{NeedId, Needs, Personality, Relationships, Reserved, SimId, Socialising, Target};
+use terri_core::{
+    IntentQueue, NeedId, Needs, Personality, Relationships, Reserved, SimId, Socialising, Target,
+};
 
 use super::advertise::{relationship_scale, scaled_delta};
 use crate::Content;
@@ -52,6 +54,7 @@ pub fn tick_social(
     sim_ids: Query<&SimId>,
     mut relationships: Query<&mut Relationships>,
     partners: Query<(Has<Reserved>, Has<Target>), With<terri_core::Agent>>,
+    mut queues: Query<&mut IntentQueue>,
 ) {
     let tuning = content.0.tuning;
 
@@ -149,6 +152,28 @@ pub fn tick_social(
             }
         }
 
+        // **A player-issued talk lives until the conversation it named
+        // finishes** - the exact rule `tick_interactions` applies to a
+        // meal, ported here because TalkTo made a directed conversation
+        // possible. Without this pop the front intent survives its own
+        // completion, `serve_intents` re-serves it next tick, and one
+        // right-click becomes a conversation loop the player can only
+        // escape with a cancel. Guarded on the front intent MATCHING
+        // what just finished, for tick_interactions' reason: an
+        // autonomous talk can complete with an unserved intent for
+        // somebody else waiting at the front, and popping that would
+        // discard an instruction never carried out. The DISTURBED branch
+        // above deliberately does not pop: a talk that never completed
+        // leaves the order standing, the same way an intent for a
+        // reserved object waits at serve, so the sim tries again once
+        // the partner is free.
+        if let Ok(mut queue) = queues.get_mut(initiator) {
+            if queue.front().is_some_and(|intent| {
+                intent.object == partner && intent.interaction == socialising.interaction
+            }) {
+                queue.pop();
+            }
+        }
         commands
             .entity(initiator)
             .remove::<Socialising>()
@@ -1218,6 +1243,621 @@ mod tests {
                 .get::<Relationships>(lonely)
                 .is_none_or(|r| r.feeling(SimId(1)) == 0.0),
             "an interrupted conversation leaves no impression"
+        );
+    }
+
+    // ---- The TalkTo command ([A-11]) ---------------------------------
+    //
+    // Everything above reaches conversations through autonomy. The tests
+    // below reach them through the COMMAND: a right-click on a housemate,
+    // drained into an intent, served by the people branch, and carried by
+    // the same tick_social the autonomous path uses. Both sims start with
+    // FULL needs so autonomy never talks on its own ([H7]'s deficit-cubed
+    // brake reads a zero deficit as a zero score); every conversation
+    // these tests see exists because the command worked.
+
+    /// A house where only an ORDER produces a conversation: two sims with
+    /// nothing to want, three tiles apart, and a fridge nobody is hungry
+    /// for. The fridge is spawned even though most tests ignore it so the
+    /// object-target refusal and the busy-partner meal read from the same
+    /// fixture the happy path uses.
+    fn command_household(
+        initiator_needs: Needs,
+        partner_needs: Needs,
+    ) -> (Sim, Entity, Entity, Entity) {
+        let pack = test_content::pack_with_social(
+            vec![test_content::object(
+                "fridge",
+                &[(NeedId::Hunger, 30.0)],
+                18,
+            )],
+            vec![test_content::interaction(
+                "chat",
+                &[(NeedId::Social, 30.0)],
+                40,
+            )],
+            test_content::tuning(),
+        );
+        let fridge_def = pack.find("fridge").expect("the fixture declares it");
+        let mut sim = test_content::sim_with(10, 8, pack);
+        let a = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                SimId(0),
+                Position { x: 1.0, y: 1.0 },
+                initiator_needs,
+            ))
+            .id();
+        let b = sim
+            .world_mut()
+            .spawn((Agent, SimId(1), Position { x: 4.0, y: 1.0 }, partner_needs))
+            .id();
+        let fridge = sim
+            .world_mut()
+            .spawn((
+                Position { x: 5.0, y: 1.0 },
+                terri_core::SmartObject(fridge_def),
+            ))
+            .id();
+        (sim, a, b, fridge)
+    }
+
+    fn command_fixture() -> (Sim, Entity, Entity, Entity) {
+        command_household(Needs::all_at(NEED_MAX), Needs::all_at(NEED_MAX))
+    }
+
+    fn push_command(sim: &mut Sim, command: terri_core::SimCommand) {
+        sim.world_mut()
+            .resource_mut::<terri_core::CommandQueue>()
+            .push(command);
+    }
+
+    /// The click, as the shell sends it: chat is interaction 0 of the
+    /// fixture vocabulary.
+    fn talk(sim: &mut Sim, agent: Entity, target: Entity) {
+        push_command(
+            sim,
+            terri_core::SimCommand::TalkTo {
+                agent: agent.index_u32(),
+                target: target.index_u32(),
+                interaction: 0,
+            },
+        );
+    }
+
+    fn queue_is_empty(sim: &Sim, agent: Entity) -> bool {
+        sim.world()
+            .get::<terri_core::IntentQueue>(agent)
+            .is_none_or(terri_core::IntentQueue::is_empty)
+    }
+
+    /// The whole directed path on the tick it arrives, then through to
+    /// the conversation: drain first in the tick means serve_intents
+    /// paths to the partner on the SAME tick the click lands, mirroring
+    /// `a_use_object_command_is_served_on_the_tick_it_arrives`.
+    #[test]
+    fn a_talk_command_starts_a_conversation_autonomy_never_would() {
+        let (mut sim, a, b, _fridge) = command_fixture();
+
+        talk(&mut sim, a, b);
+        sim.tick();
+
+        assert_eq!(
+            sim.world().get::<Target>(a).map(|t| t.object),
+            Some(b),
+            "the command must be served on the tick it arrives"
+        );
+        assert!(
+            sim.world().get::<Reserved>(b).is_some(),
+            "the partner is reserved exactly as a directed fridge would be"
+        );
+
+        let mut talked = false;
+        for _ in 0..SESSION {
+            sim.tick();
+            if sim.world().get::<Socialising>(a).is_some() {
+                talked = true;
+                break;
+            }
+        }
+        assert!(talked, "the ordered walk must end in a conversation");
+    }
+
+    /// The refusals, each the smallest wrong input: self-talk, a stale
+    /// index, an OBJECT index, and an out-of-vocabulary interaction all
+    /// die without a panic, without a target, and without a wedged queue.
+    /// Which stage refuses each one is part of what is pinned - the first
+    /// three at the drain (no intent is ever created), the last at serve
+    /// (queued as data, dropped where the data is used).
+    #[test]
+    fn a_talk_command_refuses_self_stale_object_and_out_of_range_inputs() {
+        let (mut sim, a, b, fridge) = command_fixture();
+
+        // Self: an intent for oneself would wait forever on "partner
+        // busy: me", so the drain drops it.
+        talk(&mut sim, a, a);
+        sim.tick();
+        assert!(
+            sim.world().get::<Target>(a).is_none() && queue_is_empty(&sim, a),
+            "self-talk must be dropped at the drain"
+        );
+
+        // A stale index, like a click on a sim that has gone away.
+        push_command(
+            &mut sim,
+            terri_core::SimCommand::TalkTo {
+                agent: a.index_u32(),
+                target: 9_999,
+                interaction: 0,
+            },
+        );
+        sim.tick();
+        assert!(
+            sim.world().get::<Target>(a).is_none() && queue_is_empty(&sim, a),
+            "a stale target index must be dropped at the drain"
+        );
+
+        // An object: TalkTo resolves its target against AGENTS, the
+        // mirror of UseObject refusing an agent index.
+        talk(&mut sim, a, fridge);
+        sim.tick();
+        assert!(
+            sim.world().get::<Target>(a).is_none() && queue_is_empty(&sim, a),
+            "a talk aimed at an object must be refused at the drain"
+        );
+
+        // Out of the social vocabulary: the drain queues it - the range
+        // check belongs where the data is used - and serve pops it on
+        // the same tick, before anything indexes with it.
+        push_command(
+            &mut sim,
+            terri_core::SimCommand::TalkTo {
+                agent: a.index_u32(),
+                target: b.index_u32(),
+                interaction: 99,
+            },
+        );
+        sim.tick();
+        assert!(
+            sim.world().get::<Target>(a).is_none(),
+            "an out-of-range social index must never become a target"
+        );
+        assert!(
+            queue_is_empty(&sim, a),
+            "and dropped means POPPED; a wedged front intent suppresses autonomy forever"
+        );
+    }
+
+    /// Two sims each ordered to talk to the other on one tick form
+    /// exactly ONE conversation. The trap is deferred commands: the
+    /// second order's serve cannot see the first's Target, so the
+    /// claimed list - which must hold the INITIATOR as well as the
+    /// partner - is the only thing between this and a mutual
+    /// reservation. Kills the `claimed.push(agent)` deletion.
+    #[test]
+    fn mutual_talk_commands_form_exactly_one_conversation() {
+        let (mut sim, a, b, _fridge) = command_fixture();
+
+        talk(&mut sim, a, b);
+        talk(&mut sim, b, a);
+        sim.tick();
+
+        assert_eq!(
+            sim.world().get::<Target>(a).map(|t| t.object),
+            Some(b),
+            "the lower-indexed agent's order is served first"
+        );
+        assert!(
+            sim.world().get::<Target>(b).is_none(),
+            "the other order must WAIT, not form a second conversation"
+        );
+        assert!(
+            sim.world().get::<terri_core::Blocked>(b).is_some(),
+            "and the waiting sim says why it is standing still"
+        );
+    }
+
+    /// A talk ordered at a partner who is mid-meal WAITS at the front of
+    /// the queue - [C3] as a command - and serves itself once the meal
+    /// ends. The partner earns its own meal through autonomy, because an
+    /// `Eating` inserted by hand has no `Target` and so never ends.
+    #[test]
+    fn a_talk_command_waits_for_a_busy_partner_instead_of_dropping() {
+        let (mut sim, a, b, _fridge) =
+            command_household(Needs::all_at(NEED_MAX), Needs::with(NeedId::Hunger, 20.0));
+
+        let mut eating = false;
+        for _ in 0..40 {
+            sim.tick();
+            if sim
+                .world()
+                .get::<terri_core::Eating>(b)
+                .is_some_and(|e| e.remaining_ticks > 3)
+            {
+                eating = true;
+                break;
+            }
+        }
+        assert!(eating, "precondition: the partner must be mid-meal");
+
+        talk(&mut sim, a, b);
+        sim.tick();
+        assert!(
+            sim.world().get::<Target>(a).is_none(),
+            "the order must not be served while the partner eats"
+        );
+        assert!(
+            !queue_is_empty(&sim, a),
+            "and must not be dropped either - waiting means the intent stays at the front"
+        );
+        assert!(
+            sim.world().get::<terri_core::Blocked>(a).is_some(),
+            "the waiting sim says why it is standing still"
+        );
+
+        for _ in 0..60 {
+            sim.tick();
+            if sim.world().get::<Target>(a).map(|t| t.object) == Some(b) {
+                return;
+            }
+        }
+        panic!("the meal ended and the talk order never served");
+    }
+
+    /// One click is ONE conversation. Completion must pop the front
+    /// intent exactly as a finished meal does in `tick_interactions`;
+    /// without the pop, serve_intents re-serves the same order next tick
+    /// and a single right-click becomes a conversation loop the player
+    /// can only escape with a cancel. The 30 quiet ticks at the end are
+    /// the half a mutant cannot fake: a surviving intent re-targets the
+    /// partner within one tick of the release.
+    #[test]
+    fn a_directed_conversation_completes_once_and_pops_the_order() {
+        let (mut sim, a, b, _fridge) = command_fixture();
+
+        talk(&mut sim, a, b);
+        let mut talked = false;
+        for _ in 0..SESSION {
+            sim.tick();
+            if sim.world().get::<Socialising>(a).is_some() {
+                talked = true;
+                break;
+            }
+        }
+        assert!(talked, "precondition: the ordered conversation began");
+
+        let mut done = false;
+        for _ in 0..SESSION {
+            sim.tick();
+            if sim.world().get::<Socialising>(a).is_none() {
+                done = true;
+                break;
+            }
+        }
+        assert!(done, "the conversation must complete inside the session");
+
+        assert!(
+            queue_is_empty(&sim, a),
+            "completing the ordered talk must pop the order"
+        );
+        // A DIRECTED completion bumps both sides, through the same
+        // completion-only rule the autonomous test pins.
+        for (who, other, label) in [(a, 1, "initiator"), (b, 0, "partner")] {
+            let feeling = sim
+                .world()
+                .get::<Relationships>(who)
+                .unwrap_or_else(|| panic!("the {label} must remember the ordered talk"))
+                .feeling(SimId(other));
+            assert!(
+                feeling > 0.0,
+                "the {label}'s feeling must have moved; got {feeling}"
+            );
+        }
+
+        for _ in 0..30 {
+            sim.tick();
+            assert!(
+                sim.world().get::<Target>(a).is_none()
+                    && sim.world().get::<Socialising>(a).is_none(),
+                "a completed order must not restart; a re-served intent is a conversation loop"
+            );
+        }
+    }
+
+    /// Cancelling mid-conversation is whole on the cancel's own tick:
+    /// the talk, the target, the queue and the partner's reservation all
+    /// go together, and the interrupted conversation leaves no
+    /// impression. Reachable only since TalkTo - an autonomous talk has
+    /// no queue for a cancel's guard to match.
+    #[test]
+    fn a_cancel_mid_directed_conversation_removes_the_talk_and_frees_the_partner() {
+        let (mut sim, a, b, _fridge) = command_fixture();
+
+        talk(&mut sim, a, b);
+        let mut talking = false;
+        for _ in 0..SESSION {
+            sim.tick();
+            if sim.world().get::<Socialising>(a).is_some() {
+                talking = true;
+                break;
+            }
+        }
+        assert!(talking, "precondition: the ordered conversation began");
+
+        push_command(
+            &mut sim,
+            terri_core::SimCommand::CancelIntents {
+                agent: a.index_u32(),
+            },
+        );
+        sim.tick();
+
+        assert!(
+            sim.world().get::<Socialising>(a).is_none(),
+            "the cancel must end the conversation on its own tick"
+        );
+        assert!(
+            sim.world().get::<Target>(a).is_none(),
+            "and release the target with it"
+        );
+        assert!(queue_is_empty(&sim, a), "and empty the queue");
+        assert!(
+            sim.world().get::<Reserved>(b).is_none(),
+            "and free the partner"
+        );
+        assert!(
+            sim.world()
+                .get::<Relationships>(a)
+                .is_none_or(|r| r.feeling(SimId(1)) == 0.0),
+            "an interrupted conversation leaves no impression"
+        );
+    }
+
+    /// Redirecting a sim mid-errand releases what it was walking
+    /// toward: the fridge must come free the moment the talk serves, or
+    /// it stays claimed by a sim that is no longer coming - the
+    /// reservation-leak freeze, reached through the people branch.
+    /// Kills the `!=`-to-`==` mutant on the release-old guard.
+    ///
+    /// The en-route state is BUILT rather than grown, and the first
+    /// draft of this test is why. Grown organically - a hungry sim sets
+    /// off, then the order lands - the wandering partner stayed busy
+    /// just long enough for the meal to complete, and tick_interactions
+    /// released the fridge itself; the serve-branch release was never
+    /// the thing being measured, and the mutant survived a green test
+    /// ([L34]: the input domain quietly excluded the deciding case).
+    /// Hand-building Target, Path and the reservation guarantees the
+    /// serve happens while the walk is still live and the guard is the
+    /// only possible releaser.
+    #[test]
+    fn a_talk_order_releases_the_reservation_the_sim_was_walking_toward() {
+        let (mut sim, a, b, fridge) = command_fixture();
+        sim.world_mut().entity_mut(fridge).insert(Reserved);
+        sim.world_mut().entity_mut(a).insert((
+            Target {
+                object: fridge,
+                interaction: 0,
+            },
+            terri_core::Path {
+                steps: vec![(2, 1), (3, 1), (4, 1)],
+                cursor: 0,
+            },
+        ));
+
+        talk(&mut sim, a, b);
+        sim.tick();
+
+        assert_eq!(
+            sim.world().get::<Target>(a).map(|t| t.object),
+            Some(b),
+            "the order serves on its own tick; the fresh partner has \
+             nothing that counts as busy before its first selection runs"
+        );
+        assert!(
+            sim.world().get::<Reserved>(fridge).is_none(),
+            "serving the talk must release the abandoned fridge"
+        );
+        assert!(
+            sim.world().get::<Reserved>(b).is_some(),
+            "and hold the partner instead"
+        );
+    }
+
+    /// A third sim's order aimed at somebody already IN a conversation
+    /// waits its turn. The partner of a running talk carries `Reserved`
+    /// and nothing else (no Target, no Path, no Eating, no Socialising),
+    /// so the reservation check is the ONLY thing standing between this
+    /// order and a partner stolen mid-sentence. Kills the delete-`!`
+    /// mutant on `!held_here`, which every other waiting fixture
+    /// shadows behind a busy partner.
+    #[test]
+    fn a_talk_order_at_a_sim_already_spoken_for_waits_its_turn() {
+        let (mut sim, a, b, _fridge) = command_fixture();
+        let c = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                SimId(2),
+                Position { x: 1.0, y: 5.0 },
+                Needs::all_at(NEED_MAX),
+            ))
+            .id();
+
+        talk(&mut sim, a, b);
+        let mut talking = false;
+        for _ in 0..SESSION {
+            sim.tick();
+            if sim.world().get::<Socialising>(a).is_some() {
+                talking = true;
+                break;
+            }
+        }
+        assert!(talking, "precondition: the a-b conversation began");
+
+        talk(&mut sim, c, b);
+        sim.tick();
+        assert!(
+            sim.world().get::<Target>(c).is_none(),
+            "the latecomer must not grab a partner mid-sentence"
+        );
+        assert!(
+            sim.world().get::<terri_core::Blocked>(c).is_some(),
+            "and says why it is standing still"
+        );
+        assert!(
+            sim.world().get::<Socialising>(a).is_some(),
+            "the running conversation must be undisturbed"
+        );
+
+        let mut turn_came = false;
+        for _ in 0..SESSION {
+            sim.tick();
+            if sim.world().get::<Target>(c).map(|t| t.object) == Some(b) {
+                turn_came = true;
+                break;
+            }
+        }
+        assert!(
+            turn_came,
+            "once the conversation ends, the waiting order serves"
+        );
+    }
+
+    /// An order aimed at a partner mid-STROLL waits for the stroll to
+    /// end - [H10]'s "busy in any sense" includes a bare `Path`, the
+    /// one state a wandering sim is in. Serving anyway would path to a
+    /// tile the partner is leaving. This is the only fixture where
+    /// `Path` is the SOLE busy signal, which is what kills the
+    /// `||`-to-`&&` mutant between the target and path checks.
+    #[test]
+    fn a_talk_order_waits_out_a_partners_stroll() {
+        let (mut sim, a, b, _fridge) = command_fixture();
+        sim.world_mut().entity_mut(b).insert(terri_core::Path {
+            steps: vec![(4, 2), (4, 3)],
+            cursor: 0,
+        });
+
+        talk(&mut sim, a, b);
+        sim.tick();
+        assert!(
+            sim.world().get::<Target>(a).is_none(),
+            "the order must not serve while the partner strolls"
+        );
+        assert!(
+            sim.world().get::<terri_core::Blocked>(a).is_some(),
+            "waiting says so out loud"
+        );
+
+        for _ in 0..60 {
+            sim.tick();
+            if sim.world().get::<Target>(a).map(|t| t.object) == Some(b) {
+                return;
+            }
+        }
+        panic!("the stroll ended and the order never served");
+    }
+
+    /// An order that never SERVED survives a different conversation's
+    /// completion. The sim is chatting with one housemate while holding
+    /// a waiting order for another (who is mid-meal); when the chat
+    /// completes, the pop must match BOTH halves of the front intent
+    /// before taking it, or the unserved order vanishes with someone
+    /// else's conversation - the `&&`-to-`||` mutant on the completion
+    /// pop, reachable only because the interaction indices agree while
+    /// the partners differ.
+    #[test]
+    fn an_unserved_order_survives_a_different_conversations_completion() {
+        let pack = test_content::pack_with_social(
+            vec![test_content::object(
+                "fridge",
+                &[(NeedId::Hunger, 30.0)],
+                200,
+            )],
+            vec![test_content::interaction(
+                "chat",
+                &[(NeedId::Social, 30.0)],
+                40,
+            )],
+            terri_data::Tuning {
+                // Decisive, so the lonely sim picks the CLOSE housemate
+                // rather than sometimes drawing the distant eater.
+                choice_temperature: 0.0001,
+                ..test_content::tuning()
+            },
+        );
+        let mut sim = test_content::sim_with(12, 8, pack);
+        let a = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                SimId(0),
+                Position { x: 1.0, y: 1.0 },
+                Needs::with(NeedId::Social, 20.0),
+            ))
+            .id();
+        let _b = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                SimId(1),
+                Position { x: 3.0, y: 1.0 },
+                Needs::with(NeedId::Social, 60.0),
+            ))
+            .id();
+        let c = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                SimId(2),
+                Position { x: 9.0, y: 1.0 },
+                Needs::with(NeedId::Hunger, 20.0),
+            ))
+            .id();
+        let fridge_def = pack.find("fridge").expect("the fixture declares it");
+        sim.world_mut().spawn((
+            Position { x: 10.0, y: 1.0 },
+            terri_core::SmartObject(fridge_def),
+        ));
+
+        let mut talking = false;
+        for _ in 0..40 {
+            sim.tick();
+            if sim.world().get::<Socialising>(a).is_some() {
+                talking = true;
+                break;
+            }
+        }
+        assert!(talking, "precondition: the autonomous chat began");
+        assert!(
+            sim.world().get::<terri_core::Eating>(c).is_some(),
+            "precondition: the order's target is mid-meal, or the order \
+             below serves instead of waiting"
+        );
+
+        talk(&mut sim, a, c);
+        let mut done = false;
+        for _ in 0..SESSION {
+            sim.tick();
+            if sim.world().get::<Socialising>(a).is_none() {
+                done = true;
+                break;
+            }
+        }
+        assert!(done, "the chat must complete inside the session");
+
+        let front = sim
+            .world()
+            .get::<terri_core::IntentQueue>(a)
+            .and_then(|q| q.front());
+        assert_eq!(
+            front,
+            Some(terri_core::Intent {
+                object: c,
+                interaction: 0,
+            }),
+            "the unserved order must survive someone else's completion; \
+             popping it here turns a click into nothing"
         );
     }
 

@@ -261,6 +261,58 @@ mod tests {
         );
     }
 
+    /// The sleep classifier reads the biggest STRICTLY positive advert.
+    /// An interaction that lists energy at 0.0 and charges comfort
+    /// promises nothing; under `>=` the zero-energy row would win the
+    /// dominance draw and hang a Zzz over a sim that is not resting -
+    /// the exact lie the delta-based classifier replaced name-matching
+    /// to avoid. Zero and negative rows are the only inputs on which
+    /// `>` and `>=` disagree, so this fixture is the mutant's whole
+    /// input domain.
+    #[test]
+    fn a_zero_delta_energy_advert_does_not_read_as_sleeping() {
+        use crate::render_buffer::activity;
+        use crate::test_content;
+
+        let pack = test_content::pack_tuned(
+            vec![test_content::object(
+                "ritual",
+                &[(NeedId::Energy, 0.0), (NeedId::Comfort, -3.0)],
+                18,
+            )],
+            test_content::tuning(),
+        );
+        let def = pack.find("ritual").expect("the fixture declares it");
+        let mut sim = test_content::sim_with(8, 8, pack);
+        let agent = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 1.0, y: 1.0 },
+                Needs::with(NeedId::Hunger, 50.0),
+            ))
+            .id();
+        sim.world_mut().entity_mut(agent).insert(Eating {
+            object: def,
+            interaction: 0,
+            remaining_ticks: 5,
+        });
+
+        sim.sync_render_buffer();
+        let buf = sim.render_buffer();
+        let row = buf
+            .ids
+            .iter()
+            .position(|&id| id == agent.index_u32())
+            .expect("the agent has a row");
+        assert_eq!(
+            buf.activities[row],
+            activity::EATING,
+            "no strictly positive advert means no dominant need, and no \
+             dominant need is a meal, never a nap"
+        );
+    }
+
     #[test]
     fn render_buffer_matches_world_state() {
         let mut sim = Sim::new_with_lot(16, 16);

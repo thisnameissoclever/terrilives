@@ -703,6 +703,25 @@ impl Sim {
         )
     }
 
+    /// One label per entry in the pack's SOCIAL vocabulary, in index
+    /// order - the same order-IS-the-index contract as
+    /// [`Sim::interaction_labels`], for the flyout drawn over a fellow
+    /// sim. Not per-target: the vocabulary is what a sim advertises,
+    /// and per-sim variation enters through relationships, not menus.
+    pub fn social_labels(&self) -> Vec<&'static str> {
+        self.world
+            .get_resource::<Content>()
+            .map(|content| {
+                content
+                    .0
+                    .social
+                    .iter()
+                    .map(|act| act.label.as_str())
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
     /// The raw index of the selected sim, or `None` when nothing is
     /// selected.
     ///

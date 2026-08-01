@@ -61,6 +61,27 @@ pub enum SimCommand {
     CancelIntents { agent: u32 },
     /// Ticks per frame. 0 is paused. Never changes dt; see [D2].
     SetSpeed(u8),
+    /// Direct an agent to start a social interaction with another sim,
+    /// overriding autonomy - [A-11]'s "interact with other Sims".
+    ///
+    /// Not a reuse of [`SimCommand::UseObject`], for two reasons that
+    /// are each sufficient: its drain resolves the target against
+    /// `With<SmartObject>` and a test pins that sims are rejected there,
+    /// so reinterpreting the field would change the meaning of every
+    /// already-logged UseObject byte; and `interaction` here indexes the
+    /// pack's SOCIAL vocabulary rather than an object's own list - one
+    /// variant carrying both spaces would need a discriminant anyway.
+    ///
+    /// Appended after `SetSpeed`, which is the one cheap change: postcard
+    /// writes the variant index, so every earlier command's bytes are
+    /// untouched and the golden vector gains rows without moving any.
+    /// The same range-check division as UseObject: an out-of-range
+    /// social index is data here and `serve_intents`'s problem there.
+    TalkTo {
+        agent: u32,
+        target: u32,
+        interaction: u32,
+    },
 }
 
 /// Commands awaiting the next drain point. Ordered, because two commands
@@ -117,6 +138,11 @@ mod tests {
             },
             SimCommand::CancelIntents { agent: 3 },
             SimCommand::SetSpeed(2),
+            SimCommand::TalkTo {
+                agent: 3,
+                target: 5,
+                interaction: 1,
+            },
         ];
         for cmd in cases {
             let bytes = postcard::to_allocvec(&cmd).expect("serialises");
@@ -204,6 +230,37 @@ mod tests {
             // and one for every value below it. Not a speed anyone sets;
             // this row is about the width, not the semantics.
             (SimCommand::SetSpeed(200), &[0x03, 0xC8]),
+            // TalkTo, variant 4 - appended, so every row above is
+            // byte-identical to what it was before the variant existed,
+            // which is the whole appending contract. Field values
+            // pairwise distinct and non-zero per [L34]; the two-byte
+            // interaction row and the saturated row carry the same
+            // width arguments as UseObject's. Derived from the failing
+            // assertion, per this test's own convention.
+            (
+                SimCommand::TalkTo {
+                    agent: 3,
+                    target: 5,
+                    interaction: 1,
+                },
+                &[0x04, 0x03, 0x05, 0x01],
+            ),
+            (
+                SimCommand::TalkTo {
+                    agent: 3,
+                    target: 5,
+                    interaction: 200,
+                },
+                &[0x04, 0x03, 0x05, 0xC8, 0x01],
+            ),
+            (
+                SimCommand::TalkTo {
+                    agent: 3,
+                    target: 5,
+                    interaction: u32::MAX,
+                },
+                &[0x04, 0x03, 0x05, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F],
+            ),
         ];
         for (cmd, expected) in cases {
             let bytes = postcard::to_allocvec(&cmd).expect("serialises");

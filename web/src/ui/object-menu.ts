@@ -63,6 +63,17 @@ export type MenuAction =
        */
       readonly interaction: number;
     }
+  | {
+      readonly kind: 'talk';
+      /** The entity index of the sim being approached. */
+      readonly target: number;
+      /**
+       * The entry's position in the pack's SOCIAL vocabulary, which is
+       * `SimCommand::TalkTo`'s last field - the same order-is-the-index
+       * contract `use` rows carry for an object's own list.
+       */
+      readonly interaction: number;
+    }
   | { readonly kind: 'cancel' };
 
 /** One row. */
@@ -107,6 +118,24 @@ export function menuEntries(
   const entries: MenuEntry[] = labels.map((label, interaction) => ({
     label,
     action: { kind: 'use', object, interaction },
+  }));
+  entries.push(NEVER_MIND);
+  return entries;
+}
+
+/**
+ * The rows for a fellow SIM: the social vocabulary, in the order the
+ * simulation reported it, then the cancel. Same order-is-the-index rule
+ * as `menuEntries` and for the same reason; an empty vocabulary yields
+ * just the cancel, like a rug.
+ */
+export function socialMenuEntries(
+  labels: readonly string[],
+  target: number,
+): MenuEntry[] {
+  const entries: MenuEntry[] = labels.map((label, interaction) => ({
+    label,
+    action: { kind: 'talk', target, interaction },
   }));
   entries.push(NEVER_MIND);
   return entries;

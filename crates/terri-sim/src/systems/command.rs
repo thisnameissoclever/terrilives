@@ -273,7 +273,59 @@ pub fn drain_commands(
                         .entity(agent)
                         .remove::<Target>()
                         .remove::<Path>()
-                        .remove::<Eating>();
+                        .remove::<Eating>()
+                        // Reachable since TalkTo: a directed sim can be
+                        // mid-conversation when the cancel lands, and a
+                        // Socialising left behind with no Target is a
+                        // talk tick_social finishes against nobody. The
+                        // Reserved release above already freed the
+                        // partner, and tick_social's disturbed check
+                        // would self-heal one tick later - this makes
+                        // the cancel whole on its own tick instead.
+                        .remove::<terri_core::Socialising>();
+                }
+            }
+
+            SimCommand::TalkTo {
+                agent,
+                target,
+                interaction,
+            } => {
+                let Some(agent) = resolve(agent, agents.iter().map(|(entity, _, _)| entity)) else {
+                    continue;
+                };
+                // The target resolves against AGENTS, the mirror of
+                // UseObject's With<SmartObject> resolve: a stale or
+                // object index is dropped silently, exactly like a stale
+                // UseObject. Self-talk is dropped too, explicitly -
+                // autonomy excludes self by entity in the people loop,
+                // and a self-intent surviving to serve_intents would
+                // wait forever on "partner busy: me".
+                let Some(target) = resolve(target, agents.iter().map(|(entity, _, _)| entity))
+                else {
+                    continue;
+                };
+                if target == agent {
+                    continue;
+                }
+                // The social index is copied, not range-checked, for
+                // UseObject's exact reasons: serve_intents drops an
+                // out-of-range front intent before anything indexes with
+                // it, and the check belongs where the data is used.
+                let intent = Intent {
+                    object: target,
+                    interaction,
+                };
+                if let Ok((_, Some(mut queue), _)) = agents.get_mut(agent) {
+                    if queue.len() < cap {
+                        queue.push(intent);
+                    }
+                } else if let Some((_, staged)) = fresh.iter_mut().find(|(e, _)| *e == agent) {
+                    if staged.len() < cap {
+                        staged.push(intent);
+                    }
+                } else {
+                    fresh.push((agent, vec![intent]));
                 }
             }
 
@@ -875,6 +927,70 @@ mod tests {
                 SimCommand::UseObject {
                     agent: agent.index_u32(),
                     object: bed.index_u32(),
+                    interaction: 0,
+                },
+            );
+        }
+        drain_only(&mut sim);
+
+        assert_eq!(queue_of(&sim, agent).len(), cap());
+    }
+
+    #[test]
+    fn talk_to_respects_the_cap_on_a_queue_that_already_existed() {
+        // TalkTo's push shares its SHAPE with UseObject's but not its
+        // code - the drain has one `queue.len() < cap` per variant - so
+        // the two UseObject cap tests above hold no mutant on this arm.
+        // Seeded with a click first, so this exercises the
+        // mutate-in-place path rather than the fresh staging below.
+        let (mut sim, bed, _fridge, agent) = scenario();
+        let partner = spawn_agent(&mut sim, (9.0, 8.0), hungry());
+
+        enqueue(
+            &mut sim,
+            SimCommand::UseObject {
+                agent: agent.index_u32(),
+                object: bed.index_u32(),
+                interaction: 0,
+            },
+        );
+        drain_only(&mut sim);
+        assert_eq!(
+            queue_of(&sim, agent).len(),
+            1,
+            "the agent must already carry a queue before the burst below"
+        );
+
+        for _ in 0..cap() + 3 {
+            enqueue(
+                &mut sim,
+                SimCommand::TalkTo {
+                    agent: agent.index_u32(),
+                    target: partner.index_u32(),
+                    interaction: 0,
+                },
+            );
+        }
+        drain_only(&mut sim);
+
+        assert_eq!(queue_of(&sim, agent).len(), cap());
+    }
+
+    #[test]
+    fn talk_to_staged_for_a_fresh_agent_is_capped_within_one_batch() {
+        // The staging path: an agent with no queue yet takes its first
+        // TalkTo into `fresh`, and every LATER one in the same batch
+        // through the staged-length check - a third copy of the cap,
+        // invisible to both tests above.
+        let (mut sim, _bed, _fridge, agent) = scenario();
+        let partner = spawn_agent(&mut sim, (9.0, 8.0), hungry());
+
+        for _ in 0..cap() + 3 {
+            enqueue(
+                &mut sim,
+                SimCommand::TalkTo {
+                    agent: agent.index_u32(),
+                    target: partner.index_u32(),
                     interaction: 0,
                 },
             );

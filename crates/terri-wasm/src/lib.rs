@@ -409,6 +409,17 @@ impl SimHandle {
             .unwrap_or_default()
     }
 
+    /// One label per social-vocabulary entry, in the index order the
+    /// TalkTo command's `interaction` field uses - the flyout over a
+    /// fellow sim, mirroring `interaction_labels` for objects.
+    pub fn social_labels(&self) -> Vec<String> {
+        self.sim
+            .social_labels()
+            .into_iter()
+            .map(str::to_string)
+            .collect()
+    }
+
     /// The sim's stable identity, or `u32::MAX` when the index names
     /// nothing that carries one - in-band the way the digest's sentinel
     /// is, and unreachable by real ids for the same widening reason.
@@ -1040,6 +1051,54 @@ mod boundary_tests {
             vec![1, 0],
             "kinds_ptr must address the 0 = agent, 1 = smart object tags, \
              sorted by entity index, so the object spawned first comes first"
+        );
+    }
+
+    #[test]
+    fn activities_ptr_addresses_the_activity_column() {
+        // The [A-11] indicator bubbles' whole input. Same
+        // null-pointer-from-`Default::default()` hazard as `ids_ptr`
+        // below: nothing else on the Rust side reads through it, and a
+        // null crossed into a `Uint32Array` view fails only in the page.
+        //
+        // The agent is hungry with the fridge across the lot, so after
+        // two ticks it is mid-walk and its row reads WALKING while the
+        // object's reads NONE - two different values, which is what
+        // rules out a zeroed sibling column as well as a null.
+        let mut handle = SimHandle::new(16, 16);
+        assert!(handle.spawn_object(2.0, 2.0, "fridge"));
+        handle.spawn_agent(12.0, 2.0, 20.0);
+        handle.tick();
+        handle.tick();
+
+        assert_eq!(
+            addressed(
+                handle.activities_ptr(),
+                handle.entity_count(),
+                "activities_ptr"
+            ),
+            vec![
+                terri_sim::render_buffer::activity::NONE,
+                terri_sim::render_buffer::activity::WALKING
+            ],
+            "activities_ptr must address the per-row activity tags: the \
+             object does nothing and the hungry agent is walking to eat"
+        );
+    }
+
+    #[test]
+    fn social_labels_reports_the_shipped_vocabulary_in_index_order() {
+        // The rows of the flyout drawn over a fellow sim, and the index
+        // space `TalkTo::interaction` lives in - the same order-IS-the-
+        // index contract `interaction_labels` carries for objects. The
+        // expectation is the shipped `content/social.toml`; when the
+        // vocabulary grows, this list grows with it, and that edit is
+        // exactly the review this test wants a human to make.
+        let handle = SimHandle::new(8, 8);
+        assert_eq!(
+            handle.social_labels(),
+            vec!["Chat"],
+            "one label per social interaction, in pack order"
         );
     }
 

@@ -40,6 +40,7 @@ import {
 import {
   NEVER_MIND,
   menuEntries,
+  socialMenuEntries,
   type MenuAction,
   type MenuEntry,
 } from './ui/object-menu.js';
@@ -439,6 +440,8 @@ export interface CommandSink {
    * exactly one.
    */
   useObject(agent: number, object: number, interaction: number): boolean;
+  /** Matching `SimBridge.talkTo`; `interaction` indexes the social vocabulary. */
+  talkTo(agent: number, target: number, interaction: number): boolean;
   cancelIntents(agent: number): boolean;
   selectedIndex(): number | null;
 }
@@ -490,6 +493,12 @@ export type InputTarget = CommandSink & PickSource;
  */
 export interface InteractionSource {
   interactionLabels(entity: number): readonly string[];
+  /**
+   * The social vocabulary's labels, index-ordered - the rows for a
+   * flyout over a fellow SIM, per [A-11]'s "interact with other Sims".
+   * Read on every open like `interactionLabels`, per [D-5].
+   */
+  socialLabels(): readonly string[];
 }
 
 /** Everything a right click needs: pick, read the labels, command. */
@@ -585,12 +594,15 @@ export interface RightClickEvent {
  *    sim, which an open menu is in the way of. The browser's own menu is
  *    still suppressed, so the gesture is inert rather than jarring.
  *  - **an object: its interactions, then the cancel.**
- *  - **a sim, bare floor or a wall: the cancel alone.** Right click used
- *    to cancel from anywhere, and [I4] moved that binding into the menu
- *    rather than deleting it; a menu that only appeared over furniture
- *    would take the cancel away everywhere else. One row is a thin menu
- *    and it is strictly more than the gesture used to offer, because it
- *    now says what it is about to do before it does it.
+ *  - **a DIFFERENT sim: the social vocabulary, then the cancel** - the
+ *    [A-11] talk command's front door.
+ *  - **the selected sim itself, bare floor or a wall: the cancel
+ *    alone.** Right click used to cancel from anywhere, and [I4] moved
+ *    that binding into the menu rather than deleting it; a menu that
+ *    only appeared over furniture would take the cancel away everywhere
+ *    else. One row is a thin menu and it is strictly more than the
+ *    gesture used to offer, because it now says what it is about to do
+ *    before it does it.
  *
  * The labels are read from the simulation on every open rather than cached,
  * so a menu cannot show an object's old interaction list ([D-5]).
@@ -606,7 +618,16 @@ export function resolveRightClick(
     point === null
       ? null
       : pickSprite(target, point.x, point.y, originX, originY);
-  if (pick === null || pick.isAgent) return [NEVER_MIND];
+  if (pick === null) return [NEVER_MIND];
+  if (pick.isAgent) {
+    // The selected sim itself: nothing to do but close. A DIFFERENT
+    // sim: the social vocabulary - "walk over and chat" - which is the
+    // [A-11] talk command's front door. The comparison is by entity
+    // index because that is what selection stores and what the TalkTo
+    // command will carry.
+    if (pick.entity === target.selectedIndex()) return [NEVER_MIND];
+    return socialMenuEntries(target.socialLabels(), pick.entity);
+  }
   return menuEntries(target.interactionLabels(pick.entity), pick.entity);
 }
 
@@ -675,6 +696,12 @@ export function dispatchMenuAction(
       // Cancel first, then use: the replace pair. See `dispatch`.
       sink.cancelIntents(agent);
       sink.useObject(agent, action.object, action.interaction);
+      break;
+    case 'talk':
+      // The same replace pair as 'use': a talk order supersedes the
+      // queue rather than joining it.
+      sink.cancelIntents(agent);
+      sink.talkTo(agent, action.target, action.interaction);
       break;
     case 'cancel':
       sink.cancelIntents(agent);

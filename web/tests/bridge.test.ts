@@ -463,8 +463,13 @@ describe('SimBridge', () => {
 
     const malformed: [string, number[]][] = [
       ['empty', []],
-      ['variant index 4, one past the four that exist', [0x04, 0x00]],
+      // This row read `[0x04, 0x00]` until TalkTo became variant 4 and
+      // quietly turned it into a TRUNCATED VALID variant - still red,
+      // but no longer testing what its label said. The unknown-variant
+      // case has to track the enum's edge to keep meaning itself.
+      ['variant index 5, one past the five that exist', [0x05, 0x00]],
       ['variant index 0xFF', [0xff]],
+      ['TalkTo missing its interaction field', [0x04, 0x03, 0x05]],
       ['Select with an Option tag and no payload', [0x00, 0x01]],
       ['UseObject missing its second field', [0x01, 0x03]],
       // The OLD three-byte form, from before `UseObject` carried an
@@ -621,6 +626,55 @@ describe('SimBridge', () => {
     expect(run(200)).toBeGreaterThan(8);
   });
 
+  it('directs a talk whose method bytes match the hand-written wire bytes', () => {
+    // TalkTo through the RELEASE wasm, both halves per [L33]. The
+    // hand-written `[0x04, 0x00, 0x01, 0x00]` restates the golden rows
+    // in `command_encoding_is_pinned_by_a_golden_byte_vector` (variant
+    // 4, then agent, target, interaction as varints); driving one run
+    // through `talkTo` and its twin through those raw bytes and
+    // demanding EQUAL world hashes pins the encoder to the wire format
+    // without needing to see its output. The control run pins that the
+    // command did something at all - two identically-idle runs would
+    // also agree.
+    //
+    // Both sims spawn satisfied, so autonomy never chats on its own
+    // (the full-bar rule the Rust side pins) and any conversation is
+    // the command's doing.
+    const build = () => {
+      const b = new SimBridge(new SimHandle(16, 16), wasmMemory);
+      b.spawnAgent(1, 1, 80);
+      b.spawnAgent(4, 1, 80);
+      return b;
+    };
+
+    const viaMethod = build();
+    expect(viaMethod.talkTo(0, 1, 0)).toBe(true);
+    const viaBytes = build();
+    expect(
+      viaBytes.enqueueCommand(new Uint8Array([0x04, 0x00, 0x01, 0x00])),
+    ).toBe(true);
+    const control = build();
+
+    // Run until the ordered conversation is VISIBLE: activity 4 is
+    // `talking`, and the partner-of pass must light the partner's row
+    // too - the exact pixels-facing claim the indicator work exists for.
+    let talking = false;
+    for (let i = 0; i < 120 && !talking; i++) {
+      viaMethod.tick();
+      viaBytes.tick();
+      control.tick();
+      const activities = viaMethod.activities();
+      talking = activities[0] === 4 && activities[1] === 4;
+    }
+    expect(
+      talking,
+      'the ordered talk must become a conversation both rows wear',
+    ).toBe(true);
+
+    expect(viaMethod.worldHash()).toBe(viaBytes.worldHash());
+    expect(viaMethod.worldHash()).not.toBe(control.worldHash());
+  });
+
   it('reads a sim needs back out of the simulation, and nothing for anything else', () => {
     // The need-bar panel's whole input ([D-5]). An empty array is a
     // normal answer rather than an error: a deselected panel, a
@@ -728,6 +782,11 @@ describe('SimBridge', () => {
     expect(bridge.useObject(0, 1, 3.7)).toBe(false);
     expect(bridge.useObject(0, 1, NaN)).toBe(false);
     expect(bridge.useObject(0, 1, 2 ** 32)).toBe(false);
+    // talkTo vets all three fields by the same rule; one refusal per
+    // field so a validator that skipped one is visible.
+    expect(bridge.talkTo(-1, 1, 0)).toBe(false);
+    expect(bridge.talkTo(0, 1.5, 0)).toBe(false);
+    expect(bridge.talkTo(0, 1, NaN)).toBe(false);
     expect(bridge.cancelIntents(1.5)).toBe(false);
     expect(bridge.setSpeed(-1)).toBe(false);
     expect(bridge.setSpeed(256)).toBe(false);
