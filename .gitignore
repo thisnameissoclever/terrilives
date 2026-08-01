@@ -15,3 +15,7 @@ assets/vendor/
 # enter history, even throwaway dev ones - regenerate with the openssl
 # one-liner in web/vite.config.ts.
 web/.cert/
+
+# Playwright MCP session artifacts (screenshots, console logs)
+.playwright-mcp/
+career-*.jpeg
