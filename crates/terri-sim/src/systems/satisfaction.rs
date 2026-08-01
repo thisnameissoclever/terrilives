@@ -160,6 +160,63 @@ mod tests {
     }
 
     #[test]
+    fn a_need_exactly_at_the_floor_is_not_neglected() {
+        // "Below the floor" means BELOW: a need holding exactly the
+        // floor value bleeds nothing, which is the input on which `<`
+        // and `<=` disagree and no other fixture reaches - every other
+        // test sits clearly on one side. The floor is the boundary of
+        // crisis, not the first tick of it.
+        let pack = test_content::pack_tuned(
+            vec![test_content::object(
+                "fridge",
+                &[(terri_core::NeedId::Hunger, 30.0)],
+                18,
+            )],
+            terri_data::Tuning {
+                neglect_floor: 20.0,
+                neglect_bleed_per_tick: 0.5,
+                ..test_content::tuning()
+            },
+        );
+        let mut sim = test_content::sim_with(8, 8, pack);
+        let mut needs = terri_core::Needs::all_at(NEED_MAX);
+        needs.set(terri_core::NeedId::Fun, 20.0);
+        let agent = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 1.0, y: 1.0 },
+                needs,
+                terri_core::Satisfaction::default(),
+            ))
+            .id();
+        sim.world_mut()
+            .get_mut::<terri_core::Satisfaction>(agent)
+            .unwrap()
+            .add(10.0);
+
+        // The bleed ALONE, per `drain_only`'s precedent in command.rs: a
+        // full tick runs decay_needs first, which drags fun below the
+        // floor before the bleed ever reads the boundary value, so the
+        // exact-equality input is unreachable through the schedule and
+        // the claim is about this system.
+        let mut bleed_only = Schedule::default();
+        bleed_only.add_systems(bleed_neglect);
+        bleed_only.run(sim.world_mut());
+
+        let after = sim
+            .world()
+            .get::<terri_core::Satisfaction>(agent)
+            .unwrap()
+            .value();
+        assert_eq!(
+            after, 10.0,
+            "a need at exactly the floor must not bleed on the tick it \
+             holds that value"
+        );
+    }
+
+    #[test]
     fn a_sim_above_the_floor_bleeds_nothing() {
         let pack = test_content::pack_tuned(
             vec![test_content::object(

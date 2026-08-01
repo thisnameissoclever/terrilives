@@ -2448,6 +2448,44 @@ mod tests {
     ///   A floor of 1 disables the effect and that is legal;
     /// - a negative, because the range is a range and not a sign check.
     #[test]
+    fn rejects_a_hobby_multiplier_below_one_and_accepts_the_disable() {
+        // 0.5 is the value that pins `<` against `==` (both reject 0.99
+        // shapes only if the comparison is a real range test), and the
+        // failure it guards is the mechanic INVERTED: a hobby paying
+        // less for being loved, silently, behind a tuning typo.
+        for bad in [0.5, 0.0, -1.0] {
+            assert_eq!(
+                compile_tuned(tuning_where(|t| t.hobby_multiplier = bad)).unwrap_err(),
+                ContentError::HobbyMultiplierBelowOne { value: bad },
+                "a hobby_multiplier of {bad} pays less for love"
+            );
+        }
+        // Exactly 1.0 is ACCEPTED - the documented disable - and it is
+        // the input that pins `<` against `<=`.
+        let pack = compile_tuned(tuning_where(|t| t.hobby_multiplier = 1.0))
+            .expect("1.0 is the legal disable");
+        assert_eq!(pack.tuning.hobby_multiplier, 1.0);
+    }
+
+    #[test]
+    fn rejects_a_negative_neglect_bleed_and_accepts_zero() {
+        // -0.25 pins `<` against `==`; the failure is [S1] broken by a
+        // sign error - starvation EARNING satisfaction.
+        for bad in [-0.25, -f32::MIN_POSITIVE] {
+            assert_eq!(
+                compile_tuned(tuning_where(|t| t.neglect_bleed_per_tick = bad)).unwrap_err(),
+                ContentError::NegativeNeglectBleed { value: bad },
+                "a bleed of {bad} would pay for neglect"
+            );
+        }
+        // Zero is ACCEPTED - the documented disable - and pins `<`
+        // against `<=`.
+        let pack = compile_tuned(tuning_where(|t| t.neglect_bleed_per_tick = 0.0))
+            .expect("0.0 is the legal disable");
+        assert_eq!(pack.tuning.neglect_bleed_per_tick, 0.0);
+    }
+
+    #[test]
     fn rejects_a_habituation_floor_outside_zero_exclusive_to_one_inclusive() {
         for bad in [0.0, -0.25, 1.5, f32::MAX] {
             assert_eq!(
