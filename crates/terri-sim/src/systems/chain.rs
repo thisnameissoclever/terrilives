@@ -694,11 +694,30 @@ mod tests {
         pantry.roles = vec![0];
         let mut table = test_content::object_offering("table", vec![]);
         table.roles = vec![1];
-        let fridge = test_content::object_offering("fridge", vec![]);
+        // ONE null interaction on the advertiser, deliberately: with
+        // zero, the flyout row equals the chain position and every
+        // `row - interactions_len` mutant is equivalent - the sweep
+        // proved it. It advertises nothing, so it never competes.
+        let fridge = test_content::object_offering(
+            "fridge",
+            vec![test_content::interaction("stare", &[], 20)],
+        );
 
+        // TWO decoys, each killing a different identity mutant: the
+        // fridge's own weak first chain (scores far under threshold,
+        // but occupies position 0 so the target's row is
+        // interactions_len 1 + position 1 = 2), and the pantry's
+        // (which a broken advertiser filter would count or commit).
+        let mut weak = a_chain();
+        weak.id = "weak".to_string();
+        weak.advertises = vec![(0, 1.0)];
         let mut decoy = a_chain();
         decoy.id = "decoy".to_string();
         decoy.advertised_by = terri_data::ObjectDefId(1);
+        // Weak like the fridge's own: its job is occupying a global
+        // index for the identity mutants, and at full strength it
+        // out-scored the deliberately taxed target and won the draw.
+        decoy.advertises = vec![(0, 1.0)];
         let target = a_chain();
 
         // Geometry, exactly known: agent at (2, 4), fridge at (2, 1)
@@ -725,9 +744,21 @@ mod tests {
         let trait_disposition = 0.5f32;
         let sat_hunger = 1.25f32;
         let sat_comfort = 0.75f32;
-        // benefit_scale(0, floor) is 1, archetype dispositions absent
-        // are 1, so the slot is the trait disposition alone.
-        let scale = trait_disposition;
+        // Every factor of the multiplier slot is non-1, deliberately:
+        // with habituation absent and dispositions neutral, a `*`
+        // mutated to `/` divides 1 by 1 and survives - the sweep
+        // proved that too. Habituation 0.5 is seeded on the row (read
+        // un-decayed on the selection tick: decay runs after
+        // selection), and the archetype disposition 0.8 keys the same
+        // row.
+        let habituation_seed = 0.5f32;
+        let archetype_disposition = 0.8f32;
+        let target_row = 2u32;
+        let scale = crate::systems::advertise::benefit_scale(
+            habituation_seed,
+            test_content::tuning().habituation_floor,
+        ) * archetype_disposition
+            * trait_disposition;
         let mut expected = 0.0f32;
         for (need, delta, start, rate, sat) in [
             (
@@ -771,7 +802,7 @@ mod tests {
         let pack: &'static ContentPack = Box::leak(Box::new(ContentPack {
             roles: vec!["pantry_shelf".to_string(), "eating_surface".to_string()],
             item_kinds: vec!["dinner".to_string()],
-            chains: vec![decoy, target],
+            chains: vec![weak, decoy, target],
             traits: vec![terri_data::CompiledTrait {
                 id: "wary_cook".to_string(),
                 label: "Wary cook".to_string(),
@@ -803,8 +834,14 @@ mod tests {
         let personality = terri_core::Personality::with_dispositions(
             [1.0; terri_core::NEED_COUNT],
             satisfaction,
-            vec![],
+            vec![(
+                terri_data::ObjectDefId(0),
+                target_row,
+                archetype_disposition,
+            )],
         );
+        let mut habituation = terri_core::Habituation::default();
+        habituation.bump(terri_data::ObjectDefId(0), target_row, habituation_seed);
         let agent = sim
             .world_mut()
             .spawn((
@@ -812,12 +849,14 @@ mod tests {
                 Position { x: 2.0, y: 4.0 },
                 needs,
                 personality,
+                habituation,
                 Traits::from_entries(vec![(0, 0.0)]),
                 Satisfaction::default(),
             ))
             .id();
-        // The target chain is global index 1: the decoy rides first.
-        (sim, agent, 1)
+        // The target chain is global index 2: the fridge's weak decoy
+        // and the pantry's ride first.
+        (sim, agent, 2)
     }
 
     /// The sandwich, all three slices: fractionally below the score
@@ -881,9 +920,10 @@ mod tests {
             .push(terri_core::SimCommand::UseObject {
                 agent: agent.index_u32(),
                 object: fridge.index_u32(),
-                // The fixture fridge has NO interactions, so row 0 is
-                // its first chain.
-                interaction: 0,
+                // One null interaction, then the weak decoy chain,
+                // then the target: row 2 - which is what makes the
+                // row-minus-interactions arithmetic observable at all.
+                interaction: 2,
             });
         sim.tick();
         let state = sim
@@ -962,6 +1002,21 @@ mod tests {
             1,
             "the decoy between them belongs to another advertiser"
         );
+
+        // A third own chain separates counting-own from counting-other:
+        // among [own, other, own, own], position(3) is 2 counting own
+        // and 1 counting other - the equals-becomes-not-equals mutant.
+        let mut third = a_chain();
+        third.id = "third".to_string();
+        let pack = Box::leak(Box::new(ContentPack {
+            chains: {
+                let mut chains = pack.chains.clone();
+                chains.push(third);
+                chains
+            },
+            ..pack.clone()
+        }));
+        assert_eq!(chain_position(pack, 3), 2);
     }
 
     /// The NEAREST free station wins, and the fixture makes wrong
@@ -997,6 +1052,36 @@ mod tests {
             "the two-tile pantry outranks the earlier-spawned far one"
         );
         assert!(sim.world().get::<Reserved>(far).is_none());
+
+        // And a TIE resolves to the earlier entity: strictly-shorter
+        // means an equal path never displaces the incumbent, so which
+        // of two equidistant counters a sim claims is a function of
+        // world state rather than of comparison slack.
+        let mut sim = test_content::sim_with(12, 8, pack);
+        let first = sim
+            .world_mut()
+            .spawn((Position { x: 1.0, y: 4.0 }, SmartObject(def)))
+            .id();
+        let second = sim
+            .world_mut()
+            .spawn((Position { x: 5.0, y: 4.0 }, SmartObject(def)))
+            .id();
+        let agent = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 3.0, y: 4.0 },
+                Needs::all_at(80.0),
+                Satisfaction::default(),
+            ))
+            .id();
+        start_chain(&mut sim, agent);
+        sim.tick();
+        assert!(
+            sim.world().get::<Reserved>(first).is_some(),
+            "an equal-length path must not displace the earlier station"
+        );
+        assert!(sim.world().get::<Reserved>(second).is_none());
     }
 
     /// A role with NO stations at all (a hand-built world the compile
@@ -1059,7 +1144,28 @@ mod tests {
     #[test]
     fn completion_habituates_the_advertiser_under_the_flyout_row() {
         let (mut sim, agent, _pantry, _table) = chain_world();
-        start_chain(&mut sim, agent);
+        // A decoy fridge chain rides FIRST, so the completed chain sits
+        // at position 1 and the row is interactions.len() 1 plus 1 -
+        // at position 0 the plus-becomes-minus mutant is equivalent,
+        // which the sweep found.
+        {
+            let pack = sim
+                .world()
+                .get_resource::<crate::Content>()
+                .expect("content installed")
+                .0;
+            let mut weak = a_chain();
+            weak.id = "weak".to_string();
+            weak.advertises = vec![(0, 1.0)];
+            let pack = Box::leak(Box::new(ContentPack {
+                chains: vec![weak, pack.chains[0].clone()],
+                ..pack.clone()
+            }));
+            sim.world_mut().insert_resource(crate::Content(pack));
+        }
+        sim.world_mut()
+            .entity_mut(agent)
+            .insert(ChainState::begin(1));
         for _ in 0..400 {
             sim.tick();
             if sim.world().get::<ChainState>(agent).is_none() {
@@ -1073,17 +1179,19 @@ mod tests {
                 // reads. The kill only needs the RIGHT row nonzero
                 // near per_use and every wrong row at zero.
                 let per_use = test_content::tuning().habituation_per_use;
-                let entry = habituation.get(terri_data::ObjectDefId(0), 1);
+                let entry = habituation.get(terri_data::ObjectDefId(0), 2);
                 assert!(
                     entry > per_use * 0.9 && entry <= per_use,
                     "one completion, keyed at interactions.len() 1 plus \
-                     chain position 0; read {entry} against {per_use}"
+                     chain position 1; read {entry} against {per_use}"
                 );
-                assert_eq!(
-                    habituation.get(terri_data::ObjectDefId(0), 0),
-                    0.0,
-                    "the snack row itself is untouched"
-                );
+                for wrong in [0u32, 1] {
+                    assert_eq!(
+                        habituation.get(terri_data::ObjectDefId(0), wrong),
+                        0.0,
+                        "row {wrong} is not this dinner's"
+                    );
+                }
                 return;
             }
         }
