@@ -1055,8 +1055,8 @@ impl fmt::Display for ContentError {
             ),
             ContentError::UnknownTraitKind { id, kind } => write!(
                 f,
-                "trait '{id}' declares kind '{kind}'; the kinds are \
-                 disposition, capability and condition"
+                "trait '{id}' declares kind '{kind}'; the kinds are {}",
+                crate::schema::TRAIT_KINDS.join(", ")
             ),
             ContentError::UnknownSimTrait { sim, trait_id } => write!(
                 f,
