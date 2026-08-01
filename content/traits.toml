@@ -1,0 +1,59 @@
+# Traits - the three mechanisms of [E3] in
+# docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md.
+#
+# One file, three kinds, and the kinds are NOT interchangeable ([S4]):
+# a disposition weighs a choice, a capability gates a completion as
+# may-attempt-may-fail, and a condition acts on the satisfaction axis
+# itself. The compile step rejects a trait declaring a number its kind
+# does not read, so this file cannot quietly say something the
+# simulation ignores.
+#
+# Every trait keys on an activity TAG - the same tag space hobbies use
+# (objects.toml and social.toml declare them) - so one fear covers every
+# couch-shaped route to lounging without naming each object.
+#
+# Labels are plain per the standing rule ([L58]); the voice pass happens
+# WITH the owner in M2g. Per the design's framing note: a condition is
+# managed and improvable, never a punchline.
+
+# A disposition: Doug's pull toward the television, over and above what
+# its need deltas earn it. 1.5x on the tagged candidates' scores -
+# noticeable in the choice tables, not a compulsion. The mirror of a
+# fear, which would sit below 1 (0 IS the fear, and is legal).
+[[trait_def]]
+id = "television_devotee"
+label = "Television devotee"
+kind = "disposition"
+tag = "television"
+score_multiplier = 1.5
+
+# A capability: cooking is a skill, and Nadia does not have it yet. She
+# MAY attempt - the stove is not hidden from her, because a sim who
+# never approaches the stove is not a scene ([S4]) - and a failed
+# attempt delivers nothing of the meal while still teaching her
+# something. At 0.25 she fails three attempts in four to begin with;
+# at 0.05 per attempt she is competent inside a simulated day of
+# genuine practice.
+[[trait_def]]
+id = "cannot_cook"
+label = "Can't cook"
+kind = "capability"
+tag = "cooking"
+start_level = 0.25
+fail_delta_scale = 0.0
+learn_per_attempt = 0.05
+
+# A condition: Terri's low spirits scale her satisfaction ACCRUAL - at
+# full severity a completed hobby pays 40% of what it would - and the
+# severity FALLS a little every time she does something tagged with the
+# thing that helps, which for her is correspondence: the desk is where
+# she talks herself back. Managed, improvable, never a joke ([S4]'s
+# framing note). Starting severity 0.6: present, not crushing.
+[[trait_def]]
+id = "low_spirits"
+label = "Low spirits"
+kind = "condition"
+tag = "correspondence"
+accrual_scale = 0.4
+manage_per_completion = 0.02
+start_severity = 0.6

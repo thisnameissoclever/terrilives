@@ -346,6 +346,73 @@ pub struct DispositionDef {
     pub weight: f32,
 }
 
+/// Mirrors `content/traits.toml`: the three trait mechanisms - [E3] in
+/// `docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md`.
+///
+/// One file, three kinds, because the examples that motivated traits
+/// look like one feature and are not ([S4]): a DISPOSITION weighs a
+/// choice, a CAPABILITY gates one as may-attempt-may-fail, and a
+/// CONDITION acts on the satisfaction axis itself. The kind is a
+/// string here rather than an enum for the same reason a facing is:
+/// an unknown kind is a CONTENT error the compile step reports with
+/// the trait named, and serde's "unknown variant" error names nothing.
+#[derive(Debug, Deserialize)]
+pub struct TraitsFile {
+    /// Defaulted so a project with no traits parses; a household member
+    /// naming one that does not exist is the compile step's error.
+    #[serde(default)]
+    pub trait_def: Vec<TraitDef>,
+}
+
+/// One trait. Which numbers mean anything depends on `kind`; the
+/// compile step rejects a trait that declares numbers its kind does not
+/// read, because a `score_multiplier` on a condition is a statement the
+/// simulation will silently ignore - the [D9] shape.
+#[derive(Debug, Deserialize)]
+pub struct TraitDef {
+    pub id: String,
+    /// What the UI calls it. Required and non-blank: unlike an
+    /// interaction label there is no id-shaped fallback that reads as
+    /// anything but a bug in a trait list.
+    pub label: String,
+    /// `disposition`, `capability` or `condition`. See [`TRAIT_KINDS`].
+    pub kind: String,
+    /// The activity tag this trait keys on - the same tag space hobbies
+    /// use, resolved against the pack's interactions at compile time so
+    /// a trait about nothing has no representation.
+    pub tag: String,
+    /// disposition only: what a tagged candidate's score is multiplied
+    /// by. Zero is legal and IS the fear ([S4]); above 1 is a love.
+    #[serde(default)]
+    pub score_multiplier: Option<f32>,
+    /// capability only: the level in `0..=1` the sim STARTS at.
+    #[serde(default)]
+    pub start_level: Option<f32>,
+    /// capability only: what a FAILED attempt delivers of the activity's
+    /// advertised benefit, usually 0.
+    #[serde(default)]
+    pub fail_delta_scale: Option<f32>,
+    /// capability only: how much every attempt (pass or fail) raises the
+    /// level, toward 1.
+    #[serde(default)]
+    pub learn_per_attempt: Option<f32>,
+    /// condition only: what the satisfaction ACCRUAL is multiplied by at
+    /// full severity; the effective scale interpolates toward 1 as
+    /// severity falls.
+    #[serde(default)]
+    pub accrual_scale: Option<f32>,
+    /// condition only: how much every completed activity carrying the
+    /// trait's tag reduces the severity - the resolving loop.
+    #[serde(default)]
+    pub manage_per_completion: Option<f32>,
+    /// condition only: the severity in `0..=1` the sim STARTS at.
+    #[serde(default)]
+    pub start_severity: Option<f32>,
+}
+
+/// The three legal trait kinds, in the order the design names them.
+pub const TRAIT_KINDS: [&str; 3] = ["disposition", "capability", "condition"];
+
 /// Mirrors `content/household.toml`: who lives on the lot - [H2].
 ///
 /// The household is CONTENT, not something the shell spawns. The shell
@@ -384,6 +451,13 @@ pub struct HouseholdSimDef {
     /// per [D9].
     #[serde(default)]
     pub hobbies: Vec<String>,
+    /// The traits this sim spawns with, by id from `content/traits.toml`
+    /// ([E3]). Defaulted, and AUTHORED rather than rolled: the household
+    /// is authored content, and the SimRng roll [S4] asks for arrives
+    /// with procedurally spawned sims (M3) - the design records this
+    /// reading. An unknown id is a compile error.
+    #[serde(default)]
+    pub traits: Vec<String>,
 }
 
 /// Mirrors `assets/sprites/atlas.toml`, which is **generated** by

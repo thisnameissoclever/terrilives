@@ -532,6 +532,55 @@ pub enum ContentError {
     NegativeNeglectBleed {
         value: f32,
     },
+    /// `traits.toml` declares the same trait twice - the same rule as
+    /// every other id space.
+    DuplicateTrait {
+        id: String,
+    },
+    /// A trait with a blank label. Unlike an interaction there is no
+    /// id-shaped fallback that reads as anything but a bug in a UI's
+    /// trait list, so the label is simply required.
+    EmptyTraitLabel {
+        id: String,
+    },
+    /// A trait keyed on a tag no interaction carries: a fear of nothing,
+    /// a skill at nothing, a condition managed by nothing - [D9]'s
+    /// dangling reference, in the trait file's own words.
+    TraitAboutNothing {
+        id: String,
+        tag: String,
+    },
+    /// A trait missing a number its kind requires; the simulation would
+    /// otherwise answer with a default nobody chose.
+    MissingTraitField {
+        id: String,
+        kind: String,
+        field: String,
+    },
+    /// A trait number outside its documented range.
+    TraitFieldOutOfRange {
+        id: String,
+        field: String,
+        value: f32,
+    },
+    /// A trait declaring a number a DIFFERENT kind reads - a statement
+    /// the simulation would silently ignore, which is the exact quiet
+    /// failure [D9] converts to a build error.
+    TraitFieldForWrongKind {
+        id: String,
+        kind: String,
+        field: String,
+    },
+    /// A kind that is not disposition, capability or condition.
+    UnknownTraitKind {
+        id: String,
+        kind: String,
+    },
+    /// A household sim wearing a trait `traits.toml` does not declare.
+    UnknownSimTrait {
+        sim: String,
+        trait_id: String,
+    },
 }
 
 impl fmt::Display for ContentError {
@@ -975,6 +1024,44 @@ impl fmt::Display for ContentError {
                 f,
                 "neglect_bleed_per_tick is {value}; a negative bleed would \
                  make starving a sim EARN satisfaction"
+            ),
+            ContentError::DuplicateTrait { id } => {
+                write!(f, "traits.toml declares '{id}' more than once")
+            }
+            ContentError::EmptyTraitLabel { id } => write!(
+                f,
+                "trait '{id}' has a blank label; a trait list has no \
+                 id-shaped fallback that reads as anything but a bug"
+            ),
+            ContentError::TraitAboutNothing { id, tag } => write!(
+                f,
+                "trait '{id}' keys on tag '{tag}', which no interaction in \
+                 the pack carries - a fear of nothing, a skill at nothing"
+            ),
+            ContentError::MissingTraitField { id, kind, field } => write!(
+                f,
+                "trait '{id}' is a {kind} and must declare '{field}'"
+            ),
+            ContentError::TraitFieldOutOfRange { id, field, value } => write!(
+                f,
+                "trait '{id}' declares {field} = {value}, outside its \
+                 documented range"
+            ),
+            ContentError::TraitFieldForWrongKind { id, kind, field } => write!(
+                f,
+                "trait '{id}' is a {kind} and declares '{field}', which \
+                 that kind does not read - the simulation would silently \
+                 ignore it"
+            ),
+            ContentError::UnknownTraitKind { id, kind } => write!(
+                f,
+                "trait '{id}' declares kind '{kind}'; the kinds are \
+                 disposition, capability and condition"
+            ),
+            ContentError::UnknownSimTrait { sim, trait_id } => write!(
+                f,
+                "household sim '{sim}' wears '{trait_id}', which \
+                 traits.toml does not declare"
             ),
         }
     }

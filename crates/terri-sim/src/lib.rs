@@ -1479,6 +1479,7 @@ mod household_tests {
                 // below can tell "copied per member" from "one list
                 // stamped on everybody" ([L34]).
                 hobbies: vec!["whittling".to_string()],
+                traits: vec![],
             },
             terri_data::CompiledHouseholdMember {
                 name: "Doug".into(),
@@ -1487,6 +1488,7 @@ mod household_tests {
                 y: 6.0,
                 needs: [100.0, 83.0, 100.0, 100.0, 100.0, 100.0, 55.0],
                 hobbies: vec![],
+                traits: vec![],
             },
         ];
         (personalities, household)

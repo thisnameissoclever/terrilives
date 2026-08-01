@@ -13,7 +13,7 @@ use crate::pack::{
 };
 use crate::schema::{
     AtlasFile, HouseholdFile, InteractionDef, LotFile, NeedsFile, ObjectsFile, PersonalitiesFile,
-    SocialFile, TuningFile,
+    SocialFile, TraitsFile, TuningFile,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use terri_core::{Footprint, NeedId, NEED_COUNT, NEED_MAX, NEED_MIN};
@@ -89,6 +89,7 @@ pub fn compile(
     personalities: PersonalitiesFile,
     household: HouseholdFile,
     social: SocialFile,
+    traits: TraitsFile,
 ) -> Result<ContentPack, ContentError> {
     let sprite_index = |name: &str| atlas.sprite.iter().position(|s| s.name == name);
     let sim_sprite = sprite_index(SIM_SPRITE).ok_or_else(|| ContentError::MissingSimSprite {
@@ -346,9 +347,13 @@ pub fn compile(
     // Social itself compiles after tuning, because the clipped-duration
     // rule needs the floor and the variance, and social interactions are
     // subject to it for exactly the reasons the object loop's copy
-    // documents.
+    // documents. Traits sit between for the same dependency shape: they
+    // key on the tag universe (so after social) and the household
+    // resolves them by id (so before it).
     let social = compile_social(social, &tuning)?;
-    let household = compile_household(household, &personalities, &compiled, &social, &lot)?;
+    let traits = compile_traits(traits, &compiled, &social)?;
+    let household =
+        compile_household(household, &personalities, &compiled, &social, &traits, &lot)?;
 
     Ok(ContentPack {
         decay_per_tick: decay,
@@ -359,7 +364,157 @@ pub fn compile(
         personalities,
         household,
         social,
+        traits,
     })
+}
+
+/// Validates `content/traits.toml` - [E3]'s three mechanisms, one file.
+///
+/// The per-kind field rules are the strictest thing here, and they cut
+/// BOTH ways: a kind's own numbers are required (a capability with no
+/// learning rate is a question the simulation would answer with a
+/// default nobody chose), and another kind's numbers are REJECTED (a
+/// `score_multiplier` on a condition is a statement the simulation
+/// silently ignores - the [D9] shape, caught at build time).
+fn compile_traits(
+    traits: TraitsFile,
+    objects: &[CompiledObject],
+    social: &[CompiledInteraction],
+) -> Result<Vec<crate::pack::CompiledTrait>, ContentError> {
+    use crate::pack::{CompiledTrait, CompiledTraitKind};
+
+    let known_tags: BTreeSet<&str> = objects
+        .iter()
+        .flat_map(|object| &object.interactions)
+        .chain(social)
+        .flat_map(|act| &act.tags)
+        .map(String::as_str)
+        .collect();
+
+    let mut seen = BTreeSet::new();
+    let mut compiled = Vec::with_capacity(traits.trait_def.len());
+    for def in &traits.trait_def {
+        if !seen.insert(def.id.clone()) {
+            return Err(ContentError::DuplicateTrait { id: def.id.clone() });
+        }
+        if def.label.trim().is_empty() {
+            return Err(ContentError::EmptyTraitLabel { id: def.id.clone() });
+        }
+        if !known_tags.contains(def.tag.as_str()) {
+            return Err(ContentError::TraitAboutNothing {
+                id: def.id.clone(),
+                tag: def.tag.clone(),
+            });
+        }
+
+        // One closure per rule so every error names the trait and the
+        // field, which is where the author's cursor needs to land.
+        let unit = |value: Option<f32>, field: &str| -> Result<f32, ContentError> {
+            let value = value.ok_or_else(|| ContentError::MissingTraitField {
+                id: def.id.clone(),
+                kind: def.kind.clone(),
+                field: field.to_string(),
+            })?;
+            check_finite(value, &format!("{field} on trait '{}'", def.id))?;
+            if !(0.0..=1.0).contains(&value) {
+                return Err(ContentError::TraitFieldOutOfRange {
+                    id: def.id.clone(),
+                    field: field.to_string(),
+                    value,
+                });
+            }
+            Ok(value)
+        };
+        let forbid = |value: Option<f32>, field: &str| -> Result<(), ContentError> {
+            if value.is_some() {
+                return Err(ContentError::TraitFieldForWrongKind {
+                    id: def.id.clone(),
+                    kind: def.kind.clone(),
+                    field: field.to_string(),
+                });
+            }
+            Ok(())
+        };
+
+        let kind = match def.kind.as_str() {
+            "disposition" => {
+                let multiplier =
+                    def.score_multiplier
+                        .ok_or_else(|| ContentError::MissingTraitField {
+                            id: def.id.clone(),
+                            kind: def.kind.clone(),
+                            field: "score_multiplier".to_string(),
+                        })?;
+                check_finite(
+                    multiplier,
+                    &format!("score_multiplier on trait '{}'", def.id),
+                )?;
+                // Zero is legal and IS the fear ([S4]); negative would
+                // turn a benefit into a cost behind nobody's decision,
+                // the same rule relationship_delta_scale carries.
+                if multiplier < 0.0 {
+                    return Err(ContentError::TraitFieldOutOfRange {
+                        id: def.id.clone(),
+                        field: "score_multiplier".to_string(),
+                        value: multiplier,
+                    });
+                }
+                forbid(def.start_level, "start_level")?;
+                forbid(def.fail_delta_scale, "fail_delta_scale")?;
+                forbid(def.learn_per_attempt, "learn_per_attempt")?;
+                forbid(def.accrual_scale, "accrual_scale")?;
+                forbid(def.manage_per_completion, "manage_per_completion")?;
+                forbid(def.start_severity, "start_severity")?;
+                CompiledTraitKind::Disposition {
+                    score_multiplier: multiplier,
+                }
+            }
+            "capability" => {
+                let start_level = unit(def.start_level, "start_level")?;
+                let fail_delta_scale = unit(def.fail_delta_scale, "fail_delta_scale")?;
+                let learn_per_attempt = unit(def.learn_per_attempt, "learn_per_attempt")?;
+                forbid(def.score_multiplier, "score_multiplier")?;
+                forbid(def.accrual_scale, "accrual_scale")?;
+                forbid(def.manage_per_completion, "manage_per_completion")?;
+                forbid(def.start_severity, "start_severity")?;
+                CompiledTraitKind::Capability {
+                    start_level,
+                    fail_delta_scale,
+                    learn_per_attempt,
+                }
+            }
+            "condition" => {
+                let accrual_scale = unit(def.accrual_scale, "accrual_scale")?;
+                let manage_per_completion =
+                    unit(def.manage_per_completion, "manage_per_completion")?;
+                let start_severity = unit(def.start_severity, "start_severity")?;
+                forbid(def.score_multiplier, "score_multiplier")?;
+                forbid(def.start_level, "start_level")?;
+                forbid(def.fail_delta_scale, "fail_delta_scale")?;
+                forbid(def.learn_per_attempt, "learn_per_attempt")?;
+                CompiledTraitKind::Condition {
+                    accrual_scale,
+                    manage_per_completion,
+                    start_severity,
+                }
+            }
+            other => {
+                return Err(ContentError::UnknownTraitKind {
+                    id: def.id.clone(),
+                    kind: other.to_string(),
+                })
+            }
+        };
+
+        compiled.push(CompiledTrait {
+            id: def.id.clone(),
+            label: def.label.clone(),
+            tag: def.tag.clone(),
+            kind,
+        });
+    }
+
+    Ok(compiled)
 }
 
 /// Validates `content/social.toml` and compiles the interactions every sim
@@ -634,6 +789,7 @@ fn compile_household(
     personalities: &[CompiledPersonality],
     objects: &[CompiledObject],
     social: &[CompiledInteraction],
+    traits: &[crate::pack::CompiledTrait],
     lot: &CompiledLot,
 ) -> Result<Vec<CompiledHouseholdMember>, ContentError> {
     // Every tag any interaction in the pack carries - what a hobby must
@@ -750,6 +906,19 @@ fn compile_household(
             }
         }
 
+        // Traits resolve to indices, the standing rule for every id
+        // space; a worn trait nobody declared has no representation.
+        let mut worn = Vec::with_capacity(sim.traits.len());
+        for trait_id in &sim.traits {
+            let Some(index) = traits.iter().position(|t| &t.id == trait_id) else {
+                return Err(ContentError::UnknownSimTrait {
+                    sim: sim.name.clone(),
+                    trait_id: trait_id.clone(),
+                });
+            };
+            worn.push(index as u32);
+        }
+
         compiled.push(CompiledHouseholdMember {
             name: sim.name.clone(),
             personality: personality as u32,
@@ -757,6 +926,7 @@ fn compile_household(
             y: sim.y,
             needs,
             hobbies: sim.hobbies.clone(),
+            traits: worn,
         });
     }
 
@@ -1398,6 +1568,7 @@ mod tests {
             SocialFile {
                 interaction: vec![],
             },
+            TraitsFile { trait_def: vec![] },
         )
     }
 
@@ -1494,19 +1665,15 @@ mod tests {
     /// author's wording, and not `grab_snack`, is what reaches the pack.
     #[rustfmt::skip]
     const GOLDEN_PACK_BYTES: &[u8] = &[
-        // **Regenerated wholesale at M2e PR 1**, the third wholesale
-        // regen: `CompiledInteraction` grew `tags` (the empty vec is the
-        // lone 0 after the label's `117, 112`) and `satisfaction` (the
-        // four zero bytes after it - this fixture's snack pays nothing),
-        // and the tuning tail grew the satisfaction trio: 1.75 is
-        // `0, 0, 224, 63`, 23.0 is `0, 0, 184, 65`, 0.0078125 is
-        // `0, 0, 0, 60`, between relationship_delta_scale's `0, 0, 80,
-        // 63` and the three empty personality/household/social vec
-        // bytes that close the pack. `CompiledHouseholdMember::hobbies`
-        // adds nothing here because this fixture has no household. The
+        // **Regenerated wholesale at M2e PR 2**: `ContentPack` gained a
+        // trailing `traits` list (empty in this fixture - the lone new
+        // 0 at the very end), and `CompiledHouseholdMember` a trailing
+        // trait-index list; this fixture has no household, so the whole
+        // movement is one byte of empty-vec length at the tail. The PR
+        // 1 annotations (tags after the label, the tuning trio) and the
         // object-block annotations in the doc comment above remain
-        // valid; the fully-annotated predecessors are one `git log -p`
-        // away. Read off the failing assertion, per the standing rule.
+        // valid; predecessors are one `git log -p` away. Read off the
+        // failing assertion, per the standing rule.
         205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62,
         205, 204, 204, 62, 0, 0, 0, 63, 154, 153, 25, 63,
         51, 51, 51, 63, 1, 6, 102, 114, 105, 100, 103, 101,
@@ -1522,7 +1689,7 @@ mod tests {
         64, 63, 3, 172, 2, 7, 11, 13, 0, 0, 192, 62,
         0, 0, 64, 62, 0, 0, 64, 61, 0, 0, 80, 63,
         0, 0, 224, 63, 0, 0, 184, 65, 0, 0, 0, 60,
-        0, 0, 0,
+        0, 0, 0, 0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -3417,6 +3584,7 @@ mod tests {
 
     fn member(name: &str, archetype: &str, x: f32, y: f32) -> HouseholdSimDef {
         HouseholdSimDef {
+            traits: vec![],
             hobbies: vec![],
             name: name.to_string(),
             archetype: archetype.to_string(),
@@ -3447,6 +3615,7 @@ mod tests {
             SocialFile {
                 interaction: vec![],
             },
+            TraitsFile { trait_def: vec![] },
         )
     }
 
@@ -3546,6 +3715,7 @@ mod tests {
             SocialFile {
                 interaction: vec![],
             },
+            TraitsFile { trait_def: vec![] },
         )
         .expect("two dispositions on two objects are valid");
 
@@ -3809,6 +3979,7 @@ mod tests {
             SocialFile {
                 interaction: vec![],
             },
+            TraitsFile { trait_def: vec![] },
         )
         .unwrap_err();
         assert_eq!(
@@ -4554,6 +4725,7 @@ mod tests {
                 SocialFile {
                     interaction: vec![],
                 },
+                TraitsFile { trait_def: vec![] },
             )
         };
 
@@ -4607,6 +4779,7 @@ mod tests {
             PersonalitiesFile { archetype: vec![] },
             HouseholdFile { sim: vec![] },
             SocialFile { interaction },
+            TraitsFile { trait_def: vec![] },
         )
     }
 }

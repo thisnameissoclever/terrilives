@@ -184,6 +184,7 @@ pub fn pack_with_social(
     let pack = pack_tuned(objects, tuning);
     // Leaked like everything here; one clone per call in a test process.
     Box::leak(Box::new(ContentPack {
+        traits: Vec::new(),
         social,
         ..pack.clone()
     }))
@@ -191,6 +192,7 @@ pub fn pack_with_social(
 
 pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static ContentPack {
     Box::leak(Box::new(ContentPack {
+        traits: Vec::new(),
         decay_per_tick: terri_data::pack().decay_per_tick,
         objects,
         sim_sprite: terri_data::pack().sim_sprite,
