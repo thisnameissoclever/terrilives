@@ -30,6 +30,16 @@ export interface DebugSource {
   personalityOf(entityIndex: number): Float32Array;
   relationshipsOf(entityIndex: number): Float32Array;
   needNames(): readonly string[];
+  /** The household's money - E4. World state, printed once at the top. */
+  funds(): number;
+  /** Interleaved [pack trait index, state, ...] pairs, or empty - E3. */
+  traitsOf(entityIndex: number): Float32Array;
+  /** One label per pack trait, aligned with traitKinds. */
+  traitLabels(): string[];
+  /** "disposition" | "capability" | "condition" per pack trait. */
+  traitKinds(): string[];
+  /** The sim's job label, or null for the unemployed - E4. */
+  careerOf(entityIndex: number): string | null;
 }
 
 /** The one DOM dependency, structural like the needs panel's. */
@@ -47,7 +57,16 @@ const ACTIVITY_NAMES = [
   'eating',
   'talking',
   'sleeping',
+  'at work',
 ] as const;
+
+/** How a trait's mutable state is worded, by kind. A disposition's 0 is
+ * meaningless (it carries no state) and prints nothing. */
+function traitStateLabel(kind: string, state: number): string {
+  if (kind === 'capability') return `, level ${state.toFixed(2)}`;
+  if (kind === 'condition') return `, severity ${state.toFixed(2)}`;
+  return '';
+}
 
 /**
  * The whole report as text. Pure, so the tests pin every branch - the
@@ -75,7 +94,13 @@ export function formatDebugReport(source: DebugSource): string {
   }
 
   const needNames = source.needNames();
+  const traitLabels = source.traitLabels();
+  const traitKinds = source.traitKinds();
   const lines: string[] = [];
+  // Household state before anybody's: the money is the lot's, and a
+  // reader scanning for it should not have to pick a sim first.
+  lines.push(`funds: ${source.funds()}`);
+  lines.push('');
   for (const row of agents) {
     const entity = ids[row];
     const simId = source.simIdOf(entity);
@@ -96,6 +121,22 @@ export function formatDebugReport(source: DebugSource): string {
     const satisfaction = source.satisfactionOf(entity);
     if (satisfaction !== null) {
       lines.push(`  life satisfaction: ${satisfaction.toFixed(1)}`);
+    }
+
+    // The job, then the outfit - the two M2e PR 3 reads, between the
+    // axis they act on and the needs they compete with.
+    const career = source.careerOf(entity);
+    if (career !== null) {
+      lines.push(`  works: ${career}`);
+    }
+    const worn = source.traitsOf(entity);
+    for (let i = 0; i + 1 < worn.length; i += 2) {
+      const which = worn[i];
+      const label = traitLabels[which] ?? `trait#${which}`;
+      const kind = traitKinds[which] ?? 'unknown';
+      lines.push(
+        `  wears: ${label} (${kind}${traitStateLabel(kind, worn[i + 1])})`,
+      );
     }
 
     const needs = source.needsOf(entity);

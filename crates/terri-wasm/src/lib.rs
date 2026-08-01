@@ -435,6 +435,62 @@ impl SimHandle {
         self.sim.satisfaction_of(entity_index).unwrap_or(-1.0)
     }
 
+    /// The household's money - [E4]. `f64` rather than the simulation's
+    /// `i64` because wasm-bindgen would hand JavaScript a BigInt, and
+    /// every display caller would write the same `Number(...)`; a
+    /// household that earns past 2^53 has beaten the game.
+    pub fn funds(&self) -> f64 {
+        self.sim.funds() as f64
+    }
+
+    /// Interleaved `[pack trait index, live state, ...]` pairs, or
+    /// empty - the [E3] overlay read. Indices as f32 exactly like
+    /// `relationships_of`'s ids, and safely: a pack has tens of traits,
+    /// not 2^24.
+    pub fn traits_of(&self, entity_index: u32) -> Vec<f32> {
+        self.sim
+            .traits_of(entity_index)
+            .map(|worn| {
+                worn.into_iter()
+                    .flat_map(|(index, state)| [index as f32, state])
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// One label per entry in the pack's trait list, in pack order -
+    /// what `traits_of`'s indices resolve against. Read once at
+    /// startup, like `need_names`; the lookup lives in `terri-sim`
+    /// because this crate is forbidden the content crate ([D1]).
+    pub fn trait_labels(&self) -> Vec<String> {
+        self.sim
+            .trait_labels()
+            .into_iter()
+            .map(str::to_string)
+            .collect()
+    }
+
+    /// The kind of each pack trait - "disposition", "capability" or
+    /// "condition" - aligned with `trait_labels`, so the overlay can
+    /// word a level and a severity differently.
+    pub fn trait_kinds(&self) -> Vec<String> {
+        self.sim
+            .trait_kinds()
+            .into_iter()
+            .map(str::to_string)
+            .collect()
+    }
+
+    /// The label of the career held by the sim carrying `entity_index`,
+    /// or the empty string for the unemployed and everything else -
+    /// empty rather than `Option` for `sim_name`'s reason.
+    pub fn career_of(&self, entity_index: u32) -> String {
+        self.sim
+            .career_of(entity_index)
+            .map(str::to_string)
+            .unwrap_or_default()
+    }
+
     /// Fourteen floats - drain then satisfaction, seven each - or empty.
     /// The [A-11] debug overlay's read; see `Sim::personality_of`.
     pub fn personality_of(&self, entity_index: u32) -> Vec<f32> {
@@ -1732,6 +1788,53 @@ mod boundary_tests {
             "interleaved pairs in the component's key-sorted order"
         );
         assert!(handle.relationships_of(bare).is_empty());
+    }
+
+    /// The M2e PR 3 overlay reads, against the SHIPPED lot so the pack
+    /// lookups (labels, kinds, career) resolve real content: Terri
+    /// wears low spirits and holds the office job, Doug wears the
+    /// devotee disposition and holds nothing, and the household opens
+    /// broke.
+    #[test]
+    fn the_career_and_trait_reads_cross_the_boundary() {
+        let mut handle = SimHandle::from_lot();
+        // Entity indices are dense from zero at spawn, so a bounded
+        // scan by name needs no buffer sync.
+        let index_of = |name: &str| {
+            (0..handle.entity_count() as u32)
+                .find(|&index| handle.sim_name(index) == name)
+                .unwrap_or_else(|| panic!("the shipped lot houses {name}"))
+        };
+        let terri = index_of("Terri");
+        let doug = index_of("Doug");
+
+        // Zero at move-in AND a nonzero read-through, because a funds()
+        // stubbed to 0.0 satisfies the first alone - the sweep found
+        // exactly that mutant surviving.
+        assert_eq!(handle.funds(), 0.0, "move-in day, before any shift");
+        handle.sim.world_mut().resource_mut::<terri_core::Funds>().0 = 260;
+        assert_eq!(handle.funds(), 260.0, "the boundary reads the ledger");
+        handle.sim.world_mut().resource_mut::<terri_core::Funds>().0 = 0;
+        assert_eq!(handle.career_of(terri), "Office clerk");
+        assert_eq!(
+            handle.career_of(doug),
+            "",
+            "the unemployed read as the empty string, sim_name's contract"
+        );
+
+        let labels = handle.trait_labels();
+        let kinds = handle.trait_kinds();
+        assert_eq!(
+            labels.len(),
+            kinds.len(),
+            "labels and kinds are two columns of one table"
+        );
+        let worn = handle.traits_of(terri);
+        assert_eq!(worn.len(), 2, "one trait is one (index, state) pair");
+        let which = worn[0] as usize;
+        assert_eq!(labels[which], "Low spirits");
+        assert_eq!(kinds[which], "condition");
+        assert_eq!(worn[1], 0.6, "the authored start severity rides as state");
     }
 
     #[test]

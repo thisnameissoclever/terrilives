@@ -455,6 +455,14 @@ hobby_multiplier = 3.0
 # wanted. In [0, 100]; 0 disables.
 neglect_floor = 15.0
 
+# The length of a day in ticks - [E4]. One tick is one sim-minute, so
+# 1440 IS the day, read straight off the clock: `tick % day_ticks` is
+# minutes past midnight, and careers.toml writes shift times in it.
+# 2.4 real minutes at 1x. No calendar and no weekday until something
+# needs one. Must be at least 1 - a zero-tick day divides by zero the
+# first time a career asks the hour.
+day_ticks = 1440
+
 # Satisfaction lost PER NEGLECTED NEED per tick below the floor:
 # 0.002/tick is 24 per simulated hour per crisis. Against a dedicated
 # hobbyist's rough 100-200/hour accrual that is a bruise rather than a

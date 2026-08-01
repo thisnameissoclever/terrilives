@@ -35,6 +35,13 @@ hobbies = ["correspondence", "reading"]
 # hobby is what lowers the severity, which makes her routine
 # self-treating in a way the trace can measure ([E3]).
 traits = ["low_spirits"]
+# The one worker in the house ([E4]), and deliberately the WORST
+# choice of the three: the shift eats the hours her desk would have
+# spent managing the low spirits and earning the hobby payout, so the
+# job's real price shows up in her life score without the career
+# subtracting a thing. Doug is settled and Nadia flits; neither
+# holds a job yet.
+career = "office_job"
 
 # Doug came with the armchair, or possibly the armchair came with Doug;
 # the paperwork is unclear. Spawns in the bedroom aching for comfort,

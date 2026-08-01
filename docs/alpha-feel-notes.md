@@ -1330,3 +1330,60 @@ Nadia 291.0).
   traits gave her a skill arc, not more company. Her satisfaction
   story waits on group conversations or a second social sim; recorded
   as expected rather than wrong.
+
+## [A-14] The career, measured against the [A-13] hour
+
+M2e PR 3: the same 36 000-tick hour (25 game days at 1 440 ticks per
+day) with Terri holding the office job - 06:00 to 14:00, pay 120,
+energy 15, satisfaction 1.0. Reproduce with
+`cargo run --release -p terri-sim --example trace -- 36000`.
+
+- **The job pays exactly what it promised and nothing it did not.**
+  FUNDS 3000 after 25 shifts at 120: every day fired once, every
+  return credited once, across two dozen day-clock wraps. Career
+  satisfaction contributed 25.0 of Terri's 344.9 - the money is real
+  and the meaning is nearly nothing, which is [E4]'s whole design.
+- **The time is the price, and the trace can now say so in one
+  column.** Terri is at work (commute included) 36.8% of her hour;
+  the other two read 0.0%. Her life score is 344.9 against 568.2 in
+  the trait-only [A-13] hour - the shift eats roughly forty percent
+  of what her desk and her bookshelf would have earned, without the
+  career subtracting a single point. The non-negative-satisfaction
+  amendment holds up in the numbers: the antagonist is the absence.
+- **The condition heals slower because the desk hours went to the
+  office.** Severity ends at 0.45 against [A-13]'s 0.39 - the same
+  manage rate, fewer tagged completions. The job is quietly bad for
+  the exact thing her routine was treating, and nothing had to be
+  authored to make that true.
+- **The career taxes Nadia without employing her.** 210.5 against
+  276.0, the largest surprise of the measurement and an emergent one:
+  her only hobby is company, and the job removes a third of a person
+  from the house - fewer partners free, fewer loved chats. [A-13]
+  called her satisfaction story "waits on more company"; the career
+  made it actively worse, which is worth remembering when a second
+  job is authored.
+- **Doug is barely touched (471.0 vs 462.0)** - his hobbies are
+  objects, and the television does not leave for work. The contrast
+  with Nadia is the cleanest evidence yet that the satisfaction axis
+  is measuring LIVES rather than schedules.
+- **Balance verdict: shipped as measured.** The [A-12] question about
+  Terri out-earning Doug answered itself from the other direction -
+  the job flips the order (471.0 over 344.9), and a life's ranking
+  now turns on choices (who works, who loves what) rather than on a
+  static table.
+- **The watched session, honestly described.** The pane could not
+  composite during this pass (nobody had it displayed, and an
+  undisplayed pane fires no animation frames), so the watch ran in a
+  real headless Chromium via Playwright against the dev server: the
+  house renders, all three sims move at 3x across screenshots, and
+  the ?debug=1 overlay showed every new line live against shipped
+  content - funds: 0 at the top, works: Office clerk under Terri,
+  wears: Low spirits (condition, severity 0.60), and Doug's
+  disposition worded without a state. The departure-vanish-return
+  itself could not be caught in pixels there (headless Chromium loses
+  the WebGPU adapter on reload and would not give it back), so it is
+  pinned instead by a permanent boundary test that runs the shipped
+  1440-tick day through the RELEASE wasm - Terri's row flagged
+  AT_WORK at tick 600, back and exactly 120 richer by tick 900. First
+  displayed-pane session should confirm the vanish reads well on
+  screen; filed as the one open eye-test.

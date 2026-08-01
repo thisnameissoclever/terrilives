@@ -581,6 +581,77 @@ pub enum ContentError {
         sim: String,
         trait_id: String,
     },
+    /// A household sim wearing the same trait twice. The `Traits`
+    /// component keys state by index with a binary search, so a
+    /// duplicate entry would leave one copy stale behind every write.
+    DuplicateWornTrait {
+        sim: String,
+        trait_id: String,
+    },
+    /// Two careers share an id.
+    DuplicateCareer {
+        id: String,
+    },
+    /// A career whose label is empty or whitespace.
+    EmptyCareerLabel {
+        id: String,
+    },
+    /// A shift of zero ticks - a job that never happens.
+    ZeroShift {
+        id: String,
+    },
+    /// A shift_start at or past day_ticks - the clock never reaches it.
+    ShiftStartsPastTheDay {
+        id: String,
+        shift_start: u32,
+        day_ticks: u32,
+    },
+    /// A shift as long as the day or longer - the sim never lives.
+    ShiftLongerThanTheDay {
+        id: String,
+        shift_ticks: u32,
+        day_ticks: u32,
+    },
+    /// A career energy cost outside the need scale.
+    CareerEnergyCostOutOfRange {
+        id: String,
+        value: f32,
+    },
+    /// A negative career satisfaction - [E4]'s recorded amendment.
+    NegativeCareerSatisfaction {
+        id: String,
+        value: f32,
+    },
+    /// A household sim holding a career `careers.toml` does not declare.
+    UnknownSimCareer {
+        sim: String,
+        career: String,
+    },
+    /// A zero-tick day - `tick % day_ticks` would divide by zero.
+    ZeroDayTicks,
+    /// A front door off the lot.
+    FrontDoorOutOfBounds {
+        x: i32,
+        y: i32,
+        width: u32,
+        height: u32,
+    },
+    /// A front door inside a wall or a footprint.
+    FrontDoorBlocked {
+        x: u32,
+        y: u32,
+    },
+    /// A front door sealed off from the rest of the lot.
+    FrontDoorUnreachable {
+        x: u32,
+        y: u32,
+        root_x: u32,
+        root_y: u32,
+    },
+    /// A household with a worker on a lot that declares no front door.
+    CareerWithoutFrontDoor {
+        sim: String,
+    },
 }
 
 impl fmt::Display for ContentError {
@@ -1062,6 +1133,93 @@ impl fmt::Display for ContentError {
                 f,
                 "household sim '{sim}' wears '{trait_id}', which \
                  traits.toml does not declare"
+            ),
+            ContentError::DuplicateWornTrait { sim, trait_id } => write!(
+                f,
+                "household sim '{sim}' wears '{trait_id}' twice - a \
+                 trait is worn once or not at all"
+            ),
+            ContentError::DuplicateCareer { id } => {
+                write!(f, "duplicate career id '{id}'")
+            }
+            ContentError::EmptyCareerLabel { id } => {
+                write!(f, "career '{id}' has an empty label")
+            }
+            ContentError::ZeroShift { id } => write!(
+                f,
+                "career '{id}' has a zero-tick shift - a job that never \
+                 happens is not a job"
+            ),
+            ContentError::ShiftStartsPastTheDay {
+                id,
+                shift_start,
+                day_ticks,
+            } => write!(
+                f,
+                "career '{id}' starts at tick {shift_start} of a \
+                 {day_ticks}-tick day - the clock never reaches it"
+            ),
+            ContentError::ShiftLongerThanTheDay {
+                id,
+                shift_ticks,
+                day_ticks,
+            } => write!(
+                f,
+                "career '{id}' works {shift_ticks} ticks of a \
+                 {day_ticks}-tick day - the shift must leave room to live"
+            ),
+            ContentError::CareerEnergyCostOutOfRange { id, value } => write!(
+                f,
+                "career '{id}' has energy_cost {value}; the need scale is \
+                 0 to {}",
+                terri_core::NEED_MAX
+            ),
+            ContentError::NegativeCareerSatisfaction { id, value } => write!(
+                f,
+                "career '{id}' has satisfaction {value}; career \
+                 satisfaction is non-negative - a job that drains a life \
+                 is authored as a condition"
+            ),
+            ContentError::UnknownSimCareer { sim, career } => write!(
+                f,
+                "household sim '{sim}' holds career '{career}', which \
+                 careers.toml does not declare"
+            ),
+            ContentError::ZeroDayTicks => write!(
+                f,
+                "day_ticks must be at least 1 - a zero-tick day divides \
+                 by zero the first time a career asks the hour"
+            ),
+            ContentError::FrontDoorOutOfBounds {
+                x,
+                y,
+                width,
+                height,
+            } => write!(
+                f,
+                "the front door at ({x}, {y}) is outside the \
+                 {width}x{height} lot"
+            ),
+            ContentError::FrontDoorBlocked { x, y } => write!(
+                f,
+                "the front door at ({x}, {y}) stands in a wall or a \
+                 footprint - nobody can leave through furniture"
+            ),
+            ContentError::FrontDoorUnreachable {
+                x,
+                y,
+                root_x,
+                root_y,
+            } => write!(
+                f,
+                "the front door at ({x}, {y}) cannot be reached from \
+                 ({root_x}, {root_y}) - a worker would path nowhere \
+                 forever"
+            ),
+            ContentError::CareerWithoutFrontDoor { sim } => write!(
+                f,
+                "household sim '{sim}' holds a career but the lot \
+                 declares no front_door - there is nowhere to leave from"
             ),
         }
     }

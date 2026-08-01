@@ -3007,3 +3007,39 @@ milestone about mechanics.
 every current label is a plain verb phrase; the memory file
 interaction-labels-stay-plain.md carries the standing direction.
 
+
+## [L59] An undisplayed browser pane fires no animation frames, and headless WebGPU dies on reload
+
+**What happened.** The M2e PR 3 played watch tried to run in the app's
+browser pane while nobody had it displayed. The page loaded, the tools
+answered, and the game silently never ticked: the pane only composites
+when shown, an uncomposited page gets no requestAnimationFrame, and
+the whole driver hangs off rAF. Twenty minutes went to "why is the sim
+frozen" before the screenshot error's own text - "the Browser pane is
+not displayed, so the page is not compositing frames" - was taken at
+face value. The fallback, Playwright's headless Chromium, rendered and
+ran perfectly ONCE; every subsequent reload in the same browser
+process hit the no-WebGPU startup card, because the first page's GPU
+device is never released and headless Chromium will not hand out a
+second adapter. A separate self-inflicted confusion stacked on top:
+under ?debug=1 the stats overlay starts VISIBLE, so the reflexive
+backtick press HID it, and its frozen textContent then read as a
+frozen simulation while the pixels were moving fine.
+
+**Root cause.** Three tools with three quiet failure modes - pane
+needs display, headless WebGPU is one-shot per process, the overlay
+toggle is stateful - and all three fail as SILENCE rather than error.
+
+**Prevention rule.** For an autonomous browser watch: use Playwright,
+treat the browser process as single-use (one navigation per watch; if
+a reload is needed, expect the WebGPU card and get a fresh process),
+and read the startup-failure card FIRST on any frozen-looking page -
+the game says out loud when it has no GPU. Never diagnose through the
+?debug=1 overlay without first confirming it is updating (two reads a
+second apart must differ while unpaused). What pixels cannot show,
+pin with a boundary test through the release wasm instead - the
+shipped-day career test is the pattern.
+
+**How to verify.** [A-14]'s watched-session paragraph records the
+episode; web/tests/bridge.test.ts runs the shipped day through the
+release artifact.

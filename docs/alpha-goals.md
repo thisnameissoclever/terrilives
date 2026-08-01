@@ -14,10 +14,12 @@ belong in the repository ([A-11] docs debt).
    (Shipped: M2d, measured in [A-10].)
 3. Habituation: no object at zero uses over 12 000 ticks, back-to-back
    repeats under 2%. (Shipped: M1c onward, re-verified every milestone.)
-4. Satisfaction and hobbies consume idle time. (M2e.)
+4. Satisfaction and hobbies consume idle time. (Shipped: M2e PR 1,
+   measured in [A-12].)
 5. Traits: dispositions weight choices, capabilities gate them,
-   conditions act. (M2e.)
-6. A career. (M2e.)
+   conditions act. (Shipped: M2e PR 2, measured in [A-13].)
+6. A career. (Shipped: M2e PR 3 - the rabbit hole, the day clock,
+   funds; measured in [A-14].)
 7. Multi-step interactions - fridge to counter to stove to plate to
    table - with resume after interruption. (M2f.)
 8. A home with multiple rooms, 25+ objects, real footprints.

@@ -115,6 +115,11 @@ pub fn wander(
             // `Restless` marker can be stale here precisely because
             // `select_action` no longer sees reserved sims to update it.
             Without<terri_core::Reserved>,
+            // A sim at the office does not stroll the living room. The
+            // marker can be stale here for the Restless reason above:
+            // selection never sees a working sim to update it. A
+            // commuter is already excluded by Without<Path>.
+            Without<terri_core::AtWork>,
         ),
     >,
 ) {

@@ -1381,3 +1381,30 @@ added and nothing removed. (The 1338 address had itself been re-anchored
 within the same PR's earlier push; insertions above the function land at
 whatever line the tree has when the branch is swept, so a long-lived
 branch can re-anchor the same entry more than once before it merges.)
+
+### M2e PR 3 targeted sweep (85 mutants over the career diff, 5 minutes)
+
+Three missed on the first round, none baselined new.
+
+Two were real and are killed by named tests. The approacher
+cancellation's `other != worker && target.object == worker` mutated to
+`||` cancels every walk in the house at any shift start, and no fixture
+had a bystander walking anywhere else -
+`a_shift_start_leaves_an_unrelated_walk_alone` sends one to the fridge
+and keeps its Target. The wasm boundary's `funds()` stubbed to `0.0`
+survived because the only native assertion was against a move-in-day
+household that genuinely holds zero - [L34] wearing a wallet - so the
+boundary test now sets the ledger to 260 and reads it back.
+
+The third was `serve_intents`' busy-guard `||` at a drifted address:
+467 to 490, this PR's insertions above it. Re-anchored, argument
+unchanged - the same entry's third address.
+
+The pair's FIFTH address arrived one PR later, on schedule: 1508 to
+1679 when the career PR grew `compile_careers` and the front-door
+validation above the function. Re-pointed, arguments unchanged. Two
+consecutive PRs paying this tax is worth a note for whoever tires of
+it first: the durable fix is comparing baselines with line numbers
+normalised out (file plus mutation description), at the cost of
+masking a NEW identical mutation in the same function - a trade this
+file has so far declined to make silently.

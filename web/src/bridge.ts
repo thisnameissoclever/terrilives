@@ -448,6 +448,42 @@ export class SimBridge {
     return this.handle.relationships_of(entityIndex);
   }
 
+  /** The household's money - E4. One number for the lot, not per sim. */
+  funds(): number {
+    return this.handle.funds();
+  }
+
+  /**
+   * Interleaved [pack trait index, live state, ...] pairs, or empty.
+   * Same copy-and-cadence contract as `personalityOf`; the indices
+   * resolve against `traitLabels`/`traitKinds`.
+   */
+  traitsOf(entityIndex: number): Float32Array {
+    if (!isU32(entityIndex)) return new Float32Array(0);
+    return this.handle.traits_of(entityIndex);
+  }
+
+  /** One label per pack trait, in pack order. Read once, like needNames. */
+  traitLabels(): string[] {
+    return this.handle.trait_labels();
+  }
+
+  /** "disposition" | "capability" | "condition" per pack trait, aligned with traitLabels. */
+  traitKinds(): string[] {
+    return this.handle.trait_kinds();
+  }
+
+  /**
+   * The label of the sim's career, or null for the unemployed and for
+   * everything that is not a sim - the boundary's empty string is
+   * in-band the way simName's is.
+   */
+  careerOf(entityIndex: number): string | null {
+    if (!isU32(entityIndex)) return null;
+    const label = this.handle.career_of(entityIndex);
+    return label === '' ? null : label;
+  }
+
   /**
    * The raw index of the selected sim, or `null` when nothing is
    * selected.

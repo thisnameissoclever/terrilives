@@ -88,6 +88,13 @@
 width = 16
 height = 12
 
+# Where a commute ends and the worker vanishes - [E4]. The east edge of
+# the living room, one tile south of the coat rack, which is the piece
+# of furniture that has been quietly claiming this is the entrance
+# since M2b. Ordinary floor, not a [B7] door; the boundary stays
+# implicitly solid and this merely names the leaving spot.
+front_door = { x = 15, y = 2 }
+
 wall = [
   # ---- Kitchen / living room, running north-south at x = 7 --------------
   # The gap at y = 2 is the doorway between them.

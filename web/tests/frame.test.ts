@@ -669,6 +669,40 @@ describe('activity indicator bubbles', () => {
   });
 });
 
+describe('a sim at work', () => {
+  // The E4 rabbit hole at the draw call: the row RIDES so nobody's
+  // interpolation slot moves, and everything about it is skipped - the
+  // sprite (parked off-screen), the bubble, and the selection ring.
+  const src = new FakeEntities();
+
+  it('parks the row off-screen without moving anyone else\'s slot', () => {
+    src.set([
+      [4, 4, 4, 4, KIND_AGENT, 3, 6], // at work, id 100
+      [2, 2, 2, 2, KIND_AGENT, 3, 0], // home, id 101
+    ]);
+    expect(instanceCount(src, null)).toBe(2);
+    const built = buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID);
+    // The worker's instance exists - slot stability is the point - but
+    // far outside any viewport, where clipping discards it.
+    expect(built[0 * FLOATS_PER_INSTANCE + OFFSET_SCREEN_X]).toBeLessThan(-1000);
+    // The neighbour is untouched, in its own slot, exactly where a
+    // world without the worker's absence would draw it.
+    const homeX = built[1 * FLOATS_PER_INSTANCE + OFFSET_SCREEN_X];
+    expect(homeX).toBeGreaterThan(-1000);
+  });
+
+  it('draws no bubble and suppresses the selection ring', () => {
+    src.set([
+      [4, 4, 4, 4, KIND_AGENT, 3, 6], // at work, id 100
+    ]);
+    // One instance: the parked row. No bubble - AT_WORK is not an
+    // indicator - and no ring even though id 100 is selected, because a
+    // ring around the empty doorway points at somebody who is not
+    // there.
+    expect(instanceCount(src, 100)).toBe(1);
+  });
+});
+
 describe('buildInstances over a real SimBridge', () => {
   let wasmMemory: WebAssembly.Memory;
 

@@ -46,6 +46,8 @@ function source(
     kinds: () => new Uint32Array(entities.map(([, kind]) => kind)),
     ids: () => new Uint32Array(entities.map(([id]) => id)),
     sprites: () => new Uint32Array(entities.map(() => sprite)),
+    // Everybody home: the at-work pick skip has its own fixtures.
+    activities: () => new Uint32Array(entities.length),
   };
 }
 
@@ -301,6 +303,18 @@ describe('pickAt', () => {
   it('finds nothing on bare floor', () => {
     const rows = source([[0, KIND_OBJECT, 3, 3]]);
     expect(pickAt(rows, 7, 7)).toBeNull();
+  });
+
+  /**
+   * A worker frozen at the door tile must not swallow a tile click -
+   * pickSprite's at-work skip, restated for the tile picker. The same
+   * row with the flag cleared DOES pick.
+   */
+  it('skips a sim that is at work', () => {
+    const rows = source([[5, KIND_AGENT, 15, 2]]);
+    expect(pickAt(rows, 15, 2)?.entity).toBe(5);
+    const atWork: PickSource = { ...rows, activities: () => Uint32Array.from([6]) };
+    expect(pickAt(atWork, 15, 2)).toBeNull();
   });
 
   it('finds an object on its tile', () => {
@@ -747,6 +761,20 @@ describe('pickSprite', () => {
   });
 
   /**
+   * A sim at work is not drawn (frame.ts parks its row off-screen), so
+   * it must not be clickable either - the pick box and the pixels move
+   * together, the standing rule. The same rows with the flag cleared
+   * DO pick, so the assertion is about the flag rather than the box.
+   */
+  it('skips a sim that is at work', () => {
+    const rows = source([[1, KIND_AGENT, 8, 6]]);
+    const box = drawnBox([8, 6], 'sim');
+    const atWork: PickSource = { ...rows, activities: () => Uint32Array.from([6]) };
+    expect(pickSprite(rows, box.centreX, box.bottom - 4, 0, 0)?.entity).toBe(1);
+    expect(pickSprite(atWork, box.centreX, box.bottom - 4, 0, 0)).toBeNull();
+  });
+
+  /**
    * A sim and an object on the SAME tile resolve to the sim, matching the
    * depth layers `frame.ts` assigns. Both orders, for the same reason as
    * above.
@@ -765,6 +793,7 @@ describe('pickSprite', () => {
       kinds: () => new Uint32Array(kinds),
       ids: () => new Uint32Array(ids),
       sprites: () => new Uint32Array(sprites),
+      activities: () => new Uint32Array(2),
     });
 
     expect(
@@ -804,6 +833,7 @@ describe('pickSprite', () => {
       kinds: () => new Uint32Array([KIND_OBJECT, KIND_OBJECT]),
       ids: () => new Uint32Array([21, 22]),
       sprites: () => new Uint32Array([fridge, fridge]),
+      activities: () => new Uint32Array(2),
     };
 
     // Precondition: the point is inside the box at all, or "the earlier row
@@ -847,6 +877,7 @@ describe('pickSprite', () => {
       kinds: () => new Uint32Array([KIND_AGENT]),
       ids: () => new Uint32Array([1]),
       sprites: () => new Uint32Array([9999]),
+      activities: () => new Uint32Array(1),
     };
     expect(() => pickSprite(rows, 0, 0, 0, 0)).not.toThrow();
     expect(pickSprite(rows, 0, 0, 0, 0)).toBeNull();

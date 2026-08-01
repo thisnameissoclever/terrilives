@@ -93,6 +93,10 @@ pub struct TuningFile {
     /// Satisfaction lost per neglected need per tick. Non-negative;
     /// 0 disables the bleed.
     pub neglect_bleed_per_tick: f32,
+    /// Ticks in one simulated day - the clock careers schedule against
+    /// ([E4]). At least 1; the shipped value makes a day a number a
+    /// designer chose rather than a constant buried in a system.
+    pub day_ticks: u32,
     /// Need name to how much of that need drains per tick.
     ///
     /// A decay rate is a system-wide balance knob rather than part of a
@@ -277,6 +281,24 @@ pub struct LotFile {
     pub wall: Vec<WallDef>,
     #[serde(default)]
     pub place: Vec<PlacementDef>,
+    /// The tile a sim leaves the lot through - where a career's commute
+    /// ends and the worker vanishes ([E4]). Optional, because a lot
+    /// with nobody employed needs no exit; the compile step requires it
+    /// the moment any household member holds a career, and validates it
+    /// like a spawn tile (in bounds, walkable, reachable). NOT a door
+    /// in [B7]'s sense - the tile is ordinary floor, and this merely
+    /// names it.
+    #[serde(default)]
+    pub front_door: Option<FrontDoorDef>,
+}
+
+/// The front door tile. `i32` for the same reporting reason as
+/// [`WallDef`]: a negative coordinate should reach the validator and be
+/// named, not die as a serde type error.
+#[derive(Debug, Deserialize)]
+pub struct FrontDoorDef {
+    pub x: i32,
+    pub y: i32,
 }
 
 /// One impassable tile.
@@ -413,6 +435,41 @@ pub struct TraitDef {
 /// The three legal trait kinds, in the order the design names them.
 pub const TRAIT_KINDS: [&str; 3] = ["disposition", "capability", "condition"];
 
+/// Mirrors `content/careers.toml` - the rabbit-hole jobs of [E4] and
+/// [D15] Tier 2: the sim leaves the lot and returns with an outcome.
+#[derive(Debug, Deserialize)]
+pub struct CareersFile {
+    /// Defaulted so a project with no careers parses; a household
+    /// member naming one that does not exist is the compile step's
+    /// error.
+    #[serde(default)]
+    pub career: Vec<CareerDef>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CareerDef {
+    pub id: String,
+    /// What the UI calls it. Required and non-blank, like a trait's.
+    pub label: String,
+    /// The tick of day the shift begins, in `0..day_ticks`.
+    pub shift_start: u32,
+    /// How long the sim is gone, in ticks. At least 1.
+    pub shift_ticks: u32,
+    /// What one shift pays into the household's Funds. Non-negative -
+    /// v1 has no fines - and an i64 downstream because money will
+    /// eventually be spent below zero of a PAYCHECK but never of the
+    /// representable range.
+    pub pay: u32,
+    /// Energy the shift costs on return, in `0..=100`. The commute and
+    /// the work happen off-lot, so the cost lands as one debit.
+    pub energy_cost: f32,
+    /// Satisfaction the shift pays (or costs nothing - zero is legal
+    /// and is most jobs). Non-negative here: a job that actively
+    /// drains a LIFE is a condition's business, not a paycheck's,
+    /// which keeps [S1]'s writer list honest.
+    pub satisfaction: f32,
+}
+
 /// Mirrors `content/household.toml`: who lives on the lot - [H2].
 ///
 /// The household is CONTENT, not something the shell spawns. The shell
@@ -458,6 +515,11 @@ pub struct HouseholdSimDef {
     /// reading. An unknown id is a compile error.
     #[serde(default)]
     pub traits: Vec<String>,
+    /// The career this sim holds, by id from `content/careers.toml`, or
+    /// absent for the unemployed ([E4]). An unknown id is a compile
+    /// error.
+    #[serde(default)]
+    pub career: Option<String>,
 }
 
 /// Mirrors `assets/sprites/atlas.toml`, which is **generated** by
@@ -517,7 +579,7 @@ mod tests {
     /// The six `u32`s and the `u64` are deliberately different numbers
     /// for the same reason, and every float is exact in binary32 so the
     /// assertions can be equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 21] = [
+    const TUNING_LINES: [(&str, &str); 22] = [
         ("action_threshold", "0.25"),
         ("choice_temperature", "0.5"),
         ("idle_threshold", "0.125"),
@@ -539,6 +601,7 @@ mod tests {
         ("hobby_multiplier", "2.5"),
         ("neglect_floor", "21.0"),
         ("neglect_bleed_per_tick", "0.0009765625"),
+        ("day_ticks", "17"),
     ];
 
     /// The decay table, which is the twelfth knob and the only one that is
@@ -603,6 +666,7 @@ mod tests {
         assert_eq!(parsed.hobby_multiplier, 2.5);
         assert_eq!(parsed.neglect_floor, 21.0);
         assert_eq!(parsed.neglect_bleed_per_tick, 0.0009765625);
+        assert_eq!(parsed.day_ticks, 17);
 
         assert_eq!(parsed.decay_per_tick.len(), DECAY_LINES.len());
         for (need, rate) in DECAY_LINES {

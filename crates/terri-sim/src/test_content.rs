@@ -226,6 +226,12 @@ pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static Cont
         // test about sims talking installs a vocabulary explicitly, the
         // way a test about an object spawns the object.
         social: Vec::new(),
+        // Empty for the same reason as the household: a career preempts
+        // its holder on the day clock, and a fixture pack that silently
+        // carried the shipped job would march test sims off the lot at
+        // times nobody's assertions account for. A test about careers
+        // installs one explicitly.
+        careers: Vec::new(),
     }))
 }
 

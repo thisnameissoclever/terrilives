@@ -46,7 +46,18 @@ const INDICATOR_SPRITES: readonly (number | null)[] = [
   spriteIndex('indicatorEat'),
   spriteIndex('indicatorTalk'),
   spriteIndex('indicatorSleep'),
+  // AT_WORK: no bubble - the whole ROW is skipped below; gone is gone.
+  null,
 ];
+
+/**
+ * The `render_buffer::activity::AT_WORK` code. A row so flagged RIDES in
+ * the buffer - removing it would shift every later entity's interpolation
+ * slot and smear one frame at each departure - and the shell simply skips
+ * its draw, its bubble, its ring and its pick. One code, shared with
+ * input.ts, so the draw skip and the pick skip cannot disagree.
+ */
+export const ACTIVITY_AT_WORK = 6;
 
 /**
  * How far above a sim's anchor its bubble floats, in screen pixels: the
@@ -273,6 +284,13 @@ export function buildInstances(
   const activities = source.activities();
 
   for (let i = 0; i < count; i++) {
+    // A sim at the office is not drawn, and its slot must not shift:
+    // the instance is written DEGENERATE - parked far off-screen, where
+    // clipping discards it for free - so instance i stays row i.
+    if (activities[i] === ACTIVITY_AT_WORK) {
+      writeInstance(scratch, i, -1e6, -1e6, 1, 0);
+      continue;
+    }
     const wx = lerp(previous[i * 2], current[i * 2], alpha);
     const wy = lerp(previous[i * 2 + 1], current[i * 2 + 1], alpha);
     // Two scalar calls rather than the `worldToScreen` tuple. The tuple
@@ -373,12 +391,20 @@ export function instanceCount(source: RenderSource, selected: number | null): nu
   return source.count + bubbles + (findSelectedRow(source, selected) === null ? 0 : 1);
 }
 
-/** The row holding `selected`, or null if nothing is selected or it is gone. */
+/**
+ * The row holding `selected`, or null if nothing is selected, it is gone,
+ * or it is at work - a ring around the empty doorway would be the shell
+ * pointing at somebody who is not there. Both `buildInstances` and
+ * `instanceCount` route through here, so the draw and the count cannot
+ * disagree about it.
+ */
 function findSelectedRow(source: RenderSource, selected: number | null): number | null {
   if (selected === null) return null;
   const ids = source.ids();
+  const activities = source.activities();
   for (let row = 0; row < source.count; row++) {
-    if (ids[row] === selected) return row;
+    if (ids[row] !== selected) continue;
+    return activities[row] === ACTIVITY_AT_WORK ? null : row;
   }
   // A selected entity that is no longer in the buffer. Not an error: the
   // simulation keeps a selection whose index has gone away rather than

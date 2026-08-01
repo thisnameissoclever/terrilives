@@ -130,6 +130,17 @@ impl Sim {
         // digest's `try_query`, so this line is for the determinism
         // tests' benefit, like Selected and IntentQueue above.
         world.register_component::<terri_core::SpriteVariant>();
+        // M2e PR 3's three. `AtWork` is in `world_hash`'s query - [L3]'s
+        // empty-digest trap, the standing reason. `Career` and
+        // `Commuting` are not (spawn-time content and transient action
+        // state respectively), but tests reach both through `try_query`.
+        world.register_component::<terri_core::Career>();
+        world.register_component::<terri_core::Commuting>();
+        world.register_component::<terri_core::AtWork>();
+        // The household's money - [E4]. From construction like the
+        // SimId allocator, so a save file can restore it before any
+        // shift completes.
+        world.insert_resource(terri_core::Funds::default());
         // The identity counter - [H1]. From construction rather than on
         // first spawn, so a save file can restore it before any sim exists.
         world.insert_resource(terri_core::SimIdAllocator::default());
@@ -160,6 +171,13 @@ impl Sim {
                 systems::command::drain_commands,
                 advance_clock,
                 systems::needs::decay_needs,
+                // A shift start IS a command, issued by the clock - the
+                // same preemption a player click gets - so it sits
+                // where commands become state: before `serve_intents`
+                // and `select_action`, which both skip a commuting or
+                // working sim outright. After `advance_clock`, because
+                // the day clock it reads must be THIS tick's.
+                systems::career::start_shift,
                 // Strictly before selection, because a player-issued
                 // intent overrides autonomy rather than competing with
                 // it - [D-3]. Running it first means the object is
@@ -184,6 +202,12 @@ impl Sim {
                 // to wait a tick would read as a hesitation.
                 systems::idle::wander,
                 systems::movement::follow_path,
+                // Directly after movement, because arrival at the door
+                // is a fact `follow_path` establishes (an exhausted
+                // target-less path is removed there - the wander shape,
+                // reused). Handles clock-in, the countdown, and the
+                // paid return.
+                systems::career::commute_and_work,
                 systems::interact::tick_interactions,
                 // Beside `tick_interactions` because it is the same job
                 // for conversations: deliver per tick, complete, release
@@ -354,7 +378,7 @@ impl Sim {
             for id in terri_core::NeedId::ALL {
                 needs.set(id, member.needs[id.index()]);
             }
-            self.world.spawn((
+            let mut spawned = self.world.spawn((
                 terri_core::Agent,
                 terri_core::Position {
                     x: member.x,
@@ -394,6 +418,12 @@ impl Sim {
                         .collect(),
                 ),
             ));
+            // The job rides only on the employed, the SpriteVariant
+            // pattern: every jobless sim - and every fixture - has no
+            // component rather than a sentinel ([E4]).
+            if let Some(career) = member.career {
+                spawned.insert(terri_core::Career(career));
+            }
         }
     }
 
@@ -464,9 +494,10 @@ impl Sim {
             Has<terri_core::Socialising>,
             Has<terri_core::Path>,
             Has<terri_core::Reserved>,
+            Has<terri_core::AtWork>,
         )>();
         let mut rows: Vec<(u32, f32, f32, u32, u32, u32)> = Vec::new();
-        for (entity, pos, is_agent, object, variant, eating, talking, walking, reserved) in
+        for (entity, pos, is_agent, object, variant, eating, talking, walking, reserved, at_work) in
             state.iter(&self.world)
         {
             let kind = if is_agent { 0 } else { 1 };
@@ -520,8 +551,16 @@ impl Sim {
             // biggest advertised benefit is energy - because a Zzz over
             // a bed reads and cutlery over a bed lies, and a name match
             // on "bed" would silently miss the next nap-capable object.
+            // AT_WORK outranks everything: the row RIDES, flagged, so
+            // every later entity keeps its interpolation slot (removing
+            // the row would shift the slots after it and smear one
+            // frame at every departure and return), and the shell skips
+            // drawing it - gone is gone, at the draw call rather than
+            // in the buffer ([E4]).
             let activity = if !is_agent {
                 render_buffer::activity::NONE
+            } else if at_work {
+                render_buffer::activity::AT_WORK
             } else if talking || partners.contains(&entity) {
                 render_buffer::activity::TALKING
             } else if let Some(eating) = eating {
@@ -650,6 +689,78 @@ impl Sim {
             .iter(&self.world)
             .find(|(entity, _)| entity.index_u32() == index)
             .map(|(_, ledger)| ledger.value())
+    }
+
+    /// The household's money - [E4], read by the debug overlay today
+    /// and M2g's HUD later. One number for the lot, not per sim.
+    pub fn funds(&self) -> i64 {
+        self.world.resource::<terri_core::Funds>().0
+    }
+
+    /// The worn traits of the sim carrying `index`, as (pack trait
+    /// index, live state) pairs in key order - the [E3] overlay read.
+    /// `None` for objects, stale indices, and bare agents, the same
+    /// contract as every scan here; the shell resolves the indices
+    /// against the pack's labels, which it reads once.
+    pub fn traits_of(&self, index: u32) -> Option<Vec<(u32, f32)>> {
+        let mut state = self.world.try_query::<(Entity, &terri_core::Traits)>()?;
+        state
+            .iter(&self.world)
+            .find(|(entity, _)| entity.index_u32() == index)
+            .map(|(_, worn)| worn.entries().to_vec())
+    }
+
+    /// One label per entry in the pack's trait list, in pack order -
+    /// what [`Sim::traits_of`]'s indices resolve against. Here rather
+    /// than in `terri-wasm` because the boundary crate is forbidden the
+    /// content crate ([D1]); the strings are borrowed from the
+    /// `&'static` pack like `interaction_labels`'.
+    pub fn trait_labels(&self) -> Vec<&'static str> {
+        self.world
+            .get_resource::<Content>()
+            .map(|content| {
+                content
+                    .0
+                    .traits
+                    .iter()
+                    .map(|def| def.label.as_str())
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// The kind of each pack trait - "disposition", "capability" or
+    /// "condition" - aligned with [`Sim::trait_labels`], so an overlay
+    /// can word a level and a severity differently.
+    pub fn trait_kinds(&self) -> Vec<&'static str> {
+        self.world
+            .get_resource::<Content>()
+            .map(|content| {
+                content
+                    .0
+                    .traits
+                    .iter()
+                    .map(|def| match def.kind {
+                        terri_data::CompiledTraitKind::Disposition { .. } => "disposition",
+                        terri_data::CompiledTraitKind::Capability { .. } => "capability",
+                        terri_data::CompiledTraitKind::Condition { .. } => "condition",
+                    })
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// The label of the career held by the sim carrying `index`, or
+    /// `None` for the unemployed and everything else - [E4]'s overlay
+    /// read. The label rather than the index, because the pack lookup
+    /// is a query over content this crate owns.
+    pub fn career_of(&self, index: u32) -> Option<&'static str> {
+        let pack = self.world.get_resource::<Content>()?.0;
+        let mut state = self.world.try_query::<(Entity, &terri_core::Career)>()?;
+        state
+            .iter(&self.world)
+            .find(|(entity, _)| entity.index_u32() == index)
+            .map(|(_, career)| pack.careers[career.0 as usize].label.as_str())
     }
 
     /// The personality multipliers of the sim carrying `index`: `drain`
@@ -887,8 +998,17 @@ impl Sim {
         // LEARN and conditions are MANAGED, so two replays must agree
         // on both, which is the habituation argument verbatim. Entries
         // ride length-prefixed like every variable-length field here.
+        // **`AtWork` is in the digest, as of M2e PR 3** - the countdown
+        // ticks, so two replays must agree on it, the Satisfaction
+        // argument again. `Career` is NOT (spawn-time content, the
+        // Personality/Hobbies precedent, same expiry note) and neither
+        // is `Commuting` (transient action state, the Eating class:
+        // reproduced by the day clock on any replay). The sentinel is
+        // out-of-band by construction: a shift of u64::MAX ticks cannot
+        // compile - shift_ticks < day_ticks, a u32.
         const NO_SATISFACTION: f32 = -1.0;
         const NO_SIM_ID: u64 = u64::MAX;
+        const NOT_AT_WORK: u64 = u64::MAX;
         type Row = (
             u32,
             f32,
@@ -899,6 +1019,7 @@ impl Sim {
             Vec<(u32, f32)>,
             f32,
             Vec<(u32, f32)>,
+            u64,
         );
         let mut rows: Vec<Row> = Vec::new();
         if let Some(mut state) = self.world.try_query::<(
@@ -910,9 +1031,19 @@ impl Sim {
             Option<&Relationships>,
             Option<&terri_core::Satisfaction>,
             Option<&terri_core::Traits>,
+            Option<&terri_core::AtWork>,
         )>() {
-            for (entity, pos, needs, habituation, sim_id, relationships, satisfaction, traits) in
-                state.iter(&self.world)
+            for (
+                entity,
+                pos,
+                needs,
+                habituation,
+                sim_id,
+                relationships,
+                satisfaction,
+                traits,
+                at_work,
+            ) in state.iter(&self.world)
             {
                 // The sentinel is in-band, so a real level equal to it
                 // would hash as if the component were absent. `Needs`
@@ -963,6 +1094,7 @@ impl Sim {
                     rel,
                     satisfaction.map_or(NO_SATISFACTION, |s| s.value()),
                     worn,
+                    at_work.map_or(NOT_AT_WORK, |w| w.remaining_ticks as u64),
                 ));
             }
         }
@@ -972,7 +1104,19 @@ impl Sim {
         // is what pins it; deleting this line must fail that test.
         rows.sort_by_key(|(index, ..)| *index);
 
-        for (index, x, y, levels, habituation, sim_id, relationships, satisfaction, worn) in rows {
+        for (
+            index,
+            x,
+            y,
+            levels,
+            habituation,
+            sim_id,
+            relationships,
+            satisfaction,
+            worn,
+            at_work,
+        ) in rows
+        {
             hasher.write_u64(index as u64);
             hasher.write_f32(x);
             hasher.write_f32(y);
@@ -998,14 +1142,20 @@ impl Sim {
                 hasher.write_f32(feeling);
             }
             hasher.write_f32(satisfaction);
-            // Last in the row because it arrived last; length-prefixed
-            // for habituation's aliasing reason.
+            // Length-prefixed for habituation's aliasing reason.
             hasher.write_u64(worn.len() as u64);
             for (trait_index, state) in worn {
                 hasher.write_u64(trait_index as u64);
                 hasher.write_f32(state);
             }
+            // Last in the row because it arrived last.
+            hasher.write_u64(at_work);
         }
+
+        // The household's money, after the rows the way the clock sits
+        // before them: world-level state, one value, in the digest
+        // because a shift's pay is what the player was promised.
+        hasher.write_u64(self.world.resource::<terri_core::Funds>().0 as u64);
 
         hasher.finish()
     }
@@ -1076,6 +1226,7 @@ mod lot_tests {
         CompiledLot {
             width: 6,
             height: 4,
+            front_door: None,
             walls: vec![(3, 2), (1, 0)],
             placements: vec![
                 CompiledPlacement {
@@ -1233,6 +1384,7 @@ mod lot_tests {
         CompiledLot {
             width: 7,
             height: 5,
+            front_door: None,
             walls: vec![(6, 0)],
             placements: vec![CompiledPlacement {
                 object: ObjectDefId(2),
@@ -1524,6 +1676,7 @@ mod household_tests {
                 // stamped on everybody" ([L34]).
                 hobbies: vec!["whittling".to_string()],
                 traits: vec![],
+                career: None,
             },
             terri_data::CompiledHouseholdMember {
                 name: "Doug".into(),
@@ -1533,6 +1686,7 @@ mod household_tests {
                 needs: [100.0, 83.0, 100.0, 100.0, 100.0, 100.0, 55.0],
                 hobbies: vec![],
                 traits: vec![],
+                career: None,
             },
         ];
         (personalities, household)
@@ -2335,8 +2489,19 @@ mod determinism_tests {
         // nothing else - capabilities learn and conditions are managed,
         // so worn state is replay state by habituation's own argument.
         // Measured on native and confirmed equal on wasm32 through the
-        // rebuilt module, per [L13].
-        const GOLDEN: u64 = 0xB902_5674_0958_9E88;
+        // rebuilt module, per [L13]. That value was
+        // 0xB902_5674_0958_9E88.
+        //
+        // **M2e PR 3 moved it by ENCODING once more, twice in one
+        // settlement**: every row gained a trailing AtWork u64 (the
+        // out-of-band u64::MAX sentinel here - nobody in this scenario
+        // holds a job, and a real countdown cannot reach u64::MAX
+        // because shift_ticks is a u32 below day_ticks), and the digest
+        // gained ONE Funds u64 after the rows (zero here - the shift
+        // countdown and the money are both replay state, the
+        // Satisfaction argument). Behaviour untouched: these agents
+        // have no Career, so the career systems never fire.
+        const GOLDEN: u64 = 0x5FEB_C18C_2EFE_AC10;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {
