@@ -3043,3 +3043,46 @@ shipped-day career test is the pattern.
 **How to verify.** [A-14]'s watched-session paragraph records the
 episode; web/tests/bridge.test.ts runs the shipped day through the
 release artifact.
+
+## [L60] Names shipped that only their author understood, and nothing defined them
+
+**What happened.** The owner played two sessions and both times the
+report was about WORDS rather than behaviour. The debug overlay called
+a sim's traits `wears:` ("wtf is wears? that's a terrible name for it
+unless it's referring to a t-shirt"), and printed personality
+multipliers as two rows of seven `1.00`s labelled `drain:` and
+`satisfaction:` - which he read, correctly, as broken statistics,
+because a column of neutral values labelled like a reading looks like a
+reading that failed. The replacement line naming why a sim was stuck
+then shipped as `standing:`, which he caught in the same breath:
+"can't you see how that would be confusing?" It was also carrying a
+pending-order count, which is not a stall reason at all.
+
+Then the real question: was any of this written down anywhere? It was
+not. The project had 59 lessons and 13 design specs recording every
+decision in obsessive detail - and no glossary. To learn what a drain
+multiplier was, a reader had to find [S4] inside a spec named after a
+July date. The documentation was organised for its author, keyed by
+IDs, which is the same failure as the labels, one level up.
+
+**Root cause.** Naming was treated as a side effect of implementing,
+so labels came out as whatever the implementation called the thing
+internally, and the definition lived in the head of whoever wrote it.
+Nothing in the process ever asked "would this word mean anything to
+somebody who did not write it?"
+
+**Prevention rule.** `docs/glossary.md` now exists and carries the
+naming rules as its last section: a label names the thing rather than
+the implementation's mood; one label means one thing (if it needs "and
+also", it is two lines); a number's label says what the number DOES
+(`drains: fun x1.30`); show deviations, never rows of defaults; and
+**every player-visible or developer-visible word gets a glossary
+entry** - if it is not in there, either name it better or document it,
+those being the only two options. Functional text stays plain; the
+comedy lives in object names and the authored voice pass ([L58]).
+
+**How to verify.** `docs/glossary.md` defines every term the overlay
+prints; the overlay's own test asserts the current labels
+(`traits:`, `drains:`, `refills:`, `stalled:`, `orders waiting:`); and
+README.md points at the glossary first, so the next reader lands on
+definitions rather than on decisions.

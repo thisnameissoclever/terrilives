@@ -47,8 +47,9 @@ function source(overrides: Partial<DebugSource> = {}): DebugSource {
     careerOf: (entity) => (entity === 7 ? 'Office clerk' : null),
     chainStatusOf: (entity) =>
       entity === 7 ? 'Cook dinner: Cook (carrying ingredients)' : null,
-    standingOf: (entity) =>
-      entity === 7 ? 'waiting on something in use; orders queued: 2' : null,
+    stallReasonOf: (entity) =>
+      entity === 7 ? 'waiting on something in use' : null,
+    queuedOrdersOf: (entity) => (entity === 7 ? 2 : 0),
     ...overrides,
   };
 }
@@ -95,14 +96,15 @@ describe('formatDebugReport', () => {
     // to index 0 would print the hound.
     expect(report).toContain('traits: Low spirits (condition, severity 0.55)');
     expect(report).not.toContain('Gossip hound');
-    // The standing line answers "why is she just standing there".
-    expect(report).toContain(
-      'standing: waiting on something in use; orders queued: 2',
-    );
+    // The stalled line answers "why is she just standing there", and
+    // the orders line is a separate fact rather than a reason.
+    expect(report).toContain('stalled: waiting on something in use');
+    expect(report).toContain('orders waiting: 2');
     const bareBlock = report.split('entity 9')[1];
     expect(bareBlock).not.toContain('works:');
     expect(bareBlock).not.toContain('traits:');
-    expect(bareBlock).not.toContain('standing:');
+    expect(bareBlock).not.toContain('stalled:');
+    expect(bareBlock).not.toContain('orders waiting:');
   });
 
   it('words a capability as a level and a disposition as nothing', () => {

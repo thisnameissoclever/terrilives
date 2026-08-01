@@ -836,18 +836,27 @@ impl Sim {
             })
     }
 
-    /// Why the sim carrying `index` is standing still, or `None` when
-    /// nothing is holding it - the overlay's answer to "she is
-    /// starving at the front door and it says idle". Functional text,
-    /// plain on purpose; the voice pass does not apply to diagnostics.
-    pub fn standing_of(&self, index: u32) -> Option<String> {
-        let mut state = self.world.try_query::<(
-            Entity,
-            Has<terri_core::Blocked>,
-            Has<terri_core::Restless>,
-            Option<&terri_core::IntentQueue>,
-        )>()?;
-        let (_, blocked, restless, queue) = state
+    /// Why the sim carrying `index` is not acting, or `None` when
+    /// nothing is holding it back - the overlay's answer to "she is
+    /// starving at the front door and it says idle".
+    ///
+    /// **Exactly two reasons exist, and they are the two markers
+    /// selection writes**: `Blocked` (the best thing it could see is
+    /// somebody else's) and `Restless` (nothing it could see cleared
+    /// `idle_threshold`). Both can be true at once - it wanted a
+    /// contested thing, but not enough to wait for it - which is why
+    /// this returns a joined string rather than an enum.
+    ///
+    /// A pending player order is deliberately NOT in here: an order is
+    /// something a sim is about to DO, not a reason it is stuck, and
+    /// folding the two together is what made this function's first
+    /// name ("standing") mean nothing in particular. See
+    /// [`Sim::queued_orders_of`].
+    pub fn stall_reason_of(&self, index: u32) -> Option<String> {
+        let mut state = self
+            .world
+            .try_query::<(Entity, Has<terri_core::Blocked>, Has<terri_core::Restless>)>()?;
+        let (_, blocked, restless) = state
             .iter(&self.world)
             .find(|(entity, ..)| entity.index_u32() == index)?;
         let mut parts: Vec<String> = Vec::new();
@@ -857,16 +866,27 @@ impl Sim {
         if restless {
             parts.push("found nothing worth doing".to_string());
         }
-        if let Some(queue) = queue {
-            if !queue.is_empty() {
-                parts.push(format!("orders queued: {}", queue.len()));
-            }
-        }
         if parts.is_empty() {
             None
         } else {
             Some(parts.join("; "))
         }
+    }
+
+    /// How many player-issued orders the sim carrying `index` still has
+    /// waiting - a FACT about the queue, reported on its own line
+    /// because it is not a stall reason. Zero for a sim with an empty
+    /// queue or no queue at all.
+    pub fn queued_orders_of(&self, index: u32) -> usize {
+        self.world
+            .try_query::<(Entity, &terri_core::IntentQueue)>()
+            .and_then(|mut state| {
+                state
+                    .iter(&self.world)
+                    .find(|(entity, _)| entity.index_u32() == index)
+                    .map(|(_, queue)| queue.len())
+            })
+            .unwrap_or(0)
     }
 
     /// The label of the career held by the sim carrying `index`, or

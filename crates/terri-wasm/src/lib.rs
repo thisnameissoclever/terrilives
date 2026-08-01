@@ -517,10 +517,16 @@ impl SimHandle {
         self.sim.chain_status_of(entity_index).unwrap_or_default()
     }
 
-    /// Why the sim is standing still, or the empty string when nothing
-    /// holds it - sim_name's in-band contract.
-    pub fn standing_of(&self, entity_index: u32) -> String {
-        self.sim.standing_of(entity_index).unwrap_or_default()
+    /// Why the sim is not acting - `Blocked`, `Restless` or both - or
+    /// the empty string when nothing holds it back, sim_name's in-band
+    /// contract.
+    pub fn stall_reason_of(&self, entity_index: u32) -> String {
+        self.sim.stall_reason_of(entity_index).unwrap_or_default()
+    }
+
+    /// How many player orders the sim still has waiting.
+    pub fn queued_orders_of(&self, entity_index: u32) -> usize {
+        self.sim.queued_orders_of(entity_index)
     }
 
     /// Fourteen floats - drain then satisfaction, seven each - or empty.

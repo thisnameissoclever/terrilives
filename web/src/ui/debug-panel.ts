@@ -42,8 +42,10 @@ export interface DebugSource {
   careerOf(entityIndex: number): string | null;
   /** The sim's mid-errand status line, or null when it is not on one - K4. */
   chainStatusOf(entityIndex: number): string | null;
-  /** Why the sim is standing still, or null when nothing holds it. */
-  standingOf(entityIndex: number): string | null;
+  /** Why the sim is not acting, or null when nothing holds it back. */
+  stallReasonOf(entityIndex: number): string | null;
+  /** How many player orders the sim still has waiting; 0 for none. */
+  queuedOrdersOf(entityIndex: number): number;
 }
 
 /** The one DOM dependency, structural like the needs panel's. */
@@ -147,12 +149,19 @@ export function formatDebugReport(source: DebugSource): string {
       );
     }
 
-    // Why a standing sim is standing - the owner's Terri-at-the-door
+    // Why a stalled sim is stalled - the owner's Terri-at-the-door
     // report: "idle" with hunger at 2 is a question, and this is the
-    // panel answering it instead of the reader guessing.
-    const standing = source.standingOf(entity);
-    if (standing !== null) {
-      lines.push(`  standing: ${standing}`);
+    // panel answering it instead of the reader guessing. The pending
+    // orders ride their own line: an order is what a sim is about to
+    // DO, not a reason it is stuck, and one label covering both is
+    // what made the first version of this line meaningless.
+    const stalled = source.stallReasonOf(entity);
+    if (stalled !== null) {
+      lines.push(`  stalled: ${stalled}`);
+    }
+    const orders = source.queuedOrdersOf(entity);
+    if (orders > 0) {
+      lines.push(`  orders waiting: ${orders}`);
     }
 
     const needs = source.needsOf(entity);
