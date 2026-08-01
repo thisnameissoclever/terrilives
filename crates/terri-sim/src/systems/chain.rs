@@ -310,3 +310,374 @@ fn all_tags(chain: &terri_data::CompiledChain) -> Vec<String> {
     }
     tags
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_content;
+    use crate::Sim;
+    use terri_core::{Agent, CommandQueue};
+    use terri_data::{CompiledChain, CompiledChainStep, ContentPack};
+
+    /// A two-step chain over two roles with pairwise distinct numbers:
+    /// fetch at the pantry (yields kind 0), eat at the table (consumes
+    /// it, tagged so trait tests can hang a roll off it). Terminal
+    /// deltas distinct per need ([L34]).
+    fn a_chain() -> CompiledChain {
+        CompiledChain {
+            id: "cook_dinner".to_string(),
+            label: "Cook dinner".to_string(),
+            advertised_by: terri_data::ObjectDefId(0),
+            advertises: vec![(0, 48.0), (6, 12.0)],
+            satisfaction: 2.5,
+            steps: vec![
+                CompiledChainStep {
+                    role: 0,
+                    label: "Fetch".to_string(),
+                    duration_ticks: 16,
+                    tags: vec![],
+                    yields: Some(0),
+                    transforms: None,
+                    consumes: None,
+                },
+                CompiledChainStep {
+                    role: 1,
+                    label: "Eat".to_string(),
+                    duration_ticks: 20,
+                    tags: vec!["cooking".to_string()],
+                    yields: None,
+                    transforms: None,
+                    consumes: Some(0),
+                },
+            ],
+        }
+    }
+
+    /// A pack whose object 0 is the roleless snack fridge and whose
+    /// objects 1 and 2 wear the chain's two roles - built through the
+    /// data layer's own types, zero variance so nothing here rides a
+    /// draw, decisive temperature where a test names a winner.
+    fn chain_pack() -> &'static ContentPack {
+        let mut pantry = test_content::object_offering("pantry", vec![]);
+        pantry.roles = vec![0];
+        let mut table = test_content::object_offering("table", vec![]);
+        table.roles = vec![1];
+        let fridge = test_content::object("fridge", &[(terri_core::NeedId::Hunger, 40.0)], 30);
+        let base = test_content::pack_tuned(
+            vec![fridge, pantry, table],
+            terri_data::Tuning {
+                duration_variance: 0.0,
+                choice_temperature: 0.0001,
+                ..test_content::tuning()
+            },
+        );
+        Box::leak(Box::new(ContentPack {
+            roles: vec!["pantry_shelf".to_string(), "eating_surface".to_string()],
+            item_kinds: vec!["dinner".to_string()],
+            chains: vec![a_chain()],
+            ..base.clone()
+        }))
+    }
+
+    /// The world: the three stations placed apart on an open grid, one
+    /// hungry agent. Returns (sim, agent, pantry, table).
+    fn chain_world() -> (Sim, Entity, Entity, Entity) {
+        let pack = chain_pack();
+        let mut sim = test_content::sim_with(12, 8, pack);
+        let spawn_station = |sim: &mut Sim, id: &str, x: f32, y: f32| {
+            let def = pack.find(id).expect("fixture");
+            sim.world_mut()
+                .spawn((Position { x, y }, SmartObject(def)))
+                .id()
+        };
+        let _fridge = spawn_station(&mut sim, "fridge", 1.0, 1.0);
+        let pantry = spawn_station(&mut sim, "pantry", 4.0, 1.0);
+        let table = spawn_station(&mut sim, "table", 8.0, 1.0);
+        let mut needs = Needs::all_at(80.0);
+        needs.set(NeedId::Hunger, 20.0);
+        let agent = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 2.0, y: 4.0 },
+                needs,
+                Satisfaction::default(),
+                terri_core::Hobbies(vec!["cooking".to_string()]),
+            ))
+            .id();
+        (sim, agent, pantry, table)
+    }
+
+    fn start_chain(sim: &mut Sim, agent: Entity) {
+        sim.world_mut()
+            .entity_mut(agent)
+            .insert(ChainState::begin(0));
+    }
+
+    /// The whole errand, end to end: the counter walks the sim through
+    /// both stations, the item appears and is consumed, and the payoff
+    /// lands ONCE at the terminal completion - needs jump by the
+    /// terminal deltas and satisfaction by the loved payout - with
+    /// nothing delivered before it ([M-1]).
+    #[test]
+    fn a_chain_runs_both_stations_and_pays_only_at_the_end() {
+        let (mut sim, agent, pantry, table) = chain_world();
+        start_chain(&mut sim, agent);
+
+        let mut saw_carrying = false;
+        let mut hunger_before_terminal = 0.0f32;
+        for _ in 0..200 {
+            sim.tick();
+            let world = sim.world();
+            if world.get::<terri_core::Carrying>(agent).is_some() {
+                saw_carrying = true;
+            }
+            let mid_chain = world.get::<ChainState>(agent).is_some();
+            if mid_chain {
+                hunger_before_terminal = world.get::<Needs>(agent).unwrap().get(NeedId::Hunger);
+            } else {
+                // Done. Everything lands here, at once.
+                let needs = world.get::<Needs>(agent).unwrap();
+                assert!(
+                    needs.get(NeedId::Hunger) > hunger_before_terminal + 40.0,
+                    "the terminal step delivers the WHOLE hunger payoff; \
+                     before {} after {}",
+                    hunger_before_terminal,
+                    needs.get(NeedId::Hunger)
+                );
+                assert!(
+                    saw_carrying,
+                    "the dinner must have been in hand between the stations"
+                );
+                assert!(
+                    world.get::<terri_core::Carrying>(agent).is_none(),
+                    "consumed at the table"
+                );
+                let paid = world.get::<Satisfaction>(agent).unwrap().value();
+                let expected = 2.5 * test_content::tuning().hobby_multiplier;
+                assert!(
+                    (paid - expected).abs() < 0.001,
+                    "a loved dinner pays base times the hobby multiplier; \
+                     got {paid}, expected {expected}"
+                );
+                assert!(
+                    world.get::<Reserved>(pantry).is_none()
+                        && world.get::<Reserved>(table).is_none(),
+                    "every station released"
+                );
+                return;
+            }
+            // Mid-chain the payoff must NOT have landed: hunger only
+            // decays until the table.
+            assert!(
+                hunger_before_terminal < 25.0,
+                "nothing delivers before the terminal step; hunger read {}",
+                hunger_before_terminal
+            );
+        }
+        panic!("the chain never completed");
+    }
+
+    /// RESUME - [K4]'s option three, the milestone's headline. A player
+    /// command lands mid-chain; the step is dropped, the errand is not:
+    /// when the snack is done the sim returns to its chain unprompted
+    /// and finishes it.
+    #[test]
+    fn a_player_command_interrupts_and_the_chain_resumes() {
+        let (mut sim, agent, _pantry, _table) = chain_world();
+        start_chain(&mut sim, agent);
+        // Let the errand get under way.
+        for _ in 0..10 {
+            sim.tick();
+        }
+        assert!(
+            sim.world().get::<ChainState>(agent).is_some(),
+            "precondition: mid-chain"
+        );
+
+        // The interruption: eat a snack at the fridge, by command.
+        let fridge = {
+            let world = sim.world_mut();
+            let mut state = world.query::<(Entity, &SmartObject)>();
+            state
+                .iter(world)
+                .find(|(_, o)| o.0 == terri_data::ObjectDefId(0))
+                .map(|(e, _)| e)
+                .expect("the fixture placed a fridge")
+        };
+        sim.world_mut()
+            .resource_mut::<CommandQueue>()
+            .push(terri_core::SimCommand::UseObject {
+                agent: agent.index_u32(),
+                object: fridge.index_u32(),
+                interaction: 0,
+            });
+
+        let mut snacked = false;
+        for _ in 0..400 {
+            sim.tick();
+            let world = sim.world();
+            if world.get::<Eating>(agent).is_some() {
+                snacked = true;
+                assert!(
+                    world.get::<ChainState>(agent).is_some(),
+                    "the counter survives the player's snack"
+                );
+            }
+            if snacked && world.get::<ChainState>(agent).is_none() {
+                // Resumed and finished after the interruption.
+                assert!(
+                    world.get::<Satisfaction>(agent).unwrap().value() > 0.0,
+                    "the resumed chain paid out"
+                );
+                return;
+            }
+        }
+        panic!("interrupted chain never resumed and completed (snacked: {snacked})");
+    }
+
+    /// CANCEL abandons - the one destructive path. Counter, item and
+    /// station reservation all gone, nothing paid.
+    #[test]
+    fn a_cancel_abandons_the_chain_whole() {
+        let (mut sim, agent, pantry, table) = chain_world();
+        start_chain(&mut sim, agent);
+        for _ in 0..25 {
+            sim.tick();
+        }
+        assert!(
+            sim.world().get::<ChainState>(agent).is_some(),
+            "precondition: mid-chain"
+        );
+
+        sim.world_mut().resource_mut::<CommandQueue>().push(
+            terri_core::SimCommand::CancelIntents {
+                agent: agent.index_u32(),
+            },
+        );
+        sim.tick();
+
+        let world = sim.world();
+        assert!(world.get::<ChainState>(agent).is_none(), "counter gone");
+        assert!(
+            world.get::<terri_core::Carrying>(agent).is_none(),
+            "hands emptied"
+        );
+        assert!(
+            world.get::<terri_core::StepWork>(agent).is_none(),
+            "no step keeps running"
+        );
+        assert_eq!(
+            world.get::<Satisfaction>(agent).unwrap().value(),
+            0.0,
+            "an abandoned dinner pays nothing"
+        );
+        // One more tick for deferred releases, then no station may
+        // stay claimed by a sim that is no longer coming.
+        sim.tick();
+        let world = sim.world();
+        let stale =
+            world.get::<Reserved>(pantry).is_some() && world.get::<ChainState>(agent).is_none();
+        assert!(!stale, "the pantry must not stay reserved");
+        let _ = table;
+    }
+
+    /// The fumble rides IN the counter: a level-0 cook fumbles the
+    /// tagged step, the terminal delivery scales to nothing, no
+    /// satisfaction lands - and the counter's record survives where
+    /// the transient marker would have been cleared.
+    #[test]
+    fn a_fumbled_step_ruins_the_terminal_delivery() {
+        let (mut sim, agent, _pantry, _table) = chain_world();
+        // A hopeless cook: level 0, fail scale 0 - the roll cannot
+        // pass, so the test is about machinery rather than a seed.
+        let pack = sim
+            .world()
+            .get_resource::<crate::Content>()
+            .expect("content installed")
+            .0;
+        let pack = Box::leak(Box::new(ContentPack {
+            traits: vec![terri_data::CompiledTrait {
+                id: "cannot_cook".to_string(),
+                label: "Can't cook".to_string(),
+                tag: "cooking".to_string(),
+                kind: terri_data::CompiledTraitKind::Capability {
+                    start_level: 0.0,
+                    fail_delta_scale: 0.0,
+                    learn_per_attempt: 0.015,
+                },
+            }],
+            ..pack.clone()
+        }));
+        sim.world_mut().insert_resource(crate::Content(pack));
+        sim.world_mut()
+            .entity_mut(agent)
+            .insert(Traits::from_entries(vec![(0, 0.0)]));
+        start_chain(&mut sim, agent);
+
+        for _ in 0..200 {
+            sim.tick();
+            let world = sim.world();
+            if let Some(state) = world.get::<ChainState>(agent) {
+                if state.fumbled() {
+                    // The record is in the counter, where preemption
+                    // cannot clear it.
+                    assert_eq!(state.fumble_scale, 0.0);
+                }
+            } else {
+                let world = sim.world();
+                let hunger = world.get::<Needs>(agent).unwrap().get(NeedId::Hunger);
+                assert!(
+                    hunger < 25.0,
+                    "a fail scale of 0 must deliver nothing of the dinner; \
+                     hunger read {hunger}"
+                );
+                assert_eq!(
+                    world.get::<Satisfaction>(agent).unwrap().value(),
+                    0.0,
+                    "a ruined dinner feeds nobody's soul"
+                );
+                let level = world.get::<Traits>(agent).unwrap().state(0).expect("worn");
+                assert!(
+                    level > 0.0,
+                    "and yet the tagged step taught at its own completion"
+                );
+                return;
+            }
+        }
+        panic!("the fumbled chain never completed");
+    }
+
+    /// Contention: with the pantry claimed by somebody else, the
+    /// chain-holder WAITS (Blocked, counter intact) and proceeds the
+    /// moment the station frees - the fridge-queue behaviour inherited.
+    #[test]
+    fn a_booked_station_is_waited_for() {
+        let (mut sim, agent, pantry, _table) = chain_world();
+        sim.world_mut().entity_mut(pantry).insert(Reserved);
+        start_chain(&mut sim, agent);
+
+        for _ in 0..30 {
+            sim.tick();
+        }
+        let world = sim.world();
+        assert!(
+            world.get::<ChainState>(agent).is_some()
+                && world.get::<terri_core::StepWork>(agent).is_none(),
+            "the errand stands at step 0 while the only pantry is booked"
+        );
+        assert!(
+            world.get::<terri_core::Blocked>(agent).is_some(),
+            "and says why"
+        );
+
+        sim.world_mut().entity_mut(pantry).remove::<Reserved>();
+        for _ in 0..200 {
+            sim.tick();
+            if sim.world().get::<ChainState>(agent).is_none() {
+                return; // proceeded to completion once freed
+            }
+        }
+        panic!("the chain never proceeded after the station freed");
+    }
+}
