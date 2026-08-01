@@ -610,6 +610,20 @@ impl Sim {
             .map(|(_, id)| id.0)
     }
 
+    /// The accumulated satisfaction of the sim carrying `index` - the
+    /// [E1] second axis, read by the debug overlay today and M2g's HUD
+    /// later. `None` for objects, stale indices, and bare agents with
+    /// no ledger, the same contract as every scan here.
+    pub fn satisfaction_of(&self, index: u32) -> Option<f32> {
+        let mut state = self
+            .world
+            .try_query::<(Entity, &terri_core::Satisfaction)>()?;
+        state
+            .iter(&self.world)
+            .find(|(entity, _)| entity.index_u32() == index)
+            .map(|(_, ledger)| ledger.value())
+    }
+
     /// The personality multipliers of the sim carrying `index`: `drain`
     /// for all seven needs, then `satisfaction` for all seven - drain
     /// FIRST, pinned by a test with asymmetric halves, because fourteen

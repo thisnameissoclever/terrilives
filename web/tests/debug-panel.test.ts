@@ -20,6 +20,9 @@ function source(overrides: Partial<DebugSource> = {}): DebugSource {
     activities: () => Uint32Array.from([4, 0, 0]),
     simName: (entity) => (entity === 7 ? 'Terri' : ''),
     simIdOf: (entity) => (entity === 7 ? 0 : null),
+    // A ledger for the named sim, none for the bare agent - the same
+    // split simIdOf draws, so the absent branch is exercised too.
+    satisfactionOf: (entity) => (entity === 7 ? 42.25 : null),
     needsOf: () => Float32Array.from([1, 2, 3, 4, 5, 6, 7]),
     personalityOf: (entity) =>
       entity === 7
@@ -45,6 +48,12 @@ describe('formatDebugReport', () => {
     // Objects never appear - activity is a fact about agents.
     expect(report).not.toContain('entity 11');
     expect(report).toContain('needs: hunger 1.0');
+    // The second axis, one decimal, present only for a sim with a
+    // ledger: the bare agent's block must not carry the line at all.
+    // "life satisfaction", because the personality block already uses
+    // the bare word for its refill multipliers.
+    expect(report).toContain('life satisfaction: 42.3');
+    expect(report.split('entity 9')[1]).not.toContain('life satisfaction:');
     // Drain first, satisfaction second: the asymmetric fixture halves
     // (1.5 heads drain, 0.75 tails satisfaction) tell a swap apart.
     expect(report).toContain('drain: hunger 1.50');

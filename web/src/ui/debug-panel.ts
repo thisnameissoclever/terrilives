@@ -24,6 +24,8 @@ export interface DebugSource {
   activities(): Uint32Array;
   simName(entityIndex: number): string;
   simIdOf(entityIndex: number): number | null;
+  /** The M2e second axis, or null for a sim with no ledger. */
+  satisfactionOf(entityIndex: number): number | null;
   needsOf(entityIndex: number): Float32Array;
   personalityOf(entityIndex: number): Float32Array;
   relationshipsOf(entityIndex: number): Float32Array;
@@ -83,6 +85,18 @@ export function formatDebugReport(source: DebugSource): string {
         ACTIVITY_NAMES[activities[row]] ?? `activity ${activities[row]}`
       }`,
     );
+
+    // The second axis, right under the identity line: it is the number
+    // the whole M2e loop is ABOUT, and burying it under seven need bars
+    // would make the overlay say the background is the game. "life
+    // satisfaction" rather than bare "satisfaction", because the
+    // personality block below already uses that word for its refill
+    // multipliers and a debug panel must not make its reader guess
+    // which sense a line means.
+    const satisfaction = source.satisfactionOf(entity);
+    if (satisfaction !== null) {
+      lines.push(`  life satisfaction: ${satisfaction.toFixed(1)}`);
+    }
 
     const needs = source.needsOf(entity);
     const needsLine = Array.from(needs)
