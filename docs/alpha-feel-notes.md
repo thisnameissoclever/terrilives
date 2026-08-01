@@ -1421,3 +1421,18 @@ standalone meal retired, and the career still running. Reproduce with
   cooking. Deliberately left as measured, the [A-12] precedent.
 - **FUNDS 3000 and the day clock unchanged** - the career's whole
   [A-14] behaviour survived the chain landing on top of it.
+
+- **The watched session, honestly described (the [L59] situation
+  again).** The pane had no display and the session's one headless
+  Chromium process was still holding its dead WebGPU adapter, so no
+  fresh pixels were available this pass. What pixels would have shown
+  is pinned instead by tests through the release wasm and the real
+  atlas: the shipped-day boundary test runs from_lot until a sim's
+  hands fill and asserts the badge's data source (the carrying row)
+  and the overlay's exact status line; the badge's screen position,
+  its kind-matched sprite (the bag visibly becomes the plate), the
+  at-work hide and the instance count are pinned over the atlas the
+  page ships; and the fridge's flyout row is asserted against shipped
+  content at the boundary. First displayed session should watch one
+  dinner end to end - pantry, counter, stove, table - and check the
+  badge reads at hand height; filed with [A-14]'s open eye-test.

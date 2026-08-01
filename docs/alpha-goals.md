@@ -21,7 +21,9 @@ belong in the repository ([A-11] docs debt).
 6. A career. (Shipped: M2e PR 3 - the rabbit hole, the day clock,
    funds; measured in [A-14].)
 7. Multi-step interactions - fridge to counter to stove to plate to
-   table - with resume after interruption. (M2f.)
+   table - with resume after interruption. (Shipped: M2f - chains as
+   content, terminal-only payoff, resume through player and career
+   preemption; measured in [A-15].)
 8. A home with multiple rooms, 25+ objects, real footprints.
    (Shipped: M2a/M2b.)
 9. Persistence: save and load. (M2g.)
