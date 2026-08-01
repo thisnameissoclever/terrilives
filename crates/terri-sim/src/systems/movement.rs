@@ -39,6 +39,11 @@ const SPEED: f32 = TILES_PER_TICK;
 /// two arrivals cannot coincide. That is precisely why it is worth
 /// sorting now, while the reason is visible.
 /// `arrival_draws_follow_entity_order_not_archetype_order` pins it.
+// The type_complexity allow is the standing one from select_action and
+// drain_commands: the query tuple is what pushes past clippy's
+// threshold, and a type alias would only move it somewhere less
+// readable. It grew a fifth member when the capability roll arrived.
+#[allow(clippy::type_complexity)]
 pub fn follow_path(
     mut commands: Commands,
     content: Res<Content>,
