@@ -74,7 +74,7 @@ pub fn advance_chains(
         // A queued player intent outranks the resume - serve_intents
         // will act on it this tick, and targeting here as well would
         // hand the sim two walks at once.
-        .filter(|(_, _, queue, _)| queue.map_or(true, |q| q.is_empty()))
+        .filter(|(_, _, queue, _)| queue.is_none_or(|q| q.is_empty()))
         .map(|(entity, _, _, _)| entity)
         .collect();
     resuming.sort_by_key(|entity| entity.index());
@@ -98,10 +98,7 @@ pub fn advance_chains(
         // a free one exists anywhere; only a fully-booked role waits.
         let mut best: Option<(Entity, Vec<(i32, i32)>)> = None;
         let mut any_station = false;
-        let mut in_order: Vec<(Entity, &Position, &SmartObject, bool)> = stations
-            .iter()
-            .map(|(entity, pos, object, reserved)| (entity, pos, object, reserved))
-            .collect();
+        let mut in_order: Vec<(Entity, &Position, &SmartObject, bool)> = stations.iter().collect();
         in_order.sort_by_key(|(entity, ..)| entity.index());
         for (station, station_pos, object, reserved) in in_order {
             let def = content.0.object(object.0);
