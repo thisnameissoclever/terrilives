@@ -1931,10 +1931,41 @@ mod determinism_tests {
         //
         // Read off the wasm32 failure after a rebuild per [L13] rather than
         // copied from native - the two agree, which is a measurement each
-        // time. Previous values: 0x7E3F_CBE2_7849_036C (M2c era),
-        // 0xFB84_8515_2C59_2AD8 (habituation), 0xCB2C_8122_2251_D840
-        // before that.
-        const GOLDEN: u64 = 0xABD8_02C9_5586_2654;
+        // time. Previous values: 0xFB84_8515_2C59_2AD8 (habituation),
+        // 0xCB2C_8122_2251_D840 before that.
+        //
+        // **And `contested_score_multiplier` moved it**, from
+        // 0x7E3F_CBE2_7849_036C. This scenario is eight agents and one
+        // fridge, so seven are outbid on every tick and the knob decides,
+        // for each of them, whether wanting a thing it cannot have is enough
+        // to stand still for.
+        //
+        // Measured at tick 100 across four values, which is what makes "this
+        // fixture exercises the knob" a reading rather than a claim:
+        //
+        //   0.10 -> 7 restless, 7 blocked, 0x9CA3_2684_8584_1091
+        //   0.40 -> 3 restless, 7 blocked, 0xEC57_7C0B_CF22_05E0
+        //   0.75 -> 1 restless, 7 blocked, 0xEEE5_892C_001E_DD92
+        //   1.00 -> 0 restless, 7 blocked, 0x7E3F_CBE2_7849_036C
+        //
+        // **The last line is the control, and it is exact.** At a multiplier
+        // of 1.0 the digest is bit-identical to the value this constant held
+        // before the knob existed, which is the arithmetic working out: 1.0
+        // attenuates nothing, so every outbid sim waits, which is precisely
+        // what the [C3] fix did on its own. The knob is a pure addition and
+        // the movement below is caused by it alone.
+        //
+        // **M2d moved it again, by ENCODING**: every digest row gained a
+        // SimId column (the in-band u64::MAX sentinel here - these agents
+        // carry no identity) and a length-prefixed relationships list
+        // (empty here). Both are written for every entity whether
+        // populated or not - the SHAPE is the published format, per the
+        // same decision that fixed all seven need columns while only
+        // hunger decayed. The two movements merged from parallel
+        // branches, so this value is the MERGED measurement: the knob's
+        // behaviour at 0.75 digested in M2d's wider format, read off the
+        // wasm32 failure after a rebuild per [L13] and equal to native.
+        const GOLDEN: u64 = 0x390E_E443_81C5_4B7A;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

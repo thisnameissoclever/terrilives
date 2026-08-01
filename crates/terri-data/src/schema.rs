@@ -46,6 +46,9 @@ pub struct TuningFile {
     pub duration_variance: f32,
     /// Hard floor on any interaction, in ticks. At least 1.
     pub min_interaction_ticks: u32,
+    /// How much of its score an object somebody else is using keeps.
+    /// In `[0, 1]`.
+    pub contested_score_multiplier: f32,
     /// How much one completed interaction raises this sim's habituation to
     /// it, in `0.0..=1.0`. Zero disables the mechanic.
     pub habituation_per_use: f32,
@@ -391,7 +394,7 @@ mod tests {
     /// The six `u32`s and the `u64` are deliberately different numbers
     /// for the same reason, and every float is exact in binary32 so the
     /// assertions can be equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 17] = [
+    const TUNING_LINES: [(&str, &str); 18] = [
         ("action_threshold", "0.25"),
         ("choice_temperature", "0.5"),
         ("idle_threshold", "0.125"),
@@ -406,6 +409,7 @@ mod tests {
         ("max_queued_intents", "7"),
         ("max_queued_commands", "11"),
         ("need_bar_refresh_ms", "13"),
+        ("contested_score_multiplier", "0.375"),
         ("relationship_gain_per_talk", "0.4375"),
         ("relationship_decay_per_tick", "0.001953125"),
         ("relationship_delta_scale", "0.875"),
@@ -466,6 +470,7 @@ mod tests {
         assert_eq!(parsed.max_queued_intents, 7);
         assert_eq!(parsed.max_queued_commands, 11);
         assert_eq!(parsed.need_bar_refresh_ms, 13);
+        assert_eq!(parsed.contested_score_multiplier, 0.375);
         assert_eq!(parsed.relationship_gain_per_talk, 0.4375);
         assert_eq!(parsed.relationship_decay_per_tick, 0.001953125);
         assert_eq!(parsed.relationship_delta_scale, 0.875);

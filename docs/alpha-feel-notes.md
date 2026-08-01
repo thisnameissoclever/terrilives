@@ -422,7 +422,13 @@ merely present, because a negative delta is legal content - the shower's
 `energy = -12.0` is a cost - and a need that can only ever be drained is
 exactly as unfillable as `social` was.
 
-### [C3] An agent beaten to an object is told nothing is worth doing
+### [C3] An agent beaten to an object is told nothing is worth doing - FIXED
+
+**Status: fixed.** The core of it landed in "Make actions long enough to see,
+and stop lying to an outbid sim"; what a sim then DOES about a contested
+object became a tuning knob in the change that added
+`contested_score_multiplier`. The finding is left in full below because the
+corrections after it are worth more than the fix.
 
 `select_action` skips an object already `claimed` this tick **before** it
 folds that object's score into `best_seen`. So a sim whose only worthwhile
@@ -444,6 +450,39 @@ at *every* value of `idle_threshold`. That fixture is blind to this knob,
 as it is already known to be blind to candidate ranking and candidate
 sampling. The vectors are unchanged because the scenario cannot express the
 change, not because the change is inert.
+
+**What the knob adds, and why it is a knob at all.** The core fix made a
+contested object visible to a sim again; on its own that means every outbid
+sim waits, however little it wanted the thing.
+`contested_score_multiplier` attenuates a contested object's score, so waiting
+becomes proportional to wanting: a sim that badly wants the busy bed stands its
+ground, and one that barely wants it strolls off as before. A `Blocked` marker
+records "the best thing I can see is somebody else's", which can be true at the
+same time as `Restless` - that pair means "wanted it, not enough to wait".
+
+**It is the only knob in `content/tuning.toml` with no measurement behind it**,
+and the file says so beside the value. None is possible until content ships two
+sims; the shipped page has one, so nothing in the game can produce the
+distribution the number should be tuned against.
+
+**The correction this forces, and it is a finding rather than bookkeeping.**
+The paragraph above says the eight-agent one-object reference scenario is blind
+to `idle_threshold`, because its seven losers are restless at every value of it.
+That held only while their scores were discarded before anything could be
+compared against them. **It is no longer true.** Measured at tick 100 across
+four values of the new knob, the scenario produces four different world hashes,
+and at a multiplier of 1.0 it reproduces the pre-knob hash exactly - which is
+the arithmetic working out, since 1.0 attenuates nothing. The fixture is now
+sensitive to the knob and to `idle_threshold`. Nobody tuned it to achieve that,
+and the instruction not to still stands: it gained coverage because the code
+stopped throwing away the number it was supposed to be measuring.
+
+**The cost of the shipped 0.75, stated rather than smoothed over.** In that
+reference scenario only one of the eight sims still wanders. With one object
+and no alternative, waiting is nearly all they can do, so it is the worst case
+for the standing-still problem [F4] measured. The shipped lot has eight objects
+and a blocked sim there usually has something else above `action_threshold`;
+the freeze needs *every* alternative to be below the bar.
 
 ### [C4] The television does not read as a television
 

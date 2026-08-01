@@ -220,6 +220,23 @@ pub struct Tuning {
     /// its offset and the golden vector in `compile.rs` stays
     /// reviewable against the annotations it has.
     pub need_bar_refresh_ms: u32,
+    /// How much of its score an object somebody else is using keeps,
+    /// in `[0, 1]`.
+    ///
+    /// Selection scores a contested object so that "nothing is worth
+    /// doing" stays a TRUE statement about an agent that has just been
+    /// beaten to something - that is [C3] and it is already fixed. This
+    /// decides what the agent does about it, and nothing else: a
+    /// contested object is never a candidate at any value, so this is a
+    /// knob on WAITING alone. A sim waits when the attenuated score
+    /// clears `idle_threshold` and strolls off when it does not.
+    ///
+    /// It ordered itself last until the relationship trio merged in
+    /// beside it; the two blocks grew on parallel branches, both
+    /// appending after `need_bar_refresh_ms`, and this order - waiting
+    /// knob, then the trio - is the merge's, with the golden vector
+    /// regenerated to match rather than derived by hand.
+    pub contested_score_multiplier: f32,
     /// How much one completed social interaction raises EACH
     /// participant's relationship toward the other, in `0.0..=1.0`.
     /// Zero disables the mechanic - the same contract as
@@ -382,7 +399,7 @@ mod tests {
         }
     }
 
-    /// Eleven knobs, no two of which share a value, so a field that
+    /// Twelve knobs, no two of which share a value, so a field that
     /// round-trips into the wrong slot is visible rather than hidden by
     /// a fixture where two of them agree.
     fn a_tuning() -> Tuning {
@@ -397,6 +414,7 @@ mod tests {
             habituation_decay_per_tick: 0.0025,
             habituation_floor: 0.625,
             min_interaction_ticks: 3,
+            contested_score_multiplier: 0.375,
             rng_seed: 300,
             max_queued_intents: 7,
             max_queued_commands: 11,

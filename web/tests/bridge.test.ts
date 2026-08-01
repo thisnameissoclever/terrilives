@@ -420,13 +420,22 @@ describe('SimBridge', () => {
     // fridge, so it never reads content/lot.toml and never sees them. Measured
     // on wasm32 after a rebuild and found equal to the native constant in
     // crates/terri-sim/src/lib.rs.
-    // Moved by M2d, from 0x7e3f_cbe2_7849_036cn, by ENCODING rather than
-    // behaviour: every digest row gained a SimId column (the in-band
-    // absent sentinel here - this scenario spawns plain agents) and a
-    // length-prefixed relationships list (empty here). The shape is the
-    // published format, so it moves even with nobody talking. Measured on
-    // wasm32 after a rebuild and found equal to the native constant.
-    expect(bridge.worldHash()).toBe(0xabd8_02c9_5586_2654n);
+    //
+    // **And `contested_score_multiplier` moved it**, from
+    // 0x7e3f_cbe2_7849_036cn. Eight agents and one fridge means seven are
+    // outbid every tick, and the knob decides for each of them whether
+    // wanting a thing it cannot have is enough to stand still for. The
+    // knob's four-point table, with the exact 1.0 control, lives with
+    // the native constant in crates/terri-sim/src/lib.rs.
+    //
+    // **And M2d moved it again, by ENCODING**: every digest row gained a
+    // SimId column (the in-band absent sentinel here - this scenario
+    // spawns plain agents) and a length-prefixed relationships list
+    // (empty here). The shape is the published format, so it moves even
+    // with nobody talking. The two movements merged from parallel
+    // branches; this value is the MERGED measurement, read off the
+    // wasm32 failure after a rebuild per [L13] and equal to native.
+    expect(bridge.worldHash()).toBe(0x390e_e443_81c5_4b7an);
   });
 
   // ---- Player commands -------------------------------------------------
