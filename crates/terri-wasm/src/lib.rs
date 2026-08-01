@@ -290,6 +290,13 @@ impl SimHandle {
     ///
     /// Same caching hazard as every other pointer here; re-read it on every
     /// access.
+    /// The carrying column - what each row holds, as an item-kind
+    /// index or the u32::MAX empty-hands sentinel. Zero-copy per frame
+    /// like every other view; resolves against `item_kinds()`.
+    pub fn carrying_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().carrying.as_ptr()
+    }
+
     pub fn ids_ptr(&self) -> *const u32 {
         self.sim.render_buffer().ids.as_ptr()
     }
@@ -489,6 +496,25 @@ impl SimHandle {
             .career_of(entity_index)
             .map(str::to_string)
             .unwrap_or_default()
+    }
+
+    /// One name per pack item kind, in pack order - what the carrying
+    /// column resolves against, and the `carried_<kind>` atlas
+    /// convention's input. Read once at startup, like `need_names`.
+    pub fn item_kinds(&self) -> Vec<String> {
+        self.sim
+            .item_kinds()
+            .into_iter()
+            .map(str::to_string)
+            .collect()
+    }
+
+    /// The sim's mid-errand status line - "Cook dinner: Cook (carrying
+    /// ingredients)" - or the empty string when it is not on one,
+    /// sim_name's contract. Composed sim-side: every word is pack
+    /// content.
+    pub fn chain_status_of(&self, entity_index: u32) -> String {
+        self.sim.chain_status_of(entity_index).unwrap_or_default()
     }
 
     /// Fourteen floats - drain then satisfaction, seven each - or empty.
@@ -1790,6 +1816,54 @@ mod boundary_tests {
         assert!(handle.relationships_of(bare).is_empty());
     }
 
+    /// The M2f PR 3 reads: the kind list crosses in pack order, the
+    /// status line composes label, step and carried kind from content,
+    /// and empty hands or no errand read as the in-band empty string.
+    #[test]
+    fn the_chain_status_reads_cross_the_boundary() {
+        let mut handle = SimHandle::from_lot();
+        let terri = (0..handle.entity_count() as u32)
+            .find(|&index| handle.sim_name(index) == "Terri")
+            .expect("the shipped lot houses Terri");
+
+        assert_eq!(
+            handle.item_kinds(),
+            vec!["ingredients".to_string(), "dinner".to_string()],
+            "minting order, straight off content/chains.toml"
+        );
+        assert_eq!(handle.chain_status_of(terri), "", "no errand yet");
+
+        let entity = {
+            let world = handle.sim.world_mut();
+            let mut state = world.query::<(terri_core::Entity, &terri_core::SimName)>();
+            state
+                .iter(world)
+                .find(|(_, name)| name.0 == "Terri")
+                .map(|(e, _)| e)
+                .expect("named above")
+        };
+        handle
+            .sim
+            .world_mut()
+            .entity_mut(entity)
+            .insert(terri_core::ChainState {
+                chain: 0,
+                step: 2,
+                fumble_scale: 1.0,
+            });
+        assert_eq!(handle.chain_status_of(terri), "Cook dinner: Cook");
+
+        handle
+            .sim
+            .world_mut()
+            .entity_mut(entity)
+            .insert(terri_core::Carrying(0));
+        assert_eq!(
+            handle.chain_status_of(terri),
+            "Cook dinner: Cook (carrying ingredients)"
+        );
+    }
+
     /// The M2e PR 3 overlay reads, against the SHIPPED lot so the pack
     /// lookups (labels, kinds, career) resolve real content: Terri
     /// wears low spirits and holds the office job, Doug wears the
@@ -1957,7 +2031,13 @@ mod boundary_tests {
              below satisfied by an export that returns nothing"
         );
 
-        assert_eq!(handle.interaction_labels(fridge), authored("fridge"));
+        // The fridge's rows are its interactions THEN its chains -
+        // [K5]'s mapping, which is what makes row 1 the dinner without
+        // the wire changing. The toilet advertises no chain, so its
+        // list is its interactions alone.
+        let mut fridge_rows = authored("fridge");
+        fridge_rows.push("Cook dinner".to_string());
+        assert_eq!(handle.interaction_labels(fridge), fridge_rows);
         assert_eq!(handle.interaction_labels(toilet), authored("toilet"));
 
         // And the labels are the AUTHORED wording rather than the

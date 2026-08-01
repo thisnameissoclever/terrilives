@@ -480,6 +480,7 @@ impl Sim {
         self.render.sprites.clear();
         self.render.ids.clear();
         self.render.activities.clear();
+        self.render.carrying.clear();
 
         // Read before the query, because `Content` is a resource and the
         // query below borrows the world. `ContentPack` is behind a
@@ -514,10 +515,22 @@ impl Sim {
             Has<terri_core::Path>,
             Has<terri_core::Reserved>,
             Has<terri_core::AtWork>,
+            Option<&terri_core::Carrying>,
         )>();
-        let mut rows: Vec<(u32, f32, f32, u32, u32, u32)> = Vec::new();
-        for (entity, pos, is_agent, object, variant, eating, talking, walking, reserved, at_work) in
-            state.iter(&self.world)
+        let mut rows: Vec<(u32, f32, f32, u32, u32, u32, u32)> = Vec::new();
+        for (
+            entity,
+            pos,
+            is_agent,
+            object,
+            variant,
+            eating,
+            talking,
+            walking,
+            reserved,
+            at_work,
+            carrying,
+        ) in state.iter(&self.world)
         {
             let kind = if is_agent { 0 } else { 1 };
             // An entity that is neither an agent nor a smart object has
@@ -602,11 +615,19 @@ impl Sim {
             } else {
                 render_buffer::activity::NONE
             };
-            rows.push((entity.index_u32(), x, y, kind, sprite, activity));
+            rows.push((
+                entity.index_u32(),
+                x,
+                y,
+                kind,
+                sprite,
+                activity,
+                carrying.map_or(render_buffer::NOT_CARRYING, |c| c.0),
+            ));
         }
         rows.sort_by_key(|(index, ..)| *index);
 
-        for (index, x, y, kind, sprite, activity) in &rows {
+        for (index, x, y, kind, sprite, activity, carrying) in &rows {
             self.render.positions.push(*x);
             self.render.positions.push(*y);
             self.render.kinds.push(*kind);
@@ -616,6 +637,7 @@ impl Sim {
             // the row number will not do.
             self.render.ids.push(*index);
             self.render.activities.push(*activity);
+            self.render.carrying.push(*carrying);
         }
         self.render.count = rows.len();
 
@@ -769,6 +791,42 @@ impl Sim {
             .unwrap_or_default()
     }
 
+    /// One name per entry in the pack's item-kind list, in pack order -
+    /// what the render buffer's `carrying` column resolves against.
+    pub fn item_kinds(&self) -> Vec<&'static str> {
+        self.world
+            .get_resource::<Content>()
+            .map(|content| content.0.item_kinds.iter().map(String::as_str).collect())
+            .unwrap_or_default()
+    }
+
+    /// The mid-errand status of the sim carrying `index` - "Cook dinner:
+    /// Cook" with the carried kind appended when hands are full - or
+    /// `None` when it is not on one. Composed here rather than in the
+    /// shell because every word of it is pack content.
+    pub fn chain_status_of(&self, index: u32) -> Option<String> {
+        let pack = self.world.get_resource::<Content>()?.0;
+        let mut state = self.world.try_query::<(
+            Entity,
+            &terri_core::ChainState,
+            Option<&terri_core::Carrying>,
+        )>()?;
+        state
+            .iter(&self.world)
+            .find(|(entity, _, _)| entity.index_u32() == index)
+            .map(|(_, chain_state, carrying)| {
+                let chain = &pack.chains[chain_state.chain as usize];
+                let step = &chain.steps[chain_state.step as usize];
+                match carrying {
+                    Some(item) => format!(
+                        "{}: {} (carrying {})",
+                        chain.label, step.label, pack.item_kinds[item.0 as usize]
+                    ),
+                    None => format!("{}: {}", chain.label, step.label),
+                }
+            })
+    }
+
     /// The label of the career held by the sim carrying `index`, or
     /// `None` for the unemployed and everything else - [E4]'s overlay
     /// read. The label rather than the index, because the pack lookup
@@ -890,11 +948,21 @@ impl Sim {
         let (_, object) = state
             .iter(&self.world)
             .find(|(entity, _)| entity.index_u32() == index)?;
+        // The object's chains ride AFTER its interactions - [K5]'s row
+        // mapping, which is what lets the flyout, this list and
+        // serve_intents all agree without the wire changing: row n
+        // past the interactions is the object's nth chain.
         Some(
             pack.object(object.0)
                 .interactions
                 .iter()
                 .map(|act| act.label.as_str())
+                .chain(
+                    pack.chains
+                        .iter()
+                        .filter(|chain| chain.advertised_by == object.0)
+                        .map(|chain| chain.label.as_str()),
+                )
                 .collect(),
         )
     }

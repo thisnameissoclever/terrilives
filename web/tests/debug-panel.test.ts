@@ -45,6 +45,8 @@ function source(overrides: Partial<DebugSource> = {}): DebugSource {
     traitLabels: () => ['Gossip hound', 'Low spirits'],
     traitKinds: () => ['disposition', 'condition'],
     careerOf: (entity) => (entity === 7 ? 'Office clerk' : null),
+    chainStatusOf: (entity) =>
+      entity === 7 ? 'Cook dinner: Cook (carrying ingredients)' : null,
     ...overrides,
   };
 }
@@ -80,6 +82,9 @@ describe('formatDebugReport', () => {
   it('prints the job and the outfit for the sim that has them, and neither for the bare agent', () => {
     const report = formatDebugReport(source());
     expect(report).toContain('works: Office clerk');
+    // The mid-errand line rides between the job and the needs.
+    expect(report).toContain('errand: Cook dinner: Cook (carrying ingredients)');
+    expect(report.split('entity 9')[1]).not.toContain('errand:');
     // The fixture wears the SECOND pack trait, so a lookup collapsing
     // to index 0 would print the hound.
     expect(report).toContain('wears: Low spirits (condition, severity 0.55)');

@@ -66,8 +66,17 @@ pub struct RenderBuffer {
     /// column is how the shell learns them without a query per frame.
     /// Objects are always 0 - activity is a fact about agents.
     pub activities: Vec<u32>,
+    /// What each row is CARRYING, as an index into the pack's item
+    /// kinds, or [`NOT_CARRYING`] - the [K3] hands, made visible. The
+    /// shell resolves the index against `item_kinds()` and the
+    /// `carried_<kind>` atlas convention.
+    pub carrying: Vec<u32>,
     pub count: usize,
 }
+
+/// The `carrying` column's empty-hands sentinel. Out of band: a pack's
+/// item-kind list is a handful of entries, not four billion.
+pub const NOT_CARRYING: u32 = u32::MAX;
 
 /// The `activities` codes, named. `u32` like every other column so the
 /// JavaScript view is one more `Uint32Array` over the same memory.
