@@ -254,6 +254,159 @@ mod tests {
         assert_eq!(a.next_u32(), b.next_u32(), "no draw may have been taken");
     }
 
+    // ---- End to end, through the running schedule ---------------------
+
+    /// A hopeless cook attempts anyway, fumbles, is fed almost nothing,
+    /// paid nothing - and LEARNS. The whole may-attempt-may-fail loop
+    /// on one meal, with level 0 so the roll's outcome is certain and
+    /// the test is about the machinery rather than a seed.
+    #[test]
+    fn a_fumbled_meal_starves_the_soul_but_teaches_the_hands() {
+        let mut cook_act =
+            crate::test_content::interaction("cook", &[(terri_core::NeedId::Hunger, 40.0)], 20);
+        cook_act.tags = vec!["cooking".to_string()];
+        cook_act.satisfaction = 3.0;
+        let base = crate::test_content::pack_tuned(
+            vec![crate::test_content::object_offering(
+                "stove",
+                vec![cook_act],
+            )],
+            terri_data::Tuning {
+                duration_variance: 0.0,
+                ..crate::test_content::tuning()
+            },
+        );
+        let pack: &'static ContentPack = Box::leak(Box::new(ContentPack {
+            traits: vec![CompiledTrait {
+                id: "cannot_cook".to_string(),
+                label: "Can't cook".to_string(),
+                tag: "cooking".to_string(),
+                kind: CompiledTraitKind::Capability {
+                    start_level: 0.0,
+                    fail_delta_scale: 0.0,
+                    learn_per_attempt: 0.05,
+                },
+            }],
+            ..base.clone()
+        }));
+        let mut sim = crate::test_content::sim_with(8, 8, pack);
+        let stove = pack.find("stove").expect("fixture");
+        sim.world_mut().spawn((
+            terri_core::Position { x: 3.0, y: 1.0 },
+            terri_core::SmartObject(stove),
+        ));
+        let mut needs = terri_core::Needs::all_at(terri_core::NEED_MAX);
+        needs.set(terri_core::NeedId::Hunger, 20.0);
+        let agent = sim
+            .world_mut()
+            .spawn((
+                terri_core::Agent,
+                terri_core::Position { x: 2.0, y: 1.0 },
+                needs,
+                terri_core::Satisfaction::default(),
+                Traits::from_entries(vec![(0, 0.0)]),
+            ))
+            .id();
+
+        // Ride the attempt: the fumble must exist DURING it.
+        let mut saw_fumble = false;
+        for _ in 0..80 {
+            sim.tick();
+            if sim.world().get::<terri_core::Fumbled>(agent).is_some() {
+                saw_fumble = true;
+            }
+            let hungry_still = sim
+                .world()
+                .get::<terri_core::Needs>(agent)
+                .unwrap()
+                .get(terri_core::NeedId::Hunger);
+            let done = sim.world().get::<terri_core::Eating>(agent).is_none();
+            let level = sim.world().get::<Traits>(agent).unwrap().state(0).unwrap();
+            if saw_fumble && done && level > 0.0 {
+                assert!(
+                    hungry_still < 25.0,
+                    "a fail_delta_scale of 0 must deliver nothing of the                      meal; hunger read {hungry_still}"
+                );
+                assert_eq!(
+                    sim.world()
+                        .get::<terri_core::Satisfaction>(agent)
+                        .unwrap()
+                        .value(),
+                    0.0,
+                    "a ruined meal feeds nobody's soul"
+                );
+                assert_eq!(level, 0.05, "and yet the attempt taught");
+                assert!(
+                    sim.world().get::<terri_core::Fumbled>(agent).is_none(),
+                    "the fumble closes with the attempt"
+                );
+                return;
+            }
+        }
+        panic!("the attempt never ran its course (fumble seen: {saw_fumble})");
+    }
+
+    /// A disposition of ZERO - the authored fear - keeps a sim from
+    /// ever CHOOSING the tagged activity, while an identical sim
+    /// without the trait takes it immediately. The fear is a weight on
+    /// choice, not a wall: nothing here gates the attempt itself.
+    #[test]
+    fn a_fear_keeps_a_sim_from_choosing_what_its_twin_takes_at_once() {
+        let mut lounge =
+            crate::test_content::interaction("lounge", &[(terri_core::NeedId::Comfort, 30.0)], 20);
+        lounge.tags = vec!["lounging".to_string()];
+        let base = crate::test_content::pack_tuned(
+            vec![crate::test_content::object_offering("sofa", vec![lounge])],
+            crate::test_content::tuning(),
+        );
+        let pack: &'static ContentPack = Box::leak(Box::new(ContentPack {
+            traits: vec![CompiledTrait {
+                id: "fears_the_sofa".to_string(),
+                label: "Fears the sofa".to_string(),
+                tag: "lounging".to_string(),
+                kind: CompiledTraitKind::Disposition {
+                    score_multiplier: 0.0,
+                },
+            }],
+            ..base.clone()
+        }));
+
+        for (worn, expect_target) in [(true, false), (false, true)] {
+            let mut sim = crate::test_content::sim_with(8, 8, pack);
+            let sofa = pack.find("sofa").expect("fixture");
+            sim.world_mut().spawn((
+                terri_core::Position { x: 3.0, y: 1.0 },
+                terri_core::SmartObject(sofa),
+            ));
+            let mut needs = terri_core::Needs::all_at(terri_core::NEED_MAX);
+            needs.set(terri_core::NeedId::Comfort, 10.0);
+            let mut spawned = sim.world_mut().spawn((
+                terri_core::Agent,
+                terri_core::Position { x: 2.0, y: 1.0 },
+                needs,
+            ));
+            if worn {
+                spawned.insert(Traits::from_entries(vec![(0, 0.0)]));
+            }
+            let agent = spawned.id();
+
+            let mut chose = false;
+            for _ in 0..30 {
+                sim.tick();
+                if sim.world().get::<terri_core::Target>(agent).is_some()
+                    || sim.world().get::<terri_core::Eating>(agent).is_some()
+                {
+                    chose = true;
+                    break;
+                }
+            }
+            assert_eq!(
+                chose, expect_target,
+                "worn={worn}: a zero disposition must silence the only                  candidate, and its absence must leave it irresistible"
+            );
+        }
+    }
+
     #[test]
     fn completion_teaches_capabilities_and_manages_conditions() {
         let pack = pack_with_traits(vec![
