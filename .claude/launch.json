@@ -8,10 +8,11 @@
         "--prefix",
         "web",
         "run",
-        "dev:lan"
+        "dev"
       ],
       "port": 5174,
-      "url": "https://localhost:5174"
+      "url": "https://localhost:5174",
+      "autoPort": false
     },
     {
       "name": "built (last dist build)",
@@ -23,7 +24,8 @@
         "preview"
       ],
       "port": 4173,
-      "url": "https://localhost:4173"
+      "url": "https://localhost:4173",
+      "autoPort": false
     }
   ]
 }

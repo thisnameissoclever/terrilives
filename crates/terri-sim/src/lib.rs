@@ -857,12 +857,46 @@ impl Sim {
     /// name ("standing") mean nothing in particular. See
     /// [`Sim::queued_orders_of`].
     pub fn stall_reason_of(&self, index: u32) -> Option<String> {
-        let mut state = self
-            .world
-            .try_query::<(Entity, Has<terri_core::Blocked>, Has<terri_core::Restless>)>()?;
-        let (_, blocked, restless) = state
+        let mut state = self.world.try_query::<(
+            Entity,
+            Has<terri_core::Blocked>,
+            Has<terri_core::Restless>,
+            Has<terri_core::Path>,
+            Has<terri_core::Target>,
+            Has<terri_core::Eating>,
+            Has<terri_core::Socialising>,
+            Has<terri_core::StepWork>,
+            Has<terri_core::AtWork>,
+            Has<terri_core::Commuting>,
+            Has<terri_core::Reserved>,
+        )>()?;
+        let (
+            _,
+            blocked,
+            restless,
+            walking,
+            committed,
+            eating,
+            talking,
+            stepping,
+            at_work,
+            commuting,
+            reserved,
+        ) = state
             .iter(&self.world)
             .find(|(entity, ..)| entity.index_u32() == index)?;
+        // **A sim that is DOING something is not stalled, whatever its
+        // markers still say.** Both markers are written by selection and
+        // outlive the moment they described: `Restless` is precisely
+        // what SENDS a sim wandering, so a strolling sim carries it for
+        // the length of the stroll, and the panel read "doing: walking"
+        // over "stalled reason: found nothing worth doing" - two lines
+        // contradicting each other about the same sim, which is worse
+        // than either alone. Caught by looking at the running game.
+        if walking || committed || eating || talking || stepping || at_work || commuting || reserved
+        {
+            return None;
+        }
         let mut parts: Vec<String> = Vec::new();
         if blocked {
             parts.push("waiting on something in use".to_string());
@@ -2019,6 +2053,85 @@ mod overlay_read_tests {
             .id()
             .index_u32();
         (sim, stuck, free)
+    }
+
+    /// A sim in MOTION has no stall reason, whatever markers it still
+    /// carries - `Restless` is what sent it wandering, so it rides
+    /// along for the whole stroll and would otherwise contradict the
+    /// panel's own "doing: walking" one line above.
+    #[test]
+    fn a_sim_that_is_doing_something_reports_no_stall_reason() {
+        let mut sim = Sim::new_with_lot(8, 8);
+        let strolling = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 1.0, y: 1.0 },
+                Restless,
+                terri_core::Path {
+                    steps: vec![(2, 1)],
+                    cursor: 0,
+                },
+            ))
+            .id()
+            .index_u32();
+        assert_eq!(
+            sim.stall_reason_of(strolling),
+            None,
+            "a wanderer is not stalled - the marker is why it LEFT"
+        );
+
+        // Every other busy shape, one at a time, so a check that
+        // covered only walking is visible. Each spawns with a stall
+        // marker deliberately set, which is exactly the stale state
+        // the running game showed.
+        let eating = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 2.0, y: 2.0 },
+                Blocked,
+                terri_core::Eating {
+                    object: terri_core::ObjectDefId(0),
+                    interaction: 0,
+                    remaining_ticks: 5,
+                },
+            ))
+            .id()
+            .index_u32();
+        let at_work = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 3.0, y: 3.0 },
+                Restless,
+                terri_core::AtWork {
+                    remaining_ticks: 40,
+                },
+            ))
+            .id()
+            .index_u32();
+        let reserved = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 4.0, y: 4.0 },
+                Restless,
+                terri_core::Reserved,
+            ))
+            .id()
+            .index_u32();
+        for (index, what) in [
+            (eating, "eating"),
+            (at_work, "at work"),
+            (reserved, "reserved for a talk"),
+        ] {
+            assert_eq!(
+                sim.stall_reason_of(index),
+                None,
+                "a sim {what} is not stalled"
+            );
+        }
     }
 
     #[test]
