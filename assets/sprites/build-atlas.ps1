@@ -213,6 +213,35 @@ $SOURCES = @(
   @{ name = 'bookcaseClosedWide';     from = 'bookcaseClosedWide_SE' }
   @{ name = 'bathtub';                from = 'bathtub_SE' }
   @{ name = 'washerDryerStacked';     from = 'washerDryerStacked_SE' }
+
+  # ---- A-11: facings, corners, doorways ------------------------------------
+  #
+  # Appended in one block, same append-only reason as every block above.
+  #
+  # **The one-facing era ends here, by the owner's direction**: the kit
+  # ships every piece at four facings and importing only `_SE` is why the
+  # kitchen run faced the wrong wall. The convention for names: the plain
+  # name stays the `_SE` facing (nothing existing renumbers or renames),
+  # and a directional variant appends its facing - `kitchenStoveSW` is
+  # `kitchenStove_SW`. Content refers to atlas names, so a placement's
+  # `facing` field resolves `<sprite>SW` and the compile step fails on a
+  # facing nobody imported - import them as the lot needs them rather
+  # than all 132 at once; the atlas index space is the render buffer's.
+  #
+  # Wall corners, scaled to the same half-tile edge as the two panels so
+  # they tile against them; the doorway piece is one tile edge wide by
+  # the kit's own geometry (59x148 source, 32x80 scaled) and 18 px
+  # shorter than a wall panel, which reads as a lintel.
+  @{ name = 'wallCornerNW';           from = 'wallCornerRond_SW'; width = ($TILE_W / 2) }
+  @{ name = 'doorwayNS';              from = 'doorway_SE'; width = ($TILE_W / 2) }
+  @{ name = 'doorwayEW';              from = 'doorway_SW'; width = ($TILE_W / 2) }
+  # The kitchen run along the north wall, facing the room: south-west
+  # facings for the four run pieces, and the inner corner that turns the
+  # run down the west wall toward the fridge.
+  @{ name = 'kitchenStoveSW';         from = 'kitchenStove_SW' }
+  @{ name = 'kitchenCabinetSW';       from = 'kitchenCabinet_SW' }
+  @{ name = 'kitchenSinkSW';          from = 'kitchenSink_SW' }
+  @{ name = 'kitchenCabinetCornerInnerSW'; from = 'kitchenCabinetCornerInner_SW' }
 )
 
 function New-HighQualityGraphics([System.Drawing.Bitmap] $target) {

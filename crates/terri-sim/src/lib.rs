@@ -110,6 +110,11 @@ impl Sim {
         // components even behind filters.
         world.register_component::<terri_core::Relationships>();
         world.register_component::<terri_core::Socialising>();
+        // A-11's facing carrier. In `sync_render_buffer`'s query (a
+        // plain `World::query`, which self-registers) rather than the
+        // digest's `try_query`, so this line is for the determinism
+        // tests' benefit, like Selected and IntentQueue above.
+        world.register_component::<terri_core::SpriteVariant>();
         // The identity counter - [H1]. From construction rather than on
         // first spawn, so a save file can restore it before any sim exists.
         world.insert_resource(terri_core::SimIdAllocator::default());
@@ -257,13 +262,22 @@ impl Sim {
         sim.world.insert_resource(grid);
 
         for placement in &lot.placements {
-            sim.world.spawn((
+            let spawned = sim.world.spawn((
                 terri_core::Position {
                     x: placement.x,
                     y: placement.y,
                 },
                 terri_core::SmartObject(placement.object),
             ));
+            // A facing is per PLACEMENT, so it cannot live on the object
+            // definition; the compile step resolved it to a sprite index
+            // and this component is how the index reaches the render
+            // buffer. Inserted only when it differs, so every world
+            // predating facings - and every test fixture - is untouched.
+            let mut spawned = spawned;
+            if placement.sprite != objects[placement.object.0 as usize].sprite {
+                spawned.insert(terri_core::SpriteVariant(placement.sprite));
+            }
         }
 
         sim
@@ -374,19 +388,57 @@ impl Sim {
         // cannot fail, so there is no Option to handle here. It returns an
         // owned QueryState, which ends the &mut borrow immediately and
         // leaves self.render free to write below.
-        let mut state = self
-            .world
-            .query::<(Entity, &Position, Has<Agent>, Option<&SmartObject>)>();
+        let mut state = self.world.query::<(
+            Entity,
+            &Position,
+            Has<Agent>,
+            Option<&SmartObject>,
+            Option<&terri_core::SpriteVariant>,
+        )>();
         let mut rows: Vec<(u32, f32, f32, u32, u32)> = Vec::new();
-        for (entity, pos, is_agent, object) in state.iter(&self.world) {
+        for (entity, pos, is_agent, object, variant) in state.iter(&self.world) {
             let kind = if is_agent { 0 } else { 1 };
             // An entity that is neither an agent nor a smart object has
             // no sprite of its own; the sim's is the only sensible
             // stand-in, and nothing in M1b spawns one. `world_hash`'s
             // bystander fixture is the only thing that ever has.
-            let sprite =
-                object.map_or(content.sim_sprite, |placed| content.object(placed.0).sprite);
-            rows.push((entity.index_u32(), pos.x, pos.y, kind, sprite));
+            //
+            // A `SpriteVariant` outranks the definition's sprite: it is
+            // the compile-resolved facing this particular placement was
+            // authored with.
+            let sprite = variant.map_or_else(
+                || object.map_or(content.sim_sprite, |placed| content.object(placed.0).sprite),
+                |v| v.0,
+            );
+            // **An object's ROW is centred on its rectangle; its Position
+            // component stays on the origin tile.** The renderer anchors
+            // every sprite to the projected position it is handed, and
+            // it knows nothing about footprints - so a 2x2 bed anchored
+            // to its origin tile was drawn one full tile-row north-west
+            // of the ground it owns, painting 84% of the spine wall's
+            // panel and reading as a bed through a wall, while the
+            // dining table never covered its own second tile and its
+            // east chair read as orphaned ([A-11]). The rectangle's
+            // centre is a fact this crate owns and the shell cannot see,
+            // so it is applied here, at the one place rows are written.
+            //
+            // Display-only by construction: `world_hash` digests the
+            // Position COMPONENT, scoring and pathing read the component
+            // and the footprint, and none of them read this buffer. The
+            // shift also moves the pick box in the shell, which is the
+            // point - the drawn sprite and the clickable area move
+            // together.
+            let (x, y) = match object {
+                Some(placed) => {
+                    let footprint = content.object(placed.0).footprint;
+                    (
+                        pos.x + (footprint.width as f32 - 1.0) * 0.5,
+                        pos.y + (footprint.depth as f32 - 1.0) * 0.5,
+                    )
+                }
+                None => (pos.x, pos.y),
+            };
+            rows.push((entity.index_u32(), x, y, kind, sprite));
         }
         rows.sort_by_key(|(index, _, _, _, _)| *index);
 
@@ -794,11 +846,13 @@ mod lot_tests {
                     object: ObjectDefId(2),
                     x: 2.5,
                     y: 1.25,
+                    sprite: 2,
                 },
                 CompiledPlacement {
                     object: ObjectDefId(0),
                     x: 4.0,
                     y: 3.5,
+                    sprite: 0,
                 },
             ],
         }
@@ -817,6 +871,48 @@ mod lot_tests {
             .collect();
         rows.sort_by_key(|(index, _, _, _)| *index);
         rows.into_iter().map(|(_, x, y, def)| (x, y, def)).collect()
+    }
+
+    /// The facing guard in the spawn loop, exercised through the one
+    /// path that decides: a placement whose compiled sprite DIFFERS
+    /// from its definition's carries a `SpriteVariant`, and one whose
+    /// sprite matches carries nothing. The fixture's two placements are
+    /// one of each - sprite 2 against a definition sprite of 0, and
+    /// sprite 0 against the same - so flipping the guard's `!=` swaps
+    /// both outcomes and both assertions go red. The render-buffer test
+    /// for the variant inserts the component directly and cannot see
+    /// this decision.
+    #[test]
+    fn new_from_lot_gives_only_faced_placements_a_sprite_variant() {
+        let lot = a_lot();
+        let defs = one_tile_defs();
+        assert_ne!(
+            lot.placements[0].sprite, defs[2].sprite,
+            "precondition: the first placement is faced"
+        );
+        assert_eq!(
+            lot.placements[1].sprite, defs[0].sprite,
+            "precondition: the second placement is plain"
+        );
+
+        let mut sim = Sim::new_from_lot(&lot, &defs);
+        let mut variants: Vec<(f32, Option<u32>)> = {
+            let world = sim.world_mut();
+            let mut state =
+                world.query::<(&Position, &SmartObject, Option<&terri_core::SpriteVariant>)>();
+            state
+                .iter(world)
+                .map(|(pos, _, variant)| (pos.x, variant.map(|v| v.0)))
+                .collect()
+        };
+        variants.sort_by(|a, b| a.0.total_cmp(&b.0));
+
+        assert_eq!(
+            variants,
+            vec![(2.5, Some(2)), (4.0, None)],
+            "the faced placement carries its resolved variant and the \
+             plain one carries nothing - a flipped guard swaps both"
+        );
     }
 
     #[test]
@@ -906,6 +1002,7 @@ mod lot_tests {
                 object: ObjectDefId(2),
                 x: 2.5,
                 y: 1.25,
+                sprite: 2,
             }],
         }
     }

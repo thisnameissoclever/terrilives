@@ -1,6 +1,10 @@
 # Features
 
-Status: M0 shipped; M1a shipped; M1b shipped; M1c shipped. Everything else is
+Status: M0 through M1c shipped; the alpha visual pass (A1-A5) shipped;
+M2a footprints, M2a2 selection and input, M2b the five-room house, M2c
+personalities and the household, and M2d relationships all shipped. The
+full alpha's eleven DONE criteria live in docs/alpha-goals.md.
+Everything else is
 proposed scope, not yet agreed in detail. Milestones exist primarily to
 control [R6], which is the risk most likely to actually kill this project.
 

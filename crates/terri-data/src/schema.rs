@@ -135,6 +135,13 @@ pub struct SocialFile {
     pub interaction: Vec<InteractionDef>,
 }
 
+/// The four isometric facings the Kenney kit pre-renders every piece at.
+///
+/// A string in the schema rather than an enum, because an unknown facing
+/// is a CONTENT error the compile step reports with the file and object
+/// named - serde's "unknown variant" error names neither.
+pub const FACINGS: [&str; 4] = ["NE", "NW", "SE", "SW"];
+
 #[derive(Debug, Deserialize)]
 pub struct ObjectDef {
     pub id: String,
@@ -380,6 +387,13 @@ pub struct PlacementDef {
     pub object: String,
     pub x: f32,
     pub y: f32,
+    /// Which of the kit's four pre-rendered facings this placement is
+    /// drawn with - `"SW"` and friends, see [`FACINGS`]. Absent means
+    /// the object definition's own sprite, which is the `_SE` facing by
+    /// this project's import convention. Presentation only: the
+    /// simulation neither knows nor cares which way a counter faces.
+    #[serde(default)]
+    pub facing: Option<String>,
 }
 
 #[cfg(test)]

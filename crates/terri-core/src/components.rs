@@ -399,6 +399,17 @@ impl Relationships {
     }
 }
 
+/// The atlas sprite this entity is drawn with, when it differs from its
+/// object definition's - [A-11]'s facing mechanism.
+///
+/// A placement may say `facing = "SW"`, and the compile step resolves
+/// that to a concrete sprite index at build time; this component is how
+/// the resolved index rides on the spawned entity so the render buffer
+/// can read it. Presentation only: nothing in scoring, pathing or the
+/// world hash reads it, exactly like `SimName`.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SpriteVariant(pub u32);
+
 /// A sim's stable identity - [H1] in
 /// `docs/specs/2026-07-30-household-and-relationships-design.md`.
 ///
