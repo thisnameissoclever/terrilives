@@ -1,5 +1,5 @@
 use bevy_ecs::prelude::*;
-use terri_core::{Eating, Path, Position, SimRng, SmartObject, Target};
+use terri_core::{Agent, Eating, Path, Position, SimRng, SmartObject, Socialising, Target};
 
 use super::advertise::TILES_PER_TICK;
 use super::interact::sample_duration;
@@ -45,6 +45,7 @@ pub fn follow_path(
     mut rng: ResMut<SimRng>,
     mut agents: Query<(Entity, &mut Position, &mut Path, Option<&Target>)>,
     objects: Query<&SmartObject>,
+    sims: Query<(), With<Agent>>,
 ) {
     let mut walking: Vec<Entity> = agents.iter().map(|(entity, _, _, _)| entity).collect();
     walking.sort_by_key(|entity| entity.index());
@@ -62,38 +63,67 @@ pub fn follow_path(
                 commands.entity(entity).remove::<Path>();
                 continue;
             };
-            // Begin the interaction.
-            let Ok(placed) = objects.get(target.object) else {
-                commands.entity(entity).remove::<Path>().remove::<Target>();
-                continue;
-            };
-            // Both indices are in range by construction: `select_action`
-            // read them out of this same pack when it scored the advert,
-            // and the pack is fixed at build time.
-            let act = &content.0.object(placed.0).interactions[target.interaction as usize];
-            // The content duration is a CENTRE, per [D-4]. This is the
-            // one place the actual length of an interaction is decided,
-            // so it is the one place that draws for it - and it draws
-            // from the world's seeded generator like every other
-            // decision, which is what keeps a replay a replay.
-            //
-            // The draw happens here rather than at selection on purpose.
-            // Scoring weighs an interaction by its content duration
-            // because that is what an advert can honestly promise; the
-            // sim only finds out how long this particular meal took by
-            // sitting through it.
+            // Begin the interaction. What kind depends on what the
+            // target IS: a placed object starts a meal, a fellow sim
+            // starts a conversation - [H4]. The checks are by component
+            // rather than by a flag on `Target`, because the component
+            // is the ground truth the flag would be a copy of.
             let tuning = &content.0.tuning;
-            let remaining_ticks = sample_duration(
-                act.duration_ticks,
-                tuning.duration_variance,
-                tuning.min_interaction_ticks,
-                &mut rng,
-            );
-            commands.entity(entity).remove::<Path>().insert(Eating {
-                object: placed.0,
-                interaction: target.interaction,
-                remaining_ticks,
-            });
+            if let Ok(placed) = objects.get(target.object) {
+                // Both indices are in range by construction: `select_action`
+                // read them out of this same pack when it scored the advert,
+                // and the pack is fixed at build time.
+                let act = &content.0.object(placed.0).interactions[target.interaction as usize];
+                // The content duration is a CENTRE, per [D-4]. This is the
+                // one place the actual length of an interaction is decided,
+                // so it is the one place that draws for it - and it draws
+                // from the world's seeded generator like every other
+                // decision, which is what keeps a replay a replay.
+                //
+                // The draw happens here rather than at selection on purpose.
+                // Scoring weighs an interaction by its content duration
+                // because that is what an advert can honestly promise; the
+                // sim only finds out how long this particular meal took by
+                // sitting through it.
+                let remaining_ticks = sample_duration(
+                    act.duration_ticks,
+                    tuning.duration_variance,
+                    tuning.min_interaction_ticks,
+                    &mut rng,
+                );
+                commands.entity(entity).remove::<Path>().insert(Eating {
+                    object: placed.0,
+                    interaction: target.interaction,
+                    remaining_ticks,
+                });
+            } else if sims.get(target.object).is_ok() {
+                // A conversation's length is drawn the same way a meal's
+                // is, from the same generator, for the same replay
+                // reason. The initiator carries the whole record; the
+                // partner stays as it was - standing, `Reserved` - until
+                // `tick_social` releases it on completion.
+                let act = &content.0.social[target.interaction as usize];
+                let remaining_ticks = sample_duration(
+                    act.duration_ticks,
+                    tuning.duration_variance,
+                    tuning.min_interaction_ticks,
+                    &mut rng,
+                );
+                commands
+                    .entity(entity)
+                    .remove::<Path>()
+                    .insert(Socialising {
+                        interaction: target.interaction,
+                        partner: target.object,
+                        remaining_ticks,
+                    });
+            } else {
+                // Neither an object nor a sim: the target lost its
+                // defining component mid-walk. Known leak - see the
+                // reclamation note in `tick_interactions` - the walk
+                // ends and the stale reservation is the recorded cost.
+                commands.entity(entity).remove::<Path>().remove::<Target>();
+            }
             continue;
         };
 

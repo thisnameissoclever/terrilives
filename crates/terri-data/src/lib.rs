@@ -656,4 +656,34 @@ mod tests {
             );
         }
     }
+
+    /// The shipped half of [H6]'s split: an empty social vocabulary is
+    /// legal in a test pack, and a shipped game where sims cannot talk to
+    /// each other is M2d silently absent - the same silent nothing
+    /// `every_declared_object_is_placed_on_the_lot` guards for furniture.
+    ///
+    /// "A way to talk" means an entry with a POSITIVE social delta, not
+    /// merely an entry: a vocabulary of nothing but insults would satisfy
+    /// `!is_empty()` while leaving the social need exactly as
+    /// unsatisfiable-by-people as it was before M2d.
+    #[test]
+    fn the_shipped_pack_gives_sims_a_way_to_talk() {
+        let p = pack();
+        assert!(
+            !p.social.is_empty(),
+            "content/social.toml compiled to an empty vocabulary; sims \
+             have no way to satisfy each other's social need"
+        );
+
+        let social = terri_core::NeedId::Social.index() as u8;
+        assert!(
+            p.social.iter().any(|act| {
+                act.advertises
+                    .iter()
+                    .any(|(need, delta)| *need == social && *delta > 0.0)
+            }),
+            "no social interaction advertises a positive social delta, so \
+             company satisfies everything except the need it exists for"
+        );
+    }
 }

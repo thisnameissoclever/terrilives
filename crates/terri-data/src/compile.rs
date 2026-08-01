@@ -12,7 +12,8 @@ use crate::pack::{
     Tuning,
 };
 use crate::schema::{
-    AtlasFile, HouseholdFile, LotFile, NeedsFile, ObjectsFile, PersonalitiesFile, TuningFile,
+    AtlasFile, HouseholdFile, LotFile, NeedsFile, ObjectsFile, PersonalitiesFile, SocialFile,
+    TuningFile,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use terri_core::{Footprint, NeedId, NEED_COUNT, NEED_MAX, NEED_MIN};
@@ -71,6 +72,14 @@ fn check_number(value: f32, context: &str) -> Result<(), ContentError> {
 /// felt in proportion to how badly the need it drains is already felt.
 /// A non-finite delta is still rejected; that check moved from
 /// `check_number` to `check_finite` rather than being dropped.
+///
+/// One parameter per content file, deliberately, and the clippy arity
+/// lint is answered rather than obeyed: a `ContentSources` struct would
+/// hold the same eight names one level down, turn every call site's
+/// compile-time "you forgot the new file" error into field-init noise,
+/// and buy nothing else. The parameter list IS the manifest of what a
+/// pack is made from.
+#[allow(clippy::too_many_arguments)]
 pub fn compile(
     needs: NeedsFile,
     objects: ObjectsFile,
@@ -79,6 +88,7 @@ pub fn compile(
     tuning: TuningFile,
     personalities: PersonalitiesFile,
     household: HouseholdFile,
+    social: SocialFile,
 ) -> Result<ContentPack, ContentError> {
     let sprite_index = |name: &str| atlas.sprite.iter().position(|s| s.name == name);
     let sim_sprite = sprite_index(SIM_SPRITE).ok_or_else(|| ContentError::MissingSimSprite {
@@ -183,6 +193,10 @@ pub fn compile(
 
         // Scoped to the object, so two objects may each declare a
         // `use` interaction without colliding.
+        //
+        // The per-interaction rules from here down are mirrored in
+        // `compile_social` with social-flavoured error variants; a rule
+        // that changes here must change there too.
         let mut seen_interactions = BTreeSet::new();
         let mut interactions = Vec::with_capacity(object.interaction.len());
 
@@ -263,7 +277,11 @@ pub fn compile(
         });
     }
 
-    let lot = compile_lot(lot, &compiled)?;
+    // The authored sprite names ride beside the compiled objects only
+    // for the length of this call: facing resolution needs the NAME to
+    // suffix, and the compiled object deliberately holds the index.
+    let sprite_names: Vec<String> = objects.object.iter().map(|o| o.sprite.clone()).collect();
+    let lot = compile_lot(lot, &compiled, &sprite_names, &sprite_index)?;
     let tuning = compile_tuning(tuning)?;
 
     // **An interaction the floor is longer than does not do what it says.**
@@ -319,6 +337,12 @@ pub fn compile(
     let personalities = compile_personalities(personalities, &compiled)?;
     let household = compile_household(household, &personalities, &compiled, &lot)?;
 
+    // After tuning, because the clipped-duration rule needs the floor and
+    // the variance, and social interactions are subject to it for exactly
+    // the reasons the object loop's copy documents: a talk below the line
+    // runs for the floor every time and delivers more than it advertises.
+    let social = compile_social(social, &tuning)?;
+
     Ok(ContentPack {
         decay_per_tick: decay,
         objects: compiled,
@@ -327,7 +351,102 @@ pub fn compile(
         tuning,
         personalities,
         household,
+        social,
     })
+}
+
+/// Validates `content/social.toml` and compiles the interactions every sim
+/// advertises to other sims - [H4]/[H6].
+///
+/// The checks mirror the per-interaction rules in the object loop of
+/// [`compile`], with their own error variants so a mistake is reported
+/// against `social.toml` rather than against an object that does not
+/// exist; that is the same reason the household has `SpawnOutOfBounds`
+/// instead of reusing `PlacementOutOfBounds`. If a rule changes in one
+/// place it must change in the other; each side carries this pointer.
+///
+/// An EMPTY vocabulary is legal here, because a test pack has no social
+/// life and forcing one on it would push a talk interaction into every
+/// fixture in the workspace. The shipped pack is the one that must let
+/// sims talk, and `the_shipped_pack_gives_sims_a_way_to_talk` in
+/// `lib.rs` holds that line - the same split as
+/// `every_declared_object_is_placed_on_the_lot`.
+fn compile_social(
+    social: SocialFile,
+    tuning: &Tuning,
+) -> Result<Vec<CompiledInteraction>, ContentError> {
+    let mut seen = BTreeSet::new();
+    let mut compiled = Vec::with_capacity(social.interaction.len());
+
+    for act in &social.interaction {
+        if !seen.insert(act.id.clone()) {
+            return Err(ContentError::DuplicateSocialInteraction { id: act.id.clone() });
+        }
+        if act.duration_ticks == 0 {
+            return Err(ContentError::SocialZeroDuration {
+                interaction: act.id.clone(),
+            });
+        }
+        if act.slots == 0 {
+            return Err(ContentError::SocialZeroSlots {
+                interaction: act.id.clone(),
+            });
+        }
+        // Absent falls back to the id; blank is rejected. The object
+        // loop's copy of this rule explains why the two authoring states
+        // are different and why only the emptiness TEST trims.
+        let label = match &act.label {
+            Some(label) if label.trim().is_empty() => {
+                return Err(ContentError::SocialEmptyLabel {
+                    interaction: act.id.clone(),
+                })
+            }
+            Some(label) => label.clone(),
+            None => act.id.clone(),
+        };
+
+        let mut advertises = Vec::with_capacity(act.advertises.len());
+        for (need_name, delta) in &act.advertises {
+            let Some(id) = NeedId::from_name(need_name) else {
+                return Err(ContentError::SocialUnknownNeed {
+                    interaction: act.id.clone(),
+                    need: need_name.clone(),
+                });
+            };
+            check_finite(
+                *delta,
+                &format!("advert '{}' on social '{}'", need_name, act.id),
+            )?;
+            advertises.push((id.index() as u8, *delta));
+        }
+        advertises.sort_unstable_by_key(|(i, _)| *i);
+
+        // The clipped-duration rule, inline rather than in a second pass,
+        // because unlike the object loop this function already holds the
+        // compiled tuning. Same arithmetic, same div-ceil boundary.
+        let variance = tuning.duration_variance;
+        let floor = tuning.min_interaction_ticks;
+        if (act.duration_ticks as f32) * (1.0 - variance) < floor as f32 {
+            let minimum = ((floor as f32) / (1.0 - variance)).ceil() as u32;
+            return Err(ContentError::ClippedSocialDuration {
+                interaction: act.id.clone(),
+                duration_ticks: act.duration_ticks,
+                minimum,
+                floor,
+                variance,
+            });
+        }
+
+        compiled.push(CompiledInteraction {
+            id: act.id.clone(),
+            advertises,
+            duration_ticks: act.duration_ticks,
+            slots: act.slots,
+            label,
+        });
+    }
+
+    Ok(compiled)
 }
 
 /// Validates `content/personalities.toml` against the compiled objects and
@@ -614,6 +733,18 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
         "habituation_decay_per_tick in tuning.toml",
     )?;
     check_finite(tuning.habituation_floor, "habituation_floor in tuning.toml")?;
+    check_finite(
+        tuning.relationship_gain_per_talk,
+        "relationship_gain_per_talk in tuning.toml",
+    )?;
+    check_finite(
+        tuning.relationship_decay_per_tick,
+        "relationship_decay_per_tick in tuning.toml",
+    )?;
+    check_finite(
+        tuning.relationship_delta_scale,
+        "relationship_delta_scale in tuning.toml",
+    )?;
 
     if tuning.choice_temperature <= 0.0 {
         return Err(ContentError::NonPositiveTemperature {
@@ -684,6 +815,31 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
             value: tuning.contested_score_multiplier,
         });
     }
+    // The relationship trio mirrors the habituation trio rule for rule,
+    // because it is the same mechanism shape pointed at people instead of
+    // objects: a per-use rise, a per-tick decay, and a bounded multiplier.
+    // Each guard protects against the same quiet failure its habituation
+    // twin documents above.
+    if !(0.0..=1.0).contains(&tuning.relationship_gain_per_talk) {
+        return Err(ContentError::RelationshipGainOutOfRange {
+            value: tuning.relationship_gain_per_talk,
+        });
+    }
+    if tuning.relationship_decay_per_tick <= 0.0 {
+        return Err(ContentError::NonPositiveRelationshipDecay {
+            value: tuning.relationship_decay_per_tick,
+        });
+    }
+    // The delta-scale bound is the one rule with no habituation twin: the
+    // habituation floor keeps its multiplier positive by construction,
+    // while `1 + relationship * scale` goes negative the moment scale
+    // exceeds 1 and a relationship is bad enough - turning an authored
+    // BENEFIT into a cost, which [S2] reserves for content that says so.
+    if !(0.0..=1.0).contains(&tuning.relationship_delta_scale) {
+        return Err(ContentError::RelationshipDeltaScaleOutOfRange {
+            value: tuning.relationship_delta_scale,
+        });
+    }
     if tuning.idle_threshold > tuning.action_threshold {
         return Err(ContentError::IdleThresholdAboveAction {
             idle: tuning.idle_threshold,
@@ -712,6 +868,9 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
         // failure.
         need_bar_refresh_ms: tuning.need_bar_refresh_ms,
         contested_score_multiplier: tuning.contested_score_multiplier,
+        relationship_gain_per_talk: tuning.relationship_gain_per_talk,
+        relationship_decay_per_tick: tuning.relationship_decay_per_tick,
+        relationship_delta_scale: tuning.relationship_delta_scale,
     })
 }
 
@@ -721,7 +880,15 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
 /// Taking the compiled objects rather than the authored ones is what
 /// makes the last rule a real dangling-reference check: a placement can
 /// only name something that survived object validation.
-fn compile_lot(lot: LotFile, objects: &[CompiledObject]) -> Result<CompiledLot, ContentError> {
+fn compile_lot(
+    lot: LotFile,
+    objects: &[CompiledObject],
+    // The authored atlas NAME per compiled object, in the same order as
+    // `objects`, because facing resolution is string arithmetic on the
+    // name and the compiled object holds only the resolved index.
+    sprite_names: &[String],
+    sprite_index: &dyn Fn(&str) -> Option<usize>,
+) -> Result<CompiledLot, ContentError> {
     // A zero dimension is not merely odd; `TileGrid::new(0, h)` has no
     // walkable tile at all, so every agent on it silently never moves.
     // That is the shape of failure [D9] exists to convert into a build
@@ -817,11 +984,41 @@ fn compile_lot(lot: LotFile, objects: &[CompiledObject]) -> Result<CompiledLot, 
             });
         }
 
+        // A facing is presentation, resolved here so a variant nobody
+        // imported has no representation past this point ([D9]). The
+        // variant naming convention is the atlas's: the plain name is
+        // the `_SE` import and a directional variant appends its facing,
+        // so `kitchenCabinet` facing SW is the atlas entry
+        // `kitchenCabinetSW`.
+        let sprite = match &place.facing {
+            None => objects[index].sprite,
+            Some(facing) => {
+                if !crate::schema::FACINGS.contains(&facing.as_str()) {
+                    return Err(ContentError::UnknownFacing {
+                        object: place.object.clone(),
+                        facing: facing.clone(),
+                    });
+                }
+                let variant = format!("{}{}", sprite_names[index], facing);
+                match sprite_index(&variant) {
+                    Some(resolved) => resolved as u32,
+                    None => {
+                        return Err(ContentError::FacingSpriteMissing {
+                            object: place.object.clone(),
+                            facing: facing.clone(),
+                            sprite: variant,
+                        })
+                    }
+                }
+            }
+        };
+
         rects.push((place.object.clone(), tile, objects[index].footprint));
         placements.push(CompiledPlacement {
             object: ObjectDefId(index as u32),
             x: place.x,
             y: place.y,
+            sprite,
         });
     }
 
@@ -1097,6 +1294,9 @@ mod tests {
             tuning,
             PersonalitiesFile { archetype: vec![] },
             HouseholdFile { sim: vec![] },
+            SocialFile {
+                interaction: vec![],
+            },
         )
     }
 
@@ -1193,6 +1393,15 @@ mod tests {
     /// author's wording, and not `grab_snack`, is what reaches the pack.
     #[rustfmt::skip]
     const GOLDEN_PACK_BYTES: &[u8] = &[
+        // **Regenerated wholesale at A-11**, the second wholesale regen
+        // in the file's history: `CompiledPlacement` grew a `sprite`
+        // field (one varint byte inside the lot block per placement -
+        // this fixture's lot has one), on top of the merged tuning tail
+        // (contested_score_multiplier 0.375, then the relationship trio
+        // 0.1875 / 0.046875 / 0.8125) and the three empty Vec blocks.
+        // The object-block annotations in the doc comment above remain
+        // valid; the fully-annotated predecessors are one `git log -p`
+        // away. Read off the failing assertion, per the standing rule.
         205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62,
         205, 204, 204, 62, 0, 0, 0, 63, 154, 153, 25, 63,
         51, 51, 51, 63, 1, 6, 102, 114, 105, 100, 103, 101,
@@ -1202,22 +1411,11 @@ mod tests {
         15, 1, 15, 69, 97, 116, 32, 115, 116, 97, 110, 100,
         105, 110, 103, 32, 117, 112, 1, 1, 1, 5, 3, 2,
         4, 2, 1, 0, 1, 0, 0, 0, 32, 64, 0, 0,
-        160, 63, 0, 0, 128, 62, 0, 0, 0, 63, 0, 0,
-        0, 62, 9, 6, 0, 0, 160, 62, 10, 215, 35, 59,
-        0, 0, 32, 63, 0, 0, 64, 63, 3, 172, 2, 7,
-        11, 13,
-        // `contested_score_multiplier` 0.375, appended after
-        // `need_bar_refresh_ms` and before the two Vec blocks below, so
-        // every earlier byte keeps the offset its annotation was written
-        // against. Read off the failing assertion, not derived by hand.
-        0, 0, 192, 62,
-        // M2c appended two Vec blocks to the pack - `personalities`, then
-        // `household` - and this fixture compiles through `compile_bare`,
-        // which passes both empty, so each is one varint length byte of 0.
-        // Every earlier byte kept its offset, which is the appending rule
-        // on `ContentPack::lot` doing its job. Read off the failing
-        // assertion after the change, not derived by hand.
-        0, 0,
+        160, 63, 2, 0, 0, 128, 62, 0, 0, 0, 63, 0,
+        0, 0, 62, 9, 6, 0, 0, 160, 62, 10, 215, 35,
+        59, 0, 0, 32, 63, 0, 0, 64, 63, 3, 172, 2,
+        7, 11, 13, 0, 0, 192, 62, 0, 0, 64, 62, 0,
+        0, 64, 61, 0, 0, 80, 63, 0, 0, 0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -1274,6 +1472,7 @@ mod tests {
                 object: "fridge".into(),
                 x: 2.5,
                 y: 1.25,
+                facing: None,
             }],
         }
     }
@@ -1342,6 +1541,12 @@ mod tests {
             max_queued_intents: 7,
             max_queued_commands: 11,
             need_bar_refresh_ms: 13,
+            // Distinct from every other knob in this fixture and exact in
+            // binary32, like everything above: a value read off the wrong
+            // slot must move an assertion somewhere.
+            relationship_gain_per_talk: 0.1875,
+            relationship_decay_per_tick: 0.046875,
+            relationship_delta_scale: 0.8125,
             decay_per_tick: NeedId::ALL
                 .iter()
                 .map(|id| (id.as_str().to_string(), 0.1))
@@ -2635,6 +2840,7 @@ mod tests {
                     object: (*id).to_string(),
                     x: i as f32,
                     y: 3.0,
+                    facing: None,
                 })
                 .collect(),
         };
@@ -3080,6 +3286,9 @@ mod tests {
                 archetype: archetypes,
             },
             HouseholdFile { sim: sims },
+            SocialFile {
+                interaction: vec![],
+            },
         )
     }
 
@@ -3174,6 +3383,9 @@ mod tests {
                 archetype: vec![hostile],
             },
             HouseholdFile { sim: vec![] },
+            SocialFile {
+                interaction: vec![],
+            },
         )
         .expect("two dispositions on two objects are valid");
 
@@ -3434,6 +3646,9 @@ mod tests {
             HouseholdFile {
                 sim: vec![member("Terri", "the_settled", 3.0, 1.0)],
             },
+            SocialFile {
+                interaction: vec![],
+            },
         )
         .unwrap_err();
         assert_eq!(
@@ -3503,6 +3718,7 @@ mod tests {
                     object: object.to_string(),
                     x,
                     y,
+                    facing: None,
                 })
                 .collect(),
         }
@@ -4003,5 +4219,226 @@ mod tests {
             lot.placements.len(),
             "every placement must have been checked"
         );
+    }
+
+    /// The social-vocabulary happy path, with every compiled field
+    /// asserted - [H6].
+    ///
+    /// Two entries, one with a declared label and one relying on the id
+    /// fallback, so both authoring states of the label rule are pinned in
+    /// the same pack. The advert pair is chosen because its NAME order
+    /// and INDEX order disagree: the authored `BTreeMap` iterates "fun"
+    /// (index 5) before "social" (index 4), so the compiled list reads
+    /// social-first only if the compile actually sorted by index.
+    #[test]
+    fn compiles_the_social_vocabulary_into_the_pack() {
+        let pack = compile_bare_with_social(vec![
+            InteractionDef {
+                id: "chat".into(),
+                label: Some("Compare complaints".into()),
+                advertises: [("social".to_string(), 30.0), ("fun".to_string(), 6.0)]
+                    .into_iter()
+                    .collect(),
+                duration_ticks: 40,
+                slots: 2,
+            },
+            InteractionDef {
+                id: "nod_politely".into(),
+                label: None,
+                advertises: [("social".to_string(), 8.0)].into_iter().collect(),
+                duration_ticks: 15,
+                slots: 2,
+            },
+        ])
+        .expect("a valid vocabulary compiles");
+
+        assert_eq!(pack.social.len(), 2);
+        let chat = &pack.social[0];
+        assert_eq!(chat.id, "chat");
+        assert_eq!(chat.label, "Compare complaints");
+        assert_eq!(chat.duration_ticks, 40);
+        assert_eq!(chat.slots, 2);
+        // Social is need index 4 and fun is 5; name order ("fun" first in
+        // the BTreeMap) disagrees with index order, so this equality holds
+        // only if the compile sorted by index.
+        assert_eq!(chat.advertises, vec![(4, 30.0), (5, 6.0)]);
+        assert_eq!(
+            pack.social[1].label, "nod_politely",
+            "an absent label must fall back to the id"
+        );
+    }
+
+    /// One rejection test per rule, each pinning its own error variant so
+    /// a mistake in social.toml is reported against social.toml - the
+    /// same per-file-variant argument compile_household's tests make.
+    #[test]
+    fn rejects_social_content_that_breaks_each_rule() {
+        let chat = |mutate: fn(&mut InteractionDef)| {
+            let mut act = InteractionDef {
+                id: "chat".into(),
+                label: None,
+                advertises: [("social".to_string(), 30.0)].into_iter().collect(),
+                duration_ticks: 40,
+                slots: 2,
+            };
+            mutate(&mut act);
+            act
+        };
+
+        assert_eq!(
+            compile_bare_with_social(vec![chat(|_| {}), chat(|_| {})]).unwrap_err(),
+            ContentError::DuplicateSocialInteraction { id: "chat".into() }
+        );
+        assert_eq!(
+            compile_bare_with_social(vec![chat(|a| a.duration_ticks = 0)]).unwrap_err(),
+            ContentError::SocialZeroDuration {
+                interaction: "chat".into()
+            }
+        );
+        assert_eq!(
+            compile_bare_with_social(vec![chat(|a| a.slots = 0)]).unwrap_err(),
+            ContentError::SocialZeroSlots {
+                interaction: "chat".into()
+            }
+        );
+        assert_eq!(
+            compile_bare_with_social(vec![chat(|a| a.label = Some("  ".into()))]).unwrap_err(),
+            ContentError::SocialEmptyLabel {
+                interaction: "chat".into()
+            }
+        );
+        assert_eq!(
+            compile_bare_with_social(vec![chat(|a| {
+                a.advertises = [("charisma".to_string(), 5.0)].into_iter().collect();
+            })])
+            .unwrap_err(),
+            ContentError::SocialUnknownNeed {
+                interaction: "chat".into(),
+                need: "charisma".into()
+            }
+        );
+        assert_eq!(
+            compile_bare_with_social(vec![chat(|a| {
+                a.advertises = [("social".to_string(), f32::NAN)].into_iter().collect();
+            })])
+            .unwrap_err(),
+            ContentError::NonFiniteValue {
+                context: "advert 'social' on social 'chat'".into()
+            }
+        );
+    }
+
+    /// The clipped-duration rule applies to a talk exactly as it applies
+    /// to a shower, with the same div-ceil boundary: `full_tuning` has a
+    /// floor of 3 and a variance of 0.75, so anything under
+    /// ceil(3 / 0.25) = 12 is clipped and 12 itself is legal.
+    #[test]
+    fn rejects_a_social_interaction_the_duration_floor_would_clip() {
+        let talk = |duration_ticks| InteractionDef {
+            id: "chat".into(),
+            label: None,
+            advertises: [("social".to_string(), 30.0)].into_iter().collect(),
+            duration_ticks,
+            slots: 2,
+        };
+
+        assert_eq!(
+            compile_bare_with_social(vec![talk(11)]).unwrap_err(),
+            ContentError::ClippedSocialDuration {
+                interaction: "chat".into(),
+                duration_ticks: 11,
+                minimum: 12,
+                floor: 3,
+                variance: 0.75
+            }
+        );
+        assert!(
+            compile_bare_with_social(vec![talk(12)]).is_ok(),
+            "the smallest unclipped duration must compile, or the boundary is off by one on the safe-looking side"
+        );
+    }
+
+    /// The [A-11] facing pipeline: a placement's `facing` resolves at
+    /// compile time to a directional sprite variant by name suffix, and
+    /// both ways it can be wrong are its OWN errors so lot.toml is
+    /// blamed with the exact missing import named.
+    #[test]
+    fn a_placement_facing_resolves_a_sprite_variant_or_fails_by_name() {
+        let atlas = || AtlasFile {
+            sprite: ["couch_art", SIM_SPRITE, "fridge_art", "fridge_artSW"]
+                .iter()
+                .map(|name| AtlasSpriteDef {
+                    name: (*name).to_string(),
+                })
+                .collect(),
+        };
+        let compile_facing = |facing: Option<&str>| {
+            let mut lot = lot_of(4, 3, &[], &[("fridge", 2.0, 1.0)]);
+            lot.place[0].facing = facing.map(str::to_string);
+            compile(
+                full_needs(),
+                one_object(snack()),
+                lot,
+                atlas(),
+                full_tuning(),
+                PersonalitiesFile { archetype: vec![] },
+                HouseholdFile { sim: vec![] },
+                SocialFile {
+                    interaction: vec![],
+                },
+            )
+        };
+
+        // Resolved: the SW variant's own index, not the definition's.
+        let pack = compile_facing(Some("SW")).expect("an imported facing compiles");
+        assert_eq!(
+            pack.lot.placements[0].sprite, 3,
+            "the placement must carry fridge_artSW's index"
+        );
+        assert_eq!(
+            pack.objects[0].sprite, 2,
+            "the object definition keeps its own plain sprite"
+        );
+
+        // Absent: the definition's sprite, byte for byte.
+        let pack = compile_facing(None).expect("no facing is the old world");
+        assert_eq!(pack.lot.placements[0].sprite, 2);
+
+        // A typo'd facing is a typo, not a missing import.
+        assert_eq!(
+            compile_facing(Some("SSW")).unwrap_err(),
+            ContentError::UnknownFacing {
+                object: "fridge".into(),
+                facing: "SSW".into()
+            }
+        );
+
+        // A legal facing nobody imported names the exact atlas entry to
+        // add.
+        assert_eq!(
+            compile_facing(Some("NE")).unwrap_err(),
+            ContentError::FacingSpriteMissing {
+                object: "fridge".into(),
+                facing: "NE".into(),
+                sprite: "fridge_artNE".into()
+            }
+        );
+    }
+
+    /// Everything social tests compile through: the bare fixtures plus
+    /// the given vocabulary.
+    fn compile_bare_with_social(
+        interaction: Vec<InteractionDef>,
+    ) -> Result<ContentPack, ContentError> {
+        compile(
+            full_needs(),
+            one_object(snack()),
+            bare_lot(),
+            test_atlas(),
+            full_tuning(),
+            PersonalitiesFile { archetype: vec![] },
+            HouseholdFile { sim: vec![] },
+            SocialFile { interaction },
+        )
     }
 }

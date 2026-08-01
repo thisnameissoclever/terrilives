@@ -406,6 +406,84 @@ pub enum ContentError {
         need: String,
         value: f32,
     },
+    /// `relationship_gain_per_talk` outside `[0, 1]`. Same contract as
+    /// [`ContentError::HabituationPerUseOutOfRange`]: 0 legally disables
+    /// the mechanic, above 1 saturates a friendship in one conversation.
+    RelationshipGainOutOfRange {
+        value: f32,
+    },
+    /// A zero or negative relationship decay - the one-way-ratchet rule
+    /// [`ContentError::NonPositiveHabituationDecay`] states, applied to
+    /// relationships.
+    NonPositiveRelationshipDecay {
+        value: f32,
+    },
+    /// `relationship_delta_scale` outside `[0, 1]`. The multiplier is
+    /// `1 + relationship * scale` with relationships in `-1..=1`, so a
+    /// scale above 1 lets a bad relationship turn a social BENEFIT
+    /// negative - a cost nobody authored, of the [S2]-violating kind.
+    RelationshipDeltaScaleOutOfRange {
+        value: f32,
+    },
+    /// A placement's `facing` is not one of the kit's four. Caught
+    /// before sprite lookup so a typo reads as a typo rather than as a
+    /// missing atlas entry.
+    UnknownFacing {
+        object: String,
+        facing: String,
+    },
+    /// A placement's facing resolves to a sprite the atlas does not
+    /// hold - legal facing, unimported art. The atlas imports variants
+    /// as the lot needs them rather than all four of everything, so
+    /// this is the error that says which import is missing.
+    FacingSpriteMissing {
+        object: String,
+        facing: String,
+        sprite: String,
+    },
+    /// `social.toml` declares the same interaction twice. Own variants
+    /// rather than the object family's, so the message points at the
+    /// file that actually contains the mistake - the same reason the
+    /// household has `SpawnOutOfBounds` instead of reusing
+    /// `PlacementOutOfBounds`.
+    DuplicateSocialInteraction {
+        id: String,
+    },
+    /// A social interaction with a duration of 0 - the same silent
+    /// nothing as [`ContentError::ZeroDuration`], on the social file.
+    SocialZeroDuration {
+        interaction: String,
+    },
+    /// A social interaction with 0 slots - reserved space that reserves
+    /// nothing, as [`ContentError::ZeroSlots`] explains for objects.
+    SocialZeroSlots {
+        interaction: String,
+    },
+    /// A social interaction with a blank label. Nothing renders social
+    /// labels yet - the flyout is built from an object's interactions -
+    /// but the rule mirrors [`ContentError::EmptyInteractionLabel`] so
+    /// that the day a social menu exists, blank rows are already
+    /// unrepresentable rather than newly discovered.
+    SocialEmptyLabel {
+        interaction: String,
+    },
+    /// A social interaction advertises a need `needs.toml` does not
+    /// declare - the same rule as [`ContentError::UnknownNeed`], against
+    /// the social file.
+    SocialUnknownNeed {
+        interaction: String,
+        need: String,
+    },
+    /// A social interaction shorter than the interaction floor allows -
+    /// the same three silent lies [`ContentError::ClippedDuration`]
+    /// documents, on the social file.
+    ClippedSocialDuration {
+        interaction: String,
+        duration_ticks: u32,
+        minimum: u32,
+        floor: u32,
+        variance: f32,
+    },
 }
 
 impl fmt::Display for ContentError {
@@ -743,6 +821,77 @@ impl fmt::Display for ContentError {
                 "household.toml starts '{sim}' with {need} at {value}; levels \
                  are 0 to 100, and clamping silently would hide a typo behind \
                  a sim that merely behaves oddly for a day"
+            ),
+            ContentError::RelationshipGainOutOfRange { value } => write!(
+                f,
+                "relationship_gain_per_talk is {value}; must be in [0, 1]. \
+                 0 disables the mechanic; above 1 saturates a friendship in \
+                 a single conversation"
+            ),
+            ContentError::NonPositiveRelationshipDecay { value } => write!(
+                f,
+                "relationship_decay_per_tick is {value}; must be strictly \
+                 positive, or every relationship is a one-way ratchet that \
+                 only ever rises"
+            ),
+            ContentError::RelationshipDeltaScaleOutOfRange { value } => write!(
+                f,
+                "relationship_delta_scale is {value}; must be in [0, 1]. \
+                 The multiplier is 1 + relationship * scale with \
+                 relationships in -1..=1, so a scale above 1 would let a \
+                 bad relationship turn an advertised benefit negative"
+            ),
+            ContentError::UnknownFacing { object, facing } => write!(
+                f,
+                "lot.toml places '{object}' facing '{facing}'; a facing is                  one of NE, NW, SE, SW"
+            ),
+            ContentError::FacingSpriteMissing {
+                object,
+                facing,
+                sprite,
+            } => write!(
+                f,
+                "lot.toml places '{object}' facing '{facing}', which needs                  sprite '{sprite}' - the atlas does not hold it. Add the                  variant to assets/sprites/build-atlas.ps1 and regenerate"
+            ),
+            ContentError::DuplicateSocialInteraction { id } => write!(
+                f,
+                "social.toml declares interaction '{id}' more than once"
+            ),
+            ContentError::SocialZeroDuration { interaction } => write!(
+                f,
+                "social.toml interaction '{interaction}' has duration_ticks \
+                 of 0; must be at least 1"
+            ),
+            ContentError::SocialZeroSlots { interaction } => write!(
+                f,
+                "social.toml interaction '{interaction}' has slots of 0; \
+                 must be at least 1"
+            ),
+            ContentError::SocialEmptyLabel { interaction } => write!(
+                f,
+                "social.toml interaction '{interaction}' has a blank label; \
+                 any future social menu would draw a clickable row of empty \
+                 space. Omit the field entirely to fall back to \
+                 '{interaction}', or write a label"
+            ),
+            ContentError::SocialUnknownNeed { interaction, need } => write!(
+                f,
+                "social.toml interaction '{interaction}' advertises unknown \
+                 need '{need}'"
+            ),
+            ContentError::ClippedSocialDuration {
+                interaction,
+                duration_ticks,
+                minimum,
+                floor,
+                variance,
+            } => write!(
+                f,
+                "social.toml interaction '{interaction}' declares \
+                 {duration_ticks} ticks, but min_interaction_ticks {floor} \
+                 with duration_variance {variance} clips anything under \
+                 {minimum}: it would run for the floor every time, deliver \
+                 more than it advertises, and never vary"
             ),
         }
     }

@@ -28,13 +28,20 @@
 # `relieve_self` in a menu is a placeholder, not a label, so every shipped
 # interaction carries one.
 #
-# **The labels are written to the tone in docs/FEATURES.md**: absurdist
-# satire of institutional FORM, deadpan, and evergreen rather than topical.
-# Each one also has to survive being read at speed with a mouse hovering
-# over it, so the rule is a short verb phrase that says what the sim will
-# actually do - the joke rides on the phrasing, never in place of the
-# information. An entry the player cannot act on is not funny, it is a
-# menu that lies.
+# **The labels are PLAIN, by the owner's direction (2026-07-31).** A
+# first pass wrote them as deadpan jokes, and in play they read as
+# confusing or cringeworthy rather than funny - "Soak until
+# reconsidered" told a player nothing. The rule now: a short verb
+# phrase that says exactly what the sim will do, nothing else. The
+# game's voice (goal item 11) lives elsewhere and is authored with the
+# owner, not smuggled into menu rows.
+#
+# A second rule from the same session: a label never NAMES the object it
+# sits on. The flyout opens on the thing the player clicked, so "Sit in
+# the armchair" is redundant at best - and wrong the day players place a
+# second armchair, because "the armchair" asserts there is one. "Sit
+# down" is complete. Nouns appear only as generic idiom that does not
+# point at an instance: "Watch TV", "Take a shower", "Use the toilet".
 
 [[object]]
 id = "fridge"
@@ -57,12 +64,9 @@ sprite = "kitchenFridgeBuiltIn"
   # The world-hash golden vectors in crates/terri-sim/src/lib.rs and
   # web/tests/bridge.test.ts are built on this object, so both numbers move
   # them.
-  # "Eat standing up" rather than "Eat": the sim never sits down for this,
-  # and naming that is the whole joke - a meal taken in front of an open
-  # fridge door is the most-performed action in the house.
   [[object.interaction]]
   id = "grab_snack"
-  label = "Eat standing up"
+  label = "Grab a snack"
   advertises = { hunger = 40.0 }
   duration_ticks = 30
   slots = 1
@@ -95,12 +99,9 @@ sprite = "bedBunk"
   # should be a rare whole-night commitment rather than a top-up squeezed
   # in between meals, and the long duration is what stops it winning on a
   # mild deficit.
-  # "Sleep it off" carries the 180 ticks: this is the whole night, not a
-  # nap, and the phrasing says the sim is recovering from the day rather
-  # than resting for tomorrow.
   [[object.interaction]]
   id = "sleep"
-  label = "Sleep it off"
+  label = "Sleep"
   advertises = { energy = 100.0 }
   duration_ticks = 180
   slots = 1
@@ -115,13 +116,9 @@ sprite = "showerRound"
   # it off - which is precisely the interaction this milestone exists to
   # make visible. Contrast the sink below: less hygiene, no cost, and a
   # fraction of the time.
-  # "at length" is the energy cost, said out loud. It is the one label in
-  # the house that warns the player about the trade this object exists to
-  # offer, and it is why the sink's is deliberately clipped and clinical
-  # by contrast.
   [[object.interaction]]
   id = "take_shower"
-  label = "Shower at length"
+  label = "Take a shower"
   advertises = { hygiene = 70.0, energy = -12.0 }
   duration_ticks = 45
   slots = 1
@@ -143,12 +140,9 @@ sprite = "toiletSquare"
   # the bathroom sink's 21 and the kitchen sink's 23, which is still the
   # "fast" this comment is about - and on the five-room lot it is now the
   # most-chosen action outright at 26.4%, ahead of the fridge.
-  # "Use the facilities" is the object's own bureaucratic euphemism, which
-  # is the register the whole game is written in: an institution's word for
-  # a thing, applied to a house. It pairs with the object's name.
   [[object.interaction]]
   id = "relieve_self"
-  label = "Use the facilities"
+  label = "Use the toilet"
   advertises = { bladder = 95.0 }
   duration_ticks = 24
   slots = 1
@@ -229,7 +223,7 @@ sprite = "televisionVintage"
   # a newsreader talking at an empty room.
   [[object.interaction]]
   id = "watch_tv"
-  label = "Watch the news"
+  label = "Watch TV"
   advertises = { social = 24.0, fun = 30.0 }
   duration_ticks = 55
   slots = 2
@@ -249,7 +243,7 @@ sprite = "loungeSofaOttoman"
   # rather than clever, so it still reads as an instruction.
   [[object.interaction]]
   id = "lounge"
-  label = "Sink into it"
+  label = "Sit down"
   advertises = { fun = 18.0, comfort = 34.0 }
   duration_ticks = 50
   slots = 2
@@ -296,15 +290,9 @@ sprite = "bathroomSinkSquare"
   #
   # 32 and not 33: rule 1 at the top of this file. 34 is the sofa's comfort
   # and 30 is the television's fun.
-  # "Observe hand hygiene" is a compliance poster, in a bathroom, in
-  # somebody's house. It satirises institutional FORM rather than anyone in
-  # particular, which is the craft rule in docs/FEATURES.md, and its
-  # clipped procedural tone is the deliberate opposite of the shower's
-  # "at length" - the two labels are the trade-off this pair exists for,
-  # readable before the player has learned either object's numbers.
   [[object.interaction]]
   id = "wash_hands"
-  label = "Observe hand hygiene"
+  label = "Wash hands"
   advertises = { hygiene = 32.0 }
   duration_ticks = 21
   slots = 1
@@ -342,7 +330,7 @@ sprite = "bookcaseClosedDoors"
   # least-used object in the house has earned.
   [[object.interaction]]
   id = "read"
-  label = "Read something improving"
+  label = "Read a book"
   advertises = { fun = 26.0 }
   duration_ticks = 34
   slots = 1
@@ -404,7 +392,7 @@ sprite = "kitchenStove"
   # comfort deficit the fridge cannot touch.
   [[object.interaction]]
   id = "cook_meal"
-  label = "Cook something ambitious"
+  label = "Cook a meal"
   advertises = { hunger = 62.0, comfort = 8.0 }
   duration_ticks = 95
   slots = 1
@@ -449,7 +437,7 @@ sprite = "kitchenSink"
   # argument the bathroom sink was introduced with, applied one level down.
   [[object.interaction]]
   id = "wash_up"
-  label = "Deal with the dishes"
+  label = "Wash the dishes"
   # **20 and 23, raised from 14 and 27 after the first trace.** At 14 hygiene
   # this was at zero uses in 12 000 ticks, and the candidate table said why: it
   # is the fourth hygiene option in a house where hygiene is over-supplied
@@ -492,11 +480,9 @@ footprint = { width = 2, depth = 1 }
   # house whose social value is the point rather than a side effect, and it
   # is where the cooking chain's meal ends up.
   #
-  # The name is the joke and the placement is the punchline: it is three tiles
-  # from the fridge, and the fridge's own label is "Eat standing up".
   [[object.interaction]]
   id = "sit_properly"
-  label = "Sit down like a person"
+  label = "Sit down to eat"
   advertises = { comfort = 37.0, social = 11.0 }
   duration_ticks = 62
   slots = 2
@@ -556,7 +542,7 @@ footprint = { width = 2, depth = 1 }
   # interchangeable: the small one is a perch and this one is a commitment.
   [[object.interaction]]
   id = "stretch_out"
-  label = "Stretch out properly"
+  label = "Lie down"
   advertises = { comfort = 43.0, fun = 13.0, energy = 9.0 }
   duration_ticks = 72
   slots = 3
@@ -581,7 +567,7 @@ sprite = "loungeChair"
   # This is also the cleanest contention fixture in the lot.
   [[object.interaction]]
   id = "take_the_chair"
-  label = "Take the good chair"
+  label = "Sit down"
   advertises = { comfort = 29.0 }
   duration_ticks = 41
   slots = 1
@@ -608,7 +594,7 @@ sprite = "radio"
   # the moment sims can satisfy each other.
   [[object.interaction]]
   id = "listen"
-  label = "Listen to the shipping forecast"
+  label = "Listen to the radio"
   advertises = { fun = 22.0, social = 5.0 }
   duration_ticks = 38
   slots = 2
@@ -669,7 +655,7 @@ footprint = { width = 2, depth = 2 }
   # that the speed controls do something.
   [[object.interaction]]
   id = "sleep_properly"
-  label = "Sleep the whole night"
+  label = "Go to bed"
   advertises = { energy = 108.0, comfort = 10.0 }
   duration_ticks = 210
   slots = 2
@@ -719,7 +705,7 @@ footprint = { width = 2, depth = 1 }
   # the cost stays and the payoff moves from `fun` to money.
   [[object.interaction]]
   id = "attend_correspondence"
-  label = "Attend to correspondence"
+  label = "Work"
   advertises = { fun = 36.0, energy = -7.0 }
   duration_ticks = 58
   slots = 1
@@ -751,11 +737,24 @@ sprite = "loungeChairRelax"
   # 0.062 from the same spot. Worth recording as a shape rather than as a
   # number: an object can be at zero uses and be four ten-thousandths away
   # from working.
+  #
+  # **46 ticks and fun 19, from 51 and 16, at M2d - the SAME cliff a
+  # second time, and one lever was not enough to climb it.** Conversations
+  # arrived, chat carries a 6-fun rider, and every talk a sim has is idle
+  # time this chair used to be the answer to: the measured 12 000-tick run
+  # had it back at zero. Trimming the duration alone (51 to 46) recovered
+  # three uses over 36 000 ticks and still zero over 12 000, so the fun
+  # delta moved too - 19 keeps it below the bookshelf's 26 and the
+  # television's 30, so "middling" survives as a role even though the
+  # number crept. The object sits a rounding error above the action
+  # threshold BY DESIGN, so any new competitor for its needs will shave
+  # this margin again; expect a rethink of "middling on purpose" when
+  # M2e's hobbies land.
   [[object.interaction]]
   id = "settle_in"
-  label = "Settle in with something long"
-  advertises = { comfort = 15.0, fun = 16.0 }
-  duration_ticks = 51
+  label = "Sit and read"
+  advertises = { comfort = 15.0, fun = 19.0 }
+  duration_ticks = 46
   slots = 1
 
 [[object]]
@@ -807,7 +806,7 @@ footprint = { width = 2, depth = 1 }
   # wins on hygiene-plus-comfort together and never on comfort alone.
   [[object.interaction]]
   id = "soak"
-  label = "Soak until reconsidered"
+  label = "Take a bath"
   advertises = { hygiene = 58.0, comfort = 31.0, energy = -3.0 }
   duration_ticks = 78
   slots = 1

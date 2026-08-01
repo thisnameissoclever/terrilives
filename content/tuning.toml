@@ -396,6 +396,41 @@ max_queued_commands = 64
 # rather than in ticks.
 need_bar_refresh_ms = 100
 
+# THE RELATIONSHIP TRIO - [H5]/[H9]. The same shape as the habituation
+# trio above, pointed at people instead of objects: a per-use rise, a
+# per-tick decay, and a bounded multiplier. A relationship is one number
+# per ordered pair of sims, clamped to -1..=1, where 0 is a stranger;
+# A's feeling about B is stored separately from B's about A, so
+# unrequited is a real state.
+
+# How much one completed social interaction raises EACH participant's
+# relationship toward the other. 0.15 means roughly seven conversations
+# take two strangers to best friends, which at measured M2c social decay
+# (a sim seeks company every 2 000-4 000 ticks) is an evening of game
+# time rather than a lifetime or an instant. Zero disables the mechanic,
+# like habituation_per_use.
+relationship_gain_per_talk = 0.15
+
+# How much every relationship drifts toward zero each tick - toward
+# zero, not downward: a grudge fades on the same clock a friendship
+# does. 0.00001 costs a full friendship about a third of its warmth
+# over 36 000 unattended ticks (one long measured session), so
+# maintenance matters at the pace sessions are actually played. Must be
+# strictly positive, or a relationship is a one-way ratchet - the same
+# rule habituation_decay_per_tick carries.
+relationship_decay_per_tick = 0.00001
+
+# How strongly the initiator's relationship toward the target scales a
+# social advert's BENEFIT: the multiplier is 1 + relationship * scale.
+# At 0.5 a best friend's conversation is worth 1.5x its authored delta
+# and a nemesis's 0.5x - enough to make sims visibly prefer their
+# friends without ever making a stranger worthless. Must be in [0, 1]:
+# above 1, a bad enough relationship turns the advertised benefit
+# NEGATIVE, a cost nobody authored ([S2]). Applied in scoring AND
+# delivery through one function ([H8]), so a sim seeks exactly what the
+# conversation will give it.
+relationship_delta_scale = 0.5
+
 # Need decay per tick. One tick is one sim-minute, so 0.104 drains a full
 # need in roughly 16 sim-hours.
 #

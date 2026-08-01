@@ -102,6 +102,19 @@ impl Sim {
         world.register_component::<terri_core::SimId>();
         world.register_component::<terri_core::SimName>();
         world.register_component::<terri_core::Personality>();
+        // M2d's two. `Relationships` is in `world_hash`'s query, so [L3]
+        // bites the way it does for Habituation: unregistered, the digest
+        // goes EMPTY rather than wrong, and empty compares equal to
+        // empty. `Socialising` is not in the digest, but `select_action`
+        // filters on it and `try_query` panics tests for unregistered
+        // components even behind filters.
+        world.register_component::<terri_core::Relationships>();
+        world.register_component::<terri_core::Socialising>();
+        // A-11's facing carrier. In `sync_render_buffer`'s query (a
+        // plain `World::query`, which self-registers) rather than the
+        // digest's `try_query`, so this line is for the determinism
+        // tests' benefit, like Selected and IntentQueue above.
+        world.register_component::<terri_core::SpriteVariant>();
         // The identity counter - [H1]. From construction rather than on
         // first spawn, so a save file can restore it before any sim exists.
         world.insert_resource(terri_core::SimIdAllocator::default());
@@ -157,12 +170,19 @@ impl Sim {
                 systems::idle::wander,
                 systems::movement::follow_path,
                 systems::interact::tick_interactions,
-                // Last, and its position is genuinely free - unlike every
-                // other line here. It reads and writes one component per
-                // agent, shares no state, and nothing else reads habituation
-                // on a tick this writes it: `select_action` ran earlier and saw
-                // the previous tick's values. See `decay_habituation`.
+                // Beside `tick_interactions` because it is the same job
+                // for conversations: deliver per tick, complete, release
+                // the reservation. After `follow_path` so a conversation
+                // begins delivering on the tick after arrival, exactly
+                // as a meal does.
+                systems::social::tick_social,
+                // Last two, and their positions are genuinely free - unlike
+                // every other line here. Each reads and writes one component
+                // per agent, shares no state, and nothing else reads its
+                // component on a tick it writes: `select_action` ran earlier
+                // and saw the previous tick's values. See `decay_habituation`.
                 systems::habituation::decay_habituation,
+                systems::social::decay_relationships,
             )
                 .chain(),
         );
@@ -242,13 +262,22 @@ impl Sim {
         sim.world.insert_resource(grid);
 
         for placement in &lot.placements {
-            sim.world.spawn((
+            let spawned = sim.world.spawn((
                 terri_core::Position {
                     x: placement.x,
                     y: placement.y,
                 },
                 terri_core::SmartObject(placement.object),
             ));
+            // A facing is per PLACEMENT, so it cannot live on the object
+            // definition; the compile step resolved it to a sprite index
+            // and this component is how the index reaches the render
+            // buffer. Inserted only when it differs, so every world
+            // predating facings - and every test fixture - is untouched.
+            let mut spawned = spawned;
+            if placement.sprite != objects[placement.object.0 as usize].sprite {
+                spawned.insert(terri_core::SpriteVariant(placement.sprite));
+            }
         }
 
         sim
@@ -359,19 +388,57 @@ impl Sim {
         // cannot fail, so there is no Option to handle here. It returns an
         // owned QueryState, which ends the &mut borrow immediately and
         // leaves self.render free to write below.
-        let mut state = self
-            .world
-            .query::<(Entity, &Position, Has<Agent>, Option<&SmartObject>)>();
+        let mut state = self.world.query::<(
+            Entity,
+            &Position,
+            Has<Agent>,
+            Option<&SmartObject>,
+            Option<&terri_core::SpriteVariant>,
+        )>();
         let mut rows: Vec<(u32, f32, f32, u32, u32)> = Vec::new();
-        for (entity, pos, is_agent, object) in state.iter(&self.world) {
+        for (entity, pos, is_agent, object, variant) in state.iter(&self.world) {
             let kind = if is_agent { 0 } else { 1 };
             // An entity that is neither an agent nor a smart object has
             // no sprite of its own; the sim's is the only sensible
             // stand-in, and nothing in M1b spawns one. `world_hash`'s
             // bystander fixture is the only thing that ever has.
-            let sprite =
-                object.map_or(content.sim_sprite, |placed| content.object(placed.0).sprite);
-            rows.push((entity.index_u32(), pos.x, pos.y, kind, sprite));
+            //
+            // A `SpriteVariant` outranks the definition's sprite: it is
+            // the compile-resolved facing this particular placement was
+            // authored with.
+            let sprite = variant.map_or_else(
+                || object.map_or(content.sim_sprite, |placed| content.object(placed.0).sprite),
+                |v| v.0,
+            );
+            // **An object's ROW is centred on its rectangle; its Position
+            // component stays on the origin tile.** The renderer anchors
+            // every sprite to the projected position it is handed, and
+            // it knows nothing about footprints - so a 2x2 bed anchored
+            // to its origin tile was drawn one full tile-row north-west
+            // of the ground it owns, painting 84% of the spine wall's
+            // panel and reading as a bed through a wall, while the
+            // dining table never covered its own second tile and its
+            // east chair read as orphaned ([A-11]). The rectangle's
+            // centre is a fact this crate owns and the shell cannot see,
+            // so it is applied here, at the one place rows are written.
+            //
+            // Display-only by construction: `world_hash` digests the
+            // Position COMPONENT, scoring and pathing read the component
+            // and the footprint, and none of them read this buffer. The
+            // shift also moves the pick box in the shell, which is the
+            // point - the drawn sprite and the clickable area move
+            // together.
+            let (x, y) = match object {
+                Some(placed) => {
+                    let footprint = content.object(placed.0).footprint;
+                    (
+                        pos.x + (footprint.width as f32 - 1.0) * 0.5,
+                        pos.y + (footprint.depth as f32 - 1.0) * 0.5,
+                    )
+                }
+                None => (pos.x, pos.y),
+            };
+            rows.push((entity.index_u32(), x, y, kind, sprite));
         }
         rows.sort_by_key(|(index, _, _, _, _)| *index);
 
@@ -558,7 +625,7 @@ impl Sim {
     /// first, because ECS iteration order is an implementation detail and
     /// must not affect the result.
     pub fn world_hash(&self) -> u64 {
-        use terri_core::{Habituation, Needs, Position, NEED_COUNT};
+        use terri_core::{Habituation, Needs, Position, Relationships, SimId, NEED_COUNT};
 
         let mut hasher = terri_core::FnvHasher::default();
         hasher.write_u64(self.world.resource::<SimClock>().tick);
@@ -581,26 +648,50 @@ impl Sim {
         // prevent. Its entries are a sorted `Vec`, so hashing them in order is
         // reproducible; see `Habituation`'s own note on why that container.
         //
-        // **`Personality`, `SimId` and `SimName` are deliberately NOT in the
+        // **`Relationships` and `SimId` are in the digest, as of M2d.**
+        // Relationships change what a sim chooses - the same argument that
+        // put habituation in - and they are keyed on `SimId`, so the key
+        // space enters with them exactly as the M2c exclusion note
+        // promised: a digest carrying "SimId 3 likes SimId 5" without
+        // carrying which sim IS SimId 3 would let two differently-labelled
+        // worlds hash identically.
+        //
+        // **`Personality` and `SimName` are deliberately NOT in the
         // digest, each for its own reason.** `SimName` is presentation: a
-        // rename must not diverge a replay. `SimId` duplicates the entity
-        // index for as long as nothing dies, and enters the digest the day
-        // relationships do, keyed on it. `Personality` DOES change what a sim
-        // chooses - the same argument that put habituation in - and is
-        // excluded anyway because today it is static: derived from content at
-        // spawn and never written afterwards, so two replays from one pack
-        // cannot disagree about it, and digesting it would only restate the
-        // content. That argument EXPIRES the moment anything mutates a
-        // personality at runtime - M2e's traits are the scheduled arrival -
-        // and whoever writes the first mutation owns adding all three fields
-        // to this digest and re-measuring both golden vectors.
-        type Row = (u32, f32, f32, [f32; NEED_COUNT], Vec<(u32, u32, f32)>);
+        // rename must not diverge a replay. `Personality` DOES change what
+        // a sim chooses and is excluded anyway because today it is static:
+        // derived from content at spawn and never written afterwards, so
+        // two replays from one pack cannot disagree about it, and
+        // digesting it would only restate the content. That argument
+        // EXPIRES the moment anything mutates a personality at runtime -
+        // M2e's traits are the scheduled arrival - and whoever writes the
+        // first mutation owns adding it to this digest and re-measuring
+        // both golden vectors.
+        //
+        // NO_SIM_ID is in-band the way NO_NEEDS is, and safer: `SimId`
+        // wraps a u32 allocated monotonically from 0, so u64::MAX is
+        // unreachable by construction rather than merely unclamped.
+        const NO_SIM_ID: u64 = u64::MAX;
+        type Row = (
+            u32,
+            f32,
+            f32,
+            [f32; NEED_COUNT],
+            Vec<(u32, u32, f32)>,
+            u64,
+            Vec<(u32, f32)>,
+        );
         let mut rows: Vec<Row> = Vec::new();
-        if let Some(mut state) = self
-            .world
-            .try_query::<(Entity, &Position, Option<&Needs>, Option<&Habituation>)>()
-        {
-            for (entity, pos, needs, habituation) in state.iter(&self.world) {
+        if let Some(mut state) = self.world.try_query::<(
+            Entity,
+            &Position,
+            Option<&Needs>,
+            Option<&Habituation>,
+            Option<&SimId>,
+            Option<&Relationships>,
+        )>() {
+            for (entity, pos, needs, habituation, sim_id, relationships) in state.iter(&self.world)
+            {
                 // The sentinel is in-band, so a real level equal to it
                 // would hash as if the component were absent. `Needs`
                 // holds a private array and every mutator clamps to
@@ -626,16 +717,34 @@ impl Sim {
                         .map(|(object, interaction, value)| (object.0, *interaction, *value))
                         .collect()
                 });
-                rows.push((entity.index_u32(), pos.x, pos.y, levels, hab));
+                // Flattened for `ObjectDefId`'s reason applied to `SimId`,
+                // and empty-for-absent for `Habituation`'s: a sim who has
+                // met nobody and a sim whose feelings have all decayed
+                // away behave identically, so they hash identically.
+                let rel: Vec<(u32, f32)> = relationships.map_or_else(Vec::new, |r| {
+                    r.entries()
+                        .iter()
+                        .map(|(other, feeling)| (other.0, *feeling))
+                        .collect()
+                });
+                rows.push((
+                    entity.index_u32(),
+                    pos.x,
+                    pos.y,
+                    levels,
+                    hab,
+                    sim_id.map_or(NO_SIM_ID, |id| id.0 as u64),
+                    rel,
+                ));
             }
         }
         // The sort is load-bearing: query iteration is archetype order,
         // not entity order, and archetype order shifts as components are
         // added and removed. `hash_ignores_archetype_layout_and_entity_history`
         // is what pins it; deleting this line must fail that test.
-        rows.sort_by_key(|(index, _, _, _, _)| *index);
+        rows.sort_by_key(|(index, ..)| *index);
 
-        for (index, x, y, levels, habituation) in rows {
+        for (index, x, y, levels, habituation, sim_id, relationships) in rows {
             hasher.write_u64(index as u64);
             hasher.write_f32(x);
             hasher.write_f32(y);
@@ -652,6 +761,13 @@ impl Sim {
                 hasher.write_u64(object as u64);
                 hasher.write_u64(interaction as u64);
                 hasher.write_f32(value);
+            }
+            hasher.write_u64(sim_id);
+            // Length-prefixed for the same aliasing reason as habituation.
+            hasher.write_u64(relationships.len() as u64);
+            for (other, feeling) in relationships {
+                hasher.write_u64(other as u64);
+                hasher.write_f32(feeling);
             }
         }
 
@@ -730,11 +846,13 @@ mod lot_tests {
                     object: ObjectDefId(2),
                     x: 2.5,
                     y: 1.25,
+                    sprite: 2,
                 },
                 CompiledPlacement {
                     object: ObjectDefId(0),
                     x: 4.0,
                     y: 3.5,
+                    sprite: 0,
                 },
             ],
         }
@@ -753,6 +871,48 @@ mod lot_tests {
             .collect();
         rows.sort_by_key(|(index, _, _, _)| *index);
         rows.into_iter().map(|(_, x, y, def)| (x, y, def)).collect()
+    }
+
+    /// The facing guard in the spawn loop, exercised through the one
+    /// path that decides: a placement whose compiled sprite DIFFERS
+    /// from its definition's carries a `SpriteVariant`, and one whose
+    /// sprite matches carries nothing. The fixture's two placements are
+    /// one of each - sprite 2 against a definition sprite of 0, and
+    /// sprite 0 against the same - so flipping the guard's `!=` swaps
+    /// both outcomes and both assertions go red. The render-buffer test
+    /// for the variant inserts the component directly and cannot see
+    /// this decision.
+    #[test]
+    fn new_from_lot_gives_only_faced_placements_a_sprite_variant() {
+        let lot = a_lot();
+        let defs = one_tile_defs();
+        assert_ne!(
+            lot.placements[0].sprite, defs[2].sprite,
+            "precondition: the first placement is faced"
+        );
+        assert_eq!(
+            lot.placements[1].sprite, defs[0].sprite,
+            "precondition: the second placement is plain"
+        );
+
+        let mut sim = Sim::new_from_lot(&lot, &defs);
+        let mut variants: Vec<(f32, Option<u32>)> = {
+            let world = sim.world_mut();
+            let mut state =
+                world.query::<(&Position, &SmartObject, Option<&terri_core::SpriteVariant>)>();
+            state
+                .iter(world)
+                .map(|(pos, _, variant)| (pos.x, variant.map(|v| v.0)))
+                .collect()
+        };
+        variants.sort_by(|a, b| a.0.total_cmp(&b.0));
+
+        assert_eq!(
+            variants,
+            vec![(2.5, Some(2)), (4.0, None)],
+            "the faced placement carries its resolved variant and the \
+             plain one carries nothing - a flipped guard swaps both"
+        );
     }
 
     #[test]
@@ -842,6 +1002,7 @@ mod lot_tests {
                 object: ObjectDefId(2),
                 x: 2.5,
                 y: 1.25,
+                sprite: 2,
             }],
         }
     }
@@ -1430,6 +1591,65 @@ mod determinism_tests {
     }
 
     #[test]
+    fn hash_observes_relationships_and_sim_ids() {
+        use terri_core::{Relationships, SimId};
+
+        // The same frozen-world shape as
+        // `hash_observes_entity_state_not_only_the_clock`, for the same
+        // reason: nothing ticks, so the only term that can move the
+        // digest is the one this test moves.
+        let mut sim = build_scenario();
+        let baseline = sim.world_hash();
+        let agent = lowest_indexed_agent(&sim);
+
+        // A feeling forms: the digest must move. Restoring an EMPTY
+        // component must restore it - a sim who has met nobody and a sim
+        // carrying no component behave identically, so they must hash
+        // identically, or the digest depends on archaeology.
+        let mut warm = Relationships::default();
+        warm.bump(SimId(7), 0.5);
+        sim.world_mut().entity_mut(agent).insert(warm);
+        let with_feeling = sim.world_hash();
+        assert_ne!(baseline, with_feeling, "world_hash ignores Relationships");
+        sim.world_mut()
+            .entity_mut(agent)
+            .insert(Relationships::default());
+        assert_eq!(
+            baseline,
+            sim.world_hash(),
+            "an empty Relationships must hash exactly like no component"
+        );
+
+        // WHO the feeling is about is part of the state, not only that
+        // one exists - two sims warm toward different people must not
+        // collide.
+        let mut warm_to_other = Relationships::default();
+        warm_to_other.bump(SimId(8), 0.5);
+        sim.world_mut().entity_mut(agent).insert(warm_to_other);
+        assert_ne!(
+            with_feeling,
+            sim.world_hash(),
+            "world_hash ignores WHO a relationship points at"
+        );
+        sim.world_mut().entity_mut(agent).remove::<Relationships>();
+        assert_eq!(baseline, sim.world_hash());
+
+        // And the key space itself: the same world with a different
+        // SimId on one sim is a different world, per the M2c exclusion
+        // note's promise that ids enter the digest the day relationships
+        // do.
+        sim.world_mut().entity_mut(agent).insert(SimId(41));
+        let labelled = sim.world_hash();
+        assert_ne!(baseline, labelled, "world_hash ignores SimId");
+        sim.world_mut().entity_mut(agent).insert(SimId(42));
+        assert_ne!(
+            labelled,
+            sim.world_hash(),
+            "world_hash ignores WHICH SimId a sim carries"
+        );
+    }
+
+    #[test]
     fn hash_observes_entity_state_not_only_the_clock() {
         // The other tests all move the clock, and world_hash writes the
         // clock as well as the entity rows, so a digest difference there
@@ -1793,12 +2013,25 @@ mod determinism_tests {
         // to content it does not use; see [L36] for what that insensitivity
         // has already hidden once.
         //
+        // **M2d moved it by ENCODING, not behaviour: the digest gained two
+        // columns.** Every row now carries a SimId (the in-band
+        // `u64::MAX` sentinel here, since `build_scenario` spawns plain
+        // agents with no identity) and a length-prefixed relationships
+        // list (empty here - nobody has met anybody). Both are written
+        // for every entity whether populated or not, which is exactly why
+        // the vector moved with zero sims and zero feelings in the
+        // fixture: the SHAPE is the published format, per the same
+        // decision that fixed all seven need columns while only hunger
+        // decayed. Nothing about what the eight agents do changed;
+        // `identical_scenarios_produce_identical_world_hashes` and every
+        // behavioural test passed untouched across this move.
+        //
         // Read off the wasm32 failure after a rebuild per [L13] rather than
         // copied from native - the two agree, which is a measurement each
         // time. Previous values: 0xFB84_8515_2C59_2AD8 (habituation),
         // 0xCB2C_8122_2251_D840 before that.
         //
-        // **And `contested_score_multiplier` moved it again**, from
+        // **And `contested_score_multiplier` moved it**, from
         // 0x7E3F_CBE2_7849_036C. This scenario is eight agents and one
         // fridge, so seven are outbid on every tick and the knob decides,
         // for each of them, whether wanting a thing it cannot have is enough
@@ -1819,10 +2052,17 @@ mod determinism_tests {
         // what the [C3] fix did on its own. The knob is a pure addition and
         // the movement below is caused by it alone.
         //
-        // It also means this fixture is sensitive to the knob AND to
-        // `idle_threshold`, which the two are compared against each other
-        // through. Both were previously recorded as invisible here.
-        const GOLDEN: u64 = 0xEEE5_892C_001E_DD92;
+        // **M2d moved it again, by ENCODING**: every digest row gained a
+        // SimId column (the in-band u64::MAX sentinel here - these agents
+        // carry no identity) and a length-prefixed relationships list
+        // (empty here). Both are written for every entity whether
+        // populated or not - the SHAPE is the published format, per the
+        // same decision that fixed all seven need columns while only
+        // hunger decayed. The two movements merged from parallel
+        // branches, so this value is the MERGED measurement: the knob's
+        // behaviour at 0.75 digested in M2d's wider format, read off the
+        // wasm32 failure after a rebuild per [L13] and equal to native.
+        const GOLDEN: u64 = 0x390E_E443_81C5_4B7A;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

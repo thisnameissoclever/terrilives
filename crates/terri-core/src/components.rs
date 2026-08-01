@@ -326,6 +326,90 @@ impl Habituation {
     }
 }
 
+/// How this sim feels about each other sim it has ever dealt with -
+/// [H5] in `docs/specs/2026-07-30-household-and-relationships-design.md`.
+///
+/// One `f32` per **ordered** pair, in `-1.0..=1.0`, where 0 is a
+/// stranger: A's feeling about B lives on A and B's about A lives on B,
+/// so unrequited is a real state and the asymmetry costs nothing. One
+/// number rather than a friendship/romance/respect vector, because one
+/// is enough to change choice and the extra dimensions should wait for
+/// something in the game that distinguishes them.
+///
+/// Keyed on [`SimId`] rather than `Entity` for exactly the reason
+/// `SimId` exists: entity indices are reused after death, and a grudge
+/// that silently transfers to whoever is born next is [L47] wearing a
+/// different hat.
+///
+/// A sorted `Vec` with the same shape, the same invariant-holder
+/// ([`Self::bump`] is the only inserter) and the same reason as
+/// [`Habituation`]: `world_hash` iterates it, and a digest over an
+/// unordered container depends on insertion history.
+#[derive(Component, Debug, Clone, Default, PartialEq)]
+pub struct Relationships(Vec<(SimId, f32)>);
+
+impl Relationships {
+    /// How this sim feels about `other`, in `-1.0..=1.0`. A stranger
+    /// reads 0.
+    pub fn feeling(&self, other: SimId) -> f32 {
+        match self.find(other) {
+            Ok(i) => self.0[i].1,
+            Err(_) => 0.0,
+        }
+    }
+    /// Moves the feeling toward `other` by `amount` - which may be
+    /// negative, the day an interaction sours one - clamped to
+    /// `-1.0..=1.0`.
+    ///
+    /// Inserting at the searched position keeps the Vec sorted, and the
+    /// sort is what makes `world_hash` reproducible.
+    pub fn bump(&mut self, other: SimId, amount: f32) {
+        match self.find(other) {
+            Ok(i) => self.0[i].1 = (self.0[i].1 + amount).clamp(-1.0, 1.0),
+            Err(i) => self.0.insert(i, (other, amount.clamp(-1.0, 1.0))),
+        }
+    }
+    /// Drifts every entry toward ZERO by `amount` - a grudge fades on
+    /// the same clock a friendship does - dropping any that arrive.
+    ///
+    /// Dropping is the same digest argument as [`Habituation::decay`]:
+    /// an entry pinned at 0.0 behaves exactly like an absent one, so
+    /// keeping it would let two sims with identical behaviour hash
+    /// differently because of who they once knew.
+    ///
+    /// The over-shoot clamp is what makes zero REACHABLE: a feeling
+    /// smaller than `amount` snaps to zero rather than oscillating
+    /// across it forever at one `amount` per tick.
+    pub fn decay(&mut self, amount: f32) {
+        for entry in self.0.iter_mut() {
+            if entry.1 > 0.0 {
+                entry.1 = (entry.1 - amount).max(0.0);
+            } else {
+                entry.1 = (entry.1 + amount).min(0.0);
+            }
+        }
+        self.0.retain(|entry| entry.1 != 0.0);
+    }
+    /// Every entry, in key order. For `world_hash` and for tests.
+    pub fn entries(&self) -> &[(SimId, f32)] {
+        &self.0
+    }
+    fn find(&self, other: SimId) -> Result<usize, usize> {
+        self.0.binary_search_by(|(id, _)| id.cmp(&other))
+    }
+}
+
+/// The atlas sprite this entity is drawn with, when it differs from its
+/// object definition's - [A-11]'s facing mechanism.
+///
+/// A placement may say `facing = "SW"`, and the compile step resolves
+/// that to a concrete sprite index at build time; this component is how
+/// the resolved index rides on the spawned entity so the render buffer
+/// can read it. Presentation only: nothing in scoring, pathing or the
+/// world hash reads it, exactly like `SimName`.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SpriteVariant(pub u32);
+
 /// A sim's stable identity - [H1] in
 /// `docs/specs/2026-07-30-household-and-relationships-design.md`.
 ///
@@ -479,6 +563,29 @@ pub struct Eating {
     pub object: ObjectDefId,
     /// Index into that object's `interactions` in the content pack.
     pub interaction: u32,
+    pub remaining_ticks: u32,
+}
+
+/// An in-progress conversation, carried by the INITIATOR only - [H4].
+///
+/// The partner carries nothing but `Reserved`, exactly as a fridge in use
+/// does: one talk is one interaction with a person where the object would
+/// be, and `tick_social` delivers to both participants from this single
+/// record. Giving the partner a mirror component would mean two counters
+/// that have to agree, and the first interruption would leave one behind.
+///
+/// A separate component from [`Eating`] rather than a variant inside it,
+/// because `Eating` names an [`ObjectDefId`] and a social interaction has
+/// no object behind it: `interaction` here indexes the pack's SOCIAL
+/// vocabulary. The partner is an `Entity` rather than a `SimId` because
+/// releasing the reservation on completion needs the entity, the same
+/// reason `Target` holds one; the relationship bump resolves the `SimId`
+/// at delivery time.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Socialising {
+    /// Index into the content pack's `social` vocabulary.
+    pub interaction: u32,
+    pub partner: Entity,
     pub remaining_ticks: u32,
 }
 
@@ -699,5 +806,70 @@ mod identity_tests {
         }
         assert!(neutral.dispositions().is_empty());
         assert_eq!(neutral.disposition(ObjectDefId(0), 0), 1.0);
+    }
+
+    #[test]
+    fn a_stranger_reads_zero_and_bumps_clamp_at_both_ends() {
+        let mut r = Relationships::default();
+        assert_eq!(r.feeling(SimId(3)), 0.0);
+
+        // Clamped at +1 however warm it gets, and at -1 however sour: a
+        // feeling past either end has no representation, which is what
+        // lets `relationship_scale`'s bound arithmetic assume the range.
+        r.bump(SimId(3), 0.75);
+        r.bump(SimId(3), 0.75);
+        assert_eq!(r.feeling(SimId(3)), 1.0);
+        r.bump(SimId(3), -3.5);
+        assert_eq!(r.feeling(SimId(3)), -1.0);
+
+        // And a first impression is clamped too, not just an update: one
+        // bump of 7.0 must land at 1.0 rather than storing the raw amount.
+        r.bump(SimId(9), 7.0);
+        assert_eq!(r.feeling(SimId(9)), 1.0);
+    }
+
+    /// The digest argument: entry order must be a function of the KEYS,
+    /// never of the order feelings formed - two sims who met the same
+    /// people in a different order must hash identically.
+    #[test]
+    fn relationship_entries_are_key_sorted_regardless_of_meeting_order() {
+        let mut met_low_first = Relationships::default();
+        met_low_first.bump(SimId(1), 0.25);
+        met_low_first.bump(SimId(8), 0.5);
+
+        let mut met_high_first = Relationships::default();
+        met_high_first.bump(SimId(8), 0.5);
+        met_high_first.bump(SimId(1), 0.25);
+
+        assert_eq!(met_low_first, met_high_first);
+        let keys: Vec<u32> = met_low_first.entries().iter().map(|(id, _)| id.0).collect();
+        assert_eq!(keys, vec![1, 8]);
+    }
+
+    /// Decay drifts TOWARD ZERO from both signs - a grudge fades on the
+    /// same clock a friendship does - and an entry that arrives is
+    /// dropped, for `Habituation::decay`'s digest reason.
+    #[test]
+    fn relationships_decay_toward_zero_from_both_sides_and_spent_entries_drop() {
+        let mut r = Relationships::default();
+        r.bump(SimId(1), 0.5);
+        r.bump(SimId(2), -0.5);
+        r.decay(0.125);
+        assert_eq!(r.feeling(SimId(1)), 0.375, "warm cools toward zero");
+        assert_eq!(r.feeling(SimId(2)), -0.375, "sour sweetens toward zero");
+
+        // A feeling smaller than the step must SNAP to zero and drop,
+        // not overshoot and oscillate across it forever.
+        let mut faint = Relationships::default();
+        faint.bump(SimId(1), 0.1);
+        faint.bump(SimId(2), -0.1);
+        faint.decay(0.25);
+        assert!(
+            faint.entries().is_empty(),
+            "entries that reach zero must drop, or two sims with identical \
+             behaviour hash differently because of who they once knew; got \
+             {:?}",
+            faint.entries()
+        );
     }
 }

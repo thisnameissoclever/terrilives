@@ -71,6 +71,19 @@ pub struct TuningFile {
     /// How often the shell re-reads a selected sim's needs for the need
     /// bars, in real milliseconds. Zero means every frame and is legal.
     pub need_bar_refresh_ms: u32,
+    /// How much one completed social interaction raises EACH participant's
+    /// relationship toward the other, in `0.0..=1.0`. Zero disables the
+    /// mechanic, exactly as `habituation_per_use` does for habituation.
+    pub relationship_gain_per_talk: f32,
+    /// How much every relationship drifts toward zero each tick. Strictly
+    /// positive, or a friendship would be a one-way ratchet - the same
+    /// rule `habituation_decay_per_tick` carries and for the same reason.
+    pub relationship_decay_per_tick: f32,
+    /// How strongly a relationship scales a social interaction's
+    /// advertised benefit: the multiplier is `1 + relationship * scale`,
+    /// so with relationship in `-1..=1` this must be in `0.0..=1.0` to
+    /// keep the multiplier non-negative. Zero disables the effect.
+    pub relationship_delta_scale: f32,
     /// Need name to how much of that need drains per tick.
     ///
     /// A decay rate is a system-wide balance knob rather than part of a
@@ -108,6 +121,26 @@ pub struct NeedDef {
 pub struct ObjectsFile {
     pub object: Vec<ObjectDef>,
 }
+
+/// Mirrors `content/social.toml` - the interactions a SIM advertises to
+/// other sims, [H4]/[H6].
+///
+/// The entries reuse [`InteractionDef`] unchanged, because a talk IS an
+/// interaction - it merely has a person where the fridge would be. An
+/// empty file is legal at compile time (test packs have no social life),
+/// and the shipped pack is separately required to carry at least one
+/// positively social entry by `the_shipped_pack_gives_sims_a_way_to_talk`.
+#[derive(Debug, Deserialize)]
+pub struct SocialFile {
+    pub interaction: Vec<InteractionDef>,
+}
+
+/// The four isometric facings the Kenney kit pre-renders every piece at.
+///
+/// A string in the schema rather than an enum, because an unknown facing
+/// is a CONTENT error the compile step reports with the file and object
+/// named - serde's "unknown variant" error names neither.
+pub const FACINGS: [&str; 4] = ["NE", "NW", "SE", "SW"];
 
 #[derive(Debug, Deserialize)]
 pub struct ObjectDef {
@@ -354,6 +387,13 @@ pub struct PlacementDef {
     pub object: String,
     pub x: f32,
     pub y: f32,
+    /// Which of the kit's four pre-rendered facings this placement is
+    /// drawn with - `"SW"` and friends, see [`FACINGS`]. Absent means
+    /// the object definition's own sprite, which is the `_SE` facing by
+    /// this project's import convention. Presentation only: the
+    /// simulation neither knows nor cares which way a counter faces.
+    #[serde(default)]
+    pub facing: Option<String>,
 }
 
 #[cfg(test)]
@@ -368,7 +408,7 @@ mod tests {
     /// The six `u32`s and the `u64` are deliberately different numbers
     /// for the same reason, and every float is exact in binary32 so the
     /// assertions can be equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 15] = [
+    const TUNING_LINES: [(&str, &str); 18] = [
         ("action_threshold", "0.25"),
         ("choice_temperature", "0.5"),
         ("idle_threshold", "0.125"),
@@ -384,6 +424,9 @@ mod tests {
         ("max_queued_commands", "11"),
         ("need_bar_refresh_ms", "13"),
         ("contested_score_multiplier", "0.375"),
+        ("relationship_gain_per_talk", "0.4375"),
+        ("relationship_decay_per_tick", "0.001953125"),
+        ("relationship_delta_scale", "0.875"),
     ];
 
     /// The decay table, which is the twelfth knob and the only one that is
@@ -442,6 +485,9 @@ mod tests {
         assert_eq!(parsed.max_queued_commands, 11);
         assert_eq!(parsed.need_bar_refresh_ms, 13);
         assert_eq!(parsed.contested_score_multiplier, 0.375);
+        assert_eq!(parsed.relationship_gain_per_talk, 0.4375);
+        assert_eq!(parsed.relationship_decay_per_tick, 0.001953125);
+        assert_eq!(parsed.relationship_delta_scale, 0.875);
 
         assert_eq!(parsed.decay_per_tick.len(), DECAY_LINES.len());
         for (need, rate) in DECAY_LINES {

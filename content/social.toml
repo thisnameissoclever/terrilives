@@ -1,0 +1,49 @@
+# What a sim advertises to the OTHER sims - [H4]/[H6].
+#
+# Objects advertise from where they stand; sims advertise from wherever
+# they happen to be. Everything else about an entry here works exactly
+# like an [[object.interaction]] in objects.toml: it advertises need
+# deltas, it runs for a duration, and selection weighs it against every
+# fridge and television in the house with the same arithmetic. The only
+# additions are social ones, applied by the systems rather than authored
+# here: the initiator's relationship toward the target scales the
+# benefit (tuning.toml's relationship_delta_scale says how strongly),
+# and completing the interaction moves both relationships up
+# (relationship_gain_per_talk).
+#
+# The deltas apply to BOTH participants: a conversation is the one
+# interaction in the game where the object gets as much out of being
+# used as the user. Delivery scales each side by that sim's own
+# satisfaction multiplier, so a personality that enjoys company less is
+# harder to top up on either end of the exchange.
+#
+# There is no habituation on these - [H7]. The brake on talking to the
+# same person forever is the social need itself: urgency is cubed, so a
+# topped-up sim scores another chat near zero. If the measured feel
+# notes ever show talk loops the need level failed to damp, that
+# decision has an expiry written on it.
+
+[[interaction]]
+id = "chat"
+label = "Chat"
+# 30 social over 40 ticks. Stronger per tick than the television's 24
+# over 55, on purpose: the television is the placeholder company a lone
+# sim falls back on, and the real thing should win when a person is
+# actually available. Fun rides along at a token 6 - a conversation in
+# this house is at least faintly entertaining. Two sims standing
+# together CAN chat on the fun rider alone: at distance zero the rider
+# scores deficit-cubed x 6 / 41, which clears the 0.05 action threshold
+# once fun is below about 30 - a bored sim bothering whoever is beside
+# it is intended colour, not a leak. The social need's own cubed
+# urgency is still the main brake ([H7]); the rider only opens the
+# door when fun is genuinely low.
+advertises = { social = 30.0, fun = 6.0 }
+# 40 ticks is 4 seconds at speed 1 - long enough to watch two sims stand
+# together and be visibly IN a conversation (the A2 rule: an interaction
+# shorter than a glance reads as teleporting), short enough that the
+# reserved partner is not imprisoned by politeness.
+duration_ticks = 40
+# Two people. Slots are compiled and validated but not yet consumed by
+# any system; when group conversations arrive, this is the knob that
+# already says how many may join.
+slots = 2

@@ -143,11 +143,20 @@ place = [
   # cooking chain will walk it - fridge, counter, stove, counter, sink -
   # which costs nothing today and is free to have got right when
   # docs/specs/2026-07-29-multi-step-interactions-design.md lands.
+  #
+  # **Every station on the run faces SW - into the room** ([A-11]). The
+  # atlas's plain sprites are the kit's east-facing `_SE` renders, which
+  # on a run along x had the whole kitchen working against the wrong
+  # wall. The fridge keeps the plain facing on purpose: it stands at the
+  # run's west end and reads as closing it. A second counter fills the
+  # old one-tile hole at (5, 0), so the run meets the trashcan instead
+  # of stopping at a gap that read as a missing appliance.
   { object = "fridge", x = 0.0, y = 0.0 },
-  { object = "counter", x = 1.0, y = 0.0 },
-  { object = "stove", x = 2.0, y = 0.0 },
-  { object = "counter", x = 3.0, y = 0.0 },
-  { object = "kitchen_sink", x = 4.0, y = 0.0 },
+  { object = "counter", x = 1.0, y = 0.0, facing = "SW" },
+  { object = "stove", x = 2.0, y = 0.0, facing = "SW" },
+  { object = "counter", x = 3.0, y = 0.0, facing = "SW" },
+  { object = "kitchen_sink", x = 4.0, y = 0.0, facing = "SW" },
+  { object = "counter", x = 5.0, y = 0.0, facing = "SW" },
   { object = "trashcan", x = 6.0, y = 0.0 },
 
   # The table is three tiles from the fridge and the fridge's own label is

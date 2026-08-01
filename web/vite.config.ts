@@ -1,12 +1,65 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { defineConfig } from 'vite';
 
-export default defineConfig({
+/**
+ * Self-signed TLS, when the material exists.
+ *
+ * WebGPU only exists in secure contexts - https, or localhost - so the
+ * dev build that runs perfectly at http://localhost:5173 renders a
+ * void from any other device's plain-http address. Three servers,
+ * three answers:
+ *
+ *   - `npm run dev` (5173): plain http, localhost work. Deliberately
+ *     NOT https, so local tooling never fights a certificate
+ *     interstitial.
+ *   - `npm run dev:lan` (5174): the SAME live dev server over https,
+ *     for phones and other machines - one URL that is always the
+ *     current game, hot reload included.
+ *   - `npm run preview` (4173): the built bundle over https, the
+ *     closer-to-shipping copy.
+ *
+ * The material is deliberately optional and gitignored: a fresh clone
+ * works without it (every server simply serves http, fine on
+ * localhost), and a private key never enters history even a throwaway
+ * one. Regenerate with:
+ *
+ *   openssl req -x509 -newkey rsa:2048 -sha256 -days 825 -nodes \
+ *     -keyout web/.cert/key.pem -out web/.cert/cert.pem \
+ *     -subj "//CN=terrilives-dev" \
+ *     -addext "subjectAltName=DNS:localhost,IP:127.0.0.1,IP:<your LAN IP>"
+ *
+ * Visiting browsers show a one-time "connection not private" warning
+ * for a self-signed certificate; proceeding past it still counts as a
+ * secure context, which is all WebGPU asks.
+ */
+const certDir = path.resolve(__dirname, '.cert');
+const https = fs.existsSync(path.join(certDir, 'cert.pem'))
+  ? {
+      key: fs.readFileSync(path.join(certDir, 'key.pem')),
+      cert: fs.readFileSync(path.join(certDir, 'cert.pem')),
+    }
+  : undefined;
+
+export default defineConfig(({ mode }) => ({
   // Relative asset URLs, so the build works from any path. GitHub Pages
   // serves a project site from /<repo>/ rather than /, and an absolute
   // base would 404 every asset there while working fine locally, which
   // is the kind of difference that only shows up after deploying.
   base: './',
   server: {
+    // Bind every interface, not only localhost, so the dev build is
+    // reachable from other machines and phones on the same network at
+    // http://<this-machine's-LAN-IP>:5173. Windows will ask once to
+    // allow Node through the firewall for private networks; that
+    // approval is the machine owner's to give. Note WebGPU on the
+    // visiting device still applies: recent Chrome or Edge works,
+    // Safari and older Android browsers may not.
+    host: true,
+    // https only in `dev:lan` mode - the mode exists so the plain
+    // localhost workflow and the phone-reachable one can run side by
+    // side on their own ports rather than fighting over one.
+    https: mode === 'lan' ? https : undefined,
     // Required for SharedArrayBuffer / WASM threads later. Harmless now.
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin',
@@ -20,4 +73,13 @@ export default defineConfig({
       allow: ['..'],
     },
   },
-});
+  preview: {
+    // Same LAN exposure for `npm run preview`, which serves the built
+    // bundle on 4173 - and over https when the local cert material
+    // exists, because that is the server phones are pointed at and
+    // WebGPU does not exist for them on plain http. See the note on
+    // `https` above.
+    host: true,
+    https,
+  },
+}));

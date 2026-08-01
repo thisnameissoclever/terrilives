@@ -144,3 +144,30 @@ invariant:
 If the reviewer cannot name one, that is a finding, not a pass. This question
 has caught five of five instances so far; it is the defence that actually
 works, and it only works when asked explicitly rather than re-derived.
+
+## 8. Every milestone ends with a PLAYED visual pass
+
+A milestone is not done when its tests are green and its trace numbers
+are recorded; it is done when somebody has PLAYED the build and looked.
+The M2d cycle proved the gap: every gate was green, the trace was
+clean, and the first human session filed twelve findings in one
+message - wrong-facing kitchen sprites, a bed drawn through a wall,
+free-standing wall screens, an orphaned chair - none of which any test
+or trace could see, because they are facts about pixels and reading,
+not about state.
+
+The pass, before the milestone PR:
+
+- Play the build in a displayed browser (the pane, or over the LAN).
+- Walk a fixed checklist: every object's sprite against its footprint;
+  every wall run end to end; every UI element exercised; one full need
+  cycle for one sim; one conversation watched end to end; every new
+  mechanic SEEN doing its thing, not inferred from a counter.
+- File findings in docs/alpha-feel-notes.md with the milestone's entry,
+  fixed or explicitly deferred with the reason.
+
+A finding class caught here twice becomes a candidate for automation -
+the anchor rule got a render-buffer test the same day it got eyes - but
+the pass itself is not automatable, which is the point: it is the one
+gate that measures what a player actually receives.
+
