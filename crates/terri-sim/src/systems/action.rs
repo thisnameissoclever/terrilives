@@ -532,15 +532,52 @@ pub fn serve_intents(
                 ));
             continue;
         };
-        // Out of range means the pack changed under a saved command log,
-        // since a live click cannot name an interaction that is not
-        // there. Dropping it is what keeps the indexing in `follow_path`
-        // and `tick_interactions` safe by construction rather than by
-        // hope - those two index straight into `interactions` with this
-        // number.
-        if intent.interaction as usize >= content.0.object(placed.0).interactions.len() {
-            queue.pop();
-            continue;
+        // **The rows past the interactions are the object's CHAINS** -
+        // [K5]'s flyout mapping, which is what keeps the command wire
+        // untouched: `UseObject`'s existing index addresses a chain by
+        // position. Starting one preempts exactly as any command does,
+        // spends the intent (the chain carries itself from here -
+        // advance_chains targets the first station this same tick),
+        // and replaces whatever chain was already running, hands
+        // emptied: two dinners at once is not a state.
+        {
+            let interactions = content.0.object(placed.0).interactions.len();
+            if intent.interaction as usize >= interactions {
+                let local = intent.interaction as usize - interactions;
+                let Some((global, _)) = content
+                    .0
+                    .chains
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, chain)| chain.advertised_by == placed.0)
+                    .nth(local)
+                else {
+                    // Past the chains too: the pack changed under a
+                    // saved command log, since a live click cannot name
+                    // a row that is not there. Dropping it is what
+                    // keeps the indexing in `follow_path` and
+                    // `tick_interactions` safe by construction rather
+                    // than by hope.
+                    queue.pop();
+                    continue;
+                };
+                if let Some(target) = target {
+                    commands.entity(target.object).try_remove::<Reserved>();
+                }
+                commands
+                    .entity(agent)
+                    .remove::<Target>()
+                    .remove::<Path>()
+                    .remove::<Eating>()
+                    .remove::<Socialising>()
+                    .remove::<terri_core::StepWork>()
+                    .remove::<terri_core::Fumbled>()
+                    .remove::<terri_core::Carrying>()
+                    .insert(terri_core::ChainState::begin(global as u32));
+                claimed.push(agent);
+                queue.pop();
+                continue;
+            }
         }
         if (reserved && !held_here) || claimed.contains(&intent.object) {
             // **Waiting its turn, which is exactly what `Blocked` says.**
@@ -613,6 +650,20 @@ pub fn serve_intents(
                 Path { steps, cursor: 0 },
             ));
     }
+}
+
+/// The union of a chain's step tags, for the disposition multiplier:
+/// loving cooking pulls a sim toward the dinner, wherever the tag sits.
+fn chain_tags(chain: &terri_data::CompiledChain) -> Vec<String> {
+    let mut tags: Vec<String> = Vec::new();
+    for step in &chain.steps {
+        for tag in &step.tags {
+            if !tags.contains(tag) {
+                tags.push(tag.clone());
+            }
+        }
+    }
+    tags
 }
 
 /// What an agent thinks of something it can see but cannot have yet.
@@ -745,6 +796,18 @@ pub fn select_action(
     // is what fails if the filter comes back.
     objects: Query<(Entity, &Position, &SmartObject, Has<Reserved>)>,
 ) {
+    // Where every station stands, by role index - the chain cost
+    // estimate's input, built once per run ([K2]). Positions rather
+    // than entities because the estimate is geometry: the legs are
+    // walked at STEP time against live reservations, and this only has
+    // to make a far kitchen cost more than a near one.
+    let mut role_positions: Vec<Vec<(f32, f32)>> = vec![Vec::new(); content.0.roles.len()];
+    for (_, position, placed, _) in objects.iter() {
+        for role in &content.0.object(placed.0).roles {
+            role_positions[*role as usize].push((position.x, position.y));
+        }
+    }
+
     // Below this score nothing is worth doing, so the agent stays idle.
     //
     // Read from the pack rather than held in a `const` here, per [D-1]:
@@ -1163,7 +1226,80 @@ pub fn select_action(
             // boring.
             if let Some((interaction, score)) = best {
                 if !contested {
-                    candidates.push((object, steps, interaction, score));
+                    // Cloned rather than moved: the chains block below
+                    // may push a second candidate anchored on the same
+                    // walk.
+                    candidates.push((object, steps.clone(), interaction, score));
+                }
+            }
+
+            // **The object's CHAINS, costed whole** - [K2]. A chain is
+            // a candidate at its advertiser under the flyout row
+            // `interactions.len() + position`, scored with the same
+            // scalar over the TERMINAL deltas against the whole
+            // errand: every step's duration plus an estimated leg
+            // between consecutive stations (cheapest pair, manhattan -
+            // real pathing happens per leg at step time). Habituation
+            // and the archetype disposition key on the same row, and
+            // trait dispositions read the union of step tags, so all
+            // four sources reach the one multiplier slot unchanged.
+            let interactions_len = content.0.object(placed.0).interactions.len() as u32;
+            let mut chain_row = 0u32;
+            for (chain_index, chain) in content.0.chains.iter().enumerate() {
+                if chain.advertised_by != placed.0 {
+                    continue;
+                }
+                let row = interactions_len + chain_row;
+                chain_row += 1;
+
+                let total_duration: u32 = chain.steps.iter().map(|s| s.duration_ticks).sum();
+                let mut legs = 0.0f32;
+                for pair in chain.steps.windows(2) {
+                    let from = &role_positions[pair[0].role as usize];
+                    let to = &role_positions[pair[1].role as usize];
+                    let mut shortest = f32::INFINITY;
+                    for (ax, ay) in from {
+                        for (bx, by) in to {
+                            let leg = (ax - bx).abs() + (ay - by).abs();
+                            shortest = shortest.min(leg);
+                        }
+                    }
+                    if shortest.is_finite() {
+                        legs += shortest;
+                    }
+                }
+
+                let tags = chain_tags(chain);
+                let hab = habituation.get(placed.0, row);
+                let scale = benefit_scale(hab, content.0.tuning.habituation_floor)
+                    * personality.disposition(placed.0, row)
+                    * super::trait_effects::disposition_multiplier(
+                        traits.as_ref(),
+                        content.0,
+                        &tags,
+                    );
+                let mut score = 0.0;
+                for (need_index, delta) in &chain.advertises {
+                    let satisfaction = personality.satisfaction[*need_index as usize];
+                    let delta = scaled_delta(*delta, scale * satisfaction);
+                    let id = NeedId::ALL[*need_index as usize];
+                    score += score_advertisement(
+                        needs.deficit(id),
+                        delta,
+                        total_duration,
+                        distance + legs,
+                    );
+                }
+                best_seen = best_seen.max(if contested {
+                    contested_score(score, contested_multiplier)
+                } else {
+                    score
+                });
+                if !contested {
+                    best_available = best_available.max(score);
+                    if score > action_threshold {
+                        candidates.push((object, steps.clone(), row, score));
+                    }
                 }
             }
         }
@@ -1327,6 +1463,34 @@ pub fn select_action(
         let scores: Vec<f32> = candidates.iter().map(|(_, _, _, score)| *score).collect();
         let picked = sample_softmax(&scores, temperature, &mut rng);
         let (object, steps, interaction, _) = candidates.swap_remove(picked);
+
+        // **A chain row commits a COUNTER, not a walk** - the winner's
+        // row past its object's interactions names a chain, and
+        // advance_chains (next in the schedule) does all targeting and
+        // reserving, so there is exactly one station-picking code
+        // path. The agent is claimed (it chose, so it is not idle);
+        // the advertiser is not - the chain may well start there, but
+        // that is the station picker's call against live reservations.
+        if let Ok((_, _, placed, _)) = objects.get(object) {
+            let interactions_len = content.0.object(placed.0).interactions.len() as u32;
+            if interaction >= interactions_len {
+                let local = (interaction - interactions_len) as usize;
+                if let Some((global, _)) = content
+                    .0
+                    .chains
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, chain)| chain.advertised_by == placed.0)
+                    .nth(local)
+                {
+                    claimed.push(agent);
+                    commands
+                        .entity(agent)
+                        .insert(terri_core::ChainState::begin(global as u32));
+                }
+                continue;
+            }
+        }
 
         claimed.push(object);
         // The INITIATOR is claimed as well as the winner, and it matters
