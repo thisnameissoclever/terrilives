@@ -65,6 +65,10 @@ struct Interaction {
 struct Motion {
     walking: u64,
     interacting: u64,
+    /// Off the lot working, or walking to the door to be - [E4]. Its
+    /// own bucket because the career's whole antagonist quality is the
+    /// TIME it eats, so the share has to be readable off this table.
+    at_work: u64,
     /// In a conversation, either side: the initiator carrying
     /// `Socialising` or the partner it points at.
     talking: u64,
@@ -174,7 +178,14 @@ fn main() {
             // reason: a conversing partner is still Reserved, and testing
             // Reserved first would count every tick of every conversation's
             // receiving end as waiting.
-            if world.get::<Eating>(agent).is_some() {
+            // AtWork first: a working sim carries nothing else, and a
+            // commuter's walk belongs to the job rather than to the
+            // errand tally.
+            if world.get::<terri_core::AtWork>(agent).is_some()
+                || world.get::<terri_core::Commuting>(agent).is_some()
+            {
+                motion[index].at_work += 1;
+            } else if world.get::<Eating>(agent).is_some() {
                 motion[index].interacting += 1;
             } else if world.get::<Socialising>(agent).is_some() || is_partner {
                 motion[index].talking += 1;
@@ -726,6 +737,7 @@ fn main() {
     let total: Motion = motion.iter().fold(Motion::default(), |sum, m| Motion {
         walking: sum.walking + m.walking,
         interacting: sum.interacting + m.interacting,
+        at_work: sum.at_work + m.at_work,
         talking: sum.talking + m.talking,
         waiting: sum.waiting + m.waiting,
         paused: sum.paused + m.paused,
@@ -763,14 +775,20 @@ fn main() {
         total.frozen,
         100.0 * total.frozen as f64 / sim_ticks as f64
     );
+    println!(
+        "at work     {:>6}  {:>5.1}%   <-- the rabbit hole, commute included",
+        total.at_work,
+        100.0 * total.at_work as f64 / sim_ticks as f64
+    );
     for (index, (_, name)) in sims.iter().enumerate() {
         let m = &motion[index];
         println!(
-            "  {:<8} walk {:>4.1}%  interact {:>4.1}%  talk {:>4.1}%  idle {:>4.1}%",
+            "  {:<8} walk {:>4.1}%  interact {:>4.1}%  talk {:>4.1}%  work {:>4.1}%  idle {:>4.1}%",
             name,
             100.0 * m.walking as f64 / ticks as f64,
             100.0 * m.interacting as f64 / ticks as f64,
             100.0 * (m.talking + m.waiting) as f64 / ticks as f64,
+            100.0 * m.at_work as f64 / ticks as f64,
             100.0 * (m.paused + m.frozen) as f64 / ticks as f64
         );
     }
@@ -788,7 +806,16 @@ fn main() {
             .world()
             .get::<terri_core::Hobbies>(*entity)
             .map_or_else(String::new, |h| h.0.join(", "));
-        println!("  {name:<8} {ledger:>8.1}   loves: {hobbies}");
+        let job = sim
+            .world()
+            .get::<terri_core::Career>(*entity)
+            .map(|c| pack.careers[c.0 as usize].label.as_str());
+        match job {
+            Some(label) => {
+                println!("  {name:<8} {ledger:>8.1}   loves: {hobbies}   works: {label}")
+            }
+            None => println!("  {name:<8} {ledger:>8.1}   loves: {hobbies}"),
+        }
         // Worn traits with their live states ([E3]): a capability's
         // level says how the learning went, a condition's severity how
         // the managing did. Where the whole trait pass gets measured.
@@ -810,6 +837,11 @@ fn main() {
             }
         }
     }
+
+    // The household's money - [E4]. One number; what earned it is
+    // readable off the "at work" share above and the career line per
+    // worker.
+    println!("\nFUNDS {}", sim.funds());
 
     println!("\nworld hash {:#018x}", sim.world_hash());
 }
