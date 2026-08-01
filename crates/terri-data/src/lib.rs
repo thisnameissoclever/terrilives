@@ -586,6 +586,138 @@ mod tests {
         }
     }
 
+    /// Property 1 of `content/objects.toml`: no two durations and no two
+    /// deltas are equal.
+    ///
+    /// The file has stated it as a rule for whoever rebalances next since
+    /// the object list was written, and nothing has enforced it. It is
+    /// load-bearing rather than flavour: `select_action` looks a delta up
+    /// by need index and an interaction up by position, so two slots
+    /// holding the same value make a whole class of index bug
+    /// unobservable. [L26] and [L29] are the two recorded instances of
+    /// exactly that, and both were found by hand rather than by the suite.
+    ///
+    /// **It is worth a test now because the content it governs has
+    /// outgrown the eye.** Shipped content carries 18 interactions and 32
+    /// deltas, against 8 and 10 when the rule was written, and every one
+    /// of those values is chosen by a person.
+    ///
+    /// The `social` pass shows what that already costs. The comment on
+    /// `watch_tv` reasons in prose about which numbers were unavailable -
+    /// "Not 22 or 26 ... those are the sink's and the bookshelf's" - which
+    /// is a human doing this test's job from memory. That reasoning was
+    /// right when written and **its own record has since gone stale**: the
+    /// sink's hygiene delta moved 22 to 32 in the same pass that raised
+    /// the short durations, so nothing advertises 22 any more. The
+    /// property held through both edits; what did not hold is the prose
+    /// tracking which values are taken. That is the gap this closes - not
+    /// a bug today, but the only reason today's content is still correct
+    /// is that somebody checked by hand each time.
+    ///
+    /// Deltas are compared by BIT PATTERN, because `f32` is not `Ord` and
+    /// cannot key a sort. That is exact rather than approximate here:
+    /// these values are TOML literals and never arithmetic results, so
+    /// there is no `-0.0` versus `0.0` case and no NaN to reconcile. A
+    /// pack cannot hold a non-finite delta - `compile` rejects one.
+    ///
+    /// Both halves sort and compare neighbours rather than counting a
+    /// set, so a failure can name the two entries that collide. Labelling
+    /// takes two steps to be unambiguous, and each answers a case that
+    /// actually occurs: `object/interaction` rather than the interaction
+    /// id alone, because `compile` deliberately allows two objects to use
+    /// the same interaction id; and the need name appended on the delta
+    /// side, because two needs on ONE interaction may collide with each
+    /// other - `{ fun = 18.0, comfort = 18.0 }` - and the object and
+    /// interaction are identical on both sides of that pair.
+    #[test]
+    fn no_two_shipped_interactions_share_a_duration_or_a_delta() {
+        let p = pack();
+
+        let mut durations: Vec<(u32, String)> = Vec::new();
+        let mut deltas: Vec<(u32, String)> = Vec::new();
+        for object in &p.objects {
+            for act in &object.interactions {
+                let where_ = format!("{}/{}", object.id, act.id);
+                durations.push((act.duration_ticks, where_.clone()));
+                for (need, delta) in &act.advertises {
+                    // The need is part of the label rather than dropped,
+                    // because two needs on the SAME interaction may
+                    // collide - `{ fun = 18.0, comfort = 18.0 }` is the
+                    // shape - and `object/interaction` alone names both
+                    // sides of that identically. In range by
+                    // construction: `compile` rejects an advert naming a
+                    // need rustc does not know.
+                    let need = terri_core::NeedId::ALL[*need as usize].as_str();
+                    deltas.push((delta.to_bits(), format!("{where_} ({need})")));
+                }
+            }
+        }
+
+        // Per testing-protocol rule 5. Each list is guarded on its OWN
+        // length, because a `windows(2)` over fewer than two entries runs
+        // zero times and would leave that half green over content it never
+        // looked at.
+        //
+        // Deliberately NOT "every interaction advertises at least one
+        // need". That is a different rule, it is not one the pipeline
+        // holds - `advertises = {}` compiles, since `compile` validates
+        // the entries that are present and does not require any - and
+        // asserting it here would fail this test for content that is
+        // legal while saying nothing about uniqueness. If that rule is
+        // wanted it belongs in its own test, next to
+        // `at_least_a_third_of_the_house_is_furniture_nobody_uses`, which
+        // is the deliberate case of content that advertises nothing.
+        let interactions: usize = p.objects.iter().map(|o| o.interactions.len()).sum();
+        assert_eq!(
+            durations.len(),
+            interactions,
+            "every interaction must contribute exactly one duration, or \
+             the collection above is skipping content this test claims to \
+             cover"
+        );
+        assert!(
+            durations.len() >= 2,
+            "fewer than two shipped durations, so there is no pair to \
+             compare and this half proves nothing; found {}",
+            durations.len()
+        );
+        assert!(
+            deltas.len() >= 2,
+            "fewer than two shipped deltas, so there is no pair to compare \
+             and this half proves nothing; found {}",
+            deltas.len()
+        );
+
+        durations.sort_unstable();
+        for pair in durations.windows(2) {
+            assert_ne!(
+                pair[0].0, pair[1].0,
+                "'{}' and '{}' both last {} ticks. Property 1 in \
+                 content/objects.toml requires every duration to differ, \
+                 because an interaction resolved by the wrong index is \
+                 unobservable when two of them are the same length - see \
+                 [L26] and [L29]",
+                pair[0].1, pair[1].1, pair[0].0
+            );
+        }
+
+        deltas.sort_unstable();
+        for pair in deltas.windows(2) {
+            assert_ne!(
+                pair[0].0,
+                pair[1].0,
+                "'{}' and '{}' both advertise {}. Property 1 in \
+                 content/objects.toml requires every delta to differ, \
+                 because a delta looked up by the wrong need index is \
+                 unobservable when two of them are equal - see [L26] and \
+                 [L29]",
+                pair[0].1,
+                pair[1].1,
+                f32::from_bits(pair[0].0)
+            );
+        }
+    }
+
     /// The shipped half of [H6]'s split: an empty social vocabulary is
     /// legal in a test pack, and a shipped game where sims cannot talk to
     /// each other is M2d silently absent - the same silent nothing
