@@ -789,6 +789,26 @@ fn main() {
             .get::<terri_core::Hobbies>(*entity)
             .map_or_else(String::new, |h| h.0.join(", "));
         println!("  {name:<8} {ledger:>8.1}   loves: {hobbies}");
+        // Worn traits with their live states ([E3]): a capability's
+        // level says how the learning went, a condition's severity how
+        // the managing did. Where the whole trait pass gets measured.
+        if let Some(worn) = sim.world().get::<terri_core::Traits>(*entity) {
+            for (index, state) in worn.entries() {
+                let def = &pack.traits[*index as usize];
+                let kind = match def.kind {
+                    terri_data::CompiledTraitKind::Disposition { score_multiplier } => {
+                        format!("disposition x{score_multiplier}")
+                    }
+                    terri_data::CompiledTraitKind::Capability { .. } => {
+                        format!("capability, level {state:.2}")
+                    }
+                    terri_data::CompiledTraitKind::Condition { .. } => {
+                        format!("condition, severity {state:.2}")
+                    }
+                };
+                println!("           wears: {} ({kind})", def.label);
+            }
+        }
     }
 
     println!("\nworld hash {:#018x}", sim.world_hash());

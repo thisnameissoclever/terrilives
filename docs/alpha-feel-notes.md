@@ -1299,3 +1299,34 @@ prints the ledger.
   active hobbies against one passive plus one chore-hobby) but the
   gap is wide, and whether it FEELS wide is a played-session question
   for PR 3's watch, not a knob to turn from a table.
+
+## [A-13] Traits, measured against the [A-12] baseline
+
+M2e PR 2: the same 36 000-tick hour with the household wearing its
+traits, against [A-12]'s trait-free baseline (Terri 949.5, Doug 389.5,
+Nadia 291.0).
+
+- **The condition is the biggest life-shaper in the house.** Terri
+  568.2 against her 949.5 baseline: low spirits at severity 0.6 taxes
+  roughly forty percent of what her hobbies pay, exactly the accrual
+  arithmetic made visible. And the management loop works on screen -
+  severity 0.60 down to 0.39 across an hour at the desk that treats
+  it.
+- **The disposition raised a life score by steering alone.** Doug
+  442.7 then 462.0 against 389.5: the devotee pull sends him to the
+  television more often, and more loved completions is more life -
+  the trait changed WHO he is by changing what he picks, with no
+  direct writer anywhere.
+- **The capability's first cut resolved too fast, and was retuned
+  from the measurement.** At learn 0.05, Nadia MASTERED the stove
+  inside the hour (level 0.25 to 1.00) and Terri's condition resolved
+  outright (severity 0.00) at manage 0.02 - both whole arcs inside
+  sixty minutes, which reads as tutorial content rather than a life.
+  Slowed to 0.015 and 0.005: the same hour now ends at level 0.71 and
+  severity 0.39 - progress a player feels within a session and
+  finishes across several, the managed-not-cured shape [E3] wants.
+  The knobs are content; the numbers above are the shipped ones.
+- **Nadia is flat (276.0 vs 291.0)** - her hobby is people and the
+  traits gave her a skill arc, not more company. Her satisfaction
+  story waits on group conversations or a second social sim; recorded
+  as expected rather than wrong.

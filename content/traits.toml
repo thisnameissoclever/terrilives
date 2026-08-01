@@ -32,8 +32,10 @@ score_multiplier = 1.5
 # never approaches the stove is not a scene ([S4]) - and a failed
 # attempt delivers nothing of the meal while still teaching her
 # something. At 0.25 she fails three attempts in four to begin with;
-# at 0.05 per attempt she is competent inside a simulated day of
-# genuine practice.
+# at 0.015 per attempt she is competent after ~35 real tries - a few
+# sessions of genuine practice, not one. The first measured hour at
+# 0.05 saw her MASTER the stove before dinner, which read as tutorial
+# pacing rather than an arc; [A-13] records the correction.
 [[trait_def]]
 id = "cannot_cook"
 label = "Can't cook"
@@ -41,7 +43,7 @@ kind = "capability"
 tag = "cooking"
 start_level = 0.25
 fail_delta_scale = 0.0
-learn_per_attempt = 0.05
+learn_per_attempt = 0.015
 
 # A condition: Terri's low spirits scale her satisfaction ACCRUAL - at
 # full severity a completed hobby pays 40% of what it would - and the
@@ -55,5 +57,9 @@ label = "Low spirits"
 kind = "condition"
 tag = "correspondence"
 accrual_scale = 0.4
-manage_per_completion = 0.02
+# 0.005 per managed completion: the first hour at 0.02 resolved her
+# completely before it ended. At the desk's measured ~30 sessions an
+# hour this now eases about 0.15/hour - felt within a session, gone
+# across several, which is the managed-not-cured shape [E3] wants.
+manage_per_completion = 0.005
 start_severity = 0.6
