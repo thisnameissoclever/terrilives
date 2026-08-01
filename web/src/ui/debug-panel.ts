@@ -105,14 +105,17 @@ export function formatDebugReport(source: DebugSource): string {
   const lines: string[] = [];
   // Household state before anybody's: the money is the lot's, and a
   // reader scanning for it should not have to pick a sim first.
-  lines.push(`funds: ${source.funds()}`);
+  lines.push(`household funds: ${source.funds()}`);
   lines.push('');
   for (const row of agents) {
     const entity = ids[row];
     const simId = source.simIdOf(entity);
     const name = source.simName(entity) || `entity ${entity}`;
+    // "doing: walking" rather than a bare "walking" hanging off the
+    // identity - every value in this panel carries a label saying what
+    // it is, including this one.
     lines.push(
-      `${name}  (entity ${entity}, SimId ${simId ?? 'none'})  ${
+      `${name}  (entity ${entity}, SimId ${simId ?? 'none'})  doing: ${
         ACTIVITY_NAMES[activities[row]] ?? `activity ${activities[row]}`
       }`,
     );
@@ -133,11 +136,11 @@ export function formatDebugReport(source: DebugSource): string {
     // axis they act on and the needs they compete with.
     const career = source.careerOf(entity);
     if (career !== null) {
-      lines.push(`  works: ${career}`);
+      lines.push(`  career: ${career}`);
     }
-    const errand = source.chainStatusOf(entity);
-    if (errand !== null) {
-      lines.push(`  errand: ${errand}`);
+    const chain = source.chainStatusOf(entity);
+    if (chain !== null) {
+      lines.push(`  chain: ${chain}`);
     }
     const worn = source.traitsOf(entity);
     for (let i = 0; i + 1 < worn.length; i += 2) {
@@ -157,11 +160,11 @@ export function formatDebugReport(source: DebugSource): string {
     // what made the first version of this line meaningless.
     const stalled = source.stallReasonOf(entity);
     if (stalled !== null) {
-      lines.push(`  stalled: ${stalled}`);
+      lines.push(`  stalled reason: ${stalled}`);
     }
     const orders = source.queuedOrdersOf(entity);
     if (orders > 0) {
-      lines.push(`  orders waiting: ${orders}`);
+      lines.push(`  player orders waiting: ${orders}`);
     }
 
     const needs = source.needsOf(entity);
@@ -183,10 +186,13 @@ export function formatDebugReport(source: DebugSource): string {
           .filter(({ v }) => Math.abs(v - 1) > 0.0001)
           .map(({ need, v }) => `${need} x${v.toFixed(2)}`)
           .join(', ');
-      const drains = deviations(personality.subarray(0, half));
-      const refills = deviations(personality.subarray(half));
-      if (drains) lines.push(`  drains: ${drains}`);
-      if (refills) lines.push(`  refills: ${refills}`);
+      // "need decay" and "need refill" rather than bare "drains" and
+      // "refills": the multiplier applies to a need's decay rate and to
+      // what an activity gives back, and the label should say which.
+      const decay = deviations(personality.subarray(0, half));
+      const refill = deviations(personality.subarray(half));
+      if (decay) lines.push(`  need decay: ${decay}`);
+      if (refill) lines.push(`  need refill: ${refill}`);
     }
 
     const pairs = source.relationshipsOf(entity);
@@ -200,7 +206,11 @@ export function formatDebugReport(source: DebugSource): string {
       const feeling = pairs[i + 1];
       feelings.push(`${toward} ${feeling >= 0 ? '+' : ''}${feeling.toFixed(2)}`);
     }
-    lines.push(feelings.length ? `  feels: ${feelings.join(', ')}` : '  feels: nobody yet');
+    lines.push(
+      feelings.length
+        ? `  relationships: ${feelings.join(', ')}`
+        : '  relationships: nobody yet',
+    );
     lines.push('');
   }
   return lines.join('\n');

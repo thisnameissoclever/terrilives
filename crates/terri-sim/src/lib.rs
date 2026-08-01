@@ -829,9 +829,13 @@ impl Sim {
                             .get(item.0 as usize)
                             .map(String::as_str)
                             .unwrap_or("something unrecognisable");
-                        format!("{}: {} (carrying {})", chain.label, step.label, kind)
+                        // "Cook dinner - step: Cook", not "Cook
+                        // dinner: Cook": the panel prefixes this with a
+                        // label of its own, and three colons in one
+                        // line reads as nothing at all.
+                        format!("{} - step: {} (carrying {})", chain.label, step.label, kind)
                     }
-                    None => format!("{}: {}", chain.label, step.label),
+                    None => format!("{} - step: {}", chain.label, step.label),
                 })
             })
     }
@@ -1973,6 +1977,112 @@ mod household_tests {
             .map(|(i, member)| (i as u32, member.name.clone()))
             .collect();
         assert_eq!(rows, expected);
+    }
+}
+
+#[cfg(test)]
+#[cfg(test)]
+mod overlay_read_tests {
+    //! The `?debug=1` overlay's own accessors. Nothing in the
+    //! simulation reads them back, so a stub returning a constant is
+    //! invisible to every behavioural test - which is exactly what the
+    //! CI sweep found. Each one is pinned here against a fixture where
+    //! two sims hold DIFFERENT states, so an accessor that ignores the
+    //! index it was handed (the `==`-to-`!=` mutant) is visible too.
+
+    use super::*;
+    use terri_core::{Agent, Blocked, Intent, IntentQueue, Position, Restless};
+
+    /// Two sims: one stalled both ways with two orders queued, one
+    /// perfectly free with none. Returns their raw indices in that
+    /// order.
+    fn two_sims() -> (Sim, u32, u32) {
+        let mut sim = Sim::new_with_lot(8, 8);
+        let mut queue = IntentQueue::default();
+        let fridge = sim.world_mut().spawn(()).id();
+        queue.push(Intent {
+            object: fridge,
+            interaction: 0,
+        });
+        queue.push(Intent {
+            object: fridge,
+            interaction: 1,
+        });
+        let stuck = sim
+            .world_mut()
+            .spawn((Agent, Position { x: 1.0, y: 1.0 }, Blocked, Restless, queue))
+            .id()
+            .index_u32();
+        let free = sim
+            .world_mut()
+            .spawn((Agent, Position { x: 5.0, y: 5.0 }, IntentQueue::default()))
+            .id()
+            .index_u32();
+        (sim, stuck, free)
+    }
+
+    #[test]
+    fn the_stall_reason_names_both_markers_and_only_for_the_sim_asked() {
+        let (sim, stuck, free) = two_sims();
+        assert_eq!(
+            sim.stall_reason_of(stuck).as_deref(),
+            Some("waiting on something in use; found nothing worth doing"),
+            "both markers, joined, in that order"
+        );
+        assert_eq!(
+            sim.stall_reason_of(free),
+            None,
+            "a sim nothing holds back reads as no reason at all"
+        );
+        assert_eq!(sim.stall_reason_of(9999), None, "and a stale index too");
+    }
+
+    /// Each marker alone, because the joined string above is satisfied
+    /// by an implementation that always writes both.
+    #[test]
+    fn each_marker_produces_only_its_own_phrase() {
+        let mut sim = Sim::new_with_lot(8, 8);
+        let blocked = sim
+            .world_mut()
+            .spawn((Agent, Position { x: 1.0, y: 1.0 }, Blocked))
+            .id()
+            .index_u32();
+        let restless = sim
+            .world_mut()
+            .spawn((Agent, Position { x: 2.0, y: 2.0 }, Restless))
+            .id()
+            .index_u32();
+        assert_eq!(
+            sim.stall_reason_of(blocked).as_deref(),
+            Some("waiting on something in use")
+        );
+        assert_eq!(
+            sim.stall_reason_of(restless).as_deref(),
+            Some("found nothing worth doing")
+        );
+    }
+
+    /// TWO orders rather than one, so a constant 1 is visible, and a
+    /// queueless sim rather than only an empty queue, so the absent
+    /// component's zero is exercised as well.
+    #[test]
+    fn queued_orders_counts_this_sims_own_queue() {
+        let (sim, stuck, free) = two_sims();
+        assert_eq!(sim.queued_orders_of(stuck), 2);
+        assert_eq!(sim.queued_orders_of(free), 0, "an empty queue is none");
+        assert_eq!(sim.queued_orders_of(9999), 0, "and a stale index is none");
+
+        let mut bare = Sim::new_with_lot(4, 4);
+        let queueless = bare
+            .world_mut()
+            .spawn((Agent, Position { x: 1.0, y: 1.0 }))
+            .id()
+            .index_u32();
+        assert_eq!(
+            bare.queued_orders_of(queueless),
+            0,
+            "no component at all is none, not a panic"
+        );
     }
 }
 

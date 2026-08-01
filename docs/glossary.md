@@ -49,8 +49,8 @@ Seven needs, each a number from 0 (desperate) to 100 (fully satisfied):
 | **choice temperature** | How randomly a sim picks among things worth doing (0.06). Low means it almost always takes the best option; high means a coin toss. It is a **weighted draw**, not a strict best-pick, so sims are not robots. |
 | **reservation** (`Reserved`) | A claim on an object or a person. One sim per slot; whoever gets there first in a tick holds it until finished. |
 | **contested** | Something that is worth wanting but reserved by somebody else. It still counts toward "is anything here worth it", at 75% weight, which is why an outbid sim waits rather than wandering off. |
-| `stalled:` | The overlay line naming why a sim is not acting. Exactly two reasons: **waiting on something in use** (the best thing it saw is someone else's - the `Blocked` marker) and **found nothing worth doing** (nothing cleared the idle threshold - the `Restless` marker). Both can be true at once. |
-| `orders waiting:` | How many of YOUR clicks the sim still has queued. Not a stall reason - it is work about to happen. Cap 4. |
+| `stalled reason:` | The overlay line naming why a sim is not acting. Exactly two reasons: **waiting on something in use** (the best thing it saw is someone else's - the `Blocked` marker) and **found nothing worth doing** (nothing cleared the idle threshold - the `Restless` marker). Both can be true at once. |
+| `player orders waiting:` | How many of YOUR clicks the sim still has queued. Not a stall reason - it is work about to happen. Cap 4. |
 | **intent** / **order** | One player instruction ("use that fridge"). Player orders always beat the sim's own choice and are served in the order given. |
 
 ## Habituation - "not that again"
@@ -70,8 +70,8 @@ multipliers. The overlay shows only the ones that deviate from neutral:
 
 | Overlay line | Means |
 | --- | --- |
-| `drains: fun x1.30` | This sim's fun need empties 1.3x faster than baseline. Higher = needier. |
-| `refills: comfort x1.25` | Doing something comfortable gives this sim 1.25x as much comfort as it would give anyone else. Higher = easier to please. |
+| `need decay: fun x1.30` | This sim's fun need empties 1.3x faster than baseline. Higher = needier. |
+| `need refill: comfort x1.25` | Doing something comfortable gives this sim 1.25x as much comfort as it would give anyone else. Higher = easier to please. |
 | **disposition** | A per-thing pull or aversion - "Doug likes that chair more than the numbers say". A disposition of 0 IS a fear: the sim never chooses it on its own, though your click still works. |
 
 ## Relationships
@@ -79,7 +79,7 @@ multipliers. The overlay shows only the ones that deviate from neutral:
 | Term | Means |
 | --- | --- |
 | **relationship** | One number per **ordered pair** of sims, -1 (nemesis) to +1 (best friend), 0 for strangers. A's feeling about B is stored separately from B's about A, so unrequited is a real state. |
-| `feels:` | The overlay's relationship line. |
+| `relationships:` | The overlay's relationship line. |
 | **gain** | Each completed conversation adds 0.15 to both sides. Roughly seven chats takes strangers to best friends. |
 | **decay** | Every relationship drifts toward zero by 0.00001 per tick - a grudge fades on the same clock a friendship does. Maintenance matters. |
 | **relationship scale** | A friend's conversation is worth up to 1.5x its authored value and a nemesis's 0.5x, so sims visibly prefer their friends. |
@@ -119,11 +119,11 @@ kinds, each doing exactly one thing:
 
 | Term | Means |
 | --- | --- |
-| `works:` | The sim's job, from `content/careers.toml`. |
+| `career:` | The sim's job, from `content/careers.toml`. |
 | **shift** | Starts at a tick of the day (`shift_start` 360 = 06:00) and lasts `shift_ticks` (480 = eight hours). |
 | **rabbit hole** | The industry term this design borrows: the sim walks off the lot and is simply GONE for the shift - no workplace is simulated. |
 | **front door** | The lot tile a worker leaves from and returns to (`front_door` in `content/lot.toml`). |
-| `funds:` | The household's money, credited on each shift's return. Shared by the whole lot, not per sim. |
+| `household funds:` | The household's money, credited on each shift's return. Shared by the whole lot, not per sim. |
 | **the cost of a job** | Deliberately just the TIME. A career's satisfaction payout is small and can never be negative - what a bad job costs a life is the hours it eats from everything else, which the trace measures. |
 
 ## Chains - multi-step activities
@@ -139,7 +139,7 @@ table. Authored in `content/chains.toml`.
 | **terminal step** | The last one - and **the only one that pays**. Everything the chain advertises lands there, whole. A sim that gets halfway through cooking and wanders off has not eaten. |
 | **item kind** / `carrying` | What is in the sim's hands between steps - `ingredients` becoming `dinner` at the stove. Drawn as the badge beside the sim. |
 | **resume** | The rule for interruptions: your click (or a work shift) drops the current STEP, never the errand. When the sim is free again it goes back and finishes. Only an explicit cancel abandons a chain. |
-| `errand:` | The overlay line showing which chain a sim is on, which step, and what it is carrying. |
+| `chain:` | The overlay line showing which chain a sim is on, which step, and what it is carrying: `Cook dinner - step: Cook (carrying ingredients)`. |
 
 ## The lot
 
@@ -162,6 +162,33 @@ table. Authored in `content/chains.toml`.
 | **render buffer** | The flat arrays the display reads each frame - positions, sprites, activities, carried items. The simulation writes it; the browser never asks the simulation questions mid-frame. |
 | **activity code** | What a row is doing, for the indicator bubbles: none, walking, waiting, eating, talking, sleeping, at work. |
 
+## What the debug overlay prints, line by line
+
+Turn it on with `?debug=1`; the panel folds to a pill on narrow
+screens. A full block reads:
+
+```
+household funds: 240
+
+Terri  (entity 34, SimId 0)  doing: idle
+  life satisfaction: 13.1
+  career: Office clerk
+  traits: Low spirits (condition, severity 0.59)
+  stalled reason: waiting on something in use
+  player orders waiting: 2
+  chain: Cook dinner - step: Cook (carrying ingredients)
+  needs: hunger 2.2  energy 23.4  hygiene 33.3 ...
+  need decay: fun x1.30, comfort x0.70
+  need refill: energy x1.15, fun x0.85
+  relationships: Nadia +0.28
+```
+
+Every line above has its own glossary entry. `entity` is the engine's
+internal row number and changes across runs; `SimId` is the sim's
+permanent identity and does not. Lines are omitted entirely when they
+do not apply - no career, no traits, nothing stalling, no chain - so a
+short block means a simple sim rather than missing data.
+
 ## Naming rules this project follows
 
 Added the same day the glossary was, after `wears:` and `standing:`
@@ -172,14 +199,18 @@ shipped and neither meant anything to a reader:
 2. **One label, one meaning.** If a line would need "and also" to
    explain it, it is two lines. Pending orders came out of the stall
    line for exactly this.
-3. **A number's label says what the number DOES.** `drains: fun x1.30`
-   beats `drain: fun 1.30`, and both beat printing seven neutral 1.00s
+3. **A number's label says what the number DOES, and what it acts
+   ON.** `need decay: fun x1.30` beats `drains: fun x1.30`, which beats
+   `drain: fun 1.30`, and all three beat printing seven neutral 1.00s
    that read as broken stats.
-4. **Show deviations, not defaults.** A row of unchanged values is
+4. **A label that names a CATEGORY says so.** `stalled reason:` rather
+   than `stalled:`, because the value is a reason and the reader should
+   not have to infer that from the words after the colon.
+5. **Show deviations, not defaults.** A row of unchanged values is
    noise that hides the one changed value.
-5. **Every player-visible or developer-visible word gets an entry
+6. **Every player-visible or developer-visible word gets an entry
    here.** If it is not in this glossary, either name it better or
    document it - those are the only two options.
-6. **Functional text stays plain** (buttons, diagnostics, labels). The
+7. **Functional text stays plain** (buttons, diagnostics, labels). The
    game's dark comedy lives in object names and, later, authored voice
    text - never in a control the player needs to understand.
