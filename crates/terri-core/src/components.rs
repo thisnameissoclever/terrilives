@@ -448,6 +448,63 @@ impl Hobbies {
     }
 }
 
+/// Per-sim trait state - [E3]. Entries are `(index into the pack's
+/// trait list, state)`, sorted by index; the state is a capability's
+/// LEVEL or a condition's SEVERITY, and 0.0 for a stateless
+/// disposition. In the world hash: capabilities learn and conditions
+/// are managed, so two replays must agree on both.
+///
+/// A sorted `Vec` with one inserter, the same shape and reasons as
+/// [`Habituation`] and [`Relationships`]: `world_hash` iterates it.
+#[derive(Component, Debug, Clone, Default, PartialEq)]
+pub struct Traits(Vec<(u32, f32)>);
+
+impl Traits {
+    /// Built at spawn from the worn trait indices and each one's
+    /// starting state (level, severity, or 0.0 for a disposition).
+    pub fn from_entries(mut entries: Vec<(u32, f32)>) -> Self {
+        entries.sort_unstable_by_key(|(index, _)| *index);
+        Self(entries)
+    }
+    /// The state of the worn trait at `index`, or `None` if this sim
+    /// does not wear it.
+    pub fn state(&self, index: u32) -> Option<f32> {
+        self.find(index).ok().map(|i| self.0[i].1)
+    }
+    /// Sets a WORN trait's state, clamped to `0..=1`; a trait this sim
+    /// does not wear is ignored rather than acquired - acquisition is a
+    /// future mechanic with its own rules, not a side effect of a
+    /// clamp.
+    pub fn set_state(&mut self, index: u32, value: f32) {
+        if let Ok(i) = self.find(index) {
+            self.0[i].1 = value.clamp(0.0, 1.0);
+        }
+    }
+    /// Every entry, in key order. For `world_hash` and for tests.
+    pub fn entries(&self) -> &[(u32, f32)] {
+        &self.0
+    }
+    fn find(&self, index: u32) -> Result<usize, usize> {
+        self.0.binary_search_by(|(i, _)| i.cmp(&index))
+    }
+}
+
+/// This attempt is FAILING - a capability roll came up short when the
+/// interaction began ([E3]). Carried beside `Eating` for the length of
+/// the attempt; `delta_scale` is what the advertised BENEFITS deliver
+/// (costs still bite in full, the standing `scaled_delta` rule), and a
+/// fumbled completion pays no satisfaction while still teaching.
+///
+/// A separate component rather than a field on `Eating`, because
+/// absence IS the common case (success, scale 1.0) and every fixture
+/// that builds a meal by hand should not have to say so. Deliberately
+/// NOT in the world hash, like `Eating` itself: transient action state,
+/// reproduced by the same PRNG draw on any replay.
+#[derive(Component, Debug, Clone, Copy, PartialEq)]
+pub struct Fumbled {
+    pub delta_scale: f32,
+}
+
 /// The atlas sprite this entity is drawn with, when it differs from its
 /// object definition's - [A-11]'s facing mechanism.
 ///

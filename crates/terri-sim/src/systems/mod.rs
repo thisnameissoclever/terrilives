@@ -21,6 +21,11 @@ pub mod needs;
 // so a file added without this line has its tests reported as `0
 // filtered out` rather than as failures.
 pub mod satisfaction;
+// Declared in the same commit that creates `trait_effects.rs`, per
+// [L2]: rustc does not compile a `.rs` file no `mod` declaration
+// references, so a file added without this line has its tests reported
+// as `0 filtered out` rather than as failures.
+pub mod trait_effects;
 // Declared in the same commit that creates `social.rs`, per [L2]: rustc
 // does not compile a `.rs` file no `mod` declaration references, so a
 // file added without this line has its tests reported as `0 filtered
