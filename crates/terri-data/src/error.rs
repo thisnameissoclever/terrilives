@@ -652,6 +652,99 @@ pub enum ContentError {
     CareerWithoutFrontDoor {
         sim: String,
     },
+    /// An object role that is empty or whitespace.
+    EmptyObjectRole {
+        object: String,
+    },
+    /// An object wearing the same role twice.
+    DuplicateObjectRole {
+        object: String,
+        role: String,
+    },
+    /// Two chains share an id.
+    DuplicateChain {
+        id: String,
+    },
+    /// A chain whose label is empty or whitespace.
+    EmptyChainLabel {
+        id: String,
+    },
+    /// A chain advertised by an object nobody declared.
+    UnknownChainAdvertiser {
+        chain: String,
+        object: String,
+    },
+    /// A chain with no steps - a recipe for nothing.
+    EmptyChain {
+        id: String,
+    },
+    /// A chain advertising a need that is not a `NeedId` variant.
+    UnknownChainNeed {
+        chain: String,
+        need: String,
+    },
+    /// A chain step whose label is empty or whitespace.
+    EmptyChainStepLabel {
+        chain: String,
+        step: usize,
+    },
+    /// A chain step of zero ticks.
+    ZeroChainStepDuration {
+        chain: String,
+        step: usize,
+    },
+    /// A chain step whose whole sampled band sits at or below the
+    /// interaction floor - `ClippedDuration`'s rule, worded for a
+    /// step: "object 'cook_dinner' interaction 'Fetch'" would send
+    /// the author hunting objects.toml for a chain.
+    ClippedChainStepDuration {
+        chain: String,
+        step: usize,
+        duration_ticks: u32,
+        /// The smallest duration that escapes the floor.
+        minimum: u32,
+        floor: u32,
+        variance: f32,
+    },
+    /// A chain step naming a blank item kind - it would mint an empty
+    /// vocabulary entry and make every later hands error unreadable.
+    EmptyChainItemKind {
+        chain: String,
+        step: usize,
+    },
+    /// A chain step carrying an empty tag.
+    EmptyChainStepTag {
+        chain: String,
+        step: usize,
+    },
+    /// A chain step at a role no object definition wears - a typo.
+    UnknownChainRole {
+        chain: String,
+        step: usize,
+        role: String,
+    },
+    /// A chain step at a role no PLACED object wears - a kitchen with
+    /// no stove. The rule that keeps "a lot where eating is
+    /// impossible" unbuildable ([M-3]).
+    UnstationedChainRole {
+        chain: String,
+        step: usize,
+        role: String,
+    },
+    /// A step doing something to the sim's hands that its hands cannot
+    /// do: yielding into a full hand, transforming or consuming the
+    /// wrong item, or doing two of those at once.
+    ChainHandsMismatch {
+        chain: String,
+        step: usize,
+        detail: String,
+    },
+    /// A chain whose last step leaves the sim still carrying - the
+    /// terminal step must consume what is in hand.
+    ChainEndsCarrying {
+        chain: String,
+        item: String,
+    },
 }
 
 impl fmt::Display for ContentError {
@@ -1220,6 +1313,89 @@ impl fmt::Display for ContentError {
                 f,
                 "household sim '{sim}' holds a career but the lot \
                  declares no front_door - there is nowhere to leave from"
+            ),
+            ContentError::EmptyObjectRole { object } => write!(
+                f,
+                "object '{object}' declares an empty role - no chain \
+                 step could ever match it"
+            ),
+            ContentError::DuplicateObjectRole { object, role } => write!(
+                f,
+                "object '{object}' wears role '{role}' twice - a role \
+                 is worn once or not at all"
+            ),
+            ContentError::DuplicateChain { id } => {
+                write!(f, "duplicate chain id '{id}'")
+            }
+            ContentError::EmptyChainLabel { id } => {
+                write!(f, "chain '{id}' has an empty label")
+            }
+            ContentError::UnknownChainAdvertiser { chain, object } => write!(
+                f,
+                "chain '{chain}' is advertised_by '{object}', which \
+                 objects.toml does not declare"
+            ),
+            ContentError::EmptyChain { id } => write!(
+                f,
+                "chain '{id}' has no steps - a recipe for nothing"
+            ),
+            ContentError::UnknownChainNeed { chain, need } => write!(
+                f,
+                "chain '{chain}' advertises unknown need '{need}'"
+            ),
+            ContentError::EmptyChainStepLabel { chain, step } => write!(
+                f,
+                "chain '{chain}' step {step} has an empty label"
+            ),
+            ContentError::ZeroChainStepDuration { chain, step } => write!(
+                f,
+                "chain '{chain}' step {step} takes zero ticks - a step \
+                 that never happens is not a step"
+            ),
+            ContentError::ClippedChainStepDuration {
+                chain,
+                step,
+                duration_ticks,
+                minimum,
+                floor,
+                variance,
+            } => write!(
+                f,
+                "chain '{chain}' step {step} declares {duration_ticks} \
+                 ticks, whose whole sampled band (variance {variance}) \
+                 sits at or below the {floor}-tick floor; the smallest \
+                 honest duration is {minimum}"
+            ),
+            ContentError::EmptyChainItemKind { chain, step } => write!(
+                f,
+                "chain '{chain}' step {step} names a blank item kind"
+            ),
+            ContentError::EmptyChainStepTag { chain, step } => write!(
+                f,
+                "chain '{chain}' step {step} carries an empty tag"
+            ),
+            ContentError::UnknownChainRole { chain, step, role } => write!(
+                f,
+                "chain '{chain}' step {step} happens at role '{role}', \
+                 which no object declares - see the roles list in \
+                 objects.toml"
+            ),
+            ContentError::UnstationedChainRole { chain, step, role } => write!(
+                f,
+                "chain '{chain}' step {step} needs an object wearing \
+                 role '{role}' PLACED on the lot, and none is - the \
+                 chain would advertise a meal nobody can finish"
+            ),
+            ContentError::ChainHandsMismatch {
+                chain,
+                step,
+                detail,
+            } => write!(f, "chain '{chain}' step {step}: {detail}"),
+            ContentError::ChainEndsCarrying { chain, item } => write!(
+                f,
+                "chain '{chain}' ends with the sim still carrying \
+                 '{item}' - the terminal step must consume what is in \
+                 hand"
             ),
         }
     }

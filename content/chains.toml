@@ -1,0 +1,56 @@
+# The multi-step chains - [K1] in
+# docs/specs/2026-08-01-m2f-multi-step-working-design.md.
+#
+# A chain is a sequence of steps across station ROLES (see the roles
+# lists in objects.toml), advertised by one object and paid ONLY at the
+# last step's completion - a sim that gets halfway through cooking and
+# wanders off has not eaten. Steps resolve to the nearest placed object
+# wearing the role at run time, so the chain works on any lot that can
+# feed somebody, and refuses to compile on one that cannot.
+#
+# Durations are per STEP and obey the same clipped-duration rule as
+# interactions. Tags ride per step: the hob step is what a cooking
+# hobby loves and a cooking capability may fumble.
+
+[[chain]]
+id = "cook_dinner"
+# Label plain per [L58]; the voice pass happens with Tim in M2g.
+label = "Cook dinner"
+advertised_by = "fridge"
+# 55 hunger against the snack's 40 and the retired stove meal's 62,
+# but delivered WHOLE at the table, with the comfort of sitting down
+# to it. The chain's cost is ~150 ticks of steps plus three legs of
+# walking, so the snack stays the desperate choice and this the good
+# one - the trace verifies the split in PR 3's measurement.
+advertises = { hunger = 55.0, comfort = 10.0 }
+# Above the retired stove meal's 2.5: a cooked-and-eaten dinner is the
+# fullest meal the game can express, and the satisfaction axis should
+# say so.
+satisfaction = 3.0
+
+  [[chain.step]]
+  role = "cold_storage"
+  label = "Get ingredients"
+  duration_ticks = 20
+  yields = "ingredients"
+
+  [[chain.step]]
+  role = "prep_surface"
+  label = "Prepare food"
+  duration_ticks = 35
+
+  [[chain.step]]
+  role = "hob"
+  # The step Doug's hobby loves and Nadia's capability may fumble -
+  # the cooking tag moved here from the stove's retired standalone
+  # interaction (retirement lands in PR 2, when the chain runs).
+  label = "Cook"
+  duration_ticks = 60
+  tags = ["cooking"]
+  transforms = { from = "ingredients", to = "dinner" }
+
+  [[chain.step]]
+  role = "eating_surface"
+  label = "Eat dinner"
+  duration_ticks = 45
+  consumes = "dinner"

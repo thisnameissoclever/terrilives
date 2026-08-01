@@ -12,8 +12,8 @@ use crate::pack::{
     Tuning,
 };
 use crate::schema::{
-    AtlasFile, CareersFile, HouseholdFile, InteractionDef, LotFile, NeedsFile, ObjectsFile,
-    PersonalitiesFile, SocialFile, TraitsFile, TuningFile,
+    AtlasFile, CareersFile, ChainsFile, HouseholdFile, InteractionDef, LotFile, NeedsFile,
+    ObjectsFile, PersonalitiesFile, SocialFile, TraitsFile, TuningFile,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use terri_core::{Footprint, NeedId, NEED_COUNT, NEED_MAX, NEED_MIN};
@@ -91,6 +91,7 @@ pub fn compile(
     social: SocialFile,
     traits: TraitsFile,
     careers: CareersFile,
+    chains: ChainsFile,
 ) -> Result<ContentPack, ContentError> {
     let sprite_index = |name: &str| atlas.sprite.iter().position(|s| s.name == name);
     let sim_sprite = sprite_index(SIM_SPRITE).ok_or_else(|| ContentError::MissingSimSprite {
@@ -159,6 +160,10 @@ pub fn compile(
 
     let mut seen_objects = BTreeSet::new();
     let mut compiled = Vec::with_capacity(objects.object.len());
+    // The station-role vocabulary, in first-appearance order across the
+    // file - [K1]. First-appearance rather than sorted so that adding a
+    // role to a LATER object never renumbers an earlier one's indices.
+    let mut roles: Vec<String> = Vec::new();
 
     for object in &objects.object {
         if !seen_objects.insert(object.id.clone()) {
@@ -273,12 +278,41 @@ pub fn compile(
             });
         }
 
+        // Roles resolve into the shared vocabulary, minted on first
+        // appearance. Blank and repeated entries reject: a blank role
+        // is unmatchable by any chain, and a repeat is an author
+        // saying one thing twice - both silent-nothing shapes ([D9]).
+        let mut worn_roles = Vec::with_capacity(object.roles.len());
+        for role in &object.roles {
+            if role.trim().is_empty() {
+                return Err(ContentError::EmptyObjectRole {
+                    object: object.id.clone(),
+                });
+            }
+            let index = match roles.iter().position(|r| r == role) {
+                Some(index) => index as u32,
+                None => {
+                    roles.push(role.clone());
+                    (roles.len() - 1) as u32
+                }
+            };
+            if worn_roles.contains(&index) {
+                return Err(ContentError::DuplicateObjectRole {
+                    object: object.id.clone(),
+                    role: role.clone(),
+                });
+            }
+            worn_roles.push(index);
+        }
+        worn_roles.sort_unstable();
+
         compiled.push(CompiledObject {
             id: object.id.clone(),
             name: object.name.clone(),
             sprite: sprite as u32,
             interactions,
             footprint: object.footprint,
+            roles: worn_roles,
         });
     }
 
@@ -356,6 +390,9 @@ pub fn compile(
     // Careers after tuning for the day-clock cross-check, before the
     // household which resolves them by id - the traits pattern again.
     let careers = compile_careers(careers, &tuning)?;
+    // Chains after the lot (the coverage rule needs the placements) and
+    // after tuning (steps obey the clipped-duration rule).
+    let (chains, item_kinds) = compile_chains(chains, &compiled, &roles, &lot, &tuning)?;
     let household = compile_household(
         household,
         &personalities,
@@ -377,7 +414,265 @@ pub fn compile(
         social,
         traits,
         careers,
+        roles,
+        item_kinds,
+        chains,
     })
+}
+
+/// Validates `content/chains.toml` - [K1]'s multi-step sequences.
+///
+/// Returns the compiled chains and the item-kind vocabulary their
+/// steps mint. Two rules do the heavy lifting. The HANDS rule walks
+/// each chain tracking what the sim would be carrying, so a step that
+/// yields into a full hand, transforms or consumes the wrong thing,
+/// or ends the chain still carrying has no representation. The
+/// COVERAGE rule requires every step's role to be worn by an object
+/// PLACED on the shipped lot - "build mode cannot author a lot where
+/// eating is impossible" ([M-3]), enforced from day one. Placement
+/// implies reachability: [F5] rule 3 already rejected any placed
+/// object nothing can walk up to.
+fn compile_chains(
+    chains: ChainsFile,
+    objects: &[CompiledObject],
+    roles: &[String],
+    lot: &CompiledLot,
+    tuning: &Tuning,
+) -> Result<(Vec<crate::pack::CompiledChain>, Vec<String>), ContentError> {
+    let mut seen = BTreeSet::new();
+    let mut item_kinds: Vec<String> = Vec::new();
+    let mut compiled = Vec::with_capacity(chains.chain.len());
+
+    for def in &chains.chain {
+        if !seen.insert(def.id.clone()) {
+            return Err(ContentError::DuplicateChain { id: def.id.clone() });
+        }
+        if def.label.trim().is_empty() {
+            return Err(ContentError::EmptyChainLabel { id: def.id.clone() });
+        }
+        let Some(advertiser) = objects.iter().position(|o| o.id == def.advertised_by) else {
+            return Err(ContentError::UnknownChainAdvertiser {
+                chain: def.id.clone(),
+                object: def.advertised_by.clone(),
+            });
+        };
+        if def.step.is_empty() {
+            return Err(ContentError::EmptyChain { id: def.id.clone() });
+        }
+
+        let mut advertises = Vec::with_capacity(def.advertises.len());
+        for (need_name, delta) in &def.advertises {
+            let Some(id) = NeedId::from_name(need_name) else {
+                return Err(ContentError::UnknownChainNeed {
+                    chain: def.id.clone(),
+                    need: need_name.clone(),
+                });
+            };
+            check_finite(
+                *delta,
+                &format!("advert '{}' on chain '{}'", need_name, def.id),
+            )?;
+            advertises.push((id.index() as u8, *delta));
+        }
+        advertises.sort_unstable_by_key(|(i, _)| *i);
+
+        check_finite(
+            def.satisfaction,
+            &format!("satisfaction on chain '{}'", def.id),
+        )?;
+        if def.satisfaction < 0.0 {
+            return Err(ContentError::NegativeValue {
+                context: format!("satisfaction on chain '{}'", def.id),
+            });
+        }
+
+        // The hands rule's ledger: what the sim is carrying entering
+        // each step, by kind name.
+        let mut carrying: Option<String> = None;
+        let mut steps = Vec::with_capacity(def.step.len());
+        for (index, step) in def.step.iter().enumerate() {
+            if step.label.trim().is_empty() {
+                return Err(ContentError::EmptyChainStepLabel {
+                    chain: def.id.clone(),
+                    step: index,
+                });
+            }
+            if step.duration_ticks == 0 {
+                return Err(ContentError::ZeroChainStepDuration {
+                    chain: def.id.clone(),
+                    step: index,
+                });
+            }
+            // The same clipped-duration rule interactions obey, and
+            // for the same three-silent-failures reason - under its own
+            // variant, because "object 'cook_dinner'" would send the
+            // author hunting objects.toml for a chain.
+            let variance = tuning.duration_variance;
+            let floor = tuning.min_interaction_ticks;
+            if (step.duration_ticks as f32) * (1.0 - variance) < floor as f32 {
+                let minimum = ((floor as f32) / (1.0 - variance)).ceil() as u32;
+                return Err(ContentError::ClippedChainStepDuration {
+                    chain: def.id.clone(),
+                    step: index,
+                    duration_ticks: step.duration_ticks,
+                    minimum,
+                    floor,
+                    variance,
+                });
+            }
+            for tag in &step.tags {
+                if tag.trim().is_empty() {
+                    return Err(ContentError::EmptyChainStepTag {
+                        chain: def.id.clone(),
+                        step: index,
+                    });
+                }
+            }
+
+            // The role, resolved against the vocabulary the objects
+            // minted, then against the LOT: a role nobody wears is a
+            // typo, a role nobody PLACED is a kitchen with no stove.
+            let Some(role) = roles.iter().position(|r| r == &step.role) else {
+                return Err(ContentError::UnknownChainRole {
+                    chain: def.id.clone(),
+                    step: index,
+                    role: step.role.clone(),
+                });
+            };
+            let role = role as u32;
+            let placed = lot
+                .placements
+                .iter()
+                .any(|placement| objects[placement.object.0 as usize].roles.contains(&role));
+            if !placed {
+                return Err(ContentError::UnstationedChainRole {
+                    chain: def.id.clone(),
+                    step: index,
+                    role: step.role.clone(),
+                });
+            }
+
+            // The hands rule. Kinds are MINTED by yields/transforms.to
+            // (first appearance); from/consumes must name what is
+            // actually in hand, which subsumes "unknown kind". Blank
+            // names reject first - a blank would mint an empty
+            // vocabulary entry and make every later hands error
+            // unreadable.
+            let blank = [
+                step.yields.as_deref(),
+                step.transforms.as_ref().map(|t| t.from.as_str()),
+                step.transforms.as_ref().map(|t| t.to.as_str()),
+                step.consumes.as_deref(),
+            ]
+            .iter()
+            .any(|name| name.is_some_and(|n| n.trim().is_empty()));
+            if blank {
+                return Err(ContentError::EmptyChainItemKind {
+                    chain: def.id.clone(),
+                    step: index,
+                });
+            }
+            let mut yields = None;
+            let mut transforms = None;
+            let mut consumes = None;
+            let too_many = [
+                step.yields.is_some(),
+                step.transforms.is_some(),
+                step.consumes.is_some(),
+            ]
+            .iter()
+            .filter(|set| **set)
+            .count()
+                > 1;
+            if too_many {
+                return Err(ContentError::ChainHandsMismatch {
+                    chain: def.id.clone(),
+                    step: index,
+                    detail: "a step does at most one thing to the hands".to_string(),
+                });
+            }
+            if let Some(kind) = &step.yields {
+                if let Some(held) = &carrying {
+                    return Err(ContentError::ChainHandsMismatch {
+                        chain: def.id.clone(),
+                        step: index,
+                        detail: format!("yields '{kind}' while already carrying '{held}'"),
+                    });
+                }
+                yields = Some(mint_kind(&mut item_kinds, kind));
+                carrying = Some(kind.clone());
+            } else if let Some(change) = &step.transforms {
+                if carrying.as_deref() != Some(change.from.as_str()) {
+                    return Err(ContentError::ChainHandsMismatch {
+                        chain: def.id.clone(),
+                        step: index,
+                        detail: format!(
+                            "transforms '{}' while carrying {}",
+                            change.from,
+                            carrying.as_deref().unwrap_or("nothing")
+                        ),
+                    });
+                }
+                transforms = Some((
+                    mint_kind(&mut item_kinds, &change.from),
+                    mint_kind(&mut item_kinds, &change.to),
+                ));
+                carrying = Some(change.to.clone());
+            } else if let Some(kind) = &step.consumes {
+                if carrying.as_deref() != Some(kind.as_str()) {
+                    return Err(ContentError::ChainHandsMismatch {
+                        chain: def.id.clone(),
+                        step: index,
+                        detail: format!(
+                            "consumes '{}' while carrying {}",
+                            kind,
+                            carrying.as_deref().unwrap_or("nothing")
+                        ),
+                    });
+                }
+                consumes = Some(mint_kind(&mut item_kinds, kind));
+                carrying = None;
+            }
+
+            steps.push(crate::pack::CompiledChainStep {
+                role,
+                label: step.label.clone(),
+                duration_ticks: step.duration_ticks,
+                tags: step.tags.clone(),
+                yields,
+                transforms,
+                consumes,
+            });
+        }
+        if let Some(held) = carrying {
+            return Err(ContentError::ChainEndsCarrying {
+                chain: def.id.clone(),
+                item: held,
+            });
+        }
+
+        compiled.push(crate::pack::CompiledChain {
+            id: def.id.clone(),
+            label: def.label.clone(),
+            advertised_by: ObjectDefId(advertiser as u32),
+            advertises,
+            satisfaction: def.satisfaction,
+            steps,
+        });
+    }
+    Ok((compiled, item_kinds))
+}
+
+/// The item-kind vocabulary's one writer: an existing kind's index, or
+/// a fresh one minted at the tail so earlier indices never move.
+fn mint_kind(item_kinds: &mut Vec<String>, name: &str) -> u32 {
+    match item_kinds.iter().position(|k| k == name) {
+        Some(index) => index as u32,
+        None => {
+            item_kinds.push(name.to_string());
+            (item_kinds.len() - 1) as u32
+        }
+    }
 }
 
 /// Validates `content/careers.toml` - [E4]'s rabbit holes.
@@ -1741,6 +2036,7 @@ mod tests {
             },
             TraitsFile { trait_def: vec![] },
             CareersFile { career: vec![] },
+            ChainsFile { chain: vec![] },
         )
     }
 
@@ -1837,6 +2133,16 @@ mod tests {
     /// author's wording, and not `grab_snack`, is what reaches the pack.
     #[rustfmt::skip]
     const GOLDEN_PACK_BYTES: &[u8] = &[
+        // **M2f PR 1 moved it four ways, all appends, read off the
+        // failing assertion per the standing rule.** `CompiledObject`
+        // gained a trailing `roles` list - the new 0 immediately after
+        // the fixture object's `1, 1` footprint, its empty list - and
+        // `ContentPack` gained three trailing vocabularies (roles,
+        // item_kinds, chains), the three new 0s at the very end. The
+        // object one sits mid-pack, so the lot and tuning bytes after
+        // it shifted by one; the non-empty round trips live in
+        // pack.rs's `three_objects`.
+        //
         // **Moved three times at M2e PR 3, all appends, read off the
         // failing assertion per the standing rule.** `Tuning` gained a
         // trailing `day_ticks` - the lone `19` after the `0, 0, 0, 60`
@@ -1867,15 +2173,15 @@ mod tests {
         12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64,
         15, 1, 15, 69, 97, 116, 32, 115, 116, 97, 110, 100,
         105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1,
-        1, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0, 0,
-        0, 32, 64, 0, 0, 160, 63, 2, 0, 0, 0, 128,
-        62,
+        1, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0,
+        0, 0, 32, 64, 0, 0, 160, 63, 2, 0, 0, 0,
+        128, 62,
         0, 0, 0, 63, 0, 0, 0, 62, 9, 6, 0, 0,
         160, 62, 10, 215, 35, 59, 0, 0, 32, 63, 0, 0,
         64, 63, 3, 172, 2, 7, 11, 13, 0, 0, 192, 62,
         0, 0, 64, 62, 0, 0, 64, 61, 0, 0, 80, 63,
         0, 0, 224, 63, 0, 0, 184, 65, 0, 0, 0, 60,
-        19, 0, 0, 0, 0, 0,
+        19, 0, 0, 0, 0, 0, 0, 0, 0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -1955,6 +2261,7 @@ mod tests {
             object: ["fridge", "bed", "sink"]
                 .iter()
                 .map(|id| ObjectDef {
+                    roles: vec![],
                     id: (*id).to_string(),
                     name: id.to_uppercase(),
                     sprite: format!("{id}_art"),
@@ -2079,6 +2386,7 @@ mod tests {
     fn one_object_sized(interaction: InteractionDef, footprint: Footprint) -> ObjectsFile {
         ObjectsFile {
             object: vec![ObjectDef {
+                roles: vec![],
                 id: "fridge".into(),
                 name: "Fridge".into(),
                 sprite: "fridge_art".into(),
@@ -2353,6 +2661,7 @@ mod tests {
     fn rejects_duplicate_object_ids() {
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
+            roles: vec![],
             id: "fridge".into(),
             name: "Another".into(),
             sprite: "fridge_art".into(),
@@ -2386,6 +2695,7 @@ mod tests {
     fn allows_the_same_interaction_id_on_different_objects() {
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
+            roles: vec![],
             id: "vending".into(),
             name: "Vending".into(),
             sprite: "fridge_art".into(),
@@ -3741,6 +4051,7 @@ mod tests {
             object: sized
                 .iter()
                 .map(|(id, width, depth)| ObjectDef {
+                    roles: vec![],
                     id: (*id).to_string(),
                     name: id.to_uppercase(),
                     sprite: format!("{id}_art"),
@@ -3841,6 +4152,7 @@ mod tests {
             },
             TraitsFile { trait_def },
             CareersFile { career },
+            ChainsFile { chain: vec![] },
         )
     }
 
@@ -4147,6 +4459,7 @@ mod tests {
                 CareersFile {
                     career: vec![a_career("office_job")],
                 },
+                ChainsFile { chain: vec![] },
             )
         };
 
@@ -4347,6 +4660,7 @@ mod tests {
         // A second object so there are two ObjectDefIds to sort between.
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
+            roles: vec![],
             id: "couch".into(),
             name: "Couch".into(),
             sprite: "couch_art".into(),
@@ -4376,6 +4690,7 @@ mod tests {
             },
             TraitsFile { trait_def: vec![] },
             CareersFile { career: vec![] },
+            ChainsFile { chain: vec![] },
         )
         .expect("two dispositions on two objects are valid");
 
@@ -4641,6 +4956,7 @@ mod tests {
             },
             TraitsFile { trait_def: vec![] },
             CareersFile { career: vec![] },
+            ChainsFile { chain: vec![] },
         )
         .unwrap_err();
         assert_eq!(
@@ -5389,6 +5705,7 @@ mod tests {
                 },
                 TraitsFile { trait_def: vec![] },
                 CareersFile { career: vec![] },
+                ChainsFile { chain: vec![] },
             )
         };
 
@@ -5428,6 +5745,417 @@ mod tests {
         );
     }
 
+    // ---- Chains ---------------------------------------------------------
+
+    /// A world with two placed stations for the chain tests: the fridge
+    /// wearing cold_storage and the sink wearing eating_surface, both
+    /// on a 5x3 lot. The sink doubles as a station on purpose - roles
+    /// are facts about placements, not about what an object is for.
+    fn compile_chain_world(
+        chain: Vec<crate::schema::ChainDef>,
+    ) -> Result<ContentPack, ContentError> {
+        let mut fridge = one_object(snack()).object.remove(0);
+        fridge.roles = vec!["cold_storage".to_string()];
+        let sink = ObjectDef {
+            roles: vec!["eating_surface".to_string()],
+            id: "sink".into(),
+            name: "Sink".into(),
+            sprite: "sink_art".into(),
+            footprint: Footprint::SINGLE,
+            interaction: vec![],
+        };
+        compile(
+            full_needs(),
+            ObjectsFile {
+                object: vec![fridge, sink],
+            },
+            lot_of(5, 3, &[], &[("fridge", 1.0, 1.0), ("sink", 3.0, 1.0)]),
+            test_atlas(),
+            full_tuning(),
+            PersonalitiesFile { archetype: vec![] },
+            HouseholdFile { sim: vec![] },
+            SocialFile {
+                interaction: vec![],
+            },
+            TraitsFile { trait_def: vec![] },
+            CareersFile { career: vec![] },
+            ChainsFile { chain },
+        )
+    }
+
+    /// A two-step chain that passes every rule against the world above,
+    /// with pairwise distinct numbers ([L34]).
+    fn a_chain(id: &str) -> crate::schema::ChainDef {
+        crate::schema::ChainDef {
+            id: id.to_string(),
+            label: format!("The {id} errand"),
+            advertised_by: "fridge".to_string(),
+            advertises: [("hunger".to_string(), 41.0)].into_iter().collect(),
+            satisfaction: 2.75,
+            step: vec![
+                crate::schema::ChainStepDef {
+                    role: "cold_storage".to_string(),
+                    label: "Fetch".to_string(),
+                    duration_ticks: 17,
+                    tags: vec![],
+                    yields: Some("leftovers".to_string()),
+                    transforms: None,
+                    consumes: None,
+                },
+                crate::schema::ChainStepDef {
+                    role: "eating_surface".to_string(),
+                    label: "Eat".to_string(),
+                    duration_ticks: 23,
+                    tags: vec!["snacking".to_string()],
+                    yields: None,
+                    transforms: None,
+                    consumes: Some("leftovers".to_string()),
+                },
+            ],
+        }
+    }
+
+    /// The accepting half: every compiled field read back, against a
+    /// chain whose steps sit at DIFFERENT roles and whose transform's
+    /// halves differ, so nothing is interchangeable ([L34]). The item
+    /// vocabulary asserts MINTING order - first appearance, not
+    /// alphabetical.
+    #[test]
+    fn compiles_a_chain_and_mints_its_vocabularies() {
+        let mut chain = a_chain("cook_dinner");
+        chain.step.insert(
+            1,
+            crate::schema::ChainStepDef {
+                role: "eating_surface".to_string(),
+                label: "Warm through".to_string(),
+                duration_ticks: 31,
+                tags: vec!["cooking".to_string()],
+                yields: None,
+                transforms: Some(crate::schema::TransformDef {
+                    from: "leftovers".to_string(),
+                    to: "dinner".to_string(),
+                }),
+                consumes: None,
+            },
+        );
+        chain.step[2].consumes = Some("dinner".to_string());
+
+        let pack = compile_chain_world(vec![chain]).expect("a valid chain compiles");
+
+        assert_eq!(
+            pack.roles,
+            vec!["cold_storage".to_string(), "eating_surface".to_string()],
+            "the vocabulary is minted in object-declaration order"
+        );
+        assert_eq!(pack.objects[0].roles, vec![0], "the fridge wears index 0");
+        assert_eq!(pack.objects[1].roles, vec![1]);
+        assert_eq!(
+            pack.item_kinds,
+            vec!["leftovers".to_string(), "dinner".to_string()],
+            "item kinds mint at first appearance"
+        );
+
+        let chain = &pack.chains[0];
+        assert_eq!(chain.id, "cook_dinner");
+        assert_eq!(chain.label, "The cook_dinner errand");
+        assert_eq!(chain.advertised_by, ObjectDefId(0));
+        assert_eq!(chain.advertises, vec![(0, 41.0)]);
+        assert_eq!(chain.satisfaction, 2.75);
+        assert_eq!(chain.steps.len(), 3);
+        assert_eq!(
+            (chain.steps[0].role, chain.steps[0].duration_ticks),
+            (0, 17)
+        );
+        assert_eq!(chain.steps[0].yields, Some(0));
+        assert_eq!(chain.steps[1].transforms, Some((0, 1)));
+        assert_eq!(chain.steps[1].tags, vec!["cooking".to_string()]);
+        assert_eq!(chain.steps[2].consumes, Some(1));
+        assert_eq!(chain.steps[2].label, "Eat");
+    }
+
+    /// Every per-chain shape rule, one rejection each.
+    #[test]
+    fn rejects_malformed_chains() {
+        assert_eq!(
+            compile_chain_world(vec![a_chain("dup"), a_chain("dup")]).unwrap_err(),
+            ContentError::DuplicateChain { id: "dup".into() }
+        );
+
+        let mut blank = a_chain("blank");
+        blank.label = "  ".to_string();
+        assert_eq!(
+            compile_chain_world(vec![blank]).unwrap_err(),
+            ContentError::EmptyChainLabel { id: "blank".into() }
+        );
+
+        let mut lost = a_chain("lost");
+        lost.advertised_by = "microwave".to_string();
+        assert_eq!(
+            compile_chain_world(vec![lost]).unwrap_err(),
+            ContentError::UnknownChainAdvertiser {
+                chain: "lost".into(),
+                object: "microwave".into()
+            }
+        );
+
+        let mut hollow = a_chain("hollow");
+        hollow.step.clear();
+        assert_eq!(
+            compile_chain_world(vec![hollow]).unwrap_err(),
+            ContentError::EmptyChain {
+                id: "hollow".into()
+            }
+        );
+
+        let mut moxie = a_chain("moxie");
+        moxie.advertises.insert("moxie".to_string(), 1.0);
+        assert_eq!(
+            compile_chain_world(vec![moxie]).unwrap_err(),
+            ContentError::UnknownChainNeed {
+                chain: "moxie".into(),
+                need: "moxie".into()
+            }
+        );
+
+        // The satisfaction sign, from both sides: negative rejected
+        // (content can never write the second axis downward, [S1]) and
+        // exactly zero accepted - a chore chain is legal - separating
+        // `<` from `<=`.
+        let mut drain = a_chain("drain");
+        drain.satisfaction = -0.25;
+        assert!(matches!(
+            compile_chain_world(vec![drain]).unwrap_err(),
+            ContentError::NegativeValue { .. }
+        ));
+        let mut chore = a_chain("chore");
+        chore.satisfaction = 0.0;
+        assert!(
+            compile_chain_world(vec![chore]).is_ok(),
+            "a chain that means nothing is legal content"
+        );
+    }
+
+    /// Every per-step rule, one rejection each - and the clipped
+    /// duration rule applies to steps exactly as it does to
+    /// interactions, for the same three silent failures.
+    #[test]
+    fn rejects_malformed_chain_steps() {
+        let mut blank = a_chain("blank_step");
+        blank.step[1].label = " ".to_string();
+        assert_eq!(
+            compile_chain_world(vec![blank]).unwrap_err(),
+            ContentError::EmptyChainStepLabel {
+                chain: "blank_step".into(),
+                step: 1
+            }
+        );
+
+        let mut zero = a_chain("zero_step");
+        zero.step[0].duration_ticks = 0;
+        assert_eq!(
+            compile_chain_world(vec![zero]).unwrap_err(),
+            ContentError::ZeroChainStepDuration {
+                chain: "zero_step".into(),
+                step: 0
+            }
+        );
+
+        // full_tuning: floor 3, variance 0.75, so the smallest legal
+        // duration is ceil(3 / 0.25) = 12 and 11 clips. The FULL
+        // variant is asserted, not a matches!: `minimum` is derived
+        // arithmetic the author has to act on, and the sweep proved a
+        // shape-only assertion leaves every operator in it free.
+        let mut clipped = a_chain("clipped");
+        clipped.step[0].duration_ticks = 11;
+        assert_eq!(
+            compile_chain_world(vec![clipped]).unwrap_err(),
+            ContentError::ClippedChainStepDuration {
+                chain: "clipped".into(),
+                step: 0,
+                duration_ticks: 11,
+                minimum: 12,
+                floor: 3,
+                variance: 0.75
+            }
+        );
+
+        // The blank-kind rule, on every field that names one.
+        for which in ["yields", "from", "to", "consumes"] {
+            let mut blank = a_chain("blank_kind");
+            match which {
+                "yields" => blank.step[0].yields = Some("  ".to_string()),
+                "consumes" => blank.step[1].consumes = Some(" ".to_string()),
+                from_or_to => {
+                    blank.step[1].consumes = None;
+                    blank.step[1].transforms = Some(crate::schema::TransformDef {
+                        from: if from_or_to == "from" {
+                            " "
+                        } else {
+                            "leftovers"
+                        }
+                        .to_string(),
+                        to: if from_or_to == "to" { " " } else { "dinner" }.to_string(),
+                    });
+                }
+            }
+            let err = compile_chain_world(vec![blank]).unwrap_err();
+            assert!(
+                matches!(err, ContentError::EmptyChainItemKind { .. }),
+                "a blank {which} must reject as a blank kind; got {err}"
+            );
+        }
+
+        let mut tagless = a_chain("blank_tag");
+        tagless.step[1].tags = vec!["".to_string()];
+        assert_eq!(
+            compile_chain_world(vec![tagless]).unwrap_err(),
+            ContentError::EmptyChainStepTag {
+                chain: "blank_tag".into(),
+                step: 1
+            }
+        );
+
+        let mut nowhere = a_chain("nowhere");
+        nowhere.step[1].role = "operating_theatre".to_string();
+        assert_eq!(
+            compile_chain_world(vec![nowhere]).unwrap_err(),
+            ContentError::UnknownChainRole {
+                chain: "nowhere".into(),
+                step: 1,
+                role: "operating_theatre".into()
+            }
+        );
+    }
+
+    /// The coverage rule: a role somebody DECLARES but nobody PLACES is
+    /// its own error, distinct from a typo - a kitchen with no stove,
+    /// not a misspelled stove. The fixture places only the fridge, so
+    /// the sink's eating_surface exists in the vocabulary and stands
+    /// nowhere.
+    #[test]
+    fn rejects_a_chain_whose_station_is_declared_but_not_placed() {
+        let mut fridge = one_object(snack()).object.remove(0);
+        fridge.roles = vec!["cold_storage".to_string()];
+        let sink = ObjectDef {
+            roles: vec!["eating_surface".to_string()],
+            id: "sink".into(),
+            name: "Sink".into(),
+            sprite: "sink_art".into(),
+            footprint: Footprint::SINGLE,
+            interaction: vec![],
+        };
+        let err = compile(
+            full_needs(),
+            ObjectsFile {
+                object: vec![fridge, sink],
+            },
+            lot_of(5, 3, &[], &[("fridge", 1.0, 1.0)]),
+            test_atlas(),
+            full_tuning(),
+            PersonalitiesFile { archetype: vec![] },
+            HouseholdFile { sim: vec![] },
+            SocialFile {
+                interaction: vec![],
+            },
+            TraitsFile { trait_def: vec![] },
+            CareersFile { career: vec![] },
+            ChainsFile {
+                chain: vec![a_chain("dinner")],
+            },
+        )
+        .unwrap_err();
+        assert_eq!(
+            err,
+            ContentError::UnstationedChainRole {
+                chain: "dinner".into(),
+                step: 1,
+                role: "eating_surface".into()
+            }
+        );
+    }
+
+    /// The hands rule, every way it can be wrong: yielding into a full
+    /// hand, transforming or consuming what is not carried, two hand
+    /// operations on one step, and a chain that ends still carrying.
+    #[test]
+    fn rejects_chains_whose_hands_do_not_add_up() {
+        let mut full = a_chain("full_hands");
+        full.step[1].yields = Some("seconds".to_string());
+        full.step[1].consumes = None;
+        assert!(matches!(
+            compile_chain_world(vec![full]).unwrap_err(),
+            ContentError::ChainHandsMismatch { chain, step: 1, .. } if chain == "full_hands"
+        ));
+
+        let mut wrong_from = a_chain("wrong_from");
+        wrong_from.step[1].consumes = None;
+        wrong_from.step[1].transforms = Some(crate::schema::TransformDef {
+            from: "soup".to_string(),
+            to: "dinner".to_string(),
+        });
+        assert!(matches!(
+            compile_chain_world(vec![wrong_from]).unwrap_err(),
+            ContentError::ChainHandsMismatch { chain, step: 1, .. } if chain == "wrong_from"
+        ));
+
+        let mut wrong_eat = a_chain("wrong_eat");
+        wrong_eat.step[1].consumes = Some("soup".to_string());
+        assert!(matches!(
+            compile_chain_world(vec![wrong_eat]).unwrap_err(),
+            ContentError::ChainHandsMismatch { chain, step: 1, .. } if chain == "wrong_eat"
+        ));
+
+        let mut greedy = a_chain("greedy");
+        greedy.step[0].consumes = Some("leftovers".to_string());
+        assert!(matches!(
+            compile_chain_world(vec![greedy]).unwrap_err(),
+            ContentError::ChainHandsMismatch { chain, step: 0, .. } if chain == "greedy"
+        ));
+
+        let mut hoarder = a_chain("hoarder");
+        hoarder.step[1].consumes = None;
+        assert_eq!(
+            compile_chain_world(vec![hoarder]).unwrap_err(),
+            ContentError::ChainEndsCarrying {
+                chain: "hoarder".into(),
+                item: "leftovers".into()
+            }
+        );
+    }
+
+    /// The role rules on OBJECTS: blank and repeated roles reject, from
+    /// both sides - two different roles on one object are an outfit.
+    #[test]
+    fn rejects_blank_and_repeated_object_roles() {
+        let with_roles = |roles: Vec<&str>| {
+            let mut fridge = one_object(snack()).object.remove(0);
+            fridge.roles = roles.into_iter().map(str::to_string).collect();
+            compile_objects(
+                full_needs(),
+                ObjectsFile {
+                    object: vec![fridge],
+                },
+            )
+        };
+        assert_eq!(
+            with_roles(vec![" "]).unwrap_err(),
+            ContentError::EmptyObjectRole {
+                object: "fridge".into()
+            }
+        );
+        assert_eq!(
+            with_roles(vec!["hob", "hob"]).unwrap_err(),
+            ContentError::DuplicateObjectRole {
+                object: "fridge".into(),
+                role: "hob".into()
+            }
+        );
+        assert!(
+            with_roles(vec!["hob", "cold_storage"]).is_ok(),
+            "two different roles are an outfit, not a duplicate"
+        );
+    }
+
     /// Everything social tests compile through: the bare fixtures plus
     /// the given vocabulary.
     fn compile_bare_with_social(
@@ -5444,6 +6172,7 @@ mod tests {
             SocialFile { interaction },
             TraitsFile { trait_def: vec![] },
             CareersFile { career: vec![] },
+            ChainsFile { chain: vec![] },
         )
     }
 }

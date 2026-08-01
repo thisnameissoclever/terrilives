@@ -75,6 +75,45 @@ mod tests {
         }
     }
 
+    /// The shipped dinner chain, end to end through the embedded pack:
+    /// four steps at four stations, hands that add up (yield, carry,
+    /// transform, consume), the cooking tag on the hob step where
+    /// Doug's hobby and Nadia's capability will find it, and the
+    /// terminal-only payoff. A content edit that dropped a step or a
+    /// station would land here before it landed in play.
+    #[test]
+    fn the_shipped_pack_carries_the_dinner_chain() {
+        let p = pack();
+        let chain = p
+            .chains
+            .iter()
+            .find(|c| c.id == "cook_dinner")
+            .expect("content/chains.toml declares cook_dinner");
+        assert_eq!(p.object(chain.advertised_by).id, "fridge");
+        assert_eq!(chain.steps.len(), 4);
+
+        let role = |i: usize| p.roles[chain.steps[i].role as usize].as_str();
+        assert_eq!(
+            [role(0), role(1), role(2), role(3)],
+            ["cold_storage", "prep_surface", "hob", "eating_surface"]
+        );
+        assert_eq!(chain.steps[2].tags, vec!["cooking".to_string()]);
+
+        let kind = |i: u32| p.item_kinds[i as usize].as_str();
+        assert_eq!(chain.steps[0].yields.map(kind), Some("ingredients"));
+        assert_eq!(
+            chain.steps[2].transforms.map(|(f, t)| (kind(f), kind(t))),
+            Some(("ingredients", "dinner"))
+        );
+        assert_eq!(chain.steps[3].consumes.map(kind), Some("dinner"));
+
+        assert!(
+            chain.advertises.iter().any(|(_, delta)| *delta > 0.0),
+            "a dinner that feeds nobody is not a dinner"
+        );
+        assert!(chain.satisfaction > 0.0);
+    }
+
     #[test]
     fn the_pack_is_the_same_instance_every_call() {
         assert!(

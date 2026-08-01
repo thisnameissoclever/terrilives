@@ -1206,6 +1206,7 @@ mod lot_tests {
                 sprite: 0,
                 interactions: Vec::new(),
                 footprint: *footprint,
+                roles: Vec::new(),
             })
             .collect()
     }
