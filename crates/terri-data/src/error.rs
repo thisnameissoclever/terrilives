@@ -506,9 +506,9 @@ pub enum ContentError {
     },
     /// A household sim loves a tag no interaction in the pack carries.
     /// The hobby could never pay out: the sim would live its whole life
-    /// unable to do the thing it loves, with nothing anywhere saying so
-    /// - a dangling reference in [D9]'s exact sense, reported against
-    /// the sim so the typo is findable in `household.toml`.
+    /// unable to do the thing it loves, with nothing anywhere saying so.
+    /// A dangling reference in [D9]'s exact sense, reported against the
+    /// sim so the typo is findable in `household.toml`.
     UnknownHobby {
         sim: String,
         hobby: String,

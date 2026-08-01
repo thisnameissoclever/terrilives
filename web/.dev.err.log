@@ -1,9 +1,0 @@
-11:47:17 PM [vite] (client) [Unhandled error] NotFoundError: Failed to execute 'setPointerCapture' on 'Element': No active pointer with the given id is found.
- > HTMLCanvasElement.<anonymous> src/input.ts:879:11
-    877 |      // Capture, so a drag that leaves the canvas keeps panning instead
-    878 |      // of stranding mid-gesture.
-    879 |      canvas.setPointerCapture(event.pointerId);
-        |             ^
-    880 |      if (isTouch && touchCount === 2) {
-    881 |        pinchStartDistance = spread();
-
