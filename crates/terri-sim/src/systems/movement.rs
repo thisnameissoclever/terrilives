@@ -54,17 +54,21 @@ pub fn follow_path(
         &mut Path,
         Option<&Target>,
         Option<&terri_core::Traits>,
+        Option<&terri_core::ChainState>,
     )>,
     objects: Query<&SmartObject>,
     sims: Query<(), With<Agent>>,
 ) {
-    let mut walking: Vec<Entity> = agents.iter().map(|(entity, _, _, _, _)| entity).collect();
+    let mut walking: Vec<Entity> = agents
+        .iter()
+        .map(|(entity, _, _, _, _, _)| entity)
+        .collect();
     walking.sort_by_key(|entity| entity.index());
 
     for entity in walking {
         // Infallible: the list was just collected from this query and
         // nothing between here and there removes a component.
-        let Ok((_, mut pos, mut path, target, traits)) = agents.get_mut(entity) else {
+        let Ok((_, mut pos, mut path, target, traits, chain_state)) = agents.get_mut(entity) else {
             continue;
         };
         let Some((tx, ty)) = path.next_step() else {
@@ -79,8 +83,47 @@ pub fn follow_path(
             // starts a conversation - [H4]. The checks are by component
             // rather than by a flag on `Target`, because the component
             // is the ground truth the flag would be a copy of.
+            //
+            // **A chain walk arrives first** - [K4]. The CHAIN_STEP
+            // sentinel plus the walker's own counter names the step;
+            // the duration draw and the capability roll happen exactly
+            // where an interaction's do, from the same generator in
+            // the same entity order, so PRNG consumption stays a
+            // function of world state. A fumble rolled here RIDES to
+            // the terminal delivery.
             let tuning = &content.0.tuning;
-            if let Ok(placed) = objects.get(target.object) {
+            if target.interaction == super::chain::CHAIN_STEP {
+                let Some(chain_state) = chain_state else {
+                    // A chain target with no counter is a preemption
+                    // artefact (the cancel removed the chain but the
+                    // walk survived a tick); the walk just ends.
+                    commands.entity(entity).remove::<Path>().remove::<Target>();
+                    continue;
+                };
+                let chain = &content.0.chains[chain_state.chain as usize];
+                let step = &chain.steps[chain_state.step as usize];
+                let remaining_ticks = sample_duration(
+                    step.duration_ticks,
+                    tuning.duration_variance,
+                    tuning.min_interaction_ticks,
+                    &mut rng,
+                );
+                if !step.tags.is_empty() {
+                    if let Some(traits) = traits {
+                        if let Some(delta_scale) = super::trait_effects::roll_fumble(
+                            traits, content.0, &step.tags, &mut rng,
+                        ) {
+                            commands
+                                .entity(entity)
+                                .insert(terri_core::Fumbled { delta_scale });
+                        }
+                    }
+                }
+                commands
+                    .entity(entity)
+                    .remove::<Path>()
+                    .insert(terri_core::StepWork { remaining_ticks });
+            } else if let Ok(placed) = objects.get(target.object) {
                 // Both indices are in range by construction: `select_action`
                 // read them out of this same pack when it scored the advert,
                 // and the pack is fixed at build time.

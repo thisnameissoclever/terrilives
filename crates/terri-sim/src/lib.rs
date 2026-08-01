@@ -143,6 +143,9 @@ impl Sim {
         // is about.
         world.register_component::<terri_core::ChainState>();
         world.register_component::<terri_core::Carrying>();
+        // Not hashed (the Eating class), but tests reach it through
+        // `try_query`.
+        world.register_component::<terri_core::StepWork>();
         // The household's money - [E4]. From construction like the
         // SimId allocator, so a save file can restore it before any
         // shift completes.
@@ -198,6 +201,12 @@ impl Sim {
                 // function's docs for why that is the choice.
                 systems::action::serve_intents,
                 systems::action::select_action,
+                // Directly after selection, so a chain chosen this
+                // tick (or resumed after an interruption) gets its
+                // station walk on the same tick a chosen fridge gets
+                // its path - and there is exactly ONE targeting code
+                // path for chains, this system ([K4]).
+                systems::chain::advance_chains,
                 // Strictly after selection and strictly before movement,
                 // and both halves matter. After, because it reads the
                 // `Restless` marker selection has just written, so a sim
@@ -215,6 +224,10 @@ impl Sim {
                 // paid return.
                 systems::career::commute_and_work,
                 systems::interact::tick_interactions,
+                // Beside tick_interactions because it is the same job
+                // for chain steps: run the clock at the station, and
+                // pay - whole, terminal-only - when the last one ends.
+                systems::chain::tick_chain_steps,
                 // Beside `tick_interactions` because it is the same job
                 // for conversations: deliver per tick, complete, release
                 // the reservation. After `follow_path` so a conversation

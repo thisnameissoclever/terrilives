@@ -569,6 +569,16 @@ pub struct ChainState {
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Carrying(pub u32);
 
+/// A chain step in progress at its station - the chain's `Eating`.
+/// Transient action state, deliberately NOT hashed (the Eating class:
+/// reproduced by the same PRNG draw on any replay); [`ChainState`] is
+/// the durable half. Which step is running is the counter's business,
+/// so this carries only the clock.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StepWork {
+    pub remaining_ticks: u32,
+}
+
 /// The atlas sprite this entity is drawn with, when it differs from its
 /// object definition's - [A-11]'s facing mechanism.
 ///
