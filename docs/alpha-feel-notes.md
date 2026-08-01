@@ -1173,3 +1173,61 @@ No new mechanism. Personality is three multipliers entering the two places
 scoring and delivery already computed - [S4]'s one-mechanism rule held, and
 the diff to `select_action` is four lines reading two components. The work
 was almost entirely content, validation, and tests.
+
+## [A-10] The house learns to talk
+
+M2d measured: sims advertise a social vocabulary to each other
+(content/social.toml, one "chat" entry: social 30 and fun 6 over 40
+ticks), the initiator reserves its partner like an object, delivery
+fills both sides, and every completed conversation moves both ordered
+relationship pairs by 0.15, decaying toward zero at 0.00001 per tick.
+
+Trace: `cargo run -p terri-sim --example trace --release -- 36000`
+(deterministic; 12 000-tick window checked separately). 1 005
+interactions, 31 conversations.
+
+- **Goal item 2, measured.** Nadia - the authored demand-side sim, 1.4x
+  social drain, 0.75 social satisfaction - had a social band of 27.0 to
+  70.1 before M2d, the only need in the household that never reached
+  full. With people to talk to her band is **26.7 to 100.0**: the
+  ceiling jumped exactly as [A-9] predicted it should. Household social
+  supply-to-drain sits at 0.97, up from 0.94 with the television doing
+  all the work alone.
+- **The friendship graph has a shape, not a value.** At tick 36 000:
+  Terri and Nadia 0.993/0.993 (11 and 9 chats between them), Terri and
+  Doug 0.572/0.572, Doug and Nadia 0.392/0.392 - best friends, warm
+  housemates, and two people who nod in the corridor, all from one gain
+  knob and who actually sought whom. The CONVERSATIONS table is ordered
+  pairs, and it is already asymmetric in initiative: Terri opened 11
+  chats with Nadia, Nadia 9 back, Doug opened 2.
+- **Conversation reads at human speed**: sampled lengths 24 to 53 ticks
+  (2.4 to 5.3 seconds at 1x), mean around 39. Talking is 2.2% of all
+  sim-time, waiting-to-be-talked-at 0.5%, and the initiator's walk is
+  ordinary walking - so the mechanic adds presence without eating the
+  clock.
+- **Nobody froze and nobody wandered off mid-appointment**: 1 frozen
+  tick in 108 000 sim-ticks; the reserved partner stands still by
+  filter (selection, wander) rather than by hope.
+- **Back-to-back repeats stayed low**: 7/5/5 per sim over ~330
+  interactions each, about 1.6% aggregate - [H7]'s bet that the cubed
+  urgency of a filled social bar brakes talk loops held, no habituation
+  needed on people.
+- **[C6] came back for the reading chair and was paid for the second
+  time.** Chat's fun rider plus the talk-time it consumes pushed the
+  wingback back to zero uses over 12 000 ticks; duration 51 to 46 alone
+  recovered only the 36 000 window, so its fun delta moved 16 to 19.
+  Now 2 uses at 12 000, 8 at 36 000. The object's own comment records
+  the shape: it sits a rounding error above the threshold by design,
+  and every new competitor will shave that margin.
+
+The relationship trio's knobs behaved as authored: roughly seven chats
+to best-friend range, decay negligible inside one session (0.36 over
+the whole hour if nobody spoke, which nobody household-shaped lets
+happen).
+
+**Watched session: PENDING.** The browser pane was not displayable at
+measurement time (the page loads, the loop is rAF-driven and pauses
+hidden). Per the standing rule this section does not claim the system
+works on screen until it has been watched; the watch and its notes are
+the outstanding half of this entry.
+

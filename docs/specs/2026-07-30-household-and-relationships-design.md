@@ -1,8 +1,8 @@
 # A Household, Personality and Relationships - Decisions
 
-Status: **[H1], [H2] and [H3] are built and measured; [H4] and [H5] are
-decided and waiting on M2d.** Each decision carries the alternative rejected
-and why.
+Status: **All of [H1] through [H5] are built and measured**, with the
+build-time decisions recorded as [H6] through [H11] at the bottom. Each
+decision carries the alternative rejected and why.
 
 The through-line: **three sims who differ because of their own data** (goal item
 1), **social satisfied by each other rather than by a television** (item 2), and
@@ -93,7 +93,7 @@ Archetypes live in `content/personalities.toml` and are referenced by name from
 the household. The uniqueness discipline applies: two archetypes whose arrays are
 equal are untestable apart, which is [L26].
 
-## [H4] A sim is an advertiser, and that is the real change. NOT YET BUILT - M2d.
+## [H4] A sim is an advertiser, and that is the real change. BUILT.
 
 Today `select_action` scores placed objects. To satisfy `social` from other sims,
 it must also score **other sims** - so the candidate list becomes objects *and*
@@ -129,7 +129,7 @@ realistic and much worse: two sims would have to independently pick each other o
 the same tick, which at the shipped softmax temperature is rare, so conversations
 would almost never happen.
 
-## [H5] Relationships are one number per ordered pair. NOT YET BUILT - M2d.
+## [H5] Relationships are one number per ordered pair. BUILT.
 
 `Relationships { Vec<(SimId, f32)> }` on each sim, sorted, same container shape
 as `Habituation` and for the same reason - `world_hash` iterates it.
@@ -192,3 +192,61 @@ is `docs/alpha-feel-notes.md` [A-9]: desk Terri 30 / Doug 0 / Nadia 0;
 television Nadia 69 / Doug 42 / Terri 34; armchair Doug 11 / Nadia 1 /
 Terri 0; Nadia's social band 27.0 to 70.1, the only need in the household
 that never reaches full - the authored M2d demand, working.
+
+---
+
+## M2d decisions, settled at build time
+
+The [H4]/[H5] sections above fixed the mechanism; these are the choices
+they left open, decided when the code had to exist.
+
+- **[H6] Social interactions are content, in `content/social.toml`,
+  compiled as `ContentPack::social` (appended last, per the append-only
+  pack rule).** They reuse `CompiledInteraction` unchanged - id,
+  advertises, duration, slots, label - because a talk IS an interaction,
+  merely one advertised by a person instead of a placed object.
+  *Rejected: defining talk inline in tuning.toml* - an interaction is
+  content describing one thing, and the tuning header itself draws
+  exactly that line.
+
+- **[H7] Social interactions are NOT habituated in M2d.** The brake on
+  talk-spam is the social need itself: urgency is cubed, so a filled
+  social need scores talking near zero without any extra mechanism.
+  *Rejected: extending the habituation key* - `Habituation`,
+  `Personality::dispositions` and `Eating` are all keyed
+  `(ObjectDefId, u32)`, so admitting sims means an enum key that ripples
+  through the world hash, both golden vectors, and every fixture, to add
+  a second brake where one already exists. Revisit only if the measured
+  session shows back-to-back talk loops the need level fails to damp.
+
+- **[H8] The relationship multiplier acts in scoring AND delivery,
+  through one extracted function.** Same [S4] one-mechanism rule that
+  satisfaction follows, same reason: a sim must seek exactly what the
+  talk will give it, and per [L55] the formula must be a callable
+  `pub fn` (`relationship_scale`) with golden values, not an inline
+  expression nothing can pin. Costs are never scaled, per [S2] - talk
+  has no advertised costs today, and the rule is stated so that the day
+  one exists it is already decided.
+
+- **[H9] A relationship is one f32 in -1.0..=1.0, 0.0 is a stranger,
+  absence is neutral.** Completing a talk moves BOTH ordered pairs up by
+  `relationship_gain_per_talk`; every tick both drift toward zero by
+  `relationship_decay_per_tick`. The decay is the same shape as the
+  habituation trio and for the same reason: a friendship that needs no
+  maintenance is a number that only ever rises, and a one-way ratchet is
+  the failure `compile_tuning` already rejects for habituation.
+  *Rejected: gain scaled by the partner's charisma-like trait* - no such
+  trait exists yet, and inventing one here would be M2e's satisfaction
+  design done badly in a spec about relationships.
+
+- **[H10] Only an idle sim is a valid social target** - no `Target`, no
+  `Eating`, no active social engagement; a wandering target is fine and
+  stands still once reserved. *Rejected: reserving a busy sim* - the
+  initiator paths to the target at selection time, so a target that is
+  itself walking invalidates the path every tick, and "wait politely by
+  the fridge" is queueing semantics that belongs to M2f's multi-step
+  chains, not here.
+
+- **[H11] `SimId` and `Relationships` enter the world hash together, as
+  the M2c exclusion note promised.** Both golden vectors (native and the
+  wasm bridge copy) are re-measured in the same commit that adds them.

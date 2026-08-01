@@ -63,6 +63,28 @@ pub fn scaled_delta(delta: f32, scale: f32) -> f32 {
     }
 }
 
+/// How much a relationship multiplies a social interaction's BENEFIT -
+/// [H8].
+///
+/// `1 + relationship * delta_scale`: a stranger (relationship 0) gets
+/// exactly the authored delta, a best friend (1.0) gets up to double it
+/// and a nemesis (-1.0) as little as none, with `delta_scale` from
+/// `content/tuning.toml` setting how far either way. Both inputs arrive
+/// bounded - relationships are clamped to `-1..=1` by
+/// `Relationships::bump` and the scale to `[0, 1]` by `compile_tuning` -
+/// so the result is in `[1 - scale, 1 + scale]` and never negative,
+/// which is what keeps an authored benefit from silently becoming a
+/// cost ([S2]).
+///
+/// A named `pub fn` rather than a line in `select_action`, per [L55]: a
+/// multiplier needs a golden value and a golden value needs a callable
+/// function. It is applied in scoring AND delivery, reading the same
+/// relationship, so a sim seeks exactly what the conversation will give
+/// it - the same one-mechanism rule satisfaction follows.
+pub fn relationship_scale(relationship: f32, delta_scale: f32) -> f32 {
+    1.0 + relationship * delta_scale
+}
+
 /// Score ONE advertised need of one interaction, for one agent. Higher
 /// wins.
 ///
@@ -241,6 +263,38 @@ mod tests {
         // be passing by accident of the fixture's scale.
         assert_eq!(scaled_delta(40.0, 1.0), 40.0);
         assert_eq!(scaled_delta(-12.0, 1.0), -12.0);
+    }
+
+    /// **Golden values at both ends and the midpoint, for [L55]'s
+    /// reason:** "the well-liked sim wins" is a discrete choice that
+    /// throws away the magnitude, so most wrong formulas pass it. Only
+    /// the numbers pin `1 + r * s` against `1 - r * s`, `r * s`, and
+    /// `1 + r / s` - and every value here is exact in binary32, so the
+    /// assertions are equalities rather than tolerances.
+    #[test]
+    fn relationship_scale_is_anchored_at_one_and_linear_to_both_ends() {
+        const SCALE: f32 = 0.5;
+        // A stranger gets exactly the authored delta. Every mutant that
+        // multiplies agrees here; this is the anchor, not the killer.
+        assert_eq!(relationship_scale(0.0, SCALE), 1.0);
+        // The ends are where the formulas separate: `1 - r * s` gives
+        // 0.5 for a friend, `r * s` gives 0.5, `1 + r / s` gives 3.0.
+        assert_eq!(relationship_scale(1.0, SCALE), 1.5);
+        assert_eq!(relationship_scale(-1.0, SCALE), 0.5);
+        // The midpoint pins linearity rather than mere monotonicity.
+        assert_eq!(relationship_scale(0.5, SCALE), 1.25);
+
+        // A scale of 0 disables the mechanic at EVERY relationship, the
+        // same contract as a habituation floor of 1 - and the same
+        // mutant it kills: one that reads the scale with the wrong sign
+        // passes the four assertions above.
+        for feeling in [-1.0, -0.25, 0.0, 1.0] {
+            assert_eq!(
+                relationship_scale(feeling, 0.0),
+                1.0,
+                "a scale of 0 must disable the effect at relationship {feeling}"
+            );
+        }
     }
 
     #[test]

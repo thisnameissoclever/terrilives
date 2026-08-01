@@ -7,7 +7,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "dev:lan": "vite --mode lan --port 5174"
   },
   "devDependencies": {
     "typescript": "^5.5.0",

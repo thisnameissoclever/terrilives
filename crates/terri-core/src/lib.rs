@@ -19,7 +19,8 @@ pub use clock::{SimClock, TICKS_PER_SIM_HOUR, TICK_HZ};
 pub use command::{CommandQueue, SimCommand};
 pub use components::{
     Agent, Blocked, Eating, Habituation, Intent, IntentQueue, Path, Personality, Position,
-    Reserved, Restless, Selected, SimId, SimIdAllocator, SimName, SmartObject, Target, Wander,
+    Relationships, Reserved, Restless, Selected, SimId, SimIdAllocator, SimName, SmartObject,
+    Socialising, Target, Wander,
 };
 pub use grid::{Footprint, TileGrid};
 pub use hash::FnvHasher;
