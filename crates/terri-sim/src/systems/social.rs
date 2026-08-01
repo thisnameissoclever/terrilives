@@ -55,6 +55,7 @@ pub fn tick_social(
     mut relationships: Query<&mut Relationships>,
     partners: Query<(Has<Reserved>, Has<Target>), With<terri_core::Agent>>,
     mut queues: Query<&mut IntentQueue>,
+    mut ledgers: Query<(&mut terri_core::Satisfaction, Option<&terri_core::Hobbies>)>,
 ) {
     let tuning = content.0.tuning;
 
@@ -130,6 +131,26 @@ pub fn tick_social(
         // mirroring habituation's completion-only bump: an interrupted
         // conversation leaves no impression, by the same rule that an
         // interrupted meal leaves no habituation.
+        //
+        // **The hobby payout pays BOTH sides too** ([E2]), each against
+        // their OWN hobbies: a chat is worth triple to Nadia, who loves
+        // company, and base to the housemate she cornered. The same
+        // both-sides rule delivery follows, for the same reason - a
+        // conversation is the one interaction where the object gets as
+        // much out of being used as the user.
+        for me in [initiator, partner] {
+            if let Ok((mut ledger, hobbies)) = ledgers.get_mut(me) {
+                let payout = super::satisfaction::hobby_payout(
+                    act.satisfaction,
+                    &act.tags,
+                    hobbies,
+                    tuning.hobby_multiplier,
+                );
+                if payout > 0.0 {
+                    ledger.add(payout);
+                }
+            }
+        }
         for (me, other) in [(initiator, partner), (partner, initiator)] {
             let Some(other_id) = other_sim_id(&sim_ids, other) else {
                 continue;

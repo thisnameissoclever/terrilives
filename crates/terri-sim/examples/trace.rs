@@ -775,5 +775,21 @@ fn main() {
         );
     }
 
+    // The second axis, per sim - what a whole session earned each LIFE
+    // ([E1]). Read straight off the components rather than accumulated
+    // in the loop, because the ledger IS the accumulator.
+    println!("\nLIFE SATISFACTION (accrued over the whole run)");
+    for (entity, name) in &sims {
+        let ledger = sim
+            .world()
+            .get::<terri_core::Satisfaction>(*entity)
+            .map_or(-1.0, |s| s.value());
+        let hobbies = sim
+            .world()
+            .get::<terri_core::Hobbies>(*entity)
+            .map_or_else(String::new, |h| h.0.join(", "));
+        println!("  {name:<8} {ledger:>8.1}   loves: {hobbies}");
+    }
+
     println!("\nworld hash {:#018x}", sim.world_hash());
 }

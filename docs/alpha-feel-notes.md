@@ -1267,3 +1267,35 @@ its "Chat" flyout row over housemates.
   remotely. The talk-order flyout labels come from the pack, so today
   it is one row; the vocabulary can grow without touching the shell.
 
+
+## [A-12] The second axis, measured
+
+M2e PR 1: satisfaction and hobbies, the trace re-run at 36 000 ticks
+(one simulated hour) on the shipped lot with the shipped household.
+`cargo run -p terri-sim --example trace --release -- 36000`, which now
+prints the ledger.
+
+- **The axis separates the household exactly as the content authored
+  it.** Terri 949.5 (correspondence and reading - the desk is her
+  whole archetype and it is never contested), Doug 389.5 (television
+  and cooking), Nadia 291.0 (socialising alone). Nadia earning least
+  while loving people most is the design's own bet stated in
+  household.toml: hers is the most fragile hobby in the house because
+  it needs OTHER PEOPLE to be free, and one simulated hour prices that
+  fragility at about a third of Terri's take.
+- **The neglect bleed never fired, and that is the tuning working.**
+  Every need cycled in the 30-100 band all hour; the floor is 15. The
+  bleed is for genuine crises - a need with no object, a sim trapped
+  away from one, or (PR 3) a career eating the time a need wanted -
+  not for the ordinary hum of a functioning household.
+- **Behaviour is untouched.** Motion shares match the M2d session's
+  shape (2.6% talking, 0.8% waiting, 1 frozen tick in 108 000);
+  satisfaction reads the world and writes a ledger nothing reads back
+  yet, so the sims do not chase it. That changes in PR 2, when traits
+  weight choices - this entry is the BASELINE the trait pass gets
+  compared against.
+- **Balance question, deliberately left open for the milestone's
+  end:** Terri out-earns Doug 2.4x. The ratio is defensible (two
+  active hobbies against one passive plus one chore-hobby) but the
+  gap is wide, and whether it FEELS wide is a played-session question
+  for PR 3's watch, not a knob to turn from a table.

@@ -47,3 +47,10 @@ duration_ticks = 40
 # any system; when group conversations arrive, this is the knob that
 # already says how many may join.
 slots = 2
+# Company as a HOBBY ([E2]): every completed chat pays a little toward a
+# life well lived, and triple for a sim who loves people. Both
+# participants receive it - a conversation is the one interaction where
+# the object gets as much out of being used as the user, and that rule
+# does not stop at the need deltas.
+tags = ["socialising"]
+satisfaction = 2.0

@@ -638,6 +638,29 @@ day - the heading said four while the file held five - because a number in a
 heading is a second copy of `wc -l docs/mutants-baseline.txt` that nothing keeps
 in sync. Count the file.
 
+### The three `payout > 0.0` guards - EQUIVALENT (change-detection only)
+
+Added 2026-08-01 with M2e PR 1, three entries sharing one argument:
+`interact.rs` and `social.rs` guard the hobby payout, `satisfaction.rs`
+(`crises > 0`) guards the neglect bleed. Each wraps a
+`Satisfaction::add` whose amount is EXACTLY zero when the guard is
+false, and `add(0.0)` (or `add(-0.0)`) leaves the value bit-identical -
+`(v + 0.0).max(0.0)` is `v` for every non-negative `v`, and the
+component holds non-negativity as its own invariant. So `>` versus `>=`
+changes no simulation state, no digest, and no test-visible behaviour.
+
+What the guards actually buy is CHANGE DETECTION: without them every
+completed chore and every calm tick marks the `Satisfaction` component
+changed for every sim, which is per-tick work for nothing. That cost
+has no observer in the test suite, deliberately - instrumenting bevy's
+change ticks to kill three mutants would be a test suite testing the
+optimiser.
+
+**When this expires:** if `Satisfaction::add` ever gains a side effect
+beyond the value (an event, a dirty flag of its own), the zero-amount
+call stops being a no-op and all three guards become behaviour. Whoever
+adds that side effect owns re-checking these.
+
 ### `action.rs:467:61` - the third `||` in the people busy check - EQUIVALENT
 
 Added 2026-07-31 with the TalkTo command. The people branch of

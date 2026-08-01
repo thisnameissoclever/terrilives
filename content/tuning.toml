@@ -431,6 +431,38 @@ relationship_decay_per_tick = 0.00001
 # conversation will give it.
 relationship_delta_scale = 0.5
 
+# ============================================================================
+# The satisfaction axis - M2e, [E1]/[E2] in
+# docs/specs/2026-08-01-m2e-satisfaction-hobbies-career-design.md.
+# Satisfaction is the SECOND axis: a per-sim accumulator the player
+# watches, produced by hobbies and reduced by neglect, never derived
+# from need levels ([S1]).
+
+# What completing a LOVED activity's satisfaction is multiplied by. At
+# 3.0, a hobby completion is worth triple a merely-pleasant one: a
+# loved read pays 9 against its base 3, so a sim with idle time and a
+# hobby visibly out-earns one with idle time alone - which is the whole
+# claim of [S1], that idle time must be SPENT to convert. Must be at
+# least 1 (below 1 inverts the mechanic; exactly 1 disables it).
+hobby_multiplier = 3.0
+
+# The need level below which a need is NEGLECTED and bleeds
+# satisfaction. 15 is beneath every self-serve equilibrium the traces
+# have measured (the household's needs cycle in the 30-90 band when
+# objects exist to serve them), so an ordinarily functioning sim never
+# touches it - the bleed is for genuine neglect, a need with no object,
+# a sim trapped away from one, or a career eating the time a need
+# wanted. In [0, 100]; 0 disables.
+neglect_floor = 15.0
+
+# Satisfaction lost PER NEGLECTED NEED per tick below the floor:
+# 0.002/tick is 24 per simulated hour per crisis. Against a dedicated
+# hobbyist's rough 100-200/hour accrual that is a bruise rather than a
+# knockout for one neglected need, and a compounding indictment for
+# three - each need below the floor bleeds separately, because three
+# crises are worse than one. Non-negative; 0 disables.
+neglect_bleed_per_tick = 0.002
+
 # Need decay per tick. One tick is one sim-minute, so 0.104 drains a full
 # need in roughly 16 sim-hours.
 #

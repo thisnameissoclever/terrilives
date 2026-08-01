@@ -427,6 +427,14 @@ impl SimHandle {
         self.sim.sim_id_of(entity_index).unwrap_or(u32::MAX)
     }
 
+    /// The [E1] satisfaction ledger, or -1 for anything without one -
+    /// in-band the way `sim_id_of`'s MAX is, and unreachable by a real
+    /// ledger for the same reason the world hash's sentinel is: the
+    /// component clamps at zero.
+    pub fn satisfaction_of(&self, entity_index: u32) -> f32 {
+        self.sim.satisfaction_of(entity_index).unwrap_or(-1.0)
+    }
+
     /// Fourteen floats - drain then satisfaction, seven each - or empty.
     /// The [A-11] debug overlay's read; see `Sim::personality_of`.
     pub fn personality_of(&self, entity_index: u32) -> Vec<f32> {
@@ -1666,6 +1674,8 @@ mod boundary_tests {
         let mut feelings = Relationships::default();
         feelings.bump(SimId(9), 0.5);
         feelings.bump(SimId(2), -0.25);
+        let mut ledger = terri_core::Satisfaction::default();
+        ledger.add(6.5);
         let agent = handle
             .sim
             .world_mut()
@@ -1676,6 +1686,7 @@ mod boundary_tests {
                 SimId(4),
                 personality,
                 feelings,
+                ledger,
             ))
             .id()
             .index_u32();
@@ -1691,6 +1702,18 @@ mod boundary_tests {
             handle.sim_id_of(bare),
             u32::MAX,
             "no identity flattens to the in-band absent value"
+        );
+
+        // The M2e ledger crosses with the trio: a real value for the
+        // sim that carries one, -1 in-band for the bare agent - the
+        // same absent contract sim_id_of's MAX carries. 6.5 rather than
+        // 0, so a boundary that flattened every ledger to the default
+        // is visible ([L34]).
+        assert_eq!(handle.satisfaction_of(agent), 6.5);
+        assert_eq!(
+            handle.satisfaction_of(bare),
+            -1.0,
+            "no ledger flattens to the in-band absent value"
         );
 
         let personality = handle.personality_of(agent);

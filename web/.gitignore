@@ -1,0 +1,8 @@
+# Detached dev-server logs (Start-Process redirects; see the
+# shell-exit-codes memory for why the servers run detached).
+.dev.log
+.dev.err.log
+.dev-lan.log
+.dev-lan.err.log
+.preview.log
+.preview.err.log

@@ -84,6 +84,15 @@ pub struct TuningFile {
     /// so with relationship in `-1..=1` this must be in `0.0..=1.0` to
     /// keep the multiplier non-negative. Zero disables the effect.
     pub relationship_delta_scale: f32,
+    /// What a loved activity's completion satisfaction is multiplied by
+    /// ([E2]). At least 1; exactly 1 disables hobbies.
+    pub hobby_multiplier: f32,
+    /// The need level below which a need is neglected and bleeds
+    /// satisfaction ([E1]). In `[0, 100]`; 0 disables neglect.
+    pub neglect_floor: f32,
+    /// Satisfaction lost per neglected need per tick. Non-negative;
+    /// 0 disables the bleed.
+    pub neglect_bleed_per_tick: f32,
     /// Need name to how much of that need drains per tick.
     ///
     /// A decay rate is a system-wide balance knob rather than part of a
@@ -234,6 +243,23 @@ pub struct InteractionDef {
     pub advertises: BTreeMap<String, f32>,
     pub duration_ticks: u32,
     pub slots: u8,
+    /// What KIND of activity this is - `tags = ["reading"]` - the hook
+    /// hobbies, trait dispositions and capabilities all key on ([E2]/
+    /// [E3] in the M2e design). Sparse and defaulted: most interactions
+    /// are chores with no identity beyond their need deltas, and a
+    /// file that had to tag every toilet visit would bury the tags
+    /// that matter. Order is authored order; the compile step keeps it.
+    #[serde(default)]
+    pub tags: Vec<String>,
+    /// Base satisfaction paid on COMPLETION - the [E1] second axis's
+    /// only upward path. Defaulted to zero, which here is genuinely
+    /// the silent-nothing case being CORRECT: most activities pay
+    /// nothing toward a life well lived, and only a hobby's yield is
+    /// worth authoring. Negative is a compile error, not a mechanic -
+    /// [S1] routes every downward write through neglect and
+    /// conditions, never through content.
+    #[serde(default)]
+    pub satisfaction: f32,
 }
 
 /// Mirrors `content/lot.toml`: the size of the lot, its interior wall
@@ -349,6 +375,15 @@ pub struct HouseholdSimDef {
     /// a seven-line restatement of contentment.
     #[serde(default)]
     pub needs: BTreeMap<String, f32>,
+    /// The activity TAGS this sim loves - `hobbies = ["reading"]`. A
+    /// completed activity carrying one of these pays its satisfaction
+    /// multiplied by `hobby_multiplier` ([E2]). Defaulted: a sim with
+    /// no hobbies is legal authoring (and a life the satisfaction axis
+    /// will quietly indict). A hobby naming a tag no interaction in
+    /// the pack carries is a dangling reference and a compile error,
+    /// per [D9].
+    #[serde(default)]
+    pub hobbies: Vec<String>,
 }
 
 /// Mirrors `assets/sprites/atlas.toml`, which is **generated** by
@@ -408,7 +443,7 @@ mod tests {
     /// The six `u32`s and the `u64` are deliberately different numbers
     /// for the same reason, and every float is exact in binary32 so the
     /// assertions can be equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 18] = [
+    const TUNING_LINES: [(&str, &str); 21] = [
         ("action_threshold", "0.25"),
         ("choice_temperature", "0.5"),
         ("idle_threshold", "0.125"),
@@ -427,6 +462,9 @@ mod tests {
         ("relationship_gain_per_talk", "0.4375"),
         ("relationship_decay_per_tick", "0.001953125"),
         ("relationship_delta_scale", "0.875"),
+        ("hobby_multiplier", "2.5"),
+        ("neglect_floor", "21.0"),
+        ("neglect_bleed_per_tick", "0.0009765625"),
     ];
 
     /// The decay table, which is the twelfth knob and the only one that is
@@ -488,6 +526,9 @@ mod tests {
         assert_eq!(parsed.relationship_gain_per_talk, 0.4375);
         assert_eq!(parsed.relationship_decay_per_tick, 0.001953125);
         assert_eq!(parsed.relationship_delta_scale, 0.875);
+        assert_eq!(parsed.hobby_multiplier, 2.5);
+        assert_eq!(parsed.neglect_floor, 21.0);
+        assert_eq!(parsed.neglect_bleed_per_tick, 0.0009765625);
 
         assert_eq!(parsed.decay_per_tick.len(), DECAY_LINES.len());
         for (need, rate) in DECAY_LINES {
