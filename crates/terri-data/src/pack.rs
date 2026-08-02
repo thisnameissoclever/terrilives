@@ -295,6 +295,12 @@ pub struct Tuning {
     /// `[0, 100]` ([E1] writer 2). Zero disables neglect entirely - no
     /// level is below zero for long enough to matter.
     pub neglect_floor: f32,
+    /// What every need's decay rate is multiplied by while a sim is
+    /// `AtWork` - [X2] in the alpha acceptance findings. In `[0, 1]`
+    /// and finite. Above 1 the office would drain a sim FASTER than
+    /// living does, which is a different game; exactly 1 is the legal
+    /// way back to the unmitigated void the career shipped with.
+    pub at_work_decay_scale: f32,
     /// Satisfaction lost PER NEGLECTED NEED per tick while it stays
     /// below the floor. Non-negative and finite; each need below the
     /// floor bleeds separately, because three crises are worse than
@@ -611,6 +617,7 @@ mod tests {
             relationship_delta_scale: 0.5,
             hobby_multiplier: 3.5,
             neglect_floor: 17.0,
+            at_work_decay_scale: 0.5,
             neglect_bleed_per_tick: 0.0075,
             day_ticks: 23,
         }

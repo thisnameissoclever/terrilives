@@ -3198,8 +3198,111 @@ a simulated day and prove no save bytes are captured or queued. While clear is
 pending, attempt manual Save and prove the only storage operation after the
 initial restore remains clear. In both cases, assert all persistence controls
 are disabled until the owner operation settles.
+## [L65] A validator that models one case of a union rejects the other two silently
 
-## [L65] Disabling a clicked submitter can cancel the default action it was about to perform
+**What happened.** `Target` names one of three things - a chain station
+(the `CHAIN_STEP` sentinel), an object's interaction, or another SIM for
+a conversation - and `follow_path` has dispatched on all three since
+M2f. The save validator was written when only the middle case existed
+and was never revisited when the other two arrived. The result was not
+a crash and not a wrong answer: it was **28.4% of all ticks producing a
+snapshot the game refused to load**, discovered only when the alpha
+acceptance pass saved at every tick of a 36 000-tick run instead of at
+one.
+
+**Root cause.** The union has no type. `Target { object: Entity,
+interaction: u32 }` is one struct whose meaning depends on what the
+entity IS and on a sentinel value, so nothing in the compiler notices
+when a new arm is added at the producer and not at the consumer. Two
+more consumers shared the same blind spot: queued `Intent`s, and
+habituation keys, both of which address an object by FLYOUT ROW - a
+fourth index space, running past the interactions into the chains.
+
+**Prevention rule.** When a field's meaning is decided at run time by a
+sentinel or by the kind of the thing it points at, every reader of that
+field is a place the union must be re-stated. Adding an arm at the
+producer means grepping for every reader before the PR, and a doc
+comment on the field naming its arms is the cheapest way to make the
+next reader look. Where an index space exists in more than one place -
+interactions, flyout rows, the social table - give it ONE named helper
+that all callers share, so a widening happens once.
+
+**How to verify.** Save at every tick of a played run, not at one
+chosen tick, and assert COVERAGE before asserting success: the new test
+fails loudly if nobody happened to walk to a chat during the window,
+because a vacuous pass is what let this ship.
+
+## [L66] Measuring a milestone's own numbers is not measuring the game
+
+**What happened.** Every one of the ten shipped alpha criteria was
+measured when it landed, in a session written for it: [A-14] measured
+the career's money, its time share, and its satisfaction, and concluded
+"shipped as measured." It never looked at whether the working sim's
+NEEDS survived the job. They did not - she hit zero on six of seven and
+lived at or under 5 on hunger for 27.3% of her life, from the day the
+career shipped. The trace harness had been printing `<-- floor near
+zero: somebody is barely being served` on that run the entire time, and
+I read past it three milestones running, because the number I had come
+to check was a different number.
+
+**Root cause.** A milestone's measurement is written by the person who
+just built the milestone, and it asks the questions that milestone was
+about. The career pass asked "does the job cost time?" - the right
+question, answered correctly. Nobody asked "is this household still
+liveable with a job in it?", because that question does not belong to
+any one milestone.
+
+**Prevention rule.** A feature's own session cannot be its only
+measurement. When a system lands that competes for a shared resource -
+time, an object, a need - the NEXT session re-measures the things that
+resource already fed, and a whole-game acceptance pass runs against the
+finished set rather than against each part in turn. Warnings a harness
+prints unprompted are findings; if one is not worth acting on, the
+harness should stop printing it.
+
+**How to verify.** `docs/specs/2026-08-01-alpha-acceptance-findings.md`
+is the shape: every criterion re-run on one build, each judged against
+evidence gathered now rather than against the milestone that shipped
+it.
+
+## [L67] The preview server serves the ORIGINAL project root, not the worktree
+
+**What happened.** Working from a git worktree under
+`.claude/worktrees/`, I built this branch's `web/dist`, started the
+preview through the Browser pane, and measured the save/load fix in the
+page. It failed - reproducibly, at exactly the same tick every run,
+with a failure rate matching the PRE-fix measurement. An hour went into
+chasing a bug that was not there: the preview was serving the SHARED
+working tree's `dist`, on another branch, without the fix.
+
+**Root cause.** `preview_start` resolves its launch configuration
+relative to the session's original project root rather than the
+worktree's cwd, so `npm --prefix web run preview` ran in the shared
+checkout. Every symptom pointed the wrong way - a clean rebuild did not
+change the served bundle, restarting the server did not change it, and
+clearing OPFS, caches and service workers changed nothing, because none
+of those were the mechanism.
+
+**Prevention rule.** In a worktree, confirm WHICH build is being served
+before drawing any conclusion from the browser, and confirm it by
+identity rather than by having just built:
+
+```bash
+curl -s http://localhost:4173/ | grep -o 'assets/index-[^"]*'
+```
+
+Compare that filename against `ls web/dist/assets/`. If they differ,
+the server is serving somebody else's tree. A bundle hash that does not
+move after a real source change is the tell, and it is a stronger
+signal than any amount of cache-clearing.
+
+**How to verify.** Run the app's own build from the worktree
+(`web/node_modules/.bin/vite preview --port 4173`) so the served
+`index-*.js` matches the local `dist`, then re-measure. The
+before/after this produced is in [A-19]: 2 013 refused saves of 6 000
+on the shared build, 0 of 6 000 on this one.
+
+## [L68] Disabling a clicked submitter can cancel the default action it was about to perform
 
 **What happened.** The persistence operation guard correctly disabled an
 already-open Load confirmation as soon as Load began. In visible Chromium, the

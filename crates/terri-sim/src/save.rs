@@ -1,5 +1,6 @@
 //! Simulation snapshot capture, validation, and reconstruction.
 
+use crate::systems::chain::CHAIN_STEP;
 use crate::{Content, Sim};
 use bevy_ecs::{
     entity::EntityIndex,
@@ -621,7 +622,20 @@ fn validate_command(
             interaction,
         } => {
             validate_agent_reference(entities, *agent)?;
-            validate_object_entity_interaction(entities, pack, *object, *interaction)
+            // The same flyout rows `serve_intents` resolves, chains
+            // included - a queued "Cook dinner" is a `UseObject` whose
+            // row sits past the interactions ([K5]).
+            //
+            // Object-only, unlike the `Intent` it becomes: the drain
+            // resolves this index against the objects query alone, so
+            // a `UseObject` naming a person is dropped rather than
+            // served, and `TalkTo` is how the wire says conversation.
+            let entity = validate_entity_reference(entities, *object)?;
+            let object = entity
+                .smart_object
+                .as_deref()
+                .ok_or(SaveError::InvalidEntityReference)?;
+            validate_flyout_row(pack, object, *interaction)
         }
         SavedCommand::TalkTo {
             agent,
@@ -694,11 +708,11 @@ fn validate_entity(
             return Err(SaveError::InvalidValue);
         }
         for intent in intents {
-            validate_object_entity_interaction(entities, pack, intent.object, intent.interaction)?;
+            validate_order_reference(entities, pack, intent.object, intent.interaction)?;
         }
     }
     if let Some(target) = entity.target {
-        validate_object_entity_interaction(entities, pack, target.object, target.interaction)?;
+        validate_target_reference(entities, pack, target.object, target.interaction)?;
     }
     if let Some(eating) = &entity.eating {
         validate_object_interaction(pack, &eating.object, eating.interaction)?;
@@ -823,7 +837,13 @@ fn validate_habituation(
     }
     let mut previous_key = None;
     for entry in entries {
-        validate_object_interaction(pack, &entry.object, entry.interaction)?;
+        // **Rows, not interactions.** `learn_and_manage` keys
+        // habituation on the same flyout row scoring uses, so a sim
+        // who has cooked dinner carries an entry on the fridge at row
+        // 1 - its chain. Validating these as interactions rejected the
+        // snapshot of any household that had ever eaten a cooked meal,
+        // which by tick 1 770 of the shipped lot is all of them.
+        validate_flyout_row(pack, &entry.object, entry.interaction)?;
         if !entry.value.is_finite() {
             return Err(SaveError::InvalidValue);
         }
@@ -839,18 +859,96 @@ fn validate_habituation(
     Ok(())
 }
 
-fn validate_object_entity_interaction(
+/// **A `Target` names one of THREE things, not one.** `follow_path`
+/// dispatches on what it finds at the far end: the `CHAIN_STEP`
+/// sentinel means a station in a running chain, a smart object means
+/// that object's interaction, and an AGENT means a conversation whose
+/// index addresses `pack.social` instead of the object's interactions.
+///
+/// This validator modelled only the middle case, and the two it missed
+/// are ordinary play rather than corner cases: **28.4% of ticks in a
+/// 36 000-tick shipped-lot run produced a snapshot that would not
+/// load** - `InvalidContentReference` for every save taken while
+/// somebody walked to a chain station (`u32::MAX` is not a valid
+/// interaction index), `InvalidEntityReference` for every save taken
+/// while somebody walked over to talk (a sim carries no
+/// `smart_object`). The 173-tick seam test passed because the first
+/// walk-to-talk of the shipped lot begins at tick 188.
+///
+/// The bounds are a SAFETY boundary rather than a formality: on
+/// arrival `follow_path` indexes `interactions[..]` and `social[..]`
+/// directly, so an out-of-range index restored from a file would
+/// panic in the middle of a tick. Every arm here bounds the index the
+/// arm it authorises will use.
+fn validate_target_reference(
     entities: &[SavedEntity],
     pack: &ContentPack,
     index: u32,
     interaction: u32,
 ) -> Result<(), SaveError> {
     let entity = validate_entity_reference(entities, index)?;
-    let object = entity
-        .smart_object
-        .as_deref()
-        .ok_or(SaveError::InvalidEntityReference)?;
-    validate_object_interaction(pack, object, interaction)
+    if let Some(object) = entity.smart_object.as_deref() {
+        // A chain step: the step's own content is reached through
+        // `ChainState`, which is validated on its own, so the target
+        // carries no index to bound here.
+        if interaction == CHAIN_STEP {
+            return Ok(());
+        }
+        return validate_object_interaction(pack, object, interaction);
+    }
+    validate_social_partner(entity, pack, interaction)
+}
+
+/// The same union for a QUEUED order - a front-of-queue `Intent` or a
+/// `UseObject` in the saved command log. It differs from a live target
+/// in one way: an order addresses an object by FLYOUT ROW, and the
+/// rows past the interactions are that object's chains ([K5]), so a
+/// legal row runs to `interactions.len() + chains advertised here`.
+fn validate_order_reference(
+    entities: &[SavedEntity],
+    pack: &ContentPack,
+    index: u32,
+    interaction: u32,
+) -> Result<(), SaveError> {
+    let entity = validate_entity_reference(entities, index)?;
+    let Some(object) = entity.smart_object.as_deref() else {
+        return validate_social_partner(entity, pack, interaction);
+    };
+    validate_flyout_row(pack, object, interaction)
+}
+
+/// An object's addressable ROWS: its interactions, then one per chain
+/// it advertises ([K5]). This is the index space of a flyout click, of
+/// a queued order, and of a habituation key - three callers that must
+/// agree with `select_action`, which mints the rows.
+fn validate_flyout_row(pack: &ContentPack, object: &str, row: u32) -> Result<(), SaveError> {
+    let id = resolve_object(pack, object)?;
+    let rows = pack.object(id).interactions.len()
+        + pack
+            .chains
+            .iter()
+            .filter(|chain| chain.advertised_by == id)
+            .count();
+    if row as usize >= rows {
+        return Err(SaveError::InvalidContentReference);
+    }
+    Ok(())
+}
+
+/// A reference whose far end is a person: it must BE a person, and the
+/// index addresses the social table.
+fn validate_social_partner(
+    entity: &SavedEntity,
+    pack: &ContentPack,
+    interaction: u32,
+) -> Result<(), SaveError> {
+    if !entity.agent || entity.sim_id.is_none() {
+        return Err(SaveError::InvalidEntityReference);
+    }
+    if interaction as usize >= pack.social.len() {
+        return Err(SaveError::InvalidContentReference);
+    }
+    Ok(())
 }
 
 fn validate_entity_reference(
@@ -1119,6 +1217,306 @@ mod tests {
             resumed.save_snapshot(),
             uninterrupted.save_snapshot(),
             "unhashed RNG, queues, and transient action state diverged"
+        );
+    }
+
+    /// **Every tick of a played hour must produce a save that loads.**
+    ///
+    /// The seam test above saves once, at tick 173, and that single
+    /// early sample is how three separate rejections shipped: the
+    /// first walk-to-talk of the shipped lot begins at tick 188, the
+    /// first chain-station walk later still, and the first habituation
+    /// entry on a chain row at tick 1 770. Measured on the shipped lot
+    /// before the fix, **28.4% of 36 000 ticks produced a snapshot
+    /// that could not be loaded at all** - a player who saved at a
+    /// random moment had better than a one-in-four chance of a file
+    /// the game would refuse.
+    ///
+    /// So this walks ticks rather than sampling one, and it asserts
+    /// COVERAGE first: a run where nobody ever walked to a chat would
+    /// pass vacuously and leave the same hole open.
+    #[test]
+    fn every_tick_of_a_played_stretch_produces_a_loadable_save() {
+        const TICKS: u64 = 2_000;
+        let mut sim = Sim::new_from_shipped_lot();
+        let mut saw_walk_to_talk = false;
+        let mut saw_chain_row_habituation = false;
+
+        for tick in 1..=TICKS {
+            sim.tick();
+            let snapshot = sim.save_snapshot();
+
+            // What this tick actually exercises, so the pass is not vacuous.
+            for entity in &snapshot.entities {
+                if let Some(target) = entity.target {
+                    let far_end = snapshot
+                        .entities
+                        .iter()
+                        .find(|other| other.index == target.object)
+                        .expect("a target names a saved entity");
+                    if far_end.agent {
+                        saw_walk_to_talk = true;
+                    }
+                }
+                if let Some(entries) = &entity.habituation {
+                    let pack = sim.world().resource::<Content>().0;
+                    for entry in entries {
+                        let object = pack.find(&entry.object).expect("a saved object id");
+                        if entry.interaction as usize >= pack.object(object).interactions.len() {
+                            saw_chain_row_habituation = true;
+                        }
+                    }
+                }
+            }
+
+            let mut fresh = Sim::new_from_shipped_lot();
+            assert_eq!(
+                fresh.load_snapshot(snapshot),
+                Ok(()),
+                "the snapshot taken at tick {tick} will not load"
+            );
+        }
+
+        assert!(
+            saw_walk_to_talk,
+            "fixture is vacuous: nobody walked over to talk in {TICKS} ticks, \
+             so the sim-target arm was never validated"
+        );
+        assert!(
+            saw_chain_row_habituation,
+            "fixture is vacuous: nobody habituated to a chain row in {TICKS} ticks, \
+             so the flyout-row arm was never validated"
+        );
+    }
+
+    /// A `Target` whose far end is a PERSON is a conversation being
+    /// walked to, and its index addresses `pack.social` rather than
+    /// any object's interactions. Held separately from the walked
+    /// test above because that one proves the case occurs and this one
+    /// pins what makes it legal - including the two ways it is not.
+    #[test]
+    fn a_target_on_another_sim_is_a_conversation_and_is_bounded_by_the_social_table() {
+        let sim = Sim::new_from_shipped_lot();
+        let social_count = sim.world().resource::<Content>().0.social.len();
+        assert!(social_count > 0, "fixture needs a social table");
+        let base = sim.save_snapshot();
+        let agents: Vec<u32> = base
+            .entities
+            .iter()
+            .filter(|entity| entity.agent)
+            .map(|entity| entity.index)
+            .collect();
+        assert!(agents.len() >= 2, "fixture needs two sims");
+
+        let with_target = |object: u32, interaction: u32| {
+            let mut snapshot = base.clone();
+            let agent = snapshot
+                .entities
+                .iter_mut()
+                .find(|entity| entity.index == agents[0])
+                .expect("first sim");
+            agent.target = Some(SavedTarget {
+                object,
+                interaction,
+            });
+            snapshot
+        };
+
+        assert_validation(
+            &with_target(agents[1], 0),
+            Ok(()),
+            "walking over to talk to a housemate",
+        );
+        assert_validation(
+            &with_target(agents[1], social_count as u32),
+            Err(SaveError::InvalidContentReference),
+            "a social index past the table would panic on arrival",
+        );
+
+        // **Both halves of "is a person", each failing alone.** A
+        // conversation partner has to be an `Agent` AND carry a
+        // `SimId`; a file where only one holds describes a thing the
+        // runtime has no name for. Testing them only together leaves
+        // the `||` between them free to become `&&` - which is exactly
+        // what the mutation sweep found when this test asserted the
+        // happy path and the bounds and nothing else.
+        let half_a_person = |strip_agent: bool, strip_id: bool| {
+            let mut snapshot = base.clone();
+            let partner = snapshot
+                .entities
+                .iter_mut()
+                .find(|entity| entity.index == agents[1])
+                .expect("second sim");
+            if strip_agent {
+                partner.agent = false;
+            }
+            if strip_id {
+                partner.sim_id = None;
+            }
+            let agent = snapshot
+                .entities
+                .iter_mut()
+                .find(|entity| entity.index == agents[0])
+                .expect("first sim");
+            agent.target = Some(SavedTarget {
+                object: agents[1],
+                interaction: 0,
+            });
+            snapshot
+        };
+        assert_validation(
+            &half_a_person(true, false),
+            Err(SaveError::InvalidEntityReference),
+            "a target on a non-agent that still carries a SimId",
+        );
+        assert_validation(
+            &half_a_person(false, true),
+            Err(SaveError::InvalidEntityReference),
+            "a target on an agent with no SimId",
+        );
+    }
+
+    /// The `CHAIN_STEP` sentinel is not an interaction index and must
+    /// not be bounded as one: the step's content is reached through
+    /// `ChainState`, which carries its own validation.
+    #[test]
+    fn a_target_on_a_chain_station_carries_the_sentinel_rather_than_an_index() {
+        let sim = Sim::new_from_shipped_lot();
+        let base = sim.save_snapshot();
+        let station = base
+            .entities
+            .iter()
+            .find(|entity| entity.smart_object.is_some())
+            .expect("shipped lot has objects")
+            .index;
+        let agent = base
+            .entities
+            .iter()
+            .find(|entity| entity.agent)
+            .expect("shipped household")
+            .index;
+
+        let mut snapshot = base.clone();
+        snapshot
+            .entities
+            .iter_mut()
+            .find(|entity| entity.index == agent)
+            .expect("the sim")
+            .target = Some(SavedTarget {
+            object: station,
+            interaction: CHAIN_STEP,
+        });
+        assert_validation(&snapshot, Ok(()), "mid-chain, walking to a station");
+    }
+
+    /// Habituation, a queued intent and a saved `UseObject` all address
+    /// an object by FLYOUT ROW, and the rows past its interactions are
+    /// its chains ([K5]). One row past the last chain is out of range
+    /// for all three.
+    #[test]
+    fn flyout_rows_run_through_the_chains_and_stop_after_them() {
+        let sim = Sim::new_from_shipped_lot();
+        let pack = sim.world().resource::<Content>().0;
+        let base = sim.save_snapshot();
+
+        let (advertiser, rows) = base
+            .entities
+            .iter()
+            .find_map(|entity| {
+                let id = entity.smart_object.as_deref()?;
+                let object = pack.find(id)?;
+                let chains = pack
+                    .chains
+                    .iter()
+                    .filter(|chain| chain.advertised_by == object)
+                    .count();
+                (chains > 0).then(|| {
+                    (
+                        entity.index,
+                        pack.object(object).interactions.len() + chains,
+                    )
+                })
+            })
+            .expect("shipped content advertises a chain from a placed object");
+        let id = base
+            .entities
+            .iter()
+            .find(|entity| entity.index == advertiser)
+            .and_then(|entity| entity.smart_object.clone())
+            .expect("the advertiser's id");
+        let agent = base
+            .entities
+            .iter()
+            .find(|entity| entity.agent)
+            .expect("shipped household")
+            .index;
+
+        let last_chain_row = (rows - 1) as u32;
+        let past_the_end = rows as u32;
+
+        let habituated = |row: u32| {
+            let mut snapshot = base.clone();
+            snapshot
+                .entities
+                .iter_mut()
+                .find(|entity| entity.index == agent)
+                .expect("the sim")
+                .habituation = Some(vec![SavedHabituation {
+                object: id.clone(),
+                interaction: row,
+                value: 0.5,
+            }]);
+            snapshot
+        };
+        assert_validation(
+            &habituated(last_chain_row),
+            Ok(()),
+            "habituated to a cooked dinner",
+        );
+        assert_validation(
+            &habituated(past_the_end),
+            Err(SaveError::InvalidContentReference),
+            "habituated to a row no flyout can show",
+        );
+
+        let intended = |row: u32| {
+            let mut snapshot = base.clone();
+            snapshot
+                .entities
+                .iter_mut()
+                .find(|entity| entity.index == agent)
+                .expect("the sim")
+                .intents = Some(vec![SavedIntent {
+                object: advertiser,
+                interaction: row,
+            }]);
+            snapshot
+        };
+        assert_validation(&intended(last_chain_row), Ok(()), "queued a cooked dinner");
+        assert_validation(
+            &intended(past_the_end),
+            Err(SaveError::InvalidContentReference),
+            "queued a row no flyout can show",
+        );
+
+        let commanded = |row: u32| {
+            let mut snapshot = base.clone();
+            snapshot.queued_commands = vec![SavedCommand::UseObject {
+                agent,
+                object: advertiser,
+                interaction: row,
+            }];
+            snapshot
+        };
+        assert_validation(
+            &commanded(last_chain_row),
+            Ok(()),
+            "a click on the chain row, still in the queue",
+        );
+        assert_validation(
+            &commanded(past_the_end),
+            Err(SaveError::InvalidContentReference),
+            "a click on a row no flyout can show",
         );
     }
 
@@ -1556,11 +1954,21 @@ mod tests {
             |entity| entity.target.as_mut().expect("target").object = u32::MAX - 1,
             SaveError::InvalidEntityReference,
         );
-        assert_invalid_entity(
-            "target points at a non-object entity",
-            |entity| entity.target.as_mut().expect("target").object = partner,
-            SaveError::InvalidEntityReference,
-        );
+        // **A target on a PERSON is a conversation, not a corruption.**
+        // This case asserted rejection until the alpha acceptance pass
+        // measured what that cost: a save taken while anybody walked
+        // over to talk was unloadable, and the shipped lot's first such
+        // walk is at tick 188. What stays invalid is the far end being
+        // absent, which the case above this one still pins.
+        {
+            let mut snapshot = rich_snapshot();
+            rich_agent_mut(&mut snapshot)
+                .target
+                .as_mut()
+                .expect("target")
+                .object = partner;
+            assert_validation(&snapshot, Ok(()), "target points at a housemate to talk to");
+        }
 
         let target_object = baseline
             .entities
@@ -1569,15 +1977,27 @@ mod tests {
             .and_then(|entity| entity.smart_object.as_deref())
             .and_then(|id| pack.find(id))
             .expect("target object definition");
+        // A live TARGET on an object names one of its interactions
+        // directly, so the first invalid index is the count itself -
+        // a chain in progress is `CHAIN_STEP`, not a row.
         let invalid_interaction = pack.object(target_object).interactions.len() as u32;
         assert_invalid_entity(
             "target interaction outside its object",
             |entity| entity.target.as_mut().expect("target").interaction = invalid_interaction,
             SaveError::InvalidContentReference,
         );
+        // A queued INTENT names a flyout row, and the rows past the
+        // interactions are the object's chains ([K5]), so its boundary
+        // sits further out than the target's above.
+        let invalid_row = invalid_interaction
+            + pack
+                .chains
+                .iter()
+                .filter(|chain| chain.advertised_by == target_object)
+                .count() as u32;
         assert_invalid_entity(
-            "intent interaction outside its object",
-            |entity| entity.intents.as_mut().expect("intents")[0].interaction = invalid_interaction,
+            "intent row outside its object's flyout",
+            |entity| entity.intents.as_mut().expect("intents")[0].interaction = invalid_row,
             SaveError::InvalidContentReference,
         );
         assert_invalid_entity(
@@ -1678,7 +2098,17 @@ mod tests {
             .and_then(|entity| entity.smart_object.as_deref())
             .and_then(|id| pack.find(id))
             .expect("target object");
-        let invalid_object_interaction = pack.object(object_id).interactions.len() as u32;
+        // **Past the CHAINS, not merely past the interactions.** The
+        // rows after an object's interactions are the chains it
+        // advertises ([K5]), so the first index this fixture may call
+        // invalid is the one after those - picking the old boundary
+        // now names a legitimate "Cook dinner" row.
+        let invalid_object_interaction = (pack.object(object_id).interactions.len()
+            + pack
+                .chains
+                .iter()
+                .filter(|chain| chain.advertised_by == object_id)
+                .count()) as u32;
 
         let valid = vec![
             SavedCommand::Select(None),
