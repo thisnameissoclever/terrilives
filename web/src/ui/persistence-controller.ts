@@ -31,6 +31,48 @@ export interface PersistenceControlTargets {
   readonly confirmNewGame: { disabled: boolean };
 }
 
+export interface PersistenceFocusDocument {
+  readonly activeElement: Node | null;
+  readonly body: Node | null;
+}
+
+export interface PersistenceFocusDialog {
+  readonly open: boolean;
+  contains(node: Node | null): boolean;
+}
+
+export interface PersistenceFocusTarget {
+  readonly disabled: boolean;
+  focus(): void;
+}
+
+/**
+ * Repairs focus left behind by an explicitly closed persistence dialog.
+ * Deliberate focus elsewhere wins, including focus moved while storage was
+ * settling. When the opener became unavailable, use the first enabled game
+ * action rather than focusing a disabled control.
+ */
+export function restorePersistenceFocus(
+  source: PersistenceFocusDocument,
+  dialog: PersistenceFocusDialog,
+  opener: PersistenceFocusTarget,
+  fallbacks: readonly PersistenceFocusTarget[],
+): boolean {
+  const active = source.activeElement;
+  const stranded =
+    active === null ||
+    active === source.body ||
+    (!dialog.open && dialog.contains(active));
+  if (!stranded) return false;
+
+  const target = opener.disabled
+    ? fallbacks.find((candidate) => !candidate.disabled)
+    : opener;
+  if (!target) return false;
+  target.focus();
+  return true;
+}
+
 /** Applies one controller snapshot to both top-level and modal actions. */
 export function applyPersistenceControlState(
   state: PersistenceControlState,

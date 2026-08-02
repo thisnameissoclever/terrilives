@@ -1,7 +1,8 @@
 # Tech Stack
 
-Status: agreed in principle, nothing installed yet. Cross-references
-ARCHITECTURE.md section IDs, which are stable.
+Status: implemented for the playable alpha. Backend and distribution layers
+remain roadmap work. Cross-references ARCHITECTURE.md section IDs, which are
+stable.
 
 ## The stack
 
@@ -177,14 +178,10 @@ and match across the range. The Shops Pack alone contains ~1,933 prefabs.
 For a developer who cannot produce art, buying cross-pack consistency is a
 legitimate shortcut rather than a luxury.
 
-**Two unresolved caveats, both tracked in TIM-TODO.md:**
-
-1. **Whether the license permits continued use after cancellation is
-   unverified.** "Subscribe two months, pull everything, cancel" is the obvious
-   move and may well be disallowed. Verify before subscribing.
-2. Synty's strength is exteriors, shops, and city. **A dedicated residential
-   interiors pack was not confirmed**, and residential interiors are exactly
-   what a life sim needs most.
+**Both original research questions are resolved in TIM-TODO.md [T6] and [T8].**
+SyntyPass does not grant a simple subscribe-download-cancel path for continued
+substantial development, and suitable residential-interior packs do exist.
+The remaining choice is the owner's [T7] purchase or subscription decision.
 
 ### [O5] AI 3D generation for gap-filling props
 

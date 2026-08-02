@@ -252,7 +252,11 @@ one tick.
 Both systems clear a stale `Blocked` on the paths where they already clear a
 stale `Restless`.
 
-**It has no reader, and that is recorded rather than hidden.** [L41] says an
+**Status update:** M2g added `stall_reason_of` and the normal selected-person HUD
+now reads `Blocked` to explain why a sim is standing still. The paragraph below
+records the state and reasoning when this marker originally shipped.
+
+**It had no reader, and that was recorded rather than hidden.** [L41] says an
 unread mechanism is dead code and should be deleted rather than tested. That
 rule does not apply here, and the distinction is substantive rather than a
 convenience: [L41] is about a **guard** - a second line enforcing a rule an
@@ -265,7 +269,7 @@ It is one system publishing one fact, which is what `Restless` was before
 `wander` existed to read it. Its doc comment names the intended readers - the
 selection UI, and the local wander that `docs/alpha-feel-notes.md` [F2] records
 as the highest-value change to the wander system - and its tests assert the
-marker directly, so it is unread but not untested.
+marker directly, so it was unread but not untested.
 
 ## [D7] Tests
 

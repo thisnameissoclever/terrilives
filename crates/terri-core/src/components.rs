@@ -114,23 +114,20 @@ pub struct Restless;
 /// cannot disagree about one agent on one tick either, because
 /// `select_action` filters directed agents out before it scores anything.
 ///
-/// # It has no reader yet, and that is deliberate rather than an oversight
+/// # Its reader explains state; it does not drive the simulation
 ///
 /// [L41] says a mechanism nothing depends on is dead code and should be
 /// deleted rather than tested. **That rule is about a GUARD** - a second
 /// line enforcing a rule an earlier line already enforces, where defence
 /// in depth and untested code are indistinguishable from inside the
-/// suite. This is not a guard. Nothing depends on it being right, so it
-/// cannot silently fail to decide something; it is one system publishing
-/// one fact, which is exactly what `Restless` was before `wander` existed
-/// to read it.
+/// suite. This is not a guard. The sim projects it through
+/// `stall_reason_of`, and the normal selected-person HUD uses that projection
+/// to explain why somebody is standing still. No decision depends on the
+/// marker, so it still cannot silently change simulation behavior.
 ///
-/// The intended readers are the selection UI, which wants to say why a
-/// sim is standing there, and the local wander that
-/// `docs/alpha-feel-notes.md` [F2] records as the highest-value change to
-/// the wander system - a blocked sim should hover near the thing it
-/// wants, not commute across the lot. Until one of those lands, the tests
-/// named beside each writer are what hold this up.
+/// The selection UI reader is shipped. A future local-wander behavior could
+/// also consume the marker, but that would be a separate design change rather
+/// than the reason this diagnostic fact exists.
 #[derive(Component, Debug, Clone, Copy)]
 pub struct Blocked;
 

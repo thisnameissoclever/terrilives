@@ -33,6 +33,18 @@ export interface KeyboardTargetStatus {
   textContent: string | null;
 }
 
+/** Announces both halves of a keyboard Select attempt through its live region. */
+export function reportKeyboardSelection(
+  status: KeyboardTargetStatus,
+  label: string,
+  accepted: boolean,
+): void {
+  status.hidden = false;
+  status.textContent = accepted
+    ? `Selected ${label}`
+    : 'That person could not be selected';
+}
+
 /** Rebuilds the list from the live render rows so restored worlds stay current. */
 export function keyboardTargets(source: KeyboardTargetSource): KeyboardTarget[] {
   const count = source.count;

@@ -1883,3 +1883,32 @@ folder.
   branch. The top of the heading remained reachable at scroll position zero,
   the native vertical scrollbar exposed the rest, and neither branch produced
   horizontal overflow.
+
+## [A-25] Rejected input speaks, and persistence returns focus
+
+The corrected working build was exercised in visible Chromium on desktop and
+at 390 by 844. Captures are `34-load-focus-restored.png`,
+`35-load-focus-mobile.png`, and `37-rejected-input-feedback-visible.png` in the
+task's visualization artifact folder.
+
+- **Load returns focus to its opener.** After confirming Load, the dialog
+  closed, status reached `Saved game loaded`, the control re-enabled, and
+  `document.activeElement` was `#load-game`. The same result held at 390 by 844
+  with document width and scroll width both exactly 390 pixels.
+- **Keyboard rejection is explicit.** A temporary verification hook rejected
+  selection at the command boundary. Arrow-key targeting still announced
+  Terri, then Space replaced that instruction with `That person could not be
+  selected` in the live region instead of leaving the stale success path on
+  screen.
+- **Pointer rejection names the attempted action.** Clicking clear canvas space
+  through the same forced boundary displayed `Selection could not be changed`
+  with error styling. Order rejection retains its distinct existing copy, so a
+  failed selection no longer masquerades as a failed object order.
+- **The forcing hook did not ship.** It was removed after the watched pass, and
+  `web/src/main.ts` returned exactly to blob
+  `f082fbc386628e6a5ba3af5f14dd8a8fa0b2778f`.
+- **Runtime remained quiet.** The desktop Load, mobile Load, keyboard rejection,
+  and pointer rejection checks produced zero console warnings and zero errors.
+
+The structural suite separately covers body, null, closed-dialog, deliberate
+focus, disabled-opener fallback, accepted selection, and both rejection kinds.

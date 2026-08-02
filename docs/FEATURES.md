@@ -23,7 +23,9 @@ transactional validation and restore, one OPFS save slot, daily autosave,
 save/load/new-game controls, a readable normal-play HUD, first-run Help that
 pauses game time and owns focus,
 long-press actions, a visible Queue mode, keyboard world targeting,
-clamped and focus-managed action menus, and responsive accessible controls.
+clamped and focus-managed action menus, accurate rejection feedback on
+keyboard and pointer routes, persistence-dialog focus recovery, and
+responsive accessible controls.
 The M1 household contract is now code-complete too: content accepts up to six
 members, rejects a seventh, and normal play exposes every member through a
 restore-safe accessible roster.
@@ -48,6 +50,16 @@ now the only one outstanding.**
 Everything else is
 proposed scope, not yet agreed in detail. Milestones exist primarily to
 control [R6], which is the risk most likely to actually kill this project.
+
+### Current priority guidance
+
+On 2026-08-02, the owner asked to move visual quality, movement animation, and
+action animation near the front of the next-work order. The next slice is a
+grounded design and renderer audit: capture the current moving and acting
+states, map simulation activities to visible animation hooks, identify what the
+existing sprites and atlas can support, and define reduced-motion and watched
+acceptance. This priority does not decide the colour palette, paid assets, or a
+new character-art pipeline; those remain [T12], [T3]/[T7], and [T19].
 
 **M1b closed with one item of its deliverable unmet, deliberately recorded
 rather than quietly ticked.** Every definition-of-done line passes, and the
@@ -214,9 +226,9 @@ than assumed: 7,859 draw calls and 7,859 submits in 91.4 s at `instanceCount`
 The point at which it starts being a game. M1a above is the first slice of
 this milestone and is done; what follows is M1b onwards.
 
-- ~~**Needs:** hunger, energy, hygiene, bladder, social, fun, comfort~~ - done
-  in M1a. All seven exist and decay at content-declared rates. Only decay: the
-  *behaviour* each need drives beyond scoring an advert is still M1b
+- ~~**Needs:** hunger, energy, hygiene, bladder, social, fun, comfort~~ - done.
+  All seven exist, decay at content-declared rates, and are served by the
+  compiled smart-object and social interaction library.
 - ~~**Moods and moodlets** derived from needs, traits, and environment~~ -
   done as a pure Rust projection. Need thresholds, generic condition-trait
   severity, and nearby directional feelings produce deterministic signed
@@ -232,8 +244,11 @@ this milestone and is done; what follows is M1b onwards.
   order, enforces a six-member ceiling, and the normal HUD provides one
   keyboard-operable selection button per live household member. Buttons key
   on stable `SimId`, then resolve the current entity after Load.
-- **Save/load** with schema versioning from the first commit ([D8])
-- **Time controls:** pause, 1x, 2x, 3x, implemented as tick multipliers ([D2])
+- ~~**Save/load** with schema versioning from the first commit ([D8])~~ - done.
+  A validated versioned snapshot covers the complete world, and one OPFS slot
+  supports startup restore, manual save/load, daily autosave, and New game.
+- ~~**Time controls:** pause, 1x, 2x, 3x, implemented as tick multipliers
+  ([D2])~~ - done.
   Blocking Help, Load, and New game surfaces temporarily suspend the shell
   driver without replacing the player's chosen speed or recording browser
   reading time as a replay command.

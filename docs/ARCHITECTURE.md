@@ -1,10 +1,10 @@
 # Architecture
 
-Status: agreed in principle. Most of it is not yet implemented; the sections
-that are say so and describe what exists rather than what was planned. As of
-M1a that is [D1], [D2], [D6], [D9], [D10], [D11] and part of [D12]. Section IDs
-are stable and are referenced from other docs and from discussion. Do not
-renumber them.
+Status: implemented through the playable-alpha systems. Later-scale sections
+for multiple lots, synchronous multiplayer, ghosts, and backend services remain
+architectural commitments rather than shipped features. Each section says what
+exists and what is still planned. Section IDs are stable and are referenced
+from other docs and from discussion. Do not renumber them.
 
 ## Summary of decisions
 
@@ -255,9 +255,10 @@ rather than a simplification. **Duration is in ticks, not a `"15min"` string:**
 a tick is a sim-minute ([D2]) so the two are the same number, and parsing a
 duration grammar buys nothing while adding a way for content to be wrong.
 **Need names are lower-case and match `NeedId::as_str`,** which is what the
-build-time check in [D9] validates against. **`requires` and `trait_mods` are
-not implemented yet** - predicates and traits are M1b, and adding the fields
-before anything reads them would mean content that validates and lies.
+build-time check in [D9] validates against. The original `trait_mods` sketch was
+replaced by the shipped trait-definition system in `content/traits.toml`.
+**`requires` is not implemented yet** - adding that field before anything reads
+it would mean content that validates and lies.
 
 Agent scoring (`crates/terri-sim/src/systems/advertise.rs`) weights each
 advertised delta by the agent's current deficit on a **steeply nonlinear
@@ -294,8 +295,11 @@ attenuates the score a contested object contributes, so a sim that badly wants
 the thing stands and waits while one that barely wants it strolls off. The
 `Blocked` marker records that an agent's best option is somebody else's; it can
 be set alongside `Restless`, and that pair means "wanted it, not enough to
-wait". Nothing reads `Blocked` yet - the intended readers are the selection UI
-and a local wander for blocked sims. See [L56] for how this arrived twice.
+wait". The simulation projects those markers through `stall_reason_of`, and the
+normal selected-person HUD reads the result as the reason a sim is standing
+still. A local wander for blocked sims remains a possible future behavior
+change, not an unbuilt reader required for the marker to matter. See [L56] for
+how this arrived twice.
 
 The cost is one extra path search per reserved object per idle agent per tick,
 which is nothing at eight objects and is part of what the M3 work above has to
@@ -408,8 +412,9 @@ followed at M1c Task 3, out of `needs.toml`, which now declares only which
 needs exist.
 
 Predicates (`requires`) are not yet a content concept, so "an object requiring
-an undefined predicate" is still a promise rather than a check; it lands with
-[D6]'s M1b work.
+an undefined predicate" is still a promise rather than a check. The shipped
+trait system uses disposition weights, capability levels, and condition state
+instead; a future predicate gate needs its own accepted design.
 
 **Three consequences worth stating, because two of them are not obvious.**
 First, this eliminates a category of runtime bug outright: a bad need name is a
