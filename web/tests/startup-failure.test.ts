@@ -10,14 +10,66 @@
  * blame the ADDRESS in that case, not the browser, or it sends the
  * player off to install a Chrome they already have.
  */
-// `renderStartupFailure` is deliberately untested: it is DOM wiring of
-// the kind main.ts's header names as untestable in Node (this suite has
-// no jsdom, and adding one to test createElement calls would be a
-// dependency bought for nothing). The chooser below is where every
-// decision lives.
 import { describe, expect, it } from 'vitest';
 
-import { describeStartupFailure } from '../src/ui/startup-failure';
+import {
+  describeStartupFailure,
+  renderStartupFailure,
+} from '../src/ui/startup-failure';
+
+/**
+ * The renderer only needs this narrow piece of the DOM. Keeping the fake here
+ * tests the accessibility contract without buying a browser-sized dependency
+ * merely to assert `setAttribute`, `append`, and `focus` calls.
+ */
+class FakeDocument {
+  activeElement: FakeElement | null = null;
+
+  createElement(tagName: string): FakeElement {
+    return new FakeElement(this, tagName.toUpperCase());
+  }
+}
+
+class FakeElement {
+  readonly attributes = new Map<string, string>();
+  readonly children: FakeElement[] = [];
+  readonly dataset: Record<string, string> = {};
+  readonly style = { cssText: '' };
+  id = '';
+  inert = false;
+  tabIndex = 0;
+  textContent: string | null = null;
+
+  constructor(
+    readonly ownerDocument: FakeDocument,
+    readonly tagName: string,
+  ) {}
+
+  append(...children: FakeElement[]): void {
+    this.children.push(...children);
+  }
+
+  close(): void {
+    this.attributes.delete('open');
+  }
+
+  focus(): void {
+    if (this.hasAttribute('inert')) return;
+    this.ownerDocument.activeElement = this;
+  }
+
+  getAttribute(name: string): string | null {
+    return this.attributes.get(name) ?? null;
+  }
+
+  hasAttribute(name: string): boolean {
+    return this.attributes.has(name);
+  }
+
+  setAttribute(name: string, value: string): void {
+    this.attributes.set(name, value);
+  }
+}
 
 describe('describeStartupFailure', () => {
   const gpuMissing = new Error('WebGPU is not available in this browser.');
@@ -62,5 +114,58 @@ describe('describeStartupFailure', () => {
       secure: true,
     });
     expect(notice.detail).toBe('bare string panic');
+  });
+});
+
+describe('renderStartupFailure', () => {
+  it('focuses an announced modal and makes the dead game beneath it inert', () => {
+    const document = new FakeDocument();
+    const parent = document.createElement('body');
+    const canvas = document.createElement('canvas');
+    const controls = document.createElement('aside');
+    const openDialog = document.createElement('dialog');
+    openDialog.setAttribute('open', '');
+    parent.append(canvas, controls, openDialog);
+
+    renderStartupFailure(
+      {
+        title: 'The game failed to start',
+        detail: 'atlas decode failed',
+        hints: ['Reload the page once.'],
+      },
+      parent as unknown as HTMLElement,
+    );
+
+    expect(canvas.getAttribute('inert')).toBe('');
+    expect(controls.getAttribute('inert')).toBe('');
+    expect(openDialog.getAttribute('open')).toBeNull();
+    expect(openDialog.getAttribute('inert')).toBe('');
+    expect(parent.children).toHaveLength(4);
+
+    const card = parent.children[3];
+    expect(card.dataset.role).toBe('startup-failure');
+    expect(card.getAttribute('role')).toBe('alertdialog');
+    expect(card.getAttribute('aria-modal')).toBe('true');
+    expect(card.getAttribute('aria-labelledby')).toBe(
+      'startup-failure-title',
+    );
+    expect(card.getAttribute('aria-describedby')).toBe(
+      'startup-failure-detail startup-failure-hints',
+    );
+    expect(card.tabIndex).toBe(-1);
+    expect(card.getAttribute('inert')).toBeNull();
+    expect(document.activeElement).toBe(card);
+
+    const [title, detail, hints] = card.children;
+    expect(title.id).toBe('startup-failure-title');
+    expect(title.textContent).toBe('The game failed to start');
+    expect(detail.id).toBe('startup-failure-detail');
+    expect(detail.textContent).toBe('atlas decode failed');
+    expect(hints.id).toBe('startup-failure-hints');
+    expect(hints.children[0].textContent).toBe('Reload the page once.');
+    expect(card.style.cssText).toContain('overflow:auto');
+    expect(detail.style.cssText).toContain('overflow-wrap:anywhere');
+    expect(hints.style.cssText).toContain('min-width:0');
+    expect(hints.children[0].style.cssText).toContain('overflow-wrap:anywhere');
   });
 });
