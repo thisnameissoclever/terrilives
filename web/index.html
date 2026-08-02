@@ -94,9 +94,77 @@
         margin-top: 6px;
       }
       #needs-content[hidden] { display: none; }
+      #people-list[hidden] { display: none; }
       #needs-empty {
         margin: 6px 0 0;
         color: var(--hud-muted);
+      }
+      #people-empty {
+        margin: 6px 0 0;
+        color: var(--hud-muted);
+      }
+      #people-list {
+        display: grid;
+        gap: 8px;
+        margin-top: 7px;
+      }
+      .relationship-row {
+        display: grid;
+        gap: 4px;
+      }
+      .relationship-heading {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .relationship-name {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        font-weight: 600;
+      }
+      .relationship-state {
+        flex: 0 0 auto;
+        color: var(--hud-muted);
+      }
+      .relationship-track {
+        position: relative;
+        height: 7px;
+        margin: 2px 4px;
+        border-radius: 4px;
+        background: linear-gradient(
+          90deg,
+          color-mix(in srgb, var(--hud-danger) 70%, var(--need-track)) 0%,
+          var(--need-track) 48%,
+          var(--need-track) 52%,
+          color-mix(in srgb, var(--need-fill) 70%, var(--need-track)) 100%
+        );
+      }
+      .relationship-track::after {
+        position: absolute;
+        top: -2px;
+        bottom: -2px;
+        left: 50%;
+        width: 1px;
+        background: var(--hud-muted);
+        content: '';
+      }
+      .relationship-marker {
+        position: absolute;
+        z-index: 1;
+        top: 50%;
+        width: 9px;
+        height: 9px;
+        box-sizing: border-box;
+        border: 2px solid var(--hud-bg);
+        border-radius: 50%;
+        background: var(--hud-muted);
+        transform: translate(-50%, -50%);
+      }
+      .relationship-row[data-tone='negative'] .relationship-marker {
+        background: var(--hud-danger);
+      }
+      .relationship-row[data-tone='positive'] .relationship-marker {
+        background: var(--need-fill);
       }
       .need-state { color: var(--hud-danger); }
       .summary-row {
@@ -454,6 +522,11 @@
         </div>
         </div>
       </details>
+      <details id="people-panel" aria-label="Relationships of the selected sim" open>
+        <summary id="people-caption" class="needs-caption">People</summary>
+        <p id="people-empty">Select a person to see how they feel about the household.</p>
+        <div id="people-list" hidden></div>
+      </details>
       <section id="time-controls" aria-label="Simulation speed"></section>
       <section id="game-actions" aria-label="Game actions">
         <button id="save-game" class="hud-button" type="button">Save</button>
@@ -494,6 +567,7 @@
         <li>Use Clear orders to remove the selected person's waiting actions.</li>
         <li>With the game view focused, use arrow keys to choose a target, Space to select a person, and Enter for actions.</li>
         <li>Open the selected person's name to show or hide the needs panel.</li>
+        <li>Open People to see how the selected person feels about everyone else.</li>
       </ol>
       <button id="close-help" class="hud-button" type="button">Got it</button>
     </section>

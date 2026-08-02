@@ -1618,3 +1618,42 @@ quickly to see.
 - **Runtime remained healthy.** The completed reload reported no console errors
   or warnings. Unit tests separately hold Load pending across a simulated-day
   boundary and prove autosave never captures bytes or reaches storage.
+
+## [A-19] Relationships in normal play
+
+The People panel was exercised in visible Chromium against the working HTTPS
+build at 390 x 844, with an additional delayed-storage pass for the persistence
+dialog correction discovered during the session.
+
+- **The sparse model reads as a complete household.** Terri's panel listed Doug
+  and Nadia even when both sparse entries were absent, with each row labelled
+  Stranger and its centered meter at `0`. The accessibility tree exposed
+  `Terri's feeling about Doug` and `Terri's feeling about Nadia` as meters.
+- **Selection changes direction, including while paused.** Selecting Doug
+  changed the summary to `How Doug feels` and showed Doug's independent values.
+  In a paused check, the selection, pressed roster button, and People caption
+  changed to Terri while the clock remained exactly `Day 2, 03:05` for more
+  than a second.
+- **A conversation has visible payoff.** Doug's completed Chat with Terri moved
+  his row from Stranger at `0` to Warm at approximately `0.14`. Selecting Terri
+  showed her independent row toward Doug as Warm too. Nadia's different values
+  remained different, so the surface did not mirror one cached relationship
+  across rows.
+- **Save and Load restore the panel with the world.** At paused `Day 1, 02:54`,
+  Doug and both Stranger rows were saved. After Chat moved Terri to Warm and
+  the clock advanced, Load restored `Day 1, 02:54`, selected Doug, both Stranger
+  rows at `0`, and the `How Doug feels` caption in the same visible frame.
+- **The phone HUD keeps its breathing room.** On a fresh 390 x 844 load, Needs
+  and People both began folded. The 212-pixel HUD measured 506 pixels tall,
+  stayed within the 844-pixel viewport, and produced zero horizontal overflow.
+  Opening People exposed native keyboard-operable summary behavior and two
+  readable 192-pixel rows.
+- **The confirmation regression is closed.** Before the fix, a successful Load
+  remained covered by its open confirmation dialog because the operation lock
+  disabled the clicked submitter before native dialog submission completed.
+  With worker delivery delayed by more than six seconds, confirming Load now
+  immediately closed the dialog, showed `Loading`, and disabled Save, Load and
+  New game until completion. The completed result read `Saved game loaded`.
+- **Runtime remained healthy.** The complete interaction, save, restore,
+  selection, responsive, and delayed-storage session reported zero console
+  errors and zero warnings.

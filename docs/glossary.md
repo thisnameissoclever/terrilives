@@ -98,6 +98,8 @@ multipliers. The overlay shows only the ones that deviate from neutral:
 | --- | --- |
 | **relationship** | One number per **ordered pair** of sims, -1 (nemesis) to +1 (best friend), 0 for strangers. A's feeling about B is stored separately from B's about A, so unrequited is a real state. |
 | `relationships:` | The overlay's relationship line. |
+| **People panel** | The normal HUD's selected-person view of that same ordered value. It merges the complete live household with sparse relationship entries by stable `SimId`; a missing entry displays as Stranger. |
+| **relationship state** | The panel's plain-language band: Hostile, Dislikes, Wary, Stranger, Warm, Friendly, or Close. The centered meter still carries the exact direction and movement without printing float noise. |
 | **gain** | Each completed conversation adds 0.15 to both sides. Roughly seven chats takes strangers to best friends. |
 | **decay** | Every relationship drifts toward zero by 0.00001 per tick - a grudge fades on the same clock a friendship does. Maintenance matters. |
 | **relationship scale** | A friend's conversation is worth up to 1.5x its authored value and a nemesis's 0.5x, so sims visibly prefer their friends. |
