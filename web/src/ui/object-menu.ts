@@ -186,12 +186,12 @@ export function clampMenuPosition(
 }
 
 /**
- * The flyout's behaviour: what is open, and the four ways it closes.
+ * The flyout's behaviour: what is open, and how every owner closes it.
  *
- * Closing has four routes and each is a separate method, because each is
- * wired to a different event and any one of them can be forgotten on its
- * own: picking a row, pressing Escape, pointing somewhere that is not the
- * menu, and being told to close because a right click resolved to nothing.
+ * Closing is wired from several independent events: picking a row, pressing
+ * Escape, pointing elsewhere, a viewport change, an invalid target, or a
+ * wholesale world replacement. Keeping one guarded `close` operation makes
+ * every route discard the retained entity-bearing rows as well as the DOM.
  */
 export class ObjectMenu {
   /**

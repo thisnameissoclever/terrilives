@@ -35,10 +35,15 @@ export interface KeyboardTargetStatus {
 
 /** Rebuilds the list from the live render rows so restored worlds stay current. */
 export function keyboardTargets(source: KeyboardTargetSource): KeyboardTarget[] {
-  const ids = source.ids();
-  const kinds = source.kinds();
+  const count = source.count;
+  // These start as zero-copy views into WASM memory. Copy each one before any
+  // label lookup crosses the boundary: a string allocation may grow memory and
+  // detach every view over the old ArrayBuffer midway through this loop.
+  const ids = Array.from(source.ids().subarray(0, count));
+  const kinds = Array.from(source.kinds().subarray(0, count));
   const targets: KeyboardTarget[] = [];
-  for (let row = 0; row < source.count; row++) {
+  const rowCount = Math.min(count, ids.length, kinds.length);
+  for (let row = 0; row < rowCount; row++) {
     const entity = ids[row];
     if (kinds[row] === KIND_AGENT) {
       const name = source.simName(entity);
