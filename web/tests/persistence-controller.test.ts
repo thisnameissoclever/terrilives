@@ -3,8 +3,23 @@ import { describe, expect, it, vi } from 'vitest';
 import type { SaveStore } from '../src/storage/save-store.js';
 import {
   PersistenceController,
+  applyPersistenceControlState,
   type PersistableSim,
 } from '../src/ui/persistence-controller.js';
+
+function deferred<T>(): {
+  promise: Promise<T>;
+  resolve(value: T): void;
+  reject(reason: Error): void;
+} {
+  let resolve!: (value: T) => void;
+  let reject!: (reason: Error) => void;
+  const promise = new Promise<T>((pass, fail) => {
+    resolve = pass;
+    reject = fail;
+  });
+  return { promise, resolve, reject };
+}
 
 function status() {
   const attributes = new Map<string, string>();
@@ -139,5 +154,154 @@ describe('PersistenceController', () => {
 
     expect(await controller.clear()).toBe(true);
     expect(controller.hasSavedGame()).toBe(false);
+  });
+
+  it('does not let an autosave capture the world while Load is pending', async () => {
+    const read = deferred<Uint8Array | null>();
+    const game = sim();
+    const saveBytes = vi.fn(() => new Uint8Array([1, 2, 3]));
+    const loadBytes = vi.fn(() => {
+      game.tick = 0;
+      return true;
+    });
+    game.saveBytes = saveBytes;
+    game.loadBytes = loadBytes;
+    const calls: string[] = [];
+    const backend: SaveStore = {
+      async load() {
+        calls.push('load started');
+        const bytes = await read.promise;
+        calls.push('load finished');
+        return bytes;
+      },
+      async save() {
+        calls.push('save');
+      },
+      async clear() {
+        calls.push('clear');
+      },
+      close() {},
+    };
+    const controller = new PersistenceController(backend, game, status());
+
+    game.tick = 100;
+    const loading = controller.load();
+    expect(controller.controlState()).toEqual({
+      saveDisabled: true,
+      loadDisabled: true,
+      newGameDisabled: true,
+      confirmationDisabled: true,
+    });
+
+    controller.updateAutosave();
+    expect(saveBytes).not.toHaveBeenCalled();
+    expect(calls).toEqual(['load started']);
+
+    read.resolve(new Uint8Array([9]));
+    expect(await loading).toBe(true);
+    expect(loadBytes).toHaveBeenCalledTimes(1);
+    expect(calls).toEqual(['load started', 'load finished']);
+    expect(controller.controlState()).toEqual({
+      saveDisabled: false,
+      loadDisabled: false,
+      newGameDisabled: false,
+      confirmationDisabled: false,
+    });
+  });
+
+  it('does not let Save resurrect a slot while New Game clear is pending', async () => {
+    const clearing = deferred<void>();
+    const game = sim();
+    const saveBytes = vi.fn(() => new Uint8Array([1, 2, 3]));
+    game.saveBytes = saveBytes;
+    const calls: string[] = [];
+    const backend: SaveStore = {
+      async load() {
+        calls.push('load');
+        return new Uint8Array([9]);
+      },
+      async save() {
+        calls.push('save');
+      },
+      async clear() {
+        calls.push('clear started');
+        await clearing.promise;
+        calls.push('clear finished');
+      },
+      close() {},
+    };
+    const view = status();
+    const controller = new PersistenceController(backend, game, view);
+    expect(await controller.restoreAtStartup()).toBe('loaded');
+
+    const clearResult = controller.clear();
+    expect(view.textContent).toBe('Starting new game');
+    expect(controller.controlState()).toEqual({
+      saveDisabled: true,
+      loadDisabled: true,
+      newGameDisabled: true,
+      confirmationDisabled: true,
+    });
+
+    expect(await controller.save()).toBe(false);
+    expect(saveBytes).not.toHaveBeenCalled();
+    expect(calls).toEqual(['load', 'clear started']);
+
+    clearing.resolve();
+    expect(await clearResult).toBe(true);
+    expect(calls).toEqual(['load', 'clear started', 'clear finished']);
+    expect(controller.hasSavedGame()).toBe(false);
+    expect(controller.controlState()).toEqual({
+      saveDisabled: false,
+      loadDisabled: true,
+      newGameDisabled: false,
+      confirmationDisabled: false,
+    });
+  });
+
+  it('disables already-open dialog confirmations with the top-level controls', () => {
+    const targets = {
+      save: { disabled: false },
+      load: { disabled: false },
+      newGame: { disabled: false },
+      confirmLoad: { disabled: false },
+      confirmNewGame: { disabled: false },
+    };
+
+    applyPersistenceControlState(
+      {
+        saveDisabled: true,
+        loadDisabled: true,
+        newGameDisabled: true,
+        confirmationDisabled: true,
+      },
+      targets,
+    );
+
+    expect(targets).toEqual({
+      save: { disabled: true },
+      load: { disabled: true },
+      newGame: { disabled: true },
+      confirmLoad: { disabled: true },
+      confirmNewGame: { disabled: true },
+    });
+
+    applyPersistenceControlState(
+      {
+        saveDisabled: false,
+        loadDisabled: true,
+        newGameDisabled: false,
+        confirmationDisabled: false,
+      },
+      targets,
+    );
+
+    expect(targets).toEqual({
+      save: { disabled: false },
+      load: { disabled: true },
+      newGame: { disabled: false },
+      confirmLoad: { disabled: true },
+      confirmNewGame: { disabled: false },
+    });
   });
 });

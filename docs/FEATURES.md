@@ -35,7 +35,7 @@ the milestone that shipped each one, and three did not hold: saving was
 broken for 28.4% of ticks, the only sim with a job lived permanently at
 zero on six of seven needs, and the reading chair was at zero uses over
 the horizon criterion 3 names. All three are fixed; see
-docs/specs/2026-08-01-alpha-acceptance-findings.md and [A-18] in
+docs/specs/2026-08-01-alpha-acceptance-findings.md and [A-19] in
 docs/alpha-feel-notes.md. **Criterion 11, the owner-authored voice, is
 now the only one outstanding.**
 Everything else is

@@ -1589,7 +1589,36 @@ session against the working HTTPS build, first at 930 x 919 and then at
   roughly 0.3 to 0.6 ms p95 frame work with 37 entities. The only console error
   was the pre-existing missing `favicon.ico` request; no game, WebAssembly,
   storage, selection, or rendering error appeared.
-## [A-18] The alpha acceptance pass - all eleven criteria, one build
+
+## [A-18] Persistence controls under deliberately slow storage
+
+The persistence-operation guard was exercised in a visible Chromium session
+against the working HTTPS build with storage-worker message delivery delayed by
+two seconds. The delay made the complete asynchronous ownership interval
+inspectable rather than depending on a normal OPFS response that finishes too
+quickly to see.
+
+- **Save owns all persistence controls.** Immediately after Save, the live
+  status read `Saving` and Save, Load, and New game were all disabled. After the
+  delayed response, the status changed to `Game saved`; Save and New game were
+  enabled, and Load became enabled because a validated slot now existed.
+- **An already-open confirmation cannot lose an action silently.** The Load
+  dialog was opened first, then a delayed Save was started programmatically to
+  reproduce the otherwise narrow autosave timing window. `Load game` became
+  disabled inside the still-open modal for the same interval as the top-level
+  controls, while `Keep playing` remained available to close it.
+- **New game owns the same boundary.** After confirming Start over, the dialog
+  closed, the live status read `Starting new game`, and all three persistence
+  controls remained disabled while clear was pending. Save therefore had no
+  player path capable of queuing a write behind the clear.
+- **Clear stayed cleared.** After the delayed clear completed, the page reloaded
+  through the same delayed startup read. The status read `No save yet`, Load was
+  disabled, and the fresh household was running. No queued Save resurrected the
+  removed slot.
+- **Runtime remained healthy.** The completed reload reported no console errors
+  or warnings. Unit tests separately hold Load pending across a simulated-day
+  boundary and prove autosave never captures bytes or reaches storage.
+## [A-19] The alpha acceptance pass - all eleven criteria, one build
 
 The first measurement of the criteria against the FINISHED alpha rather
 than against the milestone that shipped each one. Same 36 000-tick hour
@@ -1695,7 +1724,7 @@ No PIXELS were checked: the pane could not composite (nobody had it
 displayed), so this is a driven-and-measured session rather than a
 looked-at one. Nothing in these three fixes changes what is drawn -
 [X1] touches validation only, [X2] and [X3] move need levels and one
-disposition weight - so the watched passes in [A-16] and [A-17] still describe
+disposition weight - so the watched passes in [A-16], [A-17] and [A-18] still describe
 what is on screen. A displayed-pane look at this build is the correct next
 check and is not claimed here. [A-16], written by the M2g pass, is the
 most recent watched session and its findings stand.

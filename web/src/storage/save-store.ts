@@ -2,10 +2,11 @@
  * Browser storage for the single playable-alpha save slot.
  *
  * The simulation owns the bytes and this module owns only their trip to
- * Origin Private File System storage. Calls are serialized so a manual load,
- * an autosave, and a fast double-click cannot race each other. Browsers are
- * very good at making that sort of race intermittent, which is their little
- * way of keeping us humble.
+ * Origin Private File System storage. Calls are serialized so worker I/O
+ * cannot overlap. `PersistenceController` separately owns the larger player
+ * operation, beginning before save bytes are captured and ending after a
+ * loaded world is applied. Browsers are very good at exposing the gap between
+ * those two boundaries, which is their little way of keeping us humble.
  */
 
 export interface SaveStore {

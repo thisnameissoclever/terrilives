@@ -138,7 +138,7 @@ exist that another object does not already cover.
 ## Verification bar for all three
 
 Full gate, a mutation sweep over the changed Rust, and a re-measured
-36 000-tick session in `docs/alpha-feel-notes.md` [A-18] reporting each
+36 000-tick session in `docs/alpha-feel-notes.md` [A-19] reporting each
 of the eleven criteria against evidence rather than against its
 milestone's memory. The world hash moves for [X2] - a decay rate
 changing IS the simulation changing - and does not move for [X1],
