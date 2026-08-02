@@ -321,11 +321,16 @@ async function main(): Promise<void> {
     needsRoot.open = false;
   }
 
-  const peopleRoot = document.querySelector<HTMLDetailsElement>('#people-panel');
+  const peopleRoot = document.querySelector('#people-panel');
   const peopleCaption = document.querySelector<HTMLElement>('#people-caption');
   const peopleEmpty = document.querySelector<HTMLElement>('#people-empty');
   const peopleList = document.querySelector<HTMLElement>('#people-list');
-  if (!peopleRoot || !peopleCaption || !peopleEmpty || !peopleList) {
+  if (
+    !(peopleRoot instanceof HTMLDetailsElement) ||
+    !peopleCaption ||
+    !peopleEmpty ||
+    !peopleList
+  ) {
     throw new Error('missing people-panel markup');
   }
   const peoplePanel = new PeoplePanel(
