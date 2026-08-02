@@ -284,6 +284,43 @@ describe('SimBridge', () => {
     }
   });
 
+  it('publishes the restored household roster before the first post-load tick', () => {
+    const saved = new SimBridge(SimHandle.from_lot(), wasmMemory);
+    const bytes = saved.saveBytes();
+    const expectedCount = saved.count;
+    const expectedIds = Array.from(saved.ids());
+    const expectedKinds = Array.from(saved.kinds());
+    const expectedPeople = expectedIds
+      .map((entity, row) => ({
+        kind: expectedKinds[row],
+        simId: saved.simIdOf(entity),
+        name: saved.simName(entity),
+      }))
+      .filter((row) => row.kind === 0 && row.simId !== null);
+
+    const restored = new SimBridge(new SimHandle(8, 8), wasmMemory);
+    restored.spawnAgent(1, 1, 80);
+    expect(restored.count).toBe(1);
+    expect(restored.loadBytes(bytes)).toBe(true);
+
+    // Deliberately no tick here. Load owns rebuilding the render rows, or the
+    // roster would keep showing the one-agent world until time advanced.
+    expect(restored.count).toBe(expectedCount);
+    const restoredIds = Array.from(restored.ids());
+    const restoredKinds = Array.from(restored.kinds());
+    expect(restoredIds).toEqual(expectedIds);
+    expect(restoredKinds).toEqual(expectedKinds);
+    expect(
+      restoredIds
+        .map((entity, row) => ({
+          kind: restoredKinds[row],
+          simId: restored.simIdOf(entity),
+          name: restored.simName(entity),
+        }))
+        .filter((row) => row.kind === 0 && row.simId !== null),
+    ).toEqual(expectedPeople);
+  });
+
   it('rejects corrupt save bytes without changing the live bridge', () => {
     const live = new SimBridge(SimHandle.from_lot(), wasmMemory);
     for (let tick = 0; tick < 31; tick++) live.tick();
@@ -634,6 +671,20 @@ describe('SimBridge', () => {
     expect(bridge.select(null)).toBe(true);
     bridge.tick();
     expect(bridge.selectedIndex()).toBe(null);
+  });
+
+  it('applies staged input while paused without advancing simulation time', () => {
+    const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
+    bridge.spawnAgent(1, 1, 80);
+    const needsBefore = bridge.needsOf(0);
+
+    expect(bridge.select(0)).toBe(true);
+    expect(bridge.selectedIndex()).toBe(null);
+    bridge.flushCommands();
+
+    expect(bridge.selectedIndex()).toBe(0);
+    expect(bridge.clockTick()).toBe(0);
+    expect(bridge.needsOf(0)).toEqual(needsBefore);
   });
 
   it('encodes an entity index above 127 as a multi-byte varint', () => {

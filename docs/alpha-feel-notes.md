@@ -1549,7 +1549,47 @@ first at 1705 x 997 and then at 390 x 844.
   was smuggled into buttons or failure text. The owner-authored voice session
   is still the final playable-alpha criterion.
 
-## [A-17] The alpha acceptance pass - all eleven criteria, one build
+## [A-17] Household roster, watched through restore
+
+The household-capacity slice was exercised in a visible headed Chromium
+session against the working HTTPS build, first at 930 x 919 and then at
+390 x 844.
+
+- **All three shipped people are immediately selectable.** The normal HUD
+  listed Terri, Doug, and Nadia in declaration order. Terri started pressed;
+  pressing Doug moved `aria-pressed` to Doug and changed the selected-person
+  caption and readouts to Doug on the next simulation update.
+- **Restore reconciles the roster with simulation truth.** Doug was selected
+  and saved, Nadia was selected afterward, and Load restored Doug. The roster,
+  selected-person caption, simulation clock, and `Saved game loaded` status all
+  agreed after the swap. Unit coverage separately replaces every entity index
+  without redrawing first and proves the old button resolves stable `SimId` to
+  the new live entity.
+- **The narrow layout remains playable.** At 390 x 844, the three 44-pixel
+  roster buttons fit on one row without truncating the shipped names. The needs
+  details began folded, the complete control stack ended a little past the
+  viewport midpoint, and the lot remained visible and interactive beneath it.
+- **The six-person capacity fits the same phone HUD.** A temporary browser-only
+  layout fixture added three realistically long names without changing shipped
+  content. All six buttons remained inside the 390-pixel viewport, wrapped to
+  two rows, and measured at least 44 pixels tall. The three long names wrapped
+  legibly instead of overflowing or being clipped.
+- **Pause does not freeze the roster.** At `Day 1, 02:26`, Pause was selected,
+  Doug was pressed, and the roster plus selected-person panel changed to Doug
+  while the clock remained exactly `Day 1, 02:26`. Doug retained keyboard focus
+  through several roster refresh intervals, proving the keyed redraw does not
+  quietly throw focus back to the page.
+- **Accessibility state is explicit.** The accessibility snapshot exposed a
+  Household heading, three native buttons, and exactly one pressed button.
+  Native controls supply Tab, Enter, Space, touch activation, and focus without
+  adding a roster-specific keyboard scheme. In the six-button layout fixture,
+  Tab advanced from Doug to Nadia and then to the first button on the second
+  row; the focused button had a visible two-pixel outline.
+- **Runtime remained healthy.** The visible session advanced normally at
+  roughly 0.3 to 0.6 ms p95 frame work with 37 entities. The only console error
+  was the pre-existing missing `favicon.ico` request; no game, WebAssembly,
+  storage, selection, or rendering error appeared.
+## [A-18] The alpha acceptance pass - all eleven criteria, one build
 
 The first measurement of the criteria against the FINISHED alpha rather
 than against the milestone that shipped each one. Same 36 000-tick hour
@@ -1655,7 +1695,7 @@ No PIXELS were checked: the pane could not composite (nobody had it
 displayed), so this is a driven-and-measured session rather than a
 looked-at one. Nothing in these three fixes changes what is drawn -
 [X1] touches validation only, [X2] and [X3] move need levels and one
-disposition weight - so the browser pass in [A-16] still describes what
-is on screen. A displayed-pane look at this build is the correct next
+disposition weight - so the watched passes in [A-16] and [A-17] still describe
+what is on screen. A displayed-pane look at this build is the correct next
 check and is not claimed here. [A-16], written by the M2g pass, is the
 most recent watched session and its findings stand.

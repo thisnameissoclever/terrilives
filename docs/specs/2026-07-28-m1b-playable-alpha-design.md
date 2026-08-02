@@ -38,13 +38,14 @@ it.** Player agency is part of the feel, not a separate feature.
 
 ## [D-2] The one decision that would be expensive to get wrong
 
-**Player commands must be serialisable data processed at a deterministic point
-in the tick. JavaScript must never mutate simulation state directly.**
+**Player commands must be serialisable data processed through a deterministic
+simulation boundary. JavaScript must never mutate simulation state directly.**
 
 This is the whole anti-corner requirement of the milestone. [A5] and [D2]
 establish that the simulation is deterministic, and [D13] already uses the
 pattern for ghost injection: asynchronous input lands in a staging queue and is
-drained at a fixed point, with each injection recorded so replays reproduce it.
+drained through one serialized system, with each injection recorded so replays
+reproduce it.
 
 Player input is exactly the same shape. If a click instead reached in and set a
 `Target` component, then:
@@ -54,9 +55,10 @@ Player input is exactly the same shape. If a click instead reached in and set a
 - Layer 2 multiplayer would be foreclosed, because the thing you send over a
   wire is precisely a serialised command.
 
-So: `enqueue_command(cmd)` crosses the boundary, commands drain at a fixed step
-in the tick pipeline, and nothing else in the shell can touch the world. It
-costs almost nothing now and is a rewrite later.
+So: `enqueue_command(cmd)` crosses the boundary, commands drain first in a full
+tick or alone while paused, and split paused batches are equivalent to one
+batch. Nothing else in the shell can touch the world. It costs almost nothing
+now and is a rewrite later.
 
 ## [D-3] Interaction queue and the autonomy override
 
@@ -152,7 +154,7 @@ scoring weigh them, or record explicitly why not.
 - Pause, 1x, 2x, 3x, implemented as tick multipliers per [D2], never as `dt`.
 - Clicking a sim selects it; clicking an object directs the sim to use it.
 - **Every player action crosses the boundary as a serialised command** and is
-  drained at a fixed point in the tick.
+  drained through the simulation's one serialized command system.
 - **The determinism test still passes**, and a recorded command sequence replays
   to the same world hash.
 - The lot, including walls, is authored in `content/`.

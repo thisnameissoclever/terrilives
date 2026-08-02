@@ -1,11 +1,12 @@
 //! The point at which player input becomes simulation state - [D-2].
 //!
 //! **JavaScript never mutates the world.** It enqueues serialisable
-//! [`SimCommand`]s, and this module drains them at one fixed point in the
-//! tick. That is what keeps replay reproducible, gives [D8]'s save-file
-//! command log something to record, and leaves Layer 2 multiplayer
-//! possible - the thing you would send over a wire is exactly a
-//! serialised command.
+//! [`SimCommand`]s, and this module drains them at deterministic command
+//! boundaries: first in a full tick, or alone while the shell is paused.
+//! Split and batched drains must be equivalent for the same ordered command
+//! stream. That is what keeps replay reproducible, gives [D8]'s save-file
+//! command log something to record, and leaves Layer 2 multiplayer possible -
+//! the thing you would send over a wire is exactly a serialised command.
 
 use bevy_ecs::prelude::*;
 use terri_core::{
@@ -192,11 +193,24 @@ pub fn drain_commands(
                 let Some(agent) = resolve(agent, agents.iter().map(|(entity, _, _)| entity)) else {
                     continue;
                 };
+                // A staged front is already part of the ordered command
+                // stream even though `Commands` has not inserted its queue
+                // yet. Capture it before removal so a cancel makes the same
+                // release decision whether UseObject and CancelIntents land
+                // in one drain batch or two paused-frame batches.
+                let staged_front = fresh
+                    .iter()
+                    .find(|(entity, _)| *entity == agent)
+                    .and_then(|(_, intents)| intents.first())
+                    .copied();
                 // Intents staged earlier in this same batch are part of
-                // what is being cancelled. Without this, `UseObject` then
-                // `CancelIntents` in one tick would leave the agent under
-                // orders it had just been released from.
-                fresh.retain(|(e, _)| *e != agent);
+                // what is being cancelled. Keep the staged queue itself and
+                // empty it, because a split drain first inserts that queue and
+                // the later cancel clears it. Removing the staged entry would
+                // make one batch save `None` while two batches save `Some([])`.
+                if let Some((_, intents)) = fresh.iter_mut().find(|(entity, _)| *entity == agent) {
+                    intents.clear();
+                }
 
                 let Ok((_, queue, target)) = agents.get_mut(agent) else {
                     continue;
@@ -238,7 +252,11 @@ pub fn drain_commands(
                 // is what fails on the `||`; it was found by the mutation
                 // sweep back when every fixture had BOTH fields agreeing,
                 // which is [L34].
-                let serving = match (queue.as_deref().and_then(|q| q.front()), target) {
+                let serving_intent = queue
+                    .as_deref()
+                    .and_then(IntentQueue::front)
+                    .or(staged_front);
+                let serving = match (serving_intent, target) {
                     (Some(intent), Some(target)) => {
                         intent.object == target.object && intent.interaction == target.interaction
                     }
@@ -397,7 +415,7 @@ pub fn drain_commands(
 #[cfg(test)]
 mod tests {
     //! [D-2] end to end: a command goes into the queue as data and comes
-    //! out as simulation state, at one fixed point in the tick.
+    //! out as simulation state, at a deterministic command boundary.
     //!
     //! Two shapes of fixture appear below and the split is deliberate.
     //! Tests about what the DRAIN does run it on its own through
@@ -1594,6 +1612,65 @@ mod tests {
     }
 
     #[test]
+    fn split_and_batched_paused_drains_produce_the_same_saved_world() {
+        fn started_meal() -> (Sim, Entity, Entity) {
+            let mut sim = test_content::sim_with(8, 8, content());
+            let fridge = spawn_object(&mut sim, (4.0, 4.0), "fridge");
+            let agent = spawn_agent(&mut sim, (3.0, 4.0), Needs::with(NeedId::Hunger, 0.0));
+            sim.tick();
+            assert!(
+                sim.world().get::<Eating>(agent).is_some(),
+                "the fixture must begin mid-interaction so cancel has a live commitment to release"
+            );
+            (sim, fridge, agent)
+        }
+
+        let (mut split, split_fridge, split_agent) = started_meal();
+        let (mut batched, batched_fridge, batched_agent) = started_meal();
+
+        enqueue(
+            &mut split,
+            SimCommand::UseObject {
+                agent: split_agent.index_u32(),
+                object: split_fridge.index_u32(),
+                interaction: 0,
+            },
+        );
+        drain_only(&mut split);
+        enqueue(
+            &mut split,
+            SimCommand::CancelIntents {
+                agent: split_agent.index_u32(),
+            },
+        );
+        drain_only(&mut split);
+
+        enqueue(
+            &mut batched,
+            SimCommand::UseObject {
+                agent: batched_agent.index_u32(),
+                object: batched_fridge.index_u32(),
+                interaction: 0,
+            },
+        );
+        enqueue(
+            &mut batched,
+            SimCommand::CancelIntents {
+                agent: batched_agent.index_u32(),
+            },
+        );
+        drain_only(&mut batched);
+
+        assert_eq!(
+            split.save_snapshot(),
+            batched.save_snapshot(),
+            "render-frame batching must not become simulation or save state"
+        );
+        assert!(split.world().get::<Eating>(split_agent).is_none());
+        assert!(batched.world().get::<Eating>(batched_agent).is_none());
+    }
+
+    #[test]
     fn a_cancel_then_a_use_in_one_batch_replaces_the_queue_rather_than_appending_to_it() {
         // **The shape a plain left click now sends** - [I3] in
         // `docs/specs/2026-07-30-selection-and-input-design.md`. The shell
@@ -1699,7 +1776,7 @@ mod tests {
         //
         // `UseObject` then `CancelIntents` is the same two commands in the
         // other order, and it leaves the sim with NOTHING queued: the
-        // cancel's `fresh.retain` and `queue.clear()` both see the intent
+        // cancel's staged clear and `queue.clear()` both see the intent
         // the use has just staged, so the redirect cancels itself. A shell
         // that emitted the pair the wrong way round would look like clicks
         // being ignored at random, and the drain would be behaving exactly
