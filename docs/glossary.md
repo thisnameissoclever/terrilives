@@ -37,6 +37,16 @@ Seven needs, each a number from 0 (desperate) to 100 (fully satisfied):
 | **deficit** | How empty a need is, as 0.0 (full) to 1.0 (empty). A sim at hunger 30 has a hunger deficit of 0.7. |
 | **urgency** | The deficit **cubed**. This is why sims have priorities instead of a checklist: at deficit 0.9 a need is 13x more pressing than at 0.4, not 2x. |
 
+## Mood and moodlets
+
+| Term | Means |
+| --- | --- |
+| **mood** | The selected sim's current overall feeling, scored from -100 to 100 and labelled Miserable, Low, Okay, Good, or Great. It is derived from the live world rather than saved separately. |
+| **moodlet** | One active reason contributing to mood, such as Hungry, Low spirits, or Comforted by Doug. The signed number beside it is its contribution to the overall score. |
+| **need moodlet** | A low or critical need, or the single Needs met summary when every need is healthy. |
+| **condition moodlet** | The content label of any worn condition trait with material severity. Capability and disposition traits do not claim an emotional effect they do not define. |
+| **environment moodlet** | The selected sim's directional feeling about a nearby named sim, weakened by distance. The other sim's reciprocal feeling is a separate fact. |
+
 ## Choosing what to do
 
 | Term | Means |

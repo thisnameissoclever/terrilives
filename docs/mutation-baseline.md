@@ -1418,3 +1418,32 @@ round-trip tests could never distinguish. Focused boundary, reference,
 collection, queued-command, and transactional rejection tests closed those
 gaps. The final new-file sweep produced 95 mutants: 82 caught, 13 unviable,
 zero missed, and zero timed out. No new baseline entries were needed.
+
+### Moods and moodlets targeted sweeps (317 mutants, zero missed)
+
+The final 2026-08-02 campaign covered every changed Rust file in three
+independent runs: `mood.rs` reported 56 mutants with 55 caught and one
+unviable; `terri-sim/src/lib.rs` reported 135 with 130 caught and five
+unviable; `terri-wasm/src/lib.rs` reported 126 with 125 caught and one
+unviable. All three completed with empty `missed.txt` and `timeout.txt` files.
+No baseline entry changed.
+
+The first `mood.rs` pass did its job before that clean result. It found three
+real survivors around the social environment boundary: the exact 0.1 feeling
+cutoff and two terms in the distance calculation. The fixture had sampled
+0.099 and only axis-aligned contributing relationships, so those expressions
+were not independently observable. An exactly 0.1, one-tile relationship now
+pins the cutoff, inclusion, and score. Changing `<` to `<=` makes the named
+relationship test fail by omitting `Comforted by Exactly known`; the restored
+source passes and matches its pre-mutation SHA-256 hash.
+
+The same first pass found one equivalent `> 0` to `>= 0` mutant. The preceding
+absolute-value guard makes zero unreachable, so no test can distinguish those
+operators on that branch. The code now asks `is_sign_positive()` directly and
+does not manufacture permanent baseline noise for an impossible comparison.
+
+Cargo Mutants does not delete the ordering statement. Removing the
+`sort_unstable_by_key` manually made
+`relationship_moodlets_are_directional_proximity_bounded_and_sim_id_sorted`
+fail with query order instead of stable `SimId` order. Restoring the statement
+made the test pass and restored the file's exact SHA-256 hash.

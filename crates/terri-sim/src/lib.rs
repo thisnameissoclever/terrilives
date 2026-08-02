@@ -1,5 +1,6 @@
 //! Simulation systems and scheduling. No web dependencies, ever.
 
+mod mood;
 pub mod render_buffer;
 mod save;
 pub mod systems;
@@ -10,6 +11,7 @@ use bevy_ecs::prelude::*;
 use bevy_ecs::schedule::ExecutorKind;
 use terri_core::SimClock;
 
+pub use mood::{MoodSnapshot, Moodlet};
 pub use save::SaveError;
 
 /// The content pack, as a resource so systems can resolve object ids and

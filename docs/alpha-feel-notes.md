@@ -1795,3 +1795,37 @@ build was then exercised in visible Chromium.
 The fresh desktop and mobile captures are in the task's visualization artifact
 folder. Unit, type, and production-build gates cover the controller and help
 lifecycle independently of this watched pass.
+
+## [A-22] Moods and moodlets in normal play
+
+The working release-WASM build was exercised in visible Chromium on desktop
+and at the 390 by 844 phone breakpoint. The screenshots are
+`11-local-moods-desktop.png`, `13-local-moods-social-live.png`, and
+`14-local-moods-mobile.png` in the task's visualization artifact folder.
+
+- **The opening state explains Terri rather than merely colouring her.** Her
+  HUD read Low at -18 with `Low spirits -18`. The accessibility tree exposed
+  Overall mood as a meter from -100 to 100 with `Low` as its value text, while
+  the moodlet row carried the signed value in text.
+- **Selection clears causally.** While paused at `Day 1, 10:30`, selecting
+  Doug changed the projection to Okay at 0, showed `No active moodlets.`, and
+  left no Low spirits row behind. The clock stayed exact for another 600 ms.
+- **The environment branch is reachable in the shipped household.** Nadia's
+  autonomous relationship with Doug reached Friendly at 0.257. While the two
+  were nearby, her HUD showed `Comforted by Doug +0.6`; a later visible frame
+  caught the distance-weakened value at +0.3. No test-only person or hidden
+  debug surface was needed.
+- **Load replaces the projection before time resumes.** Paused Terri was saved
+  at `Day 4, 06:40`, Low at -29.6 with Lonely -12 and Low spirits -17.6.
+  Selecting Doug changed the live DOM to Okay at 0 with no rows. Load restored
+  Terri, the exact clock, score, label, and both rows before another tick; the
+  clock remained exact for a further 800 ms and status read Saved game loaded.
+- **The phone layout survives a genuinely bad day.** Needs and People both
+  opened folded at 390 by 844. Opening Needs showed a 177-pixel mood block
+  containing five readable moodlets, including signed scores and the long
+  condition row. The 212-pixel HUD used its existing vertical scroll, produced
+  zero horizontal overflow, and left People folded rather than lengthening the
+  initial screen behind the player's back.
+- **Runtime remained quiet.** The complete desktop, selection, autonomous
+  social, Save/Load, and mobile session reported zero console warnings and
+  zero errors.

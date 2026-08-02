@@ -321,6 +321,39 @@ describe('SimBridge', () => {
     ).toEqual(expectedPeople);
   });
 
+  it('projects aligned mood data and restores it before the next tick', () => {
+    const saved = new SimBridge(SimHandle.from_lot(), wasmMemory);
+    const terri = Array.from(saved.ids()).find(
+      (entity) => saved.simName(entity) === 'Terri',
+    );
+    expect(terri).toBeDefined();
+    if (terri === undefined) throw new Error('the shipped lot houses Terri');
+
+    const scores = Array.from(saved.moodSnapshotOf(terri));
+    const labels = saved.moodSummaryOf(terri);
+    expect(labels[0]).toBe('Low');
+    expect(labels).toContain('Low spirits');
+    expect(scores.length).toBe(labels.length);
+    expect(scores.every(Number.isFinite)).toBe(true);
+
+    const restored = new SimBridge(new SimHandle(8, 8), wasmMemory);
+    expect(restored.loadBytes(saved.saveBytes())).toBe(true);
+    // No tick: mood is a projection of the restored world, not a cached
+    // component waiting for the next schedule pass to repair it.
+    expect(Array.from(restored.moodSnapshotOf(terri))).toEqual(scores);
+    expect(restored.moodSummaryOf(terri)).toEqual(labels);
+    const restoredKinds = restored.kinds();
+    const furniture = Array.from(restored.ids()).find(
+      (_, row) => restoredKinds[row] === 1,
+    );
+    expect(furniture).toBeDefined();
+    if (furniture === undefined) throw new Error('the shipped lot has furniture');
+    expect(restored.moodSnapshotOf(furniture)).toHaveLength(0);
+    expect(restored.moodSummaryOf(furniture)).toEqual([]);
+    expect(restored.moodSnapshotOf(0xffff_ffff)).toHaveLength(0);
+    expect(restored.moodSummaryOf(0xffff_ffff)).toEqual([]);
+  });
+
   it('rejects corrupt save bytes without changing the live bridge', () => {
     const live = new SimBridge(SimHandle.from_lot(), wasmMemory);
     for (let tick = 0; tick < 31; tick++) live.tick();

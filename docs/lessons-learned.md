@@ -3355,3 +3355,49 @@ surface open for longer than one tick, and prove the text does not change.
 Verify the initial focus target, Escape behavior, focus return, selected-speed
 restoration, and a compact viewport. Unit-test overlapping owners so one modal
 cannot resume time while another still owns it.
+
+## [L70] The outer timeout must cover the mutation campaign, not one mutant
+
+**What happened.** A targeted `cargo mutants` run covered three changed Rust
+files and expanded to 320 mutants. Each mutant had the intended 60-second
+timeout, but the shell wrapper itself had a 15-minute timeout. The wrapper
+killed a healthy run after 78 completed mutants, discarding work that Cargo
+Mutants cannot resume.
+
+**Root cause.** The per-mutant timeout and the orchestration timeout were
+treated as if they bounded the same thing. They do not: one bounds a single
+synthetic defect, while the other must cover the baseline build plus every
+planned defect. Whole-file targeting made two large `lib.rs` files much wider
+than the changed lines suggested.
+
+**Prevention rule.** List or inspect the planned mutant count before a scoped
+campaign and size the outer timeout for the complete campaign with margin. For
+multiple independent files, use separate output directories and concurrent
+processes when the machine can support them. Never describe a partial
+`outcomes.json` as a completed gate.
+
+**How to verify.** A completed output directory has a non-null `end_time` in
+`outcomes.json`, its completed count matches the planned count in
+`mutants.json`, and `missed.txt` plus `timeout.txt` have both been inspected.
+
+## [L71] Null cannot explain why a projection has no view
+
+**What happened.** The mood panel returned `null` both when no person was
+selected and when a selected entity produced invalid boundary data. Its render
+path therefore overwrote the intentional selection prompt with `Mood
+unavailable`, even though those states ask the player to do different things.
+The same read also requested the text projection after an empty numeric result
+had already proved there was nothing valid to align.
+
+**Root cause.** Absence was modeled as one sentinel instead of a state with a
+reason. That made the renderer guess at copy and made the boundary reader keep
+working after it already knew the result.
+
+**Prevention rule.** Player-facing projections use a discriminated state for
+unselected, unavailable, and ready data. Treat an authoritative empty boundary
+result as a short-circuit before allocating dependent projections.
+
+**How to verify.** With no selection, the panel keeps `Select a person to see
+their mood.` and performs no projection reads. With an empty numeric result for
+a selected entity, it reads no labels and shows `Mood unavailable`. Unit tests
+assert both the distinct copy and the boundary call counts.

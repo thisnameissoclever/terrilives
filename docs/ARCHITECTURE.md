@@ -186,7 +186,12 @@ associative across batch boundaries: splitting an ordered command stream across
 two rendered frames produces the same saved world as draining it in one batch.
 1. `|| time` - advance clock, fire calendar events
 2. `|| need_decay`
-3. `|| mood` - moodlets from needs, traits, environment
+3. `|| mood` - a causal slot, not an M1 writer. `Sim::mood_of` currently
+   derives moodlets from needs, condition traits, and nearby directional
+   relationships when the HUD asks. Keeping the result out of ECS state and
+   Save V1 means Load cannot restore a stale mood and no scheduled system can
+   make the world hash depend on display cadence. A future mechanic that READS
+   mood during simulation belongs at this slot before choice.
 4. `|| advertisement_scan` - spatial query for nearby smart objects, score them
 4a. `-> intent_serve` - turn each directed sim's front player-issued intent
     into a target ([D-3] of the M1b design). Serialized because it claims
@@ -446,6 +451,17 @@ mean Stranger because the simulation intentionally drops entries after they
 decay to exact zero. A successful Load force-refreshes both roster and People
 before their next cadence interval, so replacement entity indices cannot leak
 into visible identity.
+
+Mood is another pure projection, but its boundary is two aligned copies:
+`mood_snapshot_of` carries the overall and per-moodlet scores, while
+`mood_summary_of` carries the corresponding labels. The HUD copies the numeric
+half before the next bridge call and short-circuits without requesting labels
+when that half is empty. A discriminated render state keeps no selection
+distinct from invalid selected data, then rejects misaligned, blank, or
+non-finite payloads and reconciles duplicate-safe rows at the ordinary need-bar
+cadence. A successful Load force-refreshes Mood in the same callback as roster
+and People, before a tick can advance or an old row can survive the restored
+world.
 
 **The discipline that makes this safe, in one rule: never cache a view.** WASM
 linear memory grows, and growth detaches every typed-array view over the old
