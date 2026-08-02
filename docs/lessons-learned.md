@@ -3,20 +3,51 @@
 Gotchas and hard-won context. Read this before starting work; it is cheaper
 than rediscovering any of it.
 
-Entries are append-only and numbered. Do not renumber.
+Entries are append-only. **Do not renumber, and do not add a numbered one.**
 
-**One exception happened, on 2026-07-29, and it is recorded here rather than
-hidden because the rule above is what makes these IDs citable.** Two branches
-independently added an `[L41]`: `m1b-interaction` added `[L41]`-`[L48]` and
-`main` added a different `[L41]`. A merge cannot keep both under one number, so
-main's entry became `[L49]`. It was the one to move because nothing in the repo
-cited it, while `[L41]`-`[L48]` were already referenced from code comments.
+## How to id a new entry
 
-The rule as written assumed linear history and cannot survive parallel branches
-on its own. **The way to keep it: claim a number by appending the heading in a
-tiny commit before writing the entry**, so a second branch sees the number
-taken. Renumbering is the fallback, and if it happens again the moved entry
-keeps a note saying what it used to be.
+A new lesson's id is a short kebab-case SLUG of what it is about, not a
+number:
+
+```
+## [L-save-target-union] A validator that models one case of a union ...
+```
+
+Pick the slug from the lesson's own subject. Two words is usually
+enough. It never needs to be looked up, reserved, or agreed with anyone,
+which is the entire point.
+
+**Why the numbers stopped.** `[L1]`-`[L73]` were allocated by taking the
+next free integer, so every branch working in parallel read the same
+"next" number and wrote there. It collided on 2026-07-29 (two different
+`[L41]`s, main's renumbered to `[L49]`), and the workaround recorded
+here at the time - claim the number in a tiny commit first - did not
+hold: on **2026-08-01 it collided three more times in one afternoon**,
+as PRs #26, #28 and #27 each appended what they believed was the next
+number. Each collision cost a renumber, a sweep of the cross-references,
+and a fresh ~35-minute CI cycle. A counter cannot be shared by branches
+that cannot see each other. A slug needs no allocator, so there is
+nothing to race for.
+
+**The numeric series is CLOSED at `[L73]`.** Every existing id keeps its
+number for ever - 60 files across `crates/`, `web/src/` and `docs/` cite
+them, and a citation that rots is worse than an ugly id.
+`check-doc-ids.py` fails the build if a number past the close appears, or
+if any id is used twice.
+
+**Ids are also nicer this way**, which is a bonus rather than the
+reason: `[L-preview-serves-original-root]` says what it is at the
+citation site, and `[L67]` says nothing until you go and look. That is
+`docs/glossary.md`'s naming rule - a label names the thing - applied to
+the labels the docs use on themselves.
+
+Appends to this file are merged with git's `union` strategy (see
+`.gitattributes`), so two branches each adding an entry at the end merge
+without a conflict at all. The one thing that costs: if two branches
+edit the SAME existing lines, union keeps both versions rather than
+raising a conflict. This file is append-only precisely so that stays
+rare.
 
 ---
 
@@ -3452,3 +3483,44 @@ every previous child is inert, and a pre-existing open native dialog is closed.
 In a compact visible browser, force startup to fail with a modal already open
 and confirm the whole message remains scrollable with no focusable controls
 behind it.
+
+## [L-shared-counter-ids] A counter cannot be shared by branches that cannot see each other
+
+**What happened.** Both accreting docs numbered their entries by taking
+the next free integer. It collided on 2026-07-29 (two different
+`[L41]`s) and the fix recorded at the time was a convention: claim the
+number in a tiny commit before writing the entry. That convention held
+for three days. On **2026-08-01 the same thing happened three times in
+one afternoon** - PRs #26, #28 and #27 each appended what they honestly
+believed was `[A-17]`, and the last one through renumbered twice, each
+time re-running a ~35-minute CI cycle for a conflict that had nothing to
+do with its code.
+
+**Root cause.** "Take the next free number" is an allocation, and an
+allocator needs a single point that hands ids out. Parallel branches
+have no such point: each reads the same file, sees the same maximum, and
+picks the same successor. The convention could not have worked, because
+it asked authors to serialise something the tool does not serialise for
+them. This is the same shape as any lock-free allocation bug - the read
+and the write are not atomic with respect to another writer.
+
+**Prevention rule.** An id that identifies an entry in a document
+several branches append to must be **derivable from the entry's own
+content** rather than from the document's state. A kebab-case slug of
+the subject is: two authors writing about different things cannot
+produce the same one, and no lookup or reservation is needed. Keep the
+old numbers for ever - here, ~60 files cite them, and a citation that
+rots is worse than a mixed scheme.
+
+A second, independent change removes the merge conflict itself:
+`merge=union` on the file, so two appends at the end combine instead of
+conflicting. The id scheme and the merge strategy fix different halves -
+the scheme removes the renumbering and the reference sweep, the strategy
+removes the conflict.
+
+**How to verify.** `check-doc-ids.py`, run in the `rust` CI job, fails
+on a number past the closed series or on the same id twice - both
+demonstrated against a deliberately broken copy before it was wired up.
+The union merge was verified on a scratch repository rather than
+assumed: two branches each appending an entry merge with exit 0, zero
+conflict markers, and both entries present.

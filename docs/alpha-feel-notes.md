@@ -13,6 +13,25 @@ given, and where it does not the note says so.
 
 ---
 
+
+## How to id a new session
+
+A new measured or watched session's id is a short kebab-case SLUG, not a
+number:
+
+```
+## [A-alpha-acceptance] The alpha acceptance pass - all eleven criteria
+```
+
+**The numeric series is CLOSED at `[A24]`.** `[A-1]`-`[A24]` were
+allocated from a shared counter, which every parallel branch reads the
+same way: on 2026-08-01 three PRs each appended what they believed was
+`[A-17]`, and the last one through renumbered twice. A slug needs no
+allocator. Existing ids never move - they are cited from code comments
+and from `docs/alpha-goals.md`. The same rule, and the same
+`check-doc-ids.py` guard, covers `docs/lessons-learned.md`; its header
+carries the full reasoning.
+
 ## How this was observed, and what that is worth
 
 Two instruments, deliberately, because either alone is weak.
