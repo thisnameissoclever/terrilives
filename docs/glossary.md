@@ -152,6 +152,7 @@ kinds, each doing exactly one thing:
 | `career:` | The sim's job, from `content/careers.toml`. |
 | **shift** | Starts at a tick of the day (`shift_start` 360 = 06:00) and lasts `shift_ticks` (480 = eight hours). |
 | **rabbit hole** | The industry term this design borrows: the sim walks off the lot and is simply GONE for the shift - no workplace is simulated. |
+| **needs at work** | They still decay, at `at_work_decay_scale` of the usual rate - an office has a toilet and a kettle in it. At the full rate the worker starved: measured at zero on six of seven needs every day of 25 ([A-19]). The job's price is the TIME, not hunger. |
 | **front door** | The lot tile a worker leaves from and returns to (`front_door` in `content/lot.toml`). |
 | `household funds:` | The household's money, credited on each shift's return. Shared by the whole lot, not per sim. |
 | **the cost of a job** | Deliberately just the TIME. A career's satisfaction payout is small and can never be negative - what a bad job costs a life is the hours it eats from everything else, which the trace measures. |

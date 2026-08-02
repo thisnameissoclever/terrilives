@@ -29,6 +29,15 @@ jobs:
         run: cargo clippy --workspace --all-targets -- -D warnings
       - name: Test
         run: cargo test --workspace
+      # The docs' own ids. Both accreting files used to number entries
+      # from a shared counter, which every parallel branch reads the
+      # same way - it collided four times, most recently three PRs in
+      # one afternoon. New ids are slugs; this fails the build if
+      # somebody reaches for the counter again, or if two branches pick
+      # the same slug (which `merge=union` would otherwise keep both
+      # of, silently). See docs/testing-protocol.md rule 10.
+      - name: Documentation ids
+        run: python3 check-doc-ids.py
       # Mechanically enforces [D1]: terri-core, terri-data and terri-sim
       # never depend on a web crate. terri-data is in the list from the
       # commit that created it, because a purity rule that a crate has to

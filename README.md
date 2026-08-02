@@ -21,6 +21,23 @@ Then, by what you want:
 | Mistakes already made, so they are not made twice | [docs/lessons-learned.md](docs/lessons-learned.md) |
 | How the testing gates work | [docs/testing-protocol.md](docs/testing-protocol.md) |
 
+### The bracketed tags in code comments and docs
+
+Comments across `crates/` and `web/src/` cite decisions by tag rather
+than repeating them. Each letter says which file the tag lives in, so a
+citation can be followed without asking anyone:
+
+| Tag | Points at | Example |
+| --- | --- | --- |
+| `[L...]` | a mistake already made, in [docs/lessons-learned.md](docs/lessons-learned.md) | `[L41]`, `[L-shared-counter-ids]` |
+| `[A-...]` | a measured or watched play session, in [docs/alpha-feel-notes.md](docs/alpha-feel-notes.md) | `[A-14]` |
+| `[T...]` | something only the owner can do, in [docs/TIM-TODO.md](docs/TIM-TODO.md) | `[T22]` |
+| `[D...]`, `[E...]`, `[K...]`, `[X...]` and friends | a decision inside one working design in `docs/specs/` | `[E4]` is the career design |
+
+Older tags are numbered and newer ones are slugs; both are permanent and
+neither is ever reused. `docs/lessons-learned.md` explains why the
+numbering stopped, and `check-doc-ids.py` enforces it.
+
 Run it - there are exactly two instances, by standing rule, and no
 others should be started:
 

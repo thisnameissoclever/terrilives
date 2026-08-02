@@ -1,1 +1,26 @@
 * text=auto eol=lf
+
+# **Append-only prose, merged by keeping BOTH sides.**
+#
+# These two files accrete one entry at the end per branch, so two
+# branches working in parallel always conflict at the same place even
+# when they touched nothing else in common - on 2026-08-01 that cost
+# three merge-and-re-run cycles in one afternoon. `union` resolves an
+# overlapping append by keeping every line from both sides, in order,
+# with no markers, which for an append-only file is exactly the right
+# answer.
+#
+# Verified rather than assumed, on a scratch repository: two branches
+# each appending one entry merge with exit 0 and zero conflict markers,
+# both entries present. The one cosmetic artifact is that the blank line
+# between them can be swallowed, leaving two headings adjacent - which
+# CommonMark renders correctly, so it is untidy rather than wrong.
+#
+# The cost, stated so it is not a surprise: if two branches edit the
+# SAME existing lines, union keeps both versions instead of raising a
+# conflict. Both files are append-only by rule, and
+# `check-doc-ids.py` catches the visible symptom (an id appearing
+# twice), but an edit to an old entry still wants a careful read of the
+# merge.
+docs/lessons-learned.md merge=union
+docs/alpha-feel-notes.md merge=union
