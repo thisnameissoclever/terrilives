@@ -444,11 +444,29 @@ Characters need deep customization, which pre-rendered sprites make
 combinatorially painful. A chair does not. See TECH_STACK.md for the asset
 pipeline.
 
+The current placeholder sim has one body sprite, so walking motion is a
+presentation transform rather than an animation atlas. The shell derives a
+two-footfall triangle wave from the interpolated world coordinate and lifts
+only the body and carried badge by at most two screen pixels at scale 1. The
+selection ring and depth remain anchored to the ground. This adds no persisted
+animation state, bridge column, per-frame allocation, draw call, or wall-clock
+phase; pause, speed changes, replay, and Load reproduce the pose from position.
+`prefers-reduced-motion: reduce` makes the lift zero without disabling travel
+interpolation.
+
+Save records simulation tick state, not a fractional presentation sample. Load
+therefore reconstructs the footfall from the saved tick-end position after the
+ordinary render buffer reseeds previous and current position. It does not
+promise to preserve an unsaved interpolation alpha from the instant the player
+pressed Save; that presentation boundary already exists for travel itself.
+
 ## [D11] WASM/JS bridge
 
 The simulation owns all state in WASM linear memory. JS holds
 `Float32Array`/`Int32Array` **views** over render-relevant slices (positions,
-sprite IDs, animation state) and feeds them directly into GPU buffers.
+sprite IDs, activity codes) and feeds them directly into GPU buffers. The
+walking presentation reads the existing activity and position columns; it does
+not expand the bridge schema.
 
 **Zero copy, and no per-entity JS objects, ever.**
 

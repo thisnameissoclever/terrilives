@@ -3565,3 +3565,49 @@ requirements index explicitly names them as live work.
 **How to verify.** Search current non-archive documentation for each shipped
 feature name. The requirements index, feature overview, architecture, and code
 comments must agree on its status and on any deliberately deferred extension.
+
+## [L-render-buffer-live-prefix] A reused render buffer has no meaningful trailing slots
+
+**What happened.** A selection-ring test read the slot immediately after the
+live instance count and expected it not to contain an old ring. Adding an
+earlier test that legitimately drew a ring made the assertion depend on test
+order even though the renderer still uploaded exactly the correct live prefix.
+
+**Root cause.** `buildInstances` deliberately reuses a high-water-mark scratch
+buffer. Slots after `instanceCount` are unspecified leftovers, not part of the
+frame. The test treated physical array capacity as rendered output and tested a
+cleanup behavior the production contract neither promises nor needs.
+
+**Prevention rule.** When a producer returns reusable storage plus a separate
+live count, assert only within that count. Do not inspect or clear trailing
+capacity unless a consumer can actually read it; needless clearing adds frame
+work and merely makes an invalid test look stable.
+
+**How to verify.** Draw a frame with extras, then a smaller frame without them.
+Assert the second `instanceCount` and its live prefix. Permit any value beyond
+that prefix, and verify the draw call receives the same live count.
+
+## [L-save-presentation-boundary] Tick state and presentation state are different save boundaries
+
+**What happened.** A movement-animation test rendered the pre-save and
+post-Load frames with interpolation alpha 1, then the acceptance note described
+that as proof that any exact pre-save screen position returns. A real paused
+frame can retain an alpha between 0 and 1, while the save format correctly owns
+the simulation tick state only.
+
+**Root cause.** The test proved deterministic reconstruction from the saved
+tick-end position, but the prose silently widened that contract to include the
+renderer-only fractional sample. Load reseeds previous and current position to
+the saved tick endpoint; it cannot recreate an interpolation alpha that was
+never part of the simulation snapshot.
+
+**Prevention rule.** State save/load evidence at the ownership boundary it
+actually exercises. A simulation snapshot may reproduce tick state exactly
+without preserving transient presentation state. If exact presentation is a
+requirement, name it explicitly and persist or reconstruct every input that
+creates it.
+
+**How to verify.** Test the restored walking transform against the saved tick
+position and document that boundary. Separately inspect whether the product
+requires between-tick interpolation state to survive Save; do not infer that
+contract from an alpha-1 fixture.

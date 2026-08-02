@@ -16,35 +16,29 @@ is fine inside a compiled build and a violation inside git. See TECH_STACK.md.
 - **Downloaded:** 2026-07-28, 4.9 MB
 - **Contents:** 140 models in five 3D formats, plus **560 pre-rendered
   isometric PNGs** at four rotations each, plus side-on renders.
-- **What we use:** ten of the isometric PNGs, `_SE` rotation only, scaled and
-  packed into `assets/sprites/atlas.png`. The 3D models are unused for now;
-  [G5] in TECH_STACK.md expects characters to need real meshes once
-  customisation arrives, and this pack is a candidate then.
+- **What we use:** 39 isometric PNGs, scaled and packed into
+  `assets/sprites/atlas.png`. Most use the `_SE` rotation; the north-facing
+  kitchen run, walls, corners, and doorways also use selected `_SW` rotations.
+  The 3D models are unused for now; [G5] in TECH_STACK.md expects characters
+  to need real meshes once customisation arrives, and this pack is a candidate
+  then.
 - **The source zip is gitignored** (`assets/vendor/`). Only the derived atlas is
   committed, because committing both would put the same art in the repository
   twice. Re-download from the URL above and run
   `assets/sprites/build-atlas.ps1` to regenerate.
 
-Borrowed sprites, by the id in `content/objects.toml` that names each:
-
-| object | Kenney sprite |
-| --- | --- |
-| `fridge` | `kitchenFridgeBuiltIn_SE` |
-| `sink` | `bathroomSinkSquare_SE` |
-| `shower` | `showerRound_SE` |
-| `toilet` | `toiletSquare_SE` |
-| `bookshelf` | `bookcaseClosedDoors_SE` |
-| `sofa` | `loungeSofaOttoman_SE` |
-| `television` | `televisionVintage_SE` |
-| `bed` | `bedBunk_SE` |
-
-Plus `wall_SE` and `wall_SW`, which the renderer draws as `wallNS` and
-`wallEW` - the two orientations a wall run can take on this grid.
+The complete borrowed set is the 39 non-`generated:` entries in `$SOURCES` in
+`assets/sprites/build-atlas.ps1`. That declaration records both the atlas name
+and exact Kenney source name, including every furniture facing, wall, corner,
+and doorway. It is the authoritative per-sprite inventory because the same
+list generates the atlas and both runtime manifests; a prose copy would drift
+the next time a room gained a chair, which is precisely how this document
+became stale once already.
 
 ## Generated, not borrowed
 
-Two sprites in the atlas are drawn by `build-atlas.ps1` rather than taken from
-the kit, and both for stated reasons.
+Nine sprites in the atlas are drawn by `build-atlas.ps1` rather than taken from
+the kit.
 
 - **`sim`.** The kit is 140 pieces of furniture and **contains no people at
   all**, so the one sprite the game most needs is the one nothing ships. It is
@@ -53,10 +47,19 @@ the kit, and both for stated reasons.
   expects characters to become real meshes once customisation arrives, so this
   is deliberately the cheapest thing that reads as a person at 78 px.
 - **`floor`.** The kit has `floorFull_SE`, and it is not usable: it is a
-  208 x 146 diamond, a ratio of about 1.42:1, while `iso.ts` projects at
-  exactly 2:1. Across 432 tiles a mismatch that size tiles with visible seams.
-  The generated floor is an exact 64 x 32 diamond with a darker edge, so the
-  grid aligns with `worldToScreen` by construction.
+  208 x 146 slab whose visible side faces do not match the measured ground
+  slope. Across 432 tiles even a small mismatch produces visible seams. The
+  generated floor is an exact 64 x 42 diamond with a darker edge, matching
+  `2 * TILE_HALF_WIDTH` by `2 * TILE_HALF_HEIGHT`, so the grid aligns with
+  `worldToScreen` by construction.
+- **`selectionRing`.** A 64 x 42 ellipse in the HUD accent sits on the same
+  ground anchor as the floor without needing a second outlined character.
+- **`indicatorTalk`, `indicatorEat`, `indicatorSleep`, and `indicatorWait`.**
+  The kit contains no interface glyphs, so these activity bubbles are generated
+  at the exact 26 x 26 slot the renderer uses.
+- **`carried_ingredients` and `carried_dinner`.** These 18 x 18 badges make a
+  chain's carried-item transition visible without pretending the furniture kit
+  contains food UI art.
 
 ## The scale, and the one number it turns on
 

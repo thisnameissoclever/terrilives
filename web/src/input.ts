@@ -28,7 +28,11 @@
  * holds only the part that needs a pick: which rows a right click asks for.
  */
 
-import { ACTIVITY_AT_WORK } from './frame.js';
+import {
+  ACTIVITY_AT_WORK,
+  ACTIVITY_WALKING,
+  WALK_LIFT_PX,
+} from './frame.js';
 import { SPRITES } from './render/atlas.js';
 import {
   DRAG_THRESHOLD_PX,
@@ -77,9 +81,10 @@ export interface PickSource {
    */
   sprites(): Uint32Array;
   /**
-   * Activity codes per row. Picking reads it for ONE code: a sim at work
-   * (ACTIVITY_AT_WORK) is not drawn, so it must not be clickable either -
-   * the pick box and the pixels move together, the standing rule.
+   * Activity codes per row. Picking reads two codes: a sim at work is not
+   * drawn, and a walking sim can rise by `WALK_LIFT_PX`. Picking does not own
+   * the render interpolation alpha, so walkers use the complete travel
+   * envelope rather than letting a visible footfall escape between ticks.
    */
   activities(): Uint32Array;
 }
@@ -271,6 +276,7 @@ export function pickSprite(
   originX: number,
   originY: number,
   scale = 1,
+  reducedMotion = false,
 ): Pick | null {
   const count = source.count;
   const positions = source.positions();
@@ -312,7 +318,13 @@ export function pickSprite(
     const anchorX = screenX(wx, wy, originX, scale);
     const anchorY = screenY(wx, wy, originY, scale) + TILE_HALF_HEIGHT * scale;
     const left = anchorX - (sprite.w / 2) * scale;
-    const top = anchorY - sprite.h * scale;
+    const walkingHeadroom =
+      !reducedMotion &&
+      kinds[row] === KIND_AGENT &&
+      activities[row] === ACTIVITY_WALKING
+        ? WALK_LIFT_PX * scale
+        : 0;
+    const top = anchorY - sprite.h * scale - walkingHeadroom;
     if (px < left || px > left + sprite.w * scale) continue;
     if (py < top || py > anchorY) continue;
 
@@ -582,9 +594,18 @@ export function handleLeftClick(
   originY: number,
   additive: boolean,
   scale = 1,
+  reducedMotion = false,
 ): LeftClickOutcome {
   if (point === null) return { kind: 'none' };
-  const pick = pickSprite(target, point.x, point.y, originX, originY, scale);
+  const pick = pickSprite(
+    target,
+    point.x,
+    point.y,
+    originX,
+    originY,
+    scale,
+    reducedMotion,
+  );
   const action = resolveLeftClick(pick, target.selectedIndex(), additive);
   if (action.kind === 'none') return { kind: 'none' };
   const accepted = dispatch(target, action) === true;
@@ -663,12 +684,21 @@ export function resolveRightClick(
   originX: number,
   originY: number,
   scale = 1,
+  reducedMotion = false,
 ): MenuEntry[] | null {
   if (target.selectedIndex() === null) return null;
   const pick =
     point === null
       ? null
-      : pickSprite(target, point.x, point.y, originX, originY, scale);
+      : pickSprite(
+          target,
+          point.x,
+          point.y,
+          originX,
+          originY,
+          scale,
+          reducedMotion,
+        );
   if (pick === null) return [NEVER_MIND];
   if (pick.isAgent) {
     // The selected sim itself: nothing to do but close. A DIFFERENT
@@ -705,9 +735,17 @@ export function handleRightClick(
   originX: number,
   originY: number,
   scale = 1,
+  reducedMotion = false,
 ): void {
   event.preventDefault();
-  const entries = resolveRightClick(target, point, originX, originY, scale);
+  const entries = resolveRightClick(
+    target,
+    point,
+    originX,
+    originY,
+    scale,
+    reducedMotion,
+  );
   if (entries === null) {
     menu.close();
     return;
@@ -925,6 +963,7 @@ export function attachPointerInput(
   gestures: CameraGestures,
   additiveMode: () => boolean = () => false,
   onCommandRejected: (kind: RejectedCommandKind) => void = () => {},
+  reducedMotion: () => boolean = () => false,
 ): void {
   const canvasPoint = (event: {
     clientX: number;
@@ -966,6 +1005,7 @@ export function attachPointerInput(
       camera.originX,
       camera.originY,
       camera.scale,
+      reducedMotion(),
     );
   });
 
@@ -1094,6 +1134,7 @@ export function attachPointerInput(
       camera.originY,
       event.ctrlKey || event.metaKey || additiveMode(),
       camera.scale,
+      reducedMotion(),
     );
     if (outcome.kind !== 'none' && !outcome.accepted) {
       onCommandRejected(outcome.kind);
@@ -1110,6 +1151,7 @@ export function attachPointerInput(
       camera.originX,
       camera.originY,
       camera.scale,
+      reducedMotion(),
     );
   });
 

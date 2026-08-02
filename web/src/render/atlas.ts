@@ -73,8 +73,8 @@ export const SPRITES: readonly AtlasSprite[] = [
 ];
 
 /**
- * The index of a sprite the shell itself draws - the floor and the two
- * wall orientations - by name.
+ * The index of a sprite the shell itself draws by name, including lot
+ * geometry and presentation overlays such as rings and indicators.
  *
  * Smart objects must NOT come through here. Their sprite is content, so
  * it arrives already resolved in the render buffer; naming one here

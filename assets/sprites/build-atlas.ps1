@@ -1,7 +1,7 @@
 <#
 .SYNOPSIS
   Builds assets/sprites/atlas.png and its two manifests from the Kenney
-  furniture kit plus two generated sprites.
+  furniture kit plus nine generated sprites.
 
 .DESCRIPTION
   The source zip is gitignored (assets/vendor/), so this script is the
@@ -670,8 +670,8 @@ try {
   [void]$ts.AppendLine('];')
   [void]$ts.AppendLine('')
   [void]$ts.AppendLine('/**')
-  [void]$ts.AppendLine(' * The index of a sprite the shell itself draws - the floor and the two')
-  [void]$ts.AppendLine(' * wall orientations - by name.')
+  [void]$ts.AppendLine(' * The index of a sprite the shell itself draws by name, including lot')
+  [void]$ts.AppendLine(' * geometry and presentation overlays such as rings and indicators.')
   [void]$ts.AppendLine(' *')
   [void]$ts.AppendLine(' * Smart objects must NOT come through here. Their sprite is content, so')
   [void]$ts.AppendLine(' * it arrives already resolved in the render buffer; naming one here')
