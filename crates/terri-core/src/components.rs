@@ -246,6 +246,12 @@ impl IntentQueue {
     pub fn len(&self) -> usize {
         self.0.len()
     }
+
+    /// Intents in service order. Save snapshots need the whole queue, not
+    /// only its front item, or a reload can silently discard player orders.
+    pub fn as_slice(&self) -> &[Intent] {
+        &self.0
+    }
 }
 
 /// How tired of each interaction a sim currently is - [S2].

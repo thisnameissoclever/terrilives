@@ -3,7 +3,7 @@
 
 use terri_core::{
     Agent, CommandQueue, NeedId, Needs, Position, SimCommand, SmartObject, TileGrid, NEED_MAX,
-    NEED_MIN,
+    NEED_MIN, SAVE_MAGIC, SAVE_SCHEMA_VERSION,
 };
 use terri_sim::{Content, Sim};
 use wasm_bindgen::prelude::*;
@@ -18,6 +18,24 @@ const HUNGER_FOR_NON_FINITE: f32 = NEED_MAX;
 /// The coordinate a non-finite position argument is replaced with. Tile
 /// (0, 0) exists in every lot `Sim::new_with_lot` builds.
 const COORD_FOR_NON_FINITE: f32 = 0.0;
+
+/// Hostile or corrupt browser storage is bounded before postcard can allocate
+/// vectors named by the payload. Far above the alpha's real save size.
+const MAX_SAVE_BYTES: usize = 16_777_216;
+const SAVE_HEADER_BYTES: usize = SAVE_MAGIC.len() + std::mem::size_of::<u16>();
+
+fn save_length_is_allowed(length: usize) -> bool {
+    (SAVE_HEADER_BYTES..=MAX_SAVE_BYTES).contains(&length)
+}
+
+fn encode_save(snapshot: &terri_core::SaveSnapshotV1) -> Vec<u8> {
+    let payload = postcard::to_allocvec(snapshot).expect("SaveSnapshotV1 serialises");
+    let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
+    bytes.extend_from_slice(&SAVE_MAGIC);
+    bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
+    bytes.extend(payload);
+    bytes
+}
 
 /// Forces a caller-supplied hunger into `NEED_MIN..=NEED_MAX`.
 ///
@@ -121,6 +139,18 @@ impl SimHandle {
     /// The lot's height in tiles. See [`SimHandle::lot_width`].
     pub fn lot_height(&self) -> usize {
         self.sim.world().resource::<TileGrid>().height()
+    }
+
+    /// Current fixed-step simulation tick. The shell uses this for day-based
+    /// autosave scheduling; it is simulation time, never wall-clock time.
+    pub fn sim_tick(&self) -> u64 {
+        self.sim.world().resource::<terri_core::SimClock>().tick
+    }
+
+    /// Authored fixed-step ticks in one simulated day. Kept beside
+    /// `sim_tick` so the shell never hardcodes the content calendar.
+    pub fn day_ticks(&self) -> u32 {
+        self.sim.world().resource::<Content>().0.tuning.day_ticks
     }
 
     /// Every impassable tile inside the lot, interleaved `[x0, y0, x1,
@@ -393,6 +423,44 @@ impl SimHandle {
         true
     }
 
+    /// Serialises the running game for browser-owned persistent storage.
+    ///
+    /// The magic and little-endian schema version live outside postcard's
+    /// payload, so a future version can be rejected before this build tries to
+    /// interpret a shape it does not understand.
+    pub fn save_bytes(&self) -> Vec<u8> {
+        encode_save(&self.sim.save_snapshot())
+    }
+
+    /// Transactionally restores browser-provided save bytes.
+    ///
+    /// Empty, oversized, truncated, corrupt, trailing, incompatible-version,
+    /// and invalid-content payloads all return false. The live simulation is
+    /// replaced only after the candidate world is fully validated and built.
+    pub fn load_bytes(&mut self, bytes: &[u8]) -> bool {
+        if !save_length_is_allowed(bytes.len()) {
+            return false;
+        }
+        if bytes[..SAVE_MAGIC.len()] != SAVE_MAGIC {
+            return false;
+        }
+        let version_start = SAVE_MAGIC.len();
+        let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
+        if version != SAVE_SCHEMA_VERSION {
+            return false;
+        }
+
+        let Ok((snapshot, rest)) =
+            postcard::take_from_bytes::<terri_core::SaveSnapshotV1>(&bytes[SAVE_HEADER_BYTES..])
+        else {
+            return false;
+        };
+        if !rest.is_empty() {
+            return false;
+        }
+        self.sim.load_snapshot(snapshot).is_ok()
+    }
+
     /// The seven need levels of the entity carrying `entity_index`, in
     /// `NeedId` index order, or an EMPTY array when nothing live carries
     /// that index or what does has no needs.
@@ -494,6 +562,15 @@ impl SimHandle {
     pub fn career_of(&self, entity_index: u32) -> String {
         self.sim
             .career_of(entity_index)
+            .map(str::to_string)
+            .unwrap_or_default()
+    }
+
+    /// Authored furniture name, or the empty string for non-objects and
+    /// stale entity indices. Used by the keyboard target picker.
+    pub fn object_name_of(&self, entity_index: u32) -> String {
+        self.sim
+            .object_name_of(entity_index)
             .map(str::to_string)
             .unwrap_or_default()
     }
@@ -705,6 +782,149 @@ mod boundary_tests {
             .try_query::<&Position>()
             .expect("Position is registered eagerly in Sim::new");
         state.iter(world).map(|pos| (pos.x, pos.y)).collect()
+    }
+
+    #[test]
+    fn clock_accessors_report_the_tick_and_authored_day_length() {
+        let mut handle = SimHandle::from_lot();
+        assert_eq!(handle.sim_tick(), 0);
+        assert_eq!(
+            handle.day_ticks(),
+            handle.sim.world().resource::<Content>().0.tuning.day_ticks
+        );
+        assert!(
+            handle.day_ticks() > 0,
+            "content validation forbids a zero day"
+        );
+        handle.tick();
+        handle.tick();
+        assert_eq!(handle.sim_tick(), 2);
+    }
+
+    #[test]
+    fn save_encoding_is_pinned_by_a_golden_byte_vector() {
+        // A round trip is self-consistent under any field order ([L33]).
+        // This independent vector is what forces an incompatible shape or RNG
+        // encoding change to become an explicit save-version decision.
+        let snapshot = terri_core::SaveSnapshotV1 {
+            content_fingerprint: 1,
+            tick: 2,
+            rng: terri_core::SimRng::from_seed(3),
+            funds: -4,
+            issued_sim_ids: 5,
+            grid_width: 2,
+            grid_height: 1,
+            blocked_tiles: vec![false, true],
+            entities: Vec::new(),
+            queued_commands: Vec::new(),
+        };
+        assert_eq!(
+            encode_save(&snapshot),
+            vec![
+                84, 69, 82, 82, 73, 83, 65, 86, 1, 0, 1, 2, 201, 239, 219, 238, 207, 184, 226, 153,
+                115, 7, 7, 5, 2, 1, 2, 0, 1, 0, 0,
+            ]
+        );
+    }
+
+    #[test]
+    fn save_length_limits_include_both_boundaries_and_exclude_their_neighbours() {
+        assert!(!save_length_is_allowed(SAVE_HEADER_BYTES - 1));
+        assert!(save_length_is_allowed(SAVE_HEADER_BYTES));
+        assert!(save_length_is_allowed(MAX_SAVE_BYTES));
+        assert!(!save_length_is_allowed(MAX_SAVE_BYTES + 1));
+    }
+
+    #[test]
+    fn save_bytes_round_trip_and_continue_the_running_sim() {
+        let mut uninterrupted = SimHandle::from_lot();
+        for _ in 0..173 {
+            uninterrupted.tick();
+        }
+
+        let bytes = uninterrupted.save_bytes();
+        assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
+        assert_eq!(
+            u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
+            SAVE_SCHEMA_VERSION
+        );
+
+        let mut resumed = SimHandle::from_lot();
+        assert!(resumed.load_bytes(&bytes));
+        assert_eq!(
+            resumed.sim.save_snapshot(),
+            uninterrupted.sim.save_snapshot()
+        );
+        for tick_after_load in 1..=300 {
+            uninterrupted.tick();
+            resumed.tick();
+            assert_eq!(
+                resumed.world_hash(),
+                uninterrupted.world_hash(),
+                "WASM handles diverged {tick_after_load} ticks after load"
+            );
+        }
+        assert_eq!(
+            resumed.sim.save_snapshot(),
+            uninterrupted.sim.save_snapshot()
+        );
+    }
+
+    #[test]
+    fn bad_save_bytes_are_rejected_without_mutating_the_running_handle() {
+        let valid = SimHandle::from_lot().save_bytes();
+        let mut bad_magic = valid.clone();
+        bad_magic[0] ^= 1;
+        let mut bad_version = valid.clone();
+        bad_version[SAVE_MAGIC.len()..SAVE_HEADER_BYTES]
+            .copy_from_slice(&(SAVE_SCHEMA_VERSION + 1).to_le_bytes());
+        let mut truncated = valid.clone();
+        truncated.truncate(truncated.len() / 2);
+        let mut trailing = valid.clone();
+        trailing.push(0);
+        let mut corrupt = Vec::from(SAVE_MAGIC);
+        corrupt.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
+        corrupt.extend([0xff; 16]);
+        let oversized = vec![0; MAX_SAVE_BYTES + 1];
+
+        for invalid in [
+            Vec::new(),
+            vec![0],
+            bad_magic,
+            bad_version,
+            truncated,
+            trailing,
+            corrupt,
+            oversized,
+        ] {
+            let mut live = SimHandle::from_lot();
+            for _ in 0..31 {
+                live.tick();
+            }
+            let before = live.sim.save_snapshot();
+            assert!(!live.load_bytes(&invalid));
+            assert_eq!(
+                live.sim.save_snapshot(),
+                before,
+                "rejected bytes changed the running game"
+            );
+        }
+    }
+
+    #[test]
+    fn an_incompatible_content_fingerprint_is_rejected_at_the_wasm_boundary() {
+        let source = SimHandle::from_lot();
+        let mut snapshot = source.sim.save_snapshot();
+        snapshot.content_fingerprint ^= 1;
+        let payload = postcard::to_allocvec(&snapshot).expect("snapshot serialises");
+        let mut incompatible = Vec::from(SAVE_MAGIC);
+        incompatible.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
+        incompatible.extend(payload);
+
+        let mut live = SimHandle::from_lot();
+        let before = live.sim.save_snapshot();
+        assert!(!live.load_bytes(&incompatible));
+        assert_eq!(live.sim.save_snapshot(), before);
     }
 
     /// The two clamp tests below assert an **end-to-end property** - a
@@ -1507,6 +1727,20 @@ mod boundary_tests {
         );
         assert_eq!(handle.sim_name(9_999), "");
         assert_eq!(handle.sim_name(u32::MAX), "");
+    }
+
+    #[test]
+    fn object_name_reports_authored_furniture_names_only() {
+        let handle = SimHandle::from_lot();
+        let pack = handle.sim.world().resource::<Content>().0;
+        let first = &pack.lot.placements[0];
+        assert_eq!(
+            handle.object_name_of(0),
+            pack.objects[first.object.0 as usize].name
+        );
+        let first_sim = pack.lot.placements.len() as u32;
+        assert_eq!(handle.object_name_of(first_sim), "");
+        assert_eq!(handle.object_name_of(u32::MAX), "");
     }
 
     // ---- Player commands ----------------------------------------------

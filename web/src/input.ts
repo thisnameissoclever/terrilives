@@ -20,7 +20,7 @@
  * | click an object | **replace** the selected sim's queue with this |
  * | ctrl or cmd click an object | **append** to the queue |
  * | click bare floor | clear the selection |
- * | right click | open the flyout in `ui/object-menu.ts` |
+ * | right click or long press | open the flyout in `ui/object-menu.ts` |
  *
  * Replace is two existing commands in one tick's drain rather than a new
  * one; see `dispatch`. The flyout's own rules live beside it, and this file
@@ -499,17 +499,15 @@ export interface CommandSink {
  * because "the order matters" is a claim about two runs and pinning one of
  * them says nothing about the other.
  */
-export function dispatch(sink: CommandSink, action: ClickAction): void {
+export function dispatch(sink: CommandSink, action: ClickAction): boolean | null {
   switch (action.kind) {
     case 'select':
-      sink.select(action.entity);
-      break;
+      return sink.select(action.entity);
     case 'use':
-      if (action.replace) sink.cancelIntents(action.agent);
-      sink.useObject(action.agent, action.object, action.interaction);
-      break;
+      if (action.replace && !sink.cancelIntents(action.agent)) return false;
+      return sink.useObject(action.agent, action.object, action.interaction);
     case 'none':
-      break;
+      return null;
   }
 }
 
@@ -569,10 +567,10 @@ export function handleLeftClick(
   originY: number,
   additive: boolean,
   scale = 1,
-): void {
-  if (point === null) return;
+): boolean | null {
+  if (point === null) return null;
   const pick = pickSprite(target, point.x, point.y, originX, originY, scale);
-  dispatch(target, resolveLeftClick(pick, target.selectedIndex(), additive));
+  return dispatch(target, resolveLeftClick(pick, target.selectedIndex(), additive));
 }
 
 /**
@@ -706,10 +704,9 @@ export function handleRightClick(
  * sim may have gone away. Reading now means the row acts on whoever the
  * simulation currently says is selected, or on nobody.
  *
- * **A row's `use` replaces, like a plain left click.** The menu is the
- * long way round to the same instruction, so it would be strange for the
- * two to differ; ctrl-click stays the one gesture that appends, which
- * keeps "how do I queue" a single answer rather than two.
+ * A row replaces by default, like a plain left click. The visible Queue
+ * mode passes `replace = false`, matching Ctrl or Cmd click on desktop so
+ * touch and keyboard players have the same append operation.
  *
  * **The row's own interaction index is what is sent**, which is the only
  * thing that makes a second row mean anything: the rows come back from the
@@ -722,24 +719,22 @@ export function handleRightClick(
 export function dispatchMenuAction(
   sink: CommandSink,
   action: MenuAction,
-): void {
+  replace = true,
+): boolean {
   const agent = sink.selectedIndex();
-  if (agent === null) return;
+  if (agent === null) return false;
   switch (action.kind) {
     case 'use':
       // Cancel first, then use: the replace pair. See `dispatch`.
-      sink.cancelIntents(agent);
-      sink.useObject(agent, action.object, action.interaction);
-      break;
+      if (replace && !sink.cancelIntents(agent)) return false;
+      return sink.useObject(agent, action.object, action.interaction);
     case 'talk':
       // The same replace pair as 'use': a talk order supersedes the
       // queue rather than joining it.
-      sink.cancelIntents(agent);
-      sink.talkTo(agent, action.target, action.interaction);
-      break;
+      if (replace && !sink.cancelIntents(agent)) return false;
+      return sink.talkTo(agent, action.target, action.interaction);
     case 'cancel':
-      sink.cancelIntents(agent);
-      break;
+      return sink.cancelIntents(agent);
   }
 }
 
@@ -827,6 +822,79 @@ export interface CameraGestures {
   panBy(dx: number, dy: number): void;
 }
 
+/** A long press opens the same choices as a desktop right click. */
+export const LONG_PRESS_MS = 500;
+
+export interface LongPressScheduler {
+  after(delayMs: number, callback: () => void): unknown;
+  cancel(handle: unknown): void;
+}
+
+const BROWSER_LONG_PRESS_SCHEDULER: LongPressScheduler = {
+  after(delayMs, callback) {
+    return globalThis.setTimeout(callback, delayMs);
+  },
+  cancel(handle) {
+    globalThis.clearTimeout(handle as ReturnType<typeof setTimeout>);
+  },
+};
+
+/**
+ * Timer and movement state for one touch long press.
+ *
+ * The class is free of DOM types so the timing contract can be tested without
+ * buying a browser-shaped test dependency. A second finger, a drag, a lift,
+ * or a cancellation all disarm the pending menu.
+ */
+export class LongPressGesture {
+  private pointerId: number | null = null;
+  private startX = 0;
+  private startY = 0;
+  private timer: unknown = null;
+
+  constructor(
+    private readonly fire: (clientX: number, clientY: number) => void,
+    private readonly scheduler: LongPressScheduler = BROWSER_LONG_PRESS_SCHEDULER,
+    private readonly delayMs = LONG_PRESS_MS,
+    private readonly movementLimitPx = DRAG_THRESHOLD_PX,
+  ) {}
+
+  begin(pointerId: number, clientX: number, clientY: number): void {
+    this.cancel();
+    this.pointerId = pointerId;
+    this.startX = clientX;
+    this.startY = clientY;
+    this.timer = this.scheduler.after(this.delayMs, () => {
+      if (this.pointerId === null) return;
+      const x = this.startX;
+      const y = this.startY;
+      this.pointerId = null;
+      this.timer = null;
+      this.fire(x, y);
+    });
+  }
+
+  move(pointerId: number, clientX: number, clientY: number): void {
+    if (pointerId !== this.pointerId) return;
+    if (
+      pointerDistance(this.startX, this.startY, clientX, clientY) >
+      this.movementLimitPx
+    ) {
+      this.cancel();
+    }
+  }
+
+  end(pointerId: number): void {
+    if (pointerId === this.pointerId) this.cancel();
+  }
+
+  cancel(): void {
+    if (this.timer !== null) this.scheduler.cancel(this.timer);
+    this.pointerId = null;
+    this.timer = null;
+  }
+}
+
 export function attachPointerInput(
   canvas: HTMLCanvasElement,
   target: MenuTarget,
@@ -834,6 +902,8 @@ export function attachPointerInput(
   menuRoot: Node,
   camera: Readonly<Camera>,
   gestures: CameraGestures,
+  additiveMode: () => boolean = () => false,
+  onCommandRejected: () => void = () => {},
 ): void {
   const canvasPoint = (event: {
     clientX: number;
@@ -864,6 +934,19 @@ export function attachPointerInput(
   let pinchStartDistance = 0;
   let pinchStartScale = 1;
   let suppressNextClick = false;
+  const longPress = new LongPressGesture((clientX, clientY) => {
+    suppressNextClick = true;
+    canvas.focus();
+    handleRightClick(
+      target,
+      menu,
+      { clientX, clientY, preventDefault() {} },
+      canvasPoint({ clientX, clientY }),
+      camera.originX,
+      camera.originY,
+      camera.scale,
+    );
+  });
 
   const touchPoints = () => [...pointers.values()].slice(0, 2);
   const spread = (): number => {
@@ -892,7 +975,14 @@ export function attachPointerInput(
       startX: event.clientX,
       startY: event.clientY,
     });
-    if (isTouch) touchCount++;
+    if (isTouch) {
+      touchCount++;
+      if (touchCount === 1) {
+        longPress.begin(event.pointerId, event.clientX, event.clientY);
+      } else {
+        longPress.cancel();
+      }
+    }
     moved = 0;
     // Capture, so a drag that leaves the canvas keeps panning instead
     // of stranding mid-gesture.
@@ -907,6 +997,9 @@ export function attachPointerInput(
   canvas.addEventListener('pointermove', (event) => {
     const entry = pointers.get(event.pointerId);
     if (!entry) return;
+    if (event.pointerType === 'touch') {
+      longPress.move(event.pointerId, event.clientX, event.clientY);
+    }
     const dx = event.clientX - entry.x;
     const dy = event.clientY - entry.y;
     const beforeMid =
@@ -943,6 +1036,7 @@ export function attachPointerInput(
   });
 
   const endPointer = (event: PointerEvent): void => {
+    longPress.end(event.pointerId);
     if (pointers.delete(event.pointerId) && event.pointerType === 'touch') {
       touchCount = Math.max(0, touchCount - 1);
     }
@@ -972,17 +1066,19 @@ export function attachPointerInput(
       suppressNextClick = false;
       return;
     }
-    handleLeftClick(
+    const accepted = handleLeftClick(
       target,
       canvasPoint(event),
       camera.originX,
       camera.originY,
-      event.ctrlKey || event.metaKey,
+      event.ctrlKey || event.metaKey || additiveMode(),
       camera.scale,
     );
+    if (accepted === false) onCommandRejected();
   });
 
   canvas.addEventListener('contextmenu', (event) => {
+    canvas.focus();
     handleRightClick(
       target,
       menu,

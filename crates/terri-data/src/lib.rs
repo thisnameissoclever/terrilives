@@ -29,6 +29,18 @@ use std::sync::OnceLock;
 /// the same build that compiles this file.
 static PACK_BYTES: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/content_pack.postcard"));
 
+/// Stable identity of a compiled content pack for save compatibility checks.
+///
+/// A save records this value and refuses to load against different content.
+/// Silently accepting a balance, vocabulary, or atlas-index change would make
+/// a restored deterministic simulation continue under different rules.
+pub fn content_fingerprint(pack: &ContentPack) -> u64 {
+    let bytes = postcard::to_allocvec(pack).expect("ContentPack serialises");
+    let mut hasher = terri_core::FnvHasher::default();
+    hasher.write_bytes(&bytes);
+    hasher.finish()
+}
+
 /// The compiled content pack, deserialised once on first use.
 ///
 /// Cannot fail at runtime: build.rs aborts the build on invalid content,
@@ -119,6 +131,18 @@ mod tests {
         assert!(
             std::ptr::eq(pack(), pack()),
             "pack must be deserialised once"
+        );
+    }
+
+    #[test]
+    fn content_fingerprint_changes_when_simulation_content_changes() {
+        let original = pack().clone();
+        let mut changed = original.clone();
+        changed.tuning.rng_seed ^= 1;
+        assert_ne!(
+            content_fingerprint(&original),
+            content_fingerprint(&changed),
+            "a content edit must make an existing save incompatible"
         );
     }
 

@@ -162,6 +162,29 @@ export interface MenuSurface {
   hide(): void;
 }
 
+export interface MenuPosition {
+  readonly x: number;
+  readonly y: number;
+}
+
+/** Keeps a laid-out menu inside the visible viewport. */
+export function clampMenuPosition(
+  clientX: number,
+  clientY: number,
+  menuWidth: number,
+  menuHeight: number,
+  viewportWidth: number,
+  viewportHeight: number,
+  margin = 8,
+): MenuPosition {
+  const maxX = Math.max(margin, viewportWidth - menuWidth - margin);
+  const maxY = Math.max(margin, viewportHeight - menuHeight - margin);
+  return {
+    x: Math.min(Math.max(margin, clientX), maxX),
+    y: Math.min(Math.max(margin, clientY), maxY),
+  };
+}
+
 /**
  * The flyout's behaviour: what is open, and the four ways it closes.
  *
@@ -297,19 +320,18 @@ export class ObjectMenu {
  * a click would name an object the player right-clicked minutes ago.
  *
  * Positioned in CLIENT pixels, which is correct only for a `position:
- * fixed` element; `index.html` styles it that way. Nothing here clamps the
- * menu inside the viewport, so a right click within a menu's height of the
- * bottom edge draws part of it off screen. Clamping needs the menu's
- * measured size, which does not exist until after layout, so it would cost
- * a second frame or a hardcoded width - neither worth it against a fixed
- * 1280x720 canvas where the pointer is rarely at the very edge.
+ * fixed` element; `index.html` styles it that way. It is made visible before
+ * its final position is calculated so `offsetWidth` and `offsetHeight` are
+ * real layout measurements rather than guessed menu dimensions.
  */
 export function createMenuSurface(
   doc: Document,
   root: HTMLElement,
 ): MenuSurface {
+  let returnFocus: HTMLElement | null = null;
   return {
     show(entries, clientX, clientY, onPick) {
+      returnFocus = doc.activeElement instanceof HTMLElement ? doc.activeElement : null;
       root.replaceChildren();
       for (const [index, entry] of entries.entries()) {
         const button = doc.createElement('button');
@@ -322,10 +344,27 @@ export function createMenuSurface(
       root.style.left = `${clientX}px`;
       root.style.top = `${clientY}px`;
       root.hidden = false;
+      const view = doc.defaultView;
+      if (view) {
+        const position = clampMenuPosition(
+          clientX,
+          clientY,
+          root.offsetWidth,
+          root.offsetHeight,
+          view.innerWidth,
+          view.innerHeight,
+        );
+        root.style.left = `${position.x}px`;
+        root.style.top = `${position.y}px`;
+      }
+      root.querySelector<HTMLButtonElement>('.menu-entry')?.focus();
     },
     hide() {
+      const restore = root.contains(doc.activeElement);
       root.hidden = true;
       root.replaceChildren();
+      if (restore) returnFocus?.focus();
+      returnFocus = null;
     },
   };
 }

@@ -27,6 +27,12 @@ import { buildTimeControls } from './ui/time-controls.js';
 import { ObjectMenu, createMenuSurface } from './ui/object-menu.js';
 import { attachPointerInput, dispatchMenuAction } from './input.js';
 import { KIND_AGENT } from './render/instances.js';
+import { createSaveStore } from './storage/save-store.js';
+import { GameHud } from './ui/game-hud.js';
+import { HelpPanel } from './ui/help-panel.js';
+import { PersistenceController } from './ui/persistence-controller.js';
+import { QueueMode } from './ui/queue-mode.js';
+import { KeyboardTargetController } from './ui/keyboard-target.js';
 
 /** [D2]: the simulation's one true rate. Speed controls change how many
  * ticks run per frame, never how long a tick is. */
@@ -150,6 +156,15 @@ async function main(): Promise<void> {
   // is the zero-copy views.
   const handle = SimHandle.from_lot();
   const sim = new SimBridge(handle, wasm.memory);
+  const saveStatus = document.querySelector<HTMLElement>('#save-status');
+  if (!saveStatus) throw new Error('missing #save-status');
+  const persistence = new PersistenceController(
+    createSaveStore(),
+    sim,
+    saveStatus,
+    (error) => console.error('save storage failed:', error),
+  );
+  await persistence.restoreAtStartup();
   const lotWidth = handle.lot_width();
   const lotHeight = handle.lot_height();
   // Checked rather than assumed. An empty lot is not a crash: it renders
@@ -189,14 +204,16 @@ async function main(): Promise<void> {
   // row-to-entity mapping and `kinds()` says which rows are agents. Rows
   // are entity-index order, so the first agent row IS the lowest index.
   // This runs BEFORE any stress filler is spawned below.
-  const ids = sim.ids();
-  const kinds = sim.kinds();
-  let selectedSomebody = false;
-  for (let row = 0; row < sim.count; row++) {
-    if (kinds[row] === KIND_AGENT) {
-      sim.select(ids[row]);
-      selectedSomebody = true;
-      break;
+  let selectedSomebody = sim.selectedIndex() !== null;
+  if (!selectedSomebody) {
+    const ids = sim.ids();
+    const kinds = sim.kinds();
+    for (let row = 0; row < sim.count; row++) {
+      if (kinds[row] === KIND_AGENT) {
+        sim.select(ids[row]);
+        selectedSomebody = true;
+        break;
+      }
     }
   }
   // Thrown for the same reason the zero-objects case above is: an empty
@@ -251,10 +268,9 @@ async function main(): Promise<void> {
   const driver = new FixedStepDriver(TICK_HZ, MAX_TICKS_PER_FRAME);
   driver.setSpeed(START_SPEED);
 
-  // The two readouts. Both render simulation state and own nothing
-  // ([D-5]): the bars' labels, the seven levels, the selection and the
-  // refresh interval all come from the simulation, and the only thing
-  // either panel remembers is when it last read.
+  // The player readouts render simulation state and own nothing ([D-5]):
+  // needs, selection, household state and current activity all come from
+  // the simulation, and the panels remember only their last read time.
   //
   // Absent elements are thrown on rather than skipped. A page whose
   // markup no longer matches this file would otherwise run with no bars
@@ -262,10 +278,12 @@ async function main(): Promise<void> {
   // than as a broken page - the same confusion [L17] cost a session to
   // diagnose from a rendered picture.
   const needsRoot = document.querySelector<HTMLElement>('#needs-panel');
+  const needsEmpty = document.querySelector<HTMLElement>('#needs-empty');
+  const needsContent = document.querySelector<HTMLElement>('#needs-content');
   const speedRoot = document.querySelector<HTMLElement>('#time-controls');
   const menuRoot = document.querySelector<HTMLElement>('#object-menu');
-  if (!needsRoot || !speedRoot || !menuRoot) {
-    throw new Error('missing #needs-panel, #time-controls or #object-menu');
+  if (!needsRoot || !needsEmpty || !needsContent || !speedRoot || !menuRoot) {
+    throw new Error('missing needs, time-control or object-menu markup');
   }
   // The caption is queried like the roots above and thrown on when
   // absent, for the same [L17] reason: a panel silently missing its
@@ -277,9 +295,48 @@ async function main(): Promise<void> {
   const needsPanel = new NeedsPanel(
     needsRoot,
     needsCaption,
-    buildNeedBars(document, needsRoot, sim.needNames()),
+    buildNeedBars(document, needsContent, sim.needNames()),
     sim.needBarRefreshMs(),
     sim.needMax(),
+    needsEmpty,
+    needsContent,
+  );
+  if (needsRoot instanceof HTMLDetailsElement && window.innerWidth <= 600) {
+    needsRoot.open = false;
+  }
+
+  const clockValue = document.querySelector<HTMLElement>('#clock-value');
+  const fundsValue = document.querySelector<HTMLElement>('#funds-value');
+  const satisfactionValue = document.querySelector<HTMLElement>('#satisfaction-value');
+  const careerRow = document.querySelector<HTMLElement>('#career-row');
+  const careerValue = document.querySelector<HTMLElement>('#career-value');
+  const activityValue = document.querySelector<HTMLElement>('#activity-value');
+  const ordersRow = document.querySelector<HTMLElement>('#orders-row');
+  const ordersValue = document.querySelector<HTMLElement>('#orders-value');
+  if (
+    !clockValue ||
+    !fundsValue ||
+    !satisfactionValue ||
+    !careerRow ||
+    !careerValue ||
+    !activityValue ||
+    !ordersRow ||
+    !ordersValue
+  ) {
+    throw new Error('missing player status markup');
+  }
+  const gameHud = new GameHud(
+    {
+      clock: clockValue,
+      funds: fundsValue,
+      satisfaction: satisfactionValue,
+      careerRow,
+      career: careerValue,
+      activity: activityValue,
+      ordersRow,
+      orders: ordersValue,
+    },
+    sim.needBarRefreshMs(),
   );
   // The developer overlay, installed only under `?debug=1` - the same
   // presence rule as `?stress`, so the shipping page carries no extra
@@ -336,6 +393,97 @@ async function main(): Promise<void> {
     // is.
     sim.setSpeed(ticksPerFrame);
     driver.setSpeed(ticksPerFrame);
+  });
+
+  const saveButton = document.querySelector<HTMLButtonElement>('#save-game');
+  const loadButton = document.querySelector<HTMLButtonElement>('#load-game');
+  const stopOrdersButton = document.querySelector<HTMLButtonElement>('#stop-orders');
+  const queueButton = document.querySelector<HTMLButtonElement>('#queue-mode');
+  const newGameButton = document.querySelector<HTMLButtonElement>('#new-game');
+  const helpButton = document.querySelector<HTMLButtonElement>('#show-help');
+  const closeHelpButton = document.querySelector<HTMLButtonElement>('#close-help');
+  const helpRoot = document.querySelector<HTMLElement>('#help-panel');
+  const newGameDialog = document.querySelector<HTMLDialogElement>('#new-game-dialog');
+  const loadGameDialog = document.querySelector<HTMLDialogElement>('#load-game-dialog');
+  const confirmNewGame = document.querySelector<HTMLButtonElement>('#confirm-new-game');
+  const confirmLoadGame = document.querySelector<HTMLButtonElement>('#confirm-load-game');
+  if (
+    !saveButton ||
+    !loadButton ||
+    !stopOrdersButton ||
+    !queueButton ||
+    !newGameButton ||
+    !helpButton ||
+    !closeHelpButton ||
+    !helpRoot ||
+    !newGameDialog ||
+    !loadGameDialog ||
+    !confirmNewGame ||
+    !confirmLoadGame
+  ) {
+    throw new Error('missing game action markup');
+  }
+
+  const queueMode = new QueueMode(queueButton);
+  let startingNewGame = false;
+  const syncLoadButton = (): void => {
+    loadButton.disabled = !persistence.hasSavedGame();
+  };
+  syncLoadButton();
+  queueButton.addEventListener('click', () => queueMode.toggle());
+  saveButton.addEventListener('click', () => {
+    void persistence.save().then(syncLoadButton);
+  });
+  loadButton.addEventListener('click', () => loadGameDialog.showModal());
+  confirmLoadGame.addEventListener('click', () => void persistence.load());
+  newGameButton.addEventListener('click', () => newGameDialog.showModal());
+  confirmNewGame.addEventListener('click', () => {
+    startingNewGame = true;
+    void persistence.clear().then((cleared) => {
+      if (cleared) window.location.reload();
+      else startingNewGame = false;
+    });
+  });
+  stopOrdersButton.addEventListener('click', () => {
+    const selected = sim.selectedIndex();
+    if (selected === null) {
+      saveStatus.textContent = 'Select a person first';
+      saveStatus.setAttribute('data-kind', 'error');
+      return;
+    }
+    if (sim.cancelIntents(selected)) {
+      saveStatus.textContent = 'Orders cleared';
+      saveStatus.removeAttribute('data-kind');
+    } else {
+      saveStatus.textContent = 'Could not clear orders';
+      saveStatus.setAttribute('data-kind', 'error');
+    }
+  });
+
+  let preferences: Storage | null = null;
+  try {
+    preferences = window.localStorage;
+  } catch {
+    // Help remains usable for the session when browser preferences are denied.
+  }
+  const helpPanel = new HelpPanel(helpRoot, preferences);
+  helpPanel.showOnFirstRun();
+  helpButton.setAttribute('aria-expanded', String(!helpRoot.hidden));
+  helpButton.addEventListener('click', () => {
+    helpPanel.open();
+    helpButton.setAttribute('aria-expanded', 'true');
+    closeHelpButton.focus();
+  });
+  closeHelpButton.addEventListener('click', () => {
+    helpPanel.close();
+    helpButton.setAttribute('aria-expanded', 'false');
+    helpButton.focus();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden' && !startingNewGame) {
+      void persistence.save('Game saved');
+    }
   });
 
   // `worldDepth` divides by (gridSize - 1) * 2, so this has to be at
@@ -451,9 +599,55 @@ async function main(): Promise<void> {
   // interaction index and `SimCommand::UseObject` carries one too, so
   // picking row `n` runs interaction `n`; the shipped lot cannot show that
   // off, because every object on it offers exactly one.
-  const menu = new ObjectMenu(createMenuSurface(document, menuRoot), (action) =>
-    dispatchMenuAction(sim, action),
-  );
+  const menu = new ObjectMenu(createMenuSurface(document, menuRoot), (action) => {
+    const accepted = dispatchMenuAction(sim, action, !queueMode.isActive());
+    if (!accepted) {
+      saveStatus.textContent = 'That order could not be added';
+      saveStatus.setAttribute('data-kind', 'error');
+    }
+  });
+  const keyboardStatus = document.querySelector<HTMLElement>('#keyboard-target');
+  if (!keyboardStatus) throw new Error('missing #keyboard-target');
+  const keyboardTargets = new KeyboardTargetController(sim, keyboardStatus);
+  canvas.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      event.preventDefault();
+      keyboardTargets.cycle(1);
+      return;
+    }
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      keyboardTargets.cycle(-1);
+      return;
+    }
+    if (event.key === ' ') {
+      event.preventDefault();
+      const target = keyboardTargets.current();
+      if (target?.kind === 'person' && sim.select(target.entity)) {
+        keyboardStatus.textContent = `Selected ${target.label}`;
+      }
+      return;
+    }
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      const action = keyboardTargets.activate();
+      if (action.kind === 'select') {
+        if (sim.select(action.entity)) keyboardStatus.textContent = `Selected ${action.label}`;
+      } else if (action.kind === 'menu') {
+        const bounds = canvas.getBoundingClientRect();
+        menu.open(action.entries, bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
+      } else {
+        keyboardStatus.hidden = false;
+        keyboardStatus.textContent = action.message;
+      }
+      return;
+    }
+    if (event.key === 'Escape' && !menu.isShowing()) keyboardTargets.clear();
+  });
+  // An orientation change can move the viewport out from under an open
+  // fixed-position menu. Closing it is clearer than leaving live controls at
+  // coordinates the player can no longer reach.
+  window.addEventListener('resize', () => menu.close());
 
   // Clicks and every camera gesture, last of the wiring because they
   // need the camera above. Left click selects a sim or redirects the
@@ -463,30 +657,42 @@ async function main(): Promise<void> {
   // is serialised ([D-2]); the camera is not a command at all, because
   // it is presentation - two players watching one simulation at
   // different zooms is the ordinary multiplayer picture.
-  attachPointerInput(canvas, sim, menu, menuRoot, camera, {
-    zoomAt(anchorX, anchorY, scale) {
-      if (scale === camera.scale) return;
-      const origin = zoomAnchoredOrigin(
-        camera.originX,
-        camera.originY,
-        anchorX,
-        anchorY,
-        camera.scale,
-        scale,
-      );
-      camera.scale = scale;
-      camera.originX = origin.x;
-      camera.originY = origin.y;
-      clampCamera();
-      cameraDirty = true;
+  attachPointerInput(
+    canvas,
+    sim,
+    menu,
+    menuRoot,
+    camera,
+    {
+      zoomAt(anchorX, anchorY, scale) {
+        if (scale === camera.scale) return;
+        const origin = zoomAnchoredOrigin(
+          camera.originX,
+          camera.originY,
+          anchorX,
+          anchorY,
+          camera.scale,
+          scale,
+        );
+        camera.scale = scale;
+        camera.originX = origin.x;
+        camera.originY = origin.y;
+        clampCamera();
+        cameraDirty = true;
+      },
+      panBy(dx, dy) {
+        camera.originX += dx;
+        camera.originY += dy;
+        clampCamera();
+        cameraDirty = true;
+      },
     },
-    panBy(dx, dy) {
-      camera.originX += dx;
-      camera.originY += dy;
-      clampCamera();
-      cameraDirty = true;
+    () => queueMode.isActive(),
+    () => {
+      saveStatus.textContent = 'That order could not be added';
+      saveStatus.setAttribute('data-kind', 'error');
     },
-  });
+  );
 
   const timer = new FrameTimer(FRAME_WINDOW);
   let previousFrameMs = performance.now();
@@ -529,6 +735,9 @@ async function main(): Promise<void> {
     // the budget is a budget that does not describe the frame ([L19]).
     // On five frames in six this is two comparisons and a return.
     needsPanel.update(nowMs, sim);
+    gameHud.update(nowMs, sim);
+    if (!startingNewGame) persistence.updateAutosave();
+    syncLoadButton();
     debugPanel?.update(nowMs);
 
     timer.sample(performance.now() - nowMs);

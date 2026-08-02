@@ -1,0 +1,2074 @@
+//! Simulation snapshot capture, validation, and reconstruction.
+
+use crate::{Content, Sim};
+use bevy_ecs::{
+    entity::EntityIndex,
+    prelude::{Entity, World},
+};
+use terri_core::{
+    Agent, AtWork, Blocked, Career, Carrying, ChainState, CommandQueue, Commuting, Eating, Fumbled,
+    Funds, Habituation, Hobbies, Intent, IntentQueue, Needs, Path, Personality, Position,
+    Relationships, Reserved, Restless, Satisfaction, SaveSnapshotV1, SavedChainState, SavedCommand,
+    SavedEating, SavedEntity, SavedHabituation, SavedIntent, SavedPath, SavedPersonality,
+    SavedPosition, SavedSocialising, SavedTarget, SavedTraitState, Selected, SimClock, SimCommand,
+    SimId, SimIdAllocator, SimName, SimRng, SmartObject, Socialising, SpriteVariant, StepWork,
+    Target, TileGrid, Traits, Wander, NEED_MAX, NEED_MIN,
+};
+use terri_data::{ContentPack, ObjectDefId};
+
+const MAX_TILES: usize = 1_048_576;
+const MAX_ENTITIES: usize = 100_000;
+const MAX_LIST_ENTRIES: usize = 100_000;
+const MAX_TEXT_BYTES: usize = 1_024;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SaveError {
+    IncompatibleContent,
+    InvalidGrid,
+    TooManyEntities,
+    InvalidEntityOrder,
+    InvalidEntityReference,
+    InvalidContentReference,
+    InvalidValue,
+    DuplicateSelection,
+    InvalidSimIdAllocator,
+    TooManyCommands,
+}
+
+pub(super) fn capture(sim: &Sim) -> SaveSnapshotV1 {
+    let world = sim.world();
+    let pack = world.resource::<Content>().0;
+    let grid = world.resource::<TileGrid>();
+
+    let mut blocked_tiles = Vec::with_capacity(grid.width() * grid.height());
+    for y in 0..grid.height() {
+        for x in 0..grid.width() {
+            blocked_tiles.push(!grid.is_walkable(x as i32, y as i32));
+        }
+    }
+
+    let mut entities = Vec::with_capacity(world.entities().count_spawned() as usize);
+    for raw_index in 0..world.entities().len() {
+        let index = EntityIndex::from_raw_u32(raw_index)
+            .expect("world entity indices never use the u32::MAX placeholder");
+        if world.entities().is_index_spawned(index) {
+            let entity = world.entities().resolve_from_index(index);
+            entities.push(capture_entity(world.entity(entity), pack));
+        }
+    }
+
+    SaveSnapshotV1 {
+        content_fingerprint: terri_data::content_fingerprint(pack),
+        tick: world.resource::<SimClock>().tick,
+        rng: world.resource::<SimRng>().clone(),
+        funds: world.resource::<Funds>().0,
+        issued_sim_ids: world.resource::<SimIdAllocator>().issued(),
+        grid_width: grid.width() as u32,
+        grid_height: grid.height() as u32,
+        blocked_tiles,
+        entities,
+        queued_commands: world
+            .resource::<CommandQueue>()
+            .as_slice()
+            .iter()
+            .map(capture_command)
+            .collect(),
+    }
+}
+
+fn capture_entity(entity: bevy_ecs::world::EntityRef<'_>, pack: &ContentPack) -> SavedEntity {
+    let object_name = |id: ObjectDefId| {
+        pack.objects
+            .get(id.0 as usize)
+            .expect("live SmartObject points inside its ContentPack")
+            .id
+            .clone()
+    };
+
+    SavedEntity {
+        index: entity.id().index_u32(),
+        position: entity
+            .get::<Position>()
+            .map(|p| SavedPosition { x: p.x, y: p.y }),
+        agent: entity.get::<Agent>().is_some(),
+        smart_object: entity.get::<SmartObject>().map(|o| object_name(o.0)),
+        reserved: entity.get::<Reserved>().is_some(),
+        path: entity.get::<Path>().map(|path| SavedPath {
+            steps: path.steps.clone(),
+            cursor: path.cursor as u32,
+        }),
+        target: entity.get::<Target>().map(|target| SavedTarget {
+            object: target.object.index_u32(),
+            interaction: target.interaction,
+        }),
+        eating: entity.get::<Eating>().map(|eating| SavedEating {
+            object: object_name(eating.object),
+            interaction: eating.interaction,
+            remaining_ticks: eating.remaining_ticks,
+        }),
+        restless: entity.get::<Restless>().is_some(),
+        blocked: entity.get::<Blocked>().is_some(),
+        wander_pause_ticks: entity.get::<Wander>().map(|wander| wander.pause_ticks),
+        selected: entity.get::<Selected>().is_some(),
+        intents: entity.get::<IntentQueue>().map(|queue| {
+            queue
+                .as_slice()
+                .iter()
+                .map(|intent| SavedIntent {
+                    object: intent.object.index_u32(),
+                    interaction: intent.interaction,
+                })
+                .collect()
+        }),
+        needs: entity.get::<Needs>().map(|needs| *needs.as_slice()),
+        habituation: entity.get::<Habituation>().map(|habituation| {
+            habituation
+                .entries()
+                .iter()
+                .map(|(object, interaction, value)| SavedHabituation {
+                    object: object_name(*object),
+                    interaction: *interaction,
+                    value: *value,
+                })
+                .collect()
+        }),
+        sim_id: entity.get::<SimId>().map(|id| id.0),
+        sim_name: entity.get::<SimName>().map(|name| name.0.clone()),
+        personality: entity
+            .get::<Personality>()
+            .map(|personality| SavedPersonality {
+                drain: personality.drain,
+                satisfaction: personality.satisfaction,
+                dispositions: personality
+                    .dispositions()
+                    .iter()
+                    .map(|(object, interaction, value)| SavedHabituation {
+                        object: object_name(*object),
+                        interaction: *interaction,
+                        value: *value,
+                    })
+                    .collect(),
+            }),
+        relationships: entity.get::<Relationships>().map(|relationships| {
+            relationships
+                .entries()
+                .iter()
+                .map(|(id, feeling)| (id.0, *feeling))
+                .collect()
+        }),
+        socialising: entity.get::<Socialising>().map(|social| SavedSocialising {
+            interaction: social.interaction,
+            partner: social.partner.index_u32(),
+            remaining_ticks: social.remaining_ticks,
+        }),
+        satisfaction: entity.get::<Satisfaction>().map(Satisfaction::value),
+        hobbies: entity.get::<Hobbies>().map(|hobbies| hobbies.0.clone()),
+        traits: entity.get::<Traits>().map(|traits| {
+            traits
+                .entries()
+                .iter()
+                .map(|(index, state)| SavedTraitState {
+                    id: pack.traits[*index as usize].id.clone(),
+                    state: *state,
+                })
+                .collect()
+        }),
+        fumbled_delta_scale: entity.get::<Fumbled>().map(|fumble| fumble.delta_scale),
+        career: entity
+            .get::<Career>()
+            .map(|career| pack.careers[career.0 as usize].id.clone()),
+        commuting: entity.get::<Commuting>().is_some(),
+        at_work_ticks: entity.get::<AtWork>().map(|work| work.remaining_ticks),
+        chain: entity.get::<ChainState>().map(|chain| SavedChainState {
+            chain: pack.chains[chain.chain as usize].id.clone(),
+            step: chain.step,
+            fumble_scale: chain.fumble_scale,
+        }),
+        carrying: entity
+            .get::<Carrying>()
+            .map(|item| pack.item_kinds[item.0 as usize].clone()),
+        step_work_ticks: entity.get::<StepWork>().map(|work| work.remaining_ticks),
+    }
+}
+
+fn capture_command(command: &SimCommand) -> SavedCommand {
+    match command {
+        SimCommand::Select(entity) => SavedCommand::Select(*entity),
+        SimCommand::UseObject {
+            agent,
+            object,
+            interaction,
+        } => SavedCommand::UseObject {
+            agent: *agent,
+            object: *object,
+            interaction: *interaction,
+        },
+        SimCommand::CancelIntents { agent } => SavedCommand::CancelIntents { agent: *agent },
+        SimCommand::SetSpeed(speed) => SavedCommand::SetSpeed(*speed),
+        SimCommand::TalkTo {
+            agent,
+            target,
+            interaction,
+        } => SavedCommand::TalkTo {
+            agent: *agent,
+            target: *target,
+            interaction: *interaction,
+        },
+    }
+}
+
+pub(super) fn restore(
+    snapshot: SaveSnapshotV1,
+    content: &'static ContentPack,
+) -> Result<Sim, SaveError> {
+    validate_snapshot(&snapshot, content)?;
+
+    let mut sim = Sim::new();
+    sim.world.insert_resource(Content(content));
+    sim.world.insert_resource(SimClock {
+        tick: snapshot.tick,
+    });
+    sim.world.insert_resource(snapshot.rng);
+    sim.world.insert_resource(Funds(snapshot.funds));
+
+    let mut allocator = SimIdAllocator::default();
+    for _ in 0..snapshot.issued_sim_ids {
+        allocator.issue();
+    }
+    sim.world.insert_resource(allocator);
+
+    let mut grid = TileGrid::new(snapshot.grid_width as usize, snapshot.grid_height as usize);
+    for (index, blocked) in snapshot.blocked_tiles.into_iter().enumerate() {
+        if blocked {
+            grid.set_blocked(
+                index % snapshot.grid_width as usize,
+                index / snapshot.grid_width as usize,
+                true,
+            );
+        }
+    }
+    sim.world.insert_resource(grid);
+
+    let max_index = snapshot.entities.last().map(|entity| entity.index);
+    let mut slots = vec![None; max_index.map_or(0, |index| index as usize + 1)];
+    let mut holes = Vec::new();
+    let mut saved_cursor = 0usize;
+    if let Some(max_index) = max_index {
+        for index in 0..=max_index {
+            let spawned = sim.world.spawn_empty().id();
+            if spawned.index_u32() != index {
+                return Err(SaveError::InvalidEntityOrder);
+            }
+            if snapshot
+                .entities
+                .get(saved_cursor)
+                .is_some_and(|saved| saved.index == index)
+            {
+                slots[index as usize] = Some(spawned);
+                saved_cursor += 1;
+            } else {
+                holes.push(spawned);
+            }
+        }
+    }
+
+    for saved in &snapshot.entities {
+        restore_entity(&mut sim.world, saved, &slots, content)?;
+    }
+
+    for hole in holes {
+        let removed = sim.world.despawn(hole);
+        debug_assert!(removed, "placeholder entity was live before removal");
+    }
+
+    let commands = snapshot
+        .queued_commands
+        .into_iter()
+        .map(restore_command)
+        .collect();
+    sim.world
+        .insert_resource(CommandQueue::from_commands(commands));
+    sim.sync_render_buffer();
+    Ok(sim)
+}
+
+fn restore_entity(
+    world: &mut World,
+    saved: &SavedEntity,
+    slots: &[Option<Entity>],
+    pack: &ContentPack,
+) -> Result<(), SaveError> {
+    let entity = slots[saved.index as usize].ok_or(SaveError::InvalidEntityReference)?;
+    let mut target = world.entity_mut(entity);
+
+    if let Some(position) = saved.position {
+        target.insert(Position {
+            x: position.x,
+            y: position.y,
+        });
+    }
+    if saved.agent {
+        target.insert(Agent);
+    }
+    if let Some(id) = saved.smart_object.as_deref() {
+        target.insert(SmartObject(resolve_object(pack, id)?));
+    }
+    if saved.reserved {
+        target.insert(Reserved);
+    }
+    if let Some(path) = &saved.path {
+        target.insert(Path {
+            steps: path.steps.clone(),
+            cursor: path.cursor as usize,
+        });
+    }
+    if let Some(saved_target) = saved.target {
+        target.insert(Target {
+            object: resolve_entity(slots, saved_target.object)?,
+            interaction: saved_target.interaction,
+        });
+    }
+    if let Some(eating) = &saved.eating {
+        target.insert(Eating {
+            object: resolve_object(pack, &eating.object)?,
+            interaction: eating.interaction,
+            remaining_ticks: eating.remaining_ticks,
+        });
+    }
+    if saved.restless {
+        target.insert(Restless);
+    }
+    if saved.blocked {
+        target.insert(Blocked);
+    }
+    if let Some(pause_ticks) = saved.wander_pause_ticks {
+        target.insert(Wander { pause_ticks });
+    }
+    if saved.selected {
+        target.insert(Selected);
+    }
+    if let Some(intents) = &saved.intents {
+        let restored = intents
+            .iter()
+            .map(|intent| {
+                Ok(Intent {
+                    object: resolve_entity(slots, intent.object)?,
+                    interaction: intent.interaction,
+                })
+            })
+            .collect::<Result<Vec<_>, SaveError>>()?;
+        target.insert(IntentQueue::from_intents(restored));
+    }
+    if let Some(levels) = saved.needs {
+        let mut needs = Needs::all_at(NEED_MAX);
+        for (id, level) in terri_core::NeedId::ALL.into_iter().zip(levels) {
+            needs.set(id, level);
+        }
+        target.insert(needs);
+    }
+    if let Some(entries) = &saved.habituation {
+        let mut habituation = Habituation::default();
+        for entry in entries {
+            habituation.bump(
+                resolve_object(pack, &entry.object)?,
+                entry.interaction,
+                entry.value,
+            );
+        }
+        target.insert(habituation);
+    }
+    if let Some(id) = saved.sim_id {
+        target.insert(SimId(id));
+    }
+    if let Some(name) = &saved.sim_name {
+        target.insert(SimName(name.clone()));
+    }
+    if let Some(personality) = &saved.personality {
+        let dispositions = personality
+            .dispositions
+            .iter()
+            .map(|entry| {
+                Ok((
+                    resolve_object(pack, &entry.object)?,
+                    entry.interaction,
+                    entry.value,
+                ))
+            })
+            .collect::<Result<Vec<_>, SaveError>>()?;
+        target.insert(Personality::with_dispositions(
+            personality.drain,
+            personality.satisfaction,
+            dispositions,
+        ));
+    }
+    if let Some(entries) = &saved.relationships {
+        let mut relationships = Relationships::default();
+        for &(other, feeling) in entries {
+            relationships.bump(SimId(other), feeling);
+        }
+        target.insert(relationships);
+    }
+    if let Some(social) = saved.socialising {
+        target.insert(Socialising {
+            interaction: social.interaction,
+            partner: resolve_entity(slots, social.partner)?,
+            remaining_ticks: social.remaining_ticks,
+        });
+    }
+    if let Some(value) = saved.satisfaction {
+        let mut satisfaction = Satisfaction::default();
+        satisfaction.add(value);
+        target.insert(satisfaction);
+    }
+    if let Some(hobbies) = &saved.hobbies {
+        target.insert(Hobbies(hobbies.clone()));
+    }
+    if let Some(entries) = &saved.traits {
+        let states = entries
+            .iter()
+            .map(|entry| {
+                let index = pack
+                    .traits
+                    .iter()
+                    .position(|trait_def| trait_def.id == entry.id)
+                    .ok_or(SaveError::InvalidContentReference)?;
+                Ok((index as u32, entry.state))
+            })
+            .collect::<Result<Vec<_>, SaveError>>()?;
+        target.insert(Traits::from_entries(states));
+    }
+    if let Some(delta_scale) = saved.fumbled_delta_scale {
+        target.insert(Fumbled { delta_scale });
+    }
+    if let Some(career) = saved.career.as_deref() {
+        let index = pack
+            .careers
+            .iter()
+            .position(|definition| definition.id == career)
+            .ok_or(SaveError::InvalidContentReference)?;
+        target.insert(Career(index as u32));
+    }
+    if saved.commuting {
+        target.insert(Commuting);
+    }
+    if let Some(remaining_ticks) = saved.at_work_ticks {
+        target.insert(AtWork { remaining_ticks });
+    }
+    if let Some(chain) = &saved.chain {
+        let index = pack
+            .chains
+            .iter()
+            .position(|definition| definition.id == chain.chain)
+            .ok_or(SaveError::InvalidContentReference)?;
+        target.insert(ChainState {
+            chain: index as u32,
+            step: chain.step,
+            fumble_scale: chain.fumble_scale,
+        });
+    }
+    if let Some(item) = saved.carrying.as_deref() {
+        let index = pack
+            .item_kinds
+            .iter()
+            .position(|kind| kind == item)
+            .ok_or(SaveError::InvalidContentReference)?;
+        target.insert(Carrying(index as u32));
+    }
+    if let Some(remaining_ticks) = saved.step_work_ticks {
+        target.insert(StepWork { remaining_ticks });
+    }
+
+    // Facing is immutable authored placement data today, so it is derived
+    // from the current pack instead of persisting a drifting atlas index.
+    // This expires when build mode can move or rotate an object: that schema
+    // must carry a stable authored facing name.
+    if let (Some(position), Some(object_name)) = (saved.position, saved.smart_object.as_deref()) {
+        let object = resolve_object(pack, object_name)?;
+        if let Some(placement) = pack
+            .lot
+            .placements
+            .iter()
+            .find(|placement| placement_matches(placement, object, position))
+        {
+            if placement.sprite != pack.object(object).sprite {
+                target.insert(SpriteVariant(placement.sprite));
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn placement_matches(
+    placement: &terri_data::CompiledPlacement,
+    object: ObjectDefId,
+    position: SavedPosition,
+) -> bool {
+    placement.object == object
+        && placement.x.to_bits() == position.x.to_bits()
+        && placement.y.to_bits() == position.y.to_bits()
+}
+
+fn restore_command(command: SavedCommand) -> SimCommand {
+    match command {
+        SavedCommand::Select(entity) => SimCommand::Select(entity),
+        SavedCommand::UseObject {
+            agent,
+            object,
+            interaction,
+        } => SimCommand::UseObject {
+            agent,
+            object,
+            interaction,
+        },
+        SavedCommand::CancelIntents { agent } => SimCommand::CancelIntents { agent },
+        SavedCommand::SetSpeed(speed) => SimCommand::SetSpeed(speed),
+        SavedCommand::TalkTo {
+            agent,
+            target,
+            interaction,
+        } => SimCommand::TalkTo {
+            agent,
+            target,
+            interaction,
+        },
+    }
+}
+
+fn validate_snapshot(snapshot: &SaveSnapshotV1, pack: &ContentPack) -> Result<(), SaveError> {
+    if snapshot.content_fingerprint != terri_data::content_fingerprint(pack) {
+        return Err(SaveError::IncompatibleContent);
+    }
+
+    let width = snapshot.grid_width as usize;
+    let height = snapshot.grid_height as usize;
+    let Some(tile_count) = width.checked_mul(height) else {
+        return Err(SaveError::InvalidGrid);
+    };
+    if width == 0 {
+        return Err(SaveError::InvalidGrid);
+    }
+    if height == 0 {
+        return Err(SaveError::InvalidGrid);
+    }
+    if exceeds_limit(tile_count, MAX_TILES) {
+        return Err(SaveError::InvalidGrid);
+    }
+    if snapshot.blocked_tiles.len() != tile_count {
+        return Err(SaveError::InvalidGrid);
+    }
+
+    if exceeds_limit(snapshot.entities.len(), MAX_ENTITIES) {
+        return Err(SaveError::TooManyEntities);
+    }
+    if exceeds_limit(snapshot.issued_sim_ids as usize, MAX_ENTITIES) {
+        return Err(SaveError::InvalidSimIdAllocator);
+    }
+    let mut previous_index = None;
+    let mut selected_count = 0usize;
+    let mut sim_ids = Vec::new();
+    for entity in &snapshot.entities {
+        if entity.index as usize >= MAX_ENTITIES {
+            return Err(SaveError::InvalidEntityOrder);
+        }
+        if previous_index.is_some_and(|previous| entity.index <= previous) {
+            return Err(SaveError::InvalidEntityOrder);
+        }
+        previous_index = Some(entity.index);
+        selected_count += usize::from(entity.selected);
+        if selected_count > 1 {
+            return Err(SaveError::DuplicateSelection);
+        }
+        if let Some(id) = entity.sim_id {
+            sim_ids.push(id);
+        }
+        validate_entity(entity, &snapshot.entities, pack, tile_count)?;
+    }
+    sim_ids.sort_unstable();
+    if sim_ids.windows(2).any(|ids| ids[0] == ids[1]) {
+        return Err(SaveError::InvalidSimIdAllocator);
+    }
+    if let Some(max_id) = sim_ids.into_iter().max() {
+        if snapshot.issued_sim_ids <= max_id {
+            return Err(SaveError::InvalidSimIdAllocator);
+        }
+    }
+    if exceeds_limit(
+        snapshot.queued_commands.len(),
+        pack.tuning.max_queued_commands as usize,
+    ) {
+        return Err(SaveError::TooManyCommands);
+    }
+    for command in &snapshot.queued_commands {
+        validate_command(command, &snapshot.entities, pack)?;
+    }
+    Ok(())
+}
+
+fn validate_command(
+    command: &SavedCommand,
+    entities: &[SavedEntity],
+    pack: &ContentPack,
+) -> Result<(), SaveError> {
+    match command {
+        SavedCommand::Select(None) | SavedCommand::SetSpeed(_) => Ok(()),
+        SavedCommand::Select(Some(index)) | SavedCommand::CancelIntents { agent: index } => {
+            validate_agent_reference(entities, *index).map(|_| ())
+        }
+        SavedCommand::UseObject {
+            agent,
+            object,
+            interaction,
+        } => {
+            validate_agent_reference(entities, *agent)?;
+            validate_object_entity_interaction(entities, pack, *object, *interaction)
+        }
+        SavedCommand::TalkTo {
+            agent,
+            target,
+            interaction,
+        } => {
+            validate_agent_reference(entities, *agent)?;
+            validate_agent_reference(entities, *target)?;
+            if *interaction as usize >= pack.social.len() {
+                return Err(SaveError::InvalidContentReference);
+            }
+            Ok(())
+        }
+    }
+}
+
+fn validate_entity(
+    entity: &SavedEntity,
+    entities: &[SavedEntity],
+    pack: &ContentPack,
+    tile_count: usize,
+) -> Result<(), SaveError> {
+    if let Some(position) = entity.position {
+        if !position.x.is_finite() {
+            return Err(SaveError::InvalidValue);
+        }
+        if !position.y.is_finite() {
+            return Err(SaveError::InvalidValue);
+        }
+    }
+    if let Some(name) = &entity.sim_name {
+        if exceeds_limit(name.len(), MAX_TEXT_BYTES) {
+            return Err(SaveError::InvalidValue);
+        }
+    }
+    if let Some(path) = &entity.path {
+        if exceeds_limit(path.steps.len(), tile_count) {
+            return Err(SaveError::InvalidValue);
+        }
+        if exceeds_limit(path.cursor as usize, path.steps.len()) {
+            return Err(SaveError::InvalidValue);
+        }
+    }
+    if let Some(levels) = entity.needs {
+        if !levels
+            .iter()
+            .all(|level| level.is_finite() && (NEED_MIN..=NEED_MAX).contains(level))
+        {
+            return Err(SaveError::InvalidValue);
+        }
+    }
+    if let Some(value) = entity.satisfaction {
+        if !value.is_finite() {
+            return Err(SaveError::InvalidValue);
+        }
+        if value < 0.0 {
+            return Err(SaveError::InvalidValue);
+        }
+    }
+    if let Some(value) = entity.fumbled_delta_scale {
+        if !value.is_finite() {
+            return Err(SaveError::InvalidValue);
+        }
+        if !(0.0..=1.0).contains(&value) {
+            return Err(SaveError::InvalidValue);
+        }
+    }
+    if let Some(intents) = &entity.intents {
+        if exceeds_limit(intents.len(), pack.tuning.max_queued_intents as usize) {
+            return Err(SaveError::InvalidValue);
+        }
+        for intent in intents {
+            validate_object_entity_interaction(entities, pack, intent.object, intent.interaction)?;
+        }
+    }
+    if let Some(target) = entity.target {
+        validate_object_entity_interaction(entities, pack, target.object, target.interaction)?;
+    }
+    if let Some(eating) = &entity.eating {
+        validate_object_interaction(pack, &eating.object, eating.interaction)?;
+    }
+    if let Some(entries) = &entity.habituation {
+        validate_habituation(entries, pack, 0.0, 1.0)?;
+    }
+    if let Some(personality) = &entity.personality {
+        for value in personality
+            .drain
+            .iter()
+            .chain(personality.satisfaction.iter())
+        {
+            if !value.is_finite() {
+                return Err(SaveError::InvalidValue);
+            }
+            if *value < 0.0 {
+                return Err(SaveError::InvalidValue);
+            }
+        }
+        validate_habituation(&personality.dispositions, pack, 0.0, f32::MAX)?;
+    }
+    if let Some(entries) = &entity.relationships {
+        if exceeds_limit(entries.len(), MAX_LIST_ENTRIES) {
+            return Err(SaveError::InvalidValue);
+        }
+        for (_, value) in entries {
+            if !value.is_finite() {
+                return Err(SaveError::InvalidValue);
+            }
+            if !(-1.0..=1.0).contains(value) {
+                return Err(SaveError::InvalidValue);
+            }
+        }
+        if !strictly_increasing(entries.iter().map(|(id, _)| *id)) {
+            return Err(SaveError::InvalidValue);
+        }
+    }
+    if let Some(social) = entity.socialising {
+        validate_agent_reference(entities, entity.index)?;
+        validate_agent_reference(entities, social.partner)?;
+        if social.interaction as usize >= pack.social.len() {
+            return Err(SaveError::InvalidContentReference);
+        }
+    }
+    if let Some(hobbies) = &entity.hobbies {
+        if exceeds_limit(hobbies.len(), MAX_LIST_ENTRIES) {
+            return Err(SaveError::InvalidValue);
+        }
+        if hobbies
+            .iter()
+            .any(|hobby| exceeds_limit(hobby.len(), MAX_TEXT_BYTES))
+        {
+            return Err(SaveError::InvalidValue);
+        }
+    }
+    if let Some(entries) = &entity.traits {
+        if exceeds_limit(entries.len(), MAX_LIST_ENTRIES) {
+            return Err(SaveError::InvalidValue);
+        }
+        for entry in entries {
+            if !entry.state.is_finite() {
+                return Err(SaveError::InvalidValue);
+            }
+            if !(0.0..=1.0).contains(&entry.state) {
+                return Err(SaveError::InvalidValue);
+            }
+        }
+        let mut previous = None;
+        for entry in entries {
+            let index = pack
+                .traits
+                .iter()
+                .position(|definition| definition.id == entry.id)
+                .ok_or(SaveError::InvalidContentReference)?;
+            if previous.is_some_and(|previous| index <= previous) {
+                return Err(SaveError::InvalidValue);
+            }
+            previous = Some(index);
+        }
+    }
+    if let Some(id) = entity.smart_object.as_deref() {
+        resolve_object(pack, id)?;
+    }
+    if let Some(id) = entity.career.as_deref() {
+        if !pack.careers.iter().any(|career| career.id == id) {
+            return Err(SaveError::InvalidContentReference);
+        }
+    }
+    if let Some(chain) = &entity.chain {
+        let definition = pack
+            .chains
+            .iter()
+            .find(|definition| definition.id == chain.chain)
+            .ok_or(SaveError::InvalidContentReference)?;
+        if chain.step as usize >= definition.steps.len() {
+            return Err(SaveError::InvalidValue);
+        }
+        if !chain.fumble_scale.is_finite() {
+            return Err(SaveError::InvalidValue);
+        }
+        if !(0.0..=1.0).contains(&chain.fumble_scale) {
+            return Err(SaveError::InvalidValue);
+        }
+    }
+    if let Some(item) = entity.carrying.as_deref() {
+        if !pack.item_kinds.iter().any(|kind| kind == item) {
+            return Err(SaveError::InvalidContentReference);
+        }
+    }
+    Ok(())
+}
+
+fn validate_habituation(
+    entries: &[SavedHabituation],
+    pack: &ContentPack,
+    minimum: f32,
+    maximum: f32,
+) -> Result<(), SaveError> {
+    if exceeds_limit(entries.len(), MAX_LIST_ENTRIES) {
+        return Err(SaveError::InvalidValue);
+    }
+    let mut previous_key = None;
+    for entry in entries {
+        validate_object_interaction(pack, &entry.object, entry.interaction)?;
+        if !entry.value.is_finite() {
+            return Err(SaveError::InvalidValue);
+        }
+        if !(minimum..=maximum).contains(&entry.value) {
+            return Err(SaveError::InvalidValue);
+        }
+        let key = (resolve_object(pack, &entry.object)?.0, entry.interaction);
+        if previous_key.is_some_and(|previous| key <= previous) {
+            return Err(SaveError::InvalidValue);
+        }
+        previous_key = Some(key);
+    }
+    Ok(())
+}
+
+fn validate_object_entity_interaction(
+    entities: &[SavedEntity],
+    pack: &ContentPack,
+    index: u32,
+    interaction: u32,
+) -> Result<(), SaveError> {
+    let entity = validate_entity_reference(entities, index)?;
+    let object = entity
+        .smart_object
+        .as_deref()
+        .ok_or(SaveError::InvalidEntityReference)?;
+    validate_object_interaction(pack, object, interaction)
+}
+
+fn validate_entity_reference(
+    entities: &[SavedEntity],
+    index: u32,
+) -> Result<&SavedEntity, SaveError> {
+    entities
+        .binary_search_by_key(&index, |entity| entity.index)
+        .ok()
+        .map(|position| &entities[position])
+        .ok_or(SaveError::InvalidEntityReference)
+}
+
+fn validate_agent_reference(
+    entities: &[SavedEntity],
+    index: u32,
+) -> Result<&SavedEntity, SaveError> {
+    let entity = validate_entity_reference(entities, index)?;
+    if !entity.agent {
+        return Err(SaveError::InvalidEntityReference);
+    }
+    if entity.sim_id.is_none() {
+        return Err(SaveError::InvalidEntityReference);
+    }
+    Ok(entity)
+}
+
+fn validate_object_interaction(
+    pack: &ContentPack,
+    id: &str,
+    interaction: u32,
+) -> Result<(), SaveError> {
+    let object = resolve_object(pack, id)?;
+    if interaction as usize >= pack.object(object).interactions.len() {
+        return Err(SaveError::InvalidContentReference);
+    }
+    Ok(())
+}
+
+fn resolve_object(pack: &ContentPack, id: &str) -> Result<ObjectDefId, SaveError> {
+    pack.find(id).ok_or(SaveError::InvalidContentReference)
+}
+
+fn resolve_entity(slots: &[Option<Entity>], index: u32) -> Result<Entity, SaveError> {
+    slots
+        .get(index as usize)
+        .copied()
+        .flatten()
+        .ok_or(SaveError::InvalidEntityReference)
+}
+
+fn strictly_increasing(values: impl IntoIterator<Item = u32>) -> bool {
+    let mut previous = None;
+    for value in values {
+        if previous.is_some_and(|previous| value <= previous) {
+            return false;
+        }
+        previous = Some(value);
+    }
+    true
+}
+
+fn exceeds_limit(value: usize, inclusive_maximum: usize) -> bool {
+    value > inclusive_maximum
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn blank_entity(index: u32) -> SavedEntity {
+        SavedEntity {
+            index,
+            position: None,
+            agent: false,
+            smart_object: None,
+            reserved: false,
+            path: None,
+            target: None,
+            eating: None,
+            restless: false,
+            blocked: false,
+            wander_pause_ticks: None,
+            selected: false,
+            intents: None,
+            needs: None,
+            habituation: None,
+            sim_id: None,
+            sim_name: None,
+            personality: None,
+            relationships: None,
+            socialising: None,
+            satisfaction: None,
+            hobbies: None,
+            traits: None,
+            fumbled_delta_scale: None,
+            career: None,
+            commuting: false,
+            at_work_ticks: None,
+            chain: None,
+            carrying: None,
+            step_work_ticks: None,
+        }
+    }
+
+    fn rich_snapshot() -> SaveSnapshotV1 {
+        let sim = Sim::new_from_shipped_lot();
+        let pack = sim.world().resource::<Content>().0;
+        let mut snapshot = sim.save_snapshot();
+
+        let object = snapshot
+            .entities
+            .iter()
+            .find(|entity| {
+                entity.smart_object.as_deref().is_some_and(|id| {
+                    pack.find(id)
+                        .is_some_and(|def| !pack.object(def).interactions.is_empty())
+                })
+            })
+            .expect("shipped lot has an interactive object")
+            .clone();
+        let agents: Vec<u32> = snapshot
+            .entities
+            .iter()
+            .filter(|entity| entity.agent)
+            .map(|entity| entity.index)
+            .collect();
+        assert!(agents.len() >= 2, "shipped household has at least two sims");
+
+        for entity in &mut snapshot.entities {
+            entity.selected = false;
+        }
+        let agent = snapshot
+            .entities
+            .iter_mut()
+            .find(|entity| entity.index == agents[0])
+            .expect("first agent remains live");
+        let object_name = object
+            .smart_object
+            .clone()
+            .expect("chosen object has a definition");
+        agent.path = Some(SavedPath {
+            steps: vec![(2, 3), (3, 3)],
+            cursor: 1,
+        });
+        agent.target = Some(SavedTarget {
+            object: object.index,
+            interaction: 0,
+        });
+        agent.eating = Some(SavedEating {
+            object: object_name.clone(),
+            interaction: 0,
+            remaining_ticks: 17,
+        });
+        agent.restless = true;
+        agent.blocked = true;
+        agent.wander_pause_ticks = Some(8);
+        agent.selected = true;
+        agent.intents = Some(vec![SavedIntent {
+            object: object.index,
+            interaction: 0,
+        }]);
+        agent.habituation = Some(vec![SavedHabituation {
+            object: object_name,
+            interaction: 0,
+            value: 0.375,
+        }]);
+        agent.relationships = Some(vec![(1_000, -0.25), (2_000, 0.75)]);
+        agent.socialising = Some(SavedSocialising {
+            interaction: 0,
+            partner: agents[1],
+            remaining_ticks: 11,
+        });
+        agent.satisfaction = Some(123.5);
+        agent.fumbled_delta_scale = Some(0.5);
+        agent.commuting = true;
+        agent.at_work_ticks = Some(19);
+        agent.step_work_ticks = Some(23);
+        if let Some(chain) = pack.chains.first() {
+            agent.chain = Some(SavedChainState {
+                chain: chain.id.clone(),
+                step: 0,
+                fumble_scale: 0.625,
+            });
+        }
+        if let Some(item) = pack.item_kinds.first() {
+            agent.carrying = Some(item.clone());
+        }
+
+        snapshot.queued_commands = vec![
+            SavedCommand::Select(Some(agents[0])),
+            SavedCommand::UseObject {
+                agent: agents[0],
+                object: object.index,
+                interaction: 0,
+            },
+            SavedCommand::TalkTo {
+                agent: agents[0],
+                target: agents[1],
+                interaction: 0,
+            },
+        ];
+        snapshot
+    }
+
+    fn rich_agent_mut(snapshot: &mut SaveSnapshotV1) -> &mut SavedEntity {
+        snapshot
+            .entities
+            .iter_mut()
+            .find(|entity| entity.target.is_some())
+            .expect("rich fixture has the exercised agent")
+    }
+
+    fn assert_validation(snapshot: &SaveSnapshotV1, expected: Result<(), SaveError>, label: &str) {
+        assert_eq!(
+            validate_snapshot(snapshot, terri_data::pack()),
+            expected,
+            "{label}"
+        );
+    }
+
+    fn assert_invalid_entity(
+        label: &str,
+        mutate: impl FnOnce(&mut SavedEntity),
+        expected: SaveError,
+    ) {
+        let mut snapshot = rich_snapshot();
+        mutate(rich_agent_mut(&mut snapshot));
+        assert_validation(&snapshot, Err(expected), label);
+    }
+
+    #[test]
+    fn a_rich_snapshot_restores_every_saved_field_exactly() {
+        let snapshot = rich_snapshot();
+        let mut restored = Sim::new_from_shipped_lot();
+        restored
+            .load_snapshot(snapshot.clone())
+            .expect("valid rich snapshot restores");
+        assert_eq!(restored.save_snapshot(), snapshot);
+    }
+
+    #[test]
+    fn a_running_sim_continues_identically_across_the_save_seam() {
+        let mut uninterrupted = Sim::new_from_shipped_lot();
+        for _ in 0..173 {
+            uninterrupted.tick();
+        }
+
+        let state = uninterrupted.save_snapshot();
+        let mut resumed = Sim::new_from_shipped_lot();
+        resumed
+            .load_snapshot(state.clone())
+            .expect("own snapshot restores");
+        assert_eq!(resumed.save_snapshot(), state);
+
+        for tick_after_load in 1..=300 {
+            uninterrupted.tick();
+            resumed.tick();
+            assert_eq!(
+                resumed.world_hash(),
+                uninterrupted.world_hash(),
+                "world diverged {tick_after_load} ticks after load"
+            );
+        }
+        assert_eq!(
+            resumed.save_snapshot(),
+            uninterrupted.save_snapshot(),
+            "unhashed RNG, queues, and transient action state diverged"
+        );
+    }
+
+    #[test]
+    fn live_entity_indices_on_both_sides_of_a_hole_are_preserved() {
+        let mut source = Sim::new_from_shipped_lot();
+        let trailing = source.world_mut().spawn_empty().id();
+        let hole_index = source.save_snapshot().entities[2].index;
+        let hole = source
+            .world()
+            .entities()
+            .resolve_from_index(EntityIndex::from_raw_u32(hole_index).expect("ordinary index"));
+        assert!(source.world_mut().despawn(hole));
+
+        let snapshot = source.save_snapshot();
+        assert!(
+            snapshot
+                .entities
+                .iter()
+                .any(|entity| entity.index == trailing.index_u32()),
+            "fixture needs a live entity after the hole"
+        );
+        assert!(
+            snapshot
+                .entities
+                .iter()
+                .all(|entity| entity.index != hole_index),
+            "fixture needs a real hole"
+        );
+
+        let mut restored = Sim::new_from_shipped_lot();
+        restored
+            .load_snapshot(snapshot.clone())
+            .expect("a sparse live-entity index space restores");
+        assert_eq!(restored.save_snapshot(), snapshot);
+    }
+
+    #[test]
+    fn authored_facing_is_restored_only_for_an_exact_placement_match() {
+        let pack = terri_data::pack();
+        let placement = pack
+            .lot
+            .placements
+            .iter()
+            .find(|placement| placement.sprite != pack.object(placement.object).sprite)
+            .expect("shipped lot has a faced object");
+        let position = SavedPosition {
+            x: placement.x,
+            y: placement.y,
+        };
+
+        assert!(placement_matches(placement, placement.object, position));
+        let other_object = pack
+            .objects
+            .iter()
+            .enumerate()
+            .map(|(index, _)| ObjectDefId(index as u32))
+            .find(|object| *object != placement.object)
+            .expect("shipped pack has another object");
+        assert!(!placement_matches(placement, other_object, position));
+        assert!(!placement_matches(
+            placement,
+            placement.object,
+            SavedPosition {
+                x: position.x + 0.25,
+                y: position.y,
+            }
+        ));
+        assert!(!placement_matches(
+            placement,
+            placement.object,
+            SavedPosition {
+                x: position.x,
+                y: position.y + 0.25,
+            }
+        ));
+
+        let snapshot = Sim::new_from_shipped_lot().save_snapshot();
+        let saved = snapshot
+            .entities
+            .iter()
+            .find(|entity| {
+                entity.position == Some(position)
+                    && entity
+                        .smart_object
+                        .as_deref()
+                        .is_some_and(|id| pack.find(id) == Some(placement.object))
+            })
+            .expect("faced placement exists in the snapshot");
+        let index = saved.index;
+        let mut restored = Sim::new_from_shipped_lot();
+        restored
+            .load_snapshot(snapshot)
+            .expect("shipped snapshot restores");
+        let entity = restored
+            .world()
+            .entities()
+            .resolve_from_index(EntityIndex::from_raw_u32(index).expect("ordinary saved index"));
+        assert_eq!(
+            restored.world().get::<SpriteVariant>(entity).copied(),
+            Some(SpriteVariant(placement.sprite)),
+            "the authored facing sprite must survive the save seam"
+        );
+    }
+
+    #[test]
+    fn top_level_size_and_order_boundaries_are_enforced_independently() {
+        assert!(!exceeds_limit(MAX_LIST_ENTRIES, MAX_LIST_ENTRIES));
+        assert!(exceeds_limit(MAX_LIST_ENTRIES + 1, MAX_LIST_ENTRIES));
+
+        let mut empty = rich_snapshot();
+        empty.entities.clear();
+        empty.issued_sim_ids = 0;
+        empty.queued_commands.clear();
+        assert_validation(&empty, Ok(()), "empty world is valid");
+
+        let mut zero_width = empty.clone();
+        zero_width.grid_width = 0;
+        zero_width.blocked_tiles.clear();
+        assert_validation(&zero_width, Err(SaveError::InvalidGrid), "zero width");
+
+        let mut zero_height = empty.clone();
+        zero_height.grid_height = 0;
+        zero_height.blocked_tiles.clear();
+        assert_validation(&zero_height, Err(SaveError::InvalidGrid), "zero height");
+
+        let mut maximum_grid = empty.clone();
+        maximum_grid.grid_width = 1_024;
+        maximum_grid.grid_height = 1_024;
+        maximum_grid.blocked_tiles = vec![false; MAX_TILES];
+        assert_validation(&maximum_grid, Ok(()), "maximum grid is inclusive");
+
+        maximum_grid.grid_height += 1;
+        maximum_grid.blocked_tiles =
+            vec![false; maximum_grid.grid_width as usize * maximum_grid.grid_height as usize];
+        assert_validation(
+            &maximum_grid,
+            Err(SaveError::InvalidGrid),
+            "one tile row above the cap",
+        );
+
+        let mut allocator = empty.clone();
+        allocator.issued_sim_ids = MAX_ENTITIES as u32;
+        assert_validation(&allocator, Ok(()), "allocator cap is inclusive");
+        allocator.issued_sim_ids += 1;
+        assert_validation(
+            &allocator,
+            Err(SaveError::InvalidSimIdAllocator),
+            "allocator above cap",
+        );
+
+        let mut valid_last_index = empty.clone();
+        valid_last_index.entities = vec![blank_entity((MAX_ENTITIES - 1) as u32)];
+        assert_validation(
+            &valid_last_index,
+            Ok(()),
+            "last representable entity index is valid",
+        );
+        valid_last_index.entities[0].index = MAX_ENTITIES as u32;
+        assert_validation(
+            &valid_last_index,
+            Err(SaveError::InvalidEntityOrder),
+            "entity index at the cap is invalid",
+        );
+
+        let mut duplicate = empty.clone();
+        duplicate.entities = vec![blank_entity(7), blank_entity(7)];
+        assert_validation(
+            &duplicate,
+            Err(SaveError::InvalidEntityOrder),
+            "duplicate entity index",
+        );
+        duplicate.entities[1].index = 6;
+        assert_validation(
+            &duplicate,
+            Err(SaveError::InvalidEntityOrder),
+            "descending entity index",
+        );
+
+        let command = SavedCommand::Select(None);
+        let mut commands = empty;
+        commands.queued_commands =
+            vec![command.clone(); terri_data::pack().tuning.max_queued_commands as usize];
+        assert_validation(&commands, Ok(()), "command cap is inclusive");
+        commands.queued_commands.push(command);
+        assert_validation(
+            &commands,
+            Err(SaveError::TooManyCommands),
+            "command count above cap",
+        );
+    }
+
+    #[test]
+    fn scalar_and_path_boundaries_reject_each_malformed_field() {
+        assert_invalid_entity(
+            "non-finite x",
+            |entity| entity.position.as_mut().expect("position").x = f32::NAN,
+            SaveError::InvalidValue,
+        );
+        assert_invalid_entity(
+            "non-finite y",
+            |entity| entity.position.as_mut().expect("position").y = f32::INFINITY,
+            SaveError::InvalidValue,
+        );
+
+        let mut maximum_name = rich_snapshot();
+        rich_agent_mut(&mut maximum_name).sim_name = Some("n".repeat(MAX_TEXT_BYTES));
+        assert_validation(&maximum_name, Ok(()), "name cap is inclusive");
+        rich_agent_mut(&mut maximum_name).sim_name = Some("n".repeat(MAX_TEXT_BYTES + 1));
+        assert_validation(
+            &maximum_name,
+            Err(SaveError::InvalidValue),
+            "name above cap",
+        );
+
+        let mut path = rich_snapshot();
+        let tile_count = path.blocked_tiles.len();
+        rich_agent_mut(&mut path).path = Some(SavedPath {
+            steps: vec![(0, 0); tile_count],
+            cursor: tile_count as u32,
+        });
+        assert_validation(&path, Ok(()), "path and cursor caps are inclusive");
+        rich_agent_mut(&mut path)
+            .path
+            .as_mut()
+            .expect("path")
+            .steps
+            .push((0, 0));
+        assert_validation(
+            &path,
+            Err(SaveError::InvalidValue),
+            "path above grid tile count",
+        );
+
+        let mut cursor = rich_snapshot();
+        let path = rich_agent_mut(&mut cursor).path.as_mut().expect("path");
+        path.cursor = path.steps.len() as u32 + 1;
+        assert_validation(
+            &cursor,
+            Err(SaveError::InvalidValue),
+            "cursor beyond path end",
+        );
+
+        let mut need_limits = rich_snapshot();
+        rich_agent_mut(&mut need_limits).needs = Some([NEED_MIN; terri_core::NEED_COUNT]);
+        assert_validation(&need_limits, Ok(()), "need minimum is inclusive");
+        rich_agent_mut(&mut need_limits).needs = Some([NEED_MAX; terri_core::NEED_COUNT]);
+        assert_validation(&need_limits, Ok(()), "need maximum is inclusive");
+        assert_invalid_entity(
+            "need below minimum",
+            |entity| entity.needs.as_mut().expect("needs")[0] = NEED_MIN - 0.25,
+            SaveError::InvalidValue,
+        );
+        assert_invalid_entity(
+            "need above maximum",
+            |entity| entity.needs.as_mut().expect("needs")[0] = NEED_MAX + 0.25,
+            SaveError::InvalidValue,
+        );
+        assert_invalid_entity(
+            "non-finite need",
+            |entity| entity.needs.as_mut().expect("needs")[0] = f32::NAN,
+            SaveError::InvalidValue,
+        );
+
+        let mut satisfaction_zero = rich_snapshot();
+        rich_agent_mut(&mut satisfaction_zero).satisfaction = Some(0.0);
+        assert_validation(&satisfaction_zero, Ok(()), "zero satisfaction is valid");
+        assert_invalid_entity(
+            "negative satisfaction",
+            |entity| entity.satisfaction = Some(-f32::EPSILON),
+            SaveError::InvalidValue,
+        );
+        assert_invalid_entity(
+            "non-finite satisfaction",
+            |entity| entity.satisfaction = Some(f32::INFINITY),
+            SaveError::InvalidValue,
+        );
+
+        for (label, value, expected) in [
+            ("fumble minimum", 0.0, Ok(())),
+            ("fumble maximum", 1.0, Ok(())),
+            (
+                "fumble below minimum",
+                -f32::EPSILON,
+                Err(SaveError::InvalidValue),
+            ),
+            (
+                "fumble above maximum",
+                1.0 + f32::EPSILON,
+                Err(SaveError::InvalidValue),
+            ),
+            ("non-finite fumble", f32::NAN, Err(SaveError::InvalidValue)),
+        ] {
+            let mut snapshot = rich_snapshot();
+            rich_agent_mut(&mut snapshot).fumbled_delta_scale = Some(value);
+            assert_validation(&snapshot, expected, label);
+        }
+
+        let mut valid_personality_zero = rich_snapshot();
+        let personality = rich_agent_mut(&mut valid_personality_zero)
+            .personality
+            .as_mut()
+            .expect("personality");
+        personality.drain.fill(0.0);
+        personality.satisfaction.fill(0.0);
+        assert_validation(
+            &valid_personality_zero,
+            Ok(()),
+            "zero personality weights are valid",
+        );
+        assert_invalid_entity(
+            "negative personality drain",
+            |entity| entity.personality.as_mut().expect("personality").drain[0] = -f32::EPSILON,
+            SaveError::InvalidValue,
+        );
+        assert_invalid_entity(
+            "non-finite personality satisfaction",
+            |entity| {
+                entity
+                    .personality
+                    .as_mut()
+                    .expect("personality")
+                    .satisfaction[0] = f32::NAN
+            },
+            SaveError::InvalidValue,
+        );
+    }
+
+    #[test]
+    fn collection_caps_ranges_and_ordering_are_enforced() {
+        let pack = terri_data::pack();
+        let mut intents = rich_snapshot();
+        let target = rich_agent_mut(&mut intents).target.expect("target");
+        rich_agent_mut(&mut intents).intents = Some(vec![
+            SavedIntent {
+                object: target.object,
+                interaction: target.interaction,
+            };
+            pack.tuning.max_queued_intents as usize
+        ]);
+        assert_validation(&intents, Ok(()), "intent cap is inclusive");
+        rich_agent_mut(&mut intents)
+            .intents
+            .as_mut()
+            .expect("intents")
+            .push(SavedIntent {
+                object: target.object,
+                interaction: target.interaction,
+            });
+        assert_validation(
+            &intents,
+            Err(SaveError::InvalidValue),
+            "intent count above cap",
+        );
+
+        let mut relationships = rich_snapshot();
+        rich_agent_mut(&mut relationships).relationships =
+            Some((0..MAX_LIST_ENTRIES as u32).map(|id| (id, 0.0)).collect());
+        assert_validation(&relationships, Ok(()), "relationship cap is inclusive");
+        rich_agent_mut(&mut relationships)
+            .relationships
+            .as_mut()
+            .expect("relationships")
+            .push((MAX_LIST_ENTRIES as u32, 0.0));
+        assert_validation(
+            &relationships,
+            Err(SaveError::InvalidValue),
+            "relationship count above cap",
+        );
+        assert_invalid_entity(
+            "non-finite relationship",
+            |entity| entity.relationships = Some(vec![(1, f32::NAN)]),
+            SaveError::InvalidValue,
+        );
+        assert_invalid_entity(
+            "relationship below minimum",
+            |entity| entity.relationships = Some(vec![(1, -1.0 - f32::EPSILON)]),
+            SaveError::InvalidValue,
+        );
+        assert_invalid_entity(
+            "relationship above maximum",
+            |entity| entity.relationships = Some(vec![(1, 1.0 + f32::EPSILON)]),
+            SaveError::InvalidValue,
+        );
+        assert_invalid_entity(
+            "duplicate relationship id",
+            |entity| entity.relationships = Some(vec![(1, 0.0), (1, 0.5)]),
+            SaveError::InvalidValue,
+        );
+        assert_invalid_entity(
+            "descending relationship id",
+            |entity| entity.relationships = Some(vec![(2, 0.0), (1, 0.5)]),
+            SaveError::InvalidValue,
+        );
+
+        let mut hobbies = rich_snapshot();
+        rich_agent_mut(&mut hobbies).hobbies = Some(vec![String::new(); MAX_LIST_ENTRIES]);
+        assert_validation(&hobbies, Ok(()), "hobby cap is inclusive");
+        rich_agent_mut(&mut hobbies)
+            .hobbies
+            .as_mut()
+            .expect("hobbies")
+            .push(String::new());
+        assert_validation(
+            &hobbies,
+            Err(SaveError::InvalidValue),
+            "hobby count above cap",
+        );
+
+        let mut hobby_name = rich_snapshot();
+        rich_agent_mut(&mut hobby_name).hobbies = Some(vec!["h".repeat(MAX_TEXT_BYTES)]);
+        assert_validation(&hobby_name, Ok(()), "hobby text cap is inclusive");
+        rich_agent_mut(&mut hobby_name).hobbies = Some(vec!["h".repeat(MAX_TEXT_BYTES + 1)]);
+        assert_validation(
+            &hobby_name,
+            Err(SaveError::InvalidValue),
+            "hobby text above cap",
+        );
+    }
+
+    #[test]
+    fn entity_and_content_references_are_validated_before_reconstruction() {
+        let pack = terri_data::pack();
+        let baseline = rich_snapshot();
+        let exercised = baseline
+            .entities
+            .iter()
+            .find(|entity| entity.target.is_some())
+            .expect("exercised agent");
+        let target = exercised.target.expect("target");
+        let partner = exercised.socialising.expect("socialising").partner;
+
+        assert_invalid_entity(
+            "target missing entity",
+            |entity| entity.target.as_mut().expect("target").object = u32::MAX - 1,
+            SaveError::InvalidEntityReference,
+        );
+        assert_invalid_entity(
+            "target points at a non-object entity",
+            |entity| entity.target.as_mut().expect("target").object = partner,
+            SaveError::InvalidEntityReference,
+        );
+
+        let target_object = baseline
+            .entities
+            .iter()
+            .find(|entity| entity.index == target.object)
+            .and_then(|entity| entity.smart_object.as_deref())
+            .and_then(|id| pack.find(id))
+            .expect("target object definition");
+        let invalid_interaction = pack.object(target_object).interactions.len() as u32;
+        assert_invalid_entity(
+            "target interaction outside its object",
+            |entity| entity.target.as_mut().expect("target").interaction = invalid_interaction,
+            SaveError::InvalidContentReference,
+        );
+        assert_invalid_entity(
+            "intent interaction outside its object",
+            |entity| entity.intents.as_mut().expect("intents")[0].interaction = invalid_interaction,
+            SaveError::InvalidContentReference,
+        );
+        assert_invalid_entity(
+            "eating names an unknown object",
+            |entity| entity.eating.as_mut().expect("eating").object = "missing-object".into(),
+            SaveError::InvalidContentReference,
+        );
+        assert_invalid_entity(
+            "eating interaction outside its object",
+            |entity| entity.eating.as_mut().expect("eating").interaction = invalid_interaction,
+            SaveError::InvalidContentReference,
+        );
+        assert_invalid_entity(
+            "smart object id is unknown",
+            |entity| entity.smart_object = Some("missing-object".into()),
+            SaveError::InvalidContentReference,
+        );
+        assert_invalid_entity(
+            "career id is unknown",
+            |entity| entity.career = Some("missing-career".into()),
+            SaveError::InvalidContentReference,
+        );
+        assert_invalid_entity(
+            "chain id is unknown",
+            |entity| entity.chain.as_mut().expect("chain").chain = "missing-chain".into(),
+            SaveError::InvalidContentReference,
+        );
+        assert_invalid_entity(
+            "carried item kind is unknown",
+            |entity| entity.carrying = Some("missing-item".into()),
+            SaveError::InvalidContentReference,
+        );
+
+        for (label, mutate) in [
+            ("social owner must be an agent", 0u8),
+            ("social owner needs a stable id", 1),
+            ("social partner must be an agent", 2),
+            ("social partner needs a stable id", 3),
+        ] {
+            let mut snapshot = rich_snapshot();
+            let partner = rich_agent_mut(&mut snapshot)
+                .socialising
+                .expect("socialising")
+                .partner;
+            match mutate {
+                0 => rich_agent_mut(&mut snapshot).agent = false,
+                1 => rich_agent_mut(&mut snapshot).sim_id = None,
+                2 => {
+                    snapshot
+                        .entities
+                        .iter_mut()
+                        .find(|entity| entity.index == partner)
+                        .expect("partner")
+                        .agent = false;
+                }
+                3 => {
+                    snapshot
+                        .entities
+                        .iter_mut()
+                        .find(|entity| entity.index == partner)
+                        .expect("partner")
+                        .sim_id = None;
+                }
+                _ => unreachable!(),
+            }
+            assert_validation(&snapshot, Err(SaveError::InvalidEntityReference), label);
+        }
+
+        assert_invalid_entity(
+            "social interaction outside vocabulary",
+            |entity| {
+                entity
+                    .socialising
+                    .as_mut()
+                    .expect("socialising")
+                    .interaction = pack.social.len() as u32
+            },
+            SaveError::InvalidContentReference,
+        );
+    }
+
+    #[test]
+    fn queued_commands_validate_every_reference_and_content_index() {
+        let pack = terri_data::pack();
+        let baseline = rich_snapshot();
+        let exercised = baseline
+            .entities
+            .iter()
+            .find(|entity| entity.target.is_some())
+            .expect("exercised agent");
+        let agent = exercised.index;
+        let object = exercised.target.expect("target").object;
+        let partner = exercised.socialising.expect("socialising").partner;
+        let object_id = baseline
+            .entities
+            .iter()
+            .find(|entity| entity.index == object)
+            .and_then(|entity| entity.smart_object.as_deref())
+            .and_then(|id| pack.find(id))
+            .expect("target object");
+        let invalid_object_interaction = pack.object(object_id).interactions.len() as u32;
+
+        let valid = vec![
+            SavedCommand::Select(None),
+            SavedCommand::Select(Some(agent)),
+            SavedCommand::UseObject {
+                agent,
+                object,
+                interaction: 0,
+            },
+            SavedCommand::CancelIntents { agent },
+            SavedCommand::SetSpeed(u8::MAX),
+            SavedCommand::TalkTo {
+                agent,
+                target: partner,
+                interaction: 0,
+            },
+        ];
+        for command in valid {
+            let mut snapshot = baseline.clone();
+            snapshot.queued_commands = vec![command];
+            assert_validation(&snapshot, Ok(()), "valid queued command");
+        }
+
+        let invalid = vec![
+            (
+                SavedCommand::Select(Some(object)),
+                SaveError::InvalidEntityReference,
+                "Select must name an agent",
+            ),
+            (
+                SavedCommand::CancelIntents { agent: object },
+                SaveError::InvalidEntityReference,
+                "CancelIntents must name an agent",
+            ),
+            (
+                SavedCommand::UseObject {
+                    agent: object,
+                    object,
+                    interaction: 0,
+                },
+                SaveError::InvalidEntityReference,
+                "UseObject agent must be an agent",
+            ),
+            (
+                SavedCommand::UseObject {
+                    agent,
+                    object: partner,
+                    interaction: 0,
+                },
+                SaveError::InvalidEntityReference,
+                "UseObject target must be an object",
+            ),
+            (
+                SavedCommand::UseObject {
+                    agent,
+                    object,
+                    interaction: invalid_object_interaction,
+                },
+                SaveError::InvalidContentReference,
+                "UseObject interaction must belong to its object",
+            ),
+            (
+                SavedCommand::TalkTo {
+                    agent: object,
+                    target: partner,
+                    interaction: 0,
+                },
+                SaveError::InvalidEntityReference,
+                "TalkTo owner must be an agent",
+            ),
+            (
+                SavedCommand::TalkTo {
+                    agent,
+                    target: object,
+                    interaction: 0,
+                },
+                SaveError::InvalidEntityReference,
+                "TalkTo target must be an agent",
+            ),
+            (
+                SavedCommand::TalkTo {
+                    agent,
+                    target: partner,
+                    interaction: pack.social.len() as u32,
+                },
+                SaveError::InvalidContentReference,
+                "TalkTo interaction must belong to social vocabulary",
+            ),
+        ];
+        for (command, expected, label) in invalid {
+            let mut snapshot = baseline.clone();
+            snapshot.queued_commands = vec![command];
+            assert_validation(&snapshot, Err(expected), label);
+        }
+    }
+
+    #[test]
+    fn habituation_and_disposition_entries_require_valid_sorted_content_rows() {
+        let pack = terri_data::pack();
+        let rows: Vec<SavedHabituation> = pack
+            .objects
+            .iter()
+            .enumerate()
+            .flat_map(|(object_index, object)| {
+                object
+                    .interactions
+                    .iter()
+                    .enumerate()
+                    .map(move |(interaction, _)| SavedHabituation {
+                        object: pack.objects[object_index].id.clone(),
+                        interaction: interaction as u32,
+                        value: 0.5,
+                    })
+            })
+            .take(2)
+            .collect();
+        assert_eq!(rows.len(), 2, "fixture needs two authored interactions");
+
+        let mut ordered = rich_snapshot();
+        rich_agent_mut(&mut ordered).habituation = Some(rows.clone());
+        assert_validation(&ordered, Ok(()), "ordered habituation rows");
+
+        let mut duplicate = rich_snapshot();
+        rich_agent_mut(&mut duplicate).habituation = Some(vec![rows[0].clone(), rows[0].clone()]);
+        assert_validation(
+            &duplicate,
+            Err(SaveError::InvalidValue),
+            "duplicate habituation key",
+        );
+
+        let mut descending = rich_snapshot();
+        rich_agent_mut(&mut descending).habituation = Some(vec![rows[1].clone(), rows[0].clone()]);
+        assert_validation(
+            &descending,
+            Err(SaveError::InvalidValue),
+            "descending habituation key",
+        );
+
+        for (label, value) in [
+            ("negative habituation", -f32::EPSILON),
+            ("habituation above one", 1.0 + f32::EPSILON),
+            ("non-finite habituation", f32::NAN),
+        ] {
+            assert_invalid_entity(
+                label,
+                |entity| entity.habituation.as_mut().expect("habituation")[0].value = value,
+                SaveError::InvalidValue,
+            );
+        }
+        assert_invalid_entity(
+            "habituation object is unknown",
+            |entity| {
+                entity.habituation.as_mut().expect("habituation")[0].object =
+                    "missing-object".into()
+            },
+            SaveError::InvalidContentReference,
+        );
+
+        let too_many = vec![rows[0].clone(); MAX_LIST_ENTRIES + 1];
+        assert_invalid_entity(
+            "habituation count above cap",
+            |entity| entity.habituation = Some(too_many),
+            SaveError::InvalidValue,
+        );
+
+        let mut disposition_ordered = rich_snapshot();
+        rich_agent_mut(&mut disposition_ordered)
+            .personality
+            .as_mut()
+            .expect("personality")
+            .dispositions = rows.clone();
+        assert_validation(
+            &disposition_ordered,
+            Ok(()),
+            "ordered non-negative dispositions",
+        );
+        assert_invalid_entity(
+            "negative disposition",
+            |entity| {
+                entity
+                    .personality
+                    .as_mut()
+                    .expect("personality")
+                    .dispositions[0]
+                    .value = -f32::EPSILON
+            },
+            SaveError::InvalidValue,
+        );
+        assert_invalid_entity(
+            "non-finite disposition",
+            |entity| {
+                entity
+                    .personality
+                    .as_mut()
+                    .expect("personality")
+                    .dispositions[0]
+                    .value = f32::INFINITY
+            },
+            SaveError::InvalidValue,
+        );
+        let too_many = vec![rows[0].clone(); MAX_LIST_ENTRIES + 1];
+        assert_invalid_entity(
+            "disposition count above cap",
+            |entity| {
+                entity
+                    .personality
+                    .as_mut()
+                    .expect("personality")
+                    .dispositions = too_many
+            },
+            SaveError::InvalidValue,
+        );
+    }
+
+    #[test]
+    fn trait_and_chain_state_enforce_content_order_and_numeric_ranges() {
+        let pack = terri_data::pack();
+        assert!(pack.traits.len() >= 2, "fixture needs two traits");
+        let first = SavedTraitState {
+            id: pack.traits[0].id.clone(),
+            state: 0.0,
+        };
+        let second = SavedTraitState {
+            id: pack.traits[1].id.clone(),
+            state: 1.0,
+        };
+
+        let mut traits = rich_snapshot();
+        rich_agent_mut(&mut traits).traits = Some(vec![first.clone(), second.clone()]);
+        assert_validation(
+            &traits,
+            Ok(()),
+            "trait order and range boundaries are valid",
+        );
+        rich_agent_mut(&mut traits).traits = Some(vec![second.clone(), first.clone()]);
+        assert_validation(
+            &traits,
+            Err(SaveError::InvalidValue),
+            "trait definitions in descending order",
+        );
+        rich_agent_mut(&mut traits).traits = Some(vec![first.clone(), first.clone()]);
+        assert_validation(
+            &traits,
+            Err(SaveError::InvalidValue),
+            "duplicate trait definition",
+        );
+        assert_invalid_entity(
+            "unknown trait definition",
+            |entity| {
+                entity.traits = Some(vec![SavedTraitState {
+                    id: "missing-trait".into(),
+                    state: 0.5,
+                }])
+            },
+            SaveError::InvalidContentReference,
+        );
+        let too_many = vec![first.clone(); MAX_LIST_ENTRIES + 1];
+        assert_invalid_entity(
+            "trait count above cap",
+            |entity| entity.traits = Some(too_many),
+            SaveError::InvalidValue,
+        );
+        for (label, state) in [
+            ("trait below zero", -f32::EPSILON),
+            ("trait above one", 1.0 + f32::EPSILON),
+            ("non-finite trait", f32::NAN),
+        ] {
+            assert_invalid_entity(
+                label,
+                |entity| {
+                    entity.traits = Some(vec![SavedTraitState {
+                        id: pack.traits[0].id.clone(),
+                        state,
+                    }])
+                },
+                SaveError::InvalidValue,
+            );
+        }
+
+        let chain = pack.chains.first().expect("shipped dinner chain");
+        assert!(!chain.steps.is_empty(), "chain has steps");
+        let mut chain_boundary = rich_snapshot();
+        rich_agent_mut(&mut chain_boundary).chain = Some(SavedChainState {
+            chain: chain.id.clone(),
+            step: chain.steps.len() as u32 - 1,
+            fumble_scale: 0.0,
+        });
+        assert_validation(
+            &chain_boundary,
+            Ok(()),
+            "last chain step and zero fumble are valid",
+        );
+        rich_agent_mut(&mut chain_boundary)
+            .chain
+            .as_mut()
+            .expect("chain")
+            .step = chain.steps.len() as u32;
+        assert_validation(
+            &chain_boundary,
+            Err(SaveError::InvalidValue),
+            "chain step at length is invalid",
+        );
+
+        for (label, scale, expected) in [
+            ("chain fumble maximum", 1.0, Ok(())),
+            (
+                "chain fumble below zero",
+                -f32::EPSILON,
+                Err(SaveError::InvalidValue),
+            ),
+            (
+                "chain fumble above one",
+                1.0 + f32::EPSILON,
+                Err(SaveError::InvalidValue),
+            ),
+            (
+                "non-finite chain fumble",
+                f32::NAN,
+                Err(SaveError::InvalidValue),
+            ),
+        ] {
+            let mut snapshot = rich_snapshot();
+            rich_agent_mut(&mut snapshot).chain = Some(SavedChainState {
+                chain: chain.id.clone(),
+                step: 0,
+                fumble_scale: scale,
+            });
+            assert_validation(&snapshot, expected, label);
+        }
+    }
+
+    #[test]
+    fn invalid_snapshots_are_rejected_without_touching_the_running_sim() {
+        let mut cases: Vec<(SaveSnapshotV1, SaveError)> = Vec::new();
+        let baseline = rich_snapshot();
+
+        let mut wrong_content = baseline.clone();
+        wrong_content.content_fingerprint ^= 1;
+        cases.push((wrong_content, SaveError::IncompatibleContent));
+
+        let mut bad_grid = baseline.clone();
+        bad_grid.blocked_tiles.pop();
+        cases.push((bad_grid, SaveError::InvalidGrid));
+
+        let mut duplicate_selection = baseline.clone();
+        duplicate_selection
+            .entities
+            .iter_mut()
+            .find(|entity| entity.agent && !entity.selected)
+            .expect("another agent exists")
+            .selected = true;
+        cases.push((duplicate_selection, SaveError::DuplicateSelection));
+
+        let mut bad_allocator = baseline.clone();
+        bad_allocator.issued_sim_ids = baseline
+            .entities
+            .iter()
+            .filter_map(|entity| entity.sim_id)
+            .max()
+            .expect("household has ids");
+        cases.push((bad_allocator, SaveError::InvalidSimIdAllocator));
+
+        let mut absurd_allocator = baseline.clone();
+        absurd_allocator.issued_sim_ids = u32::MAX;
+        cases.push((absurd_allocator, SaveError::InvalidSimIdAllocator));
+
+        let mut bad_reference = baseline.clone();
+        bad_reference
+            .entities
+            .iter_mut()
+            .find(|entity| entity.target.is_some())
+            .expect("rich fixture has a target")
+            .target
+            .as_mut()
+            .expect("target remains present")
+            .object = u32::MAX - 1;
+        cases.push((bad_reference, SaveError::InvalidEntityReference));
+
+        for (invalid, expected) in cases {
+            let mut live = Sim::new_from_shipped_lot();
+            for _ in 0..31 {
+                live.tick();
+            }
+            let before = live.save_snapshot();
+            assert_eq!(live.load_snapshot(invalid), Err(expected));
+            assert_eq!(
+                live.save_snapshot(),
+                before,
+                "failed load mutated the running simulation"
+            );
+        }
+    }
+}

@@ -265,6 +265,36 @@ describe('SimBridge', () => {
     expect([...bridge.positions()]).not.toEqual(before);
   });
 
+  it('saves, restores and continues through the release wasm bridge', () => {
+    const original = new SimBridge(SimHandle.from_lot(), wasmMemory);
+    for (let tick = 0; tick < 173; tick++) original.tick();
+    const before = original.worldHash();
+    const bytes = original.saveBytes();
+
+    const resumed = new SimBridge(SimHandle.from_lot(), wasmMemory);
+    expect(resumed.loadBytes(bytes)).toBe(true);
+    expect(resumed.clockTick()).toBe(173);
+    expect(resumed.dayTicks()).toBe(1440);
+    expect(resumed.worldHash()).toBe(before);
+
+    for (let tick = 0; tick < 300; tick++) {
+      original.tick();
+      resumed.tick();
+      expect(resumed.worldHash()).toBe(original.worldHash());
+    }
+  });
+
+  it('rejects corrupt save bytes without changing the live bridge', () => {
+    const live = new SimBridge(SimHandle.from_lot(), wasmMemory);
+    for (let tick = 0; tick < 31; tick++) live.tick();
+    const before = live.saveBytes();
+    const corrupt = before.slice();
+    corrupt[0] ^= 1;
+
+    expect(live.loadBytes(corrupt)).toBe(false);
+    expect(live.saveBytes()).toEqual(before);
+  });
+
   it('runs the shipped day through the boundary: Terri leaves, hides, returns paid', () => {
     // The E4 loop against REAL content through the release wasm, which
     // is the artifact the page runs ([L12]): the shipped day is 1440

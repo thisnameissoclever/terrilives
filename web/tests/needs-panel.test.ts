@@ -13,9 +13,20 @@ import {
 // comment - that every read goes back to the source, and that the throttle
 // is a rate rather than a latch.
 
-/** A bar whose width is readable, standing in for an `HTMLElement`. */
-function bar(): BarFill {
-  return { style: { width: '' } };
+interface TestBar extends BarFill {
+  readonly attributes: Record<string, string>;
+}
+
+/** A bar whose width and accessibility values are readable. */
+function bar(): TestBar {
+  const attributes: Record<string, string> = {};
+  return {
+    style: { width: '' },
+    attributes,
+    setAttribute(name, value) {
+      attributes[name] = value;
+    },
+  };
 }
 
 function bars(n: number): BarFill[] {
@@ -211,6 +222,36 @@ describe('NeedsPanel', () => {
       '50%',
       '40%',
     ]);
+  });
+
+  it('publishes current values and a non-colour warning to assistive technology', () => {
+    const fills = bars(2) as TestBar[];
+    const panel = new NeedsPanel({ hidden: false }, caption(), fills, 0, 100);
+    panel.update(0, new CountingSource(1, new Float32Array([12, 55])));
+
+    expect(fills[0].attributes).toMatchObject({
+      'aria-valuemin': '0',
+      'aria-valuemax': '100',
+      'aria-valuenow': '12',
+      'aria-valuetext': '12% full, critical',
+    });
+    expect(fills[1].attributes['aria-valuetext']).toBe('55% full, steady');
+  });
+
+  it('shows a compact selection prompt when display targets are supplied', () => {
+    const root = { hidden: true };
+    const empty = { hidden: true };
+    const content = { hidden: false };
+    const panel = new NeedsPanel(root, caption(), bars(1), 0, 100, empty, content);
+
+    panel.update(0, new CountingSource(null, SEVEN));
+    expect(root.hidden).toBe(false);
+    expect(empty.hidden).toBe(false);
+    expect(content.hidden).toBe(true);
+
+    panel.update(1, new CountingSource(4, SEVEN));
+    expect(empty.hidden).toBe(true);
+    expect(content.hidden).toBe(false);
   });
 
   it('empties a bar the simulation reported no level for', () => {

@@ -26,6 +26,8 @@
         --hud-text: #d8d8e0;
         --need-track: #2c2c36;
         --need-fill: #6fb2d2;
+        --hud-muted: #9aa3ad;
+        --hud-danger: #e58c85;
       }
       body {
         margin: 0;
@@ -55,12 +57,15 @@
          a side-by-side layout would fight it for the same space. */
       #hud {
         position: absolute;
-        top: 12px;
-        left: 12px;
+        top: max(12px, env(safe-area-inset-top));
+        left: max(12px, env(safe-area-inset-left));
         display: flex;
         flex-direction: column;
         gap: 8px;
         pointer-events: none;
+        width: min(220px, calc(100vw - 24px));
+        max-height: calc(100vh - max(24px, env(safe-area-inset-top)));
+        overflow-y: auto;
       }
       #hud > * {
         pointer-events: auto;
@@ -69,11 +74,7 @@
         border-radius: 6px;
         padding: 8px 10px;
       }
-      #needs-panel {
-        display: grid;
-        gap: 4px;
-        min-width: 190px;
-      }
+      #needs-panel { display: block; }
       #needs-panel[hidden] {
         display: none;
       }
@@ -82,8 +83,43 @@
         font-size: 13px;
         font-weight: 600;
         letter-spacing: 0.02em;
+        cursor: pointer;
       }
       .needs-caption:empty {
+        display: none;
+      }
+      #needs-content {
+        display: grid;
+        gap: 4px;
+        margin-top: 6px;
+      }
+      #needs-content[hidden] { display: none; }
+      #needs-empty {
+        margin: 6px 0 0;
+        color: var(--hud-muted);
+      }
+      .need-state { color: var(--hud-danger); }
+      .summary-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .summary-label {
+        color: var(--hud-muted);
+      }
+      .summary-value {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      #selected-summary {
+        display: grid;
+        gap: 2px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid var(--hud-edge);
+        margin-bottom: 2px;
+      }
+      #selected-summary [hidden] {
         display: none;
       }
       .need-row {
@@ -120,7 +156,13 @@
         pointer-events: none;
       }
       #time-controls label {
-        padding: 3px 9px;
+        display: inline-flex;
+        min-width: 44px;
+        min-height: 44px;
+        box-sizing: border-box;
+        align-items: center;
+        justify-content: center;
+        padding: 7px 9px;
         border-radius: 4px;
         cursor: pointer;
         user-select: none;
@@ -131,6 +173,116 @@
       }
       #time-controls input:focus-visible + label {
         outline: 2px solid var(--need-fill);
+        outline-offset: 2px;
+      }
+      #game-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+      }
+      .hud-button {
+        min-height: 44px;
+        border: 1px solid var(--hud-edge);
+        border-radius: 4px;
+        background: #202028;
+        color: var(--hud-text);
+        font: inherit;
+        cursor: pointer;
+      }
+      .hud-button:hover,
+      .hud-button:focus-visible,
+      .hud-button[aria-pressed='true'] {
+        border-color: var(--need-fill);
+        outline: 2px solid transparent;
+        background: #29313a;
+      }
+      .hud-button:disabled {
+        cursor: not-allowed;
+        opacity: 0.45;
+      }
+      #save-status,
+      #keyboard-target {
+        grid-column: 1 / -1;
+        min-height: 1.4em;
+        margin: 0;
+        color: var(--hud-muted);
+        font-size: 12px;
+      }
+      #save-status[data-kind='error'] {
+        color: var(--hud-danger);
+      }
+      #help-panel {
+        position: fixed;
+        right: max(12px, env(safe-area-inset-right));
+        bottom: max(12px, env(safe-area-inset-bottom));
+        width: min(340px, calc(100vw - 24px));
+        max-height: min(560px, calc(100vh - 24px));
+        box-sizing: border-box;
+        overflow-y: auto;
+        padding: 16px;
+        border: 1px solid var(--hud-edge);
+        border-radius: 8px;
+        background: rgba(22, 22, 28, 0.97);
+        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+        z-index: 20;
+      }
+      #help-panel[hidden] {
+        display: none;
+      }
+      #help-panel h2 {
+        margin: 0 0 8px;
+        font-size: 16px;
+      }
+      #help-panel ol {
+        margin: 0 0 14px;
+        padding-left: 22px;
+      }
+      #help-panel li + li {
+        margin-top: 7px;
+      }
+      #help-panel .hud-button {
+        width: 100%;
+      }
+      #new-game-dialog,
+      #load-game-dialog {
+        max-width: min(360px, calc(100vw - 32px));
+        border: 1px solid var(--hud-edge);
+        border-radius: 8px;
+        background: var(--hud-bg);
+        color: var(--hud-text);
+        padding: 18px;
+      }
+      #new-game-dialog::backdrop,
+      #load-game-dialog::backdrop {
+        background: rgba(0, 0, 0, 0.72);
+      }
+      #new-game-dialog h2,
+      #load-game-dialog h2 {
+        margin-top: 0;
+      }
+      #new-game-dialog menu,
+      #load-game-dialog menu {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin: 16px 0 0;
+        padding: 0;
+      }
+      @media (max-width: 600px) {
+        #hud {
+          width: min(212px, calc(100vw - 24px));
+        }
+        #hud > * {
+          padding: 7px 9px;
+        }
+        .need-row {
+          grid-template-columns: 58px 1fr;
+        }
+        #help-panel {
+          right: max(12px, env(safe-area-inset-right));
+          left: max(12px, env(safe-area-inset-left));
+          width: auto;
+        }
       }
       /* The right-click flyout. `fixed` rather than `absolute`, because
          the menu is positioned from a MouseEvent's clientX/clientY and
@@ -163,7 +315,8 @@
         color: inherit;
         font: inherit;
         text-align: left;
-        padding: 5px 10px;
+        min-height: 44px;
+        padding: 7px 10px;
         cursor: pointer;
         white-space: nowrap;
       }
@@ -206,24 +359,119 @@
     </style>
   </head>
   <body>
-    <canvas id="stage" width="1280" height="720" aria-label="Simulation view">
-      This game renders to a canvas and needs WebGPU, which this browser does
-      not appear to support.
-    </canvas>
+    <canvas
+      id="stage"
+      width="1280"
+      height="720"
+      tabindex="0"
+      aria-label="Isometric household. Use Help for controls and accessible status."
+    ></canvas>
     <div id="hud">
       <!-- Both are filled from the simulation at load: the bars from the
            need names it reports, the buttons from the speeds [D-8] names.
            Empty here on purpose, so neither is a second copy of a list
            that lives somewhere else. `hidden` because nothing is selected
            until the player clicks. -->
-      <section id="needs-panel" aria-label="Needs of the selected sim" hidden>
+      <section id="household-summary" aria-label="Household status">
+        <div class="summary-row">
+          <span class="summary-label">Time</span>
+          <strong id="clock-value" class="summary-value">Day 1, 00:00</strong>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Funds</span>
+          <strong id="funds-value" class="summary-value">0</strong>
+        </div>
+      </section>
+      <details id="needs-panel" aria-label="Needs of the selected sim" open>
         <!-- Whose bars these are. Filled by NeedsPanel from the
              simulation; empty for a sim with no name, and the CSS hides
              an empty caption so the panel does not carry a blank line. -->
-        <h2 id="needs-caption" class="needs-caption"></h2>
-      </section>
+        <summary id="needs-caption" class="needs-caption">Select a person</summary>
+        <p id="needs-empty">Select a person to see what they need.</p>
+        <div id="needs-content" hidden>
+          <div id="selected-summary">
+          <div class="summary-row">
+            <span class="summary-label">Life satisfaction</span>
+            <strong id="satisfaction-value" class="summary-value">0.0</strong>
+          </div>
+          <div id="career-row" class="summary-row" hidden>
+            <span class="summary-label">Career</span>
+            <span id="career-value" class="summary-value"></span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Doing</span>
+            <span id="activity-value" class="summary-value">Nothing selected</span>
+          </div>
+          <div id="orders-row" class="summary-row" hidden>
+            <span class="summary-label">Orders waiting</span>
+            <span id="orders-value" class="summary-value">0</span>
+          </div>
+        </div>
+        </div>
+      </details>
       <section id="time-controls" aria-label="Simulation speed"></section>
+      <section id="game-actions" aria-label="Game actions">
+        <button id="save-game" class="hud-button" type="button">Save</button>
+        <button id="load-game" class="hud-button" type="button">Load</button>
+        <button id="stop-orders" class="hud-button" type="button">Clear orders</button>
+        <button
+          id="queue-mode"
+          class="hud-button"
+          type="button"
+          aria-pressed="false"
+        >Queue</button>
+        <button id="new-game" class="hud-button" type="button">New game</button>
+        <button
+          id="show-help"
+          class="hud-button"
+          type="button"
+          aria-controls="help-panel"
+          aria-expanded="false"
+        >Help</button>
+        <p id="save-status" role="status" aria-live="polite">Starting</p>
+        <p id="keyboard-target" role="status" aria-live="polite" hidden></p>
+      </section>
     </div>
+    <section
+      id="help-panel"
+      role="dialog"
+      aria-modal="false"
+      aria-labelledby="help-title"
+      hidden
+    >
+      <h2 id="help-title">How to play</h2>
+      <ol>
+        <li>Select a person to see their needs and life satisfaction.</li>
+        <li>Tap or click an object to give the selected person its default action.</li>
+        <li>Long-press or right-click for more actions, including talking to another person.</li>
+        <li>Drag to move the camera. Pinch or use the mouse wheel to zoom.</li>
+        <li>Turn on Queue, or hold Ctrl or Cmd, to add actions instead of replacing them.</li>
+        <li>Use Clear orders to remove the selected person's waiting actions.</li>
+        <li>With the game view focused, use arrow keys to choose a target, Space to select a person, and Enter for actions.</li>
+        <li>Open the selected person's name to show or hide the needs panel.</li>
+      </ol>
+      <button id="close-help" class="hud-button" type="button">Got it</button>
+    </section>
+    <dialog id="new-game-dialog" aria-labelledby="new-game-title">
+      <h2 id="new-game-title">Start a new game?</h2>
+      <p>This replaces the saved household and cannot be undone.</p>
+      <form method="dialog">
+        <menu>
+          <button class="hud-button" value="cancel">Keep playing</button>
+          <button id="confirm-new-game" class="hud-button" value="confirm">Start over</button>
+        </menu>
+      </form>
+    </dialog>
+    <dialog id="load-game-dialog" aria-labelledby="load-game-title">
+      <h2 id="load-game-title">Load the saved game?</h2>
+      <p>Progress since the last save will be replaced.</p>
+      <form method="dialog">
+        <menu>
+          <button class="hud-button" value="cancel">Keep playing</button>
+          <button id="confirm-load-game" class="hud-button" value="confirm">Load game</button>
+        </menu>
+      </form>
+    </dialog>
     <!-- The developer stats overlay - [A-11]. Present in the markup but
          inert unless the page is loaded with ?debug=1, which is also the
          only time main.ts wires the backtick toggle. Hidden by default

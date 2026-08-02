@@ -1408,3 +1408,13 @@ it first: the durable fix is comparing baselines with line numbers
 normalised out (file plus mutation description), at the cost of
 masking a NEW identical mutation in the same function - a trade this
 file has so far declined to make silently.
+
+### M2g persistence targeted sweeps (132 mutants, zero missed)
+
+The tracked Rust diff produced 37 mutants: 34 caught, three unviable,
+zero missed, and zero timed out. The new save modules initially exposed
+74 missed mutants, mostly malformed-save validation branches that ordinary
+round-trip tests could never distinguish. Focused boundary, reference,
+collection, queued-command, and transactional rejection tests closed those
+gaps. The final new-file sweep produced 95 mutants: 82 caught, 13 unviable,
+zero missed, and zero timed out. No new baseline entries were needed.
