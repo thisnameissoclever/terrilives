@@ -1,7 +1,7 @@
 # Player-visible string inventory
 
-Status: the functional inventory is current through the normal-play People
-panel slice. The dark-comedy voice
+Status: the functional inventory is current through the normal-play moods and
+moodlets slice. The dark-comedy voice
 column is intentionally unfilled until the owner authors or approves it, per
 [L58]. This file is the handoff for playable-alpha criterion 11, not permission
 to invent the game's voice unattended.
@@ -19,6 +19,9 @@ itself on having personality.
 | Household roster | Household; one authored sim name per selection button | `web/index.html`, `web/src/ui/household-roster.ts` |
 | Selected person | Life satisfaction; Career; Doing; Orders waiting; Select a person; Nothing selected | `web/index.html`, `web/src/ui/game-hud.ts` |
 | Need warnings | critical; low; steady; {value}% full | `web/src/ui/needs-panel.ts` |
+| Mood | Mood; Select a person to see their mood.; Mood unavailable; No active moodlets.; Overall mood; Miserable; Low; Okay; Good; Great; {label}: {signed score} | `web/index.html`, `web/src/ui/mood-panel.ts` |
+| Need moodlets | Hungry; Starving; Tired; Exhausted; Needs a wash; Very dirty; Needs the toilet; Desperate for the toilet; Lonely; Very lonely; Bored; Very bored; Uncomfortable; Very uncomfortable; Needs met | `crates/terri-sim/src/mood.rs` |
+| Trait and environment moodlets | authored condition-trait label; Comforted by {name}; Uneasy around {name} | `content/traits.toml`, `crates/terri-sim/src/mood.rs` |
 | People | People; How {name} feels; Select a person to see how they feel about the household.; There is nobody else in the household.; Hostile; Dislikes; Wary; Stranger; Warm; Friendly; Close | `web/index.html`, `web/src/ui/people-panel.ts` |
 | Speed | Pause; 1x; 2x; 3x | `web/src/ui/time-controls.ts` |
 | Game actions | Save; Load; Clear orders; Queue; New game; Help | `web/index.html` |

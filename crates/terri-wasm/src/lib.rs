@@ -631,6 +631,34 @@ impl SimHandle {
         self.sim.relationships_of(entity_index).unwrap_or_default()
     }
 
+    /// Overall mood score followed by each active moodlet score, or empty
+    /// when the raw index does not name a live sim. This is a copy because
+    /// mood is a small derived UI read, not frame-path bulk data.
+    pub fn mood_snapshot_of(&self, entity_index: u32) -> Vec<f32> {
+        self.sim
+            .mood_of(entity_index)
+            .map(|snapshot| {
+                std::iter::once(snapshot.overall_score)
+                    .chain(snapshot.moodlets.into_iter().map(|moodlet| moodlet.score))
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    /// Overall mood label followed by each active moodlet label, aligned
+    /// with [`SimHandle::mood_snapshot_of`]. Empty has the same absent,
+    /// stale or non-sim meaning as the numeric projection.
+    pub fn mood_summary_of(&self, entity_index: u32) -> Vec<String> {
+        self.sim
+            .mood_of(entity_index)
+            .map(|snapshot| {
+                std::iter::once(snapshot.overall_label.to_string())
+                    .chain(snapshot.moodlets.into_iter().map(|moodlet| moodlet.label))
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
     /// What the right-click flyout should list for the object carrying
     /// `entity_index`: one label per interaction, in the order
     /// `content/objects.toml` declares them, or an EMPTY array when that
@@ -771,7 +799,7 @@ mod boundary_tests {
     //! out of the world it was spawned into.
 
     use super::*;
-    use terri_core::{SimClock, NEED_COUNT};
+    use terri_core::{Relationships, SimClock, SimId, SimName, Traits, NEED_COUNT};
 
     /// Hunger levels as the ECS actually stored them.
     fn stored_hungers(handle: &SimHandle) -> Vec<f32> {
@@ -2324,6 +2352,132 @@ mod boundary_tests {
         assert_eq!(labels[which], "Low spirits");
         assert_eq!(kinds[which], "condition");
         assert_eq!(worn[1], 0.6, "the authored start severity rides as state");
+    }
+
+    #[test]
+    fn mood_boundary_keeps_scores_and_labels_aligned_in_causal_order() {
+        let mut handle = SimHandle::new(12, 12);
+        let condition_index = handle
+            .sim
+            .trait_kinds()
+            .iter()
+            .position(|kind| *kind == "condition")
+            .expect("the shipped pack carries a condition") as u32;
+        let mut needs = Needs::all_at(50.0);
+        needs.set(NeedId::Hunger, 20.0);
+        needs.set(NeedId::Energy, 40.0);
+        let subject = handle
+            .sim
+            .world_mut()
+            .spawn((
+                Agent,
+                SimId(50),
+                SimName("Subject".to_string()),
+                Position { x: 1.0, y: 1.0 },
+                needs,
+                Traits::from_entries(vec![(condition_index, 0.6)]),
+                Relationships::default(),
+            ))
+            .id();
+        // Spawn id 5 before id 2 so query order and required SimId order
+        // disagree. The boundary must preserve the simulation's ordering.
+        handle.sim.world_mut().spawn((
+            Agent,
+            SimId(5),
+            SimName("Alice".to_string()),
+            Position { x: 1.0, y: 1.0 },
+            Needs::all_at(50.0),
+        ));
+        handle.sim.world_mut().spawn((
+            Agent,
+            SimId(2),
+            SimName("Bob".to_string()),
+            Position { x: 3.0, y: 1.0 },
+            Needs::all_at(50.0),
+        ));
+        {
+            let mut relationships = handle
+                .sim
+                .world_mut()
+                .get_mut::<Relationships>(subject)
+                .expect("subject carries directional feelings");
+            relationships.bump(SimId(5), 0.5);
+            relationships.bump(SimId(2), -0.8);
+        }
+
+        let scores = handle.mood_snapshot_of(subject.index_u32());
+        let labels = handle.mood_summary_of(subject.index_u32());
+        assert_eq!(
+            labels,
+            vec![
+                "Miserable",
+                "Starving",
+                "Tired",
+                "Low spirits",
+                "Uneasy around Bob",
+                "Comforted by Alice",
+            ]
+        );
+        assert_eq!(scores.len(), labels.len(), "the boundary columns align");
+        let expected = [-53.5, -25.0, -12.0, -18.0, -6.0, 7.5];
+        for (index, (actual, expected)) in scores.iter().zip(expected).enumerate() {
+            assert!(
+                (*actual - expected).abs() < 1e-5,
+                "score slot {index} read {actual}, expected {expected}"
+            );
+        }
+    }
+
+    #[test]
+    fn mood_boundary_preserves_exact_need_thresholds_and_empty_absence() {
+        let mut handle = SimHandle::new(8, 8);
+        let subject = handle
+            .sim
+            .world_mut()
+            .spawn((Agent, Position { x: 1.0, y: 1.0 }, Needs::all_at(50.0)))
+            .id();
+        let non_sim = handle
+            .sim
+            .world_mut()
+            .spawn((Position { x: 2.0, y: 2.0 }, Needs::all_at(50.0)))
+            .id();
+        let stale = handle
+            .sim
+            .world_mut()
+            .spawn((Agent, Position { x: 3.0, y: 3.0 }, Needs::all_at(50.0)))
+            .id();
+        let stale_index = stale.index_u32();
+        assert!(handle.sim.world_mut().despawn(stale));
+
+        for (level, label, score) in [
+            (20.0, "Starving", -25.0),
+            (20.001, "Hungry", -12.0),
+            (40.0, "Hungry", -12.0),
+        ] {
+            let mut needs = Needs::all_at(50.0);
+            needs.set(NeedId::Hunger, level);
+            handle.sim.world_mut().entity_mut(subject).insert(needs);
+            assert_eq!(
+                handle.mood_summary_of(subject.index_u32()),
+                vec![if score <= -15.0 { "Low" } else { "Okay" }, label,]
+            );
+            assert_eq!(
+                handle.mood_snapshot_of(subject.index_u32()),
+                vec![score, score]
+            );
+        }
+
+        let mut above = Needs::all_at(50.0);
+        above.set(NeedId::Hunger, 40.001);
+        handle.sim.world_mut().entity_mut(subject).insert(above);
+        assert_eq!(handle.mood_summary_of(subject.index_u32()), vec!["Okay"]);
+        assert_eq!(handle.mood_snapshot_of(subject.index_u32()), vec![0.0]);
+        assert!(handle.mood_summary_of(non_sim.index_u32()).is_empty());
+        assert!(handle.mood_snapshot_of(non_sim.index_u32()).is_empty());
+        assert!(handle.mood_summary_of(stale_index).is_empty());
+        assert!(handle.mood_snapshot_of(stale_index).is_empty());
+        assert!(handle.mood_summary_of(u32::MAX).is_empty());
+        assert!(handle.mood_snapshot_of(u32::MAX).is_empty());
     }
 
     #[test]

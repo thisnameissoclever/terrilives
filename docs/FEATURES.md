@@ -30,6 +30,9 @@ restore-safe accessible roster.
 The shipped M2d relationship scalar is now visible in normal play too: a
 responsive People panel merges the complete live household with the selected
 person's sparse directional feelings, keyed by stable `SimId` across Load.
+The M1 mood slice is implemented too: the selected-person HUD derives an
+overall mood and ordered moodlets from needs, content-defined conditions, and
+nearby directional relationships without adding cached or persisted state.
 The owner's dark-comedy voice session remains open by design; see
 docs/player-visible-strings.md. The alpha's eleven acceptance criteria live
 in docs/alpha-goals.md.
@@ -214,7 +217,12 @@ this milestone and is done; what follows is M1b onwards.
 - ~~**Needs:** hunger, energy, hygiene, bladder, social, fun, comfort~~ - done
   in M1a. All seven exist and decay at content-declared rates. Only decay: the
   *behaviour* each need drives beyond scoring an advert is still M1b
-- **Moods and moodlets** derived from needs, traits, and environment
+- ~~**Moods and moodlets** derived from needs, traits, and environment~~ -
+  done as a pure Rust projection. Need thresholds, generic condition-trait
+  severity, and nearby directional feelings produce deterministic signed
+  moodlets and a bounded overall label in the normal selected-person HUD.
+  Save V1 is unchanged; Load force-refreshes the projection before another
+  tick.
 - **Traits:** ~15 to start, affecting utility scoring ([D6])
 - **Smart object library:** ~40 objects across the core need categories
 - **Build mode:** walls, floors, doors, windows, roofs

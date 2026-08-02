@@ -24,6 +24,7 @@ import { buildStaticInstances } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
 import { DebugPanel } from './ui/debug-panel.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
+import { MoodPanel, createMoodPanelSurface } from './ui/mood-panel.js';
 import {
   describeStartupFailure,
   renderStartupFailure,
@@ -302,10 +303,28 @@ async function main(): Promise<void> {
   const needsRoot = document.querySelector<HTMLElement>('#needs-panel');
   const needsEmpty = document.querySelector<HTMLElement>('#needs-empty');
   const needsContent = document.querySelector<HTMLElement>('#needs-content');
+  const moodEmpty = document.querySelector<HTMLElement>('#mood-empty');
+  const moodContent = document.querySelector<HTMLElement>('#mood-content');
+  const moodLabel = document.querySelector<HTMLElement>('#mood-label');
+  const moodMeter = document.querySelector<HTMLElement>('#mood-meter');
+  const moodMarker = document.querySelector<HTMLElement>('#mood-marker');
+  const moodletList = document.querySelector<HTMLElement>('#moodlet-list');
   const speedRoot = document.querySelector<HTMLElement>('#time-controls');
   const menuRoot = document.querySelector<HTMLElement>('#object-menu');
-  if (!needsRoot || !needsEmpty || !needsContent || !speedRoot || !menuRoot) {
-    throw new Error('missing needs, time-control or object-menu markup');
+  if (
+    !needsRoot ||
+    !needsEmpty ||
+    !needsContent ||
+    !moodEmpty ||
+    !moodContent ||
+    !moodLabel ||
+    !moodMeter ||
+    !moodMarker ||
+    !moodletList ||
+    !speedRoot ||
+    !menuRoot
+  ) {
+    throw new Error('missing needs, mood, time-control or object-menu markup');
   }
   // The caption is queried like the roots above and thrown on when
   // absent, for the same [L17] reason: a panel silently missing its
@@ -322,6 +341,19 @@ async function main(): Promise<void> {
     sim.needMax(),
     needsEmpty,
     needsContent,
+  );
+  const moodPanel = new MoodPanel(
+    sim,
+    createMoodPanelSurface(
+      document,
+      moodEmpty,
+      moodContent,
+      moodLabel,
+      moodMeter,
+      moodMarker,
+      moodletList,
+    ),
+    sim.needBarRefreshMs(),
   );
   if (needsRoot instanceof HTMLDetailsElement && window.innerWidth <= 600) {
     needsRoot.open = false;
@@ -392,8 +424,10 @@ async function main(): Promise<void> {
       saveStatus.setAttribute('data-kind', 'error');
     },
   );
-  householdRoster.update(performance.now(), true);
-  peoplePanel.update(performance.now(), true);
+  const initialHudMs = performance.now();
+  householdRoster.update(initialHudMs, true);
+  peoplePanel.update(initialHudMs, true);
+  moodPanel.update(initialHudMs, true);
   // The developer overlay, installed only under `?debug=1` - the same
   // presence rule as `?stress`, so the shipping page carries no extra
   // surface and no extra key binding. Backquote toggles it; that key
@@ -528,6 +562,7 @@ async function main(): Promise<void> {
           const nowMs = performance.now();
           householdRoster.update(nowMs, true);
           peoplePanel.update(nowMs, true);
+          moodPanel.update(nowMs, true);
         }
         syncPersistenceButtons();
       })
@@ -873,6 +908,7 @@ async function main(): Promise<void> {
     gameHud.update(nowMs, sim);
     householdRoster.update(nowMs);
     peoplePanel.update(nowMs);
+    moodPanel.update(nowMs);
     if (!startingNewGame) persistence.updateAutosave();
     syncPersistenceButtons();
     debugPanel?.update(nowMs);

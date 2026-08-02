@@ -507,6 +507,26 @@ export class SimBridge {
     return this.handle.relationships_of(entityIndex);
   }
 
+  /**
+   * Overall mood score followed by each active moodlet's score, or empty.
+   * The aligned text half comes from `moodSummaryOf`; both are copies read
+   * synchronously by the selected-person panel, with no tick between them.
+   */
+  moodSnapshotOf(entityIndex: number): Float32Array {
+    if (!isU32(entityIndex)) return new Float32Array(0);
+    return this.handle.mood_snapshot_of(entityIndex);
+  }
+
+  /**
+   * Overall mood label followed by each active moodlet's label, or empty.
+   * The simulation owns the score bands and wording; the shell validates and
+   * renders the projection without recreating either rule.
+   */
+  moodSummaryOf(entityIndex: number): string[] {
+    if (!isU32(entityIndex)) return [];
+    return this.handle.mood_summary_of(entityIndex);
+  }
+
   /** One name per pack item kind, in pack order. Read once, like needNames. */
   itemKinds(): string[] {
     return this.handle.item_kinds();

@@ -194,6 +194,96 @@
       #selected-summary [hidden] {
         display: none;
       }
+      #mood-block {
+        display: grid;
+        gap: 5px;
+        margin: 4px 0;
+        padding: 5px 0;
+        border-top: 1px solid var(--hud-edge);
+        border-bottom: 1px solid var(--hud-edge);
+      }
+      #mood-empty {
+        margin: 0;
+        color: var(--hud-muted);
+      }
+      #mood-content {
+        display: grid;
+        gap: 5px;
+        min-width: 0;
+      }
+      .mood-track {
+        position: relative;
+        height: 9px;
+        margin: 2px 4px;
+        border-radius: 5px;
+        background: linear-gradient(
+          90deg,
+          color-mix(in srgb, var(--hud-danger) 78%, var(--need-track)) 0%,
+          var(--need-track) 48%,
+          var(--need-track) 52%,
+          color-mix(in srgb, var(--need-fill) 78%, var(--need-track)) 100%
+        );
+      }
+      .mood-track::after {
+        position: absolute;
+        top: -2px;
+        bottom: -2px;
+        left: 50%;
+        width: 1px;
+        background: var(--hud-muted);
+        content: '';
+      }
+      .mood-marker {
+        position: absolute;
+        z-index: 1;
+        top: 50%;
+        left: 50%;
+        width: 11px;
+        height: 11px;
+        box-sizing: border-box;
+        border: 2px solid var(--hud-bg);
+        border-radius: 50%;
+        background: var(--hud-muted);
+        transform: translate(-50%, -50%);
+      }
+      .mood-track[data-tone='negative'] .mood-marker {
+        background: var(--hud-danger);
+      }
+      .mood-track[data-tone='positive'] .mood-marker {
+        background: var(--need-fill);
+      }
+      #moodlet-list {
+        display: grid;
+        gap: 3px;
+        margin: 1px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+      .moodlet-row {
+        display: flex;
+        min-width: 0;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .moodlet-label {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+      .moodlet-score {
+        flex: 0 0 auto;
+        color: var(--hud-muted);
+        font-variant-numeric: tabular-nums;
+      }
+      .moodlet-row[data-tone='negative'] .moodlet-score {
+        color: var(--hud-danger);
+      }
+      .moodlet-row[data-tone='positive'] .moodlet-score {
+        color: var(--need-fill);
+      }
+      .moodlet-empty {
+        color: var(--hud-muted);
+      }
       #household-roster h2 {
         margin: 0 0 6px;
         color: var(--hud-muted);
@@ -527,6 +617,19 @@
             <span class="summary-label">Life satisfaction</span>
             <strong id="satisfaction-value" class="summary-value">0.0</strong>
           </div>
+          <section id="mood-block" aria-label="Mood">
+            <p id="mood-empty">Select a person to see their mood.</p>
+            <div id="mood-content" hidden>
+              <div class="summary-row">
+                <span class="summary-label">Mood</span>
+                <strong id="mood-label" class="summary-value"></strong>
+              </div>
+              <div id="mood-meter" class="mood-track">
+                <span id="mood-marker" class="mood-marker" aria-hidden="true"></span>
+              </div>
+              <ul id="moodlet-list" hidden></ul>
+            </div>
+          </section>
           <div id="career-row" class="summary-row" hidden>
             <span class="summary-label">Career</span>
             <span id="career-value" class="summary-value"></span>
