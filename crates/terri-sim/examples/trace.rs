@@ -874,7 +874,7 @@ fn main() {
                         format!("condition, severity {state:.2}")
                     }
                 };
-                println!("           wears: {} ({kind})", def.label);
+                println!("           traits: {} ({kind})", def.label);
             }
         }
     }

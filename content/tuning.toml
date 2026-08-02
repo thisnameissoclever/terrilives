@@ -471,6 +471,45 @@ day_ticks = 1440
 # crises are worse than one. Non-negative; 0 disables.
 neglect_bleed_per_tick = 0.002
 
+# What every need's decay rate is multiplied by while a sim is AT WORK
+# - [X2] in docs/specs/2026-08-01-alpha-acceptance-findings.md, and the
+# fix for the worst thing the alpha acceptance pass found.
+#
+# MEASURED, not chosen by taste. Over 36 000 ticks (25 game days) of
+# the shipped lot, Terri - the household's only worker - hit 0.0 on six
+# of her seven needs, and her lowest need sat at or below 5 on every
+# one of the 25 days: 27.3% of her life with hunger there, 19.2% with
+# social, 18.8% with fun. Doug and Nadia, who hold no job, spent ZERO
+# ticks in crisis on anything. `decay_needs` drains every sim holding
+# `Needs`, and a sim off the lot at work can reach nothing at all, so a
+# 480-tick shift plus its commute cost her 33 hunger a day against a
+# daily budget of 89 - a deficit she came home already carrying.
+#
+# 0.5 rather than a rounder number for a reason that is checkable: it
+# returns about 15 hunger a day to a sim who was about 13 short. The
+# office is a building with a toilet and a kettle in it - you are not
+# resting there, but you are not in a void either.
+#
+# **This does not refund the career's price**, which is TIME - the
+# hobbies not done, the condition not managed, the satisfaction not
+# earned. [E4]'s antagonist is untouched and [A-14]'s measurement of it
+# still stands; what changes is that the price stops being starvation.
+#
+# The COMMUTE is deliberately excluded: walking to your own front door
+# is ordinary life, and a sim on the lot can already be served.
+#
+# In [0, 1]. Above 1 the office would drain faster than living does;
+# below 0 a shift would refill needs and work would become the best
+# place in the game to be. Exactly 1 restores the void the career
+# shipped with, which is how to measure this knob's effect again.
+#
+# A per-need table is the recorded follow-up rather than the shipped
+# shape: social arguably should be SERVED at work rather than merely
+# slowed, since colleagues are people - but that is a question about
+# what a workplace IS, and it wants the per-career treatment a second
+# job would force.
+at_work_decay_scale = 0.5
+
 # Need decay per tick. One tick is one sim-minute, so 0.104 drains a full
 # need in roughly 16 sim-hours.
 #
