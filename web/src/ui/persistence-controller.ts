@@ -39,8 +39,10 @@ export function applyPersistenceControlState(
   targets.save.disabled = state.saveDisabled;
   targets.load.disabled = state.loadDisabled;
   targets.newGame.disabled = state.newGameDisabled;
-  targets.confirmLoad.disabled = state.confirmationDisabled;
-  targets.confirmNewGame.disabled = state.confirmationDisabled;
+  targets.confirmLoad.disabled =
+    state.loadDisabled || state.confirmationDisabled;
+  targets.confirmNewGame.disabled =
+    state.newGameDisabled || state.confirmationDisabled;
 }
 
 /**

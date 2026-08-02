@@ -285,5 +285,23 @@ describe('PersistenceController', () => {
       confirmLoad: { disabled: true },
       confirmNewGame: { disabled: true },
     });
+
+    applyPersistenceControlState(
+      {
+        saveDisabled: false,
+        loadDisabled: true,
+        newGameDisabled: false,
+        confirmationDisabled: false,
+      },
+      targets,
+    );
+
+    expect(targets).toEqual({
+      save: { disabled: false },
+      load: { disabled: true },
+      newGame: { disabled: false },
+      confirmLoad: { disabled: true },
+      confirmNewGame: { disabled: false },
+    });
   });
 });
