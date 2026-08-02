@@ -119,6 +119,14 @@ suspension through its storage read and transactional world swap; New game
 keeps it through clear and reload. See
 `docs/specs/2026-08-01-modal-pause-and-focus-design.md`.
 
+A terminal startup failure owns a different boundary: there is no running
+simulation to pause or opener to restore. The shell exposes the explanation as
+a focused `alertdialog` and makes every body child left by partial startup
+inert. Any native modal already in the browser's top layer is closed first, so
+it cannot paint above or keep the terminal explanation unfocusable. The failed
+canvas and HUD therefore cannot remain a second keyboard interface behind the
+only useful surface.
+
 Because the two are so easy to confuse, the driver exposes `stepDurationMs`
 purely so the constraint is testable: scaling elapsed time by `k` and dividing
 the step by `k` produce identical tick counts and identical interpolation

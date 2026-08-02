@@ -98,8 +98,17 @@ export function renderStartupFailure(
   notice: StartupFailureNotice,
   parent: HTMLElement,
 ): void {
+  const document = parent.ownerDocument;
   const card = document.createElement('div');
   card.dataset.role = 'startup-failure';
+  card.setAttribute('role', 'alertdialog');
+  card.setAttribute('aria-modal', 'true');
+  card.setAttribute('aria-labelledby', 'startup-failure-title');
+  card.setAttribute(
+    'aria-describedby',
+    'startup-failure-detail startup-failure-hints',
+  );
+  card.tabIndex = -1;
   card.style.cssText = [
     'position:fixed',
     'inset:0',
@@ -107,8 +116,11 @@ export function renderStartupFailure(
     'flex-direction:column',
     'align-items:center',
     'justify-content:center',
+    'justify-content:safe center',
     'gap:12px',
     'padding:32px',
+    'box-sizing:border-box',
+    'overflow:auto',
     'background:#14161a',
     'color:#e8e6e3',
     'font:16px/1.5 system-ui, sans-serif',
@@ -117,19 +129,50 @@ export function renderStartupFailure(
   ].join(';');
 
   const title = document.createElement('h1');
+  title.id = 'startup-failure-title';
   title.textContent = notice.title;
   title.style.cssText = 'font-size:22px;margin:0';
 
   const detail = document.createElement('p');
+  detail.id = 'startup-failure-detail';
   detail.textContent = notice.detail;
-  detail.style.cssText = 'margin:0;opacity:0.75;font-family:monospace';
+  detail.style.cssText = [
+    'margin:0',
+    'max-width:52em',
+    'opacity:0.75',
+    'font-family:monospace',
+    'overflow-wrap:anywhere',
+  ].join(';');
 
-  card.append(title, detail);
+  const hints = document.createElement('div');
+  hints.id = 'startup-failure-hints';
+  hints.style.cssText = [
+    'display:flex',
+    'flex-direction:column',
+    'align-items:center',
+    'gap:12px',
+    'width:100%',
+    'max-width:52em',
+    'min-width:0',
+  ].join(';');
   for (const hint of notice.hints) {
     const line = document.createElement('p');
     line.textContent = hint;
-    line.style.cssText = 'margin:0;max-width:52em';
-    card.append(line);
+    line.style.cssText = 'margin:0;overflow-wrap:anywhere';
+    hints.append(line);
+  }
+
+  card.append(title, detail, hints);
+  // Startup failure is terminal. The canvas and HUD underneath can no longer
+  // do useful work, so leaving them tabbable creates a second, dead interface
+  // behind the explanation. A native modal is also in the browser's top layer,
+  // above any z-index, so release it before exposing the terminal surface.
+  for (const child of Array.from(parent.children)) {
+    if (child.tagName === 'DIALOG' && child.hasAttribute('open')) {
+      (child as HTMLDialogElement).close();
+    }
+    child.setAttribute('inert', '');
   }
   parent.append(card);
+  card.focus();
 }

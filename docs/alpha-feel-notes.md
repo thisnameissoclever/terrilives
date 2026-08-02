@@ -1829,3 +1829,57 @@ and at the 390 by 844 phone breakpoint. The screenshots are
 - **Runtime remained quiet.** The complete desktop, selection, autonomous
   social, Save/Load, and mobile session reported zero console warnings and
   zero errors.
+
+## [A-23] Cook dinner is visible as a resumable chain
+
+The public build at `1fe9e0181be8d26abe77c864c49cfd695e333187` was watched
+through one complete player-issued Cook dinner chain. The screenshots are
+`21-chain-get-ingredients.png` through `27-chain-resumed-eating.png` in the
+task's visualization artifact folder.
+
+- **Every authored stage reaches the HUD.** Doug moved through Get ingredients,
+  Prepare food, Cook, Eat dinner, and Eating rather than collapsing the chain
+  into a generic walk or interaction label.
+- **The carried item tells the same story as the text.** A visible ingredient
+  bag followed Doug during preparation and cooking. At the stage boundary it
+  became a plated dinner, while the HUD changed from `carrying ingredients` to
+  `carrying dinner` in the same paused frame.
+- **A player order interrupts without destroying the meal.** Grab a snack
+  replaced the active dinner step, changed the HUD to Walking, and exposed one
+  waiting order. After that interruption completed, the waiting count cleared
+  and Doug resumed Eating from the dinner chain.
+- **Runtime remained quiet.** The complete staged watch, interruption, and
+  resume produced zero console warnings and zero errors.
+
+This closes the displayed-chain gap recorded in [A-15]. The long deterministic
+horizon in [A-19] already proves that autonomous and career interruptions
+complete rather than abandon chains; this pass proves the player can actually
+see the same ownership model.
+
+## [A-24] Startup failure owns the whole viewport and focus
+
+The corrected working build was forced through its ordinary top-level startup
+catch in visible Chromium. The temporary forcing branch was removed afterward
+and `web/src/main.ts` matched its original hash exactly. Captures are
+`29-startup-alertdialog-mobile.png`, `30-startup-alertdialog-short.png`, and
+`31-startup-lan-alertdialog-mobile.png` in the task's visualization artifact
+folder.
+
+- **The failure is announced where focus lands.** The accessibility surface
+  exposed `The game failed to start` as an active alert dialog, labelled by its
+  heading and described by the verbatim error plus recovery hint.
+- **The failed interface cannot compete with the explanation.** Every existing
+  body child carried the native `inert` attribute before the alert dialog was
+  appended. A Help dialog deliberately opened in the browser's top layer was
+  closed first. Pressing Tab kept focus on the alert dialog rather than
+  entering a dead Save, Load, game-speed, or canvas control.
+- **Phone copy wraps without horizontal escape.** At 390 by 844, the alert
+  dialog measured exactly 390 pixels wide with no horizontal overflow. The LAN
+  branch kept the complete title, detail, all three recovery hints, and the
+  unbroken `chrome://flags/#unsafely-treat-insecure-origin-as-secure` address
+  readable.
+- **Very short viewports scroll from the beginning.** At 320 by 240, content
+  measured 442 pixels tall for the generic branch and 562 for the longer LAN
+  branch. The top of the heading remained reachable at scroll position zero,
+  the native vertical scrollbar exposed the rest, and neither branch produced
+  horizontal overflow.

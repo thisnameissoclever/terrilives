@@ -3426,3 +3426,29 @@ belongs in state that must survive Load; raw entity indices do not.
 the first label lookup and prove the complete keyboard target list still
 returns. Arm a target, clear it as the successful-Load path does, and prove the
 status is hidden and `current()` returns no target.
+
+## [L73] A full-screen failure card is not a modal until the dead page beneath it is inert
+
+**What happened.** Startup failures covered the viewport with a clear recovery
+card, but keyboard focus stayed on the page body and every canvas and HUD
+control underneath remained in the tab order. A sighted player saw one terminal
+surface while assistive technology exposed two interfaces, one of them dead.
+
+**Root cause.** The failure renderer was treated as emergency visual output.
+It created styled elements but declared no dialog semantics, moved no focus,
+and did not disable the interface that startup had left behind.
+
+**Prevention rule.** A terminal full-screen failure owns the whole document.
+Expose it as an `alertdialog` with an accessible name and description, focus
+the dialog itself, and make every pre-existing sibling inert before appending
+it. Close any open native dialog first: top-layer order beats every z-index and
+can otherwise leave the failure surface unfocusable. Render through
+`parent.ownerDocument` so the contract remains testable and correct outside the
+ambient global document.
+
+**How to verify.** Render into a structural fake document and prove the card is
+the active element, its title/detail/hints are referenced by ARIA attributes,
+every previous child is inert, and a pre-existing open native dialog is closed.
+In a compact visible browser, force startup to fail with a modal already open
+and confirm the whole message remains scrollable with no focusable controls
+behind it.
