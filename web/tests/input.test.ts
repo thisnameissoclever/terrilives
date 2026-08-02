@@ -66,7 +66,7 @@ describe('LongPressGesture', () => {
     expect(fired).toEqual([[120, 240]]);
   });
 
-  it('does not fire after a drag, lift, cancellation, or different pointer', () => {
+  it('ignores another pointer and cancels after a drag, lift, or cancellation', () => {
     const timer = manualScheduler();
     const fired = vi.fn();
     const gesture = new LongPressGesture(fired, timer.scheduler, 500, 6);

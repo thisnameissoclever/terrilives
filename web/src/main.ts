@@ -426,8 +426,12 @@ async function main(): Promise<void> {
 
   const queueMode = new QueueMode(queueButton);
   let startingNewGame = false;
+  let loadButtonDisabled: boolean | undefined;
   const syncLoadButton = (): void => {
-    loadButton.disabled = !persistence.hasSavedGame();
+    const disabled = !persistence.hasSavedGame();
+    if (disabled === loadButtonDisabled) return;
+    loadButton.disabled = disabled;
+    loadButtonDisabled = disabled;
   };
   syncLoadButton();
   queueButton.addEventListener('click', () => queueMode.toggle());
