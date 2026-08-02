@@ -5,8 +5,15 @@ export interface PreferenceStore {
   setItem(key: string, value: string): void;
 }
 
-export interface HelpRoot {
-  hidden: boolean;
+export interface HelpDialog {
+  readonly open: boolean;
+  scrollTop: number;
+  showModal(): void;
+  close(): void;
+}
+
+export interface FocusTarget {
+  focus(): void;
 }
 
 /** Storage can be denied even when localStorage exists, so failure means show. */
@@ -21,25 +28,35 @@ export function shouldShowHelp(store: PreferenceStore | null): boolean {
 
 export class HelpPanel {
   constructor(
-    private readonly root: HelpRoot,
+    private readonly root: HelpDialog,
+    private readonly start: FocusTarget,
     private readonly store: PreferenceStore | null,
   ) {}
 
-  showOnFirstRun(): void {
-    this.root.hidden = !shouldShowHelp(this.store);
+  /** Opens on a first visit and reports whether it took ownership of focus. */
+  showOnFirstRun(): boolean {
+    if (!shouldShowHelp(this.store)) return false;
+    return this.open();
   }
 
-  open(): void {
-    this.root.hidden = false;
+  /** Opens modally at the beginning of the instructions. */
+  open(): boolean {
+    if (this.root.open) return false;
+    this.root.showModal();
+    this.root.scrollTop = 0;
+    this.start.focus();
+    return true;
   }
 
-  close(): void {
-    this.root.hidden = true;
+  close(): boolean {
+    const wasOpen = this.root.open;
+    if (wasOpen) this.root.close();
     try {
       this.store?.setItem(HELP_DISMISSED_KEY, '1');
     } catch {
       // The help still closes for this session when browser preferences are
       // blocked. It will appear again next time instead of breaking the game.
     }
+    return wasOpen;
   }
 }

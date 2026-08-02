@@ -3327,3 +3327,31 @@ confirm Load, and inspect immediately. The dialog must already be closed while
 the status reads `Loading` and Save, Load, and New game are disabled. After the
 delayed response, the status must read `Saved game loaded` and all applicable
 controls must recover.
+
+## [L69] A readable overlay is still gameplay if the clock keeps moving behind it
+
+**What happened.** First-run Help opened over a simulation already running at
+1x. Reading and capturing the nine instructions advanced several game hours,
+changed needs, and sent the selected sim into her work shift before the player
+could issue a first order. Manual Help also focused Got it at the bottom of a
+scrollable surface, while first-run Help did not move focus into the dialog at
+all.
+
+**Root cause.** The overlay was treated as visual UI only. Its hidden flag and
+button focus were wired independently from the fixed-step driver, so no owner
+held simulated time for the interval in which game input was blocked. The Load
+and New game dialogs shared the same lifecycle gap because native modal dialogs
+block interaction, not JavaScript animation frames.
+
+**Prevention rule.** Every blocking surface names its complete ownership
+interval and suspends the shell driver for that interval. Preserve the speed
+the player selected, do not record browser reading time as a replayable pause,
+focus the beginning of the surface, support Escape, and restore the opener when
+it closes. Confirmed asynchronous work owns the pause until the work settles,
+not merely until its confirmation disappears.
+
+**How to verify.** In a visible browser, record the clock, hold each blocking
+surface open for longer than one tick, and prove the text does not change.
+Verify the initial focus target, Escape behavior, focus return, selected-speed
+restoration, and a compact viewport. Unit-test overlapping owners so one modal
+cannot resume time while another still owns it.

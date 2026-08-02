@@ -110,6 +110,15 @@ still crosses the boundary as a command so the command log can replay a
 session's pauses ([D-2] in the M1b design), and the simulation deliberately
 applies nothing for it.
 
+Blocking shell surfaces are a separate case. Help and persistence
+confirmations temporarily set only the `FixedStepDriver` to zero, remember the
+player's selected speed, and restore it after the final modal owner releases.
+They do not enqueue `SetSpeed(0)`: time spent reading browser UI is outside the
+simulation and must not become replay input. A confirmed Load keeps this
+suspension through its storage read and transactional world swap; New game
+keeps it through clear and reload. See
+`docs/specs/2026-08-01-modal-pause-and-focus-design.md`.
+
 Because the two are so easy to confuse, the driver exposes `stepDurationMs`
 purely so the constraint is testable: scaling elapsed time by `k` and dividing
 the step by `k` produce identical tick counts and identical interpolation
