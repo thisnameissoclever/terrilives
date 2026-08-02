@@ -1513,6 +1513,15 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
     check_finite(tuning.hobby_multiplier, "hobby_multiplier in tuning.toml")?;
     check_finite(tuning.neglect_floor, "neglect_floor in tuning.toml")?;
     check_finite(
+        tuning.at_work_decay_scale,
+        "at_work_decay_scale in tuning.toml",
+    )?;
+    if !(0.0..=1.0).contains(&tuning.at_work_decay_scale) {
+        return Err(ContentError::AtWorkDecayScaleOutOfRange {
+            value: tuning.at_work_decay_scale,
+        });
+    }
+    check_finite(
         tuning.neglect_bleed_per_tick,
         "neglect_bleed_per_tick in tuning.toml",
     )?;
@@ -1569,6 +1578,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
         relationship_decay_per_tick: tuning.relationship_decay_per_tick,
         relationship_delta_scale: tuning.relationship_delta_scale,
         hobby_multiplier: tuning.hobby_multiplier,
+        at_work_decay_scale: tuning.at_work_decay_scale,
         neglect_floor: tuning.neglect_floor,
         neglect_bleed_per_tick: tuning.neglect_bleed_per_tick,
         day_ticks: tuning.day_ticks,
@@ -2142,8 +2152,16 @@ mod tests {
     /// author's wording, and not `grab_snack`, is what reaches the pack.
     #[rustfmt::skip]
     const GOLDEN_PACK_BYTES: &[u8] = &[
-        // **M2f PR 1 moved it four ways, all appends, read off the
-        // failing assertion per the standing rule.** `CompiledObject`
+        // **The alpha acceptance pass appended one tuning field**,
+        // `at_work_decay_scale` - [X2] in
+        // docs/specs/2026-08-01-alpha-acceptance-findings.md. The four
+        // bytes `154, 153, 25, 63` near the end are the fixture's 0.6
+        // as a little-endian f32, sitting where `CompiledTuning` gained
+        // it; every byte before them is unchanged, which is what an
+        // append is supposed to look like. Read off the failing
+        // assertion per the standing rule.
+        //
+        // **M2f PR 1 moved it four ways, all appends.** `CompiledObject`
         // gained a trailing `roles` list - the new 0 immediately after
         // the fixture object's `1, 1` footprint, its empty list - and
         // `ContentPack` gained three trailing vocabularies (roles,
@@ -2152,28 +2170,26 @@ mod tests {
         // it shifted by one; the non-empty round trips live in
         // pack.rs's `three_objects`.
         //
-        // **Moved three times at M2e PR 3, all appends, read off the
-        // failing assertion per the standing rule.** `Tuning` gained a
-        // trailing `day_ticks` - the lone `19` after the `0, 0, 0, 60`
-        // that ends the neglect trio - and `ContentPack` a trailing
-        // `careers` list, one more empty-vec 0 at the very end (this
-        // fixture holds no careers; the round trip that exercises
-        // non-empty ones lives in pack.rs). `CompiledLot` also gained a
-        // trailing `front_door` option: the extra 0 immediately after
-        // the placement's sprite `2`, this fixture's None. That one
-        // sits mid-pack because the lot block does, so the tuning
-        // bytes after it shifted by one; everything before it kept its
-        // offset, which is what the append discipline buys.
+        // **Moved three times at M2e PR 3, all appends.** `Tuning`
+        // gained a trailing `day_ticks` - the lone `19` near the end -
+        // and `ContentPack` a trailing `careers` list, one more
+        // empty-vec 0 at the very end (this fixture holds no careers;
+        // the round trip that exercises non-empty ones lives in
+        // pack.rs). `CompiledLot` also gained a trailing `front_door`
+        // option: the extra 0 immediately after the placement's sprite
+        // `2`, this fixture's None. That one sits mid-pack because the
+        // lot block does, so the tuning bytes after it shifted by one;
+        // everything before it kept its offset, which is what the
+        // append discipline buys.
         //
         // **Regenerated wholesale at M2e PR 2**: `ContentPack` gained a
-        // trailing `traits` list (empty in this fixture - the lone new
-        // 0 at the very end), and `CompiledHouseholdMember` a trailing
-        // trait-index list; this fixture has no household, so the whole
-        // movement is one byte of empty-vec length at the tail. The PR
-        // 1 annotations (tags after the label, the tuning trio) and the
-        // object-block annotations in the doc comment above remain
-        // valid; predecessors are one `git log -p` away. Read off the
-        // failing assertion, per the standing rule.
+        // trailing `traits` list (empty in this fixture), and
+        // `CompiledHouseholdMember` a trailing trait-index list; this
+        // fixture has no household, so the whole movement is one byte
+        // of empty-vec length at the tail. The PR 1 annotations (tags
+        // after the label, the tuning trio) and the object-block
+        // annotations in the doc comment above remain valid;
+        // predecessors are one `git log -p` away.
         205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62,
         205, 204, 204, 62, 0, 0, 0, 63, 154, 153, 25, 63,
         51, 51, 51, 63, 1, 6, 102, 114, 105, 100, 103, 101,
@@ -2184,13 +2200,13 @@ mod tests {
         105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1,
         1, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0,
         0, 0, 32, 64, 0, 0, 160, 63, 2, 0, 0, 0,
-        128, 62,
-        0, 0, 0, 63, 0, 0, 0, 62, 9, 6, 0, 0,
-        160, 62, 10, 215, 35, 59, 0, 0, 32, 63, 0, 0,
-        64, 63, 3, 172, 2, 7, 11, 13, 0, 0, 192, 62,
-        0, 0, 64, 62, 0, 0, 64, 61, 0, 0, 80, 63,
-        0, 0, 224, 63, 0, 0, 184, 65, 0, 0, 0, 60,
-        19, 0, 0, 0, 0, 0, 0, 0, 0,
+        128, 62, 0, 0, 0, 63, 0, 0, 0, 62, 9, 6,
+        0, 0, 160, 62, 10, 215, 35, 59, 0, 0, 32, 63,
+        0, 0, 64, 63, 3, 172, 2, 7, 11, 13, 0, 0,
+        192, 62, 0, 0, 64, 62, 0, 0, 64, 61, 0, 0,
+        80, 63, 0, 0, 224, 63, 0, 0, 184, 65, 154, 153,
+        25, 63, 0, 0, 0, 60, 19, 0, 0, 0, 0, 0,
+        0, 0, 0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -2308,6 +2324,7 @@ mod tests {
             // in binary32; the golden vector reads these bytes directly,
             // and a 0.0 would be indistinguishable from a dropped field.
             hobby_multiplier: 1.75,
+            at_work_decay_scale: 0.6,
             neglect_floor: 23.0,
             neglect_bleed_per_tick: 0.0078125,
             action_threshold: 0.25,
@@ -3085,6 +3102,7 @@ mod tests {
         assert_eq!(tuning.need_bar_refresh_ms, 13);
         // The M2e trio, distinct values per [L29] like everything above.
         assert_eq!(tuning.hobby_multiplier, 1.75);
+        assert_eq!(tuning.at_work_decay_scale, 0.6);
         assert_eq!(tuning.neglect_floor, 23.0);
         assert_eq!(tuning.neglect_bleed_per_tick, 0.0078125);
     }

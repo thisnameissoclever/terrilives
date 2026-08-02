@@ -1,4 +1,5 @@
 use bevy_ecs::prelude::*;
+use bevy_ecs::query::Has;
 use terri_core::{NeedId, Needs, Personality};
 
 use crate::Content;
@@ -35,12 +36,35 @@ use crate::Content;
 /// at spawn, because a rate that can change - a condition lifting, a
 /// trait mutating, which is M2e - has to be computed from its sources on
 /// read or the copy goes stale.
-pub fn decay_needs(content: Res<Content>, mut query: Query<(&mut Needs, Option<&Personality>)>) {
+/// A sim AT WORK decays at `at_work_decay_scale` of the rate - [X2].
+///
+/// The rabbit hole put a sim somewhere it could reach nothing, and
+/// `decay_needs` went on draining it at the full rate: measured over
+/// 25 game days of the shipped lot, the household's only worker hit
+/// zero on six of her seven needs and spent 27.3% of her life with
+/// hunger at or under 5, while the two sims without jobs spent none.
+/// An office is a building with a toilet and a kettle in it.
+///
+/// `Commuting` is deliberately NOT included. Walking to your own front
+/// door is ordinary life, and a sim still on the lot can be served.
+///
+/// The career's price is unchanged and is the TIME - see [E4], and
+/// [A-14] which measured it. This knob only stops that price being
+/// starvation.
+pub fn decay_needs(
+    content: Res<Content>,
+    mut query: Query<(&mut Needs, Option<&Personality>, Has<terri_core::AtWork>)>,
+) {
     let rates = &content.0.decay_per_tick;
-    for (mut needs, personality) in &mut query {
+    for (mut needs, personality, at_work) in &mut query {
+        let away = if at_work {
+            content.0.tuning.at_work_decay_scale
+        } else {
+            1.0
+        };
         for id in NeedId::ALL {
             let multiplier = personality.map_or(1.0, |p| p.drain[id.index()]);
-            needs.drain(id, rates[id.index()] * multiplier);
+            needs.drain(id, rates[id.index()] * multiplier * away);
         }
     }
 }
@@ -186,6 +210,83 @@ mod tests {
             "the schedule must advance the clock; decay ran but the tick \
              did not move"
         );
+    }
+
+    /// **A sim at work decays at `at_work_decay_scale`, and one on the
+    /// lot at the full rate** - [X2].
+    ///
+    /// The rabbit hole put a sim where it could reach nothing while
+    /// `decay_needs` drained it at full speed: measured over 25 game
+    /// days of the shipped lot, the household's only worker hit zero
+    /// on six of her seven needs and spent 27.3% of her life with
+    /// hunger at or under 5, against zero crisis ticks for the two
+    /// sims without jobs.
+    ///
+    /// Two agents in one world, alike but for `AtWork`, compared after
+    /// the same ticks. That pins three things a single agent could
+    /// not: the scale is READ (the working sim keeps more), it applies
+    /// to EVERY need rather than to hunger alone, and its absence
+    /// means neutral - the contract the world-hash goldens rest on,
+    /// since their scenarios spawn bare agents.
+    ///
+    /// The expected values are computed from content rather than
+    /// written down, so a balance pass moves them without touching
+    /// this test - and a scale of exactly 1 would make the two sims
+    /// equal, which the inequality assertion catches.
+    #[test]
+    fn a_sim_at_work_decays_at_the_scaled_rate_and_absence_means_full_rate() {
+        const TICKS: usize = 40;
+
+        let mut sim = Sim::new();
+        let scale = sim
+            .world()
+            .resource::<Content>()
+            .0
+            .tuning
+            .at_work_decay_scale;
+        let home = sim
+            .world_mut()
+            .spawn((Agent, Needs::all_at(terri_core::NEED_MAX)))
+            .id();
+        let away = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Needs::all_at(terri_core::NEED_MAX),
+                terri_core::AtWork {
+                    remaining_ticks: TICKS as u32 * 2,
+                },
+            ))
+            .id();
+
+        sim.world_mut().insert_resource(SimClock::default());
+        for _ in 0..TICKS {
+            sim.world_mut()
+                .run_system_cached(decay_needs)
+                .expect("runs");
+        }
+
+        for id in NeedId::ALL {
+            let rate = sim.world().resource::<Content>().0.decay_per_tick[id.index()];
+            let at_home = sim.world().get::<Needs>(home).expect("needs").get(id);
+            let at_work = sim.world().get::<Needs>(away).expect("needs").get(id);
+
+            let expected_home = terri_core::NEED_MAX - TICKS as f32 * rate;
+            let expected_work = terri_core::NEED_MAX - TICKS as f32 * rate * scale;
+            assert!(
+                (at_home - expected_home).abs() < 0.01,
+                "{id:?} at home: read {at_home}, expected {expected_home}"
+            );
+            assert!(
+                (at_work - expected_work).abs() < 0.01,
+                "{id:?} at work: read {at_work}, expected {expected_work}"
+            );
+            assert!(
+                at_work > at_home,
+                "{id:?}: the shift must cost LESS than the same time at home, \
+                 read {at_work} at work against {at_home} at home"
+            );
+        }
     }
 
     #[test]

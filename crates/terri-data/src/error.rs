@@ -519,6 +519,13 @@ pub enum ContentError {
     HobbyMultiplierBelowOne {
         value: f32,
     },
+    /// `at_work_decay_scale` outside `[0, 1]`. Above 1 the office
+    /// drains faster than living does - a knob meant to soften the
+    /// rabbit hole silently sharpening it - and below 0 a shift would
+    /// REFILL needs, making work the best place in the game to be.
+    AtWorkDecayScaleOutOfRange {
+        value: f32,
+    },
     /// `neglect_floor` outside the need range `[0, 100]`. Above 100
     /// every need is always neglected and satisfaction bleeds from tick
     /// one, which reads as a broken accumulator rather than a tuning
@@ -1179,6 +1186,11 @@ impl fmt::Display for ContentError {
                 f,
                 "hobby_multiplier is {value}; below 1 a hobby pays LESS for \
                  being loved, and exactly 1 is the way to disable hobbies"
+            ),
+            ContentError::AtWorkDecayScaleOutOfRange { value } => write!(
+                f,
+                "at_work_decay_scale is {value}, outside 0..=1; above 1 the \
+                 office drains faster than living does and below 0 it refills"
             ),
             ContentError::NeglectFloorOutOfRange { value } => write!(
                 f,

@@ -286,7 +286,16 @@ mod tests {
         // Ride the day. Generous budget: the worker may stroll before
         // the shift and the commute length depends on where from.
         let mut clocked_in_at = None;
+        // Ticks on which `decay_needs` SAW the worker at work, counted
+        // rather than derived: decay runs before `start_shift` and
+        // before `commute_and_work` in the schedule, so what matters is
+        // the state at the top of the tick, and reading it here is the
+        // only way to say that without restating the schedule.
+        let mut scaled_ticks = 0.0f32;
         for tick in 1..=29u64 {
+            if sim.world().get::<AtWork>(worker).is_some() {
+                scaled_ticks += 1.0;
+            }
             sim.tick();
             let at_work = sim.world().get::<AtWork>(worker).is_some();
             if at_work && clocked_in_at.is_none() {
@@ -322,11 +331,17 @@ mod tests {
             2.25,
             "the career's satisfaction lands exactly once"
         );
-        // Energy: 80 at spawn, minus 29 ticks of shipped decay, minus
-        // the 11.5 debit. Read the rate from content per the standing
-        // rule rather than restating it.
+        // Energy: 80 at spawn, minus 29 ticks of decay - the ones
+        // spent at work scaled by `at_work_decay_scale` ([X2]) - minus
+        // the 11.5 debit. Both the rate and the scale are read from
+        // content per the standing rule rather than restated.
         let decay = test_content::decay_per_tick(NeedId::Energy);
-        let expected = 80.0 - 29.0 * decay - 11.5;
+        let scale = test_content::tuning().at_work_decay_scale;
+        assert!(
+            scaled_ticks > 0.0,
+            "fixture is vacuous: the worker was never at work when decay ran"
+        );
+        let expected = 80.0 - (29.0 - scaled_ticks) * decay - scaled_ticks * decay * scale - 11.5;
         let energy = sim
             .world()
             .get::<Needs>(worker)

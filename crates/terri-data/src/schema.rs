@@ -90,6 +90,10 @@ pub struct TuningFile {
     /// The need level below which a need is neglected and bleeds
     /// satisfaction ([E1]). In `[0, 100]`; 0 disables neglect.
     pub neglect_floor: f32,
+    /// What every need's decay rate is multiplied by while a sim is
+    /// `AtWork` ([X2]). In `[0, 1]`; 1 restores the void the career
+    /// shipped with.
+    pub at_work_decay_scale: f32,
     /// Satisfaction lost per neglected need per tick. Non-negative;
     /// 0 disables the bleed.
     pub neglect_bleed_per_tick: f32,
@@ -664,7 +668,7 @@ mod tests {
     /// The six `u32`s and the `u64` are deliberately different numbers
     /// for the same reason, and every float is exact in binary32 so the
     /// assertions can be equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 22] = [
+    const TUNING_LINES: [(&str, &str); 23] = [
         ("action_threshold", "0.25"),
         ("choice_temperature", "0.5"),
         ("idle_threshold", "0.125"),
@@ -685,6 +689,7 @@ mod tests {
         ("relationship_delta_scale", "0.875"),
         ("hobby_multiplier", "2.5"),
         ("neglect_floor", "21.0"),
+        ("at_work_decay_scale", "0.4"),
         ("neglect_bleed_per_tick", "0.0009765625"),
         ("day_ticks", "17"),
     ];
@@ -750,6 +755,7 @@ mod tests {
         assert_eq!(parsed.relationship_delta_scale, 0.875);
         assert_eq!(parsed.hobby_multiplier, 2.5);
         assert_eq!(parsed.neglect_floor, 21.0);
+        assert_eq!(parsed.at_work_decay_scale, 0.4);
         assert_eq!(parsed.neglect_bleed_per_tick, 0.0009765625);
         assert_eq!(parsed.day_ticks, 17);
 

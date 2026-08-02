@@ -54,6 +54,38 @@ satisfaction = { fun = 0.85, energy = 1.15 }
   interaction = "read"
   weight = 1.45
 
+  # **The other end of the same hobby, and its absence was a bug the
+  # alpha acceptance pass caught** - [X3]. The wingback carries the
+  # identical `reading` tag and exists, by its own note in
+  # objects.toml, to be "the bookshelf read's twin - one hobby, two
+  # chairs' worth of routes, which is also what keeps habituation from
+  # parking a reader on a single object forever." It was authored
+  # before archetypes had dispositions and never got one, so the only
+  # sim in the house who reads for a living loved one route and was
+  # indifferent to the other. The chair lost every contest and was used
+  # ZERO times over 12 000 ticks, which criterion 3 forbids by name.
+  #
+  # 1.28 rather than the bookshelf's 1.45 on purpose: the shelf stays
+  # her first choice, and the chair is where habituation sends her when
+  # it is sick of her. Twice before, the chair was rescued by shaving
+  # its duration and raising its fun - both times it fell back to zero
+  # the moment new content competed for the same needs, and its own
+  # comment predicted the third fall and asked for "a rethink of
+  # middling on purpose" instead of a third shave. This is that: the
+  # chair stops competing on need deltas it can never win and becomes
+  # what it was designed to be, the second route for a reader's hobby.
+  #
+  # Two decimals because every multiplier in this file must be pairwise
+  # DISTINCT - [L26], enforced by
+  # `every_shipped_archetype_is_distinct_and_none_is_secretly_neutral`.
+  # The natural 1.3 is already this archetype's own `fun` drain, and two
+  # equal multipliers in different slots make a transposition between
+  # them invisible to every test.
+  [[archetype.disposition]]
+  object = "reading_chair"
+  interaction = "settle_in"
+  weight = 1.28
+
   [[archetype.disposition]]
   object = "television"
   interaction = "watch_tv"

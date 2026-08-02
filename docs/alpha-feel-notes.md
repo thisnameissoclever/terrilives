@@ -1548,3 +1548,114 @@ first at 1705 x 997 and then at 390 x 844.
   inventoried in `docs/player-visible-strings.md`; no autonomous comedy pass
   was smuggled into buttons or failure text. The owner-authored voice session
   is still the final playable-alpha criterion.
+
+## [A-17] The alpha acceptance pass - all eleven criteria, one build
+
+The first measurement of the criteria against the FINISHED alpha rather
+than against the milestone that shipped each one. Same 36 000-tick hour
+(25 game days). Reproduce with
+`cargo run --release -p terri-sim --example trace -- 36000`; world hash
+`0xbd80133f416f5de9`.
+
+Three criteria did not hold. All three are fixed here; the working
+design and the rejected alternatives are in
+`docs/specs/2026-08-01-alpha-acceptance-findings.md`.
+
+### What was broken
+
+- **[X1] 28.4% of saves could not be loaded.** Snapshotting at each of
+  36 000 ticks and loading each into a fresh sim, **10 224 failed** -
+  8 499 `InvalidContentReference`, 1 725 `InvalidEntityReference`. A
+  `Target` names one of three things (a chain station via the
+  `CHAIN_STEP` sentinel, an object's interaction, or a PERSON for a
+  conversation) and the validator modelled only the middle one, while
+  habituation keys on the flyout ROW and so records the fridge's chain
+  at row 1 the first time anybody cooks. The seam test in M2g saves at
+  tick 173; the shipped lot's first walk-to-talk begins at tick **188**.
+  It missed by fifteen ticks. **Now: 0 of 36 000 fail, and 142 seams
+  spread across the hour each resume hash-identical to the
+  uninterrupted run for 300 ticks after loading.**
+- **[X2] The one sim with a job lived permanently at zero.** Terri hit
+  0.0 on six of her seven needs and her lowest need was at or under 5
+  on **every one of the 25 days**: 27.3% of her life with hunger there,
+  19.2% with social, 18.8% with fun. Doug and Nadia, who hold no job,
+  spent **zero** ticks in crisis on anything. `decay_needs` drained
+  every sim holding `Needs` at the full rate, and a sim off the lot at
+  work can reach nothing, so a 480-tick shift plus commute cost her 33
+  hunger a day against a daily budget of 89.
+- **[X3] The reading chair was used zero times over 12 000 ticks**, the
+  horizon criterion 3 names by name.
+
+### The eleven, judged on this build
+
+| # | criterion | verdict | evidence |
+| --- | --- | --- | --- |
+| 1 | three sims, visibly different, no deadlock | holds | Terri 37.0% at work / Doug 0% and 5.3% talking / Nadia 42.9% interacting; three different top-three object lists; 1 frozen tick in 108 000 |
+| 2 | social need satisfied, relationships form | holds | 29 conversations, all three pairs above +0.9 by tick 36 000 |
+| 3 | no object at zero uses over 12 000 ticks | **fixed** | reading chair 0 → 2 at 12 000, 3 at 36 000; every other interactive object already clear |
+| 4 | satisfaction and hobbies consume idle time | holds | Terri 384.7 / Doug 364.0 / Nadia 202.0, all from hobby completions and the career's 25 |
+| 5 | dispositions weight, capabilities gate, conditions act | holds | television devotee x1.5 visible in Doug's 39.8% interacting; Nadia's "can't cook" learned 0.35 → 0.29; low spirits managed 0.60 → 0.47 |
+| 6 | a career | **fixed** | 25 shifts, FUNDS 3000, 12.3% of household time; the price is now the time rather than starvation |
+| 7 | multi-step interactions with resume | holds | 18 chains started, **18 completed, 0 abandoned**, across career preemption |
+| 8 | multiple rooms, 25+ objects, real footprints | holds | 30 placed objects, 18 interactive |
+| 9 | persistence | **fixed** | 0 of 36 000 ticks unloadable; 142 seams resume identically |
+| 10 | readable UI | holds | unchanged from [A-15]; no code touched here |
+| 11 | the game's voice | **open, and it is the last one** | owner-authored session still required ([L58]) |
+
+### What the [X2] fix actually cost and bought
+
+Terri's crisis time fell by roughly two thirds - hunger from 9 816
+need-ticks at or under 5 to **1 977**, hygiene and energy essentially
+resolved (74 and 154), social from 6 899 to **620**. She still touches
+zero on 18 of 25 days, and that is deliberate: `neglect_floor`'s own
+comment names "a career eating the time a need wanted" as a case the
+bleed exists for. Her crisis days are a middle stretch with clean weeks
+on both sides - a hard life, not a decline. Doug and Nadia remain at
+zero crisis ticks with floors of 17.7 and 19.0.
+
+**The balance shift, stated rather than tuned away.** Terri's life
+score moves 297.7 → **384.7** and now tops Doug's 364.0, reversing the
+order [A-14] recorded when the career landed. She is not being paid
+more; she is losing less to neglect bleed and has the energy to read
+(bookshelf 15 → 29 uses). Nadia falls 241.3 → **202.0**, the same
+emergent tax [A-14] named - her only hobby is company, and a housemate
+who is coping needs her less. **Whether a working sim SHOULD out-earn a
+settled one is a fun judgement, not a correctness one, and it is the
+owner's call.** The knob is one line: `at_work_decay_scale` in
+`content/tuning.toml`, and exactly 1.0 restores what this pass found.
+
+### Watched in a real browser, and it found the bug independently
+
+The persistence fix was verified through the shipped WASM build in the
+in-app browser, driving the real `SimHandle` via the `?stress` harness
+(which needs no animation frames, so an undisplayed pane cannot mute
+it - [L59]). Ticking the shipped household plus the harness's own bare
+agent, saving and reloading at **every one of 6 000 ticks**:
+
+| build | first refused save | refused of 6 000 |
+| --- | --- | --- |
+| before the fix | tick **697** | **2 013** |
+| after the fix | none | **0** |
+
+Zero loaded-but-changed on either. Funds read 480 at the end - four
+shifts paid - so the career was live across the window rather than the
+world sitting idle.
+
+**The before column was an accident worth keeping.** The preview server
+was serving the SHARED working tree's `dist`, not this worktree's, so
+the first hour of browser measurement was unknowingly running another
+branch's pre-fix build. It reproduced the failure at 29% against the
+native measurement's 28.4% - an independent confirmation of the bug
+from a build nobody had touched for this pass. See [L65] for the trap
+and how to notice it in one command.
+
+### The honest gap in this pass
+
+No PIXELS were checked: the pane could not composite (nobody had it
+displayed), so this is a driven-and-measured session rather than a
+looked-at one. Nothing in these three fixes changes what is drawn -
+[X1] touches validation only, [X2] and [X3] move need levels and one
+disposition weight - so the browser pass in [A-16] still describes what
+is on screen. A displayed-pane look at this build is the correct next
+check and is not claimed here. [A-16], written by the M2g pass, is the
+most recent watched session and its findings stand.
