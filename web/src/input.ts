@@ -730,8 +730,9 @@ export function dispatchMenuAction(
       return sink.useObject(agent, action.object, action.interaction);
     case 'talk':
       // The same replace pair as 'use': a talk order supersedes the
-      // queue rather than joining it.
-      if (replace && !sink.cancelIntents(agent)) return false;
+      // queue rather than joining it. Queue mode only applies to object
+      // actions, so `replace` deliberately cannot change this branch.
+      if (!sink.cancelIntents(agent)) return false;
       return sink.talkTo(agent, action.target, action.interaction);
     case 'cancel':
       return sink.cancelIntents(agent);

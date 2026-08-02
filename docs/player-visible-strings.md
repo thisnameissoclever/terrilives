@@ -24,7 +24,7 @@ itself on having personality.
 | Order feedback | Select a person first; Orders cleared; Could not clear orders; That order could not be added | `web/src/main.ts` |
 | Confirmation | Start a new game?; This replaces the saved household and cannot be undone.; Load the saved game?; Progress since the last save will be replaced.; Keep playing; Start over; Load game | `web/index.html` |
 | Help | How to play; Got it; the eight ordered control instructions | `web/index.html` |
-| Keyboard targeting | Target: {name}. Space selects a person; Enter opens actions.; Selected {name}; Use an arrow key to choose a target first; Select a person before choosing an object | `web/src/ui/keyboard-target.ts`, `web/src/main.ts` |
+| Keyboard targeting | Target: {object}. Enter opens actions.; Target: {person}. Space selects this person; Enter selects or opens social actions.; Selected {name}; Use an arrow key to choose a target first; Select a person before choosing an object | `web/src/ui/keyboard-target.ts`, `web/src/main.ts` |
 | Startup failure | This address cannot render the game; This browser cannot render the game; The game failed to start; recovery hints | `web/src/ui/startup-failure.ts` |
 
 ## Authored content where voice may live

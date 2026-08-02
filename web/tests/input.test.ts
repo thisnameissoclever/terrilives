@@ -1418,6 +1418,16 @@ describe('dispatchMenuAction', () => {
     expect(sink.calls).toEqual(['use 6 9 2']);
   });
 
+  it('still replaces the queue for a social action while queue mode is active', () => {
+    const sink = recordingSink(6);
+    dispatchMenuAction(
+      sink,
+      { kind: 'talk', target: 8, interaction: 1 },
+      false,
+    );
+    expect(sink.calls).toEqual(['cancel 6', 'talk 6 8 1']);
+  });
+
   it('sends the cancel alone for the Never mind row', () => {
     const sink = recordingSink(6);
     dispatchMenuAction(sink, NEVER_MIND.action);

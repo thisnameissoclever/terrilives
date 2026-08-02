@@ -71,7 +71,10 @@ export class KeyboardTargetController {
     const target = targets[next];
     this.entity = target.entity;
     this.status.hidden = false;
-    this.status.textContent = `Target: ${target.label}. Space selects a person; Enter opens actions.`;
+    const controls = target.kind === 'person'
+      ? 'Space selects this person; Enter selects or opens social actions.'
+      : 'Enter opens actions.';
+    this.status.textContent = `Target: ${target.label}. ${controls}`;
     return target;
   }
 

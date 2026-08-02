@@ -34,7 +34,11 @@ describe('keyboard targets', () => {
     expect(picker.cycle(-1)?.label).toBe('Nadia');
     expect(picker.cycle(1)?.label).toBe('Fridge');
     expect(status.hidden).toBe(false);
-    expect(status.textContent).toContain('Fridge');
+    expect(status.textContent).toBe('Target: Fridge. Enter opens actions.');
+    picker.cycle(1);
+    expect(status.textContent).toBe(
+      'Target: Terri. Space selects this person; Enter selects or opens social actions.',
+    );
   });
 
   it('opens object and social actions but selects the current person', () => {
