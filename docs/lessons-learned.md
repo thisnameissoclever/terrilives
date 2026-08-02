@@ -30,9 +30,16 @@ and a fresh ~35-minute CI cycle. A counter cannot be shared by branches
 that cannot see each other. A slug needs no allocator, so there is
 nothing to race for.
 
-**The numeric series is CLOSED at `[L73]`.** Every existing id keeps its
-number for ever - 60 files across `crates/`, `web/src/` and `docs/` cite
-them, and a citation that rots is worse than an ugly id.
+**The numeric series is CLOSED at `[L73]`** - no dash, which is how all
+73 of them are written here. `docs/alpha-feel-notes.md` writes its
+sessions the other way, `[A-24]`, in all 24 of them. Neither is being
+changed: each file is internally consistent, ~60 files cite these
+exactly as written, and `check-doc-ids.py` normalises the dash away when
+it compares two ids so a cross-format duplicate is still caught.
+
+**Every existing id keeps its number for ever** - 60 files across
+`crates/`, `web/src/` and `docs/` cite them, and a citation that rots is
+worse than an ugly id.
 `check-doc-ids.py` fails the build if a number past the close appears, or
 if any id is used twice.
 
@@ -3519,8 +3526,20 @@ the scheme removes the renumbering and the reference sweep, the strategy
 removes the conflict.
 
 **How to verify.** `check-doc-ids.py`, run in the `rust` CI job, fails
-on a number past the closed series or on the same id twice - both
-demonstrated against a deliberately broken copy before it was wired up.
-The union merge was verified on a scratch repository rather than
-assumed: two branches each appending an entry merge with exit 0, zero
-conflict markers, and both entries present.
+on four things, each demonstrated against a deliberately broken copy: a
+number past the closed series, an id that merely STARTS with a number
+(`[L74-something]` is the same allocation wearing a slug's clothes), the
+same id twice, and - as a negative - a fenced EXAMPLE of the format,
+which must not be counted as an id at all. The union merge was verified
+on a scratch repository rather than assumed: two branches each appending
+an entry merge with exit 0, zero conflict markers, and both entries
+present.
+
+**The guard needed a guard.** Its first version tested only for a purely
+numeric id, so `[L74-something]` walked past it, and it counted the
+format example inside this file's own code fence as a real id - which
+would have reported a duplicate against the first genuine entry to use
+that name. Review caught both. A checker written from the failure you
+just had sees that failure and no other; the cheap correction is to ask
+what ELSE satisfies the rule you wrote, before the rule is the thing
+everyone trusts.
