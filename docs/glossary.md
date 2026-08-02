@@ -61,7 +61,7 @@ Seven needs, each a number from 0 (desperate) to 100 (fully satisfied):
 | **household roster** | The Household row of named buttons used to select a person. Its order follows stable household identity, and it reconciles those identities after Load rather than trusting replaceable entity indices. |
 | **Save** | Writes the complete resumable household to the browser's one local save slot. The saved tick, random state, selection, active work, queued orders, and all entity state resume together. |
 | **Load** | Replaces progress since the last save only after confirmation. Invalid or incompatible bytes are rejected without changing the running household. |
-| **autosave** | The same complete save, written once when a new simulated day begins. It is serialized with manual saves and loads so the three operations cannot race. |
+| **autosave** | The same complete save, written once when a new simulated day begins. It waits while Save, Load, or New game owns the persistence boundary, so snapshot capture and storage cannot race. |
 | **New game** | Deletes the browser-local save after confirmation and reloads the authored move-in household. It does not delete content or files outside this game's private browser storage. |
 | **OPFS** | Origin Private File System: private storage owned by this website. The game uses one `terri-save-1.bin` file there instead of squeezing binary state into `localStorage`. |
 | **Queue** | A visible mode that appends each new order. On desktop, holding Ctrl or Cmd while clicking does the same thing. Turn Queue off to make a new order replace the old queue. |

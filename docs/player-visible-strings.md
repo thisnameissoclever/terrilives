@@ -1,7 +1,7 @@
 # Player-visible string inventory
 
-Status: the functional inventory is current through the household-roster
-slice. The dark-comedy voice
+Status: the functional inventory is current through the persistence-operation
+guard slice. The dark-comedy voice
 column is intentionally unfilled until the owner authors or approves it, per
 [L58]. This file is the handoff for playable-alpha criterion 11, not permission
 to invent the game's voice unattended.
@@ -21,7 +21,7 @@ itself on having personality.
 | Need warnings | critical; low; steady; {value}% full | `web/src/ui/needs-panel.ts` |
 | Speed | Pause; 1x; 2x; 3x | `web/src/ui/time-controls.ts` |
 | Game actions | Save; Load; Clear orders; Queue; New game; Help | `web/index.html` |
-| Save state | Starting; No save yet; Saving; Game saved; Autosaved; Saved game loaded; No saved game found | `web/index.html`, `web/src/ui/persistence-controller.ts` |
+| Save state | Starting; No save yet; Saving; Game saved; Autosaved; Loading; Saved game loaded; No saved game found; Starting new game | `web/index.html`, `web/src/ui/persistence-controller.ts` |
 | Save failures | Saved game is invalid. Starting a new game.; Saving is unavailable. Starting a new game.; Save failed. The game is still running.; Load failed. Current game kept.; Could not remove the saved game. | `web/src/ui/persistence-controller.ts` |
 | Order feedback | Select a person first; Orders cleared; Could not clear orders; That order could not be added; That person could not be selected | `web/src/main.ts` |
 | Confirmation | Start a new game?; This replaces the saved household and cannot be undone.; Load the saved game?; Progress since the last save will be replaced.; Keep playing; Start over; Load game | `web/index.html` |
