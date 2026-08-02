@@ -3401,3 +3401,28 @@ result as a short-circuit before allocating dependent projections.
 their mood.` and performs no projection reads. With an empty numeric result for
 a selected entity, it reads no labels and shows `Mood unavailable`. Unit tests
 assert both the distinct copy and the boundary call counts.
+
+## [L72] A fresh WASM view is stale after the next allocating boundary call
+
+**What happened.** Keyboard target discovery read fresh zero-copy ID and kind
+views, then kept them while asking WASM for person, object, and interaction
+labels. A string allocation can grow linear memory and detach both views during
+the first row. The loop then silently lost the remaining keyboard targets. Load
+also kept the previously armed raw entity index even though restore may reuse
+that index for a different live entity.
+
+**Root cause.** The bridge rule said not to cache a view, but the caller treated
+"freshly read" as a lifetime guarantee. It is not: a view is valid only until
+the next call that may grow memory. Separately, an entity index was treated as
+stable across wholesale world replacement even though it identifies storage,
+not identity.
+
+**Prevention rule.** Copy aligned primitive projection rows before performing
+dependent string calls. Any operation that replaces the world clears transient
+UI selections and targets before reconciling restored panels. Stable `SimId`
+belongs in state that must survive Load; raw entity indices do not.
+
+**How to verify.** Transfer and detach the original ID and kind buffers during
+the first label lookup and prove the complete keyboard target list still
+returns. Arm a target, clear it as the successful-Load path does, and prove the
+status is hidden and `current()` returns no target.

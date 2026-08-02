@@ -559,6 +559,10 @@ async function main(): Promise<void> {
     void loading
       .then((loaded) => {
         if (loaded) {
+          // A restored world may reuse entity indices for different live
+          // entities. Discard every transient action that names the old world.
+          menu.close();
+          keyboardTargets.clear();
           const nowMs = performance.now();
           householdRoster.update(nowMs, true);
           peoplePanel.update(nowMs, true);

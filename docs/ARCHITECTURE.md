@@ -470,6 +470,12 @@ rebuilds buffer, pointer and length on every access. That is a pointer-plus-leng
 operation with no copying, so it is cheap - caching it is the classic bug in this
 pattern, not an optimisation. See [L10] in `lessons-learned.md`.
 
+That lifetime also ends at the next boundary call that may allocate. A
+command-time projection that needs IDs or kinds while resolving strings first
+copies the aligned primitive rows, then performs the string calls. Holding a
+fresh zero-copy view across those calls is still holding a stale view; it just
+manages to fail within one function instead of between frames. See [L72].
+
 This is called out as its own section because it is the most likely place for
 the design to quietly rot into slowness. It must be deliberate rather than
 emergent. Tracked as [R1].
