@@ -3476,7 +3476,7 @@ requirements index explicitly names them as live work.
 feature name. The requirements index, feature overview, architecture, and code
 comments must agree on its status and on any deliberately deferred extension.
 
-## [L75] A reused render buffer has no meaningful trailing slots
+## [L-render-buffer-live-prefix] A reused render buffer has no meaningful trailing slots
 
 **What happened.** A selection-ring test read the slot immediately after the
 live instance count and expected it not to contain an old ring. Adding an
@@ -3497,7 +3497,7 @@ work and merely makes an invalid test look stable.
 Assert the second `instanceCount` and its live prefix. Permit any value beyond
 that prefix, and verify the draw call receives the same live count.
 
-## [L76] Tick state and presentation state are different save boundaries
+## [L-save-presentation-boundary] Tick state and presentation state are different save boundaries
 
 **What happened.** A movement-animation test rendered the pre-save and
 post-Load frames with interpolation alpha 1, then the acceptance note described

@@ -1913,7 +1913,7 @@ task's visualization artifact folder.
 The structural suite separately covers body, null, closed-dialog, deliberate
 focus, disabled-opener fallback, accepted selection, and both rejection kinds.
 
-## [A-26] Walking has a planted, deterministic footfall
+## [A-walking-footfall] Walking has a planted, deterministic footfall
 
 The corrected working build was watched in the in-app Chromium browser at
 1280 by 720. The source comparison is `33-interaction-focus-local.png`; movement
