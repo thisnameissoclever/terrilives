@@ -145,7 +145,12 @@ If the reviewer cannot name one, that is a finding, not a pass. This question
 has caught five of five instances so far; it is the defence that actually
 works, and it only works when asked explicitly rather than re-derived.
 
-## 8. Every milestone ends with a PLAYED visual pass
+## 9. Every milestone ends with a PLAYED visual pass
+
+<!-- Renumbered from a second "8" on 2026-08-02: two rules shared the
+number. Rule 8 is cited five times across crates/, web/ and docs/, and
+every one of those means "validate at the boundary", so that rule kept
+the number and this one moved. Nothing cited this one. -->
 
 A milestone is not done when its tests are green and its trace numbers
 are recorded; it is done when somebody has PLAYED the build and looked.
@@ -171,3 +176,31 @@ the anchor rule got a render-buffer test the same day it got eyes - but
 the pass itself is not automatable, which is the point: it is the one
 gate that measures what a player actually receives.
 
+## 10. A document's own ids must not come from a shared counter
+
+Ids that identify entries in an accreting document - `[L-...]` in
+`docs/lessons-learned.md`, `[A-...]` in `docs/alpha-feel-notes.md` - are
+kebab-case SLUGS, never the next free integer.
+
+A counter is an allocator, and branches that cannot see each other read
+it identically. Both series collided in practice: two different `[L41]`s
+on 2026-07-29, then three PRs on 2026-08-01 each appending what they
+believed was `[A-17]`. Every collision costs a renumber, a sweep of the
+cross-references and a fresh CI run, and none of it is about the code
+under review.
+
+- New entry: `## [L-what-it-is-about] ...`. Nothing to look up or
+  reserve.
+- Existing numbers never move; they are cited from ~60 files. The
+  series closed at `[L74]` and `[A-25]`.
+- `check-doc-ids.py` fails the build on a number past the closed series
+  or on the same id twice. It runs in the `rust` CI job.
+- Both files carry `merge=union` in `.gitattributes`, so two branches
+  appending different entries merge with no conflict at all. Union keeps
+  both sides of an overlapping hunk, so an edit to an OLD entry made on
+  two branches at once wants a careful read of the merge rather than a
+  trusted auto-resolve.
+
+This rule is about documents. Ids that name a THING rather than an entry
+- `[D-1]`, `[K5]`, `[E4]` in the design specs - are allocated inside one
+document by one author and have never collided.
