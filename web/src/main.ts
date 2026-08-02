@@ -901,6 +901,7 @@ async function main(): Promise<void> {
   );
 
   const timer = new FrameTimer(FRAME_WINDOW);
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let previousFrameMs = performance.now();
   let lastReportMs = performance.now();
 
@@ -934,6 +935,7 @@ async function main(): Promise<void> {
       depthScale,
       selected,
       camera.scale,
+      reducedMotion.matches,
     );
     renderer.draw(instances, instanceCount(sim, selected), camera.scale);
 

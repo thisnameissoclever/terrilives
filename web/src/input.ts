@@ -28,7 +28,11 @@
  * holds only the part that needs a pick: which rows a right click asks for.
  */
 
-import { ACTIVITY_AT_WORK } from './frame.js';
+import {
+  ACTIVITY_AT_WORK,
+  ACTIVITY_WALKING,
+  WALK_LIFT_PX,
+} from './frame.js';
 import { SPRITES } from './render/atlas.js';
 import {
   DRAG_THRESHOLD_PX,
@@ -77,9 +81,10 @@ export interface PickSource {
    */
   sprites(): Uint32Array;
   /**
-   * Activity codes per row. Picking reads it for ONE code: a sim at work
-   * (ACTIVITY_AT_WORK) is not drawn, so it must not be clickable either -
-   * the pick box and the pixels move together, the standing rule.
+   * Activity codes per row. Picking reads two codes: a sim at work is not
+   * drawn, and a walking sim can rise by `WALK_LIFT_PX`. Picking does not own
+   * the render interpolation alpha, so walkers use the complete travel
+   * envelope rather than letting a visible footfall escape between ticks.
    */
   activities(): Uint32Array;
 }
@@ -312,7 +317,11 @@ export function pickSprite(
     const anchorX = screenX(wx, wy, originX, scale);
     const anchorY = screenY(wx, wy, originY, scale) + TILE_HALF_HEIGHT * scale;
     const left = anchorX - (sprite.w / 2) * scale;
-    const top = anchorY - sprite.h * scale;
+    const walkingHeadroom =
+      kinds[row] === KIND_AGENT && activities[row] === ACTIVITY_WALKING
+        ? WALK_LIFT_PX * scale
+        : 0;
+    const top = anchorY - sprite.h * scale - walkingHeadroom;
     if (px < left || px > left + sprite.w * scale) continue;
     if (py < top || py > anchorY) continue;
 

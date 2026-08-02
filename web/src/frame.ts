@@ -59,6 +59,30 @@ const INDICATOR_SPRITES: readonly (number | null)[] = [
  */
 export const ACTIVITY_AT_WORK = 6;
 
+/** The `render_buffer::activity::WALKING` code. */
+export const ACTIVITY_WALKING = 1;
+
+/** Maximum ornamental body lift for one walking footfall at camera scale 1. */
+export const WALK_LIFT_PX = 2;
+
+/**
+ * A distance-driven footfall with two smooth lifts per tile.
+ *
+ * World position is the phase so pause, speed changes, save/load and replay
+ * reproduce the same pose without presentation state or wall-clock time.
+ */
+export function walkingLiftPx(
+  wx: number,
+  wy: number,
+  reducedMotion: boolean,
+  scale = 1,
+): number {
+  if (reducedMotion) return 0;
+  const halfStep = 2 * (wx + wy);
+  const phase = halfStep - Math.floor(halfStep);
+  return WALK_LIFT_PX * (1 - Math.abs(2 * phase - 1)) * scale;
+}
+
 /**
  * How far above a sim's anchor its bubble floats, in screen pixels: the
  * sim sprite is 78 tall and the bubble hangs just over its head.
@@ -332,6 +356,7 @@ export function buildInstances(
   gridSize: number,
   selected: number | null = null,
   scale = 1,
+  reducedMotion = false,
 ): InstanceArray {
   const count = source.count;
   // Room for the entities, one bubble and one carried badge each in
@@ -363,6 +388,10 @@ export function buildInstances(
     }
     const wx = lerp(previous[i * 2], current[i * 2], alpha);
     const wy = lerp(previous[i * 2 + 1], current[i * 2 + 1], alpha);
+    const bodyLift =
+      kinds[i] === KIND_AGENT && activities[i] === ACTIVITY_WALKING
+        ? walkingLiftPx(wx, wy, reducedMotion, scale)
+        : 0;
     // Two scalar calls rather than the `worldToScreen` tuple. The tuple
     // is one JS array per entity per frame, and the M0 close-out profile
     // measured V8 keeping every one of them - 57.8 MB over 2,394 frames
@@ -382,7 +411,7 @@ export function buildInstances(
       scratch,
       i,
       screenX(wx, wy, originX, scale),
-      screenY(wx, wy, originY, scale),
+      screenY(wx, wy, originY, scale) - bodyLift,
       // Depth stays in WORLD terms on purpose: zoom changes how big
       // things are drawn, never what covers what.
       layeredDepth(
@@ -439,11 +468,15 @@ export function buildInstances(
     if (sprite === null) continue;
     const wx = lerp(previous[i * 2], current[i * 2], alpha);
     const wy = lerp(previous[i * 2 + 1], current[i * 2 + 1], alpha);
+    const lift =
+      kinds[i] === KIND_AGENT && activities[i] === ACTIVITY_WALKING
+        ? walkingLiftPx(wx, wy, reducedMotion, scale)
+        : 0;
     writeInstance(
       scratch,
       slot++,
       screenX(wx, wy, originX, scale) + CARRIED_SIDE * scale,
-      screenY(wx, wy, originY, scale) - CARRIED_LIFT * scale,
+      screenY(wx, wy, originY, scale) - CARRIED_LIFT * scale - lift,
       layeredDepth(wx, wy, gridSize, LAYER_SIM) - INDICATOR_DEPTH_NUDGE,
       sprite,
     );

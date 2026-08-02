@@ -8,6 +8,7 @@ import {
   lerp,
   buildInstances,
   instanceCount,
+  walkingLiftPx,
   type RenderSource,
 } from '../src/frame.js';
 import { spriteIndex } from '../src/render/atlas.js';
@@ -427,6 +428,101 @@ describe('lerp', () => {
 });
 
 describe('buildInstances', () => {
+  it('derives equal walking footfalls from quarter-tile cardinal movement', () => {
+    const samples = [
+      [0, 0, 0.25, 0],
+      [0.25, 0, 0, 0],
+      [0, 0, 0, 0.25],
+      [0, 0.25, 0, 0],
+    ] as const;
+
+    for (const [prevX, prevY, currentX, currentY] of samples) {
+      const source = new FakeEntities();
+      source.set([
+        [prevX, prevY, currentX, currentY, KIND_AGENT, 1, 1],
+      ]);
+      const start = snapshot(
+        buildInstances(source, 0, 0, 0, GRID),
+        1,
+      );
+      const middle = snapshot(
+        buildInstances(source, 0.5, 0, 0, GRID),
+        1,
+      );
+      const end = snapshot(
+        buildInstances(source, 1, 0, 0, GRID),
+        1,
+      );
+      expect(middle[OFFSET_SCREEN_Y]).toBe(
+        screenY(
+          lerp(prevX, currentX, 0.5),
+          lerp(prevY, currentY, 0.5),
+          0,
+        ) - 1,
+      );
+      expect(start[OFFSET_SCREEN_Y]).toBe(
+        screenY(prevX, prevY, 0) -
+          walkingLiftPx(prevX, prevY, false),
+      );
+      expect(end[OFFSET_SCREEN_Y]).toBe(
+        screenY(currentX, currentY, 0) -
+          walkingLiftPx(currentX, currentY, false),
+      );
+    }
+  });
+
+  it('is planted at tile and half-tile boundaries without a seam', () => {
+    for (const position of [0, 0.5, 1, 1.5, 2]) {
+      expect(walkingLiftPx(position, 0, false)).toBe(0);
+    }
+    for (const position of [0.25, 0.75, 1.25, 1.75]) {
+      expect(walkingLiftPx(position, 0, false)).toBe(2);
+    }
+    expect(walkingLiftPx(1 - 1e-6, 0, false)).toBeCloseTo(
+      walkingLiftPx(1 + 1e-6, 0, false),
+      10,
+    );
+  });
+
+  it('keeps non-walking and reduced-motion bodies planted', () => {
+    const source = new FakeEntities();
+    source.set([
+      [0, 0, 1, 0, KIND_AGENT, 1, 0],
+      [0, 1, 1, 1, KIND_AGENT, 1, 2],
+      [0.25, 2, 0.25, 2, KIND_AGENT, 1, 1],
+    ]);
+
+    const built = snapshot(buildInstances(source, 0.25, 0, 0, GRID), 3);
+    expect(built[OFFSET_SCREEN_Y]).toBe(screenY(0.25, 0, 0));
+    expect(built[FLOATS_PER_INSTANCE + OFFSET_SCREEN_Y]).toBe(
+      screenY(0.25, 1, 0),
+    );
+    expect(built[2 * FLOATS_PER_INSTANCE + OFFSET_SCREEN_Y]).toBe(
+      screenY(0.25, 2, 0) - 2,
+    );
+
+    const reduced = snapshot(
+      buildInstances(source, 0.25, 0, 0, GRID, null, 1, true),
+      3,
+    );
+    expect(reduced[OFFSET_SCREEN_Y]).toBe(screenY(0.25, 0, 0));
+
+    source.set([
+      [0, 0, 1, 0, KIND_AGENT, 1, 0],
+      [0, 1, 1, 1, KIND_AGENT, 1, 2],
+      [0.25, 2, 0.25, 2, KIND_AGENT, 1, 0],
+    ]);
+    expect(reduced).toEqual(
+      snapshot(buildInstances(source, 0.25, 0, 0, GRID), 3),
+    );
+  });
+
+  it('scales the footfall exactly once', () => {
+    expect(walkingLiftPx(0.25, 0, false, 0.5)).toBe(1);
+    expect(walkingLiftPx(0.25, 0, false, 1)).toBe(2);
+    expect(walkingLiftPx(0.25, 0, false, 2.5)).toBe(5);
+  });
+
   it('interpolates between the previous and current tick rather than snapping', () => {
     // Three alphas rather than two. Snapping to the current tick agrees
     // with the intended mechanism at alpha 1, snapping to the previous
@@ -732,6 +828,22 @@ describe('the carried badge', () => {
     expect(asDinner).not.toBe(asIngredients);
   });
 
+  it('follows a walking carrier while the selection ring stays planted', () => {
+    src.set([[0, 0, 1, 0, KIND_AGENT, 3, 1, 0]]);
+    const built = buildInstances(src, 0.25, 0, 0, GRID, 100);
+    const body = 0;
+    const badge = 1 * FLOATS_PER_INSTANCE;
+    const ring = 2 * FLOATS_PER_INSTANCE;
+    const groundY = screenY(0.25, 0, 0);
+
+    expect(built[body + OFFSET_SCREEN_Y]).toBe(groundY - 2);
+    expect(built[badge + OFFSET_SCREEN_Y]).toBe(groundY - 24 - 2);
+    expect(built[ring + OFFSET_SCREEN_Y]).toBe(groundY);
+    expect(built[ring + OFFSET_DEPTH]).toBeGreaterThan(
+      built[body + OFFSET_DEPTH],
+    );
+  });
+
   it('hides the badge of a carrier who is at work', () => {
     src.set([
       [1, 1, 1, 1, KIND_AGENT, 3, 6, 0], // at work, carrying
@@ -827,6 +939,73 @@ describe('buildInstances over a real SimBridge', () => {
     expect(previous2).toEqual(current1);
     expect(previous3).toEqual(current2);
   });
+
+  it('rebuilds the walking pose from the saved tick position without animation state', () => {
+    const bridge = new SimBridge(new SimHandle(GRID, GRID), wasmMemory);
+    bridge.spawnObject(12, 2, 'fridge');
+    bridge.spawnAgent(1, 1, 20);
+
+    let walkingRow = -1;
+    for (let tick = 0; tick < 40 && walkingRow < 0; tick++) {
+      bridge.tick();
+      const positions = bridge.positions();
+      const kinds = bridge.kinds();
+      const activities = bridge.activities();
+      for (let row = 0; row < bridge.count; row++) {
+        const lift = walkingLiftPx(
+          positions[row * 2],
+          positions[row * 2 + 1],
+          false,
+        );
+        if (
+          kinds[row] === KIND_AGENT &&
+          activities[row] === 1 &&
+          lift > 0
+        ) {
+          walkingRow = row;
+          break;
+        }
+      }
+    }
+    if (walkingRow < 0) {
+      throw new Error('fixture never produced a lifted walking sample');
+    }
+
+    const savedPosition = [
+      bridge.positions()[walkingRow * 2],
+      bridge.positions()[walkingRow * 2 + 1],
+    ] as const;
+    const savedTickFrame = snapshot(
+      buildInstances(bridge, 1, ORIGIN_X, ORIGIN_Y, GRID),
+      bridge.count,
+    );
+    const bytes = bridge.saveBytes();
+
+    bridge.tick();
+    bridge.tick();
+    expect(bridge.loadBytes(bytes)).toBe(true);
+
+    const current = bridge.positions();
+    const previous = bridge.prevPositions();
+    expect([current[walkingRow * 2], current[walkingRow * 2 + 1]]).toEqual(
+      savedPosition,
+    );
+    expect([
+      previous[walkingRow * 2],
+      previous[walkingRow * 2 + 1],
+    ]).toEqual(savedPosition);
+
+    const after = snapshot(
+      buildInstances(bridge, 1, ORIGIN_X, ORIGIN_Y, GRID),
+      bridge.count,
+    );
+    const bodyY = walkingRow * FLOATS_PER_INSTANCE + OFFSET_SCREEN_Y;
+    expect(after[bodyY]).toBe(savedTickFrame[bodyY]);
+    expect(after[bodyY]).toBe(
+      screenY(savedPosition[0], savedPosition[1], ORIGIN_Y) -
+        walkingLiftPx(savedPosition[0], savedPosition[1], false),
+    );
+  });
 });
 
 describe('the selection ring', () => {
@@ -860,10 +1039,13 @@ describe('the selection ring', () => {
   it('draws nothing extra when nothing is selected', () => {
     const source = twoSims();
     const instances = buildInstances(source, 1, ORIGIN_X, ORIGIN_Y, GRID, null);
-    expect(instanceCount(source, null)).toBe(2);
-    // The slot past the entities must be untouched, or `draw` would upload a
-    // stale ring from a previous frame.
-    expect(slot(instances, 2).sprite).not.toBe(RING);
+    const liveCount = instanceCount(source, null);
+    expect(liveCount).toBe(2);
+    // The shared scratch buffer may retain trailing data from a larger prior
+    // frame. `draw` receives the live count, so only this prefix is observable.
+    expect(snapshot(instances, liveCount)).toHaveLength(
+      2 * FLOATS_PER_INSTANCE,
+    );
   });
 
   it('draws one ring, at the selected sim, on top of the floor and under the sim', () => {

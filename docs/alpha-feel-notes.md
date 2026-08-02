@@ -1912,3 +1912,49 @@ task's visualization artifact folder.
 
 The structural suite separately covers body, null, closed-dialog, deliberate
 focus, disabled-opener fallback, accepted selection, and both rejection kinds.
+
+## [A-26] Walking has a planted, deterministic footfall
+
+The corrected working build was watched in the in-app Chromium browser at
+1280 by 720. The source comparison is `33-interaction-focus-local.png`; movement
+captures are `40-walking-paused.png`, `41-walking-paused-later.png`, and
+`48-walking-speed-start.png` through `54-walking-loaded.png` in the task's
+visualization artifact folder.
+
+- **The body moves while the ground stays put.** A fresh game produced two
+  simultaneously walking sims. Their bodies rose by the restrained footfall,
+  while the selected sim's ring remained on its tile and the ordinary depth
+  order stayed intact. Comparing the source and corrected viewport found no
+  unintended layout, palette, sprite, wall, or furniture change.
+- **Pause freezes pose as well as time.** Nadia was paused while the HUD still
+  read Walking. Captures taken 300 ms apart were byte-identical, including the
+  clock, body, and selection ring. Resuming at 1x, 2x, and 3x moved the sims
+  through the same distance-derived cycle; each control could return to the
+  frozen state without a presentation snap.
+- **Load reconstructs rather than restarts the pose.** A paused walking frame
+  was saved, the household advanced until Nadia was Eating at `Day 1, 05:54`,
+  and Load restored `Day 1, 05:32` with Nadia Walking. The WASM seam test
+  separately proves Load reconstructs the same screen Y from the saved tick-end
+  position after restore seeds previous and current position to that value.
+  Save does not persist the fractional render interpolation alpha, so this is
+  not a claim that an unsaved between-tick sample survives Load exactly.
+- **Selection covers the full travel envelope.** Picking does not receive the
+  renderer's interpolation alpha, so a walking sim gets a conservative
+  two-pixel headroom strip for the entire step. Unit coverage hits that maximum
+  boundary and rejects the pixel immediately above it at 0.5x, 1x, and 2.5x
+  zoom. The same matrix proves non-walking and reduced-motion bodies keep their
+  original rendered output, carried badges share the body lift, and the ring
+  never does.
+- **Reduced motion has an explicit proof boundary.** The watched browser
+  reported its ordinary no-reduction preference. The deterministic renderer
+  suite, rather than a claimed visual toggle, proves the reduced-motion output
+  exactly equals the planted idle transform while normal travel interpolation
+  remains unchanged.
+- **Runtime remained quiet.** The fresh-game, pause, speed, save/load, and
+  source-comparison session had document width equal to viewport width and
+  reported zero console warnings and zero errors.
+
+This is movement polish on the existing placeholder art, not the final
+character-art pipeline. Action poses still require semantic visual-action
+categories, facings, and interaction anchors; using the current broad activity
+codes directly would animate several unrelated object interactions as eating.

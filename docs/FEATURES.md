@@ -54,12 +54,19 @@ control [R6], which is the risk most likely to actually kill this project.
 ### Current priority guidance
 
 On 2026-08-02, the owner asked to move visual quality, movement animation, and
-action animation near the front of the next-work order. The next slice is a
-grounded design and renderer audit: capture the current moving and acting
-states, map simulation activities to visible animation hooks, identify what the
-existing sprites and atlas can support, and define reduced-motion and watched
-acceptance. This priority does not decide the colour palette, paid assets, or a
-new character-art pipeline; those remain [T12], [T3]/[T7], and [T19].
+action animation near the front of the next-work order. The grounded design and
+renderer audit is complete, and the first movement slice now gives walking sims
+a restrained, distance-driven footfall while keeping the ground ring and depth
+planted. Carried-item badges follow the body, picking includes the lifted head,
+and reduced-motion users retain smooth travel without the ornamental lift.
+
+Action-specific body animation comes next, but it needs authored visual-action
+categories, facings, and interaction anchors first. The current `EATING`
+activity also covers showers, toilets, television, reading, washing, and other
+object use, so mapping it directly to an eating pose would confidently animate
+the wrong fiction. This priority does not decide the colour palette, paid
+assets, or a new character-art pipeline; those remain [T12], [T3]/[T7], and
+[T19].
 
 **M1b closed with one item of its deliverable unmet, deliberately recorded
 rather than quietly ticked.** Every definition-of-done line passes, and the
