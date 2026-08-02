@@ -36,13 +36,19 @@ from __future__ import annotations
 import re
 import sys
 
-# The last number each series ever allocated. Anything above this is a
-# new entry that reached for the counter. These do not change when
-# entries are added - only if a numbered entry were ever legitimately
-# added, which is what this script exists to prevent.
+# The last number each series ever allocated - where the counter stood
+# when the slug rule landed, which is the only thing that makes a close
+# point meaningful. Anything above is a new entry reaching for the
+# counter.
+#
+# These are frozen from here. The one legitimate reason to raise them is
+# already spent: while this rule was in review, PR #35 merged an [L74]
+# and an [A-25] that were authored before it existed, so the close moved
+# to cover them rather than rewriting headings somebody had already
+# merged and might cite.
 CLOSED = {
-    "docs/lessons-learned.md": ("L", 73),
-    "docs/alpha-feel-notes.md": ("A", 24),
+    "docs/lessons-learned.md": ("L", 74),
+    "docs/alpha-feel-notes.md": ("A", 25),
 }
 
 HEADING = re.compile(r"^#{2,3} \[([A-Z])-?([^\]]+)\]")

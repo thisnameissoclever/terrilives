@@ -18,7 +18,7 @@ Pick the slug from the lesson's own subject. Two words is usually
 enough. It never needs to be looked up, reserved, or agreed with anyone,
 which is the entire point.
 
-**Why the numbers stopped.** `[L1]`-`[L73]` were allocated by taking the
+**Why the numbers stopped.** `[L1]`-`[L74]` were allocated by taking the
 next free integer, so every branch working in parallel read the same
 "next" number and wrote there. It collided on 2026-07-29 (two different
 `[L41]`s, main's renumbered to `[L49]`), and the workaround recorded
@@ -30,8 +30,8 @@ and a fresh ~35-minute CI cycle. A counter cannot be shared by branches
 that cannot see each other. A slug needs no allocator, so there is
 nothing to race for.
 
-**The numeric series is CLOSED at `[L73]`** - no dash, which is how all
-73 of them are written here. `docs/alpha-feel-notes.md` writes its
+**The numeric series is CLOSED at `[L74]`** - no dash, which is how all
+74 of them are written here. `docs/alpha-feel-notes.md` writes its
 sessions the other way, `[A-24]`, in all 24 of them. Neither is being
 changed: each file is internally consistent, ~60 files cite these
 exactly as written, and `check-doc-ids.py` normalises the dash away when

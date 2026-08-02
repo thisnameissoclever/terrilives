@@ -23,7 +23,7 @@ number:
 ## [A-alpha-acceptance] The alpha acceptance pass - all eleven criteria
 ```
 
-**The numeric series is CLOSED at `[A-24]`.** `[A-1]`-`[A-24]` were
+**The numeric series is CLOSED at `[A-25]`.** `[A-1]`-`[A-25]` were
 allocated from a shared counter, which every parallel branch reads the
 same way: on 2026-08-01 three PRs each appended what they believed was
 `[A-17]`, and the last one through renumbered twice. A slug needs no

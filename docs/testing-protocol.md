@@ -191,7 +191,8 @@ under review.
 
 - New entry: `## [L-what-it-is-about] ...`. Nothing to look up or
   reserve.
-- Existing numbers never move; they are cited from ~60 files.
+- Existing numbers never move; they are cited from ~60 files. The
+  series closed at `[L74]` and `[A-25]`.
 - `check-doc-ids.py` fails the build on a number past the closed series
   or on the same id twice. It runs in the `rust` CI job.
 - Both files carry `merge=union` in `.gitattributes`, so two branches
