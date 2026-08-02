@@ -11,7 +11,12 @@ import init, { SimHandle } from './wasm/terri_wasm.js';
 import { SimBridge } from './bridge.js';
 import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
-import { FixedStepDriver, buildInstances, instanceCount } from './frame.js';
+import {
+  FixedStepDriver,
+  advanceSimulationFrame,
+  buildInstances,
+  instanceCount,
+} from './frame.js';
 import { cameraOrigin } from './render/iso.js';
 import { clampOrigin, lotExtent, zoomAnchoredOrigin } from './render/camera.js';
 import { SPRITES } from './render/atlas.js';
@@ -33,6 +38,10 @@ import { HelpPanel } from './ui/help-panel.js';
 import { PersistenceController } from './ui/persistence-controller.js';
 import { QueueMode } from './ui/queue-mode.js';
 import { KeyboardTargetController } from './ui/keyboard-target.js';
+import {
+  HouseholdRoster,
+  createHouseholdRosterSurface,
+} from './ui/household-roster.js';
 
 /** [D2]: the simulation's one true rate. Speed controls change how many
  * ticks run per frame, never how long a tick is. */
@@ -313,6 +322,9 @@ async function main(): Promise<void> {
   const activityValue = document.querySelector<HTMLElement>('#activity-value');
   const ordersRow = document.querySelector<HTMLElement>('#orders-row');
   const ordersValue = document.querySelector<HTMLElement>('#orders-value');
+  const householdRosterRoot = document.querySelector<HTMLElement>(
+    '#household-roster-members',
+  );
   if (
     !clockValue ||
     !fundsValue ||
@@ -321,7 +333,8 @@ async function main(): Promise<void> {
     !careerValue ||
     !activityValue ||
     !ordersRow ||
-    !ordersValue
+    !ordersValue ||
+    !householdRosterRoot
   ) {
     throw new Error('missing player status markup');
   }
@@ -338,6 +351,16 @@ async function main(): Promise<void> {
     },
     sim.needBarRefreshMs(),
   );
+  const householdRoster = new HouseholdRoster(
+    sim,
+    createHouseholdRosterSurface(document, householdRosterRoot),
+    sim.needBarRefreshMs(),
+    () => {
+      saveStatus.textContent = 'That person could not be selected';
+      saveStatus.setAttribute('data-kind', 'error');
+    },
+  );
+  householdRoster.update(performance.now(), true);
   // The developer overlay, installed only under `?debug=1` - the same
   // presence rule as `?stress`, so the shipping page carries no extra
   // surface and no extra key binding. Backquote toggles it; that key
@@ -439,7 +462,11 @@ async function main(): Promise<void> {
     void persistence.save().then(syncLoadButton);
   });
   loadButton.addEventListener('click', () => loadGameDialog.showModal());
-  confirmLoadGame.addEventListener('click', () => void persistence.load());
+  confirmLoadGame.addEventListener('click', () => {
+    void persistence.load().then((loaded) => {
+      if (loaded) householdRoster.update(performance.now(), true);
+    });
+  });
   newGameButton.addEventListener('click', () => newGameDialog.showModal());
   confirmNewGame.addEventListener('click', () => {
     startingNewGame = true;
@@ -717,8 +744,9 @@ async function main(): Promise<void> {
     if (cameraDirty) applyCamera();
 
     // The sim advances in whole ticks; alpha is how far this frame sits
-    // between the last one that ran and the next one that has not.
-    const alpha = driver.advance(deltaMs, () => sim.tick());
+    // between the last one that ran and the next one that has not. A paused
+    // frame drains input without running a full tick.
+    const alpha = advanceSimulationFrame(driver, deltaMs, sim);
     // The selection comes from the simulation every frame rather than being
     // remembered here ([D-5]), so the ring cannot disagree with what the need
     // panel is showing.
@@ -740,6 +768,7 @@ async function main(): Promise<void> {
     // On five frames in six this is two comparisons and a return.
     needsPanel.update(nowMs, sim);
     gameHud.update(nowMs, sim);
+    householdRoster.update(nowMs);
     if (!startingNewGame) persistence.updateAutosave();
     syncLoadButton();
     debugPanel?.update(nowMs);

@@ -8,9 +8,10 @@
  * are both testable in Node - the same split `frame.ts` and `iso.ts` use.
  *
  * **Nothing here mutates the simulation.** Per [D-2] the only thing this
- * module can do is enqueue a command, which `drain_commands` applies at one
- * fixed point in the tick. That is what keeps a recorded session replayable
- * and is what a Layer 2 client would send over a wire.
+ * module can do is enqueue a command, which `drain_commands` applies first in
+ * a full tick or alone while paused. Both paths consume the same ordered data,
+ * which keeps a recorded session replayable and is what a Layer 2 client would
+ * send over a wire.
  *
  * # The gestures, as [I3] and [I4] settled them
  *
@@ -22,7 +23,7 @@
  * | click bare floor | clear the selection |
  * | right click or long press | open the flyout in `ui/object-menu.ts` |
  *
- * Replace is two existing commands in one tick's drain rather than a new
+ * Replace is two existing commands in one drain batch rather than a new
  * one; see `dispatch`. The flyout's own rules live beside it, and this file
  * holds only the part that needs a pick: which rows a right click asks for.
  */
@@ -482,16 +483,15 @@ export interface CommandSink {
  * without a bridge.
  *
  * **The cancel goes first, and that ordering is the whole of "replace".**
- * Both commands land in the same tick's drain, and `drain_commands`
+ * Both commands land in the same drain batch, and `drain_commands`
  * applies a batch in issue order, so:
  *
  *  - cancel then use empties the queue and then puts the new instruction
  *    in it - one entry, the new one, with the abandoned object's
  *    reservation released;
- *  - use then cancel stages the new instruction and then wipes it, because
- *    the cancel's `fresh.retain` and `clear()` both see what the same batch
- *    just staged. The sim ends up with nothing queued and the click looks
- *    like it was ignored.
+ *  - use then cancel stages the new instruction and then clears both that
+ *    staged queue and any live queue. The sim ends up with nothing queued
+ *    and the click looks like it was ignored.
  *
  * Two Rust tests hold the pair apart -
  * `a_cancel_then_a_use_in_one_batch_replaces_the_queue_rather_than_appending_to_it`

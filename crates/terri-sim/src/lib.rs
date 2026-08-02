@@ -25,6 +25,7 @@ pub struct Content(pub &'static terri_data::ContentPack);
 pub struct Sim {
     world: World,
     schedule: Schedule,
+    command_schedule: Schedule,
     render: render_buffer::RenderBuffer,
 }
 
@@ -183,9 +184,9 @@ impl Sim {
             (
                 // **First, before anything else in the tick** - [D-2].
                 // Player input is asynchronous and lands in a staging
-                // queue; this is the one fixed point at which it becomes
-                // simulation state, which is what makes a recorded
-                // command log replay to the same world.
+                // queue; this is the full tick's command boundary. The
+                // paused schedule below runs the same system alone, which
+                // keeps a recorded command log replaying to the same world.
                 //
                 // Before `serve_intents` specifically, because an intent
                 // pushed here has to be servable on the same tick: a
@@ -270,9 +271,19 @@ impl Sim {
                 .chain(),
         );
 
+        // Pausing stops full simulation ticks, but it must not freeze player
+        // input. This schedule applies the same deterministic command drain
+        // without advancing the clock, decaying needs, or running autonomy.
+        // It is separate from the full schedule because Bevy owns each
+        // system instance from initialisation onward.
+        let mut command_schedule = Schedule::default();
+        command_schedule.set_executor_kind(ExecutorKind::SingleThreaded);
+        command_schedule.add_systems(systems::command::drain_commands);
+
         Self {
             world,
             schedule,
+            command_schedule,
             render: render_buffer::RenderBuffer::default(),
         }
     }
@@ -468,6 +479,16 @@ impl Sim {
         self.schedule.run(&mut self.world);
     }
 
+    /// Applies staged player input without advancing simulation time.
+    ///
+    /// The browser calls this while paused. Commands still enter through the
+    /// same serialized queue and the same drain system as a full tick, so
+    /// replay ordering does not acquire a second implementation. Nothing
+    /// after command step zero in [D5] runs here.
+    pub fn flush_commands(&mut self) {
+        self.command_schedule.run(&mut self.world);
+    }
+
     pub fn world(&self) -> &World {
         &self.world
     }
@@ -490,9 +511,25 @@ impl Sim {
     /// stopped eating. `entity_slots_survive_archetype_churn` pins it;
     /// deleting the sort must fail that test.
     pub fn sync_render_buffer(&mut self) {
+        self.sync_render_buffer_inner(true);
+    }
+
+    /// Refreshes command-visible render metadata without advancing the two
+    /// position samples used for interpolation.
+    ///
+    /// A paused command can change selection or activity, but no movement
+    /// system ran. Swapping position frames here would collapse an in-flight
+    /// interpolation into a snap even when the command queue was empty.
+    pub fn sync_render_buffer_after_commands(&mut self) {
+        self.sync_render_buffer_inner(false);
+    }
+
+    fn sync_render_buffer_inner(&mut self, advance_interpolation: bool) {
         use terri_core::{Agent, Position, SmartObject};
 
-        std::mem::swap(&mut self.render.prev_positions, &mut self.render.positions);
+        if advance_interpolation {
+            std::mem::swap(&mut self.render.prev_positions, &mut self.render.positions);
+        }
         self.render.positions.clear();
         self.render.kinds.clear();
         self.render.sprites.clear();
@@ -2011,6 +2048,43 @@ mod household_tests {
             pairs,
             vec![(0, vec!["whittling".to_string()], 0.0), (1, vec![], 0.0),],
             "hobbies are the member's own and every ledger opens empty"
+        );
+    }
+
+    #[test]
+    fn spawn_household_supports_the_full_six_member_roster_in_order() {
+        let (personalities, seed) = people();
+        let household: Vec<_> = (0..terri_data::MAX_HOUSEHOLD_SIZE)
+            .map(|index| {
+                let mut member = seed[index % seed.len()].clone();
+                member.name = format!("Person {}", index + 1);
+                member
+            })
+            .collect();
+        let mut sim = Sim::new_with_lot(8, 8);
+        sim.spawn_household(&personalities, &household, &[]);
+
+        let world = sim.world_mut();
+        let mut state = world
+            .try_query::<(&SimId, &SimName)>()
+            .expect("registered eagerly");
+        let mut rows: Vec<_> = state
+            .iter(world)
+            .map(|(id, name)| (id.0, name.0.clone()))
+            .collect();
+        rows.sort_by_key(|(id, _)| *id);
+
+        assert_eq!(
+            rows,
+            vec![
+                (0, "Person 1".into()),
+                (1, "Person 2".into()),
+                (2, "Person 3".into()),
+                (3, "Person 4".into()),
+                (4, "Person 5".into()),
+                (5, "Person 6".into()),
+            ],
+            "stable ids follow declaration order through the full supported capacity"
         );
     }
 

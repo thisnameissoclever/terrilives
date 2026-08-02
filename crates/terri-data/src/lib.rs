@@ -19,7 +19,7 @@ pub use pack::{
 pub use schema::{
     ArchetypeDef, AtlasFile, AtlasSpriteDef, DispositionDef, HouseholdFile, HouseholdSimDef,
     InteractionDef, LotFile, NeedDef, NeedsFile, ObjectDef, ObjectsFile, PersonalitiesFile,
-    PlacementDef, TraitDef, TraitsFile, TuningFile, WallDef, TRAIT_KINDS,
+    PlacementDef, TraitDef, TraitsFile, TuningFile, WallDef, MAX_HOUSEHOLD_SIZE, TRAIT_KINDS,
 };
 
 use std::sync::OnceLock;

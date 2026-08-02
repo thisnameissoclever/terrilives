@@ -204,6 +204,14 @@ impl SimHandle {
         self.sim.sync_render_buffer();
     }
 
+    /// Applies staged player commands while the fixed-step driver is paused.
+    /// This refreshes the render buffer but deliberately does not advance the
+    /// simulation clock or run needs, autonomy, movement, or interactions.
+    pub fn flush_commands(&mut self) {
+        self.sim.flush_commands();
+        self.sim.sync_render_buffer_after_commands();
+    }
+
     /// Arguments are sanitised here rather than trusted. See
     /// [`sanitize_hunger`] and [`sanitize_coord`] for what that means and
     /// why the sim crates are not the place to do it.
@@ -271,15 +279,16 @@ impl SimHandle {
     ///
     /// The rarer hazard is memory growth, which reallocates the `Vec` and
     /// moves it; see the detachment warning in web/src/bridge.ts. The
-    /// constant one is `sync_render_buffer`, which begins with a
+    /// constant one is a full `sync_render_buffer`, which begins with a
     /// `std::mem::swap` of `positions` and `prev_positions`. A swap
     /// exchanges the two `Vec`s' pointer/length/capacity triples, so
     /// **`positions_ptr()` and `prev_positions_ptr()` trade values on
-    /// every single sync** - unconditionally, with no reallocation and no
-    /// growth involved. Since `tick`, `spawn_agent` and every accepted
-    /// `spawn_object` each sync, a pointer read before any of them is
-    /// already stale afterwards and will be pointing at the other
-    /// frame's data. A `spawn_object` that rejects its id does not sync,
+    /// every full sync**, with no reallocation and no growth involved.
+    /// Since `tick`, `spawn_agent` and every accepted `spawn_object` each
+    /// perform a full sync, a pointer read before any of them is already
+    /// stale afterwards and will be pointing at the other frame's data.
+    /// `flush_commands` refreshes metadata while preserving both position
+    /// samples, and a `spawn_object` that rejects its id does not sync,
     /// but treating that as a reason to keep a pointer would be relying
     /// on a failure path.
     ///
@@ -336,11 +345,12 @@ impl SimHandle {
     ///
     /// This is the **only** way the shell affects the simulation, which
     /// is the whole of [D-2]: JavaScript never touches the world, it
-    /// enqueues serialisable data that `drain_commands` applies at one
-    /// fixed point in the tick. That is what keeps a replay reproducible,
-    /// gives [D8]'s save-file command log something to record, and leaves
-    /// Layer 2 multiplayer possible - what you would send over a wire is
-    /// exactly these bytes.
+    /// enqueues serialisable data that `drain_commands` applies through one
+    /// serialized system: first in a full tick, or alone while paused. Split
+    /// and batched drains are equivalent for one ordered stream. That keeps a
+    /// replay reproducible, gives [D8]'s save-file command log something to
+    /// record, and leaves Layer 2 multiplayer possible - what you would send
+    /// over a wire is exactly these bytes.
     ///
     /// # Why bytes rather than four typed exports
     ///
@@ -390,11 +400,11 @@ impl SimHandle {
     /// agent. Everything else a player can send - every `Select`, every
     /// `SetSpeed`, every command naming an index that no longer exists -
     /// lands in the staging queue and never touches an intent queue at
-    /// all, so a JavaScript loop could grow this without limit. It is also
-    /// the queue that does not drain while the game is PAUSED, since
-    /// nothing calls `tick`. `max_queued_commands` in
-    /// `content/tuning.toml` carries the burst budget and why the overflow
-    /// refuses the newest rather than evicting the oldest.
+    /// all, so a JavaScript loop could grow this without limit. Paused play
+    /// drains the queue through `flush_commands`, but the cap still bounds a
+    /// burst between frames. `max_queued_commands` in `content/tuning.toml`
+    /// carries that burst budget and why overflow refuses the newest rather
+    /// than evicting the oldest.
     pub fn enqueue_command(&mut self, bytes: &[u8]) -> bool {
         // `take_from_bytes` rather than `from_bytes`, so the trailing-byte
         // rule is this crate's rather than postcard's; see above.
@@ -1779,6 +1789,13 @@ mod boundary_tests {
         vec![0x01, agent as u8, object as u8, interaction as u8]
     }
 
+    /// `SimCommand::CancelIntents { agent }`: variant 2, then the agent
+    /// index as a varint.
+    fn cancel_intents_bytes(agent: u32) -> Vec<u8> {
+        assert!(agent < 128, "the varint below is one byte only");
+        vec![0x02, agent as u8]
+    }
+
     /// The same command with `interaction: u32::MAX`, which one-byte
     /// varints cannot express.
     ///
@@ -1890,6 +1907,77 @@ mod boundary_tests {
     }
 
     #[test]
+    fn flush_commands_applies_input_without_advancing_the_world() {
+        let mut handle = SimHandle::new(8, 8);
+        let agent = spawn_agent_at(&mut handle, 1.0, 1.0, 80.0);
+        let before_hunger = stored_hungers(&handle);
+        assert!(handle.enqueue_command(&select_bytes(agent)));
+
+        handle.flush_commands();
+
+        assert_eq!(handle.selected_index(), Some(agent));
+        assert_eq!(staged(&handle), 0, "the paused drain must empty the queue");
+        assert_eq!(handle.sim_tick(), 0, "paused input must not advance time");
+        assert_eq!(
+            stored_hungers(&handle),
+            before_hunger,
+            "paused input must not run need decay"
+        );
+    }
+
+    #[test]
+    fn flush_commands_preserves_an_in_flight_interpolation_pair() {
+        let mut handle = SimHandle::new(8, 8);
+        assert!(handle.spawn_object(4.0, 4.0, "fridge"));
+        handle.spawn_agent(1.0, 4.0, 0.0);
+        handle.tick();
+
+        let before_previous = handle.sim.render_buffer().prev_positions.clone();
+        let before_current = handle.sim.render_buffer().positions.clone();
+        assert_ne!(
+            before_previous, before_current,
+            "the fixture must be between two movement samples before the paused flush"
+        );
+
+        handle.flush_commands();
+
+        assert_eq!(handle.sim.render_buffer().prev_positions, before_previous);
+        assert_eq!(handle.sim.render_buffer().positions, before_current);
+    }
+
+    #[test]
+    fn flush_commands_refreshes_activity_metadata_without_a_tick() {
+        let mut handle = SimHandle::new(8, 8);
+        assert!(handle.spawn_object(4.0, 4.0, "fridge"));
+        let agent = spawn_agent_at(&mut handle, 3.0, 4.0, 0.0);
+        assert!(handle.enqueue_command(&use_object_bytes(agent, 0, 0)));
+        handle.tick();
+
+        let row = handle
+            .sim
+            .render_buffer()
+            .ids
+            .iter()
+            .position(|&index| index == agent)
+            .expect("the agent must have a render row");
+        assert_eq!(
+            handle.sim.render_buffer().activities[row],
+            terri_sim::render_buffer::activity::EATING,
+            "the fixture must begin with visible interaction metadata"
+        );
+
+        assert!(handle.enqueue_command(&cancel_intents_bytes(agent)));
+        handle.flush_commands();
+
+        assert_eq!(handle.sim_tick(), 1, "the cancel must not run a full tick");
+        assert_eq!(
+            handle.sim.render_buffer().activities[row],
+            terri_sim::render_buffer::activity::NONE,
+            "command-only refresh must publish the cancelled activity"
+        );
+    }
+
+    #[test]
     fn malformed_command_bytes_are_rejected_rather_than_trapping_the_module() {
         // **The mutation this is written against: `unwrap` or `expect` on
         // the decode.** That compiles, ships, and survives `--release` -
@@ -1977,9 +2065,9 @@ mod boundary_tests {
         // never reach the intent cap, so a test that passed because THAT
         // cap fired would be visible as a failure here.
         //
-        // The queue is also what does not drain while the game is paused,
-        // since nothing calls `tick`. Nothing ticks in this test for
-        // exactly that reason.
+        // The queue waits until the shell invokes either a full tick or the
+        // paused command boundary. This test invokes neither while filling
+        // it, so the cap remains directly observable.
         //
         // Three past the cap rather than one, so a cap off by one in
         // either direction is still visible.

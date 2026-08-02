@@ -7,10 +7,11 @@ use serde::{Deserialize, Serialize};
 ///
 /// This type is the whole anti-corner requirement of M1b. JavaScript
 /// never mutates simulation state; it enqueues one of these, and the
-/// simulation drains them at a fixed point in the tick. That is what
-/// keeps determinism ([A5]), gives [D8]'s save model something to log,
-/// and leaves Layer 2 multiplayer possible - the thing you would send
-/// over a wire is exactly this.
+/// simulation drains them through one serialized system: first in a full
+/// tick or alone while paused. Split and batched drains are equivalent for
+/// one ordered stream. That keeps determinism ([A5]), gives [D8]'s save model
+/// something to log, and leaves Layer 2 multiplayer possible - the thing you
+/// would send over a wire is exactly this.
 ///
 /// Entities cross as raw u32 indices because JavaScript cannot build an
 /// Entity. Resolution back to a live Entity must tolerate a stale index.
@@ -112,7 +113,7 @@ impl CommandQueue {
         self.0.is_empty()
     }
 
-    /// Commands in the order the next simulation tick will drain them.
+    /// Commands in the order the next full or paused drain will apply them.
     pub fn as_slice(&self) -> &[SimCommand] {
         &self.0
     }

@@ -365,6 +365,13 @@ pub enum ContentError {
     EmptySimName {
         index: usize,
     },
+    /// M1 promises a household of up to six. Accepting a seventh member
+    /// would create content the normal player HUD cannot represent and
+    /// quietly turn the roadmap ceiling into decorative prose.
+    TooManyHouseholdMembers {
+        count: usize,
+        max: usize,
+    },
     /// A household member spawns outside the lot.
     SpawnOutOfBounds {
         sim: String,
@@ -1043,6 +1050,10 @@ impl fmt::Display for ContentError {
                  name; the needs panel and every future household list would \
                  show an empty row",
                 index + 1
+            ),
+            ContentError::TooManyHouseholdMembers { count, max } => write!(
+                f,
+                "household.toml declares {count} sims, but a household may hold at most {max}"
             ),
             ContentError::SpawnOutOfBounds {
                 sim,

@@ -84,6 +84,11 @@ export class SimBridge {
     this.handle.tick();
   }
 
+  /** Applies queued input while paused without advancing simulation time. */
+  flushCommands(): void {
+    this.handle.flush_commands();
+  }
+
   /** Current fixed-step tick, converted from wasm-bindgen's u64 BigInt. */
   clockTick(): number {
     const tick = this.handle.sim_tick();
@@ -256,10 +261,11 @@ export class SimBridge {
    *
    * This is the **only** way the shell affects the simulation ([D-2]).
    * Nothing here reaches into the world; a command is data that
-   * `drain_commands` applies at one fixed point in the tick, which is
-   * what keeps a replay reproducible, gives the save-file command log
-   * something to record, and leaves multiplayer possible - what you
-   * would send over a wire is exactly these bytes.
+   * `drain_commands` applies first in a full tick or alone while paused.
+   * Split and batched drains are equivalent for one ordered stream, which
+   * keeps replay reproducible, gives the save-file command log something to
+   * record, and leaves multiplayer possible - what you would send over a
+   * wire is exactly these bytes.
    *
    * Two reasons it returns `false`, and the shell cannot tell them
    * apart on purpose, because the useful response to both is the same:

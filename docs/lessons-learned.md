@@ -3146,3 +3146,29 @@ failure, never left in the live accessibility tree.
 mode, menu clamping, command rejection, need-meter values, keyboard target
 selection, and save status. [A-16] records the visible desktop and phone-size
 passes, bottom-right menu bounds, focus return, and keyboard action workflow.
+
+## [L63] A paused frame is not allowed to become hidden simulation time
+
+**What happened.** The first household-roster pause fix drained commands once
+per rendered frame. Two quiet bugs came with it. Refreshing the render buffer
+after an empty drain swapped the interpolation samples and snapped a moving sim
+to the tick endpoint. Worse, `UseObject` followed by `CancelIntents` produced a
+different saved world when the two commands landed in separate rendered frames
+instead of one batch. The browser frame rate had become simulation state while
+the simulation clock still claimed it had not moved.
+
+**Root cause.** The existing drain was deterministic within one tick-sized
+batch, but nobody had required it to be associative across batch boundaries.
+The render sync also bundled two unrelated jobs: refreshing activity metadata
+and advancing the previous/current position pair.
+
+**Prevention rule.** Any command-only pause path must satisfy both invariants:
+splitting or joining an ordered command stream cannot change the saved world,
+and a command-only render refresh cannot advance interpolation history. Factor
+browser frame coordination into a testable function; do not leave the paused
+branch as untested entry-point wiring.
+
+**How to verify.** `split_and_batched_paused_drains_produce_the_same_saved_world`
+compares complete save snapshots, the WASM interpolation-pair regression pins
+both position samples, and the web frame test requires paused frames to flush
+without ticking while running frames tick without a command-only flush.

@@ -1178,6 +1178,13 @@ fn compile_household(
     chains: &[crate::pack::CompiledChain],
     lot: &CompiledLot,
 ) -> Result<Vec<CompiledHouseholdMember>, ContentError> {
+    if household.sim.len() > crate::schema::MAX_HOUSEHOLD_SIZE {
+        return Err(ContentError::TooManyHouseholdMembers {
+            count: household.sim.len(),
+            max: crate::schema::MAX_HOUSEHOLD_SIZE,
+        });
+    }
+
     // Every tag any activity in the pack carries - object and social
     // interactions plus chain STEPS - which is what a hobby must
     // resolve against ([D9]: a hobby nothing can ever pay has no
@@ -4864,6 +4871,39 @@ mod tests {
             )
             .unwrap_err(),
             ContentError::EmptySimName { index: 0 }
+        );
+    }
+
+    /// The roadmap's "up to ~6" is an actual content contract: empty remains
+    /// legal for fixtures, exactly six compile in declaration order, and the
+    /// first value beyond the ceiling is rejected before any member-specific
+    /// validation can obscure the useful error.
+    #[test]
+    fn household_capacity_accepts_six_and_rejects_seven() {
+        let six: Vec<_> = (0..crate::schema::MAX_HOUSEHOLD_SIZE)
+            .map(|index| member(&format!("Person {}", index + 1), "the_settled", 0.5, 2.0))
+            .collect();
+        let pack = compile_people(vec![archetype("the_settled")], six)
+            .expect("six household members are legal");
+        assert_eq!(
+            pack.household
+                .iter()
+                .map(|member| member.name.as_str())
+                .collect::<Vec<_>>(),
+            ["Person 1", "Person 2", "Person 3", "Person 4", "Person 5", "Person 6",],
+            "compilation preserves the roster's authored order"
+        );
+
+        let seven: Vec<_> = (0..=crate::schema::MAX_HOUSEHOLD_SIZE)
+            .map(|index| member("", "missing", index as f32, f32::NAN))
+            .collect();
+        assert_eq!(
+            compile_people(vec![], seven).unwrap_err(),
+            ContentError::TooManyHouseholdMembers {
+                count: 7,
+                max: crate::schema::MAX_HOUSEHOLD_SIZE,
+            },
+            "capacity is checked before irrelevant per-member errors"
         );
     }
 

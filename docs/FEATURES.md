@@ -23,6 +23,9 @@ transactional validation and restore, one OPFS save slot, daily autosave,
 save/load/new-game controls, a readable normal-play HUD, first-run Help,
 long-press actions, a visible Queue mode, keyboard world targeting,
 clamped and focus-managed action menus, and responsive accessible controls.
+The M1 household contract is now code-complete too: content accepts up to six
+members, rejects a seventh, and normal play exposes every member through a
+restore-safe accessible roster.
 The owner's dark-comedy voice session remains open by design; see
 docs/player-visible-strings.md. The alpha's eleven acceptance criteria live
 in docs/alpha-goals.md.
@@ -204,7 +207,10 @@ this milestone and is done; what follows is M1b onwards.
 - **Build mode:** walls, floors, doors, windows, roofs
 - **Buy mode:** catalog, placement, rotation, palette recolors ([G4])
 - **Create-a-sim:** body type, face, hair, clothing, trait selection
-- **Household** of up to ~6 sims
+- ~~**Household** of up to ~6 sims~~ - done. Content preserves declaration
+  order, enforces a six-member ceiling, and the normal HUD provides one
+  keyboard-operable selection button per live household member. Buttons key
+  on stable `SimId`, then resolve the current entity after Load.
 - **Save/load** with schema versioning from the first commit ([D8])
 - **Time controls:** pause, 1x, 2x, 3x, implemented as tick multipliers ([D2])
 

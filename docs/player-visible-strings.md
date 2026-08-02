@@ -1,6 +1,7 @@
 # Player-visible string inventory
 
-Status: the functional inventory is current for M2g. The dark-comedy voice
+Status: the functional inventory is current through the household-roster
+slice. The dark-comedy voice
 column is intentionally unfilled until the owner authors or approves it, per
 [L58]. This file is the handoff for playable-alpha criterion 11, not permission
 to invent the game's voice unattended.
@@ -15,13 +16,14 @@ itself on having personality.
 | Surface | Current strings | Source |
 | --- | --- | --- |
 | Household status | Time; Funds; Day {n}, {hh}:{mm} | `web/index.html`, `web/src/ui/game-hud.ts` |
+| Household roster | Household; one authored sim name per selection button | `web/index.html`, `web/src/ui/household-roster.ts` |
 | Selected person | Life satisfaction; Career; Doing; Orders waiting; Select a person; Nothing selected | `web/index.html`, `web/src/ui/game-hud.ts` |
 | Need warnings | critical; low; steady; {value}% full | `web/src/ui/needs-panel.ts` |
 | Speed | Pause; 1x; 2x; 3x | `web/src/ui/time-controls.ts` |
 | Game actions | Save; Load; Clear orders; Queue; New game; Help | `web/index.html` |
 | Save state | Starting; No save yet; Saving; Game saved; Autosaved; Saved game loaded; No saved game found | `web/index.html`, `web/src/ui/persistence-controller.ts` |
 | Save failures | Saved game is invalid. Starting a new game.; Saving is unavailable. Starting a new game.; Save failed. The game is still running.; Load failed. Current game kept.; Could not remove the saved game. | `web/src/ui/persistence-controller.ts` |
-| Order feedback | Select a person first; Orders cleared; Could not clear orders; That order could not be added | `web/src/main.ts` |
+| Order feedback | Select a person first; Orders cleared; Could not clear orders; That order could not be added; That person could not be selected | `web/src/main.ts` |
 | Confirmation | Start a new game?; This replaces the saved household and cannot be undone.; Load the saved game?; Progress since the last save will be replaced.; Keep playing; Start over; Load game | `web/index.html` |
 | Help | How to play; Got it; the eight ordered control instructions | `web/index.html` |
 | Keyboard targeting | Target: {object}. Enter opens actions.; Target: {person}. Space selects this person; Enter selects or opens social actions.; Selected {name}; Use an arrow key to choose a target first; Select a person before choosing an object | `web/src/ui/keyboard-target.ts`, `web/src/main.ts` |
