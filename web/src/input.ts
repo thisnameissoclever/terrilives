@@ -276,6 +276,7 @@ export function pickSprite(
   originX: number,
   originY: number,
   scale = 1,
+  reducedMotion = false,
 ): Pick | null {
   const count = source.count;
   const positions = source.positions();
@@ -318,7 +319,9 @@ export function pickSprite(
     const anchorY = screenY(wx, wy, originY, scale) + TILE_HALF_HEIGHT * scale;
     const left = anchorX - (sprite.w / 2) * scale;
     const walkingHeadroom =
-      kinds[row] === KIND_AGENT && activities[row] === ACTIVITY_WALKING
+      !reducedMotion &&
+      kinds[row] === KIND_AGENT &&
+      activities[row] === ACTIVITY_WALKING
         ? WALK_LIFT_PX * scale
         : 0;
     const top = anchorY - sprite.h * scale - walkingHeadroom;
@@ -591,9 +594,18 @@ export function handleLeftClick(
   originY: number,
   additive: boolean,
   scale = 1,
+  reducedMotion = false,
 ): LeftClickOutcome {
   if (point === null) return { kind: 'none' };
-  const pick = pickSprite(target, point.x, point.y, originX, originY, scale);
+  const pick = pickSprite(
+    target,
+    point.x,
+    point.y,
+    originX,
+    originY,
+    scale,
+    reducedMotion,
+  );
   const action = resolveLeftClick(pick, target.selectedIndex(), additive);
   if (action.kind === 'none') return { kind: 'none' };
   const accepted = dispatch(target, action) === true;
@@ -672,12 +684,21 @@ export function resolveRightClick(
   originX: number,
   originY: number,
   scale = 1,
+  reducedMotion = false,
 ): MenuEntry[] | null {
   if (target.selectedIndex() === null) return null;
   const pick =
     point === null
       ? null
-      : pickSprite(target, point.x, point.y, originX, originY, scale);
+      : pickSprite(
+          target,
+          point.x,
+          point.y,
+          originX,
+          originY,
+          scale,
+          reducedMotion,
+        );
   if (pick === null) return [NEVER_MIND];
   if (pick.isAgent) {
     // The selected sim itself: nothing to do but close. A DIFFERENT
@@ -714,9 +735,17 @@ export function handleRightClick(
   originX: number,
   originY: number,
   scale = 1,
+  reducedMotion = false,
 ): void {
   event.preventDefault();
-  const entries = resolveRightClick(target, point, originX, originY, scale);
+  const entries = resolveRightClick(
+    target,
+    point,
+    originX,
+    originY,
+    scale,
+    reducedMotion,
+  );
   if (entries === null) {
     menu.close();
     return;
@@ -934,6 +963,7 @@ export function attachPointerInput(
   gestures: CameraGestures,
   additiveMode: () => boolean = () => false,
   onCommandRejected: (kind: RejectedCommandKind) => void = () => {},
+  reducedMotion: () => boolean = () => false,
 ): void {
   const canvasPoint = (event: {
     clientX: number;
@@ -975,6 +1005,7 @@ export function attachPointerInput(
       camera.originX,
       camera.originY,
       camera.scale,
+      reducedMotion(),
     );
   });
 
@@ -1103,6 +1134,7 @@ export function attachPointerInput(
       camera.originY,
       event.ctrlKey || event.metaKey || additiveMode(),
       camera.scale,
+      reducedMotion(),
     );
     if (outcome.kind !== 'none' && !outcome.accepted) {
       onCommandRejected(outcome.kind);
@@ -1119,6 +1151,7 @@ export function attachPointerInput(
       camera.originX,
       camera.originY,
       camera.scale,
+      reducedMotion(),
     );
   });
 

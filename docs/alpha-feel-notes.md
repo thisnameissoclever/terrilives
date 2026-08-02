@@ -1959,11 +1959,12 @@ visualization artifact folder.
   not a claim that an unsaved between-tick sample survives Load exactly.
 - **Selection covers the full travel envelope.** Picking does not receive the
   renderer's interpolation alpha, so a walking sim gets a conservative
-  two-pixel headroom strip for the entire step. Unit coverage hits that maximum
-  boundary and rejects the pixel immediately above it at 0.5x, 1x, and 2.5x
-  zoom. The same matrix proves non-walking and reduced-motion bodies keep their
-  original rendered output, carried badges share the body lift, and the ring
-  never does.
+  two-pixel headroom strip for the entire step while ornamental motion is
+  enabled. Unit coverage hits that maximum boundary and rejects the pixel
+  immediately above it at 0.5x, 1x, and 2.5x zoom. With reduced motion, picking
+  drops that empty strip and matches the planted body box. The same matrix
+  proves non-walking and reduced-motion bodies keep their original rendered
+  output, carried badges share the body lift, and the ring never does.
 - **Reduced motion has an explicit proof boundary.** The watched browser
   reported its ordinary no-reduction preference. The deterministic renderer
   suite, rather than a claimed visual toggle, proves the reduced-motion output

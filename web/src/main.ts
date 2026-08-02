@@ -861,6 +861,8 @@ async function main(): Promise<void> {
   // is serialised ([D-2]); the camera is not a command at all, because
   // it is presentation - two players watching one simulation at
   // different zooms is the ordinary multiplayer picture.
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
   attachPointerInput(
     canvas,
     sim,
@@ -898,10 +900,10 @@ async function main(): Promise<void> {
         : 'That order could not be added';
       saveStatus.setAttribute('data-kind', 'error');
     },
+    () => reducedMotion.matches,
   );
 
   const timer = new FrameTimer(FRAME_WINDOW);
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let previousFrameMs = performance.now();
   let lastReportMs = performance.now();
 

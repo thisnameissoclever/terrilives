@@ -58,7 +58,8 @@ action animation near the front of the next-work order. The grounded design and
 renderer audit is complete, and the first movement slice now gives walking sims
 a restrained, distance-driven footfall while keeping the ground ring and depth
 planted. Carried-item badges follow the body, picking includes the lifted head,
-and reduced-motion users retain smooth travel without the ornamental lift.
+and reduced-motion users retain smooth travel without the ornamental lift or
+its otherwise useful picking headroom.
 
 Action-specific body animation comes next, but it needs authored visual-action
 categories, facings, and interaction anchors first. The current `EATING`

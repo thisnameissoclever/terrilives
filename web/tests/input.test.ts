@@ -871,6 +871,30 @@ describe('pickSprite', () => {
           scale,
         ),
       ).toBeNull();
+      // Reduced motion plants the body, so even the first empty fraction of a
+      // pixel above the ordinary box must stop selecting the walking sim.
+      expect(
+        pickSprite(
+          walking,
+          box.centreX,
+          box.top - 0.01,
+          0,
+          0,
+          scale,
+          true,
+        ),
+      ).toBeNull();
+      expect(
+        pickSprite(
+          walking,
+          box.centreX,
+          box.top,
+          0,
+          0,
+          scale,
+          true,
+        ),
+      ).not.toBeNull();
     }
   });
 
