@@ -3172,3 +3172,29 @@ branch as untested entry-point wiring.
 compares complete save snapshots, the WASM interpolation-pair regression pins
 both position samples, and the web frame test requires paused frames to flush
 without ticking while running frames tick without a command-only flush.
+
+## [L64] Serializing storage does not serialize the state captured before storage
+
+**What happened.** The OPFS wrapper queued every worker operation, but two
+player operations could still overlap outside that queue. An autosave could
+capture the current world while Load was reading, then write that discarded
+world back after Load applied the older slot. A manual Save could likewise
+capture bytes while New game was clearing, then run behind the clear and
+resurrect the slot.
+
+**Root cause.** The lock began at `store.save`, after `sim.saveBytes()` had
+already chosen which world would be written. It ended when storage returned,
+without owning the later `sim.loadBytes()` state swap. The serialized I/O queue
+was correct inside its boundary; the boundary was simply too small.
+
+**Prevention rule.** Save, Load, autosave, visibility save, and clear share one
+controller-owned operation boundary. Acquire it before capturing or reading
+bytes, keep it through the world swap, suppress automatic saves while it is
+held, and disable persistence controls until release. Keep the worker queue as
+defense in depth, not as proof that player operations cannot race.
+
+**How to verify.** Use deferred storage promises. While Load is pending, cross
+a simulated day and prove no save bytes are captured or queued. While clear is
+pending, attempt manual Save and prove the only storage operation after the
+initial restore remains clear. In both cases, assert all persistence controls
+are disabled until the owner operation settles.

@@ -321,6 +321,14 @@ failure surface: one complete snapshot whose continuation is directly tested.
 Storage is **OPFS** (Origin Private File System), not `localStorage` - real
 file handles from a worker with no meaningful quota ceiling.
 
+The worker queue serializes file I/O, but the player operation begins one layer
+higher. `PersistenceController` exclusively owns Save, Load, or clear before it
+captures simulation bytes and until any loaded world has been applied. During
+that interval the three persistence controls are disabled and autosave waits.
+Serializing only the worker calls would leave snapshot capture outside the
+lock, allowing Load or New game to finish and then be overwritten by older
+intent queued behind them.
+
 The raw prefix is `TERRISAV` plus a little-endian schema version. Version 1
 also stores a compiled-content fingerprint and rejects changed content rather
 than silently deleting a job, object, chain or trait. The next incompatible

@@ -63,10 +63,19 @@ migrator.
 Storage is OPFS (Origin Private File System), per [D8], not `localStorage`.
 Version 1 has one slot, an explicit Save button and Load button, and an
 autosave on simulation-day cadence. Autosave starts during ordinary play and
-is serialized with every manual save, load, and clear; an asynchronous write
-begun only while the page is closing is not a save strategy, because browsers
-are entirely within their rights to kill it halfway through. A visibility-loss
-save is useful extra coverage, but it is never the sole write.
+is serialized with every manual save, load, and clear. Serialization begins in
+`PersistenceController` before save bytes are captured or a stored world is
+read, not merely when worker I/O begins. While one operation owns that boundary,
+Save, Load, New game, and their modal confirmations are disabled. Autosave
+remains eligible and starts on a later frame; a best-effort visibility-loss
+save is skipped if another operation is already active. This prevents a queued
+write from restoring a slot after clear or writing the pre-Load world over the
+slot the player just loaded.
+
+An asynchronous write begun only while the page is closing is not a save
+strategy, because browsers are entirely within their rights to kill it halfway
+through. A visibility-loss save is useful extra coverage, but it is never the
+sole write.
 
 ## [G3] Loading validates a fresh world and swaps only on success
 

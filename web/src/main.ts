@@ -35,7 +35,10 @@ import { KIND_AGENT } from './render/instances.js';
 import { createSaveStore } from './storage/save-store.js';
 import { GameHud } from './ui/game-hud.js';
 import { HelpPanel } from './ui/help-panel.js';
-import { PersistenceController } from './ui/persistence-controller.js';
+import {
+  PersistenceController,
+  applyPersistenceControlState,
+} from './ui/persistence-controller.js';
 import { QueueMode } from './ui/queue-mode.js';
 import { KeyboardTargetController } from './ui/keyboard-target.js';
 import {
@@ -449,30 +452,47 @@ async function main(): Promise<void> {
 
   const queueMode = new QueueMode(queueButton);
   let startingNewGame = false;
-  let loadButtonDisabled: boolean | undefined;
-  const syncLoadButton = (): void => {
-    const disabled = !persistence.hasSavedGame();
-    if (disabled === loadButtonDisabled) return;
-    loadButton.disabled = disabled;
-    loadButtonDisabled = disabled;
+  let persistenceControlKey = '';
+  const syncPersistenceButtons = (): void => {
+    const state = persistence.controlState();
+    const key = `${state.saveDisabled}:${state.loadDisabled}:${state.newGameDisabled}:${state.confirmationDisabled}`;
+    if (key === persistenceControlKey) return;
+    applyPersistenceControlState(state, {
+      save: saveButton,
+      load: loadButton,
+      newGame: newGameButton,
+      confirmLoad: confirmLoadGame,
+      confirmNewGame,
+    });
+    persistenceControlKey = key;
   };
-  syncLoadButton();
+  syncPersistenceButtons();
   queueButton.addEventListener('click', () => queueMode.toggle());
   saveButton.addEventListener('click', () => {
-    void persistence.save().then(syncLoadButton);
+    const saving = persistence.save();
+    syncPersistenceButtons();
+    void saving.then(() => syncPersistenceButtons());
   });
   loadButton.addEventListener('click', () => loadGameDialog.showModal());
   confirmLoadGame.addEventListener('click', () => {
-    void persistence.load().then((loaded) => {
+    const loading = persistence.load();
+    syncPersistenceButtons();
+    void loading.then((loaded) => {
       if (loaded) householdRoster.update(performance.now(), true);
+      syncPersistenceButtons();
     });
   });
   newGameButton.addEventListener('click', () => newGameDialog.showModal());
   confirmNewGame.addEventListener('click', () => {
     startingNewGame = true;
-    void persistence.clear().then((cleared) => {
+    const clearing = persistence.clear();
+    syncPersistenceButtons();
+    void clearing.then((cleared) => {
       if (cleared) window.location.reload();
-      else startingNewGame = false;
+      else {
+        startingNewGame = false;
+        syncPersistenceButtons();
+      }
     });
   });
   stopOrdersButton.addEventListener('click', () => {
@@ -513,7 +533,9 @@ async function main(): Promise<void> {
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden' && !startingNewGame) {
-      void persistence.save('Game saved');
+      const saving = persistence.save('Game saved');
+      syncPersistenceButtons();
+      void saving.then(() => syncPersistenceButtons());
     }
   });
 
@@ -770,7 +792,7 @@ async function main(): Promise<void> {
     gameHud.update(nowMs, sim);
     householdRoster.update(nowMs);
     if (!startingNewGame) persistence.updateAutosave();
-    syncLoadButton();
+    syncPersistenceButtons();
     debugPanel?.update(nowMs);
 
     timer.sample(performance.now() - nowMs);
