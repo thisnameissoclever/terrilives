@@ -196,6 +196,29 @@ export class FixedStepDriver {
   }
 }
 
+/** The two simulation operations one rendered frame coordinates. */
+export interface FrameSimulation {
+  tick(): void;
+  flushCommands(): void;
+}
+
+/**
+ * Advances the simulation side of one rendered frame.
+ *
+ * Paused frames apply input through the command-only schedule. Running frames
+ * use full fixed ticks, whose first phase drains the same queue. Keeping this
+ * branch here makes the pause contract independently testable from browser
+ * wiring in `main.ts`.
+ */
+export function advanceSimulationFrame(
+  driver: FixedStepDriver,
+  deltaMs: number,
+  sim: FrameSimulation,
+): number {
+  if (driver.ticksPerUnitTime === 0) sim.flushCommands();
+  return driver.advance(deltaMs, () => sim.tick());
+}
+
 /**
  * What `buildInstances` reads. `SimBridge` satisfies it structurally.
  *

@@ -101,13 +101,14 @@ and take Layer 2 multiplayer with it. Cheap to honor now, near-impossible to
 retrofit.
 
 **The multiplier lives in the shell's `FixedStepDriver`, not in the
-simulation**, and that is forced rather than chosen: commands are drained
-inside `tick`, so a paused game drains nothing and a `SetSpeed` the simulation
-owned could be set to 0 and never read back to 1 - the game would have no way
-out of its own pause. Speed is a rate at which the shell asks for steps, not a
-property of the world. It still crosses the boundary as a command so the
-command log can replay a session's pauses ([D-2] in the M1b design), and the
-simulation deliberately applies nothing for it.
+simulation.** Speed is a rate at which the shell asks for full steps, not a
+property of the world. A paused frame runs only the command-drain schedule so
+selection and order controls remain responsive. The clock, needs, autonomy,
+movement, and interactions do not advance. Unpausing changes the driver
+immediately; its serialised speed command drains at the next full tick. Speed
+still crosses the boundary as a command so the command log can replay a
+session's pauses ([D-2] in the M1b design), and the simulation deliberately
+applies nothing for it.
 
 Because the two are so easy to confuse, the driver exposes `stepDurationMs`
 purely so the constraint is testable: scaling elapsed time by `k` and dividing
@@ -159,13 +160,21 @@ Ordered, per tick. `||` marks parallel, `->` marks serialized.
    player issued them ([D-2] of the M1b design). Numbered zero rather than
    inserted as 1, so the step numbers other sections cite stay put, for the
    same reason 4a and 5a are lettered. It is **first**, and both halves of
-   that matter: player input is asynchronous, so it has to land at one fixed
-   point for a recorded command log to replay to the same world; and an
+   that matter: player input is asynchronous, so it has to land through one
+   serialized system for a recorded command log to replay to the same world;
+   and an
    intent pushed here has to be servable by step 4a on the same tick, or a
    click would take a tick to have any effect and the sim would spend that
    tick choosing for itself. Entity references arrive from JavaScript as raw
    `u32` indices, so resolution tolerates a stale one - a panic here traps
    the WASM module for the rest of the page's life.
+
+When paused, the shell runs step 0 by itself once per rendered frame. It uses
+the same queue and the same `command_drain` system as a full tick; steps 1
+through 14 do not run. This keeps input alive without creating a second
+mutation path or allowing simulation time to leak through pause. The drain is
+associative across batch boundaries: splitting an ordered command stream across
+two rendered frames produces the same saved world as draining it in one batch.
 1. `|| time` - advance clock, fire calendar events
 2. `|| need_decay`
 3. `|| mood` - moodlets from needs, traits, environment

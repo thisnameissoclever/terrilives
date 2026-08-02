@@ -555,6 +555,10 @@ pub struct CareerDef {
     pub satisfaction: f32,
 }
 
+/// The M1 household ceiling. Kept beside the authored schema so content
+/// validation, tests and any future household editor share one contract.
+pub const MAX_HOUSEHOLD_SIZE: usize = 6;
+
 /// Mirrors `content/household.toml`: who lives on the lot - [H2].
 ///
 /// The household is CONTENT, not something the shell spawns. The shell
@@ -565,7 +569,8 @@ pub struct CareerDef {
 pub struct HouseholdFile {
     /// Defaulted: an empty household is a furnished lot with nobody home,
     /// which is a legitimate authoring state and the state every content
-    /// fixture predating M2c was written in.
+    /// fixture predating M2c was written in. A playable household may hold
+    /// at most [`MAX_HOUSEHOLD_SIZE`] members.
     #[serde(default)]
     pub sim: Vec<HouseholdSimDef>,
 }

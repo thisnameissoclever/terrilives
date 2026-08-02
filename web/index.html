@@ -122,6 +122,47 @@
       #selected-summary [hidden] {
         display: none;
       }
+      #household-roster h2 {
+        margin: 0 0 6px;
+        color: var(--hud-muted);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      #household-roster-members {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 4px;
+      }
+      .household-member {
+        min-width: 0;
+        min-height: 44px;
+        overflow-wrap: anywhere;
+        border: 1px solid var(--hud-edge);
+        border-radius: 4px;
+        padding: 5px 3px;
+        background: #202028;
+        color: var(--hud-text);
+        font: inherit;
+        cursor: pointer;
+      }
+      .household-member:hover {
+        border-color: var(--need-fill);
+        background: #29313a;
+      }
+      .household-member:focus-visible {
+        border-color: var(--need-fill);
+        outline: 2px solid var(--hud-text);
+        outline-offset: 2px;
+        background: #29313a;
+      }
+      .household-member[aria-pressed='true'] {
+        border-color: var(--need-fill);
+        background: var(--need-fill);
+        color: #10131a;
+        font-weight: 700;
+      }
       .need-row {
         display: grid;
         grid-template-columns: 62px 1fr;
@@ -382,6 +423,10 @@
           <strong id="funds-value" class="summary-value">0</strong>
         </div>
       </section>
+      <section id="household-roster" aria-labelledby="household-roster-title">
+        <h2 id="household-roster-title">Household</h2>
+        <div id="household-roster-members"></div>
+      </section>
       <details id="needs-panel" aria-label="Needs of the selected sim" open>
         <!-- Whose bars these are. Filled by NeedsPanel from the
              simulation; empty for a sim with no name, and the CSS hides
@@ -441,7 +486,7 @@
     >
       <h2 id="help-title">How to play</h2>
       <ol>
-        <li>Select a person to see their needs and life satisfaction.</li>
+        <li>Choose a person under Household to select them and see their needs.</li>
         <li>Tap or click an object to give the selected person its default action.</li>
         <li>Long-press or right-click for more actions, including talking to another person.</li>
         <li>Drag to move the camera. Pinch or use the mouse wheel to zoom.</li>

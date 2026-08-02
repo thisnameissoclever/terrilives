@@ -12,14 +12,12 @@
  *  2. it sets the driver's tick multiplier, which is what actually changes
  *     how fast the world runs.
  *
- * **The multiplier lives in the driver rather than in the simulation, and
- * that is forced rather than chosen.** Commands are drained inside `tick`,
- * so a paused game drains nothing; a speed the simulation owned could be
- * set to 0 and never read back to 1, because the command carrying the
- * unpause would sit in a queue that only a tick empties. The game would
- * have no way out of its own pause. Speed is a rate at which the shell
- * asks for steps, not a property of the world, and this is the shape of
- * that fact.
+ * **The multiplier lives in the driver rather than in the simulation.**
+ * Speed is the rate at which the shell asks for full steps, not a property
+ * of the world. While paused, the shell runs only the command-drain phase so
+ * selection and order controls remain responsive; no clock or gameplay system
+ * advances. Unpausing changes the driver immediately, and its serialised speed
+ * command drains at the next full tick.
  *
  * The `<input type="radio">` group holds which button looks pressed. That
  * is a widget's own state rather than a cache of simulation state: the DOM

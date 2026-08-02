@@ -4,6 +4,7 @@ import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge } from '../src/bridge.js';
 import {
   FixedStepDriver,
+  advanceSimulationFrame,
   lerp,
   buildInstances,
   instanceCount,
@@ -376,6 +377,24 @@ describe('FixedStepDriver', () => {
     // ms reaches nothing. The two agree on every sample before this one.
     driver.advance(60, () => ticks++);
     expect(ticks).toBe(14);
+  });
+
+  it('drains commands only while paused and resumes through full ticks', () => {
+    const driver = new FixedStepDriver(10, 5);
+    const calls: string[] = [];
+    const sim = {
+      tick: () => calls.push('tick'),
+      flushCommands: () => calls.push('flush'),
+    };
+
+    driver.setSpeed(0);
+    expect(advanceSimulationFrame(driver, 500, sim)).toBe(0);
+    expect(calls).toEqual(['flush']);
+
+    calls.length = 0;
+    driver.setSpeed(1);
+    expect(advanceSimulationFrame(driver, 100, sim)).toBe(0);
+    expect(calls).toEqual(['tick']);
   });
 
   it('rejects a speed that is not a whole number of steps', () => {

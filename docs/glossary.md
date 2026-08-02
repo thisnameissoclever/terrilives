@@ -57,7 +57,8 @@ Seven needs, each a number from 0 (desperate) to 100 (fully satisfied):
 
 | Term | Means |
 | --- | --- |
-| **HUD** | The always-visible controls and status panels over the game: household time and funds, the selected person's needs and activity, speed, save controls, and Help. |
+| **HUD** | The always-visible controls and status panels over the game: household time and funds, household roster, the selected person's needs and activity, speed, save controls, and Help. |
+| **household roster** | The Household row of named buttons used to select a person. Its order follows stable household identity, and it reconciles those identities after Load rather than trusting replaceable entity indices. |
 | **Save** | Writes the complete resumable household to the browser's one local save slot. The saved tick, random state, selection, active work, queued orders, and all entity state resume together. |
 | **Load** | Replaces progress since the last save only after confirmation. Invalid or incompatible bytes are rejected without changing the running household. |
 | **autosave** | The same complete save, written once when a new simulated day begins. It is serialized with manual saves and loads so the three operations cannot race. |
