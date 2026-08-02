@@ -164,6 +164,9 @@ describe('renderStartupFailure', () => {
     expect(hints.id).toBe('startup-failure-hints');
     expect(hints.children[0].textContent).toBe('Reload the page once.');
     expect(card.style.cssText).toContain('overflow:auto');
+    expect(card.style.cssText).toContain(
+      'justify-content:center;justify-content:safe center',
+    );
     expect(detail.style.cssText).toContain('overflow-wrap:anywhere');
     expect(hints.style.cssText).toContain('min-width:0');
     expect(hints.children[0].style.cssText).toContain('overflow-wrap:anywhere');

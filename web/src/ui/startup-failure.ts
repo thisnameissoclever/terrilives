@@ -115,6 +115,7 @@ export function renderStartupFailure(
     'display:flex',
     'flex-direction:column',
     'align-items:center',
+    'justify-content:center',
     'justify-content:safe center',
     'gap:12px',
     'padding:32px',
