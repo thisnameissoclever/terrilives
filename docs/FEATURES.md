@@ -284,7 +284,17 @@ this milestone and is done; what follows is M1b onwards.
 What makes it a *life* sim rather than a needs sim.
 
 - **Life stages:** baby, toddler, child, teen, adult, elder, with aging
-- **Relationships:** friendship and romance axes, sparse storage capped ~150/sim
+- **Relationships:** friendship and romance axes, sparse storage capped ~150/sim.
+  The shipped ordered relationship scalar is also intended to gain slower
+  household-scale causes and consequences: a slight tunable penalty when one sim
+  waits for an object another is using; compatible or incompatible personality
+  drift while sims share a room; and needs-gated autonomous conversations or
+  fights outside positive or negative relationship thresholds. Extroversion
+  modifies initiation thresholds, with friendly and hostile curves tuned
+  independently. These dynamics are planned rather than shipped; [H12] through
+  [H16] in
+  `docs/specs/2026-07-30-household-and-relationships-design.md` record the detailed
+  constraints.
 - **Skills:** learned through interaction, gating better outcomes
 - **Careers:** rabbit-hole model for the beta - the sim leaves the lot and
   returns with an outcome. **Simulated workplaces are a near-term post-v1

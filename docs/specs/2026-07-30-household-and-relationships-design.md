@@ -250,3 +250,61 @@ they left open, decided when the code had to exist.
 - **[H11] `SimId` and `Relationships` enter the world hash together, as
   the M2c exclusion note promised.** Both golden vectors (native and the
   wasm bridge copy) are re-measured in the same commit that adds them.
+
+---
+
+## Future interpersonal dynamics - owner direction, planned
+
+Status: **planned, not built.** The shipped relationship scalar changes through
+completed conversations and its drift toward neutral. The following extension
+should make ordinary household friction and affinity change that scalar without
+turning every shared bathroom into a lifelong vendetta.
+
+- **[H12] Waiting on another sim should cause a small directional penalty.**
+  When sim A is blocked waiting for an object that sim B is actively using, A's
+  relationship toward B should decrease by a very small tunable amount. B's
+  feeling toward A does not change merely because A waited. The effect must be
+  bounded per waiting episode or applied at a fixed simulated-time rate; charging
+  it once per tick would make the result depend on tick frequency and would
+  magnify a deliberately small annoyance. The current marker-only `Reserved`
+  component does not identify the user, so this feature requires stable holder
+  attribution, preferably by `SimId`, before it can assign the penalty correctly.
+
+- **[H13] Shared-room proximity should create slow personality-based drift.**
+  Sims who spend time in the same room should gradually feel more positively
+  toward compatible personalities and more negatively toward incompatible
+  personalities. Neutral pairings should have little or no proximity drift. Each
+  ordered relationship is evaluated independently, so one sim may warm faster
+  than the other. Compatibility must come from authored personality data rather
+  than archetype-name checks. Positive and negative rates, evaluation cadence,
+  and clamps are tuning data and must compose explicitly with [H9]'s existing
+  drift toward neutral.
+
+- **[H14] Strong relationships should unlock autonomous conversations or
+  fights.** When a sim passes a tunable "needs met" readiness gate, it may use
+  deterministic simulation randomness to initiate a conversation with a sim
+  above a positive relationship threshold or a fight with a sim below a negative
+  relationship threshold. Values between those thresholds do not trigger a
+  relationship-driven social event. Conversation should reuse the existing
+  social-interaction, reservation, busy-target, and command-priority rules. A
+  fight is separate authored social content with its own duration and outcomes,
+  not a normal conversation wearing an angry label.
+
+- **[H15] Extroversion should modify both initiation thresholds.** A more
+  extroverted sim should generally require a less extreme relationship before
+  initiating a spontaneous social event. Friendly and hostile threshold curves
+  must be independently tunable so extroversion does not silently become a
+  synonym for aggression. The exact extroversion axis and curves belong in the
+  personality content and tuning schema when this slice is designed.
+
+- **[H16] Every small effect needs a measurable budget.** Waiting penalty,
+  compatible and incompatible proximity rates, positive and negative thresholds,
+  extroversion modifiers, initiation chance, needs readiness, and cooldowns must
+  all be tunable. Random initiation must consume the deterministic `SimRng`, and
+  any new persistent cooldown or accumulated proximity state must enter save/load
+  validation and the world hash. Tests should pin directionality, threshold edges,
+  rate independence, relationship clamping, reservation safety, and replay
+  determinism. A long household trace should then measure relationship ranges,
+  conversation and fight counts, and the share caused by waiting or proximity so
+  a "slight" effect is demonstrated rather than inferred from a small-looking
+  constant.
