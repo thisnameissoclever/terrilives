@@ -44,7 +44,9 @@ verified against the whole game or it is not verified.
 10. Readable UI: needs, selection, time controls, and who is doing
     what. (Shipped: A-11 and M2g. The normal HUD now shows the clock,
     funds, satisfaction, career, current activity, queued orders, save
-    state, and touch and keyboard controls without debug mode.)
+    state, and touch and keyboard controls without debug mode. Blocking Help,
+    Load, and New game surfaces pause simulated time; Help begins at its title,
+    closes with Escape, and restores focus.)
 11. The game's voice - dark comedy - present in play, authored WITH
     the owner ([L58]). (Owner voice session still required; the string
     inventory and functional-text boundary are shipped in M2g.)

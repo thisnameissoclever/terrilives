@@ -1767,3 +1767,31 @@ dialog correction discovered during the session.
 - **Runtime remained healthy.** The complete interaction, save, restore,
   selection, responsive, and delayed-storage session reported zero console
   errors and zero warnings.
+
+## [A-21] Blocking surfaces own game time and focus
+
+A fresh public-build audit first reproduced the defect: first-run Help opened
+at 1x, and the clock advanced from the opening minutes of Day 1 into the work
+day while the instructions were being read and captured. The corrected working
+build was then exercised in visible Chromium.
+
+- **First-run Help freezes the world.** The clock remained exactly
+  `Day 1, 00:00` for more than one second while the dialog was open. The
+  accessibility tree identified a modal `How to play` dialog and its heading
+  was the active element.
+- **The player starts at the instructions, not the exit.** The scroll position
+  reset to the top and `#help-title` received focus. Got it closed the dialog,
+  focused `#stage`, and the clock resumed at 1x.
+- **Manual keyboard use closes the loop.** Opening Help from its button focused
+  the heading. Escape closed the dialog, collapsed the button's
+  `aria-expanded` state, returned focus to `#show-help`, and resumed time.
+- **Confirmations also own time.** New game confirmation held
+  `Day 1, 04:57` unchanged for more than one second. Keep playing closed it;
+  only then did the clock resume.
+- **The phone dialog fits.** At 390 x 844, the dimmed modal kept all nine
+  instructions and the full-width 44-pixel Got it control visible without
+  horizontal overflow.
+
+The fresh desktop and mobile captures are in the task's visualization artifact
+folder. Unit, type, and production-build gates cover the controller and help
+lifecycle independently of this watched pass.

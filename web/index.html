@@ -53,6 +53,10 @@
         height: 100vh;
         touch-action: none;
       }
+      #stage:focus-visible {
+        outline: 3px solid var(--need-fill);
+        outline-offset: -5px;
+      }
       /* Overlaid rather than beside the canvas, which fills the window:
          a side-by-side layout would fight it for the same space. */
       #hud {
@@ -299,10 +303,14 @@
         cursor: pointer;
       }
       .hud-button:hover,
-      .hud-button:focus-visible,
       .hud-button[aria-pressed='true'] {
         border-color: var(--need-fill);
-        outline: 2px solid transparent;
+        background: #29313a;
+      }
+      .hud-button:focus-visible {
+        border-color: var(--need-fill);
+        outline: 2px solid var(--hud-text);
+        outline-offset: 2px;
         background: #29313a;
       }
       .hud-button:disabled {
@@ -322,8 +330,10 @@
       }
       #help-panel {
         position: fixed;
-        right: max(12px, env(safe-area-inset-right));
-        bottom: max(12px, env(safe-area-inset-bottom));
+        inset:
+          auto max(12px, env(safe-area-inset-right))
+          max(12px, env(safe-area-inset-bottom)) auto;
+        margin: 0;
         width: min(340px, calc(100vw - 24px));
         max-height: min(560px, calc(100vh - 24px));
         box-sizing: border-box;
@@ -335,12 +345,20 @@
         box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
         z-index: 20;
       }
-      #help-panel[hidden] {
-        display: none;
+      #help-panel::backdrop {
+        background: rgba(13, 13, 16, 0.48);
       }
       #help-panel h2 {
         margin: 0 0 8px;
         font-size: 16px;
+      }
+      #help-title:focus-visible {
+        outline: 2px solid var(--need-fill);
+        outline-offset: 3px;
+      }
+      #help-panel .dialog-note {
+        margin: 0 0 10px;
+        color: var(--hud-muted);
       }
       #help-panel ol {
         margin: 0 0 14px;
@@ -388,8 +406,10 @@
           grid-template-columns: 58px 1fr;
         }
         #help-panel {
-          right: max(12px, env(safe-area-inset-right));
-          left: max(12px, env(safe-area-inset-left));
+          inset:
+            auto max(12px, env(safe-area-inset-right))
+            max(12px, env(safe-area-inset-bottom))
+            max(12px, env(safe-area-inset-left));
           width: auto;
         }
       }
@@ -550,14 +570,12 @@
         <p id="keyboard-target" role="status" aria-live="polite" hidden></p>
       </section>
     </div>
-    <section
+    <dialog
       id="help-panel"
-      role="dialog"
-      aria-modal="false"
       aria-labelledby="help-title"
-      hidden
     >
-      <h2 id="help-title">How to play</h2>
+      <h2 id="help-title" tabindex="-1">How to play</h2>
+      <p class="dialog-note">Game time is paused while this guide is open.</p>
       <ol>
         <li>Choose a person under Household to select them and see their needs.</li>
         <li>Tap or click an object to give the selected person its default action.</li>
@@ -570,7 +588,7 @@
         <li>Open People to see how the selected person feels about everyone else.</li>
       </ol>
       <button id="close-help" class="hud-button" type="button">Got it</button>
-    </section>
+    </dialog>
     <dialog id="new-game-dialog" aria-labelledby="new-game-title">
       <h2 id="new-game-title">Start a new game?</h2>
       <p>This replaces the saved household and cannot be undone.</p>

@@ -49,6 +49,7 @@ import {
   PeoplePanel,
   createPeoplePanelSurface,
 } from './ui/people-panel.js';
+import { OverlayPauseController } from './ui/overlay-pause.js';
 
 /** [D2]: the simulation's one true rate. Speed controls change how many
  * ticks run per frame, never how long a tick is. */
@@ -283,6 +284,11 @@ async function main(): Promise<void> {
 
   const driver = new FixedStepDriver(TICK_HZ, MAX_TICKS_PER_FRAME);
   driver.setSpeed(START_SPEED);
+  const overlayPause = new OverlayPauseController(
+    driver,
+    (ticksPerFrame) => sim.setSpeed(ticksPerFrame),
+    START_SPEED,
+  );
 
   // The player readouts render simulation state and own nothing ([D-5]):
   // needs, selection, household state and current activity all come from
@@ -441,8 +447,7 @@ async function main(): Promise<void> {
     // the driver call is what actually changes the speed. [D2]: it
     // multiplies how many steps run per frame and never how long a step
     // is.
-    sim.setSpeed(ticksPerFrame);
-    driver.setSpeed(ticksPerFrame);
+    overlayPause.selectSpeed(ticksPerFrame);
   });
 
   const saveButton = document.querySelector<HTMLButtonElement>('#save-game');
@@ -452,7 +457,8 @@ async function main(): Promise<void> {
   const newGameButton = document.querySelector<HTMLButtonElement>('#new-game');
   const helpButton = document.querySelector<HTMLButtonElement>('#show-help');
   const closeHelpButton = document.querySelector<HTMLButtonElement>('#close-help');
-  const helpRoot = document.querySelector<HTMLElement>('#help-panel');
+  const helpRoot = document.querySelector<HTMLDialogElement>('#help-panel');
+  const helpTitle = document.querySelector<HTMLElement>('#help-title');
   const newGameDialog = document.querySelector<HTMLDialogElement>('#new-game-dialog');
   const loadGameDialog = document.querySelector<HTMLDialogElement>('#load-game-dialog');
   const confirmNewGame = document.querySelector<HTMLButtonElement>('#confirm-new-game');
@@ -466,6 +472,7 @@ async function main(): Promise<void> {
     !helpButton ||
     !closeHelpButton ||
     !helpRoot ||
+    !helpTitle ||
     !newGameDialog ||
     !loadGameDialog ||
     !confirmNewGame ||
@@ -497,31 +504,52 @@ async function main(): Promise<void> {
     syncPersistenceButtons();
     void saving.then(() => syncPersistenceButtons());
   });
-  loadButton.addEventListener('click', () => loadGameDialog.showModal());
+  let loadingGame = false;
+  loadButton.addEventListener('click', () => {
+    overlayPause.suspend('load-game');
+    loadGameDialog.showModal();
+  });
+  loadGameDialog.addEventListener('close', () => {
+    if (!loadingGame) overlayPause.resume('load-game');
+  });
   confirmLoadGame.addEventListener('click', (event) => {
     // The operation lock disables this submit button synchronously. Doing so
     // before the browser's method=dialog default action can cancel that action
     // and leave a successful Load hidden behind an open modal. Own the close
     // explicitly, before the button becomes disabled.
     event.preventDefault();
+    loadingGame = true;
     loadGameDialog.close('confirm');
     const loading = persistence.load();
     syncPersistenceButtons();
-    void loading.then((loaded) => {
-      if (loaded) {
-        const nowMs = performance.now();
-        householdRoster.update(nowMs, true);
-        peoplePanel.update(nowMs, true);
-      }
-      syncPersistenceButtons();
-    });
+    void loading
+      .then((loaded) => {
+        if (loaded) {
+          const nowMs = performance.now();
+          householdRoster.update(nowMs, true);
+          peoplePanel.update(nowMs, true);
+        }
+        syncPersistenceButtons();
+      })
+      .finally(() => {
+        loadingGame = false;
+        overlayPause.resume('load-game');
+      });
   });
-  newGameButton.addEventListener('click', () => newGameDialog.showModal());
+  let clearingForNewGame = false;
+  newGameButton.addEventListener('click', () => {
+    overlayPause.suspend('new-game');
+    newGameDialog.showModal();
+  });
+  newGameDialog.addEventListener('close', () => {
+    if (!clearingForNewGame) overlayPause.resume('new-game');
+  });
   confirmNewGame.addEventListener('click', (event) => {
     // Same ordering rule as Load: close first, then acquire and publish the
     // persistence lock. Clear may be deliberately slow and must not strand an
     // inert confirmation dialog over the running game.
     event.preventDefault();
+    clearingForNewGame = true;
     newGameDialog.close('confirm');
     startingNewGame = true;
     const clearing = persistence.clear();
@@ -530,6 +558,8 @@ async function main(): Promise<void> {
       if (cleared) window.location.reload();
       else {
         startingNewGame = false;
+        clearingForNewGame = false;
+        overlayPause.resume('new-game');
         syncPersistenceButtons();
       }
     });
@@ -556,18 +586,30 @@ async function main(): Promise<void> {
   } catch {
     // Help remains usable for the session when browser preferences are denied.
   }
-  const helpPanel = new HelpPanel(helpRoot, preferences);
-  helpPanel.showOnFirstRun();
-  helpButton.setAttribute('aria-expanded', String(!helpRoot.hidden));
+  const helpPanel = new HelpPanel(helpRoot, helpTitle, preferences);
+  let helpReturnTarget: HTMLElement = canvas;
+  const firstRunHelpOpened = helpPanel.showOnFirstRun();
+  if (firstRunHelpOpened) overlayPause.suspend('help');
+  helpButton.setAttribute('aria-expanded', String(helpRoot.open));
   helpButton.addEventListener('click', () => {
-    helpPanel.open();
-    helpButton.setAttribute('aria-expanded', 'true');
-    closeHelpButton.focus();
+    helpReturnTarget = helpButton;
+    if (helpPanel.open()) overlayPause.suspend('help');
+    helpButton.setAttribute('aria-expanded', String(helpRoot.open));
   });
-  closeHelpButton.addEventListener('click', () => {
-    helpPanel.close();
+  const closeHelp = (): void => {
+    if (helpPanel.close()) overlayPause.resume('help');
     helpButton.setAttribute('aria-expanded', 'false');
-    helpButton.focus();
+    helpReturnTarget.focus();
+  };
+  closeHelpButton.addEventListener('click', closeHelp);
+  helpRoot.addEventListener('cancel', (event) => {
+    event.preventDefault();
+    closeHelp();
+  });
+  helpRoot.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    event.preventDefault();
+    closeHelp();
   });
 
   document.addEventListener('visibilitychange', () => {
