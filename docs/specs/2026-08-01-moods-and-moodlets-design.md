@@ -86,9 +86,12 @@ The WASM boundary exposes aligned copies:
 2. `mood_summary_of`: overall label followed by each moodlet label.
 
 Both are empty for an absent, stale, or non-sim entity. The two calls are made
-synchronously with no tick between them. A length mismatch or non-finite score
-is invalid boundary data and renders the selected person's mood as unavailable
-instead of preserving stale rows.
+synchronously with no tick between them, except that an empty numeric result
+ends the read before allocating the text projection. A length mismatch or
+non-finite score is invalid boundary data and renders the selected person's
+mood as unavailable instead of preserving stale rows. No selection is a
+separate state and retains `Select a person to see their mood.` rather than
+misreporting unavailable data.
 
 Normal play shows Mood in the existing selected-person panel. The overall
 score uses an accessible meter from -100 to 100, with the overall label as its

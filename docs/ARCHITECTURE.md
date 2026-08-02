@@ -455,8 +455,10 @@ into visible identity.
 Mood is another pure projection, but its boundary is two aligned copies:
 `mood_snapshot_of` carries the overall and per-moodlet scores, while
 `mood_summary_of` carries the corresponding labels. The HUD copies the numeric
-half before the next bridge call, rejects empty, misaligned, blank, or
-non-finite data, and reconciles duplicate-safe rows at the ordinary need-bar
+half before the next bridge call and short-circuits without requesting labels
+when that half is empty. A discriminated render state keeps no selection
+distinct from invalid selected data, then rejects misaligned, blank, or
+non-finite payloads and reconciles duplicate-safe rows at the ordinary need-bar
 cadence. A successful Load force-refreshes Mood in the same callback as roster
 and People, before a tick can advance or an old row can survive the restored
 world.

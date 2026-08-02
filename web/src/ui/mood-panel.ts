@@ -22,8 +22,13 @@ export interface MoodPanelView {
   readonly moodlets: readonly MoodletView[];
 }
 
+export type MoodPanelState =
+  | { readonly kind: 'unselected' }
+  | { readonly kind: 'unavailable' }
+  | { readonly kind: 'ready'; readonly view: MoodPanelView };
+
 export interface MoodPanelSurface {
-  render(view: MoodPanelView | null): void;
+  render(state: MoodPanelState): void;
 }
 
 interface MoodDescription {
@@ -68,31 +73,36 @@ function formatScore(score: number): string {
   return rounded > 0 ? `+${rounded}` : String(rounded);
 }
 
-export function moodPanelView(source: MoodPanelSource): MoodPanelView | null {
+export function moodPanelState(source: MoodPanelSource): MoodPanelState {
   const selected = source.selectedIndex();
   if (selected === null) {
-    return null;
+    return { kind: 'unselected' };
   }
 
   // The bridge may return a view into WebAssembly memory. Copy it before the
   // next bridge call, which is allowed to grow memory and detach the view.
   const scores = Array.from(source.moodSnapshotOf(selected));
+  // Empty is the boundary's authoritative absent result. Do not allocate the
+  // aligned text half after the numeric half has already ruled the view out.
+  if (scores.length === 0) {
+    return { kind: 'unavailable' };
+  }
   const summaries = Array.from(source.moodSummaryOf(selected));
 
-  if (scores.length === 0 || scores.length !== summaries.length) {
-    return null;
+  if (scores.length !== summaries.length) {
+    return { kind: 'unavailable' };
   }
 
   const labels: string[] = [];
   for (const summary of summaries) {
     if (typeof summary !== 'string' || summary.trim().length === 0) {
-      return null;
+      return { kind: 'unavailable' };
     }
     labels.push(summary.trim());
   }
 
   if (scores.some((score) => !Number.isFinite(score))) {
-    return null;
+    return { kind: 'unavailable' };
   }
 
   const overallDescription = describeFiniteMood(scores[0]);
@@ -113,11 +123,14 @@ export function moodPanelView(source: MoodPanelSource): MoodPanelView | null {
   }
 
   return {
-    overall: {
-      label: labels[0],
-      ...overallDescription,
+    kind: 'ready',
+    view: {
+      overall: {
+        label: labels[0],
+        ...overallDescription,
+      },
+      moodlets,
     },
-    moodlets,
   };
 }
 
@@ -143,7 +156,7 @@ export class MoodPanel {
       return false;
     }
 
-    this.surface.render(moodPanelView(this.source));
+    this.surface.render(moodPanelState(this.source));
     this.lastRenderMs = nowMs;
     return true;
   }
@@ -211,17 +224,21 @@ export function createMoodPanelSurface(
   }
 
   return {
-    render(view: MoodPanelView | null): void {
-      if (view === null) {
+    render(state: MoodPanelState): void {
+      if (state.kind !== 'ready') {
         clearRows();
         empty.hidden = false;
-        empty.textContent = 'Mood unavailable';
+        empty.textContent =
+          state.kind === 'unselected'
+            ? 'Select a person to see their mood.'
+            : 'Mood unavailable';
         content.hidden = true;
         list.hidden = true;
         resetOverallMeter(overallLabel, overallMeter, marker);
         return;
       }
 
+      const { view } = state;
       empty.hidden = true;
       content.hidden = false;
       overallLabel.textContent = view.overall.label;

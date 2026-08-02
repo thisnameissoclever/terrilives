@@ -3,8 +3,9 @@ import { describe, expect, it } from 'vitest';
 import {
   MoodPanel,
   createMoodPanelSurface,
-  moodPanelView,
+  moodPanelState,
   type MoodPanelSource,
+  type MoodPanelState,
   type MoodPanelView,
 } from '../src/ui/mood-panel.js';
 
@@ -163,6 +164,14 @@ function view(
   };
 }
 
+function ready(
+  overallLabel: string,
+  overallScore: number,
+  moodlets: Array<{ key: string; label: string; score: number }>,
+): MoodPanelState {
+  return { kind: 'ready', view: view(overallLabel, overallScore, moodlets) };
+}
+
 function createFixture() {
   const doc = new FakeDocument();
   const empty = new FakeElement();
@@ -183,50 +192,53 @@ function createFixture() {
   return { surface, empty, content, overallLabel, overallMeter, marker, list };
 }
 
-describe('moodPanelView', () => {
+describe('moodPanelState', () => {
   it('builds an overall bipolar mood and signed moodlet tones', () => {
     const source = new MutableMoodSource();
     source.selected = 3;
     source.snapshot = new Float32Array([35, 25, -15, 0]);
     source.summary = ['Content', 'Good meal', 'Awkward chat', 'Quiet moment'];
 
-    const result = moodPanelView(source);
+    const result = moodPanelState(source);
 
     expect(result).toEqual({
-      overall: { label: 'Content', score: 35, percent: 67.5, tone: 'positive' },
-      moodlets: [
-        {
-          key: 'Good meal\u00000',
-          label: 'Good meal',
-          score: 25,
-          percent: 62.5,
-          tone: 'positive',
-        },
-        {
-          key: 'Awkward chat\u00000',
-          label: 'Awkward chat',
-          score: -15,
-          percent: 42.5,
-          tone: 'negative',
-        },
-        {
-          key: 'Quiet moment\u00000',
-          label: 'Quiet moment',
-          score: 0,
-          percent: 50,
-          tone: 'neutral',
-        },
-      ],
+      kind: 'ready',
+      view: {
+        overall: { label: 'Content', score: 35, percent: 67.5, tone: 'positive' },
+        moodlets: [
+          {
+            key: 'Good meal\u00000',
+            label: 'Good meal',
+            score: 25,
+            percent: 62.5,
+            tone: 'positive',
+          },
+          {
+            key: 'Awkward chat\u00000',
+            label: 'Awkward chat',
+            score: -15,
+            percent: 42.5,
+            tone: 'negative',
+          },
+          {
+            key: 'Quiet moment\u00000',
+            label: 'Quiet moment',
+            score: 0,
+            percent: 50,
+            tone: 'neutral',
+          },
+        ],
+      },
     });
     expect(source.snapshotReads).toBe(1);
     expect(source.summaryReads).toBe(1);
   });
 
-  it('returns unavailable without downstream reads when no person is selected', () => {
+  it('returns unselected without downstream reads when no person is selected', () => {
     const source = new MutableMoodSource();
     source.selected = null;
 
-    expect(moodPanelView(source)).toBeNull();
+    expect(moodPanelState(source)).toEqual({ kind: 'unselected' });
     expect(source.snapshotReads).toBe(0);
     expect(source.summaryReads).toBe(0);
   });
@@ -236,15 +248,26 @@ describe('moodPanelView', () => {
     source.snapshot = new Float32Array([-20]);
     source.summary = ['Uneasy'];
 
-    expect(moodPanelView(source)).toEqual({
-      overall: { label: 'Uneasy', score: -20, percent: 40, tone: 'negative' },
-      moodlets: [],
+    expect(moodPanelState(source)).toEqual({
+      kind: 'ready',
+      view: {
+        overall: { label: 'Uneasy', score: -20, percent: 40, tone: 'negative' },
+        moodlets: [],
+      },
     });
   });
 
-  it('rejects empty, misaligned, blank, and non-finite payloads', () => {
+  it('short-circuits before the text boundary when the numeric projection is empty', () => {
+    const source = new MutableMoodSource();
+    source.snapshot = new Float32Array();
+
+    expect(moodPanelState(source)).toEqual({ kind: 'unavailable' });
+    expect(source.snapshotReads).toBe(1);
+    expect(source.summaryReads).toBe(0);
+  });
+
+  it('rejects misaligned, blank, and non-finite payloads', () => {
     const cases: Array<{ snapshot: Float32Array; summary: string[] }> = [
-      { snapshot: new Float32Array(), summary: [] },
       { snapshot: new Float32Array([0, 5]), summary: ['Neutral'] },
       { snapshot: new Float32Array([0]), summary: ['   '] },
       { snapshot: new Float32Array([0, 5]), summary: ['Neutral', '  '] },
@@ -256,7 +279,7 @@ describe('moodPanelView', () => {
       const source = new MutableMoodSource();
       source.snapshot = current.snapshot;
       source.summary = current.summary;
-      expect(moodPanelView(source)).toBeNull();
+      expect(moodPanelState(source)).toEqual({ kind: 'unavailable' });
     }
   });
 
@@ -265,15 +288,19 @@ describe('moodPanelView', () => {
     source.snapshot = new Float32Array([150, -125, 40]);
     source.summary = ['Elated', 'Recent event', 'Recent event'];
 
-    const result = moodPanelView(source);
+    const result = moodPanelState(source);
 
-    expect(result?.overall).toEqual({
+    expect(result.kind).toBe('ready');
+    if (result.kind !== 'ready') throw new Error('finite aligned mood must be ready');
+    expect(result.view.overall).toEqual({
       label: 'Elated',
       score: 100,
       percent: 100,
       tone: 'positive',
     });
-    expect(result?.moodlets.map((moodlet) => [moodlet.key, moodlet.score, moodlet.percent])).toEqual([
+    expect(
+      result.view.moodlets.map((moodlet) => [moodlet.key, moodlet.score, moodlet.percent]),
+    ).toEqual([
       ['Recent event\u00000', -100, 0],
       ['Recent event\u00001', 40, 70],
     ]);
@@ -290,9 +317,12 @@ describe('moodPanelView', () => {
       },
     };
 
-    expect(moodPanelView(source)).toMatchObject({
-      overall: { score: 10 },
-      moodlets: [{ score: 20 }],
+    expect(moodPanelState(source)).toMatchObject({
+      kind: 'ready',
+      view: {
+        overall: { score: 10 },
+        moodlets: [{ score: 20 }],
+      },
     });
   });
 });
@@ -300,7 +330,7 @@ describe('moodPanelView', () => {
 describe('MoodPanel', () => {
   it('throttles source reads and refreshes again at the interval', () => {
     const source = new MutableMoodSource();
-    const renders: Array<MoodPanelView | null> = [];
+    const renders: MoodPanelState[] = [];
     const panel = new MoodPanel(source, { render: (result) => renders.push(result) }, 100);
 
     expect(panel.update(0)).toBe(true);
@@ -316,7 +346,7 @@ describe('MoodPanel', () => {
 
   it('observes selection changes on refresh and force-refreshes post-load state', () => {
     const source = new MutableMoodSource();
-    const renders: Array<MoodPanelView | null> = [];
+    const renders: MoodPanelState[] = [];
     const panel = new MoodPanel(source, { render: (result) => renders.push(result) }, 100);
 
     panel.update(0);
@@ -327,8 +357,11 @@ describe('MoodPanel', () => {
     source.summary = ['Restored'];
     expect(panel.update(11, true)).toBe(true);
 
-    expect(renders[1]).toBeNull();
-    expect(renders[2]?.overall.label).toBe('Restored');
+    expect(renders[1]).toEqual({ kind: 'unselected' });
+    expect(renders[2]).toMatchObject({
+      kind: 'ready',
+      view: { overall: { label: 'Restored' } },
+    });
     expect(source.selectedReads).toBe(3);
   });
 
@@ -346,7 +379,7 @@ describe('createMoodPanelSurface', () => {
     const fixture = createFixture();
 
     fixture.surface.render(
-      view('Content', 35, [
+      ready('Content', 35, [
         { key: 'meal', label: 'Good meal', score: 25 },
         { key: 'chat', label: 'Awkward chat', score: -15 },
         { key: 'quiet', label: 'Quiet moment', score: 0 },
@@ -378,7 +411,7 @@ describe('createMoodPanelSurface', () => {
   it('reuses keyed rows while reordering and removes stale rows', () => {
     const fixture = createFixture();
     fixture.surface.render(
-      view('Content', 10, [
+      ready('Content', 10, [
         { key: 'meal', label: 'Good meal', score: 20 },
         { key: 'chat', label: 'Awkward chat', score: -20 },
       ]),
@@ -387,7 +420,7 @@ describe('createMoodPanelSurface', () => {
     const chatRow = fixture.list.nodes[1];
 
     fixture.surface.render(
-      view('Uneasy', -5, [
+      ready('Uneasy', -5, [
         { key: 'chat', label: 'Awkward chat', score: -30 },
         { key: 'quiet', label: 'Quiet moment', score: 0 },
       ]),
@@ -403,7 +436,7 @@ describe('createMoodPanelSurface', () => {
   it('shows a functional empty-moodlet message for a valid overall-only view', () => {
     const fixture = createFixture();
 
-    fixture.surface.render(view('Calm', 0, []));
+    fixture.surface.render(ready('Calm', 0, []));
 
     expect(fixture.content.hidden).toBe(false);
     expect(fixture.overallLabel.textContent).toBe('Calm');
@@ -415,10 +448,12 @@ describe('createMoodPanelSurface', () => {
 
   it('clears stale rows and resets the meter when data becomes unavailable', () => {
     const fixture = createFixture();
-    fixture.surface.render(view('Content', 35, [{ key: 'meal', label: 'Good meal', score: 25 }]));
+    fixture.surface.render(
+      ready('Content', 35, [{ key: 'meal', label: 'Good meal', score: 25 }]),
+    );
     const oldRow = fixture.list.nodes[0];
 
-    fixture.surface.render(null);
+    fixture.surface.render({ kind: 'unavailable' });
 
     expect(fixture.empty.hidden).toBe(false);
     expect(fixture.empty.textContent).toBe('Mood unavailable');
@@ -431,8 +466,20 @@ describe('createMoodPanelSurface', () => {
     expect(fixture.list.nodes).toHaveLength(0);
     expect(oldRow.parentElement).toBeNull();
 
-    fixture.surface.render(view('Restored', 5, [{ key: 'visit', label: 'Friendly visit', score: 15 }]));
+    fixture.surface.render(
+      ready('Restored', 5, [{ key: 'visit', label: 'Friendly visit', score: 15 }]),
+    );
     expect(fixture.list.nodes).toHaveLength(1);
     expect(fixture.list.textContent).not.toContain('Good meal');
+  });
+
+  it('keeps the selection prompt distinct from unavailable boundary data', () => {
+    const fixture = createFixture();
+
+    fixture.surface.render({ kind: 'unselected' });
+    expect(fixture.empty.textContent).toBe('Select a person to see their mood.');
+
+    fixture.surface.render({ kind: 'unavailable' });
+    expect(fixture.empty.textContent).toBe('Mood unavailable');
   });
 });
