@@ -26,6 +26,15 @@ clamped and focus-managed action menus, and responsive accessible controls.
 The owner's dark-comedy voice session remains open by design; see
 docs/player-visible-strings.md. The alpha's eleven acceptance criteria live
 in docs/alpha-goals.md.
+
+The eleven were then run against the FINISHED game rather than against
+the milestone that shipped each one, and three did not hold: saving was
+broken for 28.4% of ticks, the only sim with a job lived permanently at
+zero on six of seven needs, and the reading chair was at zero uses over
+the horizon criterion 3 names. All three are fixed; see
+docs/specs/2026-08-01-alpha-acceptance-findings.md and [A-17] in
+docs/alpha-feel-notes.md. **Criterion 11, the owner-authored voice, is
+now the only one outstanding.**
 Everything else is
 proposed scope, not yet agreed in detail. Milestones exist primarily to
 control [R6], which is the risk most likely to actually kill this project.
