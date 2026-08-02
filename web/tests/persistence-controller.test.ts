@@ -4,6 +4,7 @@ import type { SaveStore } from '../src/storage/save-store.js';
 import {
   PersistenceController,
   applyPersistenceControlState,
+  restorePersistenceFocus,
   type PersistableSim,
 } from '../src/ui/persistence-controller.js';
 
@@ -66,6 +67,105 @@ function store(saved: Uint8Array | null): SaveStore & {
     close() {},
   };
 }
+
+function focusTarget(disabled = false) {
+  return {
+    disabled,
+    focus: vi.fn(),
+  };
+}
+
+describe('restorePersistenceFocus', () => {
+  it('prefers the enabled opener when focus is on the body or nowhere', () => {
+    const body = {} as Node;
+    for (const activeElement of [body, null]) {
+      const opener = focusTarget();
+      const fallback = focusTarget();
+
+      expect(
+        restorePersistenceFocus(
+          { activeElement, body },
+          { open: false, contains: () => false },
+          opener,
+          [fallback],
+        ),
+      ).toBe(true);
+      expect(opener.focus).toHaveBeenCalledTimes(1);
+      expect(fallback.focus).not.toHaveBeenCalled();
+    }
+  });
+
+  it('uses the first enabled fallback when the original opener is disabled', () => {
+    const body = {} as Node;
+    const stranded = {} as Node;
+    const opener = focusTarget(true);
+    const disabledFallback = focusTarget(true);
+    const enabledFallback = focusTarget();
+
+    expect(
+      restorePersistenceFocus(
+        { activeElement: stranded, body },
+        { open: false, contains: (node) => node === stranded },
+        opener,
+        [disabledFallback, enabledFallback],
+      ),
+    ).toBe(true);
+    expect(opener.focus).not.toHaveBeenCalled();
+    expect(disabledFallback.focus).not.toHaveBeenCalled();
+    expect(enabledFallback.focus).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not steal deliberate focus outside the closed dialog', () => {
+    const body = {} as Node;
+    const deliberate = {} as Node;
+    const opener = focusTarget();
+    const fallback = focusTarget();
+
+    expect(
+      restorePersistenceFocus(
+        { activeElement: deliberate, body },
+        { open: false, contains: () => false },
+        opener,
+        [fallback],
+      ),
+    ).toBe(false);
+    expect(opener.focus).not.toHaveBeenCalled();
+    expect(fallback.focus).not.toHaveBeenCalled();
+  });
+
+  it('does not move focus out of a dialog that is still open', () => {
+    const body = {} as Node;
+    const activeElement = {} as Node;
+    const opener = focusTarget();
+
+    expect(
+      restorePersistenceFocus(
+        { activeElement, body },
+        { open: true, contains: (node) => node === activeElement },
+        opener,
+        [],
+      ),
+    ).toBe(false);
+    expect(opener.focus).not.toHaveBeenCalled();
+  });
+
+  it('leaves focus stranded when no game action is enabled', () => {
+    const body = {} as Node;
+    const opener = focusTarget(true);
+    const fallback = focusTarget(true);
+
+    expect(
+      restorePersistenceFocus(
+        { activeElement: body, body },
+        { open: false, contains: () => false },
+        opener,
+        [fallback],
+      ),
+    ).toBe(false);
+    expect(opener.focus).not.toHaveBeenCalled();
+    expect(fallback.focus).not.toHaveBeenCalled();
+  });
+});
 
 describe('PersistenceController', () => {
   it('distinguishes a new game, a restored game and invalid bytes', async () => {

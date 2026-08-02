@@ -133,6 +133,21 @@ export type ClickAction =
   | { readonly kind: 'none' };
 
 /**
+ * What happened after a left click reached the command boundary.
+ *
+ * Selection is kept distinct from an order so the shell can report the
+ * command the player actually attempted when the staging queue rejects it.
+ * `none` is not a rejection: it is an unplaceable click or an object click
+ * made before anybody was selected.
+ */
+export type LeftClickOutcome =
+  | { readonly kind: 'selection'; readonly accepted: boolean }
+  | { readonly kind: 'order'; readonly accepted: boolean }
+  | { readonly kind: 'none' };
+
+export type RejectedCommandKind = Exclude<LeftClickOutcome['kind'], 'none'>;
+
+/**
  * The tile a click landed on, or `null` if the canvas has no area.
  *
  * Two conversions, in this order:
@@ -567,10 +582,15 @@ export function handleLeftClick(
   originY: number,
   additive: boolean,
   scale = 1,
-): boolean | null {
-  if (point === null) return null;
+): LeftClickOutcome {
+  if (point === null) return { kind: 'none' };
   const pick = pickSprite(target, point.x, point.y, originX, originY, scale);
-  return dispatch(target, resolveLeftClick(pick, target.selectedIndex(), additive));
+  const action = resolveLeftClick(pick, target.selectedIndex(), additive);
+  if (action.kind === 'none') return { kind: 'none' };
+  const accepted = dispatch(target, action) === true;
+  return action.kind === 'select'
+    ? { kind: 'selection', accepted }
+    : { kind: 'order', accepted };
 }
 
 /**
@@ -904,7 +924,7 @@ export function attachPointerInput(
   camera: Readonly<Camera>,
   gestures: CameraGestures,
   additiveMode: () => boolean = () => false,
-  onCommandRejected: () => void = () => {},
+  onCommandRejected: (kind: RejectedCommandKind) => void = () => {},
 ): void {
   const canvasPoint = (event: {
     clientX: number;
@@ -1067,7 +1087,7 @@ export function attachPointerInput(
       suppressNextClick = false;
       return;
     }
-    const accepted = handleLeftClick(
+    const outcome = handleLeftClick(
       target,
       canvasPoint(event),
       camera.originX,
@@ -1075,7 +1095,9 @@ export function attachPointerInput(
       event.ctrlKey || event.metaKey || additiveMode(),
       camera.scale,
     );
-    if (accepted === false) onCommandRejected();
+    if (outcome.kind !== 'none' && !outcome.accepted) {
+      onCommandRejected(outcome.kind);
+    }
   });
 
   canvas.addEventListener('contextmenu', (event) => {

@@ -3452,3 +3452,26 @@ every previous child is inert, and a pre-existing open native dialog is closed.
 In a compact visible browser, force startup to fail with a modal already open
 and confirm the whole message remains scrollable with no focusable controls
 behind it.
+
+## [L74] A shipped checkbox left open becomes counterfeit backlog
+
+**What happened.** The feature overview correctly described save/load, time
+controls, seven-need behavior, and player-facing blocked-state feedback as
+shipped in its status prose, while later roadmap bullets and architecture
+comments still described the same work as unfinished. A fresh audit therefore
+produced contradictory recommendations depending on which paragraph it read.
+
+**Root cause.** Milestone implementation updated the detailed design and the
+top-level status summary, but did not search sibling roadmap bullets and source
+comments that shared the same completion claim. Historical plans also retained
+unchecked execution steps, which made a text search look more like a current
+backlog than an archive of how the work was built.
+
+**Prevention rule.** When a feature ships, impact-scan documentation and source
+comments for every statement about whether it exists, who reads it, and what is
+still deferred. Treat old plan checkboxes as historical evidence unless the
+requirements index explicitly names them as live work.
+
+**How to verify.** Search current non-archive documentation for each shipped
+feature name. The requirements index, feature overview, architecture, and code
+comments must agree on its status and on any deliberately deferred extension.

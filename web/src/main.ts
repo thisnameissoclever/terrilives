@@ -39,9 +39,13 @@ import { HelpPanel } from './ui/help-panel.js';
 import {
   PersistenceController,
   applyPersistenceControlState,
+  restorePersistenceFocus,
 } from './ui/persistence-controller.js';
 import { QueueMode } from './ui/queue-mode.js';
-import { KeyboardTargetController } from './ui/keyboard-target.js';
+import {
+  KeyboardTargetController,
+  reportKeyboardSelection,
+} from './ui/keyboard-target.js';
 import {
   HouseholdRoster,
   createHouseholdRosterSurface,
@@ -516,6 +520,13 @@ async function main(): Promise<void> {
   }
 
   const queueMode = new QueueMode(queueButton);
+  const persistenceFocusFallbacks = [
+    saveButton,
+    stopOrdersButton,
+    queueButton,
+    newGameButton,
+    helpButton,
+  ] as const;
   let startingNewGame = false;
   let persistenceControlKey = '';
   const syncPersistenceButtons = (): void => {
@@ -568,10 +579,16 @@ async function main(): Promise<void> {
           peoplePanel.update(nowMs, true);
           moodPanel.update(nowMs, true);
         }
-        syncPersistenceButtons();
       })
       .finally(() => {
         loadingGame = false;
+        syncPersistenceButtons();
+        restorePersistenceFocus(
+          document,
+          loadGameDialog,
+          loadButton,
+          persistenceFocusFallbacks,
+        );
         overlayPause.resume('load-game');
       });
   });
@@ -600,6 +617,12 @@ async function main(): Promise<void> {
         clearingForNewGame = false;
         overlayPause.resume('new-game');
         syncPersistenceButtons();
+        restorePersistenceFocus(
+          document,
+          newGameDialog,
+          newGameButton,
+          persistenceFocusFallbacks,
+        );
       }
     });
   });
@@ -796,8 +819,12 @@ async function main(): Promise<void> {
     if (event.key === ' ') {
       event.preventDefault();
       const target = keyboardTargets.current();
-      if (target?.kind === 'person' && sim.select(target.entity)) {
-        keyboardStatus.textContent = `Selected ${target.label}`;
+      if (target?.kind === 'person') {
+        reportKeyboardSelection(
+          keyboardStatus,
+          target.label,
+          sim.select(target.entity),
+        );
       }
       return;
     }
@@ -805,7 +832,11 @@ async function main(): Promise<void> {
       event.preventDefault();
       const action = keyboardTargets.activate();
       if (action.kind === 'select') {
-        if (sim.select(action.entity)) keyboardStatus.textContent = `Selected ${action.label}`;
+        reportKeyboardSelection(
+          keyboardStatus,
+          action.label,
+          sim.select(action.entity),
+        );
       } else if (action.kind === 'menu') {
         const bounds = canvas.getBoundingClientRect();
         menu.open(action.entries, bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
@@ -861,8 +892,10 @@ async function main(): Promise<void> {
       },
     },
     () => queueMode.isActive(),
-    () => {
-      saveStatus.textContent = 'That order could not be added';
+    (kind) => {
+      saveStatus.textContent = kind === 'selection'
+        ? 'Selection could not be changed'
+        : 'That order could not be added';
       saveStatus.setAttribute('data-kind', 'error');
     },
   );
