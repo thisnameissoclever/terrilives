@@ -39,8 +39,8 @@ The owner's dark-comedy voice session remains open by design; see
 docs/player-visible-strings.md. The alpha's eleven acceptance criteria live
 in docs/alpha-goals.md.
 
-The eleven were then run against the FINISHED game rather than against
-the milestone that shipped each one, and three did not hold: saving was
+The eleven were then run against the code-complete alpha systems rather than
+against the milestone that shipped each one, and three did not hold: saving was
 broken for 28.4% of ticks, the only sim with a job lived permanently at
 zero on six of seven needs, and the reading chair was at zero uses over
 the horizon criterion 3 names. All three are fixed; see
@@ -68,6 +68,24 @@ object use, so mapping it directly to an eating pose would confidently animate
 the wrong fiction. This priority does not decide the colour palette, paid
 assets, or a new character-art pipeline; those remain [T12], [T3]/[T7], and
 [T19].
+
+### Next engineering slices
+
+This is the current restart point, separate from the historical milestone
+checklists below:
+
+1. Define visual-action categories, facings, and interaction anchors before
+   adding action-specific body animation. The current broad activity labels do
+   not distinguish eating from other object use.
+2. Make idle wandering local enough to read as idling rather than commuting.
+   The observed whole-lot walks are documented at [A-1] [F2]. This needs a
+   tuning field, schema validation, deterministic random selection, tests, and
+   new feel measurements; it is not a one-line radius patch.
+3. Run the two useful device checks not yet claimed as watched evidence: a
+   physical-phone long press and a browser session with reduced motion enabled.
+   Both paths already have deterministic automated coverage.
+4. Hold criterion 11 open for the owner-authored dark-comedy voice session
+   tracked by [T22]. Functional UI copy is intentionally plain until then.
 
 **M1b closed with one item of its deliverable unmet, deliberately recorded
 rather than quietly ticked.** Every definition-of-done line passes, and the
@@ -270,9 +288,9 @@ What makes it a *life* sim rather than a needs sim.
 - **Skills:** learned through interaction, gating better outcomes
 - **Careers:** rabbit-hole model for the beta - the sim leaves the lot and
   returns with an outcome. **Simulated workplaces are a near-term post-v1
-  goal and are architected for now** ([D15]); careers are expected to be
-  critical to the production version, so the rabbit hole is the Tier 2
-  implementation of a real system rather than a throwaway.
+  goal with a recorded compatibility target** ([D15]); the shipped rabbit hole
+  is deliberately smaller and does not already contain workplace lots,
+  promotion ladders, coworker entities, or a shared outcome interface.
 - **Pregnancy, birth, genetics** for inherited appearance and traits
 - **Death** from several causes, each with distinct fiction and consequence
 
@@ -331,7 +349,7 @@ in ARCHITECTURE.md but deliberately unbuilt.
 | **Player-built house sharing** | Valuable and cheap-ish, but M4 is the higher-value use of the same sync plumbing |
 | **Native desktop build** | Shell swap, deferred by choice, not blocked |
 | **Pets, weather, seasons, vehicles** | Classic expansion-pack material |
-| **Simulated workplaces** | **Near-term post-v1, not deferred indefinitely.** Rabbit holes in M2 are the Tier 2 implementation; [D15] specifies what v1 must get right so this drops in cleanly |
+| **Simulated workplaces** | **Near-term post-v1, not deferred indefinitely.** Rabbit holes ship now; [D15] separates their actual state from the planned workplace contract |
 
 ## Design tone
 

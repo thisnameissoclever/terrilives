@@ -46,8 +46,8 @@ pub struct RenderBuffer {
     /// number instead works until the first despawn leaves a hole, after
     /// which every click past the hole selects or directs the wrong entity,
     /// with nothing in the type system or the tests to say so. That is the
-    /// [L3] family again: correct by coincidence, and the coincidence is
-    /// scheduled to end at M1d when sims can die.
+    /// [L3] family again: correct by coincidence, and the coincidence ends
+    /// with the first despawn that leaves a reusable entity-index hole.
     ///
     /// So the shell reads the mapping rather than assuming it.
     /// `a_row_is_not_its_entity_index_once_an_index_is_freed` is the test

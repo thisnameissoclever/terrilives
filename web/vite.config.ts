@@ -6,23 +6,16 @@ import { defineConfig } from 'vite';
  * Self-signed TLS, when the material exists.
  *
  * WebGPU only exists in secure contexts - https, or localhost - so the
- * dev build that runs perfectly at http://localhost:5173 renders a
- * void from any other device's plain-http address. Three servers,
- * three answers:
+ * dev build that runs perfectly over localhost HTTP renders a void from any
+ * other device's plain-HTTP address. The repository has two standing servers:
  *
- *   - `npm run dev` (5173): plain http, localhost work. Deliberately
- *     NOT https, so local tooling never fights a certificate
- *     interstitial.
- *   - `npm run dev:lan` (5174): the SAME live dev server over https,
- *     for phones and other machines - one URL that is always the
- *     current game, hot reload included.
- *   - `npm run preview` (4173): the built bundle over https, the
- *     closer-to-shipping copy.
+ *   - `npm run dev` or `npm run dev:lan` (5174): the same live LAN-mode
+ *     server, with hot reload.
+ *   - `npm run preview` (4173): the built bundle, the closer-to-shipping copy.
  *
- * The material is deliberately optional and gitignored: a fresh clone
- * works without it (every server simply serves http, fine on
- * localhost), and a private key never enters history even a throwaway
- * one. Regenerate with:
+ * Both use https when the certificate material exists and http otherwise. The
+ * material is deliberately optional and gitignored: a fresh clone works over
+ * localhost HTTP, and a private key never enters history. Regenerate with:
  *
  *   openssl req -x509 -newkey rsa:2048 -sha256 -days 825 -nodes \
  *     -keyout web/.cert/key.pem -out web/.cert/cert.pem \
@@ -50,15 +43,15 @@ export default defineConfig(({ mode }) => ({
   server: {
     // Bind every interface, not only localhost, so the dev build is
     // reachable from other machines and phones on the same network at
-    // http://<this-machine's-LAN-IP>:5173. Windows will ask once to
+    // port 5174. Windows will ask once to
     // allow Node through the firewall for private networks; that
     // approval is the machine owner's to give. Note WebGPU on the
     // visiting device still applies: recent Chrome or Edge works,
     // Safari and older Android browsers may not.
     host: true,
-    // https only in `dev:lan` mode - the mode exists so the plain
-    // localhost workflow and the phone-reachable one can run side by
-    // side on their own ports rather than fighting over one.
+    // Both package scripts use `lan` mode. TLS is active only when the local
+    // certificate files above exist; invoking Vite directly in its default
+    // mode remains the plain-localhost fallback.
     https: mode === 'lan' ? https : undefined,
     // Required for SharedArrayBuffer / WASM threads later. Harmless now.
     headers: {

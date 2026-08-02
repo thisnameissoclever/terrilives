@@ -1,4 +1,4 @@
-# The playable-alpha goal, as eleven DONE criteria
+# The playable-alpha goal, as eleven acceptance criteria
 
 The standing goal this project is building toward: **a full, genuinely
 playable alpha - a life sim you can sink an hour into.** Every criterion
@@ -8,8 +8,8 @@ living only in session context; they are project requirements and
 belong in the repository ([A-11] docs debt).
 
 **Each criterion was measured when its milestone shipped, and that was
-not enough.** Run against the FINISHED alpha, with every system present
-at once, three of them failed - see [A-19] and
+not enough.** Run against the code-complete alpha systems, with every system
+present at once, three of them failed - see [A-19] and
 `docs/specs/2026-08-01-alpha-acceptance-findings.md`. A criterion is
 verified against the whole game or it is not verified.
 

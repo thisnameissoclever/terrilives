@@ -481,7 +481,7 @@ export class SimBridge {
    * The sim's accumulated satisfaction - the M2e second axis - or null
    * for anything without a ledger. The boundary's -1 is in-band the way
    * simIdOf's MAX is, and unreachable by a real ledger (it clamps at
-   * zero). Debug-overlay read today, the M2g HUD's later.
+   * zero). Read by both the debug overlay and the normal HUD.
    */
   satisfactionOf(entityIndex: number): number | null {
     if (!isU32(entityIndex)) return null;

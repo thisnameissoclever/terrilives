@@ -199,9 +199,8 @@ pub struct Tuning {
     pub duration_variance: f32,
     /// Hard floor on any interaction, in ticks. At least 1.
     pub min_interaction_ticks: u32,
-    /// Seed for the simulation PRNG. Constant for now; it becomes part
-    /// of the save file at M1d, which is what makes a saved game
-    /// replayable.
+    /// Seed for a new simulation's PRNG. Save V1 persists the complete
+    /// live PRNG state, which makes continuation after Load replayable.
     pub rng_seed: u64,
     /// The most player-issued intents one sim may hold at once. At least
     /// 1.

@@ -286,8 +286,8 @@ habituation_decay_per_tick = 0.0011
 # refuse to eat.
 habituation_floor = 0.45
 
-# Seed for the simulation PRNG. Constant for now; it becomes part of the
-# save file at M1d, which is what makes a saved game replayable.
+# Seed for a new simulation's PRNG. Save V1 persists the complete live PRNG
+# state, which is what makes continuation after Load replayable.
 rng_seed = 20260728
 
 # The most player-issued intents one sim may hold at once. A click that

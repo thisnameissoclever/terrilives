@@ -9,14 +9,14 @@ stable.
 | Layer | Choice | Why |
 |---|---|---|
 | Simulation core | **Rust** | Best perf-per-effort; compiles to both `wasm32` and native from one source; the compiler is an unusually dense correctness signal |
-| ECS | **`bevy_ecs`** standalone | Mature archetypal ECS with an automatic parallel scheduler, without Bevy's weak UI story |
+| ECS | **`bevy_ecs`** standalone | Mature archetypal ECS without Bevy's UI layer; the alpha schedule is deliberately single-threaded and later parallelism remains planned |
 | Compile target (first) | **`wasm32-unknown-unknown`** | Web-first |
 | Renderer | **WebGPU** via TypeScript | Compute shaders and far lower draw-call overhead than WebGL2 |
 | UI | **DOM / HTML + CSS** | The decisive advantage; see below |
 | Bridge | **`wasm-bindgen`**, zero-copy typed-array views | See [D11] |
 | Content format | **TOML**, compiled to a binary pack | See [D9] |
 | Save storage | **OPFS** | Real file handles from a worker, no meaningful quota ceiling |
-| Backend | Object storage plus a thin API | Content sync only; see [D14] |
+| Planned backend | Object storage plus a thin API | Unbuilt content sync only; see [D14] |
 
 ## Why this stack
 
@@ -86,7 +86,23 @@ steered away from here: slow compiles, weaker diagnostics than Rust, and
 undefined behaviour meaning bugs manifest far from their cause. That is the
 worst possible profile for both agentic iteration and human debugging.
 
-## Art pipeline
+## Art pipeline: shipped alpha and future direction
+
+### Shipped alpha pipeline
+
+The current game renders one pre-built isometric sprite atlas through WebGPU.
+Its borrowed sprites come from the CC0 Kenney Furniture Kit, while the shell
+generates overlays and simple geometry recorded in `ASSETS.md`. Sims currently
+use one body sprite plus a deterministic two-pixel walking lift; the selection
+ring remains planted and reduced motion disables the ornamental lift. There is
+no live 3D mesh pipeline, toon outline, palette-mask shader, external character
+rig, or imported animation library in the shipped alpha.
+
+### Future full-art pipeline
+
+Everything below this heading is an unbuilt art direction unless a paragraph
+explicitly says it is already used by the alpha. It remains subject to the
+owner's art-direction and purchasing decisions in `docs/TIM-TODO.md`.
 
 The framing that matters: **art is more likely to sink this project than code
 is.** The mitigation is not finding a cheaper way to produce an expensive
@@ -131,8 +147,9 @@ far. That is a targeted exception, not a style change.
 ### [ST5] Toon outline post-process
 
 Roughly 20-30 lines of shader. Makes flat-shaded low-poly read far more crisply
-at isometric distance and supplies visual identity at no art cost. Prototype in
-M0.
+at isometric distance and supplies visual identity at no art cost. This was not
+prototyped in M0; it belongs to a future full-art prototype if that direction
+is approved.
 
 ### [O1] Design the catalog from the library, not the reverse
 
@@ -171,9 +188,10 @@ difference between "stock asset game" and "your game."**
 
 ### [O4] Synty subscription
 
-Synty offers their full library of 130+ art, animation, and UI packs on
-subscription from **$30/month**, and the packs are explicitly designed to mix
-and match across the range. The Shops Pack alone contains ~1,933 prefabs.
+Synty offers their full library of 130+ art, animation, and UI packs through
+SyntyPass from **$40/month with a three-month prepaid minimum ($120)**, and the
+packs are explicitly designed to mix and match across the range. The Shops Pack
+alone contains ~1,933 prefabs. These terms were verified in `TIM-TODO.md` [T6].
 
 For a developer who cannot produce art, buying cross-pack consistency is a
 legitimate shortcut rather than a luxury.
@@ -252,7 +270,9 @@ TIM-TODO.md as a conditional, not a commitment.
 
 ### [O7] Animation
 
-Also not authored. Minimum viable set is walk, sit, eat, sleep, and converse.
+The alpha's procedural walking lift is shipped and documented above. A future
+full character pipeline still needs an externally sourced minimum set of walk,
+sit, eat, sleep, and converse animations; none of those clips is integrated.
 
 - **Mixamo** - free auto-rigging plus a large animation library
 - **Quaternius Universal Animation Library** - CC0
@@ -278,7 +298,7 @@ before authoring anything, against an M1 target of ~40 objects.
 | **The Base Mesh** | CC0 base meshes | CC0 |
 | **Mixamo** | Auto-rigging + animation library | Free |
 | **Poly Pizza** | Low-poly aggregator (Quaternius mirror, ~1,400 models) | CC0 / CC-BY |
-| **Synty POLYGON** | 130+ packs | Paid, ~$30/mo subscription |
+| **Synty POLYGON** | 130+ packs | Paid, $40/month with a $120 prepaid minimum at the last verified check |
 
 Quaternius is confirmed CC0 across all packs: commercial use, modification, and
 redistribution permitted with no attribution required.

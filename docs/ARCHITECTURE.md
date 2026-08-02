@@ -134,6 +134,10 @@ alphas, so a step count cannot tell [D2] from its violation. See [L44].
 
 ## [D3] Simulation LOD tiers
 
+The alpha runs one active lot at Tier 0. Tier 1, Tier 2, promotion, and
+multi-lot population management below are scale architecture, not implemented
+runtime modes.
+
 | Tier | Population | Cadence | What runs |
 |---|---|---|---|
 | **0 Active** | Active lot plus on-camera, budget ~40 agents | Every tick | Everything |
@@ -154,9 +158,11 @@ reconciled later. Tracked as [R3].
 
 ## [D4] ECS choice
 
-**`bevy_ecs` used as a standalone crate**, without the rest of Bevy. Mature,
-archetypal, fast, and its scheduler derives parallelism automatically from
-declared component access, delivering [A9] without hand-rolling a scheduler.
+**`bevy_ecs` is used as a standalone crate**, without the rest of Bevy. The
+playable alpha explicitly configures `ExecutorKind::SingleThreaded` and chains
+every full-tick system in one deterministic order. The scheduler can derive
+parallelism from declared component access, but [A9] remains a scale plan rather
+than shipped behavior.
 
 **Determinism caveat.** A parallel scheduler is a determinism hazard, and
 archetypal iteration order shifts as archetypes change. The enforced rule:
@@ -166,70 +172,65 @@ archetypal iteration order shifts as archetypes change. The enforced rule:
 > (two sims reaching for one chair) goes through a serialized phase over a
 > command buffer sorted by entity ID.
 
-Enforced from day one and verified by the determinism test in [D12]. Tracked
-as [R2].
+The alpha avoids this hazard by staying single-threaded and verifies replay
+determinism in [D12]. Any future parallel schedule must first enforce the rule
+above and keep the same deterministic evidence. Tracked as [R2].
 
 ## [D5] Tick pipeline
 
-Ordered, per tick. `||` marks parallel, `->` marks serialized.
+The shipped full tick is serialized in this exact order. Several operations
+that the scale design originally separated, such as reservation and path solve,
+currently happen inside the action or wander system that requests them.
 
-0. `-> command_drain` - apply every queued player command, in the order the
-   player issued them ([D-2] of the M1b design). Numbered zero rather than
-   inserted as 1, so the step numbers other sections cite stay put, for the
-   same reason 4a and 5a are lettered. It is **first**, and both halves of
-   that matter: player input is asynchronous, so it has to land through one
-   serialized system for a recorded command log to replay to the same world;
-   and an
-   intent pushed here has to be servable by step 4a on the same tick, or a
-   click would take a tick to have any effect and the sim would spend that
-   tick choosing for itself. Entity references arrive from JavaScript as raw
+0. `drain_commands` - apply every queued player command, in the order the
+   player issued them ([D-2] of the M1b design). It is **first**, and both
+   halves of that matter: player input is asynchronous, so it has to land through one
+   serialized system so a future recorded command log can replay to the same
+   world; and an intent pushed here has to be servable by step 4 on the same
+   tick, or a click would take a tick to have any effect and the sim would
+   spend that tick choosing for itself. Entity references arrive from JavaScript as raw
    `u32` indices, so resolution tolerates a stale one - a panic here traps
    the WASM module for the rest of the page's life.
 
 When paused, the shell runs step 0 by itself once per rendered frame. It uses
-the same queue and the same `command_drain` system as a full tick; steps 1
-through 14 do not run. This keeps input alive without creating a second
+the same queue and the same `drain_commands` system as a full tick; steps 1
+through 15 do not run. This keeps input alive without creating a second
 mutation path or allowing simulation time to leak through pause. The drain is
 associative across batch boundaries: splitting an ordered command stream across
 two rendered frames produces the same saved world as draining it in one batch.
-1. `|| time` - advance clock, fire calendar events
-2. `|| need_decay`
-3. `|| mood` - a causal slot, not an M1 writer. `Sim::mood_of` currently
-   derives moodlets from needs, condition traits, and nearby directional
-   relationships when the HUD asks. Keeping the result out of ECS state and
-   Save V1 means Load cannot restore a stale mood and no scheduled system can
-   make the world hash depend on display cadence. A future mechanic that READS
-   mood during simulation belongs at this slot before choice.
-4. `|| advertisement_scan` - spatial query for nearby smart objects, score them
-4a. `-> intent_serve` - turn each directed sim's front player-issued intent
+
+1. `advance_clock` - advance the day clock.
+2. `decay_needs` - apply content-defined need decay.
+3. `start_shift` - begin a scheduled career commute after the clock advances.
+4. `serve_intents` - turn each directed sim's front player-issued intent
     into a target ([D-3] of the M1b design). Serialized because it claims
     object slots, and it sits BEFORE selection because a directed action
     overrides autonomy rather than competing with it. It is the one step that
     sees sims which are already walking or already mid-interaction: a player
     intent **preempts** a running interaction rather than queueing behind it,
     since a sim asleep for 24 seconds would otherwise leave a click with no
-    visible response for the whole of it. Lettered for the same reason 5a is.
-5. `-> action_selection` - pick winning interaction, **for sims with no queued
+    visible response for the whole of it.
+5. `select_action` - pick the winning interaction, **for sims with no queued
     intent**. That filter is what makes a directed action beat autonomy.
-5a. `-> idle_wander` - a sim whose best option scores below `idle_threshold`
+6. `advance_chains` - resume or begin the next station in a multi-step action.
+7. `wander` - a sim whose best option scores below `idle_threshold`
     walks to a random reachable tile instead of standing still ([D-5] of the
-    M1c design). Lettered rather than numbered so the step numbers other
-    sections cite stay put. Serialized because it draws from the shared PRNG,
-    and it sits here rather than earlier so that a sim which just found
-    something worth doing never reaches it.
-6. `-> reservation` - claim object slots, deterministic order by entity ID
-7. `|| pathfinding_request`
-8. `-> path_solve` - **budgeted: max N paths per tick, overflow queues**
-9. `|| movement`
-10. `|| interaction_tick` - advance interactions, apply need deltas
-11. `-> social` - pairwise relationship updates
-12. `-> ghost_injection` - drain the staging queue at day boundaries only ([D13])
-13. `-> event_dispatch` - flush command buffer
-14. `-> story_progression` - Tier 2, on the sim-hour only
+    M1c design). It draws from the shared PRNG after useful choices have failed.
+8. `follow_path` - move one deterministic step along the chosen path.
+9. `commute_and_work` - clock in at the door, run the shift, pay, and return.
+10. `tick_interactions` - advance ordinary object interactions and need deltas.
+11. `tick_chain_steps` - advance station work and terminal-only chain payoff.
+12. `tick_social` - advance conversations and directional relationships.
+13. `decay_habituation` - cool repeated-object memory.
+14. `decay_relationships` - apply directional relationship decay.
+15. `bleed_neglect` - reduce satisfaction when needs remain neglected.
 
-Step 8's budget matters more than it appears. Path solving must never be
-unbounded per tick. A fixed budget with an overflow queue keeps frame time
-predictable; an agent idling one extra tick is invisible, a 400ms hitch is not.
+Mood is currently derived when the HUD asks rather than stored or scheduled,
+so Save V1 cannot restore a stale display value. Parallel advertisement scans,
+a fixed per-tick path budget with an overflow queue, ghost injection, an event
+dispatch phase, and Tier 2 story progression remain future scale work. The path
+budget still matters when population grows: bounded work produces a harmless
+one-tick wait instead of an unbounded hitch.
 
 ## [D6] Smart objects
 
@@ -323,7 +324,11 @@ This is roughly 200 lines of code and it is the entire personality of the game.
 
 ## [D7] Pathfinding
 
-Tile grid at roughly 1m per tile, per lot. Rooms are graph nodes, doors and
+The current one-lot alpha uses deterministic tile-grid A* over the complete
+static lot. The room graph and lazy segment plan below is not built yet; it is
+the route from that working alpha solver to the population targets in [D3].
+
+At scale, rooms are graph nodes, doors and
 portals are edges; the graph is rebuilt on wall change. A path is A* over the
 room graph, with **tile-level A* solved lazily per room segment as the agent
 enters it**. Never a full-lot solve.
@@ -436,13 +441,14 @@ single-pack `OnceLock` does not anticipate.
 
 WebGPU. One instanced draw call per texture atlas per layer. Depth comes from
 world position via the depth buffer rather than painter's-algorithm sorting; at
-100k objects, not sorting beats sorting well. Lot geometry streams in chunks so
-only visible lots are uploaded.
+100k objects, not sorting beats sorting well. The alpha uploads static geometry
+for its one lot. Streaming visible lots in chunks remains future scale work.
 
-Art direction: **low-poly 3D characters plus instanced sprites for props.**
-Characters need deep customization, which pre-rendered sprites make
-combinatorially painful. A chair does not. See TECH_STACK.md for the asset
-pipeline.
+The owner-gated future art direction proposes **low-poly 3D characters plus
+instanced sprites for props.** Characters need deep customization, which
+pre-rendered sprites make combinatorially painful. A chair does not. The current
+alpha uses only a pre-rendered sprite atlas; see TECH_STACK.md for the shipped
+pipeline and future options.
 
 The current placeholder sim has one body sprite, so walking motion is a
 presentation transform rather than an animation atlas. The shell derives a
@@ -531,6 +537,10 @@ evidence here.
 
 ## [D13] Ghost pipeline (Layer 1 multiplayer)
 
+**Planned, not shipped.** There is no ghost record, death export, network
+staging queue, injection system, or replay command log in the current game.
+The rest of this section records the M4 contract.
+
 When a sim dies, the game exports a **Ghost Record**: identity, appearance,
 traits, notable life events, cause of death, key relationships, skills at time
 of death, and any unfinished business. A few KB, versioned, portable.
@@ -549,42 +559,57 @@ What ghosts do, so this is mechanics rather than decoration:
 - **Cause events** appropriate to their traits and cause of death.
 - **Leave heirlooms** as tangible objects entering your economy.
 
-**Determinism constraint.** Ghosts arrive over the network asynchronously,
-which would break replay if injected directly. Imported ghosts therefore land
-in a **staging queue** and are injected only at a deterministic boundary (start
-of a sim-day, step 12 in [D5]), and each injection is recorded in the command
-log so that replays reproduce it exactly.
+**Determinism constraint.** Ghosts will arrive over the network asynchronously,
+which would break replay if injected directly. The planned design lands imports
+in a **staging queue**, injects them only at a deterministic day boundary, and
+records each injection in the future replay log. None of that infrastructure is
+part of the alpha tick pipeline.
 
-**Offline-first.** The game is fully playable with no network connection.
-Ghosts are strictly additive.
+**Offline-first requirement.** The game remains fully playable with no network
+connection; ghosts will be strictly additive.
 
 ## [D15] Careers and workplaces
 
-v1 ships rabbit-hole careers (M2): the sim leaves the lot and returns with an
-outcome. **Simulated workplaces are a near-term post-v1 goal and the system is
-architected for them now**, because careers are expected to be critical to the
-production version.
+### Shipped rabbit-hole career
+
+The alpha ships one content-defined rabbit-hole career. `Career(u32)` names a
+pack row containing label, shift start, duration, pay, energy cost, and
+satisfaction. At shift time, `Commuting` sends the sim to the front door;
+`AtWork { remaining_ticks }` keeps the off-lot countdown in deterministic world
+state; completion pays household Funds, applies the authored costs and reward,
+and returns the sim to the lot. The normal HUD exposes the career, activity,
+clock, and Funds.
+
+The alpha does **not** contain workplace lot references, promotion ladders,
+skill requirements, coworker entities, or a shared `ShiftOutcome` interface.
+
+### Planned simulated-workplace contract
+
+Simulated workplaces are a near-term post-v1 goal because careers are expected
+to be critical to the production version. The requirements below are a target
+for that extension, not claims about the current component shape.
 
 The key realization: **a rabbit-hole career is the Tier 2 simulation of a
 workplace, and a simulated workplace is the Tier 0 case.** That is the same
-distinction as [D3] applied to work, which means the upgrade path already
-exists in the tier machinery rather than needing a new subsystem later.
+conceptual distinction as [D3] applied to work. Neither the tier machinery nor
+the workplace implementation exists yet; the mapping is a design constraint
+for building them without two unrelated career systems.
 
-Requirements this places on v1:
+Planned requirements:
 
 - **Careers are data, not code.** Shift schedules, skill requirements,
   promotion ladders, and pay curves live in content files ([D9]).
-- **A workplace is always a lot reference.** In v1 it resolves to a
-  non-instantiated stub lot; later it resolves to a real lot with objects and
-  coworkers. No consumer of the career system may assume "offsite."
+- **A workplace becomes a lot reference.** It may first resolve to a
+  non-instantiated stub lot, then later to a real lot with objects and
+  coworkers. The shipped career does not carry this reference yet.
 - **Shift outcome is computed behind a single interface.** The Tier 2
   implementation rolls against skills, mood, and traits. The Tier 0
   implementation derives the same outcome from actual on-lot performance. Both
   emit the same `ShiftOutcome`, so nothing downstream changes.
-- **A working sim's location is explicit state, not absent state.** Model it as
-  `AtWork { workplace, tier }`. Never despawn the sim.
-- **Coworker NPCs exist as entities from v1**, even while unsimulated, so that
-  workplace relationships accrue from the start.
+- **A working sim's location becomes explicit workplace state.** Extend the
+  shipped countdown rather than despawning the sim.
+- **Coworker NPCs become stable entities** so workplace relationships can
+  accrue once that system exists.
 
 The last two are the ones that would be genuinely painful to retrofit.
 Despawning working sims, or having no coworker identities to attach history to,
@@ -592,8 +617,9 @@ both bake in assumptions that a real workplace breaks.
 
 ## [D14] Backend services
 
-Deliberately minimal. This is content sync, not a game server, and there is no
-real-time or authoritative simulation anywhere in it.
+**Planned, not shipped.** There is no backend crate, ghost storage, network
+client, report flow, ban tool, or purge implementation. The intended service is
+deliberately minimal content sync, not a real-time or authoritative game server.
 
 - Object storage for Ghost Records, plus a small API to upload and to fetch a
   curated set. Account setup and the upload-identity decision are TIM-TODO
@@ -619,14 +645,15 @@ real-time or authoritative simulation anywhere in it.
 
 ## [D12] Testing
 
-- Simulation core runs under `cargo test`, natively, with no browser.
-- **Determinism test in CI: run N ticks from a fixed seed twice, assert an
-  identical world hash.** The highest-value test in the project. It is what
-  stops the Layer 2 multiplayer option from decaying unnoticed.
-- **Soak test:** headless 10-sim-year run. Assert no panics, no need
-  starvation, no unbounded memory growth. Catches balance and leak bugs cheaply.
-- Property tests on scoring, e.g. a starving sim with reachable food always eats.
-- Renderer: frame-time budgets in CI, plus eyeballs.
+- **Shipped:** the native simulation core runs under `cargo test` with no
+  browser; fixed-seed determinism and save continuation compare world hashes;
+  mutation shards exercise Rust behavior; Vitest covers the shell; production
+  builds and watched browser passes cover the renderer and player flows.
+- **Planned:** a headless 10-sim-year soak that asserts no panics, need
+  starvation, or unbounded memory growth. Shorter instrumented balance runs
+  exist, but the ten-year soak is not a current CI gate.
+- Property tests on scoring remain useful future coverage, for example that a
+  starving sim with reachable food always eats.
 
 ## Risks
 

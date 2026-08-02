@@ -3611,3 +3611,24 @@ creates it.
 position and document that boundary. Separately inspect whether the product
 requires between-tick interpolation state to survive Save; do not infer that
 contract from an alpha-1 fixture.
+
+## [L-current-versus-roadmap-docs] Architecture needs status at the claim
+
+**What happened.** The architecture and stack documents opened by calling the
+playable-alpha systems implemented, then described parallel scheduling,
+room-graph pathfinding, multi-lot streaming, a toon shader, and a ten-year soak
+as if they were current. The source deliberately used a single-threaded
+schedule, one-lot A*, a sprite atlas, and no such soak gate.
+
+**Root cause.** Long-range design and shipped implementation shared sections
+without local status labels. A true top-level disclaimer was too far from each
+specific claim to stop a reader from treating planned machinery as available.
+
+**Prevention rule.** Put `shipped` or `planned` beside an architectural claim
+whenever both states live in one document. If the current implementation is a
+smaller precursor, name both at the point of comparison. Do not rely on an
+introductory status paragraph to govern hundreds of lines of mixed tense.
+
+**How to verify.** Compare the schedule, renderer, pathfinder, art pipeline, and
+test-gate sections against their source configuration. A reader should be able
+to answer what runs today without consulting git history or inferring tense.

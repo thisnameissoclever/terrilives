@@ -1639,8 +1639,8 @@ quickly to see.
   boundary and prove autosave never captures bytes or reaches storage.
 ## [A-19] The alpha acceptance pass - all eleven criteria, one build
 
-The first measurement of the criteria against the FINISHED alpha rather
-than against the milestone that shipped each one. Same 36 000-tick hour
+The first measurement of the criteria against the code-complete alpha systems
+rather than against the milestone that shipped each one. Same 36 000-tick hour
 (25 game days). Reproduce with
 `cargo run --release -p terri-sim --example trace -- 36000`; world hash
 `0xbd80133f416f5de9`.
@@ -1685,7 +1685,7 @@ design and the rejected alternatives are in
 | 5 | dispositions weight, capabilities gate, conditions act | holds | television devotee x1.5 visible in Doug's 39.8% interacting; Nadia's "can't cook" learned 0.35 → 0.29; low spirits managed 0.60 → 0.47 |
 | 6 | a career | **fixed** | 25 shifts, FUNDS 3000, 12.3% of household time; the price is now the time rather than starvation |
 | 7 | multi-step interactions with resume | holds | 18 chains started, **18 completed, 0 abandoned**, across career preemption |
-| 8 | multiple rooms, 25+ objects, real footprints | holds | 30 placed objects, 18 interactive |
+| 8 | multiple rooms, 25+ objects, real footprints | holds | 34 placed objects, 18 interactive |
 | 9 | persistence | **fixed** | 0 of 36 000 ticks unloadable; 142 seams resume identically |
 | 10 | readable UI | holds | unchanged from [A-15]; no code touched here |
 | 11 | the game's voice | **open, and it is the last one** | owner-authored session still required ([L58]) |

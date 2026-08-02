@@ -187,10 +187,12 @@ about that before committing to [D13].
 
 ## Needs your go-ahead, then I do it
 
-### [T3] Download the CC0 asset packs `[APPROVE]`
+### [T3] Approve any additional CC0 asset-pack downloads `[APPROVE]`
 
-Not needed until M1. I will assemble the URL list and a fetch script and ask
-before running it, since downloads need your explicit approval.
+The Kenney Furniture Kit used by the shipped alpha is already downloaded and
+fully recorded in `ASSETS.md`. No additional pack is needed for the current
+sprite-atlas game. If the future 3D or full-art pipeline needs more CC0 packs, I
+will assemble the exact URL list and fetch script and ask before downloading.
 
 ### [T5] Confirm the repository should stay public `[APPROVE]`
 

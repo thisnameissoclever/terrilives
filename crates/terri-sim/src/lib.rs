@@ -776,8 +776,8 @@ impl Sim {
     }
 
     /// The accumulated satisfaction of the sim carrying `index` - the
-    /// [E1] second axis, read by the debug overlay today and M2g's HUD
-    /// later. `None` for objects, stale indices, and bare agents with
+    /// [E1] second axis, read by both the debug overlay and the normal HUD.
+    /// `None` for objects, stale indices, and bare agents with
     /// no ledger, the same contract as every scan here.
     pub fn satisfaction_of(&self, index: u32) -> Option<f32> {
         let mut state = self
@@ -789,8 +789,8 @@ impl Sim {
             .map(|(_, ledger)| ledger.value())
     }
 
-    /// The household's money - [E4], read by the debug overlay today
-    /// and M2g's HUD later. One number for the lot, not per sim.
+    /// The household's money - [E4], read by both the debug overlay and
+    /// the normal HUD. One number for the lot, not per sim.
     pub fn funds(&self) -> i64 {
         self.world.resource::<terri_core::Funds>().0
     }

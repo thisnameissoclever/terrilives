@@ -12,7 +12,7 @@ Then, by what you want:
 
 | You want | Read |
 | --- | --- |
-| What the game is meant to become | [docs/alpha-goals.md](docs/alpha-goals.md) - eleven DONE criteria |
+| What the playable alpha must prove | [docs/alpha-goals.md](docs/alpha-goals.md) - eleven acceptance criteria; ten complete and the owner's voice pass open |
 | What is built so far | [docs/FEATURES.md](docs/FEATURES.md) |
 | How it is put together, and why | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | Why one specific decision went that way | `docs/specs/` - one working design per milestone, IDs stable |
@@ -46,8 +46,10 @@ others should be started:
 | 5174 | `npm --prefix web run dev` | the working tree, live |
 | 4173 | `npm --prefix web run preview` | the last `npm run build` |
 
-Both are HTTPS (a LAN address needs a secure context for WebGPU, so a
-phone on the same network can play at `https://<lan-ip>:5174`). Add
+Both use HTTPS when `web/.cert/cert.pem` and `web/.cert/key.pem` exist;
+otherwise they use HTTP. Localhost still counts as a secure WebGPU context,
+but a phone on the same network needs the certificate-backed
+`https://<lan-ip>:5174` route. Add
 `?debug=1` for the developer overlay - it folds to a pill on narrow
 screens, and every line it prints is defined in the glossary.
 
