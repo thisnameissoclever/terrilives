@@ -23,6 +23,60 @@ move between categories.
 A working name from a pun on *terrible lives*. Shapes tone, the domain purchase
 [T18], and store presence [T17]. Cheap now, annoying later.
 
+### [T22] Author the game's VOICE with me `[YOURS]` - the last alpha criterion
+
+**This is the only thing standing between the project and a finished
+playable alpha.** The other ten of the eleven criteria in
+`docs/alpha-goals.md` are shipped and verified by running the game;
+criterion 11 - "the game's voice, dark comedy, present in play" - says
+*authored WITH the owner*, and [L58] records why I must not do it alone:
+comedy written to spec by an agent reads as an agent writing comedy to
+spec. Your voice is the product.
+
+**Everything that can be prepared is prepared.** M2g shipped the string
+inventory at `docs/player-visible-strings.md` and drew the boundary
+between FUNCTIONAL text (button labels, error messages, the need meters
+- these stay plain and stay mine) and VOICE text (object names, flavour,
+the things a player reads for pleasure). No comedy has been smuggled
+into the functional layer while waiting.
+
+**What the session actually needs from you** is an hour or so of
+reacting, not writing: I read you what a thing currently says, you say
+it back in your own voice or tell me it is fine, and I write down the
+rule you were following without knowing it. Twenty or thirty strings is
+enough to extract a house style; the rest I can draft against that style
+for you to veto.
+
+Cheap to start and easy to stop - and until it happens, the alpha is
+complete but voiceless.
+
+### [T23] Verdict: should the sim with a job out-earn the one without? `[YOURS]`
+
+A taste call, surfaced rather than decided, because it is exactly the
+kind of "does this feel right" question that is yours.
+
+The alpha acceptance pass found the household's only worker living
+permanently at zero on six of seven needs - a shift drained her at full
+rate somewhere she could reach nothing - and fixed it ([A-19], [X2]).
+A side effect: her life score moved 297.7 to 384.7 and now **tops** the
+settled sim's 364.0, reversing the order the career milestone recorded
+in [A-14]. She is not paid more; she loses less to neglect and has the
+energy for her hobbies.
+
+Two defensible readings, and I do not think the numbers can settle it:
+
+- **Working should cost you.** A job eats a third of the day, and the
+  employed sim placing first makes the career look like a reward rather
+  than a trade.
+- **Working already costs you** - the hours are gone either way - and a
+  sim who copes with a hard schedule earning a good life is the more
+  interesting story.
+
+One knob, one line: `at_work_decay_scale` in `content/tuning.toml`.
+Lower it toward 0 and the job hurts more; `1.0` restores exactly the
+starvation the pass found, so that end is not available. Tell me which
+way it should read and I will retune and re-measure.
+
 ### [T4] Choose a code license `[YOURS]`
 
 **The decision is yours; I will write the file once you pick.** Usual options

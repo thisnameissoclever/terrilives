@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   KeyboardTargetController,
   keyboardTargets,
+  reportKeyboardSelection,
   type KeyboardTargetSource,
 } from '../src/ui/keyboard-target.js';
 
@@ -95,5 +96,18 @@ describe('keyboard targets', () => {
 
     expect(picker.current()).toBeNull();
     expect(status).toEqual({ hidden: true, textContent: '' });
+  });
+
+  it('announces accepted and rejected keyboard selection attempts', () => {
+    const status = { hidden: true, textContent: '' };
+
+    reportKeyboardSelection(status, 'Terri', true);
+    expect(status).toEqual({ hidden: false, textContent: 'Selected Terri' });
+
+    reportKeyboardSelection(status, 'Nadia', false);
+    expect(status).toEqual({
+      hidden: false,
+      textContent: 'That person could not be selected',
+    });
   });
 });

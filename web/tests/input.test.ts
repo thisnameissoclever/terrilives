@@ -1054,13 +1054,19 @@ describe('handleLeftClick', () => {
 
   it('selects the sim whose sprite was clicked', () => {
     const sink = target(null, source([[6, KIND_AGENT, 4, 2]]));
-    handleLeftClick(sink, bodyOf([4, 2]), 0, 0, PLAIN);
+    expect(handleLeftClick(sink, bodyOf([4, 2]), 0, 0, PLAIN)).toEqual({
+      kind: 'selection',
+      accepted: true,
+    });
     expect(sink.calls).toEqual(['select 6']);
   });
 
   it('directs the selected sim at the object whose sprite was clicked', () => {
     const sink = target(6, source([[9, KIND_OBJECT, 7, 3]]));
-    handleLeftClick(sink, bodyOf([7, 3]), 0, 0, PLAIN);
+    expect(handleLeftClick(sink, bodyOf([7, 3]), 0, 0, PLAIN)).toEqual({
+      kind: 'order',
+      accepted: true,
+    });
     expect(sink.calls).toEqual(['cancel 6', 'use 6 9 0']);
   });
 
@@ -1077,8 +1083,24 @@ describe('handleLeftClick', () => {
    */
   it('does nothing at all for an unplaceable click', () => {
     const sink = target(6, source([[9, KIND_OBJECT, 7, 3]]));
-    handleLeftClick(sink, null, 0, 0, PLAIN);
+    expect(handleLeftClick(sink, null, 0, 0, PLAIN)).toEqual({ kind: 'none' });
     expect(sink.calls).toEqual([]);
+  });
+
+  it('distinguishes a rejected selection from a rejected order', () => {
+    const selection = target(null, source([[6, KIND_AGENT, 4, 2]]));
+    selection.select = () => false;
+    expect(handleLeftClick(selection, bodyOf([4, 2]), 0, 0, PLAIN)).toEqual({
+      kind: 'selection',
+      accepted: false,
+    });
+
+    const order = target(6, source([[9, KIND_OBJECT, 7, 3]]));
+    order.useObject = () => false;
+    expect(handleLeftClick(order, bodyOf([7, 3]), 0, 0, ADDITIVE)).toEqual({
+      kind: 'order',
+      accepted: false,
+    });
   });
 
   /**
