@@ -72,6 +72,12 @@ save is skipped if another operation is already active. This prevents a queued
 write from restoring a slot after clear or writing the pre-Load world over the
 slot the player just loaded.
 
+A confirmed Load or New game dialog closes explicitly before its operation
+acquires that disabled state. Relying on the form's later `method=dialog`
+default action is unsafe: disabling the clicked submitter during its click
+handler can cancel that default action and strand the completed operation
+behind an open modal.
+
 An asynchronous write begun only while the page is closing is not a save
 strategy, because browsers are entirely within their rights to kill it halfway
 through. A visibility-loss save is useful extra coverage, but it is never the
@@ -111,13 +117,15 @@ The verification set has three independent layers:
 
 ## [G4] Readable UI, and where the voice slots in
 
-Goal 10's remainder after A-11: the second axis and money are debug-only today,
-and the game's one always-visible readout is the needs panel. Version 1 of the
-real HUD stays deliberately small ahead of the voice pass:
+G4 began with the second axis and money visible only in debug while Needs was
+the game's one normal readout. Version 1 of the real HUD stays deliberately
+small ahead of the voice pass, but those gaps are now closed:
 
 - The selected sim's panel gains life satisfaction and, when employed, a work
   line.
 - Household funds are always visible in the control cluster.
+- The roster selects every live household member, and the follow-up People
+  panel projects the selected person's directional relationship scalar.
 - Save and Load sit beside the speed controls, with visible success, failure,
   and autosave state. The shell reads `sim_tick()` and authored `day_ticks()`
   for simulation-day cadence; wall-clock time does not decide when a simulated

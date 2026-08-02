@@ -70,8 +70,8 @@ page after clearing storage, so it rebuilds from the fresh simulation.
 
 ## Deliberately outside this slice
 
-Relationships remain simulation state without a normal-play panel. The roster
-is useful by itself and provides the complete household list that a later
-relationship panel must merge with sparse relationship pairs. Create-a-sim,
-birth, death, adding three more shipped characters, and changing the save
-schema are separate decisions.
+The roster originally left relationships without a normal-play panel. The
+follow-up in `docs/specs/2026-08-01-people-panel-design.md` now merges this
+complete household list with sparse relationship pairs by stable `SimId`.
+Create-a-sim, birth, death, adding three more shipped characters, and changing
+the save schema remain separate decisions.

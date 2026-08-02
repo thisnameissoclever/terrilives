@@ -3,10 +3,10 @@
  *
  * Asked for in the [A-11] play report as "background details for all of
  * the Sims, just for developer debugging type stuff", and it earns its
- * place beyond debugging: personalities and relationships are invisible
- * in ordinary play precisely because they are multipliers on decisions
- * rather than pictures, so this panel is where "Nadia's social drains
- * 1.4x" stops being a claim in a TOML comment.
+ * place beyond debugging: personalities remain invisible in ordinary play,
+ * while this still shows every sim's exact relationship floats rather than
+ * the normal People panel's qualitative bands. It is where "Nadia's social
+ * drains 1.4x" stops being a claim in a TOML comment.
  *
  * Same shape as the needs panel and for its reasons: a structural
  * source interface so the formatting is testable in Node without a

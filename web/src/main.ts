@@ -45,6 +45,10 @@ import {
   HouseholdRoster,
   createHouseholdRosterSurface,
 } from './ui/household-roster.js';
+import {
+  PeoplePanel,
+  createPeoplePanelSurface,
+} from './ui/people-panel.js';
 
 /** [D2]: the simulation's one true rate. Speed controls change how many
  * ticks run per frame, never how long a tick is. */
@@ -317,6 +321,25 @@ async function main(): Promise<void> {
     needsRoot.open = false;
   }
 
+  const peopleRoot = document.querySelector('#people-panel');
+  const peopleCaption = document.querySelector<HTMLElement>('#people-caption');
+  const peopleEmpty = document.querySelector<HTMLElement>('#people-empty');
+  const peopleList = document.querySelector<HTMLElement>('#people-list');
+  if (
+    !(peopleRoot instanceof HTMLDetailsElement) ||
+    !peopleCaption ||
+    !peopleEmpty ||
+    !peopleList
+  ) {
+    throw new Error('missing people-panel markup');
+  }
+  const peoplePanel = new PeoplePanel(
+    sim,
+    createPeoplePanelSurface(document, peopleCaption, peopleEmpty, peopleList),
+    sim.needBarRefreshMs(),
+  );
+  if (window.innerWidth <= 600) peopleRoot.open = false;
+
   const clockValue = document.querySelector<HTMLElement>('#clock-value');
   const fundsValue = document.querySelector<HTMLElement>('#funds-value');
   const satisfactionValue = document.querySelector<HTMLElement>('#satisfaction-value');
@@ -364,6 +387,7 @@ async function main(): Promise<void> {
     },
   );
   householdRoster.update(performance.now(), true);
+  peoplePanel.update(performance.now(), true);
   // The developer overlay, installed only under `?debug=1` - the same
   // presence rule as `?stress`, so the shipping page carries no extra
   // surface and no extra key binding. Backquote toggles it; that key
@@ -474,16 +498,31 @@ async function main(): Promise<void> {
     void saving.then(() => syncPersistenceButtons());
   });
   loadButton.addEventListener('click', () => loadGameDialog.showModal());
-  confirmLoadGame.addEventListener('click', () => {
+  confirmLoadGame.addEventListener('click', (event) => {
+    // The operation lock disables this submit button synchronously. Doing so
+    // before the browser's method=dialog default action can cancel that action
+    // and leave a successful Load hidden behind an open modal. Own the close
+    // explicitly, before the button becomes disabled.
+    event.preventDefault();
+    loadGameDialog.close('confirm');
     const loading = persistence.load();
     syncPersistenceButtons();
     void loading.then((loaded) => {
-      if (loaded) householdRoster.update(performance.now(), true);
+      if (loaded) {
+        const nowMs = performance.now();
+        householdRoster.update(nowMs, true);
+        peoplePanel.update(nowMs, true);
+      }
       syncPersistenceButtons();
     });
   });
   newGameButton.addEventListener('click', () => newGameDialog.showModal());
-  confirmNewGame.addEventListener('click', () => {
+  confirmNewGame.addEventListener('click', (event) => {
+    // Same ordering rule as Load: close first, then acquire and publish the
+    // persistence lock. Clear may be deliberately slow and must not strand an
+    // inert confirmation dialog over the running game.
+    event.preventDefault();
+    newGameDialog.close('confirm');
     startingNewGame = true;
     const clearing = persistence.clear();
     syncPersistenceButtons();
@@ -791,6 +830,7 @@ async function main(): Promise<void> {
     needsPanel.update(nowMs, sim);
     gameHud.update(nowMs, sim);
     householdRoster.update(nowMs);
+    peoplePanel.update(nowMs);
     if (!startingNewGame) persistence.updateAutosave();
     syncPersistenceButtons();
     debugPanel?.update(nowMs);

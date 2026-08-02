@@ -3301,3 +3301,29 @@ signal than any amount of cache-clearing.
 `index-*.js` matches the local `dist`, then re-measure. The
 before/after this produced is in [A-19]: 2 013 refused saves of 6 000
 on the shared build, 0 of 6 000 on this one.
+
+## [L68] Disabling a clicked submitter can cancel the default action it was about to perform
+
+**What happened.** The persistence operation guard correctly disabled an
+already-open Load confirmation as soon as Load began. In visible Chromium, the
+world loaded and the status changed to `Saved game loaded`, but the modal stayed
+open over it. The button's click handler acquired the lock and disabled the
+same button before the browser completed the form's native `method=dialog`
+submission.
+
+**Root cause.** Button state and dialog lifecycle were treated as independent.
+They are ordered parts of one activation: a click listener runs before the
+submitter's default action. Making the submitter disabled inside that listener
+can invalidate the default action that would close the dialog.
+
+**Prevention rule.** When a confirmed action synchronously disables its own
+submitter, do not depend on a later form default. Prevent that default and close
+the dialog explicitly before acquiring or publishing the busy state. Apply the
+same ordering to every sibling confirmation that shares the control-state
+helper.
+
+**How to verify.** Delay storage-worker message delivery by several seconds,
+confirm Load, and inspect immediately. The dialog must already be closed while
+the status reads `Loading` and Save, Load, and New game are disabled. After the
+delayed response, the status must read `Saved game loaded` and all applicable
+controls must recover.

@@ -429,6 +429,15 @@ JS to sim traffic is player commands only: small and infrequent, so a simple
 serialized command channel suffices. UI reads are pull-based and throttled; the
 needs panel does not need 60Hz.
 
+The normal-play People panel follows the same projection rule. It gets the
+complete live row set from the household roster, gets sparse directional
+feelings from `relationships_of`, and joins them by stable `SimId`. It does not
+cache selection, names, membership or feelings. Missing relationship entries
+mean Stranger because the simulation intentionally drops entries after they
+decay to exact zero. A successful Load force-refreshes both roster and People
+before their next cadence interval, so replacement entity indices cannot leak
+into visible identity.
+
 **The discipline that makes this safe, in one rule: never cache a view.** WASM
 linear memory grows, and growth detaches every typed-array view over the old
 `ArrayBuffer`; a detached view reads as length 0 or throws. So `web/src/bridge.ts`

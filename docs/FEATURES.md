@@ -26,6 +26,9 @@ clamped and focus-managed action menus, and responsive accessible controls.
 The M1 household contract is now code-complete too: content accepts up to six
 members, rejects a seventh, and normal play exposes every member through a
 restore-safe accessible roster.
+The shipped M2d relationship scalar is now visible in normal play too: a
+responsive People panel merges the complete live household with the selected
+person's sparse directional feelings, keyed by stable `SimId` across Load.
 The owner's dark-comedy voice session remains open by design; see
 docs/player-visible-strings.md. The alpha's eleven acceptance criteria live
 in docs/alpha-goals.md.
