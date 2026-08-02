@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  clampMenuPosition,
   NEVER_MIND,
   ObjectMenu,
   menuEntries,
@@ -7,6 +8,26 @@ import {
   type MenuEntry,
   type MenuSurface,
 } from '../src/ui/object-menu.js';
+
+describe('clampMenuPosition', () => {
+  it('keeps every edge inside the viewport with a touch-sized margin', () => {
+    expect(clampMenuPosition(390, 844, 150, 100, 390, 844)).toEqual({
+      x: 232,
+      y: 736,
+    });
+    expect(clampMenuPosition(-20, -10, 150, 100, 390, 844)).toEqual({
+      x: 8,
+      y: 8,
+    });
+  });
+
+  it('anchors an oversized menu at the margin instead of going negative', () => {
+    expect(clampMenuPosition(200, 300, 500, 900, 390, 844)).toEqual({
+      x: 8,
+      y: 8,
+    });
+  });
+});
 
 /**
  * A `MenuSurface` that records what it was shown and keeps the pick

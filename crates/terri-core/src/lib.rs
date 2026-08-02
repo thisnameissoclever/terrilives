@@ -8,6 +8,7 @@ pub mod hash;
 pub mod ids;
 pub mod needs;
 pub mod rng;
+pub mod save;
 
 /// Re-exported because it appears in this crate's own public API -
 /// `Target::object`, `Intent::object` - so a consumer that names those
@@ -28,3 +29,8 @@ pub use hash::FnvHasher;
 pub use ids::ObjectDefId;
 pub use needs::{NeedId, Needs, NEED_COUNT, NEED_MAX, NEED_MIN};
 pub use rng::SimRng;
+pub use save::{
+    SaveSnapshotV1, SavedChainState, SavedCommand, SavedEating, SavedEntity, SavedHabituation,
+    SavedIntent, SavedPath, SavedPersonality, SavedPosition, SavedSocialising, SavedTarget,
+    SavedTraitState, SAVE_MAGIC, SAVE_SCHEMA_VERSION,
+};

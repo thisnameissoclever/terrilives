@@ -56,8 +56,8 @@ export function describeStartupFailure(
       hints: [
         'WebGPU only works on secure pages, and a plain http:// address ' +
           'over the network is not one - localhost is the sole exception.',
-        'On the machine running the server, open http://localhost:5173 ' +
-          'instead.',
+        'On the machine running the server, open its HTTPS localhost address ' +
+          '(the default is https://localhost:5174).',
         'From another device, either serve over HTTPS, or add this exact ' +
           'address to chrome://flags/#unsafely-treat-insecure-origin-as-secure ' +
           'on that device and relaunch its browser.',

@@ -53,6 +53,23 @@ Seven needs, each a number from 0 (desperate) to 100 (fully satisfied):
 | `player orders waiting:` | How many of YOUR clicks the sim still has queued. Not a stall reason - it is work about to happen. Cap 4. |
 | **intent** / **order** | One player instruction ("use that fridge"). Player orders always beat the sim's own choice and are served in the order given. |
 
+## Player controls and saves
+
+| Term | Means |
+| --- | --- |
+| **HUD** | The always-visible controls and status panels over the game: household time and funds, the selected person's needs and activity, speed, save controls, and Help. |
+| **Save** | Writes the complete resumable household to the browser's one local save slot. The saved tick, random state, selection, active work, queued orders, and all entity state resume together. |
+| **Load** | Replaces progress since the last save only after confirmation. Invalid or incompatible bytes are rejected without changing the running household. |
+| **autosave** | The same complete save, written once when a new simulated day begins. It is serialized with manual saves and loads so the three operations cannot race. |
+| **New game** | Deletes the browser-local save after confirmation and reloads the authored move-in household. It does not delete content or files outside this game's private browser storage. |
+| **OPFS** | Origin Private File System: private storage owned by this website. The game uses one `terri-save-1.bin` file there instead of squeezing binary state into `localStorage`. |
+| **Queue** | A visible mode that appends each new order. On desktop, holding Ctrl or Cmd while clicking does the same thing. Turn Queue off to make a new order replace the old queue. |
+| **Clear orders** | Cancels the selected person's current player-directed commitment and waiting orders. Autonomous needs can make them choose something new immediately afterward. |
+| **action menu** | The list opened by long-press, right-click, or keyboard Enter. It contains the target's authored interactions and **Never mind**. |
+| **keyboard target** | The world person or object chosen with arrow keys while the game view is focused. Space selects a person; Enter opens that target's action menu. |
+| **Help** | The persistent copy of the first-run control guide. Closing it is remembered in browser preferences, separately from the game save. |
+| **needs panel** | The collapsible panel named for the selected person. On a narrow screen it starts folded so controls do not cover most of the house. |
+
 ## Habituation - "not that again"
 
 | Term | Means |

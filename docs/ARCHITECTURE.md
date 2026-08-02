@@ -71,20 +71,20 @@ against explicit targets; see [L4] for why the targets are named.
 
 ```
 crates/
-  terri-core/     ECS wiring, world types, time. No I/O.
+  terri-core/     ECS wiring, world types, time, stable save DTOs. No I/O.
   terri-data/     Content schema, validation, compiled pack (serde). No
                   runtime I/O: its build.rs reads content/ at build time
                   and the pack ships as embedded bytes.
-  terri-sim/      All simulation systems. No I/O.
-  terri-save/     Snapshot and delta serialization.
-  terri-ghost/    Ghost record export/import. No network I/O.
+  terri-sim/      Simulation systems, save validation and restore. No I/O.
+  terri-ghost/    (later) Ghost record export/import. No network I/O.
   terri-wasm/     wasm-bindgen boundary. The ONLY crate that knows JS exists.
   terri-native/   (later) native shell entry point.
-web/
+web/src/
   render/         WebGPU renderer
   ui/             DOM UI
-  bridge/         Typed-array views into WASM memory
-  net/            Ghost sync client. The ONLY place network I/O happens.
+  bridge.ts       Typed-array views into WASM memory
+  storage/        Browser-owned OPFS worker and serialized save operations
+  net/            (later) Ghost sync client. The ONLY network I/O location.
 content/          Data files: objects, traits, careers, interactions
 ```
 
@@ -234,9 +234,11 @@ curve** - the deficit is **cubed**, so a sim at 5% hunger wants food about 13x
 more than one at 60%, not 2.4x - and divides by travel plus duration cost. An
 advert is a sparse list of (need, delta) pairs and each pair is scored
 separately before summing, so an object satisfying two needs modestly can beat
-one satisfying a single need slightly better. Trait modifiers and seeded jitter
-are M1b; selection today takes a plain argmax with a deterministic tiebreak on
-entity index.
+one satisfying a single need slightly better. Trait modifiers and weighted
+selection are now shipped: `select_action` samples the sorted candidates with
+softmax weights derived from `exp(score / choice_temperature)`. A low content
+temperature approaches argmax while a higher temperature permits plausible
+variation, and the simulation RNG makes the draw deterministic for a fixed seed.
 
 Two properties matter. Adding content means adding a data file rather than
 touching AI code, so a modder's new object is used correctly on day one. And
@@ -297,16 +299,23 @@ agents skip tile A* entirely and slide along the room graph.
 
 ## [D8] Save model
 
-**Snapshot plus command log.** Because the sim is deterministic, a save is
-`(seed, snapshot, commands_since_snapshot)` and loading is deserialize then
-replay. Autosave writes a fresh snapshot and truncates the log.
+**Implemented in M2g as a complete versioned snapshot.** The snapshot stores
+the clock, funds, allocator, complete random-number-generator state, command
+queue, grid, every live entity and every component needed to continue the
+next tick. Loading validates into a fresh world and swaps only after the
+candidate is complete, so corrupt bytes cannot half-mutate a running game.
+
+The earlier snapshot-plus-command-log design remains a future compaction
+option, not the current format. Version 1 deliberately chooses the smaller
+failure surface: one complete snapshot whose continuation is directly tested.
 
 Storage is **OPFS** (Origin Private File System), not `localStorage` - real
 file handles from a worker with no meaningful quota ceiling.
 
-**Schema versioning and migration hooks exist from the first commit.** Content
-and save shape will change weekly; deferring versioning means breaking player
-saves later.
+The raw prefix is `TERRISAV` plus a little-endian schema version. Version 1
+also stores a compiled-content fingerprint and rejects changed content rather
+than silently deleting a job, object, chain or trait. The next incompatible
+shape must bump the version and make an explicit migration decision.
 
 ## [D9] Content pipeline
 

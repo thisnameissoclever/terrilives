@@ -164,22 +164,50 @@ State what is bannable before you need to ban anyone.
 
 ## Tracked, but mine - no action needed from you
 
-### [T2] Install the toolchain `[MINE]`
+### [T2] Install the toolchain `[MINE]` - DONE
 
 Rust with the `wasm32-unknown-unknown` target, plus Node and wasm-pack. Handled
 as part of M0 Task 1.
 
-### [T6] Verify Synty's post-cancellation license terms `[MINE]`
+### [T6] Verify Synty's post-cancellation license terms `[MINE]` - DONE 2026-08-01
 
-I can read the terms myself. Doing this before [T7] so you are not deciding
-blind. The obvious play is subscribe-two-months-pull-everything-cancel, and it
-may be disallowed; that answer is the difference between a $60 decision and a
-$360/year one.
+Verified against Synty's current
+[Standard Subscription Licence](https://syntystore.com/pages/standard-subscription-licence),
+dated 9 July 2026. SyntyPass asset-use rights are tied to an active
+subscription. After cancellation or expiry, an existing product may receive
+minor bug fixes only if it is not substantially developed, modified, or
+improved; substantial development requires an active subscription. New
+intellectual property and new marketing material cannot use the subscription
+assets. Existing published marketing may remain live.
 
-Deferred until M1, when art actually matters.
+The current [SyntyPass](https://syntystore.com/products/syntypass) monthly
+plan is $40/month with a three-month prepaid minimum, or $120 minimum, versus
+$360/year. Subscribe-download-cancel is not a perpetual development licence.
+Either keep SyntyPass active throughout development or buy required packs
+under the perpetual
+[One-Time Purchase Licence](https://syntystore.com/pages/one-time-purchase-licence).
+Before relying on post-cancellation rights, obtain written confirmation from
+Synty about continued sales, patches, ports, and what counts as substantial
+modification; the published terms do not define that boundary precisely.
 
-### [T8] Check whether Synty has a residential interiors pack `[MINE]`
+### [T8] Check whether Synty has a residential interiors pack `[MINE]` - DONE 2026-08-01
 
-I confirmed Town, City, and Shops but **could not confirm a residential
-interiors pack**, which is what a life sim needs most. If that gap is real it
-materially weakens the case for [T7]. Deferred until M1 alongside [T6].
+Verified against Synty's official store. The gap is not real.
+
+[SIMPLE House Interiors - Cartoon Assets](https://syntystore.com/products/simple-house-interiors-cartoon-assets)
+is a dedicated modular residential-interior pack with living-room, bedroom,
+bathroom, furniture, household-prop, and surface assets. It includes Unreal,
+Unity, and FBX source files, but belongs to Synty's SIMPLE line rather than
+POLYGON and has no listed Godot or web-ready glTF package.
+
+More importantly, [POLYGON - Town Pack](https://syntystore.com/products/polygon-town-pack)
+already includes a modular house kit, preset houses, residential interior
+pieces, bedroom decorations, sofas, beds, bathtubs, washing machines, and
+other household props. It is the more coherent starting point for Terrilives,
+though its furniture breadth may not support a deep build-and-buy system
+without supplementary or custom assets.
+
+This removes the missing-residential-pack objection from [T7]. Before any
+purchase, test representative Town and SIMPLE House Interiors FBX assets
+together in the real renderer for style, scale, conversion quality, and the
+interaction and footprint work the raw assets do not provide.

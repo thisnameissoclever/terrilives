@@ -48,10 +48,16 @@ export interface CaptionText {
 /** The one property the panel writes on a bar. `HTMLElement` satisfies it. */
 export interface BarFill {
   readonly style: { width: string };
+  setAttribute?(name: string, value: string): void;
+  readonly stateText?: CaptionText;
 }
 
 /** The one property the panel writes on the panel itself. */
 export interface PanelRoot {
+  hidden: boolean;
+}
+
+export interface VisibilityTarget {
   hidden: boolean;
 }
 
@@ -110,6 +116,8 @@ export class NeedsPanel {
     private readonly bars: readonly BarFill[],
     private readonly refreshMs: number,
     private readonly levelMax: number,
+    private readonly emptyState?: VisibilityTarget,
+    private readonly content?: VisibilityTarget,
   ) {}
 
   /**
@@ -145,15 +153,17 @@ export class NeedsPanel {
     // panel costs no boundary call - the test counting reads pins that.
     const selected = source.selectedIndex();
     if (selected === null) {
-      this.root.hidden = true;
+      this.showEmptyState();
       return true;
     }
     const levels = source.needsOf(selected);
     if (levels.length === 0) {
-      this.root.hidden = true;
+      this.showEmptyState();
       return true;
     }
     this.root.hidden = false;
+    if (this.emptyState) this.emptyState.hidden = true;
+    if (this.content) this.content.hidden = false;
 
     // Re-read like everything else, not cached on selection change: a
     // future rename - sims will have editable names eventually - must
@@ -170,9 +180,29 @@ export class NeedsPanel {
       // an empty one: it is indistinguishable from a need that stopped
       // changing, which is a real thing that happens mid-interaction.
       const level = i < levels.length ? levels[i] : 0;
-      this.bars[i].style.width = `${levelPercent(level, this.levelMax)}%`;
+      const percent = levelPercent(level, this.levelMax);
+      const bar = this.bars[i];
+      bar.style.width = `${percent}%`;
+      bar.setAttribute?.('aria-valuemin', '0');
+      bar.setAttribute?.('aria-valuemax', '100');
+      bar.setAttribute?.('aria-valuenow', String(percent));
+      const state = percent <= 20 ? 'critical' : percent <= 40 ? 'low' : 'steady';
+      bar.setAttribute?.('aria-valuetext', `${percent}% full, ${state}`);
+      if (bar.stateText) {
+        bar.stateText.textContent = state === 'steady' ? '' : ` (${state})`;
+      }
     }
     return true;
+  }
+
+  private showEmptyState(): void {
+    if (this.emptyState && this.content) {
+      this.root.hidden = false;
+      this.emptyState.hidden = false;
+      this.content.hidden = true;
+      return;
+    }
+    this.root.hidden = true;
   }
 }
 
@@ -211,6 +241,10 @@ export function buildNeedBars(
     label.className = 'need-label';
     label.textContent = name;
 
+    const stateText = doc.createElement('span');
+    stateText.className = 'need-state';
+    label.appendChild(stateText);
+
     const track = doc.createElement('div');
     track.className = 'need-track';
 
@@ -220,13 +254,18 @@ export function buildNeedBars(
     // tree carries which bar is which rather than seven anonymous divs.
     fill.setAttribute('role', 'meter');
     fill.setAttribute('aria-label', name);
+    fill.setAttribute('aria-valuemin', '0');
+    fill.setAttribute('aria-valuemax', '100');
+    fill.setAttribute('aria-valuenow', '0');
+    fill.setAttribute('aria-valuetext', '0% full, critical');
     fill.style.width = '0%';
 
     track.appendChild(fill);
     row.appendChild(label);
     row.appendChild(track);
     root.appendChild(row);
-    fills.push(fill);
+    Object.defineProperty(fill, 'stateText', { value: stateText });
+    fills.push(fill as BarFill);
   }
   return fills;
 }

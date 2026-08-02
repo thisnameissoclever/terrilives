@@ -26,8 +26,12 @@ belong in the repository ([A-11] docs debt).
    preemption; measured in [A-15].)
 8. A home with multiple rooms, 25+ objects, real footprints.
    (Shipped: M2a/M2b.)
-9. Persistence: save and load. (M2g.)
+9. Persistence: save and load. (Shipped: M2g. Versioned, validated
+   snapshots live in OPFS; a saved household resumes on the same tick.)
 10. Readable UI: needs, selection, time controls, and who is doing
-    what. (Partially shipped; activity indicators land in A-11 PR 2.)
+    what. (Shipped: A-11 and M2g. The normal HUD now shows the clock,
+    funds, satisfaction, career, current activity, queued orders, save
+    state, and touch and keyboard controls without debug mode.)
 11. The game's voice - dark comedy - present in play, authored WITH
-    the owner ([L57]). (M2g.)
+    the owner ([L58]). (Owner voice session still required; the string
+    inventory and functional-text boundary are shipped in M2g.)

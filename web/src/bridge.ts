@@ -84,6 +84,28 @@ export class SimBridge {
     this.handle.tick();
   }
 
+  /** Current fixed-step tick, converted from wasm-bindgen's u64 BigInt. */
+  clockTick(): number {
+    const tick = this.handle.sim_tick();
+    const value = Number(tick);
+    return Number.isSafeInteger(value) ? value : Number.MAX_SAFE_INTEGER;
+  }
+
+  /** Authored ticks per day, so the shell never hardcodes the calendar. */
+  dayTicks(): number {
+    return this.handle.day_ticks();
+  }
+
+  /** Versioned simulation bytes for browser-owned storage. */
+  saveBytes(): Uint8Array {
+    return this.handle.save_bytes();
+  }
+
+  /** Atomic restore. Rejected bytes leave the running simulation untouched. */
+  loadBytes(bytes: Uint8Array): boolean {
+    return this.handle.load_bytes(bytes);
+  }
+
   get count(): number {
     return this.handle.entity_count();
   }
@@ -139,6 +161,17 @@ export class SimBridge {
       this.handle.activities_ptr(),
       this.count,
     );
+  }
+
+  /** Current activity code for one live entity, resolved through the row map. */
+  activityOf(entityIndex: number): number | null {
+    if (!isU32(entityIndex)) return null;
+    const ids = this.ids();
+    const activities = this.activities();
+    for (let row = 0; row < this.count; row++) {
+      if (ids[row] === entityIndex) return activities[row] ?? null;
+    }
+    return null;
   }
 
   /**
@@ -403,6 +436,12 @@ export class SimBridge {
   interactionLabels(entityIndex: number): string[] {
     if (!isU32(entityIndex)) return [];
     return this.handle.interaction_labels(entityIndex);
+  }
+
+  /** Authored object name, or an empty string when the entity is not furniture. */
+  objectName(entityIndex: number): string {
+    if (!isU32(entityIndex)) return '';
+    return this.handle.object_name_of(entityIndex);
   }
 
   /**

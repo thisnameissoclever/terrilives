@@ -1,6 +1,7 @@
 //! Simulation systems and scheduling. No web dependencies, ever.
 
 pub mod render_buffer;
+mod save;
 pub mod systems;
 #[cfg(test)]
 pub mod test_content;
@@ -8,6 +9,8 @@ pub mod test_content;
 use bevy_ecs::prelude::*;
 use bevy_ecs::schedule::ExecutorKind;
 use terri_core::SimClock;
+
+pub use save::SaveError;
 
 /// The content pack, as a resource so systems can resolve object ids and
 /// decay rates. Holds a `&'static` because the pack is embedded at build
@@ -26,6 +29,21 @@ pub struct Sim {
 }
 
 impl Sim {
+    /// Captures every world resource, entity component, entity reference,
+    /// and staged player command needed to resume this simulation exactly.
+    pub fn save_snapshot(&self) -> terri_core::SaveSnapshotV1 {
+        save::capture(self)
+    }
+
+    /// Transactionally replaces this simulation from a validated snapshot.
+    /// On any error `self` is untouched.
+    pub fn load_snapshot(&mut self, snapshot: terri_core::SaveSnapshotV1) -> Result<(), SaveError> {
+        let content = self.world.resource::<Content>().0;
+        let restored = save::restore(snapshot, content)?;
+        *self = restored;
+        Ok(())
+    }
+
     /// Creates a sim with a **1x1 placeholder lot**, so only tile (0, 0)
     /// is walkable.
     ///
@@ -938,6 +956,22 @@ impl Sim {
             .iter(&self.world)
             .find(|(entity, _)| entity.index_u32() == index)
             .map(|(_, career)| pack.careers[career.0 as usize].label.as_str())
+    }
+
+    /// The authored display name of a smart object, or `None` for sims,
+    /// stale indices and anything that is not player-interactable furniture.
+    pub fn object_name_of(&self, index: u32) -> Option<&'static str> {
+        let pack = self.world.get_resource::<Content>()?.0;
+        let mut state = self
+            .world
+            .try_query::<(Entity, &terri_core::SmartObject)>()?;
+        let object = state
+            .iter(&self.world)
+            .find(|(entity, _)| entity.index_u32() == index)?
+            .1;
+        pack.objects
+            .get((object.0).0 as usize)
+            .map(|definition| definition.name.as_str())
     }
 
     /// The personality multipliers of the sim carrying `index`: `drain`

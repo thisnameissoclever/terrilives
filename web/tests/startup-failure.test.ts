@@ -31,7 +31,7 @@ describe('describeStartupFailure', () => {
     // The hints must carry the two actionable moves: localhost on the
     // host machine, and the secure-context story for remote devices.
     const hints = notice.hints.join(' ');
-    expect(hints).toContain('http://localhost:5173');
+    expect(hints).toContain('https://localhost:5174');
     expect(hints).toContain('secure');
     expect(notice.detail).toBe(gpuMissing.message);
   });

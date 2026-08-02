@@ -1501,3 +1501,50 @@ standalone meal retired, and the career still running. Reproduce with
   content at the boundary. First displayed session should watch one
   dinner end to end - pantry, counter, stove, table - and check the
   badge reads at hand height; filed with [A-14]'s open eye-test.
+
+## [A-16] Persistence and the player-facing alpha shell, watched
+
+M2g was exercised in a visible Chrome against the working HTTPS build,
+first at 1705 x 997 and then at 390 x 844.
+
+- **The save seam resumed exactly.** The game was paused and saved at
+  `Day 9, 08:03`, advanced to `08:50`, and then loaded. The confirmation
+  completed with `Saved game loaded` and returned the clock exactly to
+  `Day 9, 08:03`. A separate fresh-page reload restored an exact saved tick
+  with Load enabled. The independent
+  native and release-WASM suites continue matching worlds for 300 ticks,
+  so the watched seam and the deterministic seam cover different failure
+  classes.
+- **New Game actually clears the old household.** The destructive warning
+  appeared before the reset. Accepting it returned the game to Day 1 with
+  zero funds and `No save yet`; the old save did not reappear through the
+  visibility-save path. Load stayed disabled until the next valid save, and
+  repeated daily `Autosaved` status updates were visible during ordinary
+  play.
+- **The career loop paid in the visible game.** Terri was observed leaving
+  for work with an `At work` activity, returning, and moving household funds
+  from 0 to 240 and later 480 across completed workdays. The watched evidence
+  covers the player-facing departure and pay loop without claiming the wider
+  workplace model proposed in the still-owner-gated career specification.
+- **The normal HUD finally explains the simulation without `?debug=1`.**
+  The watched page showed day and time, funds, Terri's life satisfaction,
+  career and current activity, plus plain save state. Need meters exposed
+  values in the accessibility tree rather than only changing their width.
+- **The hidden gestures have visible equivalents.** Queue toggled with
+  `aria-pressed=true`; Help named touch, mouse and keyboard paths; arrow-key
+  targeting announced `Chill-o-Matic 3000`, and Enter opened its Grab a
+  snack, Cook dinner, and Never mind actions with focus on the first row.
+- **The action menu stayed reachable.** Opened at the bottom-right corner,
+  its right and bottom edges stopped eight pixels inside the viewport. Escape
+  closed it and returned focus to the game view.
+- **The phone layout is usable, not merely scaled down.** At 390 x 844 the
+  selected person's details started folded, all six action buttons remained
+  at least 44 pixels tall, the HUD ended above the middle of the screen, and
+  the house remained playable below it. This was responsive emulation in a
+  visible browser, not a physical-touch session. Long-press cancellation and
+  firing are covered by the input tests; a real-device long-press remains a
+  useful post-merge check, not a claimed observation.
+- **Criterion 11 remains open honestly.** Functional controls are plain and
+  inventoried in `docs/player-visible-strings.md`; no autonomous comedy pass
+  was smuggled into buttons or failure text. The owner-authored voice session
+  is still the final playable-alpha criterion.

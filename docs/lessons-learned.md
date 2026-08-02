@@ -3117,3 +3117,32 @@ partly exercised.
 (21 mutants, 21 caught) and CI agreed. A red mutants shard on a
 branch whose last local sweep was clean means the sweep was run
 before the change rather than after it.
+
+## [L62] A mouse gesture is not a feature contract
+
+**What happened.** The simulation had object actions, queued orders, camera
+gestures, need meters and failure handling, but much of that disappeared for
+anyone who did not already know the source code. Full actions required a
+right-click, queueing required Ctrl or Cmd, the menu could extend beyond a
+viewport corner, its focus stayed on the page body, need meters exposed no
+numeric accessibility values, and the running canvas announced fallback text
+claiming WebGPU was unsupported. The features existed mechanically and failed
+as a game interface.
+
+**Root cause.** Input was implemented per event handler rather than as a
+player capability matrix. Desktop mouse success was treated as proof of an
+interaction even though touch, keyboard, responsive placement, focus return,
+screen-reader state, discovery, and visible rejection feedback were separate
+contracts.
+
+**Prevention rule.** Every new player action must name its mouse, touch, and
+keyboard routes, its visible discovery path, accepted and rejected feedback,
+and its focus behavior. Any floating surface is checked at all four viewport
+corners. Any visual meter publishes min, max, current value, and readable
+state. Canvas fallback warnings are rendered only after an actual startup
+failure, never left in the live accessibility tree.
+
+**How to verify.** Unit tests cover long-press firing and cancellation, queue
+mode, menu clamping, command rejection, need-meter values, keyboard target
+selection, and save status. [A-16] records the visible desktop and phone-size
+passes, bottom-right menu bounds, focus return, and keyboard action workflow.

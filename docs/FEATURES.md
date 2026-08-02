@@ -7,8 +7,8 @@ the A-11 visibility pass, PR 1 (the house looks right) and PR 2
 (activity indicator bubbles, the ?debug=1 stats overlay, and the
 right-click "Chat" talk command; see
 docs/specs/2026-07-31-visibility-and-talk-design.md) are shipped;
-PR 3 (camera pan and anchored zoom, wheel and pinch) is code-complete
-and gated on the owner's on-phone check. M2e shipped whole - the
+PR 3 (camera pan and anchored zoom, wheel and pinch) shipped after the
+owner's on-phone check. M2e shipped whole - the
 satisfaction axis with hobbies (PR 1, [A-12]), the three trait
 mechanisms (PR 2, [A-13]), and the career rabbit hole with the day
 clock, the front door and household Funds (PR 3, [A-14]); see
@@ -17,8 +17,15 @@ shipped whole the same day - chains as content with station roles and
 the hands rule (PR 1), the running chain with terminal-only payoff
 and resume through every preemption (PR 2), and the carried-item
 badges, flyout rows and errand line (PR 3, [A-15]); see
-docs/specs/2026-08-01-m2f-multi-step-working-design.md. The full
-alpha's eleven DONE criteria live in docs/alpha-goals.md.
+docs/specs/2026-08-01-m2f-multi-step-working-design.md. The M2g
+code-owned slice is implemented: a versioned full-world snapshot,
+transactional validation and restore, one OPFS save slot, daily autosave,
+save/load/new-game controls, a readable normal-play HUD, first-run Help,
+long-press actions, a visible Queue mode, keyboard world targeting,
+clamped and focus-managed action menus, and responsive accessible controls.
+The owner's dark-comedy voice session remains open by design; see
+docs/player-visible-strings.md. The alpha's eleven acceptance criteria live
+in docs/alpha-goals.md.
 Everything else is
 proposed scope, not yet agreed in detail. Milestones exist primarily to
 control [R6], which is the risk most likely to actually kill this project.
@@ -40,13 +47,11 @@ that followed:
   `TileGrid::find_path_adjacent`, and that was a movement bug wearing a
   rendering costume.
 
-What remains unmet is narrower than it was: **nobody has judged how the game
-looks.** The geometry is verified - flush wall runs, seamless floor, the atlas
-matching its manifest - by reading pixels back off a canvas that draws but never
-presents. Whether the room reads as a room is still unexamined.
-`docs/alpha-feel-notes.md` [A-5] carries the distinction, and [A-6] records a
-new one found on the way: objects have no footprint, so a sofa drawn 2.4 tiles
-wide still occupies one.
+That visual gap has since been closed. The five-room house, furniture placement,
+selection states, command menus, HUD, and mobile layout have all been judged in
+a real, visible Chrome session. `docs/alpha-feel-notes.md` [A-5] records the
+original geometry-only proof, [A-6] records the object-footprint limitation found
+on the way, and [A-16] records the current player-facing acceptance pass.
 
 The rule: **each milestone must end in something playable.** No milestone is
 allowed to be pure infrastructure with a payoff deferred to the next one.

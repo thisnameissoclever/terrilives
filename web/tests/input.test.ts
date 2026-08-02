@@ -6,6 +6,7 @@ import {
   dispatchMenuAction,
   handleLeftClick,
   handleRightClick,
+  LongPressGesture,
   pickAt,
   pickSprite,
   resolveLeftClick,
@@ -23,6 +24,72 @@ import { KIND_AGENT } from '../src/render/instances.js';
 import { TILE_HALF_HEIGHT, screenX, screenY } from '../src/render/iso.js';
 
 const KIND_OBJECT = 1;
+
+describe('LongPressGesture', () => {
+  function manualScheduler() {
+    let callback: (() => void) | null = null;
+    const cancelled: unknown[] = [];
+    return {
+      scheduler: {
+        after(_delayMs: number, run: () => void) {
+          callback = run;
+          return 'timer';
+        },
+        cancel(handle: unknown) {
+          cancelled.push(handle);
+          callback = null;
+        },
+      },
+      fire() {
+        const run = callback as (() => void) | null;
+        callback = null;
+        run?.();
+      },
+      cancelled,
+    };
+  }
+
+  it('opens at the original touch point after the hold', () => {
+    const timer = manualScheduler();
+    const fired: Array<[number, number]> = [];
+    const gesture = new LongPressGesture(
+      (x, y) => fired.push([x, y]),
+      timer.scheduler,
+      500,
+      6,
+    );
+
+    gesture.begin(7, 120, 240);
+    gesture.move(7, 123, 242);
+    timer.fire();
+
+    expect(fired).toEqual([[120, 240]]);
+  });
+
+  it('ignores another pointer and cancels after a drag, lift, or cancellation', () => {
+    const timer = manualScheduler();
+    const fired = vi.fn();
+    const gesture = new LongPressGesture(fired, timer.scheduler, 500, 6);
+
+    gesture.begin(1, 10, 10);
+    gesture.move(2, 100, 100);
+    timer.fire();
+    expect(fired).toHaveBeenCalledTimes(1);
+
+    gesture.begin(1, 10, 10);
+    gesture.move(1, 17, 10);
+    timer.fire();
+    gesture.begin(1, 10, 10);
+    gesture.end(1);
+    timer.fire();
+    gesture.begin(1, 10, 10);
+    gesture.cancel();
+    timer.fire();
+
+    expect(fired).toHaveBeenCalledTimes(1);
+    expect(timer.cancelled).toEqual(['timer', 'timer', 'timer']);
+  });
+});
 
 /** A canvas rect at 1:1 CSS scale, anchored at the page origin. */
 const UNSCALED = { left: 0, top: 0, width: 1280, height: 720 };
@@ -661,8 +728,22 @@ describe('dispatch', () => {
 
   it('sends nothing at all for none', () => {
     const sink = recordingSink();
-    dispatch(sink, { kind: 'none' } satisfies ClickAction);
+    expect(dispatch(sink, { kind: 'none' } satisfies ClickAction)).toBeNull();
     expect(sink.calls).toEqual([]);
+  });
+
+  it('reports a command-queue rejection to the caller', () => {
+    const sink = recordingSink(1);
+    sink.useObject = () => false;
+    expect(
+      dispatch(sink, {
+        kind: 'use',
+        agent: 1,
+        object: 6,
+        interaction: 0,
+        replace: false,
+      }),
+    ).toBe(false);
   });
 });
 
@@ -1325,6 +1406,26 @@ describe('dispatchMenuAction', () => {
     dispatchMenuAction(sink, { kind: 'talk', target: 8, interaction: 1 });
     expect(sink.calls).toEqual(['cancel 6', 'talk 6 8 1']);
     expect(sink.queue).toEqual([[8, 1]]);
+  });
+
+  it('appends a menu action without cancelling while queue mode is active', () => {
+    const sink = recordingSink(6);
+    dispatchMenuAction(
+      sink,
+      { kind: 'use', object: 9, interaction: 2 },
+      false,
+    );
+    expect(sink.calls).toEqual(['use 6 9 2']);
+  });
+
+  it('still replaces the queue for a social action while queue mode is active', () => {
+    const sink = recordingSink(6);
+    dispatchMenuAction(
+      sink,
+      { kind: 'talk', target: 8, interaction: 1 },
+      false,
+    );
+    expect(sink.calls).toEqual(['cancel 6', 'talk 6 8 1']);
   });
 
   it('sends the cancel alone for the Never mind row', () => {

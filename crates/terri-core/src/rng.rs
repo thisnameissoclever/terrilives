@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 /// seed, so dropping it from a save silently moves the sim to a
 /// different sequence. `a_resumed_rng_continues_the_same_sequence`
 /// pins that.
-#[derive(Resource, Debug, Clone, Serialize, Deserialize)]
+#[derive(Resource, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SimRng {
     state: u64,
     inc: u64,

@@ -90,6 +90,12 @@ pub enum SimCommand {
 pub struct CommandQueue(Vec<SimCommand>);
 
 impl CommandQueue {
+    /// A queue already holding these commands in drain order. Used by
+    /// save restoration so input staged just before an autosave is not lost.
+    pub fn from_commands(commands: Vec<SimCommand>) -> Self {
+        Self(commands)
+    }
+
     pub fn push(&mut self, cmd: SimCommand) {
         self.0.push(cmd);
     }
@@ -104,6 +110,11 @@ impl CommandQueue {
 
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
+    }
+
+    /// Commands in the order the next simulation tick will drain them.
+    pub fn as_slice(&self) -> &[SimCommand] {
+        &self.0
     }
 }
 
