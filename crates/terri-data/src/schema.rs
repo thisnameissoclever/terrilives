@@ -617,7 +617,7 @@ pub struct HouseholdSimDef {
 }
 
 /// Mirrors `assets/sprites/atlas.toml`, which is **generated** by
-/// `assets/sprites/build-atlas.ps1` rather than authored.
+/// `assets/sprites/gen/build.py` rather than authored.
 ///
 /// It is read here rather than in the renderer because the check it
 /// enables - "every object names a sprite the atlas actually holds" - is

@@ -11,7 +11,7 @@ import { MAX_SPRITES } from '../src/render/instances.js';
 // The atlas manifest exists TWICE: `assets/sprites/atlas.toml`, which
 // `terri-data`'s build script validates content against and resolves
 // sprite names to indices with, and `web/src/render/atlas.ts`, which the
-// renderer reads the rects out of. `build-atlas.ps1` writes both in one
+// renderer reads the rects out of. `gen/build.py` writes both in one
 // pass from one list, so they cannot disagree unless somebody edits one
 // by hand - and if they ever did, every object in the game would draw as
 // the wrong picture with nothing raising an error, because both sides

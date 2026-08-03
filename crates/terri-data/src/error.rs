@@ -223,7 +223,7 @@ pub enum ContentError {
     },
     /// The atlas has no sprite for a sim. Nothing in `content/` names it,
     /// so a designer cannot cause this; regenerating the atlas from a
-    /// `build-atlas.ps1` that had dropped the sprite can.
+    /// `assets/sprites/gen/` that had dropped the sprite can.
     MissingSimSprite {
         sprite: String,
     },
@@ -1130,7 +1130,7 @@ impl fmt::Display for ContentError {
                 sprite,
             } => write!(
                 f,
-                "lot.toml places '{object}' facing '{facing}', which needs                  sprite '{sprite}' - the atlas does not hold it. Add the                  variant to assets/sprites/build-atlas.ps1 and regenerate"
+                "lot.toml places '{object}' facing '{facing}', which needs                  sprite '{sprite}' - the atlas does not hold it. Add the                  variant to assets/sprites/gen/objects.py and regenerate"
             ),
             ContentError::DuplicateSocialInteraction { id } => write!(
                 f,
