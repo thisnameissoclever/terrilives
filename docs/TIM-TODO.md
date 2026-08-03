@@ -111,41 +111,53 @@ Direction is agreed. What needs your sign-off is the craft guidance in
 FEATURES.md: **satirize institutional form rather than named people or parties,
 and prefer evergreen absurdity over current events.** Confirm or overrule.
 
-### [T-design-language] Pick the design language `[YOURS]`
+### [T-design-language] Pick the design language - DECIDED 2026-08-03
 
-**Five options are written up and costed in
-`docs/specs/2026-08-03-design-language-options.md`.** Nothing is built and
-nothing is scheduled; this is a taste call and it gates [T12] and [T13]
-below, because both of those are downstream of which direction wins.
+**Muted Line.** The implementation plan is
+`docs/specs/2026-08-03-muted-line-implementation.md`; the prototype the
+choice was made against is `tools/art-prototype/`, wired into nothing.
 
-The paper's structural point is that this is two decisions rather than
-one. The interface is DOM and CSS, the world is a WebGPU canvas, and
-nothing couples them, so an interface fiction costs under a week and is
-reversible while a world treatment costs a fortnight and is not. Three of
-the five options touch no sprite at all.
+The first paper's five options were rejected whole, and correctly: each one
+restyled the existing sprites, and a grade over borrowed art is still
+borrowed art. What replaced them is original art drawn by a generator, so
+the style is a palette, a shape language and a set of character-build
+numbers rather than a filter. Nothing in the game's art comes from a pack
+any more.
 
-Two of the five need money or an account before they can start; the other
-three need neither. My recommendation, with the argument, is at the end of
-the paper. What I need from you is which one, or a veto on all five.
+Two of your notes on round one shaped round two and are now settled: the
+outline is 1 px and never black, and no wall is a hue, so the furniture
+carries the colour. The day/night strip that came out of the lighting rig
+also settled a question nobody had asked yet, which is that night is a
+lighting setting rather than a second art style.
 
-### [T12] Approve the colour palette `[YOURS]`
+### [T12] Approve the colour palette `[YOURS]` - MOSTLY SETTLED
 
-**I will propose one; approving it is a taste call and it is yours.** [K1] makes
-this the backbone of visual consistency across every asset from every source.
+Settled in practice by [T-design-language]: Muted Line's palette *is* the
+approved palette, and it lives in the generator's `style.py` rather than in
+a document. [K1]'s "define ~32 colours and snap everything to them" is now
+enforced by construction, because the generator has no other colours to
+draw with.
 
-Downstream of [T-design-language]: two of the five options reduce this to
-approving three or four inks rather than the ~32 colours [K1] assumes, so
-picking a direction first makes this decision much smaller.
+What is left for you is smaller and can wait for the port: whether the
+accent set wants a fifth entry, and whether the wall neutral is warm enough.
+Both are one-line changes with an immediate re-render.
 
-### [T13] Approve the style bible `[YOURS]`
+### [T13] Approve the style bible `[YOURS]` - NO LONGER NEEDED
 
-[AI1]. Depends on [T10]. Everything generated afterward is conditioned on it, so
-it deserves a careful look.
+A style bible exists to keep *generated* assets consistent with each other.
+A generator is consistent by construction, so `style.py` replaces it and is
+executable rather than a folder of reference images.
 
-Only one of the five directions in [T-design-language] actually needs a
-generated style bible. The other four constrain AI to the abstract and
-diegetic work [AI2] through [AI5] already fence it into, where consistency
-is not at stake.
+Closing this does not need a decision from you unless you disagree.
+
+### [T10] revisited by [T-design-language]
+
+Choosing a procedural direction takes the AI image tool off the critical
+path entirely: no model, no LoRA, no seed policy, no regeneration risk, and
+no question about whether sprite art is copyrightable. [T10] survives only
+as an option for the diegetic 2D layer - paintings, posters, book covers -
+and even there the plan recommends trying procedural first. See Part 4 of
+the implementation spec.
 
 ### [T16] Set up object storage and pick the upload identity mechanism `[YOURS]`
 

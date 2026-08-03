@@ -69,14 +69,28 @@ the wrong fiction. This priority does not decide the colour palette, paid
 assets, or a new character-art pipeline; those remain [T12], [T3]/[T7], and
 [T19].
 
-The design language itself is now written up rather than merely deferred.
-`docs/specs/2026-08-03-design-language-options.md` proposes and costs five
-directions and is an options paper, not an agreed design; the choice is
-[T-design-language] and it is the owner's. Nothing in it is scheduled, and
-the shared engineering prerequisites it lists - a cross-platform atlas
-post-pass, the `MAX_SPRITES` uniform array becoming a storage buffer, and
-what a screen-space grade would cost [D10]'s one-draw-call claim - are
-unbuilt.
+**The design language is decided: Muted Line, chosen 2026-08-03.** It is
+original procedural art rather than a treatment of the borrowed sprites, so
+the style is a palette, a shape language and a set of character-build
+numbers that live in a generator. The plan is
+`docs/specs/2026-08-03-muted-line-implementation.md` and the prototype it
+was chosen against is `tools/art-prototype/`, which is wired into nothing.
+The first options paper is superseded and kept for the record.
+
+**None of it is built.** The plan's own order matters more than its
+contents: the generator port comes first, then a global ambient tint, which
+is about half a day's work and makes the day/night cycle visible; only then
+is the circadian sleep curve worth tuning, because tuning a sleep schedule
+you cannot see is guesswork. The owner also asked for the day/night cycle
+and sim sleep schedules to be synced to it, which is Part 3 of that spec.
+
+Three findings from the plan are worth carrying here because they change
+what the renderer work costs. The whole lighting rig fits inside the
+existing single instanced draw call, because light pools become the tint of
+instances already being drawn rather than new geometry, so [D10] and
+`docs/gpu-verification.md` survive untouched. Additive light quads would
+NOT work, because the pipeline alpha-tests at 0.5 and writes depth. And
+`SimClock::is_hour_boundary()`, unused since M0, finally has a consumer.
 
 ### Next engineering slices
 

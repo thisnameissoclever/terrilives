@@ -1,5 +1,23 @@
 # Design language: five options
 
+Status: **SUPERSEDED, kept for the record.** The owner rejected all five on
+2026-08-03: every option here restyles the existing sprites rather than
+replacing them, and a grade over borrowed art is still borrowed art. The
+five directions that followed are original art drawn by a generator, and
+the one chosen is Muted Line; see
+`docs/specs/2026-08-03-muted-line-implementation.md`.
+
+Two things in this paper survived the rejection and are still true. The
+shared-prerequisites section [DL-prereqs] is unchanged in force - the
+cross-platform sprite pipeline, the `MAX_SPRITES` uniform array, the
+missing per-instance tint and the cost of a screen-space pass are all real
+and all still ahead. And the observation that the interface and the world
+are separable is still the reason the interface has not been touched.
+
+What follows is the original text, unedited.
+
+---
+
 Status: **options paper, nothing agreed.** Feeds [T12] (palette), [T13]
 (style bible) and the new [T-design-language] in `docs/TIM-TODO.md`.
 Nothing here is scheduled and nothing here is built. Written 2026-08-03.
