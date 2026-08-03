@@ -69,6 +69,15 @@ the wrong fiction. This priority does not decide the colour palette, paid
 assets, or a new character-art pipeline; those remain [T12], [T3]/[T7], and
 [T19].
 
+The design language itself is now written up rather than merely deferred.
+`docs/specs/2026-08-03-design-language-options.md` proposes and costs five
+directions and is an options paper, not an agreed design; the choice is
+[T-design-language] and it is the owner's. Nothing in it is scheduled, and
+the shared engineering prerequisites it lists - a cross-platform atlas
+post-pass, the `MAX_SPRITES` uniform array becoming a storage buffer, and
+what a screen-space grade would cost [D10]'s one-draw-call claim - are
+unbuilt.
+
 ### Next engineering slices
 
 This is the current restart point, separate from the historical milestone

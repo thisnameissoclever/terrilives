@@ -111,15 +111,41 @@ Direction is agreed. What needs your sign-off is the craft guidance in
 FEATURES.md: **satirize institutional form rather than named people or parties,
 and prefer evergreen absurdity over current events.** Confirm or overrule.
 
+### [T-design-language] Pick the design language `[YOURS]`
+
+**Five options are written up and costed in
+`docs/specs/2026-08-03-design-language-options.md`.** Nothing is built and
+nothing is scheduled; this is a taste call and it gates [T12] and [T13]
+below, because both of those are downstream of which direction wins.
+
+The paper's structural point is that this is two decisions rather than
+one. The interface is DOM and CSS, the world is a WebGPU canvas, and
+nothing couples them, so an interface fiction costs under a week and is
+reversible while a world treatment costs a fortnight and is not. Three of
+the five options touch no sprite at all.
+
+Two of the five need money or an account before they can start; the other
+three need neither. My recommendation, with the argument, is at the end of
+the paper. What I need from you is which one, or a veto on all five.
+
 ### [T12] Approve the colour palette `[YOURS]`
 
 **I will propose one; approving it is a taste call and it is yours.** [K1] makes
 this the backbone of visual consistency across every asset from every source.
 
+Downstream of [T-design-language]: two of the five options reduce this to
+approving three or four inks rather than the ~32 colours [K1] assumes, so
+picking a direction first makes this decision much smaller.
+
 ### [T13] Approve the style bible `[YOURS]`
 
 [AI1]. Depends on [T10]. Everything generated afterward is conditioned on it, so
 it deserves a careful look.
+
+Only one of the five directions in [T-design-language] actually needs a
+generated style bible. The other four constrain AI to the abstract and
+diegetic work [AI2] through [AI5] already fence it into, where consistency
+is not at stake.
 
 ### [T16] Set up object storage and pick the upload identity mechanism `[YOURS]`
 

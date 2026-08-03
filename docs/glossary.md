@@ -220,6 +220,34 @@ permanent identity and does not. Lines are omitted entirely when they
 do not apply - no career, no traits, nothing stalling, no chain - so a
 short block means a simple sim rather than missing data.
 
+## Art and print terms
+
+Vocabulary used by `docs/specs/2026-08-03-design-language-options.md` and
+by the art-pipeline section of `docs/TECH_STACK.md`. None of it is
+implemented; it is here because rule 6 below says a word a developer
+meets gets an entry, and a design paper is where you meet these.
+
+| Term | Means |
+| --- | --- |
+| **atlas** | The one texture holding every sprite in the game, at `assets/sprites/atlas.png`. One atlas is what keeps the whole frame to a single draw call ([D10]). |
+| **post-pass** (offline) | A program that reads the finished atlas, restyles every sprite in it, and writes it back. Runs on a developer machine, never in the browser. |
+| **post-process** (runtime) | A shader that restyles the whole finished frame on the GPU each time it is drawn. Costs a second render pass, so [D10]'s one-draw-call claim stops being true the day one lands. |
+| **screen space** | Measured in display pixels rather than in the sprite. A pattern applied in screen space stays the same size when the camera zooms; the same pattern baked into a sprite grows and shrinks with it. |
+| **quantise** | Force every pixel to the nearest colour in a short fixed list. Four inks means the image is allowed four values and nothing between them. |
+| **dither** | Alternate two available colours in a fine pattern so the eye mixes them into a third that the palette does not contain. |
+| **halftone** | Dither done as dots of varying size, which is how a printing press fakes shading with one ink. |
+| **misregistration** | Printing plates that do not quite line up, so the inks sit a fraction out of position. Deliberate misregistration is most of what makes an image read as printed rather than as rendered. |
+| **risograph** (riso) | A duplicator that prints one saturated spot colour per pass. Cheap, loud, and slightly misregistered by nature. |
+| **spot colour** | One specific premixed ink, rather than a colour built from mixing others. A four-ink design has exactly four of them and no others are available. |
+| **knockout** | Text left as bare paper inside a block of ink, rather than printed on top of it. |
+| **morphological gradient** | The difference between a shape grown by one pixel and the same shape shrunk by one pixel, which is its outline. The cheap way to get a clean line around a sprite. |
+| **drafting figure** | The schematic human symbol drawn on architectural plans to show scale. Deliberately a notation rather than a portrait, which is why it is a finished style and not a placeholder. |
+| **gouache** | Opaque water-based paint. Flat, matte, visible brushwork, and the look most "hand-painted storybook" art is imitating. |
+| **chyron** | The name-and-title strip along the bottom of a news broadcast. |
+| **depth-conditioned generation** | Handing an image model a depth map of a 3D render alongside the prompt, so it paints the shapes that are actually there instead of inventing its own. [G1]'s "generate by rendering, not by prompting". |
+| **LoRA** | A small fine-tune bolted onto an image model, trained here on 20 to 30 approved assets so everything generated afterwards matches this project rather than the model's average. [K3]. |
+| **OFL** | The SIL Open Font License. Permits embedding and commercial use, including self-hosting a font in the web build. |
+
 ## Naming rules this project follows
 
 Added the same day the glossary was, after `wears:` and `standing:`
