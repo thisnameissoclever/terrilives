@@ -5,6 +5,7 @@ import type { GpuContext } from './device.js';
 import {
   BYTES_PER_INSTANCE,
   FLOATS_PER_INSTANCE,
+  TINT_ATTRIBUTE_OFFSET,
   VERTICES_PER_QUAD,
   growCapacity,
   type InstanceArray,
@@ -215,7 +216,20 @@ export class SpriteRenderer {
           {
             arrayStride: BYTES_PER_INSTANCE,
             stepMode: 'instance',
-            attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x4' }],
+            attributes: [
+              { shaderLocation: 0, offset: 0, format: 'float32x4' },
+              // [ML-tint]. One buffer, two attributes, interleaved -
+              // not a second vertex buffer. Both halves belong to the
+              // same instance and are written together by
+              // `writeInstance`, so splitting them across buffers would
+              // mean two uploads and two chances for the counts to
+              // disagree, for nothing.
+              {
+                shaderLocation: 1,
+                offset: TINT_ATTRIBUTE_OFFSET,
+                format: 'float32x4',
+              },
+            ],
           },
         ],
       },

@@ -80,16 +80,22 @@ pub fn phase(tick: u64, offset_ticks: i32, day_ticks: u32) -> u32 {
 ///
 /// Length is the exception, and deliberately so. This is a `pub` function
 /// over a plain slice, so nothing in its signature carries the compile
-/// step's guarantee, and the two degenerate lengths are answered rather
-/// than asserted: a curve of nothing is no curve at all, and a curve of
-/// one point is that point everywhere. A `debug_assert` here would read
-/// as a second guard for an invariant [D9] already owns, and would make
-/// these two lines the only ones in the module no test could reach.
+/// step's guarantee, and an empty curve is answered rather than asserted:
+/// no curve is no effect. A `debug_assert` here would read as a second
+/// guard for an invariant [D9] already owns, and would make that line the
+/// only one in the module no test could reach.
+///
+/// A curve of ONE point needs no arm of its own, which is worth saying
+/// because the obvious `[(_, only)] => return *only` was here and was
+/// deleted. With one point `first` and `last` are the same point, so the
+/// wrap segment runs from it to itself and the lerp interpolates between
+/// two equal values - which is that value, at every phase, by every route
+/// through the code below. The arm was a slower way of writing the same
+/// answer, and a mutation sweep is what noticed: deleting it changed
+/// nothing anywhere.
 pub fn curve_at(points: &[(u32, f32)], day_ticks: u32, phase: u32) -> f32 {
-    match points {
-        [] => return 1.0,
-        [(_, only)] => return *only,
-        _ => {}
+    if points.is_empty() {
+        return 1.0;
     }
     let first = points[0];
     let last = points[points.len() - 1];
@@ -243,16 +249,23 @@ mod tests {
     #[test]
     fn a_curve_too_short_to_interpolate_is_answered_rather_than_indexed() {
         // `curve_at` is `pub` and takes a plain slice, so its signature
-        // carries none of the compile step's guarantees. These two lines
-        // are what stops a caller that skipped [D9] from panicking on an
+        // carries none of the compile step's guarantees. The empty guard
+        // is what stops a caller that skipped [D9] from panicking on an
         // index instead of getting an answer.
         assert_eq!(curve_at(&[], DAY, 0), 1.0, "no curve means no effect");
+        // One point has no guard and needs none: the wrap segment runs
+        // from the point to itself, and a lerp between two equal values
+        // is that value. Asserted at three phases, including the point's
+        // own tick and the two sides of it, because "it happens to fall
+        // out of the general path" is exactly the kind of claim that
+        // stops being true quietly.
         assert_eq!(
             curve_at(&[(500, 0.3)], DAY, 0),
             0.3,
             "one point is that point at every hour, not just at its own"
         );
         assert_eq!(curve_at(&[(500, 0.3)], DAY, 500), 0.3);
+        assert_eq!(curve_at(&[(500, 0.3)], DAY, DAY - 1), 0.3);
     }
 
     #[test]

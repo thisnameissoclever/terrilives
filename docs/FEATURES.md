@@ -77,12 +77,25 @@ numbers that live in a generator. The plan is
 was chosen against is `tools/art-prototype/`, which is wired into nothing.
 The first options paper is superseded and kept for the record.
 
-**Four of its nine items are built.** The generator replaced every sprite
+**Six of its nine items are built.** The generator replaced every sprite
 in the game ([ML-gen]), CI regenerates and diffs the atlas on every push so
 it is a reproducible build output rather than a trusted blob ([ML-ci]), the
 128-sprite cap is gone ([ML-sprites]), and **the day/night cycle is live**
 ([ML-ambient]) - the world tints with the simulation clock, and reduced
 motion pins it to noon.
+
+**Per-instance tint is in the contract** ([ML-tint]): an instance is two
+`vec4`s now rather than one, the second carrying a colour and an emissive
+strength. The lamp and the television are emissive, which is what stops
+the two things lighting the room from going out as night falls - the
+defect [ML-ambient] created by existing. The frame is still one draw and
+one submit; the tint rides on data the vertex stage already carried.
+
+**The household is three different people** ([ML-chars]), keyed on each
+sim's stable entity id so a face survives a walk, a save and a reload.
+Three baked looks rather than the three tinted instances per sim the spec
+proposed - the reasoning, and what would flip it back, is written down in
+`assets/sprites/gen/style.py` beside the palettes.
 
 **The circadian rhythm is built and switched off**, which is a deliberate
 state rather than an unfinished one. Schema, validation, curve, tests,
@@ -93,9 +106,11 @@ draft's curve had the household asleep enough to starve an unrelated test
 fixture of kitchen activity. That is the drive overpowering the needs
 rather than weighting them, and it is a tuning question, not a code one.
 
-**Still unbuilt:** per-instance tint ([ML-tint]) and the per-sim colour it
-unlocks ([ML-chars]), light pools ([ML-pools]), and walls on tile edges
-([B7]). Until [ML-tint] lands the household is three identical people.
+**Still unbuilt:** light pools and cast shadows ([ML-pools]), the measured
+tuning run the circadian curve needs ([ML-feel]), and walls on tile edges
+([B7]). [ML-pools] is the cheapest of the three now: it is per-tile tints
+on instances the renderer already emits, and the attribute to carry them
+landed with [ML-tint].
 
 One finding from building it constrains every future content change:
 `ci.yml` runs `cargo mutants --timeout 60`, and that timeout bounds each

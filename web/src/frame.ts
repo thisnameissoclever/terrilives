@@ -14,8 +14,10 @@ import {
   screenY,
 } from './render/iso.js';
 import {
+  EMISSIVE_NONE,
   FLOATS_PER_INSTANCE,
   KIND_AGENT,
+  TINT_NONE,
   writeInstance,
   type InstanceArray,
 } from './render/instances.js';
@@ -31,6 +33,79 @@ import { SPRITES, spriteIndex } from './render/atlas.js';
  * picture.
  */
 const SELECTION_RING_SPRITE = spriteIndex('selectionRing');
+
+/**
+ * The sim looks, one atlas entry each. [ML-chars].
+ *
+ * A household of three identical people was the loudest thing wrong with
+ * the frame after Muted Line landed, and this is the fix: three baked
+ * variants, picked by the sim's stable entity id, differing in skin,
+ * hair and clothing.
+ *
+ * **Chosen by the shell rather than by content, and that is a real
+ * choice.** `pack.sim_sprite` is ONE index - the content has no notion of
+ * a sim's appearance, because nothing in the simulation depends on it.
+ * Which of three equivalent looks a sim wears is presentation, the same
+ * kind of decision as the walking bob and the height a bubble floats at,
+ * and it lives here with them. [D1] is about the shell not holding a
+ * second copy of something the content already knows; there is nothing
+ * here to duplicate.
+ *
+ * The day that stops being true is the day a player picks a face, and
+ * then appearance becomes authored content with a compile step and this
+ * array becomes its default.
+ *
+ * By NAME rather than by literal index, for the same reason as the ring
+ * above: declaration order in the atlas build assigns the numbers, and a
+ * hardcoded one silently draws whatever later took the slot.
+ */
+const SIM_SPRITES: readonly number[] = [
+  spriteIndex('sim'),
+  spriteIndex('sim2'),
+  spriteIndex('sim3'),
+];
+
+/**
+ * Which look the sim with this entity id wears.
+ *
+ * Exported because it is the only part of the choice worth pinning: the
+ * mapping has to be a FUNCTION of the id and nothing else, so a sim keeps
+ * its face when it walks, when the buffer reorders around a despawn, and
+ * across a save and reload. Anything keyed on the row instead would swap
+ * two sims' faces the moment a third one left the lot.
+ *
+ * Plain modulo rather than a hash. Entity ids are handed out in sequence,
+ * so consecutive sims get consecutive looks, which is the property a
+ * household of three actually needs - a hash would be free to give all
+ * three the same face and be "correct".
+ */
+export function simSprite(id: number): number {
+  return SIM_SPRITES[id % SIM_SPRITES.length];
+}
+
+/**
+ * Sprites that keep their own colour after dark, as an emissive strength
+ * in [0, 1]. See `EMISSIVE_NONE` in `instances.ts` for what the channel
+ * means.
+ *
+ * This exists because [ML-ambient] created the problem it solves. The
+ * ambient multiply darkens every fragment as night falls, which for a lit
+ * lamp and a running television is exactly backwards: the room goes dark
+ * and so do the two things lighting it.
+ *
+ * 0.85 rather than 1.0 deliberately. At 1.0 the whole sprite ignores the
+ * hour, stand and outline included, and the object reads as a cutout
+ * pasted over the night rather than as a light standing in a room. At
+ * 0.85 the shade holds its colour and the base still sits in the dark
+ * with everything else.
+ *
+ * A `Map` looked up per entity per frame, which allocates nothing - [D11]
+ * is about per-entity OBJECTS, and this builds none.
+ */
+const EMISSIVE_SPRITES = new Map<number, number>([
+  [spriteIndex('lampRoundFloor'), 0.85],
+  [spriteIndex('televisionVintage'), 0.85],
+]);
 
 /**
  * The activity-indicator bubbles, one atlas slot per code that draws.
@@ -377,6 +452,7 @@ export function buildInstances(
   const kinds = source.kinds();
   const sprites = source.sprites();
   const activities = source.activities();
+  const ids = source.ids();
 
   for (let i = 0; i < count; i++) {
     // A sim at the office is not drawn, and its slot must not shift:
@@ -407,6 +483,15 @@ export function buildInstances(
     // its depth and losing the pixel to it - measured as an actual
     // disappearance in [V12], where the sim's 576 orange pixels were
     // simply absent from the frame in which it reached the fridge.
+    //
+    // A sim draws one of `SIM_SPRITES` rather than the pack's single
+    // `sim_sprite`, keyed on its own stable entity id so a sim keeps its
+    // face across a walk, a save and a reload. Everything else - every
+    // object in the house - draws exactly what content resolved.
+    const sprite =
+      kinds[i] === KIND_AGENT
+        ? simSprite(ids[i])
+        : sprites[i];
     writeInstance(
       scratch,
       i,
@@ -420,7 +505,11 @@ export function buildInstances(
         gridSize,
         kinds[i] === KIND_AGENT ? LAYER_SIM : LAYER_PROP,
       ),
-      sprites[i],
+      sprite,
+      TINT_NONE,
+      TINT_NONE,
+      TINT_NONE,
+      EMISSIVE_SPRITES.get(sprite) ?? EMISSIVE_NONE,
     );
   }
 

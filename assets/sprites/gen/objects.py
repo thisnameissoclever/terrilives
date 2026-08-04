@@ -15,7 +15,8 @@ import math
 
 from PIL import ImageDraw
 
-from style import PALETTE as C, ACCENTS, OUTLINE, OUTLINE_WIDTH, CHARACTER, mul, mix
+from style import (PALETTE as C, ACCENTS, OUTLINE, OUTLINE_WIDTH, CHARACTER,
+                   CHARACTER_PALETTES, mul, mix)
 from iso import (P, OX, OY, sx, sy, box, slab, cyl, diamond, legs, canvas,
                  emit, HW, HH, Z_UNIT)
 
@@ -375,20 +376,21 @@ def cardboardBoxOpen(d):
 
 
 # ---------------------------------------------------------- characters ----
-def sim(d):
-    """One sim sprite, in default colours.
+def _figure(d, palette):
+    """One sim, in one palette. [ML-chars].
 
-    [ML-chars] splits this into body, head and hair so per-sim skin, hair
-    and clothing arrive as an instance tint. That needs the per-instance
-    tint attribute ([ML-tint]) which does not exist yet, so for now this
-    is one sprite and everyone looks the same, exactly as today.
+    Every proportion comes from CHARACTER and only the four colours vary,
+    so the three variants are the same person in different clothes rather
+    than three different builds. That is deliberate: silhouette is what
+    reads at one tile, and three silhouettes would make the household
+    look like three species.
     """
     ch = CHARACTER
     H = ch["height"]
     head_r = H * ch["head"]
     px, py = P(.5, .5)
-    skin, hair = (232, 196, 164), (74, 58, 50)
-    shirt, trouser = C["accent_sage"], C["accent_slate"]
+    skin, hair = palette["skin"], palette["hair"]
+    shirt, trouser = palette["shirt"], palette["trouser"]
     ol, w = OUTLINE, OUTLINE_WIDTH
 
     d.ellipse([px - 13, py - 10, px + 13, py], fill=(0, 0, 0, 46))
@@ -415,6 +417,11 @@ def sim(d):
     for s in (-1, 1):
         cx = px + s * head_r * .34
         d.ellipse([cx - r, ey - r, cx + r, ey + r], fill=ch["eye"])
+
+
+def sim(d): _figure(d, CHARACTER_PALETTES[0])
+def sim2(d): _figure(d, CHARACTER_PALETTES[1])
+def sim3(d): _figure(d, CHARACTER_PALETTES[2])
 
 
 # ---------------------------------------------------------- indicators ----
@@ -492,4 +499,7 @@ SPRITES = [
     doorwayNS, doorwayEW, kitchenStoveSW, kitchenCabinetSW, kitchenSinkSW,
     kitchenCabinetCornerInnerSW, indicatorTalk, indicatorEat, indicatorSleep,
     indicatorWait, carried_ingredients, carried_dinner,
+    # Appended, never inserted: the list order IS the sprite index, and
+    # `sim` has to stay at 1 because a compiled pack already resolved it.
+    sim2, sim3,
 ]

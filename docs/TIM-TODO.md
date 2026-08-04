@@ -114,10 +114,12 @@ and prefer evergreen absurdity over current events.** Confirm or overrule.
 ### [T-design-language] Pick the design language - DECIDED AND SHIPPING
 
 **Muted Line, and it is in the running game.** Every sprite is drawn by
-`assets/sprites/gen/` and the world tints with the clock. The plan and its
-current state are in `docs/specs/2026-08-03-muted-line-implementation.md`;
-the prototype the choice was made against is `tools/art-prototype/`, wired
-into nothing.
+`assets/sprites/gen/`, the world tints with the clock, the lamp and the
+television stay lit after dark, and Terri, Doug and Nadia are three
+different people rather than three copies of one. The plan and its current
+state are in `docs/specs/2026-08-03-muted-line-implementation.md`; the
+prototype the choice was made against is `tools/art-prototype/`, wired into
+nothing.
 
 **One thing needs you, and it is small.** The circadian rhythm is built and
 switched off: `content/tuning.toml` carries the `[circadian]` block

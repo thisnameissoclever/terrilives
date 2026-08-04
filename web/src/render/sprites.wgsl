@@ -7,10 +7,24 @@
 // fills it every frame, and with tiles.ts, which fills it once at load.
 // Reordering the components here without reordering them there draws
 // every entity at the wrong depth as the wrong sprite, silently.
+//
+// @location(0) instance:
 //   x = screen x in pixels
 //   y = screen y in pixels
 //   z = depth in [0, 1]
 //   w = index into the sprite table below
+//
+// @location(1) tint - [ML-tint]:
+//   xyz = a colour every fragment of this instance is multiplied by
+//   w   = EMISSIVE, and it is not alpha. How far this instance ignores
+//         the time of day: 0 is fully lit by u.ambient, 1 resists it
+//         completely. A lamp that dimmed as night fell would be exactly
+//         backwards, and that is what this component is for.
+//
+// Not alpha for a mechanical reason as well as a naming one: the
+// fragment shader alpha-TESTS at 0.5 and writes depth, so anything
+// scaling alpha would move the discard threshold and erode every sprite
+// edge as the light changed.
 //
 // One atlas is what keeps [D10]'s single instanced draw call: every
 // sprite in the game is the same texture and the same pipeline, so the
@@ -81,6 +95,10 @@ struct Atlas {
 struct VertexOut {
   @builtin(position) clip: vec4<f32>,
   @location(0) uv: vec2<f32>,
+  // Passed straight through. Every vertex of one quad carries the same
+  // value, so the interpolation across the triangle is a no-op and the
+  // fragment reads exactly what the instance packed.
+  @location(1) tint: vec4<f32>,
 };
 
 // Two triangles forming a unit quad with its origin at the top left. The
@@ -96,6 +114,7 @@ const CORNERS = array<vec2<f32>, 6>(
 fn vs(
   @builtin(vertex_index) vi: u32,
   @location(0) instance: vec4<f32>,
+  @location(1) tint: vec4<f32>,
 ) -> VertexOut {
   let sprite = atlas.sprites[u32(instance.w)];
   let corner = CORNERS[vi];
@@ -119,6 +138,7 @@ fn vs(
   var out: VertexOut;
   out.clip = vec4f(clipXy, instance.z, 1.0);
   out.uv = mix(sprite.uv.xy, sprite.uv.zw, corner);
+  out.tint = tint;
   return out;
 }
 
@@ -143,5 +163,13 @@ fn fs(in: VertexOut) -> @location(0) vec4<f32> {
   // AFTER the alpha test, deliberately. Tinting before it would scale
   // alpha along with the colour and make the discard threshold move with
   // the time of day, so sprite edges would erode as night fell.
-  return vec4f(colour.rgb * u.ambient.rgb, colour.a);
+  //
+  // The instance's emissive lifts THIS instance's share of the ambient
+  // back toward white, so a lamp at midnight keeps its own colour while
+  // the wall behind it goes blue. One `mix` and one multiply, on
+  // per-instance data the vertex stage already carries: no second pass,
+  // no second pipeline, and [D10]'s one draw and one submit per frame
+  // are untouched.
+  let lit = mix(u.ambient.rgb, vec3f(1.0), in.tint.w);
+  return vec4f(colour.rgb * in.tint.rgb * lit, colour.a);
 }

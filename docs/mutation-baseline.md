@@ -1548,3 +1548,17 @@ that says so. The fix is a fixture that switches it ON -
 exactly this mutant on the four factors beside it. Verified by hand as
 well as by the sweep: flipping the `*` to a `/` in the source makes that
 test fail, and restoring it makes it pass.
+
+**And then the single-point arm turned out to be dead.** Removing the
+`debug_assert` made both degenerate arms reachable, and a local sweep
+found that one of them still could not be killed: deleting
+`[(_, only)] => return *only` changes no answer for any input. With one
+control point, `first` and `last` are the same point, so the wrap segment
+runs from it to itself and the general path interpolates between two
+equal values - which is that value, at every phase. The arm was a longer
+way of writing what the code below it already did. It is gone rather than
+baselined; the test that covered it now covers the general path instead,
+at three phases including the point's own tick.
+
+The empty arm stays, and is not equivalent: without it `points[0]`
+panics.

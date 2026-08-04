@@ -1,8 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import {
+  EMISSIVE_NONE,
   FLOATS_PER_INSTANCE,
   BYTES_PER_INSTANCE,
+  TINT_ATTRIBUTE_OFFSET,
+  TINT_NONE,
   VERTICES_PER_QUAD,
   growCapacity,
   writeInstance,
@@ -17,16 +20,38 @@ import {
 const shader = readFileSync('src/render/sprites.wgsl', 'utf8');
 
 describe('instance layout', () => {
-  it('packs an instance as screenX, screenY, depth, sprite in that order', () => {
+  it('packs an instance as screenX, screenY, depth, sprite, then the tint', () => {
     const out = new Float32Array(FLOATS_PER_INSTANCE);
-    writeInstance(out, 0, 12, 34, 0.25, 1);
+    writeInstance(out, 0, 12, 34, 0.25, 1, 0.5, 0.625, 0.75, 0.875);
 
-    // Four distinguishable values in four distinguishable slots: any
+    // Eight distinguishable values in eight distinguishable slots: any
     // permutation of the fields moves at least two of these assertions.
     expect(out[0]).toBe(12);
     expect(out[1]).toBe(34);
     expect(out[2]).toBe(0.25);
     expect(out[3]).toBe(1);
+    expect(out[4]).toBe(0.5);
+    expect(out[5]).toBe(0.625);
+    expect(out[6]).toBe(0.75);
+    expect(out[7]).toBe(0.875);
+  });
+
+  it('defaults an untinted instance to white and non-emissive', () => {
+    // The identity of the fragment shader's multiply. Every caller that
+    // does not care about colour omits these, and this is what says that
+    // omitting them draws exactly what was drawn before the attribute
+    // existed - a default of 0 would black out the entire game.
+    const out = new Float32Array(FLOATS_PER_INSTANCE).fill(-1);
+    writeInstance(out, 0, 12, 34, 0.25, 1);
+
+    expect(Array.from(out.subarray(4, 8))).toEqual([
+      TINT_NONE,
+      TINT_NONE,
+      TINT_NONE,
+      EMISSIVE_NONE,
+    ]);
+    expect(TINT_NONE).toBe(1);
+    expect(EMISSIVE_NONE).toBe(0);
   });
 
   it('addresses instance slots by index without disturbing its neighbours', () => {
@@ -34,21 +59,28 @@ describe('instance layout', () => {
     // the stride and wrote at `index` instead of `index * 4` would land in
     // slot 0's territory and leave slot 2 at the sentinel.
     const out = new Float32Array(4 * FLOATS_PER_INSTANCE).fill(-1);
-    writeInstance(out, 2, 7, 8, 0.5, 0);
+    writeInstance(out, 2, 7, 8, 0.5, 0, 0.25, 0.5, 0.75, 1);
 
-    expect(Array.from(out.subarray(8, 12))).toEqual([7, 8, 0.5, 0]);
+    expect(Array.from(out.subarray(16, 24))).toEqual([
+      7, 8, 0.5, 0, 0.25, 0.5, 0.75, 1,
+    ]);
     // Precondition and the actual claim in one: everything else is still
     // the sentinel, so the write was confined to slot 2.
-    expect(Array.from(out.subarray(0, 8))).toEqual([-1, -1, -1, -1, -1, -1, -1, -1]);
-    expect(Array.from(out.subarray(12, 16))).toEqual([-1, -1, -1, -1]);
+    expect(Array.from(out.subarray(0, 16))).toEqual(Array(16).fill(-1));
+    expect(Array.from(out.subarray(24, 32))).toEqual(Array(8).fill(-1));
   });
 
-  it('sizes one instance at four contiguous f32s', () => {
+  it('sizes one instance at eight contiguous f32s, tint included', () => {
     // The vertex buffer arrayStride. A stride that disagrees with the
     // packer reads each entity's fields from a sliding offset into its
     // neighbour, which is a smear rather than a crash.
-    expect(BYTES_PER_INSTANCE).toBe(16);
+    expect(BYTES_PER_INSTANCE).toBe(32);
     expect(BYTES_PER_INSTANCE).toBe(FLOATS_PER_INSTANCE * 4);
+    // The second attribute starts where the first one ends. This is the
+    // number `createRenderPipeline` is given for `shaderLocation: 1`, and
+    // it is the one place the two halves of the instance are related by
+    // arithmetic rather than by adjacency in a struct.
+    expect(TINT_ATTRIBUTE_OFFSET).toBe(16);
   });
 });
 
@@ -84,12 +116,41 @@ describe('sprites.wgsl contract', () => {
   // says - only a GPU can do that - but they are the only mechanism tying
   // the TypeScript constants to the WGSL declarations, and CI has no GPU.
 
-  it('declares an instance attribute exactly FLOATS_PER_INSTANCE wide', () => {
-    const declared = shader.match(/@location\(0\)\s+instance:\s*vec(\d)<f32>/);
-    // Rule 5: without this the regex could stop matching after a harmless
-    // rename and the test would pass while comparing nothing.
-    expect(declared).not.toBeNull();
-    expect(Number(declared![1])).toBe(FLOATS_PER_INSTANCE);
+  it('declares two instance attributes totalling FLOATS_PER_INSTANCE', () => {
+    const position = shader.match(/@location\(0\)\s+instance:\s*vec(\d)<f32>/);
+    const tint = shader.match(/@location\(1\)\s+tint:\s*vec(\d)<f32>/g);
+    // Rule 5: without these the regexes could stop matching after a
+    // harmless rename and the test would pass while comparing nothing.
+    expect(position).not.toBeNull();
+    expect(tint).not.toBeNull();
+    // Two vec4s, and the packer's stride has to be their sum. A shader
+    // that declared vec3 for either would read each instance's fields
+    // from a sliding offset into its neighbour.
+    expect(Number(position![1])).toBe(4);
+    const tintWidth = shader.match(/@location\(1\)\s+tint:\s*vec(\d)<f32>/);
+    expect(Number(tintWidth![1])).toBe(4);
+    expect(4 + 4).toBe(FLOATS_PER_INSTANCE);
+  });
+
+  it('multiplies by the instance tint and lets emissive resist the hour', () => {
+    // [ML-tint]. There is no GPU in CI, so reading the shader as text is
+    // the only thing standing between "the attribute is declared" and
+    // "the attribute does something". Both halves are asserted because
+    // they fail differently: a missing multiply loses every recolour
+    // silently, while a missing mix turns every lamp off at dusk.
+    expect(
+      shader.includes('colour.rgb * in.tint.rgb'),
+      'the fragment must multiply by the per-instance tint',
+    ).toBe(true);
+    expect(
+      /mix\(u\.ambient\.rgb,\s*vec3f\(1\.0\),\s*in\.tint\.w\)/.test(shader),
+      'emissive must lift this instance out of the ambient, toward white',
+    ).toBe(true);
+    // The tint has to be applied AFTER the discard, or the alpha test
+    // threshold moves with it and sprite edges erode as night falls.
+    const discard = shader.indexOf('discard;');
+    expect(discard).toBeGreaterThan(-1);
+    expect(shader.indexOf('in.tint.rgb')).toBeGreaterThan(discard);
   });
 
   it('builds its quad from exactly VERTICES_PER_QUAD corners', () => {

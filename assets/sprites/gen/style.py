@@ -103,9 +103,8 @@ CONTACT_SHADOW = 0.20
 # --------------------------------------------------------------------------
 # The character build
 # --------------------------------------------------------------------------
-# Proportions, as fractions of total height. Skin, hair and clothing are
-# NOT here: they are per-sim and arrive as a tint at draw time, which is
-# what gives character variety without a modelling pipeline. See [ML-chars].
+# Proportions, as fractions of total height. Shared by every sim; only
+# the colours below vary.
 CHARACTER = {
     "height":   86,
     "head":     0.215,   # head radius as a fraction of height
@@ -115,6 +114,50 @@ CHARACTER = {
     "square_head": True,
     "eye": PALETTE["ink"],
 }
+
+
+# One entry per sim who can appear on screen, and the whole of [ML-chars]
+# as it actually shipped.
+#
+# **The spec proposed three tinted instances per sim - body, head, hair -
+# so that skin, hair and clothing could vary continuously from three atlas
+# entries. This is not that, and the reason is worth writing down.** Three
+# instances per sim means every slot arithmetic in `frame.ts` shifts, the
+# bubbles and the carried badges move behind two new depth nudges, and
+# eight tests that name a slot by its index get rewritten - all to give a
+# household of THREE people the variety a character creator would need.
+# Baking the combinations is absurd for a creator and obviously right for
+# a cast, and the cast is what exists.
+#
+# What changes that: a player picking a sim's appearance, or a cast big
+# enough that the atlas grows faster than the shell would. Neither is
+# close. The per-instance tint attribute the spec asked for landed anyway
+# and is carrying the emissive channel, so the day the trade flips, the
+# hard half is already done.
+#
+# Skin tones span warm-light to warm-deep; nothing here is a hue the
+# palette above does not already contain, and no two entries share a
+# silhouette cue, so the three read apart at one tile even in the dark.
+CHARACTER_PALETTES = [
+    {
+        "skin":    (232, 196, 164),
+        "hair":    (74, 58, 50),
+        "shirt":   PALETTE["accent_sage"],
+        "trouser": PALETTE["accent_slate"],
+    },
+    {
+        "skin":    (186, 138, 104),
+        "hair":    (38, 32, 34),
+        "shirt":   PALETTE["accent_clay"],
+        "trouser": PALETTE["ink"],
+    },
+    {
+        "skin":    (244, 214, 190),
+        "hair":    (176, 118, 64),
+        "shirt":   PALETTE["accent_brass"],
+        "trouser": PALETTE["accent_slate"],
+    },
+]
 
 
 def mul(colour, factor):

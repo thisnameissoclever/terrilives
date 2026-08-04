@@ -31,8 +31,18 @@
  */
 export type InstanceArray = Float32Array<ArrayBuffer>;
 
-/** screenX, screenY, depth, sprite. Matches `vec4<f32>` in sprites.wgsl. */
-export const FLOATS_PER_INSTANCE = 4;
+/**
+ * Two `vec4<f32>`s per instance:
+ *
+ *   0..3  screenX, screenY, depth, sprite  - `@location(0)`
+ *   4..7  tintR, tintG, tintB, emissive    - `@location(1)`
+ *
+ * The second one is [ML-tint]. The first four slots were all spent, so
+ * carrying a per-instance colour meant a second attribute rather than a
+ * spare component; that doubles the per-frame upload from 16 to 32 bytes
+ * an entity, which against [V11]'s measured headroom is not a question.
+ */
+export const FLOATS_PER_INSTANCE = 8;
 
 /** The vertex buffer `arrayStride`, in bytes. */
 export const BYTES_PER_INSTANCE =
@@ -46,6 +56,41 @@ export const OFFSET_SCREEN_X = 0;
 export const OFFSET_SCREEN_Y = 1;
 export const OFFSET_DEPTH = 2;
 export const OFFSET_SPRITE = 3;
+export const OFFSET_TINT_R = 4;
+export const OFFSET_TINT_G = 5;
+export const OFFSET_TINT_B = 6;
+export const OFFSET_EMISSIVE = 7;
+
+/** Byte offset of the tint attribute within one instance. */
+export const TINT_ATTRIBUTE_OFFSET =
+  OFFSET_TINT_R * Float32Array.BYTES_PER_ELEMENT;
+
+/**
+ * The tint an instance carries when nothing wants to recolour it: white,
+ * and fully subject to the ambient. Multiplying by white is the identity,
+ * so a caller that passes nothing draws exactly what it drew before this
+ * attribute existed.
+ */
+export const TINT_NONE = 1;
+
+/**
+ * The fourth tint component is **not alpha**, and calling it alpha is the
+ * mistake this constant exists to prevent. It is how far the sprite
+ * IGNORES the time of day: 0 is fully lit by `u.ambient`, 1 resists it
+ * completely.
+ *
+ * A lamp shade, a television and a window need this. The ambient multiply
+ * darkens every fragment as night falls, which for a light source is
+ * exactly backwards - the room goes dark and so does the thing lighting
+ * it. An emissive of 1 on those sprites is the whole fix, and it costs a
+ * `mix` in the fragment shader rather than a second pass.
+ *
+ * It cannot ride in the alpha slot for a mechanical reason as well as a
+ * naming one: the fragment shader alpha-TESTS at 0.5 and writes depth, so
+ * anything that scaled alpha would move the discard threshold and erode
+ * every sprite edge as the light changed.
+ */
+export const EMISSIVE_NONE = 0;
 
 /**
  * The `kinds` array the render buffer exports: 0 for a sim, 1 for a smart
@@ -77,7 +122,13 @@ export const KIND_AGENT = 0;
  *
  * `out` may be longer than the live entity count; callers reuse a scratch
  * buffer across frames and pass the count separately, so this must touch
- * exactly the four floats belonging to `index` and nothing else.
+ * exactly the eight floats belonging to `index` and nothing else.
+ *
+ * The tint is four loose numbers with defaults rather than a colour
+ * object, and that is [D11] rather than taste: this is the per-entity
+ * per-frame path, and a `{r, g, b}` parameter is one JS object per entity
+ * per frame. [V11] measured what a single unexamined allocation on this
+ * path costs - 57.76 MB over 2,394 frames, from a two-element array.
  */
 export function writeInstance(
   out: Float32Array,
@@ -86,12 +137,20 @@ export function writeInstance(
   screenY: number,
   depth: number,
   sprite: number,
+  tintR: number = TINT_NONE,
+  tintG: number = TINT_NONE,
+  tintB: number = TINT_NONE,
+  emissive: number = EMISSIVE_NONE,
 ): void {
   const base = index * FLOATS_PER_INSTANCE;
   out[base + OFFSET_SCREEN_X] = screenX;
   out[base + OFFSET_SCREEN_Y] = screenY;
   out[base + OFFSET_DEPTH] = depth;
   out[base + OFFSET_SPRITE] = sprite;
+  out[base + OFFSET_TINT_R] = tintR;
+  out[base + OFFSET_TINT_G] = tintG;
+  out[base + OFFSET_TINT_B] = tintB;
+  out[base + OFFSET_EMISSIVE] = emissive;
 }
 
 /**

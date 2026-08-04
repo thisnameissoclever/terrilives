@@ -80,7 +80,7 @@ script could never offer. Pillow's PNG encoder must be pinned for the byte
 comparison to hold; if that proves brittle, compare decoded pixels rather
 than file bytes.
 
-### [ML-chars] Three instances per sim, not one sprite per combination
+### [ML-chars] Three instances per sim, not one sprite per combination - SHIPPED, DIFFERENTLY
 
 A sim needs per-character skin, hair and clothing. Baking every combination
 into the atlas is combinatorial and absurd. Drawing the sim as three
@@ -90,6 +90,21 @@ stacked instances - body, head, hair - each with its own tint from
 Three instances per sim against one is irrelevant at this scale: 5,000 sims
 is 15,000 instances, and M0 sustained 1,002 entities at 120 fps with a mean
 frame time of 0.261 ms against a 16.6 ms budget.
+
+**What shipped is three BAKED looks, picked by the sim's entity id.** The
+performance argument above is sound and was never the obstacle. The
+obstacle is `frame.ts`: two extra instances per sim shifts every slot in
+the extras region, puts the indicator bubbles and the carried badges
+behind two new depth nudges, and rewrites eight tests that name a slot by
+its index - all to give a cast of three the variety a character creator
+would need. Combinatorial is the right word for a creator and the wrong
+one for a cast.
+
+The reasoning and its expiry date are in `assets/sprites/gen/style.py`
+beside `CHARACTER_PALETTES`. What flips it back: a player choosing a face,
+or a cast large enough that the atlas grows faster than the shell would.
+[ML-tint] landed anyway, so the hard half of the change is already done
+when that day comes.
 
 ### [ML-sprites] Move the atlas table to a storage buffer first
 
@@ -121,7 +136,7 @@ was chosen from.
 **Cost: about half a day, no new draw call, no per-instance data, no change
 to the instance contract.** This is by far the best ratio in the document.
 
-### [ML-tint] Tier 2: per-instance tint
+### [ML-tint] Tier 2: per-instance tint - SHIPPED
 
 An instance is one `vec4<f32>`: screen x, screen y, depth, sprite index.
 All four slots are spent, so a second `vec4` vertex attribute is needed.
@@ -143,6 +158,19 @@ What it buys, all at once:
 - **[G4] palette recolours for free.** One sofa mesh becomes fifty
   catalogue entries with no mask texture, which the art pipeline has wanted
   since it was written.
+
+**As built, the fourth component is emissive rather than alpha**, and the
+difference matters twice. Named alpha it would invite scaling the sprite's
+own alpha, which the fragment shader alpha-TESTS at 0.5 before writing
+depth - so the discard threshold would move with the light and every
+sprite edge would erode as night fell. Named emissive it does the thing
+the first bullet asked for: `mix(u.ambient.rgb, vec3f(1.0), tint.w)` lifts
+one instance out of the hour without touching any other, which is a tint
+resisting the ambient rather than a tint above 1.0 fighting it.
+
+The lamp and the television carry 0.85 rather than 1.0. At 1.0 the whole
+sprite ignores the hour - stand, base and outline included - and reads as
+a cutout pasted over the night rather than as a light standing in a room.
 
 ### [ML-pools] Tier 3: light pools and cast shadows, with no new geometry
 
