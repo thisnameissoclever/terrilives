@@ -11,6 +11,7 @@ import {
   type InstanceArray,
 } from './instances.js';
 import { TILE_HALF_HEIGHT } from './iso.js';
+import { AMBIENT_NEUTRAL, type Ambient } from './daylight.js';
 import shaderSource from './sprites.wgsl?raw';
 
 const INITIAL_CAPACITY = 4096;
@@ -173,6 +174,13 @@ export class SpriteRenderer {
     0,
     0,
     0,
+    // The ambient tint, floats 8 to 11 (byte offset 32). Neutral until a
+    // caller passes an hour, so a renderer driven without one looks the
+    // same as it did before the cycle existed rather than black.
+    1,
+    1,
+    1,
+    1,
   ]);
 
   /**
@@ -248,10 +256,11 @@ export class SpriteRenderer {
     });
 
     this.uniformBuffer = gpu.device.createBuffer({
-      // 32: viewport, anchor, then the camera scale padded to the
-      // 16-byte uniform stride. Must match `uniformData` above and
-      // `struct Uniforms` in sprites.wgsl.
-      size: 32,
+      // 48: viewport, anchor, the camera scale padded to the 16-byte
+      // uniform stride, then the ambient tint. Must match `uniformData`
+      // above and `struct Uniforms` in sprites.wgsl. Too SMALL and WebGPU
+      // rejects the bind group; too large is merely wasted.
+      size: 48,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
 
@@ -357,7 +366,18 @@ export class SpriteRenderer {
     return this.depthTexture;
   }
 
-  draw(instances: InstanceArray, count: number, scale = 1): void {
+  /**
+   * @param ambient The hour of day as an rgba multiplier, from
+   *   `ambientFor` in daylight.ts. Defaults to neutral, so a caller that
+   *   does not care about the clock gets the pre-cycle appearance rather
+   *   than an unlit world.
+   */
+  draw(
+    instances: InstanceArray,
+    count: number,
+    scale = 1,
+    ambient: Ambient = AMBIENT_NEUTRAL,
+  ): void {
     const total = this.staticCount + count;
     if (total === 0) return;
     this.ensureCapacity(total);
@@ -366,6 +386,10 @@ export class SpriteRenderer {
     this.uniformData[0] = canvas.width;
     this.uniformData[1] = canvas.height;
     this.uniformData[4] = scale;
+    this.uniformData[8] = ambient[0];
+    this.uniformData[9] = ambient[1];
+    this.uniformData[10] = ambient[2];
+    this.uniformData[11] = ambient[3];
     this.gpu.device.queue.writeBuffer(this.uniformBuffer, 0, this.uniformData);
     if (count > 0) {
       // dataOffset and size are in elements for a TypedArray source, so

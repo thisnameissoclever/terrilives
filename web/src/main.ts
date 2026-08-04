@@ -9,6 +9,7 @@
 
 import init, { SimHandle } from './wasm/terri_wasm.js';
 import { SimBridge } from './bridge.js';
+import { AMBIENT_NEUTRAL, ambientFor } from './render/daylight.js';
 import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
 import {
@@ -939,7 +940,18 @@ async function main(): Promise<void> {
       camera.scale,
       reducedMotion.matches,
     );
-    renderer.draw(instances, instanceCount(sim, selected), camera.scale);
+    // The day/night cycle. `reducedMotion` also pins the light to noon:
+    // a world that dims and warms on its own is exactly the kind of
+    // unrequested change that setting exists to switch off, and the
+    // codebase already respects it for the walking lift.
+    renderer.draw(
+      instances,
+      instanceCount(sim, selected),
+      camera.scale,
+      reducedMotion.matches
+        ? AMBIENT_NEUTRAL
+        : ambientFor(sim.clockTick(), sim.dayTicks()),
+    );
 
     // Inside the sample below rather than outside it, deliberately: the
     // panel is work the frame does, and a periodic cost measured outside

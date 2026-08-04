@@ -35,13 +35,22 @@ struct Uniforms {
   // every zoom.
   anchor: vec2<f32>,
   // The camera zoom in x; yzw are padding to the 16-byte uniform
-  // stride, so the buffer is 32 bytes with the scale at offset 16.
+  // stride, so the scale sits at offset 16 and `ambient` at 32.
   //
   // Instance POSITIONS arrive already scaled - `screenX`/`screenY` bake
   // the zoom into the world term on the CPU, for statics and entities
   // alike - so the shader's share is the sprite's SIZE and the anchor.
   // Scaling positions here as well would zoom twice.
   scale: vec4<f32>,
+  // The hour of day, as a colour every fragment is multiplied by. See
+  // web/src/render/daylight.ts and [ML-ambient].
+  //
+  // A whole day/night cycle for one uniform and one multiply: no second
+  // pass, no per-instance data, and [D10]'s one draw and one submit per
+  // frame are untouched. The obvious alternative - a screen-space grade
+  // over an offscreen texture - costs a second render pass and would
+  // make every number in docs/gpu-verification.md need re-measuring.
+  ambient: vec4<f32>,
 };
 
 struct Sprite {
@@ -125,5 +134,8 @@ fn fs(in: VertexOut) -> @location(0) vec4<f32> {
   if (colour.a < 0.5) {
     discard;
   }
-  return colour;
+  // AFTER the alpha test, deliberately. Tinting before it would scale
+  // alpha along with the colour and make the discard threshold move with
+  // the time of day, so sprite edges would erode as night fell.
+  return vec4f(colour.rgb * u.ambient.rgb, colour.a);
 }
