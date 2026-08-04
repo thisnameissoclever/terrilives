@@ -2130,8 +2130,8 @@ mod tests {
     // name are imported here.
     use super::*;
     use crate::schema::{
-        ArchetypeDef, AtlasSpriteDef, CareerDef, DispositionDef, HouseholdSimDef, InteractionDef,
-        NeedDef, ObjectDef, PlacementDef, TraitDef, WallDef,
+        ArchetypeDef, AtlasSpriteDef, CareerDef, CircadianFile, DispositionDef, HouseholdSimDef,
+        InteractionDef, NeedDef, ObjectDef, PlacementDef, TraitDef, WallDef,
     };
 
     /// The atlas every test compiles against.
@@ -4587,6 +4587,155 @@ mod tests {
             ContentError::ZeroDayTicks
         );
         assert!(compile_tuned(tuning_where(|t| t.day_ticks = 1)).is_ok());
+    }
+
+    // ---- The circadian curve -------------------------------------------
+    //
+    // Four rules, each pinned at its BOUNDARY rather than with one obviously
+    // bad value. The mutation sweep is why: it rewrites `<` to `<=`, `>=` to
+    // `<`, and deletes `!`, and a test that only checks a wildly invalid
+    // curve passes under every one of those. The first version of this
+    // validation shipped with no tests at all and the sweep found ten
+    // survivors across these four lines in one shard.
+
+    fn circadian(points: Vec<(u32, f32)>) -> CircadianFile {
+        CircadianFile {
+            sleep_tag: "sleep".to_string(),
+            sleep_drive: points,
+        }
+    }
+
+    /// Two points is the smallest real curve; one is a constant wearing a
+    /// curve's clothes, and the interpolation has nothing to interpolate.
+    #[test]
+    fn rejects_a_circadian_curve_with_fewer_than_two_points() {
+        for points in [vec![], vec![(0, 1.0)]] {
+            let count = points.len();
+            assert_eq!(
+                compile_tuned(tuning_where(|t| t.circadian = Some(circadian(points)))).unwrap_err(),
+                ContentError::CircadianTooFewPoints { points: count }
+            );
+        }
+        assert!(
+            compile_tuned(tuning_where(
+                |t| t.circadian = Some(circadian(vec![(0, 1.0), (1, 1.0)]))
+            ))
+            .is_ok(),
+            "two points is the smallest legal curve"
+        );
+    }
+
+    /// Every point must fall INSIDE the day, because the curve wraps: a
+    /// point at `day_ticks` is the same instant as one at 0 and the
+    /// wrapping segment's length would come out negative.
+    #[test]
+    fn rejects_a_circadian_point_outside_the_day() {
+        // `day_ticks` itself is already outside - the last legal tick is
+        // one below it. That boundary is what separates `>=` from `>`.
+        assert_eq!(
+            compile_tuned(tuning_where(|t| {
+                t.day_ticks = 100;
+                t.circadian = Some(circadian(vec![(0, 1.0), (100, 1.0)]));
+            }))
+            .unwrap_err(),
+            ContentError::CircadianPointPastTheDay {
+                tick: 100,
+                day_ticks: 100
+            }
+        );
+        assert!(
+            compile_tuned(tuning_where(|t| {
+                t.day_ticks = 100;
+                t.circadian = Some(circadian(vec![(0, 1.0), (99, 1.0)]));
+            }))
+            .is_ok(),
+            "one below the day is the last legal tick"
+        );
+    }
+
+    /// Zero is legal and means "never chooses sleep unprompted", which is
+    /// the same thing an authored fear means elsewhere. Below zero has no
+    /// meaning, and a non-finite multiplier poisons every score it
+    /// touches without erroring anywhere.
+    #[test]
+    fn rejects_a_negative_or_non_finite_sleep_multiplier() {
+        assert!(
+            compile_tuned(tuning_where(
+                |t| t.circadian = Some(circadian(vec![(0, 0.0), (1, 1.0)]))
+            ))
+            .is_ok(),
+            "zero is legal and is the authored 'never on its own'"
+        );
+        for bad in [-0.001_f32, f32::NAN, f32::INFINITY] {
+            let err = compile_tuned(tuning_where(|t| {
+                t.circadian = Some(circadian(vec![(0, bad), (1, 1.0)]))
+            }))
+            .unwrap_err();
+            assert!(
+                matches!(
+                    err,
+                    ContentError::CircadianNegativeMultiplier { tick: 0, .. }
+                ),
+                "{bad} must be rejected, got {err:?}"
+            );
+        }
+    }
+
+    /// Strictly ascending, so equal ticks are rejected too: two points on
+    /// the same tick make a zero-length segment, and the interpolation
+    /// divides by it.
+    #[test]
+    fn rejects_circadian_points_that_do_not_strictly_ascend() {
+        assert_eq!(
+            compile_tuned(tuning_where(
+                |t| t.circadian = Some(circadian(vec![(10, 1.0), (5, 1.0)]))
+            ))
+            .unwrap_err(),
+            ContentError::CircadianPointsOutOfOrder { tick: 5 },
+            "descending is rejected"
+        );
+        assert_eq!(
+            compile_tuned(tuning_where(
+                |t| t.circadian = Some(circadian(vec![(10, 1.0), (10, 1.0)]))
+            ))
+            .unwrap_err(),
+            ContentError::CircadianPointsOutOfOrder { tick: 10 },
+            "EQUAL is rejected too - this is what separates >= from >"
+        );
+        assert!(
+            compile_tuned(tuning_where(
+                |t| t.circadian = Some(circadian(vec![(10, 1.0), (11, 1.0)]))
+            ))
+            .is_ok(),
+            "one tick apart is enough to ascend"
+        );
+    }
+
+    /// The absence of a table is not an error, and is what every pack had
+    /// before the rhythm existed.
+    #[test]
+    fn a_pack_without_a_circadian_table_compiles_and_carries_none() {
+        let pack = compile_tuned(tuning_where(|t| t.circadian = None)).expect("valid");
+        assert!(pack.circadian.is_none());
+    }
+
+    /// A valid table survives compilation intact, tag and all - otherwise
+    /// the rules above could all pass while the curve never reached the
+    /// simulation.
+    #[test]
+    fn a_valid_circadian_table_reaches_the_pack() {
+        // `day_ticks` set explicitly rather than assumed: the shared
+        // fixture's day is 19 ticks, not the shipped 1440, and a curve
+        // authored against the wrong one is rejected - correctly, which
+        // is how the first draft of this test found out.
+        let pack = compile_tuned(tuning_where(|t| {
+            t.day_ticks = 1440;
+            t.circadian = Some(circadian(vec![(0, 1.5), (700, 0.25)]));
+        }))
+        .expect("valid");
+        let circadian = pack.circadian.expect("the table must survive compilation");
+        assert_eq!(circadian.sleep_tag, "sleep");
+        assert_eq!(circadian.sleep_drive, vec![(0, 1.5), (700, 0.25)]);
     }
 
     fn a_trait(id: &str) -> TraitDef {
