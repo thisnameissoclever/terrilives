@@ -2486,6 +2486,106 @@ mod tests {
         }
     }
 
+    /// **A save survives a patch that only changes numbers and names.**
+    ///
+    /// This is the assertion behind a bug the owner reported: every
+    /// deploy showed "Saved game is invalid. Starting a new game.", and
+    /// the reason was that `content_fingerprint` hashed the whole
+    /// serialised pack. A retuned knob, a new sprite or a renamed sim all
+    /// moved it, so a save that referred to nothing that had changed was
+    /// thrown away anyway.
+    ///
+    /// A save takes a snapshot against one pack and loads it against a
+    /// second that differs in the ways a patch actually differs. Every
+    /// index the snapshot holds still means what it meant.
+    #[test]
+    fn a_save_loads_into_content_that_was_only_retuned_or_renamed() {
+        let objects = || {
+            vec![
+                crate::test_content::object("fridge", &[(terri_core::NeedId::Hunger, 40.0)], 15),
+                crate::test_content::object("bed", &[(terri_core::NeedId::Energy, 60.0)], 30),
+            ]
+        };
+        let before = crate::test_content::pack(objects());
+
+        let mut sim = crate::test_content::sim_with(8, 8, before);
+        let agent = sim
+            .world_mut()
+            .spawn((Agent, Position { x: 2.0, y: 2.0 }, Needs::all_at(50.0)))
+            .id();
+        for _ in 0..30 {
+            sim.tick();
+        }
+        let snapshot = sim.save_snapshot();
+        assert!(
+            snapshot.entities.iter().any(|e| e.agent),
+            "the snapshot has to carry the agent it is about"
+        );
+        let _ = agent;
+
+        // The patch: a balance pass, a renamed sim, and a new sprite.
+        // None of them can move an index the snapshot holds.
+        let patched = Box::leak(Box::new(terri_data::ContentPack {
+            tuning: terri_data::Tuning {
+                action_threshold: before.tuning.action_threshold + 0.02,
+                asleep_decay_scale: 1.0,
+                ..before.tuning
+            },
+            sim_sprite: before.sim_sprite + 1,
+            ..before.clone()
+        }));
+        assert_ne!(
+            patched.tuning.action_threshold, before.tuning.action_threshold,
+            "the fixture must actually differ, or this asserts nothing"
+        );
+
+        let mut fresh = crate::test_content::sim_with(8, 8, patched);
+        assert_eq!(
+            fresh.load_snapshot(snapshot),
+            Ok(()),
+            "a save must survive a patch that moves no index it points at"
+        );
+    }
+
+    /// And the other half: content that DOES move an index is still
+    /// refused. A save naming interaction 0 of an object that no longer
+    /// offers one is nonsense, and loading it would be worse than
+    /// starting over.
+    #[test]
+    fn a_save_is_still_refused_when_the_vocabulary_it_names_has_moved() {
+        let before = crate::test_content::pack(vec![crate::test_content::object(
+            "fridge",
+            &[(terri_core::NeedId::Hunger, 40.0)],
+            15,
+        )]);
+        let mut sim = crate::test_content::sim_with(8, 8, before);
+        sim.world_mut()
+            .spawn((Agent, Position { x: 2.0, y: 2.0 }, Needs::all_at(50.0)));
+        sim.tick();
+        let snapshot = sim.save_snapshot();
+
+        let renamed = Box::leak(Box::new(terri_data::ContentPack {
+            objects: vec![crate::test_content::object(
+                "fridge",
+                &[(terri_core::NeedId::Hunger, 40.0)],
+                15,
+            )]
+            .into_iter()
+            .map(|mut object| {
+                object.interactions[0].id = "moved".to_string();
+                object
+            })
+            .collect(),
+            ..before.clone()
+        }));
+        let mut fresh = crate::test_content::sim_with(8, 8, renamed);
+        assert_eq!(
+            fresh.load_snapshot(snapshot),
+            Err(SaveError::IncompatibleContent),
+            "an interaction id is what pins an index to a meaning"
+        );
+    }
+
     #[test]
     fn invalid_snapshots_are_rejected_without_touching_the_running_sim() {
         let mut cases: Vec<(SaveSnapshotV1, SaveError)> = Vec::new();

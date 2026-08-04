@@ -2266,8 +2266,8 @@ mod boundary_tests {
     fn the_chain_status_reads_cross_the_boundary() {
         let mut handle = SimHandle::from_lot();
         let terri = (0..handle.entity_count() as u32)
-            .find(|&index| handle.sim_name(index) == "Terri")
-            .expect("the shipped lot houses Terri");
+            .find(|&index| handle.sim_name(index) == "Tim")
+            .expect("the shipped lot houses Tim");
 
         assert_eq!(
             handle.item_kinds(),
@@ -2281,7 +2281,7 @@ mod boundary_tests {
             let mut state = world.query::<(terri_core::Entity, &terri_core::SimName)>();
             state
                 .iter(world)
-                .find(|(_, name)| name.0 == "Terri")
+                .find(|(_, name)| name.0 == "Tim")
                 .map(|(e, _)| e)
                 .expect("named above")
         };
@@ -2308,7 +2308,7 @@ mod boundary_tests {
     }
 
     /// The M2e PR 3 overlay reads, against the SHIPPED lot so the pack
-    /// lookups (labels, kinds, career) resolve real content: Terri
+    /// lookups (labels, kinds, career) resolve real content: Tim
     /// wears low spirits and holds the office job, Doug wears the
     /// devotee disposition and holds nothing, and the household opens
     /// broke.
@@ -2322,8 +2322,8 @@ mod boundary_tests {
                 .find(|&index| handle.sim_name(index) == name)
                 .unwrap_or_else(|| panic!("the shipped lot houses {name}"))
         };
-        let terri = index_of("Terri");
-        let doug = index_of("Doug");
+        let tim = index_of("Tim");
+        let bill = index_of("Bill");
 
         // Zero at move-in AND a nonzero read-through, because a funds()
         // stubbed to 0.0 satisfies the first alone - the sweep found
@@ -2332,9 +2332,9 @@ mod boundary_tests {
         handle.sim.world_mut().resource_mut::<terri_core::Funds>().0 = 260;
         assert_eq!(handle.funds(), 260.0, "the boundary reads the ledger");
         handle.sim.world_mut().resource_mut::<terri_core::Funds>().0 = 0;
-        assert_eq!(handle.career_of(terri), "Office clerk");
+        assert_eq!(handle.career_of(tim), "Office clerk");
         assert_eq!(
-            handle.career_of(doug),
+            handle.career_of(bill),
             "",
             "the unemployed read as the empty string, sim_name's contract"
         );
@@ -2346,7 +2346,7 @@ mod boundary_tests {
             kinds.len(),
             "labels and kinds are two columns of one table"
         );
-        let worn = handle.traits_of(terri);
+        let worn = handle.traits_of(tim);
         assert_eq!(worn.len(), 2, "one trait is one (index, state) pair");
         let which = worn[0] as usize;
         assert_eq!(labels[which], "Low spirits");

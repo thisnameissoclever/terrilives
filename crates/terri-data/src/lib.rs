@@ -29,15 +29,96 @@ use std::sync::OnceLock;
 /// the same build that compiles this file.
 static PACK_BYTES: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/content_pack.postcard"));
 
-/// Stable identity of a compiled content pack for save compatibility checks.
+/// The part of a content pack a SAVE can point at, hashed.
 ///
-/// A save records this value and refuses to load against different content.
-/// Silently accepting a balance, vocabulary, or atlas-index change would make
-/// a restored deterministic simulation continue under different rules.
+/// A save records this value and refuses to load against content whose
+/// answer differs, because a `SavedEating` naming interaction 2 of the
+/// bookcase is nonsense against a bookcase that now offers one.
+///
+/// **This used to hash the whole serialised pack, and that was wrong in
+/// a way the owner had to report.** Every deploy invalidated every save,
+/// because every deploy changed something: a balance number, a new
+/// sprite, a renamed sim. The message "Saved game is invalid. Starting a
+/// new game." was accurate and useless - the save was fine, and nothing
+/// it referred to had moved.
+///
+/// What is hashed here is exactly what a `SaveSnapshotV1` can address,
+/// and the shape of that list is dictated by `terri-core`'s save structs
+/// rather than chosen:
+///
+/// * Object ids, and each object's interaction ids IN ORDER. Saves name
+///   objects by string, so their order is free; interactions are named by
+///   INDEX, so theirs is not.
+/// * The social vocabulary's ids in order - `SavedSocialising` holds an
+///   index into it.
+/// * Each chain's id and how many steps it has - `SavedChainState` holds
+///   a step index.
+/// * The item kinds, careers, traits and hobbies a save names by string.
+///   Order is free; existence is not.
+///
+/// What is deliberately NOT hashed: every number in `tuning.toml`, every
+/// advert delta and duration, every sprite index, every sim's NAME, the
+/// lot, and the circadian curve. A save that loads into retuned content
+/// simply plays under the new numbers, which is what a player wants and
+/// what a designer iterating on balance needs.
+///
+/// The cost of the narrower rule, stated plainly: change a delta and a
+/// mid-flight interaction finishes under the new one. That is a save
+/// continuing into a patched game, which is the normal thing for a game
+/// to do, and not the "restored simulation continues under different
+/// rules" hazard the wide hash was written for - that hazard is about
+/// indices pointing somewhere else, and indices are what is still hashed.
 pub fn content_fingerprint(pack: &ContentPack) -> u64 {
-    let bytes = postcard::to_allocvec(pack).expect("ContentPack serialises");
     let mut hasher = terri_core::FnvHasher::default();
-    hasher.write_bytes(&bytes);
+    // A separator between every list, so that moving a name from one
+    // vocabulary to another changes the hash. Without it the careers
+    // ["a"] and the traits ["b"] hash the same as careers ["a", "b"] and
+    // no traits.
+    let field = |hasher: &mut terri_core::FnvHasher, tag: u8| {
+        hasher.write_bytes(&[0xff, tag]);
+    };
+
+    field(&mut hasher, 0);
+    for object in &pack.objects {
+        hasher.write_bytes(object.id.as_bytes());
+        hasher.write_bytes(&[0]);
+        for interaction in &object.interactions {
+            hasher.write_bytes(interaction.id.as_bytes());
+            hasher.write_bytes(&[1]);
+        }
+        hasher.write_bytes(&[2]);
+    }
+
+    field(&mut hasher, 1);
+    for interaction in &pack.social {
+        hasher.write_bytes(interaction.id.as_bytes());
+        hasher.write_bytes(&[0]);
+    }
+
+    field(&mut hasher, 2);
+    for chain in &pack.chains {
+        hasher.write_bytes(chain.id.as_bytes());
+        hasher.write_bytes(&(chain.steps.len() as u32).to_le_bytes());
+    }
+
+    field(&mut hasher, 3);
+    for kind in &pack.item_kinds {
+        hasher.write_bytes(kind.as_bytes());
+        hasher.write_bytes(&[0]);
+    }
+
+    field(&mut hasher, 4);
+    for career in &pack.careers {
+        hasher.write_bytes(career.id.as_bytes());
+        hasher.write_bytes(&[0]);
+    }
+
+    field(&mut hasher, 5);
+    for trait_def in &pack.traits {
+        hasher.write_bytes(trait_def.id.as_bytes());
+        hasher.write_bytes(&[0]);
+    }
+
     hasher.finish()
 }
 
@@ -134,15 +215,94 @@ mod tests {
         );
     }
 
+    /// **The fingerprint moves when an INDEX a save holds would move, and
+    /// stays put otherwise.** Both halves matter and the second half is
+    /// the one that was wrong: the fingerprint used to hash the whole
+    /// serialised pack, so every deploy invalidated every save and the
+    /// owner saw "Saved game is invalid" after each one.
     #[test]
-    fn content_fingerprint_changes_when_simulation_content_changes() {
+    fn the_fingerprint_moves_only_when_a_saved_reference_would() {
         let original = pack().clone();
-        let mut changed = original.clone();
-        changed.tuning.rng_seed ^= 1;
+        let base = content_fingerprint(&original);
+
+        // Renaming an interaction moves it: `SavedEating` holds an INDEX
+        // into the object's list, so the id is what pins that index to a
+        // meaning.
+        let mut renamed = original.clone();
+        renamed.objects[0].interactions[0].id = "something_else".to_string();
+        assert_ne!(base, content_fingerprint(&renamed), "an interaction id");
+
+        // Adding an interaction changes how many indices are valid, and
+        // dropping one invalidates the last. No shipped object offers two
+        // today, so this grows one rather than clipping one.
+        let mut longer = original.clone();
+        let extra = longer.objects[0].interactions[0].clone();
+        longer.objects[0].interactions.push(CompiledInteraction {
+            id: "an_extra_row".to_string(),
+            ..extra
+        });
+        assert_ne!(base, content_fingerprint(&longer), "an interaction count");
+
+        // Deleting an object entirely: saves name objects by string, so a
+        // save pointing at this one has nothing to resolve to.
+        let mut fewer = original.clone();
+        fewer.objects.pop();
+        assert_ne!(base, content_fingerprint(&fewer), "an object");
+
+        // Reordering the social vocabulary: `SavedSocialising` holds an
+        // index into it.
+        if original.social.len() > 1 {
+            let mut swapped = original.clone();
+            swapped.social.swap(0, 1);
+            assert_ne!(base, content_fingerprint(&swapped), "social order");
+        }
+
+        // A chain losing a step: `SavedChainState` holds a step index.
+        let mut clipped = original.clone();
+        assert!(!clipped.chains.is_empty(), "the fixture needs a chain");
+        clipped.chains[0].steps.pop();
+        assert_ne!(base, content_fingerprint(&clipped), "a chain's length");
+
+        // And the other half. None of these can move an index, so none of
+        // them may cost a player their game.
+        let mut retuned = original.clone();
+        retuned.tuning.rng_seed ^= 1;
+        retuned.tuning.action_threshold += 0.01;
+        retuned.tuning.asleep_decay_scale = 1.0;
+        assert_eq!(base, content_fingerprint(&retuned), "a balance pass");
+
+        let mut renamed_sim = original.clone();
+        assert!(!renamed_sim.household.is_empty(), "the fixture needs a sim");
+        renamed_sim.household[0].name = "Somebody Else".to_string();
+        assert_eq!(base, content_fingerprint(&renamed_sim), "a sim's name");
+
+        let mut redrawn = original.clone();
+        redrawn.sim_sprite += 1;
+        redrawn.objects[0].sprite += 1;
+        assert_eq!(base, content_fingerprint(&redrawn), "an art pass");
+
+        let mut regraded = original.clone();
+        regraded.objects[0].interactions[0].duration_ticks += 5;
+        regraded.objects[0].interactions[0].advertises[0].1 += 1.0;
+        assert_eq!(base, content_fingerprint(&regraded), "an advert edit");
+    }
+
+    /// One vocabulary's name must not be able to masquerade as another's.
+    ///
+    /// Without a separator between the lists, careers `["a"]` beside
+    /// traits `["b"]` hashes the same as careers `["a", "b"]` beside no
+    /// traits - and a save naming career "b" would load against content
+    /// where "b" is a trait.
+    #[test]
+    fn the_fingerprints_lists_cannot_bleed_into_one_another() {
+        let mut moved = pack().clone();
+        assert!(!moved.careers.is_empty() && !moved.traits.is_empty());
+        let borrowed = moved.careers[0].id.clone();
+        moved.traits[0].id = borrowed;
         assert_ne!(
-            content_fingerprint(&original),
-            content_fingerprint(&changed),
-            "a content edit must make an existing save incompatible"
+            content_fingerprint(pack()),
+            content_fingerprint(&moved),
+            "a name moving between vocabularies must change the hash"
         );
     }
 

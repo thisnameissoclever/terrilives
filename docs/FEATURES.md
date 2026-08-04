@@ -97,6 +97,15 @@ Three baked looks rather than the three tinted instances per sim the spec
 proposed - the reasoning, and what would flip it back, is written down in
 `assets/sprites/gen/style.py` beside the palettes.
 
+**A save survives a patch now.** `content_fingerprint` hashed the whole
+serialised pack, so every deploy invalidated every save and the game
+opened on "Saved game is invalid. Starting a new game." It hashes only
+what a `SaveSnapshotV1` can point at: object ids and their interaction
+ids in order, the social vocabulary's order, each chain's length, and the
+item kinds, careers and traits a save names by string. A balance pass, an
+art pass or a renamed sim costs nobody their game; an interaction that
+moved still does, because that is the index a save holds.
+
 **Sleep costs less than being awake.** Needs decay at
 `asleep_decay_scale` of the usual rate while a sim is asleep, the same
 knob shape as `at_work_decay_scale` beside it and for the same reason:
