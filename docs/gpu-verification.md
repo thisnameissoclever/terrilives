@@ -833,3 +833,67 @@ the other half: pausing stops the simulation, not the renderer.
   `sprites.ts` does compare the decoded bitmap's dimensions against `atlas.ts`
   at start-up, which catches a regenerated atlas paired with a stale manifest.
 - **One display, one GPU, one browser.** [U-all] still holds.
+
+---
+
+# [V-tint] The per-instance tint, on a real GPU
+
+`sprites.wgsl` grew a second instance attribute for [ML-tint] and a `mix`
+in the fragment stage. `web/tests/instances.test.ts` reads the shader as
+TEXT - it can say the multiply is written down and cannot say it computes
+anything - so the arithmetic was measured rather than asserted.
+
+## The frame still costs one draw and one submit
+
+The shipped bundle under Chromium with the SwiftShader backend, hooks on
+`GPURenderPassEncoder.prototype.draw`, `GPUQueue.prototype.submit` and
+`requestAnimationFrame`: **242 rAF callbacks, 242 draws and 242 submits**,
+`document.visibilityState` **visible**, 37 entities, 321 instances in the
+final draw at 6 vertices each. One draw and one submit per frame, which is
+[D10] surviving the contract change.
+
+The largest `writeBuffer` was **9,056 bytes** for 283 static instances -
+exactly 32 bytes each, so the doubled stride is what the GPU received
+rather than what the packer believed.
+
+That the pipeline was created at all is itself part of the result: WebGPU
+validates a vertex layout against the shader's declared attributes at
+`createRenderPipeline`, so a wrong stride, a wrong offset or a missing
+`@location(1)` is a validation error at start-up, not a wrong picture.
+
+## The fragment arithmetic
+
+The shipped `sprites.wgsl`, compiled and run against an 8x8 target with a
+1x1 **mid-grey** atlas texel - grey rather than white deliberately, since
+against white `colour * tint` and `tint` alone agree and a dropped term
+would be invisible. Ambient at noon is `(1, 1, 1)`; "night" below is
+`(0.42, 0.46, 0.70)`.
+
+| instance tint | ambient | read back | expected |
+| --- | --- | --- | --- |
+| `(1,1,1)` e=0 | noon | `128,128,128` | the texel untouched |
+| `(1,1,1)` e=0 | night | `54,59,90` | `128 x (0.42,0.46,0.70)` |
+| `(1,1,1)` e=1 | night | `128,128,128` | the hour fully resisted |
+| `(1,1,1)` e=0.5 | night | `91,93,109` | `128 x mix(amb,1,0.5)` |
+| `(1,0,0)` e=0 | noon | `128,0,0` | per-channel multiply |
+| `(0.5,0.5,0.5)` e=0 | noon | `64,64,64` | `128 x 0.5` |
+
+Every row is exact to the byte. The first row is the one that matters
+most in practice: an untinted instance reads back as the atlas texel
+unchanged, so the default reaching every existing caller draws exactly
+what was drawn before the attribute existed.
+
+The third and fourth rows are the lamp: at emissive 1 the sprite ignores
+the hour completely, and at 0.5 it sits halfway between its own colour and
+the room's. The shipped value is 0.85.
+
+## What this did not establish
+
+- **The tint is not checked through the SHIPPED frame**, only through the
+  shipped shader. That the lamp instance carries 0.85 is pinned by
+  `web/tests/frame.test.ts` on the CPU side; nothing has photographed a
+  lit lamp at midnight.
+- **SwiftShader, not a real driver.** A rasterisation difference between
+  this backend and the owner's GPU would not show up here. The arithmetic
+  above is fixed-function multiply and mix, which is the least likely
+  thing to differ, but it is one backend.
