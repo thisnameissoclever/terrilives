@@ -73,13 +73,19 @@ pub fn phase(tick: u64, offset_ticks: i32, day_ticks: u32) -> u32 {
 
 /// Linear interpolation across the control points, wrapping at midnight.
 ///
-/// The compile step guarantees at least two points, all strictly
-/// ascending, all inside the day, and all finite and non-negative, so
-/// none of that is re-checked here. That is [D9] paying for itself: the
-/// validation lives once at the boundary and every reader downstream is
-/// simpler for it.
+/// The compile step guarantees the points are strictly ascending, inside
+/// the day, and finite and non-negative, so none of THAT is re-checked
+/// here. That is [D9] paying for itself: the validation lives once at the
+/// boundary and every reader downstream is simpler for it.
+///
+/// Length is the exception, and deliberately so. This is a `pub` function
+/// over a plain slice, so nothing in its signature carries the compile
+/// step's guarantee, and the two degenerate lengths are answered rather
+/// than asserted: a curve of nothing is no curve at all, and a curve of
+/// one point is that point everywhere. A `debug_assert` here would read
+/// as a second guard for an invariant [D9] already owns, and would make
+/// these two lines the only ones in the module no test could reach.
 pub fn curve_at(points: &[(u32, f32)], day_ticks: u32, phase: u32) -> f32 {
-    debug_assert!(points.len() >= 2, "the compile step rejects a curve of one");
     match points {
         [] => return 1.0,
         [(_, only)] => return *only,
@@ -193,6 +199,151 @@ mod tests {
         assert_eq!(curve_at(&points, 200, 0), 0.0);
         assert_eq!(curve_at(&points, 200, 50), 0.5);
         assert_eq!(curve_at(&points, 200, 100), 1.0);
+    }
+
+    /// A curve whose numbers are all off zero and all divide exactly.
+    ///
+    /// Every value below is a decimal an f32 holds without rounding, so
+    /// the assertions can be `==` rather than a tolerance. A tolerance is
+    /// what let the arithmetic in `curve_at` drift unwatched: the wrap
+    /// test above passes with a span computed almost any way at all,
+    /// because 0.05 is wider than most of the ways to get it wrong.
+    ///
+    /// Nothing here starts at tick zero or at value zero, and that is the
+    /// point. With `a.0 == 0`, `phase - a.0` and `phase + a.0` are the
+    /// same number; with `a.1 == 0`, so are `b.1 - a.1` and `b.1 + a.1`.
+    /// A fixture anchored at the origin cannot see a sign flip.
+    const OFF_ORIGIN: [(u32, f32); 2] = [(20, 0.5), (80, 2.0)];
+    const OFF_ORIGIN_DAY: u32 = 100;
+
+    #[test]
+    fn the_interior_segment_interpolates_between_its_own_endpoints() {
+        // Halfway from 20 to 80, so halfway from 0.5 to 2.0.
+        assert_eq!(curve_at(&OFF_ORIGIN, OFF_ORIGIN_DAY, 50), 1.25);
+        // And the endpoints themselves, exactly.
+        assert_eq!(curve_at(&OFF_ORIGIN, OFF_ORIGIN_DAY, 20), 0.5);
+        assert_eq!(curve_at(&OFF_ORIGIN, OFF_ORIGIN_DAY, 80), 2.0);
+    }
+
+    #[test]
+    fn the_wrap_segment_spans_the_gap_at_both_ends_of_the_day() {
+        // The wrap runs from 80 forward to 100, then from 0 to 20: a span
+        // of 40 ticks, in two pieces. Both pieces are asserted, because
+        // they are computed by different arithmetic - one counts up from
+        // the last point, the other counts the leftover of the day and
+        // then adds the phase - and a test on only one of them leaves the
+        // other free.
+        //
+        // A quarter of the way in, on the far side of midnight:
+        assert_eq!(curve_at(&OFF_ORIGIN, OFF_ORIGIN_DAY, 90), 1.625);
+        // Three quarters of the way in, on the near side:
+        assert_eq!(curve_at(&OFF_ORIGIN, OFF_ORIGIN_DAY, 10), 0.875);
+    }
+
+    #[test]
+    fn a_curve_too_short_to_interpolate_is_answered_rather_than_indexed() {
+        // `curve_at` is `pub` and takes a plain slice, so its signature
+        // carries none of the compile step's guarantees. These two lines
+        // are what stops a caller that skipped [D9] from panicking on an
+        // index instead of getting an answer.
+        assert_eq!(curve_at(&[], DAY, 0), 1.0, "no curve means no effect");
+        assert_eq!(
+            curve_at(&[(500, 0.3)], DAY, 0),
+            0.3,
+            "one point is that point at every hour, not just at its own"
+        );
+        assert_eq!(curve_at(&[(500, 0.3)], DAY, 500), 0.3);
+    }
+
+    #[test]
+    fn the_phase_survives_an_offset_of_more_than_two_days() {
+        // `chronotype_offset_ticks` is a signed content number with no
+        // authored range, so "three days early" is content rather than a
+        // bug. One wrap of the modulo is not enough to bring that back
+        // into the day, and a phase that stayed negative would come out
+        // of the `as u32` as roughly four billion and index nothing.
+        for offset in [-3000, -6000, 3000, 6000] {
+            let p = phase(0, offset, DAY);
+            assert!(p < DAY, "phase {p} outside the day for offset {offset}");
+        }
+        // 3000 ticks early from midnight is 2 days and 120 ticks early,
+        // which is 22:00 the previous evening.
+        assert_eq!(phase(0, -3000, DAY), 1320);
+    }
+
+    #[test]
+    fn the_phase_is_defined_at_every_tick_the_clock_can_hold() {
+        // The clock counts in `u64` and the offset is `i32`, so the tick
+        // is reduced into the day BEFORE it is widened to a signed
+        // integer. Without that reduction a tick past `i64::MAX` would
+        // cast to a negative number, and the sim would run backwards
+        // through the curve. Nothing reaches these ticks in play; the
+        // reduction is here so that the function is total, and this is
+        // the assertion that says so.
+        for tick in [u64::MAX, u64::MAX - 1, i64::MAX as u64, 1 << 40] {
+            let p = phase(tick, -180, DAY);
+            assert!(p < DAY, "phase {p} outside the day at tick {tick}");
+        }
+    }
+
+    #[test]
+    fn only_a_candidate_carrying_the_sleep_tag_feels_the_rhythm() {
+        // The tag is the whole targeting mechanism: one authored entry
+        // covers every bed-shaped route to sleeping, and must cover
+        // nothing else. Inverted, the drive would apply to eating,
+        // showering and chatting instead - every sim in the house would
+        // do its chores strictly at night and refuse to go to bed.
+        let pack = crate::test_content::pack_with_circadian(
+            Vec::new(),
+            crate::test_content::tuning(),
+            "sleep",
+            vec![(0, 4.0), (720, 0.25)],
+        );
+        let midnight = SimClock { tick: 0 };
+        assert_eq!(
+            sleep_drive(pack, &midnight, 0, &["sleep".to_string()]),
+            4.0,
+            "the tagged candidate reads the curve"
+        );
+        assert_eq!(
+            sleep_drive(pack, &midnight, 0, &[]),
+            1.0,
+            "an untagged candidate is untouched"
+        );
+        assert_eq!(
+            sleep_drive(pack, &midnight, 0, &["eat".to_string()]),
+            1.0,
+            "and so is one carrying some OTHER tag"
+        );
+        assert_eq!(
+            sleep_drive(pack, &midnight, 0, &["eat".into(), "sleep".into()]),
+            4.0,
+            "the tag counts wherever in the list it sits"
+        );
+    }
+
+    #[test]
+    fn the_drive_actually_changes_with_the_hour_and_with_the_chronotype() {
+        // Without this, `sleep_drive` returning a constant is invisible:
+        // every other assertion about it names one tick.
+        let pack = crate::test_content::pack_with_circadian(
+            Vec::new(),
+            crate::test_content::tuning(),
+            "sleep",
+            vec![(0, 4.0), (720, 0.25)],
+        );
+        let tag = ["sleep".to_string()];
+        let at_noon = sleep_drive(pack, &SimClock { tick: 720 }, 0, &tag);
+        let at_midnight = sleep_drive(pack, &SimClock { tick: 0 }, 0, &tag);
+        assert!(
+            at_midnight > at_noon,
+            "midnight {at_midnight} must beat noon {at_noon}"
+        );
+        // Same tick, two sims: the offset has to reach the curve, or the
+        // household goes to bed in lockstep.
+        let owl = sleep_drive(pack, &SimClock { tick: 360 }, 360, &tag);
+        let lark = sleep_drive(pack, &SimClock { tick: 360 }, -360, &tag);
+        assert_ne!(owl, lark, "the chronotype must move the sim on the curve");
     }
 
     #[test]

@@ -1447,3 +1447,104 @@ Cargo Mutants does not delete the ordering statement. Removing the
 `relationship_moodlets_are_directional_proximity_bounded_and_sim_id_sorted`
 fail with query order instead of stable `SimId` order. Restoring the statement
 made the test pass and restored the file's exact SHA-256 hash.
+
+### The circadian rhythm (16 survivors, 15 of them mine to fix)
+
+The sleep-drive PR landed `crates/terri-sim/src/systems/circadian.rs`
+with seven tests and shard 6 came back with fifteen survivors in it.
+Reading the list is the fastest diagnosis this file has ever produced:
+every one of them is a fixture anchored at the origin.
+
+`interpolation_is_linear_between_two_points` used `(0, 0.0)` and
+`(100, 1.0)`. With `a.0 == 0`, `phase - a.0` and `phase + a.0` are the
+same number, so both subtractions in the interior segment were free to
+flip sign. With `a.1 == 0`, so are `b.1 - a.1` and `b.1 + a.1`, so the
+lerp's inner term was free too. Nothing was wrong with the test; it
+simply could not see the difference. `OFF_ORIGIN` is the same shape with
+every number moved off zero and chosen to divide exactly in binary, so
+the assertions are `==` rather than a tolerance.
+
+The tolerance was the second cause. `the_curve_wraps_across_midnight`
+asserted the two sides of midnight agreed to within 0.05, which is wider
+than most of the ways to compute that span wrong. The wrap segment now
+has its own test naming both pieces exactly - the run up from the last
+point, and the leftover of the day plus the phase - because they are
+computed by different arithmetic and a test on one leaves the other free.
+
+Two of the `%` mutants in `phase` were real and one is not. The inner
+`tick % day_ticks` reduces the tick BEFORE the widening cast, so a tick
+past `i64::MAX` cannot come out negative; adding the day instead of
+reducing by it is congruent modulo the day and therefore invisible at
+every tick anyone will ever play, but it overflows `u64` at the top of
+the range, which is what `the_phase_is_defined_at_every_tick_the_clock
+_can_hold` now catches. The outer double modulo normalises a negative
+offset, and one wrap is not enough for an offset of more than two days -
+`chronotype_offset_ticks` is a signed content number with no authored
+range, so three days early is content rather than a bug.
+
+`sleep_drive` had no test at all against a pack that carried a rhythm;
+the only one present used a pack with `circadian: None` and returned
+before touching anything. That is why the tag check could be inverted,
+the tag comparison negated, and the whole function replaced by `1.0`,
+all three unnoticed. `pack_with_circadian` is the missing fixture.
+
+The two degenerate match arms in `curve_at` were unreachable, not
+untested. A `debug_assert!(points.len() >= 2)` stood above them, so any
+test that reached either arm panicked first, in both the original and
+the mutant. The assert is gone. It was a second guard for an invariant
+[D9] already owns at the compile boundary, and its only observable
+effect was to make two lines of a `pub` function impossible to test.
+
+### Equivalent: `> with >=` in `curve_at`
+
+`points.iter().position(|(tick, _)| *tick > phase)` finds the first
+control point strictly after the phase. Relaxing it to `>=` cannot
+change the returned value, at any phase, on any curve the compile step
+admits.
+
+The reason is that the two readings disagree only when the phase lands
+exactly on a control point, and there they disagree about which segment
+that point belongs to - never about its value. Strict `>` puts the phase
+at `along == 0` on the segment STARTING at the point and returns that
+point's value as `a.1`. Relaxed `>=` puts it at `along == span` on the
+segment ENDING at the point and returns the same value as `b.1`. Both
+are the point. This holds at the first point and the last one too, where
+the disagreement is between the interior segment and the wrap segment
+rather than between two interior ones.
+
+Checked rather than argued: 3000 random curves of two to six points, over
+every phase in the day, at day lengths from 10 to 1440 ticks. Zero
+differences. The compile step rejects duplicate ticks, which is the only
+input that could break the argument, and
+`rejects_circadian_points_that_do_not_strictly_ascend` in
+`terri-data/src/compile.rs` is what holds that door shut.
+
+Left as an operator rather than rewritten, because the alternatives are
+worse: `partition_point` says the same thing less legibly, and there is
+no `is_sign_positive`-shaped escape here the way there was on `mood.rs`'
+`> 0`. One baseline line with the argument written down is the honest
+price.
+
+### The fifth factor's operator, invisible because the feature ships off
+
+Shard 5 found one more, in a different file and with a different cause:
+`replace * with / in select_action`. That is the sleep drive joining the
+[S4] multiplier, and nothing in the suite could see which operator it
+joined with.
+
+The reason is that the shipped `[circadian]` table is COMMENTED OUT. The
+mechanism landed switched off, deliberately - it is what let the feature
+ship without every save fixture in the crate changing shape - and with
+no table the drive returns exactly 1.0 for every candidate in every
+fixture. `x * 1.0` and `x / 1.0` are the same number, so the operator was
+free.
+
+This is the shape worth remembering, because it will recur every time
+something lands dark: a feature that is off by default is a feature whose
+composition is untested by construction, and the sweep is the only thing
+that says so. The fix is a fixture that switches it ON -
+`the_sleep_drive_steers_choice_toward_the_object_tagged_for_it` in
+`personality_choice_tests`, which is the module that already exists for
+exactly this mutant on the four factors beside it. Verified by hand as
+well as by the sweep: flipping the `*` to a `/` in the source makes that
+test fail, and restoring it makes it pass.

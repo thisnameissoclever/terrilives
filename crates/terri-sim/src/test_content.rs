@@ -192,6 +192,30 @@ pub fn pack_with_social(
     }))
 }
 
+/// A pack carrying a sleep rhythm, for the tests about one.
+///
+/// Explicit for the same reason the social vocabulary and the household
+/// are: `pack_tuned` leaves `circadian` at `None`, which is what makes
+/// every fixture that predates the feature behave as though it does not
+/// exist. A test about the rhythm installs one, the way a test about
+/// chains installs a chain.
+pub fn pack_with_circadian(
+    objects: Vec<CompiledObject>,
+    tuning: Tuning,
+    sleep_tag: &str,
+    sleep_drive: Vec<(u32, f32)>,
+) -> &'static ContentPack {
+    let pack = pack_tuned(objects, tuning);
+    Box::leak(Box::new(ContentPack {
+        traits: Vec::new(),
+        circadian: Some(terri_data::pack::Circadian {
+            sleep_tag: sleep_tag.to_string(),
+            sleep_drive,
+        }),
+        ..pack.clone()
+    }))
+}
+
 pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static ContentPack {
     Box::leak(Box::new(ContentPack {
         traits: Vec::new(),
