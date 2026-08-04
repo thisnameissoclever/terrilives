@@ -6,7 +6,7 @@
 //! "every `NeedId` appears exactly once" are not shapes.
 
 use crate::error::ContentError;
-use crate::pack::{CompiledHouseholdMember, CompiledPersonality};
+use crate::pack::{Circadian, CompiledHouseholdMember, CompiledPersonality};
 use crate::pack::{
     CompiledInteraction, CompiledLot, CompiledObject, CompiledPlacement, ContentPack, ObjectDefId,
     Tuning,
@@ -321,7 +321,7 @@ pub fn compile(
     // suffix, and the compiled object deliberately holds the index.
     let sprite_names: Vec<String> = objects.object.iter().map(|o| o.sprite.clone()).collect();
     let lot = compile_lot(lot, &compiled, &sprite_names, &sprite_index)?;
-    let tuning = compile_tuning(tuning)?;
+    let (tuning, circadian) = compile_tuning(tuning)?;
 
     // **An interaction the floor is longer than does not do what it says.**
     //
@@ -421,6 +421,7 @@ pub fn compile(
         roles,
         item_kinds,
         chains,
+        circadian,
     })
 }
 
@@ -1153,6 +1154,11 @@ fn compile_personalities(
             drain,
             satisfaction,
             dispositions,
+            // Carried through verbatim. Unlike every other number here it
+            // needs no range check: any offset is legal because the phase
+            // wraps, and "three hours later than everyone" and "twenty-one
+            // hours earlier" are the same sim.
+            chronotype_offset_ticks: archetype.chronotype_offset_ticks,
         });
     }
 
@@ -1375,7 +1381,13 @@ fn compile_household(
 /// is what [D9] converts into a build failure. A zero temperature makes
 /// every selection weight `NaN`, and `NaN` loses every comparison, so a
 /// sim would simply stop choosing anything with no panic and no log.
-fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
+/// Validates the tuning knobs, and the circadian table beside them.
+///
+/// Returns both because the circadian rhythm is validated AGAINST tuning,
+/// since every control point has to fall inside `day_ticks`, but is stored
+/// beside it on the pack rather than within it: `Tuning` is `Copy` and a
+/// circadian rhythm owns a `String` and a `Vec`.
+fn compile_tuning(tuning: TuningFile) -> Result<(Tuning, Option<Circadian>), ContentError> {
     // Finiteness first, for the same reason placement coordinates are
     // checked before their bounds: every comparison against NaN is
     // false, so `NaN <= 0.0` would let a NaN temperature through the
@@ -1560,36 +1572,83 @@ fn compile_tuning(tuning: TuningFile) -> Result<Tuning, ContentError> {
         return Err(ContentError::ZeroDayTicks);
     }
 
-    Ok(Tuning {
-        habituation_per_use: tuning.habituation_per_use,
-        habituation_decay_per_tick: tuning.habituation_decay_per_tick,
-        habituation_floor: tuning.habituation_floor,
-        action_threshold: tuning.action_threshold,
-        choice_temperature: tuning.choice_temperature,
-        idle_threshold: tuning.idle_threshold,
-        wander_pause_ticks: tuning.wander_pause_ticks,
-        wander_attempts: tuning.wander_attempts,
-        duration_variance: tuning.duration_variance,
-        min_interaction_ticks: tuning.min_interaction_ticks,
-        rng_seed: tuning.rng_seed,
-        max_queued_intents: tuning.max_queued_intents,
-        max_queued_commands: tuning.max_queued_commands,
-        // Unchecked on purpose, unlike every cap above. Zero here means
-        // "read every frame", which is wasteful and still correct; the
-        // rules in this function exist for values that fail QUIETLY, and
-        // a panel that refreshes too often is neither quiet nor a
-        // failure.
-        need_bar_refresh_ms: tuning.need_bar_refresh_ms,
-        contested_score_multiplier: tuning.contested_score_multiplier,
-        relationship_gain_per_talk: tuning.relationship_gain_per_talk,
-        relationship_decay_per_tick: tuning.relationship_decay_per_tick,
-        relationship_delta_scale: tuning.relationship_delta_scale,
-        hobby_multiplier: tuning.hobby_multiplier,
-        at_work_decay_scale: tuning.at_work_decay_scale,
-        neglect_floor: tuning.neglect_floor,
-        neglect_bleed_per_tick: tuning.neglect_bleed_per_tick,
-        day_ticks: tuning.day_ticks,
-    })
+    // The circadian curve, if authored. Every rule here converts a shape
+    // of failure that would otherwise be silent into a build error, which
+    // is what [D9] exists for.
+    //
+    // An unsorted or out-of-range curve does not crash: it interpolates
+    // to something, and the sims sleep at a plausible-looking wrong time
+    // that nobody would think to question.
+    let circadian = match tuning.circadian {
+        None => None,
+        Some(file) => {
+            if file.sleep_drive.len() < 2 {
+                return Err(ContentError::CircadianTooFewPoints {
+                    points: file.sleep_drive.len(),
+                });
+            }
+            let mut previous: Option<u32> = None;
+            for (tick, multiplier) in &file.sleep_drive {
+                if *tick >= tuning.day_ticks {
+                    return Err(ContentError::CircadianPointPastTheDay {
+                        tick: *tick,
+                        day_ticks: tuning.day_ticks,
+                    });
+                }
+                if !multiplier.is_finite() || *multiplier < 0.0 {
+                    return Err(ContentError::CircadianNegativeMultiplier {
+                        tick: *tick,
+                        value: *multiplier,
+                    });
+                }
+                // Sorted STRICTLY: two points on the same tick would make
+                // the segment between them zero-length, and the
+                // interpolation divide by it.
+                if previous.is_some_and(|p| p >= *tick) {
+                    return Err(ContentError::CircadianPointsOutOfOrder { tick: *tick });
+                }
+                previous = Some(*tick);
+            }
+            Some(Circadian {
+                sleep_tag: file.sleep_tag,
+                sleep_drive: file.sleep_drive,
+            })
+        }
+    };
+
+    Ok((
+        Tuning {
+            habituation_per_use: tuning.habituation_per_use,
+            habituation_decay_per_tick: tuning.habituation_decay_per_tick,
+            habituation_floor: tuning.habituation_floor,
+            action_threshold: tuning.action_threshold,
+            choice_temperature: tuning.choice_temperature,
+            idle_threshold: tuning.idle_threshold,
+            wander_pause_ticks: tuning.wander_pause_ticks,
+            wander_attempts: tuning.wander_attempts,
+            duration_variance: tuning.duration_variance,
+            min_interaction_ticks: tuning.min_interaction_ticks,
+            rng_seed: tuning.rng_seed,
+            max_queued_intents: tuning.max_queued_intents,
+            max_queued_commands: tuning.max_queued_commands,
+            // Unchecked on purpose, unlike every cap above. Zero here means
+            // "read every frame", which is wasteful and still correct; the
+            // rules in this function exist for values that fail QUIETLY, and
+            // a panel that refreshes too often is neither quiet nor a
+            // failure.
+            need_bar_refresh_ms: tuning.need_bar_refresh_ms,
+            contested_score_multiplier: tuning.contested_score_multiplier,
+            relationship_gain_per_talk: tuning.relationship_gain_per_talk,
+            relationship_decay_per_tick: tuning.relationship_decay_per_tick,
+            relationship_delta_scale: tuning.relationship_delta_scale,
+            hobby_multiplier: tuning.hobby_multiplier,
+            at_work_decay_scale: tuning.at_work_decay_scale,
+            neglect_floor: tuning.neglect_floor,
+            neglect_bleed_per_tick: tuning.neglect_bleed_per_tick,
+            day_ticks: tuning.day_ticks,
+        },
+        circadian,
+    ))
 }
 
 /// Validates the lot against the objects that were just compiled, and
@@ -2159,6 +2218,13 @@ mod tests {
     /// author's wording, and not `grab_snack`, is what reaches the pack.
     #[rustfmt::skip]
     const GOLDEN_PACK_BYTES: &[u8] = &[
+        // **[ML-curve] appended one field, and it is the single trailing
+        // `0`.** `ContentPack` gained `circadian: Option<Circadian>`, and
+        // this fixture authors no rhythm, so postcard writes `None` as one
+        // byte at the very end. Every byte before it is unchanged, which
+        // is the whole point of the appending rule on `ContentPack::lot`
+        // and is what makes this vector reviewable rather than opaque.
+        //
         // **The alpha acceptance pass appended one tuning field**,
         // `at_work_decay_scale` - [X2] in
         // docs/specs/2026-08-01-alpha-acceptance-findings.md. The four
@@ -2213,7 +2279,7 @@ mod tests {
         192, 62, 0, 0, 64, 62, 0, 0, 64, 61, 0, 0,
         80, 63, 0, 0, 224, 63, 0, 0, 184, 65, 154, 153,
         25, 63, 0, 0, 0, 60, 19, 0, 0, 0, 0, 0,
-        0, 0, 0,
+        0, 0, 0, 0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -2327,6 +2393,7 @@ mod tests {
     /// what lets every other test in this module ignore decay entirely.
     fn full_tuning() -> TuningFile {
         TuningFile {
+            circadian: None,
             // The M2e trio, distinct like everything else here and exact
             // in binary32; the golden vector reads these bytes directly,
             // and a 0.0 would be indistinguishable from a dropped field.
@@ -4106,6 +4173,7 @@ mod tests {
     /// assertion ([L34]).
     fn archetype(id: &str) -> ArchetypeDef {
         ArchetypeDef {
+            chronotype_offset_ticks: 0,
             id: id.to_string(),
             drain: [("fun".to_string(), 1.5)].into_iter().collect(),
             satisfaction: [("hunger".to_string(), 0.75)].into_iter().collect(),

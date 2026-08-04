@@ -241,6 +241,7 @@ pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static Cont
         roles: Vec::new(),
         item_kinds: Vec::new(),
         chains: Vec::new(),
+        circadian: None,
     }))
 }
 

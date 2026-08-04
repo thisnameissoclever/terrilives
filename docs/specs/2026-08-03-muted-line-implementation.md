@@ -1,6 +1,11 @@
 # Muted Line, the day/night cycle, and circadian sleep
 
-Status: **implementation plan, agreed art direction, nothing built.** The
+Status: **partly built.** [ML-gen] and [ML-ci] shipped (the generator, and
+CI regenerating the atlas). [ML-ambient] shipped: the day/night cycle is
+live and driven by the sim clock. The circadian mechanism is built and
+**switched off** - see the note under Part 3. The rest is unbuilt.
+
+Originally: **implementation plan, agreed art direction, nothing built.** The
 owner picked Muted Line on 2026-08-03 from the round-two directions, which
 resolves [T-design-language]. Written the same day. The prototype the
 decision was made against is committed at `tools/art-prototype/` and is
@@ -256,6 +261,34 @@ All of this is f32 arithmetic on the existing scoring path. `[D12]`'s CI
 determinism test covers it, and the existing note about `score_advertisement`
 cubing urgency identically on every target applies to the interpolation too:
 one lerp helper, used everywhere, no target-dependent fused multiply-add.
+
+### The rhythm is built and switched off, and why
+
+Everything in Part 3 above ships except the authored curve: the schema,
+the compile-time validation, `systems/circadian.rs` and its tests, the
+per-sim chronotype offsets in `personalities.toml`, the `sleep` tags on
+both beds, and the multiplier composed into selection beside the trait
+dispositions. `content/tuning.toml` carries the `[circadian]` block
+commented out, and uncommenting it is the only step remaining.
+
+It is off because the CURVE is not tuned, and [ML-feel] below is the
+reason rather than an excuse. The first draft ran a 6.4x peak-to-trough
+swing and the household slept so much that `save.rs`'s fixture could no
+longer get anyone to habituate to a kitchen chain row in 3 000 ticks; it
+needed 12 000. That is the drive overpowering the needs rather than
+weighting them. Softening to 2.5x helped and did not settle it.
+
+**Widening that fixture is not available**, and the reason is worth
+recording because it constrains any future tuning too: `ci.yml` runs
+`cargo mutants --timeout 60`, and that timeout bounds each mutant's whole
+workspace test run. The one test went from 10 s to 39 s at the wider
+horizon, which would turn a large share of mutants into spurious
+timeouts. **Any change to shipped content that materially slows the
+simulation has to be measured against that 60 s ceiling, not just against
+the wall clock.**
+
+So the tuning is a separate, measured piece of work, and a milestone
+whose payoff has not been watched does not get quietly ticked.
 
 ### [ML-feel] It is not done until it has been watched
 

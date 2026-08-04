@@ -10,6 +10,9 @@ pub mod career;
 // file added without this line has its tests reported as `0 filtered
 // out` rather than as failures.
 pub mod chain;
+/// The circadian rhythm - why a sim goes to bed rather than merely
+/// collapsing when energy runs out. [ML-curve].
+pub mod circadian;
 // Declared in the same commit that creates `command.rs`, per [L2], for
 // the same reason as `idle` below: a file no `mod` declaration references
 // is never compiled, so its tests report `0 filtered out` rather than

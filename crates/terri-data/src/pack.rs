@@ -312,6 +312,24 @@ pub struct Tuning {
     pub day_ticks: u32,
 }
 
+/// The circadian rhythm - [ML-curve] and [ML-chrono].
+///
+/// A SIBLING of `Tuning` rather than a field of it, and that is forced
+/// rather than chosen: `Tuning` is `Copy` because it is a handful of
+/// scalars every system reads through a borrowed pack, and this owns a
+/// `String` and a `Vec`. Taking `Copy` away from `Tuning` to fit one
+/// optional table here would land on every reader of every knob.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Circadian {
+    /// The activity tag the drive multiplies. Compared against an
+    /// advert's tags, exactly as trait dispositions are.
+    pub sleep_tag: String,
+    /// `(tick, multiplier)` control points, sorted, wrapping at the end
+    /// of the day. Validated non-empty by the compile step, so the
+    /// simulation never has to answer "what if there are no points".
+    pub sleep_drive: Vec<(u32, f32)>,
+}
+
 /// One personality archetype, compiled - [H3].
 ///
 /// Dense arrays where the authored TOML was sparse: the compile step
@@ -333,6 +351,10 @@ pub struct CompiledPersonality {
     /// interaction that does not exist has no representation once a pack
     /// exists.
     pub dispositions: Vec<(ObjectDefId, u32, f32)>,
+    /// Where on the circadian curve this archetype samples, in ticks -
+    /// [ML-chrono]. 0 is "sleeps when everyone else does", which is the
+    /// default and is what every archetype had before this existed.
+    pub chronotype_offset_ticks: i32,
 }
 
 /// One trait, compiled - [E3]. The kind-specific numbers live in an
@@ -456,10 +478,19 @@ pub struct ContentPack {
     /// `chains.toml` - what a sim's `Carrying` component indexes into
     /// ([K3]).
     pub item_kinds: Vec<String>,
-    /// The multi-step chains - [K1]. May be empty in a test pack.
+    /// The multi-step chains - [K1]. May be empty in a test pack. It was
+    /// last until the circadian rhythm arrived.
+    pub chains: Vec<CompiledChain>,
+    /// The circadian rhythm, if `tuning.toml` authored one - [ML-curve].
+    ///
+    /// `None` means a flat sleep drive of 1.0, which is exactly the
+    /// behaviour every pack had before this existed. That is what lets
+    /// the feature land without every test fixture growing a table it
+    /// does not care about.
+    ///
     /// **Last in this struct on purpose**, per the appending rule on
     /// `lot`.
-    pub chains: Vec<CompiledChain>,
+    pub circadian: Option<Circadian>,
 }
 
 /// One chain, compiled: steps across station roles, the whole payoff
@@ -624,6 +655,7 @@ mod tests {
 
     fn three_objects() -> ContentPack {
         ContentPack {
+            circadian: None,
             decay_per_tick: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
             objects: ["fridge", "bed", "sink"]
                 .iter()
@@ -665,6 +697,7 @@ mod tests {
                 drain: [1.5, 0.75, 1.0, 1.125, 0.875, 1.25, 0.9375],
                 satisfaction: [0.5, 1.75, 2.0, 0.625, 1.375, 0.8125, 1.0625],
                 dispositions: vec![(ObjectDefId(1), 0, 1.875), (ObjectDefId(2), 1, 0.25)],
+                chronotype_offset_ticks: 0,
             }],
             household: vec![CompiledHouseholdMember {
                 name: "Terri".to_string(),

@@ -1,4 +1,5 @@
 use bevy_ecs::prelude::*;
+use terri_core::clock::SimClock;
 use terri_core::{
     Agent, Blocked, Eating, Habituation, IntentQueue, NeedId, Needs, Path, Personality, Position,
     Relationships, Reserved, Restless, SimId, SimRng, SmartObject, Socialising, Target, TileGrid,
@@ -682,11 +683,20 @@ fn contested_score(score: f32, multiplier: f32) -> f32 {
 /// busy agents out of selection is exactly what pushes the query type
 /// past clippy's threshold, and a type alias would only move the same
 /// type somewhere less readable.
-#[allow(clippy::type_complexity)]
+// Eight parameters, one over clippy's default. The eighth is the clock,
+// and it is here rather than threaded through a struct because a bevy_ecs
+// system's parameters ARE its dependency declaration: bundling them would
+// hide from the scheduler which resources this system reads.
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub fn select_action(
     mut commands: Commands,
     grid: Res<TileGrid>,
     content: Res<Content>,
+    // The hour, for the circadian sleep drive ([ML-tag]). Selection is
+    // the only place it is read: the drive weighs a CHOICE, so it belongs
+    // beside the other multipliers rather than anywhere near the need
+    // decay that makes a sim tired in the first place.
+    clock: Res<SimClock>,
     mut rng: ResMut<SimRng>,
     agents: Query<
         (
@@ -1126,11 +1136,26 @@ pub fn select_action(
                 // every couch-shaped route, beside the archetype
                 // dispositions keyed by (object, interaction). Two
                 // lookup keys, one slot.
+                // The FIFTH source into the one multiplier ([S4]): the
+                // circadian sleep drive, keyed by TAG like the trait
+                // dispositions beside it, and per-sim through the
+                // chronotype offset so the household does not go to bed
+                // on the same tick.
+                //
+                // It scales BENEFITS only, like every other source, and
+                // for the same reason: a sim who is not sleepy yet still
+                // pays the full walk to the bedroom.
                 let scale = benefit_scale(hab, content.0.tuning.habituation_floor)
                     * personality.disposition(placed.0, index as u32)
                     * super::trait_effects::disposition_multiplier(
                         traits.as_ref(),
                         content.0,
+                        &advert.tags,
+                    )
+                    * super::circadian::sleep_drive(
+                        content.0,
+                        &clock,
+                        personality.chronotype_offset_ticks,
                         &advert.tags,
                     );
                 let mut score = 0.0;

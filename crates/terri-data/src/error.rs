@@ -643,6 +643,24 @@ pub enum ContentError {
     },
     /// A zero-tick day - `tick % day_ticks` would divide by zero.
     ZeroDayTicks,
+    /// A circadian curve with nothing to interpolate between.
+    CircadianTooFewPoints {
+        points: usize,
+    },
+    /// A circadian control point outside the day it describes.
+    CircadianPointPastTheDay {
+        tick: u32,
+        day_ticks: u32,
+    },
+    /// A negative or non-finite sleep-drive multiplier.
+    CircadianNegativeMultiplier {
+        tick: u32,
+        value: f32,
+    },
+    /// Circadian control points that do not strictly ascend.
+    CircadianPointsOutOfOrder {
+        tick: u32,
+    },
     /// A front door off the lot.
     FrontDoorOutOfBounds {
         x: i32,
@@ -1305,6 +1323,30 @@ impl fmt::Display for ContentError {
                 f,
                 "day_ticks must be at least 1 - a zero-tick day divides \
                  by zero the first time a career asks the hour"
+            ),
+            ContentError::CircadianTooFewPoints { points } => write!(
+                f,
+                "[circadian] sleep_drive has {points} control point(s) and \
+                 needs at least 2 - one point is a constant, not a rhythm"
+            ),
+            ContentError::CircadianPointPastTheDay { tick, day_ticks } => write!(
+                f,
+                "[circadian] sleep_drive has a control point at tick {tick}, \
+                 which is not inside a {day_ticks}-tick day - the curve \
+                 wraps, so every point must fall within one day"
+            ),
+            ContentError::CircadianNegativeMultiplier { tick, value } => write!(
+                f,
+                "[circadian] sleep_drive at tick {tick} has multiplier \
+                 {value}, which must be finite and at least 0 - 0 means \
+                 'never chooses sleep unprompted', and below that has no \
+                 meaning"
+            ),
+            ContentError::CircadianPointsOutOfOrder { tick } => write!(
+                f,
+                "[circadian] sleep_drive reaches tick {tick} without \
+                 strictly ascending - points must be sorted and distinct, \
+                 or a zero-length segment divides the interpolation by zero"
             ),
             ContentError::FrontDoorOutOfBounds {
                 x,

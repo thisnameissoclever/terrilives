@@ -700,6 +700,14 @@ pub struct Personality {
     pub drain: [f32; NEED_COUNT],
     pub satisfaction: [f32; NEED_COUNT],
     dispositions: Vec<(ObjectDefId, u32, f32)>,
+    /// Where on the circadian curve this sim samples, in ticks -
+    /// [ML-chrono]. Public because selection reads it directly, and 0 -
+    /// "sleeps when everyone else does" - is what every sim had before
+    /// the rhythm existed.
+    ///
+    /// This is the line that stops the household going to bed on the same
+    /// tick, which reads as a screensaver rather than as a home.
+    pub chronotype_offset_ticks: i32,
 }
 
 impl Personality {
@@ -710,6 +718,7 @@ impl Personality {
             drain: [1.0; NEED_COUNT],
             satisfaction: [1.0; NEED_COUNT],
             dispositions: Vec::new(),
+            chronotype_offset_ticks: 0,
         }
     }
 
@@ -728,6 +737,7 @@ impl Personality {
             drain,
             satisfaction,
             dispositions,
+            chronotype_offset_ticks: 0,
         }
     }
 

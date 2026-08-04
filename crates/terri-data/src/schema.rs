@@ -26,8 +26,39 @@ use terri_core::Footprint;
 /// required. A defaulted knob is the silent-nothing case [D9] exists to
 /// prevent: a `duration_variance` quietly defaulting to zero is a
 /// simulation that is merely metronomic rather than one that fails.
+/// The circadian rhythm: `[circadian]` in `content/tuning.toml`.
+///
+/// [ML-curve] and [ML-tag] in
+/// `docs/specs/2026-08-03-muted-line-implementation.md`. Authored rather
+/// than hardcoded for the same reason every other tuning number is: the
+/// SHAPE of a day is a design question that wants iterating against
+/// measured runs, not a recompile.
+///
+/// Optional, so a pack without one behaves exactly as it did before this
+/// existed. That is what lets the feature land without every existing
+/// test's tuning fixture having to grow a table it does not care about.
+#[derive(Debug, Deserialize)]
+pub struct CircadianFile {
+    /// The activity tag the drive applies to. Objects already declare
+    /// tags, so a bed needs no new field and one entry covers every
+    /// bed-shaped route to sleeping.
+    pub sleep_tag: String,
+    /// `(tick, multiplier)` control points over one day, interpolated
+    /// linearly and wrapping from the last back to the first.
+    ///
+    /// Two forces, deliberately separate from the need system: this makes
+    /// a bed more attractive at 23:00 than at 14:00 AT THE SAME ENERGY
+    /// LEVEL, which is what makes sims go to bed rather than merely
+    /// collapse when energy runs out.
+    pub sleep_drive: Vec<(u32, f32)>,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct TuningFile {
+    /// The circadian rhythm, optional so every existing tuning fixture
+    /// still parses. See `CircadianFile`.
+    #[serde(default)]
+    pub circadian: Option<CircadianFile>,
     /// Below this score, an option is not worth doing at all.
     pub action_threshold: f32,
     /// Softmax temperature for choosing among candidates. Must be
@@ -343,6 +374,18 @@ pub struct PersonalitiesFile {
 #[derive(Debug, Deserialize)]
 pub struct ArchetypeDef {
     pub id: String,
+    /// Where on the circadian curve this sim samples, in ticks.
+    ///
+    /// [ML-chrono], and the highest-value number in the feature. ONE
+    /// curve for everyone puts the whole household in bed on the same
+    /// tick, which reads as a screensaver rather than as a home. An early
+    /// bird at -90 and a night owl at +180 is the difference between a
+    /// house and a barracks.
+    ///
+    /// Defaulted, so an archetype that has no opinion about sleep does
+    /// not have to say so.
+    #[serde(default)]
+    pub chronotype_offset_ticks: i32,
     /// Need name to a multiplier on how fast that need DRAINS for this
     /// sim. Sparse, and an absent need multiplies by 1.0: most archetypes
     /// are ordinary about most needs, and a file that had to restate
