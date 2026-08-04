@@ -6,7 +6,6 @@ import {
   SPRITES,
   spriteIndex,
 } from '../src/render/atlas.js';
-import { MAX_SPRITES } from '../src/render/instances.js';
 
 // The atlas manifest exists TWICE: `assets/sprites/atlas.toml`, which
 // `terri-data`'s build script validates content against and resolves
@@ -161,13 +160,17 @@ describe('the atlas manifest', () => {
     expect(checked).toBe(SPRITES.length);
   });
 
-  it('fits the fixed-size uniform array the shader declares', () => {
-    // WGSL clamps an out-of-range uniform-array index instead of
-    // trapping, so an atlas longer than MAX_SPRITES would draw every
-    // sprite past the end as the last one in the table, with no error.
-    // `sprites.ts` throws at start-up on this; here it fails in CI, which
-    // has no GPU and would otherwise never see it.
-    expect(SPRITES.length).toBeLessThanOrEqual(MAX_SPRITES);
+  it('is not empty, which is the one size the shader cannot take', () => {
+    // The atlas used to have a fixed 128-entry ceiling to fit under; it
+    // does not any more ([ML-sprites], a runtime-sized storage array), so
+    // the only illegal length left is zero. A zero-length storage buffer
+    // is invalid in WebGPU, and an empty manifest means every sprite
+    // index is out of range and nothing draws at all.
+    //
+    // `sprites.ts` throws at start-up on this; asserting it here catches
+    // it in CI, which has no GPU and would otherwise never reach that
+    // code path.
+    expect(SPRITES.length).toBeGreaterThan(0);
   });
 
   it('returns each sprite its own index', () => {

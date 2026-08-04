@@ -17,14 +17,6 @@
 // whole frame is one `draw`. Splitting the art across two textures would
 // cost a second draw and a second submit.
 
-// Must equal MAX_SPRITES in instances.ts. A uniform array in WGSL is
-// fixed-size, so the number genuinely lives in two files, and
-// instances.test.ts reads this one as text to keep them equal. WGSL
-// CLAMPS an out-of-range index rather than trapping, so an atlas longer
-// than this would draw every sprite past the end as the last one in the
-// table, with no error from anywhere.
-const MAX_SPRITES = 128u;
-
 struct Uniforms {
   viewport: vec2<f32>,
   // Where a sprite's bottom centre sits relative to the entity's screen
@@ -63,12 +55,26 @@ struct Sprite {
   size: vec4<f32>,
 };
 
+// A RUNTIME-SIZED array in a storage buffer, not a fixed-size uniform one.
+//
+// The uniform version carried a hard 128-entry cap that lived in two
+// files at once - here and in instances.ts - kept equal by a test that
+// read this file as text. That cap was a silent failure waiting to
+// happen: WGSL CLAMPS an out-of-range index rather than trapping, so the
+// first sprite past the end would have drawn as the last one in the
+// table with no error from anywhere, and four facings per object is
+// enough to reach it.
+//
+// A storage buffer is sized by what is actually in it, so the cap and
+// the duplicated constant are both simply gone. The cost is a storage
+// binding rather than a uniform one, which on this read-only path is
+// nothing: same bind group, same pipeline, same single draw call.
 struct Atlas {
-  sprites: array<Sprite, MAX_SPRITES>,
+  sprites: array<Sprite>,
 };
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
-@group(0) @binding(1) var<uniform> atlas: Atlas;
+@group(0) @binding(1) var<storage, read> atlas: Atlas;
 @group(0) @binding(2) var atlasSampler: sampler;
 @group(0) @binding(3) var atlasTexture: texture_2d<f32>;
 

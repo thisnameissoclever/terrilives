@@ -5,7 +5,6 @@ import type { GpuContext } from './device.js';
 import {
   BYTES_PER_INSTANCE,
   FLOATS_PER_INSTANCE,
-  MAX_SPRITES,
   VERTICES_PER_QUAD,
   growCapacity,
   type InstanceArray,
@@ -28,15 +27,20 @@ const FLOATS_PER_SPRITE = 8;
  * sprite's extent in the atlas and its extent on screen.
  */
 function packSpriteTable(): Float32Array<ArrayBuffer> {
-  if (SPRITES.length > MAX_SPRITES) {
+  // Sized by what the atlas holds. There is no cap to check against any
+  // more: the shader's array is runtime-sized, so an atlas of any length
+  // indexes correctly rather than clamping past the end.
+  //
+  // A storage buffer of length zero is invalid in WebGPU, and an empty
+  // atlas is a build mistake rather than a state to render, so it is
+  // rejected here where the message can say so.
+  if (SPRITES.length === 0) {
     throw new Error(
-      `the atlas holds ${SPRITES.length} sprites and sprites.wgsl declares ` +
-        `room for ${MAX_SPRITES}; WGSL clamps an out-of-range uniform array ` +
-        `index instead of trapping, so the extras would silently draw as ` +
-        `sprite ${MAX_SPRITES - 1}`,
+      'the atlas manifest is empty; every sprite index would be out of ' +
+        'range and nothing would draw',
     );
   }
-  const table = new Float32Array(MAX_SPRITES * FLOATS_PER_SPRITE);
+  const table = new Float32Array(SPRITES.length * FLOATS_PER_SPRITE);
   SPRITES.forEach((sprite, index) => {
     const base = index * FLOATS_PER_SPRITE;
     table[base + 0] = sprite.x / ATLAS_WIDTH;
@@ -269,7 +273,7 @@ export class SpriteRenderer {
     const spriteTable = packSpriteTable();
     this.spriteBuffer = gpu.device.createBuffer({
       size: spriteTable.byteLength,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     });
     gpu.device.queue.writeBuffer(this.spriteBuffer, 0, spriteTable);
 

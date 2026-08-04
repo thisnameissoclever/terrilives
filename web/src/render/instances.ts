@@ -55,32 +55,22 @@ export const OFFSET_SPRITE = 3;
  */
 export const KIND_AGENT = 0;
 
-/**
- * The most sprites the atlas may hold, and the length of the `Atlas`
- * uniform array in `sprites.wgsl`.
+/*
+ * `MAX_SPRITES` was here, and is deliberately gone - [ML-sprites].
  *
- * A uniform array in WGSL is fixed-size, so this number lives in two
- * files by necessity. `instances.test.ts` reads the shader as text and
- * fails if they disagree - an over-long atlas would otherwise index past
- * the array, and WGSL **clamps** an out-of-range index rather than
- * trapping, so every sprite past the end would silently draw as the last
- * one in the table.
+ * It capped the atlas at 128 because `sprites.wgsl` held its sprite table
+ * in a fixed-size UNIFORM array, and a fixed-size array in WGSL means the
+ * length lives in two files at once with nothing in either language
+ * connecting them. The cap was also a silent failure rather than a loud
+ * one: WGSL clamps an out-of-range index instead of trapping, so the
+ * first sprite past the end would have drawn as the last one in the
+ * table, forever, with no error from anywhere.
  *
- * **128, raised from 32 when the house went from 8 objects to 33.** The atlas
- * reached 35 sprites, the guard in `packSpriteTable` fired, and the choice was
- * between raising this and splitting the art - which [D10] rules out, because
- * one atlas is what keeps the whole frame a single instanced draw call.
- *
- * Raising it is close to free and the arithmetic is worth writing down: each
- * entry is `FLOATS_PER_SPRITE` = 8 floats = 32 bytes, so the uniform buffer is
- * `MAX_SPRITES * 32` bytes - 4 KiB here, against WebGPU's guaranteed minimum
- * `maxUniformBufferBindingSize` of 64 KiB. Unused entries cost 32 bytes of
- * zeroes each and nothing else: the shader indexes the array rather than
- * iterating it. So the headroom is 2048 sprites before the limit bites, and
- * 128 was picked as the next power of two with real room to grow rather than
- * the smallest number that fits today.
+ * The table is now a runtime-sized array in a storage buffer, so it is
+ * sized by what is actually in it. There is no second copy of a length to
+ * keep in sync and no end to run past. `instances.test.ts` asserts the
+ * cap has not crept back.
  */
-export const MAX_SPRITES = 128;
 
 /**
  * Writes one entity into slot `index` of a packed instance array.

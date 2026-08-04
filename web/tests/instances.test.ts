@@ -3,7 +3,6 @@ import { readFileSync } from 'node:fs';
 import {
   FLOATS_PER_INSTANCE,
   BYTES_PER_INSTANCE,
-  MAX_SPRITES,
   VERTICES_PER_QUAD,
   growCapacity,
   writeInstance,
@@ -105,20 +104,32 @@ describe('sprites.wgsl contract', () => {
     expect(corners![2].match(/vec2f\(/g)?.length).toBe(VERTICES_PER_QUAD);
   });
 
-  it('sizes its sprite table at exactly MAX_SPRITES', () => {
-    // A uniform array in WGSL is fixed-size, so this number genuinely
-    // lives in two files and nothing in either language connects them.
-    // Getting it wrong is not an error anywhere: WGSL CLAMPS an
-    // out-of-range index rather than trapping, so with the shader
-    // declaring fewer than the atlas holds, every sprite past the end
-    // draws as the last one in the table - forever, silently, and only
-    // for the sprites that were added most recently.
-    const declared = shader.match(/const MAX_SPRITES = (\d+)u;/);
-    expect(declared).not.toBeNull();
-    expect(Number(declared![1])).toBe(MAX_SPRITES);
-
-    const used = shader.match(/array<Sprite,\s*MAX_SPRITES>/);
-    expect(used).not.toBeNull();
+  it('sizes its sprite table at runtime rather than capping it', () => {
+    // [ML-sprites]. This used to assert the opposite: a fixed 128-entry
+    // uniform array whose length lived in two files at once, kept equal
+    // by reading the shader as text from here.
+    //
+    // That cap was a silent failure waiting to happen. WGSL CLAMPS an
+    // out-of-range index rather than trapping, so the first sprite past
+    // the end would have drawn as the last one in the table - forever,
+    // with no error, and only for the sprites added most recently. Four
+    // facings per object is enough to reach it.
+    //
+    // A runtime-sized array in a storage buffer has no length to keep in
+    // sync and no end to run past, so what is asserted now is that the
+    // cap has not crept back.
+    expect(
+      shader.includes('array<Sprite>'),
+      'the atlas table must stay runtime-sized',
+    ).toBe(true);
+    expect(
+      shader.includes('var<storage, read> atlas'),
+      'a runtime-sized array is only legal in a storage binding',
+    ).toBe(true);
+    expect(
+      shader.match(/const MAX_SPRITES/),
+      'the fixed cap must not come back without this test being rewritten',
+    ).toBeNull();
   });
 
   it('samples the atlas and discards below the alpha threshold', () => {
