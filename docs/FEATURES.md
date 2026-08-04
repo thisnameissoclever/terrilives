@@ -77,12 +77,33 @@ numbers that live in a generator. The plan is
 was chosen against is `tools/art-prototype/`, which is wired into nothing.
 The first options paper is superseded and kept for the record.
 
-**None of it is built.** The plan's own order matters more than its
-contents: the generator port comes first, then a global ambient tint, which
-is about half a day's work and makes the day/night cycle visible; only then
-is the circadian sleep curve worth tuning, because tuning a sleep schedule
-you cannot see is guesswork. The owner also asked for the day/night cycle
-and sim sleep schedules to be synced to it, which is Part 3 of that spec.
+**Four of its nine items are built.** The generator replaced every sprite
+in the game ([ML-gen]), CI regenerates and diffs the atlas on every push so
+it is a reproducible build output rather than a trusted blob ([ML-ci]), the
+128-sprite cap is gone ([ML-sprites]), and **the day/night cycle is live**
+([ML-ambient]) - the world tints with the simulation clock, and reduced
+motion pins it to noon.
+
+**The circadian rhythm is built and switched off**, which is a deliberate
+state rather than an unfinished one. Schema, validation, curve, tests,
+chronotype offsets, `sleep` tags and the selection multiplier all ship;
+`content/tuning.toml` carries the `[circadian]` block commented out.
+Turning it on needs the measured run [ML-feel] requires, because the first
+draft's curve had the household asleep enough to starve an unrelated test
+fixture of kitchen activity. That is the drive overpowering the needs
+rather than weighting them, and it is a tuning question, not a code one.
+
+**Still unbuilt:** per-instance tint ([ML-tint]) and the per-sim colour it
+unlocks ([ML-chars]), light pools ([ML-pools]), and walls on tile edges
+([B7]). Until [ML-tint] lands the household is three identical people.
+
+One finding from building it constrains every future content change:
+`ci.yml` runs `cargo mutants --timeout 60`, and that timeout bounds each
+mutant's WHOLE workspace test run. A shipped content change that materially
+slows the simulation therefore has to be measured against that ceiling
+rather than against the wall clock - the circadian curve's first draft
+pushed one save test from 10 s to 39 s, which would have turned a large
+share of mutants into spurious timeouts.
 
 Three findings from the plan are worth carrying here because they change
 what the renderer work costs. The whole lighting rig fits inside the

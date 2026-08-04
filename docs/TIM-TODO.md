@@ -111,11 +111,20 @@ Direction is agreed. What needs your sign-off is the craft guidance in
 FEATURES.md: **satirize institutional form rather than named people or parties,
 and prefer evergreen absurdity over current events.** Confirm or overrule.
 
-### [T-design-language] Pick the design language - DECIDED 2026-08-03
+### [T-design-language] Pick the design language - DECIDED AND SHIPPING
 
-**Muted Line.** The implementation plan is
-`docs/specs/2026-08-03-muted-line-implementation.md`; the prototype the
-choice was made against is `tools/art-prototype/`, wired into nothing.
+**Muted Line, and it is in the running game.** Every sprite is drawn by
+`assets/sprites/gen/` and the world tints with the clock. The plan and its
+current state are in `docs/specs/2026-08-03-muted-line-implementation.md`;
+the prototype the choice was made against is `tools/art-prototype/`, wired
+into nothing.
+
+**One thing needs you, and it is small.** The circadian rhythm is built and
+switched off: `content/tuning.toml` carries the `[circadian]` block
+commented out because the CURVE is not tuned, and tuning it wants a watched
+run rather than another guess from me. Uncommenting it turns on sims
+sleeping at night; the numbers beside it are a first draft, not a
+recommendation.
 
 The first paper's five options were rejected whole, and correctly: each one
 restyled the existing sprites, and a grade over borrowed art is still
