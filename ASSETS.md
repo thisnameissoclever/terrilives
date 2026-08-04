@@ -11,8 +11,8 @@ is fine inside a compiled build and a violation inside git. See TECH_STACK.md.
 ## There are no third-party visual assets
 
 **As of 2026-08-03 this project ships no borrowed art.** Every sprite in
-`assets/sprites/atlas.png` is drawn from primitives by `assets/sprites/gen/`,
-so the atlas is a build output rather than a derived work.
+`web/public/atlas.png` is drawn from primitives by `assets/sprites/gen/`, so
+the atlas is a build output rather than a derived work.
 
 That is a licensing simplification as much as an artistic one. No attribution
 to carry, no source archive to keep out of git, no question about which pack a
@@ -58,6 +58,15 @@ a live entry again.
 | `iso.py` | The projection, the box/slab/cylinder primitives, and the anchoring rule. |
 | `objects.py` | All 48 sprites, and the name contract they satisfy. |
 | `build.py` | Packs the sheet and writes all three output files. |
+
+**The image and the manifest live apart, on purpose.** The PNG is in
+`web/public/` so the dev server, `preview` and the production build all serve
+it from the app's own origin at a plain relative URL. It used to sit beside
+the manifest in `assets/` and be pulled in by a TypeScript import from outside
+the Vite root, which makes Vite serve it through `/@fs/<absolute path>` - a
+dev-only mechanism that bakes the developer's filesystem layout into a URL and
+needs `server.fs.allow` opened up. The manifest stays in `assets/` because
+terri-data's build script reads it, and nothing in Rust ever reads the image.
 
 ```sh
 python3 assets/sprites/gen/build.py            # write
@@ -122,7 +131,7 @@ were wrong in the game:
 
 | file | read by |
 | --- | --- |
-| `assets/sprites/atlas.png` | the renderer, as one texture |
+| `web/public/atlas.png` | the renderer, as one texture |
 | `assets/sprites/atlas.toml` | `terri-data`'s build script, to validate every object's `sprite` and resolve it to an index |
 | `web/src/render/atlas.ts` | the renderer, for the rects |
 

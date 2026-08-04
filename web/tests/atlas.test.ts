@@ -114,7 +114,12 @@ describe('the atlas manifest', () => {
     // an 8-byte signature and then the IHDR chunk, whose width and height are
     // big-endian u32s at byte offsets 16 and 20. No image decoder needed, and
     // nothing to add to the dependency list for one assertion.
-    const png = readFileSync('../assets/sprites/atlas.png');
+    // `public/`, not `assets/`. The image moved under the Vite root so the
+    // dev server, `preview` and the build all serve it from the app's own
+    // origin; importing it from outside the root made Vite hand out a
+    // dev-only `/@fs/<absolute path>` URL. The MANIFEST stays in `assets/`,
+    // because terri-data's build script reads it.
+    const png = readFileSync('public/atlas.png');
     expect(
       png.subarray(1, 4).toString('ascii'),
       'the file must actually be a PNG for the offsets below to mean anything',

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build assets/sprites/atlas.png and its two manifests.
+"""Build the sprite atlas and its two manifests.
 
 Replaces build-atlas.ps1, which was Windows-only System.Drawing and which
 CI therefore never ran, so the committed atlas was a blob nobody could
@@ -31,7 +31,21 @@ from iso import canvas, emit                                    # noqa: E402
 from style import TILE_HALF_WIDTH, TILE_HALF_HEIGHT             # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-ATLAS_PNG = os.path.join(ROOT, "assets", "sprites", "atlas.png")
+# The PNG lives under the Vite root, in `web/public/`, so the dev server,
+# `preview`, and the production build all serve it from the app's own origin
+# at a plain relative URL.
+#
+# It used to sit beside the manifest in `assets/` and be pulled in by a
+# TypeScript `import` from outside the root. Vite serves that through
+# `/@fs/<absolute path>`, which is dev-server-only, embeds the developer's
+# filesystem layout in a URL, and needs `server.fs.allow` opened up. On a
+# Windows checkout the URL becomes `/@fs/D:/...`, and when anything goes
+# wrong with it the game dies on `TypeError: Failed to fetch` with no clue
+# which of the several moving parts failed.
+#
+# The manifest stays in `assets/` because terri-data's build script reads
+# it; nothing in Rust ever reads the image.
+ATLAS_PNG = os.path.join(ROOT, "web", "public", "atlas.png")
 ATLAS_TOML = os.path.join(ROOT, "assets", "sprites", "atlas.toml")
 ATLAS_TS = os.path.join(ROOT, "web", "src", "render", "atlas.ts")
 

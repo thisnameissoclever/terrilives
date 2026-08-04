@@ -1,6 +1,5 @@
 /// <reference types="vite/client" />
 
-import atlasImageUrl from '../../../assets/sprites/atlas.png';
 import { ATLAS_HEIGHT, ATLAS_WIDTH, SPRITES } from './atlas.js';
 import type { GpuContext } from './device.js';
 import {
@@ -60,9 +59,28 @@ function packSpriteTable(): Float32Array<ArrayBuffer> {
  * an amount too small to notice and too consistent to explain.
  */
 async function loadAtlasTexture(device: GPUDevice): Promise<GPUTexture> {
-  const response = await fetch(atlasImageUrl);
+  // `web/public/atlas.png`, served at the app's own base. Not a bundler
+  // import: the atlas is a build output of the whole project, and importing
+  // it from outside the Vite root made the dev server hand out a
+  // `/@fs/<absolute path>` URL that exists only in dev.
+  const url = `${import.meta.env.BASE_URL}atlas.png`;
+  let response: Response;
+  try {
+    response = await fetch(url);
+  } catch (cause) {
+    // A bare `TypeError: Failed to fetch` names neither the URL nor the
+    // reason, and the two reasons need opposite fixes: the dev server is
+    // not running, or the file is not where the build put it.
+    throw new Error(
+      `could not reach the sprite atlas at ${url} - if this is the dev ` +
+        `server, check it is still running and reachable from this device`,
+      { cause },
+    );
+  }
   if (!response.ok) {
-    throw new Error(`could not fetch the sprite atlas: ${response.status}`);
+    throw new Error(
+      `the sprite atlas at ${url} returned ${response.status}`,
+    );
   }
   const bitmap = await createImageBitmap(await response.blob(), {
     premultiplyAlpha: 'none',
