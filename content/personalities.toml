@@ -41,6 +41,13 @@
 # house's biggest fun-dispenser stays available for everyone else.
 [[archetype]]
 id = "the_correspondent"
+# Where this archetype samples the circadian curve, in ticks - [ML-chrono].
+# Terri is up before the others: 90 ticks is an hour and a half early.
+#
+# This one number is what stops the household going to bed on the same
+# tick, which reads as a screensaver rather than as a home. It is the
+# highest-value line in the whole circadian feature.
+chronotype_offset_ticks = -90
 drain = { fun = 1.3, comfort = 0.7 }
 satisfaction = { fun = 0.85, energy = 1.15 }
 
@@ -98,6 +105,9 @@ satisfaction = { fun = 0.85, energy = 1.15 }
 # The 0.45 on the desk is the same fact from the other side.
 [[archetype]]
 id = "the_settled"
+# Doug keeps ordinary hours, and 0 is what every archetype had before
+# chronotypes existed.
+chronotype_offset_ticks = 0
 drain = { comfort = 1.5, energy = 0.8 }
 satisfaction = { comfort = 1.25 }
 
@@ -138,6 +148,9 @@ satisfaction = { comfort = 1.25 }
 # pins near zero that is [C2] and the number to soften is the 1.4.
 [[archetype]]
 id = "the_flitting"
+# Nadia is a night owl: three hours later than the curve's nominal shape,
+# so she is still up when the other two have gone to bed.
+chronotype_offset_ticks = 180
 drain = { social = 1.4, hygiene = 0.9 }
 satisfaction = { social = 0.75, hunger = 1.1 }
 

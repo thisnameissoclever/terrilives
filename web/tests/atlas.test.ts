@@ -6,12 +6,11 @@ import {
   SPRITES,
   spriteIndex,
 } from '../src/render/atlas.js';
-import { MAX_SPRITES } from '../src/render/instances.js';
 
 // The atlas manifest exists TWICE: `assets/sprites/atlas.toml`, which
 // `terri-data`'s build script validates content against and resolves
 // sprite names to indices with, and `web/src/render/atlas.ts`, which the
-// renderer reads the rects out of. `build-atlas.ps1` writes both in one
+// renderer reads the rects out of. `gen/build.py` writes both in one
 // pass from one list, so they cannot disagree unless somebody edits one
 // by hand - and if they ever did, every object in the game would draw as
 // the wrong picture with nothing raising an error, because both sides
@@ -114,7 +113,12 @@ describe('the atlas manifest', () => {
     // an 8-byte signature and then the IHDR chunk, whose width and height are
     // big-endian u32s at byte offsets 16 and 20. No image decoder needed, and
     // nothing to add to the dependency list for one assertion.
-    const png = readFileSync('../assets/sprites/atlas.png');
+    // `public/`, not `assets/`. The image moved under the Vite root so the
+    // dev server, `preview` and the build all serve it from the app's own
+    // origin; importing it from outside the root made Vite hand out a
+    // dev-only `/@fs/<absolute path>` URL. The MANIFEST stays in `assets/`,
+    // because terri-data's build script reads it.
+    const png = readFileSync('public/atlas.png');
     expect(
       png.subarray(1, 4).toString('ascii'),
       'the file must actually be a PNG for the offsets below to mean anything',
@@ -156,13 +160,17 @@ describe('the atlas manifest', () => {
     expect(checked).toBe(SPRITES.length);
   });
 
-  it('fits the fixed-size uniform array the shader declares', () => {
-    // WGSL clamps an out-of-range uniform-array index instead of
-    // trapping, so an atlas longer than MAX_SPRITES would draw every
-    // sprite past the end as the last one in the table, with no error.
-    // `sprites.ts` throws at start-up on this; here it fails in CI, which
-    // has no GPU and would otherwise never see it.
-    expect(SPRITES.length).toBeLessThanOrEqual(MAX_SPRITES);
+  it('is not empty, which is the one size the shader cannot take', () => {
+    // The atlas used to have a fixed 128-entry ceiling to fit under; it
+    // does not any more ([ML-sprites], a runtime-sized storage array), so
+    // the only illegal length left is zero. A zero-length storage buffer
+    // is invalid in WebGPU, and an empty manifest means every sprite
+    // index is out of range and nothing draws at all.
+    //
+    // `sprites.ts` throws at start-up on this; asserting it here catches
+    // it in CI, which has no GPU and would otherwise never reach that
+    // code path.
+    expect(SPRITES.length).toBeGreaterThan(0);
   });
 
   it('returns each sprite its own index', () => {

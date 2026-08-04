@@ -1,17 +1,17 @@
 /// <reference types="vite/client" />
 
-import atlasImageUrl from '../../../assets/sprites/atlas.png';
 import { ATLAS_HEIGHT, ATLAS_WIDTH, SPRITES } from './atlas.js';
 import type { GpuContext } from './device.js';
 import {
   BYTES_PER_INSTANCE,
   FLOATS_PER_INSTANCE,
-  MAX_SPRITES,
+  TINT_ATTRIBUTE_OFFSET,
   VERTICES_PER_QUAD,
   growCapacity,
   type InstanceArray,
 } from './instances.js';
 import { TILE_HALF_HEIGHT } from './iso.js';
+import { AMBIENT_NEUTRAL, type Ambient } from './daylight.js';
 import shaderSource from './sprites.wgsl?raw';
 
 const INITIAL_CAPACITY = 4096;
@@ -28,15 +28,20 @@ const FLOATS_PER_SPRITE = 8;
  * sprite's extent in the atlas and its extent on screen.
  */
 function packSpriteTable(): Float32Array<ArrayBuffer> {
-  if (SPRITES.length > MAX_SPRITES) {
+  // Sized by what the atlas holds. There is no cap to check against any
+  // more: the shader's array is runtime-sized, so an atlas of any length
+  // indexes correctly rather than clamping past the end.
+  //
+  // A storage buffer of length zero is invalid in WebGPU, and an empty
+  // atlas is a build mistake rather than a state to render, so it is
+  // rejected here where the message can say so.
+  if (SPRITES.length === 0) {
     throw new Error(
-      `the atlas holds ${SPRITES.length} sprites and sprites.wgsl declares ` +
-        `room for ${MAX_SPRITES}; WGSL clamps an out-of-range uniform array ` +
-        `index instead of trapping, so the extras would silently draw as ` +
-        `sprite ${MAX_SPRITES - 1}`,
+      'the atlas manifest is empty; every sprite index would be out of ' +
+        'range and nothing would draw',
     );
   }
-  const table = new Float32Array(MAX_SPRITES * FLOATS_PER_SPRITE);
+  const table = new Float32Array(SPRITES.length * FLOATS_PER_SPRITE);
   SPRITES.forEach((sprite, index) => {
     const base = index * FLOATS_PER_SPRITE;
     table[base + 0] = sprite.x / ATLAS_WIDTH;
@@ -60,9 +65,28 @@ function packSpriteTable(): Float32Array<ArrayBuffer> {
  * an amount too small to notice and too consistent to explain.
  */
 async function loadAtlasTexture(device: GPUDevice): Promise<GPUTexture> {
-  const response = await fetch(atlasImageUrl);
+  // `web/public/atlas.png`, served at the app's own base. Not a bundler
+  // import: the atlas is a build output of the whole project, and importing
+  // it from outside the Vite root made the dev server hand out a
+  // `/@fs/<absolute path>` URL that exists only in dev.
+  const url = `${import.meta.env.BASE_URL}atlas.png`;
+  let response: Response;
+  try {
+    response = await fetch(url);
+  } catch (cause) {
+    // A bare `TypeError: Failed to fetch` names neither the URL nor the
+    // reason, and the two reasons need opposite fixes: the dev server is
+    // not running, or the file is not where the build put it.
+    throw new Error(
+      `could not reach the sprite atlas at ${url} - if this is the dev ` +
+        `server, check it is still running and reachable from this device`,
+      { cause },
+    );
+  }
   if (!response.ok) {
-    throw new Error(`could not fetch the sprite atlas: ${response.status}`);
+    throw new Error(
+      `the sprite atlas at ${url} returned ${response.status}`,
+    );
   }
   const bitmap = await createImageBitmap(await response.blob(), {
     premultiplyAlpha: 'none',
@@ -155,6 +179,13 @@ export class SpriteRenderer {
     0,
     0,
     0,
+    // The ambient tint, floats 8 to 11 (byte offset 32). Neutral until a
+    // caller passes an hour, so a renderer driven without one looks the
+    // same as it did before the cycle existed rather than black.
+    1,
+    1,
+    1,
+    1,
   ]);
 
   /**
@@ -185,7 +216,20 @@ export class SpriteRenderer {
           {
             arrayStride: BYTES_PER_INSTANCE,
             stepMode: 'instance',
-            attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x4' }],
+            attributes: [
+              { shaderLocation: 0, offset: 0, format: 'float32x4' },
+              // [ML-tint]. One buffer, two attributes, interleaved -
+              // not a second vertex buffer. Both halves belong to the
+              // same instance and are written together by
+              // `writeInstance`, so splitting them across buffers would
+              // mean two uploads and two chances for the counts to
+              // disagree, for nothing.
+              {
+                shaderLocation: 1,
+                offset: TINT_ATTRIBUTE_OFFSET,
+                format: 'float32x4',
+              },
+            ],
           },
         ],
       },
@@ -230,10 +274,11 @@ export class SpriteRenderer {
     });
 
     this.uniformBuffer = gpu.device.createBuffer({
-      // 32: viewport, anchor, then the camera scale padded to the
-      // 16-byte uniform stride. Must match `uniformData` above and
-      // `struct Uniforms` in sprites.wgsl.
-      size: 32,
+      // 48: viewport, anchor, the camera scale padded to the 16-byte
+      // uniform stride, then the ambient tint. Must match `uniformData`
+      // above and `struct Uniforms` in sprites.wgsl. Too SMALL and WebGPU
+      // rejects the bind group; too large is merely wasted.
+      size: 48,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
 
@@ -242,7 +287,7 @@ export class SpriteRenderer {
     const spriteTable = packSpriteTable();
     this.spriteBuffer = gpu.device.createBuffer({
       size: spriteTable.byteLength,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     });
     gpu.device.queue.writeBuffer(this.spriteBuffer, 0, spriteTable);
 
@@ -339,7 +384,18 @@ export class SpriteRenderer {
     return this.depthTexture;
   }
 
-  draw(instances: InstanceArray, count: number, scale = 1): void {
+  /**
+   * @param ambient The hour of day as an rgba multiplier, from
+   *   `ambientFor` in daylight.ts. Defaults to neutral, so a caller that
+   *   does not care about the clock gets the pre-cycle appearance rather
+   *   than an unlit world.
+   */
+  draw(
+    instances: InstanceArray,
+    count: number,
+    scale = 1,
+    ambient: Ambient = AMBIENT_NEUTRAL,
+  ): void {
     const total = this.staticCount + count;
     if (total === 0) return;
     this.ensureCapacity(total);
@@ -348,6 +404,10 @@ export class SpriteRenderer {
     this.uniformData[0] = canvas.width;
     this.uniformData[1] = canvas.height;
     this.uniformData[4] = scale;
+    this.uniformData[8] = ambient[0];
+    this.uniformData[9] = ambient[1];
+    this.uniformData[10] = ambient[2];
+    this.uniformData[11] = ambient[3];
     this.gpu.device.queue.writeBuffer(this.uniformBuffer, 0, this.uniformData);
     if (count > 0) {
       // dataOffset and size are in elements for a TypedArray source, so

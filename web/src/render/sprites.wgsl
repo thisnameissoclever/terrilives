@@ -7,23 +7,29 @@
 // fills it every frame, and with tiles.ts, which fills it once at load.
 // Reordering the components here without reordering them there draws
 // every entity at the wrong depth as the wrong sprite, silently.
+//
+// @location(0) instance:
 //   x = screen x in pixels
 //   y = screen y in pixels
 //   z = depth in [0, 1]
 //   w = index into the sprite table below
 //
+// @location(1) tint - [ML-tint]:
+//   xyz = a colour every fragment of this instance is multiplied by
+//   w   = EMISSIVE, and it is not alpha. How far this instance ignores
+//         the time of day: 0 is fully lit by u.ambient, 1 resists it
+//         completely. A lamp that dimmed as night fell would be exactly
+//         backwards, and that is what this component is for.
+//
+// Not alpha for a mechanical reason as well as a naming one: the
+// fragment shader alpha-TESTS at 0.5 and writes depth, so anything
+// scaling alpha would move the discard threshold and erode every sprite
+// edge as the light changed.
+//
 // One atlas is what keeps [D10]'s single instanced draw call: every
 // sprite in the game is the same texture and the same pipeline, so the
 // whole frame is one `draw`. Splitting the art across two textures would
 // cost a second draw and a second submit.
-
-// Must equal MAX_SPRITES in instances.ts. A uniform array in WGSL is
-// fixed-size, so the number genuinely lives in two files, and
-// instances.test.ts reads this one as text to keep them equal. WGSL
-// CLAMPS an out-of-range index rather than trapping, so an atlas longer
-// than this would draw every sprite past the end as the last one in the
-// table, with no error from anywhere.
-const MAX_SPRITES = 128u;
 
 struct Uniforms {
   viewport: vec2<f32>,
@@ -35,13 +41,22 @@ struct Uniforms {
   // every zoom.
   anchor: vec2<f32>,
   // The camera zoom in x; yzw are padding to the 16-byte uniform
-  // stride, so the buffer is 32 bytes with the scale at offset 16.
+  // stride, so the scale sits at offset 16 and `ambient` at 32.
   //
   // Instance POSITIONS arrive already scaled - `screenX`/`screenY` bake
   // the zoom into the world term on the CPU, for statics and entities
   // alike - so the shader's share is the sprite's SIZE and the anchor.
   // Scaling positions here as well would zoom twice.
   scale: vec4<f32>,
+  // The hour of day, as a colour every fragment is multiplied by. See
+  // web/src/render/daylight.ts and [ML-ambient].
+  //
+  // A whole day/night cycle for one uniform and one multiply: no second
+  // pass, no per-instance data, and [D10]'s one draw and one submit per
+  // frame are untouched. The obvious alternative - a screen-space grade
+  // over an offscreen texture - costs a second render pass and would
+  // make every number in docs/gpu-verification.md need re-measuring.
+  ambient: vec4<f32>,
 };
 
 struct Sprite {
@@ -54,18 +69,36 @@ struct Sprite {
   size: vec4<f32>,
 };
 
+// A RUNTIME-SIZED array in a storage buffer, not a fixed-size uniform one.
+//
+// The uniform version carried a hard 128-entry cap that lived in two
+// files at once - here and in instances.ts - kept equal by a test that
+// read this file as text. That cap was a silent failure waiting to
+// happen: WGSL CLAMPS an out-of-range index rather than trapping, so the
+// first sprite past the end would have drawn as the last one in the
+// table with no error from anywhere, and four facings per object is
+// enough to reach it.
+//
+// A storage buffer is sized by what is actually in it, so the cap and
+// the duplicated constant are both simply gone. The cost is a storage
+// binding rather than a uniform one, which on this read-only path is
+// nothing: same bind group, same pipeline, same single draw call.
 struct Atlas {
-  sprites: array<Sprite, MAX_SPRITES>,
+  sprites: array<Sprite>,
 };
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
-@group(0) @binding(1) var<uniform> atlas: Atlas;
+@group(0) @binding(1) var<storage, read> atlas: Atlas;
 @group(0) @binding(2) var atlasSampler: sampler;
 @group(0) @binding(3) var atlasTexture: texture_2d<f32>;
 
 struct VertexOut {
   @builtin(position) clip: vec4<f32>,
   @location(0) uv: vec2<f32>,
+  // Passed straight through. Every vertex of one quad carries the same
+  // value, so the interpolation across the triangle is a no-op and the
+  // fragment reads exactly what the instance packed.
+  @location(1) tint: vec4<f32>,
 };
 
 // Two triangles forming a unit quad with its origin at the top left. The
@@ -81,6 +114,7 @@ const CORNERS = array<vec2<f32>, 6>(
 fn vs(
   @builtin(vertex_index) vi: u32,
   @location(0) instance: vec4<f32>,
+  @location(1) tint: vec4<f32>,
 ) -> VertexOut {
   let sprite = atlas.sprites[u32(instance.w)];
   let corner = CORNERS[vi];
@@ -104,6 +138,7 @@ fn vs(
   var out: VertexOut;
   out.clip = vec4f(clipXy, instance.z, 1.0);
   out.uv = mix(sprite.uv.xy, sprite.uv.zw, corner);
+  out.tint = tint;
   return out;
 }
 
@@ -125,5 +160,16 @@ fn fs(in: VertexOut) -> @location(0) vec4<f32> {
   if (colour.a < 0.5) {
     discard;
   }
-  return colour;
+  // AFTER the alpha test, deliberately. Tinting before it would scale
+  // alpha along with the colour and make the discard threshold move with
+  // the time of day, so sprite edges would erode as night fell.
+  //
+  // The instance's emissive lifts THIS instance's share of the ambient
+  // back toward white, so a lamp at midnight keeps its own colour while
+  // the wall behind it goes blue. One `mix` and one multiply, on
+  // per-instance data the vertex stage already carries: no second pass,
+  // no second pipeline, and [D10]'s one draw and one submit per frame
+  // are untouched.
+  let lit = mix(u.ambient.rgb, vec3f(1.0), in.tint.w);
+  return vec4f(colour.rgb * in.tint.rgb * lit, colour.a);
 }

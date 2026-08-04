@@ -1,4 +1,5 @@
 use bevy_ecs::prelude::*;
+use terri_core::clock::SimClock;
 use terri_core::{
     Agent, Blocked, Eating, Habituation, IntentQueue, NeedId, Needs, Path, Personality, Position,
     Relationships, Reserved, Restless, SimId, SimRng, SmartObject, Socialising, Target, TileGrid,
@@ -682,11 +683,20 @@ fn contested_score(score: f32, multiplier: f32) -> f32 {
 /// busy agents out of selection is exactly what pushes the query type
 /// past clippy's threshold, and a type alias would only move the same
 /// type somewhere less readable.
-#[allow(clippy::type_complexity)]
+// Eight parameters, one over clippy's default. The eighth is the clock,
+// and it is here rather than threaded through a struct because a bevy_ecs
+// system's parameters ARE its dependency declaration: bundling them would
+// hide from the scheduler which resources this system reads.
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub fn select_action(
     mut commands: Commands,
     grid: Res<TileGrid>,
     content: Res<Content>,
+    // The hour, for the circadian sleep drive ([ML-tag]). Selection is
+    // the only place it is read: the drive weighs a CHOICE, so it belongs
+    // beside the other multipliers rather than anywhere near the need
+    // decay that makes a sim tired in the first place.
+    clock: Res<SimClock>,
     mut rng: ResMut<SimRng>,
     agents: Query<
         (
@@ -1126,11 +1136,26 @@ pub fn select_action(
                 // every couch-shaped route, beside the archetype
                 // dispositions keyed by (object, interaction). Two
                 // lookup keys, one slot.
+                // The FIFTH source into the one multiplier ([S4]): the
+                // circadian sleep drive, keyed by TAG like the trait
+                // dispositions beside it, and per-sim through the
+                // chronotype offset so the household does not go to bed
+                // on the same tick.
+                //
+                // It scales BENEFITS only, like every other source, and
+                // for the same reason: a sim who is not sleepy yet still
+                // pays the full walk to the bedroom.
                 let scale = benefit_scale(hab, content.0.tuning.habituation_floor)
                     * personality.disposition(placed.0, index as u32)
                     * super::trait_effects::disposition_multiplier(
                         traits.as_ref(),
                         content.0,
+                        &advert.tags,
+                    )
+                    * super::circadian::sleep_drive(
+                        content.0,
+                        &clock,
+                        personality.chronotype_offset_ticks,
                         &advert.tags,
                     );
                 let mut score = 0.0;
@@ -4730,11 +4755,13 @@ mod personality_choice_tests {
     //! `a_disposition_reads_back_by_its_own_key_and_unlisted_reads_neutral`
     //! in terri-core is what covers both halves of the key.
 
+    use super::tests::DECISIVE_TEMPERATURE;
     use crate::test_content;
     use terri_core::{
         Agent, NeedId, Needs, ObjectDefId, Personality, Position, SmartObject, Target, NEED_COUNT,
         NEED_MAX,
     };
+    use terri_data::{CompiledObject, ContentPack, Tuning};
 
     /// Two objects with IDENTICAL adverts and durations, equidistant. An
     /// EXACT tie is not broken by any rule: `select_action` deleted its
@@ -4912,6 +4939,103 @@ mod personality_choice_tests {
             "energy is worth double to this sim, so the bed must beat the \
              equidistant, equally-urgent fridge - and beat the tie coin \
              that the baseline above shows falls the other way"
+        );
+    }
+
+    /// **The circadian sleep drive steers choice by the HOUR**, which is
+    /// the one thing the need system cannot do: energy knows how tired a
+    /// sim is and nothing in it knows what time it is.
+    ///
+    /// Two objects feeding the same need by the same amount at the same
+    /// distance, one of them tagged for sleeping. Without a rhythm they
+    /// tie and the seeded coin decides; with one, the tagged candidate
+    /// has to win.
+    ///
+    /// This is also the only test that can see the fifth factor's
+    /// OPERATOR. The shipped `[circadian]` table is commented out, so in
+    /// every other fixture in the suite the drive is exactly 1.0 - and
+    /// `x * 1.0` and `x / 1.0` are the same number. A mutation sweep found
+    /// that hole before a player would have: the multiply could have been
+    /// a divide for as long as the table stayed off, and turned every
+    /// authored night-time preference into a night-time aversion on the
+    /// day it was switched on.
+    #[test]
+    fn the_sleep_drive_steers_choice_toward_the_object_tagged_for_it() {
+        fn tagged_bed() -> CompiledObject {
+            let mut sleeping = test_content::interaction("use_it", &[(NeedId::Energy, 40.0)], 15);
+            sleeping.tags = vec!["sleep".to_string()];
+            test_content::object_offering("bed", vec![sleeping])
+        }
+        fn objects() -> Vec<CompiledObject> {
+            vec![
+                test_content::object("couch", &[(NeedId::Energy, 40.0)], 15),
+                tagged_bed(),
+            ]
+        }
+        // Decisive, so the assertions below are about scoring rather than
+        // about one roll of the dice - the same reasoning, and the same
+        // two knobs, as every other golden-winner fixture here.
+        fn knobs() -> Tuning {
+            Tuning {
+                choice_temperature: DECISIVE_TEMPERATURE,
+                duration_variance: 0.0,
+                ..test_content::tuning()
+            }
+        }
+
+        let picks_bed = |content: &'static ContentPack| -> bool {
+            let mut sim = test_content::sim_with(16, 16, content);
+            let couch = sim
+                .world_mut()
+                .spawn((Position { x: 5.0, y: 8.0 }, SmartObject(ObjectDefId(0))))
+                .id();
+            let bed = sim
+                .world_mut()
+                .spawn((Position { x: 11.0, y: 8.0 }, SmartObject(ObjectDefId(1))))
+                .id();
+            let mut needs = Needs::all_at(NEED_MAX);
+            needs.set(NeedId::Energy, 20.0);
+            let agent = sim
+                .world_mut()
+                .spawn((Agent, Position { x: 8.0, y: 8.0 }, needs))
+                .id();
+            for _ in 0..40 {
+                sim.tick();
+                if let Some(target) = sim.world().get::<Target>(agent) {
+                    if target.object == bed {
+                        return true;
+                    }
+                    if target.object == couch {
+                        return false;
+                    }
+                }
+            }
+            panic!("the sim never chose anything");
+        };
+
+        // The measured baseline. Without it, "the rhythm won" cannot be
+        // told apart from "the coin landed on the bed anyway".
+        assert!(
+            !picks_bed(test_content::pack_tuned(objects(), knobs())),
+            "with no rhythm the two candidates tie and the shipped seed's \
+             coin must land on the couch; if a seed change moves this, the \
+             case below needs a new baseline, not deletion"
+        );
+
+        // The clock starts at midnight and the sim decides within a few
+        // ticks, so it reads the top of this curve: a bed worth roughly
+        // four times its bare advert, against a couch worth exactly it.
+        let nocturnal = test_content::pack_with_circadian(
+            objects(),
+            knobs(),
+            "sleep",
+            vec![(0, 4.0), (720, 0.25)],
+        );
+        assert!(
+            picks_bed(nocturnal),
+            "at midnight the sleep-tagged bed must beat the equidistant, \
+             equally-urgent couch - and beat the tie coin the baseline \
+             above shows falls the other way"
         );
     }
 }

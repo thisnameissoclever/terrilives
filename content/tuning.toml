@@ -1,3 +1,4 @@
+
 # Every knob that governs the SYSTEM lives here. Values describing a
 # specific piece of content - a fridge's hunger delta - stay in
 # objects.toml. This split is deliberate and permanent: a designer
@@ -626,3 +627,75 @@ fun = 0.048
 # an alarm, and social is meant to stay under-served until sims can satisfy
 # each other.
 comfort = 0.032
+
+# ---------------------------------------------------------------------------
+# THE CIRCADIAN RHYTHM IS BUILT AND SWITCHED OFF - [ML-curve], [ML-chrono].
+# ---------------------------------------------------------------------------
+#
+# Every part of the mechanism ships: the schema, the compile-time
+# validation, the curve and its tests in `systems/circadian.rs`, the
+# per-sim chronotype offsets in personalities.toml, the `sleep` tags on
+# both beds, and the multiplier composed into selection beside the trait
+# dispositions. Uncommenting the block below is the only thing between
+# here and sims that go to bed at night.
+#
+# It is off because the CURVE is not tuned, and turning it on with an
+# untuned curve is exactly the failure this project has written down
+# twice. [ML-feel] in the spec requires a measured seven-sim-day run
+# before the shape is trusted, and the first draft proved why: at a
+# 6.4x peak-to-trough swing the household slept so much that
+# `save.rs`'s fixture could no longer get anyone to habituate to a
+# kitchen chain row in 3 000 ticks, and needed 12 000 to see one. That
+# is the drive overpowering the needs rather than weighting them.
+#
+# Softening it to 2.5x helped and did not settle it, and the honest
+# reading is that the number wants a feel run rather than another guess.
+# Widening the fixture instead is not available: `--timeout 60` bounds
+# each mutant's whole workspace test run, and that one test alone went
+# from 10 s to 39 s.
+#
+# So the mechanism lands reviewable and inert, and the tuning is a
+# separate, measured piece of work. A milestone whose payoff has not
+# been watched does not get quietly ticked.
+#
+# The circadian rhythm - [ML-curve] and [ML-tag] in
+# docs/specs/2026-08-03-muted-line-implementation.md.
+#
+# WHY this exists at all: energy says how TIRED a sim is and nothing in it
+# knows what time it is, so a bed looks identical at 14:00 and at 23:00 to
+# a sim of the same tiredness. Without a drive, sims sleep whenever energy
+# happens to bottom out, and over a few days that drifts through every
+# hour of the clock - a house full of shift workers.
+#
+# The multiplier scales the BENEFIT of a sleep-tagged interaction, so it
+# makes a bed more or less ATTRACTIVE rather than making anyone more or
+# less tired. A sim who is exhausted at noon still goes to bed; a sim who
+# is merely tired at 23:00 now does too, and that second one is the whole
+# feature.
+#
+# `sleep_drive` is (tick, multiplier), interpolated linearly and wrapping
+# from the last point back to the first. 60 ticks is a sim-hour, so 420 is
+# 07:00 and 1320 is 22:00. The compile step rejects points that are
+# unsorted, duplicated, outside the day, or negative - all four of which
+# would interpolate to something plausible-looking and wrong rather than
+# failing.
+# [circadian]
+# sleep_tag = "sleep"
+#
+# The peak-to-trough ratio is deliberately modest at 2.5x. The first
+# draft ran 1.60 down to 0.25 - a 6.4x swing - and it was measurably too
+# strong: the household spent so much of the day asleep that the save
+# fixture in `save.rs` could no longer get anyone to habituate to a
+# kitchen chain row inside 3 000 ticks, and needed 12 000 to see one.
+# That is the drive overpowering the needs rather than weighting them.
+#
+# A rhythm is a THUMB ON THE SCALE, not a schedule. A sim who is
+# exhausted at noon must still go to bed, and at 6.4x an early-morning
+# sim would refuse one no matter how tired.
+# sleep_drive = [
+#   [0, 1.35],     # 00:00 - the middle of the night, bed is the obvious call
+#   [300, 1.25],   # 05:00 - still night
+#   [420, 0.55],   # 07:00 - morning: bed has to beat everything else going
+#   [1020, 0.80],  # 17:00 - early evening, becoming reasonable again
+#   [1320, 1.30],  # 22:00 - bedtime
+# ]

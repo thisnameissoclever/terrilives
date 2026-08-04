@@ -40,7 +40,7 @@ export const TILE_HALF_WIDTH = 32;
  * **Do not measure this off the floor sprite**, which gives 0.72: it is a slab
  * with visible side faces, so its widest scanline sits below the top face's
  * midline. That measurement is where the old "Kenney is about 1.42:1" note in
- * `assets/sprites/build-atlas.ps1` came from.
+ * `assets/sprites/gen/` came from.
  *
  * Changing either constant alone re-pitches the camera and invalidates every
  * asset authored against it - which is exactly what happened here, in reverse:

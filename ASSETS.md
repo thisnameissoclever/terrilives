@@ -8,99 +8,150 @@ retroactively and cheap to record now.
 content is not** - those licences generally forbid redistributing source, which
 is fine inside a compiled build and a violation inside git. See TECH_STACK.md.
 
-## Kenney Furniture Kit
+## There are no third-party visual assets
 
-- **Source:** https://kenney.nl/assets/furniture-kit
-- **Licence:** CC0 1.0 Universal. Commercial use, modification, and
-  redistribution permitted; no attribution required.
-- **Downloaded:** 2026-07-28, 4.9 MB
-- **Contents:** 140 models in five 3D formats, plus **560 pre-rendered
-  isometric PNGs** at four rotations each, plus side-on renders.
-- **What we use:** 39 isometric PNGs, scaled and packed into
-  `assets/sprites/atlas.png`. Most use the `_SE` rotation; the north-facing
-  kitchen run, walls, corners, and doorways also use selected `_SW` rotations.
-  The 3D models are unused for now; [G5] in TECH_STACK.md expects characters
-  to need real meshes once customisation arrives, and this pack is a candidate
-  then.
-- **The source zip is gitignored** (`assets/vendor/`). Only the derived atlas is
-  committed, because committing both would put the same art in the repository
-  twice. Re-download from the URL above and run
-  `assets/sprites/build-atlas.ps1` to regenerate.
+**As of 2026-08-03 this project ships no borrowed art.** Every sprite in
+`web/public/atlas.png` is drawn from primitives by `assets/sprites/gen/`, so
+the atlas is a build output rather than a derived work.
 
-The complete borrowed set is the 39 non-`generated:` entries in `$SOURCES` in
-`assets/sprites/build-atlas.ps1`. That declaration records both the atlas name
-and exact Kenney source name, including every furniture facing, wall, corner,
-and doorway. It is the authoritative per-sprite inventory because the same
-list generates the atlas and both runtime manifests; a prose copy would drift
-the next time a room gained a chair, which is precisely how this document
-became stale once already.
+That is a licensing simplification as much as an artistic one. No attribution
+to carry, no source archive to keep out of git, no question about which pack a
+given sprite came from, and no ambiguity about copyright: the sprites are the
+output of a program in this repository, not of a model and not of somebody
+else's kit.
 
-## Generated, not borrowed
+The direction is Muted Line, chosen in [T-design-language]. Its palette, shape
+language and character build live in `assets/sprites/gen/style.py`, which is
+the style bible and is executable.
+`docs/specs/2026-08-03-muted-line-implementation.md` is the plan it came from.
 
-Nine sprites in the atlas are drawn by `build-atlas.ps1` rather than taken from
-the kit.
+## What was here before, and why it is gone
 
-- **`sim`.** The kit is 140 pieces of furniture and **contains no people at
-  all**, so the one sprite the game most needs is the one nothing ships. It is
-  a placeholder assembled from ellipses: head, torso, two arms, two legs, and a
-  contact shadow, drawn at 4x and downsampled. [G5] in TECH_STACK.md already
-  expects characters to become real meshes once customisation arrives, so this
-  is deliberately the cheapest thing that reads as a person at 78 px.
-- **`floor`.** The kit has `floorFull_SE`, and it is not usable: it is a
-  208 x 146 slab whose visible side faces do not match the measured ground
-  slope. Across 432 tiles even a small mismatch produces visible seams. The
-  generated floor is an exact 64 x 42 diamond with a darker edge, matching
-  `2 * TILE_HALF_WIDTH` by `2 * TILE_HALF_HEIGHT`, so the grid aligns with
-  `worldToScreen` by construction.
-- **`selectionRing`.** A 64 x 42 ellipse in the HUD accent sits on the same
-  ground anchor as the floor without needing a second outlined character.
-- **`indicatorTalk`, `indicatorEat`, `indicatorSleep`, and `indicatorWait`.**
-  The kit contains no interface glyphs, so these activity bubbles are generated
-  at the exact 26 x 26 slot the renderer uses.
-- **`carried_ingredients` and `carried_dinner`.** These 18 x 18 badges make a
-  chain's carried-item transition visible without pretending the furniture kit
-  contains food UI art.
+The alpha shipped 39 isometric PNGs from the **Kenney Furniture Kit** (CC0,
+https://kenney.nl/assets/furniture-kit), scaled and packed by
+`assets/sprites/build-atlas.ps1`, plus nine sprites that script generated
+because the kit had no equivalent: the sim, the floor, the selection ring, four
+activity indicators and two carried-item badges.
 
-## The scale, and the one number it turns on
+It was replaced whole rather than restyled. Five treatments OF the borrowed
+sprites were proposed first and rejected, on the grounds that a grade over
+borrowed art is still borrowed art; the superseded
+`docs/specs/2026-08-03-design-language-options.md` keeps that argument.
 
-Every borrowed sprite is scaled by `64 / 118`: 64 px is one tile across
-(`2 * TILE_HALF_WIDTH`), and **118 px is one metre in Kenney's renders**.
+**`build-atlas.ps1` is deleted rather than kept for reference.** Left in the
+tree it is a script that silently reverts the entire art direction when run,
+which is a worse hazard than the small loss of convenience. Its contents are in
+git history if the Kenney provenance is ever needed, and this section is the
+record that it existed.
 
-Their tile is not our tile. `grid.rs` says one tile is roughly one metre, and
-measuring their furniture against real-world sizes puts their grid at about
-1.7 m: an isometric box with footprint w by d renders `(w + d) * halfTile` wide,
-so a 0.4 x 0.7 m toilet at 66 px and a 1.0 x 2.0 m bunk bed at 172 px both put
-their half-tile near 60 px and their metre near 118.
+The kit's 3D models were never used. [G5] in TECH_STACK.md still names the pack
+as a candidate if characters ever need real meshes, at which point this becomes
+a live entry again.
 
-Scaling by their **tile** instead - the obvious reading, and what the first pass
-did - draws every piece of furniture at 58% of its size. The lot then reads as
-an empty warehouse with doll's-house props in it, which is a rendering bug that
-looks like a level-design problem.
+## The generator
 
-**Scale both axes or neither.** Wall panels are 1.8 of our tile edges wide at
-this scale, so a run of them overlaps and the top reads as overlapping boards.
-Narrowing only their width to one tile edge was tried and is worse: the panels'
-top and bottom edges are diagonals cut to the tile slope, and scaling x without
-y re-slopes them, so the run opens into a picket fence with the floor showing
-through.
+`assets/sprites/gen/` is four files and Pillow, nothing else:
+
+| File | What |
+| --- | --- |
+| `style.py` | The palette, the line, the shading ramp, the character build. The style bible. |
+| `iso.py` | The projection, the box/slab/cylinder primitives, and the anchoring rule. |
+| `objects.py` | All 48 sprites, and the name contract they satisfy. |
+| `build.py` | Packs the sheet and writes all three output files. |
+
+**The image and the manifest live apart, on purpose.** The PNG is in
+`web/public/` so the dev server, `preview` and the production build all serve
+it from the app's own origin at a plain relative URL. It used to sit beside
+the manifest in `assets/` and be pulled in by a TypeScript import from outside
+the Vite root, which makes Vite serve it through `/@fs/<absolute path>` - a
+dev-only mechanism that bakes the developer's filesystem layout into a URL and
+needs `server.fs.allow` opened up. The manifest stays in `assets/` because
+terri-data's build script reads it, and nothing in Rust ever reads the image.
+
+```sh
+python3 assets/sprites/gen/build.py            # write
+python3 assets/sprites/gen/build.py --check    # fail if the committed atlas is stale
+```
+
+Unlike the PowerShell it replaces, this runs on Linux, so **CI runs `--check`
+on every push**. The atlas stopped being a trusted blob and became a
+reproducible build output, which the old pipeline could never offer.
+
+## The names are a contract
+
+`content/objects.toml` resolves 30 sprite names and `tiles.ts` asks for 6 more
+by hand. terri-data fails the content build on a dangling reference, so
+renaming or dropping an entry in `objects.SPRITES` breaks the game rather than
+changing how it looks.
+
+## Three sprites whose size IS the projection
+
+Most sprites are whatever size their art comes out. Three are pinned, and
+`web/tests/iso.test.ts` asserts all of them:
+
+- **`floor`** is exactly `2 * TILE_HALF_WIDTH` by `2 * TILE_HALF_HEIGHT`,
+  64 x 42. It is the one sprite whose dimensions are the ground plane, so a
+  pixel of drift tiles the whole lot with seams.
+- **`wallNS` and `wallEW`** are exactly one tile edge wide, 32 px, and taller
+  than the sim. Wider and a run overlaps itself; shorter and the walls read as
+  a skirting board.
+
+`emit()` in `iso.py` takes an exact size for these, because a 1 px outline
+overshoot is otherwise enough to break them silently.
+
+## The anchoring rule
+
+`sprites.wgsl` draws every quad bottom-centre anchored at the entity's screen
+position plus half a tile down. So a tile's screen position is the CENTRE of
+its diamond, and a sprite's bottom edge sits on that diamond's SOUTH corner.
+
+The generator draws in tile-corner coordinates with the origin at the anchor
+tile's centre, which puts the anchor at local corner (0.5, 0.5); multi-tile
+objects grow toward negative x and y, up and back on screen. `emit()` crops to
+the art, pads so the crop is symmetric about the anchor's x, and pins its
+bottom to the anchor's row. It raises rather than accommodates when art falls
+below that row, because an object drawn below its own contact point is standing
+in the floor.
+
+Three things learned building it, all of which looked fine in a preview and
+were wrong in the game:
+
+- A cylinder's base ellipse is centred on its contact point, so half of it
+  falls below. It has to be lifted to SIT on the ground rather than straddle it.
+- A wall panel outlined on all four sides puts a vertical ink line every 32 px
+  down a run, which is the picket-fence read arriving by a new route. Wall
+  panels are capped top and bottom only.
+- A box's screen width is `(length + thickness) * TILE_HALF_WIDTH`, so any
+  visible thickness pushes a wall panel past one tile edge. At this size a wall
+  is a plane.
 
 ## The manifest exists twice, on purpose
 
-`build-atlas.ps1` writes three files in one pass:
+`build.py` writes three files in one pass:
 
 | file | read by |
 | --- | --- |
-| `assets/sprites/atlas.png` | the renderer, as one texture |
+| `web/public/atlas.png` | the renderer, as one texture |
 | `assets/sprites/atlas.toml` | `terri-data`'s build script, to validate every object's `sprite` and resolve it to an index |
 | `web/src/render/atlas.ts` | the renderer, for the rects |
 
 Two manifests rather than one because the two readers cannot share a format
 without a new dependency: `terri-data` already reads TOML and the web build has
 no TOML parser. They are written from one in-memory list in one pass, so they
-cannot disagree unless one is edited by hand - and `web/tests/atlas.test.ts`
+cannot disagree unless one is edited by hand, and `web/tests/atlas.test.ts`
 reads the TOML and fails if they ever do.
 
 **A sprite's index is its position in that list**, on both sides. Inserting a
 sprite in the middle renumbers every sprite after it and silently redraws the
-lot with the furniture shuffled, so the list in `build-atlas.ps1` is
-append-only in spirit.
+lot with the furniture shuffled, so `objects.SPRITES` is append-only in spirit.
+
+## What is not done
+
+The sim is still one sprite in one pose, so everyone in the household looks
+identical. The build numbers in `style.py` are already parameters and skin,
+hair and clothing are meant to arrive as an instance tint, but per-instance
+tint does not exist yet: an instance is one `vec4` with all four slots spent.
+That is [ML-tint] and [ML-chars] in the implementation spec.
+
+Walls are still tile-CENTRED panels, because that is what `tiles.ts` draws.
+Moving them onto tile edges is [B7], a renderer change rather than an art one.

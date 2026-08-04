@@ -109,6 +109,10 @@ sprite = "bedBunk"
   advertises = { energy = 100.0 }
   duration_ticks = 180
   slots = 1
+  # The tag the circadian sleep drive keys on - [ML-tag]. One entry in
+  # [circadian] covers every bed-shaped route to sleeping, exactly as one
+  # authored fear covers every couch.
+  tags = ["sleep"]
 
 [[object]]
 id = "shower"
@@ -669,6 +673,7 @@ footprint = { width = 2, depth = 2 }
   advertises = { energy = 108.0, comfort = 10.0 }
   duration_ticks = 210
   slots = 2
+  tags = ["sleep"]
 
 [[object]]
 id = "nightstand"

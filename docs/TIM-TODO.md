@@ -111,15 +111,64 @@ Direction is agreed. What needs your sign-off is the craft guidance in
 FEATURES.md: **satirize institutional form rather than named people or parties,
 and prefer evergreen absurdity over current events.** Confirm or overrule.
 
-### [T12] Approve the colour palette `[YOURS]`
+### [T-design-language] Pick the design language - DECIDED AND SHIPPING
 
-**I will propose one; approving it is a taste call and it is yours.** [K1] makes
-this the backbone of visual consistency across every asset from every source.
+**Muted Line, and it is in the running game.** Every sprite is drawn by
+`assets/sprites/gen/`, the world tints with the clock, the lamp and the
+television stay lit after dark, and Terri, Doug and Nadia are three
+different people rather than three copies of one. The plan and its current
+state are in `docs/specs/2026-08-03-muted-line-implementation.md`; the
+prototype the choice was made against is `tools/art-prototype/`, wired into
+nothing.
 
-### [T13] Approve the style bible `[YOURS]`
+**One thing needs you, and it is small.** The circadian rhythm is built and
+switched off: `content/tuning.toml` carries the `[circadian]` block
+commented out because the CURVE is not tuned, and tuning it wants a watched
+run rather than another guess from me. Uncommenting it turns on sims
+sleeping at night; the numbers beside it are a first draft, not a
+recommendation.
 
-[AI1]. Depends on [T10]. Everything generated afterward is conditioned on it, so
-it deserves a careful look.
+The first paper's five options were rejected whole, and correctly: each one
+restyled the existing sprites, and a grade over borrowed art is still
+borrowed art. What replaced them is original art drawn by a generator, so
+the style is a palette, a shape language and a set of character-build
+numbers rather than a filter. Nothing in the game's art comes from a pack
+any more.
+
+Two of your notes on round one shaped round two and are now settled: the
+outline is 1 px and never black, and no wall is a hue, so the furniture
+carries the colour. The day/night strip that came out of the lighting rig
+also settled a question nobody had asked yet, which is that night is a
+lighting setting rather than a second art style.
+
+### [T12] Approve the colour palette `[YOURS]` - MOSTLY SETTLED
+
+Settled in practice by [T-design-language]: Muted Line's palette *is* the
+approved palette, and it lives in the generator's `style.py` rather than in
+a document. [K1]'s "define ~32 colours and snap everything to them" is now
+enforced by construction, because the generator has no other colours to
+draw with.
+
+What is left for you is smaller and can wait for the port: whether the
+accent set wants a fifth entry, and whether the wall neutral is warm enough.
+Both are one-line changes with an immediate re-render.
+
+### [T13] Approve the style bible `[YOURS]` - NO LONGER NEEDED
+
+A style bible exists to keep *generated* assets consistent with each other.
+A generator is consistent by construction, so `style.py` replaces it and is
+executable rather than a folder of reference images.
+
+Closing this does not need a decision from you unless you disagree.
+
+### [T10] revisited by [T-design-language]
+
+Choosing a procedural direction takes the AI image tool off the critical
+path entirely: no model, no LoRA, no seed policy, no regeneration risk, and
+no question about whether sprite art is copyrightable. [T10] survives only
+as an option for the diegetic 2D layer - paintings, posters, book covers -
+and even there the plan recommends trying procedural first. See Part 4 of
+the implementation spec.
 
 ### [T16] Set up object storage and pick the upload identity mechanism `[YOURS]`
 

@@ -8,6 +8,7 @@ import {
   lerp,
   buildInstances,
   instanceCount,
+  simSprite,
   walkingLiftPx,
   type RenderSource,
 } from '../src/frame.js';
@@ -26,6 +27,7 @@ import {
   KIND_AGENT,
   OFFSET_DEPTH,
   OFFSET_SCREEN_X,
+  OFFSET_EMISSIVE,
   OFFSET_SCREEN_Y,
   OFFSET_SPRITE,
 } from '../src/render/instances.js';
@@ -70,12 +72,20 @@ function stored(value: number): number {
 }
 
 /**
- * The four floats one entity occupies, as the GPU would see them.
+ * The eight floats one entity occupies, as the GPU would see them.
  *
  * `kind` picks the depth LAYER and never reaches the GPU; `sprite` is
  * what the shader indexes the atlas with. Defaulting sprite to kind keeps
  * the older assertions in this file readable, since for them the two are
  * interchangeable placeholders.
+ *
+ * An AGENT's sprite is not the one passed in, and that is the point of
+ * [ML-chars]: a sim draws one of three looks chosen from its entity id,
+ * so this helper applies the same rule `buildInstances` does. `row` is
+ * how it reaches the id, since `FakeEntities` hands out `100 + row`.
+ *
+ * The tint tail is white and non-emissive, which is what every caller in
+ * this file expects; the emissive tests below pass their own.
  */
 function packed(
   wx: number,
@@ -84,13 +94,19 @@ function packed(
   sprite = kind,
   originX = ORIGIN_X,
   originY = ORIGIN_Y,
+  row = 0,
+  emissive = 0,
 ): number[] {
   const [screenX, screenY] = worldToScreen(wx, wy, originX, originY);
   return [
     stored(screenX),
     stored(screenY),
     stored(layeredDepth(wx, wy, GRID, kind === KIND_AGENT ? LAYER_SIM : LAYER_PROP)),
-    sprite,
+    kind === KIND_AGENT ? simSprite(100 + row) : sprite,
+    1,
+    1,
+    1,
+    emissive,
   ];
 }
 
@@ -661,13 +677,91 @@ describe('buildInstances', () => {
     ]);
 
     const out = snapshot(buildInstances(view, 0.5, ORIGIN_X, ORIGIN_Y, GRID), 2);
-    expect(out).toHaveLength(8);
+    expect(out).toHaveLength(2 * FLOATS_PER_INSTANCE);
 
-    expect(out.slice(0, 4)).toEqual(packed(4, 4, 1, 5));
-    expect(out.slice(4, 8)).toEqual(packed(9, 1, 0, 3));
+    expect(out.slice(0, FLOATS_PER_INSTANCE)).toEqual(packed(4, 4, 1, 5));
+    expect(out.slice(FLOATS_PER_INSTANCE)).toEqual(
+      packed(9, 1, 0, 3, ORIGIN_X, ORIGIN_Y, 1),
+    );
     // The two entities differ in every field, so a stride mistake that
     // read slot 1 from slot 0's territory moves all four numbers.
-    expect(packed(4, 4, 1, 5)).not.toEqual(packed(9, 1, 0, 3));
+    expect(packed(4, 4, 1, 5)).not.toEqual(
+      packed(9, 1, 0, 3, ORIGIN_X, ORIGIN_Y, 1),
+    );
+  });
+
+  it('gives sims with different ids different faces', () => {
+    // [ML-chars], and the defect it fixes: before this the household was
+    // three identical people, which is the first thing anyone notices and
+    // the last thing any assertion here could see.
+    //
+    // Three sims rather than two. Two could differ by accident under any
+    // rule at all - including "alternate" - while three consecutive ids
+    // taking three DISTINCT looks is the property that actually holds the
+    // mapping down.
+    const view = new FakeEntities();
+    view.set([
+      [0, 0, 0, 0, KIND_AGENT, 1],
+      [1, 0, 1, 0, KIND_AGENT, 1],
+      [2, 0, 2, 0, KIND_AGENT, 1],
+    ]);
+
+    const out = snapshot(buildInstances(view, 1, ORIGIN_X, ORIGIN_Y, GRID), 3);
+    const faces = [0, 1, 2].map(
+      (row) => out[row * FLOATS_PER_INSTANCE + OFFSET_SPRITE],
+    );
+    expect(new Set(faces).size).toBe(3);
+    // And they are the three character entries, by name. Distinctness
+    // alone would be satisfied by three arbitrary atlas slots - a chair,
+    // a bathtub and a doorway are also distinct.
+    expect(new Set(faces)).toEqual(
+      new Set([spriteIndex('sim'), spriteIndex('sim2'), spriteIndex('sim3')]),
+    );
+  });
+
+  it('keeps a sim on the same face when its ROW moves', () => {
+    // A despawn reorders the buffer. Keyed on the row instead of the id,
+    // two sims would swap faces the moment a third one left the lot -
+    // which reads as the household changing clothes at a doorway.
+    const view = new FakeEntities();
+    view.set([
+      [0, 0, 0, 0, KIND_AGENT, 1],
+      [1, 0, 1, 0, KIND_AGENT, 1],
+    ]);
+    const before = snapshot(buildInstances(view, 1, ORIGIN_X, ORIGIN_Y, GRID), 2);
+    const secondFace = before[FLOATS_PER_INSTANCE + OFFSET_SPRITE];
+
+    // `FakeEntities` ids are `100 + row`, so dropping the first row moves
+    // the second sim to row 0 while its id stays 101 - except the fake
+    // recomputes ids from rows, so the honest version of this test is the
+    // function itself: same id in, same face out, whatever the row.
+    expect(simSprite(101)).toBe(secondFace);
+    expect(simSprite(101)).toBe(simSprite(101));
+    expect(simSprite(100)).not.toBe(simSprite(101));
+  });
+
+  it('marks a lamp emissive so it does not go out at night', () => {
+    // [ML-ambient] made every fragment darken as the hour turns, which
+    // for the two things lighting the room is exactly backwards. Without
+    // this the house at midnight contains an unlit lamp.
+    const lamp = spriteIndex('lampRoundFloor');
+    const view = new FakeEntities();
+    view.set([
+      [0, 0, 0, 0, 1, lamp],
+      [1, 0, 1, 0, 1, spriteIndex('chair')],
+    ]);
+
+    const out = snapshot(buildInstances(view, 1, ORIGIN_X, ORIGIN_Y, GRID), 2);
+    expect(out[OFFSET_EMISSIVE]).toBeGreaterThan(0);
+    // Below 1: at 1 the whole sprite ignores the hour, stand and outline
+    // included, and reads as a cutout pasted over the night.
+    expect(out[OFFSET_EMISSIVE]).toBeLessThan(1);
+    // The chair beside it is an ordinary object and must still take the
+    // full ambient, or the emissive is not a property of the sprite.
+    expect(out[FLOATS_PER_INSTANCE + OFFSET_EMISSIVE]).toBe(0);
+    // Nothing tints either of them: the colour channels stay the
+    // identity, so the atlas art is what reaches the screen.
+    expect(out.slice(4, 7)).toEqual([1, 1, 1]);
   });
 
   it('re-reads the source on every call, because the pointers swap each tick', () => {

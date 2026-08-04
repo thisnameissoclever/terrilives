@@ -69,6 +69,65 @@ the wrong fiction. This priority does not decide the colour palette, paid
 assets, or a new character-art pipeline; those remain [T12], [T3]/[T7], and
 [T19].
 
+**The design language is decided: Muted Line, chosen 2026-08-03.** It is
+original procedural art rather than a treatment of the borrowed sprites, so
+the style is a palette, a shape language and a set of character-build
+numbers that live in a generator. The plan is
+`docs/specs/2026-08-03-muted-line-implementation.md` and the prototype it
+was chosen against is `tools/art-prototype/`, which is wired into nothing.
+The first options paper is superseded and kept for the record.
+
+**Six of its nine items are built.** The generator replaced every sprite
+in the game ([ML-gen]), CI regenerates and diffs the atlas on every push so
+it is a reproducible build output rather than a trusted blob ([ML-ci]), the
+128-sprite cap is gone ([ML-sprites]), and **the day/night cycle is live**
+([ML-ambient]) - the world tints with the simulation clock, and reduced
+motion pins it to noon.
+
+**Per-instance tint is in the contract** ([ML-tint]): an instance is two
+`vec4`s now rather than one, the second carrying a colour and an emissive
+strength. The lamp and the television are emissive, which is what stops
+the two things lighting the room from going out as night falls - the
+defect [ML-ambient] created by existing. The frame is still one draw and
+one submit; the tint rides on data the vertex stage already carried.
+
+**The household is three different people** ([ML-chars]), keyed on each
+sim's stable entity id so a face survives a walk, a save and a reload.
+Three baked looks rather than the three tinted instances per sim the spec
+proposed - the reasoning, and what would flip it back, is written down in
+`assets/sprites/gen/style.py` beside the palettes.
+
+**The circadian rhythm is built and switched off**, which is a deliberate
+state rather than an unfinished one. Schema, validation, curve, tests,
+chronotype offsets, `sleep` tags and the selection multiplier all ship;
+`content/tuning.toml` carries the `[circadian]` block commented out.
+Turning it on needs the measured run [ML-feel] requires, because the first
+draft's curve had the household asleep enough to starve an unrelated test
+fixture of kitchen activity. That is the drive overpowering the needs
+rather than weighting them, and it is a tuning question, not a code one.
+
+**Still unbuilt:** light pools and cast shadows ([ML-pools]), the measured
+tuning run the circadian curve needs ([ML-feel]), and walls on tile edges
+([B7]). [ML-pools] is the cheapest of the three now: it is per-tile tints
+on instances the renderer already emits, and the attribute to carry them
+landed with [ML-tint].
+
+One finding from building it constrains every future content change:
+`ci.yml` runs `cargo mutants --timeout 60`, and that timeout bounds each
+mutant's WHOLE workspace test run. A shipped content change that materially
+slows the simulation therefore has to be measured against that ceiling
+rather than against the wall clock - the circadian curve's first draft
+pushed one save test from 10 s to 39 s, which would have turned a large
+share of mutants into spurious timeouts.
+
+Three findings from the plan are worth carrying here because they change
+what the renderer work costs. The whole lighting rig fits inside the
+existing single instanced draw call, because light pools become the tint of
+instances already being drawn rather than new geometry, so [D10] and
+`docs/gpu-verification.md` survive untouched. Additive light quads would
+NOT work, because the pipeline alpha-tests at 0.5 and writes depth. And
+`SimClock::is_hour_boundary()`, unused since M0, finally has a consumer.
+
 ### Next engineering slices
 
 This is the current restart point, separate from the historical milestone

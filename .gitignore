@@ -19,3 +19,9 @@ web/.cert/
 # Playwright MCP session artifacts (screenshots, console logs)
 .playwright-mcp/
 career-*.jpeg
+
+# Python bytecode from the sprite generator. There was no Python in this
+# repository until assets/sprites/gen/ replaced the PowerShell atlas build,
+# so nothing had ever ignored it.
+__pycache__/
+*.pyc

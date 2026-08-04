@@ -38,6 +38,16 @@ jobs:
       # of, silently). See docs/testing-protocol.md rule 10.
       - name: Documentation ids
         run: python3 check-doc-ids.py
+      # The atlas used to be a committed blob nobody could verify:
+      # build-atlas.ps1 was Windows-only System.Drawing and CI never ran
+      # it, so a hand-edited atlas.png or a manifest that had drifted from
+      # the art would have gone unnoticed. The generator that replaced it
+      # is Python, so this regenerates all three outputs and fails if any
+      # differs from what is committed. See [ML-ci].
+      - name: Sprite atlas is reproducible
+        run: |
+          python3 -m pip install --quiet --disable-pip-version-check Pillow
+          python3 assets/sprites/gen/build.py --check
       # Mechanically enforces [D1]: terri-core, terri-data and terri-sim
       # never depend on a web crate. terri-data is in the list from the
       # commit that created it, because a purity rule that a crate has to
