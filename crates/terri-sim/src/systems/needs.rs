@@ -51,20 +51,54 @@ use crate::Content;
 /// The career's price is unchanged and is the TIME - see [E4], and
 /// [A-14] which measured it. This knob only stops that price being
 /// starvation.
-pub fn decay_needs(
-    content: Res<Content>,
-    mut query: Query<(&mut Needs, Option<&Personality>, Has<terri_core::AtWork>)>,
-) {
+///
+/// A sim ASLEEP decays at `asleep_decay_scale` of the rate, and the
+/// reasoning is the same shape one rung down. Sleeping is the longest
+/// thing a sim does - the double bed runs 210 ticks against the fridge's
+/// 15 - so at the full rate those hours cost more hunger, hygiene and
+/// bladder than anything else in the game. The sim that finally goes to
+/// bed wakes starving and filthy, punished for doing the one thing every
+/// other system was pushing it toward, which reads as the game being
+/// unfair rather than as a rate being wrong.
+///
+/// Not zero, and the knob is validated in `[0, 1]` rather than merely
+/// non-negative: a bed that suspended the simulation would be a place to
+/// hide from it, and eight hours of nothing happening is the failure a
+/// needs game has to avoid most. A sleeping sim still gets hungry, just
+/// more slowly than one who is up.
+///
+/// **The two scales MULTIPLY rather than compete**, which costs nothing
+/// to write and is the only answer that stays sane if a sim is ever both.
+/// It cannot be today - `AtWork` removes a sim from the lot and there is
+/// no bed at the office - and writing `if at_work { .. } else if asleep`
+/// would bake that into arithmetic instead of leaving it where it lives.
+/// What `decay_needs` reads per entity: the needs to drain, the
+/// personality whose drains scale them, and the two states that slow
+/// them. Named because clippy counts the tuple's arms, and because the
+/// list is the whole input to the one system that moves every need.
+type DecayRow<'a> = (
+    &'a mut Needs,
+    Option<&'a Personality>,
+    Has<terri_core::AtWork>,
+    Option<&'a terri_core::Eating>,
+);
+
+pub fn decay_needs(content: Res<Content>, mut query: Query<DecayRow>) {
     let rates = &content.0.decay_per_tick;
-    for (mut needs, personality, at_work) in &mut query {
+    for (mut needs, personality, at_work, eating) in &mut query {
         let away = if at_work {
             content.0.tuning.at_work_decay_scale
         } else {
             1.0
         };
+        let asleep = if super::circadian::is_asleep(content.0, eating) {
+            content.0.tuning.asleep_decay_scale
+        } else {
+            1.0
+        };
         for id in NeedId::ALL {
             let multiplier = personality.map_or(1.0, |p| p.drain[id.index()]);
-            needs.drain(id, rates[id.index()] * multiplier * away);
+            needs.drain(id, rates[id.index()] * multiplier * away * asleep);
         }
     }
 }
@@ -74,6 +108,113 @@ mod tests {
     use super::*;
     use crate::Sim;
     use terri_core::{Agent, SimClock};
+
+    /// **A sleeping sim's needs decay slower, and an eating one's do
+    /// not.**
+    ///
+    /// Two agents, identical except that one is mid-interaction on a
+    /// sleep-TAGGED object and the other on an untagged one of the same
+    /// shape. After the same ticks the sleeper must be strictly less
+    /// drained on every need, and by exactly `asleep_decay_scale`.
+    ///
+    /// Both sims carry an `Eating` component, which is the point: the
+    /// comparison is between two sims doing something, so what separates
+    /// them is the tag rather than the mere fact of being busy. A fixture
+    /// with one idle sim would pass for a rule that slowed decay for
+    /// anybody mid-interaction, which is not the rule.
+    #[test]
+    fn a_sleeping_sim_decays_slower_and_a_busy_one_does_not() {
+        use terri_core::{Eating, ObjectDefId};
+        const TICKS: usize = 40;
+
+        let mut bed = crate::test_content::interaction("lie_down", &[(NeedId::Energy, 100.0)], 200);
+        bed.tags = vec!["sleep".to_string()];
+        let content = crate::test_content::pack(vec![
+            crate::test_content::object_offering("bed", vec![bed]),
+            crate::test_content::object("desk", &[(NeedId::Fun, 20.0)], 200),
+        ]);
+        let scale = content.tuning.asleep_decay_scale;
+        assert!(
+            (0.0..1.0).contains(&scale),
+            "a scale of 1 would make every assertion below vacuous; got {scale}"
+        );
+
+        let mut sim = crate::test_content::sim_with(8, 8, content);
+        let busy = |object: u32| Eating {
+            object: ObjectDefId(object),
+            interaction: 0,
+            remaining_ticks: 10_000,
+        };
+        let sleeper = sim
+            .world_mut()
+            .spawn((Agent, Needs::all_at(terri_core::NEED_MAX), busy(0)))
+            .id();
+        let worker = sim
+            .world_mut()
+            .spawn((Agent, Needs::all_at(terri_core::NEED_MAX), busy(1)))
+            .id();
+
+        for _ in 0..TICKS {
+            sim.tick();
+        }
+
+        let slept = *sim.world().get::<Needs>(sleeper).unwrap();
+        let worked = *sim.world().get::<Needs>(worker).unwrap();
+        let rates = terri_data::pack().decay_per_tick;
+        for id in NeedId::ALL {
+            // Energy is excluded: both sims are mid-interaction and the
+            // bed REFILLS it, so that column is measuring delivery rather
+            // than decay.
+            if id == NeedId::Energy {
+                continue;
+            }
+            assert!(
+                rates[id.index()] > 0.0,
+                "a zero rate for {id:?} would make its assertion vacuous"
+            );
+            let slept_lost = terri_core::NEED_MAX - slept.get(id);
+            let worked_lost = terri_core::NEED_MAX - worked.get(id);
+            assert!(
+                slept_lost < worked_lost,
+                "{id:?}: the sleeper lost {slept_lost} and the worker {worked_lost}"
+            );
+            assert!(
+                (slept_lost - worked_lost * scale).abs() < 1e-3,
+                "{id:?}: sleeping must cost exactly {scale} of waking; \
+                 got {slept_lost} against {worked_lost}"
+            );
+        }
+    }
+
+    /// **The rule is the TAG, not "this restores energy".**
+    ///
+    /// The object here is a coffee machine in all but name: a big
+    /// positive energy advert and no sleep tag. Under the inference this
+    /// replaced - whether the biggest positive advert was energy - it
+    /// would have counted as sleep, drawn a Zzz over the sim's head and
+    /// slowed its hunger while it drank.
+    #[test]
+    fn restoring_energy_is_not_the_same_as_sleeping() {
+        use terri_core::{Eating, ObjectDefId};
+        let content = crate::test_content::pack(vec![crate::test_content::object(
+            "coffee",
+            &[(NeedId::Energy, 60.0)],
+            20,
+        )]);
+        let eating = Eating {
+            object: ObjectDefId(0),
+            interaction: 0,
+            remaining_ticks: 10,
+        };
+        assert!(
+            !crate::systems::circadian::is_asleep(content, Some(&eating)),
+            "an untagged energy interaction is a coffee, not a bed"
+        );
+        assert!(
+            !crate::systems::circadian::is_asleep(content, None),
+            "a sim doing nothing at all is not asleep"
+        );
+    }
 
     /// **A personality's drain multiplier scales decay per need, and a sim
     /// with no personality decays at exactly the content rate.**

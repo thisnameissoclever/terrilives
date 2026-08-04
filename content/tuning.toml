@@ -511,6 +511,44 @@ neglect_bleed_per_tick = 0.002
 # job would force.
 at_work_decay_scale = 0.5
 
+# How fast needs decay while a sim is ASLEEP, as a fraction of the usual
+# rate. The same knob shape as `at_work_decay_scale` above, for a problem
+# with the same shape.
+#
+# Sleeping is the longest thing a sim does: the double bed runs 210 ticks
+# against the fridge's 15. At the full decay rate those hours cost more
+# hunger, hygiene and bladder than anything else in the game, so the sim
+# that finally goes to bed wakes up starving and filthy, having been
+# punished for doing the one thing the day was pushing it toward. That
+# reads as the game being unfair rather than as a rate being wrong.
+#
+# 0.4 rather than 0. A sleeping sim genuinely does get hungry and does
+# need the bathroom in the morning; it just does not get hungry as fast
+# as one who is up and about. Zero would make the bed a place to hide
+# from the simulation, and eight hours of nothing happening is the
+# failure mode a needs game has to avoid most.
+#
+# **What counts as asleep is `sleep_tag` below**, not "is on a bed" and
+# not "is gaining energy". A coffee machine would restore energy without
+# being sleep, and the tag is what tells them apart.
+#
+# In [0, 1], validated exactly like the knob above. Exactly 1 restores the
+# behaviour before this existed, which is how to measure it again.
+asleep_decay_scale = 0.4
+
+# The interaction tag that means SLEEPING.
+#
+# One tag, read by three separate things: the circadian drive that makes
+# a bed attractive at night, the decay scale above, and the Zzz bubble
+# the shell draws. It lives out here rather than inside `[circadian]`
+# because that table is optional and currently commented out, and two of
+# those three readers are not.
+#
+# It has to name a tag some interaction in `objects.toml` actually
+# declares - the compile step checks, because a misspelling here is the
+# quietest possible failure: no sim is ever asleep, and nothing says so.
+sleep_tag = "sleep"
+
 # Need decay per tick. One tick is one sim-minute, so 0.104 drains a full
 # need in roughly 16 sim-hours.
 #
@@ -679,8 +717,9 @@ comfort = 0.032
 # unsorted, duplicated, outside the day, or negative - all four of which
 # would interpolate to something plausible-looking and wrong rather than
 # failing.
+# The tag it keys on is `sleep_tag` up beside the decay knobs, not in
+# here: this table is optional and the tag is not.
 # [circadian]
-# sleep_tag = "sleep"
 #
 # The peak-to-trough ratio is deliberately modest at 2.5x. The first
 # draft ran 1.60 down to 0.25 - a 6.4x swing - and it was measurably too

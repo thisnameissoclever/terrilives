@@ -321,7 +321,7 @@ pub fn compile(
     // suffix, and the compiled object deliberately holds the index.
     let sprite_names: Vec<String> = objects.object.iter().map(|o| o.sprite.clone()).collect();
     let lot = compile_lot(lot, &compiled, &sprite_names, &sprite_index)?;
-    let (tuning, circadian) = compile_tuning(tuning)?;
+    let (tuning, circadian, sleep_tag) = compile_tuning(tuning)?;
 
     // **An interaction the floor is longer than does not do what it says.**
     //
@@ -422,6 +422,7 @@ pub fn compile(
         item_kinds,
         chains,
         circadian,
+        sleep_tag,
     })
 }
 
@@ -1387,7 +1388,9 @@ fn compile_household(
 /// since every control point has to fall inside `day_ticks`, but is stored
 /// beside it on the pack rather than within it: `Tuning` is `Copy` and a
 /// circadian rhythm owns a `String` and a `Vec`.
-fn compile_tuning(tuning: TuningFile) -> Result<(Tuning, Option<Circadian>), ContentError> {
+type CompiledTuning = (Tuning, Option<Circadian>, String);
+
+fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
     // Finiteness first, for the same reason placement coordinates are
     // checked before their bounds: every comparison against NaN is
     // false, so `NaN <= 0.0` would let a NaN temperature through the
@@ -1541,6 +1544,22 @@ fn compile_tuning(tuning: TuningFile) -> Result<(Tuning, Option<Circadian>), Con
         });
     }
     check_finite(
+        tuning.asleep_decay_scale,
+        "asleep_decay_scale in tuning.toml",
+    )?;
+    if !(0.0..=1.0).contains(&tuning.asleep_decay_scale) {
+        return Err(ContentError::AsleepDecayScaleOutOfRange {
+            value: tuning.asleep_decay_scale,
+        });
+    }
+    // An empty tag matches nothing, so every reader of it - the sleep
+    // drive, the decay scale, the Zzz bubble - would quietly do nothing.
+    // Trimmed, because a tag of one space is the same failure wearing a
+    // character.
+    if tuning.sleep_tag.trim().is_empty() {
+        return Err(ContentError::EmptySleepTag);
+    }
+    check_finite(
         tuning.neglect_bleed_per_tick,
         "neglect_bleed_per_tick in tuning.toml",
     )?;
@@ -1610,7 +1629,6 @@ fn compile_tuning(tuning: TuningFile) -> Result<(Tuning, Option<Circadian>), Con
                 previous = Some(*tick);
             }
             Some(Circadian {
-                sleep_tag: file.sleep_tag,
                 sleep_drive: file.sleep_drive,
             })
         }
@@ -1646,8 +1664,10 @@ fn compile_tuning(tuning: TuningFile) -> Result<(Tuning, Option<Circadian>), Con
             neglect_floor: tuning.neglect_floor,
             neglect_bleed_per_tick: tuning.neglect_bleed_per_tick,
             day_ticks: tuning.day_ticks,
+            asleep_decay_scale: tuning.asleep_decay_scale,
         },
         circadian,
+        tuning.sleep_tag,
     ))
 }
 
@@ -2278,8 +2298,9 @@ mod tests {
         0, 0, 64, 63, 3, 172, 2, 7, 11, 13, 0, 0,
         192, 62, 0, 0, 64, 62, 0, 0, 64, 61, 0, 0,
         80, 63, 0, 0, 224, 63, 0, 0, 184, 65, 154, 153,
-        25, 63, 0, 0, 0, 60, 19, 0, 0, 0, 0, 0,
-        0, 0, 0, 0,
+        25, 63, 0, 0, 0, 60, 19, 0, 0, 192, 62, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 5, 115, 108, 101,
+        101, 112,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -2394,6 +2415,16 @@ mod tests {
     fn full_tuning() -> TuningFile {
         TuningFile {
             circadian: None,
+            // Not "sleep" by accident: `full_tuning` is the fixture the
+            // golden vector reads, and its objects come from
+            // `distinct_tuning`'s neighbours. See the fixture object in
+            // `compile_tuned`, which carries this exact tag.
+            sleep_tag: "sleep".to_string(),
+            // Distinct from `at_work_decay_scale` below and exact in
+            // binary32, for the same reason every other knob here is:
+            // the golden vector reads these bytes, and two knobs sharing
+            // a value cannot tell a swap from a match.
+            asleep_decay_scale: 0.375,
             // The M2e trio, distinct like everything else here and exact
             // in binary32; the golden vector reads these bytes directly,
             // and a 0.0 would be indistinguishable from a dropped field.
@@ -4598,9 +4629,53 @@ mod tests {
     // validation shipped with no tests at all and the sweep found ten
     // survivors across these four lines in one shard.
 
+    /// **The sleep knobs, at their boundaries.** Same shape as the
+    /// `at_work_decay_scale` rules above, because they are the same rule
+    /// one need-state along.
+    #[test]
+    fn rejects_an_asleep_decay_scale_outside_its_range() {
+        for bad in [-0.001_f32, 1.001, f32::NAN, f32::INFINITY] {
+            let err = compile_tuned(tuning_where(|t| t.asleep_decay_scale = bad)).unwrap_err();
+            assert!(
+                matches!(
+                    err,
+                    ContentError::AsleepDecayScaleOutOfRange { .. }
+                        | ContentError::NonFiniteValue { .. }
+                ),
+                "{bad} must be rejected, got {err:?}"
+            );
+        }
+        // Both ends are LEGAL, and each one means something: 0 is a bed
+        // that suspends decay entirely and 1 is the behaviour before this
+        // existed, which is how the knob's effect gets measured again.
+        for good in [0.0_f32, 1.0] {
+            assert!(
+                compile_tuned(tuning_where(|t| t.asleep_decay_scale = good)).is_ok(),
+                "{good} is the legal edge of the range, not outside it"
+            );
+        }
+    }
+
+    #[test]
+    fn rejects_a_blank_sleep_tag() {
+        // An empty tag matches no interaction, so the drive, the decay
+        // scale and the Zzz bubble would all quietly do nothing - the
+        // silent-nothing case [D9] exists to convert into a build error.
+        for blank in ["", " ", "\t", "  \n "] {
+            assert_eq!(
+                compile_tuned(tuning_where(|t| t.sleep_tag = blank.to_string())).unwrap_err(),
+                ContentError::EmptySleepTag,
+                "{blank:?} is blank and must be rejected"
+            );
+        }
+        assert!(
+            compile_tuned(tuning_where(|t| t.sleep_tag = "x".to_string())).is_ok(),
+            "one non-space character is a tag"
+        );
+    }
+
     fn circadian(points: Vec<(u32, f32)>) -> CircadianFile {
         CircadianFile {
-            sleep_tag: "sleep".to_string(),
             sleep_drive: points,
         }
     }
@@ -4734,8 +4809,10 @@ mod tests {
         }))
         .expect("valid");
         let circadian = pack.circadian.expect("the table must survive compilation");
-        assert_eq!(circadian.sleep_tag, "sleep");
         assert_eq!(circadian.sleep_drive, vec![(0, 1.5), (700, 0.25)]);
+        // The tag rides on the pack rather than on the table, so it is
+        // there whether or not a rhythm was authored.
+        assert_eq!(pack.sleep_tag, "sleep");
     }
 
     fn a_trait(id: &str) -> TraitDef {
