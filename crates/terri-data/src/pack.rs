@@ -307,9 +307,17 @@ pub struct Tuning {
     /// until the day arrived.
     pub neglect_bleed_per_tick: f32,
     /// Ticks in one simulated day - `tick % day_ticks` is the clock
-    /// careers schedule against ([E4]). At least 1 by validation.
-    /// **Last in this struct on purpose**, per the appending rule.
+    /// careers schedule against ([E4]). It held last place until the
+    /// sleep scale arrived.
     pub day_ticks: u32,
+    /// What every need's decay rate is multiplied by while a sim is
+    /// asleep. In `[0, 1]` and finite, validated exactly like
+    /// `at_work_decay_scale` above and for the same reasons: above 1 a
+    /// bed would drain a sim faster than being awake does, and exactly
+    /// 1 is the legal way back to the behaviour before this existed.
+    ///
+    /// **Last in this struct on purpose**, per the appending rule.
+    pub asleep_decay_scale: f32,
 }
 
 /// The circadian rhythm - [ML-curve] and [ML-chrono].
@@ -321,9 +329,6 @@ pub struct Tuning {
 /// optional table here would land on every reader of every knob.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Circadian {
-    /// The activity tag the drive multiplies. Compared against an
-    /// advert's tags, exactly as trait dispositions are.
-    pub sleep_tag: String,
     /// `(tick, multiplier)` control points, sorted, wrapping at the end
     /// of the day. Validated non-empty by the compile step, so the
     /// simulation never has to answer "what if there are no points".
@@ -491,6 +496,16 @@ pub struct ContentPack {
     /// **Last in this struct on purpose**, per the appending rule on
     /// `lot`.
     pub circadian: Option<Circadian>,
+    /// The activity tag that means sleeping, from `[tuning]`.
+    ///
+    /// A sibling of `Tuning` for the same forced reason `Circadian` is:
+    /// `Tuning` is `Copy` and this owns a `String`.
+    ///
+    /// NOT under `circadian`, which is where it started. The rhythm is
+    /// optional and ships off; the tag is read by three things that are
+    /// not, so hanging it off an absent table made two of them dead in
+    /// the shipped game.
+    pub sleep_tag: String,
 }
 
 /// One chain, compiled: steps across station roles, the whole payoff
@@ -648,6 +663,7 @@ mod tests {
             hobby_multiplier: 3.5,
             neglect_floor: 17.0,
             at_work_decay_scale: 0.5,
+            asleep_decay_scale: 0.5,
             neglect_bleed_per_tick: 0.0075,
             day_ticks: 23,
         }
@@ -656,6 +672,7 @@ mod tests {
     fn three_objects() -> ContentPack {
         ContentPack {
             circadian: None,
+            sleep_tag: String::new(),
             decay_per_tick: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
             objects: ["fridge", "bed", "sink"]
                 .iter()

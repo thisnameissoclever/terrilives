@@ -441,10 +441,29 @@ def _bubble(d, glyph):
         d.line([(px + 5, py - 7), (px + 5, py + 7)], fill=ink, width=2)
         d.ellipse([px + 2, py - 7, px + 8, py], fill=ink)
     elif glyph == "sleep":
-        for i, (s, dy) in enumerate(((6, -3), (4, 3), (3, 7))):
-            d.line([(px - s, py + dy - 3), (px + s, py + dy - 3)], fill=ink, width=1)
-            d.line([(px + s, py + dy - 3), (px - s, py + dy)], fill=ink, width=1)
-            d.line([(px - s, py + dy), (px + s, py + dy)], fill=ink, width=1)
+        # TWO Z's, not three, and the big one is 11 px tall.
+        #
+        # The first cut drew three stacked Z's inside a 26 px bubble. Each
+        # got about 4 px of height and a 1 px stroke, which is not enough
+        # travel for the diagonal to read as a diagonal: at size the whole
+        # thing collapsed into three horizontal squiggles, and the owner's
+        # report was a screenshot and "what does this icon mean?".
+        #
+        # A glyph in a 26 px circle gets one clear shape and at most one
+        # echo of it. The big Z's stroke is 2 px so its diagonal survives
+        # having to cross pixel rows, and the small z sits up and to the
+        # right, which is where the eye expects a Zzz to trail off to.
+        #
+        # The bubble's inner radius is 12, so everything here stays inside
+        # a 17 px box on the centre. The first attempt at the redraw was
+        # legible and two pixels too big, and it cut the circle open at
+        # the bottom left and clipped the small z at the top right.
+        for (cx, cy, w, h, stroke) in ((-2, 2, 8, 9, 2), (5, -5, 4, 4, 1)):
+            x0, x1 = px + cx - w / 2, px + cx + w / 2
+            y0, y1 = py + cy - h / 2, py + cy + h / 2
+            d.line([(x0, y0), (x1, y0)], fill=ink, width=stroke)
+            d.line([(x1, y0), (x0, y1)], fill=ink, width=stroke)
+            d.line([(x0, y1), (x1, y1)], fill=ink, width=stroke)
     else:                                   # wait
         d.ellipse([px - 8, py - 8, px + 8, py + 8], outline=ink, width=1)
         d.line([(px, py), (px, py - 5)], fill=ink, width=1)

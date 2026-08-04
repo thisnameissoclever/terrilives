@@ -39,10 +39,6 @@ use terri_core::Footprint;
 /// test's tuning fixture having to grow a table it does not care about.
 #[derive(Debug, Deserialize)]
 pub struct CircadianFile {
-    /// The activity tag the drive applies to. Objects already declare
-    /// tags, so a bed needs no new field and one entry covers every
-    /// bed-shaped route to sleeping.
-    pub sleep_tag: String,
     /// `(tick, multiplier)` control points over one day, interpolated
     /// linearly and wrapping from the last back to the first.
     ///
@@ -59,6 +55,30 @@ pub struct TuningFile {
     /// still parses. See `CircadianFile`.
     #[serde(default)]
     pub circadian: Option<CircadianFile>,
+    /// The activity tag that means SLEEPING. Objects already declare
+    /// tags, so a bed needs no new field and one entry covers every
+    /// bed-shaped route to sleeping.
+    ///
+    /// **Not inside `[circadian]`, and that is the point.** It started
+    /// there and had to move: the rhythm ships switched off, so anything
+    /// reading the tag through it would be dead in the shipped game.
+    /// Three separate things now ask "is this sim asleep" - the drive
+    /// that makes a bed attractive at night, the decay scale that slows
+    /// the other needs, and the Zzz bubble - and a tag that means sleep
+    /// is a fact about the vocabulary rather than a property of any one
+    /// of them.
+    pub sleep_tag: String,
+    /// How fast needs decay while a sim is asleep, as a fraction of the
+    /// usual rate. In `[0, 1]`; 1 restores the behaviour before this
+    /// existed.
+    ///
+    /// The same shape and the same reasoning as `at_work_decay_scale`
+    /// beside it. A sleeping sim is not eating, washing or using the
+    /// bathroom, and draining it at the full rate makes eight hours in
+    /// bed the most expensive thing it can do - so it wakes starving,
+    /// filthy and desperate, having done the one thing the day was
+    /// pushing it toward.
+    pub asleep_decay_scale: f32,
     /// Below this score, an option is not worth doing at all.
     pub action_threshold: f32,
     /// Softmax temperature for choosing among candidates. Must be
@@ -716,7 +736,7 @@ mod tests {
     /// The six `u32`s and the `u64` are deliberately different numbers
     /// for the same reason, and every float is exact in binary32 so the
     /// assertions can be equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 23] = [
+    const TUNING_LINES: [(&str, &str); 25] = [
         ("action_threshold", "0.25"),
         ("choice_temperature", "0.5"),
         ("idle_threshold", "0.125"),
@@ -740,6 +760,11 @@ mod tests {
         ("at_work_decay_scale", "0.4"),
         ("neglect_bleed_per_tick", "0.0009765625"),
         ("day_ticks", "17"),
+        ("asleep_decay_scale", "0.6"),
+        // The one knob here that is not a number. Quoted so the emitted
+        // TOML is valid, and distinct from every other string in the file
+        // for the same reason the numbers are pairwise distinct.
+        ("sleep_tag", "\"snooze\""),
     ];
 
     /// The decay table, which is the twelfth knob and the only one that is

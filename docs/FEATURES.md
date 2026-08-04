@@ -97,6 +97,22 @@ Three baked looks rather than the three tinted instances per sim the spec
 proposed - the reasoning, and what would flip it back, is written down in
 `assets/sprites/gen/style.py` beside the palettes.
 
+**Sleep costs less than being awake.** Needs decay at
+`asleep_decay_scale` of the usual rate while a sim is asleep, the same
+knob shape as `at_work_decay_scale` beside it and for the same reason:
+sleeping is the longest thing a sim does, so at the full rate the sim who
+finally goes to bed wakes starving and filthy, punished for doing the one
+thing every other system was pushing it toward. 0.4 rather than 0, because
+a bed that suspended the simulation would be a place to hide from it.
+
+**What counts as asleep is a TAG**, `sleep_tag` in `tuning.toml`, read by
+three things: the drive that makes a bed attractive at night, that decay
+scale, and the Zzz bubble. It used to be an inference - whether the
+interaction's biggest positive advert was energy - which is true of a bed
+and equally true of a coffee machine, so the first espresso in the
+catalogue would have drawn a Zzz over a sim whose hunger had stopped
+moving. Objects already declare tags; the answer was authored all along.
+
 **The circadian rhythm is built and switched off**, which is a deliberate
 state rather than an unfinished one. Schema, validation, curve, tests,
 chronotype offsets, `sleep` tags and the selection multiplier all ship;

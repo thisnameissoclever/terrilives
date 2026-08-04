@@ -1239,10 +1239,56 @@ mod tests {
     fn every_tick_of_a_played_stretch_produces_a_loadable_save() {
         const TICKS: u64 = 2_000;
         let mut sim = Sim::new_from_shipped_lot();
+        // **Start the household hungry rather than waiting for it to get
+        // there.** The two arms below need a sim to use a chain station
+        // enough times to habituate to one of its flyout rows, and a
+        // household that starts full spends most of a short run merely
+        // getting peckish. That made the tick budget a proxy for the decay
+        // rates: this fixture went vacuous once when the circadian curve
+        // was tuned and again when sleep slowed decay, both times because
+        // a knob somewhere else moved how long "long enough" is.
+        //
+        // Hunger only, and set rather than nudged, so the state this
+        // starts from is a fact about the fixture instead of a
+        // consequence of every rate in `tuning.toml`. It also keeps the
+        // run at 2 000 ticks, which matters: `ci.yml` bounds each mutant's
+        // whole workspace test run at 60 s, and this test is one of the
+        // slowest in it.
         let mut saw_walk_to_talk = false;
         let mut saw_chain_row_habituation = false;
 
         for tick in 1..=TICKS {
+            // **Keep the household under pressure, rather than waiting
+            // for the decay rates to put it there.**
+            //
+            // Both arms below need a specific thing to HAPPEN - somebody
+            // walking over to talk, and somebody habituating to a chain's
+            // flyout row - and left alone this fixture reached them only
+            // because 2 000 ticks of shipped decay happened to be long
+            // enough. That made the tick budget a proxy for every rate in
+            // `tuning.toml`: it went vacuous once when the circadian curve
+            // was tuned, and again when sleep slowed decay, both times for
+            // a reason that had nothing to do with saving or loading.
+            //
+            // **Hunger only, and only every 500 ticks.** The talk arm
+            // below reaches itself perfectly well on organic play and
+            // always did; it was the chain arm that needed help. Three
+            // attempts at helping both broke the talk arm instead, by
+            // keeping the house hungry enough that eating outscored
+            // company every time a sim chose. A fixture that leans on the
+            // simulation should lean exactly as hard as it has to.
+            if tick % 500 == 1 {
+                let world = sim.world_mut();
+                let agents: Vec<bevy_ecs::entity::Entity> = world
+                    .query_filtered::<bevy_ecs::entity::Entity, bevy_ecs::query::With<terri_core::Agent>>()
+                    .iter(world)
+                    .collect();
+                for agent in agents {
+                    if let Some(mut needs) = world.get_mut::<terri_core::Needs>(agent) {
+                        needs.set(terri_core::NeedId::Hunger, 12.0);
+                    }
+                }
+            }
             sim.tick();
             let snapshot = sim.save_snapshot();
 

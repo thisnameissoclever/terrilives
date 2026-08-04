@@ -18,7 +18,35 @@
 //! as a house full of shift workers.
 
 use terri_core::clock::SimClock;
+use terri_core::Eating;
 use terri_data::pack::ContentPack;
+
+/// Whether a sim running `eating` is ASLEEP.
+///
+/// **One rule, three readers**, which is why it is a function rather than
+/// three `if`s: the circadian drive that makes a bed attractive at night,
+/// the decay scale that slows the other needs while a sim is in it, and
+/// the Zzz bubble the shell draws over its head. Two of those three read
+/// it through the render buffer and the third through `decay_needs`, and
+/// a sim the bubble calls asleep has to be the sim whose hunger is
+/// slowed, or the picture is lying about the simulation.
+///
+/// The rule is the TAG, and it replaced an inference. The render buffer
+/// used to ask whether the interaction's biggest positive advert was
+/// energy, which is true of a bed and would be equally true of a coffee
+/// machine - a Zzz over an espresso, and a sim who stops getting hungry
+/// while drinking it. Objects already declare tags, so the answer was
+/// already authored; nothing needed inferring.
+///
+/// `None` is not asleep, and neither is an interaction without the tag.
+/// A sim with no `Eating` is walking, waiting or deciding.
+pub fn is_asleep(pack: &ContentPack, eating: Option<&Eating>) -> bool {
+    let Some(eating) = eating else {
+        return false;
+    };
+    let interaction = &pack.object(eating.object).interactions[eating.interaction as usize];
+    interaction.tags.contains(&pack.sleep_tag)
+}
 
 /// The sleep-drive multiplier for one sim, at one tick, for one candidate.
 ///
@@ -40,7 +68,7 @@ pub fn sleep_drive(
     // Untagged candidates are unaffected. One entry covers every
     // bed-shaped route to sleeping, because objects already carry tags -
     // exactly as one authored fear covers every couch.
-    if !tags.iter().any(|tag| tag == &circadian.sleep_tag) {
+    if !tags.iter().any(|tag| tag == &pack.sleep_tag) {
         return 1.0;
     }
     let day_ticks = pack.tuning.day_ticks;

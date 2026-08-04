@@ -636,10 +636,16 @@ impl Sim {
             // `Reserved`, so talking is tested before waiting; and an
             // eating sim keeps whatever `Wander` marker it had, so
             // interaction states come before movement ones. Sleeping is
-            // told apart from eating by the interaction's own data - its
-            // biggest advertised benefit is energy - because a Zzz over
-            // a bed reads and cutlery over a bed lies, and a name match
-            // on "bed" would silently miss the next nap-capable object.
+            // told apart from eating by the interaction's `sleep` TAG -
+            // `systems::circadian::is_asleep`, the same rule `decay_needs`
+            // slows the needs by, so a sim wearing a Zzz is exactly a sim
+            // whose hunger is slowed.
+            //
+            // That used to be an inference: whether the biggest positive
+            // advert was energy. True of a bed, and equally true of a
+            // coffee machine - so the first espresso in the catalogue
+            // would have drawn a Zzz. Objects already declare tags, so
+            // the answer was authored all along.
             // AT_WORK outranks everything: the row RIDES, flagged, so
             // every later entity keeps its interpolation slot (removing
             // the row would shift the slots after it and smear one
@@ -652,15 +658,8 @@ impl Sim {
                 render_buffer::activity::AT_WORK
             } else if talking || partners.contains(&entity) {
                 render_buffer::activity::TALKING
-            } else if let Some(eating) = eating {
-                let act = &content.object(eating.object).interactions[eating.interaction as usize];
-                let dominant = act
-                    .advertises
-                    .iter()
-                    .filter(|(_, delta)| *delta > 0.0)
-                    .max_by(|a, b| a.1.total_cmp(&b.1))
-                    .map(|(need, _)| *need);
-                if dominant == Some(terri_core::NeedId::Energy.index() as u8) {
+            } else if eating.is_some() {
+                if systems::circadian::is_asleep(content, eating) {
                     render_buffer::activity::SLEEPING
                 } else {
                     render_buffer::activity::EATING

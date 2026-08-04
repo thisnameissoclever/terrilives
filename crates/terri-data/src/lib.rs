@@ -511,6 +511,51 @@ mod tests {
     /// because that is the point - a tuning pass that changes one of
     /// them should have to say so here, which is where somebody
     /// reviewing a balance change will look.
+    /// **The shipped `sleep_tag` names an interaction that exists.**
+    ///
+    /// This is a test rather than a compile-step rule, and the departure
+    /// from [D9] is deliberate rather than an oversight. The rule needs
+    /// two files at once - the tag is in `tuning.toml` and the
+    /// interactions are in `objects.toml` - and enforcing it at the
+    /// boundary would make every minimal fixture in `compile.rs` invalid
+    /// until it grew a bed it does not want. Those fixtures are one
+    /// object each on purpose.
+    ///
+    /// What it catches is the same failure either way, and it is a quiet
+    /// one: rename the tag in one file and not the other, and no sim is
+    /// ever asleep. The drive never fires, the decay never slows, no Zzz
+    /// is ever drawn, and nothing anywhere says a word.
+    #[test]
+    fn the_shipped_sleep_tag_is_a_tag_the_shipped_objects_declare() {
+        let pack = pack();
+        assert!(!pack.sleep_tag.is_empty(), "the compile step rejects blank");
+        let wearers: Vec<&str> = pack
+            .objects
+            .iter()
+            .flat_map(|object| {
+                object
+                    .interactions
+                    .iter()
+                    .filter(|interaction| interaction.tags.contains(&pack.sleep_tag))
+                    .map(|_| object.id.as_str())
+            })
+            .collect();
+        assert!(
+            !wearers.is_empty(),
+            "no interaction in objects.toml declares {:?}, so nothing in \
+             the shipped game can ever be asleep",
+            pack.sleep_tag
+        );
+        // Both beds, not just one. A tag that reached only the bunk would
+        // mean the double bed silently stopped counting as sleep - a
+        // half-working feature is harder to notice than a dead one.
+        assert!(
+            wearers.len() >= 2,
+            "only {wearers:?} declares the sleep tag; every bed in the \
+             house has to count as sleeping"
+        );
+    }
+
     #[test]
     fn the_shipped_pack_carries_the_authored_tuning() {
         let t = pack().tuning;

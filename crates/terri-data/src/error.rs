@@ -533,6 +533,18 @@ pub enum ContentError {
     AtWorkDecayScaleOutOfRange {
         value: f32,
     },
+    /// `asleep_decay_scale` outside `[0, 1]`. The same two failures as
+    /// the knob above and for the same reasons: above 1 a bed drains a
+    /// sim faster than being awake does, and below 0 sleeping REFILLS
+    /// every need, which makes the bed the only object worth using.
+    AsleepDecayScaleOutOfRange {
+        value: f32,
+    },
+    /// An empty or whitespace-only `sleep_tag`. An empty tag matches no
+    /// interaction, so the sleep drive, the decay scale and the Zzz
+    /// bubble would all quietly do nothing, which is the silent-nothing
+    /// case [D9] exists to prevent.
+    EmptySleepTag,
     /// `neglect_floor` outside the need range `[0, 100]`. Above 100
     /// every need is always neglected and satisfaction bleeds from tick
     /// one, which reads as a broken accumulator rather than a tuning
@@ -1220,6 +1232,16 @@ impl fmt::Display for ContentError {
                 f,
                 "at_work_decay_scale is {value}, outside 0..=1; above 1 the \
                  office drains faster than living does and below 0 it refills"
+            ),
+            ContentError::AsleepDecayScaleOutOfRange { value } => write!(
+                f,
+                "asleep_decay_scale is {value}, outside 0..=1; above 1 a bed \
+                 drains faster than being awake does and below 0 it refills"
+            ),
+            ContentError::EmptySleepTag => write!(
+                f,
+                "sleep_tag in tuning.toml is empty; an empty tag matches no \
+                 interaction, so nothing would ever count as asleep"
             ),
             ContentError::NeglectFloorOutOfRange { value } => write!(
                 f,

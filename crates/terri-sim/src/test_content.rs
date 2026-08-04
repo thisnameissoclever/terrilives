@@ -208,10 +208,8 @@ pub fn pack_with_circadian(
     let pack = pack_tuned(objects, tuning);
     Box::leak(Box::new(ContentPack {
         traits: Vec::new(),
-        circadian: Some(terri_data::pack::Circadian {
-            sleep_tag: sleep_tag.to_string(),
-            sleep_drive,
-        }),
+        sleep_tag: sleep_tag.to_string(),
+        circadian: Some(terri_data::pack::Circadian { sleep_drive }),
         ..pack.clone()
     }))
 }
@@ -266,6 +264,11 @@ pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static Cont
         item_kinds: Vec::new(),
         chains: Vec::new(),
         circadian: None,
+        // The shipped tag rather than an invented one, for the same
+        // reason the lot and the decay rates are copied rather than made
+        // up: `content/objects.toml` is what declares it, and a fixture
+        // with its own would test a vocabulary the game does not have.
+        sleep_tag: terri_data::pack().sleep_tag.clone(),
     }))
 }
 
