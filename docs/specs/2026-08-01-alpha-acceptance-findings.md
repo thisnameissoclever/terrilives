@@ -9,6 +9,9 @@ present at once, and three of them did not hold.
 This is the working design for the three fixes, including what was
 rejected.
 
+Historical measurements below preserve the names used during the run. The
+2026-08-05 roster rename maps Terri to Tim, Doug to Bill, and Nadia to Casey.
+
 ## [X1] A quarter of all saves could not be loaded
 
 **Measured.** On the shipped lot, snapshotting at each of 36 000 ticks

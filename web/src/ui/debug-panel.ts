@@ -5,7 +5,7 @@
  * the Sims, just for developer debugging type stuff", and it earns its
  * place beyond debugging: personalities remain invisible in ordinary play,
  * while this still shows every sim's exact relationship floats rather than
- * the normal People panel's qualitative bands. It is where "Nadia's social
+ * the normal People panel's qualitative bands. It is where "Casey's social
  * drains 1.4x" stops being a claim in a TOML comment.
  *
  * Same shape as the needs panel and for its reasons: a structural
@@ -152,7 +152,7 @@ export function formatDebugReport(source: DebugSource): string {
       );
     }
 
-    // Why a stalled sim is stalled - the owner's Terri-at-the-door
+    // Why a stalled sim is stalled - the owner's Tim-at-the-door
     // report: "idle" with hunger at 2 is a question, and this is the
     // panel answering it instead of the reader guessing. The pending
     // orders ride their own line: an order is what a sim is about to

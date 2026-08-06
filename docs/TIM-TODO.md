@@ -115,7 +115,7 @@ and prefer evergreen absurdity over current events.** Confirm or overrule.
 
 **Muted Line, and it is in the running game.** Every sprite is drawn by
 `assets/sprites/gen/`, the world tints with the clock, the lamp and the
-television stay lit after dark, and Terri, Doug and Nadia are three
+television stay lit after dark, and Tim, Bill and Casey are three
 different people rather than three copies of one. The plan and its current
 state are in `docs/specs/2026-08-03-muted-line-implementation.md`; the
 prototype the choice was made against is `tools/art-prototype/`, wired into
@@ -238,10 +238,10 @@ about that before committing to [D13].
 
 ### [T3] Approve any additional CC0 asset-pack downloads `[APPROVE]`
 
-The Kenney Furniture Kit used by the shipped alpha is already downloaded and
-fully recorded in `ASSETS.md`. No additional pack is needed for the current
-sprite-atlas game. If the future 3D or full-art pipeline needs more CC0 packs, I
-will assemble the exact URL list and fetch script and ask before downloading.
+The old Kenney Furniture Kit is downloaded and recorded in `ASSETS.md`, but no
+pack art remains in the shipped alpha. Muted Line replaced it with generated
+original sprites. If a future 3D or full-art pipeline needs CC0 packs, I will
+assemble the exact URL list and fetch script and ask before downloading.
 
 ### [T5] Confirm the repository should stay public `[APPROVE]`
 

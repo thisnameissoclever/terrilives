@@ -29,16 +29,213 @@ use std::sync::OnceLock;
 /// the same build that compiles this file.
 static PACK_BYTES: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/content_pack.postcard"));
 
-/// Stable identity of a compiled content pack for save compatibility checks.
+/// The compatibility shape of the content a Save V1 can point at, hashed.
 ///
-/// A save records this value and refuses to load against different content.
-/// Silently accepting a balance, vocabulary, or atlas-index change would make
-/// a restored deterministic simulation continue under different rules.
+/// A save records this value and refuses to load against content whose
+/// answer differs, because a `SavedEating` naming interaction 2 of the
+/// bookcase is nonsense against a bookcase that now offers one.
+///
+/// **This used to hash the whole serialised pack, and that was wrong in
+/// a way the owner had to report.** Every deploy invalidated every save,
+/// because every deploy changed something: a balance number, a new
+/// sprite, a renamed sim. The message "Saved game is invalid. Starting a
+/// new game." was accurate and useless - the save was fine, and nothing
+/// it referred to had moved.
+///
+/// What is hashed here is the part of a `SaveSnapshotV1` address that the
+/// snapshot itself cannot validate by name:
+///
+/// * Each object's footprint, resolved station-role names, interaction ids IN
+///   ORDER, and advertised chain ids IN FLYOUT ORDER. Saves name objects by
+///   string, so object declaration order is free; interaction and flyout rows
+///   are numeric, so their order is not. Station roles decide where a restored
+///   running chain will continue.
+/// * The social vocabulary's ids in order - `SavedSocialising` holds an
+///   index into it.
+/// * Each chain's id and ordered structural steps - `SavedChainState` holds a
+///   step index, so a same-length reorder must not silently resume a different
+///   station or hand-off.
+/// * Trait ids and their kind. Trait state is saved by id, but a capability
+///   level must never be reinterpreted as a condition severity.
+/// * The optional front-door coordinate. Save V1 persists the old collision
+///   grid but career shifts still path to the current pack's door.
+///
+/// What is deliberately NOT hashed: every number in `tuning.toml`, every
+/// advert delta, label, duration and tag, every sprite index, every sim's
+/// NAME, the rest of the lot, careers, carried-item declaration order, and the
+/// circadian curve. Object, career, trait, chain, and carried-item string
+/// references are validated against the current pack while loading. Hobbies
+/// remain raw tags; removing their last matching activity makes the hobby
+/// inactive rather than making the save corrupt. A save that loads into retuned
+/// content simply plays under the new numbers, which is what a player wants and
+/// what a designer iterating on balance needs.
+///
+/// The cost of the narrower rule, stated plainly: change a delta and a
+/// mid-flight interaction finishes under the new one. That is a save
+/// continuing into a patched game, which is the normal thing for a game
+/// to do. This remains one global digest, so adding an otherwise unrelated
+/// object or trait still changes it. Save V2 can remove that false rejection
+/// only by persisting stable ids beside every numeric row; pretending one hash
+/// can infer which definitions a particular save used would be theatre.
 pub fn content_fingerprint(pack: &ContentPack) -> u64 {
-    let bytes = postcard::to_allocvec(pack).expect("ContentPack serialises");
     let mut hasher = terri_core::FnvHasher::default();
-    hasher.write_bytes(&bytes);
+    hasher.write_bytes(b"terrilives-save-compatibility-v1");
+
+    let mut objects: Vec<_> = pack.objects.iter().collect();
+    objects.sort_unstable_by(|left, right| left.id.cmp(&right.id));
+    hash_count(&mut hasher, objects.len());
+    for object in objects {
+        hash_text(&mut hasher, &object.id);
+        hasher.write_u64(object.footprint.width as u64);
+        hasher.write_u64(object.footprint.depth as u64);
+
+        let mut roles: Vec<_> = object
+            .roles
+            .iter()
+            .map(|role| pack.roles[*role as usize].as_str())
+            .collect();
+        roles.sort_unstable();
+        hash_count(&mut hasher, roles.len());
+        for role in roles {
+            hash_text(&mut hasher, role);
+        }
+
+        hash_count(&mut hasher, object.interactions.len());
+        for interaction in &object.interactions {
+            hash_text(&mut hasher, &interaction.id);
+        }
+
+        let object_id = pack
+            .find(&object.id)
+            .expect("object came from this validated pack");
+        let advertised_chains: Vec<_> = pack
+            .chains
+            .iter()
+            .filter(|chain| chain.advertised_by == object_id)
+            .collect();
+        hash_count(&mut hasher, advertised_chains.len());
+        for chain in advertised_chains {
+            hash_text(&mut hasher, &chain.id);
+        }
+    }
+
+    hash_count(&mut hasher, pack.social.len());
+    for interaction in &pack.social {
+        hash_text(&mut hasher, &interaction.id);
+    }
+
+    match pack.lot.front_door {
+        Some((x, y)) => {
+            hasher.write_bytes(&[1]);
+            hasher.write_u64(x as u64);
+            hasher.write_u64(y as u64);
+        }
+        None => hasher.write_bytes(&[0]),
+    }
+
+    let mut chains: Vec<_> = pack.chains.iter().collect();
+    chains.sort_unstable_by(|left, right| left.id.cmp(&right.id));
+    hash_count(&mut hasher, chains.len());
+    for chain in chains {
+        hash_text(&mut hasher, &chain.id);
+        hash_count(&mut hasher, chain.steps.len());
+        for step in &chain.steps {
+            hash_text(&mut hasher, &pack.roles[step.role as usize]);
+            hash_optional_text(
+                &mut hasher,
+                step.yields
+                    .map(|kind| pack.item_kinds[kind as usize].as_str()),
+            );
+            match step.transforms {
+                Some((from, to)) => {
+                    hasher.write_bytes(&[1]);
+                    hash_text(&mut hasher, &pack.item_kinds[from as usize]);
+                    hash_text(&mut hasher, &pack.item_kinds[to as usize]);
+                }
+                None => hasher.write_bytes(&[0]),
+            }
+            hash_optional_text(
+                &mut hasher,
+                step.consumes
+                    .map(|kind| pack.item_kinds[kind as usize].as_str()),
+            );
+        }
+    }
+
+    let mut traits: Vec<_> = pack.traits.iter().collect();
+    traits.sort_unstable_by(|left, right| left.id.cmp(&right.id));
+    hash_count(&mut hasher, traits.len());
+    for trait_def in traits {
+        hash_text(&mut hasher, &trait_def.id);
+        let kind = match trait_def.kind {
+            CompiledTraitKind::Disposition { .. } => 0,
+            CompiledTraitKind::Capability { .. } => 1,
+            CompiledTraitKind::Condition { .. } => 2,
+        };
+        hasher.write_bytes(&[kind]);
+    }
+
     hasher.finish()
+}
+
+/// The full-pack fingerprints emitted by every distinct public Save V1
+/// content shape before the compatibility digest replaced that algorithm.
+///
+/// Each legacy key maps to the one reviewed compatibility shape it may enter.
+/// Pairing both sides is important: an incompatible future content edit moves
+/// the current digest and automatically closes these bridges instead of
+/// treating an old opaque hash as a permanent skeleton key.
+const LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS: &[(u64, u64)] = &[
+    // 115ad03, where Save V1 first shipped.
+    (0x9d22_8822_6933_d3c7, 0x26d5_982c_9af8_3de8),
+    // b772ab9 through ebfa686. Those public revisions compiled identically.
+    (0x263e_ed3b_bdcb_a7d0, 0x26d5_982c_9af8_3de8),
+    // 3a5e936, the Muted Line and circadian release.
+    (0x08ec_6011_bc11_7ad8, 0x26d5_982c_9af8_3de8),
+    // 72d67c5, the last public full-pack fingerprint before this migration.
+    (0x2eb2_02fa_e70e_4939, 0x26d5_982c_9af8_3de8),
+];
+
+/// Whether a Save V1 fingerprint may load against this content pack.
+///
+/// New saves carry [`content_fingerprint`]. The small migration table accepts
+/// every distinct fingerprint the public game emitted under the retired
+/// whole-pack algorithm, but only while the current structural digest remains
+/// the specifically reviewed target.
+pub fn content_fingerprint_matches(pack: &ContentPack, saved: u64) -> bool {
+    let current = content_fingerprint(pack);
+    saved == current
+        || LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS
+            .iter()
+            .any(|&(legacy, target)| saved == legacy && current == target)
+}
+
+/// Whether `saved` is one of the retired whole-pack fingerprints accepted by
+/// the migration table for this exact current content shape.
+pub fn content_fingerprint_is_legacy(pack: &ContentPack, saved: u64) -> bool {
+    let current = content_fingerprint(pack);
+    LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS
+        .iter()
+        .any(|&(legacy, target)| saved == legacy && current == target)
+}
+
+fn hash_count(hasher: &mut terri_core::FnvHasher, count: usize) {
+    hasher.write_u64(count as u64);
+}
+
+fn hash_text(hasher: &mut terri_core::FnvHasher, value: &str) {
+    hash_count(hasher, value.len());
+    hasher.write_bytes(value.as_bytes());
+}
+
+fn hash_optional_text(hasher: &mut terri_core::FnvHasher, value: Option<&str>) {
+    match value {
+        Some(value) => {
+            hasher.write_bytes(&[1]);
+            hash_text(hasher, value);
+        }
+        None => hasher.write_bytes(&[0]),
+    }
 }
 
 /// The compiled content pack, deserialised once on first use.
@@ -90,7 +287,7 @@ mod tests {
     /// The shipped dinner chain, end to end through the embedded pack:
     /// four steps at four stations, hands that add up (yield, carry,
     /// transform, consume), the cooking tag on the hob step where
-    /// Doug's hobby and Nadia's capability will find it, and the
+    /// Bill's hobby and Casey's capability will find it, and the
     /// terminal-only payoff. A content edit that dropped a step or a
     /// station would land here before it landed in play.
     #[test]
@@ -135,15 +332,400 @@ mod tests {
     }
 
     #[test]
-    fn content_fingerprint_changes_when_simulation_content_changes() {
+    fn the_fingerprint_observes_numeric_interaction_and_social_rows() {
         let original = pack().clone();
-        let mut changed = original.clone();
-        changed.tuning.rng_seed ^= 1;
-        assert_ne!(
-            content_fingerprint(&original),
-            content_fingerprint(&changed),
-            "a content edit must make an existing save incompatible"
+        let base = content_fingerprint(&original);
+
+        let mut renamed_object = original.clone();
+        renamed_object.objects[0].id = "something_else".to_string();
+        assert_ne!(base, content_fingerprint(&renamed_object), "an object id");
+
+        let mut fewer_objects = original.clone();
+        fewer_objects.objects.pop();
+        assert_ne!(base, content_fingerprint(&fewer_objects), "an object count");
+
+        let mut renamed = original.clone();
+        renamed.objects[0].interactions[0].id = "something_else".to_string();
+        assert_ne!(base, content_fingerprint(&renamed), "an interaction id");
+
+        let mut longer = original.clone();
+        let extra = longer.objects[0].interactions[0].clone();
+        longer.objects[0].interactions.push(CompiledInteraction {
+            id: "an_extra_row".to_string(),
+            ..extra
+        });
+        assert_ne!(base, content_fingerprint(&longer), "an interaction count");
+
+        assert!(!original.social.is_empty(), "the fixture needs a social");
+        let mut social_fixture = original.clone();
+        let mut extra_social = social_fixture.social[0].clone();
+        extra_social.id = "another_social".to_string();
+        social_fixture.social.push(extra_social);
+        let social_base = content_fingerprint(&social_fixture);
+        let mut swapped = social_fixture;
+        swapped.social.swap(0, 1);
+        assert_ne!(social_base, content_fingerprint(&swapped), "social order");
+    }
+
+    #[test]
+    fn the_fingerprint_observes_chain_flyout_and_step_meaning() {
+        let original = pack().clone();
+        let base = content_fingerprint(&original);
+        assert!(!original.chains.is_empty(), "the fixture needs a chain");
+        assert!(
+            original.chains[0].steps.len() > 1,
+            "the fixture needs two chain steps"
         );
+
+        let mut clipped = original.clone();
+        clipped.chains[0].steps.pop();
+        assert_ne!(base, content_fingerprint(&clipped), "a chain's length");
+
+        let mut reordered = original.clone();
+        reordered.chains[0].steps.swap(0, 1);
+        assert_ne!(
+            base,
+            content_fingerprint(&reordered),
+            "the same step count with different meanings"
+        );
+
+        let current_advertiser = original.chains[0].advertised_by;
+        let replacement = original
+            .objects
+            .iter()
+            .enumerate()
+            .find(|(index, _)| *index as u32 != current_advertiser.0)
+            .map(|(index, _)| ObjectDefId(index as u32))
+            .expect("the shipped pack has another object");
+        let mut moved = original.clone();
+        moved.chains[0].advertised_by = replacement;
+        assert_ne!(
+            base,
+            content_fingerprint(&moved),
+            "moving a chain moves an object's numeric flyout row"
+        );
+
+        let mut retuned = original.clone();
+        retuned.chains[0].steps[0].label.push_str(" again");
+        retuned.chains[0].steps[0].duration_ticks += 1;
+        retuned.chains[0].steps[0].tags.push("patched".to_string());
+        assert_eq!(
+            base,
+            content_fingerprint(&retuned),
+            "labels, duration and tags are patchable semantics"
+        );
+    }
+
+    #[test]
+    fn the_fingerprint_observes_footprints_and_trait_state_kind() {
+        let original = pack().clone();
+        let base = content_fingerprint(&original);
+
+        let mut resized = original.clone();
+        resized.objects[0].footprint.width += 1;
+        assert_ne!(
+            base,
+            content_fingerprint(&resized),
+            "the restored collision grid must agree with object width"
+        );
+        let mut deepened = original.clone();
+        deepened.objects[0].footprint.depth += 1;
+        assert_ne!(
+            base,
+            content_fingerprint(&deepened),
+            "the restored collision grid must agree with object depth"
+        );
+
+        let (source, role) = original
+            .objects
+            .iter()
+            .enumerate()
+            .find_map(|(index, object)| object.roles.first().map(|role| (index, *role)))
+            .expect("the shipped pack needs a station role");
+        let destination = original
+            .objects
+            .iter()
+            .enumerate()
+            .find(|(index, object)| *index != source && !object.roles.contains(&role))
+            .map(|(index, _)| index)
+            .expect("the shipped pack needs another object for the role");
+        let mut remapped_station = original.clone();
+        remapped_station.objects[source]
+            .roles
+            .retain(|candidate| *candidate != role);
+        remapped_station.objects[destination].roles.push(role);
+        remapped_station.objects[destination].roles.sort_unstable();
+        assert_ne!(
+            base,
+            content_fingerprint(&remapped_station),
+            "a restored chain must not silently continue at another station"
+        );
+
+        let (door_x, door_y) = original
+            .lot
+            .front_door
+            .expect("the shipped career pack needs a front door");
+        let mut moved_door = original.clone();
+        moved_door.lot.front_door = Some((door_x + 1, door_y));
+        assert_ne!(
+            base,
+            content_fingerprint(&moved_door),
+            "a restored worker must not path on the old grid toward a new door"
+        );
+        let mut removed_door = original.clone();
+        removed_door.lot.front_door = None;
+        assert_ne!(
+            base,
+            content_fingerprint(&removed_door),
+            "door presence changes the restored career route"
+        );
+
+        assert!(!original.traits.is_empty(), "the fixture needs a trait");
+        let mut reinterpreted = original.clone();
+        reinterpreted.traits[0].kind = match original.traits[0].kind {
+            CompiledTraitKind::Disposition { .. } => CompiledTraitKind::Capability {
+                start_level: 0.0,
+                fail_delta_scale: 1.0,
+                learn_per_attempt: 0.1,
+            },
+            CompiledTraitKind::Capability { .. } | CompiledTraitKind::Condition { .. } => {
+                CompiledTraitKind::Disposition {
+                    score_multiplier: 1.0,
+                }
+            }
+        };
+        assert_ne!(
+            base,
+            content_fingerprint(&reinterpreted),
+            "saved trait state cannot change category"
+        );
+
+        let mut retuned = original.clone();
+        match &mut retuned.traits[0].kind {
+            CompiledTraitKind::Disposition { score_multiplier } => *score_multiplier += 0.01,
+            CompiledTraitKind::Capability {
+                learn_per_attempt, ..
+            } => *learn_per_attempt += 0.01,
+            CompiledTraitKind::Condition {
+                manage_per_completion,
+                ..
+            } => *manage_per_completion += 0.01,
+        }
+        assert_eq!(
+            base,
+            content_fingerprint(&retuned),
+            "numbers inside one trait kind are balance"
+        );
+    }
+
+    #[test]
+    fn the_fingerprint_allows_names_art_balance_and_string_table_reordering() {
+        let original = pack().clone();
+        let base = content_fingerprint(&original);
+
+        let mut retuned = original.clone();
+        retuned.tuning.rng_seed ^= 1;
+        retuned.tuning.action_threshold += 0.01;
+        retuned.tuning.asleep_decay_scale = 1.0;
+        assert_eq!(base, content_fingerprint(&retuned), "a balance pass");
+
+        let mut renamed_sim = original.clone();
+        assert!(!renamed_sim.household.is_empty(), "the fixture needs a sim");
+        renamed_sim.household[0].name = "Somebody Else".to_string();
+        assert_eq!(base, content_fingerprint(&renamed_sim), "a sim's name");
+
+        let mut redrawn = original.clone();
+        redrawn.sim_sprite += 1;
+        redrawn.objects[0].sprite += 1;
+        assert_eq!(base, content_fingerprint(&redrawn), "an art pass");
+
+        let mut regraded = original.clone();
+        regraded.objects[0].interactions[0].duration_ticks += 5;
+        regraded.objects[0].interactions[0].advertises[0].1 += 1.0;
+        assert_eq!(base, content_fingerprint(&regraded), "an advert edit");
+
+        assert!(original.objects.len() > 1, "the fixture needs two objects");
+        let mut objects = original.clone();
+        objects.objects.swap(0, 1);
+        for placement in &mut objects.lot.placements {
+            placement.object = ObjectDefId(swap_zero_and_one(placement.object.0));
+        }
+        for personality in &mut objects.personalities {
+            for (object, _, _) in &mut personality.dispositions {
+                *object = ObjectDefId(swap_zero_and_one(object.0));
+            }
+        }
+        for chain in &mut objects.chains {
+            chain.advertised_by = ObjectDefId(swap_zero_and_one(chain.advertised_by.0));
+        }
+        assert_eq!(
+            base,
+            content_fingerprint(&objects),
+            "saved objects resolve by id"
+        );
+
+        assert!(!original.chains.is_empty(), "the fixture needs a chain");
+        let mut chain_fixture = original.clone();
+        let mut extra_chain = chain_fixture.chains[0].clone();
+        extra_chain.id = "another_chain".to_string();
+        extra_chain.advertised_by = ObjectDefId(
+            (0..chain_fixture.objects.len())
+                .find(|index| *index as u32 != chain_fixture.chains[0].advertised_by.0)
+                .expect("the shipped pack has another chain advertiser") as u32,
+        );
+        chain_fixture.chains.push(extra_chain);
+        let chain_base = content_fingerprint(&chain_fixture);
+        let mut chains = chain_fixture;
+        chains.chains.swap(0, 1);
+        assert_eq!(
+            chain_base,
+            content_fingerprint(&chains),
+            "chain declaration order is free across different flyouts"
+        );
+
+        let mut flyout_fixture = original.clone();
+        let mut second_flyout_chain = flyout_fixture.chains[0].clone();
+        second_flyout_chain.id = "another_chain".to_string();
+        flyout_fixture.chains.push(second_flyout_chain);
+        let flyout_base = content_fingerprint(&flyout_fixture);
+        let mut reordered_flyout = flyout_fixture;
+        reordered_flyout.chains.swap(0, 1);
+        assert_ne!(
+            flyout_base,
+            content_fingerprint(&reordered_flyout),
+            "chain order within one object's numeric flyout must remain stable"
+        );
+
+        assert!(!original.careers.is_empty(), "the fixture needs a career");
+        let mut career_fixture = original.clone();
+        let mut extra_career = career_fixture.careers[0].clone();
+        extra_career.id = "another_career".to_string();
+        career_fixture.careers.push(extra_career);
+        let career_base = content_fingerprint(&career_fixture);
+        let mut careers = career_fixture;
+        careers.careers.swap(0, 1);
+        for member in &mut careers.household {
+            member.career = member.career.map(swap_zero_and_one);
+        }
+        assert_eq!(
+            career_base,
+            content_fingerprint(&careers),
+            "saved careers resolve by id"
+        );
+
+        assert!(
+            original.item_kinds.len() > 1,
+            "the fixture needs two item kinds"
+        );
+        let mut items = original.clone();
+        items.item_kinds.swap(0, 1);
+        for chain in &mut items.chains {
+            for step in &mut chain.steps {
+                step.yields = step.yields.map(swap_zero_and_one);
+                step.transforms = step
+                    .transforms
+                    .map(|(from, to)| (swap_zero_and_one(from), swap_zero_and_one(to)));
+                step.consumes = step.consumes.map(swap_zero_and_one);
+            }
+        }
+        assert_eq!(
+            base,
+            content_fingerprint(&items),
+            "saved carried items resolve by id"
+        );
+
+        assert!(original.roles.len() > 1, "the fixture needs two roles");
+        let mut role_fixture = original.clone();
+        role_fixture.objects[0].roles = vec![0, 1];
+        let role_base = content_fingerprint(&role_fixture);
+        let mut roles = role_fixture;
+        roles.roles.swap(0, 1);
+        for object in &mut roles.objects {
+            for role in &mut object.roles {
+                *role = swap_zero_and_one(*role);
+            }
+            object.roles.sort_unstable();
+        }
+        for chain in &mut roles.chains {
+            for step in &mut chain.steps {
+                step.role = swap_zero_and_one(step.role);
+            }
+        }
+        assert_eq!(
+            role_base,
+            content_fingerprint(&roles),
+            "station roles resolve by name"
+        );
+
+        assert!(original.traits.len() > 1, "the fixture needs two traits");
+        let mut traits = original.clone();
+        traits.traits.swap(0, 1);
+        for member in &mut traits.household {
+            for index in &mut member.traits {
+                *index = swap_zero_and_one(*index);
+            }
+        }
+        assert_eq!(
+            base,
+            content_fingerprint(&traits),
+            "saved traits resolve by id"
+        );
+    }
+
+    #[test]
+    fn interaction_id_lengths_are_part_of_the_fingerprint() {
+        let mut left = pack().clone();
+        let mut first = left.objects[0].interactions[0].clone();
+        first.id = "ab".to_string();
+        let mut second = first.clone();
+        second.id = "c".to_string();
+        left.objects[0].interactions = vec![first.clone(), second];
+
+        let mut right = left.clone();
+        right.objects[0].interactions[0].id = "a".to_string();
+        right.objects[0].interactions[1].id = "bc".to_string();
+        assert_ne!(
+            content_fingerprint(&left),
+            content_fingerprint(&right),
+            "without length prefixes both inputs flatten to the same bytes"
+        );
+    }
+
+    #[test]
+    fn every_public_full_pack_fingerprint_migrates_only_to_the_reviewed_shape() {
+        assert_eq!(
+            content_fingerprint(pack()),
+            0x26d5_982c_9af8_3de8,
+            "a structural content edit must review or retire each legacy bridge"
+        );
+        for &(legacy, target) in LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS {
+            assert_eq!(target, 0x26d5_982c_9af8_3de8);
+            assert!(
+                content_fingerprint_matches(pack(), legacy),
+                "deployed fingerprint {legacy:#018x} lost its migration"
+            );
+        }
+        assert!(content_fingerprint_matches(
+            pack(),
+            content_fingerprint(pack())
+        ));
+        assert!(!content_fingerprint_is_legacy(
+            pack(),
+            content_fingerprint(pack())
+        ));
+        assert!(LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS
+            .iter()
+            .all(|(legacy, _)| content_fingerprint_is_legacy(pack(), *legacy)));
+        assert!(!content_fingerprint_matches(pack(), 0));
+        assert!(!content_fingerprint_is_legacy(pack(), 0));
+    }
+
+    fn swap_zero_and_one(index: u32) -> u32 {
+        match index {
+            0 => 1,
+            1 => 0,
+            other => other,
+        }
     }
 
     /// [D6] calls for enough objects that a sim has something to decide

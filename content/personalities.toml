@@ -42,7 +42,7 @@
 [[archetype]]
 id = "the_correspondent"
 # Where this archetype samples the circadian curve, in ticks - [ML-chrono].
-# Terri is up before the others: 90 ticks is an hour and a half early.
+# Tim is up before the others: 90 ticks is an hour and a half early.
 #
 # This one number is what stops the household going to bed on the same
 # tick, which reads as a screensaver rather than as a home. It is the
@@ -105,7 +105,7 @@ satisfaction = { fun = 0.85, energy = 1.15 }
 # The 0.45 on the desk is the same fact from the other side.
 [[archetype]]
 id = "the_settled"
-# Doug keeps ordinary hours, and 0 is what every archetype had before
+# Bill keeps ordinary hours, and 0 is what every archetype had before
 # chronotypes existed.
 chronotype_offset_ticks = 0
 drain = { comfort = 1.5, energy = 0.8 }
@@ -129,13 +129,13 @@ satisfaction = { comfort = 1.25 }
 # The one the house is too quiet for. Social drains almost half again as
 # fast as anyone else's and each dose restores LESS (0.75), so she works
 # the house's social taps harder than anyone: measured over 36 000 ticks,
-# television 69 uses to Doug's 42 and Terri's 34, dining table 20 to
+# television 69 uses to Bill's 42 and Tim's 34, dining table 20 to
 # their 3 and 13. **The radio is the exception and the 1.6 below is a
 # muted preference, knowingly kept**: the radio is mostly a fun object
 # (fun 22, social 5), her fun runs the highest floor in the household
 # because everything she does for social also pays fun, and a cubed
 # near-zero fun deficit kills the radio's dominant term before the weight
-# can act - she used it zero times in that trace while unweighted Terri
+# can act - she used it zero times in that trace while unweighted Tim
 # used it twelve. That is [L54]'s shape one layer up: a weight tuned
 # against an object's headline need rather than against what decides
 # between it and its competitor. It stays because it is honest character
@@ -148,7 +148,7 @@ satisfaction = { comfort = 1.25 }
 # pins near zero that is [C2] and the number to soften is the 1.4.
 [[archetype]]
 id = "the_flitting"
-# Nadia is a night owl: three hours later than the curve's nominal shape,
+# Casey is a night owl: three hours later than the curve's nominal shape,
 # so she is still up when the other two have gone to bed.
 chronotype_offset_ticks = 180
 drain = { social = 1.4, hygiene = 0.9 }

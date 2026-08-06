@@ -21,6 +21,7 @@ const MAX_TILES: usize = 1_048_576;
 const MAX_ENTITIES: usize = 100_000;
 const MAX_LIST_ENTRIES: usize = 100_000;
 const MAX_TEXT_BYTES: usize = 1_024;
+const LEGACY_HOUSEHOLD_NAMES: [&str; 3] = ["Terri", "Doug", "Nadia"];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SaveError {
@@ -223,6 +224,8 @@ pub(super) fn restore(
     content: &'static ContentPack,
 ) -> Result<Sim, SaveError> {
     validate_snapshot(&snapshot, content)?;
+    let migrate_legacy_household_names =
+        terri_data::content_fingerprint_is_legacy(content, snapshot.content_fingerprint);
 
     let mut sim = Sim::new();
     sim.world.insert_resource(Content(content));
@@ -274,7 +277,13 @@ pub(super) fn restore(
     }
 
     for saved in &snapshot.entities {
-        restore_entity(&mut sim.world, saved, &slots, content)?;
+        restore_entity(
+            &mut sim.world,
+            saved,
+            &slots,
+            content,
+            migrate_legacy_household_names,
+        )?;
     }
 
     for hole in holes {
@@ -298,6 +307,7 @@ fn restore_entity(
     saved: &SavedEntity,
     slots: &[Option<Entity>],
     pack: &ContentPack,
+    migrate_legacy_household_names: bool,
 ) -> Result<(), SaveError> {
     let entity = slots[saved.index as usize].ok_or(SaveError::InvalidEntityReference)?;
     let mut target = world.entity_mut(entity);
@@ -381,8 +391,8 @@ fn restore_entity(
     if let Some(id) = saved.sim_id {
         target.insert(SimId(id));
     }
-    if let Some(name) = &saved.sim_name {
-        target.insert(SimName(name.clone()));
+    if let Some(name) = restored_sim_name(saved, pack, migrate_legacy_household_names) {
+        target.insert(SimName(name));
     }
     if let Some(personality) = &saved.personality {
         let dispositions = personality
@@ -500,6 +510,40 @@ fn restore_entity(
     Ok(())
 }
 
+/// Applies the one household rename that predates player-authored names.
+///
+/// Save V1 owns a sim's displayed name because Create-a-Sim is future work.
+/// The shipped alpha nevertheless renamed its three authored members after
+/// saves existed. For a recognized legacy full-pack fingerprint, replace only
+/// the exact old authored name at the matching stable `SimId`; an arbitrary
+/// saved name is treated as player data and kept. A save already carrying the
+/// current compatibility digest never enters this migration, so a future
+/// player may deliberately choose an old cast name without Load undoing it.
+fn restored_sim_name(
+    saved: &SavedEntity,
+    pack: &ContentPack,
+    migrate_legacy_household_names: bool,
+) -> Option<String> {
+    let saved_name = saved.sim_name.as_deref()?;
+    if !migrate_legacy_household_names {
+        return Some(saved_name.to_string());
+    }
+    let Some(sim_id) = saved.sim_id.map(|id| id as usize) else {
+        return Some(saved_name.to_string());
+    };
+    let Some(current_member) = pack.household.get(sim_id) else {
+        return Some(saved_name.to_string());
+    };
+    let Some(legacy_name) = LEGACY_HOUSEHOLD_NAMES.get(sim_id) else {
+        return Some(saved_name.to_string());
+    };
+    if saved_name == *legacy_name {
+        Some(current_member.name.clone())
+    } else {
+        Some(saved_name.to_string())
+    }
+}
+
 fn placement_matches(
     placement: &terri_data::CompiledPlacement,
     object: ObjectDefId,
@@ -537,7 +581,7 @@ fn restore_command(command: SavedCommand) -> SimCommand {
 }
 
 fn validate_snapshot(snapshot: &SaveSnapshotV1, pack: &ContentPack) -> Result<(), SaveError> {
-    if snapshot.content_fingerprint != terri_data::content_fingerprint(pack) {
+    if !terri_data::content_fingerprint_matches(pack, snapshot.content_fingerprint) {
         return Err(SaveError::IncompatibleContent);
     }
 
@@ -781,17 +825,17 @@ fn validate_entity(
                 return Err(SaveError::InvalidValue);
             }
         }
-        let mut previous = None;
+        let mut ids = Vec::with_capacity(entries.len());
         for entry in entries {
-            let index = pack
-                .traits
+            pack.traits
                 .iter()
-                .position(|definition| definition.id == entry.id)
+                .find(|definition| definition.id == entry.id)
                 .ok_or(SaveError::InvalidContentReference)?;
-            if previous.is_some_and(|previous| index <= previous) {
-                return Err(SaveError::InvalidValue);
-            }
-            previous = Some(index);
+            ids.push(entry.id.as_str());
+        }
+        ids.sort_unstable();
+        if ids.windows(2).any(|pair| pair[0] == pair[1]) {
+            return Err(SaveError::InvalidValue);
         }
     }
     if let Some(id) = entity.smart_object.as_deref() {
@@ -835,7 +879,7 @@ fn validate_habituation(
     if exceeds_limit(entries.len(), MAX_LIST_ENTRIES) {
         return Err(SaveError::InvalidValue);
     }
-    let mut previous_key = None;
+    let mut keys = Vec::with_capacity(entries.len());
     for entry in entries {
         // **Rows, not interactions.** `learn_and_manage` keys
         // habituation on the same flyout row scoring uses, so a sim
@@ -850,11 +894,11 @@ fn validate_habituation(
         if !(minimum..=maximum).contains(&entry.value) {
             return Err(SaveError::InvalidValue);
         }
-        let key = (resolve_object(pack, &entry.object)?.0, entry.interaction);
-        if previous_key.is_some_and(|previous| key <= previous) {
-            return Err(SaveError::InvalidValue);
-        }
-        previous_key = Some(key);
+        keys.push((entry.object.as_str(), entry.interaction));
+    }
+    keys.sort_unstable();
+    if keys.windows(2).any(|pair| pair[0] == pair[1]) {
+        return Err(SaveError::InvalidValue);
     }
     Ok(())
 }
@@ -2252,7 +2296,7 @@ mod tests {
     }
 
     #[test]
-    fn habituation_and_disposition_entries_require_valid_sorted_content_rows() {
+    fn habituation_and_disposition_entries_require_valid_unique_content_rows() {
         let pack = terri_data::pack();
         let rows: Vec<SavedHabituation> = pack
             .objects
@@ -2287,11 +2331,7 @@ mod tests {
 
         let mut descending = rich_snapshot();
         rich_agent_mut(&mut descending).habituation = Some(vec![rows[1].clone(), rows[0].clone()]);
-        assert_validation(
-            &descending,
-            Err(SaveError::InvalidValue),
-            "descending habituation key",
-        );
+        assert_validation(&descending, Ok(()), "save order is not content order");
 
         for (label, value) in [
             ("negative habituation", -f32::EPSILON),
@@ -2370,7 +2410,7 @@ mod tests {
     }
 
     #[test]
-    fn trait_and_chain_state_enforce_content_order_and_numeric_ranges() {
+    fn trait_and_chain_state_enforce_unique_ids_and_numeric_ranges() {
         let pack = terri_data::pack();
         assert!(pack.traits.len() >= 2, "fixture needs two traits");
         let first = SavedTraitState {
@@ -2390,11 +2430,7 @@ mod tests {
             "trait order and range boundaries are valid",
         );
         rich_agent_mut(&mut traits).traits = Some(vec![second.clone(), first.clone()]);
-        assert_validation(
-            &traits,
-            Err(SaveError::InvalidValue),
-            "trait definitions in descending order",
-        );
+        assert_validation(&traits, Ok(()), "trait save order is not content order");
         rich_agent_mut(&mut traits).traits = Some(vec![first.clone(), first.clone()]);
         assert_validation(
             &traits,
@@ -2484,6 +2520,189 @@ mod tests {
             });
             assert_validation(&snapshot, expected, label);
         }
+    }
+
+    #[test]
+    fn every_public_full_pack_save_loads_and_migrates_the_old_household_names() {
+        let source = Sim::new_from_shipped_lot();
+        let mut legacy = source.save_snapshot();
+        for entity in legacy.entities.iter_mut().filter(|entity| entity.agent) {
+            let id = entity.sim_id.expect("shipped agents have stable ids") as usize;
+            entity.sim_name = Some(
+                LEGACY_HOUSEHOLD_NAMES
+                    .get(id)
+                    .expect("the shipped alpha has three authored sims")
+                    .to_string(),
+            );
+        }
+
+        for fingerprint in [
+            0x9d22_8822_6933_d3c7,
+            0x263e_ed3b_bdcb_a7d0,
+            0x08ec_6011_bc11_7ad8,
+            0x2eb2_02fa_e70e_4939,
+        ] {
+            let mut snapshot = legacy.clone();
+            snapshot.content_fingerprint = fingerprint;
+            let mut restored = Sim::new_from_shipped_lot();
+            assert_eq!(
+                restored.load_snapshot(snapshot),
+                Ok(()),
+                "public Save V1 fingerprint {fingerprint:#018x} must migrate"
+            );
+            let mut names: Vec<_> = {
+                let mut query = restored.world_mut().query::<(&SimId, &SimName)>();
+                query
+                    .iter(restored.world())
+                    .map(|(id, name)| (id.0, name.0.clone()))
+                    .collect()
+            };
+            names.sort_unstable_by_key(|(id, _)| *id);
+            assert_eq!(
+                names,
+                vec![
+                    (0, "Tim".to_string()),
+                    (1, "Bill".to_string()),
+                    (2, "Casey".to_string()),
+                ],
+                "legacy names must not survive the household rename"
+            );
+        }
+    }
+
+    #[test]
+    fn a_saved_custom_name_is_not_overwritten_by_the_household_migration() {
+        let mut snapshot = Sim::new_from_shipped_lot().save_snapshot();
+        snapshot.content_fingerprint = 0x2eb2_02fa_e70e_4939;
+        snapshot
+            .entities
+            .iter_mut()
+            .find(|entity| entity.sim_id == Some(0))
+            .expect("the shipped household has SimId 0")
+            .sim_name = Some("Player Name".to_string());
+
+        let mut restored = Sim::new_from_shipped_lot();
+        assert_eq!(restored.load_snapshot(snapshot), Ok(()));
+        let name = {
+            let mut query = restored.world_mut().query::<(&SimId, &SimName)>();
+            query
+                .iter(restored.world())
+                .find(|(id, _)| id.0 == 0)
+                .map(|(_, name)| name.0.clone())
+                .expect("SimId 0 was restored")
+        };
+        assert_eq!(name, "Player Name");
+    }
+
+    #[test]
+    fn the_current_fingerprint_never_rewrites_a_deliberately_reused_legacy_name() {
+        let mut snapshot = Sim::new_from_shipped_lot().save_snapshot();
+        snapshot
+            .entities
+            .iter_mut()
+            .find(|entity| entity.sim_id == Some(0))
+            .expect("the shipped household has SimId 0")
+            .sim_name = Some("Terri".to_string());
+
+        let mut restored = Sim::new_from_shipped_lot();
+        assert_eq!(restored.load_snapshot(snapshot), Ok(()));
+        let name = {
+            let mut query = restored.world_mut().query::<(&SimId, &SimName)>();
+            query
+                .iter(restored.world())
+                .find(|(id, _)| id.0 == 0)
+                .map(|(_, name)| name.0.clone())
+                .expect("SimId 0 was restored")
+        };
+        assert_eq!(name, "Terri");
+    }
+
+    /// A save takes a snapshot against one pack and loads it against a
+    /// second that differs in the ways an ordinary patch actually differs.
+    /// Every numeric row the snapshot holds still means what it meant.
+    #[test]
+    fn a_save_loads_into_content_that_was_only_retuned_or_redrawn() {
+        let objects = || {
+            vec![
+                crate::test_content::object("fridge", &[(terri_core::NeedId::Hunger, 40.0)], 15),
+                crate::test_content::object("bed", &[(terri_core::NeedId::Energy, 60.0)], 30),
+            ]
+        };
+        let before = crate::test_content::pack(objects());
+
+        let mut sim = crate::test_content::sim_with(8, 8, before);
+        sim.world_mut()
+            .spawn((Agent, Position { x: 2.0, y: 2.0 }, Needs::all_at(50.0)));
+        for _ in 0..30 {
+            sim.tick();
+        }
+        let snapshot = sim.save_snapshot();
+        assert!(
+            snapshot.entities.iter().any(|e| e.agent),
+            "the snapshot has to carry the agent it is about"
+        );
+
+        // A balance pass and a new sprite cannot move an index the snapshot
+        // holds, so neither may cost a player the save.
+        let patched = Box::leak(Box::new(terri_data::ContentPack {
+            tuning: terri_data::Tuning {
+                action_threshold: before.tuning.action_threshold + 0.02,
+                asleep_decay_scale: 1.0,
+                ..before.tuning
+            },
+            sim_sprite: before.sim_sprite + 1,
+            ..before.clone()
+        }));
+        assert_ne!(
+            patched.tuning.action_threshold, before.tuning.action_threshold,
+            "the fixture must actually differ, or this asserts nothing"
+        );
+
+        let mut fresh = crate::test_content::sim_with(8, 8, patched);
+        assert_eq!(
+            fresh.load_snapshot(snapshot),
+            Ok(()),
+            "a save must survive a patch that moves no index it points at"
+        );
+    }
+
+    /// And the other half: content that DOES move an index is still
+    /// refused. A save naming interaction 0 of an object that no longer
+    /// offers one is nonsense, and loading it would be worse than
+    /// starting over.
+    #[test]
+    fn a_save_is_still_refused_when_the_vocabulary_it_names_has_moved() {
+        let before = crate::test_content::pack(vec![crate::test_content::object(
+            "fridge",
+            &[(terri_core::NeedId::Hunger, 40.0)],
+            15,
+        )]);
+        let mut sim = crate::test_content::sim_with(8, 8, before);
+        sim.world_mut()
+            .spawn((Agent, Position { x: 2.0, y: 2.0 }, Needs::all_at(50.0)));
+        sim.tick();
+        let snapshot = sim.save_snapshot();
+
+        let renamed = Box::leak(Box::new(terri_data::ContentPack {
+            objects: vec![crate::test_content::object(
+                "fridge",
+                &[(terri_core::NeedId::Hunger, 40.0)],
+                15,
+            )]
+            .into_iter()
+            .map(|mut object| {
+                object.interactions[0].id = "moved".to_string();
+                object
+            })
+            .collect(),
+            ..before.clone()
+        }));
+        let mut fresh = crate::test_content::sim_with(8, 8, renamed);
+        assert_eq!(
+            fresh.load_snapshot(snapshot),
+            Err(SaveError::IncompatibleContent),
+            "an interaction id is what pins an index to a meaning"
+        );
     }
 
     #[test]

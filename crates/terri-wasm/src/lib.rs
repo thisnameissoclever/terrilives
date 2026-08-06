@@ -909,6 +909,61 @@ mod boundary_tests {
     }
 
     #[test]
+    fn a_legacy_fingerprint_crosses_the_public_byte_loader_and_migrates_names() {
+        let source = SimHandle::from_lot();
+        let current_fingerprint = source.sim.save_snapshot().content_fingerprint;
+        let mut snapshot = source.sim.save_snapshot();
+        snapshot.content_fingerprint = 0x2eb2_02fa_e70e_4939;
+        for entity in snapshot.entities.iter_mut().filter(|entity| entity.agent) {
+            let legacy_name = match entity.sim_id {
+                Some(0) => "Terri",
+                Some(1) => "Doug",
+                Some(2) => "Nadia",
+                other => panic!("unexpected shipped SimId {other:?}"),
+            };
+            entity.sim_name = Some(legacy_name.to_string());
+        }
+
+        // This crosses the public byte boundary, including the TERRISAV
+        // header and postcard decoder. The fingerprint is the exact value
+        // emitted by public revision 72d67c5 under the retired full-pack
+        // algorithm rather than a value computed by the new code. The bytes
+        // are encoded here, not copied from a player's slot; the separately
+        // pinned Save V1 golden vector, unchanged SaveSnapshotV1 source blob,
+        // and unchanged postcard/serde lock versions are the evidence that the
+        // historical encoder has the same wire shape. Keep that proof boundary
+        // explicit instead of calling this a captured deployed save.
+        let bytes = encode_save(&snapshot);
+        let mut resumed = SimHandle::from_lot();
+        assert!(resumed.load_bytes(&bytes));
+
+        let mut names: Vec<_> = {
+            let world = resumed.sim.world();
+            let mut query = world
+                .try_query::<(&SimId, &SimName)>()
+                .expect("household identity components are registered");
+            query
+                .iter(world)
+                .map(|(id, name)| (id.0, name.0.clone()))
+                .collect()
+        };
+        names.sort_unstable_by_key(|(id, _)| *id);
+        assert_eq!(
+            names,
+            vec![
+                (0, "Tim".to_string()),
+                (1, "Bill".to_string()),
+                (2, "Casey".to_string()),
+            ]
+        );
+        assert_eq!(
+            resumed.sim.save_snapshot().content_fingerprint,
+            current_fingerprint,
+            "the next save must leave the legacy algorithm behind"
+        );
+    }
+
+    #[test]
     fn bad_save_bytes_are_rejected_without_mutating_the_running_handle() {
         let valid = SimHandle::from_lot().save_bytes();
         let mut bad_magic = valid.clone();
@@ -2265,23 +2320,23 @@ mod boundary_tests {
     #[test]
     fn the_chain_status_reads_cross_the_boundary() {
         let mut handle = SimHandle::from_lot();
-        let terri = (0..handle.entity_count() as u32)
-            .find(|&index| handle.sim_name(index) == "Terri")
-            .expect("the shipped lot houses Terri");
+        let tim = (0..handle.entity_count() as u32)
+            .find(|&index| handle.sim_name(index) == "Tim")
+            .expect("the shipped lot houses Tim");
 
         assert_eq!(
             handle.item_kinds(),
             vec!["ingredients".to_string(), "dinner".to_string()],
             "minting order, straight off content/chains.toml"
         );
-        assert_eq!(handle.chain_status_of(terri), "", "no errand yet");
+        assert_eq!(handle.chain_status_of(tim), "", "no errand yet");
 
         let entity = {
             let world = handle.sim.world_mut();
             let mut state = world.query::<(terri_core::Entity, &terri_core::SimName)>();
             state
                 .iter(world)
-                .find(|(_, name)| name.0 == "Terri")
+                .find(|(_, name)| name.0 == "Tim")
                 .map(|(e, _)| e)
                 .expect("named above")
         };
@@ -2294,7 +2349,7 @@ mod boundary_tests {
                 step: 2,
                 fumble_scale: 1.0,
             });
-        assert_eq!(handle.chain_status_of(terri), "Cook dinner - step: Cook");
+        assert_eq!(handle.chain_status_of(tim), "Cook dinner - step: Cook");
 
         handle
             .sim
@@ -2302,14 +2357,14 @@ mod boundary_tests {
             .entity_mut(entity)
             .insert(terri_core::Carrying(0));
         assert_eq!(
-            handle.chain_status_of(terri),
+            handle.chain_status_of(tim),
             "Cook dinner - step: Cook (carrying ingredients)"
         );
     }
 
     /// The M2e PR 3 overlay reads, against the SHIPPED lot so the pack
-    /// lookups (labels, kinds, career) resolve real content: Terri
-    /// wears low spirits and holds the office job, Doug wears the
+    /// lookups (labels, kinds, career) resolve real content: Tim
+    /// wears low spirits and holds the office job, Bill wears the
     /// devotee disposition and holds nothing, and the household opens
     /// broke.
     #[test]
@@ -2322,8 +2377,8 @@ mod boundary_tests {
                 .find(|&index| handle.sim_name(index) == name)
                 .unwrap_or_else(|| panic!("the shipped lot houses {name}"))
         };
-        let terri = index_of("Terri");
-        let doug = index_of("Doug");
+        let tim = index_of("Tim");
+        let bill = index_of("Bill");
 
         // Zero at move-in AND a nonzero read-through, because a funds()
         // stubbed to 0.0 satisfies the first alone - the sweep found
@@ -2332,9 +2387,9 @@ mod boundary_tests {
         handle.sim.world_mut().resource_mut::<terri_core::Funds>().0 = 260;
         assert_eq!(handle.funds(), 260.0, "the boundary reads the ledger");
         handle.sim.world_mut().resource_mut::<terri_core::Funds>().0 = 0;
-        assert_eq!(handle.career_of(terri), "Office clerk");
+        assert_eq!(handle.career_of(tim), "Office clerk");
         assert_eq!(
-            handle.career_of(doug),
+            handle.career_of(bill),
             "",
             "the unemployed read as the empty string, sim_name's contract"
         );
@@ -2346,7 +2401,7 @@ mod boundary_tests {
             kinds.len(),
             "labels and kinds are two columns of one table"
         );
-        let worn = handle.traits_of(terri);
+        let worn = handle.traits_of(tim);
         assert_eq!(worn.len(), 2, "one trait is one (index, state) pair");
         let which = worn[0] as usize;
         assert_eq!(labels[which], "Low spirits");

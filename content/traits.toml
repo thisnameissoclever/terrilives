@@ -16,7 +16,7 @@
 # WITH the owner in M2g. Per the design's framing note: a condition is
 # managed and improvable, never a punchline.
 
-# A disposition: Doug's pull toward the television, over and above what
+# A disposition: Bill's pull toward the television, over and above what
 # its need deltas earn it. 1.5x on the tagged candidates' scores -
 # noticeable in the choice tables, not a compulsion. The mirror of a
 # fear, which would sit below 1 (0 IS the fear, and is legal).
@@ -27,7 +27,7 @@ kind = "disposition"
 tag = "television"
 score_multiplier = 1.5
 
-# A capability: cooking is a skill, and Nadia does not have it yet. She
+# A capability: cooking is a skill, and Casey does not have it yet. She
 # MAY attempt - the stove is not hidden from her, because a sim who
 # never approaches the stove is not a scene ([S4]) - and a failed
 # attempt delivers nothing of the meal while still teaching her
@@ -45,7 +45,7 @@ start_level = 0.25
 fail_delta_scale = 0.0
 learn_per_attempt = 0.015
 
-# A condition: Terri's low spirits scale her satisfaction ACCRUAL - at
+# A condition: Tim's low spirits scale her satisfaction ACCRUAL - at
 # full severity a completed hobby pays 40% of what it would - and the
 # severity FALLS a little every time she does something tagged with the
 # thing that helps, which for her is correspondence: the desk is where

@@ -323,14 +323,14 @@ describe('SimBridge', () => {
 
   it('projects aligned mood data and restores it before the next tick', () => {
     const saved = new SimBridge(SimHandle.from_lot(), wasmMemory);
-    const terri = Array.from(saved.ids()).find(
-      (entity) => saved.simName(entity) === 'Terri',
+    const tim = Array.from(saved.ids()).find(
+      (entity) => saved.simName(entity) === 'Tim',
     );
-    expect(terri).toBeDefined();
-    if (terri === undefined) throw new Error('the shipped lot houses Terri');
+    expect(tim).toBeDefined();
+    if (tim === undefined) throw new Error('the shipped lot houses Tim');
 
-    const scores = Array.from(saved.moodSnapshotOf(terri));
-    const labels = saved.moodSummaryOf(terri);
+    const scores = Array.from(saved.moodSnapshotOf(tim));
+    const labels = saved.moodSummaryOf(tim);
     expect(labels[0]).toBe('Low');
     expect(labels).toContain('Low spirits');
     expect(scores.length).toBe(labels.length);
@@ -340,8 +340,8 @@ describe('SimBridge', () => {
     expect(restored.loadBytes(saved.saveBytes())).toBe(true);
     // No tick: mood is a projection of the restored world, not a cached
     // component waiting for the next schedule pass to repair it.
-    expect(Array.from(restored.moodSnapshotOf(terri))).toEqual(scores);
-    expect(restored.moodSummaryOf(terri)).toEqual(labels);
+    expect(Array.from(restored.moodSnapshotOf(tim))).toEqual(scores);
+    expect(restored.moodSummaryOf(tim)).toEqual(labels);
     const restoredKinds = restored.kinds();
     const furniture = Array.from(restored.ids()).find(
       (_, row) => restoredKinds[row] === 1,
@@ -365,37 +365,37 @@ describe('SimBridge', () => {
     expect(live.saveBytes()).toEqual(before);
   });
 
-  it('runs the shipped day through the boundary: Terri leaves, hides, returns paid', () => {
+  it('runs the shipped day through the boundary: Tim leaves, hides, returns paid', () => {
     // The E4 loop against REAL content through the release wasm, which
     // is the artifact the page runs ([L12]): the shipped day is 1440
-    // ticks with the office shift at 360-840, so by tick 600 Terri is
+    // ticks with the office shift at 360-840, so by tick 600 Tim is
     // off the lot (her row flagged AT_WORK, code 6) and by tick 900
     // she is back and the household is exactly one pay packet richer.
     const handle = SimHandle.from_lot();
     const bridge = new SimBridge(handle, wasmMemory);
-    const terri = (() => {
+    const tim = (() => {
       for (let index = 0; index < 64; index++) {
-        if (handle.sim_name(index) === 'Terri') return index;
+        if (handle.sim_name(index) === 'Tim') return index;
       }
-      throw new Error('the shipped lot houses Terri');
+      throw new Error('the shipped lot houses Tim');
     })();
 
     expect(bridge.funds()).toBe(0);
-    expect(bridge.careerOf(terri)).toBe('Office clerk');
+    expect(bridge.careerOf(tim)).toBe('Office clerk');
     const rowOf = (entity: number) => {
       const ids = bridge.ids();
       for (let row = 0; row < bridge.count; row++) {
         if (ids[row] === entity) return row;
       }
-      throw new Error('Terri lost her render row');
+      throw new Error('Tim lost her render row');
     };
 
     for (let t = 0; t < 600; t++) bridge.tick();
-    expect(bridge.activities()[rowOf(terri)]).toBe(6);
+    expect(bridge.activities()[rowOf(tim)]).toBe(6);
     expect(bridge.funds()).toBe(0);
 
     for (let t = 0; t < 300; t++) bridge.tick();
-    expect(bridge.activities()[rowOf(terri)]).not.toBe(6);
+    expect(bridge.activities()[rowOf(tim)]).not.toBe(6);
     expect(bridge.funds()).toBe(120);
   });
 

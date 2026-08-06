@@ -8,6 +8,9 @@ The through-line: **three sims who differ because of their own data** (goal item
 1), **social satisfied by each other rather than by a television** (item 2), and
 one decision here - stable sim identity - that item 9's persistence needs anyway.
 
+Historical measurements below preserve the original roster names. Since
+2026-08-05, Terri is Tim, Doug is Bill, and Nadia is Casey.
+
 ---
 
 ## [H1] A stable `SimId`, and it is not the entity index. BUILT.

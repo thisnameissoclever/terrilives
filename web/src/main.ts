@@ -197,8 +197,8 @@ async function main(): Promise<void> {
   if (sim.count === 0) {
     throw new Error('the compiled lot placed no objects');
   }
-  // NOBODY is spawned here any more. The household - Terri, Doug and
-  // Nadia - comes out of content/household.toml through the compiled
+  // NOBODY is spawned here any more. The household - Tim, Bill and
+  // Casey - comes out of content/household.toml through the compiled
   // pack, spawned by the same `from_lot` call that placed the furniture.
   // The `spawnAgent(8, 6, 25)` that used to sit on this line was the
   // last hardcoded copy of content in the shell, and [H2] records why it
@@ -215,9 +215,9 @@ async function main(): Promise<void> {
   //
   // With three sims the choice of WHICH is no longer empty, and the lowest
   // entity index among the agents is the first household member in file
-  // order - Terri, the title character - which is as close to an authored
+  // order - Tim, the first household member - which is as close to an authored
   // answer as exists. The other two are one click away, and the click is
-  // taught by the ring appearing under Terri.
+  // taught by the ring appearing under Tim.
   //
   // It goes through a command like every other selection rather than reaching
   // into the world, so a replay of this session reproduces it ([D-2]). It

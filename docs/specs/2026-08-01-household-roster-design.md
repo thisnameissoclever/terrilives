@@ -1,6 +1,6 @@
 # Household capacity and roster design
 
-Status: implemented and under release verification.
+Status: implemented and shipped.
 
 The M1 roadmap promises a household of up to roughly six sims. Before this
 slice, the simulation could spawn an arbitrary authored list, the shipped game
@@ -14,7 +14,7 @@ fixtures and authoring, and one through six members compile in declaration
 order. Seven or more fail content compilation with a specific error before
 member-level checks run.
 
-The shipped household remains Terri, Doug, and Nadia. Capacity is an engine and
+The shipped household is Tim, Bill, and Casey. Capacity is an engine and
 interface promise, not permission to invent three additional named characters
 without the owner.
 

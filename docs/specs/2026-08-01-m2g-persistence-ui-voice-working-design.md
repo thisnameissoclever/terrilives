@@ -90,7 +90,8 @@ without mutating the running game:
 
 1. Empty, truncated, oversized, corrupt, or trailing-byte payloads.
 2. Wrong magic or unsupported schema version.
-3. A content fingerprint different from the compiled pack in this build.
+3. An unknown content fingerprint, or a known legacy fingerprint whose
+   reviewed target no longer matches this build's structural digest.
 4. Invalid grid dimensions, multiplication overflow, mismatched blocked-tile
    count, excessive entity or list counts, and non-finite or out-of-range
    numeric state.
@@ -99,10 +100,16 @@ without mutating the running game:
    reuse a restored id.
 6. Missing object, career, trait, chain, item-kind, or interaction references.
 
-Rejecting a content mismatch is intentional in version 1. Silently dropping a
-job, dinner, or carried item makes a load appear successful while changing the
-life being restored. A future migration can make narrower repairs once it has
-a UI capable of naming each repair to the player.
+Rejecting an incompatible content shape is intentional in version 1. Balance,
+art, labels, authored household names, and string-table declaration order are
+compatible; numeric interaction, flyout, social, or chain-step meanings,
+object station-role mappings, trait-state kinds, and the front-door coordinate
+are not. Missing string references are still rejected during normal validation.
+Four known full-pack fingerprints cover every distinct public Save V1 content
+shape before this narrower digest shipped, and each maps only to the exact
+reviewed target rather than bypassing validation. The Terri/Doug/Nadia rename
+likewise runs only on that legacy match; current-format player data is never
+rewritten merely because it uses one of those strings.
 
 Validation occurs before reconstruction. Reconstruction builds a fresh `Sim`,
 restores references only against that candidate world, synchronizes its render

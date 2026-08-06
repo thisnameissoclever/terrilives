@@ -11,6 +11,10 @@ observations are true and useful, and a note saying the sims feel alive
 would be worth nothing. Where a claim has a number behind it the number is
 given, and where it does not the note says so.
 
+**Historical name mapping.** Sessions recorded before the 2026-08-05 roster
+rename keep the names visible during those runs: Terri is now Tim, Doug is now
+Bill, and Nadia is now Casey. Measurements were not rewritten after the fact.
+
 ---
 
 
@@ -1974,7 +1978,40 @@ visualization artifact folder.
   source-comparison session had document width equal to viewport width and
   reported zero console warnings and zero errors.
 
-This is movement polish on the existing placeholder art, not the final
-character-art pipeline. Action poses still require semantic visual-action
-categories, facings, and interaction anchors; using the current broad activity
-codes directly would animate several unrelated object interactions as eating.
+This was movement polish on the art that existed during that session. Muted
+Line subsequently replaced every pack sprite and shipped three stable character
+looks. The remaining conclusion still holds: action poses require semantic
+visual-action categories, facings, and interaction anchors; using the current
+broad activity codes directly would animate several unrelated object
+interactions as eating.
+
+## [A-save-compatible-household] The renamed household keeps a working save
+
+The local production bundle (`index-C8-FzLd7.js`,
+`terri_wasm_bg-CImuHT9g.wasm`) was played in the in-app browser on desktop and
+at 390 by 844 before the migration branch was published.
+
+- **The renamed roster is the game, not a test-only string.** The first frame
+  listed Tim, Bill, and Casey in stable household order, selected Tim, and
+  showed the three distinct Muted Line character looks moving through the live
+  house. The needs, career, mood, and People panels all agreed on Tim's name.
+- **Ordinary Save and Load remained usable.** A manual save was taken with Tim
+  selected around `Day 1, 02:45`. Bill was selected and the household advanced
+  to approximately `Day 1, 05:15`. Confirming Load closed the dialog, restored
+  Tim as the selected person, returned the clock to the saved stretch, and
+  reported `Saved game loaded` while the simulation resumed.
+- **The narrow layout still fits the renamed controls.** At 390 by 844 all
+  three household names remained readable in one row. The needs, People, speed,
+  Save, Load, Clear orders, Queue, New game, and Help controls remained visible
+  through the existing vertical HUD scroll, with the animated house still
+  visible beside it.
+- **Runtime remained quiet.** The first-run Help flow, desktop play, manual
+  Save/Load, selection change, and phone-size pass produced zero console
+  warnings and zero errors.
+
+This browser pass proves the current-format slot and renamed interface. It does
+not pretend a freshly created slot is an old deployed one. The Rust and WASM
+boundary tests own that migration claim: all four historical full-pack
+fingerprints are checked against the independently reconstructed structural
+shape, exact legacy names migrate by stable `SimId`, arbitrary saved names are
+preserved, and a current-format sim deliberately named Terri stays Terri.

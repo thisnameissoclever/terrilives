@@ -65,9 +65,9 @@ Action-specific body animation comes next, but it needs authored visual-action
 categories, facings, and interaction anchors first. The current `EATING`
 activity also covers showers, toilets, television, reading, washing, and other
 object use, so mapping it directly to an eating pose would confidently animate
-the wrong fiction. This priority does not decide the colour palette, paid
-assets, or a new character-art pipeline; those remain [T12], [T3]/[T7], and
-[T19].
+the wrong fiction. The subsequent Muted Line decision settled the palette and
+character-art pipeline. Paid asset decisions remain outside this animation
+slice and off the current critical path.
 
 **The design language is decided: Muted Line, chosen 2026-08-03.** It is
 original procedural art rather than a treatment of the borrowed sprites, so
@@ -91,11 +91,31 @@ the two things lighting the room from going out as night falls - the
 defect [ML-ambient] created by existing. The frame is still one draw and
 one submit; the tint rides on data the vertex stage already carried.
 
-**The household is three different people** ([ML-chars]), keyed on each
-sim's stable entity id so a face survives a walk, a save and a reload.
+**The household is Tim, Bill, and Casey, three different people** ([ML-chars]),
+keyed on each sim's stable entity id so a face survives a walk, a save and a reload.
 Three baked looks rather than the three tinted instances per sim the spec
 proposed - the reasoning, and what would flip it back, is written down in
 `assets/sprites/gen/style.py` beside the palettes.
+
+**Save V1 survives the patch classes it can identify honestly.** The old
+fingerprint hashed the whole serialised pack, so every balance or art deploy
+invalidated every save. The replacement hashes numeric meanings the snapshot
+cannot validate by authored id: object footprints, station-role mappings and
+interaction/flyout row order; social order; chain station and carried-item
+transitions by step; trait state kind; and the front door a restored career
+still reads from current content. Balance, labels, art, household names, and
+declaration-order changes to string-addressed tables do not move it. Missing
+string references still fail normal snapshot validation.
+
+Every distinct full-pack fingerprint emitted since Save V1 launched has an
+explicit bridge to this one reviewed shape, so deployed saves migrate rather
+than being discarded. The old household names migrate to Tim, Bill, and Casey;
+that rename runs only for a recognized legacy fingerprint, and an arbitrary
+saved name is preserved. A current-format save may even reuse an old cast name
+without Load rewriting it. This is still one global digest, so a new object or
+trait changes it even when one particular save never used that definition.
+Fixing that false rejection belongs to a future schema that stores stable ids
+beside every numeric row, not to a hash pretending it knows more than it does.
 
 **Sleep costs less than being awake.** Needs decay at
 `asleep_decay_scale` of the usual rate while a sim is asleep, the same

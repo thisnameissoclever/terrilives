@@ -1,9 +1,10 @@
 # Muted Line, the day/night cycle, and circadian sleep
 
-Status: **partly built.** [ML-gen] and [ML-ci] shipped (the generator, and
-CI regenerating the atlas). [ML-ambient] shipped: the day/night cycle is
-live and driven by the sim clock. The circadian mechanism is built and
-**switched off** - see the note under Part 3. The rest is unbuilt.
+Status: **six of nine roadmap items shipped.** [ML-gen], [ML-ci],
+[ML-sprites], [ML-ambient], [ML-tint], and [ML-chars] are in the running game.
+The circadian schema and scoring mechanism are built but the authored curve is
+**switched off** pending [ML-feel]. [ML-pools], [B7], and [ML-feel] remain
+open. See `docs/FEATURES.md` for the concise current-state account.
 
 Originally: **implementation plan, agreed art direction, nothing built.** The
 owner picked Muted Line on 2026-08-03 from the round-two directions, which
@@ -72,13 +73,12 @@ knows the art was replaced.
 
 ### [ML-ci] Make the atlas verifiable
 
-Because the generator is now Python on Linux, CI can run it. Add a step
-that regenerates the atlas and fails if the result differs from the
-committed one. That converts `atlas.png` from a trusted blob into a build
-output with a reproducibility check, and it is the thing the PowerShell
-script could never offer. Pillow's PNG encoder must be pinned for the byte
-comparison to hold; if that proves brittle, compare decoded pixels rather
-than file bytes.
+Because the generator is now Python on Linux, CI can run it. The check
+regenerates the atlas and compares decoded RGBA pixels, while the TOML and
+TypeScript manifests remain exact text comparisons. That converts `atlas.png`
+from a trusted blob into a reproducible visual build output without treating a
+Pillow or zlib encoding change as different artwork. Byte comparison was the
+first implementation and proved brittle on pixel-identical Pillow 12 output.
 
 ### [ML-chars] Three instances per sim, not one sprite per combination - SHIPPED, DIFFERENTLY
 
@@ -106,7 +106,7 @@ or a cast large enough that the atlas grows faster than the shell would.
 [ML-tint] landed anyway, so the hard half of the change is already done
 when that day comes.
 
-### [ML-sprites] Move the atlas table to a storage buffer first
+### [ML-sprites] Move the atlas table to a storage buffer first - SHIPPED
 
 `MAX_SPRITES` is a fixed-size uniform array of 128 with 48 used. Muted Line
 lands somewhere near 60 to 90 entries before facings, and WGSL **clamps** an
@@ -404,17 +404,17 @@ is out of scope here.
 The order is not arbitrary. Ambient light comes before circadian sleep
 because tuning a sleep curve you cannot see is guesswork.
 
-| # | Work | Why here | Rough |
-|---|---|---|---|
-| 1 | [ML-gen] port the generator, keep the atlas contract | Everything downstream is the new art | ~2 days |
-| 2 | [ML-ci] regenerate-and-diff in CI | Cheapest while the generator is fresh | ~half day |
-| 3 | [ML-sprites] atlas table to a storage buffer | Before the sprite count grows past 128 | ~half day |
-| 4 | [ML-ambient] tier 1 ambient tint | Day/night visible for half a day's work | ~half day |
-| 5 | [ML-curve] [ML-tag] [ML-chrono] [ML-wake] circadian sleep | Now tunable against something you can see | ~3 days |
-| 6 | [ML-tint] per-instance tint | Unlocks emissives, sim colour and [G4] | ~2 days |
-| 7 | [ML-pools] pools and cast shadows | Needs 6 | ~2 days |
-| 8 | [B7] walls on tile edges | The picket-fence read; independent of the rest | ~3 days |
-| 9 | [ML-feel] measured seven-day run | Nothing above counts until this is watched | ~1 day |
+| # | Work | Current state | Why here | Rough |
+|---|---|---|---|---|
+| 1 | [ML-gen] port the generator, keep the atlas contract | Shipped | Everything downstream is the new art | ~2 days |
+| 2 | [ML-ci] regenerate-and-diff in CI | Shipped | Cheapest while the generator is fresh | ~half day |
+| 3 | [ML-sprites] atlas table to a storage buffer | Shipped | Before the sprite count grows past 128 | ~half day |
+| 4 | [ML-ambient] tier 1 ambient tint | Shipped | Day/night visible for half a day's work | ~half day |
+| 5 | [ML-curve] [ML-tag] [ML-chrono] [ML-wake] circadian sleep | Mechanism shipped; curve off pending item 9 | Now tunable against something you can see | ~3 days |
+| 6 | [ML-tint] per-instance tint | Shipped | Unlocks emissives, sim colour and [G4] | ~2 days |
+| 7 | [ML-pools] pools and cast shadows | Open | Needs 6 | ~2 days |
+| 8 | [B7] walls on tile edges | Open | The picket-fence read; independent of the rest | ~3 days |
+| 9 | [ML-feel] measured seven-day run | Open | Nothing above counts until this is watched | ~1 day |
 
 Roughly three weeks of evenings, no purchases, and playable at every step
 after item 4.

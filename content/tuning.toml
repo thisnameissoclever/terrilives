@@ -477,10 +477,10 @@ neglect_bleed_per_tick = 0.002
 # fix for the worst thing the alpha acceptance pass found.
 #
 # MEASURED, not chosen by taste. Over 36 000 ticks (25 game days) of
-# the shipped lot, Terri - the household's only worker - hit 0.0 on six
+# the shipped lot, Tim - the household's only worker - hit 0.0 on six
 # of her seven needs, and her lowest need sat at or below 5 on every
 # one of the 25 days: 27.3% of her life with hunger there, 19.2% with
-# social, 18.8% with fun. Doug and Nadia, who hold no job, spent ZERO
+# social, 18.8% with fun. Bill and Casey, who hold no job, spent ZERO
 # ticks in crisis on anything. `decay_needs` drains every sim holding
 # `Needs`, and a sim off the lot at work can reach nothing at all, so a
 # 480-tick shift plus its commute cost her 33 hunger a day against a
