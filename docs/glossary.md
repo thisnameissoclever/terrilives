@@ -42,7 +42,7 @@ Seven needs, each a number from 0 (desperate) to 100 (fully satisfied):
 | Term | Means |
 | --- | --- |
 | **mood** | The selected sim's current overall feeling, scored from -100 to 100 and labelled Miserable, Low, Okay, Good, or Great. It is derived from the live world rather than saved separately. |
-| **moodlet** | One active reason contributing to mood, such as Hungry, Low spirits, or Comforted by Doug. The signed number beside it is its contribution to the overall score. |
+| **moodlet** | One active reason contributing to mood, such as Hungry, Low spirits, or Comforted by Bill. The signed number beside it is its contribution to the overall score. |
 | **need moodlet** | A low or critical need, or the single Needs met summary when every need is healthy. |
 | **condition moodlet** | The content label of any worn condition trait with material severity. Capability and disposition traits do not claim an emotional effect they do not define. |
 | **environment moodlet** | The selected sim's directional feeling about a nearby named sim, weakened by distance. The other sim's reciprocal feeling is a separate fact. |
@@ -100,7 +100,7 @@ multipliers. The overlay shows only the ones that deviate from neutral:
 | --- | --- |
 | `need decay: fun x1.30` | This sim's fun need empties 1.3x faster than baseline. Higher = needier. |
 | `need refill: comfort x1.25` | Doing something comfortable gives this sim 1.25x as much comfort as it would give anyone else. Higher = easier to please. |
-| **disposition** | A per-thing pull or aversion - "Doug likes that chair more than the numbers say". A disposition of 0 IS a fear: the sim never chooses it on its own, though your click still works. |
+| **disposition** | A per-thing pull or aversion - "Bill likes that chair more than the numbers say". A disposition of 0 IS a fear: the sim never chooses it on its own, though your click still works. |
 
 ## Relationships
 
@@ -122,7 +122,7 @@ never derives from one.
 | Term | Means |
 | --- | --- |
 | `life satisfaction` | An accumulator per sim, starting at 0 on move-in day and growing for the rest of that life. There is no maximum - lives do not fill up. |
-| **hobby** | An activity tag a sim loves (`content/household.toml`). Completing a loved activity pays **3x** its base satisfaction. Terri loves correspondence and reading; Doug television and cooking; Nadia socialising. |
+| **hobby** | An activity tag a sim loves (`content/household.toml`). Completing a loved activity pays **3x** its base satisfaction. Tim loves correspondence and reading; Bill television and cooking; Casey socialising. |
 | **tag** | A label on an activity (`cooking`, `reading`, `socialising`) - the vocabulary hobbies and traits both key on, so one word covers every activity that counts as that thing. |
 | **neglect** | Any need below 15 bleeds 0.002 life satisfaction per tick, per crisis. Keeping a sim alive is table stakes; failing to is a life quietly not worth living. |
 
@@ -136,9 +136,9 @@ kinds, each doing exactly one thing:
 
 | Kind | Does | Shipped example |
 | --- | --- | --- |
-| **disposition** | Weighs the CHOICE. Multiplies the score of anything carrying its tag. Never changes what the thing delivers - fearing the couch makes a sim avoid it, not fail to be comforted by it. | **Television devotee** (Doug): television-tagged activities score 1.5x. |
-| **capability** | May attempt, may FAIL. Has a **level** 0-1; a roll at the start of an attempt decides. A failed attempt delivers `fail_delta_scale` of the benefits (usually nothing), pays no life satisfaction, and still **teaches** - every attempt raises the level. | **Can't cook** (Nadia): starts at level 0.25, learns 0.015 per attempt. |
-| **condition** | Scales life satisfaction ACCRUAL, and has a **severity** 0-1 that falls whenever the sim completes an activity carrying the condition's tag. A managed condition fades; a neglected one binds. | **Low spirits** (Terri): at full severity she earns 40% of normal; eases 0.005 per treating activity (her desk). |
+| **disposition** | Weighs the CHOICE. Multiplies the score of anything carrying its tag. Never changes what the thing delivers - fearing the couch makes a sim avoid it, not fail to be comforted by it. | **Television devotee** (Bill): television-tagged activities score 1.5x. |
+| **capability** | May attempt, may FAIL. Has a **level** 0-1; a roll at the start of an attempt decides. A failed attempt delivers `fail_delta_scale` of the benefits (usually nothing), pays no life satisfaction, and still **teaches** - every attempt raises the level. | **Can't cook** (Casey): starts at level 0.25, learns 0.015 per attempt. |
+| **condition** | Scales life satisfaction ACCRUAL, and has a **severity** 0-1 that falls whenever the sim completes an activity carrying the condition's tag. A managed condition fades; a neglected one binds. | **Low spirits** (Tim): at full severity she earns 40% of normal; eases 0.005 per treating activity (her desk). |
 
 | Term | Means |
 | --- | --- |
@@ -201,7 +201,7 @@ screens. A full block reads:
 ```
 household funds: 240
 
-Terri  (entity 34, SimId 0)  doing: idle
+Tim  (entity 34, SimId 0)  doing: idle
   life satisfaction: 13.1
   career: Office clerk
   traits: Low spirits (condition, severity 0.59)
@@ -211,7 +211,7 @@ Terri  (entity 34, SimId 0)  doing: idle
   needs: hunger 2.2  energy 23.4  hygiene 33.3 ...
   need decay: fun x1.30, comfort x0.70
   need refill: energy x1.15, fun x0.85
-  relationships: Nadia +0.28
+  relationships: Casey +0.28
 ```
 
 Every line above has its own glossary entry. `entity` is the engine's

@@ -68,7 +68,7 @@ ticks against the chain's larger terminal payoff over ~200. A
 desperate sim snacks, a comfortable one cooks - the choice is the
 feature, and the stove's standalone `cook_meal` interaction is
 RETIRED in its favour (two cooking verbs in one kitchen is a menu
-lie; its `cooking` tag, Doug's hobby and Nadia's capability all move
+lie; its `cooking` tag, Bill's hobby and Casey's capability all move
 onto the chain's hob step).
 
 ## [K3] The carried thing is a COMPONENT this milestone, and the trap is named
@@ -119,7 +119,7 @@ ADVERTISER, and clears `ChainState` and `Carrying`.
 - Traits ([E3]): the capability roll fires at the start of any TAGGED
   step (the hob), the fumble rides to the terminal delivery scaling
   benefits only, and learning and managing land at the tagged step's
-  own completion - so Nadia can ruin a dinner she still serves, and
+  own completion - so Casey can ruin a dinner she still serves, and
   still learn from it.
 
 **Rejected: expanding the chain into N queued intents up front.**

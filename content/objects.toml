@@ -397,7 +397,7 @@ roles = ["hob"]
   # made honest: the meal now costs the counter, the hob and the table
   # it always pretended not to. Two cooking verbs in one kitchen would
   # be a menu lie, so the stove keeps no interaction of its own; its
-  # `cooking` tag (Doug's hobby, Nadia's capability) lives on the
+  # `cooking` tag (Bill's hobby, Casey's capability) lives on the
   # chain's hob step, which happens HERE - the hob role above is what
   # the chain resolves to. The pre-chain numbers, for whoever rebalances
   # against them: hunger 62 + comfort 8 over 95 ticks, satisfaction 2.5.
@@ -728,7 +728,7 @@ roles = ["eating_surface"]
   advertises = { fun = 36.0, energy = -7.0 }
   duration_ticks = 58
   slots = 1
-  # Terri's whole archetype is named after this desk. Base 3 like
+  # Tim's whole archetype is named after this desk. Base 3 like
   # reading: an absorbing, active hobby - and when PR 3's career lands,
   # the tag is what will let the job and the hobby be told apart.
   tags = ["correspondence"]

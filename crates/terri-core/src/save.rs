@@ -16,7 +16,8 @@ pub const SAVE_SCHEMA_VERSION: u16 = 1;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SaveSnapshotV1 {
-    /// Hash of the compiled content bytes this simulation is using.
+    /// Save-compatibility digest of numeric content rows and structural
+    /// meanings this snapshot cannot validate by authored string id.
     pub content_fingerprint: u64,
     pub tick: u64,
     pub rng: SimRng,

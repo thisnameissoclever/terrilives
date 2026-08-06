@@ -14,8 +14,8 @@ of game state.
 ## Model boundary
 
 The current relationship is one directional `f32` per ordered pair, bounded to
-`-1..=1`. Terri's feeling about Doug is independent from Doug's feeling about
-Terri. The panel therefore:
+`-1..=1`. Tim's feeling about Bill is independent from Bill's feeling about
+Tim. The panel therefore:
 
 1. reads only the selected person's sparse relationship pairs;
 2. builds the complete row set from the live household roster;

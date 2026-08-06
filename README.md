@@ -1,5 +1,7 @@
 # terrilives
 Parallel lives? Nah-- Terribel lives. Terri..bel. Terrible. - ...Terrible lives.
+The dreadful title pun predates the household rename; the current cast is Tim,
+Bill, and Casey. Names may improve. Puns are apparently immortal.
 
 ## Where the documentation is
 

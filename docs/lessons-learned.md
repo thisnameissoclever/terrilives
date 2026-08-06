@@ -3632,3 +3632,106 @@ introductory status paragraph to govern hundreds of lines of mixed tense.
 **How to verify.** Compare the schedule, renderer, pathfinder, art pipeline, and
 test-gate sections against their source configuration. A reader should be able
 to answer what runs today without consulting git history or inferring tense.
+
+## [L-fingerprint-changes-need-their-own-migration] A better save hash can still delete every old save
+
+**What happened.** Replacing the whole-content Save V1 fingerprint with a
+narrow structural digest made future balance and art patches compatible, but
+the first draft compared existing saves directly against the new algorithm.
+Every public save still carried an old full-pack value, so the release meant to
+stop invalidation would have invalidated all of them one more time.
+
+**Root cause.** The design treated the fingerprint as content metadata and
+forgot that its algorithm is itself persisted wire behavior. Keeping schema
+version 1 does not make a newly computed number comparable with an old one.
+
+**Prevention rule.** Treat any persisted digest-algorithm change as a migration.
+Inventory every public value the old algorithm emitted, verify the wire shape,
+and map each legacy value only to the exact reviewed new structural shape.
+Recognition enters ordinary validation; it never bypasses it.
+
+**How to verify.** Reconstruct historical fingerprints independently, feed a
+serialized old value through the public byte loader, assert every reference is
+validated, and assert the next save carries the new digest. Change the target
+structural digest and prove the legacy bridge closes.
+
+## [L-save-digest-must-follow-post-load-reads] A save digest owns current-content reads after Load too
+
+**What happened.** The repaired Save V1 digest covered every numeric row held
+inside the snapshot, but its first audited version still missed two structural
+facts read from current content after reconstruction: which objects serve each
+chain station role, and where a career sends a worker to leave the lot. Moving
+a role or the front door therefore left the digest unchanged while a restored
+chain or future shift quietly followed different geometry. The household-name
+migration had the same boundary mistake in miniature: it recognized an old
+name without first proving the save itself was old.
+
+**Root cause.** The compatibility inventory stopped at fields serialized in
+`SaveSnapshotV1`. A restored world is not self-contained; later systems still
+consult the current content pack. Those reads are part of the save contract
+whenever the snapshot persists the state that will reach them.
+
+**Prevention rule.** Trace restored state forward through every system that can
+resume it. Hash any unsaved structural current-content value that gives that
+state meaning, or persist a stable authored id in the next schema. Gate a
+one-time data migration on the legacy format discriminator, never on a user
+value that future editing may deliberately reproduce.
+
+**How to verify.** Move a station role and the front door independently and
+prove each moves the digest. Load every known legacy fingerprint and prove the
+old household names migrate. Then load the current fingerprint with Tim
+deliberately named Terri and prove Load leaves that name alone.
+
+## [L-name-the-state-in-content] Infer behavior from authored identity, not a convenient number
+
+**What happened.** Sleeping was inferred from an interaction whose dominant
+positive advert was energy. That happened to identify beds, but it would also
+classify a future coffee machine as sleep, slowing need decay and drawing Zzz
+over a sim drinking espresso.
+
+**Root cause.** A numeric consequence was used as the activity's identity even
+though content already had an authored tag vocabulary for identity.
+
+**Prevention rule.** When multiple systems need to know what an action IS, give
+content one explicit semantic tag and share the predicate. Do not reverse-engineer
+identity from balance numbers that designers are expected to tune.
+
+**How to verify.** Hold every advert constant and vary only the authored tag.
+Scoring, need decay, and activity presentation must agree on the tagged case and
+reject the untagged twin.
+
+## [L-check-glyphs-at-the-size-they-ship] Enlarged art can conceal a collapsed icon
+
+**What happened.** The first Zzz activity glyph read correctly when inspected
+enlarged but collapsed into an ambiguous mark in its 26-pixel shipping bubble.
+
+**Root cause.** Review measured the source drawing rather than the rasterized
+bounds, stroke separation, and silhouette at the actual render scale.
+
+**Prevention rule.** Judge small UI art at one-to-one shipping size before
+approving it. Enlarged inspection is useful for defects, but it is not evidence
+of legibility.
+
+**How to verify.** Regenerate the atlas, crop the glyph at native size, inspect
+its occupied bounds and separated strokes, then view it in the real bubble on
+the page at normal zoom.
+
+## [L-generated-image-contract-is-pixels] PNG bytes are packaging, not artwork
+
+**What happened.** The atlas reproducibility gate reported the committed image
+as stale under Pillow 12 even though the regenerated and committed 512 by 500
+images had no differing pixel. Their SHA-256 hashes differed because the PNG
+encoder packaged identical RGBA data differently.
+
+**Root cause.** The gate compared a compressed file format byte for byte when
+the generator's contract is the decoded sprite pixels. Encoder and zlib output
+are implementation details unless file-byte identity is itself a requirement.
+
+**Prevention rule.** Compare generated raster images by dimensions, mode, and
+decoded pixels. Keep exact comparison for textual manifests whose bytes are the
+authored contract. Do not regenerate a correct image merely to appease the
+currently installed compressor.
+
+**How to verify.** Record that the old and new PNG byte hashes differ, prove an
+RGBA pixel diff has no bounding box, and run the generator check successfully.
+Then alter one generated pixel and prove the same check fails.

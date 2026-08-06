@@ -9,7 +9,7 @@
 //! prints, and nothing in CI depends on it.
 //!
 //! It runs the **shipped** content, the **shipped** lot and the **shipped
-//! household** - Terri, Doug and Nadia out of `content/household.toml`, the
+//! household** - Tim, Bill and Casey out of `content/household.toml`, the
 //! same spawn the page performs - so what it reports is what a player would
 //! get.
 //!
@@ -30,7 +30,7 @@
 //!   copies of one person whatever the personality file says.
 //! - **The need bands, per sim.** A need pinned at zero is unsatisfiable
 //!   ([C2]), and with personalities it can be unsatisfiable for ONE sim -
-//!   Nadia's social floor is the shipped case to watch, and her archetype's
+//!   Casey's social floor is the shipped case to watch, and her archetype's
 //!   comment names this table as the place to watch it.
 //! - **Objects never used at all**, because an object nobody chooses is
 //!   furniture, and no static check can see it ([C6]).
@@ -46,7 +46,7 @@ struct Interaction {
     /// Index into the `sims` vec, so per-sim and aggregate views come off
     /// one list rather than two that could disagree.
     sim: usize,
-    /// Display name only - "fridge", or "chat with Doug". Never parsed
+    /// Display name only - "fridge", or "chat with Bill". Never parsed
     /// back: the indices below carry the machine-readable identity, so a
     /// social id containing " with " cannot corrupt a lookup.
     object: String,
@@ -102,7 +102,7 @@ fn main() {
     let mut sim = Sim::new_from_shipped_lot();
 
     // The household, in SimId order - which is declaration order in
-    // content/household.toml, so this trace's "sim 0" is the page's Terri.
+    // content/household.toml, so this trace's "sim 0" is the page's Tim.
     let sims: Vec<(Entity, String)> = {
         let world = sim.world_mut();
         let mut state = world
@@ -380,7 +380,7 @@ fn main() {
 
     // CONVERSATIONS, by ordered pair: who sought whom out, how often, and
     // for how long. Goal item 2's criterion made countable - and ordered
-    // on purpose, because "Nadia chats Doug up 9 times and Doug never once
+    // on purpose, because "Casey chats Bill up 9 times and Bill never once
     // returns the favour" is exactly the asymmetry [H5] stores.
     {
         let talks: Vec<&Interaction> = interactions.iter().filter(|i| i.social.is_some()).collect();
@@ -627,7 +627,7 @@ fn main() {
     // and the sink immediately instead of after five wrong guesses between
     // them.
     //
-    // Drain now sums each sim's own multiplied rate, because Nadia's social
+    // Drain now sums each sim's own multiplied rate, because Casey's social
     // genuinely drains 1.4x as fast as the file rate and a table that used
     // the bare rate would overstate every ratio she is part of.
     {
@@ -636,7 +636,7 @@ fn main() {
         // Supply is what was DELIVERED, so each earning sim's satisfaction
         // multiplier applies - the same asymmetry the drain column already
         // honours, and it matters most on the social row this table exists
-        // to watch: Nadia receives 0.75x every social delta she earns, and
+        // to watch: Casey receives 0.75x every social delta she earns, and
         // counting her at full strength would overstate exactly the need
         // [A-9] singles out.
         let satisfaction_of: Vec<[f32; NEED_COUNT]> = sims

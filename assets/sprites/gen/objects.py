@@ -235,7 +235,7 @@ def loungeChair(d):
 
 
 def loungeChairRelax(d):
-    """The same chair, reclined and with a footrest - Doug's chair."""
+    """The same chair, reclined and with a footrest - Bill's chair."""
     f = C["accent_clay"]
     box(d, A + .14, -.10, B - .14, B - .12, 0, 0.28, mul(f, .92))
     slab(d, A + .10, -.02, B - .10, B - .10, 0.42, f, thick=0.14)

@@ -221,10 +221,10 @@ pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static Cont
         objects,
         sim_sprite: terri_data::pack().sim_sprite,
         // Same reasoning as the decay rates: copy the shipped lot rather
-        // than invent one. Nothing in `terri-sim` reads `pack.lot` yet -
-        // `sim_with` builds its own `TileGrid` and spawns objects
-        // explicitly - so a fixture lot would be an invented constant
-        // with no reader, which is worse than a real one with no reader.
+        // than invent one. `sim_with` builds its own `TileGrid` and spawns
+        // objects explicitly, but career routing still reads `front_door`
+        // and the Save V1 compatibility digest observes it. A made-up lot
+        // could therefore change a save or shift fixture for no reason.
         lot: terri_data::pack().lot.clone(),
         // And again: `select_action` compares against
         // `tuning.action_threshold`, so a fixture with its own knobs
@@ -235,8 +235,8 @@ pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static Cont
         tuning,
         // Empty rather than the shipped people, deliberately, and the
         // opposite call from the lot above. `sim_with` spawns its own
-        // agents explicitly, so a fixture pack that also carried Terri,
-        // Doug and Nadia would let `spawn_household` in some future test
+        // agents explicitly, so a fixture pack that also carried Tim,
+        // Bill and Casey would let `spawn_household` in some future test
         // add three extra sims nobody's assertions account for - the
         // shipped household is content for the shipped GAME, and a
         // fixture household is whatever the test spawns.

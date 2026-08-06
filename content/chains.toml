@@ -45,7 +45,7 @@ satisfaction = 3.0
 
   [[chain.step]]
   role = "hob"
-  # The step Doug's hobby loves and Nadia's capability may fumble -
+  # The step Bill's hobby loves and Casey's capability may fumble -
   # the cooking tag moved here from the stove's retired standalone
   # interaction (retirement lands in PR 2, when the chain runs).
   label = "Cook"

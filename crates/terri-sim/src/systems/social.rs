@@ -137,7 +137,7 @@ pub fn tick_social(
         // interrupted meal leaves no habituation.
         //
         // **The hobby payout pays BOTH sides too** ([E2]), each against
-        // their OWN hobbies: a chat is worth triple to Nadia, who loves
+        // their OWN hobbies: a chat is worth triple to Casey, who loves
         // company, and base to the housemate she cornered. The same
         // both-sides rule delivery follows, for the same reason - a
         // conversation is the one interaction where the object gets as

@@ -167,7 +167,7 @@ pub fn advance_chains(
 /// though the tag lives on the hob step.
 ///
 /// A fumble RIDES from the tagged step it was rolled at to the terminal
-/// delivery ([K4]): Nadia serves the dinner she ruined, is fed almost
+/// delivery ([K4]): Casey serves the dinner she ruined, is fed almost
 /// nothing by it, paid nothing for it - and learned at the hob, where
 /// `learn_and_manage` fires on the tagged step's own completion.
 #[allow(clippy::type_complexity)]

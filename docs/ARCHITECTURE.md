@@ -361,9 +361,17 @@ lock, allowing Load or New game to finish and then be overwritten by older
 intent queued behind them.
 
 The raw prefix is `TERRISAV` plus a little-endian schema version. Version 1
-also stores a compiled-content fingerprint and rejects changed content rather
-than silently deleting a job, object, chain or trait. The next incompatible
-shape must bump the version and make an explicit migration decision.
+also stores a content-compatibility digest. It observes numeric meanings the
+snapshot cannot validate by authored string id, including interaction and
+flyout row order, social order, chain step structure, object station-role
+mappings, footprints, trait state kind, and the current-content front door a
+restored career still follows. Missing object, career, trait, chain, and
+carried-item ids are validated directly. Known fingerprints from the retired
+full-pack algorithm map only to the exact reviewed replacement shape; they do
+not bypass normal snapshot validation. The one shipped household rename is
+also gated by that legacy match rather than by a name string alone. The next
+incompatible wire shape must bump the version and make an explicit migration
+decision.
 
 ## [D9] Content pipeline
 
@@ -444,13 +452,13 @@ world position via the depth buffer rather than painter's-algorithm sorting; at
 100k objects, not sorting beats sorting well. The alpha uploads static geometry
 for its one lot. Streaming visible lots in chunks remains future scale work.
 
-The owner-gated future art direction proposes **low-poly 3D characters plus
-instanced sprites for props.** Characters need deep customization, which
-pre-rendered sprites make combinatorially painful. A chair does not. The current
-alpha uses only a pre-rendered sprite atlas; see TECH_STACK.md for the shipped
-pipeline and future options.
+The shipped art direction is **Muted Line**, an original procedural isometric
+atlas generated from code. The renderer draws three stable baked character
+looks and a generated prop vocabulary from that atlas; per-instance tint and
+emissive strength carry the day/night treatment without a second draw. See
+TECH_STACK.md for the pipeline and the superseded alternatives.
 
-The current placeholder sim has one body sprite, so walking motion is a
+Each current sim look has one body sprite per frame, so walking motion is a
 presentation transform rather than an animation atlas. The shell derives a
 two-footfall triangle wave from the interpolated world coordinate and lifts
 only the body and carried badge by at most two screen pixels at scale 1. The
