@@ -181,17 +181,23 @@ def png_bytes(sheet):
     return buf.getvalue()
 
 
-def png_pixels_match(path, sheet):
-    """Compare the rendered contract, not Pillow's PNG byte packaging."""
+def png_check_error(path, sheet):
+    """Describe a stale PNG while ignoring Pillow's byte packaging."""
     try:
         with Image.open(path) as image:
             existing = image.convert("RGBA")
-            return (
+            matches = (
                 existing.size == sheet.size
                 and existing.tobytes() == sheet.tobytes()
             )
+    except FileNotFoundError:
+        return f"{path}: missing"
     except (OSError, ValueError):
-        return False
+        return f"{path}: pixels differ from a fresh build"
+
+    if not matches:
+        return f"{path}: pixels differ from a fresh build"
+    return None
 
 
 def main():
@@ -213,8 +219,9 @@ def main():
 
     if args.check:
         bad = []
-        if not png_pixels_match(ATLAS_PNG, sheet):
-            bad.append(f"{ATLAS_PNG}: pixels differ from a fresh build")
+        png_error = png_check_error(ATLAS_PNG, sheet)
+        if png_error:
+            bad.append(png_error)
         for path, want in ((ATLAS_TOML, toml), (ATLAS_TS, ts)):
             try:
                 with open(path, "r") as fh:
