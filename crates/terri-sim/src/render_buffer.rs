@@ -358,6 +358,8 @@ mod tests {
         let x_partner = spawn_agent(&mut sim, 3.0, 1.0);
         let y_initiator = spawn_agent(&mut sim, 2.0, 0.5);
         let y_partner = spawn_agent(&mut sim, 2.0, 2.5);
+        let negative_y_initiator = spawn_agent(&mut sim, 3.0, 3.5);
+        let negative_y_partner = spawn_agent(&mut sim, 3.0, 1.5);
         let waiter = spawn_agent(&mut sim, 4.0, 4.0);
         let plain_initiator = spawn_agent(&mut sim, 6.0, 1.0);
         let plain_partner = spawn_agent(&mut sim, 7.0, 1.0);
@@ -383,6 +385,7 @@ mod tests {
         };
         start_talk(&mut sim, x_initiator, x_partner, 0);
         start_talk(&mut sim, y_initiator, y_partner, 0);
+        start_talk(&mut sim, negative_y_initiator, negative_y_partner, 0);
         start_talk(&mut sim, plain_initiator, plain_partner, 1);
         sim.world_mut().entity_mut(waiter).insert(Reserved);
         sim.world_mut().entity_mut(object_user).insert(Eating {
@@ -418,6 +421,15 @@ mod tests {
             projection_of(y_partner),
             (visual_action::TALK, facing::NEGATIVE_Y)
         );
+        assert_eq!(
+            projection_of(negative_y_initiator),
+            (visual_action::TALK, facing::NEGATIVE_Y)
+        );
+        assert_eq!(
+            projection_of(negative_y_partner),
+            (visual_action::TALK, facing::POSITIVE_Y),
+            "negative y must have a real opposite, not the fallback facing"
+        );
 
         for (entity, description) in [
             (waiter, "an unrelated Reserved waiter"),
@@ -435,7 +447,7 @@ mod tests {
     }
 
     #[test]
-    fn coincident_talkers_face_by_stable_entity_order() {
+    fn coincident_talkers_face_by_stable_entity_order_in_both_directions() {
         use crate::render_buffer::{facing, visual_action};
         use crate::test_content;
         use terri_core::{Reserved, Socialising};
@@ -446,7 +458,15 @@ mod tests {
             test_content::tuning(),
         );
         let mut sim = test_content::sim_with(8, 8, pack);
-        let lower_receiver = sim
+        let lower_initiator = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 2.0, y: 2.0 },
+                Needs::with(NeedId::Social, 50.0),
+            ))
+            .id();
+        let higher_receiver = sim
             .world_mut()
             .spawn((
                 Agent,
@@ -455,11 +475,28 @@ mod tests {
                 Reserved,
             ))
             .id();
+        sim.world_mut()
+            .entity_mut(lower_initiator)
+            .insert(Socialising {
+                interaction: 0,
+                partner: higher_receiver,
+                remaining_ticks: 10,
+            });
+
+        let lower_receiver = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 4.0, y: 4.0 },
+                Needs::with(NeedId::Social, 50.0),
+                Reserved,
+            ))
+            .id();
         let higher_initiator = sim
             .world_mut()
             .spawn((
                 Agent,
-                Position { x: 2.0, y: 2.0 },
+                Position { x: 4.0, y: 4.0 },
                 Needs::with(NeedId::Social, 50.0),
                 Socialising {
                     interaction: 0,
@@ -484,6 +521,16 @@ mod tests {
             (buf.visual_actions[row], buf.facings[row])
         };
         assert_eq!(
+            projection_of(lower_initiator),
+            (visual_action::TALK, facing::POSITIVE_X),
+            "the lower initiator owns positive x when geometry ties"
+        );
+        assert_eq!(
+            projection_of(higher_receiver),
+            (visual_action::TALK, facing::NEGATIVE_X),
+            "the higher receiver must be opposite the lower initiator"
+        );
+        assert_eq!(
             projection_of(lower_receiver),
             (visual_action::TALK, facing::POSITIVE_X),
             "the lower entity index owns positive x when geometry ties"
@@ -492,6 +539,55 @@ mod tests {
             projection_of(higher_initiator),
             (visual_action::TALK, facing::NEGATIVE_X),
             "the higher entity index owns negative x when geometry ties"
+        );
+    }
+
+    #[test]
+    fn authored_talk_visual_requires_both_participants_to_be_agents() {
+        use crate::render_buffer::{facing, visual_action};
+        use crate::test_content;
+        use terri_core::Socialising;
+
+        let pack = test_content::pack_with_social(
+            Vec::new(),
+            vec![authored_talk_interaction("chat")],
+            test_content::tuning(),
+        );
+        let mut sim = test_content::sim_with(8, 8, pack);
+        let non_agent = sim.world_mut().spawn(Position { x: 3.0, y: 2.0 }).id();
+        let initiator = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 2.0, y: 2.0 },
+                Needs::with(NeedId::Social, 50.0),
+                Socialising {
+                    interaction: 0,
+                    partner: non_agent,
+                    remaining_ticks: 10,
+                },
+            ))
+            .id();
+
+        sim.sync_render_buffer();
+        let buf = sim.render_buffer();
+        let projection_of = |entity: Entity| {
+            let row = buf
+                .ids
+                .iter()
+                .position(|&id| id == entity.index_u32())
+                .expect("both positioned entities have render rows");
+            (buf.visual_actions[row], buf.facings[row])
+        };
+        assert_eq!(
+            projection_of(initiator),
+            (visual_action::NONE, facing::NONE),
+            "a malformed conversation must not give an agent a pose toward a non-agent"
+        );
+        assert_eq!(
+            projection_of(non_agent),
+            (visual_action::NONE, facing::NONE),
+            "a non-agent must never acquire an agent talk pose"
         );
     }
 

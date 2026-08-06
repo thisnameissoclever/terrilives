@@ -3757,3 +3757,24 @@ input.
 **How to verify.** Pause through the visible Pause label, choose the visible 1x
 label, and verify both the checked state and clock advancement. Keep the unit
 test for option values, but do not mistake it for browser hit-target coverage.
+
+## [L-test-symmetric-presentation-rules-both-ways] One direction does not prove a symmetric rule
+
+**What happened.** Conversation rendering tests covered positive x, positive y,
+and only the higher-index side of a coincident pair. Mutation testing showed
+that negative y's opposite-facing arm, the lower-index coincidence result, and
+the requirement that both conversation participants be agents could all change
+without a failing test.
+
+**Root cause.** The fixtures demonstrated representative happy paths, but each
+rule had a sibling path hidden by symmetry or by valid production data. The
+implementation looked symmetric; the evidence was not.
+
+**Prevention rule.** For directional presentation rules, exercise both signs
+and both sides of every deterministic tie. For component joins, include one
+well-formed near miss where exactly one required component is absent.
+
+**How to verify.** Run the render-buffer tests with positive and negative y
+talkers, coincident pairs in both entity-index orders, and an authored talk
+whose positioned partner lacks `Agent`. Then mutation-test `terri-sim/src/lib.rs`
+and require the new facing and participant-guard mutations to be caught.

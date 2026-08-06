@@ -61,19 +61,23 @@ fn facing_toward(
     let dx = anchor.x - source.x;
     let dy = anchor.y - source.y;
     if dx == 0.0 && dy == 0.0 {
-        return if source_entity.index_u32() < anchor_entity.index_u32() {
+        return if source_entity
+            .index_u32()
+            .cmp(&anchor_entity.index_u32())
+            .is_lt()
+        {
             facing::POSITIVE_X
         } else {
             facing::NEGATIVE_X
         };
     }
     if dx.abs() >= dy.abs() {
-        if dx > 0.0 {
+        if dx.is_sign_positive() {
             facing::POSITIVE_X
         } else {
             facing::NEGATIVE_X
         }
-    } else if dy > 0.0 {
+    } else if dy.is_sign_positive() {
         facing::POSITIVE_Y
     } else {
         facing::NEGATIVE_Y
