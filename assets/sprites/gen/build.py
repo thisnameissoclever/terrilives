@@ -182,7 +182,7 @@ def png_bytes(sheet):
 
 
 def png_check_error(path, sheet):
-    """Describe a stale PNG while ignoring Pillow's byte packaging."""
+    """Describe a missing or stale PNG while ignoring byte packaging."""
     try:
         with Image.open(path) as image:
             existing = image.convert("RGBA")
