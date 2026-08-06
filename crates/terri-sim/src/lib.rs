@@ -31,6 +31,81 @@ pub struct Sim {
     render: render_buffer::RenderBuffer,
 }
 
+#[derive(Debug)]
+struct RenderRow {
+    index: u32,
+    x: f32,
+    y: f32,
+    kind: u32,
+    sprite: u32,
+    activity: u32,
+    visual_action: u32,
+    facing: u32,
+    carrying: u32,
+}
+
+/// Chooses the dominant lot axis from `source` toward `anchor`.
+///
+/// A diagonal tie chooses x. Coincident participants cannot supply a
+/// direction geometrically, so entity order supplies a stable one: the lower
+/// index faces positive x and the higher index faces negative x. This keeps
+/// the pair opposite without consulting row order or wall time.
+fn facing_toward(
+    source_entity: Entity,
+    source: &terri_core::Position,
+    anchor_entity: Entity,
+    anchor: &terri_core::Position,
+) -> u32 {
+    use render_buffer::facing;
+
+    let dx = anchor.x - source.x;
+    let dy = anchor.y - source.y;
+    if dx == 0.0 && dy == 0.0 {
+        return if source_entity.index_u32() < anchor_entity.index_u32() {
+            facing::POSITIVE_X
+        } else {
+            facing::NEGATIVE_X
+        };
+    }
+    if dx.abs() >= dy.abs() {
+        if dx > 0.0 {
+            facing::POSITIVE_X
+        } else {
+            facing::NEGATIVE_X
+        }
+    } else if dy > 0.0 {
+        facing::POSITIVE_Y
+    } else {
+        facing::NEGATIVE_Y
+    }
+}
+
+fn opposite_facing(value: u32) -> u32 {
+    use render_buffer::facing;
+
+    match value {
+        facing::POSITIVE_X => facing::NEGATIVE_X,
+        facing::NEGATIVE_X => facing::POSITIVE_X,
+        facing::POSITIVE_Y => facing::NEGATIVE_Y,
+        facing::NEGATIVE_Y => facing::POSITIVE_Y,
+        _ => facing::NONE,
+    }
+}
+
+fn is_authored_talk_visual(interaction: &terri_data::CompiledInteraction) -> bool {
+    let Some(visual) = interaction.visual.as_ref() else {
+        return false;
+    };
+    matches!(
+        (&visual.action, &visual.anchor, &visual.facing,),
+        (
+            terri_data::CompiledVisualAction::Talk,
+            terri_data::CompiledVisualAnchor::Partner,
+            terri_data::CompiledVisualFacing::TowardAnchor,
+        )
+    )
+}
+
 impl Sim {
     /// Captures every world resource, entity component, entity reference,
     /// and staged player command needed to resume this simulation exactly.
@@ -537,6 +612,8 @@ impl Sim {
         self.render.sprites.clear();
         self.render.ids.clear();
         self.render.activities.clear();
+        self.render.visual_actions.clear();
+        self.render.facings.clear();
         self.render.carrying.clear();
 
         // Read before the query, because `Content` is a resource and the
@@ -549,10 +626,42 @@ impl Sim {
         // fact about some OTHER entity's `Socialising` and needs its own
         // pass before the per-row loop can answer it.
         let mut partners: Vec<Entity> = Vec::new();
+        let mut conversation_visuals: Vec<(Entity, u32, u32)> = Vec::new();
         {
-            let mut talks = self.world.query::<&terri_core::Socialising>();
-            for talk in talks.iter(&self.world) {
+            let mut talks = self.world.query::<(Entity, &terri_core::Socialising)>();
+            for (initiator, talk) in talks.iter(&self.world) {
                 partners.push(talk.partner);
+                let Some(interaction) = content.social.get(talk.interaction as usize) else {
+                    continue;
+                };
+                if !is_authored_talk_visual(interaction)
+                    || self.world.get::<Agent>(initiator).is_none()
+                    || self.world.get::<Agent>(talk.partner).is_none()
+                {
+                    continue;
+                }
+                let Some(initiator_position) = self.world.get::<Position>(initiator) else {
+                    continue;
+                };
+                let Some(partner_position) = self.world.get::<Position>(talk.partner) else {
+                    continue;
+                };
+                let initiator_facing = facing_toward(
+                    initiator,
+                    initiator_position,
+                    talk.partner,
+                    partner_position,
+                );
+                conversation_visuals.push((
+                    initiator,
+                    render_buffer::visual_action::TALK,
+                    initiator_facing,
+                ));
+                conversation_visuals.push((
+                    talk.partner,
+                    render_buffer::visual_action::TALK,
+                    opposite_facing(initiator_facing),
+                ));
             }
         }
 
@@ -568,13 +677,13 @@ impl Sim {
             Option<&SmartObject>,
             Option<&terri_core::SpriteVariant>,
             Option<&terri_core::Eating>,
-            Has<terri_core::Socialising>,
+            Option<&terri_core::Socialising>,
             Has<terri_core::Path>,
             Has<terri_core::Reserved>,
             Has<terri_core::AtWork>,
             Option<&terri_core::Carrying>,
         )>();
-        let mut rows: Vec<(u32, f32, f32, u32, u32, u32, u32)> = Vec::new();
+        let mut rows: Vec<RenderRow> = Vec::new();
         for (
             entity,
             pos,
@@ -656,7 +765,7 @@ impl Sim {
                 render_buffer::activity::NONE
             } else if at_work {
                 render_buffer::activity::AT_WORK
-            } else if talking || partners.contains(&entity) {
+            } else if talking.is_some() || partners.contains(&entity) {
                 render_buffer::activity::TALKING
             } else if eating.is_some() {
                 if systems::circadian::is_asleep(content, eating) {
@@ -671,29 +780,42 @@ impl Sim {
             } else {
                 render_buffer::activity::NONE
             };
-            rows.push((
-                entity.index_u32(),
+            let (visual_action, facing) = conversation_visuals
+                .iter()
+                .find_map(|&(participant, action, facing)| {
+                    (participant == entity).then_some((action, facing))
+                })
+                .unwrap_or((
+                    render_buffer::visual_action::NONE,
+                    render_buffer::facing::NONE,
+                ));
+            rows.push(RenderRow {
+                index: entity.index_u32(),
                 x,
                 y,
                 kind,
                 sprite,
                 activity,
-                carrying.map_or(render_buffer::NOT_CARRYING, |c| c.0),
-            ));
+                visual_action,
+                facing,
+                carrying: carrying.map_or(render_buffer::NOT_CARRYING, |c| c.0),
+            });
         }
-        rows.sort_by_key(|(index, ..)| *index);
+        rows.sort_by_key(|row| row.index);
 
-        for (index, x, y, kind, sprite, activity, carrying) in &rows {
-            self.render.positions.push(*x);
-            self.render.positions.push(*y);
-            self.render.kinds.push(*kind);
-            self.render.sprites.push(*sprite);
+        for row in &rows {
+            self.render.positions.push(row.x);
+            self.render.positions.push(row.y);
+            self.render.kinds.push(row.kind);
+            self.render.sprites.push(row.sprite);
             // The row's occupant, carried across so a click on a row can
             // name an entity in a command. See `RenderBuffer::ids` for why
             // the row number will not do.
-            self.render.ids.push(*index);
-            self.render.activities.push(*activity);
-            self.render.carrying.push(*carrying);
+            self.render.ids.push(row.index);
+            self.render.activities.push(row.activity);
+            self.render.visual_actions.push(row.visual_action);
+            self.render.facings.push(row.facing);
+            self.render.carrying.push(row.carrying);
         }
         self.render.count = rows.len();
 

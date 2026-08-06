@@ -183,4 +183,24 @@ describe('the atlas manifest', () => {
     });
     expect(new Set(SPRITES.map((s) => s.name)).size).toBe(SPRITES.length);
   });
+
+  it('appends the fixed-size conversation frames without renumbering sims', () => {
+    const talkSprites = [
+      'simTalkSE0', 'simTalkSE1', 'simTalkNW0', 'simTalkNW1',
+      'simTalkSW0', 'simTalkSW1', 'simTalkNE0', 'simTalkNE1',
+      'sim2TalkSE0', 'sim2TalkSE1', 'sim2TalkNW0', 'sim2TalkNW1',
+      'sim2TalkSW0', 'sim2TalkSW1', 'sim2TalkNE0', 'sim2TalkNE1',
+      'sim3TalkSE0', 'sim3TalkSE1', 'sim3TalkNW0', 'sim3TalkNW1',
+      'sim3TalkSW0', 'sim3TalkSW1', 'sim3TalkNE0', 'sim3TalkNE1',
+    ];
+
+    expect(spriteIndex('sim')).toBe(1);
+    expect(spriteIndex('sim2')).toBe(48);
+    expect(spriteIndex('sim3')).toBe(49);
+    expect(SPRITES.slice(50).map((sprite) => sprite.name)).toEqual(talkSprites);
+    for (const name of talkSprites) {
+      const sprite = SPRITES[spriteIndex(name)];
+      expect([sprite.w, sprite.h], name).toEqual([38, 88]);
+    }
+  });
 });

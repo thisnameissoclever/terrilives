@@ -64,6 +64,10 @@ pub fn interaction(
         // interactions.
         tags: Vec::new(),
         satisfaction: 0.0,
+        // Presentation is always explicit. Most system fixtures exercise
+        // gameplay behavior rather than body art and therefore compile the
+        // same absence as an interaction with no authored `visual` table.
+        visual: None,
     }
 }
 

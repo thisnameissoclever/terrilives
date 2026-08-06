@@ -65,6 +65,49 @@ const SIM_SPRITES: readonly number[] = [
   spriteIndex('sim3'),
 ];
 
+type TalkFrames = readonly [number, number];
+type TalkFacings = readonly [TalkFrames, TalkFrames, TalkFrames, TalkFrames];
+
+/**
+ * Two authored conversation frames for every look and lot-axis facing.
+ *
+ * Facing order is positive x (screen south-east), negative x (north-west),
+ * positive y (south-west), then negative y (north-east). The simulation emits
+ * that stable world-space contract; this table owns only its art mapping.
+ */
+const SIM_TALK_SPRITES: readonly TalkFacings[] = [
+  [
+    [spriteIndex('simTalkSE0'), spriteIndex('simTalkSE1')],
+    [spriteIndex('simTalkNW0'), spriteIndex('simTalkNW1')],
+    [spriteIndex('simTalkSW0'), spriteIndex('simTalkSW1')],
+    [spriteIndex('simTalkNE0'), spriteIndex('simTalkNE1')],
+  ],
+  [
+    [spriteIndex('sim2TalkSE0'), spriteIndex('sim2TalkSE1')],
+    [spriteIndex('sim2TalkNW0'), spriteIndex('sim2TalkNW1')],
+    [spriteIndex('sim2TalkSW0'), spriteIndex('sim2TalkSW1')],
+    [spriteIndex('sim2TalkNE0'), spriteIndex('sim2TalkNE1')],
+  ],
+  [
+    [spriteIndex('sim3TalkSE0'), spriteIndex('sim3TalkSE1')],
+    [spriteIndex('sim3TalkNW0'), spriteIndex('sim3TalkNW1')],
+    [spriteIndex('sim3TalkSW0'), spriteIndex('sim3TalkSW1')],
+    [spriteIndex('sim3TalkNE0'), spriteIndex('sim3TalkNE1')],
+  ],
+];
+
+/** The authored visual-action code emitted for a conversation. */
+export const VISUAL_ACTION_TALK = 1;
+
+/** Render-buffer facing codes, in the same order as `SIM_TALK_SPRITES`. */
+export const FACING_POSITIVE_X = 1;
+export const FACING_NEGATIVE_X = 2;
+export const FACING_POSITIVE_Y = 3;
+export const FACING_NEGATIVE_Y = 4;
+
+/** A conversational pose holds for four simulation ticks, or 400 ms at 1x. */
+export const TALK_FRAME_TICKS = 4;
+
 /**
  * Which look the sim with this entity id wears.
  *
@@ -81,6 +124,35 @@ const SIM_SPRITES: readonly number[] = [
  */
 export function simSprite(id: number): number {
   return SIM_SPRITES[id % SIM_SPRITES.length];
+}
+
+/**
+ * Resolves one sim's body without presentation state or wall-clock time.
+ *
+ * Unknown action and facing values fail visibly safe to the ordinary body. A
+ * reduced-motion conversation keeps frame zero, which preserves the semantic
+ * directional pose while removing the ornamental gesture.
+ */
+export function simBodySprite(
+  id: number,
+  visualAction: number,
+  facing: number,
+  simulationTick: number,
+  reducedMotion: boolean,
+): number {
+  const look = id % SIM_SPRITES.length;
+  if (
+    visualAction !== VISUAL_ACTION_TALK ||
+    facing < FACING_POSITIVE_X ||
+    facing > FACING_NEGATIVE_Y
+  ) {
+    return SIM_SPRITES[look];
+  }
+
+  const frame = reducedMotion
+    ? 0
+    : ((Math.floor(simulationTick / TALK_FRAME_TICKS) + (id & 1)) & 1);
+  return SIM_TALK_SPRITES[look][facing - 1][frame];
 }
 
 /**
@@ -352,6 +424,10 @@ export interface RenderSource {
    * [A-11] indicator column. Read every frame like every other view.
    */
   activities(): Uint32Array;
+  /** Authored body-pose category: 0 none, 1 talk. */
+  visualActions(): Uint32Array;
+  /** Lot-axis facing: 0 none, 1 +x, 2 -x, 3 +y, 4 -y. */
+  facings(): Uint32Array;
   /**
    * What each row is carrying, as pack item-kind indices with a
    * u32::MAX empty-hands sentinel. Read every frame.
@@ -432,6 +508,7 @@ export function buildInstances(
   selected: number | null = null,
   scale = 1,
   reducedMotion = false,
+  simulationTick = 0,
 ): InstanceArray {
   const count = source.count;
   // Room for the entities, one bubble and one carried badge each in
@@ -452,6 +529,8 @@ export function buildInstances(
   const kinds = source.kinds();
   const sprites = source.sprites();
   const activities = source.activities();
+  const visualActions = source.visualActions();
+  const facings = source.facings();
   const ids = source.ids();
 
   for (let i = 0; i < count; i++) {
@@ -490,7 +569,13 @@ export function buildInstances(
     // object in the house - draws exactly what content resolved.
     const sprite =
       kinds[i] === KIND_AGENT
-        ? simSprite(ids[i])
+        ? simBodySprite(
+            ids[i],
+            visualActions[i],
+            facings[i],
+            simulationTick,
+            reducedMotion,
+          )
         : sprites[i];
     writeInstance(
       scratch,

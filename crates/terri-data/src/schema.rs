@@ -328,6 +328,32 @@ pub struct InteractionDef {
     /// conditions, never through content.
     #[serde(default)]
     pub satisfaction: f32,
+    /// Optional authored body-presentation contract for this interaction.
+    ///
+    /// The three fields stay separate even though the first shipped
+    /// vocabulary has one value for each. A later fight can share the
+    /// partner anchor and facing rule without pretending its pose is talk,
+    /// while a future object action can add a different anchor vocabulary.
+    /// Missing members remain visible to the compile step so it can report
+    /// the exact incomplete contract instead of letting serde stop at a
+    /// context-free missing-field error.
+    #[serde(default)]
+    pub visual: Option<VisualDef>,
+}
+
+/// Authored action-presentation metadata before validation.
+///
+/// Strings are deliberate at this boundary. Unknown vocabulary is a content
+/// error that must name the owning object or `social.toml` interaction; the
+/// compiled pack uses enums and cannot represent an unknown value.
+#[derive(Debug, Deserialize)]
+pub struct VisualDef {
+    #[serde(default)]
+    pub action: Option<String>,
+    #[serde(default)]
+    pub anchor: Option<String>,
+    #[serde(default)]
+    pub facing: Option<String>,
 }
 
 /// Mirrors `content/lot.toml`: the size of the lot, its interior wall

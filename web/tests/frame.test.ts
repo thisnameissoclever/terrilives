@@ -8,7 +8,14 @@ import {
   lerp,
   buildInstances,
   instanceCount,
+  FACING_NEGATIVE_X,
+  FACING_NEGATIVE_Y,
+  FACING_POSITIVE_X,
+  FACING_POSITIVE_Y,
+  simBodySprite,
   simSprite,
+  TALK_FRAME_TICKS,
+  VISUAL_ACTION_TALK,
   walkingLiftPx,
   type RenderSource,
 } from '../src/frame.js';
@@ -110,11 +117,21 @@ function packed(
   ];
 }
 
-/** prevX, prevY, curX, curY, kind, sprite, and an optional activity. */
+/**
+ * prevX, prevY, curX, curY, kind, sprite, then optional activity,
+ * carrying, visual action, and facing columns.
+ */
 type FakeEntity =
   | readonly [number, number, number, number, number, number]
   | readonly [number, number, number, number, number, number, number]
-  | readonly [number, number, number, number, number, number, number, number];
+  | readonly [number, number, number, number, number, number, number, number]
+  | readonly [
+      number, number, number, number, number, number, number, number, number,
+    ]
+  | readonly [
+      number, number, number, number, number, number, number, number, number,
+      number,
+    ];
 
 /**
  * A stand-in for `SimBridge` for the tests that do not need a real sim.
@@ -157,6 +174,14 @@ class FakeEntities implements RenderSource {
 
   activities(): Uint32Array {
     return Uint32Array.from(this.entities.map((e) => e[6] ?? 0));
+  }
+
+  visualActions(): Uint32Array {
+    return Uint32Array.from(this.entities.map((e) => e[8] ?? 0));
+  }
+
+  facings(): Uint32Array {
+    return Uint32Array.from(this.entities.map((e) => e[9] ?? 0));
   }
 
   /** Item-kind index per row; 0xffff_ffff (the default) is empty hands. */
@@ -443,7 +468,124 @@ describe('lerp', () => {
   });
 });
 
+describe('simBodySprite', () => {
+  const looks = [
+    { id: 99, prefix: 'sim' },
+    { id: 100, prefix: 'sim2' },
+    { id: 101, prefix: 'sim3' },
+  ] as const;
+  const directions = [
+    { facing: FACING_POSITIVE_X, suffix: 'SE' },
+    { facing: FACING_NEGATIVE_X, suffix: 'NW' },
+    { facing: FACING_POSITIVE_Y, suffix: 'SW' },
+    { facing: FACING_NEGATIVE_Y, suffix: 'NE' },
+  ] as const;
+
+  it('resolves both authored talk frames for every look and facing', () => {
+    for (const { id, prefix } of looks) {
+      for (const { facing, suffix } of directions) {
+        const first = (id & 1) as 0 | 1;
+        const second = (first ^ 1) as 0 | 1;
+        expect(simBodySprite(id, VISUAL_ACTION_TALK, facing, 0, false)).toBe(
+          spriteIndex(`${prefix}Talk${suffix}${first}`),
+        );
+        expect(
+          simBodySprite(
+            id,
+            VISUAL_ACTION_TALK,
+            facing,
+            TALK_FRAME_TICKS,
+            false,
+          ),
+        ).toBe(spriteIndex(`${prefix}Talk${suffix}${second}`));
+      }
+    }
+  });
+
+  it('pins frame zero under reduced motion while keeping the facing pose', () => {
+    for (const { id, prefix } of looks) {
+      for (const { facing, suffix } of directions) {
+        const atStart = simBodySprite(id, VISUAL_ACTION_TALK, facing, 0, true);
+        const muchLater = simBodySprite(
+          id,
+          VISUAL_ACTION_TALK,
+          facing,
+          TALK_FRAME_TICKS * 99,
+          true,
+        );
+        expect(atStart).toBe(spriteIndex(`${prefix}Talk${suffix}0`));
+        expect(muchLater).toBe(atStart);
+      }
+    }
+  });
+
+  it('falls back to the ordinary body for unknown or incomplete contracts', () => {
+    for (const { id } of looks) {
+      expect(simBodySprite(id, 0, FACING_POSITIVE_X, 8, false)).toBe(
+        simSprite(id),
+      );
+      expect(simBodySprite(id, VISUAL_ACTION_TALK, 0, 8, false)).toBe(
+        simSprite(id),
+      );
+      expect(simBodySprite(id, VISUAL_ACTION_TALK, 5, 8, false)).toBe(
+        simSprite(id),
+      );
+    }
+  });
+});
+
 describe('buildInstances', () => {
+  it('draws authored talk poses without reinterpreting broad activity codes', () => {
+    const source = new FakeEntities();
+    source.set([
+      // A real authored conversation.
+      [
+        0, 0, 0, 0, KIND_AGENT, 1, 4, 0xffff_ffff,
+        VISUAL_ACTION_TALK, FACING_POSITIVE_X,
+      ],
+      // Object use is activity 3, but has no authored body pose yet.
+      [1, 0, 1, 0, KIND_AGENT, 1, 3, 0xffff_ffff, 0, 0],
+      // Even a talk indicator does not invent presentation metadata.
+      [2, 0, 2, 0, KIND_AGENT, 1, 4, 0xffff_ffff, 0, 0],
+    ]);
+
+    const atTickZero = snapshot(
+      buildInstances(source, 1, ORIGIN_X, ORIGIN_Y, GRID, null, 1, false, 0),
+      3,
+    );
+    expect(atTickZero[OFFSET_SPRITE]).toBe(
+      simBodySprite(100, VISUAL_ACTION_TALK, FACING_POSITIVE_X, 0, false),
+    );
+    expect(atTickZero[FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
+      simSprite(101),
+    );
+    expect(atTickZero[2 * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
+      simSprite(102),
+    );
+
+    const atNextPose = snapshot(
+      buildInstances(
+        source,
+        1,
+        ORIGIN_X,
+        ORIGIN_Y,
+        GRID,
+        null,
+        1,
+        false,
+        TALK_FRAME_TICKS,
+      ),
+      3,
+    );
+    expect(atNextPose[OFFSET_SPRITE]).not.toBe(atTickZero[OFFSET_SPRITE]);
+    expect(atNextPose[FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
+      atTickZero[FLOATS_PER_INSTANCE + OFFSET_SPRITE],
+    );
+    expect(atNextPose[2 * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
+      atTickZero[2 * FLOATS_PER_INSTANCE + OFFSET_SPRITE],
+    );
+  });
+
   it('derives equal walking footfalls from quarter-tile cardinal movement', () => {
     const samples = [
       [0, 0, 0.25, 0],

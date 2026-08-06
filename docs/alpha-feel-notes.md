@@ -2015,3 +2015,43 @@ boundary tests own that migration claim: all four historical full-pack
 fingerprints are checked against the independently reconstructed structural
 shape, exact legacy names migrate by stable `SimId`, arbitrary saved names are
 preserved, and a current-format sim deliberately named Terri stays Terri.
+
+## [A-conversation-action-animation] Conversations have authored body language
+
+The local production bundle (`index-DyNe4FoS.js`,
+`terri_wasm_bg--P0E5EXR.wasm`) was played in the in-app browser at 1280 by 720.
+Casey was selected through the normal Household control, Bill was targeted
+through the canvas keyboard path, and Chat was issued through the ordinary
+social-action menu.
+
+- **Both participants visibly join the conversation.** Once the HUD reached
+  Talking, Casey and Bill used the directional conversation bodies and each
+  carried the existing talk indicator. The close zoom made the gaze, shoulder,
+  and hand gesture readable without changing the selection ring, wall depth,
+  or indicator anchor.
+- **Pause freezes the presentation.** Two full-viewport captures taken 600 ms
+  apart while the HUD still read Talking were byte-identical. Resuming for 450
+  ms and pausing again kept the action active and produced a different rendered
+  frame. The renderer tests isolate that change to the two authored body
+  frames, including stable entity phase and every facing.
+- **The action survives the ordinary game controls.** Saving while paused in
+  Talking enabled Load and reported `Game saved`. Confirming Load restored
+  `Saved game loaded`, the paused speed, the same Talking activity, and the
+  saved clock at `Day 1, 07:20`.
+- **The zoom envelope remains usable.** The conversation stayed inside the
+  existing fixed body envelope at the 0.5x lot overview and the 2.5x close
+  view. Talk indicators remained attached at both extremes; walls, furniture,
+  and the selection ring kept their existing depth order.
+- **Reduced motion has an explicit proof boundary.** Browser emulation reached
+  the reduced-motion conversation pose, but the short action ended before a
+  clean two-tick visual comparison could be captured. The deterministic frame
+  suite owns the stronger claim: reduced motion pins directional frame zero
+  while ordinary motion alternates on simulation ticks only.
+- **Night and carried-item browser evidence remain open.** The watched
+  conversation ran around `Day 1, 07:20`, and neither participant carried an
+  item. The shared ambient, carried-badge transform, and fixed body envelope
+  have deterministic regression coverage, but this session is not claimed as
+  a live night or carried-conversation check.
+- **Runtime remained quiet.** Conversation setup, pause and resume, save and
+  load, both zoom extremes, and reduced-motion emulation produced zero console
+  warnings and zero errors.

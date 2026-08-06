@@ -3735,3 +3735,25 @@ currently installed compressor.
 **How to verify.** Record that the old and new PNG byte hashes differ, prove an
 RGBA pixel diff has no bounding box, and run the generator check successfully.
 Then alter one generated pixel and prove the same check fails.
+
+## [L-test-the-visible-speed-control] Click the label the player can actually use
+
+**What happened.** A browser acceptance pass clicked the visually hidden radio
+input behind the speed controls. Pause happened to accept that synthetic click,
+but 1x did not, which looked like a product defect where the simulation could
+never resume. Clicking the visible 1x label resumed immediately and the clock
+advanced normally.
+
+**Root cause.** The speed inputs are intentionally transparent and have
+`pointer-events: none`; their labels are the 44-pixel player-facing targets.
+The first check exercised an automation shortcut that a pointer user cannot
+take, then treated its failure as evidence about the visible control.
+
+**Prevention rule.** Browser acceptance must operate the visible label or use
+the documented keyboard path for custom-styled radio controls. Do not infer a
+player-facing defect from a synthetic click on a hidden, pointer-disabled
+input.
+
+**How to verify.** Pause through the visible Pause label, choose the visible 1x
+label, and verify both the checked state and clock advancement. Keep the unit
+test for option values, but do not mistake it for browser hit-target coverage.

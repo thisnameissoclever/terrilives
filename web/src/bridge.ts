@@ -168,6 +168,34 @@ export class SimBridge {
     );
   }
 
+  /**
+   * The authored body-pose category for each row: 0 none, 1 talk.
+   *
+   * Separate from `activities`: activity 3 intentionally covers every object
+   * interaction, while this column is emitted only from an interaction's
+   * validated visual contract. Re-create the view on every call for the same
+   * memory-growth hazard as every other render-buffer column.
+   */
+  visualActions(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.visual_actions_ptr(),
+      this.count,
+    );
+  }
+
+  /**
+   * The lot-axis direction in which each authored action faces: 0 none,
+   * 1 positive x, 2 negative x, 3 positive y, 4 negative y.
+   */
+  facings(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.facings_ptr(),
+      this.count,
+    );
+  }
+
   /** Current activity code for one live entity, resolved through the row map. */
   activityOf(entityIndex: number): number | null {
     if (!isU32(entityIndex)) return null;
