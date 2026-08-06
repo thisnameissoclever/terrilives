@@ -2047,11 +2047,16 @@ social-action menu.
   clean two-tick visual comparison could be captured. The deterministic frame
   suite owns the stronger claim: reduced motion pins directional frame zero
   while ordinary motion alternates on simulation ticks only.
-- **Night and carried-item browser evidence remain open.** The watched
-  conversation ran around `Day 1, 07:20`, and neither participant carried an
-  item. The shared ambient, carried-badge transform, and fixed body envelope
-  have deterministic regression coverage, but this session is not claimed as
-  a live night or carried-conversation check.
+- **Night and WebGPU validation are explicit.** A second real conversation was
+  paused at `Day 2, 02:54` under the ordinary night ambient and inspected at
+  native and close zoom. A temporary local-only hook exposed the live
+  `GPUDevice`; a `validation` error scope surrounded the nighttime Chat and
+  zoom submissions, `queue.onSubmittedWorkDone()` completed, and
+  `popErrorScope()` returned `null`. The hook was then removed, and
+  `web/src/main.ts` returned exactly to blob
+  `247beb4475a862c3f4b57a7bdfc26b97ae5dc7d7`. Neither participant happened to
+  carry an item during either watched Chat, so this remains a deterministic
+  carried-badge regression claim rather than fabricated live evidence.
 - **Runtime remained quiet.** Conversation setup, pause and resume, save and
-  load, both zoom extremes, and reduced-motion emulation produced zero console
-  warnings and zero errors.
+  load, both zoom extremes, reduced-motion emulation, and the nighttime scoped
+  validation produced zero console warnings and zero errors.
