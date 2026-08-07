@@ -318,6 +318,18 @@ impl SimHandle {
         self.sim.render_buffer().activities.as_ptr()
     }
 
+    /// Authored body-action code per row. Re-read after every sync or memory
+    /// growth, like every other zero-copy render pointer.
+    pub fn visual_actions_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().visual_actions.as_ptr()
+    }
+
+    /// Authored lot-axis facing per row. Re-read after every sync or memory
+    /// growth, like every other zero-copy render pointer.
+    pub fn facings_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().facings.as_ptr()
+    }
+
     /// The raw entity index occupying each row - the number a `Select` or
     /// `UseObject` command has to carry.
     ///
@@ -1498,6 +1510,111 @@ mod boundary_tests {
             ],
             "activities_ptr must address the per-row activity tags: the \
              object does nothing and the hungry agent is walking to eat"
+        );
+    }
+
+    fn handle_with_projected_talk() -> (SimHandle, terri_core::Entity, terri_core::Entity) {
+        let mut handle = SimHandle::from_lot();
+        let mut agents = {
+            let world = handle.sim.world_mut();
+            let mut state = world
+                .try_query::<(terri_core::Entity, &Agent)>()
+                .expect("Agent is registered eagerly in Sim::new");
+            state
+                .iter(world)
+                .map(|(entity, _)| entity)
+                .collect::<Vec<_>>()
+        };
+        agents.sort_by_key(|entity| entity.index_u32());
+        assert!(
+            agents.len() >= 3,
+            "the shipped household must provide a pair and an unrelated row"
+        );
+        let initiator = agents[0];
+        let partner = agents[1];
+        *handle
+            .sim
+            .world_mut()
+            .get_mut::<Position>(initiator)
+            .expect("household agents have positions") = Position { x: 1.0, y: 1.0 };
+        *handle
+            .sim
+            .world_mut()
+            .get_mut::<Position>(partner)
+            .expect("household agents have positions") = Position { x: 3.0, y: 1.0 };
+        handle
+            .sim
+            .world_mut()
+            .entity_mut(initiator)
+            .insert(terri_core::Socialising {
+                interaction: 0,
+                partner,
+                remaining_ticks: 10,
+            });
+        handle
+            .sim
+            .world_mut()
+            .entity_mut(partner)
+            .insert(terri_core::Reserved);
+        handle.sim.sync_render_buffer();
+        (handle, initiator, partner)
+    }
+
+    #[test]
+    fn visual_actions_ptr_addresses_the_authored_action_column_after_growth() {
+        let (mut handle, initiator, partner) = handle_with_projected_talk();
+        // Force every render column past its small initial capacity. The
+        // boundary contract is to re-read this accessor after a sync rather
+        // than retain a pointer into the previous allocation.
+        for index in 0..32 {
+            handle.spawn_agent(20.0 + index as f32, 20.0, 50.0);
+        }
+
+        let rows = handle.entity_count();
+        let ids = addressed(handle.ids_ptr(), rows, "ids_ptr");
+        let actions = addressed(handle.visual_actions_ptr(), rows, "visual_actions_ptr");
+        let row_of = |entity: terri_core::Entity| {
+            ids.iter()
+                .position(|&id| id == entity.index_u32())
+                .expect("conversation participant has a render row")
+        };
+        assert_eq!(
+            actions[row_of(initiator)],
+            terri_sim::render_buffer::visual_action::TALK
+        );
+        assert_eq!(
+            actions[row_of(partner)],
+            terri_sim::render_buffer::visual_action::TALK
+        );
+        assert!(
+            actions
+                .iter()
+                .enumerate()
+                .any(|(row, &action)| row != row_of(initiator)
+                    && row != row_of(partner)
+                    && action == terri_sim::render_buffer::visual_action::NONE),
+            "an unrelated row must distinguish the live action column from a constant"
+        );
+    }
+
+    #[test]
+    fn facings_ptr_addresses_opposite_lot_axis_facings() {
+        let (handle, initiator, partner) = handle_with_projected_talk();
+        let rows = handle.entity_count();
+        let ids = addressed(handle.ids_ptr(), rows, "ids_ptr");
+        let facings = addressed(handle.facings_ptr(), rows, "facings_ptr");
+        let row_of = |entity: terri_core::Entity| {
+            ids.iter()
+                .position(|&id| id == entity.index_u32())
+                .expect("conversation participant has a render row")
+        };
+        assert_eq!(
+            facings[row_of(initiator)],
+            terri_sim::render_buffer::facing::POSITIVE_X
+        );
+        assert_eq!(
+            facings[row_of(partner)],
+            terri_sim::render_buffer::facing::NEGATIVE_X
         );
     }
 

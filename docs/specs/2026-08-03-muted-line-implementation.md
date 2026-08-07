@@ -427,3 +427,10 @@ reading, and mapping it to a pose would confidently animate the wrong
 fiction. That remains the open piece it already was, and Muted Line's
 parametric character makes it cheaper rather than solving it: a facing is
 another draw of the same parts in a different arrangement, not new art.
+
+Status update, 2026-08-06: conversation now supplies the first honest slice of
+that missing system. Its authored visual contract names talk, partner anchor,
+and facing rule; twenty-four appended character frames cover two poses, four
+lot-axis facings, and three stable looks. Generic object activity remains
+deliberately unmapped. See
+`docs/specs/2026-08-06-conversation-action-animation.md`.

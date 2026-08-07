@@ -939,6 +939,7 @@ async function main(): Promise<void> {
       selected,
       camera.scale,
       reducedMotion.matches,
+      sim.clockTick(),
     );
     // The day/night cycle. `reducedMotion` also pins the light to noon:
     // a world that dims and warms on its own is exactly the kind of

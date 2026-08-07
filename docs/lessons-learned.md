@@ -3735,3 +3735,46 @@ currently installed compressor.
 **How to verify.** Record that the old and new PNG byte hashes differ, prove an
 RGBA pixel diff has no bounding box, and run the generator check successfully.
 Then alter one generated pixel and prove the same check fails.
+
+## [L-test-the-visible-speed-control] Click the label the player can actually use
+
+**What happened.** A browser acceptance pass clicked the visually hidden radio
+input behind the speed controls. Pause happened to accept that synthetic click,
+but 1x did not, which looked like a product defect where the simulation could
+never resume. Clicking the visible 1x label resumed immediately and the clock
+advanced normally.
+
+**Root cause.** The speed inputs are intentionally transparent and have
+`pointer-events: none`; their labels are the 44-pixel player-facing targets.
+The first check exercised an automation shortcut that a pointer user cannot
+take, then treated its failure as evidence about the visible control.
+
+**Prevention rule.** Browser acceptance must operate the visible label or use
+the documented keyboard path for custom-styled radio controls. Do not infer a
+player-facing defect from a synthetic click on a hidden, pointer-disabled
+input.
+
+**How to verify.** Pause through the visible Pause label, choose the visible 1x
+label, and verify both the checked state and clock advancement. Keep the unit
+test for option values, but do not mistake it for browser hit-target coverage.
+
+## [L-test-symmetric-presentation-rules-both-ways] One direction does not prove a symmetric rule
+
+**What happened.** Conversation rendering tests covered positive x, positive y,
+and only the higher-index side of a coincident pair. Mutation testing showed
+that negative y's opposite-facing arm, the lower-index coincidence result, and
+the requirement that both conversation participants be agents could all change
+without a failing test.
+
+**Root cause.** The fixtures demonstrated representative happy paths, but each
+rule had a sibling path hidden by symmetry or by valid production data. The
+implementation looked symmetric; the evidence was not.
+
+**Prevention rule.** For directional presentation rules, exercise both signs
+and both sides of every deterministic tie. For component joins, include one
+well-formed near miss where exactly one required component is absent.
+
+**How to verify.** Run the render-buffer tests with positive and negative y
+talkers, coincident pairs in both entity-index orders, and an authored talk
+whose positioned partner lacks `Agent`. Then mutation-test `terri-sim/src/lib.rs`
+and require the new facing and participant-guard mutations to be caught.

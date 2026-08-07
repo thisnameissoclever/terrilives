@@ -26,6 +26,10 @@
 [[interaction]]
 id = "chat"
 label = "Chat"
+# Body presentation is explicit content rather than inferred from the generic
+# activity indicator. The target sim is the anchor and both participants face
+# one another while this interaction is active.
+visual = { action = "talk", anchor = "partner", facing = "toward_anchor" }
 # 30 social over 40 ticks. Stronger per tick than the television's 24
 # over 55, on purpose: the television is the placeholder company a lone
 # sim falls back on, and the real thing should win when a person is

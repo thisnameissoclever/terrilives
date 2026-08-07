@@ -66,6 +66,18 @@ pub struct RenderBuffer {
     /// column is how the shell learns them without a query per frame.
     /// Objects are always 0 - activity is a fact about agents.
     pub activities: Vec<u32>,
+    /// Authored body-action presentation for each row. See
+    /// [`visual_action`] for the stable codes handed to the shell.
+    ///
+    /// This is deliberately separate from [`RenderBuffer::activities`].
+    /// Activity 3 names every kind of object use, while body art must come
+    /// from the interaction's authored visual contract rather than guess
+    /// whether that use is eating, bathing, reading, or something else.
+    pub visual_actions: Vec<u32>,
+    /// Lot-axis direction each authored visual action faces. See [`facing`].
+    /// A row whose visual action is [`visual_action::NONE`] also carries
+    /// [`facing::NONE`].
+    pub facings: Vec<u32>,
     /// What each row is CARRYING, as an index into the pack's item
     /// kinds, or [`NOT_CARRYING`] - the [K3] hands, made visible. The
     /// shell resolves the index against `item_kinds()` and the
@@ -91,6 +103,25 @@ pub mod activity {
     /// the whole row's draw (sprite, indicator, pick box), so the sim
     /// is gone without its interpolation slot moving.
     pub const AT_WORK: u32 = 6;
+}
+
+/// Authored body-action codes. Kept as `u32` so JavaScript can view the
+/// column directly in WASM linear memory.
+pub mod visual_action {
+    pub const NONE: u32 = 0;
+    pub const TALK: u32 = 1;
+}
+
+/// Lot-axis facing codes for authored body actions.
+///
+/// Positive and negative refer to the simulation's x and y axes, not screen
+/// directions after the isometric projection.
+pub mod facing {
+    pub const NONE: u32 = 0;
+    pub const POSITIVE_X: u32 = 1;
+    pub const NEGATIVE_X: u32 = 2;
+    pub const POSITIVE_Y: u32 = 3;
+    pub const NEGATIVE_Y: u32 = 4;
 }
 
 #[cfg(test)]
@@ -271,6 +302,292 @@ mod tests {
             "the receiving side is talking too, though it carries only \
              Reserved - the waiter above is what a wrong partner pass \
              turns it into"
+        );
+    }
+
+    fn authored_talk_interaction(id: &str) -> terri_data::CompiledInteraction {
+        let mut interaction = crate::test_content::interaction(id, &[(NeedId::Social, 20.0)], 20);
+        interaction.visual = Some(terri_data::CompiledVisual {
+            action: terri_data::CompiledVisualAction::Talk,
+            anchor: terri_data::CompiledVisualAnchor::Partner,
+            facing: terri_data::CompiledVisualFacing::TowardAnchor,
+        });
+        interaction
+    }
+
+    /// The authored action is projected from each real `Socialising` pair,
+    /// not from proximity, activity code, or `Reserved` alone. The two pairs
+    /// sit close enough that nearest-neighbour pairing would cross them, and
+    /// their axes differ so the wrong anchor is visible in the facing codes.
+    #[test]
+    fn authored_talk_projects_both_real_pairs_without_animating_waiters_or_object_use() {
+        use crate::render_buffer::{facing, visual_action};
+        use crate::test_content;
+        use terri_core::{Relationships, Reserved, Socialising, Target};
+
+        let ordinary_social =
+            test_content::interaction("quiet_chat", &[(NeedId::Social, 20.0)], 20);
+        let object_interaction =
+            test_content::interaction("use_object", &[(NeedId::Hunger, 20.0)], 20);
+        let pack = test_content::pack_with_social(
+            vec![test_content::object_offering(
+                "fixture_object",
+                vec![object_interaction],
+            )],
+            vec![authored_talk_interaction("chat"), ordinary_social],
+            test_content::tuning(),
+        );
+        let object_def = pack.find("fixture_object").expect("fixture object");
+        let mut sim = test_content::sim_with(10, 10, pack);
+
+        let spawn_agent = |sim: &mut Sim, x: f32, y: f32| {
+            sim.world_mut()
+                .spawn((
+                    Agent,
+                    Position { x, y },
+                    Needs::with(NeedId::Social, 50.0),
+                    Relationships::default(),
+                ))
+                .id()
+        };
+
+        // Pair one faces along x. Pair two is interleaved spatially and
+        // faces along y, so choosing the nearest free agent would cross the
+        // conversations and produce different codes.
+        let x_initiator = spawn_agent(&mut sim, 1.0, 1.0);
+        let x_partner = spawn_agent(&mut sim, 3.0, 1.0);
+        let y_initiator = spawn_agent(&mut sim, 2.0, 0.5);
+        let y_partner = spawn_agent(&mut sim, 2.0, 2.5);
+        let negative_y_initiator = spawn_agent(&mut sim, 3.0, 3.5);
+        let negative_y_partner = spawn_agent(&mut sim, 3.0, 1.5);
+        let waiter = spawn_agent(&mut sim, 4.0, 4.0);
+        let plain_initiator = spawn_agent(&mut sim, 6.0, 1.0);
+        let plain_partner = spawn_agent(&mut sim, 7.0, 1.0);
+        let object_user = spawn_agent(&mut sim, 8.0, 8.0);
+        let object = sim
+            .world_mut()
+            .spawn((Position { x: 8.0, y: 7.0 }, SmartObject(object_def)))
+            .id();
+
+        let start_talk = |sim: &mut Sim, initiator: Entity, partner: Entity, interaction| {
+            sim.world_mut().entity_mut(initiator).insert((
+                Socialising {
+                    interaction,
+                    partner,
+                    remaining_ticks: 10,
+                },
+                Target {
+                    object: partner,
+                    interaction,
+                },
+            ));
+            sim.world_mut().entity_mut(partner).insert(Reserved);
+        };
+        start_talk(&mut sim, x_initiator, x_partner, 0);
+        start_talk(&mut sim, y_initiator, y_partner, 0);
+        start_talk(&mut sim, negative_y_initiator, negative_y_partner, 0);
+        start_talk(&mut sim, plain_initiator, plain_partner, 1);
+        sim.world_mut().entity_mut(waiter).insert(Reserved);
+        sim.world_mut().entity_mut(object_user).insert(Eating {
+            object: object_def,
+            interaction: 0,
+            remaining_ticks: 10,
+        });
+
+        sim.sync_render_buffer();
+        let buf = sim.render_buffer();
+        let projection_of = |entity: Entity| {
+            let row = buf
+                .ids
+                .iter()
+                .position(|&id| id == entity.index_u32())
+                .expect("every fixture entity has a render row");
+            (buf.visual_actions[row], buf.facings[row])
+        };
+
+        assert_eq!(
+            projection_of(x_initiator),
+            (visual_action::TALK, facing::POSITIVE_X)
+        );
+        assert_eq!(
+            projection_of(x_partner),
+            (visual_action::TALK, facing::NEGATIVE_X)
+        );
+        assert_eq!(
+            projection_of(y_initiator),
+            (visual_action::TALK, facing::POSITIVE_Y)
+        );
+        assert_eq!(
+            projection_of(y_partner),
+            (visual_action::TALK, facing::NEGATIVE_Y)
+        );
+        assert_eq!(
+            projection_of(negative_y_initiator),
+            (visual_action::TALK, facing::NEGATIVE_Y)
+        );
+        assert_eq!(
+            projection_of(negative_y_partner),
+            (visual_action::TALK, facing::POSITIVE_Y),
+            "negative y must have a real opposite, not the fallback facing"
+        );
+
+        for (entity, description) in [
+            (waiter, "an unrelated Reserved waiter"),
+            (plain_initiator, "an unauthored social initiator"),
+            (plain_partner, "an unauthored social receiver"),
+            (object_user, "an agent using an object"),
+            (object, "the object itself"),
+        ] {
+            assert_eq!(
+                projection_of(entity),
+                (visual_action::NONE, facing::NONE),
+                "{description} must not acquire talk art from broad activity state"
+            );
+        }
+    }
+
+    #[test]
+    fn coincident_talkers_face_by_stable_entity_order_in_both_directions() {
+        use crate::render_buffer::{facing, visual_action};
+        use crate::test_content;
+        use terri_core::{Reserved, Socialising};
+
+        let pack = test_content::pack_with_social(
+            Vec::new(),
+            vec![authored_talk_interaction("chat")],
+            test_content::tuning(),
+        );
+        let mut sim = test_content::sim_with(8, 8, pack);
+        let lower_initiator = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 2.0, y: 2.0 },
+                Needs::with(NeedId::Social, 50.0),
+            ))
+            .id();
+        let higher_receiver = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 2.0, y: 2.0 },
+                Needs::with(NeedId::Social, 50.0),
+                Reserved,
+            ))
+            .id();
+        sim.world_mut()
+            .entity_mut(lower_initiator)
+            .insert(Socialising {
+                interaction: 0,
+                partner: higher_receiver,
+                remaining_ticks: 10,
+            });
+
+        let lower_receiver = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 4.0, y: 4.0 },
+                Needs::with(NeedId::Social, 50.0),
+                Reserved,
+            ))
+            .id();
+        let higher_initiator = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 4.0, y: 4.0 },
+                Needs::with(NeedId::Social, 50.0),
+                Socialising {
+                    interaction: 0,
+                    partner: lower_receiver,
+                    remaining_ticks: 10,
+                },
+            ))
+            .id();
+        assert!(
+            lower_receiver.index_u32() < higher_initiator.index_u32(),
+            "spawn order must establish the coincident tie fixture"
+        );
+
+        sim.sync_render_buffer();
+        let buf = sim.render_buffer();
+        let projection_of = |entity: Entity| {
+            let row = buf
+                .ids
+                .iter()
+                .position(|&id| id == entity.index_u32())
+                .expect("both talkers have rows");
+            (buf.visual_actions[row], buf.facings[row])
+        };
+        assert_eq!(
+            projection_of(lower_initiator),
+            (visual_action::TALK, facing::POSITIVE_X),
+            "the lower initiator owns positive x when geometry ties"
+        );
+        assert_eq!(
+            projection_of(higher_receiver),
+            (visual_action::TALK, facing::NEGATIVE_X),
+            "the higher receiver must be opposite the lower initiator"
+        );
+        assert_eq!(
+            projection_of(lower_receiver),
+            (visual_action::TALK, facing::POSITIVE_X),
+            "the lower entity index owns positive x when geometry ties"
+        );
+        assert_eq!(
+            projection_of(higher_initiator),
+            (visual_action::TALK, facing::NEGATIVE_X),
+            "the higher entity index owns negative x when geometry ties"
+        );
+    }
+
+    #[test]
+    fn authored_talk_visual_requires_both_participants_to_be_agents() {
+        use crate::render_buffer::{facing, visual_action};
+        use crate::test_content;
+        use terri_core::Socialising;
+
+        let pack = test_content::pack_with_social(
+            Vec::new(),
+            vec![authored_talk_interaction("chat")],
+            test_content::tuning(),
+        );
+        let mut sim = test_content::sim_with(8, 8, pack);
+        let non_agent = sim.world_mut().spawn(Position { x: 3.0, y: 2.0 }).id();
+        let initiator = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 2.0, y: 2.0 },
+                Needs::with(NeedId::Social, 50.0),
+                Socialising {
+                    interaction: 0,
+                    partner: non_agent,
+                    remaining_ticks: 10,
+                },
+            ))
+            .id();
+
+        sim.sync_render_buffer();
+        let buf = sim.render_buffer();
+        let projection_of = |entity: Entity| {
+            let row = buf
+                .ids
+                .iter()
+                .position(|&id| id == entity.index_u32())
+                .expect("both positioned entities have render rows");
+            (buf.visual_actions[row], buf.facings[row])
+        };
+        assert_eq!(
+            projection_of(initiator),
+            (visual_action::NONE, facing::NONE),
+            "a malformed conversation must not give an agent a pose toward a non-agent"
+        );
+        assert_eq!(
+            projection_of(non_agent),
+            (visual_action::NONE, facing::NONE),
+            "a non-agent must never acquire an agent talk pose"
         );
     }
 
@@ -517,6 +834,10 @@ mod tests {
             assert_eq!(buf.ids.len(), expected_count, "ids grew or was not cleared");
             assert_eq!(buf.kinds.len(), expected_count);
             assert_eq!(buf.sprites.len(), expected_count);
+            assert_eq!(buf.activities.len(), expected_count);
+            assert_eq!(buf.visual_actions.len(), expected_count);
+            assert_eq!(buf.facings.len(), expected_count);
+            assert_eq!(buf.carrying.len(), expected_count);
             assert_eq!(buf.positions.len(), expected_count * 2);
 
             sim.world_mut().spawn((

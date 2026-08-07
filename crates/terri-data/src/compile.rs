@@ -8,7 +8,8 @@
 use crate::error::ContentError;
 use crate::pack::{Circadian, CompiledHouseholdMember, CompiledPersonality};
 use crate::pack::{
-    CompiledInteraction, CompiledLot, CompiledObject, CompiledPlacement, ContentPack, ObjectDefId,
+    CompiledInteraction, CompiledLot, CompiledObject, CompiledPlacement, CompiledVisual,
+    CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, ContentPack, ObjectDefId,
     Tuning,
 };
 use crate::schema::{
@@ -266,7 +267,8 @@ pub fn compile(
             // sort explicitly rather than relying on the two agreeing.
             advertises.sort_unstable_by_key(|(i, _)| *i);
 
-            let (tags, satisfaction) = compile_activity_extras(act, &object.id)?;
+            let (tags, satisfaction, visual) =
+                compile_activity_extras(act, &object.id, VisualOwner::Object)?;
             interactions.push(CompiledInteraction {
                 id: act.id.clone(),
                 advertises,
@@ -275,6 +277,7 @@ pub fn compile(
                 label,
                 tags,
                 satisfaction,
+                visual,
             });
         }
 
@@ -984,7 +987,8 @@ fn compile_social(
             });
         }
 
-        let (tags, satisfaction) = compile_activity_extras(act, "social.toml")?;
+        let (tags, satisfaction, visual) =
+            compile_activity_extras(act, "social.toml", VisualOwner::Social)?;
         compiled.push(CompiledInteraction {
             id: act.id.clone(),
             advertises,
@@ -993,6 +997,7 @@ fn compile_social(
             label,
             tags,
             satisfaction,
+            visual,
         });
     }
 
@@ -1011,7 +1016,8 @@ fn compile_social(
 fn compile_activity_extras(
     act: &InteractionDef,
     owner: &str,
-) -> Result<(Vec<String>, f32), ContentError> {
+    visual_owner: VisualOwner,
+) -> Result<(Vec<String>, f32, Option<CompiledVisual>), ContentError> {
     for tag in &act.tags {
         if tag.trim().is_empty() {
             return Err(ContentError::EmptyActivityTag {
@@ -1031,7 +1037,80 @@ fn compile_activity_extras(
             satisfaction: act.satisfaction,
         });
     }
-    Ok((act.tags.clone(), act.satisfaction))
+    let visual = compile_visual(act, owner, visual_owner)?;
+    Ok((act.tags.clone(), act.satisfaction, visual))
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum VisualOwner {
+    Object,
+    Social,
+}
+
+/// Validates the authored presentation vocabulary once for both object and
+/// social interactions. The schema keeps strings so errors can name content;
+/// the compiled pack carries enums so an unknown value cannot reach runtime.
+fn compile_visual(
+    act: &InteractionDef,
+    owner: &str,
+    visual_owner: VisualOwner,
+) -> Result<Option<CompiledVisual>, ContentError> {
+    let Some(visual) = &act.visual else {
+        return Ok(None);
+    };
+
+    let field = |name| ContentError::IncompleteVisual {
+        owner: owner.to_string(),
+        interaction: act.id.clone(),
+        field: name,
+    };
+    let action = visual.action.as_deref().ok_or_else(|| field("action"))?;
+    let anchor = visual.anchor.as_deref().ok_or_else(|| field("anchor"))?;
+    let facing = visual.facing.as_deref().ok_or_else(|| field("facing"))?;
+
+    let action = match action {
+        "talk" => CompiledVisualAction::Talk,
+        unknown => {
+            return Err(ContentError::UnknownVisualAction {
+                owner: owner.to_string(),
+                interaction: act.id.clone(),
+                action: unknown.to_string(),
+            })
+        }
+    };
+    let anchor = match anchor {
+        "partner" => CompiledVisualAnchor::Partner,
+        unknown => {
+            return Err(ContentError::UnknownVisualAnchor {
+                owner: owner.to_string(),
+                interaction: act.id.clone(),
+                anchor: unknown.to_string(),
+            })
+        }
+    };
+    let facing = match facing {
+        "toward_anchor" => CompiledVisualFacing::TowardAnchor,
+        unknown => {
+            return Err(ContentError::UnknownVisualFacing {
+                owner: owner.to_string(),
+                interaction: act.id.clone(),
+                facing: unknown.to_string(),
+            })
+        }
+    };
+
+    if visual_owner == VisualOwner::Object {
+        return Err(ContentError::PartnerVisualOnObject {
+            object: owner.to_string(),
+            interaction: act.id.clone(),
+        });
+    }
+
+    Ok(Some(CompiledVisual {
+        action,
+        anchor,
+        facing,
+    }))
 }
 
 /// Validates `content/personalities.toml` against the compiled objects and
@@ -2151,7 +2230,7 @@ mod tests {
     use super::*;
     use crate::schema::{
         ArchetypeDef, AtlasSpriteDef, CareerDef, CircadianFile, DispositionDef, HouseholdSimDef,
-        InteractionDef, NeedDef, ObjectDef, PlacementDef, TraitDef, WallDef,
+        InteractionDef, NeedDef, ObjectDef, PlacementDef, TraitDef, VisualDef, WallDef,
     };
 
     /// The atlas every test compiles against.
@@ -2263,6 +2342,12 @@ mod tests {
         // it shifted by one; the non-empty round trips live in
         // pack.rs's `three_objects`.
         //
+        // **The conversation action contract appended one presentation
+        // option to `CompiledInteraction`.** This fixture's interaction has
+        // no visual table, so the new byte is the sixth 0 after the authored
+        // label ending in `117, 112`: an empty tags list, four satisfaction
+        // bytes, then `None`. The round-trip fixture in pack.rs carries Some.
+        //
         // **Moved three times at M2e PR 3, all appends.** `Tuning`
         // gained a trailing `day_ticks` - the lone `19` near the end -
         // and `ContentPack` a trailing `careers` list, one more
@@ -2290,7 +2375,7 @@ mod tests {
         97, 98, 95, 115, 110, 97, 99, 107, 3, 0, 0, 0,
         12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64,
         15, 1, 15, 69, 97, 116, 32, 115, 116, 97, 110, 100,
-        105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1,
+        105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 0, 1,
         1, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0,
         0, 0, 32, 64, 0, 0, 160, 63, 2, 0, 0, 0,
         128, 62, 0, 0, 0, 63, 0, 0, 0, 62, 9, 6,
@@ -2531,6 +2616,7 @@ mod tests {
         InteractionDef {
             tags: vec![],
             satisfaction: 0.0,
+            visual: None,
             id: "grab_snack".into(),
             // Unlabelled, which is the DEFAULTING path and therefore the
             // one most tests should exercise: an object authored before
@@ -4996,6 +5082,7 @@ mod tests {
             interaction: vec![InteractionDef {
                 tags: vec![],
                 satisfaction: 0.0,
+                visual: None,
                 id: "lounge".into(),
                 label: None,
                 advertises: [("comfort".to_string(), 20.0)].into_iter().collect(),
@@ -5906,6 +5993,11 @@ mod tests {
             InteractionDef {
                 tags: vec![],
                 satisfaction: 0.0,
+                visual: Some(VisualDef {
+                    action: Some("talk".into()),
+                    anchor: Some("partner".into()),
+                    facing: Some("toward_anchor".into()),
+                }),
                 id: "chat".into(),
                 label: Some("Compare complaints".into()),
                 advertises: [("social".to_string(), 30.0), ("fun".to_string(), 6.0)]
@@ -5917,6 +6009,7 @@ mod tests {
             InteractionDef {
                 tags: vec![],
                 satisfaction: 0.0,
+                visual: None,
                 id: "nod_politely".into(),
                 label: None,
                 advertises: [("social".to_string(), 8.0)].into_iter().collect(),
@@ -5932,6 +6025,14 @@ mod tests {
         assert_eq!(chat.label, "Compare complaints");
         assert_eq!(chat.duration_ticks, 40);
         assert_eq!(chat.slots, 2);
+        assert_eq!(
+            chat.visual,
+            Some(CompiledVisual {
+                action: CompiledVisualAction::Talk,
+                anchor: CompiledVisualAnchor::Partner,
+                facing: CompiledVisualFacing::TowardAnchor,
+            })
+        );
         // Social is need index 4 and fun is 5; name order ("fun" first in
         // the BTreeMap) disagrees with index order, so this equality holds
         // only if the compile sorted by index.
@@ -5939,6 +6040,103 @@ mod tests {
         assert_eq!(
             pack.social[1].label, "nod_politely",
             "an absent label must fall back to the id"
+        );
+        assert_eq!(
+            pack.social[1].visual, None,
+            "an absent visual table must stay absent"
+        );
+    }
+
+    /// The visual table is all-or-nothing and every authored string crosses a
+    /// closed vocabulary boundary before runtime. Object interactions use the
+    /// same compiler, but cannot use a partner anchor because they have no
+    /// second sim to resolve.
+    #[test]
+    fn validates_the_visual_contract_for_social_and_object_interactions() {
+        let visual = |action: Option<&str>, anchor: Option<&str>, facing: Option<&str>| {
+            Some(VisualDef {
+                action: action.map(str::to_string),
+                anchor: anchor.map(str::to_string),
+                facing: facing.map(str::to_string),
+            })
+        };
+        let chat = |visual| InteractionDef {
+            tags: vec![],
+            satisfaction: 0.0,
+            visual,
+            id: "chat".into(),
+            label: None,
+            advertises: [("social".to_string(), 30.0)].into_iter().collect(),
+            duration_ticks: 40,
+            slots: 2,
+        };
+
+        for (missing, authored) in [
+            (
+                "action",
+                visual(None, Some("partner"), Some("toward_anchor")),
+            ),
+            ("anchor", visual(Some("talk"), None, Some("toward_anchor"))),
+            ("facing", visual(Some("talk"), Some("partner"), None)),
+        ] {
+            assert_eq!(
+                compile_bare_with_social(vec![chat(authored)]).unwrap_err(),
+                ContentError::IncompleteVisual {
+                    owner: "social.toml".into(),
+                    interaction: "chat".into(),
+                    field: missing,
+                }
+            );
+        }
+
+        assert_eq!(
+            compile_bare_with_social(vec![chat(visual(
+                Some("dance"),
+                Some("partner"),
+                Some("toward_anchor")
+            ))])
+            .unwrap_err(),
+            ContentError::UnknownVisualAction {
+                owner: "social.toml".into(),
+                interaction: "chat".into(),
+                action: "dance".into(),
+            }
+        );
+        assert_eq!(
+            compile_bare_with_social(vec![chat(visual(
+                Some("talk"),
+                Some("object"),
+                Some("toward_anchor")
+            ))])
+            .unwrap_err(),
+            ContentError::UnknownVisualAnchor {
+                owner: "social.toml".into(),
+                interaction: "chat".into(),
+                anchor: "object".into(),
+            }
+        );
+        assert_eq!(
+            compile_bare_with_social(vec![chat(visual(
+                Some("talk"),
+                Some("partner"),
+                Some("away_from_anchor")
+            ))])
+            .unwrap_err(),
+            ContentError::UnknownVisualFacing {
+                owner: "social.toml".into(),
+                interaction: "chat".into(),
+                facing: "away_from_anchor".into(),
+            }
+        );
+
+        let mut object_action = snack();
+        object_action.visual = visual(Some("talk"), Some("partner"), Some("toward_anchor"));
+        assert_eq!(
+            compile_objects(full_needs(), one_object(object_action)).unwrap_err(),
+            ContentError::PartnerVisualOnObject {
+                object: "fridge".into(),
+                interaction: "grab_snack".into(),
+            }
         );
     }
 
@@ -5951,6 +6149,7 @@ mod tests {
             let mut act = InteractionDef {
                 tags: vec![],
                 satisfaction: 0.0,
+                visual: None,
                 id: "chat".into(),
                 label: None,
                 advertises: [("social".to_string(), 30.0)].into_iter().collect(),
@@ -6013,6 +6212,7 @@ mod tests {
         let talk = |duration_ticks| InteractionDef {
             tags: vec![],
             satisfaction: 0.0,
+            visual: None,
             id: "chat".into(),
             label: None,
             advertises: [("social".to_string(), 30.0)].into_iter().collect(),

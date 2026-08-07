@@ -14,12 +14,14 @@ pub use error::ContentError;
 pub use pack::{
     CompiledCareer, CompiledChain, CompiledChainStep, CompiledHouseholdMember, CompiledInteraction,
     CompiledLot, CompiledObject, CompiledPersonality, CompiledPlacement, CompiledTrait,
-    CompiledTraitKind, ContentPack, Footprint, ObjectDefId, Tuning,
+    CompiledTraitKind, CompiledVisual, CompiledVisualAction, CompiledVisualAnchor,
+    CompiledVisualFacing, ContentPack, Footprint, ObjectDefId, Tuning,
 };
 pub use schema::{
     ArchetypeDef, AtlasFile, AtlasSpriteDef, DispositionDef, HouseholdFile, HouseholdSimDef,
     InteractionDef, LotFile, NeedDef, NeedsFile, ObjectDef, ObjectsFile, PersonalitiesFile,
-    PlacementDef, TraitDef, TraitsFile, TuningFile, WallDef, MAX_HOUSEHOLD_SIZE, TRAIT_KINDS,
+    PlacementDef, TraitDef, TraitsFile, TuningFile, VisualDef, WallDef, MAX_HOUSEHOLD_SIZE,
+    TRAIT_KINDS,
 };
 
 use std::sync::OnceLock;
@@ -61,14 +63,14 @@ static PACK_BYTES: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/content_pac
 ///   grid but career shifts still path to the current pack's door.
 ///
 /// What is deliberately NOT hashed: every number in `tuning.toml`, every
-/// advert delta, label, duration and tag, every sprite index, every sim's
-/// NAME, the rest of the lot, careers, carried-item declaration order, and the
-/// circadian curve. Object, career, trait, chain, and carried-item string
-/// references are validated against the current pack while loading. Hobbies
-/// remain raw tags; removing their last matching activity makes the hobby
-/// inactive rather than making the save corrupt. A save that loads into retuned
-/// content simply plays under the new numbers, which is what a player wants and
-/// what a designer iterating on balance needs.
+/// advert delta, label, duration, tag, and visual presentation contract, every
+/// sprite index, every sim's NAME, the rest of the lot, careers, carried-item
+/// declaration order, and the circadian curve. Object, career, trait, chain,
+/// and carried-item string references are validated against the current pack
+/// while loading. Hobbies remain raw tags; removing their last matching
+/// activity makes the hobby inactive rather than making the save corrupt. A
+/// save that loads into retuned content simply plays under the new numbers,
+/// which is what a player wants and what a designer iterating on balance needs.
 ///
 /// The cost of the narrower rule, stated plainly: change a delta and a
 /// mid-flight interaction finishes under the new one. That is a save
@@ -669,6 +671,29 @@ mod tests {
             base,
             content_fingerprint(&traits),
             "saved traits resolve by id"
+        );
+    }
+
+    #[test]
+    fn the_fingerprint_allows_visual_presentation_changes() {
+        let original = pack().clone();
+        let base = content_fingerprint(&original);
+        assert_eq!(
+            original.social[0].visual,
+            Some(CompiledVisual {
+                action: CompiledVisualAction::Talk,
+                anchor: CompiledVisualAnchor::Partner,
+                facing: CompiledVisualFacing::TowardAnchor,
+            }),
+            "the shipped chat must exercise the complete visual contract"
+        );
+
+        let mut presentation_only = original;
+        presentation_only.social[0].visual = None;
+        assert_eq!(
+            base,
+            content_fingerprint(&presentation_only),
+            "presentation metadata must not invalidate a Save V1"
         );
     }
 

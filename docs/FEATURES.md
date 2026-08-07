@@ -61,13 +61,17 @@ planted. Carried-item badges follow the body, picking includes the lifted head,
 and reduced-motion users retain smooth travel without the ornamental lift or
 its otherwise useful picking headroom.
 
-Action-specific body animation comes next, but it needs authored visual-action
-categories, facings, and interaction anchors first. The current `EATING`
-activity also covers showers, toilets, television, reading, washing, and other
-object use, so mapping it directly to an eating pose would confidently animate
-the wrong fiction. The subsequent Muted Line decision settled the palette and
-character-art pipeline. Paid asset decisions remain outside this animation
-slice and off the current critical path.
+The first action-specific body animation is implemented for conversation.
+`chat` authors a `talk / partner / toward_anchor` visual contract; the
+simulation projects the real pair and four opposite lot-axis facings through
+dedicated render-buffer columns. Each of the three Muted Line people has two
+talk frames in every facing. Simulation tick drives the gesture, so Pause,
+speed changes, replay, and Load agree; reduced motion keeps a static directional
+talk pose. This does not reinterpret the broad `EATING` activity, which still
+covers showers, toilets, television, reading, washing, and other object use.
+Those actions remain unanimated until their own categories and anchors are
+authored. Paid asset decisions remain outside this slice and off the current
+critical path.
 
 **The design language is decided: Muted Line, chosen 2026-08-03.** It is
 original procedural art rather than a treatment of the borrowed sprites, so
@@ -169,9 +173,9 @@ NOT work, because the pipeline alpha-tests at 0.5 and writes depth. And
 This is the current restart point, separate from the historical milestone
 checklists below:
 
-1. Define visual-action categories, facings, and interaction anchors before
-   adding action-specific body animation. The current broad activity labels do
-   not distinguish eating from other object use.
+1. Extend the authored visual-action contract to object interactions one
+   coherent category at a time. Each needs a real object-relative anchor and
+   pose; the broad activity labels still must not stand in for that content.
 2. Make idle wandering local enough to read as idling rather than commuting.
    The observed whole-lot walks are documented at [A-1] [F2]. This needs a
    tuning field, schema validation, deterministic random selection, tests, and

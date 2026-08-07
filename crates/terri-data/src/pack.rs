@@ -20,6 +20,35 @@ pub use terri_core::ObjectDefId;
 /// content crate rather than inside it.
 pub use terri_core::Footprint;
 
+/// Body-pose category resolved from an interaction's authored `visual` table.
+/// Presentation has its own vocabulary rather than reusing gameplay tags or
+/// broad activity-indicator codes, which answer different questions.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum CompiledVisualAction {
+    Talk,
+}
+
+/// The entity that gives an action pose its spatial meaning.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum CompiledVisualAnchor {
+    Partner,
+}
+
+/// How a body chooses a lot-axis facing from its resolved anchor.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum CompiledVisualFacing {
+    TowardAnchor,
+}
+
+/// Fully validated presentation metadata. Unknown and partial authored
+/// values have no representation after compilation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CompiledVisual {
+    pub action: CompiledVisualAction,
+    pub anchor: CompiledVisualAnchor,
+    pub facing: CompiledVisualFacing,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CompiledInteraction {
     pub id: String,
@@ -48,9 +77,12 @@ pub struct CompiledInteraction {
     /// Satisfaction paid on COMPLETION, before the hobby multiplier.
     /// Finite and non-negative by validation - content can never write
     /// the second axis downward ([S1]); neglect and conditions own that
-    /// direction. **Last in this struct on purpose**, per the appending
-    /// rule.
+    /// direction. It was last until the presentation field below arrived.
     pub satisfaction: f32,
+    /// Optional authored body-presentation contract. Presentation-only and
+    /// deliberately outside Save V1's compatibility digest.
+    /// **Last in this struct on purpose**, per the appending rule.
+    pub visual: Option<CompiledVisual>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -599,6 +631,7 @@ mod tests {
             // distinct from every advert delta - same [L34] discipline.
             tags: vec!["tinkering".to_string(), "puttering".to_string()],
             satisfaction: 2.25,
+            visual: None,
         }
     }
 
@@ -743,6 +776,14 @@ mod tests {
                 label: "Compare complaints".to_string(),
                 tags: vec!["gossip".to_string()],
                 satisfaction: 4.5,
+                // Present rather than None, with every enum's only current
+                // variant, so postcard round trips the complete typed visual
+                // contract instead of exercising only the option tag.
+                visual: Some(CompiledVisual {
+                    action: CompiledVisualAction::Talk,
+                    anchor: CompiledVisualAnchor::Partner,
+                    facing: CompiledVisualFacing::TowardAnchor,
+                }),
             }],
             // Three traits, one of each kind with pairwise-distinct
             // numbers, so a round trip that transposed two kinds' fields

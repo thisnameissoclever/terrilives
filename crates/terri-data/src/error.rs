@@ -511,6 +511,36 @@ pub enum ContentError {
         interaction: String,
         satisfaction: f32,
     },
+    /// A present `visual` table omitted one of its three required members.
+    IncompleteVisual {
+        owner: String,
+        interaction: String,
+        field: &'static str,
+    },
+    /// An action outside the compiled presentation vocabulary.
+    UnknownVisualAction {
+        owner: String,
+        interaction: String,
+        action: String,
+    },
+    /// An anchor outside the compiled presentation vocabulary.
+    UnknownVisualAnchor {
+        owner: String,
+        interaction: String,
+        anchor: String,
+    },
+    /// A facing rule outside the compiled presentation vocabulary.
+    UnknownVisualFacing {
+        owner: String,
+        interaction: String,
+        facing: String,
+    },
+    /// `partner` is meaningful only for a social interaction. Object actions
+    /// need their own authored anchor vocabulary before they may animate.
+    PartnerVisualOnObject {
+        object: String,
+        interaction: String,
+    },
     /// A household sim loves a tag no interaction in the pack carries.
     /// The hobby could never pay out: the sim would live its whole life
     /// unable to do the thing it loves, with nothing anywhere saying so.
@@ -1217,6 +1247,53 @@ impl fmt::Display for ContentError {
                 "'{owner}' interaction '{interaction}' declares satisfaction \
                  {satisfaction}; content can never write the second axis \
                  downward - neglect and conditions own that direction"
+            ),
+            ContentError::IncompleteVisual {
+                owner,
+                interaction,
+                field,
+            } => write!(
+                f,
+                "'{owner}' interaction '{interaction}' declares a visual \
+                 contract without '{field}'; action, anchor, and facing are \
+                 all required when visual is present"
+            ),
+            ContentError::UnknownVisualAction {
+                owner,
+                interaction,
+                action,
+            } => write!(
+                f,
+                "'{owner}' interaction '{interaction}' declares unknown \
+                 visual action '{action}'; the current vocabulary is talk"
+            ),
+            ContentError::UnknownVisualAnchor {
+                owner,
+                interaction,
+                anchor,
+            } => write!(
+                f,
+                "'{owner}' interaction '{interaction}' declares unknown \
+                 visual anchor '{anchor}'; the current vocabulary is partner"
+            ),
+            ContentError::UnknownVisualFacing {
+                owner,
+                interaction,
+                facing,
+            } => write!(
+                f,
+                "'{owner}' interaction '{interaction}' declares unknown \
+                 visual facing '{facing}'; the current vocabulary is \
+                 toward_anchor"
+            ),
+            ContentError::PartnerVisualOnObject {
+                object,
+                interaction,
+            } => write!(
+                f,
+                "object '{object}' interaction '{interaction}' declares the \
+                 partner visual anchor, but objects have no partner; object \
+                 actions need an explicit object anchor before they animate"
             ),
             ContentError::UnknownHobby { sim, hobby } => write!(
                 f,

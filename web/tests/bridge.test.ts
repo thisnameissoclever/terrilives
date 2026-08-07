@@ -162,6 +162,22 @@ describe('SimBridge', () => {
 
   it('survives memory growth from many spawns', () => {
     const bridge = new SimBridge(new SimHandle(64, 64), wasmMemory);
+    bridge.spawnAgent(1, 1, 80);
+    bridge.spawnAgent(4, 1, 80);
+    expect(bridge.talkTo(0, 1, 0)).toBe(true);
+    for (let i = 0; i < 120; i++) {
+      bridge.tick();
+      if (bridge.visualActions()[0] === 1) break;
+    }
+    expect(Array.from(bridge.visualActions())).toEqual([1, 1]);
+    expect(Array.from(bridge.facings())).toEqual([1, 2]);
+
+    // Hold the exact new views across growth. Zero-filled fresh views would
+    // prove only their lengths; these non-zero sentinels also prove that each
+    // post-growth pointer still addresses its own column rather than another
+    // equally long render-buffer vector.
+    const heldVisualActions = bridge.visualActions();
+    const heldFacings = bridge.facings();
     const bufferBeforeSpawns = wasmMemory.buffer;
     for (let i = 0; i < 2000; i++) {
       bridge.spawnAgent(i % 60, Math.floor(i / 60) % 60, 80);
@@ -173,11 +189,21 @@ describe('SimBridge', () => {
     // line the test would instead go quietly green while guarding nothing.
     expect(wasmMemory.buffer).not.toBe(bufferBeforeSpawns);
 
-    expect(bridge.count).toBe(2000);
+    expect(heldVisualActions.length).toBe(0);
+    expect(heldFacings.length).toBe(0);
+    expect(bridge.count).toBe(2002);
     // If views were cached across growth this reads zeroes or throws.
     const pos = bridge.positions();
-    expect(pos.length).toBe(4000);
+    expect(pos.length).toBe(4004);
     expect(pos.some((v) => v !== 0)).toBe(true);
+    const visualActions = bridge.visualActions();
+    const facings = bridge.facings();
+    expect(visualActions.length).toBe(2002);
+    expect(facings.length).toBe(2002);
+    expect(Array.from(visualActions.slice(0, 2))).toEqual([1, 1]);
+    expect(Array.from(facings.slice(0, 2))).toEqual([1, 2]);
+    expect(visualActions.buffer).toBe(wasmMemory.buffer);
+    expect(facings.buffer).toBe(wasmMemory.buffer);
   });
 
   it('returns a usable view after growth detached an earlier one', () => {
@@ -861,6 +887,13 @@ describe('SimBridge', () => {
       talking,
       'the ordered talk must become a conversation both rows wear',
     ).toBe(true);
+
+    const visualActions = viaMethod.visualActions();
+    const facings = viaMethod.facings();
+    expect(Array.from(visualActions)).toEqual([1, 1]);
+    expect(Array.from(facings)).toEqual([1, 2]);
+    expect(visualActions.buffer).toBe(wasmMemory.buffer);
+    expect(facings.buffer).toBe(wasmMemory.buffer);
 
     expect(viaMethod.worldHash()).toBe(viaBytes.worldHash());
     expect(viaMethod.worldHash()).not.toBe(control.worldHash());

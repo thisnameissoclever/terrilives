@@ -376,7 +376,35 @@ def cardboardBoxOpen(d):
 
 
 # ---------------------------------------------------------- characters ----
-def _figure(d, palette):
+def _talk_arm(d, palette, shoulder, side, depth, frame, arm_width):
+    """Draw the partner-side arm for one restrained conversation pose."""
+    shirt, skin = palette["shirt"], palette["skin"]
+    sx0, sy0 = shoulder
+    depth_offset = depth * 1.2
+
+    if frame == 0:
+        points = [
+            (sx0, sy0),
+            (sx0 + side * 2.2, sy0 + 7.0 + depth_offset),
+            (sx0 + side * .8, sy0 + 12.5 + depth_offset),
+        ]
+    else:
+        points = [
+            (sx0, sy0),
+            (sx0 + side * 1.8, sy0 + 6.2 + depth_offset),
+            (sx0 - side * 2.2, sy0 + 3.9 + depth_offset),
+        ]
+
+    d.line(points, fill=OUTLINE, width=arm_width + 2 * OUTLINE_WIDTH,
+           joint="curve")
+    d.line(points, fill=mul(shirt, .93), width=arm_width, joint="curve")
+    hx, hy = points[-1]
+    hand_r = 2.5
+    d.ellipse([hx - hand_r, hy - hand_r, hx + hand_r, hy + hand_r],
+              fill=skin, outline=OUTLINE, width=OUTLINE_WIDTH)
+
+
+def _figure(d, palette, talk_facing=None, talk_frame=0):
     """One sim, in one palette. [ML-chars].
 
     Every proportion comes from CHARACTER and only the four colours vary,
@@ -404,24 +432,70 @@ def _figure(d, palette):
     top_y = ty - torso
     d.rectangle([px - sh / 2, top_y, px + sh / 2, ty], fill=shirt, outline=ol, width=w)
     aw = sh * .22
+    talk_side = None
+    talk_depth = None
+    if talk_facing is not None:
+        talk_side, talk_depth = {
+            "se": (1, 1),
+            "nw": (-1, -1),
+            "sw": (-1, 1),
+            "ne": (1, -1),
+        }[talk_facing]
     for s in (-1, 1):
         ax = px + s * (sh / 2 - aw * .3)
-        d.rectangle([ax - aw / 2, top_y + torso * .12, ax + aw / 2, ty + leg * .10],
-                    fill=mul(shirt, .93), outline=ol, width=w)
+        if s == talk_side:
+            shoulder_height = .36 if talk_depth > 0 else .22
+            shoulder = (ax, top_y + torso * shoulder_height)
+            _talk_arm(d, palette, shoulder, s, talk_depth, talk_frame,
+                      round(aw))
+        else:
+            d.rectangle([ax - aw / 2, top_y + torso * .12, ax + aw / 2,
+                         ty + leg * .10], fill=mul(shirt, .93), outline=ol,
+                        width=w)
     hy = top_y - head_r
     d.rounded_rectangle([px - head_r, hy - head_r, px + head_r, hy + head_r],
                         radius=int(head_r * .42), fill=skin, outline=ol, width=w)
     d.chord([px - head_r, hy - head_r, px + head_r, hy + head_r * .35],
             180, 360, fill=hair, outline=ol, width=w)
-    ey, r = hy + head_r * .12, max(1.2, head_r * .11)
+    gaze_x = talk_side * 1.8 if talk_side is not None else 0
+    gaze_y = talk_depth * 1.0 if talk_depth is not None else 0
+    ey, r = hy + head_r * .12 + gaze_y, max(1.2, head_r * .11)
     for s in (-1, 1):
-        cx = px + s * head_r * .34
+        cx = px + s * head_r * .34 + gaze_x
         d.ellipse([cx - r, ey - r, cx + r, ey + r], fill=ch["eye"])
 
 
 def sim(d): _figure(d, CHARACTER_PALETTES[0])
 def sim2(d): _figure(d, CHARACTER_PALETTES[1])
 def sim3(d): _figure(d, CHARACTER_PALETTES[2])
+
+
+def simTalkSE0(d): _figure(d, CHARACTER_PALETTES[0], "se", 0)
+def simTalkSE1(d): _figure(d, CHARACTER_PALETTES[0], "se", 1)
+def simTalkNW0(d): _figure(d, CHARACTER_PALETTES[0], "nw", 0)
+def simTalkNW1(d): _figure(d, CHARACTER_PALETTES[0], "nw", 1)
+def simTalkSW0(d): _figure(d, CHARACTER_PALETTES[0], "sw", 0)
+def simTalkSW1(d): _figure(d, CHARACTER_PALETTES[0], "sw", 1)
+def simTalkNE0(d): _figure(d, CHARACTER_PALETTES[0], "ne", 0)
+def simTalkNE1(d): _figure(d, CHARACTER_PALETTES[0], "ne", 1)
+
+def sim2TalkSE0(d): _figure(d, CHARACTER_PALETTES[1], "se", 0)
+def sim2TalkSE1(d): _figure(d, CHARACTER_PALETTES[1], "se", 1)
+def sim2TalkNW0(d): _figure(d, CHARACTER_PALETTES[1], "nw", 0)
+def sim2TalkNW1(d): _figure(d, CHARACTER_PALETTES[1], "nw", 1)
+def sim2TalkSW0(d): _figure(d, CHARACTER_PALETTES[1], "sw", 0)
+def sim2TalkSW1(d): _figure(d, CHARACTER_PALETTES[1], "sw", 1)
+def sim2TalkNE0(d): _figure(d, CHARACTER_PALETTES[1], "ne", 0)
+def sim2TalkNE1(d): _figure(d, CHARACTER_PALETTES[1], "ne", 1)
+
+def sim3TalkSE0(d): _figure(d, CHARACTER_PALETTES[2], "se", 0)
+def sim3TalkSE1(d): _figure(d, CHARACTER_PALETTES[2], "se", 1)
+def sim3TalkNW0(d): _figure(d, CHARACTER_PALETTES[2], "nw", 0)
+def sim3TalkNW1(d): _figure(d, CHARACTER_PALETTES[2], "nw", 1)
+def sim3TalkSW0(d): _figure(d, CHARACTER_PALETTES[2], "sw", 0)
+def sim3TalkSW1(d): _figure(d, CHARACTER_PALETTES[2], "sw", 1)
+def sim3TalkNE0(d): _figure(d, CHARACTER_PALETTES[2], "ne", 0)
+def sim3TalkNE1(d): _figure(d, CHARACTER_PALETTES[2], "ne", 1)
 
 
 # ---------------------------------------------------------- indicators ----
@@ -505,6 +579,30 @@ EXACT = {
     "wallEW": (HW, None),
     "doorwayNS": (HW, None),
     "doorwayEW": (HW, None),
+    "simTalkSE0": (38, 88),
+    "simTalkSE1": (38, 88),
+    "simTalkNW0": (38, 88),
+    "simTalkNW1": (38, 88),
+    "simTalkSW0": (38, 88),
+    "simTalkSW1": (38, 88),
+    "simTalkNE0": (38, 88),
+    "simTalkNE1": (38, 88),
+    "sim2TalkSE0": (38, 88),
+    "sim2TalkSE1": (38, 88),
+    "sim2TalkNW0": (38, 88),
+    "sim2TalkNW1": (38, 88),
+    "sim2TalkSW0": (38, 88),
+    "sim2TalkSW1": (38, 88),
+    "sim2TalkNE0": (38, 88),
+    "sim2TalkNE1": (38, 88),
+    "sim3TalkSE0": (38, 88),
+    "sim3TalkSE1": (38, 88),
+    "sim3TalkNW0": (38, 88),
+    "sim3TalkNW1": (38, 88),
+    "sim3TalkSW0": (38, 88),
+    "sim3TalkSW1": (38, 88),
+    "sim3TalkNE0": (38, 88),
+    "sim3TalkNE1": (38, 88),
 }
 
 SPRITES = [
@@ -521,4 +619,13 @@ SPRITES = [
     # Appended, never inserted: the list order IS the sprite index, and
     # `sim` has to stay at 1 because a compiled pack already resolved it.
     sim2, sim3,
+    # Conversation frames are an append-only extension. Frame zero is the
+    # quiet partner-facing pose and frame one raises that same arm to chest
+    # height. Cardinal labels are screen directions after lot projection.
+    simTalkSE0, simTalkSE1, simTalkNW0, simTalkNW1,
+    simTalkSW0, simTalkSW1, simTalkNE0, simTalkNE1,
+    sim2TalkSE0, sim2TalkSE1, sim2TalkNW0, sim2TalkNW1,
+    sim2TalkSW0, sim2TalkSW1, sim2TalkNE0, sim2TalkNE1,
+    sim3TalkSE0, sim3TalkSE1, sim3TalkNW0, sim3TalkNW1,
+    sim3TalkSW0, sim3TalkSW1, sim3TalkNE0, sim3TalkNE1,
 ]
