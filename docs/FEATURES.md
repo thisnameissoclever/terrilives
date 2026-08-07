@@ -67,11 +67,18 @@ simulation projects the real pair and four opposite lot-axis facings through
 dedicated render-buffer columns. Each of the three Muted Line people has two
 talk frames in every facing. Simulation tick drives the gesture, so Pause,
 speed changes, replay, and Load agree; reduced motion keeps a static directional
-talk pose. This does not reinterpret the broad `EATING` activity, which still
-covers showers, toilets, television, reading, washing, and other object use.
-Those actions remain unanimated until their own categories and anchors are
-authored. Paid asset decisions remain outside this slice and off the current
-critical path.
+talk pose.
+
+Eating is the first complete object-action category. `Grab a snack` authors
+`eat / object / toward_anchor`, and the terminal `Eat dinner` chain step authors
+`eat / station / toward_anchor`. Render sync resolves the exact target and its
+footprint centre, then the shell selects one of two directional hand-to-mouth
+frames for the stable character look. The carried dinner follows the authored
+hand side and the terminal step keeps the existing fork bubble. Broad
+`EATING` activity still covers showers, toilets, television, reading, washing,
+and other object use, but it never selects eating art by itself. Those actions
+remain unanimated until their own categories and anchors are authored. Paid
+asset decisions remain outside this slice and off the current critical path.
 
 **The design language is decided: Muted Line, chosen 2026-08-03.** It is
 original procedural art rather than a treatment of the borrowed sprites, so
@@ -173,9 +180,10 @@ NOT work, because the pipeline alpha-tests at 0.5 and writes depth. And
 This is the current restart point, separate from the historical milestone
 checklists below:
 
-1. Extend the authored visual-action contract to object interactions one
-   coherent category at a time. Each needs a real object-relative anchor and
-   pose; the broad activity labels still must not stand in for that content.
+1. Continue the authored visual-action contract one coherent category at a
+   time. Eating now proves ordinary object and chain-step anchors end to end;
+   the next category still needs its own real anchor and pose. Broad activity
+   labels must not stand in for authored content.
 2. Make idle wandering local enough to read as idling rather than commuting.
    The observed whole-lot walks are documented at [A-1] [F2]. This needs a
    tuning field, schema validation, deterministic random selection, tests, and

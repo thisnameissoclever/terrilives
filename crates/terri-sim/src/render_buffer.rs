@@ -55,10 +55,10 @@ pub struct RenderBuffer {
     pub ids: Vec<u32>,
     /// What each row is DOING right now, as the [A-11] indicator codes:
     /// 0 none, 1 walking, 2 waiting (reserved for a conversation whose
-    /// initiator is still inbound), 3 eating (any object interaction),
-    /// 4 talking (either side of a conversation), 5 sleeping (an object
-    /// interaction on a bed, split from eating because a Zzz over a bed
-    /// reads and cutlery over a bed lies).
+    /// initiator is still inbound), 3 eating (ordinary object use or an
+    /// authored chain-eating work step), 4 talking (either side of a
+    /// conversation), 5 sleeping (an object interaction on a bed, split from
+    /// eating because a Zzz over a bed reads and cutlery over a bed lies).
     ///
     /// Exists because the owner's play report put it plainly: "if you
     /// can't see what they're doing, they may as well not be doing
@@ -70,9 +70,10 @@ pub struct RenderBuffer {
     /// [`visual_action`] for the stable codes handed to the shell.
     ///
     /// This is deliberately separate from [`RenderBuffer::activities`].
-    /// Activity 3 names every kind of object use, while body art must come
-    /// from the interaction's authored visual contract rather than guess
-    /// whether that use is eating, bathing, reading, or something else.
+    /// Activity 3 names broad object use and authored chain eating, while body
+    /// art must come from the interaction or chain step's visual contract
+    /// rather than guess whether that use is eating, bathing, reading, or
+    /// something else.
     pub visual_actions: Vec<u32>,
     /// Lot-axis direction each authored visual action faces. See [`facing`].
     /// A row whose visual action is [`visual_action::NONE`] also carries
@@ -110,6 +111,7 @@ pub mod activity {
 pub mod visual_action {
     pub const NONE: u32 = 0;
     pub const TALK: u32 = 1;
+    pub const EAT: u32 = 2;
 }
 
 /// Lot-axis facing codes for authored body actions.
@@ -313,6 +315,632 @@ mod tests {
             facing: terri_data::CompiledVisualFacing::TowardAnchor,
         });
         interaction
+    }
+
+    fn projection_of(buffer: &super::RenderBuffer, entity: Entity) -> (u32, u32, u32) {
+        let row = buffer
+            .ids
+            .iter()
+            .position(|&id| id == entity.index_u32())
+            .expect("the fixture entity has a render row");
+        (
+            buffer.visual_actions[row],
+            buffer.facings[row],
+            buffer.activities[row],
+        )
+    }
+
+    fn shipped_interaction_index(object: terri_data::ObjectDefId, interaction_id: &str) -> u32 {
+        terri_data::pack()
+            .object(object)
+            .interactions
+            .iter()
+            .position(|interaction| interaction.id == interaction_id)
+            .unwrap_or_else(|| panic!("the shipped object declares '{interaction_id}'"))
+            as u32
+    }
+
+    #[test]
+    fn shipped_snack_projects_eat_toward_the_exact_object_in_all_four_directions() {
+        use crate::render_buffer::{activity, facing, visual_action};
+        use terri_core::Target;
+
+        let pack = terri_data::pack();
+        let fridge = pack.find("fridge").expect("shipped fridge");
+        let snack = shipped_interaction_index(fridge, "grab_snack");
+        let mut sim = Sim::new_with_lot(16, 16);
+        let target = sim
+            .world_mut()
+            .spawn((Position { x: 8.0, y: 8.0 }, SmartObject(fridge)))
+            .id();
+
+        let cases = [
+            ((6.0, 8.0), facing::POSITIVE_X),
+            ((10.0, 8.0), facing::NEGATIVE_X),
+            ((8.0, 6.0), facing::POSITIVE_Y),
+            ((8.0, 10.0), facing::NEGATIVE_Y),
+        ];
+        let mut agents = Vec::new();
+        for ((x, y), expected_facing) in cases {
+            let agent = sim
+                .world_mut()
+                .spawn((
+                    Agent,
+                    Position { x, y },
+                    Eating {
+                        object: fridge,
+                        interaction: snack,
+                        remaining_ticks: 10,
+                    },
+                    Target {
+                        object: target,
+                        interaction: snack,
+                    },
+                ))
+                .id();
+            agents.push((agent, expected_facing));
+        }
+
+        let before_hash = sim.world_hash();
+        let before_save = sim.save_snapshot();
+        sim.sync_render_buffer();
+        let buffer = sim.render_buffer();
+        for (agent, expected_facing) in agents {
+            assert_eq!(
+                projection_of(buffer, agent),
+                (visual_action::EAT, expected_facing, activity::EATING)
+            );
+        }
+        assert_eq!(
+            sim.world_hash(),
+            before_hash,
+            "presentation sync must not enter the deterministic world digest"
+        );
+        assert_eq!(
+            sim.save_snapshot(),
+            before_save,
+            "presentation sync must not add or rewrite Save V1 state"
+        );
+    }
+
+    #[test]
+    fn terminal_dinner_projects_eat_and_fork_activity_from_the_exact_station() {
+        use crate::render_buffer::{activity, facing, visual_action};
+        use crate::systems::chain::CHAIN_STEP;
+        use terri_core::{ChainState, StepWork, Target};
+
+        let pack = terri_data::pack();
+        let chain_index = pack
+            .chains
+            .iter()
+            .position(|chain| chain.id == "cook_dinner")
+            .expect("shipped dinner chain") as u32;
+        let terminal_step = pack.chains[chain_index as usize].steps.len() as u32 - 1;
+        let role = pack.chains[chain_index as usize].steps[terminal_step as usize].role;
+        let station = pack
+            .objects
+            .iter()
+            .position(|object| object.id == "dining_table")
+            .map(|index| terri_data::ObjectDefId(index as u32))
+            .expect("shipped dining table");
+        assert_eq!(pack.object(station).footprint.width, 2);
+        assert!(pack.object(station).roles.contains(&role));
+
+        let mut sim = Sim::new_with_lot(24, 24);
+        let decoy_definition = pack
+            .objects
+            .iter()
+            .position(|object| object.id == "desk")
+            .map(|index| terri_data::ObjectDefId(index as u32))
+            .expect("shipped desk");
+        assert!(pack.object(decoy_definition).roles.contains(&role));
+        let _decoy = sim
+            .world_mut()
+            .spawn((Position { x: 1.0, y: 8.0 }, SmartObject(decoy_definition)))
+            .id();
+        let exact_station = sim
+            .world_mut()
+            .spawn((Position { x: 8.0, y: 8.0 }, SmartObject(station)))
+            .id();
+
+        let cases = [
+            ((6.0, 8.0), facing::POSITIVE_X),
+            ((11.0, 8.0), facing::NEGATIVE_X),
+            ((8.5, 6.0), facing::POSITIVE_Y),
+            ((8.5, 10.0), facing::NEGATIVE_Y),
+            // From this point the placement origin is y-dominant, while the
+            // 2 by 1 footprint centre is x-dominant. This row therefore pins
+            // the centre calculation rather than merely a direction.
+            ((7.8, 7.6), facing::POSITIVE_X),
+        ];
+        let mut agents = Vec::new();
+        for ((x, y), expected_facing) in cases {
+            let agent = sim
+                .world_mut()
+                .spawn((
+                    Agent,
+                    Position { x, y },
+                    ChainState {
+                        chain: chain_index,
+                        step: terminal_step,
+                        fumble_scale: 1.0,
+                    },
+                    StepWork {
+                        remaining_ticks: 10,
+                    },
+                    Target {
+                        object: exact_station,
+                        interaction: CHAIN_STEP,
+                    },
+                ))
+                .id();
+            agents.push((agent, expected_facing));
+        }
+
+        let before_hash = sim.world_hash();
+        let before_save = sim.save_snapshot();
+        sim.sync_render_buffer();
+        let buffer = sim.render_buffer();
+        for (agent, expected_facing) in agents {
+            assert_eq!(
+                projection_of(buffer, agent),
+                (visual_action::EAT, expected_facing, activity::EATING),
+                "terminal dinner needs both the authored body pose and the fork bubble"
+            );
+        }
+        assert_eq!(sim.world_hash(), before_hash);
+        assert_eq!(sim.save_snapshot(), before_save);
+    }
+
+    #[test]
+    fn object_eat_projection_fails_closed_for_each_component_and_identity_near_miss() {
+        use crate::render_buffer::{activity, facing, visual_action};
+        use terri_core::{ChainState, StepWork, Target};
+
+        let shipped = terri_data::pack();
+        let shipped_fridge = shipped.find("fridge").expect("shipped fridge");
+        let shipped_snack = shipped_interaction_index(shipped_fridge, "grab_snack");
+        let mut fridge_definition = shipped.object(shipped_fridge).clone();
+        let mut second_authored_snack =
+            fridge_definition.interactions[shipped_snack as usize].clone();
+        second_authored_snack.id = "second_authored_snack".to_string();
+        second_authored_snack.label = "Second authored snack".to_string();
+        fridge_definition.interactions.push(second_authored_snack);
+        let shipped_bed = shipped.find("bed").expect("shipped bed");
+        let pack =
+            crate::test_content::pack(vec![fridge_definition, shipped.object(shipped_bed).clone()]);
+        let fridge = pack.find("fridge").expect("fixture fridge");
+        let snack = shipped_snack;
+        let second_snack = snack + 1;
+        let bed = pack.find("bed").expect("fixture bed");
+        let bed_interaction = 0;
+        assert!(pack.object(bed).interactions[bed_interaction]
+            .visual
+            .is_none());
+
+        let mut sim = crate::test_content::sim_with(16, 16, pack);
+        let valid_target = sim
+            .world_mut()
+            .spawn((Position { x: 8.0, y: 8.0 }, SmartObject(fridge)))
+            .id();
+        let missing_object = sim.world_mut().spawn(Position { x: 8.0, y: 8.0 }).id();
+        let missing_position = sim.world_mut().spawn(SmartObject(fridge)).id();
+        let unauthored_target = sim
+            .world_mut()
+            .spawn((Position { x: 8.0, y: 8.0 }, SmartObject(bed)))
+            .id();
+
+        let spawn_agent = |sim: &mut Sim| {
+            sim.world_mut()
+                .spawn((Agent, Position { x: 6.0, y: 8.0 }))
+                .id()
+        };
+        let missing_eating = spawn_agent(&mut sim);
+        sim.world_mut().entity_mut(missing_eating).insert(Target {
+            object: valid_target,
+            interaction: snack,
+        });
+
+        let missing_agent = sim
+            .world_mut()
+            .spawn((
+                Position { x: 6.0, y: 8.0 },
+                Eating {
+                    object: fridge,
+                    interaction: snack,
+                    remaining_ticks: 10,
+                },
+                Target {
+                    object: valid_target,
+                    interaction: snack,
+                },
+            ))
+            .id();
+
+        let missing_target = spawn_agent(&mut sim);
+        sim.world_mut().entity_mut(missing_target).insert(Eating {
+            object: fridge,
+            interaction: snack,
+            remaining_ticks: 10,
+        });
+
+        let mismatched_interaction = spawn_agent(&mut sim);
+        sim.world_mut().entity_mut(mismatched_interaction).insert((
+            Eating {
+                object: fridge,
+                interaction: snack,
+                remaining_ticks: 10,
+            },
+            Target {
+                object: valid_target,
+                interaction: second_snack,
+            },
+        ));
+
+        let out_of_range_interaction = spawn_agent(&mut sim);
+        sim.world_mut()
+            .entity_mut(out_of_range_interaction)
+            .insert((
+                Eating {
+                    object: fridge,
+                    interaction: 99,
+                    remaining_ticks: 10,
+                },
+                Target {
+                    object: valid_target,
+                    interaction: 99,
+                },
+            ));
+
+        let mismatched_definition = spawn_agent(&mut sim);
+        sim.world_mut().entity_mut(mismatched_definition).insert((
+            Eating {
+                object: bed,
+                interaction: snack,
+                remaining_ticks: 10,
+            },
+            Target {
+                object: valid_target,
+                interaction: snack,
+            },
+        ));
+
+        let no_smart_object = spawn_agent(&mut sim);
+        sim.world_mut().entity_mut(no_smart_object).insert((
+            Eating {
+                object: fridge,
+                interaction: snack,
+                remaining_ticks: 10,
+            },
+            Target {
+                object: missing_object,
+                interaction: snack,
+            },
+        ));
+
+        let no_position = spawn_agent(&mut sim);
+        sim.world_mut().entity_mut(no_position).insert((
+            Eating {
+                object: fridge,
+                interaction: snack,
+                remaining_ticks: 10,
+            },
+            Target {
+                object: missing_position,
+                interaction: snack,
+            },
+        ));
+
+        let unauthored = spawn_agent(&mut sim);
+        sim.world_mut().entity_mut(unauthored).insert((
+            Eating {
+                object: bed,
+                interaction: bed_interaction as u32,
+                remaining_ticks: 10,
+            },
+            Target {
+                object: unauthored_target,
+                interaction: bed_interaction as u32,
+            },
+        ));
+
+        let ambiguous_action_state = spawn_agent(&mut sim);
+        sim.world_mut().entity_mut(ambiguous_action_state).insert((
+            Eating {
+                object: fridge,
+                interaction: snack,
+                remaining_ticks: 10,
+            },
+            Target {
+                object: valid_target,
+                interaction: snack,
+            },
+            ChainState {
+                chain: 0,
+                step: 0,
+                fumble_scale: 1.0,
+            },
+            StepWork {
+                remaining_ticks: 10,
+            },
+        ));
+
+        sim.sync_render_buffer();
+        for (entity, description) in [
+            (missing_eating, "missing Eating"),
+            (missing_agent, "missing Agent"),
+            (missing_target, "missing Target"),
+            (mismatched_interaction, "mismatched interaction"),
+            (out_of_range_interaction, "out-of-range interaction"),
+            (mismatched_definition, "mismatched object definition"),
+            (no_smart_object, "target missing SmartObject"),
+            (no_position, "target missing Position"),
+            (unauthored, "unauthored object interaction"),
+            (ambiguous_action_state, "both Eating and StepWork"),
+        ] {
+            let (action, direction, _) = projection_of(sim.render_buffer(), entity);
+            assert_eq!(
+                (action, direction),
+                (visual_action::NONE, facing::NONE),
+                "{description} must fail closed"
+            );
+        }
+        let (_, _, broad_activity) = projection_of(sim.render_buffer(), missing_target);
+        assert_eq!(
+            broad_activity,
+            activity::EATING,
+            "the broad activity may still explain object use without selecting body art"
+        );
+    }
+
+    #[test]
+    fn chain_eat_projection_fails_closed_for_each_component_and_identity_near_miss() {
+        use crate::render_buffer::{activity, facing, visual_action};
+        use crate::systems::chain::CHAIN_STEP;
+        use terri_core::{ChainState, StepWork, Target};
+
+        let pack = terri_data::pack();
+        let chain_index = pack
+            .chains
+            .iter()
+            .position(|chain| chain.id == "cook_dinner")
+            .expect("shipped dinner chain") as u32;
+        let chain = &pack.chains[chain_index as usize];
+        let terminal_step = chain.steps.len() as u32 - 1;
+        let terminal_role = chain.steps[terminal_step as usize].role;
+        let unauthored_step = chain
+            .steps
+            .iter()
+            .position(|step| step.visual.is_none())
+            .expect("shipped dinner has an unauthored preparation step")
+            as u32;
+        let unauthored_role = chain.steps[unauthored_step as usize].role;
+        let station_for = |role: u32| {
+            pack.objects
+                .iter()
+                .position(|object| object.roles.contains(&role))
+                .map(|index| terri_data::ObjectDefId(index as u32))
+                .expect("shipped chain role has a station")
+        };
+
+        let mut sim = Sim::new_with_lot(16, 16);
+        let valid_target = sim
+            .world_mut()
+            .spawn((
+                Position { x: 8.0, y: 8.0 },
+                SmartObject(station_for(terminal_role)),
+            ))
+            .id();
+        let wrong_role_target = sim
+            .world_mut()
+            .spawn((
+                Position { x: 8.0, y: 8.0 },
+                SmartObject(chain.advertised_by),
+            ))
+            .id();
+        assert!(!pack
+            .object(chain.advertised_by)
+            .roles
+            .contains(&terminal_role));
+        let missing_object = sim.world_mut().spawn(Position { x: 8.0, y: 8.0 }).id();
+        let missing_position = sim
+            .world_mut()
+            .spawn(SmartObject(station_for(terminal_role)))
+            .id();
+        let unauthored_target = sim
+            .world_mut()
+            .spawn((
+                Position { x: 8.0, y: 8.0 },
+                SmartObject(station_for(unauthored_role)),
+            ))
+            .id();
+
+        let spawn_agent = |sim: &mut Sim| {
+            sim.world_mut()
+                .spawn((Agent, Position { x: 6.0, y: 8.0 }))
+                .id()
+        };
+        let state = || ChainState {
+            chain: chain_index,
+            step: terminal_step,
+            fumble_scale: 1.0,
+        };
+        let work = || StepWork {
+            remaining_ticks: 10,
+        };
+        let target = |object| Target {
+            object,
+            interaction: CHAIN_STEP,
+        };
+
+        let missing_chain_state = spawn_agent(&mut sim);
+        sim.world_mut()
+            .entity_mut(missing_chain_state)
+            .insert((work(), target(valid_target)));
+
+        let missing_agent = sim
+            .world_mut()
+            .spawn((
+                Position { x: 6.0, y: 8.0 },
+                state(),
+                work(),
+                target(valid_target),
+            ))
+            .id();
+
+        let missing_step_work = spawn_agent(&mut sim);
+        sim.world_mut()
+            .entity_mut(missing_step_work)
+            .insert((state(), target(valid_target)));
+
+        let missing_target = spawn_agent(&mut sim);
+        sim.world_mut()
+            .entity_mut(missing_target)
+            .insert((state(), work()));
+
+        let wrong_sentinel = spawn_agent(&mut sim);
+        sim.world_mut().entity_mut(wrong_sentinel).insert((
+            state(),
+            work(),
+            Target {
+                object: valid_target,
+                interaction: 0,
+            },
+        ));
+
+        let invalid_chain = spawn_agent(&mut sim);
+        sim.world_mut().entity_mut(invalid_chain).insert((
+            ChainState {
+                chain: 99,
+                step: terminal_step,
+                fumble_scale: 1.0,
+            },
+            work(),
+            target(valid_target),
+        ));
+
+        let invalid_step = spawn_agent(&mut sim);
+        sim.world_mut().entity_mut(invalid_step).insert((
+            ChainState {
+                chain: chain_index,
+                step: 99,
+                fumble_scale: 1.0,
+            },
+            work(),
+            target(valid_target),
+        ));
+
+        let wrong_role = spawn_agent(&mut sim);
+        sim.world_mut()
+            .entity_mut(wrong_role)
+            .insert((state(), work(), target(wrong_role_target)));
+
+        let no_smart_object = spawn_agent(&mut sim);
+        sim.world_mut().entity_mut(no_smart_object).insert((
+            state(),
+            work(),
+            target(missing_object),
+        ));
+
+        let no_position = spawn_agent(&mut sim);
+        sim.world_mut()
+            .entity_mut(no_position)
+            .insert((state(), work(), target(missing_position)));
+
+        let unauthored = spawn_agent(&mut sim);
+        sim.world_mut().entity_mut(unauthored).insert((
+            ChainState {
+                chain: chain_index,
+                step: unauthored_step,
+                fumble_scale: 1.0,
+            },
+            work(),
+            target(unauthored_target),
+        ));
+
+        sim.sync_render_buffer();
+        for (entity, description) in [
+            (missing_chain_state, "missing ChainState"),
+            (missing_agent, "missing Agent"),
+            (missing_step_work, "missing StepWork"),
+            (missing_target, "missing Target"),
+            (wrong_sentinel, "wrong Target sentinel"),
+            (invalid_chain, "out-of-range chain"),
+            (invalid_step, "out-of-range step"),
+            (wrong_role, "target with wrong station role"),
+            (no_smart_object, "target missing SmartObject"),
+            (no_position, "target missing Position"),
+            (unauthored, "unauthored chain step"),
+        ] {
+            let (action, direction, activity) = projection_of(sim.render_buffer(), entity);
+            assert_eq!(
+                (action, direction),
+                (visual_action::NONE, facing::NONE),
+                "{description} must fail closed"
+            );
+            assert_ne!(
+                activity,
+                activity::EATING,
+                "{description} must not acquire the terminal dinner fork bubble"
+            );
+        }
+    }
+
+    #[test]
+    fn conversation_visual_retains_precedence_over_a_valid_object_eat_projection() {
+        use crate::render_buffer::{activity, facing, visual_action};
+        use terri_core::{Reserved, Socialising, Target};
+
+        let fridge = terri_data::pack().find("fridge").expect("shipped fridge");
+        let snack = shipped_interaction_index(fridge, "grab_snack");
+        let object = terri_data::pack().object(fridge).clone();
+        let pack = crate::test_content::pack_with_social(
+            vec![object],
+            vec![authored_talk_interaction("chat")],
+            crate::test_content::tuning(),
+        );
+        let fixture_fridge = pack.find("fridge").expect("fixture fridge");
+        let mut sim = crate::test_content::sim_with(12, 12, pack);
+        let target = sim
+            .world_mut()
+            .spawn((Position { x: 8.0, y: 8.0 }, SmartObject(fixture_fridge)))
+            .id();
+        let partner = sim
+            .world_mut()
+            .spawn((Agent, Position { x: 6.0, y: 4.0 }, Reserved))
+            .id();
+        let initiator = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 4.0, y: 4.0 },
+                Eating {
+                    object: fixture_fridge,
+                    interaction: snack,
+                    remaining_ticks: 10,
+                },
+                Target {
+                    object: target,
+                    interaction: snack,
+                },
+                Socialising {
+                    interaction: 0,
+                    partner,
+                    remaining_ticks: 10,
+                },
+            ))
+            .id();
+
+        sim.sync_render_buffer();
+        assert_eq!(
+            projection_of(sim.render_buffer(), initiator),
+            (visual_action::TALK, facing::POSITIVE_X, activity::TALKING),
+            "malformed overlap must retain the established conversation precedence"
+        );
+        assert_eq!(
+            projection_of(sim.render_buffer(), partner),
+            (visual_action::TALK, facing::NEGATIVE_X, activity::TALKING)
+        );
     }
 
     /// The authored action is projected from each real `Socialising` pair,

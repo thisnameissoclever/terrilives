@@ -169,12 +169,12 @@ export class SimBridge {
   }
 
   /**
-   * The authored body-pose category for each row: 0 none, 1 talk.
+   * The authored body-pose category for each row: 0 none, 1 talk, 2 eat.
    *
-   * Separate from `activities`: activity 3 intentionally covers every object
-   * interaction, while this column is emitted only from an interaction's
-   * validated visual contract. Re-create the view on every call for the same
-   * memory-growth hazard as every other render-buffer column.
+   * Separate from `activities`: broad activity never invents a body pose, while
+   * this column is emitted only from a validated visual contract. Re-create the
+   * view on every call for the same memory-growth hazard as every other
+   * render-buffer column.
    */
   visualActions(): Uint32Array {
     return new Uint32Array(

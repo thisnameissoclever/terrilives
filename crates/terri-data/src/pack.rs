@@ -20,18 +20,21 @@ pub use terri_core::ObjectDefId;
 /// content crate rather than inside it.
 pub use terri_core::Footprint;
 
-/// Body-pose category resolved from an interaction's authored `visual` table.
+/// Body-pose category resolved from an authored `visual` table.
 /// Presentation has its own vocabulary rather than reusing gameplay tags or
 /// broad activity-indicator codes, which answer different questions.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum CompiledVisualAction {
     Talk,
+    Eat,
 }
 
 /// The entity that gives an action pose its spatial meaning.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum CompiledVisualAnchor {
     Partner,
+    Object,
+    Station,
 }
 
 /// How a body chooses a lot-axis facing from its resolved anchor.
@@ -577,6 +580,10 @@ pub struct CompiledChainStep {
     pub transforms: Option<(u32, u32)>,
     /// Item kind this step consumes.
     pub consumes: Option<u32>,
+    /// Optional authored body-presentation contract. Presentation-only and
+    /// deliberately outside Save V1's compatibility digest.
+    /// **Last in this struct on purpose**, per the appending rule.
+    pub visual: Option<CompiledVisual>,
 }
 
 /// One career, compiled and validated: the shift fits inside the day,
@@ -713,26 +720,36 @@ mod tests {
                 // Sprite indices that are not the object's own position,
                 // so a field dropped from the encoding or read off the
                 // wrong slot moves the round-trip assertion below.
-                .map(|(i, id)| CompiledObject {
-                    id: (*id).to_string(),
-                    name: id.to_uppercase(),
-                    sprite: (i as u32) + 4,
-                    interactions: vec![interaction("use_it")],
-                    // A different rectangle per object, none of them square
-                    // and none of them 1x1 twice, so the postcard round-trip
-                    // below can see a footprint dropped from the encoding, a
-                    // width and depth transposed, or every object handed the
-                    // first one's rectangle. This pack is never validated
-                    // against a lot, so the tiles need not fit anywhere.
-                    footprint: Footprint {
-                        width: (i as u32) + 1,
-                        depth: (i as u32) + 3,
-                    },
-                    // A different role list per object - empty, one,
-                    // two - so the round trip can see the lists
-                    // transposed, dropped, or stamped from one object
-                    // onto all ([L34]).
-                    roles: (0..i as u32).collect(),
+                .map(|(i, id)| {
+                    let mut use_it = interaction("use_it");
+                    if i == 0 {
+                        use_it.visual = Some(CompiledVisual {
+                            action: CompiledVisualAction::Eat,
+                            anchor: CompiledVisualAnchor::Object,
+                            facing: CompiledVisualFacing::TowardAnchor,
+                        });
+                    }
+                    CompiledObject {
+                        id: (*id).to_string(),
+                        name: id.to_uppercase(),
+                        sprite: (i as u32) + 4,
+                        interactions: vec![use_it],
+                        // A different rectangle per object, none of them square
+                        // and none of them 1x1 twice, so the postcard round-trip
+                        // below can see a footprint dropped from the encoding, a
+                        // width and depth transposed, or every object handed the
+                        // first one's rectangle. This pack is never validated
+                        // against a lot, so the tiles need not fit anywhere.
+                        footprint: Footprint {
+                            width: (i as u32) + 1,
+                            depth: (i as u32) + 3,
+                        },
+                        // A different role list per object - empty, one,
+                        // two - so the round trip can see the lists
+                        // transposed, dropped, or stamped from one object
+                        // onto all ([L34]).
+                        roles: (0..i as u32).collect(),
+                    }
                 })
                 .collect(),
             sim_sprite: 1,
@@ -776,9 +793,8 @@ mod tests {
                 label: "Compare complaints".to_string(),
                 tags: vec!["gossip".to_string()],
                 satisfaction: 4.5,
-                // Present rather than None, with every enum's only current
-                // variant, so postcard round trips the complete typed visual
-                // contract instead of exercising only the option tag.
+                // Present rather than None, so postcard round trips the social
+                // visual contract instead of exercising only the option tag.
                 visual: Some(CompiledVisual {
                     action: CompiledVisualAction::Talk,
                     anchor: CompiledVisualAnchor::Partner,
@@ -870,6 +886,7 @@ mod tests {
                         yields: Some(1),
                         transforms: None,
                         consumes: None,
+                        visual: None,
                     },
                     CompiledChainStep {
                         role: 0,
@@ -879,6 +896,7 @@ mod tests {
                         yields: None,
                         transforms: Some((1, 0)),
                         consumes: None,
+                        visual: None,
                     },
                     CompiledChainStep {
                         role: 1,
@@ -888,6 +906,11 @@ mod tests {
                         yields: None,
                         transforms: None,
                         consumes: Some(0),
+                        visual: Some(CompiledVisual {
+                            action: CompiledVisualAction::Eat,
+                            anchor: CompiledVisualAnchor::Station,
+                            facing: CompiledVisualFacing::TowardAnchor,
+                        }),
                     },
                 ],
             }],
@@ -957,5 +980,50 @@ mod tests {
 
         let restored: ContentPack = postcard::from_bytes(&bytes).expect("pack must deserialise");
         assert_eq!(restored, pack);
+        assert_eq!(
+            restored.objects[0].interactions[0].visual,
+            Some(CompiledVisual {
+                action: CompiledVisualAction::Eat,
+                anchor: CompiledVisualAnchor::Object,
+                facing: CompiledVisualFacing::TowardAnchor,
+            }),
+            "postcard must preserve the object-eating variants"
+        );
+        assert_eq!(
+            restored.chains[0].steps[2].visual,
+            Some(CompiledVisual {
+                action: CompiledVisualAction::Eat,
+                anchor: CompiledVisualAnchor::Station,
+                facing: CompiledVisualFacing::TowardAnchor,
+            }),
+            "postcard must preserve the station-eating variants"
+        );
+    }
+
+    /// Pins both the appended chain-step field and the append-only enum
+    /// discriminants. A round trip alone would accept a writer and reader that
+    /// reordered the same variants together, which would still break an older
+    /// compiled pack on disk.
+    #[test]
+    fn a_chain_step_visual_has_stable_postcard_bytes() {
+        let step = CompiledChainStep {
+            role: 7,
+            label: "Eat".to_string(),
+            duration_ticks: 42,
+            tags: vec![],
+            yields: None,
+            transforms: None,
+            consumes: Some(4),
+            visual: Some(CompiledVisual {
+                action: CompiledVisualAction::Eat,
+                anchor: CompiledVisualAnchor::Station,
+                facing: CompiledVisualFacing::TowardAnchor,
+            }),
+        };
+
+        assert_eq!(
+            postcard::to_allocvec(&step).expect("chain step must serialise"),
+            vec![7, 3, 69, 97, 116, 42, 0, 0, 0, 1, 4, 1, 1, 2, 0]
+        );
     }
 }

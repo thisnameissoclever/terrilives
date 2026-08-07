@@ -58,3 +58,4 @@ satisfaction = 3.0
   label = "Eat dinner"
   duration_ticks = 45
   consumes = "dinner"
+  visual = { action = "eat", anchor = "station", facing = "toward_anchor" }

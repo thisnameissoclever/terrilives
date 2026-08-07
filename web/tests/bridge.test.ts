@@ -162,15 +162,15 @@ describe('SimBridge', () => {
 
   it('survives memory growth from many spawns', () => {
     const bridge = new SimBridge(new SimHandle(64, 64), wasmMemory);
+    expect(bridge.spawnObject(4, 1, 'fridge')).toBe(true);
     bridge.spawnAgent(1, 1, 80);
-    bridge.spawnAgent(4, 1, 80);
-    expect(bridge.talkTo(0, 1, 0)).toBe(true);
+    expect(bridge.useObject(1, 0, 0)).toBe(true);
     for (let i = 0; i < 120; i++) {
       bridge.tick();
-      if (bridge.visualActions()[0] === 1) break;
+      if (bridge.visualActions()[1] === 2) break;
     }
-    expect(Array.from(bridge.visualActions())).toEqual([1, 1]);
-    expect(Array.from(bridge.facings())).toEqual([1, 2]);
+    expect(Array.from(bridge.visualActions())).toEqual([0, 2]);
+    expect(Array.from(bridge.facings())).toEqual([0, 1]);
 
     // Hold the exact new views across growth. Zero-filled fresh views would
     // prove only their lengths; these non-zero sentinels also prove that each
@@ -200,8 +200,8 @@ describe('SimBridge', () => {
     const facings = bridge.facings();
     expect(visualActions.length).toBe(2002);
     expect(facings.length).toBe(2002);
-    expect(Array.from(visualActions.slice(0, 2))).toEqual([1, 1]);
-    expect(Array.from(facings.slice(0, 2))).toEqual([1, 2]);
+    expect(Array.from(visualActions.slice(0, 2))).toEqual([0, 2]);
+    expect(Array.from(facings.slice(0, 2))).toEqual([0, 1]);
     expect(visualActions.buffer).toBe(wasmMemory.buffer);
     expect(facings.buffer).toBe(wasmMemory.buffer);
   });

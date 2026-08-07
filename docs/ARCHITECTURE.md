@@ -407,8 +407,9 @@ nonsense**, with the message naming the offending id:
 - a duplicate object or interaction id
 - a zero `duration_ticks` (an interaction that finishes before it starts) or
   zero `slots`
-- an incomplete or unknown interaction `visual` contract, or a partner anchor
-  on an object interaction that has no partner
+- an incomplete or unknown interaction or chain-step `visual` contract, or a
+  known action and anchor in a combination the owning social, object, or chain
+  step cannot legally resolve
 - a non-finite or negative number anywhere
 - a missing or incoherent tuning knob: an absent field, a `choice_temperature`
   of zero or below (selection divides by it), a `min_interaction_ticks` of
@@ -474,8 +475,18 @@ declares `talk / partner / toward_anchor`; render sync resolves the actual pair
 to opposite lot-axis facings and the shell selects one of two fixed-envelope
 Muted Line frames for that look and facing. Simulation tick and stable entity
 id choose the frame, never wall time. Reduced motion keeps frame zero, so the
-directional action remains legible without ornamental alternation. The current
-broad object-use activity does not select any body art.
+directional action remains legible without ornamental alternation.
+
+Eating extends the same two-column contract without widening the bridge.
+`Grab a snack` declares `eat / object / toward_anchor`; the terminal dinner
+chain step declares `eat / station / toward_anchor`. Render sync requires the
+exact active interaction or chain step, resolves its exact target object, and
+faces toward the centre of that object's authored footprint. Malformed or
+unauthored state emits no pose. The shell maps action code 2 to two
+fixed-envelope hand-to-mouth frames per look and facing on an eight-tick,
+stable-id phase. A valid authored dinner work step also projects the existing
+eating activity so its fork bubble remains visible. The reverse never happens:
+the broad object-use activity does not select body art.
 
 Save records simulation tick state, not a fractional presentation sample. Load
 therefore reconstructs the footfall from the saved tick-end position after the
@@ -489,8 +500,8 @@ The simulation owns all state in WASM linear memory. JS holds
 `Float32Array`/`Uint32Array` **views** over render-relevant slices, including
 positions, sprite IDs, activity codes, authored visual actions, and lot-axis
 facings, and feeds them directly into GPU buffers. Walking reads the activity
-and position columns. Conversation reads the separate action and facing
-columns, so the broad status vocabulary never becomes an art lookup by
+and position columns. Conversation and eating read the separate action and
+facing columns, so the broad status vocabulary never becomes an art lookup by
 accident.
 
 **Zero copy, and no per-entity JS objects, ever.**

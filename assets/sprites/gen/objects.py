@@ -404,7 +404,35 @@ def _talk_arm(d, palette, shoulder, side, depth, frame, arm_width):
               fill=skin, outline=OUTLINE, width=OUTLINE_WIDTH)
 
 
-def _figure(d, palette, talk_facing=None, talk_frame=0):
+def _eat_arm(d, palette, shoulder, side, depth, frame, arm_width):
+    """Draw one restrained hand-to-mouth eating gesture. [EA3]."""
+    shirt, skin = palette["shirt"], palette["skin"]
+    sx0, sy0 = shoulder
+    depth_offset = depth * .8
+
+    if frame == 0:
+        points = [
+            (sx0, sy0),
+            (sx0 + side * 2.4, sy0 + 5.8 + depth_offset),
+            (sx0 - side * .8, sy0 + 4.0 + depth_offset),
+        ]
+    else:
+        points = [
+            (sx0, sy0),
+            (sx0 + side * 2.0, sy0 + 4.6 + depth_offset),
+            (sx0 - side * 2.8, sy0 - 2.8 + depth_offset * .4),
+        ]
+
+    d.line(points, fill=OUTLINE, width=arm_width + 2 * OUTLINE_WIDTH,
+           joint="curve")
+    d.line(points, fill=mul(shirt, .93), width=arm_width, joint="curve")
+    hx, hy = points[-1]
+    hand_r = 2.5
+    d.ellipse([hx - hand_r, hy - hand_r, hx + hand_r, hy + hand_r],
+              fill=skin, outline=OUTLINE, width=OUTLINE_WIDTH)
+
+
+def _figure(d, palette, action=None, facing=None, frame=0):
     """One sim, in one palette. [ML-chars].
 
     Every proportion comes from CHARACTER and only the four colours vary,
@@ -432,22 +460,28 @@ def _figure(d, palette, talk_facing=None, talk_frame=0):
     top_y = ty - torso
     d.rectangle([px - sh / 2, top_y, px + sh / 2, ty], fill=shirt, outline=ol, width=w)
     aw = sh * .22
-    talk_side = None
-    talk_depth = None
-    if talk_facing is not None:
-        talk_side, talk_depth = {
+    action_side = None
+    action_depth = None
+    if facing is not None:
+        action_side, action_depth = {
             "se": (1, 1),
             "nw": (-1, -1),
             "sw": (-1, 1),
             "ne": (1, -1),
-        }[talk_facing]
+        }[facing]
+    assert (action is None) == (facing is None)
+    assert action in (None, "talk", "eat")
     for s in (-1, 1):
         ax = px + s * (sh / 2 - aw * .3)
-        if s == talk_side:
-            shoulder_height = .36 if talk_depth > 0 else .22
+        if s == action_side:
+            shoulder_height = .36 if action_depth > 0 else .22
             shoulder = (ax, top_y + torso * shoulder_height)
-            _talk_arm(d, palette, shoulder, s, talk_depth, talk_frame,
-                      round(aw))
+            if action == "talk":
+                _talk_arm(d, palette, shoulder, s, action_depth, frame,
+                          round(aw))
+            else:
+                _eat_arm(d, palette, shoulder, s, action_depth, frame,
+                         round(aw))
         else:
             d.rectangle([ax - aw / 2, top_y + torso * .12, ax + aw / 2,
                          ty + leg * .10], fill=mul(shirt, .93), outline=ol,
@@ -457,8 +491,8 @@ def _figure(d, palette, talk_facing=None, talk_frame=0):
                         radius=int(head_r * .42), fill=skin, outline=ol, width=w)
     d.chord([px - head_r, hy - head_r, px + head_r, hy + head_r * .35],
             180, 360, fill=hair, outline=ol, width=w)
-    gaze_x = talk_side * 1.8 if talk_side is not None else 0
-    gaze_y = talk_depth * 1.0 if talk_depth is not None else 0
+    gaze_x = action_side * 1.8 if action_side is not None else 0
+    gaze_y = action_depth * 1.0 if action_depth is not None else 0
     ey, r = hy + head_r * .12 + gaze_y, max(1.2, head_r * .11)
     for s in (-1, 1):
         cx = px + s * head_r * .34 + gaze_x
@@ -470,32 +504,59 @@ def sim2(d): _figure(d, CHARACTER_PALETTES[1])
 def sim3(d): _figure(d, CHARACTER_PALETTES[2])
 
 
-def simTalkSE0(d): _figure(d, CHARACTER_PALETTES[0], "se", 0)
-def simTalkSE1(d): _figure(d, CHARACTER_PALETTES[0], "se", 1)
-def simTalkNW0(d): _figure(d, CHARACTER_PALETTES[0], "nw", 0)
-def simTalkNW1(d): _figure(d, CHARACTER_PALETTES[0], "nw", 1)
-def simTalkSW0(d): _figure(d, CHARACTER_PALETTES[0], "sw", 0)
-def simTalkSW1(d): _figure(d, CHARACTER_PALETTES[0], "sw", 1)
-def simTalkNE0(d): _figure(d, CHARACTER_PALETTES[0], "ne", 0)
-def simTalkNE1(d): _figure(d, CHARACTER_PALETTES[0], "ne", 1)
+def simTalkSE0(d): _figure(d, CHARACTER_PALETTES[0], "talk", "se", 0)
+def simTalkSE1(d): _figure(d, CHARACTER_PALETTES[0], "talk", "se", 1)
+def simTalkNW0(d): _figure(d, CHARACTER_PALETTES[0], "talk", "nw", 0)
+def simTalkNW1(d): _figure(d, CHARACTER_PALETTES[0], "talk", "nw", 1)
+def simTalkSW0(d): _figure(d, CHARACTER_PALETTES[0], "talk", "sw", 0)
+def simTalkSW1(d): _figure(d, CHARACTER_PALETTES[0], "talk", "sw", 1)
+def simTalkNE0(d): _figure(d, CHARACTER_PALETTES[0], "talk", "ne", 0)
+def simTalkNE1(d): _figure(d, CHARACTER_PALETTES[0], "talk", "ne", 1)
 
-def sim2TalkSE0(d): _figure(d, CHARACTER_PALETTES[1], "se", 0)
-def sim2TalkSE1(d): _figure(d, CHARACTER_PALETTES[1], "se", 1)
-def sim2TalkNW0(d): _figure(d, CHARACTER_PALETTES[1], "nw", 0)
-def sim2TalkNW1(d): _figure(d, CHARACTER_PALETTES[1], "nw", 1)
-def sim2TalkSW0(d): _figure(d, CHARACTER_PALETTES[1], "sw", 0)
-def sim2TalkSW1(d): _figure(d, CHARACTER_PALETTES[1], "sw", 1)
-def sim2TalkNE0(d): _figure(d, CHARACTER_PALETTES[1], "ne", 0)
-def sim2TalkNE1(d): _figure(d, CHARACTER_PALETTES[1], "ne", 1)
+def sim2TalkSE0(d): _figure(d, CHARACTER_PALETTES[1], "talk", "se", 0)
+def sim2TalkSE1(d): _figure(d, CHARACTER_PALETTES[1], "talk", "se", 1)
+def sim2TalkNW0(d): _figure(d, CHARACTER_PALETTES[1], "talk", "nw", 0)
+def sim2TalkNW1(d): _figure(d, CHARACTER_PALETTES[1], "talk", "nw", 1)
+def sim2TalkSW0(d): _figure(d, CHARACTER_PALETTES[1], "talk", "sw", 0)
+def sim2TalkSW1(d): _figure(d, CHARACTER_PALETTES[1], "talk", "sw", 1)
+def sim2TalkNE0(d): _figure(d, CHARACTER_PALETTES[1], "talk", "ne", 0)
+def sim2TalkNE1(d): _figure(d, CHARACTER_PALETTES[1], "talk", "ne", 1)
 
-def sim3TalkSE0(d): _figure(d, CHARACTER_PALETTES[2], "se", 0)
-def sim3TalkSE1(d): _figure(d, CHARACTER_PALETTES[2], "se", 1)
-def sim3TalkNW0(d): _figure(d, CHARACTER_PALETTES[2], "nw", 0)
-def sim3TalkNW1(d): _figure(d, CHARACTER_PALETTES[2], "nw", 1)
-def sim3TalkSW0(d): _figure(d, CHARACTER_PALETTES[2], "sw", 0)
-def sim3TalkSW1(d): _figure(d, CHARACTER_PALETTES[2], "sw", 1)
-def sim3TalkNE0(d): _figure(d, CHARACTER_PALETTES[2], "ne", 0)
-def sim3TalkNE1(d): _figure(d, CHARACTER_PALETTES[2], "ne", 1)
+def sim3TalkSE0(d): _figure(d, CHARACTER_PALETTES[2], "talk", "se", 0)
+def sim3TalkSE1(d): _figure(d, CHARACTER_PALETTES[2], "talk", "se", 1)
+def sim3TalkNW0(d): _figure(d, CHARACTER_PALETTES[2], "talk", "nw", 0)
+def sim3TalkNW1(d): _figure(d, CHARACTER_PALETTES[2], "talk", "nw", 1)
+def sim3TalkSW0(d): _figure(d, CHARACTER_PALETTES[2], "talk", "sw", 0)
+def sim3TalkSW1(d): _figure(d, CHARACTER_PALETTES[2], "talk", "sw", 1)
+def sim3TalkNE0(d): _figure(d, CHARACTER_PALETTES[2], "talk", "ne", 0)
+def sim3TalkNE1(d): _figure(d, CHARACTER_PALETTES[2], "talk", "ne", 1)
+
+def simEatSE0(d): _figure(d, CHARACTER_PALETTES[0], "eat", "se", 0)
+def simEatSE1(d): _figure(d, CHARACTER_PALETTES[0], "eat", "se", 1)
+def simEatNW0(d): _figure(d, CHARACTER_PALETTES[0], "eat", "nw", 0)
+def simEatNW1(d): _figure(d, CHARACTER_PALETTES[0], "eat", "nw", 1)
+def simEatSW0(d): _figure(d, CHARACTER_PALETTES[0], "eat", "sw", 0)
+def simEatSW1(d): _figure(d, CHARACTER_PALETTES[0], "eat", "sw", 1)
+def simEatNE0(d): _figure(d, CHARACTER_PALETTES[0], "eat", "ne", 0)
+def simEatNE1(d): _figure(d, CHARACTER_PALETTES[0], "eat", "ne", 1)
+
+def sim2EatSE0(d): _figure(d, CHARACTER_PALETTES[1], "eat", "se", 0)
+def sim2EatSE1(d): _figure(d, CHARACTER_PALETTES[1], "eat", "se", 1)
+def sim2EatNW0(d): _figure(d, CHARACTER_PALETTES[1], "eat", "nw", 0)
+def sim2EatNW1(d): _figure(d, CHARACTER_PALETTES[1], "eat", "nw", 1)
+def sim2EatSW0(d): _figure(d, CHARACTER_PALETTES[1], "eat", "sw", 0)
+def sim2EatSW1(d): _figure(d, CHARACTER_PALETTES[1], "eat", "sw", 1)
+def sim2EatNE0(d): _figure(d, CHARACTER_PALETTES[1], "eat", "ne", 0)
+def sim2EatNE1(d): _figure(d, CHARACTER_PALETTES[1], "eat", "ne", 1)
+
+def sim3EatSE0(d): _figure(d, CHARACTER_PALETTES[2], "eat", "se", 0)
+def sim3EatSE1(d): _figure(d, CHARACTER_PALETTES[2], "eat", "se", 1)
+def sim3EatNW0(d): _figure(d, CHARACTER_PALETTES[2], "eat", "nw", 0)
+def sim3EatNW1(d): _figure(d, CHARACTER_PALETTES[2], "eat", "nw", 1)
+def sim3EatSW0(d): _figure(d, CHARACTER_PALETTES[2], "eat", "sw", 0)
+def sim3EatSW1(d): _figure(d, CHARACTER_PALETTES[2], "eat", "sw", 1)
+def sim3EatNE0(d): _figure(d, CHARACTER_PALETTES[2], "eat", "ne", 0)
+def sim3EatNE1(d): _figure(d, CHARACTER_PALETTES[2], "eat", "ne", 1)
 
 
 # ---------------------------------------------------------- indicators ----
@@ -603,6 +664,30 @@ EXACT = {
     "sim3TalkSW1": (38, 88),
     "sim3TalkNE0": (38, 88),
     "sim3TalkNE1": (38, 88),
+    "simEatSE0": (38, 88),
+    "simEatSE1": (38, 88),
+    "simEatNW0": (38, 88),
+    "simEatNW1": (38, 88),
+    "simEatSW0": (38, 88),
+    "simEatSW1": (38, 88),
+    "simEatNE0": (38, 88),
+    "simEatNE1": (38, 88),
+    "sim2EatSE0": (38, 88),
+    "sim2EatSE1": (38, 88),
+    "sim2EatNW0": (38, 88),
+    "sim2EatNW1": (38, 88),
+    "sim2EatSW0": (38, 88),
+    "sim2EatSW1": (38, 88),
+    "sim2EatNE0": (38, 88),
+    "sim2EatNE1": (38, 88),
+    "sim3EatSE0": (38, 88),
+    "sim3EatSE1": (38, 88),
+    "sim3EatNW0": (38, 88),
+    "sim3EatNW1": (38, 88),
+    "sim3EatSW0": (38, 88),
+    "sim3EatSW1": (38, 88),
+    "sim3EatNE0": (38, 88),
+    "sim3EatNE1": (38, 88),
 }
 
 SPRITES = [
@@ -628,4 +713,13 @@ SPRITES = [
     sim2TalkSW0, sim2TalkSW1, sim2TalkNE0, sim2TalkNE1,
     sim3TalkSE0, sim3TalkSE1, sim3TalkNW0, sim3TalkNW1,
     sim3TalkSW0, sim3TalkSW1, sim3TalkNE0, sim3TalkNE1,
+    # Eating frames append after conversation. The quiet frame holds the
+    # anchor-side hand at chest height and the active frame raises it to the
+    # mouth. [EA3].
+    simEatSE0, simEatSE1, simEatNW0, simEatNW1,
+    simEatSW0, simEatSW1, simEatNE0, simEatNE1,
+    sim2EatSE0, sim2EatSE1, sim2EatNW0, sim2EatNW1,
+    sim2EatSW0, sim2EatSW1, sim2EatNE0, sim2EatNE1,
+    sim3EatSE0, sim3EatSE1, sim3EatNW0, sim3EatNW1,
+    sim3EatSW0, sim3EatSW1, sim3EatNE0, sim3EatNE1,
 ]
