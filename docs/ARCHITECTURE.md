@@ -127,6 +127,20 @@ it cannot paint above or keep the terminal explanation unfocusable. The failed
 canvas and HUD therefore cannot remain a second keyboard interface behind the
 only useful surface.
 
+At 600 CSS pixels or narrower, the shell normally presents that same HUD as a
+safe-area-aware two-column grid rather than constructing a separate mobile
+controller. The grid itself covers the viewport but keeps
+`pointer-events: none`; its existing child panels restore pointer input,
+leaving the flexible middle row as a direct hit surface for the WebGPU canvas.
+The DOM and focus order do not change. Needs and People independently cap and
+scroll their open content so one expanded projection cannot push the speed and
+persistence controls out of reach. When either opens, its grid row and the
+canvas aperture divide remaining height while the panel scrolls its own
+content. The outer HUD gains its own vertical overflow only when enlarged text
+makes the fixed rows exceed the viewport. A short landscape viewport keeps the
+same children in the established scrollable edge column, because its height
+cannot hold the portrait top-and-bottom dock. See [MH1]-[MH5].
+
 Because the two are so easy to confuse, the driver exposes `stepDurationMs`
 purely so the constraint is testable: scaling elapsed time by `k` and dividing
 the step by `k` produce identical tick counts and identical interpolation
