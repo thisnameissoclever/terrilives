@@ -25,7 +25,9 @@ pauses game time and owns focus,
 long-press actions, a visible Queue mode, keyboard world targeting,
 clamped and focus-managed action menus, accurate rejection feedback on
 keyboard and pointer routes, persistence-dialog focus recovery, and
-responsive accessible controls.
+responsive accessible controls. At phone portrait widths the existing HUD now
+reflows into a safe-area-aware top-and-bottom dock around a pointer-transparent
+canvas aperture instead of narrowing the desktop sidebar.
 The M1 household contract is now code-complete too: content accepts up to six
 members, rejects a seventh, and normal play exposes every member through a
 restore-safe accessible roster.
@@ -190,10 +192,12 @@ checklists below:
    content, and sitting, sleeping, showering, and toilet poses still require
    action-position sockets before those poses can align without clipping or
    floating.
-3. Run the remaining physical-device check: long-press an object on a phone and
-   verify that its action menu remains reachable. The 390 by 844 browser layout
-   and a browser session with reduced motion enabled are now watched evidence
-   in [A-local-idle-wandering]; neither substitutes for touch hardware.
+3. Run the remaining physical-device check on the merged revision: verify the
+   new portrait HUD reflow, then long-press an object and confirm its action menu
+   remains reachable. The 390 by 844 and 320 by 568 browser layouts are watched
+   evidence in [A-mobile-hud-reflow], and reduced motion is watched in
+   [A-local-idle-wandering]; none substitutes for touch hardware or a safe-area
+   check on the actual phone.
 4. Hold criterion 11 open for the owner-authored dark-comedy voice session
    tracked by [T22]. Functional UI copy is intentionally plain until then.
 
@@ -201,6 +205,14 @@ Local idle wandering is now shipped rather than a restart item. Its radius is
 compiled content, the endpoint and actual walked path are both capped at three
 tiles, the choice remains deterministic and retry-bounded, and the measured and
 watched acceptance evidence is recorded at [A-local-idle-wandering].
+
+The mobile HUD reflow is built as a CSS-only presentation change rather than a
+second controller. At 600 CSS pixels or narrower, Time and Funds, the roster,
+the two folded detail panels, speed, and actions dock around a transparent
+canvas aperture; expanded details scroll inside a bounded panel. Desktop keeps
+the existing sidebar, and short phone landscape uses that scrollable edge shape
+instead of crushing the portrait dock vertically. The contract and browser
+evidence are [MH1]-[MH5] and [A-mobile-hud-reflow].
 
 **M1b closed with one item of its deliverable unmet, deliberately recorded
 rather than quietly ticked.** Every definition-of-done line passes, and the
@@ -223,7 +235,9 @@ That visual gap has since been closed. The five-room house, furniture placement,
 selection states, command menus, HUD, and mobile layout have all been judged in
 a real, visible Chrome session. `docs/alpha-feel-notes.md` [A-5] records the
 original geometry-only proof, [A-6] records the object-footprint limitation found
-on the way, and [A-16] records the current player-facing acceptance pass.
+on the way, [A-16] records the original player-facing shell pass, and
+[A-mobile-hud-reflow] records the current responsive pass after later HUD
+features outgrew that first phone layout.
 
 The rule: **each milestone must end in something playable.** No milestone is
 allowed to be pure infrastructure with a payoff deferred to the next one.

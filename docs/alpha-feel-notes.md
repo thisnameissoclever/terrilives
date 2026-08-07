@@ -2164,3 +2164,64 @@ or WebGPU failure.
   interruption, 3x, Pause, phone layout, and reduced-motion emulation produced
   zero console warnings and zero errors. The production canvas remained at its
   full 1280 by 720 render size during the desktop passes.
+
+## [A-mobile-hud-reflow] The phone HUD leaves the house playable
+
+The live public build at `62857eeb01100937ba0d4c23f159e9008332e199` was
+captured at 390 by 844 before this change. Its 212-pixel desktop-style column
+covered 54.4% of the viewport width and 58.0% of its height. The controls were
+technically present, but the user's physical-phone screenshot showed the same
+practical failure: the feature-expanded HUD had become most of the game.
+
+The rebased local production build (`index-BYhrFTTB.js`,
+`terri_wasm_bg-KGkCRcyS.wasm`) was then watched in the in-app browser.
+
+- **Portrait now has an actual canvas aperture.** At 390 by 844, the HUD kept
+  eight-pixel safe edges and reflowed to 374 pixels wide. The folded top rows
+  ended at y=192.58; speed began at y=635.20, leaving a 442.63-pixel full-width
+  transparent band. Its centre hit `CANVAS#stage`, all page scroll dimensions
+  matched the viewport, and every roster button, detail summary, speed label,
+  and action button measured at least 44 by 44 CSS pixels.
+- **The bottom controls use the width instead of consuming it.** Four speed
+  choices remain one row. Save, Load, Clear orders, Queue, New game, and Help
+  render as three columns by two rows, 132.80 pixels high rather than the old
+  three-row 182.80-pixel block.
+- **Expanded details are contained.** Opening Needs capped it at a 294-pixel
+  client height with its own overflow while the closed People panel remained
+  53 pixels high. A probe below that closed sibling still hit the canvas.
+  Opening both panels left speed and actions at the same reachable bottom
+  positions.
+- **The canvas is usable, not merely visible.** A horizontal drag wholly inside
+  the exposed band panned the rendered house by roughly half the phone width.
+  The visible Pause label held the clock, the visible 1x label resumed it,
+  Queue changed `aria-pressed`, and selecting Tim, Bill, and Casey updated the
+  same existing panels.
+- **Small portrait and landscape keep different useful shapes.** At 320 by
+  568, there was no horizontal overflow, every target remained at least 44 by
+  44, and a 166.63-pixel canvas band still reached the stage. At 568 by 320 and
+  480 by 320, the short-landscape fallback kept a 220-pixel scrollable edge
+  column; the viewport centre stayed canvas, and scrolling the column made Help
+  visible and hittable. The same edge shape remained at 844 by 390. At 1280 by
+  720, desktop layout was unchanged.
+- **Enlarged text remains operable.** A validation-only CSS mutation set
+  inherited body text to 28 pixels at 320 by 568 with Needs open, more than
+  twice the authored 13 pixels. The adaptive details row prevented the panel
+  from painting over speed, the outer HUD exposed a 42-pixel vertical scroll
+  range, Help became fully visible and hittable after that scroll, and document
+  width stayed exactly 320 pixels. This is a deterministic greater-than-200%
+  text-size stress, not a claim that an operating-system or physical-browser
+  zoom control was watched.
+- **The geometry gate owns the new rules.** Nine hand mutations were applied
+  one at a time. Narrowing the HUD back to 212 pixels failed the width check;
+  removing the flexible row failed the aperture check; returning actions to
+  two columns failed the compact-height check; removing the 44-pixel minimum
+  exposed 18.19-pixel summaries; stretching the closed sibling intercepted the
+  canvas; removing the detail cap failed the 300-pixel bound; disabling the
+  short-landscape fallback put actions outside 568 by 320; disabling the
+  adaptive open row squeezed expanded Needs to 11.13 pixels, below its 53-pixel
+  summary boundary; and removing the outer scroll made Help unreachable. The
+  authored file was restored to its original SHA-256 after the full sequence.
+- **Runtime remained quiet.** The exact release-WASM build produced no browser
+  warning or error during the responsive, expansion, control, and drag passes.
+  A physical-phone pass of the corrected merged revision, including safe-area
+  insets and long-press, remains deliberately unclaimed.

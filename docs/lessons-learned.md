@@ -3874,3 +3874,54 @@ behind a baseline entry that makes the suite look more precise than it is.
 **How to verify.** The two early exits are separate statements, the wall-detour
 test still fails when the walked-path cap is removed, and a targeted
 `cargo mutants` sweep over `idle.rs` must report no missed or timed-out mutants.
+
+## [L-mobile-fit-is-not-mobile-reflow] Reachable controls can still bury the game
+
+**What happened.** The original phone acceptance proved that every control fit
+inside a 390 by 844 viewport. Later roster, relationship, persistence, Queue,
+and Help features all joined the same 212-pixel vertical sidebar. Nothing
+overflowed horizontally, but the overlay consumed more than half the screen in
+both axes and left the house awkward to play.
+
+**Root cause.** The mobile rule narrowed the desktop column without changing
+its one-dimensional composition. Acceptance checked presence and viewport
+bounds, not the remaining canvas aperture, hit ownership, expanded-panel
+behavior, or accumulated height after new features landed.
+
+**Prevention rule.** Treat mobile usability as a geometry budget. Responsive
+HUD checks must measure how much uninterrupted canvas remains, prove that the
+aperture reaches the stage, keep visible targets at least 44 pixels, and open
+the largest dynamic panels before declaring the layout usable. Short landscape
+and 200% text sizing are separate budgets; if fixed rows exceed the height, the
+HUD needs a reachable scroll boundary rather than visible overflow into the
+body's clip. An equal grid with `minmax(0, 1fr)` does not itself preserve a
+44-pixel target; fixed control groups need a 44-pixel track minimum and wrapping
+when the width cannot hold every item. Re-run those budgets whenever a
+persistent HUD section is added.
+
+**How to verify.** At 390 by 844, require a full-width folded canvas band of at
+least 400 CSS pixels, no horizontal overflow, reachable bottom controls, and
+44-pixel targets. Open Needs and People separately and together, pan through
+the remaining aperture, repeat at 320 by 568, 568 by 320, and wide landscape,
+double inherited text with Needs open, and prove Help remains reachable by
+scrolling. Then hand-mutate each load-bearing layout rule and require the
+geometry gate to fail.
+
+## [L-restore-css-mutations-by-context-and-hash] Repeated declarations make blind restoration unsafe
+
+**What happened.** During the mobile mutation audit, a one-line restoration of
+`grid-template-columns` matched another identical declaration in the same media
+query. The intended game-action rule remained mutated while the HUD column rule
+changed instead.
+
+**Root cause.** The restore patch identified a repeated CSS value without its
+owning selector. A successful patch application proved only that some matching
+line changed, not that the original file had returned.
+
+**Prevention rule.** Scope manual CSS mutations and their restorations with the
+owning selector, and record the authored file hash before the first mutation.
+Do not continue to final validation until the restored hash matches exactly.
+
+**How to verify.** After every hand-mutation sequence, compare SHA-256 for the
+authored file, inspect the scoped diff, rebuild, and rerun the unmutated geometry
+gate. A clean-looking browser frame is not byte restoration.

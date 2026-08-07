@@ -487,13 +487,86 @@
       }
       @media (max-width: 600px) {
         #hud {
-          width: min(212px, calc(100vw - 24px));
+          top: max(8px, env(safe-area-inset-top));
+          right: max(8px, env(safe-area-inset-right));
+          bottom: max(8px, env(safe-area-inset-bottom));
+          left: max(8px, env(safe-area-inset-left));
+          width: auto;
+          max-height: none;
+          overflow-x: hidden;
+          overflow-y: auto;
+          display: grid;
+          grid-template-areas:
+            'summary summary'
+            'roster roster'
+            'needs people'
+            '. .'
+            'speed speed'
+            'actions actions';
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
+        }
+        #hud:has(#needs-panel[open], #people-panel[open]) {
+          grid-template-rows:
+            auto auto minmax(53px, 3fr) minmax(0, 2fr) auto auto;
         }
         #hud > * {
           padding: 7px 9px;
         }
+        #household-summary {
+          grid-area: summary;
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px;
+        }
+        #household-roster {
+          grid-area: roster;
+        }
+        #needs-panel,
+        #people-panel {
+          align-self: start;
+          max-height: min(34dvh, 300px);
+          overflow-y: auto;
+          padding: 0 9px 7px;
+        }
+        #needs-panel {
+          grid-area: needs;
+        }
+        #people-panel {
+          grid-area: people;
+        }
+        #needs-panel[open],
+        #people-panel[open] {
+          align-self: stretch;
+          box-sizing: border-box;
+          height: 100%;
+        }
+        .needs-caption {
+          display: flex;
+          min-height: 44px;
+          box-sizing: border-box;
+          align-items: center;
+          margin: 0;
+        }
+        .needs-caption:focus-visible {
+          outline: 2px solid var(--need-fill);
+          outline-offset: -2px;
+        }
         .need-row {
           grid-template-columns: 58px 1fr;
+        }
+        #time-controls {
+          grid-area: speed;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(44px, 1fr));
+        }
+        #time-controls label {
+          width: 100%;
+          min-width: 44px;
+        }
+        #game-actions {
+          grid-area: actions;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
         }
         #help-panel {
           inset:
@@ -501,6 +574,23 @@
             max(12px, env(safe-area-inset-bottom))
             max(12px, env(safe-area-inset-left));
           width: auto;
+        }
+      }
+      @media (max-width: 600px) and (max-height: 480px) and (orientation: landscape) {
+        #hud {
+          right: auto;
+          width: min(220px, calc(100vw - 16px));
+          display: flex;
+          flex-direction: column;
+          overflow-y: auto;
+        }
+        #needs-panel,
+        #people-panel {
+          align-self: stretch;
+        }
+        #needs-panel[open],
+        #people-panel[open] {
+          height: auto;
         }
       }
       /* The right-click flyout. `fixed` rather than `absolute`, because
