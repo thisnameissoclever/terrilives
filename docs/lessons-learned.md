@@ -3894,7 +3894,10 @@ aperture reaches the stage, keep visible targets at least 44 pixels, and open
 the largest dynamic panels before declaring the layout usable. Short landscape
 and 200% text sizing are separate budgets; if fixed rows exceed the height, the
 HUD needs a reachable scroll boundary rather than visible overflow into the
-body's clip. Re-run those budgets whenever a persistent HUD section is added.
+body's clip. An equal grid with `minmax(0, 1fr)` does not itself preserve a
+44-pixel target; fixed control groups need a 44-pixel track minimum and wrapping
+when the width cannot hold every item. Re-run those budgets whenever a
+persistent HUD section is added.
 
 **How to verify.** At 390 by 844, require a full-width folded canvas band of at
 least 400 CSS pixels, no horizontal overflow, reachable bottom controls, and

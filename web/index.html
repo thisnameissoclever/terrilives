@@ -493,7 +493,7 @@
           left: max(8px, env(safe-area-inset-left));
           width: auto;
           max-height: none;
-          overflow-x: clip;
+          overflow-x: hidden;
           overflow-y: auto;
           display: grid;
           grid-template-areas:
@@ -558,11 +558,11 @@
         #time-controls {
           grid-area: speed;
           display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(44px, 1fr));
         }
         #time-controls label {
           width: 100%;
-          min-width: 0;
+          min-width: 44px;
         }
         #game-actions {
           grid-area: actions;
