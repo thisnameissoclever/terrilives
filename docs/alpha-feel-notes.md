@@ -2225,3 +2225,12 @@ The rebased local production build (`index-BYhrFTTB.js`,
   warning or error during the responsive, expansion, control, and drag passes.
   A physical-phone pass of the corrected merged revision, including safe-area
   insets and long-press, remains deliberately unclaimed.
+- **The merged Pages revision matches the local proof.** PR 44 merged as
+  `d7f7493aa7821ed31e3abda928ca2ab3d038d72b`, and its Pages workflow built and
+  deployed successfully. At the public revision URL, 390 by 844 again measured
+  a 374-pixel HUD, a 442.63-pixel canvas aperture whose centre hit
+  `CANVAS#stage`, a 132.80-pixel action block, zero undersized controls, and no
+  browser warning or error. At 568 by 320 the public page selected the
+  220-pixel scrollable flex fallback, kept the viewport centre on the canvas,
+  and retained 44-pixel targets without page overflow. This closes the public
+  browser gate, not the physical-phone boundary above.

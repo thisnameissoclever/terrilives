@@ -206,7 +206,7 @@ compiled content, the endpoint and actual walked path are both capped at three
 tiles, the choice remains deterministic and retry-bounded, and the measured and
 watched acceptance evidence is recorded at [A-local-idle-wandering].
 
-The mobile HUD reflow is built as a CSS-only presentation change rather than a
+The mobile HUD reflow is shipped as a CSS-only presentation change rather than a
 second controller. At 600 CSS pixels or narrower, Time and Funds, the roster,
 the two folded detail panels, speed, and actions dock around a transparent
 canvas aperture; expanded details scroll inside a bounded panel. Desktop keeps
