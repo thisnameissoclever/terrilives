@@ -2,7 +2,8 @@
 
 Status: **seven of nine roadmap items shipped.** [ML-gen], [ML-ci],
 [ML-sprites], [ML-ambient], [ML-tint], [ML-chars], and [ML-pools] are in the
-running game.
+running game. PR #45 merged [ML-pools] at `ef9f86c`; the corresponding GitHub
+Pages deployment and public desktop and mobile browser pass succeeded.
 The circadian schema and scoring mechanism are built but the authored curve is
 **switched off** pending [ML-feel]. [B7] and [ML-feel] remain open. See
 `docs/FEATURES.md` for the concise current-state account.

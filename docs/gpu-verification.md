@@ -945,3 +945,12 @@ darkest sampled midnight floor. Its sage inner key remains the identity colour;
 the outer key owns legibility. A physical phone in daylight remains the open
 [ML-a11y] boundary. Desktop browser pixels and arithmetic cannot substitute
 for that observation.
+
+PR #45 merged this implementation at `ef9f86c`, and the corresponding GitHub
+Pages workflow completed successfully. The public revision showed the same
+night pools and functional Auto/Flat control at 1280 by 720. Its 390 by 844
+layout retained 44-pixel targets, no horizontal overflow, a stage-hit canvas
+aperture, and reachable actions. Public diagnostics contained performance logs
+only, with no warning or error. The draw, submit, and upload counts above remain
+the local instrumented production-build evidence; the public pass did not
+install GPU wrappers and therefore does not claim a second measurement.

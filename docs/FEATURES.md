@@ -115,7 +115,10 @@ tile. They add no geometry, draw call, submit, pipeline, or simulation state.
 The selected-Sim ring has its own full-emissive pale outer key, so nearby light
 cannot wash out the command target. The watched midnight build measured that
 key at 4.41:1 against the brightest adjacent lamp-lit floor and 5.50:1 against
-the darkest sampled floor.
+the darkest sampled floor. PR #45 merged the slice at `ef9f86c`; the deployed
+GitHub Pages revision then showed the same pools and Flat control at 1280 by
+720, preserved the mobile HUD at 390 by 844, and reported no browser warning or
+error. The remaining physical-phone daylight check is still open.
 
 **The household is Tim, Bill, and Casey, three different people** ([ML-chars]),
 keyed on each sim's stable entity id so a face survives a walk, a save and a reload.

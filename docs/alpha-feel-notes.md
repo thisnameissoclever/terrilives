@@ -2238,8 +2238,9 @@ The rebased local production build (`index-BYhrFTTB.js`,
 ## [A-night-light-pools] Night has local sources without a second draw
 
 The local production build was watched in the in-app browser with release WASM
-at 1280 by 720. This is pre-merge local evidence; public Pages and a physical
-phone remain separate gates.
+at 1280 by 720. PR #45 later merged the reviewed slice at `ef9f86c`, and the
+deployed GitHub Pages revision was watched separately. A physical phone remains
+a separate gate.
 
 - **The day reads as a day.** At Day 2 11:54 the lot returned to the authored
   neutral palette. At 19:51 it was visibly warmer. At 00:06 it was cool and
@@ -2280,6 +2281,18 @@ phone remain separate gates.
   Light button wrapped without horizontal overflow. With Needs open and body
   text set to 26 pixels at 320 by 568, the outer HUD exposed 17 pixels of
   scroll, Help became fully reachable, and no target fell below 44 pixels.
+- **The public revision carries the same feature.** The Pages workflow for
+  merge commit `ef9f86c` [completed successfully](https://github.com/thisnameissoclever/terrilives/actions/runs/31172208640).
+  At the [exact revision URL](https://thisnameissoclever.github.io/terrilives/?rev=ef9f86c5712cdd23b64ae8823c2c8335d89868e0),
+  the deployed game loaded its release JavaScript and WASM, showed the lamp and
+  television pools at 1280 by 720, and changed from `Light: auto` to
+  `Light: flat` with `aria-pressed=true` before returning cleanly to Auto. At
+  390 by 844, with the persisted Needs and People panels open, document width
+  remained 390, every measured HUD target remained at least 44 pixels high,
+  the center of the remaining canvas still hit `#stage`, and the actions ended
+  inside the viewport. Public browser diagnostics contained only the expected
+  performance telemetry, with no warning or error. This public pass proves the
+  deployed browser build, not physical-phone behavior.
 - **The remaining accessibility boundary is physical.** The midnight floor
   still needs observation on a real phone in daylight, including safe-area
   insets and ordinary touch use. Browser screenshots, source contrast, and
