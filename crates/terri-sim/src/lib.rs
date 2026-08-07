@@ -606,6 +606,8 @@ impl Sim {
     }
 
     fn sync_render_buffer_inner(&mut self, advance_interpolation: bool) {
+        use std::collections::{HashMap, HashSet};
+
         use terri_core::{Agent, Position, SmartObject};
 
         if advance_interpolation {
@@ -629,12 +631,12 @@ impl Sim {
         // partner carries only `Reserved`, so "is being talked TO" is a
         // fact about some OTHER entity's `Socialising` and needs its own
         // pass before the per-row loop can answer it.
-        let mut partners: Vec<Entity> = Vec::new();
-        let mut conversation_visuals: Vec<(Entity, u32, u32)> = Vec::new();
+        let mut partners: HashSet<Entity> = HashSet::new();
+        let mut conversation_visuals: HashMap<Entity, (u32, u32)> = HashMap::new();
         {
             let mut talks = self.world.query::<(Entity, &terri_core::Socialising)>();
             for (initiator, talk) in talks.iter(&self.world) {
-                partners.push(talk.partner);
+                partners.insert(talk.partner);
                 let Some(interaction) = content.social.get(talk.interaction as usize) else {
                     continue;
                 };
@@ -656,13 +658,10 @@ impl Sim {
                     talk.partner,
                     partner_position,
                 );
-                conversation_visuals.push((
-                    initiator,
-                    render_buffer::visual_action::TALK,
-                    initiator_facing,
-                ));
-                conversation_visuals.push((
-                    talk.partner,
+                conversation_visuals
+                    .entry(initiator)
+                    .or_insert((render_buffer::visual_action::TALK, initiator_facing));
+                conversation_visuals.entry(talk.partner).or_insert((
                     render_buffer::visual_action::TALK,
                     opposite_facing(initiator_facing),
                 ));
@@ -784,15 +783,10 @@ impl Sim {
             } else {
                 render_buffer::activity::NONE
             };
-            let (visual_action, facing) = conversation_visuals
-                .iter()
-                .find_map(|&(participant, action, facing)| {
-                    (participant == entity).then_some((action, facing))
-                })
-                .unwrap_or((
-                    render_buffer::visual_action::NONE,
-                    render_buffer::facing::NONE,
-                ));
+            let (visual_action, facing) = conversation_visuals.get(&entity).copied().unwrap_or((
+                render_buffer::visual_action::NONE,
+                render_buffer::facing::NONE,
+            ));
             rows.push(RenderRow {
                 index: entity.index_u32(),
                 x,
