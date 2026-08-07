@@ -3818,3 +3818,59 @@ whose observable result changes when that operator changes.
 separate the correct centre from width-offset, depth-sign, and depth-scale
 mutants. Run a mutation filter over the centre helper and require every viable
 mutant to be caught.
+
+## [L-career-tests-follow-events-not-guessed-ticks] Travel time is not shift time
+
+**What happened.** The release-WASM career test proved Tim was off the lot at
+tick 600, then assumed he would be home by tick 900. Local idle wandering
+changed his deterministic position when the 06:00 shift began, so his walk to
+the front door took longer and the assertion found him legitimately still at
+work. The career itself remained correct and the 12,000-tick shipped trace
+still completed and paid every shift.
+
+**Root cause.** The test silently treated `shift_start + shift_ticks` as the
+return time, then added a guessed commute margin. Authored behavior says the
+sim walks to the door first and is gone for `shift_ticks` after arrival. The
+clock therefore schedules departure, while the path and movement speed decide
+clock-in. A deterministic random-sequence change can move that arrival without
+changing the career contract at all.
+
+**Prevention rule.** Test event-owned lifecycles by their observable events.
+Use an exact tick only when the schedule owns that exact tick. When travel
+precedes a fixed-duration phase, prove the intermediate phase, then wait within
+an authored outer bound for completion and assert its effects. Do not turn one
+seed's path length into an undocumented product promise.
+
+**How to verify.** The release-WASM test still requires Tim to be `AT_WORK` at
+tick 600 with no money paid. It then observes the first return before the
+1,440-tick day wraps and requires the row to be visible plus Funds to equal one
+exact 120-credit paycheck. Removing the return, hiding flag, countdown, or
+payout still fails; changing an unrelated earlier random draw does not.
+
+## [L-split-subsumed-path-guards] Do not join a prefilter to the real invariant
+
+**What happened.** The local-wandering mutation sweep replaced
+`distance == 0 || distance > radius` with `&&`, and the whole workspace stayed
+green. The two predicates cannot both be true, so the mutation removed the
+early rejection. The later path validation still rejected both cases: the
+empty-path check rejected the origin, and the walked-path cap rejected every
+endpoint outside the radius because a four-neighbor path cannot be shorter than
+its Manhattan distance. The survivor was behaviorally equivalent, not evidence
+that the locality tests had missed a long route.
+
+**Root cause.** One `if` combined two prefilters whose gameplay consequences
+were already subsumed by a later, stronger invariant. The expression invited a
+Boolean mutant that could delete both prefilters without changing accepted
+paths. The origin check also protected the path finder from an empty route,
+while the distance check merely avoided unnecessary A* work; writing them as
+one gameplay guard overstated what the code owned.
+
+**Prevention rule.** Keep independent early exits separate, and name whether a
+guard owns behavior or only avoids work. When a hand mutation survives, prove
+whether a later invariant subsumes it before adding a contrived assertion.
+Equivalent mutants should be removed by clearer code when possible, not hidden
+behind a baseline entry that makes the suite look more precise than it is.
+
+**How to verify.** The two early exits are separate statements, the wall-detour
+test still fails when the walked-path cap is removed, and a targeted
+`cargo mutants` sweep over `idle.rs` must report no missed or timed-out mutants.

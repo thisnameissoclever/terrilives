@@ -532,6 +532,14 @@ mod tests {
         retuned.tuning.asleep_decay_scale = 1.0;
         assert_eq!(base, content_fingerprint(&retuned), "a balance pass");
 
+        let mut reranged = original.clone();
+        reranged.tuning.wander_radius_tiles += 1;
+        assert_eq!(
+            base,
+            content_fingerprint(&reranged),
+            "idle wander radius is patchable balance"
+        );
+
         let mut renamed_sim = original.clone();
         assert!(!renamed_sim.household.is_empty(), "the fixture needs a sim");
         renamed_sim.household[0].name = "Somebody Else".to_string();
@@ -1242,6 +1250,7 @@ mod tests {
         assert_eq!(t.max_queued_commands, 64);
         assert_eq!(t.need_bar_refresh_ms, 100);
         assert_eq!(t.contested_score_multiplier, 0.75);
+        assert_eq!(t.wander_radius_tiles, 3);
     }
 
     /// Every object the design declares is actually placed. An object in

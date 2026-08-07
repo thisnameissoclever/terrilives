@@ -214,8 +214,14 @@ two rendered frames produces the same saved world as draining it in one batch.
     intent**. That filter is what makes a directed action beat autonomy.
 6. `advance_chains` - resume or begin the next station in a multi-step action.
 7. `wander` - a sim whose best option scores below `idle_threshold`
-    walks to a random reachable tile instead of standing still ([D-5] of the
-    M1c design). It draws from the shared PRNG after useful choices have failed.
+    walks to a random reachable LOCAL tile instead of standing still ([D-5] of
+    the M1c design and [LW2] of the local-wandering spec). Both the endpoint's
+    Manhattan distance and the actual A* path are capped by
+    `wander_radius_tiles`, so a nearby tile behind a wall cannot become a
+    cross-house detour. Failed candidates consume one of the bounded
+    `wander_attempts`; the system never widens the search to the whole lot. It
+    draws x then y from the shared PRNG after useful choices have failed and
+    processes sims in entity-index order before those draws.
 8. `follow_path` - move one deterministic step along the chosen path.
 9. `commute_and_work` - clock in at the door, run the shift, pay, and return.
 10. `tick_interactions` - advance ordinary object interactions and need deltas.
@@ -413,7 +419,8 @@ nonsense**, with the message naming the offending id:
 - a non-finite or negative number anywhere
 - a missing or incoherent tuning knob: an absent field, a `choice_temperature`
   of zero or below (selection divides by it), a `min_interaction_ticks` of
-  zero, a `duration_variance` outside `[0, 1)`, or an `idle_threshold` above
+  zero, a `wander_radius_tiles` outside `1..=i32::MAX`, a
+  `duration_variance` outside `[0, 1)`, or an `idle_threshold` above
   `action_threshold`, which would have a sim wander off while something is
   worth doing
 

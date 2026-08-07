@@ -2101,3 +2101,66 @@ both eating paths were issued through the ordinary keyboard object menu.
   resume, save and load, desktop and phone layouts, and both zoom levels
   produced zero console warnings and zero errors. The visible canvas remained
   on the production WebGPU renderer throughout the pass.
+
+## [A-local-idle-wandering] Idle movement stays local and remains interruptible
+
+The local production bundle (`index-CHj2f_99.js`,
+`terri_wasm_bg-0GxSZI5a.wasm`) was played in the in-app browser at 1280 by 720
+and 390 by 844. The deterministic trace also ran for 12,000 ticks against the
+shipped pack.
+
+After the reviewed guard split, the exact release bundle
+(`index-BYhrFTTB.js`, `terri_wasm_bg-KGkCRcyS.wasm`) received a final desktop
+smoke pass. Its WebGPU canvas rendered the lot, advanced from Day 1 00:00 to
+06:16, and showed Tim and Bill walking naturally at 1x. The only console error
+was the local preview server's missing `favicon.ico`; there was no application
+or WebGPU failure.
+
+- **The hard locality contract held.** The trace observed 154 newly started
+  natural, targetless strolls. Their walked paths had minimum 1, mean 2.26,
+  p95 3, and maximum 3 tiles against the shipped three-tile cap. Tests also
+  reject a nearby endpoint when walls would make the actual route longer than
+  the cap, so Manhattan distance cannot hide a whole-house detour.
+- **Several complete strolls were watched at 1x.** The developer overlay and
+  visible WebGPU canvas agreed on four walk-to-idle episodes: Tim from Day 1
+  00:02 to 00:10, Casey from 00:02 to 00:13, Tim from 00:31 to 00:43, and Casey
+  from 00:35 to 00:43. Each ended back at the ordinary "found nothing worth
+  doing" pause rather than at an object action.
+- **The same movement survives 3x rather than turning into teleportation.**
+  With 3x visibly selected, the overlay recorded complete walk-to-idle episodes
+  for Casey from Day 1 06:35 to 06:42 and 07:01 to 07:10, then Bill from 07:10
+  to 07:20. The canvas continued to render their movement and reported no
+  warning or error.
+- **Player intent still wins.** Tim was caught Walking on a fresh natural
+  stroll at Day 1 00:02. Clicking the bed through the ordinary canvas input
+  redirected that path immediately and reached Sleeping at Day 1 01:00. The
+  local-wander rule therefore does not create a separate movement mode that
+  ignores player orders.
+- **The pace reads calmer without freezing the house.** The feature trace
+  spent 29.9% of 36,000 sim-ticks walking, 18.1% in the deliberate between-
+  stroll pause, and 0.0% frozen after rounding. Current main measured 34.0%,
+  12.9%, and 0.0% respectively. This overall comparison is observational,
+  because the new offset draws deliberately change the later random sequence;
+  the exact paired claim is the per-path three-tile cap above. Every interactive
+  object was still used, and all four started chains completed with none
+  abandoned.
+- **Speed and layout controls still behave normally.** One wall-clock second
+  advanced the clock by about 10 game minutes at 1x and 31 minutes at 3x.
+  Pause held Day 1 09:14 unchanged for another second. At 390 by 844, Tim,
+  Bill, Casey, both collapsed detail panels, all four speed choices, Save,
+  Load, Clear orders, Queue, New game, and Help remained reachable while the
+  rendered house stayed visible.
+- **Reduced motion is now watched browser evidence.** Browser emulation made
+  `prefers-reduced-motion: reduce` report true while the canvas visibly
+  advanced through walking frames from Day 1 00:03 to 00:07. The emulation was
+  reset and reported false afterward. Deterministic renderer tests still own
+  the stronger pixel claim that ornamental walk lift and action-frame cycling
+  are pinned; this is not a claim about a physical operating-system toggle.
+- **Save compatibility remains structural.** The new radius is appended to the
+  compiled tuning record but deliberately excluded from the Save V1 pack
+  fingerprint. Historical saves keep an in-progress path unchanged and use the
+  local rule only on their next natural roll.
+- **Runtime remained quiet.** Desktop play, the four watched strolls, a player
+  interruption, 3x, Pause, phone layout, and reduced-motion emulation produced
+  zero console warnings and zero errors. The production canvas remained at its
+  full 1280 by 720 render size during the desktop passes.

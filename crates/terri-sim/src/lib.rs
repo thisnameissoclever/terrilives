@@ -3359,7 +3359,16 @@ mod determinism_tests {
         // carried item is what the counter is about - all replay
         // state. Behaviour untouched: nothing inserts a ChainState in
         // this scenario, whose agents own no chain.
-        const GOLDEN: u64 = 0x20E2_32DE_F1EB_AFF5;
+        //
+        // **Local idle wandering moved it by behavior**, from
+        // 0x20E2_32DE_F1EB_AFF5. These eight agents become Restless after
+        // the one fridge is claimed, so replacing whole-grid coordinates
+        // with two radius-relative draws changes both the paths they walk
+        // and every later PRNG result. The digest encoding is unchanged.
+        // The new native value below was read from this failing assertion;
+        // the release-wasm twin in `web/tests/bridge.test.ts` must confirm it
+        // independently after rebuilding the module.
+        const GOLDEN: u64 = 0xC7BB_234C_419A_654C;
 
         let mut sim = build_scenario();
         for _ in 0..TICKS {

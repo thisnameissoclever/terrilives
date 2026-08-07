@@ -55,8 +55,8 @@ impl SimRng {
     /// modulo is skewed toward low indices and that skew is exactly the
     /// kind of thing that shows up as "the sim always picks the fridge".
     ///
-    /// `bound` must fit in a `u32`; every caller here is choosing among
-    /// candidates, so it is a small count.
+    /// `bound` must fit in a `u32`. Callers use either candidate counts or a
+    /// validated coordinate span such as the local-wander sampling diameter.
     pub fn range(&mut self, bound: usize) -> usize {
         assert!(bound > 0, "range(0) has no valid result");
         draw_below_bound(bound as u32, || self.next_u32()) as usize
