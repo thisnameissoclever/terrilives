@@ -166,6 +166,16 @@ pub struct TuningFile {
     /// need a TOML parse error rather than something the compile step has
     /// to catch.
     pub decay_per_tick: BTreeMap<String, f32>,
+    /// The maximum Manhattan distance and walked path length of an idle
+    /// wander, in tiles. In `1..=i32::MAX`; zero would reject every
+    /// destination, while the upper bound keeps `2 * radius + 1`
+    /// representable on 32-bit WebAssembly and in the simulation RNG's
+    /// `u32` range.
+    ///
+    /// Last in this record on purpose. The authored TOML is key-addressed,
+    /// but keeping new schema fields appended mirrors the compiled tuning
+    /// record's wire-format discipline and makes reviews less error-prone.
+    pub wander_radius_tiles: u32,
 }
 
 /// Mirrors `content/needs.toml`, which declares which needs exist and
@@ -762,15 +772,15 @@ pub struct PlacementDef {
 mod tests {
     use super::*;
 
-    /// The fourteen scalar knobs, with pairwise distinct values so that a
+    /// The scalar knobs, with pairwise distinct values so that a
     /// field read off the wrong key is visible. Two knobs sharing a value
     /// would make a transposed pair of fields parse identically, which
     /// is [L34] in the tuning file's costume.
     ///
-    /// The six `u32`s and the `u64` are deliberately different numbers
-    /// for the same reason, and every float is exact in binary32 so the
-    /// assertions can be equalities rather than tolerances.
-    const TUNING_LINES: [(&str, &str); 25] = [
+    /// The integer knobs are deliberately different numbers for the same
+    /// reason, and every float is exact in binary32 so the assertions can be
+    /// equalities rather than tolerances.
+    const TUNING_LINES: [(&str, &str); 26] = [
         ("action_threshold", "0.25"),
         ("choice_temperature", "0.5"),
         ("idle_threshold", "0.125"),
@@ -795,6 +805,7 @@ mod tests {
         ("neglect_bleed_per_tick", "0.0009765625"),
         ("day_ticks", "17"),
         ("asleep_decay_scale", "0.6"),
+        ("wander_radius_tiles", "29"),
         // The one knob here that is not a number. Quoted so the emitted
         // TOML is valid, and distinct from every other string in the file
         // for the same reason the numbers are pairwise distinct.
@@ -865,6 +876,7 @@ mod tests {
         assert_eq!(parsed.at_work_decay_scale, 0.4);
         assert_eq!(parsed.neglect_bleed_per_tick, 0.0009765625);
         assert_eq!(parsed.day_ticks, 17);
+        assert_eq!(parsed.wander_radius_tiles, 29);
 
         assert_eq!(parsed.decay_per_tick.len(), DECAY_LINES.len());
         for (need, rate) in DECAY_LINES {

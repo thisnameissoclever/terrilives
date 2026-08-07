@@ -394,9 +394,12 @@ describe('SimBridge', () => {
   it('runs the shipped day through the boundary: Tim leaves, hides, returns paid', () => {
     // The E4 loop against REAL content through the release wasm, which
     // is the artifact the page runs ([L12]): the shipped day is 1440
-    // ticks with the office shift at 360-840, so by tick 600 Tim is
-    // off the lot (her row flagged AT_WORK, code 6) and by tick 900
-    // she is back and the household is exactly one pay packet richer.
+    // ticks with office departure at 360 and a 480-tick off-lot shift, so by
+    // tick 600 Tim is off the lot (their row flagged AT_WORK, code 6). `shift_ticks`
+    // starts after the walk to the front door, so the return is an event
+    // to observe before the next day rather than `360 + 480` plus a guessed
+    // commute margin. At return the household must be exactly one pay packet
+    // richer.
     const handle = SimHandle.from_lot();
     const bridge = new SimBridge(handle, wasmMemory);
     const tim = (() => {
@@ -413,14 +416,22 @@ describe('SimBridge', () => {
       for (let row = 0; row < bridge.count; row++) {
         if (ids[row] === entity) return row;
       }
-      throw new Error('Tim lost her render row');
+      throw new Error('Tim lost their render row');
     };
 
     for (let t = 0; t < 600; t++) bridge.tick();
     expect(bridge.activities()[rowOf(tim)]).toBe(6);
     expect(bridge.funds()).toBe(0);
 
-    for (let t = 0; t < 300; t++) bridge.tick();
+    let returnedAt: number | undefined;
+    for (let tick = 600; tick < bridge.dayTicks(); tick++) {
+      bridge.tick();
+      if (bridge.activities()[rowOf(tim)] !== 6) {
+        returnedAt = tick + 1;
+        break;
+      }
+    }
+    expect(returnedAt).toBeDefined();
     expect(bridge.activities()[rowOf(tim)]).not.toBe(6);
     expect(bridge.funds()).toBe(120);
   });
@@ -638,7 +649,14 @@ describe('SimBridge', () => {
     // resume state and the fumble rides in it. Read off the wasm32
     // failure after a rebuild per [L13], equal to the native constant
     // in crates/terri-sim/src/lib.rs.
-    expect(bridge.worldHash()).toBe(0x20e2_32de_f1eb_aff5n);
+    //
+    // **Local idle wandering moved it by behavior**, from
+    // 0x20e2_32de_f1eb_aff5n. The eight outbid agents are Restless, so the
+    // radius-relative destination draws change their paths and all later
+    // random choices without changing the digest encoding. This value is
+    // intentionally restated rather than imported: the release-wasm run is
+    // the cross-target check against the native constant.
+    expect(bridge.worldHash()).toBe(0xc7bb_234c_419a_654cn);
   });
 
   // ---- Player commands -------------------------------------------------

@@ -3,18 +3,17 @@ use terri_core::{Agent, Eating, Path, Position, Restless, SimRng, Target, TileGr
 
 use crate::Content;
 
-/// A path to a randomly chosen reachable tile, or `None` if `attempts`
-/// rolls all failed.
+/// A path to a randomly chosen reachable tile within `radius`, or `None`
+/// if `attempts` rolls all failed.
 ///
 /// # Why a roll can fail, and why the count is bounded
 ///
-/// A destination is drawn uniformly over the whole grid and then pathed
-/// to, so two kinds of roll come back useless: a tile behind a wall or
-/// outside the walkable region, where `find_path` returns `None`, and the
-/// agent's own tile, where it returns an EMPTY path. The second is worth
-/// rejecting explicitly rather than accepting: an empty path would be
-/// inserted, walked in zero steps, and dropped on the next tick, which
-/// spends a wander on standing still.
+/// A pair of offsets is drawn from the square around the sim. A roll is
+/// useless when it is outside the Manhattan-radius diamond, outside the
+/// lot, on the sim's own tile, blocked or unreachable, or when a nearby
+/// endpoint needs a route longer than the radius. The path-length check is
+/// separate and load-bearing: a tile on the other side of a wall can be
+/// geometrically close while the actual walk to it crosses the room.
 ///
 /// Re-rolling is the right answer to both - a sim in a small room should
 /// keep looking rather than give up because its first guess was a wall.
@@ -35,16 +34,44 @@ use crate::Content;
 pub fn roll_wander_path(
     grid: &TileGrid,
     from: (i32, i32),
+    radius: u32,
     attempts: u32,
     rng: &mut SimRng,
 ) -> Option<Vec<(i32, i32)>> {
+    let radius_i64 = i64::from(radius);
+    let diameter = radius
+        .checked_mul(2)
+        .and_then(|value| value.checked_add(1))
+        .and_then(|value| usize::try_from(value).ok())
+        .expect("validated wander radius must produce a u32-sized diameter");
+
     for _ in 0..attempts {
-        let x = rng.range(grid.width()) as i32;
-        let y = rng.range(grid.height()) as i32;
+        let dx = rng.range(diameter) as i64 - radius_i64;
+        let dy = rng.range(diameter) as i64 - radius_i64;
+        let distance = dx.abs() + dy.abs();
+        if distance == 0 {
+            continue;
+        }
+        // This early diamond rejection avoids an unnecessary A* search. The
+        // later walked-path cap is the gameplay guard and mathematically also
+        // rejects every path whose endpoint is outside this radius.
+        if distance > radius_i64 {
+            continue;
+        }
+
+        let x = i64::from(from.0) + dx;
+        let y = i64::from(from.1) + dy;
+        let Ok(x) = i32::try_from(x) else {
+            continue;
+        };
+        let Ok(y) = i32::try_from(y) else {
+            continue;
+        };
+
         let Some(steps) = grid.find_path(from, (x, y)) else {
             continue;
         };
-        if steps.is_empty() {
+        if steps.is_empty() || steps.len() > radius as usize {
             continue;
         }
         return Some(steps);
@@ -130,6 +157,7 @@ pub fn wander(
 ) {
     let pause_ticks = content.0.tuning.wander_pause_ticks;
     let attempts = content.0.tuning.wander_attempts;
+    let radius = content.0.tuning.wander_radius_tiles;
 
     let mut idle: Vec<(Entity, Position, u32)> = agents
         .iter()
@@ -151,7 +179,7 @@ pub fn wander(
         let from = (pos.x.round() as i32, pos.y.round() as i32);
         // No reachable destination this tick. Stand still and try again
         // on the next one, rather than looping until one turns up.
-        let Some(steps) = roll_wander_path(&grid, from, attempts, &mut rng) else {
+        let Some(steps) = roll_wander_path(&grid, from, radius, attempts, &mut rng) else {
             continue;
         };
 
@@ -270,6 +298,206 @@ mod tests {
         walk.positions.windows(2).any(|w| w[0] != w[1])
     }
 
+    /// Finds a stable seed whose first two bounded draws produce the requested
+    /// local offsets. The helper samples through `SimRng` itself rather than
+    /// copying PCG arithmetic into this module, while still spelling out the
+    /// x-then-y consumption the production function promises.
+    fn seed_for_offsets(radius: u32, wanted: (i32, i32)) -> u64 {
+        let diameter = usize::try_from(radius.checked_mul(2).unwrap().checked_add(1).unwrap())
+            .expect("test radius must fit in a bounded draw");
+        for seed in 0..10_000 {
+            let mut rng = SimRng::from_seed(seed);
+            let dx = rng.range(diameter) as i64 - i64::from(radius);
+            let dy = rng.range(diameter) as i64 - i64::from(radius);
+            if (dx, dy) == (i64::from(wanted.0), i64::from(wanted.1)) {
+                return seed;
+            }
+        }
+        panic!("no seed in the search window produced offsets {wanted:?}");
+    }
+
+    #[test]
+    fn local_wanders_obey_both_the_endpoint_and_walked_path_caps() {
+        const RADIUS: u32 = 3;
+        const START: (i32, i32) = (10, 10);
+        let grid = TileGrid::new(21, 21);
+        let mut successes = 0;
+
+        // Many independent seeds exercise every side of the diamond and make
+        // this more than a single lucky local roll. Eight attempts keep an
+        // occasional square-corner rejection from turning into a false
+        // failure while retaining the production retry semantics.
+        for seed in 0..256 {
+            let mut rng = SimRng::from_seed(seed);
+            let Some(steps) = roll_wander_path(&grid, START, RADIUS, 8, &mut rng) else {
+                continue;
+            };
+            successes += 1;
+            let endpoint = *steps.last().expect("a successful wander is non-empty");
+            let endpoint_distance = (endpoint.0 - START.0).abs() + (endpoint.1 - START.1).abs();
+            assert!(
+                endpoint_distance > 0 && endpoint_distance <= RADIUS as i32,
+                "seed {seed} produced endpoint {endpoint:?}, {endpoint_distance} tiles from \
+                 {START:?}, outside the positive radius {RADIUS}"
+            );
+            assert!(
+                steps.len() <= RADIUS as usize,
+                "seed {seed} produced a {}-step walk, longer than radius {RADIUS}: {steps:?}",
+                steps.len()
+            );
+        }
+
+        assert!(
+            successes >= 240,
+            "only {successes} of 256 open-lot seeds found a local destination; the test did not \
+             exercise enough successful paths to support its universal claims"
+        );
+    }
+
+    /// Pins the compiled-content-to-system seam rather than only testing the
+    /// path helper and compiler separately. A hardcoded shipped radius of 3 in
+    /// `wander` must fail this test: the chosen seed produces one step under
+    /// the authored radius 1 and more than one under radius 3.
+    #[test]
+    fn wander_system_reads_its_radius_from_compiled_content() {
+        const START: (i32, i32) = (8, 8);
+        const AUTHORED_RADIUS: u32 = 1;
+        const WRONG_HARDCODED_RADIUS: u32 = 3;
+
+        let grid = TileGrid::new(17, 17);
+        let seed = (0..10_000)
+            .find(|seed| {
+                let mut authored_rng = SimRng::from_seed(*seed);
+                let authored =
+                    roll_wander_path(&grid, START, AUTHORED_RADIUS, 1, &mut authored_rng);
+                let mut hardcoded_rng = SimRng::from_seed(*seed);
+                let hardcoded =
+                    roll_wander_path(&grid, START, WRONG_HARDCODED_RADIUS, 1, &mut hardcoded_rng);
+                matches!(authored, Some(ref steps) if steps.len() == 1)
+                    && matches!(hardcoded, Some(ref steps) if steps.len() > 1)
+            })
+            .expect("the search window must separate radius 1 from radius 3");
+
+        let content = test_content::pack_tuned(
+            Vec::new(),
+            Tuning {
+                rng_seed: seed,
+                wander_attempts: 1,
+                wander_radius_tiles: AUTHORED_RADIUS,
+                ..test_content::tuning()
+            },
+        );
+        let mut sim = test_content::sim_with(17, 17, content);
+        let agent = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position {
+                    x: START.0 as f32,
+                    y: START.1 as f32,
+                },
+                Needs::all_at(NEED_MAX),
+                Restless,
+            ))
+            .id();
+
+        sim.tick();
+
+        let path = sim
+            .world()
+            .get::<Path>(agent)
+            .expect("the authored one-tile roll must produce a wander path");
+        assert_eq!(
+            path.steps.len(),
+            AUTHORED_RADIUS as usize,
+            "the system ignored content.tuning.wander_radius_tiles; seed {seed} separates the \
+             authored radius from a hardcoded shipped value"
+        );
+    }
+
+    #[test]
+    fn wander_offsets_are_consumed_x_then_y() {
+        const RADIUS: u32 = 3;
+        const START: (i32, i32) = (8, 8);
+        const OFFSET: (i32, i32) = (-2, 1);
+        let mut rng = SimRng::from_seed(seed_for_offsets(RADIUS, OFFSET));
+        let path = roll_wander_path(&TileGrid::new(17, 17), START, RADIUS, 1, &mut rng)
+            .expect("the chosen local offset is reachable in an open lot");
+
+        assert_eq!(path.last(), Some(&(START.0 + OFFSET.0, START.1 + OFFSET.1)));
+        assert_eq!(
+            path.len(),
+            3,
+            "the open-lot path must equal Manhattan distance"
+        );
+    }
+
+    #[test]
+    fn invalid_local_candidates_each_spend_an_attempt_without_becoming_paths() {
+        const RADIUS: u32 = 2;
+
+        let open = TileGrid::new(7, 7);
+        for (from, offset, reason) in [
+            ((3, 3), (2, 2), "outside the Manhattan radius"),
+            ((3, 3), (0, 0), "the origin"),
+            ((0, 0), (-1, 0), "outside the lot"),
+        ] {
+            let mut rng = SimRng::from_seed(seed_for_offsets(RADIUS, offset));
+            assert!(
+                roll_wander_path(&open, from, RADIUS, 1, &mut rng).is_none(),
+                "a candidate at offset {offset:?}, {reason}, became a wander path"
+            );
+        }
+
+        let mut blocked = TileGrid::new(7, 7);
+        blocked.set_blocked(4, 3, true);
+        let mut rng = SimRng::from_seed(seed_for_offsets(RADIUS, (1, 0)));
+        assert!(
+            roll_wander_path(&blocked, (3, 3), RADIUS, 1, &mut rng).is_none(),
+            "a blocked destination became a wander path"
+        );
+
+        let mut divided = TileGrid::new(7, 7);
+        for y in 0..7 {
+            divided.set_blocked(3, y, true);
+        }
+        let mut rng = SimRng::from_seed(seed_for_offsets(RADIUS, (2, 0)));
+        assert!(
+            roll_wander_path(&divided, (2, 3), RADIUS, 1, &mut rng).is_none(),
+            "an unreachable destination across a full-height wall became a wander path"
+        );
+    }
+
+    #[test]
+    fn a_nearby_endpoint_is_rejected_when_the_wall_makes_its_route_too_long() {
+        const RADIUS: u32 = 2;
+        const START: (i32, i32) = (2, 3);
+        const END: (i32, i32) = (4, 3);
+
+        // The endpoint is exactly two tiles away, but the wall forces an
+        // eight-step trip around its top. This is reachable, deliberately:
+        // an unreachable fixture would only prove the older `find_path`
+        // check and could not detect deletion of the new walked-path cap.
+        let mut grid = TileGrid::new(7, 7);
+        for y in 1..=5 {
+            grid.set_blocked(3, y, true);
+        }
+        let detour = grid
+            .find_path(START, END)
+            .expect("the target must be reachable around the end of the wall");
+        assert_eq!((END.0 - START.0).abs() + (END.1 - START.1).abs(), 2);
+        assert!(
+            detour.len() > RADIUS as usize,
+            "the fixture route {detour:?} is not longer than radius {RADIUS}"
+        );
+
+        let mut rng = SimRng::from_seed(seed_for_offsets(RADIUS, (2, 0)));
+        assert!(
+            roll_wander_path(&grid, START, RADIUS, 1, &mut rng).is_none(),
+            "the geometrically local endpoint was accepted through detour {detour:?}"
+        );
+    }
+
     #[test]
     fn a_sim_with_nothing_worth_doing_walks_somewhere_instead_of_standing_still() {
         // The milestone's visible claim. A sated sim next to a fridge has
@@ -374,10 +602,9 @@ mod tests {
 
     #[test]
     fn a_wandering_sim_only_walks_to_tiles_it_can_actually_reach() {
-        // A destination is rolled uniformly over the WHOLE grid, so most
-        // rolls in this fixture are unreachable: a full-height wall at
-        // x = 4 leaves the sim four columns out of sixteen. Three
-        // properties have to hold together, and each rules out a
+        // Local offsets still have to go through pathfinding. A full-height
+        // wall at x = 4 cuts off the positive edge of this sim's radius.
+        // Three properties have to hold together, and each rules out a
         // different wrong implementation:
         //
         //   - it never crosses the wall, which a path built without
@@ -552,13 +779,8 @@ mod tests {
         // assertion ([L15]). This test cannot be satisfied by a hang,
         // because it reads the generator afterwards.
         //
-        // The grid is 8x8 - both powers of two - deliberately. `range`
-        // rejects biased draws, so at a bound that does not divide 2^32
-        // the number of `next_u32` calls per roll is not fixed and the
-        // draw count below could not be an equality. At a power of two
-        // the rejection threshold is zero and every roll is exactly two
-        // draws, which is what makes "exactly `2 * attempts`" checkable.
         const SIZE: usize = 8;
+        const RADIUS: u32 = 3;
         const ATTEMPTS: u32 = 5;
         const SEED: u64 = 909;
 
@@ -581,18 +803,20 @@ mod tests {
 
         let mut rng = SimRng::from_seed(SEED);
         assert!(
-            roll_wander_path(&grid, (0, 0), ATTEMPTS, &mut rng).is_none(),
+            roll_wander_path(&grid, (0, 0), RADIUS, ATTEMPTS, &mut rng).is_none(),
             "a sealed sim has nowhere to walk, so the roll must give up \
              rather than return a path"
         );
 
-        // Exactly two draws per attempt and not one more, which is what
-        // "bounded by `wander_attempts`" means in the only unit the
-        // generator has. A loop that kept rolling would never reach this
-        // line at all.
+        // Exactly two BOUNDED draws per attempt and not one more. A bounded
+        // draw may reject a raw u32 to remove modulo bias, so the reference
+        // repeats `range` itself rather than assuming two raw draws. This
+        // pins both attempt count and x-then-y consumption.
         let mut reference = SimRng::from_seed(SEED);
-        for _ in 0..(2 * ATTEMPTS) {
-            reference.next_u32();
+        let diameter = RADIUS as usize * 2 + 1;
+        for _ in 0..ATTEMPTS {
+            reference.range(diameter);
+            reference.range(diameter);
         }
         assert_eq!(
             rng.next_u32(),

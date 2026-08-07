@@ -1680,6 +1680,14 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
     if tuning.wander_attempts == 0 {
         return Err(ContentError::ZeroWanderAttempts);
     }
+    if tuning.wander_radius_tiles == 0 {
+        return Err(ContentError::ZeroWanderRadius);
+    }
+    if tuning.wander_radius_tiles > i32::MAX as u32 {
+        return Err(ContentError::WanderRadiusTooLarge {
+            value: tuning.wander_radius_tiles,
+        });
+    }
     if tuning.max_queued_intents == 0 {
         return Err(ContentError::ZeroQueuedIntents);
     }
@@ -1904,6 +1912,7 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
             neglect_bleed_per_tick: tuning.neglect_bleed_per_tick,
             day_ticks: tuning.day_ticks,
             asleep_decay_scale: tuning.asleep_decay_scale,
+            wander_radius_tiles: tuning.wander_radius_tiles,
         },
         circadian,
         tuning.sleep_tag,
@@ -2522,6 +2531,14 @@ mod tests {
         // everything before it kept its offset, which is what the
         // append discipline buys.
         //
+        // **Local idle wandering appended one tuning field.** The lone
+        // `29` after `asleep_decay_scale`'s four bytes is the fixture's
+        // `wander_radius_tiles`. It is at the end of the `Tuning` record,
+        // immediately before the following empty personality list. Every
+        // established tuning byte is unchanged. This byte was read from the
+        // failing golden assertion after reviewing that exact one-byte
+        // insertion; `pack.rs` separately proves it is the final tuning slot.
+        //
         // **Regenerated wholesale at M2e PR 2**: `ContentPack` gained a
         // trailing `traits` list (empty in this fixture), and
         // `CompiledHouseholdMember` a trailing trait-index list; this
@@ -2545,7 +2562,7 @@ mod tests {
         0, 0, 64, 63, 3, 172, 2, 7, 11, 13, 0, 0,
         192, 62, 0, 0, 64, 62, 0, 0, 64, 61, 0, 0,
         80, 63, 0, 0, 224, 63, 0, 0, 184, 65, 154, 153,
-        25, 63, 0, 0, 0, 60, 19, 0, 0, 192, 62, 0,
+        25, 63, 0, 0, 0, 60, 19, 0, 0, 192, 62, 29, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 5, 115, 108, 101,
         101, 112,
     ];
@@ -2701,6 +2718,7 @@ mod tests {
             relationship_decay_per_tick: 0.046875,
             relationship_delta_scale: 0.8125,
             day_ticks: 19,
+            wander_radius_tiles: 29,
             decay_per_tick: NeedId::ALL
                 .iter()
                 .map(|id| (id.as_str().to_string(), 0.1))
@@ -3463,6 +3481,7 @@ mod tests {
         assert_eq!(tuning.at_work_decay_scale, 0.6);
         assert_eq!(tuning.neglect_floor, 23.0);
         assert_eq!(tuning.neglect_bleed_per_tick, 0.0078125);
+        assert_eq!(tuning.wander_radius_tiles, 29);
     }
 
     /// Weighted selection divides by the temperature, so zero is a
@@ -3611,6 +3630,36 @@ mod tests {
         let pack = compile_tuned(tuning_where(|t| t.wander_attempts = 1))
             .expect("a single attempt is legal, if a stubborn sim it is not");
         assert_eq!(pack.tuning.wander_attempts, 1);
+    }
+
+    /// A radius of zero cannot produce a non-empty wander path, while a radius
+    /// above `i32::MAX` makes `2 * radius + 1` too large for a WebAssembly
+    /// `usize` and the RNG's `u32` range. One and `i32::MAX` pin both inclusive
+    /// boundaries so the validator cannot quietly narrow either one.
+    #[test]
+    fn validates_wander_radius_bounds() {
+        assert_eq!(
+            compile_tuned(tuning_where(|t| t.wander_radius_tiles = 0)).unwrap_err(),
+            ContentError::ZeroWanderRadius
+        );
+
+        let pack = compile_tuned(tuning_where(|t| t.wander_radius_tiles = 1))
+            .expect("a one-tile local wander is legal");
+        assert_eq!(pack.tuning.wander_radius_tiles, 1);
+
+        let pack = compile_tuned(tuning_where(|t| t.wander_radius_tiles = i32::MAX as u32))
+            .expect("i32::MAX keeps the sampling diameter representable");
+        assert_eq!(pack.tuning.wander_radius_tiles, i32::MAX as u32);
+
+        assert_eq!(
+            compile_tuned(tuning_where(|t| {
+                t.wander_radius_tiles = i32::MAX as u32 + 1
+            }))
+            .unwrap_err(),
+            ContentError::WanderRadiusTooLarge {
+                value: i32::MAX as u32 + 1
+            }
+        );
     }
 
     /// A queue cap of zero is not "no queueing"; `drain_commands` refuses
@@ -3983,6 +4032,10 @@ mod tests {
             (
                 tuning_where(|t| t.max_queued_commands = 0),
                 "tuning.toml has max_queued_commands of 0, so the boundary would refuse every player command and nothing the player did would reach the simulation; must be at least 1",
+            ),
+            (
+                tuning_where(|t| t.wander_radius_tiles = i32::MAX as u32 + 1),
+                "tuning.toml has wander_radius_tiles of 2147483648; it must be at most 2147483647 so the 2 * radius + 1 sampling diameter fits WebAssembly usize and the simulation RNG range",
             ),
             (
                 tuning_where(|t| t.action_threshold = f32::NAN),

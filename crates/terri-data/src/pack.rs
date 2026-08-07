@@ -351,8 +351,19 @@ pub struct Tuning {
     /// bed would drain a sim faster than being awake does, and exactly
     /// 1 is the legal way back to the behaviour before this existed.
     ///
-    /// **Last in this struct on purpose**, per the appending rule.
+    /// This was last in the struct until `wander_radius_tiles` arrived;
+    /// that field is last now, per the appending rule.
     pub asleep_decay_scale: f32,
+    /// The maximum Manhattan distance and walked path length of an idle
+    /// wander, in tiles. In `1..=i32::MAX`; zero would make every candidate
+    /// fail, while the upper bound keeps the square's `2 * radius + 1`
+    /// sampling diameter representable on 32-bit WebAssembly and in the
+    /// simulation RNG's `u32` range.
+    ///
+    /// **Last in this struct on purpose**, per the appending rule. This was
+    /// added after `asleep_decay_scale`, which remains in place so existing
+    /// tuning bytes retain their offsets.
+    pub wander_radius_tiles: u32,
 }
 
 /// The circadian rhythm - [ML-curve] and [ML-chrono].
@@ -677,7 +688,7 @@ mod tests {
         }
     }
 
-    /// Twelve knobs, no two of which share a value, so a field that
+    /// Scalar knobs, no two of which share a value, so a field that
     /// round-trips into the wrong slot is visible rather than hidden by
     /// a fixture where two of them agree.
     fn a_tuning() -> Tuning {
@@ -706,6 +717,7 @@ mod tests {
             asleep_decay_scale: 0.5,
             neglect_bleed_per_tick: 0.0075,
             day_ticks: 23,
+            wander_radius_tiles: 29,
         }
     }
 
@@ -998,6 +1010,31 @@ mod tests {
             }),
             "postcard must preserve the station-eating variants"
         );
+    }
+
+    /// A new tuning knob belongs at the end of the serialized `Tuning`
+    /// record, even when it is conceptually related to fields near the
+    /// beginning. Two one-byte values make the byte that changes unambiguous:
+    /// it must be the final byte and every established field must stay put.
+    #[test]
+    fn wander_radius_occupies_the_appended_tuning_slot() {
+        let before = postcard::to_allocvec(&a_tuning()).expect("tuning must serialise");
+        let after = postcard::to_allocvec(&Tuning {
+            wander_radius_tiles: 31,
+            ..a_tuning()
+        })
+        .expect("tuning must serialise");
+
+        assert_eq!(before.len(), after.len());
+        let changed: Vec<usize> = before
+            .iter()
+            .zip(&after)
+            .enumerate()
+            .filter_map(|(index, (left, right))| (left != right).then_some(index))
+            .collect();
+        assert_eq!(changed, vec![before.len() - 1]);
+        assert_eq!(before.last(), Some(&29));
+        assert_eq!(after.last(), Some(&31));
     }
 
     /// Pins both the appended chain-step field and the append-only enum

@@ -34,6 +34,10 @@
 //!   comment names this table as the place to watch it.
 //! - **Objects never used at all**, because an object nobody chooses is
 //!   furniture, and no static check can see it ([C6]).
+//! - **Wander path lengths**, recorded from each newly observed natural
+//!   targetless path. This is the measured contract for local idle wandering:
+//!   endpoint distance alone cannot reveal a short-looking destination whose
+//!   route takes a sim around a wall and across the house.
 
 use std::collections::BTreeMap;
 use terri_core::{
@@ -152,6 +156,8 @@ fn main() {
     let mut low = vec![[f32::INFINITY; NEED_COUNT]; sims.len()];
     let mut high = vec![[f32::NEG_INFINITY; NEED_COUNT]; sims.len()];
     let mut motion = vec![Motion::default(); sims.len()];
+    let mut targetless_path_prev = vec![false; sims.len()];
+    let mut wander_lengths: Vec<usize> = Vec::new();
 
     let index_of = |entity: Entity, sims: &[(Entity, String)]| -> Option<usize> {
         sims.iter().position(|(e, _)| *e == entity)
@@ -169,6 +175,36 @@ fn main() {
                 low[index][need] = low[index][need].min(level);
                 high[index][need] = high[index][need].max(level);
             }
+
+            // A natural wander is the targetless path carrying the `Wander`
+            // marker and not owned by a commute or multi-step chain. Those
+            // systems also reuse `Path`, deliberately, and can inherit a
+            // stale pause marker after interrupting a stroll. Requiring both
+            // positive ownership and the exclusions keeps a future targetless
+            // path type from silently contaminating this metric.
+            //
+            // Record only the absent-to-present transition. The path stays
+            // visible for several ticks while it is followed; counting every
+            // sighting would weight longer paths more heavily and make the
+            // mean a disguised duration metric. `steps.len()` is the full
+            // authored route even though `cursor` has already advanced by
+            // the time the tick-end observer first sees it.
+            let targetless_path = world.get::<Path>(agent).filter(|_| {
+                world.get::<Wander>(agent).is_some()
+                    && world.get::<terri_core::Target>(agent).is_none()
+                    && world.get::<terri_core::Commuting>(agent).is_none()
+                    && world.get::<terri_core::ChainState>(agent).is_none()
+            });
+            let has_targetless_path = targetless_path.is_some();
+            if has_targetless_path && !targetless_path_prev[index] {
+                wander_lengths.push(
+                    targetless_path
+                        .expect("the branch just established this path exists")
+                        .steps
+                        .len(),
+                );
+            }
+            targetless_path_prev[index] = has_targetless_path;
 
             // Whether somebody's conversation currently points AT this sim,
             // which is the partner's only observable difference from a sim
@@ -831,6 +867,26 @@ fn main() {
             100.0 * (m.talking + m.waiting) as f64 / ticks as f64,
             100.0 * m.at_work as f64 / ticks as f64,
             100.0 * (m.paused + m.frozen) as f64 / ticks as f64
+        );
+    }
+
+    println!("\nWANDER PATHS, newly observed natural strolls");
+    if wander_lengths.is_empty() {
+        println!("count 0  min -  mean -  p95 -  max -");
+    } else {
+        wander_lengths.sort_unstable();
+        let count = wander_lengths.len();
+        let min = wander_lengths[0];
+        let max = wander_lengths[count - 1];
+        let mean = wander_lengths.iter().sum::<usize>() as f64 / count as f64;
+        // Nearest-rank percentile: the smallest observed length whose
+        // cumulative share reaches 95%. Unlike interpolation, this remains
+        // an actual number of path tiles a sim walked.
+        let p95_index = (count * 95).div_ceil(100) - 1;
+        let p95 = wander_lengths[p95_index];
+        println!(
+            "count {count}  min {min}  mean {mean:.2}  p95 {p95}  max {max}  tuned cap {}",
+            pack.tuning.wander_radius_tiles
         );
     }
 

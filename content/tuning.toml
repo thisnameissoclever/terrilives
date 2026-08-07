@@ -107,6 +107,25 @@ wander_pause_ticks = 20
 # rather than describing one piece of content.
 wander_attempts = 8
 
+# The furthest an idle wander may travel, measured in path tiles. The
+# destination also has to be within this Manhattan distance of the sim's
+# starting tile, so a geometrically nearby tile behind a wall cannot turn a
+# quiet drift into a trip around the house. Three tiles is enough to read as
+# movement without making an idle sim look as though it has somewhere urgent
+# to be. Must be at least 1; zero would reject every non-empty path and leave
+# every contented sim standing still. The compile step also caps this at
+# 2,147,483,647 so the `2 * radius + 1` sampling diameter fits a 32-bit
+# WebAssembly `usize` and the simulation RNG's `u32` range.
+#
+# The shipped 12,000-tick trace observed 154 natural strolls: mean 2.26
+# tiles, p95 3, and max 3. Against current main, walking fell from 34.0%
+# to 29.9%, pause between strolls rose from 12.9% to 18.1%, and frozen
+# time stayed effectively zero. The overall comparison is observational,
+# not a matched pair, because drawing local offsets deliberately changes
+# the deterministic random sequence. The direct locality claim is exact:
+# every observed path stayed at or below this cap.
+wander_radius_tiles = 3
+
 # An interaction's content duration_ticks is a CENTRE. The real duration
 # is sampled within this fraction either side, biased shorter, so
 # repeated actions are not metronomic.

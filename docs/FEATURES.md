@@ -180,19 +180,27 @@ NOT work, because the pipeline alpha-tests at 0.5 and writes depth. And
 This is the current restart point, separate from the historical milestone
 checklists below:
 
-1. Continue the authored visual-action contract one coherent category at a
-   time. Eating now proves ordinary object and chain-step anchors end to end;
-   the next category still needs its own real anchor and pose. Broad activity
-   labels must not stand in for authored content.
-2. Make idle wandering local enough to read as idling rather than commuting.
-   The observed whole-lot walks are documented at [A-1] [F2]. This needs a
-   tuning field, schema validation, deterministic random selection, tests, and
-   new feel measurements; it is not a one-line radius patch.
-3. Run the two useful device checks not yet claimed as watched evidence: a
-   physical-phone long press and a browser session with reduced motion enabled.
-   Both paths already have deterministic automated coverage.
+1. Add nighttime light pools and cast shadows through the existing per-instance
+   tint path. [ML-pools] is the smallest remaining visual-quality slice and
+   does not require another draw call or new geometry.
+2. Continue the authored visual-action contract one coherent category at a
+   time. Conversation and eating now prove social, ordinary-object, and
+   chain-step anchors end to end; the next category still needs its own real
+   anchor and pose. Broad activity labels must not stand in for authored
+   content, and sitting, sleeping, showering, and toilet poses still require
+   action-position sockets before those poses can align without clipping or
+   floating.
+3. Run the remaining physical-device check: long-press an object on a phone and
+   verify that its action menu remains reachable. The 390 by 844 browser layout
+   and a browser session with reduced motion enabled are now watched evidence
+   in [A-local-idle-wandering]; neither substitutes for touch hardware.
 4. Hold criterion 11 open for the owner-authored dark-comedy voice session
    tracked by [T22]. Functional UI copy is intentionally plain until then.
+
+Local idle wandering is now shipped rather than a restart item. Its radius is
+compiled content, the endpoint and actual walked path are both capped at three
+tiles, the choice remains deterministic and retry-bounded, and the measured and
+watched acceptance evidence is recorded at [A-local-idle-wandering].
 
 **M1b closed with one item of its deliverable unmet, deliberately recorded
 rather than quietly ticked.** Every definition-of-done line passes, and the

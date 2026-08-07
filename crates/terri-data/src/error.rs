@@ -257,6 +257,15 @@ pub enum ContentError {
     /// exactly the standing-still behaviour [D-5] exists to remove -
     /// and it would look like the feature had simply not been built.
     ZeroWanderAttempts,
+    /// A radius of zero excludes both the starting tile and every non-empty
+    /// path, so every idle wander would fail without an error at runtime.
+    ZeroWanderRadius,
+    /// The candidate square is `2 * radius + 1` tiles wide. Values above
+    /// `i32::MAX` cannot represent that diameter as a 32-bit WebAssembly
+    /// `usize` or as the simulation RNG's `u32` range.
+    WanderRadiusTooLarge {
+        value: u32,
+    },
     /// Variance is a FRACTION either side of the authored duration. At
     /// 1.0 the lower bound reaches zero, so the floor rather than the
     /// content would decide every duration; above 1.0 it goes negative.
@@ -1063,6 +1072,15 @@ impl fmt::Display for ContentError {
             ContentError::ZeroWanderAttempts => write!(
                 f,
                 "tuning.toml has wander_attempts of 0, so an idle sim could never roll a destination and would never wander; must be at least 1"
+            ),
+            ContentError::ZeroWanderRadius => write!(
+                f,
+                "tuning.toml has wander_radius_tiles of 0, so every non-empty wander path would be rejected and an idle sim would never move; must be at least 1"
+            ),
+            ContentError::WanderRadiusTooLarge { value } => write!(
+                f,
+                "tuning.toml has wander_radius_tiles of {value}; it must be at most {} so the 2 * radius + 1 sampling diameter fits WebAssembly usize and the simulation RNG range",
+                i32::MAX
             ),
             ContentError::DurationVarianceOutOfRange { value } => write!(
                 f,
