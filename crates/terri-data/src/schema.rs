@@ -333,7 +333,7 @@ pub struct InteractionDef {
     /// The three fields stay separate even though the first shipped
     /// vocabulary has one value for each. A later fight can share the
     /// partner anchor and facing rule without pretending its pose is talk,
-    /// while a future object action can add a different anchor vocabulary.
+    /// while object and chain-step actions use their own anchor vocabularies.
     /// Missing members remain visible to the compile step so it can report
     /// the exact incomplete contract instead of letting serde stop at a
     /// context-free missing-field error.
@@ -344,8 +344,9 @@ pub struct InteractionDef {
 /// Authored action-presentation metadata before validation.
 ///
 /// Strings are deliberate at this boundary. Unknown vocabulary is a content
-/// error that must name the owning object or `social.toml` interaction; the
-/// compiled pack uses enums and cannot represent an unknown value.
+/// error that must name the owning object interaction, `social.toml`
+/// interaction, or chain step; the compiled pack uses enums and cannot
+/// represent an unknown value.
 #[derive(Debug, Deserialize)]
 pub struct VisualDef {
     #[serde(default)]
@@ -603,6 +604,13 @@ pub struct ChainStepDef {
     /// cannot end with a full hand.
     #[serde(default)]
     pub consumes: Option<String>,
+    /// Optional authored body-presentation contract for this step.
+    ///
+    /// Chain steps resolve a station at runtime, so their legal anchor
+    /// vocabulary is validated separately from ordinary object interactions.
+    /// **Last in this struct on purpose**, per the appending rule.
+    #[serde(default)]
+    pub visual: Option<VisualDef>,
 }
 
 /// A `transforms` entry: what the carried item was, and what it

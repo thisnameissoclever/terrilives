@@ -14,7 +14,7 @@ use crate::pack::{
 };
 use crate::schema::{
     AtlasFile, CareersFile, ChainsFile, HouseholdFile, InteractionDef, LotFile, NeedsFile,
-    ObjectsFile, PersonalitiesFile, SocialFile, TraitsFile, TuningFile,
+    ObjectsFile, PersonalitiesFile, SocialFile, TraitsFile, TuningFile, VisualDef,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use terri_core::{Footprint, NeedId, NEED_COUNT, NEED_MAX, NEED_MIN};
@@ -268,7 +268,7 @@ pub fn compile(
             advertises.sort_unstable_by_key(|(i, _)| *i);
 
             let (tags, satisfaction, visual) =
-                compile_activity_extras(act, &object.id, VisualOwner::Object)?;
+                compile_activity_extras(act, &object.id, InteractionVisualOwner::Object)?;
             interactions.push(CompiledInteraction {
                 id: act.id.clone(),
                 advertises,
@@ -537,6 +537,13 @@ fn compile_chains(
                     });
                 }
             }
+            let visual = compile_visual(
+                step.visual.as_ref(),
+                VisualOwner::ChainStep {
+                    chain: &def.id,
+                    step: index,
+                },
+            )?;
 
             // The role, resolved against the vocabulary the objects
             // minted, then against the LOT: a role nobody wears is a
@@ -651,6 +658,7 @@ fn compile_chains(
                 yields,
                 transforms,
                 consumes,
+                visual,
             });
         }
         if let Some(held) = carrying {
@@ -988,7 +996,7 @@ fn compile_social(
         }
 
         let (tags, satisfaction, visual) =
-            compile_activity_extras(act, "social.toml", VisualOwner::Social)?;
+            compile_activity_extras(act, "social.toml", InteractionVisualOwner::Social)?;
         compiled.push(CompiledInteraction {
             id: act.id.clone(),
             advertises,
@@ -1016,7 +1024,7 @@ fn compile_social(
 fn compile_activity_extras(
     act: &InteractionDef,
     owner: &str,
-    visual_owner: VisualOwner,
+    visual_owner: InteractionVisualOwner,
 ) -> Result<(Vec<String>, f32, Option<CompiledVisual>), ContentError> {
     for tag in &act.tags {
         if tag.trim().is_empty() {
@@ -1037,73 +1045,225 @@ fn compile_activity_extras(
             satisfaction: act.satisfaction,
         });
     }
-    let visual = compile_visual(act, owner, visual_owner)?;
+    let visual_owner = match visual_owner {
+        InteractionVisualOwner::Object => VisualOwner::Object {
+            object: owner,
+            interaction: &act.id,
+        },
+        InteractionVisualOwner::Social => VisualOwner::Social {
+            interaction: &act.id,
+        },
+    };
+    let visual = compile_visual(act.visual.as_ref(), visual_owner)?;
     Ok((act.tags.clone(), act.satisfaction, visual))
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum VisualOwner {
+#[derive(Clone, Copy)]
+enum InteractionVisualOwner {
     Object,
     Social,
 }
 
-/// Validates the authored presentation vocabulary once for both object and
-/// social interactions. The schema keeps strings so errors can name content;
-/// the compiled pack carries enums so an unknown value cannot reach runtime.
+#[derive(Clone, Copy)]
+enum VisualOwner<'a> {
+    Object {
+        object: &'a str,
+        interaction: &'a str,
+    },
+    Social {
+        interaction: &'a str,
+    },
+    ChainStep {
+        chain: &'a str,
+        step: usize,
+    },
+}
+
+impl VisualOwner<'_> {
+    fn incomplete(self, field: &'static str) -> ContentError {
+        match self {
+            Self::Object {
+                object,
+                interaction,
+            } => ContentError::IncompleteVisual {
+                owner: object.to_string(),
+                interaction: interaction.to_string(),
+                field,
+            },
+            Self::Social { interaction } => ContentError::IncompleteVisual {
+                owner: "social.toml".to_string(),
+                interaction: interaction.to_string(),
+                field,
+            },
+            Self::ChainStep { chain, step } => ContentError::IncompleteChainStepVisual {
+                chain: chain.to_string(),
+                step,
+                field,
+            },
+        }
+    }
+
+    fn unknown_action(self, action: &str) -> ContentError {
+        match self {
+            Self::Object {
+                object,
+                interaction,
+            } => ContentError::UnknownVisualAction {
+                owner: object.to_string(),
+                interaction: interaction.to_string(),
+                action: action.to_string(),
+            },
+            Self::Social { interaction } => ContentError::UnknownVisualAction {
+                owner: "social.toml".to_string(),
+                interaction: interaction.to_string(),
+                action: action.to_string(),
+            },
+            Self::ChainStep { chain, step } => ContentError::UnknownChainStepVisualAction {
+                chain: chain.to_string(),
+                step,
+                action: action.to_string(),
+            },
+        }
+    }
+
+    fn unknown_anchor(self, anchor: &str) -> ContentError {
+        match self {
+            Self::Object {
+                object,
+                interaction,
+            } => ContentError::UnknownVisualAnchor {
+                owner: object.to_string(),
+                interaction: interaction.to_string(),
+                anchor: anchor.to_string(),
+            },
+            Self::Social { interaction } => ContentError::UnknownVisualAnchor {
+                owner: "social.toml".to_string(),
+                interaction: interaction.to_string(),
+                anchor: anchor.to_string(),
+            },
+            Self::ChainStep { chain, step } => ContentError::UnknownChainStepVisualAnchor {
+                chain: chain.to_string(),
+                step,
+                anchor: anchor.to_string(),
+            },
+        }
+    }
+
+    fn unknown_facing(self, facing: &str) -> ContentError {
+        match self {
+            Self::Object {
+                object,
+                interaction,
+            } => ContentError::UnknownVisualFacing {
+                owner: object.to_string(),
+                interaction: interaction.to_string(),
+                facing: facing.to_string(),
+            },
+            Self::Social { interaction } => ContentError::UnknownVisualFacing {
+                owner: "social.toml".to_string(),
+                interaction: interaction.to_string(),
+                facing: facing.to_string(),
+            },
+            Self::ChainStep { chain, step } => ContentError::UnknownChainStepVisualFacing {
+                chain: chain.to_string(),
+                step,
+                facing: facing.to_string(),
+            },
+        }
+    }
+
+    fn invalid_contract(self, action: &str, anchor: &str) -> ContentError {
+        let (owner, activity) = match self {
+            Self::Object {
+                object,
+                interaction,
+            } => (
+                format!("object '{object}'"),
+                format!("interaction '{interaction}'"),
+            ),
+            Self::Social { interaction } => (
+                "social.toml".to_string(),
+                format!("interaction '{interaction}'"),
+            ),
+            Self::ChainStep { chain, step } => (format!("chain '{chain}'"), format!("step {step}")),
+        };
+        ContentError::InvalidVisualContract {
+            owner,
+            activity,
+            action: action.to_string(),
+            anchor: anchor.to_string(),
+        }
+    }
+}
+
+/// Validates the authored presentation vocabulary and exact owner matrix once
+/// for object interactions, social interactions, and chain steps. The schema
+/// keeps strings so errors can name content; the compiled pack carries enums
+/// so an unknown or mixed value cannot reach runtime.
 fn compile_visual(
-    act: &InteractionDef,
-    owner: &str,
-    visual_owner: VisualOwner,
+    visual: Option<&VisualDef>,
+    owner: VisualOwner<'_>,
 ) -> Result<Option<CompiledVisual>, ContentError> {
-    let Some(visual) = &act.visual else {
+    let Some(visual) = visual else {
         return Ok(None);
     };
 
-    let field = |name| ContentError::IncompleteVisual {
-        owner: owner.to_string(),
-        interaction: act.id.clone(),
-        field: name,
-    };
-    let action = visual.action.as_deref().ok_or_else(|| field("action"))?;
-    let anchor = visual.anchor.as_deref().ok_or_else(|| field("anchor"))?;
-    let facing = visual.facing.as_deref().ok_or_else(|| field("facing"))?;
+    let action = visual
+        .action
+        .as_deref()
+        .ok_or_else(|| owner.incomplete("action"))?;
+    let anchor = visual
+        .anchor
+        .as_deref()
+        .ok_or_else(|| owner.incomplete("anchor"))?;
+    let facing = visual
+        .facing
+        .as_deref()
+        .ok_or_else(|| owner.incomplete("facing"))?;
 
     let action = match action {
         "talk" => CompiledVisualAction::Talk,
-        unknown => {
-            return Err(ContentError::UnknownVisualAction {
-                owner: owner.to_string(),
-                interaction: act.id.clone(),
-                action: unknown.to_string(),
-            })
-        }
+        "eat" => CompiledVisualAction::Eat,
+        unknown => return Err(owner.unknown_action(unknown)),
     };
     let anchor = match anchor {
         "partner" => CompiledVisualAnchor::Partner,
-        unknown => {
-            return Err(ContentError::UnknownVisualAnchor {
-                owner: owner.to_string(),
-                interaction: act.id.clone(),
-                anchor: unknown.to_string(),
-            })
-        }
+        "object" => CompiledVisualAnchor::Object,
+        "station" => CompiledVisualAnchor::Station,
+        unknown => return Err(owner.unknown_anchor(unknown)),
     };
     let facing = match facing {
         "toward_anchor" => CompiledVisualFacing::TowardAnchor,
-        unknown => {
-            return Err(ContentError::UnknownVisualFacing {
-                owner: owner.to_string(),
-                interaction: act.id.clone(),
-                facing: unknown.to_string(),
-            })
-        }
+        unknown => return Err(owner.unknown_facing(unknown)),
     };
 
-    if visual_owner == VisualOwner::Object {
-        return Err(ContentError::PartnerVisualOnObject {
-            object: owner.to_string(),
-            interaction: act.id.clone(),
-        });
+    let legal = matches!(
+        (owner, action, anchor),
+        (
+            VisualOwner::Social { .. },
+            CompiledVisualAction::Talk,
+            CompiledVisualAnchor::Partner
+        ) | (
+            VisualOwner::Object { .. },
+            CompiledVisualAction::Eat,
+            CompiledVisualAnchor::Object
+        ) | (
+            VisualOwner::ChainStep { .. },
+            CompiledVisualAction::Eat,
+            CompiledVisualAnchor::Station
+        )
+    );
+    if !legal {
+        let action = match action {
+            CompiledVisualAction::Talk => "talk",
+            CompiledVisualAction::Eat => "eat",
+        };
+        let anchor = match anchor {
+            CompiledVisualAnchor::Partner => "partner",
+            CompiledVisualAnchor::Object => "object",
+            CompiledVisualAnchor::Station => "station",
+        };
+        return Err(owner.invalid_contract(action, anchor));
     }
 
     Ok(Some(CompiledVisual {
@@ -2342,11 +2502,13 @@ mod tests {
         // it shifted by one; the non-empty round trips live in
         // pack.rs's `three_objects`.
         //
-        // **The conversation action contract appended one presentation
-        // option to `CompiledInteraction`.** This fixture's interaction has
-        // no visual table, so the new byte is the sixth 0 after the authored
-        // label ending in `117, 112`: an empty tags list, four satisfaction
-        // bytes, then `None`. The round-trip fixture in pack.rs carries Some.
+        // **The eating action contract now exercises the presentation option
+        // on this object interaction.** After the authored label ending in
+        // `117, 112` come an empty tags list, four zero satisfaction bytes,
+        // then `1, 1, 1, 0`: Some, Eat, Object, TowardAnchor. The following
+        // `1, 1, 0` remains the 1x1 footprint and empty role list. These values
+        // were read from the failing assertion after the append-only enums
+        // gained their eating variants.
         //
         // **Moved three times at M2e PR 3, all appends.** `Tuning`
         // gained a trailing `day_ticks` - the lone `19` near the end -
@@ -2375,8 +2537,8 @@ mod tests {
         97, 98, 95, 115, 110, 97, 99, 107, 3, 0, 0, 0,
         12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64,
         15, 1, 15, 69, 97, 116, 32, 115, 116, 97, 110, 100,
-        105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 0, 1,
-        1, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0,
+        105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1, 1,
+        1, 0, 1, 1, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0,
         0, 0, 32, 64, 0, 0, 160, 63, 2, 0, 0, 0,
         128, 62, 0, 0, 0, 63, 0, 0, 0, 62, 9, 6,
         0, 0, 160, 62, 10, 215, 35, 59, 0, 0, 32, 63,
@@ -2643,6 +2805,11 @@ mod tests {
         act.label = Some("Eat standing up".into());
         act.advertises.insert("comfort".into(), 5.0);
         act.advertises.insert("energy".into(), 3.0);
+        act.visual = Some(VisualDef {
+            action: Some("eat".to_string()),
+            anchor: Some("object".to_string()),
+            facing: Some("toward_anchor".to_string()),
+        });
         act
     }
 
@@ -6047,12 +6214,12 @@ mod tests {
         );
     }
 
-    /// The visual table is all-or-nothing and every authored string crosses a
-    /// closed vocabulary boundary before runtime. Object interactions use the
-    /// same compiler, but cannot use a partner anchor because they have no
-    /// second sim to resolve.
+    /// The visual table is all-or-nothing, every authored string crosses a
+    /// closed vocabulary boundary before runtime, and the owner matrix has
+    /// exactly three legal rows. Known vocabulary in the wrong combination is
+    /// still an error rather than a request for the renderer to improvise.
     #[test]
-    fn validates_the_visual_contract_for_social_and_object_interactions() {
+    fn validates_the_exact_visual_contract_matrix() {
         let visual = |action: Option<&str>, anchor: Option<&str>, facing: Option<&str>| {
             Some(VisualDef {
                 action: action.map(str::to_string),
@@ -6070,6 +6237,60 @@ mod tests {
             duration_ticks: 40,
             slots: 2,
         };
+
+        for (owner, owner_name, activity, legal_action, legal_anchor) in [
+            (
+                VisualOwner::Social {
+                    interaction: "chat",
+                },
+                "social.toml",
+                "interaction 'chat'",
+                "talk",
+                "partner",
+            ),
+            (
+                VisualOwner::Object {
+                    object: "fridge",
+                    interaction: "grab_snack",
+                },
+                "object 'fridge'",
+                "interaction 'grab_snack'",
+                "eat",
+                "object",
+            ),
+            (
+                VisualOwner::ChainStep {
+                    chain: "cook_dinner",
+                    step: 3,
+                },
+                "chain 'cook_dinner'",
+                "step 3",
+                "eat",
+                "station",
+            ),
+        ] {
+            for action in ["talk", "eat"] {
+                for anchor in ["partner", "object", "station"] {
+                    let authored = visual(Some(action), Some(anchor), Some("toward_anchor"))
+                        .expect("the test authors a visual");
+                    let result = compile_visual(Some(&authored), owner);
+                    if action == legal_action && anchor == legal_anchor {
+                        assert!(result.is_ok(), "{owner_name} {activity} must compile");
+                    } else {
+                        assert_eq!(
+                            result.unwrap_err(),
+                            ContentError::InvalidVisualContract {
+                                owner: owner_name.to_string(),
+                                activity: activity.to_string(),
+                                action: action.to_string(),
+                                anchor: anchor.to_string(),
+                            },
+                            "{owner_name} {activity} must reject {action}/{anchor}"
+                        );
+                    }
+                }
+            }
+        }
 
         for (missing, authored) in [
             (
@@ -6105,14 +6326,14 @@ mod tests {
         assert_eq!(
             compile_bare_with_social(vec![chat(visual(
                 Some("talk"),
-                Some("object"),
+                Some("moon"),
                 Some("toward_anchor")
             ))])
             .unwrap_err(),
             ContentError::UnknownVisualAnchor {
                 owner: "social.toml".into(),
                 interaction: "chat".into(),
-                anchor: "object".into(),
+                anchor: "moon".into(),
             }
         );
         assert_eq!(
@@ -6130,14 +6351,82 @@ mod tests {
         );
 
         let mut object_action = snack();
-        object_action.visual = visual(Some("talk"), Some("partner"), Some("toward_anchor"));
+        object_action.visual = visual(Some("eat"), Some("object"), Some("toward_anchor"));
+        let pack = compile_objects(full_needs(), one_object(object_action))
+            .expect("the legal object visual compiles");
         assert_eq!(
-            compile_objects(full_needs(), one_object(object_action)).unwrap_err(),
-            ContentError::PartnerVisualOnObject {
-                object: "fridge".into(),
-                interaction: "grab_snack".into(),
-            }
+            pack.objects[0].interactions[0].visual,
+            Some(CompiledVisual {
+                action: CompiledVisualAction::Eat,
+                anchor: CompiledVisualAnchor::Object,
+                facing: CompiledVisualFacing::TowardAnchor,
+            })
         );
+    }
+
+    #[test]
+    fn rejects_incomplete_and_unknown_object_visuals() {
+        let visual = |action: Option<&str>, anchor: Option<&str>, facing: Option<&str>| {
+            Some(VisualDef {
+                action: action.map(str::to_string),
+                anchor: anchor.map(str::to_string),
+                facing: facing.map(str::to_string),
+            })
+        };
+
+        for (field, authored) in [
+            (
+                "action",
+                visual(None, Some("object"), Some("toward_anchor")),
+            ),
+            ("anchor", visual(Some("eat"), None, Some("toward_anchor"))),
+            ("facing", visual(Some("eat"), Some("object"), None)),
+        ] {
+            let mut object_action = snack();
+            object_action.visual = authored;
+            assert_eq!(
+                compile_objects(full_needs(), one_object(object_action)).unwrap_err(),
+                ContentError::IncompleteVisual {
+                    owner: "fridge".to_string(),
+                    interaction: "grab_snack".to_string(),
+                    field,
+                }
+            );
+        }
+
+        for (authored, expected) in [
+            (
+                visual(Some("dance"), Some("object"), Some("toward_anchor")),
+                ContentError::UnknownVisualAction {
+                    owner: "fridge".to_string(),
+                    interaction: "grab_snack".to_string(),
+                    action: "dance".to_string(),
+                },
+            ),
+            (
+                visual(Some("eat"), Some("moon"), Some("toward_anchor")),
+                ContentError::UnknownVisualAnchor {
+                    owner: "fridge".to_string(),
+                    interaction: "grab_snack".to_string(),
+                    anchor: "moon".to_string(),
+                },
+            ),
+            (
+                visual(Some("eat"), Some("object"), Some("away_from_anchor")),
+                ContentError::UnknownVisualFacing {
+                    owner: "fridge".to_string(),
+                    interaction: "grab_snack".to_string(),
+                    facing: "away_from_anchor".to_string(),
+                },
+            ),
+        ] {
+            let mut object_action = snack();
+            object_action.visual = authored;
+            assert_eq!(
+                compile_objects(full_needs(), one_object(object_action)).unwrap_err(),
+                expected
+            );
+        }
     }
 
     /// One rejection test per rule, each pinning its own error variant so
@@ -6362,6 +6651,7 @@ mod tests {
                     yields: Some("leftovers".to_string()),
                     transforms: None,
                     consumes: None,
+                    visual: None,
                 },
                 crate::schema::ChainStepDef {
                     role: "eating_surface".to_string(),
@@ -6371,6 +6661,11 @@ mod tests {
                     yields: None,
                     transforms: None,
                     consumes: Some("leftovers".to_string()),
+                    visual: Some(VisualDef {
+                        action: Some("eat".to_string()),
+                        anchor: Some("station".to_string()),
+                        facing: Some("toward_anchor".to_string()),
+                    }),
                 },
             ],
         }
@@ -6397,6 +6692,7 @@ mod tests {
                     to: "dinner".to_string(),
                 }),
                 consumes: None,
+                visual: None,
             },
         );
         chain.step[2].consumes = Some("dinner".to_string());
@@ -6432,6 +6728,82 @@ mod tests {
         assert_eq!(chain.steps[1].tags, vec!["cooking".to_string()]);
         assert_eq!(chain.steps[2].consumes, Some(1));
         assert_eq!(chain.steps[2].label, "Eat");
+        assert_eq!(chain.steps[0].visual, None);
+        assert_eq!(chain.steps[1].visual, None);
+        assert_eq!(
+            chain.steps[2].visual,
+            Some(CompiledVisual {
+                action: CompiledVisualAction::Eat,
+                anchor: CompiledVisualAnchor::Station,
+                facing: CompiledVisualFacing::TowardAnchor,
+            })
+        );
+    }
+
+    /// Chain-step diagnostics name the chain and zero-based step rather than
+    /// pretending the presentation contract belongs to an object interaction.
+    #[test]
+    fn rejects_incomplete_and_unknown_chain_step_visuals() {
+        let visual = |action: Option<&str>, anchor: Option<&str>, facing: Option<&str>| {
+            Some(VisualDef {
+                action: action.map(str::to_string),
+                anchor: anchor.map(str::to_string),
+                facing: facing.map(str::to_string),
+            })
+        };
+
+        for (field, authored) in [
+            (
+                "action",
+                visual(None, Some("station"), Some("toward_anchor")),
+            ),
+            ("anchor", visual(Some("eat"), None, Some("toward_anchor"))),
+            ("facing", visual(Some("eat"), Some("station"), None)),
+        ] {
+            let mut chain = a_chain("cook_dinner");
+            chain.step[1].visual = authored;
+            assert_eq!(
+                compile_chain_world(vec![chain]).unwrap_err(),
+                ContentError::IncompleteChainStepVisual {
+                    chain: "cook_dinner".to_string(),
+                    step: 1,
+                    field,
+                }
+            );
+        }
+
+        let mut chain = a_chain("cook_dinner");
+        chain.step[1].visual = visual(Some("dance"), Some("station"), Some("toward_anchor"));
+        assert_eq!(
+            compile_chain_world(vec![chain]).unwrap_err(),
+            ContentError::UnknownChainStepVisualAction {
+                chain: "cook_dinner".to_string(),
+                step: 1,
+                action: "dance".to_string(),
+            }
+        );
+
+        let mut chain = a_chain("cook_dinner");
+        chain.step[1].visual = visual(Some("eat"), Some("moon"), Some("toward_anchor"));
+        assert_eq!(
+            compile_chain_world(vec![chain]).unwrap_err(),
+            ContentError::UnknownChainStepVisualAnchor {
+                chain: "cook_dinner".to_string(),
+                step: 1,
+                anchor: "moon".to_string(),
+            }
+        );
+
+        let mut chain = a_chain("cook_dinner");
+        chain.step[1].visual = visual(Some("eat"), Some("station"), Some("away_from_anchor"));
+        assert_eq!(
+            compile_chain_world(vec![chain]).unwrap_err(),
+            ContentError::UnknownChainStepVisualFacing {
+                chain: "cook_dinner".to_string(),
+                step: 1,
+                facing: "away_from_anchor".to_string(),
+            }
+        );
     }
 
     /// Every per-chain shape rule, one rejection each.

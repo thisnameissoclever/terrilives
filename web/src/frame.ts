@@ -65,8 +65,13 @@ const SIM_SPRITES: readonly number[] = [
   spriteIndex('sim3'),
 ];
 
-type TalkFrames = readonly [number, number];
-type TalkFacings = readonly [TalkFrames, TalkFrames, TalkFrames, TalkFrames];
+type ActionFrames = readonly [number, number];
+type ActionFacings = readonly [
+  ActionFrames,
+  ActionFrames,
+  ActionFrames,
+  ActionFrames,
+];
 
 /**
  * Two authored conversation frames for every look and lot-axis facing.
@@ -75,7 +80,7 @@ type TalkFacings = readonly [TalkFrames, TalkFrames, TalkFrames, TalkFrames];
  * positive y (south-west), then negative y (north-east). The simulation emits
  * that stable world-space contract; this table owns only its art mapping.
  */
-const SIM_TALK_SPRITES: readonly TalkFacings[] = [
+const SIM_TALK_SPRITES: readonly ActionFacings[] = [
   [
     [spriteIndex('simTalkSE0'), spriteIndex('simTalkSE1')],
     [spriteIndex('simTalkNW0'), spriteIndex('simTalkNW1')],
@@ -96,8 +101,33 @@ const SIM_TALK_SPRITES: readonly TalkFacings[] = [
   ],
 ];
 
+/** Two authored hand-to-mouth frames for every look and lot-axis facing. */
+const SIM_EAT_SPRITES: readonly ActionFacings[] = [
+  [
+    [spriteIndex('simEatSE0'), spriteIndex('simEatSE1')],
+    [spriteIndex('simEatNW0'), spriteIndex('simEatNW1')],
+    [spriteIndex('simEatSW0'), spriteIndex('simEatSW1')],
+    [spriteIndex('simEatNE0'), spriteIndex('simEatNE1')],
+  ],
+  [
+    [spriteIndex('sim2EatSE0'), spriteIndex('sim2EatSE1')],
+    [spriteIndex('sim2EatNW0'), spriteIndex('sim2EatNW1')],
+    [spriteIndex('sim2EatSW0'), spriteIndex('sim2EatSW1')],
+    [spriteIndex('sim2EatNE0'), spriteIndex('sim2EatNE1')],
+  ],
+  [
+    [spriteIndex('sim3EatSE0'), spriteIndex('sim3EatSE1')],
+    [spriteIndex('sim3EatNW0'), spriteIndex('sim3EatNW1')],
+    [spriteIndex('sim3EatSW0'), spriteIndex('sim3EatSW1')],
+    [spriteIndex('sim3EatNE0'), spriteIndex('sim3EatNE1')],
+  ],
+];
+
 /** The authored visual-action code emitted for a conversation. */
 export const VISUAL_ACTION_TALK = 1;
+
+/** The authored visual-action code emitted while eating at an exact target. */
+export const VISUAL_ACTION_EAT = 2;
 
 /** Render-buffer facing codes, in the same order as `SIM_TALK_SPRITES`. */
 export const FACING_POSITIVE_X = 1;
@@ -107,6 +137,9 @@ export const FACING_NEGATIVE_Y = 4;
 
 /** A conversational pose holds for four simulation ticks, or 400 ms at 1x. */
 export const TALK_FRAME_TICKS = 4;
+
+/** An eating gesture holds for eight simulation ticks, or 800 ms at 1x. */
+export const EAT_FRAME_TICKS = 8;
 
 /**
  * Which look the sim with this entity id wears.
@@ -129,9 +162,9 @@ export function simSprite(id: number): number {
 /**
  * Resolves one sim's body without presentation state or wall-clock time.
  *
- * Unknown action and facing values fail visibly safe to the ordinary body. A
- * reduced-motion conversation keeps frame zero, which preserves the semantic
- * directional pose while removing the ornamental gesture.
+ * Unknown action and facing values fail visibly safe to the ordinary body.
+ * Reduced motion keeps frame zero, which preserves the semantic directional
+ * pose while removing the ornamental gesture.
  */
 export function simBodySprite(
   id: number,
@@ -141,18 +174,30 @@ export function simBodySprite(
   reducedMotion: boolean,
 ): number {
   const look = id % SIM_SPRITES.length;
-  if (
-    visualAction !== VISUAL_ACTION_TALK ||
-    facing < FACING_POSITIVE_X ||
-    facing > FACING_NEGATIVE_Y
-  ) {
+  if (facing < FACING_POSITIVE_X || facing > FACING_NEGATIVE_Y) {
     return SIM_SPRITES[look];
   }
 
+  let sprites: readonly ActionFacings[];
+  let frameTicks: number;
+  if (visualAction === VISUAL_ACTION_TALK) {
+    sprites = SIM_TALK_SPRITES;
+    frameTicks = TALK_FRAME_TICKS;
+  } else if (visualAction === VISUAL_ACTION_EAT) {
+    sprites = SIM_EAT_SPRITES;
+    frameTicks = EAT_FRAME_TICKS;
+  } else {
+    return SIM_SPRITES[look];
+  }
+
+  const phaseTicks =
+    visualAction === VISUAL_ACTION_EAT
+      ? id % frameTicks
+      : (id & 1) * frameTicks;
   const frame = reducedMotion
     ? 0
-    : ((Math.floor(simulationTick / TALK_FRAME_TICKS) + (id & 1)) & 1);
-  return SIM_TALK_SPRITES[look][facing - 1][frame];
+    : (Math.floor((simulationTick + phaseTicks) / frameTicks) & 1);
+  return sprites[look][facing - 1][frame];
 }
 
 /**
@@ -424,7 +469,7 @@ export interface RenderSource {
    * [A-11] indicator column. Read every frame like every other view.
    */
   activities(): Uint32Array;
-  /** Authored body-pose category: 0 none, 1 talk. */
+  /** Authored body-pose category: 0 none, 1 talk, 2 eat. */
   visualActions(): Uint32Array;
   /** Lot-axis facing: 0 none, 1 +x, 2 -x, 3 +y, 4 -y. */
   facings(): Uint32Array;
@@ -452,10 +497,13 @@ const NOT_CARRYING = 0xffff_ffff;
  * and cheap here.
  */
 let carriedSprites: (number | null)[] | null = null;
+let dinnerItemKind: number | undefined;
 
 function carriedSprite(source: RenderSource, kind: number): number | null {
   if (carriedSprites === null) {
-    carriedSprites = source.itemKinds().map((name) => {
+    const itemKinds = source.itemKinds();
+    dinnerItemKind = itemKinds.indexOf('dinner');
+    carriedSprites = itemKinds.map((name) => {
       const index = SPRITES.findIndex(
         (sprite) => sprite.name === `carried_${name}`,
       );
@@ -474,6 +522,24 @@ function carriedSprite(source: RenderSource, kind: number): number | null {
  */
 const CARRIED_LIFT = 24;
 const CARRIED_SIDE = 14;
+
+/**
+ * Eating places the carried dinner on the authored anchor-side hand. Other
+ * carrying keeps the established screen-right placement, including ingredients
+ * moving between dinner stations.
+ */
+function carriedSidePx(
+  itemKind: number,
+  visualAction: number,
+  facing: number,
+): number {
+  if (itemKind !== dinnerItemKind || visualAction !== VISUAL_ACTION_EAT) {
+    return CARRIED_SIDE;
+  }
+  return facing === FACING_NEGATIVE_X || facing === FACING_POSITIVE_Y
+    ? -CARRIED_SIDE
+    : CARRIED_SIDE;
+}
 
 /**
  * The one instance array, reused for the life of the page.
@@ -649,7 +715,8 @@ export function buildInstances(
     writeInstance(
       scratch,
       slot++,
-      screenX(wx, wy, originX, scale) + CARRIED_SIDE * scale,
+      screenX(wx, wy, originX, scale) +
+        carriedSidePx(carrying[i], visualActions[i], facings[i]) * scale,
       screenY(wx, wy, originY, scale) - CARRIED_LIFT * scale - lift,
       layeredDepth(wx, wy, gridSize, LAYER_SIM) - INDICATOR_DEPTH_NUDGE,
       sprite,

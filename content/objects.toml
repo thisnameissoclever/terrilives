@@ -74,6 +74,7 @@ roles = ["cold_storage"]
   advertises = { hunger = 40.0 }
   duration_ticks = 30
   slots = 1
+  visual = { action = "eat", anchor = "object", facing = "toward_anchor" }
 
 [[object]]
 id = "bed"

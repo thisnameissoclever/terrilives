@@ -2060,3 +2060,44 @@ social-action menu.
 - **Runtime remained quiet.** Conversation setup, pause and resume, save and
   load, both zoom extremes, reduced-motion emulation, and the nighttime scoped
   validation produced zero console warnings and zero errors.
+
+## [A-eating-action-animation] Eating is a complete authored action category
+
+The local production bundle (`index-Dr5ZYymC.js`,
+`terri_wasm_bg-CWLOA3Md.wasm`) was played in the in-app browser at 1280 by 720
+and 390 by 844. Casey was selected through the normal Household control, and
+both eating paths were issued through the ordinary keyboard object menu.
+
+- **Snack and dinner share one readable visual language.** Grab a snack at the
+  refrigerator and the terminal Eat dinner chain step both used the authored
+  directional eating body, two-frame hand motion, and existing fork indicator.
+  Dinner alone moved its carried plate to the anchor-side hand; ingredients and
+  unauthored carried dinner retain the ordinary badge position.
+- **The whole dinner chain remained legible.** The live HUD advanced through
+  Get ingredients, Prepare food, Cook, and Eat dinner while the carried item
+  changed from ingredients to dinner at the authored steps. The terminal pose
+  visibly faced the dining station. The deterministic projection test adds a
+  second valid eating surface and proves that decoy cannot replace the exact
+  resolved target.
+- **Pause and entity staggering are deterministic.** Snack frames changed while
+  the simulation ran, then two captures 600 ms apart were byte-identical after
+  Pause. The renderer suite separately proves adjacent entity ids cross their
+  frame boundaries on different ticks instead of changing in lockstep.
+- **Save and Load restore the complete terminal presentation.** A paused Eat
+  dinner step was saved, advanced at 3x, and loaded through the normal
+  confirmation dialog. Load restored `Day 1, 05:31`, Pause, the terminal chain
+  step, carried dinner, facing, and the resolved body frame. Comparing the
+  stable saved and restored captures found zero changed pixels in the game
+  viewport.
+- **The pose reads across the supported layout and zoom envelope.** The dining
+  pose, fork indicator, and carried plate remained readable at native and close
+  zoom. At 390 by 844, the selected-sim HUD remained scrollable and every game
+  control stayed reachable while the animated house remained visible.
+- **Reduced motion has an explicit proof boundary.** The watched browser used
+  its ordinary no-reduction preference. Deterministic frame tests prove reduced
+  motion pins eating to authored frame zero; this pass does not claim a watched
+  operating-system reduced-motion toggle.
+- **Runtime remained quiet.** Snack, the four-step dinner chain, pause and
+  resume, save and load, desktop and phone layouts, and both zoom levels
+  produced zero console warnings and zero errors. The visible canvas remained
+  on the production WebGPU renderer throughout the pass.

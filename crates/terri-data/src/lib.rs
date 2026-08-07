@@ -63,14 +63,15 @@ static PACK_BYTES: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/content_pac
 ///   grid but career shifts still path to the current pack's door.
 ///
 /// What is deliberately NOT hashed: every number in `tuning.toml`, every
-/// advert delta, label, duration, tag, and visual presentation contract, every
-/// sprite index, every sim's NAME, the rest of the lot, careers, carried-item
-/// declaration order, and the circadian curve. Object, career, trait, chain,
-/// and carried-item string references are validated against the current pack
-/// while loading. Hobbies remain raw tags; removing their last matching
-/// activity makes the hobby inactive rather than making the save corrupt. A
-/// save that loads into retuned content simply plays under the new numbers,
-/// which is what a player wants and what a designer iterating on balance needs.
+/// advert delta, label, duration, tag, object-interaction visual contract,
+/// chain-step visual contract, every sprite index, every sim's NAME, the rest
+/// of the lot, careers, carried-item declaration order, and the circadian
+/// curve. Object, career, trait, chain, and carried-item string references are
+/// validated against the current pack while loading. Hobbies remain raw tags;
+/// removing their last matching activity makes the hobby inactive rather than
+/// making the save corrupt. A save that loads into retuned content simply
+/// plays under the new numbers, which is what a player wants and what a
+/// designer iterating on balance needs.
 ///
 /// The cost of the narrower rule, stated plainly: change a delta and a
 /// mid-flight interaction finishes under the new one. That is a save
@@ -694,6 +695,69 @@ mod tests {
             base,
             content_fingerprint(&presentation_only),
             "presentation metadata must not invalidate a Save V1"
+        );
+    }
+
+    #[test]
+    fn the_fingerprint_allows_object_visual_presentation_changes() {
+        let original = pack().clone();
+        let base = content_fingerprint(&original);
+        let fridge = original.find("fridge").expect("shipped fridge exists");
+        let snack = original
+            .object(fridge)
+            .interactions
+            .iter()
+            .position(|interaction| interaction.id == "grab_snack")
+            .expect("shipped snack interaction exists");
+        assert_eq!(
+            original.object(fridge).interactions[snack].visual,
+            Some(CompiledVisual {
+                action: CompiledVisualAction::Eat,
+                anchor: CompiledVisualAnchor::Object,
+                facing: CompiledVisualFacing::TowardAnchor,
+            }),
+            "the shipped snack must exercise the object-eating contract"
+        );
+
+        let mut presentation_only = original;
+        presentation_only.objects[fridge.0 as usize].interactions[snack].visual = None;
+        assert_eq!(
+            base,
+            content_fingerprint(&presentation_only),
+            "object visual metadata must not invalidate a Save V1"
+        );
+    }
+
+    #[test]
+    fn the_fingerprint_allows_chain_step_visual_presentation_changes() {
+        let original = pack().clone();
+        let base = content_fingerprint(&original);
+        let dinner = original
+            .chains
+            .iter()
+            .position(|chain| chain.id == "cook_dinner")
+            .expect("shipped dinner chain exists");
+        let terminal = original.chains[dinner]
+            .steps
+            .len()
+            .checked_sub(1)
+            .expect("shipped dinner has a terminal step");
+        assert_eq!(
+            original.chains[dinner].steps[terminal].visual,
+            Some(CompiledVisual {
+                action: CompiledVisualAction::Eat,
+                anchor: CompiledVisualAnchor::Station,
+                facing: CompiledVisualFacing::TowardAnchor,
+            }),
+            "the shipped dinner must exercise the station-eating contract"
+        );
+
+        let mut presentation_only = original;
+        presentation_only.chains[dinner].steps[terminal].visual = None;
+        assert_eq!(
+            base,
+            content_fingerprint(&presentation_only),
+            "chain-step visual metadata must not invalidate a Save V1"
         );
     }
 

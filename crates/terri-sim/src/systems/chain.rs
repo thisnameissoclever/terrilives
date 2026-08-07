@@ -367,6 +367,7 @@ mod tests {
                     yields: Some(0),
                     transforms: None,
                     consumes: None,
+                    visual: None,
                 },
                 CompiledChainStep {
                     role: 1,
@@ -376,6 +377,7 @@ mod tests {
                     yields: None,
                     transforms: None,
                     consumes: Some(0),
+                    visual: None,
                 },
             ],
         }

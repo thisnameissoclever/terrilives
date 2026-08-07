@@ -10,7 +10,7 @@ is fine inside a compiled build and a violation inside git. See TECH_STACK.md.
 
 ## There are no third-party visual assets
 
-**As of 2026-08-03 this project ships no borrowed art.** Every sprite in
+**As of 2026-08-07 this project ships no borrowed art.** Every sprite in
 `web/public/atlas.png` is drawn from primitives by `assets/sprites/gen/`, so
 the atlas is a build output rather than a derived work.
 
@@ -56,7 +56,7 @@ a live entry again.
 | --- | --- |
 | `style.py` | The palette, the line, the shading ramp, the character build. The style bible. |
 | `iso.py` | The projection, the box/slab/cylinder primitives, and the anchoring rule. |
-| `objects.py` | All 48 sprites, and the name contract they satisfy. |
+| `objects.py` | All 98 sprites, including the three people and their directional talk and eating frames, plus the name contract they satisfy. |
 | `build.py` | Packs the sheet and writes all three output files. |
 
 **The image and the manifest live apart, on purpose.** The PNG is in
@@ -79,10 +79,12 @@ reproducible build output, which the old pipeline could never offer.
 
 ## The names are a contract
 
-`content/objects.toml` resolves 30 sprite names and `tiles.ts` asks for 6 more
-by hand. terri-data fails the content build on a dangling reference, so
-renaming or dropping an entry in `objects.SPRITES` breaks the game rather than
-changing how it looks.
+`content/objects.toml` resolves 30 sprite names. The shell resolves its floor,
+walls, selection ring, indicators, carried badges, three people, and authored
+action frames by name. terri-data fails the content build on a dangling object
+reference, while TypeScript startup and tests fail on a missing shell sprite,
+so renaming or dropping an entry breaks the build rather than quietly changing
+how the game looks.
 
 ## Three sprites whose size IS the projection
 
@@ -144,14 +146,18 @@ reads the TOML and fails if they ever do.
 **A sprite's index is its position in that list**, on both sides. Inserting a
 sprite in the middle renumbers every sprite after it and silently redraws the
 lot with the furniture shuffled, so `objects.SPRITES` is append-only in spirit.
+The three ordinary people remain at 1, 48, and 49; conversation occupies 50
+through 73; eating appends at 74 through 97.
 
 ## What is not done
 
-The sim is still one sprite in one pose, so everyone in the household looks
-identical. The build numbers in `style.py` are already parameters and skin,
-hair and clothing are meant to arrive as an instance tint, but per-instance
-tint does not exist yet: an instance is one `vec4` with all four slots spent.
-That is [ML-tint] and [ML-chars] in the implementation spec.
+The household now has three stable baked looks. Walking uses a restrained body
+lift, conversation has directional talk frames, and the authored snack plus
+terminal dinner actions have directional hand-to-mouth frames. Other object
+categories still use the ordinary body; they need their own authored action,
+anchor, and occlusion contract rather than inheriting art from a broad status
+label. Per-instance tint and emissive strength are already live for night
+lighting, but player-selected character appearance is not yet content.
 
 Walls are still tile-CENTRED panels, because that is what `tiles.ts` draws.
 Moving them onto tile edges is [B7], a renderer change rather than an art one.

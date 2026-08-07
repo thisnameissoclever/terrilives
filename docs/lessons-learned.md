@@ -3778,3 +3778,43 @@ well-formed near miss where exactly one required component is absent.
 talkers, coincident pairs in both entity-index orders, and an authored talk
 whose positioned partner lacks `Agent`. Then mutation-test `terri-sim/src/lib.rs`
 and require the new facing and participant-guard mutations to be caught.
+
+## [L-stagger-before-frame-division] Different first frames do not prove staggered transitions
+
+**What happened.** The first eating-frame calculation added an entity-id parity
+after dividing the simulation tick by the frame duration. Adjacent sims could
+start on different frames, but every one of them still crossed a frame boundary
+on the same tick.
+
+**Root cause.** The test checked only the initial frame difference. It did not
+observe the transition ticks, so a phase flip looked like a true time offset.
+
+**Prevention rule.** Apply a stable entity phase to the simulation tick before
+dividing by frame duration. When animation staggering matters, test the timing
+of transitions as well as the starting pose.
+
+**How to verify.** Use three consecutive entity ids and record their frame
+changes across two full cycles. Each id must transition on a distinct tick,
+Pause must freeze the result, and reduced motion must still select frame zero.
+
+## [L-exercise-geometry-on-both-axes] A rectangular fixture can still leave one axis untested
+
+**What happened.** Eating faced the centre of a 2 by 1 dining table, and the
+directional test proved that the width changed the answer. Mutation testing
+still found six surviving arithmetic changes in the centre calculation. The
+one-tile depth made every depth offset zero, while several wrong width offsets
+continued to point in the expected direction.
+
+**Root cause.** The fixture was non-square, but its assertion observed only the
+final facing category. It did not force every operator on both axes to change
+that category.
+
+**Prevention rule.** For geometry collapsed into a direction, distance, or
+bucket, use non-unit dimensions on both axes and choose boundary-adjacent probe
+points. Each load-bearing arithmetic operator must have at least one probe
+whose observable result changes when that operator changes.
+
+**How to verify.** Use a 3 by 2 footprint and probe from three positions that
+separate the correct centre from width-offset, depth-sign, and depth-scale
+mutants. Run a mutation filter over the centre helper and require every viable
+mutant to be caught.

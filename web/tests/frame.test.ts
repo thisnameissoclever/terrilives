@@ -12,9 +12,11 @@ import {
   FACING_NEGATIVE_Y,
   FACING_POSITIVE_X,
   FACING_POSITIVE_Y,
+  EAT_FRAME_TICKS,
   simBodySprite,
   simSprite,
   TALK_FRAME_TICKS,
+  VISUAL_ACTION_EAT,
   VISUAL_ACTION_TALK,
   walkingLiftPx,
   type RenderSource,
@@ -470,9 +472,9 @@ describe('lerp', () => {
 
 describe('simBodySprite', () => {
   const looks = [
-    { id: 99, prefix: 'sim' },
-    { id: 100, prefix: 'sim2' },
-    { id: 101, prefix: 'sim3' },
+    { id: 96, prefix: 'sim' },
+    { id: 97, prefix: 'sim2' },
+    { id: 98, prefix: 'sim3' },
   ] as const;
   const directions = [
     { facing: FACING_POSITIVE_X, suffix: 'SE' },
@@ -502,19 +504,98 @@ describe('simBodySprite', () => {
     }
   });
 
+  it('resolves eating on staggered eight-tick boundaries from stable ids', () => {
+    const phaseCases = [
+      {
+        id: 96,
+        prefix: 'sim',
+        before: 7,
+        transition: 8,
+        beforeNext: 15,
+        nextTransition: 16,
+      },
+      {
+        id: 97,
+        prefix: 'sim2',
+        before: 6,
+        transition: 7,
+        beforeNext: 14,
+        nextTransition: 15,
+      },
+      {
+        id: 98,
+        prefix: 'sim3',
+        before: 5,
+        transition: 6,
+        beforeNext: 13,
+        nextTransition: 14,
+      },
+    ] as const;
+    for (const {
+      id,
+      prefix,
+      before,
+      transition,
+      beforeNext,
+      nextTransition,
+    } of phaseCases) {
+      for (const { facing, suffix } of directions) {
+        const sprite = (frame: 0 | 1): number =>
+          spriteIndex(`${prefix}Eat${suffix}${frame}`);
+
+        expect(
+          simBodySprite(id, VISUAL_ACTION_EAT, facing, before, false),
+        ).toBe(sprite(0));
+        expect(
+          simBodySprite(id, VISUAL_ACTION_EAT, facing, transition, false),
+        ).toBe(sprite(1));
+        expect(
+          simBodySprite(id, VISUAL_ACTION_EAT, facing, beforeNext, false),
+        ).toBe(sprite(1));
+        expect(
+          simBodySprite(
+            id,
+            VISUAL_ACTION_EAT,
+            facing,
+            nextTransition,
+            false,
+          ),
+        ).toBe(sprite(0));
+      }
+    }
+    expect(
+      new Set(phaseCases.map(({ transition }) => transition)).size,
+      'sequential household ids must not change eating frames in lockstep',
+    ).toBe(phaseCases.length);
+    expect(EAT_FRAME_TICKS).toBe(8);
+  });
+
   it('pins frame zero under reduced motion while keeping the facing pose', () => {
     for (const { id, prefix } of looks) {
       for (const { facing, suffix } of directions) {
-        const atStart = simBodySprite(id, VISUAL_ACTION_TALK, facing, 0, true);
-        const muchLater = simBodySprite(
-          id,
-          VISUAL_ACTION_TALK,
-          facing,
-          TALK_FRAME_TICKS * 99,
-          true,
-        );
-        expect(atStart).toBe(spriteIndex(`${prefix}Talk${suffix}0`));
-        expect(muchLater).toBe(atStart);
+        for (const { action, name, frameTicks } of [
+          {
+            action: VISUAL_ACTION_TALK,
+            name: 'Talk',
+            frameTicks: TALK_FRAME_TICKS,
+          },
+          {
+            action: VISUAL_ACTION_EAT,
+            name: 'Eat',
+            frameTicks: EAT_FRAME_TICKS,
+          },
+        ] as const) {
+          const atStart = simBodySprite(id, action, facing, 0, true);
+          const muchLater = simBodySprite(
+            id,
+            action,
+            facing,
+            frameTicks * 99,
+            true,
+          );
+          expect(atStart).toBe(spriteIndex(`${prefix}${name}${suffix}0`));
+          expect(muchLater).toBe(atStart);
+        }
       }
     }
   });
@@ -530,12 +611,44 @@ describe('simBodySprite', () => {
       expect(simBodySprite(id, VISUAL_ACTION_TALK, 5, 8, false)).toBe(
         simSprite(id),
       );
+      expect(simBodySprite(id, 3, FACING_POSITIVE_X, 8, false)).toBe(
+        simSprite(id),
+      );
     }
+  });
+
+  it('advances eating phase only when fixed simulation ticks run', () => {
+    const driver = new FixedStepDriver(10, 100);
+    const id = 104;
+    let simulationTick = 0;
+    const body = (): number =>
+      simBodySprite(
+        id,
+        VISUAL_ACTION_EAT,
+        FACING_POSITIVE_X,
+        simulationTick,
+        false,
+      );
+    const first = body();
+
+    driver.advance(799, () => simulationTick++);
+    expect(simulationTick).toBe(7);
+    expect(body()).toBe(first);
+
+    driver.setSpeed(0);
+    driver.advance(10_000, () => simulationTick++);
+    expect(simulationTick).toBe(7);
+    expect(body()).toBe(first);
+
+    driver.setSpeed(2);
+    driver.advance(50, () => simulationTick++);
+    expect(simulationTick).toBe(8);
+    expect(body()).not.toBe(first);
   });
 });
 
 describe('buildInstances', () => {
-  it('draws authored talk poses without reinterpreting broad activity codes', () => {
+  it('draws authored action poses without reinterpreting broad activity codes', () => {
     const source = new FakeEntities();
     source.set([
       // A real authored conversation.
@@ -543,7 +656,12 @@ describe('buildInstances', () => {
         0, 0, 0, 0, KIND_AGENT, 1, 4, 0xffff_ffff,
         VISUAL_ACTION_TALK, FACING_POSITIVE_X,
       ],
-      // Object use is activity 3, but has no authored body pose yet.
+      // Authored object eating uses its own explicit action code.
+      [
+        1, 0, 1, 0, KIND_AGENT, 1, 3, 0xffff_ffff,
+        VISUAL_ACTION_EAT, FACING_NEGATIVE_X,
+      ],
+      // Broad eating activity alone does not invent presentation metadata.
       [1, 0, 1, 0, KIND_AGENT, 1, 3, 0xffff_ffff, 0, 0],
       // Even a talk indicator does not invent presentation metadata.
       [2, 0, 2, 0, KIND_AGENT, 1, 4, 0xffff_ffff, 0, 0],
@@ -551,16 +669,19 @@ describe('buildInstances', () => {
 
     const atTickZero = snapshot(
       buildInstances(source, 1, ORIGIN_X, ORIGIN_Y, GRID, null, 1, false, 0),
-      3,
+      4,
     );
     expect(atTickZero[OFFSET_SPRITE]).toBe(
       simBodySprite(100, VISUAL_ACTION_TALK, FACING_POSITIVE_X, 0, false),
     );
     expect(atTickZero[FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
-      simSprite(101),
+      simBodySprite(101, VISUAL_ACTION_EAT, FACING_NEGATIVE_X, 0, false),
     );
     expect(atTickZero[2 * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
       simSprite(102),
+    );
+    expect(atTickZero[3 * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
+      simSprite(103),
     );
 
     const atNextPose = snapshot(
@@ -575,14 +696,23 @@ describe('buildInstances', () => {
         false,
         TALK_FRAME_TICKS,
       ),
-      3,
+      4,
     );
     expect(atNextPose[OFFSET_SPRITE]).not.toBe(atTickZero[OFFSET_SPRITE]);
     expect(atNextPose[FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
-      atTickZero[FLOATS_PER_INSTANCE + OFFSET_SPRITE],
+      simBodySprite(
+        101,
+        VISUAL_ACTION_EAT,
+        FACING_NEGATIVE_X,
+        TALK_FRAME_TICKS,
+        false,
+      ),
     );
     expect(atNextPose[2 * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
       atTickZero[2 * FLOATS_PER_INSTANCE + OFFSET_SPRITE],
+    );
+    expect(atNextPose[3 * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
+      atTickZero[3 * FLOATS_PER_INSTANCE + OFFSET_SPRITE],
     );
   });
 
@@ -1078,6 +1208,57 @@ describe('the carried badge', () => {
     expect(built[ring + OFFSET_DEPTH]).toBeGreaterThan(
       built[body + OFFSET_DEPTH],
     );
+  });
+
+  it('moves only an eating carrier badge to the authored hand side', () => {
+    const badgeX = (entity: FakeEntity): number => {
+      src.set([entity]);
+      const built = buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID);
+      const badgeSlot = instanceCount(src, null) - 1;
+      return built[badgeSlot * FLOATS_PER_INSTANCE + OFFSET_SCREEN_X];
+    };
+    const bodyX = screenX(1, 1, ORIGIN_X);
+
+    expect(
+      badgeX([
+        1, 1, 1, 1, KIND_AGENT, 3, 3, 1,
+        VISUAL_ACTION_EAT, FACING_POSITIVE_X,
+      ]),
+    ).toBe(bodyX + 14);
+    expect(
+      badgeX([
+        1, 1, 1, 1, KIND_AGENT, 3, 3, 1,
+        VISUAL_ACTION_EAT, FACING_NEGATIVE_X,
+      ]),
+    ).toBe(bodyX - 14);
+    expect(
+      badgeX([
+        1, 1, 1, 1, KIND_AGENT, 3, 3, 1,
+        VISUAL_ACTION_EAT, FACING_POSITIVE_Y,
+      ]),
+    ).toBe(bodyX - 14);
+    expect(
+      badgeX([
+        1, 1, 1, 1, KIND_AGENT, 3, 3, 1,
+        VISUAL_ACTION_EAT, FACING_NEGATIVE_Y,
+      ]),
+    ).toBe(bodyX + 14);
+
+    // Ingredients in transit and an unauthored dinner keep the established
+    // screen-right position. Neither an action nor a facing code alone may
+    // move an item that is not the authored dinner.
+    expect(
+      badgeX([1, 1, 1, 1, KIND_AGENT, 3, 1, 0, 0, FACING_NEGATIVE_X]),
+    ).toBe(bodyX + 14);
+    expect(
+      badgeX([
+        1, 1, 1, 1, KIND_AGENT, 3, 3, 0,
+        VISUAL_ACTION_EAT, FACING_NEGATIVE_X,
+      ]),
+    ).toBe(bodyX + 14);
+    expect(
+      badgeX([1, 1, 1, 1, KIND_AGENT, 3, 3, 1, 0, FACING_NEGATIVE_X]),
+    ).toBe(bodyX + 14);
   });
 
   it('hides the badge of a carrier who is at work', () => {

@@ -535,11 +535,40 @@ pub enum ContentError {
         interaction: String,
         facing: String,
     },
-    /// `partner` is meaningful only for a social interaction. Object actions
-    /// need their own authored anchor vocabulary before they may animate.
-    PartnerVisualOnObject {
-        object: String,
-        interaction: String,
+    /// A chain step's present `visual` table omitted one of its three
+    /// required members.
+    IncompleteChainStepVisual {
+        chain: String,
+        step: usize,
+        field: &'static str,
+    },
+    /// A chain-step action outside the compiled presentation vocabulary.
+    UnknownChainStepVisualAction {
+        chain: String,
+        step: usize,
+        action: String,
+    },
+    /// A chain-step anchor outside the compiled presentation vocabulary.
+    UnknownChainStepVisualAnchor {
+        chain: String,
+        step: usize,
+        anchor: String,
+    },
+    /// A chain-step facing rule outside the compiled presentation vocabulary.
+    UnknownChainStepVisualFacing {
+        chain: String,
+        step: usize,
+        facing: String,
+    },
+    /// All visual vocabulary members are known, but their combination is not
+    /// legal for the owning social interaction, object interaction, or chain
+    /// step. The legal matrix is deliberately exact rather than inferred from
+    /// gameplay tags or activity codes.
+    InvalidVisualContract {
+        owner: String,
+        activity: String,
+        action: String,
+        anchor: String,
     },
     /// A household sim loves a tag no interaction in the pack carries.
     /// The hobby could never pay out: the sim would live its whole life
@@ -1265,7 +1294,7 @@ impl fmt::Display for ContentError {
             } => write!(
                 f,
                 "'{owner}' interaction '{interaction}' declares unknown \
-                 visual action '{action}'; the current vocabulary is talk"
+                 visual action '{action}'; the current vocabulary is talk, eat"
             ),
             ContentError::UnknownVisualAnchor {
                 owner,
@@ -1274,7 +1303,8 @@ impl fmt::Display for ContentError {
             } => write!(
                 f,
                 "'{owner}' interaction '{interaction}' declares unknown \
-                 visual anchor '{anchor}'; the current vocabulary is partner"
+                 visual anchor '{anchor}'; the current vocabulary is partner, \
+                 object, station"
             ),
             ContentError::UnknownVisualFacing {
                 owner,
@@ -1286,14 +1316,49 @@ impl fmt::Display for ContentError {
                  visual facing '{facing}'; the current vocabulary is \
                  toward_anchor"
             ),
-            ContentError::PartnerVisualOnObject {
-                object,
-                interaction,
+            ContentError::IncompleteChainStepVisual { chain, step, field } => write!(
+                f,
+                "chain '{chain}' step {step} declares a visual contract \
+                 without '{field}'; action, anchor, and facing are all \
+                 required when visual is present"
+            ),
+            ContentError::UnknownChainStepVisualAction {
+                chain,
+                step,
+                action,
             } => write!(
                 f,
-                "object '{object}' interaction '{interaction}' declares the \
-                 partner visual anchor, but objects have no partner; object \
-                 actions need an explicit object anchor before they animate"
+                "chain '{chain}' step {step} declares unknown visual action \
+                 '{action}'; the current vocabulary is talk, eat"
+            ),
+            ContentError::UnknownChainStepVisualAnchor {
+                chain,
+                step,
+                anchor,
+            } => write!(
+                f,
+                "chain '{chain}' step {step} declares unknown visual anchor \
+                 '{anchor}'; the current vocabulary is partner, object, station"
+            ),
+            ContentError::UnknownChainStepVisualFacing {
+                chain,
+                step,
+                facing,
+            } => write!(
+                f,
+                "chain '{chain}' step {step} declares unknown visual facing \
+                 '{facing}'; the current vocabulary is toward_anchor"
+            ),
+            ContentError::InvalidVisualContract {
+                owner,
+                activity,
+                action,
+                anchor,
+            } => write!(
+                f,
+                "{owner} {activity} declares visual action '{action}' with \
+                 anchor '{anchor}', which is not a legal owner/action/anchor \
+                 combination"
             ),
             ContentError::UnknownHobby { sim, hobby } => write!(
                 f,

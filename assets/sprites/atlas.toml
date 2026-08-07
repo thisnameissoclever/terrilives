@@ -12,12 +12,12 @@
 
 image = "atlas.png"
 width = 512
-height = 652
+height = 797
 
 [[sprite]]
 name = "floor"
-x = 285
-y = 561
+x = 201
+y = 738
 w = 64
 h = 42
 
@@ -51,8 +51,8 @@ h = 99
 
 [[sprite]]
 name = "bathroomSinkSquare"
-x = 0
-y = 561
+x = 422
+y = 662
 w = 32
 h = 63
 
@@ -65,8 +65,8 @@ h = 102
 
 [[sprite]]
 name = "toiletSquare"
-x = 358
-y = 484
+x = 291
+y = 662
 w = 42
 h = 66
 
@@ -79,15 +79,15 @@ h = 99
 
 [[sprite]]
 name = "loungeSofaOttoman"
-x = 84
-y = 561
+x = 0
+y = 738
 w = 58
 h = 58
 
 [[sprite]]
 name = "televisionVintage"
-x = 401
-y = 484
+x = 334
+y = 662
 w = 34
 h = 65
 
@@ -100,50 +100,50 @@ h = 132
 
 [[sprite]]
 name = "selectionRing"
-x = 350
-y = 561
+x = 266
+y = 738
 w = 64
 h = 42
 
 [[sprite]]
 name = "kitchenStove"
-x = 0
-y = 407
+x = 390
+y = 496
 w = 66
 h = 76
 
 [[sprite]]
 name = "kitchenCabinet"
-x = 67
-y = 407
+x = 0
+y = 585
 w = 66
 h = 76
 
 [[sprite]]
 name = "kitchenSink"
-x = 134
-y = 407
+x = 67
+y = 585
 w = 66
 h = 76
 
 [[sprite]]
 name = "table"
-x = 110
-y = 484
+x = 43
+y = 662
 w = 70
 h = 69
 
 [[sprite]]
 name = "chair"
-x = 201
-y = 407
+x = 134
+y = 585
 w = 48
 h = 76
 
 [[sprite]]
 name = "trashcan"
-x = 415
-y = 561
+x = 331
+y = 738
 w = 16
 h = 31
 
@@ -156,50 +156,50 @@ h = 92
 
 [[sprite]]
 name = "loungeChair"
-x = 305
-y = 484
+x = 238
+y = 662
 w = 52
 h = 67
 
 [[sprite]]
 name = "loungeChairRelax"
-x = 181
-y = 484
+x = 114
+y = 662
 w = 52
 h = 69
 
 [[sprite]]
 name = "radio"
-x = 217
-y = 561
+x = 133
+y = 738
 w = 24
 h = 51
 
 [[sprite]]
 name = "pottedPlant"
-x = 242
-y = 561
+x = 158
+y = 738
 w = 42
 h = 43
 
 [[sprite]]
 name = "cardboardBoxOpen"
-x = 33
-y = 561
+x = 455
+y = 662
 w = 50
 h = 60
 
 [[sprite]]
 name = "lampRoundFloor"
-x = 143
-y = 561
+x = 59
+y = 738
 w = 36
 h = 55
 
 [[sprite]]
 name = "coatRackStanding"
-x = 250
-y = 407
+x = 183
+y = 585
 w = 24
 h = 76
 
@@ -212,29 +212,29 @@ h = 94
 
 [[sprite]]
 name = "sideTableDrawers"
-x = 436
-y = 484
+x = 369
+y = 662
 w = 52
 h = 64
 
 [[sprite]]
 name = "cabinetBedDrawer"
-x = 180
-y = 561
+x = 96
+y = 738
 w = 36
 h = 54
 
 [[sprite]]
 name = "desk"
-x = 234
-y = 484
+x = 167
+y = 662
 w = 70
 h = 69
 
 [[sprite]]
 name = "chairDesk"
-x = 67
-y = 484
+x = 0
+y = 662
 w = 42
 h = 75
 
@@ -247,8 +247,8 @@ h = 119
 
 [[sprite]]
 name = "bathtub"
-x = 351
-y = 318
+x = 273
+y = 496
 w = 116
 h = 83
 
@@ -282,71 +282,71 @@ h = 109
 
 [[sprite]]
 name = "kitchenStoveSW"
-x = 275
-y = 407
+x = 208
+y = 585
 w = 66
 h = 76
 
 [[sprite]]
 name = "kitchenCabinetSW"
-x = 342
-y = 407
+x = 275
+y = 585
 w = 66
 h = 76
 
 [[sprite]]
 name = "kitchenSinkSW"
-x = 409
-y = 407
+x = 342
+y = 585
 w = 66
 h = 76
 
 [[sprite]]
 name = "kitchenCabinetCornerInnerSW"
-x = 0
-y = 484
+x = 409
+y = 585
 w = 66
 h = 76
 
 [[sprite]]
 name = "indicatorTalk"
-x = 432
-y = 561
+x = 348
+y = 738
 w = 26
 h = 26
 
 [[sprite]]
 name = "indicatorEat"
-x = 459
-y = 561
+x = 375
+y = 738
 w = 26
 h = 26
 
 [[sprite]]
 name = "indicatorSleep"
-x = 0
-y = 625
+x = 402
+y = 738
 w = 26
 h = 26
 
 [[sprite]]
 name = "indicatorWait"
-x = 27
-y = 625
+x = 429
+y = 738
 w = 26
 h = 26
 
 [[sprite]]
 name = "carried_ingredients"
-x = 54
-y = 625
+x = 456
+y = 738
 w = 16
 h = 20
 
 [[sprite]]
 name = "carried_dinner"
-x = 71
-y = 625
+x = 473
+y = 738
 w = 18
 h = 14
 
@@ -529,5 +529,173 @@ h = 88
 name = "sim3TalkNE1"
 x = 312
 y = 318
+w = 38
+h = 88
+
+[[sprite]]
+name = "simEatSE0"
+x = 351
+y = 318
+w = 38
+h = 88
+
+[[sprite]]
+name = "simEatSE1"
+x = 390
+y = 318
+w = 38
+h = 88
+
+[[sprite]]
+name = "simEatNW0"
+x = 429
+y = 318
+w = 38
+h = 88
+
+[[sprite]]
+name = "simEatNW1"
+x = 468
+y = 318
+w = 38
+h = 88
+
+[[sprite]]
+name = "simEatSW0"
+x = 0
+y = 407
+w = 38
+h = 88
+
+[[sprite]]
+name = "simEatSW1"
+x = 39
+y = 407
+w = 38
+h = 88
+
+[[sprite]]
+name = "simEatNE0"
+x = 78
+y = 407
+w = 38
+h = 88
+
+[[sprite]]
+name = "simEatNE1"
+x = 117
+y = 407
+w = 38
+h = 88
+
+[[sprite]]
+name = "sim2EatSE0"
+x = 156
+y = 407
+w = 38
+h = 88
+
+[[sprite]]
+name = "sim2EatSE1"
+x = 195
+y = 407
+w = 38
+h = 88
+
+[[sprite]]
+name = "sim2EatNW0"
+x = 234
+y = 407
+w = 38
+h = 88
+
+[[sprite]]
+name = "sim2EatNW1"
+x = 273
+y = 407
+w = 38
+h = 88
+
+[[sprite]]
+name = "sim2EatSW0"
+x = 312
+y = 407
+w = 38
+h = 88
+
+[[sprite]]
+name = "sim2EatSW1"
+x = 351
+y = 407
+w = 38
+h = 88
+
+[[sprite]]
+name = "sim2EatNE0"
+x = 390
+y = 407
+w = 38
+h = 88
+
+[[sprite]]
+name = "sim2EatNE1"
+x = 429
+y = 407
+w = 38
+h = 88
+
+[[sprite]]
+name = "sim3EatSE0"
+x = 468
+y = 407
+w = 38
+h = 88
+
+[[sprite]]
+name = "sim3EatSE1"
+x = 0
+y = 496
+w = 38
+h = 88
+
+[[sprite]]
+name = "sim3EatNW0"
+x = 39
+y = 496
+w = 38
+h = 88
+
+[[sprite]]
+name = "sim3EatNW1"
+x = 78
+y = 496
+w = 38
+h = 88
+
+[[sprite]]
+name = "sim3EatSW0"
+x = 117
+y = 496
+w = 38
+h = 88
+
+[[sprite]]
+name = "sim3EatSW1"
+x = 156
+y = 496
+w = 38
+h = 88
+
+[[sprite]]
+name = "sim3EatNE0"
+x = 195
+y = 496
+w = 38
+h = 88
+
+[[sprite]]
+name = "sim3EatNE1"
+x = 234
+y = 496
 w = 38
 h = 88

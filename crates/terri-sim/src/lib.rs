@@ -110,6 +110,128 @@ fn is_authored_talk_visual(interaction: &terri_data::CompiledInteraction) -> boo
     )
 }
 
+fn is_authored_object_eat_visual(interaction: &terri_data::CompiledInteraction) -> bool {
+    let Some(visual) = interaction.visual.as_ref() else {
+        return false;
+    };
+    matches!(
+        (&visual.action, &visual.anchor, &visual.facing,),
+        (
+            terri_data::CompiledVisualAction::Eat,
+            terri_data::CompiledVisualAnchor::Object,
+            terri_data::CompiledVisualFacing::TowardAnchor,
+        )
+    )
+}
+
+fn is_authored_station_eat_visual(step: &terri_data::CompiledChainStep) -> bool {
+    let Some(visual) = step.visual.as_ref() else {
+        return false;
+    };
+    matches!(
+        (&visual.action, &visual.anchor, &visual.facing,),
+        (
+            terri_data::CompiledVisualAction::Eat,
+            terri_data::CompiledVisualAnchor::Station,
+            terri_data::CompiledVisualFacing::TowardAnchor,
+        )
+    )
+}
+
+fn eating_interaction_exists(
+    content: &terri_data::ContentPack,
+    eating: &terri_core::Eating,
+) -> bool {
+    content
+        .objects
+        .get(eating.object.0 as usize)
+        .and_then(|object| object.interactions.get(eating.interaction as usize))
+        .is_some()
+}
+
+fn object_footprint_centre(
+    content: &terri_data::ContentPack,
+    object: &terri_core::SmartObject,
+    origin: &terri_core::Position,
+) -> Option<terri_core::Position> {
+    let definition = content.objects.get(object.0 .0 as usize)?;
+    Some(terri_core::Position {
+        x: origin.x + (definition.footprint.width as f32 - 1.0) * 0.5,
+        y: origin.y + (definition.footprint.depth as f32 - 1.0) * 0.5,
+    })
+}
+
+#[allow(clippy::too_many_arguments)]
+fn authored_eating_visual(
+    content: &terri_data::ContentPack,
+    world: &World,
+    entity: Entity,
+    position: &terri_core::Position,
+    eating: Option<&terri_core::Eating>,
+    chain_state: Option<&terri_core::ChainState>,
+    step_work: Option<&terri_core::StepWork>,
+    target: Option<&terri_core::Target>,
+) -> Option<(u32, u32)> {
+    use render_buffer::visual_action;
+
+    // These action-state components are mutually exclusive in a valid world.
+    // If malformed state contains both, choosing either pose would turn an
+    // ambiguity into presentation that gameplay never authored.
+    if eating.is_some() && step_work.is_some() {
+        return None;
+    }
+
+    if let Some(eating) = eating {
+        let target = target?;
+        if target.interaction == systems::chain::CHAIN_STEP
+            || target.interaction != eating.interaction
+        {
+            return None;
+        }
+        let target_object = world.get::<terri_core::SmartObject>(target.object)?;
+        if target_object.0 != eating.object {
+            return None;
+        }
+        let target_position = world.get::<terri_core::Position>(target.object)?;
+        let definition = content.objects.get(target_object.0 .0 as usize)?;
+        let interaction = definition.interactions.get(target.interaction as usize)?;
+        if !is_authored_object_eat_visual(interaction) {
+            return None;
+        }
+        let anchor = object_footprint_centre(content, target_object, target_position)?;
+        return Some((
+            visual_action::EAT,
+            facing_toward(entity, position, target.object, &anchor),
+        ));
+    }
+
+    if step_work.is_some() {
+        let chain_state = chain_state?;
+        let target = target?;
+        if target.interaction != systems::chain::CHAIN_STEP {
+            return None;
+        }
+        let chain = content.chains.get(chain_state.chain as usize)?;
+        let step = chain.steps.get(chain_state.step as usize)?;
+        if !is_authored_station_eat_visual(step) {
+            return None;
+        }
+        let target_object = world.get::<terri_core::SmartObject>(target.object)?;
+        let target_position = world.get::<terri_core::Position>(target.object)?;
+        let definition = content.objects.get(target_object.0 .0 as usize)?;
+        if !definition.roles.contains(&step.role) {
+            return None;
+        }
+        let anchor = object_footprint_centre(content, target_object, target_position)?;
+        return Some((
+            visual_action::EAT,
+            facing_toward(entity, position, target.object, &anchor),
+        ));
+    }
+
+    None
+}
+
 impl Sim {
     /// Captures every world resource, entity component, entity reference,
     /// and staged player command needed to resume this simulation exactly.
@@ -681,6 +803,9 @@ impl Sim {
             Option<&terri_core::SpriteVariant>,
             Option<&terri_core::Eating>,
             Option<&terri_core::Socialising>,
+            Option<&terri_core::ChainState>,
+            Option<&terri_core::StepWork>,
+            Option<&terri_core::Target>,
             Has<terri_core::Path>,
             Has<terri_core::Reserved>,
             Has<terri_core::AtWork>,
@@ -695,6 +820,9 @@ impl Sim {
             variant,
             eating,
             talking,
+            chain_state,
+            step_work,
+            target,
             walking,
             reserved,
             at_work,
@@ -764,6 +892,28 @@ impl Sim {
             // frame at every departure and return), and the shell skips
             // drawing it - gone is gone, at the draw call rather than
             // in the buffer ([E4]).
+            let eating_visual = if is_agent {
+                authored_eating_visual(
+                    content,
+                    &self.world,
+                    entity,
+                    pos,
+                    eating,
+                    chain_state,
+                    step_work,
+                    target,
+                )
+            } else {
+                None
+            };
+            let (visual_action, facing) = conversation_visuals
+                .get(&entity)
+                .copied()
+                .or(eating_visual)
+                .unwrap_or((
+                    render_buffer::visual_action::NONE,
+                    render_buffer::facing::NONE,
+                ));
             let activity = if !is_agent {
                 render_buffer::activity::NONE
             } else if at_work {
@@ -771,11 +921,22 @@ impl Sim {
             } else if talking.is_some() || partners.contains(&entity) {
                 render_buffer::activity::TALKING
             } else if eating.is_some() {
-                if systems::circadian::is_asleep(content, eating) {
+                if eating.is_some_and(|state| eating_interaction_exists(content, state))
+                    && systems::circadian::is_asleep(content, eating)
+                {
                     render_buffer::activity::SLEEPING
                 } else {
                     render_buffer::activity::EATING
                 }
+            } else if step_work.is_some()
+                && eating_visual
+                    .is_some_and(|(action, _)| action == render_buffer::visual_action::EAT)
+            {
+                // A running chain step has no `Eating` component, but an
+                // authored terminal eat still needs the existing fork bubble.
+                // The implication is one-way: the broad EATING activity never
+                // selects body art.
+                render_buffer::activity::EATING
             } else if walking {
                 render_buffer::activity::WALKING
             } else if reserved {
@@ -783,10 +944,6 @@ impl Sim {
             } else {
                 render_buffer::activity::NONE
             };
-            let (visual_action, facing) = conversation_visuals.get(&entity).copied().unwrap_or((
-                render_buffer::visual_action::NONE,
-                render_buffer::facing::NONE,
-            ));
             rows.push(RenderRow {
                 index: entity.index_u32(),
                 x,

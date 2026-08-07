@@ -184,7 +184,7 @@ describe('the atlas manifest', () => {
     expect(new Set(SPRITES.map((s) => s.name)).size).toBe(SPRITES.length);
   });
 
-  it('appends the fixed-size conversation frames without renumbering sims', () => {
+  it('appends fixed-size action frames without renumbering earlier art', () => {
     const talkSprites = [
       'simTalkSE0', 'simTalkSE1', 'simTalkNW0', 'simTalkNW1',
       'simTalkSW0', 'simTalkSW1', 'simTalkNE0', 'simTalkNE1',
@@ -193,12 +193,26 @@ describe('the atlas manifest', () => {
       'sim3TalkSE0', 'sim3TalkSE1', 'sim3TalkNW0', 'sim3TalkNW1',
       'sim3TalkSW0', 'sim3TalkSW1', 'sim3TalkNE0', 'sim3TalkNE1',
     ];
+    const eatSprites = [
+      'simEatSE0', 'simEatSE1', 'simEatNW0', 'simEatNW1',
+      'simEatSW0', 'simEatSW1', 'simEatNE0', 'simEatNE1',
+      'sim2EatSE0', 'sim2EatSE1', 'sim2EatNW0', 'sim2EatNW1',
+      'sim2EatSW0', 'sim2EatSW1', 'sim2EatNE0', 'sim2EatNE1',
+      'sim3EatSE0', 'sim3EatSE1', 'sim3EatNW0', 'sim3EatNW1',
+      'sim3EatSW0', 'sim3EatSW1', 'sim3EatNE0', 'sim3EatNE1',
+    ];
 
     expect(spriteIndex('sim')).toBe(1);
     expect(spriteIndex('sim2')).toBe(48);
     expect(spriteIndex('sim3')).toBe(49);
-    expect(SPRITES.slice(50).map((sprite) => sprite.name)).toEqual(talkSprites);
-    for (const name of talkSprites) {
+    expect(SPRITES).toHaveLength(98);
+    expect(SPRITES.slice(50, 74).map((sprite) => sprite.name)).toEqual(
+      talkSprites,
+    );
+    expect(SPRITES.slice(74, 98).map((sprite) => sprite.name)).toEqual(
+      eatSprites,
+    );
+    for (const name of [...talkSprites, ...eatSprites]) {
       const sprite = SPRITES[spriteIndex(name)];
       expect([sprite.w, sprite.h], name).toEqual([38, 88]);
     }
