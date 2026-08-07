@@ -21,6 +21,7 @@ import {
 import { cameraOrigin } from './render/iso.js';
 import { clampOrigin, lotExtent, zoomAnchoredOrigin } from './render/camera.js';
 import { SPRITES } from './render/atlas.js';
+import { buildLightField } from './render/lighting.js';
 import { buildStaticInstances } from './render/tiles.js';
 import { FrameTimer } from './perf.js';
 import { DebugPanel } from './ui/debug-panel.js';
@@ -43,6 +44,7 @@ import {
   restorePersistenceFocus,
 } from './ui/persistence-controller.js';
 import { QueueMode } from './ui/queue-mode.js';
+import { LightingMode } from './ui/lighting-mode.js';
 import {
   KeyboardTargetController,
   reportKeyboardSelection,
@@ -493,6 +495,7 @@ async function main(): Promise<void> {
   const loadButton = document.querySelector<HTMLButtonElement>('#load-game');
   const stopOrdersButton = document.querySelector<HTMLButtonElement>('#stop-orders');
   const queueButton = document.querySelector<HTMLButtonElement>('#queue-mode');
+  const lightingModeButton = document.querySelector<HTMLButtonElement>('#lighting-mode');
   const newGameButton = document.querySelector<HTMLButtonElement>('#new-game');
   const helpButton = document.querySelector<HTMLButtonElement>('#show-help');
   const closeHelpButton = document.querySelector<HTMLButtonElement>('#close-help');
@@ -507,6 +510,7 @@ async function main(): Promise<void> {
     !loadButton ||
     !stopOrdersButton ||
     !queueButton ||
+    !lightingModeButton ||
     !newGameButton ||
     !helpButton ||
     !closeHelpButton ||
@@ -573,6 +577,8 @@ async function main(): Promise<void> {
         if (loaded) {
           // A restored world may reuse entity indices for different live
           // entities. Discard every transient action that names the old world.
+          lightingDirty = true;
+          cameraDirty = true;
           menu.close();
           keyboardTargets.clear();
           const nowMs = performance.now();
@@ -650,6 +656,7 @@ async function main(): Promise<void> {
     // Help remains usable for the session when browser preferences are denied.
   }
   const helpPanel = new HelpPanel(helpRoot, helpTitle, preferences);
+  const lightingMode = new LightingMode(lightingModeButton, preferences);
   let helpReturnTarget: HTMLElement = canvas;
   const firstRunHelpOpened = helpPanel.showOnFirstRun();
   if (firstRunHelpOpened) overlayPause.suspend('help');
@@ -705,6 +712,13 @@ async function main(): Promise<void> {
   const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles() };
   const camera = { scale: 1, originX: 0, originY: 0 };
   let cameraDirty = true;
+  let lightingDirty = false;
+  let lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true);
+  lightingModeButton.addEventListener('click', () => {
+    const wasFlat = lightingMode.isFlat();
+    lightingMode.toggle();
+    if (lightingMode.isFlat() !== wasFlat) cameraDirty = true;
+  });
   // A narrowed alias: the null check on `canvas` above does not survive
   // into the closure below, and `applyCamera` runs long after it.
   const stage: HTMLCanvasElement = canvas;
@@ -733,9 +747,11 @@ async function main(): Promise<void> {
    * (the window's CSS size times the device pixel ratio, so the canvas
    * is sharp on a phone instead of upscaled), the clamped origin, and
    * the static floor-and-walls block, which bakes screen positions and
-   * so must be rebuilt - the one legitimate rebuild, gated by the dirty
-   * flag rather than run per frame ([V11] is what an ungated rebuild
-   * costs; during a drag this runs once per FRAME, not per event).
+   * local-light values and so must be rebuilt. Camera changes, a restored
+   * world, and a flat-light toggle all enter through the camera-dirty gate;
+   * restore additionally refreshes the light map inside that gate. Ordinary
+   * frames do not upload this block ([V11] is what an ungated rebuild costs;
+   * during a drag this runs once per FRAME, not per event).
    *
    * The origin is FREE STATE since pan landed ([V8]): it starts at
    * `cameraOrigin`'s centred answer and belongs to the gestures from
@@ -744,6 +760,10 @@ async function main(): Promise<void> {
    */
   let cameraInitialised = false;
   function applyCamera(): void {
+    if (lightingDirty) {
+      lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true);
+      lightingDirty = false;
+    }
     const ratio = window.devicePixelRatio || 1;
     const width = Math.max(1, Math.round(stage.clientWidth * ratio));
     const height = Math.max(1, Math.round(stage.clientHeight * ratio));
@@ -775,6 +795,7 @@ async function main(): Promise<void> {
       camera.originY,
       depthScale,
       camera.scale,
+      lightingMode.isFlat() ? null : lighting,
     );
     renderer.setStaticGeometry(staticGeometry.instances, staticGeometry.count);
     cameraDirty = false;
@@ -863,6 +884,17 @@ async function main(): Promise<void> {
   // it is presentation - two players watching one simulation at
   // different zooms is the ordinary multiplayer picture.
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reflectedReducedMotion: boolean | null = null;
+  const syncSystemLighting = (): void => {
+    const active = reducedMotion.matches;
+    if (active === reflectedReducedMotion) return;
+    reflectedReducedMotion = active;
+    const wasFlat = lightingMode.isFlat();
+    lightingMode.setSystemFlat(active);
+    if (lightingMode.isFlat() !== wasFlat) cameraDirty = true;
+  };
+  syncSystemLighting();
+  reducedMotion.addEventListener('change', syncSystemLighting);
 
   attachPointerInput(
     canvas,
@@ -917,6 +949,12 @@ async function main(): Promise<void> {
     const deltaMs = nowMs - previousFrameMs;
     previousFrameMs = nowMs;
 
+    // Chromium's media-query event is not reliable under every embedding and
+    // emulation path. The value is already read each frame for animation, so
+    // this cached check makes a live accessibility change converge without
+    // touching the DOM or static buffer on steady frames.
+    syncSystemLighting();
+
     // The camera settles before anything reads it, so the statics, the
     // entities and the picking all see one projection per frame. On
     // every frame without a zoom or a resize this is one boolean check.
@@ -940,16 +978,17 @@ async function main(): Promise<void> {
       camera.scale,
       reducedMotion.matches,
       sim.clockTick(),
+      lightingMode.isFlat() ? null : lighting,
     );
-    // The day/night cycle. `reducedMotion` also pins the light to noon:
-    // a world that dims and warms on its own is exactly the kind of
-    // unrequested change that setting exists to switch off, and the
-    // codebase already respects it for the walking lift.
+    // The day/night cycle. `LightingMode` combines the player's saved flat
+    // choice with reduced motion's temporary constraint, so one effective
+    // state governs ambient light, pools, and the button without rewriting
+    // the player's preference.
     renderer.draw(
       instances,
       instanceCount(sim, selected),
       camera.scale,
-      reducedMotion.matches
+      lightingMode.isFlat()
         ? AMBIENT_NEUTRAL
         : ambientFor(sim.clockTick(), sim.dayTicks()),
     );

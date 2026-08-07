@@ -3925,3 +3925,86 @@ Do not continue to final validation until the restored hash matches exactly.
 **How to verify.** After every hand-mutation sequence, compare SHA-256 for the
 authored file, inspect the scoped diff, rebuild, and rerun the unmutated geometry
 gate. A clean-looking browser frame is not byte restoration.
+
+## [L-shadows-belong-to-one-light-before-composition] Occlusion is not a global tile flag
+
+**What happened.** The first [ML-pools] implementation built one union of every
+object's `+x` shadow band, then applied that mask while spreading every light.
+A lamp west of a tile marked it shadowed, and a television east of the same
+tile was dimmed too. The field still looked plausible in single-source tests;
+the two-light overlap test exposed the wrong `0.10` where the television's
+unshadowed `0.12` should have won.
+
+The first correction materialised one `ShadowCaster` object per render row.
+That moved the calculation off the frame-hot path but still violated [D11]'s
+stronger rule: zero-copy views do not become permission to rebuild every row as
+a JavaScript object during startup and Load.
+
+**Root cause.** Shadow state was represented after composition when it belongs
+to one source contribution before composition. The convenient global mask
+could not say which side of a caster a light occupied. The convenient caster
+array then copied row-shaped bridge data into heap-shaped JavaScript data.
+
+**Prevention rule.** Compute occlusion inside each source's contribution, then
+combine completed contributions by the lighting rule, here `max`. Keep bridge
+work columnar: rescan fresh typed-array views or use reusable primitive scratch
+columns. Do not materialise per-entity objects merely because the calculation
+runs less often than a frame.
+
+**How to verify.** Put a lamp west and a weaker light east of the lamp's shadow
+tile. The east light's stronger unshadowed value must survive regardless of row
+order. Add ordinary multi-tile furniture between a lamp and a probe so deleting
+the caster path brightens the probe, and place an agent in the same geometry so
+accepting agents as casters darkens it. A static scan of `lighting.ts` must find
+no per-row object construction, retained WASM view, second draw, or second
+submit.
+
+## [L-semantic-overlays-need-their-own-lighting-contract] World tint is not UI contrast
+
+**What happened.** The first local-light build kept the sage selection ring in
+the same ambient and pool lighting as the floor beneath it. At midnight that
+ring measured roughly 1.38:1 against the floor. The command target still
+existed, but it was no longer reliably visible in the exact scene where the
+new lighting mattered most.
+
+**Root cause.** Selection was treated as another world sprite even though it
+communicates player state. A colour that identifies selection at noon does not
+automatically provide enough luminance contrast after the floor and overlay
+take the same night multiply. Local light can narrow that difference again.
+
+**Prevention rule.** Give semantic canvas overlays an explicit lighting and
+contrast contract. Keep the identity colour if it helps recognition, but add
+an independently legible key when the overlay must survive the full ambient
+range. Measure both the darkest floor and the brightest local pool; checking
+only one end leaves the other failure available.
+
+**How to verify.** Select a Sim at midnight outside a pool and beside the
+strongest source. Sample rendered pixels from the legibility key and the
+adjacent floor, and require at least 3:1 in both scenes. Muting the key or
+letting it inherit world emissive must make the focused renderer test or the
+displayed contrast gate fail.
+
+## [L-media-query-events-need-a-cheap-convergence-path] Preference events can go missing
+
+**What happened.** The lighting control listened for the reduced-motion media
+query's `change` event. One embedded-Chromium run delivered it and forced Flat;
+a clean focused retry changed `matchMedia(...).matches` but never called the
+application listener, leaving `Light: auto` visible under reduced motion. A
+separate diagnostic listener received the browser event, which made the
+failure intermittent and particularly unpleasant to reason about.
+
+**Root cause.** Presentation state converged only through one browser event.
+The frame already read the same media-query value for animation, but the light
+controller trusted event delivery as if it were simulation data. In an embed
+or emulation path, that trust was stronger than the platform evidence.
+
+**Prevention rule.** Keep the normal event listener for immediate response,
+but give accessibility preferences a cheap idempotent convergence path when
+their current value is already read regularly. Cache the last reflected value;
+steady frames do one comparison and never rewrite the DOM or static buffer.
+
+**How to verify.** Delete the frame-loop synchronization while leaving the
+event listener intact, change emulated reduced motion after startup, and watch
+the button remain Auto in the affected embed. Restore the cached check and
+require reduce to produce disabled `Light: flat` with `aria-pressed=true`, then
+require no-preference to restore enabled `Light: auto` without reload.

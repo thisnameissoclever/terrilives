@@ -14,6 +14,7 @@ import {
   screenY,
 } from './render/iso.js';
 import {
+  ACTIVITY_AT_WORK,
   EMISSIVE_NONE,
   FLOATS_PER_INSTANCE,
   KIND_AGENT,
@@ -22,6 +23,11 @@ import {
   type InstanceArray,
 } from './render/instances.js';
 import { SPRITES, spriteIndex } from './render/atlas.js';
+import {
+  emissiveForSprite,
+  sampleLight,
+  type TileLighting,
+} from './render/lighting.js';
 
 /**
  * The atlas slot for the selection ring, resolved once at module load.
@@ -33,6 +39,8 @@ import { SPRITES, spriteIndex } from './render/atlas.js';
  * picture.
  */
 const SELECTION_RING_SPRITE = spriteIndex('selectionRing');
+/** Semantic overlay strength: the ring must stay legible at midnight. */
+const SELECTION_RING_EMISSIVE = 1;
 
 /**
  * The sim looks, one atlas entry each. [ML-chars].
@@ -201,30 +209,6 @@ export function simBodySprite(
 }
 
 /**
- * Sprites that keep their own colour after dark, as an emissive strength
- * in [0, 1]. See `EMISSIVE_NONE` in `instances.ts` for what the channel
- * means.
- *
- * This exists because [ML-ambient] created the problem it solves. The
- * ambient multiply darkens every fragment as night falls, which for a lit
- * lamp and a running television is exactly backwards: the room goes dark
- * and so do the two things lighting it.
- *
- * 0.85 rather than 1.0 deliberately. At 1.0 the whole sprite ignores the
- * hour, stand and outline included, and the object reads as a cutout
- * pasted over the night rather than as a light standing in a room. At
- * 0.85 the shade holds its colour and the base still sits in the dark
- * with everything else.
- *
- * A `Map` looked up per entity per frame, which allocates nothing - [D11]
- * is about per-entity OBJECTS, and this builds none.
- */
-const EMISSIVE_SPRITES = new Map<number, number>([
-  [spriteIndex('lampRoundFloor'), 0.85],
-  [spriteIndex('televisionVintage'), 0.85],
-]);
-
-/**
  * The activity-indicator bubbles, one atlas slot per code that draws.
  * Index 0 and 1 (none, walking) are deliberately null: an idle sim needs
  * no badge and a walking sim's motion IS its indicator - a bubble on
@@ -249,8 +233,6 @@ const INDICATOR_SPRITES: readonly (number | null)[] = [
  * its draw, its bubble, its ring and its pick. One code, shared with
  * input.ts, so the draw skip and the pick skip cannot disagree.
  */
-export const ACTIVITY_AT_WORK = 6;
-
 /** The `render_buffer::activity::WALKING` code. */
 export const ACTIVITY_WALKING = 1;
 
@@ -440,8 +422,7 @@ export function advanceSimulationFrame(
  *
  * Naming the subset rather than importing the class keeps the instance
  * builder testable without a WASM module, and keeps the render path
- * honest about what it depends on: three accessors and a count, all
- * re-read on every call.
+ * honest about the columns it depends on. Every view is re-read on each call.
  */
 export interface RenderSource {
   readonly count: number;
@@ -575,6 +556,7 @@ export function buildInstances(
   scale = 1,
   reducedMotion = false,
   simulationTick = 0,
+  lighting: TileLighting | null = null,
 ): InstanceArray {
   const count = source.count;
   // Room for the entities, one bubble and one carried badge each in
@@ -643,6 +625,9 @@ export function buildInstances(
             reducedMotion,
           )
         : sprites[i];
+    const localLight = lighting === null
+      ? EMISSIVE_NONE
+      : sampleLight(lighting, Math.floor(wx), Math.floor(wy));
     writeInstance(
       scratch,
       i,
@@ -660,7 +645,7 @@ export function buildInstances(
       TINT_NONE,
       TINT_NONE,
       TINT_NONE,
-      EMISSIVE_SPRITES.get(sprite) ?? EMISSIVE_NONE,
+      Math.max(emissiveForSprite(sprite), localLight),
     );
   }
 
@@ -712,6 +697,9 @@ export function buildInstances(
       kinds[i] === KIND_AGENT && activities[i] === ACTIVITY_WALKING
         ? walkingLiftPx(wx, wy, reducedMotion, scale)
         : 0;
+    const localLight = lighting === null
+      ? EMISSIVE_NONE
+      : sampleLight(lighting, Math.floor(wx), Math.floor(wy));
     writeInstance(
       scratch,
       slot++,
@@ -720,6 +708,10 @@ export function buildInstances(
       screenY(wx, wy, originY, scale) - CARRIED_LIFT * scale - lift,
       layeredDepth(wx, wy, gridSize, LAYER_SIM) - INDICATOR_DEPTH_NUDGE,
       sprite,
+      TINT_NONE,
+      TINT_NONE,
+      TINT_NONE,
+      localLight,
     );
   }
 
@@ -745,6 +737,10 @@ export function buildInstances(
       screenY(wx, wy, originY, scale),
       layeredDepth(wx, wy, gridSize, LAYER_PROP),
       SELECTION_RING_SPRITE,
+      TINT_NONE,
+      TINT_NONE,
+      TINT_NONE,
+      SELECTION_RING_EMISSIVE,
     );
   }
 

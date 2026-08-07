@@ -1,10 +1,11 @@
 # Muted Line, the day/night cycle, and circadian sleep
 
-Status: **six of nine roadmap items shipped.** [ML-gen], [ML-ci],
-[ML-sprites], [ML-ambient], [ML-tint], and [ML-chars] are in the running game.
+Status: **seven of nine roadmap items shipped.** [ML-gen], [ML-ci],
+[ML-sprites], [ML-ambient], [ML-tint], [ML-chars], and [ML-pools] are in the
+running game.
 The circadian schema and scoring mechanism are built but the authored curve is
-**switched off** pending [ML-feel]. [ML-pools], [B7], and [ML-feel] remain
-open. See `docs/FEATURES.md` for the concise current-state account.
+**switched off** pending [ML-feel]. [B7] and [ML-feel] remain open. See
+`docs/FEATURES.md` for the concise current-state account.
 
 Originally: **implementation plan, agreed art direction, nothing built.** The
 owner picked Muted Line on 2026-08-03 from the round-two directions, which
@@ -22,13 +23,13 @@ this document, and it decides it in the cheap direction.
 Three consequences worth stating before the detail:
 
 **The lighting rig fits inside the existing single draw call.** [D10]'s one
-draw and one submit per frame survives the whole day/night cycle. No
-post-process pass, no second pipeline, and none of the numbers in
-`docs/gpu-verification.md` need re-measuring. The trick is that light pools
-become the *tint of instances already being drawn* rather than new geometry,
-and the reason it has to work that way is that the pipeline alpha-tests at
-0.5 and writes depth, so a soft additive quad would be discarded below half
-alpha and would claim depth above it.
+draw and one submit per frame survives the whole day/night cycle. There is no
+post-process pass or second pipeline. Light pools become the *tint of instances
+already being drawn* rather than new geometry, because the pipeline alpha-tests
+at 0.5 and writes depth. A soft additive quad would be discarded below half
+alpha and would claim depth above it. The GPU counts still require a displayed
+remeasurement after any renderer change; architecture is evidence about the
+shape of the path, not permission to recycle old measurements.
 
 **Circadian sleep needs no new mechanism.** The scoring path already has a
 tag-keyed multiplier for trait dispositions, the clock already exists, and
@@ -179,6 +180,27 @@ list of lights, plus the same tint applied to whatever object or sim stands
 on that tile. Cast shadows are the same thing with a darker value offset
 along the key direction.
 
+**As built,** the floor lamp uses the graph-distance profile
+`[0.35, 0.22, 0.10, 0.04]`; the television uses the weaker
+`[0.25, 0.12, 0.04]`. Values combine by maximum, so declaration order cannot
+change the room. Interior wall tiles stop the four-way flood, doorway gaps pass
+it, and wall panels sample the brightest reachable adjacent floor. The field
+includes the one-tile boundary ring needed by the north and west wall panels.
+
+Every smart object casts a one-tile shadow immediately beyond its compiled
+footprint in the fixed `+x` key direction. Each light computes that attenuation
+before maximum composition, so a television on the far side can still light a
+tile shadowed from the lamp. Sims keep their baked contact shadows and do not
+cast tile shadows. Object footprint width and depth cross [D11] as aligned
+`Uint32Array` views; the shell does not reconstruct content geometry or create
+per-entity JavaScript objects.
+
+The field is rebuilt from the render snapshot at startup and after Load.
+Camera moves rebuild the existing static instance block with the same field;
+ordinary frames update only the existing dynamic prefix. Sims, smart objects,
+and carried badges sample their interpolated tile. Selection and
+activity indicators remain semantic overlays rather than inheriting pool tint.
+
 Nothing new is drawn. These are instances the renderer already emits,
 carrying a different tint, so the frame stays at one draw and one submit.
 
@@ -205,6 +227,12 @@ would make the hash depend on the renderer. State it as a rule, and assert
 it: a determinism run with lighting disabled must produce the same hash as
 one with it enabled.
 
+The boundary test now runs two real shipped-lot WASM simulations for 20 ticks,
+building a non-empty enabled field beside one and an exact-zero disabled field
+beside the other. Their final world hashes are identical. This proves the
+presentation calculation never writes back into simulation state; longer
+simulation determinism remains owned by [D12].
+
 ### [ML-a11y] Night must stay playable
 
 Two requirements, neither optional:
@@ -212,11 +240,29 @@ Two requirements, neither optional:
 - **An ambient floor.** The darkest hour must still be legible on a dim
   phone in daylight, which is the actual worst case. Pick the floor by
   measuring against a real device, not by eye on a desktop monitor.
-- **A flat-lighting toggle** that pins ambient to noon. This belongs with
+- **A flat-lighting toggle** that pins ambient to neutral daylight. This belongs with
   the existing reduced-motion handling rather than buried in a menu.
+
+**As built,** `Light: auto` and `Light: flat` live in the household status
+panel. The explicit preference is versioned in browser storage. Reduced motion
+temporarily forces and disables the flat control without overwriting that saved
+choice. Flat mode uses exact neutral ambient and removes local pools; it does
+not pretend that a moving noon curve and a fixed accessibility mode are the
+same state.
 
 The HUD is DOM and sits outside the canvas, so none of this touches the
 readouts. That is the [D-7] DOM-for-UI decision paying off again.
+
+**Displayed acceptance.** The local production build was watched at noon,
+dusk, and midnight. Auto showed the authored ambient transition and local
+sources; Flat returned exact neutral lighting and survived reload; reduced
+motion forced and disabled Flat without overwriting the saved choice, then
+restored Auto live; and an explicit Load rebuilt the midnight pools. The shell
+uses both the normal media-query event and a cached frame check because the
+embedded Chromium path missed one observed event. The selected-Sim ring's pale
+full-emissive outer key measured 4.41:1 against the brightest adjacent
+lamp-lit floor and 5.50:1 against the darkest sampled floor. Desktop browser
+acceptance does not close the required physical-phone daylight check.
 
 ---
 
@@ -412,7 +458,7 @@ because tuning a sleep curve you cannot see is guesswork.
 | 4 | [ML-ambient] tier 1 ambient tint | Shipped | Day/night visible for half a day's work | ~half day |
 | 5 | [ML-curve] [ML-tag] [ML-chrono] [ML-wake] circadian sleep | Mechanism shipped; curve off pending item 9 | Now tunable against something you can see | ~3 days |
 | 6 | [ML-tint] per-instance tint | Shipped | Unlocks emissives, sim colour and [G4] | ~2 days |
-| 7 | [ML-pools] pools and cast shadows | Open | Needs 6 | ~2 days |
+| 7 | [ML-pools] pools and cast shadows | Shipped | Needs 6 | ~2 days |
 | 8 | [B7] walls on tile edges | Open | The picket-fence read; independent of the rest | ~3 days |
 | 9 | [ML-feel] measured seven-day run | Open | Nothing above counts until this is watched | ~1 day |
 

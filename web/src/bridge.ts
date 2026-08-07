@@ -140,6 +140,28 @@ export class SimBridge {
   }
 
   /**
+   * Compiled footprint width in lot tiles for each render row.
+   * Re-create the view on every call because a sync may move the Rust vector
+   * and WASM memory growth detaches the previous `ArrayBuffer`.
+   */
+  footprintWidths(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.footprint_widths_ptr(),
+      this.count,
+    );
+  }
+
+  /** Compiled footprint depth in lot tiles. Same lifetime as widths. */
+  footprintDepths(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.footprint_depths_ptr(),
+      this.count,
+    );
+  }
+
+  /**
    * What each row is carrying, as pack item-kind indices with a
    * u32::MAX empty-hands sentinel - the chain's hands, made visible.
    * Read every frame like every other view; resolve names via

@@ -161,6 +161,11 @@ id = "television"
 name = "Cathode Companion"
 sprite = "televisionVintage"
 
+  # Presentation treats the screen as a weak local light. There is no authored
+  # power state yet, so the pool remains visible whether or not somebody is
+  # watching; keep it weaker than the floor lamp until object state crosses the
+  # render boundary.
+
   # Two slots, so it does not become contended when households grow past
   # one sim. More fun per tick than either the sofa or the bookshelf, and
   # no comfort at all, which is what the sofa trades against.
@@ -626,8 +631,10 @@ id = "floor_lamp"
 name = "Illumination, Ambient"
 sprite = "lampRoundFloor"
 
-  # No interactions. The house has no lighting model, so this lamp lights
-  # nothing; it is here because a living room without one reads as an office.
+  # No interactions. Presentation uses this footprint as the room's strongest
+  # local light source; it stays independent of autonomy and save state. The
+  # object remains here for the same reason it was authored: a living room
+  # without one reads as an office.
 
 [[object]]
 id = "coat_rack"

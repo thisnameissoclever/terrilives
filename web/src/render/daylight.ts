@@ -117,5 +117,5 @@ export function ambientFor(tick: number, dayTicks: number): Ambient {
   ];
 }
 
-/** Noon, for callers that want the cycle off. Also the reduced-motion answer. */
+/** Noon for callers that want the cycle off, including Flat and reduced motion. */
 export const AMBIENT_NEUTRAL: Ambient = [1, 1, 1, 1];

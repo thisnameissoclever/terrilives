@@ -80,6 +80,7 @@ Seven needs, each a number from 0 (desperate) to 100 (fully satisfied):
 | **keyboard target** | The world person or object chosen with arrow keys while the game view is focused. Space selects a person; Enter opens that target's action menu. |
 | **Help** | The persistent copy of the first-run control guide. Closing it is remembered in browser preferences, separately from the game save. |
 | **needs panel** | The collapsible panel named for the selected person. On a narrow screen it starts folded so controls do not cover most of the house. |
+| **Light: auto / Light: flat** | Auto follows the simulation clock and shows local lamp and television pools. Flat uses neutral daylight and removes local pools. The choice is a browser preference rather than game state. Reduced motion temporarily forces Flat without overwriting the saved choice. |
 
 ## Habituation - "not that again"
 

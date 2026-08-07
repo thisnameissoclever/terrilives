@@ -28,11 +28,7 @@
  * holds only the part that needs a pick: which rows a right click asks for.
  */
 
-import {
-  ACTIVITY_AT_WORK,
-  ACTIVITY_WALKING,
-  WALK_LIFT_PX,
-} from './frame.js';
+import { ACTIVITY_WALKING, WALK_LIFT_PX } from './frame.js';
 import { SPRITES } from './render/atlas.js';
 import {
   DRAG_THRESHOLD_PX,
@@ -41,7 +37,7 @@ import {
   wheelZoom,
   type Camera,
 } from './render/camera.js';
-import { KIND_AGENT } from './render/instances.js';
+import { ACTIVITY_AT_WORK, KIND_AGENT } from './render/instances.js';
 import {
   LAYER_PROP,
   LAYER_SIM,
