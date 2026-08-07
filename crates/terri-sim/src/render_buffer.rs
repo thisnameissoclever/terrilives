@@ -404,6 +404,68 @@ mod tests {
     }
 
     #[test]
+    fn rectangular_object_eat_facing_pins_every_footprint_centre_operator() {
+        use crate::render_buffer::{activity, facing, visual_action};
+        use terri_core::{Footprint, Target};
+
+        let shipped = terri_data::pack();
+        let shipped_fridge = shipped.find("fridge").expect("shipped fridge");
+        let mut fridge_definition = shipped.object(shipped_fridge).clone();
+        fridge_definition.footprint = Footprint { width: 3, depth: 2 };
+        let pack = crate::test_content::pack(vec![fridge_definition]);
+        let fridge = pack.find("fridge").expect("fixture fridge");
+        let snack = pack
+            .object(fridge)
+            .interactions
+            .iter()
+            .position(|interaction| interaction.id == "grab_snack")
+            .expect("fixture snack interaction") as u32;
+
+        let mut sim = crate::test_content::sim_with(20, 20, pack);
+        let target = sim
+            .world_mut()
+            .spawn((Position { x: 8.0, y: 8.0 }, SmartObject(fridge)))
+            .id();
+
+        // The correct centre is (9.0, 8.5). Each position sits between that
+        // point and one family of arithmetic mutants, so checking only a
+        // convenient cardinal approach cannot let a wrong formula survive.
+        let cases = [
+            ((9.2, 8.4), facing::NEGATIVE_X),
+            ((8.9, 8.0), facing::POSITIVE_Y),
+            ((8.9, 9.0), facing::NEGATIVE_Y),
+        ];
+        let mut agents = Vec::new();
+        for ((x, y), expected_facing) in cases {
+            let agent = sim
+                .world_mut()
+                .spawn((
+                    Agent,
+                    Position { x, y },
+                    Eating {
+                        object: fridge,
+                        interaction: snack,
+                        remaining_ticks: 10,
+                    },
+                    Target {
+                        object: target,
+                        interaction: snack,
+                    },
+                ))
+                .id();
+            agents.push((agent, expected_facing));
+        }
+
+        sim.sync_render_buffer();
+        for (agent, expected_facing) in agents {
+            assert_eq!(
+                projection_of(sim.render_buffer(), agent),
+                (visual_action::EAT, expected_facing, activity::EATING)
+            );
+        }
+    }
+
+    #[test]
     fn terminal_dinner_projects_eat_and_fork_activity_from_the_exact_station() {
         use crate::render_buffer::{activity, facing, visual_action};
         use crate::systems::chain::CHAIN_STEP;
