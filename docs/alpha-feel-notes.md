@@ -2234,3 +2234,53 @@ The rebased local production build (`index-BYhrFTTB.js`,
   220-pixel scrollable flex fallback, kept the viewport centre on the canvas,
   and retained 44-pixel targets without page overflow. This closes the public
   browser gate, not the physical-phone boundary above.
+
+## [A-night-light-pools] Night has local sources without a second draw
+
+The local production build was watched in the in-app browser with release WASM
+at 1280 by 720. This is pre-merge local evidence; public Pages and a physical
+phone remain separate gates.
+
+- **The day reads as a day.** At Day 2 11:54 the lot returned to the authored
+  neutral palette. At 19:51 it was visibly warmer. At 00:06 it was cool and
+  dark while the floor lamp formed the stronger stepped pool and the
+  television formed a weaker one. Interior walls stopped the fields, doorway
+  gaps passed them, and the fixed `+x` furniture-shadow bands remained visible.
+- **Selection survives the new range.** The selected Sim was watched outside a
+  pool and beside the strongest walkable lamp-lit tile. The pale full-emissive
+  outer key measured 5.50:1 against the darkest sampled midnight floor and
+  4.41:1 against the brightest adjacent rendered floor in the lamp pool. The
+  sage inner key remains the identity colour; it does not carry the contrast
+  claim by itself.
+- **Flat light is a real preference.** `Light: flat` restored exact neutral
+  lighting, exposed `aria-pressed=true`, survived a reload, and returned to
+  `Light: auto` without changing the simulation. Reduced-motion emulation
+  forced and disabled Flat without overwriting the saved choice. Clearing the
+  emulation restored Auto live. The embedded Chromium path missed one change
+  event during the first focused retry, so the shell now keeps the normal
+  listener and also compares the already-read preference once per frame. That
+  cached fallback changes no DOM or buffer while the value is steady. Before
+  it was added, the same retry reproduced the stale Auto control; afterward,
+  reduce and no-preference converged within the next watched frame. This proves
+  the browser media-query path, not a physical operating-system setting.
+- **Load rebuilds presentation from current rows.** Confirming Load returned
+  to the saved Day 2 midnight scene with the local pools present and the
+  dialog closed. The browser reported no warning or error during the visual,
+  preference, responsive, Load, or GPU passes.
+- **The renderer kept its budget.** A watched 1.05-second interval recorded
+  134 frames, 134 draws, and 134 submits. Ordinary frames wrote the 48-byte
+  ambient uniform and existing dynamic prefix but not the static block. A
+  Flat toggle kept one draw and submit per frame and added one 2,264-float,
+  9,056-byte static upload. No second pass, pipeline, or geometry appeared.
+- **The new HUD control did not eat the phone layout.** At 390 by 844 the
+  folded transparent canvas aperture measured 416.81 pixels and hit the stage.
+  At 320 by 568 it measured 140.81 pixels; every visible target remained at
+  least 44 by 44 and document width stayed 320. The 568 by 320 and 480 by 320
+  short-landscape fallback remained vertically scrollable. At 240 by 568 the
+  Light button wrapped without horizontal overflow. With Needs open and body
+  text set to 26 pixels at 320 by 568, the outer HUD exposed 17 pixels of
+  scroll, Help became fully reachable, and no target fell below 44 pixels.
+- **The remaining accessibility boundary is physical.** The midnight floor
+  still needs observation on a real phone in daylight, including safe-area
+  insets and ordinary touch use. Browser screenshots, source contrast, and
+  emulated media preferences do not close that requirement.

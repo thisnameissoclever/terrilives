@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync } from 'node:fs';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge } from '../src/bridge.js';
+import { buildLightField } from '../src/render/lighting.js';
 
 // wasm-pack --target web emits a `_bg.wasm` that imports a `_bg.js` glue
 // module which only exists for --target bundler, so the `memory` export
@@ -19,6 +20,43 @@ beforeAll(async () => {
 });
 
 describe('SimBridge', () => {
+  it('keeps enabled and disabled presentation lighting out of the world hash', () => {
+    const enabledHandle = SimHandle.from_lot();
+    const disabledHandle = SimHandle.from_lot();
+    const enabled = new SimBridge(enabledHandle, wasmMemory);
+    const disabled = new SimBridge(disabledHandle, wasmMemory);
+    const width = enabledHandle.lot_width();
+    const height = enabledHandle.lot_height();
+    expect(disabledHandle.lot_width()).toBe(width);
+    expect(disabledHandle.lot_height()).toBe(height);
+    let sawEnabledPool = false;
+
+    for (let tick = 0; tick < 20; tick += 1) {
+      enabled.tick();
+      const enabledField = buildLightField(
+        enabled,
+        width,
+        height,
+        enabled.wallTiles(),
+        true,
+      );
+      sawEnabledPool ||= enabledField.values.some((value) => value > 0);
+
+      disabled.tick();
+      const disabledField = buildLightField(
+        disabled,
+        width,
+        height,
+        disabled.wallTiles(),
+        false,
+      );
+      expect(disabledField.values.every((value) => value === 0)).toBe(true);
+    }
+
+    expect(sawEnabledPool).toBe(true);
+    expect(enabled.worldHash()).toBe(disabled.worldHash());
+  });
+
   it('reads spawned positions without copying', () => {
     const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
     bridge.spawnObject(4, 5, 'fridge');
@@ -43,6 +81,27 @@ describe('SimBridge', () => {
     const kinds = bridge.kinds();
     expect(kinds[0]).toBe(1);
     expect(kinds[1]).toBe(0);
+  });
+
+  it('exposes content-derived footprint axes for every render row', () => {
+    // The 2x1 and 2x2 shipped beds make each axis non-constant and make the
+    // two columns differ. The 1x1 fridge and agent pin the row-wise default.
+    // This fails for swapped axes, a constant-one fill, or a sibling pointer.
+    const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
+    expect(bridge.spawnObject(1, 1, 'bed')).toBe(true);
+    expect(bridge.spawnObject(4, 1, 'double_bed')).toBe(true);
+    expect(bridge.spawnObject(8, 1, 'fridge')).toBe(true);
+    bridge.spawnAgent(11, 1, 50);
+
+    const widths = bridge.footprintWidths();
+    const depths = bridge.footprintDepths();
+    expect(Array.from(widths)).toEqual([2, 2, 1, 1]);
+    expect(Array.from(depths)).toEqual([1, 2, 1, 1]);
+    expect(Array.from(widths)).not.toEqual(Array.from(depths));
+    expect(Array.from(widths)).not.toEqual(Array.from(bridge.kinds()));
+    expect(Array.from(depths)).not.toEqual(Array.from(bridge.kinds()));
+    expect(widths.buffer).toBe(wasmMemory.buffer);
+    expect(depths.buffer).toBe(wasmMemory.buffer);
   });
 
   it('carries a content-resolved sprite index per entity', () => {
@@ -178,6 +237,8 @@ describe('SimBridge', () => {
     // equally long render-buffer vector.
     const heldVisualActions = bridge.visualActions();
     const heldFacings = bridge.facings();
+    const heldFootprintWidths = bridge.footprintWidths();
+    const heldFootprintDepths = bridge.footprintDepths();
     const bufferBeforeSpawns = wasmMemory.buffer;
     for (let i = 0; i < 2000; i++) {
       bridge.spawnAgent(i % 60, Math.floor(i / 60) % 60, 80);
@@ -191,6 +252,8 @@ describe('SimBridge', () => {
 
     expect(heldVisualActions.length).toBe(0);
     expect(heldFacings.length).toBe(0);
+    expect(heldFootprintWidths.length).toBe(0);
+    expect(heldFootprintDepths.length).toBe(0);
     expect(bridge.count).toBe(2002);
     // If views were cached across growth this reads zeroes or throws.
     const pos = bridge.positions();
@@ -198,12 +261,20 @@ describe('SimBridge', () => {
     expect(pos.some((v) => v !== 0)).toBe(true);
     const visualActions = bridge.visualActions();
     const facings = bridge.facings();
+    const footprintWidths = bridge.footprintWidths();
+    const footprintDepths = bridge.footprintDepths();
     expect(visualActions.length).toBe(2002);
     expect(facings.length).toBe(2002);
+    expect(footprintWidths.length).toBe(2002);
+    expect(footprintDepths.length).toBe(2002);
     expect(Array.from(visualActions.slice(0, 2))).toEqual([0, 2]);
     expect(Array.from(facings.slice(0, 2))).toEqual([0, 1]);
+    expect(footprintWidths.every((value) => value === 1)).toBe(true);
+    expect(footprintDepths.every((value) => value === 1)).toBe(true);
     expect(visualActions.buffer).toBe(wasmMemory.buffer);
     expect(facings.buffer).toBe(wasmMemory.buffer);
+    expect(footprintWidths.buffer).toBe(wasmMemory.buffer);
+    expect(footprintDepths.buffer).toBe(wasmMemory.buffer);
   });
 
   it('returns a usable view after growth detached an earlier one', () => {

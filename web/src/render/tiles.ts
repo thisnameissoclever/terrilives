@@ -3,19 +3,19 @@
  *
  * These are the only things on screen that are not entities. They are
  * also the only things that cannot move: a lot's dimensions and its wall
- * tiles are fixed for the session, so this runs **once per camera
- * change** - at load, and again when the window resizes or the player
- * zooms, gated by `main.ts`'s dirty flag - and its output is uploaded to
- * the front of the instance buffer and left there between changes.
+ * tiles are fixed for the session, so this runs only through `main.ts`'s
+ * camera-dirty gate: at startup, after Load, when the window or camera
+ * changes, and when flat lighting changes the static tint. Its output is
+ * uploaded to the front of the instance buffer and left there between changes.
  *
  * That placement is deliberate rather than incidental. `buildInstances`
  * in `frame.ts` runs every frame under [D11]'s no-allocation rule, and
  * [V11] measured what a single unexamined allocation on that path costs:
  * 57.76 MB over 2,394 frames, from a two-element array nobody had
- * checked. The shipped lot is 192 floor tiles, 28 interior wall panels and
- * 29 boundary panels, so rebuilding this per frame would be that mistake
- * an order of magnitude larger, for geometry that is incapable of
- * changing.
+ * checked. The shipped block is 221 floor tiles, 28 interior wall panels,
+ * 29 boundary panels, and 5 doorway panels. Local-light values are baked into
+ * those same rows; rebuilding or uploading them per frame would be that
+ * mistake an order of magnitude larger.
  *
  * Pure arithmetic and no GPU, like `iso.ts` and `instances.ts`, so it is
  * testable in Node.
@@ -24,9 +24,15 @@
 import { spriteIndex } from './atlas.js';
 import {
   FLOATS_PER_INSTANCE,
+  TINT_NONE,
   writeInstance,
   type InstanceArray,
 } from './instances.js';
+import {
+  sampleLight,
+  sampleWallLight,
+  type TileLighting,
+} from './lighting.js';
 import {
   FLOOR_DEPTH,
   LAYER_PROP,
@@ -51,6 +57,8 @@ export interface Lot {
 export interface StaticGeometry {
   readonly instances: InstanceArray;
   readonly count: number;
+  /** The contiguous floor prefix, used to prove lighting adds no geometry. */
+  readonly floorCount: number;
 }
 
 /**
@@ -134,6 +142,7 @@ export function buildStaticInstances(
   originY: number,
   gridSize: number,
   scale = 1,
+  lighting: TileLighting | null = null,
 ): StaticGeometry {
   const floorSprite = spriteIndex('floor');
   const wallSprites = {
@@ -212,7 +221,13 @@ export function buildStaticInstances(
   let slot = 0;
 
   /** A prop - a wall - which is depth-sorted per tile like any entity. */
-  const write = (x: number, y: number, layer: number, sprite: number): void => {
+  const write = (
+    x: number,
+    y: number,
+    layer: number,
+    sprite: number,
+    emissive = 0,
+  ): void => {
     writeInstance(
       instances,
       slot++,
@@ -220,6 +235,10 @@ export function buildStaticInstances(
       screenY(x, y, originY, scale),
       layeredDepth(x, y, gridSize, layer),
       sprite,
+      TINT_NONE,
+      TINT_NONE,
+      TINT_NONE,
+      emissive,
     );
   };
 
@@ -238,6 +257,10 @@ export function buildStaticInstances(
       screenY(x, y, originY, scale),
       FLOOR_DEPTH,
       sprite,
+      TINT_NONE,
+      TINT_NONE,
+      TINT_NONE,
+      lighting === null ? 0 : sampleLight(lighting, x, y),
     );
   };
 
@@ -252,14 +275,32 @@ export function buildStaticInstances(
   // `depthCompare: 'less'` rejects the second outright ([V12]).
   for (const key of walls) {
     const [x, y] = key.split(',').map(Number);
-    write(x, y, LAYER_PROP, wallSprites[wallOrientation(x, y, isWall)]);
+    write(
+      x,
+      y,
+      LAYER_PROP,
+      wallSprites[wallOrientation(x, y, isWall)],
+      lighting === null ? 0 : sampleWallLight(lighting, x, y),
+    );
   }
   for (const [x, y, sprite] of boundary) {
-    write(x, y, LAYER_PROP, sprite);
+    write(
+      x,
+      y,
+      LAYER_PROP,
+      sprite,
+      lighting === null ? 0 : sampleWallLight(lighting, x, y),
+    );
   }
   for (const [x, y, sprite] of doorways) {
-    write(x, y, LAYER_PROP, sprite);
+    write(
+      x,
+      y,
+      LAYER_PROP,
+      sprite,
+      lighting === null ? 0 : sampleLight(lighting, x, y),
+    );
   }
 
-  return { instances, count: slot };
+  return { instances, count: slot, floorCount };
 }

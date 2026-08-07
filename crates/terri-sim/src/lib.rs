@@ -37,6 +37,8 @@ struct RenderRow {
     x: f32,
     y: f32,
     kind: u32,
+    footprint_width: u32,
+    footprint_depth: u32,
     sprite: u32,
     activity: u32,
     visual_action: u32,
@@ -737,6 +739,8 @@ impl Sim {
         }
         self.render.positions.clear();
         self.render.kinds.clear();
+        self.render.footprint_widths.clear();
+        self.render.footprint_depths.clear();
         self.render.sprites.clear();
         self.render.ids.clear();
         self.render.activities.clear();
@@ -860,15 +864,17 @@ impl Sim {
             // shift also moves the pick box in the shell, which is the
             // point - the drawn sprite and the clickable area move
             // together.
-            let (x, y) = match object {
+            let (x, y, footprint_width, footprint_depth) = match object {
                 Some(placed) => {
                     let footprint = content.object(placed.0).footprint;
                     (
                         pos.x + (footprint.width as f32 - 1.0) * 0.5,
                         pos.y + (footprint.depth as f32 - 1.0) * 0.5,
+                        footprint.width,
+                        footprint.depth,
                     )
                 }
-                None => (pos.x, pos.y),
+                None => (pos.x, pos.y, 1, 1),
             };
             // What this row is DOING, for the [A-11] indicator bubbles.
             // Precedence mirrors the trace's motion classifier and for
@@ -949,6 +955,8 @@ impl Sim {
                 x,
                 y,
                 kind,
+                footprint_width,
+                footprint_depth,
                 sprite,
                 activity,
                 visual_action,
@@ -962,6 +970,8 @@ impl Sim {
             self.render.positions.push(row.x);
             self.render.positions.push(row.y);
             self.render.kinds.push(row.kind);
+            self.render.footprint_widths.push(row.footprint_width);
+            self.render.footprint_depths.push(row.footprint_depth);
             self.render.sprites.push(row.sprite);
             // The row's occupant, carried across so a click on a row can
             // name an entity in a command. See `RenderBuffer::ids` for why

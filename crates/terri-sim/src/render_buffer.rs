@@ -22,6 +22,18 @@ pub struct RenderBuffer {
     /// standing on an object is drawn in front of it rather than losing
     /// the depth test to it.
     pub kinds: Vec<u32>,
+    /// Compiled footprint width in lot tiles, one per row.
+    ///
+    /// Smart objects carry the content definition's width. Agents and
+    /// presentation-only bystanders carry 1 so every row has usable geometry
+    /// without making the shell reconstruct simulation facts.
+    pub footprint_widths: Vec<u32>,
+    /// Compiled footprint depth in lot tiles, one per row.
+    ///
+    /// Kept as a sibling column rather than packed with width so JavaScript can
+    /// view both directly as `Uint32Array`s. Like every render column, its row
+    /// order is the sorted `ids` order.
+    pub footprint_depths: Vec<u32>,
     /// Index into the sprite atlas, one per row.
     ///
     /// It is here rather than derived in the shell because it comes from
@@ -179,6 +191,57 @@ mod tests {
         // distance, pathing, and the world hash all read it.
         let pos = sim.world().get::<Position>(entity).expect("still placed");
         assert_eq!((pos.x, pos.y), (3.0, 6.0));
+    }
+
+    /// Footprint presentation metadata comes from the same compiled content
+    /// as placement and pathing. The fixture deliberately includes different
+    /// rectangular shapes, a 1x1 object, an agent, and a bystander. That makes
+    /// width and depth distinguishable and makes a constant-one, swapped-axis,
+    /// or entity-kind implementation fail rather than pass by coincidence.
+    #[test]
+    fn every_render_row_carries_its_content_footprint_or_one_by_one() {
+        let pack = terri_data::pack();
+        let bed = pack.find("bed").expect("the shipped pack declares the bed");
+        let double_bed = pack
+            .find("double_bed")
+            .expect("the shipped pack declares the double bed");
+        let fridge = pack
+            .find("fridge")
+            .expect("the shipped pack declares the fridge");
+
+        let mut sim = Sim::new_with_lot(16, 16);
+        sim.world_mut()
+            .spawn((Position { x: 1.0, y: 1.0 }, SmartObject(bed)));
+        sim.world_mut()
+            .spawn((Position { x: 4.0, y: 1.0 }, SmartObject(double_bed)));
+        sim.world_mut()
+            .spawn((Position { x: 8.0, y: 1.0 }, SmartObject(fridge)));
+        sim.world_mut().spawn((
+            Agent,
+            Position { x: 11.0, y: 1.0 },
+            Needs::with(NeedId::Hunger, 50.0),
+        ));
+        // A row with neither `Agent` nor `SmartObject` is the bystander case
+        // used by world-hash tests. It still needs valid presentation geometry.
+        sim.world_mut().spawn(Position { x: 13.0, y: 1.0 });
+
+        sim.sync_render_buffer();
+        let buf = sim.render_buffer();
+        assert_eq!(buf.count, 5);
+        assert_eq!(buf.footprint_widths, vec![2, 2, 1, 1, 1]);
+        assert_eq!(buf.footprint_depths, vec![1, 2, 1, 1, 1]);
+        assert_ne!(
+            buf.footprint_widths, buf.footprint_depths,
+            "a non-square shipped object must keep width and depth distinguishable"
+        );
+        assert_ne!(
+            buf.footprint_widths, buf.kinds,
+            "footprint width must not accidentally expose the sibling kind column"
+        );
+        assert_ne!(
+            buf.footprint_depths, buf.kinds,
+            "footprint depth must not accidentally expose the sibling kind column"
+        );
     }
 
     /// A `SpriteVariant` - the compiled form of a placement's `facing` -
@@ -1363,6 +1426,8 @@ mod tests {
         assert_eq!(buf.count, 2);
         assert_eq!(buf.positions.len(), 4);
         assert_eq!(buf.kinds.len(), 2);
+        assert_eq!(buf.footprint_widths.len(), 2);
+        assert_eq!(buf.footprint_depths.len(), 2);
         // Sorted by entity index, so the object spawned first comes first.
         assert_eq!(buf.positions[0], 4.0);
         assert_eq!(buf.positions[1], 5.0);
@@ -1503,7 +1568,7 @@ mod tests {
 
     /// Every column is the same length as `count`, sync after sync.
     ///
-    /// `sync_render_buffer` clears four vectors and fills four vectors, and
+    /// `sync_render_buffer` clears every vector and fills every row column, and
     /// the failure mode of forgetting one is not a crash: `ids` would keep
     /// growing while the other three restarted, so the view handed to
     /// JavaScript would be the right length but hold the FIRST sync's ids
@@ -1523,6 +1588,8 @@ mod tests {
             assert_eq!(buf.count, expected_count);
             assert_eq!(buf.ids.len(), expected_count, "ids grew or was not cleared");
             assert_eq!(buf.kinds.len(), expected_count);
+            assert_eq!(buf.footprint_widths.len(), expected_count);
+            assert_eq!(buf.footprint_depths.len(), expected_count);
             assert_eq!(buf.sprites.len(), expected_count);
             assert_eq!(buf.activities.len(), expected_count);
             assert_eq!(buf.visual_actions.len(), expected_count);

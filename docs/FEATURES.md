@@ -90,12 +90,13 @@ numbers that live in a generator. The plan is
 was chosen against is `tools/art-prototype/`, which is wired into nothing.
 The first options paper is superseded and kept for the record.
 
-**Six of its nine items are built.** The generator replaced every sprite
+**Seven of its nine items are built.** The generator replaced every sprite
 in the game ([ML-gen]), CI regenerates and diffs the atlas on every push so
 it is a reproducible build output rather than a trusted blob ([ML-ci]), the
 128-sprite cap is gone ([ML-sprites]), and **the day/night cycle is live**
-([ML-ambient]) - the world tints with the simulation clock, and reduced
-motion pins it to noon.
+([ML-ambient]) - the world tints with the simulation clock. Reduced motion
+forces the same neutral flat-light mode available from the household status
+panel without overwriting the player's saved lighting choice.
 
 **Per-instance tint is in the contract** ([ML-tint]): an instance is two
 `vec4`s now rather than one, the second carrying a colour and an emissive
@@ -103,6 +104,18 @@ strength. The lamp and the television are emissive, which is what stops
 the two things lighting the room from going out as night falls - the
 defect [ML-ambient] created by existing. The frame is still one draw and
 one submit; the tint rides on data the vertex stage already carried.
+
+**Nighttime light pools and cast shadows now use that channel** ([ML-pools]).
+The floor lamp and television emit neutral stepped tile fields with different
+profiles. Interior walls block the four-way flood, doorway gaps pass it, and
+wall panels sample adjacent lit floor. Every smart object casts a one-tile
+`+x` shadow from its compiled footprint; Sims retain their baked contact
+shadows. Pools also reach Sims, objects, and carried badges on the affected
+tile. They add no geometry, draw call, submit, pipeline, or simulation state.
+The selected-Sim ring has its own full-emissive pale outer key, so nearby light
+cannot wash out the command target. The watched midnight build measured that
+key at 4.41:1 against the brightest adjacent lamp-lit floor and 5.50:1 against
+the darkest sampled floor.
 
 **The household is Tim, Bill, and Casey, three different people** ([ML-chars]),
 keyed on each sim's stable entity id so a face survives a walk, a save and a reload.
@@ -155,11 +168,10 @@ draft's curve had the household asleep enough to starve an unrelated test
 fixture of kitchen activity. That is the drive overpowering the needs
 rather than weighting them, and it is a tuning question, not a code one.
 
-**Still unbuilt:** light pools and cast shadows ([ML-pools]), the measured
-tuning run the circadian curve needs ([ML-feel]), and walls on tile edges
-([B7]). [ML-pools] is the cheapest of the three now: it is per-tile tints
-on instances the renderer already emits, and the attribute to carry them
-landed with [ML-tint].
+**Still unbuilt:** the measured tuning run the circadian curve needs
+([ML-feel]) and walls on tile edges ([B7]). The lighting field remains
+deliberately presentation-only; a 20-tick real-WASM enabled-versus-disabled
+run ends at the same world hash.
 
 One finding from building it constrains every future content change:
 `ci.yml` runs `cargo mutants --timeout 60`, and that timeout bounds each
@@ -169,36 +181,37 @@ rather than against the wall clock - the circadian curve's first draft
 pushed one save test from 10 s to 39 s, which would have turned a large
 share of mutants into spurious timeouts.
 
-Three findings from the plan are worth carrying here because they change
-what the renderer work costs. The whole lighting rig fits inside the
-existing single instanced draw call, because light pools become the tint of
-instances already being drawn rather than new geometry, so [D10] and
-`docs/gpu-verification.md` survive untouched. Additive light quads would
-NOT work, because the pipeline alpha-tests at 0.5 and writes depth. And
-`SimClock::is_hour_boundary()`, unused since M0, finally has a consumer.
+Three findings from building it constrain future renderer work. The lighting
+rig fits inside the existing single instanced draw call because pools change
+instances already being drawn. Additive light quads would NOT work because the
+pipeline alpha-tests at 0.5 and writes depth. The static light field does not
+need `SimClock::is_hour_boundary()` at all: source geometry is rebuilt only at
+startup and Load, while the existing ambient uniform continues to read the
+clock each frame. The final displayed pass recorded one draw and one submit per
+frame, no steady static upload, and one 9,056-byte static upload when Flat
+changed. Those numbers belong to this build, not to future renderer changes;
+an unchanged design target is not an unchanged measurement.
 
 ### Next engineering slices
 
 This is the current restart point, separate from the historical milestone
 checklists below:
 
-1. Add nighttime light pools and cast shadows through the existing per-instance
-   tint path. [ML-pools] is the smallest remaining visual-quality slice and
-   does not require another draw call or new geometry.
-2. Continue the authored visual-action contract one coherent category at a
+1. Continue the authored visual-action contract one coherent category at a
    time. Conversation and eating now prove social, ordinary-object, and
    chain-step anchors end to end; the next category still needs its own real
    anchor and pose. Broad activity labels must not stand in for authored
    content, and sitting, sleeping, showering, and toilet poses still require
    action-position sockets before those poses can align without clipping or
    floating.
-3. Run the remaining physical-device check on the merged revision: verify the
-   new portrait HUD reflow, then long-press an object and confirm its action menu
-   remains reachable. The 390 by 844 and 320 by 568 browser layouts are watched
-   evidence in [A-mobile-hud-reflow], and reduced motion is watched in
-   [A-local-idle-wandering]; none substitutes for touch hardware or a safe-area
-   check on the actual phone.
-4. Hold criterion 11 open for the owner-authored dark-comedy voice session
+2. Run the remaining physical-device check on the merged revision: verify the
+   new portrait HUD reflow, inspect the darkest floor in daylight, then
+   long-press an object and confirm its action menu remains reachable. The 390
+   by 844 and 320 by 568 browser layouts are watched evidence in
+   [A-mobile-hud-reflow], and reduced motion and lighting are watched in
+   [A-local-idle-wandering] and [A-night-light-pools]; none substitutes for
+   touch hardware, sunlight, or a safe-area check on the actual phone.
+3. Hold criterion 11 open for the owner-authored dark-comedy voice session
    tracked by [T22]. Functional UI copy is intentionally plain until then.
 
 Local idle wandering is now shipped rather than a restart item. Its radius is

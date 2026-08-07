@@ -156,9 +156,10 @@ export const SPRITES: readonly AtlasSprite[] = [
  * The index of a sprite the shell itself draws by name, including lot
  * geometry and presentation overlays such as rings and indicators.
  *
- * Smart objects must NOT come through here. Their sprite is content, so
- * it arrives already resolved in the render buffer; naming one here
- * would be a second copy of the object list in TypeScript.
+ * Smart-object render rows must NOT derive their sprite through here. Their
+ * sprite is content, so it arrives already resolved in the render buffer.
+ * Presentation profiles may resolve a named atlas slot, then compare it with
+ * that resolved column; they must not infer an object's sprite from kind or id.
  *
  * Throws rather than returning -1: an unknown name is a build mistake,
  * and -1 would index the uniform array out of range, which WGSL clamps

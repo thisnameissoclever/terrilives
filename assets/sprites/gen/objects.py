@@ -30,8 +30,12 @@ def floor(d):
 
 
 def selectionRing(d):
-    diamond(d, A, A, B, B, None, outline=C["select"], width=2)
-    diamond(d, A + .09, A + .09, B - .09, B - .09, None, outline=C["select"], width=1)
+    # The pale outer key remains visible after the midnight ambient multiply;
+    # the sage inner key keeps the selection colour recognizable at noon.
+    # The renderer makes this overlay fully emissive, so both inks remain
+    # semantic UI rather than inheriting a nearby lamp pool.
+    diamond(d, A, A, B, B, None, outline=C["linen"], width=3)
+    diamond(d, A + .09, A + .09, B - .09, B - .09, None, outline=C["select"], width=2)
 
 
 def _wall(d, axis, height=WALL_H, skirt=True):

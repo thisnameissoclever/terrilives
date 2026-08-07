@@ -482,6 +482,17 @@ looks and a generated prop vocabulary from that atlas; per-instance tint and
 emissive strength carry the day/night treatment without a second draw. See
 TECH_STACK.md for the pipeline and the superseded alternatives.
 
+Nighttime pools are a presentation-only tile field built from the render
+snapshot. The lamp and television spread neutral emissive strength by four-way
+graph distance; walls block the flood, doorway gaps pass it, and static wall
+panels sample adjacent floor. Smart-object footprint columns place one-tile
+`+x` cast shadows without rebuilding content geometry in TypeScript. Static
+floor and wall instances bake the field when the camera block is uploaded;
+dynamic rows sample it at their interpolated tile. The field adds no instance,
+pipeline, render pass, draw, submit, persisted state, or world-hash input.
+Selection remains a semantic overlay: its planted ring uses a full-emissive
+pale outer key rather than inheriting the world or local-light tint.
+
 Walking motion remains a presentation transform rather than an animation
 atlas. The shell derives a two-footfall triangle wave from the interpolated
 world coordinate and lifts only the body and carried badge by at most two
@@ -520,10 +531,11 @@ pressed Save; that presentation boundary already exists for travel itself.
 The simulation owns all state in WASM linear memory. JS holds
 `Float32Array`/`Uint32Array` **views** over render-relevant slices, including
 positions, sprite IDs, activity codes, authored visual actions, and lot-axis
-facings, and feeds them directly into GPU buffers. Walking reads the activity
-and position columns. Conversation and eating read the separate action and
-facing columns, so the broad status vocabulary never becomes an art lookup by
-accident.
+facings, plus compiled footprint width and depth, and feeds them directly into
+GPU buffers. Walking reads the activity and position columns. Conversation and
+eating read the separate action and facing columns, so the broad status
+vocabulary never becomes an art lookup by accident. Lighting reads footprints
+only while rebuilding its static field and never retains a view across a sync.
 
 **Zero copy, and no per-entity JS objects, ever.**
 

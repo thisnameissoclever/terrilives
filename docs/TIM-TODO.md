@@ -121,8 +121,15 @@ state are in `docs/specs/2026-08-03-muted-line-implementation.md`; the
 prototype the choice was made against is `tools/art-prototype/`, wired into
 nothing.
 
-**One thing needs you, and it is small.** The circadian rhythm is built and
-switched off: `content/tuning.toml` carries the `[circadian]` block
+The nighttime presentation now includes wall-aware lamp and television pools,
+footprint-derived furniture shadows, a contrast-safe selection ring, and the
+persisted `Light: auto` / `Light: flat` accessibility control. The renderer
+still uses one draw and one submit per frame. The remaining device boundary is
+to look at the darkest floor on a physical phone in daylight; desktop contrast
+measurement does not answer that question.
+
+**One tuning decision needs you, and it is small.** The circadian rhythm is
+built and switched off: `content/tuning.toml` carries the `[circadian]` block
 commented out because the CURVE is not tuned, and tuning it wants a watched
 run rather than another guess from me. Uncommenting it turns on sims
 sleeping at night; the numbers beside it are a first draft, not a

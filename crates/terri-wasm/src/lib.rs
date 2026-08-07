@@ -305,6 +305,19 @@ impl SimHandle {
         self.sim.render_buffer().kinds.as_ptr()
     }
 
+    /// Compiled footprint width per render row. The pointer is invalid after
+    /// any sync or WASM memory growth, so the shell must build a fresh view for
+    /// every access and use `entity_count()` as its length.
+    pub fn footprint_widths_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().footprint_widths.as_ptr()
+    }
+
+    /// Compiled footprint depth per render row. Same pointer lifetime as every
+    /// other zero-copy render column; never cache it or its `ArrayBuffer`.
+    pub fn footprint_depths_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().footprint_depths.as_ptr()
+    }
+
     /// Atlas sprite index per row. Same caching hazard as every other
     /// pointer here; re-read it on every access.
     pub fn sprites_ptr(&self) -> *const u32 {
@@ -1479,6 +1492,33 @@ mod boundary_tests {
             "kinds_ptr must address the 0 = agent, 1 = smart object tags, \
              sorted by entity index, so the object spawned first comes first"
         );
+    }
+
+    #[test]
+    fn footprint_ptrs_address_distinct_content_derived_row_columns() {
+        // A 2x1 object makes width differ from depth. The 2x2 object keeps
+        // both columns non-constant, and the 1x1 object plus agent prove the
+        // default applies row by row. Together they kill swapped pointers,
+        // constant-one columns, and pointers into a same-length sibling.
+        let mut handle = SimHandle::new(16, 16);
+        assert!(handle.spawn_object(1.0, 1.0, "bed"));
+        assert!(handle.spawn_object(4.0, 1.0, "double_bed"));
+        assert!(handle.spawn_object(8.0, 1.0, "fridge"));
+        handle.spawn_agent(11.0, 1.0, 50.0);
+
+        let count = handle.entity_count();
+        let widths = addressed(handle.footprint_widths_ptr(), count, "footprint_widths_ptr");
+        let depths = addressed(handle.footprint_depths_ptr(), count, "footprint_depths_ptr");
+        let kinds = addressed(handle.kinds_ptr(), count, "kinds_ptr");
+        let ids = addressed(handle.ids_ptr(), count, "ids_ptr");
+
+        assert_eq!(widths, vec![2, 2, 1, 1]);
+        assert_eq!(depths, vec![1, 2, 1, 1]);
+        assert_ne!(widths, depths, "the exported axes must not be swapped");
+        assert_ne!(widths, kinds, "width must not point at the kind column");
+        assert_ne!(depths, kinds, "depth must not point at the kind column");
+        assert_ne!(widths, ids, "width must not point at the id column");
+        assert_ne!(depths, ids, "depth must not point at the id column");
     }
 
     #[test]

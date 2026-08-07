@@ -100,6 +100,17 @@ export const EMISSIVE_NONE = 0;
  */
 export const KIND_AGENT = 0;
 
+/**
+ * The render-buffer activity code for a Sim working off-lot.
+ *
+ * The row remains in every typed array so later rows keep stable
+ * interpolation slots, but presentation must skip its sprite, picking, local
+ * light, carried item, activity indicator, and selection ring. Keeping the
+ * wire value beside `KIND_AGENT` gives frame, input, and lighting one source
+ * instead of three harmless-looking copies that eventually stop agreeing.
+ */
+export const ACTIVITY_AT_WORK = 6;
+
 /*
  * `MAX_SPRITES` was here, and is deliberately gone - [ML-sprites].
  *

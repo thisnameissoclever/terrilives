@@ -22,6 +22,7 @@ import {
   type RenderSource,
 } from '../src/frame.js';
 import { spriteIndex } from '../src/render/atlas.js';
+import type { TileLighting } from '../src/render/lighting.js';
 import {
   FLOOR_DEPTH,
   LAYER_PROP,
@@ -78,6 +79,20 @@ function snapshot(instances: Float32Array, count: number): number[] {
  */
 function stored(value: number): number {
   return Math.fround(value);
+}
+
+/** A deliberately sparse field for testing the renderer integration only. */
+function tileLighting(
+  width: number,
+  height: number,
+  entries: readonly (readonly [number, number, number])[],
+): TileLighting {
+  const stride = width + 2;
+  const values = new Float32Array(stride * (height + 2));
+  for (const [x, y, value] of entries) {
+    values[(y + 1) * stride + x + 1] = value;
+  }
+  return { width, height, stride, values };
 }
 
 /**
@@ -1023,17 +1038,98 @@ describe('buildInstances', () => {
       [1, 0, 1, 0, 1, spriteIndex('chair')],
     ]);
 
-    const out = snapshot(buildInstances(view, 1, ORIGIN_X, ORIGIN_Y, GRID), 2);
-    expect(out[OFFSET_EMISSIVE]).toBeGreaterThan(0);
-    // Below 1: at 1 the whole sprite ignores the hour, stand and outline
-    // included, and reads as a cutout pasted over the night.
-    expect(out[OFFSET_EMISSIVE]).toBeLessThan(1);
+    const lighting = tileLighting(3, 2, [[0, 0, 0.35]]);
+    const out = snapshot(
+      buildInstances(
+        view,
+        1,
+        ORIGIN_X,
+        ORIGIN_Y,
+        GRID,
+        null,
+        1,
+        false,
+        0,
+        lighting,
+      ),
+      2,
+    );
+    // The source's intrinsic 0.85 wins over the weaker pool on its tile.
+    // Replacing `Math.max` with either operand makes this exact assertion fail.
+    expect(out[OFFSET_EMISSIVE]).toBe(stored(0.85));
     // The chair beside it is an ordinary object and must still take the
     // full ambient, or the emissive is not a property of the sprite.
     expect(out[FLOATS_PER_INSTANCE + OFFSET_EMISSIVE]).toBe(0);
     // Nothing tints either of them: the colour channels stay the
     // identity, so the atlas art is what reaches the screen.
     expect(out.slice(4, 7)).toEqual([1, 1, 1]);
+  });
+
+  it('samples local light for sims, objects, and the carried badge from their own tiles', () => {
+    const view = new FakeEntities();
+    view.set([
+      // The interpolated position is (1.75, 1.25), so floor quantisation
+      // selects tile (1, 1) rather than the current tick's tile (2, 1).
+      [1.5, 1.5, 2, 1, KIND_AGENT, 1, 0, 0],
+      [2.25, 1.75, 2.25, 1.75, 1, spriteIndex('chair')],
+    ]);
+    const lighting = tileLighting(4, 3, [
+      [1, 1, 0.42],
+      [2, 1, 0.19],
+    ]);
+
+    const out = snapshot(
+      buildInstances(
+        view,
+        0.5,
+        ORIGIN_X,
+        ORIGIN_Y,
+        GRID,
+        null,
+        1,
+        false,
+        0,
+        lighting,
+      ),
+      3,
+    );
+    const simLight = lighting.values[(1 + 1) * lighting.stride + 1 + 1];
+    const objectLight = lighting.values[(1 + 1) * lighting.stride + 2 + 1];
+
+    expect(out[OFFSET_EMISSIVE]).toBe(simLight);
+    expect(out[FLOATS_PER_INSTANCE + OFFSET_EMISSIVE]).toBe(objectLight);
+    // Carried badges are appended after all entity rows and must inherit the
+    // carrier's local pool rather than becoming a dark plate at midnight.
+    expect(out[2 * FLOATS_PER_INSTANCE + OFFSET_EMISSIVE]).toBe(simLight);
+    expect(simLight).not.toBe(objectLight);
+  });
+
+  it('keeps the prior neutral instance values when local lighting is absent', () => {
+    const view = new FakeEntities();
+    view.set([
+      [1, 1, 1, 1, KIND_AGENT, 1, 0, 0],
+      [2, 1, 2, 1, 1, spriteIndex('chair')],
+    ]);
+    const out = snapshot(
+      buildInstances(
+        view,
+        1,
+        ORIGIN_X,
+        ORIGIN_Y,
+        GRID,
+        null,
+        1,
+        false,
+        0,
+        null,
+      ),
+      3,
+    );
+
+    for (const slot of [0, 1, 2]) {
+      const base = slot * FLOATS_PER_INSTANCE;
+      expect(out.slice(base + 4, base + 8)).toEqual([1, 1, 1, 0]);
+    }
   });
 
   it('re-reads the source on every call, because the pointers swap each tick', () => {
@@ -1439,6 +1535,7 @@ describe('the selection ring', () => {
       y: instances[b + OFFSET_SCREEN_Y],
       depth: instances[b + OFFSET_DEPTH],
       sprite: instances[b + OFFSET_SPRITE],
+      emissive: instances[b + OFFSET_EMISSIVE],
     };
   }
 
@@ -1476,6 +1573,7 @@ describe('the selection ring', () => {
     expect(ring.sprite).toBe(RING);
     expect(ring.x).toBe(screenX(9, 7, ORIGIN_X));
     expect(ring.y).toBe(screenY(9, 7, ORIGIN_Y));
+    expect(ring.emissive).toBe(1);
 
     // Between the floor and the sim it belongs to. Both directions matter: over
     // the sim it would hide the thing it points at, and behind the floor it

@@ -184,6 +184,10 @@
         text-align: right;
         font-variant-numeric: tabular-nums;
       }
+      #lighting-mode {
+        width: 100%;
+        margin-top: 6px;
+      }
       #selected-summary {
         display: grid;
         gap: 2px;
@@ -516,8 +520,15 @@
         #household-summary {
           grid-area: summary;
           display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 12px;
+          grid-template-columns:
+            minmax(125px, 2fr) minmax(50px, 1fr) minmax(64px, auto);
+          align-items: stretch;
+          gap: 6px;
+        }
+        #lighting-mode {
+          min-width: 64px;
+          margin-top: 0;
+          padding-inline: 5px;
         }
         #household-roster {
           grid-area: roster;
@@ -584,6 +595,12 @@
           flex-direction: column;
           overflow-y: auto;
         }
+        #household-summary {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        #lighting-mode {
+          grid-column: 1 / -1;
+        }
         #needs-panel,
         #people-panel {
           align-self: stretch;
@@ -591,6 +608,14 @@
         #needs-panel[open],
         #people-panel[open] {
           height: auto;
+        }
+      }
+      @media (max-width: 300px) {
+        #household-summary {
+          grid-template-columns: minmax(125px, 2fr) minmax(50px, 1fr);
+        }
+        #lighting-mode {
+          grid-column: 1 / -1;
         }
       }
       /* The right-click flyout. `fixed` rather than `absolute`, because
@@ -690,6 +715,12 @@
           <span class="summary-label">Funds</span>
           <strong id="funds-value" class="summary-value">0</strong>
         </div>
+        <button
+          id="lighting-mode"
+          class="hud-button"
+          type="button"
+          aria-pressed="false"
+        >Light: auto</button>
       </section>
       <section id="household-roster" aria-labelledby="household-roster-title">
         <h2 id="household-roster-title">Household</h2>
@@ -779,6 +810,7 @@
         <li>With the game view focused, use arrow keys to choose a target, Space to select a person, and Enter for actions.</li>
         <li>Open the selected person's name to show or hide the needs panel.</li>
         <li>Open People to see how the selected person feels about everyone else.</li>
+        <li>Use Light: flat for neutral daylight without the automatic lighting cycle.</li>
       </ol>
       <button id="close-help" class="hud-button" type="button">Got it</button>
     </dialog>

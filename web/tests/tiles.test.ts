@@ -1,9 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { buildStaticInstances } from '../src/render/tiles.js';
 import { spriteIndex } from '../src/render/atlas.js';
+import type { TileLighting } from '../src/render/lighting.js';
 import {
   FLOATS_PER_INSTANCE,
   OFFSET_DEPTH,
+  OFFSET_EMISSIVE,
   OFFSET_SCREEN_X,
   OFFSET_SCREEN_Y,
   OFFSET_SPRITE,
@@ -32,6 +34,7 @@ interface Row {
   y: number;
   depth: number;
   sprite: number;
+  emissive: number;
 }
 
 /** Every live instance, decoded back into named fields. */
@@ -44,6 +47,7 @@ function rows(instances: Float32Array, count: number): Row[] {
       y: instances[base + OFFSET_SCREEN_Y],
       depth: instances[base + OFFSET_DEPTH],
       sprite: instances[base + OFFSET_SPRITE],
+      emissive: instances[base + OFFSET_EMISSIVE],
     });
   }
   return out;
@@ -76,6 +80,20 @@ function wallsAt(all: Row[], wx: number, wy: number): Row[] {
   const ns = spriteIndex('wallNS');
   const ew = spriteIndex('wallEW');
   return find(all, wx, wy).filter((r) => r.sprite === ns || r.sprite === ew);
+}
+
+/** A sparse, ring-inclusive field for testing static geometry sampling. */
+function tileLighting(
+  width: number,
+  height: number,
+  entries: readonly (readonly [number, number, number])[],
+): TileLighting {
+  const stride = width + 2;
+  const values = new Float32Array(stride * (height + 2));
+  for (const [x, y, value] of entries) {
+    values[(y + 1) * stride + x + 1] = value;
+  }
+  return { width, height, stride, values };
 }
 
 /**
@@ -379,6 +397,62 @@ describe('buildStaticInstances', () => {
     expect(built.count).toBe(
       (LOT.width + 1) * (LOT.height + 1) + 5 + LOT.height + LOT.width + 1,
     );
+    expect(built.floorCount).toBe((LOT.width + 1) * (LOT.height + 1));
+  });
+
+  it('samples floor, interior wall, boundary wall, and doorway light without changing geometry', () => {
+    const litLot = {
+      width: 5,
+      height: 4,
+      walls: Uint32Array.from([
+        0, 1, 1, 1, 3, 1, 4, 1, // EW run, doorway gap at (2, 1)
+        2, 3, // separate interior wall with controlled neighbours
+      ]),
+    };
+    const unlitBuilt = buildStaticInstances(
+      litLot,
+      ORIGIN_X,
+      ORIGIN_Y,
+      GRID,
+    );
+    const unlitRows = rows(unlitBuilt.instances, unlitBuilt.count);
+    const lighting = tileLighting(litLot.width, litLot.height, [
+      [0, 0, 0.13], // floor and the adjacent west boundary wall
+      [2, 1, 0.44], // doorway samples its own tile
+      [1, 3, 0.31], // brightest neighbour of the interior wall at (2, 3)
+      [2, 2, 0.17], // dimmer neighbour proves the wall takes the maximum
+    ]);
+    const litBuilt = buildStaticInstances(
+      litLot,
+      ORIGIN_X,
+      ORIGIN_Y,
+      GRID,
+      1,
+      lighting,
+    );
+    const litRows = rows(litBuilt.instances, litBuilt.count);
+
+    expect(unlitRows.every((row) => row.emissive === 0)).toBe(true);
+    expect(litBuilt.count).toBe(unlitBuilt.count);
+    expect(litBuilt.count).toBe(46);
+    expect(litBuilt.floorCount).toBe(30);
+    expect(litRows.map(({ emissive: _emissive, ...row }) => row)).toEqual(
+      unlitRows.map(({ emissive: _emissive, ...row }) => row),
+    );
+
+    const floor = find(litRows, 0, 0).find(
+      (row) => row.sprite === spriteIndex('floor'),
+    );
+    const interiorWall = wallsAt(litRows, 2, 3)[0];
+    const boundaryWall = wallsAt(litRows, -1, 0)[0];
+    const doorway = find(litRows, 2, 1).find(
+      (row) => row.sprite === spriteIndex('doorwayEW'),
+    );
+
+    expect(floor?.emissive).toBe(Math.fround(0.13));
+    expect(interiorWall?.emissive).toBe(Math.fround(0.31));
+    expect(boundaryWall?.emissive).toBe(Math.fround(0.13));
+    expect(doorway?.emissive).toBe(Math.fround(0.44));
   });
 
   /**

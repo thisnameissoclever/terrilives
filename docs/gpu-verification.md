@@ -897,3 +897,51 @@ the room's. The shipped value is 0.85.
   this backend and the owner's GPU would not show up here. The arithmetic
   above is fixed-function multiply and mix, which is the least likely
   thing to differ, but it is one backend.
+
+---
+
+# [V-pools] Local light pools and cast shadows
+
+[ML-pools] changes the values packed into existing instances. It adds no
+render pipeline, pass, draw, submit, or geometry. The static floor and wall
+block keeps its existing instance count, while Sims, smart objects, and carried
+badges use the same dynamic slots they used before.
+
+CPU-side tests pin the complete lamp and television profiles, wall blocking,
+doorway transmission, adjacent-wall sampling, compiled multi-tile footprints,
+ordinary-furniture shadows, the fixed `+x` direction, source-order-independent
+maximum composition, and the rule that Sims do not cast tile shadows. Static
+integration tests compare every position, sprite, depth, and count before and
+after lighting. Dynamic integration tests cover interpolated-tile sampling and
+carried badges. A 20-tick real-WASM comparison builds a non-empty enabled field
+beside one simulation and an exact-zero disabled field beside another; the
+world hashes remain equal.
+
+The local production build was then watched through its real WebGPU path at
+1280 by 720. A 1.05-second steady interval recorded 134 frames, 134 draws, and
+134 submits. Each frame wrote only the 48-byte ambient uniform and the existing
+dynamic prefix. It did not upload the static floor and wall block. Toggling
+Flat during a second watched interval kept one draw and one submit per frame
+and added exactly one 2,264-float, 9,056-byte static-block upload. No second
+pipeline, pass, draw, submit, or geometry appeared, and the browser reported no
+warning or error.
+
+The same build was watched at Day 2 11:54, 19:51, and 00:06. Noon returned the
+authored neutral palette; dusk warmed it; midnight showed the stronger lamp
+pool, weaker television pool, wall stops, doorway transmission, and the fixed
+`+x` furniture-shadow bands. `Light: flat` restored neutral lighting, survived
+a reload, and returned to Auto without changing game state. Browser media
+emulation forced Flat, disabled its button, and exposed `aria-pressed=true`
+under reduced motion; returning to no preference restored Auto live. The shell
+keeps the normal media-query event and also compares its already-read value in
+the frame loop, because the embedded Chromium path failed to deliver one
+observed change event. The cached fallback changes no DOM or buffer on steady
+frames. An explicit Load returned to the saved midnight scene with the pools
+rebuilt.
+
+The selection ring's pale emissive outer key measured 4.41:1 against the
+brightest adjacent rendered floor in the lamp pool and 5.50:1 against the
+darkest sampled midnight floor. Its sage inner key remains the identity colour;
+the outer key owns legibility. A physical phone in daylight remains the open
+[ML-a11y] boundary. Desktop browser pixels and arithmetic cannot substitute
+for that observation.
