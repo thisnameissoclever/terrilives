@@ -1352,7 +1352,8 @@ impl fmt::Display for ContentError {
                 f,
                 "'{owner}' interaction '{interaction}' declares a visual \
                  contract without '{field}'; action, anchor, and facing are \
-                 required when visual is present, and read also requires socket"
+                 required when visual is present, and object-socket read also \
+                 requires socket"
             ),
             ContentError::UnknownVisualAction {
                 owner,
@@ -1396,7 +1397,7 @@ impl fmt::Display for ContentError {
                 f,
                 "chain '{chain}' step {step} declares a visual contract \
                  without '{field}'; action, anchor, and facing are required when \
-                 visual is present, and read also requires socket"
+                 visual is present, and object-socket read also requires socket"
             ),
             ContentError::UnknownChainStepVisualAction {
                 chain,

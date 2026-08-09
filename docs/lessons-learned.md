@@ -4082,3 +4082,32 @@ request old and current SHA-labelled URLs after a later deployment. If their
 content hash, ETag, or `Last-Modified` value is identical, the query is only a
 label. The immutable evidence is the successful workflow run tied to the exact
 head SHA, not the mutable Pages response.
+
+## [L-transform-motion-is-not-a-character-animation] Moving a sprite is not the same as animating its body
+
+**What happened.** The walking slice was described as a walking animation even
+though it only lifted the unchanged character sprite during travel. The seated
+reading pose was also called acceptable after mechanical and atlas inspection,
+but the owner saw the deployed result and rejected its distorted neck and head
+silhouette. Eating technically moved the hand, yet had no visible food in it,
+and every action pose changed too quickly to read comfortably at 1x speed.
+
+**Root cause.** Implementation categories such as `visual_action`, distinct
+sprite indices, and deterministic phase changes were allowed to stand in for
+the player's visual meaning. The checks proved that pixels changed on schedule;
+they did not prove that legs and arms formed a believable walk, that a held
+prop explained the eating gesture, or that a seated silhouette looked human.
+
+**Prevention rule.** Name each motion precisely. A transform-only body lift is
+a footfall effect, not a walk cycle. A walk cycle requires visibly different
+limb silhouettes in the character frames. Action art must show the object that
+explains the gesture, preserve believable anatomy, and remain on screen long
+enough to read at 1x. Owner visual review may reject code-complete art, and that
+rejection reopens acceptance rather than becoming a documentation footnote.
+
+**How to verify.** Inspect the deployed action at 1x through the normal player
+route. Require walking legs and arms to change shape, food to remain visible in
+the eater's hand, and seated reading to retain a normal neck and head silhouette
+at ordinary zoom. Watch at least two full pose holds for each action, then repeat
+at 2x and 3x. Record any visual rejection explicitly and do not call that art
+accepted or shipped until the replacement passes the same played check.

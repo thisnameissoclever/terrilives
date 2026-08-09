@@ -1669,6 +1669,67 @@ mod boundary_tests {
         (handle, agent, chair_position)
     }
 
+    fn handle_with_projected_standing_reading() -> (SimHandle, terri_core::Entity, Position) {
+        let mut handle = SimHandle::new(24, 24);
+        let bookshelf_position = Position { x: 11.5, y: 13.25 };
+        let agent_position = Position { x: 9.0, y: 13.25 };
+        assert!(handle.spawn_object(bookshelf_position.x, bookshelf_position.y, "bookshelf"));
+        let bookshelf = handle
+            .sim
+            .world()
+            .resource::<Content>()
+            .0
+            .find("bookshelf")
+            .expect("shipped bookshelf");
+        let read = handle
+            .sim
+            .world()
+            .resource::<Content>()
+            .0
+            .object(bookshelf)
+            .interactions
+            .iter()
+            .position(|interaction| interaction.id == "read")
+            .expect("shipped bookshelf.read") as u32;
+        let target = {
+            let world = handle.sim.world_mut();
+            let mut query =
+                world.query::<(terri_core::Entity, &Position, &terri_core::SmartObject)>();
+            query
+                .iter(world)
+                .find(|(_, position, object)| {
+                    object.0 == bookshelf
+                        && position.x == bookshelf_position.x
+                        && position.y == bookshelf_position.y
+                })
+                .map(|(entity, _, _)| entity)
+                .expect("the bridge spawned the requested bookshelf")
+        };
+        handle.spawn_agent(agent_position.x, agent_position.y, 50.0);
+        let agent = {
+            let world = handle.sim.world_mut();
+            let mut query = world.query::<(terri_core::Entity, &Agent)>();
+            query
+                .iter(world)
+                .map(|(entity, _)| entity)
+                .next()
+                .expect("the bridge spawned the standing reader")
+        };
+        handle.sim.world_mut().entity_mut(agent).insert((
+            terri_core::Eating {
+                object: bookshelf,
+                interaction: read,
+                remaining_ticks: 10,
+            },
+            terri_core::Target {
+                object: target,
+                interaction: read,
+            },
+        ));
+        handle.sim.sync_render_buffer();
+        (handle, agent, agent_position)
+    }
+
     #[test]
     fn visual_actions_ptr_addresses_the_authored_action_column_after_growth() {
         let (mut handle, initiator, partner) = handle_with_projected_talk();
@@ -1769,6 +1830,56 @@ mod boundary_tests {
             (previous[row * 2], previous[row * 2 + 1]),
             (socket.x, socket.y),
             "continued socket projection must remain planted across reallocating syncs"
+        );
+    }
+
+    #[test]
+    fn existing_render_accessors_preserve_loaded_standing_reading_after_all_columns_grow() {
+        let (source, reader, ordinary_position) = handle_with_projected_standing_reading();
+        let bytes = source.save_bytes();
+        let hash = source.world_hash();
+        let mut handle = SimHandle::new(24, 24);
+        assert!(handle.load_bytes(&bytes));
+        assert_eq!(
+            handle.save_bytes(),
+            bytes,
+            "render metadata must not enter Save V1"
+        );
+        assert_eq!(handle.world_hash(), hash);
+
+        // Reallocate every render column after Load, then reacquire every
+        // pointer. The release-WASM bridge test performs the corresponding
+        // real linear-memory growth and detached-view check.
+        for index in 0..48 {
+            handle.spawn_agent(30.0 + index as f32, 30.0, 50.0);
+        }
+
+        let rows = handle.entity_count();
+        let ids = addressed(handle.ids_ptr(), rows, "ids_ptr");
+        let row = ids
+            .iter()
+            .position(|&id| id == reader.index_u32())
+            .expect("the loaded standing reader remains in the live prefix");
+        let positions = addressed(handle.positions_ptr(), rows * 2, "positions_ptr");
+        let previous = addressed(handle.prev_positions_ptr(), rows * 2, "prev_positions_ptr");
+        let actions = addressed(handle.visual_actions_ptr(), rows, "visual_actions_ptr");
+        let activities = addressed(handle.activities_ptr(), rows, "activities_ptr");
+        let facings = addressed(handle.facings_ptr(), rows, "facings_ptr");
+
+        assert_eq!(
+            (actions[row], activities[row], facings[row]),
+            (4, 8, terri_sim::render_buffer::facing::POSITIVE_X,),
+            "the append-only standing-read literals must cross the existing bridge columns"
+        );
+        assert_eq!(
+            (positions[row * 2], positions[row * 2 + 1]),
+            (ordinary_position.x, ordinary_position.y),
+            "standing reading must keep the displayed body at its path tile"
+        );
+        assert_eq!(
+            (previous[row * 2], previous[row * 2 + 1]),
+            (ordinary_position.x, ordinary_position.y),
+            "Load and reallocating syncs must preserve the ordinary standing position"
         );
     }
 

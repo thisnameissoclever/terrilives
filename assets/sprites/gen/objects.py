@@ -691,6 +691,161 @@ def sim3ReadNE0(d): _reading_figure(d, CHARACTER_PALETTES[2], "ne", 0)
 def sim3ReadNE1(d): _reading_figure(d, CHARACTER_PALETTES[2], "ne", 1)
 
 
+def _standing_reading_figure(d, palette, facing, frame):
+    """An upright reader holding one open book toward the target object.
+
+    The Sim stays on the ordinary adjacent path tile, so the body keeps the
+    established standing contact point. Both hands, the book, gaze, and page
+    adjustment carry the authored facing while the legs remain planted.
+    """
+    ch = CHARACTER
+    height = ch["height"]
+    head_r = height * ch["head"]
+    px, py = P(.5, .5)
+    side, depth = {
+        "se": (1, 1),
+        "nw": (-1, -1),
+        "sw": (-1, 1),
+        "ne": (1, -1),
+    }[facing]
+    skin, hair = palette["skin"], palette["hair"]
+    shirt, trouser = palette["shirt"], palette["trouser"]
+    ol, w = OUTLINE, OUTLINE_WIDTH
+
+    d.ellipse([px - 13, py - 10, px + 13, py], fill=(0, 0, 0, 46))
+    shoulder_width = ch["shoulder"] * height
+    hip_width = ch["hip"] * height
+    leg_height = ch["leg"] * height
+    torso_height = height - leg_height - head_r * 2
+    hip_y = py - leg_height
+    leg_width = hip_width * .42
+    for leg_side in (-1, 1):
+        leg_x = px + leg_side * hip_width * .26
+        d.rectangle(
+            [leg_x - leg_width / 2, hip_y, leg_x + leg_width / 2, py],
+            fill=trouser,
+            outline=ol,
+            width=w,
+        )
+
+    top_y = hip_y - torso_height
+    d.rectangle(
+        [px - shoulder_width / 2, top_y, px + shoulder_width / 2, hip_y],
+        fill=shirt,
+        outline=ol,
+        width=w,
+    )
+
+    # The open book sits clear of the torso at native size. Frame one lifts
+    # the target-side page corner and shifts that hand by two pixels, enough
+    # to read as a page adjustment without becoming frantic semaphore.
+    book_x = px + side * 2
+    book_y = py - 40 + depth
+    hand_shift = side * (2 if frame else 0)
+    for arm_side in (-1, 1):
+        shoulder_x = px + arm_side * (shoulder_width / 2 - 2)
+        shoulder_y = top_y + torso_height * (.28 if depth > 0 else .20)
+        hand_x = book_x + arm_side * 6
+        if arm_side == side:
+            hand_x += hand_shift
+        hand_y = book_y + 3 - depth * arm_side
+        elbow_x = px + arm_side * 10
+        elbow_y = py - 46 + depth * arm_side
+        points = [(shoulder_x, shoulder_y), (elbow_x, elbow_y), (hand_x, hand_y)]
+        d.line(points, fill=ol, width=6, joint="curve")
+        d.line(points, fill=mul(shirt, .93), width=4, joint="curve")
+        d.ellipse(
+            [hand_x - 2, hand_y - 2, hand_x + 2, hand_y + 2],
+            fill=skin,
+            outline=ol,
+            width=w,
+        )
+
+    page = C["linen"]
+    cover = C["wood_dark"]
+    d.polygon(
+        [
+            (book_x, book_y + 8),
+            (book_x - 8, book_y + 5),
+            (book_x - 7, book_y - 4),
+            (book_x, book_y - 1),
+        ],
+        fill=page,
+        outline=ol,
+    )
+    right_top = book_y - (4 if frame == 0 else 7)
+    d.polygon(
+        [
+            (book_x, book_y + 8),
+            (book_x + 8, book_y + 5),
+            (book_x + 7, right_top),
+            (book_x, book_y - 1),
+        ],
+        fill=mul(page, .96),
+        outline=ol,
+    )
+    d.line(
+        [(book_x - 8, book_y + 6), (book_x, book_y + 9), (book_x + 8, book_y + 6)],
+        fill=cover,
+        width=2,
+    )
+    d.line([(book_x, book_y - 1), (book_x, book_y + 8)], fill=ol, width=1)
+
+    head_y = top_y - head_r
+    head_x = px + side
+    d.rounded_rectangle(
+        [head_x - head_r, head_y - head_r, head_x + head_r, head_y + head_r],
+        radius=int(head_r * .42),
+        fill=skin,
+        outline=ol,
+        width=w,
+    )
+    d.chord(
+        [head_x - head_r, head_y - head_r, head_x + head_r, head_y + head_r * .35],
+        180,
+        360,
+        fill=hair,
+        outline=ol,
+        width=w,
+    )
+    eye_y = head_y + head_r * .12 + depth
+    eye_r = max(1.2, head_r * .11)
+    for eye_side in (-1, 1):
+        eye_x = head_x + eye_side * head_r * .34 + side * 1.8
+        d.ellipse(
+            [eye_x - eye_r, eye_y - eye_r, eye_x + eye_r, eye_y + eye_r],
+            fill=ch["eye"],
+        )
+
+
+def simStandReadSE0(d): _standing_reading_figure(d, CHARACTER_PALETTES[0], "se", 0)
+def simStandReadSE1(d): _standing_reading_figure(d, CHARACTER_PALETTES[0], "se", 1)
+def simStandReadNW0(d): _standing_reading_figure(d, CHARACTER_PALETTES[0], "nw", 0)
+def simStandReadNW1(d): _standing_reading_figure(d, CHARACTER_PALETTES[0], "nw", 1)
+def simStandReadSW0(d): _standing_reading_figure(d, CHARACTER_PALETTES[0], "sw", 0)
+def simStandReadSW1(d): _standing_reading_figure(d, CHARACTER_PALETTES[0], "sw", 1)
+def simStandReadNE0(d): _standing_reading_figure(d, CHARACTER_PALETTES[0], "ne", 0)
+def simStandReadNE1(d): _standing_reading_figure(d, CHARACTER_PALETTES[0], "ne", 1)
+
+def sim2StandReadSE0(d): _standing_reading_figure(d, CHARACTER_PALETTES[1], "se", 0)
+def sim2StandReadSE1(d): _standing_reading_figure(d, CHARACTER_PALETTES[1], "se", 1)
+def sim2StandReadNW0(d): _standing_reading_figure(d, CHARACTER_PALETTES[1], "nw", 0)
+def sim2StandReadNW1(d): _standing_reading_figure(d, CHARACTER_PALETTES[1], "nw", 1)
+def sim2StandReadSW0(d): _standing_reading_figure(d, CHARACTER_PALETTES[1], "sw", 0)
+def sim2StandReadSW1(d): _standing_reading_figure(d, CHARACTER_PALETTES[1], "sw", 1)
+def sim2StandReadNE0(d): _standing_reading_figure(d, CHARACTER_PALETTES[1], "ne", 0)
+def sim2StandReadNE1(d): _standing_reading_figure(d, CHARACTER_PALETTES[1], "ne", 1)
+
+def sim3StandReadSE0(d): _standing_reading_figure(d, CHARACTER_PALETTES[2], "se", 0)
+def sim3StandReadSE1(d): _standing_reading_figure(d, CHARACTER_PALETTES[2], "se", 1)
+def sim3StandReadNW0(d): _standing_reading_figure(d, CHARACTER_PALETTES[2], "nw", 0)
+def sim3StandReadNW1(d): _standing_reading_figure(d, CHARACTER_PALETTES[2], "nw", 1)
+def sim3StandReadSW0(d): _standing_reading_figure(d, CHARACTER_PALETTES[2], "sw", 0)
+def sim3StandReadSW1(d): _standing_reading_figure(d, CHARACTER_PALETTES[2], "sw", 1)
+def sim3StandReadNE0(d): _standing_reading_figure(d, CHARACTER_PALETTES[2], "ne", 0)
+def sim3StandReadNE1(d): _standing_reading_figure(d, CHARACTER_PALETTES[2], "ne", 1)
+
+
 # ---------------------------------------------------------- indicators ----
 def _bubble(d, glyph):
     px, py = OX, OY + HH - 13
@@ -851,6 +1006,30 @@ EXACT = {
     "sim3ReadSW1": (38, 88),
     "sim3ReadNE0": (38, 88),
     "sim3ReadNE1": (38, 88),
+    "simStandReadSE0": (38, 88),
+    "simStandReadSE1": (38, 88),
+    "simStandReadNW0": (38, 88),
+    "simStandReadNW1": (38, 88),
+    "simStandReadSW0": (38, 88),
+    "simStandReadSW1": (38, 88),
+    "simStandReadNE0": (38, 88),
+    "simStandReadNE1": (38, 88),
+    "sim2StandReadSE0": (38, 88),
+    "sim2StandReadSE1": (38, 88),
+    "sim2StandReadNW0": (38, 88),
+    "sim2StandReadNW1": (38, 88),
+    "sim2StandReadSW0": (38, 88),
+    "sim2StandReadSW1": (38, 88),
+    "sim2StandReadNE0": (38, 88),
+    "sim2StandReadNE1": (38, 88),
+    "sim3StandReadSE0": (38, 88),
+    "sim3StandReadSE1": (38, 88),
+    "sim3StandReadNW0": (38, 88),
+    "sim3StandReadNW1": (38, 88),
+    "sim3StandReadSW0": (38, 88),
+    "sim3StandReadSW1": (38, 88),
+    "sim3StandReadNE0": (38, 88),
+    "sim3StandReadNE1": (38, 88),
 }
 
 SPRITES = [
@@ -895,4 +1074,13 @@ SPRITES = [
     sim3ReadSE0, sim3ReadSE1, sim3ReadNW0, sim3ReadNW1,
     sim3ReadSW0, sim3ReadSW1, sim3ReadNE0, sim3ReadNE1,
     indicatorReading,
+    # Standing reading follows the established Reading activity and indicator
+    # but keeps its own upright silhouette and append-only visual-action art.
+    # [BR-art].
+    simStandReadSE0, simStandReadSE1, simStandReadNW0, simStandReadNW1,
+    simStandReadSW0, simStandReadSW1, simStandReadNE0, simStandReadNE1,
+    sim2StandReadSE0, sim2StandReadSE1, sim2StandReadNW0, sim2StandReadNW1,
+    sim2StandReadSW0, sim2StandReadSW1, sim2StandReadNE0, sim2StandReadNE1,
+    sim3StandReadSE0, sim3StandReadSE1, sim3StandReadNW0, sim3StandReadNW1,
+    sim3StandReadSW0, sim3StandReadSW1, sim3StandReadNE0, sim3StandReadNE1,
 ]

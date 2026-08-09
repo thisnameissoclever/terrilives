@@ -37,6 +37,10 @@ Pages runs and deployed browser evidence are recorded in
 Exact seated reading for `reading_chair.settle_in` shipped in PR 48 at merge
 `d405e702`; its deployed WebGPU acceptance is recorded in
 [A-seated-reading-action].
+Exact standing reading for `bookshelf.read` is implemented on this branch.
+Its local production WebGPU acceptance is recorded in
+[A-standing-bookshelf-reading]; displayed reduced-motion, merge, and deployed
+Pages evidence remain open.
 The M1 household contract is now code-complete too: content accepts up to six
 members, rejects a seventh, and normal play exposes every member through a
 restore-safe accessible roster.
@@ -70,7 +74,9 @@ renderer audit is complete, and the first movement slice now gives walking sims
 a restrained, distance-driven footfall while keeping the ground ring and depth
 planted. Carried-item badges follow the body, picking includes the lifted head,
 and reduced-motion users retain smooth travel without the ornamental lift or
-its otherwise useful picking headroom.
+its otherwise useful picking headroom. The owner rejected that transform-only
+lift as a real walk cycle on 2026-08-09. It remains useful interpolation polish,
+but articulated walking art is still open.
 
 The first action-specific body animation is implemented for conversation.
 `chat` authors a `talk / partner / toward_anchor` visual contract; the
@@ -78,14 +84,18 @@ simulation projects the real pair and four opposite lot-axis facings through
 dedicated render-buffer columns. Each of the three Muted Line people has two
 talk frames in every facing. Simulation tick drives the gesture, so Pause,
 speed changes, replay, and Load agree; reduced motion keeps a static directional
-talk pose.
+talk pose. The owner accepted Chat. Its current pose hold is eight simulation
+ticks, the minimum for action animation rather than a universal cadence.
 
-Eating is the first complete object-action category. `Grab a snack` authors
+Eating is the first complete authored object-action contract. `Grab a snack` authors
 `eat / object / toward_anchor`, and the terminal `Eat dinner` chain step authors
 `eat / station / toward_anchor`. Render sync resolves the exact target and its
 footprint centre, then the shell selects one of two directional hand-to-mouth
 frames for the stable character look. The carried dinner follows the authored
-hand side, and both authored eating paths keep the existing fork bubble.
+hand side, and both authored eating paths keep the existing fork bubble. The
+pose now holds for sixteen simulation ticks. The owner rejected the current
+body because the raised hand carries no visible food prop; that art repair is
+still required.
 
 Seated reading is the first object-socket action category. Only
 `reading_chair.settle_in` authors `read / object_socket / socket`; the compiler
@@ -95,9 +105,20 @@ shell maps action 3 to two fixed-envelope reading frames per look and facing and
 activity 8 to a book indicator plus the HUD label `Reading`. Entry, exit,
 paused cancellation, and Load reseed the presentation samples so the body does
 not glide through the chair. Save V1, world hashes, bridge columns, and the GPU
-instance contract remain unchanged.
+instance contract remain unchanged. The two frames now hold for 24 simulation
+ticks. The owner rejected the current body because its neck is visibly
+distorted; the socket contract ships, but the character art needs repair.
 
-Showers, toilets, television, bookshelf reading, washing, and other ordinary
+Standing bookshelf reading is the second authored reading contract. Only
+`bookshelf.read` authors `read / object / toward_anchor`; render sync requires
+the exact active target and interaction, keeps the body on its ordinary path
+tile, and faces it toward the shelf footprint centre. The shell maps append-only
+action 4 to two upright book-holding frames per look and facing on the same
+24-tick simulation cadence. Activity 8, the `Reading` HUD text, the existing
+book indicator, Save V1, world hashes, bridge columns, and GPU instance shape
+remain unchanged. Owner review at the corrected cadence remains open.
+
+Showers, toilets, television, washing, and other ordinary
 object use instead report the appended `USING_OBJECT` activity. It is
 deliberately text-only: one tiny generic glyph would misdescribe at least one of
 those actions. Those actions remain unanimated until their own categories and
@@ -222,13 +243,13 @@ an unchanged design target is not an unchanged measurement.
 This is the current restart point, separate from the historical milestone
 checklists below:
 
-1. Continue the authored visual-action contract one coherent category at a
-   time. Conversation, eating, and `reading_chair.settle_in` now prove social,
-   ordinary-object, chain-step, and exact object-socket anchors end to end; the
-   next category still needs its own real anchor and pose. Broad activity labels
-   must not stand in for authored content, and shared sitting, sleeping,
-   showering, and toilet poses still require explicit sockets and occlusion
-   decisions before they can align without clipping or floating.
+1. Repair the owner-rejected animation art before opening another category:
+   replace the transform-only footfall with a real walk cycle, put a visible
+   food prop in the eating hand, and correct the seated-reading neck. Keep Chat
+   as the accepted reference. Action holds must be at least doubled from their
+   first shipped values, but each category may use the cadence its motion needs.
+   Recheck `bookshelf.read` at its corrected 24-tick hold and carry that exact
+   interaction through owner review, merge, and deployed Pages evidence.
 2. Run the remaining physical-device check on the merged revision: verify the
    new portrait HUD reflow, inspect the darkest floor in daylight, then
    long-press an object and confirm its action menu remains reachable. The 390

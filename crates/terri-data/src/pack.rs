@@ -53,8 +53,8 @@ pub struct CompiledVisual {
     pub action: CompiledVisualAction,
     pub anchor: CompiledVisualAnchor,
     pub facing: CompiledVisualFacing,
-    /// Index into the owning object's action sockets. `None` for every
-    /// pre-socket visual contract. Appended for postcard stability.
+    /// Index into the owning object's action sockets. `None` for every visual
+    /// contract anchored anywhere else. Appended for postcard stability.
     pub socket: Option<u32>,
 }
 
@@ -794,6 +794,13 @@ mod tests {
                             facing: CompiledVisualFacing::Socket,
                             socket: Some(1),
                         });
+                    } else if i == 1 {
+                        use_it.visual = Some(CompiledVisual {
+                            action: CompiledVisualAction::Read,
+                            anchor: CompiledVisualAnchor::Object,
+                            facing: CompiledVisualFacing::TowardAnchor,
+                            socket: None,
+                        });
                     }
                     CompiledObject {
                         id: (*id).to_string(),
@@ -1077,6 +1084,16 @@ mod tests {
             "postcard must preserve the object-socket reading variants"
         );
         assert_eq!(
+            restored.objects[1].interactions[0].visual,
+            Some(CompiledVisual {
+                action: CompiledVisualAction::Read,
+                anchor: CompiledVisualAnchor::Object,
+                facing: CompiledVisualFacing::TowardAnchor,
+                socket: None,
+            }),
+            "postcard must preserve the object-anchored reading variants"
+        );
+        assert_eq!(
             restored.chains[0].steps[2].visual,
             Some(CompiledVisual {
                 action: CompiledVisualAction::Eat,
@@ -1143,18 +1160,29 @@ mod tests {
     }
 
     #[test]
-    fn a_read_visual_uses_only_appended_enum_discriminants_and_socket_slot() {
-        let visual = CompiledVisual {
+    fn read_visuals_keep_existing_enum_discriminants_and_socket_slot() {
+        let seated = CompiledVisual {
             action: CompiledVisualAction::Read,
             anchor: CompiledVisualAnchor::ObjectSocket,
             facing: CompiledVisualFacing::Socket,
             socket: Some(7),
         };
+        let standing = CompiledVisual {
+            action: CompiledVisualAction::Read,
+            anchor: CompiledVisualAnchor::Object,
+            facing: CompiledVisualFacing::TowardAnchor,
+            socket: None,
+        };
 
         assert_eq!(
-            postcard::to_allocvec(&visual).expect("read visual must serialise"),
+            postcard::to_allocvec(&seated).expect("seated read visual must serialise"),
             vec![2, 3, 1, 1, 7],
             "Read, ObjectSocket, and Socket append after the established variants"
+        );
+        assert_eq!(
+            postcard::to_allocvec(&standing).expect("standing read visual must serialise"),
+            vec![2, 1, 0, 0],
+            "standing read reuses the established Read, Object, and TowardAnchor variants"
         );
     }
 }

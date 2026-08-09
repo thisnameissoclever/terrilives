@@ -740,6 +740,39 @@ mod tests {
     }
 
     #[test]
+    fn the_shipped_bookshelf_uses_standing_read_without_changing_the_fingerprint() {
+        let original = pack().clone();
+        let base = content_fingerprint(&original);
+        let bookshelf = original
+            .find("bookshelf")
+            .expect("the shipped bookshelf exists");
+        let read = original
+            .object(bookshelf)
+            .interactions
+            .iter()
+            .position(|interaction| interaction.id == "read")
+            .expect("the shipped bookshelf read interaction exists");
+        assert_eq!(
+            original.object(bookshelf).interactions[read].visual,
+            Some(CompiledVisual {
+                action: CompiledVisualAction::Read,
+                anchor: CompiledVisualAnchor::Object,
+                facing: CompiledVisualFacing::TowardAnchor,
+                socket: None,
+            }),
+            "the bookshelf must ship the exact standing-read contract"
+        );
+
+        let mut presentation_only = original;
+        presentation_only.objects[bookshelf.0 as usize].interactions[read].visual = None;
+        assert_eq!(
+            base,
+            content_fingerprint(&presentation_only),
+            "standing-read presentation metadata must not invalidate a Save V1"
+        );
+    }
+
+    #[test]
     fn the_fingerprint_allows_reading_socket_presentation_changes() {
         let original = pack().clone();
         let base = content_fingerprint(&original);

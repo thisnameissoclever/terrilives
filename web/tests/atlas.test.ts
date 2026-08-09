@@ -209,11 +209,25 @@ describe('the atlas manifest', () => {
       'sim3ReadSE0', 'sim3ReadSE1', 'sim3ReadNW0', 'sim3ReadNW1',
       'sim3ReadSW0', 'sim3ReadSW1', 'sim3ReadNE0', 'sim3ReadNE1',
     ];
+    const standingReadSprites = [
+      'simStandReadSE0', 'simStandReadSE1',
+      'simStandReadNW0', 'simStandReadNW1',
+      'simStandReadSW0', 'simStandReadSW1',
+      'simStandReadNE0', 'simStandReadNE1',
+      'sim2StandReadSE0', 'sim2StandReadSE1',
+      'sim2StandReadNW0', 'sim2StandReadNW1',
+      'sim2StandReadSW0', 'sim2StandReadSW1',
+      'sim2StandReadNE0', 'sim2StandReadNE1',
+      'sim3StandReadSE0', 'sim3StandReadSE1',
+      'sim3StandReadNW0', 'sim3StandReadNW1',
+      'sim3StandReadSW0', 'sim3StandReadSW1',
+      'sim3StandReadNE0', 'sim3StandReadNE1',
+    ];
 
     expect(spriteIndex('sim')).toBe(1);
     expect(spriteIndex('sim2')).toBe(48);
     expect(spriteIndex('sim3')).toBe(49);
-    expect(SPRITES).toHaveLength(123);
+    expect(SPRITES).toHaveLength(147);
     expect(SPRITES.slice(50, 74).map((sprite) => sprite.name)).toEqual(
       talkSprites,
     );
@@ -224,12 +238,20 @@ describe('the atlas manifest', () => {
       readSprites,
     );
     expect(spriteIndex('indicatorReading')).toBe(122);
-    for (const name of [...talkSprites, ...eatSprites, ...readSprites]) {
+    expect(SPRITES.slice(123, 147).map((sprite) => sprite.name)).toEqual(
+      standingReadSprites,
+    );
+    for (const name of [
+      ...talkSprites,
+      ...eatSprites,
+      ...readSprites,
+      ...standingReadSprites,
+    ]) {
       const sprite = SPRITES[spriteIndex(name)];
       expect([sprite.w, sprite.h], name).toEqual([38, 88]);
     }
     // Generic object use is intentionally text-only. A vague glyph would
-    // mislabel at least one shipped use, so the append-only atlas stays put.
+    // mislabel at least one shipped use, so no generic icon is appended.
     expect(() => spriteIndex('indicatorUse')).toThrow();
   });
 });

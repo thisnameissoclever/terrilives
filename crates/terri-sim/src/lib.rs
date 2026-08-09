@@ -152,6 +152,20 @@ fn is_authored_object_eat_visual(interaction: &terri_data::CompiledInteraction) 
     )
 }
 
+fn is_authored_object_read_visual(interaction: &terri_data::CompiledInteraction) -> bool {
+    let Some(visual) = interaction.visual.as_ref() else {
+        return false;
+    };
+    matches!(
+        (&visual.action, &visual.anchor, &visual.facing),
+        (
+            terri_data::CompiledVisualAction::Read,
+            terri_data::CompiledVisualAnchor::Object,
+            terri_data::CompiledVisualFacing::TowardAnchor,
+        )
+    ) && visual.socket.is_none()
+}
+
 fn is_authored_station_eat_visual(step: &terri_data::CompiledChainStep) -> bool {
     let Some(visual) = step.visual.as_ref() else {
         return false;
@@ -244,6 +258,50 @@ fn authored_reading_visual(
         y: socket.y,
         facing: socket_facing_code(socket.facing),
     })
+}
+
+#[allow(clippy::too_many_arguments)]
+fn authored_standing_reading_visual(
+    content: &terri_data::ContentPack,
+    world: &World,
+    entity: Entity,
+    position: &terri_core::Position,
+    eating: Option<&terri_core::Eating>,
+    chain_state: Option<&terri_core::ChainState>,
+    step_work: Option<&terri_core::StepWork>,
+    target: Option<&terri_core::Target>,
+) -> Option<(u32, u32)> {
+    use render_buffer::visual_action;
+
+    // Object use and chain work are mutually exclusive active states. Social
+    // ownership is resolved for both conversation sides in the row loop,
+    // before any object action is projected.
+    if chain_state.is_some() || step_work.is_some() {
+        return None;
+    }
+
+    let eating = eating?;
+    let target = target?;
+    if target.interaction != eating.interaction {
+        return None;
+    }
+
+    let target_object = world.get::<terri_core::SmartObject>(target.object)?;
+    let target_position = world.get::<terri_core::Position>(target.object)?;
+    if target_object.0 != eating.object {
+        return None;
+    }
+
+    let definition = content.objects.get(target_object.0 .0 as usize)?;
+    let interaction = definition.interactions.get(target.interaction as usize)?;
+    if !is_authored_object_read_visual(interaction) {
+        return None;
+    }
+    let anchor = object_footprint_centre(content, target_object, target_position)?;
+    Some((
+        visual_action::STANDING_READ,
+        facing_toward(entity, position, target.object, &anchor),
+    ))
 }
 
 fn eating_interaction_exists(
@@ -1052,7 +1110,8 @@ impl Sim {
             // frame at every departure and return), and the shell skips
             // drawing it - gone is gone, at the draw call rather than
             // in the buffer ([E4]).
-            let eating_visual = if is_agent {
+            let socially_active = talking.is_some() || partners.contains(&entity);
+            let eating_visual = if is_agent && !socially_active {
                 authored_eating_visual(
                     content,
                     &self.world,
@@ -1066,8 +1125,22 @@ impl Sim {
             } else {
                 None
             };
-            let reading_visual = if is_agent {
+            let reading_visual = if is_agent && !socially_active {
                 authored_reading_visual(content, &self.world, eating, step_work, target)
+            } else {
+                None
+            };
+            let standing_reading_visual = if is_agent && !socially_active {
+                authored_standing_reading_visual(
+                    content,
+                    &self.world,
+                    entity,
+                    pos,
+                    eating,
+                    chain_state,
+                    step_work,
+                    target,
+                )
             } else {
                 None
             };
@@ -1088,6 +1161,8 @@ impl Sim {
                         reading.y,
                         true,
                     )
+                } else if let Some((action, direction)) = standing_reading_visual {
+                    (action, direction, x, y, false)
                 } else {
                     (
                         render_buffer::visual_action::NONE,
@@ -1101,7 +1176,7 @@ impl Sim {
                 render_buffer::activity::NONE
             } else if at_work {
                 render_buffer::activity::AT_WORK
-            } else if talking.is_some() || partners.contains(&entity) {
+            } else if socially_active {
                 render_buffer::activity::TALKING
             } else if eating.is_some() {
                 if eating.is_some_and(|state| eating_interaction_exists(content, state))
@@ -1112,7 +1187,11 @@ impl Sim {
                     .is_some_and(|(action, _)| action == render_buffer::visual_action::EAT)
                 {
                     render_buffer::activity::EATING
-                } else if socket_projected {
+                } else if matches!(
+                    visual_action,
+                    render_buffer::visual_action::READ
+                        | render_buffer::visual_action::STANDING_READ
+                ) {
                     render_buffer::activity::READING
                 } else {
                     // `Eating` is the legacy storage component for every

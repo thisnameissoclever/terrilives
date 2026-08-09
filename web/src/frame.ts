@@ -153,6 +153,28 @@ const SIM_READ_SPRITES: readonly ActionFacings[] = [
   ],
 ];
 
+/** Two authored standing-reading frames for every look and lot-axis facing. */
+const SIM_STANDING_READ_SPRITES: readonly ActionFacings[] = [
+  [
+    [spriteIndex('simStandReadSE0'), spriteIndex('simStandReadSE1')],
+    [spriteIndex('simStandReadNW0'), spriteIndex('simStandReadNW1')],
+    [spriteIndex('simStandReadSW0'), spriteIndex('simStandReadSW1')],
+    [spriteIndex('simStandReadNE0'), spriteIndex('simStandReadNE1')],
+  ],
+  [
+    [spriteIndex('sim2StandReadSE0'), spriteIndex('sim2StandReadSE1')],
+    [spriteIndex('sim2StandReadNW0'), spriteIndex('sim2StandReadNW1')],
+    [spriteIndex('sim2StandReadSW0'), spriteIndex('sim2StandReadSW1')],
+    [spriteIndex('sim2StandReadNE0'), spriteIndex('sim2StandReadNE1')],
+  ],
+  [
+    [spriteIndex('sim3StandReadSE0'), spriteIndex('sim3StandReadSE1')],
+    [spriteIndex('sim3StandReadNW0'), spriteIndex('sim3StandReadNW1')],
+    [spriteIndex('sim3StandReadSW0'), spriteIndex('sim3StandReadSW1')],
+    [spriteIndex('sim3StandReadNE0'), spriteIndex('sim3StandReadNE1')],
+  ],
+];
+
 /** The authored visual-action code emitted for a conversation. */
 export const VISUAL_ACTION_TALK = 1;
 
@@ -162,20 +184,23 @@ export const VISUAL_ACTION_EAT = 2;
 /** The authored visual-action code emitted for exact seated reading. */
 export const VISUAL_ACTION_READ = 3;
 
+/** The authored visual-action code emitted for exact standing reading. */
+export const VISUAL_ACTION_STANDING_READ = 4;
+
 /** Render-buffer facing codes, in the same order as `SIM_TALK_SPRITES`. */
 export const FACING_POSITIVE_X = 1;
 export const FACING_NEGATIVE_X = 2;
 export const FACING_POSITIVE_Y = 3;
 export const FACING_NEGATIVE_Y = 4;
 
-/** A conversational pose holds for four simulation ticks, or 400 ms at 1x. */
-export const TALK_FRAME_TICKS = 4;
+/** A conversational pose holds for eight simulation ticks, or 800 ms at 1x. */
+export const TALK_FRAME_TICKS = 8;
 
-/** An eating gesture holds for eight simulation ticks, or 800 ms at 1x. */
-export const EAT_FRAME_TICKS = 8;
+/** An eating gesture holds for sixteen simulation ticks, or 1.6 s at 1x. */
+export const EAT_FRAME_TICKS = 16;
 
-/** A seated-reading pose holds for twelve simulation ticks. */
-export const READ_FRAME_TICKS = 12;
+/** A reading pose holds for twenty-four simulation ticks, or 2.4 s at 1x. */
+export const READ_FRAME_TICKS = 24;
 
 /**
  * Which look the sim with this entity id wears.
@@ -225,12 +250,17 @@ export function simBodySprite(
   } else if (visualAction === VISUAL_ACTION_READ) {
     sprites = SIM_READ_SPRITES;
     frameTicks = READ_FRAME_TICKS;
+  } else if (visualAction === VISUAL_ACTION_STANDING_READ) {
+    sprites = SIM_STANDING_READ_SPRITES;
+    frameTicks = READ_FRAME_TICKS;
   } else {
     return SIM_SPRITES[look];
   }
 
   const phaseTicks =
-    visualAction === VISUAL_ACTION_EAT || visualAction === VISUAL_ACTION_READ
+    visualAction === VISUAL_ACTION_EAT ||
+    visualAction === VISUAL_ACTION_READ ||
+    visualAction === VISUAL_ACTION_STANDING_READ
       ? id % frameTicks
       : (id & 1) * frameTicks;
   const frame = reducedMotion
@@ -256,7 +286,7 @@ const INDICATOR_SPRITES: readonly (number | null)[] = [
   // AT_WORK: no bubble - the whole ROW is skipped below; gone is gone.
   null,
   // USING_OBJECT: text-only. One 26px glyph cannot honestly cover
-  // bookshelf reading, washing, television, bathing, and toilet use.
+  // washing, television, bathing, and toilet use.
   null,
   spriteIndex('indicatorReading'),
 ];

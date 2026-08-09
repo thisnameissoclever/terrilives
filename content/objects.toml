@@ -353,6 +353,7 @@ sprite = "bookcaseClosedDoors"
   advertises = { fun = 26.0 }
   duration_ticks = 34
   slots = 1
+  visual = { action = "read", anchor = "object", facing = "toward_anchor" }
   # The same "reading" tag as the wingback's settle_in: a hobby is an
   # ACTIVITY, not an object, so a reader loves both routes to it.
   tags = ["reading"]

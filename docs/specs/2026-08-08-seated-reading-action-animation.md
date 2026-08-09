@@ -3,7 +3,10 @@
 Status: shipped in PR 48 at merge
 `d405e70223dcc018f376da8ad52e783f081cbf3c`, with local and deployed Pages
 WebGPU acceptance recorded in [A-seated-reading-action]. An operating-system
-reduced-motion display session remains an explicit proof boundary.
+reduced-motion display session remains an explicit proof boundary. The owner
+rejected the current seated body on 2026-08-09 because the neck is visibly
+distorted; correcting that art remains open. The action hold is now doubled
+from 12 to 24 simulation ticks.
 
 This slice gives `reading_chair.settle_in` a seated reading pose and establishes
 the object-local action socket required by later furniture actions. It does not
@@ -285,7 +288,7 @@ uses a book glyph and supplies a redundant non-motion explanation of the
 action. The established vocabulary names activity code `8` as debug `reading`
 and normal player HUD `Reading`. No meaning is available only through movement.
 
-Reading alternates frames every 12 simulation ticks. Stable entity id supplies
+Reading alternates frames every 24 simulation ticks. Stable entity id supplies
 the phase offset before frame division. Wall time and render-frame count are
 forbidden inputs. Pause freezes the exact frame; speed controls scale it with
 the simulation; Save and Load reconstruct it from the saved simulation tick
@@ -347,7 +350,7 @@ Automated coverage must prove:
    hashes.
 11. WebAssembly memory growth preserves action `3`, activity `8`, facing, and
    both socket-position axes through the existing accessors.
-12. All three looks, four facings, two frames, ticks 11, 12, 23, and 24,
+12. All three looks, four facings, two frames, ticks 23, 24, 47, and 48,
    staggered neighbouring ids, invalid-code fallback, pause, speed, and
    reduced motion are pinned in web tests.
 13. Ring, indicator, carried badge, local-light sampling, sprite picking,

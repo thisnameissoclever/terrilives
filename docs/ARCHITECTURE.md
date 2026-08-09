@@ -506,8 +506,9 @@ Conversation is the first authored body animation. The social interaction
 declares `talk / partner / toward_anchor`; render sync resolves the actual pair
 to opposite lot-axis facings and the shell selects one of two fixed-envelope
 Muted Line frames for that look and facing. Simulation tick and stable entity
-id choose the frame, never wall time. Reduced motion keeps frame zero, so the
-directional action remains legible without ornamental alternation.
+id choose the frame on an eight-tick hold, never wall time. Reduced motion
+keeps frame zero, so the directional action remains legible without ornamental
+alternation.
 
 Eating extends the same two-column contract without widening the bridge.
 `Grab a snack` declares `eat / object / toward_anchor`; the terminal dinner
@@ -515,14 +516,14 @@ chain step declares `eat / station / toward_anchor`. Render sync requires the
 exact active interaction or chain step, resolves its exact target object, and
 faces toward the centre of that object's authored footprint. Malformed or
 unauthored state emits no pose. The shell maps action code 2 to two
-fixed-envelope hand-to-mouth frames per look and facing on an eight-tick,
+fixed-envelope hand-to-mouth frames per look and facing on a sixteen-tick,
 stable-id phase. An exact authored snack and a valid authored dinner work step
 project the existing `EATING` activity so the fork bubble remains visible. A
 valid sleep-tagged interaction projects `SLEEPING`. Every other ordinary use
 of the legacy shared `Eating` component projects the append-only
 `USING_OBJECT` activity code 7. The shell gives that generic state a HUD label
 but no indicator sprite because one 26-pixel glyph cannot honestly cover
-bookshelf reading, washing, television, bathing, and toilet use. Generic object
+washing, television, bathing, and toilet use. Generic object
 use never selects eating body art.
 
 Seated reading adds an exact object-local action position without widening the
@@ -542,11 +543,25 @@ Only `reading_chair.settle_in` currently authors
 `Target` object and interaction identity, the exact target entity, its position,
 its socket carrier, and an in-range compiled socket index. A valid match emits
 visual action 3, activity 8, the socket facing, and the socket coordinates as the
-row's displayed position while leaving ECS `Position` untouched. Conversation
-and eating keep precedence. Transition tracking uses full ECS entity identities
-to reseed both interpolation samples on socket entry and exit, including paused
-command refresh and Load, so the body never interpolates through the chair.
+row's displayed position while leaving ECS `Position` untouched. The shell
+selects two seated-reading frames per look and facing on a 24-tick hold.
+Conversation and eating keep precedence. Transition tracking uses full ECS
+entity identities to reseed both interpolation samples on socket entry and
+exit, including paused command refresh and Load, so the body never interpolates
+through the chair.
 Malformed or unauthored state falls back to generic object use.
+
+Standing bookshelf reading reuses the same compiled `Read` action without an
+object socket. `bookshelf.read` authors the exact
+`read / object / toward_anchor` combination. Render sync requires matching
+active object and interaction identity, rejects social and chain work, keeps
+the row's ordinary path-tile position, and faces toward the exact target
+footprint centre. A valid match emits append-only visual action 4 plus existing
+activity 8. The shell selects two upright, fixed-envelope reading frames per
+look and facing on the same 24-tick, stable-id phase as seated reading. Reduced
+motion pins frame zero. Conversation, eating, and seated socket reading retain
+their existing precedence; every incomplete or surplus contract falls back to
+generic object use.
 
 Save records simulation tick state, not a fractional presentation sample. Load
 therefore reconstructs the footfall from the saved tick-end position after the
@@ -561,11 +576,13 @@ The simulation owns all state in WASM linear memory. JS holds
 positions, sprite IDs, activity codes, authored visual actions, and lot-axis
 facings, plus compiled footprint width and depth, and feeds them directly into
 GPU buffers. Walking reads the activity and position columns. Conversation,
-eating, and seated reading read the separate action and facing columns, so the
-broad status vocabulary never becomes an art lookup by accident. Reading also
-reuses the existing position column for its socket-projected body; no pointer or
-bridge accessor was added. Lighting reads footprints only while rebuilding its
-static field and never retains a view across a sync.
+eating, seated reading, and standing reading read the separate action and
+facing columns, so the broad status vocabulary never becomes an art lookup by
+accident. Both reading routes reuse existing position columns: seated reading
+projects its object socket, while standing reading retains the ordinary
+path-tile samples. No pointer or bridge accessor was added. Lighting reads
+footprints only while rebuilding its static field and never retains a view
+across a sync.
 
 **Zero copy, and no per-entity JS objects, ever.**
 
