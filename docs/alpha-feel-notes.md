@@ -689,7 +689,7 @@ terminal-only satisfaction plus immediate preemption means a mis-click can
 destroy a whole cooking chain, and therefore that chain progress must be
 stored state. That argument rests on preemption being real. It is.
 
-## What does not work
+## What did not work in this session
 
 **[P7] A click can be discarded with no way for anything to know - and it
 is reachable with a mouse.** This is the session's one real finding.
@@ -708,18 +708,24 @@ thrown away silently. The boolean the shell gets back reports that the
 return path from the drain to the shell, so this is not something the shell
 is failing to check; it is a channel that does not exist.
 
-`content/tuning.toml` names this exact outcome as the thing to avoid, in its
-own words: the fifth rapid click "does nothing at all, and a click that does
-nothing is the exact failure [D-3] exists to prevent." It is now reachable
-by leaning on the mouse.
+The `content/tuning.toml` comment at the time named this exact outcome as the
+thing to avoid, in its own words: the fifth rapid click "does nothing at all,
+and a click that does nothing is the exact failure [D-3] exists to prevent."
+It was reachable by leaning on the mouse.
 
-Worth adding: `input.ts` currently discards the return value of every
-command it sends, so even the *observable* half - a full staging queue,
-which is easiest to reach while paused, since nothing drains at speed 0 - is
-thrown away. Fixing that is a small change and fixes the smaller half of the
-problem. The larger half needs a decision rather than a patch: either the
-drain reports refusals back across the boundary, or the shell stops being
-able to over-promise by refusing the click itself at the cap.
+Worth adding: `input.ts` then discarded the return value of every command it
+sent, so even the *observable* half - a full staging queue, easiest to reach
+while paused because nothing drains at speed 0 - was thrown away. Fixing that
+was the smaller half. The larger half needed a decision rather than a patch:
+either the drain had to report refusals back across the boundary, or the shell
+had to stop over-promising by refusing the click itself at the cap.
+
+**Resolved 2026-08-08.** The simulation drain now records each resolved object
+or social order refused at `max_queued_intents`. The shell consumes that count
+after either a full tick or a paused command-only flush and reports `That
+person's order queue is full`. Command enqueue still owns malformed bytes and
+the separate staging cap; it does not guess at per-sim capacity before ordered
+cancellation, replacement, and append commands run.
 
 **[P8] From outside the simulation, a sim *using* an object and a sim
 *loitering on* an object's tile are the same picture, and it corrupted the
@@ -2297,3 +2303,49 @@ a separate gate.
   still needs observation on a real phone in daylight, including safe-area
   insets and ordinary touch use. Browser screenshots, source contrast, and
   emulated media preferences do not close that requirement.
+
+## [A-queue-capacity-feedback] The fifth queued order is refused out loud
+
+The 2026-08-08 implementation pass reproduced [P7] before changing the drain:
+five valid object orders entered staging before one paused flush, the per-sim
+queue remained at four, and the new result read zero. The exact test failed on
+that zero, then passed after the drain began recording the rejection.
+
+- **The simulation owns the answer.** Same-batch tests cover the exact fifth
+  append, multiple overflows, queues that already existed, fresh queues,
+  `UseObject`, and `TalkTo`. A full-queue cancel reports no failure, and a
+  cancel followed by a use accepts the replacement because ordered
+  cancellation makes room first.
+- **Paused play returns the same fact without hidden time.** The native WASM
+  boundary accepts all five well-formed commands into staging, applies them in
+  `flush_commands`, leaves the clock at tick zero and the queue at four, then
+  returns one take-and-clear capacity rejection.
+- **Pointer and keyboard use one result path.** Release-WASM bridge tests drive
+  the additive pointer dispatcher and Queue-mode keyboard menu dispatcher.
+  Both stage five accepted commands, flush to four intents, consume one
+  rejection, and publish `That person's order queue is full` with error styling
+  in a dedicated command live region.
+- **Displayed acceptance caught a feedback-lifecycle defect.** The first
+  implementation left the queue-full message visible after a later accepted
+  replacement, and assigning the same text for another rejection gave the
+  live region no state transition to announce. The corrected pointer and
+  keyboard routes clear the dedicated region at each order attempt. Causal web
+  coverage pins reject, accepted replacement, empty state, then the same reject
+  again. A frame seam also pins command drain, persistence update, then command
+  feedback, while persistence writes only its own status region.
+- **The corrected recovery sequence is visible in the real page.** At
+  1280 x 720 in the production WebGPU build, five paused Queue-mode clicks on
+  the refrigerator left Casey at four waiting orders and showed `That person's
+  order queue is full` in red while the separate persistence status remained
+  `No save yet`. Turning Queue off and issuing a replacement reduced the
+  waiting count to one and cleared the command status. Turning Queue on and
+  filling the remaining capacity produced the same visible error again at four
+  orders. The final status occupied its own complete line inside the scrollable
+  desktop HUD. Browser diagnostics contained only expected performance logs,
+  with no warning or error.
+- **Proof boundary.** Native, release-WASM, web integration, and corrected
+  desktop renderer evidence are complete for the visible reject, recovery, and
+  repeated-reject sequence. A real screen reader was not used, so actual second
+  announcement timing remains unobserved even though the DOM transition is
+  pinned and was seen clearing in the page. The corrected build was not
+  rechecked at phone width or on a physical touch device in this pass.

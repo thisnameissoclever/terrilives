@@ -412,6 +412,7 @@
         opacity: 0.45;
       }
       #save-status,
+      #command-feedback,
       #keyboard-target {
         grid-column: 1 / -1;
         min-height: 1.4em;
@@ -419,7 +420,8 @@
         color: var(--hud-muted);
         font-size: 12px;
       }
-      #save-status[data-kind='error'] {
+      #save-status[data-kind='error'],
+      #command-feedback[data-kind='error'] {
         color: var(--hud-danger);
       }
       #help-panel {
@@ -791,6 +793,7 @@
           aria-expanded="false"
         >Help</button>
         <p id="save-status" role="status" aria-live="polite">Starting</p>
+        <p id="command-feedback" role="status" aria-live="polite"></p>
         <p id="keyboard-target" role="status" aria-live="polite" hidden></p>
       </section>
     </div>

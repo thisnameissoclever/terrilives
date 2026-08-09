@@ -334,9 +334,10 @@ rng_seed = 20260728
 # have to release its target and its reservation from inside the drain and
 # would make a click able to cancel an earlier click's work silently.
 # Refusing the new one keeps every accepted instruction honoured. The cost
-# is real and is why this number is not smaller: the fifth rapid click
-# does nothing at all, and a click that does nothing is the exact failure
-# [D-3] exists to prevent. Raise it before lowering it.
+# is a hard planning ceiling: the fifth rapid click is refused and the shell
+# reports that the person's order queue is full. It no longer disappears as
+# an apparently accepted click. Raise this only if watched play says four
+# remembered orders are too few.
 #
 # Zero is rejected at build time: a cap of zero is not "no queueing", it
 # is a game where clicking an object never does anything.

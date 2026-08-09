@@ -212,6 +212,17 @@ impl SimHandle {
         self.sim.sync_render_buffer_after_commands();
     }
 
+    /// Returns and clears per-sim order-capacity rejections produced by the
+    /// last full-tick or paused command drains.
+    ///
+    /// This is separate from `enqueue_command`: enqueue validates bytes and
+    /// the staging queue, while only the simulation drain can resolve the
+    /// agent and apply cancellation, replacement, and append ordering before
+    /// deciding whether an intent fits.
+    pub fn take_intent_capacity_rejections(&mut self) -> u32 {
+        self.sim.take_intent_capacity_rejections()
+    }
+
     /// Arguments are sanitised here rather than trusted. See
     /// [`sanitize_hunger`] and [`sanitize_coord`] for what that means and
     /// why the sim crates are not the place to do it.
@@ -2079,6 +2090,17 @@ mod boundary_tests {
             .max_queued_commands as usize
     }
 
+    /// The per-sim order cap enforced by the simulation drain.
+    fn intent_cap(handle: &SimHandle) -> usize {
+        handle
+            .sim
+            .world()
+            .resource::<Content>()
+            .0
+            .tuning
+            .max_queued_intents as usize
+    }
+
     /// Spawns an agent through the ECS rather than through
     /// `spawn_agent`, because these tests need its raw index and the
     /// export does not return one. Same fixture shape `spawn_agent`
@@ -2162,6 +2184,38 @@ mod boundary_tests {
             stored_hungers(&handle),
             before_hunger,
             "paused input must not run need decay"
+        );
+    }
+
+    #[test]
+    fn paused_flush_reports_exactly_the_fifth_order_rejected_by_the_simulation() {
+        let mut handle = SimHandle::new(8, 8);
+        assert!(handle.spawn_object(4.0, 4.0, "fridge"));
+        let agent = spawn_agent_at(&mut handle, 1.0, 1.0, 80.0);
+        let cap = intent_cap(&handle);
+        assert_eq!(cap, 4, "the fixture must track the shipped order cap");
+
+        for click in 1..=cap + 1 {
+            assert!(
+                handle.enqueue_command(&use_object_bytes(agent, 0, 0)),
+                "click {click} must enter the command staging queue"
+            );
+        }
+        assert_eq!(
+            handle.queued_orders_of(agent),
+            0,
+            "the paused commands are staged until the shell flushes them"
+        );
+
+        handle.flush_commands();
+
+        assert_eq!(handle.sim_tick(), 0, "the paused flush must not tick");
+        assert_eq!(handle.queued_orders_of(agent), cap);
+        assert_eq!(handle.take_intent_capacity_rejections(), 1);
+        assert_eq!(
+            handle.take_intent_capacity_rejections(),
+            0,
+            "one rejection must not be repeated on every rendered frame"
         );
     }
 

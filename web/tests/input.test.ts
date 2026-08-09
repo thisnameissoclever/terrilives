@@ -1166,6 +1166,40 @@ describe('handleLeftClick', () => {
     });
   });
 
+  it('announces an order attempt before pointer dispatch but not selection', () => {
+    const calls: string[] = [];
+    const order = target(6, source([[9, KIND_OBJECT, 7, 3]]));
+    const originalUse = order.useObject;
+    order.useObject = (agent, object, interaction) => {
+      calls.push('dispatch');
+      return originalUse(agent, object, interaction);
+    };
+    handleLeftClick(
+      order,
+      bodyOf([7, 3]),
+      0,
+      0,
+      ADDITIVE,
+      1,
+      false,
+      () => calls.push('attempt'),
+    );
+    expect(calls).toEqual(['attempt', 'dispatch']);
+
+    const selection = target(null, source([[6, KIND_AGENT, 4, 2]]));
+    handleLeftClick(
+      selection,
+      bodyOf([4, 2]),
+      0,
+      0,
+      PLAIN,
+      1,
+      false,
+      () => calls.push('selection attempt'),
+    );
+    expect(calls).toEqual(['attempt', 'dispatch']);
+  });
+
   /**
    * **[I3], end to end and countable: a plain click on a SECOND object
    * leaves one instruction, and a ctrl-click leaves two.**
@@ -1517,6 +1551,40 @@ describe('dispatchMenuAction', () => {
     const sink = recordingSink(6);
     dispatchMenuAction(sink, NEVER_MIND.action);
     expect(sink.calls).toEqual(['cancel 6']);
+  });
+
+  it('announces use and talk attempts before dispatch but not cancellation', () => {
+    const sink = recordingSink(6);
+    const calls: string[] = [];
+
+    dispatchMenuAction(
+      sink,
+      { kind: 'use', object: 9, interaction: 0 },
+      true,
+      () => calls.push('use attempt'),
+    );
+    dispatchMenuAction(
+      sink,
+      { kind: 'talk', target: 8, interaction: 0 },
+      true,
+      () => calls.push('talk attempt'),
+    );
+    dispatchMenuAction(
+      sink,
+      NEVER_MIND.action,
+      true,
+      () => calls.push('cancel attempt'),
+    );
+
+    expect(calls).toEqual(['use attempt', 'talk attempt']);
+
+    dispatchMenuAction(
+      recordingSink(null),
+      { kind: 'use', object: 9, interaction: 0 },
+      true,
+      () => calls.push('deselected attempt'),
+    );
+    expect(calls).toEqual(['use attempt', 'talk attempt']);
   });
 
   /**

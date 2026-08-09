@@ -582,6 +582,11 @@ export interface CanvasPoint {
  * player aims at a drawn sprite and a tile is a different place, by up to two
  * tiles for something as tall as a sim. `null` is a click that could not be
  * placed at all, and it does nothing rather than clearing the selection.
+ *
+ * `onOrderAttempt` runs after resolution and before dispatch. The UI uses
+ * that boundary to clear its command announcement before this attempt can
+ * produce another simulation-authored result; selection and empty-floor
+ * clicks do not clear an order message.
  */
 export function handleLeftClick(
   target: InputTarget,
@@ -591,6 +596,7 @@ export function handleLeftClick(
   additive: boolean,
   scale = 1,
   reducedMotion = false,
+  onOrderAttempt: () => void = () => {},
 ): LeftClickOutcome {
   if (point === null) return { kind: 'none' };
   const pick = pickSprite(
@@ -604,6 +610,7 @@ export function handleLeftClick(
   );
   const action = resolveLeftClick(pick, target.selectedIndex(), additive);
   if (action.kind === 'none') return { kind: 'none' };
+  if (action.kind === 'use') onOrderAttempt();
   const accepted = dispatch(target, action) === true;
   return action.kind === 'select'
     ? { kind: 'selection', accepted }
@@ -769,14 +776,20 @@ export function handleRightClick(
  * would leave a flyout whose every row did the same thing, and it would
  * look correct on every object the game currently ships because each has
  * exactly one row above the cancel.
+ *
+ * `onOrderAttempt` runs before either order variant sends its replace pair.
+ * The cancel row is control input, not a new order, so it does not fire the
+ * callback. Both pointer and keyboard menu activation enter here.
  */
 export function dispatchMenuAction(
   sink: CommandSink,
   action: MenuAction,
   replace = true,
+  onOrderAttempt: () => void = () => {},
 ): boolean {
   const agent = sink.selectedIndex();
   if (agent === null) return false;
+  if (action.kind !== 'cancel') onOrderAttempt();
   switch (action.kind) {
     case 'use':
       // Cancel first, then use: the replace pair. See `dispatch`.
@@ -960,6 +973,7 @@ export function attachPointerInput(
   additiveMode: () => boolean = () => false,
   onCommandRejected: (kind: RejectedCommandKind) => void = () => {},
   reducedMotion: () => boolean = () => false,
+  onOrderAttempt: () => void = () => {},
 ): void {
   const canvasPoint = (event: {
     clientX: number;
@@ -1131,6 +1145,7 @@ export function attachPointerInput(
       event.ctrlKey || event.metaKey || additiveMode(),
       camera.scale,
       reducedMotion(),
+      onOrderAttempt,
     );
     if (outcome.kind !== 'none' && !outcome.accepted) {
       onCommandRejected(outcome.kind);

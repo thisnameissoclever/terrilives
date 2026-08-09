@@ -89,6 +89,14 @@ export class SimBridge {
     this.handle.flush_commands();
   }
 
+  /**
+   * Returns and clears orders rejected at the per-sim intent cap by the
+   * authoritative simulation drain.
+   */
+  takeIntentCapacityRejections(): number {
+    return this.handle.take_intent_capacity_rejections();
+  }
+
   /** Current fixed-step tick, converted from wasm-bindgen's u64 BigInt. */
   clockTick(): number {
     const tick = this.handle.sim_tick();

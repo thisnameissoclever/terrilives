@@ -285,6 +285,7 @@ impl Sim {
         // takes it as `ResMut` and a missing resource is a panic on the
         // first tick rather than a command that quietly does nothing.
         world.insert_resource(terri_core::CommandQueue::default());
+        world.insert_resource(systems::command::CommandFeedback::default());
 
         // Register components eagerly. This is NOT optional bookkeeping:
         // World::try_query returns None if ANY component in the query is
@@ -692,6 +693,18 @@ impl Sim {
     /// after command step zero in [D5] runs here.
     pub fn flush_commands(&mut self) {
         self.command_schedule.run(&mut self.world);
+    }
+
+    /// Returns and clears the number of object or social orders refused
+    /// because their sim already held `max_queued_intents` orders.
+    ///
+    /// Enqueue acceptance is deliberately separate: it covers command bytes
+    /// and the staging queue, while this result can only be decided after the
+    /// simulation resolves the command and applies its ordered batch.
+    pub fn take_intent_capacity_rejections(&mut self) -> u32 {
+        self.world
+            .resource_mut::<systems::command::CommandFeedback>()
+            .take_intent_capacity_rejections()
     }
 
     pub fn world(&self) -> &World {
