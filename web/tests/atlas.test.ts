@@ -216,5 +216,8 @@ describe('the atlas manifest', () => {
       const sprite = SPRITES[spriteIndex(name)];
       expect([sprite.w, sprite.h], name).toEqual([38, 88]);
     }
+    // Generic object use is intentionally text-only. A vague glyph would
+    // mislabel at least one shipped use, so the append-only atlas stays put.
+    expect(() => spriteIndex('indicatorUse')).toThrow();
   });
 });

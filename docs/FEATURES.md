@@ -78,11 +78,13 @@ Eating is the first complete object-action category. `Grab a snack` authors
 `eat / station / toward_anchor`. Render sync resolves the exact target and its
 footprint centre, then the shell selects one of two directional hand-to-mouth
 frames for the stable character look. The carried dinner follows the authored
-hand side and the terminal step keeps the existing fork bubble. Broad
-`EATING` activity still covers showers, toilets, television, reading, washing,
-and other object use, but it never selects eating art by itself. Those actions
-remain unanimated until their own categories and anchors are authored. Paid
-asset decisions remain outside this slice and off the current critical path.
+hand side, and both authored eating paths keep the existing fork bubble.
+Showers, toilets, television, reading, washing, and other ordinary object use
+instead report the appended `USING_OBJECT` activity. It is deliberately
+text-only: one tiny generic glyph would misdescribe at least one of those
+actions. Those actions remain unanimated until their own categories and
+anchors are authored. Paid asset decisions remain outside this slice and off
+the current critical path.
 
 **The design language is decided: Muted Line, chosen 2026-08-03.** It is
 original procedural art rather than a treatment of the borrowed sprites, so

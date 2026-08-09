@@ -1026,6 +1026,20 @@ describe('SimBridge', () => {
     expect(bridge.positions()[4]).not.toBe(afterCancel);
   });
 
+  it('carries literal activity 7 for real generic object use through release wasm', () => {
+    // This reads the release artifact rebuilt before Vitest, not the native
+    // rlib test. The literal is intentional: importing the Rust constant
+    // would let both sides move together and prove bugger all about the wire.
+    const bridge = new SimBridge(new SimHandle(8, 8), wasmMemory);
+    expect(bridge.spawnObject(4, 4, 'sink')).toBe(true);
+    bridge.spawnAgent(3, 4, 100);
+    expect(bridge.useObject(1, 0, 0)).toBe(true);
+    bridge.tick();
+
+    expect(Array.from(bridge.activities())).toEqual([0, 7]);
+    expect(Array.from(bridge.visualActions())).toEqual([0, 0]);
+  });
+
   it('sends the interaction index through to the simulation unclamped', () => {
     // **The interaction index across the RELEASE wasm the page loads**,
     // which is the only reason this is not redundant with the Rust twin in

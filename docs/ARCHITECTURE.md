@@ -516,9 +516,14 @@ exact active interaction or chain step, resolves its exact target object, and
 faces toward the centre of that object's authored footprint. Malformed or
 unauthored state emits no pose. The shell maps action code 2 to two
 fixed-envelope hand-to-mouth frames per look and facing on an eight-tick,
-stable-id phase. A valid authored dinner work step also projects the existing
-eating activity so its fork bubble remains visible. The reverse never happens:
-the broad object-use activity does not select body art.
+stable-id phase. An exact authored snack and a valid authored dinner work step
+project the existing `EATING` activity so the fork bubble remains visible. A
+valid sleep-tagged interaction projects `SLEEPING`. Every other ordinary use
+of the legacy shared `Eating` component projects the append-only
+`USING_OBJECT` activity code 7. The shell gives that generic state a HUD label
+but no indicator sprite because one 26-pixel glyph cannot honestly cover
+reading, washing, television, bathing, and toilet use. Generic object use never
+selects eating body art.
 
 Save records simulation tick state, not a fractional presentation sample. Load
 therefore reconstructs the footfall from the saved tick-end position after the

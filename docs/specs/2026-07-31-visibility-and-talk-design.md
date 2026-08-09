@@ -23,6 +23,13 @@ misses the next nap-capable object. Strictly positive matters: a
 zero-delta energy rider must not read as a nap (pinned by test after a
 `>` vs `>=` mutant survived).
 
+Status correction, 2026-08-08: the passage above records the original
+classifier. Codes 0 through 5 retain their wire meanings, code 6 means at work,
+and append-only code 7 means generic object use. Code 3 now belongs only to
+exact authored snack or terminal dinner eating. Sleeping is identified by the
+interaction's authored `sleep` tag rather than by its dominant energy advert.
+Some activity codes are deliberately text-only and draw no indicator bubble.
+
 ## [V2] The debug overlay is three read-only exports and a `<pre>`
 
 `sim_id_of`, `personality_of` (fourteen floats, drain first), and

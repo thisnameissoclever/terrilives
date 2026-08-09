@@ -767,13 +767,18 @@ impl Default for Personality {
     }
 }
 
-/// An in-progress interaction: a reference into the content pack plus how
-/// much of it is left.
+/// An in-progress ordinary object interaction: a reference into the content
+/// pack plus how much of it is left.
 ///
 /// It names the object DEFINITION rather than the object entity, so the
 /// deltas being delivered stay resolvable for the whole interaction even
 /// if the entity changes underneath it. `Target` is what still names the
 /// entity, because releasing the reservation needs one.
+///
+/// The historical name is narrower than the component's job. Eating, sleep,
+/// washing, reading, and every other ordinary object interaction share this
+/// state. Player-facing activity must therefore come from the authored
+/// interaction, never from this type name.
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Eating {
     pub object: ObjectDefId,

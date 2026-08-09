@@ -2272,6 +2272,28 @@ mod boundary_tests {
     }
 
     #[test]
+    fn activities_ptr_carries_generic_object_use_without_an_eating_alias() {
+        let mut handle = SimHandle::new(8, 8);
+        assert!(handle.spawn_object(4.0, 4.0, "sink"));
+        let agent = spawn_agent_at(&mut handle, 3.0, 4.0, 0.0);
+        assert!(handle.enqueue_command(&use_object_bytes(agent, 0, 0)));
+        handle.tick();
+
+        assert_eq!(
+            addressed(
+                handle.activities_ptr(),
+                handle.entity_count(),
+                "activities_ptr"
+            ),
+            vec![
+                terri_sim::render_buffer::activity::NONE,
+                terri_sim::render_buffer::activity::USING_OBJECT,
+            ],
+            "the append-only generic code must cross the existing WASM activity column"
+        );
+    }
+
+    #[test]
     fn malformed_command_bytes_are_rejected_rather_than_trapping_the_module() {
         // **The mutation this is written against: `unwrap` or `expect` on
         // the decode.** That compiles, ships, and survives `--release` -

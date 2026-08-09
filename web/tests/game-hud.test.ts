@@ -68,6 +68,7 @@ describe('game HUD formatting', () => {
       'Waiting: the door is blocked',
     );
     expect(formatActivity(5, null, null)).toBe('Sleeping');
+    expect(formatActivity(7, null, null)).toBe('Using object');
   });
 });
 
