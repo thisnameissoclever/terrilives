@@ -14,6 +14,8 @@ function source(selected: number | null = 4): KeyboardTargetSource {
     kinds: () => new Uint32Array([1, 0, 1, 0]),
     simName: (entity) => ({ 4: 'Terri', 9: 'Nadia' })[entity] ?? '',
     objectName: (entity) => ({ 2: 'Fridge', 7: 'Rug' })[entity] ?? '',
+    entityName: (entity) =>
+      ({ 2: 'Fridge', 4: 'Terri', 7: 'Rug', 9: 'Nadia' })[entity] ?? '',
     interactionLabels: (entity) => (entity === 2 ? ['Grab a snack'] : []),
     socialLabels: () => ['Talk'],
     selectedIndex: () => selected,

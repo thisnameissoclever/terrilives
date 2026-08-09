@@ -874,7 +874,7 @@ async function main(): Promise<void> {
         );
       } else if (action.kind === 'menu') {
         const bounds = canvas.getBoundingClientRect();
-        menu.open(action.entries, bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
+        menu.open(action.menu, bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
       } else {
         keyboardStatus.hidden = false;
         keyboardStatus.textContent = action.message;

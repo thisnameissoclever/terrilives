@@ -533,6 +533,78 @@ M4 also has non-code prerequisites that take longer than expected and block
 launch rather than development: a privacy policy [T14], published moderation
 rules [T15], and storage plus upload identity [T16]. See TIM-TODO.md.
 
+## Named and not yet built
+
+Reported from the running game rather than derived from a plan, which is
+why they are here rather than in ARCHITECTURE.md: somebody looked at the
+screen and said what was wrong with it. Named so the boundary between
+"known" and "nobody has noticed" stays a decision.
+
+### [B-builder] A builder: rooms, furniture, placement and rotation
+
+The lot is authored in `content/lot.toml` and a player cannot touch it.
+The whole point of this genre is that the house is yours, so this is a
+headline feature rather than a nicety.
+
+It is also the thing that makes several complaints below stop mattering.
+Furniture positioning in the shipped lot is wonky in places, and hand
+fixing those coordinates is work that a builder throws away: the moment a
+player can drag a chair, the shipped lot is a starting suggestion rather
+than a layout anybody has to get right.
+
+Placement wants rotation, and rotation is what [B-facing] is about, so
+that lands first or alongside.
+
+### [B-facing] Objects know which way they face, and overlap follows
+
+Every object is drawn as one sprite at one depth, and depth comes from
+its tile. That is wrong the moment two objects share a line of sight: the
+bunk bed's posts draw over the bed standing in front of it, because the
+renderer has no idea the posts are BEHIND the thing they overlap.
+
+Two pieces, and they are separable:
+
+* **Facing.** An object gets an authored direction, the sprite it draws
+  follows from it, and a builder can turn it. The kitchen already has
+  hand-authored `SW` variants of four sprites, which is this feature done
+  once by hand for one direction.
+* **Sub-object depth.** A tall object needs more than one depth. The
+  posts of a bunk bed, the screen of a television and the door of a
+  fridge are parts, and a part in front of a sim and a part behind it
+  cannot share a number.
+
+The second half is the expensive one and it touches [D10]: more parts is
+more instances, which the instance path is fine with, but the depth
+formula stops being "one number per tile".
+
+### [A-art-pass] The furniture does not survive being looked at
+
+The generator replaced every borrowed sprite, which was the point, and
+the result is a coherent style drawn by somebody who has never seen the
+objects. The owner's list, verbatim in substance: toilets do not look
+like that, the chairs are messed up, and a lot of the interactable things
+just do not make sense visually.
+
+Sub-objects are part of this and not merely detail. A television with no
+distinct screen is a grey box; the screen is what makes it a television,
+and it is also the thing [ML-tint]'s emissive channel exists to light.
+
+One head-shaped instance of this is FIXED rather than listed: the hair
+was a chord of the ellipse inscribed in the head's box while the head
+itself is a rounded rectangle, so skin showed at both top corners of
+every sim. `hair_cap` in `objects.py` traces the head instead.
+
+### [A-animations] Almost everything is still a static pose
+
+Talking, eating and reading have two authored frames each per facing.
+Everything else - walking, sleeping, cooking, washing, using a toilet,
+idling - is one sprite that never moves. The walk has an ornamental bob
+and nothing else.
+
+This is the largest single lever on how alive the game looks, and it is
+mostly generator work rather than engine work: the frame-selection path
+`SIM_TALK_SPRITES` uses already generalises.
+
 ## Explicitly out of scope for v1
 
 Listed so the boundary is a decision rather than a drift. Each is designed for

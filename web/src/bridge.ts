@@ -508,6 +508,23 @@ export class SimBridge {
     return this.handle.interaction_labels(entityIndex);
   }
 
+  /**
+   * What to call `entityIndex` in a flyout heading: a sim's display name
+   * or an object's authored name, whichever it has.
+   *
+   * One accessor rather than making the caller choose, because the caller
+   * that needs it - `resolveRightClick` - already knows whether it picked
+   * an agent and would be writing that branch twice. Both boundary reads
+   * return the empty string for the kind they are not about, so "whichever
+   * is non-empty" is the whole rule.
+   *
+   * Empty means nothing worth naming, and the flyout draws no heading.
+   */
+  entityName(entityIndex: number): string {
+    const sim = this.simName(entityIndex);
+    return sim === '' ? this.objectName(entityIndex) : sim;
+  }
+
   /** Authored object name, or an empty string when the entity is not furniture. */
   objectName(entityIndex: number): string {
     if (!isU32(entityIndex)) return '';

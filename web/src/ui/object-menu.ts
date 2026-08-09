@@ -80,22 +80,57 @@ export type MenuAction =
 export interface MenuEntry {
   readonly label: string;
   readonly action: MenuAction;
+  /**
+   * Draw a rule ABOVE this row.
+   *
+   * Set on the cancel row and nowhere else, because it is the one row that
+   * is not about the thing under the pointer. Without it the flyout reads
+   * as a flat list in which "Nothing" is a fourth thing you could do to
+   * the bookshelf.
+   */
+  readonly divider?: boolean;
+}
+
+/**
+ * A flyout: what it is about, and what you can do to it.
+ *
+ * The title is carried BESIDE the rows rather than as a row, and that is
+ * the whole reason this type exists. `entries[n]` has to stay the row a
+ * player clicks, and a heading occupying index 0 would put a
+ * non-interactive row in the middle of that list for every reader to
+ * special-case. One extra field costs less than that.
+ *
+ * An empty title means "nothing worth naming" - a right click on bare
+ * floor - and the surface draws no heading at all rather than an empty
+ * line.
+ */
+export interface Menu {
+  readonly title: string;
+  readonly entries: readonly MenuEntry[];
 }
 
 /**
  * The row that cancels, which right-click used to perform directly.
  *
- * Worded as a refusal of the menu rather than as an order - "Never mind"
+ * Worded as a refusal of the menu rather than as an order - "Nothing"
  * rather than "Stop" - because that is what it does to a sim acting on its
  * own: nothing. `CancelIntents` releases the sim's current commitment only
  * when that commitment is the intent being cancelled, so a sim that chose
  * to sleep by itself keeps sleeping. A row labelled "Stop" would be
  * promising something the simulation deliberately does not do.
+ *
+ * It was "Never mind", which reads as an apology to the menu rather than
+ * as an answer to the question the menu is asking. The question is what
+ * this person should do, and the answer is Nothing.
  */
-export const NEVER_MIND: MenuEntry = {
-  label: 'Never mind',
+export const NOTHING: MenuEntry = {
+  label: 'Nothing',
   action: { kind: 'cancel' },
+  divider: true,
 };
+
+/** A flyout over something with no name and nothing to offer. */
+export const NOTHING_MENU: Menu = { title: '', entries: [NOTHING] };
 
 /**
  * The rows for an object: its own interactions, in the order the
@@ -112,15 +147,16 @@ export const NEVER_MIND: MenuEntry = {
  * "right-clicked the floor" behave alike.
  */
 export function menuEntries(
+  title: string,
   labels: readonly string[],
   object: number,
-): MenuEntry[] {
+): Menu {
   const entries: MenuEntry[] = labels.map((label, interaction) => ({
     label,
     action: { kind: 'use', object, interaction },
   }));
-  entries.push(NEVER_MIND);
-  return entries;
+  entries.push(NOTHING);
+  return { title, entries };
 }
 
 /**
@@ -130,15 +166,16 @@ export function menuEntries(
  * just the cancel, like a rug.
  */
 export function socialMenuEntries(
+  title: string,
   labels: readonly string[],
   target: number,
-): MenuEntry[] {
+): Menu {
   const entries: MenuEntry[] = labels.map((label, interaction) => ({
     label,
     action: { kind: 'talk', target, interaction },
   }));
-  entries.push(NEVER_MIND);
-  return entries;
+  entries.push(NOTHING);
+  return { title, entries };
 }
 
 /**
@@ -152,9 +189,9 @@ export function socialMenuEntries(
  * somebody would break with a mutable field.
  */
 export interface MenuSurface {
-  /** Draws `entries` at a point in CLIENT pixels and makes them visible. */
+  /** Draws `menu` at a point in CLIENT pixels and makes it visible. */
   show(
-    entries: readonly MenuEntry[],
+    menu: Menu,
     clientX: number,
     clientY: number,
     onPick: (index: number) => void,
@@ -230,12 +267,10 @@ export class ObjectMenu {
    * the rows rather than stacking a second menu, which is what a right
    * click on a second object has to do.
    */
-  open(entries: readonly MenuEntry[], clientX: number, clientY: number): void {
-    this.entries = entries;
+  open(menu: Menu, clientX: number, clientY: number): void {
+    this.entries = menu.entries;
     this.showing = true;
-    this.surface.show(entries, clientX, clientY, (index) =>
-      this.activate(index),
-    );
+    this.surface.show(menu, clientX, clientY, (index) => this.activate(index));
   }
 
   /**
@@ -330,10 +365,24 @@ export function createMenuSurface(
 ): MenuSurface {
   let returnFocus: HTMLElement | null = null;
   return {
-    show(entries, clientX, clientY, onPick) {
+    show(menu, clientX, clientY, onPick) {
       returnFocus = doc.activeElement instanceof HTMLElement ? doc.activeElement : null;
       root.replaceChildren();
-      for (const [index, entry] of entries.entries()) {
+      // The heading names what was right-clicked. A `<p>` rather than a
+      // `<button>`: it is not a row, it must not take focus, and the
+      // keyboard walk below has to land on the first real action.
+      if (menu.title !== '') {
+        const title = doc.createElement('p');
+        title.className = 'menu-title';
+        title.textContent = menu.title;
+        root.appendChild(title);
+      }
+      for (const [index, entry] of menu.entries.entries()) {
+        if (entry.divider === true && root.childElementCount > 0) {
+          const rule = doc.createElement('div');
+          rule.className = 'menu-divider';
+          root.appendChild(rule);
+        }
         const button = doc.createElement('button');
         button.type = 'button';
         button.className = 'menu-entry';

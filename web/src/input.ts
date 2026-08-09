@@ -47,11 +47,11 @@ import {
   screenY,
 } from './render/iso.js';
 import {
-  NEVER_MIND,
+  NOTHING_MENU,
   menuEntries,
   socialMenuEntries,
   type MenuAction,
-  type MenuEntry,
+  type Menu,
 } from './ui/object-menu.js';
 
 /**
@@ -546,6 +546,15 @@ export type InputTarget = CommandSink & PickSource;
 export interface InteractionSource {
   interactionLabels(entity: number): readonly string[];
   /**
+   * What to call the thing under the pointer, for the flyout's heading.
+   *
+   * Read on every open like the labels beside it, per [D-5]: the shell
+   * holds no copy of a name the simulation owns. Empty for anything
+   * without an authored name, which the surface renders as no heading
+   * rather than as a blank line.
+   */
+  entityName(entity: number): string;
+  /**
    * The social vocabulary's labels, index-ordered - the rows for a
    * flyout over a fellow SIM, per [A-11]'s "interact with other Sims".
    * Read on every open like `interactionLabels`, per [D-5].
@@ -558,7 +567,7 @@ export type MenuTarget = InputTarget & InteractionSource;
 
 /** What a right click drives on the flyout. `ObjectMenu` satisfies it. */
 export interface MenuController {
-  open(entries: readonly MenuEntry[], clientX: number, clientY: number): void;
+  open(menu: Menu, clientX: number, clientY: number): void;
   close(): void;
 }
 
@@ -688,7 +697,7 @@ export function resolveRightClick(
   originY: number,
   scale = 1,
   reducedMotion = false,
-): MenuEntry[] | null {
+): Menu | null {
   if (target.selectedIndex() === null) return null;
   const pick =
     point === null
@@ -702,17 +711,25 @@ export function resolveRightClick(
           scale,
           reducedMotion,
         );
-  if (pick === null) return [NEVER_MIND];
+  if (pick === null) return NOTHING_MENU;
   if (pick.isAgent) {
     // The selected sim itself: nothing to do but close. A DIFFERENT
     // sim: the social vocabulary - "walk over and chat" - which is the
     // [A-11] talk command's front door. The comparison is by entity
     // index because that is what selection stores and what the TalkTo
     // command will carry.
-    if (pick.entity === target.selectedIndex()) return [NEVER_MIND];
-    return socialMenuEntries(target.socialLabels(), pick.entity);
+    if (pick.entity === target.selectedIndex()) return NOTHING_MENU;
+    return socialMenuEntries(
+      target.entityName(pick.entity),
+      target.socialLabels(),
+      pick.entity,
+    );
   }
-  return menuEntries(target.interactionLabels(pick.entity), pick.entity);
+  return menuEntries(
+    target.entityName(pick.entity),
+    target.interactionLabels(pick.entity),
+    pick.entity,
+  );
 }
 
 /**
