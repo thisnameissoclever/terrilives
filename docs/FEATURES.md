@@ -23,8 +23,10 @@ transactional validation and restore, one OPFS save slot, daily autosave,
 save/load/new-game controls, a readable normal-play HUD, first-run Help that
 pauses game time and owns focus,
 long-press actions, a visible Queue mode, keyboard world targeting,
-clamped and focus-managed action menus, accurate rejection feedback on
-keyboard and pointer routes, persistence-dialog focus recovery, and
+clamped and focus-managed action menus, staging and post-drain queue-capacity
+rejection feedback on keyboard and pointer routes, a dedicated command live
+region that clears on the next order attempt and cannot be overwritten by
+Save or autosave status, persistence-dialog focus recovery, and
 responsive accessible controls. At phone portrait widths the existing HUD now
 reflows into a safe-area-aware top-and-bottom dock around a pointer-transparent
 canvas aperture instead of narrowing the desktop sidebar.

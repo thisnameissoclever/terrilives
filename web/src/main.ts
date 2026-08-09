@@ -46,6 +46,10 @@ import {
 import { QueueMode } from './ui/queue-mode.js';
 import { LightingMode } from './ui/lighting-mode.js';
 import {
+  advanceFrameWithCommandFeedback,
+  clearCommandFeedback,
+} from './ui/command-feedback.js';
+import {
   KeyboardTargetController,
   reportKeyboardSelection,
 } from './ui/keyboard-target.js';
@@ -181,8 +185,12 @@ async function main(): Promise<void> {
   // is the zero-copy views.
   const handle = SimHandle.from_lot();
   const sim = new SimBridge(handle, wasm.memory);
-  const saveStatus = document.querySelector<HTMLElement>('#save-status');
-  if (!saveStatus) throw new Error('missing #save-status');
+  const saveStatusElement = document.querySelector<HTMLElement>('#save-status');
+  if (!saveStatusElement) throw new Error('missing #save-status');
+  const saveStatus: HTMLElement = saveStatusElement;
+  const commandStatusElement = document.querySelector<HTMLElement>('#command-feedback');
+  if (!commandStatusElement) throw new Error('missing #command-feedback');
+  const commandStatus: HTMLElement = commandStatusElement;
   const persistence = new PersistenceController(
     createSaveStore(),
     sim,
@@ -427,8 +435,8 @@ async function main(): Promise<void> {
     createHouseholdRosterSurface(document, householdRosterRoot),
     sim.needBarRefreshMs(),
     () => {
-      saveStatus.textContent = 'That person could not be selected';
-      saveStatus.setAttribute('data-kind', 'error');
+      commandStatus.textContent = 'That person could not be selected';
+      commandStatus.setAttribute('data-kind', 'error');
     },
   );
   const initialHudMs = performance.now();
@@ -636,16 +644,16 @@ async function main(): Promise<void> {
   stopOrdersButton.addEventListener('click', () => {
     const selected = sim.selectedIndex();
     if (selected === null) {
-      saveStatus.textContent = 'Select a person first';
-      saveStatus.setAttribute('data-kind', 'error');
+      commandStatus.textContent = 'Select a person first';
+      commandStatus.setAttribute('data-kind', 'error');
       return;
     }
     if (sim.cancelIntents(selected)) {
-      saveStatus.textContent = 'Orders cleared';
-      saveStatus.removeAttribute('data-kind');
+      commandStatus.textContent = 'Orders cleared';
+      commandStatus.removeAttribute('data-kind');
     } else {
-      saveStatus.textContent = 'Could not clear orders';
-      saveStatus.setAttribute('data-kind', 'error');
+      commandStatus.textContent = 'Could not clear orders';
+      commandStatus.setAttribute('data-kind', 'error');
     }
   });
 
@@ -818,10 +826,15 @@ async function main(): Promise<void> {
   // picking row `n` runs interaction `n`; the shipped lot cannot show that
   // off, because every object on it offers exactly one.
   const menu = new ObjectMenu(createMenuSurface(document, menuRoot), (action) => {
-    const accepted = dispatchMenuAction(sim, action, !queueMode.isActive());
+    const accepted = dispatchMenuAction(
+      sim,
+      action,
+      !queueMode.isActive(),
+      () => clearCommandFeedback(commandStatus),
+    );
     if (!accepted) {
-      saveStatus.textContent = 'That order could not be added';
-      saveStatus.setAttribute('data-kind', 'error');
+      commandStatus.textContent = 'That order could not be added';
+      commandStatus.setAttribute('data-kind', 'error');
     }
   });
   const keyboardStatus = document.querySelector<HTMLElement>('#keyboard-target');
@@ -928,12 +941,13 @@ async function main(): Promise<void> {
     },
     () => queueMode.isActive(),
     (kind) => {
-      saveStatus.textContent = kind === 'selection'
+      commandStatus.textContent = kind === 'selection'
         ? 'Selection could not be changed'
         : 'That order could not be added';
-      saveStatus.setAttribute('data-kind', 'error');
+      commandStatus.setAttribute('data-kind', 'error');
     },
     () => reducedMotion.matches,
+    () => clearCommandFeedback(commandStatus),
   );
 
   const timer = new FrameTimer(FRAME_WINDOW);
@@ -963,7 +977,14 @@ async function main(): Promise<void> {
     // The sim advances in whole ticks; alpha is how far this frame sits
     // between the last one that ran and the next one that has not. A paused
     // frame drains input without running a full tick.
-    const alpha = advanceSimulationFrame(driver, deltaMs, sim);
+    const alpha = advanceFrameWithCommandFeedback(
+      () => advanceSimulationFrame(driver, deltaMs, sim),
+      () => {
+        if (!startingNewGame) persistence.updateAutosave();
+      },
+      sim,
+      commandStatus,
+    );
     // The selection comes from the simulation every frame rather than being
     // remembered here ([D-5]), so the ring cannot disagree with what the need
     // panel is showing.
@@ -1002,7 +1023,6 @@ async function main(): Promise<void> {
     householdRoster.update(nowMs);
     peoplePanel.update(nowMs);
     moodPanel.update(nowMs);
-    if (!startingNewGame) persistence.updateAutosave();
     syncPersistenceButtons();
     debugPanel?.update(nowMs);
 

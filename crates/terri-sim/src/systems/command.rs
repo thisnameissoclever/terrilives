@@ -16,6 +16,29 @@ use terri_core::{
 
 use crate::Content;
 
+/// Player-visible results produced while staged commands become simulation
+/// state.
+///
+/// Command enqueue only says that a well-formed command entered the staging
+/// queue. Capacity belongs to the per-sim [`IntentQueue`], so only this drain
+/// can authoritatively report that an otherwise valid order did not fit.
+/// Counts accumulate across drains until the shell consumes them, which keeps
+/// a fast running frame from erasing feedback before JavaScript can read it.
+#[derive(Resource, Debug, Default)]
+pub struct CommandFeedback {
+    intent_capacity_rejections: u32,
+}
+
+impl CommandFeedback {
+    fn record_intent_capacity_rejection(&mut self) {
+        self.intent_capacity_rejections = self.intent_capacity_rejections.saturating_add(1);
+    }
+
+    pub fn take_intent_capacity_rejections(&mut self) -> u32 {
+        std::mem::take(&mut self.intent_capacity_rejections)
+    }
+}
+
 /// The live entity carrying this raw index, if `live` yields one.
 ///
 /// # Why this is a scan rather than a lookup, and why that is not slower
@@ -97,6 +120,7 @@ fn resolve(index: u32, mut live: impl Iterator<Item = Entity>) -> Option<Entity>
 pub fn drain_commands(
     mut commands: Commands,
     mut queue: ResMut<CommandQueue>,
+    mut feedback: ResMut<CommandFeedback>,
     content: Res<Content>,
     selected: Query<Entity, With<Selected>>,
     mut agents: Query<(Entity, Option<&mut IntentQueue>, Option<&Target>), With<Agent>>,
@@ -179,10 +203,14 @@ pub fn drain_commands(
                 if let Ok((_, Some(mut queue), _)) = agents.get_mut(agent) {
                     if queue.len() < cap {
                         queue.push(intent);
+                    } else {
+                        feedback.record_intent_capacity_rejection();
                     }
                 } else if let Some((_, staged)) = fresh.iter_mut().find(|(e, _)| *e == agent) {
                     if staged.len() < cap {
                         staged.push(intent);
+                    } else {
+                        feedback.record_intent_capacity_rejection();
                     }
                 } else {
                     fresh.push((agent, vec![intent]));
@@ -362,10 +390,14 @@ pub fn drain_commands(
                 if let Ok((_, Some(mut queue), _)) = agents.get_mut(agent) {
                     if queue.len() < cap {
                         queue.push(intent);
+                    } else {
+                        feedback.record_intent_capacity_rejection();
                     }
                 } else if let Some((_, staged)) = fresh.iter_mut().find(|(e, _)| *e == agent) {
                     if staged.len() < cap {
                         staged.push(intent);
+                    } else {
+                        feedback.record_intent_capacity_rejection();
                     }
                 } else {
                     fresh.push((agent, vec![intent]));
@@ -938,6 +970,50 @@ mod tests {
             "the queue must stop at the tuned cap; {attempts} clicks were \
              issued"
         );
+        assert_eq!(
+            sim.take_intent_capacity_rejections(),
+            3,
+            "all three refused orders must be reported rather than collapsed"
+        );
+        assert_eq!(
+            sim.take_intent_capacity_rejections(),
+            0,
+            "feedback is consumed once rather than repeated every frame"
+        );
+    }
+
+    #[test]
+    fn exactly_the_fifth_additive_order_reports_the_capacity_rejection() {
+        // The shipped paused Queue-mode failure in its exact shape: five
+        // object orders enter the command staging queue before one paused
+        // flush. The first four fit the per-sim intent queue. The fifth is
+        // refused, and the refusal must cross back to the shell rather than
+        // looking like another accepted click.
+        let (mut sim, bed, _fridge, agent) = scenario();
+        assert_eq!(cap(), 4, "this fixture must track the shipped order cap");
+
+        for _ in 0..=cap() {
+            enqueue(
+                &mut sim,
+                SimCommand::UseObject {
+                    agent: agent.index_u32(),
+                    object: bed.index_u32(),
+                    interaction: 0,
+                },
+            );
+        }
+        drain_only(&mut sim);
+
+        assert_eq!(
+            queue_of(&sim, agent).len(),
+            4,
+            "the fifth order must not grow the four-order queue"
+        );
+        assert_eq!(
+            sim.take_intent_capacity_rejections(),
+            1,
+            "the silently dropped fifth order must become one player-visible rejection"
+        );
     }
 
     #[test]
@@ -977,6 +1053,11 @@ mod tests {
         drain_only(&mut sim);
 
         assert_eq!(queue_of(&sim, agent).len(), cap());
+        assert_eq!(
+            sim.take_intent_capacity_rejections(),
+            4,
+            "one existing plus three extra attempts means four overflow rejections"
+        );
     }
 
     #[test]
@@ -1017,6 +1098,7 @@ mod tests {
         drain_only(&mut sim);
 
         assert_eq!(queue_of(&sim, agent).len(), cap());
+        assert_eq!(sim.take_intent_capacity_rejections(), 4);
     }
 
     #[test]
@@ -1041,6 +1123,88 @@ mod tests {
         drain_only(&mut sim);
 
         assert_eq!(queue_of(&sim, agent).len(), cap());
+        assert_eq!(sim.take_intent_capacity_rejections(), 3);
+    }
+
+    #[test]
+    fn cancelling_a_full_queue_is_not_reported_as_a_capacity_rejection() {
+        let (mut sim, bed, _fridge, agent) = scenario();
+        for _ in 0..cap() {
+            enqueue(
+                &mut sim,
+                SimCommand::UseObject {
+                    agent: agent.index_u32(),
+                    object: bed.index_u32(),
+                    interaction: 0,
+                },
+            );
+        }
+        drain_only(&mut sim);
+        assert_eq!(queue_of(&sim, agent).len(), cap());
+        assert_eq!(
+            sim.take_intent_capacity_rejections(),
+            0,
+            "every order that fit must leave the feedback channel quiet"
+        );
+
+        enqueue(
+            &mut sim,
+            SimCommand::CancelIntents {
+                agent: agent.index_u32(),
+            },
+        );
+        drain_only(&mut sim);
+
+        assert!(queue_of(&sim, agent).is_empty());
+        assert_eq!(
+            sim.take_intent_capacity_rejections(),
+            0,
+            "clearing a full queue is accepted control input, not overflow"
+        );
+    }
+
+    #[test]
+    fn replace_at_full_capacity_is_accepted_after_its_ordered_cancel() {
+        let (mut sim, bed, fridge, agent) = scenario();
+        for _ in 0..cap() {
+            enqueue(
+                &mut sim,
+                SimCommand::UseObject {
+                    agent: agent.index_u32(),
+                    object: bed.index_u32(),
+                    interaction: 0,
+                },
+            );
+        }
+        drain_only(&mut sim);
+        assert_eq!(queue_of(&sim, agent).len(), cap());
+
+        enqueue(
+            &mut sim,
+            SimCommand::CancelIntents {
+                agent: agent.index_u32(),
+            },
+        );
+        enqueue(
+            &mut sim,
+            SimCommand::UseObject {
+                agent: agent.index_u32(),
+                object: fridge.index_u32(),
+                interaction: 0,
+            },
+        );
+        drain_only(&mut sim);
+
+        assert_eq!(queue_of(&sim, agent).len(), 1);
+        assert_eq!(
+            queue_of(&sim, agent).front().map(|intent| intent.object),
+            Some(fridge)
+        );
+        assert_eq!(
+            sim.take_intent_capacity_rejections(),
+            0,
+            "replace cancels before it appends, so the new order fits"
+        );
     }
 
     // ---- CancelIntents -------------------------------------------------

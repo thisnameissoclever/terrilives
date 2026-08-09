@@ -4008,3 +4008,29 @@ event listener intact, change emulated reduced motion after startup, and watch
 the button remain Auto in the affected embed. Restore the cached check and
 require reduce to produce disabled `Light: flat` with `aria-pressed=true`, then
 require no-preference to restore enabled `Light: auto` without reload.
+
+## [L-live-region-feedback-needs-a-recovery-transition] Repeating an error requires an empty state between announcements
+
+**What happened.** Displayed acceptance found that the queue-full error stayed
+visible after a later accepted replacement. Review then found the second half:
+assigning the same queue-full text after another rejection might not announce
+anything because the live region never changed. Persistence and command
+feedback also wrote the same status element, so a day-boundary autosave could
+replace a same-frame rejection.
+
+**Root cause.** The first implementation modeled the simulation's rejection
+correctly but treated its DOM text as a permanent flag. It had no player-action
+transition that retired the old announcement, and it gave unrelated
+asynchronous owners one shared output surface.
+
+**Prevention rule.** A transient live-region error needs four named parts: the
+authoritative failure event, the player event that clears it, a real empty DOM
+state before an identical repeat, and one status owner per asynchronous
+domain. When frame order matters, put it behind a small tested orchestration
+seam instead of relying on line placement in an entry point.
+
+**How to verify.** Drive rejection, accepted replacement, and the same later
+rejection through the real command routes. Require the live-region text to
+transition from the exact error to empty and back to the exact error. At a day
+boundary, require the frame seam to run command drain, persistence update, then
+feedback consumption, with autosave visible only in the persistence region.

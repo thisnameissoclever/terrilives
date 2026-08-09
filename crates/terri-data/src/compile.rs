@@ -3664,9 +3664,9 @@ mod tests {
 
     /// A queue cap of zero is not "no queueing"; `drain_commands` refuses
     /// any intent that would take the queue past this, so at zero every
-    /// `UseObject` command is refused and directing a sim silently does
-    /// nothing. The game would run and the sim would behave; only the
-    /// player's clicks would stop mattering, which is the shape [D9]
+    /// `UseObject` command is refused and directing a sim never succeeds.
+    /// The shell now reports that capacity rejection, but the game would
+    /// still run while every object order failed, which is the shape [D9]
     /// exists to convert into a build failure rather than a puzzled hour.
     ///
     /// One is asserted legal on the other side of the boundary, so the

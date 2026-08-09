@@ -3,6 +3,12 @@ import { readFileSync } from 'node:fs';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge } from '../src/bridge.js';
 import { buildLightField } from '../src/render/lighting.js';
+import { dispatch, dispatchMenuAction } from '../src/input.js';
+import {
+  clearCommandFeedback,
+  ORDER_QUEUE_FULL_MESSAGE,
+  reportCommandFeedback,
+} from '../src/ui/command-feedback.js';
 
 // wasm-pack --target web emits a `_bg.wasm` that imports a `_bg.js` glue
 // module which only exists for --target bundler, so the `memory` export
@@ -833,6 +839,134 @@ describe('SimBridge', () => {
     expect(bridge.selectedIndex()).toBe(0);
     expect(bridge.clockTick()).toBe(0);
     expect(bridge.needsOf(0)).toEqual(needsBefore);
+  });
+
+  it('surfaces the fifth paused Queue-mode pointer order rejected by the sim', () => {
+    const bridge = new SimBridge(new SimHandle(8, 8), wasmMemory);
+    expect(bridge.spawnObject(4, 4, 'fridge')).toBe(true);
+    bridge.spawnAgent(1, 1, 80);
+
+    for (let click = 1; click <= 5; click += 1) {
+      expect(
+        dispatch(bridge, {
+          kind: 'use',
+          agent: 1,
+          object: 0,
+          interaction: 0,
+          replace: false,
+        }),
+        `pointer click ${click} must enter command staging`,
+      ).toBe(true);
+    }
+    bridge.flushCommands();
+
+    const attributes = new Map<string, string>();
+    const status = {
+      textContent: '',
+      setAttribute: (name: string, value: string) => attributes.set(name, value),
+      removeAttribute: (name: string) => attributes.delete(name),
+    };
+    expect(bridge.queuedOrdersOf(1)).toBe(4);
+    expect(reportCommandFeedback(bridge, status)).toBe(1);
+    expect(status.textContent).toBe(ORDER_QUEUE_FULL_MESSAGE);
+    expect(attributes.get('data-kind')).toBe('error');
+    expect(reportCommandFeedback(bridge, status)).toBe(0);
+  });
+
+  it('surfaces the fifth paused keyboard-menu order through the same result', () => {
+    const bridge = new SimBridge(new SimHandle(8, 8), wasmMemory);
+    expect(bridge.spawnObject(4, 4, 'fridge')).toBe(true);
+    bridge.spawnAgent(1, 1, 80);
+    expect(bridge.select(1)).toBe(true);
+    bridge.flushCommands();
+
+    for (let order = 1; order <= 5; order += 1) {
+      expect(
+        dispatchMenuAction(
+          bridge,
+          { kind: 'use', object: 0, interaction: 0 },
+          false,
+        ),
+        `keyboard order ${order} must enter command staging`,
+      ).toBe(true);
+    }
+    bridge.flushCommands();
+
+    const status = {
+      textContent: 'Selected Fridge',
+      setAttribute: (_name: string, _value: string) => {},
+      removeAttribute: (_name: string) => {},
+    };
+    expect(bridge.queuedOrdersOf(1)).toBe(4);
+    expect(reportCommandFeedback(bridge, status)).toBe(1);
+    expect(status.textContent).toBe(ORDER_QUEUE_FULL_MESSAGE);
+    expect(reportCommandFeedback(bridge, status)).toBe(0);
+  });
+
+  it('clears a rejection on accepted replacement before announcing a later one', () => {
+    const bridge = new SimBridge(new SimHandle(8, 8), wasmMemory);
+    expect(bridge.spawnObject(4, 4, 'fridge')).toBe(true);
+    bridge.spawnAgent(1, 1, 80);
+    expect(bridge.select(1)).toBe(true);
+    bridge.flushCommands();
+
+    for (let order = 0; order < 5; order += 1) {
+      expect(dispatchMenuAction(
+        bridge,
+        { kind: 'use', object: 0, interaction: 0 },
+        false,
+      )).toBe(true);
+    }
+    bridge.flushCommands();
+
+    const attributes = new Map<string, string>();
+    const transitions: Array<string | null> = [];
+    let text: string | null = '';
+    const status = {
+      get textContent() {
+        return text;
+      },
+      set textContent(value: string | null) {
+        text = value;
+        transitions.push(value);
+      },
+      setAttribute: (name: string, value: string) => attributes.set(name, value),
+      removeAttribute: (name: string) => attributes.delete(name),
+    };
+    expect(reportCommandFeedback(bridge, status)).toBe(1);
+
+    expect(dispatchMenuAction(
+      bridge,
+      { kind: 'use', object: 0, interaction: 0 },
+      true,
+      () => clearCommandFeedback(status),
+    )).toBe(true);
+    bridge.flushCommands();
+    expect(reportCommandFeedback(bridge, status)).toBe(0);
+    expect(bridge.queuedOrdersOf(1)).toBe(1);
+    expect(status.textContent).toBe('');
+    expect(attributes.has('data-kind')).toBe(false);
+
+    for (let order = 0; order < 4; order += 1) {
+      expect(dispatchMenuAction(
+        bridge,
+        { kind: 'use', object: 0, interaction: 0 },
+        false,
+        () => clearCommandFeedback(status),
+      )).toBe(true);
+    }
+    bridge.flushCommands();
+    expect(bridge.queuedOrdersOf(1)).toBe(4);
+    expect(reportCommandFeedback(bridge, status)).toBe(1);
+    expect(transitions).toEqual([
+      ORDER_QUEUE_FULL_MESSAGE,
+      '',
+      '',
+      '',
+      '',
+      '',
+      ORDER_QUEUE_FULL_MESSAGE,
+    ]);
   });
 
   it('encodes an entity index above 127 as a multi-byte varint', () => {
