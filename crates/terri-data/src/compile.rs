@@ -6849,6 +6849,34 @@ mod tests {
             }
         );
 
+        for (axis, mutate, x, y) in [
+            (
+                "x",
+                (|socket: &mut ActionSocketDef| socket.x = -1.25) as fn(&mut ActionSocketDef),
+                -0.25,
+                0.75,
+            ),
+            (
+                "y",
+                (|socket: &mut ActionSocketDef| socket.y = -1.25) as fn(&mut ActionSocketDef),
+                1.75,
+                -0.25,
+            ),
+        ] {
+            let mut object = reading_object();
+            mutate(&mut object.action_socket[1]);
+            assert_eq!(
+                compile_one(object).unwrap_err(),
+                ContentError::ActionSocketOutsideFootprint {
+                    object: "reading_chair".to_string(),
+                    socket: "seat".to_string(),
+                    x,
+                    y,
+                },
+                "negative {axis} alone must place the socket outside the footprint"
+            );
+        }
+
         let mut donor = reading_object();
         donor.id = "donor_chair".to_string();
         donor.sprite = "bed_art".to_string();
@@ -6932,6 +6960,26 @@ mod tests {
             compile_visual(Some(&read), chain_owner, &sockets),
             Err(ContentError::InvalidVisualContract { .. })
         ));
+    }
+
+    #[test]
+    fn socket_facing_rotation_covers_every_source_and_placement_facing() {
+        use CompiledSocketFacing::{NegativeX, NegativeY, PositiveX, PositiveY};
+
+        for (source, expected) in [
+            (PositiveX, [PositiveX, PositiveY, NegativeX, NegativeY]),
+            (NegativeX, [NegativeX, NegativeY, PositiveX, PositiveY]),
+            (PositiveY, [PositiveY, NegativeX, NegativeY, PositiveX]),
+            (NegativeY, [NegativeY, PositiveX, PositiveY, NegativeX]),
+        ] {
+            for (placement, expected) in ["SE", "SW", "NW", "NE"].into_iter().zip(expected) {
+                assert_eq!(
+                    resolve_socket_facing(source, placement),
+                    expected,
+                    "source {source:?} rotated by placement {placement}"
+                );
+            }
+        }
     }
 
     #[test]
