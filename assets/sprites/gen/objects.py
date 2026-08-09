@@ -379,6 +379,46 @@ def cardboardBoxOpen(d):
         box(d, x0, y0, x1, y1, 0.42, 0.56, mul(k, 1.05))
 
 
+def hair_cap(d, cx, cy, r, radius, colour, ol, w):
+    """The hair, following the HEAD's silhouette rather than an ellipse.
+
+    This was a `chord` of the ellipse inscribed in the head's box, and it
+    left the owner's report: "each sim's head kind of extends out from the
+    side of their hair, which makes it look like they have two little bald
+    spots on the top left and right corners". That is exactly what it was.
+    The head is a ROUNDED RECTANGLE, whose top corners sit at the corner of
+    its box minus a small radius; the inscribed ellipse's top corners are
+    much further in. The skin between the two curves is the bald spot, and
+    it appears on both sides of every head in the game.
+
+    A rounded rectangle with the same radius and only its TOP corners
+    rounded traces the head exactly, so there is no gap to leave. The flat
+    bottom edge is the hairline, which is what the chord's flat side was
+    already doing.
+    """
+    # The hairline sits at -0.15r rather than at the old chord box's
+    # +0.35r, and the difference is not a taste change. `chord(180, 360)`
+    # fills the upper HALF of the ellipse inscribed in its box, so its flat
+    # edge landed at the ellipse's vertical midpoint - well above the box
+    # bottom the coordinates named. A rectangle over the same box fills all
+    # of it, and the first version of this fix drew hair down over the
+    # eyes.
+    #
+    # The height is then 0.85r, which is the smallest that still admits the
+    # head's own 0.42r corner radius twice over. Any lower a hairline and
+    # the corners have to shrink, and they are the whole reason this
+    # traces the head instead of an ellipse. `max` keeps that true for a
+    # caller passing its own radius.
+    bottom = cy - r * .15
+    radius = min(radius, (bottom - (cy - r)) / 2)
+    d.rounded_rectangle(
+        [cx - r, cy - r, cx + r, bottom],
+        radius=radius,
+        corners=(True, True, False, False),
+        fill=colour, outline=ol, width=w,
+    )
+
+
 # ---------------------------------------------------------- characters ----
 def _talk_arm(d, palette, shoulder, side, depth, frame, arm_width):
     """Draw the partner-side arm for one restrained conversation pose."""
@@ -493,8 +533,7 @@ def _figure(d, palette, action=None, facing=None, frame=0):
     hy = top_y - head_r
     d.rounded_rectangle([px - head_r, hy - head_r, px + head_r, hy + head_r],
                         radius=int(head_r * .42), fill=skin, outline=ol, width=w)
-    d.chord([px - head_r, hy - head_r, px + head_r, hy + head_r * .35],
-            180, 360, fill=hair, outline=ol, width=w)
+    hair_cap(d, px, hy, head_r, int(head_r * .42), hair, ol, w)
     gaze_x = action_side * 1.8 if action_side is not None else 0
     gaze_y = action_depth * 1.0 if action_depth is not None else 0
     ey, r = hy + head_r * .12 + gaze_y, max(1.2, head_r * .11)
@@ -657,10 +696,7 @@ def _reading_figure(d, palette, facing, frame):
         head_x - head_r, head_y - head_r,
         head_x + head_r, head_y + head_r,
     ], radius=5, fill=skin, outline=ol, width=w)
-    d.chord([
-        head_x - head_r, head_y - head_r,
-        head_x + head_r, head_y + head_r * .35,
-    ], 180, 360, fill=hair, outline=ol, width=w)
+    hair_cap(d, head_x, head_y, head_r, 5, hair, ol, w)
     eye_y = head_y + 3 + depth
     for eye_side in (-1, 1):
         eye_x = head_x + eye_side * 4 + side
@@ -805,14 +841,7 @@ def _standing_reading_figure(d, palette, facing, frame):
         outline=ol,
         width=w,
     )
-    d.chord(
-        [head_x - head_r, head_y - head_r, head_x + head_r, head_y + head_r * .35],
-        180,
-        360,
-        fill=hair,
-        outline=ol,
-        width=w,
-    )
+    hair_cap(d, head_x, head_y, head_r, int(head_r * .42), hair, ol, w)
     eye_y = head_y + head_r * .12 + depth
     eye_r = max(1.2, head_r * .11)
     for eye_side in (-1, 1):
@@ -952,15 +981,7 @@ def _walking_figure(d, palette, facing, frame):
         outline=ol,
         width=w,
     )
-    d.chord(
-        [head_x - head_r, head_y - head_r,
-         head_x + head_r, head_y + head_r * .35],
-        180,
-        360,
-        fill=hair,
-        outline=ol,
-        width=w,
-    )
+    hair_cap(d, head_x, head_y, head_r, int(head_r * .42), hair, ol, w)
     eye_y = head_y + head_r * .12 + depth
     eye_r = max(1.2, head_r * .11)
     for eye_side in (-1, 1):

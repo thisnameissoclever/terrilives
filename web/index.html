@@ -641,6 +641,28 @@
       #object-menu[hidden] {
         display: none;
       }
+      /* What was right-clicked. Not a row: it takes no focus, has no
+         hover state, and the keyboard walk lands past it on the first
+         real action. Without it the flyout was a list of verbs with no
+         subject, and on a lot with thirty objects that is a guess. */
+      .menu-title {
+        margin: 0;
+        padding: 6px 10px 7px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--hud-muted);
+        white-space: nowrap;
+      }
+      /* Drawn above the one row that is not about the object under the
+         pointer. Margin rather than padding so the rule spans the menu's
+         full width against the rows' inset text. */
+      .menu-divider {
+        height: 1px;
+        margin: 4px -4px;
+        background: var(--hud-edge);
+      }
       /* Buttons, so the rows are keyboard-reachable and announced as
          controls; these rules only undo the browser's own chrome. */
       .menu-entry {

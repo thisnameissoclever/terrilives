@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   clampMenuPosition,
-  NEVER_MIND,
+  NOTHING,
   ObjectMenu,
   menuEntries,
+  type Menu,
   type MenuAction,
-  type MenuEntry,
   type MenuSurface,
 } from '../src/ui/object-menu.js';
 
@@ -40,7 +40,7 @@ describe('clampMenuPosition', () => {
  */
 function recordingSurface(): MenuSurface & {
   readonly calls: string[];
-  shown: readonly MenuEntry[] | null;
+  shown: Menu | null;
   at: readonly [number, number] | null;
   /** Fires row `index` the way a click on it would. */
   pick(index: number): void;
@@ -48,16 +48,16 @@ function recordingSurface(): MenuSurface & {
   let onPick: ((index: number) => void) | null = null;
   const surface = {
     calls: [] as string[],
-    shown: null as readonly MenuEntry[] | null,
+    shown: null as Menu | null,
     at: null as readonly [number, number] | null,
     show(
-      entries: readonly MenuEntry[],
+      shown: Menu,
       clientX: number,
       clientY: number,
       pick: (index: number) => void,
     ) {
-      surface.calls.push(`show ${entries.length} at ${clientX},${clientY}`);
-      surface.shown = entries;
+      surface.calls.push(`show ${shown.entries.length} at ${clientX},${clientY}`);
+      surface.shown = shown;
       surface.at = [clientX, clientY];
       onPick = pick;
     },
@@ -97,12 +97,13 @@ describe('menuEntries', () => {
    */
   it('builds one row per interaction, carrying its index, then the cancel', () => {
     expect(
-      menuEntries(['Eat standing up', 'Sink into it', 'Sleep it off'], 9),
+      menuEntries('Bookshelf', ['Eat standing up', 'Sink into it', 'Sleep it off'], 9)
+        .entries,
     ).toEqual([
       { label: 'Eat standing up', action: { kind: 'use', object: 9, interaction: 0 } },
       { label: 'Sink into it', action: { kind: 'use', object: 9, interaction: 1 } },
       { label: 'Sleep it off', action: { kind: 'use', object: 9, interaction: 2 } },
-      NEVER_MIND,
+      NOTHING,
     ]);
   });
 
@@ -113,7 +114,8 @@ describe('menuEntries', () => {
    */
   it('names the right-clicked object on every row, including object zero', () => {
     for (const object of [0, 7]) {
-      const rows = menuEntries(['Read something improving', 'Dust it'], object);
+      const rows = menuEntries('Bookshelf', ['Read something improving', 'Dust it'], object)
+        .entries;
       expect(
         rows.slice(0, 2).map((row) => row.action),
         `object ${object}`,
@@ -130,7 +132,11 @@ describe('menuEntries', () => {
    * producing an empty box.
    */
   it('still offers the cancel for an object with no interactions', () => {
-    expect(menuEntries([], 4)).toEqual([NEVER_MIND]);
+    expect(menuEntries('Bookshelf', [], 4).entries).toEqual([NOTHING]);
+    // And it still says what was clicked, which is the whole point of the
+    // heading: an object with nothing to offer is exactly the case where a
+    // player is asking "what IS that?".
+    expect(menuEntries('Rug', [], 4).title).toBe('Rug');
   });
 
   /**
@@ -139,13 +145,16 @@ describe('menuEntries', () => {
    * memory when they meant the first interaction.
    */
   it('puts the cancel after the interactions rather than before them', () => {
-    const rows = menuEntries(['Watch the news'], 2);
-    expect(rows[rows.length - 1]).toEqual(NEVER_MIND);
+    const rows = menuEntries('Bookshelf', ['Watch the news'], 2).entries;
+    expect(rows[rows.length - 1]).toEqual(NOTHING);
+    // And it is the only row wearing a rule, because it is the only row
+    // that is not about the object named in the heading.
+    expect(rows.filter((row) => row.divider === true)).toEqual([NOTHING]);
   });
 });
 
 describe('ObjectMenu', () => {
-  const ROWS = menuEntries(['Eat standing up', 'Sink into it'], 9);
+  const ROWS = menuEntries('Bookshelf', ['Eat standing up', 'Sink into it'], 9);
 
   it('shows the rows it is opened with, at the pointer', () => {
     const { menu: m, surface } = menu();
@@ -242,13 +251,13 @@ describe('ObjectMenu', () => {
     expect(m.isShowing(), 'picking a row must close the menu').toBe(false);
   });
 
-  it('reports the cancel action for the Never mind row', () => {
+  it('reports the cancel action for the Nothing row', () => {
     const { menu: m, surface, actions } = menu();
     m.open(ROWS, 0, 0);
 
-    surface.pick(ROWS.length - 1);
+    surface.pick(ROWS.entries.length - 1);
 
-    expect(actions).toEqual([NEVER_MIND.action]);
+    expect(actions).toEqual([NOTHING.action]);
   });
 
   /**
@@ -273,7 +282,7 @@ describe('ObjectMenu', () => {
    */
   it('replaces its rows when reopened for another object', () => {
     const { menu: m, surface, actions } = menu();
-    const other = menuEntries(['Use the facilities'], 4);
+    const other = menuEntries('Bookshelf', ['Use the facilities'], 4);
 
     m.open(ROWS, 0, 0);
     m.open(other, 90, 90);

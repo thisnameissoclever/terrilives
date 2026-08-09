@@ -18,7 +18,7 @@ import {
   type Pick,
   type PickSource,
 } from '../src/input.js';
-import { NEVER_MIND, type MenuEntry } from '../src/ui/object-menu.js';
+import { NOTHING, NOTHING_MENU, type Menu, type MenuEntry } from '../src/ui/object-menu.js';
 import { SPRITES } from '../src/render/atlas.js';
 import { KIND_AGENT } from '../src/render/instances.js';
 import { TILE_HALF_HEIGHT, screenX, screenY } from '../src/render/iso.js';
@@ -221,21 +221,24 @@ function labelsFrom(
   return {
     interactionLabels: (entity) => table[entity] ?? [],
     socialLabels: () => ['Chat'],
+    // Distinct per entity so a heading read off the wrong one is visible,
+    // and non-empty so the "draws no heading" path stays a separate case.
+    entityName: (entity) => `Thing ${entity}`,
   };
 }
 
 /** A flyout that records what it was asked to do and nothing else. */
 function recordingMenu(): MenuController & {
   readonly calls: string[];
-  opened: readonly MenuEntry[] | null;
+  opened: Menu | null;
 } {
   const calls: string[] = [];
   const menu = {
     calls,
-    opened: null as readonly MenuEntry[] | null,
-    open(entries: readonly MenuEntry[], clientX: number, clientY: number) {
+    opened: null as Menu | null,
+    open(opened: Menu, clientX: number, clientY: number) {
       calls.push(`open ${clientX},${clientY}`);
-      menu.opened = entries;
+      menu.opened = opened;
     },
     close() {
       calls.push('close');
@@ -1350,15 +1353,21 @@ describe('resolveRightClick', () => {
   it('lists the interactions of the object that was clicked, in interaction order', () => {
     const sink = target(6);
 
-    expect(resolveRightClick(sink, bodyOf([7, 3]), 0, 0)).toEqual([
-      { label: 'Eat standing up', action: { kind: 'use', object: 9, interaction: 0 } },
-      NEVER_MIND,
-    ]);
-    expect(resolveRightClick(sink, bodyOf([2, 5]), 0, 0)).toEqual([
-      { label: 'Sink into it', action: { kind: 'use', object: 10, interaction: 0 } },
-      { label: 'Nap on it', action: { kind: 'use', object: 10, interaction: 1 } },
-      NEVER_MIND,
-    ]);
+    expect(resolveRightClick(sink, bodyOf([7, 3]), 0, 0)).toEqual({
+      title: 'Thing 9',
+      entries: [
+        { label: 'Eat standing up', action: { kind: 'use', object: 9, interaction: 0 } },
+        NOTHING,
+      ],
+    });
+    expect(resolveRightClick(sink, bodyOf([2, 5]), 0, 0)).toEqual({
+      title: 'Thing 10',
+      entries: [
+        { label: 'Sink into it', action: { kind: 'use', object: 10, interaction: 0 } },
+        { label: 'Nap on it', action: { kind: 'use', object: 10, interaction: 1 } },
+        NOTHING,
+      ],
+    });
   });
 
   /**
@@ -1371,12 +1380,14 @@ describe('resolveRightClick', () => {
    */
   it('offers the cancel alone on bare floor and on the selected sim itself', () => {
     const sink = target(6, source([[6, KIND_AGENT, 4, 2]]));
-    expect(resolveRightClick(sink, { x: -400, y: -400 }, 0, 0)).toEqual([
-      NEVER_MIND,
-    ]);
-    expect(resolveRightClick(sink, bodyOf([4, 2]), 0, 0)).toEqual([
-      NEVER_MIND,
-    ]);
+    expect(resolveRightClick(sink, { x: -400, y: -400 }, 0, 0)).toEqual(
+      NOTHING_MENU,
+    );
+    expect(resolveRightClick(sink, bodyOf([4, 2]), 0, 0)).toEqual(NOTHING_MENU);
+    // Both routes end with no heading, which is the answer for "there is
+    // nothing here to name". A heading reading "Tim" over a menu whose
+    // only row is Nothing would be the shell inventing a subject.
+    expect(NOTHING_MENU.title).toBe('');
   });
 
   /**
@@ -1398,14 +1409,17 @@ describe('resolveRightClick', () => {
       socialLabels: () => ['Chat', 'Gossip'],
     };
 
-    expect(resolveRightClick(sink, bodyOf([7, 3]), 0, 0)).toEqual([
-      { label: 'Chat', action: { kind: 'talk', target: 8, interaction: 0 } },
-      { label: 'Gossip', action: { kind: 'talk', target: 8, interaction: 1 } },
-      NEVER_MIND,
-    ]);
-    expect(resolveRightClick(sink, bodyOf([4, 2]), 0, 0)).toEqual([
-      NEVER_MIND,
-    ]);
+    expect(resolveRightClick(sink, bodyOf([7, 3]), 0, 0)).toEqual({
+      title: 'Thing 8',
+      entries: [
+        { label: 'Chat', action: { kind: 'talk', target: 8, interaction: 0 } },
+        { label: 'Gossip', action: { kind: 'talk', target: 8, interaction: 1 } },
+        NOTHING,
+      ],
+    });
+    // The selected sim itself: nothing to do, and nothing to name either,
+    // so the flyout draws no heading rather than the player's own name.
+    expect(resolveRightClick(sink, bodyOf([4, 2]), 0, 0)).toEqual(NOTHING_MENU);
   });
 
   /**
@@ -1435,7 +1449,7 @@ describe('resolveRightClick', () => {
    * the same reason.
    */
   it('treats an unplaceable point as a miss rather than throwing', () => {
-    expect(resolveRightClick(target(6), null, 0, 0)).toEqual([NEVER_MIND]);
+    expect(resolveRightClick(target(6), null, 0, 0)).toEqual(NOTHING_MENU);
   });
 });
 
@@ -1463,10 +1477,13 @@ describe('handleRightClick', () => {
       menu.calls,
       'the menu must open at the CLIENT point the event carried, not at the canvas point',
     ).toEqual(['open 310,47']);
-    expect(menu.opened?.map((entry) => entry.label)).toEqual([
+    expect(menu.opened?.entries.map((entry) => entry.label)).toEqual([
       'Eat standing up',
-      NEVER_MIND.label,
+      NOTHING.label,
     ]);
+    // And the flyout says what it is about. Before this, a right click on
+    // one of thirty objects opened a list of verbs with no subject.
+    expect(menu.opened?.title).toBe('Thing 9');
   });
 
   /**
@@ -1583,7 +1600,7 @@ describe('dispatchMenuAction', () => {
 
   it('sends the cancel alone for the Never mind row', () => {
     const sink = recordingSink(6);
-    dispatchMenuAction(sink, NEVER_MIND.action);
+    dispatchMenuAction(sink, NOTHING.action);
     expect(sink.calls).toEqual(['cancel 6']);
   });
 
@@ -1605,7 +1622,7 @@ describe('dispatchMenuAction', () => {
     );
     dispatchMenuAction(
       sink,
-      NEVER_MIND.action,
+      NOTHING.action,
       true,
       () => calls.push('cancel attempt'),
     );
@@ -1632,14 +1649,14 @@ describe('dispatchMenuAction', () => {
     const sink = recordingSink(null);
     dispatchMenuAction(sink, { kind: 'use', object: 9, interaction: 0 });
     dispatchMenuAction(sink, { kind: 'talk', target: 8, interaction: 0 });
-    dispatchMenuAction(sink, NEVER_MIND.action);
+    dispatchMenuAction(sink, NOTHING.action);
     expect(sink.calls).toEqual([]);
   });
 
   /** Sim zero is a real selection; a falsy check would refuse to command it. */
   it('commands sim zero, which a falsy check would refuse', () => {
     const sink = recordingSink(0);
-    dispatchMenuAction(sink, NEVER_MIND.action);
+    dispatchMenuAction(sink, NOTHING.action);
     expect(sink.calls).toEqual(['cancel 0']);
   });
 });

@@ -1,7 +1,7 @@
 import {
   menuEntries,
   socialMenuEntries,
-  type MenuEntry,
+  type Menu,
 } from './object-menu.js';
 
 const KIND_AGENT = 0;
@@ -12,6 +12,8 @@ export interface KeyboardTargetSource {
   kinds(): Uint32Array;
   simName(entityIndex: number): string;
   objectName(entityIndex: number): string;
+  /** A sim's name or an object's, for the flyout heading. */
+  entityName(entityIndex: number): string;
   interactionLabels(entityIndex: number): readonly string[];
   socialLabels(): readonly string[];
   selectedIndex(): number | null;
@@ -25,7 +27,7 @@ export interface KeyboardTarget {
 
 export type KeyboardActivation =
   | { readonly kind: 'select'; readonly entity: number; readonly label: string }
-  | { readonly kind: 'menu'; readonly entries: readonly MenuEntry[] }
+  | { readonly kind: 'menu'; readonly menu: Menu }
   | { readonly kind: 'unavailable'; readonly message: string };
 
 export interface KeyboardTargetStatus {
@@ -111,7 +113,11 @@ export class KeyboardTargetController {
       }
       return {
         kind: 'menu',
-        entries: socialMenuEntries(this.source.socialLabels(), target.entity),
+        menu: socialMenuEntries(
+          this.source.entityName(target.entity),
+          this.source.socialLabels(),
+          target.entity,
+        ),
       };
     }
     if (this.source.selectedIndex() === null) {
@@ -119,7 +125,11 @@ export class KeyboardTargetController {
     }
     return {
       kind: 'menu',
-      entries: menuEntries(this.source.interactionLabels(target.entity), target.entity),
+      menu: menuEntries(
+        this.source.entityName(target.entity),
+        this.source.interactionLabels(target.entity),
+        target.entity,
+      ),
     };
   }
 

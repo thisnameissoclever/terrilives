@@ -55,14 +55,26 @@ PADDING = 1          # a transparent gutter, so no sprite samples its neighbour
 LEGACY_PREFIX_SHA256 = (
     "6465016ab5c5000dd166aa6441edaf051e8410c5af75799fbe56eec686c12751"
 )
+# Re-baselined once, for [A-art-pass]'s hair repair. Every sim sprite in
+# the game had skin showing at both top corners of its head: the head is a
+# rounded rectangle and the hair was a chord of the ellipse inscribed in
+# the same box, and an ellipse's top corners sit further in. `hair_cap` in
+# objects.py traces the head instead, which touches every sprite with a
+# head on it and therefore both digests below.
+#
+# The scope was measured rather than assumed before these moved: 123 of
+# 172 sprites changed, every one of them a `sim*`, and no furniture at
+# all. `DINNER_PIXELS_SHA256` and `LEGACY_PREFIX_SHA256` are deliberately
+# NOT re-baselined here, and the fact that they still pass is the evidence
+# that the repair stayed inside the sims.
 CHAT_PIXELS_SHA256 = (
-    "0dc06c39970d67ffaa2a2318322947a45ca4722dd583a5e7a4ffa7664e7bd961"
+    "264fb960492e0fdb2bd2eee2f0dbd3dc143eeb47fda158748f7600416a80ff50"
 )
 DINNER_PIXELS_SHA256 = (
     "1ac2f0505b58157e42d72de325100e20f5742a1b24c5dfa43592ec58d9ebd4dd"
 )
 PROTECTED_LEGACY_PIXELS_SHA256 = (
-    "716eb95ce4701fe35481db42413bc7fade85e0deb46b0bf56349722db00832dd"
+    "1ee429a0d8f0dfaefe2f6e4729a82a96ce4dd92168ee1341558cbcf4eabb70e4"
 )
 
 

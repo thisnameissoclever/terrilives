@@ -148,6 +148,26 @@ carries the colour. The day/night strip that came out of the lighting rig
 also settled a question nobody had asked yet, which is that night is a
 lighting setting rather than a second art style.
 
+### [T-art-backlog] Four things you named from the running game - LOGGED, NOT DONE
+
+Nothing needed from you here; this is so you can see they were written
+down rather than nodded at. All four are in FEATURES.md under "Named and
+not yet built".
+
+* **[B-builder]** a builder: rooms, furniture, placement, rotation. This
+  is the one that makes the wonky shipped-lot positioning stop mattering,
+  because hand-fixing those coordinates is work a builder throws away.
+* **[B-facing]** objects that know which way they face, and overlap that
+  respects it - the bunk-bed posts drawing over the bed in front of them.
+* **[A-art-pass]** the furniture itself, sub-objects included. Toilets,
+  chairs, and a television whose screen is a separate thing that can be
+  lit.
+* **[A-animations]** almost everything is still a static pose.
+
+One thing you listed is fixed rather than logged: the bald spots at the
+top corners of every sim's head. The hair was an ellipse and the head is
+a rounded rectangle, so skin showed where the two disagreed.
+
 ### [T12] Approve the colour palette `[YOURS]` - MOSTLY SETTLED
 
 Settled in practice by [T-design-language]: Muted Line's palette *is* the
