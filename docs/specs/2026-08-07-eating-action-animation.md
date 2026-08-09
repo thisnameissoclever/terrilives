@@ -3,6 +3,10 @@
 Status: **shipped contract, amended 2026-08-08 for generic object-use
 semantics.** This extends the shipped conversation visual contract without
 making the shared `Eating` storage component choose art or player-facing text.
+The amendment shipped in PR 47 at merge `38a03c151036430c798502ca4252c925c98789db`;
+the public session observed immediately after that deployment is recorded in
+[A-object-use-activity-semantics]. The SHA query label is not an immutable
+GitHub Pages route.
 
 The restart point is `docs/FEATURES.md` under **Next engineering slices**. A
 current-run desktop and phone audit on 2026-08-07 reached the ordinary fridge

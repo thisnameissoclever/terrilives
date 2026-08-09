@@ -4058,3 +4058,27 @@ terminal dinner fixtures. Hand-change the generic fallback to `EATING` and
 require the ordinary-use matrix to fail. Remove the code 3 fork mapping and
 require the frame test to fail. Restore both mutations and require the focused
 Rust and Web suites to pass.
+
+## [L-a-sha-query-label-is-not-an-immutable-deployment] A query label does not pin mutable Pages content
+
+**What happened.** Post-merge notes called a GitHub Pages URL with
+`?rev=<merge-sha>` revision-pinned. The application does not read `rev`, and
+Pages publishes one mutable site. After PR 47 deployed, the old PR 46-labelled
+URL returned the same current document metadata as the PR 47-labelled URL.
+
+**Root cause.** The SHA query was useful as a cache-busting and observation
+label, then its human meaning was mistaken for a server-side routing guarantee.
+Nothing in the application, workflow, or host retained an immutable build at
+that URL.
+
+**Prevention rule.** Call these URLs SHA-labelled public sessions and record
+that they were opened immediately after the named deployment. Cite the Actions
+run as proof that an exact SHA built and deployed. Use `revision-pinned` only
+when the host actually routes to immutable content and that behavior has been
+verified.
+
+**How to verify.** Inspect which query parameters the application reads, then
+request old and current SHA-labelled URLs after a later deployment. If their
+content hash, ETag, or `Last-Modified` value is identical, the query is only a
+label. The immutable evidence is the successful workflow run tied to the exact
+head SHA, not the mutable Pages response.

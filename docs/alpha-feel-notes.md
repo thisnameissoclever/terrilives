@@ -2133,6 +2133,17 @@ slice.
   later real refrigerator snack read `Eating` and showed the existing fork
   bubble with its authored eating pose. Browser diagnostics contained only
   expected performance logs, with zero warnings and zero errors.
+- **The merged public revision repeats the distinction.** PR 47 merged at
+  `38a03c151036430c798502ca4252c925c98789db`; [Pages run
+  31289624807](https://github.com/thisnameissoclever/terrilives/actions/runs/31289624807)
+  built and deployed that exact SHA. A [SHA-labelled public
+  session](https://thisnameissoclever.github.io/terrilives/?rev=38a03c151036430c798502ca4252c925c98789db)
+  opened immediately after that deployment was started fresh at 1280 x 720.
+  Casey reached the shower with the HUD reading `Using object` and no generic
+  bubble. A fresh refrigerator snack was then paused with the HUD reading
+  `Eating`, the authored body pose visible, and the fork bubble above the body.
+  Public diagnostics contained performance logs only, with no warning or
+  error. The `rev` label is an observation aid, not an immutable Pages route.
 - **The atlas stays unchanged on purpose.** It remains 98 append-only entries.
   A generic 26-pixel glyph cannot honestly describe bodily care,
   entertainment, chores, and reading, so the HUD text carries the fallback
@@ -2269,15 +2280,17 @@ The rebased local production build (`index-BYhrFTTB.js`,
   warning or error during the responsive, expansion, control, and drag passes.
   A physical-phone pass of the corrected merged revision, including safe-area
   insets and long-press, remains deliberately unclaimed.
-- **The merged Pages revision matches the local proof.** PR 44 merged as
+- **The merged Pages deployment was observed publicly.** PR 44 merged as
   `d7f7493aa7821ed31e3abda928ca2ab3d038d72b`, and its Pages workflow built and
-  deployed successfully. At the public revision URL, 390 by 844 again measured
-  a 374-pixel HUD, a 442.63-pixel canvas aperture whose centre hit
-  `CANVAS#stage`, a 132.80-pixel action block, zero undersized controls, and no
-  browser warning or error. At 568 by 320 the public page selected the
-  220-pixel scrollable flex fallback, kept the viewport centre on the canvas,
-  and retained 44-pixel targets without page overflow. This closes the public
-  browser gate, not the physical-phone boundary above.
+  deployed successfully. In the SHA-labelled public session recorded for that
+  deployment, 390 by 844 again measured a 374-pixel HUD, a 442.63-pixel canvas
+  aperture whose centre hit `CANVAS#stage`, a 132.80-pixel action block, zero
+  undersized controls, and no browser warning or error. At 568 by 320 the
+  public page selected the 220-pixel scrollable flex fallback, kept the
+  viewport centre on the canvas, and retained 44-pixel targets without page
+  overflow. The SHA query is an observation label, not an immutable Pages
+  route. This closes the public browser gate, not the physical-phone boundary
+  above.
 
 ## [A-night-light-pools] Night has local sources without a second draw
 
@@ -2325,18 +2338,19 @@ a separate gate.
   Light button wrapped without horizontal overflow. With Needs open and body
   text set to 26 pixels at 320 by 568, the outer HUD exposed 17 pixels of
   scroll, Help became fully reachable, and no target fell below 44 pixels.
-- **The public revision carries the same feature.** The Pages workflow for
+- **The merged Pages deployment was observed publicly.** The Pages workflow for
   merge commit `ef9f86c` [completed successfully](https://github.com/thisnameissoclever/terrilives/actions/runs/31172208640).
-  At the [exact revision URL](https://thisnameissoclever.github.io/terrilives/?rev=ef9f86c5712cdd23b64ae8823c2c8335d89868e0),
-  the deployed game loaded its release JavaScript and WASM, showed the lamp and
-  television pools at 1280 by 720, and changed from `Light: auto` to
-  `Light: flat` with `aria-pressed=true` before returning cleanly to Auto. At
-  390 by 844, with the persisted Needs and People panels open, document width
-  remained 390, every measured HUD target remained at least 44 pixels high,
-  the center of the remaining canvas still hit `#stage`, and the actions ended
-  inside the viewport. Public browser diagnostics contained only the expected
-  performance telemetry, with no warning or error. This public pass proves the
-  deployed browser build, not physical-phone behavior.
+  In the [SHA-labelled public session](https://thisnameissoclever.github.io/terrilives/?rev=ef9f86c5712cdd23b64ae8823c2c8335d89868e0)
+  recorded for that deployment, the game loaded its release JavaScript and
+  WASM, showed the lamp and television pools at 1280 by 720, and changed from
+  `Light: auto` to `Light: flat` with `aria-pressed=true` before returning
+  cleanly to Auto. At 390 by 844, with the persisted Needs and People panels
+  open, document width remained 390, every measured HUD target remained at
+  least 44 pixels high, the center of the remaining canvas still hit `#stage`,
+  and the actions ended inside the viewport. The SHA query is an observation
+  label, not an immutable Pages route. Public browser diagnostics contained
+  only the expected performance telemetry, with no warning or error. This
+  public pass proves the deployed browser build, not physical-phone behavior.
 - **The remaining accessibility boundary is physical.** The midnight floor
   still needs observation on a real phone in daylight, including safe-area
   insets and ordinary touch use. Browser screenshots, source contrast, and
@@ -2381,6 +2395,18 @@ that zero, then passed after the drain began recording the rejection.
   orders. The final status occupied its own complete line inside the scrollable
   desktop HUD. Browser diagnostics contained only expected performance logs,
   with no warning or error.
+- **The merged public revision preserves the result.** PR 46 merged at
+  `abd2e736aa111c32a4daa6987aa66162e0bb2a34`; [Pages run
+  31287601409](https://github.com/thisnameissoclever/terrilives/actions/runs/31287601409)
+  built and deployed that exact SHA. In a [SHA-labelled public
+  session](https://thisnameissoclever.github.io/terrilives/?rev=abd2e736aa111c32a4daa6987aa66162e0bb2a34)
+  opened immediately after that deployment, five paused Queue-mode `Lie down`
+  orders on the large sofa left four waiting orders and showed the red
+  queue-full sentence. The separate persistence region still read `Autosaved`;
+  scrolling the desktop HUD kept both complete status lines and all controls
+  reachable while the WebGPU house remained visible. Public diagnostics
+  contained performance logs only, with no warning or error. The `rev` label is
+  an observation aid, not an immutable Pages route.
 - **Proof boundary.** Native, release-WASM, web integration, and corrected
   desktop renderer evidence are complete for the visible reject, recovery, and
   repeated-reject sequence. A real screen reader was not used, so actual second

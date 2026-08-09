@@ -30,6 +30,10 @@ Save or autosave status, persistence-dialog focus recovery, and
 responsive accessible controls. At phone portrait widths the existing HUD now
 reflows into a safe-area-aware top-and-bottom dock around a pointer-transparent
 canvas aperture instead of narrowing the desktop sidebar.
+Queue-capacity feedback shipped in PR 46 at merge `abd2e736`, and the honest
+generic object-use activity shipped in PR 47 at merge `38a03c15`. Their exact
+Pages runs and deployed browser evidence are recorded in
+[A-queue-capacity-feedback] and [A-object-use-activity-semantics].
 The M1 household contract is now code-complete too: content accepts up to six
 members, rejects a seventh, and normal play exposes every member through a
 restore-safe accessible roster.
