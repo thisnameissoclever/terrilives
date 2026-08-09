@@ -2516,11 +2516,21 @@ before-and-after comparison.
   the WebGPU lot throughout the night, daylight, zoom, Pause, and completion
   checks. The retained browser diagnostic window contained 500 performance-log
   entries and zero warnings or errors.
-- **Proof boundary.** This is pre-merge local production-build evidence, not a
-  deployed Pages check. Automated tests pin reduced motion to the static first
+- **The merged public revision preserves the result.** PR 49 merged at
+  `579f35d065ea7b501a72d185239fff17838b203b`; [Pages run
+  31327528687](https://github.com/thisnameissoclever/terrilives/actions/runs/31327528687)
+  built and deployed that exact SHA. In a [SHA-labelled public
+  session](https://thisnameissoclever.github.io/terrilives/?rev=579f35d065ea7b501a72d185239fff17838b203b)
+  opened immediately afterward at 1280 by 720, Casey reached `Wall of Intent`
+  through the keyboard target cycle, issued `Read a book`, entered `Reading`,
+  and paused as the upright open-book body stood beside the shelf. The deployed
+  bundle loaded `index-BMlH2qgD.js`; ten retained diagnostics were performance
+  logs, with zero warnings or errors. The `rev` value labels the observation;
+  it does not make the mutable Pages route immutable.
+- **Proof boundary.** Automated tests pin reduced motion to the static first
   standing-read frame, but the in-app browser did not expose an operating-system
   reduced-motion override, so that displayed preference remains unobserved.
-  Merge, exact Pages deployment, and a public revision check remain open.
+  The owner has not yet approved the bookshelf art at its corrected cadence.
 
 ## [A-animation-owner-review] Owner review resets the animation restart point
 

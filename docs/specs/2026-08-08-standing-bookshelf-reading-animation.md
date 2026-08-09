@@ -1,10 +1,10 @@
 # Standing bookshelf reading animation
 
-Status: implemented with automated and local production WebGPU acceptance
-passing on the feature branch. Displayed reduced-motion, merge, deployed Pages,
-public revision evidence, and owner review at the corrected cadence remain
-open. The reading hold was doubled from 12 to 24 simulation ticks after the
-2026-08-09 animation review.
+Status: shipped in PR 49 at merge `579f35d0`, with automated, local production,
+exact-SHA Pages deployment, and public WebGPU acceptance passing. Displayed
+reduced motion and owner review at the corrected cadence remain open. The
+reading hold was doubled from 12 to 24 simulation ticks after the 2026-08-09
+animation review.
 
 This slice gives the exact `bookshelf.read` interaction a standing reading
 pose. It completes the frequent bookshelf route without changing gameplay,

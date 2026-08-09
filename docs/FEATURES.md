@@ -37,10 +37,10 @@ Pages runs and deployed browser evidence are recorded in
 Exact seated reading for `reading_chair.settle_in` shipped in PR 48 at merge
 `d405e702`; its deployed WebGPU acceptance is recorded in
 [A-seated-reading-action].
-Exact standing reading for `bookshelf.read` is implemented on this branch.
-Its local production WebGPU acceptance is recorded in
-[A-standing-bookshelf-reading]; displayed reduced-motion, merge, and deployed
-Pages evidence remain open.
+Exact standing reading for `bookshelf.read` shipped in PR 49 at merge
+`579f35d0`. Pages run 31327528687 deployed that exact SHA, and the public
+WebGPU replay is recorded in [A-standing-bookshelf-reading]. Displayed reduced
+motion and owner review of the bookshelf art remain open.
 The M1 household contract is now code-complete too: content accepts up to six
 members, rejects a seventh, and normal play exposes every member through a
 restore-safe accessible roster.
@@ -248,8 +248,8 @@ checklists below:
    food prop in the eating hand, and correct the seated-reading neck. Keep Chat
    as the accepted reference. Action holds must be at least doubled from their
    first shipped values, but each category may use the cadence its motion needs.
-   Recheck `bookshelf.read` at its corrected 24-tick hold and carry that exact
-   interaction through owner review, merge, and deployed Pages evidence.
+   Recheck `bookshelf.read` at its corrected 24-tick hold through owner review;
+   its merge and deployed Pages evidence are now complete.
 2. Run the remaining physical-device check on the merged revision: verify the
    new portrait HUD reflow, inspect the darkest floor in daylight, then
    long-press an object and confirm its action menu remains reachable. The 390
