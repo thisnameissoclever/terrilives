@@ -1,7 +1,8 @@
 # Seated reading action animation
 
-Status: approved implementation contract for the next authored visual-action
-slice.
+Status: implemented and locally accepted on the feature branch. Merge, deployed
+Pages acceptance, and an operating-system reduced-motion display session remain
+open.
 
 This slice gives `reading_chair.settle_in` a seated reading pose and establishes
 the object-local action socket required by later furniture actions. It does not

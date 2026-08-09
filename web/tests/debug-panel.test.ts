@@ -87,6 +87,15 @@ describe('formatDebugReport', () => {
     expect(report).not.toContain('doing: eating');
   });
 
+  it('names exact seated reading without collapsing to generic object use', () => {
+    const report = formatDebugReport(
+      source({ activities: () => Uint32Array.from([8, 0, 0]) }),
+    );
+    expect(report).toContain('Terri  (entity 7, SimId 0)  doing: reading');
+    expect(report).not.toContain('doing: using object');
+    expect(report).not.toContain('doing: eating');
+  });
+
   it('prints the household funds once, at the top, before anybody', () => {
     const report = formatDebugReport(source());
     expect(report.startsWith('household funds: 375')).toBe(true);

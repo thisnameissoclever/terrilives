@@ -13,10 +13,12 @@ import {
   FACING_POSITIVE_X,
   FACING_POSITIVE_Y,
   EAT_FRAME_TICKS,
+  READ_FRAME_TICKS,
   simBodySprite,
   simSprite,
   TALK_FRAME_TICKS,
   VISUAL_ACTION_EAT,
+  VISUAL_ACTION_READ,
   VISUAL_ACTION_TALK,
   walkingLiftPx,
   type RenderSource,
@@ -585,6 +587,72 @@ describe('simBodySprite', () => {
     expect(EAT_FRAME_TICKS).toBe(8);
   });
 
+  it('resolves seated reading on staggered twelve-tick boundaries for every look and facing', () => {
+    const phaseCases = [
+      {
+        id: 96,
+        prefix: 'sim',
+        before: 11,
+        transition: 12,
+        beforeNext: 23,
+        nextTransition: 24,
+      },
+      {
+        id: 97,
+        prefix: 'sim2',
+        before: 10,
+        transition: 11,
+        beforeNext: 22,
+        nextTransition: 23,
+      },
+      {
+        id: 98,
+        prefix: 'sim3',
+        before: 9,
+        transition: 10,
+        beforeNext: 21,
+        nextTransition: 22,
+      },
+    ] as const;
+
+    for (const {
+      id,
+      prefix,
+      before,
+      transition,
+      beforeNext,
+      nextTransition,
+    } of phaseCases) {
+      for (const { facing, suffix } of directions) {
+        const sprite = (frame: 0 | 1): number =>
+          spriteIndex(`${prefix}Read${suffix}${frame}`);
+        expect(
+          simBodySprite(id, VISUAL_ACTION_READ, facing, before, false),
+        ).toBe(sprite(0));
+        expect(
+          simBodySprite(id, VISUAL_ACTION_READ, facing, transition, false),
+        ).toBe(sprite(1));
+        expect(
+          simBodySprite(id, VISUAL_ACTION_READ, facing, beforeNext, false),
+        ).toBe(sprite(1));
+        expect(
+          simBodySprite(
+            id,
+            VISUAL_ACTION_READ,
+            facing,
+            nextTransition,
+            false,
+          ),
+        ).toBe(sprite(0));
+      }
+    }
+    expect(
+      new Set(phaseCases.map(({ transition }) => transition)).size,
+      'sequential household ids must not turn reading pages in lockstep',
+    ).toBe(phaseCases.length);
+    expect(READ_FRAME_TICKS).toBe(12);
+  });
+
   it('pins frame zero under reduced motion while keeping the facing pose', () => {
     for (const { id, prefix } of looks) {
       for (const { facing, suffix } of directions) {
@@ -598,6 +666,11 @@ describe('simBodySprite', () => {
             action: VISUAL_ACTION_EAT,
             name: 'Eat',
             frameTicks: EAT_FRAME_TICKS,
+          },
+          {
+            action: VISUAL_ACTION_READ,
+            name: 'Read',
+            frameTicks: READ_FRAME_TICKS,
           },
         ] as const) {
           const atStart = simBodySprite(id, action, facing, 0, true);
@@ -626,7 +699,10 @@ describe('simBodySprite', () => {
       expect(simBodySprite(id, VISUAL_ACTION_TALK, 5, 8, false)).toBe(
         simSprite(id),
       );
-      expect(simBodySprite(id, 3, FACING_POSITIVE_X, 8, false)).toBe(
+      expect(simBodySprite(id, VISUAL_ACTION_READ, 0, 8, false)).toBe(
+        simSprite(id),
+      );
+      expect(simBodySprite(id, 4, FACING_POSITIVE_X, 8, false)).toBe(
         simSprite(id),
       );
     }
@@ -660,6 +736,35 @@ describe('simBodySprite', () => {
     expect(simulationTick).toBe(8);
     expect(body()).not.toBe(first);
   });
+
+  it('advances reading phase only when fixed simulation ticks run', () => {
+    const driver = new FixedStepDriver(10, 100);
+    const id = 108;
+    let simulationTick = 0;
+    const body = (): number =>
+      simBodySprite(
+        id,
+        VISUAL_ACTION_READ,
+        FACING_POSITIVE_X,
+        simulationTick,
+        false,
+      );
+    const first = body();
+
+    driver.advance(1199, () => simulationTick++);
+    expect(simulationTick).toBe(11);
+    expect(body()).toBe(first);
+
+    driver.setSpeed(0);
+    driver.advance(10_000, () => simulationTick++);
+    expect(simulationTick).toBe(11);
+    expect(body()).toBe(first);
+
+    driver.setSpeed(2);
+    driver.advance(50, () => simulationTick++);
+    expect(simulationTick).toBe(12);
+    expect(body()).not.toBe(first);
+  });
 });
 
 describe('buildInstances', () => {
@@ -676,15 +781,22 @@ describe('buildInstances', () => {
         1, 0, 1, 0, KIND_AGENT, 1, 3, 0xffff_ffff,
         VISUAL_ACTION_EAT, FACING_NEGATIVE_X,
       ],
+      // Exact seated reading owns action 3 independently of activity 7.
+      [
+        3, 2, 3, 2, KIND_AGENT, 1, 8, 0xffff_ffff,
+        VISUAL_ACTION_READ, FACING_POSITIVE_Y,
+      ],
       // Exact eating activity alone does not invent authored body metadata.
       [1, 0, 1, 0, KIND_AGENT, 1, 3, 0xffff_ffff, 0, 0],
       // Even a talk indicator does not invent presentation metadata.
       [2, 0, 2, 0, KIND_AGENT, 1, 4, 0xffff_ffff, 0, 0],
+      // Reading activity alone does not invent authored body metadata.
+      [4, 0, 4, 0, KIND_AGENT, 1, 8, 0xffff_ffff, 0, 0],
     ]);
 
     const atTickZero = snapshot(
       buildInstances(source, 1, ORIGIN_X, ORIGIN_Y, GRID, null, 1, false, 0),
-      4,
+      6,
     );
     expect(atTickZero[OFFSET_SPRITE]).toBe(
       simBodySprite(100, VISUAL_ACTION_TALK, FACING_POSITIVE_X, 0, false),
@@ -693,10 +805,16 @@ describe('buildInstances', () => {
       simBodySprite(101, VISUAL_ACTION_EAT, FACING_NEGATIVE_X, 0, false),
     );
     expect(atTickZero[2 * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
-      simSprite(102),
+      simBodySprite(102, VISUAL_ACTION_READ, FACING_POSITIVE_Y, 0, false),
     );
     expect(atTickZero[3 * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
       simSprite(103),
+    );
+    expect(atTickZero[4 * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
+      simSprite(104),
+    );
+    expect(atTickZero[5 * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
+      simSprite(105),
     );
 
     const atNextPose = snapshot(
@@ -711,7 +829,7 @@ describe('buildInstances', () => {
         false,
         TALK_FRAME_TICKS,
       ),
-      4,
+      6,
     );
     expect(atNextPose[OFFSET_SPRITE]).not.toBe(atTickZero[OFFSET_SPRITE]);
     expect(atNextPose[FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
@@ -724,11 +842,100 @@ describe('buildInstances', () => {
       ),
     );
     expect(atNextPose[2 * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
-      atTickZero[2 * FLOATS_PER_INSTANCE + OFFSET_SPRITE],
+      simBodySprite(
+        102,
+        VISUAL_ACTION_READ,
+        FACING_POSITIVE_Y,
+        TALK_FRAME_TICKS,
+        false,
+      ),
     );
     expect(atNextPose[3 * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
       atTickZero[3 * FLOATS_PER_INSTANCE + OFFSET_SPRITE],
     );
+    expect(atNextPose[4 * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
+      atTickZero[4 * FLOATS_PER_INSTANCE + OFFSET_SPRITE],
+    );
+    expect(atNextPose[5 * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
+      atTickZero[5 * FLOATS_PER_INSTANCE + OFFSET_SPRITE],
+    );
+  });
+
+  it('keeps every reading presentation consumer on the projected socket position', () => {
+    const source = new FakeEntities();
+    const socketX = 4.25;
+    const socketY = 3.75;
+    source.set([
+      [
+        socketX,
+        socketY,
+        socketX,
+        socketY,
+        KIND_AGENT,
+        1,
+        8,
+        0,
+        VISUAL_ACTION_READ,
+        FACING_POSITIVE_X,
+      ],
+    ]);
+    const lighting = tileLighting(6, 6, [
+      [1, 1, 0.13],
+      [4, 3, 0.72],
+    ]);
+    const scale = 2;
+    const liveCount = instanceCount(source, 100);
+    const built = snapshot(
+      buildInstances(
+        source,
+        1,
+        ORIGIN_X,
+        ORIGIN_Y,
+        GRID,
+        100,
+        scale,
+        false,
+        12,
+        lighting,
+      ),
+      liveCount,
+    );
+
+    expect(liveCount).toBe(4);
+    expect(built).toHaveLength(4 * FLOATS_PER_INSTANCE);
+    const body = 0;
+    const indicator = FLOATS_PER_INSTANCE;
+    const badge = 2 * FLOATS_PER_INSTANCE;
+    const ring = 3 * FLOATS_PER_INSTANCE;
+    const projectedX = screenX(socketX, socketY, ORIGIN_X, scale);
+    const projectedY = screenY(socketX, socketY, ORIGIN_Y, scale);
+
+    expect(built[body + OFFSET_SCREEN_X]).toBe(projectedX);
+    expect(built[body + OFFSET_SCREEN_Y]).toBe(projectedY);
+    expect(built[body + OFFSET_SPRITE]).toBe(
+      simBodySprite(
+        100,
+        VISUAL_ACTION_READ,
+        FACING_POSITIVE_X,
+        12,
+        false,
+      ),
+    );
+    expect(built[body + OFFSET_EMISSIVE]).toBe(stored(0.72));
+
+    expect(built[indicator + OFFSET_SCREEN_X]).toBe(projectedX);
+    expect(built[indicator + OFFSET_SCREEN_Y]).toBe(projectedY - 84 * scale);
+    expect(built[indicator + OFFSET_SPRITE]).toBe(
+      spriteIndex('indicatorReading'),
+    );
+
+    expect(built[badge + OFFSET_SCREEN_X]).toBe(projectedX + 14 * scale);
+    expect(built[badge + OFFSET_SCREEN_Y]).toBe(projectedY - 24 * scale);
+    expect(built[badge + OFFSET_EMISSIVE]).toBe(stored(0.72));
+
+    expect(built[ring + OFFSET_SCREEN_X]).toBe(projectedX);
+    expect(built[ring + OFFSET_SCREEN_Y]).toBe(projectedY);
+    expect(built[ring + OFFSET_SPRITE]).toBe(spriteIndex('selectionRing'));
   });
 
   it('derives equal walking footfalls from quarter-tile cardinal movement', () => {
@@ -1258,6 +1465,17 @@ describe('activity indicator bubbles', () => {
     expect(
       snapshot(buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID), 1),
     ).toHaveLength(FLOATS_PER_INSTANCE);
+  });
+
+  it('maps activity code 8 to the authored reading book', () => {
+    src.set([[1, 1, 1, 1, KIND_AGENT, 3, 8]]);
+    expect(instanceCount(src, null)).toBe(2);
+
+    const built = buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID);
+    const bubbleBase = FLOATS_PER_INSTANCE;
+    expect(built[bubbleBase + OFFSET_SPRITE]).toBe(
+      spriteIndex('indicatorReading'),
+    );
   });
 
   it('keeps the selection ring in the slot after the bubbles', () => {

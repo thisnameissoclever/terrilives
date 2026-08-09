@@ -1,7 +1,7 @@
 //! Simulation snapshot capture, validation, and reconstruction.
 
 use crate::systems::chain::CHAIN_STEP;
-use crate::{Content, Sim};
+use crate::{default_action_sockets, Content, ResolvedActionSockets, Sim};
 use bevy_ecs::{
     entity::EntityIndex,
     prelude::{Entity, World},
@@ -489,20 +489,34 @@ fn restore_entity(
         target.insert(StepWork { remaining_ticks });
     }
 
-    // Facing is immutable authored placement data today, so it is derived
-    // from the current pack instead of persisting a drifting atlas index.
-    // This expires when build mode can move or rotate an object: that schema
-    // must carry a stable authored facing name.
+    // Facing and action sockets are immutable authored presentation data
+    // today, so both are derived from the current pack instead of widening
+    // Save V1. This expires when build mode can move or rotate an object: that
+    // schema must carry stable placement identity and authored facing.
     if let (Some(position), Some(object_name)) = (saved.position, saved.smart_object.as_deref()) {
         let object = resolve_object(pack, object_name)?;
-        if let Some(placement) = pack
+        let placement = pack
             .lot
             .placements
             .iter()
-            .find(|placement| placement_matches(placement, object, position))
-        {
+            .find(|placement| placement_matches(placement, object, position));
+        if let Some(placement) = placement {
             if placement.sprite != pack.object(object).sprite {
                 target.insert(SpriteVariant(placement.sprite));
+            }
+            if !placement.action_sockets.is_empty() {
+                target.insert(ResolvedActionSockets(placement.action_sockets.clone()));
+            }
+        } else {
+            let sockets = default_action_sockets(
+                pack.object(object),
+                Position {
+                    x: position.x,
+                    y: position.y,
+                },
+            );
+            if !sockets.is_empty() {
+                target.insert(ResolvedActionSockets(sockets));
             }
         }
     }
@@ -1710,6 +1724,296 @@ mod tests {
             Some(SpriteVariant(placement.sprite)),
             "the authored facing sprite must survive the save seam"
         );
+    }
+
+    #[test]
+    fn authored_and_dynamic_action_sockets_reconstruct_without_entering_save_or_hash_state() {
+        let pack = terri_data::pack();
+        let chair = pack.find("reading_chair").expect("shipped reading chair");
+        let placement = pack
+            .lot
+            .placements
+            .iter()
+            .find(|placement| placement.object == chair)
+            .expect("the shipped reading chair is placed");
+        assert!(!placement.action_sockets.is_empty());
+
+        let mut source = Sim::new_from_shipped_lot();
+        let authored = {
+            let world = source.world_mut();
+            let mut query = world.query::<(Entity, &Position, &SmartObject)>();
+            query
+                .iter(world)
+                .find(|(_, position, object)| {
+                    object.0 == chair && position.x == placement.x && position.y == placement.y
+                })
+                .map(|(entity, _, _)| entity)
+                .expect("authored chair entity")
+        };
+        assert_eq!(
+            source
+                .world()
+                .get::<ResolvedActionSockets>(authored)
+                .map(|sockets| sockets.0.as_slice()),
+            Some(placement.action_sockets.as_slice())
+        );
+
+        let dynamic_position = [
+            Position { x: 1.25, y: 1.5 },
+            Position { x: 2.25, y: 2.5 },
+            Position { x: 3.25, y: 3.5 },
+        ]
+        .into_iter()
+        .find(|position| {
+            !pack.lot.placements.iter().any(|candidate| {
+                candidate.object == chair && candidate.x == position.x && candidate.y == position.y
+            })
+        })
+        .expect("one candidate is not the authored chair placement");
+        let dynamic = source.spawn_object(dynamic_position, chair);
+        let fridge = pack.find("fridge").expect("shipped fridge");
+        let ordinary = source.spawn_object(Position { x: 4.25, y: 2.5 }, fridge);
+        let expected_dynamic = default_action_sockets(pack.object(chair), dynamic_position);
+        let snapshot_with_sockets = source.save_snapshot();
+        let hash_with_sockets = source.world_hash();
+
+        source
+            .world_mut()
+            .entity_mut(dynamic)
+            .remove::<ResolvedActionSockets>();
+        assert_eq!(
+            source.save_snapshot(),
+            snapshot_with_sockets,
+            "the presentation carrier must not widen Save V1"
+        );
+        assert_eq!(
+            source.world_hash(),
+            hash_with_sockets,
+            "the presentation carrier must not enter the deterministic digest"
+        );
+
+        let authored_index = authored.index_u32();
+        let dynamic_index = dynamic.index_u32();
+        let ordinary_index = ordinary.index_u32();
+        let mut restored = Sim::new_from_shipped_lot();
+        restored
+            .load_snapshot(snapshot_with_sockets)
+            .expect("socket-free Save V1 restores");
+        let resolve = |index| {
+            restored.world().entities().resolve_from_index(
+                EntityIndex::from_raw_u32(index).expect("ordinary saved entity index"),
+            )
+        };
+        assert_eq!(
+            restored
+                .world()
+                .get::<ResolvedActionSockets>(resolve(authored_index))
+                .map(|sockets| sockets.0.as_slice()),
+            Some(placement.action_sockets.as_slice()),
+            "the exact authored placement restores its compile-resolved sockets"
+        );
+        assert_eq!(
+            restored
+                .world()
+                .get::<ResolvedActionSockets>(resolve(dynamic_index))
+                .map(|sockets| sockets.0.as_slice()),
+            Some(expected_dynamic.as_slice()),
+            "a non-colliding dynamic chair restores default-SE sockets"
+        );
+        assert!(
+            restored
+                .world()
+                .get::<ResolvedActionSockets>(resolve(ordinary_index))
+                .is_none(),
+            "an ordinary object restores no sentinel socket carrier"
+        );
+    }
+
+    #[test]
+    fn same_id_same_position_dynamic_save_collision_adopts_the_authored_rotated_socket() {
+        let shipped = terri_data::pack();
+        let shipped_chair = shipped
+            .find("reading_chair")
+            .expect("shipped reading chair");
+        let mut chair = shipped.object(shipped_chair).clone();
+        chair.action_sockets = vec![terri_data::CompiledActionSocket {
+            id: "asymmetric_seat".to_string(),
+            x: 0.25,
+            y: -0.25,
+            facing: terri_data::CompiledSocketFacing::PositiveX,
+        }];
+        let base = crate::test_content::pack(vec![chair]);
+        let chair = base.find("reading_chair").expect("fixture reading chair");
+        let position = Position { x: 6.5, y: 7.5 };
+        let default_se = default_action_sockets(base.object(chair), position);
+        assert_eq!(default_se.len(), 1);
+
+        // The compiler's NW transform for the asymmetric local offset above:
+        // (x, y) becomes (-x, -y), and +x facing becomes -x facing.
+        let authored_nw = terri_data::CompiledPlacementSocket {
+            x: 6.25,
+            y: 7.75,
+            facing: terri_data::CompiledSocketFacing::NegativeX,
+        };
+        assert_ne!(default_se[0].x, authored_nw.x, "rotation must change x");
+        assert_ne!(default_se[0].y, authored_nw.y, "rotation must change y");
+        assert_ne!(
+            default_se[0].facing, authored_nw.facing,
+            "rotation must change facing"
+        );
+
+        let fixture = Box::leak(Box::new(ContentPack {
+            lot: terri_data::CompiledLot {
+                width: 16,
+                height: 16,
+                walls: Vec::new(),
+                placements: vec![terri_data::CompiledPlacement {
+                    object: chair,
+                    x: position.x,
+                    y: position.y,
+                    sprite: base.object(chair).sprite,
+                    action_sockets: vec![authored_nw.clone()],
+                }],
+                front_door: None,
+            },
+            ..base.clone()
+        }));
+
+        // Deliberately spawn dynamically into the exact authored identity and
+        // coordinates without constructing the lot's authored object.
+        let mut source = crate::test_content::sim_with(16, 16, fixture);
+        let dynamic = source.spawn_object(position, chair);
+        assert_eq!(
+            source
+                .world()
+                .get::<ResolvedActionSockets>(dynamic)
+                .map(|sockets| sockets.0.as_slice()),
+            Some(default_se.as_slice()),
+            "before Save, the dynamic object must carry default-SE sockets"
+        );
+        let snapshot = source.save_snapshot();
+        let saved_position = snapshot
+            .entities
+            .iter()
+            .find(|saved| saved.index == dynamic.index_u32())
+            .expect("the dynamic object is present in Save V1")
+            .position
+            .expect("the dynamic object has a saved position");
+        assert!(placement_matches(
+            &fixture.lot.placements[0],
+            chair,
+            saved_position
+        ));
+
+        let mut restored = crate::test_content::sim_with(16, 16, fixture);
+        restored
+            .load_snapshot(snapshot)
+            .expect("same-position dynamic Save V1 restores");
+        let restored_dynamic = restored.world().entities().resolve_from_index(
+            EntityIndex::from_raw_u32(dynamic.index_u32()).expect("ordinary saved entity index"),
+        );
+        assert_eq!(
+            restored
+                .world()
+                .get::<ResolvedActionSockets>(restored_dynamic)
+                .map(|sockets| sockets.0.as_slice()),
+            Some([authored_nw].as_slice()),
+            "Save V1 cannot distinguish the collision, so Load must adopt the authored placement"
+        );
+    }
+
+    #[test]
+    fn load_during_settle_in_reconstructs_the_socketed_render_endpoint_before_another_tick() {
+        use crate::render_buffer::{activity, facing, visual_action};
+
+        let pack = terri_data::pack();
+        let chair = pack.find("reading_chair").expect("shipped reading chair");
+        let settle = pack
+            .object(chair)
+            .interactions
+            .iter()
+            .position(|interaction| interaction.id == "settle_in")
+            .expect("shipped settle_in") as u32;
+        let mut source = Sim::new_from_lot(&pack.lot, &pack.objects);
+        source.world_mut().insert_resource(Content(pack));
+        let target = {
+            let world = source.world_mut();
+            let mut query = world.query::<(Entity, &Position, &SmartObject)>();
+            query
+                .iter(world)
+                .find(|(_, _, object)| object.0 == chair)
+                .map(|(entity, _, _)| entity)
+                .expect("shipped chair entity")
+        };
+        let socket = source
+            .world()
+            .get::<ResolvedActionSockets>(target)
+            .expect("authored chair has a socket")
+            .0[0]
+            .clone();
+        let path_position = Position { x: 2.5, y: 3.75 };
+        let agent = source
+            .world_mut()
+            .spawn((
+                Agent,
+                path_position,
+                Eating {
+                    object: chair,
+                    interaction: settle,
+                    remaining_ticks: 10,
+                },
+                Target {
+                    object: target,
+                    interaction: settle,
+                },
+            ))
+            .id();
+        let snapshot = source.save_snapshot();
+        let source_hash = source.world_hash();
+
+        let mut restored = Sim::new_from_shipped_lot();
+        restored
+            .load_snapshot(snapshot)
+            .expect("active reading save restores");
+        assert_eq!(restored.world_hash(), source_hash);
+        let restored_agent = restored.world().entities().resolve_from_index(
+            EntityIndex::from_raw_u32(agent.index_u32()).expect("ordinary saved agent index"),
+        );
+        let row = restored
+            .render_buffer()
+            .ids
+            .iter()
+            .position(|&id| id == restored_agent.index_u32())
+            .expect("restored reader has a render row");
+        let position = row * 2;
+        assert_eq!(
+            (
+                restored.render_buffer().visual_actions[row],
+                restored.render_buffer().activities[row],
+                restored.render_buffer().facings[row],
+            ),
+            (visual_action::READ, activity::READING, facing::POSITIVE_X)
+        );
+        assert_eq!(
+            (
+                restored.render_buffer().positions[position],
+                restored.render_buffer().positions[position + 1],
+                restored.render_buffer().prev_positions[position],
+                restored.render_buffer().prev_positions[position + 1],
+            ),
+            (socket.x, socket.y, socket.x, socket.y),
+            "Load must seed both displayed samples at the saved tick endpoint"
+        );
+        assert_eq!(
+            restored.world().get::<Position>(restored_agent).copied(),
+            Some(path_position)
+        );
+
+        for _ in 0..3 {
+            source.tick();
+            restored.tick();
+            assert_eq!(restored.world_hash(), source.world_hash());
+        }
     }
 
     #[test]

@@ -83,10 +83,21 @@ Eating is the first complete object-action category. `Grab a snack` authors
 footprint centre, then the shell selects one of two directional hand-to-mouth
 frames for the stable character look. The carried dinner follows the authored
 hand side, and both authored eating paths keep the existing fork bubble.
-Showers, toilets, television, reading, washing, and other ordinary object use
-instead report the appended `USING_OBJECT` activity. It is deliberately
-text-only: one tiny generic glyph would misdescribe at least one of those
-actions. Those actions remain unanimated until their own categories and
+
+Seated reading is the first object-socket action category. Only
+`reading_chair.settle_in` authors `read / object_socket / socket`; the compiler
+resolves its `seat` socket against the exact placement, and render sync projects
+the active Sim's body to that socket without moving the gameplay position. The
+shell maps action 3 to two fixed-envelope reading frames per look and facing and
+activity 8 to a book indicator plus the HUD label `Reading`. Entry, exit,
+paused cancellation, and Load reseed the presentation samples so the body does
+not glide through the chair. Save V1, world hashes, bridge columns, and the GPU
+instance contract remain unchanged.
+
+Showers, toilets, television, bookshelf reading, washing, and other ordinary
+object use instead report the appended `USING_OBJECT` activity. It is
+deliberately text-only: one tiny generic glyph would misdescribe at least one of
+those actions. Those actions remain unanimated until their own categories and
 anchors are authored. Paid asset decisions remain outside this slice and off
 the current critical path.
 
@@ -209,12 +220,12 @@ This is the current restart point, separate from the historical milestone
 checklists below:
 
 1. Continue the authored visual-action contract one coherent category at a
-   time. Conversation and eating now prove social, ordinary-object, and
-   chain-step anchors end to end; the next category still needs its own real
-   anchor and pose. Broad activity labels must not stand in for authored
-   content, and sitting, sleeping, showering, and toilet poses still require
-   action-position sockets before those poses can align without clipping or
-   floating.
+   time. Conversation, eating, and `reading_chair.settle_in` now prove social,
+   ordinary-object, chain-step, and exact object-socket anchors end to end; the
+   next category still needs its own real anchor and pose. Broad activity labels
+   must not stand in for authored content, and shared sitting, sleeping,
+   showering, and toilet poses still require explicit sockets and occlusion
+   decisions before they can align without clipping or floating.
 2. Run the remaining physical-device check on the merged revision: verify the
    new portrait HUD reflow, inspect the darkest floor in daylight, then
    long-press an object and confirm its action menu remains reachable. The 390
