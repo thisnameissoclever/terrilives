@@ -2130,6 +2130,34 @@ mod lot_tests {
                 .as_slice()
             )
         );
+
+        let mut wide_reader =
+            test_content::object_sized("wide_reader", Vec::new(), Footprint { width: 4, depth: 2 });
+        wide_reader.action_sockets = vec![terri_data::CompiledActionSocket {
+            id: "seat".to_string(),
+            x: 0.25,
+            y: -0.25,
+            facing: terri_data::CompiledSocketFacing::NegativeY,
+        }];
+        let wide_pack = test_content::pack(vec![wide_reader]);
+        let mut wide_dynamic = test_content::sim_with(20, 20, wide_pack);
+        let wide = wide_dynamic.spawn_object(Position { x: 7.25, y: 8.5 }, ObjectDefId(0));
+        assert_eq!(
+            wide_dynamic
+                .world()
+                .get::<ResolvedActionSockets>(wide)
+                .map(|sockets| sockets.0.as_slice()),
+            Some(
+                [terri_data::CompiledPlacementSocket {
+                    x: 9.0,
+                    y: 8.75,
+                    facing: terri_data::CompiledSocketFacing::NegativeY,
+                }]
+                .as_slice()
+            ),
+            "a dynamic asymmetric footprint resolves both centre terms through Sim::spawn_object"
+        );
+
         assert!(
             dynamic
                 .world()

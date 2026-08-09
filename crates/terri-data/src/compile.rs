@@ -7063,6 +7063,44 @@ mod tests {
             },
             "the unrotated socket is inside 3x1; SW rotation moves it beyond the depth-1 placement"
         );
+
+        let mut object = reading_object();
+        object.footprint = Footprint { width: 3, depth: 1 };
+        object.action_socket = vec![ActionSocketDef {
+            id: "seat".to_string(),
+            x: 1.0,
+            y: 0.25,
+            facing: "SE".to_string(),
+        }];
+        let mut lot = lot_of(6, 4, &[], &[("reading_chair", 1.0, 1.0)]);
+        lot.place[0].facing = Some("NE".to_string());
+        let atlas = AtlasFile {
+            sprite: ["fridge_art", "fridge_artNE", SIM_SPRITE]
+                .iter()
+                .map(|name| AtlasSpriteDef {
+                    name: (*name).to_string(),
+                })
+                .collect(),
+        };
+        assert_eq!(
+            compile_bare(
+                full_needs(),
+                ObjectsFile {
+                    object: vec![object],
+                },
+                lot,
+                atlas,
+                full_tuning(),
+            )
+            .unwrap_err(),
+            ContentError::ActionSocketOutsideFootprint {
+                object: "reading_chair".to_string(),
+                socket: "seat".to_string(),
+                x: 2.25,
+                y: 0.0,
+            },
+            "the unrotated socket is inside 3x1; NE rotation moves it below the depth-1 placement"
+        );
     }
 
     /// One rejection test per rule, each pinning its own error variant so
