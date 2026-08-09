@@ -121,7 +121,8 @@ pub mod activity {
     /// text-only in the shell: one glyph cannot honestly mean reading,
     /// washing, television, bathing, and toilet use at once.
     pub const USING_OBJECT: u32 = 7;
-    /// Exact authored seated or standing reading at a validated object anchor.
+    /// Exact authored reading, either at a validated object socket or toward
+    /// a validated object anchor.
     pub const READING: u32 = 8;
 }
 
