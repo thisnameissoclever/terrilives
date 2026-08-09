@@ -1577,6 +1577,14 @@ describe('dispatchMenuAction', () => {
     );
 
     expect(calls).toEqual(['use attempt', 'talk attempt']);
+
+    dispatchMenuAction(
+      recordingSink(null),
+      { kind: 'use', object: 9, interaction: 0 },
+      true,
+      () => calls.push('deselected attempt'),
+    );
+    expect(calls).toEqual(['use attempt', 'talk attempt']);
   });
 
   /**

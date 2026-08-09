@@ -1,4 +1,4 @@
-export const ORDER_QUEUE_FULL_MESSAGE = "That person's order queue is full";
+export const ORDER_QUEUE_FULL_MESSAGE = 'That person\'s order queue is full';
 
 export interface CommandFeedbackSource {
   takeIntentCapacityRejections(): number;

@@ -787,9 +787,9 @@ export function dispatchMenuAction(
   replace = true,
   onOrderAttempt: () => void = () => {},
 ): boolean {
-  if (action.kind !== 'cancel') onOrderAttempt();
   const agent = sink.selectedIndex();
   if (agent === null) return false;
+  if (action.kind !== 'cancel') onOrderAttempt();
   switch (action.kind) {
     case 'use':
       // Cancel first, then use: the replace pair. See `dispatch`.
