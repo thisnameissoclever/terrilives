@@ -18,6 +18,7 @@ TOML and fails if they do.
     python3 assets/sprites/gen/build.py --check    # fail if it would differ
 """
 import argparse
+import hashlib
 import io
 import os
 import sys
@@ -51,6 +52,31 @@ ATLAS_TS = os.path.join(ROOT, "web", "src", "render", "atlas.ts")
 
 PADDING = 1          # a transparent gutter, so no sprite samples its neighbour
 
+LEGACY_PREFIX_SHA256 = (
+    "6465016ab5c5000dd166aa6441edaf051e8410c5af75799fbe56eec686c12751"
+)
+# Re-baselined once, for [A-art-pass]'s hair repair. Every sim sprite in
+# the game had skin showing at both top corners of its head: the head is a
+# rounded rectangle and the hair was a chord of the ellipse inscribed in
+# the same box, and an ellipse's top corners sit further in. `hair_cap` in
+# objects.py traces the head instead, which touches every sprite with a
+# head on it and therefore both digests below.
+#
+# The scope was measured rather than assumed before these moved: 123 of
+# 172 sprites changed, every one of them a `sim*`, and no furniture at
+# all. `DINNER_PIXELS_SHA256` and `LEGACY_PREFIX_SHA256` are deliberately
+# NOT re-baselined here, and the fact that they still pass is the evidence
+# that the repair stayed inside the sims.
+CHAT_PIXELS_SHA256 = (
+    "264fb960492e0fdb2bd2eee2f0dbd3dc143eeb47fda158748f7600416a80ff50"
+)
+DINNER_PIXELS_SHA256 = (
+    "1ac2f0505b58157e42d72de325100e20f5742a1b24c5dfa43592ec58d9ebd4dd"
+)
+PROTECTED_LEGACY_PIXELS_SHA256 = (
+    "1ee429a0d8f0dfaefe2f6e4729a82a96ce4dd92168ee1341558cbcf4eabb70e4"
+)
+
 
 def seated_reading_names():
     return [
@@ -70,6 +96,60 @@ def standing_reading_names():
     ]
 
 
+def walking_names():
+    return [
+        f"{look}Walk{facing}{frame}"
+        for look in ("sim", "sim2", "sim3")
+        for facing in ("SE", "NW", "SW", "NE")
+        for frame in (0, 1)
+    ]
+
+
+def named_pixel_digest(sprites):
+    digest = hashlib.sha256()
+    for name, image, _, _ in sprites:
+        digest.update(name.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(image.tobytes())
+    return digest.hexdigest()
+
+
+def sprite_record_digest(sprites):
+    """Hash decoded pixels with the identity and dimensions that frame them."""
+    digest = hashlib.sha256()
+    for name, image, width, height in sprites:
+        digest.update(name.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(width.to_bytes(4, "big"))
+        digest.update(height.to_bytes(4, "big"))
+        digest.update(image.tobytes())
+    return digest.hexdigest()
+
+
+def alpha_difference(left, right, box):
+    a = left.getchannel("A").crop(box).tobytes()
+    b = right.getchannel("A").crop(box).tobytes()
+    return sum(pa != pb for pa, pb in zip(a, b))
+
+
+def maximum_narrow_skin_run(image, skin):
+    """Count narrow exposed-skin rows between the head and shoulders."""
+    pixels = image.load()
+    longest = current = 0
+    for y in range(18, 45):
+        skin_pixels = sum(
+            1
+            for x in range(image.width)
+            if pixels[x, y][3] > 0 and pixels[x, y][:3] == skin
+        )
+        if 0 < skin_pixels <= 8:
+            current += 1
+            longest = max(longest, current)
+        else:
+            current = 0
+    return longest
+
+
 def validate_reading_contract(sprites):
     """Fail generation if the append-only reading art becomes a hollow list.
 
@@ -84,7 +164,7 @@ def validate_reading_contract(sprites):
         raise SystemExit("reading body sprites must occupy indices 98 through 121")
     if names[122] != "indicatorReading":
         raise SystemExit("indicatorReading must remain at index 122")
-    if len(names) != 147 or names[123:147] != standing:
+    if names[123:147] != standing:
         raise SystemExit("standing-read body sprites must occupy indices 123 through 146")
 
     by_name = {name: (image, width, height) for name, image, width, height in sprites}
@@ -134,6 +214,113 @@ def validate_reading_contract(sprites):
                     f"{look} {facing}: seated and standing reading are pixel-identical"
                 )
 
+    for look, palette in zip(
+        ("sim", "sim2", "sim3"), objects.CHARACTER_PALETTES
+    ):
+        for facing in ("SE", "NW", "SW", "NE"):
+            for frame in (0, 1):
+                name = f"{look}Read{facing}{frame}"
+                exposed = maximum_narrow_skin_run(by_name[name][0], palette["skin"])
+                if exposed > 4:
+                    raise SystemExit(
+                        f"{name}: exposes {exposed} narrow neck rows; maximum is 4"
+                    )
+
+
+def validate_animation_repair_contract(sprites):
+    """Pin old art and prove the appended walk and snack assets are real."""
+    names = [name for name, _, _, _ in sprites]
+    legacy_digest = hashlib.sha256(
+        "\0".join(names[:147]).encode("utf-8")
+    ).hexdigest()
+    if legacy_digest != LEGACY_PREFIX_SHA256:
+        raise SystemExit(
+            "sprite names or order changed inside the fixed 0 through 146 prefix"
+        )
+
+    walk = walking_names()
+    if len(names) != 172 or names[147:171] != walk or names[171] != "heldSnack":
+        raise SystemExit("walk must occupy 147 through 170 and heldSnack must remain 171")
+
+    # Seated reading at 98 through 121 is the intentional in-place redraw.
+    # Every other old record must retain its decoded pixels, dimensions, and
+    # identity while the new assets append after the fixed legacy prefix.
+    protected_legacy = sprites[:98] + sprites[122:147]
+    if sprite_record_digest(protected_legacy) != PROTECTED_LEGACY_PIXELS_SHA256:
+        raise SystemExit(
+            "decoded pixels changed outside intentional seated-reading indices"
+        )
+
+    if named_pixel_digest(sprites[50:74]) != CHAT_PIXELS_SHA256:
+        raise SystemExit("accepted conversation pixels changed during animation repair")
+
+    by_name = {
+        name: (image, width, height)
+        for name, image, width, height in sprites
+    }
+    dinner = by_name["carried_dinner"]
+    if hashlib.sha256(dinner[0].tobytes()).hexdigest() != DINNER_PIXELS_SHA256:
+        raise SystemExit("carried_dinner pixels changed during animation repair")
+
+    for name in walk:
+        image, width, height = by_name[name]
+        if (width, height) != (38, 88):
+            raise SystemExit(f"{name}: walk body must be exactly 38x88")
+        if image.getchannel("A").getbbox() is None:
+            raise SystemExit(f"{name}: walk body has no visible pixels")
+        if image.getchannel("A").getbbox()[3] != 88:
+            raise SystemExit(f"{name}: walk body lost its bottom-centred contact row")
+
+    for look in ("sim", "sim2", "sim3"):
+        for facing in ("SE", "NW", "SW", "NE"):
+            quiet = by_name[f"{look}Walk{facing}0"][0]
+            active = by_name[f"{look}Walk{facing}1"][0]
+            if alpha_difference(quiet, active, (0, 54, 38, 88)) < 24:
+                raise SystemExit(
+                    f"{look}Walk{facing}: lower-body silhouettes barely change"
+                )
+            if alpha_difference(quiet, active, (0, 32, 38, 60)) < 16:
+                raise SystemExit(
+                    f"{look}Walk{facing}: arm silhouettes barely change"
+                )
+
+        for frame in (0, 1):
+            silhouettes = {
+                by_name[f"{look}Walk{facing}{frame}"][0]
+                .getchannel("A")
+                .tobytes()
+                for facing in ("SE", "NW", "SW", "NE")
+            }
+            if len(silhouettes) != 4:
+                raise SystemExit(
+                    f"{look} walk frame {frame}: two directional silhouettes match"
+                )
+
+    snack = by_name["heldSnack"]
+    if (snack[1], snack[2]) != (14, 10):
+        raise SystemExit("heldSnack must be exactly 14x10")
+    snack_pixels = snack[0].load()
+    visible = [
+        snack_pixels[x, y]
+        for y in range(snack[2])
+        for x in range(snack[1])
+        if snack_pixels[x, y][3] > 0
+    ]
+    if not visible or len({pixel[:3] for pixel in visible}) < 3:
+        raise SystemExit("heldSnack must be nonempty and visibly multicoloured")
+    prop_width = max(snack[1], dinner[1])
+    prop_height = max(snack[2], dinner[2])
+    snack_normalized = Image.new("RGBA", (prop_width, prop_height), (0, 0, 0, 0))
+    dinner_normalized = Image.new("RGBA", (prop_width, prop_height), (0, 0, 0, 0))
+    snack_normalized.alpha_composite(
+        snack[0], ((prop_width - snack[1]) // 2, prop_height - snack[2])
+    )
+    dinner_normalized.alpha_composite(
+        dinner[0], ((prop_width - dinner[1]) // 2, prop_height - dinner[2])
+    )
+    if snack_normalized.tobytes() == dinner_normalized.tobytes():
+        raise SystemExit("heldSnack and carried_dinner must be distinct props")
+
 
 def render_all():
     out = []
@@ -147,6 +334,7 @@ def render_all():
             raise SystemExit(f"{fn.__name__}: {err}") from err
         out.append((fn.__name__, crop, w, h))
     validate_reading_contract(out)
+    validate_animation_repair_contract(out)
     return out
 
 

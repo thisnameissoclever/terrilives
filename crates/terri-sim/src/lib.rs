@@ -124,6 +124,34 @@ fn opposite_facing(value: u32) -> u32 {
     }
 }
 
+/// Chooses the dominant lot axis from the current position toward a path step.
+///
+/// Paths are four-neighbour routes in ordinary play, but the dominant-axis
+/// rule keeps this presentation projection deterministic for a malformed
+/// diagonal step too. A coincident step has no direction and therefore cannot
+/// select walking body art.
+fn facing_toward_path_step(source: &terri_core::Position, path: &terri_core::Path) -> Option<u32> {
+    use render_buffer::facing;
+
+    let (target_x, target_y) = path.next_step()?;
+    let dx = target_x as f32 - source.x;
+    let dy = target_y as f32 - source.y;
+    if dx == 0.0 && dy == 0.0 {
+        return None;
+    }
+    Some(if dx.abs() >= dy.abs() {
+        if dx.is_sign_positive() {
+            facing::POSITIVE_X
+        } else {
+            facing::NEGATIVE_X
+        }
+    } else if dy.is_sign_positive() {
+        facing::POSITIVE_Y
+    } else {
+        facing::NEGATIVE_Y
+    })
+}
+
 fn is_authored_talk_visual(interaction: &terri_data::CompiledInteraction) -> bool {
     let Some(visual) = interaction.visual.as_ref() else {
         return false;
@@ -1022,7 +1050,7 @@ impl Sim {
             Option<&terri_core::ChainState>,
             Option<&terri_core::StepWork>,
             Option<&terri_core::Target>,
-            Has<terri_core::Path>,
+            Option<&terri_core::Path>,
             Has<terri_core::Reserved>,
             Has<terri_core::AtWork>,
             Option<&terri_core::Carrying>,
@@ -1039,7 +1067,7 @@ impl Sim {
             chain_state,
             step_work,
             target,
-            walking,
+            path,
             reserved,
             at_work,
             carrying,
@@ -1209,12 +1237,25 @@ impl Sim {
                 // The implication is one-way: generic object use never
                 // selects body art or the fork bubble.
                 render_buffer::activity::EATING
-            } else if walking {
+            } else if path.is_some() {
                 render_buffer::activity::WALKING
             } else if reserved {
                 render_buffer::activity::WAITING
             } else {
                 render_buffer::activity::NONE
+            };
+            // Walking body art uses the same append-only action and facing
+            // columns as authored interactions, without widening the bridge.
+            // It is projected only after the final activity classifier has
+            // resolved precedence. The path's next step supplies a direction
+            // even when Pause or Load makes both interpolation samples equal.
+            let (visual_action, facing) = if activity == render_buffer::activity::WALKING {
+                path.and_then(|path| facing_toward_path_step(pos, path))
+                    .map_or((visual_action, facing), |direction| {
+                        (render_buffer::visual_action::WALK, direction)
+                    })
+            } else {
+                (visual_action, facing)
             };
             rows.push(RenderRow {
                 entity,

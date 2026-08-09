@@ -70,13 +70,15 @@ control [R6], which is the risk most likely to actually kill this project.
 
 On 2026-08-02, the owner asked to move visual quality, movement animation, and
 action animation near the front of the next-work order. The grounded design and
-renderer audit is complete, and the first movement slice now gives walking sims
-a restrained, distance-driven footfall while keeping the ground ring and depth
-planted. Carried-item badges follow the body, picking includes the lifted head,
-and reduced-motion users retain smooth travel without the ornamental lift or
-its otherwise useful picking headroom. The owner rejected that transform-only
-lift as a real walk cycle on 2026-08-09. It remains useful interpolation polish,
-but articulated walking art is still open.
+renderer audit is complete. The owner rejected the original transform-only
+footfall as a real walk cycle on 2026-08-09. PR 50 replaces it with
+two directional limb frames per look and facing, driven by travelled distance.
+The ring, carried item, picking envelope, and depth stay planted; reduced motion
+pins frame zero without disabling smooth travel. PR 50 merged at `7348bba5`,
+and Pages run 31330444994 deployed that exact SHA. The local and public WebGPU
+acceptance is recorded in [A-character-animation-repair]. Displayed operating-
+system reduced motion, physical-phone evidence, and final owner approval of the
+repaired art remain open.
 
 The first action-specific body animation is implemented for conversation.
 `chat` authors a `talk / partner / toward_anchor` visual contract; the
@@ -91,11 +93,12 @@ Eating is the first complete authored object-action contract. `Grab a snack` aut
 `eat / object / toward_anchor`, and the terminal `Eat dinner` chain step authors
 `eat / station / toward_anchor`. Render sync resolves the exact target and its
 footprint centre, then the shell selects one of two directional hand-to-mouth
-frames for the stable character look. The carried dinner follows the authored
-hand side, and both authored eating paths keep the existing fork bubble. The
-pose now holds for sixteen simulation ticks. The owner rejected the current
-body because the raised hand carries no visible food prop; that art repair is
-still required.
+frames for the stable character look. The shipped repair gives snacks a visible
+sandwich and moves both snack and dinner with the active hand side and frame
+height. Both paths keep the existing fork bubble and hold for sixteen
+simulation ticks. Local production WebGPU acceptance covers both food routes,
+and the merged public build visibly repeats the snack path in
+[A-character-animation-repair]. Final owner approval remains open.
 
 Seated reading is the first object-socket action category. Only
 `reading_chair.settle_in` authors `read / object_socket / socket`; the compiler
@@ -106,8 +109,9 @@ activity 8 to a book indicator plus the HUD label `Reading`. Entry, exit,
 paused cancellation, and Load reseed the presentation samples so the body does
 not glide through the chair. Save V1, world hashes, bridge columns, and the GPU
 instance contract remain unchanged. The two frames now hold for 24 simulation
-ticks. The owner rejected the current body because its neck is visibly
-distorted; the socket contract ships, but the character art needs repair.
+ticks. The shipped repair lowers the head into the shoulder line and removes
+the rejected long exposed neck. Local and merged public WebGPU acceptance is
+complete in [A-character-animation-repair]. Final owner approval remains open.
 
 Standing bookshelf reading is the second authored reading contract. Only
 `bookshelf.read` authors `read / object / toward_anchor`; render sync requires
@@ -243,13 +247,12 @@ an unchanged design target is not an unchanged measurement.
 This is the current restart point, separate from the historical milestone
 checklists below:
 
-1. Repair the owner-rejected animation art before opening another category:
-   replace the transform-only footfall with a real walk cycle, put a visible
-   food prop in the eating hand, and correct the seated-reading neck. Keep Chat
-   as the accepted reference. Action holds must be at least doubled from their
-   first shipped values, but each category may use the cadence its motion needs.
-   Recheck `bookshelf.read` at its corrected 24-tick hold through owner review;
-   its merge and deployed Pages evidence are now complete.
+1. Review the merged public character art at 1x. PR 50 and its Pages deployment
+   are complete; local production acceptance verifies the real walk cycle,
+   snack and dinner hand props, corrected seated-reading neck, and unchanged
+   accepted Chat through their normal player routes. The public replay repeats
+   the walk, snack, and seated-reading repairs. Final owner approval of those
+   repairs and `bookshelf.read` at its 24-tick hold remains open.
 2. Run the remaining physical-device check on the merged revision: verify the
    new portrait HUD reflow, inspect the darkest floor in daylight, then
    long-press an object and confirm its action menu remains reachable. The 390

@@ -2561,3 +2561,62 @@ The restart order is therefore the real walk cycle, the visible eating hand
 prop, the seated-reading neck repair, and `bookshelf.read` owner review at its
 corrected 24-tick hold. New action categories wait until these repairs are
 visually accepted.
+
+## [A-character-animation-repair] Rejected character motion is visibly repaired
+
+The 2026-08-09 local acceptance used the production Vite build at 1280 by 720
+in the in-app browser. Each repaired action was issued from its ordinary player
+route at 1x rather than a debug-only fixture; 3x was used only after the 1x
+order and first route sample to shorten long approaches or chains. Default and
+close renderer zoom plus native-size atlas inspection were used together so the
+moving character and the authored pixels were both judged directly.
+
+- **Walking is now a body animation.** Casey's normal route to the fridge was
+  watched at 1x across multiple frames. The legs alternated between crossed and
+  open steps while the counter-swinging arm changed silhouette. The body stayed
+  planted on the interpolated path with its selection ring instead of bobbing
+  the unchanged mannequin above the floor.
+- **Both eating routes hold visible food.** `Grab a snack` showed the sandwich
+  in Casey's active hand in both the lower hold and the raised mouth pose.
+  `Cook dinner` reached its terminal eating step through the normal chain and
+  kept the dinner prop in the same hand across both sixteen-tick poses. Both
+  props disappeared cleanly when eating completed.
+- **Seated reading has believable anatomy.** `Sit and read` projected Casey to
+  the red reading-chair socket with the open book, bent legs, and a head that
+  meets the shoulders without the former long skin bridge. The action was first
+  caught and paused at default renderer zoom, then inspected at close zoom and
+  in the native-size atlas. The corrected neck remained normal across both
+  reading poses.
+- **Transitions remain planted.** Pause froze each inspected pose. Saving while
+  seated, completing the read, and loading the save restored the socket pose
+  without an entry or exit glide. Completion returned the ordinary standing
+  body beside the chair.
+- **Accepted Chat stayed intact.** A fresh normal `Chat` order reached the
+  `Talking` state and showed the same directional two-person body language that
+  the owner accepted. Generator checks also pin every accepted Chat crop while
+  allowing only the intended seated-reading legacy range to change.
+- **The production renderer stayed clean.** The retained diagnostic window
+  contained 373 performance-log entries and zero warnings or errors. Mean frame
+  work during the final sample remained below half a millisecond, with the
+  displayed p95 samples below 1.1 milliseconds.
+- **The merged public build repeats the visible repairs.** PR 50 merged at
+  `7348bba5986e6b2df99aad009f655489c643db32`, and [Pages run
+  31330444994](https://github.com/thisnameissoclever/terrilives/actions/runs/31330444994)
+  successfully built and deployed that exact head. A 1280 by 720 public WebGPU
+  replay loaded `index-B_yrrh94.js`. Normal player routes showed changing arm
+  and leg silhouettes while walking at 1x, a sandwich held in the active hand
+  during `Grab a snack`, and the corrected head-to-shoulder connection during
+  `Sit and read` at default and close renderer zoom. A normal `Cook dinner`
+  chain also reached its terminal `Eating` state, although the retained public
+  screenshot caught the following generic-use state rather than the short
+  dinner pose. The local played pass above remains the direct visual evidence
+  for both dinner hand frames. The public diagnostic window retained 98
+  performance logs and zero warnings or errors across the completed walk,
+  snack, and seated-reading replay. The SHA-labelled `rev` query is a session
+  label on a mutable Pages route, not immutable artifact storage.
+- **Proof boundary.** Merge, exact-SHA Pages deployment, and representative
+  public replay are complete. Automated tests cover reduced motion and
+  responsive layout, but the browser's temporary viewport override did not
+  change the observed 1280 by 720 surface, so this repair was not replayed at
+  phone width. Operating-system reduced motion, a physical phone, a retained
+  public dinner-frame capture, and final owner approval remain open.
