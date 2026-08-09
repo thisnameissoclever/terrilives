@@ -4034,3 +4034,27 @@ rejection through the real command routes. Require the live-region text to
 transition from the exact error to empty and back to the exact error. At a day
 boundary, require the frame seam to run command drain, persistence update, then
 feedback consumption, with autosave visible only in the persistence region.
+
+## [L-shared-component-is-not-an-activity-name] Storage names are not player semantics
+
+**What happened.** The shared `Eating` component carries every ordinary object
+interaction. Render sync treated that implementation name as the fallback
+activity, so using a toilet, shower, television, sink, bookshelf, or reading
+chair could say `Eating` and draw a fork bubble.
+
+**Root cause.** The classifier named the storage mechanism instead of the
+authored action. Exact visual metadata already distinguished eating, and the
+sleep tag already distinguished sleeping, but the remaining branch collapsed
+unrelated uses into `EATING`.
+
+**Prevention rule.** Derive player-facing activity from validated authored
+identity. When a shared component has several semantic owners, give the
+unclassified remainder a distinct append-only code. Never let an entity
+component's historical name become UI text or art selection by default.
+
+**How to verify.** Hold the component and exact-target shape steady while
+varying only authored interaction metadata across snack, shower, bed, and
+terminal dinner fixtures. Hand-change the generic fallback to `EATING` and
+require the ordinary-use matrix to fail. Remove the code 3 fork mapping and
+require the frame test to fail. Restore both mutations and require the focused
+Rust and Web suites to pass.

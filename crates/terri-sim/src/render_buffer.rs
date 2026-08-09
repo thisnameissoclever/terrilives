@@ -65,12 +65,13 @@ pub struct RenderBuffer {
     /// `a_row_is_not_its_entity_index_once_an_index_is_freed` is the test
     /// that fails if this ever silently becomes the identity again.
     pub ids: Vec<u32>,
-    /// What each row is DOING right now, as the [A-11] indicator codes:
+    /// What each row is DOING right now, as the [A-11] activity codes:
     /// 0 none, 1 walking, 2 waiting (reserved for a conversation whose
-    /// initiator is still inbound), 3 eating (ordinary object use or an
-    /// authored chain-eating work step), 4 talking (either side of a
-    /// conversation), 5 sleeping (an object interaction on a bed, split from
-    /// eating because a Zzz over a bed reads and cutlery over a bed lies).
+    /// initiator is still inbound), 3 exact authored eating, 4 talking
+    /// (either side of a conversation), 5 sleeping (a valid sleep-tagged
+    /// object interaction), 6 at work, and 7 ordinary object use without a
+    /// narrower authored activity. Some codes are text-only and draw no
+    /// indicator.
     ///
     /// Exists because the owner's play report put it plainly: "if you
     /// can't see what they're doing, they may as well not be doing
@@ -82,10 +83,10 @@ pub struct RenderBuffer {
     /// [`visual_action`] for the stable codes handed to the shell.
     ///
     /// This is deliberately separate from [`RenderBuffer::activities`].
-    /// Activity 3 names broad object use and authored chain eating, while body
-    /// art must come from the interaction or chain step's visual contract
-    /// rather than guess whether that use is eating, bathing, reading, or
-    /// something else.
+    /// Activity 3 names exact authored object or chain eating. Activity 7
+    /// names generic object use. Body art still comes from the interaction or
+    /// chain step's visual contract rather than guessing whether generic use
+    /// is bathing, reading, or something else.
     pub visual_actions: Vec<u32>,
     /// Lot-axis direction each authored visual action faces. See [`facing`].
     /// A row whose visual action is [`visual_action::NONE`] also carries
@@ -116,6 +117,10 @@ pub mod activity {
     /// the whole row's draw (sprite, indicator, pick box), so the sim
     /// is gone without its interpolation slot moving.
     pub const AT_WORK: u32 = 6;
+    /// Ordinary object use without a narrower authored activity. This is
+    /// text-only in the shell: one glyph cannot honestly mean reading,
+    /// washing, television, bathing, and toilet use at once.
+    pub const USING_OBJECT: u32 = 7;
 }
 
 /// Authored body-action codes. Kept as `u32` so JavaScript can view the
@@ -275,10 +280,10 @@ mod tests {
     }
 
     /// The [A-11] activity column, every code from one world: a talker,
-    /// its partner, an eater, a sleeper, a walker, a waiter, an idler,
-    /// and an object. Each code has exactly one producer here, so a
-    /// classifier that collapses two states - the bug the precedence
-    /// comments exist to prevent - collides somewhere visible.
+    /// its partner, an eater, a generic object user, a sleeper, a walker,
+    /// a waiter, an idler, and objects. Each code has exactly one producer
+    /// here, so a classifier that collapses two states - the bug the
+    /// precedence comments exist to prevent - collides somewhere visible.
     #[test]
     fn the_activity_column_names_what_each_row_is_doing() {
         use crate::render_buffer::activity;
@@ -286,13 +291,20 @@ mod tests {
 
         let pack = terri_data::pack();
         let fridge = pack.find("fridge").expect("shipped");
+        let sink = pack.find("sink").expect("shipped");
         let bed = pack.find("bed").expect("shipped");
+        let snack = shipped_interaction_index(fridge, "grab_snack");
+        let wash_hands = shipped_interaction_index(sink, "wash_hands");
         let _ = Relationships::default();
 
         let mut sim = Sim::new_with_lot(16, 16);
         let object = sim
             .world_mut()
             .spawn((Position { x: 9.0, y: 9.0 }, SmartObject(fridge)))
+            .id();
+        let generic_object = sim
+            .world_mut()
+            .spawn((Position { x: 10.0, y: 9.0 }, SmartObject(sink)))
             .id();
         let spawn_agent = |sim: &mut Sim, x: f32| {
             sim.world_mut()
@@ -305,19 +317,37 @@ mod tests {
         };
         let idler = spawn_agent(&mut sim, 1.0);
         let eater = spawn_agent(&mut sim, 2.0);
-        let sleeper = spawn_agent(&mut sim, 3.0);
-        let walker = spawn_agent(&mut sim, 4.0);
-        let waiter = spawn_agent(&mut sim, 5.0);
-        let talker = spawn_agent(&mut sim, 6.0);
-        let partner = spawn_agent(&mut sim, 7.0);
+        let generic_user = spawn_agent(&mut sim, 3.0);
+        let sleeper = spawn_agent(&mut sim, 4.0);
+        let walker = spawn_agent(&mut sim, 5.0);
+        let waiter = spawn_agent(&mut sim, 6.0);
+        let talker = spawn_agent(&mut sim, 7.0);
+        let partner = spawn_agent(&mut sim, 8.0);
 
-        sim.world_mut().entity_mut(eater).insert(Eating {
-            object: fridge,
-            interaction: 0,
-            remaining_ticks: 5,
-        });
-        // The bunk's one interaction restores energy above all else,
-        // which is what the classifier reads - not the object's name.
+        sim.world_mut().entity_mut(eater).insert((
+            Eating {
+                object: fridge,
+                interaction: snack,
+                remaining_ticks: 5,
+            },
+            Target {
+                object,
+                interaction: snack,
+            },
+        ));
+        sim.world_mut().entity_mut(generic_user).insert((
+            Eating {
+                object: sink,
+                interaction: wash_hands,
+                remaining_ticks: 5,
+            },
+            Target {
+                object: generic_object,
+                interaction: wash_hands,
+            },
+        ));
+        // The bunk's one interaction owns the shipped sleep tag. That exact
+        // authored meaning is what the classifier reads, not the object name.
         sim.world_mut().entity_mut(sleeper).insert(Eating {
             object: bed,
             interaction: 0,
@@ -355,8 +385,10 @@ mod tests {
         };
 
         assert_eq!(of(object), activity::NONE, "objects do nothing");
+        assert_eq!(of(generic_object), activity::NONE, "objects do nothing");
         assert_eq!(of(idler), activity::NONE);
         assert_eq!(of(eater), activity::EATING);
+        assert_eq!(of(generic_user), activity::USING_OBJECT);
         assert_eq!(of(sleeper), activity::SLEEPING);
         assert_eq!(of(walker), activity::WALKING);
         assert_eq!(of(waiter), activity::WAITING);
@@ -464,6 +496,63 @@ mod tests {
             before_save,
             "presentation sync must not add or rewrite Save V1 state"
         );
+    }
+
+    #[test]
+    fn shipped_ordinary_object_uses_report_generic_activity_without_eating_art() {
+        use crate::render_buffer::{activity, facing, visual_action};
+        use terri_core::Target;
+
+        let pack = terri_data::pack();
+        let cases = [
+            ("shower", "take_shower"),
+            ("toilet", "relieve_self"),
+            ("television", "watch_tv"),
+            ("sink", "wash_hands"),
+            ("bookshelf", "read"),
+            ("kitchen_sink", "wash_up"),
+            ("reading_chair", "settle_in"),
+        ];
+        let mut sim = Sim::new_with_lot(24, 24);
+        let mut agents = Vec::new();
+
+        for (offset, (object_id, interaction_id)) in cases.into_iter().enumerate() {
+            let definition = pack
+                .find(object_id)
+                .unwrap_or_else(|| panic!("the shipped pack declares '{object_id}'"));
+            let interaction = shipped_interaction_index(definition, interaction_id);
+            let x = 2.0 + offset as f32 * 3.0;
+            let target = sim
+                .world_mut()
+                .spawn((Position { x: x + 1.0, y: 8.0 }, SmartObject(definition)))
+                .id();
+            let agent = sim
+                .world_mut()
+                .spawn((
+                    Agent,
+                    Position { x, y: 8.0 },
+                    Eating {
+                        object: definition,
+                        interaction,
+                        remaining_ticks: 10,
+                    },
+                    Target {
+                        object: target,
+                        interaction,
+                    },
+                ))
+                .id();
+            agents.push((agent, object_id, interaction_id));
+        }
+
+        sim.sync_render_buffer();
+        for (agent, object_id, interaction_id) in agents {
+            assert_eq!(
+                projection_of(sim.render_buffer(), agent),
+                (visual_action::NONE, facing::NONE, activity::USING_OBJECT,),
+                "{object_id}/{interaction_id} is ordinary object use, not authored eating"
+            );
+        }
     }
 
     #[test]
@@ -813,8 +902,8 @@ mod tests {
         let (_, _, broad_activity) = projection_of(sim.render_buffer(), missing_target);
         assert_eq!(
             broad_activity,
-            activity::EATING,
-            "the broad activity may still explain object use without selecting body art"
+            activity::USING_OBJECT,
+            "malformed authored eating falls back to generic object use without selecting body art"
         );
     }
 
@@ -1399,7 +1488,7 @@ mod tests {
         };
         assert_eq!(
             activity_of(awake_agent),
-            activity::EATING,
+            activity::USING_OBJECT,
             "an energy advert without the authored tag is ordinary object use"
         );
         assert_eq!(

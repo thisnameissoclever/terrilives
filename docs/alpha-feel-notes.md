@@ -1987,9 +1987,9 @@ visualization artifact folder.
 This was movement polish on the art that existed during that session. Muted
 Line subsequently replaced every pack sprite and shipped three stable character
 looks. The remaining conclusion still holds: action poses require semantic
-visual-action categories, facings, and interaction anchors; using the current
-broad activity codes directly would animate several unrelated object
-interactions as eating.
+visual-action categories, facings, and interaction anchors; using the
+then-current broad activity codes directly would have animated several
+unrelated object interactions as eating.
 
 ## [A-save-compatible-household] The renamed household keeps a working save
 
@@ -2107,6 +2107,44 @@ both eating paths were issued through the ordinary keyboard object menu.
   resume, save and load, desktop and phone layouts, and both zoom levels
   produced zero console warnings and zero errors. The visible canvas remained
   on the production WebGPU renderer throughout the pass.
+
+## [A-object-use-activity-semantics] Ordinary object use has an honest name
+
+The corrected production WebGPU build was played at 1280 x 720 in the in-app
+browser. The phone and physical-device boundaries were not rechecked in this
+slice.
+
+- **The classifier follows authored meaning, not a legacy component name.** A
+  focused Rust render-buffer run passed 22 tests. Its causal matrix holds the
+  component and target shape steady across the shipped shower, toilet,
+  television, bathroom sink, bookshelf, kitchen sink, and reading chair. All
+  seven project `USING_OBJECT` with no eating pose. Exact refrigerator snack
+  and terminal dinner fixtures still project `EATING` with authored eat art;
+  the valid sleep-tagged twin still projects `SLEEPING`.
+- **The Web surfaces agree on the appended wire code.** A focused Vitest run
+  passed 80 tests across the HUD, developer overlay, frame builder, and atlas.
+  A rebuilt release-WASM bridge test reads the literal activity prefix
+  `[0, 7]` from a real sink interaction and reads no authored visual action.
+  Code 7 prints `Using object` or `using object`; it adds no bubble instance.
+  Code 3 still adds the existing fork sprite.
+- **The distinction reads correctly in the real renderer.** Casey was paused
+  mid-use beside the shipped bathroom fixture with the normal HUD reading
+  `Using object`, one waiting order, and no activity bubble above the body. A
+  later real refrigerator snack read `Eating` and showed the existing fork
+  bubble with its authored eating pose. Browser diagnostics contained only
+  expected performance logs, with zero warnings and zero errors.
+- **The atlas stays unchanged on purpose.** It remains 98 append-only entries.
+  A generic 26-pixel glyph cannot honestly describe bodily care,
+  entertainment, chores, and reading, so the HUD text carries the fallback
+  meaning until narrower action categories have their own readable art.
+- **Four hand mutations proved causality.** Collapsing the generic fallback to
+  `EATING` failed on the shower at code 3 versus 7. Changing either authored
+  snack or terminal dinner from `EATING` to `USING_OBJECT` failed at code 7
+  versus 3. Removing the Web fork mapping failed at two instances versus the
+  required three. Each mutation was restored before the green full run.
+- **Proof boundary.** This pass proves the label and bubble distinction at the
+  desktop shipping size. It does not approve phone-width readability,
+  physical touch behavior, or the still-unbuilt action poses for generic use.
 
 ## [A-local-idle-wandering] Idle movement stays local and remains interruptible
 

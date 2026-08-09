@@ -468,12 +468,12 @@ after item 4.
 
 ## What this plan does not cover
 
-Animation and facings. The current single sim pose is unchanged by all of
-the above, the broad `EATING` activity still covers showers, television and
-reading, and mapping it to a pose would confidently animate the wrong
-fiction. That remains the open piece it already was, and Muted Line's
-parametric character makes it cheaper rather than solving it: a facing is
-another draw of the same parts in a different arrangement, not new art.
+Animation and facings. When this plan was authored, the single sim pose was
+unchanged by all of the above and the broad `EATING` activity still covered
+showers, television, and reading. Mapping it to a pose would have confidently
+animated the wrong fiction. Muted Line's parametric character made the missing
+system cheaper rather than solving it: a facing is another draw of the same
+parts in a different arrangement, not new art.
 
 Status update, 2026-08-06: conversation now supplies the first honest slice of
 that missing system. Its authored visual contract names talk, partner anchor,
@@ -481,3 +481,8 @@ and facing rule; twenty-four appended character frames cover two poses, four
 lot-axis facings, and three stable looks. Generic object activity remains
 deliberately unmapped. See
 `docs/specs/2026-08-06-conversation-action-animation.md`.
+
+Status correction, 2026-08-08: authored snack and terminal dinner now own
+activity code 3 and their exact eating art. Generic object use moved to the
+append-only activity code 7, with player-facing text and no vague bubble. The
+historical warning above remains the reason broad activity never selects art.

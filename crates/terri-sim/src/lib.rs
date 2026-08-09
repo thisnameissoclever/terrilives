@@ -944,8 +944,16 @@ impl Sim {
                     && systems::circadian::is_asleep(content, eating)
                 {
                     render_buffer::activity::SLEEPING
-                } else {
+                } else if eating_visual
+                    .is_some_and(|(action, _)| action == render_buffer::visual_action::EAT)
+                {
                     render_buffer::activity::EATING
+                } else {
+                    // `Eating` is the legacy storage component for every
+                    // ordinary object interaction. Only exact authored eat
+                    // metadata may turn that implementation name into the
+                    // player-facing eating activity.
+                    render_buffer::activity::USING_OBJECT
                 }
             } else if step_work.is_some()
                 && eating_visual
@@ -953,8 +961,8 @@ impl Sim {
             {
                 // A running chain step has no `Eating` component, but an
                 // authored terminal eat still needs the existing fork bubble.
-                // The implication is one-way: the broad EATING activity never
-                // selects body art.
+                // The implication is one-way: generic object use never
+                // selects body art or the fork bubble.
                 render_buffer::activity::EATING
             } else if walking {
                 render_buffer::activity::WALKING

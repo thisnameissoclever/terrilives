@@ -1,8 +1,8 @@
-# Eating action animation - working design
+# Eating action animation contract
 
-Status: **approved implementation contract for the next action-animation
-slice.** This extends the shipped conversation visual contract without making
-the broad `Eating` activity code choose art.
+Status: **shipped contract, amended 2026-08-08 for generic object-use
+semantics.** This extends the shipped conversation visual contract without
+making the shared `Eating` storage component choose art or player-facing text.
 
 The restart point is `docs/FEATURES.md` under **Next engineering slices**. A
 current-run desktop and phone audit on 2026-08-07 reached the ordinary fridge
@@ -118,11 +118,15 @@ simulation. Save and Load reconstruct it from the saved simulation tick and
 active gameplay components. Reduced motion pins frame zero while preserving
 the directional action pose rather than falling back to idle.
 
-The HUD text and fork bubble remain redundant non-motion explanations. A chain
-step with a valid authored eat visual therefore also projects the existing
-`EATING` activity code while work is active, even though broad `Eating`
-activity never implies a visual action in the other direction. No meaning is
-available only through the animation.
+The HUD text and fork bubble remain redundant non-motion explanations. An
+ordinary interaction with an exact authored eat visual and a chain step with a
+valid authored eat visual therefore project the existing `EATING` activity
+code while work is active. A valid sleep-tagged interaction remains
+`SLEEPING`. Every other use of the shared `Eating` storage component projects
+the appended `USING_OBJECT` activity code 7 instead. That generic state is
+text-only because one small glyph cannot truthfully represent reading,
+washing, television, bathing, and toilet use. No meaning is available only
+through animation.
 
 ## [EA5] Chain-step visual metadata is presentation-only
 
@@ -157,24 +161,27 @@ Automated coverage must prove:
 2. Object and chain visual changes independently leave the Save V1 digest
    unchanged while compiled-pack bytes remain pinned.
 3. A real snack and a terminal dinner step emit action code `2` with all four
-   facings, and the terminal dinner step emits the existing fork bubble through
-   its `EATING` activity code.
+   facings, and both emit the existing fork bubble through their `EATING`
+   activity code.
 4. A 2 by 1 target uses its footprint centre, the exact resolved station wins
    when two eating surfaces exist, and every required component has a malformed
    near-miss test.
 5. Walking between chain stations, the shipped unauthored non-terminal steps,
    unauthored object use, target mismatches, missing `SmartObject`, and the
-   broad `Eating` activity alone emit no authored body action.
+   shared `Eating` component alone emit no authored body action. Shipped
+   `shower`, `toilet`, `television`, `sink`, `bookshelf`, `kitchen_sink`, and
+   `reading_chair` interactions report `USING_OBJECT`, never `EATING`.
 6. The WebAssembly memory-growth seam preserves action `2` and its facing.
 7. All three looks, four facings, two frames, reduced motion, invalid-code
    fallback, ring, bubble, carried badge, zoom, picking, and live instance count
-   are pinned in web tests. Eating phase boundaries include ticks 7, 8, 15,
-   and 16 plus the staggered neighbouring boundaries for multiple sequential
-   entity ids. Pause and speed tests prove that only simulation ticks advance
-   the phase, and sequential sims do not transition in lockstep.
+   are pinned in web tests. Activity code 3 keeps the fork while code 7 adds no
+   generic bubble. Eating phase boundaries include ticks 7, 8, 15, and 16 plus
+   the staggered neighbouring boundaries for multiple sequential entity ids.
+   Pause and speed tests prove that only simulation ticks advance the phase,
+   and sequential sims do not transition in lockstep.
 8. Atlas output has 98 entries; talk remains at 50 through 73; eating is the
    appended 74 through 97; every new body is 38 by 88; decoded pixels are
-   reproducible.
+   reproducible; no vague generic-use indicator is appended.
 9. Targeted mutation checks kill each owner guard, component guard, identity
    match, action-code collapse, footprint-centre substitution, directional sign
    reversal, and statement deletion that ordinary `cargo mutants` cannot
@@ -200,9 +207,16 @@ validation that was not observed.
 
 ## [EA8] Explicitly outside this slice
 
-This work does not animate generic `Eating`, food preparation, cooking, sitting,
-reading, television, sleeping, bathing, toilet use, or sink use. It does not
-move a sim onto furniture or add seat, bed, shower, or toilet sockets. Those
-actions need their own semantic category and, where the body changes location,
-an authored position and occlusion contract rather than a better arm pose beside
-the object.
+This work does not animate generic object use, food preparation, cooking,
+sitting, reading, television, sleeping, bathing, toilet use, or sink use. It
+does not move a sim onto furniture or add seat, bed, shower, or toilet sockets.
+Those actions need their own semantic category and, where the body changes
+location, an authored position and occlusion contract rather than a better arm
+pose beside the object.
+
+One future content-validation concern remains nonblocking. The compiler does
+not yet reject an interaction that combines the sleep tag with an authored eat
+visual. No shipped interaction does that, but such content would currently
+project an eating body with a sleeping activity label because sleep owns the
+activity precedence. If either vocabulary expands, compile validation should
+reject that mixed semantic contract explicitly.

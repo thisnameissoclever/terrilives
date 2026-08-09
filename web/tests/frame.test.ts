@@ -663,7 +663,7 @@ describe('simBodySprite', () => {
 });
 
 describe('buildInstances', () => {
-  it('draws authored action poses without reinterpreting broad activity codes', () => {
+  it('draws authored action poses without reinterpreting activity labels', () => {
     const source = new FakeEntities();
     source.set([
       // A real authored conversation.
@@ -676,7 +676,7 @@ describe('buildInstances', () => {
         1, 0, 1, 0, KIND_AGENT, 1, 3, 0xffff_ffff,
         VISUAL_ACTION_EAT, FACING_NEGATIVE_X,
       ],
-      // Broad eating activity alone does not invent presentation metadata.
+      // Exact eating activity alone does not invent authored body metadata.
       [1, 0, 1, 0, KIND_AGENT, 1, 3, 0xffff_ffff, 0, 0],
       // Even a talk indicator does not invent presentation metadata.
       [2, 0, 2, 0, KIND_AGENT, 1, 4, 0xffff_ffff, 0, 0],
@@ -1239,6 +1239,25 @@ describe('activity indicator bubbles', () => {
       built[simBase + OFFSET_DEPTH],
       3,
     );
+  });
+
+  it('maps activity code 3 to the authored eating fork', () => {
+    src.set([[1, 1, 1, 1, KIND_AGENT, 3, 3]]);
+    expect(instanceCount(src, null)).toBe(2);
+
+    const built = buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID);
+    const bubbleBase = FLOATS_PER_INSTANCE;
+    expect(built[bubbleBase + OFFSET_SPRITE]).toBe(
+      spriteIndex('indicatorEat'),
+    );
+  });
+
+  it('maps activity code 7 to no generic bubble', () => {
+    src.set([[1, 1, 1, 1, KIND_AGENT, 3, 7]]);
+    expect(instanceCount(src, null)).toBe(1);
+    expect(
+      snapshot(buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID), 1),
+    ).toHaveLength(FLOATS_PER_INSTANCE);
   });
 
   it('keeps the selection ring in the slot after the bubbles', () => {

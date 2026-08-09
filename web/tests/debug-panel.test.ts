@@ -79,6 +79,14 @@ describe('formatDebugReport', () => {
     expect(report).not.toContain('x1.00');
   });
 
+  it('names generic object use without borrowing the eating label', () => {
+    const report = formatDebugReport(
+      source({ activities: () => Uint32Array.from([7, 0, 0]) }),
+    );
+    expect(report).toContain('Terri  (entity 7, SimId 0)  doing: using object');
+    expect(report).not.toContain('doing: eating');
+  });
+
   it('prints the household funds once, at the top, before anybody', () => {
     const report = formatDebugReport(source());
     expect(report.startsWith('household funds: 375')).toBe(true);

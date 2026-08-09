@@ -192,7 +192,7 @@ table. Authored in `content/chains.toml`.
 | **determinism** | The same seed and the same inputs produce the identical simulation, tick for tick, on any machine. Load-bearing for save files, replays and bug reports. |
 | **world hash** | A digest of everything the simulation must agree on. Two runs that diverge by a hair produce different hashes, which is how CI catches an accidental behaviour change. Also, deliberately, the shape a save file takes. |
 | **render buffer** | The flat arrays the display reads each frame - positions, sprites, activities, carried items. The simulation writes it; the browser never asks the simulation questions mid-frame. |
-| **activity code** | What a row is doing, for the indicator bubbles: none, walking, waiting, eating, talking, sleeping, at work. |
+| **activity code** | What a row is doing: 0 none, 1 walking, 2 waiting, 3 exact authored eating, 4 talking, 5 sleeping, 6 at work, 7 generic object use. Some activities are text-only and deliberately draw no indicator bubble. |
 
 ## What the debug overlay prints, line by line
 

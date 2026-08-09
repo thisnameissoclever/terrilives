@@ -24,8 +24,15 @@ share the partner anchor and facing rule without pretending its body pose is a
 conversation, while a future seated action can add a different anchor without
 renaming the action.
 
-Rejected: mapping activity code 3 to eating. That code covers showers, toilets,
-television, reading, washing, bathing, sitting, and every other object use.
+Rejected at the time this design was authored: mapping activity code 3 to
+eating. It then covered showers, toilets, television, reading, washing,
+bathing, sitting, and every other object use, so using it as an art lookup
+would have animated the wrong fiction.
+
+Status correction, 2026-08-08: exact authored snack and terminal dinner now
+own activity code 3. Generic object use moved to append-only code 7 and remains
+text-only. The original design rule still holds: broad activity never invents
+body art.
 
 Rejected: treating the existing gameplay tags as presentation categories.
 Tags already drive hobbies, traits, sleeping, and satisfaction. Reusing them for
