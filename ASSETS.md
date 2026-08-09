@@ -56,7 +56,7 @@ a live entry again.
 | --- | --- |
 | `style.py` | The palette, the line, the shading ramp, the character build. The style bible. |
 | `iso.py` | The projection, the box/slab/cylinder primitives, and the anchoring rule. |
-| `objects.py` | All 147 sprites, including the three people and their directional talk, eating, seated-reading, and standing-reading frames, plus the name contract they satisfy. |
+| `objects.py` | All 172 sprites, including the three people and their directional talk, eating, seated-reading, standing-reading, and walking frames plus the food props and name contract they satisfy. |
 | `build.py` | Packs the sheet and writes all three output files. |
 
 **The image and the manifest live apart, on purpose.** The PNG is in
@@ -80,8 +80,8 @@ reproducible build output, which the old pipeline could never offer.
 ## The names are a contract
 
 `content/objects.toml` resolves 30 sprite names. The shell resolves its floor,
-walls, selection ring, indicators, carried badges, three people, and authored
-action frames by name. terri-data fails the content build on a dangling object
+walls, selection ring, indicators, carried badges, three people, authored
+action frames, and food props by name. terri-data fails the content build on a dangling object
 reference, while TypeScript startup and tests fail on a missing shell sprite,
 so renaming or dropping an entry breaks the build rather than quietly changing
 how the game looks.
@@ -148,19 +148,20 @@ sprite in the middle renumbers every sprite after it and silently redraws the
 lot with the furniture shuffled, so `objects.SPRITES` is append-only in spirit.
 The three ordinary people remain at 1, 48, and 49; conversation occupies 50
 through 73; eating occupies 74 through 97; seated reading occupies 98 through
-121; the reading indicator remains 122; standing reading appends at 123
-through 146.
+121; the reading indicator remains 122; standing reading occupies 123 through
+146; directional walking occupies 147 through 170; and `heldSnack` is 171.
 
 ## What is not done
 
-The household now has three stable baked looks. Walking uses a restrained body
-lift; conversation has directional talk frames; the authored snack plus
-terminal dinner actions have directional hand-to-mouth frames; the reading
-chair has seated book frames; and the bookshelf has upright book frames. Other
-object categories still use the ordinary body. They need their own authored
-action, anchor, and occlusion contract rather than inheriting art from a broad
-status label. Per-instance tint and emissive strength are already live for
-night lighting, but player-selected character appearance is not yet content.
+The household now has three stable baked looks. Walking has directional arm and
+leg frames; conversation has directional talk frames; authored snack and
+terminal dinner actions combine directional hand-to-mouth frames with visible
+food props; the reading chair has seated book frames; and the bookshelf has
+upright book frames. Other object categories still use the ordinary body. They
+need their own authored action, anchor, and occlusion contract rather than
+inheriting art from a broad status label. Per-instance tint and emissive strength
+are already live for night lighting, but player-selected character appearance
+is not yet content.
 
 Walls are still tile-CENTRED panels, because that is what `tiles.ts` draws.
 Moving them onto tile edges is [B7], a renderer change rather than an art one.

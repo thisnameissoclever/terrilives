@@ -1,10 +1,11 @@
 # Eating action animation contract
 
 Status: **shipped mechanical contract, amended 2026-08-08 for generic
-object-use semantics and 2026-08-09 for owner review.** The owner rejected the
-current eating art because the raised hand carries no visible food prop. That
-visual repair remains open even though the authored action, projection, and
-tests ship. This extends the shipped conversation visual contract without
+object-use semantics and 2026-08-09 for owner review and hand-prop repair.**
+The repair branch now gives snacks a visible sandwich and keeps dinner in the
+active eating hand; played WebGPU acceptance and publication remain open. The
+authored action, projection, and tests already ship. This extends the shipped
+conversation visual contract without
 making the shared `Eating` storage component choose art or player-facing text.
 The amendment shipped in PR 47 at merge `38a03c151036430c798502ca4252c925c98789db`;
 the public session observed immediately after that deployment is recorded in
@@ -95,8 +96,8 @@ Each of the three shipped looks gets two eating frames for each of four lot-axis
 facings: 24 appended sprites in total.
 
 Every frame is exactly 38 by 88 pixels, bottom-centred on the existing body
-anchor. Feet, contact shadow, maximum bounds, indicator lift, selection ring,
-picking envelope, wall depth, and carried-item lift remain unchanged.
+anchor. Feet, contact shadow, maximum bounds, indicator position, selection
+ring, picking envelope, wall depth, and planted world anchor remain unchanged.
 
 Frame zero is a quiet directional eating pose with the anchor-side arm bent at
 the chest. Frame one raises that hand toward the mouth. Eyes follow the anchor
@@ -108,11 +109,12 @@ The 24 sprites append after the current 74 entries. Existing indices do not
 move: the ordinary bodies remain at 1, 48, and 49, and conversation remains at
 50 through 73. Eating occupies 74 through 97.
 
-The carried dinner badge remains a separate existing sprite and follows the
-body lift. Its placement may move toward the anchor-side hand only if tests pin
-both opposite facings and prove ingredients plus non-eating carrying are
-unchanged. That polish is part of this slice only when it remains one direct
-renderer transform rather than new simulation state.
+Exact snack eating draws the appended `heldSnack` sandwich. Exact terminal
+dinner eating keeps the separate existing `carried_dinner` sprite. Each prop
+follows the same facing, hand side, and sixteen-tick frame height as the eating
+arm. A valid eater draws exactly one food prop. Ingredients, unrelated carrying,
+generic object use, and malformed visual state retain their previous behavior.
+This remains one direct renderer transform rather than new simulation state.
 
 ## [EA4] Simulation ticks own the phase
 

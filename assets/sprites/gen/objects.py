@@ -599,9 +599,12 @@ def _reading_figure(d, palette, facing, frame):
         d.line([(foot_x - 3, py - 2), (foot_x + 4, py - 2)],
                fill=ol, width=3)
 
-    top_y = py - 59
+    top_y = py - 55
     shoulder_y = top_y + 8
-    d.rectangle([px - 3, py - 64, px + 3, shoulder_y + 1],
+    # The head overlaps this short neck and the shoulder line. The previous
+    # pose left a long, narrow skin column between a high head and a low
+    # torso, which read as a giant exposed neck at shipping size.
+    d.rectangle([px - 3, shoulder_y - 3, px + 3, shoulder_y + 3],
                 fill=skin, outline=ol, width=w)
     d.polygon([
         (px - 12, shoulder_y),
@@ -647,7 +650,9 @@ def _reading_figure(d, palette, facing, frame):
 
     head_r = 12
     head_x = px + side
-    head_y = py - 73
+    # Seat the head into the shoulders. Its lower edge overlaps the torso by
+    # two pixels, leaving a human-sized neck while keeping the downward gaze.
+    head_y = shoulder_y - 10
     d.rounded_rectangle([
         head_x - head_r, head_y - head_r,
         head_x + head_r, head_y + head_r,
@@ -846,6 +851,154 @@ def sim3StandReadNE0(d): _standing_reading_figure(d, CHARACTER_PALETTES[2], "ne"
 def sim3StandReadNE1(d): _standing_reading_figure(d, CHARACTER_PALETTES[2], "ne", 1)
 
 
+def _walking_figure(d, palette, facing, frame):
+    """A real two-frame directional walk inside the standing envelope.
+
+    Translation belongs to the renderer. This art supplies the body motion:
+    opposite legs stride, knees bend, and the arms counter-swing. Each facing
+    changes the leading screen side and depth order, so the frame pair is a
+    character walk rather than an unchanged body being lifted off the floor.
+    """
+    ch = CHARACTER
+    height = ch["height"]
+    head_r = height * ch["head"]
+    px, py = P(.5, .5)
+    side, depth = {
+        "se": (1, 1),
+        "nw": (-1, -1),
+        "sw": (-1, 1),
+        "ne": (1, -1),
+    }[facing]
+    phase = -1 if frame == 0 else 1
+    skin, hair = palette["skin"], palette["hair"]
+    shirt, trouser = palette["shirt"], palette["trouser"]
+    ol, w = OUTLINE, OUTLINE_WIDTH
+
+    d.ellipse([px - 13, py - 9, px + 13, py], fill=(0, 0, 0, 46))
+
+    shoulder_width = ch["shoulder"] * height
+    hip_width = ch["hip"] * height
+    leg_height = ch["leg"] * height
+    torso_height = height - leg_height - head_r * 2
+    hip_y = py - leg_height
+    top_y = hip_y - torso_height
+
+    # Draw the depth-side limb first, then its nearer partner. The two frames
+    # exchange which foot leads and which knee bends while the last visible
+    # row remains on the common bottom-centre contact point.
+    leg_order = (-depth, depth)
+    for leg_side in leg_order:
+        stride = phase * leg_side
+        hip_x = px + leg_side * hip_width * .22
+        knee_x = hip_x + side * stride * 3
+        knee_y = py - 15 + depth * leg_side * 2 - abs(stride) * 1
+        foot_x = hip_x + side * stride * 6
+        foot_y = py - (2 if stride > 0 else 4)
+        points = [(hip_x, hip_y), (knee_x, knee_y), (foot_x, foot_y)]
+        d.line(points, fill=ol, width=8, joint="curve")
+        d.line(points, fill=trouser, width=6, joint="curve")
+        d.line(
+            [(foot_x - 3 - side, foot_y + 1),
+             (foot_x + 3 + side, foot_y + 1)],
+            fill=ol,
+            width=3,
+        )
+
+    d.polygon(
+        [
+            (px - shoulder_width / 2, top_y),
+            (px + shoulder_width / 2, top_y),
+            (px + hip_width * .34, hip_y + 1),
+            (px - hip_width * .34, hip_y + 1),
+        ],
+        fill=shirt,
+        outline=ol,
+    )
+
+    # Arms counter-swing against the legs. Their endpoints move across the
+    # torso edge as well as vertically, giving both frames a distinct outer
+    # silhouette even at native size.
+    arm_width = round(shoulder_width * .22)
+    for arm_side in (-1, 1):
+        swing = -phase * arm_side
+        shoulder_x = px + arm_side * (shoulder_width / 2 - 2)
+        shoulder_y = top_y + torso_height * (
+            .28 if depth * arm_side > 0 else .18
+        )
+        elbow_x = shoulder_x + side * swing * 3 + arm_side
+        elbow_y = shoulder_y + 8 - depth * arm_side
+        hand_x = shoulder_x + side * swing * 6 + arm_side * 2
+        hand_y = shoulder_y + 14 + swing * 2 - depth * arm_side
+        points = [
+            (shoulder_x, shoulder_y),
+            (elbow_x, elbow_y),
+            (hand_x, hand_y),
+        ]
+        d.line(points, fill=ol, width=arm_width + 2 * w, joint="curve")
+        d.line(points, fill=mul(shirt, .93), width=arm_width, joint="curve")
+        d.ellipse(
+            [hand_x - 2, hand_y - 2, hand_x + 2, hand_y + 2],
+            fill=skin,
+            outline=ol,
+            width=w,
+        )
+
+    head_x = px + side
+    head_y = top_y - head_r
+    d.rounded_rectangle(
+        [head_x - head_r, head_y - head_r, head_x + head_r, head_y + head_r],
+        radius=int(head_r * .42),
+        fill=skin,
+        outline=ol,
+        width=w,
+    )
+    d.chord(
+        [head_x - head_r, head_y - head_r,
+         head_x + head_r, head_y + head_r * .35],
+        180,
+        360,
+        fill=hair,
+        outline=ol,
+        width=w,
+    )
+    eye_y = head_y + head_r * .12 + depth
+    eye_r = max(1.2, head_r * .11)
+    for eye_side in (-1, 1):
+        eye_x = head_x + eye_side * head_r * .34 + side * 1.8
+        d.ellipse(
+            [eye_x - eye_r, eye_y - eye_r, eye_x + eye_r, eye_y + eye_r],
+            fill=ch["eye"],
+        )
+
+
+def simWalkSE0(d): _walking_figure(d, CHARACTER_PALETTES[0], "se", 0)
+def simWalkSE1(d): _walking_figure(d, CHARACTER_PALETTES[0], "se", 1)
+def simWalkNW0(d): _walking_figure(d, CHARACTER_PALETTES[0], "nw", 0)
+def simWalkNW1(d): _walking_figure(d, CHARACTER_PALETTES[0], "nw", 1)
+def simWalkSW0(d): _walking_figure(d, CHARACTER_PALETTES[0], "sw", 0)
+def simWalkSW1(d): _walking_figure(d, CHARACTER_PALETTES[0], "sw", 1)
+def simWalkNE0(d): _walking_figure(d, CHARACTER_PALETTES[0], "ne", 0)
+def simWalkNE1(d): _walking_figure(d, CHARACTER_PALETTES[0], "ne", 1)
+
+def sim2WalkSE0(d): _walking_figure(d, CHARACTER_PALETTES[1], "se", 0)
+def sim2WalkSE1(d): _walking_figure(d, CHARACTER_PALETTES[1], "se", 1)
+def sim2WalkNW0(d): _walking_figure(d, CHARACTER_PALETTES[1], "nw", 0)
+def sim2WalkNW1(d): _walking_figure(d, CHARACTER_PALETTES[1], "nw", 1)
+def sim2WalkSW0(d): _walking_figure(d, CHARACTER_PALETTES[1], "sw", 0)
+def sim2WalkSW1(d): _walking_figure(d, CHARACTER_PALETTES[1], "sw", 1)
+def sim2WalkNE0(d): _walking_figure(d, CHARACTER_PALETTES[1], "ne", 0)
+def sim2WalkNE1(d): _walking_figure(d, CHARACTER_PALETTES[1], "ne", 1)
+
+def sim3WalkSE0(d): _walking_figure(d, CHARACTER_PALETTES[2], "se", 0)
+def sim3WalkSE1(d): _walking_figure(d, CHARACTER_PALETTES[2], "se", 1)
+def sim3WalkNW0(d): _walking_figure(d, CHARACTER_PALETTES[2], "nw", 0)
+def sim3WalkNW1(d): _walking_figure(d, CHARACTER_PALETTES[2], "nw", 1)
+def sim3WalkSW0(d): _walking_figure(d, CHARACTER_PALETTES[2], "sw", 0)
+def sim3WalkSW1(d): _walking_figure(d, CHARACTER_PALETTES[2], "sw", 1)
+def sim3WalkNE0(d): _walking_figure(d, CHARACTER_PALETTES[2], "ne", 0)
+def sim3WalkNE1(d): _walking_figure(d, CHARACTER_PALETTES[2], "ne", 1)
+
+
 # ---------------------------------------------------------- indicators ----
 def _bubble(d, glyph):
     px, py = OX, OY + HH - 13
@@ -920,6 +1073,22 @@ def _carried(d, kind):
 
 def carried_ingredients(d): _carried(d, "ingredients")
 def carried_dinner(d): _carried(d, "dinner")
+
+
+def heldSnack(d):
+    """A compact sandwich that stays legible in the eating hand."""
+    px, py = OX, OY + HH
+    bread = mul(C["linen"], .95)
+    crust = C["wood"]
+    d.rounded_rectangle(
+        [px - 6, py - 9, px + 6, py - 2],
+        radius=2,
+        fill=bread,
+        outline=OUTLINE,
+        width=OUTLINE_WIDTH,
+    )
+    d.line([(px - 5, py - 5), (px + 5, py - 5)], fill=crust, width=2)
+    d.line([(px - 4, py - 4), (px + 4, py - 4)], fill=C["leaf"], width=1)
 
 
 # The order is the atlas order, and the atlas order is a sprite's INDEX.
@@ -1030,6 +1199,31 @@ EXACT = {
     "sim3StandReadSW1": (38, 88),
     "sim3StandReadNE0": (38, 88),
     "sim3StandReadNE1": (38, 88),
+    "simWalkSE0": (38, 88),
+    "simWalkSE1": (38, 88),
+    "simWalkNW0": (38, 88),
+    "simWalkNW1": (38, 88),
+    "simWalkSW0": (38, 88),
+    "simWalkSW1": (38, 88),
+    "simWalkNE0": (38, 88),
+    "simWalkNE1": (38, 88),
+    "sim2WalkSE0": (38, 88),
+    "sim2WalkSE1": (38, 88),
+    "sim2WalkNW0": (38, 88),
+    "sim2WalkNW1": (38, 88),
+    "sim2WalkSW0": (38, 88),
+    "sim2WalkSW1": (38, 88),
+    "sim2WalkNE0": (38, 88),
+    "sim2WalkNE1": (38, 88),
+    "sim3WalkSE0": (38, 88),
+    "sim3WalkSE1": (38, 88),
+    "sim3WalkNW0": (38, 88),
+    "sim3WalkNW1": (38, 88),
+    "sim3WalkSW0": (38, 88),
+    "sim3WalkSW1": (38, 88),
+    "sim3WalkNE0": (38, 88),
+    "sim3WalkNE1": (38, 88),
+    "heldSnack": (14, 10),
 }
 
 SPRITES = [
@@ -1083,4 +1277,14 @@ SPRITES = [
     sim2StandReadSW0, sim2StandReadSW1, sim2StandReadNE0, sim2StandReadNE1,
     sim3StandReadSE0, sim3StandReadSE1, sim3StandReadNW0, sim3StandReadNW1,
     sim3StandReadSW0, sim3StandReadSW1, sim3StandReadNE0, sim3StandReadNE1,
+    # Real directional walk frames append after every shipped action index.
+    # Opposite legs and arms exchange silhouettes between the two phases.
+    simWalkSE0, simWalkSE1, simWalkNW0, simWalkNW1,
+    simWalkSW0, simWalkSW1, simWalkNE0, simWalkNE1,
+    sim2WalkSE0, sim2WalkSE1, sim2WalkNW0, sim2WalkNW1,
+    sim2WalkSW0, sim2WalkSW1, sim2WalkNE0, sim2WalkNE1,
+    sim3WalkSE0, sim3WalkSE1, sim3WalkNW0, sim3WalkNW1,
+    sim3WalkSW0, sim3WalkSW1, sim3WalkNE0, sim3WalkNE1,
+    # Snack food is a hand overlay. Dinner keeps its existing index and pixels.
+    heldSnack,
 ]

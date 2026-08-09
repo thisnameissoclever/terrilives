@@ -874,7 +874,7 @@ describe('pickSprite', () => {
     expect(pickSprite(rows, unzoomed.centreX, unzoomed.top + 1, 0, 0, 0.5)).toBeNull();
   });
 
-  it('keeps the full walking headroom clickable at every zoom', () => {
+  it('keeps walking inside the fixed sprite envelope at every zoom', () => {
     const tile = [8, 6] as const;
     const base = source([[7, KIND_AGENT, tile[0], tile[1]]]);
     const walking: PickSource = {
@@ -884,34 +884,29 @@ describe('pickSprite', () => {
 
     for (const scale of [0.5, 1, 2.5]) {
       const box = drawnBox(tile, 'sim', 0, 0, scale);
-      // Picking has the tick position but not the frame interpolation alpha.
-      // Use the complete two-pixel travel envelope so no visible footfall can
-      // escape the target between ticks, even when this sample is planted.
+      // Limb frames share one fixed envelope. Walking and reduced motion must
+      // therefore pick exactly the drawn box, with no invisible lift headroom.
       expect(
         pickSprite(
           walking,
           box.centreX,
-          box.top - 2 * scale,
+          box.top,
           0,
           0,
           scale,
         )?.entity,
       ).toBe(7);
-      expect(
-        pickSprite(base, box.centreX, box.top - 2 * scale, 0, 0, scale),
-      ).toBeNull();
+      expect(pickSprite(base, box.centreX, box.top, 0, 0, scale)?.entity).toBe(7);
       expect(
         pickSprite(
           walking,
           box.centreX,
-          box.top - 2 * scale - 0.01,
+          box.top - 0.01,
           0,
           0,
           scale,
         ),
       ).toBeNull();
-      // Reduced motion plants the body, so even the first empty fraction of a
-      // pixel above the ordinary box must stop selecting the walking sim.
       expect(
         pickSprite(
           walking,

@@ -54,7 +54,7 @@ const SELECTION_RING_EMISSIVE = 1;
  * choice.** `pack.sim_sprite` is ONE index - the content has no notion of
  * a sim's appearance, because nothing in the simulation depends on it.
  * Which of three equivalent looks a sim wears is presentation, the same
- * kind of decision as the walking bob and the height a bubble floats at,
+ * kind of decision as the walking limb phase and the height a bubble floats at,
  * and it lives here with them. [D1] is about the shell not holding a
  * second copy of something the content already knows; there is nothing
  * here to duplicate.
@@ -175,6 +175,31 @@ const SIM_STANDING_READ_SPRITES: readonly ActionFacings[] = [
   ],
 ];
 
+/** Two presentation limb-cycle frames for every look and lot-axis facing. */
+const SIM_WALK_SPRITES: readonly ActionFacings[] = [
+  [
+    [spriteIndex('simWalkSE0'), spriteIndex('simWalkSE1')],
+    [spriteIndex('simWalkNW0'), spriteIndex('simWalkNW1')],
+    [spriteIndex('simWalkSW0'), spriteIndex('simWalkSW1')],
+    [spriteIndex('simWalkNE0'), spriteIndex('simWalkNE1')],
+  ],
+  [
+    [spriteIndex('sim2WalkSE0'), spriteIndex('sim2WalkSE1')],
+    [spriteIndex('sim2WalkNW0'), spriteIndex('sim2WalkNW1')],
+    [spriteIndex('sim2WalkSW0'), spriteIndex('sim2WalkSW1')],
+    [spriteIndex('sim2WalkNE0'), spriteIndex('sim2WalkNE1')],
+  ],
+  [
+    [spriteIndex('sim3WalkSE0'), spriteIndex('sim3WalkSE1')],
+    [spriteIndex('sim3WalkNW0'), spriteIndex('sim3WalkNW1')],
+    [spriteIndex('sim3WalkSW0'), spriteIndex('sim3WalkSW1')],
+    [spriteIndex('sim3WalkNE0'), spriteIndex('sim3WalkNE1')],
+  ],
+];
+
+/** Food held by an exact snack action, resolved once at module load. */
+const HELD_SNACK_SPRITE = spriteIndex('heldSnack');
+
 /** The authored visual-action code emitted for a conversation. */
 export const VISUAL_ACTION_TALK = 1;
 
@@ -186,6 +211,9 @@ export const VISUAL_ACTION_READ = 3;
 
 /** The authored visual-action code emitted for exact standing reading. */
 export const VISUAL_ACTION_STANDING_READ = 4;
+
+/** The append-only visual-action code emitted while following a path. */
+export const VISUAL_ACTION_WALK = 5;
 
 /** Render-buffer facing codes, in the same order as `SIM_TALK_SPRITES`. */
 export const FACING_POSITIVE_X = 1;
@@ -201,6 +229,76 @@ export const EAT_FRAME_TICKS = 16;
 
 /** A reading pose holds for twenty-four simulation ticks, or 2.4 s at 1x. */
 export const READ_FRAME_TICKS = 24;
+
+function validFacing(facing: number): boolean {
+  return facing >= FACING_POSITIVE_X && facing <= FACING_NEGATIVE_Y;
+}
+
+/**
+ * The deterministic frame for a simulation-timed authored action.
+ *
+ * Eating and reading stagger the transition itself by adding the stable id
+ * before division. Conversation preserves its accepted whole-hold offset.
+ */
+function timedActionFrame(
+  id: number,
+  visualAction: number,
+  simulationTick: number,
+  reducedMotion: boolean,
+  frameTicks: number,
+): number {
+  if (reducedMotion) return 0;
+  const phaseTicks =
+    visualAction === VISUAL_ACTION_EAT ||
+    visualAction === VISUAL_ACTION_READ ||
+    visualAction === VISUAL_ACTION_STANDING_READ
+      ? id % frameTicks
+      : (id & 1) * frameTicks;
+  return Math.floor((simulationTick + phaseTicks) / frameTicks) & 1;
+}
+
+/**
+ * The limb frame at an interpolated world position.
+ *
+ * `x + y` is continuous across cardinal path corners and changes by exactly
+ * the distance travelled along every legal path segment. Two half-tile holds
+ * therefore make a two-step cycle without wall time or renderer state. Signed
+ * coordinates intentionally remain signed; bit parity gives the same stable
+ * alternation on both sides of the lot origin.
+ */
+export function walkingFrame(
+  wx: number,
+  wy: number,
+  reducedMotion: boolean,
+): number {
+  return reducedMotion ? 0 : Math.floor(2 * (wx + wy)) & 1;
+}
+
+/**
+ * Facing for the path segment currently being interpolated.
+ *
+ * The render-buffer facing names the next path step. That is the right
+ * fallback for Pause and the first frame after Load, when both position
+ * samples are equal. While samples differ, the segment wins so a Sim does not
+ * turn toward the next leg before reaching a corner.
+ */
+export function walkingFacing(
+  previousX: number,
+  previousY: number,
+  currentX: number,
+  currentY: number,
+  fallbackFacing: number,
+): number {
+  const dx = currentX - previousX;
+  const dy = currentY - previousY;
+  if (dx === 0 && dy === 0) {
+    return validFacing(fallbackFacing) ? fallbackFacing : 0;
+  }
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    return dx >= 0 ? FACING_POSITIVE_X : FACING_NEGATIVE_X;
+  }
+  return dy >= 0 ? FACING_POSITIVE_Y : FACING_NEGATIVE_Y;
+}
 
 /**
  * Which look the sim with this entity id wears.
@@ -233,9 +331,11 @@ export function simBodySprite(
   facing: number,
   simulationTick: number,
   reducedMotion: boolean,
+  walkingX = 0,
+  walkingY = 0,
 ): number {
   const look = id % SIM_SPRITES.length;
-  if (facing < FACING_POSITIVE_X || facing > FACING_NEGATIVE_Y) {
+  if (!validFacing(facing)) {
     return SIM_SPRITES[look];
   }
 
@@ -253,19 +353,20 @@ export function simBodySprite(
   } else if (visualAction === VISUAL_ACTION_STANDING_READ) {
     sprites = SIM_STANDING_READ_SPRITES;
     frameTicks = READ_FRAME_TICKS;
+  } else if (visualAction === VISUAL_ACTION_WALK) {
+    const frame = walkingFrame(walkingX, walkingY, reducedMotion);
+    return SIM_WALK_SPRITES[look][facing - 1][frame];
   } else {
     return SIM_SPRITES[look];
   }
 
-  const phaseTicks =
-    visualAction === VISUAL_ACTION_EAT ||
-    visualAction === VISUAL_ACTION_READ ||
-    visualAction === VISUAL_ACTION_STANDING_READ
-      ? id % frameTicks
-      : (id & 1) * frameTicks;
-  const frame = reducedMotion
-    ? 0
-    : (Math.floor((simulationTick + phaseTicks) / frameTicks) & 1);
+  const frame = timedActionFrame(
+    id,
+    visualAction,
+    simulationTick,
+    reducedMotion,
+    frameTicks,
+  );
   return sprites[look][facing - 1][frame];
 }
 
@@ -298,29 +399,8 @@ const INDICATOR_SPRITES: readonly (number | null)[] = [
  * its draw, its bubble, its ring and its pick. One code, shared with
  * input.ts, so the draw skip and the pick skip cannot disagree.
  */
-/** The `render_buffer::activity::WALKING` code. */
-export const ACTIVITY_WALKING = 1;
-
-/** Maximum ornamental body lift for one walking footfall at camera scale 1. */
-export const WALK_LIFT_PX = 2;
-
-/**
- * A distance-driven footfall with two smooth lifts per tile.
- *
- * World position is the phase so pause, speed changes, save/load and replay
- * reproduce the same pose without presentation state or wall-clock time.
- */
-export function walkingLiftPx(
-  wx: number,
-  wy: number,
-  reducedMotion: boolean,
-  scale = 1,
-): number {
-  if (reducedMotion) return 0;
-  const halfStep = 2 * (wx + wy);
-  const phase = halfStep - Math.floor(halfStep);
-  return WALK_LIFT_PX * (1 - Math.abs(2 * phase - 1)) * scale;
-}
+/** The `render_buffer::activity::EATING` code. */
+export const ACTIVITY_EATING = 3;
 
 /**
  * How far above a sim's anchor its bubble floats, in screen pixels: the
@@ -515,7 +595,7 @@ export interface RenderSource {
    * [A-11] indicator column. Read every frame like every other view.
    */
   activities(): Uint32Array;
-  /** Authored body-pose category: 0 none, 1 talk, 2 eat, 3 read. */
+  /** Presentation body pose: 0 none, 1 talk, 2 eat, 3 seated read, 4 standing read, 5 walk. */
   visualActions(): Uint32Array;
   /** Lot-axis facing: 0 none, 1 +x, 2 -x, 3 +y, 4 -y. */
   facings(): Uint32Array;
@@ -560,7 +640,7 @@ function carriedSprite(source: RenderSource, kind: number): number | null {
 }
 
 /**
- * Where a sim's carried badge sits: at HAND height - a third of the
+ * Where an ordinary carried badge sits: at HAND height - a third of the
  * way up the 78 px figure - and nudged to its right side, so the bag
  * reads as held rather than worn. The first cut floated it at 46,
  * which under any zoom above 1x landed squarely on the head: the
@@ -570,21 +650,45 @@ const CARRIED_LIFT = 24;
 const CARRIED_SIDE = 14;
 
 /**
- * Eating places the carried dinner on the authored anchor-side hand. Other
- * carrying keeps the established screen-right placement, including ingredients
- * moving between dinner stations.
+ * The exact eating hand anchor for each facing and frame.
+ *
+ * Entries are unscaled screen-pixel offsets from the body's bottom-centre
+ * anchor. Both held snack and carried dinner use these coordinates during an
+ * exact eating pose. Other carrying keeps the established screen-right badge
+ * placement, including ingredients moving between dinner stations.
  */
-function carriedSidePx(
-  itemKind: number,
+const EATING_HAND_OFFSETS: readonly (
+  readonly [readonly [number, number], readonly [number, number]]
+)[] = [
+  [[12, -34], [10, -41]],
+  [[-12, -37], [-10, -45]],
+  [[-12, -34], [-10, -41]],
+  [[12, -37], [10, -45]],
+];
+
+function exactEatingPose(
+  kind: number,
+  activity: number,
   visualAction: number,
   facing: number,
-): number {
-  if (itemKind !== dinnerItemKind || visualAction !== VISUAL_ACTION_EAT) {
-    return CARRIED_SIDE;
-  }
-  return facing === FACING_NEGATIVE_X || facing === FACING_POSITIVE_Y
-    ? -CARRIED_SIDE
-    : CARRIED_SIDE;
+): boolean {
+  return (
+    kind === KIND_AGENT &&
+    activity === ACTIVITY_EATING &&
+    visualAction === VISUAL_ACTION_EAT &&
+    validFacing(facing)
+  );
+}
+
+function displayedPropSprite(
+  source: RenderSource,
+  carriedKind: number,
+  eatingPose: boolean,
+): number | null {
+  if (eatingPose && carriedKind === NOT_CARRYING) return HELD_SNACK_SPRITE;
+  return carriedKind === NOT_CARRYING
+    ? null
+    : carriedSprite(source, carriedKind);
 }
 
 /**
@@ -656,10 +760,16 @@ export function buildInstances(
     }
     const wx = lerp(previous[i * 2], current[i * 2], alpha);
     const wy = lerp(previous[i * 2 + 1], current[i * 2 + 1], alpha);
-    const bodyLift =
-      kinds[i] === KIND_AGENT && activities[i] === ACTIVITY_WALKING
-        ? walkingLiftPx(wx, wy, reducedMotion, scale)
-        : 0;
+    const bodyFacing =
+      kinds[i] === KIND_AGENT && visualActions[i] === VISUAL_ACTION_WALK
+        ? walkingFacing(
+            previous[i * 2],
+            previous[i * 2 + 1],
+            current[i * 2],
+            current[i * 2 + 1],
+            facings[i],
+          )
+        : facings[i];
     // Two scalar calls rather than the `worldToScreen` tuple. The tuple
     // is one JS array per entity per frame, and the M0 close-out profile
     // measured V8 keeping every one of them - 57.8 MB over 2,394 frames
@@ -685,9 +795,11 @@ export function buildInstances(
         ? simBodySprite(
             ids[i],
             visualActions[i],
-            facings[i],
+            bodyFacing,
             simulationTick,
             reducedMotion,
+            wx,
+            wy,
           )
         : sprites[i];
     const localLight = lighting === null
@@ -697,7 +809,7 @@ export function buildInstances(
       scratch,
       i,
       screenX(wx, wy, originX, scale),
-      screenY(wx, wy, originY, scale) - bodyLift,
+      screenY(wx, wy, originY, scale),
       // Depth stays in WORLD terms on purpose: zoom changes how big
       // things are drawn, never what covers what.
       layeredDepth(
@@ -739,10 +851,9 @@ export function buildInstances(
     );
   }
 
-  // **The carried badges, after the bubbles** - [K3]'s hands on
-  // screen, and the transform made visible: the bag becomes a plate
-  // between the hob and the table. Hand height, under the bubble, so
-  // a talking carrier shows both.
+  // **The carried and eating props, after the bubbles** - [K3]'s hands on
+  // screen. Ordinary carried items stay at their established badge anchor;
+  // exact eating places either one snack or one dinner on the authored hand.
   //
   // CAMERA-AWARE like every other pass, and this one learned it the
   // hard way: written against a scaleless main and rebased under the
@@ -752,16 +863,37 @@ export function buildInstances(
   // the offsets take the scale.
   const carrying = source.carrying();
   for (let i = 0; i < count; i++) {
-    if (carrying[i] === NOT_CARRYING) continue;
     if (activities[i] === ACTIVITY_AT_WORK) continue;
-    const sprite = carriedSprite(source, carrying[i]);
+    const eatingPose = exactEatingPose(
+      kinds[i],
+      activities[i],
+      visualActions[i],
+      facings[i],
+    );
+    const sprite = displayedPropSprite(source, carrying[i], eatingPose);
     if (sprite === null) continue;
     const wx = lerp(previous[i * 2], current[i * 2], alpha);
     const wy = lerp(previous[i * 2 + 1], current[i * 2 + 1], alpha);
-    const lift =
-      kinds[i] === KIND_AGENT && activities[i] === ACTIVITY_WALKING
-        ? walkingLiftPx(wx, wy, reducedMotion, scale)
-        : 0;
+    const eatingFood =
+      eatingPose &&
+      (carrying[i] === NOT_CARRYING || carrying[i] === dinnerItemKind);
+    const eatingFrame = eatingFood
+      ? timedActionFrame(
+          ids[i],
+          VISUAL_ACTION_EAT,
+          simulationTick,
+          reducedMotion,
+          EAT_FRAME_TICKS,
+        )
+      : 0;
+    const handOffset = eatingFood
+      ? EATING_HAND_OFFSETS[facings[i] - 1][eatingFrame]
+      : null;
+    // `carried_dinner` is four pixels taller than `heldSnack`. Its
+    // bottom-centre anchor therefore sits two pixels lower to keep both
+    // sprites centred on the same authored hand point.
+    const foodAnchorCorrection =
+      eatingFood && carrying[i] === dinnerItemKind ? 2 : 0;
     const localLight = lighting === null
       ? EMISSIVE_NONE
       : sampleLight(lighting, Math.floor(wx), Math.floor(wy));
@@ -769,8 +901,11 @@ export function buildInstances(
       scratch,
       slot++,
       screenX(wx, wy, originX, scale) +
-        carriedSidePx(carrying[i], visualActions[i], facings[i]) * scale,
-      screenY(wx, wy, originY, scale) - CARRIED_LIFT * scale - lift,
+        (handOffset === null ? CARRIED_SIDE : handOffset[0]) * scale,
+      screenY(wx, wy, originY, scale) +
+        (handOffset === null
+          ? -CARRIED_LIFT
+          : handOffset[1] + foodAnchorCorrection) * scale,
       layeredDepth(wx, wy, gridSize, LAYER_SIM) - INDICATOR_DEPTH_NUDGE,
       sprite,
       TINT_NONE,
@@ -825,12 +960,20 @@ export function instanceCount(source: RenderSource, selected: number | null): nu
   let extras = 0;
   const activities = source.activities();
   const carrying = source.carrying();
+  const kinds = source.kinds();
+  const visualActions = source.visualActions();
+  const facings = source.facings();
   for (let i = 0; i < source.count; i++) {
     if (INDICATOR_SPRITES[activities[i]] != null) extras++;
+    const eatingPose = exactEatingPose(
+      kinds[i],
+      activities[i],
+      visualActions[i],
+      facings[i],
+    );
     if (
-      carrying[i] !== NOT_CARRYING &&
       activities[i] !== ACTIVITY_AT_WORK &&
-      carriedSprite(source, carrying[i]) !== null
+      displayedPropSprite(source, carrying[i], eatingPose) !== null
     ) {
       extras++;
     }

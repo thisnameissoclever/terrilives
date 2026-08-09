@@ -493,14 +493,17 @@ pipeline, render pass, draw, submit, persisted state, or world-hash input.
 Selection remains a semantic overlay: its planted ring uses a full-emissive
 pale outer key rather than inheriting the world or local-light tint.
 
-Walking motion remains a presentation transform rather than an animation
-atlas. The shell derives a two-footfall triangle wave from the interpolated
-world coordinate and lifts only the body and carried badge by at most two
-screen pixels at scale 1. The selection ring and depth remain anchored to the
-ground. This adds no persisted animation state, bridge column, per-frame
-allocation, draw call, or wall-clock phase; pause, speed changes, replay, and
-Load reproduce the pose from position. `prefers-reduced-motion: reduce` makes
-the lift zero without disabling travel interpolation.
+Walking uses append-only visual action 5 and two directional limb frames per
+look and facing. Render sync projects a fallback facing from the next path
+step, while the shell prefers the actual previous-to-current segment during
+interpolation so a corner does not face the next leg early. Travel distance
+selects the frame; wall time and render-frame count never participate. The
+body, carried item, selection ring, and depth remain on the common planted
+world anchor rather than receiving the rejected whole-body lift. This adds no
+persisted animation state, bridge column, per-frame allocation, draw call, or
+wall-clock phase; pause, speed changes, replay, and Load reproduce the pose
+from position. `prefers-reduced-motion: reduce` pins directional frame zero
+without disabling travel interpolation.
 
 Conversation is the first authored body animation. The social interaction
 declares `talk / partner / toward_anchor`; render sync resolves the actual pair
@@ -517,8 +520,10 @@ exact active interaction or chain step, resolves its exact target object, and
 faces toward the centre of that object's authored footprint. Malformed or
 unauthored state emits no pose. The shell maps action code 2 to two
 fixed-envelope hand-to-mouth frames per look and facing on a sixteen-tick,
-stable-id phase. An exact authored snack and a valid authored dinner work step
-project the existing `EATING` activity so the fork bubble remains visible. A
+stable-id phase. Exact snack eating draws the dedicated sandwich prop and a
+valid terminal dinner draws the existing dinner prop; both follow the active
+hand side and frame height. An exact authored snack and a valid authored dinner
+work step project the existing `EATING` activity so the fork bubble remains visible. A
 valid sleep-tagged interaction projects `SLEEPING`. Every other ordinary use
 of the legacy shared `Eating` component projects the append-only
 `USING_OBJECT` activity code 7. The shell gives that generic state a HUD label
@@ -548,8 +553,9 @@ selects two seated-reading frames per look and facing on a 24-tick hold.
 Conversation and eating keep precedence. Transition tracking uses full ECS
 entity identities to reseed both interpolation samples on socket entry and
 exit, including paused command refresh and Load, so the body never interpolates
-through the chair.
-Malformed or unauthored state falls back to generic object use.
+through the chair. The fixed-envelope art keeps the lowered head joined to the
+shoulder line rather than exposing the rejected long neck. Malformed or
+unauthored state falls back to generic object use.
 
 Standing bookshelf reading reuses the same compiled `Read` action without an
 object socket. `bookshelf.read` authors the exact
@@ -564,7 +570,7 @@ their existing precedence; every incomplete or surplus contract falls back to
 generic object use.
 
 Save records simulation tick state, not a fractional presentation sample. Load
-therefore reconstructs the footfall from the saved tick-end position after the
+therefore reconstructs the walk frame from the saved tick-end position after the
 ordinary render buffer reseeds previous and current position. It does not
 promise to preserve an unsaved interpolation alpha from the instant the player
 pressed Save; that presentation boundary already exists for travel itself.
@@ -573,10 +579,10 @@ pressed Save; that presentation boundary already exists for travel itself.
 
 The simulation owns all state in WASM linear memory. JS holds
 `Float32Array`/`Uint32Array` **views** over render-relevant slices, including
-positions, sprite IDs, activity codes, authored visual actions, and lot-axis
+positions, sprite IDs, activity codes, presentation visual actions, and lot-axis
 facings, plus compiled footprint width and depth, and feeds them directly into
-GPU buffers. Walking reads the activity and position columns. Conversation,
-eating, seated reading, and standing reading read the separate action and
+GPU buffers. Walking reuses the action, facing, activity, and position columns.
+Conversation, eating, seated reading, and standing reading read the action and
 facing columns, so the broad status vocabulary never becomes an art lookup by
 accident. Both reading routes reuse existing position columns: seated reading
 projects its object socket, while standing reading retains the ordinary

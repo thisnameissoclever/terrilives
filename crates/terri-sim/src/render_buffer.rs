@@ -79,16 +79,18 @@ pub struct RenderBuffer {
     /// column is how the shell learns them without a query per frame.
     /// Objects are always 0 - activity is a fact about agents.
     pub activities: Vec<u32>,
-    /// Authored body-action presentation for each row. See
-    /// [`visual_action`] for the stable codes handed to the shell.
+    /// Body-action presentation for each row. See [`visual_action`] for the
+    /// stable codes handed to the shell.
     ///
     /// This is deliberately separate from [`RenderBuffer::activities`].
     /// Activity 3 names exact authored object or chain eating. Activity 7
-    /// names generic object use. Body art still comes from the interaction or
-    /// chain step's visual contract rather than guessing whether generic use
-    /// is bathing, reading, or something else.
+    /// names generic object use. Object and social body art still comes from
+    /// an authored interaction or chain-step visual contract rather than
+    /// guessing whether generic use is bathing, reading, or something else.
+    /// Walking is the deliberate exception: it is presentation-owned and
+    /// derived from the live path's next step.
     pub visual_actions: Vec<u32>,
-    /// Lot-axis direction each authored visual action faces. See [`facing`].
+    /// Lot-axis direction each projected body action faces. See [`facing`].
     /// A row whose visual action is [`visual_action::NONE`] also carries
     /// [`facing::NONE`].
     pub facings: Vec<u32>,
@@ -126,8 +128,9 @@ pub mod activity {
     pub const READING: u32 = 8;
 }
 
-/// Authored body-action codes. Kept as `u32` so JavaScript can view the
-/// column directly in WASM linear memory.
+/// Presentation body-action codes. Kept as `u32` so JavaScript can view the
+/// column directly in WASM linear memory. Object and social actions require
+/// authored content contracts; walking is derived from the live path.
 pub mod visual_action {
     pub const NONE: u32 = 0;
     pub const TALK: u32 = 1;
@@ -136,9 +139,11 @@ pub mod visual_action {
     pub const READ: u32 = 3;
     /// Standing reading toward an object's footprint centre.
     pub const STANDING_READ: u32 = 4;
+    /// Articulated travel toward the live path's next step.
+    pub const WALK: u32 = 5;
 }
 
-/// Lot-axis facing codes for authored body actions.
+/// Lot-axis facing codes for projected body actions.
 ///
 /// Positive and negative refer to the simulation's x and y axes, not screen
 /// directions after the isometric projection.
@@ -477,6 +482,285 @@ mod tests {
                 buffer.prev_positions[offset + 1],
             ),
         )
+    }
+
+    #[test]
+    fn walking_visual_uses_the_live_next_step_for_all_four_lot_axes_only() {
+        use crate::render_buffer::{activity, facing, visual_action};
+        use terri_core::Path;
+
+        assert_eq!(visual_action::WALK, 5, "walking is append-only action 5");
+
+        let mut sim = Sim::new_with_lot(24, 24);
+        let cases = [
+            (Position { x: 8.25, y: 8.0 }, (9, 8), facing::POSITIVE_X),
+            (Position { x: 8.75, y: 8.0 }, (8, 8), facing::NEGATIVE_X),
+            (Position { x: 8.0, y: 8.25 }, (8, 9), facing::POSITIVE_Y),
+            (Position { x: 8.0, y: 8.75 }, (8, 8), facing::NEGATIVE_Y),
+        ];
+        let mut agents = Vec::new();
+        for (position, next_step, expected_facing) in cases {
+            let agent = sim.world_mut().spawn((Agent, position)).id();
+            agents.push((agent, position, next_step, expected_facing));
+        }
+        sim.sync_render_buffer();
+        let row_count_without_paths = sim.render_buffer().count;
+
+        for (agent, _, next_step, _) in &agents {
+            sim.world_mut().entity_mut(*agent).insert(Path {
+                steps: vec![*next_step],
+                cursor: 0,
+            });
+        }
+        let save_before_projection = sim.save_snapshot();
+        let hash_before_projection = sim.world_hash();
+        sim.sync_render_buffer();
+
+        assert_eq!(sim.render_buffer().count, row_count_without_paths);
+        for (agent, position, _, expected_facing) in agents {
+            assert_eq!(
+                projection_of(sim.render_buffer(), agent),
+                (visual_action::WALK, expected_facing, activity::WALKING)
+            );
+            assert_eq!(
+                displayed_position_of(sim.render_buffer(), agent),
+                ((position.x, position.y), (position.x, position.y)),
+                "walking action metadata must not create another row or move either sample"
+            );
+            assert_eq!(sim.world().get::<Position>(agent).copied(), Some(position));
+        }
+        assert_eq!(sim.save_snapshot(), save_before_projection);
+        assert_eq!(sim.world_hash(), hash_before_projection);
+    }
+
+    #[test]
+    fn walking_visual_falls_back_for_exhausted_coincident_and_absent_paths() {
+        use crate::render_buffer::{activity, facing, visual_action};
+        use terri_core::{AtWork, Path};
+
+        let mut sim = Sim::new_with_lot(16, 16);
+        let no_path = sim
+            .world_mut()
+            .spawn((Agent, Position { x: 2.0, y: 2.0 }))
+            .id();
+        let exhausted = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 4.0, y: 4.0 },
+                Path {
+                    steps: vec![(5, 4)],
+                    cursor: 1,
+                },
+            ))
+            .id();
+        let coincident = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 6.0, y: 6.0 },
+                Path {
+                    steps: vec![(6, 6)],
+                    cursor: 0,
+                },
+            ))
+            .id();
+        let off_lot = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 8.0, y: 8.0 },
+                Path {
+                    steps: vec![(9, 8)],
+                    cursor: 0,
+                },
+                AtWork { remaining_ticks: 5 },
+            ))
+            .id();
+        let object_with_path = sim
+            .world_mut()
+            .spawn((
+                Position { x: 10.0, y: 10.0 },
+                SmartObject(a_smart_object().0),
+                Path {
+                    steps: vec![(11, 10)],
+                    cursor: 0,
+                },
+            ))
+            .id();
+
+        sim.sync_render_buffer();
+
+        assert_eq!(
+            projection_of(sim.render_buffer(), no_path),
+            (visual_action::NONE, facing::NONE, activity::NONE)
+        );
+        for agent in [exhausted, coincident] {
+            assert_eq!(
+                projection_of(sim.render_buffer(), agent),
+                (visual_action::NONE, facing::NONE, activity::WALKING),
+                "a Path marker without a directional next step keeps the old activity but cannot select walk art"
+            );
+        }
+        assert_eq!(
+            projection_of(sim.render_buffer(), off_lot),
+            (visual_action::NONE, facing::NONE, activity::AT_WORK),
+            "a directional path must not emit walk art unless WALKING wins the final activity"
+        );
+        assert_eq!(
+            projection_of(sim.render_buffer(), object_with_path),
+            (visual_action::NONE, facing::NONE, activity::NONE),
+            "a Path on a non-Agent row cannot make furniture select character art"
+        );
+    }
+
+    #[test]
+    fn authored_action_precedence_cannot_be_overwritten_by_a_walk_path() {
+        use crate::render_buffer::{activity, facing, visual_action};
+        use terri_core::{Path, Reserved, Socialising, Target};
+
+        let pack = terri_data::pack();
+        let mut sim = Sim::new_with_lot(32, 32);
+        let walking_path = || Path {
+            steps: vec![(4, 3)],
+            cursor: 0,
+        };
+
+        let partner = sim
+            .world_mut()
+            .spawn((Agent, Position { x: 5.0, y: 3.0 }, Reserved))
+            .id();
+        let talker = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 3.0, y: 3.0 },
+                Socialising {
+                    interaction: 0,
+                    partner,
+                    remaining_ticks: 10,
+                },
+                walking_path(),
+            ))
+            .id();
+
+        let fridge = pack.find("fridge").expect("shipped fridge");
+        let snack = shipped_interaction_index(fridge, "grab_snack");
+        let fridge_target = sim.spawn_object(Position { x: 10.0, y: 3.0 }, fridge);
+        let eater = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 8.0, y: 3.0 },
+                Eating {
+                    object: fridge,
+                    interaction: snack,
+                    remaining_ticks: 10,
+                },
+                Target {
+                    object: fridge_target,
+                    interaction: snack,
+                },
+                Path {
+                    steps: vec![(9, 3)],
+                    cursor: 0,
+                },
+            ))
+            .id();
+
+        let (seated_reader, _, _, _) = spawn_shipped_reader(
+            &mut sim,
+            Position { x: 15.0, y: 3.0 },
+            Position { x: 13.0, y: 3.0 },
+        );
+        sim.world_mut().entity_mut(seated_reader).insert(Path {
+            steps: vec![(14, 3)],
+            cursor: 0,
+        });
+        let (standing_reader, _, _, _) = spawn_shipped_standing_reader(
+            &mut sim,
+            Position { x: 20.0, y: 3.0 },
+            Position { x: 18.0, y: 3.0 },
+        );
+        sim.world_mut().entity_mut(standing_reader).insert(Path {
+            steps: vec![(19, 3)],
+            cursor: 0,
+        });
+
+        sim.sync_render_buffer();
+
+        assert_eq!(
+            projection_of(sim.render_buffer(), talker),
+            (visual_action::TALK, facing::POSITIVE_X, activity::TALKING)
+        );
+        assert_eq!(
+            projection_of(sim.render_buffer(), eater),
+            (visual_action::EAT, facing::POSITIVE_X, activity::EATING)
+        );
+        assert_eq!(
+            projection_of(sim.render_buffer(), seated_reader),
+            (visual_action::READ, facing::POSITIVE_X, activity::READING)
+        );
+        assert_eq!(
+            projection_of(sim.render_buffer(), standing_reader),
+            (
+                visual_action::STANDING_READ,
+                facing::POSITIVE_X,
+                activity::READING,
+            )
+        );
+    }
+
+    #[test]
+    fn paused_sync_and_load_keep_walk_facing_when_position_samples_are_equal() {
+        use crate::render_buffer::{activity, facing, visual_action};
+        use terri_core::Path;
+
+        let mut sim = Sim::new_with_lot(16, 16);
+        let position = Position { x: 7.25, y: 8.0 };
+        let agent = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                position,
+                Path {
+                    steps: vec![(8, 8)],
+                    cursor: 0,
+                },
+            ))
+            .id();
+        sim.sync_render_buffer();
+        let snapshot = sim.save_snapshot();
+        let hash = sim.world_hash();
+
+        sim.sync_render_buffer_after_commands();
+        assert_eq!(
+            projection_of(sim.render_buffer(), agent),
+            (visual_action::WALK, facing::POSITIVE_X, activity::WALKING)
+        );
+        assert_eq!(
+            displayed_position_of(sim.render_buffer(), agent),
+            ((position.x, position.y), (position.x, position.y)),
+            "a paused metadata refresh has no position delta from which Web could infer facing"
+        );
+        assert_eq!(sim.save_snapshot(), snapshot);
+        assert_eq!(sim.world_hash(), hash);
+
+        let mut restored = Sim::new_with_lot(1, 1);
+        restored
+            .load_snapshot(snapshot.clone())
+            .expect("walking Save V1 state is valid");
+        assert_eq!(
+            projection_of(restored.render_buffer(), agent),
+            (visual_action::WALK, facing::POSITIVE_X, activity::WALKING)
+        );
+        assert_eq!(
+            displayed_position_of(restored.render_buffer(), agent),
+            ((position.x, position.y), (position.x, position.y)),
+            "Load reseeds both samples, so the path-derived facing is the only directional signal"
+        );
+        assert_eq!(restored.save_snapshot(), snapshot);
+        assert_eq!(restored.world_hash(), hash);
     }
 
     fn spawn_shipped_reader(

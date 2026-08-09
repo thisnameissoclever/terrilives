@@ -193,7 +193,7 @@ table. Authored in `content/chains.toml`.
 | **world hash** | A digest of everything the simulation must agree on. Two runs that diverge by a hair produce different hashes, which is how CI catches an accidental behaviour change. Also, deliberately, the shape a save file takes. |
 | **render buffer** | The flat arrays the display reads each frame - positions, sprites, activities, carried items. The simulation writes it; the browser never asks the simulation questions mid-frame. |
 | **activity code** | What a row is doing: 0 none, 1 walking, 2 waiting, 3 exact authored eating, 4 talking, 5 sleeping, 6 at work, 7 generic object use, 8 exact authored reading, seated or standing. Some activities are text-only and deliberately draw no indicator bubble. |
-| **visual action code** | Which authored body pose a row draws: 0 none, 1 talk, 2 eat, 3 seated read, 4 standing read. Activity alone never invents a visual action; the compiled interaction contract owns it. |
+| **visual action code** | Which presentation body pose a row draws: 0 none, 1 talk, 2 eat, 3 seated read, 4 standing read, 5 walk. Exact compiled interactions own codes 1 through 4; final walking activity plus a real path owns code 5. Activity alone never invents an authored object or social pose. |
 
 ## What the debug overlay prints, line by line
 
