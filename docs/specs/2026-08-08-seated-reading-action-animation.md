@@ -5,9 +5,12 @@ Status: shipped in PR 48 at merge
 WebGPU acceptance recorded in [A-seated-reading-action]. An operating-system
 reduced-motion display session remains an explicit proof boundary. The owner
 rejected the original seated body on 2026-08-09 because the neck was visibly
-distorted. The repair branch lowers the head into the shoulder line and caps
-the narrow exposed-neck run; played WebGPU acceptance and publication remain
-open. The action hold is now doubled from 12 to 24 simulation ticks.
+distorted. PR 50 shipped the redraw at merge
+`7348bba5986e6b2df99aad009f655489c643db32`; the head now meets the shoulder
+line and the narrow exposed-neck run is capped. Local and merged public played
+WebGPU acceptance is recorded in [A-character-animation-repair]. Final owner
+approval and the operating-system reduced-motion display session remain open.
+The action hold is now doubled from 12 to 24 simulation ticks.
 
 This slice gives `reading_chair.settle_in` a seated reading pose and establishes
 the object-local action socket required by later furniture actions. It does not

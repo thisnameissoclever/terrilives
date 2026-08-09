@@ -2599,9 +2599,24 @@ moving character and the authored pixels were both judged directly.
   contained 373 performance-log entries and zero warnings or errors. Mean frame
   work during the final sample remained below half a millisecond, with the
   displayed p95 samples below 1.1 milliseconds.
-- **Proof boundary.** This is local production-build evidence, not publication
-  evidence. Automated tests cover reduced motion and responsive layout, but the
-  browser's temporary viewport override did not change the observed 1280 by
-  720 surface, so this repair was not replayed at phone width. Operating-system
-  reduced motion, a physical phone, merge, exact Pages deployment, and public
-  replay remain open.
+- **The merged public build repeats the visible repairs.** PR 50 merged at
+  `7348bba5986e6b2df99aad009f655489c643db32`, and [Pages run
+  31330444994](https://github.com/thisnameissoclever/terrilives/actions/runs/31330444994)
+  successfully built and deployed that exact head. A 1280 by 720 public WebGPU
+  replay loaded `index-B_yrrh94.js`. Normal player routes showed changing arm
+  and leg silhouettes while walking at 1x, a sandwich held in the active hand
+  during `Grab a snack`, and the corrected head-to-shoulder connection during
+  `Sit and read` at default and close renderer zoom. A normal `Cook dinner`
+  chain also reached its terminal `Eating` state, although the retained public
+  screenshot caught the following generic-use state rather than the short
+  dinner pose. The local played pass above remains the direct visual evidence
+  for both dinner hand frames. The public diagnostic window retained 98
+  performance logs and zero warnings or errors across the completed walk,
+  snack, and seated-reading replay. The SHA-labelled `rev` query is a session
+  label on a mutable Pages route, not immutable artifact storage.
+- **Proof boundary.** Merge, exact-SHA Pages deployment, and representative
+  public replay are complete. Automated tests cover reduced motion and
+  responsive layout, but the browser's temporary viewport override did not
+  change the observed 1280 by 720 surface, so this repair was not replayed at
+  phone width. Operating-system reduced motion, a physical phone, a retained
+  public dinner-frame capture, and final owner approval remain open.

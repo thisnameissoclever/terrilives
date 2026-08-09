@@ -2,10 +2,12 @@
 
 Status: **shipped mechanical contract, amended 2026-08-08 for generic
 object-use semantics and 2026-08-09 for owner review and hand-prop repair.**
-The repair branch now gives snacks a visible sandwich and keeps dinner in the
-active eating hand; played WebGPU acceptance and publication remain open. The
-authored action, projection, and tests already ship. This extends the shipped
-conversation visual contract without
+PR 50 shipped the repair at merge `7348bba5986e6b2df99aad009f655489c643db32`:
+snacks now show a visible sandwich, and dinner stays in the active eating hand.
+Local played WebGPU acceptance covers both routes, and the merged public build
+visibly repeats the snack route in [A-character-animation-repair]. Final owner
+approval remains open. The authored action, projection, and tests already ship.
+This extends the shipped conversation visual contract without
 making the shared `Eating` storage component choose art or player-facing text.
 The amendment shipped in PR 47 at merge `38a03c151036430c798502ca4252c925c98789db`;
 the public session observed immediately after that deployment is recorded in

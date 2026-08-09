@@ -1,12 +1,13 @@
 # Character animation repair
 
-Status: implemented and accepted in the local production WebGPU build. The
+Status: shipped in PR 50 at merge `7348bba5986e6b2df99aad009f655489c643db32`.
+Pages run 31330444994 built and deployed that exact SHA. The
 2026-08-09 visual review accepted conversation, rejected transform-only walking
 as a walk cycle, rejected eating without visible food in the hand, and rejected
 seated reading with its distorted neck. [A-animation-owner-review] records that
-verdict; [A-character-animation-repair] records the corrected local replay.
-Merge, Pages publication, public replay, operating-system reduced motion, and a
-physical-phone check remain open.
+verdict; [A-character-animation-repair] records the corrected local production
+replay and the merged public Pages replay. Operating-system reduced motion, a
+physical-phone check, and final owner approval of the repaired art remain open.
 
 This repair changes presentation only. It adds no motive, interaction, save
 field, simulation outcome, object contract, draw call, shader, dependency, or
@@ -121,4 +122,6 @@ least one Load transition must not glide or jump. Browser warnings and errors
 must remain zero.
 
 Source tests and atlas checks do not satisfy this played gate. Public Pages and
-physical-phone evidence remain separate from local production acceptance.
+physical-phone evidence remain separate from local production acceptance; the
+current public evidence and its remaining boundaries are recorded in
+[A-character-animation-repair].
