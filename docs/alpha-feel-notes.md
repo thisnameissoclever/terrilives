@@ -2188,13 +2188,25 @@ normal object menu from a clean paused game.
 - **Runtime stayed quiet.** Browser diagnostics contained expected performance
   logs only, with zero warnings and zero errors. The visible canvas remained on
   the production WebGPU renderer throughout the pass.
+- **The merged public build repeats the interaction.** PR 48 merged at
+  `d405e70223dcc018f376da8ad52e783f081cbf3c`; [Pages run
+  31295985751](https://github.com/thisnameissoclever/terrilives/actions/runs/31295985751)
+  built and deployed that exact merge. In the [SHA-labelled public
+  session](https://thisnameissoclever.github.io/terrilives/?rev=d405e70223dcc018f376da8ad52e783f081cbf3c),
+  a clean new game selected Bill, issued the reading-chair action through the
+  displayed canvas, approached at 3x, and paused while the HUD said `Reading`.
+  Bill was visibly seated in the chair with the open book and reading indicator
+  aligned. The 100 retained browser-console entries were expected performance
+  logs, with zero warnings and zero errors. The `rev` query is an observation
+  label on a mutable Pages route, not an immutable deployment URL.
 - **Proof boundary.** The chosen in-app browser exposes the real operating-system
   media preference but not media emulation, and the host preference was ordinary
   motion. Automated tests prove reduced motion pins reading to frame zero while
   keeping the socket pose; this pass does not claim a watched reduced-motion
   session. The fixed desktop browser did not repeat the already-proven mobile HUD
-  geometry or a physical-phone touch and safe-area pass. Merge and deployed
-  Pages evidence are still pending.
+  geometry or a physical-phone touch and safe-area pass. The merged desktop
+  deployment is accepted; those reduced-motion and physical-device boundaries
+  remain open.
 
 ## [A-local-idle-wandering] Idle movement stays local and remains interruptible
 

@@ -1,8 +1,9 @@
 # Seated reading action animation
 
-Status: implemented and locally accepted on the feature branch. Merge, deployed
-Pages acceptance, and an operating-system reduced-motion display session remain
-open.
+Status: shipped in PR 48 at merge
+`d405e70223dcc018f376da8ad52e783f081cbf3c`, with local and deployed Pages
+WebGPU acceptance recorded in [A-seated-reading-action]. An operating-system
+reduced-motion display session remains an explicit proof boundary.
 
 This slice gives `reading_chair.settle_in` a seated reading pose and establishes
 the object-local action socket required by later furniture actions. It does not
