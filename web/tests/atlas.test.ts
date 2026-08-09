@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import {
   ATLAS_HEIGHT,
@@ -223,11 +224,26 @@ describe('the atlas manifest', () => {
       'sim3StandReadSW0', 'sim3StandReadSW1',
       'sim3StandReadNE0', 'sim3StandReadNE1',
     ];
+    const walkSprites = [
+      'simWalkSE0', 'simWalkSE1', 'simWalkNW0', 'simWalkNW1',
+      'simWalkSW0', 'simWalkSW1', 'simWalkNE0', 'simWalkNE1',
+      'sim2WalkSE0', 'sim2WalkSE1', 'sim2WalkNW0', 'sim2WalkNW1',
+      'sim2WalkSW0', 'sim2WalkSW1', 'sim2WalkNE0', 'sim2WalkNE1',
+      'sim3WalkSE0', 'sim3WalkSE1', 'sim3WalkNW0', 'sim3WalkNW1',
+      'sim3WalkSW0', 'sim3WalkSW1', 'sim3WalkNE0', 'sim3WalkNE1',
+    ];
 
     expect(spriteIndex('sim')).toBe(1);
     expect(spriteIndex('sim2')).toBe(48);
     expect(spriteIndex('sim3')).toBe(49);
-    expect(SPRITES).toHaveLength(147);
+    expect(SPRITES).toHaveLength(172);
+    expect(
+      createHash('sha256')
+        .update(SPRITES.slice(0, 147).map((sprite) => sprite.name).join('\0'))
+        .digest('hex'),
+    ).toBe(
+      '6465016ab5c5000dd166aa6441edaf051e8410c5af75799fbe56eec686c12751',
+    );
     expect(SPRITES.slice(50, 74).map((sprite) => sprite.name)).toEqual(
       talkSprites,
     );
@@ -241,11 +257,19 @@ describe('the atlas manifest', () => {
     expect(SPRITES.slice(123, 147).map((sprite) => sprite.name)).toEqual(
       standingReadSprites,
     );
+    expect(SPRITES.slice(147, 171).map((sprite) => sprite.name)).toEqual(
+      walkSprites,
+    );
+    expect(spriteIndex('heldSnack')).toBe(171);
+    expect([SPRITES[171].w, SPRITES[171].h]).toEqual([14, 10]);
+    expect(spriteIndex('carried_dinner')).toBe(47);
+    expect([SPRITES[47].w, SPRITES[47].h]).toEqual([18, 14]);
     for (const name of [
       ...talkSprites,
       ...eatSprites,
       ...readSprites,
       ...standingReadSprites,
+      ...walkSprites,
     ]) {
       const sprite = SPRITES[spriteIndex(name)];
       expect([sprite.w, sprite.h], name).toEqual([38, 88]);

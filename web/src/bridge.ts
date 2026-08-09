@@ -204,13 +204,13 @@ export class SimBridge {
   }
 
   /**
-   * The authored body-pose category for each row: 0 none, 1 talk, 2 eat,
-   * 3 read.
+   * The presentation body-action category for each row: 0 none; 1 talk;
+   * 2 eat; 3 seated read; 4 standing read; 5 walk.
    *
-   * Separate from `activities`: broad activity never invents a body pose, while
-   * this column is emitted only from a validated visual contract. Re-create the
-   * view on every call for the same memory-growth hazard as every other
-   * render-buffer column.
+   * Codes 1 through 4 come only from exact validated interaction visuals.
+   * Code 5 is the deliberate presentation-derived exception: an Agent whose
+   * final activity is walking and whose Path has a next step. Re-create the
+   * view on every call for the same memory-growth hazard as every other column.
    */
   visualActions(): Uint32Array {
     return new Uint32Array(
@@ -221,8 +221,8 @@ export class SimBridge {
   }
 
   /**
-   * The lot-axis direction in which each authored action faces: 0 none,
-   * 1 positive x, 2 negative x, 3 positive y, 4 negative y.
+   * The lot-axis direction in which each presentation body action faces:
+   * 0 none, 1 positive x, 2 negative x, 3 positive y, 4 negative y.
    */
   facings(): Uint32Array {
     return new Uint32Array(

@@ -4111,3 +4111,27 @@ the eater's hand, and seated reading to retain a normal neck and head silhouette
 at ordinary zoom. Watch at least two full pose holds for each action, then repeat
 at 2x and 3x. Record any visual rejection explicitly and do not call that art
 accepted or shipped until the replacement passes the same played check.
+
+## [L-protect-the-complement-of-an-art-exception] An allowed redraw needs a guard around everything else
+
+**What happened.** The animation-repair contract allowed seated-reading pixels
+98 through 121 to change while requiring every other legacy sprite through 146
+to remain fixed. The first generator checks pinned names, dimensions, Chat, and
+the dinner prop, but did not causally protect all remaining decoded pixels. A
+review confirmed that the generated atlas was currently correct, yet a future
+floor, wall, object, or character-pixel regression could still pass the stated
+gate.
+
+**Root cause.** The test guarded memorable examples rather than the complete
+complement of the exception. The written invariant covered 123 protected
+sprites; the implementation checked only a few highlighted subsets.
+
+**Prevention rule.** When an append-only atlas permits one in-place redraw,
+hash the names, dimensions, and decoded pixels of every legacy sprite outside
+the allowed range. Keep focused semantic checks too, but do not mistake them
+for full prefix protection.
+
+**How to verify.** Change one decoded pixel in any protected legacy crop and
+run the generator check. It must fail on the protected-record digest. Restore
+the pixel and confirm the atlas reproduces exactly; only the explicitly allowed
+range may differ from its recorded predecessor.

@@ -340,13 +340,14 @@ impl SimHandle {
         self.sim.render_buffer().activities.as_ptr()
     }
 
-    /// Authored body-action code per row. Re-read after every sync or memory
-    /// growth, like every other zero-copy render pointer.
+    /// Presentation body-action code per row. Object and social actions remain
+    /// content-authored; walking is derived from the live path. Re-read after
+    /// every sync or memory growth, like every other zero-copy render pointer.
     pub fn visual_actions_ptr(&self) -> *const u32 {
         self.sim.render_buffer().visual_actions.as_ptr()
     }
 
-    /// Authored lot-axis facing per row. Re-read after every sync or memory
+    /// Projected lot-axis facing per row. Re-read after every sync or memory
     /// growth, like every other zero-copy render pointer.
     pub fn facings_ptr(&self) -> *const u32 {
         self.sim.render_buffer().facings.as_ptr()
@@ -1728,6 +1729,133 @@ mod boundary_tests {
         ));
         handle.sim.sync_render_buffer();
         (handle, agent, agent_position)
+    }
+
+    fn handle_with_projected_walk() -> (SimHandle, terri_core::Entity, Position) {
+        let mut handle = SimHandle::new(24, 24);
+        let position = Position { x: 7.0, y: 7.75 };
+        handle.spawn_agent(position.x, position.y, 50.0);
+        let agent = {
+            let world = handle.sim.world_mut();
+            let mut query = world.query::<(terri_core::Entity, &Agent)>();
+            query
+                .iter(world)
+                .map(|(entity, _)| entity)
+                .next()
+                .expect("the bridge spawned the walker")
+        };
+        handle
+            .sim
+            .world_mut()
+            .entity_mut(agent)
+            .insert(terri_core::Path {
+                steps: vec![(7, 7)],
+                cursor: 0,
+            });
+        handle.sim.sync_render_buffer();
+        (handle, agent, position)
+    }
+
+    #[test]
+    fn walk_action_and_facing_cross_existing_columns_after_paused_load_and_growth() {
+        let (mut source, walker, position) = handle_with_projected_walk();
+        let bytes_before_pause = source.save_bytes();
+        let hash_before_pause = source.world_hash();
+
+        source.flush_commands();
+        assert_eq!(source.save_bytes(), bytes_before_pause);
+        assert_eq!(source.world_hash(), hash_before_pause);
+        let source_rows = source.entity_count();
+        let source_ids = addressed(source.ids_ptr(), source_rows, "ids_ptr");
+        let source_row = source_ids
+            .iter()
+            .position(|&id| id == walker.index_u32())
+            .expect("paused walker has a render row");
+        let source_positions = addressed(source.positions_ptr(), source_rows * 2, "positions_ptr");
+        let source_previous = addressed(
+            source.prev_positions_ptr(),
+            source_rows * 2,
+            "prev_positions_ptr",
+        );
+        let source_actions = addressed(
+            source.visual_actions_ptr(),
+            source_rows,
+            "visual_actions_ptr",
+        );
+        let source_activities = addressed(source.activities_ptr(), source_rows, "activities_ptr");
+        let source_facings = addressed(source.facings_ptr(), source_rows, "facings_ptr");
+        assert_eq!(
+            (
+                source_actions[source_row],
+                source_activities[source_row],
+                source_facings[source_row],
+            ),
+            (
+                5,
+                terri_sim::render_buffer::activity::WALKING,
+                terri_sim::render_buffer::facing::NEGATIVE_Y,
+            ),
+            "the append-only walk literals must cross the existing bridge columns"
+        );
+        assert_eq!(
+            (
+                source_positions[source_row * 2],
+                source_positions[source_row * 2 + 1],
+                source_previous[source_row * 2],
+                source_previous[source_row * 2 + 1],
+            ),
+            (position.x, position.y, position.x, position.y),
+            "Pause leaves no sample delta, so the emitted facing is the directional fallback"
+        );
+
+        let mut handle = SimHandle::new(2, 2);
+        assert!(handle.load_bytes(&bytes_before_pause));
+        assert_eq!(handle.save_bytes(), bytes_before_pause);
+        assert_eq!(handle.world_hash(), hash_before_pause);
+
+        // Grow every render vector after Load, then reacquire each pointer.
+        // The shell follows the same lifetime rule after WASM memory growth.
+        for index in 0..48 {
+            handle.spawn_agent(30.0 + index as f32, 30.0, 50.0);
+        }
+        let rows = handle.entity_count();
+        let ids = addressed(handle.ids_ptr(), rows, "ids_ptr");
+        let row = ids
+            .iter()
+            .position(|&id| id == walker.index_u32())
+            .expect("the loaded walker remains in the live prefix");
+        let positions = addressed(handle.positions_ptr(), rows * 2, "positions_ptr");
+        let previous = addressed(handle.prev_positions_ptr(), rows * 2, "prev_positions_ptr");
+        let actions = addressed(handle.visual_actions_ptr(), rows, "visual_actions_ptr");
+        let activities = addressed(handle.activities_ptr(), rows, "activities_ptr");
+        let facings = addressed(handle.facings_ptr(), rows, "facings_ptr");
+
+        assert_eq!(
+            (actions[row], activities[row], facings[row]),
+            (
+                terri_sim::render_buffer::visual_action::WALK,
+                terri_sim::render_buffer::activity::WALKING,
+                terri_sim::render_buffer::facing::NEGATIVE_Y,
+            )
+        );
+        assert_eq!(
+            (
+                positions[row * 2],
+                positions[row * 2 + 1],
+                previous[row * 2],
+                previous[row * 2 + 1],
+            ),
+            (position.x, position.y, position.x, position.y),
+            "Load and reallocating syncs keep equal samples while path-facing remains available"
+        );
+        assert!(
+            actions
+                .iter()
+                .enumerate()
+                .any(|(index, &action)| index != row
+                    && action == terri_sim::render_buffer::visual_action::NONE),
+            "an unrelated row distinguishes the walk column from a constant action"
+        );
     }
 
     #[test]
