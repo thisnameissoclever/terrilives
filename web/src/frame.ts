@@ -256,7 +256,7 @@ const INDICATOR_SPRITES: readonly (number | null)[] = [
   // AT_WORK: no bubble - the whole ROW is skipped below; gone is gone.
   null,
   // USING_OBJECT: text-only. One 26px glyph cannot honestly cover
-  // reading, washing, television, bathing, and toilet use.
+  // bookshelf reading, washing, television, bathing, and toilet use.
   null,
   spriteIndex('indicatorReading'),
 ];

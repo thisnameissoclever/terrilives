@@ -154,10 +154,12 @@ pub struct CompiledObject {
     pub footprint: Footprint,
     /// The station roles this object serves in a chain, as indices
     /// into [`ContentPack::roles`] - [K1]. Sorted, usually empty.
-    /// **Last in this struct on purpose**, per the appending rule.
+    /// Appended after `footprint` when roles shipped; its encoded position
+    /// must not move.
     pub roles: Vec<u32>,
     /// Presentation-only anchors, indexed by `CompiledVisual::socket`.
-    /// Appended for postcard stability.
+    /// Appended after `roles` when sockets shipped; its encoded position must
+    /// not move.
     pub action_sockets: Vec<CompiledActionSocket>,
 }
 
