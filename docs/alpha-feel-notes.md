@@ -2066,8 +2066,12 @@ social-action menu.
 - **Runtime remained quiet.** Conversation setup, pause and resume, save and
   load, both zoom extremes, reduced-motion emulation, and the nighttime scoped
   validation produced zero console warnings and zero errors.
+- **Later owner review accepted Chat.** The visual verdict still holds. The
+  current frame hold is eight simulation ticks rather than the four used by
+  this original acceptance pass; categories may use longer holds where their
+  motion needs them.
 
-## [A-eating-action-animation] Eating is a complete authored action category
+## [A-eating-action-animation] Eating mechanics are complete; body art is rejected
 
 The local production bundle (`index-Dr5ZYymC.js`,
 `terri_wasm_bg-CWLOA3Md.wasm`) was played in the in-app browser at 1280 by 720
@@ -2107,6 +2111,11 @@ both eating paths were issued through the ordinary keyboard object menu.
   resume, save and load, desktop and phone layouts, and both zoom levels
   produced zero console warnings and zero errors. The visible canvas remained
   on the production WebGPU renderer throughout the pass.
+- **Later owner review rejected the current eating art.** This pass remains
+  valid evidence for projection, controls, persistence, and renderer health,
+  but the raised hand carried no visible food prop. The body is not visually
+  accepted until that prop reads in the hand. Its current hold is sixteen
+  simulation ticks.
 
 ## [A-object-use-activity-semantics] Ordinary object use has an honest name
 
@@ -2157,7 +2166,7 @@ slice.
   desktop shipping size. It does not approve phone-width readability,
   physical touch behavior, or the still-unbuilt action poses for generic use.
 
-## [A-seated-reading-action] The reading chair now seats a visible reader
+## [A-seated-reading-action] The chair projects a reader; body art is rejected
 
 The fresh local production bundle (`index-Vsjrm-0I.js`,
 `terri_wasm_bg-gWQqJsiU.wasm`) was played through WebGPU at 1280 by 720 in the
@@ -2173,8 +2182,8 @@ normal object menu from a clean paused game.
 - **Animation and controls stayed simulation-owned.** The reading pose remained
   planted through Pause and was observed while stepping 1x, 2x, and 3x. The two
   authored frames use the restrained page-adjustment motion visible in the
-  generated atlas; automated frame-boundary tests own the exact 12-tick cadence
-  and stable-id staggering claim.
+  generated atlas. This original pass observed the then-current 12-tick hold;
+  the current tests own the corrected 24-tick hold and stable-id staggering.
 - **Every position consumer stayed together.** At default, minimum, and maximum
   zoom, the body, chair, selection ring, and reading indicator remained aligned.
   After selecting Bill in the roster, clicking opaque pixels on Tim's seated
@@ -2205,10 +2214,11 @@ normal object menu from a clean paused game.
   keeping the socket pose; this pass does not claim a watched reduced-motion
   session. The fixed desktop browser did not repeat the already-proven mobile HUD
   geometry or a physical-phone touch and safe-area pass. The merged desktop
-  deployment is accepted; those reduced-motion and physical-device boundaries
-  remain open.
+  deployment evidence remains valid, but later owner review rejected the body
+  because the neck is visibly distorted. The character art, reduced-motion
+  display, and physical-device boundaries remain open.
 
-## [A-local-idle-wandering] Idle movement stays local and remains interruptible
+## [A-local-idle-wandering] Idle routes stay local; walking art is rejected
 
 The local production bundle (`index-CHj2f_99.js`,
 `terri_wasm_bg-0GxSZI5a.wasm`) was played in the in-app browser at 1280 by 720
@@ -2218,9 +2228,11 @@ shipped pack.
 After the reviewed guard split, the exact release bundle
 (`index-BYhrFTTB.js`, `terri_wasm_bg-KGkCRcyS.wasm`) received a final desktop
 smoke pass. Its WebGPU canvas rendered the lot, advanced from Day 1 00:00 to
-06:16, and showed Tim and Bill walking naturally at 1x. The only console error
-was the local preview server's missing `favicon.ico`; there was no application
-or WebGPU failure.
+06:16, and showed Tim and Bill moving with the then-current transform-only
+footfall at 1x. The original pass described that as walking naturally; later
+owner review rejected it as a real walk cycle. The only console error was the
+local preview server's missing `favicon.ico`; there was no application or
+WebGPU failure.
 
 - **The hard locality contract held.** The trace observed 154 newly started
   natural, targetless strolls. Their walked paths had minimum 1, mean 2.26,
@@ -2464,3 +2476,78 @@ that zero, then passed after the drain began recording the rejection.
   announcement timing remains unobserved even though the DOM transition is
   pinned and was seen clearing in the page. The corrected build was not
   rechecked at phone width or on a physical touch device in this pass.
+
+## [A-standing-bookshelf-reading] The bookshelf reader awaits owner review
+
+The 2026-08-09 pre-merge acceptance used the production Vite build at 1280 by
+720 in the in-app browser. A fresh game selected Casey, reached the shipped
+`Wall of Intent` through the normal keyboard target cycle, opened its normal
+action menu, and issued `Read a book`. The same state and viewport were then
+reproduced against the currently deployed `b11b0ee7` Pages build for a direct
+before-and-after comparison.
+
+- **The generic mannequin is gone.** The deployed build showed the ordinary
+  static body and HUD text `Using object`. The feature build showed `Reading`,
+  the existing book indicator, and an upright body holding a clearly open white
+  book in both hands. The distinction remained legible at default and close
+  zoom in both midnight and 08:35 daylight lighting.
+- **The reader stands beside the shelf.** Casey remained on the adjacent floor
+  tile, clear of the shelf and walls, with the selection ring, body, and reading
+  indicator sharing that ordinary pathing anchor. Close zoom did not expose a
+  hidden socket jump or shelf overlap. Minimum zoom retained a recognisable
+  white book and aligned indicator, though the page detail naturally collapsed
+  at whole-lot scale.
+- **Simulation controls own the motion.** Pause froze the exact book pose and
+  position. In this pre-correction pass, the visible 1x control carried the
+  gesture across its next 12-tick pose boundary; 2x completed the active
+  interaction cleanly; and 3x produced the same standing read during approach
+  and a second daylight run. Completion restored the ordinary body on the same
+  tile without a visible glide through the shelf. The current action hold is 24
+  simulation ticks and still needs owner review in the renderer.
+- **The corrected hold was replayed in the rebuilt production preview.** After
+  rebuilding release WASM and Vite, a clean game selected Casey and issued
+  `Read a book` through the normal keyboard target and action routes. At 3x the
+  HUD transitioned from `Walking` to `Reading`; Pause froze the upright reader.
+  Two separate one-second 1x runs kept the body visibly reading beside the
+  shelf before completion. This proves the slower cadence reaches the current
+  WebGPU build and is readable long enough to inspect. It is not owner approval
+  of the new bookshelf art.
+- **The displayed renderer stayed clean.** The current production preview drew
+  the WebGPU lot throughout the night, daylight, zoom, Pause, and completion
+  checks. The retained browser diagnostic window contained 500 performance-log
+  entries and zero warnings or errors.
+- **Proof boundary.** This is pre-merge local production-build evidence, not a
+  deployed Pages check. Automated tests pin reduced motion to the static first
+  standing-read frame, but the in-app browser did not expose an operating-system
+  reduced-motion override, so that displayed preference remains unobserved.
+  Merge, exact Pages deployment, and a public revision check remain open.
+
+## [A-animation-owner-review] Owner review resets the animation restart point
+
+The owner reviewed the current character motion on 2026-08-09. This is a
+product-quality verdict, not a reversal of the deterministic, projection,
+persistence, or renderer-health evidence recorded in the earlier acceptance
+entries. Those sessions remain historical evidence for what they actually
+observed; they do not overrule a later visual rejection.
+
+1. **Chat is accepted.** Its directional body language reads as the intended
+   action and remains the reference for an authored action pose.
+2. **Walking is not accepted as a real walk cycle.** The distance-driven
+   transform lift improves movement feedback, but it does not articulate a
+   convincing step. A real cycle needs new body frames rather than another
+   transform-only adjustment.
+3. **Eating is not accepted.** The hand gesture has no visible food prop in the
+   raised hand, so the body does not communicate taking a bite without relying
+   on the fork indicator and HUD.
+4. **Seated reading is not accepted.** The current body distorts the neck. The
+   socket, projection, and open-book contract remain useful, but the character
+   art must be corrected.
+5. **Action holds must be at least doubled and may differ by category.** Chat
+   now holds for 8 simulation ticks, eating for 16, and seated plus standing
+   reading for 24. Simulation time, stable-id phase, Pause, Load, and reduced
+   motion retain their existing ownership.
+
+The restart order is therefore the real walk cycle, the visible eating hand
+prop, the seated-reading neck repair, and `bookshelf.read` owner review at its
+corrected 24-tick hold. New action categories wait until these repairs are
+visually accepted.

@@ -1305,7 +1305,10 @@ fn compile_visual(
         unknown => return Err(owner.unknown_facing(unknown)),
     };
 
-    if action == CompiledVisualAction::Read && visual.socket.is_none() {
+    if action == CompiledVisualAction::Read
+        && anchor == CompiledVisualAnchor::ObjectSocket
+        && visual.socket.is_none()
+    {
         return Err(owner.incomplete("socket"));
     }
 
@@ -1327,6 +1330,12 @@ fn compile_visual(
             VisualOwner::ChainStep { .. },
             CompiledVisualAction::Eat,
             CompiledVisualAnchor::Station,
+            CompiledVisualFacing::TowardAnchor,
+            None
+        ) | (
+            VisualOwner::Object { .. },
+            CompiledVisualAction::Read,
+            CompiledVisualAnchor::Object,
             CompiledVisualFacing::TowardAnchor,
             None
         ) | (
@@ -6459,9 +6468,10 @@ mod tests {
     }
 
     /// The visual table is all-or-nothing, every authored string crosses a
-    /// closed vocabulary boundary before runtime. These are the three
-    /// established no-socket rows; the fourth exact row has separate socket
-    /// tests below. Known vocabulary in the wrong combination is still an
+    /// closed vocabulary boundary before runtime. These are the four legal
+    /// no-socket rows, including standing object reading; the
+    /// fifth exact row has separate socket tests below. Known vocabulary in
+    /// the wrong combination is still an
     /// error rather than a request for the renderer to improvise.
     #[test]
     fn validates_the_exact_visual_contract_matrix() {
@@ -6484,15 +6494,13 @@ mod tests {
             slots: 2,
         };
 
-        for (owner, owner_name, activity, legal_action, legal_anchor) in [
+        for (owner, owner_name, activity) in [
             (
                 VisualOwner::Social {
                     interaction: "chat",
                 },
                 "social.toml",
                 "interaction 'chat'",
-                "talk",
-                "partner",
             ),
             (
                 VisualOwner::Object {
@@ -6501,8 +6509,6 @@ mod tests {
                 },
                 "object 'fridge'",
                 "interaction 'grab_snack'",
-                "eat",
-                "object",
             ),
             (
                 VisualOwner::ChainStep {
@@ -6511,16 +6517,21 @@ mod tests {
                 },
                 "chain 'cook_dinner'",
                 "step 3",
-                "eat",
-                "station",
             ),
         ] {
-            for action in ["talk", "eat"] {
+            for action in ["talk", "eat", "read"] {
                 for anchor in ["partner", "object", "station"] {
                     let authored = visual(Some(action), Some(anchor), Some("toward_anchor"))
                         .expect("the test authors a visual");
                     let result = compile_visual(Some(&authored), owner, &[]);
-                    if action == legal_action && anchor == legal_anchor {
+                    let legal = match owner {
+                        VisualOwner::Social { .. } => action == "talk" && anchor == "partner",
+                        VisualOwner::Object { .. } => {
+                            matches!(action, "eat" | "read") && anchor == "object"
+                        }
+                        VisualOwner::ChainStep { .. } => action == "eat" && anchor == "station",
+                    };
+                    if legal {
                         assert!(result.is_ok(), "{owner_name} {activity} must compile");
                     } else {
                         assert_eq!(
@@ -6604,6 +6615,20 @@ mod tests {
             pack.objects[0].interactions[0].visual,
             Some(CompiledVisual {
                 action: CompiledVisualAction::Eat,
+                anchor: CompiledVisualAnchor::Object,
+                facing: CompiledVisualFacing::TowardAnchor,
+                socket: None,
+            })
+        );
+
+        let mut standing_read = snack();
+        standing_read.visual = visual(Some("read"), Some("object"), Some("toward_anchor"));
+        let pack = compile_objects(full_needs(), one_object(standing_read))
+            .expect("the legal standing-read visual compiles without a socket");
+        assert_eq!(
+            pack.objects[0].interactions[0].visual,
+            Some(CompiledVisual {
+                action: CompiledVisualAction::Read,
                 anchor: CompiledVisualAnchor::Object,
                 facing: CompiledVisualFacing::TowardAnchor,
                 socket: None,
@@ -6936,6 +6961,7 @@ mod tests {
         for visual in [
             authored("read", "object", "socket", Some("seat")),
             authored("read", "object_socket", "toward_anchor", Some("seat")),
+            authored("read", "object", "toward_anchor", Some("seat")),
             authored("eat", "object", "toward_anchor", Some("seat")),
         ] {
             assert!(matches!(
@@ -6958,6 +6984,16 @@ mod tests {
         ));
         assert!(matches!(
             compile_visual(Some(&read), chain_owner, &sockets),
+            Err(ContentError::InvalidVisualContract { .. })
+        ));
+
+        let standing_read = authored("read", "object", "toward_anchor", None);
+        assert!(matches!(
+            compile_visual(Some(&standing_read), social_owner, &sockets),
+            Err(ContentError::InvalidVisualContract { .. })
+        ));
+        assert!(matches!(
+            compile_visual(Some(&standing_read), chain_owner, &sockets),
             Err(ContentError::InvalidVisualContract { .. })
         ));
     }

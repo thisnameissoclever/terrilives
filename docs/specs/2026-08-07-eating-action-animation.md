@@ -1,7 +1,10 @@
 # Eating action animation contract
 
-Status: **shipped contract, amended 2026-08-08 for generic object-use
-semantics.** This extends the shipped conversation visual contract without
+Status: **shipped mechanical contract, amended 2026-08-08 for generic
+object-use semantics and 2026-08-09 for owner review.** The owner rejected the
+current eating art because the raised hand carries no visible food prop. That
+visual repair remains open even though the authored action, projection, and
+tests ship. This extends the shipped conversation visual contract without
 making the shared `Eating` storage component choose art or player-facing text.
 The amendment shipped in PR 47 at merge `38a03c151036430c798502ca4252c925c98789db`;
 the public session observed immediately after that deployment is recorded in
@@ -113,7 +116,7 @@ renderer transform rather than new simulation state.
 
 ## [EA4] Simulation ticks own the phase
 
-Eating alternates every eight simulation ticks. Stable entity-id phase keeps
+Eating alternates every sixteen simulation ticks. Stable entity-id phase keeps
 two simultaneous eaters from moving in lockstep. Wall time and render-frame
 count are never inputs.
 
@@ -173,13 +176,15 @@ Automated coverage must prove:
 5. Walking between chain stations, the shipped unauthored non-terminal steps,
    unauthored object use, target mismatches, missing `SmartObject`, and the
    shared `Eating` component alone emit no authored body action. Shipped
-   `shower`, `toilet`, `television`, `sink`, `bookshelf`, `kitchen_sink`, and
-   `reading_chair` interactions report `USING_OBJECT`, never `EATING`.
+   `shower`, `toilet`, `television`, `sink`, and `kitchen_sink` interactions
+   report `USING_OBJECT`, never `EATING`. The later exact
+   `bookshelf.read` and `reading_chair.settle_in` contracts report `READING`;
+   they likewise never acquire eating action `2` or the fork indicator.
 6. The WebAssembly memory-growth seam preserves action `2` and its facing.
 7. All three looks, four facings, two frames, reduced motion, invalid-code
    fallback, ring, bubble, carried badge, zoom, picking, and live instance count
    are pinned in web tests. Activity code 3 keeps the fork while code 7 adds no
-   generic bubble. Eating phase boundaries include ticks 7, 8, 15, and 16 plus
+   generic bubble. Eating phase boundaries include ticks 15, 16, 31, and 32 plus
    the staggered neighbouring boundaries for multiple sequential entity ids.
    Pause and speed tests prove that only simulation ticks advance the phase,
    and sequential sims do not transition in lockstep.

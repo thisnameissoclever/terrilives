@@ -52,9 +52,18 @@ ATLAS_TS = os.path.join(ROOT, "web", "src", "render", "atlas.ts")
 PADDING = 1          # a transparent gutter, so no sprite samples its neighbour
 
 
-def reading_names():
+def seated_reading_names():
     return [
         f"{look}Read{facing}{frame}"
+        for look in ("sim", "sim2", "sim3")
+        for facing in ("SE", "NW", "SW", "NE")
+        for frame in (0, 1)
+    ]
+
+
+def standing_reading_names():
+    return [
+        f"{look}StandRead{facing}{frame}"
         for look in ("sim", "sim2", "sim3")
         for facing in ("SE", "NW", "SW", "NE")
         for frame in (0, 1)
@@ -69,42 +78,61 @@ def validate_reading_contract(sprites):
     before either manifest can be written.
     """
     names = [name for name, _, _, _ in sprites]
-    expected = reading_names()
-    if names[98:122] != expected:
+    seated = seated_reading_names()
+    standing = standing_reading_names()
+    if names[98:122] != seated:
         raise SystemExit("reading body sprites must occupy indices 98 through 121")
-    if len(names) != 123 or names[122] != "indicatorReading":
-        raise SystemExit("indicatorReading must be index 122 in a 123-sprite atlas")
+    if names[122] != "indicatorReading":
+        raise SystemExit("indicatorReading must remain at index 122")
+    if len(names) != 147 or names[123:147] != standing:
+        raise SystemExit("standing-read body sprites must occupy indices 123 through 146")
 
     by_name = {name: (image, width, height) for name, image, width, height in sprites}
-    for name in expected:
+    for name in seated + standing:
         image, width, height = by_name[name]
         if (width, height) != (38, 88):
             raise SystemExit(f"{name}: reading body must be exactly 38x88")
         if image.getchannel("A").getbbox() is None:
             raise SystemExit(f"{name}: reading body has no visible pixels")
 
+    for stem in ("Read", "StandRead"):
+        for look in ("sim", "sim2", "sim3"):
+            for facing in ("SE", "NW", "SW", "NE"):
+                quiet = by_name[f"{look}{stem}{facing}0"][0]
+                active = by_name[f"{look}{stem}{facing}1"][0]
+                if quiet.tobytes() == active.tobytes():
+                    raise SystemExit(
+                        f"{look}{stem}{facing}: the two frames are pixel-identical"
+                    )
+
+        for frame in (0, 1):
+            for look in ("sim", "sim2", "sim3"):
+                facings = {
+                    by_name[f"{look}{stem}{facing}{frame}"][0].tobytes()
+                    for facing in ("SE", "NW", "SW", "NE")
+                }
+                if len(facings) != 4:
+                    raise SystemExit(
+                        f"{look}{stem} frame {frame}: two facings are pixel-identical"
+                    )
+            for facing in ("SE", "NW", "SW", "NE"):
+                looks = {
+                    by_name[f"{look}{stem}{facing}{frame}"][0].tobytes()
+                    for look in ("sim", "sim2", "sim3")
+                }
+                if len(looks) != 3:
+                    raise SystemExit(
+                        f"{stem}{facing}{frame}: two Sim looks are pixel-identical"
+                    )
+
     for look in ("sim", "sim2", "sim3"):
         for facing in ("SE", "NW", "SW", "NE"):
-            quiet = by_name[f"{look}Read{facing}0"][0]
-            active = by_name[f"{look}Read{facing}1"][0]
-            if quiet.tobytes() == active.tobytes():
-                raise SystemExit(f"{look}Read{facing}: the two frames are pixel-identical")
-
-    for frame in (0, 1):
-        for look in ("sim", "sim2", "sim3"):
-            facings = {
-                by_name[f"{look}Read{facing}{frame}"][0].tobytes()
-                for facing in ("SE", "NW", "SW", "NE")
-            }
-            if len(facings) != 4:
-                raise SystemExit(f"{look}Read frame {frame}: two facings are pixel-identical")
-        for facing in ("SE", "NW", "SW", "NE"):
-            looks = {
-                by_name[f"{look}Read{facing}{frame}"][0].tobytes()
-                for look in ("sim", "sim2", "sim3")
-            }
-            if len(looks) != 3:
-                raise SystemExit(f"Read{facing}{frame}: two Sim looks are pixel-identical")
+            seated_frame = by_name[f"{look}Read{facing}0"][0]
+            standing_frame = by_name[f"{look}StandRead{facing}0"][0]
+            if seated_frame.tobytes() == standing_frame.tobytes():
+                raise SystemExit(
+                    f"{look} {facing}: seated and standing reading are pixel-identical"
+                )
 
 
 def render_all():

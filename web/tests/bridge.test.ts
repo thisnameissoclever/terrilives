@@ -309,6 +309,81 @@ describe('SimBridge', () => {
     }
   });
 
+  it('reacquires standing bookshelf reading after real release-wasm memory growth', () => {
+    const bridge = new SimBridge(new SimHandle(24, 24), wasmMemory);
+    expect(bridge.spawnObject(11.5, 13.25, 'bookshelf')).toBe(true);
+    bridge.spawnAgent(9, 13.25, 80);
+    expect(bridge.useObject(1, 0, 0)).toBe(true);
+
+    const rowOf = (entity: number): number =>
+      Array.from(bridge.ids()).indexOf(entity);
+    let readerRow = -1;
+    for (let tick = 0; tick < 160; tick += 1) {
+      bridge.tick();
+      readerRow = rowOf(1);
+      if (readerRow >= 0 && bridge.visualActions()[readerRow] === 4) {
+        break;
+      }
+    }
+    expect(readerRow).toBeGreaterThanOrEqual(0);
+    expect(bridge.visualActions()[readerRow]).toBe(4);
+    expect(bridge.activities()[readerRow]).toBe(8);
+    expect(bridge.facings()[readerRow]).toBe(1);
+    const readerPosition = [
+      bridge.positions()[readerRow * 2],
+      bridge.positions()[readerRow * 2 + 1],
+    ];
+    expect(readerPosition).not.toEqual([11.5, 13.25]);
+
+    const heldPositions = bridge.positions();
+    const heldPrevious = bridge.prevPositions();
+    const heldActions = bridge.visualActions();
+    const heldActivities = bridge.activities();
+    const heldFacings = bridge.facings();
+    const bufferBeforeGrowth = wasmMemory.buffer;
+    let spawned = 0;
+    while (wasmMemory.buffer === bufferBeforeGrowth && spawned < 4000) {
+      bridge.spawnAgent(
+        2 + (spawned % 20),
+        2 + (Math.floor(spawned / 20) % 20),
+        80,
+      );
+      spawned += 1;
+    }
+
+    expect(spawned).toBeGreaterThan(0);
+    expect(wasmMemory.buffer).not.toBe(bufferBeforeGrowth);
+    expect(heldPositions.length).toBe(0);
+    expect(heldPrevious.length).toBe(0);
+    expect(heldActions.length).toBe(0);
+    expect(heldActivities.length).toBe(0);
+    expect(heldFacings.length).toBe(0);
+
+    readerRow = rowOf(1);
+    expect(readerRow).toBeGreaterThanOrEqual(0);
+    const positions = bridge.positions();
+    const previous = bridge.prevPositions();
+    const actions = bridge.visualActions();
+    const activities = bridge.activities();
+    const facings = bridge.facings();
+    expect([
+      actions[readerRow],
+      activities[readerRow],
+      facings[readerRow],
+    ]).toEqual([4, 8, 1]);
+    expect([
+      positions[readerRow * 2],
+      positions[readerRow * 2 + 1],
+    ]).toEqual(readerPosition);
+    expect([
+      previous[readerRow * 2],
+      previous[readerRow * 2 + 1],
+    ]).toEqual(readerPosition);
+    for (const view of [positions, previous, actions, activities, facings]) {
+      expect(view.buffer).toBe(wasmMemory.buffer);
+    }
+  });
+
   it('survives memory growth from many spawns', () => {
     const bridge = new SimBridge(new SimHandle(64, 64), wasmMemory);
     expect(bridge.spawnObject(4, 1, 'fridge')).toBe(true);

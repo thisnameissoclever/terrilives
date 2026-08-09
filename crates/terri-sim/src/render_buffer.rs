@@ -70,7 +70,7 @@ pub struct RenderBuffer {
     /// initiator is still inbound), 3 exact authored eating, 4 talking
     /// (either side of a conversation), 5 sleeping (a valid sleep-tagged
     /// object interaction), 6 at work, 7 ordinary object use without a
-    /// narrower authored activity, and 8 exact authored seated reading. Some
+    /// narrower authored activity, and 8 exact authored reading. Some
     /// codes are text-only and draw no indicator.
     ///
     /// Exists because the owner's play report put it plainly: "if you
@@ -121,7 +121,8 @@ pub mod activity {
     /// text-only in the shell: one glyph cannot honestly mean reading,
     /// washing, television, bathing, and toilet use at once.
     pub const USING_OBJECT: u32 = 7;
-    /// Exact authored seated reading at a validated object socket.
+    /// Exact authored reading, either at a validated object socket or toward
+    /// a validated object anchor.
     pub const READING: u32 = 8;
 }
 
@@ -131,7 +132,10 @@ pub mod visual_action {
     pub const NONE: u32 = 0;
     pub const TALK: u32 = 1;
     pub const EAT: u32 = 2;
+    /// Seated reading at an object-local action socket.
     pub const READ: u32 = 3;
+    /// Standing reading toward an object's footprint centre.
+    pub const STANDING_READ: u32 = 4;
 }
 
 /// Lot-axis facing codes for authored body actions.
@@ -513,6 +517,562 @@ mod tests {
             ))
             .id();
         (agent, target, chair, interaction)
+    }
+
+    fn spawn_shipped_standing_reader(
+        sim: &mut Sim,
+        shelf_at: Position,
+        agent_at: Position,
+    ) -> (Entity, Entity, terri_data::ObjectDefId, u32) {
+        let bookshelf = sim
+            .world()
+            .resource::<crate::Content>()
+            .0
+            .find("bookshelf")
+            .expect("the active pack declares the bookshelf");
+        let interaction = sim
+            .world()
+            .resource::<crate::Content>()
+            .0
+            .object(bookshelf)
+            .interactions
+            .iter()
+            .position(|interaction| interaction.id == "read")
+            .expect("the active pack declares bookshelf.read") as u32;
+        let target = sim.spawn_object(shelf_at, bookshelf);
+        let agent = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                agent_at,
+                Eating {
+                    object: bookshelf,
+                    interaction,
+                    remaining_ticks: 10,
+                },
+                terri_core::Target {
+                    object: target,
+                    interaction,
+                },
+            ))
+            .id();
+        (agent, target, bookshelf, interaction)
+    }
+
+    #[test]
+    fn exact_shipped_bookshelf_reading_projects_standing_action_in_all_directions_without_moving() {
+        use crate::render_buffer::{activity, facing, visual_action};
+
+        let mut sim = Sim::new_with_lot(32, 32);
+        let shelf_position = Position { x: 12.0, y: 12.0 };
+        let cases = [
+            (Position { x: 9.0, y: 12.0 }, facing::POSITIVE_X),
+            (Position { x: 15.0, y: 12.0 }, facing::NEGATIVE_X),
+            (Position { x: 12.0, y: 9.0 }, facing::POSITIVE_Y),
+            (Position { x: 12.0, y: 15.0 }, facing::NEGATIVE_Y),
+            // Equal non-zero deltas take the x axis deterministically.
+            (Position { x: 10.0, y: 10.0 }, facing::POSITIVE_X),
+        ];
+        let mut agents = Vec::new();
+        for (position, expected_facing) in cases {
+            let (agent, _, _, _) =
+                spawn_shipped_standing_reader(&mut sim, shelf_position, position);
+            agents.push((agent, position, expected_facing));
+        }
+        let before_hash = sim.world_hash();
+        let before_save = sim.save_snapshot();
+
+        sim.sync_render_buffer();
+
+        for (agent, position, expected_facing) in agents {
+            assert_eq!(
+                projection_of(sim.render_buffer(), agent),
+                (
+                    visual_action::STANDING_READ,
+                    expected_facing,
+                    activity::READING,
+                )
+            );
+            assert_eq!(
+                displayed_position_of(sim.render_buffer(), agent),
+                ((position.x, position.y), (position.x, position.y)),
+                "standing reading must keep both display samples on the ordinary path tile"
+            );
+            assert_eq!(
+                sim.world().get::<Position>(agent).copied(),
+                Some(position),
+                "standing presentation must not move the ECS position"
+            );
+        }
+        assert_eq!(sim.world_hash(), before_hash);
+        assert_eq!(sim.save_snapshot(), before_save);
+    }
+
+    #[test]
+    fn standing_read_facing_uses_the_exact_rectangular_footprint_centre_and_stable_ties() {
+        use crate::render_buffer::{activity, facing, visual_action};
+        use terri_core::Footprint;
+
+        let shipped = terri_data::pack();
+        let shipped_bookshelf = shipped.find("bookshelf").expect("shipped bookshelf");
+        let mut definition = shipped.object(shipped_bookshelf).clone();
+        definition.footprint = Footprint { width: 3, depth: 2 };
+        let pack = crate::test_content::pack(vec![definition]);
+        let bookshelf = pack.find("bookshelf").expect("fixture bookshelf");
+        let interaction = pack
+            .object(bookshelf)
+            .interactions
+            .iter()
+            .position(|interaction| interaction.id == "read")
+            .expect("fixture bookshelf.read") as u32;
+        let mut sim = crate::test_content::sim_with(24, 24, pack);
+        let target = sim.spawn_object(Position { x: 8.0, y: 8.0 }, bookshelf);
+
+        // The correct centre is (9.0, 8.5). The fifth case chooses a different
+        // axis when faced toward the placement origin, so it pins use of the
+        // full footprint rather than merely exercising four cardinal signs.
+        let cases = [
+            (Position { x: 6.0, y: 8.5 }, facing::POSITIVE_X),
+            (Position { x: 12.0, y: 8.5 }, facing::NEGATIVE_X),
+            (Position { x: 9.0, y: 6.0 }, facing::POSITIVE_Y),
+            (Position { x: 9.0, y: 11.0 }, facing::NEGATIVE_Y),
+            (Position { x: 8.8, y: 8.0 }, facing::POSITIVE_Y),
+            // Coincident geometry falls back to stable entity order. The
+            // target was spawned first, so the later agent faces negative x.
+            (Position { x: 9.0, y: 8.5 }, facing::NEGATIVE_X),
+        ];
+        let mut agents = Vec::new();
+        for (position, expected_facing) in cases {
+            let agent = sim
+                .world_mut()
+                .spawn((
+                    Agent,
+                    position,
+                    Eating {
+                        object: bookshelf,
+                        interaction,
+                        remaining_ticks: 10,
+                    },
+                    terri_core::Target {
+                        object: target,
+                        interaction,
+                    },
+                ))
+                .id();
+            agents.push((agent, position, expected_facing));
+        }
+
+        sim.sync_render_buffer();
+        for (agent, position, expected_facing) in agents {
+            assert_eq!(
+                projection_of(sim.render_buffer(), agent),
+                (
+                    visual_action::STANDING_READ,
+                    expected_facing,
+                    activity::READING,
+                )
+            );
+            assert_eq!(
+                displayed_position_of(sim.render_buffer(), agent).0,
+                (position.x, position.y)
+            );
+        }
+    }
+
+    #[test]
+    fn standing_read_requires_every_compiled_visual_field_and_no_socket() {
+        use crate::render_buffer::{activity, facing, visual_action};
+
+        for (description, mutate, expected) in [
+            (
+                "action",
+                (|visual: &mut terri_data::CompiledVisual| {
+                    visual.action = terri_data::CompiledVisualAction::Eat;
+                }) as fn(&mut terri_data::CompiledVisual),
+                (visual_action::EAT, facing::POSITIVE_X, activity::EATING),
+            ),
+            (
+                "anchor",
+                |visual: &mut terri_data::CompiledVisual| {
+                    visual.anchor = terri_data::CompiledVisualAnchor::Station;
+                },
+                (visual_action::NONE, facing::NONE, activity::USING_OBJECT),
+            ),
+            (
+                "facing",
+                |visual: &mut terri_data::CompiledVisual| {
+                    visual.facing = terri_data::CompiledVisualFacing::Socket;
+                },
+                (visual_action::NONE, facing::NONE, activity::USING_OBJECT),
+            ),
+            (
+                "surplus socket",
+                |visual: &mut terri_data::CompiledVisual| {
+                    visual.socket = Some(0);
+                },
+                (visual_action::NONE, facing::NONE, activity::USING_OBJECT),
+            ),
+        ] {
+            let shipped = terri_data::pack();
+            let bookshelf = shipped.find("bookshelf").expect("shipped bookshelf");
+            let mut definition = shipped.object(bookshelf).clone();
+            mutate(
+                definition
+                    .interactions
+                    .iter_mut()
+                    .find(|interaction| interaction.id == "read")
+                    .and_then(|interaction| interaction.visual.as_mut())
+                    .expect("shipped bookshelf.read visual"),
+            );
+            let pack = crate::test_content::pack(vec![definition]);
+            let mut sim = crate::test_content::sim_with(16, 16, pack);
+            let (agent, _, _, _) = spawn_shipped_standing_reader(
+                &mut sim,
+                Position { x: 8.0, y: 8.0 },
+                Position { x: 6.0, y: 8.0 },
+            );
+
+            sim.sync_render_buffer();
+            assert_eq!(
+                projection_of(sim.render_buffer(), agent),
+                expected,
+                "a compiled standing-read {description} near miss must retain its exact sibling behavior"
+            );
+            assert_ne!(
+                projection_of(sim.render_buffer(), agent).0,
+                visual_action::STANDING_READ,
+                "a compiled standing-read {description} near miss must not acquire action 4"
+            );
+        }
+    }
+
+    #[test]
+    fn standing_read_fails_closed_for_each_required_component_identity_and_owner_near_miss() {
+        use crate::render_buffer::{activity, facing, visual_action};
+        use terri_core::{ChainState, Socialising, StepWork, Target};
+
+        let shipped = terri_data::pack();
+        let shipped_bookshelf = shipped.find("bookshelf").expect("shipped bookshelf");
+        let shipped_fridge = shipped.find("fridge").expect("shipped fridge");
+        let mut bookshelf_definition = shipped.object(shipped_bookshelf).clone();
+        let read = bookshelf_definition
+            .interactions
+            .iter()
+            .position(|interaction| interaction.id == "read")
+            .expect("shipped bookshelf.read") as u32;
+        let mut alternate = bookshelf_definition.interactions[read as usize].clone();
+        alternate.id = "alternate_read".to_string();
+        let alternate_read = bookshelf_definition.interactions.len() as u32;
+        bookshelf_definition.interactions.push(alternate);
+        let mut tag_only = bookshelf_definition.interactions[read as usize].clone();
+        tag_only.id = "tag_only".to_string();
+        tag_only.visual = None;
+        assert!(tag_only.tags.iter().any(|tag| tag == "reading"));
+        let tag_only_read = bookshelf_definition.interactions.len() as u32;
+        bookshelf_definition.interactions.push(tag_only);
+        let pack = crate::test_content::pack(vec![
+            bookshelf_definition,
+            shipped.object(shipped_fridge).clone(),
+        ]);
+        let bookshelf = pack.find("bookshelf").expect("fixture bookshelf");
+        let fridge = pack.find("fridge").expect("fixture fridge");
+        let mut sim = crate::test_content::sim_with(32, 32, pack);
+        let valid_target = sim.spawn_object(Position { x: 16.0, y: 16.0 }, bookshelf);
+        let fridge_target = sim.spawn_object(Position { x: 18.0, y: 16.0 }, fridge);
+        let missing_smart_object = sim.world_mut().spawn(Position { x: 16.0, y: 16.0 }).id();
+        let missing_position = sim.world_mut().spawn(SmartObject(bookshelf)).id();
+        let social_partner = sim
+            .world_mut()
+            .spawn((Agent, Position { x: 5.0, y: 6.0 }))
+            .id();
+        let spawn_agent = |sim: &mut Sim| {
+            sim.world_mut()
+                .spawn((Agent, Position { x: 5.0, y: 5.0 }))
+                .id()
+        };
+        let eating = |object, interaction| Eating {
+            object,
+            interaction,
+            remaining_ticks: 10,
+        };
+        let target = |object, interaction| Target {
+            object,
+            interaction,
+        };
+
+        let missing_eating = spawn_agent(&mut sim);
+        sim.world_mut()
+            .entity_mut(missing_eating)
+            .insert(target(valid_target, read));
+        let missing_target = spawn_agent(&mut sim);
+        sim.world_mut()
+            .entity_mut(missing_target)
+            .insert(eating(bookshelf, read));
+        let missing_agent = sim
+            .world_mut()
+            .spawn((
+                Position { x: 5.0, y: 5.0 },
+                eating(bookshelf, read),
+                target(valid_target, read),
+            ))
+            .id();
+        let target_without_smart_object = spawn_agent(&mut sim);
+        sim.world_mut()
+            .entity_mut(target_without_smart_object)
+            .insert((eating(bookshelf, read), target(missing_smart_object, read)));
+        let target_without_position = spawn_agent(&mut sim);
+        sim.world_mut()
+            .entity_mut(target_without_position)
+            .insert((eating(bookshelf, read), target(missing_position, read)));
+        let mismatched_definition = spawn_agent(&mut sim);
+        sim.world_mut()
+            .entity_mut(mismatched_definition)
+            .insert((eating(fridge, read), target(valid_target, read)));
+        let mismatched_interaction = spawn_agent(&mut sim);
+        sim.world_mut().entity_mut(mismatched_interaction).insert((
+            eating(bookshelf, read),
+            target(valid_target, alternate_read),
+        ));
+        let out_of_range_interaction = spawn_agent(&mut sim);
+        sim.world_mut()
+            .entity_mut(out_of_range_interaction)
+            .insert((eating(bookshelf, 99), target(valid_target, 99)));
+        let reading_tag_without_visual = spawn_agent(&mut sim);
+        sim.world_mut()
+            .entity_mut(reading_tag_without_visual)
+            .insert((
+                eating(bookshelf, tag_only_read),
+                target(valid_target, tag_only_read),
+            ));
+        let wrong_target_definition = spawn_agent(&mut sim);
+        sim.world_mut()
+            .entity_mut(wrong_target_definition)
+            .insert((eating(bookshelf, read), target(fridge_target, read)));
+        let chain_sentinel = spawn_agent(&mut sim);
+        sim.world_mut().entity_mut(chain_sentinel).insert((
+            eating(bookshelf, crate::systems::chain::CHAIN_STEP),
+            target(valid_target, crate::systems::chain::CHAIN_STEP),
+        ));
+        let active_chain_state = spawn_agent(&mut sim);
+        sim.world_mut().entity_mut(active_chain_state).insert((
+            eating(bookshelf, read),
+            target(valid_target, read),
+            ChainState {
+                chain: 0,
+                step: 0,
+                fumble_scale: 1.0,
+            },
+        ));
+        let active_step_work = spawn_agent(&mut sim);
+        sim.world_mut().entity_mut(active_step_work).insert((
+            eating(bookshelf, read),
+            target(valid_target, read),
+            StepWork {
+                remaining_ticks: 10,
+            },
+        ));
+        let active_social = spawn_agent(&mut sim);
+        sim.world_mut().entity_mut(active_social).insert((
+            eating(bookshelf, read),
+            target(valid_target, read),
+            Socialising {
+                interaction: 99,
+                partner: social_partner,
+                remaining_ticks: 10,
+            },
+        ));
+
+        sim.sync_render_buffer();
+        for (entity, description) in [
+            (missing_eating, "missing Eating"),
+            (missing_target, "missing Target"),
+            (missing_agent, "missing Agent"),
+            (target_without_smart_object, "target missing SmartObject"),
+            (target_without_position, "target missing Position"),
+            (mismatched_definition, "mismatched object definition"),
+            (mismatched_interaction, "mismatched interaction"),
+            (out_of_range_interaction, "out-of-range interaction"),
+            (reading_tag_without_visual, "reading tag without visual"),
+            (wrong_target_definition, "wrong exact target definition"),
+            (chain_sentinel, "chain-step target sentinel"),
+            (active_chain_state, "active ChainState"),
+            (active_step_work, "active StepWork"),
+            (active_social, "active Socialising"),
+        ] {
+            let (action, direction, projected_activity) =
+                projection_of(sim.render_buffer(), entity);
+            assert_eq!(
+                (action, direction),
+                (visual_action::NONE, facing::NONE),
+                "{description} must not acquire standing-read art"
+            );
+            assert_ne!(
+                projected_activity,
+                activity::READING,
+                "{description} must not acquire the exact Reading activity"
+            );
+        }
+        assert_eq!(
+            projection_of(sim.render_buffer(), missing_target).2,
+            activity::USING_OBJECT,
+            "ordinary malformed object use keeps its generic fallback"
+        );
+    }
+
+    #[test]
+    fn standing_read_uses_the_exact_target_entity_and_survives_save_load_without_projection_state()
+    {
+        use crate::render_buffer::{activity, facing, visual_action};
+
+        let mut sim = Sim::new_with_lot(32, 32);
+        let bookshelf = terri_data::pack()
+            .find("bookshelf")
+            .expect("shipped bookshelf");
+        let read = shipped_interaction_index(bookshelf, "read");
+        let _decoy = sim.spawn_object(Position { x: 4.0, y: 12.0 }, bookshelf);
+        let exact = sim.spawn_object(Position { x: 20.0, y: 12.0 }, bookshelf);
+        let agent_position = Position { x: 18.0, y: 12.0 };
+        let agent = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                agent_position,
+                Eating {
+                    object: bookshelf,
+                    interaction: read,
+                    remaining_ticks: 10,
+                },
+                terri_core::Target {
+                    object: exact,
+                    interaction: read,
+                },
+            ))
+            .id();
+        let snapshot = sim.save_snapshot();
+        let hash = sim.world_hash();
+
+        sim.sync_render_buffer();
+        assert_eq!(
+            projection_of(sim.render_buffer(), agent),
+            (
+                visual_action::STANDING_READ,
+                facing::POSITIVE_X,
+                activity::READING,
+            ),
+            "the decoy shelf to the west must not replace the exact target to the east"
+        );
+        assert_eq!(
+            displayed_position_of(sim.render_buffer(), agent).0,
+            (18.0, 12.0)
+        );
+        assert_eq!(sim.save_snapshot(), snapshot);
+        assert_eq!(sim.world_hash(), hash);
+
+        let mut restored = Sim::new_with_lot(1, 1);
+        restored
+            .load_snapshot(snapshot.clone())
+            .expect("the active bookshelf interaction is valid Save V1 state");
+        restored.sync_render_buffer();
+        assert_eq!(
+            projection_of(restored.render_buffer(), agent),
+            (
+                visual_action::STANDING_READ,
+                facing::POSITIVE_X,
+                activity::READING,
+            )
+        );
+        assert_eq!(
+            displayed_position_of(restored.render_buffer(), agent),
+            ((18.0, 12.0), (18.0, 12.0)),
+            "Load reconstructs standing reading from saved simulation state at the ordinary tile"
+        );
+        assert_eq!(restored.save_snapshot(), snapshot);
+        assert_eq!(restored.world_hash(), hash);
+    }
+
+    #[test]
+    fn standing_read_keeps_seated_read_eating_and_generic_object_use_distinct() {
+        use crate::render_buffer::{activity, facing, visual_action};
+        use terri_core::Target;
+
+        let pack = terri_data::pack();
+        let mut sim = Sim::new_with_lot(32, 32);
+        let standing_position = Position { x: 5.0, y: 6.0 };
+        let (standing_reader, _, _, _) =
+            spawn_shipped_standing_reader(&mut sim, Position { x: 7.0, y: 6.0 }, standing_position);
+        let chair_position = Position { x: 12.0, y: 6.0 };
+        let (seated_reader, _, _, _) =
+            spawn_shipped_reader(&mut sim, chair_position, Position { x: 10.0, y: 6.0 });
+
+        let fridge = pack.find("fridge").expect("shipped fridge");
+        let snack = shipped_interaction_index(fridge, "grab_snack");
+        let fridge_target = sim.spawn_object(Position { x: 17.0, y: 6.0 }, fridge);
+        let eater = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 15.0, y: 6.0 },
+                Eating {
+                    object: fridge,
+                    interaction: snack,
+                    remaining_ticks: 10,
+                },
+                Target {
+                    object: fridge_target,
+                    interaction: snack,
+                },
+            ))
+            .id();
+
+        let sink = pack.find("sink").expect("shipped sink");
+        let wash = shipped_interaction_index(sink, "wash_hands");
+        let sink_target = sim.spawn_object(Position { x: 22.0, y: 6.0 }, sink);
+        let generic_user = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 20.0, y: 6.0 },
+                Eating {
+                    object: sink,
+                    interaction: wash,
+                    remaining_ticks: 10,
+                },
+                Target {
+                    object: sink_target,
+                    interaction: wash,
+                },
+            ))
+            .id();
+
+        sim.sync_render_buffer();
+        assert_eq!(
+            projection_of(sim.render_buffer(), standing_reader),
+            (
+                visual_action::STANDING_READ,
+                facing::POSITIVE_X,
+                activity::READING,
+            )
+        );
+        assert_eq!(
+            displayed_position_of(sim.render_buffer(), standing_reader).0,
+            (standing_position.x, standing_position.y)
+        );
+        assert_eq!(
+            projection_of(sim.render_buffer(), seated_reader),
+            (visual_action::READ, facing::POSITIVE_X, activity::READING)
+        );
+        assert_eq!(
+            displayed_position_of(sim.render_buffer(), seated_reader).0,
+            (chair_position.x, chair_position.y)
+        );
+        assert_eq!(
+            projection_of(sim.render_buffer(), eater),
+            (visual_action::EAT, facing::POSITIVE_X, activity::EATING)
+        );
+        assert_eq!(
+            projection_of(sim.render_buffer(), generic_user),
+            (visual_action::NONE, facing::NONE, activity::USING_OBJECT)
+        );
     }
 
     #[test]
@@ -1049,6 +1609,44 @@ mod tests {
     }
 
     #[test]
+    fn conversation_visual_retains_precedence_over_valid_standing_reading() {
+        use crate::render_buffer::{activity, facing, visual_action};
+        use terri_core::{Reserved, Socialising};
+
+        let shipped = terri_data::pack();
+        let bookshelf = shipped.find("bookshelf").expect("shipped bookshelf");
+        let pack = crate::test_content::pack_with_social(
+            vec![shipped.object(bookshelf).clone()],
+            vec![authored_talk_interaction("chat")],
+            crate::test_content::tuning(),
+        );
+        let mut sim = crate::test_content::sim_with(20, 20, pack);
+        let agent_position = Position { x: 3.0, y: 4.0 };
+        let (agent, _, _, _) =
+            spawn_shipped_standing_reader(&mut sim, Position { x: 14.0, y: 15.0 }, agent_position);
+        let partner = sim
+            .world_mut()
+            .spawn((Agent, Position { x: 5.0, y: 4.0 }, Reserved))
+            .id();
+        sim.world_mut().entity_mut(agent).insert(Socialising {
+            interaction: 0,
+            partner,
+            remaining_ticks: 10,
+        });
+
+        sim.sync_render_buffer();
+        assert_eq!(
+            projection_of(sim.render_buffer(), agent),
+            (visual_action::TALK, facing::POSITIVE_X, activity::TALKING)
+        );
+        assert_eq!(
+            displayed_position_of(sim.render_buffer(), agent).0,
+            (agent_position.x, agent_position.y),
+            "talk precedence must keep a would-be standing reader on the ordinary tile"
+        );
+    }
+
+    #[test]
     fn shipped_snack_projects_eat_toward_the_exact_object_in_all_four_directions() {
         use crate::render_buffer::{activity, facing, visual_action};
         use terri_core::Target;
@@ -1122,7 +1720,6 @@ mod tests {
             ("toilet", "relieve_self"),
             ("television", "watch_tv"),
             ("sink", "wash_hands"),
-            ("bookshelf", "read"),
             ("kitchen_sink", "wash_up"),
             ("reading_chair", "settle_in"),
         ];
@@ -1768,6 +2365,72 @@ mod tests {
             projection_of(sim.render_buffer(), partner),
             (visual_action::TALK, facing::NEGATIVE_X, activity::TALKING)
         );
+    }
+
+    #[test]
+    fn passive_malformed_social_partners_fail_closed_for_every_object_action_pose() {
+        use crate::render_buffer::{activity, facing, visual_action};
+        use terri_core::{Socialising, Target};
+
+        let mut sim = Sim::new_with_lot(32, 32);
+        let (seated, _, _, _) = spawn_shipped_reader(
+            &mut sim,
+            Position { x: 6.0, y: 6.0 },
+            Position { x: 5.0, y: 6.0 },
+        );
+        let (standing, _, _, _) = spawn_shipped_standing_reader(
+            &mut sim,
+            Position { x: 14.0, y: 6.0 },
+            Position { x: 12.0, y: 6.0 },
+        );
+
+        let fridge = terri_data::pack().find("fridge").expect("shipped fridge");
+        let snack = shipped_interaction_index(fridge, "grab_snack");
+        let fridge_target = sim.spawn_object(Position { x: 22.0, y: 6.0 }, fridge);
+        let eating = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 20.0, y: 6.0 },
+                Eating {
+                    object: fridge,
+                    interaction: snack,
+                    remaining_ticks: 10,
+                },
+                Target {
+                    object: fridge_target,
+                    interaction: snack,
+                },
+            ))
+            .id();
+
+        for (index, partner) in [seated, standing, eating].into_iter().enumerate() {
+            sim.world_mut().spawn((
+                Agent,
+                Position {
+                    x: 2.0,
+                    y: 2.0 + index as f32,
+                },
+                Socialising {
+                    interaction: u32::MAX,
+                    partner,
+                    remaining_ticks: 10,
+                },
+            ));
+        }
+
+        sim.sync_render_buffer();
+        for (entity, description) in [
+            (seated, "seated reading"),
+            (standing, "standing reading"),
+            (eating, "object eating"),
+        ] {
+            assert_eq!(
+                projection_of(sim.render_buffer(), entity),
+                (visual_action::NONE, facing::NONE, activity::TALKING),
+                "a passive malformed social partner must suppress {description} art"
+            );
+        }
     }
 
     /// The authored action is projected from each real `Socialising` pair,

@@ -1,6 +1,9 @@
 # Conversation action animation
 
-Status: approved implementation record for the first action-specific body animation.
+Status: shipped implementation record for the first action-specific body
+animation. The owner accepted the Chat animation on 2026-08-09. Its frame hold
+was then doubled from four to eight simulation ticks as the new minimum action
+timing; later action categories may use longer holds.
 
 This slice makes a conversation readable in the bodies of both participants,
 not only in the activity bubble. It also establishes the semantic contract that
@@ -81,7 +84,7 @@ must not move.
 ## [CA4] Simulation time owns the pose phase
 
 The shell passes the current simulation tick into `buildInstances`. A talk pose
-holds for four simulation ticks before changing. Stable entity id supplies the
+holds for eight simulation ticks before changing. Stable entity id supplies the
 participant offset so the household does not gesture in lockstep.
 
 Wall time is forbidden. Simulation time gives the required behavior for free:
@@ -117,7 +120,7 @@ Automated coverage must prove:
 3. The WASM pointers and web bridge address the new columns after memory growth.
 4. Two nearby conversations keep their own pairs.
 5. All four anchor directions choose their matching directional sprites.
-6. Normal motion changes frame with simulation ticks; pause and Load do not
+6. Normal motion changes frame on the eight-tick hold; pause and Load do not
    invent a wall-clock phase.
 7. Reduced motion holds the directional quiet pose.
 8. Idle, walking, object-use, carried-badge, selection, zoom, and picking
