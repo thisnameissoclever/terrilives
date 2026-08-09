@@ -12,16 +12,17 @@ pub mod schema;
 pub use compile::{compile, SIM_SPRITE};
 pub use error::ContentError;
 pub use pack::{
-    CompiledCareer, CompiledChain, CompiledChainStep, CompiledHouseholdMember, CompiledInteraction,
-    CompiledLot, CompiledObject, CompiledPersonality, CompiledPlacement, CompiledTrait,
+    CompiledActionSocket, CompiledCareer, CompiledChain, CompiledChainStep,
+    CompiledHouseholdMember, CompiledInteraction, CompiledLot, CompiledObject, CompiledPersonality,
+    CompiledPlacement, CompiledPlacementSocket, CompiledSocketFacing, CompiledTrait,
     CompiledTraitKind, CompiledVisual, CompiledVisualAction, CompiledVisualAnchor,
     CompiledVisualFacing, ContentPack, Footprint, ObjectDefId, Tuning,
 };
 pub use schema::{
-    ArchetypeDef, AtlasFile, AtlasSpriteDef, DispositionDef, HouseholdFile, HouseholdSimDef,
-    InteractionDef, LotFile, NeedDef, NeedsFile, ObjectDef, ObjectsFile, PersonalitiesFile,
-    PlacementDef, TraitDef, TraitsFile, TuningFile, VisualDef, WallDef, MAX_HOUSEHOLD_SIZE,
-    TRAIT_KINDS,
+    ActionSocketDef, ArchetypeDef, AtlasFile, AtlasSpriteDef, DispositionDef, HouseholdFile,
+    HouseholdSimDef, InteractionDef, LotFile, NeedDef, NeedsFile, ObjectDef, ObjectsFile,
+    PersonalitiesFile, PlacementDef, TraitDef, TraitsFile, TuningFile, VisualDef, WallDef,
+    MAX_HOUSEHOLD_SIZE, TRAIT_KINDS,
 };
 
 use std::sync::OnceLock;
@@ -64,14 +65,14 @@ static PACK_BYTES: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/content_pac
 ///
 /// What is deliberately NOT hashed: every number in `tuning.toml`, every
 /// advert delta, label, duration, tag, object-interaction visual contract,
-/// chain-step visual contract, every sprite index, every sim's NAME, the rest
-/// of the lot, careers, carried-item declaration order, and the circadian
-/// curve. Object, career, trait, chain, and carried-item string references are
-/// validated against the current pack while loading. Hobbies remain raw tags;
-/// removing their last matching activity makes the hobby inactive rather than
-/// making the save corrupt. A save that loads into retuned content simply
-/// plays under the new numbers, which is what a player wants and what a
-/// designer iterating on balance needs.
+/// chain-step visual contract, action socket, every sprite index, every sim's
+/// NAME, the rest of the lot, careers, carried-item declaration order, and the
+/// circadian curve. Object, career, trait, chain, and carried-item string
+/// references are validated against the current pack while loading. Hobbies
+/// remain raw tags; removing their last matching activity makes the hobby
+/// inactive rather than making the save corrupt. A save that loads into
+/// retuned content simply plays under the new numbers, which is what a player
+/// wants and what a designer iterating on balance needs.
 ///
 /// The cost of the narrower rule, stated plainly: change a delta and a
 /// mid-flight interaction finishes under the new one. That is a save
@@ -693,6 +694,7 @@ mod tests {
                 action: CompiledVisualAction::Talk,
                 anchor: CompiledVisualAnchor::Partner,
                 facing: CompiledVisualFacing::TowardAnchor,
+                socket: None,
             }),
             "the shipped chat must exercise the complete visual contract"
         );
@@ -723,6 +725,7 @@ mod tests {
                 action: CompiledVisualAction::Eat,
                 anchor: CompiledVisualAnchor::Object,
                 facing: CompiledVisualFacing::TowardAnchor,
+                socket: None,
             }),
             "the shipped snack must exercise the object-eating contract"
         );
@@ -734,6 +737,71 @@ mod tests {
             content_fingerprint(&presentation_only),
             "object visual metadata must not invalidate a Save V1"
         );
+    }
+
+    #[test]
+    fn the_fingerprint_allows_reading_socket_presentation_changes() {
+        let original = pack().clone();
+        let base = content_fingerprint(&original);
+        let chair = original
+            .find("reading_chair")
+            .expect("the shipped reading chair exists");
+        let settle = original
+            .object(chair)
+            .interactions
+            .iter()
+            .position(|interaction| interaction.id == "settle_in")
+            .expect("the shipped reading interaction exists");
+        assert_eq!(
+            original.object(chair).interactions[settle].visual,
+            Some(CompiledVisual {
+                action: CompiledVisualAction::Read,
+                anchor: CompiledVisualAnchor::ObjectSocket,
+                facing: CompiledVisualFacing::Socket,
+                socket: Some(0),
+            })
+        );
+        assert_eq!(
+            original.object(chair).action_sockets,
+            vec![CompiledActionSocket {
+                id: "seat".to_string(),
+                x: 0.0,
+                y: 0.0,
+                facing: CompiledSocketFacing::PositiveX,
+            }]
+        );
+        let placement = original
+            .lot
+            .placements
+            .iter()
+            .find(|placement| placement.object == chair)
+            .expect("the shipped reading chair is placed");
+        assert_eq!(
+            placement.action_sockets,
+            vec![CompiledPlacementSocket {
+                x: placement.x,
+                y: placement.y,
+                facing: CompiledSocketFacing::PositiveX,
+            }],
+            "the shipped zero-offset SE seat resolves to its chair position"
+        );
+
+        let mut id_changed = original.clone();
+        id_changed.objects[chair.0 as usize].action_sockets[0].id = "cushion".to_string();
+        assert_eq!(base, content_fingerprint(&id_changed));
+
+        let mut x_changed = original.clone();
+        x_changed.objects[chair.0 as usize].action_sockets[0].x = 0.25;
+        assert_eq!(base, content_fingerprint(&x_changed));
+
+        let mut y_changed = original.clone();
+        y_changed.objects[chair.0 as usize].action_sockets[0].y = -0.25;
+        assert_eq!(base, content_fingerprint(&y_changed));
+
+        let mut facing_changed = original;
+        facing_changed.objects[chair.0 as usize].action_sockets[0].facing =
+            CompiledSocketFacing::NegativeY;
+        assert_eq!(base, content_fingerprint(&facing_changed));
     }
 
     #[test]
@@ -756,6 +824,7 @@ mod tests {
                 action: CompiledVisualAction::Eat,
                 anchor: CompiledVisualAnchor::Station,
                 facing: CompiledVisualFacing::TowardAnchor,
+                socket: None,
             }),
             "the shipped dinner must exercise the station-eating contract"
         );

@@ -8,9 +8,9 @@
 use crate::error::ContentError;
 use crate::pack::{Circadian, CompiledHouseholdMember, CompiledPersonality};
 use crate::pack::{
-    CompiledInteraction, CompiledLot, CompiledObject, CompiledPlacement, CompiledVisual,
-    CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, ContentPack, ObjectDefId,
-    Tuning,
+    CompiledActionSocket, CompiledInteraction, CompiledLot, CompiledObject, CompiledPlacement,
+    CompiledPlacementSocket, CompiledSocketFacing, CompiledVisual, CompiledVisualAction,
+    CompiledVisualAnchor, CompiledVisualFacing, ContentPack, ObjectDefId, Tuning,
 };
 use crate::schema::{
     AtlasFile, CareersFile, ChainsFile, HouseholdFile, InteractionDef, LotFile, NeedsFile,
@@ -199,6 +199,63 @@ pub fn compile(
             });
         }
 
+        let mut seen_sockets = BTreeSet::new();
+        let mut action_sockets = Vec::with_capacity(object.action_socket.len());
+        for socket in &object.action_socket {
+            if socket.id.trim().is_empty() {
+                return Err(ContentError::EmptyActionSocketId {
+                    object: object.id.clone(),
+                });
+            }
+            if !seen_sockets.insert(socket.id.clone()) {
+                return Err(ContentError::DuplicateActionSocketId {
+                    object: object.id.clone(),
+                    socket: socket.id.clone(),
+                });
+            }
+            check_finite(
+                socket.x,
+                &format!("x on action socket '{}' of '{}'", socket.id, object.id),
+            )?;
+            check_finite(
+                socket.y,
+                &format!("y on action socket '{}' of '{}'", socket.id, object.id),
+            )?;
+            let facing = match socket.facing.as_str() {
+                "SE" => CompiledSocketFacing::PositiveX,
+                "NW" => CompiledSocketFacing::NegativeX,
+                "SW" => CompiledSocketFacing::PositiveY,
+                "NE" => CompiledSocketFacing::NegativeY,
+                unknown => {
+                    return Err(ContentError::UnknownActionSocketFacing {
+                        object: object.id.clone(),
+                        socket: socket.id.clone(),
+                        facing: unknown.to_string(),
+                    })
+                }
+            };
+            let x = (object.footprint.width - 1) as f32 / 2.0 + socket.x;
+            let y = (object.footprint.depth - 1) as f32 / 2.0 + socket.y;
+            if x.floor() < 0.0
+                || y.floor() < 0.0
+                || x.floor() >= object.footprint.width as f32
+                || y.floor() >= object.footprint.depth as f32
+            {
+                return Err(ContentError::ActionSocketOutsideFootprint {
+                    object: object.id.clone(),
+                    socket: socket.id.clone(),
+                    x,
+                    y,
+                });
+            }
+            action_sockets.push(CompiledActionSocket {
+                id: socket.id.clone(),
+                x: socket.x,
+                y: socket.y,
+                facing,
+            });
+        }
+
         // Scoped to the object, so two objects may each declare a
         // `use` interaction without colliding.
         //
@@ -267,8 +324,12 @@ pub fn compile(
             // sort explicitly rather than relying on the two agreeing.
             advertises.sort_unstable_by_key(|(i, _)| *i);
 
-            let (tags, satisfaction, visual) =
-                compile_activity_extras(act, &object.id, InteractionVisualOwner::Object)?;
+            let (tags, satisfaction, visual) = compile_activity_extras(
+                act,
+                &object.id,
+                InteractionVisualOwner::Object,
+                &action_sockets,
+            )?;
             interactions.push(CompiledInteraction {
                 id: act.id.clone(),
                 advertises,
@@ -316,6 +377,7 @@ pub fn compile(
             interactions,
             footprint: object.footprint,
             roles: worn_roles,
+            action_sockets,
         });
     }
 
@@ -543,6 +605,7 @@ fn compile_chains(
                     chain: &def.id,
                     step: index,
                 },
+                &[],
             )?;
 
             // The role, resolved against the vocabulary the objects
@@ -996,7 +1059,7 @@ fn compile_social(
         }
 
         let (tags, satisfaction, visual) =
-            compile_activity_extras(act, "social.toml", InteractionVisualOwner::Social)?;
+            compile_activity_extras(act, "social.toml", InteractionVisualOwner::Social, &[])?;
         compiled.push(CompiledInteraction {
             id: act.id.clone(),
             advertises,
@@ -1025,6 +1088,7 @@ fn compile_activity_extras(
     act: &InteractionDef,
     owner: &str,
     visual_owner: InteractionVisualOwner,
+    action_sockets: &[CompiledActionSocket],
 ) -> Result<(Vec<String>, f32, Option<CompiledVisual>), ContentError> {
     for tag in &act.tags {
         if tag.trim().is_empty() {
@@ -1054,7 +1118,7 @@ fn compile_activity_extras(
             interaction: &act.id,
         },
     };
-    let visual = compile_visual(act.visual.as_ref(), visual_owner)?;
+    let visual = compile_visual(act.visual.as_ref(), visual_owner, action_sockets)?;
     Ok((act.tags.clone(), act.satisfaction, visual))
 }
 
@@ -1203,6 +1267,7 @@ impl VisualOwner<'_> {
 fn compile_visual(
     visual: Option<&VisualDef>,
     owner: VisualOwner<'_>,
+    action_sockets: &[CompiledActionSocket],
 ) -> Result<Option<CompiledVisual>, ContentError> {
     let Some(visual) = visual else {
         return Ok(None);
@@ -1224,52 +1289,94 @@ fn compile_visual(
     let action = match action {
         "talk" => CompiledVisualAction::Talk,
         "eat" => CompiledVisualAction::Eat,
+        "read" => CompiledVisualAction::Read,
         unknown => return Err(owner.unknown_action(unknown)),
     };
     let anchor = match anchor {
         "partner" => CompiledVisualAnchor::Partner,
         "object" => CompiledVisualAnchor::Object,
         "station" => CompiledVisualAnchor::Station,
+        "object_socket" => CompiledVisualAnchor::ObjectSocket,
         unknown => return Err(owner.unknown_anchor(unknown)),
     };
     let facing = match facing {
         "toward_anchor" => CompiledVisualFacing::TowardAnchor,
+        "socket" => CompiledVisualFacing::Socket,
         unknown => return Err(owner.unknown_facing(unknown)),
     };
 
+    if action == CompiledVisualAction::Read && visual.socket.is_none() {
+        return Err(owner.incomplete("socket"));
+    }
+
     let legal = matches!(
-        (owner, action, anchor),
+        (owner, action, anchor, facing, visual.socket.as_ref()),
         (
             VisualOwner::Social { .. },
             CompiledVisualAction::Talk,
-            CompiledVisualAnchor::Partner
+            CompiledVisualAnchor::Partner,
+            CompiledVisualFacing::TowardAnchor,
+            None
         ) | (
             VisualOwner::Object { .. },
             CompiledVisualAction::Eat,
-            CompiledVisualAnchor::Object
+            CompiledVisualAnchor::Object,
+            CompiledVisualFacing::TowardAnchor,
+            None
         ) | (
             VisualOwner::ChainStep { .. },
             CompiledVisualAction::Eat,
-            CompiledVisualAnchor::Station
+            CompiledVisualAnchor::Station,
+            CompiledVisualFacing::TowardAnchor,
+            None
+        ) | (
+            VisualOwner::Object { .. },
+            CompiledVisualAction::Read,
+            CompiledVisualAnchor::ObjectSocket,
+            CompiledVisualFacing::Socket,
+            Some(_)
         )
     );
     if !legal {
         let action = match action {
             CompiledVisualAction::Talk => "talk",
             CompiledVisualAction::Eat => "eat",
+            CompiledVisualAction::Read => "read",
         };
         let anchor = match anchor {
             CompiledVisualAnchor::Partner => "partner",
             CompiledVisualAnchor::Object => "object",
             CompiledVisualAnchor::Station => "station",
+            CompiledVisualAnchor::ObjectSocket => "object_socket",
         };
         return Err(owner.invalid_contract(action, anchor));
     }
+
+    let socket = match visual.socket.as_deref() {
+        Some(socket) => Some(
+            action_sockets
+                .iter()
+                .position(|candidate| candidate.id == socket)
+                .ok_or_else(|| match owner {
+                    VisualOwner::Object {
+                        object,
+                        interaction,
+                    } => ContentError::UnknownVisualSocket {
+                        owner: object.to_string(),
+                        interaction: interaction.to_string(),
+                        socket: socket.to_string(),
+                    },
+                    _ => owner.invalid_contract("read", "object_socket"),
+                })? as u32,
+        ),
+        None => None,
+    };
 
     Ok(Some(CompiledVisual {
         action,
         anchor,
         facing,
+        socket,
     }))
 }
 
@@ -1922,6 +2029,42 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
 /// Validates the lot against the objects that were just compiled, and
 /// resolves every placement's object id to its index in them.
 ///
+fn rotate_socket_terms(x: f32, y: f32, placement_facing: &str) -> (f32, f32) {
+    match placement_facing {
+        "SE" => (x, y),
+        "SW" => (-y, x),
+        "NW" => (-x, -y),
+        "NE" => (y, -x),
+        _ => unreachable!("placement facing is validated before socket resolution"),
+    }
+}
+
+fn resolve_socket_facing(
+    socket_facing: CompiledSocketFacing,
+    placement_facing: &str,
+) -> CompiledSocketFacing {
+    let (x, y) = match socket_facing {
+        CompiledSocketFacing::PositiveX => (1, 0),
+        CompiledSocketFacing::NegativeX => (-1, 0),
+        CompiledSocketFacing::PositiveY => (0, 1),
+        CompiledSocketFacing::NegativeY => (0, -1),
+    };
+    let rotated = match placement_facing {
+        "SE" => (x, y),
+        "SW" => (-y, x),
+        "NW" => (-x, -y),
+        "NE" => (y, -x),
+        _ => unreachable!("placement facing is validated before socket resolution"),
+    };
+    match rotated {
+        (1, 0) => CompiledSocketFacing::PositiveX,
+        (-1, 0) => CompiledSocketFacing::NegativeX,
+        (0, 1) => CompiledSocketFacing::PositiveY,
+        (0, -1) => CompiledSocketFacing::NegativeY,
+        _ => unreachable!("rotating a unit axis produces a unit axis"),
+    }
+}
+
 /// Taking the compiled objects rather than the authored ones is what
 /// makes the last rule a real dangling-reference check: a placement can
 /// only name something that survived object validation.
@@ -2058,12 +2201,41 @@ fn compile_lot(
             }
         };
 
+        let placement_facing = place.facing.as_deref().unwrap_or("SE");
+        let centre_x = place.x + (objects[index].footprint.width - 1) as f32 / 2.0;
+        let centre_y = place.y + (objects[index].footprint.depth - 1) as f32 / 2.0;
+        let mut action_sockets = Vec::with_capacity(objects[index].action_sockets.len());
+        for socket in &objects[index].action_sockets {
+            let (offset_x, offset_y) = rotate_socket_terms(socket.x, socket.y, placement_facing);
+            let x = centre_x + offset_x;
+            let y = centre_y + offset_y;
+            let socket_tile = (x.floor() as i64, y.floor() as i64);
+            if socket_tile.0 < tile.0 as i64
+                || socket_tile.1 < tile.1 as i64
+                || socket_tile.0 >= tile.0 as i64 + objects[index].footprint.width as i64
+                || socket_tile.1 >= tile.1 as i64 + objects[index].footprint.depth as i64
+            {
+                return Err(ContentError::ActionSocketOutsideFootprint {
+                    object: place.object.clone(),
+                    socket: socket.id.clone(),
+                    x,
+                    y,
+                });
+            }
+            action_sockets.push(CompiledPlacementSocket {
+                x,
+                y,
+                facing: resolve_socket_facing(socket.facing, placement_facing),
+            });
+        }
+
         rects.push((place.object.clone(), tile, objects[index].footprint));
         placements.push(CompiledPlacement {
             object: ObjectDefId(index as u32),
             x: place.x,
             y: place.y,
             sprite,
+            action_sockets,
         });
     }
 
@@ -2398,8 +2570,9 @@ mod tests {
     // name are imported here.
     use super::*;
     use crate::schema::{
-        ArchetypeDef, AtlasSpriteDef, CareerDef, CircadianFile, DispositionDef, HouseholdSimDef,
-        InteractionDef, NeedDef, ObjectDef, PlacementDef, TraitDef, VisualDef, WallDef,
+        ActionSocketDef, ArchetypeDef, AtlasSpriteDef, CareerDef, CircadianFile, DispositionDef,
+        HouseholdSimDef, InteractionDef, NeedDef, ObjectDef, PlacementDef, TraitDef, VisualDef,
+        WallDef,
     };
 
     /// The atlas every test compiles against.
@@ -2519,6 +2692,13 @@ mod tests {
         // were read from the failing assertion after the append-only enums
         // gained their eating variants.
         //
+        // **Action sockets append three empty slots in this old-world
+        // fixture.** The first `0` follows TowardAnchor and is the established
+        // eat visual's appended `socket = None`. The second follows the
+        // object's empty role list and is its empty action-socket list. The
+        // third follows the placement sprite and is its empty resolved-socket
+        // list. Every prior field retains its value and order.
+        //
         // **Moved three times at M2e PR 3, all appends.** `Tuning`
         // gained a trailing `day_ticks` - the lone `19` near the end -
         // and `ContentPack` a trailing `careers` list, one more
@@ -2555,8 +2735,8 @@ mod tests {
         12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64,
         15, 1, 15, 69, 97, 116, 32, 115, 116, 97, 110, 100,
         105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1, 1,
-        1, 0, 1, 1, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0,
-        0, 0, 32, 64, 0, 0, 160, 63, 2, 0, 0, 0,
+        1, 0, 0, 1, 1, 0, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0,
+        0, 0, 32, 64, 0, 0, 160, 63, 2, 0, 0, 0, 0,
         128, 62, 0, 0, 0, 63, 0, 0, 0, 62, 9, 6,
         0, 0, 160, 62, 10, 215, 35, 59, 0, 0, 32, 63,
         0, 0, 64, 63, 3, 172, 2, 7, 11, 13, 0, 0,
@@ -2645,6 +2825,7 @@ mod tests {
                 .iter()
                 .map(|id| ObjectDef {
                     roles: vec![],
+                    action_socket: vec![],
                     id: (*id).to_string(),
                     name: id.to_uppercase(),
                     sprite: format!("{id}_art"),
@@ -2783,6 +2964,7 @@ mod tests {
         ObjectsFile {
             object: vec![ObjectDef {
                 roles: vec![],
+                action_socket: vec![],
                 id: "fridge".into(),
                 name: "Fridge".into(),
                 sprite: "fridge_art".into(),
@@ -2827,6 +3009,7 @@ mod tests {
             action: Some("eat".to_string()),
             anchor: Some("object".to_string()),
             facing: Some("toward_anchor".to_string()),
+            socket: None,
         });
         act
     }
@@ -2841,6 +3024,7 @@ mod tests {
         assert_eq!(act.duration_ticks, 15);
         assert_eq!(act.slots, 1);
         assert_eq!(pack.objects[0].name, "Fridge");
+        assert!(pack.objects[0].action_sockets.is_empty());
         assert_eq!(pack.find("fridge"), Some(ObjectDefId(0)));
         assert_eq!(pack.find("nope"), None);
     }
@@ -3064,6 +3248,7 @@ mod tests {
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
             roles: vec![],
+            action_socket: vec![],
             id: "fridge".into(),
             name: "Another".into(),
             sprite: "fridge_art".into(),
@@ -3098,6 +3283,7 @@ mod tests {
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
             roles: vec![],
+            action_socket: vec![],
             id: "vending".into(),
             name: "Vending".into(),
             sprite: "fridge_art".into(),
@@ -4081,6 +4267,7 @@ mod tests {
         assert_eq!(lot.placements.len(), 1);
         assert_eq!(lot.placements[0].object, ObjectDefId(0));
         assert_eq!((lot.placements[0].x, lot.placements[0].y), (2.5, 1.25));
+        assert!(lot.placements[0].action_sockets.is_empty());
     }
 
     /// A placement's object id is an index into the pack, and one object
@@ -4490,6 +4677,7 @@ mod tests {
                 .iter()
                 .map(|(id, width, depth)| ObjectDef {
                     roles: vec![],
+                    action_socket: vec![],
                     id: (*id).to_string(),
                     name: id.to_uppercase(),
                     sprite: format!("{id}_art"),
@@ -5295,6 +5483,7 @@ mod tests {
         let mut objects = one_object(snack());
         objects.object.push(ObjectDef {
             roles: vec![],
+            action_socket: vec![],
             id: "couch".into(),
             name: "Couch".into(),
             sprite: "couch_art".into(),
@@ -6217,6 +6406,7 @@ mod tests {
                     action: Some("talk".into()),
                     anchor: Some("partner".into()),
                     facing: Some("toward_anchor".into()),
+                    socket: None,
                 }),
                 id: "chat".into(),
                 label: Some("Compare complaints".into()),
@@ -6251,6 +6441,7 @@ mod tests {
                 action: CompiledVisualAction::Talk,
                 anchor: CompiledVisualAnchor::Partner,
                 facing: CompiledVisualFacing::TowardAnchor,
+                socket: None,
             })
         );
         // Social is need index 4 and fun is 5; name order ("fun" first in
@@ -6268,9 +6459,10 @@ mod tests {
     }
 
     /// The visual table is all-or-nothing, every authored string crosses a
-    /// closed vocabulary boundary before runtime, and the owner matrix has
-    /// exactly three legal rows. Known vocabulary in the wrong combination is
-    /// still an error rather than a request for the renderer to improvise.
+    /// closed vocabulary boundary before runtime. These are the three
+    /// established no-socket rows; the fourth exact row has separate socket
+    /// tests below. Known vocabulary in the wrong combination is still an
+    /// error rather than a request for the renderer to improvise.
     #[test]
     fn validates_the_exact_visual_contract_matrix() {
         let visual = |action: Option<&str>, anchor: Option<&str>, facing: Option<&str>| {
@@ -6278,6 +6470,7 @@ mod tests {
                 action: action.map(str::to_string),
                 anchor: anchor.map(str::to_string),
                 facing: facing.map(str::to_string),
+                socket: None,
             })
         };
         let chat = |visual| InteractionDef {
@@ -6326,7 +6519,7 @@ mod tests {
                 for anchor in ["partner", "object", "station"] {
                     let authored = visual(Some(action), Some(anchor), Some("toward_anchor"))
                         .expect("the test authors a visual");
-                    let result = compile_visual(Some(&authored), owner);
+                    let result = compile_visual(Some(&authored), owner, &[]);
                     if action == legal_action && anchor == legal_anchor {
                         assert!(result.is_ok(), "{owner_name} {activity} must compile");
                     } else {
@@ -6413,6 +6606,7 @@ mod tests {
                 action: CompiledVisualAction::Eat,
                 anchor: CompiledVisualAnchor::Object,
                 facing: CompiledVisualFacing::TowardAnchor,
+                socket: None,
             })
         );
     }
@@ -6424,6 +6618,7 @@ mod tests {
                 action: action.map(str::to_string),
                 anchor: anchor.map(str::to_string),
                 facing: facing.map(str::to_string),
+                socket: None,
             })
         };
 
@@ -6480,6 +6675,346 @@ mod tests {
                 expected
             );
         }
+    }
+
+    fn reading_object() -> ObjectDef {
+        ObjectDef {
+            id: "reading_chair".to_string(),
+            name: "Reading chair".to_string(),
+            sprite: "fridge_art".to_string(),
+            footprint: Footprint { width: 3, depth: 3 },
+            interaction: vec![InteractionDef {
+                id: "settle_in".to_string(),
+                label: Some("Sit and read".to_string()),
+                advertises: [("fun".to_string(), 19.0)].into_iter().collect(),
+                duration_ticks: 46,
+                slots: 1,
+                tags: vec!["reading".to_string()],
+                satisfaction: 3.0,
+                visual: Some(VisualDef {
+                    action: Some("read".to_string()),
+                    anchor: Some("object_socket".to_string()),
+                    facing: Some("socket".to_string()),
+                    socket: Some("seat".to_string()),
+                }),
+            }],
+            roles: vec![],
+            action_socket: vec![
+                ActionSocketDef {
+                    id: "unused".to_string(),
+                    x: -0.5,
+                    y: 0.25,
+                    facing: "NW".to_string(),
+                },
+                ActionSocketDef {
+                    id: "seat".to_string(),
+                    x: 0.75,
+                    y: -0.25,
+                    facing: "SE".to_string(),
+                },
+                ActionSocketDef {
+                    id: "south".to_string(),
+                    x: -0.25,
+                    y: -0.5,
+                    facing: "SW".to_string(),
+                },
+                ActionSocketDef {
+                    id: "north".to_string(),
+                    x: 0.25,
+                    y: 0.5,
+                    facing: "NE".to_string(),
+                },
+            ],
+        }
+    }
+
+    #[test]
+    fn compiles_read_against_the_owning_objects_second_socket() {
+        let pack = compile_objects(
+            full_needs(),
+            ObjectsFile {
+                object: vec![reading_object()],
+            },
+        )
+        .expect("the exact reading contract compiles");
+
+        assert_eq!(
+            pack.objects[0].action_sockets,
+            vec![
+                CompiledActionSocket {
+                    id: "unused".to_string(),
+                    x: -0.5,
+                    y: 0.25,
+                    facing: CompiledSocketFacing::NegativeX,
+                },
+                CompiledActionSocket {
+                    id: "seat".to_string(),
+                    x: 0.75,
+                    y: -0.25,
+                    facing: CompiledSocketFacing::PositiveX,
+                },
+                CompiledActionSocket {
+                    id: "south".to_string(),
+                    x: -0.25,
+                    y: -0.5,
+                    facing: CompiledSocketFacing::PositiveY,
+                },
+                CompiledActionSocket {
+                    id: "north".to_string(),
+                    x: 0.25,
+                    y: 0.5,
+                    facing: CompiledSocketFacing::NegativeY,
+                },
+            ]
+        );
+        assert_eq!(
+            pack.objects[0].interactions[0].visual,
+            Some(CompiledVisual {
+                action: CompiledVisualAction::Read,
+                anchor: CompiledVisualAnchor::ObjectSocket,
+                facing: CompiledVisualFacing::Socket,
+                socket: Some(1),
+            }),
+            "seat is deliberately index 1, so a hardcoded first socket fails"
+        );
+    }
+
+    #[test]
+    fn rejects_invalid_action_sockets_and_cross_object_lookup() {
+        let compile_one = |object| {
+            compile_objects(
+                full_needs(),
+                ObjectsFile {
+                    object: vec![object],
+                },
+            )
+        };
+
+        let mut object = reading_object();
+        object.action_socket[0].id = "  ".to_string();
+        assert_eq!(
+            compile_one(object).unwrap_err(),
+            ContentError::EmptyActionSocketId {
+                object: "reading_chair".to_string(),
+            }
+        );
+
+        let mut object = reading_object();
+        object.action_socket[0].id = "seat".to_string();
+        assert_eq!(
+            compile_one(object).unwrap_err(),
+            ContentError::DuplicateActionSocketId {
+                object: "reading_chair".to_string(),
+                socket: "seat".to_string(),
+            }
+        );
+
+        let mut object = reading_object();
+        object.action_socket[1].facing = "SSE".to_string();
+        assert_eq!(
+            compile_one(object).unwrap_err(),
+            ContentError::UnknownActionSocketFacing {
+                object: "reading_chair".to_string(),
+                socket: "seat".to_string(),
+                facing: "SSE".to_string(),
+            }
+        );
+
+        for (axis, mutate) in [
+            (
+                "x",
+                (|socket: &mut ActionSocketDef| socket.x = f32::NAN) as fn(&mut ActionSocketDef),
+            ),
+            ("y", |socket: &mut ActionSocketDef| socket.y = f32::INFINITY),
+        ] {
+            let mut object = reading_object();
+            mutate(&mut object.action_socket[1]);
+            assert_eq!(
+                compile_one(object).unwrap_err(),
+                ContentError::NonFiniteValue {
+                    context: format!("{axis} on action socket 'seat' of 'reading_chair'"),
+                }
+            );
+        }
+
+        let mut object = reading_object();
+        object.action_socket[1].x = 2.0;
+        assert_eq!(
+            compile_one(object).unwrap_err(),
+            ContentError::ActionSocketOutsideFootprint {
+                object: "reading_chair".to_string(),
+                socket: "seat".to_string(),
+                x: 3.0,
+                y: 0.75,
+            }
+        );
+
+        let mut donor = reading_object();
+        donor.id = "donor_chair".to_string();
+        donor.sprite = "bed_art".to_string();
+        donor.interaction[0].visual = None;
+        let mut reader = reading_object();
+        reader.action_socket.clear();
+        assert_eq!(
+            compile_objects(
+                full_needs(),
+                ObjectsFile {
+                    object: vec![donor, reader],
+                }
+            )
+            .unwrap_err(),
+            ContentError::UnknownVisualSocket {
+                owner: "reading_chair".to_string(),
+                interaction: "settle_in".to_string(),
+                socket: "seat".to_string(),
+            },
+            "a socket on another object must not satisfy this visual"
+        );
+    }
+
+    #[test]
+    fn rejects_missing_mixed_cross_owner_and_surplus_read_fields() {
+        let sockets = vec![CompiledActionSocket {
+            id: "seat".to_string(),
+            x: 0.0,
+            y: 0.0,
+            facing: CompiledSocketFacing::PositiveX,
+        }];
+        let authored = |action: &str, anchor: &str, facing: &str, socket: Option<&str>| VisualDef {
+            action: Some(action.to_string()),
+            anchor: Some(anchor.to_string()),
+            facing: Some(facing.to_string()),
+            socket: socket.map(str::to_string),
+        };
+        let object_owner = VisualOwner::Object {
+            object: "reading_chair",
+            interaction: "settle_in",
+        };
+
+        assert_eq!(
+            compile_visual(
+                Some(&authored("read", "object_socket", "socket", None)),
+                object_owner,
+                &sockets,
+            )
+            .unwrap_err(),
+            ContentError::IncompleteVisual {
+                owner: "reading_chair".to_string(),
+                interaction: "settle_in".to_string(),
+                field: "socket",
+            }
+        );
+
+        for visual in [
+            authored("read", "object", "socket", Some("seat")),
+            authored("read", "object_socket", "toward_anchor", Some("seat")),
+            authored("eat", "object", "toward_anchor", Some("seat")),
+        ] {
+            assert!(matches!(
+                compile_visual(Some(&visual), object_owner, &sockets),
+                Err(ContentError::InvalidVisualContract { .. })
+            ));
+        }
+
+        let social_owner = VisualOwner::Social {
+            interaction: "chat",
+        };
+        let chain_owner = VisualOwner::ChainStep {
+            chain: "cook_dinner",
+            step: 2,
+        };
+        let read = authored("read", "object_socket", "socket", Some("seat"));
+        assert!(matches!(
+            compile_visual(Some(&read), social_owner, &sockets),
+            Err(ContentError::InvalidVisualContract { .. })
+        ));
+        assert!(matches!(
+            compile_visual(Some(&read), chain_owner, &sockets),
+            Err(ContentError::InvalidVisualContract { .. })
+        ));
+    }
+
+    #[test]
+    fn placement_facing_rotates_both_socket_axes_and_socket_facing() {
+        let atlas = || AtlasFile {
+            sprite: [
+                "fridge_art",
+                "fridge_artSW",
+                "fridge_artNW",
+                "fridge_artNE",
+                SIM_SPRITE,
+            ]
+            .iter()
+            .map(|name| AtlasSpriteDef {
+                name: (*name).to_string(),
+            })
+            .collect(),
+        };
+
+        for (placement_facing, expected) in [
+            (None, (2.75, 1.75, CompiledSocketFacing::PositiveX)),
+            (Some("SW"), (2.25, 2.75, CompiledSocketFacing::PositiveY)),
+            (Some("NW"), (1.25, 2.25, CompiledSocketFacing::NegativeX)),
+            (Some("NE"), (1.75, 1.25, CompiledSocketFacing::NegativeY)),
+        ] {
+            let mut lot = lot_of(6, 6, &[], &[("reading_chair", 1.0, 1.0)]);
+            lot.place[0].facing = placement_facing.map(str::to_string);
+            let pack = compile_bare(
+                full_needs(),
+                ObjectsFile {
+                    object: vec![reading_object()],
+                },
+                lot,
+                atlas(),
+                full_tuning(),
+            )
+            .expect("the rotated socket remains inside its placement");
+            let socket = &pack.lot.placements[0].action_sockets[1];
+            assert_eq!((socket.x, socket.y, socket.facing), expected);
+        }
+    }
+
+    #[test]
+    fn rejects_a_socket_inside_before_rotation_but_outside_the_rotated_non_square_footprint() {
+        let mut object = reading_object();
+        object.footprint = Footprint { width: 3, depth: 1 };
+        object.action_socket = vec![ActionSocketDef {
+            id: "seat".to_string(),
+            x: 1.0,
+            y: 0.25,
+            facing: "SE".to_string(),
+        }];
+
+        let mut lot = lot_of(6, 4, &[], &[("reading_chair", 1.0, 1.0)]);
+        lot.place[0].facing = Some("SW".to_string());
+        let atlas = AtlasFile {
+            sprite: ["fridge_art", "fridge_artSW", SIM_SPRITE]
+                .iter()
+                .map(|name| AtlasSpriteDef {
+                    name: (*name).to_string(),
+                })
+                .collect(),
+        };
+
+        assert_eq!(
+            compile_bare(
+                full_needs(),
+                ObjectsFile {
+                    object: vec![object],
+                },
+                lot,
+                atlas,
+                full_tuning(),
+            )
+            .unwrap_err(),
+            ContentError::ActionSocketOutsideFootprint {
+                object: "reading_chair".to_string(),
+                socket: "seat".to_string(),
+                x: 1.75,
+                y: 2.0,
+            },
+            "the unrotated socket is inside 3x1; SW rotation moves it beyond the depth-1 placement"
+        );
     }
 
     /// One rejection test per rule, each pinning its own error variant so
@@ -6661,6 +7196,7 @@ mod tests {
         fridge.roles = vec!["cold_storage".to_string()];
         let sink = ObjectDef {
             roles: vec!["eating_surface".to_string()],
+            action_socket: vec![],
             id: "sink".into(),
             name: "Sink".into(),
             sprite: "sink_art".into(),
@@ -6718,6 +7254,7 @@ mod tests {
                         action: Some("eat".to_string()),
                         anchor: Some("station".to_string()),
                         facing: Some("toward_anchor".to_string()),
+                        socket: None,
                     }),
                 },
             ],
@@ -6789,6 +7326,7 @@ mod tests {
                 action: CompiledVisualAction::Eat,
                 anchor: CompiledVisualAnchor::Station,
                 facing: CompiledVisualFacing::TowardAnchor,
+                socket: None,
             })
         );
     }
@@ -6802,6 +7340,7 @@ mod tests {
                 action: action.map(str::to_string),
                 anchor: anchor.map(str::to_string),
                 facing: facing.map(str::to_string),
+                socket: None,
             })
         };
 
@@ -7024,6 +7563,7 @@ mod tests {
         fridge.roles = vec!["cold_storage".to_string()];
         let sink = ObjectDef {
             roles: vec!["eating_surface".to_string()],
+            action_socket: vec![],
             id: "sink".into(),
             name: "Sink".into(),
             sprite: "sink_art".into(),

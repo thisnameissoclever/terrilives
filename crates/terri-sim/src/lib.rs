@@ -1800,6 +1800,7 @@ mod lot_tests {
                 interactions: Vec::new(),
                 footprint: *footprint,
                 roles: Vec::new(),
+                action_sockets: Vec::new(),
             })
             .collect()
     }
@@ -1828,12 +1829,14 @@ mod lot_tests {
                     x: 2.5,
                     y: 1.25,
                     sprite: 2,
+                    action_sockets: Vec::new(),
                 },
                 CompiledPlacement {
                     object: ObjectDefId(0),
                     x: 4.0,
                     y: 3.5,
                     sprite: 0,
+                    action_sockets: Vec::new(),
                 },
             ],
         }
@@ -1985,6 +1988,7 @@ mod lot_tests {
                 x: 2.5,
                 y: 1.25,
                 sprite: 2,
+                action_sockets: Vec::new(),
             }],
         }
     }

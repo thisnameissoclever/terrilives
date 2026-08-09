@@ -277,6 +277,19 @@ pub struct ObjectDef {
     /// chain.
     #[serde(default)]
     pub roles: Vec<String>,
+    /// Object-local presentation anchors. Most objects have none.
+    /// Appended so existing authored objects remain valid unchanged.
+    #[serde(default)]
+    pub action_socket: Vec<ActionSocketDef>,
+}
+
+/// A named presentation point in object-local lot coordinates.
+#[derive(Debug, Deserialize)]
+pub struct ActionSocketDef {
+    pub id: String,
+    pub x: f32,
+    pub y: f32,
+    pub facing: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -365,6 +378,9 @@ pub struct VisualDef {
     pub anchor: Option<String>,
     #[serde(default)]
     pub facing: Option<String>,
+    /// Object-local socket id. Legal only for an object-socket action.
+    #[serde(default)]
+    pub socket: Option<String>,
 }
 
 /// Mirrors `content/lot.toml`: the size of the lot, its interior wall
@@ -1158,6 +1174,58 @@ mod tests {
             Footprint::SINGLE,
             "the declared case must differ from the default, or the assertion \
              above cannot tell a parsed footprint from a defaulted one"
+        );
+    }
+
+    #[test]
+    fn action_sockets_and_visual_socket_references_parse_without_changing_old_objects() {
+        let old: ObjectsFile = toml::from_str(
+            r#"
+            [[object]]
+            id = "old_chair"
+            name = "Old chair"
+            sprite = "loungeChair"
+            "#,
+        )
+        .expect("an object authored before sockets still parses");
+        assert!(old.object[0].action_socket.is_empty());
+
+        let parsed: ObjectsFile = toml::from_str(
+            r#"
+            [[object]]
+            id = "reading_chair"
+            name = "Reading chair"
+            sprite = "loungeChairRelax"
+
+              [[object.action_socket]]
+              id = "seat"
+              x = 0.25
+              y = -0.5
+              facing = "SE"
+
+              [[object.interaction]]
+              id = "settle_in"
+              advertises = { comfort = 15.0, fun = 19.0 }
+              duration_ticks = 46
+              slots = 1
+              visual = { action = "read", anchor = "object_socket", facing = "socket", socket = "seat" }
+            "#,
+        )
+        .expect("the reading socket contract parses");
+        let object = &parsed.object[0];
+        assert_eq!(object.action_socket.len(), 1);
+        assert_eq!(object.action_socket[0].id, "seat");
+        assert_eq!(
+            (object.action_socket[0].x, object.action_socket[0].y),
+            (0.25, -0.5)
+        );
+        assert_eq!(object.action_socket[0].facing, "SE");
+        assert_eq!(
+            object.interaction[0]
+                .visual
+                .as_ref()
+                .and_then(|visual| visual.socket.as_deref()),
+            Some("seat")
         );
     }
 

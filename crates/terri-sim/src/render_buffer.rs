@@ -408,6 +408,7 @@ mod tests {
             action: terri_data::CompiledVisualAction::Talk,
             anchor: terri_data::CompiledVisualAnchor::Partner,
             facing: terri_data::CompiledVisualFacing::TowardAnchor,
+            socket: None,
         });
         interaction
     }

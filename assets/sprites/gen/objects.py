@@ -563,6 +563,134 @@ def sim3EatNE0(d): _figure(d, CHARACTER_PALETTES[2], "eat", "ne", 0)
 def sim3EatNE1(d): _figure(d, CHARACTER_PALETTES[2], "eat", "ne", 1)
 
 
+def _reading_figure(d, palette, facing, frame):
+    """A seated body with an open book, anchored at the chair socket.
+
+    The chair remains its own prop quad. This body therefore carries only the
+    contact cues the person owns: bent legs, a lowered hip, hands on a book,
+    and a small page adjustment in frame one. Everything stays inside the
+    established 38 by 88 action envelope.
+    """
+    px, py = P(.5, .5)
+    side, depth = {
+        "se": (1, 1),
+        "nw": (-1, -1),
+        "sw": (-1, 1),
+        "ne": (1, -1),
+    }[facing]
+    skin, hair = palette["skin"], palette["hair"]
+    shirt, trouser = palette["shirt"], palette["trouser"]
+    ol, w = OUTLINE, OUTLINE_WIDTH
+
+    d.ellipse([px - 13, py - 7, px + 13, py], fill=(0, 0, 0, 46))
+
+    # A pair of bent legs is the silhouette cue that stops a shortened
+    # standing sprite from pretending to be seated. The depth sign changes
+    # which knee is higher without changing the bottom-centre anchor.
+    hip_y = py - 26
+    for leg_side in (-1, 1):
+        hip_x = px + leg_side * 4
+        knee_x = px + leg_side * 7 + side * 2
+        knee_y = py - 15 + (depth * leg_side * 2)
+        foot_x = knee_x + side * 2
+        points = [(hip_x, hip_y), (knee_x, knee_y), (foot_x, py - 3)]
+        d.line(points, fill=ol, width=8, joint="curve")
+        d.line(points, fill=trouser, width=6, joint="curve")
+        d.line([(foot_x - 3, py - 2), (foot_x + 4, py - 2)],
+               fill=ol, width=3)
+
+    top_y = py - 59
+    shoulder_y = top_y + 8
+    d.rectangle([px - 3, py - 64, px + 3, shoulder_y + 1],
+                fill=skin, outline=ol, width=w)
+    d.polygon([
+        (px - 12, shoulder_y),
+        (px + 12, shoulder_y),
+        (px + 8, hip_y + 2),
+        (px - 8, hip_y + 2),
+    ], fill=shirt, outline=ol)
+
+    # Both hands converge on the book. Frame one shifts the anchor-side hand
+    # and lifts one page corner, a restrained adjustment rather than a flap.
+    book_x = px + side * 3
+    book_y = py - 34 + depth
+    hand_shift = side * (2 if frame else 0)
+    for arm_side in (-1, 1):
+        shoulder = (px + arm_side * 9, shoulder_y + 4)
+        hand = (book_x + arm_side * 6 + (hand_shift if arm_side == side else 0),
+                book_y + 2 - depth * arm_side)
+        elbow = (px + arm_side * 12, py - 43 + depth * arm_side)
+        d.line([shoulder, elbow, hand], fill=ol, width=6, joint="curve")
+        d.line([shoulder, elbow, hand], fill=mul(shirt, .93), width=4,
+               joint="curve")
+        d.ellipse([hand[0] - 2, hand[1] - 2, hand[0] + 2, hand[1] + 2],
+                  fill=skin, outline=ol, width=w)
+
+    page = C["linen"]
+    cover = C["wood_dark"]
+    d.polygon([
+        (book_x, book_y + 8),
+        (book_x - 8, book_y + 5),
+        (book_x - 7, book_y - 4),
+        (book_x, book_y - 1),
+    ], fill=page, outline=ol)
+    right_top = book_y - (4 if frame == 0 else 7)
+    d.polygon([
+        (book_x, book_y + 8),
+        (book_x + 8, book_y + 5),
+        (book_x + 7, right_top),
+        (book_x, book_y - 1),
+    ], fill=mul(page, .96), outline=ol)
+    d.line([(book_x - 8, book_y + 6), (book_x, book_y + 9),
+            (book_x + 8, book_y + 6)], fill=cover, width=2)
+    d.line([(book_x, book_y - 1), (book_x, book_y + 8)], fill=ol, width=1)
+
+    head_r = 12
+    head_x = px + side
+    head_y = py - 73
+    d.rounded_rectangle([
+        head_x - head_r, head_y - head_r,
+        head_x + head_r, head_y + head_r,
+    ], radius=5, fill=skin, outline=ol, width=w)
+    d.chord([
+        head_x - head_r, head_y - head_r,
+        head_x + head_r, head_y + head_r * .35,
+    ], 180, 360, fill=hair, outline=ol, width=w)
+    eye_y = head_y + 3 + depth
+    for eye_side in (-1, 1):
+        eye_x = head_x + eye_side * 4 + side
+        d.ellipse([eye_x - 1, eye_y - 1, eye_x + 1, eye_y + 1],
+                  fill=CHARACTER["eye"])
+
+
+def simReadSE0(d): _reading_figure(d, CHARACTER_PALETTES[0], "se", 0)
+def simReadSE1(d): _reading_figure(d, CHARACTER_PALETTES[0], "se", 1)
+def simReadNW0(d): _reading_figure(d, CHARACTER_PALETTES[0], "nw", 0)
+def simReadNW1(d): _reading_figure(d, CHARACTER_PALETTES[0], "nw", 1)
+def simReadSW0(d): _reading_figure(d, CHARACTER_PALETTES[0], "sw", 0)
+def simReadSW1(d): _reading_figure(d, CHARACTER_PALETTES[0], "sw", 1)
+def simReadNE0(d): _reading_figure(d, CHARACTER_PALETTES[0], "ne", 0)
+def simReadNE1(d): _reading_figure(d, CHARACTER_PALETTES[0], "ne", 1)
+
+def sim2ReadSE0(d): _reading_figure(d, CHARACTER_PALETTES[1], "se", 0)
+def sim2ReadSE1(d): _reading_figure(d, CHARACTER_PALETTES[1], "se", 1)
+def sim2ReadNW0(d): _reading_figure(d, CHARACTER_PALETTES[1], "nw", 0)
+def sim2ReadNW1(d): _reading_figure(d, CHARACTER_PALETTES[1], "nw", 1)
+def sim2ReadSW0(d): _reading_figure(d, CHARACTER_PALETTES[1], "sw", 0)
+def sim2ReadSW1(d): _reading_figure(d, CHARACTER_PALETTES[1], "sw", 1)
+def sim2ReadNE0(d): _reading_figure(d, CHARACTER_PALETTES[1], "ne", 0)
+def sim2ReadNE1(d): _reading_figure(d, CHARACTER_PALETTES[1], "ne", 1)
+
+def sim3ReadSE0(d): _reading_figure(d, CHARACTER_PALETTES[2], "se", 0)
+def sim3ReadSE1(d): _reading_figure(d, CHARACTER_PALETTES[2], "se", 1)
+def sim3ReadNW0(d): _reading_figure(d, CHARACTER_PALETTES[2], "nw", 0)
+def sim3ReadNW1(d): _reading_figure(d, CHARACTER_PALETTES[2], "nw", 1)
+def sim3ReadSW0(d): _reading_figure(d, CHARACTER_PALETTES[2], "sw", 0)
+def sim3ReadSW1(d): _reading_figure(d, CHARACTER_PALETTES[2], "sw", 1)
+def sim3ReadNE0(d): _reading_figure(d, CHARACTER_PALETTES[2], "ne", 0)
+def sim3ReadNE1(d): _reading_figure(d, CHARACTER_PALETTES[2], "ne", 1)
+
+
 # ---------------------------------------------------------- indicators ----
 def _bubble(d, glyph):
     px, py = OX, OY + HH - 13
@@ -579,6 +707,12 @@ def _bubble(d, glyph):
             d.line([(px + dx, py - 7), (px + dx, py - 2)], fill=ink, width=1)
         d.line([(px + 5, py - 7), (px + 5, py + 7)], fill=ink, width=2)
         d.ellipse([px + 2, py - 7, px + 8, py], fill=ink)
+    elif glyph == "read":
+        d.polygon([(px, py + 6), (px - 8, py + 3), (px - 7, py - 6),
+                   (px, py - 3)], fill=None, outline=ink)
+        d.polygon([(px, py + 6), (px + 8, py + 3), (px + 7, py - 6),
+                   (px, py - 3)], fill=None, outline=ink)
+        d.line([(px, py - 3), (px, py + 6)], fill=ink, width=1)
     elif glyph == "sleep":
         # TWO Z's, not three, and the big one is 11 px tall.
         #
@@ -613,6 +747,7 @@ def indicatorTalk(d): _bubble(d, "talk")
 def indicatorEat(d): _bubble(d, "eat")
 def indicatorSleep(d): _bubble(d, "sleep")
 def indicatorWait(d): _bubble(d, "wait")
+def indicatorReading(d): _bubble(d, "read")
 
 
 def _carried(d, kind):
@@ -692,6 +827,30 @@ EXACT = {
     "sim3EatSW1": (38, 88),
     "sim3EatNE0": (38, 88),
     "sim3EatNE1": (38, 88),
+    "simReadSE0": (38, 88),
+    "simReadSE1": (38, 88),
+    "simReadNW0": (38, 88),
+    "simReadNW1": (38, 88),
+    "simReadSW0": (38, 88),
+    "simReadSW1": (38, 88),
+    "simReadNE0": (38, 88),
+    "simReadNE1": (38, 88),
+    "sim2ReadSE0": (38, 88),
+    "sim2ReadSE1": (38, 88),
+    "sim2ReadNW0": (38, 88),
+    "sim2ReadNW1": (38, 88),
+    "sim2ReadSW0": (38, 88),
+    "sim2ReadSW1": (38, 88),
+    "sim2ReadNE0": (38, 88),
+    "sim2ReadNE1": (38, 88),
+    "sim3ReadSE0": (38, 88),
+    "sim3ReadSE1": (38, 88),
+    "sim3ReadNW0": (38, 88),
+    "sim3ReadNW1": (38, 88),
+    "sim3ReadSW0": (38, 88),
+    "sim3ReadSW1": (38, 88),
+    "sim3ReadNE0": (38, 88),
+    "sim3ReadNE1": (38, 88),
 }
 
 SPRITES = [
@@ -726,4 +885,14 @@ SPRITES = [
     sim2EatSW0, sim2EatSW1, sim2EatNE0, sim2EatNE1,
     sim3EatSE0, sim3EatSE1, sim3EatNW0, sim3EatNW1,
     sim3EatSW0, sim3EatSW1, sim3EatNE0, sim3EatNE1,
+    # Seated reading appends after eating. The body owns the seated contact,
+    # open book, hands, and page adjustment; the chair stays its existing
+    # object quad beneath it. [SR-art].
+    simReadSE0, simReadSE1, simReadNW0, simReadNW1,
+    simReadSW0, simReadSW1, simReadNE0, simReadNE1,
+    sim2ReadSE0, sim2ReadSE1, sim2ReadNW0, sim2ReadNW1,
+    sim2ReadSW0, sim2ReadSW1, sim2ReadNE0, sim2ReadNE1,
+    sim3ReadSE0, sim3ReadSE1, sim3ReadNW0, sim3ReadNW1,
+    sim3ReadSW0, sim3ReadSW1, sim3ReadNE0, sim3ReadNE1,
+    indicatorReading,
 ]
