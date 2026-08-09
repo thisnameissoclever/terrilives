@@ -790,6 +790,45 @@ describe('pickSprite', () => {
     ).toBeLessThan(6);
   });
 
+  it('anchors seated-reading picks at the projected socket rather than the ECS tile', () => {
+    const oldEcsTile = [3, 4] as const;
+    const socket = [5.25, 4.75] as const;
+    const rows = source(
+      [[44, KIND_AGENT, socket[0], socket[1]]],
+      'simReadSE0',
+    );
+    const scale = 2.5;
+    const box = drawnBox(socket, 'simReadSE0', 0, 0, scale);
+
+    expect(pickAt(rows, oldEcsTile[0], oldEcsTile[1])).toBeNull();
+    expect(pickAt(rows, Math.round(socket[0]), Math.round(socket[1]))).toEqual({
+      entity: 44,
+      isAgent: true,
+    });
+    expect(
+      pickSprite(
+        rows,
+        box.centreX,
+        box.bottom - 24 * scale,
+        0,
+        0,
+        scale,
+      ),
+    ).toEqual({ entity: 44, isAgent: true });
+
+    const oldBox = drawnBox(oldEcsTile, 'simReadSE0', 0, 0, scale);
+    expect(
+      pickSprite(
+        rows,
+        oldBox.centreX,
+        oldBox.bottom - 24 * scale,
+        0,
+        0,
+        scale,
+      ),
+    ).toBeNull();
+  });
+
   it('finds nothing on bare floor far from any entity', () => {
     const rows = source([[1, KIND_AGENT, 8, 6]]);
     const box = drawnBox([8, 6], 'sim');

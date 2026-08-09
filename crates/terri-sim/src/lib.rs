@@ -23,16 +23,34 @@ pub use save::SaveError;
 #[derive(Resource, Debug, Clone, Copy)]
 pub struct Content(pub &'static terri_data::ContentPack);
 
+/// Presentation-only action positions resolved from compiled object content.
+///
+/// This component deliberately stays out of `terri-core`: gameplay systems,
+/// Save V1, and the world hash have no reason to know that a body may be drawn
+/// somewhere other than its pathing tile. Placed objects receive the compiler's
+/// absolute sockets, while dynamic objects receive the definition's default-SE
+/// sockets through [`Sim::spawn_object`].
+#[derive(Component, Debug, Clone, PartialEq)]
+struct ResolvedActionSockets(Vec<terri_data::CompiledPlacementSocket>);
+
 /// Owns the ECS world and the tick schedule.
 pub struct Sim {
     world: World,
     schedule: Schedule,
     command_schedule: Schedule,
     render: render_buffer::RenderBuffer,
+    /// Full ECS identities that used a socket in the last render sample.
+    ///
+    /// Keeping `Entity` rather than its raw index means a despawn and index
+    /// reuse cannot masquerade as an unchanged projection. This is render
+    /// interpolation history only; it is intentionally absent from Save V1
+    /// and the deterministic world digest.
+    socket_projected_entities: std::collections::HashSet<Entity>,
 }
 
 #[derive(Debug)]
 struct RenderRow {
+    entity: Entity,
     index: u32,
     x: f32,
     y: f32,
@@ -43,7 +61,15 @@ struct RenderRow {
     activity: u32,
     visual_action: u32,
     facing: u32,
+    socket_projected: bool,
     carrying: u32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct ReadingProjection {
+    x: f32,
+    y: f32,
+    facing: u32,
 }
 
 /// Chooses the dominant lot axis from `source` toward `anchor`.
@@ -138,6 +164,86 @@ fn is_authored_station_eat_visual(step: &terri_data::CompiledChainStep) -> bool 
             terri_data::CompiledVisualFacing::TowardAnchor,
         )
     )
+}
+
+fn socket_facing_code(facing: terri_data::CompiledSocketFacing) -> u32 {
+    match facing {
+        terri_data::CompiledSocketFacing::PositiveX => render_buffer::facing::POSITIVE_X,
+        terri_data::CompiledSocketFacing::NegativeX => render_buffer::facing::NEGATIVE_X,
+        terri_data::CompiledSocketFacing::PositiveY => render_buffer::facing::POSITIVE_Y,
+        terri_data::CompiledSocketFacing::NegativeY => render_buffer::facing::NEGATIVE_Y,
+    }
+}
+
+/// Resolves a dynamically spawned object's sockets in the default SE
+/// orientation. Placement rotation belongs to content compilation, so runtime
+/// performs only the identity-orientation translation here.
+fn default_action_sockets(
+    object: &terri_data::CompiledObject,
+    position: terri_core::Position,
+) -> Vec<terri_data::CompiledPlacementSocket> {
+    let centre_x = position.x + (object.footprint.width as f32 - 1.0) * 0.5;
+    let centre_y = position.y + (object.footprint.depth as f32 - 1.0) * 0.5;
+    object
+        .action_sockets
+        .iter()
+        .map(|socket| terri_data::CompiledPlacementSocket {
+            x: centre_x + socket.x,
+            y: centre_y + socket.y,
+            facing: socket.facing,
+        })
+        .collect()
+}
+
+fn authored_reading_visual(
+    content: &terri_data::ContentPack,
+    world: &World,
+    eating: Option<&terri_core::Eating>,
+    step_work: Option<&terri_core::StepWork>,
+    target: Option<&terri_core::Target>,
+) -> Option<ReadingProjection> {
+    // Ordinary object use and chain work are mutually exclusive. Preserve the
+    // existing eating fail-closed rule instead of letting reading make an
+    // ambiguous component bundle look legitimate.
+    if step_work.is_some() {
+        return None;
+    }
+
+    let eating = eating?;
+    let target = target?;
+    if target.interaction == systems::chain::CHAIN_STEP || target.interaction != eating.interaction
+    {
+        return None;
+    }
+
+    let target_object = world.get::<terri_core::SmartObject>(target.object)?;
+    // Position is a required part of the exact target contract even though
+    // the compiled placement socket already carries its absolute coordinates.
+    world.get::<terri_core::Position>(target.object)?;
+    let sockets = world.get::<ResolvedActionSockets>(target.object)?;
+    if target_object.0 != eating.object {
+        return None;
+    }
+
+    let definition = content.objects.get(target_object.0 .0 as usize)?;
+    let interaction = definition.interactions.get(target.interaction as usize)?;
+    let visual = interaction.visual.as_ref()?;
+    if !matches!(
+        (&visual.action, &visual.anchor, &visual.facing),
+        (
+            terri_data::CompiledVisualAction::Read,
+            terri_data::CompiledVisualAnchor::ObjectSocket,
+            terri_data::CompiledVisualFacing::Socket,
+        )
+    ) {
+        return None;
+    }
+    let socket = sockets.0.get(visual.socket? as usize)?;
+    Some(ReadingProjection {
+        x: socket.x,
+        y: socket.y,
+        facing: socket_facing_code(socket.facing),
+    })
 }
 
 fn eating_interaction_exists(
@@ -355,6 +461,11 @@ impl Sim {
         // digest's `try_query`, so this line is for the determinism
         // tests' benefit, like Selected and IntentQueue above.
         world.register_component::<terri_core::SpriteVariant>();
+        // Object-local sockets are presentation-only, but tests use
+        // `try_query` to prove their spawn and restore boundaries. Registering
+        // the carrier here makes an absent component mean "no sockets" rather
+        // than "this world has never heard of sockets".
+        world.register_component::<ResolvedActionSockets>();
         // M2e PR 3's three. `AtWork` is in `world_hash`'s query - [L3]'s
         // empty-digest trap, the standing reason. `Career` and
         // `Commuting` are not (spawn-time content and transient action
@@ -491,6 +602,7 @@ impl Sim {
             schedule,
             command_schedule,
             render: render_buffer::RenderBuffer::default(),
+            socket_projected_entities: std::collections::HashSet::new(),
         }
     }
 
@@ -578,9 +690,36 @@ impl Sim {
             if placement.sprite != objects[placement.object.0 as usize].sprite {
                 spawned.insert(terri_core::SpriteVariant(placement.sprite));
             }
+            if !placement.action_sockets.is_empty() {
+                spawned.insert(ResolvedActionSockets(placement.action_sockets.clone()));
+            }
         }
 
         sim
+    }
+
+    /// Spawns one runtime object with its default-SE presentation sockets.
+    ///
+    /// The public WASM object-spawn path delegates here so it cannot create a
+    /// usable reading chair whose action position disappeared at the crate
+    /// boundary. This deliberately does not alter grid occupancy, matching the
+    /// existing dynamic-spawn behavior exactly.
+    pub fn spawn_object(
+        &mut self,
+        position: terri_core::Position,
+        object: terri_data::ObjectDefId,
+    ) -> Entity {
+        let sockets = {
+            let content = self.world.resource::<Content>().0;
+            default_action_sockets(content.object(object), position)
+        };
+        let mut spawned = self
+            .world
+            .spawn((position, terri_core::SmartObject(object)));
+        if !sockets.is_empty() {
+            spawned.insert(ResolvedActionSockets(sockets));
+        }
+        spawned.id()
     }
 
     /// The lot the game ships, compiled from `content/lot.toml`, with the
@@ -746,6 +885,8 @@ impl Sim {
         use std::collections::{HashMap, HashSet};
 
         use terri_core::{Agent, Position, SmartObject};
+
+        let mut previous_socket_projection = std::mem::take(&mut self.socket_projected_entities);
 
         if advance_interpolation {
             std::mem::swap(&mut self.render.prev_positions, &mut self.render.positions);
@@ -925,14 +1066,37 @@ impl Sim {
             } else {
                 None
             };
-            let (visual_action, facing) = conversation_visuals
-                .get(&entity)
-                .copied()
-                .or(eating_visual)
-                .unwrap_or((
-                    render_buffer::visual_action::NONE,
-                    render_buffer::facing::NONE,
-                ));
+            let reading_visual = if is_agent {
+                authored_reading_visual(content, &self.world, eating, step_work, target)
+            } else {
+                None
+            };
+            // Conversation and eating keep their established precedence.
+            // A socket changes position only when reading itself wins the
+            // exact authored-action choice; malformed overlapping state must
+            // not drag a talking or eating body onto furniture.
+            let (visual_action, facing, x, y, socket_projected) =
+                if let Some((action, direction)) = conversation_visuals.get(&entity).copied() {
+                    (action, direction, x, y, false)
+                } else if let Some((action, direction)) = eating_visual {
+                    (action, direction, x, y, false)
+                } else if let Some(reading) = reading_visual {
+                    (
+                        render_buffer::visual_action::READ,
+                        reading.facing,
+                        reading.x,
+                        reading.y,
+                        true,
+                    )
+                } else {
+                    (
+                        render_buffer::visual_action::NONE,
+                        render_buffer::facing::NONE,
+                        x,
+                        y,
+                        false,
+                    )
+                };
             let activity = if !is_agent {
                 render_buffer::activity::NONE
             } else if at_work {
@@ -948,6 +1112,8 @@ impl Sim {
                     .is_some_and(|(action, _)| action == render_buffer::visual_action::EAT)
                 {
                     render_buffer::activity::EATING
+                } else if socket_projected {
+                    render_buffer::activity::READING
                 } else {
                     // `Eating` is the legacy storage component for every
                     // ordinary object interaction. Only exact authored eat
@@ -972,6 +1138,7 @@ impl Sim {
                 render_buffer::activity::NONE
             };
             rows.push(RenderRow {
+                entity,
                 index: entity.index_u32(),
                 x,
                 y,
@@ -982,6 +1149,7 @@ impl Sim {
                 activity,
                 visual_action,
                 facing,
+                socket_projected,
                 carrying: carrying.map_or(render_buffer::NOT_CARRYING, |c| c.0),
             });
         }
@@ -1028,7 +1196,22 @@ impl Sim {
         // it, rather than whenever the lengths differ.
         if self.render.prev_positions.len() != self.render.positions.len() {
             self.render.prev_positions = self.render.positions.clone();
+        } else {
+            for (slot, row) in rows.iter().enumerate() {
+                if previous_socket_projection.contains(&row.entity) != row.socket_projected {
+                    let position = slot * 2;
+                    self.render.prev_positions[position] = self.render.positions[position];
+                    self.render.prev_positions[position + 1] = self.render.positions[position + 1];
+                }
+            }
         }
+        previous_socket_projection.clear();
+        previous_socket_projection.extend(
+            rows.iter()
+                .filter(|row| row.socket_projected)
+                .map(|row| row.entity),
+        );
+        self.socket_projected_entities = previous_socket_projection;
     }
 
     pub fn render_buffer(&self) -> &render_buffer::RenderBuffer {
@@ -1800,6 +1983,7 @@ mod lot_tests {
                 interactions: Vec::new(),
                 footprint: *footprint,
                 roles: Vec::new(),
+                action_sockets: Vec::new(),
             })
             .collect()
     }
@@ -1828,12 +2012,14 @@ mod lot_tests {
                     x: 2.5,
                     y: 1.25,
                     sprite: 2,
+                    action_sockets: Vec::new(),
                 },
                 CompiledPlacement {
                     object: ObjectDefId(0),
                     x: 4.0,
                     y: 3.5,
                     sprite: 0,
+                    action_sockets: Vec::new(),
                 },
             ],
         }
@@ -1893,6 +2079,91 @@ mod lot_tests {
             vec![(2.5, Some(2)), (4.0, None)],
             "the faced placement carries its resolved variant and the \
              plain one carries nothing - a flipped guard swaps both"
+        );
+    }
+
+    #[test]
+    fn placed_and_dynamic_objects_receive_exact_sockets_while_ordinary_objects_receive_none() {
+        let mut lot = a_lot();
+        let defs = one_tile_defs();
+        lot.placements[0].action_sockets = vec![terri_data::CompiledPlacementSocket {
+            x: 2.75,
+            y: 1.5,
+            facing: terri_data::CompiledSocketFacing::NegativeY,
+        }];
+        let mut placed = Sim::new_from_lot(&lot, &defs);
+        let placement_carriers: Vec<(f32, Option<Vec<terri_data::CompiledPlacementSocket>>)> = {
+            let world = placed.world_mut();
+            let mut query = world.query::<(&Position, Option<&ResolvedActionSockets>)>();
+            query
+                .iter(world)
+                .map(|(position, sockets)| (position.x, sockets.map(|sockets| sockets.0.clone())))
+                .collect()
+        };
+        assert!(placement_carriers.contains(&(
+            2.5,
+            Some(vec![terri_data::CompiledPlacementSocket {
+                x: 2.75,
+                y: 1.5,
+                facing: terri_data::CompiledSocketFacing::NegativeY,
+            }]),
+        )));
+        assert!(placement_carriers.contains(&(4.0, None)));
+
+        let pack = terri_data::pack();
+        let reading_chair = pack.find("reading_chair").expect("shipped reading chair");
+        let fridge = pack.find("fridge").expect("shipped fridge");
+        let mut dynamic = Sim::new_with_lot(20, 20);
+        let chair = dynamic.spawn_object(Position { x: 7.25, y: 8.5 }, reading_chair);
+        let ordinary = dynamic.spawn_object(Position { x: 10.0, y: 8.0 }, fridge);
+        assert_eq!(
+            dynamic
+                .world()
+                .get::<ResolvedActionSockets>(chair)
+                .map(|sockets| sockets.0.as_slice()),
+            Some(
+                [terri_data::CompiledPlacementSocket {
+                    x: 7.25,
+                    y: 8.5,
+                    facing: terri_data::CompiledSocketFacing::PositiveX,
+                }]
+                .as_slice()
+            )
+        );
+
+        let mut wide_reader =
+            test_content::object_sized("wide_reader", Vec::new(), Footprint { width: 4, depth: 2 });
+        wide_reader.action_sockets = vec![terri_data::CompiledActionSocket {
+            id: "seat".to_string(),
+            x: 0.25,
+            y: -0.25,
+            facing: terri_data::CompiledSocketFacing::NegativeY,
+        }];
+        let wide_pack = test_content::pack(vec![wide_reader]);
+        let mut wide_dynamic = test_content::sim_with(20, 20, wide_pack);
+        let wide = wide_dynamic.spawn_object(Position { x: 7.25, y: 8.5 }, ObjectDefId(0));
+        assert_eq!(
+            wide_dynamic
+                .world()
+                .get::<ResolvedActionSockets>(wide)
+                .map(|sockets| sockets.0.as_slice()),
+            Some(
+                [terri_data::CompiledPlacementSocket {
+                    x: 9.0,
+                    y: 8.75,
+                    facing: terri_data::CompiledSocketFacing::NegativeY,
+                }]
+                .as_slice()
+            ),
+            "a dynamic asymmetric footprint resolves both centre terms through Sim::spawn_object"
+        );
+
+        assert!(
+            dynamic
+                .world()
+                .get::<ResolvedActionSockets>(ordinary)
+                .is_none(),
+            "an object definition with no sockets must not receive a sentinel carrier"
         );
     }
 
@@ -1985,6 +2256,7 @@ mod lot_tests {
                 x: 2.5,
                 y: 1.25,
                 sprite: 2,
+                action_sockets: Vec::new(),
             }],
         }
     }

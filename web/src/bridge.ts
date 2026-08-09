@@ -123,6 +123,11 @@ export class SimBridge {
     return this.handle.entity_count();
   }
 
+  /**
+   * Current displayed world positions. An exact authored action may project a
+   * row onto an object socket while the simulation position stays on its
+   * pathing tile, so every presentation consumer must use this column.
+   */
   positions(): Float32Array {
     return new Float32Array(
       this.memory.buffer,
@@ -186,8 +191,8 @@ export class SimBridge {
   /**
    * What each row is DOING, as the activity codes the render buffer
    * documents: 0 none, 1 walking, 2 waiting, 3 eating, 4 talking,
-   * 5 sleeping, 6 at work, 7 generic object use. Some activities are
-   * text-only rather than indicator bubbles. This zero-copy view is
+   * 5 sleeping, 6 at work, 7 generic object use, 8 reading. Some activities
+   * are text-only rather than indicator bubbles. This zero-copy view is
    * re-created per call for the growth hazard the class doc explains.
    */
   activities(): Uint32Array {
@@ -199,7 +204,8 @@ export class SimBridge {
   }
 
   /**
-   * The authored body-pose category for each row: 0 none, 1 talk, 2 eat.
+   * The authored body-pose category for each row: 0 none, 1 talk, 2 eat,
+   * 3 read.
    *
    * Separate from `activities`: broad activity never invents a body pose, while
    * this column is emitted only from a validated visual contract. Re-create the

@@ -56,7 +56,7 @@ a live entry again.
 | --- | --- |
 | `style.py` | The palette, the line, the shading ramp, the character build. The style bible. |
 | `iso.py` | The projection, the box/slab/cylinder primitives, and the anchoring rule. |
-| `objects.py` | All 98 sprites, including the three people and their directional talk and eating frames, plus the name contract they satisfy. |
+| `objects.py` | All 123 sprites, including the three people and their directional talk, eating, and seated-reading frames, plus the name contract they satisfy. |
 | `build.py` | Packs the sheet and writes all three output files. |
 
 **The image and the manifest live apart, on purpose.** The PNG is in

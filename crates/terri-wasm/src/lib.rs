@@ -2,8 +2,8 @@
 //! Nothing in here may contain simulation logic.
 
 use terri_core::{
-    Agent, CommandQueue, NeedId, Needs, Position, SimCommand, SmartObject, TileGrid, NEED_MAX,
-    NEED_MIN, SAVE_MAGIC, SAVE_SCHEMA_VERSION,
+    Agent, CommandQueue, NeedId, Needs, Position, SimCommand, TileGrid, NEED_MAX, NEED_MIN,
+    SAVE_MAGIC, SAVE_SCHEMA_VERSION,
 };
 use terri_sim::{Content, Sim};
 use wasm_bindgen::prelude::*;
@@ -275,9 +275,7 @@ impl SimHandle {
         let Some(def) = self.sim.world().resource::<Content>().0.find(content_id) else {
             return false;
         };
-        self.sim
-            .world_mut()
-            .spawn((Position { x, y }, SmartObject(def)));
+        self.sim.spawn_object(Position { x, y }, def);
         self.sim.sync_render_buffer();
         true
     }
@@ -1611,6 +1609,66 @@ mod boundary_tests {
         (handle, initiator, partner)
     }
 
+    fn handle_with_projected_reading() -> (SimHandle, terri_core::Entity, Position) {
+        let mut handle = SimHandle::new(24, 24);
+        let chair_position = Position { x: 11.5, y: 13.25 };
+        assert!(handle.spawn_object(chair_position.x, chair_position.y, "reading_chair"));
+        let chair = handle
+            .sim
+            .world()
+            .resource::<Content>()
+            .0
+            .find("reading_chair")
+            .expect("shipped reading chair");
+        let settle = handle
+            .sim
+            .world()
+            .resource::<Content>()
+            .0
+            .object(chair)
+            .interactions
+            .iter()
+            .position(|interaction| interaction.id == "settle_in")
+            .expect("shipped settle_in") as u32;
+        let target = {
+            let world = handle.sim.world_mut();
+            let mut query =
+                world.query::<(terri_core::Entity, &Position, &terri_core::SmartObject)>();
+            query
+                .iter(world)
+                .find(|(_, position, object)| {
+                    object.0 == chair
+                        && position.x == chair_position.x
+                        && position.y == chair_position.y
+                })
+                .map(|(entity, _, _)| entity)
+                .expect("the bridge spawned the requested reading chair")
+        };
+        handle.spawn_agent(3.25, 4.5, 50.0);
+        let agent = {
+            let world = handle.sim.world_mut();
+            let mut query = world.query::<(terri_core::Entity, &Agent)>();
+            query
+                .iter(world)
+                .map(|(entity, _)| entity)
+                .next()
+                .expect("the bridge spawned the reader")
+        };
+        handle.sim.world_mut().entity_mut(agent).insert((
+            terri_core::Eating {
+                object: chair,
+                interaction: settle,
+                remaining_ticks: 10,
+            },
+            terri_core::Target {
+                object: target,
+                interaction: settle,
+            },
+        ));
+        handle.sim.sync_render_buffer();
+        (handle, agent, chair_position)
+    }
+
     #[test]
     fn visual_actions_ptr_addresses_the_authored_action_column_after_growth() {
         let (mut handle, initiator, partner) = handle_with_projected_talk();
@@ -1666,6 +1724,51 @@ mod boundary_tests {
         assert_eq!(
             facings[row_of(partner)],
             terri_sim::render_buffer::facing::NEGATIVE_X
+        );
+    }
+
+    #[test]
+    fn existing_render_accessors_preserve_loaded_reading_after_all_columns_grow() {
+        let (source, reader, socket) = handle_with_projected_reading();
+        let bytes = source.save_bytes();
+        let mut handle = SimHandle::new(24, 24);
+        assert!(handle.load_bytes(&bytes));
+
+        // Force the reused render vectors past their small capacities after
+        // Load. Every accessor below is intentionally read only after the last
+        // allocation and sync, matching the real bridge lifetime rule.
+        for index in 0..48 {
+            handle.spawn_agent(30.0 + index as f32, 30.0, 50.0);
+        }
+
+        let rows = handle.entity_count();
+        let ids = addressed(handle.ids_ptr(), rows, "ids_ptr");
+        let row = ids
+            .iter()
+            .position(|&id| id == reader.index_u32())
+            .expect("the loaded reader remains in the live prefix");
+        let positions = addressed(handle.positions_ptr(), rows * 2, "positions_ptr");
+        let previous = addressed(handle.prev_positions_ptr(), rows * 2, "prev_positions_ptr");
+        let actions = addressed(handle.visual_actions_ptr(), rows, "visual_actions_ptr");
+        let activities = addressed(handle.activities_ptr(), rows, "activities_ptr");
+        let facings = addressed(handle.facings_ptr(), rows, "facings_ptr");
+
+        assert_eq!(
+            (actions[row], activities[row], facings[row]),
+            (
+                terri_sim::render_buffer::visual_action::READ,
+                terri_sim::render_buffer::activity::READING,
+                terri_sim::render_buffer::facing::POSITIVE_X,
+            )
+        );
+        assert_eq!(
+            (positions[row * 2], positions[row * 2 + 1]),
+            (socket.x, socket.y)
+        );
+        assert_eq!(
+            (previous[row * 2], previous[row * 2 + 1]),
+            (socket.x, socket.y),
+            "continued socket projection must remain planted across reallocating syncs"
         );
     }
 

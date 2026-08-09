@@ -754,6 +754,12 @@ id = "reading_chair"
 name = "The Wingback Sabbatical"
 sprite = "loungeChairRelax"
 
+  [[object.action_socket]]
+  id = "seat"
+  x = 0.0
+  y = 0.0
+  facing = "SE"
+
   # 15 comfort and 16 fun. Both numbers are middling on purpose: this is the
   # object that wins when a sim is moderately short of two things at once, and
   # loses to anything that is the best answer to one of them.
@@ -793,6 +799,7 @@ sprite = "loungeChairRelax"
   # single object forever.
   tags = ["reading"]
   satisfaction = 3.0
+  visual = { action = "read", anchor = "object_socket", facing = "socket", socket = "seat" }
 
 [[object]]
 id = "reference_shelf"

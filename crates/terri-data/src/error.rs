@@ -520,7 +520,25 @@ pub enum ContentError {
         interaction: String,
         satisfaction: f32,
     },
-    /// A present `visual` table omitted one of its three required members.
+    EmptyActionSocketId {
+        object: String,
+    },
+    DuplicateActionSocketId {
+        object: String,
+        socket: String,
+    },
+    UnknownActionSocketFacing {
+        object: String,
+        socket: String,
+        facing: String,
+    },
+    ActionSocketOutsideFootprint {
+        object: String,
+        socket: String,
+        x: f32,
+        y: f32,
+    },
+    /// A present `visual` table omitted a field required by its action.
     IncompleteVisual {
         owner: String,
         interaction: String,
@@ -544,8 +562,12 @@ pub enum ContentError {
         interaction: String,
         facing: String,
     },
-    /// A chain step's present `visual` table omitted one of its three
-    /// required members.
+    UnknownVisualSocket {
+        owner: String,
+        interaction: String,
+        socket: String,
+    },
+    /// A chain step's present `visual` table omitted a required field.
     IncompleteChainStepVisual {
         chain: String,
         step: usize,
@@ -1295,6 +1317,33 @@ impl fmt::Display for ContentError {
                  {satisfaction}; content can never write the second axis \
                  downward - neglect and conditions own that direction"
             ),
+            ContentError::EmptyActionSocketId { object } => write!(
+                f,
+                "object '{object}' declares a blank action socket id"
+            ),
+            ContentError::DuplicateActionSocketId { object, socket } => write!(
+                f,
+                "object '{object}' declares action socket '{socket}' more than once"
+            ),
+            ContentError::UnknownActionSocketFacing {
+                object,
+                socket,
+                facing,
+            } => write!(
+                f,
+                "object '{object}' action socket '{socket}' declares unknown facing \
+                 '{facing}'; the current vocabulary is NE, NW, SE, SW"
+            ),
+            ContentError::ActionSocketOutsideFootprint {
+                object,
+                socket,
+                x,
+                y,
+            } => write!(
+                f,
+                "object '{object}' action socket '{socket}' resolves outside its \
+                 footprint at ({x}, {y})"
+            ),
             ContentError::IncompleteVisual {
                 owner,
                 interaction,
@@ -1303,7 +1352,7 @@ impl fmt::Display for ContentError {
                 f,
                 "'{owner}' interaction '{interaction}' declares a visual \
                  contract without '{field}'; action, anchor, and facing are \
-                 all required when visual is present"
+                 required when visual is present, and read also requires socket"
             ),
             ContentError::UnknownVisualAction {
                 owner,
@@ -1312,7 +1361,7 @@ impl fmt::Display for ContentError {
             } => write!(
                 f,
                 "'{owner}' interaction '{interaction}' declares unknown \
-                 visual action '{action}'; the current vocabulary is talk, eat"
+                 visual action '{action}'; the current vocabulary is talk, eat, read"
             ),
             ContentError::UnknownVisualAnchor {
                 owner,
@@ -1322,7 +1371,7 @@ impl fmt::Display for ContentError {
                 f,
                 "'{owner}' interaction '{interaction}' declares unknown \
                  visual anchor '{anchor}'; the current vocabulary is partner, \
-                 object, station"
+                 object, station, object_socket"
             ),
             ContentError::UnknownVisualFacing {
                 owner,
@@ -1332,13 +1381,22 @@ impl fmt::Display for ContentError {
                 f,
                 "'{owner}' interaction '{interaction}' declares unknown \
                  visual facing '{facing}'; the current vocabulary is \
-                 toward_anchor"
+                 toward_anchor, socket"
+            ),
+            ContentError::UnknownVisualSocket {
+                owner,
+                interaction,
+                socket,
+            } => write!(
+                f,
+                "'{owner}' interaction '{interaction}' references unknown action \
+                 socket '{socket}'"
             ),
             ContentError::IncompleteChainStepVisual { chain, step, field } => write!(
                 f,
                 "chain '{chain}' step {step} declares a visual contract \
-                 without '{field}'; action, anchor, and facing are all \
-                 required when visual is present"
+                 without '{field}'; action, anchor, and facing are required when \
+                 visual is present, and read also requires socket"
             ),
             ContentError::UnknownChainStepVisualAction {
                 chain,
@@ -1347,7 +1405,7 @@ impl fmt::Display for ContentError {
             } => write!(
                 f,
                 "chain '{chain}' step {step} declares unknown visual action \
-                 '{action}'; the current vocabulary is talk, eat"
+                 '{action}'; the current vocabulary is talk, eat, read"
             ),
             ContentError::UnknownChainStepVisualAnchor {
                 chain,
@@ -1356,7 +1414,8 @@ impl fmt::Display for ContentError {
             } => write!(
                 f,
                 "chain '{chain}' step {step} declares unknown visual anchor \
-                 '{anchor}'; the current vocabulary is partner, object, station"
+                 '{anchor}'; the current vocabulary is partner, object, station, \
+                 object_socket"
             ),
             ContentError::UnknownChainStepVisualFacing {
                 chain,
@@ -1365,7 +1424,7 @@ impl fmt::Display for ContentError {
             } => write!(
                 f,
                 "chain '{chain}' step {step} declares unknown visual facing \
-                 '{facing}'; the current vocabulary is toward_anchor"
+                 '{facing}'; the current vocabulary is toward_anchor, socket"
             ),
             ContentError::InvalidVisualContract {
                 owner,
@@ -1375,8 +1434,8 @@ impl fmt::Display for ContentError {
             } => write!(
                 f,
                 "{owner} {activity} declares visual action '{action}' with \
-                 anchor '{anchor}', which is not a legal owner/action/anchor \
-                 combination"
+                 anchor '{anchor}', which is not a legal \
+                 owner/action/anchor/facing/socket combination"
             ),
             ContentError::UnknownHobby { sim, hobby } => write!(
                 f,

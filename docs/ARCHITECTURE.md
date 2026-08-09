@@ -522,8 +522,31 @@ valid sleep-tagged interaction projects `SLEEPING`. Every other ordinary use
 of the legacy shared `Eating` component projects the append-only
 `USING_OBJECT` activity code 7. The shell gives that generic state a HUD label
 but no indicator sprite because one 26-pixel glyph cannot honestly cover
-reading, washing, television, bathing, and toilet use. Generic object use never
-selects eating body art.
+bookshelf reading, washing, television, bathing, and toilet use. Generic object
+use never selects eating body art.
+
+Seated reading adds an exact object-local action position without widening the
+bridge. An object definition may author named action sockets around its rendered
+footprint centre; lot compilation rotates each socket with the placement and
+stores the resolved absolute position and facing. `Sim::new_from_lot` attaches
+those values to the exact placed object in a private presentation-only
+component. The public dynamic-object path derives the same data in the default
+SE orientation. Save V1 remains unchanged: restore reconstructs authored
+placement sockets by exact object and position, or the default orientation for
+a non-colliding dynamic object. A dynamic object that exactly collides with an
+authored object id and position remains the documented Save V1 identity
+boundary.
+
+Only `reading_chair.settle_in` currently authors
+`read / object_socket / socket`. Render sync requires matching `Eating` and
+`Target` object and interaction identity, the exact target entity, its position,
+its socket carrier, and an in-range compiled socket index. A valid match emits
+visual action 3, activity 8, the socket facing, and the socket coordinates as the
+row's displayed position while leaving ECS `Position` untouched. Conversation
+and eating keep precedence. Transition tracking uses full ECS entity identities
+to reseed both interpolation samples on socket entry and exit, including paused
+command refresh and Load, so the body never interpolates through the chair.
+Malformed or unauthored state falls back to generic object use.
 
 Save records simulation tick state, not a fractional presentation sample. Load
 therefore reconstructs the footfall from the saved tick-end position after the
@@ -537,10 +560,12 @@ The simulation owns all state in WASM linear memory. JS holds
 `Float32Array`/`Uint32Array` **views** over render-relevant slices, including
 positions, sprite IDs, activity codes, authored visual actions, and lot-axis
 facings, plus compiled footprint width and depth, and feeds them directly into
-GPU buffers. Walking reads the activity and position columns. Conversation and
-eating read the separate action and facing columns, so the broad status
-vocabulary never becomes an art lookup by accident. Lighting reads footprints
-only while rebuilding its static field and never retains a view across a sync.
+GPU buffers. Walking reads the activity and position columns. Conversation,
+eating, and seated reading read the separate action and facing columns, so the
+broad status vocabulary never becomes an art lookup by accident. Reading also
+reuses the existing position column for its socket-projected body; no pointer or
+bridge accessor was added. Lighting reads footprints only while rebuilding its
+static field and never retains a view across a sync.
 
 **Zero copy, and no per-entity JS objects, ever.**
 

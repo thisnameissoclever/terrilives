@@ -52,6 +52,61 @@ ATLAS_TS = os.path.join(ROOT, "web", "src", "render", "atlas.ts")
 PADDING = 1          # a transparent gutter, so no sprite samples its neighbour
 
 
+def reading_names():
+    return [
+        f"{look}Read{facing}{frame}"
+        for look in ("sim", "sim2", "sim3")
+        for facing in ("SE", "NW", "SW", "NE")
+        for frame in (0, 1)
+    ]
+
+
+def validate_reading_contract(sprites):
+    """Fail generation if the append-only reading art becomes a hollow list.
+
+    The committed PNG is the pixel golden checked by --check. These assertions
+    make the intended range, fixed envelope, and actual two-frame motion fail
+    before either manifest can be written.
+    """
+    names = [name for name, _, _, _ in sprites]
+    expected = reading_names()
+    if names[98:122] != expected:
+        raise SystemExit("reading body sprites must occupy indices 98 through 121")
+    if len(names) != 123 or names[122] != "indicatorReading":
+        raise SystemExit("indicatorReading must be index 122 in a 123-sprite atlas")
+
+    by_name = {name: (image, width, height) for name, image, width, height in sprites}
+    for name in expected:
+        image, width, height = by_name[name]
+        if (width, height) != (38, 88):
+            raise SystemExit(f"{name}: reading body must be exactly 38x88")
+        if image.getchannel("A").getbbox() is None:
+            raise SystemExit(f"{name}: reading body has no visible pixels")
+
+    for look in ("sim", "sim2", "sim3"):
+        for facing in ("SE", "NW", "SW", "NE"):
+            quiet = by_name[f"{look}Read{facing}0"][0]
+            active = by_name[f"{look}Read{facing}1"][0]
+            if quiet.tobytes() == active.tobytes():
+                raise SystemExit(f"{look}Read{facing}: the two frames are pixel-identical")
+
+    for frame in (0, 1):
+        for look in ("sim", "sim2", "sim3"):
+            facings = {
+                by_name[f"{look}Read{facing}{frame}"][0].tobytes()
+                for facing in ("SE", "NW", "SW", "NE")
+            }
+            if len(facings) != 4:
+                raise SystemExit(f"{look}Read frame {frame}: two facings are pixel-identical")
+        for facing in ("SE", "NW", "SW", "NE"):
+            looks = {
+                by_name[f"{look}Read{facing}{frame}"][0].tobytes()
+                for look in ("sim", "sim2", "sim3")
+            }
+            if len(looks) != 3:
+                raise SystemExit(f"Read{facing}{frame}: two Sim looks are pixel-identical")
+
+
 def render_all():
     out = []
     for fn in objects.SPRITES:
@@ -63,6 +118,7 @@ def render_all():
         except ValueError as err:
             raise SystemExit(f"{fn.__name__}: {err}") from err
         out.append((fn.__name__, crop, w, h))
+    validate_reading_contract(out)
     return out
 
 

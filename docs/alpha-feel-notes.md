@@ -2157,6 +2157,45 @@ slice.
   desktop shipping size. It does not approve phone-width readability,
   physical touch behavior, or the still-unbuilt action poses for generic use.
 
+## [A-seated-reading-action] The reading chair now seats a visible reader
+
+The fresh local production bundle (`index-Vsjrm-0I.js`,
+`terri_wasm_bg-gWQqJsiU.wasm`) was played through WebGPU at 1280 by 720 in the
+in-app browser. The exact `reading_chair.settle_in` route was issued through the
+normal object menu from a clean paused game.
+
+- **The complete interaction reads as seated reading.** Tim walked from his
+  path tile, snapped onto the chair without a visible glide through the prop,
+  held a clearly open white book, and showed the redundant book indicator and
+  HUD label `Reading`. The chair back and arms remained visible around the
+  fixed-envelope body. Completion restored the ordinary standing body on the
+  adjacent path tile without a reverse glide.
+- **Animation and controls stayed simulation-owned.** The reading pose remained
+  planted through Pause and was observed while stepping 1x, 2x, and 3x. The two
+  authored frames use the restrained page-adjustment motion visible in the
+  generated atlas; automated frame-boundary tests own the exact 12-tick cadence
+  and stable-id staggering claim.
+- **Every position consumer stayed together.** At default, minimum, and maximum
+  zoom, the body, chair, selection ring, and reading indicator remained aligned.
+  After selecting Bill in the roster, clicking opaque pixels on Tim's seated
+  body selected Tim again. Flat daylight and the automatic 01:54 night state
+  both kept the white book and seated silhouette legible.
+- **The rebuilt boundaries are green.** Rust passed 292 `terri-sim` tests and 61
+  `terri-wasm` tests. The fresh release-WASM Web run passed 420 tests across 28
+  files, type checking, the production build, and the 123-sprite 512 by 984
+  atlas check. Nineteen targeted Rust and Web mutations failed causally and
+  every production file returned to its recorded hash.
+- **Runtime stayed quiet.** Browser diagnostics contained expected performance
+  logs only, with zero warnings and zero errors. The visible canvas remained on
+  the production WebGPU renderer throughout the pass.
+- **Proof boundary.** The chosen in-app browser exposes the real operating-system
+  media preference but not media emulation, and the host preference was ordinary
+  motion. Automated tests prove reduced motion pins reading to frame zero while
+  keeping the socket pose; this pass does not claim a watched reduced-motion
+  session. The fixed desktop browser did not repeat the already-proven mobile HUD
+  geometry or a physical-phone touch and safe-area pass. Merge and deployed
+  Pages evidence are still pending.
+
 ## [A-local-idle-wandering] Idle movement stays local and remains interruptible
 
 The local production bundle (`index-CHj2f_99.js`,

@@ -201,18 +201,30 @@ describe('the atlas manifest', () => {
       'sim3EatSE0', 'sim3EatSE1', 'sim3EatNW0', 'sim3EatNW1',
       'sim3EatSW0', 'sim3EatSW1', 'sim3EatNE0', 'sim3EatNE1',
     ];
+    const readSprites = [
+      'simReadSE0', 'simReadSE1', 'simReadNW0', 'simReadNW1',
+      'simReadSW0', 'simReadSW1', 'simReadNE0', 'simReadNE1',
+      'sim2ReadSE0', 'sim2ReadSE1', 'sim2ReadNW0', 'sim2ReadNW1',
+      'sim2ReadSW0', 'sim2ReadSW1', 'sim2ReadNE0', 'sim2ReadNE1',
+      'sim3ReadSE0', 'sim3ReadSE1', 'sim3ReadNW0', 'sim3ReadNW1',
+      'sim3ReadSW0', 'sim3ReadSW1', 'sim3ReadNE0', 'sim3ReadNE1',
+    ];
 
     expect(spriteIndex('sim')).toBe(1);
     expect(spriteIndex('sim2')).toBe(48);
     expect(spriteIndex('sim3')).toBe(49);
-    expect(SPRITES).toHaveLength(98);
+    expect(SPRITES).toHaveLength(123);
     expect(SPRITES.slice(50, 74).map((sprite) => sprite.name)).toEqual(
       talkSprites,
     );
     expect(SPRITES.slice(74, 98).map((sprite) => sprite.name)).toEqual(
       eatSprites,
     );
-    for (const name of [...talkSprites, ...eatSprites]) {
+    expect(SPRITES.slice(98, 122).map((sprite) => sprite.name)).toEqual(
+      readSprites,
+    );
+    expect(spriteIndex('indicatorReading')).toBe(122);
+    for (const name of [...talkSprites, ...eatSprites, ...readSprites]) {
       const sprite = SPRITES[spriteIndex(name)];
       expect([sprite.w, sprite.h], name).toEqual([38, 88]);
     }

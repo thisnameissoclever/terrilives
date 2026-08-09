@@ -225,6 +225,90 @@ describe('SimBridge', () => {
     expect(endX).toBeGreaterThan(startX);
   });
 
+  it('reacquires loaded reading columns after real release-wasm memory growth', () => {
+    const source = new SimBridge(new SimHandle(64, 64), wasmMemory);
+    expect(source.spawnObject(11.5, 13.25, 'reading_chair')).toBe(true);
+    source.spawnAgent(10, 13, 80);
+    expect(source.useObject(1, 0, 0)).toBe(true);
+
+    const rowOf = (bridge: SimBridge, entity: number): number =>
+      Array.from(bridge.ids()).indexOf(entity);
+    let readerRow = -1;
+    for (let tick = 0; tick < 120; tick += 1) {
+      source.tick();
+      readerRow = rowOf(source, 1);
+      if (readerRow >= 0 && source.activities()[readerRow] === 8) {
+        break;
+      }
+    }
+    expect(readerRow).toBeGreaterThanOrEqual(0);
+    expect(source.visualActions()[readerRow]).toBe(3);
+    expect(source.activities()[readerRow]).toBe(8);
+    expect(source.facings()[readerRow]).toBe(1);
+    expect([
+      source.positions()[readerRow * 2],
+      source.positions()[readerRow * 2 + 1],
+    ]).toEqual([11.5, 13.25]);
+
+    const loaded = new SimBridge(new SimHandle(64, 64), wasmMemory);
+    expect(loaded.loadBytes(source.saveBytes())).toBe(true);
+    readerRow = rowOf(loaded, 1);
+    expect(readerRow).toBeGreaterThanOrEqual(0);
+    expect(loaded.visualActions()[readerRow]).toBe(3);
+    expect(loaded.activities()[readerRow]).toBe(8);
+    expect(loaded.facings()[readerRow]).toBe(1);
+    expect([
+      loaded.positions()[readerRow * 2],
+      loaded.positions()[readerRow * 2 + 1],
+    ]).toEqual([11.5, 13.25]);
+
+    const heldPositions = loaded.positions();
+    const heldPrevious = loaded.prevPositions();
+    const heldActions = loaded.visualActions();
+    const heldActivities = loaded.activities();
+    const heldFacings = loaded.facings();
+    const bufferBeforeGrowth = wasmMemory.buffer;
+    let spawned = 0;
+    while (wasmMemory.buffer === bufferBeforeGrowth && spawned < 4000) {
+      loaded.spawnAgent(
+        2 + (spawned % 60),
+        2 + (Math.floor(spawned / 60) % 60),
+        80,
+      );
+      spawned += 1;
+    }
+
+    expect(spawned).toBeGreaterThan(0);
+    expect(wasmMemory.buffer).not.toBe(bufferBeforeGrowth);
+    expect(heldPositions.length).toBe(0);
+    expect(heldPrevious.length).toBe(0);
+    expect(heldActions.length).toBe(0);
+    expect(heldActivities.length).toBe(0);
+    expect(heldFacings.length).toBe(0);
+
+    readerRow = rowOf(loaded, 1);
+    expect(readerRow).toBeGreaterThanOrEqual(0);
+    const positions = loaded.positions();
+    const previous = loaded.prevPositions();
+    const actions = loaded.visualActions();
+    const activities = loaded.activities();
+    const facings = loaded.facings();
+    expect([
+      actions[readerRow],
+      activities[readerRow],
+      facings[readerRow],
+    ]).toEqual([3, 8, 1]);
+    expect([positions[readerRow * 2], positions[readerRow * 2 + 1]]).toEqual([
+      11.5, 13.25,
+    ]);
+    expect([previous[readerRow * 2], previous[readerRow * 2 + 1]]).toEqual([
+      11.5, 13.25,
+    ]);
+    for (const view of [positions, previous, actions, activities, facings]) {
+      expect(view.buffer).toBe(wasmMemory.buffer);
+    }
+  });
+
   it('survives memory growth from many spawns', () => {
     const bridge = new SimBridge(new SimHandle(64, 64), wasmMemory);
     expect(bridge.spawnObject(4, 1, 'fridge')).toBe(true);

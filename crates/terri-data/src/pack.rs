@@ -27,6 +27,7 @@ pub use terri_core::Footprint;
 pub enum CompiledVisualAction {
     Talk,
     Eat,
+    Read,
 }
 
 /// The entity that gives an action pose its spatial meaning.
@@ -35,12 +36,14 @@ pub enum CompiledVisualAnchor {
     Partner,
     Object,
     Station,
+    ObjectSocket,
 }
 
 /// How a body chooses a lot-axis facing from its resolved anchor.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum CompiledVisualFacing {
     TowardAnchor,
+    Socket,
 }
 
 /// Fully validated presentation metadata. Unknown and partial authored
@@ -50,6 +53,35 @@ pub struct CompiledVisual {
     pub action: CompiledVisualAction,
     pub anchor: CompiledVisualAnchor,
     pub facing: CompiledVisualFacing,
+    /// Index into the owning object's action sockets. `None` for every
+    /// pre-socket visual contract. Appended for postcard stability.
+    pub socket: Option<u32>,
+}
+
+/// Facing resolved to the lot axes used by the presentation bridge.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum CompiledSocketFacing {
+    PositiveX,
+    NegativeX,
+    PositiveY,
+    NegativeY,
+}
+
+/// A validated object-local action socket.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CompiledActionSocket {
+    pub id: String,
+    pub x: f32,
+    pub y: f32,
+    pub facing: CompiledSocketFacing,
+}
+
+/// A placement's absolute socket after its authored facing is applied.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CompiledPlacementSocket {
+    pub x: f32,
+    pub y: f32,
+    pub facing: CompiledSocketFacing,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -122,8 +154,13 @@ pub struct CompiledObject {
     pub footprint: Footprint,
     /// The station roles this object serves in a chain, as indices
     /// into [`ContentPack::roles`] - [K1]. Sorted, usually empty.
-    /// **Last in this struct on purpose**, per the appending rule.
+    /// Appended after `footprint` when roles shipped; its encoded position
+    /// must not move.
     pub roles: Vec<u32>,
+    /// Presentation-only anchors, indexed by `CompiledVisual::socket`.
+    /// Appended after `roles` when sockets shipped; its encoded position must
+    /// not move.
+    pub action_sockets: Vec<CompiledActionSocket>,
 }
 
 /// One object, placed on the lot.
@@ -146,6 +183,9 @@ pub struct CompiledPlacement {
     /// PLACEMENT block rather than the pack's tail, so the golden
     /// vector was regenerated rather than extended.
     pub sprite: u32,
+    /// Absolute presentation sockets in the owning definition's order.
+    /// Appended for postcard stability.
+    pub action_sockets: Vec<CompiledPlacementSocket>,
 }
 
 /// The lot: its size, its interior wall tiles, and what stands on it.
@@ -677,12 +717,25 @@ mod tests {
                     x: 2.5,
                     y: 1.25,
                     sprite: 9,
+                    action_sockets: vec![],
                 },
                 CompiledPlacement {
                     object: ObjectDefId(0),
                     x: 4.0,
                     y: 3.5,
                     sprite: 6,
+                    action_sockets: vec![
+                        CompiledPlacementSocket {
+                            x: 4.25,
+                            y: 3.75,
+                            facing: CompiledSocketFacing::PositiveX,
+                        },
+                        CompiledPlacementSocket {
+                            x: 4.75,
+                            y: 3.25,
+                            facing: CompiledSocketFacing::NegativeY,
+                        },
+                    ],
                 },
             ],
         }
@@ -736,9 +789,10 @@ mod tests {
                     let mut use_it = interaction("use_it");
                     if i == 0 {
                         use_it.visual = Some(CompiledVisual {
-                            action: CompiledVisualAction::Eat,
-                            anchor: CompiledVisualAnchor::Object,
-                            facing: CompiledVisualFacing::TowardAnchor,
+                            action: CompiledVisualAction::Read,
+                            anchor: CompiledVisualAnchor::ObjectSocket,
+                            facing: CompiledVisualFacing::Socket,
+                            socket: Some(1),
                         });
                     }
                     CompiledObject {
@@ -761,6 +815,24 @@ mod tests {
                         // transposed, dropped, or stamped from one object
                         // onto all ([L34]).
                         roles: (0..i as u32).collect(),
+                        action_sockets: if i == 0 {
+                            vec![
+                                CompiledActionSocket {
+                                    id: "back".to_string(),
+                                    x: -0.25,
+                                    y: 0.25,
+                                    facing: CompiledSocketFacing::PositiveX,
+                                },
+                                CompiledActionSocket {
+                                    id: "seat".to_string(),
+                                    x: 0.25,
+                                    y: -0.25,
+                                    facing: CompiledSocketFacing::NegativeY,
+                                },
+                            ]
+                        } else {
+                            vec![]
+                        },
                     }
                 })
                 .collect(),
@@ -811,6 +883,7 @@ mod tests {
                     action: CompiledVisualAction::Talk,
                     anchor: CompiledVisualAnchor::Partner,
                     facing: CompiledVisualFacing::TowardAnchor,
+                    socket: None,
                 }),
             }],
             // Three traits, one of each kind with pairwise-distinct
@@ -922,6 +995,7 @@ mod tests {
                             action: CompiledVisualAction::Eat,
                             anchor: CompiledVisualAnchor::Station,
                             facing: CompiledVisualFacing::TowardAnchor,
+                            socket: None,
                         }),
                     },
                 ],
@@ -995,11 +1069,12 @@ mod tests {
         assert_eq!(
             restored.objects[0].interactions[0].visual,
             Some(CompiledVisual {
-                action: CompiledVisualAction::Eat,
-                anchor: CompiledVisualAnchor::Object,
-                facing: CompiledVisualFacing::TowardAnchor,
+                action: CompiledVisualAction::Read,
+                anchor: CompiledVisualAnchor::ObjectSocket,
+                facing: CompiledVisualFacing::Socket,
+                socket: Some(1),
             }),
-            "postcard must preserve the object-eating variants"
+            "postcard must preserve the object-socket reading variants"
         );
         assert_eq!(
             restored.chains[0].steps[2].visual,
@@ -1007,6 +1082,7 @@ mod tests {
                 action: CompiledVisualAction::Eat,
                 anchor: CompiledVisualAnchor::Station,
                 facing: CompiledVisualFacing::TowardAnchor,
+                socket: None,
             }),
             "postcard must preserve the station-eating variants"
         );
@@ -1055,12 +1131,30 @@ mod tests {
                 action: CompiledVisualAction::Eat,
                 anchor: CompiledVisualAnchor::Station,
                 facing: CompiledVisualFacing::TowardAnchor,
+                socket: None,
             }),
         };
 
         assert_eq!(
             postcard::to_allocvec(&step).expect("chain step must serialise"),
-            vec![7, 3, 69, 97, 116, 42, 0, 0, 0, 1, 4, 1, 1, 2, 0]
+            // The final zero is the appended visual socket `None`.
+            vec![7, 3, 69, 97, 116, 42, 0, 0, 0, 1, 4, 1, 1, 2, 0, 0]
+        );
+    }
+
+    #[test]
+    fn a_read_visual_uses_only_appended_enum_discriminants_and_socket_slot() {
+        let visual = CompiledVisual {
+            action: CompiledVisualAction::Read,
+            anchor: CompiledVisualAnchor::ObjectSocket,
+            facing: CompiledVisualFacing::Socket,
+            socket: Some(7),
+        };
+
+        assert_eq!(
+            postcard::to_allocvec(&visual).expect("read visual must serialise"),
+            vec![2, 3, 1, 1, 7],
+            "Read, ObjectSocket, and Socket append after the established variants"
         );
     }
 }
