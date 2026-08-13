@@ -367,17 +367,18 @@ sprite = "bookcaseClosedDoors"
 # Everything below it is what turned that flat into five rooms; see
 # docs/specs/2026-07-30-the-house-design.md and content/lot.toml.
 #
-# **Appended rather than grouped by room, and that is not laziness.** An
-# object's position in this file is its `ObjectDefId`, which the compiled
-# pack, every placement, and each sim's habituation table all carry. Moving
-# `stove` up next to `fridge` because they share a room would renumber every
-# definition after it. The rooms are a property of `lot.toml`, which is where
-# a reader should go to find out what is next to what.
+# An object's position in this file assigns its pack-local `ObjectDefId`, but
+# Save V1 stores the authored string id and resolves it against the current
+# pack. Declaration order is therefore not persistent identity. Reordering is
+# still noisy: it renumbers the compiled array, changes pack bytes, and churns
+# numeric fixtures or deterministic goldens. Rooms belong in `lot.toml`; keep
+# this file organised as the authored object catalogue rather than mirroring
+# one current floor plan.
 #
-# **Roughly half of these have no interactions at all**, and that is a
+# **Ten of these thirty have no interactions at all**, and that is a
 # category rather than an omission. A house reads as a house because of the
-# things in it that nobody uses on purpose: the counter, the coat rack, the
-# box that was going to be unpacked. They are declared here because a
+# things in it that nobody uses on purpose: the counter, the coat rack, and the
+# freestanding plant. They are declared here because a
 # footprint has to come from somewhere and because a name is a joke; they
 # advertise nothing, so `select_action` never scores them, and they cost one
 # entity each. `an_object_may_declare_no_interactions` in
@@ -700,10 +701,28 @@ sprite = "cabinetBedDrawer"
 
 [[object]]
 id = "moving_box"
-name = "Box, Unpacked Eventually"
+name = "Wellness Initiative, Indoor"
 sprite = "cardboardBoxOpen"
 
-  # No interactions.
+  # `moving_box` is now a Save V1 persistence key rather than a description.
+  # Keep this id, its one-tile footprint, and its lot position unchanged: old
+  # snapshots restore the entity and blocked grid rather than rebuilding either
+  # from the current lot. Object declaration order is not a save identity.
+  [[object.action_socket]]
+  id = "saddle"
+  x = 0.0
+  y = 0.0
+  facing = "SE"
+
+  [[object.interaction]]
+  id = "use_exercise_bike"
+  label = "Use the exercise bike"
+  advertises = { fun = 28.0, energy = -8.0, hygiene = -5.0 }
+  duration_ticks = 83
+  slots = 1
+  tags = ["exercise"]
+  satisfaction = 2.0
+  visual = { action = "exercise", anchor = "object_socket", facing = "socket", socket = "saddle" }
 
 # ---- Study -----------------------------------------------------------------
 
@@ -804,14 +823,22 @@ sprite = "loungeChairRelax"
 
 [[object]]
 id = "reference_shelf"
-name = "Reference Section, Personal"
+name = "Aquarium of Managed Expectations"
 sprite = "bookcaseClosedWide"
 
-  # **No interactions, and this one is a balance decision rather than a
-  # category.** A second readable bookshelf would split the fun rotation three
-  # ways and take use away from the object that has only just stopped being at
-  # zero ([C6]). It is a bookshelf that is furniture, which is what most
-  # bookshelves are.
+  # `reference_shelf` is now a Save V1 persistence key rather than a
+  # description. Keep this id, its one-tile footprint, and its lot position
+  # unchanged: old snapshots restore the entity and blocked grid rather than
+  # rebuilding either from the current lot. Object declaration order is free.
+  [[object.interaction]]
+  id = "watch_fish"
+  label = "Watch the fish"
+  advertises = { fun = 25.0, comfort = 21.0 }
+  duration_ticks = 67
+  slots = 1
+  tags = ["aquarium"]
+  satisfaction = 1.0
+  visual = { action = "watch", anchor = "object", facing = "toward_anchor" }
 
 # ---- Bathroom --------------------------------------------------------------
 

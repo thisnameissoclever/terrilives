@@ -4135,3 +4135,123 @@ for full prefix protection.
 run the generator check. It must fail on the protected-record digest. Restore
 the pixel and confirm the atlas reproduces exactly; only the explicitly allowed
 range may differ from its recorded predecessor.
+
+## [L-a-save-digest-exception-does-not-migrate-the-world] Accepting a fingerprint does not rebuild an old snapshot
+
+**What happened.** The aquarium mock wanted a wider cabinet, and the exercise
+bike looked like an obvious new object. Both changes also needed public Save V1
+households to keep loading. A compatibility-fingerprint bridge initially
+looked like the migration mechanism, but old snapshots restore their own entity
+list and blocked-tile grid. A new bike would be absent from every old household,
+and a widened aquarium would still carry the old one-tile collision map.
+
+**Root cause.** A digest gate answers whether current code may interpret a
+snapshot. It does not rewrite the snapshot. Object existence, identity,
+position, footprint collision, and active references remain whatever the save
+serialized unless an explicit migration changes them.
+
+**Prevention rule.** Before accepting a changed content digest, inventory every
+structural fact the save owns. Either keep those facts identical, as this slice
+does by repurposing two inert persistence slots, or write a versioned migration
+that reconstructs and validates entities, collision, paths, and references. Do
+not call a relaxed fingerprint check a world migration.
+
+**How to verify.** Load a fixture carrying the prior structural digest and
+compare entity indices, persistence IDs, positions, and every blocked-grid bit
+before issuing either new action. Confirm the bridge does not run unrelated
+legacy household renaming. Save again and require the current digest while the
+same entity and collision identities remain intact. Remove or alter one
+reviewed interaction and require the digest bridge to close.
+
+## [L-an-old-fingerprint-does-not-own-new-content-rows] Preserve source-shape rules through save validation
+
+**What happened.** The aquarium and exercise bike reused two formerly inert
+object IDs. Their old fingerprints were accepted against the new pack, then
+saved interaction references were checked only against that new pack. A
+corrupt pre-feature snapshot could therefore claim row zero on an object that
+had no rows when the snapshot format was produced, and Load would reinterpret
+it as a new action.
+
+**Root cause.** Fingerprint provenance was reduced to a yes-or-no compatibility
+answer before row validation. The validator knew the destination pack but had
+discarded the source shape, so it could not distinguish a current row from a
+historically impossible one.
+
+**Prevention rule.** When compatibility accepts more than one structural
+shape, retain a source-shape classification through every validation path.
+Reject references that the accepted source could not have authored before
+reconstructing any state. Do not let destination bounds manufacture history.
+
+**How to verify.** For each of the five accepted pre-feature fingerprints and
+both repurposed objects, forge row zero independently in `Target`, `Eating`,
+`Intent`, queued `UseObject`, `Habituation`, and Personality dispositions.
+All 60 loads must return `InvalidContentReference` and leave a running
+simulation byte-for-byte unchanged. A valid prior-structural snapshot must
+still cross the public WASM byte loader, retain its names, and resave with the
+current digest.
+
+## [L-generated-public-assets-need-content-addressed-urls] Bind generated manifests to cached public files
+
+**What happened.** Vite gave the JavaScript bundle a content hash, but the
+generated sprite texture remained a stable `atlas.png` URL. GitHub Pages caches
+that public file for ten minutes. A returning browser could therefore load the
+new manifest beside the previous PNG and abort because their dimensions did
+not match.
+
+**Root cause.** Reproducible generation proved the committed PNG and manifest
+agreed at build time. It did not bind the two independent HTTP cache entries at
+runtime.
+
+**Prevention rule.** Content-address every generated public asset consumed by
+hashed code. On a host whose CDN ignores query strings in its cache key, the
+digest must be in the pathname rather than only in a query. Alternatively, let
+the bundler own and hash the asset. A human query label on the page URL does not
+revise subresource requests.
+
+**How to verify.** Hash the committed PNG bytes in the Web test, require the
+generated filename and duplicate runtime file to match, and require the
+renderer URL to use that exact path. Request two cold, never-before-used query
+variants from the deployed stable path; if the CDN reports cache hits, queries
+are not a release boundary. Mutate either the filename digest or path
+construction and require the focused test to fail.
+
+## [L-rgba-animation-guards-must-read-rgba] Alpha-only image checks miss color motion
+
+**What happened.** The aquarium validator used Pillow's default RGBA
+`getbbox()`, which considers alpha only. The tank is opaque across both frames,
+so an RGB-only change to water, glass, lid, or cabinet pixels could evade the
+motion boundary. The additional cabinet crop still left most of the tank
+outside a causal guard.
+
+**Root cause.** A convenient image-difference helper had channel semantics that
+did not match the art contract. The check described fish-only motion while
+measuring transparency changes and one broad vertical boundary.
+
+**Prevention rule.** Inspect all four channels when color stability matters,
+and define the allowed motion as reviewed pixel regions. Reject every changed
+pixel outside those regions rather than inferring safety from one bounding
+coordinate.
+
+**How to verify.** Change one RGB value outside the three fish-motion regions
+without touching alpha and run the generator check. It must fail with the
+escaped pixel coordinate. Restore the mutation and require exact regeneration.
+
+## [L-restored-countdowns-must-enter-a-valid-update-state] Validate before decrementing
+
+**What happened.** Save validation accepted `AtWork { remaining_ticks: 0 }`.
+The career system decrements before checking for completion, so the next debug
+tick panicked and a release build wrapped to `u32::MAX`, leaving the Sim at
+work for years of game time.
+
+**Root cause.** Serialization preserved the integer type but not the live
+component's positive-domain invariant. The update loop assumed every restored
+component came from the constructor that enforces that invariant.
+
+**Prevention rule.** Validate saved countdowns against the domain required by
+their first update operation. A decrement-before-check counter must restore as
+strictly positive, or the system must use saturating subtraction and define
+zero as a legal completion state.
+
+**How to verify.** Require one remaining work tick to load and zero to fail
+with `InvalidValue`. Remove the validation and require the focused boundary
+test to fail before exercising the dangerous update.

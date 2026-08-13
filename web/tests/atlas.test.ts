@@ -2,11 +2,14 @@ import { describe, it, expect } from 'vitest';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import {
+  ATLAS_CONTENT_SHA256,
+  ATLAS_FILE_NAME,
   ATLAS_HEIGHT,
   ATLAS_WIDTH,
   SPRITES,
   spriteIndex,
 } from '../src/render/atlas.js';
+import { atlasTextureUrl } from '../src/render/sprites.js';
 
 // The atlas manifest exists TWICE: `assets/sprites/atlas.toml`, which
 // `terri-data`'s build script validates content against and resolves
@@ -132,6 +135,16 @@ describe('the atlas manifest', () => {
     ]);
   });
 
+  it('content-addresses the exact PNG bytes served beside the manifest', () => {
+    const png = readFileSync('public/atlas.png');
+    const actual = createHash('sha256').update(png).digest('hex');
+
+    expect(ATLAS_CONTENT_SHA256).toBe(actual);
+    expect(ATLAS_FILE_NAME).toBe(`atlas-${actual}.png`);
+    expect(readFileSync(`public/${ATLAS_FILE_NAME}`)).toEqual(png);
+    expect(atlasTextureUrl('/terrilives/')).toBe(`/terrilives/${ATLAS_FILE_NAME}`);
+  });
+
   it('holds the three sprites the shell draws itself, and the sim', () => {
     // Object sprites deliberately do NOT appear here. They come from
     // content, resolved before they ever reach TypeScript, so naming one
@@ -232,11 +245,21 @@ describe('the atlas manifest', () => {
       'sim3WalkSE0', 'sim3WalkSE1', 'sim3WalkNW0', 'sim3WalkNW1',
       'sim3WalkSW0', 'sim3WalkSW1', 'sim3WalkNE0', 'sim3WalkNE1',
     ];
+    const exerciseSprites = ['sim', 'sim2', 'sim3'].flatMap((look) =>
+      ['SE', 'NW', 'SW', 'NE'].flatMap((facing) =>
+        [0, 1].map((frame) => `${look}Exercise${facing}${frame}`),
+      ),
+    );
+    const watchFishSprites = ['sim', 'sim2', 'sim3'].flatMap((look) =>
+      ['SE', 'NW', 'SW', 'NE'].flatMap((facing) =>
+        [0, 1].map((frame) => `${look}WatchFish${facing}${frame}`),
+      ),
+    );
 
     expect(spriteIndex('sim')).toBe(1);
     expect(spriteIndex('sim2')).toBe(48);
     expect(spriteIndex('sim3')).toBe(49);
-    expect(SPRITES).toHaveLength(172);
+    expect(SPRITES).toHaveLength(223);
     expect(
       createHash('sha256')
         .update(SPRITES.slice(0, 147).map((sprite) => sprite.name).join('\0'))
@@ -262,6 +285,20 @@ describe('the atlas manifest', () => {
     );
     expect(spriteIndex('heldSnack')).toBe(171);
     expect([SPRITES[171].w, SPRITES[171].h]).toEqual([14, 10]);
+    expect(spriteIndex('cardboardBoxOpen')).toBe(24);
+    expect([SPRITES[24].w, SPRITES[24].h]).toEqual([80, 88]);
+    expect(spriteIndex('bookcaseClosedWide')).toBe(32);
+    expect([SPRITES[32].w, SPRITES[32].h]).toEqual([80, 104]);
+    expect(spriteIndex('aquariumCabinet1')).toBe(172);
+    expect([SPRITES[172].w, SPRITES[172].h]).toEqual([80, 104]);
+    expect(spriteIndex('indicatorExercise')).toBe(173);
+    expect(spriteIndex('indicatorWatchFish')).toBe(174);
+    expect(SPRITES.slice(175, 199).map((sprite) => sprite.name)).toEqual(
+      exerciseSprites,
+    );
+    expect(SPRITES.slice(199, 223).map((sprite) => sprite.name)).toEqual(
+      watchFishSprites,
+    );
     expect(spriteIndex('carried_dinner')).toBe(47);
     expect([SPRITES[47].w, SPRITES[47].h]).toEqual([18, 14]);
     for (const name of [
@@ -270,6 +307,8 @@ describe('the atlas manifest', () => {
       ...readSprites,
       ...standingReadSprites,
       ...walkSprites,
+      ...exerciseSprites,
+      ...watchFishSprites,
     ]) {
       const sprite = SPRITES[spriteIndex(name)];
       expect([sprite.w, sprite.h], name).toEqual([38, 88]);

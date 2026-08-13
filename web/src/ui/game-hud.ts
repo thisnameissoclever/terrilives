@@ -39,6 +39,8 @@ const ACTIVITY_NAMES = [
   'At work',
   'Using object',
   'Reading',
+  'Exercising',
+  'Watching fish',
 ] as const;
 
 export function formatActivity(

@@ -42,7 +42,7 @@ jobs:
       # build-atlas.ps1 was Windows-only System.Drawing and CI never ran
       # it, so a hand-edited atlas.png or a manifest that had drifted from
       # the art would have gone unnoticed. The generator that replaced it
-      # is Python, so this regenerates all three outputs and fails if any
+      # is Python, so this regenerates all four outputs and fails if any
       # differs from what is committed. See [ML-ci].
       - name: Sprite atlas is reproducible
         run: |

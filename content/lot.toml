@@ -198,6 +198,8 @@ place = [
   { object = "double_bed", x = 0.0, y = 6.0 },
   { object = "nightstand", x = 2.0, y = 6.0 },
   { object = "dresser", x = 0.0, y = 10.0 },
+  # `moving_box` is the bike's historical Save V1 persistence key. Keep the
+  # key, position, and one-tile footprint unchanged.
   { object = "moving_box", x = 4.0, y = 11.0 },
 
   # ---- Study, x 6..10, y 6..11 -----------------------------------------
@@ -209,6 +211,8 @@ place = [
   { object = "desk_chair", x = 6.0, y = 7.0 },
   { object = "bed", x = 9.0, y = 6.0 },
   { object = "reading_chair", x = 9.0, y = 9.0 },
+  # `reference_shelf` is the aquarium's historical Save V1 persistence key.
+  # Keep the key, position, and one-tile footprint unchanged.
   { object = "reference_shelf", x = 6.0, y = 10.0 },
   { object = "potted_plant", x = 10.0, y = 11.0 },
 
