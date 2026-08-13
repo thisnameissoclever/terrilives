@@ -28,6 +28,8 @@ pub enum CompiledVisualAction {
     Talk,
     Eat,
     Read,
+    Exercise,
+    Watch,
 }
 
 /// The entity that gives an action pose its spatial meaning.
@@ -1183,6 +1185,36 @@ mod tests {
             postcard::to_allocvec(&standing).expect("standing read visual must serialise"),
             vec![2, 1, 0, 0],
             "standing read reuses the established Read, Object, and TowardAnchor variants"
+        );
+    }
+
+    /// The aquarium and exercise-bike actions append to the presentation
+    /// vocabulary. Pinning the bytes catches a future variant reorder that a
+    /// same-version postcard round trip would happily conceal.
+    #[test]
+    fn exercise_and_watch_visuals_append_after_existing_action_discriminants() {
+        let exercise = CompiledVisual {
+            action: CompiledVisualAction::Exercise,
+            anchor: CompiledVisualAnchor::ObjectSocket,
+            facing: CompiledVisualFacing::Socket,
+            socket: Some(0),
+        };
+        let watch = CompiledVisual {
+            action: CompiledVisualAction::Watch,
+            anchor: CompiledVisualAnchor::Object,
+            facing: CompiledVisualFacing::TowardAnchor,
+            socket: None,
+        };
+
+        assert_eq!(
+            postcard::to_allocvec(&exercise).expect("exercise visual must serialise"),
+            vec![3, 3, 1, 1, 0],
+            "Exercise must append after Read without moving anchor, facing, or socket fields"
+        );
+        assert_eq!(
+            postcard::to_allocvec(&watch).expect("watch visual must serialise"),
+            vec![4, 1, 0, 0],
+            "Watch must append after Exercise and keep the existing object-facing contract"
         );
     }
 }

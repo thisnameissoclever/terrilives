@@ -70,8 +70,8 @@ pub struct RenderBuffer {
     /// initiator is still inbound), 3 exact authored eating, 4 talking
     /// (either side of a conversation), 5 sleeping (a valid sleep-tagged
     /// object interaction), 6 at work, 7 ordinary object use without a
-    /// narrower authored activity, and 8 exact authored reading. Some
-    /// codes are text-only and draw no indicator.
+    /// narrower authored activity, 8 exact authored reading, 9 exercising,
+    /// and 10 watching fish. Some codes are text-only and draw no indicator.
     ///
     /// Exists because the owner's play report put it plainly: "if you
     /// can't see what they're doing, they may as well not be doing
@@ -126,6 +126,10 @@ pub mod activity {
     /// Exact authored reading, either at a validated object socket or toward
     /// a validated object anchor.
     pub const READING: u32 = 8;
+    /// Exact authored exercise at a validated object socket.
+    pub const EXERCISING: u32 = 9;
+    /// Exact authored aquarium watching toward a validated object anchor.
+    pub const WATCHING_FISH: u32 = 10;
 }
 
 /// Presentation body-action codes. Kept as `u32` so JavaScript can view the
@@ -141,6 +145,10 @@ pub mod visual_action {
     pub const STANDING_READ: u32 = 4;
     /// Articulated travel toward the live path's next step.
     pub const WALK: u32 = 5;
+    /// Seated exercise at an object-local action socket.
+    pub const EXERCISE: u32 = 6;
+    /// Standing aquarium watching toward the object's footprint centre.
+    pub const WATCH: u32 = 7;
 }
 
 /// Lot-axis facing codes for projected body actions.
@@ -485,6 +493,22 @@ mod tests {
     }
 
     #[test]
+    fn aquarium_and_exercise_codes_append_after_every_existing_render_code() {
+        use crate::render_buffer::{activity, visual_action};
+
+        assert_eq!(visual_action::WALK, 5, "walking remains action 5");
+        assert_eq!(visual_action::EXERCISE, 6, "exercise appends as action 6");
+        assert_eq!(visual_action::WATCH, 7, "watching fish appends as action 7");
+        assert_eq!(activity::READING, 8, "reading remains activity 8");
+        assert_eq!(activity::EXERCISING, 9, "exercise appends as activity 9");
+        assert_eq!(
+            activity::WATCHING_FISH,
+            10,
+            "watching fish appends as activity 10"
+        );
+    }
+
+    #[test]
     fn walking_visual_uses_the_live_next_step_for_all_four_lot_axes_only() {
         use crate::render_buffer::{activity, facing, visual_action};
         use terri_core::Path;
@@ -686,6 +710,24 @@ mod tests {
             steps: vec![(19, 3)],
             cursor: 0,
         });
+        let (exerciser, _, _, _) = spawn_shipped_exerciser(
+            &mut sim,
+            Position { x: 25.0, y: 3.0 },
+            Position { x: 23.0, y: 3.0 },
+        );
+        sim.world_mut().entity_mut(exerciser).insert(Path {
+            steps: vec![(24, 3)],
+            cursor: 0,
+        });
+        let (watcher, _, _, _) = spawn_shipped_fish_watcher(
+            &mut sim,
+            Position { x: 30.0, y: 3.0 },
+            Position { x: 28.0, y: 3.0 },
+        );
+        sim.world_mut().entity_mut(watcher).insert(Path {
+            steps: vec![(29, 3)],
+            cursor: 0,
+        });
 
         sim.sync_render_buffer();
 
@@ -707,6 +749,22 @@ mod tests {
                 visual_action::STANDING_READ,
                 facing::POSITIVE_X,
                 activity::READING,
+            )
+        );
+        assert_eq!(
+            projection_of(sim.render_buffer(), exerciser),
+            (
+                visual_action::EXERCISE,
+                facing::POSITIVE_X,
+                activity::EXERCISING,
+            )
+        );
+        assert_eq!(
+            projection_of(sim.render_buffer(), watcher),
+            (
+                visual_action::WATCH,
+                facing::POSITIVE_X,
+                activity::WATCHING_FISH,
             )
         );
     }
@@ -841,6 +899,720 @@ mod tests {
             ))
             .id();
         (agent, target, bookshelf, interaction)
+    }
+
+    fn spawn_shipped_exerciser(
+        sim: &mut Sim,
+        bike_at: Position,
+        agent_at: Position,
+    ) -> (Entity, Entity, terri_data::ObjectDefId, u32) {
+        let bike = sim
+            .world()
+            .resource::<crate::Content>()
+            .0
+            .find("moving_box")
+            .expect("the active pack declares the exercise bike");
+        let interaction = sim
+            .world()
+            .resource::<crate::Content>()
+            .0
+            .object(bike)
+            .interactions
+            .iter()
+            .position(|interaction| interaction.id == "use_exercise_bike")
+            .expect("the active pack declares use_exercise_bike") as u32;
+        let target = sim.spawn_object(bike_at, bike);
+        let agent = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                agent_at,
+                Eating {
+                    object: bike,
+                    interaction,
+                    remaining_ticks: 10,
+                },
+                terri_core::Target {
+                    object: target,
+                    interaction,
+                },
+            ))
+            .id();
+        (agent, target, bike, interaction)
+    }
+
+    fn spawn_shipped_fish_watcher(
+        sim: &mut Sim,
+        aquarium_at: Position,
+        agent_at: Position,
+    ) -> (Entity, Entity, terri_data::ObjectDefId, u32) {
+        let aquarium = sim
+            .world()
+            .resource::<crate::Content>()
+            .0
+            .find("reference_shelf")
+            .expect("the active pack declares the aquarium");
+        let interaction = sim
+            .world()
+            .resource::<crate::Content>()
+            .0
+            .object(aquarium)
+            .interactions
+            .iter()
+            .position(|interaction| interaction.id == "watch_fish")
+            .expect("the active pack declares watch_fish") as u32;
+        let target = sim.spawn_object(aquarium_at, aquarium);
+        let agent = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                agent_at,
+                Eating {
+                    object: aquarium,
+                    interaction,
+                    remaining_ticks: 10,
+                },
+                terri_core::Target {
+                    object: target,
+                    interaction,
+                },
+            ))
+            .id();
+        (agent, target, aquarium, interaction)
+    }
+
+    #[test]
+    fn paused_chain_state_preserves_interrupted_authored_action_projections() {
+        use crate::render_buffer::{activity, facing, visual_action};
+        use terri_core::{ChainState, StepWork};
+
+        let mut sim = Sim::new_with_lot(48, 48);
+        assert!(
+            !sim.world().resource::<crate::Content>().0.chains.is_empty(),
+            "the interrupted-chain fixture needs a valid resumable chain"
+        );
+        let (seated_reader, _, _, _) = spawn_shipped_reader(
+            &mut sim,
+            Position { x: 8.0, y: 8.0 },
+            Position { x: 6.0, y: 8.0 },
+        );
+        let (standing_reader, _, _, _) = spawn_shipped_standing_reader(
+            &mut sim,
+            Position { x: 16.0, y: 8.0 },
+            Position { x: 14.0, y: 8.0 },
+        );
+        let (exerciser, _, _, _) = spawn_shipped_exerciser(
+            &mut sim,
+            Position { x: 24.0, y: 8.0 },
+            Position { x: 22.0, y: 8.0 },
+        );
+        let (fish_watcher, _, _, _) = spawn_shipped_fish_watcher(
+            &mut sim,
+            Position { x: 32.0, y: 8.0 },
+            Position { x: 30.0, y: 8.0 },
+        );
+        let expected = [
+            (
+                seated_reader,
+                visual_action::READ,
+                facing::POSITIVE_X,
+                activity::READING,
+            ),
+            (
+                standing_reader,
+                visual_action::STANDING_READ,
+                facing::POSITIVE_X,
+                activity::READING,
+            ),
+            (
+                exerciser,
+                visual_action::EXERCISE,
+                facing::POSITIVE_X,
+                activity::EXERCISING,
+            ),
+            (
+                fish_watcher,
+                visual_action::WATCH,
+                facing::POSITIVE_X,
+                activity::WATCHING_FISH,
+            ),
+        ];
+
+        // Player interactions pause chain work without deleting its resumable
+        // counter. This is the component state produced by that interruption:
+        // ordinary Eating plus Target, persistent ChainState, and no StepWork.
+        for &(entity, _, _, _) in &expected {
+            sim.world_mut()
+                .entity_mut(entity)
+                .insert(ChainState::begin(0));
+            assert!(sim.world().get::<StepWork>(entity).is_none());
+        }
+        let snapshot = sim.save_snapshot();
+        let hash = sim.world_hash();
+
+        sim.sync_render_buffer();
+        for &(entity, action, direction, projected_activity) in &expected {
+            assert!(
+                sim.world().get::<ChainState>(entity).is_some(),
+                "render projection must not consume resumable chain progress"
+            );
+            assert_eq!(
+                projection_of(sim.render_buffer(), entity),
+                (action, direction, projected_activity),
+                "a paused chain must preserve its ordinary authored interruption pose"
+            );
+        }
+        assert_eq!(sim.save_snapshot(), snapshot);
+        assert_eq!(sim.world_hash(), hash);
+
+        let mut restored = Sim::new_with_lot(1, 1);
+        restored
+            .load_snapshot(snapshot)
+            .expect("an interrupted ordinary action with resumable chain progress must load");
+        for &(entity, action, direction, projected_activity) in &expected {
+            assert!(restored.world().get::<ChainState>(entity).is_some());
+            assert_eq!(
+                projection_of(restored.render_buffer(), entity),
+                (action, direction, projected_activity),
+                "Load must reconstruct the interrupted authored pose"
+            );
+        }
+
+        // StepWork is different: it means the chain step itself is actively
+        // running, so malformed overlap must still fail closed.
+        for &(entity, _, _, _) in &expected {
+            restored.world_mut().entity_mut(entity).insert(StepWork {
+                remaining_ticks: 10,
+            });
+        }
+        restored.sync_render_buffer();
+        for &(entity, _, _, _) in &expected {
+            assert_eq!(
+                projection_of(restored.render_buffer(), entity),
+                (visual_action::NONE, facing::NONE, activity::USING_OBJECT),
+                "active StepWork must suppress the ordinary authored pose"
+            );
+        }
+    }
+
+    #[test]
+    fn shipped_bike_and_aquarium_project_exact_pose_activity_position_and_load_state() {
+        use crate::render_buffer::{activity, facing, visual_action};
+
+        let mut sim = Sim::new_with_lot(48, 48);
+        let bike_position = Position { x: 35.5, y: 36.25 };
+        let bike_agent_position = Position { x: 31.0, y: 36.25 };
+        let (exerciser, bike_target, _, _) =
+            spawn_shipped_exerciser(&mut sim, bike_position, bike_agent_position);
+        let saddle = sim
+            .world()
+            .get::<crate::ResolvedActionSockets>(bike_target)
+            .expect("the exercise bike resolves its saddle")
+            .0[0]
+            .clone();
+
+        let aquarium_position = Position { x: 12.0, y: 12.0 };
+        let watcher_cases = [
+            (Position { x: 9.0, y: 12.0 }, facing::POSITIVE_X),
+            (Position { x: 15.0, y: 12.0 }, facing::NEGATIVE_X),
+            (Position { x: 12.0, y: 9.0 }, facing::POSITIVE_Y),
+            (Position { x: 12.0, y: 15.0 }, facing::NEGATIVE_Y),
+            // Equal non-zero deltas take the x axis deterministically.
+            (Position { x: 10.0, y: 10.0 }, facing::POSITIVE_X),
+        ];
+        let mut watchers = Vec::new();
+        for (position, expected_facing) in watcher_cases {
+            let (watcher, _, _, _) =
+                spawn_shipped_fish_watcher(&mut sim, aquarium_position, position);
+            watchers.push((watcher, position, expected_facing));
+        }
+        let before_hash = sim.world_hash();
+        let before_save = sim.save_snapshot();
+
+        sim.sync_render_buffer();
+
+        assert_eq!(
+            projection_of(sim.render_buffer(), exerciser),
+            (
+                visual_action::EXERCISE,
+                facing::POSITIVE_X,
+                activity::EXERCISING,
+            )
+        );
+        assert_eq!(
+            displayed_position_of(sim.render_buffer(), exerciser),
+            ((saddle.x, saddle.y), (saddle.x, saddle.y)),
+            "the body and both interpolation samples must plant on the exact saddle"
+        );
+        for &(watcher, position, expected_facing) in &watchers {
+            assert_eq!(
+                projection_of(sim.render_buffer(), watcher),
+                (
+                    visual_action::WATCH,
+                    expected_facing,
+                    activity::WATCHING_FISH,
+                )
+            );
+            assert_eq!(
+                displayed_position_of(sim.render_buffer(), watcher),
+                ((position.x, position.y), (position.x, position.y)),
+                "watching fish must face the aquarium without entering it"
+            );
+        }
+        assert_eq!(sim.save_snapshot(), before_save);
+        assert_eq!(sim.world_hash(), before_hash);
+
+        let mut restored = Sim::new_with_lot(1, 1);
+        restored
+            .load_snapshot(before_save.clone())
+            .expect("the active aquarium and bike state must load");
+        assert_eq!(restored.save_snapshot(), before_save);
+        assert_eq!(restored.world_hash(), before_hash);
+        assert_eq!(
+            projection_of(restored.render_buffer(), exerciser),
+            (
+                visual_action::EXERCISE,
+                facing::POSITIVE_X,
+                activity::EXERCISING,
+            )
+        );
+        assert_eq!(
+            displayed_position_of(restored.render_buffer(), exerciser),
+            ((saddle.x, saddle.y), (saddle.x, saddle.y)),
+            "Load reconstructs the socket pose from tick state and current authored content"
+        );
+        for &(watcher, position, expected_facing) in &watchers {
+            assert_eq!(
+                projection_of(restored.render_buffer(), watcher),
+                (
+                    visual_action::WATCH,
+                    expected_facing,
+                    activity::WATCHING_FISH,
+                )
+            );
+            assert_eq!(
+                displayed_position_of(restored.render_buffer(), watcher),
+                ((position.x, position.y), (position.x, position.y))
+            );
+        }
+    }
+
+    #[test]
+    fn exercise_socket_entry_continuation_and_cancel_reseed_both_samples() {
+        use crate::render_buffer::{activity, facing, visual_action};
+        use terri_core::Target;
+
+        let mut sim = Sim::new_with_lot(24, 24);
+        let bike = terri_data::pack()
+            .find("moving_box")
+            .expect("shipped exercise bike");
+        let exercise = shipped_interaction_index(bike, "use_exercise_bike");
+        let bike_position = Position { x: 17.5, y: 18.25 };
+        let agent_position = Position { x: 4.0, y: 5.5 };
+        let target = sim.spawn_object(bike_position, bike);
+        let saddle = sim
+            .world()
+            .get::<crate::ResolvedActionSockets>(target)
+            .expect("bike socket carrier")
+            .0[0]
+            .clone();
+        let agent = sim.world_mut().spawn((Agent, agent_position)).id();
+
+        sim.sync_render_buffer();
+        assert_eq!(
+            displayed_position_of(sim.render_buffer(), agent),
+            (
+                (agent_position.x, agent_position.y),
+                (agent_position.x, agent_position.y),
+            )
+        );
+
+        sim.world_mut().entity_mut(agent).insert((
+            Eating {
+                object: bike,
+                interaction: exercise,
+                remaining_ticks: 10,
+            },
+            Target {
+                object: target,
+                interaction: exercise,
+            },
+        ));
+        sim.sync_render_buffer_after_commands();
+        assert_eq!(
+            projection_of(sim.render_buffer(), agent),
+            (
+                visual_action::EXERCISE,
+                facing::POSITIVE_X,
+                activity::EXERCISING,
+            )
+        );
+        assert_eq!(
+            displayed_position_of(sim.render_buffer(), agent),
+            ((saddle.x, saddle.y), (saddle.x, saddle.y)),
+            "paused entry must not glide from the path tile onto the saddle"
+        );
+
+        sim.sync_render_buffer();
+        assert_eq!(
+            displayed_position_of(sim.render_buffer(), agent),
+            ((saddle.x, saddle.y), (saddle.x, saddle.y)),
+            "continued exercise remains planted across an advancing sample"
+        );
+
+        sim.world_mut()
+            .entity_mut(agent)
+            .remove::<(Eating, Target)>();
+        sim.sync_render_buffer_after_commands();
+        assert_eq!(
+            projection_of(sim.render_buffer(), agent),
+            (visual_action::NONE, facing::NONE, activity::NONE)
+        );
+        assert_eq!(
+            displayed_position_of(sim.render_buffer(), agent),
+            (
+                (agent_position.x, agent_position.y),
+                (agent_position.x, agent_position.y),
+            ),
+            "paused Cancel must not glide from the saddle back to the path tile"
+        );
+    }
+
+    #[test]
+    fn exercise_projects_both_position_samples_from_the_exact_resolved_socket() {
+        use crate::render_buffer::{activity, facing, visual_action};
+        use terri_core::Target;
+
+        let mut sim = Sim::new_with_lot(24, 24);
+        let bike = terri_data::pack()
+            .find("moving_box")
+            .expect("shipped exercise bike");
+        let exercise = shipped_interaction_index(bike, "use_exercise_bike");
+        let bike_position = Position { x: 17.5, y: 18.25 };
+        let target = sim.spawn_object(bike_position, bike);
+        let socket_position = (19.75, 16.125);
+        {
+            let mut sockets = sim
+                .world_mut()
+                .get_mut::<crate::ResolvedActionSockets>(target)
+                .expect("bike socket carrier");
+            let saddle = sockets.0.get_mut(0).expect("exercise saddle");
+            saddle.x = socket_position.0;
+            saddle.y = socket_position.1;
+        }
+        assert_ne!(socket_position.0, bike_position.x);
+        assert_ne!(socket_position.1, bike_position.y);
+
+        let agent_position = Position { x: 4.0, y: 5.5 };
+        let agent = sim.world_mut().spawn((Agent, agent_position)).id();
+        sim.sync_render_buffer();
+        sim.world_mut().entity_mut(agent).insert((
+            Eating {
+                object: bike,
+                interaction: exercise,
+                remaining_ticks: 10,
+            },
+            Target {
+                object: target,
+                interaction: exercise,
+            },
+        ));
+
+        sim.sync_render_buffer_after_commands();
+
+        assert_eq!(
+            projection_of(sim.render_buffer(), agent),
+            (
+                visual_action::EXERCISE,
+                facing::POSITIVE_X,
+                activity::EXERCISING,
+            )
+        );
+        assert_eq!(
+            displayed_position_of(sim.render_buffer(), agent),
+            (socket_position, socket_position),
+            "paused exercise entry must reseed current and previous coordinates from the exact resolved socket, not the target origin"
+        );
+    }
+
+    #[test]
+    fn exercise_and_watch_require_their_exact_compiled_visual_contracts() {
+        use crate::render_buffer::{activity, facing, visual_action};
+        use terri_data::{CompiledInteraction, CompiledVisualAction, CompiledVisualAnchor};
+
+        type Mutation = fn(&mut CompiledInteraction);
+        let generic = (visual_action::NONE, facing::NONE, activity::USING_OBJECT);
+        let exercise_cases: [(&str, Mutation, (u32, u32, u32)); 7] = [
+            (
+                "missing visual",
+                |interaction| interaction.visual = None,
+                generic,
+            ),
+            (
+                "reading sibling",
+                |interaction| {
+                    interaction.visual.as_mut().expect("visual").action =
+                        CompiledVisualAction::Read;
+                },
+                (visual_action::READ, facing::POSITIVE_X, activity::READING),
+            ),
+            (
+                "wrong action",
+                |interaction| {
+                    interaction.visual.as_mut().expect("visual").action =
+                        CompiledVisualAction::Watch;
+                },
+                generic,
+            ),
+            (
+                "wrong anchor",
+                |interaction| {
+                    interaction.visual.as_mut().expect("visual").anchor =
+                        CompiledVisualAnchor::Object;
+                },
+                generic,
+            ),
+            (
+                "wrong facing",
+                |interaction| {
+                    interaction.visual.as_mut().expect("visual").facing =
+                        terri_data::CompiledVisualFacing::TowardAnchor;
+                },
+                generic,
+            ),
+            (
+                "missing socket",
+                |interaction| interaction.visual.as_mut().expect("visual").socket = None,
+                generic,
+            ),
+            (
+                "out-of-range socket",
+                |interaction| interaction.visual.as_mut().expect("visual").socket = Some(1),
+                generic,
+            ),
+        ];
+        for (description, mutate, expected) in exercise_cases {
+            let shipped = terri_data::pack();
+            let bike = shipped.find("moving_box").expect("shipped bike");
+            let mut definition = shipped.object(bike).clone();
+            mutate(
+                definition
+                    .interactions
+                    .iter_mut()
+                    .find(|interaction| interaction.id == "use_exercise_bike")
+                    .expect("exercise interaction"),
+            );
+            let pack = crate::test_content::pack(vec![definition]);
+            let mut sim = crate::test_content::sim_with(20, 20, pack);
+            let (agent, _, _, _) = spawn_shipped_exerciser(
+                &mut sim,
+                Position { x: 12.0, y: 12.0 },
+                Position { x: 8.0, y: 12.0 },
+            );
+            sim.sync_render_buffer();
+            assert_eq!(
+                projection_of(sim.render_buffer(), agent),
+                expected,
+                "exercise {description} must retain only its exact sibling behavior"
+            );
+            assert_ne!(
+                projection_of(sim.render_buffer(), agent).0,
+                visual_action::EXERCISE,
+                "exercise {description} must not acquire action 6"
+            );
+        }
+
+        let watch_cases: [(&str, Mutation, (u32, u32, u32)); 6] = [
+            (
+                "missing visual",
+                |interaction| interaction.visual = None,
+                generic,
+            ),
+            (
+                "standing-read sibling",
+                |interaction| {
+                    interaction.visual.as_mut().expect("visual").action =
+                        CompiledVisualAction::Read;
+                },
+                (
+                    visual_action::STANDING_READ,
+                    facing::POSITIVE_X,
+                    activity::READING,
+                ),
+            ),
+            (
+                "wrong action",
+                |interaction| {
+                    interaction.visual.as_mut().expect("visual").action =
+                        CompiledVisualAction::Exercise;
+                },
+                generic,
+            ),
+            (
+                "wrong anchor",
+                |interaction| {
+                    interaction.visual.as_mut().expect("visual").anchor =
+                        CompiledVisualAnchor::ObjectSocket;
+                },
+                generic,
+            ),
+            (
+                "wrong facing",
+                |interaction| {
+                    interaction.visual.as_mut().expect("visual").facing =
+                        terri_data::CompiledVisualFacing::Socket;
+                },
+                generic,
+            ),
+            (
+                "surplus socket",
+                |interaction| interaction.visual.as_mut().expect("visual").socket = Some(0),
+                generic,
+            ),
+        ];
+        for (description, mutate, expected) in watch_cases {
+            let shipped = terri_data::pack();
+            let aquarium = shipped.find("reference_shelf").expect("shipped aquarium");
+            let mut definition = shipped.object(aquarium).clone();
+            mutate(
+                definition
+                    .interactions
+                    .iter_mut()
+                    .find(|interaction| interaction.id == "watch_fish")
+                    .expect("watch interaction"),
+            );
+            let pack = crate::test_content::pack(vec![definition]);
+            let mut sim = crate::test_content::sim_with(20, 20, pack);
+            let (agent, _, _, _) = spawn_shipped_fish_watcher(
+                &mut sim,
+                Position { x: 12.0, y: 12.0 },
+                Position { x: 8.0, y: 12.0 },
+            );
+            sim.sync_render_buffer();
+            assert_eq!(
+                projection_of(sim.render_buffer(), agent),
+                expected,
+                "watch {description} must retain only its exact sibling behavior"
+            );
+            assert_ne!(
+                projection_of(sim.render_buffer(), agent).0,
+                visual_action::WATCH,
+                "watch {description} must not acquire action 7"
+            );
+        }
+    }
+
+    #[test]
+    fn authored_exercise_and_watch_activity_outrank_an_independent_sleep_tag() {
+        use crate::render_buffer::{activity, facing, visual_action};
+
+        let shipped = terri_data::pack();
+        let sleep_tag = shipped.sleep_tag.clone();
+        let bike = shipped.find("moving_box").expect("shipped exercise bike");
+        let aquarium = shipped.find("reference_shelf").expect("shipped aquarium");
+        let mut bike_definition = shipped.object(bike).clone();
+        bike_definition
+            .interactions
+            .iter_mut()
+            .find(|interaction| interaction.id == "use_exercise_bike")
+            .expect("exercise interaction")
+            .tags
+            .push(sleep_tag.clone());
+        let mut aquarium_definition = shipped.object(aquarium).clone();
+        aquarium_definition
+            .interactions
+            .iter_mut()
+            .find(|interaction| interaction.id == "watch_fish")
+            .expect("watch interaction")
+            .tags
+            .push(sleep_tag);
+
+        // Tags and visual metadata are independent legal content fields. The
+        // sleep classifier therefore sees both interactions as sleep-tagged,
+        // while their exact visual contracts still own pose and activity.
+        let pack = crate::test_content::pack(vec![bike_definition, aquarium_definition]);
+        let mut sim = crate::test_content::sim_with(40, 24, pack);
+        let (exerciser, _, _, _) = spawn_shipped_exerciser(
+            &mut sim,
+            Position { x: 12.0, y: 12.0 },
+            Position { x: 8.0, y: 12.0 },
+        );
+        let (watcher, _, _, _) = spawn_shipped_fish_watcher(
+            &mut sim,
+            Position { x: 28.0, y: 12.0 },
+            Position { x: 24.0, y: 12.0 },
+        );
+        for entity in [exerciser, watcher] {
+            assert!(crate::systems::circadian::is_asleep(
+                sim.world().resource::<crate::Content>().0,
+                sim.world().get::<Eating>(entity),
+            ));
+        }
+
+        sim.sync_render_buffer();
+
+        assert_eq!(
+            projection_of(sim.render_buffer(), exerciser),
+            (
+                visual_action::EXERCISE,
+                facing::POSITIVE_X,
+                activity::EXERCISING,
+            ),
+            "the exercise body and activity must remain one authored signal"
+        );
+        assert_eq!(
+            projection_of(sim.render_buffer(), watcher),
+            (
+                visual_action::WATCH,
+                facing::POSITIVE_X,
+                activity::WATCHING_FISH,
+            ),
+            "the watch body and activity must remain one authored signal"
+        );
+    }
+
+    #[test]
+    fn at_work_suppresses_malformed_exercise_and_watch_overlaps() {
+        use crate::render_buffer::{activity, facing, visual_action};
+        use terri_core::AtWork;
+
+        let mut sim = Sim::new_with_lot(40, 24);
+        let exerciser_position = Position { x: 8.0, y: 12.0 };
+        let watcher_position = Position { x: 24.0, y: 12.0 };
+        let (exerciser, _, _, _) =
+            spawn_shipped_exerciser(&mut sim, Position { x: 12.0, y: 12.0 }, exerciser_position);
+        let (watcher, _, _, _) =
+            spawn_shipped_fish_watcher(&mut sim, Position { x: 28.0, y: 12.0 }, watcher_position);
+        for entity in [exerciser, watcher] {
+            sim.world_mut().entity_mut(entity).insert(AtWork {
+                remaining_ticks: 10,
+            });
+        }
+
+        sim.sync_render_buffer();
+
+        for entity in [exerciser, watcher] {
+            assert_eq!(
+                projection_of(sim.render_buffer(), entity),
+                (visual_action::NONE, facing::NONE, activity::AT_WORK),
+                "an off-lot sim must not retain an ordinary object pose"
+            );
+        }
+        assert_eq!(
+            displayed_position_of(sim.render_buffer(), exerciser),
+            (
+                (exerciser_position.x, exerciser_position.y),
+                (exerciser_position.x, exerciser_position.y),
+            ),
+            "suppressed exercise must not move an off-lot body onto the bike socket"
+        );
+        assert_eq!(
+            displayed_position_of(sim.render_buffer(), watcher),
+            (
+                (watcher_position.x, watcher_position.y),
+                (watcher_position.x, watcher_position.y),
+            )
+        );
     }
 
     #[test]
@@ -1033,7 +1805,7 @@ mod tests {
     #[test]
     fn standing_read_fails_closed_for_each_required_component_identity_and_owner_near_miss() {
         use crate::render_buffer::{activity, facing, visual_action};
-        use terri_core::{ChainState, Socialising, StepWork, Target};
+        use terri_core::{Socialising, StepWork, Target};
 
         let shipped = terri_data::pack();
         let shipped_bookshelf = shipped.find("bookshelf").expect("shipped bookshelf");
@@ -1137,16 +1909,6 @@ mod tests {
             eating(bookshelf, crate::systems::chain::CHAIN_STEP),
             target(valid_target, crate::systems::chain::CHAIN_STEP),
         ));
-        let active_chain_state = spawn_agent(&mut sim);
-        sim.world_mut().entity_mut(active_chain_state).insert((
-            eating(bookshelf, read),
-            target(valid_target, read),
-            ChainState {
-                chain: 0,
-                step: 0,
-                fumble_scale: 1.0,
-            },
-        ));
         let active_step_work = spawn_agent(&mut sim);
         sim.world_mut().entity_mut(active_step_work).insert((
             eating(bookshelf, read),
@@ -1179,7 +1941,6 @@ mod tests {
             (reading_tag_without_visual, "reading tag without visual"),
             (wrong_target_definition, "wrong exact target definition"),
             (chain_sentinel, "chain-step target sentinel"),
-            (active_chain_state, "active ChainState"),
             (active_step_work, "active StepWork"),
             (active_social, "active Socialising"),
         ] {
@@ -1600,7 +2361,6 @@ mod tests {
                 remaining_ticks: 10,
             },
         ));
-
         sim.sync_render_buffer();
         for (entity, description) in [
             (missing_eating, "missing Eating"),
@@ -2656,7 +3416,7 @@ mod tests {
         use crate::render_buffer::{activity, facing, visual_action};
         use terri_core::{Socialising, Target};
 
-        let mut sim = Sim::new_with_lot(32, 32);
+        let mut sim = Sim::new_with_lot(48, 48);
         let (seated, _, _, _) = spawn_shipped_reader(
             &mut sim,
             Position { x: 6.0, y: 6.0 },
@@ -2667,15 +3427,25 @@ mod tests {
             Position { x: 14.0, y: 6.0 },
             Position { x: 12.0, y: 6.0 },
         );
+        let (exercise, _, _, _) = spawn_shipped_exerciser(
+            &mut sim,
+            Position { x: 22.0, y: 6.0 },
+            Position { x: 20.0, y: 6.0 },
+        );
+        let (watch, _, _, _) = spawn_shipped_fish_watcher(
+            &mut sim,
+            Position { x: 30.0, y: 6.0 },
+            Position { x: 28.0, y: 6.0 },
+        );
 
         let fridge = terri_data::pack().find("fridge").expect("shipped fridge");
         let snack = shipped_interaction_index(fridge, "grab_snack");
-        let fridge_target = sim.spawn_object(Position { x: 22.0, y: 6.0 }, fridge);
+        let fridge_target = sim.spawn_object(Position { x: 38.0, y: 6.0 }, fridge);
         let eating = sim
             .world_mut()
             .spawn((
                 Agent,
-                Position { x: 20.0, y: 6.0 },
+                Position { x: 36.0, y: 6.0 },
                 Eating {
                     object: fridge,
                     interaction: snack,
@@ -2688,7 +3458,10 @@ mod tests {
             ))
             .id();
 
-        for (index, partner) in [seated, standing, eating].into_iter().enumerate() {
+        for (index, partner) in [seated, standing, exercise, watch, eating]
+            .into_iter()
+            .enumerate()
+        {
             sim.world_mut().spawn((
                 Agent,
                 Position {
@@ -2707,6 +3480,8 @@ mod tests {
         for (entity, description) in [
             (seated, "seated reading"),
             (standing, "standing reading"),
+            (exercise, "exercise"),
+            (watch, "watching fish"),
             (eating, "object eating"),
         ] {
             assert_eq!(

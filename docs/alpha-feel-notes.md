@@ -2620,3 +2620,43 @@ moving character and the authored pixels were both judged directly.
   change the observed 1280 by 720 surface, so this repair was not replayed at
   phone width. Operating-system reduced motion, a physical phone, a retained
   public dinner-frame capture, and final owner approval remain open.
+
+## [A-aquarium-exercise-bike] The new objects are reachable without starving the old lot
+
+The 2026-08-12 implementation replaces two inert, one-tile persistence slots
+with `Aquarium of Managed Expectations` and `Wellness Initiative, Indoor`.
+Both remain ordinary scored object candidates. The aquarium improves fun and
+comfort; the exercise bike improves fun while costing energy and hygiene. The
+trace was measured before the played renderer pass so simulation reachability
+would not be confused with whether the pixels look convincing.
+
+- **The ordinary 12,000-tick feel sample is allowed to be sparse.** A release
+  trace completed 286 interactions. The aquarium was used once, the exercise
+  bike zero times, and the reading chair twice. Both started multi-step chains
+  completed, only two of 36,000 Sim-ticks were frozen, and every other shipped
+  interactive object was used. Zero bike uses in this short deterministic
+  window is not evidence that its route is broken.
+- **The 120,000-tick reachability trace closes that ambiguity.** It completed
+  2,857 interactions, including 13 aquarium watches, four exercise-bike uses,
+  and 25 reading-chair uses. Every interactive object was used. All 47 started
+  chains completed with zero abandoned, and only two of 360,000 Sim-ticks were
+  frozen. The final world hash was `0x1aab408f73a06049`.
+- **The changed world hash is expected gameplay, not presentation leakage.**
+  The exact `origin/main` base at `b9a16a4bba509511d16efe5dbd38bf7142c5a335`
+  completed 2,833 interactions over the same 120,000-tick horizon and ended at
+  `0x9e6f6d78065d54a6`. The two new autonomous choices legitimately change the
+  schedule. The published synthetic one-fridge golden remains unchanged.
+- **The new energy and hygiene costs did not create the baseline bad-day
+  failure.** Tim already reached zero energy and 0.5 hygiene on the exact-base
+  trace. In the feature trace his observed minima were 1.9 energy and 3.2
+  hygiene, while hunger, bladder, and fun still reached zero. That comparison
+  supports keeping the authored bike costs; it does not claim a general needs
+  balance improvement from one deterministic horizon.
+- **Proof boundary.** These traces prove deterministic reachability, continued
+  use of older objects, chain completion, and the expected simulation delta.
+  The subsequent local production WebGPU comparison in `design-qa.md` proves
+  aquarium wall clearance, bike alignment, animation readability,
+  Pause/Cancel/Save/Load transitions, phone-width and enlarged-text flyouts,
+  lighting states, and emulated reduced motion. Physical-phone safe areas,
+  long press, operating-system reduced motion, public Pages deployment, and
+  owner approval remain open.

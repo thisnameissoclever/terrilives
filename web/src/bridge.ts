@@ -191,9 +191,10 @@ export class SimBridge {
   /**
    * What each row is DOING, as the activity codes the render buffer
    * documents: 0 none, 1 walking, 2 waiting, 3 eating, 4 talking,
-   * 5 sleeping, 6 at work, 7 generic object use, 8 reading. Some activities
-   * are text-only rather than indicator bubbles. This zero-copy view is
-   * re-created per call for the growth hazard the class doc explains.
+   * 5 sleeping, 6 at work, 7 generic object use, 8 reading, 9 exercising,
+   * 10 watching fish. Some activities are text-only rather than indicator
+   * bubbles. This zero-copy view is re-created per call for the growth hazard
+   * the class doc explains.
    */
   activities(): Uint32Array {
     return new Uint32Array(
@@ -205,12 +206,13 @@ export class SimBridge {
 
   /**
    * The presentation body-action category for each row: 0 none; 1 talk;
-   * 2 eat; 3 seated read; 4 standing read; 5 walk.
+   * 2 eat; 3 seated read; 4 standing read; 5 walk; 6 exercise; 7 watch fish.
    *
-   * Codes 1 through 4 come only from exact validated interaction visuals.
-   * Code 5 is the deliberate presentation-derived exception: an Agent whose
-   * final activity is walking and whose Path has a next step. Re-create the
-   * view on every call for the same memory-growth hazard as every other column.
+   * Codes 1 through 4, 6, and 7 come only from exact validated interaction
+   * visuals. Code 5 is the deliberate presentation-derived exception: an
+   * Agent whose final activity is walking and whose Path has a next step.
+   * Re-create the view on every call for the same memory-growth hazard as
+   * every other column.
    */
   visualActions(): Uint32Array {
     return new Uint32Array(

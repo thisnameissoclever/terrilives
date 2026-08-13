@@ -63,13 +63,14 @@ for the reason first given.
 
 ---
 
-## [B2] Twelve of the thirty objects are furniture nobody uses
+## [B2] Ten of the thirty objects are furniture nobody uses
 
 30 object definitions, 33 placements: `counter`, `chair` and `potted_plant` are
-each placed twice. Of the 30, **12 declare no interactions at all** - the
+each placed twice. Of the 30, **10 declare no interactions at all** - the
 counter, the two chair kinds, the trashcan, the potted plant, the floor lamp,
-the coat rack, the nightstand, the dresser, the moving box, the reference shelf
-and the washer-dryer.
+the coat rack, the nightstand, the dresser and the washer-dryer. The former
+moving box and personal reference shelf became the functional exercise bike and
+aquarium in [AEB-scope], without changing their Save V1 persistence slots.
 
 That is a category, not an omission. A house reads as a house because of the
 things in it nobody uses on purpose. They advertise nothing, so `select_action`
@@ -84,8 +85,9 @@ behind it. A pipeline that silently dropped interactions - a bad merge, a
 nothing, the house would look identical, and every sim would stand still for
 ever ([L17]). "At least one has none" is green in that world.
 
-The behaviour trace was taught the same distinction. It flagged all 12 as
-`NEVER USED`, which buried the interactive objects that really were at zero
+The original behaviour trace was taught the same distinction. It flagged all
+then-12 scenery definitions as `NEVER USED`, which buried the interactive
+objects that really were at zero
 under a dozen that never could be anything else - testing-protocol rule 5 from
 the other end: a signal that fires on everything says nothing. Scenery now
 prints as `(scenery)`.
@@ -96,16 +98,19 @@ of one fact.
 
 ---
 
-## [B3] New objects are appended to `objects.toml`, not grouped by room
+## [B3] Object declaration order is not Save V1 identity
 
-An object's position in that file is its `ObjectDefId`, which the compiled pack,
-every placement in `lot.toml`, and every sim's habituation table all carry.
-Moving `stove` up beside `fridge` because they share a room renumbers every
-definition after it.
+An object's position in `objects.toml` assigns its pack-local `ObjectDefId`.
+That numeric index is convenient inside one compiled build, but it is not
+stable across content edits and Save V1 never persists it as object identity.
+Snapshots store the authored string id and resolve it against the current pack.
+Reordering definitions is therefore save-compatible, although it still
+renumbers the compiled array, changes pack bytes, and creates needless churn in
+numeric fixtures or deterministic goldens.
 
-The rooms are a property of `lot.toml`, which is where a reader should go to find
-out what is next to what. The file carries a comment saying so, because
-"append-only" looks like laziness until you know why.
+The rooms are a property of `lot.toml`, which is where a reader should go to
+find out what is next to what. `objects.toml` remains organised as an authored
+catalogue rather than being repeatedly regrouped to mirror one current lot.
 
 ---
 

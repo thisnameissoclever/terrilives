@@ -10,7 +10,7 @@ is fine inside a compiled build and a violation inside git. See TECH_STACK.md.
 
 ## There are no third-party visual assets
 
-**As of 2026-08-07 this project ships no borrowed art.** Every sprite in
+**As of 2026-08-12 this project ships no borrowed art.** Every sprite in
 `web/public/atlas.png` is drawn from primitives by `assets/sprites/gen/`, so
 the atlas is a build output rather than a derived work.
 
@@ -56,8 +56,8 @@ a live entry again.
 | --- | --- |
 | `style.py` | The palette, the line, the shading ramp, the character build. The style bible. |
 | `iso.py` | The projection, the box/slab/cylinder primitives, and the anchoring rule. |
-| `objects.py` | All 172 sprites, including the three people and their directional talk, eating, seated-reading, standing-reading, and walking frames plus the food props and name contract they satisfy. |
-| `build.py` | Packs the sheet and writes all three output files. |
+| `objects.py` | All 223 sprites, including the three people; their directional talk, eating, seated-reading, standing-reading, walking, exercise, and fish-watching frames; the food props; the two aquarium frames; and the name contract they satisfy. |
+| `build.py` | Packs the sheet and writes all four output files. |
 
 **The image and the manifest live apart, on purpose.** The PNG is in
 `web/public/` so the dev server, `preview` and the production build all serve
@@ -126,14 +126,19 @@ were wrong in the game:
 - A box's screen width is `(length + thickness) * TILE_HALF_WIDTH`, so any
   visible thickness pushes a wall panel past one tile edge. At this size a wall
   is a plane.
+- A sprite can be visually wider than its collision footprint. The retired
+  personal reference shelf did exactly that and appeared to enter the west
+  wall. Its aquarium replacement keeps the historical one-tile save footprint
+  but biases the opaque cabinet and glass toward the open side of the tile.
 
 ## The manifest exists twice, on purpose
 
-`build.py` writes three files in one pass:
+`build.py` writes four files in one pass:
 
 | file | read by |
 | --- | --- |
-| `web/public/atlas.png` | the renderer, as one texture |
+| `web/public/atlas.png` | canonical generated texture used by tests and tools |
+| `web/public/atlas-<sha256>.png` | byte-identical runtime texture at an immutable public pathname |
 | `assets/sprites/atlas.toml` | `terri-data`'s build script, to validate every object's `sprite` and resolve it to an index |
 | `web/src/render/atlas.ts` | the renderer, for the rects |
 
@@ -143,6 +148,13 @@ no TOML parser. They are written from one in-memory list in one pass, so they
 cannot disagree unless one is edited by hand, and `web/tests/atlas.test.ts`
 reads the TOML and fails if they ever do.
 
+The generated TypeScript also carries the SHA-256 digest and content-addressed
+filename of the exact `web/public/atlas.png` bytes. The renderer requests the
+hashed pathname. GitHub Pages caches the public PNG independently from Vite's
+hashed JavaScript and ignores query strings in its edge cache key; without a
+content-addressed path, a returning browser can pair a new manifest with an
+older texture for several minutes and abort on the dimension check.
+
 **A sprite's index is its position in that list**, on both sides. Inserting a
 sprite in the middle renumbers every sprite after it and silently redraws the
 lot with the furniture shuffled, so `objects.SPRITES` is append-only in spirit.
@@ -150,6 +162,12 @@ The three ordinary people remain at 1, 48, and 49; conversation occupies 50
 through 73; eating occupies 74 through 97; seated reading occupies 98 through
 121; the reading indicator remains 122; standing reading occupies 123 through
 146; directional walking occupies 147 through 170; and `heldSnack` is 171.
+The aquarium's second object frame is 172; the exercise and fish-watching
+indicators are 173 and 174; directional exercise bodies occupy 175 through
+198; and directional fish-watching bodies occupy 199 through 222. The original
+moving-box and personal-reference-shelf records at 24 and 32 are the two
+intentional in-place redraws. A decoded-pixel complement digest pins every
+other record through 171.
 
 ## What is not done
 
@@ -157,11 +175,14 @@ The household now has three stable baked looks. Walking has directional arm and
 leg frames; conversation has directional talk frames; authored snack and
 terminal dinner actions combine directional hand-to-mouth frames with visible
 food props; the reading chair has seated book frames; and the bookshelf has
-upright book frames. Other object categories still use the ordinary body. They
-need their own authored action, anchor, and occlusion contract rather than
-inheriting art from a broad status label. Per-instance tint and emissive strength
-are already live for night lighting, but player-selected character appearance
-is not yet content.
+upright book frames. The exercise bike has socket-aligned pedalling bodies, and
+the aquarium has object-facing watcher bodies plus a subtle two-frame fish
+cycle. The selected concept images were visual references only; no pixels from
+them enter the generated atlas. Other object categories still use the ordinary
+body. They need their own authored action, anchor, and occlusion contract rather
+than inheriting art from a broad status label. Per-instance tint and emissive
+strength are already live for night lighting, but player-selected character
+appearance is not yet content.
 
 Walls are still tile-CENTRED panels, because that is what `tiles.ts` draws.
 Moving them onto tile edges is [B7], a renderer change rather than an art one.

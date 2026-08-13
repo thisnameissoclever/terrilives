@@ -4,6 +4,7 @@ import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge } from '../src/bridge.js';
 import {
   FixedStepDriver,
+  AQUARIUM_FRAME_TICKS,
   ACTIVITY_EATING,
   advanceSimulationFrame,
   lerp,
@@ -14,15 +15,20 @@ import {
   FACING_POSITIVE_X,
   FACING_POSITIVE_Y,
   EAT_FRAME_TICKS,
+  EXERCISE_FRAME_TICKS,
+  objectBodySprite,
   READ_FRAME_TICKS,
   simBodySprite,
   simSprite,
   TALK_FRAME_TICKS,
   VISUAL_ACTION_EAT,
+  VISUAL_ACTION_EXERCISE,
   VISUAL_ACTION_READ,
   VISUAL_ACTION_STANDING_READ,
   VISUAL_ACTION_TALK,
   VISUAL_ACTION_WALK,
+  VISUAL_ACTION_WATCH_FISH,
+  WATCH_FISH_FRAME_TICKS,
   walkingFacing,
   walkingFrame,
   type RenderSource,
@@ -698,6 +704,58 @@ describe('simBodySprite', () => {
     ).toBe(phaseCases.length);
   });
 
+  it('resolves exercise and watching-fish frames after stable-id staggering', () => {
+    for (const { action, stem, frameTicks } of [
+      {
+        action: VISUAL_ACTION_EXERCISE,
+        stem: 'Exercise',
+        frameTicks: EXERCISE_FRAME_TICKS,
+      },
+      {
+        action: VISUAL_ACTION_WATCH_FISH,
+        stem: 'WatchFish',
+        frameTicks: WATCH_FISH_FRAME_TICKS,
+      },
+    ] as const) {
+      const transitions: number[] = [];
+      for (const { id, prefix } of looks) {
+        const transition = frameTicks - (id % frameTicks);
+        transitions.push(transition);
+        for (const { facing, suffix } of directions) {
+          const first = spriteIndex(`${prefix}${stem}${suffix}0`);
+          const second = spriteIndex(`${prefix}${stem}${suffix}1`);
+          expect(
+            simBodySprite(id, action, facing, transition - 1, false),
+          ).toBe(first);
+          expect(
+            simBodySprite(id, action, facing, transition, false),
+          ).toBe(second);
+          expect(
+            simBodySprite(
+              id,
+              action,
+              facing,
+              transition + frameTicks - 1,
+              false,
+            ),
+          ).toBe(second);
+          expect(
+            simBodySprite(
+              id,
+              action,
+              facing,
+              transition + frameTicks,
+              false,
+            ),
+          ).toBe(first);
+        }
+      }
+      expect(new Set(transitions).size).toBe(looks.length);
+    }
+    expect(EXERCISE_FRAME_TICKS).toBe(8);
+    expect(WATCH_FISH_FRAME_TICKS).toBe(24);
+  });
+
   it('resolves both distance-driven walk frames for every look and facing', () => {
     for (const { id, prefix } of looks) {
       for (const { facing, suffix } of directions) {
@@ -786,6 +844,16 @@ describe('simBodySprite', () => {
             name: 'StandRead',
             frameTicks: READ_FRAME_TICKS,
           },
+          {
+            action: VISUAL_ACTION_EXERCISE,
+            name: 'Exercise',
+            frameTicks: EXERCISE_FRAME_TICKS,
+          },
+          {
+            action: VISUAL_ACTION_WATCH_FISH,
+            name: 'WatchFish',
+            frameTicks: WATCH_FISH_FRAME_TICKS,
+          },
         ] as const) {
           const atStart = simBodySprite(id, action, facing, 0, true);
           const muchLater = simBodySprite(
@@ -832,7 +900,7 @@ describe('simBodySprite', () => {
       expect(simBodySprite(id, VISUAL_ACTION_READ, 0, 8, false)).toBe(
         simSprite(id),
       );
-      expect(simBodySprite(id, 6, FACING_POSITIVE_X, 8, false)).toBe(
+      expect(simBodySprite(id, 8, FACING_POSITIVE_X, 8, false)).toBe(
         simSprite(id),
       );
     }
@@ -928,9 +996,110 @@ describe('simBodySprite', () => {
     expect(simulationTick).toBe(24);
     expect(body()).not.toBe(first);
   });
+
+  it('freezes exercise and watching-fish poses while paused and follows fixed-tick speed', () => {
+    for (const [action, frameTicks] of [
+      [VISUAL_ACTION_EXERCISE, EXERCISE_FRAME_TICKS],
+      [VISUAL_ACTION_WATCH_FISH, WATCH_FISH_FRAME_TICKS],
+    ] as const) {
+      const driver = new FixedStepDriver(10, 100);
+      const id = 120;
+      let simulationTick = 0;
+      const body = (): number =>
+        simBodySprite(
+          id,
+          action,
+          FACING_POSITIVE_X,
+          simulationTick,
+          false,
+        );
+      const first = body();
+
+      driver.advance(frameTicks * 100 - 1, () => simulationTick++);
+      expect(simulationTick).toBe(frameTicks - 1);
+      expect(body()).toBe(first);
+
+      driver.setSpeed(0);
+      driver.advance(10_000, () => simulationTick++);
+      expect(simulationTick).toBe(frameTicks - 1);
+      expect(body()).toBe(first);
+
+      driver.setSpeed(2);
+      driver.advance(50, () => simulationTick++);
+      expect(simulationTick).toBe(frameTicks);
+      expect(body()).not.toBe(first);
+    }
+  });
+});
+
+describe('ambient aquarium animation', () => {
+  const aquarium = spriteIndex('bookcaseClosedWide');
+  const secondFrame = spriteIndex('aquariumCabinet1');
+
+  it('advances only the historical aquarium sprite on simulation ticks', () => {
+    expect(objectBodySprite(aquarium, 0, false)).toBe(aquarium);
+    expect(objectBodySprite(aquarium, AQUARIUM_FRAME_TICKS - 1, false)).toBe(
+      aquarium,
+    );
+    expect(objectBodySprite(aquarium, AQUARIUM_FRAME_TICKS, false)).toBe(
+      secondFrame,
+    );
+    expect(objectBodySprite(aquarium, AQUARIUM_FRAME_TICKS * 2, false)).toBe(
+      aquarium,
+    );
+    expect(objectBodySprite(aquarium, AQUARIUM_FRAME_TICKS, true)).toBe(
+      aquarium,
+    );
+    expect(objectBodySprite(spriteIndex('cardboardBoxOpen'), 999, false)).toBe(
+      spriteIndex('cardboardBoxOpen'),
+    );
+  });
 });
 
 describe('buildInstances', () => {
+  it('swaps only the aquarium object quad and pins it under reduced motion', () => {
+    const source = new FakeEntities();
+    const aquarium = spriteIndex('bookcaseClosedWide');
+    const bike = spriteIndex('cardboardBoxOpen');
+    source.set([
+      [1, 1, 1, 1, 1, aquarium],
+      [2, 2, 2, 2, 1, bike],
+    ]);
+
+    const animated = snapshot(
+      buildInstances(
+        source,
+        1,
+        ORIGIN_X,
+        ORIGIN_Y,
+        GRID,
+        null,
+        1,
+        false,
+        AQUARIUM_FRAME_TICKS,
+      ),
+      2,
+    );
+    expect(animated[OFFSET_SPRITE]).toBe(spriteIndex('aquariumCabinet1'));
+    expect(animated[FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(bike);
+
+    const reduced = snapshot(
+      buildInstances(
+        source,
+        1,
+        ORIGIN_X,
+        ORIGIN_Y,
+        GRID,
+        null,
+        1,
+        true,
+        AQUARIUM_FRAME_TICKS,
+      ),
+      2,
+    );
+    expect(reduced[OFFSET_SPRITE]).toBe(aquarium);
+  });
+
   it('draws authored action poses without reinterpreting activity labels', () => {
     const source = new FakeEntities();
     source.set([
@@ -1673,6 +1842,22 @@ describe('activity indicator bubbles', () => {
     const bubbleBase = FLOATS_PER_INSTANCE;
     expect(built[bubbleBase + OFFSET_SPRITE]).toBe(
       spriteIndex('indicatorReading'),
+    );
+  });
+
+  it('maps activities 9 and 10 to their distinct authored bubbles', () => {
+    src.set([
+      [1, 1, 1, 1, KIND_AGENT, 3, 9],
+      [2, 2, 2, 2, KIND_AGENT, 3, 10],
+    ]);
+    expect(instanceCount(src, null)).toBe(4);
+
+    const built = buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID);
+    expect(built[2 * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
+      spriteIndex('indicatorExercise'),
+    );
+    expect(built[3 * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(
+      spriteIndex('indicatorWatchFish'),
     );
   });
 

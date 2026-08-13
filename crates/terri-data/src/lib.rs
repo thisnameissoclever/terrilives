@@ -191,14 +191,28 @@ pub fn content_fingerprint(pack: &ContentPack) -> u64 {
 /// treating an old opaque hash as a permanent skeleton key.
 const LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS: &[(u64, u64)] = &[
     // 115ad03, where Save V1 first shipped.
-    (0x9d22_8822_6933_d3c7, 0x26d5_982c_9af8_3de8),
+    (0x9d22_8822_6933_d3c7, 0xb8d0_2015_e030_64d9),
     // b772ab9 through ebfa686. Those public revisions compiled identically.
-    (0x263e_ed3b_bdcb_a7d0, 0x26d5_982c_9af8_3de8),
+    (0x263e_ed3b_bdcb_a7d0, 0xb8d0_2015_e030_64d9),
     // 3a5e936, the Muted Line and circadian release.
-    (0x08ec_6011_bc11_7ad8, 0x26d5_982c_9af8_3de8),
+    (0x08ec_6011_bc11_7ad8, 0xb8d0_2015_e030_64d9),
     // 72d67c5, the last public full-pack fingerprint before this migration.
-    (0x2eb2_02fa_e70e_4939, 0x26d5_982c_9af8_3de8),
+    (0x2eb2_02fa_e70e_4939, 0xb8d0_2015_e030_64d9),
 ];
+
+/// Reviewed structural-digest migrations that do not carry any legacy data
+/// rewrite. The first bridge adds interaction row zero to two formerly inert
+/// objects while retaining their string ids, positions, footprints, entities,
+/// and blocked tiles. Object declaration order is deliberately free. A valid
+/// save from the source shape cannot refer to either new row because neither
+/// row existed there.
+///
+/// Keep this separate from [`LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS`]: that
+/// table also authorises the historical household-name rewrite, while an
+/// ordinary current-format save carrying the source digest must retain every
+/// saved name verbatim.
+const PRIOR_STRUCTURAL_FINGERPRINT_MIGRATIONS: &[(u64, u64)] =
+    &[(0x26d5_982c_9af8_3de8, 0xb8d0_2015_e030_64d9)];
 
 /// Whether a Save V1 fingerprint may load against this content pack.
 ///
@@ -212,6 +226,9 @@ pub fn content_fingerprint_matches(pack: &ContentPack, saved: u64) -> bool {
         || LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS
             .iter()
             .any(|&(legacy, target)| saved == legacy && current == target)
+        || PRIOR_STRUCTURAL_FINGERPRINT_MIGRATIONS
+            .iter()
+            .any(|&(prior, target)| saved == prior && current == target)
 }
 
 /// Whether `saved` is one of the retired whole-pack fingerprints accepted by
@@ -221,6 +238,31 @@ pub fn content_fingerprint_is_legacy(pack: &ContentPack, saved: u64) -> bool {
     LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS
         .iter()
         .any(|&(legacy, target)| saved == legacy && current == target)
+}
+
+/// Whether `saved` is the exact pre-aquarium structural digest accepted by the
+/// narrow interaction-row bridge for this content pack.
+///
+/// Save validation uses this classification to reject impossible references
+/// to the two rows that did not exist in that source shape. Keep it separate
+/// from [`content_fingerprint_is_legacy`]: this bridge never authorises the
+/// historical household-name rewrite.
+pub fn content_fingerprint_is_prior_structural(pack: &ContentPack, saved: u64) -> bool {
+    let current = content_fingerprint(pack);
+    PRIOR_STRUCTURAL_FINGERPRINT_MIGRATIONS
+        .iter()
+        .any(|&(prior, target)| saved == prior && current == target)
+}
+
+/// Whether `saved` comes from any accepted public shape before the aquarium
+/// and exercise-bike interaction rows existed.
+///
+/// Those snapshots may load against this reviewed destination, but they may
+/// not reinterpret row zero on either formerly inert persistence key as a
+/// historical action. The current digest is deliberately excluded.
+pub fn content_fingerprint_is_pre_aquarium_bike(pack: &ContentPack, saved: u64) -> bool {
+    content_fingerprint_is_legacy(pack, saved)
+        || content_fingerprint_is_prior_structural(pack, saved)
 }
 
 fn hash_count(hasher: &mut terri_core::FnvHasher, count: usize) {
@@ -894,11 +936,11 @@ mod tests {
     fn every_public_full_pack_fingerprint_migrates_only_to_the_reviewed_shape() {
         assert_eq!(
             content_fingerprint(pack()),
-            0x26d5_982c_9af8_3de8,
+            0xb8d0_2015_e030_64d9,
             "a structural content edit must review or retire each legacy bridge"
         );
         for &(legacy, target) in LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS {
-            assert_eq!(target, 0x26d5_982c_9af8_3de8);
+            assert_eq!(target, 0xb8d0_2015_e030_64d9);
             assert!(
                 content_fingerprint_matches(pack(), legacy),
                 "deployed fingerprint {legacy:#018x} lost its migration"
@@ -917,6 +959,146 @@ mod tests {
             .all(|(legacy, _)| content_fingerprint_is_legacy(pack(), *legacy)));
         assert!(!content_fingerprint_matches(pack(), 0));
         assert!(!content_fingerprint_is_legacy(pack(), 0));
+    }
+
+    #[test]
+    fn the_prior_structural_shape_migrates_without_becoming_a_legacy_name_save() {
+        let prior = 0x26d5_982c_9af8_3de8;
+        assert_eq!(
+            PRIOR_STRUCTURAL_FINGERPRINT_MIGRATIONS,
+            &[(prior, 0xb8d0_2015_e030_64d9)],
+            "each structural bridge must name exactly one reviewed destination"
+        );
+        assert!(content_fingerprint_matches(pack(), prior));
+        assert!(content_fingerprint_is_prior_structural(pack(), prior));
+        assert!(content_fingerprint_is_pre_aquarium_bike(pack(), prior));
+        assert!(
+            !content_fingerprint_is_legacy(pack(), prior),
+            "adding interactions to inert objects must not rewrite household names"
+        );
+        assert!(!content_fingerprint_is_prior_structural(
+            pack(),
+            content_fingerprint(pack())
+        ));
+        assert!(!content_fingerprint_is_pre_aquarium_bike(
+            pack(),
+            content_fingerprint(pack())
+        ));
+    }
+
+    #[test]
+    fn changing_either_new_interaction_closes_every_old_fingerprint_bridge() {
+        let current = pack().clone();
+        for object in ["moving_box", "reference_shelf"] {
+            let id = current.find(object).expect("shipped persistence key");
+            for (mutation, changed) in [
+                ("renamed", {
+                    let mut changed = current.clone();
+                    changed.objects[id.0 as usize].interactions[0]
+                        .id
+                        .push_str("_changed");
+                    changed
+                }),
+                ("removed", {
+                    let mut changed = current.clone();
+                    changed.objects[id.0 as usize].interactions.clear();
+                    changed
+                }),
+            ] {
+                assert_ne!(content_fingerprint(&changed), content_fingerprint(&current));
+                for saved in [
+                    0x26d5_982c_9af8_3de8,
+                    0x9d22_8822_6933_d3c7,
+                    0x263e_ed3b_bdcb_a7d0,
+                    0x08ec_6011_bc11_7ad8,
+                    0x2eb2_02fa_e70e_4939,
+                ] {
+                    assert!(
+                        !content_fingerprint_matches(&changed, saved),
+                        "{mutation} interaction on {object:?} must close bridge from {saved:#018x}"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn the_shipped_pack_carries_the_exact_bike_and_aquarium_contracts() {
+        let p = pack();
+        let bike = p.find("moving_box").expect("bike persistence key");
+        let aquarium = p.find("reference_shelf").expect("aquarium persistence key");
+
+        assert_eq!(p.object(bike).name, "Wellness Initiative, Indoor");
+        assert_eq!(p.object(aquarium).name, "Aquarium of Managed Expectations");
+        assert_eq!(p.object(bike).footprint, Footprint::default());
+        assert_eq!(p.object(aquarium).footprint, Footprint::default());
+
+        let bike_action = &p.object(bike).interactions[0];
+        assert_eq!(bike_action.id, "use_exercise_bike");
+        assert_eq!(bike_action.label, "Use the exercise bike");
+        assert_eq!(
+            bike_action.advertises,
+            vec![(1, -8.0), (2, -5.0), (5, 28.0)]
+        );
+        assert_eq!((bike_action.duration_ticks, bike_action.slots), (83, 1));
+        assert_eq!(bike_action.tags, vec!["exercise"]);
+        assert_eq!(bike_action.satisfaction, 2.0);
+        assert_eq!(
+            bike_action.visual,
+            Some(CompiledVisual {
+                action: CompiledVisualAction::Exercise,
+                anchor: CompiledVisualAnchor::ObjectSocket,
+                facing: CompiledVisualFacing::Socket,
+                socket: Some(0),
+            })
+        );
+        assert_eq!(p.object(bike).action_sockets.len(), 1);
+        let saddle = &p.object(bike).action_sockets[0];
+        assert_eq!(saddle.id, "saddle");
+        assert_eq!((saddle.x, saddle.y), (0.0, 0.0));
+        assert_eq!(saddle.facing, CompiledSocketFacing::PositiveX);
+
+        let watch = &p.object(aquarium).interactions[0];
+        assert_eq!(watch.id, "watch_fish");
+        assert_eq!(watch.label, "Watch the fish");
+        assert_eq!(watch.advertises, vec![(5, 25.0), (6, 21.0)]);
+        assert_eq!((watch.duration_ticks, watch.slots), (67, 1));
+        assert_eq!(watch.tags, vec!["aquarium"]);
+        assert_eq!(watch.satisfaction, 1.0);
+        assert_eq!(
+            watch.visual,
+            Some(CompiledVisual {
+                action: CompiledVisualAction::Watch,
+                anchor: CompiledVisualAnchor::Object,
+                facing: CompiledVisualFacing::TowardAnchor,
+                socket: None,
+            })
+        );
+
+        for (object, x, y) in [(bike, 4.0, 11.0), (aquarium, 6.0, 10.0)] {
+            let placement = p
+                .lot
+                .placements
+                .iter()
+                .find(|placement| placement.object == object)
+                .expect("each repurposed object keeps its unique placement");
+            assert_eq!((placement.x, placement.y), (x, y));
+        }
+        let bike_placement = p
+            .lot
+            .placements
+            .iter()
+            .find(|placement| placement.object == bike)
+            .expect("bike placement");
+        assert_eq!(bike_placement.action_sockets.len(), 1);
+        assert_eq!(
+            (
+                bike_placement.action_sockets[0].x,
+                bike_placement.action_sockets[0].y,
+                bike_placement.action_sockets[0].facing,
+            ),
+            (4.0, 11.0, CompiledSocketFacing::PositiveX)
+        );
     }
 
     fn swap_zero_and_one(index: u32) -> u32 {
@@ -1002,8 +1184,8 @@ mod tests {
 
     /// **Some of the house is furniture nobody uses, on purpose.**
     ///
-    /// A counter, a coat rack, a box that was going to be unpacked: they
-    /// advertise nothing, so `select_action` never scores them, and they
+    /// A counter, a coat rack, a freestanding plant: they advertise nothing,
+    /// so `select_action` never scores them, and they
     /// exist because a room reads as a room when it holds things that are
     /// not all affordances. `an_object_may_declare_no_interactions` in
     /// `schema.rs` is what keeps that legal at the parse layer; this is what
@@ -1449,8 +1631,8 @@ mod tests {
     /// exactly that, and both were found by hand rather than by the suite.
     ///
     /// **It is worth a test now because the content it governs has
-    /// outgrown the eye.** Shipped content carries 18 interactions and 32
-    /// deltas, against 8 and 10 when the rule was written, and every one
+    /// outgrown the eye.** Shipped object content carries 19 interactions and
+    /// 35 deltas, against 8 and 10 when the rule was written, and every one
     /// of those values is chosen by a person.
     ///
     /// The `social` pass shows what that already costs. The comment on

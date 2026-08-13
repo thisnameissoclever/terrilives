@@ -66,10 +66,19 @@ struct RenderRow {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-struct ReadingProjection {
+struct SocketActionProjection {
     x: f32,
     y: f32,
     facing: u32,
+    visual_action: u32,
+    activity: u32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct ObjectFacingProjection {
+    facing: u32,
+    visual_action: u32,
+    activity: u32,
 }
 
 /// Chooses the dominant lot axis from `source` toward `anchor`.
@@ -180,18 +189,32 @@ fn is_authored_object_eat_visual(interaction: &terri_data::CompiledInteraction) 
     )
 }
 
-fn is_authored_object_read_visual(interaction: &terri_data::CompiledInteraction) -> bool {
-    let Some(visual) = interaction.visual.as_ref() else {
-        return false;
-    };
-    matches!(
-        (&visual.action, &visual.anchor, &visual.facing),
+fn authored_object_facing_codes(
+    interaction: &terri_data::CompiledInteraction,
+) -> Option<(u32, u32)> {
+    use render_buffer::{activity, visual_action};
+
+    let visual = interaction.visual.as_ref()?;
+    match (
+        &visual.action,
+        &visual.anchor,
+        &visual.facing,
+        visual.socket,
+    ) {
         (
             terri_data::CompiledVisualAction::Read,
             terri_data::CompiledVisualAnchor::Object,
             terri_data::CompiledVisualFacing::TowardAnchor,
-        )
-    ) && visual.socket.is_none()
+            None,
+        ) => Some((visual_action::STANDING_READ, activity::READING)),
+        (
+            terri_data::CompiledVisualAction::Watch,
+            terri_data::CompiledVisualAnchor::Object,
+            terri_data::CompiledVisualFacing::TowardAnchor,
+            None,
+        ) => Some((visual_action::WATCH, activity::WATCHING_FISH)),
+        _ => None,
+    }
 }
 
 fn is_authored_station_eat_visual(step: &terri_data::CompiledChainStep) -> bool {
@@ -237,16 +260,18 @@ fn default_action_sockets(
         .collect()
 }
 
-fn authored_reading_visual(
+fn authored_socket_action_visual(
     content: &terri_data::ContentPack,
     world: &World,
     eating: Option<&terri_core::Eating>,
     step_work: Option<&terri_core::StepWork>,
     target: Option<&terri_core::Target>,
-) -> Option<ReadingProjection> {
-    // Ordinary object use and chain work are mutually exclusive. Preserve the
-    // existing eating fail-closed rule instead of letting reading make an
-    // ambiguous component bundle look legitimate.
+) -> Option<SocketActionProjection> {
+    use render_buffer::{activity, visual_action};
+
+    // ChainState is resumable background progress and deliberately survives a
+    // player's ordinary interaction. StepWork alone means a chain action is
+    // actively running and therefore conflicts with this authored pose.
     if step_work.is_some() {
         return None;
     }
@@ -270,47 +295,50 @@ fn authored_reading_visual(
     let definition = content.objects.get(target_object.0 .0 as usize)?;
     let interaction = definition.interactions.get(target.interaction as usize)?;
     let visual = interaction.visual.as_ref()?;
-    if !matches!(
-        (&visual.action, &visual.anchor, &visual.facing),
+    let (visual_action, activity) = match (&visual.action, &visual.anchor, &visual.facing) {
         (
             terri_data::CompiledVisualAction::Read,
             terri_data::CompiledVisualAnchor::ObjectSocket,
             terri_data::CompiledVisualFacing::Socket,
-        )
-    ) {
-        return None;
-    }
+        ) => (visual_action::READ, activity::READING),
+        (
+            terri_data::CompiledVisualAction::Exercise,
+            terri_data::CompiledVisualAnchor::ObjectSocket,
+            terri_data::CompiledVisualFacing::Socket,
+        ) => (visual_action::EXERCISE, activity::EXERCISING),
+        _ => return None,
+    };
     let socket = sockets.0.get(visual.socket? as usize)?;
-    Some(ReadingProjection {
+    Some(SocketActionProjection {
         x: socket.x,
         y: socket.y,
         facing: socket_facing_code(socket.facing),
+        visual_action,
+        activity,
     })
 }
 
 #[allow(clippy::too_many_arguments)]
-fn authored_standing_reading_visual(
+fn authored_object_facing_visual(
     content: &terri_data::ContentPack,
     world: &World,
     entity: Entity,
     position: &terri_core::Position,
     eating: Option<&terri_core::Eating>,
-    chain_state: Option<&terri_core::ChainState>,
     step_work: Option<&terri_core::StepWork>,
     target: Option<&terri_core::Target>,
-) -> Option<(u32, u32)> {
-    use render_buffer::visual_action;
-
-    // Object use and chain work are mutually exclusive active states. Social
-    // ownership is resolved for both conversation sides in the row loop,
-    // before any object action is projected.
-    if chain_state.is_some() || step_work.is_some() {
+) -> Option<ObjectFacingProjection> {
+    // ChainState may coexist with an ordinary player interruption. StepWork
+    // marks active chain work and remains the conflicting state. Social
+    // ownership is resolved for both conversation sides in the row loop.
+    if step_work.is_some() {
         return None;
     }
 
     let eating = eating?;
     let target = target?;
-    if target.interaction != eating.interaction {
+    if target.interaction == systems::chain::CHAIN_STEP || target.interaction != eating.interaction
+    {
         return None;
     }
 
@@ -322,14 +350,13 @@ fn authored_standing_reading_visual(
 
     let definition = content.objects.get(target_object.0 .0 as usize)?;
     let interaction = definition.interactions.get(target.interaction as usize)?;
-    if !is_authored_object_read_visual(interaction) {
-        return None;
-    }
+    let (visual_action, activity) = authored_object_facing_codes(interaction)?;
     let anchor = object_footprint_centre(content, target_object, target_position)?;
-    Some((
-        visual_action::STANDING_READ,
-        facing_toward(entity, position, target.object, &anchor),
-    ))
+    Some(ObjectFacingProjection {
+        facing: facing_toward(entity, position, target.object, &anchor),
+        visual_action,
+        activity,
+    })
 }
 
 fn eating_interaction_exists(
@@ -1139,7 +1166,7 @@ impl Sim {
             // drawing it - gone is gone, at the draw call rather than
             // in the buffer ([E4]).
             let socially_active = talking.is_some() || partners.contains(&entity);
-            let eating_visual = if is_agent && !socially_active {
+            let eating_visual = if is_agent && !socially_active && !at_work {
                 authored_eating_visual(
                     content,
                     &self.world,
@@ -1153,19 +1180,18 @@ impl Sim {
             } else {
                 None
             };
-            let reading_visual = if is_agent && !socially_active {
-                authored_reading_visual(content, &self.world, eating, step_work, target)
+            let socket_action_visual = if is_agent && !socially_active && !at_work {
+                authored_socket_action_visual(content, &self.world, eating, step_work, target)
             } else {
                 None
             };
-            let standing_reading_visual = if is_agent && !socially_active {
-                authored_standing_reading_visual(
+            let object_facing_visual = if is_agent && !socially_active && !at_work {
+                authored_object_facing_visual(
                     content,
                     &self.world,
                     entity,
                     pos,
                     eating,
-                    chain_state,
                     step_work,
                     target,
                 )
@@ -1173,24 +1199,46 @@ impl Sim {
                 None
             };
             // Conversation and eating keep their established precedence.
-            // A socket changes position only when reading itself wins the
-            // exact authored-action choice; malformed overlapping state must
+            // A socket changes position only when its exact authored action
+            // wins the presentation choice; malformed overlapping state must
             // not drag a talking or eating body onto furniture.
-            let (visual_action, facing, x, y, socket_projected) =
+            let (visual_action, facing, x, y, socket_projected, authored_activity) =
                 if let Some((action, direction)) = conversation_visuals.get(&entity).copied() {
-                    (action, direction, x, y, false)
-                } else if let Some((action, direction)) = eating_visual {
-                    (action, direction, x, y, false)
-                } else if let Some(reading) = reading_visual {
                     (
-                        render_buffer::visual_action::READ,
-                        reading.facing,
-                        reading.x,
-                        reading.y,
-                        true,
+                        action,
+                        direction,
+                        x,
+                        y,
+                        false,
+                        Some(render_buffer::activity::TALKING),
                     )
-                } else if let Some((action, direction)) = standing_reading_visual {
-                    (action, direction, x, y, false)
+                } else if let Some((action, direction)) = eating_visual {
+                    (
+                        action,
+                        direction,
+                        x,
+                        y,
+                        false,
+                        Some(render_buffer::activity::EATING),
+                    )
+                } else if let Some(socket_action) = socket_action_visual {
+                    (
+                        socket_action.visual_action,
+                        socket_action.facing,
+                        socket_action.x,
+                        socket_action.y,
+                        true,
+                        Some(socket_action.activity),
+                    )
+                } else if let Some(object_action) = object_facing_visual {
+                    (
+                        object_action.visual_action,
+                        object_action.facing,
+                        x,
+                        y,
+                        false,
+                        Some(object_action.activity),
+                    )
                 } else {
                     (
                         render_buffer::visual_action::NONE,
@@ -1198,6 +1246,7 @@ impl Sim {
                         x,
                         y,
                         false,
+                        None,
                     )
                 };
             let activity = if !is_agent {
@@ -1207,20 +1256,15 @@ impl Sim {
             } else if socially_active {
                 render_buffer::activity::TALKING
             } else if eating.is_some() {
-                if eating.is_some_and(|state| eating_interaction_exists(content, state))
+                if let Some(activity) = authored_activity {
+                    // An exact visual contract owns both the body pose and its
+                    // activity label. Tags remain independent authored data,
+                    // so a legal overlap must not split those two signals.
+                    activity
+                } else if eating.is_some_and(|state| eating_interaction_exists(content, state))
                     && systems::circadian::is_asleep(content, eating)
                 {
                     render_buffer::activity::SLEEPING
-                } else if eating_visual
-                    .is_some_and(|(action, _)| action == render_buffer::visual_action::EAT)
-                {
-                    render_buffer::activity::EATING
-                } else if matches!(
-                    visual_action,
-                    render_buffer::visual_action::READ
-                        | render_buffer::visual_action::STANDING_READ
-                ) {
-                    render_buffer::activity::READING
                 } else {
                     // `Eating` is the legacy storage component for every
                     // ordinary object interaction. Only exact authored eat
@@ -1229,8 +1273,7 @@ impl Sim {
                     render_buffer::activity::USING_OBJECT
                 }
             } else if step_work.is_some()
-                && eating_visual
-                    .is_some_and(|(action, _)| action == render_buffer::visual_action::EAT)
+                && authored_activity == Some(render_buffer::activity::EATING)
             {
                 // A running chain step has no `Eating` component, but an
                 // authored terminal eat still needs the existing fork bubble.

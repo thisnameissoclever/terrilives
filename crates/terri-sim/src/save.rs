@@ -22,6 +22,7 @@ const MAX_ENTITIES: usize = 100_000;
 const MAX_LIST_ENTRIES: usize = 100_000;
 const MAX_TEXT_BYTES: usize = 1_024;
 const LEGACY_HOUSEHOLD_NAMES: [&str; 3] = ["Terri", "Doug", "Nadia"];
+const AQUARIUM_BIKE_PERSISTENCE_KEYS: [&str; 2] = ["moving_box", "reference_shelf"];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SaveError {
@@ -598,6 +599,8 @@ fn validate_snapshot(snapshot: &SaveSnapshotV1, pack: &ContentPack) -> Result<()
     if !terri_data::content_fingerprint_matches(pack, snapshot.content_fingerprint) {
         return Err(SaveError::IncompatibleContent);
     }
+    let pre_aquarium_bike =
+        terri_data::content_fingerprint_is_pre_aquarium_bike(pack, snapshot.content_fingerprint);
 
     let width = snapshot.grid_width as usize;
     let height = snapshot.grid_height as usize;
@@ -641,7 +644,13 @@ fn validate_snapshot(snapshot: &SaveSnapshotV1, pack: &ContentPack) -> Result<()
         if let Some(id) = entity.sim_id {
             sim_ids.push(id);
         }
-        validate_entity(entity, &snapshot.entities, pack, tile_count)?;
+        validate_entity(
+            entity,
+            &snapshot.entities,
+            pack,
+            tile_count,
+            pre_aquarium_bike,
+        )?;
     }
     sim_ids.sort_unstable();
     if sim_ids.windows(2).any(|ids| ids[0] == ids[1]) {
@@ -659,7 +668,7 @@ fn validate_snapshot(snapshot: &SaveSnapshotV1, pack: &ContentPack) -> Result<()
         return Err(SaveError::TooManyCommands);
     }
     for command in &snapshot.queued_commands {
-        validate_command(command, &snapshot.entities, pack)?;
+        validate_command(command, &snapshot.entities, pack, pre_aquarium_bike)?;
     }
     Ok(())
 }
@@ -668,6 +677,7 @@ fn validate_command(
     command: &SavedCommand,
     entities: &[SavedEntity],
     pack: &ContentPack,
+    pre_aquarium_bike: bool,
 ) -> Result<(), SaveError> {
     match command {
         SavedCommand::Select(None) | SavedCommand::SetSpeed(_) => Ok(()),
@@ -693,7 +703,7 @@ fn validate_command(
                 .smart_object
                 .as_deref()
                 .ok_or(SaveError::InvalidEntityReference)?;
-            validate_flyout_row(pack, object, *interaction)
+            validate_flyout_row(pack, object, *interaction, pre_aquarium_bike)
         }
         SavedCommand::TalkTo {
             agent,
@@ -715,6 +725,7 @@ fn validate_entity(
     entities: &[SavedEntity],
     pack: &ContentPack,
     tile_count: usize,
+    pre_aquarium_bike: bool,
 ) -> Result<(), SaveError> {
     if let Some(position) = entity.position {
         if !position.x.is_finite() {
@@ -761,22 +772,40 @@ fn validate_entity(
             return Err(SaveError::InvalidValue);
         }
     }
+    // `career::work` decrements this countdown before checking for zero.
+    // Restoring zero would underflow in release and keep the Sim at work for
+    // u32::MAX ticks, or panic in a debug build.
+    if entity.at_work_ticks == Some(0) {
+        return Err(SaveError::InvalidValue);
+    }
     if let Some(intents) = &entity.intents {
         if exceeds_limit(intents.len(), pack.tuning.max_queued_intents as usize) {
             return Err(SaveError::InvalidValue);
         }
         for intent in intents {
-            validate_order_reference(entities, pack, intent.object, intent.interaction)?;
+            validate_order_reference(
+                entities,
+                pack,
+                intent.object,
+                intent.interaction,
+                pre_aquarium_bike,
+            )?;
         }
     }
     if let Some(target) = entity.target {
-        validate_target_reference(entities, pack, target.object, target.interaction)?;
+        validate_target_reference(
+            entities,
+            pack,
+            target.object,
+            target.interaction,
+            pre_aquarium_bike,
+        )?;
     }
     if let Some(eating) = &entity.eating {
-        validate_object_interaction(pack, &eating.object, eating.interaction)?;
+        validate_object_interaction(pack, &eating.object, eating.interaction, pre_aquarium_bike)?;
     }
     if let Some(entries) = &entity.habituation {
-        validate_habituation(entries, pack, 0.0, 1.0)?;
+        validate_habituation(entries, pack, 0.0, 1.0, pre_aquarium_bike)?;
     }
     if let Some(personality) = &entity.personality {
         for value in personality
@@ -791,7 +820,13 @@ fn validate_entity(
                 return Err(SaveError::InvalidValue);
             }
         }
-        validate_habituation(&personality.dispositions, pack, 0.0, f32::MAX)?;
+        validate_habituation(
+            &personality.dispositions,
+            pack,
+            0.0,
+            f32::MAX,
+            pre_aquarium_bike,
+        )?;
     }
     if let Some(entries) = &entity.relationships {
         if exceeds_limit(entries.len(), MAX_LIST_ENTRIES) {
@@ -889,6 +924,7 @@ fn validate_habituation(
     pack: &ContentPack,
     minimum: f32,
     maximum: f32,
+    pre_aquarium_bike: bool,
 ) -> Result<(), SaveError> {
     if exceeds_limit(entries.len(), MAX_LIST_ENTRIES) {
         return Err(SaveError::InvalidValue);
@@ -901,7 +937,7 @@ fn validate_habituation(
         // 1 - its chain. Validating these as interactions rejected the
         // snapshot of any household that had ever eaten a cooked meal,
         // which by tick 1 770 of the shipped lot is all of them.
-        validate_flyout_row(pack, &entry.object, entry.interaction)?;
+        validate_flyout_row(pack, &entry.object, entry.interaction, pre_aquarium_bike)?;
         if !entry.value.is_finite() {
             return Err(SaveError::InvalidValue);
         }
@@ -943,6 +979,7 @@ fn validate_target_reference(
     pack: &ContentPack,
     index: u32,
     interaction: u32,
+    pre_aquarium_bike: bool,
 ) -> Result<(), SaveError> {
     let entity = validate_entity_reference(entities, index)?;
     if let Some(object) = entity.smart_object.as_deref() {
@@ -952,7 +989,7 @@ fn validate_target_reference(
         if interaction == CHAIN_STEP {
             return Ok(());
         }
-        return validate_object_interaction(pack, object, interaction);
+        return validate_object_interaction(pack, object, interaction, pre_aquarium_bike);
     }
     validate_social_partner(entity, pack, interaction)
 }
@@ -967,19 +1004,26 @@ fn validate_order_reference(
     pack: &ContentPack,
     index: u32,
     interaction: u32,
+    pre_aquarium_bike: bool,
 ) -> Result<(), SaveError> {
     let entity = validate_entity_reference(entities, index)?;
     let Some(object) = entity.smart_object.as_deref() else {
         return validate_social_partner(entity, pack, interaction);
     };
-    validate_flyout_row(pack, object, interaction)
+    validate_flyout_row(pack, object, interaction, pre_aquarium_bike)
 }
 
 /// An object's addressable ROWS: its interactions, then one per chain
 /// it advertises ([K5]). This is the index space of a flyout click, of
 /// a queued order, and of a habituation key - three callers that must
 /// agree with `select_action`, which mints the rows.
-fn validate_flyout_row(pack: &ContentPack, object: &str, row: u32) -> Result<(), SaveError> {
+fn validate_flyout_row(
+    pack: &ContentPack,
+    object: &str,
+    row: u32,
+    pre_aquarium_bike: bool,
+) -> Result<(), SaveError> {
+    reject_impossible_pre_aquarium_bike_row(object, row, pre_aquarium_bike)?;
     let id = resolve_object(pack, object)?;
     let rows = pack.object(id).interactions.len()
         + pack
@@ -1038,9 +1082,22 @@ fn validate_object_interaction(
     pack: &ContentPack,
     id: &str,
     interaction: u32,
+    pre_aquarium_bike: bool,
 ) -> Result<(), SaveError> {
+    reject_impossible_pre_aquarium_bike_row(id, interaction, pre_aquarium_bike)?;
     let object = resolve_object(pack, id)?;
     if interaction as usize >= pack.object(object).interactions.len() {
+        return Err(SaveError::InvalidContentReference);
+    }
+    Ok(())
+}
+
+fn reject_impossible_pre_aquarium_bike_row(
+    object: &str,
+    row: u32,
+    pre_aquarium_bike: bool,
+) -> Result<(), SaveError> {
+    if pre_aquarium_bike && row == 0 && AQUARIUM_BIKE_PERSISTENCE_KEYS.contains(&object) {
         return Err(SaveError::InvalidContentReference);
     }
     Ok(())
@@ -2209,6 +2266,15 @@ mod tests {
             assert_validation(&snapshot, expected, label);
         }
 
+        let mut positive_work = rich_snapshot();
+        rich_agent_mut(&mut positive_work).at_work_ticks = Some(1);
+        assert_validation(&positive_work, Ok(()), "one remaining work tick is valid");
+        assert_invalid_entity(
+            "zero remaining work ticks",
+            |entity| entity.at_work_ticks = Some(0),
+            SaveError::InvalidValue,
+        );
+
         let mut valid_personality_zero = rich_snapshot();
         let personality = rich_agent_mut(&mut valid_personality_zero)
             .personality
@@ -2870,6 +2936,228 @@ mod tests {
                     (2, "Casey".to_string()),
                 ],
                 "legacy names must not survive the household rename"
+            );
+        }
+    }
+
+    #[test]
+    fn the_prior_structural_save_keeps_names_entities_positions_and_collision() {
+        let mut prior = Sim::new_from_shipped_lot().save_snapshot();
+        prior.content_fingerprint = 0x26d5_982c_9af8_3de8;
+        prior
+            .entities
+            .iter_mut()
+            .find(|entity| entity.sim_id == Some(0))
+            .expect("the shipped household has SimId 0")
+            .sim_name = Some("Terri".to_string());
+
+        for (id, x, y) in [("moving_box", 4.0, 11.0), ("reference_shelf", 6.0, 10.0)] {
+            let entity = prior
+                .entities
+                .iter()
+                .find(|entity| entity.smart_object.as_deref() == Some(id))
+                .expect("the prior lot carries both persistence-key entities");
+            assert_eq!(entity.position, Some(SavedPosition { x, y }));
+        }
+
+        let expected_blocked = prior.blocked_tiles.clone();
+        let expected_entities = prior.entities.clone();
+        let mut restored = Sim::new_from_shipped_lot();
+        assert_eq!(restored.load_snapshot(prior), Ok(()));
+
+        let current = restored.save_snapshot();
+        assert_eq!(current.content_fingerprint, 0xb8d0_2015_e030_64d9);
+        assert_eq!(current.blocked_tiles, expected_blocked);
+        assert_eq!(current.entities, expected_entities);
+        let name = current
+            .entities
+            .iter()
+            .find(|entity| entity.sim_id == Some(0))
+            .and_then(|entity| entity.sim_name.as_deref());
+        assert_eq!(
+            name,
+            Some("Terri"),
+            "a structural interaction migration is not a legacy household rename"
+        );
+        assert_eq!(
+            restored.save_snapshot(),
+            current,
+            "a second capture must stay canonical rather than preserving the source digest"
+        );
+    }
+
+    #[test]
+    fn pre_feature_fingerprints_reject_every_impossible_aquarium_and_bike_row_transactionally() {
+        let source = Sim::new_from_shipped_lot().save_snapshot();
+        let agent_index = source
+            .entities
+            .iter()
+            .find(|entity| entity.agent)
+            .expect("the shipped lot has an agent")
+            .index;
+
+        for fingerprint in [
+            0x26d5_982c_9af8_3de8,
+            0x9d22_8822_6933_d3c7,
+            0x263e_ed3b_bdcb_a7d0,
+            0x08ec_6011_bc11_7ad8,
+            0x2eb2_02fa_e70e_4939,
+        ] {
+            for object in AQUARIUM_BIKE_PERSISTENCE_KEYS {
+                let target_index = source
+                    .entities
+                    .iter()
+                    .find(|entity| entity.smart_object.as_deref() == Some(object))
+                    .expect("the shipped lot retains both persistence-key entities")
+                    .index;
+
+                let mut cases: Vec<(&str, SaveSnapshotV1)> = Vec::new();
+
+                let mut target = source.clone();
+                target.content_fingerprint = fingerprint;
+                target
+                    .entities
+                    .iter_mut()
+                    .find(|entity| entity.index == agent_index)
+                    .expect("agent remains in target fixture")
+                    .target = Some(SavedTarget {
+                    object: target_index,
+                    interaction: 0,
+                });
+                cases.push(("Target", target));
+
+                let mut eating = source.clone();
+                eating.content_fingerprint = fingerprint;
+                eating
+                    .entities
+                    .iter_mut()
+                    .find(|entity| entity.index == agent_index)
+                    .expect("agent remains in eating fixture")
+                    .eating = Some(SavedEating {
+                    object: object.to_string(),
+                    interaction: 0,
+                    remaining_ticks: 1,
+                });
+                cases.push(("Eating", eating));
+
+                let mut intent = source.clone();
+                intent.content_fingerprint = fingerprint;
+                intent
+                    .entities
+                    .iter_mut()
+                    .find(|entity| entity.index == agent_index)
+                    .expect("agent remains in intent fixture")
+                    .intents = Some(vec![SavedIntent {
+                    object: target_index,
+                    interaction: 0,
+                }]);
+                cases.push(("Intent", intent));
+
+                let mut command = source.clone();
+                command.content_fingerprint = fingerprint;
+                command.queued_commands = vec![SavedCommand::UseObject {
+                    agent: agent_index,
+                    object: target_index,
+                    interaction: 0,
+                }];
+                cases.push(("queued UseObject", command));
+
+                let mut habituation = source.clone();
+                habituation.content_fingerprint = fingerprint;
+                habituation
+                    .entities
+                    .iter_mut()
+                    .find(|entity| entity.index == agent_index)
+                    .expect("agent remains in habituation fixture")
+                    .habituation = Some(vec![SavedHabituation {
+                    object: object.to_string(),
+                    interaction: 0,
+                    value: 0.25,
+                }]);
+                cases.push(("Habituation", habituation));
+
+                let mut personality = source.clone();
+                personality.content_fingerprint = fingerprint;
+                personality
+                    .entities
+                    .iter_mut()
+                    .find(|entity| entity.index == agent_index)
+                    .expect("agent remains in personality fixture")
+                    .personality
+                    .get_or_insert_with(|| SavedPersonality {
+                        drain: [1.0; terri_core::NEED_COUNT],
+                        satisfaction: [1.0; terri_core::NEED_COUNT],
+                        dispositions: Vec::new(),
+                    })
+                    .dispositions = vec![SavedHabituation {
+                    object: object.to_string(),
+                    interaction: 0,
+                    value: 1.25,
+                }];
+                cases.push(("Personality disposition", personality));
+
+                for (space, impossible) in cases {
+                    let mut live = Sim::new_from_shipped_lot();
+                    for _ in 0..31 {
+                        live.tick();
+                    }
+                    let before = live.save_snapshot();
+                    assert_eq!(
+                        live.load_snapshot(impossible),
+                        Err(SaveError::InvalidContentReference),
+                        "pre-feature {fingerprint:#018x} {object} {space} must not reinterpret the new row"
+                    );
+                    assert_eq!(
+                        live.save_snapshot(),
+                        before,
+                        "rejected pre-feature {object} {space} mutated the running simulation"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn current_saves_round_trip_each_new_action_in_progress() {
+        for (object, remaining_ticks) in [("moving_box", 47), ("reference_shelf", 31)] {
+            let mut snapshot = Sim::new_from_shipped_lot().save_snapshot();
+            let target = snapshot
+                .entities
+                .iter()
+                .find(|entity| entity.smart_object.as_deref() == Some(object))
+                .expect("the shipped lot places each new action owner")
+                .index;
+            snapshot
+                .entities
+                .iter_mut()
+                .find(|entity| entity.index == target)
+                .expect("the target entity remains in the snapshot")
+                .reserved = true;
+            let agent = snapshot
+                .entities
+                .iter_mut()
+                .find(|entity| entity.agent)
+                .expect("the shipped lot has an agent");
+            agent.target = Some(SavedTarget {
+                object: target,
+                interaction: 0,
+            });
+            agent.eating = Some(SavedEating {
+                object: object.to_string(),
+                interaction: 0,
+                remaining_ticks,
+            });
+
+            let mut restored = Sim::new_from_shipped_lot();
+            assert_eq!(
+                restored.load_snapshot(snapshot.clone()),
+                Ok(()),
+                "current {object} action must restore"
+            );
+            assert_eq!(
+                restored.save_snapshot(),
+                snapshot,
+                "current {object} action must retain its row and remaining duration"
             );
         }
     }
