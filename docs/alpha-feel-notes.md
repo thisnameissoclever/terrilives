@@ -2640,7 +2640,7 @@ supplied phone screenshot.
 - **Expanded details remain bounded.** With Needs and People both open at 418
   by 910, the HUD ended at y=746.98. Needs had a 298-pixel client height and a
   340-pixel internal scroll height. At 320 by 568, the outer HUD exposed a
-  632-pixel scroll height inside its 544-pixel client height, document width
+  632-pixel scroll height inside its 552-pixel client height, document width
   stayed 320 pixels, and the smallest visible target measured 44 pixels.
 - **Landscape stays out of the game.** At 568 by 320 the closed edge HUD was
   220 pixels wide and the viewport center hit `#stage`. At 844 by 390 the
@@ -2661,7 +2661,7 @@ supplied phone screenshot.
   `C5A5B92AD318F57E4F5D858D5B1722DE4C7CA5C87743AB42D6422DA07267E136` for the
   page, then returned all six tests to green.
 - **Proof boundary.** Release-WASM build, Rust formatting, Clippy, workspace
-  tests, typecheck, 441 web tests, sprite reproduction, production build, and
+  tests, typecheck, 442 web tests, sprite reproduction, production build, and
   this local headed-browser pass are complete on the combined branch. The
   browser logged no application warning or error; Python's temporary static
   server returned one unrelated 404 for `favicon.ico`. Merge, exact-head CI,

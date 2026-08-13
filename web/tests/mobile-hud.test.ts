@@ -70,6 +70,12 @@ describe('MobileHud', () => {
     );
   });
 
+  it('uses the placed safe-area insets as the portrait sheet height boundary', () => {
+    expect(INDEX_HTML).toMatch(
+      /max-height:\s*calc\(\s*100dvh\s*-\s*max\(8px,\s*env\(safe-area-inset-top\)\)\s*-\s*max\(8px,\s*env\(safe-area-inset-bottom\)\)\s*\)/,
+    );
+  });
+
   it('collapses the HUD and its detail panels when the viewport becomes compact', () => {
     const hudRoot = root();
     const toggle = button();
