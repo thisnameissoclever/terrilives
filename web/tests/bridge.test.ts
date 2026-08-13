@@ -225,6 +225,140 @@ describe('SimBridge', () => {
     expect(endX).toBeGreaterThan(startX);
   });
 
+  it('reacquires active aquarium and bike columns after release-wasm memory growth', () => {
+    const source = new SimBridge(new SimHandle(64, 64), wasmMemory);
+    const bikePosition = [18.5, 19.25] as const;
+    const aquariumPosition = [12, 13] as const;
+    expect(source.spawnObject(...bikePosition, 'moving_box')).toBe(true);
+    expect(source.spawnObject(...aquariumPosition, 'reference_shelf')).toBe(
+      true,
+    );
+    source.spawnAgent(15, 19.25, 50);
+    source.spawnAgent(9, 13, 50);
+
+    const entityAt = (
+      bridge: SimBridge,
+      kind: number,
+      x: number,
+      y: number,
+    ): number => {
+      const ids = bridge.ids();
+      const kinds = bridge.kinds();
+      const positions = bridge.positions();
+      for (let row = 0; row < bridge.count; row += 1) {
+        if (
+          kinds[row] === kind &&
+          positions[row * 2] === x &&
+          positions[row * 2 + 1] === y
+        ) {
+          return ids[row];
+        }
+      }
+      throw new Error(`missing kind ${kind} at ${x},${y}`);
+    };
+    const rowOf = (bridge: SimBridge, entity: number): number =>
+      Array.from(bridge.ids()).indexOf(entity);
+
+    const bike = entityAt(source, 1, ...bikePosition);
+    const aquarium = entityAt(source, 1, ...aquariumPosition);
+    const exerciser = entityAt(source, 0, 15, 19.25);
+    const watcher = entityAt(source, 0, 9, 13);
+    expect(source.useObject(exerciser, bike, 0)).toBe(true);
+    expect(source.useObject(watcher, aquarium, 0)).toBe(true);
+
+    let exerciseRow = -1;
+    let watchRow = -1;
+    for (let tick = 0; tick < 240; tick += 1) {
+      source.tick();
+      exerciseRow = rowOf(source, exerciser);
+      watchRow = rowOf(source, watcher);
+      if (
+        exerciseRow >= 0 &&
+        watchRow >= 0 &&
+        source.visualActions()[exerciseRow] === 6 &&
+        source.visualActions()[watchRow] === 7
+      ) {
+        break;
+      }
+    }
+    expect(exerciseRow).toBeGreaterThanOrEqual(0);
+    expect(watchRow).toBeGreaterThanOrEqual(0);
+    expect([
+      source.visualActions()[exerciseRow],
+      source.activities()[exerciseRow],
+      source.facings()[exerciseRow],
+    ]).toEqual([6, 9, 1]);
+    expect([
+      source.visualActions()[watchRow],
+      source.activities()[watchRow],
+      source.facings()[watchRow],
+    ]).toEqual([7, 10, 1]);
+    expect([
+      source.positions()[exerciseRow * 2],
+      source.positions()[exerciseRow * 2 + 1],
+    ]).toEqual([...bikePosition]);
+    const watchPosition = [
+      source.positions()[watchRow * 2],
+      source.positions()[watchRow * 2 + 1],
+    ];
+    expect(watchPosition).not.toEqual([...aquariumPosition]);
+
+    const loaded = new SimBridge(new SimHandle(64, 64), wasmMemory);
+    expect(loaded.loadBytes(source.saveBytes())).toBe(true);
+    exerciseRow = rowOf(loaded, exerciser);
+    watchRow = rowOf(loaded, watcher);
+    expect(exerciseRow).toBeGreaterThanOrEqual(0);
+    expect(watchRow).toBeGreaterThanOrEqual(0);
+
+    const heldIds = loaded.ids();
+    const heldPositions = loaded.positions();
+    const heldPrevious = loaded.prevPositions();
+    const heldActions = loaded.visualActions();
+    const heldActivities = loaded.activities();
+    const heldFacings = loaded.facings();
+    for (let index = 0; index < 64; index += 1) {
+      loaded.spawnAgent(30 + (index % 16), 30 + Math.floor(index / 16), 50);
+    }
+    const bufferBeforeForcedGrowth = wasmMemory.buffer;
+    wasmMemory.grow(1);
+    expect(wasmMemory.buffer).not.toBe(bufferBeforeForcedGrowth);
+    for (const view of [
+      heldIds,
+      heldPositions,
+      heldPrevious,
+      heldActions,
+      heldActivities,
+      heldFacings,
+    ]) {
+      expect(view.length).toBe(0);
+    }
+
+    exerciseRow = rowOf(loaded, exerciser);
+    watchRow = rowOf(loaded, watcher);
+    const positions = loaded.positions();
+    const previous = loaded.prevPositions();
+    const actions = loaded.visualActions();
+    const activities = loaded.activities();
+    const facings = loaded.facings();
+    expect([actions[exerciseRow], activities[exerciseRow], facings[exerciseRow]])
+      .toEqual([6, 9, 1]);
+    expect([positions[exerciseRow * 2], positions[exerciseRow * 2 + 1]])
+      .toEqual([...bikePosition]);
+    expect([
+      previous[exerciseRow * 2],
+      previous[exerciseRow * 2 + 1],
+    ]).toEqual([...bikePosition]);
+    expect([actions[watchRow], activities[watchRow], facings[watchRow]])
+      .toEqual([7, 10, 1]);
+    expect([positions[watchRow * 2], positions[watchRow * 2 + 1]])
+      .toEqual(watchPosition);
+    expect([previous[watchRow * 2], previous[watchRow * 2 + 1]])
+      .toEqual(watchPosition);
+    for (const view of [positions, previous, actions, activities, facings]) {
+      expect(view.buffer).toBe(wasmMemory.buffer);
+    }
+  });
+
   it('reacquires loaded reading columns after real release-wasm memory growth', () => {
     const source = new SimBridge(new SimHandle(64, 64), wasmMemory);
     expect(source.spawnObject(11.5, 13.25, 'reading_chair')).toBe(true);

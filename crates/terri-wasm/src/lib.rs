@@ -999,6 +999,35 @@ mod boundary_tests {
     }
 
     #[test]
+    fn the_prior_structural_fingerprint_crosses_the_public_byte_loader_without_renaming() {
+        let source = SimHandle::from_lot();
+        let current_fingerprint = source.sim.save_snapshot().content_fingerprint;
+        let mut snapshot = source.sim.save_snapshot();
+        snapshot.content_fingerprint = 0x26d5_982c_9af8_3de8;
+        snapshot
+            .entities
+            .iter_mut()
+            .find(|entity| entity.sim_id == Some(0))
+            .expect("the shipped household has SimId 0")
+            .sim_name = Some("Terri".to_string());
+
+        let bytes = encode_save(&snapshot);
+        let mut resumed = SimHandle::from_lot();
+        assert!(
+            resumed.load_bytes(&bytes),
+            "the exact pre-aquarium structural fingerprint must cross the public byte loader"
+        );
+
+        let mut expected = snapshot;
+        expected.content_fingerprint = current_fingerprint;
+        assert_eq!(
+            resumed.sim.save_snapshot(),
+            expected,
+            "the structural bridge must preserve names, entities, positions, collision, and queues while canonicalising only the digest"
+        );
+    }
+
+    #[test]
     fn bad_save_bytes_are_rejected_without_mutating_the_running_handle() {
         let valid = SimHandle::from_lot().save_bytes();
         let mut bad_magic = valid.clone();
@@ -1731,6 +1760,126 @@ mod boundary_tests {
         (handle, agent, agent_position)
     }
 
+    fn handle_with_projected_aquarium_and_bike() -> (
+        SimHandle,
+        terri_core::Entity,
+        terri_core::Entity,
+        Position,
+        Position,
+    ) {
+        let mut handle = SimHandle::new(32, 32);
+        let bike_position = Position { x: 18.5, y: 19.25 };
+        let aquarium_position = Position { x: 12.0, y: 13.0 };
+        let exerciser_position = Position { x: 15.0, y: 19.25 };
+        let watcher_position = Position { x: 9.0, y: 13.0 };
+        assert!(handle.spawn_object(bike_position.x, bike_position.y, "moving_box"));
+        assert!(handle.spawn_object(aquarium_position.x, aquarium_position.y, "reference_shelf"));
+
+        let content = handle.sim.world().resource::<Content>().0;
+        let bike = content.find("moving_box").expect("shipped exercise bike");
+        let aquarium = content.find("reference_shelf").expect("shipped aquarium");
+        let exercise = content
+            .object(bike)
+            .interactions
+            .iter()
+            .position(|interaction| interaction.id == "use_exercise_bike")
+            .expect("shipped exercise interaction") as u32;
+        let watch = content
+            .object(aquarium)
+            .interactions
+            .iter()
+            .position(|interaction| interaction.id == "watch_fish")
+            .expect("shipped watch interaction") as u32;
+        let exercise_visual = content.object(bike).interactions[exercise as usize]
+            .visual
+            .as_ref()
+            .expect("exercise visual");
+        let saddle = &content.object(bike).action_sockets
+            [exercise_visual.socket.expect("exercise socket") as usize];
+        let footprint = content.object(bike).footprint;
+        let saddle_position = Position {
+            x: bike_position.x + (footprint.width as f32 - 1.0) * 0.5 + saddle.x,
+            y: bike_position.y + (footprint.depth as f32 - 1.0) * 0.5 + saddle.y,
+        };
+
+        let (bike_target, aquarium_target) = {
+            let world = handle.sim.world_mut();
+            let mut query =
+                world.query::<(terri_core::Entity, &Position, &terri_core::SmartObject)>();
+            let mut bike_target = None;
+            let mut aquarium_target = None;
+            for (entity, position, object) in query.iter(world) {
+                if object.0 == bike
+                    && position.x == bike_position.x
+                    && position.y == bike_position.y
+                {
+                    bike_target = Some(entity);
+                }
+                if object.0 == aquarium
+                    && position.x == aquarium_position.x
+                    && position.y == aquarium_position.y
+                {
+                    aquarium_target = Some(entity);
+                }
+            }
+            (
+                bike_target.expect("the bridge spawned the requested bike"),
+                aquarium_target.expect("the bridge spawned the requested aquarium"),
+            )
+        };
+
+        handle.spawn_agent(exerciser_position.x, exerciser_position.y, 50.0);
+        handle.spawn_agent(watcher_position.x, watcher_position.y, 50.0);
+        let (exerciser, watcher) = {
+            let world = handle.sim.world_mut();
+            let mut query = world.query::<(terri_core::Entity, &Agent, &Position)>();
+            let mut exerciser = None;
+            let mut watcher = None;
+            for (entity, _, position) in query.iter(world) {
+                if position.x == exerciser_position.x && position.y == exerciser_position.y {
+                    exerciser = Some(entity);
+                }
+                if position.x == watcher_position.x && position.y == watcher_position.y {
+                    watcher = Some(entity);
+                }
+            }
+            (
+                exerciser.expect("the bridge spawned the exerciser"),
+                watcher.expect("the bridge spawned the watcher"),
+            )
+        };
+        handle.sim.world_mut().entity_mut(exerciser).insert((
+            terri_core::Eating {
+                object: bike,
+                interaction: exercise,
+                remaining_ticks: 10,
+            },
+            terri_core::Target {
+                object: bike_target,
+                interaction: exercise,
+            },
+        ));
+        handle.sim.world_mut().entity_mut(watcher).insert((
+            terri_core::Eating {
+                object: aquarium,
+                interaction: watch,
+                remaining_ticks: 10,
+            },
+            terri_core::Target {
+                object: aquarium_target,
+                interaction: watch,
+            },
+        ));
+        handle.sim.sync_render_buffer();
+        (
+            handle,
+            exerciser,
+            watcher,
+            saddle_position,
+            watcher_position,
+        )
+    }
+
     fn handle_with_projected_walk() -> (SimHandle, terri_core::Entity, Position) {
         let mut handle = SimHandle::new(24, 24);
         let position = Position { x: 7.0, y: 7.75 };
@@ -2008,6 +2157,96 @@ mod boundary_tests {
             (previous[row * 2], previous[row * 2 + 1]),
             (ordinary_position.x, ordinary_position.y),
             "Load and reallocating syncs must preserve the ordinary standing position"
+        );
+    }
+
+    #[test]
+    fn existing_render_accessors_preserve_loaded_aquarium_and_bike_after_all_columns_grow() {
+        let (source, exerciser, watcher, saddle, watcher_position) =
+            handle_with_projected_aquarium_and_bike();
+        let bytes = source.save_bytes();
+        let hash = source.world_hash();
+        let mut handle = SimHandle::new(2, 2);
+        assert!(handle.load_bytes(&bytes));
+        assert_eq!(
+            handle.save_bytes(),
+            bytes,
+            "render-only aquarium and bike metadata must not enter Save V1"
+        );
+        assert_eq!(handle.world_hash(), hash);
+
+        // Reallocate every render column after Load, then reacquire every
+        // pointer. The shell follows the same lifetime rule after real WASM
+        // linear-memory growth; retaining any view across this boundary is
+        // deliberately unsupported.
+        for index in 0..48 {
+            handle.spawn_agent(40.0 + index as f32, 40.0, 50.0);
+        }
+
+        let rows = handle.entity_count();
+        let ids = addressed(handle.ids_ptr(), rows, "ids_ptr");
+        let positions = addressed(handle.positions_ptr(), rows * 2, "positions_ptr");
+        let previous = addressed(handle.prev_positions_ptr(), rows * 2, "prev_positions_ptr");
+        let actions = addressed(handle.visual_actions_ptr(), rows, "visual_actions_ptr");
+        let activities = addressed(handle.activities_ptr(), rows, "activities_ptr");
+        let facings = addressed(handle.facings_ptr(), rows, "facings_ptr");
+        let row_of = |entity: terri_core::Entity| {
+            ids.iter()
+                .position(|&id| id == entity.index_u32())
+                .expect("the loaded action owner remains in the live prefix")
+        };
+        let exercise_row = row_of(exerciser);
+        let watch_row = row_of(watcher);
+
+        assert_eq!(
+            (
+                actions[exercise_row],
+                activities[exercise_row],
+                facings[exercise_row],
+            ),
+            (6, 9, terri_sim::render_buffer::facing::POSITIVE_X),
+            "exercise action 6 and activity 9 must cross the existing columns"
+        );
+        assert_eq!(
+            (
+                positions[exercise_row * 2],
+                positions[exercise_row * 2 + 1],
+                previous[exercise_row * 2],
+                previous[exercise_row * 2 + 1],
+            ),
+            (saddle.x, saddle.y, saddle.x, saddle.y),
+            "Load and reallocating syncs keep both samples planted on the saddle"
+        );
+        assert_eq!(
+            (
+                actions[watch_row],
+                activities[watch_row],
+                facings[watch_row],
+            ),
+            (7, 10, terri_sim::render_buffer::facing::POSITIVE_X),
+            "watch action 7 and activity 10 must cross the existing columns"
+        );
+        assert_eq!(
+            (
+                positions[watch_row * 2],
+                positions[watch_row * 2 + 1],
+                previous[watch_row * 2],
+                previous[watch_row * 2 + 1],
+            ),
+            (
+                watcher_position.x,
+                watcher_position.y,
+                watcher_position.x,
+                watcher_position.y,
+            ),
+            "aquarium watching must remain on the ordinary path tile"
+        );
+        assert!(
+            actions
+                .iter()
+                .enumerate()
+                .any(|(row, &action)| { row != exercise_row && row != watch_row && action == 0 }),
+            "an unrelated row distinguishes both actions from a constant column"
         );
     }
 

@@ -395,6 +395,23 @@ also gated by that legacy match rather than by a name string alone. The next
 incompatible wire shape must bump the version and make an explicit migration
 decision.
 
+The aquarium and exercise-bike slice adds a narrower second migration class.
+It turns two formerly inert definitions into interactive objects while keeping
+their persistence IDs, placements, one-tile footprints, and
+therefore every old saved entity and blocked-grid bit unchanged. The previous
+structural digest may enter only that exact reviewed current digest. It is not
+a retired full-pack fingerprint and must not trigger the historical household
+rename. A fingerprint exception does not reconstruct entities or collision;
+this bridge is safe precisely because neither needs reconstruction. Object
+declaration order remains free because snapshots store authored string IDs.
+Before current-pack validation, every accepted pre-feature fingerprint is
+classified by provenance. Row zero on either formerly inert object is
+impossible in those source shapes, so `Target`, `Eating`, `Intent`, queued
+`UseObject`, `Habituation`, and Personality disposition references to either
+new action fail before reconstruction. The same rule covers the prior
+structural digest and all four retired full-pack digests; accepting an old
+fingerprint does not grant that snapshot rows it could never have authored.
+
 ## [D9] Content pipeline
 
 Content is authored in TOML and compiled to a validated binary pack at build
@@ -559,6 +576,26 @@ through the chair. The fixed-envelope art keeps the lowered head joined to the
 shoulder line rather than exposing the rejected long neck. Malformed or
 unauthored state falls back to generic object use.
 
+The aquarium and exercise bike append two more exact object-action contracts
+without widening the bridge. `reference_shelf.watch_fish`, whose historical
+object id remains a Save V1 persistence key, authors
+`watch / object / toward_anchor`. It stays on the adjacent path tile, faces the
+aquarium footprint centre, emits visual action 7 and activity 10, and uses a
+slow two-pose watching cycle. The aquarium object itself swaps between two
+same-envelope generated frames with only the fish moving; reduced motion pins
+both object and body frame zero.
+
+`moving_box.use_exercise_bike`, likewise retaining its historical persistence
+id, authors `exercise / object_socket / socket`. It reuses the socket
+projection and interpolation reseed built for seated reading, emits visual
+action 6 and activity 9, and selects two cycling bodies with planted hands and
+alternating knees and feet. Conversation and authored eating still outrank
+both. Exact target, interaction, object definition, socket, and component
+identity remain mandatory, so a broad status or malformed overlap cannot
+invent either pose. Both features are presentation-only after the authored
+interaction has been selected; their action and activity columns do not enter
+the world hash.
+
 Standing bookshelf reading reuses the same compiled `Read` action without an
 object socket. `bookshelf.read` authors the exact
 `read / object / toward_anchor` combination. Render sync requires matching
@@ -584,11 +621,12 @@ The simulation owns all state in WASM linear memory. JS holds
 positions, sprite IDs, activity codes, presentation visual actions, and lot-axis
 facings, plus compiled footprint width and depth, and feeds them directly into
 GPU buffers. Walking reuses the action, facing, activity, and position columns.
-Conversation, eating, seated reading, and standing reading read the action and
-facing columns, so the broad status vocabulary never becomes an art lookup by
-accident. Both reading routes reuse existing position columns: seated reading
-projects its object socket, while standing reading retains the ordinary
-path-tile samples. No pointer or bridge accessor was added. Lighting reads
+Conversation, eating, seated reading, standing reading, aquarium watching, and
+exercise read the action and facing columns, so the broad status vocabulary
+never becomes an art lookup by accident. Seated reading and exercise reuse the
+existing position columns for socket projection; standing reading and aquarium
+watching retain the ordinary path-tile samples. No pointer or bridge accessor
+was added. Lighting reads
 footprints only while rebuilding its static field and never retains a view
 across a sync.
 

@@ -197,6 +197,50 @@ const SIM_WALK_SPRITES: readonly ActionFacings[] = [
   ],
 ];
 
+/** Two seated pedalling frames for every look and lot-axis facing. */
+const SIM_EXERCISE_SPRITES: readonly ActionFacings[] = [
+  [
+    [spriteIndex('simExerciseSE0'), spriteIndex('simExerciseSE1')],
+    [spriteIndex('simExerciseNW0'), spriteIndex('simExerciseNW1')],
+    [spriteIndex('simExerciseSW0'), spriteIndex('simExerciseSW1')],
+    [spriteIndex('simExerciseNE0'), spriteIndex('simExerciseNE1')],
+  ],
+  [
+    [spriteIndex('sim2ExerciseSE0'), spriteIndex('sim2ExerciseSE1')],
+    [spriteIndex('sim2ExerciseNW0'), spriteIndex('sim2ExerciseNW1')],
+    [spriteIndex('sim2ExerciseSW0'), spriteIndex('sim2ExerciseSW1')],
+    [spriteIndex('sim2ExerciseNE0'), spriteIndex('sim2ExerciseNE1')],
+  ],
+  [
+    [spriteIndex('sim3ExerciseSE0'), spriteIndex('sim3ExerciseSE1')],
+    [spriteIndex('sim3ExerciseNW0'), spriteIndex('sim3ExerciseNW1')],
+    [spriteIndex('sim3ExerciseSW0'), spriteIndex('sim3ExerciseSW1')],
+    [spriteIndex('sim3ExerciseNE0'), spriteIndex('sim3ExerciseNE1')],
+  ],
+];
+
+/** Two relaxed aquarium-watching frames for every look and facing. */
+const SIM_WATCH_FISH_SPRITES: readonly ActionFacings[] = [
+  [
+    [spriteIndex('simWatchFishSE0'), spriteIndex('simWatchFishSE1')],
+    [spriteIndex('simWatchFishNW0'), spriteIndex('simWatchFishNW1')],
+    [spriteIndex('simWatchFishSW0'), spriteIndex('simWatchFishSW1')],
+    [spriteIndex('simWatchFishNE0'), spriteIndex('simWatchFishNE1')],
+  ],
+  [
+    [spriteIndex('sim2WatchFishSE0'), spriteIndex('sim2WatchFishSE1')],
+    [spriteIndex('sim2WatchFishNW0'), spriteIndex('sim2WatchFishNW1')],
+    [spriteIndex('sim2WatchFishSW0'), spriteIndex('sim2WatchFishSW1')],
+    [spriteIndex('sim2WatchFishNE0'), spriteIndex('sim2WatchFishNE1')],
+  ],
+  [
+    [spriteIndex('sim3WatchFishSE0'), spriteIndex('sim3WatchFishSE1')],
+    [spriteIndex('sim3WatchFishNW0'), spriteIndex('sim3WatchFishNW1')],
+    [spriteIndex('sim3WatchFishSW0'), spriteIndex('sim3WatchFishSW1')],
+    [spriteIndex('sim3WatchFishNE0'), spriteIndex('sim3WatchFishNE1')],
+  ],
+];
+
 /** Food held by an exact snack action, resolved once at module load. */
 const HELD_SNACK_SPRITE = spriteIndex('heldSnack');
 
@@ -215,6 +259,12 @@ export const VISUAL_ACTION_STANDING_READ = 4;
 /** The append-only visual-action code emitted while following a path. */
 export const VISUAL_ACTION_WALK = 5;
 
+/** The append-only visual-action code for the exercise bike. */
+export const VISUAL_ACTION_EXERCISE = 6;
+
+/** The append-only visual-action code for watching the aquarium. */
+export const VISUAL_ACTION_WATCH_FISH = 7;
+
 /** Render-buffer facing codes, in the same order as `SIM_TALK_SPRITES`. */
 export const FACING_POSITIVE_X = 1;
 export const FACING_NEGATIVE_X = 2;
@@ -230,6 +280,18 @@ export const EAT_FRAME_TICKS = 16;
 /** A reading pose holds for twenty-four simulation ticks, or 2.4 s at 1x. */
 export const READ_FRAME_TICKS = 24;
 
+/** A pedal pose holds for eight simulation ticks, or 800 ms at 1x. */
+export const EXERCISE_FRAME_TICKS = 8;
+
+/** A watching pose holds for twenty-four simulation ticks, or 2.4 s at 1x. */
+export const WATCH_FISH_FRAME_TICKS = 24;
+
+/** Fish move at the same calm cadence as the watcher. */
+export const AQUARIUM_FRAME_TICKS = 24;
+
+const AQUARIUM_FRAME_ZERO_SPRITE = spriteIndex('bookcaseClosedWide');
+const AQUARIUM_FRAME_ONE_SPRITE = spriteIndex('aquariumCabinet1');
+
 function validFacing(facing: number): boolean {
   return facing >= FACING_POSITIVE_X && facing <= FACING_NEGATIVE_Y;
 }
@@ -237,8 +299,9 @@ function validFacing(facing: number): boolean {
 /**
  * The deterministic frame for a simulation-timed authored action.
  *
- * Eating and reading stagger the transition itself by adding the stable id
- * before division. Conversation preserves its accepted whole-hold offset.
+ * Every authored object action staggers the transition with a per-entity
+ * offset of `id % frameTicks`. Conversation preserves its accepted whole-hold
+ * offset.
  */
 function timedActionFrame(
   id: number,
@@ -251,7 +314,9 @@ function timedActionFrame(
   const phaseTicks =
     visualAction === VISUAL_ACTION_EAT ||
     visualAction === VISUAL_ACTION_READ ||
-    visualAction === VISUAL_ACTION_STANDING_READ
+    visualAction === VISUAL_ACTION_STANDING_READ ||
+    visualAction === VISUAL_ACTION_EXERCISE ||
+    visualAction === VISUAL_ACTION_WATCH_FISH
       ? id % frameTicks
       : (id & 1) * frameTicks;
   return Math.floor((simulationTick + phaseTicks) / frameTicks) & 1;
@@ -272,6 +337,26 @@ export function walkingFrame(
   reducedMotion: boolean,
 ): number {
   return reducedMotion ? 0 : Math.floor(2 * (wx + wy)) & 1;
+}
+
+/**
+ * Resolves ambient object motion without changing the content-owned sprite.
+ *
+ * The historical aquarium index remains the compiled source and picking
+ * envelope. Its appended frame has the exact same dimensions and anchor.
+ */
+export function objectBodySprite(
+  sourceSprite: number,
+  simulationTick: number,
+  reducedMotion: boolean,
+): number {
+  if (sourceSprite !== AQUARIUM_FRAME_ZERO_SPRITE || reducedMotion) {
+    return sourceSprite;
+  }
+  const frame = Math.floor(simulationTick / AQUARIUM_FRAME_TICKS) & 1;
+  return frame === 0
+    ? AQUARIUM_FRAME_ZERO_SPRITE
+    : AQUARIUM_FRAME_ONE_SPRITE;
 }
 
 /**
@@ -356,6 +441,12 @@ export function simBodySprite(
   } else if (visualAction === VISUAL_ACTION_WALK) {
     const frame = walkingFrame(walkingX, walkingY, reducedMotion);
     return SIM_WALK_SPRITES[look][facing - 1][frame];
+  } else if (visualAction === VISUAL_ACTION_EXERCISE) {
+    sprites = SIM_EXERCISE_SPRITES;
+    frameTicks = EXERCISE_FRAME_TICKS;
+  } else if (visualAction === VISUAL_ACTION_WATCH_FISH) {
+    sprites = SIM_WATCH_FISH_SPRITES;
+    frameTicks = WATCH_FISH_FRAME_TICKS;
   } else {
     return SIM_SPRITES[look];
   }
@@ -390,6 +481,8 @@ const INDICATOR_SPRITES: readonly (number | null)[] = [
   // washing, television, bathing, and toilet use.
   null,
   spriteIndex('indicatorReading'),
+  spriteIndex('indicatorExercise'),
+  spriteIndex('indicatorWatchFish'),
 ];
 
 /**
@@ -595,7 +688,10 @@ export interface RenderSource {
    * [A-11] indicator column. Read every frame like every other view.
    */
   activities(): Uint32Array;
-  /** Presentation body pose: 0 none, 1 talk, 2 eat, 3 seated read, 4 standing read, 5 walk. */
+  /**
+   * Presentation pose: 0 none, 1 talk, 2 eat, 3 seated read,
+   * 4 standing read, 5 walk, 6 exercise, 7 watch fish.
+   */
   visualActions(): Uint32Array;
   /** Lot-axis facing: 0 none, 1 +x, 2 -x, 3 +y, 4 -y. */
   facings(): Uint32Array;
@@ -788,8 +884,9 @@ export function buildInstances(
     //
     // A sim draws one of `SIM_SPRITES` rather than the pack's single
     // `sim_sprite`, keyed on its own stable entity id so a sim keeps its
-    // face across a walk, a save and a reload. Everything else - every
-    // object in the house - draws exactly what content resolved.
+    // face across a walk, a save and a reload. Every object starts with what
+    // content resolved; `objectBodySprite` may select an authored alternate
+    // frame, such as the aquarium's fish-motion frame.
     const sprite =
       kinds[i] === KIND_AGENT
         ? simBodySprite(
@@ -801,7 +898,7 @@ export function buildInstances(
             wx,
             wy,
           )
-        : sprites[i];
+        : objectBodySprite(sprites[i], simulationTick, reducedMotion);
     const localLight = lighting === null
       ? EMISSIVE_NONE
       : sampleLight(lighting, Math.floor(wx), Math.floor(wy));

@@ -96,6 +96,21 @@ describe('formatDebugReport', () => {
     expect(report).not.toContain('doing: eating');
   });
 
+  it('names exercise and watching fish as distinct exact activities', () => {
+    const exercise = formatDebugReport(
+      source({ activities: () => Uint32Array.from([9, 0, 0]) }),
+    );
+    const watching = formatDebugReport(
+      source({ activities: () => Uint32Array.from([10, 0, 0]) }),
+    );
+    expect(exercise).toContain('Terri  (entity 7, SimId 0)  doing: exercising');
+    expect(watching).toContain(
+      'Terri  (entity 7, SimId 0)  doing: watching fish',
+    );
+    expect(exercise).not.toContain('doing: using object');
+    expect(watching).not.toContain('doing: reading');
+  });
+
   it('prints the household funds once, at the top, before anybody', () => {
     const report = formatDebugReport(source());
     expect(report.startsWith('household funds: 375')).toBe(true);

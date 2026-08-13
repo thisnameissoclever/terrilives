@@ -1290,6 +1290,8 @@ fn compile_visual(
         "talk" => CompiledVisualAction::Talk,
         "eat" => CompiledVisualAction::Eat,
         "read" => CompiledVisualAction::Read,
+        "exercise" => CompiledVisualAction::Exercise,
+        "watch" => CompiledVisualAction::Watch,
         unknown => return Err(owner.unknown_action(unknown)),
     };
     let anchor = match anchor {
@@ -1305,8 +1307,10 @@ fn compile_visual(
         unknown => return Err(owner.unknown_facing(unknown)),
     };
 
-    if action == CompiledVisualAction::Read
-        && anchor == CompiledVisualAnchor::ObjectSocket
+    if matches!(
+        action,
+        CompiledVisualAction::Read | CompiledVisualAction::Exercise
+    ) && anchor == CompiledVisualAnchor::ObjectSocket
         && visual.socket.is_none()
     {
         return Err(owner.incomplete("socket"));
@@ -1344,6 +1348,18 @@ fn compile_visual(
             CompiledVisualAnchor::ObjectSocket,
             CompiledVisualFacing::Socket,
             Some(_)
+        ) | (
+            VisualOwner::Object { .. },
+            CompiledVisualAction::Exercise,
+            CompiledVisualAnchor::ObjectSocket,
+            CompiledVisualFacing::Socket,
+            Some(_)
+        ) | (
+            VisualOwner::Object { .. },
+            CompiledVisualAction::Watch,
+            CompiledVisualAnchor::Object,
+            CompiledVisualFacing::TowardAnchor,
+            None
         )
     );
     if !legal {
@@ -1351,6 +1367,8 @@ fn compile_visual(
             CompiledVisualAction::Talk => "talk",
             CompiledVisualAction::Eat => "eat",
             CompiledVisualAction::Read => "read",
+            CompiledVisualAction::Exercise => "exercise",
+            CompiledVisualAction::Watch => "watch",
         };
         let anchor = match anchor {
             CompiledVisualAnchor::Partner => "partner",
@@ -1375,7 +1393,16 @@ fn compile_visual(
                         interaction: interaction.to_string(),
                         socket: socket.to_string(),
                     },
-                    _ => owner.invalid_contract("read", "object_socket"),
+                    _ => owner.invalid_contract(
+                        match action {
+                            CompiledVisualAction::Talk => "talk",
+                            CompiledVisualAction::Eat => "eat",
+                            CompiledVisualAction::Read => "read",
+                            CompiledVisualAction::Exercise => "exercise",
+                            CompiledVisualAction::Watch => "watch",
+                        },
+                        "object_socket",
+                    ),
                 })? as u32,
         ),
         None => None,
@@ -6468,11 +6495,11 @@ mod tests {
     }
 
     /// The visual table is all-or-nothing, every authored string crosses a
-    /// closed vocabulary boundary before runtime. These are the four legal
-    /// no-socket rows, including standing object reading; the
-    /// fifth exact row has separate socket tests below. Known vocabulary in
-    /// the wrong combination is still an
-    /// error rather than a request for the renderer to improvise.
+    /// closed vocabulary boundary before runtime. These are the legal
+    /// no-socket rows, including standing object reading and watching fish;
+    /// the two exact socket rows have separate coverage below. Known vocabulary
+    /// in the wrong combination is still an error rather than a request for
+    /// the renderer to improvise.
     #[test]
     fn validates_the_exact_visual_contract_matrix() {
         let visual = |action: Option<&str>, anchor: Option<&str>, facing: Option<&str>| {
@@ -6519,7 +6546,7 @@ mod tests {
                 "step 3",
             ),
         ] {
-            for action in ["talk", "eat", "read"] {
+            for action in ["talk", "eat", "read", "exercise", "watch"] {
                 for anchor in ["partner", "object", "station"] {
                     let authored = visual(Some(action), Some(anchor), Some("toward_anchor"))
                         .expect("the test authors a visual");
@@ -6527,7 +6554,7 @@ mod tests {
                     let legal = match owner {
                         VisualOwner::Social { .. } => action == "talk" && anchor == "partner",
                         VisualOwner::Object { .. } => {
-                            matches!(action, "eat" | "read") && anchor == "object"
+                            matches!(action, "eat" | "read" | "watch") && anchor == "object"
                         }
                         VisualOwner::ChainStep { .. } => action == "eat" && anchor == "station",
                     };
@@ -6634,6 +6661,89 @@ mod tests {
                 socket: None,
             })
         );
+
+        // Exercise and watch add exactly two rows to the closed matrix. Walk
+        // every combination of known owner, action, anchor, facing, and socket
+        // state so accepting a near-miss cannot hide behind one happy-path
+        // fixture.
+        let action_sockets = vec![CompiledActionSocket {
+            id: "saddle".to_string(),
+            x: 0.0,
+            y: 0.0,
+            facing: CompiledSocketFacing::PositiveX,
+        }];
+        for (owner, owner_name) in [
+            (
+                VisualOwner::Social {
+                    interaction: "chat",
+                },
+                "social",
+            ),
+            (
+                VisualOwner::Object {
+                    object: "moving_box",
+                    interaction: "use_exercise_bike",
+                },
+                "object",
+            ),
+            (
+                VisualOwner::ChainStep {
+                    chain: "cook_dinner",
+                    step: 3,
+                },
+                "chain step",
+            ),
+        ] {
+            for action in ["talk", "eat", "read", "exercise", "watch"] {
+                for anchor in ["partner", "object", "station", "object_socket"] {
+                    for facing in ["toward_anchor", "socket"] {
+                        for socket in [None, Some("saddle")] {
+                            let authored = VisualDef {
+                                action: Some(action.to_string()),
+                                anchor: Some(anchor.to_string()),
+                                facing: Some(facing.to_string()),
+                                socket: socket.map(str::to_string),
+                            };
+                            let legal = matches!(
+                                (owner, action, anchor, facing, socket),
+                                (
+                                    VisualOwner::Social { .. },
+                                    "talk",
+                                    "partner",
+                                    "toward_anchor",
+                                    None
+                                ) | (
+                                    VisualOwner::Object { .. },
+                                    "eat" | "read" | "watch",
+                                    "object",
+                                    "toward_anchor",
+                                    None
+                                ) | (
+                                    VisualOwner::ChainStep { .. },
+                                    "eat",
+                                    "station",
+                                    "toward_anchor",
+                                    None
+                                ) | (
+                                    VisualOwner::Object { .. },
+                                    "read" | "exercise",
+                                    "object_socket",
+                                    "socket",
+                                    Some("saddle")
+                                )
+                            );
+                            let result = compile_visual(Some(&authored), owner, &action_sockets);
+                            assert_eq!(
+                                result.is_ok(),
+                                legal,
+                                "{owner_name} must {} {action}/{anchor}/{facing}/{socket:?}",
+                                if legal { "accept" } else { "reject" }
+                            );
+                        }
+                    }
+                }
+            }
+        }
     }
 
     #[test]
@@ -7476,25 +7586,39 @@ mod tests {
         ] {
             let mut chain = a_chain("cook_dinner");
             chain.step[1].visual = authored;
+            let error = compile_chain_world(vec![chain]).unwrap_err();
             assert_eq!(
-                compile_chain_world(vec![chain]).unwrap_err(),
+                error,
                 ContentError::IncompleteChainStepVisual {
                     chain: "cook_dinner".to_string(),
                     step: 1,
                     field,
                 }
             );
+            assert!(
+                error
+                    .to_string()
+                    .contains("object-socket read or exercise also requires socket"),
+                "chain-step diagnostics must name the complete socket requirement"
+            );
         }
 
         let mut chain = a_chain("cook_dinner");
         chain.step[1].visual = visual(Some("dance"), Some("station"), Some("toward_anchor"));
+        let error = compile_chain_world(vec![chain]).unwrap_err();
         assert_eq!(
-            compile_chain_world(vec![chain]).unwrap_err(),
+            error,
             ContentError::UnknownChainStepVisualAction {
                 chain: "cook_dinner".to_string(),
                 step: 1,
                 action: "dance".to_string(),
             }
+        );
+        assert!(
+            error
+                .to_string()
+                .contains("talk, eat, read, exercise, watch"),
+            "chain-step diagnostics must name the complete action vocabulary"
         );
 
         let mut chain = a_chain("cook_dinner");

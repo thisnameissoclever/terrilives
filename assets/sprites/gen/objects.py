@@ -304,7 +304,98 @@ def chairDesk(d):
 
 
 def bookcaseClosedWide(d):
-    _bookcase(d, wide=True)
+    _aquarium(d, frame=0)
+
+
+def aquariumCabinet1(d):
+    _aquarium(d, frame=1)
+
+
+def _aquarium(d, frame):
+    """A compact cabinet aquarium, biased away from its west wall.
+
+    The historical sprite name remains the content and save-facing key for
+    frame zero. Frame one redraws only the fish. Keeping the cabinet, water,
+    plants, rocks, and hardware identical prevents the whole object from
+    shivering when the renderer advances its ambient animation.
+    """
+    x0, y0, x1, y1 = -.06, -.46, .70, .30
+    wood = C["wood_dark"]
+    water = C["water"]
+
+    # Cabinet and cap. The +x/-y offset moves the visible envelope about
+    # thirteen pixels right while the one-tile simulation footprint stays put.
+    box(d, x0, y0, x1, y1, 0, .44, wood, top=C["wood"])
+    slab(d, x0 - .02, y0 - .02, x1 + .02, y1 + .02,
+         .49, C["wood"], thick=.05)
+
+    # Water volume. The slightly different face values are material shading,
+    # not light emission; the aquarium remains an ordinary lit object quad.
+    gx0, gy0, gx1, gy1 = x0 + .05, y0 + .05, x1 - .05, y1 - .05
+    d.polygon(
+        [P(gx0, gy1, 1.35), P(gx1, gy1, 1.35),
+         P(gx1, gy1, .52), P(gx0, gy1, .52)],
+        fill=(*mul(water, .92), 220), outline=OUTLINE, width=OUTLINE_WIDTH,
+    )
+    d.polygon(
+        [P(gx1, gy0, 1.35), P(gx1, gy1, 1.35),
+         P(gx1, gy1, .52), P(gx1, gy0, .52)],
+        fill=(*mul(water, .82), 220), outline=OUTLINE, width=OUTLINE_WIDTH,
+    )
+    d.polygon(
+        [P(gx0, gy0, 1.35), P(gx1, gy0, 1.35),
+         P(gx1, gy1, 1.35), P(gx0, gy1, 1.35)],
+        fill=(*mul(water, 1.07), 210), outline=OUTLINE, width=OUTLINE_WIDTH,
+    )
+
+    # Gravel, two rocks, and plants survive native-size display as distinct
+    # shapes. Fine aquarium detail has a habit of turning into decorative lint.
+    box(d, gx0 + .02, gy0 + .02, gx1 - .02, gy1 - .02,
+        .52, .62, C["card"], top=C["linen_alt"])
+    for rx, ry, radius, colour in (
+        (.03, -.35, 4, C["accent_slate"]),
+        (.38, -.08, 3, C["wood_dark"]),
+    ):
+        px, py = P(rx, ry, .66)
+        d.ellipse([px - radius, py - radius / 2,
+                   px + radius, py + radius / 2],
+                  fill=colour, outline=OUTLINE, width=1)
+    for root_x, root_y, lean in ((-.12, -.27, -1), (.45, -.02, 1)):
+        root = P(root_x, root_y, .63)
+        for reach, lift in ((6, 17), (2, 21), (-5, 15)):
+            d.line([root, (root[0] + lean * reach, root[1] - lift)],
+                   fill=C["leaf"], width=2)
+
+    # Dark frame, lid, and cabinet hardware sell the furniture silhouette.
+    for cx, cy in ((gx0, gy0), (gx1, gy0), (gx1, gy1), (gx0, gy1)):
+        d.line([P(cx, cy, .50), P(cx, cy, 1.39)], fill=OUTLINE, width=2)
+    slab(d, x0 - .03, y0 - .03, x1 + .03, y1 + .03,
+         1.43, wood, thick=.08)
+    d.line([P(x1, -.18, .12), P(x1, -.18, .34)],
+           fill=mul(C["wood"], .72), width=1)
+    for knob_y in (-.35, -.05):
+        kx, ky = P(x1, knob_y, .25)
+        d.ellipse([kx - 1.5, ky - 1.5, kx + 1.5, ky + 1.5],
+                  fill=C["accent_brass"], outline=OUTLINE, width=1)
+
+    # Only these fish coordinates depend on the frame. Each shifts by a few
+    # pixels and flips a tail, enough to read without becoming a screensaver.
+    fish = (
+        (-19 + frame * 3, -8, 1, C["accent_clay"]),
+        (4 - frame * 2, -6, -1, C["accent_brass"]),
+        (12 + frame * 2, 4, 1, C["accent_slate"]),
+    )
+    centre_x, centre_y = OX + 12, OY - 22
+    for fx, fy, direction, colour in fish:
+        cx, cy = centre_x + fx, centre_y + fy
+        d.ellipse([cx - 4, cy - 2, cx + 4, cy + 2],
+                  fill=colour, outline=OUTLINE, width=1)
+        tail_x = cx - direction * (7 if frame == 0 else 8)
+        d.polygon([(cx - direction * 3, cy),
+                   (tail_x, cy - 3), (tail_x, cy + 3)],
+                  fill=mul(colour, .9), outline=OUTLINE)
+        eye_x = cx + direction * 2
+        d.point((eye_x, cy - 1), fill=OUTLINE)
 
 
 def bookcaseClosedDoors(d):
@@ -370,13 +461,63 @@ def trashcan(d):
 
 
 def cardboardBoxOpen(d):
-    k = C["card"]
-    box(d, A + .14, A + .14, B - .14, B - .14, 0, 0.42, k)
-    diamond(d, A + .18, A + .18, B - .18, B - .18, mul(k, .72),
-            outline=OUTLINE, width=OUTLINE_WIDTH)
-    for (x0, y0, x1, y1) in ((A + .14, A + .10, B - .14, A + .16),
-                             (A + .10, A + .14, A + .16, B - .14)):
-        box(d, x0, y0, x1, y1, 0.42, 0.56, mul(k, 1.05))
+    """A compact upright exercise bike on the old moving-box index."""
+    px, py = P(.5, .5)
+    frame = C["accent_slate"]
+    metal = C["metal"]
+
+    # The mat and machine lean left of the saddle anchor, leaving the east
+    # wall and lot edge clear while retaining the honest one-tile footprint.
+    d.polygon([(px - 32, py - 10), (px - 5, py - 24),
+               (px + 14, py - 14), (px - 14, py)],
+              fill=(*mul(C["ink"], .78), 165), outline=OUTLINE, width=1)
+
+    wheel_x, wheel_y = px - 10, py - 14
+    d.ellipse([wheel_x - 12, wheel_y - 10,
+               wheel_x + 12, wheel_y + 10],
+              fill=mul(C["screen"], .72), outline=OUTLINE, width=2)
+    d.ellipse([wheel_x - 7, wheel_y - 6,
+               wheel_x + 7, wheel_y + 6],
+              fill=mul(metal, .88), outline=OUTLINE, width=1)
+    d.ellipse([wheel_x - 2, wheel_y - 2,
+               wheel_x + 2, wheel_y + 2],
+              fill=C["accent_brass"], outline=OUTLINE, width=1)
+
+    saddle_x, saddle_y = px, py - 29
+    crank = (wheel_x, wheel_y)
+    front = (px + 10, py - 7)
+    handle = (px + 10, py - 43)
+    for a, b in (((saddle_x, saddle_y), crank),
+                 (crank, front), (front, handle),
+                 ((saddle_x, saddle_y), front)):
+        d.line([a, b], fill=OUTLINE, width=6)
+        d.line([a, b], fill=frame, width=4)
+
+    # Saddle centred on the authored x=0,y=0 socket and the body hip anchor.
+    d.rounded_rectangle([saddle_x - 8, saddle_y - 4,
+                         saddle_x + 7, saddle_y + 1],
+                        radius=2, fill=mul(C["ink"], 1.12),
+                        outline=OUTLINE, width=1)
+    d.line([(px + 7, py - 44), (px + 15, py - 47)],
+           fill=OUTLINE, width=4)
+    d.line([(px + 7, py - 44), (px + 15, py - 47)],
+           fill=frame, width=2)
+    d.rounded_rectangle([px + 4, py - 53, px + 13, py - 45],
+                        radius=2, fill=C["screen"], outline=OUTLINE, width=1)
+
+    # Crank, pedals, stabilisers, and a pale towel keep this from reading as
+    # an abstract metal triangle at the native atlas scale.
+    d.line([(wheel_x - 5, wheel_y - 4), (wheel_x + 6, wheel_y + 5)],
+           fill=OUTLINE, width=2)
+    for foot_x, foot_y in ((wheel_x - 8, wheel_y - 6),
+                           (wheel_x + 9, wheel_y + 7)):
+        d.line([(foot_x - 4, foot_y), (foot_x + 4, foot_y)],
+               fill=OUTLINE, width=3)
+    d.line([(px - 25, py - 2), (px - 2, py - 2)], fill=OUTLINE, width=3)
+    d.line([(px + 2, py - 2), (px + 14, py - 2)], fill=OUTLINE, width=3)
+    d.polygon([(px + 5, py - 44), (px + 10, py - 43),
+               (px + 8, py - 30), (px + 3, py - 31)],
+              fill=C["linen"], outline=OUTLINE)
 
 
 def hair_cap(d, cx, cy, r, radius, colour, ol, w):
@@ -1020,6 +1161,160 @@ def sim3WalkNE0(d): _walking_figure(d, CHARACTER_PALETTES[2], "ne", 0)
 def sim3WalkNE1(d): _walking_figure(d, CHARACTER_PALETTES[2], "ne", 1)
 
 
+def _exercise_figure(d, palette, facing, frame):
+    """A seated rider whose hands, knees, and feet meet the bike."""
+    px, py = P(.5, .5)
+    side, depth = {
+        "se": (1, 1),
+        "nw": (-1, -1),
+        "sw": (-1, 1),
+        "ne": (1, -1),
+    }[facing]
+    phase = -1 if frame == 0 else 1
+    skin, hair = palette["skin"], palette["hair"]
+    shirt, trouser = palette["shirt"], palette["trouser"]
+    ol, w = OUTLINE, OUTLINE_WIDTH
+
+    d.ellipse([px - 14, py - 8, px + 10, py], fill=(0, 0, 0, 42))
+    hip_x, hip_y = px, py - 29
+
+    # Alternating knees and feet travel around the crank while the seated hip
+    # stays planted on the authored saddle socket.
+    for leg_side in (-depth, depth):
+        stroke_phase = phase * leg_side
+        knee_x = px + side * (5 + stroke_phase * 3) + leg_side * 2
+        knee_y = py - 17 - stroke_phase * 3
+        foot_x = px - side * 7 + stroke_phase * 6
+        foot_y = py - 10 + stroke_phase * 4
+        points = [(hip_x + leg_side * 3, hip_y),
+                  (knee_x, knee_y), (foot_x, foot_y)]
+        d.line(points, fill=ol, width=8, joint="curve")
+        d.line(points, fill=trouser, width=6, joint="curve")
+        d.line([(foot_x - 4, foot_y + 1), (foot_x + 4, foot_y + 1)],
+               fill=ol, width=3)
+
+    shoulder_x = px + side * 3
+    shoulder_y = py - 50 + depth
+    d.polygon([
+        (shoulder_x - 11, shoulder_y),
+        (shoulder_x + 10, shoulder_y),
+        (hip_x + 8, hip_y + 2),
+        (hip_x - 8, hip_y + 2),
+    ], fill=shirt, outline=ol)
+
+    # Both hands stay on the handlebar. Tiny opposing elbow movement keeps the
+    # upper body alive without suggesting the rider is letting go.
+    handle_x = px + side * 13
+    handle_y = py - 43 + depth
+    for arm_side in (-1, 1):
+        sx0 = shoulder_x + arm_side * 8
+        sy0 = shoulder_y + 5 + depth * arm_side
+        elbow = (px + side * 9 + arm_side * 2,
+                 py - 45 + arm_side * phase)
+        hand = (handle_x + arm_side * 2, handle_y + arm_side)
+        points = [(sx0, sy0), elbow, hand]
+        d.line(points, fill=ol, width=6, joint="curve")
+        d.line(points, fill=mul(shirt, .93), width=4, joint="curve")
+        d.ellipse([hand[0] - 2, hand[1] - 2,
+                   hand[0] + 2, hand[1] + 2],
+                  fill=skin, outline=ol, width=w)
+
+    head_r = 15
+    head_x = px + side * 4
+    head_y = py - 66 + depth
+    d.rounded_rectangle(
+        [head_x - head_r, head_y - head_r,
+         head_x + head_r, head_y + head_r],
+        radius=6, fill=skin, outline=ol, width=w,
+    )
+    hair_cap(d, head_x, head_y, head_r, 6, hair, ol, w)
+    eye_y = head_y + 2 + depth
+    for eye_side in (-1, 1):
+        eye_x = head_x + eye_side * 5 + side * 2
+        d.ellipse([eye_x - 1.2, eye_y - 1.2,
+                   eye_x + 1.2, eye_y + 1.2], fill=CHARACTER["eye"])
+
+
+def _watch_fish_figure(d, palette, facing, frame):
+    """A relaxed standing watcher with a restrained head and weight shift."""
+    px, py = P(.5, .5)
+    side, depth = {
+        "se": (1, 1),
+        "nw": (-1, -1),
+        "sw": (-1, 1),
+        "ne": (1, -1),
+    }[facing]
+    phase = -1 if frame == 0 else 1
+    skin, hair = palette["skin"], palette["hair"]
+    shirt, trouser = palette["shirt"], palette["trouser"]
+    ol, w = OUTLINE, OUTLINE_WIDTH
+
+    d.ellipse([px - 13, py - 9, px + 13, py], fill=(0, 0, 0, 44))
+    hip_y = py - 29
+    shift = side * phase
+    for leg_side in (-1, 1):
+        leg_x = px + shift + leg_side * 4
+        foot_x = leg_x + leg_side * (2 if leg_side == phase else 1)
+        knee_y = py - 14 + depth * leg_side
+        points = [(leg_x, hip_y), (leg_x, knee_y), (foot_x, py - 2)]
+        d.line(points, fill=ol, width=8, joint="curve")
+        d.line(points, fill=trouser, width=6, joint="curve")
+        d.line([(foot_x - 3, py - 1), (foot_x + 4, py - 1)],
+               fill=ol, width=3)
+
+    top_y = py - 51
+    d.polygon([
+        (px - 13 + shift, top_y), (px + 13 + shift, top_y),
+        (px + 8 + shift, hip_y + 1), (px - 8 + shift, hip_y + 1),
+    ], fill=shirt, outline=ol)
+
+    # Arms rest near the body. The nearer hand shifts two pixels with the
+    # weight transfer, while the gaze remains firmly toward the aquarium.
+    for arm_side in (-1, 1):
+        shoulder = (px + shift + arm_side * 11,
+                    top_y + 5 + depth * arm_side)
+        hand = (px + shift + arm_side * 10 + side * phase,
+                py - 33 + depth * arm_side)
+        d.line([shoulder, hand], fill=ol, width=7)
+        d.line([shoulder, hand], fill=mul(shirt, .93), width=5)
+        d.ellipse([hand[0] - 2, hand[1] - 2,
+                   hand[0] + 2, hand[1] + 2],
+                  fill=skin, outline=ol, width=w)
+
+    head_r = 16
+    head_x = px + side * 2 + shift
+    head_y = py - 68 + depth + (1 if frame else 0)
+    d.rounded_rectangle(
+        [head_x - head_r, head_y - head_r,
+         head_x + head_r, head_y + head_r],
+        radius=7, fill=skin, outline=ol, width=w,
+    )
+    hair_cap(d, head_x, head_y, head_r, 7, hair, ol, w)
+    eye_y = head_y + 2 + depth
+    for eye_side in (-1, 1):
+        eye_x = head_x + eye_side * 5 + side * 2
+        d.ellipse([eye_x - 1.3, eye_y - 1.3,
+                   eye_x + 1.3, eye_y + 1.3], fill=CHARACTER["eye"])
+
+
+def _named_action_sprites(stem, drawer):
+    """Create append-only named atlas callables without 48 copy-paste shells."""
+    sprites = []
+    for look, palette in zip(("sim", "sim2", "sim3"), CHARACTER_PALETTES):
+        for facing, facing_name in (("se", "SE"), ("nw", "NW"),
+                                    ("sw", "SW"), ("ne", "NE")):
+            for frame in (0, 1):
+                def sprite(d, palette=palette, facing=facing, frame=frame):
+                    drawer(d, palette, facing, frame)
+                sprite.__name__ = f"{look}{stem}{facing_name}{frame}"
+                sprites.append(sprite)
+    return tuple(sprites)
+
+
+EXERCISE_SPRITES = _named_action_sprites("Exercise", _exercise_figure)
+WATCH_FISH_SPRITES = _named_action_sprites("WatchFish", _watch_fish_figure)
+
+
 # ---------------------------------------------------------- indicators ----
 def _bubble(d, glyph):
     px, py = OX, OY + HH - 13
@@ -1066,6 +1361,20 @@ def _bubble(d, glyph):
             d.line([(x0, y0), (x1, y0)], fill=ink, width=stroke)
             d.line([(x1, y0), (x0, y1)], fill=ink, width=stroke)
             d.line([(x0, y1), (x1, y1)], fill=ink, width=stroke)
+    elif glyph == "exercise":
+        # Pedal crank and handlebars, kept open enough to survive 26 pixels.
+        d.ellipse([px - 7, py - 2, px + 3, py + 8],
+                  outline=ink, width=2)
+        d.line([(px - 2, py + 3), (px + 4, py - 5),
+                (px + 7, py + 4)], fill=ink, width=2)
+        d.line([(px + 2, py - 5), (px + 8, py - 7)],
+               fill=ink, width=2)
+    elif glyph == "watch":
+        d.ellipse([px - 8, py - 5, px + 6, py + 5],
+                  outline=ink, width=2)
+        d.polygon([(px - 8, py), (px - 12, py - 4),
+                   (px - 12, py + 4)], fill=ink)
+        d.ellipse([px + 2, py - 1, px + 4, py + 1], fill=ink)
     else:                                   # wait
         d.ellipse([px - 8, py - 8, px + 8, py + 8], outline=ink, width=1)
         d.line([(px, py), (px, py - 5)], fill=ink, width=1)
@@ -1077,6 +1386,8 @@ def indicatorEat(d): _bubble(d, "eat")
 def indicatorSleep(d): _bubble(d, "sleep")
 def indicatorWait(d): _bubble(d, "wait")
 def indicatorReading(d): _bubble(d, "read")
+def indicatorExercise(d): _bubble(d, "exercise")
+def indicatorWatchFish(d): _bubble(d, "watch")
 
 
 def _carried(d, kind):
@@ -1124,6 +1435,11 @@ EXACT = {
     "wallEW": (HW, None),
     "doorwayNS": (HW, None),
     "doorwayEW": (HW, None),
+    "cardboardBoxOpen": (80, 88),
+    "bookcaseClosedWide": (80, 104),
+    "aquariumCabinet1": (80, 104),
+    "indicatorExercise": (26, 26),
+    "indicatorWatchFish": (26, 26),
     "simTalkSE0": (38, 88),
     "simTalkSE1": (38, 88),
     "simTalkNW0": (38, 88),
@@ -1247,6 +1563,9 @@ EXACT = {
     "heldSnack": (14, 10),
 }
 
+for action_sprite in EXERCISE_SPRITES + WATCH_FISH_SPRITES:
+    EXACT[action_sprite.__name__] = (38, 88)
+
 SPRITES = [
     floor, sim, wallNS, wallEW, kitchenFridgeBuiltIn, bathroomSinkSquare,
     showerRound, toiletSquare, bookcaseClosedDoors, loungeSofaOttoman,
@@ -1308,4 +1627,9 @@ SPRITES = [
     sim3WalkSW0, sim3WalkSW1, sim3WalkNE0, sim3WalkNE1,
     # Snack food is a hand overlay. Dinner keeps its existing index and pixels.
     heldSnack,
+    # Aquarium motion, action indicators, and character poses append after
+    # every shipped record. Frame zero keeps the historical aquarium index.
+    aquariumCabinet1, indicatorExercise, indicatorWatchFish,
+    *EXERCISE_SPRITES,
+    *WATCH_FISH_SPRITES,
 ]

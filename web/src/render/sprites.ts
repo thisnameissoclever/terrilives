@@ -1,6 +1,11 @@
 /// <reference types="vite/client" />
 
-import { ATLAS_HEIGHT, ATLAS_WIDTH, SPRITES } from './atlas.js';
+import {
+  ATLAS_FILE_NAME,
+  ATLAS_HEIGHT,
+  ATLAS_WIDTH,
+  SPRITES,
+} from './atlas.js';
 import type { GpuContext } from './device.js';
 import {
   BYTES_PER_INSTANCE,
@@ -18,6 +23,18 @@ const INITIAL_CAPACITY = 4096;
 
 /** Floats per entry of the `Atlas` uniform array: `uv` plus `size`. */
 const FLOATS_PER_SPRITE = 8;
+
+/**
+ * Returns the content-addressed public URL for the generated texture.
+ *
+ * GitHub Pages caches public files independently from Vite's hashed
+ * JavaScript and ignores query strings in its edge cache key. Without a
+ * content-addressed pathname, a returning browser can load a new atlas
+ * manifest beside an older cached PNG and abort on the size check.
+ */
+export function atlasTextureUrl(baseUrl: string): string {
+  return `${baseUrl}${ATLAS_FILE_NAME}`;
+}
 
 /**
  * Packs the atlas manifest into the layout `struct Sprite` expects.
@@ -55,7 +72,7 @@ function packSpriteTable(): Float32Array<ArrayBuffer> {
 }
 
 /**
- * Decodes `atlas.png` into a GPU texture.
+ * Decodes the content-addressed atlas PNG into a GPU texture.
  *
  * `createImageBitmap` rather than an `Image` element, because
  * `copyExternalImageToTexture` wants a decoded source and an `Image`'s
@@ -65,11 +82,13 @@ function packSpriteTable(): Float32Array<ArrayBuffer> {
  * an amount too small to notice and too consistent to explain.
  */
 async function loadAtlasTexture(device: GPUDevice): Promise<GPUTexture> {
-  // `web/public/atlas.png`, served at the app's own base. Not a bundler
-  // import: the atlas is a build output of the whole project, and importing
-  // it from outside the Vite root made the dev server hand out a
-  // `/@fs/<absolute path>` URL that exists only in dev.
-  const url = `${import.meta.env.BASE_URL}atlas.png`;
+  // Generated under `web/public/` and served at the app's own base. Not a
+  // bundler import: the atlas is a build output of the whole project, and
+  // importing it from outside the Vite root made the dev server hand out a
+  // `/@fs/<absolute path>` URL that exists only in dev. The digest in the
+  // pathname is load-bearing because Pages ignores query strings in its edge
+  // cache key.
+  const url = atlasTextureUrl(import.meta.env.BASE_URL);
   let response: Response;
   try {
     response = await fetch(url);
@@ -94,7 +113,7 @@ async function loadAtlasTexture(device: GPUDevice): Promise<GPUTexture> {
   });
   if (bitmap.width !== ATLAS_WIDTH || bitmap.height !== ATLAS_HEIGHT) {
     throw new Error(
-      `atlas.png is ${bitmap.width}x${bitmap.height} but atlas.ts says ` +
+      `${ATLAS_FILE_NAME} is ${bitmap.width}x${bitmap.height} but atlas.ts says ` +
         `${ATLAS_WIDTH}x${ATLAS_HEIGHT}; every sprite rect would be wrong`,
     );
   }

@@ -21,11 +21,12 @@ import argparse
 import hashlib
 import io
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from PIL import Image                                          # noqa: E402
+from PIL import Image, ImageChops                              # noqa: E402
 
 import objects                                                  # noqa: E402
 from iso import canvas, emit                                    # noqa: E402
@@ -50,6 +51,23 @@ ATLAS_PNG = os.path.join(ROOT, "web", "public", "atlas.png")
 ATLAS_TOML = os.path.join(ROOT, "assets", "sprites", "atlas.toml")
 ATLAS_TS = os.path.join(ROOT, "web", "src", "render", "atlas.ts")
 
+
+def revisioned_atlas_name(png_sha256):
+    """The immutable public pathname paired with one exact PNG payload."""
+    return f"atlas-{png_sha256}.png"
+
+
+def revisioned_atlas_paths():
+    """Only generator-owned hashed atlas siblings, never arbitrary PNGs."""
+    public = os.path.dirname(ATLAS_PNG)
+    pattern = re.compile(r"^atlas-[0-9a-f]{64}\.png$")
+    try:
+        names = os.listdir(public)
+    except FileNotFoundError:
+        return []
+    return [os.path.join(public, name) for name in names if pattern.fullmatch(name)]
+
+
 PADDING = 1          # a transparent gutter, so no sprite samples its neighbour
 
 LEGACY_PREFIX_SHA256 = (
@@ -73,8 +91,11 @@ CHAT_PIXELS_SHA256 = (
 DINNER_PIXELS_SHA256 = (
     "1ac2f0505b58157e42d72de325100e20f5742a1b24c5dfa43592ec58d9ebd4dd"
 )
-PROTECTED_LEGACY_PIXELS_SHA256 = (
-    "1ee429a0d8f0dfaefe2f6e4729a82a96ce4dd92168ee1341558cbcf4eabb70e4"
+# The decoded-record baseline for indices 0 through 171, excluding only the
+# bike and aquarium replacements at 24 and 32. Atlas coordinates are packing
+# output and deliberately absent; identity, dimensions, and pixels are pinned.
+AQUARIUM_BIKE_COMPLEMENT_SHA256 = (
+    "3c48414319aabbf86d7df3291b128daf1c2f634d75033743026610b16dd8e7e1"
 )
 
 
@@ -99,6 +120,24 @@ def standing_reading_names():
 def walking_names():
     return [
         f"{look}Walk{facing}{frame}"
+        for look in ("sim", "sim2", "sim3")
+        for facing in ("SE", "NW", "SW", "NE")
+        for frame in (0, 1)
+    ]
+
+
+def exercise_names():
+    return [
+        f"{look}Exercise{facing}{frame}"
+        for look in ("sim", "sim2", "sim3")
+        for facing in ("SE", "NW", "SW", "NE")
+        for frame in (0, 1)
+    ]
+
+
+def watch_fish_names():
+    return [
+        f"{look}WatchFish{facing}{frame}"
         for look in ("sim", "sim2", "sim3")
         for facing in ("SE", "NW", "SW", "NE")
         for frame in (0, 1)
@@ -239,16 +278,18 @@ def validate_animation_repair_contract(sprites):
         )
 
     walk = walking_names()
-    if len(names) != 172 or names[147:171] != walk or names[171] != "heldSnack":
+    if len(names) < 172 or names[147:171] != walk or names[171] != "heldSnack":
         raise SystemExit("walk must occupy 147 through 170 and heldSnack must remain 171")
 
-    # Seated reading at 98 through 121 is the intentional in-place redraw.
-    # Every other old record must retain its decoded pixels, dimensions, and
-    # identity while the new assets append after the fixed legacy prefix.
-    protected_legacy = sprites[:98] + sprites[122:147]
-    if sprite_record_digest(protected_legacy) != PROTECTED_LEGACY_PIXELS_SHA256:
+    # Only the two repurposed inert-object records may change in the shipped
+    # 0 through 171 range. Everything new appends after the fixed prefix.
+    protected_existing = [
+        sprite for index, sprite in enumerate(sprites[:172])
+        if index not in (24, 32)
+    ]
+    if sprite_record_digest(protected_existing) != AQUARIUM_BIKE_COMPLEMENT_SHA256:
         raise SystemExit(
-            "decoded pixels changed outside intentional seated-reading indices"
+            "decoded pixels changed outside the two intentional object replacements"
         )
 
     if named_pixel_digest(sprites[50:74]) != CHAT_PIXELS_SHA256:
@@ -322,6 +363,137 @@ def validate_animation_repair_contract(sprites):
         raise SystemExit("heldSnack and carried_dinner must be distinct props")
 
 
+def validate_aquarium_bike_contract(sprites):
+    """Pin the replacement records and every append-only art contract."""
+    names = [name for name, _, _, _ in sprites]
+    exercise = exercise_names()
+    watch = watch_fish_names()
+    expected_suffix = [
+        "aquariumCabinet1",
+        "indicatorExercise",
+        "indicatorWatchFish",
+        *exercise,
+        *watch,
+    ]
+    if len(names) != 223 or names[172:] != expected_suffix:
+        raise SystemExit(
+            "aquarium, indicators, exercise, and watch art must occupy 172 through 222"
+        )
+    if names[24] != "cardboardBoxOpen" or names[32] != "bookcaseClosedWide":
+        raise SystemExit("bike and aquarium frame zero must retain indices 24 and 32")
+
+    by_name = {
+        name: (image, width, height)
+        for name, image, width, height in sprites
+    }
+    bike = by_name["cardboardBoxOpen"]
+    aquarium_zero = by_name["bookcaseClosedWide"]
+    aquarium_one = by_name["aquariumCabinet1"]
+    if (bike[1], bike[2]) != (80, 88):
+        raise SystemExit("cardboardBoxOpen exercise bike must be exactly 80x88")
+    if (aquarium_zero[1], aquarium_zero[2]) != (80, 104):
+        raise SystemExit("bookcaseClosedWide aquarium must be exactly 80x104")
+    if (aquarium_one[1], aquarium_one[2]) != (80, 104):
+        raise SystemExit("aquariumCabinet1 must share frame zero's 80x104 envelope")
+    if bike[0].getchannel("A").getbbox() is None:
+        raise SystemExit("exercise bike has no visible pixels")
+    if aquarium_zero[0].getchannel("A").getbbox() is None:
+        raise SystemExit("aquarium frame zero has no visible pixels")
+    if bike[0].getchannel("A").getbbox() != (8, 34, 56, 88):
+        raise SystemExit("exercise bike lost its planted, east-wall-safe envelope")
+    if aquarium_zero[0].getchannel("A").getbbox() != (26, 15, 80, 104):
+        raise SystemExit("aquarium lost its planted, west-wall-safe envelope")
+    if (
+        aquarium_zero[0].getchannel("A").getbbox()
+        != aquarium_one[0].getchannel("A").getbbox()
+    ):
+        raise SystemExit("aquarium fish motion changed the object's alpha envelope")
+
+    difference = ImageChops.difference(aquarium_zero[0], aquarium_one[0])
+    # RGBA getbbox defaults to alpha-only in Pillow. Both aquarium frames are
+    # fully opaque through the tank, so that default can miss an RGB-only
+    # water, lid, or cabinet mutation. Always inspect all four channels.
+    difference_box = difference.getbbox(alpha_only=False)
+    if difference_box is None:
+        raise SystemExit("aquarium frames are pixel-identical")
+    fish_motion_regions = (
+        (26, 49, 42, 57),
+        (50, 51, 65, 57),
+        (57, 61, 70, 68),
+    )
+    changed_by_region = [0] * len(fish_motion_regions)
+    for y in range(aquarium_zero[2]):
+        for x in range(aquarium_zero[1]):
+            if aquarium_zero[0].getpixel((x, y)) == aquarium_one[0].getpixel((x, y)):
+                continue
+            matching_regions = [
+                index
+                for index, (left, top, right, bottom) in enumerate(fish_motion_regions)
+                if left <= x < right and top <= y < bottom
+            ]
+            if not matching_regions:
+                raise SystemExit(
+                    "aquarium animation changed a pixel outside the reviewed "
+                    f"fish-motion mask at ({x}, {y})"
+                )
+            for index in matching_regions:
+                changed_by_region[index] += 1
+    if any(count == 0 for count in changed_by_region):
+        raise SystemExit(
+            "aquarium animation lost motion from one of the three reviewed fish regions"
+        )
+
+    for indicator in ("indicatorExercise", "indicatorWatchFish"):
+        image, width, height = by_name[indicator]
+        if (width, height) != (26, 26) or image.getchannel("A").getbbox() is None:
+            raise SystemExit(f"{indicator} must be a visible 26x26 bubble")
+    if (
+        by_name["indicatorExercise"][0].tobytes()
+        == by_name["indicatorWatchFish"][0].tobytes()
+    ):
+        raise SystemExit("exercise and watching-fish indicators must be distinct")
+
+    for stem, action_names, motion_box, minimum in (
+        ("Exercise", exercise, (0, 50, 38, 88), 24),
+        ("WatchFish", watch, (0, 0, 38, 88), 12),
+    ):
+        for name in action_names:
+            image, width, height = by_name[name]
+            if (width, height) != (38, 88):
+                raise SystemExit(f"{name}: action body must be exactly 38x88")
+            if image.getchannel("A").getbbox() is None:
+                raise SystemExit(f"{name}: action body has no visible pixels")
+
+        for look in ("sim", "sim2", "sim3"):
+            for facing in ("SE", "NW", "SW", "NE"):
+                quiet = by_name[f"{look}{stem}{facing}0"][0]
+                active = by_name[f"{look}{stem}{facing}1"][0]
+                if alpha_difference(quiet, active, motion_box) < minimum:
+                    raise SystemExit(
+                        f"{look}{stem}{facing}: the two silhouettes barely move"
+                    )
+            for frame in (0, 1):
+                facings = {
+                    by_name[f"{look}{stem}{facing}{frame}"][0].tobytes()
+                    for facing in ("SE", "NW", "SW", "NE")
+                }
+                if len(facings) != 4:
+                    raise SystemExit(
+                        f"{look}{stem} frame {frame}: two facings are pixel-identical"
+                    )
+
+        for facing in ("SE", "NW", "SW", "NE"):
+            for frame in (0, 1):
+                looks = {
+                    by_name[f"{look}{stem}{facing}{frame}"][0].tobytes()
+                    for look in ("sim", "sim2", "sim3")
+                }
+                if len(looks) != 3:
+                    raise SystemExit(
+                        f"{stem}{facing}{frame}: two Sim looks are pixel-identical"
+                    )
+
+
 def render_all():
     out = []
     for fn in objects.SPRITES:
@@ -335,6 +507,7 @@ def render_all():
         out.append((fn.__name__, crop, w, h))
     validate_reading_contract(out)
     validate_animation_repair_contract(out)
+    validate_aquarium_bike_contract(out)
     return out
 
 
@@ -388,7 +561,7 @@ def write_toml(sprites, placed, width, height):
     return "\n".join(lines) + "\n"
 
 
-def write_ts(sprites, placed, width, height):
+def write_ts(sprites, placed, width, height, png_sha256):
     rows = []
     for i, (name, _, w, h) in enumerate(sprites):
         px, py = placed[i]
@@ -419,6 +592,10 @@ export interface AtlasSprite {{
 
 export const ATLAS_WIDTH = {width};
 export const ATLAS_HEIGHT = {height};
+/** SHA-256 of the exact generated atlas PNG bytes. */
+export const ATLAS_CONTENT_SHA256 = '{png_sha256}';
+/** Content-addressed public pathname; Pages ignores query strings in its cache key. */
+export const ATLAS_FILE_NAME = '{revisioned_atlas_name(png_sha256)}';
 
 export const SPRITES: readonly AtlasSprite[] = [
 {body}
@@ -441,7 +618,7 @@ export const SPRITES: readonly AtlasSprite[] = [
 export function spriteIndex(name: string): number {{
   const index = SPRITES.findIndex((sprite) => sprite.name === name);
   if (index < 0) {{
-    throw new Error(`atlas.png has no sprite named ${{name}}`);
+    throw new Error(`the sprite atlas has no sprite named ${{name}}`);
   }}
   return index;
 }}
@@ -488,13 +665,45 @@ def main():
     sheet = compose(sprites, placed, width, height)
     png = png_bytes(sheet)
     toml = write_toml(sprites, placed, width, height)
-    ts = write_ts(sprites, placed, width, height)
+    # The revision is part of the atlas PATH, so hashed JavaScript can never
+    # request a cached PNG from an older deployment. GitHub Pages' edge cache
+    # ignores query strings. In check mode, hash the exact committed bytes when
+    # their decoded pixels are current. That keeps the existing cross-Pillow
+    # tolerance for harmless PNG packaging changes while still requiring
+    # atlas.ts to identify the bytes Pages will serve.
+    png_for_revision = png
+    png_error = None
+    if args.check:
+        png_error = png_check_error(ATLAS_PNG, sheet)
+        if png_error is None:
+            try:
+                with open(ATLAS_PNG, "rb") as fh:
+                    png_for_revision = fh.read()
+            except OSError:
+                png_error = f"{ATLAS_PNG}: missing"
+    png_sha256 = hashlib.sha256(png_for_revision).hexdigest()
+    revisioned_png = os.path.join(
+        os.path.dirname(ATLAS_PNG), revisioned_atlas_name(png_sha256)
+    )
+    ts = write_ts(sprites, placed, width, height, png_sha256)
 
     if args.check:
         bad = []
-        png_error = png_check_error(ATLAS_PNG, sheet)
         if png_error:
             bad.append(png_error)
+        try:
+            with open(revisioned_png, "rb") as fh:
+                revisioned_have = fh.read()
+        except OSError:
+            bad.append(f"{revisioned_png}: missing")
+        else:
+            if revisioned_have != png_for_revision:
+                bad.append(f"{revisioned_png}: does not match atlas.png bytes")
+        stale_revisioned = [
+            path for path in revisioned_atlas_paths() if path != revisioned_png
+        ]
+        for path in stale_revisioned:
+            bad.append(f"{path}: obsolete content-addressed atlas")
         for path, want in ((ATLAS_TOML, toml), (ATLAS_TS, ts)):
             try:
                 with open(path, "r") as fh:
@@ -510,7 +719,15 @@ def main():
         print(f"atlas is up to date: {len(sprites)} sprites, {width}x{height}")
         return
 
+    for path in revisioned_atlas_paths():
+        if path != revisioned_png:
+            os.remove(path)
     with open(ATLAS_PNG, "wb") as fh:
+        fh.write(png)
+    with open(
+        os.path.join(os.path.dirname(ATLAS_PNG), revisioned_atlas_name(png_sha256)),
+        "wb",
+    ) as fh:
         fh.write(png)
     with open(ATLAS_TOML, "w") as fh:
         fh.write(toml)

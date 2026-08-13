@@ -192,8 +192,8 @@ table. Authored in `content/chains.toml`.
 | **determinism** | The same seed and the same inputs produce the identical simulation, tick for tick, on any machine. Load-bearing for save files, replays and bug reports. |
 | **world hash** | A digest of everything the simulation must agree on. Two runs that diverge by a hair produce different hashes, which is how CI catches an accidental behaviour change. Also, deliberately, the shape a save file takes. |
 | **render buffer** | The flat arrays the display reads each frame - positions, sprites, activities, carried items. The simulation writes it; the browser never asks the simulation questions mid-frame. |
-| **activity code** | What a row is doing: 0 none, 1 walking, 2 waiting, 3 exact authored eating, 4 talking, 5 sleeping, 6 at work, 7 generic object use, 8 exact authored reading, seated or standing. Some activities are text-only and deliberately draw no indicator bubble. |
-| **visual action code** | Which presentation body pose a row draws: 0 none, 1 talk, 2 eat, 3 seated read, 4 standing read, 5 walk. Exact compiled interactions own codes 1 through 4; final walking activity plus a real path owns code 5. Activity alone never invents an authored object or social pose. |
+| **activity code** | What a row is doing: 0 none, 1 walking, 2 waiting, 3 exact authored eating, 4 talking, 5 sleeping, 6 at work, 7 generic object use, 8 exact authored reading, 9 exercising, 10 watching fish. Some activities are text-only and deliberately draw no indicator bubble. |
+| **visual action code** | Which presentation body pose a row draws: 0 none, 1 talk, 2 eat, 3 seated read, 4 standing read, 5 walk, 6 exercise, 7 watch fish. Exact compiled interactions own codes 1 through 4, 6, and 7; final walking activity plus a real path owns code 5. Activity alone never invents an authored object or social pose. |
 
 ## What the debug overlay prints, line by line
 
@@ -231,7 +231,7 @@ meets gets an entry, and a design paper is where you meet these.
 
 | Term | Means |
 | --- | --- |
-| **atlas** | The one texture holding every sprite in the game, at `assets/sprites/atlas.png`. One atlas is what keeps the whole frame to a single draw call ([D10]). |
+| **atlas** | The one generated texture holding every sprite in the game. Its canonical bytes are `web/public/atlas.png`; runtime uses a byte-identical `web/public/atlas-<sha256>.png` pathname so Pages cannot pair new hashed JavaScript with an old cached texture. One atlas is what keeps the whole frame to a single draw call ([D10]). |
 | **post-pass** (offline) | A program that reads the finished atlas, restyles every sprite in it, and writes it back. Runs on a developer machine, never in the browser. |
 | **post-process** (runtime) | A shader that restyles the whole finished frame on the GPU each time it is drawn. Costs a second render pass, so [D10]'s one-draw-call claim stops being true the day one lands. |
 | **screen space** | Measured in display pixels rather than in the sprite. A pattern applied in screen space stays the same size when the camera zooms; the same pattern baked into a sprite grows and shrinks with it. |

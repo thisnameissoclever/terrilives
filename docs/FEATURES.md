@@ -122,6 +122,38 @@ action 4 to two upright book-holding frames per look and facing on the same
 book indicator, Save V1, world hashes, bridge columns, and GPU instance shape
 remain unchanged. Owner review at the corrected cadence remains open.
 
+The former personal reference shelf is now the `Aquarium of Managed
+Expectations`. `Watch the fish` is a real fun-and-comfort interaction with an
+exact `watch / object / toward_anchor` visual contract. The Sim remains on the
+reachable adjacent tile, faces the tank, and alternates two calm watching poses
+on a 24-tick hold. The compact one-tile cabinet has two same-envelope object
+frames whose fish move subtly while the tank stays planted. It retains the
+historical `reference_shelf` persistence id and placement so public Save V1
+households keep the same entity and collision grid.
+
+The former unpacked moving box is now `Wellness Initiative, Indoor`, a compact
+upright exercise bike. `Use the exercise bike` improves fun while costing
+energy and hygiene. Its exact `exercise / object_socket / socket` contract
+projects the displayed body to the saddle, with planted hands and alternating
+pedal legs on an eight-tick hold. Selection, indicator, lighting, depth, and
+picking move with that displayed body; the gameplay position and world hash do
+not. It retains the historical `moving_box` persistence id and bedroom-corner
+placement for the same Save V1 reason.
+
+Local production WebGPU acceptance for both replacements is complete in
+`design-qa.md`, including their normal player routes, Save and Load transitions,
+phone-width and enlarged-text flyouts, lighting states, and emulated reduced
+motion. [PR #52](https://github.com/thisnameissoclever/terrilives/pull/52)
+merged at `080ff7e1`; [CI run
+31705839013](https://github.com/thisnameissoclever/terrilives/actions/runs/31705839013)
+and [Pages run
+31705838967](https://github.com/thisnameissoclever/terrilives/actions/runs/31705838967)
+successfully built and deployed that exact SHA. A public 1280 by 720 browser
+smoke pass loaded the stage and HUD without warnings or errors, and the
+content-addressed atlas matched its expected 67,336-byte file and SHA-256
+digest. Action-specific played evidence remains local; physical-device,
+operating-system reduced-motion, and final owner acceptance remain open.
+
 Showers, toilets, television, washing, and other ordinary
 object use instead report the appended `USING_OBJECT` activity. It is
 deliberately text-only: one tiny generic glyph would misdescribe at least one of
@@ -598,16 +630,17 @@ was a chord of the ellipse inscribed in the head's box while the head
 itself is a rounded rectangle, so skin showed at both top corners of
 every sim. `hair_cap` in `objects.py` traces the head instead.
 
-### [A-animations] Almost everything is still a static pose
+### [A-animations] Several ordinary actions are still static poses
 
-Talking, eating and reading have two authored frames each per facing.
-Everything else - walking, sleeping, cooking, washing, using a toilet,
-idling - is one sprite that never moves. The walk has an ornamental bob
-and nothing else.
+Walking has a real directional arm-and-leg cycle. Talking, eating, seated and
+standing reading, watching fish, and exercising have two authored frames per
+look and facing. Sleeping, cooking, washing, using a toilet, and idling remain
+static poses. The generic `Using object` activity stays deliberately text-only
+until each category has an honest anchor and body contract.
 
 This is the largest single lever on how alive the game looks, and it is
-mostly generator work rather than engine work: the frame-selection path
-`SIM_TALK_SPRITES` uses already generalises.
+mostly generator work once the simulation can name an exact action and anchor;
+the shared frame-selection path already generalises.
 
 ## Explicitly out of scope for v1
 

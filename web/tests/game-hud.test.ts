@@ -70,6 +70,8 @@ describe('game HUD formatting', () => {
     expect(formatActivity(5, null, null)).toBe('Sleeping');
     expect(formatActivity(7, null, null)).toBe('Using object');
     expect(formatActivity(8, null, null)).toBe('Reading');
+    expect(formatActivity(9, null, null)).toBe('Exercising');
+    expect(formatActivity(10, null, null)).toBe('Watching fish');
   });
 });
 
