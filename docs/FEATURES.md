@@ -143,8 +143,16 @@ placement for the same Save V1 reason.
 Local production WebGPU acceptance for both replacements is complete in
 `design-qa.md`, including their normal player routes, Save and Load transitions,
 phone-width and enlarged-text flyouts, lighting states, and emulated reduced
-motion. Merge, GitHub Pages, physical-device, and final owner acceptance remain
-open.
+motion. [PR #52](https://github.com/thisnameissoclever/terrilives/pull/52)
+merged at `080ff7e1`; [CI run
+31705839013](https://github.com/thisnameissoclever/terrilives/actions/runs/31705839013)
+and [Pages run
+31705838967](https://github.com/thisnameissoclever/terrilives/actions/runs/31705838967)
+successfully built and deployed that exact SHA. A public 1280 by 720 browser
+smoke pass loaded the stage and HUD without warnings or errors, and the
+content-addressed atlas matched its expected 67,336-byte file and SHA-256
+digest. Action-specific played evidence remains local; physical-device,
+operating-system reduced-motion, and final owner acceptance remain open.
 
 Showers, toilets, television, washing, and other ordinary
 object use instead report the appended `USING_OBJECT` activity. It is

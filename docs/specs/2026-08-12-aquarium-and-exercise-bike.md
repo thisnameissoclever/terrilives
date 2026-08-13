@@ -1,14 +1,22 @@
 # Aquarium and exercise bike
 
-Status: implemented and locally accepted on 2026-08-12; merge, GitHub Pages,
-and physical-device acceptance remain open. The product owner selected the
-generated aquarium and exercise-bike mockups as the visual targets. The
-aquarium replaces the inert personal reference shelf. The exercise bike
-replaces the inert unpacked moving box. Neither object is decorative-only:
-each gains one real player and autonomy interaction with a distinct body
-animation. `design-qa.md` records the source comparisons, played desktop and
-phone-width evidence, enlarged-text repair, and remaining public/device proof
-boundaries.
+Status: merged in [PR #52](https://github.com/thisnameissoclever/terrilives/pull/52)
+at `080ff7e1` on 2026-08-13. [CI run
+31705839013](https://github.com/thisnameissoclever/terrilives/actions/runs/31705839013)
+and [Pages run
+31705838967](https://github.com/thisnameissoclever/terrilives/actions/runs/31705838967)
+completed successfully for that exact merge SHA. The public build then loaded
+at 1280 by 720 with its stage and HUD present, no browser warnings or errors,
+and the content-addressed atlas returning the expected 67,336 bytes and
+SHA-256 digest. Action-specific played evidence remains local; physical-device,
+operating-system reduced-motion, and final owner acceptance remain open. The
+product owner selected the generated aquarium and exercise-bike mockups as the
+visual targets. The aquarium replaces the inert personal reference shelf. The
+exercise bike replaces the inert unpacked moving box. Neither object is
+decorative-only: each gains one real player and autonomy interaction with a
+distinct body animation. `design-qa.md` records the source comparisons, played
+desktop and phone-width evidence, enlarged-text repair, and remaining device
+proof boundaries.
 
 This slice deliberately preserves the existing Save V1 entity and collision
 shape. It changes authored interactions, presentation metadata, generated art,

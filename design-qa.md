@@ -100,7 +100,13 @@ rows. The full object title wrapped without clipping.
 The local browser pass is strong enough for this implementation gate, but it is
 not a physical-phone or operating-system accessibility test. Physical safe-area
 insets, long-press behavior, and a real device reduced-motion setting remain
-future public/device acceptance. The eventual GitHub Pages deployment must also
-verify that the new content-addressed atlas pathname returns the exact 67,336
-bytes after deployment; do not request that never-before-published immutable
-path before deployment, because a CDN may cache the expected pre-deploy 404.
+future device acceptance. PR #52 merged at `080ff7e1`, and [Pages run
+31705838967](https://github.com/thisnameissoclever/terrilives/actions/runs/31705838967)
+successfully deployed that exact SHA. The public build loaded at 1280 by 720
+with the stage and HUD present and no browser warnings or errors. Its
+content-addressed atlas pathname returned exactly 67,336 bytes with SHA-256
+`b0c49344544cdf49e5688973cb8a70c7df5dd2c3c11015f5342e7235bd9c4bdf`.
+The `?rev=080ff7e1...` used for that browser session is only a mutable
+SHA-labelled session URL, not an immutable deployment. The public smoke pass
+did not replay the aquarium or exercise-bike actions; action-specific played
+evidence remains the local production capture above.

@@ -2657,6 +2657,12 @@ would not be confused with whether the pixels look convincing.
   The subsequent local production WebGPU comparison in `design-qa.md` proves
   aquarium wall clearance, bike alignment, animation readability,
   Pause/Cancel/Save/Load transitions, phone-width and enlarged-text flyouts,
-  lighting states, and emulated reduced motion. Physical-phone safe areas,
-  long press, operating-system reduced motion, public Pages deployment, and
+  lighting states, and emulated reduced motion. PR #52 merged at `080ff7e1`,
+  and Pages run 31705838967 deployed that exact SHA. A public 1280 by 720 smoke
+  pass then loaded the stage and HUD with no browser warnings or errors; the
+  content-addressed atlas returned exactly 67,336 bytes with SHA-256
+  `b0c49344544cdf49e5688973cb8a70c7df5dd2c3c11015f5342e7235bd9c4bdf`.
+  This closes merge, exact-SHA deployment, startup, and public asset identity.
+  It does not replay either action publicly. Physical-phone safe areas, long
+  press, operating-system reduced motion, action-specific public replay, and
   owner approval remain open.
