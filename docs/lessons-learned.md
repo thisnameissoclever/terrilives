@@ -4135,3 +4135,28 @@ for full prefix protection.
 run the generator check. It must fail on the protected-record digest. Restore
 the pixel and confirm the atlas reproduces exactly; only the explicitly allowed
 range may differ from its recorded predecessor.
+
+## [L-implementation-docs-do-not-create-owner-requirements] An implementation note is not owner authority
+
+**What happened.** A responsive-layout spec described the CSS-only mobile dock
+as a contract. When the owner asked for collapsed small-screen controls, that
+sentence was treated as a conflicting requirement and used to stop for
+confirmation. The same claim was repeated after the owner explicitly said it
+had never been their requirement.
+
+**Root cause.** A document that recorded what the code did was granted authority
+over why the product should do it. No owner decision, acceptance note, or
+source instruction supported that elevation. The rendered phone evidence also
+showed that the documented choice had failed its actual purpose.
+
+**Prevention rule.** Repository specs describe implementation and accepted
+behavior unless they cite an owner decision explicitly. They do not invent
+owner intent. When a direct owner instruction conflicts with an uncited design
+choice, follow the instruction, inspect the current behavior, and update the
+document. Do not make the owner disprove provenance the document never had.
+
+**How to verify.** Trace any claimed owner requirement to the message, issue,
+or acceptance record where the owner stated it. If no such source exists,
+classify the text as a project decision rather than owner authority. Confirm
+that the replacement behavior is documented, causally tested, and played at
+the viewport where the old choice failed.

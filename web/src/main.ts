@@ -62,6 +62,10 @@ import {
   createPeoplePanelSurface,
 } from './ui/people-panel.js';
 import { OverlayPauseController } from './ui/overlay-pause.js';
+import {
+  COMPACT_HUD_MEDIA_QUERY,
+  MobileHud,
+} from './ui/mobile-hud.js';
 
 /** [D2]: the simulation's one true rate. Speed controls change how many
  * ticks run per frame, never how long a tick is. */
@@ -370,10 +374,6 @@ async function main(): Promise<void> {
     ),
     sim.needBarRefreshMs(),
   );
-  if (needsRoot instanceof HTMLDetailsElement && window.innerWidth <= 600) {
-    needsRoot.open = false;
-  }
-
   const peopleRoot = document.querySelector('#people-panel');
   const peopleCaption = document.querySelector<HTMLElement>('#people-caption');
   const peopleEmpty = document.querySelector<HTMLElement>('#people-empty');
@@ -391,8 +391,6 @@ async function main(): Promise<void> {
     createPeoplePanelSurface(document, peopleCaption, peopleEmpty, peopleList),
     sim.needBarRefreshMs(),
   );
-  if (window.innerWidth <= 600) peopleRoot.open = false;
-
   const clockValue = document.querySelector<HTMLElement>('#clock-value');
   const fundsValue = document.querySelector<HTMLElement>('#funds-value');
   const satisfactionValue = document.querySelector<HTMLElement>('#satisfaction-value');
@@ -404,6 +402,10 @@ async function main(): Promise<void> {
   const householdRosterRoot = document.querySelector<HTMLElement>(
     '#household-roster-members',
   );
+  const hudRoot = document.querySelector<HTMLElement>('#hud');
+  const mobileHudButton = document.querySelector<HTMLButtonElement>(
+    '#mobile-hud-toggle',
+  );
   if (
     !clockValue ||
     !fundsValue ||
@@ -413,10 +415,23 @@ async function main(): Promise<void> {
     !activityValue ||
     !ordersRow ||
     !ordersValue ||
-    !householdRosterRoot
+    !householdRosterRoot ||
+    !hudRoot ||
+    !mobileHudButton ||
+    !(needsRoot instanceof HTMLDetailsElement)
   ) {
     throw new Error('missing player status markup');
   }
+  const compactHudQuery = window.matchMedia(COMPACT_HUD_MEDIA_QUERY);
+  const mobileHud = new MobileHud(hudRoot, mobileHudButton, [
+    needsRoot,
+    peopleRoot,
+  ]);
+  mobileHud.setCompact(compactHudQuery.matches);
+  mobileHudButton.addEventListener('click', () => mobileHud.toggle());
+  compactHudQuery.addEventListener('change', (event) => {
+    mobileHud.setCompact(event.matches);
+  });
   const gameHud = new GameHud(
     {
       clock: clockValue,

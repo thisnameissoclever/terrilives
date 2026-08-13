@@ -16,6 +16,7 @@ itself on having personality.
 | Surface | Current strings | Source |
 | --- | --- | --- |
 | Household status | Time; Funds; Day {n}, {hh}:{mm} | `web/index.html`, `web/src/ui/game-hud.ts` |
+| Compact HUD | Menu; Close; Open game menu; Close game menu | `web/index.html`, `web/src/ui/mobile-hud.ts` |
 | Household roster | Household; one authored sim name per selection button | `web/index.html`, `web/src/ui/household-roster.ts` |
 | Selected person | Life satisfaction; Career; Doing; Orders waiting; Select a person; Nothing selected | `web/index.html`, `web/src/ui/game-hud.ts` |
 | Selected activity | Deciding what to do; Walking; Waiting; Eating; Talking; Sleeping; At work; Using object; Reading; Waiting: {reason}; Activity {code} | `web/src/ui/game-hud.ts` |

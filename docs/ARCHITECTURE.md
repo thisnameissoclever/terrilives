@@ -127,19 +127,21 @@ it cannot paint above or keep the terminal explanation unfocusable. The failed
 canvas and HUD therefore cannot remain a second keyboard interface behind the
 only useful surface.
 
-At 600 CSS pixels or narrower, the shell normally presents that same HUD as a
-safe-area-aware two-column grid rather than constructing a separate mobile
-controller. The grid itself covers the viewport but keeps
-`pointer-events: none`; its existing child panels restore pointer input,
-leaving the flexible middle row as a direct hit surface for the WebGPU canvas.
-The DOM and focus order do not change. Needs and People independently cap and
-scroll their open content so one expanded projection cannot push the speed and
-persistence controls out of reach. When either opens, its grid row and the
-canvas aperture divide remaining height while the panel scrolls its own
-content. The outer HUD gains its own vertical overflow only when enlarged text
-makes the fixed rows exceed the viewport. A short landscape viewport keeps the
-same children in the established scrollable edge column, because its height
-cannot hold the portrait top-and-bottom dock. See [MH1]-[MH5].
+At 600 CSS pixels or narrower, or 480 CSS pixels or shorter, the shell starts
+with a safe-area-aware status strip containing Time, Funds, and Menu. The
+roster, details, speed, and game actions are removed from layout until Menu is
+opened. `MobileHud` owns only that responsive visibility state and closes the
+two detail elements when the viewport first becomes compact. Existing DOM
+nodes and controllers continue to own every game action, projection, label,
+and focus target.
+
+Phone portrait expands into a contiguous top sheet. Needs and People
+independently cap and scroll their content, and the outer sheet scrolls if its
+children exceed the viewport. Short screens wider than 360 pixels use the
+established 220-pixel edge column, leaving the rest of the viewport as a direct
+hit surface for the WebGPU canvas. Narrower short screens keep the horizontal
+top strip. Desktop keeps the normal sidebar and does not render the Menu
+button. See [CH1]-[CH4].
 
 Because the two are so easy to confuse, the driver exposes `stepDurationMs`
 purely so the constraint is testable: scaling elapsed time by `k` and dividing
