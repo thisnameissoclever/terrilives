@@ -299,8 +299,8 @@ function validFacing(facing: number): boolean {
 /**
  * The deterministic frame for a simulation-timed authored action.
  *
- * Every authored object action staggers the transition itself by adding the
- * stable id before division. Conversation preserves its accepted whole-hold
+ * Every authored object action staggers the transition with a per-entity
+ * offset of `id % frameTicks`. Conversation preserves its accepted whole-hold
  * offset.
  */
 function timedActionFrame(
