@@ -46,6 +46,22 @@ function details(open = true): MobileHudDetails {
   return { open };
 }
 
+function openingTagFor(id: string): string {
+  const tag = INDEX_HTML.match(new RegExp(`<[^>]+\\bid="${id}"[^>]*>`))?.[0];
+  if (!tag) {
+    throw new Error(`missing opening tag for #${id}`);
+  }
+  return tag;
+}
+
+function attributeValue(tag: string, name: string): string {
+  const value = tag.match(new RegExp(`\\b${name}\\s*=\\s*"([^"]*)"`))?.[1];
+  if (value === undefined) {
+    throw new Error(`missing ${name} attribute in ${tag}`);
+  }
+  return value;
+}
+
 describe('MobileHud', () => {
   it('uses the same compact threshold as the responsive stylesheet', () => {
     expect(COMPACT_HUD_MEDIA_QUERY).toBe(
@@ -63,10 +79,22 @@ describe('MobileHud', () => {
     expect(INDEX_HTML).toMatch(
       /#hud\[data-mobile-open='false'\]\s+#lighting-mode\s*\{\s*display:\s*none\s*;/,
     );
-    expect(INDEX_HTML).toContain('id="hud" data-mobile-open="false"');
-    expect(INDEX_HTML).toContain('id="mobile-hud-toggle"');
-    expect(INDEX_HTML).toContain(
-      'aria-controls="lighting-mode household-roster needs-panel people-panel time-controls game-actions"',
+    expect(openingTagFor('hud')).toMatch(/\bdata-mobile-open\s*=\s*"false"/);
+    const controlledIds = attributeValue(
+      openingTagFor('mobile-hud-toggle'),
+      'aria-controls',
+    )
+      .split(/\s+/)
+      .sort();
+    expect(controlledIds).toEqual(
+      [
+        'lighting-mode',
+        'household-roster',
+        'needs-panel',
+        'people-panel',
+        'time-controls',
+        'game-actions',
+      ].sort(),
     );
   });
 
