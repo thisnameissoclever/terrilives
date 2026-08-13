@@ -60,6 +60,9 @@ describe('MobileHud', () => {
     expect(INDEX_HTML).toMatch(
       /#hud\[data-mobile-open='false'\]\s*>\s*:not\(#household-summary\)\s*\{\s*display:\s*none\s*;/,
     );
+    expect(INDEX_HTML).toMatch(
+      /#hud\[data-mobile-open='false'\]\s+#lighting-mode\s*\{\s*display:\s*none\s*;/,
+    );
     expect(INDEX_HTML).toContain('id="hud" data-mobile-open="false"');
     expect(INDEX_HTML).toContain('id="mobile-hud-toggle"');
     expect(INDEX_HTML).toContain(
