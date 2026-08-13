@@ -331,7 +331,7 @@ async function main(): Promise<void> {
   const speedRoot = document.querySelector<HTMLElement>('#time-controls');
   const menuRoot = document.querySelector<HTMLElement>('#object-menu');
   if (
-    !needsRoot ||
+    !(needsRoot instanceof HTMLDetailsElement) ||
     !needsEmpty ||
     !needsContent ||
     !moodEmpty ||
@@ -417,8 +417,7 @@ async function main(): Promise<void> {
     !ordersValue ||
     !householdRosterRoot ||
     !hudRoot ||
-    !mobileHudButton ||
-    !(needsRoot instanceof HTMLDetailsElement)
+    !mobileHudButton
   ) {
     throw new Error('missing player status markup');
   }

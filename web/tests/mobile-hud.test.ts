@@ -51,8 +51,8 @@ describe('MobileHud', () => {
     expect(COMPACT_HUD_MEDIA_QUERY).toBe(
       '(max-width: 600px), (max-height: 480px)',
     );
-    expect(INDEX_HTML).toContain(
-      '@media (max-width: 600px), (max-height: 480px)',
+    expect(INDEX_HTML).toMatch(
+      /@media\s*\(max-width:\s*600px\)\s*,\s*\(max-height:\s*480px\)/,
     );
   });
 

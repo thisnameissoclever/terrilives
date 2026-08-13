@@ -2624,7 +2624,7 @@ moving character and the authored pixels were both judged directly.
 ## [A-collapsible-compact-hud] Small screens start with the game visible
 
 The production build after integrating `main` at `b464b2c`
-(`index-KrDKc81j.js`, `terri_wasm_bg-Iiwj8pge.wasm`) was played in headed
+(`index-Gr99FfLj.js`, `terri_wasm_bg-Iiwj8pge.wasm`) was played in headed
 Chromium after the owner rejected the full-viewport mobile dock shown in the
 supplied phone screenshot.
 
