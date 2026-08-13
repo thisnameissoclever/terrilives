@@ -66,7 +66,7 @@ describe('MobileHud', () => {
     expect(INDEX_HTML).toContain('id="hud" data-mobile-open="false"');
     expect(INDEX_HTML).toContain('id="mobile-hud-toggle"');
     expect(INDEX_HTML).toContain(
-      'aria-controls="household-roster needs-panel people-panel time-controls game-actions"',
+      'aria-controls="lighting-mode household-roster needs-panel people-panel time-controls game-actions"',
     );
   });
 
