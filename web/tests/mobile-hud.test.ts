@@ -57,9 +57,8 @@ describe('MobileHud', () => {
   });
 
   it('removes every secondary HUD surface from closed compact layout', () => {
-    expect(INDEX_HTML).toContain(
-      "#hud[data-mobile-open='false'] > :not(#household-summary) {\n" +
-        '          display: none;',
+    expect(INDEX_HTML).toMatch(
+      /#hud\[data-mobile-open='false'\]\s*>\s*:not\(#household-summary\)\s*\{\s*display:\s*none\s*;/,
     );
     expect(INDEX_HTML).toContain('id="hud" data-mobile-open="false"');
     expect(INDEX_HTML).toContain('id="mobile-hud-toggle"');

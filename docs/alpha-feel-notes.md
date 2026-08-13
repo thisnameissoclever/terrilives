@@ -2623,9 +2623,10 @@ moving character and the authored pixels were both judged directly.
 
 ## [A-collapsible-compact-hud] Small screens start with the game visible
 
-The local production build (`index-BGihk1Rm.js`,
-`terri_wasm_bg-4FIuHG3X.wasm`) was played in headed Chromium after the owner
-rejected the full-viewport mobile dock shown in the supplied phone screenshot.
+The production build after integrating `main` at `b464b2c`
+(`index-KrDKc81j.js`, `terri_wasm_bg-Iiwj8pge.wasm`) was played in headed
+Chromium after the owner rejected the full-viewport mobile dock shown in the
+supplied phone screenshot.
 
 - **The closed HUD is one strip.** At 418 by 910 and 320 by 568, the HUD's
   visible surface measured 60 CSS pixels high. Roster and game actions computed
@@ -2659,11 +2660,13 @@ rejected the full-viewport mobile dock shown in the supplied phone screenshot.
   controller and
   `C5A5B92AD318F57E4F5D858D5B1722DE4C7CA5C87743AB42D6422DA07267E136` for the
   page, then returned all six tests to green.
-- **Proof boundary.** Typecheck, 433 web tests, production build, and this local
-  headed-browser pass are complete. The browser logged no application warning
-  or error; Python's temporary static server returned one unrelated 404 for
-  `favicon.ico`. Merge, CI, public Pages deployment, safe-area hardware, and a
-  physical-phone pass remain open.
+- **Proof boundary.** Release-WASM build, Rust formatting, Clippy, workspace
+  tests, typecheck, 441 web tests, sprite reproduction, production build, and
+  this local headed-browser pass are complete on the combined branch. The
+  browser logged no application warning or error; Python's temporary static
+  server returned one unrelated 404 for `favicon.ico`. Merge, exact-head CI,
+  public Pages deployment, safe-area hardware, and a physical-phone pass remain
+  open.
 ## [A-aquarium-exercise-bike] The new objects are reachable without starving the old lot
 
 The 2026-08-12 implementation replaces two inert, one-tile persistence slots
