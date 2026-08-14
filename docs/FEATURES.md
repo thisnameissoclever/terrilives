@@ -27,9 +27,9 @@ clamped and focus-managed action menus, staging and post-drain queue-capacity
 rejection feedback on keyboard and pointer routes, a dedicated command live
 region that clears on the next order attempt and cannot be overwritten by
 Save or autosave status, persistence-dialog focus recovery, and
-responsive accessible controls. At phone portrait widths the existing HUD now
-reflows into a safe-area-aware top-and-bottom dock around a pointer-transparent
-canvas aperture instead of narrowing the desktop sidebar.
+responsive accessible controls. Compact viewports now start with a
+safe-area-aware Time, Funds, and Menu strip. Roster, details, speed, and game
+actions enter the layout only after the player opens Menu.
 Queue-capacity feedback shipped in PR 46 at merge `abd2e736`, and the honest
 generic object-use activity shipped in PR 47 at merge `38a03c15`. Their exact
 Pages runs and deployed browser evidence are recorded in
@@ -334,13 +334,14 @@ compiled content, the endpoint and actual walked path are both capped at three
 tiles, the choice remains deterministic and retry-bounded, and the measured and
 watched acceptance evidence is recorded at [A-local-idle-wandering].
 
-The mobile HUD reflow is shipped as a CSS-only presentation change rather than a
-second controller. At 600 CSS pixels or narrower, Time and Funds, the roster,
-the two folded detail panels, speed, and actions dock around a transparent
-canvas aperture; expanded details scroll inside a bounded panel. Desktop keeps
-the existing sidebar, and short phone landscape uses that scrollable edge shape
-instead of crushing the portrait dock vertically. The contract and browser
-evidence are [MH1]-[MH5] and [A-mobile-hud-reflow].
+The compact HUD reuses the existing controls and adds one visibility
+controller. At 600 CSS pixels or narrower, or 480 CSS pixels or shorter, only
+Time, Funds, and Menu remain visible until the player expands the HUD. Phone
+portrait and ultra-narrow screens use a contiguous top sheet; wider short
+screens use a scrollable edge sheet; desktop keeps the existing sidebar. The
+current contract is [CH1]-[CH4].
+[MH1]-[MH5] and [A-mobile-hud-reflow] remain historical evidence for the
+superseded full-viewport dock.
 
 **M1b closed with one item of its deliverable unmet, deliberately recorded
 rather than quietly ticked.** Every definition-of-done line passes, and the

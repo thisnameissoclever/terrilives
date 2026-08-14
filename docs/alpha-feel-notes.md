@@ -2621,6 +2621,52 @@ moving character and the authored pixels were both judged directly.
   phone width. Operating-system reduced motion, a physical phone, a retained
   public dinner-frame capture, and final owner approval remain open.
 
+## [A-collapsible-compact-hud] Small screens start with the game visible
+
+The production build after integrating `main` at `b464b2c`
+(`index-Gr99FfLj.js`, `terri_wasm_bg-Iiwj8pge.wasm`) was played in headed
+Chromium after the owner rejected the full-viewport mobile dock shown in the
+supplied phone screenshot.
+
+- **The closed HUD is one strip.** At 418 by 910 and 320 by 568, the HUD's
+  visible surface measured 60 CSS pixels high. Roster and game actions computed
+  to `display: none`; document scroll dimensions exactly matched the viewport.
+  The rendered house filled the rest of both screenshots.
+- **Expansion uses the real controls.** Menu exposed the existing roster,
+  Needs, People, speed, persistence, Queue, New game, and Help nodes. The
+  visible Pause and 1x labels changed the checked radio, Queue changed to
+  `aria-pressed=true`, selecting Bill updated both detail captions, and Help
+  opened its focus-owning modal.
+- **Expanded details remain bounded.** With Needs and People both open at 418
+  by 910, the HUD ended at y=746.98. Needs had a 298-pixel client height and a
+  340-pixel internal scroll height. At 320 by 568, the outer HUD exposed a
+  632-pixel scroll height inside its 552-pixel client height, document width
+  stayed 320 pixels, and the smallest visible target measured 44 pixels.
+- **Landscape stays out of the game.** At 568 by 320 the closed edge HUD was
+  220 pixels wide and the viewport center hit `#stage`. At 844 by 390 the
+  visible status surface measured 220 by 62 pixels and the viewport center
+  again hit `#stage`. At 240 by 568 and 240 by 320, the closed surface used the
+  60-pixel top strip, document dimensions matched the viewport, and the game
+  remained available across the full width below it.
+- **Desktop remains desktop.** At 1280 by 720 the Menu button computed to
+  `display: none`, while roster and actions retained their established block
+  and grid layouts.
+- **The visibility guard is causal.** Removing the
+  `data-mobile-open` reflection made four of six focused `MobileHud` tests fail
+  on the missing state attribute. Changing the closed-state CSS from
+  `display: none` to `display: block` made the dedicated stylesheet test fail.
+  Restoring the files reproduced SHA-256
+  `AF79739DDE3DCD0B26ECB20FF8D0C4756A4F9DD543B5C875491AF7EADDAFE4C8` for the
+  controller and
+  `C5A5B92AD318F57E4F5D858D5B1722DE4C7CA5C87743AB42D6422DA07267E136` for the
+  page, then returned all six tests to green.
+- **Proof boundary.** Release-WASM build, Rust formatting, Clippy, workspace
+  tests, typecheck, 442 web tests, sprite reproduction, production build, and
+  this local headed-browser pass are complete on the combined branch. The
+  browser logged no application warning or error; Python's temporary static
+  server returned one unrelated 404 for `favicon.ico`. Merge, exact-head CI,
+  public Pages deployment, safe-area hardware, and a physical-phone pass remain
+  open.
 ## [A-aquarium-exercise-bike] The new objects are reachable without starving the old lot
 
 The 2026-08-12 implementation replaces two inert, one-tile persistence slots

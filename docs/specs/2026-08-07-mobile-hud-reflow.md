@@ -1,8 +1,10 @@
 # Mobile HUD reflow
 
-Status: implemented, acceptance-tested, and merged through PR 44 after local
-idle wandering. The merged GitHub Pages evidence is recorded at
-[A-mobile-hud-reflow]. Section ids are stable and must not be renumbered.
+Status: superseded by [CH1]-[CH4]. This document records the implementation
+merged through PR 44 and its historical browser evidence at
+[A-mobile-hud-reflow]. Its CSS-only, always-present layout was an implementation
+choice, not an owner-authored requirement. Section ids are stable and must not
+be renumbered.
 
 ## [MH1] The problem is layout, not control count
 
