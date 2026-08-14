@@ -2018,8 +2018,47 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
                 }
                 previous = Some(*tick);
             }
+            // The exhaustion ramp, validated on the same principle as the
+            // curve above: each rule turns a silent wrong-looking
+            // simulation into a build error.
+            check_finite(file.exhaustion_energy, "exhaustion_energy in tuning.toml")?;
+            if !(0.0..=100.0).contains(&file.exhaustion_energy) {
+                return Err(ContentError::ExhaustionEnergyOutOfRange {
+                    value: file.exhaustion_energy,
+                });
+            }
+            if file.exhaustion_ramp_ticks == 0 {
+                return Err(ContentError::ZeroExhaustionRamp);
+            }
+            check_finite(file.exhaustion_bonus, "exhaustion_bonus in tuning.toml")?;
+            if file.exhaustion_bonus < 1.0 {
+                return Err(ContentError::ExhaustionBonusBelowOne {
+                    value: file.exhaustion_bonus,
+                });
+            }
+            // **The two halves have to add up.** The curve says when bed
+            // is appealing and the ramp says a tired sim eventually goes
+            // anyway, but the ramp MULTIPLIES the curve - so a deep
+            // enough trough survives any finite bonus and the promise
+            // quietly stops being true. Content in which nobody ever
+            // sleeps in the morning is a pair of numbers that never met,
+            // and it reads as a simulation bug rather than as tuning.
+            let trough = file
+                .sleep_drive
+                .iter()
+                .map(|(_, value)| *value)
+                .fold(f32::INFINITY, f32::min);
+            if trough * file.exhaustion_bonus < 1.0 {
+                return Err(ContentError::ExhaustionCannotBeatTheTrough {
+                    trough,
+                    bonus: file.exhaustion_bonus,
+                });
+            }
             Some(Circadian {
                 sleep_drive: file.sleep_drive,
+                exhaustion_energy: file.exhaustion_energy,
+                exhaustion_ramp_ticks: file.exhaustion_ramp_ticks,
+                exhaustion_bonus: file.exhaustion_bonus,
             })
         }
     };
@@ -5165,6 +5204,106 @@ mod tests {
     // validation shipped with no tests at all and the sweep found ten
     // survivors across these four lines in one shard.
 
+    /// **The two halves of the rhythm have to add up.**
+    ///
+    /// The ramp multiplies the curve, so a deep enough trough survives
+    /// any finite bonus and the promise that an exhausted sim eventually
+    /// sleeps quietly stops holding. This is the rule that makes that a
+    /// build error rather than a household nobody can explain.
+    #[test]
+    fn rejects_a_trough_no_amount_of_exhaustion_can_beat() {
+        // 0.2 x 2.5 is 0.5: still below neutral, so a sim at the worst
+        // hour is talked out of bed however long it has been awake.
+        let err = compile_tuned(tuning_where(|t| {
+            t.day_ticks = 1440;
+            let mut table = circadian(vec![(0, 1.4), (420, 0.2), (1320, 1.3)]);
+            table.exhaustion_bonus = 2.5;
+            t.circadian = Some(table);
+        }))
+        .unwrap_err();
+        assert!(
+            matches!(err, ContentError::ExhaustionCannotBeatTheTrough { .. }),
+            "got {err:?}"
+        );
+
+        // Exactly 1.0 is the boundary and it is LEGAL: neutral is enough
+        // to stop the curve vetoing, which is all the rule promises.
+        assert!(
+            compile_tuned(tuning_where(|t| {
+                t.day_ticks = 1440;
+                let mut table = circadian(vec![(0, 1.4), (420, 0.4), (1320, 1.3)]);
+                table.exhaustion_bonus = 2.5;
+                t.circadian = Some(table);
+            }))
+            .is_ok(),
+            "0.4 x 2.5 is exactly 1.0, which is the edge rather than past it"
+        );
+    }
+
+    #[test]
+    fn rejects_an_exhaustion_ramp_that_cannot_ramp() {
+        for (bad, matches_zero) in [(0u32, true), (1, false)] {
+            let result = compile_tuned(tuning_where(|t| {
+                t.day_ticks = 1440;
+                let mut table = circadian(vec![(0, 1.4), (700, 1.2)]);
+                table.exhaustion_ramp_ticks = bad;
+                t.circadian = Some(table);
+            }));
+            if matches_zero {
+                assert_eq!(result.unwrap_err(), ContentError::ZeroExhaustionRamp);
+            } else {
+                // One tick is a legal ramp, just an abrupt one. The rule
+                // is about dividing by zero, not about taste.
+                assert!(result.is_ok(), "a one-tick ramp is steep, not invalid");
+            }
+        }
+    }
+
+    #[test]
+    fn rejects_exhaustion_knobs_outside_their_ranges() {
+        for bad in [-0.001_f32, 100.001, f32::NAN] {
+            let err = compile_tuned(tuning_where(|t| {
+                t.day_ticks = 1440;
+                let mut table = circadian(vec![(0, 1.4), (700, 1.2)]);
+                table.exhaustion_energy = bad;
+                t.circadian = Some(table);
+            }))
+            .unwrap_err();
+            assert!(
+                matches!(
+                    err,
+                    ContentError::ExhaustionEnergyOutOfRange { .. }
+                        | ContentError::NonFiniteValue { .. }
+                ),
+                "energy {bad} must be rejected, got {err:?}"
+            );
+        }
+        // Below 1 the mechanic inverts: exhaustion would make a bed LESS
+        // attractive the longer a sim went without one.
+        let err = compile_tuned(tuning_where(|t| {
+            t.day_ticks = 1440;
+            let mut table = circadian(vec![(0, 1.4), (700, 1.2)]);
+            table.exhaustion_bonus = 0.999;
+            t.circadian = Some(table);
+        }))
+        .unwrap_err();
+        assert!(
+            matches!(err, ContentError::ExhaustionBonusBelowOne { .. }),
+            "got {err:?}"
+        );
+        // Exactly 1 is the legal way to disable the ramp.
+        assert!(
+            compile_tuned(tuning_where(|t| {
+                t.day_ticks = 1440;
+                let mut table = circadian(vec![(0, 1.4), (700, 1.2)]);
+                table.exhaustion_bonus = 1.0;
+                t.circadian = Some(table);
+            }))
+            .is_ok(),
+            "exactly 1 disables the ramp rather than being invalid"
+        );
+    }
+
     /// **The sleep knobs, at their boundaries.** Same shape as the
     /// `at_work_decay_scale` rules above, because they are the same rule
     /// one need-state along.
@@ -5213,6 +5352,11 @@ mod tests {
     fn circadian(points: Vec<(u32, f32)>) -> CircadianFile {
         CircadianFile {
             sleep_drive: points,
+            // Valid and distinct, so a rule about the CURVE cannot pass
+            // or fail for a reason belonging to the ramp beside it.
+            exhaustion_energy: 12.0,
+            exhaustion_ramp_ticks: 240,
+            exhaustion_bonus: 2.5,
         }
     }
 
@@ -5270,12 +5414,22 @@ mod tests {
     /// touches without erroring anywhere.
     #[test]
     fn rejects_a_negative_or_non_finite_sleep_multiplier() {
+        // A zero point USED to be legal here, as the authored "never on
+        // its own". It is not any more, and the reason is a real
+        // interaction rather than a tightened rule: exhaustion multiplies
+        // the curve, so a zero survives any bonus and the promise that a
+        // tired sim eventually sleeps stops holding. Zero and "eventually
+        // always" cannot both be true, and the trough rule is where that
+        // is now said - see `rejects_a_trough_no_amount_of_exhaustion_can_beat`.
+        //
+        // A small POSITIVE trough is still legal and is what "barely ever
+        // on its own" is written as now.
         assert!(
             compile_tuned(tuning_where(
-                |t| t.circadian = Some(circadian(vec![(0, 0.0), (1, 1.0)]))
+                |t| t.circadian = Some(circadian(vec![(0, 0.4), (1, 1.0)]))
             ))
             .is_ok(),
-            "zero is legal and is the authored 'never on its own'"
+            "a small positive trough is the authored 'barely ever'"
         );
         for bad in [-0.001_f32, f32::NAN, f32::INFINITY] {
             let err = compile_tuned(tuning_where(|t| {
@@ -5290,6 +5444,25 @@ mod tests {
                 "{bad} must be rejected, got {err:?}"
             );
         }
+
+        // **Exactly zero is rejected, but by the OTHER rule**, and which
+        // one answers matters because it is the whole explanation the
+        // author gets. Zero is not negative, so calling it
+        // `CircadianNegativeMultiplier` would be a lie that sends someone
+        // hunting for a minus sign; the trough rule says the true thing,
+        // which is that no finite bonus multiplies zero up to neutral.
+        //
+        // Nothing else pins this. `is_err` holds under either rule, so the
+        // sweep rewrote the `< 0.0` above to `<= 0.0` and every test still
+        // passed while the message got worse.
+        let zero = compile_tuned(tuning_where(|t| {
+            t.circadian = Some(circadian(vec![(0, 0.0), (1, 1.0)]))
+        }))
+        .unwrap_err();
+        assert!(
+            matches!(zero, ContentError::ExhaustionCannotBeatTheTrough { .. }),
+            "zero belongs to the trough rule, not the sign rule, got {zero:?}"
+        );
     }
 
     /// Strictly ascending, so equal ticks are rejected too: two points on
@@ -5341,11 +5514,11 @@ mod tests {
         // is how the first draft of this test found out.
         let pack = compile_tuned(tuning_where(|t| {
             t.day_ticks = 1440;
-            t.circadian = Some(circadian(vec![(0, 1.5), (700, 0.25)]));
+            t.circadian = Some(circadian(vec![(0, 1.5), (700, 0.45)]));
         }))
         .expect("valid");
         let circadian = pack.circadian.expect("the table must survive compilation");
-        assert_eq!(circadian.sleep_drive, vec![(0, 1.5), (700, 0.25)]);
+        assert_eq!(circadian.sleep_drive, vec![(0, 1.5), (700, 0.45)]);
         // The tag rides on the pack rather than on the table, so it is
         // there whether or not a rhythm was authored.
         assert_eq!(pack.sleep_tag, "sleep");

@@ -214,7 +214,14 @@ pub fn pack_with_circadian(
     Box::leak(Box::new(ContentPack {
         traits: Vec::new(),
         sleep_tag: sleep_tag.to_string(),
-        circadian: Some(terri_data::pack::Circadian { sleep_drive }),
+        circadian: Some(terri_data::pack::Circadian {
+            sleep_drive,
+            // The shipped ramp, so a fixture about the CURVE is not
+            // silently also a fixture about a made-up ramp.
+            exhaustion_energy: 12.0,
+            exhaustion_ramp_ticks: 240,
+            exhaustion_bonus: 2.5,
+        }),
         ..pack.clone()
     }))
 }

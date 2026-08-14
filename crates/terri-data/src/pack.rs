@@ -421,6 +421,13 @@ pub struct Circadian {
     /// of the day. Validated non-empty by the compile step, so the
     /// simulation never has to answer "what if there are no points".
     pub sleep_drive: Vec<(u32, f32)>,
+    /// Energy at or below which exhaustion accumulates. In `[0, 100]`.
+    pub exhaustion_energy: f32,
+    /// Ticks at rock bottom to reach the full bonus. At least 1.
+    pub exhaustion_ramp_ticks: u32,
+    /// The multiplier a fully exhausted sim's sleep drive reaches. At
+    /// least 1, where exactly 1 is the ramp disabled.
+    pub exhaustion_bonus: f32,
 }
 
 /// One personality archetype, compiled - [H3].

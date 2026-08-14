@@ -130,6 +130,23 @@ function wallOrientation(
 }
 
 /**
+ * The only sprites that are ever drawn on the boundary row at world -1.
+ *
+ * `cameraOrigin` reserves headroom above that row for the tallest of
+ * THESE, and reserves headroom for the whole atlas above the lot's first
+ * tile two half-rows lower - because nothing but a boundary piece can
+ * stand at a negative coordinate. That split is only sound while this
+ * list is complete, so it lives here, beside the loop below that places
+ * them, and `tiles.test.ts` checks the two agree.
+ */
+export const BOUNDARY_SPRITE_NAMES = [
+  'floor',
+  'wallNS',
+  'wallEW',
+  'wallCornerNW',
+] as const;
+
+/**
  * Every floor tile and every wall of `lot`, packed as instances.
  *
  * `gridSize` is the same depth scale `buildInstances` is given, so the

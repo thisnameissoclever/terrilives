@@ -241,7 +241,41 @@ and equally true of a coffee machine, so the first espresso in the
 catalogue would have drawn a Zzz over a sim whose hunger had stopped
 moving. Objects already declare tags; the answer was authored all along.
 
-**The circadian rhythm is built and switched off**, which is a deliberate
+**The circadian rhythm is ON**, with an exhaustion ramp behind it.
+
+The curve alone could never promise that a tired sim eventually sleeps: it
+multiplies a candidate's benefits, so a deep enough daytime trough vetoes
+bed no matter how long somebody has been upright. `SleepPressure` counts
+consecutive ticks at or below `exhaustion_energy` and multiplies the drive
+up to `exhaustion_bonus`, which is what lets the curve say something
+strong without trapping anybody.
+
+It needs its own counter because the need system genuinely cannot answer
+the question: energy clamps at zero, so one tick into empty and six hours
+into empty read identically off `Needs`.
+
+**The two halves are validated against each other.** `compile_tuning`
+rejects a curve whose deepest trough times the bonus is still below
+neutral, because that is content in which nobody ever sleeps in the
+morning and it reads as a simulation bug rather than as tuning. A zero
+point in the curve is no longer legal for the same reason: "never on its
+own" and "exhaustion always wins" cannot both be true.
+
+**Old saves survive it.** The counter is appended last in the snapshot and
+`load_bytes` retries a payload one byte short, because postcard writes a
+struct as its fields back to back and an empty `Vec` is a single zero -
+so a pre-ramp save IS a current one with that byte missing. The
+alternative was a schema-version bump, which would have thrown away every
+save anybody had.
+
+**The curve itself still wants a watched run.** A three-day probe of the
+shipped lot put sleep across both the evening and the afternoon rather
+than concentrated at night, and peak pressure reached 25 of the 240-tick
+ramp - so the safety net is barely engaging and the trough at 17:00 is
+probably too shallow. That is [ML-feel]'s measurement, now taken; acting
+on it is a tuning decision rather than a code one.
+
+**The obsolete note below is kept because the reasoning still applies**, which is a deliberate
 state rather than an unfinished one. Schema, validation, curve, tests,
 chronotype offsets, `sleep` tags and the selection multiplier all ship;
 `content/tuning.toml` carries the `[circadian]` block commented out.

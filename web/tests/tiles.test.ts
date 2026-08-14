@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { buildStaticInstances } from '../src/render/tiles.js';
+import {
+  BOUNDARY_SPRITE_NAMES,
+  buildStaticInstances,
+} from '../src/render/tiles.js';
 import { spriteIndex } from '../src/render/atlas.js';
 import type { TileLighting } from '../src/render/lighting.js';
 import {
@@ -506,5 +509,67 @@ describe('buildStaticInstances', () => {
       GRID,
     );
     expect(doubled.count).toBe(built.count);
+  });
+});
+
+describe('BOUNDARY_SPRITE_NAMES', () => {
+  // `cameraOrigin` reserves headroom for the whole atlas above the lot's
+  // FIRST tile and only for these above the boundary row two half-rows
+  // higher, which is what stopped a 136 px bunk bed from clipping a lot
+  // that is really 697 px of a 720 px page. The saving is only sound
+  // while this list is complete: a boundary piece taller than every name
+  // in it would be reserved for at the wrong row and go off the top of
+  // the page, which is the exact bug the split was introduced to fix,
+  // reintroduced from the other side.
+  //
+  // So this checks the claim against what `buildStaticInstances` really
+  // emits, rather than against a second hand-written list.
+
+  /** Every sprite index drawn at a tile with a negative coordinate. */
+  const drawnOutside = (): Set<number> => {
+    const built = buildStaticInstances(LOT, ORIGIN_X, ORIGIN_Y, GRID);
+    const all = rows(built.instances, built.count);
+    // A screen position maps back to exactly one tile, so collect the
+    // positions `tiles.ts` would have used and match rows against them.
+    const wanted: { x: number; y: number }[] = [];
+    for (let y = -1; y < LOT.height; y++) {
+      for (let x = -1; x < LOT.width; x++) {
+        if (x >= 0 && y >= 0) continue;
+        wanted.push(at(x, y));
+      }
+    }
+    const outside = new Set<number>();
+    for (const row of all) {
+      if (wanted.some((w) => w.x === row.x && w.y === row.y)) {
+        outside.add(row.sprite);
+      }
+    }
+    return outside;
+  };
+
+  it('names every sprite that is actually drawn outside the lot', () => {
+    // Incompleteness is the dangerous direction: a boundary piece missing
+    // from the list is reserved for at the lot's row, two half-rows too
+    // low, and goes off the top of the page.
+    const outside = drawnOutside();
+    const named = new Set(
+      BOUNDARY_SPRITE_NAMES.map((name) => spriteIndex(name)),
+    );
+    expect(outside.size).toBeGreaterThan(0);
+    for (const sprite of outside) expect(named).toContain(sprite);
+  });
+
+  it('does not name a sprite that is never drawn outside the lot', () => {
+    // The mirror, and the one that keeps the list from being padded "just
+    // in case": a name that never reaches the boundary row inflates the
+    // reservation on every canvas, which is how the over-reservation this
+    // replaced got there in the first place. A doorway piece is the live
+    // temptation - it is static geometry and it is a wall-ish thing, but
+    // `tiles.ts` only ever places it at x and y of 0 or more.
+    const outside = drawnOutside();
+    for (const name of BOUNDARY_SPRITE_NAMES) {
+      expect(outside).toContain(spriteIndex(name));
+    }
+    expect(outside).not.toContain(spriteIndex('doorwayNS'));
   });
 });

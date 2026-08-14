@@ -116,15 +116,32 @@ export function screenY(
  * off, and the rule that was supposed to prevent exactly that is the rule
  * that missed it.
  *
- * So the extent centred here is the DRAWN one: from the top of the tallest
- * sprite standing on the boundary row down to the bottom of the last tile
- * row.
+ * So the extent centred here is the DRAWN one: from the topmost pixel
+ * anything reaches down to the bottom of the last tile row.
  *
- * `tallestSprite` is passed in rather than imported so this file stays
- * arithmetic with no dependency on the atlas; `main.ts` reads it off
- * `SPRITES`. Using the tallest sprite in the whole atlas rather than the
- * tallest WALL is deliberately conservative: it also guarantees that a tall
- * object placed on the lot's first row is not clipped.
+ * # Two rows, not one
+ *
+ * The topmost pixel is a race between two different rows, and reserving
+ * for the loser of that race is what wasted 35 px of canvas:
+ *
+ * - The **boundary row** at world -1 is two half-tile rows above the lot,
+ *   and `tiles.ts` puts nothing there but wall pieces. Only their height
+ *   counts against that row.
+ * - The **lot's first tile**, (0, 0), is where the tallest piece of
+ *   FURNITURE can stand. That is two half-tile rows lower, so a sprite
+ *   there has `2 * TILE_HALF_HEIGHT` more room before it clips.
+ *
+ * The shipped version reserved the whole atlas's tallest sprite above the
+ * boundary row, which models a bunk bed standing outside the house. It
+ * cannot: x and y are both at least 0 for anything but a wall. That
+ * over-reservation is what clipped the lot when the art pass took the bunk
+ * bed from 132 px to 136 - the drawn extent came out at 724 of 720 for a
+ * picture that really occupies 697.
+ *
+ * Both heights are passed in rather than imported so this file stays
+ * arithmetic with no dependency on the atlas; `main.ts` reads them off
+ * `SPRITES`, the boundary one filtered by `BOUNDARY_SPRITE_NAMES` so the
+ * list lives next to the code that draws it.
  *
  * The horizontal axis is not treated the same way and does not need to be.
  * `screenX` spans `(w + h - 2)` half-tile widths, which is 832 px on the
@@ -137,12 +154,14 @@ export function cameraOrigin(
   lotWidth: number,
   lotHeight: number,
   tallestSprite: number,
+  tallestBoundarySprite: number,
   scale = 1,
 ): { x: number; y: number } {
   // Relative to `originY`: the topmost pixel any sprite reaches, and the
-  // bottommost. The boundary row is at world -1, so its screen y is
-  // -2 * TILE_HALF_HEIGHT, and a sprite's top is `screenY + anchor - h`
-  // with the anchor half a tile down.
+  // bottommost. A sprite's top is `screenY + anchor - h` with the anchor
+  // half a tile down, and `screenY` is `(x + y) * TILE_HALF_HEIGHT`. So
+  // the boundary corner at (-1, -1) contributes -2 * TILE_HALF_HEIGHT
+  // and the lot's first tile (0, 0) contributes 0.
   //
   // Everything here is a DRAWN distance, so everything scales with the
   // camera: tile spans because `screenX`/`screenY` multiply their world
@@ -152,7 +171,10 @@ export function cameraOrigin(
   // At `scale` 1 every term is exactly what it was before the camera
   // existed, which is what keeps the pre-zoom golden assertions green.
   const top =
-    (-2 * TILE_HALF_HEIGHT + TILE_HALF_HEIGHT) * scale - tallestSprite * scale;
+    Math.min(
+      -2 * TILE_HALF_HEIGHT + TILE_HALF_HEIGHT - tallestBoundarySprite,
+      TILE_HALF_HEIGHT - tallestSprite,
+    ) * scale;
   const bottom =
     ((lotWidth + lotHeight - 2) * TILE_HALF_HEIGHT + TILE_HALF_HEIGHT) * scale;
   return {
