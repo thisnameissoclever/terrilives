@@ -708,6 +708,7 @@ pub fn select_action(
             Option<&Personality>,
             Option<&Relationships>,
             Option<&terri_core::Traits>,
+            Option<&terri_core::SleepPressure>,
         ),
         // `Without<Reserved>` is new with [H4] and applies to the AGENT:
         // a sim somebody reserved on an earlier tick is spoken for, and
@@ -843,6 +844,7 @@ pub fn select_action(
         Personality,
         Relationships,
         Option<terri_core::Traits>,
+        Option<terri_core::SleepPressure>,
     )> = agents
         .iter()
         // **A directed sim does not choose for itself** - [D-3]. This is
@@ -882,14 +884,14 @@ pub fn select_action(
         // See [L41]: a guard normally shadowed by another guard is only
         // observable on the input where the shadow is absent, so that
         // fixture had to be built deliberately rather than found.
-        .filter(|(_, _, _, queue, _, _, _, _)| queue.is_none_or(|queue| queue.is_empty()))
+        .filter(|(_, _, _, queue, _, _, _, _, _)| queue.is_none_or(|queue| queue.is_empty()))
         // Cloned rather than borrowed because the loop below takes `commands`
         // mutably; both Vecs are single digits long. A sim with no
         // `Personality` gets the neutral one - all multipliers 1.0 - which
         // is what keeps every fixture and golden vector predating M2c
         // behaving exactly as it did.
         .map(
-            |(e, pos, needs, _, hab, personality, relationships, traits)| {
+            |(e, pos, needs, _, hab, personality, relationships, traits, pressure)| {
                 (
                     e,
                     *pos,
@@ -901,6 +903,10 @@ pub fn select_action(
                     // trait helpers already read absence as neutral and an
                     // empty Traits would be an allocation restating that.
                     traits.cloned(),
+                    // Copied rather than cloned: a u32 in a marker. Absent
+                    // reads as no pressure, which is what every fixture
+                    // predating the ramp has.
+                    pressure.copied(),
                 )
             },
         )
@@ -945,7 +951,8 @@ pub fn select_action(
 
     let mut claimed: Vec<Entity> = Vec::new();
 
-    for (agent, agent_pos, needs, habituation, personality, relationships, traits) in idle {
+    for (agent, agent_pos, needs, habituation, personality, relationships, traits, pressure) in idle
+    {
         // Reserved WITHIN this tick, by a lower-indexed initiator. The
         // query filter above handles reservations from earlier ticks;
         // commands are deferred, so this tick's are visible only here.
@@ -1157,6 +1164,7 @@ pub fn select_action(
                         &clock,
                         personality.chronotype_offset_ticks,
                         &advert.tags,
+                        pressure.map_or(0, |p| p.ticks),
                     );
                 let mut score = 0.0;
                 for (need_index, delta) in &advert.advertises {

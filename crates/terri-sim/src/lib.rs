@@ -563,6 +563,11 @@ impl Sim {
         // it through `try_query`.
         world.register_component::<terri_core::Satisfaction>();
         world.register_component::<terri_core::Hobbies>();
+        // The exhaustion counter. Registered for [L3]'s reason like the
+        // rest: `select_action` reads it behind an `Option`, and an
+        // unregistered component makes `try_query` panic in tests rather
+        // than reporting absence.
+        world.register_component::<terri_core::SleepPressure>();
         // M2e PR 2's two. `Traits` is in `world_hash`'s query - [L3]'s
         // empty-digest trap, the standing reason. `Fumbled` is not (the
         // same transient-action class as Eating), but tests reach it
@@ -629,6 +634,12 @@ impl Sim {
                 systems::command::drain_commands,
                 advance_clock,
                 systems::needs::decay_needs,
+                // Immediately after decay, because it reads the energy
+                // decay just produced. Before selection, because
+                // selection is what spends the pressure it accumulates -
+                // a sim must be able to act on this tick's exhaustion on
+                // this tick rather than one later.
+                systems::circadian::accumulate_sleep_pressure,
                 // A shift start IS a command, issued by the clock - the
                 // same preemption a player click gets - so it sits
                 // where commands become state: before `serve_intents`

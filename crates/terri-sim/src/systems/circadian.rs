@@ -17,9 +17,103 @@
 //! which over a few days drifts through every hour of the clock and reads
 //! as a house full of shift workers.
 
+use bevy_ecs::prelude::*;
 use terri_core::clock::SimClock;
-use terri_core::Eating;
+use terri_core::{Agent, Eating, NeedId, Needs, SleepPressure};
 use terri_data::pack::ContentPack;
+
+use crate::Content;
+
+/// Counts how long each sim has been at rock bottom, and clears it once
+/// the sim is actually asleep.
+///
+/// **Cleared on SLEEPING, not on waking.** Clearing when energy recovers
+/// would work too, but it would keep the pressure high through the whole
+/// first hour in bed, and pressure is what overrides the clock - so a sim
+/// woken early would immediately be dragged back. Clearing the moment it
+/// lies down means the bed has already won, and the rest is the need
+/// system's job.
+///
+/// The counter saturates rather than wrapping. A sim left on empty for
+/// seven weeks of game time would otherwise roll back to zero and cheer
+/// up instantly.
+/// What the accumulator reads per sim: who it is, how tired, whether it
+/// is already in bed, and the counter to advance. Named because clippy
+/// counts the tuple's arms, and because the list IS the whole input to
+/// the only system that moves exhaustion.
+type PressureRow<'a> = (
+    Entity,
+    &'a Needs,
+    Option<&'a Eating>,
+    Option<&'a mut SleepPressure>,
+);
+
+pub fn accumulate_sleep_pressure(
+    mut commands: Commands,
+    content: Res<Content>,
+    mut query: Query<PressureRow, With<Agent>>,
+) {
+    let Some(circadian) = content.0.circadian.as_ref() else {
+        // No rhythm authored means no pressure to accumulate, and no
+        // component either: a pack without a table behaves exactly as it
+        // did before this existed, which is what keeps every fixture and
+        // golden vector predating the ramp still true.
+        return;
+    };
+    for (entity, needs, eating, pressure) in &mut query {
+        let current = pressure.as_deref().map_or(0, |p| p.ticks);
+        let next = if is_asleep(content.0, eating) {
+            // Cleared the moment the sim lies down. The bed has already
+            // won; keeping the pressure high through the first hour would
+            // drag a sim woken early straight back to it.
+            0
+        } else if needs.get(NeedId::Energy) <= circadian.exhaustion_energy {
+            // Saturating, not wrapping: a sim left on empty for weeks of
+            // game time would otherwise roll back to zero and cheer up.
+            current.saturating_add(1)
+        } else {
+            // Above the line the count resets. Exhaustion is a CONTINUOUS
+            // stretch on empty; a sim that found a coffee is no longer in
+            // one.
+            0
+        };
+        match pressure {
+            Some(mut pressure) => {
+                // Written only on change, so an untired household does not
+                // dirty every agent's component every tick.
+                if pressure.ticks != next {
+                    pressure.ticks = next;
+                }
+            }
+            // Inserted on demand rather than at spawn, so a sim restored
+            // from a save that predates the ramp starts accumulating on
+            // the tick it first needs to, without the restore path having
+            // to invent a component for everybody.
+            None if next != 0 => {
+                commands
+                    .entity(entity)
+                    .insert(SleepPressure { ticks: next });
+            }
+            None => {}
+        }
+    }
+}
+
+/// How much longer at rock bottom multiplies a sim's pull toward bed.
+///
+/// Linear from 1.0 at no pressure to `exhaustion_bonus` at a full ramp,
+/// then flat. Flat rather than unbounded because an unbounded term
+/// eventually dwarfs every other factor in [S4]'s multiplier, and a sim
+/// who has been awake for three days should be desperate for bed rather
+/// than incapable of anything else.
+pub fn exhaustion_multiplier(pack: &ContentPack, pressure: u32) -> f32 {
+    let Some(circadian) = pack.circadian.as_ref() else {
+        return 1.0;
+    };
+    let ramp = circadian.exhaustion_ramp_ticks.max(1);
+    let along = (pressure.min(ramp) as f32) / (ramp as f32);
+    1.0 + (circadian.exhaustion_bonus - 1.0) * along
+}
 
 /// Whether a sim running `eating` is ASLEEP.
 ///
@@ -61,6 +155,7 @@ pub fn sleep_drive(
     clock: &SimClock,
     offset_ticks: i32,
     tags: &[String],
+    pressure: u32,
 ) -> f32 {
     let Some(circadian) = pack.circadian.as_ref() else {
         return 1.0;
@@ -72,11 +167,16 @@ pub fn sleep_drive(
         return 1.0;
     }
     let day_ticks = pack.tuning.day_ticks;
+    // The clock says WHEN a bed is appealing; the pressure says how long
+    // this sim has been unable to act on that. Multiplied rather than
+    // maxed, so a tired sim at midnight is more drawn than a tired sim at
+    // noon - the rhythm still shapes the day, it just stops being able to
+    // veto sleep outright.
     curve_at(
         &circadian.sleep_drive,
         day_ticks,
         phase(clock.tick, offset_ticks, day_ticks),
-    )
+    ) * exhaustion_multiplier(pack, pressure)
 }
 
 /// Where in the day a sim is, in ticks, after its chronotype offset.
@@ -168,6 +268,91 @@ mod tests {
     /// The shipped shape: low through the working day, high at night.
     fn shipped() -> Vec<(u32, f32)> {
         vec![(0, 1.6), (300, 1.4), (420, 0.25), (1020, 0.4), (1320, 1.5)]
+    }
+
+    /// **The whole point of the ramp**: at the same hour and the same
+    /// energy, a sim who has been on empty longer is more drawn to bed.
+    ///
+    /// Asserted as a strict progression over four durations rather than
+    /// as two endpoints, because a step function and a ramp agree at the
+    /// ends and differ everywhere between.
+    #[test]
+    fn the_pull_toward_bed_grows_the_longer_a_sim_is_on_empty() {
+        let pack = crate::test_content::pack_with_circadian(
+            Vec::new(),
+            crate::test_content::tuning(),
+            "sleep",
+            vec![(0, 1.0), (720, 1.0)],
+        );
+        let ramp = pack
+            .circadian
+            .as_ref()
+            .expect("the fixture authors a rhythm")
+            .exhaustion_ramp_ticks;
+        let tag = ["sleep".to_string()];
+        let at = |pressure: u32| sleep_drive(pack, &SimClock { tick: 0 }, 0, &tag, pressure);
+
+        let fresh = at(0);
+        let quarter = at(ramp / 4);
+        let half = at(ramp / 2);
+        let full = at(ramp);
+        assert!(
+            fresh < quarter && quarter < half && half < full,
+            "the pull must grow with every stretch on empty: \
+             {fresh} then {quarter} then {half} then {full}"
+        );
+        // And it STOPS growing, so exhaustion cannot eventually dwarf
+        // every other factor in the [S4] multiplier.
+        assert_eq!(at(ramp * 4), full, "past a full ramp it is flat");
+    }
+
+    /// The ramp is what lets the curve say something strong.
+    ///
+    /// A sim at the curve's worst hour, fully exhausted, must end up
+    /// MORE drawn to bed than a rested sim at that same hour - otherwise
+    /// the trough can still veto sleep outright, which is the failure the
+    /// ramp exists to prevent.
+    #[test]
+    fn exhaustion_overrides_the_curves_worst_hour() {
+        let pack = crate::test_content::pack_with_circadian(
+            Vec::new(),
+            crate::test_content::tuning(),
+            "sleep",
+            // The shipped shape: a real trough, but one the ramp can
+            // clear. `compile_tuning` refuses a curve it cannot - see
+            // `rejects_a_trough_no_amount_of_exhaustion_can_beat`, which
+            // is where the deeper case is pinned.
+            vec![(0, 1.4), (420, 0.55), (1320, 1.3)],
+        );
+        let tag = ["sleep".to_string()];
+        let morning = SimClock { tick: 420 };
+        let ramp = pack.circadian.as_ref().unwrap().exhaustion_ramp_ticks;
+
+        let rested = sleep_drive(pack, &morning, 0, &tag, 0);
+        let wrecked = sleep_drive(pack, &morning, 0, &tag, ramp);
+        assert!(
+            wrecked > rested,
+            "a wrecked sim must want bed more than a rested one at the \
+             same hour: {wrecked} against {rested}"
+        );
+        assert!(
+            wrecked > 1.0,
+            "at the worst hour of the day, a fully exhausted sim must \
+             still be pulled TOWARD bed rather than away from it; got {wrecked}"
+        );
+    }
+
+    /// A pack with no rhythm has no ramp either, which is what keeps
+    /// every fixture predating this unchanged.
+    #[test]
+    fn exhaustion_does_nothing_without_an_authored_rhythm() {
+        let pack = crate::test_content::pack(Vec::new());
+        assert_eq!(exhaustion_multiplier(pack, 0), 1.0);
+        assert_eq!(exhaustion_multiplier(pack, 100_000), 1.0);
+        assert_eq!(
+            sleep_drive(pack, &SimClock { tick: 0 }, 0, &["sleep".into()], 99_999),
+            1.0
+        );
     }
 
     #[test]
@@ -342,22 +527,22 @@ mod tests {
         );
         let midnight = SimClock { tick: 0 };
         assert_eq!(
-            sleep_drive(pack, &midnight, 0, &["sleep".to_string()]),
+            sleep_drive(pack, &midnight, 0, &["sleep".to_string()], 0),
             4.0,
             "the tagged candidate reads the curve"
         );
         assert_eq!(
-            sleep_drive(pack, &midnight, 0, &[]),
+            sleep_drive(pack, &midnight, 0, &[], 0),
             1.0,
             "an untagged candidate is untouched"
         );
         assert_eq!(
-            sleep_drive(pack, &midnight, 0, &["eat".to_string()]),
+            sleep_drive(pack, &midnight, 0, &["eat".to_string()], 0),
             1.0,
             "and so is one carrying some OTHER tag"
         );
         assert_eq!(
-            sleep_drive(pack, &midnight, 0, &["eat".into(), "sleep".into()]),
+            sleep_drive(pack, &midnight, 0, &["eat".into(), "sleep".into()], 0),
             4.0,
             "the tag counts wherever in the list it sits"
         );
@@ -374,16 +559,16 @@ mod tests {
             vec![(0, 4.0), (720, 0.25)],
         );
         let tag = ["sleep".to_string()];
-        let at_noon = sleep_drive(pack, &SimClock { tick: 720 }, 0, &tag);
-        let at_midnight = sleep_drive(pack, &SimClock { tick: 0 }, 0, &tag);
+        let at_noon = sleep_drive(pack, &SimClock { tick: 720 }, 0, &tag, 0);
+        let at_midnight = sleep_drive(pack, &SimClock { tick: 0 }, 0, &tag, 0);
         assert!(
             at_midnight > at_noon,
             "midnight {at_midnight} must beat noon {at_noon}"
         );
         // Same tick, two sims: the offset has to reach the curve, or the
         // household goes to bed in lockstep.
-        let owl = sleep_drive(pack, &SimClock { tick: 360 }, 360, &tag);
-        let lark = sleep_drive(pack, &SimClock { tick: 360 }, -360, &tag);
+        let owl = sleep_drive(pack, &SimClock { tick: 360 }, 360, &tag, 0);
+        let lark = sleep_drive(pack, &SimClock { tick: 360 }, -360, &tag, 0);
         assert_ne!(owl, lark, "the chronotype must move the sim on the curve");
     }
 
@@ -395,7 +580,7 @@ mod tests {
         let pack = crate::test_content::pack(Vec::new());
         let clock = SimClock { tick: 0 };
         assert_eq!(
-            sleep_drive(pack, &clock, 0, &["sleep".to_string()]),
+            sleep_drive(pack, &clock, 0, &["sleep".to_string()], 0),
             1.0,
             "no [circadian] table means no effect at all"
         );

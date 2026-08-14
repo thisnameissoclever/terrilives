@@ -60,7 +60,25 @@ pub(super) fn capture(sim: &Sim) -> SaveSnapshotV1 {
         }
     }
 
+    // Sparse: only the sims actually carrying pressure. Absent means
+    // zero, so a rested household writes nothing.
+    let mut sleep_pressure = Vec::new();
+    for raw_index in 0..world.entities().len() {
+        let index = EntityIndex::from_raw_u32(raw_index)
+            .expect("world entity indices never use the u32::MAX placeholder");
+        if !world.entities().is_index_spawned(index) {
+            continue;
+        }
+        let entity = world.entities().resolve_from_index(index);
+        if let Some(pressure) = world.entity(entity).get::<terri_core::SleepPressure>() {
+            if pressure.ticks > 0 {
+                sleep_pressure.push((raw_index, pressure.ticks));
+            }
+        }
+    }
+
     SaveSnapshotV1 {
+        sleep_pressure,
         content_fingerprint: terri_data::content_fingerprint(pack),
         tick: world.resource::<SimClock>().tick,
         rng: world.resource::<SimRng>().clone(),
@@ -285,6 +303,18 @@ pub(super) fn restore(
             content,
             migrate_legacy_household_names,
         )?;
+    }
+
+    // Sleep pressure, after every entity exists so an index can be
+    // resolved. Restored rather than recomputed: it counts elapsed ticks,
+    // and nothing in a loaded world remembers how long ago they were.
+    for (index, ticks) in &snapshot.sleep_pressure {
+        let Some(Some(entity)) = slots.get(*index as usize).copied() else {
+            return Err(SaveError::InvalidContentReference);
+        };
+        sim.world
+            .entity_mut(entity)
+            .insert(terri_core::SleepPressure { ticks: *ticks });
     }
 
     for hole in holes {
@@ -1401,6 +1431,25 @@ mod tests {
                 for agent in agents {
                     if let Some(mut needs) = world.get_mut::<terri_core::Needs>(agent) {
                         needs.set(terri_core::NeedId::Hunger, 12.0);
+                    }
+                }
+            }
+            // And company, staggered half a cycle away, with energy
+            // topped up so the sim is awake to want it. The circadian
+            // rhythm made this necessary: with the clock steering sleep,
+            // 2 000 ticks of organic play no longer contained a walk over
+            // to chat, because the tired half of the day is now spent in
+            // bed rather than milling about.
+            if tick % 500 == 251 {
+                let world = sim.world_mut();
+                let agents: Vec<bevy_ecs::entity::Entity> = world
+                    .query_filtered::<bevy_ecs::entity::Entity, bevy_ecs::query::With<terri_core::Agent>>()
+                    .iter(world)
+                    .collect();
+                for agent in agents {
+                    if let Some(mut needs) = world.get_mut::<terri_core::Needs>(agent) {
+                        needs.set(terri_core::NeedId::Social, 6.0);
+                        needs.set(terri_core::NeedId::Energy, 100.0);
                     }
                 }
             }

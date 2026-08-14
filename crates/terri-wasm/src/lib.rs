@@ -495,12 +495,40 @@ impl SimHandle {
             return false;
         }
 
-        let Ok((snapshot, rest)) =
-            postcard::take_from_bytes::<terri_core::SaveSnapshotV1>(&bytes[SAVE_HEADER_BYTES..])
-        else {
-            return false;
+        let payload = &bytes[SAVE_HEADER_BYTES..];
+        let decoded = postcard::take_from_bytes::<terri_core::SaveSnapshotV1>(payload);
+
+        // **A save written before sleep pressure existed still loads.**
+        //
+        // Postcard writes a struct as its fields back to back with no
+        // framing, and `sleep_pressure` is the last field, so an old
+        // payload is exactly a new one with those bytes missing. An empty
+        // `Vec` encodes as the single byte 0, which means an old payload
+        // followed by one zero IS a well-formed new payload - so the
+        // retry below is a migration rather than a guess.
+        //
+        // Done this way rather than by keeping a second struct mirroring
+        // the old field list, because that mirror would have to be edited
+        // in lockstep with the real one forever, and the failure when
+        // somebody forgot would be a misparsed save rather than a
+        // compile error.
+        //
+        // The alternative was bumping SAVE_SCHEMA_VERSION, which would
+        // have thrown away every save anybody had - the exact complaint
+        // this change was asked not to repeat.
+        let (snapshot, rest_len) = match decoded {
+            Ok((snapshot, rest)) => (snapshot, rest.len()),
+            Err(_) => {
+                let mut padded = Vec::with_capacity(payload.len() + 1);
+                padded.extend_from_slice(payload);
+                padded.push(0);
+                match postcard::take_from_bytes::<terri_core::SaveSnapshotV1>(&padded) {
+                    Ok((snapshot, rest)) => (snapshot, rest.len()),
+                    Err(_) => return false,
+                }
+            }
         };
-        if !rest.is_empty() {
+        if rest_len != 0 {
             return false;
         }
         self.sim.load_snapshot(snapshot).is_ok()
@@ -890,14 +918,58 @@ mod boundary_tests {
             blocked_tiles: vec![false, true],
             entities: Vec::new(),
             queued_commands: Vec::new(),
+            sleep_pressure: Vec::new(),
         };
+        // The trailing `0` is the empty `sleep_pressure`. Every byte
+        // before it is unchanged, which is the appending rule doing its
+        // job and is also what makes the migration below possible.
         assert_eq!(
             encode_save(&snapshot),
             vec![
                 84, 69, 82, 82, 73, 83, 65, 86, 1, 0, 1, 2, 201, 239, 219, 238, 207, 184, 226, 153,
-                115, 7, 7, 5, 2, 1, 2, 0, 1, 0, 0,
+                115, 7, 7, 5, 2, 1, 2, 0, 1, 0, 0, 0,
             ]
         );
+    }
+
+    /// **A save written before sleep pressure existed still loads.**
+    ///
+    /// The owner reported that every deploy opened on "Saved game is
+    /// invalid. Starting a new game.", and the fix for THAT was narrowing
+    /// the content fingerprint. This is the other half: a new simulation
+    /// field must not throw the same saves away either.
+    ///
+    /// The old payload is built by taking a current one and dropping its
+    /// last byte, which is exactly the empty `sleep_pressure` the vector
+    /// above pins. That is a real pre-ramp save rather than a hand-typed
+    /// approximation of one.
+    #[test]
+    fn a_save_written_before_sleep_pressure_still_loads() {
+        let mut original = SimHandle::from_lot();
+        for _ in 0..40 {
+            original.tick();
+        }
+        let current = original.save_bytes();
+        assert_eq!(
+            *current.last().expect("a save is never empty"),
+            0,
+            "the fixture assumes an untired household writes an empty \
+             sleep_pressure, which is the single trailing zero"
+        );
+        let legacy = &current[..current.len() - 1];
+
+        let mut resumed = SimHandle::from_lot();
+        assert!(
+            resumed.load_bytes(legacy),
+            "a payload one byte short is a pre-ramp save, not a corrupt one"
+        );
+        // And it is the same game, not merely a game.
+        assert_eq!(resumed.sim.save_snapshot(), original.sim.save_snapshot());
+
+        // The retry must not turn genuine corruption into a load. Two
+        // bytes short is not a shape any version ever wrote.
+        let mut refused = SimHandle::from_lot();
+        assert!(!refused.load_bytes(&current[..current.len() - 2]));
     }
 
     #[test]

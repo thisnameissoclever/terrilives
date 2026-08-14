@@ -47,6 +47,28 @@ pub struct CircadianFile {
     /// LEVEL, which is what makes sims go to bed rather than merely
     /// collapse when energy runs out.
     pub sleep_drive: Vec<(u32, f32)>,
+    /// The energy level at or below which exhaustion starts accumulating.
+    ///
+    /// In the need range `[0, 100]`. A sim above it is merely tired and
+    /// the curve alone decides when it sleeps.
+    pub exhaustion_energy: f32,
+    /// How many ticks at or below `exhaustion_energy` it takes to reach
+    /// the full `exhaustion_bonus`.
+    ///
+    /// At least 1: the ramp divides by it.
+    pub exhaustion_ramp_ticks: u32,
+    /// How much the sleep drive is multiplied by, at most, once a sim has
+    /// spent `exhaustion_ramp_ticks` at rock bottom.
+    ///
+    /// **This is what lets the curve be strong.** Without it the trough
+    /// has to stay shallow enough that an exhausted sim will still go to
+    /// bed at noon, which caps how much the rhythm can say. With it, the
+    /// curve can refuse a mid-morning nap outright and still guarantee
+    /// that a sim who has been on empty for long enough goes anyway.
+    ///
+    /// At least 1. Exactly 1 disables the ramp, which is the honest way
+    /// back to a rhythm that is the clock and nothing else.
+    pub exhaustion_bonus: f32,
 }
 
 #[derive(Debug, Deserialize)]
