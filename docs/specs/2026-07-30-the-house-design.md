@@ -46,20 +46,22 @@ tiles on circulation than a ring does at this size.
 
 **On the size, and the derivation that was wrong.** This spec and `lot.toml`
 both claimed the bound was "width + height at or under about 28, because the
-tallest sprite reaches 98 px above its anchor". Both halves were wrong: the
-tallest sprite is the 114 px bunk bed, and the derivation reasoned about the
-TILE span while `tiles.ts` draws a boundary two half-tile rows further up again
-at x = -1 and y = -1. The lot is 28, the bound said 28, and **three boundary
-panels were being cut off the top of the page** - measured afterwards as a
-topmost painted row of 0 where an unclipped picture starts at 25.
+tallest sprite reaches 98 px above its anchor". The derivation reasoned about
+the TILE span while `tiles.ts` draws a boundary two half-tile rows further up
+again at x = -1 and y = -1. The lot is 28, the bound said 28, and **three
+boundary panels were being cut off the top of the page** - measured afterwards
+as a topmost painted row of 0 where an unclipped picture starts at 25.
 
 `cameraOrigin` in `web/src/render/iso.ts` owns the arithmetic now, centres the
-DRAWN extent rather than the tile span, and reads the tallest sprite off the
-atlas so a taller piece of furniture cannot silently push the house off screen.
-The remaining authoring rule is one number: the drawn extent is 702 px of 720
-at 16 x 12, so one more tile on either axis costs 21 px and there are 18 to
-spare. 16 x 12 really is the largest this lot gets without a camera, just not
-for the reason first given.
+DRAWN conservative extent rather than the tile span, and reads the tallest
+sprite off the atlas. The Clear Line pass increased that sprite from 132 to
+136 px, making the modeled 16 by 12 extent grow from 720 to 724 px against a
+720 px canvas. At 1x
+the camera therefore shares the unavoidable overflow as two pixels on each
+edge. The actual bunk is at (9, 6), so its pixels and the boundary walls remain
+visible; the nearest floor tip carries the two-pixel real overrun. Pan and zoom
+remain available. Another row or column would add 21 px and requires a
+deliberate default-scale decision rather than another stale fit claim.
 
 ---
 

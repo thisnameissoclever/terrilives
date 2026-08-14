@@ -1102,6 +1102,12 @@ cut off. After moving the origin from 87 to 144 it is **25**, with the bottom at
 tallest sprite off the atlas, and has four tests including the counterfactual
 that the old formula fails.
 
+**2026-08-14 supersession.** The measurement above is historical. The Clear
+Line pass later increased the tallest atlas sprite to 136 px, making the
+conservative 16 by 12 extent 724 px. The current 720 px view centers that extent
+with two pixels of modeled overflow on each edge; the shipped bunk and boundary
+walls remain visible because the bunk is not on the boundary row.
+
 **3. Fourteen claims in comments were false.** Found by an adversarial review of
 the diff rather than by any test. The load-bearing ones were arithmetic: a score
 formula written as `urgency^3 * delta` when `urgency` is already the cube (so it

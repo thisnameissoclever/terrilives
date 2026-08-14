@@ -719,17 +719,17 @@ async function main(): Promise<void> {
   // wrong, it clips the entity away entirely.
   const depthScale = Math.max(lotWidth, lotHeight);
 
-  // **The camera.** One piece of free state - the zoom - and two derived
-  // origins. The origin is never written by a gesture: `applyCamera`
-  // recomputes it from the canvas, the lot and the scale, which is what
-  // makes v1 zoom LOT-CENTRED (see `camera.ts` for why cursor-centred
-  // zoom is pan wearing a hat, and ships when pan does).
+  // **The camera.** One scale and two origins, all live state. `cameraOrigin`
+  // seeds the centered initial view once. Pan and anchored zoom own the origins
+  // afterward; `applyCamera` preserves the center across buffer resizes and
+  // clamps the result rather than resetting the player's view.
   //
   // The tallest sprite is read off the atlas rather than named, so adding
-  // a taller piece of furniture cannot silently push the top of the house
-  // off the canvas; `cameraOrigin` centres the DRAWN extent, and the two
-  // things it accounts for that the obvious version missed are written up
-  // on it.
+  // taller furniture changes the conservative camera extent rather than
+  // silently invalidating a fixed magic number. `cameraOrigin` centres that
+  // DRAWN extent; if it exceeds the viewport at the current zoom, the
+  // unavoidable overflow is shared equally and remains subject to the
+  // reviewed cap in `iso.test.ts`.
   const tallestSprite = Math.max(...SPRITES.map((sprite) => sprite.h));
   const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles() };
   const camera = { scale: 1, originX: 0, originY: 0 };

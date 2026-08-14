@@ -537,7 +537,7 @@ describe('cameraOrigin', () => {
     };
   }
 
-  it('keeps the whole lot, its boundary walls and its tallest sprite on the canvas', () => {
+  it('centres the complete drawn extent and shares unavoidable overflow equally', () => {
     // **This is the regression.** Before it existed the origin centred the
     // TILE span and came out at 87, which put the tops of the boundary
     // panels at (-1, -1), (0, -1) and (-1, 0) at y = -33, -12 and -11. The
@@ -547,15 +547,28 @@ describe('cameraOrigin', () => {
     const { y } = cameraOrigin(CANVAS_W, CANVAS_H, LOT_W, LOT_H, TALLEST);
     const bounds = drawnBounds(y, TALLEST);
 
-    expect(bounds.top).toBeGreaterThanOrEqual(0);
-    expect(bounds.bottom).toBeLessThanOrEqual(CANVAS_H);
+    // The current 136-pixel bunk makes this deliberately conservative extent
+    // 724 pixels tall. A 720-pixel canvas cannot contain it at scale 1, so the
+    // camera centres the whole extent and shares the four unavoidable pixels
+    // equally instead of pretending either edge can remain fully visible.
+    const span = bounds.bottom - bounds.top;
+    const overflow = Math.max(0, span - CANVAS_H);
+    const halfFreeSpace = (CANVAS_H - span) / 2;
+    expect(overflow).toBeLessThanOrEqual(4);
+    expect(bounds.top).toBeCloseTo(halfFreeSpace, 6);
+    expect(bounds.bottom).toBeCloseTo(CANVAS_H - halfFreeSpace, 6);
+    expect((bounds.top + bounds.bottom) / 2).toBeCloseTo(CANVAS_H / 2, 6);
 
     // And the old formula really does fail here, so this test is about a
     // change rather than about a tautology. Written out rather than
     // imported, because it no longer exists in the source.
     const centredOnTiles =
       (CANVAS_H - (LOT_W + LOT_H - 2) * TILE_HALF_HEIGHT) / 2;
-    expect(drawnBounds(centredOnTiles, TALLEST).top).toBeLessThan(0);
+    const oldBounds = drawnBounds(centredOnTiles, TALLEST);
+    expect((oldBounds.top + oldBounds.bottom) / 2).not.toBeCloseTo(
+      CANVAS_H / 2,
+      6,
+    );
   });
 
   it('leaves the horizontal axis centred on the lot', () => {
