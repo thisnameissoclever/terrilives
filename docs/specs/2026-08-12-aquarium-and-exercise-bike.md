@@ -18,6 +18,13 @@ distinct body animation. `design-qa.md` records the source comparisons, played
 desktop and phone-width evidence, enlarged-text repair, and remaining device
 proof boundaries.
 
+The product owner rejected the deployed object art on 2026-08-14. A corrective
+redraw now passes local generator and played review against the same selected
+mockups. It retains the one-tile persistence and collision contracts while
+replacing the aquarium silhouette, bike silhouette, and exercise body frames.
+Final owner acceptance of those corrected pixels remains open until the
+corrective branch is reviewed and deployed.
+
 This slice deliberately preserves the existing Save V1 entity and collision
 shape. It changes authored interactions, presentation metadata, generated art,
 and renderer-only pose projection. It adds no dependency, save field, shader,
@@ -195,7 +202,10 @@ The aquarium must read at native size as a dark wood cabinet, pale aqua glass
 tank, water, gravel, rocks, plants, several fish, a lid, and small cabinet
 hardware. Two same-envelope object frames move only fish and tails by a few
 pixels. The entire cabinet must not vibrate. Reduced motion pins object frame
-zero.
+zero. The corrective art uses a thin charcoal lid, open water as the primary
+field, a narrow substrate band, and two cabinet doors. A broad brown roof or a
+large near-white gravel diamond is a regression, even if the dimensions and
+fish animation remain technically valid.
 
 The aquarium is not emissive in this slice. The renderer applies emissive
 strength to a whole object quad; lighting the water that way would also make
@@ -205,7 +215,9 @@ remains future work.
 The bike must read at native size as an upright stationary bike with a dark
 mat, slate frame, flywheel, crank, saddle, handlebars, console, pedals, and
 towel. Its compact silhouette and one-tile footprint are intentional
-deviations from the wider mockup.
+deviations from the wider mockup. The rider's hip and hands remain fixed on the
+saddle and bars while opposing knees and feet exchange pedal positions. Moving
+the whole body vertically does not satisfy this action contract.
 
 Both character actions provide three looks, four facings, and two genuinely
 different frames. Watching fish uses a relaxed weight or head shift on a
@@ -232,6 +244,12 @@ aquarium's two frames may differ only inside three reviewed fish-motion
 regions; the all-channel comparison rejects RGB-only water, glass, lid, or
 cabinet motion as well as alpha changes. Accepted conversation art and the
 character animation repair remain unchanged.
+
+The corrective subset has its own decoded-record digest covering both aquarium
+frames, all four bike facings, and every exercise body. This closes the hole
+left by the earlier complement digest, which correctly excluded intentional
+replacement art but therefore could not detect a later regression inside those
+exceptions.
 
 The generated TypeScript manifest carries the SHA-256 digest and exact
 content-addressed filename of the PNG bytes committed beside it. The renderer
