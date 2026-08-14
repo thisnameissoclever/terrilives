@@ -141,22 +141,33 @@ export function zoomAnchoredOrigin(
  * The lot's drawn bounding box RELATIVE TO THE ORIGIN, in buffer
  * pixels at `scale` - what `clampOrigin` bounds the pan against.
  *
- * The vertical terms are `cameraOrigin`'s own: the boundary row at
- * world -1, the tallest sprite above it, the last tile row plus its
- * anchor below. Horizontally the extreme columns are the boundary
- * tiles at `(-1, lotHeight - 1)` (west) and `(lotWidth - 1, -1)`
- * (east), each half a tile wider for the diamond's own width.
+ * The vertical terms are `cameraOrigin`'s own, including its split
+ * between the boundary row at world -1 (wall pieces only) and the
+ * lot's first tile at (0, 0) two half-rows lower (anything else), and
+ * the last tile row plus its anchor below. Horizontally the extreme
+ * columns are the boundary tiles at `(-1, lotHeight - 1)` (west) and
+ * `(lotWidth - 1, -1)` (east), each half a tile wider for the
+ * diamond's own width.
+ *
+ * This has to agree with `cameraOrigin` or the pan clamp fights the
+ * opening view: a `top` further up than the origin reserved would let
+ * the player drag the house down past empty canvas it never fills.
  */
 export function lotExtent(
   lotWidth: number,
   lotHeight: number,
   tallestSprite: number,
+  tallestBoundarySprite: number,
   scale: number,
 ): { left: number; right: number; top: number; bottom: number } {
   return {
     left: -(lotHeight + 1) * TILE_HALF_WIDTH * scale,
     right: (lotWidth + 1) * TILE_HALF_WIDTH * scale,
-    top: (-TILE_HALF_HEIGHT - tallestSprite) * scale,
+    top:
+      Math.min(
+        -TILE_HALF_HEIGHT - tallestBoundarySprite,
+        TILE_HALF_HEIGHT - tallestSprite,
+      ) * scale,
     bottom:
       ((lotWidth + lotHeight - 2) * TILE_HALF_HEIGHT + TILE_HALF_HEIGHT) *
       scale,

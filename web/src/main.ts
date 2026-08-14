@@ -22,7 +22,10 @@ import { cameraOrigin } from './render/iso.js';
 import { clampOrigin, lotExtent, zoomAnchoredOrigin } from './render/camera.js';
 import { SPRITES } from './render/atlas.js';
 import { buildLightField } from './render/lighting.js';
-import { buildStaticInstances } from './render/tiles.js';
+import {
+  BOUNDARY_SPRITE_NAMES,
+  buildStaticInstances,
+} from './render/tiles.js';
 import { FrameTimer } from './perf.js';
 import { DebugPanel } from './ui/debug-panel.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
@@ -731,6 +734,16 @@ async function main(): Promise<void> {
   // things it accounts for that the obvious version missed are written up
   // on it.
   const tallestSprite = Math.max(...SPRITES.map((sprite) => sprite.h));
+  // ...and the boundary row gets its own, because only wall pieces are
+  // drawn there. Reserving the whole atlas above it models a bunk bed
+  // standing outside the house, which costs 35 px of canvas for a
+  // placement the coordinates make impossible.
+  const boundaryNames: readonly string[] = BOUNDARY_SPRITE_NAMES;
+  const tallestBoundarySprite = Math.max(
+    ...SPRITES.filter((sprite) => boundaryNames.includes(sprite.name)).map(
+      (sprite) => sprite.h,
+    ),
+  );
   const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles() };
   const camera = { scale: 1, originX: 0, originY: 0 };
   let cameraDirty = true;
@@ -755,7 +768,13 @@ async function main(): Promise<void> {
     const bounded = clampOrigin(
       camera.originX,
       camera.originY,
-      lotExtent(lotWidth, lotHeight, tallestSprite, camera.scale),
+      lotExtent(
+        lotWidth,
+        lotHeight,
+        tallestSprite,
+        tallestBoundarySprite,
+        camera.scale,
+      ),
       stage.width,
       stage.height,
     );
@@ -804,6 +823,7 @@ async function main(): Promise<void> {
         lotWidth,
         lotHeight,
         tallestSprite,
+        tallestBoundarySprite,
         camera.scale,
       );
       camera.originX = origin.x;

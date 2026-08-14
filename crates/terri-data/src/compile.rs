@@ -5444,6 +5444,25 @@ mod tests {
                 "{bad} must be rejected, got {err:?}"
             );
         }
+
+        // **Exactly zero is rejected, but by the OTHER rule**, and which
+        // one answers matters because it is the whole explanation the
+        // author gets. Zero is not negative, so calling it
+        // `CircadianNegativeMultiplier` would be a lie that sends someone
+        // hunting for a minus sign; the trough rule says the true thing,
+        // which is that no finite bonus multiplies zero up to neutral.
+        //
+        // Nothing else pins this. `is_err` holds under either rule, so the
+        // sweep rewrote the `< 0.0` above to `<= 0.0` and every test still
+        // passed while the message got worse.
+        let zero = compile_tuned(tuning_where(|t| {
+            t.circadian = Some(circadian(vec![(0, 0.0), (1, 1.0)]))
+        }))
+        .unwrap_err();
+        assert!(
+            matches!(zero, ContentError::ExhaustionCannotBeatTheTrough { .. }),
+            "zero belongs to the trough rule, not the sign rule, got {zero:?}"
+        );
     }
 
     /// Strictly ascending, so equal ticks are rejected too: two points on

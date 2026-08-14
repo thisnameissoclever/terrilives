@@ -22,6 +22,7 @@ import {
 import {
   TILE_HALF_HEIGHT,
   TILE_HALF_WIDTH,
+  cameraOrigin,
   screenX,
   screenY,
 } from '../src/render/iso.js';
@@ -186,7 +187,7 @@ describe('zoomAnchoredOrigin', () => {
 
 describe('lotExtent and clampOrigin', () => {
   // The shipped-lot shape, scale 1: numbers small enough to hand-check.
-  const EXTENT = lotExtent(14, 10, 99, 1);
+  const EXTENT = lotExtent(14, 10, 99, 99, 1);
 
   it('describes the drawn box in the projection constants', () => {
     // West boundary column at (-1, 9), east at (13, -1), each half a
@@ -198,7 +199,7 @@ describe('lotExtent and clampOrigin', () => {
     expect(EXTENT.bottom).toBe(23 * TILE_HALF_HEIGHT);
     // And it scales as one shape: a zoomed lot is the same box times
     // the zoom, which is what keeps the clamp band honest at 2.5x.
-    const doubled = lotExtent(14, 10, 99, 2);
+    const doubled = lotExtent(14, 10, 99, 99, 2);
     expect(doubled.left).toBe(EXTENT.left * 2);
     expect(doubled.bottom).toBe(EXTENT.bottom * 2);
   });
@@ -235,7 +236,7 @@ describe('lotExtent and clampOrigin', () => {
     // its span alone outweighs both margins, which is why this fixture
     // is a 2x2 lot at 0.5x and not the shipped one.) The answer is the
     // band's midpoint, not an oscillation between impossible bounds.
-    const small = lotExtent(2, 2, 10, 0.5);
+    const small = lotExtent(2, 2, 10, 10, 0.5);
     const tiny = clampOrigin(0, 0, small, 40, 40);
     const lo = PAN_KEEP_VISIBLE_PX - small.right;
     const hi = 40 - PAN_KEEP_VISIBLE_PX - small.left;
@@ -250,5 +251,48 @@ describe('lotExtent and clampOrigin', () => {
     // on screen as the way back from any fling.
     expect(DRAG_THRESHOLD_PX).toBe(5);
     expect(PAN_KEEP_VISIBLE_PX).toBe(96);
+  });
+});
+
+describe('lotExtent against cameraOrigin', () => {
+  // The vertical reservation is written out in both files, because
+  // `camera.ts` must not import the origin it is clamping and `iso.ts`
+  // must not know about panning. Two copies of one formula drift, and
+  // the drift is invisible: the opening frame looks right and the pan
+  // band is wrong by however much they disagree, so the house can be
+  // dragged down past empty canvas it never fills - or, worse, cannot
+  // be dragged far enough to see the corner that started all this.
+  it('reserves the same headroom the opening view does', () => {
+    // Deliberately spanning the crossover: walls dominate in the first
+    // pair, furniture in the last, so a copy that dropped either term
+    // fails on one row of this table.
+    for (const [tallest, boundary] of [
+      [40, 100],
+      [100, 100],
+      [200, 40],
+      [136, 109],
+    ]) {
+      for (const scale of [0.5, 1, 2]) {
+        const extent = lotExtent(16, 12, tallest, boundary, scale);
+        const origin = cameraOrigin(
+          1280,
+          720,
+          16,
+          12,
+          tallest,
+          boundary,
+          scale,
+        );
+        // `lotExtent` is relative to the origin, so adding the origin
+        // back must land on the topmost pixel the opening view draws.
+        const topmost = Math.min(
+          screenY(-1, -1, origin.y, scale) +
+            (TILE_HALF_HEIGHT - boundary) * scale,
+          screenY(0, 0, origin.y, scale) +
+            (TILE_HALF_HEIGHT - tallest) * scale,
+        );
+        expect(origin.y + extent.top).toBeCloseTo(topmost, 6);
+      }
+    }
   });
 });
