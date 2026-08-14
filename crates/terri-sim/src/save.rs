@@ -1335,6 +1335,69 @@ mod tests {
         assert_eq!(restored.save_snapshot(), snapshot);
     }
 
+    /// **Sparse means sparse**, and the capture side had no test at all.
+    ///
+    /// `sleep_pressure` is written as "only the sims actually carrying
+    /// pressure", and absence is how a zero is stored. Nothing checked
+    /// that, so the sweep rewrote the `> 0` filter three ways and all
+    /// three lived: `< 0` never fires on a `u32` and silently saves
+    /// nothing, `== 0` inverts it and saves exactly the sims with nothing
+    /// to say, and `>= 0` saves everybody. The last is the sly one - it
+    /// round-trips perfectly and only shows up as a save file carrying a
+    /// row per sim forever.
+    #[test]
+    fn only_the_sims_actually_carrying_pressure_are_written_to_a_save() {
+        let mut sim = Sim::new_from_shipped_lot();
+        let mut agents: Vec<Entity> = sim
+            .world_mut()
+            .query_filtered::<Entity, bevy_ecs::prelude::With<terri_core::Agent>>()
+            .iter(sim.world())
+            .collect();
+        agents.sort_by_key(|entity| entity.index());
+        assert!(
+            agents.len() >= 2,
+            "this needs one tired sim and one rested one"
+        );
+        let (tired, rested) = (agents[0], agents[1]);
+
+        sim.world_mut()
+            .entity_mut(tired)
+            .insert(terri_core::SleepPressure { ticks: 7 });
+        // Explicitly zero rather than absent, which is the case that
+        // separates "only non-zero" from "everyone who has the component".
+        sim.world_mut()
+            .entity_mut(rested)
+            .insert(terri_core::SleepPressure { ticks: 0 });
+
+        let snapshot = sim.save_snapshot();
+        assert_eq!(
+            snapshot.sleep_pressure.len(),
+            1,
+            "exactly the one sim on empty, and nobody else: {:?}",
+            snapshot.sleep_pressure
+        );
+        assert_eq!(
+            snapshot.sleep_pressure[0].1, 7,
+            "and it is the tired sim's count, not the rested sim's zero"
+        );
+
+        // And it comes back, so the sparseness is a storage decision
+        // rather than a loss.
+        let mut restored = Sim::new_from_shipped_lot();
+        restored
+            .load_snapshot(snapshot)
+            .expect("a snapshot carrying pressure restores");
+        assert_eq!(
+            restored
+                .world()
+                .get::<terri_core::SleepPressure>(tired)
+                .map(|p| p.ticks),
+            Some(7),
+            "the counter has to survive the round trip - it counts elapsed \
+             ticks and nothing in a loaded world can recompute it"
+        );
+    }
+
     #[test]
     fn a_running_sim_continues_identically_across_the_save_seam() {
         let mut uninterrupted = Sim::new_from_shipped_lot();

@@ -306,6 +306,46 @@ mod tests {
         assert_eq!(at(ramp * 4), full, "past a full ramp it is flat");
     }
 
+    /// **The ramp's actual numbers, not just their order.**
+    ///
+    /// The progression test above pins the SHAPE, and a shape is all it
+    /// pins: the sweep rewrote `bonus - 1.0` to `bonus + 1.0` and to
+    /// `bonus / 1.0`, and turned the `pressure / ramp` fraction into
+    /// `pressure * ramp`, and every one of those is still monotonic, still
+    /// 1.0 at rest, and still flat past a full ramp. Three survivors from
+    /// one missing assertion.
+    ///
+    /// So this states the interpolation outright. The fixture's bonus is
+    /// 2.5 over a 240-tick ramp, and every value below is exact in f32 -
+    /// halves and quarters of 1.5 - so these are equalities rather than
+    /// approximations.
+    #[test]
+    fn the_ramp_interpolates_linearly_from_neutral_to_the_authored_bonus() {
+        let pack = crate::test_content::pack_with_circadian(
+            Vec::new(),
+            crate::test_content::tuning(),
+            "sleep",
+            vec![(0, 1.0), (720, 1.0)],
+        );
+        let circadian = pack.circadian.as_ref().expect("the fixture authors one");
+        let ramp = circadian.exhaustion_ramp_ticks;
+        assert_eq!((ramp, circadian.exhaustion_bonus), (240, 2.5));
+
+        assert_eq!(exhaustion_multiplier(pack, 0), 1.0, "rested is neutral");
+        assert_eq!(exhaustion_multiplier(pack, 60), 1.375, "a quarter along");
+        assert_eq!(exhaustion_multiplier(pack, 120), 1.75, "half along");
+        assert_eq!(
+            exhaustion_multiplier(pack, 240),
+            2.5,
+            "a full ramp is the bonus"
+        );
+        assert_eq!(
+            exhaustion_multiplier(pack, u32::MAX),
+            2.5,
+            "and it is CLAMPED there rather than continuing to climb"
+        );
+    }
+
     /// The ramp is what lets the curve say something strong.
     ///
     /// A sim at the curve's worst hour, fully exhausted, must end up
@@ -583,6 +623,114 @@ mod tests {
             sleep_drive(pack, &clock, 0, &["sleep".to_string()], 0),
             1.0,
             "no [circadian] table means no effect at all"
+        );
+    }
+
+    /// Runs `accumulate_sleep_pressure` and NOTHING else, so what is
+    /// asserted afterwards is what the accumulator did rather than what
+    /// the rest of the tick did in response.
+    ///
+    /// The `ApplyDeferred` a schedule run ends with is what makes the
+    /// system's `Commands` visible, so this is not the same as calling
+    /// the function directly - the on-demand insert would be invisible.
+    fn accumulate_only(sim: &mut crate::Sim) {
+        let mut schedule = Schedule::default();
+        schedule.add_systems(accumulate_sleep_pressure);
+        schedule.run(sim.world_mut());
+    }
+
+    fn any_agent(sim: &mut crate::Sim) -> Entity {
+        let mut state = sim.world_mut().query_filtered::<Entity, With<Agent>>();
+        let found = state.iter(sim.world()).next();
+        found.expect("the shipped lot has sims in it")
+    }
+
+    fn set_energy(sim: &mut crate::Sim, agent: Entity, level: f32) {
+        sim.world_mut()
+            .entity_mut(agent)
+            .get_mut::<Needs>()
+            .expect("every agent has needs")
+            .set(NeedId::Energy, level);
+    }
+
+    fn pressure_of(sim: &crate::Sim, agent: Entity) -> Option<u32> {
+        sim.world().get::<SleepPressure>(agent).map(|p| p.ticks)
+    }
+
+    /// **The counter has to actually count**, and nothing tested that.
+    ///
+    /// Everything else about the ramp is tested through `sleep_drive`,
+    /// which takes the pressure as an argument - so the system that
+    /// PRODUCES that number had no coverage at all. The sweep deleted its
+    /// whole body, inverted its write-on-change check, and forced its
+    /// insert guard both ways, and all five survived.
+    #[test]
+    fn a_sim_on_empty_accumulates_pressure_a_tick_at_a_time() {
+        let mut sim = crate::Sim::new_from_shipped_lot();
+        let agent = any_agent(&mut sim);
+        let floor = sim
+            .world()
+            .resource::<Content>()
+            .0
+            .circadian
+            .as_ref()
+            .expect("the shipped pack authors a rhythm")
+            .exhaustion_energy;
+
+        // Rock bottom, which is what the accumulator is watching for.
+        set_energy(&mut sim, agent, floor);
+
+        accumulate_only(&mut sim);
+        assert_eq!(
+            pressure_of(&sim, agent),
+            Some(1),
+            "one tick on empty is one tick of pressure, and the component \
+             is inserted on demand"
+        );
+
+        // The second run is the one with teeth: the component now EXISTS,
+        // so this exercises the write-on-change branch rather than the
+        // insert. A counter that only ever inserts looks correct after
+        // one tick and is frozen forever after.
+        accumulate_only(&mut sim);
+        accumulate_only(&mut sim);
+        assert_eq!(
+            pressure_of(&sim, agent),
+            Some(3),
+            "the counter must keep climbing once the component exists"
+        );
+
+        // Above the line it resets, because exhaustion is a CONTINUOUS
+        // stretch on empty rather than a lifetime total.
+        set_energy(&mut sim, agent, floor + 1.0);
+        accumulate_only(&mut sim);
+        assert_eq!(
+            pressure_of(&sim, agent),
+            Some(0),
+            "finding a coffee ends the stretch"
+        );
+    }
+
+    /// A rested household carries no counters at all.
+    ///
+    /// The insert is on demand so that a save predating the ramp does not
+    /// need one invented for everybody, and so an untired house does not
+    /// pay a component per sim. An insert guard forced to `true` gives
+    /// every sim a zero, which is invisible in every other assertion here
+    /// because a zero and an absence mean the same thing to `sleep_drive`.
+    #[test]
+    fn a_rested_sim_is_given_no_counter_to_carry() {
+        let mut sim = crate::Sim::new_from_shipped_lot();
+        let agent = any_agent(&mut sim);
+        set_energy(&mut sim, agent, 100.0);
+
+        accumulate_only(&mut sim);
+        accumulate_only(&mut sim);
+
+        assert_eq!(
+            pressure_of(&sim, agent),
+            None,
+            "a sim who was never on empty must not carry a counter"
         );
     }
 }
