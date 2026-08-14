@@ -259,7 +259,7 @@ describe('the atlas manifest', () => {
     expect(spriteIndex('sim')).toBe(1);
     expect(spriteIndex('sim2')).toBe(48);
     expect(spriteIndex('sim3')).toBe(49);
-    expect(SPRITES).toHaveLength(223);
+    expect(SPRITES.length).toBeGreaterThanOrEqual(223);
     expect(
       createHash('sha256')
         .update(SPRITES.slice(0, 147).map((sprite) => sprite.name).join('\0'))

@@ -107,11 +107,15 @@ CONTACT_SHADOW = 0.20
 # the colours below vary.
 CHARACTER = {
     "height":   86,
-    "head":     0.215,   # head radius as a fraction of height
-    "shoulder": 0.33,
-    "hip":      0.26,
-    "leg":      0.34,
-    "square_head": True,
+    # Radius, not diameter. 0.215 made a 37 px head on an 86 px body -
+    # a bobble that could not turn in a builder without looking like a
+    # different species. Clear Line wants a readable person at one tile:
+    # head about 30% of height, longer legs, a short neck.
+    "head":     0.148,
+    "shoulder": 0.30,
+    "hip":      0.24,
+    "leg":      0.38,
+    "square_head": False,
     "eye": PALETTE["ink"],
 }
 

@@ -49,12 +49,52 @@ def P(x, y, z=0.0):
     return (OX + sx(x, y), OY + sy(x, y) - z * Z_UNIT)
 
 
-def box(d, x0, y0, x1, y1, z0, z1, colour, *, top=None, outline=True):
+def facing_xy(x, y, facing="se"):
+    """Rotate a point in the lot plane. Matches terri-data's placement matrix.
+
+    SE is the atlas's unsuffixed sprite. SW, NW, NE are the builder turns.
+    The matrices are the same ones `rotate_socket_terms` uses, so a handle
+    drawn on the working face stays on that working face after a turn.
+    """
+    if facing == "se":
+        return x, y
+    if facing == "sw":
+        return -y, x
+    if facing == "nw":
+        return -x, -y
+    if facing == "ne":
+        return y, -x
+    raise ValueError(f"unknown furniture facing {facing!r}")
+
+
+def facing_aabb(x0, y0, x1, y1, facing="se"):
+    """Axis-aligned bounds of a box after a lot-plane rotation."""
+    pts = [
+        facing_xy(x0, y0, facing),
+        facing_xy(x1, y0, facing),
+        facing_xy(x0, y1, facing),
+        facing_xy(x1, y1, facing),
+    ]
+    xs = [p[0] for p in pts]
+    ys = [p[1] for p in pts]
+    return min(xs), min(ys), max(xs), max(ys)
+
+
+def Pf(x, y, z=0.0, facing="se"):
+    """`P`, after a furniture facing rotation."""
+    rx, ry = facing_xy(x, y, facing)
+    return P(rx, ry, z)
+
+
+def box(d, x0, y0, x1, y1, z0, z1, colour, *, top=None, outline=True,
+        facing="se", skip_top=False):
     """An axis-aligned box, as its three visible faces.
 
     Faces are painted left, right, top in that order so the top's outline
-    lands over the two side seams rather than under them.
+    lands over the two side seams rather than under them. `skip_top` is for
+    a vessel whose lid is a rim around a hole, not a solid diamond.
     """
+    x0, y0, x1, y1 = facing_aabb(x0, y0, x1, y1, facing)
     ol = OUTLINE if outline else None
     w = OUTLINE_WIDTH
     tc = top or colour
@@ -62,6 +102,8 @@ def box(d, x0, y0, x1, y1, z0, z1, colour, *, top=None, outline=True):
               fill=mul(colour, FACE_LEFT), outline=ol, width=w)
     d.polygon([P(x1, y0, z1), P(x1, y1, z1), P(x1, y1, z0), P(x1, y0, z0)],
               fill=mul(colour, FACE_RIGHT), outline=ol, width=w)
+    if skip_top:
+        return
     d.polygon([P(x0, y0, z1), P(x1, y0, z1), P(x1, y1, z1), P(x0, y1, z1)],
               fill=mul(tc, FACE_TOP), outline=ol, width=w)
 
@@ -70,7 +112,31 @@ def slab(d, x0, y0, x1, y1, z, colour, thick=0.06, **kw):
     box(d, x0, y0, x1, y1, z - thick, z, colour, **kw)
 
 
-def cyl(d, cx, cy, r, z0, z1, colour, *, outline=True):
+def diamond(d, x0, y0, x1, y1, fill, outline=None, width=1, facing="se"):
+    x0, y0, x1, y1 = facing_aabb(x0, y0, x1, y1, facing)
+    d.polygon([P(x0, y0), P(x1, y0), P(x1, y1), P(x0, y1)],
+              fill=fill, outline=outline, width=width)
+
+
+def surface(d, x0, y0, x1, y1, z, fill, outline=None, width=1, facing="se"):
+    """A diamond in the lot plane at height `z`.
+
+    `diamond` is the ground plane. A basin, a hob, or a bowl opening that
+    uses it ends up as a square sitting on the floor in front of the object.
+    """
+    x0, y0, x1, y1 = facing_aabb(x0, y0, x1, y1, facing)
+    d.polygon(
+        [P(x0, y0, z), P(x1, y0, z), P(x1, y1, z), P(x0, y1, z)],
+        fill=fill, outline=outline, width=width,
+    )
+
+
+def contact_shadow(d, x0, y0, x1, y1, facing="se"):
+    """An opaque stain under furniture. The pipeline discards alpha below 0.5."""
+    diamond(d, x0, y0, x1, y1, mul(PALETTE["ink"], 1.35), facing=facing)
+
+
+def cyl(d, cx, cy, r, z0, z1, colour, *, outline=True, facing="se"):
     """An ellipse-topped column. Lamps, pots, bins, mugs.
 
     The base ellipse is CENTRED on the contact point, so half of it falls
@@ -79,30 +145,53 @@ def cyl(d, cx, cy, r, z0, z1, colour, *, outline=True):
     ellipse's semi-minor axis makes it sit ON the ground point rather
     than straddle it, which is what bottom-centre anchoring wants.
     """
+    cx, cy = facing_xy(cx, cy, facing)
     ol = OUTLINE if outline else None
     w = OUTLINE_WIDTH
     rx, ry = r * HW * 1.3, r * HH * 1.3
     px, py = OX + sx(cx, cy), OY + sy(cx, cy) - ry
     zt, zb = z1 * Z_UNIT, z0 * Z_UNIT
-    d.polygon([(px - rx, py - zt), (px + rx, py - zt),
-               (px + rx, py - zb), (px - rx, py - zb)],
-              fill=mul(colour, FACE_RIGHT), outline=ol, width=w)
+    # Bottom ellipse first, then an unoutlined body covering its upper arc,
+    # then the top. Outlining both ellipses after the body draws a bowtie.
     d.ellipse([px - rx, py - zb - ry, px + rx, py - zb + ry],
               fill=mul(colour, FACE_RIGHT), outline=ol, width=w)
+    d.polygon([(px - rx, py - zt), (px + rx, py - zt),
+               (px + rx, py - zb), (px - rx, py - zb)],
+              fill=mul(colour, FACE_RIGHT))
+    if outline:
+        d.line([(px - rx, py - zt), (px - rx, py - zb)], fill=ol, width=w)
+        d.line([(px + rx, py - zt), (px + rx, py - zb)], fill=ol, width=w)
     d.ellipse([px - rx, py - zt - ry, px + rx, py - zt + ry],
               fill=mul(colour, FACE_TOP), outline=ol, width=w)
 
 
-def diamond(d, x0, y0, x1, y1, fill, outline=None, width=1):
-    d.polygon([P(x0, y0), P(x1, y0), P(x1, y1), P(x0, y1)],
-              fill=fill, outline=outline, width=width)
+def plump(d, x0, y0, x1, y1, z0, z1, colour, facing="se"):
+    """A cushion or pillow: box sides plus a soft ellipse top.
+
+    A slab's top is a diamond, and at pillow size that diamond reads as a
+    brick or a second mattress. The ellipse uses the same bounds so it still
+    sits on the bed, but the corners round off.
+    """
+    x0, y0, x1, y1 = facing_aabb(x0, y0, x1, y1, facing)
+    ol, w = OUTLINE, OUTLINE_WIDTH
+    d.polygon([P(x0, y1, z1), P(x1, y1, z1), P(x1, y1, z0), P(x0, y1, z0)],
+              fill=mul(colour, FACE_LEFT), outline=ol, width=w)
+    d.polygon([P(x1, y0, z1), P(x1, y1, z1), P(x1, y1, z0), P(x1, y0, z0)],
+              fill=mul(colour, FACE_RIGHT), outline=ol, width=w)
+    pts = [P(x0, y0, z1), P(x1, y0, z1), P(x1, y1, z1), P(x0, y1, z1)]
+    xs = [p[0] for p in pts]
+    ys = [p[1] for p in pts]
+    d.ellipse([min(xs) + 2, min(ys) + 1, max(xs) - 2, max(ys) - 1],
+              fill=mul(colour, FACE_TOP))
 
 
-def legs(d, x0, y0, x1, y1, top_z, colour, inset=0.10, thick=0.08):
+def legs(d, x0, y0, x1, y1, top_z, colour, inset=0.10, thick=0.11,
+         facing="se"):
     """Four legs under a surface. Every table-shaped thing wants these."""
     for dx in (x0 + inset, x1 - inset - thick):
         for dy in (y0 + inset, y1 - inset - thick):
-            box(d, dx, dy, dx + thick, dy + thick, 0, top_z, mul(colour, 0.86))
+            box(d, dx, dy, dx + thick, dy + thick, 0, top_z, mul(colour, 0.86),
+                facing=facing)
 
 
 def emit(img, exact_w=None, exact_h=None):

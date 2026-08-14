@@ -2223,15 +2223,21 @@ fn compile_lot(
                         facing: facing.clone(),
                     });
                 }
-                let variant = format!("{}{}", sprite_names[index], facing);
-                match sprite_index(&variant) {
-                    Some(resolved) => resolved as u32,
-                    None => {
-                        return Err(ContentError::FacingSpriteMissing {
-                            object: place.object.clone(),
-                            facing: facing.clone(),
-                            sprite: variant,
-                        })
+                // The unsuffixed atlas name IS the SE facing. A builder that
+                // writes facing = "SE" must not look for `kitchenCabinetSE`.
+                if facing == "SE" {
+                    objects[index].sprite
+                } else {
+                    let variant = format!("{}{}", sprite_names[index], facing);
+                    match sprite_index(&variant) {
+                        Some(resolved) => resolved as u32,
+                        None => {
+                            return Err(ContentError::FacingSpriteMissing {
+                                object: place.object.clone(),
+                                facing: facing.clone(),
+                                sprite: variant,
+                            })
+                        }
                     }
                 }
             }
@@ -7390,8 +7396,10 @@ mod tests {
             "the object definition keeps its own plain sprite"
         );
 
-        // Absent: the definition's sprite, byte for byte.
+        // Absent or SE: the definition's sprite, which is the SE facing.
         let pack = compile_facing(None).expect("no facing is the old world");
+        assert_eq!(pack.lot.placements[0].sprite, 2);
+        let pack = compile_facing(Some("SE")).expect("SE is the unsuffixed sprite");
         assert_eq!(pack.lot.placements[0].sprite, 2);
 
         // A typo'd facing is a typo, not a missing import.

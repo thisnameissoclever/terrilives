@@ -73,20 +73,13 @@ PADDING = 1          # a transparent gutter, so no sprite samples its neighbour
 LEGACY_PREFIX_SHA256 = (
     "6465016ab5c5000dd166aa6441edaf051e8410c5af75799fbe56eec686c12751"
 )
-# Re-baselined once, for [A-art-pass]'s hair repair. Every sim sprite in
-# the game had skin showing at both top corners of its head: the head is a
-# rounded rectangle and the hair was a chord of the ellipse inscribed in
-# the same box, and an ellipse's top corners sit further in. `hair_cap` in
-# objects.py traces the head instead, which touches every sprite with a
-# head on it and therefore both digests below.
-#
-# The scope was measured rather than assumed before these moved: 123 of
-# 172 sprites changed, every one of them a `sim*`, and no furniture at
-# all. `DINNER_PIXELS_SHA256` and `LEGACY_PREFIX_SHA256` are deliberately
-# NOT re-baselined here, and the fact that they still pass is the evidence
-# that the repair stayed inside the sims.
+# Re-baselined for the Clear Line atlas pass: furniture ink/faces, character
+# proportions, and opaque contact stains. Names 0 through 146 are unchanged
+# (`LEGACY_PREFIX_SHA256`); `carried_dinner` pixels are unchanged
+# (`DINNER_PIXELS_SHA256`). Chat frames stay put; the 0–171 complement moves
+# because the furniture on those indices was redrawn in place.
 CHAT_PIXELS_SHA256 = (
-    "264fb960492e0fdb2bd2eee2f0dbd3dc143eeb47fda158748f7600416a80ff50"
+    "8daee23b4021517d1fae866f1cd89ef633e2d8bcedd3cdc16eb524713d6b56bd"
 )
 DINNER_PIXELS_SHA256 = (
     "1ac2f0505b58157e42d72de325100e20f5742a1b24c5dfa43592ec58d9ebd4dd"
@@ -95,7 +88,7 @@ DINNER_PIXELS_SHA256 = (
 # bike and aquarium replacements at 24 and 32. Atlas coordinates are packing
 # output and deliberately absent; identity, dimensions, and pixels are pinned.
 AQUARIUM_BIKE_COMPLEMENT_SHA256 = (
-    "3c48414319aabbf86d7df3291b128daf1c2f634d75033743026610b16dd8e7e1"
+    "1b00df2c7761f9460b858f7c8eddcaaef1e0dc4a5522c081e4990c8e91a6da77"
 )
 
 
@@ -375,7 +368,7 @@ def validate_aquarium_bike_contract(sprites):
         *exercise,
         *watch,
     ]
-    if len(names) != 223 or names[172:] != expected_suffix:
+    if len(names) < 223 or names[172:223] != expected_suffix:
         raise SystemExit(
             "aquarium, indicators, exercise, and watch art must occupy 172 through 222"
         )

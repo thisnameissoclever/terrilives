@@ -11,22 +11,29 @@ change. What this file can fix without [B7] is the picket-fence read: the
 outgoing panels carry a bright lit edge that repeats every 32 px down a
 run, so the run stripes. These do not have one.
 """
-import math
-
-from PIL import ImageDraw
-
-from style import (PALETTE as C, ACCENTS, OUTLINE, OUTLINE_WIDTH, CHARACTER,
-                   CHARACTER_PALETTES, mul, mix)
-from iso import (P, OX, OY, sx, sy, box, slab, cyl, diamond, legs, canvas,
-                 emit, HW, HH, Z_UNIT)
+from style import (PALETTE as C, OUTLINE, OUTLINE_WIDTH,
+                   CHARACTER_PALETTES, FACE_LEFT, FACE_RIGHT, FACE_TOP,
+                   mul, mix)
+from iso import (P, Pf, OX, OY, sx, sy, box, slab, cyl, diamond, surface,
+                 facing_aabb, legs, contact_shadow, canvas, emit, plump,
+                 HW, HH, Z_UNIT)
+from chars import person
 
 WALL_H = 2.0
 A, B = -0.5, 0.5          # a 1x1 footprint, centred on the anchor tile
+FACINGS = ("se", "sw", "nw", "ne")
 
 
 # ---------------------------------------------------------------- shell ----
 def floor(d):
     diamond(d, A, A, B, B, C["floor"], outline=C["grout"], width=1)
+    # Two hairline diagonals. A flat diamond reads as a void; a grouted
+    # one reads as a tile the furniture can sit on. The lines stay inside
+    # the outline so a 1 px overshoot cannot seam the ground plane.
+    d.line([P(A + .04, A + .04), P(B - .04, B - .04)],
+           fill=mul(C["grout"], 1.04), width=1)
+    d.line([P(A + .04, B - .04), P(B - .04, A + .04)],
+           fill=mul(C["grout"], 0.96), width=1)
 
 
 def selectionRing(d):
@@ -46,6 +53,10 @@ def _wall(d, axis, height=WALL_H, skirt=True):
             d.line([a(A, z1), a(B, z1)], fill=OUTLINE, width=OUTLINE_WIDTH)
             d.line([a(A, z0), a(B, z0)], fill=OUTLINE, width=OUTLINE_WIDTH)
     face(0, height, mul(C["wall"], 0.94))
+    # A picture rail, not a second material. Horizontal only, so a run
+    # does not picket-fence.
+    a = (lambda t, z: P(0, t, z)) if axis == "ns" else (lambda t, z: P(t, 0, z))
+    d.line([a(A, 1.62), a(B, 1.62)], fill=mul(C["wall"], 0.86), width=1)
     if skirt:
         face(0, 0.14, mul(C["skirt"], 0.94))
 
@@ -93,29 +104,134 @@ def doorwayEW(d):
     _doorway(d, "ew")
 
 
+def _front_visible(facing):
+    """SE and SW put the working face on a camera-visible isometric side."""
+    return facing in ("se", "sw")
+
+
+def _panel(d, x, y0, y1, z0, z1, colour, facing):
+    """A rectangle on the local +x face, which is the SE working face."""
+    d.polygon([
+        Pf(x, y0, z1, facing), Pf(x, y1, z1, facing),
+        Pf(x, y1, z0, facing), Pf(x, y0, z0, facing),
+    ], fill=colour, outline=OUTLINE, width=OUTLINE_WIDTH)
+
+
+def _bar_handle(d, x, y, z, facing, *, tall=0.22, colour=None):
+    """A brass bar standing off the working face, not a 2px scribble."""
+    colour = colour or C["accent_brass"]
+    box(d, x, y, x + .08, y + .10, z, z + tall, colour, facing=facing)
+
+
+def _handle(d, x, y0, y1, z, facing, colour=None):
+    colour = colour or mul(C["metal"], .75)
+    d.line([Pf(x, y0, z, facing), Pf(x, y1, z, facing)], fill=colour, width=2)
+
+
+def _span(facing, along_tiles, across=0.88, inset=0.06):
+    """A 2-tile AABB that always grows away from the camera.
+
+    SE/NW run along x; SW/NE run along y. Details choose which end is the
+    headboard; the box itself stays in the safe -x/-y quadrant.
+    """
+    if facing in ("se", "nw"):
+        return (0.5 - inset - along_tiles, -across / 2,
+                0.5 - inset, across / 2)
+    return (-across / 2, 0.5 - inset - along_tiles,
+            across / 2, 0.5 - inset)
+
+
+def _basin(d, x0, y0, x1, y1, rim_z, porcelain, *, facing="se",
+           water=False, lip=0.16, depth=0.32, cap=True):
+    """A recessed hole. Inner-wall outlines are omitted on purpose: they
+    bisect the well and turn it into a sticker on the rim."""
+    x0, y0, x1, y1 = facing_aabb(x0, y0, x1, y1, facing)
+    well_z = rim_z - depth
+    ix0, iy0, ix1, iy1 = x0 + lip, y0 + lip, x1 - lip, y1 - lip
+    far_a = mul(porcelain, 0.42) if water else mul(C["ink"], 1.28)
+    far_b = mul(porcelain, 0.36) if water else mul(C["ink"], 1.18)
+    d.polygon(
+        [P(ix0, iy0, rim_z), P(ix1, iy0, rim_z),
+         P(ix1, iy0, well_z), P(ix0, iy0, well_z)],
+        fill=far_a,
+    )
+    d.polygon(
+        [P(ix0, iy0, rim_z), P(ix0, iy1, rim_z),
+         P(ix0, iy1, well_z), P(ix0, iy0, well_z)],
+        fill=far_b,
+    )
+    contents = C["water"] if water else mul(C["ink"], 1.08)
+    content_z = well_z + depth * (0.42 if water else 0.08)
+    surface(d, ix0 + .02, iy0 + .02, ix1 - .02, iy1 - .02, content_z, contents)
+    if water:
+        d.polygon(
+            [P(ix0, iy1, rim_z), P(ix1, iy1, rim_z),
+             P(ix1, iy1, well_z), P(ix0, iy1, well_z)],
+            fill=mul(porcelain, 0.72),
+        )
+        d.polygon(
+            [P(ix1, iy0, rim_z), P(ix1, iy1, rim_z),
+             P(ix1, iy1, well_z), P(ix1, iy0, well_z)],
+            fill=mul(porcelain, 0.58),
+        )
+    if cap:
+        d.polygon(
+            [P(x0, y1, rim_z), P(x1, y1, rim_z),
+             P(x1, y1 - lip, rim_z), P(x0, y1 - lip, rim_z)],
+            fill=mul(porcelain, FACE_TOP), outline=OUTLINE, width=OUTLINE_WIDTH,
+        )
+        d.polygon(
+            [P(x1, y0, rim_z), P(x1, y1, rim_z),
+             P(x1 - lip, y1, rim_z), P(x1 - lip, y0, rim_z)],
+            fill=mul(porcelain, FACE_TOP), outline=OUTLINE, width=OUTLINE_WIDTH,
+        )
+
+
+def _faucet(d, x, y, z, facing, height=0.26):
+    """Stem on the far rim, spout reaching toward the basin centre."""
+    box(d, x - .035, y - .035, x + .035, y + .035, z, z + height, C["metal"],
+        facing=facing)
+    box(d, x - .03, y - .02, x + .03, y + .14, z + height - .02, z + height + .05,
+        C["metal"], facing=facing)
+    box(d, x - .025, y + .10, x + .025, y + .16, z + height - .10, z + height - .02,
+        C["metal"], facing=facing)
+
+
 # ------------------------------------------------------------- kitchen ----
 def _counter(d, kind, facing="se"):
-    """The kitchen run. `facing` swaps which way the working face points."""
-    box(d, A + .04, A + .04, B - .04, B - .04, 0, 0.78, C["cabinet"])
-    slab(d, A, A, B, B, 0.86, C["counter"], thick=0.08)
-    # A handle line, so a run of cabinets is not three identical blocks.
-    if facing == "se":
-        d.line([P(B - .04, A + .30, 0.60), P(B - .04, B - .30, 0.60)],
-               fill=mul(C["metal"], .8), width=2)
-    else:
-        d.line([P(A + .30, B - .04, 0.60), P(B - .30, B - .04, 0.60)],
-               fill=mul(C["metal"], .8), width=2)
+    """The kitchen run. `facing` is which way the working face points."""
+    contact_shadow(d, A + .02, A + .02, B - .02, B - .02, facing)
+    box(d, A + .04, A + .04, B - .04, B - .04, 0, 0.78, C["cabinet"],
+        facing=facing)
+    if kind != "corner":
+        _panel(d, B - .04, A + .16, B - .24, 0.12, 0.70,
+               mul(C["cabinet"], .88), facing)
+        if kind == "hob":
+            _panel(d, B - .04, A + .22, B - .28, 0.26, 0.46,
+                   mul(C["ink"], 1.22), facing)
+            _panel(d, B - .04, A + .18, B - .24, 0.56, 0.70,
+                   C["accent_brass"], facing)
+        else:
+            _panel(d, B - .04, A + .18, A + .28, 0.38, 0.58,
+                   C["accent_brass"], facing)
+    slab(d, A, A, B, B, 0.86, C["counter"], thick=0.08, facing=facing)
     if kind == "sink":
-        diamond(d, A + .18, A + .18, B - .18, B - .18, mul(C["metal"], .82),
-                outline=OUTLINE, width=OUTLINE_WIDTH)
-        box(d, -.05, A + .20, .05, A + .27, 0.86, 0.99, C["metal"])
+        _basin(d, A + .18, A + .18, B - .18, B - .18, 0.86, C["counter"],
+               facing=facing, water=False, lip=0.10, depth=0.28, cap=False)
+        _faucet(d, 0.0, A + .10, 0.86, facing, height=0.26)
     elif kind == "hob":
-        for cx, cy in ((-.18, -.18), (.18, -.18), (-.18, .18), (.18, .18)):
-            p = P(cx, cy, 0.87)
-            d.ellipse([p[0] - 7, p[1] - 5, p[0] + 7, p[1] + 5],
-                      fill=mul(C["ink"], 1.6), outline=OUTLINE, width=OUTLINE_WIDTH)
-    elif kind == "corner":
-        slab(d, A, A, B, B, 0.86, C["counter"], thick=0.08)
+        for cx, cy in ((-.14, -.14), (.14, -.14), (-.14, .14), (.14, .14)):
+            surface(d, cx - .10, cy - .10, cx + .10, cy + .10, 0.87,
+                    mul(C["ink"], 1.42), facing=facing)
+            surface(d, cx - .06, cy - .06, cx + .06, cy + .06, 0.875,
+                    C["counter"], facing=facing)
+            surface(d, cx - .03, cy - .03, cx + .03, cy + .03, 0.88,
+                    mul(C["metal"], .70), facing=facing)
+        box(d, -.24, A + .02, .24, A + .14, 0.86, 1.02, C["metal"],
+            facing=facing)
+        for kx in (-.16, -.05, .05, .16):
+            box(d, kx - .03, A + .05, kx + .03, A + .12, 1.02, 1.08,
+                C["accent_brass"], facing=facing)
 
 
 def kitchenCabinet(d): _counter(d, "plain")
@@ -127,180 +243,485 @@ def kitchenStoveSW(d): _counter(d, "hob", "sw")
 def kitchenCabinetCornerInnerSW(d): _counter(d, "corner", "sw")
 
 
+def _fridge(d, facing="se"):
+    contact_shadow(d, A + .06, A + .06, B - .06, B - .06, facing)
+    box(d, A + .08, A + .08, B - .08, B - .08, 0, 1.62, C["metal"],
+        top=mul(C["metal"], 1.06), facing=facing)
+    _panel(d, B - .08, A + .10, B - .10, 0, 0.12, mul(C["ink"], 1.38), facing)
+    _panel(d, B - .08, A + .12, B - .14, 1.18, 1.54, mul(C["metal"], .88),
+           facing)
+    _panel(d, B - .08, A + .12, B - .14, 0.16, 1.12, mul(C["metal"], .94),
+           facing)
+    _panel(d, B - .08, A + .14, A + .24, 1.26, 1.48, C["accent_brass"], facing)
+    _panel(d, B - .08, A + .14, A + .24, 0.36, 0.86, C["accent_brass"], facing)
+
+
 def kitchenFridgeBuiltIn(d):
-    box(d, A + .08, A + .08, B - .08, B - .08, 0, 1.55, C["metal"])
-    d.line([P(B - .08, A + .30, 1.02), P(B - .08, A + .30, 0.62)],
-           fill=mul(C["ink"], 1.4), width=2)
-    d.line([P(B - .08, A + .16, 0.86), P(B - .08, B - .16, 0.86)],
-           fill=mul(C["metal"], .72), width=1)
+    _fridge(d, "se")
 
 
 # ------------------------------------------------------------ bathroom ----
-def toiletSquare(d):
+def _toilet(d, facing="se"):
     p = C["porcelain"]
-    box(d, -.20, A + .06, .20, A + .28, 0, 0.80, p)
-    box(d, -.22, A + .28, .22, B - .14, 0, 0.40, p)
-    slab(d, -.24, A + .26, .24, B - .12, 0.46, mul(p, .97), thick=0.05)
+    contact_shadow(d, -.24, -.32, .24, .34, facing)
+    box(d, -.18, -.32, .18, -.02, 0, 0.70, p, facing=facing)
+    slab(d, -.20, -.34, .20, .00, 0.76, mul(p, .98), thick=0.06, facing=facing)
+    box(d, .10, -.26, .16, -.16, 0.60, 0.68, C["metal"], facing=facing)
+    box(d, -.16, -.04, .16, .30, 0, 0.28, p, skip_top=True, facing=facing)
+    box(d, -.16, -.04, .16, .04, 0.28, 0.34, p, facing=facing)
+    _basin(d, -.16, -.04, .16, .30, 0.34, p, facing=facing, lip=0.07, depth=0.18)
+    box(d, -.16, .23, .16, .30, 0.28, 0.34, p, facing=facing)
+
+
+def toiletSquare(d):
+    _toilet(d, "se")
+
+
+def _bathroom_sink(d, facing="se"):
+    p = C["porcelain"]
+    contact_shadow(d, -.24, -.20, .24, .20, facing)
+    box(d, -.08, -.06, .08, .08, 0, 0.48, mul(p, .92), facing=facing)
+    box(d, -.28, -.22, .28, .22, 0.48, 0.70, p, facing=facing)
+    _basin(d, -.24, -.18, .24, .18, 0.70, p,
+           facing=facing, water=False, lip=0.07, depth=0.26)
+    _faucet(d, 0.0, -.16, 0.70, facing, height=0.24)
 
 
 def bathroomSinkSquare(d):
+    _bathroom_sink(d, "se")
+
+
+def _shower(d, facing="se"):
+    g = mix(C["water"], (255, 255, 255), 0.55)
     p = C["porcelain"]
-    box(d, -.10, -.06, .10, .10, 0, 0.52, mul(p, .92))       # pedestal
-    box(d, -.26, -.22, .26, .22, 0.52, 0.70, p)
-    diamond(d, -.18, -.14, .18, .14, mul(p, .86),
-            outline=OUTLINE, width=OUTLINE_WIDTH)
-    box(d, -.04, -.24, .04, -.16, 0.70, 0.90, C["metal"])
+    contact_shadow(d, A + .06, A + .06, B - .06, B - .06, facing)
+    box(d, A + .08, A + .08, B - .08, B - .08, 0, 0.12, p, facing=facing)
+    surface(d, A + .16, A + .16, B - .16, B - .16, 0.12, mul(p, .78),
+            outline=OUTLINE, width=OUTLINE_WIDTH, facing=facing)
+    box(d, A + .08, A + .08, B - .08, A + .16, 0.12, 1.64, g, facing=facing)
+    box(d, A + .08, A + .08, A + .16, B - .08, 0.12, 1.64,
+        mix(g, C["wall"], .22), facing=facing)
+    box(d, -.10, A + .08, .10, A + .16, 1.48, 1.62, C["metal"], facing=facing)
+    box(d, -.03, A + .10, .03, A + .14, 1.18, 1.48, C["metal"], facing=facing)
+    box(d, -.08, A + .10, .08, A + .18, 1.14, 1.20, C["metal"], facing=facing)
 
 
 def showerRound(d):
-    g = mix(C["water"], (255, 255, 255), 0.5)
-    box(d, A + .08, A + .08, B - .08, B - .08, 0, 0.12, C["porcelain"])
-    box(d, A + .08, A + .08, B - .08, A + .18, 0.12, 1.62, g)     # glass
-    box(d, A + .08, A + .08, A + .18, B - .08, 0.12, 1.62, mix(g, C["wall"], .25))
-    box(d, -.06, A + .10, .06, A + .18, 1.44, 1.56, C["metal"])   # head
+    _shower(d, "se")
+
+
+def _bathtub(d, facing="se", filled=False):
+    """Porcelain tub. Empty shows the well; full keeps water inside the rim."""
+    p = C["porcelain"]
+    x0, y0, x1, y1 = _span(facing, 1.86, across=0.80, inset=0.08)
+    contact_shadow(d, x0, y0, x1, y1, "se")
+    box(d, x0, y0, x1, y1, 0, 0.40, p, skip_top=True)
+    lip = 0.16
+    box(d, x0, y0, x1, y0 + lip, 0.40, 0.48, p)
+    box(d, x0, y0, x0 + lip, y1, 0.40, 0.48, p)
+    _basin(d, x0, y0, x1, y1, 0.48, p, facing="se", water=filled,
+           lip=lip, depth=0.34)
+    box(d, x0, y1 - lip, x1, y1, 0.40, 0.48, p)
+    box(d, x1 - lip, y0, x1, y1, 0.40, 0.48, p)
+    if facing in ("se", "sw"):
+        fx, fy = x0 + .10, y0 + .12
+    else:
+        fx, fy = x1 - .10, y1 - .12
+    box(d, fx - .05, fy - .05, fx + .05, fy + .05, 0.48, 0.72, C["metal"])
+    box(d, fx - .04, fy - .02, fx + .04, fy + .14, 0.70, 0.76, C["metal"])
 
 
 def bathtub(d):
-    p = C["porcelain"]
-    box(d, -1.40, A + .10, B - .06, B - .10, 0, 0.50, p)
-    diamond(d, -1.28, A + .22, B - .18, B - .22, C["water"],
-            outline=OUTLINE, width=OUTLINE_WIDTH)
-    box(d, -1.36, A + .18, -1.28, A + .26, 0.50, 0.66, C["metal"])
+    _bathtub(d, "se", filled=False)
+
+
+def bathtubFull(d):
+    _bathtub(d, "se", filled=True)
+
+
+def _laundry(d, facing="se"):
+    contact_shadow(d, A + .08, A + .08, B - .08, B - .08, facing)
+    box(d, A + .10, A + .10, B - .10, B - .10, 0, 0.74, C["metal"],
+        facing=facing)
+    box(d, A + .10, A + .10, B - .10, B - .10, 0.74, 1.48, mul(C["metal"], 1.04),
+        facing=facing)
+    if _front_visible(facing):
+        for z in (0.34, 1.06):
+            _panel(d, B - .10, A + .22, B - .22, z - .16, z + .16,
+                   mul(C["screen"], 1.08), facing)
+    _handle(d, B - .10, A + .16, A + .28, 0.58, facing, C["accent_brass"])
+    _handle(d, B - .10, A + .16, A + .28, 1.28, facing, C["accent_brass"])
 
 
 def washerDryerStacked(d):
-    box(d, A + .10, A + .10, B - .10, B - .10, 0, 0.74, C["metal"])
-    box(d, A + .10, A + .10, B - .10, B - .10, 0.74, 1.46, mul(C["metal"], 1.04))
-    for z in (0.36, 1.08):
-        p = P(B - .10, 0, z)
-        d.ellipse([p[0] - 9, p[1] - 9, p[0] + 9, p[1] + 9],
-                  fill=mul(C["screen"], 1.1), outline=OUTLINE, width=OUTLINE_WIDTH)
+    _laundry(d, "se")
 
 
 # --------------------------------------------------------------- sleep ----
-def bedDouble(d):
+def _double_bed(d, facing="se"):
+    """A wooden bed: thin headboard, mattress, two small pillows, a duvet.
+
+    The headboard is a panel at the HEAD end, not a slab along the side.
+    Pillows sit at that head, plump, and occupy about a quarter of the
+    length so they cannot be mistaken for a second mattress. A near
+    headboard (NW/NE) is painted AFTER the bedding so it occludes correctly.
+    """
     w = C["wood"]
-    box(d, -1.42, A + .06, B - .06, B - .06, 0, 0.26, w)
-    box(d, -1.42, A + .06, -1.30, B - .06, 0, 0.86, w)             # headboard
-    slab(d, -1.30, A + .10, B - .10, B - .10, 0.46, C["linen"], thick=0.18)
-    slab(d, -0.62, A + .10, B - .10, B - .10, 0.50, C["fabric"], thick=0.12)
-    slab(d, -1.24, A + .16, -0.86, B - .30, 0.52, C["linen_alt"], thick=0.10)
-    slab(d, -1.24, -.02, -0.86, B - .14, 0.52, C["linen_alt"], thick=0.10)
+    x0, y0, x1, y1 = _span(facing, 1.90, across=0.86, inset=0.06)
+    contact_shadow(d, x0, y0, x1, y1, "se")
+    along_x = facing in ("se", "nw")
+    head_far = facing in ("se", "sw")
+    box(d, x0, y0, x1, y1, 0, 0.16, mul(w, .92))
+
+    def headboard():
+        if along_x:
+            if head_far:
+                box(d, x0, y0, x0 + .08, y1, 0, 0.90, w)
+            else:
+                box(d, x1 - .08, y0, x1, y1, 0, 0.90, w)
+        else:
+            if head_far:
+                box(d, x0, y0, x1, y0 + .08, 0, 0.90, w)
+            else:
+                box(d, x0, y1 - .08, x1, y1, 0, 0.90, w)
+
+    def bedding():
+        if along_x:
+            mx0, mx1 = (x0 + .08, x1 - .02) if head_far else (x0 + .02, x1 - .08)
+            slab(d, mx0, y0 + .04, mx1, y1 - .04, 0.36, C["linen"], thick=0.18)
+            length = mx1 - mx0
+            if head_far:
+                dx0, dx1 = mx0 + length * .36, mx1
+                px0, px1 = mx0 + .03, mx0 + .28
+            else:
+                dx0, dx1 = mx0, mx1 - length * .36
+                px0, px1 = mx1 - .28, mx1 - .03
+            slab(d, dx0, y0 + .05, dx1, y1 - .05, 0.44, C["fabric"], thick=0.12)
+            mid = (y0 + y1) / 2
+            plump(d, px0, y0 + .06, px1, mid - .03, 0.36, 0.42, C["linen_alt"])
+            plump(d, px0, mid + .03, px1, y1 - .06, 0.36, 0.42, C["linen_alt"])
+            d.line([P(px0 + .04, mid, 0.41), P(px1 - .02, mid, 0.41)],
+                   fill=OUTLINE, width=1)
+        else:
+            my0, my1 = (y0 + .08, y1 - .02) if head_far else (y0 + .02, y1 - .08)
+            slab(d, x0 + .04, my0, x1 - .04, my1, 0.36, C["linen"], thick=0.18)
+            length = my1 - my0
+            if head_far:
+                dy0, dy1 = my0 + length * .36, my1
+                hy0, hy1 = my0 + .03, my0 + .22
+            else:
+                dy0, dy1 = my0, my1 - length * .36
+                hy0, hy1 = my1 - .22, my1 - .03
+            slab(d, x0 + .05, dy0, x1 - .05, dy1, 0.44, C["fabric"], thick=0.12)
+            mid = (x0 + x1) / 2
+            plump(d, x0 + .06, hy0, mid - .03, hy1, 0.36, 0.42, C["linen_alt"])
+            plump(d, mid + .03, hy0, x1 - .06, hy1, 0.36, 0.42, C["linen_alt"])
+            d.line([P(mid, hy0 + .04, 0.41), P(mid, hy1 - .02, 0.41)],
+                   fill=OUTLINE, width=1)
+
+    if head_far:
+        headboard()
+        bedding()
+    else:
+        bedding()
+        headboard()
+
+
+def bedDouble(d):
+    _double_bed(d, "se")
+
+
+def _bunk(d, facing="se"):
+    """Two bunks on four posts, painted far-to-near so posts do not ghost."""
+    w = C["wood"]
+    x0, y0, x1, y1 = _span(facing, 1.90, across=0.86, inset=0.06)
+    contact_shadow(d, x0, y0, x1, y1, "se")
+    t = 0.10
+    posts = [(x0, y0), (x0, y1 - t), (x1 - t, y0), (x1 - t, y1 - t)]
+    # Camera sees +x and +y. Only the back corner stays behind the mattresses;
+    # splitting by x+y on a long bed puts the screen-left post in the far
+    # group and it ghosts through the near-left corner.
+    near_posts = [p for p in posts if p[0] >= x1 - t - 0.001 or p[1] >= y1 - t - 0.001]
+    far_posts = [p for p in posts if p not in near_posts]
+    along_x = facing in ("se", "nw")
+
+    def post(x, y):
+        box(d, x, y, x + t, y + t, 0, 1.94, mul(w, .88))
+
+    def bunk_level(z):
+        # Mattress sits INSIDE the posts so the rails do not punch through it.
+        box(d, x0 + t, y0 + t, x1 - t, y1 - t, z, z + 0.08, w)
+        slab(d, x0 + t + .04, y0 + t + .04, x1 - t - .04, y1 - t - .04,
+             z + 0.20, C["linen"], thick=0.12)
+        if along_x:
+            mid = (y0 + y1) / 2
+            slab(d, x0 + t + .06, y0 + t + .08, x0 + t + .20, mid - .02,
+                 z + 0.30, C["linen_alt"], thick=0.07)
+            slab(d, x0 + t + .06, mid + .02, x0 + t + .20, y1 - t - .08,
+                 z + 0.30, C["linen_alt"], thick=0.07)
+            slab(d, x0 + t + .22, y0 + t + .06, x1 - t - .06, y1 - t - .06,
+                 z + 0.24, C["fabric"], thick=0.08)
+        else:
+            mid = (x0 + x1) / 2
+            slab(d, x0 + t + .08, y0 + t + .06, mid - .02, y0 + t + .20,
+                 z + 0.30, C["linen_alt"], thick=0.07)
+            slab(d, mid + .02, y0 + t + .06, x1 - t - .08, y0 + t + .20,
+                 z + 0.30, C["linen_alt"], thick=0.07)
+            slab(d, x0 + t + .06, y0 + t + .22, x1 - t - .06, y1 - t - .06,
+                 z + 0.24, C["fabric"], thick=0.08)
+
+    for x, y in far_posts:
+        post(x, y)
+    bunk_level(0.22)
+    bunk_level(1.10)
+    for x, y in near_posts:
+        post(x, y)
+    # Ladder on the near long edge, after the near posts.
+    if along_x:
+        lx = x1 - .04
+        d.line([P(lx, y1 - .02, 0.30), P(lx, y1 - .02, 1.28)],
+               fill=OUTLINE, width=3)
+        d.line([P(lx - .16, y1 - .02, 0.30), P(lx - .16, y1 - .02, 1.28)],
+               fill=OUTLINE, width=3)
+        for z in (0.48, 0.72, 0.96, 1.20):
+            d.line([P(lx - .16, y1 - .02, z), P(lx, y1 - .02, z)],
+                   fill=C["wood"], width=2)
+    else:
+        ly = y1 - .04
+        d.line([P(x1 - .02, ly, 0.30), P(x1 - .02, ly, 1.28)],
+               fill=OUTLINE, width=3)
+        d.line([P(x1 - .02, ly - .16, 0.30), P(x1 - .02, ly - .16, 1.28)],
+               fill=OUTLINE, width=3)
+        for z in (0.48, 0.72, 0.96, 1.20):
+            d.line([P(x1 - .02, ly - .16, z), P(x1 - .02, ly, z)],
+                   fill=C["wood"], width=2)
 
 
 def bedBunk(d):
-    w = C["wood"]
-    for z in (0.30, 1.20):
-        box(d, -1.42, A + .06, B - .06, B - .06, z, z + 0.10, w)
-        slab(d, -1.34, A + .10, B - .10, B - .10, z + 0.26, C["linen"], thick=0.16)
-        slab(d, -0.66, A + .10, B - .10, B - .10, z + 0.30, C["fabric"], thick=0.10)
-    for dx in (-1.40, B - .12):                                    # posts
-        box(d, dx, A + .06, dx + .12, A + .18, 0, 1.86, mul(w, .9))
-        box(d, dx, B - .18, dx + .12, B - .06, 0, 1.86, mul(w, .9))
+    _bunk(d, "se")
+
+
+def _dresser(d, facing="se"):
+    w = C["wood_light"]
+    contact_shadow(d, -.30, -.30, .30, .30, facing)
+    box(d, -.28, -.28, .28, .28, 0, 0.56, w, facing=facing)
+    for z in (0.18, 0.38):
+        _handle(d, .28, -.12, .12, z, facing)
 
 
 def cabinetBedDrawer(d):
-    w = C["wood_light"]
-    box(d, -.28, -.28, .28, .28, 0, 0.52, w)
-    d.line([P(.28, -.14, 0.36), P(.28, .14, 0.36)], fill=mul(C["metal"], .8), width=2)
+    _dresser(d, "se")
+
+
+def _nightstand(d, facing="se"):
+    w = C["wood"]
+    contact_shadow(d, A + .08, A + .08, B - .08, B - .08, facing)
+    box(d, A + .10, A + .10, B - .10, B - .10, 0, 0.68, w, facing=facing)
+    for z in (0.24, 0.48):
+        _handle(d, B - .10, -.12, .12, z, facing)
+    box(d, -.08, -.08, .08, .08, 0.68, 0.78, C["shade"], facing=facing)
 
 
 def sideTableDrawers(d):
-    w = C["wood"]
-    box(d, A + .10, A + .10, B - .10, B - .10, 0, 0.66, w)
-    for z in (0.24, 0.48):
-        d.line([P(B - .10, -.14, z), P(B - .10, .14, z)],
-               fill=mul(C["metal"], .8), width=2)
+    _nightstand(d, "se")
 
 
 # --------------------------------------------------------------- lounge ----
-def loungeSofaLong(d):
+def _long_sofa(d, facing="se"):
     f = C["fabric"]
-    box(d, -1.42, A + .06, B - .06, B - .06, 0, 0.32, mul(f, .92))
-    slab(d, -1.36, A + .26, B - .10, B - .10, 0.48, f, thick=0.16)
-    box(d, -1.42, A + .06, B - .06, A + .26, 0, 0.80, f)
-    box(d, -1.42, A + .06, -1.28, B - .06, 0, 0.60, mul(f, .96))
-    box(d, B - .20, A + .06, B - .06, B - .06, 0, 0.60, mul(f, .96))
+    x0, y0, x1, y1 = _span(facing, 1.90, across=0.86, inset=0.06)
+    contact_shadow(d, x0, y0, x1, y1, "se")
+    box(d, x0, y0, x1, y1, 0, 0.22, mul(f, .88))
+    along_x = facing in ("se", "nw")
+    if along_x:
+        box(d, x0, y0, x1, y0 + .16, 0.22, 0.78, f)
+        box(d, x0, y0, x0 + .14, y1, 0.22, 0.54, mul(f, .96))
+        slab(d, x0 + .14, y0 + .16, x1 - .14, y1 - .04, 0.52, mul(f, 1.04),
+             thick=0.16)
+        mid = (x0 + x1) / 2
+        d.line([P(mid, y0 + .20, 0.52), P(mid, y1 - .08, 0.52)],
+               fill=mul(f, .82), width=1)
+        box(d, x1 - .14, y0, x1, y1, 0.22, 0.54, mul(f, .96))
+    else:
+        box(d, x0, y0, x0 + .16, y1, 0.22, 0.78, f)
+        box(d, x0, y0, x1, y0 + .14, 0.22, 0.54, mul(f, .96))
+        slab(d, x0 + .16, y0 + .14, x1 - .04, y1 - .14, 0.52, mul(f, 1.04),
+             thick=0.16)
+        mid = (y0 + y1) / 2
+        d.line([P(x0 + .20, mid, 0.52), P(x1 - .08, mid, 0.52)],
+               fill=mul(f, .82), width=1)
+        box(d, x0, y1 - .14, x1, y1, 0.22, 0.54, mul(f, .96))
+
+
+def loungeSofaLong(d):
+    _long_sofa(d, "se")
+
+
+def _ottoman(d, facing="se"):
+    f = C["fabric"]
+    contact_shadow(d, A + .08, A + .08, B - .08, B - .08, facing)
+    legs(d, A + .14, A + .14, B - .14, B - .14, 0.16, mul(f, .82),
+         inset=0.02, thick=0.09, facing=facing)
+    slab(d, A + .10, A + .10, B - .10, B - .10, 0.32, f, thick=0.14,
+         facing=facing)
+    surface(d, -.05, -.05, .05, .05, 0.33, mul(f, .84), facing=facing)
 
 
 def loungeSofaOttoman(d):
-    f = C["fabric"]
-    box(d, A + .10, A + .10, B - .10, B - .10, 0, 0.36, mul(f, .94))
-    slab(d, A + .06, A + .06, B - .06, B - .06, 0.44, f, thick=0.10)
+    _ottoman(d, "se")
+
+
+def _armchair(d, facing="se"):
+    f = C["accent_clay"]
+    contact_shadow(d, A + .12, A + .12, B - .12, B - .12, facing)
+    box(d, A + .14, A + .14, B - .14, B - .14, 0, 0.22, mul(f, .88),
+        facing=facing)
+    box(d, A + .14, A + .14, B - .14, A + .28, 0.22, 0.86, f, facing=facing)
+    box(d, A + .14, A + .14, A + .26, B - .14, 0.22, 0.58, mul(f, .96),
+        facing=facing)
+    slab(d, A + .26, A + .28, B - .14, B - .14, 0.42, mul(f, 1.04), thick=0.16,
+         facing=facing)
+    box(d, B - .26, A + .14, B - .14, B - .14, 0.22, 0.58, mul(f, .96),
+        facing=facing)
 
 
 def loungeChair(d):
+    _armchair(d, "se")
+
+
+def _wingback(d, facing="se"):
+    """Reclined, with a footrest - Bill's chair."""
     f = C["accent_clay"]
-    box(d, A + .14, A + .14, B - .14, B - .14, 0, 0.30, mul(f, .92))
-    slab(d, A + .10, A + .22, B - .10, B - .10, 0.44, f, thick=0.14)
-    box(d, A + .14, A + .14, B - .14, A + .26, 0, 0.78, f)
-    box(d, A + .14, A + .14, A + .24, B - .14, 0, 0.58, mul(f, .96))
-    box(d, B - .24, A + .14, B - .14, B - .14, 0, 0.58, mul(f, .96))
+    dark = mul(f, .78)
+    contact_shadow(d, A + .10, A + .12, B - .04, B - .12, facing)
+    for lx, ly in ((A + .18, A + .18), (A + .18, B - .26),
+                   (B - .28, A + .18), (B - .28, B - .26)):
+        box(d, lx, ly, lx + .10, ly + .10, 0, 0.28, dark, facing=facing)
+    for lx, ly in ((B - .16, A + .24), (B - .16, B - .30)):
+        box(d, lx, ly, lx + .10, ly + .10, 0, 0.18, dark, facing=facing)
+    box(d, A + .12, A + .14, A + .28, B - .14, 0.24, 1.08, f, facing=facing)
+    box(d, A + .12, A + .10, A + .38, A + .22, 0.72, 1.10, mul(f, .96),
+        facing=facing)
+    box(d, A + .12, B - .22, A + .38, B - .10, 0.72, 1.10, mul(f, .94),
+        facing=facing)
+    slab(d, A + .26, A + .20, B - .18, B - .20, 0.42, mul(f, 1.04), thick=0.16,
+         facing=facing)
+    box(d, A + .26, A + .12, B - .22, A + .22, 0.42, 0.56, mul(f, .98),
+        facing=facing)
+    box(d, A + .26, B - .22, B - .22, B - .12, 0.42, 0.56, mul(f, .98),
+        facing=facing)
+    slab(d, B - .22, A + .24, B - .14, B - .24, 0.34, mul(f, .96), thick=0.10,
+         facing=facing)
+    slab(d, B - .20, A + .22, B - .04, B - .22, 0.28, mul(f, .92), thick=0.12,
+         facing=facing)
 
 
 def loungeChairRelax(d):
-    """The same chair, reclined and with a footrest - Bill's chair."""
-    f = C["accent_clay"]
-    box(d, A + .14, -.10, B - .14, B - .12, 0, 0.28, mul(f, .92))
-    slab(d, A + .10, -.02, B - .10, B - .10, 0.42, f, thick=0.14)
-    box(d, A + .16, -.30, B - .16, -.16, 0, 0.86, f)              # raked back
-    box(d, A + .18, A + .06, B - .18, A + .22, 0, 0.34, mul(f, .96))   # footrest
+    _wingback(d, "se")
+
+
+def _tv(d, facing="se"):
+    contact_shadow(d, -.42, -.18, .42, .18, facing)
+    box(d, -.40, -.16, .40, .16, 0, 0.16, C["wood_dark"], facing=facing)
+    box(d, -.28, -.12, .28, .12, 0.16, 0.62, mul(C["ink"], 1.48), facing=facing)
+    if _front_visible(facing):
+        _panel(d, .28, -.09, .09, 0.24, 0.56, mul(C["ink"], 1.12), facing)
+        _panel(d, .26, -.07, .07, 0.28, 0.52, C["screen"], facing)
+        box(d, .28, .05, .32, .10, 0.22, 0.28, C["accent_brass"], facing=facing)
+    else:
+        _panel(d, -.28, -.09, .09, 0.22, 0.58, mul(C["wood_dark"], .9), facing)
 
 
 def televisionVintage(d):
-    box(d, -.22, -.14, .22, .14, 0, 0.24, mul(C["ink"], 1.5))
-    box(d, -.34, -.16, .34, -.04, 0.24, 0.84, mul(C["ink"], 1.7))
-    d.polygon([P(-.30, -.16, 0.80), P(.30, -.16, 0.80),
-               P(.30, -.16, 0.32), P(-.30, -.16, 0.32)],
-              fill=C["screen"], outline=OUTLINE, width=OUTLINE_WIDTH)
+    _tv(d, "se")
+
+
+def _radio(d, facing="se"):
+    """A wide wooden table radio: dark grille, brass dial, short antenna."""
+    w = C["wood_dark"]
+    contact_shadow(d, -.46, -.24, .46, .24, facing)
+    for fx, fy in ((-.38, -.16), (.30, -.16), (-.38, .10), (.30, .10)):
+        box(d, fx, fy, fx + .08, fy + .08, 0, 0.05, mul(w, .85), facing=facing)
+    box(d, -.44, -.22, .44, .22, 0.05, 0.34, w, top=C["wood"], facing=facing)
+    _panel(d, .44, -.18, .10, 0.08, 0.30, mul(w, .48), facing)
+    for i in range(3):
+        gy = -.14 + i * 0.08
+        d.line([Pf(.44, gy, 0.10, facing), Pf(.44, gy, 0.28, facing)],
+               fill=mul(C["ink"], 1.10), width=1)
+    _panel(d, .44, .12, .20, 0.10, 0.22, C["accent_brass"], facing)
+    d.line([Pf(-.36, -.22, 0.34, facing), Pf(-.36, -.22, 0.48, facing)],
+           fill=C["metal"], width=1)
 
 
 def radio(d):
-    box(d, -.16, -.12, .16, .12, 0, 0.34, C["wood_dark"])
-    p = P(.16, 0, 0.20)
-    d.ellipse([p[0] - 6, p[1] - 5, p[0] + 6, p[1] + 5],
-              fill=mul(C["metal"], .9), outline=OUTLINE, width=OUTLINE_WIDTH)
-    d.line([P(-.10, -.12, 0.34), P(-.10, -.12, 0.62)], fill=C["metal"], width=2)
+    _radio(d, "se")
 
 
 # --------------------------------------------------------------- study ----
-def table(d):
+def _table(d, facing="se"):
     w = C["wood"]
-    legs(d, A, A, B, B, 0.54, w)
-    slab(d, A - .04, A - .04, B + .04, B + .04, 0.64, w, thick=0.10)
+    x0, y0, x1, y1 = _span(facing, 1.70, across=0.92, inset=0.04)
+    contact_shadow(d, x0, y0, x1, y1, "se")
+    legs(d, x0 + .04, y0 + .04, x1 - .04, y1 - .04, 0.54, w)
+    slab(d, x0 - .02, y0 - .02, x1 + .02, y1 + .02, 0.64, w, thick=0.10)
+
+
+def table(d):
+    _table(d, "se")
+
+
+def _desk(d, facing="se"):
+    w = C["wood"]
+    x0, y0, x1, y1 = _span(facing, 1.70, across=0.88, inset=0.06)
+    contact_shadow(d, x0, y0, x1, y1, "se")
+    if facing in ("se", "nw"):
+        box(d, x0, y0 + .08, x0 + .28, y1 - .08, 0, 0.56, mul(w, .88))
+        legs(d, x1 - .32, y0, x1, y1, 0.56, w, inset=0.06)
+        slab(d, x0, y0 - .02, x1 + .02, y1 + .02, 0.64, w, thick=0.09)
+        _handle(d, x0 + .28, -.12, .12, 0.40, "se")
+    else:
+        box(d, x0 + .08, y0, x1 - .08, y0 + .28, 0, 0.56, mul(w, .88))
+        legs(d, x0, y1 - .32, x1, y1, 0.56, w, inset=0.06)
+        slab(d, x0 - .02, y0, x1 + .02, y1 + .02, 0.64, w, thick=0.09)
+        d.line([P(x0 + .18, y0 + .28, 0.40), P(x1 - .18, y0 + .28, 0.40)],
+               fill=mul(C["metal"], .75), width=2)
 
 
 def desk(d):
-    w = C["wood"]
-    box(d, A + .08, A + .10, A + .34, B - .10, 0, 0.56, mul(w, .88))
-    legs(d, B - .30, A, B, B, 0.56, w, inset=0.06)
-    slab(d, A, A - .04, B + .04, B + .04, 0.64, w, thick=0.09)
-    d.line([P(A + .34, -.14, 0.42), P(A + .34, .14, 0.42)],
-           fill=mul(C["metal"], .8), width=2)
+    _desk(d, "se")
+
+
+def _chair(d, facing="se"):
+    w = C["wood_light"]
+    contact_shadow(d, A + .12, A + .12, B - .12, B - .12, facing)
+    legs(d, A + .16, A + .16, B - .16, B - .16, 0.42, w, inset=0.02, thick=0.08,
+         facing=facing)
+    slab(d, A + .14, A + .14, B - .14, B - .14, 0.50, w, thick=0.08,
+         facing=facing)
+    box(d, A + .14, A + .14, A + .24, A + .24, 0.50, 1.12, w, facing=facing)
+    box(d, B - .24, A + .14, B - .14, A + .24, 0.50, 1.12, w, facing=facing)
+    box(d, A + .14, A + .14, B - .14, A + .22, 0.70, 0.82, w, facing=facing)
+    box(d, A + .14, A + .14, B - .14, A + .22, 0.92, 1.04, w, facing=facing)
 
 
 def chair(d):
-    w = C["wood_light"]
-    legs(d, A + .16, A + .16, B - .16, B - .16, 0.42, w, inset=0.03, thick=0.07)
-    slab(d, A + .14, A + .14, B - .14, B - .14, 0.48, w, thick=0.07)
-    box(d, A + .14, A + .14, B - .14, A + .22, 0.48, 1.00, w)
+    _chair(d, "se")
+
+
+def _desk_chair(d, facing="se"):
+    w = C["accent_slate"]
+    m = C["metal"]
+    contact_shadow(d, A + .14, A + .14, B - .14, B - .14, facing)
+    box(d, -.22, -.04, .22, .04, 0, 0.08, m, facing=facing)
+    box(d, -.04, -.22, .04, .22, 0, 0.08, m, facing=facing)
+    box(d, -.035, -.035, .035, .035, 0.08, 0.46, m, facing=facing)
+    slab(d, A + .18, A + .18, B - .18, B - .18, 0.54, w, thick=0.12,
+         facing=facing)
+    box(d, A + .18, A + .18, B - .18, A + .28, 0.54, 1.08, w, facing=facing)
 
 
 def chairDesk(d):
-    w = C["accent_slate"]
-    # The five-star base is drawn in PIXELS around the contact point rather
-    # than in tile coordinates. Arms of 0.3 tiles from the tile's south
-    # corner reach past it, and `emit` rejects anything below the anchor
-    # row - correctly, since it would be a chair sunk into the floor.
-    bx, by = P(.5, .5)
-    by -= 9
-    cyl(d, .5, .5, 0.10, 0, 0.40, C["metal"])
-    for a in range(5):
-        r = math.radians(a * 72 + 18)
-        d.line([(bx, by), (bx + math.cos(r) * 15, by + math.sin(r) * 9)],
-               fill=mul(C["metal"], .78), width=3)
-    slab(d, A + .18, A + .18, B - .18, B - .18, 0.50, w, thick=0.08)
-    box(d, A + .18, A + .18, B - .18, A + .26, 0.50, 1.04, w)
+    _desk_chair(d, "se")
 
 
 def bookcaseClosedWide(d):
@@ -398,81 +819,135 @@ def _aquarium(d, frame):
         d.point((eye_x, cy - 1), fill=OUTLINE)
 
 
-def bookcaseClosedDoors(d):
-    _bookcase(d, wide=False)
-
-
-def _bookcase(d, wide):
+def _bookcase(d, wide=False, facing="se"):
     w = C["wood"]
-    x0 = -1.36 if wide else A + .10
-    box(d, x0, A + .08, B - .08, A + .40, 0, 1.55, mul(w, .84))
+    along = 0.28
+    across = 1.70 if wide else 0.86
+    x0, y0, x1, y1 = _span(facing, along, across=across, inset=0.08)
+    contact_shadow(d, x0, y0, x1, y1, "se")
+    t = 0.06
+    spines = (
+        C["accent_clay"], C["accent_sage"], C["accent_brass"], C["accent_slate"],
+        C["wood_dark"], C["fabric"], mul(C["accent_clay"], .82),
+        mul(C["accent_slate"], .88),
+    )
+    box(d, x0, y0, x0 + t, y1, 0, 1.48, mul(w, .78))
+    box(d, x0, y0, x1, y0 + t, 0, 1.48, mul(w, .88))
+    box(d, x0, y0, x1, y1, 0, 0.10, mul(w, .84))
     shelves = 4
+    n = 11 if wide else 6
     for i in range(shelves):
-        z = 0.30 + i * 0.32
-        slab(d, x0 + .04, A + .12, B - .12, A + .36, z, w, thick=0.05)
-        span = (B - .12) - (x0 + .04)
-        n = 6 if wide else 3
+        z = 0.10 + i * 0.34
+        slab(d, x0 + t, y0 + t, x1 - .02, y1 - t, z, w, thick=0.06)
+        span = (y1 - t - .02) - (y0 + t + .02)
         for j in range(n):
-            bx = x0 + .08 + j * (span / n)
-            h = 0.16 + ((i * 7 + j * 5) % 4) * 0.03
-            box(d, bx, A + .16, bx + span / n - .03, A + .32,
-                z, z + h, ACCENTS[(i * 3 + j) % len(ACCENTS)])
+            by0 = y0 + t + .02 + j * (span / n)
+            by1 = by0 + span / n - .016
+            h = 0.20 + ((i * 7 + j * 3) % 5) * 0.020
+            box(d, x0 + t + .02, by0, x1 - .10, by1, z, z + h,
+                spines[(i * 5 + j) % len(spines)])
+    box(d, x1 - t, y0, x1, y0 + t, 0, 1.48, mul(w, .90))
+    box(d, x1 - t, y1 - t, x1, y1, 0, 1.48, mul(w, .92))
+    slab(d, x0 - .02, y0 - .02, x1 + .02, y1 + .02, 1.54, w, thick=0.08)
+
+
+def bookcaseClosedDoors(d):
+    _bookcase(d, wide=False, facing="se")
 
 
 # --------------------------------------------------------------- props ----
+def _plant(d, facing="se"):
+    contact_shadow(d, -.18, -.18, .18, .18, facing)
+    box(d, -.16, -.16, .16, .16, 0, 0.30, C["pot"], facing=facing)
+    surface(d, -.12, -.12, .12, .12, 0.30, mul(C["wood_dark"], 0.88),
+            facing=facing)
+    dark, mid, light = mul(C["leaf"], 0.78), C["leaf"], mul(C["leaf"], 1.08)
+    for lx, ly, z, rx, ry, col in (
+        (-.10, -.12, 0.52, 6, 8, dark),
+        (.12, -.10, 0.58, 7, 9, mid),
+        (-.02, -.08, 0.72, 8, 11, light),
+        (-.14, .00, 0.48, 6, 7, mid),
+        (.10, .04, 0.56, 7, 8, dark),
+        (.00, .02, 0.64, 6, 9, mid),
+        (-.06, .10, 0.50, 5, 7, light),
+        (.06, .08, 0.46, 5, 6, dark),
+    ):
+        px, py = Pf(lx, ly, z, facing)
+        d.ellipse([px - rx, py - ry, px + rx, py + ry],
+                  fill=col, outline=OUTLINE, width=OUTLINE_WIDTH)
+
+
 def pottedPlant(d):
-    cyl(d, .5, .5, 0.16, 0, 0.32, C["pot"])
-    px, py = P(.5, .5, 0.32)
-    for ang, ln in ((-72, 26), (-40, 34), (-8, 30), (26, 33), (58, 24), (96, 20)):
-        r = math.radians(ang - 90)
-        d.line([(px, py), (px + math.cos(r) * ln * .8, py + math.sin(r) * ln)],
-               fill=C["leaf"], width=4)
-    d.ellipse([px - 4, py - 4, px + 4, py + 4], fill=mul(C["leaf"], .9))
+    _plant(d, "se")
+
+
+def _lamp(d, facing="se"):
+    contact_shadow(d, -.16, -.16, .16, .16, facing)
+    slab(d, -.14, -.14, .14, .14, 0.08, C["metal"], thick=0.08, facing=facing)
+    box(d, -.03, -.03, .03, .03, 0.08, 1.16, C["metal"], facing=facing)
+    px, py = Pf(0, 0, 1.16, facing)
+    d.polygon(
+        [(px - 9, py + 1), (px - 16, py + 18), (px + 16, py + 18), (px + 9, py + 1)],
+        fill=C["shade"], outline=OUTLINE, width=OUTLINE_WIDTH,
+    )
+    d.ellipse([px - 16, py + 14, px + 16, py + 22],
+              fill=mul(C["shade"], 1.08), outline=OUTLINE, width=OUTLINE_WIDTH)
 
 
 def lampRoundFloor(d):
-    px, py = P(.5, .5)
-    d.ellipse([px - 12, py - 10, px + 12, py], fill=mul(C["metal"], .8),
-              outline=OUTLINE, width=OUTLINE_WIDTH)
-    d.rectangle([px - 2, py - 1.30 * Z_UNIT, px + 2, py], fill=C["metal"],
-                outline=OUTLINE, width=OUTLINE_WIDTH)
-    top = py - 1.30 * Z_UNIT
-    d.polygon([(px - 11, top + 18), (px - 17, top + 18), (px - 12, top - 4),
-               (px + 12, top - 4), (px + 17, top + 18), (px + 11, top + 18)],
-              fill=C["shade"], outline=OUTLINE, width=OUTLINE_WIDTH)
-    d.ellipse([px - 17, top + 13, px + 17, top + 23], fill=mul(C["shade"], 1.12),
-              outline=OUTLINE, width=OUTLINE_WIDTH)
+    _lamp(d, "se")
+
+
+def _coat_rack(d, facing="se"):
+    contact_shadow(d, -.14, -.14, .14, .14, facing)
+    slab(d, -.12, -.12, .12, .12, 0.08, C["wood_dark"], thick=0.08, facing=facing)
+    box(d, -.03, -.03, .03, .03, 0.08, 1.36, C["wood"], facing=facing)
+    box(d, -.16, -.03, .16, .03, 1.28, 1.34, C["wood"], facing=facing)
+    coat = C["accent_sage"]
+    d.polygon(
+        [
+            Pf(-.02, -.04, 1.26, facing),
+            Pf(.10, -.04, 1.26, facing),
+            Pf(.16, .08, 0.52, facing),
+            Pf(.02, .12, 0.48, facing),
+            Pf(-.12, .08, 0.52, facing),
+        ],
+        fill=coat, outline=OUTLINE, width=OUTLINE_WIDTH,
+    )
+    d.line([Pf(.02, -.02, 1.22, facing), Pf(.04, .08, 0.58, facing)],
+           fill=mul(coat, .82), width=1)
 
 
 def coatRackStanding(d):
-    px, py = P(.5, .5)
-    d.ellipse([px - 10, py - 8, px + 10, py], fill=mul(C["wood_dark"], .9),
-              outline=OUTLINE, width=OUTLINE_WIDTH)
-    d.rectangle([px - 2, py - 1.42 * Z_UNIT, px + 2, py], fill=C["wood"],
-                outline=OUTLINE, width=OUTLINE_WIDTH)
-    top = py - 1.42 * Z_UNIT
-    for s in (-1, 1):
-        d.line([(px, top + 6), (px + s * 11, top + 1)], fill=C["wood"], width=3)
-    box(d, -.10, -.10, .10, .10, 1.02, 1.30, C["accent_sage"])     # a coat on it
+    _coat_rack(d, "se")
+
+
+def _bin(d, facing="se"):
+    cyl(d, 0, 0, 0.18, 0, 0.52, mul(C["metal"], .96), facing=facing)
+    d.line([Pf(.05, -.16, 0.52, facing), Pf(.05, -.16, 0.68, facing)],
+           fill=C["metal"], width=2)
 
 
 def trashcan(d):
-    cyl(d, .5, .5, 0.18, 0, 0.52, mul(C["metal"], .96))
+    _bin(d, "se")
 
 
-def cardboardBoxOpen(d):
+def _bike(d, facing="se"):
     """A compact upright exercise bike on the old moving-box index."""
     px, py = P(.5, .5)
+    mirror = -1 if facing in ("sw", "nw") else 1
     frame = C["accent_slate"]
     metal = C["metal"]
 
+    def pt(dx, dy):
+        return (px + dx * mirror, py + dy)
+
     # The mat and machine lean left of the saddle anchor, leaving the east
     # wall and lot edge clear while retaining the honest one-tile footprint.
-    d.polygon([(px - 32, py - 10), (px - 5, py - 24),
-               (px + 14, py - 14), (px - 14, py)],
-              fill=(*mul(C["ink"], .78), 165), outline=OUTLINE, width=1)
+    d.polygon([pt(-32, -10), pt(-5, -24), pt(14, -14), pt(-14, 0)],
+              fill=mul(C["ink"], 1.55), outline=OUTLINE, width=1)
 
-    wheel_x, wheel_y = px - 10, py - 14
+    wheel_x, wheel_y = pt(-10, -14)
     d.ellipse([wheel_x - 12, wheel_y - 10,
                wheel_x + 12, wheel_y + 10],
               fill=mul(C["screen"], .72), outline=OUTLINE, width=2)
@@ -483,204 +958,46 @@ def cardboardBoxOpen(d):
                wheel_x + 2, wheel_y + 2],
               fill=C["accent_brass"], outline=OUTLINE, width=1)
 
-    saddle_x, saddle_y = px, py - 29
+    saddle = pt(0, -29)
     crank = (wheel_x, wheel_y)
-    front = (px + 10, py - 7)
-    handle = (px + 10, py - 43)
-    for a, b in (((saddle_x, saddle_y), crank),
-                 (crank, front), (front, handle),
-                 ((saddle_x, saddle_y), front)):
+    front = pt(10, -7)
+    handle = pt(10, -43)
+    for a, b in ((saddle, crank), (crank, front), (front, handle),
+                 (saddle, front)):
         d.line([a, b], fill=OUTLINE, width=6)
         d.line([a, b], fill=frame, width=4)
 
-    # Saddle centred on the authored x=0,y=0 socket and the body hip anchor.
-    d.rounded_rectangle([saddle_x - 8, saddle_y - 4,
-                         saddle_x + 7, saddle_y + 1],
+    d.rounded_rectangle([saddle[0] - 8, saddle[1] - 4,
+                         saddle[0] + 7, saddle[1] + 1],
                         radius=2, fill=mul(C["ink"], 1.12),
                         outline=OUTLINE, width=1)
-    d.line([(px + 7, py - 44), (px + 15, py - 47)],
-           fill=OUTLINE, width=4)
-    d.line([(px + 7, py - 44), (px + 15, py - 47)],
-           fill=frame, width=2)
-    d.rounded_rectangle([px + 4, py - 53, px + 13, py - 45],
+    bar = pt(7, -44)
+    bar2 = pt(15, -47)
+    d.line([bar, bar2], fill=OUTLINE, width=4)
+    d.line([bar, bar2], fill=frame, width=2)
+    console = pt(4, -53)
+    console2 = pt(13, -45)
+    d.rounded_rectangle([min(console[0], console2[0]), min(console[1], console2[1]),
+                         max(console[0], console2[0]), max(console[1], console2[1])],
                         radius=2, fill=C["screen"], outline=OUTLINE, width=1)
 
-    # Crank, pedals, stabilisers, and a pale towel keep this from reading as
-    # an abstract metal triangle at the native atlas scale.
-    d.line([(wheel_x - 5, wheel_y - 4), (wheel_x + 6, wheel_y + 5)],
-           fill=OUTLINE, width=2)
-    for foot_x, foot_y in ((wheel_x - 8, wheel_y - 6),
-                           (wheel_x + 9, wheel_y + 7)):
-        d.line([(foot_x - 4, foot_y), (foot_x + 4, foot_y)],
+    d.line([pt(-5, -18), pt(6, -9)], fill=OUTLINE, width=2)
+    for foot in (pt(-8, -20), pt(9, -7)):
+        d.line([(foot[0] - 4, foot[1]), (foot[0] + 4, foot[1])],
                fill=OUTLINE, width=3)
-    d.line([(px - 25, py - 2), (px - 2, py - 2)], fill=OUTLINE, width=3)
-    d.line([(px + 2, py - 2), (px + 14, py - 2)], fill=OUTLINE, width=3)
-    d.polygon([(px + 5, py - 44), (px + 10, py - 43),
-               (px + 8, py - 30), (px + 3, py - 31)],
+    d.line([pt(-25, -2), pt(-2, -2)], fill=OUTLINE, width=3)
+    d.line([pt(2, -2), pt(14, -2)], fill=OUTLINE, width=3)
+    d.polygon([pt(5, -44), pt(10, -43), pt(8, -30), pt(3, -31)],
               fill=C["linen"], outline=OUTLINE)
 
 
-def hair_cap(d, cx, cy, r, radius, colour, ol, w):
-    """The hair, following the HEAD's silhouette rather than an ellipse.
-
-    This was a `chord` of the ellipse inscribed in the head's box, and it
-    left the owner's report: "each sim's head kind of extends out from the
-    side of their hair, which makes it look like they have two little bald
-    spots on the top left and right corners". That is exactly what it was.
-    The head is a ROUNDED RECTANGLE, whose top corners sit at the corner of
-    its box minus a small radius; the inscribed ellipse's top corners are
-    much further in. The skin between the two curves is the bald spot, and
-    it appears on both sides of every head in the game.
-
-    A rounded rectangle with the same radius and only its TOP corners
-    rounded traces the head exactly, so there is no gap to leave. The flat
-    bottom edge is the hairline, which is what the chord's flat side was
-    already doing.
-    """
-    # The hairline sits at -0.15r rather than at the old chord box's
-    # +0.35r, and the difference is not a taste change. `chord(180, 360)`
-    # fills the upper HALF of the ellipse inscribed in its box, so its flat
-    # edge landed at the ellipse's vertical midpoint - well above the box
-    # bottom the coordinates named. A rectangle over the same box fills all
-    # of it, and the first version of this fix drew hair down over the
-    # eyes.
-    #
-    # The height is then 0.85r, which is the smallest that still admits the
-    # head's own 0.42r corner radius twice over. Any lower a hairline and
-    # the corners have to shrink, and they are the whole reason this
-    # traces the head instead of an ellipse. `max` keeps that true for a
-    # caller passing its own radius.
-    bottom = cy - r * .15
-    radius = min(radius, (bottom - (cy - r)) / 2)
-    d.rounded_rectangle(
-        [cx - r, cy - r, cx + r, bottom],
-        radius=radius,
-        corners=(True, True, False, False),
-        fill=colour, outline=ol, width=w,
-    )
+def cardboardBoxOpen(d):
+    _bike(d, "se")
 
 
-# ---------------------------------------------------------- characters ----
-def _talk_arm(d, palette, shoulder, side, depth, frame, arm_width):
-    """Draw the partner-side arm for one restrained conversation pose."""
-    shirt, skin = palette["shirt"], palette["skin"]
-    sx0, sy0 = shoulder
-    depth_offset = depth * 1.2
-
-    if frame == 0:
-        points = [
-            (sx0, sy0),
-            (sx0 + side * 2.2, sy0 + 7.0 + depth_offset),
-            (sx0 + side * .8, sy0 + 12.5 + depth_offset),
-        ]
-    else:
-        points = [
-            (sx0, sy0),
-            (sx0 + side * 1.8, sy0 + 6.2 + depth_offset),
-            (sx0 - side * 2.2, sy0 + 3.9 + depth_offset),
-        ]
-
-    d.line(points, fill=OUTLINE, width=arm_width + 2 * OUTLINE_WIDTH,
-           joint="curve")
-    d.line(points, fill=mul(shirt, .93), width=arm_width, joint="curve")
-    hx, hy = points[-1]
-    hand_r = 2.5
-    d.ellipse([hx - hand_r, hy - hand_r, hx + hand_r, hy + hand_r],
-              fill=skin, outline=OUTLINE, width=OUTLINE_WIDTH)
-
-
-def _eat_arm(d, palette, shoulder, side, depth, frame, arm_width):
-    """Draw one restrained hand-to-mouth eating gesture. [EA3]."""
-    shirt, skin = palette["shirt"], palette["skin"]
-    sx0, sy0 = shoulder
-    depth_offset = depth * .8
-
-    if frame == 0:
-        points = [
-            (sx0, sy0),
-            (sx0 + side * 2.4, sy0 + 5.8 + depth_offset),
-            (sx0 - side * .8, sy0 + 4.0 + depth_offset),
-        ]
-    else:
-        points = [
-            (sx0, sy0),
-            (sx0 + side * 2.0, sy0 + 4.6 + depth_offset),
-            (sx0 - side * 2.8, sy0 - 2.8 + depth_offset * .4),
-        ]
-
-    d.line(points, fill=OUTLINE, width=arm_width + 2 * OUTLINE_WIDTH,
-           joint="curve")
-    d.line(points, fill=mul(shirt, .93), width=arm_width, joint="curve")
-    hx, hy = points[-1]
-    hand_r = 2.5
-    d.ellipse([hx - hand_r, hy - hand_r, hx + hand_r, hy + hand_r],
-              fill=skin, outline=OUTLINE, width=OUTLINE_WIDTH)
-
-
-def _figure(d, palette, action=None, facing=None, frame=0):
-    """One sim, in one palette. [ML-chars].
-
-    Every proportion comes from CHARACTER and only the four colours vary,
-    so the three variants are the same person in different clothes rather
-    than three different builds. That is deliberate: silhouette is what
-    reads at one tile, and three silhouettes would make the household
-    look like three species.
-    """
-    ch = CHARACTER
-    H = ch["height"]
-    head_r = H * ch["head"]
-    px, py = P(.5, .5)
-    skin, hair = palette["skin"], palette["hair"]
-    shirt, trouser = palette["shirt"], palette["trouser"]
-    ol, w = OUTLINE, OUTLINE_WIDTH
-
-    d.ellipse([px - 13, py - 10, px + 13, py], fill=(0, 0, 0, 46))
-    sh, hip, leg = ch["shoulder"] * H, ch["hip"] * H, ch["leg"] * H
-    torso = H - leg - head_r * 2
-    ty = py - leg
-    lw = hip * .42
-    for s in (-1, 1):
-        cx = px + s * hip * .26
-        d.rectangle([cx - lw / 2, ty, cx + lw / 2, py], fill=trouser, outline=ol, width=w)
-    top_y = ty - torso
-    d.rectangle([px - sh / 2, top_y, px + sh / 2, ty], fill=shirt, outline=ol, width=w)
-    aw = sh * .22
-    action_side = None
-    action_depth = None
-    if facing is not None:
-        action_side, action_depth = {
-            "se": (1, 1),
-            "nw": (-1, -1),
-            "sw": (-1, 1),
-            "ne": (1, -1),
-        }[facing]
-    assert (action is None) == (facing is None)
-    assert action in (None, "talk", "eat")
-    for s in (-1, 1):
-        ax = px + s * (sh / 2 - aw * .3)
-        if s == action_side:
-            shoulder_height = .36 if action_depth > 0 else .22
-            shoulder = (ax, top_y + torso * shoulder_height)
-            if action == "talk":
-                _talk_arm(d, palette, shoulder, s, action_depth, frame,
-                          round(aw))
-            else:
-                _eat_arm(d, palette, shoulder, s, action_depth, frame,
-                         round(aw))
-        else:
-            d.rectangle([ax - aw / 2, top_y + torso * .12, ax + aw / 2,
-                         ty + leg * .10], fill=mul(shirt, .93), outline=ol,
-                        width=w)
-    hy = top_y - head_r
-    d.rounded_rectangle([px - head_r, hy - head_r, px + head_r, hy + head_r],
-                        radius=int(head_r * .42), fill=skin, outline=ol, width=w)
-    hair_cap(d, px, hy, head_r, int(head_r * .42), hair, ol, w)
-    gaze_x = action_side * 1.8 if action_side is not None else 0
-    gaze_y = action_depth * 1.0 if action_depth is not None else 0
-    ey, r = hy + head_r * .12 + gaze_y, max(1.2, head_r * .11)
-    for s in (-1, 1):
-        cx = px + s * head_r * .34 + gaze_x
-        d.ellipse([cx - r, ey - r, cx + r, ey + r], fill=ch["eye"])
+def _figure(d, palette, action=None, facing="se", frame=0):
+    pose = "idle" if action is None else action
+    person(d, palette, facing, pose, frame)
 
 
 def sim(d): _figure(d, CHARACTER_PALETTES[0])
@@ -744,105 +1061,8 @@ def sim3EatNE1(d): _figure(d, CHARACTER_PALETTES[2], "eat", "ne", 1)
 
 
 def _reading_figure(d, palette, facing, frame):
-    """A seated body with an open book, anchored at the chair socket.
+    person(d, palette, facing, "read", frame)
 
-    The chair remains its own prop quad. This body therefore carries only the
-    contact cues the person owns: bent legs, a lowered hip, hands on a book,
-    and a small page adjustment in frame one. Everything stays inside the
-    established 38 by 88 action envelope.
-    """
-    px, py = P(.5, .5)
-    side, depth = {
-        "se": (1, 1),
-        "nw": (-1, -1),
-        "sw": (-1, 1),
-        "ne": (1, -1),
-    }[facing]
-    skin, hair = palette["skin"], palette["hair"]
-    shirt, trouser = palette["shirt"], palette["trouser"]
-    ol, w = OUTLINE, OUTLINE_WIDTH
-
-    d.ellipse([px - 13, py - 7, px + 13, py], fill=(0, 0, 0, 46))
-
-    # A pair of bent legs is the silhouette cue that stops a shortened
-    # standing sprite from pretending to be seated. The depth sign changes
-    # which knee is higher without changing the bottom-centre anchor.
-    hip_y = py - 26
-    for leg_side in (-1, 1):
-        hip_x = px + leg_side * 4
-        knee_x = px + leg_side * 7 + side * 2
-        knee_y = py - 15 + (depth * leg_side * 2)
-        foot_x = knee_x + side * 2
-        points = [(hip_x, hip_y), (knee_x, knee_y), (foot_x, py - 3)]
-        d.line(points, fill=ol, width=8, joint="curve")
-        d.line(points, fill=trouser, width=6, joint="curve")
-        d.line([(foot_x - 3, py - 2), (foot_x + 4, py - 2)],
-               fill=ol, width=3)
-
-    top_y = py - 55
-    shoulder_y = top_y + 8
-    # The head overlaps this short neck and the shoulder line. The previous
-    # pose left a long, narrow skin column between a high head and a low
-    # torso, which read as a giant exposed neck at shipping size.
-    d.rectangle([px - 3, shoulder_y - 3, px + 3, shoulder_y + 3],
-                fill=skin, outline=ol, width=w)
-    d.polygon([
-        (px - 12, shoulder_y),
-        (px + 12, shoulder_y),
-        (px + 8, hip_y + 2),
-        (px - 8, hip_y + 2),
-    ], fill=shirt, outline=ol)
-
-    # Both hands converge on the book. Frame one shifts the anchor-side hand
-    # and lifts one page corner, a restrained adjustment rather than a flap.
-    book_x = px + side * 3
-    book_y = py - 34 + depth
-    hand_shift = side * (2 if frame else 0)
-    for arm_side in (-1, 1):
-        shoulder = (px + arm_side * 9, shoulder_y + 4)
-        hand = (book_x + arm_side * 6 + (hand_shift if arm_side == side else 0),
-                book_y + 2 - depth * arm_side)
-        elbow = (px + arm_side * 12, py - 43 + depth * arm_side)
-        d.line([shoulder, elbow, hand], fill=ol, width=6, joint="curve")
-        d.line([shoulder, elbow, hand], fill=mul(shirt, .93), width=4,
-               joint="curve")
-        d.ellipse([hand[0] - 2, hand[1] - 2, hand[0] + 2, hand[1] + 2],
-                  fill=skin, outline=ol, width=w)
-
-    page = C["linen"]
-    cover = C["wood_dark"]
-    d.polygon([
-        (book_x, book_y + 8),
-        (book_x - 8, book_y + 5),
-        (book_x - 7, book_y - 4),
-        (book_x, book_y - 1),
-    ], fill=page, outline=ol)
-    right_top = book_y - (4 if frame == 0 else 7)
-    d.polygon([
-        (book_x, book_y + 8),
-        (book_x + 8, book_y + 5),
-        (book_x + 7, right_top),
-        (book_x, book_y - 1),
-    ], fill=mul(page, .96), outline=ol)
-    d.line([(book_x - 8, book_y + 6), (book_x, book_y + 9),
-            (book_x + 8, book_y + 6)], fill=cover, width=2)
-    d.line([(book_x, book_y - 1), (book_x, book_y + 8)], fill=ol, width=1)
-
-    head_r = 12
-    head_x = px + side
-    # Seat the head into the shoulders. Its lower edge overlaps the torso by
-    # two pixels, leaving a human-sized neck while keeping the downward gaze.
-    head_y = shoulder_y - 10
-    d.rounded_rectangle([
-        head_x - head_r, head_y - head_r,
-        head_x + head_r, head_y + head_r,
-    ], radius=5, fill=skin, outline=ol, width=w)
-    hair_cap(d, head_x, head_y, head_r, 5, hair, ol, w)
-    eye_y = head_y + 3 + depth
-    for eye_side in (-1, 1):
-        eye_x = head_x + eye_side * 4 + side
-        d.ellipse([eye_x - 1, eye_y - 1, eye_x + 1, eye_y + 1],
-                  fill=CHARACTER["eye"])
 
 
 def simReadSE0(d): _reading_figure(d, CHARACTER_PALETTES[0], "se", 0)
@@ -874,123 +1094,8 @@ def sim3ReadNE1(d): _reading_figure(d, CHARACTER_PALETTES[2], "ne", 1)
 
 
 def _standing_reading_figure(d, palette, facing, frame):
-    """An upright reader holding one open book toward the target object.
+    person(d, palette, facing, "standread", frame)
 
-    The Sim stays on the ordinary adjacent path tile, so the body keeps the
-    established standing contact point. Both hands, the book, gaze, and page
-    adjustment carry the authored facing while the legs remain planted.
-    """
-    ch = CHARACTER
-    height = ch["height"]
-    head_r = height * ch["head"]
-    px, py = P(.5, .5)
-    side, depth = {
-        "se": (1, 1),
-        "nw": (-1, -1),
-        "sw": (-1, 1),
-        "ne": (1, -1),
-    }[facing]
-    skin, hair = palette["skin"], palette["hair"]
-    shirt, trouser = palette["shirt"], palette["trouser"]
-    ol, w = OUTLINE, OUTLINE_WIDTH
-
-    d.ellipse([px - 13, py - 10, px + 13, py], fill=(0, 0, 0, 46))
-    shoulder_width = ch["shoulder"] * height
-    hip_width = ch["hip"] * height
-    leg_height = ch["leg"] * height
-    torso_height = height - leg_height - head_r * 2
-    hip_y = py - leg_height
-    leg_width = hip_width * .42
-    for leg_side in (-1, 1):
-        leg_x = px + leg_side * hip_width * .26
-        d.rectangle(
-            [leg_x - leg_width / 2, hip_y, leg_x + leg_width / 2, py],
-            fill=trouser,
-            outline=ol,
-            width=w,
-        )
-
-    top_y = hip_y - torso_height
-    d.rectangle(
-        [px - shoulder_width / 2, top_y, px + shoulder_width / 2, hip_y],
-        fill=shirt,
-        outline=ol,
-        width=w,
-    )
-
-    # The open book sits clear of the torso at native size. Frame one lifts
-    # the target-side page corner and shifts that hand by two pixels, enough
-    # to read as a page adjustment without becoming frantic semaphore.
-    book_x = px + side * 2
-    book_y = py - 40 + depth
-    hand_shift = side * (2 if frame else 0)
-    for arm_side in (-1, 1):
-        shoulder_x = px + arm_side * (shoulder_width / 2 - 2)
-        shoulder_y = top_y + torso_height * (.28 if depth > 0 else .20)
-        hand_x = book_x + arm_side * 6
-        if arm_side == side:
-            hand_x += hand_shift
-        hand_y = book_y + 3 - depth * arm_side
-        elbow_x = px + arm_side * 10
-        elbow_y = py - 46 + depth * arm_side
-        points = [(shoulder_x, shoulder_y), (elbow_x, elbow_y), (hand_x, hand_y)]
-        d.line(points, fill=ol, width=6, joint="curve")
-        d.line(points, fill=mul(shirt, .93), width=4, joint="curve")
-        d.ellipse(
-            [hand_x - 2, hand_y - 2, hand_x + 2, hand_y + 2],
-            fill=skin,
-            outline=ol,
-            width=w,
-        )
-
-    page = C["linen"]
-    cover = C["wood_dark"]
-    d.polygon(
-        [
-            (book_x, book_y + 8),
-            (book_x - 8, book_y + 5),
-            (book_x - 7, book_y - 4),
-            (book_x, book_y - 1),
-        ],
-        fill=page,
-        outline=ol,
-    )
-    right_top = book_y - (4 if frame == 0 else 7)
-    d.polygon(
-        [
-            (book_x, book_y + 8),
-            (book_x + 8, book_y + 5),
-            (book_x + 7, right_top),
-            (book_x, book_y - 1),
-        ],
-        fill=mul(page, .96),
-        outline=ol,
-    )
-    d.line(
-        [(book_x - 8, book_y + 6), (book_x, book_y + 9), (book_x + 8, book_y + 6)],
-        fill=cover,
-        width=2,
-    )
-    d.line([(book_x, book_y - 1), (book_x, book_y + 8)], fill=ol, width=1)
-
-    head_y = top_y - head_r
-    head_x = px + side
-    d.rounded_rectangle(
-        [head_x - head_r, head_y - head_r, head_x + head_r, head_y + head_r],
-        radius=int(head_r * .42),
-        fill=skin,
-        outline=ol,
-        width=w,
-    )
-    hair_cap(d, head_x, head_y, head_r, int(head_r * .42), hair, ol, w)
-    eye_y = head_y + head_r * .12 + depth
-    eye_r = max(1.2, head_r * .11)
-    for eye_side in (-1, 1):
-        eye_x = head_x + eye_side * head_r * .34 + side * 1.8
-        d.ellipse(
-            [eye_x - eye_r, eye_y - eye_r, eye_x + eye_r, eye_y + eye_r],
-            fill=ch["eye"],
-        )
 
 
 def simStandReadSE0(d): _standing_reading_figure(d, CHARACTER_PALETTES[0], "se", 0)
@@ -1022,115 +1127,8 @@ def sim3StandReadNE1(d): _standing_reading_figure(d, CHARACTER_PALETTES[2], "ne"
 
 
 def _walking_figure(d, palette, facing, frame):
-    """A real two-frame directional walk inside the standing envelope.
+    person(d, palette, facing, "walk", frame)
 
-    Translation belongs to the renderer. This art supplies the body motion:
-    opposite legs stride, knees bend, and the arms counter-swing. Each facing
-    changes the leading screen side and depth order, so the frame pair is a
-    character walk rather than an unchanged body being lifted off the floor.
-    """
-    ch = CHARACTER
-    height = ch["height"]
-    head_r = height * ch["head"]
-    px, py = P(.5, .5)
-    side, depth = {
-        "se": (1, 1),
-        "nw": (-1, -1),
-        "sw": (-1, 1),
-        "ne": (1, -1),
-    }[facing]
-    phase = -1 if frame == 0 else 1
-    skin, hair = palette["skin"], palette["hair"]
-    shirt, trouser = palette["shirt"], palette["trouser"]
-    ol, w = OUTLINE, OUTLINE_WIDTH
-
-    d.ellipse([px - 13, py - 9, px + 13, py], fill=(0, 0, 0, 46))
-
-    shoulder_width = ch["shoulder"] * height
-    hip_width = ch["hip"] * height
-    leg_height = ch["leg"] * height
-    torso_height = height - leg_height - head_r * 2
-    hip_y = py - leg_height
-    top_y = hip_y - torso_height
-
-    # Draw the depth-side limb first, then its nearer partner. The two frames
-    # exchange which foot leads and which knee bends while the last visible
-    # row remains on the common bottom-centre contact point.
-    leg_order = (-depth, depth)
-    for leg_side in leg_order:
-        stride = phase * leg_side
-        hip_x = px + leg_side * hip_width * .22
-        knee_x = hip_x + side * stride * 3
-        knee_y = py - 15 + depth * leg_side * 2 - abs(stride) * 1
-        foot_x = hip_x + side * stride * 6
-        foot_y = py - (2 if stride > 0 else 4)
-        points = [(hip_x, hip_y), (knee_x, knee_y), (foot_x, foot_y)]
-        d.line(points, fill=ol, width=8, joint="curve")
-        d.line(points, fill=trouser, width=6, joint="curve")
-        d.line(
-            [(foot_x - 3 - side, foot_y + 1),
-             (foot_x + 3 + side, foot_y + 1)],
-            fill=ol,
-            width=3,
-        )
-
-    d.polygon(
-        [
-            (px - shoulder_width / 2, top_y),
-            (px + shoulder_width / 2, top_y),
-            (px + hip_width * .34, hip_y + 1),
-            (px - hip_width * .34, hip_y + 1),
-        ],
-        fill=shirt,
-        outline=ol,
-    )
-
-    # Arms counter-swing against the legs. Their endpoints move across the
-    # torso edge as well as vertically, giving both frames a distinct outer
-    # silhouette even at native size.
-    arm_width = round(shoulder_width * .22)
-    for arm_side in (-1, 1):
-        swing = -phase * arm_side
-        shoulder_x = px + arm_side * (shoulder_width / 2 - 2)
-        shoulder_y = top_y + torso_height * (
-            .28 if depth * arm_side > 0 else .18
-        )
-        elbow_x = shoulder_x + side * swing * 3 + arm_side
-        elbow_y = shoulder_y + 8 - depth * arm_side
-        hand_x = shoulder_x + side * swing * 6 + arm_side * 2
-        hand_y = shoulder_y + 14 + swing * 2 - depth * arm_side
-        points = [
-            (shoulder_x, shoulder_y),
-            (elbow_x, elbow_y),
-            (hand_x, hand_y),
-        ]
-        d.line(points, fill=ol, width=arm_width + 2 * w, joint="curve")
-        d.line(points, fill=mul(shirt, .93), width=arm_width, joint="curve")
-        d.ellipse(
-            [hand_x - 2, hand_y - 2, hand_x + 2, hand_y + 2],
-            fill=skin,
-            outline=ol,
-            width=w,
-        )
-
-    head_x = px + side
-    head_y = top_y - head_r
-    d.rounded_rectangle(
-        [head_x - head_r, head_y - head_r, head_x + head_r, head_y + head_r],
-        radius=int(head_r * .42),
-        fill=skin,
-        outline=ol,
-        width=w,
-    )
-    hair_cap(d, head_x, head_y, head_r, int(head_r * .42), hair, ol, w)
-    eye_y = head_y + head_r * .12 + depth
-    eye_r = max(1.2, head_r * .11)
-    for eye_side in (-1, 1):
-        eye_x = head_x + eye_side * head_r * .34 + side * 1.8
-        d.ellipse(
-            [eye_x - eye_r, eye_y - eye_r, eye_x + eye_r, eye_y + eye_r],
-            fill=ch["eye"],
-        )
 
 
 def simWalkSE0(d): _walking_figure(d, CHARACTER_PALETTES[0], "se", 0)
@@ -1162,139 +1160,13 @@ def sim3WalkNE1(d): _walking_figure(d, CHARACTER_PALETTES[2], "ne", 1)
 
 
 def _exercise_figure(d, palette, facing, frame):
-    """A seated rider whose hands, knees, and feet meet the bike."""
-    px, py = P(.5, .5)
-    side, depth = {
-        "se": (1, 1),
-        "nw": (-1, -1),
-        "sw": (-1, 1),
-        "ne": (1, -1),
-    }[facing]
-    phase = -1 if frame == 0 else 1
-    skin, hair = palette["skin"], palette["hair"]
-    shirt, trouser = palette["shirt"], palette["trouser"]
-    ol, w = OUTLINE, OUTLINE_WIDTH
+    person(d, palette, facing, "exercise", frame)
 
-    d.ellipse([px - 14, py - 8, px + 10, py], fill=(0, 0, 0, 42))
-    hip_x, hip_y = px, py - 29
-
-    # Alternating knees and feet travel around the crank while the seated hip
-    # stays planted on the authored saddle socket.
-    for leg_side in (-depth, depth):
-        stroke_phase = phase * leg_side
-        knee_x = px + side * (5 + stroke_phase * 3) + leg_side * 2
-        knee_y = py - 17 - stroke_phase * 3
-        foot_x = px - side * 7 + stroke_phase * 6
-        foot_y = py - 10 + stroke_phase * 4
-        points = [(hip_x + leg_side * 3, hip_y),
-                  (knee_x, knee_y), (foot_x, foot_y)]
-        d.line(points, fill=ol, width=8, joint="curve")
-        d.line(points, fill=trouser, width=6, joint="curve")
-        d.line([(foot_x - 4, foot_y + 1), (foot_x + 4, foot_y + 1)],
-               fill=ol, width=3)
-
-    shoulder_x = px + side * 3
-    shoulder_y = py - 50 + depth
-    d.polygon([
-        (shoulder_x - 11, shoulder_y),
-        (shoulder_x + 10, shoulder_y),
-        (hip_x + 8, hip_y + 2),
-        (hip_x - 8, hip_y + 2),
-    ], fill=shirt, outline=ol)
-
-    # Both hands stay on the handlebar. Tiny opposing elbow movement keeps the
-    # upper body alive without suggesting the rider is letting go.
-    handle_x = px + side * 13
-    handle_y = py - 43 + depth
-    for arm_side in (-1, 1):
-        sx0 = shoulder_x + arm_side * 8
-        sy0 = shoulder_y + 5 + depth * arm_side
-        elbow = (px + side * 9 + arm_side * 2,
-                 py - 45 + arm_side * phase)
-        hand = (handle_x + arm_side * 2, handle_y + arm_side)
-        points = [(sx0, sy0), elbow, hand]
-        d.line(points, fill=ol, width=6, joint="curve")
-        d.line(points, fill=mul(shirt, .93), width=4, joint="curve")
-        d.ellipse([hand[0] - 2, hand[1] - 2,
-                   hand[0] + 2, hand[1] + 2],
-                  fill=skin, outline=ol, width=w)
-
-    head_r = 15
-    head_x = px + side * 4
-    head_y = py - 66 + depth
-    d.rounded_rectangle(
-        [head_x - head_r, head_y - head_r,
-         head_x + head_r, head_y + head_r],
-        radius=6, fill=skin, outline=ol, width=w,
-    )
-    hair_cap(d, head_x, head_y, head_r, 6, hair, ol, w)
-    eye_y = head_y + 2 + depth
-    for eye_side in (-1, 1):
-        eye_x = head_x + eye_side * 5 + side * 2
-        d.ellipse([eye_x - 1.2, eye_y - 1.2,
-                   eye_x + 1.2, eye_y + 1.2], fill=CHARACTER["eye"])
 
 
 def _watch_fish_figure(d, palette, facing, frame):
-    """A relaxed standing watcher with a restrained head and weight shift."""
-    px, py = P(.5, .5)
-    side, depth = {
-        "se": (1, 1),
-        "nw": (-1, -1),
-        "sw": (-1, 1),
-        "ne": (1, -1),
-    }[facing]
-    phase = -1 if frame == 0 else 1
-    skin, hair = palette["skin"], palette["hair"]
-    shirt, trouser = palette["shirt"], palette["trouser"]
-    ol, w = OUTLINE, OUTLINE_WIDTH
+    person(d, palette, facing, "watch", frame)
 
-    d.ellipse([px - 13, py - 9, px + 13, py], fill=(0, 0, 0, 44))
-    hip_y = py - 29
-    shift = side * phase
-    for leg_side in (-1, 1):
-        leg_x = px + shift + leg_side * 4
-        foot_x = leg_x + leg_side * (2 if leg_side == phase else 1)
-        knee_y = py - 14 + depth * leg_side
-        points = [(leg_x, hip_y), (leg_x, knee_y), (foot_x, py - 2)]
-        d.line(points, fill=ol, width=8, joint="curve")
-        d.line(points, fill=trouser, width=6, joint="curve")
-        d.line([(foot_x - 3, py - 1), (foot_x + 4, py - 1)],
-               fill=ol, width=3)
-
-    top_y = py - 51
-    d.polygon([
-        (px - 13 + shift, top_y), (px + 13 + shift, top_y),
-        (px + 8 + shift, hip_y + 1), (px - 8 + shift, hip_y + 1),
-    ], fill=shirt, outline=ol)
-
-    # Arms rest near the body. The nearer hand shifts two pixels with the
-    # weight transfer, while the gaze remains firmly toward the aquarium.
-    for arm_side in (-1, 1):
-        shoulder = (px + shift + arm_side * 11,
-                    top_y + 5 + depth * arm_side)
-        hand = (px + shift + arm_side * 10 + side * phase,
-                py - 33 + depth * arm_side)
-        d.line([shoulder, hand], fill=ol, width=7)
-        d.line([shoulder, hand], fill=mul(shirt, .93), width=5)
-        d.ellipse([hand[0] - 2, hand[1] - 2,
-                   hand[0] + 2, hand[1] + 2],
-                  fill=skin, outline=ol, width=w)
-
-    head_r = 16
-    head_x = px + side * 2 + shift
-    head_y = py - 68 + depth + (1 if frame else 0)
-    d.rounded_rectangle(
-        [head_x - head_r, head_y - head_r,
-         head_x + head_r, head_y + head_r],
-        radius=7, fill=skin, outline=ol, width=w,
-    )
-    hair_cap(d, head_x, head_y, head_r, 7, hair, ol, w)
-    eye_y = head_y + 2 + depth
-    for eye_side in (-1, 1):
-        eye_x = head_x + eye_side * 5 + side * 2
-        d.ellipse([eye_x - 1.3, eye_y - 1.3,
-                   eye_x + 1.3, eye_y + 1.3], fill=CHARACTER["eye"])
 
 
 def _named_action_sprites(stem, drawer):
@@ -1435,6 +1307,9 @@ EXACT = {
     "wallEW": (HW, None),
     "doorwayNS": (HW, None),
     "doorwayEW": (HW, None),
+    "sim": (38, 88),
+    "sim2": (38, 88),
+    "sim3": (38, 88),
     "cardboardBoxOpen": (80, 88),
     "bookcaseClosedWide": (80, 104),
     "aquariumCabinet1": (80, 104),
@@ -1566,6 +1441,74 @@ EXACT = {
 for action_sprite in EXERCISE_SPRITES + WATCH_FISH_SPRITES:
     EXACT[action_sprite.__name__] = (38, 88)
 
+
+def _facing_sprite(name, drawer, facing):
+    def sprite(d):
+        drawer(d, facing)
+    sprite.__name__ = name
+    return sprite
+
+
+# SW kitchen run pieces already live in the fixed prefix. Everything else
+# appends the three missing builder turns after the historical 223.
+_ALREADY_HAS_SW = {
+    "kitchenCabinet", "kitchenSink", "kitchenStove",
+}
+_FURNITURE_DRAWERS = (
+    ("kitchenFridgeBuiltIn", _fridge),
+    ("bathroomSinkSquare", _bathroom_sink),
+    ("showerRound", _shower),
+    ("toiletSquare", _toilet),
+    ("bookcaseClosedDoors", lambda d, facing: _bookcase(d, False, facing)),
+    ("loungeSofaOttoman", _ottoman),
+    ("televisionVintage", _tv),
+    ("bedBunk", _bunk),
+    ("kitchenStove", lambda d, facing: _counter(d, "hob", facing)),
+    ("kitchenCabinet", lambda d, facing: _counter(d, "plain", facing)),
+    ("kitchenSink", lambda d, facing: _counter(d, "sink", facing)),
+    ("table", _table),
+    ("chair", _chair),
+    ("trashcan", _bin),
+    ("loungeSofaLong", _long_sofa),
+    ("loungeChair", _armchair),
+    ("loungeChairRelax", _wingback),
+    ("radio", _radio),
+    ("pottedPlant", _plant),
+    ("cardboardBoxOpen", _bike),
+    ("lampRoundFloor", _lamp),
+    ("coatRackStanding", _coat_rack),
+    ("bedDouble", _double_bed),
+    ("sideTableDrawers", _nightstand),
+    ("cabinetBedDrawer", _dresser),
+    ("desk", _desk),
+    ("chairDesk", _desk_chair),
+    ("bathtub", _bathtub),
+    ("washerDryerStacked", _laundry),
+)
+OBJECT_FACING_VARIANTS = []
+for base, drawer in _FURNITURE_DRAWERS:
+    for facing in ("SW", "NW", "NE"):
+        if facing == "SW" and base in _ALREADY_HAS_SW:
+            continue
+        OBJECT_FACING_VARIANTS.append(
+            _facing_sprite(f"{base}{facing}", drawer, facing.lower())
+        )
+
+for sprite in OBJECT_FACING_VARIANTS:
+    if sprite.__name__.startswith("cardboardBoxOpen"):
+        EXACT[sprite.__name__] = (80, 88)
+
+
+def _bathtub_full(d, facing):
+    _bathtub(d, facing, filled=True)
+
+
+BATHTUB_FULL_VARIANTS = [
+    _facing_sprite(f"bathtubFull{facing}", _bathtub_full, facing.lower())
+    for facing in ("SW", "NW", "NE")
+]
+
+
 SPRITES = [
     floor, sim, wallNS, wallEW, kitchenFridgeBuiltIn, bathroomSinkSquare,
     showerRound, toiletSquare, bookcaseClosedDoors, loungeSofaOttoman,
@@ -1632,4 +1575,7 @@ SPRITES = [
     aquariumCabinet1, indicatorExercise, indicatorWatchFish,
     *EXERCISE_SPRITES,
     *WATCH_FISH_SPRITES,
+    *OBJECT_FACING_VARIANTS,
+    bathtubFull,
+    *BATHTUB_FULL_VARIANTS,
 ]
