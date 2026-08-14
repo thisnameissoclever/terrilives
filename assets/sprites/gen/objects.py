@@ -148,8 +148,8 @@ def _basin(d, x0, y0, x1, y1, rim_z, porcelain, *, facing="se",
     x0, y0, x1, y1 = facing_aabb(x0, y0, x1, y1, facing)
     well_z = rim_z - depth
     ix0, iy0, ix1, iy1 = x0 + lip, y0 + lip, x1 - lip, y1 - lip
-    far_a = mul(porcelain, 0.42) if water else mul(C["ink"], 1.28)
-    far_b = mul(porcelain, 0.36) if water else mul(C["ink"], 1.18)
+    far_a = mul(porcelain, 0.55) if water else mul(porcelain, 0.70)
+    far_b = mul(porcelain, 0.48) if water else mul(porcelain, 0.58)
     d.polygon(
         [P(ix0, iy0, rim_z), P(ix1, iy0, rim_z),
          P(ix1, iy0, well_z), P(ix0, iy0, well_z)],
@@ -160,8 +160,8 @@ def _basin(d, x0, y0, x1, y1, rim_z, porcelain, *, facing="se",
          P(ix0, iy1, well_z), P(ix0, iy0, well_z)],
         fill=far_b,
     )
-    contents = C["water"] if water else mul(C["ink"], 1.08)
-    content_z = well_z + depth * (0.42 if water else 0.08)
+    contents = C["water"] if water else mul(porcelain, 0.52)
+    content_z = well_z + depth * (0.42 if water else 0.12)
     surface(d, ix0 + .02, iy0 + .02, ix1 - .02, iy1 - .02, content_z, contents)
     if water:
         d.polygon(
@@ -621,15 +621,16 @@ def loungeChairRelax(d):
 
 
 def _tv(d, facing="se"):
-    contact_shadow(d, -.42, -.18, .42, .18, facing)
-    box(d, -.40, -.16, .40, .16, 0, 0.16, C["wood_dark"], facing=facing)
-    box(d, -.28, -.12, .28, .12, 0.16, 0.62, mul(C["ink"], 1.48), facing=facing)
+    """A landscape CRT on a short wood stand, screen on the working face."""
+    contact_shadow(d, -.50, -.16, .50, .16, facing)
+    box(d, -.14, -.08, .14, .08, 0, 0.16, C["wood_dark"], facing=facing)
+    box(d, -.48, -.14, .48, .14, 0.16, 0.62, C["wood_dark"], facing=facing)
     if _front_visible(facing):
-        _panel(d, .28, -.09, .09, 0.24, 0.56, mul(C["ink"], 1.12), facing)
-        _panel(d, .26, -.07, .07, 0.28, 0.52, C["screen"], facing)
-        box(d, .28, .05, .32, .10, 0.22, 0.28, C["accent_brass"], facing=facing)
+        _panel(d, .48, -.10, .10, 0.24, 0.56, mul(C["ink"], 1.18), facing)
+        _panel(d, .46, -.08, .08, 0.28, 0.52, C["screen"], facing)
+        _panel(d, .48, .08, .12, 0.22, 0.28, C["accent_brass"], facing)
     else:
-        _panel(d, -.28, -.09, .09, 0.22, 0.58, mul(C["wood_dark"], .9), facing)
+        _panel(d, -.48, -.10, .10, 0.22, 0.58, mul(C["wood_dark"], .9), facing)
 
 
 def televisionVintage(d):
@@ -639,17 +640,17 @@ def televisionVintage(d):
 def _radio(d, facing="se"):
     """A wide wooden table radio: dark grille, brass dial, short antenna."""
     w = C["wood_dark"]
-    contact_shadow(d, -.46, -.24, .46, .24, facing)
-    for fx, fy in ((-.38, -.16), (.30, -.16), (-.38, .10), (.30, .10)):
-        box(d, fx, fy, fx + .08, fy + .08, 0, 0.05, mul(w, .85), facing=facing)
-    box(d, -.44, -.22, .44, .22, 0.05, 0.34, w, top=C["wood"], facing=facing)
-    _panel(d, .44, -.18, .10, 0.08, 0.30, mul(w, .48), facing)
+    contact_shadow(d, -.50, -.20, .50, .20, facing)
+    box(d, -.48, -.18, .48, .18, 0.04, 0.36, w, top=C["wood"], facing=facing)
+    _panel(d, .48, -.14, .06, 0.10, 0.32, mul(C["ink"], 1.32), facing)
     for i in range(3):
-        gy = -.14 + i * 0.08
-        d.line([Pf(.44, gy, 0.10, facing), Pf(.44, gy, 0.28, facing)],
-               fill=mul(C["ink"], 1.10), width=1)
-    _panel(d, .44, .12, .20, 0.10, 0.22, C["accent_brass"], facing)
-    d.line([Pf(-.36, -.22, 0.34, facing), Pf(-.36, -.22, 0.48, facing)],
+        gy = -.10 + i * 0.06
+        d.line([Pf(.48, gy, 0.12, facing), Pf(.48, gy, 0.30, facing)],
+               fill=mul(C["ink"], 1.08), width=1)
+    dx, dy = Pf(.48, .12, 0.21, facing)
+    d.ellipse([dx - 4, dy - 4, dx + 4, dy + 4],
+              fill=C["accent_brass"], outline=OUTLINE, width=1)
+    d.line([Pf(-.34, -.18, 0.36, facing), Pf(-.34, -.18, 0.54, facing)],
            fill=C["metal"], width=1)
 
 

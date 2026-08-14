@@ -79,7 +79,7 @@ LEGACY_PREFIX_SHA256 = (
 # (`DINNER_PIXELS_SHA256`). Chat frames stay put; the 0–171 complement moves
 # because the furniture on those indices was redrawn in place.
 CHAT_PIXELS_SHA256 = (
-    "8daee23b4021517d1fae866f1cd89ef633e2d8bcedd3cdc16eb524713d6b56bd"
+    "33be03b782c6d89525ed11737a880793a01b461fc79e1cdd2d1adf45c75c2fee"
 )
 DINNER_PIXELS_SHA256 = (
     "1ac2f0505b58157e42d72de325100e20f5742a1b24c5dfa43592ec58d9ebd4dd"
@@ -88,7 +88,7 @@ DINNER_PIXELS_SHA256 = (
 # bike and aquarium replacements at 24 and 32. Atlas coordinates are packing
 # output and deliberately absent; identity, dimensions, and pixels are pinned.
 AQUARIUM_BIKE_COMPLEMENT_SHA256 = (
-    "1b00df2c7761f9460b858f7c8eddcaaef1e0dc4a5522c081e4990c8e91a6da77"
+    "457ff2856c61e4012a2df9699c9c823205b7e4ee4e309e244ac803272df8502e"
 )
 
 

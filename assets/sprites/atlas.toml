@@ -12,12 +12,12 @@
 
 image = "atlas.png"
 width = 512
-height = 2739
+height = 2740
 
 [[sprite]]
 name = "floor"
 x = 0
-y = 2696
+y = 2697
 w = 64
 h = 42
 
@@ -86,10 +86,10 @@ h = 51
 
 [[sprite]]
 name = "televisionVintage"
-x = 302
+x = 29
 y = 2581
-w = 40
-h = 54
+w = 44
+h = 59
 
 [[sprite]]
 name = "bedBunk"
@@ -101,7 +101,7 @@ h = 136
 [[sprite]]
 name = "selectionRing"
 x = 65
-y = 2696
+y = 2697
 w = 64
 h = 42
 
@@ -173,7 +173,7 @@ name = "radio"
 x = 0
 y = 2642
 w = 46
-h = 53
+h = 54
 
 [[sprite]]
 name = "pottedPlant"
@@ -219,7 +219,7 @@ h = 65
 
 [[sprite]]
 name = "cabinetBedDrawer"
-x = 60
+x = 240
 y = 2581
 w = 40
 h = 56
@@ -311,42 +311,42 @@ h = 76
 [[sprite]]
 name = "indicatorTalk"
 x = 130
-y = 2696
+y = 2697
 w = 26
 h = 26
 
 [[sprite]]
 name = "indicatorEat"
 x = 157
-y = 2696
+y = 2697
 w = 26
 h = 26
 
 [[sprite]]
 name = "indicatorSleep"
 x = 184
-y = 2696
+y = 2697
 w = 26
 h = 26
 
 [[sprite]]
 name = "indicatorWait"
 x = 211
-y = 2696
+y = 2697
 w = 26
 h = 26
 
 [[sprite]]
 name = "carried_ingredients"
 x = 319
-y = 2696
+y = 2697
 w = 16
 h = 20
 
 [[sprite]]
 name = "carried_dinner"
 x = 336
-y = 2696
+y = 2697
 w = 18
 h = 14
 
@@ -871,7 +871,7 @@ h = 88
 [[sprite]]
 name = "indicatorReading"
 x = 238
-y = 2696
+y = 2697
 w = 26
 h = 26
 
@@ -1214,7 +1214,7 @@ h = 88
 [[sprite]]
 name = "heldSnack"
 x = 355
-y = 2696
+y = 2697
 w = 14
 h = 10
 
@@ -1228,14 +1228,14 @@ h = 104
 [[sprite]]
 name = "indicatorExercise"
 x = 265
-y = 2696
+y = 2697
 w = 26
 h = 26
 
 [[sprite]]
 name = "indicatorWatchFish"
 x = 292
-y = 2696
+y = 2697
 w = 26
 h = 26
 
@@ -1640,14 +1640,14 @@ h = 102
 
 [[sprite]]
 name = "toiletSquareSW"
-x = 101
+x = 281
 y = 2581
 w = 38
 h = 56
 
 [[sprite]]
 name = "toiletSquareNW"
-x = 140
+x = 320
 y = 2581
 w = 38
 h = 56
@@ -1703,24 +1703,24 @@ h = 51
 
 [[sprite]]
 name = "televisionVintageSW"
-x = 343
+x = 74
 y = 2581
-w = 40
-h = 54
+w = 44
+h = 59
 
 [[sprite]]
 name = "televisionVintageNW"
-x = 384
+x = 119
 y = 2581
-w = 40
-h = 54
+w = 44
+h = 59
 
 [[sprite]]
 name = "televisionVintageNE"
-x = 425
+x = 164
 y = 2581
-w = 40
-h = 54
+w = 44
+h = 59
 
 [[sprite]]
 name = "bedBunkSW"
@@ -1915,22 +1915,22 @@ h = 70
 name = "radioSW"
 x = 335
 y = 2642
-w = 46
-h = 49
+w = 48
+h = 50
 
 [[sprite]]
 name = "radioNW"
-x = 382
+x = 384
 y = 2642
 w = 46
-h = 49
+h = 50
 
 [[sprite]]
 name = "radioNE"
-x = 429
+x = 431
 y = 2642
-w = 46
-h = 49
+w = 48
+h = 50
 
 [[sprite]]
 name = "pottedPlantSW"
@@ -1941,7 +1941,7 @@ h = 60
 
 [[sprite]]
 name = "pottedPlantNW"
-x = 29
+x = 209
 y = 2581
 w = 30
 h = 59
@@ -2060,21 +2060,21 @@ h = 65
 
 [[sprite]]
 name = "cabinetBedDrawerSW"
-x = 179
+x = 359
 y = 2581
 w = 40
 h = 56
 
 [[sprite]]
 name = "cabinetBedDrawerNW"
-x = 220
+x = 400
 y = 2581
 w = 40
 h = 56
 
 [[sprite]]
 name = "cabinetBedDrawerNE"
-x = 261
+x = 441
 y = 2581
 w = 40
 h = 56

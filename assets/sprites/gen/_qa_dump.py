@@ -14,6 +14,17 @@ OUT = os.path.join(os.path.dirname(__file__), "_qa", "x6")
 os.makedirs(OUT, exist_ok=True)
 
 NAMES = (
+    "sim",
+    "sim2",
+    "sim3",
+    "simTalkSE0",
+    "simTalkSE1",
+    "simWalkSE0",
+    "simWalkSE1",
+    "simEatSE0",
+    "simEatSE1",
+    "simStandReadNE1",
+    "simReadSE0",
     "loungeChairRelax",
     "loungeChair",
     "bedDouble",
@@ -80,7 +91,8 @@ def ascii_dump(img, max_w=64):
 def render_named(name):
     img, d = canvas()
     getattr(objects, name)(d)
-    crop, _, _ = emit(img)
+    ew, eh = objects.EXACT.get(name, (None, None))
+    crop, _, _ = emit(img, ew, eh)
     return crop
 
 
