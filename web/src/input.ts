@@ -30,6 +30,11 @@
 
 import { SPRITES } from './render/atlas.js';
 import {
+  simBodySprite,
+  VISUAL_ACTION_WALK,
+  walkingFacing,
+} from './frame.js';
+import {
   DRAG_THRESHOLD_PX,
   pinchZoom,
   pointerDistance,
@@ -65,6 +70,8 @@ import {
 export interface PickSource {
   readonly count: number;
   positions(): Float32Array;
+  /** Previous displayed positions, when presentation-aware picking needs them. */
+  prevPositions?(): Float32Array;
   /** 0 for a sim, 1 for a smart object. */
   kinds(): Uint32Array;
   /** The raw entity index in each row. NOT the row number; see `pickAt`. */
@@ -75,6 +82,12 @@ export interface PickSource {
    * not the tile - see `pickSprite`.
    */
   sprites(): Uint32Array;
+  /** Presentation action codes for resolving the body the player can see. */
+  visualActions?(): Uint32Array;
+  /** Lot-axis presentation facing codes. */
+  facings?(): Uint32Array;
+  /** Current deterministic simulation tick for timed body frames. */
+  clockTick?(): number;
   /**
    * Activity codes per row. Picking reads the at-work code because a row that
    * is not drawn must not be clickable. Walking uses fixed-envelope character
@@ -270,7 +283,7 @@ export function pickSprite(
   originX: number,
   originY: number,
   scale = 1,
-  _reducedMotion = false,
+  reducedMotion = false,
 ): Pick | null {
   const count = source.count;
   const positions = source.positions();
@@ -278,6 +291,10 @@ export function pickSprite(
   const ids = source.ids();
   const spriteIndices = source.sprites();
   const activities = source.activities();
+  const visualActions = source.visualActions?.() ?? null;
+  const facings = source.facings?.() ?? null;
+  const previous = source.prevPositions?.() ?? positions;
+  const simulationTick = source.clockTick?.() ?? 0;
 
   let best: Pick | null = null;
   let bestNearness = -Infinity;
@@ -288,7 +305,31 @@ export function pickSprite(
     if (activities[row] === ACTIVITY_AT_WORK) continue;
     const wx = positions[row * 2];
     const wy = positions[row * 2 + 1];
-    const sprite = SPRITES[spriteIndices[row]];
+    const bodyFacing =
+      kinds[row] === KIND_AGENT &&
+      visualActions?.[row] === VISUAL_ACTION_WALK &&
+      facings !== null
+        ? walkingFacing(
+            previous[row * 2],
+            previous[row * 2 + 1],
+            wx,
+            wy,
+            facings[row],
+          )
+        : facings?.[row] ?? 0;
+    const displayedSprite =
+      kinds[row] === KIND_AGENT && visualActions !== null && facings !== null
+        ? simBodySprite(
+            ids[row],
+            visualActions[row],
+            bodyFacing,
+            simulationTick,
+            reducedMotion,
+            wx,
+            wy,
+          )
+        : spriteIndices[row];
+    const sprite = SPRITES[displayedSprite];
     // A row whose sprite index is out of range would otherwise throw on
     // `.w`. It cannot happen from compiled content, and a click is not the
     // place to discover that it did.

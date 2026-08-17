@@ -145,6 +145,7 @@ pub fn object_sized(
         // Roleless, like most furniture; chain tests wear their own.
         roles: Vec::new(),
         action_sockets: Vec::new(),
+        foreground_sprite: None,
     }
 }
 

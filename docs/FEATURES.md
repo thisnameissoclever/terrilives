@@ -692,10 +692,12 @@ that lands first or alongside.
 
 ### [B-facing] Objects know which way they face, and overlap follows
 
-Every object is drawn as one sprite at one depth, and depth comes from
-its tile. That is wrong the moment two objects share a line of sight: the
-bunk bed's posts draw over the bed standing in front of it, because the
-renderer has no idea the posts are BEHIND the thing they overlap.
+Most objects are still drawn as one sprite at one depth, and depth comes from
+their tile. The lower-bunk sleep slice proves one general exception: compiled
+content can provide an optional foreground sprite that the renderer draws over
+a socket-projected body. The bunk now uses it for its upper mattress, near
+posts, rail, and ladder. Other furniture still needs authored pieces before it
+can use the same infrastructure.
 
 Two pieces, and they are separable:
 
@@ -703,14 +705,14 @@ Two pieces, and they are separable:
   follows from it, and a builder can turn it. The kitchen already has
   hand-authored `SW` variants of four sprites, which is this feature done
   once by hand for one direction.
-* **Sub-object depth.** A tall object needs more than one depth. The
-  posts of a bunk bed, the screen of a television and the door of a
-  fridge are parts, and a part in front of a sim and a part behind it
-  cannot share a number.
+* **Sub-object depth.** A tall object needs more than one depth. The bunk is
+  the first shipped proof. Television screens, refrigerator doors, and other
+  moving or occluding parts still need their own authored split.
 
-The second half is the expensive one and it touches [D10]: more parts is
-more instances, which the instance path is fine with, but the depth
-formula stops being "one number per tile".
+The second half now has a content, render-buffer, bridge, and depth-layer
+contract. Each additional split still costs an instance and needs visual,
+picking, lighting, and interaction review; it is no longer an unknown renderer
+architecture problem.
 
 ### [A-art-pass] The furniture does not survive being looked at
 
@@ -731,12 +733,14 @@ every sim. `hair_cap` in `objects.py` traces the head instead.
 
 ### [A-animations] Several ordinary actions are still static poses
 
-Walking has a real directional arm-and-leg cycle. Talking, eating, armchair
-sitting, seated and standing reading, watching fish, and exercising have two
-authored frames per look and facing. Sleeping, cooking, washing, using a
-toilet, and idling remain static poses. The generic `Using object` activity
-stays deliberately text-only until each category has an honest anchor and body
-contract.
+Walking has a real directional arm-and-leg cycle. Talking, eating, lower-bunk
+sleeping, armchair sitting, seated and standing reading, watching fish, and
+exercising have two authored frames per look and facing. The lower bunk also
+has a generated foreground layer, so its upper mattress, near posts, rail, and
+ladder cover the horizontal body correctly. Double-bed sleeping, cooking,
+washing, using a toilet, and idling remain static poses. The generic
+`Using object` activity stays deliberately text-only until each category has
+an honest anchor and body contract.
 
 This is the largest single lever on how alive the game looks, and it is
 mostly generator work once the simulation can name an exact action and anchor;

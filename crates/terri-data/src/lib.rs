@@ -880,6 +880,32 @@ mod tests {
     }
 
     #[test]
+    fn the_fingerprint_allows_foreground_sprite_presentation_changes() {
+        let original = pack().clone();
+        let base = content_fingerprint(&original);
+        let bed = original.find("bed").expect("the shipped bunk bed exists");
+        let placement = original
+            .lot
+            .placements
+            .iter()
+            .position(|candidate| candidate.object == bed)
+            .expect("the shipped lot places the bunk bed");
+        assert!(original.object(bed).foreground_sprite.is_some());
+        assert!(original.lot.placements[placement]
+            .foreground_sprite
+            .is_some());
+
+        let mut presentation_only = original;
+        presentation_only.objects[bed.0 as usize].foreground_sprite = None;
+        presentation_only.lot.placements[placement].foreground_sprite = None;
+        assert_eq!(
+            base,
+            content_fingerprint(&presentation_only),
+            "foreground bedding is reconstructed presentation and must not invalidate Save V1"
+        );
+    }
+
+    #[test]
     fn the_fingerprint_allows_chain_step_visual_presentation_changes() {
         let original = pack().clone();
         let base = content_fingerprint(&original);
@@ -1148,6 +1174,59 @@ mod tests {
                 placement.action_sockets[0].facing,
             ),
             (13.0, 0.0, CompiledSocketFacing::PositiveX)
+        );
+    }
+
+    #[test]
+    fn the_shipped_bunk_carries_the_exact_lower_bunk_sleep_contract() {
+        let p = pack();
+        let bed = p.find("bed").expect("shipped bunk bed");
+        let object = p.object(bed);
+        let action = object
+            .interactions
+            .iter()
+            .find(|interaction| interaction.id == "sleep")
+            .expect("shipped sleep interaction");
+
+        assert!(action.tags.iter().any(|tag| tag == "sleep"));
+        assert_eq!(
+            action.visual,
+            Some(CompiledVisual {
+                action: CompiledVisualAction::Sleep,
+                anchor: CompiledVisualAnchor::ObjectSocket,
+                facing: CompiledVisualFacing::Socket,
+                socket: Some(0),
+            })
+        );
+        assert_eq!(object.action_sockets.len(), 1);
+        assert_eq!(object.action_sockets[0].id, "lower_bunk");
+        assert_eq!(
+            (
+                object.action_sockets[0].x,
+                object.action_sockets[0].y,
+                object.action_sockets[0].facing,
+            ),
+            (0.0, 0.0, CompiledSocketFacing::PositiveX)
+        );
+        let foreground = object
+            .foreground_sprite
+            .expect("the bunk bed resolves its foreground bedding");
+
+        let placement = p
+            .lot
+            .placements
+            .iter()
+            .find(|placement| placement.object == bed)
+            .expect("bunk bed placement");
+        assert_eq!(placement.foreground_sprite, Some(foreground));
+        assert_eq!(placement.action_sockets.len(), 1);
+        assert_eq!(
+            (
+                placement.action_sockets[0].x,
+                placement.action_sockets[0].y,
+                placement.action_sockets[0].facing,
+            ),
+            (9.5, 6.0, CompiledSocketFacing::PositiveX)
         );
     }
 

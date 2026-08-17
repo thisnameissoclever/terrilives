@@ -7,6 +7,7 @@
  */
 
 import {
+  LAYER_FOREGROUND,
   LAYER_PROP,
   LAYER_SIM,
   layeredDepth,
@@ -263,6 +264,28 @@ const SIM_SIT_SPRITES: readonly ActionFacings[] = [
   ],
 ];
 
+/** Two calm lower-bunk breathing frames for every look and lot-axis facing. */
+const SIM_SLEEP_SPRITES: readonly ActionFacings[] = [
+  [
+    [spriteIndex('simSleepSE0'), spriteIndex('simSleepSE1')],
+    [spriteIndex('simSleepNW0'), spriteIndex('simSleepNW1')],
+    [spriteIndex('simSleepSW0'), spriteIndex('simSleepSW1')],
+    [spriteIndex('simSleepNE0'), spriteIndex('simSleepNE1')],
+  ],
+  [
+    [spriteIndex('sim2SleepSE0'), spriteIndex('sim2SleepSE1')],
+    [spriteIndex('sim2SleepNW0'), spriteIndex('sim2SleepNW1')],
+    [spriteIndex('sim2SleepSW0'), spriteIndex('sim2SleepSW1')],
+    [spriteIndex('sim2SleepNE0'), spriteIndex('sim2SleepNE1')],
+  ],
+  [
+    [spriteIndex('sim3SleepSE0'), spriteIndex('sim3SleepSE1')],
+    [spriteIndex('sim3SleepNW0'), spriteIndex('sim3SleepNW1')],
+    [spriteIndex('sim3SleepSW0'), spriteIndex('sim3SleepSW1')],
+    [spriteIndex('sim3SleepNE0'), spriteIndex('sim3SleepNE1')],
+  ],
+];
+
 /** Food held by an exact snack action, resolved once at module load. */
 const HELD_SNACK_SPRITE = spriteIndex('heldSnack');
 
@@ -290,6 +313,9 @@ export const VISUAL_ACTION_WATCH_FISH = 7;
 /** The append-only visual-action code for ordinary sitting. */
 export const VISUAL_ACTION_SIT = 8;
 
+/** The append-only visual-action code for sleeping in the lower bunk. */
+export const VISUAL_ACTION_SLEEP = 9;
+
 /** Render-buffer facing codes, in the same order as `SIM_TALK_SPRITES`. */
 export const FACING_POSITIVE_X = 1;
 export const FACING_NEGATIVE_X = 2;
@@ -313,6 +339,9 @@ export const WATCH_FISH_FRAME_TICKS = 24;
 
 /** A sitting adjustment holds for twenty-four ticks, or 2.4 s at 1x. */
 export const SIT_FRAME_TICKS = 24;
+
+/** A lower-bunk breathing frame holds for thirty-two ticks, or 3.2 s at 1x. */
+export const SLEEP_FRAME_TICKS = 32;
 
 /** Fish move at the same calm cadence as the watcher. */
 export const AQUARIUM_FRAME_TICKS = 24;
@@ -345,7 +374,8 @@ function timedActionFrame(
     visualAction === VISUAL_ACTION_STANDING_READ ||
     visualAction === VISUAL_ACTION_EXERCISE ||
     visualAction === VISUAL_ACTION_WATCH_FISH ||
-    visualAction === VISUAL_ACTION_SIT
+    visualAction === VISUAL_ACTION_SIT ||
+    visualAction === VISUAL_ACTION_SLEEP
       ? id % frameTicks
       : (id & 1) * frameTicks;
   return Math.floor((simulationTick + phaseTicks) / frameTicks) & 1;
@@ -479,6 +509,9 @@ export function simBodySprite(
   } else if (visualAction === VISUAL_ACTION_SIT) {
     sprites = SIM_SIT_SPRITES;
     frameTicks = SIT_FRAME_TICKS;
+  } else if (visualAction === VISUAL_ACTION_SLEEP) {
+    sprites = SIM_SLEEP_SPRITES;
+    frameTicks = SLEEP_FRAME_TICKS;
   } else {
     return SIM_SPRITES[look];
   }
@@ -530,17 +563,17 @@ const INDICATOR_SPRITES: readonly (number | null)[] = [
 export const ACTIVITY_EATING = 3;
 
 /**
- * How far above a sim's anchor its bubble floats, in screen pixels: the
- * sim sprite is 78 tall and the bubble hangs just over its head.
+ * How far inside the displayed body's top edge its bubble sits. Deriving the
+ * lift from the current sprite keeps standing, seated, and horizontal bodies
+ * aligned without an action-specific offset table.
  */
-const INDICATOR_LIFT = 84;
+const INDICATOR_INSET = 4;
 
 /**
- * Nudges a bubble NEARER than the sim it belongs to, without inventing a
- * depth layer. Far smaller than the layer step, so it can never reorder
- * a bubble against anything but its own sim - and without it the two
- * share a depth exactly, where `depthCompare: 'less'` discards the
- * second quad drawn ([V12]).
+ * Nudges a bubble nearer than the foreground layer it shares. Far smaller
+ * than the layer step, so it can never reorder a bubble against another tile;
+ * without it, a bubble and authored foreground on one anchor could share a
+ * depth exactly, where `depthCompare: 'less'` discards the second quad drawn.
  */
 const INDICATOR_DEPTH_NUDGE = 1e-5;
 
@@ -717,6 +750,8 @@ export interface RenderSource {
    * is exactly the coupling [D1] exists to prevent.
    */
   sprites(): Uint32Array;
+  /** Optional authored object layer drawn in front of a socket-projected sim. */
+  foregroundSprites?(): Uint32Array;
   /**
    * What each row is doing, as `render_buffer::activity` codes - the
    * [A-11] indicator column. Read every frame like every other view.
@@ -724,7 +759,7 @@ export interface RenderSource {
   activities(): Uint32Array;
   /**
    * Presentation pose: 0 none, 1 talk, 2 eat, 3 seated read,
-   * 4 standing read, 5 walk, 6 exercise, 7 watch fish.
+   * 4 standing read, 5 walk, 6 exercise, 7 watch fish, 8 sit, 9 sleep.
    */
   visualActions(): Uint32Array;
   /** Lot-axis facing: 0 none, 1 +x, 2 -x, 3 +y, 4 -y. */
@@ -743,6 +778,8 @@ export interface RenderSource {
 
 /** The carrying column's empty-hands sentinel. */
 const NOT_CARRYING = 0xffff_ffff;
+/** The foreground column's no-layer sentinel, shared with Rust. */
+export const NO_FOREGROUND_SPRITE = 0xffff_ffff;
 
 /**
  * Atlas indices per item kind, resolved once on first use from the
@@ -858,11 +895,11 @@ export function buildInstances(
   lighting: TileLighting | null = null,
 ): InstanceArray {
   const count = source.count;
-  // Room for the entities, one bubble and one carried badge each in
-  // the worst case, and the selection ring. Still [D11]-clean: the
+  // Room for the entities, one foreground, one bubble and one carried badge
+  // each in the worst case, and the selection ring. Still [D11]-clean: the
   // scratch buffer grows once to the high-water mark and is reused;
   // nothing per-frame allocates.
-  const needed = (count * 3 + 1) * FLOATS_PER_INSTANCE;
+  const needed = (count * 4 + 1) * FLOATS_PER_INSTANCE;
   if (scratch.length < needed) {
     scratch = new Float32Array(needed);
   }
@@ -879,6 +916,7 @@ export function buildInstances(
   const visualActions = source.visualActions();
   const facings = source.facings();
   const ids = source.ids();
+  const foregroundSprites = source.foregroundSprites?.() ?? null;
 
   for (let i = 0; i < count; i++) {
     // A sim at the office is not drawn, and its slot must not shift:
@@ -957,18 +995,70 @@ export function buildInstances(
     );
   }
 
-  // **The indicator bubbles, in the slots after the entities.** One per
+  // **Authored object foregrounds, in the slots after the entities.** The
+  // body is already on the sim layer. This pass puts the upper bunk, near
+  // posts, rail and ladder over it without teaching the shell which object
+  // owns those pixels.
+  let slot = count;
+  if (foregroundSprites !== null) {
+    for (let i = 0; i < count; i++) {
+      const sprite = foregroundSprites[i];
+      if (sprite === NO_FOREGROUND_SPRITE || activities[i] === ACTIVITY_AT_WORK) {
+        continue;
+      }
+      const wx = lerp(previous[i * 2], current[i * 2], alpha);
+      const wy = lerp(previous[i * 2 + 1], current[i * 2 + 1], alpha);
+      const localLight = lighting === null
+        ? EMISSIVE_NONE
+        : sampleLight(lighting, Math.floor(wx), Math.floor(wy));
+      writeInstance(
+        scratch,
+        slot++,
+        screenX(wx, wy, originX, scale),
+        screenY(wx, wy, originY, scale),
+        layeredDepth(wx, wy, gridSize, LAYER_FOREGROUND),
+        sprite,
+        TINT_NONE,
+        TINT_NONE,
+        TINT_NONE,
+        Math.max(emissiveForSprite(sprite), localLight),
+      );
+    }
+  }
+
+  // **The indicator bubbles, after authored foregrounds.** One per
   // sim whose activity draws, floated over the sim's interpolated
   // position so it tracks a walker into a conversation, and nudged
   // nearer than the sim itself so the two never tie on depth. This is
   // the owner's "if you can't see what they're doing, they may as well
   // not be doing anything", as quads.
-  let slot = count;
   for (let i = 0; i < count; i++) {
     const sprite = INDICATOR_SPRITES[activities[i]] ?? null;
     if (sprite === null) continue;
     const wx = lerp(previous[i * 2], current[i * 2], alpha);
     const wy = lerp(previous[i * 2 + 1], current[i * 2 + 1], alpha);
+    const bodyFacing =
+      kinds[i] === KIND_AGENT && visualActions[i] === VISUAL_ACTION_WALK
+        ? walkingFacing(
+            previous[i * 2],
+            previous[i * 2 + 1],
+            current[i * 2],
+            current[i * 2 + 1],
+            facings[i],
+          )
+        : facings[i];
+    const displayedBody =
+      kinds[i] === KIND_AGENT
+        ? simBodySprite(
+            ids[i],
+            visualActions[i],
+            bodyFacing,
+            simulationTick,
+            reducedMotion,
+            wx,
+            wy,
+          )
+        : objectBodySprite(sprites[i], simulationTick, reducedMotion);
     writeInstance(
       scratch,
       slot++,
@@ -976,8 +1066,9 @@ export function buildInstances(
       // The lift scales with the camera: the sim's sprite is drawn
       // `scale` times taller, so an unscaled lift would sink the bubble
       // into a zoomed head and orbit it high over a zoomed-out one.
-      screenY(wx, wy, originY, scale) - INDICATOR_LIFT * scale,
-      layeredDepth(wx, wy, gridSize, LAYER_SIM) - INDICATOR_DEPTH_NUDGE,
+      screenY(wx, wy, originY, scale) -
+        (SPRITES[displayedBody].h - INDICATOR_INSET) * scale,
+      layeredDepth(wx, wy, gridSize, LAYER_FOREGROUND) - INDICATOR_DEPTH_NUDGE,
       sprite,
     );
   }
@@ -1094,7 +1185,15 @@ export function instanceCount(source: RenderSource, selected: number | null): nu
   const kinds = source.kinds();
   const visualActions = source.visualActions();
   const facings = source.facings();
+  const foregroundSprites = source.foregroundSprites?.() ?? null;
   for (let i = 0; i < source.count; i++) {
+    if (
+      foregroundSprites !== null &&
+      foregroundSprites[i] !== NO_FOREGROUND_SPRITE &&
+      activities[i] !== ACTIVITY_AT_WORK
+    ) {
+      extras++;
+    }
     if (INDICATOR_SPRITES[activities[i]] != null) extras++;
     const eatingPose = exactEatingPose(
       kinds[i],

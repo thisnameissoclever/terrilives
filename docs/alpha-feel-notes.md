@@ -2750,3 +2750,35 @@ reported `Sitting`.
   are complete. Merge, exact-head CI, public Pages deployment and replay,
   phone-width use, physical safe areas, operating-system reduced motion, and
   final owner approval remain open.
+
+## [A-lower-bunk-sleep] Sleep reads as lying in bed
+
+The 2026-08-17 local production pass used a clean household and the normal
+keyboard target plus object-action menu at 1280 by 720. Bill reached
+`Sleepeazy Deluxe`, the HUD reported `Sleeping`, and the displayed body moved
+to the lower-bunk socket.
+
+- **The pose and occlusion read correctly.** At ordinary zoom the sleeper is
+  visible without dominating the room. At close zoom the cheek sits on the
+  pillow, the body runs along the mattress, and the upper bunk, near posts,
+  rail, and ladder cover the right pixels. The first generator composite was
+  rejected because it read as crouching out of bed.
+- **The motion is restrained.** Two 32-tick frames move only the exposed hand
+  and shoulder region. A 3.4-second 1x sample showed no head, hip, duvet, or
+  bed bob. Pause froze the exact pose.
+- **The UI follows the horizontal body.** The sleep bubble drops from the
+  standing 84-pixel lift to 68 pixels. Picking uses the 104 by 72 sleeping
+  envelope rather than invisible standing headroom.
+- **Save and Load reconstruct the layered display.** A save taken while
+  paused in `Sleeping` was allowed to advance until the HUD reported another
+  object use. Load restored `Sleeping` and the foreground-covered bunk pose.
+- **The played route is real.** A stale long-running save initially obscured
+  the review because Tim left for work and Bill was already committed to a
+  route. A clean New game reached sleep immediately through normal controls;
+  no debug command or direct state mutation was used.
+- **Proof boundary.** Generator reproduction, 444 web tests, typecheck,
+  production build, focused Rust tests, local production play, same-input
+  reference comparison, save and load, and a warning-free browser console are
+  complete. Merge, exact-head CI, public Pages deployment and replay,
+  phone-width use, physical safe areas, operating-system reduced motion, and
+  owner approval remain open.

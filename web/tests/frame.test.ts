@@ -18,6 +18,7 @@ import {
   EXERCISE_FRAME_TICKS,
   objectBodySprite,
   READ_FRAME_TICKS,
+  SLEEP_FRAME_TICKS,
   SIT_FRAME_TICKS,
   simBodySprite,
   simSprite,
@@ -25,6 +26,7 @@ import {
   VISUAL_ACTION_EAT,
   VISUAL_ACTION_EXERCISE,
   VISUAL_ACTION_READ,
+  VISUAL_ACTION_SLEEP,
   VISUAL_ACTION_SIT,
   VISUAL_ACTION_STANDING_READ,
   VISUAL_ACTION_TALK,
@@ -39,6 +41,7 @@ import { spriteIndex } from '../src/render/atlas.js';
 import type { TileLighting } from '../src/render/lighting.js';
 import {
   FLOOR_DEPTH,
+  LAYER_FOREGROUND,
   LAYER_PROP,
   LAYER_SIM,
   layeredDepth,
@@ -178,9 +181,15 @@ type FakeEntity =
  */
 class FakeEntities implements RenderSource {
   private entities: readonly FakeEntity[] = [];
+  private foregrounds: readonly number[] | null = null;
 
   set(entities: readonly FakeEntity[]): void {
     this.entities = entities;
+    this.foregrounds = null;
+  }
+
+  setForegrounds(foregrounds: readonly number[]): void {
+    this.foregrounds = foregrounds;
   }
 
   get count(): number {
@@ -201,6 +210,12 @@ class FakeEntities implements RenderSource {
 
   sprites(): Uint32Array {
     return Uint32Array.from(this.entities.map((e) => e[5]));
+  }
+
+  foregroundSprites(): Uint32Array {
+    return Uint32Array.from(
+      this.foregrounds ?? this.entities.map(() => 0xffff_ffff),
+    );
   }
 
   activities(): Uint32Array {
@@ -706,7 +721,7 @@ describe('simBodySprite', () => {
     ).toBe(phaseCases.length);
   });
 
-  it('resolves exercise, watching-fish, and sitting frames after stable-id staggering', () => {
+  it('resolves object-action frames after stable-id staggering', () => {
     for (const { action, stem, frameTicks } of [
       {
         action: VISUAL_ACTION_EXERCISE,
@@ -722,6 +737,11 @@ describe('simBodySprite', () => {
         action: VISUAL_ACTION_SIT,
         stem: 'Sit',
         frameTicks: SIT_FRAME_TICKS,
+      },
+      {
+        action: VISUAL_ACTION_SLEEP,
+        stem: 'Sleep',
+        frameTicks: SLEEP_FRAME_TICKS,
       },
     ] as const) {
       const transitions: number[] = [];
@@ -762,6 +782,7 @@ describe('simBodySprite', () => {
     expect(EXERCISE_FRAME_TICKS).toBe(8);
     expect(WATCH_FISH_FRAME_TICKS).toBe(24);
     expect(SIT_FRAME_TICKS).toBe(24);
+    expect(SLEEP_FRAME_TICKS).toBe(32);
   });
 
   it('resolves both distance-driven walk frames for every look and facing', () => {
@@ -867,6 +888,11 @@ describe('simBodySprite', () => {
             name: 'Sit',
             frameTicks: SIT_FRAME_TICKS,
           },
+          {
+            action: VISUAL_ACTION_SLEEP,
+            name: 'Sleep',
+            frameTicks: SLEEP_FRAME_TICKS,
+          },
         ] as const) {
           const atStart = simBodySprite(id, action, facing, 0, true);
           const muchLater = simBodySprite(
@@ -913,7 +939,7 @@ describe('simBodySprite', () => {
       expect(simBodySprite(id, VISUAL_ACTION_READ, 0, 8, false)).toBe(
         simSprite(id),
       );
-      expect(simBodySprite(id, 9, FACING_POSITIVE_X, 8, false)).toBe(
+      expect(simBodySprite(id, 10, FACING_POSITIVE_X, 8, false)).toBe(
         simSprite(id),
       );
     }
@@ -2315,6 +2341,42 @@ describe('the selection ring', () => {
     // And that really is the interpolated point, not either endpoint - so a
     // ring drawn from the tick position instead would fail here.
     expect(ring.x).toBe(screenX(5, 4, ORIGIN_X));
+  });
+});
+
+describe('lower-bunk foreground composition', () => {
+  it('draws the sleeper between both bunk layers and keeps the sleep bubble close', () => {
+    const src = new FakeEntities();
+    const bed = spriteIndex('bedBunk');
+    const foreground = spriteIndex('bedBunkForeground');
+    src.set([
+      [6, 4, 6, 4, 1, bed],
+      [6, 4, 6, 4, KIND_AGENT, 0, 5, 0xffff_ffff, VISUAL_ACTION_SLEEP,
+        FACING_POSITIVE_X],
+    ]);
+    src.setForegrounds([foreground, 0xffff_ffff]);
+
+    expect(instanceCount(src, null)).toBe(4);
+    const built = buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID, null, 1, false, 0);
+    const bedBase = 0;
+    const sleeperBase = FLOATS_PER_INSTANCE;
+    const foregroundBase = FLOATS_PER_INSTANCE * 2;
+    const bubbleBase = FLOATS_PER_INSTANCE * 3;
+
+    expect(built[bedBase + OFFSET_SPRITE]).toBe(bed);
+    expect(built[sleeperBase + OFFSET_SPRITE]).toBe(
+      spriteIndex('sim3SleepSE0'),
+    );
+    expect(built[foregroundBase + OFFSET_SPRITE]).toBe(foreground);
+    expect(built[foregroundBase + OFFSET_DEPTH]).toBe(
+      stored(layeredDepth(6, 4, GRID, LAYER_FOREGROUND)),
+    );
+    expect(built[foregroundBase + OFFSET_DEPTH]).toBeLessThan(
+      built[sleeperBase + OFFSET_DEPTH],
+    );
+    expect(built[bubbleBase + OFFSET_SCREEN_Y]).toBe(
+      built[sleeperBase + OFFSET_SCREEN_Y] - 68,
+    );
   });
 });
 

@@ -333,6 +333,12 @@ impl SimHandle {
         self.sim.render_buffer().sprites.as_ptr()
     }
 
+    /// Facing-resolved foreground sprite index per row, or the absent-layer
+    /// sentinel. Re-read after every sync or memory growth.
+    pub fn foreground_sprites_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().foreground_sprites.as_ptr()
+    }
+
     /// What each row is doing, as `render_buffer::activity` codes -
     /// the [A-11] indicator column. Same caching hazard as every other
     /// pointer here; re-read it on every access.
@@ -2382,6 +2388,34 @@ mod boundary_tests {
             vec![sofa.sprite, pack.sim_sprite],
             "sprites_ptr must address the atlas index per row, sorted by \
              entity index, so the object spawned first comes first"
+        );
+    }
+
+    #[test]
+    fn foreground_sprites_ptr_addresses_the_optional_layer_after_growth() {
+        let mut handle = SimHandle::new(96, 96);
+        assert!(handle.spawn_object(1.0, 1.0, "bed"));
+        for index in 0..48 {
+            handle.spawn_agent(20.0 + index as f32, 20.0, 50.0);
+        }
+
+        let pack = handle.sim.world().resource::<Content>().0;
+        let bed = pack.object(pack.find("bed").expect("shipped content has a bed"));
+        let expected = bed
+            .foreground_sprite
+            .expect("the shipped bunk bed declares foreground bedding");
+        let layers = addressed(
+            handle.foreground_sprites_ptr(),
+            handle.entity_count(),
+            "foreground_sprites_ptr",
+        );
+
+        assert_eq!(layers[0], expected);
+        assert!(
+            layers[1..]
+                .iter()
+                .all(|&sprite| sprite == terri_sim::render_buffer::NO_FOREGROUND_SPRITE),
+            "agent rows must use the absent-layer sentinel"
         );
     }
 

@@ -222,3 +222,43 @@ and
 `.playwright-mcp/round-02-armchair-seating/07-local-bill-sitting-final-frame-c.png`.
 This review does not claim a phone-width replay, a physical safe-area pass, a
 real operating-system reduced-motion setting, or owner approval.
+
+## Lower-bunk sleep design QA
+
+Current review date: 2026-08-17
+
+Current result: the exact lower-bunk sleep interaction passed a local
+production WebGPU review. Merge, public replay, phone-width use,
+physical-device review, operating-system reduced motion, and final
+product-owner acceptance remain open.
+
+The built-in image generator produced
+`docs/assets/lower-bunk-sleep/reference-lower-bunk-sleep.png` as a pose and
+occlusion reference. It requested one adult lying naturally on the lower
+mattress, four facings, two calm breathing frames, fixed head and body contact,
+and correct coverage by the upper bunk, near posts, rail, ladder, and duvet.
+The deterministic Python generator owns the runtime atlas.
+
+The first runtime composite was rejected because the person read as crouching
+or climbing out. The accepted candidate raises the cheek onto the pillow,
+places the torso and legs along the mattress, tucks the hand beside the face,
+and splits the old bunk art into pixel-identical background plus foreground
+layers. The 24 sleeping records, optional foreground record, dimensions,
+directional silhouettes, and restrained frame differences are generator-pinned.
+
+The real `Sleep` menu route was played from a clean household at 1280 by 720.
+Bill projected to the lower-bunk socket and the HUD reported `Sleeping`. At
+ordinary zoom the action remained readable in the room; at close zoom the
+body, pillow, duvet, rail, posts, ladder, and upper mattress had credible
+contact and depth. A 3.4-second 1x sample exposed the second frame without
+visible body or bed bob. Saving during sleep, advancing beyond it, and loading
+restored `Sleeping` and the layered pose. The browser logged no warnings or
+errors.
+
+Retained local evidence lives outside the feature commit at
+`.playwright-mcp/round-05-lower-bunk-sleep/01-local-sleep-close-frame-a.png`,
+`.playwright-mcp/round-05-lower-bunk-sleep/02-local-sleep-close-frame-b.png`,
+and `.playwright-mcp/round-05-lower-bunk-sleep/03-local-sleep-restored.png`.
+This review does not claim a public replay, phone-width action use, a physical
+safe-area pass, a real operating-system reduced-motion setting, or owner
+approval.

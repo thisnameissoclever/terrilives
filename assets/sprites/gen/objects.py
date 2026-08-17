@@ -17,7 +17,7 @@ from style import (PALETTE as C, OUTLINE, OUTLINE_WIDTH,
 from iso import (P, Pf, OX, OY, sx, sy, box, slab, cyl, diamond, surface,
                  facing_aabb, legs, contact_shadow, canvas, emit, plump,
                  HW, HH, Z_UNIT)
-from chars import person
+from chars import person, sleeping_person
 
 WALL_H = 2.0
 A, B = -0.5, 0.5          # a 1x1 footprint, centred on the anchor tile
@@ -431,11 +431,20 @@ def bedDouble(d):
     _double_bed(d, "se")
 
 
-def _bunk(d, facing="se"):
-    """Two bunks on four posts, painted far-to-near so posts do not ghost."""
+def _bunk(d, facing="se", phase="complete"):
+    """Two bunks split into a background and a sleeper-occluding foreground.
+
+    `complete` preserves every rotated furniture variant. The shipped SE bunk
+    is emitted as `background` plus `foreground`, with the sleeper drawn
+    between them by the renderer. Painting the phases in that order reproduces
+    the former empty-bunk pixels exactly.
+    """
+    if phase not in ("background", "foreground", "complete"):
+        raise ValueError(f"unknown bunk phase {phase!r}")
     w = C["wood"]
     x0, y0, x1, y1 = _span(facing, 1.90, across=0.86, inset=0.06)
-    contact_shadow(d, x0, y0, x1, y1, "se")
+    if phase in ("background", "complete"):
+        contact_shadow(d, x0, y0, x1, y1, "se")
     t = 0.10
     posts = [(x0, y0), (x0, y1 - t), (x1 - t, y0), (x1 - t, y1 - t)]
     # Camera sees +x and +y. Only the back corner stays behind the mattresses;
@@ -470,13 +479,17 @@ def _bunk(d, facing="se"):
             slab(d, x0 + t + .06, y0 + t + .22, x1 - t - .06, y1 - t - .06,
                  z + 0.24, C["fabric"], thick=0.08)
 
-    for x, y in far_posts:
-        post(x, y)
-    bunk_level(0.22)
-    bunk_level(1.10)
-    for x, y in near_posts:
-        post(x, y)
+    if phase in ("background", "complete"):
+        for x, y in far_posts:
+            post(x, y)
+        bunk_level(0.22)
+    if phase in ("foreground", "complete"):
+        bunk_level(1.10)
+        for x, y in near_posts:
+            post(x, y)
     # Ladder on the near long edge, after the near posts.
+    if phase not in ("foreground", "complete"):
+        return
     if along_x:
         lx = x1 - .04
         d.line([P(lx, y1 - .02, 0.30), P(lx, y1 - .02, 1.28)],
@@ -498,7 +511,11 @@ def _bunk(d, facing="se"):
 
 
 def bedBunk(d):
-    _bunk(d, "se")
+    _bunk(d, "se", "background")
+
+
+def bedBunkForeground(d):
+    _bunk(d, "se", "foreground")
 
 
 def _dresser(d, facing="se"):
@@ -1228,6 +1245,10 @@ def _sitting_figure(d, palette, facing, frame):
     person(d, palette, facing, "sit", frame)
 
 
+def _sleeping_figure(d, palette, facing, frame):
+    sleeping_person(d, palette, facing, frame)
+
+
 
 def _named_action_sprites(stem, drawer):
     """Create append-only named atlas callables without 48 copy-paste shells."""
@@ -1246,6 +1267,7 @@ def _named_action_sprites(stem, drawer):
 EXERCISE_SPRITES = _named_action_sprites("Exercise", _exercise_figure)
 WATCH_FISH_SPRITES = _named_action_sprites("WatchFish", _watch_fish_figure)
 SITTING_SPRITES = _named_action_sprites("Sit", _sitting_figure)
+SLEEPING_SPRITES = _named_action_sprites("Sleep", _sleeping_figure)
 
 
 # ---------------------------------------------------------- indicators ----
@@ -1501,6 +1523,10 @@ EXACT = {
 
 for action_sprite in EXERCISE_SPRITES + WATCH_FISH_SPRITES + SITTING_SPRITES:
     EXACT[action_sprite.__name__] = (38, 88)
+EXACT["bedBunk"] = (122, 136)
+EXACT["bedBunkForeground"] = (122, 136)
+for action_sprite in SLEEPING_SPRITES:
+    EXACT[action_sprite.__name__] = (104, 72)
 
 
 def _facing_sprite(name, drawer, facing):
@@ -1642,4 +1668,8 @@ SPRITES = [
     # Ordinary armchair sitting appends after every existing record. The
     # chair remains its existing prop quad below the fixed seated body.
     *SITTING_SPRITES,
+    # Lower-bunk sleep draws the object foreground after the horizontal body.
+    # These remain append-only so every earlier atlas index stays stable.
+    bedBunkForeground,
+    *SLEEPING_SPRITES,
 ]

@@ -2,8 +2,9 @@
 
 A person is shoulders, a torso, two arms, two legs, a neck, and a head
 with a face. Hands live on their sleeves. Standing poses keep both shoes on
-one ground y; seated actions own their contact geometry. Raised hands sit
-beside the head, never on it. Food lives in a hand, never as a snout.
+one ground y; seated and sleeping actions own their contact geometry. Raised
+hands sit beside the head, never on it. Food lives in a hand, never as a
+snout.
 """
 from style import (PALETTE as C, OUTLINE, OUTLINE_WIDTH, FACE_LEFT,
                    FACE_RIGHT, CHARACTER, mul)
@@ -136,6 +137,136 @@ def _morsel(d, x, y):
     """A bite of food in a hand, not a cube glued to the face."""
     d.rectangle([x - 1, y - 1, x + 1, y + 1],
                 fill=C["accent_clay"], outline=OUTLINE, width=1)
+
+
+def sleeping_person(d, palette, facing="se", frame=0):
+    """A planted horizontal sleeper for the lower-bunk action.
+
+    The ordinary billboard is bottom-centred on a floor contact. Sleep keeps
+    that renderer contract but owns a wider 104x72 envelope whose visible art
+    sits at mattress height. The head, shoulder, hips and shoes do not move
+    between frames; only the exposed near hand shifts by two pixels, so the
+    cycle reads as breathing rather than a body bouncing on the mattress.
+    """
+    px, py = P(.5, .5)
+    shirt, trouser = palette["shirt"], palette["trouser"]
+    skin, hair = palette["skin"], palette["hair"]
+    shoe = mul(trouser, 0.55)
+
+    # Screen-space long axes for the two bed diagonals. Reversing an axis
+    # moves the head to the other end without changing the socket anchor.
+    axes = {
+        "se": (2.0, 1.0),
+        "nw": (-2.0, -1.0),
+        "sw": (-2.0, 1.0),
+        "ne": (2.0, -1.0),
+    }
+    try:
+        ax, ay = axes[facing]
+    except KeyError as err:
+        raise ValueError(f"unknown person facing {facing!r}") from err
+    length = (ax * ax + ay * ay) ** .5
+    ux, uy = ax / length, ay / length
+    vx, vy = -uy, ux
+
+    # The lower mattress is roughly nine screen pixels above the first cut's
+    # centre. Keeping that lift in the body, rather than the object socket,
+    # preserves the simulation and picking anchor while putting the cheek on
+    # the authored pillow instead of below it.
+    centre_x, centre_y = px, py - 43
+
+    def along(distance, across=0.0):
+        return (
+            centre_x + ux * distance + vx * across,
+            centre_y + uy * distance + vy * across,
+        )
+
+    head = along(-31)
+    shoulder = along(-19)
+    hip = along(-2)
+    ankle = along(25)
+
+    # Far arm and shoes first. The duvet crosses them later, which makes the
+    # sleeper read as tucked in instead of pasted over the blanket.
+    for side in (-4, 4):
+        foot = along(29, side)
+        _oval(
+            d,
+            foot[0] - 4,
+            foot[1] - 2,
+            foot[0] + 4,
+            foot[1] + 2,
+            fill=shoe,
+            outline=OUTLINE,
+            width=OUTLINE_WIDTH,
+        )
+
+    _bent_limb(d, [shoulder, hip, ankle], trouser, width=10)
+    _bent_limb(d, [along(-18, 2), hip], shirt, width=10)
+
+    # A tapered duvet occupies the lower torso and legs. It uses the house's
+    # authored fabric colour, while the exposed shoulder keeps the Sim look
+    # recognisable. The near bed rail later occludes its lower edge.
+    duvet_start = along(-17)
+    duvet_end = along(25)
+    d.polygon(
+        [
+            (duvet_start[0] + vx * 10, duvet_start[1] + vy * 10),
+            (duvet_end[0] + vx * 8, duvet_end[1] + vy * 8),
+            (duvet_end[0] - vx * 8, duvet_end[1] - vy * 8),
+            (duvet_start[0] - vx * 10, duvet_start[1] - vy * 10),
+        ],
+        fill=C["fabric"],
+        outline=OUTLINE,
+    )
+    d.line(
+        [along(3, -8), along(18, -7)],
+        fill=mul(C["fabric"], .82),
+        width=1,
+    )
+
+    # The head stays planted on the authored pillow. Back facings expose only
+    # hair; front facings keep a single sleepy eye and a short hair cap.
+    _, back = _facing(facing)
+    hx, hy = head
+    if back:
+        _oval(
+            d,
+            hx - 8,
+            hy - 7,
+            hx + 8,
+            hy + 7,
+            fill=hair,
+            outline=OUTLINE,
+            width=OUTLINE_WIDTH,
+        )
+    else:
+        _oval(
+            d,
+            hx - 7,
+            hy - 6,
+            hx + 7,
+            hy + 6,
+            fill=skin,
+            outline=OUTLINE,
+            width=OUTLINE_WIDTH,
+        )
+        d.line(
+            [(hx - 6, hy - 4), (hx + 2, hy - 6)],
+            fill=hair,
+            width=5,
+        )
+        eye = along(-31, 3)
+        d.line(
+            [(eye[0] - 2, eye[1]), (eye[0] + 1, eye[1])],
+            fill=CHARACTER["eye"],
+            width=1,
+        )
+
+    near_shoulder = along(-18, 4)
+    near_hand = along(-27 + (1 if frame else 0), 4 + (1 if frame else 0))
+    _bent_limb(d, [near_shoulder, near_hand], shirt, width=4)
+    _hand(d, near_hand[0], near_hand[1], skin)
 
 
 def person(d, palette, facing="se", pose="idle", frame=0):

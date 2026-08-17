@@ -80,6 +80,7 @@ roles = ["cold_storage"]
 id = "bed"
 name = "Sleepeazy Deluxe"
 sprite = "bedBunk"
+foreground_sprite = "bedBunkForeground"
 
   # The FIRST object in shipped content that was not 1x1 - there are six now,
   # listed in `the_shipped_lot_satisfies_every_footprint_rule` - and the
@@ -99,6 +100,12 @@ sprite = "bedBunk"
   # nudge.
   footprint = { width = 2, depth = 1 }
 
+  [[object.action_socket]]
+  id = "lower_bunk"
+  x = 0.0
+  y = 0.0
+  facing = "SE"
+
   # The largest single restore in the game and by far the longest, both
   # deliberately. Energy drains slowly (0.069 per tick), so sleeping
   # should be a rare whole-night commitment rather than a top-up squeezed
@@ -114,6 +121,7 @@ sprite = "bedBunk"
   # [circadian] covers every bed-shaped route to sleeping, exactly as one
   # authored fear covers every couch.
   tags = ["sleep"]
+  visual = { action = "sleep", anchor = "object_socket", facing = "socket", socket = "lower_bunk" }
 
 [[object]]
 id = "shower"

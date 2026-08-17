@@ -237,6 +237,10 @@ pub struct ObjectDef {
     /// reason a need name is: after compilation a sprite that the atlas
     /// does not hold has no representation.
     pub sprite: String,
+    /// Optional atlas layer drawn in front of bodies using this object.
+    /// Resolved alongside `sprite`; absent preserves every existing object.
+    #[serde(default)]
+    pub foreground_sprite: Option<String>,
     /// How many tiles this object occupies, as
     /// `footprint = { width = 2, depth = 1 }`.
     ///

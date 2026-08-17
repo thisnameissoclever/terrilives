@@ -1,7 +1,7 @@
 //! Simulation snapshot capture, validation, and reconstruction.
 
 use crate::systems::chain::CHAIN_STEP;
-use crate::{default_action_sockets, Content, ResolvedActionSockets, Sim};
+use crate::{default_action_sockets, Content, ForegroundSprite, ResolvedActionSockets, Sim};
 use bevy_ecs::{
     entity::EntityIndex,
     prelude::{Entity, World},
@@ -490,8 +490,8 @@ fn restore_entity(
         target.insert(StepWork { remaining_ticks });
     }
 
-    // Facing and action sockets are immutable authored presentation data
-    // today, so both are derived from the current pack instead of widening
+    // Facing, action sockets, and foreground layers are immutable authored
+    // presentation data today, so all are derived from the current pack instead of widening
     // Save V1. This expires when build mode can move or rotate an object: that
     // schema must carry stable placement identity and authored facing.
     if let (Some(position), Some(object_name)) = (saved.position, saved.smart_object.as_deref()) {
@@ -508,9 +508,13 @@ fn restore_entity(
             if !placement.action_sockets.is_empty() {
                 target.insert(ResolvedActionSockets(placement.action_sockets.clone()));
             }
+            if let Some(sprite) = placement.foreground_sprite {
+                target.insert(ForegroundSprite(sprite));
+            }
         } else {
+            let definition = pack.object(object);
             let sockets = default_action_sockets(
-                pack.object(object),
+                definition,
                 Position {
                     x: position.x,
                     y: position.y,
@@ -518,6 +522,9 @@ fn restore_entity(
             );
             if !sockets.is_empty() {
                 target.insert(ResolvedActionSockets(sockets));
+            }
+            if let Some(sprite) = definition.foreground_sprite {
+                target.insert(ForegroundSprite(sprite));
             }
         }
     }
@@ -1887,6 +1894,61 @@ mod tests {
     }
 
     #[test]
+    fn authored_foreground_sprite_reconstructs_without_entering_save_v1_or_hash_state() {
+        let pack = terri_data::pack();
+        let bed = pack.find("bed").expect("shipped bunk bed");
+        let placement = pack
+            .lot
+            .placements
+            .iter()
+            .find(|placement| placement.object == bed)
+            .expect("the shipped bunk bed is placed");
+        let expected = placement
+            .foreground_sprite
+            .expect("the shipped bunk placement has foreground bedding");
+
+        let mut source = Sim::new_from_shipped_lot();
+        let authored = {
+            let world = source.world_mut();
+            let mut query = world.query::<(Entity, &Position, &SmartObject)>();
+            query
+                .iter(world)
+                .find(|(_, position, object)| {
+                    object.0 == bed && position.x == placement.x && position.y == placement.y
+                })
+                .map(|(entity, _, _)| entity)
+                .expect("the authored bunk bed spawned")
+        };
+        assert_eq!(
+            source.world().get::<ForegroundSprite>(authored),
+            Some(&ForegroundSprite(expected))
+        );
+        let snapshot = source.save_snapshot();
+        let hash = source.world_hash();
+
+        source
+            .world_mut()
+            .entity_mut(authored)
+            .remove::<ForegroundSprite>();
+        assert_eq!(source.save_snapshot(), snapshot);
+        assert_eq!(source.world_hash(), hash);
+
+        let index = authored.index_u32();
+        let mut restored = Sim::new_from_shipped_lot();
+        restored
+            .load_snapshot(snapshot)
+            .expect("foreground-free Save V1 restores");
+        let restored_entity = restored.world().entities().resolve_from_index(
+            EntityIndex::from_raw_u32(index).expect("ordinary saved entity index"),
+        );
+        assert_eq!(
+            restored.world().get::<ForegroundSprite>(restored_entity),
+            Some(&ForegroundSprite(expected)),
+            "Load reconstructs authored foreground bedding from the current placement"
+        );
+    }
+
+    #[test]
     fn same_id_same_position_dynamic_save_collision_adopts_the_authored_rotated_socket() {
         let shipped = terri_data::pack();
         let shipped_chair = shipped
@@ -1930,6 +1992,7 @@ mod tests {
                     y: position.y,
                     sprite: base.object(chair).sprite,
                     action_sockets: vec![authored_nw.clone()],
+                    foreground_sprite: None,
                 }],
                 front_door: None,
             },
