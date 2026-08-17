@@ -583,6 +583,88 @@ why they are here rather than in ARCHITECTURE.md: somebody looked at the
 screen and said what was wrong with it. Named so the boundary between
 "known" and "nobody has noticed" stays a decision.
 
+### [B-jobs-careers] Jobs and careers become a full life system
+
+The shipped career is one content-defined rabbit hole with a schedule, pay,
+need costs, and a satisfaction reward. The full system still needs job search,
+applications, hiring and rejection, quitting and firing, promotion ladders,
+skills and traits that affect performance, coworkers and managers with stable
+identities, workplace events, career history, retirement, and several careers
+with different schedules and tradeoffs. Simulated workplaces remain the
+compatibility target in [D15], so this extends the current state instead of
+building a second career system beside it.
+
+### [B-outside] The house has an actual outside
+
+The current lot is an interior composition whose front door acts as a career
+boundary. The game needs a playable exterior: yard and street tiles, exterior
+walls and roofs, outdoor lighting and ambience, walkable approaches, outdoor
+objects, and transitions between home, neighborhood, and future lots. This is
+the spatial foundation for visitors, pets, disasters, and neighborhood play.
+
+### [A-front-door-animation] The front door opens when Sims come and go
+
+Commutes already route through the front-door tile, but the door is static.
+The visible contract needs an authored hinge and facing, open and close frames,
+correct sub-object depth, a readable threshold crossing, and interruption-safe
+timing for departure and return. The animation must follow simulation state,
+pause, speed, save, and load like every other action animation.
+
+### [B-neighborhood-dynamics] Neighbors and households have a relationship map
+
+M3 already names multiple lots and autonomous NPC households. The player-facing
+system still needs named neighbors, household-to-household relationships, visits,
+invitations, favors, grudges, gossip, disputes, support, shared events, and
+consequences that persist when a family is off-lot. Individual feelings and
+family-level dynamics must remain distinct, since one Sim liking a neighbor
+does not mean both households are allies.
+
+### [B-family-relationships] Family relationships are explicit
+
+The current relationship scalar does not know parent, child, sibling, spouse,
+partner, ex-partner, grandparent, or extended family. The game needs a stable
+kinship graph, family-tree UI, household and non-household relatives, inheritance
+and bereavement hooks, age-valid relationship creation, and family-specific
+autonomy and social consequences. Save identity and future genetics depend on
+this being authored data rather than inferred from who shares a house.
+
+### [A-audio-voices] The game has sound and Sim voices
+
+There is no audio layer. The first slices are interaction feedback, UI feedback,
+room and outdoor ambience, object loops, footsteps, doors, alarms, and music.
+Sims also need a nonverbal voice system with stable vocal identities, emotional
+delivery, conversational turn-taking, and accessibility controls for master,
+music, effects, ambience, and voices. Important state changes still need visual
+and text equivalents; audio cannot become the only way to understand play.
+
+### [B-death] Sims can die and leave consequences
+
+Death is planned because the ghost system depends on it, but no Sim can die in
+the current game. The complete slice needs aging and non-aging causes, warnings,
+preventable and unavoidable outcomes, a body-to-ghost transition, household and
+relationship consequences, inheritance, memorial state, save compatibility,
+and content controls for players who do not want sudden or disaster deaths.
+
+### [B-emergencies-disasters] Fires, smoke, warnings, news, and disasters
+
+The game needs a general incident system rather than one-off spectacle. The
+first playable case is fire and smoke with ignition, spread, alarms, panic,
+escape, injury or death, emergency response, damage, and recovery. The same
+event framework can drive natural disasters, civil-defense or missile warnings,
+television and radio news, neighborhood effects, and aftermath. Events need
+clear warning states, pause-safe timing, accessibility alternatives to flashing
+or sirens, and player controls for frequency and intensity.
+
+### [B-pets] Pets have lives rather than acting as furniture
+
+Pets are now a tracked feature rather than an unnamed expansion possibility.
+They need species and breed presentation, needs, personalities, learned behavior,
+life stages, health, death, relationships with Sims and other pets, and per-Sim
+affinities for different pet types. Adoption, care, training, conflict, play,
+loss, household limits, outdoor movement, and neighborhood encounters all need
+to participate in the same deterministic save and relationship architecture as
+Sims.
+
 ### [B-builder] A builder: rooms, furniture, placement and rotation
 
 The lot is authored in `content/lot.toml` and a player cannot touch it.
@@ -662,7 +744,7 @@ in ARCHITECTURE.md but deliberately unbuilt.
 | **Cross-player economy** | Depends on trust and moderation infrastructure |
 | **Player-built house sharing** | Valuable and cheap-ish, but M4 is the higher-value use of the same sync plumbing |
 | **Native desktop build** | Shell swap, deferred by choice, not blocked |
-| **Pets, weather, seasons, vehicles** | Classic expansion-pack material |
+| **Weather, seasons, vehicles** | Classic expansion-pack material. Emergency and disaster events are now tracked separately in [B-emergencies-disasters]. |
 | **Simulated workplaces** | **Near-term post-v1, not deferred indefinitely.** Rabbit holes ship now; [D15] separates their actual state from the planned workplace contract |
 
 ## Design tone
