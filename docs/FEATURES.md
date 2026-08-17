@@ -140,6 +140,16 @@ picking move with that displayed body; the gameplay position and world hash do
 not. It retains the historical `moving_box` persistence id and bedroom-corner
 placement for the same Save V1 reason.
 
+`Sit down` now gives the single-slot armchair an exact
+`sit / object_socket / socket` presentation contract. Append-only action 8 and
+activity 11 project the displayed Sim to the existing armchair seat without
+moving ECS position or widening the WASM bridge. Every shipped look has two
+directional, planted seated frames on a 24-tick hold; the normal HUD says
+`Sitting` and deliberately adds no generic bubble. Pause, speed, reduced
+motion, entry, and exit follow the same deterministic socket rules as seated
+reading and exercise. Sofas, beds, and other multi-user furniture remain
+separate until the simulation owns deterministic per-user slots.
+
 The original local production WebGPU pass for both replacements is recorded in
 `design-qa.md`, including their normal player routes, Save and Load transitions,
 phone-width and enlarged-text flyouts, lighting states, and emulated reduced
@@ -721,11 +731,12 @@ every sim. `hair_cap` in `objects.py` traces the head instead.
 
 ### [A-animations] Several ordinary actions are still static poses
 
-Walking has a real directional arm-and-leg cycle. Talking, eating, seated and
-standing reading, watching fish, and exercising have two authored frames per
-look and facing. Sleeping, cooking, washing, using a toilet, and idling remain
-static poses. The generic `Using object` activity stays deliberately text-only
-until each category has an honest anchor and body contract.
+Walking has a real directional arm-and-leg cycle. Talking, eating, armchair
+sitting, seated and standing reading, watching fish, and exercising have two
+authored frames per look and facing. Sleeping, cooking, washing, using a
+toilet, and idling remain static poses. The generic `Using object` activity
+stays deliberately text-only until each category has an honest anchor and body
+contract.
 
 This is the largest single lever on how alive the game looks, and it is
 mostly generator work once the simulation can name an exact action and anchor;

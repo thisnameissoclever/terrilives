@@ -180,3 +180,45 @@ The `?rev=080ff7e1...` used for that browser session is only a mutable
 SHA-labelled session URL, not an immutable deployment. The public smoke pass
 did not replay the aquarium or exercise-bike actions; action-specific played
 evidence remains the local production capture above.
+
+## Armchair seating design QA
+
+Current review date: 2026-08-16
+
+Current result: the exact single-slot armchair interaction passed a local
+production WebGPU review. Merge, public replay, physical-device review,
+operating-system reduced motion, and final product-owner acceptance remain
+open.
+
+The built-in image generator produced
+`docs/assets/armchair-seating/reference-armchair-seating.png` from the current
+Muted Line action sheet and armchair. The prompt requested four isometric
+facings with two calm seated frames each, hips on the cushion, planted shoes,
+believable joints, no vertical body bob, and a restrained hand and shoulder
+adjustment. The image was a pose and contact reference only; the deterministic
+Python generator owns every runtime pixel.
+
+The first runtime composite failed the visual review because its straight legs
+made the body read as standing in front of the chair. A second version bent the
+knees but spread the feet too far apart. The accepted local candidate keeps a
+visible knee angle, draws the shoes close to the chair base, leaves the chair
+arms readable, and keeps torso and hips fixed while the hand changes subtly.
+The exact 24 decoded sprite records are pinned by
+`SITTING_PIXELS_SHA256`.
+
+The real `Sit down` menu route was played at 1280 by 720 in the production
+build. Bill walked to `The Chair That Is His`, projected to the seat, reported
+`Sitting` in the normal HUD, and remained planted while paused. The action was
+resumed in two short samples so both restrained animation phases could be
+inspected before completion returned the standing body beside the chair. The
+reference, first accepted frame, and later phase were inspected together.
+Saving while paused in the seated state, completing the interaction, and
+confirming Load restored `Saved game loaded`, `Sitting`, the paused speed, and
+the socket pose. The browser surface showed no application failure.
+
+Retained local evidence lives outside the feature commit at
+`.playwright-mcp/round-02-armchair-seating/05-local-bill-sitting-final-frame-a.png`
+and
+`.playwright-mcp/round-02-armchair-seating/07-local-bill-sitting-final-frame-c.png`.
+This review does not claim a phone-width replay, a physical safe-area pass, a
+real operating-system reduced-motion setting, or owner approval.

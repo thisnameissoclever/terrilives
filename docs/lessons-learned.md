@@ -4361,3 +4361,27 @@ before merge. After merge, confirm the Pages run names that merge SHA as its
 triggering workflow revision and that the deployed HTML loads that revision's
 content-addressed assets. In a controlled test branch, force CI to fail and
 confirm the downstream Pages build job is skipped.
+
+## [L-seated-state-needs-a-seated-silhouette] A socket position cannot make straight legs read as sitting
+
+**What happened.** The first armchair candidate used the right seat socket,
+lowered torso, `Sitting` HUD label, and deterministic activity code, but the
+played composite still looked like a standing Sim placed in front of a chair.
+The legs remained nearly vertical, so the most important anatomical cue
+contradicted every technical signal.
+
+**Root cause.** The implementation treated lower hip coordinates and floor
+contact as sufficient evidence of a seated pose. Those invariants protected
+placement but did not require a visible hip-to-knee-to-foot angle in the final
+person-and-furniture composite.
+
+**Prevention rule.** Review body art composited with its real furniture before
+accepting an object action. A seated pose must expose an intentional knee angle,
+credible cushion contact, and planted shoes without hiding the object. Reject
+the slice even when sockets, labels, indices, and tests are correct if the
+silhouette tells a different story.
+
+**How to verify.** Run the real action at normal and close zoom, pause both
+animation phases, and compare the runtime composite with the pose reference.
+The hips must meet the cushion, the knee must visibly break the straight leg
+line, the feet must stay near the base, and the chair arms must remain readable.
