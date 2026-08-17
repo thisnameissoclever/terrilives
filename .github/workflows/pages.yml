@@ -100,5 +100,30 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      # A rerun or overlapping CI run can finish after a newer main run. The
+      # concurrency queue orders Pages runs by arrival, not source history, so
+      # re-check the live ref immediately before deployment and leave the
+      # existing public revision alone when this artifact is stale.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Confirm the tested revision is still the main tip
+        id: release
+        env:
+          TESTED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -eu
+          current_sha=$(git ls-remote --exit-code origin refs/heads/main | cut -f1)
+          test -n "$current_sha"
+          if [ "$current_sha" = "$TESTED_SHA" ]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+            echo "Deploying current main revision $TESTED_SHA"
+          else
+            echo "current=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping stale revision $TESTED_SHA; current main is $current_sha"
+          fi
+
       - id: deployment
+        if: steps.release.outputs.current == 'true'
         uses: actions/deploy-pages@v4

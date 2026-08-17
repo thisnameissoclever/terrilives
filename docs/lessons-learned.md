@@ -4352,7 +4352,9 @@ the CI conclusion and could finish first or succeed while CI failed.
 **Prevention rule.** Production Pages builds must be triggered by completion
 of the `CI` workflow on `main`, must run only when that CI conclusion is
 successful and its event was a push, and must check out the triggering run's
-exact `head_sha`. Do not substitute the newest default-branch revision.
+exact `head_sha`. Immediately before deployment, compare that SHA with the live
+`main` ref and skip it when an overlapping or re-run CI job has made the
+artifact stale. Do not substitute the newest default-branch revision.
 
 **How to verify.** Push a branch through a pull request and require CI to pass
 before merge. After merge, confirm the Pages run names that merge SHA as its
