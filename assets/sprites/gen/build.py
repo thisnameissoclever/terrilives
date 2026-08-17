@@ -84,11 +84,11 @@ CHAT_PIXELS_SHA256 = (
 DINNER_PIXELS_SHA256 = (
     "1ac2f0505b58157e42d72de325100e20f5742a1b24c5dfa43592ec58d9ebd4dd"
 )
-# The decoded-record baseline for indices 0 through 171, excluding only the
-# bike and aquarium replacements at 24 and 32. Atlas coordinates are packing
-# output and deliberately absent; identity, dimensions, and pixels are pinned.
+# The decoded-record baseline for indices 0 through 171, excluding the split
+# bunk at 11 plus the bike and aquarium replacements at 24 and 32. Atlas
+# coordinates are packing output and deliberately absent.
 AQUARIUM_BIKE_COMPLEMENT_SHA256 = (
-    "457ff2856c61e4012a2df9699c9c823205b7e4ee4e309e244ac803272df8502e"
+    "db322747a0016ca586eb2b890350d91ab18387b986f20896251db0a3aed26d14"
 )
 # Corrective-candidate replacement pixels: four bike facings, both aquarium
 # frames, and every exercise body. The broader complement guard cannot cover
@@ -102,6 +102,11 @@ AQUARIUM_BIKE_REPAIR_SHA256 = (
 # local played composite rather than merely protecting their dimensions.
 SITTING_PIXELS_SHA256 = (
     "6ee262065cba617b033a40a0f781402d3500ca5d961ccb154d6359f2796a171f"
+)
+# Reviewed lower-bunk foreground plus every horizontal sleeping body. Filled
+# from decoded records, not packed coordinates or PNG encoder output.
+SLEEPING_PIXELS_SHA256 = (
+    "dd75d83e0947596d5cb63d5aad2eade66bc913f1414aff418f4a243fced92632"
 )
 
 
@@ -153,6 +158,15 @@ def watch_fish_names():
 def sitting_names():
     return [
         f"{look}Sit{facing}{frame}"
+        for look in ("sim", "sim2", "sim3")
+        for facing in ("SE", "NW", "SW", "NE")
+        for frame in (0, 1)
+    ]
+
+
+def sleeping_names():
+    return [
+        f"{look}Sleep{facing}{frame}"
         for look in ("sim", "sim2", "sim3")
         for facing in ("SE", "NW", "SW", "NE")
         for frame in (0, 1)
@@ -303,15 +317,17 @@ def validate_animation_repair_contract(sprites):
     if len(names) < 172 or names[147:171] != walk or names[171] != "heldSnack":
         raise SystemExit("walk must occupy 147 through 170 and heldSnack must remain 171")
 
-    # Only the two repurposed inert-object records may change in the shipped
+    # Only the split bunk, bike and aquarium records may change in the shipped
     # 0 through 171 range. Everything new appends after the fixed prefix.
     protected_existing = [
         sprite for index, sprite in enumerate(sprites[:172])
-        if index not in (24, 32)
+        if index not in (11, 24, 32)
     ]
-    if sprite_record_digest(protected_existing) != AQUARIUM_BIKE_COMPLEMENT_SHA256:
+    complement_digest = sprite_record_digest(protected_existing)
+    if complement_digest != AQUARIUM_BIKE_COMPLEMENT_SHA256:
         raise SystemExit(
-            "decoded pixels changed outside the two intentional object replacements"
+            "decoded pixels changed outside the bunk, bike and aquarium: "
+            + complement_digest
         )
 
     if named_pixel_digest(sprites[50:74]) != CHAT_PIXELS_SHA256:
@@ -557,7 +573,7 @@ def validate_sitting_contract(sprites):
     """Keep the appended armchair pose fixed, directional, and readable."""
     names = [name for name, _, _, _ in sprites]
     sitting = sitting_names()
-    if names[311:335] != sitting or len(names) != 335:
+    if names[311:335] != sitting:
         raise SystemExit("sitting bodies must append at indices 311 through 334")
 
     by_name = {
@@ -599,6 +615,76 @@ def validate_sitting_contract(sprites):
                 )
 
 
+def validate_sleeping_contract(sprites):
+    """Pin lower-bunk occlusion, horizontal envelopes, and calm movement."""
+    names = [name for name, _, _, _ in sprites]
+    sleeping = sleeping_names()
+    if names[335] != "bedBunkForeground":
+        raise SystemExit("the bunk foreground must append at atlas index 335")
+    if names[336:360] != sleeping or len(names) != 360:
+        raise SystemExit("sleeping bodies must append at indices 336 through 359")
+
+    by_name = {
+        name: (image, width, height)
+        for name, image, width, height in sprites
+    }
+    reviewed = [
+        (name, *by_name[name])
+        for name in ("bedBunk", "bedBunkForeground", *sleeping)
+    ]
+    digest = sprite_record_digest(reviewed)
+    if digest != SLEEPING_PIXELS_SHA256:
+        raise SystemExit(
+            "reviewed lower-bunk sleep pixels changed: " + digest
+        )
+
+    base, base_w, base_h = by_name["bedBunk"]
+    foreground, foreground_w, foreground_h = by_name["bedBunkForeground"]
+    if (base_w, base_h) != (122, 136):
+        raise SystemExit("bedBunk background must remain exactly 122x136")
+    if (foreground_w, foreground_h) != (122, 136):
+        raise SystemExit("bedBunkForeground must be exactly 122x136")
+    complete_canvas, complete_draw = canvas()
+    objects._bunk(complete_draw, "se", "complete")
+    complete, width, height = emit(complete_canvas, 122, 136)
+    if (width, height) != (122, 136):
+        raise SystemExit("complete bunk comparison changed dimensions")
+    if Image.alpha_composite(base, foreground).tobytes() != complete.tobytes():
+        raise SystemExit("bedBunk plus foreground no longer reconstructs the bunk")
+
+    for name in sleeping:
+        image, width, height = by_name[name]
+        if (width, height) != (104, 72):
+            raise SystemExit(f"{name}: sleeping body must be exactly 104x72")
+        bounds = image.getchannel("A").getbbox()
+        if bounds is None or bounds[2] - bounds[0] < 64:
+            raise SystemExit(f"{name}: sleeping silhouette is not horizontal")
+        if bounds[3] - bounds[1] > 48:
+            raise SystemExit(f"{name}: sleeping silhouette became upright")
+
+    for look in ("sim", "sim2", "sim3"):
+        for facing in ("SE", "NW", "SW", "NE"):
+            quiet = by_name[f"{look}Sleep{facing}0"][0]
+            active = by_name[f"{look}Sleep{facing}1"][0]
+            changed = rgba_difference(quiet, active, (0, 0, 104, 72))
+            if not 8 <= changed <= 120:
+                raise SystemExit(
+                    f"{look}Sleep{facing}: breathing changed {changed} pixels"
+                )
+
+        for frame in (0, 1):
+            facings = {
+                by_name[f"{look}Sleep{facing}{frame}"][0]
+                .getchannel("A")
+                .tobytes()
+                for facing in ("SE", "NW", "SW", "NE")
+            }
+            if len(facings) != 4:
+                raise SystemExit(
+                    f"{look} sleeping frame {frame}: directional silhouettes match"
+                )
+
+
 def render_all():
     out = []
     for fn in objects.SPRITES:
@@ -614,6 +700,7 @@ def render_all():
     validate_animation_repair_contract(out)
     validate_aquarium_bike_contract(out)
     validate_sitting_contract(out)
+    validate_sleeping_contract(out)
     return out
 
 

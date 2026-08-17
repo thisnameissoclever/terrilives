@@ -182,6 +182,15 @@ pub fn compile(
                 sprite: object.sprite.clone(),
             });
         };
+        let foreground_sprite = match object.foreground_sprite.as_deref() {
+            Some(name) => Some(
+                sprite_index(name).ok_or_else(|| ContentError::UnknownSprite {
+                    object: object.id.clone(),
+                    sprite: name.to_string(),
+                })? as u32,
+            ),
+            None => None,
+        };
 
         // A zero dimension is the silent-nothing case one layer down from
         // `EmptyLot`: the rectangle covers no tiles, so nothing is
@@ -378,6 +387,7 @@ pub fn compile(
             footprint: object.footprint,
             roles: worn_roles,
             action_sockets,
+            foreground_sprite,
         });
     }
 
@@ -385,7 +395,18 @@ pub fn compile(
     // for the length of this call: facing resolution needs the NAME to
     // suffix, and the compiled object deliberately holds the index.
     let sprite_names: Vec<String> = objects.object.iter().map(|o| o.sprite.clone()).collect();
-    let lot = compile_lot(lot, &compiled, &sprite_names, &sprite_index)?;
+    let foreground_sprite_names: Vec<Option<String>> = objects
+        .object
+        .iter()
+        .map(|object| object.foreground_sprite.clone())
+        .collect();
+    let lot = compile_lot(
+        lot,
+        &compiled,
+        &sprite_names,
+        &foreground_sprite_names,
+        &sprite_index,
+    )?;
     let (tuning, circadian, sleep_tag) = compile_tuning(tuning)?;
 
     // **An interaction the floor is longer than does not do what it says.**
@@ -1293,6 +1314,7 @@ fn compile_visual(
         "exercise" => CompiledVisualAction::Exercise,
         "watch" => CompiledVisualAction::Watch,
         "sit" => CompiledVisualAction::Sit,
+        "sleep" => CompiledVisualAction::Sleep,
         unknown => return Err(owner.unknown_action(unknown)),
     };
     let anchor = match anchor {
@@ -1310,7 +1332,10 @@ fn compile_visual(
 
     if matches!(
         action,
-        CompiledVisualAction::Read | CompiledVisualAction::Exercise | CompiledVisualAction::Sit
+        CompiledVisualAction::Read
+            | CompiledVisualAction::Exercise
+            | CompiledVisualAction::Sit
+            | CompiledVisualAction::Sleep
     ) && anchor == CompiledVisualAnchor::ObjectSocket
         && visual.socket.is_none()
     {
@@ -1367,6 +1392,12 @@ fn compile_visual(
             CompiledVisualAnchor::ObjectSocket,
             CompiledVisualFacing::Socket,
             Some(_)
+        ) | (
+            VisualOwner::Object { .. },
+            CompiledVisualAction::Sleep,
+            CompiledVisualAnchor::ObjectSocket,
+            CompiledVisualFacing::Socket,
+            Some(_)
         )
     );
     if !legal {
@@ -1377,6 +1408,7 @@ fn compile_visual(
             CompiledVisualAction::Exercise => "exercise",
             CompiledVisualAction::Watch => "watch",
             CompiledVisualAction::Sit => "sit",
+            CompiledVisualAction::Sleep => "sleep",
         };
         let anchor = match anchor {
             CompiledVisualAnchor::Partner => "partner",
@@ -1409,6 +1441,7 @@ fn compile_visual(
                             CompiledVisualAction::Exercise => "exercise",
                             CompiledVisualAction::Watch => "watch",
                             CompiledVisualAction::Sit => "sit",
+                            CompiledVisualAction::Sleep => "sleep",
                         },
                         "object_socket",
                     ),
@@ -2120,6 +2153,7 @@ fn compile_lot(
     // `objects`, because facing resolution is string arithmetic on the
     // name and the compiled object holds only the resolved index.
     sprite_names: &[String],
+    foreground_sprite_names: &[Option<String>],
     sprite_index: &dyn Fn(&str) -> Option<usize>,
 ) -> Result<CompiledLot, ContentError> {
     // A zero dimension is not merely odd; `TileGrid::new(0, h)` has no
@@ -2251,6 +2285,24 @@ fn compile_lot(
                 }
             }
         };
+        let foreground_sprite = match (&place.facing, foreground_sprite_names[index].as_deref()) {
+            (_, None) => None,
+            (None, Some(_)) => objects[index].foreground_sprite,
+            (Some(facing), Some(_)) if facing == "SE" => objects[index].foreground_sprite,
+            (Some(facing), Some(name)) => {
+                let variant = format!("{name}{facing}");
+                Some(match sprite_index(&variant) {
+                    Some(resolved) => resolved as u32,
+                    None => {
+                        return Err(ContentError::FacingSpriteMissing {
+                            object: place.object.clone(),
+                            facing: facing.clone(),
+                            sprite: variant,
+                        })
+                    }
+                })
+            }
+        };
 
         let placement_facing = place.facing.as_deref().unwrap_or("SE");
         let centre_x = place.x + (objects[index].footprint.width - 1) as f32 / 2.0;
@@ -2287,6 +2339,7 @@ fn compile_lot(
             y: place.y,
             sprite,
             action_sockets,
+            foreground_sprite,
         });
     }
 
@@ -2628,7 +2681,7 @@ mod tests {
 
     /// The atlas every test compiles against.
     ///
-    /// Five sprites in an order chosen so that no object's sprite index
+    /// Six sprites in an order chosen so that no object's sprite index
     /// equals its own position in the object list, and so that the sim's
     /// is neither 0 nor last. `three_objects` declares fridge, bed, sink
     /// at positions 0, 1, 2 and they resolve to 2, 3, 4 here. Without
@@ -2637,12 +2690,19 @@ mod tests {
     /// costume.
     fn test_atlas() -> AtlasFile {
         AtlasFile {
-            sprite: ["couch_art", SIM_SPRITE, "fridge_art", "bed_art", "sink_art"]
-                .iter()
-                .map(|name| AtlasSpriteDef {
-                    name: (*name).to_string(),
-                })
-                .collect(),
+            sprite: [
+                "couch_art",
+                SIM_SPRITE,
+                "fridge_art",
+                "bed_art",
+                "sink_art",
+                "bed_foreground",
+            ]
+            .iter()
+            .map(|name| AtlasSpriteDef {
+                name: (*name).to_string(),
+            })
+            .collect(),
         }
     }
 
@@ -2750,6 +2810,10 @@ mod tests {
         // third follows the placement sprite and is its empty resolved-socket
         // list. Every prior field retains its value and order.
         //
+        // **Foreground sprites append two more optional presentation slots.**
+        // This fixture declares neither, so the object and placement each add
+        // one `0` immediately after their action-socket list.
+        //
         // **Moved three times at M2e PR 3, all appends.** `Tuning`
         // gained a trailing `day_ticks` - the lone `19` near the end -
         // and `ContentPack` a trailing `careers` list, one more
@@ -2786,9 +2850,9 @@ mod tests {
         12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64,
         15, 1, 15, 69, 97, 116, 32, 115, 116, 97, 110, 100,
         105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1, 1,
-        1, 0, 0, 1, 1, 0, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0,
+        1, 0, 0, 1, 1, 0, 0, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0,
         0, 0, 32, 64, 0, 0, 160, 63, 2, 0, 0, 0, 0,
-        128, 62, 0, 0, 0, 63, 0, 0, 0, 62, 9, 6,
+        0, 128, 62, 0, 0, 0, 63, 0, 0, 0, 62, 9, 6,
         0, 0, 160, 62, 10, 215, 35, 59, 0, 0, 32, 63,
         0, 0, 64, 63, 3, 172, 2, 7, 11, 13, 0, 0,
         192, 62, 0, 0, 64, 62, 0, 0, 64, 61, 0, 0,
@@ -2880,6 +2944,7 @@ mod tests {
                     id: (*id).to_string(),
                     name: id.to_uppercase(),
                     sprite: format!("{id}_art"),
+                    foreground_sprite: None,
                     // Every fixture in this module is 1x1 unless it is about
                     // footprints, and the footprint tests below build their own
                     // objects. Widening one here would silently change what
@@ -3019,6 +3084,7 @@ mod tests {
                 id: "fridge".into(),
                 name: "Fridge".into(),
                 sprite: "fridge_art".into(),
+                foreground_sprite: None,
                 footprint,
                 interaction: vec![interaction],
             }],
@@ -3141,6 +3207,52 @@ mod tests {
         objects.object[0].sprite = "couch_art".into();
         let pack = compile_objects(full_needs(), objects).expect("'couch_art' is in the atlas");
         assert_eq!(pack.objects[0].sprite, atlas_index("couch_art"));
+    }
+
+    #[test]
+    fn foreground_sprite_is_resolved_without_changing_the_primary_sprite() {
+        let mut objects = one_object(snack());
+        objects.object[0].foreground_sprite = Some("bed_foreground".into());
+        let pack = compile_objects(full_needs(), objects).expect("foreground sprite exists");
+
+        assert_eq!(pack.objects[0].sprite, atlas_index("fridge_art"));
+        assert_eq!(
+            pack.objects[0].foreground_sprite,
+            Some(atlas_index("bed_foreground"))
+        );
+    }
+
+    #[test]
+    fn placement_carries_the_resolved_foreground_sprite() {
+        let mut objects = one_object(snack());
+        objects.object[0].foreground_sprite = Some("bed_foreground".into());
+        let pack = compile_bare(
+            full_needs(),
+            objects,
+            lot_of(3, 3, &[], &[("fridge", 1.0, 1.0)]),
+            test_atlas(),
+            full_tuning(),
+        )
+        .expect("the foreground-bearing placement compiles");
+
+        assert_eq!(
+            pack.lot.placements[0].foreground_sprite,
+            Some(atlas_index("bed_foreground"))
+        );
+    }
+
+    #[test]
+    fn rejects_an_object_naming_a_foreground_sprite_the_atlas_does_not_hold() {
+        let mut objects = one_object(snack());
+        objects.object[0].foreground_sprite = Some("missing_foreground".into());
+
+        assert_eq!(
+            compile_objects(full_needs(), objects).unwrap_err(),
+            ContentError::UnknownSprite {
+                object: "fridge".into(),
+                sprite: "missing_foreground".into(),
+            }
+        );
     }
 
     /// The sim's sprite is not authored, so nothing in `content/` can
@@ -3303,6 +3415,7 @@ mod tests {
             id: "fridge".into(),
             name: "Another".into(),
             sprite: "fridge_art".into(),
+            foreground_sprite: None,
             footprint: Footprint::SINGLE,
             interaction: vec![],
         });
@@ -3338,6 +3451,7 @@ mod tests {
             id: "vending".into(),
             name: "Vending".into(),
             sprite: "fridge_art".into(),
+            foreground_sprite: None,
             footprint: Footprint::SINGLE,
             interaction: vec![snack()],
         });
@@ -4732,6 +4846,7 @@ mod tests {
                     id: (*id).to_string(),
                     name: id.to_uppercase(),
                     sprite: format!("{id}_art"),
+                    foreground_sprite: None,
                     footprint: Footprint {
                         width: *width,
                         depth: *depth,
@@ -5538,6 +5653,7 @@ mod tests {
             id: "couch".into(),
             name: "Couch".into(),
             sprite: "couch_art".into(),
+            foreground_sprite: None,
             footprint: Footprint::SINGLE,
             interaction: vec![InteractionDef {
                 tags: vec![],
@@ -6561,7 +6677,7 @@ mod tests {
                 "step 3",
             ),
         ] {
-            for action in ["talk", "eat", "read", "exercise", "watch", "sit"] {
+            for action in ["talk", "eat", "read", "exercise", "watch", "sit", "sleep"] {
                 for anchor in ["partner", "object", "station"] {
                     let authored = visual(Some(action), Some(anchor), Some("toward_anchor"))
                         .expect("the test authors a visual");
@@ -6677,7 +6793,7 @@ mod tests {
             })
         );
 
-        // Exercise, watch and sit add exact rows to the closed matrix. Walk
+        // Exercise, watch, sit, and sleep add exact rows to the closed matrix. Walk
         // every combination of known owner, action, anchor, facing, and socket
         // state so accepting a near-miss cannot hide behind one happy-path
         // fixture.
@@ -6709,7 +6825,7 @@ mod tests {
                 "chain step",
             ),
         ] {
-            for action in ["talk", "eat", "read", "exercise", "watch", "sit"] {
+            for action in ["talk", "eat", "read", "exercise", "watch", "sit", "sleep"] {
                 for anchor in ["partner", "object", "station", "object_socket"] {
                     for facing in ["toward_anchor", "socket"] {
                         for socket in [None, Some("saddle")] {
@@ -6741,7 +6857,7 @@ mod tests {
                                     None
                                 ) | (
                                     VisualOwner::Object { .. },
-                                    "read" | "exercise" | "sit",
+                                    "read" | "exercise" | "sit" | "sleep",
                                     "object_socket",
                                     "socket",
                                     Some("saddle")
@@ -6832,6 +6948,7 @@ mod tests {
             id: "reading_chair".to_string(),
             name: "Reading chair".to_string(),
             sprite: "fridge_art".to_string(),
+            foreground_sprite: None,
             footprint: Footprint { width: 3, depth: 3 },
             interaction: vec![InteractionDef {
                 id: "settle_in".to_string(),
@@ -7449,6 +7566,7 @@ mod tests {
             id: "sink".into(),
             name: "Sink".into(),
             sprite: "sink_art".into(),
+            foreground_sprite: None,
             footprint: Footprint::SINGLE,
             interaction: vec![],
         };
@@ -7830,6 +7948,7 @@ mod tests {
             id: "sink".into(),
             name: "Sink".into(),
             sprite: "sink_art".into(),
+            foreground_sprite: None,
             footprint: Footprint::SINGLE,
             interaction: vec![],
         };

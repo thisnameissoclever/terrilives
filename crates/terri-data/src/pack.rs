@@ -31,6 +31,7 @@ pub enum CompiledVisualAction {
     Exercise,
     Watch,
     Sit,
+    Sleep,
 }
 
 /// The entity that gives an action pose its spatial meaning.
@@ -164,6 +165,9 @@ pub struct CompiledObject {
     /// Appended after `roles` when sockets shipped; its encoded position must
     /// not move.
     pub action_sockets: Vec<CompiledActionSocket>,
+    /// Optional atlas layer drawn after bodies occupying this object.
+    /// Presentation-only and reconstructed from the current pack on load.
+    pub foreground_sprite: Option<u32>,
 }
 
 /// One object, placed on the lot.
@@ -189,6 +193,8 @@ pub struct CompiledPlacement {
     /// Absolute presentation sockets in the owning definition's order.
     /// Appended for postcard stability.
     pub action_sockets: Vec<CompiledPlacementSocket>,
+    /// Facing-resolved foreground atlas layer for this placement.
+    pub foreground_sprite: Option<u32>,
 }
 
 /// The lot: its size, its interior wall tiles, and what stands on it.
@@ -721,6 +727,7 @@ mod tests {
                     y: 1.25,
                     sprite: 9,
                     action_sockets: vec![],
+                    foreground_sprite: None,
                 },
                 CompiledPlacement {
                     object: ObjectDefId(0),
@@ -739,6 +746,7 @@ mod tests {
                             facing: CompiledSocketFacing::NegativeY,
                         },
                     ],
+                    foreground_sprite: Some(12),
                 },
             ],
         }
@@ -843,6 +851,7 @@ mod tests {
                         } else {
                             vec![]
                         },
+                        foreground_sprite: (i == 1).then_some(11),
                     }
                 })
                 .collect(),
@@ -1212,6 +1221,12 @@ mod tests {
             facing: CompiledVisualFacing::Socket,
             socket: Some(2),
         };
+        let sleep = CompiledVisual {
+            action: CompiledVisualAction::Sleep,
+            anchor: CompiledVisualAnchor::ObjectSocket,
+            facing: CompiledVisualFacing::Socket,
+            socket: Some(3),
+        };
 
         assert_eq!(
             postcard::to_allocvec(&exercise).expect("exercise visual must serialise"),
@@ -1227,6 +1242,11 @@ mod tests {
             postcard::to_allocvec(&sit).expect("sit visual must serialise"),
             vec![5, 3, 1, 1, 2],
             "Sit must append after Watch without moving the socket contract"
+        );
+        assert_eq!(
+            postcard::to_allocvec(&sleep).expect("sleep visual must serialise"),
+            vec![6, 3, 1, 1, 3],
+            "Sleep must append after Sit without moving the socket contract"
         );
     }
 }

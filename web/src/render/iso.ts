@@ -290,11 +290,12 @@ export function worldDepth(wx: number, wy: number, gridSize: number): number {
 /**
  * How many things may stand on one tile and still be ordered.
  *
- * Three: the floor, whatever furniture or wall is on it, and the sim
- * standing on that furniture. Raising this costs depth precision at the
- * near end of the lot and nothing else.
+ * Four: the floor, whatever furniture or wall is on it, a sim standing on
+ * that furniture, and an authored object foreground that must cover the sim.
+ * Raising this costs depth precision at the near end of the lot and nothing
+ * else.
  */
-export const DEPTH_LAYERS = 3;
+export const DEPTH_LAYERS = 4;
 
 /**
  * Floor tiles. **Kept for the layer arithmetic's sake and no longer used to
@@ -305,6 +306,8 @@ export const LAYER_FLOOR = 0;
 export const LAYER_PROP = 1;
 /** Sims. Nearest, so a sim standing on an object is never swallowed. */
 export const LAYER_SIM = 2;
+/** Authored object pieces that deliberately occlude a sim at a use socket. */
+export const LAYER_FOREGROUND = 3;
 
 /**
  * The depth one layer is worth.
@@ -397,7 +400,7 @@ export const FLOOR_DEPTH = 1 - DEPTH_LAYER_STEP / 2;
  * would then collapse all three layers onto 0 and the tie would be back
  * on exactly the tiles nearest the camera. Reserving `DEPTH_LAYERS` steps
  * at the top instead means the result is in
- * `[DEPTH_LAYER_STEP, 1]` for every input, and the three layers are
+ * `[DEPTH_LAYER_STEP, 1]` for every input, and the four layers are
  * strictly ordered on every tile including both corners.
  *
  * Smaller wins the pixel, so a **larger** layer draws in front. See
