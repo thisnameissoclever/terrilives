@@ -596,6 +596,15 @@ invent either pose. Both features are presentation-only after the authored
 interaction has been selected; their action and activity columns do not enter
 the world hash.
 
+`armchair.take_the_chair` appends the same exact socket pattern as
+`sit / object_socket / socket`. A valid target emits visual action 8, activity
+11, the compiled seat facing, and the seat coordinates. The shell chooses two
+38 by 88 sitting bodies per look and facing on a 24-tick, stable-id phase;
+reduced motion pins frame zero. Activity 11 maps to the HUD label `Sitting` and
+has no indicator. The compiled visual enum, render action code, and activity
+code are append-only. The presentation does not add a simulation component,
+save field, bridge column, object reservation rule, or world-hash input.
+
 Standing bookshelf reading reuses the same compiled `Read` action without an
 object socket. `bookshelf.read` authors the exact
 `read / object / toward_anchor` combination. Render sync requires matching
@@ -621,12 +630,12 @@ The simulation owns all state in WASM linear memory. JS holds
 positions, sprite IDs, activity codes, presentation visual actions, and lot-axis
 facings, plus compiled footprint width and depth, and feeds them directly into
 GPU buffers. Walking reuses the action, facing, activity, and position columns.
-Conversation, eating, seated reading, standing reading, aquarium watching, and
-exercise read the action and facing columns, so the broad status vocabulary
-never becomes an art lookup by accident. Seated reading and exercise reuse the
-existing position columns for socket projection; standing reading and aquarium
-watching retain the ordinary path-tile samples. No pointer or bridge accessor
-was added. Lighting reads
+Conversation, eating, sitting, seated reading, standing reading, aquarium
+watching, and exercise read the action and facing columns, so the broad status
+vocabulary never becomes an art lookup by accident. Sitting, seated reading,
+and exercise reuse the existing position columns for socket projection;
+standing reading and aquarium watching retain the ordinary path-tile samples.
+No pointer or bridge accessor was added. Lighting reads
 footprints only while rebuilding its static field and never retains a view
 across a sync.
 

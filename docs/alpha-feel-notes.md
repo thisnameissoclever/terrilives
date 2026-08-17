@@ -2718,3 +2718,35 @@ would not be confused with whether the pixels look convincing.
   It does not replay either action publicly. Physical-phone safe areas, long
   press, operating-system reduced motion, action-specific public replay, and
   owner approval remain open.
+
+## [A-armchair-seating] The ordinary armchair use has a seated body
+
+The 2026-08-16 local production pass used the normal keyboard target and
+object-action menu at 1280 by 720. Bill walked to `The Chair That Is His`, then
+the displayed body moved to the compiled seat socket while the normal HUD
+reported `Sitting`.
+
+- **The silhouette reads as sitting.** The accepted candidate puts the hips on
+  the cushion, bends the knees, keeps the shoes near the chair base, and leaves
+  the red chair arms visible. This followed two rejected local candidates: one
+  read as a standing body because the legs were straight, and one splayed the
+  feet too far apart.
+- **The motion stays calm and planted.** Two 24-tick directional body frames
+  change the hand and shoulder region without lifting the head, torso, hips,
+  or floor contact. Pause froze the seated frame and socket position. Brief 1x
+  resumes exposed the later animation phase before completion returned the
+  ordinary standing body beside the chair.
+- **Save and Load preserve the display state.** A save taken while paused in
+  `Sitting` restored the same `Sitting` activity, paused speed, and socket pose
+  after the interaction had advanced. The confirmation flow reported
+  `Saved game loaded`.
+- **The UI tells the truth.** The selected-person card said `Sitting`; the
+  action added no unrelated indicator bubble. Selection, target text, and the
+  armchair remained aligned with the displayed body at close zoom.
+- **The art is reproducible.** Twenty-four new 38 by 88 records append at atlas
+  indices 311 through 334. Their exact decoded records are pinned by
+  `SITTING_PIXELS_SHA256`; the generated reference is not shipped runtime art.
+- **Proof boundary.** Local production play and same-view reference comparison
+  are complete. Merge, exact-head CI, public Pages deployment and replay,
+  phone-width use, physical safe areas, operating-system reduced motion, and
+  final owner approval remain open.

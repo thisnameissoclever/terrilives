@@ -97,6 +97,12 @@ AQUARIUM_BIKE_COMPLEMENT_SHA256 = (
 AQUARIUM_BIKE_REPAIR_SHA256 = (
     "9d7fa132799863cdacf9d75dee3e028253aa695714a2f88021ba93750930824a"
 )
+# Reviewed armchair-sitting bodies: every look, facing, and restrained frame.
+# This closes the shared-generator gap for the exact pixels accepted in the
+# local played composite rather than merely protecting their dimensions.
+SITTING_PIXELS_SHA256 = (
+    "6ee262065cba617b033a40a0f781402d3500ca5d961ccb154d6359f2796a171f"
+)
 
 
 def seated_reading_names():
@@ -138,6 +144,15 @@ def exercise_names():
 def watch_fish_names():
     return [
         f"{look}WatchFish{facing}{frame}"
+        for look in ("sim", "sim2", "sim3")
+        for facing in ("SE", "NW", "SW", "NE")
+        for frame in (0, 1)
+    ]
+
+
+def sitting_names():
+    return [
+        f"{look}Sit{facing}{frame}"
         for look in ("sim", "sim2", "sim3")
         for facing in ("SE", "NW", "SW", "NE")
         for frame in (0, 1)
@@ -538,6 +553,52 @@ def validate_aquarium_bike_contract(sprites):
         )
 
 
+def validate_sitting_contract(sprites):
+    """Keep the appended armchair pose fixed, directional, and readable."""
+    names = [name for name, _, _, _ in sprites]
+    sitting = sitting_names()
+    if names[311:335] != sitting or len(names) != 335:
+        raise SystemExit("sitting bodies must append at indices 311 through 334")
+
+    by_name = {
+        name: (image, width, height)
+        for name, image, width, height in sprites
+    }
+    reviewed = [(name, *by_name[name]) for name in sitting]
+    if sprite_record_digest(reviewed) != SITTING_PIXELS_SHA256:
+        raise SystemExit("reviewed armchair-sitting pixels changed")
+
+    for name in sitting:
+        image, width, height = by_name[name]
+        if (width, height) != (38, 88):
+            raise SystemExit(f"{name}: sitting body must be exactly 38x88")
+        bounds = image.getchannel("A").getbbox()
+        if bounds is None or bounds[3] != 88:
+            raise SystemExit(f"{name}: sitting body lost its planted contact row")
+
+    for look in ("sim", "sim2", "sim3"):
+        for facing in ("SE", "NW", "SW", "NE"):
+            quiet = by_name[f"{look}Sit{facing}0"][0]
+            active = by_name[f"{look}Sit{facing}1"][0]
+            changed = rgba_difference(quiet, active, (0, 24, 38, 64))
+            if not 8 <= changed <= 100:
+                raise SystemExit(
+                    f"{look}Sit{facing}: hand adjustment changed {changed} pixels"
+                )
+
+        for frame in (0, 1):
+            facings = {
+                by_name[f"{look}Sit{facing}{frame}"][0]
+                .getchannel("A")
+                .tobytes()
+                for facing in ("SE", "NW", "SW", "NE")
+            }
+            if len(facings) != 4:
+                raise SystemExit(
+                    f"{look} sitting frame {frame}: directional silhouettes match"
+                )
+
+
 def render_all():
     out = []
     for fn in objects.SPRITES:
@@ -552,6 +613,7 @@ def render_all():
     validate_reading_contract(out)
     validate_animation_repair_contract(out)
     validate_aquarium_bike_contract(out)
+    validate_sitting_contract(out)
     return out
 
 

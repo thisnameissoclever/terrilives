@@ -158,6 +158,13 @@ def person(d, palette, facing="se", pose="idle", frame=0):
         hip_y = py - 18
         top_y = py - 42
         lean = fx
+    elif pose == "sit":
+        # The cushion owns the vertical contact. Keep the hips, torso and head
+        # fixed between frames; ordinary resting motion belongs in one hand
+        # and shoulder, not in a whole-body bob above the chair.
+        hip_y = py - 18
+        top_y = py - 42
+        lean = fx
     elif pose == "exercise":
         # The hip is a fixed contact on the saddle. Pedalling moves the knees
         # and feet, not the whole body up and down like a reluctant piston.
@@ -186,6 +193,14 @@ def person(d, palette, facing="se", pose="idle", frame=0):
         x = px + side * 5 + lean + x_off
         _column(d, x, hip_y - 1, hem, LEG_HALF, trouser)
         _shoe(d, x, py, fx, back, shoe)
+
+    def seated_leg(side):
+        """A visible thigh, knee and shin between the cushion and floor."""
+        hip = (cx + side * 3, hip_y - 1)
+        knee = (px + side * 3 + fx * 5, py - 12)
+        foot = (px + side * 3 + fx * 9, py - 5)
+        _bent_limb(d, [hip, knee, foot], trouser, width=6)
+        _shoe(d, foot[0], py, fx, back, shoe)
 
     def body():
         _torso(d, cx, top_y, hip_y, fx, shirt, back)
@@ -241,6 +256,15 @@ def person(d, palette, facing="se", pose="idle", frame=0):
             _book(d, cx + fx, book_y, frame)
             leg(near)
             arm(near, book_y - (2 if frame else 0))
+    elif pose == "sit":
+        # Far limbs first preserves the established isometric overlap. Both
+        # shoes stay on the contact row while the active frame makes only a
+        # restrained near-hand adjustment.
+        arm(far, hang_y)
+        seated_leg(far)
+        body()
+        seated_leg(near)
+        arm(near, hang_y - (3 if frame else 0), x_off=fx if frame else 0)
     elif pose == "exercise":
         low_pedal = (px - fx * 5, py - 13)
         high_pedal = (px - fx * 14, py - 30)

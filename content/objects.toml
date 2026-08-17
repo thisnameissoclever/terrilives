@@ -574,6 +574,12 @@ id = "armchair"
 name = "The Chair That Is His"
 sprite = "loungeChair"
 
+  [[object.action_socket]]
+  id = "seat"
+  x = 0.0
+  y = 0.0
+  facing = "SE"
+
   # One slot, and 29 comfort at 41 ticks - the best comfort-per-tick in the
   # house, at 0.707 standing beside it against the ottoman sofa's 0.667 and
   # 0.597 for both of the big seats. So it is narrowly the better choice and
@@ -593,6 +599,7 @@ sprite = "loungeChair"
   advertises = { comfort = 29.0 }
   duration_ticks = 41
   slots = 1
+  visual = { action = "sit", anchor = "object_socket", facing = "socket", socket = "seat" }
 
 [[object]]
 id = "radio"

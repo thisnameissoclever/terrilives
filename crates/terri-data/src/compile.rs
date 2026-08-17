@@ -1292,6 +1292,7 @@ fn compile_visual(
         "read" => CompiledVisualAction::Read,
         "exercise" => CompiledVisualAction::Exercise,
         "watch" => CompiledVisualAction::Watch,
+        "sit" => CompiledVisualAction::Sit,
         unknown => return Err(owner.unknown_action(unknown)),
     };
     let anchor = match anchor {
@@ -1309,7 +1310,7 @@ fn compile_visual(
 
     if matches!(
         action,
-        CompiledVisualAction::Read | CompiledVisualAction::Exercise
+        CompiledVisualAction::Read | CompiledVisualAction::Exercise | CompiledVisualAction::Sit
     ) && anchor == CompiledVisualAnchor::ObjectSocket
         && visual.socket.is_none()
     {
@@ -1360,6 +1361,12 @@ fn compile_visual(
             CompiledVisualAnchor::Object,
             CompiledVisualFacing::TowardAnchor,
             None
+        ) | (
+            VisualOwner::Object { .. },
+            CompiledVisualAction::Sit,
+            CompiledVisualAnchor::ObjectSocket,
+            CompiledVisualFacing::Socket,
+            Some(_)
         )
     );
     if !legal {
@@ -1369,6 +1376,7 @@ fn compile_visual(
             CompiledVisualAction::Read => "read",
             CompiledVisualAction::Exercise => "exercise",
             CompiledVisualAction::Watch => "watch",
+            CompiledVisualAction::Sit => "sit",
         };
         let anchor = match anchor {
             CompiledVisualAnchor::Partner => "partner",
@@ -1400,6 +1408,7 @@ fn compile_visual(
                             CompiledVisualAction::Read => "read",
                             CompiledVisualAction::Exercise => "exercise",
                             CompiledVisualAction::Watch => "watch",
+                            CompiledVisualAction::Sit => "sit",
                         },
                         "object_socket",
                     ),
@@ -6552,7 +6561,7 @@ mod tests {
                 "step 3",
             ),
         ] {
-            for action in ["talk", "eat", "read", "exercise", "watch"] {
+            for action in ["talk", "eat", "read", "exercise", "watch", "sit"] {
                 for anchor in ["partner", "object", "station"] {
                     let authored = visual(Some(action), Some(anchor), Some("toward_anchor"))
                         .expect("the test authors a visual");
@@ -6668,7 +6677,7 @@ mod tests {
             })
         );
 
-        // Exercise and watch add exactly two rows to the closed matrix. Walk
+        // Exercise, watch and sit add exact rows to the closed matrix. Walk
         // every combination of known owner, action, anchor, facing, and socket
         // state so accepting a near-miss cannot hide behind one happy-path
         // fixture.
@@ -6700,7 +6709,7 @@ mod tests {
                 "chain step",
             ),
         ] {
-            for action in ["talk", "eat", "read", "exercise", "watch"] {
+            for action in ["talk", "eat", "read", "exercise", "watch", "sit"] {
                 for anchor in ["partner", "object", "station", "object_socket"] {
                     for facing in ["toward_anchor", "socket"] {
                         for socket in [None, Some("saddle")] {
@@ -6732,7 +6741,7 @@ mod tests {
                                     None
                                 ) | (
                                     VisualOwner::Object { .. },
-                                    "read" | "exercise",
+                                    "read" | "exercise" | "sit",
                                     "object_socket",
                                     "socket",
                                     Some("saddle")

@@ -306,6 +306,11 @@ fn authored_socket_action_visual(
             terri_data::CompiledVisualAnchor::ObjectSocket,
             terri_data::CompiledVisualFacing::Socket,
         ) => (visual_action::EXERCISE, activity::EXERCISING),
+        (
+            terri_data::CompiledVisualAction::Sit,
+            terri_data::CompiledVisualAnchor::ObjectSocket,
+            terri_data::CompiledVisualFacing::Socket,
+        ) => (visual_action::SIT, activity::SITTING),
         _ => return None,
     };
     let socket = sockets.0.get(visual.socket? as usize)?;

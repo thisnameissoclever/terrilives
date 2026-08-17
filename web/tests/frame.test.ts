@@ -18,12 +18,14 @@ import {
   EXERCISE_FRAME_TICKS,
   objectBodySprite,
   READ_FRAME_TICKS,
+  SIT_FRAME_TICKS,
   simBodySprite,
   simSprite,
   TALK_FRAME_TICKS,
   VISUAL_ACTION_EAT,
   VISUAL_ACTION_EXERCISE,
   VISUAL_ACTION_READ,
+  VISUAL_ACTION_SIT,
   VISUAL_ACTION_STANDING_READ,
   VISUAL_ACTION_TALK,
   VISUAL_ACTION_WALK,
@@ -704,7 +706,7 @@ describe('simBodySprite', () => {
     ).toBe(phaseCases.length);
   });
 
-  it('resolves exercise and watching-fish frames after stable-id staggering', () => {
+  it('resolves exercise, watching-fish, and sitting frames after stable-id staggering', () => {
     for (const { action, stem, frameTicks } of [
       {
         action: VISUAL_ACTION_EXERCISE,
@@ -715,6 +717,11 @@ describe('simBodySprite', () => {
         action: VISUAL_ACTION_WATCH_FISH,
         stem: 'WatchFish',
         frameTicks: WATCH_FISH_FRAME_TICKS,
+      },
+      {
+        action: VISUAL_ACTION_SIT,
+        stem: 'Sit',
+        frameTicks: SIT_FRAME_TICKS,
       },
     ] as const) {
       const transitions: number[] = [];
@@ -754,6 +761,7 @@ describe('simBodySprite', () => {
     }
     expect(EXERCISE_FRAME_TICKS).toBe(8);
     expect(WATCH_FISH_FRAME_TICKS).toBe(24);
+    expect(SIT_FRAME_TICKS).toBe(24);
   });
 
   it('resolves both distance-driven walk frames for every look and facing', () => {
@@ -854,6 +862,11 @@ describe('simBodySprite', () => {
             name: 'WatchFish',
             frameTicks: WATCH_FISH_FRAME_TICKS,
           },
+          {
+            action: VISUAL_ACTION_SIT,
+            name: 'Sit',
+            frameTicks: SIT_FRAME_TICKS,
+          },
         ] as const) {
           const atStart = simBodySprite(id, action, facing, 0, true);
           const muchLater = simBodySprite(
@@ -900,7 +913,7 @@ describe('simBodySprite', () => {
       expect(simBodySprite(id, VISUAL_ACTION_READ, 0, 8, false)).toBe(
         simSprite(id),
       );
-      expect(simBodySprite(id, 8, FACING_POSITIVE_X, 8, false)).toBe(
+      expect(simBodySprite(id, 9, FACING_POSITIVE_X, 8, false)).toBe(
         simSprite(id),
       );
     }
@@ -997,10 +1010,11 @@ describe('simBodySprite', () => {
     expect(body()).not.toBe(first);
   });
 
-  it('freezes exercise and watching-fish poses while paused and follows fixed-tick speed', () => {
+  it('freezes calm object poses while paused and follows fixed-tick speed', () => {
     for (const [action, frameTicks] of [
       [VISUAL_ACTION_EXERCISE, EXERCISE_FRAME_TICKS],
       [VISUAL_ACTION_WATCH_FISH, WATCH_FISH_FRAME_TICKS],
+      [VISUAL_ACTION_SIT, SIT_FRAME_TICKS],
     ] as const) {
       const driver = new FixedStepDriver(10, 100);
       const id = 120;

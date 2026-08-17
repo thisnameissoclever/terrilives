@@ -1101,6 +1101,56 @@ mod tests {
         );
     }
 
+    #[test]
+    fn the_shipped_armchair_carries_the_exact_sitting_contract() {
+        let p = pack();
+        let armchair = p.find("armchair").expect("shipped armchair");
+        let object = p.object(armchair);
+        let action = object
+            .interactions
+            .iter()
+            .find(|interaction| interaction.id == "take_the_chair")
+            .expect("shipped sitting interaction");
+
+        assert_eq!(action.label, "Sit down");
+        assert_eq!((action.duration_ticks, action.slots), (41, 1));
+        assert_eq!(
+            action.visual,
+            Some(CompiledVisual {
+                action: CompiledVisualAction::Sit,
+                anchor: CompiledVisualAnchor::ObjectSocket,
+                facing: CompiledVisualFacing::Socket,
+                socket: Some(0),
+            })
+        );
+        assert_eq!(object.action_sockets.len(), 1);
+        assert_eq!(object.action_sockets[0].id, "seat");
+        assert_eq!(
+            (
+                object.action_sockets[0].x,
+                object.action_sockets[0].y,
+                object.action_sockets[0].facing,
+            ),
+            (0.0, 0.0, CompiledSocketFacing::PositiveX)
+        );
+
+        let placement = p
+            .lot
+            .placements
+            .iter()
+            .find(|placement| placement.object == armchair)
+            .expect("armchair placement");
+        assert_eq!(placement.action_sockets.len(), 1);
+        assert_eq!(
+            (
+                placement.action_sockets[0].x,
+                placement.action_sockets[0].y,
+                placement.action_sockets[0].facing,
+            ),
+            (13.0, 0.0, CompiledSocketFacing::PositiveX)
+        );
+    }
+
     fn swap_zero_and_one(index: u32) -> u32 {
         match index {
             0 => 1,

@@ -1224,6 +1224,10 @@ def _watch_fish_figure(d, palette, facing, frame):
     person(d, palette, facing, "watch", frame)
 
 
+def _sitting_figure(d, palette, facing, frame):
+    person(d, palette, facing, "sit", frame)
+
+
 
 def _named_action_sprites(stem, drawer):
     """Create append-only named atlas callables without 48 copy-paste shells."""
@@ -1241,6 +1245,7 @@ def _named_action_sprites(stem, drawer):
 
 EXERCISE_SPRITES = _named_action_sprites("Exercise", _exercise_figure)
 WATCH_FISH_SPRITES = _named_action_sprites("WatchFish", _watch_fish_figure)
+SITTING_SPRITES = _named_action_sprites("Sit", _sitting_figure)
 
 
 # ---------------------------------------------------------- indicators ----
@@ -1494,7 +1499,7 @@ EXACT = {
     "heldSnack": (14, 10),
 }
 
-for action_sprite in EXERCISE_SPRITES + WATCH_FISH_SPRITES:
+for action_sprite in EXERCISE_SPRITES + WATCH_FISH_SPRITES + SITTING_SPRITES:
     EXACT[action_sprite.__name__] = (38, 88)
 
 
@@ -1634,4 +1639,7 @@ SPRITES = [
     *OBJECT_FACING_VARIANTS,
     bathtubFull,
     *BATHTUB_FULL_VARIANTS,
+    # Ordinary armchair sitting appends after every existing record. The
+    # chair remains its existing prop quad below the fixed seated body.
+    *SITTING_SPRITES,
 ]

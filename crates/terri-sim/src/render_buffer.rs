@@ -71,7 +71,8 @@ pub struct RenderBuffer {
     /// (either side of a conversation), 5 sleeping (a valid sleep-tagged
     /// object interaction), 6 at work, 7 ordinary object use without a
     /// narrower authored activity, 8 exact authored reading, 9 exercising,
-    /// and 10 watching fish. Some codes are text-only and draw no indicator.
+    /// 10 watching fish, and 11 sitting. Some codes are text-only and draw no
+    /// indicator.
     ///
     /// Exists because the owner's play report put it plainly: "if you
     /// can't see what they're doing, they may as well not be doing
@@ -130,6 +131,8 @@ pub mod activity {
     pub const EXERCISING: u32 = 9;
     /// Exact authored aquarium watching toward a validated object anchor.
     pub const WATCHING_FISH: u32 = 10;
+    /// Exact authored ordinary sitting at a validated object socket.
+    pub const SITTING: u32 = 11;
 }
 
 /// Presentation body-action codes. Kept as `u32` so JavaScript can view the
@@ -149,6 +152,8 @@ pub mod visual_action {
     pub const EXERCISE: u32 = 6;
     /// Standing aquarium watching toward the object's footprint centre.
     pub const WATCH: u32 = 7;
+    /// Ordinary sitting at an object-local action socket.
+    pub const SIT: u32 = 8;
 }
 
 /// Lot-axis facing codes for projected body actions.
@@ -493,12 +498,13 @@ mod tests {
     }
 
     #[test]
-    fn aquarium_and_exercise_codes_append_after_every_existing_render_code() {
+    fn authored_object_codes_append_after_every_existing_render_code() {
         use crate::render_buffer::{activity, visual_action};
 
         assert_eq!(visual_action::WALK, 5, "walking remains action 5");
         assert_eq!(visual_action::EXERCISE, 6, "exercise appends as action 6");
         assert_eq!(visual_action::WATCH, 7, "watching fish appends as action 7");
+        assert_eq!(visual_action::SIT, 8, "sitting appends as action 8");
         assert_eq!(activity::READING, 8, "reading remains activity 8");
         assert_eq!(activity::EXERCISING, 9, "exercise appends as activity 9");
         assert_eq!(
@@ -506,6 +512,7 @@ mod tests {
             10,
             "watching fish appends as activity 10"
         );
+        assert_eq!(activity::SITTING, 11, "sitting appends as activity 11");
     }
 
     #[test]
@@ -941,6 +948,38 @@ mod tests {
         (agent, target, bike, interaction)
     }
 
+    fn spawn_shipped_sitter(
+        sim: &mut Sim,
+        chair_at: Position,
+        agent_at: Position,
+    ) -> (Entity, Entity, terri_data::ObjectDefId, u32) {
+        let armchair = sim
+            .world()
+            .resource::<crate::Content>()
+            .0
+            .find("armchair")
+            .expect("the active pack declares the armchair");
+        let interaction = shipped_interaction_index(armchair, "take_the_chair");
+        let target = sim.spawn_object(chair_at, armchair);
+        let agent = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                agent_at,
+                Eating {
+                    object: armchair,
+                    interaction,
+                    remaining_ticks: 10,
+                },
+                terri_core::Target {
+                    object: target,
+                    interaction,
+                },
+            ))
+            .id();
+        (agent, target, armchair, interaction)
+    }
+
     fn spawn_shipped_fish_watcher(
         sim: &mut Sim,
         aquarium_at: Position,
@@ -1096,7 +1135,7 @@ mod tests {
     }
 
     #[test]
-    fn shipped_bike_and_aquarium_project_exact_pose_activity_position_and_load_state() {
+    fn shipped_socket_actions_and_aquarium_project_exact_pose_and_load_state() {
         use crate::render_buffer::{activity, facing, visual_action};
 
         let mut sim = Sim::new_with_lot(48, 48);
@@ -1108,6 +1147,17 @@ mod tests {
             .world()
             .get::<crate::ResolvedActionSockets>(bike_target)
             .expect("the exercise bike resolves its saddle")
+            .0[0]
+            .clone();
+
+        let chair_position = Position { x: 41.0, y: 40.0 };
+        let chair_agent_position = Position { x: 39.0, y: 40.0 };
+        let (sitter, chair_target, _, _) =
+            spawn_shipped_sitter(&mut sim, chair_position, chair_agent_position);
+        let seat = sim
+            .world()
+            .get::<crate::ResolvedActionSockets>(chair_target)
+            .expect("the armchair resolves its seat")
             .0[0]
             .clone();
 
@@ -1143,6 +1193,15 @@ mod tests {
             displayed_position_of(sim.render_buffer(), exerciser),
             ((saddle.x, saddle.y), (saddle.x, saddle.y)),
             "the body and both interpolation samples must plant on the exact saddle"
+        );
+        assert_eq!(
+            projection_of(sim.render_buffer(), sitter),
+            (visual_action::SIT, facing::POSITIVE_X, activity::SITTING,)
+        );
+        assert_eq!(
+            displayed_position_of(sim.render_buffer(), sitter),
+            ((seat.x, seat.y), (seat.x, seat.y)),
+            "the ordinary sitting body must plant on the exact chair seat"
         );
         for &(watcher, position, expected_facing) in &watchers {
             assert_eq!(
@@ -1180,6 +1239,14 @@ mod tests {
             displayed_position_of(restored.render_buffer(), exerciser),
             ((saddle.x, saddle.y), (saddle.x, saddle.y)),
             "Load reconstructs the socket pose from tick state and current authored content"
+        );
+        assert_eq!(
+            projection_of(restored.render_buffer(), sitter),
+            (visual_action::SIT, facing::POSITIVE_X, activity::SITTING,)
+        );
+        assert_eq!(
+            displayed_position_of(restored.render_buffer(), sitter),
+            ((seat.x, seat.y), (seat.x, seat.y))
         );
         for &(watcher, position, expected_facing) in &watchers {
             assert_eq!(

@@ -241,6 +241,28 @@ const SIM_WATCH_FISH_SPRITES: readonly ActionFacings[] = [
   ],
 ];
 
+/** Two calm ordinary-seating frames for every look and lot-axis facing. */
+const SIM_SIT_SPRITES: readonly ActionFacings[] = [
+  [
+    [spriteIndex('simSitSE0'), spriteIndex('simSitSE1')],
+    [spriteIndex('simSitNW0'), spriteIndex('simSitNW1')],
+    [spriteIndex('simSitSW0'), spriteIndex('simSitSW1')],
+    [spriteIndex('simSitNE0'), spriteIndex('simSitNE1')],
+  ],
+  [
+    [spriteIndex('sim2SitSE0'), spriteIndex('sim2SitSE1')],
+    [spriteIndex('sim2SitNW0'), spriteIndex('sim2SitNW1')],
+    [spriteIndex('sim2SitSW0'), spriteIndex('sim2SitSW1')],
+    [spriteIndex('sim2SitNE0'), spriteIndex('sim2SitNE1')],
+  ],
+  [
+    [spriteIndex('sim3SitSE0'), spriteIndex('sim3SitSE1')],
+    [spriteIndex('sim3SitNW0'), spriteIndex('sim3SitNW1')],
+    [spriteIndex('sim3SitSW0'), spriteIndex('sim3SitSW1')],
+    [spriteIndex('sim3SitNE0'), spriteIndex('sim3SitNE1')],
+  ],
+];
+
 /** Food held by an exact snack action, resolved once at module load. */
 const HELD_SNACK_SPRITE = spriteIndex('heldSnack');
 
@@ -265,6 +287,9 @@ export const VISUAL_ACTION_EXERCISE = 6;
 /** The append-only visual-action code for watching the aquarium. */
 export const VISUAL_ACTION_WATCH_FISH = 7;
 
+/** The append-only visual-action code for ordinary sitting. */
+export const VISUAL_ACTION_SIT = 8;
+
 /** Render-buffer facing codes, in the same order as `SIM_TALK_SPRITES`. */
 export const FACING_POSITIVE_X = 1;
 export const FACING_NEGATIVE_X = 2;
@@ -285,6 +310,9 @@ export const EXERCISE_FRAME_TICKS = 8;
 
 /** A watching pose holds for twenty-four simulation ticks, or 2.4 s at 1x. */
 export const WATCH_FISH_FRAME_TICKS = 24;
+
+/** A sitting adjustment holds for twenty-four ticks, or 2.4 s at 1x. */
+export const SIT_FRAME_TICKS = 24;
 
 /** Fish move at the same calm cadence as the watcher. */
 export const AQUARIUM_FRAME_TICKS = 24;
@@ -316,7 +344,8 @@ function timedActionFrame(
     visualAction === VISUAL_ACTION_READ ||
     visualAction === VISUAL_ACTION_STANDING_READ ||
     visualAction === VISUAL_ACTION_EXERCISE ||
-    visualAction === VISUAL_ACTION_WATCH_FISH
+    visualAction === VISUAL_ACTION_WATCH_FISH ||
+    visualAction === VISUAL_ACTION_SIT
       ? id % frameTicks
       : (id & 1) * frameTicks;
   return Math.floor((simulationTick + phaseTicks) / frameTicks) & 1;
@@ -447,6 +476,9 @@ export function simBodySprite(
   } else if (visualAction === VISUAL_ACTION_WATCH_FISH) {
     sprites = SIM_WATCH_FISH_SPRITES;
     frameTicks = WATCH_FISH_FRAME_TICKS;
+  } else if (visualAction === VISUAL_ACTION_SIT) {
+    sprites = SIM_SIT_SPRITES;
+    frameTicks = SIT_FRAME_TICKS;
   } else {
     return SIM_SPRITES[look];
   }
@@ -483,6 +515,8 @@ const INDICATOR_SPRITES: readonly (number | null)[] = [
   spriteIndex('indicatorReading'),
   spriteIndex('indicatorExercise'),
   spriteIndex('indicatorWatchFish'),
+  // SITTING: text-only. The seated silhouette and HUD name are explicit.
+  null,
 ];
 
 /**
