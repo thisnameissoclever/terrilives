@@ -4337,3 +4337,25 @@ pixels. `cameraOrigin` must place it at -2 through 722 in a 720-pixel canvas,
 sharing the unavoidable overflow equally. A future shorter extent may fit, but
 overflow beyond four pixels must fail for deliberate review. The obsolete
 tile-only centering formula must remain observably off-center.
+
+## [L-pages-must-follow-green-ci] A successful static build is not a releasable revision
+
+**What happened.** GitHub Pages deployed `f38c64a` while the CI run for the
+same revision failed the desktop camera-extent test. The site remained
+playable, but the public release boundary claimed a revision the test boundary
+had rejected.
+
+**Root cause.** The Pages workflow and CI both triggered independently on a
+push to `main`. Pages only built the static bundle, so it had no dependency on
+the CI conclusion and could finish first or succeed while CI failed.
+
+**Prevention rule.** Production Pages builds must be triggered by completion
+of the `CI` workflow on `main`, must run only when that CI conclusion is
+successful and its event was a push, and must check out the triggering run's
+exact `head_sha`. Do not substitute the newest default-branch revision.
+
+**How to verify.** Push a branch through a pull request and require CI to pass
+before merge. After merge, confirm the Pages run names that merge SHA as its
+triggering workflow revision and that the deployed HTML loads that revision's
+content-addressed assets. In a controlled test branch, force CI to fail and
+confirm the downstream Pages build job is skipped.

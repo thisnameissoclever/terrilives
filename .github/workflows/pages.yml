@@ -3,9 +3,10 @@ name: Deploy to GitHub Pages
 # Publishes the playable alpha so it can be looked at from any device,
 # including a phone that is not on the same network.
 #
-# Deliberately separate from ci.yml. This workflow ships something to the
-# public internet, and a deploy failing should not read as the test suite
-# failing, nor the reverse.
+# Execution stays separate from ci.yml because this workflow ships to the
+# public internet. Its trigger is deliberately downstream of a successful CI
+# push run, however, so Pages can never publish a main revision that CI has
+# rejected. See [L-pages-must-follow-green-ci].
 #
 # KNOWN LIMIT, recorded because it contradicts TIM-TODO [T18]: GitHub
 # Pages cannot set response headers, so it cannot send COOP and COEP.
@@ -16,10 +17,10 @@ name: Deploy to GitHub Pages
 # the artifact is a static bundle; it will not get cheaper.
 
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
-  # Lets a deploy be re-run from the Actions tab without an empty commit.
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -35,9 +36,19 @@ concurrency:
 
 jobs:
   build:
+    # `workflow_run` fires for every conclusion, and CI also supports manual
+    # dispatch. Only a successful push to main is a releasable revision.
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push'
     runs-on: ubuntu-latest
     steps:
+      # A workflow_run starts in the default-branch context. Check out the
+      # triggering CI run's tested revision rather than whichever main commit
+      # happens to be newest when this runner starts.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       # rust-toolchain.toml is the single source for the version,
       # components and targets. See ci.yml for why it is pinned.
