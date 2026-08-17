@@ -1,9 +1,9 @@
 """Clear Line people: one billboard figure, every pose.
 
 A person is shoulders, a torso, two arms, two legs, a neck, and a head
-with a face. Hands live on their sleeves. Both shoes share one ground y.
-Raised hands sit beside the head, never on it. Food lives in a hand, never
-as a snout.
+with a face. Hands live on their sleeves. Standing poses keep both shoes on
+one ground y; seated actions own their contact geometry. Raised hands sit
+beside the head, never on it. Food lives in a hand, never as a snout.
 """
 from style import (PALETTE as C, OUTLINE, OUTLINE_WIDTH, FACE_LEFT,
                    FACE_RIGHT, CHARACTER, mul)
@@ -42,6 +42,16 @@ def _column(d, x, y0, y1, half, fill):
         radius=min(half, 2),
         fill=fill, outline=OUTLINE, width=OUTLINE_WIDTH,
     )
+
+
+def _bent_limb(d, points, fill, width=5):
+    """One outlined two-segment limb with a readable knee or elbow."""
+    d.line(points, fill=OUTLINE, width=width + 3, joint="curve")
+    d.line(points, fill=fill, width=width, joint="curve")
+    radius = max(2, width // 2)
+    for x, y in points[1:-1]:
+        _oval(d, x - radius, y - radius, x + radius, y + radius,
+              fill=fill, outline=OUTLINE, width=1)
 
 
 def _hand(d, x, y, skin):
@@ -149,10 +159,11 @@ def person(d, palette, facing="se", pose="idle", frame=0):
         top_y = py - 42
         lean = fx
     elif pose == "exercise":
-        lean = fx * 2
-        drop = 3 if frame else 0
-        hip_y = py - 24 + drop
-        top_y = py - 48 + drop
+        # The hip is a fixed contact on the saddle. Pedalling moves the knees
+        # and feet, not the whole body up and down like a reluctant piston.
+        lean = fx
+        hip_y = py - 30
+        top_y = py - 52
 
     cx = px + lean
     head_y = top_y - 6
@@ -231,11 +242,38 @@ def person(d, palette, facing="se", pose="idle", frame=0):
             leg(near)
             arm(near, book_y - (2 if frame else 0))
     elif pose == "exercise":
-        arm(far, head_y + 2, raised=True)
-        leg(far, x_off=-fx * 3)
+        low_pedal = (px - fx * 5, py - 13)
+        high_pedal = (px - fx * 14, py - 30)
+        low_knee = (px - fx * 2, py - 20)
+        high_knee = (px - fx * 10, py - 18)
+
+        def rider_arm(side, hand_x, hand_y):
+            shoulder = (cx + side * 6, top_y + 7)
+            elbow = (cx + fx * 5 + side * 2, top_y + 15)
+            _bent_limb(d, [shoulder, elbow, (hand_x, hand_y)], shirt, width=4)
+            _hand(d, hand_x, hand_y, skin)
+
+        def rider_leg(side, foot, knee):
+            hip = (cx + side * 3, hip_y - 1)
+            _bent_limb(d, [hip, knee, foot], trouser, width=6)
+            _oval(d, foot[0] - 4, foot[1] - 2,
+                  foot[0] + 4, foot[1] + 2,
+                  fill=shoe, outline=OUTLINE, width=OUTLINE_WIDTH)
+
+        far_foot, near_foot = (
+            (high_pedal, low_pedal) if frame == 0 else (low_pedal, high_pedal)
+        )
+        far_knee, near_knee = (
+            (high_knee, low_knee) if frame == 0 else (low_knee, high_knee)
+        )
+
+        # Both hands remain planted on the swept bars while the feet exchange
+        # the opposing pedal positions. Far limbs draw first, as elsewhere.
+        rider_arm(far, px + fx * 4, py - 55)
+        rider_leg(far, far_foot, far_knee)
         body()
-        leg(near, x_off=fx * 3)
-        arm(near, head_y + 2, raised=True)
+        rider_leg(near, near_foot, near_knee)
+        rider_arm(near, px + fx * 11, py - 50)
     elif pose == "watch":
         arm(far, hang_y)
         leg(far, x_off=phase)

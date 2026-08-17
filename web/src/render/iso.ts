@@ -91,11 +91,12 @@ export function screenY(
 }
 
 /**
- * Where the lot's origin has to sit for the whole thing to be on screen.
+ * Initial camera placement that centres the lot's conservative drawn extent.
  *
- * Not a camera: the game has none, the lot is fixed for the session, and
- * this runs once at load. It is the arithmetic that decides whether the
- * player can see the top of their house.
+ * `main.ts` uses this once to seed the live camera. Pan and zoom own the origin
+ * afterward. When the conservative extent fits, this places the whole modeled
+ * bound on screen; when it is taller than the viewport, it shares the
+ * unavoidable overflow equally between the two edges.
  *
  * # What it accounts for that the obvious version does not
  *
@@ -123,8 +124,11 @@ export function screenY(
  * `tallestSprite` is passed in rather than imported so this file stays
  * arithmetic with no dependency on the atlas; `main.ts` reads it off
  * `SPRITES`. Using the tallest sprite in the whole atlas rather than the
- * tallest WALL is deliberately conservative: it also guarantees that a tall
- * object placed on the lot's first row is not clipped.
+ * tallest WALL is deliberately conservative: it includes a hypothetical tall
+ * object on the lot's first row. The full conservative extent is centered. It
+ * fits without clipping when the viewport is at least that tall; if it is
+ * taller than the viewport, the unavoidable overflow is shared equally rather
+ * than hidden on one edge.
  *
  * The horizontal axis is not treated the same way and does not need to be.
  * `screenX` spans `(w + h - 2)` half-tile widths, which is 832 px on the

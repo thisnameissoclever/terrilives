@@ -66,7 +66,8 @@
 # than past them. For a flat this size that is what a flat this size is
 # actually like.
 #
-# Sized so the whole lot fits the fixed 1280 x 720 canvas with no camera.
+# Originally sized for a fixed 1280 x 720 canvas. The live camera now pans and
+# zooms; its conservative 1x extent is reviewed below.
 #
 # **Do not derive that bound here.** It was derived here, in this comment,
 # and it was wrong: it reasoned about the TILE span, which is
@@ -77,14 +78,15 @@
 # top of the page.
 #
 # `cameraOrigin` in web/src/render/iso.ts owns the arithmetic now and reads
-# the tallest sprite off the atlas, so a taller piece of furniture cannot
-# silently push the house off screen. What that leaves as the authoring
-# rule is one number: the drawn extent is
-# `(width + height - 2) * 21 + 21 + 21 + tallestSprite` px tall, which at
-# 16 x 12 and a 114 px bunk bed is 702 against 720. **Adding one to either
-# dimension costs 21 px and there are 18 to spare**, so 16 x 12 really is
-# the largest this lot gets without a camera - just not for the reason
-# this comment used to give.
+# the tallest sprite off the atlas. What that leaves as the authoring rule is
+# one number: the drawn extent is
+# `(width + height - 2) * 21 + 21 + 21 + tallestSprite` px tall. The Clear Line
+# pass increased the bunk from 132 to 136 px, so the conservative 16 x 12 span
+# grew from 720 to 724 against a 720 px canvas. The camera centers the two-pixel
+# overflow on each edge; actual shipped placements remain visible because the
+# bunk stands at (9, 6), not on the boundary row used by the conservative bound.
+# Adding another lot row or column would cost 21 more pixels and require a
+# deliberate default-scale decision rather than another stale fit claim.
 width = 16
 height = 12
 

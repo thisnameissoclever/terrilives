@@ -1,8 +1,78 @@
 # Aquarium and exercise bike design QA
 
-Date: 2026-08-12
+Current review date: 2026-08-14
 
-final result: passed
+Current result: corrective redraw passed local source, generator, and played
+review. Final product-owner acceptance and physical-device review remain open.
+
+## 2026-08-14 corrective redraw
+
+The product owner rejected the deployed PR 52 sprites. The aquarium looked like
+a white display cube under a brown roof, the bike read as a tangled miniature,
+and the current exercise pose was a standing body translation rather than a
+seated pedal cycle. That rejection reopened visual acceptance even though the
+objects, actions, save migration, and automated runtime contracts were already
+working.
+
+The correction was built after fetching `origin/main` at `f38c64a`. It changes
+only procedural art, generator validation, generated atlas outputs, and this
+evidence. The existing one-by-one footprints, persistence IDs, lot positions,
+collision map, actions, sockets, simulation state, and Save V1 digest remain
+unchanged.
+
+### Current comparison evidence
+
+| Evidence | What it proves |
+| --- | --- |
+| [Reference and runtime comparison](docs/assets/aquarium-exercise-bike/asset-redesign-reference-runtime-comparison.png) | Both selected source images were judged beside same-scale crops from the current game, rather than against isolated sprite sheets. |
+| [Current generated contact sheet](docs/assets/aquarium-exercise-bike/asset-redesign-contact-3x.png) | Both aquarium frames, three bike facings, and two opposing pedal frames retain readable silhouettes inside the fixed envelopes. |
+| [Aquarium action at 1x](docs/assets/aquarium-exercise-bike/asset-redesign-aquarium-action-1280x720.png) | The normal object menu reached `Watching fish`; the cabinet clears the divider wall and the watcher stays on the adjacent tile. |
+| [Bike pedal frame zero](docs/assets/aquarium-exercise-bike/asset-redesign-bike-frame0-1280x720.png) and [frame one](docs/assets/aquarium-exercise-bike/asset-redesign-bike-frame1-1280x720.png) | The normal object menu reached `Exercising`; the torso and hands stay planted while the knees and feet exchange pedal positions. |
+| [Dusk](docs/assets/aquarium-exercise-bike/asset-redesign-dusk-1280x720.png), [midnight](docs/assets/aquarium-exercise-bike/asset-redesign-midnight-1280x720.png), and [Flat](docs/assets/aquarium-exercise-bike/asset-redesign-flat-1280x720.png) | Water, fish, cabinet, flywheel, console, and floor contacts remain distinguishable across the shipped lighting states. |
+| [Emulated reduced motion](docs/assets/aquarium-exercise-bike/asset-redesign-reduced-motion-1280x720.png) | The browser media query resolved to reduced motion and the current aquarium and watcher held frame zero. |
+
+### Corrective findings and fixes
+
+1. The aquarium keeps the exact 80 by 104 canvas and reviewed
+   `(26, 15, 80, 104)` opaque envelope. Its brown furniture roof became a thin
+   charcoal lid; the oversized near-white gravel diamond became a narrow
+   substrate band; open water now dominates the tank; and paired cabinet doors
+   and hardware make the lower half read as furniture. Only the three fish
+   regions differ between its two frames.
+2. The bike keeps the exact 80 by 88 canvas and one-tile placement. A larger
+   left-biased flywheel, separated frame triangle, front post, saddle, swept
+   handlebars, console, crank, pedals, stabilisers, mat, and towel now form an
+   upright-bike silhouette. Its SE and NE opaque bounds end at x 55, inside the
+   divider-wall boundary; the mirrored SW and NW bounds end at x 80 on the open
+   side.
+3. Exercise now uses a fixed saddle hip and fixed hands. Two bent-leg frames
+   exchange high and low knees and feet. The upper 50 pixel rows are
+   byte-identical between frames, so a whole-body bob cannot masquerade as
+   pedalling again.
+4. A new decoded-record digest pins both aquarium frames, all four bike
+   facings, and every exercise body. The older complement digest deliberately
+   excluded these art exceptions, which allowed a later shared character pass
+   to regress the exercise pose without failing the generator.
+
+Both actions were invoked through the normal object menu at 1x before speed was
+used to shorten repeated setup. The second bike frame was then advanced at 1x
+and frozen. Default and close desktop views retained wall and lot-edge
+clearance. A 390 by 844 responsive render kept a 390-pixel document and stage
+without horizontal overflow; the object and HUD layouts were unchanged because
+the sprite canvases and simulation footprints did not change. The local browser
+reported no warnings or errors during the corrective pass.
+
+Physical safe-area behavior, a real phone long press, and operating-system
+reduced motion remain outside this local correction. The generated selector
+still pins reduced motion to frame zero; both local emulation and its automated
+tests remain green.
+
+## 2026-08-12 original implementation record
+
+The following record describes the original PR 52 acceptance session. It is
+retained as historical evidence for interaction, Save, responsive layout, and
+lighting behavior, but its visual conclusion was superseded by the owner's
+2026-08-14 rejection and the corrective pass above.
 
 ## Sources and captures
 

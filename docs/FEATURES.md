@@ -140,10 +140,17 @@ picking move with that displayed body; the gameplay position and world hash do
 not. It retains the historical `moving_box` persistence id and bedroom-corner
 placement for the same Save V1 reason.
 
-Local production WebGPU acceptance for both replacements is complete in
+The original local production WebGPU pass for both replacements is recorded in
 `design-qa.md`, including their normal player routes, Save and Load transitions,
 phone-width and enlarged-text flyouts, lighting states, and emulated reduced
-motion. [PR #52](https://github.com/thisnameissoclever/terrilives/pull/52)
+motion. The product owner later rejected the deployed object silhouettes: the
+aquarium read as a white display cube under a brown roof, the bike read as a
+tangled miniature, and a subsequent shared character pass had reduced exercise
+to a standing body bob. The 2026-08-14 corrective redraw restores a readable
+tank and upright-bike silhouette plus fixed-hand, fixed-torso pedalling. Local
+same-scale comparison, both pedal frames, normal 1x actions, and daylight,
+dusk, midnight, and Flat lighting now pass. Final owner acceptance of the
+corrected deployed pixels remains open. [PR #52](https://github.com/thisnameissoclever/terrilives/pull/52)
 merged at `080ff7e1`; [CI run
 31705839013](https://github.com/thisnameissoclever/terrilives/actions/runs/31705839013)
 and [Pages run

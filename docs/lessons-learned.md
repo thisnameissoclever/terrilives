@@ -4279,3 +4279,61 @@ zero as a legal completion state.
 **How to verify.** Require one remaining work tick to load and zero to fail
 with `InvalidValue`. Remove the validation and require the focused boundary
 test to fail before exercising the dangerous update.
+
+## [L-visual-acceptance-must-follow-shared-generator-changes] Art evidence expires when shared drawing code changes
+
+**What happened.** The selected aquarium and exercise-bike mockups looked
+convincing, but the deployed procedural sprites did not preserve their readable
+silhouettes. The aquarium became a white display cube under a brown roof and the
+bike collapsed into a small dark knot. A later shared character rewrite then
+changed the previously reviewed exercise body into a standing Sim that bobbed
+in front of the machine. Dimensions, sprite indices, animation timing, and the
+older atlas complement guard all continued to pass.
+
+**Root cause.** Acceptance focused on ingredient lists and isolated technical
+contracts. The durable pixel guard protected the complement of the intentional
+art exceptions, but nothing pinned the reviewed exception pixels themselves.
+The played captures were also treated as permanent evidence even after shared
+generator code changed the current atlas bytes.
+
+**Prevention rule.** Compare the selected reference and the current runtime at
+the same scale and state. Pin the exact decoded pixels of every corrective art
+candidate, including action bodies that depend on shared character code. Do not
+call those pixels owner-approved until the owner accepts them. Any later change
+to a shared generator invalidates prior played art evidence until the affected
+object and body composites are replayed.
+
+**How to verify.** Inspect current native crops, object-and-rider composites,
+and played 1x actions beside the selected references. Require a deliberate
+pixel mutation in the aquarium, bike, or exercise body to fail the reviewed
+subset digest. Require a whole-body exercise translation to fail the planted
+upper-body invariant, and require a frozen pedal leg to fail the lower-body
+motion check. Restore the source byte-identically and regenerate the exact
+content-addressed atlas.
+
+## [L-atlas-height-can-invalidate-a-camera-fit-contract] A fixed viewport cannot fit an extent taller than itself
+
+**What happened.** The Clear Line atlas pass increased the tallest sprite from
+132 to 136 pixels. The camera's conservative 16 by 12 lot extent therefore grew
+from 720 to 724 pixels, but the desktop regression test still required both its
+top and bottom to fit inside a 720-pixel canvas. CI correctly reported the
+resulting negative two-pixel top bound. No camera origin can satisfy both old
+assertions because the modeled extent is four pixels taller than the viewport.
+
+**Root cause.** The generated atlas and sprite-specific checks were updated
+without re-evaluating the viewport arithmetic that consumes the maximum sprite
+height. The test encoded an outcome that had become mathematically impossible
+instead of the camera's actual rule: center the complete conservative extent.
+
+**Prevention rule.** Treat maximum sprite width and height as renderer inputs,
+not merely atlas metadata. Whenever either maximum changes, run the full Web
+suite and recalculate every fixed-viewport budget. If a fixed scale no longer
+fits, make an explicit product decision between automatic scaling and centered
+overflow; do not disguise the conflict by moving one clipped edge off the
+assertion.
+
+**How to verify.** At 136 pixels, the 16 by 12 conservative span is exactly 724
+pixels. `cameraOrigin` must place it at -2 through 722 in a 720-pixel canvas,
+sharing the unavoidable overflow equally. A future shorter extent may fit, but
+overflow beyond four pixels must fail for deliberate review. The obsolete
+tile-only centering formula must remain observably off-center.

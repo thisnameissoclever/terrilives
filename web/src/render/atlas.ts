@@ -21,9 +21,9 @@ export interface AtlasSprite {
 export const ATLAS_WIDTH = 512;
 export const ATLAS_HEIGHT = 2740;
 /** SHA-256 of the exact generated atlas PNG bytes. */
-export const ATLAS_CONTENT_SHA256 = 'f15b1d455ea05efd801479f6fcd9f564f6b5d72a11bed464b780776d1929fff7';
+export const ATLAS_CONTENT_SHA256 = '70e1dd5a5d994cf4589a49a1aa8df28fdd2ece223795b85e3d14b38de2155a4b';
 /** Content-addressed public pathname; Pages ignores query strings in its cache key. */
-export const ATLAS_FILE_NAME = 'atlas-f15b1d455ea05efd801479f6fcd9f564f6b5d72a11bed464b780776d1929fff7.png';
+export const ATLAS_FILE_NAME = 'atlas-70e1dd5a5d994cf4589a49a1aa8df28fdd2ece223795b85e3d14b38de2155a4b.png';
 
 export const SPRITES: readonly AtlasSprite[] = [
   { name: 'floor', x: 0, y: 2697, w: 64, h: 42 },
