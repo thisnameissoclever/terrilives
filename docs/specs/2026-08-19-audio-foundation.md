@@ -198,6 +198,9 @@ prove the suite rejects:
 10. Removing transactional cleanup after a partial Web Audio cue failure.
 11. Removing cleanup of a partially-created controller graph.
 12. Removing cleanup of a voice registered before `stop()` fails.
+13. Making the foreground SE branch run for every authored facing.
+14. Making the foreground SE branch run for no authored facing.
+15. Inverting the foreground SE comparison.
 
 ### Mutation evidence from 2026-08-19
 
@@ -316,6 +319,36 @@ then passed.
        ```
     3. Restored `finishVoice(voice, true)` for the registered voice.
     4. `procedural-cues.ts` restored to the hash below.
+13. Foreground SE branch always selected.
+    1. Replaced `facing == "SE"` with `true` in the foreground resolver.
+    2. Actual Rust test failure:
+       ```text
+       assertion `left == right` failed: foreground sprite must follow placement facing Some("SW")
+         left: Some(6)
+        right: Some(7)
+       ```
+    3. Restored the exact guard with the inverse patch.
+    4. `compile.rs` restored to the hash below.
+14. Foreground SE branch never selected.
+    1. Replaced `facing == "SE"` with `false` in the foreground resolver.
+    2. Actual Rust test failure:
+       ```text
+       every imported facing must compile: FacingSpriteMissing {
+           object: "fridge", facing: "SE", sprite: "bed_foregroundSE"
+       }
+       ```
+    3. Restored the exact guard with the inverse patch.
+    4. `compile.rs` restored to the hash below.
+15. Foreground SE comparison inverted.
+    1. Replaced `facing == "SE"` with `facing != "SE"`.
+    2. Actual Rust test failure:
+       ```text
+       every imported facing must compile: FacingSpriteMissing {
+           object: "fridge", facing: "SE", sprite: "bed_foregroundSE"
+       }
+       ```
+    3. Restored the exact guard with the inverse patch.
+    4. `compile.rs` restored to the hash below.
 
 Restored SHA-256 values were:
 
@@ -329,6 +362,8 @@ Restored SHA-256 values were:
    `04d0581d8dd478e3ec636f6cfce0622b9633569e8bbe19c9e4a0ee0614d13489`
 5. `main.ts`:
    `226c7c751fa3576d4074b095c1153bbab14e393ae49a4142a99babc8cf5d6f34`
+6. `compile.rs`:
+   `93856db8a410d9dc48bd575ac83c1f2705b3de3c2fe7bfc830a034e3701325b1`
 
 ## Open work
 

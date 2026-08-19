@@ -4463,3 +4463,25 @@ parameter scheduling, and after a voice is registered but before its stop is
 scheduled. Require the context to close, every created node to disconnect, zero
 voices to remain, and the sampler end hook to run. Delete each cleanup branch,
 paste the actual failing assertion, restore it, and verify exact source hashes.
+
+## [L-paired-facing-sprites-need-the-same-facing-matrix] Parallel sprite fields need parallel facing evidence
+
+**What happened.** The foreground sprite resolver copied the primary sprite's
+unsuffixed SE convention and directional suffix rules, but its tests covered
+only a placement with no authored facing. Three guard mutations survived: the
+SE branch could run always, never run, or invert its comparison. The primary
+sprite tests stayed green because they never observed the foreground field.
+
+**Root cause.** Two fields implemented the same presentation rule through
+separate branches, while only one field received the complete facing matrix.
+Code similarity was mistaken for shared evidence.
+
+**Prevention rule.** When parallel presentation fields resolve from the same
+facing, test every supported facing against both fields in the same fixture.
+Include the absent-facing fallback and any exceptional naming convention such
+as the unsuffixed SE sprite.
+
+**How to verify.** Compile one foreground-bearing placement with no facing and
+with SE, SW, NW, and NE. Require the primary and foreground atlas indices to
+match their respective variants. Replace the foreground SE guard with true,
+false, and `facing != "SE"`; each mutation must fail this test.
