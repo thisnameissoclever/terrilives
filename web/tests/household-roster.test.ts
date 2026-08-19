@@ -293,6 +293,27 @@ describe('HouseholdRoster', () => {
     expect(source.selections).toEqual([2]);
     expect(failures).toBe(1);
   });
+
+  it('reports a successfully staged selection exactly once', () => {
+    const source = new MutableSource();
+    const surface = new RecordingSurface();
+    let failures = 0;
+    let staged = 0;
+    const roster = new HouseholdRoster(
+      source,
+      surface,
+      100,
+      () => failures++,
+      () => staged++,
+    );
+    roster.update(0);
+
+    surface.select(1);
+
+    expect(source.selections).toEqual([2]);
+    expect(failures).toBe(0);
+    expect(staged).toBe(1);
+  });
 });
 
 describe('createHouseholdRosterSurface', () => {

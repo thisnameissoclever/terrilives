@@ -382,6 +382,29 @@
         outline: 2px solid var(--need-fill);
         outline-offset: 2px;
       }
+      #audio-controls {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: center;
+        gap: 4px 8px;
+      }
+      #audio-mute {
+        grid-column: 1 / -1;
+      }
+      .audio-effects-label {
+        color: var(--hud-muted);
+        font-size: 12px;
+      }
+      #effects-volume {
+        width: 100%;
+        min-width: 0;
+        min-height: 44px;
+        accent-color: var(--need-fill);
+      }
+      #effects-volume-value {
+        color: var(--hud-text);
+        font-variant-numeric: tabular-nums;
+      }
       #game-actions {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -551,9 +574,10 @@
             'roster roster'
             'needs people'
             'speed speed'
+            'audio audio'
             'actions actions';
           grid-template-columns: repeat(2, minmax(0, 1fr));
-          grid-template-rows: repeat(5, auto);
+          grid-template-rows: repeat(6, auto);
         }
         #hud[data-mobile-open='false'] {
           grid-template-areas: 'summary summary';
@@ -637,6 +661,9 @@
         #time-controls label {
           width: 100%;
           min-width: 44px;
+        }
+        #audio-controls {
+          grid-area: audio;
         }
         #game-actions {
           grid-area: actions;
@@ -823,7 +850,7 @@
           id="mobile-hud-toggle"
           class="hud-button mobile-hud-toggle"
           type="button"
-          aria-controls="lighting-mode household-roster needs-panel people-panel time-controls game-actions"
+          aria-controls="lighting-mode household-roster needs-panel people-panel time-controls audio-controls game-actions"
           aria-expanded="false"
           aria-label="Open game menu"
           hidden
@@ -879,6 +906,27 @@
         <div id="people-list" hidden></div>
       </details>
       <section id="time-controls" aria-label="Simulation speed"></section>
+      <section id="audio-controls" aria-label="Audio controls">
+        <button
+          id="audio-mute"
+          class="hud-button"
+          type="button"
+          aria-pressed="false"
+        >Sound: on</button>
+        <label class="audio-effects-label" for="effects-volume">
+          Effects <output id="effects-volume-value" for="effects-volume">70%</output>
+        </label>
+        <input
+          id="effects-volume"
+          type="range"
+          min="0"
+          max="100"
+          step="5"
+          value="70"
+          aria-label="Effects volume"
+          aria-valuetext="70%"
+        />
+      </section>
       <section id="game-actions" aria-label="Game actions">
         <button id="save-game" class="hud-button" type="button">Save</button>
         <button id="load-game" class="hud-button" type="button">Load</button>
@@ -919,6 +967,7 @@
         <li>Open the selected person's name to show or hide the needs panel.</li>
         <li>Open People to see how the selected person feels about everyone else.</li>
         <li>Use Light: flat for neutral daylight without the automatic lighting cycle.</li>
+        <li>Use Sound to mute everything, and Effects to set cue and footstep volume.</li>
       </ol>
       <button id="close-help" class="hud-button" type="button">Got it</button>
     </dialog>

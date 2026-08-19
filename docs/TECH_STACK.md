@@ -13,6 +13,7 @@ stable.
 | Compile target (first) | **`wasm32-unknown-unknown`** | Web-first |
 | Renderer | **WebGPU** via TypeScript | Compute shaders and far lower draw-call overhead than WebGL2 |
 | UI | **DOM / HTML + CSS** | The decisive advantage; see below |
+| Audio | **Native Web Audio API in TypeScript** | No dependency, gesture-gated browser playback, procedural first-slice cues, and a shell-only boundary |
 | Bridge | **`wasm-bindgen`**, zero-copy typed-array views | See [D11] |
 | Content format | **TOML**, compiled to a binary pack | See [D9] |
 | Save storage | **OPFS** | Real file handles from a worker, no meaningful quota ceiling |
@@ -40,6 +41,15 @@ creation, relationship trees, career panels, genealogy. In a game engine, all
 of that gets built in an immature in-engine toolkit. On the web it is HTML and
 CSS, the most mature UI stack in existence, trivially themeable and moddable by
 anyone. Over a multi-year content project that advantage compounds.
+
+**Native Web Audio for the first sound layer.** The shell creates a small node
+graph only after a trusted gesture. One mute-only master gain owns a separate
+effects gain, so future music, ambience, and voices can gain their own buses
+without changing what the current Effects slider means. Short cues are
+procedural oscillators with bounded duration and voice count. This avoids a
+sound-library and dependency decision while the event, lifecycle, settings,
+and performance contracts are being proved. It is not a claim that generated
+tones are the final sound design.
 
 **The memory picture.** wasm32 caps at a 4GB address space, with ~2GB the safe
 number for broad device support. Simulation state is nowhere near that:

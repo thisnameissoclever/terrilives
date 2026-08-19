@@ -4385,3 +4385,81 @@ silhouette tells a different story.
 animation phases, and compare the runtime composite with the pose reference.
 The hips must meet the cushion, the knee must visibly break the straight leg
 line, the feet must stay near the base, and the chair arms must remain readable.
+
+## [L-audio-follows-fixed-ticks-and-world-boundaries] Audio phase belongs to simulation travel, not rendered frames
+
+**What happened.** The first audio wiring nearly sampled footsteps once per
+rendered frame, resolved stable identity through one Rust call per agent on
+every tick, stopped all voices when Pause was selected, and reset walking phase
+only when a tab became hidden. Each choice looked reasonable alone. Together
+they would undercount 2x and 3x travel, become quadratic at town scale, cut off
+the Pause confirmation cue, and let hidden ticks contribute to the first sound
+after tab return.
+
+**Root cause.** Playback lifecycle, world lifecycle, and simulation phase were
+treated as one concern. They are three. UI audio remains usable while the world
+is paused. World replacement invalidates stable identity. Walking phase advances
+only with fixed ticks and travelled distance. Browser visibility is an
+asynchronous hardware boundary whose stale promises can settle out of order.
+
+**Prevention rule.** Sample movement after every fixed tick and never from a
+render frame or paused command flush. Resolve stable identity outside the hot
+path and key stride state by `SimId`. Keep UI and world boundaries distinct.
+Gate hidden audio synchronously, serialize context state changes, and clear
+stride history on both visibility edges. Keep trusted-gesture recovery armed
+after the first successful activation.
+
+**How to verify.** Split identical travel across 1x, 2x, and 3x tick batches and
+require identical step indices. Require no `simIdOf` call during steady ticks.
+Hide, sample several moving positions, show, and require the first visible
+sample to anchor without sound. Reject an automatic foreground resume, then
+require a later trusted gesture to recover. Deliberately remove each guard and
+require its focused test to fail before restoring the original bytes.
+
+## [L-performance-features-need-a-disabled-baseline] Attribute a regression before blaming the new feature
+
+**What happened.** The final 1,037-entity footstep-sampling-enabled browser run
+exceeded the 16.6 ms whole-frame target. The paired run with footstep sampling
+disabled also exceeded it: p95 was 26.7900 ms without sampling and 26.0250 ms
+with sampling on the available 60 Hz display at 3x. The sampler itself remained
+at p95 0.0151 ms.
+
+**Root cause.** One absolute performance number answers whether the whole game
+meets its frame budget. It does not answer which subsystem caused a miss. A
+feature can satisfy its bounded regression budget while an older renderer or
+simulation bottleneck still fails the application-wide gate.
+
+**Prevention rule.** Keep both gates. Run the identical production scenario
+with the feature enabled and explicitly disabled, then report the delta and
+both absolute results. Never turn a passing delta into a claim that the full
+frame budget passed, and never assign an existing absolute miss to a new slice
+without a paired baseline.
+
+**How to verify.** Pin entity count, viewport, speed, warm-up, and measurement
+window. Require the feature-specific sampler budget and enabled-versus-disabled
+delta independently. Also require each whole-frame run to meet the absolute
+target. If the delta passes but both absolute runs fail, accept the bounded
+feature cost and keep the application performance gate open.
+
+## [L-audio-node-failures-need-transactional-cleanup] Sound failure must remain presentation failure
+
+**What happened.** The first audio implementation caught context creation and
+resume failures but allowed a later oscillator or parameter exception to escape
+the cue player. A failure after registering a voice could retain dead nodes, and
+an exception during fixed-tick sampling could leave the footstep frame open.
+
+**Root cause.** Web Audio node construction was treated as one operation. It is
+a sequence of fallible browser calls: allocate, schedule, connect, register,
+start, and stop. Catching only the first and last boundary leaves half-built
+graphs between them.
+
+**Prevention rule.** Construct every cue transactionally. Track which nodes and
+voices exist, disconnect the exact partial state on any failure, close abandoned
+contexts, contain final cue errors at the controller, and close sampler frames
+in `finally`. Sound may be dropped; the simulation frame may not be dropped.
+
+**How to verify.** Inject failures on the second controller gain, during cue
+parameter scheduling, and after a voice is registered but before its stop is
+scheduled. Require the context to close, every created node to disconnect, zero
+voices to remain, and the sampler end hook to run. Delete each cleanup branch,
+paste the actual failing assertion, restore it, and verify exact source hashes.

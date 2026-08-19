@@ -640,12 +640,22 @@ this being authored data rather than inferred from who shares a house.
 
 ### [A-audio-voices] The game has sound and Sim voices
 
-There is no audio layer. The first slices are interaction feedback, UI feedback,
-room and outdoor ambience, object loops, footsteps, doors, alarms, and music.
-Sims also need a nonverbal voice system with stable vocal identities, emotional
-delivery, conversational turn-taking, and accessibility controls for master,
-music, effects, ambience, and voices. Important state changes still need visual
-and text equivalents; audio cannot become the only way to understand play.
+The first audio foundation is implemented in the TypeScript shell with native
+Web Audio. A trusted pointer or keyboard gesture activates it; events before
+activation are dropped rather than queued. The current bounded cue set covers
+staged and rejected commands on the canvas, keyboard, object menu, Clear orders,
+and Household roster routes, plus selected immediate controls and
+distance-driven footsteps. Master mute and Effects level are visible,
+touch-sized, persisted controls. Important state changes retain their visual
+and text equivalents.
+
+This is not the complete audio feature. Door open and close event types are
+reserved but no authoritative door transition emits them yet. Save, Load, Help,
+and every mobile-HUD control do not all have cues. Room and outdoor ambience,
+object loops, alarms, music, and nonverbal Sim voices remain unbuilt. The later
+control surface still needs music, ambience, and voice categories alongside the
+current master and effects controls. The detailed contract is
+`docs/specs/2026-08-19-audio-foundation.md`.
 
 ### [B-death] Sims can die and leave consequences
 

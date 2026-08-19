@@ -23,28 +23,34 @@ function status(initial = 'Game saved'): CommandFeedbackStatus & {
 describe('command feedback', () => {
   it('reports simulation-authored capacity rejection as an error', () => {
     const target = status();
+    const reported: number[] = [];
 
     expect(
       reportCommandFeedback(
         { takeIntentCapacityRejections: () => 2 },
         target,
+        (count) => reported.push(count),
       ),
     ).toBe(2);
     expect(target.textContent).toBe(ORDER_QUEUE_FULL_MESSAGE);
     expect(target.attributes.get('data-kind')).toBe('error');
+    expect(reported).toEqual([2]);
   });
 
   it('does not overwrite status when every drained order was accepted', () => {
     const target = status('');
+    const reported: number[] = [];
 
     expect(
       reportCommandFeedback(
         { takeIntentCapacityRejections: () => 0 },
         target,
+        (count) => reported.push(count),
       ),
     ).toBe(0);
     expect(target.textContent).toBe('');
     expect(target.attributes.size).toBe(0);
+    expect(reported).toEqual([]);
   });
 
   it('clears a stale rejection when a later replacement is attempted and accepted', () => {
@@ -82,10 +88,16 @@ describe('command feedback', () => {
         },
       },
       commandTarget,
+      (count) => order.push(`audio rejection ${count}`),
     );
 
     expect(alpha).toBe(0.25);
-    expect(order).toEqual(['advance', 'autosave', 'feedback']);
+    expect(order).toEqual([
+      'advance',
+      'autosave',
+      'feedback',
+      'audio rejection 1',
+    ]);
     expect(saveTarget.textContent).toBe('Autosaved');
     expect(commandTarget.textContent).toBe(ORDER_QUEUE_FULL_MESSAGE);
   });

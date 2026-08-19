@@ -2782,3 +2782,43 @@ to the lower-bunk socket.
   complete. Merge, exact-head CI, public Pages deployment and replay,
   phone-width use, physical safe areas, operating-system reduced motion, and
   owner approval remain open.
+
+## [A-audio-foundation] Sound controls fit without stealing the game
+
+The 2026-08-19 local production pass exercised the first native Web Audio
+slice at desktop, portrait phone, landscape phone, and the 240-pixel narrow
+stress viewport.
+
+- **Desktop keeps its established composition.** At 1280 by 720, Sound and
+  Effects live in the existing left rail below simulation speed. The rail
+  scrolls to them without moving or shrinking the game canvas.
+- **Compact layouts remain usable.** At 390 by 844 the open menu fits the full
+  audio row and action grid. At 568 by 320 the 220-pixel rail scrolls to the
+  audio row while most of the lot remains visible. At 240 by 568 the menu uses
+  the available width, retains its scrollbar, and produces no horizontal page
+  overflow.
+- **Touch and accessible state agree.** Sound, Effects, and sampled action
+  controls measured at least 44 CSS pixels high. The DOM exposes one Audio
+  controls region, `Sound: on/off` pressed state, `Effects volume`, and a live
+  percentage value.
+- **Preferences survive reload.** Sound off survived one reload, Sound on
+  survived the next, and a 35-percent Effects setting survived independently.
+  The test restored Effects to 70 percent afterward.
+- **Performance attribution remains honest.** With 1,037 entities on the
+  available 60 Hz display at 3x, disabling only footstep sampling measured
+  whole-frame p95 26.7900 ms and maximum 28.0200 ms. Sampling enabled measured
+  p95 26.0250 ms and maximum 26.7950 ms. The footstep sampler itself measured
+  p95 0.0151 ms and maximum 0.1350 ms across its retained 540-tick window. The
+  sampler and feature-regression budgets pass, while the application still
+  misses the separate 16.6 ms absolute target in both modes.
+- **Heap attribution is bounded, not waved away.** Post-collection retained
+  heap grew 112,312 bytes across 720 enabled ticks and 110,596 bytes across 714
+  disabled ticks. The 1,716-byte differential shows no obvious
+  sampler-proportional leak. Because both runs trend upward, the strict
+  whole-application heap gate remains open.
+- **Proof boundary.** Typecheck, 501 Web tests, production build, Rust format,
+  workspace tests, deliberate mutations, responsive screenshots, control
+  interaction, preference reloads, sampler timing, and paired feature-delta
+  evidence pass locally. Exact 120 Hz, the strict whole-heap trend, human
+  listening, the pre-existing absolute stress-frame budget, merge, exact-head
+  CI, and public Pages deployment remain open.

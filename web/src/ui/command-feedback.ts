@@ -33,11 +33,13 @@ export function clearCommandFeedback(status: CommandFeedbackStatus): void {
 export function reportCommandFeedback(
   source: CommandFeedbackSource,
   status: CommandFeedbackStatus,
+  onRejected: (count: number) => void = () => {},
 ): number {
   const rejected = source.takeIntentCapacityRejections();
   if (rejected === 0) return 0;
   status.textContent = ORDER_QUEUE_FULL_MESSAGE;
   status.setAttribute('data-kind', 'error');
+  onRejected(rejected);
   return rejected;
 }
 
@@ -50,9 +52,10 @@ export function advanceFrameWithCommandFeedback<T>(
   updatePersistence: () => void,
   source: CommandFeedbackSource,
   status: CommandFeedbackStatus,
+  onRejected: (count: number) => void = () => {},
 ): T {
   const result = advanceSimulation();
   updatePersistence();
-  reportCommandFeedback(source, status);
+  reportCommandFeedback(source, status, onRejected);
   return result;
 }

@@ -63,6 +63,7 @@ export class HouseholdRoster {
     private readonly surface: HouseholdRosterSurface,
     private readonly refreshMs: number,
     private readonly onSelectionFailed: () => void = () => {},
+    private readonly onSelectionStaged: () => void = () => {},
   ) {
     if (!Number.isFinite(refreshMs) || refreshMs <= 0) {
       throw new Error('household roster refresh interval must be positive');
@@ -94,9 +95,11 @@ export class HouseholdRoster {
     const member = householdMembers(this.source).find(
       (candidate) => candidate.simId === simId,
     );
-    if (member !== undefined && !this.source.select(member.entity)) {
+    if (member === undefined || !this.source.select(member.entity)) {
       this.onSelectionFailed();
+      return;
     }
+    this.onSelectionStaged();
   }
 }
 

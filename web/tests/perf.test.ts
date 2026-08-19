@@ -97,7 +97,14 @@ describe('FrameTimer', () => {
   it('reports zero before any sample', () => {
     expect(new FrameTimer(10).mean).toBe(0);
     expect(new FrameTimer(10).p95).toBe(0);
+    expect(new FrameTimer(10).max).toBe(0);
     expect(new FrameTimer(10).frames).toBe(0);
+  });
+
+  it('reports the slowest retained sample rather than an evicted spike', () => {
+    const t = new FrameTimer(3);
+    for (const value of [100, 2, 7, 4]) t.sample(value);
+    expect(t.max).toBe(7);
   });
 
   it('counts every frame ever sampled, not just the ones still in the window', () => {

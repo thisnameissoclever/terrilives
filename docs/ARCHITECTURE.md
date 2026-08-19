@@ -712,6 +712,55 @@ is invisible to a p95 and to a heap that the scavenger keeps flat. Only an
 allocation profile can see it, so only an allocation profile counts as
 evidence here.
 
+## [D16] Audio shell
+
+Audio is presentation owned by the TypeScript shell. The Rust simulation has
+no browser audio types, nodes, volume settings, or playback state. The shell
+translates observed outcomes into a small semantic event vocabulary:
+`command.staged`, `command.rejected`, `ui.confirmed`, stable-identity
+`sim.footstep`, and reserved door open and close events. Staged means accepted
+into the command channel; it does not overclaim that the simulation later
+started the intent. Door events are schema only until the static front door has
+an authoritative transition.
+
+The `AudioContext` is created or resumed only from a trusted pointer or keyboard
+gesture. Ordinary event emission never creates, resumes, or queues audio. The
+master gain is mute-only and the effects gain owns the current cue volume.
+Visibility changes synchronously gate emission, stop voices, clear walking
+phase, and serialize `suspend()` or `resume()` so the latest foreground state
+wins an asynchronous race. Both visibility edges clear stride history. A later
+trusted gesture remains armed in case an automatic foreground resume is denied.
+Pause stops fixed ticks but does not stop the context or UI cues. A successful
+Load rebuilds world identity and clears transient audio only after the world was
+actually replaced.
+
+Footsteps follow travelled world distance after each fixed simulation tick.
+They never follow render count or wall time, so 1x, 2x, and 3x preserve the
+same stride phase. A retained typed-array scheduler keys tracks by stable
+`SimId`, caps a burst at two steps, and discards overflow rather than replaying
+it later. Stable identity is resolved into a typed lookup at startup and after
+Load, outside the tick path. The lookup copies the live ID and kind columns
+before any dependent WASM call can detach them. A changed row is skipped rather
+than being assigned another person's sound.
+
+The current lookup is valid only while runtime entity topology is static.
+Before births, deaths, or live roster changes ship, the bridge must expose an
+aligned stable-Sim-ID render column or rebuild the lookup on every topology
+change. Calling `simIdOf` for every row on every tick is forbidden because the
+current Rust query would make town-scale sampling quadratic.
+
+The release performance gate uses the visible production build at
+`?stress=1000`: 600 fixed ticks, the first 60 discarded, sampler p95 at most
+0.25 ms, sampler maximum at most 1 ms, whole-frame p95 regression at most 1 ms
+against `&audio=0`, and no frame over 16.6 ms. Four fresh typed-array wrappers
+per tick are expected under [D11]. The actual allocation rule is no allocation
+proportional to entity count, no typed-array growth after warm-up, and no upward
+heap trend. A separate 40-walking-Sim scheduler run is required because the
+stress filler has no authored stable Sim identity.
+
+See `docs/specs/2026-08-19-audio-foundation.md` for the complete first-slice
+contract and acceptance boundary.
+
 ## [D13] Ghost pipeline (Layer 1 multiplayer)
 
 **Planned, not shipped.** There is no ghost record, death export, network

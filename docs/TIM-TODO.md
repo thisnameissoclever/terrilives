@@ -309,6 +309,12 @@ neighbors and household dynamics [B-neighborhood-dynamics], family relationships
 These are not owner chores. They are recorded here so they remain visible in
 the TODO, while `FEATURES.md` owns their scope and implementation status.
 
+The first [A-audio-voices] foundation is now implemented: gesture-gated native
+Web Audio, procedural command/UI cues, fixed-tick distance footsteps, master
+mute, and Effects volume. Ambience, object loops, alarms, music, category
+controls beyond Effects, and Sim voices remain mine to build. The current door
+event types are reserved plumbing, not a functioning door sound.
+
 ### [T2] Install the toolchain `[MINE]` - DONE
 
 Rust with the `wasm32-unknown-unknown` target, plus Node and wasm-pack. Handled
