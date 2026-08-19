@@ -647,7 +647,20 @@ staged and rejected commands on the canvas, keyboard, object menu, Clear orders,
 and Household roster routes, plus selected immediate controls and
 distance-driven footsteps. Master mute and Effects level are visible,
 touch-sized, persisted controls. Important state changes retain their visual
-and text equivalents.
+and text equivalents. Stable Sim identity now travels as an aligned render
+column, so fixed-tick footstep sampling makes no per-row identity query.
+
+The production proof runs in visible Chrome on a display configured at 120 Hz.
+With 1,037 entities, sampling-enabled application-work p95 is 1.615 ms, sampler
+p95 is 0.100 ms, zero application-work frames exceed 16.6 ms, and the paired
+audio-disabled p95 delta is -0.025 ms. Three alternating retained-memory pairs
+show a 10,896-byte median enabled-minus-disabled JavaScript differential against
+the predeclared 64 KiB allowance. The 40-walker scheduler probe passes at p95
+0.0099999905 ms per tick. The ordinary-Chrome harness selects a stable household
+Sim, stages a real walk, and passes settings persistence; hidden-tab silence
+remains an explicit owner action because automated Chrome 151 tab creation never
+produced trustworthy hidden-document state. Human listening remains required
+before this sound slice is accepted for merge.
 
 This is not the complete audio feature. Door open and close event types are
 reserved but no authoritative door transition emits them yet. Save, Load, Help,

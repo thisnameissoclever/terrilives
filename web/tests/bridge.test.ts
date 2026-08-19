@@ -89,6 +89,19 @@ describe('SimBridge', () => {
     expect(kinds[1]).toBe(0);
   });
 
+  it('exposes aligned stable Sim ids with a sentinel for unnamed rows', () => {
+    const bridge = new SimBridge(SimHandle.from_lot(), wasmMemory);
+    const before = Array.from(bridge.simIds());
+    expect(before.filter((id) => id !== 0xffff_ffff)).toEqual([0, 1, 2]);
+    expect(bridge.simIds().buffer).toBe(wasmMemory.buffer);
+
+    bridge.spawnAgent(1, 1, 50);
+    const after = bridge.simIds();
+    expect(after.at(-1)).toBe(0xffff_ffff);
+    expect(Array.from(after)).not.toEqual(Array.from(bridge.ids()));
+    expect(Array.from(after)).not.toEqual(Array.from(bridge.kinds()));
+  });
+
   it('exposes content-derived footprint axes for every render row', () => {
     // The 2x1 and 2x2 shipped beds make each axis non-constant and make the
     // two columns differ. The 1x1 fridge and agent pin the row-wise default.

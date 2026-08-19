@@ -60,12 +60,16 @@ export default defineConfig(({ mode }) => ({
     },
   },
   preview: {
-    // Same LAN exposure for `npm run preview`, which serves the built
+    // Same LAN exposure and isolation headers for `npm run preview`, which serves the built
     // bundle on 4173 - and over https when the local cert material
     // exists, because that is the server phones are pointed at and
     // WebGPU does not exist for them on plain http. See the note on
     // `https` above.
     host: true,
     https,
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+    },
   },
 }));

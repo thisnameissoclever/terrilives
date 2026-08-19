@@ -731,32 +731,44 @@ phase, and serialize `suspend()` or `resume()` so the latest foreground state
 wins an asynchronous race. Both visibility edges clear stride history. A later
 trusted gesture remains armed in case an automatic foreground resume is denied.
 Pause stops fixed ticks but does not stop the context or UI cues. A successful
-Load rebuilds world identity and clears transient audio only after the world was
-actually replaced.
+Load reads identity from the replacement world's aligned render rows and clears
+transient audio only after the world was actually replaced.
 
 Footsteps follow travelled world distance after each fixed simulation tick.
 They never follow render count or wall time, so 1x, 2x, and 3x preserve the
 same stride phase. A retained typed-array scheduler keys tracks by stable
 `SimId`, caps a burst at two steps, and discards overflow rather than replaying
-it later. Stable identity is resolved into a typed lookup at startup and after
-Load, outside the tick path. The lookup copies the live ID and kind columns
-before any dependent WASM call can detach them. A changed row is skipped rather
-than being assigned another person's sound.
+it later. Stable identity travels in a `sim_ids` render column aligned with IDs,
+kinds, positions, and actions. Household rows carry authored `SimId`; non-Sim
+rows carry `u32::MAX`. The shell re-reads the zero-copy column after every fixed
+tick under [D11]. Runtime topology may change the row set without rebuilding a
+separate lookup, and no steady tick calls `simIdOf`.
 
-The current lookup is valid only while runtime entity topology is static.
-Before births, deaths, or live roster changes ship, the bridge must expose an
-aligned stable-Sim-ID render column or rebuild the lookup on every topology
-change. Calling `simIdOf` for every row on every tick is forbidden because the
-current Rust query would make town-scale sampling quadratic.
+The release performance gate uses a visible production build on a display
+configured at 120 Hz. A five-second paused calibration must achieve 118 to 122
+animation frames per second with median interval from 8.0 to 8.7 ms; the active
+cadence is then reported rather than inferred. `?stress=1000` runs 600 fixed
+ticks with the first 60 discarded. Sampler p95 is at most 0.25 ms, sampler
+maximum at most 1 ms, application-work p95 regression is at most 1 ms against
+`&audio=0`, no application-work frame exceeds 16.6 ms, and steady `simIdOf`
+calls remain zero.
 
-The release performance gate uses the visible production build at
-`?stress=1000`: 600 fixed ticks, the first 60 discarded, sampler p95 at most
-0.25 ms, sampler maximum at most 1 ms, whole-frame p95 regression at most 1 ms
-against `&audio=0`, and no frame over 16.6 ms. Four fresh typed-array wrappers
-per tick are expected under [D11]. The actual allocation rule is no allocation
-proportional to entity count, no typed-array growth after warm-up, and no upward
-heap trend. A separate 40-walking-Sim scheduler run is required because the
-stress filler has no authored stable Sim identity.
+Fresh bridge wrappers are expected under [D11]. The allocation rule is no
+allocation proportional to entity count and no scheduler capacity growth after
+warm-up. Three alternating enabled/disabled memory pairs compare quiescent
+paused endpoints after explicit garbage collection. The median audio-enabled
+retained-JavaScript differential must stay within a predeclared 64 KiB allowance
+while voices, tracks, capacity, DOM nodes, and listeners remain bounded. Broader
+page and WASM growth is reported separately. A production 40-walker, 600-tick
+scheduler run exercises retained audio state directly.
+
+The first full run exposed a separate application bottleneck: 1,000 idle agents
+and 34 placed objects triggered roughly 34,000 A* searches during one selection
+tick. `select_action` now builds one breadth-first distance field per occupied
+source tile, scores every candidate from that field, and reconstructs the chosen
+route with the existing A* only once. Exhaustive tests pin field distances to
+the old adjacent-A* lengths, so the optimization changes cost rather than
+choice or route shape.
 
 See `docs/specs/2026-08-19-audio-foundation.md` for the complete first-slice
 contract and acceptance boundary.

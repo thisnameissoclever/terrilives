@@ -130,6 +130,31 @@ describe('FootstepScheduler', () => {
     expect(source).not.toMatch(/interface FootstepTrack/);
   });
 
+  it('keeps forty walking tracks in fixed retained storage across six hundred ticks', () => {
+    const scheduler = new FootstepScheduler({ emit: () => {} });
+    const observations: Array<readonly [number, number, number, boolean]> =
+      Array.from({ length: 40 }, (_, simId) => [simId, 0, simId, true]);
+
+    frame(scheduler, observations);
+    const capacity = scheduler.trackCapacity();
+    expect(scheduler.activeTrackCount()).toBe(40);
+    expect(capacity).toBeGreaterThanOrEqual(40);
+
+    for (let tick = 1; tick < 600; tick += 1) {
+      for (let index = 0; index < observations.length; index += 1) {
+        observations[index] = [index, tick * 0.1, index, true];
+      }
+      frame(scheduler, observations);
+    }
+
+    expect(scheduler.activeTrackCount()).toBe(40);
+    expect(scheduler.trackCapacity()).toBe(capacity);
+
+    scheduler.reset();
+    expect(scheduler.activeTrackCount()).toBe(0);
+    expect(scheduler.trackCapacity()).toBe(capacity);
+  });
+
   it('drops burst overflow rather than queuing delayed footsteps', () => {
     const sink = recordingSink();
     const scheduler = new FootstepScheduler(sink);

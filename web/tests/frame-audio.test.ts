@@ -3,13 +3,11 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
-  FootstepIdentityLookup,
   sampleFootstepsAfterTick,
   type FootstepFrameSink,
   type FootstepFrameSource,
 } from '../src/audio/frame-audio.js';
 import { VISUAL_ACTION_WALK } from '../src/frame.js';
-import { KIND_AGENT } from '../src/render/instances.js';
 
 const SOURCE = readFileSync(
   new URL('../src/audio/frame-audio.ts', import.meta.url),
@@ -21,15 +19,9 @@ function source(): FootstepFrameSource {
   return {
     count: 4,
     positions: () => new Float32Array([2, 3, 50, 60, 7, 8, 9, 10]),
-    kinds: () => new Uint32Array([KIND_AGENT, 1, KIND_AGENT, KIND_AGENT]),
-    ids: () => new Uint32Array([41, 42, 43, 44]),
+    simIds: () => new Uint32Array([7001, 0xffff_ffff, 7003, 0xffff_ffff]),
     visualActions: () =>
       new Uint32Array([VISUAL_ACTION_WALK, VISUAL_ACTION_WALK, 0, VISUAL_ACTION_WALK]),
-    simIdOf: (entity) => {
-      if (entity === 41) return 7001;
-      if (entity === 43) return 7003;
-      return null;
-    },
   };
 }
 
@@ -47,10 +39,7 @@ describe('sampleFootstepsAfterTick', () => {
   it('uses stable Sim ids and includes stopped Sims while ignoring objects and bare agents', () => {
     const calls: string[] = [];
     const input = source();
-    const identities = new FootstepIdentityLookup();
-    identities.rebuild(input);
-
-    sampleFootstepsAfterTick(input, sink(calls), identities);
+    sampleFootstepsAfterTick(input, sink(calls));
 
     expect(calls).toEqual([
       'begin',
@@ -63,76 +52,42 @@ describe('sampleFootstepsAfterTick', () => {
   it('re-reads every aligned view once after the fixed tick', () => {
     const input = source();
     const positions = vi.spyOn(input, 'positions');
-    const kinds = vi.spyOn(input, 'kinds');
-    const ids = vi.spyOn(input, 'ids');
+    const simIds = vi.spyOn(input, 'simIds');
     const visualActions = vi.spyOn(input, 'visualActions');
-    const identities = new FootstepIdentityLookup();
-    identities.rebuild(input);
     positions.mockClear();
-    kinds.mockClear();
-    ids.mockClear();
+    simIds.mockClear();
     visualActions.mockClear();
 
-    sampleFootstepsAfterTick(input, sink([]), identities);
+    sampleFootstepsAfterTick(input, sink([]));
 
     expect(positions).toHaveBeenCalledTimes(1);
-    expect(kinds).toHaveBeenCalledTimes(1);
-    expect(ids).toHaveBeenCalledTimes(1);
+    expect(simIds).toHaveBeenCalledTimes(1);
     expect(visualActions).toHaveBeenCalledTimes(1);
   });
 
-  it('never crosses into simIdOf during the steady fixed-tick sample', () => {
+  it('reads stable Sim identity from the aligned render column', () => {
     const input = source();
-    const simIdOf = vi.spyOn(input, 'simIdOf');
-    const identities = new FootstepIdentityLookup();
-    identities.rebuild(input);
-    expect(simIdOf).toHaveBeenCalledTimes(3);
-    simIdOf.mockClear();
+    const simIds = vi.spyOn(input, 'simIds');
 
-    sampleFootstepsAfterTick(input, sink([]), identities);
-    sampleFootstepsAfterTick(input, sink([]), identities);
+    sampleFootstepsAfterTick(input, sink([]));
+    sampleFootstepsAfterTick(input, sink([]));
 
-    expect(simIdOf).not.toHaveBeenCalled();
+    expect(simIds).toHaveBeenCalledTimes(2);
   });
 
-  it('copies zero-copy columns before simIdOf can invalidate WASM views', () => {
-    const liveKinds = new Uint32Array([KIND_AGENT, KIND_AGENT]);
-    const liveIds = new Uint32Array([41, 43]);
-    let firstCall = true;
-    const input: FootstepFrameSource = {
-      count: 2,
-      positions: () => new Float32Array([2, 3, 7, 8]),
-      kinds: () => liveKinds,
-      ids: () => liveIds,
-      visualActions: () => new Uint32Array([VISUAL_ACTION_WALK, 0]),
-      simIdOf(entity) {
-        if (firstCall) {
-          firstCall = false;
-          // Models a memory-growing boundary call invalidating both live views.
-          liveKinds.fill(0);
-          liveIds.fill(0);
-        }
-        return entity === 41 ? 7001 : entity === 43 ? 7003 : null;
-      },
-    };
-    const identities = new FootstepIdentityLookup();
-
-    identities.rebuild(input);
-
-    expect(identities.simIdAt(0, 41)).toBe(7001);
-    expect(identities.simIdAt(1, 43)).toBe(7003);
-  });
-
-  it('skips a changed row until the lookup is rebuilt', () => {
+  it('uses the current aligned identity after row topology changes', () => {
     const input = source();
-    const identities = new FootstepIdentityLookup();
-    identities.rebuild(input);
-    input.ids = () => new Uint32Array([99, 42, 43, 44]);
+    input.simIds = () => new Uint32Array([7999, 0xffff_ffff, 7003, 0xffff_ffff]);
     const calls: string[] = [];
 
-    sampleFootstepsAfterTick(input, sink(calls), identities);
+    sampleFootstepsAfterTick(input, sink(calls));
 
-    expect(calls).toEqual(['begin', '7003:7:8:false', 'end']);
+    expect(calls).toEqual([
+      'begin',
+      '7999:2:3:true',
+      '7003:7:8:false',
+      'end',
+    ]);
   });
 
   it('keeps the tick sampler free of per-frame collections and row objects', () => {
@@ -147,8 +102,6 @@ describe('sampleFootstepsAfterTick', () => {
 
   it('closes the scheduler frame when one observation fails', () => {
     const input = source();
-    const identities = new FootstepIdentityLookup();
-    identities.rebuild(input);
     const calls: string[] = [];
     const failingSink: FootstepFrameSink = {
       beginFootstepFrame: () => calls.push('begin'),
@@ -159,7 +112,7 @@ describe('sampleFootstepsAfterTick', () => {
       endFootstepFrame: () => calls.push('end'),
     };
 
-    expect(() => sampleFootstepsAfterTick(input, failingSink, identities)).toThrow(
+    expect(() => sampleFootstepsAfterTick(input, failingSink)).toThrow(
       'audio device disappeared',
     );
     expect(calls).toEqual(['begin', 'observe', 'end']);
@@ -167,7 +120,7 @@ describe('sampleFootstepsAfterTick', () => {
 
   it('samples after every fixed tick and never from paused command flushing', () => {
     expect(MAIN).toMatch(
-      /const frameSimulation = \{[\s\S]*?tick\(\): void \{\s*sim\.tick\(\);[\s\S]*?sampleFootstepsAfterTick\(sim, audio, footstepIdentities\);[\s\S]*?flushCommands\(\): void \{\s*sim\.flushCommands\(\);/,
+      /const frameSimulation = \{[\s\S]*?tick\(\): void \{\s*sim\.tick\(\);[\s\S]*?sampleFootstepsAfterTick\(sim, audio\);[\s\S]*?flushCommands\(\): void \{\s*sim\.flushCommands\(\);/,
     );
     expect(MAIN).toMatch(
       /advanceSimulationFrame\(driver, deltaMs, frameSimulation\)/,
@@ -181,7 +134,28 @@ describe('sampleFootstepsAfterTick', () => {
     expect(MAIN).toMatch(/new FrameTimer\(540\)/);
     expect(MAIN).toMatch(/get\('audio'\) !== '0'/);
     expect(MAIN).toMatch(
-      /sampleStartedMs = performance\.now\(\)[\s\S]*?sampleFootstepsAfterTick\(sim, audio, footstepIdentities\)[\s\S]*?footstepSamplerTimer\.sample\(performance\.now\(\) - sampleStartedMs\)/,
+      /sampleStartedMs = performance\.now\(\)[\s\S]*?sampleFootstepsAfterTick\(sim, audio\)[\s\S]*?footstepSamplerTimer\.sample\(performance\.now\(\) - sampleStartedMs\)/,
+    );
+  });
+
+  it('exposes bounded audio and WASM diagnostics only through the stress handle', () => {
+    expect(MAIN).toMatch(
+      /get wasmMemoryBytes\(\) \{\s*return wasm\.memory\.buffer\.byteLength;/,
+    );
+    expect(MAIN).toMatch(
+      /get activeVoices\(\) \{\s*return audio\.activeVoiceCount\(\);/,
+    );
+    expect(MAIN).toMatch(
+      /get footstepTracks\(\) \{\s*return audio\.activeFootstepTrackCount\(\);/,
+    );
+    expect(MAIN).toMatch(
+      /get footstepCapacity\(\) \{\s*return audio\.footstepTrackCapacity\(\);/,
+    );
+    expect(MAIN).toMatch(
+      /runFootstepSchedulerProbe:[\s\S]*?audio\.beginFootstepFrame\(\);[\s\S]*?audio\.observeFootstep\([\s\S]*?audio\.endFootstepFrame\(\);/,
+    );
+    expect(MAIN.indexOf('globalThis.__terriStress = {')).toBeGreaterThan(
+      MAIN.indexOf("if (stressParam !== null)"),
     );
   });
 
@@ -221,10 +195,9 @@ describe('sampleFootstepsAfterTick', () => {
     expect(MAIN).not.toMatch(/removeEventListener\([^\n]*unlockAudio/);
   });
 
-  it('rebuilds stable identity only at startup and after a successful Load', () => {
-    expect(MAIN.match(/footstepIdentities\.rebuild\(sim\)/g)).toHaveLength(2);
-    expect(MAIN).toMatch(
-      /if \(loaded\) \{[\s\S]*?footstepIdentities\.rebuild\(sim\);[\s\S]*?audio\.reset\('load'\)/,
-    );
+  it('uses the aligned stable-id column without a rebuild or identity query', () => {
+    expect(MAIN).not.toMatch(/footstepIdentities|simIdOf/);
+    expect(SOURCE).toMatch(/const simIds = source\.simIds\(\)/);
+    expect(SOURCE).not.toMatch(/simIdOf|FootstepIdentityLookup/);
   });
 });

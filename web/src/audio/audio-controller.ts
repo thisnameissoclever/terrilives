@@ -243,6 +243,14 @@ export class AudioController implements GameAudioEventSink {
     return this.player?.activeVoiceCount() ?? 0;
   }
 
+  activeFootstepTrackCount(): number {
+    return this.footsteps.activeTrackCount();
+  }
+
+  footstepTrackCapacity(): number {
+    return this.footsteps.trackCapacity();
+  }
+
   private async resumeFromGesture(): Promise<boolean> {
     if (this.context === null) {
       let context: BrowserAudioContext | null = null;

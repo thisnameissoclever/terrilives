@@ -136,6 +136,16 @@ export class FootstepScheduler {
     this.frameOpen = false;
   }
 
+  /** Retained-track diagnostic for the production stress harness. */
+  activeTrackCount(): number {
+    return this.trackCount;
+  }
+
+  /** Allocated typed-array capacity for the production stress harness. */
+  trackCapacity(): number {
+    return this.simIds.length;
+  }
+
   private addTrack(simId: number, x: number, y: number, walking: boolean): number {
     this.ensureCapacity(this.trackCount + 1);
     const slot = this.trackCount;

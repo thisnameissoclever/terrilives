@@ -67,10 +67,7 @@ import {
   MobileHud,
 } from './ui/mobile-hud.js';
 import { AudioController } from './audio/audio-controller.js';
-import {
-  FootstepIdentityLookup,
-  sampleFootstepsAfterTick,
-} from './audio/frame-audio.js';
+import { sampleFootstepsAfterTick } from './audio/frame-audio.js';
 import { AudioControls } from './ui/audio-controls.js';
 
 /** [D2]: the simulation's one true rate. Speed controls change how many
@@ -114,6 +111,28 @@ export interface StressHandle {
   readonly footstepSampler: FrameTimer;
   readonly footstepSampling: boolean;
   readonly entities: number;
+  /** Current WASM linear-memory size, read live after any growth. */
+  readonly wasmMemoryBytes: number;
+  /** Bounded audio-owned state used by retained-memory acceptance. */
+  readonly audio: {
+    readonly activeVoices: number;
+    readonly footstepTracks: number;
+    readonly footstepCapacity: number;
+  };
+  /**
+   * Exercises the real scheduler with stable identities without adding forty
+   * fully autonomous Sims and measuring pathfinding instead of audio.
+   */
+  runFootstepSchedulerProbe(walkers?: number, ticks?: number): {
+    readonly walkers: number;
+    readonly ticks: number;
+    readonly elapsedMs: number;
+    readonly meanMsPerTick: number;
+    readonly p95MsPerTick: number;
+    readonly maxMsPerTick: number;
+    readonly tracks: number;
+    readonly capacity: number;
+  };
   /**
    * Runs one frame's real work, exactly as the rAF callback would.
    *
@@ -307,12 +326,11 @@ async function main(): Promise<void> {
   const stress = Number(stressParam ?? 0);
   const spawnStartMs = performance.now();
   for (let i = 0; i < stress; i++) {
-    // Hunger 100 starts them satisfied, so they neither path nor eat at
-    // first and the measurement is of render and bridge throughput. It
-    // stops being true within seconds: every need decays from M1a
-    // onwards, and selection now runs one A* per candidate object per
-    // idle agent per tick, so a long stress run measures pathing too.
-    // Say which you are reading.
+    // Hunger 100 starts them satisfied, so they do not reserve an object or
+    // eat at first. Idle selection still scores the lot. It now shares one
+    // shortest-distance field per occupied source tile and reconstructs only
+    // a chosen route, so the harness exercises real autonomy without turning
+    // 1,000 agents and 34 objects into 34,000 A* searches per tick.
     //
     // This walks every tile of the lot in turn, so entities stack
     // several deep on each. That is deliberate rather than incidental:
@@ -331,11 +349,6 @@ async function main(): Promise<void> {
     );
   }
 
-  // Stable Sim ids are resolved across the WASM boundary once per world,
-  // outside the fixed-tick path. The lookup is rebuilt after Load below.
-  const footstepIdentities = new FootstepIdentityLookup();
-  footstepIdentities.rebuild(sim);
-
   const driver = new FixedStepDriver(TICK_HZ, MAX_TICKS_PER_FRAME);
   driver.setSpeed(START_SPEED);
   const frameSimulation = {
@@ -346,10 +359,10 @@ async function main(): Promise<void> {
       // stride distance that the simulation actually travelled.
       if (footstepSampling) {
         if (footstepSamplerTimer === null) {
-          sampleFootstepsAfterTick(sim, audio, footstepIdentities);
+          sampleFootstepsAfterTick(sim, audio);
         } else {
           const sampleStartedMs = performance.now();
-          sampleFootstepsAfterTick(sim, audio, footstepIdentities);
+          sampleFootstepsAfterTick(sim, audio);
           footstepSamplerTimer.sample(performance.now() - sampleStartedMs);
         }
       }
@@ -691,7 +704,6 @@ async function main(): Promise<void> {
           cameraDirty = true;
           menu.close();
           keyboardTargets.clear();
-          footstepIdentities.rebuild(sim);
           audio.reset('load');
           const nowMs = performance.now();
           householdRoster.update(nowMs, true);
@@ -1154,6 +1166,61 @@ async function main(): Promise<void> {
       footstepSampler: footstepSamplerTimer,
       footstepSampling,
       entities: sim.count,
+      get wasmMemoryBytes() {
+        return wasm.memory.buffer.byteLength;
+      },
+      audio: {
+        get activeVoices() {
+          return audio.activeVoiceCount();
+        },
+        get footstepTracks() {
+          return audio.activeFootstepTrackCount();
+        },
+        get footstepCapacity() {
+          return audio.footstepTrackCapacity();
+        },
+      },
+      runFootstepSchedulerProbe: (walkers = 40, ticks = 600) => {
+        if (!Number.isSafeInteger(walkers) || walkers < 1 || walkers > 1_000) {
+          throw new Error('footstep probe walkers must be an integer from 1 to 1000');
+        }
+        if (!Number.isSafeInteger(ticks) || ticks < 2 || ticks > 10_000) {
+          throw new Error('footstep probe ticks must be an integer from 2 to 10000');
+        }
+
+        audio.reset('load');
+        const probeTimer = new FrameTimer(ticks);
+        const startedMs = performance.now();
+        for (let tick = 0; tick < ticks; tick += 1) {
+          const tickStartedMs = performance.now();
+          audio.beginFootstepFrame();
+          try {
+            for (let walker = 0; walker < walkers; walker += 1) {
+              audio.observeFootstep(
+                1_000_000 + walker,
+                tick * 0.1,
+                walker * 0.01,
+                true,
+              );
+            }
+          } finally {
+            audio.endFootstepFrame();
+          }
+          probeTimer.sample(performance.now() - tickStartedMs);
+        }
+        const result = {
+          walkers,
+          ticks,
+          elapsedMs: performance.now() - startedMs,
+          meanMsPerTick: probeTimer.mean,
+          p95MsPerTick: probeTimer.p95,
+          maxMsPerTick: probeTimer.max,
+          tracks: audio.activeFootstepTrackCount(),
+          capacity: audio.footstepTrackCapacity(),
+        };
+        audio.reset('load');
+        return result;
+      },
       step: (nowMs = performance.now()) => frame(nowMs),
       sim,
       // Getters over the live camera rather than a copy: the origin now

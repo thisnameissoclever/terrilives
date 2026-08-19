@@ -314,6 +314,13 @@ impl SimHandle {
         self.sim.render_buffer().kinds.as_ptr()
     }
 
+    /// Stable authored Sim id per render row, or `u32::MAX` when the row has
+    /// no persistent person identity. Re-read after every sync or memory
+    /// growth like every other zero-copy render column.
+    pub fn sim_ids_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().sim_ids.as_ptr()
+    }
+
     /// Compiled footprint width per render row. The pointer is invalid after
     /// any sync or WASM memory growth, so the shell must build a fresh view for
     /// every access and use `entity_count()` as its length.
@@ -1537,6 +1544,24 @@ mod boundary_tests {
             "kinds_ptr must address the 0 = agent, 1 = smart object tags, \
              sorted by entity index, so the object spawned first comes first"
         );
+    }
+
+    #[test]
+    fn sim_ids_ptr_addresses_stable_identity_and_not_entity_ids() {
+        let handle = SimHandle::from_lot();
+        let count = handle.entity_count();
+        let sim_ids = addressed(handle.sim_ids_ptr(), count, "sim_ids_ptr");
+        let ids = addressed(handle.ids_ptr(), count, "ids_ptr");
+        let kinds = addressed(handle.kinds_ptr(), count, "kinds_ptr");
+
+        let named: Vec<u32> = sim_ids
+            .iter()
+            .copied()
+            .filter(|&id| id != u32::MAX)
+            .collect();
+        assert_eq!(named, vec![0, 1, 2]);
+        assert_ne!(sim_ids, ids, "stable identity is not the ECS entity index");
+        assert_ne!(sim_ids, kinds, "stable identity is not the row kind tag");
     }
 
     #[test]

@@ -2804,21 +2804,37 @@ stress viewport.
 - **Preferences survive reload.** Sound off survived one reload, Sound on
   survived the next, and a 35-percent Effects setting survived independently.
   The test restored Effects to 70 percent afterward.
-- **Performance attribution remains honest.** With 1,037 entities on the
-  available 60 Hz display at 3x, disabling only footstep sampling measured
-  whole-frame p95 26.7900 ms and maximum 28.0200 ms. Sampling enabled measured
-  p95 26.0250 ms and maximum 26.7950 ms. The footstep sampler itself measured
-  p95 0.0151 ms and maximum 0.1350 ms across its retained 540-tick window. The
-  sampler and feature-regression budgets pass, while the application still
-  misses the separate 16.6 ms absolute target in both modes.
-- **Heap attribution is bounded, not waved away.** Post-collection retained
-  heap grew 112,312 bytes across 720 enabled ticks and 110,596 bytes across 714
-  disabled ticks. The 1,716-byte differential shows no obvious
-  sampler-proportional leak. Because both runs trend upward, the strict
-  whole-application heap gate remains open.
-- **Proof boundary.** Typecheck, 501 Web tests, production build, Rust format,
-  workspace tests, deliberate mutations, responsive screenshots, control
-  interaction, preference reloads, sampler timing, and paired feature-delta
-  evidence pass locally. Exact 120 Hz, the strict whole-heap trend, human
-  listening, the pre-existing absolute stress-frame budget, merge, exact-head
-  CI, and public Pages deployment remain open.
+- **The first failure belonged to action selection, not audio.** The expanded
+  lot made 1,000 idle agents score 34 objects with one A* search per pair, about
+  34,000 searches on a selection tick. Release-WASM fixed-tick p95 was 24.5844
+  ms. One reusable breadth-first distance field per occupied source tile plus
+  one A* reconstruction for the winner reduced fixed-tick p95 to 1.3716 ms and
+  maximum to 1.6404 ms without changing shortest lengths or chosen route shape.
+- **Visible 120 Hz evidence now passes.** Chrome 151 on a display configured at
+  120 Hz calibrated at 119.99673 Hz with sampling and 119.99964 Hz without it.
+  With 1,037 entities, enabled active cadence was 120.00041 Hz, interval p95
+  8.400 ms, application-work p95 1.615 ms, maximum 2.115 ms, and zero
+  application-work frames over 16.6 ms. Disabled application-work p95 was 1.640
+  ms, so the feature delta was -0.025 ms. Sampler p95 was 0.100 ms, maximum
+  0.175 ms, with zero steady `simIdOf` calls.
+- **Retained memory is bounded against a paired control.** Three alternating
+  enabled-minus-disabled retained JavaScript deltas were 10,896, 7,964, and
+  14,948 bytes. Their 10,896-byte median passes the predeclared 65,536-byte
+  allowance. Every quiescent endpoint had zero voices, unchanged scheduler
+  capacity, no DOM/listener growth, and at most three retained tracks. WASM grew
+  in both modes, so that broader growth is recorded separately rather than
+  assigned to audio.
+- **The scheduler has its own load proof.** Forty stable walkers across 600
+  production ticks measured p95 0.0099999905 ms and maximum 0.150000006 ms per
+  tick, ending with 40 tracks in capacity 64.
+- **The mechanical listening boundary is explicit.** The ordinary-Chrome run
+  selects stable Sim ID 0, stages a real object walk, and passes settings
+  persistence. Automated Chrome 151 tab creation did not produce a trustworthy
+  hidden document, so the harness records `owner-required` and exits nonzero
+  instead of claiming silence. The owner workflow verifies the real tab switch,
+  suspended context, zero hidden oscillators, and heard result together.
+- **Proof boundary.** Clean Rust and Web suites, new deliberate mutations,
+  responsive screenshots, control interaction, preference reloads, production
+  performance, bounded retained memory, and scheduler evidence pass locally.
+  Human listening, merge, exact-head CI, and public Pages deployment remain
+  open.

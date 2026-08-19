@@ -85,7 +85,7 @@ class FakeRoot {
 class MutableSource implements HouseholdRosterSource {
   idsValue = new Uint32Array([10, 3, 8, 2, 5]);
   kindsValue = new Uint32Array([0, 0, 1, 0, 0]);
-  simIds = new Map([
+  simIdsByEntity = new Map([
     [10, 2],
     [3, 0],
     [2, 1],
@@ -107,12 +107,11 @@ class MutableSource implements HouseholdRosterSource {
     return this.idsValue;
   }
 
-  kinds(): Uint32Array {
-    return this.kindsValue;
-  }
-
-  simIdOf(entityIndex: number): number | null {
-    return this.simIds.get(entityIndex) ?? null;
+  simIds(): Uint32Array {
+    return Uint32Array.from(
+      this.idsValue,
+      (entity) => this.simIdsByEntity.get(entity) ?? 0xffff_ffff,
+    );
   }
 
   simName(entityIndex: number): string {
@@ -164,7 +163,7 @@ describe('householdMembers', () => {
     const source = new MutableSource();
     source.idsValue = new Uint32Array([16, 11, 15, 12, 14, 13]);
     source.kindsValue = new Uint32Array([0, 0, 0, 0, 0, 0]);
-    source.simIds = new Map([
+    source.simIdsByEntity = new Map([
       [11, 0],
       [12, 1],
       [13, 2],
@@ -189,16 +188,15 @@ describe('householdMembers', () => {
   it('copies WASM views before a name lookup can detach linear memory', () => {
     const memory = new WebAssembly.Memory({ initial: 1 });
     const ids = new Uint32Array(memory.buffer, 0, 3);
-    const kinds = new Uint32Array(memory.buffer, 32, 3);
+    const simIds = new Uint32Array(memory.buffer, 32, 3);
     ids.set([3, 7, 9]);
-    kinds.set([0, 0, 0]);
+    simIds.set([0, 1, 2]);
     let grew = false;
 
     const source: HouseholdRosterSource = {
       count: 3,
       ids: () => ids,
-      kinds: () => kinds,
-      simIdOf: (entity) => new Map([[3, 0], [7, 1], [9, 2]]).get(entity) ?? null,
+      simIds: () => simIds,
       simName: (entity) => {
         if (!grew) {
           memory.grow(1);
@@ -216,7 +214,7 @@ describe('householdMembers', () => {
       { simId: 2, entity: 9, name: 'Nadia' },
     ]);
     expect(ids.byteLength).toBe(0);
-    expect(kinds.byteLength).toBe(0);
+    expect(simIds.byteLength).toBe(0);
   });
 });
 
@@ -246,7 +244,7 @@ describe('HouseholdRoster', () => {
 
     source.idsValue = new Uint32Array([41, 42, 43]);
     source.kindsValue = new Uint32Array([0, 0, 0]);
-    source.simIds = new Map([
+    source.simIdsByEntity = new Map([
       [41, 0],
       [42, 1],
       [43, 2],
@@ -271,7 +269,7 @@ describe('HouseholdRoster', () => {
 
     source.idsValue = new Uint32Array([91]);
     source.kindsValue = new Uint32Array([0]);
-    source.simIds = new Map([[91, 0]]);
+    source.simIdsByEntity = new Map([[91, 0]]);
     source.names = new Map([[91, 'Terri']]);
     source.selected = 91;
 
@@ -364,7 +362,7 @@ describe('createHouseholdRosterSurface', () => {
     doug.focus();
     source.idsValue = new Uint32Array([42, 43]);
     source.kindsValue = new Uint32Array([0, 0]);
-    source.simIds = new Map([
+    source.simIdsByEntity = new Map([
       [42, 1],
       [43, 2],
     ]);
