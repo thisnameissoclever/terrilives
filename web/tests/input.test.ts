@@ -9,6 +9,7 @@ import {
   LongPressGesture,
   pickAt,
   pickSprite,
+  reportCommandOutcome,
   resolveLeftClick,
   resolveRightClick,
   type ClickAction,
@@ -25,6 +26,27 @@ import { FACING_POSITIVE_X, VISUAL_ACTION_SLEEP } from '../src/frame.js';
 import { TILE_HALF_HEIGHT, screenX, screenY } from '../src/render/iso.js';
 
 const KIND_OBJECT = 1;
+
+describe('command outcome feedback', () => {
+  it('routes accepted and rejected outcomes exactly once and ignores no-op clicks', () => {
+    const accepted: string[] = [];
+    const rejected: string[] = [];
+    const report = (outcome: Parameters<typeof reportCommandOutcome>[0]): void => {
+      reportCommandOutcome(
+        outcome,
+        (kind) => accepted.push(kind),
+        (kind) => rejected.push(kind),
+      );
+    };
+
+    report({ kind: 'selection', accepted: true });
+    report({ kind: 'order', accepted: false });
+    report({ kind: 'none' });
+
+    expect(accepted).toEqual(['selection']);
+    expect(rejected).toEqual(['order']);
+  });
+});
 
 describe('LongPressGesture', () => {
   function manualScheduler() {

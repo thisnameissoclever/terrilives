@@ -24,7 +24,7 @@ pub use components::{
     Reserved, Restless, Satisfaction, Selected, SimId, SimIdAllocator, SimName, SmartObject,
     Socialising, SpriteVariant, StepWork, Target, Traits, Wander,
 };
-pub use grid::{Footprint, TileGrid};
+pub use grid::{Footprint, TileDistanceField, TileGrid};
 pub use hash::FnvHasher;
 pub use ids::ObjectDefId;
 pub use needs::{NeedId, Needs, NEED_COUNT, NEED_MAX, NEED_MIN};

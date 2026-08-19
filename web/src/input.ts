@@ -160,6 +160,21 @@ export type LeftClickOutcome =
 export type RejectedCommandKind = Exclude<LeftClickOutcome['kind'], 'none'>;
 
 /**
+ * Publishes the result of one resolved click without making DOM wiring own
+ * command semantics. Empty canvas activity has no cue; accepted and rejected
+ * commands have exactly one result callback.
+ */
+export function reportCommandOutcome(
+  outcome: LeftClickOutcome,
+  onAccepted: (kind: RejectedCommandKind) => void,
+  onRejected: (kind: RejectedCommandKind) => void,
+): void {
+  if (outcome.kind === 'none') return;
+  if (outcome.accepted) onAccepted(outcome.kind);
+  else onRejected(outcome.kind);
+}
+
+/**
  * The tile a click landed on, or `null` if the canvas has no area.
  *
  * Two conversions, in this order:
@@ -1024,6 +1039,7 @@ export function attachPointerInput(
   onCommandRejected: (kind: RejectedCommandKind) => void = () => {},
   reducedMotion: () => boolean = () => false,
   onOrderAttempt: () => void = () => {},
+  onCommandAccepted: (kind: RejectedCommandKind) => void = () => {},
 ): void {
   const canvasPoint = (event: {
     clientX: number;
@@ -1197,9 +1213,7 @@ export function attachPointerInput(
       reducedMotion(),
       onOrderAttempt,
     );
-    if (outcome.kind !== 'none' && !outcome.accepted) {
-      onCommandRejected(outcome.kind);
-    }
+    reportCommandOutcome(outcome, onCommandAccepted, onCommandRejected);
   });
 
   canvas.addEventListener('contextmenu', (event) => {

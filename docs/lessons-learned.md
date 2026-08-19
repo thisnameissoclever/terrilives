@@ -4385,3 +4385,202 @@ silhouette tells a different story.
 animation phases, and compare the runtime composite with the pose reference.
 The hips must meet the cushion, the knee must visibly break the straight leg
 line, the feet must stay near the base, and the chair arms must remain readable.
+
+## [L-audio-follows-fixed-ticks-and-world-boundaries] Audio phase belongs to simulation travel, not rendered frames
+
+**What happened.** The first audio wiring nearly sampled footsteps once per
+rendered frame, resolved stable identity through one Rust call per agent on
+every tick, stopped all voices when Pause was selected, and reset walking phase
+only when a tab became hidden. Each choice looked reasonable alone. Together
+they would undercount 2x and 3x travel, become quadratic at town scale, cut off
+the Pause confirmation cue, and let hidden ticks contribute to the first sound
+after tab return.
+
+**Root cause.** Playback lifecycle, world lifecycle, and simulation phase were
+treated as one concern. They are three. UI audio remains usable while the world
+is paused. World replacement changes render rows. Walking phase advances
+only with fixed ticks and travelled distance. Browser visibility is an
+asynchronous hardware boundary whose stale promises can settle out of order.
+
+**Prevention rule.** Sample movement after every fixed tick and never from a
+render frame or paused command flush. Carry stable `SimId` in an aligned render
+column, read it with the other row data, and key stride state by that value. Keep
+UI and world boundaries distinct.
+Gate hidden audio synchronously, serialize context state changes, and clear
+stride history on both visibility edges. Keep trusted-gesture recovery armed
+after the first successful activation.
+
+**How to verify.** Split identical travel across 1x, 2x, and 3x tick batches and
+require identical step indices. Require no `simIdOf` call during steady ticks.
+Hide, sample several moving positions, show, and require the first visible
+sample to anchor without sound. Reject an automatic foreground resume, then
+require a later trusted gesture to recover. Deliberately remove each guard and
+require its focused test to fail before restoring the original bytes.
+
+## [L-performance-features-need-a-disabled-baseline] Attribute a regression before blaming the new feature
+
+**What happened.** The first 1,037-entity footstep-sampling browser run exceeded
+the 16.6 ms application-work target. The paired run with footstep sampling
+disabled missed by the same amount. Profiling the full fixed tick found the
+actual cost: 1,000 idle agents scored 34 objects with one A* search per pair,
+about 34,000 route searches on a selection tick. Release-WASM fixed-tick p95 was
+24.5844 ms. The audio sampler was cheap throughout.
+
+**Root cause.** One absolute performance number answers whether the whole game
+meets its frame budget. It does not answer which subsystem caused a miss. A
+feature can satisfy its bounded regression budget while an older renderer or
+simulation bottleneck fails the application-wide gate. The stale stress comment
+still described a one-object lot, so the workload had changed while its cost
+model had not.
+
+**Prevention rule.** Keep both gates. Run the identical production scenario
+with the feature enabled and explicitly disabled, then report the delta and
+both absolute results. When both modes fail similarly, profile the complete
+frame and fixed-tick phases before changing the feature under review. Stress
+comments and fixtures must name the current object count and the cost it causes.
+
+**How to verify.** Pin entity count, viewport, speed, warm-up, and measurement
+window. Require the feature-specific sampler budget and enabled-versus-disabled
+delta independently. Also require each whole-frame run to meet the absolute
+target. Vary placed-object count across 0, 1, 10, and 34 or profile the selection
+phase directly; a cost that scales with agent-object pairs names the subsystem.
+
+The corrective implementation builds one breadth-first distance field per
+occupied source tile, scores every object and person from that field, and runs
+the existing adjacent A* only for the chosen winner. Exhaustive small-grid tests
+require every field distance to match the old A* length. A focused mutation test
+requires eight agents on one source tile to build one field and one winning
+path, not eight fields or nine paths. After the repair, release-WASM fixed-tick
+p95 is 1.3716 ms and the visible production run sustains about 120 animation
+frames per second with application-work p95 1.615 ms enabled and 1.640 ms
+disabled.
+
+## [L-aligned-row-metadata-beats-repeated-sparse-queries] Recurring row metadata belongs in the row
+
+**What happened.** The first footstep design rebuilt stable identity at startup
+and Load by calling `simIdOf` for each render row. Moving those calls into every
+fixed tick would have crossed WASM once per row and scanned the Rust ECS query
+once per call. At town scale that shape becomes quadratic. Keeping a separate
+lookup also made live topology changes a second alignment problem.
+
+**Root cause.** Stable Sim identity was treated as sparse metadata because only
+Sims use it. The render buffer is already the authoritative aligned row set;
+reconstructing one parallel relationship outside it adds boundary calls and a
+new synchronization obligation.
+
+**Prevention rule.** Metadata consumed with every render row travels as an
+aligned primitive column. Use an explicit sentinel for rows where it does not
+apply. Re-create the zero-copy view after every potentially growing WASM
+boundary under [D11]. Reserve sparse lookup calls for infrequent queries rather
+than recurring row traversal.
+
+**How to verify.** Render household and object rows together. Require the Sim
+rows to expose their authored `SimId`, non-Sim rows to expose `u32::MAX`, and the
+WASM pointer to address that exact column rather than entity IDs. Mutate the row
+fill to the sentinel, mutate the pointer to entity IDs, use row number in the
+footstep sampler, and use entity IDs in the roster; each focused test must fail.
+Instrument `simIdOf` during a 600-tick production stress run and require zero
+steady-tick calls.
+
+## [L-audio-node-failures-need-transactional-cleanup] Sound failure must remain presentation failure
+
+**What happened.** The first audio implementation caught context creation and
+resume failures but allowed a later oscillator or parameter exception to escape
+the cue player. A failure after registering a voice could retain dead nodes, and
+an exception during fixed-tick sampling could leave the footstep frame open.
+
+**Root cause.** Web Audio node construction was treated as one operation. It is
+a sequence of fallible browser calls: allocate, schedule, connect, register,
+start, and stop. Catching only the first and last boundary leaves half-built
+graphs between them.
+
+**Prevention rule.** Construct every cue transactionally. Track which nodes and
+voices exist, disconnect the exact partial state on any failure, close abandoned
+contexts, contain final cue errors at the controller, and close sampler frames
+in `finally`. Sound may be dropped; the simulation frame may not be dropped.
+
+**How to verify.** Inject failures on the second controller gain, during cue
+parameter scheduling, and after a voice is registered but before its stop is
+scheduled. Require the context to close, every created node to disconnect, zero
+voices to remain, and the sampler end hook to run. Delete each cleanup branch,
+paste the actual failing assertion, restore it, and verify exact source hashes.
+
+## [L-paired-facing-sprites-need-the-same-facing-matrix] Parallel sprite fields need parallel facing evidence
+
+**What happened.** The foreground sprite resolver copied the primary sprite's
+unsuffixed SE convention and directional suffix rules, but its tests covered
+only a placement with no authored facing. Three guard mutations survived: the
+SE branch could run always, never run, or invert its comparison. The primary
+sprite tests stayed green because they never observed the foreground field.
+
+**Root cause.** Two fields implemented the same presentation rule through
+separate branches, while only one field received the complete facing matrix.
+Code similarity was mistaken for shared evidence.
+
+**Prevention rule.** When parallel presentation fields resolve from the same
+facing, test every supported facing against both fields in the same fixture.
+Include the absent-facing fallback and any exceptional naming convention such
+as the unsuffixed SE sprite.
+
+**How to verify.** Compile one foreground-bearing placement with no facing and
+with SE, SW, NW, and NE. Require the primary and foreground atlas indices to
+match their respective variants. Replace the foreground SE guard with true,
+false, and `facing != "SE"`; each mutation must fail this test.
+
+## [L-browser-automation-cannot-claim-a-hidden-tab-from-target-placement] A new target is not proof of a hidden document
+
+**What happened.** The audio listening harness needed to prove that hiding the
+game suspends its Web Audio context and prevents new voices. Default Playwright
+Chrome disables background throttling, so the harness launched ordinary Chrome
+and attached over the Chrome DevTools Protocol instead. Four automation routes
+created another page: Playwright page creation, raw target creation, a trusted
+renderer link, and the exact owned Chrome window's New tab button through
+Windows UI Automation. Some routes even proved equal Chrome window IDs and a
+selected new tab. Chrome 151 still reported the game document as `visible`.
+
+**Root cause.** Browser target creation, window placement, accessibility
+selection, document visibility, and Web Audio lifecycle are separate facts.
+Automation can successfully perform the first three without producing the last
+two. Counting a created or selected target as a hidden-tab pass would test the
+harness's optimism instead of the application.
+
+**Prevention rule.** Hidden-tab acceptance requires direct evidence from every
+relevant layer: an ordinary Chrome launch without background-disabling flags,
+the same native browser window, `document.visibilityState === "hidden"`, a
+suspended game `AudioContext`, and zero new oscillator nodes while semantic
+events are attempted. After repeated automated placement failures, stop changing
+tab mechanisms. Require one explicit owner tab switch and let the harness verify
+the resulting state. Never convert an automation limitation into an application
+pass or failure.
+
+**How to verify.** Run `scripts/audio-listening.ps1 -MechanicalOnly`. It must
+select a non-sentinel stable Sim ID, stage a real walk, record settings
+persistence and `hidden-tab: owner-required`, then exit nonzero. Run the owner
+workflow, open exactly one same-window tab when prompted, and require equal CDP
+window IDs, hidden document state, suspended context state, zero oscillator
+growth across 20 hidden events, visible state on return, and a human judgment
+that no hidden or catch-up sound occurred.
+
+## [L-listening-fixtures-must-prove-the-audible-identity] An agent row is not necessarily an audible Sim
+
+**What happened.** The first owner-listening setup selected the first render row
+whose kind was agent. Under the stress fixture, that row could be a synthetic
+agent with the `u32::MAX` no-Sim sentinel. The walk command could therefore be
+staged for a row that the stable-identity footstep sampler must deliberately
+ignore, producing a silent listening test that looked like an audio failure.
+
+**Root cause.** The fixture selected by broad render kind instead of the exact
+identity contract used by the feature. A visually valid agent row is not enough
+for audio; footsteps require an authored, stable Sim ID.
+
+**Prevention rule.** A listening fixture must select a row that satisfies every
+identity predicate required by the audible path. For footsteps, require agent
+kind and a non-sentinel aligned Sim ID. Fail setup immediately if no such row
+exists or if the real walk command is not admitted to the command queue. Never
+ask a human to diagnose sound from an unproven game state.
+
+**How to verify.** Run the mechanical listening workflow under the stress
+fixture. Its report must name the chosen stable Sim ID and record that the real
+walk command was staged before any owner prompt appears. Mutate selection back
+to the first agent row; the fixture must fail when a sentinel stress row sorts
+first instead of continuing into a misleading silent listening session.

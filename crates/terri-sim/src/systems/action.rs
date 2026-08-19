@@ -2,10 +2,51 @@ use bevy_ecs::prelude::*;
 use terri_core::clock::SimClock;
 use terri_core::{
     Agent, Blocked, Eating, Habituation, IntentQueue, NeedId, Needs, Path, Personality, Position,
-    Relationships, Reserved, Restless, SimId, SimRng, SmartObject, Socialising, Target, TileGrid,
+    Relationships, Reserved, Restless, SimId, SimRng, SmartObject, Socialising, Target,
+    TileDistanceField, TileGrid,
 };
 
 use super::advertise::{benefit_scale, relationship_scale, scaled_delta, score_advertisement};
+
+#[cfg(test)]
+thread_local! {
+    static PATH_SEARCH_COUNTS: std::cell::Cell<(usize, usize)> = const {
+        std::cell::Cell::new((0, 0))
+    };
+}
+
+fn build_distance_field(grid: &TileGrid, from: (i32, i32)) -> Option<TileDistanceField> {
+    #[cfg(test)]
+    PATH_SEARCH_COUNTS.with(|counts| {
+        let (fields, paths) = counts.get();
+        counts.set((fields + 1, paths));
+    });
+    grid.distance_field(from)
+}
+
+fn reconstruct_winning_path(
+    grid: &TileGrid,
+    from: (i32, i32),
+    destination: (i32, i32),
+    footprint: terri_core::Footprint,
+) -> Option<Vec<(i32, i32)>> {
+    #[cfg(test)]
+    PATH_SEARCH_COUNTS.with(|counts| {
+        let (fields, paths) = counts.get();
+        counts.set((fields, paths + 1));
+    });
+    grid.find_path_adjacent(from, destination, footprint)
+}
+
+#[cfg(test)]
+fn reset_path_search_counts() {
+    PATH_SEARCH_COUNTS.with(|counts| counts.set((0, 0)));
+}
+
+#[cfg(test)]
+fn path_search_counts() -> (usize, usize) {
+    PATH_SEARCH_COUNTS.with(std::cell::Cell::get)
+}
 use crate::Content;
 
 /// Picks one candidate at random, weighted by `exp(score / temperature)`
@@ -943,6 +984,14 @@ pub fn select_action(
         .collect();
     company.sort_by_key(|(e, ..)| e.index());
 
+    // One shortest-distance traversal per occupied source tile, not one A*
+    // per agent and candidate. The cache lives only for this immutable-grid
+    // system invocation, so a later wall or build change cannot leave stale
+    // navigation state behind. The existing A* still reconstructs the one
+    // winning route, preserving its deterministic path shape.
+    let mut distance_fields: std::collections::HashMap<(i32, i32), Option<TileDistanceField>> =
+        std::collections::HashMap::new();
+
     let mut claimed: Vec<Entity> = Vec::new();
 
     for (agent, agent_pos, needs, habituation, personality, relationships, traits) in idle {
@@ -971,8 +1020,12 @@ pub fn select_action(
         // of its interactions this agent would pick. Entering every
         // (object, interaction) pair separately would instead give an
         // object weight in proportion to how many ways it can be used.
-        let mut candidates: Vec<(Entity, Vec<(i32, i32)>, u32, f32)> = Vec::new();
+        let mut candidates: Vec<(Entity, u32, f32)> = Vec::new();
         let from = (agent_pos.x.round() as i32, agent_pos.y.round() as i32);
+        let distances = distance_fields
+            .entry(from)
+            .or_insert_with(|| build_distance_field(&grid, from))
+            .as_ref();
 
         // The best score this agent saw ANYWHERE, whether or not it
         // cleared the action threshold, and the only reason it is
@@ -1008,9 +1061,10 @@ pub fn select_action(
             // holder's whole walk and interaction, and `claimed` is a claim
             // made by a lower-indexed agent inside this very tick.
             let contested = *reserved || claimed.contains(&object);
-            // **Distance here is WALL-AWARE by contract**, and the
-            // contract is the part to preserve; A* is only today's way of
-            // honouring it.
+            // **Distance here is WALL-AWARE by contract.** The reusable
+            // breadth-first field and the A* that reconstructs the winner
+            // produce the same shortest length; the metric is the commitment
+            // and either search is only an implementation of it.
             //
             // M0 used Euclidean distance and said to revisit it "when
             // walls become common". They are: M1b's lot has a walled
@@ -1020,18 +1074,11 @@ pub fn select_action(
             // which reads on screen as a sim that wants something and
             // then changes its mind, not as a distance-metric bug.
             //
-            // M0's "far too expensive" reasoning was about a thousand
-            // agents and a hundred thousand objects. At M1b's scale - one
-            // agent, eight objects - this is one A* over a 24x18 grid per
-            // candidate per tick, which is nothing.
-            //
-            // The cost is O(idle agents * ALL placed objects) A* searches per
-            // tick - every object, not only the available ones. That changed
-            // when the query stopped filtering `Without<Reserved>`: a contested
-            // object is still pathed to, because its score still has to reach
-            // `best_seen`. Deliberate, and the reason is right above; the point
-            // here is that it is the SCALE that will force a change, not the
-            // metric, and the scale is now slightly larger than it looks.
+            // The old implementation performed one A* per idle-agent/object
+            // pair. The current five-room lot and stress harness turned that
+            // into roughly 34,000 searches on one selection tick. A field is
+            // now built once per occupied source tile and scores every object,
+            // including contested ones, without constructing candidate paths.
             //
             // **Do not "optimise" this back to a straight line.** [D7]
             // plans room and portal graph distance for exactly this
@@ -1050,9 +1097,6 @@ pub fn select_action(
             // failure with a wall in place of an out-of-bounds
             // coordinate.
             //
-            // This also replaces the second `find_path` that used to run
-            // after selection: the winning path is carried out of the
-            // loop rather than recomputed.
             // **Beside it, not on it** - `find_path_adjacent`, whose docs carry
             // the reasoning. The distance this yields is therefore the walk to
             // the tile the sim will actually stand on, which is one less than
@@ -1061,8 +1105,8 @@ pub fn select_action(
             // `docs/alpha-feel-notes.md` carries the re-measurement.
             //
             // **It does NOT change the [C5] repeat-use effect, and an earlier
-            // version of this comment said it did.** `find_path_adjacent`
-            // returns an EMPTY path for an agent that is already adjacent, so
+            // version of this comment said it did.** The field returns zero
+            // for an agent that is already adjacent, so
             // an agent that has just finished an interaction scores that object
             // at distance 0 - the same maximum score it got when the agent
             // stood on top of it. The distance term did not move, and the
@@ -1078,10 +1122,12 @@ pub fn select_action(
             // class of error as scoring a walled-off object by straight-line
             // distance, one object-width smaller.
             let footprint = content.0.object(placed.0).footprint;
-            let Some(steps) = grid.find_path_adjacent(from, to, footprint) else {
+            let Some(distance) =
+                distances.and_then(|field| field.distance_to_adjacent(to, footprint))
+            else {
                 continue;
             };
-            let distance = steps.len() as f32;
+            let distance = distance as f32;
 
             // An object offers a list of interactions and an agent
             // performs one of them, so each is scored separately and the
@@ -1237,10 +1283,7 @@ pub fn select_action(
             // boring.
             if let Some((interaction, score)) = best {
                 if !contested {
-                    // Cloned rather than moved: the chains block below
-                    // may push a second candidate anchored on the same
-                    // walk.
-                    candidates.push((object, steps.clone(), interaction, score));
+                    candidates.push((object, interaction, score));
                 }
             }
 
@@ -1309,7 +1352,7 @@ pub fn select_action(
                 if !contested {
                     best_available = best_available.max(score);
                     if score > action_threshold {
-                        candidates.push((object, steps.clone(), row, score));
+                        candidates.push((object, row, score));
                     }
                 }
             }
@@ -1352,10 +1395,12 @@ pub fn select_action(
             // none, so the whole-rectangle form collapses to this. An
             // unreachable person is skipped for [L17]'s reason, same as
             // an unreachable object.
-            let Some(steps) = grid.find_path_adjacent_to_tile(from, to) else {
+            let Some(distance) = distances
+                .and_then(|field| field.distance_to_adjacent(to, terri_core::Footprint::SINGLE))
+            else {
                 continue;
             };
-            let distance = steps.len() as f32;
+            let distance = distance as f32;
 
             let relationship = relationship_scale(
                 relationships.feeling(*other_id),
@@ -1414,7 +1459,7 @@ pub fn select_action(
 
             if let Some((interaction, score)) = best {
                 if !contested {
-                    candidates.push((other, steps, interaction, score));
+                    candidates.push((other, interaction, score));
                 }
             }
         }
@@ -1471,9 +1516,9 @@ pub fn select_action(
         // is harmless only because the vector is dropped on the next
         // iteration - move it above the draw and the determinism goes with
         // it.
-        let scores: Vec<f32> = candidates.iter().map(|(_, _, _, score)| *score).collect();
+        let scores: Vec<f32> = candidates.iter().map(|(_, _, score)| *score).collect();
         let picked = sample_softmax(&scores, temperature, &mut rng);
-        let (object, steps, interaction, _) = candidates.swap_remove(picked);
+        let (object, interaction, _) = candidates.swap_remove(picked);
 
         // **A chain row commits a COUNTER, not a walk** - the winner's
         // row past its object's interactions names a chain, and
@@ -1502,6 +1547,23 @@ pub fn select_action(
                 continue;
             }
         }
+
+        let (destination, footprint) = if let Ok((_, position, placed, _)) = objects.get(object) {
+            (
+                (position.x.round() as i32, position.y.round() as i32),
+                content.0.object(placed.0).footprint,
+            )
+        } else if let Ok((_, position, _, _)) = people.get(object) {
+            (
+                (position.x.round() as i32, position.y.round() as i32),
+                terri_core::Footprint::SINGLE,
+            )
+        } else {
+            continue;
+        };
+        let Some(steps) = reconstruct_winning_path(&grid, from, destination, footprint) else {
+            continue;
+        };
 
         claimed.push(object);
         // The INITIATOR is claimed as well as the winner, and it matters
@@ -2560,6 +2622,25 @@ mod tests {
             &[(NeedId::Hunger, IDENTICAL_DELTA)],
             IDENTICAL_DURATION,
         )
+    }
+
+    #[test]
+    fn shared_source_builds_one_distance_field_and_only_winners_build_paths() {
+        let content = decisive_identical_advert_content();
+        let mut sim = test_content::sim_with(16, 16, content);
+        spawn_object(&mut sim, 12.0, 12.0, def(content, "identical"));
+        for _ in 0..8 {
+            spawn_agent(&mut sim, 1.0, 1.0, 0.0);
+        }
+
+        reset_path_search_counts();
+        sim.tick();
+
+        assert_eq!(
+            path_search_counts(),
+            (1, 1),
+            "eight idle agents sharing one tile must share one distance field, and the single available object winner must reconstruct one path"
+        );
     }
 
     /// The threshold `select_action` actually compares against.

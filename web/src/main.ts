@@ -66,6 +66,9 @@ import {
   COMPACT_HUD_MEDIA_QUERY,
   MobileHud,
 } from './ui/mobile-hud.js';
+import { AudioController } from './audio/audio-controller.js';
+import { sampleFootstepsAfterTick } from './audio/frame-audio.js';
+import { AudioControls } from './ui/audio-controls.js';
 
 /** [D2]: the simulation's one true rate. Speed controls change how many
  * ticks run per frame, never how long a tick is. */
@@ -104,7 +107,32 @@ const REPORT_INTERVAL_MS = 2000;
  */
 export interface StressHandle {
   readonly timer: FrameTimer;
+  /** Sampler-only timings. A 540-sample ring discards 60 warm-up ticks. */
+  readonly footstepSampler: FrameTimer;
+  readonly footstepSampling: boolean;
   readonly entities: number;
+  /** Current WASM linear-memory size, read live after any growth. */
+  readonly wasmMemoryBytes: number;
+  /** Bounded audio-owned state used by retained-memory acceptance. */
+  readonly audio: {
+    readonly activeVoices: number;
+    readonly footstepTracks: number;
+    readonly footstepCapacity: number;
+  };
+  /**
+   * Exercises the real scheduler with stable identities without adding forty
+   * fully autonomous Sims and measuring pathfinding instead of audio.
+   */
+  runFootstepSchedulerProbe(walkers?: number, ticks?: number): {
+    readonly walkers: number;
+    readonly ticks: number;
+    readonly elapsedMs: number;
+    readonly meanMsPerTick: number;
+    readonly p95MsPerTick: number;
+    readonly maxMsPerTick: number;
+    readonly tracks: number;
+    readonly capacity: number;
+  };
   /**
    * Runs one frame's real work, exactly as the rAF callback would.
    *
@@ -195,6 +223,22 @@ async function main(): Promise<void> {
   const commandStatusElement = document.querySelector<HTMLElement>('#command-feedback');
   if (!commandStatusElement) throw new Error('missing #command-feedback');
   const commandStatus: HTMLElement = commandStatusElement;
+  let preferences: Storage | null = null;
+  try {
+    preferences = window.localStorage;
+  } catch {
+    // Session preferences still work in memory when browser storage is denied.
+  }
+  const audio = new AudioController(undefined, preferences ?? undefined);
+  void audio.setBackgrounded(document.visibilityState === 'hidden');
+  const unlockAudio = (): void => {
+    if (audio.isUnlocked()) return;
+    void audio.unlockFromGesture();
+  };
+  // Browser autoplay policy requires the context to start from a trusted
+  // gesture. Capture sees the gesture before the command it may accompany.
+  document.addEventListener('pointerdown', unlockAudio, true);
+  document.addEventListener('keydown', unlockAudio, true);
   const persistence = new PersistenceController(
     createSaveStore(),
     sim,
@@ -275,15 +319,18 @@ async function main(): Promise<void> {
   // way to get the harness was to add a second sim to the world being
   // measured.
   const stressParam = new URLSearchParams(location.search).get('stress');
+  const footstepSampling =
+    stressParam === null ||
+    new URLSearchParams(location.search).get('audio') !== '0';
+  const footstepSamplerTimer = stressParam === null ? null : new FrameTimer(540);
   const stress = Number(stressParam ?? 0);
   const spawnStartMs = performance.now();
   for (let i = 0; i < stress; i++) {
-    // Hunger 100 starts them satisfied, so they neither path nor eat at
-    // first and the measurement is of render and bridge throughput. It
-    // stops being true within seconds: every need decays from M1a
-    // onwards, and selection now runs one A* per candidate object per
-    // idle agent per tick, so a long stress run measures pathing too.
-    // Say which you are reading.
+    // Hunger 100 starts them satisfied, so they do not reserve an object or
+    // eat at first. Idle selection still scores the lot. It now shares one
+    // shortest-distance field per occupied source tile and reconstructs only
+    // a chosen route, so the harness exercises real autonomy without turning
+    // 1,000 agents and 34 objects into 34,000 A* searches per tick.
     //
     // This walks every tile of the lot in turn, so entities stack
     // several deep on each. That is deliberate rather than incidental:
@@ -304,6 +351,26 @@ async function main(): Promise<void> {
 
   const driver = new FixedStepDriver(TICK_HZ, MAX_TICKS_PER_FRAME);
   driver.setSpeed(START_SPEED);
+  const frameSimulation = {
+    tick(): void {
+      sim.tick();
+      // Sample once per fixed tick, not once per rendered frame. At 2x and 3x
+      // one frame may run several ticks, and combining them loses corner and
+      // stride distance that the simulation actually travelled.
+      if (footstepSampling) {
+        if (footstepSamplerTimer === null) {
+          sampleFootstepsAfterTick(sim, audio);
+        } else {
+          const sampleStartedMs = performance.now();
+          sampleFootstepsAfterTick(sim, audio);
+          footstepSamplerTimer.sample(performance.now() - sampleStartedMs);
+        }
+      }
+    },
+    flushCommands(): void {
+      sim.flushCommands();
+    },
+  };
   const overlayPause = new OverlayPauseController(
     driver,
     (ticksPerFrame) => sim.setSpeed(ticksPerFrame),
@@ -451,6 +518,11 @@ async function main(): Promise<void> {
     () => {
       commandStatus.textContent = 'That person could not be selected';
       commandStatus.setAttribute('data-kind', 'error');
+      audio.emit({ type: 'command.rejected' });
+    },
+    () => {
+      clearCommandFeedback(commandStatus);
+      audio.emit({ type: 'command.staged' });
     },
   );
   const initialHudMs = performance.now();
@@ -511,6 +583,7 @@ async function main(): Promise<void> {
     // multiplies how many steps run per frame and never how long a step
     // is.
     overlayPause.selectSpeed(ticksPerFrame);
+    audio.emit({ type: 'ui.confirmed' });
   });
 
   const saveButton = document.querySelector<HTMLButtonElement>('#save-game');
@@ -527,6 +600,11 @@ async function main(): Promise<void> {
   const loadGameDialog = document.querySelector<HTMLDialogElement>('#load-game-dialog');
   const confirmNewGame = document.querySelector<HTMLButtonElement>('#confirm-new-game');
   const confirmLoadGame = document.querySelector<HTMLButtonElement>('#confirm-load-game');
+  const audioMuteButton = document.querySelector<HTMLButtonElement>('#audio-mute');
+  const effectsVolume = document.querySelector<HTMLInputElement>('#effects-volume');
+  const effectsVolumeValue = document.querySelector<HTMLOutputElement>(
+    '#effects-volume-value',
+  );
   if (
     !saveButton ||
     !loadButton ||
@@ -541,12 +619,21 @@ async function main(): Promise<void> {
     !newGameDialog ||
     !loadGameDialog ||
     !confirmNewGame ||
-    !confirmLoadGame
+    !confirmLoadGame ||
+    !audioMuteButton ||
+    !effectsVolume ||
+    !effectsVolumeValue
   ) {
     throw new Error('missing game action markup');
   }
 
   const queueMode = new QueueMode(queueButton);
+  const audioControls = new AudioControls(
+    audio,
+    audioMuteButton,
+    effectsVolume,
+    effectsVolumeValue,
+  );
   const persistenceFocusFallbacks = [
     saveButton,
     stopOrdersButton,
@@ -570,7 +657,21 @@ async function main(): Promise<void> {
     persistenceControlKey = key;
   };
   syncPersistenceButtons();
-  queueButton.addEventListener('click', () => queueMode.toggle());
+  queueButton.addEventListener('click', () => {
+    queueMode.toggle();
+    audio.emit({ type: 'ui.confirmed' });
+  });
+  audioMuteButton.addEventListener('click', () => {
+    const muted = audioControls.toggleMuted();
+    if (!muted) audio.emit({ type: 'ui.confirmed' });
+  });
+  effectsVolume.addEventListener('input', () => {
+    audioControls.previewEffectsPercent(effectsVolume.value);
+  });
+  effectsVolume.addEventListener('change', () => {
+    audioControls.setEffectsPercent(effectsVolume.value);
+    audio.emit({ type: 'ui.confirmed' });
+  });
   saveButton.addEventListener('click', () => {
     const saving = persistence.save();
     syncPersistenceButtons();
@@ -603,6 +704,7 @@ async function main(): Promise<void> {
           cameraDirty = true;
           menu.close();
           keyboardTargets.clear();
+          audio.reset('load');
           const nowMs = performance.now();
           householdRoster.update(nowMs, true);
           peoplePanel.update(nowMs, true);
@@ -660,23 +762,20 @@ async function main(): Promise<void> {
     if (selected === null) {
       commandStatus.textContent = 'Select a person first';
       commandStatus.setAttribute('data-kind', 'error');
+      audio.emit({ type: 'command.rejected' });
       return;
     }
     if (sim.cancelIntents(selected)) {
       commandStatus.textContent = 'Orders cleared';
       commandStatus.removeAttribute('data-kind');
+      audio.emit({ type: 'command.staged' });
     } else {
       commandStatus.textContent = 'Could not clear orders';
       commandStatus.setAttribute('data-kind', 'error');
+      audio.emit({ type: 'command.rejected' });
     }
   });
 
-  let preferences: Storage | null = null;
-  try {
-    preferences = window.localStorage;
-  } catch {
-    // Help remains usable for the session when browser preferences are denied.
-  }
   const helpPanel = new HelpPanel(helpRoot, helpTitle, preferences);
   const lightingMode = new LightingMode(lightingModeButton, preferences);
   let helpReturnTarget: HTMLElement = canvas;
@@ -705,7 +804,9 @@ async function main(): Promise<void> {
   });
 
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden' && !startingNewGame) {
+    const hidden = document.visibilityState === 'hidden';
+    void audio.setBackgrounded(hidden);
+    if (hidden && !startingNewGame) {
       const saving = persistence.save('Game saved');
       syncPersistenceButtons();
       void saving.then(() => syncPersistenceButtons());
@@ -740,6 +841,7 @@ async function main(): Promise<void> {
     const wasFlat = lightingMode.isFlat();
     lightingMode.toggle();
     if (lightingMode.isFlat() !== wasFlat) cameraDirty = true;
+    audio.emit({ type: 'ui.confirmed' });
   });
   // A narrowed alias: the null check on `canvas` above does not survive
   // into the closure below, and `applyCamera` runs long after it.
@@ -850,6 +952,7 @@ async function main(): Promise<void> {
       commandStatus.textContent = 'That order could not be added';
       commandStatus.setAttribute('data-kind', 'error');
     }
+    audio.emit({ type: accepted ? 'command.staged' : 'command.rejected' });
   });
   const keyboardStatus = document.querySelector<HTMLElement>('#keyboard-target');
   if (!keyboardStatus) throw new Error('missing #keyboard-target');
@@ -869,11 +972,13 @@ async function main(): Promise<void> {
       event.preventDefault();
       const target = keyboardTargets.current();
       if (target?.kind === 'person') {
+        const accepted = sim.select(target.entity);
         reportKeyboardSelection(
           keyboardStatus,
           target.label,
-          sim.select(target.entity),
+          accepted,
         );
+        audio.emit({ type: accepted ? 'command.staged' : 'command.rejected' });
       }
       return;
     }
@@ -881,11 +986,13 @@ async function main(): Promise<void> {
       event.preventDefault();
       const action = keyboardTargets.activate();
       if (action.kind === 'select') {
+        const accepted = sim.select(action.entity);
         reportKeyboardSelection(
           keyboardStatus,
           action.label,
-          sim.select(action.entity),
+          accepted,
         );
+        audio.emit({ type: accepted ? 'command.staged' : 'command.rejected' });
       } else if (action.kind === 'menu') {
         const bounds = canvas.getBoundingClientRect();
         menu.open(action.menu, bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
@@ -959,9 +1066,11 @@ async function main(): Promise<void> {
         ? 'Selection could not be changed'
         : 'That order could not be added';
       commandStatus.setAttribute('data-kind', 'error');
+      audio.emit({ type: 'command.rejected' });
     },
     () => reducedMotion.matches,
     () => clearCommandFeedback(commandStatus),
+    () => audio.emit({ type: 'command.staged' }),
   );
 
   const timer = new FrameTimer(FRAME_WINDOW);
@@ -992,12 +1101,13 @@ async function main(): Promise<void> {
     // between the last one that ran and the next one that has not. A paused
     // frame drains input without running a full tick.
     const alpha = advanceFrameWithCommandFeedback(
-      () => advanceSimulationFrame(driver, deltaMs, sim),
+      () => advanceSimulationFrame(driver, deltaMs, frameSimulation),
       () => {
         if (!startingNewGame) persistence.updateAutosave();
       },
       sim,
       commandStatus,
+      () => audio.emit({ type: 'command.rejected' }),
     );
     // The selection comes from the simulation every frame rather than being
     // remembered here ([D-5]), so the ring cannot disagree with what the need
@@ -1048,9 +1158,69 @@ async function main(): Promise<void> {
   }
 
   if (stressParam !== null) {
+    if (footstepSamplerTimer === null) {
+      throw new Error('stress footstep timer was not created');
+    }
     globalThis.__terriStress = {
       timer,
+      footstepSampler: footstepSamplerTimer,
+      footstepSampling,
       entities: sim.count,
+      get wasmMemoryBytes() {
+        return wasm.memory.buffer.byteLength;
+      },
+      audio: {
+        get activeVoices() {
+          return audio.activeVoiceCount();
+        },
+        get footstepTracks() {
+          return audio.activeFootstepTrackCount();
+        },
+        get footstepCapacity() {
+          return audio.footstepTrackCapacity();
+        },
+      },
+      runFootstepSchedulerProbe: (walkers = 40, ticks = 600) => {
+        if (!Number.isSafeInteger(walkers) || walkers < 1 || walkers > 1_000) {
+          throw new Error('footstep probe walkers must be an integer from 1 to 1000');
+        }
+        if (!Number.isSafeInteger(ticks) || ticks < 2 || ticks > 10_000) {
+          throw new Error('footstep probe ticks must be an integer from 2 to 10000');
+        }
+
+        audio.reset('load');
+        const probeTimer = new FrameTimer(ticks);
+        const startedMs = performance.now();
+        for (let tick = 0; tick < ticks; tick += 1) {
+          const tickStartedMs = performance.now();
+          audio.beginFootstepFrame();
+          try {
+            for (let walker = 0; walker < walkers; walker += 1) {
+              audio.observeFootstep(
+                1_000_000 + walker,
+                tick * 0.1,
+                walker * 0.01,
+                true,
+              );
+            }
+          } finally {
+            audio.endFootstepFrame();
+          }
+          probeTimer.sample(performance.now() - tickStartedMs);
+        }
+        const result = {
+          walkers,
+          ticks,
+          elapsedMs: performance.now() - startedMs,
+          meanMsPerTick: probeTimer.mean,
+          p95MsPerTick: probeTimer.p95,
+          maxMsPerTick: probeTimer.max,
+          tracks: audio.activeFootstepTrackCount(),
+          capacity: audio.footstepTrackCapacity(),
+        };
+        audio.reset('load');
+        return result;
+      },
       step: (nowMs = performance.now()) => frame(nowMs),
       sim,
       // Getters over the live camera rather than a copy: the origin now

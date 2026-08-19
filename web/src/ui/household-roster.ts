@@ -1,10 +1,7 @@
-const KIND_AGENT = 0;
-
 export interface HouseholdRosterSource {
   readonly count: number;
   ids(): Uint32Array;
-  kinds(): Uint32Array;
-  simIdOf(entityIndex: number): number | null;
+  simIds(): Uint32Array;
   simName(entityIndex: number): string;
   selectedIndex(): number | null;
   select(entityIndex: number): boolean;
@@ -37,14 +34,13 @@ export interface HouseholdRosterSurface {
 export function householdMembers(source: HouseholdRosterSource): HouseholdMember[] {
   const count = source.count;
   const ids = Array.from(source.ids().subarray(0, count));
-  const kinds = Array.from(source.kinds().subarray(0, count));
+  const simIds = Array.from(source.simIds().subarray(0, count));
   const members: HouseholdMember[] = [];
 
-  for (let row = 0; row < Math.min(count, ids.length, kinds.length); row++) {
-    if (kinds[row] !== KIND_AGENT) continue;
+  for (let row = 0; row < Math.min(count, ids.length, simIds.length); row++) {
     const entity = ids[row];
-    const simId = source.simIdOf(entity);
-    if (simId === null) continue;
+    const simId = simIds[row];
+    if (simId === 0xffff_ffff) continue;
     const name = source.simName(entity);
     if (name === '') continue;
     members.push({ simId, entity, name });
@@ -63,6 +59,7 @@ export class HouseholdRoster {
     private readonly surface: HouseholdRosterSurface,
     private readonly refreshMs: number,
     private readonly onSelectionFailed: () => void = () => {},
+    private readonly onSelectionStaged: () => void = () => {},
   ) {
     if (!Number.isFinite(refreshMs) || refreshMs <= 0) {
       throw new Error('household roster refresh interval must be positive');
@@ -94,9 +91,11 @@ export class HouseholdRoster {
     const member = householdMembers(this.source).find(
       (candidate) => candidate.simId === simId,
     );
-    if (member !== undefined && !this.source.select(member.entity)) {
+    if (member === undefined || !this.source.select(member.entity)) {
       this.onSelectionFailed();
+      return;
     }
+    this.onSelectionStaged();
   }
 }
 

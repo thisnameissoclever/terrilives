@@ -14,7 +14,7 @@ import {
 class MutableSource implements PeoplePanelSource {
   idsValue = new Uint32Array([10, 3, 2]);
   kindsValue = new Uint32Array([0, 0, 0]);
-  simIds = new Map([
+  simIdsByEntity = new Map([
     [3, 0],
     [2, 1],
     [10, 2],
@@ -38,12 +38,11 @@ class MutableSource implements PeoplePanelSource {
     return this.idsValue;
   }
 
-  kinds(): Uint32Array {
-    return this.kindsValue;
-  }
-
-  simIdOf(entityIndex: number): number | null {
-    return this.simIds.get(entityIndex) ?? null;
+  simIds(): Uint32Array {
+    return Uint32Array.from(
+      this.idsValue,
+      (entity) => this.simIdsByEntity.get(entity) ?? 0xffff_ffff,
+    );
   }
 
   simName(entityIndex: number): string {
@@ -232,7 +231,7 @@ describe('PeoplePanel', () => {
     expect(surface.views).toHaveLength(1);
 
     source.idsValue = new Uint32Array([41, 42, 43]);
-    source.simIds = new Map([
+    source.simIdsByEntity = new Map([
       [41, 0],
       [42, 1],
       [43, 2],

@@ -1,6 +1,6 @@
 use bevy_ecs::prelude::Resource;
 use serde::{Deserialize, Serialize};
-use std::collections::BinaryHeap;
+use std::collections::{BinaryHeap, VecDeque};
 
 /// A single lot's walkability grid. One tile is roughly one metre.
 /// M0 is a single room; the room and portal graph in [D7] arrives with
@@ -10,6 +10,21 @@ pub struct TileGrid {
     width: usize,
     height: usize,
     blocked: Vec<bool>,
+}
+
+/// Shortest four-way walk distance from one source tile to every walkable
+/// tile in a fixed grid snapshot.
+///
+/// The field owns its distances so callers can reuse one traversal while
+/// scoring many destinations. It deliberately carries no revision or cache:
+/// `select_action` keeps fields only for one system invocation, during which
+/// it holds an immutable grid resource. Navigation changes therefore cannot
+/// make a field stale across ticks.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TileDistanceField {
+    width: usize,
+    height: usize,
+    distances: Vec<u32>,
 }
 
 /// The tile rectangle an object occupies. `width` runs along +x and
@@ -106,6 +121,42 @@ impl TileGrid {
 
     fn index(&self, x: i32, y: i32) -> usize {
         y as usize * self.width + x as usize
+    }
+
+    /// Computes shortest walk distances from `from` with one breadth-first
+    /// traversal. Returns `None` when the source itself is not walkable.
+    pub fn distance_field(&self, from: (i32, i32)) -> Option<TileDistanceField> {
+        if !self.is_walkable(from.0, from.1) {
+            return None;
+        }
+
+        let mut distances = vec![u32::MAX; self.width * self.height];
+        let start = self.index(from.0, from.1);
+        distances[start] = 0;
+        let mut queue = VecDeque::new();
+        queue.push_back(from);
+
+        while let Some(current) = queue.pop_front() {
+            let current_distance = distances[self.index(current.0, current.1)];
+            for (dx, dy) in NEIGHBOURS {
+                let next = (current.0 + dx, current.1 + dy);
+                if !self.is_walkable(next.0, next.1) {
+                    continue;
+                }
+                let next_index = self.index(next.0, next.1);
+                if distances[next_index] != u32::MAX {
+                    continue;
+                }
+                distances[next_index] = current_distance + 1;
+                queue.push_back(next);
+            }
+        }
+
+        Some(TileDistanceField {
+            width: self.width,
+            height: self.height,
+            distances,
+        })
     }
 
     /// A* over the tile grid. Returns the path excluding `from` and
@@ -389,6 +440,34 @@ impl TileGrid {
         to: (i32, i32),
     ) -> Option<Vec<(i32, i32)>> {
         self.find_path_adjacent(from, to, Footprint::SINGLE)
+    }
+}
+
+impl TileDistanceField {
+    /// Shortest distance to any orthogonally adjacent tile around the whole
+    /// footprint rectangle, matching [`TileGrid::find_path_adjacent`].
+    pub fn distance_to_adjacent(&self, origin: (i32, i32), footprint: Footprint) -> Option<u32> {
+        let far = (
+            origin.0 + footprint.width as i32 - 1,
+            origin.1 + footprint.depth as i32 - 1,
+        );
+        let mut best = u32::MAX;
+        for x in origin.0..=far.0 {
+            best = best.min(self.distance_at((x, origin.1 - 1)));
+            best = best.min(self.distance_at((x, far.1 + 1)));
+        }
+        for y in origin.1..=far.1 {
+            best = best.min(self.distance_at((far.0 + 1, y)));
+            best = best.min(self.distance_at((origin.0 - 1, y)));
+        }
+        (best != u32::MAX).then_some(best)
+    }
+
+    fn distance_at(&self, tile: (i32, i32)) -> u32 {
+        if tile.0 < 0 || tile.1 < 0 || tile.0 >= self.width as i32 || tile.1 >= self.height as i32 {
+            return u32::MAX;
+        }
+        self.distances[tile.1 as usize * self.width + tile.0 as usize]
     }
 }
 
@@ -1151,6 +1230,55 @@ mod tests {
              or the equality above cannot tell SINGLE from anything else"
         );
         assert_eq!(*wide.last().unwrap(), (6, 4));
+    }
+
+    #[test]
+    fn one_distance_field_matches_every_adjacent_astar_length() {
+        let open = TileGrid::new(8, 7);
+        let mut divided = TileGrid::new(8, 7);
+        for y in 0..7 {
+            if y != 4 {
+                divided.set_blocked(3, y, true);
+            }
+        }
+        let mut irregular = TileGrid::new(8, 7);
+        for (x, y) in [(1, 1), (2, 1), (5, 1), (5, 2), (2, 4), (6, 5)] {
+            irregular.set_blocked(x, y, true);
+        }
+
+        let footprints = [
+            Footprint::SINGLE,
+            Footprint { width: 2, depth: 1 },
+            Footprint { width: 1, depth: 3 },
+            Footprint { width: 2, depth: 2 },
+        ];
+        for grid in [&open, &divided, &irregular] {
+            for footprint in footprints {
+                let max_x = grid.width() - footprint.width as usize;
+                let max_y = grid.height() - footprint.depth as usize;
+                for origin_y in 0..=max_y {
+                    for origin_x in 0..=max_x {
+                        let origin = (origin_x as i32, origin_y as i32);
+                        for from_y in 0..grid.height() {
+                            for from_x in 0..grid.width() {
+                                let from = (from_x as i32, from_y as i32);
+                                let astar = grid
+                                    .find_path_adjacent(from, origin, footprint)
+                                    .map(|path| path.len() as u32);
+                                let field = grid.distance_field(from).and_then(|field| {
+                                    field.distance_to_adjacent(origin, footprint)
+                                });
+                                assert_eq!(
+                                    field, astar,
+                                    "distance mismatch from {from:?} to {origin:?} with \
+                                     {footprint:?} on {grid:?}"
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     #[test]

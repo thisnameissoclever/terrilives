@@ -59,6 +59,7 @@ struct RenderRow {
     x: f32,
     y: f32,
     kind: u32,
+    sim_id: u32,
     footprint_width: u32,
     footprint_depth: u32,
     sprite: u32,
@@ -1032,6 +1033,7 @@ impl Sim {
         }
         self.render.positions.clear();
         self.render.kinds.clear();
+        self.render.sim_ids.clear();
         self.render.footprint_widths.clear();
         self.render.footprint_depths.clear();
         self.render.sprites.clear();
@@ -1129,6 +1131,7 @@ impl Sim {
             carrying,
         ) in state.iter(&self.world)
         {
+            let sim_id = self.world.get::<terri_core::SimId>(entity);
             let kind = if is_agent { 0 } else { 1 };
             // An entity that is neither an agent nor a smart object has
             // no sprite of its own; the sim's is the only sensible
@@ -1335,6 +1338,7 @@ impl Sim {
                 x,
                 y,
                 kind,
+                sim_id: sim_id.map_or(render_buffer::NO_SIM_ID, |id| id.0),
                 footprint_width,
                 footprint_depth,
                 sprite,
@@ -1353,6 +1357,7 @@ impl Sim {
             self.render.positions.push(row.x);
             self.render.positions.push(row.y);
             self.render.kinds.push(row.kind);
+            self.render.sim_ids.push(row.sim_id);
             self.render.footprint_widths.push(row.footprint_width);
             self.render.footprint_depths.push(row.footprint_depth);
             self.render.sprites.push(row.sprite);

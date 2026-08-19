@@ -2782,3 +2782,59 @@ to the lower-bunk socket.
   complete. Merge, exact-head CI, public Pages deployment and replay,
   phone-width use, physical safe areas, operating-system reduced motion, and
   owner approval remain open.
+
+## [A-audio-foundation] Sound controls fit without stealing the game
+
+The 2026-08-19 local production pass exercised the first native Web Audio
+slice at desktop, portrait phone, landscape phone, and the 240-pixel narrow
+stress viewport.
+
+- **Desktop keeps its established composition.** At 1280 by 720, Sound and
+  Effects live in the existing left rail below simulation speed. The rail
+  scrolls to them without moving or shrinking the game canvas.
+- **Compact layouts remain usable.** At 390 by 844 the open menu fits the full
+  audio row and action grid. At 568 by 320 the 220-pixel rail scrolls to the
+  audio row while most of the lot remains visible. At 240 by 568 the menu uses
+  the available width, retains its scrollbar, and produces no horizontal page
+  overflow.
+- **Touch and accessible state agree.** Sound, Effects, and sampled action
+  controls measured at least 44 CSS pixels high. The DOM exposes one Audio
+  controls region, `Sound: on/off` pressed state, `Effects volume`, and a live
+  percentage value.
+- **Preferences survive reload.** Sound off survived one reload, Sound on
+  survived the next, and a 35-percent Effects setting survived independently.
+  The test restored Effects to 70 percent afterward.
+- **The first failure belonged to action selection, not audio.** The expanded
+  lot made 1,000 idle agents score 34 objects with one A* search per pair, about
+  34,000 searches on a selection tick. Release-WASM fixed-tick p95 was 24.5844
+  ms. One reusable breadth-first distance field per occupied source tile plus
+  one A* reconstruction for the winner reduced fixed-tick p95 to 1.3716 ms and
+  maximum to 1.6404 ms without changing shortest lengths or chosen route shape.
+- **Visible 120 Hz evidence now passes.** Chrome 151 on a display configured at
+  120 Hz calibrated at 119.99673 Hz with sampling and 119.99964 Hz without it.
+  With 1,037 entities, enabled active cadence was 120.00041 Hz, interval p95
+  8.400 ms, application-work p95 1.615 ms, maximum 2.115 ms, and zero
+  application-work frames over 16.6 ms. Disabled application-work p95 was 1.640
+  ms, so the feature delta was -0.025 ms. Sampler p95 was 0.100 ms, maximum
+  0.175 ms, with zero steady `simIdOf` calls.
+- **Retained memory is bounded against a paired control.** Three alternating
+  enabled-minus-disabled retained JavaScript deltas were 10,896, 7,964, and
+  14,948 bytes. Their 10,896-byte median passes the predeclared 65,536-byte
+  allowance. Every quiescent endpoint had zero voices, unchanged scheduler
+  capacity, no DOM/listener growth, and at most three retained tracks. WASM grew
+  in both modes, so that broader growth is recorded separately rather than
+  assigned to audio.
+- **The scheduler has its own load proof.** Forty stable walkers across 600
+  production ticks measured p95 0.0099999905 ms and maximum 0.150000006 ms per
+  tick, ending with 40 tracks in capacity 64.
+- **The mechanical listening boundary is explicit.** The ordinary-Chrome run
+  selects stable Sim ID 0, stages a real object walk, and passes settings
+  persistence. Automated Chrome 151 tab creation did not produce a trustworthy
+  hidden document, so the harness records `owner-required` and exits nonzero
+  instead of claiming silence. The owner workflow verifies the real tab switch,
+  suspended context, zero hidden oscillators, and heard result together.
+- **Proof boundary.** Clean Rust and Web suites, new deliberate mutations,
+  responsive screenshots, control interaction, preference reloads, production
+  performance, bounded retained memory, and scheduler evidence pass locally.
+  Human listening, merge, exact-head CI, and public Pages deployment remain
+  open.

@@ -7549,6 +7549,78 @@ mod tests {
         );
     }
 
+    #[test]
+    fn foreground_sprite_follows_the_placement_facing_and_keeps_se_unsuffixed() {
+        let sprite_names = [
+            "couch_art",
+            SIM_SPRITE,
+            "fridge_art",
+            "fridge_artSW",
+            "fridge_artNW",
+            "fridge_artNE",
+            "bed_foreground",
+            "bed_foregroundSW",
+            "bed_foregroundNW",
+            "bed_foregroundNE",
+        ];
+        let atlas = || AtlasFile {
+            sprite: sprite_names
+                .iter()
+                .map(|name| AtlasSpriteDef {
+                    name: (*name).to_string(),
+                })
+                .collect(),
+        };
+        let atlas_index = |name: &str| {
+            sprite_names
+                .iter()
+                .position(|candidate| *candidate == name)
+                .expect("the expected facing sprite must exist") as u32
+        };
+        let compile_facing = |facing: Option<&str>| {
+            let mut objects = one_object(snack());
+            objects.object[0].foreground_sprite = Some("bed_foreground".into());
+            let mut lot = lot_of(4, 3, &[], &[("fridge", 2.0, 1.0)]);
+            lot.place[0].facing = facing.map(str::to_string);
+            compile(
+                full_needs(),
+                objects,
+                lot,
+                atlas(),
+                full_tuning(),
+                PersonalitiesFile { archetype: vec![] },
+                HouseholdFile { sim: vec![] },
+                SocialFile {
+                    interaction: vec![],
+                },
+                TraitsFile { trait_def: vec![] },
+                CareersFile { career: vec![] },
+                ChainsFile { chain: vec![] },
+            )
+        };
+
+        for (facing, primary_name, foreground_name) in [
+            (None, "fridge_art", "bed_foreground"),
+            (Some("SE"), "fridge_art", "bed_foreground"),
+            (Some("SW"), "fridge_artSW", "bed_foregroundSW"),
+            (Some("NW"), "fridge_artNW", "bed_foregroundNW"),
+            (Some("NE"), "fridge_artNE", "bed_foregroundNE"),
+        ] {
+            let pack = compile_facing(facing).expect("every imported facing must compile");
+            let placement = &pack.lot.placements[0];
+            assert_eq!(
+                placement.sprite,
+                atlas_index(primary_name),
+                "primary sprite must follow placement facing {facing:?}"
+            );
+            assert_eq!(
+                placement.foreground_sprite,
+                Some(atlas_index(foreground_name)),
+                "foreground sprite must follow placement facing {facing:?}"
+            );
+        }
+    }
+
     // ---- Chains ---------------------------------------------------------
 
     /// A world with two placed stations for the chain tests: the fridge

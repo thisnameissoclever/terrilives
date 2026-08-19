@@ -78,6 +78,14 @@ export class FrameTimer {
     return view[idx];
   }
 
+  get max(): number {
+    let maximum = 0;
+    for (let i = 0; i < this.filled; i++) {
+      maximum = Math.max(maximum, this.window[i]);
+    }
+    return maximum;
+  }
+
   report(): string {
     return (
       `frames ${this.total}  window ${this.filled}  ` +

@@ -93,6 +93,7 @@ describe('MobileHud', () => {
         'needs-panel',
         'people-panel',
         'time-controls',
+        'audio-controls',
         'game-actions',
       ].sort(),
     );

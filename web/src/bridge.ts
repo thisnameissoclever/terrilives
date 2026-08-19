@@ -152,6 +152,15 @@ export class SimBridge {
     );
   }
 
+  /** Stable authored Sim id per row, or u32::MAX for non-household rows. */
+  simIds(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.sim_ids_ptr(),
+      this.count,
+    );
+  }
+
   /**
    * Compiled footprint width in lot tiles for each render row.
    * Re-create the view on every call because a sync may move the Rust vector

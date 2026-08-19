@@ -22,6 +22,13 @@ pub struct RenderBuffer {
     /// standing on an object is drawn in front of it rather than losing
     /// the depth test to it.
     pub kinds: Vec<u32>,
+    /// Stable authored Sim identity for each row, or [`NO_SIM_ID`].
+    ///
+    /// This is aligned with `ids`, not a replacement for it. `ids` names the
+    /// current ECS entity used by commands and picking; this column names the
+    /// person across save/load world replacement. Objects, unnamed stress
+    /// agents, and presentation-only bystanders carry the sentinel.
+    pub sim_ids: Vec<u32>,
     /// Compiled footprint width in lot tiles, one per row.
     ///
     /// Smart objects carry the content definition's width. Agents and
@@ -111,6 +118,8 @@ pub struct RenderBuffer {
 pub const NOT_CARRYING: u32 = u32::MAX;
 /// The `foreground_sprites` column's absent-layer sentinel.
 pub const NO_FOREGROUND_SPRITE: u32 = u32::MAX;
+/// The `sim_ids` column's absent authored-identity sentinel.
+pub const NO_SIM_ID: u32 = u32::MAX;
 
 /// The `activities` codes, named. `u32` like every other column so the
 /// JavaScript view is one more `Uint32Array` over the same memory.
@@ -180,7 +189,7 @@ mod tests {
     use crate::test_content::shipped_fridge as a_smart_object;
     use crate::Sim;
     use bevy_ecs::prelude::*;
-    use terri_core::{Agent, Eating, NeedId, Needs, Position, SmartObject};
+    use terri_core::{Agent, Eating, NeedId, Needs, Position, SimId, SmartObject};
 
     /// Entity indices in the raw order `sync_render_buffer`'s query
     /// yields them, with no sorting applied. This is precisely the order
@@ -279,6 +288,37 @@ mod tests {
             buf.footprint_depths, buf.kinds,
             "footprint depth must not accidentally expose the sibling kind column"
         );
+    }
+
+    #[test]
+    fn stable_sim_ids_are_aligned_and_absent_rows_use_the_sentinel() {
+        let mut sim = Sim::new_with_lot(8, 8);
+        let named = sim
+            .world_mut()
+            .spawn((Agent, Position { x: 1.0, y: 1.0 }, SimId(41)))
+            .id();
+        let bare = sim
+            .world_mut()
+            .spawn((Agent, Position { x: 2.0, y: 1.0 }))
+            .id();
+        let object = sim
+            .world_mut()
+            .spawn((Position { x: 3.0, y: 1.0 }, a_smart_object()))
+            .id();
+
+        sim.sync_render_buffer();
+        let buf = sim.render_buffer();
+        let row_of = |entity: Entity| {
+            buf.ids
+                .iter()
+                .position(|&id| id == entity.index_u32())
+                .expect("the spawned entity has a render row")
+        };
+
+        assert_eq!(buf.sim_ids[row_of(named)], 41);
+        assert_eq!(buf.sim_ids[row_of(bare)], super::NO_SIM_ID);
+        assert_eq!(buf.sim_ids[row_of(object)], super::NO_SIM_ID);
+        assert_eq!(buf.sim_ids.len(), buf.count);
     }
 
     /// A `SpriteVariant` - the compiled form of a placement's `facing` -

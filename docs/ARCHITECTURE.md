@@ -712,6 +712,67 @@ is invisible to a p95 and to a heap that the scavenger keeps flat. Only an
 allocation profile can see it, so only an allocation profile counts as
 evidence here.
 
+## [D16] Audio shell
+
+Audio is presentation owned by the TypeScript shell. The Rust simulation has
+no browser audio types, nodes, volume settings, or playback state. The shell
+translates observed outcomes into a small semantic event vocabulary:
+`command.staged`, `command.rejected`, `ui.confirmed`, stable-identity
+`sim.footstep`, and reserved door open and close events. Staged means accepted
+into the command channel; it does not overclaim that the simulation later
+started the intent. Door events are schema only until the static front door has
+an authoritative transition.
+
+The `AudioContext` is created or resumed only from a trusted pointer or keyboard
+gesture. Ordinary event emission never creates, resumes, or queues audio. The
+master gain is mute-only and the effects gain owns the current cue volume.
+Visibility changes synchronously gate emission, stop voices, clear walking
+phase, and serialize `suspend()` or `resume()` so the latest foreground state
+wins an asynchronous race. Both visibility edges clear stride history. A later
+trusted gesture remains armed in case an automatic foreground resume is denied.
+Pause stops fixed ticks but does not stop the context or UI cues. A successful
+Load reads identity from the replacement world's aligned render rows and clears
+transient audio only after the world was actually replaced.
+
+Footsteps follow travelled world distance after each fixed simulation tick.
+They never follow render count or wall time, so 1x, 2x, and 3x preserve the
+same stride phase. A retained typed-array scheduler keys tracks by stable
+`SimId`, caps a burst at two steps, and discards overflow rather than replaying
+it later. Stable identity travels in a `sim_ids` render column aligned with IDs,
+kinds, positions, and actions. Household rows carry authored `SimId`; non-Sim
+rows carry `u32::MAX`. The shell re-reads the zero-copy column after every fixed
+tick under [D11]. Runtime topology may change the row set without rebuilding a
+separate lookup, and no steady tick calls `simIdOf`.
+
+The release performance gate uses a visible production build on a display
+configured at 120 Hz. A five-second paused calibration must achieve 118 to 122
+animation frames per second with median interval from 8.0 to 8.7 ms; the active
+cadence is then reported rather than inferred. `?stress=1000` runs 600 fixed
+ticks with the first 60 discarded. Sampler p95 is at most 0.25 ms, sampler
+maximum at most 1 ms, application-work p95 regression is at most 1 ms against
+`&audio=0`, no application-work frame exceeds 16.6 ms, and steady `simIdOf`
+calls remain zero.
+
+Fresh bridge wrappers are expected under [D11]. The allocation rule is no
+allocation proportional to entity count and no scheduler capacity growth after
+warm-up. Three alternating enabled/disabled memory pairs compare quiescent
+paused endpoints after explicit garbage collection. The median audio-enabled
+retained-JavaScript differential must stay within a predeclared 64 KiB allowance
+while voices, tracks, capacity, DOM nodes, and listeners remain bounded. Broader
+page and WASM growth is reported separately. A production 40-walker, 600-tick
+scheduler run exercises retained audio state directly.
+
+The first full run exposed a separate application bottleneck: 1,000 idle agents
+and 34 placed objects triggered roughly 34,000 A* searches during one selection
+tick. `select_action` now builds one breadth-first distance field per occupied
+source tile, scores every candidate from that field, and reconstructs the chosen
+route with the existing A* only once. Exhaustive tests pin field distances to
+the old adjacent-A* lengths, so the optimization changes cost rather than
+choice or route shape.
+
+See `docs/specs/2026-08-19-audio-foundation.md` for the complete first-slice
+contract and acceptance boundary.
+
 ## [D13] Ghost pipeline (Layer 1 multiplayer)
 
 **Planned, not shipped.** There is no ghost record, death export, network
