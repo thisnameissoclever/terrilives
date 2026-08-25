@@ -4584,3 +4584,26 @@ fixture. Its report must name the chosen stable Sim ID and record that the real
 walk command was staged before any owner prompt appears. Mutate selection back
 to the first agent row; the fixture must fail when a sentinel stress row sorts
 first instead of continuing into a misleading silent listening session.
+
+## [L-owner-review-requires-a-reachable-build] An acceptance request needs an artifact the owner can open
+
+**What happened.** The audio handoff asked the owner to complete a listening
+review after the feature branch was pushed, but the branch had not been merged
+or deployed and no local preview was left running. The requested review was
+therefore impossible to begin from the supplied handoff.
+
+**Root cause.** Engineering acceptance and owner access were treated as
+separate closing steps. The handoff described the listening gate without first
+proving that the exact candidate build was reachable through a visible browser.
+
+**Prevention rule.** Before requesting owner visual, interaction, or audio
+review, provide a reachable build of the exact candidate. Use a verified local
+production preview when merge is blocked, or the verified public deployment
+after merge. Open the page for the owner, keep its server alive, and state any
+trusted gesture the browser requires.
+
+**How to verify.** Resolve the candidate commit, start its production build on
+a dedicated loopback port, require HTTP 200, open that URL in a visible browser,
+and confirm the review controls exist. Only then ask the owner to review it.
+For public review, cite the successful deployment run tied to the exact merge
+SHA and open the mutable Pages site immediately afterward.
