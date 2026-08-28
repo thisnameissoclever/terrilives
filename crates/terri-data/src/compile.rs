@@ -7722,6 +7722,98 @@ mod tests {
         );
     }
 
+    /// **A foreground sprite has to follow the facing too**, and nothing
+    /// exercised that.
+    ///
+    /// The layered-occlusion pass gave a placement a second sprite drawn in
+    /// front of the sim, and resolved its facing with the same SE-is-plain
+    /// rule the main sprite uses. Only one shipped object has a foreground
+    /// sprite - the bunk bed - and it is placed with no facing at all, so
+    /// both arms of that rule were dead in every test and in the shipped
+    /// lot. The sweep forced the `facing == "SE"` guard to `false` and to
+    /// `true` and neither showed up.
+    ///
+    /// It stops being dead the moment the builder lets anyone rotate a bunk,
+    /// which is the point of the builder.
+    #[test]
+    fn a_foreground_sprite_resolves_its_own_facing_variant() {
+        let atlas = || AtlasFile {
+            sprite: [
+                "couch_art",
+                SIM_SPRITE,
+                "fridge_art",
+                "fridge_artSW",
+                // Imported so the MAIN sprite resolves at NE and the
+                // foreground is the only thing left to fail on. Without it
+                // the main sprite errors first and the foreground rule is
+                // never reached, which is a test that cannot see its own
+                // subject.
+                "fridge_artNE",
+                "fridge_front",
+                "fridge_frontSW",
+            ]
+            .iter()
+            .map(|name| AtlasSpriteDef {
+                name: (*name).to_string(),
+            })
+            .collect(),
+        };
+        let compile_facing = |facing: Option<&str>| {
+            let mut objects = one_object(snack());
+            objects.object[0].foreground_sprite = Some("fridge_front".into());
+            let mut lot = lot_of(4, 3, &[], &[("fridge", 2.0, 1.0)]);
+            lot.place[0].facing = facing.map(str::to_string);
+            compile(
+                full_needs(),
+                objects,
+                lot,
+                atlas(),
+                full_tuning(),
+                PersonalitiesFile { archetype: vec![] },
+                HouseholdFile { sim: vec![] },
+                SocialFile {
+                    interaction: vec![],
+                },
+                TraitsFile { trait_def: vec![] },
+                CareersFile { career: vec![] },
+                ChainsFile { chain: vec![] },
+            )
+        };
+
+        // SW: the variant's own index, so the foreground follows the facing
+        // rather than staying pinned to the definition's sprite. Forcing the
+        // guard to `true` returns the plain 5 here.
+        let pack = compile_facing(Some("SW")).expect("an imported facing compiles");
+        assert_eq!(
+            pack.lot.placements[0].foreground_sprite,
+            Some(6),
+            "the placement must carry fridge_frontSW's index"
+        );
+
+        // SE and absent: the unsuffixed entry, because the plain name IS the
+        // SE render. Forcing the guard to `false` looks for a
+        // `fridge_frontSE` nobody imported and errors instead.
+        for facing in [None, Some("SE")] {
+            let pack = compile_facing(facing).expect("SE is the unsuffixed sprite");
+            assert_eq!(
+                pack.lot.placements[0].foreground_sprite,
+                Some(5),
+                "facing {facing:?} must keep the plain foreground sprite"
+            );
+        }
+
+        // And a legal facing nobody imported names the exact atlas entry to
+        // add, rather than silently falling back to the plain one.
+        assert_eq!(
+            compile_facing(Some("NE")).unwrap_err(),
+            ContentError::FacingSpriteMissing {
+                object: "fridge".into(),
+                facing: "NE".into(),
+                sprite: "fridge_frontNE".into()
+            }
+        );
+    }
+
     // ---- Chains ---------------------------------------------------------
 
     /// A world with two placed stations for the chain tests: the fridge
