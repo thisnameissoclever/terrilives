@@ -745,6 +745,19 @@ it is worth pinning rather than waving at:
 diagonals keeps it symmetric; adding a one-way movement rule, a ledge, or a
 directional portal does not. Whoever edits that array owns re-checking this.
 
+#### The same two, in `distance_field` - added 2026-08-19, now at 142
+
+`TileGrid::distance_field` uses the same symmetric `NEIGHBOURS` array for a
+breadth-first traversal. Replacing either addition with subtraction therefore
+permutes the four visited neighbours without changing which tiles are visited.
+Breadth-first search assigns every reachable tile its shortest step count;
+neighbour order can choose which equal-length predecessor discovers a tile,
+but the distance field stores only the count. Both mutants are equivalent.
+
+**When this expires:** when `NEIGHBOURS` stops being symmetric, movement gains
+direction-dependent costs, or the field begins storing predecessor identity.
+Whoever makes any of those changes owns re-checking both entries.
+
 #### The same two, in `find_path_adjacent` - added 2026-07-29, now at 352
 
 `TileGrid::find_path_adjacent` arrived on the alpha branch and reuses

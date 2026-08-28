@@ -1,4 +1,6 @@
 crates/terri-core/src/components.rs:385:24: replace > with >= in Relationships::decay
+crates/terri-core/src/grid.rs:142:39: replace + with - in TileGrid::distance_field
+crates/terri-core/src/grid.rs:142:55: replace + with - in TileGrid::distance_field
 crates/terri-core/src/grid.rs:151:43: replace + with - in TileGrid::find_path
 crates/terri-core/src/grid.rs:151:63: replace + with - in TileGrid::find_path
 crates/terri-core/src/grid.rs:164:44: replace + with * in TileGrid::find_path
