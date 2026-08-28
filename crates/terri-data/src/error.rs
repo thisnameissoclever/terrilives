@@ -630,6 +630,31 @@ pub enum ContentError {
     AsleepDecayScaleOutOfRange {
         value: f32,
     },
+    /// `exhaustion_energy` outside the need range `[0, 100]`. Above 100
+    /// every sim is exhausted from the first tick and the ramp is a
+    /// constant; below 0 it is unreachable and the ramp never fires.
+    ExhaustionEnergyOutOfRange {
+        value: f32,
+    },
+    /// A zero `exhaustion_ramp_ticks`. The ramp divides by it.
+    ZeroExhaustionRamp,
+    /// `exhaustion_bonus` below 1. Below 1 exhaustion would make a bed
+    /// LESS attractive the longer a sim went without one, which is the
+    /// mechanic inverted by a typo and nothing anywhere saying so.
+    ExhaustionBonusBelowOne {
+        value: f32,
+    },
+    /// A curve whose deepest trough, even multiplied by a full
+    /// exhaustion ramp, still leaves the sleep drive below neutral.
+    ///
+    /// That is content in which a sim can be arbitrarily exhausted and
+    /// STILL be talked out of bed, forever. It looks like a bug in the
+    /// simulation - "why does nobody sleep in the mornings" - and it is
+    /// a pair of numbers that never met.
+    ExhaustionCannotBeatTheTrough {
+        trough: f32,
+        bonus: f32,
+    },
     /// An empty or whitespace-only `sleep_tag`. An empty tag matches no
     /// interaction, so the sleep drive, the decay scale and the Zzz
     /// bubble would all quietly do nothing, which is the silent-nothing
@@ -1460,6 +1485,27 @@ impl fmt::Display for ContentError {
                 f,
                 "asleep_decay_scale is {value}, outside 0..=1; above 1 a bed \
                  drains faster than being awake does and below 0 it refills"
+            ),
+            ContentError::ExhaustionEnergyOutOfRange { value } => write!(
+                f,
+                "exhaustion_energy is {value}, outside the need range 0..=100"
+            ),
+            ContentError::ZeroExhaustionRamp => write!(
+                f,
+                "exhaustion_ramp_ticks is 0; the ramp divides by it"
+            ),
+            ContentError::ExhaustionBonusBelowOne { value } => write!(
+                f,
+                "exhaustion_bonus is {value}; below 1 exhaustion would make a \
+                 bed LESS attractive the longer a sim went without one"
+            ),
+            ContentError::ExhaustionCannotBeatTheTrough { trough, bonus } => write!(
+                f,
+                "the sleep curve dips to {trough} and exhaustion_bonus is \
+                 {bonus}, so a fully exhausted sim peaks at {} - below 1, \
+                 which means it can be talked out of bed no matter how long \
+                 it has been awake",
+                trough * bonus
             ),
             ContentError::EmptySleepTag => write!(
                 f,

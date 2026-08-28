@@ -22,7 +22,10 @@ import { cameraOrigin } from './render/iso.js';
 import { clampOrigin, lotExtent, zoomAnchoredOrigin } from './render/camera.js';
 import { SPRITES } from './render/atlas.js';
 import { buildLightField } from './render/lighting.js';
-import { buildStaticInstances } from './render/tiles.js';
+import {
+  BOUNDARY_SPRITE_NAMES,
+  buildStaticInstances,
+} from './render/tiles.js';
 import { FrameTimer } from './perf.js';
 import { DebugPanel } from './ui/debug-panel.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
@@ -724,13 +727,23 @@ async function main(): Promise<void> {
   // afterward; `applyCamera` preserves the center across buffer resizes and
   // clamps the result rather than resetting the player's view.
   //
-  // The tallest sprite is read off the atlas rather than named, so adding
-  // taller furniture changes the conservative camera extent rather than
-  // silently invalidating a fixed magic number. `cameraOrigin` centres that
-  // DRAWN extent; if it exceeds the viewport at the current zoom, the
-  // unavoidable overflow is shared equally and remains subject to the
-  // reviewed cap in `iso.test.ts`.
+  // Both heights are read off the atlas rather than named, so adding taller
+  // furniture moves the camera extent rather than silently invalidating a
+  // fixed magic number. `cameraOrigin` centres that DRAWN extent; if a lot
+  // is ever big enough to exceed the viewport, the overflow is shared
+  // equally between the two edges and pan reaches either.
   const tallestSprite = Math.max(...SPRITES.map((sprite) => sprite.h));
+  // The boundary row gets its OWN height, because only wall pieces are ever
+  // drawn out at world -1. Reserving the whole atlas above that row models a
+  // bunk bed standing outside the house: 35 px of canvas spent on a
+  // placement the coordinates make impossible, and the reason a 697 px
+  // picture read as 724 px of a 720 px page.
+  const boundaryNames: readonly string[] = BOUNDARY_SPRITE_NAMES;
+  const tallestBoundarySprite = Math.max(
+    ...SPRITES.filter((sprite) => boundaryNames.includes(sprite.name)).map(
+      (sprite) => sprite.h,
+    ),
+  );
   const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles() };
   const camera = { scale: 1, originX: 0, originY: 0 };
   let cameraDirty = true;
@@ -755,7 +768,13 @@ async function main(): Promise<void> {
     const bounded = clampOrigin(
       camera.originX,
       camera.originY,
-      lotExtent(lotWidth, lotHeight, tallestSprite, camera.scale),
+      lotExtent(
+        lotWidth,
+        lotHeight,
+        tallestSprite,
+        tallestBoundarySprite,
+        camera.scale,
+      ),
       stage.width,
       stage.height,
     );
@@ -804,6 +823,7 @@ async function main(): Promise<void> {
         lotWidth,
         lotHeight,
         tallestSprite,
+        tallestBoundarySprite,
         camera.scale,
       );
       camera.originX = origin.x;

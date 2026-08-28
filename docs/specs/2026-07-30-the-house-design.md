@@ -53,15 +53,21 @@ boundary panels were being cut off the top of the page** - measured afterwards
 as a topmost painted row of 0 where an unclipped picture starts at 25.
 
 `cameraOrigin` in `web/src/render/iso.ts` owns the arithmetic now, centres the
-DRAWN conservative extent rather than the tile span, and reads the tallest
-sprite off the atlas. The Clear Line pass increased that sprite from 132 to
-136 px, making the modeled 16 by 12 extent grow from 720 to 724 px against a
-720 px canvas. At 1x
-the camera therefore shares the unavoidable overflow as two pixels on each
-edge. The actual bunk is at (9, 6), so its pixels and the boundary walls remain
-visible; the nearest floor tip carries the two-pixel real overrun. Pan and zoom
-remain available. Another row or column would add 21 px and requires a
-deliberate default-scale decision rather than another stale fit claim.
+DRAWN extent rather than the tile span, and reads two heights off the atlas
+rather than one. The two are the point: only wall pieces are drawn on the
+boundary row at world -1, and everything else stands at (0, 0) or beyond, two
+half-tile rows lower. Reserving the atlas's tallest sprite above the boundary
+row - which is what shipped - prices in a bunk bed standing outside the house,
+and it is what made this lot read as 724 px of a 720 px page when the Clear Line
+pass took the bunk from 132 to 136 px. The real extent is **697 px**.
+
+The authoring rule is therefore
+`(width + height - 2) * 21 + 21 + max(21 + tallestWall, tallestSprite - 21)`.
+At 16 x 12 that leaves 23 px spare, so one more row or column fits and a second
+does not, and the ceilings are 132 px for a boundary wall and 174 px for
+anything else. Past any of those the opening view needs a deliberate
+default-scale decision rather than another stale fit claim. Pan and zoom remain
+available regardless.
 
 ---
 

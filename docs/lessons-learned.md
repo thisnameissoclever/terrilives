@@ -4311,77 +4311,47 @@ upper-body invariant, and require a frozen pedal leg to fail the lower-body
 motion check. Restore the source byte-identically and regenerate the exact
 content-addressed atlas.
 
-## [L-atlas-height-can-invalidate-a-camera-fit-contract] A fixed viewport cannot fit an extent taller than itself
+## [L-atlas-height-can-invalidate-a-camera-fit-contract] Check the model before believing an impossibility
 
 **What happened.** The Clear Line atlas pass increased the tallest sprite from
 132 to 136 pixels. The camera's conservative 16 by 12 lot extent therefore grew
-from 720 to 724 pixels, but the desktop regression test still required both its
-top and bottom to fit inside a 720-pixel canvas. CI correctly reported the
-resulting negative two-pixel top bound. No camera origin can satisfy both old
-assertions because the modeled extent is four pixels taller than the viewport.
+from 720 to 724 pixels, and the desktop regression test - which required both
+its top and bottom to fit inside a 720-pixel canvas - failed with a negative
+two-pixel top bound. The first reading was that no camera origin could satisfy
+both assertions, because the modeled extent was four pixels taller than the
+viewport, and the test was relaxed to accept up to four pixels of centered
+overflow.
 
-**Root cause.** The generated atlas and sprite-specific checks were updated
-without re-evaluating the viewport arithmetic that consumes the maximum sprite
-height. The test encoded an outcome that had become mathematically impossible
-instead of the camera's actual rule: center the complete conservative extent.
+**That reading was wrong, and the second fix is the one in the tree.** The
+extent was never 724 pixels. It reserved the atlas's tallest sprite above the
+boundary row at world -1, and `tiles.ts` draws nothing out there but the floor,
+two wall panels and the north-west corner. Furniture cannot stand at a negative
+coordinate; the earliest tile it can occupy is (0, 0), two half-tile rows lower,
+which is 42 pixels of head start. The picture is 697 pixels and fits with 23 to
+spare.
+
+**Root cause.** A bound documented as "deliberately conservative" was never
+re-examined once it started binding. Conservative bounds are cheap while they
+have slack and become load-bearing the moment they do not, and this one encoded
+a placement the coordinate system makes impossible. The failing test was then
+read as a stale assertion rather than as a true report about a wrong model, so
+the first fix moved the assertion to match the model instead of the other way
+round - and in doing so wrote "unavoidable" into four documents about a two-pixel
+clip that was entirely avoidable.
 
 **Prevention rule.** Treat maximum sprite width and height as renderer inputs,
-not merely atlas metadata. Whenever either maximum changes, run the full Web
-suite and recalculate every fixed-viewport budget. If a fixed scale no longer
-fits, make an explicit product decision between automatic scaling and centered
-overflow; do not disguise the conflict by moving one clipped edge off the
-assertion.
+not merely atlas metadata; when either changes, run the full Web suite and
+recalculate every fixed-viewport budget. When a budget stops fitting, derive the
+bound from scratch before concluding the fit is impossible - in particular, ask
+which coordinates each reserved term can actually be drawn at. Only once the
+model is confirmed tight is the choice between automatic scaling and centered
+overflow a real product decision.
 
-**How to verify.** At 136 pixels, the 16 by 12 conservative span is exactly 724
-pixels. `cameraOrigin` must place it at -2 through 722 in a 720-pixel canvas,
-sharing the unavoidable overflow equally. A future shorter extent may fit, but
-overflow beyond four pixels must fail for deliberate review. The obsolete
-tile-only centering formula must remain observably off-center.
-
-## [L-pages-must-follow-green-ci] A successful static build is not a releasable revision
-
-**What happened.** GitHub Pages deployed `f38c64a` while the CI run for the
-same revision failed the desktop camera-extent test. The site remained
-playable, but the public release boundary claimed a revision the test boundary
-had rejected.
-
-**Root cause.** The Pages workflow and CI both triggered independently on a
-push to `main`. Pages only built the static bundle, so it had no dependency on
-the CI conclusion and could finish first or succeed while CI failed.
-
-**Prevention rule.** Production Pages builds must be triggered by completion
-of the `CI` workflow on `main`, must run only when that CI conclusion is
-successful and its event was a push, and must check out the triggering run's
-exact `head_sha`. Immediately before deployment, compare that SHA with the live
-`main` ref and skip it when an overlapping or re-run CI job has made the
-artifact stale. Do not substitute the newest default-branch revision.
-
-**How to verify.** Push a branch through a pull request and require CI to pass
-before merge. After merge, confirm the Pages run names that merge SHA as its
-triggering workflow revision and that the deployed HTML loads that revision's
-content-addressed assets. In a controlled test branch, force CI to fail and
-confirm the downstream Pages build job is skipped.
-
-## [L-seated-state-needs-a-seated-silhouette] A socket position cannot make straight legs read as sitting
-
-**What happened.** The first armchair candidate used the right seat socket,
-lowered torso, `Sitting` HUD label, and deterministic activity code, but the
-played composite still looked like a standing Sim placed in front of a chair.
-The legs remained nearly vertical, so the most important anatomical cue
-contradicted every technical signal.
-
-**Root cause.** The implementation treated lower hip coordinates and floor
-contact as sufficient evidence of a seated pose. Those invariants protected
-placement but did not require a visible hip-to-knee-to-foot angle in the final
-person-and-furniture composite.
-
-**Prevention rule.** Review body art composited with its real furniture before
-accepting an object action. A seated pose must expose an intentional knee angle,
-credible cushion contact, and planted shoes without hiding the object. Reject
-the slice even when sockets, labels, indices, and tests are correct if the
-silhouette tells a different story.
-
-**How to verify.** Run the real action at normal and close zoom, pause both
-animation phases, and compare the runtime composite with the pose reference.
-The hips must meet the cushion, the knee must visibly break the straight leg
-line, the feet must stay near the base, and the chair arms must remain readable.
+**How to verify.** At 136 pixels the two-row bound gives 697 pixels for the
+16 by 12 lot, so `cameraOrigin` must place the whole extent on a 720-pixel
+canvas with a non-negative top and a bottom no greater than 720, centered.
+Reserving one height for both rows must fail. `BOUNDARY_SPRITE_NAMES` must be
+checked in both directions against what `buildStaticInstances` emits: a missing
+boundary piece is reserved for at the wrong row, and an extra one that never
+leaves the lot rebuilds the over-reservation. The obsolete tile-only centering
+formula must remain observably clipped.

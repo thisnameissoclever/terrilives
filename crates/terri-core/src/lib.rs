@@ -21,8 +21,8 @@ pub use command::{CommandQueue, SimCommand};
 pub use components::{
     Agent, AtWork, Blocked, Career, Carrying, ChainState, Commuting, Eating, Fumbled, Funds,
     Habituation, Hobbies, Intent, IntentQueue, Path, Personality, Position, Relationships,
-    Reserved, Restless, Satisfaction, Selected, SimId, SimIdAllocator, SimName, SmartObject,
-    Socialising, SpriteVariant, StepWork, Target, Traits, Wander,
+    Reserved, Restless, Satisfaction, Selected, SimId, SimIdAllocator, SimName, SleepPressure,
+    SmartObject, Socialising, SpriteVariant, StepWork, Target, Traits, Wander,
 };
 pub use grid::{Footprint, TileGrid};
 pub use hash::FnvHasher;

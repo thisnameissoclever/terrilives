@@ -1102,11 +1102,14 @@ cut off. After moving the origin from 87 to 144 it is **25**, with the bottom at
 tallest sprite off the atlas, and has four tests including the counterfactual
 that the old formula fails.
 
-**2026-08-14 supersession.** The measurement above is historical. The Clear
-Line pass later increased the tallest atlas sprite to 136 px, making the
-conservative 16 by 12 extent 724 px. The current 720 px view centers that extent
-with two pixels of modeled overflow on each edge; the shipped bunk and boundary
-walls remain visible because the bunk is not on the boundary row.
+**2026-08-14 supersession.** The 702 px measurement above is historical: the
+Clear Line pass took the tallest atlas sprite to 136 px. It briefly looked like
+724 px of a 720 px page, and was recorded here as an unavoidable two-pixel clip
+on each edge. It was avoidable. That figure reserved the tallest sprite above
+the boundary row at world -1, where only walls are ever drawn, so it priced in a
+bunk bed standing outside the house. Measured against the rows things can
+actually occupy the picture is **697 px**, and the whole house is on screen with
+23 px to spare.
 
 **3. Fourteen claims in comments were false.** Found by an adversarial review of
 the diff rather than by any test. The load-bearing ones were arithmetic: a score
