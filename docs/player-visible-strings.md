@@ -1,7 +1,7 @@
 # Player-visible string inventory
 
-Status: the functional inventory is current through the aquarium and exercise
-bike action slice. The dark-comedy voice
+Status: the functional inventory is current through the armchair-sitting
+action slice. The dark-comedy voice
 column is intentionally unfilled until the owner authors or approves it, per
 [L58]. This file is the handoff for playable-alpha criterion 11, not permission
 to invent the game's voice unattended.
@@ -19,7 +19,7 @@ itself on having personality.
 | Compact HUD | Menu; Close; Open game menu; Close game menu | `web/index.html`, `web/src/ui/mobile-hud.ts` |
 | Household roster | Household; one authored sim name per selection button | `web/index.html`, `web/src/ui/household-roster.ts` |
 | Selected person | Life satisfaction; Career; Doing; Orders waiting; Select a person; Nothing selected | `web/index.html`, `web/src/ui/game-hud.ts` |
-| Selected activity | Deciding what to do; Walking; Waiting; Eating; Talking; Sleeping; At work; Using object; Reading; Exercising; Watching fish; Waiting: {reason}; Activity {code} | `web/src/ui/game-hud.ts` |
+| Selected activity | Deciding what to do; Walking; Waiting; Eating; Talking; Sleeping; At work; Using object; Reading; Exercising; Watching fish; Sitting; Waiting: {reason}; Activity {code} | `web/src/ui/game-hud.ts` |
 | Need warnings | critical; low; steady; {value}% full | `web/src/ui/needs-panel.ts` |
 | Mood | Mood; Select a person to see their mood.; Mood unavailable; No active moodlets.; Overall mood; Miserable; Low; Okay; Good; Great; {label}: {signed score} | `web/index.html`, `web/src/ui/mood-panel.ts` |
 | Need moodlets | Hungry; Starving; Tired; Exhausted; Needs a wash; Very dirty; Needs the toilet; Desperate for the toilet; Lonely; Very lonely; Bored; Very bored; Uncomfortable; Very uncomfortable; Needs met | `crates/terri-sim/src/mood.rs` |

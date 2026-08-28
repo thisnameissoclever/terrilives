@@ -1,8 +1,78 @@
 # Aquarium and exercise bike design QA
 
-Date: 2026-08-12
+Current review date: 2026-08-14
 
-final result: passed
+Current result: corrective redraw passed local source, generator, and played
+review. Final product-owner acceptance and physical-device review remain open.
+
+## 2026-08-14 corrective redraw
+
+The product owner rejected the deployed PR 52 sprites. The aquarium looked like
+a white display cube under a brown roof, the bike read as a tangled miniature,
+and the current exercise pose was a standing body translation rather than a
+seated pedal cycle. That rejection reopened visual acceptance even though the
+objects, actions, save migration, and automated runtime contracts were already
+working.
+
+The correction was built after fetching `origin/main` at `f38c64a`. It changes
+only procedural art, generator validation, generated atlas outputs, and this
+evidence. The existing one-by-one footprints, persistence IDs, lot positions,
+collision map, actions, sockets, simulation state, and Save V1 digest remain
+unchanged.
+
+### Current comparison evidence
+
+| Evidence | What it proves |
+| --- | --- |
+| [Reference and runtime comparison](docs/assets/aquarium-exercise-bike/asset-redesign-reference-runtime-comparison.png) | Both selected source images were judged beside same-scale crops from the current game, rather than against isolated sprite sheets. |
+| [Current generated contact sheet](docs/assets/aquarium-exercise-bike/asset-redesign-contact-3x.png) | Both aquarium frames, three bike facings, and two opposing pedal frames retain readable silhouettes inside the fixed envelopes. |
+| [Aquarium action at 1x](docs/assets/aquarium-exercise-bike/asset-redesign-aquarium-action-1280x720.png) | The normal object menu reached `Watching fish`; the cabinet clears the divider wall and the watcher stays on the adjacent tile. |
+| [Bike pedal frame zero](docs/assets/aquarium-exercise-bike/asset-redesign-bike-frame0-1280x720.png) and [frame one](docs/assets/aquarium-exercise-bike/asset-redesign-bike-frame1-1280x720.png) | The normal object menu reached `Exercising`; the torso and hands stay planted while the knees and feet exchange pedal positions. |
+| [Dusk](docs/assets/aquarium-exercise-bike/asset-redesign-dusk-1280x720.png), [midnight](docs/assets/aquarium-exercise-bike/asset-redesign-midnight-1280x720.png), and [Flat](docs/assets/aquarium-exercise-bike/asset-redesign-flat-1280x720.png) | Water, fish, cabinet, flywheel, console, and floor contacts remain distinguishable across the shipped lighting states. |
+| [Emulated reduced motion](docs/assets/aquarium-exercise-bike/asset-redesign-reduced-motion-1280x720.png) | The browser media query resolved to reduced motion and the current aquarium and watcher held frame zero. |
+
+### Corrective findings and fixes
+
+1. The aquarium keeps the exact 80 by 104 canvas and reviewed
+   `(26, 15, 80, 104)` opaque envelope. Its brown furniture roof became a thin
+   charcoal lid; the oversized near-white gravel diamond became a narrow
+   substrate band; open water now dominates the tank; and paired cabinet doors
+   and hardware make the lower half read as furniture. Only the three fish
+   regions differ between its two frames.
+2. The bike keeps the exact 80 by 88 canvas and one-tile placement. A larger
+   left-biased flywheel, separated frame triangle, front post, saddle, swept
+   handlebars, console, crank, pedals, stabilisers, mat, and towel now form an
+   upright-bike silhouette. Its SE and NE opaque bounds end at x 55, inside the
+   divider-wall boundary; the mirrored SW and NW bounds end at x 80 on the open
+   side.
+3. Exercise now uses a fixed saddle hip and fixed hands. Two bent-leg frames
+   exchange high and low knees and feet. The upper 50 pixel rows are
+   byte-identical between frames, so a whole-body bob cannot masquerade as
+   pedalling again.
+4. A new decoded-record digest pins both aquarium frames, all four bike
+   facings, and every exercise body. The older complement digest deliberately
+   excluded these art exceptions, which allowed a later shared character pass
+   to regress the exercise pose without failing the generator.
+
+Both actions were invoked through the normal object menu at 1x before speed was
+used to shorten repeated setup. The second bike frame was then advanced at 1x
+and frozen. Default and close desktop views retained wall and lot-edge
+clearance. A 390 by 844 responsive render kept a 390-pixel document and stage
+without horizontal overflow; the object and HUD layouts were unchanged because
+the sprite canvases and simulation footprints did not change. The local browser
+reported no warnings or errors during the corrective pass.
+
+Physical safe-area behavior, a real phone long press, and operating-system
+reduced motion remain outside this local correction. The generated selector
+still pins reduced motion to frame zero; both local emulation and its automated
+tests remain green.
+
+## 2026-08-12 original implementation record
+
+The following record describes the original PR 52 acceptance session. It is
+retained as historical evidence for interaction, Save, responsive layout, and
+lighting behavior, but its visual conclusion was superseded by the owner's
+2026-08-14 rejection and the corrective pass above.
 
 ## Sources and captures
 
@@ -110,3 +180,85 @@ The `?rev=080ff7e1...` used for that browser session is only a mutable
 SHA-labelled session URL, not an immutable deployment. The public smoke pass
 did not replay the aquarium or exercise-bike actions; action-specific played
 evidence remains the local production capture above.
+
+## Armchair seating design QA
+
+Current review date: 2026-08-16
+
+Current result: the exact single-slot armchair interaction passed a local
+production WebGPU review. Merge, public replay, physical-device review,
+operating-system reduced motion, and final product-owner acceptance remain
+open.
+
+The built-in image generator produced
+`docs/assets/armchair-seating/reference-armchair-seating.png` from the current
+Muted Line action sheet and armchair. The prompt requested four isometric
+facings with two calm seated frames each, hips on the cushion, planted shoes,
+believable joints, no vertical body bob, and a restrained hand and shoulder
+adjustment. The image was a pose and contact reference only; the deterministic
+Python generator owns every runtime pixel.
+
+The first runtime composite failed the visual review because its straight legs
+made the body read as standing in front of the chair. A second version bent the
+knees but spread the feet too far apart. The accepted local candidate keeps a
+visible knee angle, draws the shoes close to the chair base, leaves the chair
+arms readable, and keeps torso and hips fixed while the hand changes subtly.
+The exact 24 decoded sprite records are pinned by
+`SITTING_PIXELS_SHA256`.
+
+The real `Sit down` menu route was played at 1280 by 720 in the production
+build. Bill walked to `The Chair That Is His`, projected to the seat, reported
+`Sitting` in the normal HUD, and remained planted while paused. The action was
+resumed in two short samples so both restrained animation phases could be
+inspected before completion returned the standing body beside the chair. The
+reference, first accepted frame, and later phase were inspected together.
+Saving while paused in the seated state, completing the interaction, and
+confirming Load restored `Saved game loaded`, `Sitting`, the paused speed, and
+the socket pose. The browser surface showed no application failure.
+
+Retained local evidence lives outside the feature commit at
+`.playwright-mcp/round-02-armchair-seating/05-local-bill-sitting-final-frame-a.png`
+and
+`.playwright-mcp/round-02-armchair-seating/07-local-bill-sitting-final-frame-c.png`.
+This review does not claim a phone-width replay, a physical safe-area pass, a
+real operating-system reduced-motion setting, or owner approval.
+
+## Lower-bunk sleep design QA
+
+Current review date: 2026-08-17
+
+Current result: the exact lower-bunk sleep interaction passed a local
+production WebGPU review. Merge, public replay, phone-width use,
+physical-device review, operating-system reduced motion, and final
+product-owner acceptance remain open.
+
+The built-in image generator produced
+`docs/assets/lower-bunk-sleep/reference-lower-bunk-sleep.png` as a pose and
+occlusion reference. It requested one adult lying naturally on the lower
+mattress, four facings, two calm breathing frames, fixed head and body contact,
+and correct coverage by the upper bunk, near posts, rail, ladder, and duvet.
+The deterministic Python generator owns the runtime atlas.
+
+The first runtime composite was rejected because the person read as crouching
+or climbing out. The accepted candidate raises the cheek onto the pillow,
+places the torso and legs along the mattress, tucks the hand beside the face,
+and splits the old bunk art into pixel-identical background plus foreground
+layers. The 24 sleeping records, optional foreground record, dimensions,
+directional silhouettes, and restrained frame differences are generator-pinned.
+
+The real `Sleep` menu route was played from a clean household at 1280 by 720.
+Bill projected to the lower-bunk socket and the HUD reported `Sleeping`. At
+ordinary zoom the action remained readable in the room; at close zoom the
+body, pillow, duvet, rail, posts, ladder, and upper mattress had credible
+contact and depth. A 3.4-second 1x sample exposed the second frame without
+visible body or bed bob. Saving during sleep, advancing beyond it, and loading
+restored `Sleeping` and the layered pose. The browser logged no warnings or
+errors.
+
+Retained local evidence lives outside the feature commit at
+`.playwright-mcp/round-05-lower-bunk-sleep/01-local-sleep-close-frame-a.png`,
+`.playwright-mcp/round-05-lower-bunk-sleep/02-local-sleep-close-frame-b.png`,
+and `.playwright-mcp/round-05-lower-bunk-sleep/03-local-sleep-restored.png`.
+This review does not claim a public replay, phone-width action use, a physical
+safe-area pass, a real operating-system reduced-motion setting, or owner
+approval.

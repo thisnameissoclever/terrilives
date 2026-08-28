@@ -33,6 +33,10 @@ pub struct Content(pub &'static terri_data::ContentPack);
 #[derive(Component, Debug, Clone, PartialEq)]
 struct ResolvedActionSockets(Vec<terri_data::CompiledPlacementSocket>);
 
+/// Facing-resolved atlas layer drawn after bodies occupying this object.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+struct ForegroundSprite(u32);
+
 /// Owns the ECS world and the tick schedule.
 pub struct Sim {
     world: World,
@@ -58,6 +62,7 @@ struct RenderRow {
     footprint_width: u32,
     footprint_depth: u32,
     sprite: u32,
+    foreground_sprite: u32,
     activity: u32,
     visual_action: u32,
     facing: u32,
@@ -306,6 +311,16 @@ fn authored_socket_action_visual(
             terri_data::CompiledVisualAnchor::ObjectSocket,
             terri_data::CompiledVisualFacing::Socket,
         ) => (visual_action::EXERCISE, activity::EXERCISING),
+        (
+            terri_data::CompiledVisualAction::Sit,
+            terri_data::CompiledVisualAnchor::ObjectSocket,
+            terri_data::CompiledVisualFacing::Socket,
+        ) => (visual_action::SIT, activity::SITTING),
+        (
+            terri_data::CompiledVisualAction::Sleep,
+            terri_data::CompiledVisualAnchor::ObjectSocket,
+            terri_data::CompiledVisualFacing::Socket,
+        ) => (visual_action::SLEEP, activity::SLEEPING),
         _ => return None,
     };
     let socket = sockets.0.get(visual.socket? as usize)?;
@@ -584,6 +599,7 @@ impl Sim {
         // the carrier here makes an absent component mean "no sockets" rather
         // than "this world has never heard of sockets".
         world.register_component::<ResolvedActionSockets>();
+        world.register_component::<ForegroundSprite>();
         // M2e PR 3's three. `AtWork` is in `world_hash`'s query - [L3]'s
         // empty-digest trap, the standing reason. `Career` and
         // `Commuting` are not (spawn-time content and transient action
@@ -817,6 +833,9 @@ impl Sim {
             if !placement.action_sockets.is_empty() {
                 spawned.insert(ResolvedActionSockets(placement.action_sockets.clone()));
             }
+            if let Some(sprite) = placement.foreground_sprite {
+                spawned.insert(ForegroundSprite(sprite));
+            }
         }
 
         sim
@@ -833,15 +852,22 @@ impl Sim {
         position: terri_core::Position,
         object: terri_data::ObjectDefId,
     ) -> Entity {
-        let sockets = {
+        let (sockets, foreground_sprite) = {
             let content = self.world.resource::<Content>().0;
-            default_action_sockets(content.object(object), position)
+            let definition = content.object(object);
+            (
+                default_action_sockets(definition, position),
+                definition.foreground_sprite,
+            )
         };
         let mut spawned = self
             .world
             .spawn((position, terri_core::SmartObject(object)));
         if !sockets.is_empty() {
             spawned.insert(ResolvedActionSockets(sockets));
+        }
+        if let Some(sprite) = foreground_sprite {
+            spawned.insert(ForegroundSprite(sprite));
         }
         spawned.id()
     }
@@ -1020,6 +1046,7 @@ impl Sim {
         self.render.footprint_widths.clear();
         self.render.footprint_depths.clear();
         self.render.sprites.clear();
+        self.render.foreground_sprites.clear();
         self.render.ids.clear();
         self.render.activities.clear();
         self.render.visual_actions.clear();
@@ -1083,6 +1110,7 @@ impl Sim {
             Has<Agent>,
             Option<&SmartObject>,
             Option<&terri_core::SpriteVariant>,
+            Option<&ForegroundSprite>,
             Option<&terri_core::Eating>,
             Option<&terri_core::Socialising>,
             Option<&terri_core::ChainState>,
@@ -1100,6 +1128,7 @@ impl Sim {
             is_agent,
             object,
             variant,
+            foreground_sprite,
             eating,
             talking,
             chain_state,
@@ -1320,6 +1349,8 @@ impl Sim {
                 footprint_width,
                 footprint_depth,
                 sprite,
+                foreground_sprite: foreground_sprite
+                    .map_or(render_buffer::NO_FOREGROUND_SPRITE, |sprite| sprite.0),
                 activity,
                 visual_action,
                 facing,
@@ -1336,6 +1367,7 @@ impl Sim {
             self.render.footprint_widths.push(row.footprint_width);
             self.render.footprint_depths.push(row.footprint_depth);
             self.render.sprites.push(row.sprite);
+            self.render.foreground_sprites.push(row.foreground_sprite);
             // The row's occupant, carried across so a click on a row can
             // name an entity in a command. See `RenderBuffer::ids` for why
             // the row number will not do.
@@ -2158,6 +2190,7 @@ mod lot_tests {
                 footprint: *footprint,
                 roles: Vec::new(),
                 action_sockets: Vec::new(),
+                foreground_sprite: None,
             })
             .collect()
     }
@@ -2187,6 +2220,7 @@ mod lot_tests {
                     y: 1.25,
                     sprite: 2,
                     action_sockets: Vec::new(),
+                    foreground_sprite: None,
                 },
                 CompiledPlacement {
                     object: ObjectDefId(0),
@@ -2194,6 +2228,7 @@ mod lot_tests {
                     y: 3.5,
                     sprite: 0,
                     action_sockets: Vec::new(),
+                    foreground_sprite: None,
                 },
             ],
         }
@@ -2431,6 +2466,7 @@ mod lot_tests {
                 y: 1.25,
                 sprite: 2,
                 action_sockets: Vec::new(),
+                foreground_sprite: None,
             }],
         }
     }

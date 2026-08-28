@@ -255,11 +255,21 @@ describe('the atlas manifest', () => {
         [0, 1].map((frame) => `${look}WatchFish${facing}${frame}`),
       ),
     );
+    const sittingSprites = ['sim', 'sim2', 'sim3'].flatMap((look) =>
+      ['SE', 'NW', 'SW', 'NE'].flatMap((facing) =>
+        [0, 1].map((frame) => `${look}Sit${facing}${frame}`),
+      ),
+    );
+    const sleepingSprites = ['sim', 'sim2', 'sim3'].flatMap((look) =>
+      ['SE', 'NW', 'SW', 'NE'].flatMap((facing) =>
+        [0, 1].map((frame) => `${look}Sleep${facing}${frame}`),
+      ),
+    );
 
     expect(spriteIndex('sim')).toBe(1);
     expect(spriteIndex('sim2')).toBe(48);
     expect(spriteIndex('sim3')).toBe(49);
-    expect(SPRITES.length).toBeGreaterThanOrEqual(223);
+    expect(SPRITES.length).toBe(360);
     expect(
       createHash('sha256')
         .update(SPRITES.slice(0, 147).map((sprite) => sprite.name).join('\0'))
@@ -299,6 +309,14 @@ describe('the atlas manifest', () => {
     expect(SPRITES.slice(199, 223).map((sprite) => sprite.name)).toEqual(
       watchFishSprites,
     );
+    expect(SPRITES.slice(311, 335).map((sprite) => sprite.name)).toEqual(
+      sittingSprites,
+    );
+    expect(spriteIndex('bedBunkForeground')).toBe(335);
+    expect([SPRITES[335].w, SPRITES[335].h]).toEqual([122, 136]);
+    expect(SPRITES.slice(336, 360).map((sprite) => sprite.name)).toEqual(
+      sleepingSprites,
+    );
     expect(spriteIndex('carried_dinner')).toBe(47);
     expect([SPRITES[47].w, SPRITES[47].h]).toEqual([18, 14]);
     for (const name of [
@@ -309,9 +327,14 @@ describe('the atlas manifest', () => {
       ...walkSprites,
       ...exerciseSprites,
       ...watchFishSprites,
+      ...sittingSprites,
     ]) {
       const sprite = SPRITES[spriteIndex(name)];
       expect([sprite.w, sprite.h], name).toEqual([38, 88]);
+    }
+    for (const name of sleepingSprites) {
+      const sprite = SPRITES[spriteIndex(name)];
+      expect([sprite.w, sprite.h], name).toEqual([104, 72]);
     }
     // Generic object use is intentionally text-only. A vague glyph would
     // mislabel at least one shipped use, so no generic icon is appended.

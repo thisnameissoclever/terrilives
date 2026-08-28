@@ -21,6 +21,7 @@ import {
 import { NOTHING, NOTHING_MENU, type Menu, type MenuEntry } from '../src/ui/object-menu.js';
 import { SPRITES } from '../src/render/atlas.js';
 import { KIND_AGENT } from '../src/render/instances.js';
+import { FACING_POSITIVE_X, VISUAL_ACTION_SLEEP } from '../src/frame.js';
 import { TILE_HALF_HEIGHT, screenX, screenY } from '../src/render/iso.js';
 
 const KIND_OBJECT = 1;
@@ -830,6 +831,28 @@ describe('pickSprite', () => {
         scale,
       ),
     ).toBeNull();
+  });
+
+  it('picks the horizontal sleep body instead of the content placeholder sprite', () => {
+    const tile = [6, 4] as const;
+    const base = source([[6, KIND_AGENT, tile[0], tile[1]]]);
+    const sleeping: PickSource = {
+      ...base,
+      visualActions: () => Uint32Array.from([VISUAL_ACTION_SLEEP]),
+      facings: () => Uint32Array.from([FACING_POSITIVE_X]),
+      clockTick: () => 0,
+    };
+    const sleepBox = drawnBox(tile, 'simSleepSE0');
+    const standingBox = drawnBox(tile, 'sim');
+    const x = sleepBox.left + 1;
+    const y = (sleepBox.top + sleepBox.bottom) / 2;
+
+    expect(x).toBeLessThan(standingBox.left);
+    expect(pickSprite(base, x, y, 0, 0)).toBeNull();
+    expect(pickSprite(sleeping, x, y, 0, 0)).toEqual({
+      entity: 6,
+      isAgent: true,
+    });
   });
 
   it('finds nothing on bare floor far from any entity', () => {

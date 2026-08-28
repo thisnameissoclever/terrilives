@@ -206,9 +206,10 @@ export class SimBridge {
 
   /**
    * The presentation body-action category for each row: 0 none; 1 talk;
-   * 2 eat; 3 seated read; 4 standing read; 5 walk; 6 exercise; 7 watch fish.
+   * 2 eat; 3 seated read; 4 standing read; 5 walk; 6 exercise; 7 watch fish;
+   * 8 sit; 9 sleep.
    *
-   * Codes 1 through 4, 6, and 7 come only from exact validated interaction
+   * Codes 1 through 4 and 6 through 9 come only from exact validated interaction
    * visuals. Code 5 is the deliberate presentation-derived exception: an
    * Agent whose final activity is walking and whose Path has a next step.
    * Re-create the view on every call for the same memory-growth hazard as
@@ -258,6 +259,15 @@ export class SimBridge {
     return new Uint32Array(
       this.memory.buffer,
       this.handle.sprites_ptr(),
+      this.count,
+    );
+  }
+
+  /** Optional object layer that must draw in front of a socket-projected sim. */
+  foregroundSprites(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.foreground_sprites_ptr(),
       this.count,
     );
   }

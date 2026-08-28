@@ -1,9 +1,10 @@
 """Clear Line people: one billboard figure, every pose.
 
 A person is shoulders, a torso, two arms, two legs, a neck, and a head
-with a face. Hands live on their sleeves. Both shoes share one ground y.
-Raised hands sit beside the head, never on it. Food lives in a hand, never
-as a snout.
+with a face. Hands live on their sleeves. Standing poses keep both shoes on
+one ground y; seated and sleeping actions own their contact geometry. Raised
+hands sit beside the head, never on it. Food lives in a hand, never as a
+snout.
 """
 from style import (PALETTE as C, OUTLINE, OUTLINE_WIDTH, FACE_LEFT,
                    FACE_RIGHT, CHARACTER, mul)
@@ -42,6 +43,16 @@ def _column(d, x, y0, y1, half, fill):
         radius=min(half, 2),
         fill=fill, outline=OUTLINE, width=OUTLINE_WIDTH,
     )
+
+
+def _bent_limb(d, points, fill, width=5):
+    """One outlined two-segment limb with a readable knee or elbow."""
+    d.line(points, fill=OUTLINE, width=width + 3, joint="curve")
+    d.line(points, fill=fill, width=width, joint="curve")
+    radius = max(2, width // 2)
+    for x, y in points[1:-1]:
+        _oval(d, x - radius, y - radius, x + radius, y + radius,
+              fill=fill, outline=OUTLINE, width=1)
 
 
 def _hand(d, x, y, skin):
@@ -128,6 +139,136 @@ def _morsel(d, x, y):
                 fill=C["accent_clay"], outline=OUTLINE, width=1)
 
 
+def sleeping_person(d, palette, facing="se", frame=0):
+    """A planted horizontal sleeper for the lower-bunk action.
+
+    The ordinary billboard is bottom-centred on a floor contact. Sleep keeps
+    that renderer contract but owns a wider 104x72 envelope whose visible art
+    sits at mattress height. The head, shoulder, hips and shoes do not move
+    between frames; only the exposed near hand shifts by two pixels, so the
+    cycle reads as breathing rather than a body bouncing on the mattress.
+    """
+    px, py = P(.5, .5)
+    shirt, trouser = palette["shirt"], palette["trouser"]
+    skin, hair = palette["skin"], palette["hair"]
+    shoe = mul(trouser, 0.55)
+
+    # Screen-space long axes for the two bed diagonals. Reversing an axis
+    # moves the head to the other end without changing the socket anchor.
+    axes = {
+        "se": (2.0, 1.0),
+        "nw": (-2.0, -1.0),
+        "sw": (-2.0, 1.0),
+        "ne": (2.0, -1.0),
+    }
+    try:
+        ax, ay = axes[facing]
+    except KeyError as err:
+        raise ValueError(f"unknown person facing {facing!r}") from err
+    length = (ax * ax + ay * ay) ** .5
+    ux, uy = ax / length, ay / length
+    vx, vy = -uy, ux
+
+    # The lower mattress is roughly nine screen pixels above the first cut's
+    # centre. Keeping that lift in the body, rather than the object socket,
+    # preserves the simulation and picking anchor while putting the cheek on
+    # the authored pillow instead of below it.
+    centre_x, centre_y = px, py - 43
+
+    def along(distance, across=0.0):
+        return (
+            centre_x + ux * distance + vx * across,
+            centre_y + uy * distance + vy * across,
+        )
+
+    head = along(-31)
+    shoulder = along(-19)
+    hip = along(-2)
+    ankle = along(25)
+
+    # Far arm and shoes first. The duvet crosses them later, which makes the
+    # sleeper read as tucked in instead of pasted over the blanket.
+    for side in (-4, 4):
+        foot = along(29, side)
+        _oval(
+            d,
+            foot[0] - 4,
+            foot[1] - 2,
+            foot[0] + 4,
+            foot[1] + 2,
+            fill=shoe,
+            outline=OUTLINE,
+            width=OUTLINE_WIDTH,
+        )
+
+    _bent_limb(d, [shoulder, hip, ankle], trouser, width=10)
+    _bent_limb(d, [along(-18, 2), hip], shirt, width=10)
+
+    # A tapered duvet occupies the lower torso and legs. It uses the house's
+    # authored fabric colour, while the exposed shoulder keeps the Sim look
+    # recognisable. The near bed rail later occludes its lower edge.
+    duvet_start = along(-17)
+    duvet_end = along(25)
+    d.polygon(
+        [
+            (duvet_start[0] + vx * 10, duvet_start[1] + vy * 10),
+            (duvet_end[0] + vx * 8, duvet_end[1] + vy * 8),
+            (duvet_end[0] - vx * 8, duvet_end[1] - vy * 8),
+            (duvet_start[0] - vx * 10, duvet_start[1] - vy * 10),
+        ],
+        fill=C["fabric"],
+        outline=OUTLINE,
+    )
+    d.line(
+        [along(3, -8), along(18, -7)],
+        fill=mul(C["fabric"], .82),
+        width=1,
+    )
+
+    # The head stays planted on the authored pillow. Back facings expose only
+    # hair; front facings keep a single sleepy eye and a short hair cap.
+    _, back = _facing(facing)
+    hx, hy = head
+    if back:
+        _oval(
+            d,
+            hx - 8,
+            hy - 7,
+            hx + 8,
+            hy + 7,
+            fill=hair,
+            outline=OUTLINE,
+            width=OUTLINE_WIDTH,
+        )
+    else:
+        _oval(
+            d,
+            hx - 7,
+            hy - 6,
+            hx + 7,
+            hy + 6,
+            fill=skin,
+            outline=OUTLINE,
+            width=OUTLINE_WIDTH,
+        )
+        d.line(
+            [(hx - 6, hy - 4), (hx + 2, hy - 6)],
+            fill=hair,
+            width=5,
+        )
+        eye = along(-31, 3)
+        d.line(
+            [(eye[0] - 2, eye[1]), (eye[0] + 1, eye[1])],
+            fill=CHARACTER["eye"],
+            width=1,
+        )
+
+    near_shoulder = along(-18, 4)
+    near_hand = along(-27 + (1 if frame else 0), 4 + (1 if frame else 0))
+    _bent_limb(d, [near_shoulder, near_hand], shirt, width=4)
+    _hand(d, near_hand[0], near_hand[1], skin)
+
+
 def person(d, palette, facing="se", pose="idle", frame=0):
     fx, back = _facing(facing)
     px, py = P(.5, .5)
@@ -148,11 +289,19 @@ def person(d, palette, facing="se", pose="idle", frame=0):
         hip_y = py - 18
         top_y = py - 42
         lean = fx
+    elif pose == "sit":
+        # The cushion owns the vertical contact. Keep the hips, torso and head
+        # fixed between frames; ordinary resting motion belongs in one hand
+        # and shoulder, not in a whole-body bob above the chair.
+        hip_y = py - 18
+        top_y = py - 42
+        lean = fx
     elif pose == "exercise":
-        lean = fx * 2
-        drop = 3 if frame else 0
-        hip_y = py - 24 + drop
-        top_y = py - 48 + drop
+        # The hip is a fixed contact on the saddle. Pedalling moves the knees
+        # and feet, not the whole body up and down like a reluctant piston.
+        lean = fx
+        hip_y = py - 30
+        top_y = py - 52
 
     cx = px + lean
     head_y = top_y - 6
@@ -175,6 +324,14 @@ def person(d, palette, facing="se", pose="idle", frame=0):
         x = px + side * 5 + lean + x_off
         _column(d, x, hip_y - 1, hem, LEG_HALF, trouser)
         _shoe(d, x, py, fx, back, shoe)
+
+    def seated_leg(side):
+        """A visible thigh, knee and shin between the cushion and floor."""
+        hip = (cx + side * 3, hip_y - 1)
+        knee = (px + side * 3 + fx * 5, py - 12)
+        foot = (px + side * 3 + fx * 9, py - 5)
+        _bent_limb(d, [hip, knee, foot], trouser, width=6)
+        _shoe(d, foot[0], py, fx, back, shoe)
 
     def body():
         _torso(d, cx, top_y, hip_y, fx, shirt, back)
@@ -230,12 +387,48 @@ def person(d, palette, facing="se", pose="idle", frame=0):
             _book(d, cx + fx, book_y, frame)
             leg(near)
             arm(near, book_y - (2 if frame else 0))
-    elif pose == "exercise":
-        arm(far, head_y + 2, raised=True)
-        leg(far, x_off=-fx * 3)
+    elif pose == "sit":
+        # Far limbs first preserves the established isometric overlap. Both
+        # shoes stay on the contact row while the active frame makes only a
+        # restrained near-hand adjustment.
+        arm(far, hang_y)
+        seated_leg(far)
         body()
-        leg(near, x_off=fx * 3)
-        arm(near, head_y + 2, raised=True)
+        seated_leg(near)
+        arm(near, hang_y - (3 if frame else 0), x_off=fx if frame else 0)
+    elif pose == "exercise":
+        low_pedal = (px - fx * 5, py - 13)
+        high_pedal = (px - fx * 14, py - 30)
+        low_knee = (px - fx * 2, py - 20)
+        high_knee = (px - fx * 10, py - 18)
+
+        def rider_arm(side, hand_x, hand_y):
+            shoulder = (cx + side * 6, top_y + 7)
+            elbow = (cx + fx * 5 + side * 2, top_y + 15)
+            _bent_limb(d, [shoulder, elbow, (hand_x, hand_y)], shirt, width=4)
+            _hand(d, hand_x, hand_y, skin)
+
+        def rider_leg(side, foot, knee):
+            hip = (cx + side * 3, hip_y - 1)
+            _bent_limb(d, [hip, knee, foot], trouser, width=6)
+            _oval(d, foot[0] - 4, foot[1] - 2,
+                  foot[0] + 4, foot[1] + 2,
+                  fill=shoe, outline=OUTLINE, width=OUTLINE_WIDTH)
+
+        far_foot, near_foot = (
+            (high_pedal, low_pedal) if frame == 0 else (low_pedal, high_pedal)
+        )
+        far_knee, near_knee = (
+            (high_knee, low_knee) if frame == 0 else (low_knee, high_knee)
+        )
+
+        # Both hands remain planted on the swept bars while the feet exchange
+        # the opposing pedal positions. Far limbs draw first, as elsewhere.
+        rider_arm(far, px + fx * 4, py - 55)
+        rider_leg(far, far_foot, far_knee)
+        body()
+        rider_leg(near, near_foot, near_knee)
+        rider_arm(near, px + fx * 11, py - 50)
     elif pose == "watch":
         arm(far, hang_y)
         leg(far, x_off=phase)

@@ -46,20 +46,28 @@ tiles on circulation than a ring does at this size.
 
 **On the size, and the derivation that was wrong.** This spec and `lot.toml`
 both claimed the bound was "width + height at or under about 28, because the
-tallest sprite reaches 98 px above its anchor". Both halves were wrong: the
-tallest sprite is the 114 px bunk bed, and the derivation reasoned about the
-TILE span while `tiles.ts` draws a boundary two half-tile rows further up again
-at x = -1 and y = -1. The lot is 28, the bound said 28, and **three boundary
-panels were being cut off the top of the page** - measured afterwards as a
-topmost painted row of 0 where an unclipped picture starts at 25.
+tallest sprite reaches 98 px above its anchor". The derivation reasoned about
+the TILE span while `tiles.ts` draws a boundary two half-tile rows further up
+again at x = -1 and y = -1. The lot is 28, the bound said 28, and **three
+boundary panels were being cut off the top of the page** - measured afterwards
+as a topmost painted row of 0 where an unclipped picture starts at 25.
 
 `cameraOrigin` in `web/src/render/iso.ts` owns the arithmetic now, centres the
-DRAWN extent rather than the tile span, and reads the tallest sprite off the
-atlas so a taller piece of furniture cannot silently push the house off screen.
-The remaining authoring rule is one number: the drawn extent is 702 px of 720
-at 16 x 12, so one more tile on either axis costs 21 px and there are 18 to
-spare. 16 x 12 really is the largest this lot gets without a camera, just not
-for the reason first given.
+DRAWN extent rather than the tile span, and reads two heights off the atlas
+rather than one. The two are the point: only wall pieces are drawn on the
+boundary row at world -1, and everything else stands at (0, 0) or beyond, two
+half-tile rows lower. Reserving the atlas's tallest sprite above the boundary
+row - which is what shipped - prices in a bunk bed standing outside the house,
+and it is what made this lot read as 724 px of a 720 px page when the Clear Line
+pass took the bunk from 132 to 136 px. The real extent is **697 px**.
+
+The authoring rule is therefore
+`(width + height - 2) * 21 + 21 + max(21 + tallestWall, tallestSprite - 21)`.
+At 16 x 12 that leaves 23 px spare, so one more row or column fits and a second
+does not, and the ceilings are 132 px for a boundary wall and 174 px for
+anything else. Past any of those the opening view needs a deliberate
+default-scale decision rather than another stale fit claim. Pan and zoom remain
+available regardless.
 
 ---
 

@@ -75,10 +75,10 @@ expensive: an outline needs the sprite's silhouette, which means either a second
 pre-rendered outline per sprite in the atlas or a shader pass that samples
 neighbouring texels through the alpha channel. Not worth it for a selection cue.
 
-**Rejected: an icon above the head.** Cheapest to draw and worst behaved: sprites
-here are up to 114 px tall and the camera is fixed, so an icon above a sim near
-the top of the lot leaves the canvas. It also collides with the wall sprites the
-sim stands in front of.
+**Rejected: an icon above the head.** Cheapest to draw and worst behaved:
+sprites here are up to 136 px tall, so an icon above a sim near the top of the
+current panned or zoomed view can leave the canvas. It also collides with the
+wall sprites the sim stands in front of.
 
 Implementation: a generated ring sprite in the atlas, drawn as **one extra
 instance per frame** for the selected sim at `LAYER_PROP` - above the floor, below

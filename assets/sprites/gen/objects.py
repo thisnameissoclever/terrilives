@@ -17,7 +17,7 @@ from style import (PALETTE as C, OUTLINE, OUTLINE_WIDTH,
 from iso import (P, Pf, OX, OY, sx, sy, box, slab, cyl, diamond, surface,
                  facing_aabb, legs, contact_shadow, canvas, emit, plump,
                  HW, HH, Z_UNIT)
-from chars import person
+from chars import person, sleeping_person
 
 WALL_H = 2.0
 A, B = -0.5, 0.5          # a 1x1 footprint, centred on the anchor tile
@@ -431,11 +431,20 @@ def bedDouble(d):
     _double_bed(d, "se")
 
 
-def _bunk(d, facing="se"):
-    """Two bunks on four posts, painted far-to-near so posts do not ghost."""
+def _bunk(d, facing="se", phase="complete"):
+    """Two bunks split into a background and a sleeper-occluding foreground.
+
+    `complete` preserves every rotated furniture variant. The shipped SE bunk
+    is emitted as `background` plus `foreground`, with the sleeper drawn
+    between them by the renderer. Painting the phases in that order reproduces
+    the former empty-bunk pixels exactly.
+    """
+    if phase not in ("background", "foreground", "complete"):
+        raise ValueError(f"unknown bunk phase {phase!r}")
     w = C["wood"]
     x0, y0, x1, y1 = _span(facing, 1.90, across=0.86, inset=0.06)
-    contact_shadow(d, x0, y0, x1, y1, "se")
+    if phase in ("background", "complete"):
+        contact_shadow(d, x0, y0, x1, y1, "se")
     t = 0.10
     posts = [(x0, y0), (x0, y1 - t), (x1 - t, y0), (x1 - t, y1 - t)]
     # Camera sees +x and +y. Only the back corner stays behind the mattresses;
@@ -470,13 +479,17 @@ def _bunk(d, facing="se"):
             slab(d, x0 + t + .06, y0 + t + .22, x1 - t - .06, y1 - t - .06,
                  z + 0.24, C["fabric"], thick=0.08)
 
-    for x, y in far_posts:
-        post(x, y)
-    bunk_level(0.22)
-    bunk_level(1.10)
-    for x, y in near_posts:
-        post(x, y)
+    if phase in ("background", "complete"):
+        for x, y in far_posts:
+            post(x, y)
+        bunk_level(0.22)
+    if phase in ("foreground", "complete"):
+        bunk_level(1.10)
+        for x, y in near_posts:
+            post(x, y)
     # Ladder on the near long edge, after the near posts.
+    if phase not in ("foreground", "complete"):
+        return
     if along_x:
         lx = x1 - .04
         d.line([P(lx, y1 - .02, 0.30), P(lx, y1 - .02, 1.28)],
@@ -498,7 +511,11 @@ def _bunk(d, facing="se"):
 
 
 def bedBunk(d):
-    _bunk(d, "se")
+    _bunk(d, "se", "background")
+
+
+def bedBunkForeground(d):
+    _bunk(d, "se", "foreground")
 
 
 def _dresser(d, facing="se"):
@@ -734,7 +751,7 @@ def aquariumCabinet1(d):
 
 
 def _aquarium(d, frame):
-    """A compact cabinet aquarium, biased away from its west wall.
+    """A framed cabinet aquarium, biased away from its west wall.
 
     The historical sprite name remains the content and save-facing key for
     frame zero. Frame one redraws only the fish. Keeping the cabinet, water,
@@ -745,11 +762,28 @@ def _aquarium(d, frame):
     wood = C["wood_dark"]
     water = C["water"]
 
-    # Cabinet and cap. The +x/-y offset moves the visible envelope about
-    # thirteen pixels right while the one-tile simulation footprint stays put.
+    # The +x/-y offset moves the visible envelope about thirteen pixels right
+    # while the one-tile simulation footprint stays put. The cabinet remains
+    # warm wood, but its cap and the tank lid are dark enough that the lid reads
+    # as aquarium hardware rather than a second piece of furniture balanced on
+    # top of it.
     box(d, x0, y0, x1, y1, 0, .44, wood, top=C["wood"])
     slab(d, x0 - .02, y0 - .02, x1 + .02, y1 + .02,
-         .49, C["wood"], thick=.05)
+         .49, mul(C["wood_dark"], .92), thick=.05)
+
+    # Two cabinet doors and paired hardware are deliberately broad strokes.
+    # At native size they read as doors; the previous two isolated dots read as
+    # decoration with no cabinet structure around them.
+    door_ink = mul(C["wood_dark"], .68)
+    d.line([P(.30, y1, .06), P(.30, y1, .37)], fill=door_ink, width=2)
+    d.line([P(x0 + .06, y1, .08), P(x1 - .06, y1, .08)],
+           fill=door_ink, width=1)
+    d.line([P(x0 + .06, y1, .38), P(x1 - .06, y1, .38)],
+           fill=mul(C["wood"], .72), width=1)
+    for knob_x in (.23, .37):
+        kx, ky = P(knob_x, y1, .22)
+        d.ellipse([kx - 1.5, ky - 1.5, kx + 1.5, ky + 1.5],
+                  fill=C["accent_brass"], outline=OUTLINE, width=1)
 
     # Water volume. The slightly different face values are material shading,
     # not light emission; the aquarium remains an ordinary lit object quad.
@@ -757,12 +791,12 @@ def _aquarium(d, frame):
     d.polygon(
         [P(gx0, gy1, 1.35), P(gx1, gy1, 1.35),
          P(gx1, gy1, .52), P(gx0, gy1, .52)],
-        fill=(*mul(water, .92), 220), outline=OUTLINE, width=OUTLINE_WIDTH,
+        fill=(*mul(water, 1.02), 220), outline=OUTLINE, width=OUTLINE_WIDTH,
     )
     d.polygon(
         [P(gx1, gy0, 1.35), P(gx1, gy1, 1.35),
          P(gx1, gy1, .52), P(gx1, gy0, .52)],
-        fill=(*mul(water, .82), 220), outline=OUTLINE, width=OUTLINE_WIDTH,
+        fill=(*mul(water, .90), 220), outline=OUTLINE, width=OUTLINE_WIDTH,
     )
     d.polygon(
         [P(gx0, gy0, 1.35), P(gx1, gy0, 1.35),
@@ -770,35 +804,41 @@ def _aquarium(d, frame):
         fill=(*mul(water, 1.07), 210), outline=OUTLINE, width=OUTLINE_WIDTH,
     )
 
-    # Gravel, two rocks, and plants survive native-size display as distinct
-    # shapes. Fine aquarium detail has a habit of turning into decorative lint.
-    box(d, gx0 + .02, gy0 + .02, gx1 - .02, gy1 - .02,
-        .52, .62, C["card"], top=C["linen_alt"])
+    # A narrow substrate band replaces the old near-white gravel diamond. That
+    # diamond occupied most of the tank and made the whole aquarium read as a
+    # white box under a brown roof. Water is now the uninterrupted primary
+    # field, with the substrate kept down where substrate belongs.
+    substrate = mul(C["card"], .88)
+    d.polygon(
+        [P(gx0, gy1, .60), P(gx1, gy1, .60),
+         P(gx1, gy1, .52), P(gx0, gy1, .52)],
+        fill=substrate, outline=OUTLINE, width=1,
+    )
+    d.polygon(
+        [P(gx1, gy0, .60), P(gx1, gy1, .60),
+         P(gx1, gy1, .52), P(gx1, gy0, .52)],
+        fill=mul(substrate, .82), outline=OUTLINE, width=1,
+    )
     for rx, ry, radius, colour in (
         (.03, -.35, 4, C["accent_slate"]),
         (.38, -.08, 3, C["wood_dark"]),
     ):
-        px, py = P(rx, ry, .66)
+        px, py = P(rx, ry, .62)
         d.ellipse([px - radius, py - radius / 2,
                    px + radius, py + radius / 2],
                   fill=colour, outline=OUTLINE, width=1)
     for root_x, root_y, lean in ((-.12, -.27, -1), (.45, -.02, 1)):
-        root = P(root_x, root_y, .63)
+        root = P(root_x, root_y, .60)
         for reach, lift in ((6, 17), (2, 21), (-5, 15)):
             d.line([root, (root[0] + lean * reach, root[1] - lift)],
                    fill=C["leaf"], width=2)
 
-    # Dark frame, lid, and cabinet hardware sell the furniture silhouette.
+    # Dark frame and lid sell the glass-box silhouette. A charcoal lid is the
+    # strongest visual distinction from the rejected brown-roof version.
     for cx, cy in ((gx0, gy0), (gx1, gy0), (gx1, gy1), (gx0, gy1)):
         d.line([P(cx, cy, .50), P(cx, cy, 1.39)], fill=OUTLINE, width=2)
     slab(d, x0 - .03, y0 - .03, x1 + .03, y1 + .03,
-         1.43, wood, thick=.08)
-    d.line([P(x1, -.18, .12), P(x1, -.18, .34)],
-           fill=mul(C["wood"], .72), width=1)
-    for knob_y in (-.35, -.05):
-        kx, ky = P(x1, knob_y, .25)
-        d.ellipse([kx - 1.5, ky - 1.5, kx + 1.5, ky + 1.5],
-                  fill=C["accent_brass"], outline=OUTLINE, width=1)
+         1.43, mul(C["ink"], 1.30), thick=.07)
 
     # Only these fish coordinates depend on the frame. Each shifts by a few
     # pixels and flips a tail, enough to read without becoming a screensaver.
@@ -934,7 +974,13 @@ def trashcan(d):
 
 
 def _bike(d, facing="se"):
-    """A compact upright exercise bike on the old moving-box index."""
+    """A readable upright exercise bike on the old moving-box index.
+
+    The machine stays inside the reviewed 80 by 88 presentation envelope and
+    leans west, away from the divider wall. Its important parts deliberately
+    occupy separate silhouette zones so the rider cannot turn the entire bike
+    into one dark triangular knot.
+    """
     px, py = P(.5, .5)
     mirror = -1 if facing in ("sw", "nw") else 1
     frame = C["accent_slate"]
@@ -943,53 +989,79 @@ def _bike(d, facing="se"):
     def pt(dx, dy):
         return (px + dx * mirror, py + dy)
 
-    # The mat and machine lean left of the saddle anchor, leaving the east
-    # wall and lot edge clear while retaining the honest one-tile footprint.
-    d.polygon([pt(-32, -10), pt(-5, -24), pt(14, -14), pt(-14, 0)],
-              fill=mul(C["ink"], 1.55), outline=OUTLINE, width=1)
+    # Full-width rubber mat. The transparent half of the old canvas made the
+    # machine look miniature before the wall hid any of it.
+    d.polygon([pt(-39, -8), pt(-10, -27), pt(14, -15), pt(-17, 0)],
+              fill=mul(C["ink"], 1.48), outline=OUTLINE, width=1)
 
-    wheel_x, wheel_y = pt(-10, -14)
+    # Large enclosed flywheel, kept left of the rider's legs.
+    wheel_x, wheel_y = pt(-19, -22)
+    d.ellipse([wheel_x - 18, wheel_y - 15,
+               wheel_x + 18, wheel_y + 15],
+              fill=mul(C["screen"], .68), outline=OUTLINE, width=3)
     d.ellipse([wheel_x - 12, wheel_y - 10,
                wheel_x + 12, wheel_y + 10],
-              fill=mul(C["screen"], .72), outline=OUTLINE, width=2)
+              fill=mul(frame, .82), outline=OUTLINE, width=2)
     d.ellipse([wheel_x - 7, wheel_y - 6,
                wheel_x + 7, wheel_y + 6],
-              fill=mul(metal, .88), outline=OUTLINE, width=1)
+              fill=mul(metal, .84), outline=OUTLINE, width=1)
     d.ellipse([wheel_x - 2, wheel_y - 2,
                wheel_x + 2, wheel_y + 2],
               fill=C["accent_brass"], outline=OUTLINE, width=1)
 
+    # Seat, crank triangle, and front upright stay separated instead of
+    # converging on one point. The saddle remains on the existing rider socket.
     saddle = pt(0, -29)
     crank = (wheel_x, wheel_y)
-    front = pt(10, -7)
-    handle = pt(10, -43)
-    for a, b in ((saddle, crank), (crank, front), (front, handle),
-                 (saddle, front)):
-        d.line([a, b], fill=OUTLINE, width=6)
+    front = pt(10, -8)
+    handle_base = pt(9, -45)
+    for a, b in ((saddle, crank), (crank, front), (front, saddle),
+                 (front, handle_base)):
+        d.line([a, b], fill=OUTLINE, width=7)
         d.line([a, b], fill=frame, width=4)
 
-    d.rounded_rectangle([saddle[0] - 8, saddle[1] - 4,
+    d.line([pt(0, -28), pt(0, -38)], fill=OUTLINE, width=5)
+    d.line([pt(0, -28), pt(0, -38)], fill=metal, width=3)
+    d.rounded_rectangle([saddle[0] - 10, saddle[1] - 5,
                          saddle[0] + 7, saddle[1] + 1],
-                        radius=2, fill=mul(C["ink"], 1.12),
+                        radius=2, fill=mul(C["ink"], 1.10),
                         outline=OUTLINE, width=1)
-    bar = pt(7, -44)
-    bar2 = pt(15, -47)
-    d.line([bar, bar2], fill=OUTLINE, width=4)
-    d.line([bar, bar2], fill=frame, width=2)
-    console = pt(4, -53)
-    console2 = pt(13, -45)
-    d.rounded_rectangle([min(console[0], console2[0]), min(console[1], console2[1]),
-                         max(console[0], console2[0]), max(console[1], console2[1])],
-                        radius=2, fill=C["screen"], outline=OUTLINE, width=1)
 
-    d.line([pt(-5, -18), pt(6, -9)], fill=OUTLINE, width=2)
-    for foot in (pt(-8, -20), pt(9, -7)):
-        d.line([(foot[0] - 4, foot[1]), (foot[0] + 4, foot[1])],
+    # Console and swept handlebars form the tall, unmistakable upright-bike
+    # profile from the approved reference without crossing the east-wall edge.
+    d.line([pt(9, -45), pt(3, -57), pt(12, -64)],
+           fill=OUTLINE, width=6)
+    d.line([pt(9, -45), pt(3, -57), pt(12, -64)],
+           fill=frame, width=3)
+    d.line([pt(3, -57), pt(-4, -63)], fill=OUTLINE, width=5)
+    d.line([pt(3, -57), pt(-4, -63)], fill=frame, width=3)
+    console_a, console_b = pt(-8, -72), pt(5, -60)
+    d.rounded_rectangle(
+        [min(console_a[0], console_b[0]), min(console_a[1], console_b[1]),
+         max(console_a[0], console_b[0]), max(console_a[1], console_b[1])],
+        radius=2, fill=mul(C["screen"], .82), outline=OUTLINE, width=2,
+    )
+    screen_a, screen_b = pt(-5, -69), pt(2, -63)
+    d.rounded_rectangle(
+        [min(screen_a[0], screen_b[0]), min(screen_a[1], screen_b[1]),
+         max(screen_a[0], screen_b[0]), max(screen_a[1], screen_b[1])],
+        radius=1, fill=mul(C["screen"], 1.12), outline=OUTLINE, width=1,
+    )
+
+    # Crank, opposing pedals, and stabilisers remain visible around the rider.
+    d.line([crank, pt(-7, -14)], fill=OUTLINE, width=3)
+    d.line([crank, pt(-12, -29)], fill=OUTLINE, width=3)
+    for pedal in (pt(-5, -13), pt(-14, -30)):
+        d.line([(pedal[0] - 4, pedal[1]), (pedal[0] + 4, pedal[1])],
                fill=OUTLINE, width=3)
-    d.line([pt(-25, -2), pt(-2, -2)], fill=OUTLINE, width=3)
-    d.line([pt(2, -2), pt(14, -2)], fill=OUTLINE, width=3)
-    d.polygon([pt(5, -44), pt(10, -43), pt(8, -30), pt(3, -31)],
-              fill=C["linen"], outline=OUTLINE)
+    d.line([pt(-36, -3), pt(-9, -3)], fill=OUTLINE, width=5)
+    d.line([pt(0, -3), pt(14, -3)], fill=OUTLINE, width=5)
+    d.line([pt(-36, -3), pt(-9, -3)], fill=metal, width=2)
+    d.line([pt(0, -3), pt(14, -3)], fill=metal, width=2)
+
+    # Towel hangs from the front post, clear of the console and flywheel.
+    d.polygon([pt(4, -50), pt(10, -49), pt(9, -34), pt(3, -35)],
+              fill=C["linen"], outline=OUTLINE, width=1)
 
 
 def cardboardBoxOpen(d):
@@ -1169,6 +1241,14 @@ def _watch_fish_figure(d, palette, facing, frame):
     person(d, palette, facing, "watch", frame)
 
 
+def _sitting_figure(d, palette, facing, frame):
+    person(d, palette, facing, "sit", frame)
+
+
+def _sleeping_figure(d, palette, facing, frame):
+    sleeping_person(d, palette, facing, frame)
+
+
 
 def _named_action_sprites(stem, drawer):
     """Create append-only named atlas callables without 48 copy-paste shells."""
@@ -1186,6 +1266,8 @@ def _named_action_sprites(stem, drawer):
 
 EXERCISE_SPRITES = _named_action_sprites("Exercise", _exercise_figure)
 WATCH_FISH_SPRITES = _named_action_sprites("WatchFish", _watch_fish_figure)
+SITTING_SPRITES = _named_action_sprites("Sit", _sitting_figure)
+SLEEPING_SPRITES = _named_action_sprites("Sleep", _sleeping_figure)
 
 
 # ---------------------------------------------------------- indicators ----
@@ -1439,8 +1521,12 @@ EXACT = {
     "heldSnack": (14, 10),
 }
 
-for action_sprite in EXERCISE_SPRITES + WATCH_FISH_SPRITES:
+for action_sprite in EXERCISE_SPRITES + WATCH_FISH_SPRITES + SITTING_SPRITES:
     EXACT[action_sprite.__name__] = (38, 88)
+EXACT["bedBunk"] = (122, 136)
+EXACT["bedBunkForeground"] = (122, 136)
+for action_sprite in SLEEPING_SPRITES:
+    EXACT[action_sprite.__name__] = (104, 72)
 
 
 def _facing_sprite(name, drawer, facing):
@@ -1579,4 +1665,11 @@ SPRITES = [
     *OBJECT_FACING_VARIANTS,
     bathtubFull,
     *BATHTUB_FULL_VARIANTS,
+    # Ordinary armchair sitting appends after every existing record. The
+    # chair remains its existing prop quad below the fixed seated body.
+    *SITTING_SPRITES,
+    # Lower-bunk sleep draws the object foreground after the horizontal body.
+    # These remain append-only so every earlier atlas index stays stable.
+    bedBunkForeground,
+    *SLEEPING_SPRITES,
 ]

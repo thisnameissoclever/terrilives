@@ -4279,3 +4279,79 @@ zero as a legal completion state.
 **How to verify.** Require one remaining work tick to load and zero to fail
 with `InvalidValue`. Remove the validation and require the focused boundary
 test to fail before exercising the dangerous update.
+
+## [L-visual-acceptance-must-follow-shared-generator-changes] Art evidence expires when shared drawing code changes
+
+**What happened.** The selected aquarium and exercise-bike mockups looked
+convincing, but the deployed procedural sprites did not preserve their readable
+silhouettes. The aquarium became a white display cube under a brown roof and the
+bike collapsed into a small dark knot. A later shared character rewrite then
+changed the previously reviewed exercise body into a standing Sim that bobbed
+in front of the machine. Dimensions, sprite indices, animation timing, and the
+older atlas complement guard all continued to pass.
+
+**Root cause.** Acceptance focused on ingredient lists and isolated technical
+contracts. The durable pixel guard protected the complement of the intentional
+art exceptions, but nothing pinned the reviewed exception pixels themselves.
+The played captures were also treated as permanent evidence even after shared
+generator code changed the current atlas bytes.
+
+**Prevention rule.** Compare the selected reference and the current runtime at
+the same scale and state. Pin the exact decoded pixels of every corrective art
+candidate, including action bodies that depend on shared character code. Do not
+call those pixels owner-approved until the owner accepts them. Any later change
+to a shared generator invalidates prior played art evidence until the affected
+object and body composites are replayed.
+
+**How to verify.** Inspect current native crops, object-and-rider composites,
+and played 1x actions beside the selected references. Require a deliberate
+pixel mutation in the aquarium, bike, or exercise body to fail the reviewed
+subset digest. Require a whole-body exercise translation to fail the planted
+upper-body invariant, and require a frozen pedal leg to fail the lower-body
+motion check. Restore the source byte-identically and regenerate the exact
+content-addressed atlas.
+
+## [L-atlas-height-can-invalidate-a-camera-fit-contract] Check the model before believing an impossibility
+
+**What happened.** The Clear Line atlas pass increased the tallest sprite from
+132 to 136 pixels. The camera's conservative 16 by 12 lot extent therefore grew
+from 720 to 724 pixels, and the desktop regression test - which required both
+its top and bottom to fit inside a 720-pixel canvas - failed with a negative
+two-pixel top bound. The first reading was that no camera origin could satisfy
+both assertions, because the modeled extent was four pixels taller than the
+viewport, and the test was relaxed to accept up to four pixels of centered
+overflow.
+
+**That reading was wrong, and the second fix is the one in the tree.** The
+extent was never 724 pixels. It reserved the atlas's tallest sprite above the
+boundary row at world -1, and `tiles.ts` draws nothing out there but the floor,
+two wall panels and the north-west corner. Furniture cannot stand at a negative
+coordinate; the earliest tile it can occupy is (0, 0), two half-tile rows lower,
+which is 42 pixels of head start. The picture is 697 pixels and fits with 23 to
+spare.
+
+**Root cause.** A bound documented as "deliberately conservative" was never
+re-examined once it started binding. Conservative bounds are cheap while they
+have slack and become load-bearing the moment they do not, and this one encoded
+a placement the coordinate system makes impossible. The failing test was then
+read as a stale assertion rather than as a true report about a wrong model, so
+the first fix moved the assertion to match the model instead of the other way
+round - and in doing so wrote "unavoidable" into four documents about a two-pixel
+clip that was entirely avoidable.
+
+**Prevention rule.** Treat maximum sprite width and height as renderer inputs,
+not merely atlas metadata; when either changes, run the full Web suite and
+recalculate every fixed-viewport budget. When a budget stops fitting, derive the
+bound from scratch before concluding the fit is impossible - in particular, ask
+which coordinates each reserved term can actually be drawn at. Only once the
+model is confirmed tight is the choice between automatic scaling and centered
+overflow a real product decision.
+
+**How to verify.** At 136 pixels the two-row bound gives 697 pixels for the
+16 by 12 lot, so `cameraOrigin` must place the whole extent on a 720-pixel
+canvas with a non-negative top and a bottom no greater than 720, centered.
+Reserving one height for both rows must fail. `BOUNDARY_SPRITE_NAMES` must be
+checked in both directions against what `buildStaticInstances` emits: a missing
+boundary piece is reserved for at the wrong row, and an extra one that never
+leaves the lot rebuilds the over-reservation. The obsolete tile-only centering
+formula must remain observably clipped.

@@ -296,6 +296,19 @@ State what is bannable before you need to ban anyone.
 
 ## Tracked, but mine - no action needed from you
 
+### [T-game-backlog] Owner-requested full-game systems `[MINE]` - TRACKED
+
+The code-owned backlog in `FEATURES.md` now explicitly tracks the requested
+full career system [B-jobs-careers], playable outside [B-outside], animated
+front door [A-front-door-animation], builder and designer mode [B-builder],
+neighbors and household dynamics [B-neighborhood-dynamics], family relationships
+[B-family-relationships], sound and Sim voices [A-audio-voices], death
+[B-death], fires and larger emergencies [B-emergencies-disasters], and pets
+[B-pets].
+
+These are not owner chores. They are recorded here so they remain visible in
+the TODO, while `FEATURES.md` owns their scope and implementation status.
+
 ### [T2] Install the toolchain `[MINE]` - DONE
 
 Rust with the `wasm32-unknown-unknown` target, plus Node and wasm-pack. Handled

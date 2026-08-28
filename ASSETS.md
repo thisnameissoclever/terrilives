@@ -50,14 +50,17 @@ a live entry again.
 
 ## The generator
 
-`assets/sprites/gen/` is four files and Pillow, nothing else:
+`assets/sprites/gen/` is five production files, one one-off QA helper, and
+Pillow, nothing else:
 
 | File | What |
 | --- | --- |
 | `style.py` | The palette, the line, the shading ramp, the character build. The style bible. |
 | `iso.py` | The projection, the box/slab/cylinder primitives, and the anchoring rule. |
-| `objects.py` | All 223 sprites, including the three people; their directional talk, eating, seated-reading, standing-reading, walking, exercise, and fish-watching frames; the food props; the two aquarium frames; and the name contract they satisfy. |
+| `chars.py` | Character anatomy and pose drawing for idle, walking, talk, eating, reading, exercise, and fish-watching bodies. |
+| `objects.py` | The 311-entry sprite registry; furniture, props, directional variants, and the character-pose names that delegate into `chars.py`. |
 | `build.py` | Packs the sheet and writes all four output files. |
+| `_qa_dump.py` | A one-off native and enlarged crop helper. It is not part of generation or CI. |
 
 **The image and the manifest live apart, on purpose.** The PNG is in
 `web/public/` so the dev server, `preview` and the production build all serve
@@ -164,10 +167,13 @@ through 73; eating occupies 74 through 97; seated reading occupies 98 through
 146; directional walking occupies 147 through 170; and `heldSnack` is 171.
 The aquarium's second object frame is 172; the exercise and fish-watching
 indicators are 173 and 174; directional exercise bodies occupy 175 through
-198; and directional fish-watching bodies occupy 199 through 222. The original
-moving-box and personal-reference-shelf records at 24 and 32 are the two
-intentional in-place redraws. A decoded-pixel complement digest pins every
-other record through 171.
+198; directional fish-watching bodies occupy 199 through 222; and the current
+directional furniture suffix occupies 223 through 310. The original moving-box
+and personal-reference-shelf records at 24 and 32 are the two intentional
+in-place redraws. A decoded-pixel complement digest pins every other record
+through 171. A second corrective-subset digest pins both aquarium frames, all
+four bike facings, and all exercise bodies, so later shared art passes cannot
+silently undo the corrected tank, bike, or pedal cycle.
 
 ## What is not done
 

@@ -578,8 +578,22 @@ describe('cameraOrigin', () => {
     );
     const bounds = drawnBounds(y, TALLEST, TALLEST_BOUNDARY);
 
+    // **It fits, and the 4 px it used to overflow by were never real.**
+    // Reserving the atlas's tallest sprite above the boundary row made the
+    // extent 724 px of a 720 px page and the shortfall look unavoidable.
+    // Nothing but a wall is drawn at world -1, so the picture is 697 px and
+    // the whole house is on screen with room to spare.
     expect(bounds.top).toBeGreaterThanOrEqual(0);
     expect(bounds.bottom).toBeLessThanOrEqual(CANVAS_H);
+
+    // And it is CENTRED rather than merely fitting, so the slack is shared
+    // between the two edges. This is the claim that still has to hold for a
+    // lot too big to fit, where sharing the overflow is the whole answer.
+    const span = bounds.bottom - bounds.top;
+    const halfFreeSpace = (CANVAS_H - span) / 2;
+    expect(bounds.top).toBeCloseTo(halfFreeSpace, 6);
+    expect(bounds.bottom).toBeCloseTo(CANVAS_H - halfFreeSpace, 6);
+    expect((bounds.top + bounds.bottom) / 2).toBeCloseTo(CANVAS_H / 2, 6);
 
     // And the old formula really does fail here, so this test is about a
     // change rather than about a tautology. Written out rather than
