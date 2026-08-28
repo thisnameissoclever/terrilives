@@ -739,7 +739,7 @@ comfort = 0.032
 # failing.
 # The tag it keys on is `sleep_tag` up beside the decay knobs, not in
 # here: this table is optional and the tag is not.
-# [circadian]
+[circadian]
 #
 # The peak-to-trough ratio is deliberately modest at 2.5x. The first
 # draft ran 1.60 down to 0.25 - a 6.4x swing - and it was measurably too
@@ -751,10 +751,46 @@ comfort = 0.032
 # A rhythm is a THUMB ON THE SCALE, not a schedule. A sim who is
 # exhausted at noon must still go to bed, and at 6.4x an early-morning
 # sim would refuse one no matter how tired.
-# sleep_drive = [
-#   [0, 1.35],     # 00:00 - the middle of the night, bed is the obvious call
-#   [300, 1.25],   # 05:00 - still night
-#   [420, 0.55],   # 07:00 - morning: bed has to beat everything else going
-#   [1020, 0.80],  # 17:00 - early evening, becoming reasonable again
-#   [1320, 1.30],  # 22:00 - bedtime
-# ]
+sleep_drive = [
+  [0, 1.35],     # 00:00 - the middle of the night, bed is the obvious call
+  [300, 1.25],   # 05:00 - still night
+  [420, 0.55],   # 07:00 - morning: bed has to beat everything else going
+  [1020, 0.80],  # 17:00 - early evening, becoming reasonable again
+  [1320, 1.30],  # 22:00 - bedtime
+]
+
+# ---------------------------------------------------------------- ramp ----
+# How the pull toward bed grows the LONGER a sim has been on empty.
+#
+# **This is what lets the curve above be strong.** Without it the trough
+# has to stay shallow enough that an exhausted sim still goes to bed at
+# 07:00, which caps how much the rhythm is allowed to say. The first
+# draft of this file records exactly that tension: "a sim who is
+# exhausted at noon must still go to bed, and at 6.4x an early-morning
+# sim would refuse one no matter how tired." The ramp resolves it. The
+# curve decides WHEN bed is appealing; the ramp guarantees that a sim who
+# has been unable to act on that for long enough goes anyway.
+#
+# It needs its own counter because the need system genuinely cannot
+# answer the question. Energy clamps at zero, so a sim one tick into
+# empty and a sim six hours into empty read identically.
+#
+# Energy at or below which the count runs. 12 rather than 0 because the
+# interesting state is "running on fumes", not "precisely bottomed out" -
+# a sim at 3 energy is already in trouble and waiting for exact zero
+# would make the ramp fire later than it reads.
+exhaustion_energy = 12.0
+
+# Ticks at or below that level to reach the full bonus. 240 is four
+# sim-hours: long enough that an ordinary evening dip never triggers it,
+# short enough that a sim who genuinely cannot get to bed is rescued
+# within one waking stretch rather than the next day.
+exhaustion_ramp_ticks = 240
+
+# What the drive is multiplied by at a full ramp. 2.5 against the
+# curve's 0.55 morning trough gives 1.375 - just over neutral, so a
+# desperately tired sim at 07:00 stops being talked out of bed without
+# suddenly finding it irresistible.
+#
+# Exactly 1 disables the ramp, which is how to measure its effect again.
+exhaustion_bonus = 2.5

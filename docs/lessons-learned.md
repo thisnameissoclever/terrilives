@@ -4311,26 +4311,41 @@ upper-body invariant, and require a frozen pedal leg to fail the lower-body
 motion check. Restore the source byte-identically and regenerate the exact
 content-addressed atlas.
 
-## [L-atlas-height-can-invalidate-a-camera-fit-contract] A fixed viewport cannot fit an extent taller than itself
+## [L-atlas-height-can-invalidate-a-camera-fit-contract] Check the model before believing an impossibility
 
 **What happened.** The Clear Line atlas pass increased the tallest sprite from
 132 to 136 pixels. The camera's conservative 16 by 12 lot extent therefore grew
-from 720 to 724 pixels, but the desktop regression test still required both its
-top and bottom to fit inside a 720-pixel canvas. CI correctly reported the
-resulting negative two-pixel top bound. No camera origin can satisfy both old
-assertions because the modeled extent is four pixels taller than the viewport.
+from 720 to 724 pixels, and the desktop regression test - which required both
+its top and bottom to fit inside a 720-pixel canvas - failed with a negative
+two-pixel top bound. The first reading was that no camera origin could satisfy
+both assertions, because the modeled extent was four pixels taller than the
+viewport, and the test was relaxed to accept up to four pixels of centered
+overflow.
 
-**Root cause.** The generated atlas and sprite-specific checks were updated
-without re-evaluating the viewport arithmetic that consumes the maximum sprite
-height. The test encoded an outcome that had become mathematically impossible
-instead of the camera's actual rule: center the complete conservative extent.
+**That reading was wrong, and the second fix is the one in the tree.** The
+extent was never 724 pixels. It reserved the atlas's tallest sprite above the
+boundary row at world -1, and `tiles.ts` draws nothing out there but the floor,
+two wall panels and the north-west corner. Furniture cannot stand at a negative
+coordinate; the earliest tile it can occupy is (0, 0), two half-tile rows lower,
+which is 42 pixels of head start. The picture is 697 pixels and fits with 23 to
+spare.
+
+**Root cause.** A bound documented as "deliberately conservative" was never
+re-examined once it started binding. Conservative bounds are cheap while they
+have slack and become load-bearing the moment they do not, and this one encoded
+a placement the coordinate system makes impossible. The failing test was then
+read as a stale assertion rather than as a true report about a wrong model, so
+the first fix moved the assertion to match the model instead of the other way
+round - and in doing so wrote "unavoidable" into four documents about a two-pixel
+clip that was entirely avoidable.
 
 **Prevention rule.** Treat maximum sprite width and height as renderer inputs,
-not merely atlas metadata. Whenever either maximum changes, run the full Web
-suite and recalculate every fixed-viewport budget. If a fixed scale no longer
-fits, make an explicit product decision between automatic scaling and centered
-overflow; do not disguise the conflict by moving one clipped edge off the
-assertion.
+not merely atlas metadata; when either changes, run the full Web suite and
+recalculate every fixed-viewport budget. When a budget stops fitting, derive the
+bound from scratch before concluding the fit is impossible - in particular, ask
+which coordinates each reserved term can actually be drawn at. Only once the
+model is confirmed tight is the choice between automatic scaling and centered
+overflow a real product decision.
 
 **How to verify.** At 136 pixels, the 16 by 12 conservative span is exactly 724
 pixels. `cameraOrigin` must place it at -2 through 722 in a 720-pixel canvas,
@@ -4607,3 +4622,11 @@ a dedicated loopback port, require HTTP 200, open that URL in a visible browser,
 and confirm the review controls exist. Only then ask the owner to review it.
 For public review, cite the successful deployment run tied to the exact merge
 SHA and open the mutable Pages site immediately afterward.
+**How to verify.** At 136 pixels the two-row bound gives 697 pixels for the
+16 by 12 lot, so `cameraOrigin` must place the whole extent on a 720-pixel
+canvas with a non-negative top and a bottom no greater than 720, centered.
+Reserving one height for both rows must fail. `BOUNDARY_SPRITE_NAMES` must be
+checked in both directions against what `buildStaticInstances` emits: a missing
+boundary piece is reserved for at the wrong row, and an extra one that never
+leaves the lot rebuilds the over-reservation. The obsolete tile-only centering
+formula must remain observably clipped.

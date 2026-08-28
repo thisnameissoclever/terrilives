@@ -28,6 +28,21 @@ pub struct SaveSnapshotV1 {
     pub blocked_tiles: Vec<bool>,
     pub entities: Vec<SavedEntity>,
     pub queued_commands: Vec<SavedCommand>,
+    /// `(entity index, ticks)` for every sim carrying sleep pressure.
+    ///
+    /// **Appended last, and sparse, both on purpose.** Postcard writes a
+    /// struct as its fields back to back with no framing, so a payload
+    /// written before this field existed is byte-identical to a prefix of
+    /// one written after it. That is what lets `load_bytes` decode an old
+    /// save by reading the prefix and defaulting the tail, instead of
+    /// rejecting every save anybody had - which is what a schema-version
+    /// bump would have done.
+    ///
+    /// Sparse rather than one entry per entity because most sims are not
+    /// tired: absent means zero, so a rested household costs one byte,
+    /// and nothing has to stay the same length as `entities`.
+    #[serde(default)]
+    pub sleep_pressure: Vec<(u32, u32)>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

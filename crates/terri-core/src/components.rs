@@ -83,6 +83,31 @@ pub struct Target {
 #[derive(Component, Debug, Clone, Copy)]
 pub struct Restless;
 
+/// How many consecutive ticks this sim has spent at or below
+/// `exhaustion_energy` - the one thing the need system cannot remember.
+///
+/// **Energy clamps at zero, and that is why this has to exist.** A sim
+/// pinned at 0 for one tick and a sim pinned at 0 for a thousand read
+/// identically off `Needs`, so nothing downstream can tell "just ran out"
+/// from "has been on empty all afternoon". The circadian curve alone
+/// therefore cannot promise that an exhausted sim eventually sleeps: at a
+/// deep enough daytime trough it would refuse a bed no matter how long
+/// the sim had been upright.
+///
+/// Counting up rather than storing a wall-clock deadline, because a
+/// deadline is a fact about WHEN and this is a fact about HOW LONG.
+/// Pausing the game, or loading a save into a different hour, must not
+/// change how tired somebody is.
+///
+/// Saved, and that is not optional: [D12] hashes the world, so a reloaded
+/// sim whose counter restarted would diverge from one that had run
+/// continuously, and the divergence would look like a rounding bug rather
+/// than like missing state.
+#[derive(Component, Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct SleepPressure {
+    pub ticks: u32,
+}
+
 /// Marks an agent whose **best option is held by somebody else** - the
 /// highest-scoring thing it could see is reserved by another agent, or
 /// was claimed by one earlier on the same tick.
