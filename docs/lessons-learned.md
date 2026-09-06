@@ -4680,3 +4680,30 @@ Chrome. Every Pause, 1x, 2x, and 3x transition must complete without an
 intercepted-pointer timeout, and the resulting report must still show a staged
 walk plus persisted audio settings. A separate screenshot run should reach the
 exercise action and capture rendered canvas pixels after the 3x change.
+
+## [L-approval-gated-network-tests-must-inject-the-network] An approval-shaped flag is not a safe test boundary
+
+**What happened.** A duplicate-pack regression test spawned the real CC0 intake
+CLI with its approval flag. The duplicate preflight did not exist yet, so the
+first occurrence downloaded a 2.9 MB archive into a unique temporary directory
+before the second occurrence failed. The file did not enter the repository,
+but the network request itself was outside the owner's approval.
+
+**Root cause.** The test relied on expected validation order to prevent a real
+side effect. Passing a production approval-shaped flag to a subprocess left
+the global `fetch` implementation live. The test was intended to prove that
+network was unreachable, but its design gave the network no enforceable test
+double.
+
+**Prevention rule.** Never run an approval-bearing CLI path in a test while its
+real network, billing, publishing, or destructive dependency is available.
+Expose an in-process runner, inject a dependency that throws if called, and
+assert that its call count remains zero. Keep subprocess tests on read-only or
+explicitly refused paths. Owner approval must come from the conversation and
+cannot be manufactured by a test argument.
+
+**How to verify.** Call the intake runner with duplicate and unknown IDs plus an
+injected fetch function that increments a counter and throws. Both requests
+must fail with their preflight error and leave the counter at zero. The only
+subprocess cases may list the manifest or prove that a download without the
+approval flag is refused.
