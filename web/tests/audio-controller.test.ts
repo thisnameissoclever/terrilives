@@ -361,7 +361,7 @@ describe('AudioController gesture and cue lifecycle', () => {
     expect(conversation?.frequency.calls).not.toEqual(sleep?.frequency.calls);
   });
 
-  it('gives eating, reading, and exercise distinct short low-gain cues', async () => {
+  it('keeps eating, reading, and exercise distinct without a bassy exercise thud', async () => {
     const context = new FakeContext();
     const controller = new AudioController(() => context, undefined);
     await controller.unlockFromGesture();
@@ -373,7 +373,14 @@ describe('AudioController gesture and cue lifecycle', () => {
     const [eating, reading, exercise] = context.oscillators;
     expect(eating?.type).toBe('sine');
     expect(reading?.type).toBe('triangle');
-    expect(exercise?.type).toBe('square');
+    expect(exercise?.type).toBe('triangle');
+    const exerciseFrequencies = exercise?.frequency.calls
+      .map((call) => call.value)
+      .filter((value): value is number => value !== undefined);
+    expect(exerciseFrequencies).toHaveLength(2);
+    expect(exerciseFrequencies?.[0]).toBeCloseTo(520 * 1.01);
+    expect(exerciseFrequencies?.[1]).toBeCloseTo(340 * 1.01);
+    expect(Math.min(...(exerciseFrequencies ?? []))).toBeGreaterThanOrEqual(300);
     expect(eating?.frequency.calls).not.toEqual(reading?.frequency.calls);
     expect(reading?.frequency.calls).not.toEqual(exercise?.frequency.calls);
     expect(eating?.stops[0]).toBeLessThanOrEqual(4.12);
@@ -386,7 +393,7 @@ describe('AudioController gesture and cue lifecycle', () => {
           .filter((value): value is number => value !== undefined),
       ),
     );
-    expect(cuePeakGains).toEqual([0.022, 0.018, 0.02]);
+    expect(cuePeakGains).toEqual([0.022, 0.018, 0.014]);
   });
 
   it('tracks exact object sounds without inventing a procedural replacement', async () => {

@@ -2,11 +2,13 @@
 
 Status: the first slice was integrated into `main` on 2026-08-28 after the owner
 accepted the overall footstep character and requested slightly less bass. A
-second local slice raises isolated footsteps out of the bass-only thud range and
-adds sparse fixed-tick cues for conversation and sleep. Automated tests cover
-event timing, lifecycle resets, cue bounds, and the combined simulation. Owner
-listening for the revised footstep, conversation, and sleep sounds remains open.
-Hidden-tab silence also remains an owner-required action.
+second local slice raises isolated footsteps out of the bass-only thud range,
+replaces the exercise cue's low square pulse with a quieter high triangle
+sweep, and adds sparse fixed-tick cues for conversation and sleep. Automated
+tests cover event timing, lifecycle resets, cue bounds, and the combined
+simulation. Owner listening for the revised footstep, exercise, conversation,
+and sleep sounds remains open. Hidden-tab silence also remains an owner-required
+action.
 
 ## Decision
 
@@ -156,7 +158,8 @@ conversation or bedroom scene, these actions belong to one Sim. Each stable
    remains active.
 2. Seated and standing reading share one page-turn cue on entry and every 28
    ticks.
-3. Exercise emits one short, low-gain motion cue on entry and every 7 ticks.
+3. Exercise emits one short, low-gain motion cue on entry and every 8 ticks,
+   aligned with the visible pedal-frame hold.
 
 Changing personal action starts the new cue immediately. Leaving the action,
 Load, backgrounding, and the first successful audio unlock remove the retained

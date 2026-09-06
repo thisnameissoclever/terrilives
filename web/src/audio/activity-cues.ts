@@ -1,3 +1,5 @@
+import { EXERCISE_FRAME_TICKS } from '../frame.js';
+
 export type SimActivityAudioState =
   | 'other'
   | 'conversation'
@@ -271,6 +273,6 @@ function personalRepeatTicks(activity: PersonalActivityAudioState): number {
     case 'reading':
       return 28;
     case 'exercise':
-      return 7;
+      return EXERCISE_FRAME_TICKS;
   }
 }

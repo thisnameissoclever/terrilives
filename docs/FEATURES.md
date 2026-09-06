@@ -711,7 +711,12 @@ remains an explicit owner action because automated Chrome 151 tab creation never
 produced trustworthy hidden-document state. The owner accepted the original
 footstep character on 2026-08-28, requested less bass, and then identified an
 isolated one-second thud. The revised footstep and the new conversation and
-sleep, eating, reading, and exercise cues still require owner listening.
+sleep, eating, and reading cues still require owner listening. A later code
+audit found the strongest match for the second intermittent thud: exercise used
+a 150 to 210 Hz square pulse every seven fixed ticks while the pedal pose held
+for eight. The current candidate aligns both at eight ticks and
+replaces it with a quieter 520 to 340 Hz triangle sweep, but that correction
+also remains owner-listening evidence rather than accepted sound design.
 
 This is not the complete audio feature. Door open and close event types are
 reserved but no authoritative door transition emits them yet. Save, Load, Help,

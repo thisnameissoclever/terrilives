@@ -6,6 +6,7 @@ import {
   SLEEP_REPEAT_TICKS,
   type SimActivityAudioState,
 } from '../src/audio/activity-cues.js';
+import { EXERCISE_FRAME_TICKS } from '../src/frame.js';
 import type {
   GameAudioEvent,
   GameAudioEventSink,
@@ -189,7 +190,7 @@ describe('ActivityCueScheduler', () => {
     },
     {
       activity: 'exercise' as const,
-      repeatTicks: 7,
+      repeatTicks: EXERCISE_FRAME_TICKS,
       first: { type: 'sim.exercise', simId: 6, repetitionIndex: 0 },
       second: { type: 'sim.exercise', simId: 6, repetitionIndex: 1 },
     },

@@ -4655,6 +4655,36 @@ and no retained cadence after Load or background reset. Finish with owner
 listening at ordinary Effects volume; frequency assertions cannot decide
 whether the result is pleasant.
 
+## [L-audio-cadence-narrows-a-source-but-does-not-name-it] Trace every cue near the reported rhythm
+
+**What happened.** After the bass-heavy footstep was replaced, the owner heard
+another intermittent thud at roughly one-second intervals. The closest code
+match was not another stride. Exercise emitted a square pulse from 150 to 210
+Hz every seven fixed ticks, or 0.7 seconds at normal simulation cadence, while
+the visible pedal pose held for eight ticks. An
+autonomous Sim using the bike made that cue appear only sometimes, which made
+it sound unexplained when attention was elsewhere.
+
+**Root cause.** The investigation initially associated rhythm with footsteps
+instead of comparing every cue whose scheduled period and bass content fit the
+report. Timing is useful evidence, but several systems can share a cadence. The
+sound scheduler also duplicated an animation interval as a different literal,
+so the audible cue drifted against the pedal motion.
+
+**Prevention rule.** When a repeated sound is reported without an obvious
+source, list every semantic cue within the reported cadence range, then compare
+waveform, frequency, gain, and the gameplay condition that activates it. Do not
+name the source from rhythm alone. Give each low-frequency repeated cue an
+isolated scenario before combining it with autonomous play.
+
+**How to verify.** Hold one Sim in the exercise action and suppress unrelated
+movement. The candidate must use the 520 to 340 Hz triangle sweep at 0.014 peak
+gain on the shared eight-tick pedal-frame interval, never the rejected 150 to
+210 Hz square pulse. Then listen during ordinary
+autonomous play and confirm the periodic thud is gone. The numeric assertion
+proves the rejected shape cannot return; only owner listening can accept the
+replacement.
+
 ## [L-hidden-radio-harnesses-must-use-the-widget-event] Drive the control contract, not an invisible input box
 
 **What happened.** The ordinary-Chrome audio listening harness tried to select

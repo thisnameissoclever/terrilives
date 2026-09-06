@@ -108,10 +108,10 @@ const CUE_SHAPES: Readonly<Record<ProceduralCue, CueShape>> = {
   },
   exercise: {
     durationSeconds: 0.055,
-    peakGain: 0.02,
-    startHz: 150,
-    endHz: 210,
-    oscillator: 'square',
+    peakGain: 0.014,
+    startHz: 520,
+    endHz: 340,
+    oscillator: 'triangle',
   },
   'door-opened': {
     durationSeconds: 0.12,
