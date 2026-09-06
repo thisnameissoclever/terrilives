@@ -322,6 +322,11 @@ controls beyond Effects, and Sim voices remain mine to build. The current door
 event types are reserved plumbing, not a functioning door sound. A candidate
 second pass also adds household-scoped conversation and sleep cues plus
 per-Sim eating, reading, and exercise cues; owner listening remains open.
+The candidate branch also carries authored source identity for shower water and
+stove cooking. It proves both ordinary-interaction and cooking-chain routes and
+deduplicates state by exact placed object. Sample selection, editing, looping,
+and audible playback remain mine after the CC0 download approval and listening
+gates; the bridge does not generate a fake procedural appliance sound.
 
 ### [T2] Install the toolchain `[MINE]` - DONE
 

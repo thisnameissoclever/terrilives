@@ -9,6 +9,10 @@ import {
   type BrowserAudioContext,
 } from '../src/audio/audio-controller.js';
 import { FOOTSTEP_DISTANCE_TILES } from '../src/audio/footsteps.js';
+import {
+  OBJECT_SOUND_ACTION_SHOWER_WATER,
+  OBJECT_SOUND_ACTION_STOVE_COOKING,
+} from '../src/audio/object-cues.js';
 import type {
   AudioParamPort,
   GainNodePort,
@@ -165,6 +169,17 @@ function activityFrame(
     controller.observeActivity(simId, activity);
   }
   controller.endActivityFrame();
+}
+
+function objectSoundFrame(
+  controller: AudioController,
+  observations: ReadonlyArray<readonly [number, number]>,
+): void {
+  controller.beginObjectSoundFrame();
+  for (const [sourceId, action] of observations) {
+    controller.observeObjectSound(sourceId, action);
+  }
+  controller.endObjectSoundFrame();
 }
 
 describe('AudioController preferences', () => {
@@ -373,6 +388,78 @@ describe('AudioController gesture and cue lifecycle', () => {
     );
     expect(cuePeakGains).toEqual([0.022, 0.018, 0.02]);
   });
+
+  it('tracks exact object sounds without inventing a procedural replacement', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+
+    objectSoundFrame(controller, [
+      [44, OBJECT_SOUND_ACTION_SHOWER_WATER],
+      [73, OBJECT_SOUND_ACTION_STOVE_COOKING],
+    ]);
+    objectSoundFrame(controller, [
+      [44, OBJECT_SOUND_ACTION_SHOWER_WATER],
+      [73, OBJECT_SOUND_ACTION_STOVE_COOKING],
+    ]);
+
+    expect(controller.activeObjectSoundTrackCount()).toBe(2);
+    expect(context.oscillators).toHaveLength(0);
+
+    objectSoundFrame(controller, []);
+    expect(controller.activeObjectSoundTrackCount()).toBe(0);
+    expect(context.oscillators).toHaveLength(0);
+  });
+
+  it.each(['load', 'background'] as const)(
+    'clears exact object sound state across the %s boundary',
+    async (boundary) => {
+      const context = new FakeContext();
+      const controller = new AudioController(() => context, undefined);
+      await controller.unlockFromGesture();
+      objectSoundFrame(controller, [[44, OBJECT_SOUND_ACTION_SHOWER_WATER]]);
+      expect(controller.activeObjectSoundTrackCount()).toBe(1);
+
+      if (boundary === 'background') {
+        await controller.setBackgrounded(true);
+        await controller.setBackgrounded(false);
+      } else {
+        controller.reset(boundary);
+      }
+
+      expect(controller.activeObjectSoundTrackCount()).toBe(0);
+      objectSoundFrame(controller, [[44, OBJECT_SOUND_ACTION_SHOWER_WATER]]);
+      expect(controller.activeObjectSoundTrackCount()).toBe(1);
+    },
+  );
+
+  it.each(['mute', 'effects'] as const)(
+    'restarts exact object sound state after the %s silence boundary',
+    async (boundary) => {
+      const context = new FakeContext();
+      const controller = new AudioController(() => context, undefined);
+      await controller.unlockFromGesture();
+      objectSoundFrame(controller, [[44, OBJECT_SOUND_ACTION_SHOWER_WATER]]);
+      expect(controller.activeObjectSoundTrackCount()).toBe(1);
+
+      if (boundary === 'mute') {
+        controller.setMuted(true);
+      } else {
+        controller.setEffectsLevel(0);
+      }
+      objectSoundFrame(controller, [[44, OBJECT_SOUND_ACTION_SHOWER_WATER]]);
+      expect(controller.activeObjectSoundTrackCount()).toBe(1);
+
+      if (boundary === 'mute') {
+        controller.setMuted(false);
+      } else {
+        controller.setEffectsLevel(0.4);
+      }
+      expect(controller.activeObjectSoundTrackCount()).toBe(0);
+      objectSoundFrame(controller, [[44, OBJECT_SOUND_ACTION_SHOWER_WATER]]);
+      expect(controller.activeObjectSoundTrackCount()).toBe(1);
+    },
+  );
 
   it('starts personal cadence fresh after the first unlock', async () => {
     const context = new FakeContext();

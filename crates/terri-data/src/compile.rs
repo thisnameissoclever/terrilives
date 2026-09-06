@@ -9,8 +9,9 @@ use crate::error::ContentError;
 use crate::pack::{Circadian, CompiledHouseholdMember, CompiledPersonality};
 use crate::pack::{
     CompiledActionSocket, CompiledInteraction, CompiledLot, CompiledObject, CompiledPlacement,
-    CompiledPlacementSocket, CompiledSocketFacing, CompiledVisual, CompiledVisualAction,
-    CompiledVisualAnchor, CompiledVisualFacing, ContentPack, ObjectDefId, Tuning,
+    CompiledPlacementSocket, CompiledSocketFacing, CompiledSoundAction, CompiledVisual,
+    CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, ContentPack, ObjectDefId,
+    Tuning,
 };
 use crate::schema::{
     AtlasFile, CareersFile, ChainsFile, HouseholdFile, InteractionDef, LotFile, NeedsFile,
@@ -339,6 +340,13 @@ pub fn compile(
                 InteractionVisualOwner::Object,
                 &action_sockets,
             )?;
+            let sound_action = compile_sound_action(
+                act.sound_action.as_deref(),
+                SoundOwner::Object {
+                    object: &object.id,
+                    interaction: &act.id,
+                },
+            )?;
             interactions.push(CompiledInteraction {
                 id: act.id.clone(),
                 advertises,
@@ -348,6 +356,7 @@ pub fn compile(
                 tags,
                 satisfaction,
                 visual,
+                sound_action,
             });
         }
 
@@ -628,6 +637,13 @@ fn compile_chains(
                 },
                 &[],
             )?;
+            let sound_action = compile_sound_action(
+                step.sound_action.as_deref(),
+                SoundOwner::ChainStep {
+                    chain: &def.id,
+                    step: index,
+                },
+            )?;
 
             // The role, resolved against the vocabulary the objects
             // minted, then against the LOT: a role nobody wears is a
@@ -743,6 +759,7 @@ fn compile_chains(
                 transforms,
                 consumes,
                 visual,
+                sound_action,
             });
         }
         if let Some(held) = carrying {
@@ -1081,6 +1098,12 @@ fn compile_social(
 
         let (tags, satisfaction, visual) =
             compile_activity_extras(act, "social.toml", InteractionVisualOwner::Social, &[])?;
+        if let Some(action) = &act.sound_action {
+            return Err(ContentError::SocialSoundAction {
+                interaction: act.id.clone(),
+                action: action.clone(),
+            });
+        }
         compiled.push(CompiledInteraction {
             id: act.id.clone(),
             advertises,
@@ -1090,6 +1113,7 @@ fn compile_social(
             tags,
             satisfaction,
             visual,
+            sound_action: None,
         });
     }
 
@@ -1147,6 +1171,51 @@ fn compile_activity_extras(
 enum InteractionVisualOwner {
     Object,
     Social,
+}
+
+#[derive(Clone, Copy)]
+enum SoundOwner<'a> {
+    Object {
+        object: &'a str,
+        interaction: &'a str,
+    },
+    ChainStep {
+        chain: &'a str,
+        step: usize,
+    },
+}
+
+fn compile_sound_action(
+    action: Option<&str>,
+    owner: SoundOwner<'_>,
+) -> Result<Option<CompiledSoundAction>, ContentError> {
+    let Some(action) = action else {
+        return Ok(None);
+    };
+    let compiled = match action {
+        "shower_water" => CompiledSoundAction::ShowerWater,
+        "stove_cooking" => CompiledSoundAction::StoveCooking,
+        unknown => {
+            return Err(match owner {
+                SoundOwner::Object {
+                    object,
+                    interaction,
+                } => ContentError::UnknownSoundAction {
+                    object: object.to_string(),
+                    interaction: interaction.to_string(),
+                    action: unknown.to_string(),
+                },
+                SoundOwner::ChainStep { chain, step } => {
+                    ContentError::UnknownChainStepSoundAction {
+                        chain: chain.to_string(),
+                        step,
+                        action: unknown.to_string(),
+                    }
+                }
+            })
+        }
+    };
+    Ok(Some(compiled))
 }
 
 #[derive(Clone, Copy)]
@@ -2881,6 +2950,12 @@ mod tests {
         // after the label, the tuning trio) and the object-block
         // annotations in the doc comment above remain valid;
         // predecessors are one `git log -p` away.
+        //
+        // **Object sound metadata appends one presentation byte.** The zero
+        // after the eating visual's socket `None` is this fixture's absent
+        // `sound_action`. The following `1, 1` remains the object's 1x1
+        // footprint. The value came from the failing golden assertion after
+        // reviewing that single insertion.
         205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62,
         205, 204, 204, 62, 0, 0, 0, 63, 154, 153, 25, 63,
         51, 51, 51, 63, 1, 6, 102, 114, 105, 100, 103, 101,
@@ -2889,7 +2964,7 @@ mod tests {
         12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64,
         15, 1, 15, 69, 97, 116, 32, 115, 116, 97, 110, 100,
         105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1, 1,
-        1, 0, 0, 1, 1, 0, 0, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0,
+        1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0,
         0, 0, 32, 64, 0, 0, 160, 63, 2, 0, 0, 0, 0,
         0, 128, 62, 0, 0, 0, 63, 0, 0, 0, 62, 9, 6,
         0, 0, 160, 62, 10, 215, 35, 59, 0, 0, 32, 63,
@@ -3135,6 +3210,7 @@ mod tests {
             tags: vec![],
             satisfaction: 0.0,
             visual: None,
+            sound_action: None,
             id: "grab_snack".into(),
             // Unlabelled, which is the DEFAULTING path and therefore the
             // one most tests should exercise: an object authored before
@@ -3183,6 +3259,32 @@ mod tests {
         assert!(pack.objects[0].action_sockets.is_empty());
         assert_eq!(pack.find("fridge"), Some(ObjectDefId(0)));
         assert_eq!(pack.find("nope"), None);
+    }
+
+    #[test]
+    fn compiles_object_sound_actions_and_rejects_unknown_vocabulary() {
+        let mut shower = snack();
+        shower.sound_action = Some("shower_water".to_string());
+        let pack = compile_objects(full_needs(), one_object(shower)).expect("valid sound action");
+        assert_eq!(
+            pack.objects[0].interactions[0].sound_action,
+            Some(CompiledSoundAction::ShowerWater)
+        );
+
+        let mut unknown = snack();
+        unknown.sound_action = Some("bathroom_noise".to_string());
+        let error = compile_objects(full_needs(), one_object(unknown)).unwrap_err();
+        assert_eq!(
+            error,
+            ContentError::UnknownSoundAction {
+                object: "fridge".to_string(),
+                interaction: "grab_snack".to_string(),
+                action: "bathroom_noise".to_string(),
+            }
+        );
+        assert!(error
+            .to_string()
+            .contains("the current vocabulary is shower_water, stove_cooking"));
     }
 
     /// The accepting half of the sprite rule: a name that IS in the atlas
@@ -5832,6 +5934,7 @@ mod tests {
                 tags: vec![],
                 satisfaction: 0.0,
                 visual: None,
+                sound_action: None,
                 id: "lounge".into(),
                 label: None,
                 advertises: [("comfort".to_string(), 20.0)].into_iter().collect(),
@@ -6748,6 +6851,7 @@ mod tests {
                     facing: Some("toward_anchor".into()),
                     socket: None,
                 }),
+                sound_action: None,
                 id: "chat".into(),
                 label: Some("Compare complaints".into()),
                 advertises: [("social".to_string(), 30.0), ("fun".to_string(), 6.0)]
@@ -6760,6 +6864,7 @@ mod tests {
                 tags: vec![],
                 satisfaction: 0.0,
                 visual: None,
+                sound_action: None,
                 id: "nod_politely".into(),
                 label: None,
                 advertises: [("social".to_string(), 8.0)].into_iter().collect(),
@@ -6818,6 +6923,7 @@ mod tests {
             tags: vec![],
             satisfaction: 0.0,
             visual,
+            sound_action: None,
             id: "chat".into(),
             label: None,
             advertises: [("social".to_string(), 30.0)].into_iter().collect(),
@@ -7137,6 +7243,7 @@ mod tests {
                     facing: Some("socket".to_string()),
                     socket: Some("seat".to_string()),
                 }),
+                sound_action: None,
             }],
             roles: vec![],
             action_socket: vec![
@@ -7564,6 +7671,7 @@ mod tests {
                 tags: vec![],
                 satisfaction: 0.0,
                 visual: None,
+                sound_action: None,
                 id: "chat".into(),
                 label: None,
                 advertises: [("social".to_string(), 30.0)].into_iter().collect(),
@@ -7615,6 +7723,17 @@ mod tests {
                 context: "advert 'social' on social 'chat'".into()
             }
         );
+        assert_eq!(
+            compile_bare_with_social(vec![chat(|a| {
+                a.sound_action = Some("shower_water".to_string());
+            })])
+            .unwrap_err(),
+            ContentError::SocialSoundAction {
+                interaction: "chat".to_string(),
+                action: "shower_water".to_string(),
+            },
+            "object-source sounds are not legal on partner interactions"
+        );
     }
 
     /// The clipped-duration rule applies to a talk exactly as it applies
@@ -7627,6 +7746,7 @@ mod tests {
             tags: vec![],
             satisfaction: 0.0,
             visual: None,
+            sound_action: None,
             id: "chat".into(),
             label: None,
             advertises: [("social".to_string(), 30.0)].into_iter().collect(),
@@ -7905,6 +8025,7 @@ mod tests {
                     transforms: None,
                     consumes: None,
                     visual: None,
+                    sound_action: None,
                 },
                 crate::schema::ChainStepDef {
                     role: "eating_surface".to_string(),
@@ -7920,6 +8041,7 @@ mod tests {
                         facing: Some("toward_anchor".to_string()),
                         socket: None,
                     }),
+                    sound_action: None,
                 },
             ],
         }
@@ -7947,6 +8069,7 @@ mod tests {
                 }),
                 consumes: None,
                 visual: None,
+                sound_action: None,
             },
         );
         chain.step[2].consumes = Some("dinner".to_string());
@@ -7993,6 +8116,32 @@ mod tests {
                 socket: None,
             })
         );
+    }
+
+    #[test]
+    fn compiles_chain_step_sound_actions_and_rejects_unknown_vocabulary() {
+        let mut chain = a_chain("cook_dinner");
+        chain.step[0].sound_action = Some("stove_cooking".to_string());
+        let pack = compile_chain_world(vec![chain]).expect("valid sound action");
+        assert_eq!(
+            pack.chains[0].steps[0].sound_action,
+            Some(CompiledSoundAction::StoveCooking)
+        );
+
+        let mut unknown = a_chain("cook_dinner");
+        unknown.step[0].sound_action = Some("kitchen_noise".to_string());
+        let error = compile_chain_world(vec![unknown]).unwrap_err();
+        assert_eq!(
+            error,
+            ContentError::UnknownChainStepSoundAction {
+                chain: "cook_dinner".to_string(),
+                step: 0,
+                action: "kitchen_noise".to_string(),
+            }
+        );
+        assert!(error
+            .to_string()
+            .contains("the current vocabulary is shower_water, stove_cooking"));
     }
 
     /// Chain-step diagnostics name the chain and zero-based step rather than

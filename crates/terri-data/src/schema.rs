@@ -388,6 +388,14 @@ pub struct InteractionDef {
     /// context-free missing-field error.
     #[serde(default)]
     pub visual: Option<VisualDef>,
+    /// Optional authored object-audio category for this interaction.
+    ///
+    /// Strings remain at the authoring boundary so the compiler can name an
+    /// unknown value beside the object and interaction that declared it.
+    /// Social interactions share this schema type but may not declare this
+    /// field because they have no SmartObject sound source.
+    #[serde(default)]
+    pub sound_action: Option<String>,
 }
 
 /// Authored action-presentation metadata before validation.
@@ -660,9 +668,13 @@ pub struct ChainStepDef {
     ///
     /// Chain steps resolve a station at runtime, so their legal anchor
     /// vocabulary is validated separately from ordinary object interactions.
-    /// **Last in this struct on purpose**, per the appending rule.
+    /// It was last until the object-audio field below arrived.
     #[serde(default)]
     pub visual: Option<VisualDef>,
+    /// Optional authored object-audio category for this running step.
+    /// The resolved station becomes the exact sound source at runtime.
+    #[serde(default)]
+    pub sound_action: Option<String>,
 }
 
 /// A `transforms` entry: what the carried item was, and what it

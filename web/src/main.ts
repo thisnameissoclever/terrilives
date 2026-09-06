@@ -121,6 +121,8 @@ export interface StressHandle {
     readonly activeVoices: number;
     readonly footstepTracks: number;
     readonly footstepCapacity: number;
+    readonly objectSoundTracks: number;
+    readonly objectSoundCapacity: number;
   };
   /**
    * Exercises the real scheduler with stable identities without adding forty
@@ -1198,6 +1200,12 @@ async function main(): Promise<void> {
         },
         get footstepCapacity() {
           return audio.footstepTrackCapacity();
+        },
+        get objectSoundTracks() {
+          return audio.activeObjectSoundTrackCount();
+        },
+        get objectSoundCapacity() {
+          return audio.objectSoundTrackCapacity();
         },
       },
       runFootstepSchedulerProbe: (walkers = 40, ticks = 600) => {

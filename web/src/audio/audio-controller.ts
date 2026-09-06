@@ -10,6 +10,10 @@ import {
   type SimActivityAudioState,
 } from './activity-cues.js';
 import { FootstepScheduler } from './footsteps.js';
+import {
+  ObjectSoundCueScheduler,
+  type ObjectSoundCueEvent,
+} from './object-cues.js';
 
 export const AUDIO_PREFERENCES_KEY = 'terrilives.audio-preferences.v1';
 export const AUDIO_PREFERENCES_VERSION = 1;
@@ -51,6 +55,7 @@ export type GameAudioEvent =
       readonly stepIndex: number;
     }
   | ActivityCueEvent
+  | ObjectSoundCueEvent
   | { readonly type: 'door.opened'; readonly doorId: string }
   | { readonly type: 'door.closed'; readonly doorId: string };
 
@@ -90,6 +95,7 @@ export class AudioController implements GameAudioEventSink {
   private contextStateTail: Promise<void> = Promise.resolve();
   private readonly footsteps: FootstepScheduler;
   private readonly activities: ActivityCueScheduler;
+  private readonly objectSounds: ObjectSoundCueScheduler;
 
   constructor(
     private readonly createContext: AudioContextFactory = createBrowserAudioContext,
@@ -100,6 +106,7 @@ export class AudioController implements GameAudioEventSink {
     this.effectsLevelPreference = preferences.effectsLevel;
     this.footsteps = new FootstepScheduler(this);
     this.activities = new ActivityCueScheduler(this);
+    this.objectSounds = new ObjectSoundCueScheduler(this);
   }
 
   preferences(): AudioPreferences {
@@ -131,6 +138,7 @@ export class AudioController implements GameAudioEventSink {
 
   setMuted(muted: boolean): void {
     this.mutedPreference = muted;
+    this.objectSounds.reset();
     this.applyMasterGain();
     this.persist();
     if (muted) this.player?.stopAll();
@@ -147,7 +155,11 @@ export class AudioController implements GameAudioEventSink {
 
   /** Applies a live slider preview without writing storage on every pixel. */
   previewEffectsLevel(level: number): void {
+    const wasSilent = this.effectsLevelPreference === 0;
     this.effectsLevelPreference = clampLevel(level);
+    if (wasSilent !== (this.effectsLevelPreference === 0)) {
+      this.objectSounds.reset();
+    }
     this.applyEffectsGain();
     if (this.effectsLevelPreference === 0) this.player?.stopAll();
   }
@@ -166,6 +178,7 @@ export class AudioController implements GameAudioEventSink {
     }
 
     const cue = cueForEvent(event);
+    if (cue === null) return;
     const pitchScale = pitchScaleForEvent(event);
     try {
       this.player?.play(cue, pitchScale);
@@ -199,6 +212,18 @@ export class AudioController implements GameAudioEventSink {
     this.activities.endFrame();
   }
 
+  beginObjectSoundFrame(): void {
+    this.objectSounds.beginFrame();
+  }
+
+  observeObjectSound(sourceId: number, action: number): void {
+    this.objectSounds.observe(sourceId, action);
+  }
+
+  endObjectSoundFrame(): void {
+    this.objectSounds.endFrame();
+  }
+
   /**
    * Gates sound synchronously, then serializes hardware suspend or resume.
    * The latest desired visibility wins even if an older browser promise settles
@@ -212,6 +237,7 @@ export class AudioController implements GameAudioEventSink {
     // anchor instead of completing a stride travelled while inaudible.
     this.footsteps.reset();
     this.activities.reset();
+    this.objectSounds.reset();
     if (backgrounded) {
       this.player?.stopAll();
     }
@@ -256,6 +282,7 @@ export class AudioController implements GameAudioEventSink {
     this.player?.stopAll();
     this.footsteps.reset();
     this.activities.reset();
+    this.objectSounds.reset();
   }
 
   activeVoiceCount(): number {
@@ -268,6 +295,14 @@ export class AudioController implements GameAudioEventSink {
 
   footstepTrackCapacity(): number {
     return this.footsteps.trackCapacity();
+  }
+
+  activeObjectSoundTrackCount(): number {
+    return this.objectSounds.activeTrackCount();
+  }
+
+  objectSoundTrackCapacity(): number {
+    return this.objectSounds.trackCapacity();
   }
 
   private async resumeFromGesture(): Promise<boolean> {
@@ -307,7 +342,8 @@ export class AudioController implements GameAudioEventSink {
 
     const context = this.context;
     if (context === null || this.backgrounded) return false;
-    if (context.state !== 'running') {
+    const resumedContext = context.state !== 'running';
+    if (resumedContext) {
       try {
         await context.resume();
       } catch {
@@ -328,6 +364,9 @@ export class AudioController implements GameAudioEventSink {
       this.hasUnlocked = true;
       this.footsteps.reset();
       this.activities.reset();
+      this.objectSounds.reset();
+    } else if (running && resumedContext) {
+      this.objectSounds.reset();
     }
     return running;
   }
@@ -372,7 +411,7 @@ function safelyDisconnect(node: GainNodePort | null): void {
   }
 }
 
-function cueForEvent(event: GameAudioEvent): ProceduralCue {
+function cueForEvent(event: GameAudioEvent): ProceduralCue | null {
   switch (event.type) {
     case 'command.staged':
     case 'ui.confirmed':
@@ -391,6 +430,9 @@ function cueForEvent(event: GameAudioEvent): ProceduralCue {
       return 'page-turn';
     case 'sim.exercise':
       return 'exercise';
+    case 'object.sound-started':
+    case 'object.sound-stopped':
+      return null;
     case 'door.opened':
       return 'door-opened';
     case 'door.closed':

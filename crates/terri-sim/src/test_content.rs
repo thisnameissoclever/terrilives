@@ -68,6 +68,7 @@ pub fn interaction(
         // gameplay behavior rather than body art and therefore compile the
         // same absence as an interaction with no authored `visual` table.
         visual: None,
+        sound_action: None,
     }
 }
 

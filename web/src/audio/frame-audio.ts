@@ -13,6 +13,8 @@ export interface SimAudioFrameSource {
   positions(): Float32Array;
   simIds(): Uint32Array;
   visualActions(): Uint32Array;
+  soundActions(): Uint32Array;
+  soundSources(): Uint32Array;
 }
 
 export interface SimAudioFrameSink {
@@ -22,6 +24,9 @@ export interface SimAudioFrameSink {
   beginActivityFrame(): void;
   observeActivity(simId: number, activity: SimActivityAudioState): void;
   endActivityFrame(): void;
+  beginObjectSoundFrame(): void;
+  observeObjectSound(sourceId: number, action: number): void;
+  endObjectSoundFrame(): void;
 }
 
 const NO_SIM_ID = 0xffff_ffff;
@@ -43,29 +48,41 @@ export function sampleSimAudioAfterTick(
   const positions = source.positions();
   const simIds = source.simIds();
   const visualActions = source.visualActions();
+  const soundActions = source.soundActions();
+  const soundSources = source.soundSources();
 
   sink.beginFootstepFrame();
-  sink.beginActivityFrame();
   try {
-    for (let row = 0; row < count; row += 1) {
-      const simId = simIds[row];
-      if (simId === NO_SIM_ID) continue;
-      const visualAction = visualActions[row];
-      sink.observeFootstep(
-        simId,
-        positions[row * 2],
-        positions[row * 2 + 1],
-        visualAction === VISUAL_ACTION_WALK,
-      );
-      const activity = activityForVisualAction(visualAction);
-      if (activity !== 'other') sink.observeActivity(simId, activity);
+    sink.beginActivityFrame();
+    try {
+      sink.beginObjectSoundFrame();
+      try {
+        for (let row = 0; row < count; row += 1) {
+          const soundAction = soundActions[row];
+          const soundSource = soundSources[row];
+          if (soundAction !== 0 && soundSource !== NO_SIM_ID) {
+            sink.observeObjectSound(soundSource, soundAction);
+          }
+          const simId = simIds[row];
+          if (simId === NO_SIM_ID) continue;
+          const visualAction = visualActions[row];
+          sink.observeFootstep(
+            simId,
+            positions[row * 2],
+            positions[row * 2 + 1],
+            visualAction === VISUAL_ACTION_WALK,
+          );
+          const activity = activityForVisualAction(visualAction);
+          if (activity !== 'other') sink.observeActivity(simId, activity);
+        }
+      } finally {
+        sink.endObjectSoundFrame();
+      }
+    } finally {
+      sink.endActivityFrame();
     }
   } finally {
-    try {
-      sink.endActivityFrame();
-    } finally {
-      sink.endFootstepFrame();
-    }
+    sink.endFootstepFrame();
   }
 }
 

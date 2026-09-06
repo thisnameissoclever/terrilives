@@ -233,6 +233,32 @@ export class SimBridge {
   }
 
   /**
+   * Authored object-sound action per row: 0 none, 1 shower water, and
+   * 2 stove cooking. These codes describe current semantic state, not a cue
+   * filename or a guess from the visible body pose.
+   */
+  soundActions(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.sound_actions_ptr(),
+      this.count,
+    );
+  }
+
+  /**
+   * Exact placed-object entity index that owns each sound action, or u32::MAX.
+   * Multiple Sims may therefore observe one source without starting duplicate
+   * loops. Re-create this view after every fixed tick and memory growth.
+   */
+  soundSources(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.sound_sources_ptr(),
+      this.count,
+    );
+  }
+
+  /**
    * The lot-axis direction in which each presentation body action faces:
    * 0 none, 1 positive x, 2 negative x, 3 positive y, 4 negative y.
    */

@@ -30,6 +30,8 @@ function source(): SimAudioFrameSource {
     simIds: () => new Uint32Array([7001, 0xffff_ffff, 7003, 0xffff_ffff]),
     visualActions: () =>
       new Uint32Array([VISUAL_ACTION_WALK, VISUAL_ACTION_WALK, 0, VISUAL_ACTION_WALK]),
+    soundActions: () => new Uint32Array(4),
+    soundSources: () => new Uint32Array(4).fill(0xffff_ffff),
   };
 }
 
@@ -45,6 +47,11 @@ function sink(calls: string[]): SimAudioFrameSink {
       calls.push(`activity:${simId}:${activity}`);
     },
     endActivityFrame: () => calls.push('activity-end'),
+    beginObjectSoundFrame: () => calls.push('object-begin'),
+    observeObjectSound: (sourceId, action) => {
+      calls.push(`object:${sourceId}:${action}`);
+    },
+    endObjectSoundFrame: () => calls.push('object-end'),
   };
 }
 
@@ -57,8 +64,10 @@ describe('sampleSimAudioAfterTick', () => {
     expect(calls).toEqual([
       'begin',
       'activity-begin',
+      'object-begin',
       '7001:2:3:true',
       '7003:7:8:false',
+      'object-end',
       'activity-end',
       'end',
     ]);
@@ -80,10 +89,12 @@ describe('sampleSimAudioAfterTick', () => {
     expect(calls).toEqual([
       'begin',
       'activity-begin',
+      'object-begin',
       '7001:2:3:false',
       'activity:7001:conversation',
       '7003:7:8:false',
       'activity:7003:sleep',
+      'object-end',
       'activity-end',
       'end',
     ]);
@@ -102,6 +113,8 @@ describe('sampleSimAudioAfterTick', () => {
         VISUAL_ACTION_EXERCISE,
         VISUAL_ACTION_EAT,
       ]),
+      soundActions: () => new Uint32Array(5),
+      soundSources: () => new Uint32Array(5).fill(0xffff_ffff),
     };
 
     sampleSimAudioAfterTick(input, sink(calls));
@@ -109,6 +122,7 @@ describe('sampleSimAudioAfterTick', () => {
     expect(calls).toEqual([
       'begin',
       'activity-begin',
+      'object-begin',
       '81:0:0:false',
       'activity:81:eating',
       '82:0:0:false',
@@ -117,6 +131,7 @@ describe('sampleSimAudioAfterTick', () => {
       'activity:83:reading',
       '84:0:0:false',
       'activity:84:exercise',
+      'object-end',
       'activity-end',
       'end',
     ]);
@@ -127,15 +142,21 @@ describe('sampleSimAudioAfterTick', () => {
     const positions = vi.spyOn(input, 'positions');
     const simIds = vi.spyOn(input, 'simIds');
     const visualActions = vi.spyOn(input, 'visualActions');
+    const soundActions = vi.spyOn(input, 'soundActions');
+    const soundSources = vi.spyOn(input, 'soundSources');
     positions.mockClear();
     simIds.mockClear();
     visualActions.mockClear();
+    soundActions.mockClear();
+    soundSources.mockClear();
 
     sampleSimAudioAfterTick(input, sink([]));
 
     expect(positions).toHaveBeenCalledTimes(1);
     expect(simIds).toHaveBeenCalledTimes(1);
     expect(visualActions).toHaveBeenCalledTimes(1);
+    expect(soundActions).toHaveBeenCalledTimes(1);
+    expect(soundSources).toHaveBeenCalledTimes(1);
   });
 
   it('reads stable Sim identity from the aligned render column', () => {
@@ -158,8 +179,10 @@ describe('sampleSimAudioAfterTick', () => {
     expect(calls).toEqual([
       'begin',
       'activity-begin',
+      'object-begin',
       '7999:2:3:true',
       '7003:7:8:false',
+      'object-end',
       'activity-end',
       'end',
     ]);
@@ -188,6 +211,9 @@ describe('sampleSimAudioAfterTick', () => {
       beginActivityFrame: () => calls.push('activity-begin'),
       observeActivity: () => calls.push('activity'),
       endActivityFrame: () => calls.push('activity-end'),
+      beginObjectSoundFrame: () => calls.push('object-begin'),
+      observeObjectSound: () => calls.push('object'),
+      endObjectSoundFrame: () => calls.push('object-end'),
     };
 
     expect(() => sampleSimAudioAfterTick(input, failingSink)).toThrow(
@@ -196,10 +222,49 @@ describe('sampleSimAudioAfterTick', () => {
     expect(calls).toEqual([
       'begin',
       'activity-begin',
+      'object-begin',
       'observe',
+      'object-end',
       'activity-end',
       'end',
     ]);
+  });
+
+  it('closes earlier scheduler frames when a later frame cannot begin', () => {
+    const input = source();
+    const calls: string[] = [];
+    const failingSink: SimAudioFrameSink = {
+      ...sink(calls),
+      beginObjectSoundFrame: () => {
+        calls.push('object-begin');
+        throw new Error('stale object frame');
+      },
+    };
+
+    expect(() => sampleSimAudioAfterTick(input, failingSink)).toThrow(
+      'stale object frame',
+    );
+    expect(calls).toEqual([
+      'begin',
+      'activity-begin',
+      'object-begin',
+      'activity-end',
+      'end',
+    ]);
+  });
+
+  it('passes authored sound state with exact object source identity', () => {
+    const input = source();
+    input.soundActions = () => new Uint32Array([1, 2, 2, 0]);
+    input.soundSources = () =>
+      new Uint32Array([44, 55, 73, 0xffff_ffff]);
+    const calls: string[] = [];
+
+    sampleSimAudioAfterTick(input, sink(calls));
+
+    expect(calls).toContain('object:44:1');
+    expect(calls).toContain('object:55:2');
+    expect(calls).toContain('object:73:2');
   });
 
   it('samples after every fixed tick and never from paused command flushing', () => {
@@ -234,6 +299,12 @@ describe('sampleSimAudioAfterTick', () => {
     );
     expect(MAIN).toMatch(
       /get footstepCapacity\(\) \{\s*return audio\.footstepTrackCapacity\(\);/,
+    );
+    expect(MAIN).toMatch(
+      /get objectSoundTracks\(\) \{\s*return audio\.activeObjectSoundTrackCount\(\);/,
+    );
+    expect(MAIN).toMatch(
+      /get objectSoundCapacity\(\) \{\s*return audio\.objectSoundTrackCapacity\(\);/,
     );
     expect(MAIN).toMatch(
       /runFootstepSchedulerProbe:[\s\S]*?audio\.beginFootstepFrame\(\);[\s\S]*?audio\.observeFootstep\([\s\S]*?audio\.endFootstepFrame\(\);/,

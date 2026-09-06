@@ -52,6 +52,7 @@ satisfaction = 3.0
   duration_ticks = 60
   tags = ["cooking"]
   transforms = { from = "ingredients", to = "dinner" }
+  sound_action = "stove_cooking"
 
   [[chain.step]]
   role = "eating_surface"

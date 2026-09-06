@@ -12,7 +12,8 @@ Hidden-tab silence also remains an owner-required action.
 
 Terrilives uses the browser's native Web Audio API for its first sound layer.
 Audio remains in the TypeScript presentation shell. The Rust simulation emits
-no sound, owns no volume state, and stays deterministic and headless.
+semantic presentation state but owns no playback, volume state, or audio file.
+It stays deterministic and headless.
 
 This slice establishes the durable plumbing without adding an audio library or
 downloaded sound pack. It intentionally uses short procedural tones. Those
@@ -89,7 +90,11 @@ The current semantic events are:
    next sparse page interval.
 9. `sim.exercise { simId, repetitionIndex }`: one Sim began exercising or
    reached its next sparse motion interval.
-10. `door.opened` and `door.closed`: reserved event shapes only. No current door
+10. `object.sound-started { sourceId, action }` and
+    `object.sound-stopped { sourceId, action }`: an exact placed object's
+    authored semantic sound state changed. These events have no audible player
+    yet.
+11. `door.opened` and `door.closed`: reserved event shapes only. No current door
    transition emits them.
 
 Canvas, keyboard, object-menu, Clear-orders, and Household-roster command
@@ -164,6 +169,57 @@ sink, toilet, shower, aquarium, or door state. Object and appliance sound needs
 an authored semantic sound action plus stable source-object identity before it
 can schedule one sound per source without guessing or duplication.
 
+## Authored object-sound identity
+
+The object-audio bridge now supplies that missing identity without claiming an
+audible object loop. Content may author an optional sound action on an ordinary
+interaction or one chain step. The first two proof cases are:
+
+1. `shower_water` on the shower's ordinary `take_shower` interaction.
+2. `stove_cooking` on the cooking chain's `use_hob` step.
+
+The compiler converts those names to a closed numeric action enum. Every Sim
+render row carries two aligned `u32` columns after a fixed tick:
+
+1. `sound_action`: zero for none, one for shower water, or two for stove
+   cooking.
+2. `sound_source`: the exact target object's entity index, or `u32::MAX` when
+   no sound action is active.
+
+The source is not an object definition, Sim ID, or transient render row. Rust
+checks the Sim's exact `Target` against the target entity's `SmartObject` before
+projecting the action. This proves one placed appliance can own one future
+voice even when more than one Sim row observes it. Sound authoring is
+presentation metadata and is excluded from the Save V1 content fingerprint;
+the existing target and chain state already reconstruct it after Load.
+
+TypeScript acquires fresh zero-copy views after every fixed tick. It observes
+object sound state before filtering personal cadence by stable `SimId`, because
+source ownership must not depend on the actor having that optional identity.
+A source-keyed scheduler turns state into edges:
+
+1. A newly observed source and action emits one `object.sound-started` event.
+2. The unchanged pair emits nothing on later ticks.
+3. An action change stops the old action before starting the new one.
+4. A missing source emits one stop.
+5. Duplicate rows for one source and action collapse into one source state.
+6. Conflicting actions for one source in one tick fail closed instead of making
+   render-row order choose a winner.
+
+The scheduler retains aligned typed arrays plus one source-ID-to-slot map. It
+does not allocate a JavaScript track object per active source, and its capacity
+does not grow after warm-up.
+
+Load, backgrounding, first audio unlock, mute changes, and Effects crossing
+zero clear retained source state. The next audible observation therefore begins
+fresh rather than resuming a loop whose start happened while silent.
+
+This bridge deliberately produces no oscillator placeholder and plays no
+downloaded sample. Shower and stove audio remain silent until recordings pass
+the documented CC0 intake, source review, editing, and owner listening gates.
+There is also no real door entity or door state in the current lot, so the
+reserved door event shapes are not evidence of working door audio.
+
 ## Performance acceptance
 
 Use a visible production build, not a hidden `requestAnimationFrame` loop.
@@ -222,6 +278,23 @@ The human listening pass must confirm:
 The displayed visual pass covers 1280 by 720, 390 by 844, 568 by 320, and 240
 by 568. Audio controls must remain reachable, correctly labelled, touch-sized,
 and unable to starve the canvas in the compact HUD.
+
+## Local evidence on 2026-09-06
+
+1. The Rust workspace passes 649 tests across its four crates plus doc tests.
+   Focused data, simulation, and WASM tests cover authored sound vocabulary,
+   exact shower and stove sources, inactive-row clearing, Save V1 fingerprint
+   stability, Load, and vector growth.
+2. The Web suite passes 555 tests. The object-audio tests cover fresh bridge
+   views, exact source identity, start/change/stop edges, duplicate collapse,
+   conflict closure, fixed-tick sampler cleanup, and lifecycle resets.
+3. TypeScript checking, Clippy with warnings denied, Rust formatting,
+   documentation-ID checking, whitespace validation, the release WASM build,
+   and the production Web build pass.
+4. The served production build at `http://127.0.0.1:52868/` returns HTTP 200;
+   its current JavaScript bundle contains both the object start event and the
+   new WASM sound-pointer accessor. This proves local deployment of the
+   semantic bridge. It does not claim that shower or stove audio is audible.
 
 ## Local evidence on 2026-08-28
 

@@ -105,6 +105,19 @@ pub struct RenderBuffer {
     /// A row whose visual action is [`visual_action::NONE`] also carries
     /// [`facing::NONE`].
     pub facings: Vec<u32>,
+    /// Authored object-audio category for each row. See [`sound_action`].
+    ///
+    /// Only a Sim actively using a validated object interaction or running a
+    /// validated chain step may carry a nonzero code. Object rows and every
+    /// inactive or malformed row carry [`sound_action::NONE`].
+    pub sound_actions: Vec<u32>,
+    /// Raw entity index of the exact SmartObject producing this row's sound,
+    /// or [`NO_SOUND_SOURCE`].
+    ///
+    /// Kept beside the action rather than inferred in JavaScript. Ordinary
+    /// interactions source `Target::object`; running chain steps source their
+    /// resolved station. Every row stays aligned with `ids`.
+    pub sound_sources: Vec<u32>,
     /// What each row is CARRYING, as an index into the pack's item
     /// kinds, or [`NOT_CARRYING`] - the [K3] hands, made visible. The
     /// shell resolves the index against `item_kinds()` and the
@@ -120,6 +133,16 @@ pub const NOT_CARRYING: u32 = u32::MAX;
 pub const NO_FOREGROUND_SPRITE: u32 = u32::MAX;
 /// The `sim_ids` column's absent authored-identity sentinel.
 pub const NO_SIM_ID: u32 = u32::MAX;
+/// The `sound_sources` column's absent-source sentinel.
+pub const NO_SOUND_SOURCE: u32 = u32::MAX;
+
+/// Authored object-audio codes. Existing values are append-only because the
+/// TypeScript shell interprets these values across the WASM boundary.
+pub mod sound_action {
+    pub const NONE: u32 = 0;
+    pub const SHOWER_WATER: u32 = 1;
+    pub const STOVE_COOKING: u32 = 2;
+}
 
 /// The `activities` codes, named. `u32` like every other column so the
 /// JavaScript view is one more `Uint32Array` over the same memory.
@@ -189,7 +212,7 @@ mod tests {
     use crate::test_content::shipped_fridge as a_smart_object;
     use crate::Sim;
     use bevy_ecs::prelude::*;
-    use terri_core::{Agent, Eating, NeedId, Needs, Position, SimId, SmartObject};
+    use terri_core::{Agent, Eating, NeedId, Needs, Position, SimId, SmartObject, Target};
 
     /// Entity indices in the raw order `sync_render_buffer`'s query
     /// yields them, with no sorting applied. This is precisely the order
@@ -319,6 +342,198 @@ mod tests {
         assert_eq!(buf.sim_ids[row_of(bare)], super::NO_SIM_ID);
         assert_eq!(buf.sim_ids[row_of(object)], super::NO_SIM_ID);
         assert_eq!(buf.sim_ids.len(), buf.count);
+    }
+
+    fn sound_projection_of(buffer: &super::RenderBuffer, entity: Entity) -> (u32, u32) {
+        let row = buffer
+            .ids
+            .iter()
+            .position(|&id| id == entity.index_u32())
+            .expect("the fixture entity has a render row");
+        (buffer.sound_actions[row], buffer.sound_sources[row])
+    }
+
+    #[test]
+    fn authored_sound_codes_are_append_only_and_none_has_no_source() {
+        assert_eq!(super::sound_action::NONE, 0);
+        assert_eq!(super::sound_action::SHOWER_WATER, 1);
+        assert_eq!(super::sound_action::STOVE_COOKING, 2);
+        assert_eq!(super::NO_SOUND_SOURCE, u32::MAX);
+    }
+
+    #[test]
+    fn shower_sound_projects_the_exact_target_and_clears_when_use_stops() {
+        let pack = terri_data::pack();
+        let shower = pack.find("shower").expect("shipped shower");
+        let take_shower = shipped_interaction_index(shower, "take_shower");
+        let mut sim = Sim::new_with_lot(24, 24);
+        let decoy = sim.spawn_object(Position { x: 4.0, y: 4.0 }, shower);
+        let exact = sim.spawn_object(Position { x: 12.0, y: 4.0 }, shower);
+        let agent = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 11.0, y: 4.0 },
+                Eating {
+                    object: shower,
+                    interaction: take_shower,
+                    remaining_ticks: 10,
+                },
+                Target {
+                    object: exact,
+                    interaction: take_shower,
+                },
+            ))
+            .id();
+
+        sim.sync_render_buffer();
+        assert_eq!(
+            sound_projection_of(sim.render_buffer(), agent),
+            (super::sound_action::SHOWER_WATER, exact.index_u32())
+        );
+        assert_ne!(exact.index_u32(), decoy.index_u32());
+        assert_eq!(
+            sound_projection_of(sim.render_buffer(), decoy),
+            (super::sound_action::NONE, super::NO_SOUND_SOURCE)
+        );
+        assert_eq!(
+            sim.render_buffer().sound_actions.len(),
+            sim.render_buffer().count
+        );
+        assert_eq!(
+            sim.render_buffer().sound_sources.len(),
+            sim.render_buffer().count
+        );
+
+        sim.world_mut().entity_mut(agent).remove::<Eating>();
+        sim.sync_render_buffer();
+        assert_eq!(
+            sound_projection_of(sim.render_buffer(), agent),
+            (super::sound_action::NONE, super::NO_SOUND_SOURCE),
+            "an inactive row must clear both columns rather than retaining the previous source"
+        );
+    }
+
+    #[test]
+    fn non_authored_and_malformed_object_use_emit_no_sound_source() {
+        let pack = terri_data::pack();
+        let shower = pack.find("shower").expect("shipped shower");
+        let sink = pack.find("sink").expect("shipped sink");
+        let take_shower = shipped_interaction_index(shower, "take_shower");
+        let wash_hands = shipped_interaction_index(sink, "wash_hands");
+        let mut sim = Sim::new_with_lot(24, 24);
+        let sink_target = sim.spawn_object(Position { x: 8.0, y: 8.0 }, sink);
+        let no_smart_object = sim.world_mut().spawn(Position { x: 10.0, y: 8.0 }).id();
+        let generic = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 7.0, y: 8.0 },
+                Eating {
+                    object: sink,
+                    interaction: wash_hands,
+                    remaining_ticks: 10,
+                },
+                Target {
+                    object: sink_target,
+                    interaction: wash_hands,
+                },
+            ))
+            .id();
+        let malformed = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 9.0, y: 8.0 },
+                Eating {
+                    object: shower,
+                    interaction: take_shower,
+                    remaining_ticks: 10,
+                },
+                Target {
+                    object: no_smart_object,
+                    interaction: take_shower,
+                },
+            ))
+            .id();
+
+        sim.sync_render_buffer();
+        for entity in [generic, malformed] {
+            assert_eq!(
+                sound_projection_of(sim.render_buffer(), entity),
+                (super::sound_action::NONE, super::NO_SOUND_SOURCE)
+            );
+        }
+    }
+
+    #[test]
+    fn stove_chain_sound_projects_only_the_exact_hob_station() {
+        use terri_core::{ChainState, StepWork};
+
+        let pack = terri_data::pack();
+        let stove = pack.find("stove").expect("shipped stove");
+        let fridge = pack.find("fridge").expect("shipped fridge");
+        let chain_index = pack
+            .chains
+            .iter()
+            .position(|chain| chain.id == "cook_dinner")
+            .expect("shipped dinner chain") as u32;
+        let hob_step = pack.chains[chain_index as usize]
+            .steps
+            .iter()
+            .position(|step| pack.roles[step.role as usize] == "hob")
+            .expect("dinner has a hob step") as u32;
+        let mut sim = Sim::new_with_lot(24, 24);
+        let decoy = sim.spawn_object(Position { x: 4.0, y: 12.0 }, stove);
+        let exact = sim.spawn_object(Position { x: 12.0, y: 12.0 }, stove);
+        let wrong_role = sim.spawn_object(Position { x: 16.0, y: 12.0 }, fridge);
+        let action_state = || {
+            (
+                ChainState {
+                    chain: chain_index,
+                    step: hob_step,
+                    fumble_scale: 1.0,
+                },
+                StepWork {
+                    remaining_ticks: 10,
+                },
+            )
+        };
+        let valid = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 11.0, y: 12.0 },
+                action_state(),
+                Target {
+                    object: exact,
+                    interaction: crate::systems::chain::CHAIN_STEP,
+                },
+            ))
+            .id();
+        let malformed = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 15.0, y: 12.0 },
+                action_state(),
+                Target {
+                    object: wrong_role,
+                    interaction: crate::systems::chain::CHAIN_STEP,
+                },
+            ))
+            .id();
+
+        sim.sync_render_buffer();
+        assert_eq!(
+            sound_projection_of(sim.render_buffer(), valid),
+            (super::sound_action::STOVE_COOKING, exact.index_u32())
+        );
+        assert_ne!(exact.index_u32(), decoy.index_u32());
+        assert_eq!(
+            sound_projection_of(sim.render_buffer(), malformed),
+            (super::sound_action::NONE, super::NO_SOUND_SOURCE)
+        );
     }
 
     /// A `SpriteVariant` - the compiled form of a placement's `facing` -

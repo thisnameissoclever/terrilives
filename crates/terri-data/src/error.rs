@@ -567,6 +567,18 @@ pub enum ContentError {
         interaction: String,
         socket: String,
     },
+    /// An ordinary object interaction named a sound outside the closed
+    /// object-audio vocabulary.
+    UnknownSoundAction {
+        object: String,
+        interaction: String,
+        action: String,
+    },
+    /// A social interaction cannot name a SmartObject sound source.
+    SocialSoundAction {
+        interaction: String,
+        action: String,
+    },
     /// A chain step's present `visual` table omitted a required field.
     IncompleteChainStepVisual {
         chain: String,
@@ -590,6 +602,12 @@ pub enum ContentError {
         chain: String,
         step: usize,
         facing: String,
+    },
+    /// A chain step named a sound outside the closed object-audio vocabulary.
+    UnknownChainStepSoundAction {
+        chain: String,
+        step: usize,
+        action: String,
     },
     /// All visual vocabulary members are known, but their combination is not
     /// legal for the owning social interaction, object interaction, or chain
@@ -1419,6 +1437,24 @@ impl fmt::Display for ContentError {
                 "'{owner}' interaction '{interaction}' references unknown action \
                  socket '{socket}'"
             ),
+            ContentError::UnknownSoundAction {
+                object,
+                interaction,
+                action,
+            } => write!(
+                f,
+                "'{object}' interaction '{interaction}' declares unknown sound action \
+                 '{action}'; the current vocabulary is shower_water, stove_cooking"
+            ),
+            ContentError::SocialSoundAction {
+                interaction,
+                action,
+            } => write!(
+                f,
+                "social.toml interaction '{interaction}' declares sound action \
+                 '{action}', but object-source sounds are legal only on object \
+                 interactions and chain steps"
+            ),
             ContentError::IncompleteChainStepVisual { chain, step, field } => write!(
                 f,
                 "chain '{chain}' step {step} declares a visual contract \
@@ -1454,6 +1490,15 @@ impl fmt::Display for ContentError {
                 f,
                 "chain '{chain}' step {step} declares unknown visual facing \
                  '{facing}'; the current vocabulary is toward_anchor, socket"
+            ),
+            ContentError::UnknownChainStepSoundAction {
+                chain,
+                step,
+                action,
+            } => write!(
+                f,
+                "chain '{chain}' step {step} declares unknown sound action \
+                 '{action}'; the current vocabulary is shower_water, stove_cooking"
             ),
             ContentError::InvalidVisualContract {
                 owner,

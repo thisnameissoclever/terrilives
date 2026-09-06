@@ -691,6 +691,14 @@ persisted controls. Important state changes retain their visual and text
 equivalents. Stable Sim identity travels as an aligned render column, so
 fixed-tick audio sampling makes no per-row identity query.
 
+An authored object-sound identity bridge is also implemented for the shower's
+ordinary interaction and the stove hob's cooking-chain step. Rust exports each
+active action with the exact target object entity; the Web scheduler collapses
+duplicate observations into source-owned start and stop edges. Load,
+backgrounding, first unlock, mute changes, and Effects crossing zero clear that
+retained state. This is semantic plumbing only: no procedural stand-in or
+downloaded shower or stove recording plays yet.
+
 The production proof runs in visible Chrome on a display configured at 120 Hz.
 With 1,037 entities, sampling-enabled application-work p95 is 1.615 ms, sampler
 p95 is 0.100 ms, zero application-work frames exceed 16.6 ms, and the paired
