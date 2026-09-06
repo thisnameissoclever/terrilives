@@ -679,10 +679,14 @@ Web Audio. A trusted pointer or keyboard gesture activates it; events before
 activation are dropped rather than queued. The current bounded cue set covers
 staged and rejected commands on the canvas, keyboard, object menu, Clear orders,
 and Household roster routes, plus selected immediate controls and
-distance-driven footsteps. Master mute and Effects level are visible,
-touch-sized, persisted controls. Important state changes retain their visual
-and text equivalents. Stable Sim identity now travels as an aligned render
-column, so fixed-tick footstep sampling makes no per-row identity query.
+distance-driven footsteps. The second sound pass raises isolated steps out of
+the bass-thud range and adds sparse conversation and sleep cues from authored
+fixed-tick activity state. One conversation sounds once for the scene rather
+than once per participant; sleep breathing is capped at one household cue every
+three seconds. Master mute and Effects level are visible, touch-sized,
+persisted controls. Important state changes retain their visual and text
+equivalents. Stable Sim identity travels as an aligned render column, so
+fixed-tick audio sampling makes no per-row identity query.
 
 The production proof runs in visible Chrome on a display configured at 120 Hz.
 With 1,037 entities, sampling-enabled application-work p95 is 1.615 ms, sampler
@@ -693,8 +697,10 @@ the predeclared 64 KiB allowance. The 40-walker scheduler probe passes at p95
 0.0099999905 ms per tick. The ordinary-Chrome harness selects a stable household
 Sim, stages a real walk, and passes settings persistence; hidden-tab silence
 remains an explicit owner action because automated Chrome 151 tab creation never
-produced trustworthy hidden-document state. Human listening remains required
-before this sound slice is accepted for merge.
+produced trustworthy hidden-document state. The owner accepted the original
+footstep character on 2026-08-28, requested less bass, and then identified an
+isolated one-second thud. The revised footstep and the new conversation and
+sleep cues still require owner listening.
 
 This is not the complete audio feature. Door open and close event types are
 reserved but no authoritative door transition emits them yet. Save, Load, Help,

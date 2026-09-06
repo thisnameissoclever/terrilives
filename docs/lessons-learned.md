@@ -4347,11 +4347,14 @@ which coordinates each reserved term can actually be drawn at. Only once the
 model is confirmed tight is the choice between automatic scaling and centered
 overflow a real product decision.
 
-**How to verify.** At 136 pixels, the 16 by 12 conservative span is exactly 724
-pixels. `cameraOrigin` must place it at -2 through 722 in a 720-pixel canvas,
-sharing the unavoidable overflow equally. A future shorter extent may fit, but
-overflow beyond four pixels must fail for deliberate review. The obsolete
-tile-only centering formula must remain observably off-center.
+**How to verify.** At 136 pixels the two-row bound gives 697 pixels for the
+16 by 12 lot, so `cameraOrigin` must place the whole extent on a 720-pixel
+canvas with a non-negative top and a bottom no greater than 720, centered.
+Reserving one height for both rows must fail. `BOUNDARY_SPRITE_NAMES` must be
+checked in both directions against what `buildStaticInstances` emits: a missing
+boundary piece is reserved for at the wrong row, and an extra one that never
+leaves the lot rebuilds the over-reservation. The obsolete tile-only centering
+formula must remain observably clipped.
 
 ## [L-pages-must-follow-green-ci] A successful static build is not a releasable revision
 
@@ -4622,11 +4625,32 @@ a dedicated loopback port, require HTTP 200, open that URL in a visible browser,
 and confirm the review controls exist. Only then ask the owner to review it.
 For public review, cite the successful deployment run tied to the exact merge
 SHA and open the mutable Pages site immediately afterward.
-**How to verify.** At 136 pixels the two-row bound gives 697 pixels for the
-16 by 12 lot, so `cameraOrigin` must place the whole extent on a 720-pixel
-canvas with a non-negative top and a bottom no greater than 720, centered.
-Reserving one height for both rows must fail. `BOUNDARY_SPRITE_NAMES` must be
-checked in both directions against what `buildStaticInstances` emits: a missing
-boundary piece is reserved for at the wrong row, and an extra one that never
-leaves the lot rebuilds the over-reservation. The obsolete tile-only centering
-formula must remain observably clipped.
+
+## [L-isolated-audio-must-work-without-accidental-layering] Judge one voice before a crowd hides its shape
+
+**What happened.** Several overlapping movement cues read as pleasant
+footsteps, but one autonomous Sim walking alone produced an unexplained thud
+about once per second. The stride scheduler was working as designed: normal
+travel crossed its 0.42-tile threshold at roughly that cadence. The cue itself
+was a 45 ms sine sweep from about 105 Hz down to 72 Hz, so an isolated event was
+almost entirely bass energy. A cluster supplied the rhythm that the single cue
+did not contain.
+
+**Root cause.** The listening pass judged the layered result without also
+auditioning one semantic voice at its ordinary cadence. Correct scheduling can
+still expose a bad sound shape when activity becomes sparse.
+
+**Prevention rule.** Every repeated game cue must pass three listening states:
+one isolated event, its normal single-source cadence, and the busiest legal
+overlap. Keep sustained activity cues below the fixed-tick rate and represent a
+shared scene once rather than once per participant. A crowd must not be needed
+to make one cue intelligible.
+
+**How to verify.** Drive one Sim across exactly one stride threshold and require
+the scheduled footstep frequencies to remain above the rejected bass-only
+range. Then hold one two-Sim conversation and one multi-Sim sleep scene across
+their full cadence windows. Require one conversation voice every eight ticks
+and one household sleep breath every 30 ticks, with no per-participant doubling
+and no retained cadence after Load or background reset. Finish with owner
+listening at ordinary Effects volume; frequency assertions cannot decide
+whether the result is pleasant.

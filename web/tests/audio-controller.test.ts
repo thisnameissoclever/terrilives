@@ -146,6 +146,19 @@ function footstepFrame(
   controller.endFootstepFrame();
 }
 
+function activityFrame(
+  controller: AudioController,
+  observations: ReadonlyArray<
+    readonly [number, 'other' | 'conversation' | 'sleep']
+  >,
+): void {
+  controller.beginActivityFrame();
+  for (const [simId, activity] of observations) {
+    controller.observeActivity(simId, activity);
+  }
+  controller.endActivityFrame();
+}
+
 describe('AudioController preferences', () => {
   it('uses audible bounded defaults and persists one versioned record', () => {
     const store = memoryStore();
@@ -287,6 +300,42 @@ describe('AudioController gesture and cue lifecycle', () => {
     expect(Math.max(...(rejected?.stops ?? [])) - context.currentTime).toBeLessThan(
       0.15,
     );
+  });
+
+  it('keeps an isolated footstep out of the bass-only thud range', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+
+    footstepFrame(controller, 3, 0);
+    footstepFrame(controller, 3, FOOTSTEP_DISTANCE_TILES);
+
+    const footstep = context.oscillators[0];
+    expect(footstep?.type).toBe('triangle');
+    const pitchedValues = footstep?.frequency.calls
+      .map((call) => call.value)
+      .filter((value): value is number => value !== undefined);
+    expect(Math.min(...(pitchedValues ?? []))).toBeGreaterThanOrEqual(120);
+  });
+
+  it('gives conversation and sleep distinct sparse activity voices', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+
+    activityFrame(controller, [
+      [12, 'conversation'],
+      [4, 'conversation'],
+    ]);
+    activityFrame(controller, []);
+    activityFrame(controller, [[9, 'sleep']]);
+
+    const [conversation, sleep] = context.oscillators;
+    expect(conversation?.type).toBe('triangle');
+    expect(sleep?.type).toBe('sine');
+    expect(conversation?.stops[0]).toBeLessThanOrEqual(4.18);
+    expect(sleep?.stops[0]).toBeLessThanOrEqual(4.5);
+    expect(conversation?.frequency.calls).not.toEqual(sleep?.frequency.calls);
   });
 
   it('applies mute and effects level immediately without creating muted voices', async () => {

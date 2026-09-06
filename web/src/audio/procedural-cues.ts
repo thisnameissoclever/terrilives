@@ -2,6 +2,8 @@ export type ProceduralCue =
   | 'accepted'
   | 'rejected'
   | 'footstep'
+  | 'conversation'
+  | 'sleep-breath'
   | 'door-opened'
   | 'door-closed';
 
@@ -67,10 +69,24 @@ const CUE_SHAPES: Readonly<Record<ProceduralCue, CueShape>> = {
     oscillator: 'square',
   },
   footstep: {
-    durationSeconds: 0.045,
-    peakGain: 0.055,
-    startHz: 105,
-    endHz: 72,
+    durationSeconds: 0.04,
+    peakGain: 0.045,
+    startHz: 175,
+    endHz: 130,
+    oscillator: 'triangle',
+  },
+  conversation: {
+    durationSeconds: 0.16,
+    peakGain: 0.032,
+    startHz: 310,
+    endHz: 390,
+    oscillator: 'triangle',
+  },
+  'sleep-breath': {
+    durationSeconds: 0.42,
+    peakGain: 0.012,
+    startHz: 250,
+    endHz: 185,
     oscillator: 'sine',
   },
   'door-opened': {

@@ -70,7 +70,7 @@ import {
   MobileHud,
 } from './ui/mobile-hud.js';
 import { AudioController } from './audio/audio-controller.js';
-import { sampleFootstepsAfterTick } from './audio/frame-audio.js';
+import { sampleSimAudioAfterTick } from './audio/frame-audio.js';
 import { AudioControls } from './ui/audio-controls.js';
 
 /** [D2]: the simulation's one true rate. Speed controls change how many
@@ -362,10 +362,10 @@ async function main(): Promise<void> {
       // stride distance that the simulation actually travelled.
       if (footstepSampling) {
         if (footstepSamplerTimer === null) {
-          sampleFootstepsAfterTick(sim, audio);
+          sampleSimAudioAfterTick(sim, audio);
         } else {
           const sampleStartedMs = performance.now();
-          sampleFootstepsAfterTick(sim, audio);
+          sampleSimAudioAfterTick(sim, audio);
           footstepSamplerTimer.sample(performance.now() - sampleStartedMs);
         }
       }

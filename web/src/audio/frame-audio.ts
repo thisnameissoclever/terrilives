@@ -1,30 +1,39 @@
-import { VISUAL_ACTION_WALK } from '../frame.js';
-export interface FootstepFrameSource {
+import {
+  VISUAL_ACTION_SLEEP,
+  VISUAL_ACTION_TALK,
+  VISUAL_ACTION_WALK,
+} from '../frame.js';
+import type { SimActivityAudioState } from './activity-cues.js';
+export interface SimAudioFrameSource {
   readonly count: number;
   positions(): Float32Array;
   simIds(): Uint32Array;
   visualActions(): Uint32Array;
 }
 
-export interface FootstepFrameSink {
+export interface SimAudioFrameSink {
   beginFootstepFrame(): void;
   observeFootstep(simId: number, x: number, y: number, walking: boolean): void;
   endFootstepFrame(): void;
+  beginActivityFrame(): void;
+  observeActivity(simId: number, activity: SimActivityAudioState): void;
+  endActivityFrame(): void;
 }
 
 const NO_SIM_ID = 0xffff_ffff;
 
 /**
- * Samples stable Sim identity and travelled world position after one fixed tick.
+ * Samples stable Sim identity, travel, and authored activity after one fixed
+ * tick.
  *
  * This is deliberately columnar. It creates no per-Sim object or array, and it
  * re-reads every WASM-backed view after the tick that may have grown memory.
  * Stable ids come from the render buffer's aligned identity column; using an
  * entity id or row as identity would swap footsteps between people after Load.
  */
-export function sampleFootstepsAfterTick(
-  source: FootstepFrameSource,
-  sink: FootstepFrameSink,
+export function sampleSimAudioAfterTick(
+  source: SimAudioFrameSource,
+  sink: SimAudioFrameSink,
 ): void {
   const count = source.count;
   const positions = source.positions();
@@ -32,18 +41,32 @@ export function sampleFootstepsAfterTick(
   const visualActions = source.visualActions();
 
   sink.beginFootstepFrame();
+  sink.beginActivityFrame();
   try {
     for (let row = 0; row < count; row += 1) {
       const simId = simIds[row];
       if (simId === NO_SIM_ID) continue;
+      const visualAction = visualActions[row];
       sink.observeFootstep(
         simId,
         positions[row * 2],
         positions[row * 2 + 1],
-        visualActions[row] === VISUAL_ACTION_WALK,
+        visualAction === VISUAL_ACTION_WALK,
       );
+      const activity = activityForVisualAction(visualAction);
+      if (activity !== 'other') sink.observeActivity(simId, activity);
     }
   } finally {
-    sink.endFootstepFrame();
+    try {
+      sink.endActivityFrame();
+    } finally {
+      sink.endFootstepFrame();
+    }
   }
+}
+
+function activityForVisualAction(visualAction: number): SimActivityAudioState {
+  if (visualAction === VISUAL_ACTION_TALK) return 'conversation';
+  if (visualAction === VISUAL_ACTION_SLEEP) return 'sleep';
+  return 'other';
 }
