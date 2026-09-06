@@ -8,7 +8,11 @@ import {
   type SimAudioFrameSource,
 } from '../src/audio/frame-audio.js';
 import {
+  VISUAL_ACTION_EAT,
+  VISUAL_ACTION_EXERCISE,
+  VISUAL_ACTION_READ,
   VISUAL_ACTION_SLEEP,
+  VISUAL_ACTION_STANDING_READ,
   VISUAL_ACTION_TALK,
   VISUAL_ACTION_WALK,
 } from '../src/frame.js';
@@ -80,6 +84,39 @@ describe('sampleSimAudioAfterTick', () => {
       'activity:7001:conversation',
       '7003:7:8:false',
       'activity:7003:sleep',
+      'activity-end',
+      'end',
+    ]);
+  });
+
+  it('maps authored eating, reading, and exercise actions without guessing the object', () => {
+    const calls: string[] = [];
+    const input: SimAudioFrameSource = {
+      count: 5,
+      positions: () => new Float32Array(10),
+      simIds: () => new Uint32Array([81, 82, 83, 84, 0xffff_ffff]),
+      visualActions: () => new Uint32Array([
+        VISUAL_ACTION_EAT,
+        VISUAL_ACTION_READ,
+        VISUAL_ACTION_STANDING_READ,
+        VISUAL_ACTION_EXERCISE,
+        VISUAL_ACTION_EAT,
+      ]),
+    };
+
+    sampleSimAudioAfterTick(input, sink(calls));
+
+    expect(calls).toEqual([
+      'begin',
+      'activity-begin',
+      '81:0:0:false',
+      'activity:81:eating',
+      '82:0:0:false',
+      'activity:82:reading',
+      '83:0:0:false',
+      'activity:83:reading',
+      '84:0:0:false',
+      'activity:84:exercise',
       'activity-end',
       'end',
     ]);

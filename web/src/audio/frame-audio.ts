@@ -1,5 +1,9 @@
 import {
+  VISUAL_ACTION_EAT,
+  VISUAL_ACTION_EXERCISE,
+  VISUAL_ACTION_READ,
   VISUAL_ACTION_SLEEP,
+  VISUAL_ACTION_STANDING_READ,
   VISUAL_ACTION_TALK,
   VISUAL_ACTION_WALK,
 } from '../frame.js';
@@ -68,5 +72,13 @@ export function sampleSimAudioAfterTick(
 function activityForVisualAction(visualAction: number): SimActivityAudioState {
   if (visualAction === VISUAL_ACTION_TALK) return 'conversation';
   if (visualAction === VISUAL_ACTION_SLEEP) return 'sleep';
+  if (visualAction === VISUAL_ACTION_EAT) return 'eating';
+  if (
+    visualAction === VISUAL_ACTION_READ ||
+    visualAction === VISUAL_ACTION_STANDING_READ
+  ) {
+    return 'reading';
+  }
+  if (visualAction === VISUAL_ACTION_EXERCISE) return 'exercise';
   return 'other';
 }

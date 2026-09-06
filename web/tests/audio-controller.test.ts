@@ -149,7 +149,15 @@ function footstepFrame(
 function activityFrame(
   controller: AudioController,
   observations: ReadonlyArray<
-    readonly [number, 'other' | 'conversation' | 'sleep']
+    readonly [
+      number,
+      | 'other'
+      | 'conversation'
+      | 'sleep'
+      | 'eating'
+      | 'reading'
+      | 'exercise',
+    ]
   >,
 ): void {
   controller.beginActivityFrame();
@@ -337,6 +345,65 @@ describe('AudioController gesture and cue lifecycle', () => {
     expect(sleep?.stops[0]).toBeLessThanOrEqual(4.5);
     expect(conversation?.frequency.calls).not.toEqual(sleep?.frequency.calls);
   });
+
+  it('gives eating, reading, and exercise distinct short low-gain cues', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+
+    activityFrame(controller, [[5, 'eating']]);
+    activityFrame(controller, [[5, 'reading']]);
+    activityFrame(controller, [[5, 'exercise']]);
+
+    const [eating, reading, exercise] = context.oscillators;
+    expect(eating?.type).toBe('sine');
+    expect(reading?.type).toBe('triangle');
+    expect(exercise?.type).toBe('square');
+    expect(eating?.frequency.calls).not.toEqual(reading?.frequency.calls);
+    expect(reading?.frequency.calls).not.toEqual(exercise?.frequency.calls);
+    expect(eating?.stops[0]).toBeLessThanOrEqual(4.12);
+    expect(reading?.stops[0]).toBeLessThanOrEqual(4.16);
+    expect(exercise?.stops[0]).toBeLessThanOrEqual(4.09);
+    const cuePeakGains = context.gains.slice(2).map((gain) =>
+      Math.max(
+        ...gain.gain.calls
+          .map((call) => call.value)
+          .filter((value): value is number => value !== undefined),
+      ),
+    );
+    expect(cuePeakGains).toEqual([0.022, 0.018, 0.02]);
+  });
+
+  it('starts personal cadence fresh after the first unlock', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+
+    activityFrame(controller, [[5, 'eating']]);
+    await controller.unlockFromGesture();
+    activityFrame(controller, [[5, 'eating']]);
+
+    expect(context.oscillators).toHaveLength(1);
+  });
+
+  it.each(['load', 'background'] as const)(
+    'starts personal cadence fresh after the %s boundary',
+    async (boundary) => {
+      const context = new FakeContext();
+      const controller = new AudioController(() => context, undefined);
+      await controller.unlockFromGesture();
+      activityFrame(controller, [[5, 'eating']]);
+
+      if (boundary === 'background') {
+        await controller.setBackgrounded(true);
+        await controller.setBackgrounded(false);
+      } else {
+        controller.reset(boundary);
+      }
+      activityFrame(controller, [[5, 'eating']]);
+
+      expect(context.oscillators).toHaveLength(2);
+    },
+  );
 
   it('applies mute and effects level immediately without creating muted voices', async () => {
     const context = new FakeContext();

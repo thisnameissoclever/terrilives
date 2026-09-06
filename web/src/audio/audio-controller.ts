@@ -385,6 +385,12 @@ function cueForEvent(event: GameAudioEvent): ProceduralCue {
       return 'conversation';
     case 'sim.sleep-breath':
       return 'sleep-breath';
+    case 'sim.eating':
+      return 'eating';
+    case 'sim.page-turn':
+      return 'page-turn';
+    case 'sim.exercise':
+      return 'exercise';
     case 'door.opened':
       return 'door-opened';
     case 'door.closed':
@@ -402,6 +408,18 @@ function pitchScaleForEvent(event: GameAudioEvent): number {
     }
     case 'sim.sleep-breath': {
       const phase = (Math.trunc(event.simId) + event.breathIndex) & 1;
+      return 0.97 + phase * 0.04;
+    }
+    case 'sim.eating': {
+      const phase = (Math.trunc(event.simId) * 5 + event.biteIndex) & 3;
+      return 0.96 + phase * 0.025;
+    }
+    case 'sim.page-turn': {
+      const phase = (Math.trunc(event.simId) + event.pageIndex * 3) & 3;
+      return 0.94 + phase * 0.03;
+    }
+    case 'sim.exercise': {
+      const phase = (Math.trunc(event.simId) + event.repetitionIndex) & 1;
       return 0.97 + phase * 0.04;
     }
     default:

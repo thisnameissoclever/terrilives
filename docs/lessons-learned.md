@@ -4654,3 +4654,29 @@ and one household sleep breath every 30 ticks, with no per-participant doubling
 and no retained cadence after Load or background reset. Finish with owner
 listening at ordinary Effects volume; frequency assertions cannot decide
 whether the result is pleasant.
+
+## [L-hidden-radio-harnesses-must-use-the-widget-event] Drive the control contract, not an invisible input box
+
+**What happened.** The ordinary-Chrome audio listening harness tried to select
+3x with Playwright's `check()` operation. The speed radio is intentionally
+absolute-positioned, transparent, and unable to receive pointer events. Its
+following 44-pixel label is the player-facing target. Playwright resolved the
+input but repeatedly reported that the Pause label intercepted its synthetic
+click.
+
+**Root cause.** The listening harness treated an invisible form input as a
+click target even though this widget's actual contract is the input's checked
+state followed by its `change` event. The sibling performance harness already
+used that contract, but the listening path had drifted.
+
+**Prevention rule.** When browser verification drives a visually hidden native
+input, do not aim pointer automation at its invisible box. Reuse the same
+programmatic checked-state and bubbling `change` event path across every harness,
+or click the visible associated label when the purpose of the test is pointer
+hit testing. Audit sibling entry points before accepting a browser-control fix.
+
+**How to verify.** Run `scripts/audio-listening.ps1 -MechanicalOnly` in ordinary
+Chrome. Every Pause, 1x, 2x, and 3x transition must complete without an
+intercepted-pointer timeout, and the resulting report must still show a staged
+walk plus persisted audio settings. A separate screenshot run should reach the
+exercise action and capture rendered canvas pixels after the 3x change.

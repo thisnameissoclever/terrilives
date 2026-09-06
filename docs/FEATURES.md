@@ -683,7 +683,10 @@ distance-driven footsteps. The second sound pass raises isolated steps out of
 the bass-thud range and adds sparse conversation and sleep cues from authored
 fixed-tick activity state. One conversation sounds once for the scene rather
 than once per participant; sleep breathing is capped at one household cue every
-three seconds. Master mute and Effects level are visible, touch-sized,
+three seconds. Eating, seated or standing reading, and exercise now emit
+low-gain candidate cues on independent per-Sim cadences. These cues use the
+existing authored visual-action contract; they do not guess which appliance or
+object is involved. Master mute and Effects level are visible, touch-sized,
 persisted controls. Important state changes retain their visual and text
 equivalents. Stable Sim identity travels as an aligned render column, so
 fixed-tick audio sampling makes no per-row identity query.
@@ -700,7 +703,7 @@ remains an explicit owner action because automated Chrome 151 tab creation never
 produced trustworthy hidden-document state. The owner accepted the original
 footstep character on 2026-08-28, requested less bass, and then identified an
 isolated one-second thud. The revised footstep and the new conversation and
-sleep cues still require owner listening.
+sleep, eating, reading, and exercise cues still require owner listening.
 
 This is not the complete audio feature. Door open and close event types are
 reserved but no authoritative door transition emits them yet. Save, Load, Help,

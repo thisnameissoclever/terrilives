@@ -111,6 +111,136 @@ describe('ActivityCueScheduler', () => {
     ]);
   });
 
+  it('keeps eating, reading, and exercise cues independent per Sim', () => {
+    const sink = recordingSink();
+    const scheduler = new ActivityCueScheduler(sink);
+
+    frame(scheduler, [
+      [12, 'eating'],
+      [4, 'reading'],
+      [9, 'exercise'],
+    ]);
+
+    expect(sink.events).toEqual([
+      { type: 'sim.eating', simId: 12, biteIndex: 0 },
+      { type: 'sim.page-turn', simId: 4, pageIndex: 0 },
+      { type: 'sim.exercise', simId: 9, repetitionIndex: 0 },
+    ]);
+  });
+
+  it('keeps staggered eaters on independent cadence', () => {
+    const sink = recordingSink();
+    const scheduler = new ActivityCueScheduler(sink);
+
+    frame(scheduler, [[1, 'eating']]);
+    for (let tick = 1; tick <= 4; tick += 1) {
+      frame(scheduler, [[1, 'eating']]);
+    }
+    frame(scheduler, [
+      [1, 'eating'],
+      [2, 'eating'],
+    ]);
+    for (let tick = 6; tick < 12; tick += 1) {
+      frame(scheduler, [
+        [1, 'eating'],
+        [2, 'eating'],
+      ]);
+    }
+    frame(scheduler, [
+      [1, 'eating'],
+      [2, 'eating'],
+    ]);
+
+    expect(sink.events).toEqual([
+      { type: 'sim.eating', simId: 1, biteIndex: 0 },
+      { type: 'sim.eating', simId: 2, biteIndex: 0 },
+      { type: 'sim.eating', simId: 1, biteIndex: 1 },
+    ]);
+
+    for (let tick = 13; tick < 17; tick += 1) {
+      frame(scheduler, [
+        [1, 'eating'],
+        [2, 'eating'],
+      ]);
+    }
+    frame(scheduler, [
+      [1, 'eating'],
+      [2, 'eating'],
+    ]);
+    expect(sink.events.at(-1)).toEqual({
+      type: 'sim.eating',
+      simId: 2,
+      biteIndex: 1,
+    });
+  });
+
+  it.each([
+    {
+      activity: 'eating' as const,
+      repeatTicks: 12,
+      first: { type: 'sim.eating', simId: 6, biteIndex: 0 },
+      second: { type: 'sim.eating', simId: 6, biteIndex: 1 },
+    },
+    {
+      activity: 'reading' as const,
+      repeatTicks: 28,
+      first: { type: 'sim.page-turn', simId: 6, pageIndex: 0 },
+      second: { type: 'sim.page-turn', simId: 6, pageIndex: 1 },
+    },
+    {
+      activity: 'exercise' as const,
+      repeatTicks: 7,
+      first: { type: 'sim.exercise', simId: 6, repetitionIndex: 0 },
+      second: { type: 'sim.exercise', simId: 6, repetitionIndex: 1 },
+    },
+  ])(
+    'paces $activity without repeating it on every fixed tick',
+    ({ activity, repeatTicks, first, second }) => {
+      const sink = recordingSink();
+      const scheduler = new ActivityCueScheduler(sink);
+
+      frame(scheduler, [[6, activity]]);
+      for (let tick = 1; tick < repeatTicks; tick += 1) {
+        frame(scheduler, [[6, activity]]);
+      }
+      expect(sink.events).toEqual([first]);
+
+      frame(scheduler, [[6, activity]]);
+      expect(sink.events).toEqual([first, second]);
+    },
+  );
+
+  it('starts a new personal cue when the action changes or resumes', () => {
+    const sink = recordingSink();
+    const scheduler = new ActivityCueScheduler(sink);
+
+    frame(scheduler, [[3, 'eating']]);
+    frame(scheduler, [[3, 'reading']]);
+    frame(scheduler, []);
+    frame(scheduler, [[3, 'eating']]);
+
+    expect(sink.events).toEqual([
+      { type: 'sim.eating', simId: 3, biteIndex: 0 },
+      { type: 'sim.page-turn', simId: 3, pageIndex: 0 },
+      { type: 'sim.eating', simId: 3, biteIndex: 0 },
+    ]);
+  });
+
+  it('drops a retained personal cadence on lifecycle reset', () => {
+    const sink = recordingSink();
+    const scheduler = new ActivityCueScheduler(sink);
+
+    frame(scheduler, [[3, 'eating']]);
+    frame(scheduler, [[3, 'eating']]);
+    scheduler.reset();
+    frame(scheduler, [[3, 'eating']]);
+
+    expect(sink.events).toEqual([
+      { type: 'sim.eating', simId: 3, biteIndex: 0 },
+      { type: 'sim.eating', simId: 3, biteIndex: 0 },
+    ]);
+  });
+
   it('rejects observations outside a frame and duplicate Sim rows', () => {
     const scheduler = new ActivityCueScheduler(recordingSink());
     expect(() => scheduler.observe(1, 'sleep')).toThrow(

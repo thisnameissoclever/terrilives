@@ -162,7 +162,14 @@ async function closeHelp(page) {
 }
 
 async function setSpeed(page, multiplier) {
-  await page.locator(`#speed-${multiplier}`).check();
+  await page.evaluate((multiplier) => {
+    const speed = document.querySelector(`#speed-${multiplier}`);
+    if (!(speed instanceof HTMLInputElement)) {
+      throw new Error(`missing #speed-${multiplier} input`);
+    }
+    speed.checked = true;
+    speed.dispatchEvent(new Event('change', { bubbles: true }));
+  }, multiplier);
   await page.waitForTimeout(350);
 }
 

@@ -1,7 +1,22 @@
-export type SimActivityAudioState = 'other' | 'conversation' | 'sleep';
+export type SimActivityAudioState =
+  | 'other'
+  | 'conversation'
+  | 'sleep'
+  | 'eating'
+  | 'reading'
+  | 'exercise';
 
 export const CONVERSATION_REPEAT_TICKS = 8;
 export const SLEEP_REPEAT_TICKS = 30;
+
+type PersonalActivityAudioState = 'eating' | 'reading' | 'exercise';
+
+interface PersonalActivityTrack {
+  state: PersonalActivityAudioState;
+  ticksRemaining: number;
+  cueIndex: number;
+  seenInFrame: boolean;
+}
 
 export type ActivityCueEvent =
   | {
@@ -13,6 +28,21 @@ export type ActivityCueEvent =
       readonly type: 'sim.sleep-breath';
       readonly simId: number;
       readonly breathIndex: number;
+    }
+  | {
+      readonly type: 'sim.eating';
+      readonly simId: number;
+      readonly biteIndex: number;
+    }
+  | {
+      readonly type: 'sim.page-turn';
+      readonly simId: number;
+      readonly pageIndex: number;
+    }
+  | {
+      readonly type: 'sim.exercise';
+      readonly simId: number;
+      readonly repetitionIndex: number;
     };
 
 export interface ActivityCueEventSink {
@@ -20,15 +50,19 @@ export interface ActivityCueEventSink {
 }
 
 /**
- * Converts fixed-tick activity state into sparse, household-level audio cues.
+ * Converts fixed-tick activity state into sparse audio cues at the correct
+ * ownership scope.
  *
  * Conversation and sleep are shared scenes. Emitting once per participant
  * would double a conversation and turn a bedroom into a pile of synchronized
  * breathing loops. The lowest stable Sim ID identifies each active scene, and
  * retained counters keep the cues audible without firing on every 10 Hz tick.
+ * Eating, reading, and exercise belong to individual Sims, so each Sim retains
+ * an independent cadence until the authored action changes or disappears.
  */
 export class ActivityCueScheduler {
   private readonly seenSimIds = new Set<number>();
+  private readonly personalTracks = new Map<number, PersonalActivityTrack>();
   private frameOpen = false;
   private conversationSimId = Number.MAX_SAFE_INTEGER;
   private sleepingSimId = Number.MAX_SAFE_INTEGER;
@@ -45,6 +79,7 @@ export class ActivityCueScheduler {
     if (this.frameOpen) throw new Error('activity audio frame is already open');
     this.frameOpen = true;
     this.seenSimIds.clear();
+    this.personalTracks.forEach(this.markPersonalTrackUnseen, this);
     this.conversationSimId = Number.MAX_SAFE_INTEGER;
     this.sleepingSimId = Number.MAX_SAFE_INTEGER;
   }
@@ -62,6 +97,12 @@ export class ActivityCueScheduler {
     } else if (activity === 'sleep') {
       this.sleepingSimId = Math.min(this.sleepingSimId, simId);
     }
+
+    if (isPersonalActivity(activity)) {
+      this.observePersonalActivity(simId, activity);
+    } else {
+      this.personalTracks.delete(simId);
+    }
   }
 
   endFrame(): void {
@@ -69,10 +110,12 @@ export class ActivityCueScheduler {
     this.frameOpen = false;
     this.finishConversationFrame();
     this.finishSleepFrame();
+    this.personalTracks.forEach(this.removeUnseenPersonalTrack, this);
   }
 
   reset(): void {
     this.seenSimIds.clear();
+    this.personalTracks.clear();
     this.frameOpen = false;
     this.conversationSimId = Number.MAX_SAFE_INTEGER;
     this.sleepingSimId = Number.MAX_SAFE_INTEGER;
@@ -144,5 +187,90 @@ export class ActivityCueScheduler {
       simId: this.sleepingSimId,
       breathIndex: this.breathIndex,
     });
+  }
+
+  private observePersonalActivity(
+    simId: number,
+    state: PersonalActivityAudioState,
+  ): void {
+    const existing = this.personalTracks.get(simId);
+    if (existing === undefined || existing.state !== state) {
+      const track: PersonalActivityTrack = {
+        state,
+        ticksRemaining: personalRepeatTicks(state),
+        cueIndex: 0,
+        seenInFrame: true,
+      };
+      this.personalTracks.set(simId, track);
+      this.emitPersonalActivity(simId, track);
+      return;
+    }
+
+    existing.seenInFrame = true;
+    existing.ticksRemaining -= 1;
+    if (existing.ticksRemaining > 0) return;
+    existing.ticksRemaining = personalRepeatTicks(state);
+    existing.cueIndex += 1;
+    this.emitPersonalActivity(simId, existing);
+  }
+
+  private markPersonalTrackUnseen(track: PersonalActivityTrack): void {
+    track.seenInFrame = false;
+  }
+
+  private removeUnseenPersonalTrack(
+    track: PersonalActivityTrack,
+    simId: number,
+  ): void {
+    if (!track.seenInFrame) this.personalTracks.delete(simId);
+  }
+
+  private emitPersonalActivity(
+    simId: number,
+    track: PersonalActivityTrack,
+  ): void {
+    switch (track.state) {
+      case 'eating':
+        this.sink.emit({
+          type: 'sim.eating',
+          simId,
+          biteIndex: track.cueIndex,
+        });
+        return;
+      case 'reading':
+        this.sink.emit({
+          type: 'sim.page-turn',
+          simId,
+          pageIndex: track.cueIndex,
+        });
+        return;
+      case 'exercise':
+        this.sink.emit({
+          type: 'sim.exercise',
+          simId,
+          repetitionIndex: track.cueIndex,
+        });
+    }
+  }
+}
+
+function isPersonalActivity(
+  activity: SimActivityAudioState,
+): activity is PersonalActivityAudioState {
+  return (
+    activity === 'eating' ||
+    activity === 'reading' ||
+    activity === 'exercise'
+  );
+}
+
+function personalRepeatTicks(activity: PersonalActivityAudioState): number {
+  switch (activity) {
+    case 'eating':
+      return 12;
+    case 'reading':
+      return 28;
+    case 'exercise':
+      return 7;
   }
 }

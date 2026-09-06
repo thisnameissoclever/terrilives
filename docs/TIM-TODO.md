@@ -313,7 +313,9 @@ The first [A-audio-voices] foundation is now implemented: gesture-gated native
 Web Audio, procedural command/UI cues, fixed-tick distance footsteps, master
 mute, and Effects volume. Ambience, object loops, alarms, music, category
 controls beyond Effects, and Sim voices remain mine to build. The current door
-event types are reserved plumbing, not a functioning door sound.
+event types are reserved plumbing, not a functioning door sound. A candidate
+second pass also adds household-scoped conversation and sleep cues plus
+per-Sim eating, reading, and exercise cues; owner listening remains open.
 
 ### [T2] Install the toolchain `[MINE]` - DONE
 

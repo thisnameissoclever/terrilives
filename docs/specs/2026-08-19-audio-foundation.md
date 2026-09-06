@@ -66,10 +66,10 @@ The split is load-bearing. Effects may not change a future music, ambience, or
 voice bus. Mute owns the master gain only.
 
 Each cue creates one oscillator and one gain envelope, then disconnects both
-nodes when ended or evicted. Interface, command, footstep, and conversation
-cues stop within 160 ms. The quieter sleep-breath envelope lasts 420 ms. At most
-eight voices remain active. A ninth event stops and disconnects the oldest
-voice instead of building an invisible backlog.
+nodes when ended or evicted. Interface, command, footstep, conversation, and
+personal activity cues stop within 160 ms. The low-gain sleep-breath envelope
+lasts 420 ms. At most eight voices remain active. A ninth event stops and
+disconnects the oldest voice instead of building an invisible backlog.
 
 The current semantic events are:
 
@@ -83,7 +83,13 @@ The current semantic events are:
    or reached its next sparse chatter interval.
 6. `sim.sleep-breath { simId, breathIndex }`: sleep began or reached its next
    slow breathing interval.
-7. `door.opened` and `door.closed`: reserved event shapes only. No current door
+7. `sim.eating { simId, biteIndex }`: one Sim began eating or reached its next
+   sparse bite interval.
+8. `sim.page-turn { simId, pageIndex }`: one Sim began reading or reached its
+   next sparse page interval.
+9. `sim.exercise { simId, repetitionIndex }`: one Sim began exercising or
+   reached its next sparse motion interval.
+10. `door.opened` and `door.closed`: reserved event shapes only. No current door
    transition emits them.
 
 Canvas, keyboard, object-menu, Clear-orders, and Household-roster command
@@ -134,6 +140,30 @@ These rates are presentation policy at 10 fixed ticks per second: 0.8 seconds
 between conversation phrases and 3 seconds between sleep breaths. They do not
 change simulation duration, animation timing, or save data.
 
+## Personal activity cadence
+
+The fixed-tick sample also maps the authored eating, seated reading, standing
+reading, and exercise visual actions into personal audio state. Unlike a shared
+conversation or bedroom scene, these actions belong to one Sim. Each stable
+`SimId` therefore retains its own cadence:
+
+1. Eating emits one light cue on entry and every 12 ticks while the action
+   remains active.
+2. Seated and standing reading share one page-turn cue on entry and every 28
+   ticks.
+3. Exercise emits one short, low-gain motion cue on entry and every 7 ticks.
+
+Changing personal action starts the new cue immediately. Leaving the action,
+Load, backgrounding, and the first successful audio unlock remove the retained
+personal cadence. Sim disappearance does the same at the end of the sampled
+frame.
+
+This mapping does not identify the current object. It is safe for the personal
+action itself, but it must not be used to infer refrigerator, stove, television,
+sink, toilet, shower, aquarium, or door state. Object and appliance sound needs
+an authored semantic sound action plus stable source-object identity before it
+can schedule one sound per source without guessing or duplication.
+
 ## Performance acceptance
 
 Use a visible production build, not a hidden `requestAnimationFrame` loop.
@@ -181,9 +211,13 @@ The human listening pass must confirm:
    once per fixed tick.
 8. Sleep breathing is audible at ordinary volume without becoming a dominant
    room loop.
-9. A hidden tab is silent.
-10. No cue clicks, pops, or machine-gun bursts under rapid input.
-11. Every meaningful cue retains visible or text feedback.
+9. Eating, reading, and exercise cues remain quiet, distinct, and paced with
+   their visible actions instead of sounding on every fixed tick.
+10. Two Sims performing personal activities retain independent cadence without
+    creating duplicate household-scene sounds.
+11. A hidden tab is silent.
+12. No cue clicks, pops, or machine-gun bursts under rapid input.
+13. Every meaningful cue retains visible or text feedback.
 
 The displayed visual pass covers 1280 by 720, 390 by 844, 568 by 320, and 240
 by 568. Audio controls must remain reachable, correctly labelled, touch-sized,
