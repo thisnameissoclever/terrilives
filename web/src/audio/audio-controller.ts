@@ -63,6 +63,18 @@ export interface GameAudioEventSink {
   emit(event: GameAudioEvent): void;
 }
 
+export interface AudioCuePlayCounts {
+  readonly rejected: number;
+  readonly footstep: number;
+  readonly conversation: number;
+  readonly 'sleep-breath': number;
+  readonly eating: number;
+  readonly 'page-turn': number;
+  readonly exercise: number;
+  readonly 'door-opened': number;
+  readonly 'door-closed': number;
+}
+
 export type AudioResetBoundary = 'load' | 'background';
 
 export function createBrowserAudioContext(): BrowserAudioContext {
@@ -96,6 +108,7 @@ export class AudioController implements GameAudioEventSink {
   private readonly footsteps: FootstepScheduler;
   private readonly activities: ActivityCueScheduler;
   private readonly objectSounds: ObjectSoundCueScheduler;
+  private readonly playedCueCounts = new Uint32Array(9);
 
   constructor(
     private readonly createContext: AudioContextFactory = createBrowserAudioContext,
@@ -137,8 +150,9 @@ export class AudioController implements GameAudioEventSink {
   }
 
   setMuted(muted: boolean): void {
+    const changed = this.mutedPreference !== muted;
     this.mutedPreference = muted;
-    this.objectSounds.reset();
+    if (changed) this.resetSchedulers();
     this.applyMasterGain();
     this.persist();
     if (muted) this.player?.stopAll();
@@ -158,7 +172,7 @@ export class AudioController implements GameAudioEventSink {
     const wasSilent = this.effectsLevelPreference === 0;
     this.effectsLevelPreference = clampLevel(level);
     if (wasSilent !== (this.effectsLevelPreference === 0)) {
-      this.objectSounds.reset();
+      this.resetSchedulers();
     }
     this.applyEffectsGain();
     if (this.effectsLevelPreference === 0) this.player?.stopAll();
@@ -180,8 +194,12 @@ export class AudioController implements GameAudioEventSink {
     const cue = cueForEvent(event);
     if (cue === null) return;
     const pitchScale = pitchScaleForEvent(event);
+    const player = this.player;
+    if (player === null) return;
     try {
-      this.player?.play(cue, pitchScale);
+      if (player.play(cue, pitchScale)) {
+        this.playedCueCounts[cueIndex(cue)] += 1;
+      }
     } catch {
       // Sound is presentation. A browser node failure may drop one cue but may
       // never terminate the simulation frame that observed it.
@@ -297,12 +315,41 @@ export class AudioController implements GameAudioEventSink {
     return this.footsteps.trackCapacity();
   }
 
+  activeActivityTrackCount(): number {
+    return this.activities.activePersonalTrackCount();
+  }
+
+  activityTrackCapacity(): number {
+    return this.activities.personalTrackCapacity();
+  }
+
   activeObjectSoundTrackCount(): number {
     return this.objectSounds.activeTrackCount();
   }
 
   objectSoundTrackCapacity(): number {
     return this.objectSounds.trackCapacity();
+  }
+
+  /** Successful procedural cue starts, exposed through `?stress=N` only. */
+  cuePlayCounts(): AudioCuePlayCounts {
+    return {
+      rejected: this.playedCueCounts[0] ?? 0,
+      footstep: this.playedCueCounts[1] ?? 0,
+      conversation: this.playedCueCounts[2] ?? 0,
+      'sleep-breath': this.playedCueCounts[3] ?? 0,
+      eating: this.playedCueCounts[4] ?? 0,
+      'page-turn': this.playedCueCounts[5] ?? 0,
+      exercise: this.playedCueCounts[6] ?? 0,
+      'door-opened': this.playedCueCounts[7] ?? 0,
+      'door-closed': this.playedCueCounts[8] ?? 0,
+    };
+  }
+
+  private resetSchedulers(): void {
+    this.footsteps.reset();
+    this.activities.reset();
+    this.objectSounds.reset();
   }
 
   private async resumeFromGesture(): Promise<boolean> {
@@ -415,7 +462,7 @@ function cueForEvent(event: GameAudioEvent): ProceduralCue | null {
   switch (event.type) {
     case 'command.staged':
     case 'ui.confirmed':
-      return 'accepted';
+      return null;
     case 'command.rejected':
       return 'rejected';
     case 'sim.footstep':
@@ -472,6 +519,29 @@ function pitchScaleForEvent(event: GameAudioEvent): number {
 function footstepPitchScale(simId: number, stepIndex: number): number {
   const phase = (Math.trunc(simId) * 17 + Math.trunc(stepIndex) * 31) & 3;
   return 0.94 + phase * 0.035;
+}
+
+function cueIndex(cue: ProceduralCue): number {
+  switch (cue) {
+    case 'rejected':
+      return 0;
+    case 'footstep':
+      return 1;
+    case 'conversation':
+      return 2;
+    case 'sleep-breath':
+      return 3;
+    case 'eating':
+      return 4;
+    case 'page-turn':
+      return 5;
+    case 'exercise':
+      return 6;
+    case 'door-opened':
+      return 7;
+    case 'door-closed':
+      return 8;
+  }
 }
 
 function clampLevel(value: number): number {

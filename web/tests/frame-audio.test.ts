@@ -301,10 +301,19 @@ describe('sampleSimAudioAfterTick', () => {
       /get footstepCapacity\(\) \{\s*return audio\.footstepTrackCapacity\(\);/,
     );
     expect(MAIN).toMatch(
+      /get activityTracks\(\) \{\s*return audio\.activeActivityTrackCount\(\);/,
+    );
+    expect(MAIN).toMatch(
+      /get activityCapacity\(\) \{\s*return audio\.activityTrackCapacity\(\);/,
+    );
+    expect(MAIN).toMatch(
       /get objectSoundTracks\(\) \{\s*return audio\.activeObjectSoundTrackCount\(\);/,
     );
     expect(MAIN).toMatch(
       /get objectSoundCapacity\(\) \{\s*return audio\.objectSoundTrackCapacity\(\);/,
+    );
+    expect(MAIN).toMatch(
+      /get cuePlayCounts\(\) \{\s*return audio\.cuePlayCounts\(\);/,
     );
     expect(MAIN).toMatch(
       /runFootstepSchedulerProbe:[\s\S]*?audio\.beginFootstepFrame\(\);[\s\S]*?audio\.observeFootstep\([\s\S]*?audio\.endFootstepFrame\(\);/,

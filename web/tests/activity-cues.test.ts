@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -11,6 +13,11 @@ import type {
   GameAudioEvent,
   GameAudioEventSink,
 } from '../src/audio/audio-controller.js';
+
+const SOURCE = readFileSync(
+  new URL('../src/audio/activity-cues.ts', import.meta.url),
+  'utf8',
+);
 
 function recordingSink(): GameAudioEventSink & {
   readonly events: GameAudioEvent[];
@@ -239,6 +246,59 @@ describe('ActivityCueScheduler', () => {
     expect(sink.events).toEqual([
       { type: 'sim.eating', simId: 3, biteIndex: 0 },
       { type: 'sim.eating', simId: 3, biteIndex: 0 },
+    ]);
+  });
+
+  it('retains typed-array personal tracks without per-Sim track objects', () => {
+    const scheduler = new ActivityCueScheduler(recordingSink());
+    frame(
+      scheduler,
+      Array.from({ length: 9 }, (_, simId) => [simId, 'eating'] as const),
+    );
+
+    expect(scheduler.activePersonalTrackCount()).toBe(9);
+    expect(scheduler.personalTrackCapacity()).toBe(16);
+
+    frame(scheduler, []);
+    expect(scheduler.activePersonalTrackCount()).toBe(0);
+    expect(scheduler.personalTrackCapacity()).toBe(16);
+    expect(SOURCE).toMatch(/new Map<number, number>\(\)/);
+    expect(SOURCE).not.toMatch(/Map<number, PersonalActivityTrack>/);
+  });
+
+  it('preserves the moved track cadence when dense removal fills a middle slot', () => {
+    const sink = recordingSink();
+    const scheduler = new ActivityCueScheduler(sink);
+    frame(scheduler, [
+      [1, 'eating'],
+      [2, 'eating'],
+      [3, 'eating'],
+    ]);
+    frame(scheduler, [
+      [1, 'eating'],
+      [2, 'eating'],
+      [3, 'eating'],
+    ]);
+    frame(scheduler, [
+      [2, 'other'],
+      [1, 'eating'],
+      [3, 'eating'],
+    ]);
+
+    for (let tick = 0; tick < 10; tick += 1) {
+      frame(scheduler, [
+        [1, 'eating'],
+        [3, 'eating'],
+      ]);
+    }
+
+    expect(scheduler.activePersonalTrackCount()).toBe(2);
+    expect(sink.events).toEqual([
+      { type: 'sim.eating', simId: 1, biteIndex: 0 },
+      { type: 'sim.eating', simId: 2, biteIndex: 0 },
+      { type: 'sim.eating', simId: 3, biteIndex: 0 },
+      { type: 'sim.eating', simId: 1, biteIndex: 1 },
+      { type: 'sim.eating', simId: 3, biteIndex: 1 },
     ]);
   });
 

@@ -294,32 +294,35 @@ describe('AudioController gesture and cue lifecycle', () => {
     expect(context.oscillators).toHaveLength(1);
   });
 
-  it('schedules distinct accepted and rejected envelopes under 150 ms', async () => {
+  it('keeps routine controls silent and gives rejection one quiet short cue', async () => {
     const context = new FakeContext();
     const controller = new AudioController(() => context, undefined);
     await controller.unlockFromGesture();
 
     controller.emit({ type: 'command.staged' });
+    controller.emit({ type: 'ui.confirmed' });
+    expect(context.oscillators).toHaveLength(0);
+
     controller.emit({ type: 'command.rejected' });
 
-    const [accepted, rejected] = context.oscillators;
-    expect(accepted?.type).toBe('triangle');
-    expect(rejected?.type).toBe('square');
-    expect(accepted?.frequency.calls).toContainEqual({
+    const [rejected] = context.oscillators;
+    expect(rejected?.type).toBe('triangle');
+    expect(rejected?.frequency.calls).toContainEqual({
       kind: 'set',
       value: 520,
       time: 4,
     });
     expect(rejected?.frequency.calls).toContainEqual({
-      kind: 'set',
-      value: 240,
-      time: 4,
+      kind: 'ramp',
+      value: 680,
+      time: 4.09,
     });
-    expect(accepted?.stops).toEqual([4.09]);
-    expect(rejected?.stops).toEqual([4.13]);
-    expect(Math.max(...(accepted?.stops ?? [])) - context.currentTime).toBeLessThan(
-      0.15,
-    );
+    expect(context.gains[2]?.gain.calls).toContainEqual({
+      kind: 'ramp',
+      value: 0.07,
+      time: 4.008,
+    });
+    expect(rejected?.stops).toEqual([4.09]);
     expect(Math.max(...(rejected?.stops ?? [])) - context.currentTime).toBeLessThan(
       0.15,
     );
@@ -479,6 +482,52 @@ describe('AudioController gesture and cue lifecycle', () => {
     expect(context.oscillators).toHaveLength(1);
   });
 
+  it.each(['mute', 'effects'] as const)(
+    'starts personal cadence fresh after the %s silence boundary',
+    async (boundary) => {
+      const context = new FakeContext();
+      const controller = new AudioController(() => context, undefined);
+      await controller.unlockFromGesture();
+      activityFrame(controller, [[5, 'eating']]);
+      expect(controller.cuePlayCounts().eating).toBe(1);
+
+      if (boundary === 'mute') {
+        controller.setMuted(true);
+      } else {
+        controller.setEffectsLevel(0);
+      }
+      activityFrame(controller, [[5, 'eating']]);
+
+      if (boundary === 'mute') {
+        controller.setMuted(false);
+      } else {
+        controller.setEffectsLevel(0.4);
+      }
+      activityFrame(controller, [[5, 'eating']]);
+
+      expect(controller.cuePlayCounts().eating).toBe(2);
+      expect(context.oscillators).toHaveLength(2);
+    },
+  );
+
+  it('counts only cues that successfully reach the procedural player', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+
+    controller.emit({ type: 'sim.sleep-breath', simId: 3, breathIndex: 0 });
+    expect(controller.cuePlayCounts()['sleep-breath']).toBe(0);
+
+    await controller.unlockFromGesture();
+    controller.emit({ type: 'sim.sleep-breath', simId: 3, breathIndex: 0 });
+    controller.emit({ type: 'sim.conversation', simId: 3, phraseIndex: 0 });
+
+    expect(controller.cuePlayCounts()).toMatchObject({
+      conversation: 1,
+      'sleep-breath': 1,
+    });
+    expect(context.oscillators).toHaveLength(2);
+  });
+
   it.each(['load', 'background'] as const)(
     'starts personal cadence fresh after the %s boundary',
     async (boundary) => {
@@ -510,13 +559,13 @@ describe('AudioController gesture and cue lifecycle', () => {
     expect(master?.connections).toEqual([context.destination]);
 
     controller.emit({ type: 'ui.confirmed' });
-    expect(controller.activeVoiceCount()).toBe(1);
+    expect(controller.activeVoiceCount()).toBe(0);
 
     controller.setMuted(true);
     expect(controller.activeVoiceCount()).toBe(0);
     expect(master?.gain.calls.at(-1)).toEqual({ kind: 'set', value: 0, time: 4 });
     controller.emit({ type: 'command.rejected' });
-    expect(context.oscillators).toHaveLength(1);
+    expect(context.oscillators).toHaveLength(0);
 
     controller.setMuted(false);
     controller.setEffectsLevel(0.35);
@@ -527,7 +576,7 @@ describe('AudioController gesture and cue lifecycle', () => {
       time: 4,
     });
     controller.emit({ type: 'command.rejected' });
-    expect(context.oscillators).toHaveLength(2);
+    expect(context.oscillators).toHaveLength(1);
   });
 
   it('caps active voices and disconnects the oldest voice in a burst', async () => {
@@ -536,7 +585,7 @@ describe('AudioController gesture and cue lifecycle', () => {
     await controller.unlockFromGesture();
 
     for (let index = 0; index < 9; index += 1) {
-      controller.emit({ type: 'command.staged' });
+      controller.emit({ type: 'command.rejected' });
     }
 
     expect(controller.activeVoiceCount()).toBe(8);
@@ -550,7 +599,7 @@ describe('AudioController gesture and cue lifecycle', () => {
     const context = new FakeContext();
     const controller = new AudioController(() => context, undefined);
     await controller.unlockFromGesture();
-    controller.emit({ type: 'ui.confirmed' });
+    controller.emit({ type: 'command.rejected' });
 
     context.oscillators[0]?.onended?.();
 
@@ -568,13 +617,15 @@ describe('AudioController gesture and cue lifecycle', () => {
       throw new Error('device disappeared');
     };
 
-    expect(() => controller.emit({ type: 'command.staged' })).not.toThrow();
+    expect(() => controller.emit({ type: 'command.rejected' })).not.toThrow();
     expect(controller.activeVoiceCount()).toBe(0);
+    expect(controller.cuePlayCounts().rejected).toBe(0);
 
     context.createOscillator = createOscillator;
     footstepFrame(controller, 27, 0);
     footstepFrame(controller, 27, FOOTSTEP_DISTANCE_TILES);
     expect(controller.activeVoiceCount()).toBe(1);
+    expect(controller.cuePlayCounts().footstep).toBe(1);
   });
 
   it('cleans up a partially configured cue when parameter scheduling fails', async () => {
@@ -590,7 +641,7 @@ describe('AudioController gesture and cue lifecycle', () => {
       return oscillator;
     };
 
-    expect(() => controller.emit({ type: 'command.staged' })).not.toThrow();
+    expect(() => controller.emit({ type: 'command.rejected' })).not.toThrow();
     expect(controller.activeVoiceCount()).toBe(0);
     expect(context.oscillators[0]?.disconnected).toBe(true);
     expect(context.gains[2]?.disconnected).toBe(true);
@@ -609,7 +660,7 @@ describe('AudioController gesture and cue lifecycle', () => {
       return oscillator;
     };
 
-    expect(() => controller.emit({ type: 'command.staged' })).not.toThrow();
+    expect(() => controller.emit({ type: 'command.rejected' })).not.toThrow();
     expect(context.oscillators[0]?.starts).toEqual([4]);
     expect(controller.activeVoiceCount()).toBe(0);
     expect(context.oscillators[0]?.disconnected).toBe(true);

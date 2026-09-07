@@ -1,5 +1,4 @@
 export type ProceduralCue =
-  | 'accepted'
   | 'rejected'
   | 'footstep'
   | 'conversation'
@@ -57,19 +56,12 @@ const SILENCE_GAIN = 0.0001;
 export const MAX_ACTIVE_PROCEDURAL_VOICES = 8;
 
 const CUE_SHAPES: Readonly<Record<ProceduralCue, CueShape>> = {
-  accepted: {
+  rejected: {
     durationSeconds: 0.09,
-    peakGain: 0.13,
+    peakGain: 0.07,
     startHz: 520,
     endHz: 680,
     oscillator: 'triangle',
-  },
-  rejected: {
-    durationSeconds: 0.13,
-    peakGain: 0.11,
-    startHz: 240,
-    endHz: 150,
-    oscillator: 'square',
   },
   footstep: {
     durationSeconds: 0.04,
@@ -142,7 +134,7 @@ export class ProceduralCuePlayer {
     private readonly output: unknown,
   ) {}
 
-  play(cue: ProceduralCue, pitchScale = 1): void {
+  play(cue: ProceduralCue, pitchScale = 1): boolean {
     const shape = CUE_SHAPES[cue];
     const now = this.context.currentTime;
     let gain: GainNodePort | null = null;
@@ -181,6 +173,7 @@ export class ProceduralCuePlayer {
       this.voices.push(activeVoice);
       oscillator.start(now);
       oscillator.stop(now + shape.durationSeconds);
+      return true;
     } catch {
       if (voice !== null) {
         this.finishVoice(voice, true);
@@ -196,6 +189,7 @@ export class ProceduralCuePlayer {
         }
         if (gain !== null) safeDisconnect(gain);
       }
+      return false;
     }
   }
 

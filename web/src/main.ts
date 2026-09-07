@@ -69,7 +69,10 @@ import {
   COMPACT_HUD_MEDIA_QUERY,
   MobileHud,
 } from './ui/mobile-hud.js';
-import { AudioController } from './audio/audio-controller.js';
+import {
+  AudioController,
+  type AudioCuePlayCounts,
+} from './audio/audio-controller.js';
 import { sampleSimAudioAfterTick } from './audio/frame-audio.js';
 import { AudioControls } from './ui/audio-controls.js';
 
@@ -121,8 +124,11 @@ export interface StressHandle {
     readonly activeVoices: number;
     readonly footstepTracks: number;
     readonly footstepCapacity: number;
+    readonly activityTracks: number;
+    readonly activityCapacity: number;
     readonly objectSoundTracks: number;
     readonly objectSoundCapacity: number;
+    readonly cuePlayCounts: AudioCuePlayCounts;
   };
   /**
    * Exercises the real scheduler with stable identities without adding forty
@@ -1201,11 +1207,20 @@ async function main(): Promise<void> {
         get footstepCapacity() {
           return audio.footstepTrackCapacity();
         },
+        get activityTracks() {
+          return audio.activeActivityTrackCount();
+        },
+        get activityCapacity() {
+          return audio.activityTrackCapacity();
+        },
         get objectSoundTracks() {
           return audio.activeObjectSoundTrackCount();
         },
         get objectSoundCapacity() {
           return audio.objectSoundTrackCapacity();
+        },
+        get cuePlayCounts() {
+          return audio.cuePlayCounts();
         },
       },
       runFootstepSchedulerProbe: (walkers = 40, ticks = 600) => {

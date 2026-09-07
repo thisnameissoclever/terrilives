@@ -4411,8 +4411,8 @@ rendered frame, resolved stable identity through one Rust call per agent on
 every tick, stopped all voices when Pause was selected, and reset walking phase
 only when a tab became hidden. Each choice looked reasonable alone. Together
 they would undercount 2x and 3x travel, become quadratic at town scale, cut off
-the Pause confirmation cue, and let hidden ticks contribute to the first sound
-after tab return.
+an already-playing cue when Pause was selected, and let hidden ticks contribute
+to the first sound after tab return.
 
 **Root cause.** Playback lifecycle, world lifecycle, and simulation phase were
 treated as one concern. They are three. UI audio remains usable while the world
@@ -4576,8 +4576,9 @@ select a non-sentinel stable Sim ID, stage a real walk, record settings
 persistence and `hidden-tab: owner-required`, then exit nonzero. Run the owner
 workflow, open exactly one same-window tab when prompted, and require equal CDP
 window IDs, hidden document state, suspended context state, zero oscillator
-growth across 20 hidden events, visible state on return, and a human judgment
-that no hidden or catch-up sound occurred.
+growth across 20 hidden events, visible state on return, running context state
+before the recovery event, one foreground recovery oscillator, and a human
+judgment that no hidden or catch-up sound occurred.
 
 ## [L-listening-fixtures-must-prove-the-audible-identity] An agent row is not necessarily an audible Sim
 
@@ -4710,6 +4711,79 @@ Chrome. Every Pause, 1x, 2x, and 3x transition must complete without an
 intercepted-pointer timeout, and the resulting report must still show a staged
 walk plus persisted audio settings. A separate screenshot run should reach the
 exercise action and capture rendered canvas pixels after the 3x change.
+
+## [L-listening-evidence-must-name-the-cue-and-action] An oscillator does not identify what the player heard
+
+**What happened.** Conversation, sleep, eating, reading, and exercise had unit
+coverage, but the owner could hear only footsteps during ordinary play. The
+listening harness staged a walking command and watched Web Audio globally. It
+did not put each other action into a known live render state, and an oscillator
+count could not distinguish the requested cue from autonomous footsteps or a
+different activity cue.
+
+**Root cause.** The browser proof stopped at two weak signals: command queuing
+and anonymous audio-node creation. A queued command may later be dropped, while
+an oscillator proves only that some procedural cue started. Silence was treated
+as gain alone even though retained cadence is also presentation state.
+
+**Prevention rule.** An activity-listening fixture must discover Sims and
+interactions from fresh bridge views, stage one exact command, observe the
+intended entity's exact visual action and activity, require the named semantic
+cue counter to increase, and require Chrome to report a new oscillator. Reset
+every cadence scheduler on both edges of master mute and Effects zero so the
+first audible tick describes the action currently on screen. Keep acoustic
+isolation as a separate claim until the harness can prove it.
+
+**How to verify.** Run `scripts/audio-listening.ps1 -MechanicalOnly` in
+ordinary Chrome. Walking, conversation, eating, standing reading, exercise,
+and lower-bunk sleep must each pass exact render-state, semantic-cue, and Web
+Audio checks. The run must still report `hidden-tab: owner-required` rather
+than converting the browser automation limitation into a pass. Then run the
+owner workflow and judge each isolated sample at 1x.
+
+## [L-routine-events-do-not-all-need-cues] Semantic feedback is not a demand for a click sound
+
+**What happened.** Successful commands, menu choices, speed changes, unmute,
+and Effects release all played the same short confirmation tone. At that
+frequency the cue became clutter, and its character sounded more like failure
+than success.
+
+**Root cause.** The event-to-cue mapping treated every staged command and
+completed control as an audible event. Semantic events are useful for state,
+testing, and accessibility even when silence is the correct sound design.
+
+**Prevention rule.** Do not map broad success or completion categories to a
+blanket click. Routine success remains silent unless a control has a specific
+sound-design reason to speak. Reserve the current interface cue for rejected
+actions and keep it brief and lower in gain.
+
+**How to verify.** After audio unlock, emit `command.staged` and `ui.confirmed`
+and require zero oscillator creation. Emit `command.rejected` and require one
+90 ms triangle voice from 520 to 680 Hz at 0.07 peak gain. In the owner workflow,
+change speed, release Effects, and unmute without hearing a cue; then attempt
+Clear orders with no selected Sim and hear one quiet rejection.
+
+## [L-audio-isolation-must-respect-live-action-ownership] A spare bed is not a universal mute button
+
+**What happened.** The listening harness tried three times to park unrelated
+Sims on the double bed before each activity sample. One run was blocked by Help;
+two more timed out after command cancellation because a Sim's self-chosen live
+action could continue and consume the bed's limited interaction capacity.
+
+**Root cause.** The setup assumed cancelling queued intents interrupted the
+currently chosen action, and it assumed one object could accept every unrelated
+Sim. Neither assumption belongs to the bridge contract.
+
+**Prevention rule.** Do not isolate a listening fixture by issuing unrelated
+gameplay commands unless current-action interruption and target capacity are
+both explicit, tested contracts. Preserve exact action, semantic cue, and Web
+Audio evidence, but describe acoustic isolation as open when autonomous sources
+can still overlap.
+
+**How to verify.** The listening driver contains no parking helper or parking
+claim. Its mechanical run stages every named activity successfully without
+waiting for unrelated Sims to occupy the bed, while the owner instructions do
+not claim that other autonomous sounds have been suppressed.
 
 ## [L-approval-gated-network-tests-must-inject-the-network] An approval-shaped flag is not a safe test boundary
 
