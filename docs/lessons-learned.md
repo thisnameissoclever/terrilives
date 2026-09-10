@@ -4630,3 +4630,162 @@ checked in both directions against what `buildStaticInstances` emits: a missing
 boundary piece is reserved for at the wrong row, and an extra one that never
 leaves the lot rebuilds the over-reservation. The obsolete tile-only centering
 formula must remain observably clipped.
+
+## [L-delegated-workspace-management] Routine workspace work is not an owner approval gate
+
+**What happened.** Animation work stopped to ask about creating a clean worktree
+after the owner had already approved the model and asked for continued execution.
+The owner had to return and explicitly repeat that workspace management was
+delegated.
+
+**Root cause.** Preserving a dirty checkout was confused with needing a new
+product decision. Creating an isolated worktree from a verified baseline did
+not require the owner to choose an animation direction or accept a risk to
+their existing edits.
+
+**Prevention rule.** Once routine workspace management is delegated, inspect
+the branch, preserve existing edits, create the isolated worktree and continue.
+Keep actual approval boundaries separate: new spending, foreground computer
+control, destructive changes and decisions outside the approved scope.
+
+**How to verify.** Record the new branch and baseline check, then compare the
+original checkout's status before and after. The next owner message should
+concern an artifact or a real blocker, not permission to resume authorized work.
+
+## [L-atlas-straight-alpha-copy] Packing RGBA frames must not apply alpha twice
+
+**What happened.** Preparing smooth Blender frames exposed an atlas compositor
+that pasted each RGBA crop using that same crop as its mask. A pixel with alpha
+128 became alpha 64 and its color channels were halved.
+
+**Root cause.** A compositing operation was used where non-overlapping atlas
+rectangles required an exact byte copy. Existing opaque sprites concealed the
+error. The two translucent crops, `bookcaseClosedWide` and `aquariumCabinet1`,
+also passed through it.
+
+**Prevention rule.** Copy non-overlapping RGBA atlas rectangles without a
+second alpha mask. Preserve fractional alpha from the source renderer through
+the PNG export and atlas assembly.
+
+**How to verify.** `test_compose_preserves_straight_rgba` must fail when the
+source crop is restored as the paste mask. Check atlas freshness afterward.
+The corrected alpha changes the two existing translucent crops but does not
+change their source art, dimensions, names or indices.
+
+## [L-rig-pixel-registration] A preview crop is not a physical ground anchor
+
+**What happened.** The approved idle preview used [19,88] as a bottom-centre
+anchor. Compositing it with real furniture put the character about twelve
+pixels too low. Padded animation canvases introduced another apparent shift.
+
+**Root cause.** Image boundaries were treated as model landmarks. Furniture
+also uses 38 vertical pixels per unit while the model camera projects about
+34.147, so equal source Z values did not establish matching seat height.
+
+**Prevention rule.** Project the model origin through the actual camera, add
+the renderer's 21-pixel tile-front drop, and record that physical pixel anchor.
+Allow fractional anchors outside the crop. Share registration between drawing,
+picking and attachments; use opaque content bounds for bubbles. Convert source
+units before claiming furniture contact, then inspect a real composite.
+
+**How to verify.** Test padded and unpadded landmark equality at several zoom
+levels, negative-direction gait and save/load reconstruction. Render chair and
+bed composites using compiled sockets and the same registration math.
+
+## [L-held-prop-depth] A correct hand coordinate does not establish occlusion
+
+**What happened.** Eating food tracked the exported grip but appeared over the
+back of the head in a rear-facing view.
+
+**Root cause.** The held-prop renderer always put food in front of the entire
+body, regardless of the camera-space hand position.
+
+**Prevention rule.** Export the grip's depth order with its coordinates and use
+the same selected body sample for both. Never hide a depth defect by moving the
+food away from the hand. A single body/prop order must still be visually checked
+for cases requiring more detailed occlusion.
+
+**How to verify.** Inspect snack and dinner composites for every facing and
+sample. Tests must cover both front and rear depth signs, preserve layer ordering,
+and keep the selection ring at the physical ground point.
+
+## [L-toon-shirt-palette] Inspect the controlling shader before recoloring
+
+**What happened.** Shirt-variant setup assumed a standard Principled shader,
+then tried the Emission input. Three setup attempts failed before rendering;
+the linked-input guard prevented a misleading export.
+
+**Root cause.** The approved toon material uses a Color Ramp upstream of
+Emission. Neither a presumed Principled color nor the linked Emission default
+owns the visible shirt color.
+
+**Prevention rule.** Inspect the actual graph first. For this model, transform
+only the original shirt ramps' RGB values, retaining positions, interpolation,
+alpha and links. After three similar failures, obtain fresh-context review
+before another attempt. Preserve each source palette independently so a red
+variant cannot accidentally inherit the previous blue transformation.
+
+**How to verify.** Assert the expected linked graph, compare all non-shirt
+material state and model geometry, preserve source/green-export hashes, and
+inspect the rendered colors at native size. Preserving per-channel shading
+ratios is not a claim that different colors have identical perceived brightness.
+
+## [L-rider-fit-needs-the-lot] Isolated contact can pass while the wall fails
+
+**What happened.** Two rider fits put the original bike grips in the approved
+character's head. Moving the controls forward cleared the isolated model, but
+the played scene hid the console and bars inside the adjacent divider wall.
+
+**Root cause.** Contact was fitted in a model-and-prop image without the lot's
+spatial envelope. A projected hand target also left its three-dimensional
+depth underconstrained; exact pixel coincidence did not prove a plausible arm.
+
+**Prevention rule.** Fit the character, reachable controls and neighboring
+surfaces together. Preserve save-compatible positions and footprints. After
+three related failures, use fresh-context architectural review before another
+variation. Do not force every part visible when correct occlusion hides it,
+and do not treat a mirrored prop as a four-facing model.
+
+**How to verify.** Check one occupied and one unoccupied SE view against the
+actual wall before exporting all palettes. Verify anatomical reach, projected
+contact, head clearance, and visible attachment, then repeat in the played
+build. Keep failed facings and rejected previews labeled as failures.
+
+## [L-hashed-source-checkout] Byte proofs must survive Git checkout
+
+**What happened.** Final staging normalized the approved source manifest's
+Windows newlines, changing its bytes. The preservation proof also contained
+Windows path separators that a Linux checkout would treat as filename text.
+
+**Root cause.** Raw-file hashes and host-native path strings were combined
+with a repository-wide text normalization rule.
+
+**Prevention rule.** Mark immutable byte-hashed source artifacts `-text` where
+their original bytes must remain unchanged. Emit portable relative paths with
+`as_posix()`. Do not update approved-source hashes merely to excuse checkout
+changes. This exception applies only to the accepted source manifest, not to
+ordinary code or documentation.
+
+**How to verify.** Compare the source file's raw Git object ID with its staged
+object ID, then run preservation checks against files exported from the index.
+After changing attributes, explicitly restage the affected artifact with
+`git add --renormalize`; ordinary staging can retain its old normalized blob.
+Run the same tests in Linux CI before publishing.
+
+## [L-atlas-buffer-comparison] Compare binary assets as bytes
+
+**What happened.** The web CI atlas test exceeded its five-second limit after
+the character atlas grew to 1,451,685 bytes. All other 533 web tests passed.
+
+**Root cause.** Generic recursive `toEqual` walked the PNG's Buffer entries.
+The same assertion took 2.8 seconds locally, versus 5 milliseconds for the
+test using native `Buffer.equals`. The CI failure reported a timeout, not a
+hash mismatch.
+
+**Prevention rule.** Use direct byte equality for binary artifacts. Preserve
+the independent SHA-256 and served-filename assertions; do not extend the
+timeout or replace exact equality with a visual tolerance.
+
+**How to verify.** Flip one byte in the in-memory served PNG and run the
+content-address test: it must fail with `expected false to be true`. Restore
+the mutation and run the full web suite, then confirm Linux CI passes.

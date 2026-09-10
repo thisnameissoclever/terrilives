@@ -1,0 +1,18 @@
+{
+  "source_sha256": "a90fd5be6c2c60b89216d4881b9f4265a45fb662d913299daa12cc3b247d9ece",
+  "neutral_max_vertex_error": 3.0994415283203125e-06,
+  "bound_visual_objects": 54,
+  "bones": 17,
+  "actions": [
+    "idle",
+    "walk",
+    "read",
+    "talk",
+    "eat",
+    "stand_read",
+    "watch_fish",
+    "sit",
+    "sleep"
+  ],
+  "weights": "Every visual vertex has nonnegative normalized weights; head and face are rigid head attachments."
+}

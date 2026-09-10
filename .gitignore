@@ -25,3 +25,26 @@ career-*.jpeg
 # so nothing had ever ignored it.
 __pycache__/
 *.pyc
+
+# Reproducible full-resolution Sim renders remain local. Keep review sheets,
+# animation loops, native exports, editable sources and validation results.
+assets/models/sims/sim-01/review/*.png
+!assets/models/sims/sim-01/review/*contact*.png
+assets/models/sims/sim-01/review/pilot-v1/
+assets/models/sims/sim-01/review/saved-rig-replay/
+assets/models/sims/sim-01/build-status.json
+assets/models/sims/sim-01/review/shirt-variants/blue/
+assets/models/sims/sim-01/review/shirt-variants/red/
+assets/models/sims/sim-01/review/shirt-variants/native-preview/
+assets/models/sims/sim-01/shirt-variants-*-status.json
+assets/models/sims/sim-01/review/exercise/green/
+assets/models/sims/sim-01/review/exercise/blue/
+assets/models/sims/sim-01/review/exercise/red/
+assets/models/sims/sim-01/review/exercise/native-preview/
+assets/models/sims/sim-01/review/exercise/pilot-v1/
+assets/models/sims/sim-01/review/exercise/pilot-v2/
+assets/models/sims/sim-01/review/exercise/pilot-v3/
+assets/models/sims/sim-01/exercise-*-status.json
+*.blend1
+# Disposable checkout of the staged release used for byte-preservation checks.
+.tmp/release-index-check/

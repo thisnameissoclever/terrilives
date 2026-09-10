@@ -1,0 +1,1337 @@
+{
+  "frames": 148,
+  "alpha_boxes": [
+    {
+      "frame": "idle-SE-0.png",
+      "alpha_bbox": [
+        6,
+        5,
+        33,
+        86
+      ]
+    },
+    {
+      "frame": "idle-SW-0.png",
+      "alpha_bbox": [
+        5,
+        4,
+        32,
+        86
+      ]
+    },
+    {
+      "frame": "idle-NW-0.png",
+      "alpha_bbox": [
+        5,
+        1,
+        32,
+        84
+      ]
+    },
+    {
+      "frame": "idle-NE-0.png",
+      "alpha_bbox": [
+        6,
+        4,
+        33,
+        84
+      ]
+    },
+    {
+      "frame": "walk-SE-0.png",
+      "alpha_bbox": [
+        13,
+        15,
+        42,
+        99
+      ]
+    },
+    {
+      "frame": "walk-SE-1.png",
+      "alpha_bbox": [
+        11,
+        14,
+        46,
+        96
+      ]
+    },
+    {
+      "frame": "walk-SE-2.png",
+      "alpha_bbox": [
+        10,
+        13,
+        47,
+        94
+      ]
+    },
+    {
+      "frame": "walk-SE-3.png",
+      "alpha_bbox": [
+        11,
+        14,
+        46,
+        91
+      ]
+    },
+    {
+      "frame": "walk-SE-4.png",
+      "alpha_bbox": [
+        9,
+        15,
+        45,
+        94
+      ]
+    },
+    {
+      "frame": "walk-SE-5.png",
+      "alpha_bbox": [
+        13,
+        14,
+        41,
+        91
+      ]
+    },
+    {
+      "frame": "walk-SE-6.png",
+      "alpha_bbox": [
+        13,
+        13,
+        39,
+        91
+      ]
+    },
+    {
+      "frame": "walk-SE-7.png",
+      "alpha_bbox": [
+        13,
+        14,
+        39,
+        94
+      ]
+    },
+    {
+      "frame": "walk-SW-0.png",
+      "alpha_bbox": [
+        7,
+        14,
+        43,
+        94
+      ]
+    },
+    {
+      "frame": "walk-SW-1.png",
+      "alpha_bbox": [
+        11,
+        13,
+        39,
+        91
+      ]
+    },
+    {
+      "frame": "walk-SW-2.png",
+      "alpha_bbox": [
+        12,
+        12,
+        39,
+        91
+      ]
+    },
+    {
+      "frame": "walk-SW-3.png",
+      "alpha_bbox": [
+        12,
+        13,
+        39,
+        94
+      ]
+    },
+    {
+      "frame": "walk-SW-4.png",
+      "alpha_bbox": [
+        10,
+        14,
+        39,
+        99
+      ]
+    },
+    {
+      "frame": "walk-SW-5.png",
+      "alpha_bbox": [
+        6,
+        13,
+        41,
+        96
+      ]
+    },
+    {
+      "frame": "walk-SW-6.png",
+      "alpha_bbox": [
+        5,
+        12,
+        42,
+        94
+      ]
+    },
+    {
+      "frame": "walk-SW-7.png",
+      "alpha_bbox": [
+        6,
+        13,
+        41,
+        91
+      ]
+    },
+    {
+      "frame": "walk-NW-0.png",
+      "alpha_bbox": [
+        10,
+        11,
+        39,
+        97
+      ]
+    },
+    {
+      "frame": "walk-NW-1.png",
+      "alpha_bbox": [
+        6,
+        10,
+        41,
+        93
+      ]
+    },
+    {
+      "frame": "walk-NW-2.png",
+      "alpha_bbox": [
+        5,
+        9,
+        42,
+        89
+      ]
+    },
+    {
+      "frame": "walk-NW-3.png",
+      "alpha_bbox": [
+        6,
+        10,
+        41,
+        89
+      ]
+    },
+    {
+      "frame": "walk-NW-4.png",
+      "alpha_bbox": [
+        7,
+        11,
+        43,
+        92
+      ]
+    },
+    {
+      "frame": "walk-NW-5.png",
+      "alpha_bbox": [
+        11,
+        10,
+        39,
+        89
+      ]
+    },
+    {
+      "frame": "walk-NW-6.png",
+      "alpha_bbox": [
+        13,
+        9,
+        39,
+        92
+      ]
+    },
+    {
+      "frame": "walk-NW-7.png",
+      "alpha_bbox": [
+        13,
+        10,
+        39,
+        95
+      ]
+    },
+    {
+      "frame": "walk-NE-0.png",
+      "alpha_bbox": [
+        9,
+        14,
+        45,
+        92
+      ]
+    },
+    {
+      "frame": "walk-NE-1.png",
+      "alpha_bbox": [
+        13,
+        14,
+        41,
+        89
+      ]
+    },
+    {
+      "frame": "walk-NE-2.png",
+      "alpha_bbox": [
+        13,
+        13,
+        40,
+        92
+      ]
+    },
+    {
+      "frame": "walk-NE-3.png",
+      "alpha_bbox": [
+        13,
+        14,
+        40,
+        95
+      ]
+    },
+    {
+      "frame": "walk-NE-4.png",
+      "alpha_bbox": [
+        13,
+        14,
+        42,
+        97
+      ]
+    },
+    {
+      "frame": "walk-NE-5.png",
+      "alpha_bbox": [
+        11,
+        14,
+        46,
+        93
+      ]
+    },
+    {
+      "frame": "walk-NE-6.png",
+      "alpha_bbox": [
+        10,
+        13,
+        47,
+        89
+      ]
+    },
+    {
+      "frame": "walk-NE-7.png",
+      "alpha_bbox": [
+        11,
+        14,
+        46,
+        89
+      ]
+    },
+    {
+      "frame": "read-SE-0.png",
+      "alpha_bbox": [
+        15,
+        27,
+        49,
+        101
+      ]
+    },
+    {
+      "frame": "read-SE-1.png",
+      "alpha_bbox": [
+        15,
+        27,
+        49,
+        101
+      ]
+    },
+    {
+      "frame": "read-SE-2.png",
+      "alpha_bbox": [
+        15,
+        27,
+        49,
+        101
+      ]
+    },
+    {
+      "frame": "read-SE-3.png",
+      "alpha_bbox": [
+        15,
+        27,
+        49,
+        101
+      ]
+    },
+    {
+      "frame": "read-SW-0.png",
+      "alpha_bbox": [
+        3,
+        26,
+        37,
+        101
+      ]
+    },
+    {
+      "frame": "read-SW-1.png",
+      "alpha_bbox": [
+        3,
+        27,
+        37,
+        101
+      ]
+    },
+    {
+      "frame": "read-SW-2.png",
+      "alpha_bbox": [
+        3,
+        26,
+        37,
+        101
+      ]
+    },
+    {
+      "frame": "read-SW-3.png",
+      "alpha_bbox": [
+        3,
+        26,
+        37,
+        101
+      ]
+    },
+    {
+      "frame": "read-NW-0.png",
+      "alpha_bbox": [
+        3,
+        18,
+        37,
+        84
+      ]
+    },
+    {
+      "frame": "read-NW-1.png",
+      "alpha_bbox": [
+        3,
+        18,
+        37,
+        84
+      ]
+    },
+    {
+      "frame": "read-NW-2.png",
+      "alpha_bbox": [
+        3,
+        18,
+        37,
+        84
+      ]
+    },
+    {
+      "frame": "read-NW-3.png",
+      "alpha_bbox": [
+        3,
+        18,
+        37,
+        84
+      ]
+    },
+    {
+      "frame": "read-NE-0.png",
+      "alpha_bbox": [
+        15,
+        21,
+        49,
+        84
+      ]
+    },
+    {
+      "frame": "read-NE-1.png",
+      "alpha_bbox": [
+        15,
+        21,
+        49,
+        84
+      ]
+    },
+    {
+      "frame": "read-NE-2.png",
+      "alpha_bbox": [
+        15,
+        21,
+        49,
+        84
+      ]
+    },
+    {
+      "frame": "read-NE-3.png",
+      "alpha_bbox": [
+        15,
+        22,
+        49,
+        84
+      ]
+    },
+    {
+      "frame": "talk-SE-0.png",
+      "alpha_bbox": [
+        13,
+        13,
+        47,
+        94
+      ]
+    },
+    {
+      "frame": "talk-SE-1.png",
+      "alpha_bbox": [
+        13,
+        13,
+        49,
+        94
+      ]
+    },
+    {
+      "frame": "talk-SE-2.png",
+      "alpha_bbox": [
+        13,
+        13,
+        47,
+        94
+      ]
+    },
+    {
+      "frame": "talk-SE-3.png",
+      "alpha_bbox": [
+        13,
+        13,
+        45,
+        94
+      ]
+    },
+    {
+      "frame": "talk-SW-0.png",
+      "alpha_bbox": [
+        12,
+        12,
+        42,
+        94
+      ]
+    },
+    {
+      "frame": "talk-SW-1.png",
+      "alpha_bbox": [
+        12,
+        12,
+        42,
+        94
+      ]
+    },
+    {
+      "frame": "talk-SW-2.png",
+      "alpha_bbox": [
+        12,
+        12,
+        41,
+        94
+      ]
+    },
+    {
+      "frame": "talk-SW-3.png",
+      "alpha_bbox": [
+        12,
+        12,
+        40,
+        94
+      ]
+    },
+    {
+      "frame": "talk-NW-0.png",
+      "alpha_bbox": [
+        5,
+        9,
+        39,
+        92
+      ]
+    },
+    {
+      "frame": "talk-NW-1.png",
+      "alpha_bbox": [
+        3,
+        9,
+        39,
+        92
+      ]
+    },
+    {
+      "frame": "talk-NW-2.png",
+      "alpha_bbox": [
+        5,
+        9,
+        39,
+        92
+      ]
+    },
+    {
+      "frame": "talk-NW-3.png",
+      "alpha_bbox": [
+        7,
+        9,
+        39,
+        92
+      ]
+    },
+    {
+      "frame": "talk-NE-0.png",
+      "alpha_bbox": [
+        10,
+        12,
+        40,
+        92
+      ]
+    },
+    {
+      "frame": "talk-NE-1.png",
+      "alpha_bbox": [
+        10,
+        12,
+        40,
+        92
+      ]
+    },
+    {
+      "frame": "talk-NE-2.png",
+      "alpha_bbox": [
+        11,
+        12,
+        40,
+        92
+      ]
+    },
+    {
+      "frame": "talk-NE-3.png",
+      "alpha_bbox": [
+        12,
+        13,
+        40,
+        92
+      ]
+    },
+    {
+      "frame": "eat-SE-0.png",
+      "alpha_bbox": [
+        13,
+        13,
+        44,
+        94
+      ]
+    },
+    {
+      "frame": "eat-SE-1.png",
+      "alpha_bbox": [
+        13,
+        13,
+        46,
+        94
+      ]
+    },
+    {
+      "frame": "eat-SE-2.png",
+      "alpha_bbox": [
+        13,
+        13,
+        47,
+        94
+      ]
+    },
+    {
+      "frame": "eat-SE-3.png",
+      "alpha_bbox": [
+        13,
+        13,
+        46,
+        94
+      ]
+    },
+    {
+      "frame": "eat-SW-0.png",
+      "alpha_bbox": [
+        12,
+        12,
+        39,
+        94
+      ]
+    },
+    {
+      "frame": "eat-SW-1.png",
+      "alpha_bbox": [
+        12,
+        12,
+        38,
+        94
+      ]
+    },
+    {
+      "frame": "eat-SW-2.png",
+      "alpha_bbox": [
+        12,
+        12,
+        38,
+        94
+      ]
+    },
+    {
+      "frame": "eat-SW-3.png",
+      "alpha_bbox": [
+        12,
+        12,
+        38,
+        94
+      ]
+    },
+    {
+      "frame": "eat-NW-0.png",
+      "alpha_bbox": [
+        8,
+        9,
+        39,
+        92
+      ]
+    },
+    {
+      "frame": "eat-NW-1.png",
+      "alpha_bbox": [
+        6,
+        9,
+        39,
+        92
+      ]
+    },
+    {
+      "frame": "eat-NW-2.png",
+      "alpha_bbox": [
+        5,
+        9,
+        39,
+        92
+      ]
+    },
+    {
+      "frame": "eat-NW-3.png",
+      "alpha_bbox": [
+        6,
+        9,
+        39,
+        92
+      ]
+    },
+    {
+      "frame": "eat-NE-0.png",
+      "alpha_bbox": [
+        13,
+        12,
+        40,
+        92
+      ]
+    },
+    {
+      "frame": "eat-NE-1.png",
+      "alpha_bbox": [
+        14,
+        12,
+        40,
+        92
+      ]
+    },
+    {
+      "frame": "eat-NE-2.png",
+      "alpha_bbox": [
+        14,
+        12,
+        40,
+        92
+      ]
+    },
+    {
+      "frame": "eat-NE-3.png",
+      "alpha_bbox": [
+        14,
+        12,
+        40,
+        92
+      ]
+    },
+    {
+      "frame": "stand_read-SE-0.png",
+      "alpha_bbox": [
+        14,
+        15,
+        49,
+        94
+      ]
+    },
+    {
+      "frame": "stand_read-SE-1.png",
+      "alpha_bbox": [
+        14,
+        15,
+        49,
+        94
+      ]
+    },
+    {
+      "frame": "stand_read-SE-2.png",
+      "alpha_bbox": [
+        14,
+        15,
+        49,
+        94
+      ]
+    },
+    {
+      "frame": "stand_read-SE-3.png",
+      "alpha_bbox": [
+        14,
+        15,
+        49,
+        94
+      ]
+    },
+    {
+      "frame": "stand_read-SW-0.png",
+      "alpha_bbox": [
+        3,
+        14,
+        38,
+        94
+      ]
+    },
+    {
+      "frame": "stand_read-SW-1.png",
+      "alpha_bbox": [
+        3,
+        15,
+        38,
+        94
+      ]
+    },
+    {
+      "frame": "stand_read-SW-2.png",
+      "alpha_bbox": [
+        3,
+        14,
+        38,
+        94
+      ]
+    },
+    {
+      "frame": "stand_read-SW-3.png",
+      "alpha_bbox": [
+        3,
+        14,
+        38,
+        94
+      ]
+    },
+    {
+      "frame": "stand_read-NW-0.png",
+      "alpha_bbox": [
+        3,
+        8,
+        38,
+        92
+      ]
+    },
+    {
+      "frame": "stand_read-NW-1.png",
+      "alpha_bbox": [
+        3,
+        8,
+        38,
+        92
+      ]
+    },
+    {
+      "frame": "stand_read-NW-2.png",
+      "alpha_bbox": [
+        3,
+        8,
+        38,
+        92
+      ]
+    },
+    {
+      "frame": "stand_read-NW-3.png",
+      "alpha_bbox": [
+        3,
+        8,
+        38,
+        92
+      ]
+    },
+    {
+      "frame": "stand_read-NE-0.png",
+      "alpha_bbox": [
+        14,
+        11,
+        49,
+        92
+      ]
+    },
+    {
+      "frame": "stand_read-NE-1.png",
+      "alpha_bbox": [
+        14,
+        11,
+        49,
+        92
+      ]
+    },
+    {
+      "frame": "stand_read-NE-2.png",
+      "alpha_bbox": [
+        14,
+        11,
+        49,
+        92
+      ]
+    },
+    {
+      "frame": "stand_read-NE-3.png",
+      "alpha_bbox": [
+        14,
+        11,
+        49,
+        92
+      ]
+    },
+    {
+      "frame": "watch_fish-SE-0.png",
+      "alpha_bbox": [
+        13,
+        16,
+        42,
+        94
+      ]
+    },
+    {
+      "frame": "watch_fish-SE-1.png",
+      "alpha_bbox": [
+        13,
+        17,
+        44,
+        94
+      ]
+    },
+    {
+      "frame": "watch_fish-SE-2.png",
+      "alpha_bbox": [
+        13,
+        16,
+        42,
+        94
+      ]
+    },
+    {
+      "frame": "watch_fish-SE-3.png",
+      "alpha_bbox": [
+        13,
+        15,
+        41,
+        94
+      ]
+    },
+    {
+      "frame": "watch_fish-SW-0.png",
+      "alpha_bbox": [
+        7,
+        16,
+        39,
+        94
+      ]
+    },
+    {
+      "frame": "watch_fish-SW-1.png",
+      "alpha_bbox": [
+        6,
+        16,
+        39,
+        94
+      ]
+    },
+    {
+      "frame": "watch_fish-SW-2.png",
+      "alpha_bbox": [
+        7,
+        16,
+        39,
+        94
+      ]
+    },
+    {
+      "frame": "watch_fish-SW-3.png",
+      "alpha_bbox": [
+        8,
+        15,
+        39,
+        94
+      ]
+    },
+    {
+      "frame": "watch_fish-NW-0.png",
+      "alpha_bbox": [
+        10,
+        7,
+        39,
+        92
+      ]
+    },
+    {
+      "frame": "watch_fish-NW-1.png",
+      "alpha_bbox": [
+        8,
+        7,
+        39,
+        92
+      ]
+    },
+    {
+      "frame": "watch_fish-NW-2.png",
+      "alpha_bbox": [
+        10,
+        7,
+        39,
+        92
+      ]
+    },
+    {
+      "frame": "watch_fish-NW-3.png",
+      "alpha_bbox": [
+        11,
+        7,
+        39,
+        92
+      ]
+    },
+    {
+      "frame": "watch_fish-NE-0.png",
+      "alpha_bbox": [
+        13,
+        10,
+        45,
+        92
+      ]
+    },
+    {
+      "frame": "watch_fish-NE-1.png",
+      "alpha_bbox": [
+        13,
+        10,
+        46,
+        92
+      ]
+    },
+    {
+      "frame": "watch_fish-NE-2.png",
+      "alpha_bbox": [
+        13,
+        10,
+        45,
+        92
+      ]
+    },
+    {
+      "frame": "watch_fish-NE-3.png",
+      "alpha_bbox": [
+        13,
+        11,
+        44,
+        92
+      ]
+    },
+    {
+      "frame": "sit-SE-0.png",
+      "alpha_bbox": [
+        12,
+        26,
+        49,
+        101
+      ]
+    },
+    {
+      "frame": "sit-SE-1.png",
+      "alpha_bbox": [
+        12,
+        26,
+        49,
+        101
+      ]
+    },
+    {
+      "frame": "sit-SE-2.png",
+      "alpha_bbox": [
+        12,
+        26,
+        49,
+        101
+      ]
+    },
+    {
+      "frame": "sit-SE-3.png",
+      "alpha_bbox": [
+        12,
+        25,
+        49,
+        101
+      ]
+    },
+    {
+      "frame": "sit-SW-0.png",
+      "alpha_bbox": [
+        3,
+        24,
+        40,
+        101
+      ]
+    },
+    {
+      "frame": "sit-SW-1.png",
+      "alpha_bbox": [
+        3,
+        25,
+        40,
+        101
+      ]
+    },
+    {
+      "frame": "sit-SW-2.png",
+      "alpha_bbox": [
+        3,
+        24,
+        40,
+        101
+      ]
+    },
+    {
+      "frame": "sit-SW-3.png",
+      "alpha_bbox": [
+        3,
+        24,
+        40,
+        101
+      ]
+    },
+    {
+      "frame": "sit-NW-0.png",
+      "alpha_bbox": [
+        3,
+        19,
+        40,
+        84
+      ]
+    },
+    {
+      "frame": "sit-NW-1.png",
+      "alpha_bbox": [
+        3,
+        19,
+        40,
+        84
+      ]
+    },
+    {
+      "frame": "sit-NW-2.png",
+      "alpha_bbox": [
+        3,
+        19,
+        40,
+        84
+      ]
+    },
+    {
+      "frame": "sit-NW-3.png",
+      "alpha_bbox": [
+        3,
+        19,
+        40,
+        84
+      ]
+    },
+    {
+      "frame": "sit-NE-0.png",
+      "alpha_bbox": [
+        12,
+        22,
+        49,
+        84
+      ]
+    },
+    {
+      "frame": "sit-NE-1.png",
+      "alpha_bbox": [
+        12,
+        22,
+        49,
+        84
+      ]
+    },
+    {
+      "frame": "sit-NE-2.png",
+      "alpha_bbox": [
+        12,
+        22,
+        49,
+        84
+      ]
+    },
+    {
+      "frame": "sit-NE-3.png",
+      "alpha_bbox": [
+        12,
+        23,
+        49,
+        84
+      ]
+    },
+    {
+      "frame": "sleep-SE-0.png",
+      "alpha_bbox": [
+        6,
+        5,
+        69,
+        59
+      ]
+    },
+    {
+      "frame": "sleep-SE-1.png",
+      "alpha_bbox": [
+        6,
+        5,
+        69,
+        59
+      ]
+    },
+    {
+      "frame": "sleep-SE-2.png",
+      "alpha_bbox": [
+        6,
+        5,
+        69,
+        59
+      ]
+    },
+    {
+      "frame": "sleep-SE-3.png",
+      "alpha_bbox": [
+        6,
+        5,
+        69,
+        59
+      ]
+    },
+    {
+      "frame": "sleep-SW-0.png",
+      "alpha_bbox": [
+        35,
+        1,
+        97,
+        59
+      ]
+    },
+    {
+      "frame": "sleep-SW-1.png",
+      "alpha_bbox": [
+        35,
+        1,
+        97,
+        59
+      ]
+    },
+    {
+      "frame": "sleep-SW-2.png",
+      "alpha_bbox": [
+        35,
+        1,
+        97,
+        59
+      ]
+    },
+    {
+      "frame": "sleep-SW-3.png",
+      "alpha_bbox": [
+        35,
+        1,
+        97,
+        59
+      ]
+    },
+    {
+      "frame": "sleep-NW-0.png",
+      "alpha_bbox": [
+        35,
+        28,
+        98,
+        72
+      ]
+    },
+    {
+      "frame": "sleep-NW-1.png",
+      "alpha_bbox": [
+        35,
+        28,
+        98,
+        72
+      ]
+    },
+    {
+      "frame": "sleep-NW-2.png",
+      "alpha_bbox": [
+        35,
+        28,
+        98,
+        72
+      ]
+    },
+    {
+      "frame": "sleep-NW-3.png",
+      "alpha_bbox": [
+        35,
+        28,
+        98,
+        72
+      ]
+    },
+    {
+      "frame": "sleep-NE-0.png",
+      "alpha_bbox": [
+        7,
+        28,
+        69,
+        72
+      ]
+    },
+    {
+      "frame": "sleep-NE-1.png",
+      "alpha_bbox": [
+        7,
+        28,
+        69,
+        72
+      ]
+    },
+    {
+      "frame": "sleep-NE-2.png",
+      "alpha_bbox": [
+        7,
+        28,
+        69,
+        72
+      ]
+    },
+    {
+      "frame": "sleep-NE-3.png",
+      "alpha_bbox": [
+        7,
+        28,
+        69,
+        72
+      ]
+    }
+  ]
+}

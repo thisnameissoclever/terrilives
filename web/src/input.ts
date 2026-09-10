@@ -29,6 +29,7 @@
  */
 
 import { SPRITES } from './render/atlas.js';
+import { spriteDrawOffsetX, spriteDrawOffsetY } from './render/sprite-anchors.js';
 import {
   simBodySprite,
   VISUAL_ACTION_WALK,
@@ -76,6 +77,8 @@ export interface PickSource {
   kinds(): Uint32Array;
   /** The raw entity index in each row. NOT the row number; see `pickAt`. */
   ids(): Uint32Array;
+  /** Persistent household identity used by shirt selection. */
+  simIds?(): Uint32Array;
   /**
    * Atlas sprite index per row, which is what gives each entity its drawn
    * SIZE. Picking needs it because the thing a player aims at is the sprite,
@@ -310,6 +313,7 @@ export function pickSprite(
   const facings = source.facings?.() ?? null;
   const previous = source.prevPositions?.() ?? positions;
   const simulationTick = source.clockTick?.() ?? 0;
+  const simIds = source.simIds?.();
 
   let best: Pick | null = null;
   let bestNearness = -Infinity;
@@ -342,6 +346,7 @@ export function pickSprite(
             reducedMotion,
             wx,
             wy,
+            simIds?.[row],
           )
         : spriteIndices[row];
     const sprite = SPRITES[displayedSprite];
@@ -365,8 +370,9 @@ export function pickSprite(
     // zoomed quad, not the 1x quad floating over it. The position's own
     // scaling rides through `screenX`/`screenY` exactly as the renderer's
     // does.
-    const anchorX = screenX(wx, wy, originX, scale);
-    const anchorY = screenY(wx, wy, originY, scale) + TILE_HALF_HEIGHT * scale;
+    const anchorX = screenX(wx, wy, originX, scale) + spriteDrawOffsetX(displayedSprite) * scale;
+    const anchorY = screenY(wx, wy, originY, scale) +
+      (TILE_HALF_HEIGHT + spriteDrawOffsetY(displayedSprite)) * scale;
     const left = anchorX - (sprite.w / 2) * scale;
     const top = anchorY - sprite.h * scale;
     if (px < left || px > left + sprite.w * scale) continue;

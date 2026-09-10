@@ -1287,7 +1287,7 @@ mod tests {
         );
         assert_eq!(
             projection_of(sim.render_buffer(), sitter),
-            (visual_action::SIT, facing::POSITIVE_X, activity::SITTING,)
+            (visual_action::SIT, facing::POSITIVE_Y, activity::SITTING,)
         );
         assert_eq!(
             displayed_position_of(sim.render_buffer(), sitter),
@@ -1357,7 +1357,7 @@ mod tests {
         );
         assert_eq!(
             projection_of(restored.render_buffer(), sitter),
-            (visual_action::SIT, facing::POSITIVE_X, activity::SITTING,)
+            (visual_action::SIT, facing::POSITIVE_Y, activity::SITTING,)
         );
         assert_eq!(
             displayed_position_of(restored.render_buffer(), sitter),

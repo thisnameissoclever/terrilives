@@ -22,6 +22,8 @@ import {
   SIT_FRAME_TICKS,
   simBodySprite,
   simSprite,
+  legacySimBodySprite,
+  legacySimSprite,
   TALK_FRAME_TICKS,
   VISUAL_ACTION_EAT,
   VISUAL_ACTION_EXERCISE,
@@ -37,7 +39,15 @@ import {
   walkingFrame,
   type RenderSource,
 } from '../src/frame.js';
-import { spriteIndex } from '../src/render/atlas.js';
+import {
+  SPRITES,
+  SPRITE_ANCHORS,
+  SPRITE_CONTENT_TOPS,
+  SPRITE_HAND_ANCHORS,
+  SPRITE_HAND_FOREGROUND,
+  RIGGED_SIM_CLIPS,
+  spriteIndex,
+} from '../src/render/atlas.js';
 import type { TileLighting } from '../src/render/lighting.js';
 import {
   FLOOR_DEPTH,
@@ -47,7 +57,6 @@ import {
   layeredDepth,
   screenX,
   screenY,
-  worldToScreen,
 } from '../src/render/iso.js';
 import {
   FLOATS_PER_INSTANCE,
@@ -98,6 +107,34 @@ function stored(value: number): number {
   return Math.fround(value);
 }
 
+/** The shader's bottom-centre origin, registered to the physical world anchor. */
+function drawnPosition(
+  wx: number,
+  wy: number,
+  sprite: number,
+  originX = ORIGIN_X,
+  originY = ORIGIN_Y,
+  scale = 1,
+): number[] {
+  const entry = SPRITES[sprite];
+  const anchor = SPRITE_ANCHORS[sprite] ?? [entry.w / 2, entry.h];
+  return [
+    stored(screenX(wx, wy, originX, scale) + (entry.w / 2 - anchor[0]) * scale),
+    stored(screenY(wx, wy, originY, scale) + (entry.h - anchor[1]) * scale),
+  ];
+}
+
+function indicatorY(
+  wx: number,
+  wy: number,
+  sprite: number,
+  originY = ORIGIN_Y,
+  scale = 1,
+): number {
+  const anchorY = SPRITE_ANCHORS[sprite]?.[1] ?? SPRITES[sprite].h;
+  return stored(screenY(wx, wy, originY, scale) - (anchorY - (SPRITE_CONTENT_TOPS[sprite] ?? 0) - 4) * scale);
+}
+
 /** A deliberately sparse field for testing the renderer integration only. */
 function tileLighting(
   width: number,
@@ -121,8 +158,8 @@ function tileLighting(
  * interchangeable placeholders.
  *
  * An AGENT's sprite is not the one passed in, and that is the point of
- * [ML-chars]: a sim draws one of three looks chosen from its entity id,
- * so this helper applies the same rule `buildInstances` does. `row` is
+ * the approved rigged appearance shared by all Sims during testing.
+ * This helper applies the same selection contract. `row` is
  * how it reaches the id, since `FakeEntities` hands out `100 + row`.
  *
  * The tint tail is white and non-emissive, which is what every caller in
@@ -138,12 +175,13 @@ function packed(
   row = 0,
   emissive = 0,
 ): number[] {
-  const [screenX, screenY] = worldToScreen(wx, wy, originX, originY);
+  const displayed = kind === KIND_AGENT ? simSprite(100 + row) : sprite;
+  const [screenX, screenY] = drawnPosition(wx, wy, displayed, originX, originY);
   return [
     stored(screenX),
     stored(screenY),
     stored(layeredDepth(wx, wy, GRID, kind === KIND_AGENT ? LAYER_SIM : LAYER_PROP)),
-    kind === KIND_AGENT ? simSprite(100 + row) : sprite,
+    displayed,
     1,
     1,
     1,
@@ -514,7 +552,9 @@ describe('lerp', () => {
   });
 });
 
-describe('simBodySprite', () => {
+describe('legacy Sim atlas compatibility', () => {
+  const simBodySprite = legacySimBodySprite;
+  const simSprite = legacySimSprite;
   const looks = [
     { id: 96, prefix: 'sim' },
     { id: 97, prefix: 'sim2' },
@@ -1072,6 +1112,90 @@ describe('simBodySprite', () => {
   });
 });
 
+describe('approved rigged Sim selector', () => {
+  const actions = [
+    ['idle', 'Idle', 0, 1, 1],
+    ['walk', 'Walk', VISUAL_ACTION_WALK, 1, 8],
+    ['read', 'Read', VISUAL_ACTION_READ, READ_FRAME_TICKS, 4],
+    ['talk', 'Talk', VISUAL_ACTION_TALK, TALK_FRAME_TICKS, 4],
+    ['eat', 'Eat', VISUAL_ACTION_EAT, EAT_FRAME_TICKS, 4],
+    ['stand_read', 'StandRead', VISUAL_ACTION_STANDING_READ, READ_FRAME_TICKS, 4],
+    ['watch_fish', 'WatchFish', VISUAL_ACTION_WATCH_FISH, WATCH_FISH_FRAME_TICKS, 4],
+    ['sit', 'Sit', VISUAL_ACTION_SIT, SIT_FRAME_TICKS, 4],
+    ['sleep', 'Sleep', VISUAL_ACTION_SLEEP, SLEEP_FRAME_TICKS, 4],
+    ['exercise', 'Exercise', VISUAL_ACTION_EXERCISE, EXERCISE_FRAME_TICKS, 2],
+  ] as const;
+
+  it('selects every authored sample in all ten actions and four actual facings', () => {
+    expect(Object.keys(RIGGED_SIM_CLIPS).sort()).toEqual(actions.map(([name]) => name).sort());
+    for (const [name, stem, action, halfCycle, count] of actions) {
+      for (const [direction, suffix] of ['SE', 'NW', 'SW', 'NE'].entries()) {
+        const facing = direction + 1;
+        const frames = RIGGED_SIM_CLIPS[name].frames[direction];
+        expect(frames).toHaveLength(count);
+        for (let frame = 0; frame < count; frame++) {
+          const sign = facing === FACING_NEGATIVE_X || facing === FACING_NEGATIVE_Y ? -1 : 1;
+          const distance = sign * frame / count;
+          const x = facing <= 2 ? distance : 3;
+          const y = facing <= 2 ? 3 : distance;
+          const tick = frame * 2 * halfCycle / count;
+          const expected = spriteIndex(`rigSim${stem}${suffix}${frame}`);
+          expect(frames[frame]).toBe(expected);
+          expect(simBodySprite(0, action, facing, tick, false, x, y)).toBe(expected);
+          expect(simBodySprite(0, action, facing, tick, true, x, y)).toBe(frames[0]);
+        }
+      }
+    }
+  });
+
+  it('honours action timing boundaries, wraps, and id phase without a render clock', () => {
+    for (const [name, , action, halfCycle, count] of actions) {
+      if (action === VISUAL_ACTION_WALK || count === 1) continue;
+      const frames = RIGGED_SIM_CLIPS[name].frames[0];
+      const duration = 2 * halfCycle / count;
+      expect(simBodySprite(0, action, 1, duration - 0.01, false)).toBe(frames[0]);
+      expect(simBodySprite(0, action, 1, duration, false)).toBe(frames[1]);
+      expect(simBodySprite(0, action, 1, 2 * halfCycle, false)).toBe(frames[0]);
+      const phase = action === VISUAL_ACTION_TALK ? halfCycle : 1;
+      expect(simBodySprite(1, action, 1, duration, false)).toBe(frames[Math.floor((duration + phase) / duration) % count]);
+      const saved = { id: 1, action, facing: 1, tick: duration };
+      const before = simBodySprite(saved.id, saved.action, saved.facing, saved.tick, false);
+      const driver = new FixedStepDriver(10, 100);
+      driver.setSpeed(0);
+      driver.advance(10_000, () => saved.tick++);
+      expect(simBodySprite(saved.id, saved.action, saved.facing, saved.tick, false)).toBe(before);
+      const loaded = JSON.parse(JSON.stringify(saved)) as typeof saved;
+      expect(simBodySprite(loaded.id, loaded.action, loaded.facing, loaded.tick, false)).toBe(before);
+    }
+  });
+
+  it('advances all eight gait samples on negative axes independently of ticks and the other coordinate', () => {
+    for (const facing of [FACING_NEGATIVE_X, FACING_NEGATIVE_Y]) {
+      const frames = RIGGED_SIM_CLIPS.walk.frames[facing - 1];
+      for (let frame = 0; frame < 8; frame++) {
+        const axis = 2 - frame / 8;
+        for (const other of [-4.75, 0, 9.25]) {
+          const x = facing === FACING_NEGATIVE_X ? axis : other;
+          const y = facing === FACING_NEGATIVE_Y ? axis : other;
+          expect(simBodySprite(100, VISUAL_ACTION_WALK, facing, 0, false, x, y)).toBe(frames[frame]);
+          expect(simBodySprite(100, VISUAL_ACTION_WALK, facing, 10_000, false, x, y)).toBe(frames[frame]);
+        }
+      }
+    }
+  });
+
+  it('uses the approved cycling frames and rejects invalid facing with the approved idle', () => {
+    for (const facing of [1, 2, 3, 4]) {
+      expect(simBodySprite(101, VISUAL_ACTION_EXERCISE, facing, 12, false)).toBe(
+        RIGGED_SIM_CLIPS.exercise.frames[facing - 1][0],
+      );
+    }
+    for (const facing of [0, 5, -1, 1.5]) {
+      expect(simBodySprite(101, VISUAL_ACTION_READ, facing, 12, false)).toBe(spriteIndex('rigSimIdleSE0'));
+    }
+  });
+});
+
 describe('ambient aquarium animation', () => {
   const aquarium = spriteIndex('bookcaseClosedWide');
   const secondFrame = spriteIndex('aquariumCabinet1');
@@ -1266,8 +1390,7 @@ describe('buildInstances', () => {
       buildInstances(source, 0.5, ORIGIN_X, ORIGIN_Y, GRID, null, 1, false, 12),
       instanceCount(source, null),
     );
-    expect(built[OFFSET_SCREEN_X]).toBe(screenX(6.25, 4.75, ORIGIN_X));
-    expect(built[OFFSET_SCREEN_Y]).toBe(screenY(6.25, 4.75, ORIGIN_Y));
+    expect(built.slice(0, 2)).toEqual(drawnPosition(6.25, 4.75, built[OFFSET_SPRITE]));
     expect(built[OFFSET_SPRITE]).toBe(
       simBodySprite(
         100,
@@ -1331,8 +1454,7 @@ describe('buildInstances', () => {
     const projectedX = screenX(socketX, socketY, ORIGIN_X, scale);
     const projectedY = screenY(socketX, socketY, ORIGIN_Y, scale);
 
-    expect(built[body + OFFSET_SCREEN_X]).toBe(projectedX);
-    expect(built[body + OFFSET_SCREEN_Y]).toBe(projectedY);
+    expect(built.slice(body, body + 2)).toEqual(drawnPosition(socketX, socketY, built[body + OFFSET_SPRITE], ORIGIN_X, ORIGIN_Y, scale));
     expect(built[body + OFFSET_SPRITE]).toBe(
       simBodySprite(
         100,
@@ -1345,7 +1467,7 @@ describe('buildInstances', () => {
     expect(built[body + OFFSET_EMISSIVE]).toBe(stored(0.72));
 
     expect(built[indicator + OFFSET_SCREEN_X]).toBe(projectedX);
-    expect(built[indicator + OFFSET_SCREEN_Y]).toBe(projectedY - 84 * scale);
+    expect(built[indicator + OFFSET_SCREEN_Y]).toBe(indicatorY(socketX, socketY, built[body + OFFSET_SPRITE], ORIGIN_Y, scale));
     expect(built[indicator + OFFSET_SPRITE]).toBe(
       spriteIndex('indicatorReading'),
     );
@@ -1369,7 +1491,7 @@ describe('buildInstances', () => {
       buildInstances(source, 0.5, 0, 0, GRID),
       1,
     );
-    expect(beforeCorner[OFFSET_SCREEN_Y]).toBe(screenY(1.75, 1, 0));
+    expect(beforeCorner.slice(0, 2)).toEqual(drawnPosition(1.75, 1, beforeCorner[OFFSET_SPRITE], 0, 0));
     expect(beforeCorner[OFFSET_SPRITE]).toBe(
       simBodySprite(
         100,
@@ -1432,12 +1554,11 @@ describe('buildInstances', () => {
       buildInstances(source, 0.75, 0, 0, GRID, null, 1, true),
       1,
     );
-    expect(animated[OFFSET_SCREEN_X]).toBe(screenX(0.75, 0, 0));
-    expect(animated[OFFSET_SCREEN_Y]).toBe(screenY(0.75, 0, 0));
+    expect(animated.slice(0, 2)).toEqual(drawnPosition(0.75, 0, animated[OFFSET_SPRITE], 0, 0));
     expect(reduced[OFFSET_SCREEN_X]).toBe(animated[OFFSET_SCREEN_X]);
     expect(reduced[OFFSET_SCREEN_Y]).toBe(animated[OFFSET_SCREEN_Y]);
     expect(animated[OFFSET_SPRITE]).not.toBe(reduced[OFFSET_SPRITE]);
-    expect(reduced[OFFSET_SPRITE]).toBe(spriteIndex('sim2WalkSE0'));
+    expect(reduced[OFFSET_SPRITE]).toBe(spriteIndex('rigSimWalkSE0'));
   });
 
   it('interpolates between the previous and current tick rather than snapping', () => {
@@ -1519,8 +1640,12 @@ describe('buildInstances', () => {
     // rows are on the same tile, so nothing but the layer can separate
     // them. Without this the two could differ because they are in
     // different places, which is not the invariant.
-    expect(out[0]).toBe(out[FLOATS_PER_INSTANCE]);
-    expect(out[1]).toBe(out[FLOATS_PER_INSTANCE + 1]);
+    expect(out.slice(0, 2)).toEqual(drawnPosition(12, 10, out[OFFSET_SPRITE]));
+    expect(out.slice(FLOATS_PER_INSTANCE, FLOATS_PER_INSTANCE + 2)).toEqual(
+      drawnPosition(12, 10, out[FLOATS_PER_INSTANCE + OFFSET_SPRITE]),
+    );
+    expect(simDepth).toBe(stored(layeredDepth(12, 10, GRID, LAYER_SIM)));
+    expect(objectDepth).toBe(stored(layeredDepth(12, 10, GRID, LAYER_PROP)));
     expect(simDepth).toBeLessThan(objectDepth);
 
     // And both are still inside the clip range. A depth outside [0, 1]
@@ -1591,15 +1716,7 @@ describe('buildInstances', () => {
     );
   });
 
-  it('gives sims with different ids different faces', () => {
-    // [ML-chars], and the defect it fixes: before this the household was
-    // three identical people, which is the first thing anyone notices and
-    // the last thing any assertion here could see.
-    //
-    // Three sims rather than two. Two could differ by accident under any
-    // rule at all - including "alternate" - while three consecutive ids
-    // taking three DISTINCT looks is the property that actually holds the
-    // mapping down.
+  it('shares the approved appearance without collapsing entity positions or ids', () => {
     const view = new FakeEntities();
     view.set([
       [0, 0, 0, 0, KIND_AGENT, 1],
@@ -1611,34 +1728,26 @@ describe('buildInstances', () => {
     const faces = [0, 1, 2].map(
       (row) => out[row * FLOATS_PER_INSTANCE + OFFSET_SPRITE],
     );
-    expect(new Set(faces).size).toBe(3);
-    // And they are the three character entries, by name. Distinctness
-    // alone would be satisfied by three arbitrary atlas slots - a chair,
-    // a bathtub and a doorway are also distinct.
-    expect(new Set(faces)).toEqual(
-      new Set([spriteIndex('sim'), spriteIndex('sim2'), spriteIndex('sim3')]),
-    );
+    expect(faces).toEqual(Array(3).fill(spriteIndex('rigSimIdleSE0')));
+    expect(Array.from(view.ids())).toEqual([100, 101, 102]);
+    expect(new Set([0, 1, 2].map((row) => out[row * FLOATS_PER_INSTANCE])).size).toBe(3);
   });
 
-  it('keeps a sim on the same face when its ROW moves', () => {
-    // A despawn reorders the buffer. Keyed on the row instead of the id,
-    // two sims would swap faces the moment a third one left the lot -
-    // which reads as the household changing clothes at a doorway.
+  it('keeps selection on the same entity after its row moves despite shared appearance', () => {
     const view = new FakeEntities();
     view.set([
       [0, 0, 0, 0, KIND_AGENT, 1],
       [1, 0, 1, 0, KIND_AGENT, 1],
     ]);
-    const before = snapshot(buildInstances(view, 1, ORIGIN_X, ORIGIN_Y, GRID), 2);
+    const before = snapshot(buildInstances(view, 1, ORIGIN_X, ORIGIN_Y, GRID, 101), 3);
     const secondFace = before[FLOATS_PER_INSTANCE + OFFSET_SPRITE];
 
-    // `FakeEntities` ids are `100 + row`, so dropping the first row moves
-    // the second sim to row 0 while its id stays 101 - except the fake
-    // recomputes ids from rows, so the honest version of this test is the
-    // function itself: same id in, same face out, whatever the row.
-    expect(simSprite(101)).toBe(secondFace);
-    expect(simSprite(101)).toBe(simSprite(101));
-    expect(simSprite(100)).not.toBe(simSprite(101));
+    view.set([[1, 0, 1, 0, KIND_AGENT, 1]]);
+    view.ids = () => Uint32Array.from([101]);
+    const after = snapshot(buildInstances(view, 1, ORIGIN_X, ORIGIN_Y, GRID, 101), 2);
+    expect(after[OFFSET_SPRITE]).toBe(secondFace);
+    expect(after.slice(FLOATS_PER_INSTANCE)).toEqual(before.slice(2 * FLOATS_PER_INSTANCE));
+    expect(after[FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(spriteIndex('selectionRing'));
   });
 
   it('marks a lamp emissive so it does not go out at night', () => {
@@ -1765,9 +1874,9 @@ describe('buildInstances', () => {
     view.set([[2, 0, 3, 0, 0, 2]]);
     const third = readAtCurrent();
 
-    expect([first[0], first[1]]).toEqual(worldToScreen(1, 0, 0, 0));
-    expect([second[0], second[1]]).toEqual(worldToScreen(2, 0, 0, 0));
-    expect([third[0], third[1]]).toEqual(worldToScreen(3, 0, 0, 0));
+    expect(first.slice(0, 2)).toEqual(drawnPosition(1, 0, first[OFFSET_SPRITE], 0, 0));
+    expect(second.slice(0, 2)).toEqual(drawnPosition(2, 0, second[OFFSET_SPRITE], 0, 0));
+    expect(third.slice(0, 2)).toEqual(drawnPosition(3, 0, third[OFFSET_SPRITE], 0, 0));
   });
 
   it('reuses one scratch buffer across frames instead of allocating per frame', () => {
@@ -1839,10 +1948,10 @@ describe('activity indicator bubbles', () => {
     const bubbleBase = 3 * FLOATS_PER_INSTANCE;
     const simBase = 0;
     expect(built[bubbleBase + OFFSET_SCREEN_X]).toBe(
-      built[simBase + OFFSET_SCREEN_X],
+      screenX(1, 1, ORIGIN_X),
     );
     expect(built[bubbleBase + OFFSET_SCREEN_Y]).toBe(
-      built[simBase + OFFSET_SCREEN_Y] - 84,
+      indicatorY(1, 1, built[simBase + OFFSET_SPRITE]),
     );
     // Nearer than its own sim, by less than anything else could sit
     // between: a tie discards one quad, a big nudge reorders strangers.
@@ -1931,14 +2040,13 @@ describe('the carried badge', () => {
     expect(instanceCount(src, null)).toBe(3);
     const built = buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID);
     const badgeBase = 2 * FLOATS_PER_INSTANCE;
-    const simBase = 0;
     // Hand height and off to the side, so the bag reads as held
     // rather than worn - the plate-hat report.
     expect(built[badgeBase + OFFSET_SCREEN_X]).toBe(
-      built[simBase + OFFSET_SCREEN_X] + 14,
+      screenX(1, 1, ORIGIN_X) + 14,
     );
     expect(built[badgeBase + OFFSET_SCREEN_Y]).toBe(
-      built[simBase + OFFSET_SCREEN_Y] - 24,
+      screenY(1, 1, ORIGIN_Y) - 24,
     );
 
     // The transform, visible: the same row carrying kind 1 draws a
@@ -1961,7 +2069,7 @@ describe('the carried badge', () => {
     const ring = 2 * FLOATS_PER_INSTANCE;
     const groundY = screenY(0.25, 0, 0);
 
-    expect(built[body + OFFSET_SCREEN_Y]).toBe(groundY);
+    expect(built[body + OFFSET_SCREEN_Y]).toBe(drawnPosition(0.25, 0, built[body + OFFSET_SPRITE], 0, 0)[1]);
     expect(built[badge + OFFSET_SCREEN_Y]).toBe(groundY - 24);
     expect(built[ring + OFFSET_SCREEN_Y]).toBe(groundY);
     expect(built[ring + OFFSET_DEPTH]).toBeGreaterThan(
@@ -1969,26 +2077,24 @@ describe('the carried badge', () => {
     );
   });
 
-  it('centres snack and dinner on every eating hand in both sixteen-tick frames', () => {
-    const handCases = [
-      { facing: FACING_POSITIVE_X, offsets: [[12, -34], [10, -41]] },
-      { facing: FACING_NEGATIVE_X, offsets: [[-12, -37], [-10, -45]] },
-      { facing: FACING_POSITIVE_Y, offsets: [[-12, -34], [-10, -41]] },
-      { facing: FACING_NEGATIVE_Y, offsets: [[12, -37], [10, -45]] },
-    ] as const;
+  it('centres snack and dinner on every exported eating hand sample in every facing', () => {
     const lighting = tileLighting(3, 3, [[1, 1, 0.6]]);
     const scale = 2;
+    const foregroundSamples = new Set<number>();
+    const rearNeSamples = new Set<number>();
 
-    for (const { facing, offsets } of handCases) {
-      for (const [carrying, spriteName, centreCorrection] of [
-        [0xffff_ffff, 'heldSnack', 0],
-        [1, 'carried_dinner', 2],
+    for (const facing of [FACING_POSITIVE_X, FACING_NEGATIVE_X, FACING_POSITIVE_Y, FACING_NEGATIVE_Y]) {
+      for (const [carrying, spriteName] of [
+        [0xffff_ffff, 'heldSnack'],
+        [1, 'carried_dinner'],
       ] as const) {
         src.set([[
           1, 1, 1, 1, KIND_AGENT, 3, ACTIVITY_EATING, carrying,
           VISUAL_ACTION_EAT, facing,
         ]]);
-        for (const [simulationTick, frame] of [[0, 0], [12, 1]] as const) {
+        const frames = RIGGED_SIM_CLIPS.eat.frames[facing - 1];
+        const seen = new Set<number>();
+        for (let simulationTick = 0; simulationTick < EAT_FRAME_TICKS * 2; simulationTick++) {
           const liveCount = instanceCount(src, 100);
           const built = snapshot(
             buildInstances(
@@ -2009,24 +2115,53 @@ describe('the carried badge', () => {
           const body = 0;
           const food = 2 * FLOATS_PER_INSTANCE;
           const ring = 3 * FLOATS_PER_INSTANCE;
+          const bodySprite = built[body + OFFSET_SPRITE];
+          seen.add(bodySprite);
+          expect(frames).toContain(bodySprite);
+          const anchor = SPRITE_ANCHORS[bodySprite]!;
+          const hand = SPRITE_HAND_ANCHORS[bodySprite]!;
+          expect(hand).toBeDefined();
           expect(built[food + OFFSET_SPRITE]).toBe(spriteIndex(spriteName));
           expect(built[food + OFFSET_SCREEN_X]).toBe(
-            built[body + OFFSET_SCREEN_X] + offsets[frame][0] * scale,
+            stored(screenX(1, 1, ORIGIN_X, scale) + (hand[0] - anchor[0]) * scale),
           );
           expect(built[food + OFFSET_SCREEN_Y]).toBe(
-            built[body + OFFSET_SCREEN_Y] +
-              (offsets[frame][1] + centreCorrection) * scale,
+            stored(screenY(1, 1, ORIGIN_Y, scale) +
+              (hand[1] - anchor[1] + SPRITES[spriteIndex(spriteName)].h / 2) * scale),
           );
           expect(built[food + OFFSET_EMISSIVE]).toBe(stored(0.6));
           expect(built[ring + OFFSET_SCREEN_X]).toBe(
-            built[body + OFFSET_SCREEN_X],
+            screenX(1, 1, ORIGIN_X, scale),
           );
           expect(built[ring + OFFSET_SCREEN_Y]).toBe(
-            built[body + OFFSET_SCREEN_Y],
+            screenY(1, 1, ORIGIN_Y, scale),
           );
+          const handInFront = SPRITE_HAND_FOREGROUND[bodySprite];
+          expect(typeof handInFront).toBe('boolean');
+          expect(built[body + OFFSET_DEPTH]).toBe(
+            stored(layeredDepth(1, 1, GRID, LAYER_SIM)),
+          );
+          expect(built[food + OFFSET_DEPTH]).toBe(
+            stored(layeredDepth(1, 1, GRID, LAYER_SIM) + (handInFront ? -1e-5 : 1e-5)),
+          );
+          if (handInFront) {
+            foregroundSamples.add(bodySprite);
+            expect(built[food + OFFSET_DEPTH]).toBeLessThan(built[body + OFFSET_DEPTH]);
+          } else {
+            if (facing === FACING_NEGATIVE_Y) rearNeSamples.add(bodySprite);
+            expect(built[food + OFFSET_DEPTH]).toBeGreaterThan(built[body + OFFSET_DEPTH]);
+          }
+          expect(built[ring + OFFSET_DEPTH]).toBe(
+            stored(layeredDepth(1, 1, GRID, LAYER_PROP)),
+          );
+          expect(built[food + OFFSET_DEPTH]).toBeLessThan(built[ring + OFFSET_DEPTH]);
         }
+        expect(seen).toEqual(new Set(frames));
       }
     }
+    expect(foregroundSamples.size).toBeGreaterThan(0);
+    // NE food must be occluded by the rear-facing head in at least one sample.
+    expect(rearNeSamples.size).toBeGreaterThan(0);
   });
 
   it('pins eating food to frame zero under reduced motion', () => {
@@ -2039,8 +2174,12 @@ describe('the carried badge', () => {
       instanceCount(src, null),
     );
     const food = 2 * FLOATS_PER_INSTANCE;
-    expect(built[food + OFFSET_SCREEN_X]).toBe(screenX(1, 1, ORIGIN_X) - 12);
-    expect(built[food + OFFSET_SCREEN_Y]).toBe(screenY(1, 1, ORIGIN_Y) - 37);
+    const body = RIGGED_SIM_CLIPS.eat.frames[FACING_NEGATIVE_X - 1][0];
+    expect(built[OFFSET_SPRITE]).toBe(body);
+    const anchor = SPRITE_ANCHORS[body]!;
+    const hand = SPRITE_HAND_ANCHORS[body]!;
+    expect(built[food + OFFSET_SCREEN_X]).toBe(stored(screenX(1, 1, ORIGIN_X) + hand[0] - anchor[0]));
+    expect(built[food + OFFSET_SCREEN_Y]).toBe(stored(screenY(1, 1, ORIGIN_Y) + hand[1] - anchor[1] + SPRITES[spriteIndex('heldSnack')].h / 2));
   });
 
   it('does not invent snack props for malformed or generic sibling states', () => {
@@ -2236,7 +2375,7 @@ describe('buildInstances over a real SimBridge', () => {
       savedTickFrame[body + OFFSET_SPRITE],
     );
     expect(after[body + OFFSET_SCREEN_Y]).toBe(
-      screenY(savedPosition[0], savedPosition[1], ORIGIN_Y),
+      drawnPosition(savedPosition[0], savedPosition[1], after[body + OFFSET_SPRITE])[1],
     );
   });
 });
@@ -2336,8 +2475,8 @@ describe('the selection ring', () => {
     const instances = buildInstances(source, 0.5, ORIGIN_X, ORIGIN_Y, GRID, 100);
     const ring = slot(instances, 1);
     const sim = slot(instances, 0);
-    expect(ring.x).toBe(sim.x);
-    expect(ring.y).toBe(sim.y);
+    expect([sim.x, sim.y]).toEqual(drawnPosition(5, 4, sim.sprite));
+    expect(ring.y).toBe(screenY(5, 4, ORIGIN_Y));
     // And that really is the interpolated point, not either endpoint - so a
     // ring drawn from the tick position instead would fail here.
     expect(ring.x).toBe(screenX(5, 4, ORIGIN_X));
@@ -2365,7 +2504,7 @@ describe('lower-bunk foreground composition', () => {
 
     expect(built[bedBase + OFFSET_SPRITE]).toBe(bed);
     expect(built[sleeperBase + OFFSET_SPRITE]).toBe(
-      spriteIndex('sim3SleepSE0'),
+      spriteIndex('rigSimSleepSE0'),
     );
     expect(built[foregroundBase + OFFSET_SPRITE]).toBe(foreground);
     expect(built[foregroundBase + OFFSET_DEPTH]).toBe(
@@ -2374,8 +2513,11 @@ describe('lower-bunk foreground composition', () => {
     expect(built[foregroundBase + OFFSET_DEPTH]).toBeLessThan(
       built[sleeperBase + OFFSET_DEPTH],
     );
+    expect(built[sleeperBase + OFFSET_DEPTH]).toBeLessThan(
+      built[bedBase + OFFSET_DEPTH],
+    );
     expect(built[bubbleBase + OFFSET_SCREEN_Y]).toBe(
-      built[sleeperBase + OFFSET_SCREEN_Y] - 68,
+      indicatorY(6, 4, built[sleeperBase + OFFSET_SPRITE]),
     );
   });
 });
@@ -2409,8 +2551,7 @@ describe('the camera scale in buildInstances', () => {
     // The world term doubles around the origin; the origin itself does
     // not move (a scaled origin would slide the lot toward a corner -
     // main.ts recentres by deriving a NEW origin instead).
-    expect(at2.x).toBe(screenX(3, 2, ORIGIN_X, 2));
-    expect(at2.y).toBe(screenY(3, 2, ORIGIN_Y, 2));
+    expect([at2.x, at2.y]).toEqual(drawnPosition(3, 2, at2.sprite, ORIGIN_X, ORIGIN_Y, 2));
     expect(at2.x - ORIGIN_X).toBeCloseTo((at1.x - ORIGIN_X) * 2, 6);
     // Depth stays in world terms: zoom changes how big things are
     // drawn, never what covers what. A scaled depth would re-sort the
@@ -2419,9 +2560,8 @@ describe('the camera scale in buildInstances', () => {
   });
 
   it('lifts an indicator bubble by the scaled height of its sim', () => {
-    // The sim sprite draws `scale` times taller, so an unscaled 84 px
-    // lift would sink the bubble into a zoomed head. The bubble sits at
-    // the sim's scaled screen y minus the scaled lift.
+    // The lift follows visible content and physical registration, not the
+    // clip's transparent canvas padding, and scales with the camera.
     const source = new FakeEntities();
     source.set([[3, 2, 3, 2, KIND_AGENT, 1, TALKING]]);
 
@@ -2436,7 +2576,7 @@ describe('the camera scale in buildInstances', () => {
     );
     const sim = slot(instances, 0);
     const bubble = slot(instances, 1);
-    expect(bubble.x).toBe(sim.x);
-    expect(bubble.y).toBe(sim.y - 84 * 2);
+    expect(bubble.x).toBe(screenX(3, 2, ORIGIN_X, 2));
+    expect(bubble.y).toBe(indicatorY(3, 2, sim.sprite, ORIGIN_Y, 2));
   });
 });
