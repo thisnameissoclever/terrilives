@@ -50,6 +50,29 @@ class ExportTests(unittest.TestCase):
         self.assertEqual(export.sprites[0][1].getpixel((19, 44)), (120, 80, 40, 128))
         self.assertEqual(export.clips["walk"]["frame_count"], 2)
 
+    def test_density_requires_positive_integer_not_boolean(self):
+        for value in (0, -1, True, False, 1.5, "2", None):
+            with self.subTest(value=value):
+                self.manifest["pixel_density"] = value
+                with self.assertRaisesRegex(ValueError, "pixel_density"):
+                    self.load()
+
+    def test_density_validates_physical_size_and_normalizes_content_top_once(self):
+        self.manifest["pixel_density"] = 2
+        with self.assertRaisesRegex(ValueError, "76x176"):
+            self.load()
+        for row in self.manifest["frames"]:
+            path = self.root / row["path"]
+            image = Image.new("RGBA", (76, 176))
+            image.putpixel((38, 89), (120, 80, 40, 255))
+            image.save(path)
+            row["sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+        export = self.load()
+        self.assertEqual(export.pixel_density, 2)
+        self.assertEqual(export.sprites[0][2:], (76, 176))
+        self.assertEqual(export.frames["rigSimWalkSE0"]["content_top"], 44.5)
+        self.assertEqual(export.clips["walk"]["anchor"], [19, 88])
+
     def test_orders_frames_independently_of_manifest_row_order(self):
         expected = [row["name"] for row in self.manifest["frames"]]
         self.manifest["frames"].reverse()
@@ -194,6 +217,12 @@ class ExportTests(unittest.TestCase):
 
 
 class AtlasAlphaTests(unittest.TestCase):
+    def test_packing_rejects_width_overflow_and_baseline_height(self):
+        for size, width in (((513, 1), 512), ((1, 8193), 2048), ((1, 1), 8193)):
+            with self.subTest(size=size, width=width):
+                with self.assertRaisesRegex(ValueError, "dimension"):
+                    build.pack([("frame", Image.new("RGBA", size), *size)], width=width)
+
     def test_compose_preserves_straight_rgba(self):
         source = Image.new("RGBA", (2, 1))
         source.putdata([(120, 80, 40, 128), (220, 170, 100, 255)])

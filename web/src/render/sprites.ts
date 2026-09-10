@@ -7,6 +7,7 @@ import {
   SPRITES,
 } from './atlas.js';
 import type { GpuContext } from './device.js';
+import { spriteWidth, spriteHeight } from './sprite-size.js';
 import {
   BYTES_PER_INSTANCE,
   FLOATS_PER_INSTANCE,
@@ -40,11 +41,9 @@ export function atlasTextureUrl(baseUrl: string): string {
  * Packs the atlas manifest into the layout `struct Sprite` expects.
  *
  * Built once at start-up. `uv` is normalised because texture coordinates
- * are, and `size` stays in pixels because the quad is drawn one texel to
- * one pixel - so the manifest's `w` and `h` are simultaneously the
- * sprite's extent in the atlas and its extent on screen.
+ * are, while `size` uses logical pixels independent of texture density.
  */
-function packSpriteTable(): Float32Array<ArrayBuffer> {
+export function packSpriteTable(): Float32Array<ArrayBuffer> {
   // Sized by what the atlas holds. There is no cap to check against any
   // more: the shader's array is runtime-sized, so an atlas of any length
   // indexes correctly rather than clamping past the end.
@@ -65,10 +64,18 @@ function packSpriteTable(): Float32Array<ArrayBuffer> {
     table[base + 1] = sprite.y / ATLAS_HEIGHT;
     table[base + 2] = (sprite.x + sprite.w) / ATLAS_WIDTH;
     table[base + 3] = (sprite.y + sprite.h) / ATLAS_HEIGHT;
-    table[base + 4] = sprite.w;
-    table[base + 5] = sprite.h;
+    table[base + 4] = spriteWidth(index);
+    table[base + 5] = spriteHeight(index);
   });
   return table;
+}
+
+/** Enforce the portable atlas ceiling and the actual device before allocation. */
+export function validateAtlasDimensions(width: number, height: number, deviceLimit: number): void {
+  const limit = Math.min(8192, deviceLimit);
+  if (width > limit || height > limit) {
+    throw new Error(`atlas ${width}x${height} exceeds texture dimension limit ${limit}`);
+  }
 }
 
 /**
@@ -81,7 +88,8 @@ function packSpriteTable(): Float32Array<ArrayBuffer> {
  * getting that pair wrong darkens every antialiased edge in the game by
  * an amount too small to notice and too consistent to explain.
  */
-async function loadAtlasTexture(device: GPUDevice): Promise<GPUTexture> {
+export async function loadAtlasTexture(device: GPUDevice): Promise<GPUTexture> {
+  validateAtlasDimensions(ATLAS_WIDTH, ATLAS_HEIGHT, device.limits.maxTextureDimension2D);
   // Generated under `web/public/` and served at the app's own base. Not a
   // bundler import: the atlas is a build output of the whole project, and
   // importing it from outside the Vite root made the dev server hand out a

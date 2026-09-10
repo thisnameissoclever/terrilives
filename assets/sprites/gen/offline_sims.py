@@ -24,12 +24,16 @@ class SimExport:
     clips: dict
     frames: dict
     variant: str = "green"
+    pixel_density: int = 1
 
 
 def load_export(manifest_path, *, required_clips=(), existing_names=(), expected_variant="green"):
     """Load only complete clips; pilot exports cannot satisfy a full-set gate."""
     path = Path(manifest_path).resolve()
     data = json.loads(path.read_text(encoding="utf-8-sig"))
+    density = data.get("pixel_density", 1)
+    if type(density) is not int or density < 1:
+        raise ValueError("pixel_density must be a positive integer")
     variant = data.get("variant", "green")
     if variant not in ("green", "blue", "red") or variant != expected_variant:
         raise ValueError(f"unexpected Sim shirt variant: {variant}")
@@ -95,8 +99,8 @@ def load_export(manifest_path, *, required_clips=(), existing_names=(), expected
             raise ValueError(f"{name}: source hash mismatch")
         with Image.open(image_path) as image:
             width, height = clips[action]["width"], clips[action]["height"]
-            if image.format != "PNG" or image.mode != "RGBA" or image.size != (width, height):
-                raise ValueError(f"{name}: expected an RGBA PNG at {width}x{height}")
+            if image.format != "PNG" or image.mode != "RGBA" or image.size != (width * density, height * density):
+                raise ValueError(f"{name}: expected an RGBA PNG at {width * density}x{height * density}")
             crop = image.copy()
         bounds = crop.getchannel("A").getbbox()
         if bounds is None:
@@ -108,8 +112,8 @@ def load_export(manifest_path, *, required_clips=(), existing_names=(), expected
             raise ValueError(f"{name}: eating requires a visible finite hand_anchor")
         if action == "eat" and type(row.get("hand_in_front")) is not bool:
             raise ValueError(f"{name}: eating requires an explicit hand_in_front depth order")
-        row["content_top"] = bounds[1]
-        indexed[(action, facing, frame)] = (name, crop, width, height)
+        row["content_top"] = bounds[1] / density
+        indexed[(action, facing, frame)] = (name, crop, width * density, height * density)
         metadata[name] = row
     expected = [
         (action, facing, frame)
@@ -119,7 +123,7 @@ def load_export(manifest_path, *, required_clips=(), existing_names=(), expected
     ]
     if set(indexed) != set(expected):
         raise ValueError("every clip must have complete contiguous samples in all four facings")
-    return SimExport([indexed[key] for key in expected], clips, metadata, variant)
+    return SimExport([indexed[key] for key in expected], clips, metadata, variant, density)
 
 
 def runtime_tables(export, all_sprites):

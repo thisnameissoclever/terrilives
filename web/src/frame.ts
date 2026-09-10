@@ -26,6 +26,7 @@ import {
 import { SPRITES, RIGGED_SIM_VARIANTS, SPRITE_ANCHORS, SPRITE_HAND_ANCHORS, SPRITE_HAND_FOREGROUND, spriteIndex } from './render/atlas.js';
 import { distanceAnimationFrame, tickAnimationFrame } from './render/sim-animation.js';
 import { spriteContentLift, spriteDrawOffsetX, spriteDrawOffsetY } from './render/sprite-anchors.js';
+import { spriteHeight } from './render/sprite-size.js';
 import {
   emissiveForSprite,
   sampleLight,
@@ -1042,8 +1043,8 @@ export function buildInstances(
       writeInstance(
         scratch,
         slot++,
-        screenX(wx, wy, originX, scale),
-        screenY(wx, wy, originY, scale),
+        screenX(wx, wy, originX, scale) + spriteDrawOffsetX(sprite) * scale,
+        screenY(wx, wy, originY, scale) + spriteDrawOffsetY(sprite) * scale,
         layeredDepth(wx, wy, gridSize, LAYER_FOREGROUND),
         sprite,
         TINT_NONE,
@@ -1136,7 +1137,7 @@ export function buildInstances(
       const hand = SPRITE_HAND_ANCHORS[body];
       const anchor = SPRITE_ANCHORS[body];
       foodX = hand[0] - anchor[0];
-      foodY = hand[1] - anchor[1] + SPRITES[sprite].h / 2;
+      foodY = hand[1] - anchor[1] + spriteHeight(sprite) / 2;
       foodDepthNudge = SPRITE_HAND_FOREGROUND[body]
         ? -INDICATOR_DEPTH_NUDGE : INDICATOR_DEPTH_NUDGE;
     }

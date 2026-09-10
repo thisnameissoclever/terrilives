@@ -30,6 +30,7 @@
 
 import { SPRITES } from './render/atlas.js';
 import { spriteDrawOffsetX, spriteDrawOffsetY } from './render/sprite-anchors.js';
+import { spriteWidth, spriteHeight } from './render/sprite-size.js';
 import {
   simBodySprite,
   VISUAL_ACTION_WALK,
@@ -373,9 +374,9 @@ export function pickSprite(
     const anchorX = screenX(wx, wy, originX, scale) + spriteDrawOffsetX(displayedSprite) * scale;
     const anchorY = screenY(wx, wy, originY, scale) +
       (TILE_HALF_HEIGHT + spriteDrawOffsetY(displayedSprite)) * scale;
-    const left = anchorX - (sprite.w / 2) * scale;
-    const top = anchorY - sprite.h * scale;
-    if (px < left || px > left + sprite.w * scale) continue;
+    const left = anchorX - (spriteWidth(displayedSprite) / 2) * scale;
+    const top = anchorY - spriteHeight(displayedSprite) * scale;
+    if (px < left || px > left + spriteWidth(displayedSprite) * scale) continue;
     if (py < top || py > anchorY) continue;
 
     const nearness = wx + wy;

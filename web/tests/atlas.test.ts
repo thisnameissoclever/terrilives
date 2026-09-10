@@ -42,6 +42,7 @@ interface ManifestSprite {
   y: number;
   w: number;
   h: number;
+  pixel_density?: number;
 }
 
 function readManifest(): {
@@ -70,6 +71,7 @@ function readManifest(): {
         y: Number(field('y')),
         w: Number(field('w')),
         h: Number(field('h')),
+        pixel_density: Number(block[1].match(/^pixel_density = (\d+)/m)?.[1] ?? 1),
       };
     },
   );
@@ -101,6 +103,7 @@ describe('the atlas manifest', () => {
     expect(
       SPRITES.map((s) => [s.x, s.y, s.w, s.h]),
     ).toEqual(manifest.sprites.map((s) => [s.x, s.y, s.w, s.h]));
+    expect(SPRITES.map(s => s.pixel_density ?? 1)).toEqual(manifest.sprites.map(s => s.pixel_density));
     expect([ATLAS_WIDTH, ATLAS_HEIGHT]).toEqual([
       manifest.width,
       manifest.height,
@@ -371,7 +374,8 @@ describe('the atlas manifest', () => {
       const index = spriteIndex(frame.name);
       expect(index).toBeGreaterThanOrEqual(368);
       const clip = manifest.clips[frame.action];
-      expect([SPRITES[index].w, SPRITES[index].h]).toEqual([clip.width, clip.height]);
+      expect(SPRITES[index].pixel_density).toBe(2);
+      expect([SPRITES[index].w, SPRITES[index].h]).toEqual([clip.width * 2, clip.height * 2]);
       expect(SPRITE_ANCHORS[index]).toEqual(clip.anchor);
       expect(SPRITE_CONTENT_TOPS[index]).toBeGreaterThan(0);
       expect(RIGGED_SIM_CLIPS[frame.action].frames[facings.indexOf(frame.facing)][frame.frame]).toBe(index);
