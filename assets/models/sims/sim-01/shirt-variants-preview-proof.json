@@ -1,0 +1,1190 @@
+{
+  "source_rig_sha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+  "mode": "preview",
+  "variants": {
+    "blue": {
+      "target_linear_rgba": {
+        "Washed sage overshirt": [
+          0.045,
+          0.18,
+          0.38,
+          1.0
+        ],
+        "Sage seam and cuff": [
+          0.035,
+          0.135,
+          0.285,
+          1.0
+        ],
+        "Sage folded collar fabric": [
+          0.055,
+          0.205,
+          0.42,
+          1.0
+        ]
+      },
+      "material_changes": [
+        {
+          "material": "Sage folded collar fabric",
+          "field": "Color Ramp/ramp",
+          "before": [
+            {
+              "position": 0.0,
+              "color": [
+                0.09517167508602142,
+                0.12620730698108673,
+                0.10545516759157181,
+                1.0
+              ]
+            },
+            {
+              "position": 0.33000001311302185,
+              "color": [
+                0.14890019595623016,
+                0.1989029496908188,
+                0.16544435918331146,
+                1.0
+              ]
+            },
+            {
+              "position": 0.5299999713897705,
+              "color": [
+                0.2273416519165039,
+                0.3054337501525879,
+                0.25315019488334656,
+                1.0
+              ]
+            },
+            {
+              "position": 0.8500000238418579,
+              "color": [
+                0.2768654525279999,
+                0.3728412091732025,
+                0.3085695505142212,
+                1.0
+              ]
+            }
+          ],
+          "after": [
+            {
+              "position": 0.0,
+              "color": [
+                0.02059570699930191,
+                0.07566951215267181,
+                0.1564236879348755,
+                1.0
+              ]
+            },
+            {
+              "position": 0.33000001311302185,
+              "color": [
+                0.03222287446260452,
+                0.11925529688596725,
+                0.24540682137012482,
+                1.0
+              ]
+            },
+            {
+              "position": 0.5299999713897705,
+              "color": [
+                0.04919806495308876,
+                0.18312746286392212,
+                0.3755025863647461,
+                1.0
+              ]
+            },
+            {
+              "position": 0.8500000238418579,
+              "color": [
+                0.05991530418395996,
+                0.22354263067245483,
+                0.4577071964740753,
+                1.0
+              ]
+            }
+          ]
+        },
+        {
+          "material": "Sage seam and cuff",
+          "field": "Color Ramp/ramp",
+          "before": [
+            {
+              "position": 0.0,
+              "color": [
+                0.05787310749292374,
+                0.08416547626256943,
+                0.07030320167541504,
+                1.0
+              ]
+            },
+            {
+              "position": 0.33000001311302185,
+              "color": [
+                0.08917742222547531,
+                0.13122524321079254,
+                0.10902039706707001,
+                1.0
+              ]
+            },
+            {
+              "position": 0.5299999713897705,
+              "color": [
+                0.13452333211898804,
+                0.19980834424495697,
+                0.16528823971748352,
+                1.0
+              ]
+            },
+            {
+              "position": 0.8500000238418579,
+              "color": [
+                0.16301853954792023,
+                0.24306222796440125,
+                0.20071615278720856,
+                1.0
+              ]
+            }
+          ],
+          "after": [
+            {
+              "position": 0.0,
+              "color": [
+                0.01350734569132328,
+                0.050900161266326904,
+                0.10861316323280334,
+                1.0
+              ]
+            },
+            {
+              "position": 0.33000001311302185,
+              "color": [
+                0.02081364579498768,
+                0.07936016470193863,
+                0.16842831671237946,
+                1.0
+              ]
+            },
+            {
+              "position": 0.5299999713897705,
+              "color": [
+                0.03139719367027283,
+                0.12083668261766434,
+                0.25535792112350464,
+                1.0
+              ]
+            },
+            {
+              "position": 0.8500000238418579,
+              "color": [
+                0.03804785758256912,
+                0.14699502289295197,
+                0.31009137630462646,
+                1.0
+              ]
+            }
+          ]
+        },
+        {
+          "material": "Washed sage overshirt",
+          "field": "Color Ramp/ramp",
+          "before": [
+            {
+              "position": 0.0,
+              "color": [
+                0.08549822866916656,
+                0.11959011852741241,
+                0.09950356930494308,
+                1.0
+              ]
+            },
+            {
+              "position": 0.33000001311302185,
+              "color": [
+                0.13336357474327087,
+                0.18822462856769562,
+                0.1558661311864853,
+                1.0
+              ]
+            },
+            {
+              "position": 0.5299999713897705,
+              "color": [
+                0.20313696563243866,
+                0.2887358069419861,
+                0.23820436000823975,
+                1.0
+              ]
+            },
+            {
+              "position": 0.8500000238418579,
+              "color": [
+                0.24714763462543488,
+                0.3523087799549103,
+                0.29020756483078003,
+                1.0
+              ]
+            }
+          ],
+          "after": [
+            {
+              "position": 0.0,
+              "color": [
+                0.016951536759734154,
+                0.06661511212587357,
+                0.14195817708969116,
+                1.0
+              ]
+            },
+            {
+              "position": 0.33000001311302185,
+              "color": [
+                0.02644168771803379,
+                0.10484649240970612,
+                0.22236862778663635,
+                1.0
+              ]
+            },
+            {
+              "position": 0.5299999713897705,
+              "color": [
+                0.04027549549937248,
+                0.16083408892154694,
+                0.3398376405239105,
+                1.0
+              ]
+            },
+            {
+              "position": 0.8500000238418579,
+              "color": [
+                0.04900139197707176,
+                0.19624605774879456,
+                0.41402873396873474,
+                1.0
+              ]
+            }
+          ]
+        }
+      ],
+      "frames": [
+        {
+          "path": "idle-SE-0.png",
+          "sha256": "e7541ea6380514fddeb04592a59085197c3d0446c85e5bae7dcd0f125a00a55c",
+          "state": {
+            "geometry_sha256": "957ab02bce16fef0c0390910e3cd007575e1dcab98e11358b8b4d37ce6f4ce69",
+            "visibility": {
+              "Collar stand": false,
+              "Dark pupil": false,
+              "Dark pupil.001": false,
+              "Ear": false,
+              "Ear.001": false,
+              "Eye white": false,
+              "Eye white.001": false,
+              "Fitted rounded shoe sole": false,
+              "Fitted rounded shoe sole.001": false,
+              "Folded fabric collar leaf": false,
+              "Folded fabric collar leaf.001": false,
+              "Forearm with elbow and wrist sections": false,
+              "Forearm with elbow and wrist sections.001": false,
+              "Game projection camera": false,
+              "HAIR_01_TRIPO_CURL": false,
+              "Hazel iris": false,
+              "Hazel iris.001": false,
+              "Inner ear": false,
+              "Inner ear.001": false,
+              "Natural neck": false,
+              "One sewn breast pocket": false,
+              "Overshirt body": false,
+              "Pocket top seam": false,
+              "Pocket top seam_source_curve": true,
+              "Printed book line": true,
+              "Printed book line.001": true,
+              "Printed book line.002": true,
+              "Printed book line.003": true,
+              "Printed book line.004": true,
+              "Printed book line.005": true,
+              "Printed book line.006": true,
+              "Printed book line.007": true,
+              "Printed book line.008": true,
+              "Printed book line.009": true,
+              "Quiet closed smile": false,
+              "Quiet closed smile_source_curve": true,
+              "Quiet fill": false,
+              "Reading book cover": true,
+              "Reading book cover.001": true,
+              "Reading book pages": true,
+              "Reading book pages.001": true,
+              "Relaxed palm": false,
+              "Relaxed palm.001": false,
+              "Relaxed shirt sleeve": false,
+              "Relaxed shirt sleeve.001": false,
+              "Resting thumb": false,
+              "Resting thumb.001": false,
+              "SIM_01_SHARED_RIG": false,
+              "SIM_PREVIEW_ROOT": false,
+              "Sculpted head": false,
+              "Shaped shoe": false,
+              "Shaped shoe.001": false,
+              "Shirt lower hem": false,
+              "Shirt placket": false,
+              "Shirt placket_source_curve": true,
+              "Shoe apron stitch": false,
+              "Shoe apron stitch.001": false,
+              "Shoe apron stitch.001_source_curve": true,
+              "Shoe apron stitch_source_curve": true,
+              "Sleep closed eyelid": true,
+              "Sleep closed eyelid.001": true,
+              "Small eye catchlight": false,
+              "Small eye catchlight.001": false,
+              "Small horn button": false,
+              "Small horn button.001": false,
+              "Small horn button.002": false,
+              "Small horn button.003": false,
+              "Small rounded nose": false,
+              "Soft eyebrow": false,
+              "Soft eyebrow.001": false,
+              "Soft eyebrow.001_source_curve": true,
+              "Soft eyebrow_source_curve": true,
+              "Soft window key": false,
+              "Tailored trouser leg": false,
+              "Tailored trouser leg.001": false,
+              "Trouser hem": false,
+              "Trouser hem.001": false,
+              "Trouser hip bridge": false,
+              "Turned sleeve cuff": false,
+              "Turned sleeve cuff.001": false,
+              "Upper lid outline": false,
+              "Upper lid outline.001": false
+            },
+            "eyes_closed": 0.0,
+            "book_visible": 0.0,
+            "camera_matrix": [
+              [
+                0.7071067094802856,
+                -0.4640388786792755,
+                0.5335429310798645,
+                5.335428714752197
+              ],
+              [
+                0.70710688829422,
+                0.4640386700630188,
+                -0.5335428714752197,
+                -5.335428714752197
+              ],
+              [
+                8.285385888484598e-08,
+                0.7545436024665833,
+                0.6562499403953552,
+                7.587500095367432
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "camera_scale": 1.9445436000823975,
+            "resolution": [
+              608,
+              1408
+            ]
+          }
+        },
+        {
+          "path": "idle-SW-0.png",
+          "sha256": "1792e2e74ba05ab4799a7ff829bd20804c4cf30045708ddafd11353f8dcc1d1b",
+          "state": {
+            "geometry_sha256": "1aeb7bc42a0c5315b757e1fba174583dee3919a07c4e708094b65413cd79ce54",
+            "visibility": {
+              "Collar stand": false,
+              "Dark pupil": false,
+              "Dark pupil.001": false,
+              "Ear": false,
+              "Ear.001": false,
+              "Eye white": false,
+              "Eye white.001": false,
+              "Fitted rounded shoe sole": false,
+              "Fitted rounded shoe sole.001": false,
+              "Folded fabric collar leaf": false,
+              "Folded fabric collar leaf.001": false,
+              "Forearm with elbow and wrist sections": false,
+              "Forearm with elbow and wrist sections.001": false,
+              "Game projection camera": false,
+              "HAIR_01_TRIPO_CURL": false,
+              "Hazel iris": false,
+              "Hazel iris.001": false,
+              "Inner ear": false,
+              "Inner ear.001": false,
+              "Natural neck": false,
+              "One sewn breast pocket": false,
+              "Overshirt body": false,
+              "Pocket top seam": false,
+              "Pocket top seam_source_curve": true,
+              "Printed book line": true,
+              "Printed book line.001": true,
+              "Printed book line.002": true,
+              "Printed book line.003": true,
+              "Printed book line.004": true,
+              "Printed book line.005": true,
+              "Printed book line.006": true,
+              "Printed book line.007": true,
+              "Printed book line.008": true,
+              "Printed book line.009": true,
+              "Quiet closed smile": false,
+              "Quiet closed smile_source_curve": true,
+              "Quiet fill": false,
+              "Reading book cover": true,
+              "Reading book cover.001": true,
+              "Reading book pages": true,
+              "Reading book pages.001": true,
+              "Relaxed palm": false,
+              "Relaxed palm.001": false,
+              "Relaxed shirt sleeve": false,
+              "Relaxed shirt sleeve.001": false,
+              "Resting thumb": false,
+              "Resting thumb.001": false,
+              "SIM_01_SHARED_RIG": false,
+              "SIM_PREVIEW_ROOT": false,
+              "Sculpted head": false,
+              "Shaped shoe": false,
+              "Shaped shoe.001": false,
+              "Shirt lower hem": false,
+              "Shirt placket": false,
+              "Shirt placket_source_curve": true,
+              "Shoe apron stitch": false,
+              "Shoe apron stitch.001": false,
+              "Shoe apron stitch.001_source_curve": true,
+              "Shoe apron stitch_source_curve": true,
+              "Sleep closed eyelid": true,
+              "Sleep closed eyelid.001": true,
+              "Small eye catchlight": false,
+              "Small eye catchlight.001": false,
+              "Small horn button": false,
+              "Small horn button.001": false,
+              "Small horn button.002": false,
+              "Small horn button.003": false,
+              "Small rounded nose": false,
+              "Soft eyebrow": false,
+              "Soft eyebrow.001": false,
+              "Soft eyebrow.001_source_curve": true,
+              "Soft eyebrow_source_curve": true,
+              "Soft window key": false,
+              "Tailored trouser leg": false,
+              "Tailored trouser leg.001": false,
+              "Trouser hem": false,
+              "Trouser hem.001": false,
+              "Trouser hip bridge": false,
+              "Turned sleeve cuff": false,
+              "Turned sleeve cuff.001": false,
+              "Upper lid outline": false,
+              "Upper lid outline.001": false
+            },
+            "eyes_closed": 0.0,
+            "book_visible": 0.0,
+            "camera_matrix": [
+              [
+                0.7071067094802856,
+                -0.4640388786792755,
+                0.5335429310798645,
+                5.335428714752197
+              ],
+              [
+                0.70710688829422,
+                0.4640386700630188,
+                -0.5335428714752197,
+                -5.335428714752197
+              ],
+              [
+                8.285385888484598e-08,
+                0.7545436024665833,
+                0.6562499403953552,
+                7.587500095367432
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "camera_scale": 1.9445436000823975,
+            "resolution": [
+              608,
+              1408
+            ]
+          }
+        }
+      ]
+    },
+    "red": {
+      "target_linear_rgba": {
+        "Washed sage overshirt": [
+          0.4,
+          0.06,
+          0.045,
+          1.0
+        ],
+        "Sage seam and cuff": [
+          0.3,
+          0.045,
+          0.034,
+          1.0
+        ],
+        "Sage folded collar fabric": [
+          0.44,
+          0.075,
+          0.055,
+          1.0
+        ]
+      },
+      "material_changes": [
+        {
+          "material": "Sage folded collar fabric",
+          "field": "Color Ramp/ramp",
+          "before": [
+            {
+              "position": 0.0,
+              "color": [
+                0.09517167508602142,
+                0.12620730698108673,
+                0.10545516759157181,
+                1.0
+              ]
+            },
+            {
+              "position": 0.33000001311302185,
+              "color": [
+                0.14890019595623016,
+                0.1989029496908188,
+                0.16544435918331146,
+                1.0
+              ]
+            },
+            {
+              "position": 0.5299999713897705,
+              "color": [
+                0.2273416519165039,
+                0.3054337501525879,
+                0.25315019488334656,
+                1.0
+              ]
+            },
+            {
+              "position": 0.8500000238418579,
+              "color": [
+                0.2768654525279999,
+                0.3728412091732025,
+                0.3085695505142212,
+                1.0
+              ]
+            }
+          ],
+          "after": [
+            {
+              "position": 0.0,
+              "color": [
+                0.16476565599441528,
+                0.02768396958708763,
+                0.02048405446112156,
+                1.0
+              ]
+            },
+            {
+              "position": 0.33000001311302185,
+              "color": [
+                0.2577829957008362,
+                0.04362998530268669,
+                0.03213660791516304,
+                1.0
+              ]
+            },
+            {
+              "position": 0.5299999713897705,
+              "color": [
+                0.3935845196247101,
+                0.06699784845113754,
+                0.04917295649647713,
+                1.0
+              ]
+            },
+            {
+              "position": 0.8500000238418579,
+              "color": [
+                0.4793224334716797,
+                0.08178389072418213,
+                0.059937845915555954,
+                1.0
+              ]
+            }
+          ]
+        },
+        {
+          "material": "Sage seam and cuff",
+          "field": "Color Ramp/ramp",
+          "before": [
+            {
+              "position": 0.0,
+              "color": [
+                0.05787310749292374,
+                0.08416547626256943,
+                0.07030320167541504,
+                1.0
+              ]
+            },
+            {
+              "position": 0.33000001311302185,
+              "color": [
+                0.08917742222547531,
+                0.13122524321079254,
+                0.10902039706707001,
+                1.0
+              ]
+            },
+            {
+              "position": 0.5299999713897705,
+              "color": [
+                0.13452333211898804,
+                0.19980834424495697,
+                0.16528823971748352,
+                1.0
+              ]
+            },
+            {
+              "position": 0.8500000238418579,
+              "color": [
+                0.16301853954792023,
+                0.24306222796440125,
+                0.20071615278720856,
+                1.0
+              ]
+            }
+          ],
+          "after": [
+            {
+              "position": 0.0,
+              "color": [
+                0.11577725410461426,
+                0.016966721042990685,
+                0.012957359664142132,
+                1.0
+              ]
+            },
+            {
+              "position": 0.33000001311302185,
+              "color": [
+                0.17840267717838287,
+                0.02645338885486126,
+                0.020093202590942383,
+                1.0
+              ]
+            },
+            {
+              "position": 0.5299999713897705,
+              "color": [
+                0.2691188156604767,
+                0.04027889296412468,
+                0.030463751405477524,
+                1.0
+              ]
+            },
+            {
+              "position": 0.8500000238418579,
+              "color": [
+                0.32612451910972595,
+                0.04899834468960762,
+                0.036993358284235,
+                1.0
+              ]
+            }
+          ]
+        },
+        {
+          "material": "Washed sage overshirt",
+          "field": "Color Ramp/ramp",
+          "before": [
+            {
+              "position": 0.0,
+              "color": [
+                0.08549822866916656,
+                0.11959011852741241,
+                0.09950356930494308,
+                1.0
+              ]
+            },
+            {
+              "position": 0.33000001311302185,
+              "color": [
+                0.13336357474327087,
+                0.18822462856769562,
+                0.1558661311864853,
+                1.0
+              ]
+            },
+            {
+              "position": 0.5299999713897705,
+              "color": [
+                0.20313696563243866,
+                0.2887358069419861,
+                0.23820436000823975,
+                1.0
+              ]
+            },
+            {
+              "position": 0.8500000238418579,
+              "color": [
+                0.24714763462543488,
+                0.3523087799549103,
+                0.29020756483078003,
+                1.0
+              ]
+            }
+          ],
+          "after": [
+            {
+              "position": 0.0,
+              "color": [
+                0.1506803184747696,
+                0.022205037996172905,
+                0.016810836270451546,
+                1.0
+              ]
+            },
+            {
+              "position": 0.33000001311302185,
+              "color": [
+                0.23503722250461578,
+                0.03494883328676224,
+                0.026333127170801163,
+                1.0
+              ]
+            },
+            {
+              "position": 0.5299999713897705,
+              "color": [
+                0.3580044209957123,
+                0.05361136421561241,
+                0.040243931114673615,
+                1.0
+              ]
+            },
+            {
+              "position": 0.8500000238418579,
+              "color": [
+                0.4355679154396057,
+                0.06541535258293152,
+                0.049029719084501266,
+                1.0
+              ]
+            }
+          ]
+        }
+      ],
+      "frames": [
+        {
+          "path": "idle-SE-0.png",
+          "sha256": "e2143b994c5940764d2aa518f548744a2550a6c516ae6b26dc80cf391919223e",
+          "state": {
+            "geometry_sha256": "957ab02bce16fef0c0390910e3cd007575e1dcab98e11358b8b4d37ce6f4ce69",
+            "visibility": {
+              "Collar stand": false,
+              "Dark pupil": false,
+              "Dark pupil.001": false,
+              "Ear": false,
+              "Ear.001": false,
+              "Eye white": false,
+              "Eye white.001": false,
+              "Fitted rounded shoe sole": false,
+              "Fitted rounded shoe sole.001": false,
+              "Folded fabric collar leaf": false,
+              "Folded fabric collar leaf.001": false,
+              "Forearm with elbow and wrist sections": false,
+              "Forearm with elbow and wrist sections.001": false,
+              "Game projection camera": false,
+              "HAIR_01_TRIPO_CURL": false,
+              "Hazel iris": false,
+              "Hazel iris.001": false,
+              "Inner ear": false,
+              "Inner ear.001": false,
+              "Natural neck": false,
+              "One sewn breast pocket": false,
+              "Overshirt body": false,
+              "Pocket top seam": false,
+              "Pocket top seam_source_curve": true,
+              "Printed book line": true,
+              "Printed book line.001": true,
+              "Printed book line.002": true,
+              "Printed book line.003": true,
+              "Printed book line.004": true,
+              "Printed book line.005": true,
+              "Printed book line.006": true,
+              "Printed book line.007": true,
+              "Printed book line.008": true,
+              "Printed book line.009": true,
+              "Quiet closed smile": false,
+              "Quiet closed smile_source_curve": true,
+              "Quiet fill": false,
+              "Reading book cover": true,
+              "Reading book cover.001": true,
+              "Reading book pages": true,
+              "Reading book pages.001": true,
+              "Relaxed palm": false,
+              "Relaxed palm.001": false,
+              "Relaxed shirt sleeve": false,
+              "Relaxed shirt sleeve.001": false,
+              "Resting thumb": false,
+              "Resting thumb.001": false,
+              "SIM_01_SHARED_RIG": false,
+              "SIM_PREVIEW_ROOT": false,
+              "Sculpted head": false,
+              "Shaped shoe": false,
+              "Shaped shoe.001": false,
+              "Shirt lower hem": false,
+              "Shirt placket": false,
+              "Shirt placket_source_curve": true,
+              "Shoe apron stitch": false,
+              "Shoe apron stitch.001": false,
+              "Shoe apron stitch.001_source_curve": true,
+              "Shoe apron stitch_source_curve": true,
+              "Sleep closed eyelid": true,
+              "Sleep closed eyelid.001": true,
+              "Small eye catchlight": false,
+              "Small eye catchlight.001": false,
+              "Small horn button": false,
+              "Small horn button.001": false,
+              "Small horn button.002": false,
+              "Small horn button.003": false,
+              "Small rounded nose": false,
+              "Soft eyebrow": false,
+              "Soft eyebrow.001": false,
+              "Soft eyebrow.001_source_curve": true,
+              "Soft eyebrow_source_curve": true,
+              "Soft window key": false,
+              "Tailored trouser leg": false,
+              "Tailored trouser leg.001": false,
+              "Trouser hem": false,
+              "Trouser hem.001": false,
+              "Trouser hip bridge": false,
+              "Turned sleeve cuff": false,
+              "Turned sleeve cuff.001": false,
+              "Upper lid outline": false,
+              "Upper lid outline.001": false
+            },
+            "eyes_closed": 0.0,
+            "book_visible": 0.0,
+            "camera_matrix": [
+              [
+                0.7071067094802856,
+                -0.4640388786792755,
+                0.5335429310798645,
+                5.335428714752197
+              ],
+              [
+                0.70710688829422,
+                0.4640386700630188,
+                -0.5335428714752197,
+                -5.335428714752197
+              ],
+              [
+                8.285385888484598e-08,
+                0.7545436024665833,
+                0.6562499403953552,
+                7.587500095367432
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "camera_scale": 1.9445436000823975,
+            "resolution": [
+              608,
+              1408
+            ]
+          }
+        },
+        {
+          "path": "idle-SW-0.png",
+          "sha256": "317eee84ac7cd128ce1a4276d5f4781b48fa15c050d3fd050cdf1f380253e6da",
+          "state": {
+            "geometry_sha256": "1aeb7bc42a0c5315b757e1fba174583dee3919a07c4e708094b65413cd79ce54",
+            "visibility": {
+              "Collar stand": false,
+              "Dark pupil": false,
+              "Dark pupil.001": false,
+              "Ear": false,
+              "Ear.001": false,
+              "Eye white": false,
+              "Eye white.001": false,
+              "Fitted rounded shoe sole": false,
+              "Fitted rounded shoe sole.001": false,
+              "Folded fabric collar leaf": false,
+              "Folded fabric collar leaf.001": false,
+              "Forearm with elbow and wrist sections": false,
+              "Forearm with elbow and wrist sections.001": false,
+              "Game projection camera": false,
+              "HAIR_01_TRIPO_CURL": false,
+              "Hazel iris": false,
+              "Hazel iris.001": false,
+              "Inner ear": false,
+              "Inner ear.001": false,
+              "Natural neck": false,
+              "One sewn breast pocket": false,
+              "Overshirt body": false,
+              "Pocket top seam": false,
+              "Pocket top seam_source_curve": true,
+              "Printed book line": true,
+              "Printed book line.001": true,
+              "Printed book line.002": true,
+              "Printed book line.003": true,
+              "Printed book line.004": true,
+              "Printed book line.005": true,
+              "Printed book line.006": true,
+              "Printed book line.007": true,
+              "Printed book line.008": true,
+              "Printed book line.009": true,
+              "Quiet closed smile": false,
+              "Quiet closed smile_source_curve": true,
+              "Quiet fill": false,
+              "Reading book cover": true,
+              "Reading book cover.001": true,
+              "Reading book pages": true,
+              "Reading book pages.001": true,
+              "Relaxed palm": false,
+              "Relaxed palm.001": false,
+              "Relaxed shirt sleeve": false,
+              "Relaxed shirt sleeve.001": false,
+              "Resting thumb": false,
+              "Resting thumb.001": false,
+              "SIM_01_SHARED_RIG": false,
+              "SIM_PREVIEW_ROOT": false,
+              "Sculpted head": false,
+              "Shaped shoe": false,
+              "Shaped shoe.001": false,
+              "Shirt lower hem": false,
+              "Shirt placket": false,
+              "Shirt placket_source_curve": true,
+              "Shoe apron stitch": false,
+              "Shoe apron stitch.001": false,
+              "Shoe apron stitch.001_source_curve": true,
+              "Shoe apron stitch_source_curve": true,
+              "Sleep closed eyelid": true,
+              "Sleep closed eyelid.001": true,
+              "Small eye catchlight": false,
+              "Small eye catchlight.001": false,
+              "Small horn button": false,
+              "Small horn button.001": false,
+              "Small horn button.002": false,
+              "Small horn button.003": false,
+              "Small rounded nose": false,
+              "Soft eyebrow": false,
+              "Soft eyebrow.001": false,
+              "Soft eyebrow.001_source_curve": true,
+              "Soft eyebrow_source_curve": true,
+              "Soft window key": false,
+              "Tailored trouser leg": false,
+              "Tailored trouser leg.001": false,
+              "Trouser hem": false,
+              "Trouser hem.001": false,
+              "Trouser hip bridge": false,
+              "Turned sleeve cuff": false,
+              "Turned sleeve cuff.001": false,
+              "Upper lid outline": false,
+              "Upper lid outline.001": false
+            },
+            "eyes_closed": 0.0,
+            "book_visible": 0.0,
+            "camera_matrix": [
+              [
+                0.7071067094802856,
+                -0.4640388786792755,
+                0.5335429310798645,
+                5.335428714752197
+              ],
+              [
+                0.70710688829422,
+                0.4640386700630188,
+                -0.5335428714752197,
+                -5.335428714752197
+              ],
+              [
+                8.285385888484598e-08,
+                0.7545436024665833,
+                0.6562499403953552,
+                7.587500095367432
+              ],
+              [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            ],
+            "camera_scale": 1.9445436000823975,
+            "resolution": [
+              608,
+              1408
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "topology_and_material_assignment_sha256": "094137a05b62b1b703e6a1c5155b68826433cebe3d9abefde0933ec7b03cd950",
+  "preserved_sha256": {
+    "sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "export/manifest.json": "ff14a12184df88a13a51afc465fbd8b695811b8570b1fa00283539dc6a340350",
+    "export/idle-SE-0.png": "1e107a7ca1150bdfe64aacaaa58e9e9b4ff4ef16f888d9e3733e43b72d1b1563",
+    "export/idle-SW-0.png": "70f802b552aaea827e5ace657882b01e41d878eb629a5d28dafdb404fc1415dd",
+    "export/idle-NW-0.png": "273cb1174c1af2e8352084e2717f336ca07d2f4beef799c4e6fc8b84e65a21a2",
+    "export/idle-NE-0.png": "e9952f9fc9bc676b10aaa47e72a9b6bc58eafe2c1c2df83724c41ae72c152e84",
+    "export/walk-SE-0.png": "853cf62c84cb764830cd8cbeb46e5debacd34dddde910d0dea2c3ef454259905",
+    "export/walk-SE-1.png": "19ca617ef7c8595cfc0ddef63814021a6ab7c5a1fd823b57c89d68e714937dae",
+    "export/walk-SE-2.png": "d379c1a359ef2df6e21dcef2f31c386e4644dd0ccfdccd3d106f848e0ca3d56c",
+    "export/walk-SE-3.png": "f8edfa52aca6665ba878b3bd17a54c81c8c59e09ff0a4705bcb4e466f9bd9c0c",
+    "export/walk-SE-4.png": "8aecb5a6e3155657920292f37d74a1dd4aec99f24406baf2cc383a9b83b2ebe4",
+    "export/walk-SE-5.png": "42c279cc41e044f28ad24f2b5b71d2655cbd1bf2318086fa374d05cad40e8f4c",
+    "export/walk-SE-6.png": "3c7c8eca30c548a0b4e0bb175950db4110d418485c182aa5b75fa37e85340344",
+    "export/walk-SE-7.png": "ea811c45adc873b6ab239b8683f4d89c1df08d1fcd4247534f7ce2dcda27a286",
+    "export/walk-SW-0.png": "8a1cebee6a609a02d571290494d0980c87e79f301c91537163b67037f037e5e2",
+    "export/walk-SW-1.png": "c955e5307e51ccbebe2d0062548f3bba3c53224f92b5416952b44385ba9b97f6",
+    "export/walk-SW-2.png": "93867140b9946a886f4352e780f67e8b58de90825524166bccbd96a9594951eb",
+    "export/walk-SW-3.png": "f365b3707fbbf2b2f7d4379008e74252f0980d39cd18a63ea3128b76f54772c8",
+    "export/walk-SW-4.png": "5b336832cb8592cc3e711c864ee64964d08f7b77cd424cb0cb7917269055b94b",
+    "export/walk-SW-5.png": "41194f0a5632f54f73f0387034a96a1c193eb0ac65c48e204858d8f804f72a81",
+    "export/walk-SW-6.png": "bfb963f9c9377f9259d0029696b8d24e2997b5f6479e7bc37ce045e1026d9829",
+    "export/walk-SW-7.png": "874748bff79474f8ca6832db1dee7a43864dd8f75a990deeb3205eedfe062d89",
+    "export/walk-NW-0.png": "05d148dccd2291010a54419c85ba12e3061be0587896d7c464f50db1824e2b9b",
+    "export/walk-NW-1.png": "bf0f79793cad62f97d7e6eb84ece15f74505b5fdfbda9157c37714d42afb64bc",
+    "export/walk-NW-2.png": "c076c3042834f3e131cf699a398b64a9727710e2add3bd6fde2f15659441d6b8",
+    "export/walk-NW-3.png": "08078557886ac32d001d0d0667d4e0450ce21becd6d086a31f5b8db6f94b4cdf",
+    "export/walk-NW-4.png": "fa9c1800d1de8962fd4909b1c6a23fc2ec7d8135519fc701210e289135fd68b5",
+    "export/walk-NW-5.png": "0d9d504d5e3ccc240baca4a9ffb7cfe01162be435f95c15db6540b2a9368d994",
+    "export/walk-NW-6.png": "356be4901117323270a2cfb587bfe484eab533ccb5620fa1bcaf14e9ff21af52",
+    "export/walk-NW-7.png": "f45464cb98867c8b1455b3dd0eeb532055a25639c9d04f49646fd6603d5f754c",
+    "export/walk-NE-0.png": "526d421d0dcf07ee57051a07cc489818fcd5c88d96df08c8b461533459c3f835",
+    "export/walk-NE-1.png": "bac4b9dd12fd9250e8b18746b9aa4179ed782d2048b2c9a5e1e76ab9e0ebeca7",
+    "export/walk-NE-2.png": "389416558d1c828e0ed150cc6f40317e130ef12d698d6ffacc6e35f7aab2b28c",
+    "export/walk-NE-3.png": "feb115a15d98dde334ada6a5a60d6e6862af1947ee98103d23ac63241f381639",
+    "export/walk-NE-4.png": "60091caaf91f78de23c05a3cee251e8d5fa963e5783987d631eb59bcd417cb93",
+    "export/walk-NE-5.png": "97849583730e66d6cbd3089410aee61789811f4388e0b7eec9a3603079f8bf17",
+    "export/walk-NE-6.png": "21997563b00a8bbcc98017eaba44097f7e8fdea4174b5caaf69003d0b3be7f4a",
+    "export/walk-NE-7.png": "0888c32c27e284d7cefa29c813092f4bc9959668a5ad09834650e8dfe9f0cb39",
+    "export/read-SE-0.png": "de50d0fd2e19d5b2694686584ba0c92fe4ff4ffdb156a5c5b17b28b8ca65c7a2",
+    "export/read-SE-1.png": "e798cd2836daaf45775f24e2507dd1053ee4ca2e0a0a41efebf261994c78d332",
+    "export/read-SE-2.png": "904f9b4e34f8c901333ab51632d6804595d2141af8966e35858e334738162b7b",
+    "export/read-SE-3.png": "ceab08bfbe0115233ff5d889ca15cc9870b11f60e66ae9bfbe5bcd9189010298",
+    "export/read-SW-0.png": "2bfc13ecd68ab02fa5729bcd45fbb6dbfbf540dd15bbb2060d6b7d549147eb78",
+    "export/read-SW-1.png": "6631c8b26b6b1e7911940e316b8bd1b53a86bbf9949726f71e4c36864b46dcd6",
+    "export/read-SW-2.png": "2bfc13ecd68ab02fa5729bcd45fbb6dbfbf540dd15bbb2060d6b7d549147eb78",
+    "export/read-SW-3.png": "c13c5b05c3a41f0061ae09a24936dca28d2dd74f1fd74f4786c4a82ec7d53805",
+    "export/read-NW-0.png": "ea3c9f63f293eef6d555a105f90cdda8fabdd8c3d70ef268e5881beac878fbeb",
+    "export/read-NW-1.png": "1db5b9eac311f7875e6213684922cd34f9e3d4eb3d6a89d6ab0ef6e8d6df0f88",
+    "export/read-NW-2.png": "ea3c9f63f293eef6d555a105f90cdda8fabdd8c3d70ef268e5881beac878fbeb",
+    "export/read-NW-3.png": "102f1bfa7f0b008963f6896c13afcd94383cc88a51079e46cd55ebe1a3e76c9d",
+    "export/read-NE-0.png": "474ec23ddac3769dc820b5de6ef6471f14e829c3879d55a17b37680276659eb6",
+    "export/read-NE-1.png": "524bcfae7c62b5b67972704cd853bd6c3a8acc834fea23e24833d59ba4317b8e",
+    "export/read-NE-2.png": "474ec23ddac3769dc820b5de6ef6471f14e829c3879d55a17b37680276659eb6",
+    "export/read-NE-3.png": "f0c499f32cc2ca50ad1571fcfabba85a84d18af8d5356ef2ad47f1d9e96b4862",
+    "export/talk-SE-0.png": "135555a7ed649131e5dc8d6ceb73d197eb999392d4b1f5ff77328926ca59965f",
+    "export/talk-SE-1.png": "d8711f247a62e2580c599fb5759810f43b66e560c437528fdbdfaacc64ad045b",
+    "export/talk-SE-2.png": "de53daaca213dd8abc796512c6a485f853830eb8119563efbd3a6f6821d1270a",
+    "export/talk-SE-3.png": "3762bcab27f4ce53caf28ff1cbf52064fdf40375df49997fe44368f86511a33c",
+    "export/talk-SW-0.png": "e4ef7514d0cf1adc84e276208b1c205fd0899a84698f30d9bffc5443d401a462",
+    "export/talk-SW-1.png": "48cd395bf9dc4389b229a3d81b0b0c419768c6311e06e75feaabca92404fa879",
+    "export/talk-SW-2.png": "285fc4355e1e15c7c1d89f9668eeb1b601e40ae621044dfe5b9265380b02a7eb",
+    "export/talk-SW-3.png": "4cd8c0045c4d478def6f27793731b8df3da29d3149924c680cf52e778c218c2a",
+    "export/talk-NW-0.png": "023f47632bc8b496c666d8c6e16e862a2e15eaf83a3662b33004a9afccd78a6e",
+    "export/talk-NW-1.png": "e0d409290c9e30294bb30c518794ca30358aaed05cd12bb34a8791a36f8c983d",
+    "export/talk-NW-2.png": "27caf8f74bc9200ef39b36d6ad990e22cdd1bfe07fedbbe8c0d67d1b62245df5",
+    "export/talk-NW-3.png": "3dddae255f56586bdcda084269875e0ebe52343d33c7ae4f76ab2afd370c135e",
+    "export/talk-NE-0.png": "be8a078215c84a849cf357317218cad872a43fe4036c4ff801ce1c065cbc41f8",
+    "export/talk-NE-1.png": "f4dad0c6c1d2371e654f2d692158aea7a90db167f80e83aa192a9e30a438fd60",
+    "export/talk-NE-2.png": "911028864c8f7f50dff6890d433883f1a20759032faba1573470fa770a460c97",
+    "export/talk-NE-3.png": "cd53300f973de37d90f59b8f01ea9529677d1db19ca325bc33c2e214baf09d21",
+    "export/eat-SE-0.png": "6d3e5e76318d8d56f95dde901263b615387eb9307ad7ae95bbbda2c6dc860a5d",
+    "export/eat-SE-1.png": "aa1a79693d48e088e29ba217dbcbb1a565588c6c9d821f630af3f8920c051882",
+    "export/eat-SE-2.png": "8f1fe7a032ee5af165c56b07dcb1149492787e60214eed477d8b2775d665fc3a",
+    "export/eat-SE-3.png": "aa1a79693d48e088e29ba217dbcbb1a565588c6c9d821f630af3f8920c051882",
+    "export/eat-SW-0.png": "58f75412152a8f206828a9e94985fd53164817ecde8addd90155a0da4782b412",
+    "export/eat-SW-1.png": "3b75699453098ba416ad33295c507a6d876b788e2b154acae228d014423032b3",
+    "export/eat-SW-2.png": "12404d8ea741feea83ec48604c47bd0f047bbee6588f5510359fb1780b030efd",
+    "export/eat-SW-3.png": "3b75699453098ba416ad33295c507a6d876b788e2b154acae228d014423032b3",
+    "export/eat-NW-0.png": "1e8c120a957ea44bceb052bdf4f7d6a15055d310496d45f702cfacaea38d3716",
+    "export/eat-NW-1.png": "c18560da0a58bcc9e472d7cbc6c7ed5ba841222dfba4e6644e4769c7065b55b2",
+    "export/eat-NW-2.png": "c97f99f1a1191de137d98e362de57aa7277590f7c6549f5a4f627c93c5933403",
+    "export/eat-NW-3.png": "c18560da0a58bcc9e472d7cbc6c7ed5ba841222dfba4e6644e4769c7065b55b2",
+    "export/eat-NE-0.png": "400d658170c725690e6a3884e9eff1df49c632b5e3c877cbea0c0e01401846a8",
+    "export/eat-NE-1.png": "3dd5320fdc89a9db2c0a5aca6d6495688af5b7e5f0374ab921887fb4e93472c1",
+    "export/eat-NE-2.png": "cb0d5ff0dd2840670f4e0f08252d78c16037277038373bdf83ed3c44ca344c67",
+    "export/eat-NE-3.png": "3dd5320fdc89a9db2c0a5aca6d6495688af5b7e5f0374ab921887fb4e93472c1",
+    "export/stand_read-SE-0.png": "6323fd5fa79b67bbba6bfd6729a22ff1fedd79161302075886697c224578db4a",
+    "export/stand_read-SE-1.png": "de4c5b61e230aaf368e2fce7eb8fda1a112fae1af152bc7f55a290fd3a6cef1e",
+    "export/stand_read-SE-2.png": "6323fd5fa79b67bbba6bfd6729a22ff1fedd79161302075886697c224578db4a",
+    "export/stand_read-SE-3.png": "b42707fbc47dfdfe11ae4f215f67055b0933908dc8c4eeac04f961e8a8ec1a3f",
+    "export/stand_read-SW-0.png": "a21d6f80269df98b02d2130d1570aaf70ab9b80d356ced37e5e5af65845f41cf",
+    "export/stand_read-SW-1.png": "7317a7483544c1ac8b26dca3f6ba1935ef1028912058d6f18547a85e8d83d3ba",
+    "export/stand_read-SW-2.png": "a21d6f80269df98b02d2130d1570aaf70ab9b80d356ced37e5e5af65845f41cf",
+    "export/stand_read-SW-3.png": "70b28ba4867a0d0e6f184bc7c3454910f8e6620523b07383e92f24c4bc6aa7a8",
+    "export/stand_read-NW-0.png": "6774c77f22df9a0b01f21b380df4b5617f5f7a13d9e72e87f6597ee493b2768a",
+    "export/stand_read-NW-1.png": "1694a69706478362b08d15e1277bf3a90c9fed5bbd447df5b07a127cf2d0c56e",
+    "export/stand_read-NW-2.png": "6774c77f22df9a0b01f21b380df4b5617f5f7a13d9e72e87f6597ee493b2768a",
+    "export/stand_read-NW-3.png": "24a463401be9d7ac75a893aadc47b9be6d5399d442364fbf82acdbfbbad9e806",
+    "export/stand_read-NE-0.png": "a73191c90ec9db8f9a2b0f9bc392a4270826d7fe88c3b05f2a41430b02700d27",
+    "export/stand_read-NE-1.png": "96c8c15d9f98e09e7f99498c8479adff6e39ac7f05c9b3f4ad242c70f3959ee8",
+    "export/stand_read-NE-2.png": "a73191c90ec9db8f9a2b0f9bc392a4270826d7fe88c3b05f2a41430b02700d27",
+    "export/stand_read-NE-3.png": "97d910707ef501963a7c180e41d2c8b564a0d9338a927793e7d1ab1d5f3c2092",
+    "export/watch_fish-SE-0.png": "e2a19c682575ebfa8a62e01fb9b70fa01d57e54bb0e014d2960d76ee0dd5cc38",
+    "export/watch_fish-SE-1.png": "918695aef4816b7b91a62ef141f5551fa4211d18dd9b301725156778d7d36916",
+    "export/watch_fish-SE-2.png": "e2a19c682575ebfa8a62e01fb9b70fa01d57e54bb0e014d2960d76ee0dd5cc38",
+    "export/watch_fish-SE-3.png": "d6de2dbe21ecf71a739b820e6e7d654cd6c3d7c24fc08a475751fd8beaf101f3",
+    "export/watch_fish-SW-0.png": "78f378eb2f692398c279412020c5e093d161bf680b8b5ffa5308158fb2ad1f5f",
+    "export/watch_fish-SW-1.png": "65166336a309a4471885ef36e1257cc661a8ae8164b87f80e7cc52f193aebe68",
+    "export/watch_fish-SW-2.png": "78f378eb2f692398c279412020c5e093d161bf680b8b5ffa5308158fb2ad1f5f",
+    "export/watch_fish-SW-3.png": "bcff8b1d86d8b224e10e496315b8e6ebdd140567d19bec911ec9a5f286c14c70",
+    "export/watch_fish-NW-0.png": "a608112888b138e3fa86df4ea8b296acb50c281f132527bf0d58909304daad80",
+    "export/watch_fish-NW-1.png": "6cdefeebe77091f59b3efc78768ab7dd22e22657ec602c926018247ff19ff3ab",
+    "export/watch_fish-NW-2.png": "a608112888b138e3fa86df4ea8b296acb50c281f132527bf0d58909304daad80",
+    "export/watch_fish-NW-3.png": "30c2d43ee2575301dc73eb90377d8710aa95a8b56832326d2a6a10ebb6234b2e",
+    "export/watch_fish-NE-0.png": "3dc28b76cb595253c34b93d484d98fb45595430ffcc0b34929d37a4930c0ce9c",
+    "export/watch_fish-NE-1.png": "d98fa2842327a71e4981edbb45e9ccef125d6c1d53b5f5ec49c071af140d58a3",
+    "export/watch_fish-NE-2.png": "3dc28b76cb595253c34b93d484d98fb45595430ffcc0b34929d37a4930c0ce9c",
+    "export/watch_fish-NE-3.png": "eb16289b7ff7d783a350e374e44063fbb70060d166eac30d8cff2326d7291fca",
+    "export/sit-SE-0.png": "e8cbba342109bab56dfc0d72d86d9229791717fd2763336e46c940ccf1201269",
+    "export/sit-SE-1.png": "08d483ddbb9df47cb44f16a22a3baba7d24f4223da3bf161677a5cf997c57584",
+    "export/sit-SE-2.png": "e8cbba342109bab56dfc0d72d86d9229791717fd2763336e46c940ccf1201269",
+    "export/sit-SE-3.png": "55c0ed2547ec6ec54b4c89a03be90dd217333652983642b6d2821ff7a6af29af",
+    "export/sit-SW-0.png": "e079d29533d4bab3e239699a65c7cdc6297eb349b3d6475606a62731400fc565",
+    "export/sit-SW-1.png": "c948d3f4594ea5d66e00171639ff737df4012503062ddc99acacaac7ac9d0ff6",
+    "export/sit-SW-2.png": "e079d29533d4bab3e239699a65c7cdc6297eb349b3d6475606a62731400fc565",
+    "export/sit-SW-3.png": "460e7325b419c1afd8020b1c0490c045b2993595b02d859295bdf653fc124c97",
+    "export/sit-NW-0.png": "b80236f7645411a570cb814167d75364dc8e8e77d4e7e3d884fd25e9be9a7a4a",
+    "export/sit-NW-1.png": "06f71e9dfa0b1adc703af509bf8860c4d8cffde230579c04c3db14cc18ba047e",
+    "export/sit-NW-2.png": "b80236f7645411a570cb814167d75364dc8e8e77d4e7e3d884fd25e9be9a7a4a",
+    "export/sit-NW-3.png": "efdc5834e63133f0b9e3226b52e355ed0b51128ed5a45c2ce1feaad6dc26428e",
+    "export/sit-NE-0.png": "1b2d36bfa0e53740be3851d5478cf8ca5a4191fbb4d001bdea27779ea876ceff",
+    "export/sit-NE-1.png": "448864d58ca7488514ab002fc1d5d5d42064ffb426b31ae0518ab2010c5de8f5",
+    "export/sit-NE-2.png": "1b2d36bfa0e53740be3851d5478cf8ca5a4191fbb4d001bdea27779ea876ceff",
+    "export/sit-NE-3.png": "d083db7c90326c04b61dd23cbaa2fe0ec111a17f699df5e9a2f63ee5cad704da",
+    "export/sleep-SE-0.png": "8ce2379bcd4319c5b5e3717495f4c0e359ec1e35f4bce08ce3e8b234c4a54352",
+    "export/sleep-SE-1.png": "cb9f471c080c58a3e8bda22903a0675902dba4825596d8282826d70bc96d5ae4",
+    "export/sleep-SE-2.png": "a14cc63514d919a0378422ba90b7f1c2aadc28bb5d08e18d2762c0c454da5ca0",
+    "export/sleep-SE-3.png": "7389e819ea7d7aed6414319e5f4fb291da790ca592aab72a248097474a32f3e3",
+    "export/sleep-SW-0.png": "ad7a62a5e6af050ec40bf6ecf129cf94079ecc933176a2f505b696b3a4812996",
+    "export/sleep-SW-1.png": "4dd3eb43eb041192d2b93674959ef1d9ce1562b390eff174faaf0ed75b1f3cf1",
+    "export/sleep-SW-2.png": "ad7a62a5e6af050ec40bf6ecf129cf94079ecc933176a2f505b696b3a4812996",
+    "export/sleep-SW-3.png": "ee493a7a6aed24dbe21240fdaff39a75666808258b9f2dd6bac180add794d338",
+    "export/sleep-NW-0.png": "b17c8a70e1e2db2338db3162ff5e667cada8e3828ac419f3c5890d466a4475fe",
+    "export/sleep-NW-1.png": "1fa384e553feec234e4128418eced8b8808374b6bba2326b7b59cc509bc3aaf0",
+    "export/sleep-NW-2.png": "b17c8a70e1e2db2338db3162ff5e667cada8e3828ac419f3c5890d466a4475fe",
+    "export/sleep-NW-3.png": "04b06e9e189613a2402a1367566a40ebca87160bc12afc267b31d5fc56db02aa",
+    "export/sleep-NE-0.png": "bac5f649d06e9400f9ccce28728459a214ba22490d98da163eed2817a5711b1c",
+    "export/sleep-NE-1.png": "2d9aa7e054398dd24b8e95bf9f2159a8f49ceaa9cd9166b356c0861f38c86863",
+    "export/sleep-NE-2.png": "bac5f649d06e9400f9ccce28728459a214ba22490d98da163eed2817a5711b1c",
+    "export/sleep-NE-3.png": "87e818c951ca2d6ba8688136cf5b7690e4ba90ab614f6fd706432a5c6be26186"
+  },
+  "saved_rig_exact_replay": "Unresolved reading RGB drift; existing failed proof remains unchanged.",
+  "state": "complete",
+  "original_files_byte_identical": true
+}

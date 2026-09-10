@@ -20,6 +20,7 @@ TOML and fails if they do.
 import argparse
 import hashlib
 import io
+import json
 import os
 import re
 import sys
@@ -30,6 +31,7 @@ from PIL import Image, ImageChops                              # noqa: E402
 
 import objects                                                  # noqa: E402
 from iso import canvas, emit                                    # noqa: E402
+from offline_sims import load_export, runtime_tables             # noqa: E402
 from style import TILE_HALF_WIDTH, TILE_HALF_HEIGHT             # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
@@ -95,7 +97,9 @@ AQUARIUM_BIKE_COMPLEMENT_SHA256 = (
 # these deliberate exceptions, which is exactly how a later shared character
 # pass silently turned pedalling back into a standing bob.
 AQUARIUM_BIKE_REPAIR_SHA256 = (
-    "9d7fa132799863cdacf9d75dee3e028253aa695714a2f88021ba93750930824a"
+    # Lower grips fit the approved rider while retaining the original horizontal
+    # envelope. The adjacent lot wall is checked in test_exercise_wall.py.
+    "4f3cfa5bd967c411188472867f10ce530eee4509bbfb800cdcaec31343bab545"
 )
 # Reviewed armchair-sitting bodies: every look, facing, and restrained frame.
 # This closes the shared-generator gap for the exact pixels accepted in the
@@ -437,18 +441,18 @@ def validate_aquarium_bike_contract(sprites):
         raise SystemExit("exercise bike has no visible pixels")
     if aquarium_zero[0].getchannel("A").getbbox() is None:
         raise SystemExit("aquarium frame zero has no visible pixels")
-    if bike[0].getchannel("A").getbbox() != (1, 15, 55, 88):
-        raise SystemExit("exercise bike lost its planted, east-wall-safe envelope")
+    if bike[0].getchannel("A").getbbox() != (1, 37, 55, 88):
+        raise SystemExit("exercise bike lost its planted, rider-fitted envelope")
     for name, expected in (
-        ("cardboardBoxOpenSW", (26, 15, 80, 88)),
-        ("cardboardBoxOpenNW", (26, 15, 80, 88)),
-        ("cardboardBoxOpenNE", (1, 15, 55, 88)),
+        ("cardboardBoxOpenSW", (26, 37, 80, 88)),
+        ("cardboardBoxOpenNW", (26, 37, 80, 88)),
+        ("cardboardBoxOpenNE", (1, 37, 55, 88)),
     ):
         image, width, height = by_name[name]
         if (width, height) != (80, 88):
             raise SystemExit(f"{name} must share the bike's 80x88 envelope")
         if image.getchannel("A").getbbox() != expected:
-            raise SystemExit(f"{name} lost its reviewed wall-safe silhouette")
+            raise SystemExit(f"{name} lost its rider-fitted silhouette")
     if aquarium_zero[0].getchannel("A").getbbox() != (26, 15, 80, 104):
         raise SystemExit("aquarium lost its planted, west-wall-safe envelope")
     if (
@@ -621,7 +625,7 @@ def validate_sleeping_contract(sprites):
     sleeping = sleeping_names()
     if names[335] != "bedBunkForeground":
         raise SystemExit("the bunk foreground must append at atlas index 335")
-    if names[336:360] != sleeping or len(names) != 360:
+    if names[336:360] != sleeping or len(names) < 360:
         raise SystemExit("sleeping bodies must append at indices 336 through 359")
 
     by_name = {
@@ -725,7 +729,9 @@ def pack(sprites, width=512):
 def compose(sprites, placed, width, height):
     sheet = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     for i, (_, crop, w, h) in enumerate(sprites):
-        sheet.paste(crop, placed[i], crop)
+        # Packed rectangles do not overlap. Copy straight RGBA unchanged;
+        # using alpha as a second mask darkens antialiased model edges.
+        sheet.paste(crop, placed[i])
     return sheet
 
 
@@ -754,12 +760,22 @@ def write_toml(sprites, placed, width, height):
     return "\n".join(lines) + "\n"
 
 
-def write_ts(sprites, placed, width, height, png_sha256):
+def write_ts(sprites, placed, width, height, png_sha256, anchors=None,
+             hands=None, tops=None, clips=None, hand_fronts=None, variants=None):
     rows = []
     for i, (name, _, w, h) in enumerate(sprites):
         px, py = placed[i]
         rows.append(f"  {{ name: '{name}', x: {px}, y: {py}, w: {w}, h: {h} }},")
     body = "\n".join(rows)
+    anchor_rows = "\n".join(
+        f"  {index}: [{point[0]}, {point[1]}],"
+        for index, point in sorted((anchors or {}).items())
+    )
+    hands_json = json.dumps(hands or {}, indent=2)
+    hand_fronts_json = json.dumps(hand_fronts or {}, indent=2)
+    tops_json = json.dumps(tops or {}, indent=2)
+    clips_json = json.dumps(clips or {}, indent=2)
+    variants_json = json.dumps(variants or {}, indent=2)
     # The export NAMES here are load-bearing: sprites.ts imports `SPRITES`,
     # `ATLAS_WIDTH` and `ATLAS_HEIGHT` by those names. Renaming any of them
     # is a compile error at best and a silently empty atlas at worst.
@@ -793,6 +809,27 @@ export const ATLAS_FILE_NAME = '{revisioned_atlas_name(png_sha256)}';
 export const SPRITES: readonly AtlasSprite[] = [
 {body}
 ];
+
+/** Registered pixel anchors; omitted legacy records remain bottom-centred. */
+export const SPRITE_ANCHORS: Readonly<Record<number, readonly [number, number]>> = {{
+{anchor_rows}
+}};
+
+/** Actual opaque top and gripping point in native image coordinates. */
+export const SPRITE_CONTENT_TOPS: Readonly<Record<number, number>> = {tops_json};
+export const SPRITE_HAND_ANCHORS: Readonly<Record<number, readonly [number, number]>> = {hands_json};
+/** Whether a held meal is nearer the camera than the body at its grip. */
+export const SPRITE_HAND_FOREGROUND: Readonly<Record<number, boolean>> = {hand_fronts_json};
+
+export interface RiggedSimClip {{
+  readonly frames: readonly (readonly number[])[];
+  readonly cycleTiles?: number;
+}}
+
+/** Runtime-facing order is +X, -X, +Y, -Y. */
+export const RIGGED_SIM_CLIPS: Readonly<Record<string, RiggedSimClip>> = {clips_json};
+/** Otherwise identical material variants, selected by persistent household identity. */
+export const RIGGED_SIM_VARIANTS: Readonly<Record<string, Readonly<Record<string, RiggedSimClip>>>> = {variants_json};
 
 /**
  * The index of a sprite the shell itself draws by name, including lot
@@ -850,11 +887,56 @@ def main():
     args = ap.parse_args()
 
     sprites = render_all()
+    exported = load_export(
+        os.path.join(ROOT, "assets", "models", "sims", "sim-01", "export", "manifest.json"),
+        required_clips={"idle", "walk", "read", "talk", "eat", "stand_read", "watch_fish", "sit", "sleep"},
+        existing_names={sprite[0] for sprite in sprites},
+    )
+    sprites.extend(exported.sprites)
+    anchors, hands, tops, clips, hand_fronts = runtime_tables(exported, sprites)
+    variants = {"green": clips}
+    for variant in ("blue", "red"):
+        colored = load_export(
+            os.path.join(ROOT, "assets", "models", "sims", "sim-01", "export", variant, "manifest.json"),
+            required_clips=set(exported.clips), expected_variant=variant,
+            existing_names={sprite[0] for sprite in sprites},
+        )
+        if colored.clips != exported.clips:
+            raise ValueError(f"{variant}: shirt variants must retain identical clip registration and timing")
+        sprites.extend(colored.sprites)
+        color_anchors, color_hands, color_tops, color_clips, color_fronts = runtime_tables(colored, sprites)
+        anchors.update(color_anchors)
+        hands.update(color_hands)
+        tops.update(color_tops)
+        hand_fronts.update(color_fronts)
+        variants[variant] = color_clips
+    exercise_registration = None
+    for variant in ("green", "blue", "red"):
+        exercise = load_export(
+            os.path.join(ROOT, "assets", "models", "sims", "sim-01", "export", "exercise", variant, "manifest.json"),
+            required_clips={"exercise"}, expected_variant=variant,
+            existing_names={sprite[0] for sprite in sprites},
+        )
+        if set(exercise.clips) != {"exercise"}:
+            raise ValueError("exercise supplement must not replace the approved base clips")
+        if exercise_registration is None:
+            exercise_registration = exercise.clips
+        elif exercise.clips != exercise_registration:
+            raise ValueError(f"{variant}: exercise registration and timing differ between shirt palettes")
+        sprites.extend(exercise.sprites)
+        extra_anchors, extra_hands, extra_tops, extra_clips, extra_fronts = runtime_tables(exercise, sprites)
+        anchors.update(extra_anchors)
+        hands.update(extra_hands)
+        tops.update(extra_tops)
+        hand_fronts.update(extra_fronts)
+        variants[variant].update(extra_clips)
     names = [s[0] for s in sprites]
     if len(set(names)) != len(names):
         sys.exit("duplicate sprite name in objects.SPRITES")
 
-    placed, width, height = pack(sprites)
+    placed, width, height = pack(sprites, width=1024)
+    if height > 8192:
+        raise ValueError("atlas exceeds the baseline WebGPU texture dimension limit")
     sheet = compose(sprites, placed, width, height)
     png = png_bytes(sheet)
     toml = write_toml(sprites, placed, width, height)
@@ -878,7 +960,9 @@ def main():
     revisioned_png = os.path.join(
         os.path.dirname(ATLAS_PNG), revisioned_atlas_name(png_sha256)
     )
-    ts = write_ts(sprites, placed, width, height, png_sha256)
+    ts = write_ts(sprites, placed, width, height, png_sha256,
+                  anchors=anchors, hands=hands, tops=tops, clips=clips,
+                  hand_fronts=hand_fronts, variants=variants)
 
     if args.check:
         bad = []

@@ -1,5 +1,9 @@
 * text=auto eol=lf
 
+# This accepted source manifest is byte-hashed by the preservation proof.
+# Newline conversion would change the approved input on a clean checkout.
+assets/models/sims/sim-01/export/manifest.json -text
+
 # **Append-only prose, merged by keeping BOTH sides.**
 #
 # These two files accrete one entry at the end per branch, so two

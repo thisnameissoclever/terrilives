@@ -1,0 +1,280 @@
+{
+  "state": "complete",
+  "weighted_vertices": 115786,
+  "bound_meshes": 70,
+  "bones": 17,
+  "clips": {
+    "idle": {
+      "sample_count": 1,
+      "mesh_displacement": 0.0,
+      "loop_closure_error": 0.0
+    },
+    "walk": {
+      "sample_count": 8,
+      "mesh_displacement": 0.49734183715012925,
+      "loop_closure_error": 0.0
+    },
+    "read": {
+      "sample_count": 4,
+      "mesh_displacement": 0.010951102781572393,
+      "loop_closure_error": 0.0
+    },
+    "talk": {
+      "sample_count": 4,
+      "mesh_displacement": 0.10995255928183983,
+      "loop_closure_error": 0.0
+    },
+    "eat": {
+      "sample_count": 4,
+      "mesh_displacement": 0.3431118204587273,
+      "loop_closure_error": 0.0
+    },
+    "stand_read": {
+      "sample_count": 4,
+      "mesh_displacement": 0.010082948772592656,
+      "loop_closure_error": 0.0
+    },
+    "watch_fish": {
+      "sample_count": 4,
+      "mesh_displacement": 0.005168058633060344,
+      "loop_closure_error": 0.0
+    },
+    "sit": {
+      "sample_count": 4,
+      "mesh_displacement": 0.004065565452166439,
+      "loop_closure_error": 0.0
+    },
+    "sleep": {
+      "sample_count": 4,
+      "mesh_displacement": 0.006037506824063462,
+      "loop_closure_error": 0.0
+    }
+  },
+  "source_sha256": "a90fd5be6c2c60b89216d4881b9f4265a45fb662d913299daa12cc3b247d9ece",
+  "retained_material_slots": {
+    "Collar stand": [
+      "Sage seam and cuff"
+    ],
+    "Dark pupil": [
+      "Warm dark facial marks"
+    ],
+    "Dark pupil.001": [
+      "Warm dark facial marks"
+    ],
+    "Ear": [
+      "Warm ochre skin"
+    ],
+    "Ear.001": [
+      "Warm ochre skin"
+    ],
+    "Eye white": [
+      "Warm eye whites"
+    ],
+    "Eye white.001": [
+      "Warm eye whites"
+    ],
+    "Fitted rounded shoe sole": [
+      "Quiet rubber soles"
+    ],
+    "Fitted rounded shoe sole.001": [
+      "Quiet rubber soles"
+    ],
+    "Folded fabric collar leaf": [
+      "Sage folded collar fabric"
+    ],
+    "Folded fabric collar leaf.001": [
+      "Sage folded collar fabric"
+    ],
+    "Forearm with elbow and wrist sections": [
+      "Warm ochre skin"
+    ],
+    "Forearm with elbow and wrist sections.001": [
+      "Warm ochre skin"
+    ],
+    "HAIR_01_TRIPO_CURL": [
+      "Chestnut hair planes"
+    ],
+    "Hazel iris": [
+      "Hazel iris"
+    ],
+    "Hazel iris.001": [
+      "Hazel iris"
+    ],
+    "Inner ear": [
+      "Cheek warmth"
+    ],
+    "Inner ear.001": [
+      "Cheek warmth"
+    ],
+    "Natural neck": [
+      "Warm ochre skin"
+    ],
+    "One sewn breast pocket": [
+      "Sage seam and cuff"
+    ],
+    "Overshirt body": [
+      "Washed sage overshirt"
+    ],
+    "Pocket top seam": [
+      "Washed sage overshirt"
+    ],
+    "Quiet closed smile": [
+      "Warm dark facial marks"
+    ],
+    "Relaxed palm": [
+      "Warm ochre skin"
+    ],
+    "Relaxed palm.001": [
+      "Warm ochre skin"
+    ],
+    "Relaxed shirt sleeve": [
+      "Washed sage overshirt"
+    ],
+    "Relaxed shirt sleeve.001": [
+      "Washed sage overshirt"
+    ],
+    "Resting thumb": [
+      "Warm ochre skin"
+    ],
+    "Resting thumb.001": [
+      "Warm ochre skin"
+    ],
+    "Sculpted head": [
+      "Warm ochre skin"
+    ],
+    "Shaped shoe": [
+      "Warm charcoal shoes"
+    ],
+    "Shaped shoe.001": [
+      "Warm charcoal shoes"
+    ],
+    "Shirt lower hem": [
+      "Sage seam and cuff"
+    ],
+    "Shirt placket": [
+      "Sage seam and cuff"
+    ],
+    "Shoe apron stitch": [
+      "Quiet rubber soles"
+    ],
+    "Shoe apron stitch.001": [
+      "Quiet rubber soles"
+    ],
+    "Small eye catchlight": [
+      "Warm eye whites"
+    ],
+    "Small eye catchlight.001": [
+      "Warm eye whites"
+    ],
+    "Small horn button": [
+      "Oatmeal undershirt"
+    ],
+    "Small horn button.001": [
+      "Oatmeal undershirt"
+    ],
+    "Small horn button.002": [
+      "Oatmeal undershirt"
+    ],
+    "Small horn button.003": [
+      "Oatmeal undershirt"
+    ],
+    "Small rounded nose": [
+      "Warm ochre skin"
+    ],
+    "Soft eyebrow": [
+      "Original chestnut brow"
+    ],
+    "Soft eyebrow.001": [
+      "Original chestnut brow"
+    ],
+    "Tailored trouser leg": [
+      "Slate cotton trousers"
+    ],
+    "Tailored trouser leg.001": [
+      "Slate cotton trousers"
+    ],
+    "Trouser hem": [
+      "Trouser cuff"
+    ],
+    "Trouser hem.001": [
+      "Trouser cuff"
+    ],
+    "Trouser hip bridge": [
+      "Slate cotton trousers"
+    ],
+    "Turned sleeve cuff": [
+      "Sage seam and cuff"
+    ],
+    "Turned sleeve cuff.001": [
+      "Sage seam and cuff"
+    ],
+    "Upper lid outline": [
+      "Warm dark facial marks"
+    ],
+    "Upper lid outline.001": [
+      "Warm dark facial marks"
+    ]
+  },
+  "walk_stance_sole_errors": [
+    5.587935447692871e-09,
+    2.9802322387695312e-08,
+    0.0,
+    0.0,
+    1.1175870895385742e-08,
+    1.6763806343078613e-08,
+    0.0,
+    9.313225746154785e-09
+  ],
+  "reading_hand_book_surface_distances": [
+    {
+      "Relaxed palm": 0.00012157423770986497,
+      "Relaxed palm.001": 6.964312433410669e-06
+    },
+    {
+      "Relaxed palm": 0.00015429253107868135,
+      "Relaxed palm.001": 1.5728879589005373e-05
+    },
+    {
+      "Relaxed palm": 0.00012157423770986497,
+      "Relaxed palm.001": 6.964312433410669e-06
+    },
+    {
+      "Relaxed palm": 0.00013490217679645866,
+      "Relaxed palm.001": 1.380848880216945e-05
+    }
+  ],
+  "reading_butt_surface_bounds": [
+    [
+      -0.20709577202796936,
+      -0.161735400557518,
+      0.4042990803718567
+    ],
+    [
+      0.20709577202796936,
+      0.07250647991895676,
+      0.6251726150512695
+    ]
+  ],
+  "seated_torso_rear_y": 0.08002757281064987,
+  "chair_cushion_reference": {
+    "x": [
+      -0.24,
+      0.32
+    ],
+    "y": [
+      -0.3,
+      0.3
+    ],
+    "top_z": 0.42
+  },
+  "reading_sole_min_z": [
+    0.019148141145706177,
+    0.019148103892803192
+  ],
+  "neutral_sole_min_z": [
+    0.019148124381899834,
+    0.01914811134338379
+  ],
+  "sleep_expression_and_planted_body": "PASS",
+  "blend_sha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce"
+}

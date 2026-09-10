@@ -7,6 +7,12 @@ import {
   ATLAS_HEIGHT,
   ATLAS_WIDTH,
   SPRITES,
+  SPRITE_ANCHORS,
+  SPRITE_CONTENT_TOPS,
+  SPRITE_HAND_ANCHORS,
+  SPRITE_HAND_FOREGROUND,
+  RIGGED_SIM_CLIPS,
+  RIGGED_SIM_VARIANTS,
   spriteIndex,
 } from '../src/render/atlas.js';
 import { atlasTextureUrl } from '../src/render/sprites.js';
@@ -269,7 +275,13 @@ describe('the atlas manifest', () => {
     expect(spriteIndex('sim')).toBe(1);
     expect(spriteIndex('sim2')).toBe(48);
     expect(spriteIndex('sim3')).toBe(49);
-    expect(SPRITES.length).toBe(360);
+    const exportManifest = JSON.parse(readFileSync(
+      '../assets/models/sims/sim-01/export/manifest.json', 'utf8',
+    ));
+    const exercise = JSON.parse(readFileSync(
+      '../assets/models/sims/sim-01/export/exercise/green/manifest.json', 'utf8',
+    ));
+    expect(SPRITES.length).toBe(368 + 3 * (exportManifest.frames.length + exercise.frames.length));
     expect(
       createHash('sha256')
         .update(SPRITES.slice(0, 147).map((sprite) => sprite.name).join('\0'))
@@ -339,5 +351,79 @@ describe('the atlas manifest', () => {
     // Generic object use is intentionally text-only. A vague glyph would
     // mislabel at least one shipped use, so no generic icon is appended.
     expect(() => spriteIndex('indicatorUse')).toThrow();
+  });
+
+  it('appends registered model clips without losing their source anchors or hand contacts', () => {
+    const manifest = JSON.parse(readFileSync('../assets/models/sims/sim-01/export/manifest.json', 'utf8'));
+    expect(SPRITES.slice(360, 368).map(sprite => sprite.name)).toEqual(
+      ['loungeChair', 'loungeChairRelax'].flatMap(base =>
+        ['', 'SW', 'NW', 'NE'].map(facing => `${base}Foreground${facing}`)),
+    );
+    const facings = ['SE', 'NW', 'SW', 'NE'];
+    expect(Object.keys(RIGGED_SIM_CLIPS).sort()).toEqual([...Object.keys(manifest.clips), 'exercise'].sort());
+    for (const frame of manifest.frames) {
+      const index = spriteIndex(frame.name);
+      expect(index).toBeGreaterThanOrEqual(368);
+      const clip = manifest.clips[frame.action];
+      expect([SPRITES[index].w, SPRITES[index].h]).toEqual([clip.width, clip.height]);
+      expect(SPRITE_ANCHORS[index]).toEqual(clip.anchor);
+      expect(SPRITE_CONTENT_TOPS[index]).toBeGreaterThan(0);
+      expect(RIGGED_SIM_CLIPS[frame.action].frames[facings.indexOf(frame.facing)][frame.frame]).toBe(index);
+      if (frame.action === 'eat') {
+        expect(SPRITE_HAND_ANCHORS[index]).toEqual(frame.hand_anchor);
+        expect(SPRITE_HAND_FOREGROUND[index]).toBe(frame.hand_in_front);
+      }
+      const bytes = readFileSync(`../assets/models/sims/sim-01/export/${frame.path}`);
+      expect(createHash('sha256').update(bytes).digest('hex')).toBe(frame.sha256);
+    }
+  });
+
+  it('preserves registration, sample counts and source hashes for each shirt palette', () => {
+    const green = JSON.parse(readFileSync('../assets/models/sims/sim-01/export/manifest.json', 'utf8'));
+    expect(Object.keys(RIGGED_SIM_VARIANTS).sort()).toEqual(['blue', 'green', 'red']);
+    for (const variant of ['blue', 'red']) {
+      const directory = `../assets/models/sims/sim-01/export/${variant}`;
+      const manifest = JSON.parse(readFileSync(`${directory}/manifest.json`, 'utf8'));
+      expect(manifest.variant).toBe(variant);
+      expect(manifest.clips).toEqual(green.clips);
+      expect(manifest.frames).toHaveLength(green.frames.length);
+      for (const frame of manifest.frames) {
+        const index = spriteIndex(frame.name);
+        const clip = manifest.clips[frame.action];
+        expect(SPRITE_ANCHORS[index]).toEqual(clip.anchor);
+        expect(RIGGED_SIM_VARIANTS[variant][frame.action].frames[
+          ['SE', 'NW', 'SW', 'NE'].indexOf(frame.facing)
+        ][frame.frame]).toBe(index);
+        expect(createHash('sha256').update(readFileSync(`${directory}/${frame.path}`)).digest('hex')).toBe(frame.sha256);
+        if (frame.action === 'eat') {
+          expect(SPRITE_HAND_ANCHORS[index]).toEqual(frame.hand_anchor);
+          expect(SPRITE_HAND_FOREGROUND[index]).toBe(frame.hand_in_front);
+        }
+      }
+    }
+    expect(ATLAS_WIDTH).toBeLessThanOrEqual(8192);
+    expect(ATLAS_HEIGHT).toBeLessThanOrEqual(8192);
+  });
+
+  it('appends the same two-pose exercise contract for every shirt without legacy bodies', () => {
+    let registration: unknown;
+    for (const variant of ['green', 'blue', 'red']) {
+      const directory = `../assets/models/sims/sim-01/export/exercise/${variant}`;
+      const manifest = JSON.parse(readFileSync(`${directory}/manifest.json`, 'utf8'));
+      expect(Object.keys(manifest.clips)).toEqual(['exercise']);
+      expect(manifest.clips.exercise.frame_count).toBe(2);
+      expect(manifest.frames).toHaveLength(8);
+      if (registration === undefined) registration = manifest.clips;
+      expect(manifest.clips).toEqual(registration);
+      for (const frame of manifest.frames) {
+        const index = spriteIndex(frame.name);
+        expect(index).toBeGreaterThanOrEqual(812);
+        expect(RIGGED_SIM_VARIANTS[variant].exercise.frames[
+          ['SE', 'NW', 'SW', 'NE'].indexOf(frame.facing)
+        ][frame.frame]).toBe(index);
+        expect(SPRITE_ANCHORS[index]).toEqual(manifest.clips.exercise.anchor);
+        expect(createHash('sha256').update(readFileSync(`${directory}/${frame.path}`)).digest('hex')).toBe(frame.sha256);
+      }
+    }
   });
 });
