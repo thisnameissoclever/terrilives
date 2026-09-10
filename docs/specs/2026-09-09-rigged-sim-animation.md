@@ -1,9 +1,11 @@
 # Approved Sim: rig and sprite animation
 
 The owner approved the small-front-curl model on 2026-09-09 and authorized
-local rigging, animation and game integration. This document describes work in
-progress, not a shipped feature. No further model generation or paid requests
-are needed for this stage.
+local rigging, animation and game integration. The three-shirt integration
+shipped through PR #60 on 2026-09-10, merge commit
+`a3559cd44988cc5dbd1d2c5e54f2bbfd571d8f96`. The historical checkpoints below
+retain their original proof limits; they are not the current release status.
+No further model generation or paid requests are needed for this stage.
 
 ## Source and scope
 

@@ -8,7 +8,23 @@ retroactively and cheap to record now.
 content is not** - those licences generally forbid redistributing source, which
 is fine inside a compiled build and a violation inside git. See TECH_STACK.md.
 
-## There are no third-party visual assets
+## Current visual sources
+
+**Current provenance, 2026-09-10:** the primitive-only account below
+describes the earlier generator migration, not the full current asset set.
+The approved shared Sim now comes from the editable Blender source and rig in
+`assets/models/sims/sim-01/`, including the retained Tripo hair source.
+Its README records immutable source hashes, material-only shirt variants and
+offline animation exports. High-resolution Blender renders are downsampled to
+native RGBA frames, validated and packed into the same 2D atlas. The current
+atlas contains 836 records; the older counts below are historical.
+
+New furniture work is specified in
+`docs/specs/2026-09-10-bike-chair-four-facings.md`. Its local model candidates
+are not shipped assets until their review and integration gates pass. Neither
+that workflow nor the shipped Sim requires runtime 3D rendering.
+
+## Historical primitive-only migration
 
 **As of 2026-08-12 this project ships no borrowed art.** Every sprite in
 `web/public/atlas.png` is drawn from primitives by `assets/sprites/gen/`, so

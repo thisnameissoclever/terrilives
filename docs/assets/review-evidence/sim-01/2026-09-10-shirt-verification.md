@@ -114,6 +114,13 @@ local test from 2.8 seconds to 5 milliseconds. A one-byte in-memory mutation
 failed with `expected false to be true` (exit 1); the mutation was removed.
 No PNG, generated manifest, runtime behavior, or test timeout changed.
 
-Local release checks passed. PR checks and the actual live deployment remain
-separate, pending gates; their run URLs and tested commit will be recorded in
-the PR and final delivery report.
+Publication completed on 2026-09-10. [PR checks](https://github.com/thisnameissoclever/terrilives/actions/runs/34514418696)
+passed for `9e63f000785e5ab7b566b293e227994456ea598a`.
+[PR #60](https://github.com/thisnameissoclever/terrilives/pull/60) merged as
+`a3559cd44988cc5dbd1d2c5e54f2bbfd571d8f96`; both
+[main CI](https://github.com/thisnameissoclever/terrilives/actions/runs/34519115566)
+and [Pages deployment](https://github.com/thisnameissoclever/terrilives/actions/runs/34519324149)
+passed for that exact revision. The live played check and served atlas hash
+are recorded in the [release evidence](https://github.com/thisnameissoclever/terrilives/pull/60#issuecomment-5624190618).
+Remaining furniture-contact defects above are not a pending publication gate
+for that completed Sim release.

@@ -4789,3 +4789,39 @@ timeout or replace exact equality with a visual tolerance.
 **How to verify.** Flip one byte in the in-memory served PNG and run the
 content-address test: it must fail with `expected false to be true`. Restore
 the mutation and run the full web suite, then confirm Linux CI passes.
+
+## [L-empty-reference-visibility] Hide a reference collection, not driven object flags
+
+**What happened.** The first empty furniture renders retained floating eye
+outlines from the Sim used for fitting, although the preview set each mesh's
+`hide_render` flag. The occupied renders were unaffected.
+
+**Root cause.** Saved visibility drivers re-evaluated during rendering and
+overrode the individual object flags. An empty-view switch competed with the
+accepted model's expression and prop visibility ownership.
+
+**Prevention rule.** Move the complete Sim reference into a dedicated collection
+and hide that collection for empty views. Preserve the individual driven state.
+Never remove stray pixels from an image to disguise faulty scene visibility.
+
+**How to verify.** Render every empty facing and inspect the full canvas,
+including above the object. Then restore the collection and check the occupied
+expressions and props. Hash and nonempty-image checks alone cannot catch this.
+
+## [L-drape-support-has-width] A correct cloth section does not prove a supported towel
+
+**What happened.** A towel's U-shaped section cleared its handle tube, but the
+sheet extended along the handle into its upward bend. The assumed support was
+straight while the actual tube changed height across the towel's width.
+
+**Root cause.** A two-dimensional section test was treated as proof for the
+whole three-dimensional attachment.
+
+**Prevention rule.** Give the towel an actual straight support segment, keep
+its full width inside that segment, and leave the gripping area clear. Test
+the width and section independently. Do not call a constructed drape a cloth
+simulation.
+
+**How to verify.** Trace the actual support endpoints and tube radius against
+the complete cloth surface, then inspect the fold and both tails from all four
+rotations. A passing radius test alone is insufficient.

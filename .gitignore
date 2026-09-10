@@ -48,3 +48,7 @@ assets/models/sims/sim-01/exercise-*-status.json
 *.blend1
 # Disposable checkout of the staged release used for byte-preservation checks.
 .tmp/release-index-check/
+# Rejected furniture source snapshots are retained locally; keep their images
+# and rejection records. The current candidate's editable sources are tracked.
+assets/models/furniture/review/candidate-01/*.blend
+assets/models/furniture/review/status.json
