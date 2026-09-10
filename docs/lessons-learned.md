@@ -4771,3 +4771,21 @@ object ID, then run preservation checks against files exported from the index.
 After changing attributes, explicitly restage the affected artifact with
 `git add --renormalize`; ordinary staging can retain its old normalized blob.
 Run the same tests in Linux CI before publishing.
+
+## [L-atlas-buffer-comparison] Compare binary assets as bytes
+
+**What happened.** The web CI atlas test exceeded its five-second limit after
+the character atlas grew to 1,451,685 bytes. All other 533 web tests passed.
+
+**Root cause.** Generic recursive `toEqual` walked the PNG's Buffer entries.
+The same assertion took 2.8 seconds locally, versus 5 milliseconds for the
+test using native `Buffer.equals`. The CI failure reported a timeout, not a
+hash mismatch.
+
+**Prevention rule.** Use direct byte equality for binary artifacts. Preserve
+the independent SHA-256 and served-filename assertions; do not extend the
+timeout or replace exact equality with a visual tolerance.
+
+**How to verify.** Flip one byte in the in-memory served PNG and run the
+content-address test: it must fail with `expected false to be true`. Restore
+the mutation and run the full web suite, then confirm Linux CI passes.

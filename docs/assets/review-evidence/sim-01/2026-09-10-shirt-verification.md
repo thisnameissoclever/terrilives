@@ -107,6 +107,13 @@ within 0.0003 native pixels. Non-SE bike contacts remain unaccepted.
 
 ## Publication
 
+PR CI run `34511706992` passed native checks but timed out in the atlas's
+generic Buffer equality assertion (533 other web tests passed). Replacing
+recursive object comparison with exact `Buffer.equals` reduced the focused
+local test from 2.8 seconds to 5 milliseconds. A one-byte in-memory mutation
+failed with `expected false to be true` (exit 1); the mutation was removed.
+No PNG, generated manifest, runtime behavior, or test timeout changed.
+
 Local release checks passed. PR checks and the actual live deployment remain
 separate, pending gates; their run URLs and tested commit will be recorded in
 the PR and final delivery report.

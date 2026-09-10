@@ -147,7 +147,8 @@ describe('the atlas manifest', () => {
 
     expect(ATLAS_CONTENT_SHA256).toBe(actual);
     expect(ATLAS_FILE_NAME).toBe(`atlas-${actual}.png`);
-    expect(readFileSync(`public/${ATLAS_FILE_NAME}`)).toEqual(png);
+    // Compare bytes directly; recursive object equality scales poorly for large buffers.
+    expect(readFileSync(`public/${ATLAS_FILE_NAME}`).equals(png)).toBe(true);
     expect(atlasTextureUrl('/terrilives/')).toBe(`/terrilives/${ATLAS_FILE_NAME}`);
   });
 
