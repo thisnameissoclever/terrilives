@@ -203,4 +203,13 @@ describe('sprites.wgsl contract', () => {
     expect(shader).toMatch(/textureSample\(/);
     expect(shader).toMatch(/discard;/);
   });
+
+  it('keeps linear samples inside each sprite rather than blending its atlas gutter', () => {
+    // The displayed 1.616x wall scan changed from four dark seam pixels
+    // to 106 identical face pixels when this clamp was added.
+    expect(shader).toContain('out.uvBounds = sprite.uv;');
+    expect(shader).toContain('vec2f(0.5) / vec2f(textureDimensions(atlasTexture))');
+    expect(shader).toContain('clamp(in.uv, in.uvBounds.xy + halfTexel, in.uvBounds.zw - halfTexel)');
+    expect(shader).toContain('textureSample(atlasTexture, atlasSampler, uv)');
+  });
 });

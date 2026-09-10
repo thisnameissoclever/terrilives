@@ -4825,3 +4825,48 @@ simulation.
 **How to verify.** Trace the actual support endpoints and tube radius against
 the complete cloth surface, then inspect the fold and both tails from all four
 rotations. A passing radius test alone is insufficient.
+## [L-boundary-panel-endpoints] A corner post cannot close a gap between panel ends
+
+**What happened:** the back corner had a visible gap and a stray upright;
+both open ends exposed triangular floor wedges beyond the wall bases.
+
+**Root cause:** tile-centred panels were placed at x = -1 and y = -1,
+while the floor ring extended to -1.5. Both runs also omitted their corner
+segment. The narrow corner sprite could not span the missing half-panels.
+
+**Prevention rule:** derive exterior wall placement from the slab edges and
+check actual panel endpoints. Keep integer lighting samples separate from
+fractional draw positions, and update both camera framing and pan bounds
+when the topmost panel anchor changes.
+
+**How to verify:** run the tile and camera tests; removing the outward
+half-tile shift, omitting a corner segment, or restoring the old camera
+headroom must fail. Inspect all three corners in the rendered build at
+native and fractional zoom. See `docs/wall-boundary-verification.md`.
+
+
+## [L-joined-walls-and-atlas-gutters] Wall connectivity and texture sampling both affect seams
+
+**What happened:** interior dividers stopped short at junctions, doorway
+sprites drew full-height seams beside their openings, and fractional zoom
+revealed dark lines between otherwise touching wall panels.
+
+**Root cause:** choosing one straight panel discarded junction arms; outlining
+every doorway polygon also outlined its shared edges. Linear filtering then
+sampled transparent atlas gutters at sprite boundaries. Atlas-wide sampler
+clamping did not constrain samples to the individual sprite rectangle.
+
+**Prevention rule:** represent all incident arms in a joined sprite, outline
+only exposed doorway edges, and clamp filtered samples to the sprite's edge
+texel centres. Preserve the existing atlas prefix when adding architecture.
+When another branch has already appended animation records, append new wall
+records after that complete upstream prefix. Resolve the generator sources,
+then regenerate outputs; verify upstream pixels, indices and animation tables
+against the fetched commit before publishing.
+
+**How to verify:** test every elbow, T and crossroad, compare door seam pixels
+with straight wall pixels, and inspect fractional zoom. A 106-pixel wall strip
+contained four dark seam pixels before the shader clamp and none afterward.
+Removing junction selection, the shader clamp, a visible arm, or the pixel
+preservation guard must fail the relevant regression check. Require the named
+assertion to fail; a worker-start timeout is not a caught mutation.

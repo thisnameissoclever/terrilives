@@ -55,16 +55,17 @@ as a topmost painted row of 0 where an unclipped picture starts at 25.
 `cameraOrigin` in `web/src/render/iso.ts` owns the arithmetic now, centres the
 DRAWN extent rather than the tile span, and reads two heights off the atlas
 rather than one. The two are the point: only wall pieces are drawn on the
-boundary row at world -1, and everything else stands at (0, 0) or beyond, two
-half-tile rows lower. Reserving the atlas's tallest sprite above the boundary
-row - which is what shipped - prices in a bunk bed standing outside the house,
+first boundary panels at (-1.5, -1) and (-1, -1.5), while everything else
+stands at (0, 0) or beyond, 2.5 half-tile rows lower. Reserving the atlas's
+tallest sprite above the boundary row - which is what shipped - prices in a bunk bed standing outside the house,
 and it is what made this lot read as 724 px of a 720 px page when the Clear Line
-pass took the bunk from 132 to 136 px. The real extent is **697 px**.
+pass took the bunk from 132 to 136 px. That pass measured 697 px. The
+outer-edge boundary correction below adds 10.5 px of headroom, giving **707.5 px** with the current atlas.
 
 The authoring rule is therefore
-`(width + height - 2) * 21 + 21 + max(21 + tallestWall, tallestSprite - 21)`.
-At 16 x 12 that leaves 23 px spare, so one more row or column fits and a second
-does not, and the ceilings are 132 px for a boundary wall and 174 px for
+`(width + height - 2) * 21 + 21 + max(31.5 + tallestWall, tallestSprite - 21)`.
+At 16 x 12 that leaves 12.5 px spare, so another row or column no longer
+fits at the initial scale. The ceilings are 121.5 px for a boundary wall and 174 px for
 anything else. Past any of those the opening view needs a deliberate
 default-scale decision rather than another stale fit claim. Pan and zoom remain
 available regardless.
@@ -147,13 +148,21 @@ a table. Whoever wants a rug owns that change.
 
 ---
 
-## [B5] A wall tile at a junction takes the orientation of the run that passes through it
+## [B5] Junction sprites connect every incident wall arm
 
 **Got wrong twice, and the second wrong version looked like it worked.** Worth
 recording in full because the failure mode is general; [L53] is the short form.
 
-`wallOrientation` picks one of two sprites per wall tile: north-south if the
-tile has a wall neighbour on the y axis, east-west otherwise.
+The renderer now chooses a joined sprite for elbows, T-junctions and
+crossroads. Cardinal bits describe the connected half-panels: north = 1,
+east = 2, south = 4, west = 8. Each junction is one sprite, composed in
+far-to-near order, so no separate quads compete at the same depth. Doorways
+count as connections only along their opening's wall axis. Straight runs
+that reach a far lot edge extend across the decorative floor ring to meet
+the exterior wall.
+
+The previous implementation picked one of two straight wall sprites per
+tile. The history below explains why that left the connecting arm short.
 
 **The first rule** resolved a both-ways tie towards north-south. It was correct
 on the one-room flat, whose two runs met at a single L corner where either panel
@@ -181,14 +190,14 @@ reasoning was false and the fix mostly did not work:
 - Two coincident quads is also [V12]'s depth conflict waiting to happen, since
   `layeredDepth` gives them the same value and `depthCompare` is `less`.
 
-**The rule that ships: the run that passes through wins.** A T-junction has
+**The previous rule: the run that passes through wins.** A T-junction has
 neighbours on both sides of one axis and on only one side of the other, and that
 asymmetry is the answer - the through-run is a continuous surface and the spur
 is a wall that ends against it. One panel per tile, no overlap, no depth
 conflict. A true crossroads has no right answer with one sprite per tile and
 falls through to north-south; the shipped lot has none.
 
-The tests were rewritten around what each fixture can *express*. The L-shaped
+The original tests were rewritten around what each fixture can *express*. The L-shaped
 one is kept and its corner is now asserted as an exact single sprite. A T is
 added, because an L cannot contain a T-junction however its coordinates are
 chosen. A **transposed** T is added as well, because the T alone cannot see "at
@@ -196,6 +205,12 @@ a junction, always prefer east-west" - there the through-run IS east-west. And a
 free-standing tile, for a rule that returned two panels unconditionally.
 
 ---
+
+Doorways now use appended sprites with the same face, rail and skirting as
+their neighbours. Only the passage opening is outlined; the former full-height
+outer border produced a seam beside every frame and protruding lintel corners.
+The shader clamps linear texture sampling to each sprite's edge texels so
+fractional zoom cannot blend the transparent atlas gutter into wall joins.
 
 ## [B6] The comfort rebalance, which took three passes and overshot on the second
 
@@ -268,7 +283,16 @@ distant object's score, and that is correct rather than a bug to tune away.
 
 ---
 
-## [B7] Walls live on tile centres and consume a walkable tile. This is wrong, and it is deferred.
+## [B7] Interior walls still occupy tiles; boundary walls follow the slab edges
+
+The two exterior runs now lie at x = -1.5 and y = -1.5, on the outer
+edges of the existing floor ring. Each includes that ring's corner tile;
+the panels meet at (-1.5, -1.5) without the narrow corner post. Their free
+ends align with the slab silhouette, removing the exposed floor wedges.
+Lighting still samples the integer ring tiles, and the camera reserves
+headroom above the shifted panel anchors. This changes presentation only.
+
+The remaining interior-wall redesign is still deferred.
 
 Worth stating plainly because the house makes it visible for the first time: a
 wall in this game **is a tile**. The 16 x 12 lot spends 28 of its 192 tiles on

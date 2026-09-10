@@ -95,6 +95,7 @@ struct Atlas {
 struct VertexOut {
   @builtin(position) clip: vec4<f32>,
   @location(0) uv: vec2<f32>,
+  @location(2) @interpolate(flat) uvBounds: vec4<f32>,
   // Passed straight through. Every vertex of one quad carries the same
   // value, so the interpolation across the triangle is a no-op and the
   // fragment reads exactly what the instance packed.
@@ -138,13 +139,18 @@ fn vs(
   var out: VertexOut;
   out.clip = vec4f(clipXy, instance.z, 1.0);
   out.uv = mix(sprite.uv.xy, sprite.uv.zw, corner);
+  out.uvBounds = sprite.uv;
   out.tint = tint;
   return out;
 }
 
 @fragment
 fn fs(in: VertexOut) -> @location(0) vec4<f32> {
-  let colour = textureSample(atlasTexture, atlasSampler, in.uv);
+  // Linear filtering must stay inside this sprite's edge texels. Sampling
+  // the transparent atlas gutter darkens every panel seam at fractional zoom.
+  let halfTexel = vec2f(0.5) / vec2f(textureDimensions(atlasTexture));
+  let uv = clamp(in.uv, in.uvBounds.xy + halfTexel, in.uvBounds.zw - halfTexel);
+  let colour = textureSample(atlasTexture, atlasSampler, uv);
   // An alpha TEST, and it is load-bearing rather than a tidy-up.
   //
   // The pipeline writes depth, so a fragment that survives to the blend

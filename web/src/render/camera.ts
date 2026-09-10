@@ -142,8 +142,8 @@ export function zoomAnchoredOrigin(
  * pixels at `scale` - what `clampOrigin` bounds the pan against.
  *
  * The vertical terms are `cameraOrigin`'s own, including its split
- * between the boundary row at world -1 (wall pieces only) and the
- * lot's first tile at (0, 0) two half-rows lower (anything else), and
+ * between the first boundary panels (wall pieces only) and the
+ * lot's first tile at (0, 0), 2.5 half-rows lower (anything else), and
  * the last tile row plus its anchor below. Horizontally the extreme
  * columns are the boundary tiles at `(-1, lotHeight - 1)` (west) and
  * `(lotWidth - 1, -1)` (east), each half a tile wider for the
@@ -165,7 +165,7 @@ export function lotExtent(
     right: (lotWidth + 1) * TILE_HALF_WIDTH * scale,
     top:
       Math.min(
-        -TILE_HALF_HEIGHT - tallestBoundarySprite,
+        -1.5 * TILE_HALF_HEIGHT - tallestBoundarySprite,
         TILE_HALF_HEIGHT - tallestSprite,
       ) * scale,
     bottom:

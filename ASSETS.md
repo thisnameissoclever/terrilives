@@ -74,7 +74,7 @@ Pillow, nothing else:
 | `style.py` | The palette, the line, the shading ramp, the character build. The style bible. |
 | `iso.py` | The projection, the box/slab/cylinder primitives, and the anchoring rule. |
 | `chars.py` | Character anatomy and pose drawing for idle, walking, talk, eating, reading, exercise, and fish-watching bodies. |
-| `objects.py` | The 311-entry sprite registry; furniture, props, directional variants, and the character-pose names that delegate into `chars.py`. |
+| `objects.py` | The 368-entry procedural registry and 11 appended wall drawers; furniture, props, directional variants, and character-pose names that delegate into `chars.py`. The complete atlas includes imported Sim frames. |
 | `build.py` | Packs the sheet and writes all four output files. |
 | `_qa_dump.py` | A one-off native and enlarged crop helper. It is not part of generation or CI. |
 
@@ -206,5 +206,22 @@ than inheriting art from a broad status label. Per-instance tint and emissive
 strength are already live for night lighting, but player-selected character
 appearance is not yet content.
 
-Walls are still tile-CENTRED panels, because that is what `tiles.ts` draws.
-Moving them onto tile edges is [B7], a renderer change rather than an art one.
+Interior walls use tile-centred anchors. Boundary walls follow the outer slab
+edges; extending the authored interior layout onto tile edges remains [B7].
+
+## Joined interior walls and doorway frames
+
+Indices 836 through 844 contain the nine elbow, T-junction and crossroad
+sprites. Their names encode cardinal bits shared with `tiles.ts`: north 1,
+east 2, south 4, west 8. Indices 845 and 846 are `doorwayJoinedNS` and
+`doorwayJoinedEW`, with an outlined passage and no border at the panel seam.
+The older doorway entries remain available to preserve every existing index.
+
+`validate_joined_walls_contract` hashes all 836 prior records, including names,
+dimensions and decoded pixels. It also checks junction arm coverage, doorway
+openings, and exact agreement between doorway and wall edge columns. Atlas
+packing may move rectangles without changing their source pixels or indices.
+
+Linear texture sampling is clamped to each sprite's edge texel centres in the
+fragment shader. Clamping only to the whole atlas does not prevent transparent
+gutters from darkening panel joins at fractional zoom.
