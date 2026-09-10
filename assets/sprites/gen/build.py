@@ -689,9 +689,46 @@ def validate_sleeping_contract(sprites):
                 )
 
 
-def render_all():
+def validate_joined_walls_contract(sprites):
+    """Preserve every old record and keep door seams identical to the wall."""
+    # Decoded atlas prefix from origin/main a3559cd, including imported Sims.
+    baseline = "45a92314006d068ccdebeea9aad862ada6fbe659c2240f2ab384245640a84a23"
+    if sprite_record_digest(sprites[:836]) != baseline:
+        raise SystemExit("joined walls changed a legacy sprite record")
+    expected = [f"wallJoin{mask}" for mask in (3, 6, 7, 9, 11, 12, 13, 14, 15)]
+    expected += ["doorwayJoinedNS", "doorwayJoinedEW"]
+    if [record[0] for record in sprites[836:]] != expected:
+        raise SystemExit("joined architecture must append after sprite 835")
+    by_name = {name: image for name, image, _, _ in sprites}
+    for mask in (3, 6, 7, 9, 11, 12, 13, 14, 15):
+        image = by_name[f"wallJoin{mask}"]
+        if image.size != (32, 98 if mask == 6 else 109):
+            raise SystemExit("joined wall lost its panel envelope")
+        for bit, x, y in ((1, 0, -.4), (2, .4, 0), (4, 0, .4), (8, -.4, 0)):
+            # Probe just below the top of each arm, away from its shared join.
+            px = round(16 + (x - y) * TILE_HALF_WIDTH)
+            py = round(image.height - 22 + (x + y) * TILE_HALF_HEIGHT - 1.9 * 38)
+            alpha = image.getpixel((px, py))[3] if 0 <= py < image.height else 0
+            if mask & bit and alpha != 255:
+                raise SystemExit("joined wall omits a connected arm")
+            if bit in (1, 8) and not mask & bit and alpha != 0:
+                raise SystemExit("joined wall adds an unconnected far arm")
+    for axis in ("NS", "EW"):
+        wall = by_name[f"wall{axis}"]
+        door = by_name[f"doorwayJoined{axis}"]
+        if door.size != wall.size:
+            raise SystemExit("doorway and wall panel dimensions must agree")
+        # The frame must enclose an opening, with solid wall above it.
+        if door.getpixel((16, 62))[3] != 0 or door.getpixel((16, 26))[3] != 255:
+            raise SystemExit("doorway lost its open passage or solid lintel")
+        for x in (0, wall.width - 1):
+            if wall.crop((x, 0, x + 1, wall.height)).tobytes() != door.crop((x, 0, x + 1, door.height)).tobytes():
+                raise SystemExit("doorway adds a seam at the panel edge")
+
+
+def render_sprites(drawers):
     out = []
-    for fn in objects.SPRITES:
+    for fn in drawers:
         img, d = canvas()
         fn(d)
         ew, eh = objects.EXACT.get(fn.__name__, (None, None))
@@ -700,6 +737,11 @@ def render_all():
         except ValueError as err:
             raise SystemExit(f"{fn.__name__}: {err}") from err
         out.append((fn.__name__, crop, w, h))
+    return out
+
+
+def render_all():
+    out = render_sprites(objects.SPRITES)
     validate_reading_contract(out)
     validate_animation_repair_contract(out)
     validate_aquarium_bike_contract(out)
@@ -930,6 +972,11 @@ def main():
         tops.update(extra_tops)
         hand_fronts.update(extra_fronts)
         variants[variant].update(extra_clips)
+    # Append architecture after all imported bodies to preserve their indices.
+    sprites.extend(render_sprites((
+        *objects.WALL_JOIN_SPRITES, objects.doorwayJoinedNS, objects.doorwayJoinedEW,
+    )))
+    validate_joined_walls_contract(sprites)
     names = [s[0] for s in sprites]
     if len(set(names)) != len(names):
         sys.exit("duplicate sprite name in objects.SPRITES")

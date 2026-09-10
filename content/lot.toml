@@ -77,24 +77,11 @@
 # was 28, this lot is 28, and three boundary panels were being cut off the
 # top of the page.
 #
-# `cameraOrigin` in web/src/render/iso.ts owns the arithmetic now and reads
-# both heights it needs off the atlas. What that leaves as the authoring rule
-# is one number:
-#
-#     (width + height - 2) * 21 + 21 + max(21 + tallestWall, tallestSprite - 21)
-#
-# The `max` is the part that took two goes to get right. Only wall pieces are
-# ever drawn on the boundary row at -1; anything else stands at (0, 0) or
-# beyond, two half-tile rows lower, so furniture gets 42 px of head start
-# that walls do not. Reserving the atlas's tallest sprite above the boundary
-# row instead - which is what shipped - models a bunk bed standing outside
-# the house, and made this lot look like 724 px of a 720 px page. It is 697.
-#
-# At 16 x 12 with a 136 px bunk and 109 px walls that leaves 23 px spare, so
-# one more row or column still fits and a second does not. At this size the
-# ceilings are 132 px for a boundary WALL and 174 px for anything else, and
-# walls are the binding one today. Past any of those the opening view needs a
-# deliberate default-scale decision rather than another stale fit claim.
+# `cameraOrigin` in web/src/render/iso.ts owns the current framing arithmetic.
+# The outer-edge panels add 2.5 half-tile rows above the first furniture
+# anchor. With the current atlas the 1x drawn extent is 707.5 px, leaving
+# 12.5 px inside a 720 px canvas. See [B1] in the house design before
+# enlarging the lot or increasing wall height.
 width = 16
 height = 12
 

@@ -282,7 +282,12 @@ describe('the atlas manifest', () => {
     const exercise = JSON.parse(readFileSync(
       '../assets/models/sims/sim-01/export/exercise/green/manifest.json', 'utf8',
     ));
-    expect(SPRITES.length).toBe(368 + 3 * (exportManifest.frames.length + exercise.frames.length));
+    const upstreamCount = 368 + 3 * (exportManifest.frames.length + exercise.frames.length);
+    expect(SPRITES.length).toBe(upstreamCount + 11);
+    expect(SPRITES.slice(upstreamCount).map((sprite) => sprite.name)).toEqual([
+      ...[3, 6, 7, 9, 11, 12, 13, 14, 15].map((mask) => `wallJoin${mask}`),
+      'doorwayJoinedNS', 'doorwayJoinedEW',
+    ]);
     expect(
       createHash('sha256')
         .update(SPRITES.slice(0, 147).map((sprite) => sprite.name).join('\0'))

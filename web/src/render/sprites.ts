@@ -317,11 +317,9 @@ export class SpriteRenderer {
         { binding: 1, resource: { buffer: this.spriteBuffer } },
         {
           binding: 2,
-          // Linear, and the atlas is drawn at exactly one texel per
-          // pixel, so this only ever interpolates when an entity sits on
-          // a fractional tile between ticks. `clamp-to-edge` matters:
-          // `repeat` would wrap a sprite at the right edge of the atlas
-          // round to the left one.
+          // Linear filtering smooths motion and fractional zoom. The shader
+          // clamps to each sprite's texel centres; sampler clamp-to-edge
+          // alone protects only the outside of the complete atlas.
           resource: gpu.device.createSampler({
             magFilter: 'linear',
             minFilter: 'linear',

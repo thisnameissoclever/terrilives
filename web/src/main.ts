@@ -834,11 +834,9 @@ async function main(): Promise<void> {
   // is ever big enough to exceed the viewport, the overflow is shared
   // equally between the two edges and pan reaches either.
   const tallestSprite = Math.max(...SPRITES.map((sprite) => sprite.h));
-  // The boundary row gets its OWN height, because only wall pieces are ever
-  // drawn out at world -1. Reserving the whole atlas above that row models a
-  // bunk bed standing outside the house: 35 px of canvas spent on a
-  // placement the coordinates make impossible, and the reason a 697 px
-  // picture read as 724 px of a 720 px page.
+  // Reserve wall height above the first boundary panels, and furniture
+  // height above the first interior tile. Their anchors differ by 2.5
+  // half-tile rows; furniture cannot stand outside the lot.
   const boundaryNames: readonly string[] = BOUNDARY_SPRITE_NAMES;
   const tallestBoundarySprite = Math.max(
     ...SPRITES.filter((sprite) => boundaryNames.includes(sprite.name)).map(

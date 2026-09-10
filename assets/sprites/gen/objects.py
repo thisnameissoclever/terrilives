@@ -5,11 +5,9 @@ resolves 30 of them, `tiles.ts` asks for 6 more by hand, and terri-data
 fails the content build on a dangling reference, so dropping or renaming
 one breaks the game rather than making it look different.
 
-Walls stay tile-CENTRED panels here, matching what `tiles.ts` draws today.
-Moving them onto tile edges is [B7] and is a renderer change, not an art
-change. What this file can fix without [B7] is the picket-fence read: the
-outgoing panels carry a bright lit edge that repeats every 32 px down a
-run, so the run stripes. These do not have one.
+Wall art uses tile-centred anchors. The renderer places boundary panels on
+slab edges and chooses appended junction sprites for connected interior arms.
+Legacy sprite pixels and indices remain fixed; see the build-time contracts.
 """
 from style import (PALETTE as C, OUTLINE, OUTLINE_WIDTH,
                    CHARACTER_PALETTES, FACE_LEFT, FACE_RIGHT, FACE_TOP,
@@ -45,18 +43,18 @@ def selectionRing(d):
     diamond(d, A + .09, A + .09, B - .09, B - .09, None, outline=C["select"], width=2)
 
 
-def _wall(d, axis, height=WALL_H, skirt=True):
+def _wall(d, axis, height=WALL_H, skirt=True, start=A, end=B):
     def face(z0, z1, colour, cap=True):
         a = (lambda t, z: P(0, t, z)) if axis == "ns" else (lambda t, z: P(t, 0, z))
-        d.polygon([a(A, z1), a(B, z1), a(B, z0), a(A, z0)], fill=colour)
+        d.polygon([a(start, z1), a(end, z1), a(end, z0), a(start, z0)], fill=colour)
         if cap:
-            d.line([a(A, z1), a(B, z1)], fill=OUTLINE, width=OUTLINE_WIDTH)
-            d.line([a(A, z0), a(B, z0)], fill=OUTLINE, width=OUTLINE_WIDTH)
+            d.line([a(start, z1), a(end, z1)], fill=OUTLINE, width=OUTLINE_WIDTH)
+            d.line([a(start, z0), a(end, z0)], fill=OUTLINE, width=OUTLINE_WIDTH)
     face(0, height, mul(C["wall"], 0.94))
     # A picture rail, not a second material. Horizontal only, so a run
     # does not picket-fence.
     a = (lambda t, z: P(0, t, z)) if axis == "ns" else (lambda t, z: P(t, 0, z))
-    d.line([a(A, 1.62), a(B, 1.62)], fill=mul(C["wall"], 0.86), width=1)
+    d.line([a(start, 1.62), a(end, 1.62)], fill=mul(C["wall"], 0.86), width=1)
     if skirt:
         face(0, 0.14, mul(C["skirt"], 0.94))
 
@@ -102,6 +100,46 @@ def doorwayNS(d):
 
 def doorwayEW(d):
     _doorway(d, "ew")
+
+
+# Cardinal bits agree with the renderer: north, east, south, west.
+WALL_JOIN_MASKS = (3, 6, 7, 9, 11, 12, 13, 14, 15)
+
+
+def _joined_wall(mask):
+    def draw(d):
+        # Far arms first, so nearer wall faces hide their base and rail.
+        for bit, axis, start, end in (
+            (1, "ns", A, 0), (8, "ew", A, 0),
+            (2, "ew", 0, B), (4, "ns", 0, B),
+        ):
+            if mask & bit:
+                _wall(d, axis, start=start, end=end)
+    draw.__name__ = f"wallJoin{mask}"
+    return draw
+
+
+WALL_JOIN_SPRITES = tuple(_joined_wall(mask) for mask in WALL_JOIN_MASKS)
+
+
+def _joined_doorway(d, axis):
+    # Start with the same uninterrupted wall face, rail and skirting as
+    # adjacent panels. Only the actual opening gets an outlined frame.
+    _wall(d, axis)
+    point = (lambda t, z: P(0, t, z)) if axis == "ns" else (lambda t, z: P(t, 0, z))
+    left, right, height = A + .12, B - .12, 1.30
+    opening = [point(left, 0), point(left, height),
+               point(right, height), point(right, 0)]
+    d.polygon(opening, fill=(0, 0, 0, 0))
+    d.line(opening, fill=OUTLINE, width=OUTLINE_WIDTH)
+
+
+def doorwayJoinedNS(d):
+    _joined_doorway(d, "ns")
+
+
+def doorwayJoinedEW(d):
+    _joined_doorway(d, "ew")
 
 
 def _front_visible(facing):
@@ -1724,3 +1762,7 @@ SPRITES = [
     # Camera-near chair surfaces cover seated bodies at the same object anchor.
     *CHAIR_FOREGROUND_SPRITES,
 ]
+
+# Every architectural panel spans exactly one projected tile edge.
+for _sprite in (*WALL_JOIN_SPRITES, doorwayJoinedNS, doorwayJoinedEW):
+    EXACT[_sprite.__name__] = (HW, None)

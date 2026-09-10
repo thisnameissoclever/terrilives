@@ -3,7 +3,7 @@ import {
   BOUNDARY_SPRITE_NAMES,
   buildStaticInstances,
 } from '../src/render/tiles.js';
-import { spriteIndex } from '../src/render/atlas.js';
+import { SPRITES, spriteIndex } from '../src/render/atlas.js';
 import type { TileLighting } from '../src/render/lighting.js';
 import {
   FLOATS_PER_INSTANCE,
@@ -82,7 +82,7 @@ function find(all: Row[], wx: number, wy: number): Row[] {
 function wallsAt(all: Row[], wx: number, wy: number): Row[] {
   const ns = spriteIndex('wallNS');
   const ew = spriteIndex('wallEW');
-  return find(all, wx, wy).filter((r) => r.sprite === ns || r.sprite === ew);
+  return find(all, wx, wy).filter((r) => r.sprite === ns || r.sprite === ew || SPRITES[r.sprite].name.startsWith('wallJoin'));
 }
 
 /** A sparse, ring-inclusive field for testing static geometry sampling. */
@@ -149,13 +149,10 @@ describe('buildStaticInstances', () => {
   it('emits one wall per blocked tile and none anywhere else', () => {
     const ns = spriteIndex('wallNS');
     const ew = spriteIndex('wallEW');
-    const walls = all.filter((r) => r.sprite === ns || r.sprite === ew);
+    const walls = all.filter((r) => r.sprite === ns || r.sprite === ew || SPRITES[r.sprite].name.startsWith('wallJoin'));
 
-    // Five interior walls, plus the boundary: one panel per row down the
-    // west side and one per column along the north side. The meeting
-    // tile at (-1,-1) is the CORNER piece now, not a flat panel, so it
-    // is deliberately absent from this ns/ew count.
-    const boundary = LOT.height + LOT.width;
+    // Each run includes the outer ring corner, using two edge panels.
+    const boundary = LOT.height + LOT.width + 3;
     expect(walls).toHaveLength(5 + boundary);
 
     // **One panel per tile, the corner included.** Two coincident quads at
@@ -197,11 +194,8 @@ describe('buildStaticInstances', () => {
     // The east-west run. (3, 2) and (4, 2) have x-axis neighbours only.
     expect(find(all, 3, 2).map((r) => r.sprite)).toContain(ew);
     expect(find(all, 4, 2).map((r) => r.sprite)).toContain(ew);
-    // The L corner qualifies both ways with a neighbour on ONE side of
-    // each axis, so neither run passes through it and the tie-break
-    // decides. Either panel closes an L, which is exactly why this fixture
-    // could not see the bug the T-junction test below covers.
-    expect(wallsAt(all, 2, 2).map((r) => r.sprite)).toEqual([ns]);
+    // The elbow includes its north and east half-panels.
+    expect(wallsAt(all, 2, 2).map((r) => r.sprite)).toEqual([spriteIndex('wallJoin3')]);
     expect(ew).not.toBe(ns);
   });
 
@@ -222,7 +216,7 @@ describe('buildStaticInstances', () => {
    * first one mean something - "everything is east-west" would satisfy the
    * junction assertion on its own.
    */
-  it('gives a T-junction the orientation of the run that passes through it', () => {
+  it('joins all three arms of a T-junction in one sprite', () => {
     const ns = spriteIndex('wallNS');
     const ew = spriteIndex('wallEW');
     // An east-west run across y = 1, with a spur going south from (2, 1).
@@ -235,8 +229,8 @@ describe('buildStaticInstances', () => {
     const built = buildStaticInstances(tee, ORIGIN_X, ORIGIN_Y, GRID);
     const rowsOf = rows(built.instances, built.count);
 
-    // The junction goes with the through-run, not with the spur.
-    expect(wallsAt(rowsOf, 2, 1).map((r) => r.sprite)).toEqual([ew]);
+    // One sprite contains the through-run and the connecting half-panel.
+    expect(wallsAt(rowsOf, 2, 1).map((r) => r.sprite)).toEqual([spriteIndex('wallJoin14')]);
     // The run either side of it is unbroken and single.
     for (const wx of [0, 1, 3, 4]) {
       expect(wallsAt(rowsOf, wx, 1).map((r) => r.sprite)).toEqual([ew]);
@@ -257,7 +251,7 @@ describe('buildStaticInstances', () => {
    * the axes swapped, and between them the two pin that the rule reads
    * which run is through rather than which axis it likes.
    */
-  it('gives a transposed T-junction the other orientation, so the rule is not a fixed preference', () => {
+  it('joins the transposed T without dropping its east arm', () => {
     const ns = spriteIndex('wallNS');
     const ew = spriteIndex('wallEW');
     const tee = {
@@ -268,7 +262,7 @@ describe('buildStaticInstances', () => {
     const built = buildStaticInstances(tee, ORIGIN_X, ORIGIN_Y, GRID);
     const rowsOf = rows(built.instances, built.count);
 
-    expect(wallsAt(rowsOf, 1, 2).map((r) => r.sprite)).toEqual([ns]);
+    expect(wallsAt(rowsOf, 1, 2).map((r) => r.sprite)).toEqual([spriteIndex('wallJoin7')]);
     for (const wy of [0, 1, 3, 4]) {
       expect(wallsAt(rowsOf, 1, wy).map((r) => r.sprite)).toEqual([ns]);
     }
@@ -287,6 +281,34 @@ describe('buildStaticInstances', () => {
     expect(wallsAt(rows(built.instances, built.count), 1, 1)).toHaveLength(1);
   });
 
+  it('keeps every arm of all elbows, T-junctions and crossroads in one sprite', () => {
+    const neighbours = [[3, 2], [4, 3], [3, 4], [2, 3]];
+    for (const mask of [3, 6, 7, 9, 11, 12, 13, 14, 15]) {
+      const walls = [3, 3];
+      neighbours.forEach((tile, index) => {
+        if (mask & (1 << index)) walls.push(...tile);
+      });
+      const built = buildStaticInstances(
+        { width: 7, height: 6, walls: Uint32Array.from(walls) },
+        ORIGIN_X, ORIGIN_Y, GRID,
+      );
+      expect(wallsAt(rows(built.instances, built.count), 3, 3).map((r) => r.sprite))
+        .toEqual([spriteIndex(`wallJoin${mask}`)]);
+    }
+  });
+
+  it('extends far-edge interior runs across the floor ring to the exterior walls', () => {
+    const built = buildStaticInstances(
+      { width: 6, height: 4, walls: Uint32Array.from([0, 2, 1, 2, 4, 0, 4, 1]) },
+      ORIGIN_X, ORIGIN_Y, GRID,
+    );
+    const all = rows(built.instances, built.count);
+    expect(wallsAt(all, -1, 2).map((row) => row.sprite)).toEqual([spriteIndex('wallEW')]);
+    expect(wallsAt(all, 4, -1).map((row) => row.sprite)).toEqual([spriteIndex('wallNS')]);
+    expect(wallsAt(all, -1, 1)).toEqual([]);
+    expect(wallsAt(all, 3, -1)).toEqual([]);
+  });
+
   it('draws the lot boundary the simulation treats as solid but content never lists', () => {
     // `lot.toml` lists interior walls only, because `is_walkable`
     // already refuses everything off the grid. Undrawn, the lot is a
@@ -300,19 +322,47 @@ describe('buildStaticInstances', () => {
         .filter((r) => r.sprite !== floor)
         .map((r) => r.sprite);
 
-    for (let y = 0; y < LOT.height; y++) {
-      expect(panelsAt(-1, y)).toEqual([ns]);
+    for (let y = -1; y < LOT.height; y++) {
+      expect(panelsAt(-1.5, y)).toEqual([ns]);
     }
-    for (let x = 0; x < LOT.width; x++) {
-      expect(panelsAt(x, -1)).toEqual([ew]);
+    for (let x = -1; x < LOT.width; x++) {
+      expect(panelsAt(x, -1.5)).toEqual([ew]);
     }
-    // Where the two runs meet: the corner piece, closing the join two
-    // flat panels left open - [A-11].
-    expect(panelsAt(-1, -1)).toEqual([spriteIndex('wallCornerNW')]);
+    // The runs meet at the slab corner without a separate post.
+    expect(panelsAt(-1, -1)).toEqual([]);
+    expect(all.some((r) => r.sprite === spriteIndex('wallCornerNW'))).toBe(false);
     // Only the two FAR sides. The near ones would stand between the
     // camera and the room.
     expect(find(all, LOT.width, 0)).toHaveLength(0);
     expect(find(all, 0, LOT.height)).toHaveLength(0);
+  });
+
+  it('joins both runs at the back corner and aligns their free ends with the slab at every zoom', () => {
+    for (const scale of [0.5, 1, 1.375, 2.5]) {
+      const geometry = buildStaticInstances(
+        { ...LOT, walls: new Uint32Array() }, ORIGIN_X, ORIGIN_Y, GRID, scale,
+      );
+      const all = rows(geometry.instances, geometry.count);
+      const floors = all.filter((row) => row.sprite === spriteIndex('floor'));
+      const west = all.filter((row) => row.sprite === spriteIndex('wallNS'));
+      const north = all.filter((row) => row.sprite === spriteIndex('wallEW'));
+      const left = (row: Row): number => row.x - SPRITES[row.sprite].w * scale / 2;
+      const right = (row: Row): number => row.x + SPRITES[row.sprite].w * scale / 2;
+      expect(west).toHaveLength(LOT.height + 1);
+      expect(north).toHaveLength(LOT.width + 1);
+      // A thin post cannot cover the interval between two separate runs.
+      expect(right(west[0])).toBe(left(north[0]));
+      expect(west[0].y).toBe(north[0].y);
+      for (let i = 1; i < west.length; i++) {
+        expect(right(west[i])).toBe(left(west[i - 1]));
+      }
+      for (let i = 1; i < north.length; i++) {
+        expect(left(north[i])).toBe(right(north[i - 1]));
+      }
+      // Floor wedges appear if either wall ends inside the slab silhouette.
+      expect(left(west.at(-1)!)).toBe(Math.min(...floors.map(left)));
+      expect(right(north.at(-1)!)).toBe(Math.max(...floors.map(right)));
+    }
   });
 
   it('puts every quad on a depth inside the clip range', () => {
@@ -333,7 +383,7 @@ describe('buildStaticInstances', () => {
     const boundaryDepths = new Set(
       Array.from(
         { length: LOT.height },
-        (_, y) => find(all, -1, y).filter((r) => r.sprite !== floorSprite)[0].depth,
+        (_, y) => find(all, -1.5, y).filter((r) => r.sprite !== floorSprite)[0].depth,
       ),
     );
     expect(boundaryDepths.size).toBe(LOT.height);
@@ -396,9 +446,9 @@ describe('buildStaticInstances', () => {
     // at screen (0, 0) with depth 0, which draw in front of everything.
     expect(built.instances.length).toBe(built.count * FLOATS_PER_INSTANCE);
     // Ring-inclusive floor, five interior walls, the two boundary runs,
-    // and the corner piece. This fixture has no doorway gaps.
+    // including both corner edges. This fixture has no doorway gaps.
     expect(built.count).toBe(
-      (LOT.width + 1) * (LOT.height + 1) + 5 + LOT.height + LOT.width + 1,
+      (LOT.width + 1) * (LOT.height + 1) + 5 + LOT.height + LOT.width + 3,
     );
     expect(built.floorCount).toBe((LOT.width + 1) * (LOT.height + 1));
   });
@@ -437,7 +487,7 @@ describe('buildStaticInstances', () => {
 
     expect(unlitRows.every((row) => row.emissive === 0)).toBe(true);
     expect(litBuilt.count).toBe(unlitBuilt.count);
-    expect(litBuilt.count).toBe(46);
+    expect(litBuilt.count).toBe(48);
     expect(litBuilt.floorCount).toBe(30);
     expect(litRows.map(({ emissive: _emissive, ...row }) => row)).toEqual(
       unlitRows.map(({ emissive: _emissive, ...row }) => row),
@@ -447,9 +497,9 @@ describe('buildStaticInstances', () => {
       (row) => row.sprite === spriteIndex('floor'),
     );
     const interiorWall = wallsAt(litRows, 2, 3)[0];
-    const boundaryWall = wallsAt(litRows, -1, 0)[0];
+    const boundaryWall = wallsAt(litRows, -1.5, 0)[0];
     const doorway = find(litRows, 2, 1).find(
-      (row) => row.sprite === spriteIndex('doorwayEW'),
+      (row) => row.sprite === spriteIndex('doorwayJoinedEW'),
     );
 
     expect(floor?.emissive).toBe(Math.fround(0.13));
@@ -479,8 +529,8 @@ describe('buildStaticInstances', () => {
     };
     const built = buildStaticInstances(gapped, ORIGIN_X, ORIGIN_Y, GRID);
     const rowsOf = rows(built.instances, built.count);
-    const doorNS = spriteIndex('doorwayNS');
-    const doorEW = spriteIndex('doorwayEW');
+    const doorNS = spriteIndex('doorwayJoinedNS');
+    const doorEW = spriteIndex('doorwayJoinedEW');
 
     const sprites = (wx: number, wy: number): number[] =>
       rowsOf
@@ -529,20 +579,11 @@ describe('BOUNDARY_SPRITE_NAMES', () => {
   const drawnOutside = (): Set<number> => {
     const built = buildStaticInstances(LOT, ORIGIN_X, ORIGIN_Y, GRID);
     const all = rows(built.instances, built.count);
-    // A screen position maps back to exactly one tile, so collect the
-    // positions `tiles.ts` would have used and match rows against them.
-    const wanted: { x: number; y: number }[] = [];
-    for (let y = -1; y < LOT.height; y++) {
-      for (let x = -1; x < LOT.width; x++) {
-        if (x >= 0 && y >= 0) continue;
-        wanted.push(at(x, y));
-      }
-    }
     const outside = new Set<number>();
     for (const row of all) {
-      if (wanted.some((w) => w.x === row.x && w.y === row.y)) {
-        outside.add(row.sprite);
-      }
+      const dx = (row.x - ORIGIN_X) / 32;
+      const dy = (row.y - ORIGIN_Y) / 21;
+      if ((dx + dy) / 2 < 0 || (dy - dx) / 2 < 0) outside.add(row.sprite);
     }
     return outside;
   };
@@ -570,6 +611,6 @@ describe('BOUNDARY_SPRITE_NAMES', () => {
     for (const name of BOUNDARY_SPRITE_NAMES) {
       expect(outside).toContain(spriteIndex(name));
     }
-    expect(outside).not.toContain(spriteIndex('doorwayNS'));
+    expect(outside).not.toContain(spriteIndex('doorwayJoinedNS'));
   });
 });
