@@ -118,7 +118,9 @@ Start-Process -FilePath 'C:/Users/myema/AppData/Local/Microsoft/WindowsApps/blen
 The launcher detaches. Read `build-status.json`; a returned launcher process
 does not prove completion. Failure records include a traceback. After the
 status reaches `complete`, run `export_frames.py` with the installed Python
-and Pillow. `--only=walk,read,stand_read` after Blender's `--` separator renders
+and Pillow. The recorded export environment uses Pillow 12.3.0; the exporters
+use its documented `Image.get_flattened_data()` API. No older-version export
+compatibility is claimed. `--only=walk,read,stand_read` after Blender's `--` separator renders
 only those clips; it still rebuilds the complete editable rig. Existing frames
 must correspond to the unchanged action definitions when using a partial render.
 

@@ -1,8 +1,12 @@
 # Sim 01 integration review
 
-These are offline composites of actual exported sprites and authored furniture,
-not screenshots of a played browser build. Enlarged nearest-neighbour sheets
-expose native pixels; the source renders retain smooth high-resolution edges.
+The numbered contact sheets below are offline composites of actual exported
+sprites and authored furniture. Enlarged nearest-neighbour sheets expose
+native pixels; the source renders retain smooth high-resolution edges.
+
+The `production-*.png`, `household-shirts-*.png` and `played-actions-*.png`
+files are real played-browser captures. See
+`2026-09-10-shirt-verification.md` for scenarios, accepted results and limits.
 
 1. `chair-contact.png` is the rejected first contact pass, before correcting
    the ordinary chair facing and adding real near-surface foregrounds.
