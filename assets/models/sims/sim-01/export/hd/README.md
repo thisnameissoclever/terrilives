@@ -18,6 +18,8 @@ source hash and requires every source to reproduce the hash-validated accepted
 native PNG's decoded pixels before writing outputs. This reproduction check is
 also the verification for green source frames, which lack individual recorded
 source hashes. `proof.json` records all 468 source and output hashes.
+Output paths in the proof use relative POSIX syntax so Linux and Windows
+resolve the same files. Source provenance paths also use forward slashes.
 
 The saved-rig reading replay discrepancy predates this export and remains
 unresolved. Existing rendered PNGs were reused; no rigs were rerendered or edited.

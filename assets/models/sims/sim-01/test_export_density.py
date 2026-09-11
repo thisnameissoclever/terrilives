@@ -1,5 +1,5 @@
 import hashlib
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 import tempfile
 import unittest
 
@@ -8,6 +8,13 @@ import export_density
 
 
 class SourceTests(unittest.TestCase):
+    def test_proof_paths_are_portable_when_exported_on_windows_or_posix(self):
+        for path_type, root in ((PureWindowsPath, 'D:/work/sim-01'), (PurePosixPath, '/work/sim-01')):
+            base = path_type(root)
+            path = export_density.proof_output_path(base / 'export/hd/blue/idle-SE-0.png', base)
+            self.assertEqual(path, 'export/hd/blue/idle-SE-0.png')
+            self.assertEqual(PurePosixPath(path).parts, ('export', 'hd', 'blue', 'idle-SE-0.png'))
+
     def test_source_hash_dimensions_and_native_reproduction_are_independent_guards(self):
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / 'source.png'
@@ -32,6 +39,9 @@ class SourceTests(unittest.TestCase):
         proof = json.loads((root / 'hd/proof.json').read_text())
         self.assertEqual(len(proof['frames']), 468)
         for row in proof['frames']:
+            self.assertNotIn('\\', row['path'])
+            self.assertFalse(PurePosixPath(row['path']).is_absolute())
+            self.assertEqual(PurePosixPath(row['path']).parts[:2], ('export', 'hd'))
             self.assertEqual(export_density.digest(export_density.BASE / row['path']), row['sha256'])
         for relative in ('', 'blue', 'red', 'exercise/green', 'exercise/blue', 'exercise/red'):
             native = json.loads((root / relative / 'manifest.json').read_text())

@@ -17,6 +17,11 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def proof_output_path(target, base):
+    """Serialize relative artifact paths independently of the export host OS."""
+    return target.relative_to(base).as_posix()
+
+
 def downsample(source, size):
     image = source.resize(size, Image.Resampling.LANCZOS)
     image.putdata([(r, g, b, a) if a > 4 else (0, 0, 0, 0)
@@ -95,8 +100,8 @@ def export(source_root):
             image.save(target)
             dense_row = next(entry for entry in dense['frames'] if entry['name'] == row['name'])
             dense_row['sha256'] = digest(target)
-            proof['frames'].append({'name': row['name'], 'source': str(source_path),
-                                    'source_sha256': source_hash, 'path': str(target.relative_to(BASE)),
+            proof['frames'].append({'name': row['name'], 'source': source_path.as_posix(),
+                                    'source_sha256': source_hash, 'path': proof_output_path(target, BASE),
                                     'sha256': dense_row['sha256']})
         target_manifest = output / 'manifest.json'
         target_manifest.write_text(json.dumps(dense, indent=2) + '\n')
