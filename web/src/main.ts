@@ -206,6 +206,10 @@ async function main(): Promise<void> {
   // throws it away. And if any of those awaits throws, the startup card is
   // the only thing on screen - but nothing about audio depends on the
   // simulation or the GPU, so there is no reason for it to fall with them.
+  // On that failure path the listeners below stay armed and a tap will build
+  // a context that can never be heard. That is deliberate and harmless: the
+  // alternative is unarming audio on exactly the paths where it is cheapest
+  // to keep, and the page is showing a failure card rather than a game.
   let preferences: Storage | null = null;
   try {
     preferences = window.localStorage;
@@ -215,6 +219,14 @@ async function main(): Promise<void> {
   const audio = new AudioController(undefined, preferences ?? undefined);
   void audio.setBackgrounded(document.visibilityState === 'hidden');
   armAudioUnlock(document, audio);
+  // Registered here rather than with the save-on-hide handler below, and for
+  // the same reason as the arming: the reading above is a snapshot taken
+  // before the awaits, so the listener that corrects it has to exist before
+  // them too. A tab that loads hidden and is shown during the load would
+  // otherwise stay marked backgrounded, and refuse every gesture, for good.
+  document.addEventListener('visibilitychange', () => {
+    void audio.setBackgrounded(document.visibilityState === 'hidden');
+  });
 
   // init() resolves to the instance exports, whose `memory` is the
   // WebAssembly.Memory backing every view the bridge hands out. It is
@@ -819,9 +831,10 @@ async function main(): Promise<void> {
     closeHelp();
   });
 
+  // Audio's half of this event is handled at the top of main(); this half
+  // needs `persistence`, which does not exist until the awaits have run.
   document.addEventListener('visibilitychange', () => {
     const hidden = document.visibilityState === 'hidden';
-    void audio.setBackgrounded(hidden);
     if (hidden && !startingNewGame) {
       const saving = persistence.save('Game saved');
       syncPersistenceButtons();

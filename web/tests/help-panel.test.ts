@@ -143,6 +143,33 @@ describe('first-run help layout', () => {
     expect(cssBlock('#help-body')).toMatch(/overflow-y:\s*auto;/);
   });
 
+  it('keeps the three declarations that actually hold the button on screen', () => {
+    // These are the load-bearing ones, and the easiest to mistake for noise.
+    // The dialog clips its overflow, so if the column stops being a flex
+    // column, or the body stops being allowed to shrink under its content,
+    // the footer is not pushed below the fold - it is clipped away entirely,
+    // with no scrollbar anywhere and no way to reach "Got it".
+    const panel = cssBlock('#help-panel');
+    expect(panel).toMatch(/display:\s*flex;/);
+    expect(panel).toMatch(/flex-direction:\s*column;/);
+    expect(cssBlock('#help-body')).toMatch(/min-height:\s*0;/);
+    expect(cssBlock('#help-actions')).toMatch(/flex:\s*0 0 auto;/);
+  });
+
+  it('clears the phone system bars on every edge it can be pushed against', () => {
+    // Centring dropped the bottom inset the old corner-pinned rule carried,
+    // which put the button under an Android navigation bar in landscape.
+    const panel = cssBlock('#help-panel');
+    for (const edge of ['top', 'right', 'bottom', 'left']) {
+      expect({
+        edge,
+        safe: new RegExp(
+          `padding-${edge}:\\s*max\\([^)]*env\\(safe-area-inset-${edge}\\)`,
+        ).test(panel),
+      }).toEqual({ edge, safe: true });
+    }
+  });
+
   it('keeps the confirmation button outside the scrolling region', () => {
     const dialog = INDEX_HTML.slice(
       INDEX_HTML.indexOf('id="help-panel"'),

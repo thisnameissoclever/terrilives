@@ -333,7 +333,7 @@ describe('sampleSimAudioAfterTick', () => {
       /if \(loaded\) \{[\s\S]*?audio\.reset\('load'\)/,
     );
     expect(MAIN).toMatch(
-      /const hidden = document\.visibilityState === 'hidden';[\s\S]*?audio\.setBackgrounded\(hidden\)/,
+      /visibilitychange'[\s\S]*?audio\.setBackgrounded\(\s*document\.visibilityState === 'hidden'/,
     );
   });
 
@@ -361,8 +361,32 @@ describe('sampleSimAudioAfterTick', () => {
     // detail, so the listener set moved into the audio module. What main()
     // still owns is arming it once, across the whole document.
     expect(MAIN).toMatch(/armAudioUnlock\(document, audio\)/);
-    expect(MAIN).not.toMatch(/addEventListener\([^\n]*unlockFromGesture/);
+    // main() must not call the unlock itself again, in any shape. Naming the
+    // call rather than the registration is what makes this bite: the wiring
+    // this replaced put `unlockFromGesture` inside a named closure, so a
+    // pattern anchored on `addEventListener` never matched it at all.
+    expect(MAIN).not.toMatch(/audio\.unlockFromGesture/);
     expect(UNLOCK).not.toMatch(/removeEventListener/);
+  });
+
+  it('arms audio before anything that can throw or stall startup', () => {
+    // A phone spends seconds on these awaits, and a gesture made during them
+    // is the one chance to open the autoplay gate. Audio also depends on
+    // neither the simulation nor the GPU, so it must not fall with them.
+    const armed = MAIN.indexOf('armAudioUnlock(document, audio)');
+    expect(armed).toBeGreaterThan(0);
+    for (const step of ['await init()', 'await initDevice(', 'SpriteRenderer.create(']) {
+      const index = MAIN.indexOf(step);
+      expect({ step, armedFirst: armed < index }).toEqual({
+        step,
+        armedFirst: true,
+      });
+    }
+    // The visibility reading up there is a snapshot, correct only while a
+    // listener exists to correct it, so that listener is armed there too.
+    expect(MAIN.indexOf('visibilitychange')).toBeLessThan(
+      MAIN.indexOf('await init()'),
+    );
   });
 
   it('uses the aligned stable-id column without a rebuild or identity query', () => {

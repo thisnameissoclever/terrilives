@@ -98,8 +98,6 @@ function specSaysActivating(event: GestureUnlockEvent): boolean {
   switch (event.type) {
     case 'keydown':
       return event.key !== 'Escape';
-    case 'mousedown':
-      return true;
     case 'pointerdown':
       return event.pointerType === 'mouse';
     case 'pointerup':
@@ -146,6 +144,8 @@ describe('grantsUserActivation', () => {
       { type: 'touchend' },
       { type: 'keydown', key: 'a' },
       { type: 'keydown', key: 'Escape' },
+      { type: 'click' },
+      { type: 'mousedown' },
     ];
     for (const event of cases) {
       expect({ event, activating: grantsUserActivation(event) }).toEqual({
@@ -258,6 +258,22 @@ describe('armAudioUnlock', () => {
         capture: true,
       });
     }
+  });
+
+  it('refuses a click on the fallback path, where the lift already counted', () => {
+    const game = harness({ reportsActivation: false });
+
+    game.dispatch({ type: 'click' });
+
+    expect(game.attempts).toEqual([]);
+  });
+
+  it('accepts a click when the browser says activation is live', () => {
+    const game = harness();
+
+    game.dispatch({ type: 'click' });
+
+    expect(game.attempts).toEqual([{ type: 'click' }]);
   });
 
   it('asks at every moment a touch device can carry activation', () => {

@@ -65,14 +65,16 @@ function specGrantsActivation(event: GestureUnlockEvent): boolean {
   switch (event.type) {
     case 'keydown':
       return event.key !== 'Escape';
-    case 'mousedown':
-      return true;
     case 'pointerdown':
       return event.pointerType === 'mouse';
     case 'pointerup':
       return event.pointerType !== 'mouse';
     case 'touchend':
       return true;
+    // `click` reaches here and is deliberately refused. The standard does not
+    // list it, and on this path the `pointerup` or `touchend` that preceded it
+    // has already been offered. `mousedown` is not listed here for the same
+    // reason: nothing arms it, because `pointerdown` covers the same press.
     default:
       return false;
   }

@@ -459,7 +459,6 @@
         inset: 0;
         margin: auto;
         width: min(680px, calc(100vw - 24px));
-        max-height: min(560px, calc(100vh - 24px));
         max-height: min(560px, calc(100dvh - 24px));
         /* Header, scrolling instructions, pinned actions. The dialog itself
            must not scroll: when it did, "Got it" scrolled off the bottom and
@@ -471,6 +470,12 @@
         padding: 16px;
         padding-right: max(16px, env(safe-area-inset-right));
         padding-left: max(16px, env(safe-area-inset-left));
+        /* The old corner-pinned rule carried a bottom inset and centring
+           dropped it. Without this the confirm button lands under an
+           Android edge-to-edge navigation bar in landscape, where the
+           system band swallows the tap. */
+        padding-bottom: max(16px, env(safe-area-inset-bottom));
+        padding-top: max(16px, env(safe-area-inset-top));
         border: 1px solid var(--hud-edge);
         border-radius: 8px;
         background: rgba(22, 22, 28, 0.97);
@@ -693,9 +698,6 @@
         #game-actions {
           grid-area: actions;
           grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-        #help-panel {
-          width: calc(100vw - 24px);
         }
       }
       @media (max-height: 480px) and (min-width: 361px) {

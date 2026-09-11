@@ -14,11 +14,18 @@
  *   was called, which is the question the autoplay gate actually asks.
  * - It does NOT reliably close the autoplay gate. A desktop Chrome ignores
  *   `--autoplay-policy` for a top-level frame, so a fresh context may simply
- *   start running. The report says whether the gate was armed, and the run
- *   warns when a pass is therefore weaker evidence than it looks. The unit
- *   tests in web/tests/gesture-unlock.test.ts carry the activation rule.
+ *   start running and no resume is ever needed. That run is reported as
+ *   INCONCLUSIVE and exits 2, never as a pass, because the broken wiring
+ *   would reach a running context there too. The unit tests in
+ *   web/tests/gesture-unlock.test.ts carry the activation rule itself.
+ *
+ * Exit codes: 0 pass, 1 fail, 2 inconclusive (the run proved nothing).
  *
  * Usage: node scripts/audio-touch-unlock-proof.cjs [--url <url>] [--output <file>]
+ *
+ * Needs a server already running; see docs/gpu-verification.md for the two
+ * standing ones. Against the live working tree that is:
+ *   node scripts/audio-touch-unlock-proof.cjs --url https://localhost:5174/
  */
 const fs = require('node:fs');
 const path = require('node:path');
@@ -249,7 +256,12 @@ async function run(browser, url) {
     pageWasVirgin: atLoad.hasBeenActive === false,
     atLoad,
     resumeCalls,
-    resumedWithActivation: resumeCalls.every((call) => call.isActive !== false),
+    // `every` on an empty array is true, and the array is empty exactly when
+    // the gate was open and no resume was needed. Requiring at least one call
+    // is what stops a vacuous pass standing in for evidence.
+    resumedWithActivation:
+      resumeCalls.length > 0 &&
+      resumeCalls.every((call) => call.isActive === true),
     consoleErrors,
     contextsBeforeTap: before,
     contextsAfterTap: after,
@@ -257,7 +269,16 @@ async function run(browser, url) {
     unlockedByTouch: running,
     cuesStarted,
     cuePlayCounts,
-    pass: running && cuesStarted && resumeCalls.every((c) => c.isActive !== false),
+    // A pass means the gesture was genuinely required AND genuinely sufficed.
+    // Without an armed gate the run is inconclusive, never a pass: the broken
+    // wiring this exists to catch also reaches a running context when the
+    // browser was going to allow audio regardless.
+    pass:
+      gateArmed &&
+      running &&
+      cuesStarted &&
+      resumeCalls.length > 0 &&
+      resumeCalls.every((call) => call.isActive === true),
   };
 }
 
@@ -293,11 +314,13 @@ async function main() {
     process.exitCode = 1;
     return;
   }
-  if (!report.gateArmed) {
-    console.warn(
-      'WARNING: this Chrome allowed audio with no gesture, so the run shows the ' +
-        'tap-to-cue path works but does not prove the gesture was required.',
+  if (!report.pageWasVirgin) {
+    console.error(
+      'INCONCLUSIVE (exit 2): the page already held sticky activation before the ' +
+        'first tap, so nothing can be read into what the tap granted.',
     );
+    process.exitCode = 2;
+    return;
   }
   if (!report.unlockedByTouch) {
     console.error('FAIL: a trusted touch tap did not start the AudioContext.');
@@ -309,20 +332,26 @@ async function main() {
     process.exitCode = 1;
     return;
   }
-  if (!report.resumedWithActivation) {
+  if (report.resumeCalls.some((call) => call.isActive === false)) {
     console.error(
-      'FAIL: resume() was called with no user activation live. That call is the ' +
-        'one the browser leaves pending forever.',
+      'FAIL: resume() was called with no user activation live. That is the call ' +
+        'the browser leaves pending forever.',
     );
     process.exitCode = 1;
     return;
   }
-  if (!report.pageWasVirgin) {
-    console.warn(
-      'WARNING: the page already held sticky activation before the first tap, ' +
-        'so this run cannot show that the tap is what granted it.',
+  if (!report.gateArmed) {
+    console.error(
+      'INCONCLUSIVE (exit 2): this Chrome allowed audio with no gesture, so a ' +
+        'fresh context started on its own and resume() was never needed. The ' +
+        'tap-to-cue path works, but the broken wiring would pass this too. ' +
+        'A desktop Chrome ignores --autoplay-policy for a top-level frame; the ' +
+        'activation rule is pinned by web/tests/gesture-unlock.test.ts instead.',
     );
+    process.exitCode = 2;
+    return;
   }
+  console.log('PASS: a trusted touch tap was required, and it started the sound.');
 }
 
 main().catch((error) => {
