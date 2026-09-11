@@ -1,0 +1,53 @@
+{
+  "source_sha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+  "renders": [
+    {
+      "path": "bike-SE-beauty.png",
+      "sha256": "827965cf5a1b81f82137d61b0e5e6329f8017f7125d14ea832a3702fa3184304"
+    },
+    {
+      "path": "bike-SE-sim.png",
+      "sha256": "1b63eeacd0a51269fded8856bae1601c960ba883d610d5b3a548a3c7a61ab677"
+    },
+    {
+      "path": "bike-SE-furniture.png",
+      "sha256": "dc9b8a8c4897e9b2f859be9b57282fd87e0642b989520c9bb07be6b719999b63"
+    },
+    {
+      "path": "bike-NW-beauty.png",
+      "sha256": "e89146a5600f16da12afef79efcc2ec5068265d860e8c61c91323d9b326d63fc"
+    },
+    {
+      "path": "bike-NW-sim.png",
+      "sha256": "49ff8e4a099249073a15b0384a8c54a7838f647e4a6fe6653f556497310ed884"
+    },
+    {
+      "path": "bike-NW-furniture.png",
+      "sha256": "d8a77db348a81bb8fe909814cb8994bc499cbb16912913b89ac4364e97c060d0"
+    },
+    {
+      "path": "chair-SE-beauty.png",
+      "sha256": "5329bba37d001bc070614b78150acfe4da35e010b6854585ce11540807b1dffa"
+    },
+    {
+      "path": "chair-SE-sim.png",
+      "sha256": "8af15ec35b9d5ac1190b36345254a8a7222fab7afc74e6ea6a990ede8801bce0"
+    },
+    {
+      "path": "chair-SE-furniture.png",
+      "sha256": "8a17fed8f0c565c2cf205f3eb7e2218070b7803d7a1b8454a806487a06142524"
+    },
+    {
+      "path": "chair-NW-beauty.png",
+      "sha256": "38fecbf657cd009e1514aeaa041539fafd7664644a76c25442e658ecc502bc66"
+    },
+    {
+      "path": "chair-NW-sim.png",
+      "sha256": "9a2903b37684bc34273783fc00bf7d9fc78f238cde4279d7a4cc7f729cefb51f"
+    },
+    {
+      "path": "chair-NW-furniture.png",
+      "sha256": "2b326af61f9984a967902c016d0c65ff2515de5f8c5c663054db541114e41d1b"
+    }
+  ]
+}

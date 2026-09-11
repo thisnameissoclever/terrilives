@@ -1,0 +1,10 @@
+[
+  {
+    "kind": "bike",
+    "facing": "SE",
+    "with_outline": true,
+    "max_error": 23,
+    "p95_error": 7,
+    "pixels_above_8": 450
+  }
+]

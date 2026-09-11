@@ -170,6 +170,12 @@ def bike(root):
         arm = cylinder(f'Bike crank {side}',(sign*.18,AXLE[1],AXLE[2]),
                        (sign*.18,point[1],point[2]),.024,edge,root)
         platform = box(f'Bike pedal {side}',point,(.13,.16,.035),rubber,root,.009)
+        spindle = cylinder(f'Bike pedal spindle {side}',
+                           (sign*.18,point[1],point[2]),point,.018,edge,root)
+        bpy.context.view_layer.update()
+        transform = spindle.matrix_world.copy()
+        spindle.parent = platform
+        spindle.matrix_world = transform
         movable.append((side,arm,platform))
     return movable
 

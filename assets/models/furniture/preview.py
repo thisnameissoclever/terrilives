@@ -13,7 +13,7 @@ from bpy_extras.object_utils import world_to_camera_view
 BASE = Path(__file__).resolve().parent
 SIM = BASE.parent / 'sims/sim-01'
 sys.path[:0] = [str(BASE), str(SIM)]
-from geometry import FACINGS, GRIPS, HIP, pedal
+from geometry import FACINGS, GRIPS, HIP, PEDAL_ANKLE_HEIGHT, pedal
 from build_parts import bike, chair, set_crank_phase
 from build_rig import direct_bone, arm_elbow
 
@@ -42,7 +42,7 @@ def rider_pose(rig, phase):
         direct_bone(rig,name,rest.head_local+delta,rest.tail_local+delta)
     for side,sign in (('L',-1),('R',1)):
         contact = Vector(pedal(side,phase))
-        ankle = contact + Vector((0,.04,.10))
+        ankle = contact + Vector((0,.04,PEDAL_ANKLE_HEIGHT))
         thigh = hip + Vector((sign*.124,0,0))
         knee = arm_elbow(thigh,ankle,.37,.36,thigh+Vector((sign*.06,-.8,-.18)))
         direct_bone(rig,'thigh.'+side,thigh,knee)

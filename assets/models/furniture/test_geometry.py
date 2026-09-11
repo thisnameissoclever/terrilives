@@ -50,6 +50,15 @@ class FurnitureGeometryTests(unittest.TestCase):
         self.assertLess(g.towel_section(0)[1], -.25)
         self.assertLess(g.towel_section(1)[1], -.25)
 
+    def test_pedal_spacing_clears_the_approved_shoe_envelope(self):
+        g = self.geometry()
+        # Evaluated shoes span up to .10 inward from the ankle during the cycle.
+        # The wheel's cover and face extend .029 beyond the housing side.
+        for phase in range(32):
+            for side in ('L', 'R'):
+                inner_shoe = abs(g.pedal(side, phase / 32)[0]) - .10
+                self.assertGreaterEqual(inner_shoe - (.135 + .029), .006 - 1e-8)
+
 
 if __name__ == '__main__':
     unittest.main()

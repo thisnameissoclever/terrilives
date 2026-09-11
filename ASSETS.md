@@ -16,13 +16,20 @@ The approved shared Sim now comes from the editable Blender source and rig in
 `assets/models/sims/sim-01/`, including the retained Tripo hair source.
 Its README records immutable source hashes, material-only shirt variants and
 offline animation exports. High-resolution Blender renders are downsampled to
-native RGBA frames, validated and packed into the same 2D atlas. The current
-atlas contains 836 records; the older counts below are historical.
+RGBA frames at twice their logical dimensions, validated and packed into the
+same 2D atlas. The integrated atlas contains 1,087 records at 4096x6073 physical
+pixels; the older counts below are historical. Existing sprite identities,
+logical dimensions and unrelated decoded pixels remain unchanged.
 
 New furniture work is specified in
-`docs/specs/2026-09-10-bike-chair-four-facings.md`. Its local model candidates
-are not shipped assets until their review and integration gates pass. Neither
-that workflow nor the shipped Sim requires runtime 3D rendering.
+`docs/specs/2026-09-10-bike-chair-four-facings.md`. Approved local bike and chair
+models now supply four empty facings, eight cycling poses and four reading
+poses per facing, in all three shirt colours. Their independently rendered
+visible Sim, furniture and shared-outline contributions are combined in one
+GPU sprite draw. Source/provenance limitations and export instructions are in
+`assets/models/furniture/README.md`; played evidence is under
+`docs/assets/review-evidence/furniture/`. Publication remains subject to CI and
+deployment verification. Neither workflow requires runtime 3D rendering.
 
 ## Historical primitive-only migration
 

@@ -4870,3 +4870,90 @@ contained four dark seam pixels before the shader clamp and none afterward.
 Removing junction selection, the shader clamp, a visible arm, or the pixel
 preservation guard must fail the relevant regression check. Require the named
 assertion to fail; a worker-start timeout is not a caught mutation.
+
+## [L-rider-shoe-envelope] Pedal contact points do not prove shoe clearance
+
+**What happened.** The approved bike still looked plausible at the review pose,
+but evaluated shoe meshes intersected the flywheel housing throughout a cycle.
+
+**Root cause.** The pedal centres cleared the housing while the shoes' inward
+extent did not. Point constraints cannot establish clearance for a solid foot.
+
+**Prevention rule.** Fit pedal spacing to the full evaluated shoe envelope and
+include the wheel covers, not only the main housing. Extend the pedal spindles
+physically; do not hide intersections with sprite masks or change the Sim.
+
+**How to verify.** Test the inward envelope against the outer wheel face, then
+check evaluated mesh intersections at sixteen phases. Inspect the full cycle
+from all four cameras before accepting the exported animation.
+
+The same probe must measure the evaluated sole underside against the pedal
+top. An ankle joint is not a contact surface. The original guessed ankle height
+embedded the sole by 0.02835 units; the approved shoe's measured ankle-to-sole
+offset is 0.110852 units. Include both lateral and vertical checks before a batch.
+
+## [L-portable-artifact-proof-paths] Shared manifests need platform-neutral paths
+
+**What happened.** A density export passed on Windows but its proof JSON used
+backslashes, which the Linux test runner would treat as filename characters.
+
+**Root cause.** Native `str(Path)` formatting leaked into a shared file format.
+
+**Prevention rule.** Serialize relative artifact paths with `.as_posix()` and
+keep native filesystem paths out of portable manifests.
+
+**How to verify.** Test both Windows and POSIX path serialization, reject
+backslashes in committed artifact references, and verify every referenced hash.
+
+## [L-independent-render-validation] A correct composite can hide incorrect ownership
+
+**What happened.** Adversarial review showed that swapping the Sim and furniture
+layers still passed their reconstruction comparison. The contact checker also
+accepted matching sole/pedal heights without proving horizontal support.
+
+**Root cause.** Addition is symmetric, so reconstruction cannot identify which
+layer belongs to which object. A height comparison omits two spatial axes, and
+an empty obstacle list makes collision testing vacuously pass.
+
+**Prevention rule.** Check ownership independently: furniture and outline pixels
+must remain identical across shirt palettes, while the visible Sim contribution
+must change. Cast through the pedal centre to the evaluated sole, require the
+expected obstacle/shoe inventory, and retain mesh-intersection checks.
+
+**How to verify.** Swap owners, zero the body, move a pedal sideways, and remove
+the obstacle inventory. Each must fail its named guard. Restore the original
+bindings and confirm both unchanged source bytes and a passing ordinary run.
+The 2026-09-10 scene mutations rejected a 0.5-unit lateral displacement and all
+six renamed obstacles; the restored sixteen-phase scene passed.
+
+## [L-complete-render-inputs] Hash the render dependency closure before a batch
+
+**What happened.** The first furniture journal hashed five scripts and the rig,
+but omitted imported pose/palette helpers and camera registration data.
+
+**Root cause.** The journal tracked obvious entry points rather than every input
+that could alter a pixel. A resumed batch could otherwise mix incompatible
+poses or camera settings.
+
+**Prevention rule.** Use the dependency wrapper before rendering and check the
+same set afterward and on resume. Record Blender build and colour-management
+settings. Preserve an old incomplete journal and label supplemental post-render
+verification as post-render; never claim it recorded history it did not observe.
+
+**How to verify.** Change a dependency hash or leave the generation proof in its
+running state. Export must reject it. Existing batch supplemental evidence
+explicitly records the narrower Git comparison and its historical limitation.
+
+## [L-authored-action-before-name] Resolve visual actions before inferring transitions
+
+**What happened.** Review raised a possible sit-pose regression for the reading
+chair from the interaction name `settle_in`.
+
+**Root cause.** The name suggested a transition, but shipped content declares
+`read` and the Rust projection maps it directly to the reading visual action.
+
+**Prevention rule.** Trace the authored action and its runtime projection before
+adding animation scope or reporting a missing transition.
+
+**How to verify.** Inspect the exact object's interaction declaration and the
+corresponding compiled-action mapping, not a similarly named test fixture.

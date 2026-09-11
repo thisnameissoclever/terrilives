@@ -1,8 +1,8 @@
 # Furniture authoring checkpoint
 
-Current visual candidate: `review/candidate-02/`. Initial independent visual
-review passed on 2026-09-10; owner acceptance and runtime integration are open.
-These files are not yet used by the live game.
+The owner approved `review/candidate-02/` on 2026-09-10. The character's
+appearance remains unchanged. Animation and runtime integration are in progress;
+these furniture replacements are not yet used by the live game.
 
 `preview.py` opens the existing accepted Sim rig, builds editable furniture
 with `build_parts.py`, and renders actual SE/NW/SW/NE rotations. It preserves
@@ -24,8 +24,8 @@ python -B assets/models/furniture/check_mutations.py
 Review sheets use the high-resolution rendered pixels without geometry
 retouching. The density board downsamples the same source to 1x, 2x and 4x
 logical resolution and enlarges each to the same displayed size. It illustrates
-detail loss; it is not a GPU screenshot or a benchmark. The next export design
-must separate physical texture dimensions from logical sprite dimensions.
+detail loss; it is not a GPU screenshot or a benchmark. Runtime exports use
+192x240 physical pixels on the unchanged 96x120 logical canvas (density 2).
 
 ## Review result
 
@@ -43,17 +43,68 @@ scores describe the sampled visual result only, not animation completeness,
 runtime correctness or owner approval. Both reviewers passed the initial
 checkpoint with the named polish concerns; neither approved the full milestone.
 
-Only one occupied pose per facing is shown. A full crank cycle, all reading
-samples, paired runtime layers, native game scale, actual adjacent-wall
-clearance and played acceptance remain unverified. Do not describe this
-checkpoint as the completed bike-and-chair milestone.
+The original candidate shows one occupied pose per facing. Subsequent cycle
+review is in `review/animation-02/`: eight cycling poses and four reading poses
+for each facing. Primary and independent visual review passed those sampled
+views. Reading motion is subtle; it is not a page-turn animation. Native game
+scale, actual adjacent-wall clearance and played acceptance remain open.
+Do not describe the offline review as the completed bike-and-chair milestone.
+
+## Reproducible animation export
+
+1. Preserve the approved source `../sims/sim-01/sim-01-rigged.blend`. Run
+   `validate_contact.py` in hidden background Blender. It traces actual shoe
+   meshes against the bike through 16 phases and checks both soles against
+   the pedal tops. The wider pedal spindles and measured ankle height fix
+   collisions missed by the first static review.
+2. Run `render_animation_batch.py` in background Blender, then
+   `python -B assets/models/furniture/review_animation.py assets/models/furniture/review/animation-02`.
+   Inspect all 48 poses before production export. Rejected `animation-01`
+   remains separately labelled; do not use it as an export source.
+3. For a new batch, run `render_provenance.py` in background Blender with
+   `-- ABSOLUTE_NEW_BATCH_DIRECTORY` after Blender's script arguments. It
+   wraps `render_contributions.py` and hashes the complete Python/reference
+   dependency set before and after rendering. Its journal records
+   source/script hashes and each rendered PNG. It resumes only an unchanged
+   batch. Do not edit signed inputs while rendering. Changed
+   geometry requires a new batch, not a mixture of old and new frames.
+4. Wait for `review/contributions-01/status.json` to say `complete`, then run
+   `python -B assets/models/furniture/export_contributions.py`. There are 584
+   source passes: eight empty views and 144 pose/palette groups, each with a
+   full-scene reference, visible Sim contribution, visible furniture
+   contribution and shared outline. A partial `--check-ready` run validates
+   finished groups only and cannot publish a production manifest.
+   For a later batch, pass `--input ABSOLUTE_BATCH_DIRECTORY`; use `--output`
+   to review its export separately before replacing the accepted manifest.
+5. The exporter validates provenance, complete coverage, palette-stable
+   silhouettes and reconstruction against the independent full-scene image.
+   Separate display-transformed passes differ slightly at antialiased edges;
+   the comparison is bounded, not byte-exact. The source remains 768x960;
+   runtime layers are 192x240 with one shared anchor. Identical exported
+   contributions share content-addressed files.
+6. Append the manifest through `assets/sprites/gen/build.py`, rebuild WASM,
+   and run the Python, Rust and web checks. Verify actual GPU sampling and
+   played interaction before publishing. The shader adds the two visible
+   premultiplied contributions, overlays the shared outline once, and only
+   then applies the alpha test. Ordinary alpha-over of the two base layers
+   would create seams where their coverage meets.
+
+All palettes retain the same rig, camera and physical attachments. Only the
+approved shirt materials change. At runtime the exact active target ID binds
+the rider to its furniture; nearby objects are never guessed from distance.
+
+The first completed batch predates the full dependency wrapper. Its original
+five-script journal is preserved. `dependency-proof.json` separately records
+post-render hashes and verifies the additional Sim inputs against their Git
+revision. This proves present source agreement, not the state of those inputs
+throughout the earlier render. Do not present it as generation-time evidence.
 
 ## Mechanical evidence
 
-Eight furniture tests pass. Four deliberate in-memory mutations fail their
+At the original candidate checkpoint, eight furniture tests passed. Four deliberate in-memory mutations failed their
 corresponding tests: mirrored rotation, same-phase cranks, missing-view guard
 removal and hash guard removal. The script restores original bindings and
-confirms production source bytes are unchanged, then reruns the eight tests.
+confirms production source bytes are unchanged, then reruns the complete suite.
 The review-sheet builder confirms all 16 expected source images are nonempty,
 padded and byte-matched to their manifest. These tests do not establish style
 or physical contact; those require visual and scene-based review.

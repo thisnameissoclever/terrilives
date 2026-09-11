@@ -67,6 +67,25 @@ records at 1024 by 4596. Runtime has not changed in this phase.
 Initial candidate 02 contains 16 hashed empty/occupied renders and two editable
 authoring scenes. Main and independent visual review passed it for owner
 direction feedback, retaining chair-seam and towel-stiffness polish notes.
-Eight furniture tests and four guard-mutation checks pass. Tasks 2 and 3 have
-not started. An offline 1x/2x/4x density board accompanies the candidate; the
+At that checkpoint eight furniture tests and four guard-mutation checks passed;
+Tasks 2 and 3 had not started. An offline 1x/2x/4x density board accompanies the candidate; the
 recommended next texture-density trial is 2x, with unchanged logical sizing.
+
+The owner subsequently approved candidate02, the2x trial and animation completion.
+Remote main's wall fixes were merged at6d1eb7e; baseline is now847 records. A
+second fetch confirmed dca6a9a remains included. Implementation is underway in
+this worktree, preserving the dirty original checkout and immutable Sim sources.
+
+The cycle probe exposed shoe/housing intersections. Pedal spacing now fits the
+evaluated shoes and includes actual extended spindles; sixteen sampled poses
+have zero shoe/flywheel intersections. Animation-layer experiments are separate
+from approved candidate files. Reciprocal holdouts need independent full-scene
+outline coverage because Freestyle strokes overlap when exported per owner.
+
+Integration now contains 1,087 sprites with all 847 preceding logical records
+and decoded pixels preserved. All 584 production passes completed, yielding
+144 three-layer pose/palette groups and eight empty views. Actual Chrome GPU
+captures cover every phase, facing and palette. Primary and fresh independent
+visual review found no blocking regressions. The played household shows the
+bike and reading chair correctly against adjacent walls. Release evidence and
+remaining acceptance gates are recorded with the review images.

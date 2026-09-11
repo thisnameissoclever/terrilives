@@ -6,6 +6,9 @@ AXLE = (0.0, -.12, .37)
 CRANK_RADIUS = .21
 HOUSING_HALF_WIDTH = .135
 PEDAL_THICKNESS = .035
+PEDAL_HALF_SPACING = .270
+# Evaluated approved sole underside sits .110852 below the ankle joint.
+PEDAL_ANKLE_HEIGHT = .110852 + PEDAL_THICKNESS / 2
 MAT_TOP = .025
 HANDLE_RADIUS = .025
 GRIPS = {'L': (-.255, -.365, 1.20), 'R': (.255, -.365, 1.20)}
@@ -30,7 +33,7 @@ def pedal(side, phase):
         raise ValueError(f'unknown pedal side: {side}')
     sign = -1 if side == 'L' else 1
     angle = phase * math.tau + (0 if side == 'L' else math.pi)
-    return (sign * .205, AXLE[1] + CRANK_RADIUS * math.sin(angle),
+    return (sign * PEDAL_HALF_SPACING, AXLE[1] + CRANK_RADIUS * math.sin(angle),
             AXLE[2] + CRANK_RADIUS * math.cos(angle))
 
 
