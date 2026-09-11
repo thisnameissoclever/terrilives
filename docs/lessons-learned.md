@@ -5190,3 +5190,26 @@ east-west run, or a west branch behind a north-south run, leaves the near face
 flat. Suppress the crease in these two cases. The regression renders both
 orientations and requires exact agreement with the unshaded wall, while
 separate contrast checks retain the approved creases on visible corners.
+
+## [L-audio-target-interaction-must-match-action-state] Validate each side of a compound identity guard
+
+**What happened.** The mutation gate changed the ordinary object-sound guard
+from rejecting either a chain sentinel or an interaction mismatch to rejecting
+only when both conditions were true. Existing sound tests still passed.
+
+**Root cause.** The malformed fixtures covered a missing SmartObject and a
+wrong object role, but every ordinary fixture used matching interaction indices.
+They never isolated the second half of the compound guard with an otherwise
+valid sound-producing object and target.
+
+**Prevention rule.** When presentation state is valid only if two independently
+owned identities agree, test each mismatch separately while every later lookup
+would otherwise succeed. A fixture that fails an earlier lookup cannot prove a
+later identity guard.
+
+**How to verify.** Give the ordinary sound projection helper one interaction
+index and its valid shower target another. The helper must return no sound.
+Changing the guard's `||` to `&&` must make that focused regression fail by
+projecting the shower sound from mismatched state. Keep a separate render-sync
+test for the public buffer contract; outer presentation policy can suppress a
+malformed combination before it exposes this lower-level identity defect.

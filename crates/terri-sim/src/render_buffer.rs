@@ -461,14 +461,45 @@ mod tests {
                 },
             ))
             .id();
-
         sim.sync_render_buffer();
         for entity in [generic, malformed] {
             assert_eq!(
                 sound_projection_of(sim.render_buffer(), entity),
-                (super::sound_action::NONE, super::NO_SOUND_SOURCE)
+                (super::sound_action::NONE, super::NO_SOUND_SOURCE),
+                "malformed ordinary action state must not borrow a valid target interaction's sound"
             );
         }
+    }
+
+    #[test]
+    fn authored_object_sound_rejects_a_mismatched_interaction_identity() {
+        let pack = terri_data::pack();
+        let shower = pack.find("shower").expect("shipped shower");
+        let take_shower = shipped_interaction_index(shower, "take_shower");
+        let mut sim = Sim::new_with_lot(24, 24);
+        let shower_target = sim.spawn_object(Position { x: 12.0, y: 8.0 }, shower);
+        let action = Eating {
+            object: shower,
+            interaction: take_shower + 1,
+            remaining_ticks: 10,
+        };
+        let target = Target {
+            object: shower_target,
+            interaction: take_shower,
+        };
+
+        assert_eq!(
+            crate::authored_object_sound(
+                pack,
+                sim.world(),
+                Some(&action),
+                None,
+                None,
+                Some(&target),
+            ),
+            None,
+            "valid target metadata must not lend its sound to a different action interaction"
+        );
     }
 
     #[test]
