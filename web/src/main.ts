@@ -608,6 +608,7 @@ async function main(): Promise<void> {
   const closeHelpButton = document.querySelector<HTMLButtonElement>('#close-help');
   const helpRoot = document.querySelector<HTMLDialogElement>('#help-panel');
   const helpTitle = document.querySelector<HTMLElement>('#help-title');
+  const helpBody = document.querySelector<HTMLElement>('#help-body');
   const newGameDialog = document.querySelector<HTMLDialogElement>('#new-game-dialog');
   const loadGameDialog = document.querySelector<HTMLDialogElement>('#load-game-dialog');
   const confirmNewGame = document.querySelector<HTMLButtonElement>('#confirm-new-game');
@@ -628,6 +629,7 @@ async function main(): Promise<void> {
     !closeHelpButton ||
     !helpRoot ||
     !helpTitle ||
+    !helpBody ||
     !newGameDialog ||
     !loadGameDialog ||
     !confirmNewGame ||
@@ -788,7 +790,7 @@ async function main(): Promise<void> {
     }
   });
 
-  const helpPanel = new HelpPanel(helpRoot, helpTitle, preferences);
+  const helpPanel = new HelpPanel(helpRoot, helpBody, helpTitle, preferences);
   const lightingMode = new LightingMode(lightingModeButton, preferences);
   let helpReturnTarget: HTMLElement = canvas;
   const firstRunHelpOpened = helpPanel.showOnFirstRun();
