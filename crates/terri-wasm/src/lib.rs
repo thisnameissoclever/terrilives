@@ -360,6 +360,12 @@ impl SimHandle {
         self.sim.render_buffer().visual_actions.as_ptr()
     }
 
+    /// Exact active socket target per row, or u32::MAX. Re-read after sync
+    /// or memory growth; entity indices are not render row numbers.
+    pub fn interaction_targets_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().interaction_targets.as_ptr()
+    }
+
     /// Projected lot-axis facing per row. Re-read after every sync or memory
     /// growth, like every other zero-copy render pointer.
     pub fn facings_ptr(&self) -> *const u32 {
@@ -2144,6 +2150,72 @@ mod boundary_tests {
                     && row != row_of(partner)
                     && action == terri_sim::render_buffer::visual_action::NONE),
             "an unrelated row must distinguish the live action column from a constant"
+        );
+    }
+
+    #[test]
+    fn interaction_targets_ptr_addresses_exact_entity_after_growth_and_cancel() {
+        let mut handle = SimHandle::new(96, 96);
+        handle.spawn_agent(0.0, 0.0, 50.0);
+        let pack = handle.sim.world().resource::<Content>().0;
+        let bike = pack.find("moving_box").expect("shipped bike");
+        let interaction = pack
+            .object(bike)
+            .interactions
+            .iter()
+            .position(|value| value.id == "use_exercise_bike")
+            .unwrap() as u32;
+        let target = handle
+            .sim
+            .spawn_object(terri_core::Position { x: 8.0, y: 8.0 }, bike);
+        let agent = handle
+            .sim
+            .world_mut()
+            .spawn((
+                terri_core::Agent,
+                terri_core::Position { x: 7.0, y: 8.0 },
+                terri_core::Eating {
+                    object: bike,
+                    interaction,
+                    remaining_ticks: 10,
+                },
+                terri_core::Target {
+                    object: target,
+                    interaction,
+                },
+            ))
+            .id();
+        for index in 0..32 {
+            handle.spawn_agent(20.0 + index as f32, 20.0, 50.0);
+        }
+        let rows = handle.entity_count();
+        let ids = addressed(handle.ids_ptr(), rows, "ids_ptr");
+        let row = ids.iter().position(|id| *id == agent.index_u32()).unwrap();
+        let targets = addressed(
+            handle.interaction_targets_ptr(),
+            rows,
+            "interaction_targets_ptr",
+        );
+        assert_eq!(targets[row], target.index_u32());
+        assert!(targets
+            .iter()
+            .enumerate()
+            .all(|(index, id)| index == row
+                || *id == terri_sim::render_buffer::NO_INTERACTION_TARGET));
+        handle
+            .sim
+            .world_mut()
+            .entity_mut(agent)
+            .remove::<terri_core::Eating>();
+        handle.sim.sync_render_buffer_after_commands();
+        let targets = addressed(
+            handle.interaction_targets_ptr(),
+            rows,
+            "interaction_targets_ptr",
+        );
+        assert_eq!(
+            targets[row],
+            terri_sim::render_buffer::NO_INTERACTION_TARGET
         );
     }
 

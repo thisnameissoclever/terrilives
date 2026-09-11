@@ -28,10 +28,13 @@
  * holds only the part that needs a pick: which rows a right click asks for.
  */
 
-import { SPRITES } from './render/atlas.js';
+import { SPRITES, INTERACTION_SPRITES, SPRITE_CONTENT_BOUNDS } from './render/atlas.js';
+import { InteractionSelection } from './render/interaction-sprites.js';
 import { spriteDrawOffsetX, spriteDrawOffsetY } from './render/sprite-anchors.js';
+import { spriteWidth, spriteHeight } from './render/sprite-size.js';
 import {
   simBodySprite,
+  simShirtVariant,
   VISUAL_ACTION_WALK,
   walkingFacing,
 } from './frame.js';
@@ -79,6 +82,8 @@ export interface PickSource {
   ids(): Uint32Array;
   /** Persistent household identity used by shirt selection. */
   simIds?(): Uint32Array;
+  /** Exact validated object entity ID, never a proximity match. */
+  interactionTargets?(): Uint32Array;
   /**
    * Atlas sprite index per row, which is what gives each entity its drawn
    * SIZE. Picking needs it because the thing a player aims at is the sprite,
@@ -294,6 +299,8 @@ export function clientToTile(
  * loop's timing; the miss is small and only at the boundary, so it has not been
  * done.
  */
+const pickInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant);
+
 export function pickSprite(
   source: PickSource,
   px: number,
@@ -302,6 +309,8 @@ export function pickSprite(
   originY: number,
   scale = 1,
   reducedMotion = false,
+  interactions: InteractionSelection = pickInteractions,
+  contentBounds: Readonly<Record<number, readonly [number, number, number, number]>> = SPRITE_CONTENT_BOUNDS,
 ): Pick | null {
   const count = source.count;
   const positions = source.positions();
@@ -314,6 +323,7 @@ export function pickSprite(
   const previous = source.prevPositions?.() ?? positions;
   const simulationTick = source.clockTick?.() ?? 0;
   const simIds = source.simIds?.();
+  interactions.updateSource(source, simulationTick, reducedMotion);
 
   let best: Pick | null = null;
   let bestNearness = -Infinity;
@@ -322,8 +332,9 @@ export function pickSprite(
   for (let row = 0; row < count; row++) {
     // Not drawn, not clickable: frame.ts parks this row off-screen.
     if (activities[row] === ACTIVITY_AT_WORK) continue;
-    const wx = positions[row * 2];
-    const wy = positions[row * 2 + 1];
+    const positionRow = interactions.targetRows[row] >= 0 ? interactions.targetRows[row] : row;
+    const wx = positions[positionRow * 2];
+    const wy = positions[positionRow * 2 + 1];
     const bodyFacing =
       kinds[row] === KIND_AGENT &&
       visualActions?.[row] === VISUAL_ACTION_WALK &&
@@ -336,7 +347,7 @@ export function pickSprite(
             facings[row],
           )
         : facings?.[row] ?? 0;
-    const displayedSprite =
+    const displayedSprite = interactions.bodies[row] >= 0 ? interactions.bodies[row] :
       kinds[row] === KIND_AGENT && visualActions !== null && facings !== null
         ? simBodySprite(
             ids[row],
@@ -373,10 +384,13 @@ export function pickSprite(
     const anchorX = screenX(wx, wy, originX, scale) + spriteDrawOffsetX(displayedSprite) * scale;
     const anchorY = screenY(wx, wy, originY, scale) +
       (TILE_HALF_HEIGHT + spriteDrawOffsetY(displayedSprite)) * scale;
-    const left = anchorX - (sprite.w / 2) * scale;
-    const top = anchorY - sprite.h * scale;
-    if (px < left || px > left + sprite.w * scale) continue;
-    if (py < top || py > anchorY) continue;
+    const left = anchorX - (spriteWidth(displayedSprite) / 2) * scale;
+    const top = anchorY - spriteHeight(displayedSprite) * scale;
+    const bounds = contentBounds[displayedSprite];
+    if (px < left + (bounds?.[0] ?? 0) * scale ||
+        px > left + (bounds?.[2] ?? spriteWidth(displayedSprite)) * scale) continue;
+    if (py < top + (bounds?.[1] ?? 0) * scale ||
+        py > top + (bounds?.[3] ?? spriteHeight(displayedSprite)) * scale) continue;
 
     const nearness = wx + wy;
     // The renderer's own layer constants rather than 1 and 0, so that swapping

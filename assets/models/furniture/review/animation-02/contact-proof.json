@@ -1,0 +1,215 @@
+{
+  "source_sha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+  "samples": 16,
+  "contacts": [
+    {
+      "sample": 0,
+      "side": "L",
+      "gap": 2.813339233798118e-07,
+      "support_gap": 6.8378448486727805e-06
+    },
+    {
+      "sample": 0,
+      "side": "R",
+      "gap": 2.3663043974275766e-07,
+      "support_gap": 6.763339042648031e-06
+    },
+    {
+      "sample": 1,
+      "side": "L",
+      "gap": 4.6014785770598365e-07,
+      "support_gap": 6.957054138223562e-06
+    },
+    {
+      "sample": 1,
+      "side": "R",
+      "gap": 7.271766661043344e-08,
+      "support_gap": 6.6143274307095545e-06
+    },
+    {
+      "sample": 2,
+      "side": "L",
+      "gap": 4.291534427824928e-08,
+      "support_gap": 6.599426269571218e-06
+    },
+    {
+      "sample": 2,
+      "side": "R",
+      "gap": 1.1742115019197641e-07,
+      "support_gap": 6.64412975309725e-06
+    },
+    {
+      "sample": 3,
+      "side": "L",
+      "gap": 1.0251998899812875e-07,
+      "support_gap": 6.629228591903402e-06
+    },
+    {
+      "sample": 3,
+      "side": "R",
+      "gap": 2.2172927854891e-07,
+      "support_gap": 6.7484378814541834e-06
+    },
+    {
+      "sample": 4,
+      "side": "L",
+      "gap": 2.8133392332430063e-07,
+      "support_gap": 6.808042526229574e-06
+    },
+    {
+      "sample": 4,
+      "side": "R",
+      "gap": 4.291534422273813e-08,
+      "support_gap": 6.5696239471280116e-06
+    },
+    {
+      "sample": 5,
+      "side": "L",
+      "gap": 2.515316009366053e-07,
+      "support_gap": 6.778240203841879e-06
+    },
+    {
+      "sample": 5,
+      "side": "R",
+      "gap": 1.0251998899812875e-07,
+      "support_gap": 6.629228591903402e-06
+    },
+    {
+      "sample": 6,
+      "side": "L",
+      "gap": 1.3232231138582407e-07,
+      "support_gap": 6.6590309142910975e-06
+    },
+    {
+      "sample": 6,
+      "side": "R",
+      "gap": 4.291534427824928e-08,
+      "support_gap": 6.599426269571218e-06
+    },
+    {
+      "sample": 7,
+      "side": "L",
+      "gap": 5.7816505416585784e-08,
+      "support_gap": 6.599426269515707e-06
+    },
+    {
+      "sample": 7,
+      "side": "R",
+      "gap": 4.6014785770598365e-07,
+      "support_gap": 6.957054138223562e-06
+    },
+    {
+      "sample": 8,
+      "side": "L",
+      "gap": 1.1742115019197641e-07,
+      "support_gap": 6.64412975309725e-06
+    },
+    {
+      "sample": 8,
+      "side": "R",
+      "gap": 1.6212463382903053e-07,
+      "support_gap": 6.718635559121999e-06
+    },
+    {
+      "sample": 9,
+      "side": "L",
+      "gap": 7.271766661043344e-08,
+      "support_gap": 6.6143274307095545e-06
+    },
+    {
+      "sample": 9,
+      "side": "R",
+      "gap": 4.6014785770598365e-07,
+      "support_gap": 6.957054138223562e-06
+    },
+    {
+      "sample": 10,
+      "side": "L",
+      "gap": 1.1742115019197641e-07,
+      "support_gap": 6.64412975309725e-06
+    },
+    {
+      "sample": 10,
+      "side": "R",
+      "gap": -3.1471252437409447e-07,
+      "support_gap": 6.241798400918874e-06
+    },
+    {
+      "sample": 11,
+      "side": "L",
+      "gap": 2.515316009366053e-07,
+      "support_gap": 6.778240203841879e-06
+    },
+    {
+      "sample": 11,
+      "side": "R",
+      "gap": 2.2172927854891e-07,
+      "support_gap": 6.7484378814541834e-06
+    },
+    {
+      "sample": 12,
+      "side": "L",
+      "gap": 1.0251998899812875e-07,
+      "support_gap": 6.629228591903402e-06
+    },
+    {
+      "sample": 12,
+      "side": "R",
+      "gap": 1.3113021835042815e-08,
+      "support_gap": 6.539821624740316e-06
+    },
+    {
+      "sample": 13,
+      "side": "L",
+      "gap": 1.0251998899812875e-07,
+      "support_gap": 6.629228591903402e-06
+    },
+    {
+      "sample": 13,
+      "side": "R",
+      "gap": 2.515316009366053e-07,
+      "support_gap": 6.778240203841879e-06
+    },
+    {
+      "sample": 14,
+      "side": "L",
+      "gap": 4.291534427824928e-08,
+      "support_gap": 6.599426269571218e-06
+    },
+    {
+      "sample": 14,
+      "side": "R",
+      "gap": 1.0251998899812875e-07,
+      "support_gap": 6.629228591903402e-06
+    },
+    {
+      "sample": 15,
+      "side": "L",
+      "gap": 5.197525024813743e-07,
+      "support_gap": 7.016658782998952e-06
+    },
+    {
+      "sample": 15,
+      "side": "R",
+      "gap": 7.271766661043344e-08,
+      "support_gap": 6.6143274307095545e-06
+    }
+  ],
+  "collisions": [],
+  "obstacle_count": 6,
+  "shoe_count": 4,
+  "obstacles": [
+    "Bike console mast",
+    "Bike flywheel cover -1",
+    "Bike flywheel cover 1",
+    "Bike flywheel face -1",
+    "Bike flywheel face 1",
+    "Bike flywheel housing"
+  ],
+  "shoes": [
+    "Fitted rounded shoe sole",
+    "Fitted rounded shoe sole.001",
+    "Shaped shoe",
+    "Shaped shoe.001"
+  ]
+}

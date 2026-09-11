@@ -1,0 +1,1446 @@
+{
+  "complete": true,
+  "checked_groups": 144,
+  "comparisons": [
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 11598,
+      "pixels_above_8": 603
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "blue",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 11598,
+      "pixels_above_8": 623
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "red",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 11598,
+      "pixels_above_8": 595
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "green",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 11909,
+      "pixels_above_8": 629
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "blue",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 11909,
+      "pixels_above_8": 650
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "red",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 11909,
+      "pixels_above_8": 621
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "green",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 12117,
+      "pixels_above_8": 643
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "blue",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 12117,
+      "pixels_above_8": 664
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "red",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 12117,
+      "pixels_above_8": 635
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "green",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 11888,
+      "pixels_above_8": 629
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "blue",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 11888,
+      "pixels_above_8": 649
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "red",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 11888,
+      "pixels_above_8": 621
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 4,
+      "variant": "green",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 11603,
+      "pixels_above_8": 606
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 4,
+      "variant": "blue",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 11603,
+      "pixels_above_8": 626
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 4,
+      "variant": "red",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 11603,
+      "pixels_above_8": 598
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 5,
+      "variant": "green",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 11525,
+      "pixels_above_8": 617
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 5,
+      "variant": "blue",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 11525,
+      "pixels_above_8": 638
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 5,
+      "variant": "red",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 11525,
+      "pixels_above_8": 609
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 6,
+      "variant": "green",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 11502,
+      "pixels_above_8": 596
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 6,
+      "variant": "blue",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 11502,
+      "pixels_above_8": 618
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 6,
+      "variant": "red",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 11502,
+      "pixels_above_8": 588
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 7,
+      "variant": "green",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 11500,
+      "pixels_above_8": 608
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 7,
+      "variant": "blue",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 11500,
+      "pixels_above_8": 629
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 7,
+      "variant": "red",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 11500,
+      "pixels_above_8": 600
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "green",
+      "max_error": 24,
+      "p95_error": 8,
+      "active_pixels": 11415,
+      "pixels_above_8": 560
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "blue",
+      "max_error": 24,
+      "p95_error": 9,
+      "active_pixels": 11415,
+      "pixels_above_8": 580
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "red",
+      "max_error": 24,
+      "p95_error": 8,
+      "active_pixels": 11415,
+      "pixels_above_8": 560
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "green",
+      "max_error": 24,
+      "p95_error": 8,
+      "active_pixels": 11651,
+      "pixels_above_8": 578
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "blue",
+      "max_error": 24,
+      "p95_error": 9,
+      "active_pixels": 11651,
+      "pixels_above_8": 599
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "red",
+      "max_error": 24,
+      "p95_error": 8,
+      "active_pixels": 11651,
+      "pixels_above_8": 576
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "green",
+      "max_error": 24,
+      "p95_error": 8,
+      "active_pixels": 12080,
+      "pixels_above_8": 553
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "blue",
+      "max_error": 24,
+      "p95_error": 8,
+      "active_pixels": 12080,
+      "pixels_above_8": 573
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "red",
+      "max_error": 24,
+      "p95_error": 8,
+      "active_pixels": 12080,
+      "pixels_above_8": 550
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "green",
+      "max_error": 24,
+      "p95_error": 8,
+      "active_pixels": 11873,
+      "pixels_above_8": 529
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "blue",
+      "max_error": 24,
+      "p95_error": 8,
+      "active_pixels": 11873,
+      "pixels_above_8": 549
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "red",
+      "max_error": 24,
+      "p95_error": 8,
+      "active_pixels": 11873,
+      "pixels_above_8": 527
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 4,
+      "variant": "green",
+      "max_error": 24,
+      "p95_error": 8,
+      "active_pixels": 11566,
+      "pixels_above_8": 548
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 4,
+      "variant": "blue",
+      "max_error": 24,
+      "p95_error": 8,
+      "active_pixels": 11566,
+      "pixels_above_8": 567
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 4,
+      "variant": "red",
+      "max_error": 24,
+      "p95_error": 8,
+      "active_pixels": 11566,
+      "pixels_above_8": 546
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 5,
+      "variant": "green",
+      "max_error": 24,
+      "p95_error": 8,
+      "active_pixels": 11455,
+      "pixels_above_8": 557
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 5,
+      "variant": "blue",
+      "max_error": 24,
+      "p95_error": 9,
+      "active_pixels": 11455,
+      "pixels_above_8": 575
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 5,
+      "variant": "red",
+      "max_error": 24,
+      "p95_error": 8,
+      "active_pixels": 11455,
+      "pixels_above_8": 554
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 6,
+      "variant": "green",
+      "max_error": 24,
+      "p95_error": 8,
+      "active_pixels": 11445,
+      "pixels_above_8": 554
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 6,
+      "variant": "blue",
+      "max_error": 24,
+      "p95_error": 9,
+      "active_pixels": 11445,
+      "pixels_above_8": 573
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 6,
+      "variant": "red",
+      "max_error": 24,
+      "p95_error": 8,
+      "active_pixels": 11445,
+      "pixels_above_8": 554
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 7,
+      "variant": "green",
+      "max_error": 24,
+      "p95_error": 8,
+      "active_pixels": 11426,
+      "pixels_above_8": 557
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 7,
+      "variant": "blue",
+      "max_error": 24,
+      "p95_error": 9,
+      "active_pixels": 11426,
+      "pixels_above_8": 578
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 7,
+      "variant": "red",
+      "max_error": 24,
+      "p95_error": 8,
+      "active_pixels": 11426,
+      "pixels_above_8": 559
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "green",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 11624,
+      "pixels_above_8": 589
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "blue",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 11624,
+      "pixels_above_8": 615
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "red",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 11624,
+      "pixels_above_8": 583
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "green",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 11467,
+      "pixels_above_8": 582
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "blue",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 11467,
+      "pixels_above_8": 609
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "red",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 11467,
+      "pixels_above_8": 574
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "green",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 11437,
+      "pixels_above_8": 575
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "blue",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 11437,
+      "pixels_above_8": 602
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "red",
+      "max_error": 20,
+      "p95_error": 8,
+      "active_pixels": 11437,
+      "pixels_above_8": 568
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "green",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 11435,
+      "pixels_above_8": 581
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "blue",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 11435,
+      "pixels_above_8": 607
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "red",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 11435,
+      "pixels_above_8": 574
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 4,
+      "variant": "green",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 11533,
+      "pixels_above_8": 586
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 4,
+      "variant": "blue",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 11533,
+      "pixels_above_8": 614
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 4,
+      "variant": "red",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 11533,
+      "pixels_above_8": 580
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 5,
+      "variant": "green",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 11844,
+      "pixels_above_8": 609
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 5,
+      "variant": "blue",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 11844,
+      "pixels_above_8": 635
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 5,
+      "variant": "red",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 11844,
+      "pixels_above_8": 602
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 6,
+      "variant": "green",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 12088,
+      "pixels_above_8": 617
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 6,
+      "variant": "blue",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 12088,
+      "pixels_above_8": 644
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 6,
+      "variant": "red",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 12088,
+      "pixels_above_8": 609
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 7,
+      "variant": "green",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 11873,
+      "pixels_above_8": 605
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 7,
+      "variant": "blue",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 11873,
+      "pixels_above_8": 631
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 7,
+      "variant": "red",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 11873,
+      "pixels_above_8": 599
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "green",
+      "max_error": 17,
+      "p95_error": 7,
+      "active_pixels": 11254,
+      "pixels_above_8": 470
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "blue",
+      "max_error": 17,
+      "p95_error": 8,
+      "active_pixels": 11254,
+      "pixels_above_8": 489
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "red",
+      "max_error": 17,
+      "p95_error": 7,
+      "active_pixels": 11254,
+      "pixels_above_8": 469
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "green",
+      "max_error": 17,
+      "p95_error": 8,
+      "active_pixels": 11141,
+      "pixels_above_8": 483
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "blue",
+      "max_error": 17,
+      "p95_error": 8,
+      "active_pixels": 11141,
+      "pixels_above_8": 503
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "red",
+      "max_error": 17,
+      "p95_error": 8,
+      "active_pixels": 11141,
+      "pixels_above_8": 482
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "green",
+      "max_error": 17,
+      "p95_error": 8,
+      "active_pixels": 11131,
+      "pixels_above_8": 485
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "blue",
+      "max_error": 17,
+      "p95_error": 8,
+      "active_pixels": 11131,
+      "pixels_above_8": 504
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "red",
+      "max_error": 17,
+      "p95_error": 8,
+      "active_pixels": 11131,
+      "pixels_above_8": 483
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "green",
+      "max_error": 17,
+      "p95_error": 8,
+      "active_pixels": 11113,
+      "pixels_above_8": 490
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "blue",
+      "max_error": 17,
+      "p95_error": 8,
+      "active_pixels": 11113,
+      "pixels_above_8": 510
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "red",
+      "max_error": 17,
+      "p95_error": 8,
+      "active_pixels": 11113,
+      "pixels_above_8": 489
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 4,
+      "variant": "green",
+      "max_error": 17,
+      "p95_error": 8,
+      "active_pixels": 11102,
+      "pixels_above_8": 489
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 4,
+      "variant": "blue",
+      "max_error": 17,
+      "p95_error": 8,
+      "active_pixels": 11102,
+      "pixels_above_8": 509
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 4,
+      "variant": "red",
+      "max_error": 17,
+      "p95_error": 8,
+      "active_pixels": 11102,
+      "pixels_above_8": 489
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 5,
+      "variant": "green",
+      "max_error": 17,
+      "p95_error": 8,
+      "active_pixels": 11347,
+      "pixels_above_8": 512
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 5,
+      "variant": "blue",
+      "max_error": 17,
+      "p95_error": 8,
+      "active_pixels": 11347,
+      "pixels_above_8": 531
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 5,
+      "variant": "red",
+      "max_error": 17,
+      "p95_error": 8,
+      "active_pixels": 11347,
+      "pixels_above_8": 510
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 6,
+      "variant": "green",
+      "max_error": 17,
+      "p95_error": 7,
+      "active_pixels": 11835,
+      "pixels_above_8": 494
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 6,
+      "variant": "blue",
+      "max_error": 17,
+      "p95_error": 8,
+      "active_pixels": 11835,
+      "pixels_above_8": 513
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 6,
+      "variant": "red",
+      "max_error": 17,
+      "p95_error": 7,
+      "active_pixels": 11835,
+      "pixels_above_8": 492
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 7,
+      "variant": "green",
+      "max_error": 17,
+      "p95_error": 7,
+      "active_pixels": 11634,
+      "pixels_above_8": 469
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 7,
+      "variant": "blue",
+      "max_error": 17,
+      "p95_error": 8,
+      "active_pixels": 11634,
+      "pixels_above_8": 488
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 7,
+      "variant": "red",
+      "max_error": 17,
+      "p95_error": 7,
+      "active_pixels": 11634,
+      "pixels_above_8": 467
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "max_error": 18,
+      "p95_error": 9,
+      "active_pixels": 10348,
+      "pixels_above_8": 608
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "blue",
+      "max_error": 18,
+      "p95_error": 10,
+      "active_pixels": 10348,
+      "pixels_above_8": 653
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "red",
+      "max_error": 18,
+      "p95_error": 9,
+      "active_pixels": 10348,
+      "pixels_above_8": 602
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "green",
+      "max_error": 17,
+      "p95_error": 9,
+      "active_pixels": 10342,
+      "pixels_above_8": 583
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "blue",
+      "max_error": 17,
+      "p95_error": 9,
+      "active_pixels": 10342,
+      "pixels_above_8": 629
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "red",
+      "max_error": 17,
+      "p95_error": 9,
+      "active_pixels": 10342,
+      "pixels_above_8": 577
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "green",
+      "max_error": 18,
+      "p95_error": 9,
+      "active_pixels": 10348,
+      "pixels_above_8": 608
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "blue",
+      "max_error": 18,
+      "p95_error": 10,
+      "active_pixels": 10348,
+      "pixels_above_8": 653
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "red",
+      "max_error": 18,
+      "p95_error": 9,
+      "active_pixels": 10348,
+      "pixels_above_8": 602
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "green",
+      "max_error": 18,
+      "p95_error": 9,
+      "active_pixels": 10363,
+      "pixels_above_8": 610
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "blue",
+      "max_error": 18,
+      "p95_error": 10,
+      "active_pixels": 10363,
+      "pixels_above_8": 654
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "red",
+      "max_error": 18,
+      "p95_error": 9,
+      "active_pixels": 10363,
+      "pixels_above_8": 608
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "green",
+      "max_error": 21,
+      "p95_error": 8,
+      "active_pixels": 10268,
+      "pixels_above_8": 461
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "blue",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 10268,
+      "pixels_above_8": 520
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "red",
+      "max_error": 21,
+      "p95_error": 8,
+      "active_pixels": 10268,
+      "pixels_above_8": 453
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "green",
+      "max_error": 21,
+      "p95_error": 8,
+      "active_pixels": 10296,
+      "pixels_above_8": 479
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "blue",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 10296,
+      "pixels_above_8": 533
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "red",
+      "max_error": 21,
+      "p95_error": 8,
+      "active_pixels": 10296,
+      "pixels_above_8": 463
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "green",
+      "max_error": 21,
+      "p95_error": 8,
+      "active_pixels": 10268,
+      "pixels_above_8": 461
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "blue",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 10268,
+      "pixels_above_8": 520
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "red",
+      "max_error": 21,
+      "p95_error": 8,
+      "active_pixels": 10268,
+      "pixels_above_8": 453
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "green",
+      "max_error": 21,
+      "p95_error": 8,
+      "active_pixels": 10236,
+      "pixels_above_8": 470
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "blue",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 10236,
+      "pixels_above_8": 534
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "red",
+      "max_error": 21,
+      "p95_error": 8,
+      "active_pixels": 10236,
+      "pixels_above_8": 467
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "green",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 10494,
+      "pixels_above_8": 599
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "blue",
+      "max_error": 21,
+      "p95_error": 10,
+      "active_pixels": 10494,
+      "pixels_above_8": 643
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "red",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 10494,
+      "pixels_above_8": 590
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "green",
+      "max_error": 19,
+      "p95_error": 10,
+      "active_pixels": 10482,
+      "pixels_above_8": 614
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "blue",
+      "max_error": 19,
+      "p95_error": 10,
+      "active_pixels": 10482,
+      "pixels_above_8": 654
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "red",
+      "max_error": 19,
+      "p95_error": 9,
+      "active_pixels": 10482,
+      "pixels_above_8": 605
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "green",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 10494,
+      "pixels_above_8": 599
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "blue",
+      "max_error": 21,
+      "p95_error": 10,
+      "active_pixels": 10494,
+      "pixels_above_8": 643
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "red",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 10494,
+      "pixels_above_8": 590
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "green",
+      "max_error": 21,
+      "p95_error": 10,
+      "active_pixels": 10507,
+      "pixels_above_8": 613
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "blue",
+      "max_error": 21,
+      "p95_error": 10,
+      "active_pixels": 10507,
+      "pixels_above_8": 657
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "red",
+      "max_error": 21,
+      "p95_error": 10,
+      "active_pixels": 10507,
+      "pixels_above_8": 610
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "green",
+      "max_error": 20,
+      "p95_error": 8,
+      "active_pixels": 10227,
+      "pixels_above_8": 484
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "blue",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 10227,
+      "pixels_above_8": 547
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "red",
+      "max_error": 20,
+      "p95_error": 8,
+      "active_pixels": 10227,
+      "pixels_above_8": 480
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "green",
+      "max_error": 20,
+      "p95_error": 8,
+      "active_pixels": 10246,
+      "pixels_above_8": 477
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "blue",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 10246,
+      "pixels_above_8": 541
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "red",
+      "max_error": 20,
+      "p95_error": 8,
+      "active_pixels": 10246,
+      "pixels_above_8": 471
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "green",
+      "max_error": 20,
+      "p95_error": 8,
+      "active_pixels": 10227,
+      "pixels_above_8": 484
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "blue",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 10227,
+      "pixels_above_8": 547
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "red",
+      "max_error": 20,
+      "p95_error": 8,
+      "active_pixels": 10227,
+      "pixels_above_8": 480
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "green",
+      "max_error": 20,
+      "p95_error": 8,
+      "active_pixels": 10195,
+      "pixels_above_8": 487
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "blue",
+      "max_error": 20,
+      "p95_error": 9,
+      "active_pixels": 10195,
+      "pixels_above_8": 548
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "red",
+      "max_error": 20,
+      "p95_error": 8,
+      "active_pixels": 10195,
+      "pixels_above_8": 474
+    }
+  ]
+}

@@ -520,11 +520,11 @@ describe('cameraOrigin', () => {
   /** The shipped lot, so this is a statement about the game. */
   const LOT_W = 16;
   const LOT_H = 12;
-  const TALLEST = Math.max(...SPRITES.map((sprite) => sprite.h));
+  const TALLEST = Math.max(...SPRITES.map((sprite) => sprite.h / (sprite.pixel_density ?? 1)));
   const boundaryNames: readonly string[] = BOUNDARY_SPRITE_NAMES;
   const TALLEST_BOUNDARY = Math.max(
     ...SPRITES.filter((sprite) => boundaryNames.includes(sprite.name)).map(
-      (sprite) => sprite.h,
+      (sprite) => sprite.h / (sprite.pixel_density ?? 1),
     ),
   );
 

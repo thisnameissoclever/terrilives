@@ -1,0 +1,21 @@
+{
+  "mode": "post-render-git-comparison",
+  "revision": "252b3997aac3059361a70e2d9efc50ea09bc3464",
+  "inputs": {
+    "assets/models/furniture/render_provenance.py": "1df5acd96fc59d04dd76a32e8cf89d85ec4b20a7c3dacba9b6f765c7072372ab",
+    "assets/models/furniture/render_contributions.py": "fdae4dc9bb7f4d232a3aa9c3fb2b091a502e333ea9063f0c3df60aca5c0071df",
+    "assets/models/furniture/animation_export.py": "9259cbe55c15bb3e61dbb98c4957526e953fbe559409969ecf0e76ca967d4b30",
+    "assets/models/furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "assets/models/furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "assets/models/furniture/preview.py": "436143c11bb564924af62356dfe4adf22d7c76c175b3ddb876dac2e7714ce54c",
+    "assets/models/sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "assets/models/sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68",
+    "assets/models/sims/sim-01/build_rig.py": "f090090a5d651ebbb12951aae17690a7f16d34b1b4eb605df35c952093f65a55",
+    "assets/models/sims/sim-01/render_shirt_variants.py": "6184af19516052877c48722f7222293b3f4b33ccc5fa3fa1bc8454da4928045b",
+    "assets/models/sims/sim-01/shirt_colors.py": "586acf888a102130ce032546827cf7fbe2e9d1ec91005e2c19c8fb950e3fd4c0",
+    "assets/models/sims/sim-01/rig_math.py": "31f766a6271bfafa6a9215340a52de7c3688e2bc4f863d20fac25ff0c3873b68",
+    "assets/models/sims/sim-01/food_depth.py": "bf997ae0d29c17cc5ac64ddf2cf62283c26047a1f664ffa8cc8196f1a7d503eb",
+    "assets/models/sims/sim-01/render_job.py": "3f18794f17d8c467d8fe5250ca4f029eeaaf9c9f7920818545b8d7bb1abd5122"
+  },
+  "limitation": "Additional dependency hashes were recorded after rendering. This verifies current files against Git, not their state throughout the earlier render."
+}

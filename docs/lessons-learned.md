@@ -4790,6 +4790,41 @@ timeout or replace exact equality with a visual tolerance.
 content-address test: it must fail with `expected false to be true`. Restore
 the mutation and run the full web suite, then confirm Linux CI passes.
 
+## [L-empty-reference-visibility] Hide a reference collection, not driven object flags
+
+**What happened.** The first empty furniture renders retained floating eye
+outlines from the Sim used for fitting, although the preview set each mesh's
+`hide_render` flag. The occupied renders were unaffected.
+
+**Root cause.** Saved visibility drivers re-evaluated during rendering and
+overrode the individual object flags. An empty-view switch competed with the
+accepted model's expression and prop visibility ownership.
+
+**Prevention rule.** Move the complete Sim reference into a dedicated collection
+and hide that collection for empty views. Preserve the individual driven state.
+Never remove stray pixels from an image to disguise faulty scene visibility.
+
+**How to verify.** Render every empty facing and inspect the full canvas,
+including above the object. Then restore the collection and check the occupied
+expressions and props. Hash and nonempty-image checks alone cannot catch this.
+
+## [L-drape-support-has-width] A correct cloth section does not prove a supported towel
+
+**What happened.** A towel's U-shaped section cleared its handle tube, but the
+sheet extended along the handle into its upward bend. The assumed support was
+straight while the actual tube changed height across the towel's width.
+
+**Root cause.** A two-dimensional section test was treated as proof for the
+whole three-dimensional attachment.
+
+**Prevention rule.** Give the towel an actual straight support segment, keep
+its full width inside that segment, and leave the gripping area clear. Test
+the width and section independently. Do not call a constructed drape a cloth
+simulation.
+
+**How to verify.** Trace the actual support endpoints and tube radius against
+the complete cloth surface, then inspect the fold and both tails from all four
+rotations. A passing radius test alone is insufficient.
 ## [L-boundary-panel-endpoints] A corner post cannot close a gap between panel ends
 
 **What happened:** the back corner had a visible gap and a stray upright;
@@ -4836,6 +4871,111 @@ Removing junction selection, the shader clamp, a visible arm, or the pixel
 preservation guard must fail the relevant regression check. Require the named
 assertion to fail; a worker-start timeout is not a caught mutation.
 
+## [L-rider-shoe-envelope] Pedal contact points do not prove shoe clearance
+
+**What happened.** The approved bike still looked plausible at the review pose,
+but evaluated shoe meshes intersected the flywheel housing throughout a cycle.
+
+**Root cause.** The pedal centres cleared the housing while the shoes' inward
+extent did not. Point constraints cannot establish clearance for a solid foot.
+
+**Prevention rule.** Fit pedal spacing to the full evaluated shoe envelope and
+include the wheel covers, not only the main housing. Extend the pedal spindles
+physically; do not hide intersections with sprite masks or change the Sim.
+
+**How to verify.** Test the inward envelope against the outer wheel face, then
+check evaluated mesh intersections at sixteen phases. Inspect the full cycle
+from all four cameras before accepting the exported animation.
+
+The same probe must measure the evaluated sole underside against the pedal
+top. An ankle joint is not a contact surface. The original guessed ankle height
+embedded the sole by 0.02835 units; the approved shoe's measured ankle-to-sole
+offset is 0.110852 units. Include both lateral and vertical checks before a batch.
+
+## [L-portable-artifact-proof-paths] Shared manifests need platform-neutral paths
+
+**What happened.** A density export passed on Windows but its proof JSON used
+backslashes, which the Linux test runner would treat as filename characters.
+
+**Root cause.** Native `str(Path)` formatting leaked into a shared file format.
+
+**Prevention rule.** Serialize relative artifact paths with `.as_posix()` and
+keep native filesystem paths out of portable manifests.
+
+**How to verify.** Test both Windows and POSIX path serialization, reject
+backslashes in committed artifact references, and verify every referenced hash.
+
+## [L-independent-render-validation] A correct composite can hide incorrect ownership
+
+**What happened.** Adversarial review showed that swapping the Sim and furniture
+layers still passed their reconstruction comparison. The contact checker also
+accepted matching sole/pedal heights without proving horizontal support.
+
+**Root cause.** Addition is symmetric, so reconstruction cannot identify which
+layer belongs to which object. A height comparison omits two spatial axes, and
+an empty obstacle list makes collision testing vacuously pass.
+
+**Prevention rule.** Check ownership independently: furniture and outline pixels
+must remain identical across shirt palettes, while the visible Sim contribution
+must change. Cast through the pedal centre to the evaluated sole, require the
+expected obstacle/shoe inventory, and retain mesh-intersection checks.
+
+**How to verify.** Swap owners, zero the body, move a pedal sideways, and remove
+the obstacle inventory. Each must fail its named guard. Restore the original
+bindings and confirm both unchanged source bytes and a passing ordinary run.
+The 2026-09-10 scene mutations rejected a 0.5-unit lateral displacement and all
+six renamed obstacles; the restored sixteen-phase scene passed.
+
+## [L-complete-render-inputs] Hash the render dependency closure before a batch
+
+**What happened.** The first furniture journal hashed five scripts and the rig,
+but omitted imported pose/palette helpers and camera registration data.
+
+**Root cause.** The journal tracked obvious entry points rather than every input
+that could alter a pixel. A resumed batch could otherwise mix incompatible
+poses or camera settings.
+
+**Prevention rule.** Use the dependency wrapper before rendering and check the
+same set afterward and on resume. Record Blender build and colour-management
+settings. Preserve an old incomplete journal and label supplemental post-render
+verification as post-render; never claim it recorded history it did not observe.
+
+**How to verify.** Change a dependency hash or leave the generation proof in its
+running state. Export must reject it. Existing batch supplemental evidence
+explicitly records the narrower Git comparison and its historical limitation.
+
+## [L-authored-action-before-name] Resolve visual actions before inferring transitions
+
+**What happened.** Review raised a possible sit-pose regression for the reading
+chair from the interaction name `settle_in`.
+
+**Root cause.** The name suggested a transition, but shipped content declares
+`read` and the Rust projection maps it directly to the reading visual action.
+
+**Prevention rule.** Trace the authored action and its runtime projection before
+adding animation scope or reporting a missing transition.
+
+**How to verify.** Inspect the exact object's interaction declaration and the
+corresponding compiled-action mapping, not a similarly named test fixture.
+
+## [L-motion-direction-review] Correct poses can still play in the wrong direction
+
+**What happened.** The owner spotted backward pedalling after the bike's poses,
+contacts, facings and compositing had passed review.
+
+**Root cause.** Still-image review established physical contact but did not
+establish the intended direction of travel through the cycle. Increasing source
+phase moved the top pedal toward the rear of the bike rather than the front.
+
+**Prevention rule.** Review the temporal sequence as well as each pose. At the
+top of a forward pedal cycle, the pedal must next travel toward the handlebars.
+The runtime bike order is now 0,7,6,5,4,3,2,1; source phase zero remains the
+resting/reduced-motion pose. Chair order, geometry and sprite identities stay
+unchanged.
+
+**How to verify.** Assert the complete cycling order for every facing and shirt
+colour, assert reading order stays 0,1,2,3, then play the built animation. A
+paused pose or an unordered contact sheet cannot satisfy this check.
 ## [L-wall-corner-definition] Closed joins still need a visible change of plane
 
 **What happened:** continuous wall faces blended together at actual corners

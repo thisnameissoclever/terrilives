@@ -5,6 +5,9 @@ import {
   ATLAS_HEIGHT,
   ATLAS_WIDTH,
   SPRITES,
+  SPRITE_PAIRS,
+  SPRITE_ANCHORS,
+  type AtlasSprite,
 } from './atlas.js';
 import type { GpuContext } from './device.js';
 import {
@@ -40,11 +43,15 @@ export function atlasTextureUrl(baseUrl: string): string {
  * Packs the atlas manifest into the layout `struct Sprite` expects.
  *
  * Built once at start-up. `uv` is normalised because texture coordinates
- * are, and `size` stays in pixels because the quad is drawn one texel to
- * one pixel - so the manifest's `w` and `h` are simultaneously the
- * sprite's extent in the atlas and its extent on screen.
+ * are, while `size` uses logical pixels independent of texture density.
  */
-function packSpriteTable(): Float32Array<ArrayBuffer> {
+export function packSpriteTable(
+  sprites: readonly AtlasSprite[] = SPRITES,
+  width = ATLAS_WIDTH,
+  height = ATLAS_HEIGHT,
+  pairs: Readonly<Record<number, { readonly furniture: number; readonly outline: number }>> = SPRITE_PAIRS,
+  anchors: Readonly<Record<number, readonly [number, number]>> = SPRITE_ANCHORS,
+): Float32Array<ArrayBuffer> {
   // Sized by what the atlas holds. There is no cap to check against any
   // more: the shader's array is runtime-sized, so an atlas of any length
   // indexes correctly rather than clamping past the end.
@@ -52,23 +59,49 @@ function packSpriteTable(): Float32Array<ArrayBuffer> {
   // A storage buffer of length zero is invalid in WebGPU, and an empty
   // atlas is a build mistake rather than a state to render, so it is
   // rejected here where the message can say so.
-  if (SPRITES.length === 0) {
+  if (sprites.length === 0) {
     throw new Error(
       'the atlas manifest is empty; every sprite index would be out of ' +
         'range and nothing would draw',
     );
   }
-  const table = new Float32Array(SPRITES.length * FLOATS_PER_SPRITE);
-  SPRITES.forEach((sprite, index) => {
+  for (const [key, pair] of Object.entries(pairs)) {
+    const body = Number(key);
+    const references = [body, pair.furniture, pair.outline];
+    if (references.some((i) => !Number.isInteger(i) || i < 0 || i >= sprites.length)) {
+      throw new Error('paired sprite index is out of range');
+    }
+    for (const i of references) {
+      if (sprites[i].w !== sprites[body].w || sprites[i].h !== sprites[body].h ||
+          (sprites[i].pixel_density ?? 1) !== (sprites[body].pixel_density ?? 1) ||
+          !anchors[i] || !anchors[body] || anchors[i][0] !== anchors[body][0] || anchors[i][1] !== anchors[body][1]) {
+        throw new Error('paired sprite registration differs');
+      }
+    }
+  }
+  const table = new Float32Array(sprites.length * FLOATS_PER_SPRITE);
+  sprites.forEach((sprite, index) => {
     const base = index * FLOATS_PER_SPRITE;
-    table[base + 0] = sprite.x / ATLAS_WIDTH;
-    table[base + 1] = sprite.y / ATLAS_HEIGHT;
-    table[base + 2] = (sprite.x + sprite.w) / ATLAS_WIDTH;
-    table[base + 3] = (sprite.y + sprite.h) / ATLAS_HEIGHT;
-    table[base + 4] = sprite.w;
-    table[base + 5] = sprite.h;
+    table[base + 0] = sprite.x / width;
+    table[base + 1] = sprite.y / height;
+    table[base + 2] = (sprite.x + sprite.w) / width;
+    table[base + 3] = (sprite.y + sprite.h) / height;
+    table[base + 4] = sprite.w / (sprite.pixel_density ?? 1);
+    table[base + 5] = sprite.h / (sprite.pixel_density ?? 1);
+    if (pairs[index]) {
+      table[base + 6] = pairs[index].furniture + 1;
+      table[base + 7] = pairs[index].outline + 1;
+    }
   });
   return table;
+}
+
+/** Enforce the portable atlas ceiling and the actual device before allocation. */
+export function validateAtlasDimensions(width: number, height: number, deviceLimit: number): void {
+  const limit = Math.min(8192, deviceLimit);
+  if (width > limit || height > limit) {
+    throw new Error(`atlas ${width}x${height} exceeds texture dimension limit ${limit}`);
+  }
 }
 
 /**
@@ -81,7 +114,8 @@ function packSpriteTable(): Float32Array<ArrayBuffer> {
  * getting that pair wrong darkens every antialiased edge in the game by
  * an amount too small to notice and too consistent to explain.
  */
-async function loadAtlasTexture(device: GPUDevice): Promise<GPUTexture> {
+export async function loadAtlasTexture(device: GPUDevice): Promise<GPUTexture> {
+  validateAtlasDimensions(ATLAS_WIDTH, ATLAS_HEIGHT, device.limits.maxTextureDimension2D);
   // Generated under `web/public/` and served at the app's own base. Not a
   // bundler import: the atlas is a build output of the whole project, and
   // importing it from outside the Vite root made the dev server hand out a

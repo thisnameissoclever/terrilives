@@ -1,0 +1,11 @@
+[
+  {
+    "kind": "bike",
+    "facing": "SE",
+    "active_pixels": 11886,
+    "max_error": 22,
+    "p95_error": 1,
+    "pixels_above_8": 46,
+    "overlapping_alpha_pixels": 0
+  }
+]

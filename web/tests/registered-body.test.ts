@@ -6,18 +6,20 @@ vi.mock('../src/render/atlas.js', async (importOriginal) => {
   const tops: Record<number, number> = {};
   const hands = { ...atlas.SPRITE_HAND_ANCHORS };
   atlas.SPRITES.forEach((sprite, index) => {
+    const width = sprite.w / (sprite.pixel_density ?? 1);
+    const height = sprite.h / (sprite.pixel_density ?? 1);
     if (sprite.name === 'sim2' || sprite.name.startsWith('rigSim')) {
-      anchors[index] = [sprite.w / 2 - 0.5, sprite.h - 8];
+      anchors[index] = [width / 2 - 0.5, height - 8];
     }
     // Deliberately distinct fixtures detect dropped identity arguments. Actual
     // palette geometry is identical, which would hide those wiring mistakes.
     if (sprite.name.startsWith('rigSimBlue')) {
-      anchors[index] = [sprite.w / 2 - 3, sprite.h - 12];
+      anchors[index] = [width / 2 - 3, height - 12];
       tops[index] = 7;
       if (sprite.name.includes('Eat')) hands[index] = [6, 50];
     }
     if (sprite.name.startsWith('rigSimRed')) {
-      anchors[index] = [sprite.w / 2 + 2, sprite.h - 4];
+      anchors[index] = [width / 2 + 2, height - 4];
       tops[index] = 3;
       if (sprite.name.includes('Eat')) hands[index] = [40, 60];
     }
@@ -56,7 +58,7 @@ describe('registered body draw and pick', () => {
       expect(result[OFFSET_SCREEN_X]).toBe(200 + 0.5 * zoom);
       expect(result[OFFSET_SCREEN_Y]).toBe(150 + 8 * zoom);
       expect(result[OFFSET_DEPTH]).toBeCloseTo(layeredDepth(0, 0, 16, LAYER_SIM));
-      expect(result[FLOATS_PER_INSTANCE + OFFSET_SCREEN_Y]).toBe(150 - (body.h - 8 - 4) * zoom);
+      expect(result[FLOATS_PER_INSTANCE + OFFSET_SCREEN_Y]).toBe(150 - (body.h / (body.pixel_density ?? 1) - 8 - 4) * zoom);
       expect(result[2 * FLOATS_PER_INSTANCE + OFFSET_SCREEN_X]).toBe(200);
       expect(result[2 * FLOATS_PER_INSTANCE + OFFSET_SCREEN_Y]).toBe(150);
     }
@@ -68,7 +70,7 @@ describe('registered body draw and pick', () => {
       expect(pickSprite(source, 200, 150 + 25 * zoom, 200, 150, zoom))
         .toEqual({ entity: 100, isAgent: true });
       expect(pickSprite(source, 200, 150 + 30 * zoom, 200, 150, zoom)).toBeNull();
-      expect(pickSprite(source, 200, 150 + (21 - body.h + 1) * zoom, 200, 150, zoom))
+      expect(pickSprite(source, 200, 150 + (21 - body.h / (body.pixel_density ?? 1) + 1) * zoom, 200, 150, zoom))
         .toBeNull();
     }
   });
@@ -82,7 +84,7 @@ describe('registered body draw and pick', () => {
       const result = buildInstances(named, 1, 200, 150, 16);
       expect(result[FLOATS_PER_INSTANCE + OFFSET_SCREEN_Y])
         .toBe(150 - (anchor[1] - SPRITE_CONTENT_TOPS[index] - 4));
-      const rightEdge = 200 + body.w - anchor[0];
+      const rightEdge = 200 + body.w / (body.pixel_density ?? 1) - anchor[0];
       expect(pickSprite(named, rightEdge - 0.25, 150, 200, 150, 1))
         .toEqual({ entity: 100, isAgent: true });
       expect(pickSprite(named, rightEdge + 0.25, 150, 200, 150, 1)).toBeNull();

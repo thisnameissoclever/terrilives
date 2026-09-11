@@ -1,0 +1,749 @@
+{
+  "source_sha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+  "density": 8,
+  "logical_canvas": [
+    96,
+    120
+  ],
+  "objects": {
+    "bike": {
+      "world_origin": [
+        384.0000915527344,
+        760.0034952163696
+      ],
+      "samples": 8,
+      "ortho_scale": 2.6516504287719727
+    },
+    "chair": {
+      "world_origin": [
+        384.0000915527344,
+        760.0034952163696
+      ],
+      "samples": 4,
+      "ortho_scale": 2.6516504287719727
+    }
+  },
+  "renders": [
+    {
+      "path": "bike-SE-0-beauty.png",
+      "kind": "bike",
+      "facing": "SE",
+      "frame": 0,
+      "sha256": "183e8f1b8af465699b8ae3a472782bd216a8e66b6c36a99d7035568e60a422cd",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          -0.12,
+          0.58
+        ],
+        "R": [
+          0.27,
+          -0.11999999999999997,
+          0.16
+        ]
+      }
+    },
+    {
+      "path": "bike-SE-1-beauty.png",
+      "kind": "bike",
+      "facing": "SE",
+      "frame": 1,
+      "sha256": "a7b2cacdfe834705602447e02ae73368954d49536555032a866e021c30f21cdb",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          0.028492424049174986,
+          0.518492424049175
+        ],
+        "R": [
+          0.27,
+          -0.26849242404917495,
+          0.221507575950825
+        ]
+      }
+    },
+    {
+      "path": "bike-SE-2-beauty.png",
+      "kind": "bike",
+      "facing": "SE",
+      "frame": 2,
+      "sha256": "8225156da2ead303903955f60038bb2d3333694c7e29ea9a330487f994a215a2",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          0.09,
+          0.37
+        ],
+        "R": [
+          0.27,
+          -0.32999999999999996,
+          0.36999999999999994
+        ]
+      }
+    },
+    {
+      "path": "bike-SE-3-beauty.png",
+      "kind": "bike",
+      "facing": "SE",
+      "frame": 3,
+      "sha256": "6ef1d30f64e8596fa5b7f24f52a24127527edae0316fbd5b2e3612b4c45a4640",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          0.028492424049174986,
+          0.22150757595082504
+        ],
+        "R": [
+          0.27,
+          -0.268492424049175,
+          0.518492424049175
+        ]
+      }
+    },
+    {
+      "path": "bike-SE-4-beauty.png",
+      "kind": "bike",
+      "facing": "SE",
+      "frame": 4,
+      "sha256": "35319a17ff2ebbe0e7a1a7d8daedc59e99666d9b6b810d5cf8e87b35de04ba62",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          -0.11999999999999997,
+          0.16
+        ],
+        "R": [
+          0.27,
+          -0.12000000000000005,
+          0.58
+        ]
+      }
+    },
+    {
+      "path": "bike-SE-5-beauty.png",
+      "kind": "bike",
+      "facing": "SE",
+      "frame": 5,
+      "sha256": "471ebaa2dca8b2026e6361366f865ca84dee555cd5ff3686de3ff8fa9db08d80",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          -0.26849242404917495,
+          0.221507575950825
+        ],
+        "R": [
+          0.27,
+          0.02849242404917493,
+          0.5184924240491751
+        ]
+      }
+    },
+    {
+      "path": "bike-SE-6-beauty.png",
+      "kind": "bike",
+      "facing": "SE",
+      "frame": 6,
+      "sha256": "16863eba2c7a511f488da12efc9f998df54aba5a4b69e72fc8bcbe1b6390ecef",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          -0.32999999999999996,
+          0.36999999999999994
+        ],
+        "R": [
+          0.27,
+          0.09,
+          0.37000000000000005
+        ]
+      }
+    },
+    {
+      "path": "bike-SE-7-beauty.png",
+      "kind": "bike",
+      "facing": "SE",
+      "frame": 7,
+      "sha256": "b58e9497d457a37ccf9ee0f5ca80a50eb04d8f829460546aa5d2b1cd6f9efd73",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          -0.268492424049175,
+          0.518492424049175
+        ],
+        "R": [
+          0.27,
+          0.028492424049175152,
+          0.2215075759508252
+        ]
+      }
+    },
+    {
+      "path": "bike-NW-0-beauty.png",
+      "kind": "bike",
+      "facing": "NW",
+      "frame": 0,
+      "sha256": "1b0cad3cb6c41509e8b255625635b11b43e9f399b8137b52909357758832d2e6",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          -0.12,
+          0.58
+        ],
+        "R": [
+          0.27,
+          -0.11999999999999997,
+          0.16
+        ]
+      }
+    },
+    {
+      "path": "bike-NW-1-beauty.png",
+      "kind": "bike",
+      "facing": "NW",
+      "frame": 1,
+      "sha256": "e89a955e1c6a9196dbef90cffd01bbf494b83751b5c937364327b80ab23d9841",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          0.028492424049174986,
+          0.518492424049175
+        ],
+        "R": [
+          0.27,
+          -0.26849242404917495,
+          0.221507575950825
+        ]
+      }
+    },
+    {
+      "path": "bike-NW-2-beauty.png",
+      "kind": "bike",
+      "facing": "NW",
+      "frame": 2,
+      "sha256": "850e25d3452371cc1df18d80c1ef55c588cd9205eb85bbba73ed53deedcd95c6",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          0.09,
+          0.37
+        ],
+        "R": [
+          0.27,
+          -0.32999999999999996,
+          0.36999999999999994
+        ]
+      }
+    },
+    {
+      "path": "bike-NW-3-beauty.png",
+      "kind": "bike",
+      "facing": "NW",
+      "frame": 3,
+      "sha256": "17711939db352e13cfe40bbb97a80db9d8b95e084ed9e44e6a12b0f4c36bc4a5",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          0.028492424049174986,
+          0.22150757595082504
+        ],
+        "R": [
+          0.27,
+          -0.268492424049175,
+          0.518492424049175
+        ]
+      }
+    },
+    {
+      "path": "bike-NW-4-beauty.png",
+      "kind": "bike",
+      "facing": "NW",
+      "frame": 4,
+      "sha256": "1cd45447859acc60dbc2ac332c6e478225cba012b40ce57044ec291eb4d89cca",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          -0.11999999999999997,
+          0.16
+        ],
+        "R": [
+          0.27,
+          -0.12000000000000005,
+          0.58
+        ]
+      }
+    },
+    {
+      "path": "bike-NW-5-beauty.png",
+      "kind": "bike",
+      "facing": "NW",
+      "frame": 5,
+      "sha256": "07f5adecdd07100f8638ebb4c770abff67a7bdf98bec5688f15b6406dad322f9",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          -0.26849242404917495,
+          0.221507575950825
+        ],
+        "R": [
+          0.27,
+          0.02849242404917493,
+          0.5184924240491751
+        ]
+      }
+    },
+    {
+      "path": "bike-NW-6-beauty.png",
+      "kind": "bike",
+      "facing": "NW",
+      "frame": 6,
+      "sha256": "10d49b2519f2b01a10340426f465c743d364c75b8e9e79ef06b3d4ec4575883f",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          -0.32999999999999996,
+          0.36999999999999994
+        ],
+        "R": [
+          0.27,
+          0.09,
+          0.37000000000000005
+        ]
+      }
+    },
+    {
+      "path": "bike-NW-7-beauty.png",
+      "kind": "bike",
+      "facing": "NW",
+      "frame": 7,
+      "sha256": "0313f5b9d84638c85b3269b10467b73653ae6e855b83d6b7161df0d57dce3c8e",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          -0.268492424049175,
+          0.518492424049175
+        ],
+        "R": [
+          0.27,
+          0.028492424049175152,
+          0.2215075759508252
+        ]
+      }
+    },
+    {
+      "path": "bike-SW-0-beauty.png",
+      "kind": "bike",
+      "facing": "SW",
+      "frame": 0,
+      "sha256": "37c3998e035a946a0f210de05db456ba51dedb7c1f9c8d975dea5737994a1608",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          -0.12,
+          0.58
+        ],
+        "R": [
+          0.27,
+          -0.11999999999999997,
+          0.16
+        ]
+      }
+    },
+    {
+      "path": "bike-SW-1-beauty.png",
+      "kind": "bike",
+      "facing": "SW",
+      "frame": 1,
+      "sha256": "b862e3b640c5824f7b81edc13ccc6103f81c5b9586e4b91ab33bcb083483c10b",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          0.028492424049174986,
+          0.518492424049175
+        ],
+        "R": [
+          0.27,
+          -0.26849242404917495,
+          0.221507575950825
+        ]
+      }
+    },
+    {
+      "path": "bike-SW-2-beauty.png",
+      "kind": "bike",
+      "facing": "SW",
+      "frame": 2,
+      "sha256": "ff714b2b72257053edae74059fed61ef4f3f84ceae39c18996414d115771e68e",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          0.09,
+          0.37
+        ],
+        "R": [
+          0.27,
+          -0.32999999999999996,
+          0.36999999999999994
+        ]
+      }
+    },
+    {
+      "path": "bike-SW-3-beauty.png",
+      "kind": "bike",
+      "facing": "SW",
+      "frame": 3,
+      "sha256": "639d581091321205349e14c43e24e937bc40f88b39caf09480ff0d5537bef5a8",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          0.028492424049174986,
+          0.22150757595082504
+        ],
+        "R": [
+          0.27,
+          -0.268492424049175,
+          0.518492424049175
+        ]
+      }
+    },
+    {
+      "path": "bike-SW-4-beauty.png",
+      "kind": "bike",
+      "facing": "SW",
+      "frame": 4,
+      "sha256": "08e9ee666c07e332042ff9bb2b749599de2a895295e74252bfd2053947b1b4e7",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          -0.11999999999999997,
+          0.16
+        ],
+        "R": [
+          0.27,
+          -0.12000000000000005,
+          0.58
+        ]
+      }
+    },
+    {
+      "path": "bike-SW-5-beauty.png",
+      "kind": "bike",
+      "facing": "SW",
+      "frame": 5,
+      "sha256": "7fb2a0b6c1d8a125a1cd7308524ec7c4046645668555371e012e56f6495bbf38",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          -0.26849242404917495,
+          0.221507575950825
+        ],
+        "R": [
+          0.27,
+          0.02849242404917493,
+          0.5184924240491751
+        ]
+      }
+    },
+    {
+      "path": "bike-SW-6-beauty.png",
+      "kind": "bike",
+      "facing": "SW",
+      "frame": 6,
+      "sha256": "88952f1fa0c530186c1a7fcc25350c9d0b05cf0afd10e5a4e0b4d6eee5ffa8bc",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          -0.32999999999999996,
+          0.36999999999999994
+        ],
+        "R": [
+          0.27,
+          0.09,
+          0.37000000000000005
+        ]
+      }
+    },
+    {
+      "path": "bike-SW-7-beauty.png",
+      "kind": "bike",
+      "facing": "SW",
+      "frame": 7,
+      "sha256": "0c67f007a1df3b694c0d27793dc39a29f9d7b4e23588d21471aa3bebb0a07894",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          -0.268492424049175,
+          0.518492424049175
+        ],
+        "R": [
+          0.27,
+          0.028492424049175152,
+          0.2215075759508252
+        ]
+      }
+    },
+    {
+      "path": "bike-NE-0-beauty.png",
+      "kind": "bike",
+      "facing": "NE",
+      "frame": 0,
+      "sha256": "6e62bd453ea5d13bad2206e17705be3c213489a9233c1f6d6a65e6b4a49ac297",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          -0.12,
+          0.58
+        ],
+        "R": [
+          0.27,
+          -0.11999999999999997,
+          0.16
+        ]
+      }
+    },
+    {
+      "path": "bike-NE-1-beauty.png",
+      "kind": "bike",
+      "facing": "NE",
+      "frame": 1,
+      "sha256": "5fbfe36366dedd4d71b01cbcb6b9edd15c52e7c850d1786eda2ce71624881ee0",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          0.028492424049174986,
+          0.518492424049175
+        ],
+        "R": [
+          0.27,
+          -0.26849242404917495,
+          0.221507575950825
+        ]
+      }
+    },
+    {
+      "path": "bike-NE-2-beauty.png",
+      "kind": "bike",
+      "facing": "NE",
+      "frame": 2,
+      "sha256": "dda8701147bcb86b19fac8a072e94420b73e40deeaadb2e3d82cd89a441a5b72",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          0.09,
+          0.37
+        ],
+        "R": [
+          0.27,
+          -0.32999999999999996,
+          0.36999999999999994
+        ]
+      }
+    },
+    {
+      "path": "bike-NE-3-beauty.png",
+      "kind": "bike",
+      "facing": "NE",
+      "frame": 3,
+      "sha256": "9ccc8b68f474131c45f2bfa006fd9a7570c5dc547074a252dafc41947a52819a",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          0.028492424049174986,
+          0.22150757595082504
+        ],
+        "R": [
+          0.27,
+          -0.268492424049175,
+          0.518492424049175
+        ]
+      }
+    },
+    {
+      "path": "bike-NE-4-beauty.png",
+      "kind": "bike",
+      "facing": "NE",
+      "frame": 4,
+      "sha256": "3772896d182713ef69b1630e6d8884d0b6ef12157233d9e54c6147835201b12c",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          -0.11999999999999997,
+          0.16
+        ],
+        "R": [
+          0.27,
+          -0.12000000000000005,
+          0.58
+        ]
+      }
+    },
+    {
+      "path": "bike-NE-5-beauty.png",
+      "kind": "bike",
+      "facing": "NE",
+      "frame": 5,
+      "sha256": "30afd067ba72d8b67e0f1de280c23511c1df0ad24a34b0723cef74ebfa4b7840",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          -0.26849242404917495,
+          0.221507575950825
+        ],
+        "R": [
+          0.27,
+          0.02849242404917493,
+          0.5184924240491751
+        ]
+      }
+    },
+    {
+      "path": "bike-NE-6-beauty.png",
+      "kind": "bike",
+      "facing": "NE",
+      "frame": 6,
+      "sha256": "65751ec97137469517818f8c5b16bd88871e55d784e5cc9d623cb53144b6bd26",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          -0.32999999999999996,
+          0.36999999999999994
+        ],
+        "R": [
+          0.27,
+          0.09,
+          0.37000000000000005
+        ]
+      }
+    },
+    {
+      "path": "bike-NE-7-beauty.png",
+      "kind": "bike",
+      "facing": "NE",
+      "frame": 7,
+      "sha256": "a51df470e1814f0b03732edc44820a2788286e6f730cf4aff2aaf1ecbbb45ac7",
+      "pedal_contacts": {
+        "L": [
+          -0.27,
+          -0.268492424049175,
+          0.518492424049175
+        ],
+        "R": [
+          0.27,
+          0.028492424049175152,
+          0.2215075759508252
+        ]
+      }
+    },
+    {
+      "path": "chair-SE-0-beauty.png",
+      "kind": "chair",
+      "facing": "SE",
+      "frame": 0,
+      "sha256": "b18433f16f223ea27d91548c8f8a11463ca0f1881073471d393d7e943be14f57"
+    },
+    {
+      "path": "chair-SE-1-beauty.png",
+      "kind": "chair",
+      "facing": "SE",
+      "frame": 1,
+      "sha256": "408208b0745e2974b36b65539bcedadf11165c809fd94b1ccbc1b862fb25b0eb"
+    },
+    {
+      "path": "chair-SE-2-beauty.png",
+      "kind": "chair",
+      "facing": "SE",
+      "frame": 2,
+      "sha256": "bdf4dc9d9185718b29bbcc82b7b97d0250a99ff9de848f38dff3de9287b804be"
+    },
+    {
+      "path": "chair-SE-3-beauty.png",
+      "kind": "chair",
+      "facing": "SE",
+      "frame": 3,
+      "sha256": "5252a40c3e97990317a8b36e1f1d21bfd93a9dd129a718864e1614860e51f8c5"
+    },
+    {
+      "path": "chair-NW-0-beauty.png",
+      "kind": "chair",
+      "facing": "NW",
+      "frame": 0,
+      "sha256": "913b76c9ad98536b56a6b437fa68e703d37233529be8bf65f17fbc5368a8ba0d"
+    },
+    {
+      "path": "chair-NW-1-beauty.png",
+      "kind": "chair",
+      "facing": "NW",
+      "frame": 1,
+      "sha256": "ec93db09ce8e63047b352d03f855f71541efc0a1ec0fb0756d48fb2a46dcfe13"
+    },
+    {
+      "path": "chair-NW-2-beauty.png",
+      "kind": "chair",
+      "facing": "NW",
+      "frame": 2,
+      "sha256": "b084db80873c99d20aacf77d16361dfa64ed9d1e3c770292d8f935635a7a91e2"
+    },
+    {
+      "path": "chair-NW-3-beauty.png",
+      "kind": "chair",
+      "facing": "NW",
+      "frame": 3,
+      "sha256": "1a0d07f71ed753f4b1c10fe70af1c73495882ac9ec17904432878bd08d990e72"
+    },
+    {
+      "path": "chair-SW-0-beauty.png",
+      "kind": "chair",
+      "facing": "SW",
+      "frame": 0,
+      "sha256": "d9270bfebfe6c1ea883ff58563fc3414e37e3ba2213cc5f8f58d2dae2ecd11a6"
+    },
+    {
+      "path": "chair-SW-1-beauty.png",
+      "kind": "chair",
+      "facing": "SW",
+      "frame": 1,
+      "sha256": "47e1a15c85f33a42d2a5b43737a07e82c4eb3138ebb9cd7620c09cc1675cf9b7"
+    },
+    {
+      "path": "chair-SW-2-beauty.png",
+      "kind": "chair",
+      "facing": "SW",
+      "frame": 2,
+      "sha256": "9a3aacd6c1baec3dadb0d1b01cbfb2c998760d96a792989467ed1cab786ff1a3"
+    },
+    {
+      "path": "chair-SW-3-beauty.png",
+      "kind": "chair",
+      "facing": "SW",
+      "frame": 3,
+      "sha256": "9c1d9f410c8b324d7b48a697d0033fb960420086526dd0e8cf6025eadd8edb7e"
+    },
+    {
+      "path": "chair-NE-0-beauty.png",
+      "kind": "chair",
+      "facing": "NE",
+      "frame": 0,
+      "sha256": "cbcfd6289d86924e447ea685602cc64e5e942876badba38b3bda17384cd18394"
+    },
+    {
+      "path": "chair-NE-1-beauty.png",
+      "kind": "chair",
+      "facing": "NE",
+      "frame": 1,
+      "sha256": "965559656ca62d1005e07c8e6fbf89c2040012b443379bff22308b61d639a393"
+    },
+    {
+      "path": "chair-NE-2-beauty.png",
+      "kind": "chair",
+      "facing": "NE",
+      "frame": 2,
+      "sha256": "9ccb9ab7c75bf27eea9ed25694fde7f2708ecd43f00ffc1225098dec602b8ed3"
+    },
+    {
+      "path": "chair-NE-3-beauty.png",
+      "kind": "chair",
+      "facing": "NE",
+      "frame": 3,
+      "sha256": "e3e248c09f1562ce2c23f25b37a54e27dfab3155e8a6cf33ed7f0509b9536f5b"
+    }
+  ],
+  "state": "complete"
+}

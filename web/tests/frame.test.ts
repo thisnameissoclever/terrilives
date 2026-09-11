@@ -116,7 +116,9 @@ function drawnPosition(
   originY = ORIGIN_Y,
   scale = 1,
 ): number[] {
-  const entry = SPRITES[sprite];
+  const texture = SPRITES[sprite];
+  const density = texture.pixel_density ?? 1;
+  const entry = { w: texture.w / density, h: texture.h / density };
   const anchor = SPRITE_ANCHORS[sprite] ?? [entry.w / 2, entry.h];
   return [
     stored(screenX(wx, wy, originX, scale) + (entry.w / 2 - anchor[0]) * scale),
@@ -2484,6 +2486,20 @@ describe('the selection ring', () => {
 });
 
 describe('lower-bunk foreground composition', () => {
+  it('registered foregrounds use the same logical offsets as entity bodies', () => {
+    const src = new FakeEntities();
+    const registered = spriteIndex('rigSimIdleSE0');
+    src.set([[6, 4, 6, 4, 1, registered]]);
+    src.setForegrounds([registered]);
+    for (const scale of [0.5, 1, 2.5]) {
+      const built = buildInstances(src, 1, ORIGIN_X, ORIGIN_Y, GRID, null, scale);
+      const expected = drawnPosition(6, 4, registered, ORIGIN_X, ORIGIN_Y, scale);
+      expect(built[FLOATS_PER_INSTANCE + OFFSET_SCREEN_X]).toBe(expected[0]);
+      expect(built[FLOATS_PER_INSTANCE + OFFSET_SCREEN_Y]).toBe(expected[1]);
+      expect(built[FLOATS_PER_INSTANCE + OFFSET_SCREEN_Y]).toBe(built[OFFSET_SCREEN_Y]);
+    }
+  });
+
   it('draws the sleeper between both bunk layers and keeps the sleep bubble close', () => {
     const src = new FakeEntities();
     const bed = spriteIndex('bedBunk');

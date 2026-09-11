@@ -165,8 +165,10 @@ function drawnBox(
   originY = 0,
   scale = 1,
 ) {
-  const s = atlas(spriteName);
-  const physicalAnchor = SPRITE_ANCHORS[SPRITES.indexOf(s)] ?? [s.w / 2, s.h];
+  const texture = atlas(spriteName);
+  const density = texture.pixel_density ?? 1;
+  const s = { w: texture.w / density, h: texture.h / density };
+  const physicalAnchor = SPRITE_ANCHORS[SPRITES.indexOf(texture)] ?? [s.w / 2, s.h];
   const anchorX = screenX(tile[0], tile[1], originX, scale) +
     (s.w / 2 - physicalAnchor[0]) * scale;
   const anchorY =

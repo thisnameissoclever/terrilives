@@ -23,9 +23,11 @@ import {
   writeInstance,
   type InstanceArray,
 } from './render/instances.js';
-import { SPRITES, RIGGED_SIM_VARIANTS, SPRITE_ANCHORS, SPRITE_HAND_ANCHORS, SPRITE_HAND_FOREGROUND, spriteIndex } from './render/atlas.js';
+import { SPRITES, RIGGED_SIM_VARIANTS, SPRITE_ANCHORS, SPRITE_HAND_ANCHORS, SPRITE_HAND_FOREGROUND, INTERACTION_SPRITES, spriteIndex } from './render/atlas.js';
+import { InteractionSelection } from './render/interaction-sprites.js';
 import { distanceAnimationFrame, tickAnimationFrame } from './render/sim-animation.js';
 import { spriteContentLift, spriteDrawOffsetX, spriteDrawOffsetY } from './render/sprite-anchors.js';
+import { spriteHeight } from './render/sprite-size.js';
 import {
   emissiveForSprite,
   sampleLight,
@@ -536,6 +538,9 @@ export function simShirtVariant(simId = 0xffff_ffff): 'blue' | 'green' | 'red' {
   return 'green';
 }
 
+const frameInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant);
+const countInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant);
+
 /** Unknown/new Sims retain the approved green shirt until assigned a style. */
 export function simSprite(_id: number, simId = 0xffff_ffff): number {
   return RIGGED_SIM_VARIANTS[simShirtVariant(simId)].idle.frames[0][0];
@@ -782,6 +787,8 @@ export interface RenderSource {
   ids(): Uint32Array;
   /** Persistent authored household identity, independent of entity and row order. */
   simIds?(): Uint32Array;
+  /** Exact validated action target entity ID, or u32::MAX. */
+  interactionTargets?(): Uint32Array;
   /** 0 for a sim, 1 for a smart object. Picks the depth layer, nothing else. */
   kinds(): Uint32Array;
   /**
@@ -920,6 +927,7 @@ export function buildInstances(
   reducedMotion = false,
   simulationTick = 0,
   lighting: TileLighting | null = null,
+  interactions: InteractionSelection = frameInteractions,
 ): InstanceArray {
   const count = source.count;
   // Room for the entities, one foreground, one bubble and one carried badge
@@ -945,17 +953,19 @@ export function buildInstances(
   const facings = source.facings();
   const ids = source.ids();
   const foregroundSprites = source.foregroundSprites?.() ?? null;
+  interactions.updateSource(source, simulationTick, reducedMotion);
 
   for (let i = 0; i < count; i++) {
-    // A sim at the office is not drawn, and its slot must not shift:
+    // Office Sims and a paired object's replaced body keep their row slots:
     // the instance is written DEGENERATE - parked far off-screen, where
     // clipping discards it for free - so instance i stays row i.
-    if (activities[i] === ACTIVITY_AT_WORK) {
+    if (activities[i] === ACTIVITY_AT_WORK || interactions.suppressed[i]) {
       writeInstance(scratch, i, -1e6, -1e6, 1, 0);
       continue;
     }
-    const wx = lerp(previous[i * 2], current[i * 2], alpha);
-    const wy = lerp(previous[i * 2 + 1], current[i * 2 + 1], alpha);
+    const positionRow = interactions.targetRows[i] >= 0 ? interactions.targetRows[i] : i;
+    const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha);
+    const wy = lerp(previous[positionRow * 2 + 1], current[positionRow * 2 + 1], alpha);
     const bodyFacing =
       kinds[i] === KIND_AGENT && visualActions[i] === VISUAL_ACTION_WALK
         ? walkingFacing(
@@ -986,7 +996,7 @@ export function buildInstances(
     // Entity IDs affect animation phase, not appearance. Every object starts with what
     // content resolved; `objectBodySprite` may select an authored alternate
     // frame, such as the aquarium's fish-motion frame.
-    const sprite =
+    const sprite = interactions.bodies[i] >= 0 ? interactions.bodies[i] :
       kinds[i] === KIND_AGENT
         ? simBodySprite(
             ids[i],
@@ -1031,7 +1041,7 @@ export function buildInstances(
   if (foregroundSprites !== null) {
     for (let i = 0; i < count; i++) {
       const sprite = foregroundSprites[i];
-      if (sprite === NO_FOREGROUND_SPRITE || activities[i] === ACTIVITY_AT_WORK) {
+      if (sprite === NO_FOREGROUND_SPRITE || activities[i] === ACTIVITY_AT_WORK || interactions.suppressed[i]) {
         continue;
       }
       const wx = lerp(previous[i * 2], current[i * 2], alpha);
@@ -1042,8 +1052,8 @@ export function buildInstances(
       writeInstance(
         scratch,
         slot++,
-        screenX(wx, wy, originX, scale),
-        screenY(wx, wy, originY, scale),
+        screenX(wx, wy, originX, scale) + spriteDrawOffsetX(sprite) * scale,
+        screenY(wx, wy, originY, scale) + spriteDrawOffsetY(sprite) * scale,
         layeredDepth(wx, wy, gridSize, LAYER_FOREGROUND),
         sprite,
         TINT_NONE,
@@ -1063,8 +1073,9 @@ export function buildInstances(
   for (let i = 0; i < count; i++) {
     const sprite = INDICATOR_SPRITES[activities[i]] ?? null;
     if (sprite === null) continue;
-    const wx = lerp(previous[i * 2], current[i * 2], alpha);
-    const wy = lerp(previous[i * 2 + 1], current[i * 2 + 1], alpha);
+    const positionRow = interactions.targetRows[i] >= 0 ? interactions.targetRows[i] : i;
+    const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha);
+    const wy = lerp(previous[positionRow * 2 + 1], current[positionRow * 2 + 1], alpha);
     const bodyFacing =
       kinds[i] === KIND_AGENT && visualActions[i] === VISUAL_ACTION_WALK
         ? walkingFacing(
@@ -1075,7 +1086,7 @@ export function buildInstances(
             facings[i],
           )
         : facings[i];
-    const displayedBody =
+    const displayedBody = interactions.bodies[i] >= 0 ? interactions.bodies[i] :
       kinds[i] === KIND_AGENT
         ? simBodySprite(
             ids[i],
@@ -1136,7 +1147,7 @@ export function buildInstances(
       const hand = SPRITE_HAND_ANCHORS[body];
       const anchor = SPRITE_ANCHORS[body];
       foodX = hand[0] - anchor[0];
-      foodY = hand[1] - anchor[1] + SPRITES[sprite].h / 2;
+      foodY = hand[1] - anchor[1] + spriteHeight(sprite) / 2;
       foodDepthNudge = SPRITE_HAND_FOREGROUND[body]
         ? -INDICATOR_DEPTH_NUDGE : INDICATOR_DEPTH_NUDGE;
     }
@@ -1172,8 +1183,9 @@ export function buildInstances(
   // depth in front of nothing.
   const ringRow = findSelectedRow(source, selected);
   if (ringRow !== null) {
-    const wx = lerp(previous[ringRow * 2], current[ringRow * 2], alpha);
-    const wy = lerp(previous[ringRow * 2 + 1], current[ringRow * 2 + 1], alpha);
+    const positionRow = interactions.targetRows[ringRow] >= 0 ? interactions.targetRows[ringRow] : ringRow;
+    const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha);
+    const wy = lerp(previous[positionRow * 2 + 1], current[positionRow * 2 + 1], alpha);
     writeInstance(
       scratch,
       slot,
@@ -1192,15 +1204,15 @@ export function buildInstances(
 }
 
 /**
- * How many instances `buildInstances` filled, which is the entity count plus a
- * selection ring if one was drawn.
+ * Count fixed entity rows plus unsuppressed foregrounds, bubbles, props and ring.
  *
  * Returned separately rather than folded into the array because the caller
  * passes a count to `draw`, and the scratch buffer is deliberately longer than
  * the live data. Getting this wrong uploads uninitialised zeroes - quads at
  * screen (0, 0) with depth 0, which draw in front of everything.
  */
-export function instanceCount(source: RenderSource, selected: number | null): number {
+export function instanceCount(source: RenderSource, selected: number | null,
+  interactions: InteractionSelection = countInteractions): number {
   let extras = 0;
   const activities = source.activities();
   const carrying = source.carrying();
@@ -1208,10 +1220,12 @@ export function instanceCount(source: RenderSource, selected: number | null): nu
   const visualActions = source.visualActions();
   const facings = source.facings();
   const foregroundSprites = source.foregroundSprites?.() ?? null;
+  interactions.updateSource(source, 0, true);
   for (let i = 0; i < source.count; i++) {
     if (
       foregroundSprites !== null &&
       foregroundSprites[i] !== NO_FOREGROUND_SPRITE &&
+      !interactions.suppressed[i] &&
       activities[i] !== ACTIVITY_AT_WORK
     ) {
       extras++;

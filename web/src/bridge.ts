@@ -232,6 +232,15 @@ export class SimBridge {
     );
   }
 
+  /** Exact active socket target IDs, never inferred from position or row order. */
+  interactionTargets(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.interaction_targets_ptr(),
+      this.count,
+    );
+  }
+
   /**
    * The lot-axis direction in which each presentation body action faces:
    * 0 none, 1 positive x, 2 negative x, 3 positive y, 4 negative y.
