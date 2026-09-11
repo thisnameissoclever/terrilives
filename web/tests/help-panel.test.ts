@@ -19,6 +19,33 @@ function cssBlock(selector: string): string {
   return INDEX_HTML.slice(open + 1, close);
 }
 
+/**
+ * Every style rule in the page whose selector would match the help dialog
+ * while it is CLOSED, from anywhere in the stylesheet including inside a media
+ * query. A rule carrying `[open]`, `:open`, or `:not(...)` is excluded: those
+ * do not apply to the closed dialog, which is the state at issue.
+ *
+ * This is a text model of the cascade, not a cascade. It is here because the
+ * one rule it guards is worth guarding cheaply in CI; a browser-driven check
+ * is what actually proves the dialog hides.
+ */
+function rulesMatchingClosedHelpDialog(): { selector: string; declarations: string }[] {
+  const rules: { selector: string; declarations: string }[] = [];
+  const pattern = /([^{}]+)\{([^{}]*)\}/g;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(INDEX_HTML)) !== null) {
+    const selectorText = match[1].replace(/\/\*[\s\S]*?\*\//g, '').trim();
+    if (selectorText.length === 0 || selectorText.startsWith('@')) continue;
+    for (const selector of selectorText.split(',').map((part) => part.trim())) {
+      // Only rules that target the dialog element itself, not its descendants.
+      if (!/(^|[\s>+~])(dialog|#help-panel)[^\s>+~]*$/.test(selector)) continue;
+      if (/\[open\]|:open|:not\(/.test(selector)) continue;
+      rules.push({ selector, declarations: match[2] });
+    }
+  }
+  return rules;
+}
+
 function store(value: string | null): PreferenceStore {
   return {
     getItem: () => value,
@@ -158,11 +185,20 @@ describe('first-run help layout', () => {
 
   it('lets the browser hide the dialog once it is closed', () => {
     // The browser hides a closed dialog with its own
-    // `dialog:not([open]) { display: none }`. Any unconditional `display`
-    // here is an author rule that outranks it, so the dialog would stay on
-    // screen after "Got it" and reappear on every later load despite being
-    // dismissed. The layout `display` therefore has to be keyed to [open].
-    expect(cssBlock('#help-panel')).not.toMatch(/display:/);
+    // `dialog:not([open]) { display: none }`. Any unconditional `display` in
+    // an author rule outranks that, so the dialog would stay on screen after
+    // "Got it" and reappear on every later load despite being dismissed.
+    //
+    // Checking only the base `#help-panel` rule is not enough: the same
+    // element is matched by a bare `dialog` selector and by `#help-panel`
+    // inside the compact-screen media query, and a `display` in either brings
+    // the bug straight back - on phones specifically, for the media query.
+    // So this sweeps every rule that can match this dialog while it is
+    // closed, wherever in the stylesheet it sits.
+    const offenders = rulesMatchingClosedHelpDialog().filter((rule) =>
+      /(^|[;{\s])display\s*:/.test(rule.declarations),
+    );
+    expect(offenders.map((rule) => rule.selector)).toEqual([]);
   });
 
   it('clears the phone system bars on every edge it can be pushed against', () => {
@@ -176,6 +212,19 @@ describe('first-run help layout', () => {
           `padding-${edge}:\\s*max\\([^)]*env\\(safe-area-inset-${edge}\\)`,
         ).test(panel),
       }).toEqual({ edge, safe: true });
+    }
+    // Order is load-bearing, and silently so. The `padding` shorthand resets
+    // all four sides, so moving it below the longhands - which reads like
+    // harmless tidying, since it looks like it belongs with them - collapses
+    // every inset above back to a flat 16px and puts the button under the
+    // system bar again, with all four assertions still green.
+    const shorthand = panel.indexOf('padding: 16px');
+    expect(shorthand).toBeGreaterThan(-1);
+    for (const edge of ['top', 'right', 'bottom', 'left']) {
+      expect({
+        edge,
+        shorthandFirst: shorthand < panel.indexOf(`padding-${edge}:`),
+      }).toEqual({ edge, shorthandFirst: true });
     }
   });
 

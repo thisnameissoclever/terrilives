@@ -146,7 +146,11 @@ async function run(browser, url) {
   });
   const page = await context.newPage();
   const consoleErrors = [];
-  page.on('pageerror', (error) => consoleErrors.push(String(error)));
+  // A page that throws after boot can still tick the sim and start cues, so
+  // an uncaught error has to fail the run rather than sit in a field nothing
+  // reads. Benign 404s (a missing favicon) stay informational.
+  const pageErrors = [];
+  page.on('pageerror', (error) => pageErrors.push(String(error)));
   page.on('console', (message) => {
     if (message.type() === 'error') consoleErrors.push(message.text());
   });
@@ -176,7 +180,7 @@ async function run(browser, url) {
       document.body.innerText.slice(0, 1000),
     );
     await context.close();
-    return { booted: false, bodyText, consoleErrors };
+    return { booted: false, bodyText, pageErrors, consoleErrors };
   }
   // An occluded window reports itself hidden, and the controller refuses to
   // build a context while backgrounded. That would look exactly like the bug.
@@ -256,12 +260,15 @@ async function run(browser, url) {
     pageWasVirgin: atLoad.hasBeenActive === false,
     atLoad,
     resumeCalls,
-    // `every` on an empty array is true, and the array is empty exactly when
-    // the gate was open and no resume was needed. Requiring at least one call
-    // is what stops a vacuous pass standing in for evidence.
-    resumedWithActivation:
-      resumeCalls.length > 0 &&
-      resumeCalls.every((call) => call.isActive === true),
+    // Deliberately NOT `resumeCalls.length > 0`. On the happy path there are
+    // no resume calls at all: the context is built inside the tap handler and
+    // a browser that allows it starts it running, so `resumeFromGesture` sees
+    // `state === 'running'` and never calls resume. Demanding one made this
+    // field permanently false on a run where audio demonstrably worked. What
+    // must never happen is a resume with NO activation behind it, because
+    // that is the call the browser parks forever.
+    resumedWithActivation: !resumeCalls.some((call) => call.isActive === false),
+    pageErrors,
     consoleErrors,
     contextsBeforeTap: before,
     contextsAfterTap: after,
@@ -277,8 +284,8 @@ async function run(browser, url) {
       gateArmed &&
       running &&
       cuesStarted &&
-      resumeCalls.length > 0 &&
-      resumeCalls.every((call) => call.isActive === true),
+      pageErrors.length === 0 &&
+      !resumeCalls.some((call) => call.isActive === false),
   };
 }
 
@@ -314,6 +321,11 @@ async function main() {
     process.exitCode = 1;
     return;
   }
+  if (report.pageErrors.length > 0) {
+    console.error(`FAIL: the page threw: ${report.pageErrors[0]}`);
+    process.exitCode = 1;
+    return;
+  }
   if (!report.pageWasVirgin) {
     console.error(
       'INCONCLUSIVE (exit 2): the page already held sticky activation before the ' +
@@ -332,23 +344,29 @@ async function main() {
     process.exitCode = 1;
     return;
   }
-  if (report.resumeCalls.some((call) => call.isActive === false)) {
+  if (!report.resumedWithActivation) {
     console.error(
       'FAIL: resume() was called with no user activation live. That is the call ' +
-        'the browser leaves pending forever.',
+        'the browser parks forever.',
     );
     process.exitCode = 1;
     return;
   }
   if (!report.gateArmed) {
     console.error(
-      'INCONCLUSIVE (exit 2): this Chrome allowed audio with no gesture, so a ' +
-        'fresh context started on its own and resume() was never needed. The ' +
-        'tap-to-cue path works, but the broken wiring would pass this too. ' +
-        'A desktop Chrome ignores --autoplay-policy for a top-level frame; the ' +
-        'activation rule is pinned by web/tests/gesture-unlock.test.ts instead.',
+      'INCONCLUSIVE (exit 2): this Chrome allowed audio with no gesture, so the ' +
+        'tap-to-cue path is confirmed but the gesture was never actually ' +
+        'required. A desktop Chrome ignores --autoplay-policy for a top-level ' +
+        'frame; the activation rule is pinned by web/tests/gesture-unlock.test.ts.',
     );
     process.exitCode = 2;
+    return;
+  }
+  // Every branch above returns, so reaching here and `report.pass` disagreeing
+  // would mean the verdict printed and the verdict recorded had drifted apart.
+  if (!report.pass) {
+    console.error('FAIL: the report did not pass. See the JSON above.');
+    process.exitCode = 1;
     return;
   }
   console.log('PASS: a trusted touch tap was required, and it started the sound.');

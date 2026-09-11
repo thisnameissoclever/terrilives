@@ -332,8 +332,15 @@ describe('sampleSimAudioAfterTick', () => {
     expect(MAIN).toMatch(
       /if \(loaded\) \{[\s\S]*?audio\.reset\('load'\)/,
     );
-    expect(MAIN).toMatch(
-      /visibilitychange'[\s\S]*?audio\.setBackgrounded\(\s*document\.visibilityState === 'hidden'/,
+    // Scoped to the handler body rather than spanning the file: a lazy match
+    // from the word to any later call would be satisfied by a `setBackgrounded`
+    // sitting anywhere below, including outside the listener entirely.
+    const handler = MAIN.slice(
+      MAIN.indexOf("addEventListener('visibilitychange'"),
+      MAIN.indexOf("addEventListener('visibilitychange'") + 240,
+    );
+    expect(handler).toMatch(
+      /audio\.setBackgrounded\(\s*document\.visibilityState === 'hidden'/,
     );
   });
 
@@ -384,9 +391,12 @@ describe('sampleSimAudioAfterTick', () => {
     }
     // The visibility reading up there is a snapshot, correct only while a
     // listener exists to correct it, so that listener is armed there too.
-    expect(MAIN.indexOf('visibilitychange')).toBeLessThan(
-      MAIN.indexOf('await init()'),
-    );
+    // Anchored on the registration, not on the bare word: a comment
+    // mentioning visibilitychange above the awaits would satisfy a substring
+    // search while the listener itself sat back down below them.
+    const registered = MAIN.indexOf("addEventListener('visibilitychange'");
+    expect(registered).toBeGreaterThan(0);
+    expect(registered).toBeLessThan(MAIN.indexOf('await init()'));
   });
 
   it('uses the aligned stable-id column without a rebuild or identity query', () => {
