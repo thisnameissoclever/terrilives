@@ -32,6 +32,7 @@ from PIL import Image, ImageChops                              # noqa: E402
 import objects                                                  # noqa: E402
 from iso import canvas, emit                                    # noqa: E402
 from offline_sims import load_export, runtime_tables             # noqa: E402
+from offline_furniture import load_furniture, furniture_tables  # noqa: E402
 from style import TILE_HALF_WIDTH, TILE_HALF_HEIGHT             # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
@@ -750,6 +751,20 @@ def render_all():
     return out
 
 
+class AtlasHeightError(ValueError):
+    """The next supported atlas width may fit the same records."""
+
+
+def pack_atlas(sprites):
+    """Choose the smallest supported width without relaxing the 8192 ceiling."""
+    for width in (2048, 4096, 8192):
+        try:
+            return pack(sprites, width)
+        except AtlasHeightError:
+            if width == 8192:
+                raise
+
+
 def pack(sprites, width=512):
     """Shelf packing, tallest first. The sheet is small and static, so the
     simplest algorithm that does not waste half the texture is the right
@@ -768,7 +783,7 @@ def pack(sprites, width=512):
         shelf = max(shelf, h)
     height = y + shelf + PADDING
     if height > 8192:
-        raise ValueError("atlas height exceeds texture dimension limit")
+        raise AtlasHeightError("atlas height exceeds texture dimension limit")
     return placed, width, height
 
 
@@ -808,7 +823,8 @@ def write_toml(sprites, placed, width, height, densities=None):
 
 
 def write_ts(sprites, placed, width, height, png_sha256, anchors=None,
-             hands=None, tops=None, clips=None, hand_fronts=None, variants=None, densities=None):
+             hands=None, tops=None, clips=None, hand_fronts=None, variants=None, densities=None,
+             pairs=None, interactions=None, bounds=None):
     rows = []
     for i, (name, _, w, h) in enumerate(sprites):
         px, py = placed[i]
@@ -824,6 +840,9 @@ def write_ts(sprites, placed, width, height, png_sha256, anchors=None,
     tops_json = json.dumps(tops or {}, indent=2)
     clips_json = json.dumps(clips or {}, indent=2)
     variants_json = json.dumps(variants or {}, indent=2)
+    pairs_json = json.dumps(pairs or {}, indent=2)
+    interactions_json = json.dumps(interactions or {}, indent=2)
+    bounds_json = json.dumps(bounds or {}, indent=2)
     # The export NAMES here are load-bearing: sprites.ts imports `SPRITES`,
     # `ATLAS_WIDTH` and `ATLAS_HEIGHT` by those names. Renaming any of them
     # is a compile error at best and a silently empty atlas at worst.
@@ -866,6 +885,12 @@ export const SPRITE_ANCHORS: Readonly<Record<number, readonly [number, number]>>
 
 /** Actual opaque top and gripping point in logical image coordinates. */
 export const SPRITE_CONTENT_TOPS: Readonly<Record<number, number>> = {tops_json};
+/** Visible Sim contribution bounds, never the furniture silhouette. */
+export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, number, number, number]>> = {bounds_json};
+/** Indices of premultiplied visibility contributions composed in one fragment. */
+export const SPRITE_PAIRS: Readonly<Record<number, {{ readonly furniture: number; readonly outline: number }}>> = {pairs_json};
+/** Exact empty-sprite profiles; explicit body indices retain shared-layer deduplication. */
+export const INTERACTION_SPRITES: import('./interaction-sprites.js').InteractionCatalog = {interactions_json};
 export const SPRITE_HAND_ANCHORS: Readonly<Record<number, readonly [number, number]>> = {hands_json};
 /** Whether a held meal is nearer the camera than the body at its grip. */
 export const SPRITE_HAND_FOREGROUND: Readonly<Record<number, boolean>> = {hand_fronts_json};
@@ -1004,11 +1029,20 @@ def main():
             sprites[index] = sprite
             densities[index] = dense.pixel_density
             tops[index] = dense.frames[sprite[0]]["content_top"]
+    furniture = load_furniture(
+        os.path.join(ROOT, "assets", "models", "furniture", "export", "manifest.json"),
+        existing_names={sprite[0] for sprite in sprites},
+    )
+    sprites.extend(furniture.sprites)
+    extra_anchors, extra_tops, bounds, extra_density, pairs, interactions = furniture_tables(furniture, sprites)
+    anchors.update(extra_anchors)
+    tops.update(extra_tops)
+    densities.update(extra_density)
     names = [s[0] for s in sprites]
     if len(set(names)) != len(names):
         sys.exit("duplicate sprite name in objects.SPRITES")
 
-    placed, width, height = pack(sprites, width=2048)
+    placed, width, height = pack_atlas(sprites)
     if height > 8192:
         raise ValueError("atlas exceeds the baseline WebGPU texture dimension limit")
     sheet = compose(sprites, placed, width, height)
@@ -1036,7 +1070,8 @@ def main():
     )
     ts = write_ts(sprites, placed, width, height, png_sha256,
                   anchors=anchors, hands=hands, tops=tops, clips=clips,
-                  hand_fronts=hand_fronts, variants=variants, densities=densities)
+                  hand_fronts=hand_fronts, variants=variants, densities=densities,
+                  pairs=pairs, interactions=interactions, bounds=bounds)
 
     if args.check:
         bad = []

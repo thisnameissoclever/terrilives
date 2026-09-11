@@ -62,10 +62,8 @@ struct Uniforms {
 struct Sprite {
   // u0, v0, u1, v1 in [0, 1] texture coordinates.
   uv: vec4<f32>,
-  // Width and height in screen pixels, which are also the sprite's size
-  // in texels: the atlas is drawn one texel to one pixel, so nothing is
-  // minified and no mip chain is needed. z and w are padding to the
-  // 16-byte uniform array stride.
+  // Logical width/height; z and w hold furniture/outline indices plus one.
+  // Both are zero for an ordinary straight-alpha sprite.
   size: vec4<f32>,
 };
 
@@ -96,6 +94,8 @@ struct VertexOut {
   @builtin(position) clip: vec4<f32>,
   @location(0) uv: vec2<f32>,
   @location(2) @interpolate(flat) uvBounds: vec4<f32>,
+  @location(3) corner: vec2<f32>,
+  @location(4) @interpolate(flat) pair: vec2<u32>,
   // Passed straight through. Every vertex of one quad carries the same
   // value, so the interpolation across the triangle is a no-op and the
   // fragment reads exactly what the instance packed.
@@ -140,6 +140,8 @@ fn vs(
   out.clip = vec4f(clipXy, instance.z, 1.0);
   out.uv = mix(sprite.uv.xy, sprite.uv.zw, corner);
   out.uvBounds = sprite.uv;
+  out.corner = corner;
+  out.pair = vec2u(sprite.size.zw);
   out.tint = tint;
   return out;
 }
@@ -150,7 +152,20 @@ fn fs(in: VertexOut) -> @location(0) vec4<f32> {
   // the transparent atlas gutter darkens every panel seam at fractional zoom.
   let halfTexel = vec2f(0.5) / vec2f(textureDimensions(atlasTexture));
   let uv = clamp(in.uv, in.uvBounds.xy + halfTexel, in.uvBounds.zw - halfTexel);
-  let colour = textureSample(atlasTexture, atlasSampler, uv);
+  var colour = textureSample(atlasTexture, atlasSampler, uv);
+  if (in.pair.x > 0u) {
+    let furniture = atlas.sprites[in.pair.x - 1u];
+    let outline = atlas.sprites[in.pair.y - 1u];
+    let furnitureUv = clamp(mix(furniture.uv.xy, furniture.uv.zw, in.corner),
+      furniture.uv.xy + halfTexel, furniture.uv.zw - halfTexel);
+    let outlineUv = clamp(mix(outline.uv.xy, outline.uv.zw, in.corner),
+      outline.uv.xy + halfTexel, outline.uv.zw - halfTexel);
+    // Explicit LOD avoids derivative-uniformity restrictions in this branch.
+    let prop = textureSampleLevel(atlasTexture, atlasSampler, furnitureUv, 0.0);
+    let ink = textureSampleLevel(atlasTexture, atlasSampler, outlineUv, 0.0);
+    let sum = colour + prop;
+    colour = ink + sum * (1.0 - ink.a);
+  }
   // An alpha TEST, and it is load-bearing rather than a tidy-up.
   //
   // The pipeline writes depth, so a fragment that survives to the blend
@@ -165,6 +180,9 @@ fn fs(in: VertexOut) -> @location(0) vec4<f32> {
   // configured in sprites.ts is for.
   if (colour.a < 0.5) {
     discard;
+  }
+  if (in.pair.x > 0u) {
+    colour = vec4f(colour.rgb / colour.a, colour.a);
   }
   // AFTER the alpha test, deliberately. Tinting before it would scale
   // alpha along with the colour and make the discard threshold move with
