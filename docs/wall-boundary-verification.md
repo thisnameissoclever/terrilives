@@ -140,14 +140,14 @@ left untouched. Scratch logs and the backup remain outside the commit.
 ## Corner definition follow-up
 
 The owner requested a visible indication of the corners after accepting the
-closed joins. The nine junction sprites now have a muted fold shadow. Two
+closed joins. Visible corner junctions now have a muted fold shadow. Two
 new end-panel variants mark the back corner and where dividers meet the outer
 walls, bringing the atlas to 849 sprites. All 838 existing non-junction
 sprites retain their indices, dimensions and decoded pixels.
 
 `npm --prefix web test -- --maxWorkers=1` passes 538 tests. Sprite unittest
-discovery passes 25 tests, including two corner tests. Removing the crease
-in memory causes assertion failures in both corner tests. Type checking,
+discovery passes 26 tests, including three corner tests. Removing the crease
+in memory fails the visible-corner and boundary contrast tests. Type checking,
 the production client build, atlas `--check`, documentation IDs and patch
 whitespace checks pass. Each command exited 0 except the deliberately failing
 in-memory mutation.
