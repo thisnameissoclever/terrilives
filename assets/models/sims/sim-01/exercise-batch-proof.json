@@ -1,0 +1,3792 @@
+{
+  "state": "complete",
+  "source_rig_sha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+  "additive_rig_sha256": "5148612e85b1c8b14955cfe33da0b861db8702714bc8b96dbb3c9f2b745bbaac",
+  "topology_sha256": "094137a05b62b1b703e6a1c5155b68826433cebe3d9abefde0933ec7b03cd950",
+  "clip": {
+    "frame_count": 2,
+    "sample_fps": 1.25,
+    "loop": true,
+    "source_action": "exercise",
+    "width": 104,
+    "height": 120,
+    "world_origin": [
+      52.00001239776611,
+      95.0004369020462
+    ],
+    "anchor": [
+      52.00001239776611,
+      116.0004369020462
+    ],
+    "camera_ortho_scale": 2.6516504287719727,
+    "camera_location": [
+      5.335428714752197,
+      -5.335428714752197,
+      7.587500095367432
+    ]
+  },
+  "contacts": [
+    {
+      "hips": [
+        -0.3700000047683716,
+        -0.3700000047683716,
+        0.8600000143051147
+      ],
+      "limbs": {
+        "L": {
+          "pedal": [
+            -0.37,
+            -0.21375,
+            0.12471813043605587
+          ],
+          "grip": [
+            -0.6000000238418579,
+            -0.4750000238418579,
+            1.1589598655700684
+          ],
+          "ankle": [
+            -0.4399999976158142,
+            -0.17374999821186066,
+            0.2247181236743927
+          ],
+          "knee": [
+            -0.479972243309021,
+            -0.410967618227005,
+            0.49254271388053894
+          ]
+        },
+        "R": {
+          "pedal": [
+            -0.37,
+            0.06750000000000003,
+            0.4496002577093156
+          ],
+          "grip": [
+            -0.14000000059604645,
+            -0.5149999856948853,
+            0.929949939250946
+          ],
+          "ankle": [
+            -0.30000001192092896,
+            0.10750000178813934,
+            0.5496002435684204
+          ],
+          "knee": [
+            -0.2637718617916107,
+            -0.24858012795448303,
+            0.5109421610832214
+          ]
+        }
+      }
+    },
+    {
+      "hips": [
+        -0.3700000047683716,
+        -0.3700000047683716,
+        0.8600000143051147
+      ],
+      "limbs": {
+        "L": {
+          "pedal": [
+            -0.37,
+            0.06750000000000003,
+            0.4496002577093156
+          ],
+          "grip": [
+            -0.6000000238418579,
+            -0.4750000238418579,
+            1.1589598655700684
+          ],
+          "ankle": [
+            -0.4399999976158142,
+            0.10750000178813934,
+            0.5496002435684204
+          ],
+          "knee": [
+            -0.47622817754745483,
+            -0.24858012795448303,
+            0.5109421610832214
+          ]
+        },
+        "R": {
+          "pedal": [
+            -0.37,
+            -0.21375000000000002,
+            0.1247181304360559
+          ],
+          "grip": [
+            -0.14000000059604645,
+            -0.5149999856948853,
+            0.929949939250946
+          ],
+          "ankle": [
+            -0.30000001192092896,
+            -0.17374999821186066,
+            0.2247181236743927
+          ],
+          "knee": [
+            -0.26002776622772217,
+            -0.4109676480293274,
+            0.49254271388053894
+          ]
+        }
+      }
+    }
+  ],
+  "variants": {
+    "green": [
+      {
+        "path": "exercise-SE-0.png",
+        "facing": "SE",
+        "frame": 0,
+        "state": {
+          "geometry_sha256": "720bca6ed85bc441bb1903837f894ea0ba226150275d3935fc745d2b614e3cfa",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            6.198883056640625e-06,
+            -13.826202750205994
+          ],
+          "L": {
+            "pedal": [
+              -5.000000476837158,
+              8.000029921531677
+            ],
+            "grip": [
+              -3.9999935626983643,
+              -16.999724507331848
+            ]
+          },
+          "R": {
+            "pedal": [
+              -13.999997615814209,
+              -8.9998859167099
+            ],
+            "grip": [
+              11.999983787536621,
+              -17.999752163887024
+            ]
+          }
+        },
+        "sha256": "e3ceb19a858b33e5ac3caf0bb5f91b7ca5c51ac8bd49b8fb245cd8b30d44bd6b"
+      },
+      {
+        "path": "exercise-SE-1.png",
+        "facing": "SE",
+        "frame": 1,
+        "state": {
+          "geometry_sha256": "7bd52d868f12a29e659c455a2c1cc6fd61feb4155a62d5ec19a9a66214c1531d",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            6.198883056640625e-06,
+            -13.826202750205994
+          ],
+          "L": {
+            "pedal": [
+              -13.999997615814209,
+              -8.9998859167099
+            ],
+            "grip": [
+              -3.9999935626983643,
+              -16.999724507331848
+            ]
+          },
+          "R": {
+            "pedal": [
+              -5.000000476837158,
+              8.000029921531677
+            ],
+            "grip": [
+              11.999983787536621,
+              -17.999752163887024
+            ]
+          }
+        },
+        "sha256": "bb645e0056ca7436a80631b2436db51aa5f6628f3691633af75e5ffd65e32bd1"
+      },
+      {
+        "path": "exercise-SW-0.png",
+        "facing": "SW",
+        "frame": 0,
+        "state": {
+          "geometry_sha256": "5f7d16e600d92d7a715f2d941e4f522afd12b571c5432517e1d2fbface2b29a1",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            -23.679993629455566,
+            -29.3662029504776
+          ],
+          "L": {
+            "pedal": [
+              -18.679996252059937,
+              -7.539966702461243
+            ],
+            "grip": [
+              -34.399999499320984,
+              -42.19972908496857
+            ]
+          },
+          "R": {
+            "pedal": [
+              -9.679992914199829,
+              -24.53988254070282
+            ],
+            "grip": [
+              -20.96001672744751,
+              -23.879780173301697
+            ]
+          }
+        },
+        "sha256": "9d0779cdea7dd9847757746f2d2afdee3ce8b5443ddcf3113e38d1fbaad133d0"
+      },
+      {
+        "path": "exercise-SW-1.png",
+        "facing": "SW",
+        "frame": 1,
+        "state": {
+          "geometry_sha256": "9fe73afad953159f78339e3955e53540b0b6fd762729f1e8bb09759a7d7d9600",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            -23.679993629455566,
+            -29.3662029504776
+          ],
+          "L": {
+            "pedal": [
+              -9.679996013641357,
+              -24.539886116981506
+            ],
+            "grip": [
+              -34.399999499320984,
+              -42.19972908496857
+            ]
+          },
+          "R": {
+            "pedal": [
+              -18.679996252059937,
+              -7.539970278739929
+            ],
+            "grip": [
+              -20.96001672744751,
+              -23.879780173301697
+            ]
+          }
+        },
+        "sha256": "aea61c4b632cfdecc56a3a866ebee0fc59382f5f914060e3530961d44dff56ce"
+      },
+      {
+        "path": "exercise-NW-0.png",
+        "facing": "NW",
+        "frame": 0,
+        "state": {
+          "geometry_sha256": "49f2d6f3a8961cd60b29946c2ae19dab7765025a773786fb0625d146ad6f991e",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            6.198883056640625e-06,
+            -44.90619957447052
+          ],
+          "L": {
+            "pedal": [
+              5.000006675720215,
+              -16.517463326454163
+            ],
+            "grip": [
+              4.000009059906006,
+              -62.149720788002014
+            ]
+          },
+          "R": {
+            "pedal": [
+              14.000003814697266,
+              -21.704877018928528
+            ],
+            "grip": [
+              -11.999974489212036,
+              -45.509775280952454
+            ]
+          }
+        },
+        "sha256": "9e3fa1b999d4f75f2f01a57190f4efa8b5fe0942ac8501f768a002fc4c86607a"
+      },
+      {
+        "path": "exercise-NW-1.png",
+        "facing": "NW",
+        "frame": 1,
+        "state": {
+          "geometry_sha256": "5f5c78b0fcb262021a9180080d679ea64d03e64dfd7925c003561787222df1c8",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            6.198883056640625e-06,
+            -44.90619957447052
+          ],
+          "L": {
+            "pedal": [
+              14.000003814697266,
+              -21.7048841714859
+            ],
+            "grip": [
+              4.000009059906006,
+              -62.149720788002014
+            ]
+          },
+          "R": {
+            "pedal": [
+              5.000006675720215,
+              -16.517463326454163
+            ],
+            "grip": [
+              -11.999974489212036,
+              -45.509775280952454
+            ]
+          }
+        },
+        "sha256": "aaf710e9579850f3807f47af05283ea5672db26d219eb9a7f4fb9308048508f2"
+      },
+      {
+        "path": "exercise-NE-0.png",
+        "facing": "NE",
+        "frame": 0,
+        "state": {
+          "geometry_sha256": "b7322e358ee94460e143e04a1d87235d63d284cbe1feb8b1566d6f183aa510d9",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            23.679999828338623,
+            -29.366199374198914
+          ],
+          "L": {
+            "pedal": [
+              18.679999351501465,
+              -0.9774667024612427
+            ],
+            "grip": [
+              34.400007247924805,
+              -36.94972336292267
+            ]
+          },
+          "R": {
+            "pedal": [
+              9.680002212524414,
+              -6.164880394935608
+            ],
+            "grip": [
+              20.960022926330566,
+              -39.62975084781647
+            ]
+          }
+        },
+        "sha256": "e51a5bce070f0becf6e6696fde396f77363cd5367730be3512d7050a2fb43206"
+      },
+      {
+        "path": "exercise-NE-1.png",
+        "facing": "NE",
+        "frame": 1,
+        "state": {
+          "geometry_sha256": "719e06791ecffd7dd8c9928577fa4c84bdaed3dc7a447ee1193b81d568c25d1c",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            23.679999828338623,
+            -29.366199374198914
+          ],
+          "L": {
+            "pedal": [
+              9.680002212524414,
+              -6.164883971214294
+            ],
+            "grip": [
+              34.400007247924805,
+              -36.94972336292267
+            ]
+          },
+          "R": {
+            "pedal": [
+              18.679999351501465,
+              -0.9774667024612427
+            ],
+            "grip": [
+              20.960022926330566,
+              -39.62975084781647
+            ]
+          }
+        },
+        "sha256": "78e40beeba2784e84cd3b8ffac32bc0ce476cd66d45e52c8cf5b07d84f2b2120"
+      }
+    ],
+    "blue": [
+      {
+        "path": "exercise-SE-0.png",
+        "facing": "SE",
+        "frame": 0,
+        "state": {
+          "geometry_sha256": "720bca6ed85bc441bb1903837f894ea0ba226150275d3935fc745d2b614e3cfa",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            6.198883056640625e-06,
+            -13.826202750205994
+          ],
+          "L": {
+            "pedal": [
+              -5.000000476837158,
+              8.000029921531677
+            ],
+            "grip": [
+              -3.9999935626983643,
+              -16.999724507331848
+            ]
+          },
+          "R": {
+            "pedal": [
+              -13.999997615814209,
+              -8.9998859167099
+            ],
+            "grip": [
+              11.999983787536621,
+              -17.999752163887024
+            ]
+          }
+        },
+        "sha256": "04521cfd2a467fb04aa57fd6d685435838be9e2080c5786a51f86414c6c6cb33"
+      },
+      {
+        "path": "exercise-SE-1.png",
+        "facing": "SE",
+        "frame": 1,
+        "state": {
+          "geometry_sha256": "7bd52d868f12a29e659c455a2c1cc6fd61feb4155a62d5ec19a9a66214c1531d",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            6.198883056640625e-06,
+            -13.826202750205994
+          ],
+          "L": {
+            "pedal": [
+              -13.999997615814209,
+              -8.9998859167099
+            ],
+            "grip": [
+              -3.9999935626983643,
+              -16.999724507331848
+            ]
+          },
+          "R": {
+            "pedal": [
+              -5.000000476837158,
+              8.000029921531677
+            ],
+            "grip": [
+              11.999983787536621,
+              -17.999752163887024
+            ]
+          }
+        },
+        "sha256": "58541209f5a054089eda9d66dcc0d1aa6d8afeb7038441324438859e8927a56e"
+      },
+      {
+        "path": "exercise-SW-0.png",
+        "facing": "SW",
+        "frame": 0,
+        "state": {
+          "geometry_sha256": "5f7d16e600d92d7a715f2d941e4f522afd12b571c5432517e1d2fbface2b29a1",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            -23.679993629455566,
+            -29.3662029504776
+          ],
+          "L": {
+            "pedal": [
+              -18.679996252059937,
+              -7.539966702461243
+            ],
+            "grip": [
+              -34.399999499320984,
+              -42.19972908496857
+            ]
+          },
+          "R": {
+            "pedal": [
+              -9.679992914199829,
+              -24.53988254070282
+            ],
+            "grip": [
+              -20.96001672744751,
+              -23.879780173301697
+            ]
+          }
+        },
+        "sha256": "83642414ff1de194001b11207e6a61ee19198e27209f6456897965ce3d1f40a6"
+      },
+      {
+        "path": "exercise-SW-1.png",
+        "facing": "SW",
+        "frame": 1,
+        "state": {
+          "geometry_sha256": "9fe73afad953159f78339e3955e53540b0b6fd762729f1e8bb09759a7d7d9600",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            -23.679993629455566,
+            -29.3662029504776
+          ],
+          "L": {
+            "pedal": [
+              -9.679996013641357,
+              -24.539886116981506
+            ],
+            "grip": [
+              -34.399999499320984,
+              -42.19972908496857
+            ]
+          },
+          "R": {
+            "pedal": [
+              -18.679996252059937,
+              -7.539970278739929
+            ],
+            "grip": [
+              -20.96001672744751,
+              -23.879780173301697
+            ]
+          }
+        },
+        "sha256": "a322397949bfd4aa72d031a8f745525797eb6a42bdf46151d52fea4e5d97c327"
+      },
+      {
+        "path": "exercise-NW-0.png",
+        "facing": "NW",
+        "frame": 0,
+        "state": {
+          "geometry_sha256": "49f2d6f3a8961cd60b29946c2ae19dab7765025a773786fb0625d146ad6f991e",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            6.198883056640625e-06,
+            -44.90619957447052
+          ],
+          "L": {
+            "pedal": [
+              5.000006675720215,
+              -16.517463326454163
+            ],
+            "grip": [
+              4.000009059906006,
+              -62.149720788002014
+            ]
+          },
+          "R": {
+            "pedal": [
+              14.000003814697266,
+              -21.704877018928528
+            ],
+            "grip": [
+              -11.999974489212036,
+              -45.509775280952454
+            ]
+          }
+        },
+        "sha256": "855d7e901f2630ea168580d3f603f065547123dbc2d7a5d857f4b7af53290e6c"
+      },
+      {
+        "path": "exercise-NW-1.png",
+        "facing": "NW",
+        "frame": 1,
+        "state": {
+          "geometry_sha256": "5f5c78b0fcb262021a9180080d679ea64d03e64dfd7925c003561787222df1c8",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            6.198883056640625e-06,
+            -44.90619957447052
+          ],
+          "L": {
+            "pedal": [
+              14.000003814697266,
+              -21.7048841714859
+            ],
+            "grip": [
+              4.000009059906006,
+              -62.149720788002014
+            ]
+          },
+          "R": {
+            "pedal": [
+              5.000006675720215,
+              -16.517463326454163
+            ],
+            "grip": [
+              -11.999974489212036,
+              -45.509775280952454
+            ]
+          }
+        },
+        "sha256": "a4666d8109d535f9465237d517f79d3b1205518ad54e34ef18799c5f943d4f4c"
+      },
+      {
+        "path": "exercise-NE-0.png",
+        "facing": "NE",
+        "frame": 0,
+        "state": {
+          "geometry_sha256": "b7322e358ee94460e143e04a1d87235d63d284cbe1feb8b1566d6f183aa510d9",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            23.679999828338623,
+            -29.366199374198914
+          ],
+          "L": {
+            "pedal": [
+              18.679999351501465,
+              -0.9774667024612427
+            ],
+            "grip": [
+              34.400007247924805,
+              -36.94972336292267
+            ]
+          },
+          "R": {
+            "pedal": [
+              9.680002212524414,
+              -6.164880394935608
+            ],
+            "grip": [
+              20.960022926330566,
+              -39.62975084781647
+            ]
+          }
+        },
+        "sha256": "54d6e97d6f85cd46a1ebfe1a3d2a81fcc995ebdc51d8a4259662ad47c0471d6f"
+      },
+      {
+        "path": "exercise-NE-1.png",
+        "facing": "NE",
+        "frame": 1,
+        "state": {
+          "geometry_sha256": "719e06791ecffd7dd8c9928577fa4c84bdaed3dc7a447ee1193b81d568c25d1c",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            23.679999828338623,
+            -29.366199374198914
+          ],
+          "L": {
+            "pedal": [
+              9.680002212524414,
+              -6.164883971214294
+            ],
+            "grip": [
+              34.400007247924805,
+              -36.94972336292267
+            ]
+          },
+          "R": {
+            "pedal": [
+              18.679999351501465,
+              -0.9774667024612427
+            ],
+            "grip": [
+              20.960022926330566,
+              -39.62975084781647
+            ]
+          }
+        },
+        "sha256": "492f39c93841ff2f5e2121bccf513f1a188d5f639bdc42c7258fa933adbc8034"
+      }
+    ],
+    "red": [
+      {
+        "path": "exercise-SE-0.png",
+        "facing": "SE",
+        "frame": 0,
+        "state": {
+          "geometry_sha256": "720bca6ed85bc441bb1903837f894ea0ba226150275d3935fc745d2b614e3cfa",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            6.198883056640625e-06,
+            -13.826202750205994
+          ],
+          "L": {
+            "pedal": [
+              -5.000000476837158,
+              8.000029921531677
+            ],
+            "grip": [
+              -3.9999935626983643,
+              -16.999724507331848
+            ]
+          },
+          "R": {
+            "pedal": [
+              -13.999997615814209,
+              -8.9998859167099
+            ],
+            "grip": [
+              11.999983787536621,
+              -17.999752163887024
+            ]
+          }
+        },
+        "sha256": "6858b3b678478a8ddbfd5d5d7eceb2ba995c8877a440b533f16c227ab8f84c2d"
+      },
+      {
+        "path": "exercise-SE-1.png",
+        "facing": "SE",
+        "frame": 1,
+        "state": {
+          "geometry_sha256": "7bd52d868f12a29e659c455a2c1cc6fd61feb4155a62d5ec19a9a66214c1531d",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            6.198883056640625e-06,
+            -13.826202750205994
+          ],
+          "L": {
+            "pedal": [
+              -13.999997615814209,
+              -8.9998859167099
+            ],
+            "grip": [
+              -3.9999935626983643,
+              -16.999724507331848
+            ]
+          },
+          "R": {
+            "pedal": [
+              -5.000000476837158,
+              8.000029921531677
+            ],
+            "grip": [
+              11.999983787536621,
+              -17.999752163887024
+            ]
+          }
+        },
+        "sha256": "d33ebe0e25bafa7c0192ef4227ce2e8293fe4e12ddfb9f2b2f2b7d2955df8b8e"
+      },
+      {
+        "path": "exercise-SW-0.png",
+        "facing": "SW",
+        "frame": 0,
+        "state": {
+          "geometry_sha256": "5f7d16e600d92d7a715f2d941e4f522afd12b571c5432517e1d2fbface2b29a1",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            -23.679993629455566,
+            -29.3662029504776
+          ],
+          "L": {
+            "pedal": [
+              -18.679996252059937,
+              -7.539966702461243
+            ],
+            "grip": [
+              -34.399999499320984,
+              -42.19972908496857
+            ]
+          },
+          "R": {
+            "pedal": [
+              -9.679992914199829,
+              -24.53988254070282
+            ],
+            "grip": [
+              -20.96001672744751,
+              -23.879780173301697
+            ]
+          }
+        },
+        "sha256": "fce434dba6d0889af937490b7324d3427732bfdf2344e84f2cf1d6ff60111aa2"
+      },
+      {
+        "path": "exercise-SW-1.png",
+        "facing": "SW",
+        "frame": 1,
+        "state": {
+          "geometry_sha256": "9fe73afad953159f78339e3955e53540b0b6fd762729f1e8bb09759a7d7d9600",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            -23.679993629455566,
+            -29.3662029504776
+          ],
+          "L": {
+            "pedal": [
+              -9.679996013641357,
+              -24.539886116981506
+            ],
+            "grip": [
+              -34.399999499320984,
+              -42.19972908496857
+            ]
+          },
+          "R": {
+            "pedal": [
+              -18.679996252059937,
+              -7.539970278739929
+            ],
+            "grip": [
+              -20.96001672744751,
+              -23.879780173301697
+            ]
+          }
+        },
+        "sha256": "0009f921e2470725962ecabe0ba31a4636974e19b0448c23fa2b607a7c614be7"
+      },
+      {
+        "path": "exercise-NW-0.png",
+        "facing": "NW",
+        "frame": 0,
+        "state": {
+          "geometry_sha256": "49f2d6f3a8961cd60b29946c2ae19dab7765025a773786fb0625d146ad6f991e",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            6.198883056640625e-06,
+            -44.90619957447052
+          ],
+          "L": {
+            "pedal": [
+              5.000006675720215,
+              -16.517463326454163
+            ],
+            "grip": [
+              4.000009059906006,
+              -62.149720788002014
+            ]
+          },
+          "R": {
+            "pedal": [
+              14.000003814697266,
+              -21.704877018928528
+            ],
+            "grip": [
+              -11.999974489212036,
+              -45.509775280952454
+            ]
+          }
+        },
+        "sha256": "733585ae47c3009327c4e7ca91550fa8375bdcb8e023262ba6c867bc73ba83dd"
+      },
+      {
+        "path": "exercise-NW-1.png",
+        "facing": "NW",
+        "frame": 1,
+        "state": {
+          "geometry_sha256": "5f5c78b0fcb262021a9180080d679ea64d03e64dfd7925c003561787222df1c8",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            6.198883056640625e-06,
+            -44.90619957447052
+          ],
+          "L": {
+            "pedal": [
+              14.000003814697266,
+              -21.7048841714859
+            ],
+            "grip": [
+              4.000009059906006,
+              -62.149720788002014
+            ]
+          },
+          "R": {
+            "pedal": [
+              5.000006675720215,
+              -16.517463326454163
+            ],
+            "grip": [
+              -11.999974489212036,
+              -45.509775280952454
+            ]
+          }
+        },
+        "sha256": "aecea7a9adbe1b4951850e24fabf553981c13fa4316f9b59f0b126678745f96a"
+      },
+      {
+        "path": "exercise-NE-0.png",
+        "facing": "NE",
+        "frame": 0,
+        "state": {
+          "geometry_sha256": "b7322e358ee94460e143e04a1d87235d63d284cbe1feb8b1566d6f183aa510d9",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            23.679999828338623,
+            -29.366199374198914
+          ],
+          "L": {
+            "pedal": [
+              18.679999351501465,
+              -0.9774667024612427
+            ],
+            "grip": [
+              34.400007247924805,
+              -36.94972336292267
+            ]
+          },
+          "R": {
+            "pedal": [
+              9.680002212524414,
+              -6.164880394935608
+            ],
+            "grip": [
+              20.960022926330566,
+              -39.62975084781647
+            ]
+          }
+        },
+        "sha256": "038b8d43dcd02119349bdb1abb818e1c7e263bc364b4cb09a4248416f1d33c25"
+      },
+      {
+        "path": "exercise-NE-1.png",
+        "facing": "NE",
+        "frame": 1,
+        "state": {
+          "geometry_sha256": "719e06791ecffd7dd8c9928577fa4c84bdaed3dc7a447ee1193b81d568c25d1c",
+          "visibility": {
+            "Collar stand": false,
+            "Dark pupil": false,
+            "Dark pupil.001": false,
+            "Ear": false,
+            "Ear.001": false,
+            "Eye white": false,
+            "Eye white.001": false,
+            "Fitted rounded shoe sole": false,
+            "Fitted rounded shoe sole.001": false,
+            "Folded fabric collar leaf": false,
+            "Folded fabric collar leaf.001": false,
+            "Forearm with elbow and wrist sections": false,
+            "Forearm with elbow and wrist sections.001": false,
+            "Game projection camera": false,
+            "HAIR_01_TRIPO_CURL": false,
+            "Hazel iris": false,
+            "Hazel iris.001": false,
+            "Inner ear": false,
+            "Inner ear.001": false,
+            "Natural neck": false,
+            "One sewn breast pocket": false,
+            "Overshirt body": false,
+            "Pocket top seam": false,
+            "Pocket top seam_source_curve": true,
+            "Printed book line": true,
+            "Printed book line.001": true,
+            "Printed book line.002": true,
+            "Printed book line.003": true,
+            "Printed book line.004": true,
+            "Printed book line.005": true,
+            "Printed book line.006": true,
+            "Printed book line.007": true,
+            "Printed book line.008": true,
+            "Printed book line.009": true,
+            "Quiet closed smile": false,
+            "Quiet closed smile_source_curve": true,
+            "Quiet fill": false,
+            "Reading book cover": true,
+            "Reading book cover.001": true,
+            "Reading book pages": true,
+            "Reading book pages.001": true,
+            "Relaxed palm": false,
+            "Relaxed palm.001": false,
+            "Relaxed shirt sleeve": false,
+            "Relaxed shirt sleeve.001": false,
+            "Resting thumb": false,
+            "Resting thumb.001": false,
+            "SIM_01_SHARED_RIG": false,
+            "SIM_PREVIEW_ROOT": false,
+            "Sculpted head": false,
+            "Shaped shoe": false,
+            "Shaped shoe.001": false,
+            "Shirt lower hem": false,
+            "Shirt placket": false,
+            "Shirt placket_source_curve": true,
+            "Shoe apron stitch": false,
+            "Shoe apron stitch.001": false,
+            "Shoe apron stitch.001_source_curve": true,
+            "Shoe apron stitch_source_curve": true,
+            "Sleep closed eyelid": true,
+            "Sleep closed eyelid.001": true,
+            "Small eye catchlight": false,
+            "Small eye catchlight.001": false,
+            "Small horn button": false,
+            "Small horn button.001": false,
+            "Small horn button.002": false,
+            "Small horn button.003": false,
+            "Small rounded nose": false,
+            "Soft eyebrow": false,
+            "Soft eyebrow.001": false,
+            "Soft eyebrow.001_source_curve": true,
+            "Soft eyebrow_source_curve": true,
+            "Soft window key": false,
+            "Tailored trouser leg": false,
+            "Tailored trouser leg.001": false,
+            "Trouser hem": false,
+            "Trouser hem.001": false,
+            "Trouser hip bridge": false,
+            "Turned sleeve cuff": false,
+            "Turned sleeve cuff.001": false,
+            "Upper lid outline": false,
+            "Upper lid outline.001": false
+          },
+          "eyes_closed": 0.0,
+          "book_visible": 0.0,
+          "camera_matrix": [
+            [
+              0.7071067094802856,
+              -0.4640388786792755,
+              0.5335429310798645,
+              5.335428714752197
+            ],
+            [
+              0.70710688829422,
+              0.4640386700630188,
+              -0.5335428714752197,
+              -5.335428714752197
+            ],
+            [
+              8.285385888484598e-08,
+              0.7545436024665833,
+              0.6562499403953552,
+              7.587500095367432
+            ],
+            [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ]
+          ],
+          "camera_scale": 2.6516504287719727,
+          "resolution": [
+            1664,
+            1920
+          ]
+        },
+        "projected_contacts": {
+          "hips": [
+            23.679999828338623,
+            -29.366199374198914
+          ],
+          "L": {
+            "pedal": [
+              9.680002212524414,
+              -6.164883971214294
+            ],
+            "grip": [
+              34.400007247924805,
+              -36.94972336292267
+            ]
+          },
+          "R": {
+            "pedal": [
+              18.679999351501465,
+              -0.9774667024612427
+            ],
+            "grip": [
+              20.960022926330566,
+              -39.62975084781647
+            ]
+          }
+        },
+        "sha256": "6535a8279cacca1a9d070c4ca3c0112d4fc7622fd8eec7b10d8e19e973af750b"
+      }
+    ]
+  }
+}

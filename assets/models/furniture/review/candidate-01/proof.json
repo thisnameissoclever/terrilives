@@ -1,0 +1,244 @@
+{
+  "source_sha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+  "state": "complete",
+  "renders": [
+    {
+      "path": "bike-SE-empty.png",
+      "object": "bike",
+      "facing": "SE",
+      "occupied": false,
+      "sha256": "b1cf4f0e292bd0789cc1948b983052eb5b0169a8987aec404d307cf82b31abb6"
+    },
+    {
+      "path": "bike-SE-occupied.png",
+      "object": "bike",
+      "facing": "SE",
+      "occupied": true,
+      "sha256": "ba7a80dae2ec1e40dfdfe749414084e25090c0ad39ebdd4b84222a7dcdc00ea1"
+    },
+    {
+      "path": "bike-NW-empty.png",
+      "object": "bike",
+      "facing": "NW",
+      "occupied": false,
+      "sha256": "05f075cf1b73c3683f6b0d59d9ea29167d522488f0c0dbd9b2f97c383861dbad"
+    },
+    {
+      "path": "bike-NW-occupied.png",
+      "object": "bike",
+      "facing": "NW",
+      "occupied": true,
+      "sha256": "604e5a1b108fd7739cb2ae817dd66d67848e780033a798dea3d2ad10538b4d3a"
+    },
+    {
+      "path": "bike-SW-empty.png",
+      "object": "bike",
+      "facing": "SW",
+      "occupied": false,
+      "sha256": "c534db76449ff8b6e08825eea8878e9c16f4988541e31e56bd19f886c2651cd0"
+    },
+    {
+      "path": "bike-SW-occupied.png",
+      "object": "bike",
+      "facing": "SW",
+      "occupied": true,
+      "sha256": "5d39beab59ea2acd8259dd6c73b0adc239116abb90507e30fac85aa37a42d9d4"
+    },
+    {
+      "path": "bike-NE-empty.png",
+      "object": "bike",
+      "facing": "NE",
+      "occupied": false,
+      "sha256": "477156ff53ba1735ab05c105a9b1ce505a7eda0648ee8591e38c055bb2b53a7a"
+    },
+    {
+      "path": "bike-NE-occupied.png",
+      "object": "bike",
+      "facing": "NE",
+      "occupied": true,
+      "sha256": "1f244eb2fca7572af0ff29e92f7345be52c2d195b09a7a0ab4d1f17fe5b33df9"
+    },
+    {
+      "path": "chair-SE-empty.png",
+      "object": "chair",
+      "facing": "SE",
+      "occupied": false,
+      "sha256": "d0c99008c8980ea07e2ea2d6c53664a755fc274e8b59b3eb892c34ca36f5b5a1"
+    },
+    {
+      "path": "chair-SE-occupied.png",
+      "object": "chair",
+      "facing": "SE",
+      "occupied": true,
+      "sha256": "3c85a65a4ea802d20c21782e4057622a0054d779e925a53e5f690953f27f38e7"
+    },
+    {
+      "path": "chair-NW-empty.png",
+      "object": "chair",
+      "facing": "NW",
+      "occupied": false,
+      "sha256": "625ff26835c3798fb1dc6098cd7358ff6e38f6c0ac7914b02525387c5c3e974b"
+    },
+    {
+      "path": "chair-NW-occupied.png",
+      "object": "chair",
+      "facing": "NW",
+      "occupied": true,
+      "sha256": "2b69bd41e570fa0ec3e3057bcf5bd61f801892a5262be2e79e7d3b4c9ee2f10e"
+    },
+    {
+      "path": "chair-SW-empty.png",
+      "object": "chair",
+      "facing": "SW",
+      "occupied": false,
+      "sha256": "d32a7ef504aedc155ba699415f51ef3b265b11141458f1a05e1775f2a4446aa2"
+    },
+    {
+      "path": "chair-SW-occupied.png",
+      "object": "chair",
+      "facing": "SW",
+      "occupied": true,
+      "sha256": "d113c684b7ff1c4b30706ebdea2ab49c0c25c05702b8aa54397ef073fe2a7976"
+    },
+    {
+      "path": "chair-NE-empty.png",
+      "object": "chair",
+      "facing": "NE",
+      "occupied": false,
+      "sha256": "39da5d269f694f24e3db9f95c7602a32630cc53b519b4cf7418c3f5289e29ffc"
+    },
+    {
+      "path": "chair-NE-occupied.png",
+      "object": "chair",
+      "facing": "NE",
+      "occupied": true,
+      "sha256": "9e95518f9c29d12578f1c5e4d23d26f74d8fee417b7e5e7cbf2f083eedecb20c"
+    }
+  ],
+  "note": "Offline source candidates, not runtime acceptance.",
+  "density": 8,
+  "logical_canvas": [
+    96,
+    120
+  ],
+  "objects": {
+    "bike": {
+      "parts": [
+        "Bike console casing",
+        "Bike console mast",
+        "Bike crank L",
+        "Bike crank R",
+        "Bike floor mat",
+        "Bike flywheel cover -1",
+        "Bike flywheel cover 1",
+        "Bike flywheel face -1",
+        "Bike flywheel face 1",
+        "Bike flywheel housing",
+        "Bike lower frame",
+        "Bike lower handle crossbar",
+        "Bike pedal L",
+        "Bike pedal R",
+        "Bike rider-facing screen",
+        "Bike saddle",
+        "Bike seat adjustment knob",
+        "Bike seat post",
+        "Bike stabilizer -0.38",
+        "Bike stabilizer 0.37",
+        "Bike stabilizer rubber cap -0.38 -1",
+        "Bike stabilizer rubber cap -0.38 1",
+        "Bike stabilizer rubber cap 0.37 -1",
+        "Bike stabilizer rubber cap 0.37 1",
+        "Bike swept handle L",
+        "Bike swept handle R",
+        "Bike transverse crank axle",
+        "Cream towel wrapped over right handle"
+      ],
+      "world_origin": [
+        384.0000915527344,
+        760.0034952163696
+      ],
+      "camera_matrix": [
+        [
+          0.7071067094802856,
+          -0.4640388786792755,
+          0.5335429310798645,
+          5.335428714752197
+        ],
+        [
+          0.70710688829422,
+          0.4640386700630188,
+          -0.5335428714752197,
+          -5.335428714752197
+        ],
+        [
+          8.285385888484598e-08,
+          0.7545436024665833,
+          0.6562499403953552,
+          7.587500095367432
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "ortho_scale": 2.6516504287719727,
+      "model_sha256": "bbdedb994915413b005e5f07ad8abf3ff0ac81c9512977bdfae22d588d12b0c0"
+    },
+    "chair": {
+      "parts": [
+        "Chair arm piping L",
+        "Chair arm piping R",
+        "Chair arm side L",
+        "Chair arm side R",
+        "Chair back button -0.13",
+        "Chair back button 0.13",
+        "Chair foot -0.3 -0.28",
+        "Chair foot -0.3 0.29",
+        "Chair foot 0.3 -0.28",
+        "Chair foot 0.3 0.29",
+        "Chair padded inner back",
+        "Chair rear back",
+        "Chair rolled arm L",
+        "Chair rolled arm R",
+        "Chair seat cushion",
+        "Chair upholstered base",
+        "Chair wing L",
+        "Chair wing R"
+      ],
+      "world_origin": [
+        384.0000915527344,
+        760.0034952163696
+      ],
+      "camera_matrix": [
+        [
+          0.7071067094802856,
+          -0.4640388786792755,
+          0.5335429310798645,
+          5.335428714752197
+        ],
+        [
+          0.70710688829422,
+          0.4640386700630188,
+          -0.5335428714752197,
+          -5.335428714752197
+        ],
+        [
+          8.285385888484598e-08,
+          0.7545436024665833,
+          0.6562499403953552,
+          7.587500095367432
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "ortho_scale": 2.6516504287719727,
+      "model_sha256": "47a7c9cd23b4bcc83b6cef695fd78b9b5275b25089609f2afbfa08879543d037"
+    }
+  }
+}

@@ -20,9 +20,14 @@ import {
   type PickSource,
 } from '../src/input.js';
 import { NOTHING, NOTHING_MENU, type Menu, type MenuEntry } from '../src/ui/object-menu.js';
-import { SPRITES } from '../src/render/atlas.js';
+import { SPRITES, SPRITE_ANCHORS, RIGGED_SIM_CLIPS } from '../src/render/atlas.js';
 import { KIND_AGENT } from '../src/render/instances.js';
-import { FACING_POSITIVE_X, VISUAL_ACTION_SLEEP } from '../src/frame.js';
+import {
+  FACING_POSITIVE_X,
+  VISUAL_ACTION_SLEEP,
+  VISUAL_ACTION_READ,
+  simBodySprite,
+} from '../src/frame.js';
 import { TILE_HALF_HEIGHT, screenX, screenY } from '../src/render/iso.js';
 
 const KIND_OBJECT = 1;
@@ -160,10 +165,15 @@ function drawnBox(
   originY = 0,
   scale = 1,
 ) {
-  const s = atlas(spriteName);
-  const anchorX = screenX(tile[0], tile[1], originX, scale);
+  const texture = atlas(spriteName);
+  const density = texture.pixel_density ?? 1;
+  const s = { w: texture.w / density, h: texture.h / density };
+  const physicalAnchor = SPRITE_ANCHORS[SPRITES.indexOf(texture)] ?? [s.w / 2, s.h];
+  const anchorX = screenX(tile[0], tile[1], originX, scale) +
+    (s.w / 2 - physicalAnchor[0]) * scale;
   const anchorY =
-    screenY(tile[0], tile[1], originY, scale) + TILE_HALF_HEIGHT * scale;
+    screenY(tile[0], tile[1], originY, scale) +
+    (TILE_HALF_HEIGHT + s.h - physicalAnchor[1]) * scale;
   return {
     left: anchorX - (s.w / 2) * scale,
     right: anchorX + (s.w / 2) * scale,
@@ -781,6 +791,38 @@ describe('dispatch', () => {
  */
 /** Sprite-space picking: what the player actually aims at. */
 describe('pickSprite', () => {
+  it('uses the selected rigged frame physical anchor at every facing and camera scale', () => {
+    const tile = [5.25, 4.75] as const;
+    for (const facing of [1, 2, 3, 4]) {
+      for (const tick of [0, 12, 24, 36]) {
+        const sprite = simBodySprite(0, VISUAL_ACTION_READ, facing, tick, false);
+        expect(RIGGED_SIM_CLIPS.read.frames[facing - 1]).toContain(sprite);
+        const rows: PickSource = {
+          ...source([[0, KIND_AGENT, ...tile]]),
+          visualActions: () => Uint32Array.from([VISUAL_ACTION_READ]),
+          facings: () => Uint32Array.from([facing]),
+          clockTick: () => tick,
+        };
+        for (const scale of [0.5, 1, 2.5]) {
+          const box = drawnBox(tile, SPRITES[sprite].name, 100, 50, scale);
+          const midY = (box.top + box.bottom) / 2;
+          for (const [x, y] of [
+            [box.left + 0.01, midY], [box.right - 0.01, midY],
+            [box.centreX, box.top + 0.01], [box.centreX, box.bottom - 0.01],
+          ]) {
+            expect(pickSprite(rows, x, y, 100, 50, scale)).toEqual({ entity: 0, isAgent: true });
+          }
+          for (const [x, y] of [
+            [box.left - 0.01, midY], [box.right + 0.01, midY],
+            [box.centreX, box.top - 0.01], [box.centreX, box.bottom + 0.01],
+          ]) {
+            expect(pickSprite(rows, x, y, 100, 50, scale)).toBeNull();
+          }
+        }
+      }
+    }
+  });
+
   /**
    * **The regression test for the bug a real person found.**
    *
@@ -821,10 +863,10 @@ describe('pickSprite', () => {
     const socket = [5.25, 4.75] as const;
     const rows = source(
       [[44, KIND_AGENT, socket[0], socket[1]]],
-      'simReadSE0',
+      'rigSimReadSE0',
     );
     const scale = 2.5;
-    const box = drawnBox(socket, 'simReadSE0', 0, 0, scale);
+    const box = drawnBox(socket, 'rigSimReadSE0', 0, 0, scale);
 
     expect(pickAt(rows, oldEcsTile[0], oldEcsTile[1])).toBeNull();
     expect(pickAt(rows, Math.round(socket[0]), Math.round(socket[1]))).toEqual({
@@ -842,7 +884,7 @@ describe('pickSprite', () => {
       ),
     ).toEqual({ entity: 44, isAgent: true });
 
-    const oldBox = drawnBox(oldEcsTile, 'simReadSE0', 0, 0, scale);
+    const oldBox = drawnBox(oldEcsTile, 'rigSimReadSE0', 0, 0, scale);
     expect(
       pickSprite(
         rows,
@@ -864,7 +906,7 @@ describe('pickSprite', () => {
       facings: () => Uint32Array.from([FACING_POSITIVE_X]),
       clockTick: () => 0,
     };
-    const sleepBox = drawnBox(tile, 'simSleepSE0');
+    const sleepBox = drawnBox(tile, SPRITES[simBodySprite(6, VISUAL_ACTION_SLEEP, FACING_POSITIVE_X, 0, false)].name);
     const standingBox = drawnBox(tile, 'sim');
     const x = sleepBox.left + 1;
     const y = (sleepBox.top + sleepBox.bottom) / 2;

@@ -18,6 +18,44 @@ Bill, and Nadia is now Casey. Measurements were not rewritten after the fact.
 ---
 
 
+## [A-household-rig-shirts] Approved character and household shirt colors
+
+2026-09-10, dedicated headed Chrome, 1920 by 993. The owner separately
+authorized control of this game tab. The production build ran on port 4173;
+flat lighting and muted audio made this a visual pass, not audio acceptance.
+
+Tim wears blue, Bill retains green, and Casey wears red. All three retain the
+approved small front curl, face, body and trousers. Walking changes the limb
+pose while identity remains readable. Tim's snack action was captured at tick
+214 and watched through completion. Bill and Casey were captured at the start,
+middle and end of a conversation. The seated Bill and sleeping Casey appear
+together in `assets/review-evidence/sim-01/production-casey-sleeping.png`.
+Casey's lower-bunk posture remains cramped, as the earlier composite found,
+but the mattress, ladder and rail cover the body in the expected order.
+
+Household selection, all speed controls, Help, Queue, light mode, mute and
+the effects slider were exercised. Save, advance and Load restored production
+tick 441 and persistent identities Tim/0, Bill/1, Casey/2. A separate development
+pass restored tick 159. Saved colors did not exchange. Camera zoom was also
+used to inspect object contact. The console showed the known favicon 404;
+there was no observed application exception or WebGPU startup failure.
+
+The existing lot and object silhouettes were inspected in full-house views.
+The cycling pass caught an introduced console/bar collision with the divider
+wall after the controls were moved forward. Restoring the original horizontal
+extent and lowering the assembly 25 pixels cleared the wall. Final production
+captures show both cycling poses and the fully visible unoccupied console after
+Casey dismounts; direct review passed. The bike's rear stabilizer also extends
+slightly beyond the floor, but the old reviewed screenshot contains the same
+overhang; changing its saved placement is outside this appearance batch.
+
+Other retained limits: non-SE bike contact fails because the bike art mirrors,
+NW/NE wingback overlays expose a small wing fragment, other bed-facing contacts
+remain unaccepted, and the saved reading render retains a small RGB replay
+difference. These are recorded defects, not proof that every object/facing or
+every animation is complete. Full commands and release status are in
+`assets/review-evidence/sim-01/2026-09-10-shirt-verification.md`.
+
 ## How to id a new session
 
 A new measured or watched session's id is a short kebab-case SLUG, not a

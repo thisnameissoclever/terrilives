@@ -1,4 +1,13 @@
 # terrilives
+
+<p align="center">
+  <a href="https://thisnameissoclever.github.io/terrilives/">
+    <img src="docs/assets/play-terrilives.svg" alt="Play Terrilives in your browser" width="360" height="80">
+  </a>
+</p>
+
+<p align="center">Play the live game on GitHub Pages. Use a browser with WebGPU support.</p>
+
 Parallel lives? Nah-- Terribel lives. Terri..bel. Terrible. - ...Terrible lives.
 The dreadful title pun predates the household rename; the current cast is Tim,
 Bill, and Casey. Names may improve. Puns are apparently immortal.

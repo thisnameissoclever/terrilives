@@ -1,0 +1,38 @@
+[
+  {
+    "kind": "bike",
+    "facing": "SE",
+    "active_pixels": 12569,
+    "max_error": 256,
+    "p95_error": 197,
+    "pixels_above_8": 1412,
+    "overlapping_alpha_pixels": 1505
+  },
+  {
+    "kind": "bike",
+    "facing": "NW",
+    "active_pixels": 12507,
+    "max_error": 255,
+    "p95_error": 216,
+    "pixels_above_8": 1622,
+    "overlapping_alpha_pixels": 1721
+  },
+  {
+    "kind": "chair",
+    "facing": "SE",
+    "active_pixels": 10695,
+    "max_error": 255,
+    "p95_error": 208,
+    "pixels_above_8": 1571,
+    "overlapping_alpha_pixels": 1677
+  },
+  {
+    "kind": "chair",
+    "facing": "NW",
+    "active_pixels": 10629,
+    "max_error": 255,
+    "p95_error": 206,
+    "pixels_above_8": 1239,
+    "overlapping_alpha_pixels": 1350
+  }
+]

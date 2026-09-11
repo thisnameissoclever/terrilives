@@ -47,6 +47,9 @@ jobs:
       - name: Sprite atlas is reproducible
         run: |
           python3 -m pip install --quiet --disable-pip-version-check Pillow
+          python3 -B -m unittest discover -s assets/sprites/gen -p 'test_*.py'
+          python3 -B -m unittest discover -s assets/models/sims/sim-01 -p 'test_*.py'
+          python3 -B -m unittest discover -s assets/models/furniture -p 'test_*.py'
           python3 assets/sprites/gen/build.py --check
       # Mechanically enforces [D1]: terri-core, terri-data and terri-sim
       # never depend on a web crate. terri-data is in the list from the

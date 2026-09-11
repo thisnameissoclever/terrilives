@@ -195,7 +195,7 @@ describe('lotExtent and clampOrigin', () => {
     // bottom the last tile row plus its anchor.
     expect(EXTENT.left).toBe(-11 * TILE_HALF_WIDTH);
     expect(EXTENT.right).toBe(15 * TILE_HALF_WIDTH);
-    expect(EXTENT.top).toBe(-TILE_HALF_HEIGHT - 99);
+    expect(EXTENT.top).toBe(-1.5 * TILE_HALF_HEIGHT - 99);
     expect(EXTENT.bottom).toBe(23 * TILE_HALF_HEIGHT);
     // And it scales as one shape: a zoomed lot is the same box times
     // the zoom, which is what keeps the clamp band honest at 2.5x.
@@ -286,7 +286,7 @@ describe('lotExtent against cameraOrigin', () => {
         // `lotExtent` is relative to the origin, so adding the origin
         // back must land on the topmost pixel the opening view draws.
         const topmost = Math.min(
-          screenY(-1, -1, origin.y, scale) +
+          screenY(-1.5, -1, origin.y, scale) +
             (TILE_HALF_HEIGHT - boundary) * scale,
           screenY(0, 0, origin.y, scale) +
             (TILE_HALF_HEIGHT - tallest) * scale,

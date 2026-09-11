@@ -1,0 +1,2654 @@
+{
+  "version": 1,
+  "pixel_density": 2,
+  "width": 96,
+  "height": 120,
+  "anchor": [
+    48.0000114440918,
+    116.0004369020462
+  ],
+  "empty": [
+    {
+      "object": "bike",
+      "facing": "SE",
+      "path": "empty/9c4b1d9f0989e83af16ba7bc90f8eebdec41fa3f856c7bcba6635b4aec4431a1.png",
+      "sha256": "2286227c55adc10ec34b4c2bbc1a7d18c7a67e1ea614429403b5c55569930f35"
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "path": "empty/f8c029bda59ad473995f8c605453bbf2c8b2f79b0a7c501fcadf52560adff1c0.png",
+      "sha256": "a0763b225b5f35ff41581509a0d0b7247fc7d57e69a56283d0429b2ae4335887"
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "path": "empty/9534ea03aa885ca2890ff69153771bb20dbd638d7266514ffc72de1e9b395f23.png",
+      "sha256": "984cfd022558500c9a6747512d46184d5b0195f809835fd03d7bf564b23c4dd9"
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "path": "empty/82e91f1485b080b40c4a1e6b64fa0c5b852eb94b374c68cc675252ee8d665fe5.png",
+      "sha256": "5f7d16c9b0eea59b9ced48c118f447a78d55bdd99bf967496d0f6a1d111835b0"
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "path": "empty/4072a7e2899a780589d944a83042e1b6346d25f5686b1585fb0de9fd4d6f6197.png",
+      "sha256": "f989afc790ebc522b905665a73162805f89d0d5f239d6700f7075cf4c3e5bfca"
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "path": "empty/4b090128ba1442ae655234da69fe3874682d96ced3b2fb6e53789e31c6c2d45d.png",
+      "sha256": "172a8359c9f454c95b4e79a3bb62ae635866a9222a5b90e914b04585904b8dfa"
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "path": "empty/221b859e13464904eb7b064542160574e552fffc6be6935bffb71ce3cb1b2ef0.png",
+      "sha256": "ca054db45fcf032d08fe45146ff218b5931b33dc7e5b2606b48478b97547cc78"
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "path": "empty/1e9bccdaa2c58667811c2c79a43b1a7482685683f06c6bb03976e57c1a5bccc1.png",
+      "sha256": "f9fd4b1adf7ab209aa8572bb2d54358bb6ddc0dfd810d391467865ee638ac3c4"
+    }
+  ],
+  "frames": [
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "body": {
+        "path": "layers/e470e2c3295297cb96b4ea26564ab95fae9debf02a82ca5ea78c9c265fe53f09.png",
+        "sha256": "0c6fa00def594679a4518b7177e84cfb51690641a0a6b568051af911da9db71c"
+      },
+      "furniture": {
+        "path": "layers/17815a0f4a2c9ef4667b6e3e5245816067716cf913067eeef6d4736cac5a636f.png",
+        "sha256": "44adbd6b621fabedb33185b0b3e87f7ff8c8f876f87708df9cf996f23126c946"
+      },
+      "outline": {
+        "path": "layers/93d9b3b5b9f29a81f4925d3677964463a213c799640ea4543e7602aa48622679.png",
+        "sha256": "ff48bb6296f5983af63f38b77a72d7fa9525b2014a9268241a96654bf04d9092"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "blue",
+      "body": {
+        "path": "layers/826a81d8d513cc5c8e0224a8c772043283dc7d0d0836a8556d850c7a0c0fc75f.png",
+        "sha256": "9feb79102feb1a8f9c8dda2337045efebb374d88613ef0065fc7d633af6bb31e"
+      },
+      "furniture": {
+        "path": "layers/17815a0f4a2c9ef4667b6e3e5245816067716cf913067eeef6d4736cac5a636f.png",
+        "sha256": "44adbd6b621fabedb33185b0b3e87f7ff8c8f876f87708df9cf996f23126c946"
+      },
+      "outline": {
+        "path": "layers/93d9b3b5b9f29a81f4925d3677964463a213c799640ea4543e7602aa48622679.png",
+        "sha256": "ff48bb6296f5983af63f38b77a72d7fa9525b2014a9268241a96654bf04d9092"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "red",
+      "body": {
+        "path": "layers/e8c9c7653af86492f4d9eb7dc8c485de8ee59fc1d4e680f197232667d3ad593f.png",
+        "sha256": "a03fe2cd7d1dcdecd7afad3130b030f9e274e77646f5e59be0469e3951673d7b"
+      },
+      "furniture": {
+        "path": "layers/17815a0f4a2c9ef4667b6e3e5245816067716cf913067eeef6d4736cac5a636f.png",
+        "sha256": "44adbd6b621fabedb33185b0b3e87f7ff8c8f876f87708df9cf996f23126c946"
+      },
+      "outline": {
+        "path": "layers/93d9b3b5b9f29a81f4925d3677964463a213c799640ea4543e7602aa48622679.png",
+        "sha256": "ff48bb6296f5983af63f38b77a72d7fa9525b2014a9268241a96654bf04d9092"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "green",
+      "body": {
+        "path": "layers/1f82f90c2e2c3b4c58072c5fb10e19237bbb0cf121c051fcfff91f81ba52ed90.png",
+        "sha256": "b4621cb6b4ee79ecf536eb2cc6c0e0f56bddf6b90908ddc718ac9bc467f3f4dc"
+      },
+      "furniture": {
+        "path": "layers/40b7c731fcb2187d18595696c8b6e094fdc6df0cfcbfcafb85e63520d3ad912a.png",
+        "sha256": "25e135e96f7f1c7dcfc332e1586f83a2b00145b09dc21222f8c9293bf73ea925"
+      },
+      "outline": {
+        "path": "layers/1e823c8b7a12c37328bf133cf50580e9bb025161d08e732bb3d3b3e88c55f1a4.png",
+        "sha256": "2281d6f1ae2d6f628ceffdce790034a4a01def5d048e5110b9d127a355b237c7"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "blue",
+      "body": {
+        "path": "layers/69512d92d6216d77a9fa9baf38b7fc9fe2bb23d508db9feeebafced0960e5066.png",
+        "sha256": "0417d6b7cc49b811d8d21d1216c287091789f9804a750b08e59276209f2d041e"
+      },
+      "furniture": {
+        "path": "layers/40b7c731fcb2187d18595696c8b6e094fdc6df0cfcbfcafb85e63520d3ad912a.png",
+        "sha256": "25e135e96f7f1c7dcfc332e1586f83a2b00145b09dc21222f8c9293bf73ea925"
+      },
+      "outline": {
+        "path": "layers/1e823c8b7a12c37328bf133cf50580e9bb025161d08e732bb3d3b3e88c55f1a4.png",
+        "sha256": "2281d6f1ae2d6f628ceffdce790034a4a01def5d048e5110b9d127a355b237c7"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "red",
+      "body": {
+        "path": "layers/b175a817134e0bb8d9622c4007d8e20f92a9d86cc0af6d88d4a9ea3aca5f1b87.png",
+        "sha256": "4bab0cd3854421df34fa0ffdda4ad97b602c858f6f3ba2800de6e4e040a2711d"
+      },
+      "furniture": {
+        "path": "layers/40b7c731fcb2187d18595696c8b6e094fdc6df0cfcbfcafb85e63520d3ad912a.png",
+        "sha256": "25e135e96f7f1c7dcfc332e1586f83a2b00145b09dc21222f8c9293bf73ea925"
+      },
+      "outline": {
+        "path": "layers/1e823c8b7a12c37328bf133cf50580e9bb025161d08e732bb3d3b3e88c55f1a4.png",
+        "sha256": "2281d6f1ae2d6f628ceffdce790034a4a01def5d048e5110b9d127a355b237c7"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "green",
+      "body": {
+        "path": "layers/bf9a7b16cbd2b03a29f166f3634cfef46aba3a5b75b0fdc778cef92a15fa25a2.png",
+        "sha256": "775a30d1302aa8bade55c3c074cf4807799df57ae742049289f68673c8a1947f"
+      },
+      "furniture": {
+        "path": "layers/d6b3ff36eb5cbdd5d385c91dae3fcf198fac1d7861555525ed3d1988f3a1d500.png",
+        "sha256": "97b179f21162844cd0120cc2a0aa13e9c385824c076a322916b243b482be12aa"
+      },
+      "outline": {
+        "path": "layers/8711dfdd9b08026973a1c4fe3c0d52f3d5cc38948d7ce5a87dc4fe797dfda3b4.png",
+        "sha256": "0a20b3424dec14087002478603ab93d89b76a27aeb083a672c7790c1852db900"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "blue",
+      "body": {
+        "path": "layers/e7c143703bb1d8ecc6a5037b6211d21f3834cd6f16773f601b477b6ac351073d.png",
+        "sha256": "ec7f39529666280ff412d1577b8758056bf9a95abad0c11fd6c008e0646a869d"
+      },
+      "furniture": {
+        "path": "layers/d6b3ff36eb5cbdd5d385c91dae3fcf198fac1d7861555525ed3d1988f3a1d500.png",
+        "sha256": "97b179f21162844cd0120cc2a0aa13e9c385824c076a322916b243b482be12aa"
+      },
+      "outline": {
+        "path": "layers/8711dfdd9b08026973a1c4fe3c0d52f3d5cc38948d7ce5a87dc4fe797dfda3b4.png",
+        "sha256": "0a20b3424dec14087002478603ab93d89b76a27aeb083a672c7790c1852db900"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "red",
+      "body": {
+        "path": "layers/578d505b2cf3065473f38759d7b410e568c1522a39af8f465d187e21a2c21807.png",
+        "sha256": "4d4ee0c681d442489fa3cbb536f3f095e093051896e76a38345f9915e7dc9d72"
+      },
+      "furniture": {
+        "path": "layers/d6b3ff36eb5cbdd5d385c91dae3fcf198fac1d7861555525ed3d1988f3a1d500.png",
+        "sha256": "97b179f21162844cd0120cc2a0aa13e9c385824c076a322916b243b482be12aa"
+      },
+      "outline": {
+        "path": "layers/8711dfdd9b08026973a1c4fe3c0d52f3d5cc38948d7ce5a87dc4fe797dfda3b4.png",
+        "sha256": "0a20b3424dec14087002478603ab93d89b76a27aeb083a672c7790c1852db900"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "green",
+      "body": {
+        "path": "layers/02e8d618c64f7d1495b621a9d45598fa6a4ab62fb4f31908082a842ce7a8925b.png",
+        "sha256": "40f8e31c25a9ed92b6541465b77156d5b1412aaa46816f8677c8f40295ab0626"
+      },
+      "furniture": {
+        "path": "layers/6099a0a61c2244e4e6703bb4a6ce87c12f2e0879eb09e3f5806d8c1a7514ee8a.png",
+        "sha256": "1984257e0262df8c3a9667d978618b3bdd5d7f2fc827bdac430ddda4879d1b1e"
+      },
+      "outline": {
+        "path": "layers/630784792d9163e2e371d6c4081e225657c628f25f0ae0c77f951c7c0172e91f.png",
+        "sha256": "e6c3d659bdca415d30b4a7952abc8fdbb6987ebbcbf96087d3d848bce22af96f"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "blue",
+      "body": {
+        "path": "layers/284c9da73f59c4ed903e754862f6f32afcd791131bf62923dee6e3d71d4c6584.png",
+        "sha256": "766c038b4e91327c8e7f70e4b229e11ca7362234868f8c3fd30eba84a6f2840f"
+      },
+      "furniture": {
+        "path": "layers/6099a0a61c2244e4e6703bb4a6ce87c12f2e0879eb09e3f5806d8c1a7514ee8a.png",
+        "sha256": "1984257e0262df8c3a9667d978618b3bdd5d7f2fc827bdac430ddda4879d1b1e"
+      },
+      "outline": {
+        "path": "layers/630784792d9163e2e371d6c4081e225657c628f25f0ae0c77f951c7c0172e91f.png",
+        "sha256": "e6c3d659bdca415d30b4a7952abc8fdbb6987ebbcbf96087d3d848bce22af96f"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "red",
+      "body": {
+        "path": "layers/fa8ee5e5e3bd078853611d9054ec27856e3d57ccb161d174c0bb14515d3d0044.png",
+        "sha256": "de224e188be1bcf41aa4880fc5000e92afa8057cb2b49e286fc770c77e6737a7"
+      },
+      "furniture": {
+        "path": "layers/6099a0a61c2244e4e6703bb4a6ce87c12f2e0879eb09e3f5806d8c1a7514ee8a.png",
+        "sha256": "1984257e0262df8c3a9667d978618b3bdd5d7f2fc827bdac430ddda4879d1b1e"
+      },
+      "outline": {
+        "path": "layers/630784792d9163e2e371d6c4081e225657c628f25f0ae0c77f951c7c0172e91f.png",
+        "sha256": "e6c3d659bdca415d30b4a7952abc8fdbb6987ebbcbf96087d3d848bce22af96f"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 4,
+      "variant": "green",
+      "body": {
+        "path": "layers/0d30d96794cff0c32c041a7410a88e83f4edd39da3aadcff5139104de8411bf4.png",
+        "sha256": "68679e004b4fdb21a37070c5a7d9dd220cf7b294d23987c0799ed58307e9109b"
+      },
+      "furniture": {
+        "path": "layers/d7ffb1afe3a489e88abab15dff644978c50b007261fce41cf67d909eab546e33.png",
+        "sha256": "6e0298aa8e6069f4d7bc8a75688c1a0e88e4f28cc909d57713f96321573d0dd5"
+      },
+      "outline": {
+        "path": "layers/d746de3b03bb705e4990e468ae686b673b06129ee1efe932094459f71be8c9c4.png",
+        "sha256": "d50c0656447bb4b68e308083bd53431c7b786179e49730f137d9d3c42258a4f1"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 4,
+      "variant": "blue",
+      "body": {
+        "path": "layers/deb407a2b5342889df5e6d21b8eb3ee37aeb9b6f95bafc193047ec670536b13e.png",
+        "sha256": "9431e98c7a9cc0a01348bfb057bc10fa95fa75d65928042b36bb94524538df4b"
+      },
+      "furniture": {
+        "path": "layers/d7ffb1afe3a489e88abab15dff644978c50b007261fce41cf67d909eab546e33.png",
+        "sha256": "6e0298aa8e6069f4d7bc8a75688c1a0e88e4f28cc909d57713f96321573d0dd5"
+      },
+      "outline": {
+        "path": "layers/d746de3b03bb705e4990e468ae686b673b06129ee1efe932094459f71be8c9c4.png",
+        "sha256": "d50c0656447bb4b68e308083bd53431c7b786179e49730f137d9d3c42258a4f1"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 4,
+      "variant": "red",
+      "body": {
+        "path": "layers/20484e4d616d0d29cca7340021204b113fa88db28d2df2e4bf9cb65d930ca11f.png",
+        "sha256": "18c84e099d42a1aa68a79f9fb82106955c35cdae4a74309a18a59e57b6ae870a"
+      },
+      "furniture": {
+        "path": "layers/d7ffb1afe3a489e88abab15dff644978c50b007261fce41cf67d909eab546e33.png",
+        "sha256": "6e0298aa8e6069f4d7bc8a75688c1a0e88e4f28cc909d57713f96321573d0dd5"
+      },
+      "outline": {
+        "path": "layers/d746de3b03bb705e4990e468ae686b673b06129ee1efe932094459f71be8c9c4.png",
+        "sha256": "d50c0656447bb4b68e308083bd53431c7b786179e49730f137d9d3c42258a4f1"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 5,
+      "variant": "green",
+      "body": {
+        "path": "layers/4795c0de1bd58be259b8694622e185d745e50c58c9a7c733cdd6b174774a46f6.png",
+        "sha256": "e2d464a914a509743ebe7e89df490c9892f1260f2c605094c9b5ba9e9eedaf17"
+      },
+      "furniture": {
+        "path": "layers/9859cd5d42ff3a348f60049a2f9fa93aad2d93dcfae3f3961a4f1f27a0a77f59.png",
+        "sha256": "ac4202eb632eb67e9a64de88339f389f2f34e0431ce96ceb7f800109eede6a19"
+      },
+      "outline": {
+        "path": "layers/4dc8aaeff06731bedd27ffadf53629d22551466fda601900724f14a501075f2a.png",
+        "sha256": "5762b7201b44e6e0c5db19056ff8c8f6e4c1ef5a8b50276722b22426da297c4b"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 5,
+      "variant": "blue",
+      "body": {
+        "path": "layers/a9e594f8fcd33c1b4c037bf5b53ad5d9ac9e139324e0c286df525f190d63aa8b.png",
+        "sha256": "b19bf8346a2f633f1c73922cc962b9216fe5c8e567b8865137b2123ab35fad98"
+      },
+      "furniture": {
+        "path": "layers/9859cd5d42ff3a348f60049a2f9fa93aad2d93dcfae3f3961a4f1f27a0a77f59.png",
+        "sha256": "ac4202eb632eb67e9a64de88339f389f2f34e0431ce96ceb7f800109eede6a19"
+      },
+      "outline": {
+        "path": "layers/4dc8aaeff06731bedd27ffadf53629d22551466fda601900724f14a501075f2a.png",
+        "sha256": "5762b7201b44e6e0c5db19056ff8c8f6e4c1ef5a8b50276722b22426da297c4b"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 5,
+      "variant": "red",
+      "body": {
+        "path": "layers/3f8f2a3144ff56bbe8be3da259473cbb0ca40092fad068c5891440b972de1cfe.png",
+        "sha256": "8652d20be46f6ae3c32311f1ca03313ff4b54c48a0fb482c90687f8b04634c3b"
+      },
+      "furniture": {
+        "path": "layers/9859cd5d42ff3a348f60049a2f9fa93aad2d93dcfae3f3961a4f1f27a0a77f59.png",
+        "sha256": "ac4202eb632eb67e9a64de88339f389f2f34e0431ce96ceb7f800109eede6a19"
+      },
+      "outline": {
+        "path": "layers/4dc8aaeff06731bedd27ffadf53629d22551466fda601900724f14a501075f2a.png",
+        "sha256": "5762b7201b44e6e0c5db19056ff8c8f6e4c1ef5a8b50276722b22426da297c4b"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 6,
+      "variant": "green",
+      "body": {
+        "path": "layers/62b7af0f4831e0317b23772a76b2f181a2c7f87c52d7457d4fcb1cc47256bc9b.png",
+        "sha256": "7007e70ddc69f4ae2456eba058ad3201c961936c5d20ad15bcb802e3e5b1a227"
+      },
+      "furniture": {
+        "path": "layers/558333e67fa2f8926f173cd0458b2ad3c046005b573d11d2cfc6e97b2ae06d6c.png",
+        "sha256": "01ced25336bd781b1aa472e31f73cb838c44d7f8ffd22307a80b7a536863eecb"
+      },
+      "outline": {
+        "path": "layers/ccf20de326be2455fe815e294b5fcc041594e9d595f5b1aa27930812d2ef641f.png",
+        "sha256": "2ee3f48826a965d2784109692e734480c97e4426d777b5a2fe36dce66b3bc6c9"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 6,
+      "variant": "blue",
+      "body": {
+        "path": "layers/b246f4daa80583574146371d7e412e80fb092aadd400278ff71e7e34cab02978.png",
+        "sha256": "90a6ddd07253073ce621eefdea4a70d6bbddd7d783c864fc31f6c66fb5853603"
+      },
+      "furniture": {
+        "path": "layers/558333e67fa2f8926f173cd0458b2ad3c046005b573d11d2cfc6e97b2ae06d6c.png",
+        "sha256": "01ced25336bd781b1aa472e31f73cb838c44d7f8ffd22307a80b7a536863eecb"
+      },
+      "outline": {
+        "path": "layers/ccf20de326be2455fe815e294b5fcc041594e9d595f5b1aa27930812d2ef641f.png",
+        "sha256": "2ee3f48826a965d2784109692e734480c97e4426d777b5a2fe36dce66b3bc6c9"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 6,
+      "variant": "red",
+      "body": {
+        "path": "layers/7c2032f5c06a43941f8cb55ca0de040f61415f906f256b06bb80f7cd3cc934a1.png",
+        "sha256": "fcdf832966f4504d91473af28ee0062ed6c07285fab8755c0062fd6ea07ad0f9"
+      },
+      "furniture": {
+        "path": "layers/558333e67fa2f8926f173cd0458b2ad3c046005b573d11d2cfc6e97b2ae06d6c.png",
+        "sha256": "01ced25336bd781b1aa472e31f73cb838c44d7f8ffd22307a80b7a536863eecb"
+      },
+      "outline": {
+        "path": "layers/ccf20de326be2455fe815e294b5fcc041594e9d595f5b1aa27930812d2ef641f.png",
+        "sha256": "2ee3f48826a965d2784109692e734480c97e4426d777b5a2fe36dce66b3bc6c9"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 7,
+      "variant": "green",
+      "body": {
+        "path": "layers/7d20c4a0acf7f9dce652b0781fdb998cbec36881476dc19a16685f53d2987569.png",
+        "sha256": "f744d0a1dbd004d12a11340f0c54243503982c87d802205970d5ccaf1eab5e4f"
+      },
+      "furniture": {
+        "path": "layers/661a0f1c136af7989109a2589db4de78e625741974aaa912b669102d18ba93ed.png",
+        "sha256": "1489279dd7fbb02e828d03f4d666d3b9a604c0653f3e5b231acc528eec7998b4"
+      },
+      "outline": {
+        "path": "layers/da92a2395dcc3690b1a4e6506b67d7242597067bdc5dae9a1e6e5fa69c75c11e.png",
+        "sha256": "350e18626cfecf5a6e5e5e48e00d2724600bc9239ba839782b7d1d58aea728e8"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 7,
+      "variant": "blue",
+      "body": {
+        "path": "layers/a7edaff763262a66598148138e550487c725764b319e3684668fa0be49669cb6.png",
+        "sha256": "19c447e2bf2eb0199a82f34727fb91c45f3a2376b90c8b552286b6cdbaa7ccd0"
+      },
+      "furniture": {
+        "path": "layers/661a0f1c136af7989109a2589db4de78e625741974aaa912b669102d18ba93ed.png",
+        "sha256": "1489279dd7fbb02e828d03f4d666d3b9a604c0653f3e5b231acc528eec7998b4"
+      },
+      "outline": {
+        "path": "layers/da92a2395dcc3690b1a4e6506b67d7242597067bdc5dae9a1e6e5fa69c75c11e.png",
+        "sha256": "350e18626cfecf5a6e5e5e48e00d2724600bc9239ba839782b7d1d58aea728e8"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SE",
+      "frame": 7,
+      "variant": "red",
+      "body": {
+        "path": "layers/e987e9225ee8eb089f1cb05dc4395cf860bbb187eb406b8934174235c22b5cdf.png",
+        "sha256": "3d54ced80f3309e57044a454a1354e962b77b82552c7de4b118342f624b07b58"
+      },
+      "furniture": {
+        "path": "layers/661a0f1c136af7989109a2589db4de78e625741974aaa912b669102d18ba93ed.png",
+        "sha256": "1489279dd7fbb02e828d03f4d666d3b9a604c0653f3e5b231acc528eec7998b4"
+      },
+      "outline": {
+        "path": "layers/da92a2395dcc3690b1a4e6506b67d7242597067bdc5dae9a1e6e5fa69c75c11e.png",
+        "sha256": "350e18626cfecf5a6e5e5e48e00d2724600bc9239ba839782b7d1d58aea728e8"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "green",
+      "body": {
+        "path": "layers/1647a01bbaedbcb79fa6409d5f7bcd9348b0256f81d2b7d246bfc98120c82e3e.png",
+        "sha256": "c326a45a5648da5d8eebae858bd7d3cde948f4655e0a90120568eb1cfaca871f"
+      },
+      "furniture": {
+        "path": "layers/b06deabe9d724180e9aef6b8281f865874ae0b4ca59761629cf510865c171618.png",
+        "sha256": "4f9b729c3abab0ab725cef42cc28d97c40a3ee1e2be20ecd5803654884f4b1f5"
+      },
+      "outline": {
+        "path": "layers/d5519f954171e857547a3b5ba24a02a41b712b3bef93bac533371faa0e2d34d2.png",
+        "sha256": "a40ce77bb639221de98a0bea1b6ed54c3afba4c5dcf9f39cfd3b78d7b870e1a5"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "blue",
+      "body": {
+        "path": "layers/2dfea3ab41e4b373591979500ee6cdc10c5fe7cbd63559c3ceb0825472e695e3.png",
+        "sha256": "b8863db9847f8883aa69cae9f51f7b736de235d61d2d7ec3c9f4133868bc877b"
+      },
+      "furniture": {
+        "path": "layers/b06deabe9d724180e9aef6b8281f865874ae0b4ca59761629cf510865c171618.png",
+        "sha256": "4f9b729c3abab0ab725cef42cc28d97c40a3ee1e2be20ecd5803654884f4b1f5"
+      },
+      "outline": {
+        "path": "layers/d5519f954171e857547a3b5ba24a02a41b712b3bef93bac533371faa0e2d34d2.png",
+        "sha256": "a40ce77bb639221de98a0bea1b6ed54c3afba4c5dcf9f39cfd3b78d7b870e1a5"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "red",
+      "body": {
+        "path": "layers/f4612fe898a0e79bccc9ad84a56588dac7f45fbf44fd3959f42c900e11e33340.png",
+        "sha256": "17d4cbde0d1e76efd0b9426b03734eb18c1344bae8b98f561a52ce55089f80b2"
+      },
+      "furniture": {
+        "path": "layers/b06deabe9d724180e9aef6b8281f865874ae0b4ca59761629cf510865c171618.png",
+        "sha256": "4f9b729c3abab0ab725cef42cc28d97c40a3ee1e2be20ecd5803654884f4b1f5"
+      },
+      "outline": {
+        "path": "layers/d5519f954171e857547a3b5ba24a02a41b712b3bef93bac533371faa0e2d34d2.png",
+        "sha256": "a40ce77bb639221de98a0bea1b6ed54c3afba4c5dcf9f39cfd3b78d7b870e1a5"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "green",
+      "body": {
+        "path": "layers/d846ae58a50f02efe1351321bbbb68cca048ab3f12c3ed57d8e2fd8c90bdc732.png",
+        "sha256": "3d080a518b17c5a673120c9286649e5879268c47af62e8532afbaaa3d24070c4"
+      },
+      "furniture": {
+        "path": "layers/04f72fdae9b68ff2682711443118be8e4ccf9d9a91f5e8ef517accc28034b141.png",
+        "sha256": "f99d4d70d1534a66b9eba36b769d4bc0f1d389ce7c32b64d2dd07f3c0a7541b8"
+      },
+      "outline": {
+        "path": "layers/fb13f90fe2e59b94fb483a63a864e8afd5698ccf6d38741c7957679a5fba5fd5.png",
+        "sha256": "2d68879bb15e01c5f158947056d5bd235e9d57dafe6a7a197bb81d4090c55a2a"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "blue",
+      "body": {
+        "path": "layers/6621546d146d16adfb0936bb03673ac0065c2e702d94510847287fd684b4d0fd.png",
+        "sha256": "d2aa1de3e0713fc791a15c64f17be609ef0e7ba6bf89a15e5071ac1d9fd13bfc"
+      },
+      "furniture": {
+        "path": "layers/04f72fdae9b68ff2682711443118be8e4ccf9d9a91f5e8ef517accc28034b141.png",
+        "sha256": "f99d4d70d1534a66b9eba36b769d4bc0f1d389ce7c32b64d2dd07f3c0a7541b8"
+      },
+      "outline": {
+        "path": "layers/fb13f90fe2e59b94fb483a63a864e8afd5698ccf6d38741c7957679a5fba5fd5.png",
+        "sha256": "2d68879bb15e01c5f158947056d5bd235e9d57dafe6a7a197bb81d4090c55a2a"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "red",
+      "body": {
+        "path": "layers/605436e6a1fef4cf4ecd2ffdef94f2aa58c395b9cf0b8381ca759d61b18b9fae.png",
+        "sha256": "e2225bf2be567fe5c91f58e27382c49c1cce31d8c1da5fa8a93427b8cb4f3ad5"
+      },
+      "furniture": {
+        "path": "layers/04f72fdae9b68ff2682711443118be8e4ccf9d9a91f5e8ef517accc28034b141.png",
+        "sha256": "f99d4d70d1534a66b9eba36b769d4bc0f1d389ce7c32b64d2dd07f3c0a7541b8"
+      },
+      "outline": {
+        "path": "layers/fb13f90fe2e59b94fb483a63a864e8afd5698ccf6d38741c7957679a5fba5fd5.png",
+        "sha256": "2d68879bb15e01c5f158947056d5bd235e9d57dafe6a7a197bb81d4090c55a2a"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "green",
+      "body": {
+        "path": "layers/9a70ea1b9ff781baf85311380412af0eb4c94371d49d349c4e85bfd1ea3558e8.png",
+        "sha256": "6f20e458214071ce7b9fd4e8609380137bb66cd827ec630afd39072e104485b3"
+      },
+      "furniture": {
+        "path": "layers/dab795367431ea5c1f8a16d5a0845aa8c7dd15540ffbc7b425f06489d2e2d246.png",
+        "sha256": "c0f25897e603a31c6a2266fdb6a4e8978dfb2c6406e4ef42deda5a3d1bdf817e"
+      },
+      "outline": {
+        "path": "layers/73c9518667caed74ba42c8506a473f837459d963e5fbbff729fead400c592649.png",
+        "sha256": "dd2cd5be6bf145580f18d53ab75113d866c67c68220af579348b0c5d9bccb0d3"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "blue",
+      "body": {
+        "path": "layers/bf0f4d4300993b4e1b568672c611ebf07a7f40062d1c5b86d7041ea665da3b3a.png",
+        "sha256": "eae0e71b6f61a1cac9be2c702d071016c419423d00bd09808c796236f2062f90"
+      },
+      "furniture": {
+        "path": "layers/dab795367431ea5c1f8a16d5a0845aa8c7dd15540ffbc7b425f06489d2e2d246.png",
+        "sha256": "c0f25897e603a31c6a2266fdb6a4e8978dfb2c6406e4ef42deda5a3d1bdf817e"
+      },
+      "outline": {
+        "path": "layers/73c9518667caed74ba42c8506a473f837459d963e5fbbff729fead400c592649.png",
+        "sha256": "dd2cd5be6bf145580f18d53ab75113d866c67c68220af579348b0c5d9bccb0d3"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "red",
+      "body": {
+        "path": "layers/559c68e404aaa7e388b728e35d77cc1d010bae4564d7dfdb29164816261ec195.png",
+        "sha256": "d37e7c8768f3f339f1fd3edc0e627c587273e1f047fe9ea073aa1800cef1d37d"
+      },
+      "furniture": {
+        "path": "layers/dab795367431ea5c1f8a16d5a0845aa8c7dd15540ffbc7b425f06489d2e2d246.png",
+        "sha256": "c0f25897e603a31c6a2266fdb6a4e8978dfb2c6406e4ef42deda5a3d1bdf817e"
+      },
+      "outline": {
+        "path": "layers/73c9518667caed74ba42c8506a473f837459d963e5fbbff729fead400c592649.png",
+        "sha256": "dd2cd5be6bf145580f18d53ab75113d866c67c68220af579348b0c5d9bccb0d3"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "green",
+      "body": {
+        "path": "layers/ff92cb915e14ba225beb89a9e1f0ff4d04dd1a05abe7ec3bea35b09fd80ceb88.png",
+        "sha256": "1c90611bc0068b662b57381bb402e7ebcc1b901d46182adc43f0541a27f7fd20"
+      },
+      "furniture": {
+        "path": "layers/f044fa0c19c1a9330751d1e4380f7efbdbbcfa37d61017e689a7ee688a38030a.png",
+        "sha256": "f3e784423e605d02b0ce4bd1ac925d73bc109504f5d03dc44b572fe55e73cabd"
+      },
+      "outline": {
+        "path": "layers/448701ab463c92e66db323abd6a2af675218ee27032a799e4e0e9c42244e4927.png",
+        "sha256": "e3a0f1f7336174f4b44a58000bcdd1af45879331680394ca679e7f59fad6c7ac"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "blue",
+      "body": {
+        "path": "layers/0452c56b4b1015f451bfb27a7b7a62792322d4e307ff592e0a2f064294f54b3b.png",
+        "sha256": "80083a77697fe231605527d75238cf17f912630a77fc901def72c94efaf5364f"
+      },
+      "furniture": {
+        "path": "layers/f044fa0c19c1a9330751d1e4380f7efbdbbcfa37d61017e689a7ee688a38030a.png",
+        "sha256": "f3e784423e605d02b0ce4bd1ac925d73bc109504f5d03dc44b572fe55e73cabd"
+      },
+      "outline": {
+        "path": "layers/448701ab463c92e66db323abd6a2af675218ee27032a799e4e0e9c42244e4927.png",
+        "sha256": "e3a0f1f7336174f4b44a58000bcdd1af45879331680394ca679e7f59fad6c7ac"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "red",
+      "body": {
+        "path": "layers/efeb8b3d9888d22a6c73ffa44286a89a30d088d2fe063c0203d30a523ddc150c.png",
+        "sha256": "29051fd53e00c32fc909d24bf06a305c3225265699ccfe2daa6509ff92923aed"
+      },
+      "furniture": {
+        "path": "layers/f044fa0c19c1a9330751d1e4380f7efbdbbcfa37d61017e689a7ee688a38030a.png",
+        "sha256": "f3e784423e605d02b0ce4bd1ac925d73bc109504f5d03dc44b572fe55e73cabd"
+      },
+      "outline": {
+        "path": "layers/448701ab463c92e66db323abd6a2af675218ee27032a799e4e0e9c42244e4927.png",
+        "sha256": "e3a0f1f7336174f4b44a58000bcdd1af45879331680394ca679e7f59fad6c7ac"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 4,
+      "variant": "green",
+      "body": {
+        "path": "layers/d2aa01503a74bb06ab712ea6b885a9fb988ef53c4ca202adaec7202a5a102fef.png",
+        "sha256": "be601bdbdf5461a57275d10d296fefbc13d13621e9a00737b81463660d86d127"
+      },
+      "furniture": {
+        "path": "layers/08a5860f4eedea65580b253c107f6ed07d81ee3f92b7015a9b22a80fb5e872f1.png",
+        "sha256": "38751c3a6087a3f0b3f87f35534321ee6932886873ca17d5f33a865884ce2c08"
+      },
+      "outline": {
+        "path": "layers/9fa2aca976fc4d2fcd38bd29f258272ca3e5425dd7025bb3d809871cd2b6c602.png",
+        "sha256": "1d1cbaf5b2eccadc2e140c438d2dace2706f85531bab881af55f165781aa8b0a"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 4,
+      "variant": "blue",
+      "body": {
+        "path": "layers/a09f5459094f9785e640565c833b54c166473868be1da5b6275ece3f79b7d489.png",
+        "sha256": "790792c06682f99eb9763e352c3a8979b14a34c7a2d0cebf2ed832189add19a8"
+      },
+      "furniture": {
+        "path": "layers/08a5860f4eedea65580b253c107f6ed07d81ee3f92b7015a9b22a80fb5e872f1.png",
+        "sha256": "38751c3a6087a3f0b3f87f35534321ee6932886873ca17d5f33a865884ce2c08"
+      },
+      "outline": {
+        "path": "layers/9fa2aca976fc4d2fcd38bd29f258272ca3e5425dd7025bb3d809871cd2b6c602.png",
+        "sha256": "1d1cbaf5b2eccadc2e140c438d2dace2706f85531bab881af55f165781aa8b0a"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 4,
+      "variant": "red",
+      "body": {
+        "path": "layers/08a739c69027d01efff0864d16557c2c3264c10fb060dbeaa8e546ab0a5870a9.png",
+        "sha256": "db8375b393704eb2074f07e11baf8006436d9f3127e818a5b8ea290d41898d4d"
+      },
+      "furniture": {
+        "path": "layers/08a5860f4eedea65580b253c107f6ed07d81ee3f92b7015a9b22a80fb5e872f1.png",
+        "sha256": "38751c3a6087a3f0b3f87f35534321ee6932886873ca17d5f33a865884ce2c08"
+      },
+      "outline": {
+        "path": "layers/9fa2aca976fc4d2fcd38bd29f258272ca3e5425dd7025bb3d809871cd2b6c602.png",
+        "sha256": "1d1cbaf5b2eccadc2e140c438d2dace2706f85531bab881af55f165781aa8b0a"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 5,
+      "variant": "green",
+      "body": {
+        "path": "layers/fff5814df91f7060f8cdd36f555e684ffcb099d578bb3d5dd69c927e2b938cb7.png",
+        "sha256": "cf4d95b2ddb867a340ff7beba3a798468b78b8514dacb8d200e7f471f24ee77a"
+      },
+      "furniture": {
+        "path": "layers/3d65c8c9df0aaac7ecde08e0e507cb941614b5e3b29d9b7a982a68230a2c4956.png",
+        "sha256": "f2752df2ba30bb69b88cbbefb16cad29bd3977b012231b10d374bdfb2b16e1e8"
+      },
+      "outline": {
+        "path": "layers/c8b136a6c7494e6305cabbf16e7be38dbd66c4760052119ec342badbcb900994.png",
+        "sha256": "059ecc9157805854c98a71c0961f4bac014b32d2b586abc3469428400d88f3b0"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 5,
+      "variant": "blue",
+      "body": {
+        "path": "layers/cf42d48f53ee58a6781e7eedb4913552c4a5e3ce61603c7833f6e2a41e008c03.png",
+        "sha256": "ea4502d018c61f0b96d4827783a2af521002cb56ed8e00d4546a576cc65676cb"
+      },
+      "furniture": {
+        "path": "layers/3d65c8c9df0aaac7ecde08e0e507cb941614b5e3b29d9b7a982a68230a2c4956.png",
+        "sha256": "f2752df2ba30bb69b88cbbefb16cad29bd3977b012231b10d374bdfb2b16e1e8"
+      },
+      "outline": {
+        "path": "layers/c8b136a6c7494e6305cabbf16e7be38dbd66c4760052119ec342badbcb900994.png",
+        "sha256": "059ecc9157805854c98a71c0961f4bac014b32d2b586abc3469428400d88f3b0"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 5,
+      "variant": "red",
+      "body": {
+        "path": "layers/c34512f3facbf602e75cad705e37b1fc3a2509036370446515056b342e223209.png",
+        "sha256": "f7aced982319765995b6b6d89a61cb5204aa181f84fb8b1f827dc7af4170866d"
+      },
+      "furniture": {
+        "path": "layers/3d65c8c9df0aaac7ecde08e0e507cb941614b5e3b29d9b7a982a68230a2c4956.png",
+        "sha256": "f2752df2ba30bb69b88cbbefb16cad29bd3977b012231b10d374bdfb2b16e1e8"
+      },
+      "outline": {
+        "path": "layers/c8b136a6c7494e6305cabbf16e7be38dbd66c4760052119ec342badbcb900994.png",
+        "sha256": "059ecc9157805854c98a71c0961f4bac014b32d2b586abc3469428400d88f3b0"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 6,
+      "variant": "green",
+      "body": {
+        "path": "layers/70129064ccb4f37886f5f3c7e6ec322f51e01acb117398ce60e399ad77a8ef62.png",
+        "sha256": "c29ff5bea02adeb901ad8c87ce3bdcfdf2db3a5c7976cbee3448153eef846d62"
+      },
+      "furniture": {
+        "path": "layers/9011d380da348008247404c852e00b5435072545f4f43b2f73e70e7d2cf3f14a.png",
+        "sha256": "cebc89f244cb77724e9e5e6535b0b944061707181df0890c6d5dd2879b67e22b"
+      },
+      "outline": {
+        "path": "layers/f3064264bc4804b8ec9c3bcf27813518ad80513653be2f97426eb240dc347575.png",
+        "sha256": "f2626deb26572570bb4a2a22ba55b0f20971c71f50763879724487edbdffb390"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 6,
+      "variant": "blue",
+      "body": {
+        "path": "layers/b6a3ecb5b6178eb37a955e2dead58ef5322348ec731ab63a3b748fe45d5878ca.png",
+        "sha256": "f3893492421f19fe4ae053c2551dd01b1f5dd2784b0f89c95a07006a758afcf1"
+      },
+      "furniture": {
+        "path": "layers/9011d380da348008247404c852e00b5435072545f4f43b2f73e70e7d2cf3f14a.png",
+        "sha256": "cebc89f244cb77724e9e5e6535b0b944061707181df0890c6d5dd2879b67e22b"
+      },
+      "outline": {
+        "path": "layers/f3064264bc4804b8ec9c3bcf27813518ad80513653be2f97426eb240dc347575.png",
+        "sha256": "f2626deb26572570bb4a2a22ba55b0f20971c71f50763879724487edbdffb390"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 6,
+      "variant": "red",
+      "body": {
+        "path": "layers/138b7feba7efba98cc87e40ac0000cb5b621c031082aca1ad403dcfdf69eb20b.png",
+        "sha256": "beef08e313f34022d758a75b08e833c4f84f203277c00f3b072f6e0a58b812ee"
+      },
+      "furniture": {
+        "path": "layers/9011d380da348008247404c852e00b5435072545f4f43b2f73e70e7d2cf3f14a.png",
+        "sha256": "cebc89f244cb77724e9e5e6535b0b944061707181df0890c6d5dd2879b67e22b"
+      },
+      "outline": {
+        "path": "layers/f3064264bc4804b8ec9c3bcf27813518ad80513653be2f97426eb240dc347575.png",
+        "sha256": "f2626deb26572570bb4a2a22ba55b0f20971c71f50763879724487edbdffb390"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 7,
+      "variant": "green",
+      "body": {
+        "path": "layers/52bf2e516b6d89224febaf1ce5f7381ffacd932ad59408afdc61275a4371d541.png",
+        "sha256": "4e2035587e27dba11c6f4f40517267c44b77500e25ef81877f464f3b5e83cef2"
+      },
+      "furniture": {
+        "path": "layers/101513714af1b94589d214249ab86c28637e4b35f0ee8356758916cd6f121134.png",
+        "sha256": "ab4330f204244161bb1dd23ed74ebf4d8c96b51fafd1661aa7cc62e6dca7a3ae"
+      },
+      "outline": {
+        "path": "layers/990acffc7f900b215ca3de5a6e1e3117b4fa5449587515f7dc6688bdfd7fd2cc.png",
+        "sha256": "332eba0a79cef93b8a40e3f8c24374cebcfd1532b44db980e3b153bacdce5794"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 7,
+      "variant": "blue",
+      "body": {
+        "path": "layers/116ba8addbe45f1be8c930370f3f60a7744cb9669a3f00ee4008a850631f9595.png",
+        "sha256": "60d7460662164d8c021dab6e580b2fd1bf55554318ab22d0b855b94c8af89cb8"
+      },
+      "furniture": {
+        "path": "layers/101513714af1b94589d214249ab86c28637e4b35f0ee8356758916cd6f121134.png",
+        "sha256": "ab4330f204244161bb1dd23ed74ebf4d8c96b51fafd1661aa7cc62e6dca7a3ae"
+      },
+      "outline": {
+        "path": "layers/990acffc7f900b215ca3de5a6e1e3117b4fa5449587515f7dc6688bdfd7fd2cc.png",
+        "sha256": "332eba0a79cef93b8a40e3f8c24374cebcfd1532b44db980e3b153bacdce5794"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NW",
+      "frame": 7,
+      "variant": "red",
+      "body": {
+        "path": "layers/c3ed3f351c29bd4dfd397c6788973fbb38ec36765c419ccad320ec26f3eff04f.png",
+        "sha256": "9b4cbbfb361b75f5681e3020b8d5bb8a4a8d7dd35f4ba3d25c5a04b78ddc3ab4"
+      },
+      "furniture": {
+        "path": "layers/101513714af1b94589d214249ab86c28637e4b35f0ee8356758916cd6f121134.png",
+        "sha256": "ab4330f204244161bb1dd23ed74ebf4d8c96b51fafd1661aa7cc62e6dca7a3ae"
+      },
+      "outline": {
+        "path": "layers/990acffc7f900b215ca3de5a6e1e3117b4fa5449587515f7dc6688bdfd7fd2cc.png",
+        "sha256": "332eba0a79cef93b8a40e3f8c24374cebcfd1532b44db980e3b153bacdce5794"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "green",
+      "body": {
+        "path": "layers/ed0f4070f1d57fbf1c6cf5f283f2558b16b052d8e00b2db9032a9dd91f671584.png",
+        "sha256": "0eee19028b1e4b90ba767719270d6528d766d7356f8948cc0c24495a21ab06c1"
+      },
+      "furniture": {
+        "path": "layers/890a4b1252e60bf8c2dff71f4c1151f839d878b242fe34479c739f7dca6a0b0b.png",
+        "sha256": "32bdc6ecc5352709333ff702fad4415c818ffea4e32bc3f27305acdc14cb5e44"
+      },
+      "outline": {
+        "path": "layers/82285f2b18244d7adfbffc65a098a067847712786cd9324ef036efe80be3dab4.png",
+        "sha256": "66aa9d0f84879df370918330f368920d59d5a95728e3c95ac6fb0fd0858eff1f"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "blue",
+      "body": {
+        "path": "layers/7e18a312703dec44ef4b549b8bc72547e19e6c251e236f6e1ea878c10e621376.png",
+        "sha256": "f5766e4dd5a20ef2f82533afb9d3217b7f3eb4a27231557f6fc2ff045260b9bd"
+      },
+      "furniture": {
+        "path": "layers/890a4b1252e60bf8c2dff71f4c1151f839d878b242fe34479c739f7dca6a0b0b.png",
+        "sha256": "32bdc6ecc5352709333ff702fad4415c818ffea4e32bc3f27305acdc14cb5e44"
+      },
+      "outline": {
+        "path": "layers/82285f2b18244d7adfbffc65a098a067847712786cd9324ef036efe80be3dab4.png",
+        "sha256": "66aa9d0f84879df370918330f368920d59d5a95728e3c95ac6fb0fd0858eff1f"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "red",
+      "body": {
+        "path": "layers/675f04ae7b27511136994fe7f56ca5ec023035b53931cc0d58edd54f05a1ca0d.png",
+        "sha256": "92d4564b31f5e79e72e16b0ece623f55b8f6315ea181a36136fba831bfef8df3"
+      },
+      "furniture": {
+        "path": "layers/890a4b1252e60bf8c2dff71f4c1151f839d878b242fe34479c739f7dca6a0b0b.png",
+        "sha256": "32bdc6ecc5352709333ff702fad4415c818ffea4e32bc3f27305acdc14cb5e44"
+      },
+      "outline": {
+        "path": "layers/82285f2b18244d7adfbffc65a098a067847712786cd9324ef036efe80be3dab4.png",
+        "sha256": "66aa9d0f84879df370918330f368920d59d5a95728e3c95ac6fb0fd0858eff1f"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "green",
+      "body": {
+        "path": "layers/2969d8dafbe9ce8433f30f28dbba888932d5feaab273ed91bb4bb463efcb69a9.png",
+        "sha256": "7839ca3ac8d51205687d088337c1d71d40c4b3abf760e251d6fff8a73a8672d2"
+      },
+      "furniture": {
+        "path": "layers/e363b533a0f1e8cf5fc0c4a1ebcb27c60d4ed78b6e5795648a9b2a993098f7d9.png",
+        "sha256": "52c0da980bd7dc1d1c035dd574e2e2c981bbd0398bab447c6791d295d3cdde00"
+      },
+      "outline": {
+        "path": "layers/9f890c37c22b62bbbf6aafbdd0594241efff562a4c909d2d388db0221213ff17.png",
+        "sha256": "008216cdab99e1e6b4e8467978a767b795acd5a8225b2e22113659493fe2c780"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "blue",
+      "body": {
+        "path": "layers/846a8585e4d7dc2a3e6cdfdf23bdad84e5373c85b7b5c7b80af5b920c718eb28.png",
+        "sha256": "298c6ff76b173ce2d373337446f0afc76c36a3ff3eecb986f60b4c9aae919740"
+      },
+      "furniture": {
+        "path": "layers/e363b533a0f1e8cf5fc0c4a1ebcb27c60d4ed78b6e5795648a9b2a993098f7d9.png",
+        "sha256": "52c0da980bd7dc1d1c035dd574e2e2c981bbd0398bab447c6791d295d3cdde00"
+      },
+      "outline": {
+        "path": "layers/9f890c37c22b62bbbf6aafbdd0594241efff562a4c909d2d388db0221213ff17.png",
+        "sha256": "008216cdab99e1e6b4e8467978a767b795acd5a8225b2e22113659493fe2c780"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "red",
+      "body": {
+        "path": "layers/addb66336a2b8312f0bf534634abc97e803738cb57042698b4b366d32a560c8c.png",
+        "sha256": "ed2a9b5f071fdd0b1582feada27f46c70f1fa44c5115dbab0dcb411a97be4823"
+      },
+      "furniture": {
+        "path": "layers/e363b533a0f1e8cf5fc0c4a1ebcb27c60d4ed78b6e5795648a9b2a993098f7d9.png",
+        "sha256": "52c0da980bd7dc1d1c035dd574e2e2c981bbd0398bab447c6791d295d3cdde00"
+      },
+      "outline": {
+        "path": "layers/9f890c37c22b62bbbf6aafbdd0594241efff562a4c909d2d388db0221213ff17.png",
+        "sha256": "008216cdab99e1e6b4e8467978a767b795acd5a8225b2e22113659493fe2c780"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "green",
+      "body": {
+        "path": "layers/25685c77b78f7723c8e7e9827bfd3bca7b9c1ff6347001c478375838dc646e4f.png",
+        "sha256": "8336d4f6e0f561946454e52b9efdaeb7b0946e856434783e428d052ca849e7ca"
+      },
+      "furniture": {
+        "path": "layers/c6b6428ff6e81b507e52fe565278691dbb6841a10001d40729d184bbd9b15950.png",
+        "sha256": "e8d8a3b1649ecab2d4018ce0371e0d35dd79e55469ca6ae4bfc095c7b279bf65"
+      },
+      "outline": {
+        "path": "layers/de5a27793baf0f57392d6f868a252e274a27145e44f3447b28fa40556eb75773.png",
+        "sha256": "981d078a15cf76d420e2961668ab41f95e8db0fc6514fc1771d7c356ba4031bb"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "blue",
+      "body": {
+        "path": "layers/bbc0b914edb9e24360fe7a42b0ddb63686e4def11b8330ef70b47a7247931186.png",
+        "sha256": "dc2eceb95719346d7b272a457d306eb45abd585721b2b2375e8381b1f1208268"
+      },
+      "furniture": {
+        "path": "layers/c6b6428ff6e81b507e52fe565278691dbb6841a10001d40729d184bbd9b15950.png",
+        "sha256": "e8d8a3b1649ecab2d4018ce0371e0d35dd79e55469ca6ae4bfc095c7b279bf65"
+      },
+      "outline": {
+        "path": "layers/de5a27793baf0f57392d6f868a252e274a27145e44f3447b28fa40556eb75773.png",
+        "sha256": "981d078a15cf76d420e2961668ab41f95e8db0fc6514fc1771d7c356ba4031bb"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "red",
+      "body": {
+        "path": "layers/fcb67d146ba8957689859501607173f1dde5de45579ded86148049f03b90e9eb.png",
+        "sha256": "d179c0afb059c7bca814a32952dfd326b990951f7ff7c86fc7c38ea5f92abf7b"
+      },
+      "furniture": {
+        "path": "layers/c6b6428ff6e81b507e52fe565278691dbb6841a10001d40729d184bbd9b15950.png",
+        "sha256": "e8d8a3b1649ecab2d4018ce0371e0d35dd79e55469ca6ae4bfc095c7b279bf65"
+      },
+      "outline": {
+        "path": "layers/de5a27793baf0f57392d6f868a252e274a27145e44f3447b28fa40556eb75773.png",
+        "sha256": "981d078a15cf76d420e2961668ab41f95e8db0fc6514fc1771d7c356ba4031bb"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "green",
+      "body": {
+        "path": "layers/1584f8033f6c2b4565ad698b903437de91888c96765903092da4b1688bc970bb.png",
+        "sha256": "ae32cd5b6765fd39034bd2f8a4aec25004bfe959dac052e4e51add4d957f7aad"
+      },
+      "furniture": {
+        "path": "layers/3a6fabee95f3aacf74e62aca9c21d875293fc95b3b0f6bce3ae2dd8efc244db6.png",
+        "sha256": "5e0a9babec22f32cd54331f1d1bc7f5251559a748e4d5da39f09093a5a26e5f1"
+      },
+      "outline": {
+        "path": "layers/09d8bcf4bb82538b055378ca1f237e46d3e4c88ce4b91e6e8b99944c5bbf847e.png",
+        "sha256": "05e059b0d53f15508113fbdc867607e0627b88005b97c58016b62c5b7fea62e3"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "blue",
+      "body": {
+        "path": "layers/a26b2508bcc7e24ae1a295f200b4b4781efeae6ca3f478f00deae11bff8e1349.png",
+        "sha256": "e57197cfe1528375c2e85c729631d10d2e38ca763cadc525b927a5c0fd5f2540"
+      },
+      "furniture": {
+        "path": "layers/3a6fabee95f3aacf74e62aca9c21d875293fc95b3b0f6bce3ae2dd8efc244db6.png",
+        "sha256": "5e0a9babec22f32cd54331f1d1bc7f5251559a748e4d5da39f09093a5a26e5f1"
+      },
+      "outline": {
+        "path": "layers/09d8bcf4bb82538b055378ca1f237e46d3e4c88ce4b91e6e8b99944c5bbf847e.png",
+        "sha256": "05e059b0d53f15508113fbdc867607e0627b88005b97c58016b62c5b7fea62e3"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "red",
+      "body": {
+        "path": "layers/863554d34d447b223e03f428578aef9260d2f7abaa457c8fcdbc437c9282fcb3.png",
+        "sha256": "1cf34901388e5d53b03ed8c8f68b7b29069baa041e749672fc28fb62fdc65f6e"
+      },
+      "furniture": {
+        "path": "layers/3a6fabee95f3aacf74e62aca9c21d875293fc95b3b0f6bce3ae2dd8efc244db6.png",
+        "sha256": "5e0a9babec22f32cd54331f1d1bc7f5251559a748e4d5da39f09093a5a26e5f1"
+      },
+      "outline": {
+        "path": "layers/09d8bcf4bb82538b055378ca1f237e46d3e4c88ce4b91e6e8b99944c5bbf847e.png",
+        "sha256": "05e059b0d53f15508113fbdc867607e0627b88005b97c58016b62c5b7fea62e3"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 4,
+      "variant": "green",
+      "body": {
+        "path": "layers/077dfc62877dab7754fa9adb0723ac2146243e718eea7bad971bf0f755c06d4a.png",
+        "sha256": "a9a0be232a9e40f78bee66ba42423a3b7d6dc8dd07367ed1882cd93ac12a5f3d"
+      },
+      "furniture": {
+        "path": "layers/132e1526698b171ce4f83e156ff737d31e01682c0f7362d9e0ec4dff3a22a934.png",
+        "sha256": "2dc3a1eba764d176e8141288d7b6d4a81c37d0c6a68bd7178ee5b0538d449f18"
+      },
+      "outline": {
+        "path": "layers/099c80ce72e8e1ec20882df44dadce3de1ce3b9bb9879be854216a45cc8d90c2.png",
+        "sha256": "75d7cb2f55a6783407028ee95635d1788d98b04aee054d347d949456e93ee70d"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 4,
+      "variant": "blue",
+      "body": {
+        "path": "layers/c19b7deb93fa21aca570930d10fa86bca8021cf27fdda48888e12ef6322f3cba.png",
+        "sha256": "bf404dc0033dfc0b773f31d9587e756b074f4dc6abeaf73a554da1432e316252"
+      },
+      "furniture": {
+        "path": "layers/132e1526698b171ce4f83e156ff737d31e01682c0f7362d9e0ec4dff3a22a934.png",
+        "sha256": "2dc3a1eba764d176e8141288d7b6d4a81c37d0c6a68bd7178ee5b0538d449f18"
+      },
+      "outline": {
+        "path": "layers/099c80ce72e8e1ec20882df44dadce3de1ce3b9bb9879be854216a45cc8d90c2.png",
+        "sha256": "75d7cb2f55a6783407028ee95635d1788d98b04aee054d347d949456e93ee70d"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 4,
+      "variant": "red",
+      "body": {
+        "path": "layers/46c92899501c5253e0cb3335fa8ce14a36d1a2f19c0ae162cc708e842cd63f8e.png",
+        "sha256": "153cbc72d1dba8a3a9caeb60265f4ca0b818f60146e1de5821add32a5d0b14f0"
+      },
+      "furniture": {
+        "path": "layers/132e1526698b171ce4f83e156ff737d31e01682c0f7362d9e0ec4dff3a22a934.png",
+        "sha256": "2dc3a1eba764d176e8141288d7b6d4a81c37d0c6a68bd7178ee5b0538d449f18"
+      },
+      "outline": {
+        "path": "layers/099c80ce72e8e1ec20882df44dadce3de1ce3b9bb9879be854216a45cc8d90c2.png",
+        "sha256": "75d7cb2f55a6783407028ee95635d1788d98b04aee054d347d949456e93ee70d"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 5,
+      "variant": "green",
+      "body": {
+        "path": "layers/77fe76027c554796933deb901f85ed57d1bec7ebb581ebf5ac6bf932df49852c.png",
+        "sha256": "8f5ed204f39d149d3d3b8865e517fe5343749d7b24dd7bcf781fc3f8cda01abe"
+      },
+      "furniture": {
+        "path": "layers/0064b3219d15685ce7dca8ee560cdb557c169c7695b6bb04a8bcae963b60caac.png",
+        "sha256": "619708bdab864fc574a8431f17badf0c43ff1374a0e313dbd6e4435cce4c9664"
+      },
+      "outline": {
+        "path": "layers/a6fa5ef3ef94c84ad71889f2a44920936bc01d22b0cfb3d8716c4a38fc9582fd.png",
+        "sha256": "8e91cdb0c8d19d0d56f6e72c42bf91b6aa250bf1401e8e9c513d786e4fb06fd1"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 5,
+      "variant": "blue",
+      "body": {
+        "path": "layers/8fbbcea1778fdec070e6614382c2eb9f583c3a616e65a7b596fd467a39f51811.png",
+        "sha256": "81d6b37cf99be5dafd2109863d3fd5ff90c7bf8689cbcc0da0f22e05ae931251"
+      },
+      "furniture": {
+        "path": "layers/0064b3219d15685ce7dca8ee560cdb557c169c7695b6bb04a8bcae963b60caac.png",
+        "sha256": "619708bdab864fc574a8431f17badf0c43ff1374a0e313dbd6e4435cce4c9664"
+      },
+      "outline": {
+        "path": "layers/a6fa5ef3ef94c84ad71889f2a44920936bc01d22b0cfb3d8716c4a38fc9582fd.png",
+        "sha256": "8e91cdb0c8d19d0d56f6e72c42bf91b6aa250bf1401e8e9c513d786e4fb06fd1"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 5,
+      "variant": "red",
+      "body": {
+        "path": "layers/9e94cacb8345bdb4a9ad3206c04d1caa29dfbfd71ad22adddfb950b52aa23102.png",
+        "sha256": "8222cc9c84180939c942c1bb0590be054acb0120c794262f63928c0a0036a4c2"
+      },
+      "furniture": {
+        "path": "layers/0064b3219d15685ce7dca8ee560cdb557c169c7695b6bb04a8bcae963b60caac.png",
+        "sha256": "619708bdab864fc574a8431f17badf0c43ff1374a0e313dbd6e4435cce4c9664"
+      },
+      "outline": {
+        "path": "layers/a6fa5ef3ef94c84ad71889f2a44920936bc01d22b0cfb3d8716c4a38fc9582fd.png",
+        "sha256": "8e91cdb0c8d19d0d56f6e72c42bf91b6aa250bf1401e8e9c513d786e4fb06fd1"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 6,
+      "variant": "green",
+      "body": {
+        "path": "layers/6e31fb0ce72723748a2910868f8971e87f3ee33da7bca6f8c0bfa2035bce7c55.png",
+        "sha256": "e93427e8d367036f0dbf2b64af5d1f224e1e9b4cd0217554f1c2cdb9365f98c2"
+      },
+      "furniture": {
+        "path": "layers/48340a9747117847f5880cd6c7bbf6c1c9110fda052eb9cc8d70ccaf89627c61.png",
+        "sha256": "a39e0068623a77a1d9aa754ed95ffe7e03ecbf240a34a2d5b0744b4be9b30cc6"
+      },
+      "outline": {
+        "path": "layers/5ba69096454aff46eaa1c81ad03f777fc77f49c884899f03d6f83a27be2b2785.png",
+        "sha256": "17ae4abe4a5b0699db2ab9bb15e43ae0d8f818368a97ad83dbd2d7157a5f2744"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 6,
+      "variant": "blue",
+      "body": {
+        "path": "layers/74bfdef1b739b4011ec27e18abb4ed008f86f6a36333d43180b272c419d70e7b.png",
+        "sha256": "5c6968fc3d2405ef46dd7507455cc50f2bb80c2beceab5c97392e68e56719189"
+      },
+      "furniture": {
+        "path": "layers/48340a9747117847f5880cd6c7bbf6c1c9110fda052eb9cc8d70ccaf89627c61.png",
+        "sha256": "a39e0068623a77a1d9aa754ed95ffe7e03ecbf240a34a2d5b0744b4be9b30cc6"
+      },
+      "outline": {
+        "path": "layers/5ba69096454aff46eaa1c81ad03f777fc77f49c884899f03d6f83a27be2b2785.png",
+        "sha256": "17ae4abe4a5b0699db2ab9bb15e43ae0d8f818368a97ad83dbd2d7157a5f2744"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 6,
+      "variant": "red",
+      "body": {
+        "path": "layers/69246a634a1a0e6dc1b31adc4601093ce981400bb6cff7da52d2a8bce72e4a92.png",
+        "sha256": "2a6c0f4f691b6b4e5852007664cee93043f1de1966ff17a7590eca81e3554c27"
+      },
+      "furniture": {
+        "path": "layers/48340a9747117847f5880cd6c7bbf6c1c9110fda052eb9cc8d70ccaf89627c61.png",
+        "sha256": "a39e0068623a77a1d9aa754ed95ffe7e03ecbf240a34a2d5b0744b4be9b30cc6"
+      },
+      "outline": {
+        "path": "layers/5ba69096454aff46eaa1c81ad03f777fc77f49c884899f03d6f83a27be2b2785.png",
+        "sha256": "17ae4abe4a5b0699db2ab9bb15e43ae0d8f818368a97ad83dbd2d7157a5f2744"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 7,
+      "variant": "green",
+      "body": {
+        "path": "layers/8458bde17350382fc16d12e0c204828b564171f7cf17963f8585471d70178fbf.png",
+        "sha256": "9652c4dc60fa73b0b6e55b742fde41c73b08a8b43b0f0f6b5c86a13acf920358"
+      },
+      "furniture": {
+        "path": "layers/bf2ee9d04de8064728a6740633bc74c48064edb594783405db7886eb2185eb7a.png",
+        "sha256": "dc10eb0e168317f9b567a17fe1e69dea599a79054d560f55e77a70e9fd2be2b8"
+      },
+      "outline": {
+        "path": "layers/557869d1021d088ac6d8ef6cd2cca9da7c6e791d69d62e0494c6d3a6be11d8e0.png",
+        "sha256": "21f0068b07d1ba5986e61e61193d1bc058bffc3c624bebe28a83a463825b2402"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 7,
+      "variant": "blue",
+      "body": {
+        "path": "layers/1ff3bb119df91005b1dec64d79fd0da97794bd1b178ac30b6f4049b09a10f291.png",
+        "sha256": "4babc66e79059e2d272bcfcecec145def0a84177d5b7223f03f65a9c451d22c1"
+      },
+      "furniture": {
+        "path": "layers/bf2ee9d04de8064728a6740633bc74c48064edb594783405db7886eb2185eb7a.png",
+        "sha256": "dc10eb0e168317f9b567a17fe1e69dea599a79054d560f55e77a70e9fd2be2b8"
+      },
+      "outline": {
+        "path": "layers/557869d1021d088ac6d8ef6cd2cca9da7c6e791d69d62e0494c6d3a6be11d8e0.png",
+        "sha256": "21f0068b07d1ba5986e61e61193d1bc058bffc3c624bebe28a83a463825b2402"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "SW",
+      "frame": 7,
+      "variant": "red",
+      "body": {
+        "path": "layers/30f356eff0282cdb43ccc2971774a034277fe536801609f51e6deaa0a6747aeb.png",
+        "sha256": "a59c7a2a1378c386fed096cef9c7a86054af6ff26b11957c11da3863a2c273a3"
+      },
+      "furniture": {
+        "path": "layers/bf2ee9d04de8064728a6740633bc74c48064edb594783405db7886eb2185eb7a.png",
+        "sha256": "dc10eb0e168317f9b567a17fe1e69dea599a79054d560f55e77a70e9fd2be2b8"
+      },
+      "outline": {
+        "path": "layers/557869d1021d088ac6d8ef6cd2cca9da7c6e791d69d62e0494c6d3a6be11d8e0.png",
+        "sha256": "21f0068b07d1ba5986e61e61193d1bc058bffc3c624bebe28a83a463825b2402"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "green",
+      "body": {
+        "path": "layers/086b94a80e630be1b24a1c14c3f2ce2f089bf3542268c8032a1fced5c6a70a0d.png",
+        "sha256": "68e689c46e4fad384e7310c838954d4a3c99aac018e1dc2b3e9cc7f1ada10188"
+      },
+      "furniture": {
+        "path": "layers/c7a360776a6df9fb56b21663ac51117afb742ab1faf4c6b076120789005bca79.png",
+        "sha256": "1cd546d65c71bfa57df974540fb8a67bc08c27d167c717109261a1aa76d73300"
+      },
+      "outline": {
+        "path": "layers/2fe43980612d9f1193c4b18407a8ffd1e2af770c0fac5f6ccf78067c75bf806f.png",
+        "sha256": "60cdcc85b443a3756ed3bc3a9dfef954dc58f29325bf205c7a1190ee026f4f9f"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "blue",
+      "body": {
+        "path": "layers/ac37c789c58cbff264853e8a3db74e7e1c163212996517fd587c45b825497d42.png",
+        "sha256": "87b795b218d85b8b03c102711a1a1c95d4bd016c1880a73af43f1c3bd84cc28d"
+      },
+      "furniture": {
+        "path": "layers/c7a360776a6df9fb56b21663ac51117afb742ab1faf4c6b076120789005bca79.png",
+        "sha256": "1cd546d65c71bfa57df974540fb8a67bc08c27d167c717109261a1aa76d73300"
+      },
+      "outline": {
+        "path": "layers/2fe43980612d9f1193c4b18407a8ffd1e2af770c0fac5f6ccf78067c75bf806f.png",
+        "sha256": "60cdcc85b443a3756ed3bc3a9dfef954dc58f29325bf205c7a1190ee026f4f9f"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "red",
+      "body": {
+        "path": "layers/e4b9afe620ed3c67281e740cb5d607e30fd9bbd0ff1482664c1d700c4ea4ef71.png",
+        "sha256": "9b9cab3ff1ba91c1e16fd06ee4de833d7f2ac5c7b22fa0e7cecbd718897efdd7"
+      },
+      "furniture": {
+        "path": "layers/c7a360776a6df9fb56b21663ac51117afb742ab1faf4c6b076120789005bca79.png",
+        "sha256": "1cd546d65c71bfa57df974540fb8a67bc08c27d167c717109261a1aa76d73300"
+      },
+      "outline": {
+        "path": "layers/2fe43980612d9f1193c4b18407a8ffd1e2af770c0fac5f6ccf78067c75bf806f.png",
+        "sha256": "60cdcc85b443a3756ed3bc3a9dfef954dc58f29325bf205c7a1190ee026f4f9f"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "green",
+      "body": {
+        "path": "layers/adb8e5db1b1e6ac1a224881da5829ec5ddfdb99ca0a323ac94cfaa44abe061d4.png",
+        "sha256": "44a3dac4a35c959c41e159735de5811b29a4e80437f1618964d1fa9905cace75"
+      },
+      "furniture": {
+        "path": "layers/f223ddf70908153bec4f1124bf6d87268c7081e28c63d90c6ec6ccf7f254d3e6.png",
+        "sha256": "a63964f4dac1903844f295280bedd04507b248d7ca1b2bdd1e04a1f01296bed7"
+      },
+      "outline": {
+        "path": "layers/cc028053123cd6ba78d1ac3b580376aa835688095d273ecb10d829a6ec04044c.png",
+        "sha256": "27872b83117ae0a797bfe760ab1bd2330e5558148fa67c143798c9b42d237aa6"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "blue",
+      "body": {
+        "path": "layers/323a76105969b65f991c83dc08925e694918fc80c5dbd3d2c9220e15f7181dfc.png",
+        "sha256": "6b00517da0c34117d70a4ea1f49a912c82d5353031abcc51da58f3618794e204"
+      },
+      "furniture": {
+        "path": "layers/f223ddf70908153bec4f1124bf6d87268c7081e28c63d90c6ec6ccf7f254d3e6.png",
+        "sha256": "a63964f4dac1903844f295280bedd04507b248d7ca1b2bdd1e04a1f01296bed7"
+      },
+      "outline": {
+        "path": "layers/cc028053123cd6ba78d1ac3b580376aa835688095d273ecb10d829a6ec04044c.png",
+        "sha256": "27872b83117ae0a797bfe760ab1bd2330e5558148fa67c143798c9b42d237aa6"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "red",
+      "body": {
+        "path": "layers/ec06ad78e2103d85db8de90062d212f89b19843ef024d92e39ce433e6de06ebd.png",
+        "sha256": "f607a273be2c59d2dc632617b7f51b86025230a646efffe735daa910a5e8aff3"
+      },
+      "furniture": {
+        "path": "layers/f223ddf70908153bec4f1124bf6d87268c7081e28c63d90c6ec6ccf7f254d3e6.png",
+        "sha256": "a63964f4dac1903844f295280bedd04507b248d7ca1b2bdd1e04a1f01296bed7"
+      },
+      "outline": {
+        "path": "layers/cc028053123cd6ba78d1ac3b580376aa835688095d273ecb10d829a6ec04044c.png",
+        "sha256": "27872b83117ae0a797bfe760ab1bd2330e5558148fa67c143798c9b42d237aa6"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "green",
+      "body": {
+        "path": "layers/0d20dabc21833f4d2407a2646bcca63bc9f10d1e41e00fcd6dc1d405973502da.png",
+        "sha256": "c61f51aef5a0cf60c57be1c085c1edc0020efb18e9e6fc83bc81ded08c155fd8"
+      },
+      "furniture": {
+        "path": "layers/3c3aa080f5b914316ddf0bde6b9071d82fca9558176e1865219b3690733943a1.png",
+        "sha256": "3177b088f95810f6d013e723ef394140436c73ae1f537758ac88fc1eae474fc0"
+      },
+      "outline": {
+        "path": "layers/8af607c8bf6a717be3841fad6ab6776ec63cb397d5a3db94ad942499efd15fd0.png",
+        "sha256": "1710cca9364ae53381fa4958234951d2d4385b55adf50f0f92ef8404c6718d9f"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "blue",
+      "body": {
+        "path": "layers/de08b61d428257e4405032c8426b7320560c4953f4b8ebecbf2d2288c4f284fb.png",
+        "sha256": "cae23a2de5f7eba33041e2f8a567a3711d704b883517ecd0745dcf42c960186d"
+      },
+      "furniture": {
+        "path": "layers/3c3aa080f5b914316ddf0bde6b9071d82fca9558176e1865219b3690733943a1.png",
+        "sha256": "3177b088f95810f6d013e723ef394140436c73ae1f537758ac88fc1eae474fc0"
+      },
+      "outline": {
+        "path": "layers/8af607c8bf6a717be3841fad6ab6776ec63cb397d5a3db94ad942499efd15fd0.png",
+        "sha256": "1710cca9364ae53381fa4958234951d2d4385b55adf50f0f92ef8404c6718d9f"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "red",
+      "body": {
+        "path": "layers/b6c1950ab003db89b872b20e8205b7eaf30a26ade8466fa7c2d6cb8f8b1d600e.png",
+        "sha256": "292c98c1c9489b7fb5720f99ac5d08d828190fc004934226fdcb08aa714b31d1"
+      },
+      "furniture": {
+        "path": "layers/3c3aa080f5b914316ddf0bde6b9071d82fca9558176e1865219b3690733943a1.png",
+        "sha256": "3177b088f95810f6d013e723ef394140436c73ae1f537758ac88fc1eae474fc0"
+      },
+      "outline": {
+        "path": "layers/8af607c8bf6a717be3841fad6ab6776ec63cb397d5a3db94ad942499efd15fd0.png",
+        "sha256": "1710cca9364ae53381fa4958234951d2d4385b55adf50f0f92ef8404c6718d9f"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "green",
+      "body": {
+        "path": "layers/b0b371b62879e78bdf94aad545f2b40c5dae5016d4b3deff8eb31bdb5d2aa964.png",
+        "sha256": "5e55f1305fe53cf8d17171fa8340b9c3935dc04f58645ae1bdb3dc8f67a8d268"
+      },
+      "furniture": {
+        "path": "layers/8d99900d8400c16a5b298e8d958be50844ef412a3c6c6b980b388bb4ebf5f6fe.png",
+        "sha256": "7d0c8d60fbfc9eb60a054b0c9fc0feaa48c63c56ab5204d0fc5ff93731ec823b"
+      },
+      "outline": {
+        "path": "layers/6b1822557904e526dc3d8727fe6da09f38b7a40fa1b51b862a3a39c70630e179.png",
+        "sha256": "5400d01f7eb4cc839719eeda993b2a920dde8c5dcf5328c28a90142465d1c7d6"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "blue",
+      "body": {
+        "path": "layers/55cd719dddf586ee35e01c390f885370ffcc2bb49a60d3289daba00e58bbbbe9.png",
+        "sha256": "e38000b7568cd12fb95568dc776c85b3b424f3cfcd791ae749d37edc9ce0b0c5"
+      },
+      "furniture": {
+        "path": "layers/8d99900d8400c16a5b298e8d958be50844ef412a3c6c6b980b388bb4ebf5f6fe.png",
+        "sha256": "7d0c8d60fbfc9eb60a054b0c9fc0feaa48c63c56ab5204d0fc5ff93731ec823b"
+      },
+      "outline": {
+        "path": "layers/6b1822557904e526dc3d8727fe6da09f38b7a40fa1b51b862a3a39c70630e179.png",
+        "sha256": "5400d01f7eb4cc839719eeda993b2a920dde8c5dcf5328c28a90142465d1c7d6"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "red",
+      "body": {
+        "path": "layers/81c9f13869957201d935885b5551b74a392174abe2252bcea507a994c9cc9761.png",
+        "sha256": "f99680788b41d55f3b5fdd7e3a551fa13c62a7045b6c37b52bab8fa7f52c4037"
+      },
+      "furniture": {
+        "path": "layers/8d99900d8400c16a5b298e8d958be50844ef412a3c6c6b980b388bb4ebf5f6fe.png",
+        "sha256": "7d0c8d60fbfc9eb60a054b0c9fc0feaa48c63c56ab5204d0fc5ff93731ec823b"
+      },
+      "outline": {
+        "path": "layers/6b1822557904e526dc3d8727fe6da09f38b7a40fa1b51b862a3a39c70630e179.png",
+        "sha256": "5400d01f7eb4cc839719eeda993b2a920dde8c5dcf5328c28a90142465d1c7d6"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 4,
+      "variant": "green",
+      "body": {
+        "path": "layers/dc021076918a6a934bb3d434e4e7be36abcdb1bdca272d5617b098a682826af3.png",
+        "sha256": "207749b9df045031254d5151143563b271e99fb33713b339146f955ac8a3141e"
+      },
+      "furniture": {
+        "path": "layers/e0cda50aeccc1cdb3a79cd70d298561b09076c30706e0cc009fcd60cf8c6c6ba.png",
+        "sha256": "3ceb058be5881f820712706172f96073785fb8782471c5a4bb70cb68a0c8f312"
+      },
+      "outline": {
+        "path": "layers/cc4db7644a9839b3184397358942f119987c6b92f38c9fccceab859d46e46f7b.png",
+        "sha256": "d5fa33c8b6efd0c1d21d65207f6c052636b4f758b1d40e6d12b154c2952ee065"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 4,
+      "variant": "blue",
+      "body": {
+        "path": "layers/0702bf689a9ad0a175025bfd0a36516c01a5f3a00366a61d107e1e8a8a785726.png",
+        "sha256": "da7ad1789255d42e765926f44c237e0e7a56177f6150b55c36b08ea053166884"
+      },
+      "furniture": {
+        "path": "layers/e0cda50aeccc1cdb3a79cd70d298561b09076c30706e0cc009fcd60cf8c6c6ba.png",
+        "sha256": "3ceb058be5881f820712706172f96073785fb8782471c5a4bb70cb68a0c8f312"
+      },
+      "outline": {
+        "path": "layers/cc4db7644a9839b3184397358942f119987c6b92f38c9fccceab859d46e46f7b.png",
+        "sha256": "d5fa33c8b6efd0c1d21d65207f6c052636b4f758b1d40e6d12b154c2952ee065"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 4,
+      "variant": "red",
+      "body": {
+        "path": "layers/d201cf06526368481291ebfa5eba25af7db7ae979f168784065850dc3f2a7f83.png",
+        "sha256": "ec10396a555154bb0dbda4ed8fc789af1f773adbd2d8b9b820a87d8d889d1bff"
+      },
+      "furniture": {
+        "path": "layers/e0cda50aeccc1cdb3a79cd70d298561b09076c30706e0cc009fcd60cf8c6c6ba.png",
+        "sha256": "3ceb058be5881f820712706172f96073785fb8782471c5a4bb70cb68a0c8f312"
+      },
+      "outline": {
+        "path": "layers/cc4db7644a9839b3184397358942f119987c6b92f38c9fccceab859d46e46f7b.png",
+        "sha256": "d5fa33c8b6efd0c1d21d65207f6c052636b4f758b1d40e6d12b154c2952ee065"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 5,
+      "variant": "green",
+      "body": {
+        "path": "layers/91a76908100dedf546d76bbf61b8795638da9b07760a5d33c97ccd20cf58f79c.png",
+        "sha256": "4efc6c8cbd1bdc55683fbd550ea50b6ca03a26286adddb0cdf3b409b0bcbe783"
+      },
+      "furniture": {
+        "path": "layers/d55fa40ceaa3d3652bc5ebdc6a630c41b13a45abccc11edd4c0556843d938efd.png",
+        "sha256": "87eaf75f3ca744cb8ebcb82cfd9086c4a4564c408eaab4816cd4bb16d7183206"
+      },
+      "outline": {
+        "path": "layers/ef7cfd5516898e16ad29fb819ab7ea9e76f088d899f63dbb067c62c35ad6be7f.png",
+        "sha256": "16ac2e69937f274e95b968bc649556d702fa79fda31cddaaea23451f087869f5"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 5,
+      "variant": "blue",
+      "body": {
+        "path": "layers/cece1a29d0cac6a170b5f53707425dda2698a374502486038f9f5c4beb946c23.png",
+        "sha256": "05cfa0d8550205ec1f2801c9b0bf715cb89ca411d27499c683d45d342d032ef2"
+      },
+      "furniture": {
+        "path": "layers/d55fa40ceaa3d3652bc5ebdc6a630c41b13a45abccc11edd4c0556843d938efd.png",
+        "sha256": "87eaf75f3ca744cb8ebcb82cfd9086c4a4564c408eaab4816cd4bb16d7183206"
+      },
+      "outline": {
+        "path": "layers/ef7cfd5516898e16ad29fb819ab7ea9e76f088d899f63dbb067c62c35ad6be7f.png",
+        "sha256": "16ac2e69937f274e95b968bc649556d702fa79fda31cddaaea23451f087869f5"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 5,
+      "variant": "red",
+      "body": {
+        "path": "layers/6e272c48cbdded7ab2f37a07aa94c2dba1239972eb97ef51784684ece3167e93.png",
+        "sha256": "ad556bcd951ec3b4767d29a015a226de35cc11a91dd72ca762efc3083c3b8fd4"
+      },
+      "furniture": {
+        "path": "layers/d55fa40ceaa3d3652bc5ebdc6a630c41b13a45abccc11edd4c0556843d938efd.png",
+        "sha256": "87eaf75f3ca744cb8ebcb82cfd9086c4a4564c408eaab4816cd4bb16d7183206"
+      },
+      "outline": {
+        "path": "layers/ef7cfd5516898e16ad29fb819ab7ea9e76f088d899f63dbb067c62c35ad6be7f.png",
+        "sha256": "16ac2e69937f274e95b968bc649556d702fa79fda31cddaaea23451f087869f5"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 6,
+      "variant": "green",
+      "body": {
+        "path": "layers/0d85cc75de02b973e2106bf27f4a38b453fcf6eaca0cfd870c16a7a32c313145.png",
+        "sha256": "6df26d363c746e38dc41536b5e64760b2c3c421333131c4f4ca21a0799e46692"
+      },
+      "furniture": {
+        "path": "layers/fb0300e57ac0bf21d219dabcfd013835df9c4e19ec6fef565a9b66361baffbb6.png",
+        "sha256": "032987bc8e19d927c080eeb397a8221c115d51561245219738748b53cb4e44cc"
+      },
+      "outline": {
+        "path": "layers/d341c9b3938644d8c92756bc348f7d666f8b7462baabb31eace663b069f61496.png",
+        "sha256": "d534b776e27bdeee657ffc8f8162b8e361f1e8a8dc0f6abd55f056ac8aa574c9"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 6,
+      "variant": "blue",
+      "body": {
+        "path": "layers/c6d683acd14054f88680c4954bcc2d9640a24fe90ef77525acf6d2e54dca0842.png",
+        "sha256": "80d54b8532a78421b7d1df9d150aafd6d7912a2fe04111e967af8c031a269a35"
+      },
+      "furniture": {
+        "path": "layers/fb0300e57ac0bf21d219dabcfd013835df9c4e19ec6fef565a9b66361baffbb6.png",
+        "sha256": "032987bc8e19d927c080eeb397a8221c115d51561245219738748b53cb4e44cc"
+      },
+      "outline": {
+        "path": "layers/d341c9b3938644d8c92756bc348f7d666f8b7462baabb31eace663b069f61496.png",
+        "sha256": "d534b776e27bdeee657ffc8f8162b8e361f1e8a8dc0f6abd55f056ac8aa574c9"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 6,
+      "variant": "red",
+      "body": {
+        "path": "layers/3cf8c0bebccd2295d640b0aeb99bab3250f9fa0fae8655ed43da0adad32f0521.png",
+        "sha256": "c8b43cc22aab464f5d6e86096b209e545bd766ccbb9f331d53c68ce42c47d265"
+      },
+      "furniture": {
+        "path": "layers/fb0300e57ac0bf21d219dabcfd013835df9c4e19ec6fef565a9b66361baffbb6.png",
+        "sha256": "032987bc8e19d927c080eeb397a8221c115d51561245219738748b53cb4e44cc"
+      },
+      "outline": {
+        "path": "layers/d341c9b3938644d8c92756bc348f7d666f8b7462baabb31eace663b069f61496.png",
+        "sha256": "d534b776e27bdeee657ffc8f8162b8e361f1e8a8dc0f6abd55f056ac8aa574c9"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 7,
+      "variant": "green",
+      "body": {
+        "path": "layers/a91950c6d86c841dcb410020cacc204d05726ca55d4980ca01b62150c4223f65.png",
+        "sha256": "f4d04c678a3443f9b8d132e6dd9b29bd69f4fc3a7733695b240169d7cf4d0ba8"
+      },
+      "furniture": {
+        "path": "layers/ce6b3eefd13ef486452d9d23aaacf37401b3d4e22ae730333311be0210f36e97.png",
+        "sha256": "4d3c8a7a53cac0f399b368d4eed30755c179b37d9cfd63df1ef78a0683ee0dc4"
+      },
+      "outline": {
+        "path": "layers/7e7a40a49ef45bd190d2f61be072a6decc3f20d7c5b88b025ccad2a6f63068eb.png",
+        "sha256": "c473aa2d354aa092394e43edf0aad61bc64fdf0a1c20c231628e539145f61729"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 7,
+      "variant": "blue",
+      "body": {
+        "path": "layers/8567eb11e1b6812f3fb85ffa506e5801dbf7d62bcc8d7bffb1f9e78d15484b19.png",
+        "sha256": "0577931dc2bc64616eb70f24827d5454d04c216faa0161f321af125eadbd207d"
+      },
+      "furniture": {
+        "path": "layers/ce6b3eefd13ef486452d9d23aaacf37401b3d4e22ae730333311be0210f36e97.png",
+        "sha256": "4d3c8a7a53cac0f399b368d4eed30755c179b37d9cfd63df1ef78a0683ee0dc4"
+      },
+      "outline": {
+        "path": "layers/7e7a40a49ef45bd190d2f61be072a6decc3f20d7c5b88b025ccad2a6f63068eb.png",
+        "sha256": "c473aa2d354aa092394e43edf0aad61bc64fdf0a1c20c231628e539145f61729"
+      }
+    },
+    {
+      "object": "bike",
+      "facing": "NE",
+      "frame": 7,
+      "variant": "red",
+      "body": {
+        "path": "layers/31eef9d366eec89ba49a0d20e495db5a7f8ef123ca15b390dde93c092d832a61.png",
+        "sha256": "eeb1304cffab057d3f7608cb5659f80c35aac833a283fea8cb4d3a5b03d75516"
+      },
+      "furniture": {
+        "path": "layers/ce6b3eefd13ef486452d9d23aaacf37401b3d4e22ae730333311be0210f36e97.png",
+        "sha256": "4d3c8a7a53cac0f399b368d4eed30755c179b37d9cfd63df1ef78a0683ee0dc4"
+      },
+      "outline": {
+        "path": "layers/7e7a40a49ef45bd190d2f61be072a6decc3f20d7c5b88b025ccad2a6f63068eb.png",
+        "sha256": "c473aa2d354aa092394e43edf0aad61bc64fdf0a1c20c231628e539145f61729"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "body": {
+        "path": "layers/81d73dfeb6be326c6f79ef2332fadb0dc10166ad4cded60ca96c8afa1e5a54e1.png",
+        "sha256": "60ac626bcda42dc0a386bdb4d8c94deee9526849812ad7786d277d57ebd3e4ea"
+      },
+      "furniture": {
+        "path": "layers/d5938921cb80b38436be842c15bbe53cce415ac0eb614f29b9061d6bfc852126.png",
+        "sha256": "82bc177f5a69b9d9bc12ca14e58106d6771dd97e861f4279789267546bd9d019"
+      },
+      "outline": {
+        "path": "layers/16c4763948767eb41ad63c869250997cb52b9383456a2cd1e4de7841a83604c4.png",
+        "sha256": "72685d5c930a02ab53229cce1a83361b938518022570490f70f426cd3430e566"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "blue",
+      "body": {
+        "path": "layers/b491ba74174cd451f869702c7fe9ac8c890ceab342bef2c2aaaeefd5078e7ac3.png",
+        "sha256": "42fde9a52c29b7bfa2148bb265ab690a23c602023e48aaaacc6003b551029384"
+      },
+      "furniture": {
+        "path": "layers/d5938921cb80b38436be842c15bbe53cce415ac0eb614f29b9061d6bfc852126.png",
+        "sha256": "82bc177f5a69b9d9bc12ca14e58106d6771dd97e861f4279789267546bd9d019"
+      },
+      "outline": {
+        "path": "layers/16c4763948767eb41ad63c869250997cb52b9383456a2cd1e4de7841a83604c4.png",
+        "sha256": "72685d5c930a02ab53229cce1a83361b938518022570490f70f426cd3430e566"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "red",
+      "body": {
+        "path": "layers/185b0631bf1427962aa7a51217a38fb06150e734cab9aecdfb9a55caa24163e6.png",
+        "sha256": "caf284dd3140d86de7ddf5a5710aa8de35d6147f1138beb204d7855fffc2e547"
+      },
+      "furniture": {
+        "path": "layers/d5938921cb80b38436be842c15bbe53cce415ac0eb614f29b9061d6bfc852126.png",
+        "sha256": "82bc177f5a69b9d9bc12ca14e58106d6771dd97e861f4279789267546bd9d019"
+      },
+      "outline": {
+        "path": "layers/16c4763948767eb41ad63c869250997cb52b9383456a2cd1e4de7841a83604c4.png",
+        "sha256": "72685d5c930a02ab53229cce1a83361b938518022570490f70f426cd3430e566"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "green",
+      "body": {
+        "path": "layers/2f85d458f7f93b9ab41541240858d769295c0c10fed6bf8f8d0a27dd9917bdde.png",
+        "sha256": "b5c4e9e15457c898e60c9b1563248fc98ce61b4ac87650401d12bad2a0113673"
+      },
+      "furniture": {
+        "path": "layers/f7e0e17c2d2879125bff94d29bc39b352c817e6c46172c0890414fda27c4cfe2.png",
+        "sha256": "9657b42d8aa4cdffd359f28e9dcc771c94e19e944b10910d826ce1a4ccf3ba02"
+      },
+      "outline": {
+        "path": "layers/37d320f5fdd782f2e9f718734739210803e5978ee9c91b0c34c03f0b70132b51.png",
+        "sha256": "2e7e088f0f63e2d371b996b96f85146f2c45f08a16347de2b1b4be6cd9058748"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "blue",
+      "body": {
+        "path": "layers/3ea3fefdc2cf25dc4724bbba10c1285a4abb735a227215c04133c5e2675564ca.png",
+        "sha256": "575e9f9f7d4e91ec1fd10b4dc17d2eef2ebc7cce9614c895f1dec3a2e1f5aebc"
+      },
+      "furniture": {
+        "path": "layers/f7e0e17c2d2879125bff94d29bc39b352c817e6c46172c0890414fda27c4cfe2.png",
+        "sha256": "9657b42d8aa4cdffd359f28e9dcc771c94e19e944b10910d826ce1a4ccf3ba02"
+      },
+      "outline": {
+        "path": "layers/37d320f5fdd782f2e9f718734739210803e5978ee9c91b0c34c03f0b70132b51.png",
+        "sha256": "2e7e088f0f63e2d371b996b96f85146f2c45f08a16347de2b1b4be6cd9058748"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "red",
+      "body": {
+        "path": "layers/aa53e7780f876e2dba3342d90b97d1644756e9969c825a108fb86cb7f4781ba9.png",
+        "sha256": "a336f4eceee193f214bb7acf9d0d72ff34eadc7e6ea60bda5dbcd9851ea47bf7"
+      },
+      "furniture": {
+        "path": "layers/f7e0e17c2d2879125bff94d29bc39b352c817e6c46172c0890414fda27c4cfe2.png",
+        "sha256": "9657b42d8aa4cdffd359f28e9dcc771c94e19e944b10910d826ce1a4ccf3ba02"
+      },
+      "outline": {
+        "path": "layers/37d320f5fdd782f2e9f718734739210803e5978ee9c91b0c34c03f0b70132b51.png",
+        "sha256": "2e7e088f0f63e2d371b996b96f85146f2c45f08a16347de2b1b4be6cd9058748"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "green",
+      "body": {
+        "path": "layers/81d73dfeb6be326c6f79ef2332fadb0dc10166ad4cded60ca96c8afa1e5a54e1.png",
+        "sha256": "60ac626bcda42dc0a386bdb4d8c94deee9526849812ad7786d277d57ebd3e4ea"
+      },
+      "furniture": {
+        "path": "layers/d5938921cb80b38436be842c15bbe53cce415ac0eb614f29b9061d6bfc852126.png",
+        "sha256": "82bc177f5a69b9d9bc12ca14e58106d6771dd97e861f4279789267546bd9d019"
+      },
+      "outline": {
+        "path": "layers/16c4763948767eb41ad63c869250997cb52b9383456a2cd1e4de7841a83604c4.png",
+        "sha256": "72685d5c930a02ab53229cce1a83361b938518022570490f70f426cd3430e566"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "blue",
+      "body": {
+        "path": "layers/b491ba74174cd451f869702c7fe9ac8c890ceab342bef2c2aaaeefd5078e7ac3.png",
+        "sha256": "42fde9a52c29b7bfa2148bb265ab690a23c602023e48aaaacc6003b551029384"
+      },
+      "furniture": {
+        "path": "layers/d5938921cb80b38436be842c15bbe53cce415ac0eb614f29b9061d6bfc852126.png",
+        "sha256": "82bc177f5a69b9d9bc12ca14e58106d6771dd97e861f4279789267546bd9d019"
+      },
+      "outline": {
+        "path": "layers/16c4763948767eb41ad63c869250997cb52b9383456a2cd1e4de7841a83604c4.png",
+        "sha256": "72685d5c930a02ab53229cce1a83361b938518022570490f70f426cd3430e566"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "red",
+      "body": {
+        "path": "layers/185b0631bf1427962aa7a51217a38fb06150e734cab9aecdfb9a55caa24163e6.png",
+        "sha256": "caf284dd3140d86de7ddf5a5710aa8de35d6147f1138beb204d7855fffc2e547"
+      },
+      "furniture": {
+        "path": "layers/d5938921cb80b38436be842c15bbe53cce415ac0eb614f29b9061d6bfc852126.png",
+        "sha256": "82bc177f5a69b9d9bc12ca14e58106d6771dd97e861f4279789267546bd9d019"
+      },
+      "outline": {
+        "path": "layers/16c4763948767eb41ad63c869250997cb52b9383456a2cd1e4de7841a83604c4.png",
+        "sha256": "72685d5c930a02ab53229cce1a83361b938518022570490f70f426cd3430e566"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "green",
+      "body": {
+        "path": "layers/4776a5e66413f906731dfb63dd3f2274e5ef91103fad2b1121f4e34b0d783108.png",
+        "sha256": "f0959d2cd44c6c5f9ff6f0b16dcd2f2777ffa30c46655a1244f381171ce022c6"
+      },
+      "furniture": {
+        "path": "layers/afc9d2536aa25b550ccb48a27597127c6e780995ea237f45091908b2714037e6.png",
+        "sha256": "d28271e4b863da0d43b0c8788c7a6629fb9f04c30a6d70508f468eaefffa2f2c"
+      },
+      "outline": {
+        "path": "layers/14bf6a1016f0035cc07b69a25c7477bc44681ba19e23119aee514a3dd68e1f78.png",
+        "sha256": "1b5b90db0f48fb014be57a22b874f58ed0596222cba2aaa7a00c2ccec0f575be"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "blue",
+      "body": {
+        "path": "layers/65155dce1a8bceecf1e1d1d5c0a9e2123fc432976b37c4f20fee11edf5dea767.png",
+        "sha256": "79b584ffcd7ff96d12319788f1dc023258e7fc78bf804b95dc90366f753a23b3"
+      },
+      "furniture": {
+        "path": "layers/afc9d2536aa25b550ccb48a27597127c6e780995ea237f45091908b2714037e6.png",
+        "sha256": "d28271e4b863da0d43b0c8788c7a6629fb9f04c30a6d70508f468eaefffa2f2c"
+      },
+      "outline": {
+        "path": "layers/14bf6a1016f0035cc07b69a25c7477bc44681ba19e23119aee514a3dd68e1f78.png",
+        "sha256": "1b5b90db0f48fb014be57a22b874f58ed0596222cba2aaa7a00c2ccec0f575be"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "red",
+      "body": {
+        "path": "layers/66b852cde102890d7ba4e9599d4f8d5bc6fba690e06ca6a2f4d56610046f38f1.png",
+        "sha256": "c4c3f5fc043e90c8b3b3978b981d18a12157f70d1e4df04050fc5d583a6c826c"
+      },
+      "furniture": {
+        "path": "layers/afc9d2536aa25b550ccb48a27597127c6e780995ea237f45091908b2714037e6.png",
+        "sha256": "d28271e4b863da0d43b0c8788c7a6629fb9f04c30a6d70508f468eaefffa2f2c"
+      },
+      "outline": {
+        "path": "layers/14bf6a1016f0035cc07b69a25c7477bc44681ba19e23119aee514a3dd68e1f78.png",
+        "sha256": "1b5b90db0f48fb014be57a22b874f58ed0596222cba2aaa7a00c2ccec0f575be"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "green",
+      "body": {
+        "path": "layers/befddb34dd732b9e331774fb28b9928702274223d7cc240846d6726c079a3891.png",
+        "sha256": "f982df58f9d1523be9c628779ee429c6009197e2f8cb05d2e6a1ff5ba2e2dd62"
+      },
+      "furniture": {
+        "path": "layers/cf6aaee280960fbd334bfbfba77c74c80a9049ff6871b38ea1a5956a41a89b5a.png",
+        "sha256": "fd6dc8b6013e6a6e18b3685fb05f002bcddaf87bed0d9c1e8b48cfa58628890a"
+      },
+      "outline": {
+        "path": "layers/5a70ff57a4574bcca344acd261957d6029898e28c603f42a53413873b94db988.png",
+        "sha256": "126db999e9ca23bd5291ea6afff752abb61ca9d487d5295a37663fed907b1679"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "blue",
+      "body": {
+        "path": "layers/1df972b284431053c1bdcc8e216bcd6bfcd460b0bbf2d931626f35afa83c8541.png",
+        "sha256": "758170285391d21ed7a89d598e49428cf456e942bec6cf53837d25d5ac3da6d6"
+      },
+      "furniture": {
+        "path": "layers/cf6aaee280960fbd334bfbfba77c74c80a9049ff6871b38ea1a5956a41a89b5a.png",
+        "sha256": "fd6dc8b6013e6a6e18b3685fb05f002bcddaf87bed0d9c1e8b48cfa58628890a"
+      },
+      "outline": {
+        "path": "layers/5a70ff57a4574bcca344acd261957d6029898e28c603f42a53413873b94db988.png",
+        "sha256": "126db999e9ca23bd5291ea6afff752abb61ca9d487d5295a37663fed907b1679"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "red",
+      "body": {
+        "path": "layers/e84ad31c0269777e95e62f48cc061a528247e96ec38b82eb2499994868eba35d.png",
+        "sha256": "7c4664b6749e570e9301a648377e1a15fcbb7ba22282b0785a8e37849fd2ea85"
+      },
+      "furniture": {
+        "path": "layers/cf6aaee280960fbd334bfbfba77c74c80a9049ff6871b38ea1a5956a41a89b5a.png",
+        "sha256": "fd6dc8b6013e6a6e18b3685fb05f002bcddaf87bed0d9c1e8b48cfa58628890a"
+      },
+      "outline": {
+        "path": "layers/5a70ff57a4574bcca344acd261957d6029898e28c603f42a53413873b94db988.png",
+        "sha256": "126db999e9ca23bd5291ea6afff752abb61ca9d487d5295a37663fed907b1679"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "green",
+      "body": {
+        "path": "layers/24192fe1d6324e0449dd4e7ca5c7e9cbd92ddf5007874b4ceae40128ddc6a9ce.png",
+        "sha256": "384e416d6839ad09c1ba59cb038b1f73a360700d6c9b230b4455493efc9a11d0"
+      },
+      "furniture": {
+        "path": "layers/7dfc0bd05307a5b7fcb340819063c2b65911b142b9db3987190e54a3d8cfff4b.png",
+        "sha256": "ae9a0405626da8b8aad3abac92d43297568b32018e8d3186a60e26bd7670267f"
+      },
+      "outline": {
+        "path": "layers/bcdea0a708b4853d3357e70fb6bfbec790cc5b6d8311198c646869ffc69c1493.png",
+        "sha256": "d63832a11a2b5b0fa3d7c26a766d647a648fc6a62521f5dcd7468a63e34e4cc0"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "blue",
+      "body": {
+        "path": "layers/f4eba282bbade0f589662b0ddf51884d79167f6d904aa015db0cc9ad41d1ba76.png",
+        "sha256": "cfbccdfd3ec9f8bda601aced7c35f57b546c76653c3e2d785c253c04f7ad8071"
+      },
+      "furniture": {
+        "path": "layers/7dfc0bd05307a5b7fcb340819063c2b65911b142b9db3987190e54a3d8cfff4b.png",
+        "sha256": "ae9a0405626da8b8aad3abac92d43297568b32018e8d3186a60e26bd7670267f"
+      },
+      "outline": {
+        "path": "layers/bcdea0a708b4853d3357e70fb6bfbec790cc5b6d8311198c646869ffc69c1493.png",
+        "sha256": "d63832a11a2b5b0fa3d7c26a766d647a648fc6a62521f5dcd7468a63e34e4cc0"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "red",
+      "body": {
+        "path": "layers/819a5fae990c8148d4459737437305425468e127577907ee038b0485ff86b2a8.png",
+        "sha256": "152d944d1692d5bd7c074510df7354894afc7867e6880e966f40f2498078bb60"
+      },
+      "furniture": {
+        "path": "layers/7dfc0bd05307a5b7fcb340819063c2b65911b142b9db3987190e54a3d8cfff4b.png",
+        "sha256": "ae9a0405626da8b8aad3abac92d43297568b32018e8d3186a60e26bd7670267f"
+      },
+      "outline": {
+        "path": "layers/bcdea0a708b4853d3357e70fb6bfbec790cc5b6d8311198c646869ffc69c1493.png",
+        "sha256": "d63832a11a2b5b0fa3d7c26a766d647a648fc6a62521f5dcd7468a63e34e4cc0"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "green",
+      "body": {
+        "path": "layers/befddb34dd732b9e331774fb28b9928702274223d7cc240846d6726c079a3891.png",
+        "sha256": "f982df58f9d1523be9c628779ee429c6009197e2f8cb05d2e6a1ff5ba2e2dd62"
+      },
+      "furniture": {
+        "path": "layers/cf6aaee280960fbd334bfbfba77c74c80a9049ff6871b38ea1a5956a41a89b5a.png",
+        "sha256": "fd6dc8b6013e6a6e18b3685fb05f002bcddaf87bed0d9c1e8b48cfa58628890a"
+      },
+      "outline": {
+        "path": "layers/5a70ff57a4574bcca344acd261957d6029898e28c603f42a53413873b94db988.png",
+        "sha256": "126db999e9ca23bd5291ea6afff752abb61ca9d487d5295a37663fed907b1679"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "blue",
+      "body": {
+        "path": "layers/1df972b284431053c1bdcc8e216bcd6bfcd460b0bbf2d931626f35afa83c8541.png",
+        "sha256": "758170285391d21ed7a89d598e49428cf456e942bec6cf53837d25d5ac3da6d6"
+      },
+      "furniture": {
+        "path": "layers/cf6aaee280960fbd334bfbfba77c74c80a9049ff6871b38ea1a5956a41a89b5a.png",
+        "sha256": "fd6dc8b6013e6a6e18b3685fb05f002bcddaf87bed0d9c1e8b48cfa58628890a"
+      },
+      "outline": {
+        "path": "layers/5a70ff57a4574bcca344acd261957d6029898e28c603f42a53413873b94db988.png",
+        "sha256": "126db999e9ca23bd5291ea6afff752abb61ca9d487d5295a37663fed907b1679"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "red",
+      "body": {
+        "path": "layers/e84ad31c0269777e95e62f48cc061a528247e96ec38b82eb2499994868eba35d.png",
+        "sha256": "7c4664b6749e570e9301a648377e1a15fcbb7ba22282b0785a8e37849fd2ea85"
+      },
+      "furniture": {
+        "path": "layers/cf6aaee280960fbd334bfbfba77c74c80a9049ff6871b38ea1a5956a41a89b5a.png",
+        "sha256": "fd6dc8b6013e6a6e18b3685fb05f002bcddaf87bed0d9c1e8b48cfa58628890a"
+      },
+      "outline": {
+        "path": "layers/5a70ff57a4574bcca344acd261957d6029898e28c603f42a53413873b94db988.png",
+        "sha256": "126db999e9ca23bd5291ea6afff752abb61ca9d487d5295a37663fed907b1679"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "green",
+      "body": {
+        "path": "layers/82bddc8c01ac8e216fda30eb5a206fefbc02deb31ae11988d1217785d096727b.png",
+        "sha256": "0f48e0c3d1c278c6c14123a6575a76ba9fca3ba13f36f4cd1ca5b7e7355ca50d"
+      },
+      "furniture": {
+        "path": "layers/65b361f4eccac8a62be277d80bde266cf7e3fa5df4d9a3aa4b4cc82f61c97983.png",
+        "sha256": "e5b8e4baf43c4e630f166f1ac8d0b44ea0050b4dee4f6ec0cf6dead0247077e8"
+      },
+      "outline": {
+        "path": "layers/642a8f19d032e3609310ce0933b60b818950a24317a5f25ddf706cd0a50a3d92.png",
+        "sha256": "87c6b6bc25025d1c3bc4bc1b566fe3e06e301c61aadece1f174b89ddf1ced05f"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "blue",
+      "body": {
+        "path": "layers/39e06a773a659663ac8fed0b8443049d565bded656186686f2e80e4e025f2dbc.png",
+        "sha256": "6438dfb31fbd7e377b6049bd972a7fba2999f09f4da7073dc7571893dd82d14a"
+      },
+      "furniture": {
+        "path": "layers/65b361f4eccac8a62be277d80bde266cf7e3fa5df4d9a3aa4b4cc82f61c97983.png",
+        "sha256": "e5b8e4baf43c4e630f166f1ac8d0b44ea0050b4dee4f6ec0cf6dead0247077e8"
+      },
+      "outline": {
+        "path": "layers/642a8f19d032e3609310ce0933b60b818950a24317a5f25ddf706cd0a50a3d92.png",
+        "sha256": "87c6b6bc25025d1c3bc4bc1b566fe3e06e301c61aadece1f174b89ddf1ced05f"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "red",
+      "body": {
+        "path": "layers/e30f568c1b3535f0185ffa2a3852fdfb8cf06afc07294ee5b8bc569bde7bd740.png",
+        "sha256": "25e7679e93416495ddcd06f8211371d3f90059d1be2c9bf4bfa1d9f21a8ccc22"
+      },
+      "furniture": {
+        "path": "layers/65b361f4eccac8a62be277d80bde266cf7e3fa5df4d9a3aa4b4cc82f61c97983.png",
+        "sha256": "e5b8e4baf43c4e630f166f1ac8d0b44ea0050b4dee4f6ec0cf6dead0247077e8"
+      },
+      "outline": {
+        "path": "layers/642a8f19d032e3609310ce0933b60b818950a24317a5f25ddf706cd0a50a3d92.png",
+        "sha256": "87c6b6bc25025d1c3bc4bc1b566fe3e06e301c61aadece1f174b89ddf1ced05f"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "green",
+      "body": {
+        "path": "layers/af4e0c82b75b8fc83490daa5a402c5f5231685b91476d03f31e94dab674c2975.png",
+        "sha256": "f878018576cf44e0c075bea0a6aa3ef9d3042cd4abea0647c2e599efbd85dcc3"
+      },
+      "furniture": {
+        "path": "layers/1c36e22555c3ce88a734fc39d767f43d3ff58a0bdbdc5afc23df40858c46af6d.png",
+        "sha256": "b2756580e74c188010e1e8bb78a07c8a4b8eef13438bd39986abbd6fd050cef8"
+      },
+      "outline": {
+        "path": "layers/b38a0ddac882371feba659d754671e6db174fd5efb1a79ed0e588f2da5d931b4.png",
+        "sha256": "0eb7971d2ecc4b869ca3f1af42c83298d37028524008dfddcd3a07527306de33"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "blue",
+      "body": {
+        "path": "layers/2ea8739c95cf2d640535af20aefdc2a1b536281cb6efc9c8b2a3eac455936bde.png",
+        "sha256": "28ae63ff0c660bfc5073162ed68be6703703fcafcbbfad2eff8821ea3128fd7b"
+      },
+      "furniture": {
+        "path": "layers/1c36e22555c3ce88a734fc39d767f43d3ff58a0bdbdc5afc23df40858c46af6d.png",
+        "sha256": "b2756580e74c188010e1e8bb78a07c8a4b8eef13438bd39986abbd6fd050cef8"
+      },
+      "outline": {
+        "path": "layers/b38a0ddac882371feba659d754671e6db174fd5efb1a79ed0e588f2da5d931b4.png",
+        "sha256": "0eb7971d2ecc4b869ca3f1af42c83298d37028524008dfddcd3a07527306de33"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "red",
+      "body": {
+        "path": "layers/b3071942180ee065d0dedbd65ea8aa912100159b6cfcb8be9324b62f0d65eca7.png",
+        "sha256": "8b734c3e8056f12a8be3b79a3ea13bdc237bbbde355e960636a82cc161d7167f"
+      },
+      "furniture": {
+        "path": "layers/1c36e22555c3ce88a734fc39d767f43d3ff58a0bdbdc5afc23df40858c46af6d.png",
+        "sha256": "b2756580e74c188010e1e8bb78a07c8a4b8eef13438bd39986abbd6fd050cef8"
+      },
+      "outline": {
+        "path": "layers/b38a0ddac882371feba659d754671e6db174fd5efb1a79ed0e588f2da5d931b4.png",
+        "sha256": "0eb7971d2ecc4b869ca3f1af42c83298d37028524008dfddcd3a07527306de33"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "green",
+      "body": {
+        "path": "layers/8045383b764b8df6dc7d22f1b003e874b17989d841c23fea108406bcb3285dc4.png",
+        "sha256": "efb3a681257f37ce409d7371f6b1306514097fef4e79251395937a5c33def0d4"
+      },
+      "furniture": {
+        "path": "layers/9321cfde60c75d89866a327c65a6cedb3808627516a9f102ebad5db488819274.png",
+        "sha256": "3a924f62e7e325089e4f4fbb7aafbe041fcfc541bfce73792f900074a6168d8b"
+      },
+      "outline": {
+        "path": "layers/8bef617f98354f6b71740fa58f751ca4a2c37f8cbd3e860e6d9b442eb14c338c.png",
+        "sha256": "90b2bfaadf623893d15c1b627f190cd7fa975d9a060681134ae046309a8aa413"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "blue",
+      "body": {
+        "path": "layers/25d9eb593477baf1eaf71a329fa536865c587ca4bb9b5c890d64b582e5f30d08.png",
+        "sha256": "6668b8f3e53edca2ac2eea1f9fba52e012ca3f032824cc120c637c5f8cecceb9"
+      },
+      "furniture": {
+        "path": "layers/9321cfde60c75d89866a327c65a6cedb3808627516a9f102ebad5db488819274.png",
+        "sha256": "3a924f62e7e325089e4f4fbb7aafbe041fcfc541bfce73792f900074a6168d8b"
+      },
+      "outline": {
+        "path": "layers/8bef617f98354f6b71740fa58f751ca4a2c37f8cbd3e860e6d9b442eb14c338c.png",
+        "sha256": "90b2bfaadf623893d15c1b627f190cd7fa975d9a060681134ae046309a8aa413"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "red",
+      "body": {
+        "path": "layers/7af0e1d74a8e1facca05beb6245afe3809969babd9b14e7712da19ca7c3f3eb6.png",
+        "sha256": "f88a105f2d5adb651f02e958087066489276c8ce5a04c728f557c30e5913e993"
+      },
+      "furniture": {
+        "path": "layers/9321cfde60c75d89866a327c65a6cedb3808627516a9f102ebad5db488819274.png",
+        "sha256": "3a924f62e7e325089e4f4fbb7aafbe041fcfc541bfce73792f900074a6168d8b"
+      },
+      "outline": {
+        "path": "layers/8bef617f98354f6b71740fa58f751ca4a2c37f8cbd3e860e6d9b442eb14c338c.png",
+        "sha256": "90b2bfaadf623893d15c1b627f190cd7fa975d9a060681134ae046309a8aa413"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "green",
+      "body": {
+        "path": "layers/af4e0c82b75b8fc83490daa5a402c5f5231685b91476d03f31e94dab674c2975.png",
+        "sha256": "f878018576cf44e0c075bea0a6aa3ef9d3042cd4abea0647c2e599efbd85dcc3"
+      },
+      "furniture": {
+        "path": "layers/1c36e22555c3ce88a734fc39d767f43d3ff58a0bdbdc5afc23df40858c46af6d.png",
+        "sha256": "b2756580e74c188010e1e8bb78a07c8a4b8eef13438bd39986abbd6fd050cef8"
+      },
+      "outline": {
+        "path": "layers/b38a0ddac882371feba659d754671e6db174fd5efb1a79ed0e588f2da5d931b4.png",
+        "sha256": "0eb7971d2ecc4b869ca3f1af42c83298d37028524008dfddcd3a07527306de33"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "blue",
+      "body": {
+        "path": "layers/2ea8739c95cf2d640535af20aefdc2a1b536281cb6efc9c8b2a3eac455936bde.png",
+        "sha256": "28ae63ff0c660bfc5073162ed68be6703703fcafcbbfad2eff8821ea3128fd7b"
+      },
+      "furniture": {
+        "path": "layers/1c36e22555c3ce88a734fc39d767f43d3ff58a0bdbdc5afc23df40858c46af6d.png",
+        "sha256": "b2756580e74c188010e1e8bb78a07c8a4b8eef13438bd39986abbd6fd050cef8"
+      },
+      "outline": {
+        "path": "layers/b38a0ddac882371feba659d754671e6db174fd5efb1a79ed0e588f2da5d931b4.png",
+        "sha256": "0eb7971d2ecc4b869ca3f1af42c83298d37028524008dfddcd3a07527306de33"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "red",
+      "body": {
+        "path": "layers/b3071942180ee065d0dedbd65ea8aa912100159b6cfcb8be9324b62f0d65eca7.png",
+        "sha256": "8b734c3e8056f12a8be3b79a3ea13bdc237bbbde355e960636a82cc161d7167f"
+      },
+      "furniture": {
+        "path": "layers/1c36e22555c3ce88a734fc39d767f43d3ff58a0bdbdc5afc23df40858c46af6d.png",
+        "sha256": "b2756580e74c188010e1e8bb78a07c8a4b8eef13438bd39986abbd6fd050cef8"
+      },
+      "outline": {
+        "path": "layers/b38a0ddac882371feba659d754671e6db174fd5efb1a79ed0e588f2da5d931b4.png",
+        "sha256": "0eb7971d2ecc4b869ca3f1af42c83298d37028524008dfddcd3a07527306de33"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "green",
+      "body": {
+        "path": "layers/064a26d4f68b57b02abfc6a8e6cb17cd92435392e269c5ba021d34c422591fb2.png",
+        "sha256": "a3df3338a8a9bf0abb6ff2273547c0572d6d0021e9106830c1ce11b5b9eee27b"
+      },
+      "furniture": {
+        "path": "layers/6fb0d7c81cd2415d8d30bec6c57c59cb170c9980462bbe087ca978361d0f284d.png",
+        "sha256": "9699e3f243322a2cf29e857b1cc3b7a13c416ff520c31d853eb9f1b7a3a66a45"
+      },
+      "outline": {
+        "path": "layers/640c9327725226217e55196c7d8cbf09112c9b78f06acf353228e5689a0fd52c.png",
+        "sha256": "8593566557d7cba4721469e4ed3b85d6a4179c6921b14244f6158e42df317dcf"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "blue",
+      "body": {
+        "path": "layers/b8f886d116c3674b42bffee7059b93230534c94bb18f754b7ead498cf74da808.png",
+        "sha256": "dc3b36dfa81458f59a5fe8d8486517bd68749710420266cd22061d2dd2588a57"
+      },
+      "furniture": {
+        "path": "layers/6fb0d7c81cd2415d8d30bec6c57c59cb170c9980462bbe087ca978361d0f284d.png",
+        "sha256": "9699e3f243322a2cf29e857b1cc3b7a13c416ff520c31d853eb9f1b7a3a66a45"
+      },
+      "outline": {
+        "path": "layers/640c9327725226217e55196c7d8cbf09112c9b78f06acf353228e5689a0fd52c.png",
+        "sha256": "8593566557d7cba4721469e4ed3b85d6a4179c6921b14244f6158e42df317dcf"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "red",
+      "body": {
+        "path": "layers/9276fd896615466a388dcd706447522a8b9835b67483acf8600ce323017e199c.png",
+        "sha256": "e336677132a8455146e216da57f7a95754250d5b1ac058f0044bce16268bfbb3"
+      },
+      "furniture": {
+        "path": "layers/6fb0d7c81cd2415d8d30bec6c57c59cb170c9980462bbe087ca978361d0f284d.png",
+        "sha256": "9699e3f243322a2cf29e857b1cc3b7a13c416ff520c31d853eb9f1b7a3a66a45"
+      },
+      "outline": {
+        "path": "layers/640c9327725226217e55196c7d8cbf09112c9b78f06acf353228e5689a0fd52c.png",
+        "sha256": "8593566557d7cba4721469e4ed3b85d6a4179c6921b14244f6158e42df317dcf"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "green",
+      "body": {
+        "path": "layers/7c4d380723336727dd91f69c7dbc86140266ad420808774f7db74e3a43e445e0.png",
+        "sha256": "3ed4caa00f857a7c41b927eef21efb3adcbf4c174fde2c611ff6423d850924bd"
+      },
+      "furniture": {
+        "path": "layers/74d92478758b2e2a67de87fcc994f7f439b25f1f0e85789df96af316d4c36290.png",
+        "sha256": "3aa823ff1aeb54fd236680ebf6383a04ee8dd28b7a615a09a06b14f6d7bd645b"
+      },
+      "outline": {
+        "path": "layers/efe194ca1ac8528493682d2cc06c3a68a09e595f6545dc51dd35094fcf867feb.png",
+        "sha256": "1cab7474246a23a055fffe9e22b4df5643231fe385267938b02c16e36ddb25be"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "blue",
+      "body": {
+        "path": "layers/726452e3e1917d2335e5c297733c877446905b8658d6b70164b01cc9a7062a0b.png",
+        "sha256": "567b20bce9d8993eeb0fdf966b65640a735636dc6fa19e759a86cb04c0d0e238"
+      },
+      "furniture": {
+        "path": "layers/74d92478758b2e2a67de87fcc994f7f439b25f1f0e85789df96af316d4c36290.png",
+        "sha256": "3aa823ff1aeb54fd236680ebf6383a04ee8dd28b7a615a09a06b14f6d7bd645b"
+      },
+      "outline": {
+        "path": "layers/efe194ca1ac8528493682d2cc06c3a68a09e595f6545dc51dd35094fcf867feb.png",
+        "sha256": "1cab7474246a23a055fffe9e22b4df5643231fe385267938b02c16e36ddb25be"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "red",
+      "body": {
+        "path": "layers/d4876ede4d4f7ded2bf4e886b7b598720b6c14959535c4dc43f076fcd70a95e8.png",
+        "sha256": "a0bcd4707b35729c246f7eb4ec8dd3e69bdde940e16f71fbe018768342b18345"
+      },
+      "furniture": {
+        "path": "layers/74d92478758b2e2a67de87fcc994f7f439b25f1f0e85789df96af316d4c36290.png",
+        "sha256": "3aa823ff1aeb54fd236680ebf6383a04ee8dd28b7a615a09a06b14f6d7bd645b"
+      },
+      "outline": {
+        "path": "layers/efe194ca1ac8528493682d2cc06c3a68a09e595f6545dc51dd35094fcf867feb.png",
+        "sha256": "1cab7474246a23a055fffe9e22b4df5643231fe385267938b02c16e36ddb25be"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "green",
+      "body": {
+        "path": "layers/2affc7b6484d317ffa91392f17aa92a8477532a5efd452b6bbf726c0678eb108.png",
+        "sha256": "fa2921c8d34b65e639ba6d3be449fffb5b9192cb6a9dae06537d553fcbb853c5"
+      },
+      "furniture": {
+        "path": "layers/f698dac31fcc5e612268dc79f1235547a0759f1728b6fb3a4eaeeaf72a9e8b9e.png",
+        "sha256": "54759b7e6fe39286bd3d69359df1cfed26e932d74f489e5a7907508f4043e62b"
+      },
+      "outline": {
+        "path": "layers/d0f91514c864ab2e561acb21bfdae2a3bb6bb6e0e10bbe6f386bf5430293e817.png",
+        "sha256": "81a9e0fcba99cabbf9b9abcf4414d113cb1988c60e4638f975e8705d37f002bb"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "blue",
+      "body": {
+        "path": "layers/05b2de974d50c9fccbf67d3e6f212a93608e47bcac5f24c880a5c50897459441.png",
+        "sha256": "5c2643a75b5b678100790fc2951073eb0417466ac56f1f934e92b8f2b6f9a35d"
+      },
+      "furniture": {
+        "path": "layers/f698dac31fcc5e612268dc79f1235547a0759f1728b6fb3a4eaeeaf72a9e8b9e.png",
+        "sha256": "54759b7e6fe39286bd3d69359df1cfed26e932d74f489e5a7907508f4043e62b"
+      },
+      "outline": {
+        "path": "layers/d0f91514c864ab2e561acb21bfdae2a3bb6bb6e0e10bbe6f386bf5430293e817.png",
+        "sha256": "81a9e0fcba99cabbf9b9abcf4414d113cb1988c60e4638f975e8705d37f002bb"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "red",
+      "body": {
+        "path": "layers/bbdb837cc0d44f697e2e76d345d30c85558b03be43dac7540f97660a0ffea9e0.png",
+        "sha256": "dc44836473f24be965a523ec3d41a2dc1bc242d165a6ba0b305657713fe8dd8e"
+      },
+      "furniture": {
+        "path": "layers/f698dac31fcc5e612268dc79f1235547a0759f1728b6fb3a4eaeeaf72a9e8b9e.png",
+        "sha256": "54759b7e6fe39286bd3d69359df1cfed26e932d74f489e5a7907508f4043e62b"
+      },
+      "outline": {
+        "path": "layers/d0f91514c864ab2e561acb21bfdae2a3bb6bb6e0e10bbe6f386bf5430293e817.png",
+        "sha256": "81a9e0fcba99cabbf9b9abcf4414d113cb1988c60e4638f975e8705d37f002bb"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "green",
+      "body": {
+        "path": "layers/7c4d380723336727dd91f69c7dbc86140266ad420808774f7db74e3a43e445e0.png",
+        "sha256": "3ed4caa00f857a7c41b927eef21efb3adcbf4c174fde2c611ff6423d850924bd"
+      },
+      "furniture": {
+        "path": "layers/74d92478758b2e2a67de87fcc994f7f439b25f1f0e85789df96af316d4c36290.png",
+        "sha256": "3aa823ff1aeb54fd236680ebf6383a04ee8dd28b7a615a09a06b14f6d7bd645b"
+      },
+      "outline": {
+        "path": "layers/efe194ca1ac8528493682d2cc06c3a68a09e595f6545dc51dd35094fcf867feb.png",
+        "sha256": "1cab7474246a23a055fffe9e22b4df5643231fe385267938b02c16e36ddb25be"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "blue",
+      "body": {
+        "path": "layers/726452e3e1917d2335e5c297733c877446905b8658d6b70164b01cc9a7062a0b.png",
+        "sha256": "567b20bce9d8993eeb0fdf966b65640a735636dc6fa19e759a86cb04c0d0e238"
+      },
+      "furniture": {
+        "path": "layers/74d92478758b2e2a67de87fcc994f7f439b25f1f0e85789df96af316d4c36290.png",
+        "sha256": "3aa823ff1aeb54fd236680ebf6383a04ee8dd28b7a615a09a06b14f6d7bd645b"
+      },
+      "outline": {
+        "path": "layers/efe194ca1ac8528493682d2cc06c3a68a09e595f6545dc51dd35094fcf867feb.png",
+        "sha256": "1cab7474246a23a055fffe9e22b4df5643231fe385267938b02c16e36ddb25be"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "red",
+      "body": {
+        "path": "layers/d4876ede4d4f7ded2bf4e886b7b598720b6c14959535c4dc43f076fcd70a95e8.png",
+        "sha256": "a0bcd4707b35729c246f7eb4ec8dd3e69bdde940e16f71fbe018768342b18345"
+      },
+      "furniture": {
+        "path": "layers/74d92478758b2e2a67de87fcc994f7f439b25f1f0e85789df96af316d4c36290.png",
+        "sha256": "3aa823ff1aeb54fd236680ebf6383a04ee8dd28b7a615a09a06b14f6d7bd645b"
+      },
+      "outline": {
+        "path": "layers/efe194ca1ac8528493682d2cc06c3a68a09e595f6545dc51dd35094fcf867feb.png",
+        "sha256": "1cab7474246a23a055fffe9e22b4df5643231fe385267938b02c16e36ddb25be"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "green",
+      "body": {
+        "path": "layers/b255be253dcd00f64e0839d40f11ec15976f05c622408c997d953c4125aa388b.png",
+        "sha256": "e1929bf24eb05b9447d0417a447201fd4ef5596f1e15d75aa2510018eea5c6e8"
+      },
+      "furniture": {
+        "path": "layers/818d9f12f0255aff07d458bc04038097a43a3e3d06e72c18a2de4a5180278859.png",
+        "sha256": "f4489dfee9640db0bb4613f16861d592ff51a3dd3eaa03b4dbd9b7fd86f8c25b"
+      },
+      "outline": {
+        "path": "layers/727c6bfa4b5c985e5674d729f4bc41a6c1d67bac0f35a4e9811bd00b0b1a6079.png",
+        "sha256": "19a459a5fe635a5e3c1d916f471db441e2d0529f5156a0325a9be5e560ab124a"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "blue",
+      "body": {
+        "path": "layers/8c6db0ee69ad0a387e92d05e1496204544e5c2072695d5ea0c64ae027fea5a0d.png",
+        "sha256": "22741adc86d3c9f50dbf2da2b50cc94819f6dd364002392767270905d35c2417"
+      },
+      "furniture": {
+        "path": "layers/818d9f12f0255aff07d458bc04038097a43a3e3d06e72c18a2de4a5180278859.png",
+        "sha256": "f4489dfee9640db0bb4613f16861d592ff51a3dd3eaa03b4dbd9b7fd86f8c25b"
+      },
+      "outline": {
+        "path": "layers/727c6bfa4b5c985e5674d729f4bc41a6c1d67bac0f35a4e9811bd00b0b1a6079.png",
+        "sha256": "19a459a5fe635a5e3c1d916f471db441e2d0529f5156a0325a9be5e560ab124a"
+      }
+    },
+    {
+      "object": "chair",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "red",
+      "body": {
+        "path": "layers/d4da5a06566a1b58dd019573d595d1f710e7247fab9cd6ffe151310ea8846e72.png",
+        "sha256": "8e509b0fbb96de5bc8f55133338fcece7223d294794ddf57b8d8e89623c8e1ce"
+      },
+      "furniture": {
+        "path": "layers/818d9f12f0255aff07d458bc04038097a43a3e3d06e72c18a2de4a5180278859.png",
+        "sha256": "f4489dfee9640db0bb4613f16861d592ff51a3dd3eaa03b4dbd9b7fd86f8c25b"
+      },
+      "outline": {
+        "path": "layers/727c6bfa4b5c985e5674d729f4bc41a6c1d67bac0f35a4e9811bd00b0b1a6079.png",
+        "sha256": "19a459a5fe635a5e3c1d916f471db441e2d0529f5156a0325a9be5e560ab124a"
+      }
+    }
+  ]
+}

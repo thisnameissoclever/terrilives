@@ -512,8 +512,8 @@ pipeline, render pass, draw, submit, persisted state, or world-hash input.
 Selection remains a semantic overlay: its planted ring uses a full-emissive
 pale outer key rather than inheriting the world or local-light tint.
 
-Walking uses append-only visual action 5 and two directional limb frames per
-look and facing. Render sync projects a fallback facing from the next path
+Walking uses append-only visual action 5 and eight model-rendered limb frames per
+facing. Render sync projects a fallback facing from the next path
 step, while the shell prefers the actual previous-to-current segment during
 interpolation so a corner does not face the next leg early. Travel distance
 selects the frame; wall time and render-frame count never participate. The
@@ -526,9 +526,9 @@ without disabling travel interpolation.
 
 Conversation is the first authored body animation. The social interaction
 declares `talk / partner / toward_anchor`; render sync resolves the actual pair
-to opposite lot-axis facings and the shell selects one of two fixed-envelope
-Muted Line frames for that look and facing. Simulation tick and stable entity
-id choose the frame on an eight-tick hold, never wall time. Reduced motion
+to opposite lot-axis facings and the shell selects one of four rig-rendered
+frames for that facing. Simulation tick and stable entity id choose the frame
+on a four-tick hold, preserving the earlier sixteen-tick full cycle. Reduced motion
 keeps frame zero, so the directional action remains legible without ornamental
 alternation.
 
@@ -537,11 +537,11 @@ Eating extends the same two-column contract without widening the bridge.
 chain step declares `eat / station / toward_anchor`. Render sync requires the
 exact active interaction or chain step, resolves its exact target object, and
 faces toward the centre of that object's authored footprint. Malformed or
-unauthored state emits no pose. The shell maps action code 2 to two
-fixed-envelope hand-to-mouth frames per look and facing on a sixteen-tick,
+unauthored state emits no pose. The shell maps action code 2 to four
+rig-rendered hand-to-mouth frames per facing on an eight-tick,
 stable-id phase. Exact snack eating draws the dedicated sandwich prop and a
 valid terminal dinner draws the existing dinner prop; both follow the active
-hand side and frame height. An exact authored snack and a valid authored dinner
+exported hand anchor of the same selected body frame. An exact authored snack and a valid authored dinner
 work step project the existing `EATING` activity so the fork bubble remains visible. A
 valid sleep-tagged interaction projects `SLEEPING`. Every other ordinary use
 of the legacy shared `Eating` component projects the append-only
@@ -568,12 +568,12 @@ Only `reading_chair.settle_in` currently authors
 its socket carrier, and an in-range compiled socket index. A valid match emits
 visual action 3, activity 8, the socket facing, and the socket coordinates as the
 row's displayed position while leaving ECS `Position` untouched. The shell
-selects two seated-reading frames per look and facing on a 24-tick hold.
+selects four seated-reading frames per facing on a 12-tick hold.
 Conversation and eating keep precedence. Transition tracking uses full ECS
 entity identities to reseed both interpolation samples on socket entry and
 exit, including paused command refresh and Load, so the body never interpolates
-through the chair. The fixed-envelope art keeps the lowered head joined to the
-shoulder line rather than exposing the rejected long neck. Malformed or
+through the chair. Physical pixel anchors preserve model scale and ground
+registration despite padded image canvases. Malformed or
 unauthored state falls back to generic object use.
 
 The aquarium and exercise bike append two more exact object-action contracts
@@ -581,7 +581,7 @@ without widening the bridge. `reference_shelf.watch_fish`, whose historical
 object id remains a Save V1 persistence key, authors
 `watch / object / toward_anchor`. It stays on the adjacent path tile, faces the
 aquarium footprint centre, emits visual action 7 and activity 10, and uses a
-slow two-pose watching cycle. The aquarium object itself swaps between two
+slow four-pose watching cycle. The aquarium object itself swaps between two
 same-envelope generated frames with only the fish moving; reduced motion pins
 both object and body frame zero.
 
@@ -598,8 +598,8 @@ the world hash.
 
 `armchair.take_the_chair` appends the same exact socket pattern as
 `sit / object_socket / socket`. A valid target emits visual action 8, activity
-11, the compiled seat facing, and the seat coordinates. The shell chooses two
-38 by 88 sitting bodies per look and facing on a 24-tick, stable-id phase;
+11, the compiled seat facing, and the seat coordinates. The shell chooses four
+52 by 104 sitting bodies per facing on a 12-tick, stable-id phase;
 reduced motion pins frame zero. Activity 11 maps to the HUD label `Sitting` and
 has no indicator. The compiled visual enum, render action code, and activity
 code are append-only. The presentation does not add a simulation component,
@@ -607,8 +607,8 @@ save field, bridge column, object reservation rule, or world-hash input.
 
 `bed.sleep` adds the first horizontal socket body and the first authored object
 foreground. The exact `sleep / object_socket / socket` contract emits visual
-action 9 and existing sleeping activity 5. The shell selects two 104 by 72
-sleeping frames per look and facing on a 32-tick, stable-id phase; reduced
+action 9 and existing sleeping activity 5. The shell selects four 104 by 76
+sleeping frames per facing on a 16-tick, stable-id phase; reduced
 motion pins frame zero. The optional foreground sprite is compiled and resolved
 with the placement, then exposed as a render-buffer column with `u32::MAX` for
 no layer. The renderer draws that row on foreground layer 3 after the sim, so
@@ -622,11 +622,35 @@ object socket. `bookshelf.read` authors the exact
 active object and interaction identity, rejects social and chain work, keeps
 the row's ordinary path-tile position, and faces toward the exact target
 footprint centre. A valid match emits append-only visual action 4 plus existing
-activity 8. The shell selects two upright, fixed-envelope reading frames per
-look and facing on the same 24-tick, stable-id phase as seated reading. Reduced
+activity 8. The shell selects four upright reading frames per
+facing on the same 12-tick, stable-id phase as seated reading. Reduced
 motion pins frame zero. Conversation, eating, and seated socket reading retain
 their existing precedence; every incomplete or surplus contract falls back to
 generic object use.
+
+The shipped Sim shares one approved face, hairstyle and body across
+all Sims. Three material-only shirt palettes are selected from the persistent
+render-buffer Sim ID: Tim (0) blue, Bill (1) green, Casey (2) red. Unnamed Sims
+default to green. Entity IDs remain animation-phase inputs, not color choices.
+`RIGGED_SIM_VARIANTS` holds each palette's clips; drawing, picking, bubble
+placement and food attachment use the same selected body sample. No save
+schema change is needed because persistent identity already exists.
+Nine clips come from the preserved editable rig; a separate exercise source
+adds two held poses per facing without replacing that source. The importer
+requires all nine base clips and the exercise supplement for each of the three
+palettes. The generated atlas tables are authoritative for sprite counts and
+texture dimensions. Logical sprite dimensions and anchors remain independent
+of texture density; a 2x texture does not double a Sim's size in the world.
+The shipped SE bike uses adjusted bar/console geometry; its other
+mirrored facings have not passed rider-contact acceptance.
+CI runs the sprite-import and model-export unit tests before checking atlas
+reproducibility, including the bike's actual neighboring-wall clearance.
+`SPRITE_ANCHORS` controls both draw and pick offsets;
+`SPRITE_CONTENT_TOPS` keeps transparent padding from lifting activity bubbles,
+and `SPRITE_HAND_ANCHORS` attaches food to the selected eating sample. These are
+presentation tables, not new save or simulation state. Near-surface chair
+foregrounds use the existing object foreground path. The ordinary armchair's
+socket faces SW in its default placement, matching its actual opening.
 
 Save records simulation tick state, not a fractional presentation sample. Load
 therefore reconstructs the walk frame from the saved tick-end position after the
@@ -639,9 +663,10 @@ pressed Save; that presentation boundary already exists for travel itself.
 The simulation owns all state in WASM linear memory. JS holds
 `Float32Array`/`Uint32Array` **views** over render-relevant slices, including
 positions, sprite IDs, optional foreground sprite IDs, activity codes,
-presentation visual actions, lot-axis facings, authored object-sound actions,
-and their exact source entity indices, plus compiled footprint width and depth,
-and feeds them directly into GPU buffers. Walking reuses the
+presentation visual actions, exact active socket target IDs, lot-axis facings,
+authored object-sound actions, and their exact source entity indices, plus
+compiled footprint width and depth, and feeds them directly into GPU buffers.
+Walking reuses the
 action, facing, activity, and position columns.
 Conversation, eating, sleeping, sitting, seated reading, standing reading,
 aquarium watching, and exercise read the action and facing columns, so the broad status

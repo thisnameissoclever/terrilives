@@ -219,7 +219,7 @@ describe('the camera scale on the projection', () => {
       // and the assertion below can name it directly.
       const origin = cameraOrigin(1280, 720, 14, 10, 99, 99, scale);
       const spriteTop =
-        screenY(-1, -1, origin.y, scale) + (TILE_HALF_HEIGHT - 99) * scale;
+        screenY(-1.5, -1, origin.y, scale) + (TILE_HALF_HEIGHT - 99) * scale;
       const bottom =
         screenY(13, 9, origin.y, scale) + TILE_HALF_HEIGHT * scale;
       expect((spriteTop + bottom) / 2).toBeCloseTo(360, 6);
@@ -520,11 +520,11 @@ describe('cameraOrigin', () => {
   /** The shipped lot, so this is a statement about the game. */
   const LOT_W = 16;
   const LOT_H = 12;
-  const TALLEST = Math.max(...SPRITES.map((sprite) => sprite.h));
+  const TALLEST = Math.max(...SPRITES.map((sprite) => sprite.h / (sprite.pixel_density ?? 1)));
   const boundaryNames: readonly string[] = BOUNDARY_SPRITE_NAMES;
   const TALLEST_BOUNDARY = Math.max(
     ...SPRITES.filter((sprite) => boundaryNames.includes(sprite.name)).map(
-      (sprite) => sprite.h,
+      (sprite) => sprite.h / (sprite.pixel_density ?? 1),
     ),
   );
 
@@ -549,7 +549,7 @@ describe('cameraOrigin', () => {
     spriteH: number,
     boundaryH = spriteH,
   ) {
-    const boundaryRowY = screenY(-1, -1, originY);
+    const boundaryRowY = screenY(-1.5, -1, originY);
     const firstTileY = screenY(0, 0, originY);
     const lastRowY = screenY(LOT_W - 1, LOT_H - 1, originY);
     return {
@@ -693,7 +693,7 @@ describe('cameraOrigin', () => {
       TALLEST,
       TALLEST_BOUNDARY,
     );
-    const boundaryRowY = screenY(-1, -1, y);
+    const boundaryRowY = screenY(-1.5, -1, y);
     const firstTileY = screenY(0, 0, y);
     const lastRowY = screenY(13, 9, y);
     expect(

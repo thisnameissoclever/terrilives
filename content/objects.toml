@@ -582,12 +582,14 @@ footprint = { width = 2, depth = 1 }
 id = "armchair"
 name = "The Chair That Is His"
 sprite = "loungeChair"
+foreground_sprite = "loungeChairForeground"
 
   [[object.action_socket]]
   id = "seat"
   x = 0.0
   y = 0.0
-  facing = "SE"
+  # The source chair opens toward +Y, unlike the +X-facing wingback.
+  facing = "SW"
 
   # One slot, and 29 comfort at 41 ticks - the best comfort-per-tick in the
   # house, at 0.707 standing beside it against the ottoman sofa's 0.667 and
@@ -718,7 +720,7 @@ sprite = "cabinetBedDrawer"
 [[object]]
 id = "moving_box"
 name = "Wellness Initiative, Indoor"
-sprite = "cardboardBoxOpen"
+sprite = "offlineBike"
 
   # `moving_box` is now a Save V1 persistence key rather than a description.
   # Keep this id, its one-tile footprint, and its lot position unchanged: old
@@ -788,7 +790,7 @@ sprite = "chairDesk"
 [[object]]
 id = "reading_chair"
 name = "The Wingback Sabbatical"
-sprite = "loungeChairRelax"
+sprite = "offlineChair"
 
   [[object.action_socket]]
   id = "seat"

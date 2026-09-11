@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "width": 38,
+  "height": 88,
+  "anchor": [
+    19.00001358985901,
+    100.00043803453445
+  ],
+  "source_sha256": "a90fd5be6c2c60b89216d4881b9f4265a45fb662d913299daa12cc3b247d9ece",
+  "frames": [
+    {
+      "name": "rigSimRedExerciseSE0",
+      "action": "exercise",
+      "facing": "SE",
+      "frame": 0,
+      "path": "exercise-SE-0.png",
+      "sha256": "28ff2a5dd7965e2675b8cf80bf1496b488d1882c6af7bb8e0d662aff3edc63ec"
+    },
+    {
+      "name": "rigSimRedExerciseSE1",
+      "action": "exercise",
+      "facing": "SE",
+      "frame": 1,
+      "path": "exercise-SE-1.png",
+      "sha256": "e67fde9306d9970fef475b0ce5aa433d3f8422ff27f1dc539af5a4cc67e6a92f"
+    },
+    {
+      "name": "rigSimRedExerciseSW0",
+      "action": "exercise",
+      "facing": "SW",
+      "frame": 0,
+      "path": "exercise-SW-0.png",
+      "sha256": "839d8aa7be00c04fe0bbdecc9e7006e91a5c71877c5f84b3d134c4a8d1a4b3ed"
+    },
+    {
+      "name": "rigSimRedExerciseSW1",
+      "action": "exercise",
+      "facing": "SW",
+      "frame": 1,
+      "path": "exercise-SW-1.png",
+      "sha256": "626eb3a0c188c31402f01d1a2d34c04f0090e3001092cde5220a6d454b8f4cfb"
+    },
+    {
+      "name": "rigSimRedExerciseNW0",
+      "action": "exercise",
+      "facing": "NW",
+      "frame": 0,
+      "path": "exercise-NW-0.png",
+      "sha256": "2ed8d21385b744956bbf50b9844c147765735b90d4cf3c038fd838c0fcecae24"
+    },
+    {
+      "name": "rigSimRedExerciseNW1",
+      "action": "exercise",
+      "facing": "NW",
+      "frame": 1,
+      "path": "exercise-NW-1.png",
+      "sha256": "79faa727117e6087ccaad808ae11e73de887b331d7166a5a2c99220d7a538e95"
+    },
+    {
+      "name": "rigSimRedExerciseNE0",
+      "action": "exercise",
+      "facing": "NE",
+      "frame": 0,
+      "path": "exercise-NE-0.png",
+      "sha256": "522f57867d815bfc08e90856b18325204f6b7a12e4139c991d86e460530ffa38"
+    },
+    {
+      "name": "rigSimRedExerciseNE1",
+      "action": "exercise",
+      "facing": "NE",
+      "frame": 1,
+      "path": "exercise-NE-1.png",
+      "sha256": "fe8d26010f8d2fb1bbc3d695507b266dbc2bc8dc21365e3d3b7725d9b638a1d2"
+    }
+  ],
+  "clips": {
+    "exercise": {
+      "frame_count": 2,
+      "sample_fps": 1.25,
+      "loop": true,
+      "source_action": "exercise",
+      "width": 104,
+      "height": 120,
+      "world_origin": [
+        52.00001239776611,
+        95.0004369020462
+      ],
+      "anchor": [
+        52.00001239776611,
+        116.0004369020462
+      ],
+      "camera_ortho_scale": 2.6516504287719727,
+      "camera_location": [
+        5.335428714752197,
+        -5.335428714752197,
+        7.587500095367432
+      ]
+    }
+  },
+  "facing_root_degrees": {
+    "SE": 90,
+    "SW": 0,
+    "NW": 270,
+    "NE": 180
+  },
+  "projection": {
+    "camera_ortho_scale": 1.9445436000823975,
+    "pixels_per_model_unit": 45.25483511723323
+  },
+  "reading_framing": {
+    "camera_scale": 1.9445436000823975,
+    "root_offsets": {
+      "SE": [
+        0,
+        0,
+        0
+      ],
+      "SW": [
+        0,
+        0,
+        0
+      ],
+      "NW": [
+        0,
+        0,
+        0
+      ],
+      "NE": [
+        0,
+        0,
+        0
+      ]
+    },
+    "pixel_offsets": {
+      "SE": [
+        0,
+        0
+      ],
+      "SW": [
+        0,
+        0
+      ],
+      "NW": [
+        0,
+        0
+      ],
+      "NE": [
+        0,
+        0
+      ]
+    }
+  },
+  "variant": "red",
+  "source_rig_sha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+  "additive_rig_sha256": "5148612e85b1c8b14955cfe33da0b861db8702714bc8b96dbb3c9f2b745bbaac"
+}

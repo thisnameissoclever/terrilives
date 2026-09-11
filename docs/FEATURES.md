@@ -68,6 +68,24 @@ control [R6], which is the risk most likely to actually kill this project.
 
 ### Current priority guidance
 
+The 2026-09-10 implementation replaces the ordinary Sim presentation with the
+approved small-front-curl model, baked into 156 sprites per shirt palette: four idle views, eight
+walk samples per facing, and four samples per facing for talking, eating,
+seated reading, standing reading, watching fish, sitting and sleeping. All Sims
+share that approved face, hairstyle and body. The owner approved blue shirts
+for Tim, red for Casey and the existing green for Bill on 2026-09-10. These
+material-only variants use persistent household IDs,
+so save/load and entity reordering cannot exchange their colors. Hair, shirt
+and trousers retain separate source materials. Cycling adds two approved-model
+poses per facing and uses the same palette assignment. Its shipped SE bike
+placement passed rider-contact review after a bar/console fit adjustment;
+the mirrored bike art still fails contact in other facings. Local played
+checks and deployment status are recorded in the verification report. See
+[the rigged animation contract](specs/2026-09-09-rigged-sim-animation.md).
+
+The following paragraphs record the earlier shipped milestones and their
+acceptance evidence; their two-frame counts describe those earlier versions.
+
 On 2026-08-02, the owner asked to move visual quality, movement animation, and
 action animation near the front of the next-work order. The grounded design and
 renderer audit is complete. The owner rejected the original transform-only
@@ -818,9 +836,11 @@ every sim. `hair_cap` in `objects.py` traces the head instead.
 
 ### [A-animations] Several ordinary actions are still static poses
 
-Walking has a real directional arm-and-leg cycle. Talking, eating, lower-bunk
-sleeping, armchair sitting, seated and standing reading, watching fish, and
-exercising have two authored frames per look and facing. The lower bunk also
+The local rigged candidate has eight walking samples and four samples for
+talking, eating, lower-bunk sleeping, armchair sitting, seated and standing
+reading, and watching fish. Cycling uses two held poses of the same model,
+with SE furniture contact accepted and other bike facings still failing.
+All Sims share one approved appearance with household-specific shirts. The lower bunk also
 has a generated foreground layer, so its upper mattress, near posts, rail, and
 ladder cover the horizontal body correctly. Double-bed sleeping, cooking,
 washing, using a toilet, and idling remain static poses. The generic

@@ -1,0 +1,273 @@
+{
+  "state": "complete",
+  "frames": {
+    "eat-SE-0": {
+      "hand_in_front": true,
+      "grip_world": [
+        0.21176232397556305,
+        0.2043546587228775,
+        1.1814825534820557
+      ],
+      "camera_ray_toward_viewer": [
+        0.5335429310798645,
+        -0.5335428714752197,
+        0.6562500596046448
+      ],
+      "occluders": []
+    },
+    "eat-SE-1": {
+      "hand_in_front": true,
+      "grip_world": [
+        0.21176153421401978,
+        0.1693543940782547,
+        1.346482515335083
+      ],
+      "camera_ray_toward_viewer": [
+        0.5335429310798645,
+        -0.5335428714752197,
+        0.6562500596046448
+      ],
+      "occluders": []
+    },
+    "eat-SE-2": {
+      "hand_in_front": true,
+      "grip_world": [
+        0.21176183223724365,
+        0.13435424864292145,
+        1.5114825963974
+      ],
+      "camera_ray_toward_viewer": [
+        0.5335429310798645,
+        -0.5335428714752197,
+        0.6562500596046448
+      ],
+      "occluders": []
+    },
+    "eat-SE-3": {
+      "hand_in_front": true,
+      "grip_world": [
+        0.21176153421401978,
+        0.1693543940782547,
+        1.346482515335083
+      ],
+      "camera_ray_toward_viewer": [
+        0.5335429310798645,
+        -0.5335428714752197,
+        0.6562500596046448
+      ],
+      "occluders": []
+    },
+    "eat-SW-0": {
+      "hand_in_front": true,
+      "grip_world": [
+        0.2043546438217163,
+        -0.21176233887672424,
+        1.1814825534820557
+      ],
+      "camera_ray_toward_viewer": [
+        0.5335429310798645,
+        -0.5335428714752197,
+        0.6562500596046448
+      ],
+      "occluders": []
+    },
+    "eat-SW-1": {
+      "hand_in_front": true,
+      "grip_world": [
+        0.1693543791770935,
+        -0.21176153421401978,
+        1.346482515335083
+      ],
+      "camera_ray_toward_viewer": [
+        0.5335429310798645,
+        -0.5335428714752197,
+        0.6562500596046448
+      ],
+      "occluders": []
+    },
+    "eat-SW-2": {
+      "hand_in_front": true,
+      "grip_world": [
+        0.13435423374176025,
+        -0.21176183223724365,
+        1.5114825963974
+      ],
+      "camera_ray_toward_viewer": [
+        0.5335429310798645,
+        -0.5335428714752197,
+        0.6562500596046448
+      ],
+      "occluders": []
+    },
+    "eat-SW-3": {
+      "hand_in_front": true,
+      "grip_world": [
+        0.1693543791770935,
+        -0.21176153421401978,
+        1.346482515335083
+      ],
+      "camera_ray_toward_viewer": [
+        0.5335429310798645,
+        -0.5335428714752197,
+        0.6562500596046448
+      ],
+      "occluders": []
+    },
+    "eat-NW-0": {
+      "hand_in_front": true,
+      "grip_world": [
+        -0.21176233887672424,
+        -0.2043546438217163,
+        1.1814825534820557
+      ],
+      "camera_ray_toward_viewer": [
+        0.5335429310798645,
+        -0.5335428714752197,
+        0.6562500596046448
+      ],
+      "occluders": []
+    },
+    "eat-NW-1": {
+      "hand_in_front": true,
+      "grip_world": [
+        -0.21176153421401978,
+        -0.1693543791770935,
+        1.346482515335083
+      ],
+      "camera_ray_toward_viewer": [
+        0.5335429310798645,
+        -0.5335428714752197,
+        0.6562500596046448
+      ],
+      "occluders": []
+    },
+    "eat-NW-2": {
+      "hand_in_front": true,
+      "grip_world": [
+        -0.21176183223724365,
+        -0.13435423374176025,
+        1.5114825963974
+      ],
+      "camera_ray_toward_viewer": [
+        0.5335429310798645,
+        -0.5335428714752197,
+        0.6562500596046448
+      ],
+      "occluders": []
+    },
+    "eat-NW-3": {
+      "hand_in_front": true,
+      "grip_world": [
+        -0.21176153421401978,
+        -0.1693543791770935,
+        1.346482515335083
+      ],
+      "camera_ray_toward_viewer": [
+        0.5335429310798645,
+        -0.5335428714752197,
+        0.6562500596046448
+      ],
+      "occluders": []
+    },
+    "eat-NE-0": {
+      "hand_in_front": false,
+      "grip_world": [
+        -0.2043546736240387,
+        0.21176232397556305,
+        1.1814825534820557
+      ],
+      "camera_ray_toward_viewer": [
+        0.5335429310798645,
+        -0.5335428714752197,
+        0.6562500596046448
+      ],
+      "occluders": [
+        {
+          "object": "Overshirt body",
+          "distance_toward_camera": 0.16806980594992638
+        },
+        {
+          "object": "Natural neck",
+          "distance_toward_camera": 0.2985329180955887
+        },
+        {
+          "object": "Collar stand",
+          "distance_toward_camera": 0.30231860280036926
+        },
+        {
+          "object": "Sculpted head",
+          "distance_toward_camera": 0.3532353341579437
+        }
+      ]
+    },
+    "eat-NE-1": {
+      "hand_in_front": false,
+      "grip_world": [
+        -0.1693543940782547,
+        0.21176151931285858,
+        1.346482515335083
+      ],
+      "camera_ray_toward_viewer": [
+        0.5335429310798645,
+        -0.5335428714752197,
+        0.6562500596046448
+      ],
+      "occluders": [
+        {
+          "object": "Sculpted head",
+          "distance_toward_camera": 0.16716600582003593
+        },
+        {
+          "object": "HAIR_01_TRIPO_CURL",
+          "distance_toward_camera": 0.6037601828575134
+        }
+      ]
+    },
+    "eat-NE-2": {
+      "hand_in_front": false,
+      "grip_world": [
+        -0.13435426354408264,
+        0.21176181733608246,
+        1.5114825963974
+      ],
+      "camera_ray_toward_viewer": [
+        0.5335429310798645,
+        -0.5335428714752197,
+        0.6562500596046448
+      ],
+      "occluders": [
+        {
+          "object": "Sculpted head",
+          "distance_toward_camera": 0.09401191771030426
+        },
+        {
+          "object": "HAIR_01_TRIPO_CURL",
+          "distance_toward_camera": 0.5254461914300919
+        }
+      ]
+    },
+    "eat-NE-3": {
+      "hand_in_front": false,
+      "grip_world": [
+        -0.1693543940782547,
+        0.21176151931285858,
+        1.346482515335083
+      ],
+      "camera_ray_toward_viewer": [
+        0.5335429310798645,
+        -0.5335428714752197,
+        0.6562500596046448
+      ],
+      "occluders": [
+        {
+          "object": "Sculpted head",
+          "distance_toward_camera": 0.16716600582003593
+        },
+        {
+          "object": "HAIR_01_TRIPO_CURL",
+          "distance_toward_camera": 0.6037601828575134
+        }
+      ]
+    }
+  }
+}

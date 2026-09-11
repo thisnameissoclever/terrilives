@@ -12,8 +12,8 @@
  * in `frame.ts` runs every frame under [D11]'s no-allocation rule, and
  * [V11] measured what a single unexamined allocation on that path costs:
  * 57.76 MB over 2,394 frames, from a two-element array nobody had
- * checked. The shipped block is 221 floor tiles, 28 interior wall panels,
- * 29 boundary panels, and 5 doorway panels. Local-light values are baked into
+ * checked. The shipped block is 221 floor tiles, 30 interior wall panels,
+ * 30 boundary panels, and 5 doorway panels. Local-light values are baked into
  * those same rows; rebuilding or uploading them per frame would be that
  * mistake an order of magnitude larger.
  *
@@ -71,70 +71,32 @@ export interface StaticGeometry {
  */
 let scratch: InstanceArray = new Float32Array(0);
 
-/**
- * Which of the two wall sprites a tile draws.
- *
- * A wall panel is drawn along one axis, so a run only looks like a wall if
- * every tile in the run picks the same orientation. A tile with a wall
- * neighbour to the north or south is part of a north-south run; one with a
- * neighbour east or west is part of an east-west run.
- *
- * **The interesting case is a tile that qualifies both ways, and the rule
- * is: the run that PASSES THROUGH wins.** A T-junction has neighbours on
- * both sides of one axis and on only one side of the other, and that
- * asymmetry is the answer - the through-run is a continuous surface and
- * the spur is a wall that ends against it. Drawing the spur's orientation
- * there puts a panel turned 90 degrees in the middle of the through-run,
- * which reads as a hole punched in it.
- *
- * This was got wrong twice, and both attempts are worth recording because
- * the second one looked like it worked.
- *
- * The FIRST rule was `ns ? NS : EW` - one panel, ties to north-south. It
- * was correct on the one-room flat, whose two runs met at a single L
- * corner where either panel closes the join, and it was wrong the moment
- * a T-junction existed. `content/lot.toml`'s spine runs east-west and
- * three of its tiles carry a north-south divider hanging off them; all
- * three took the north-south panel. Found by looking at a PNG of the
- * running game, not by a test. [L53].
- *
- * The SECOND was to draw BOTH panels at such a tile, on the reasoning
- * that a 32 px panel on a 64 px tile leaves room for two. **That
- * reasoning was false and the fix mostly did not work.** `sprites.wgsl`
- * centres every quad on its anchor, so two panels written at one tile
- * occupy the same 32 px rather than two halves; measured off the atlas,
- * only 14% of the east-west panel's opaque pixels fall where the
- * north-south panel is transparent. A pixel diff of the two frames showed
- * exactly that 14% changing and nothing else - the junction still read as
- * a north-south panel with a sliver behind it. Two coincident quads is
- * also [V12]'s depth conflict waiting to happen, since `layeredDepth`
- * gives them the same value and `depthCompare` is `less`.
- *
- * So: one panel per tile, and pick the through-run.
- *
- * A true crossroads - through on both axes - has no right answer with one
- * sprite per tile, and falls through to north-south. The shipped lot has
- * none. An isolated tile has no neighbour either way and gets the
- * east-west panel; a single free-standing panel has no run to agree with.
- */
-function wallOrientation(
+/** Cardinal bits: north, east, south, west, matching the atlas generator. */
+function wallConnections(
   x: number,
   y: number,
-  isWall: (x: number, y: number) => boolean,
-): 'wallNS' | 'wallEW' {
-  const nsThrough = isWall(x, y - 1) && isWall(x, y + 1);
-  const ewThrough = isWall(x - 1, y) && isWall(x + 1, y);
-  if (ewThrough && !nsThrough) return 'wallEW';
-  if (nsThrough && !ewThrough) return 'wallNS';
-  return isWall(x, y - 1) || isWall(x, y + 1) ? 'wallNS' : 'wallEW';
+  connects: (x: number, y: number, axis: 'ns' | 'ew') => boolean,
+): number {
+  return (connects(x, y - 1, 'ns') ? 1 : 0)
+    | (connects(x + 1, y, 'ew') ? 2 : 0)
+    | (connects(x, y + 1, 'ns') ? 4 : 0)
+    | (connects(x - 1, y, 'ew') ? 8 : 0);
+}
+
+/** Junctions include every connected half-panel in one depth-sorted sprite. */
+function connectedWallSprite(mask: number): number {
+  if ((mask & 5) !== 0 && (mask & 10) !== 0) {
+    return spriteIndex(`wallJoin${mask}`);
+  }
+  return spriteIndex((mask & 5) !== 0 ? 'wallNS' : 'wallEW');
 }
 
 /**
- * The only sprites that are ever drawn on the boundary row at world -1.
+ * The sprites drawn outside the lot, including the floor ring.
  *
  * `cameraOrigin` reserves headroom above that row for the tallest of
  * THESE, and reserves headroom for the whole atlas above the lot's first
- * tile two half-rows lower - because nothing but a boundary piece can
+ * tile 2.5 half-rows lower - because nothing but a boundary piece can
  * stand at a negative coordinate. That split is only sound while this
  * list is complete, so it lives here, beside the loop below that places
  * them, and `tiles.test.ts` checks the two agree.
@@ -143,7 +105,8 @@ export const BOUNDARY_SPRITE_NAMES = [
   'floor',
   'wallNS',
   'wallEW',
-  'wallCornerNW',
+  'wallCornerStartNS',
+  'wallCornerStartEW',
 ] as const;
 
 /**
@@ -166,10 +129,13 @@ export function buildStaticInstances(
     wallNS: spriteIndex('wallNS'),
     wallEW: spriteIndex('wallEW'),
   };
-  const cornerSprite = spriteIndex('wallCornerNW');
+  const cornerStarts = {
+    ns: spriteIndex('wallCornerStartNS'),
+    ew: spriteIndex('wallCornerStartEW'),
+  };
   const doorwaySprites = {
-    doorwayNS: spriteIndex('doorwayNS'),
-    doorwayEW: spriteIndex('doorwayEW'),
+    doorwayNS: spriteIndex('doorwayJoinedNS'),
+    doorwayEW: spriteIndex('doorwayJoinedEW'),
   };
 
   const walls = new Set<string>();
@@ -184,21 +150,16 @@ export function buildStaticInstances(
   // that listing 80 redundant tiles would be worse. Drawing it is what
   // turns the lot from a slab floating in the dark into a room.
   //
-  // Only the two FAR sides, at x = -1 and y = -1. The near sides would
-  // stand between the camera and the room and hide most of it, which is
-  // why isometric games have never drawn them.
-  //
-  // The north-west tile (-1,-1) is where the two runs MEET, and it gets
-  // the corner piece: it was previously an east-west panel butted
-  // against a north-south one, two differently-oriented half-tile
-  // panels meeting at an offset with nothing closing the join - one of
-  // [A-11]'s "wall segments don't touch" sightings.
-  const boundary: [number, number, number][] = [[-1, -1, cornerSprite]];
-  for (let y = 0; y < lot.height; y++) {
+  // Only the two far sides. Include the outer floor ring's corner tile
+  // in both runs; their half-tile panel ends meet at (-1.5, -1.5).
+  // Keep integer coordinates here for lighting, then move each panel
+  // half a tile outward when drawing so it follows the slab's edge.
+  const boundary: [number, number, number][] = [];
+  for (let y = -1; y < lot.height; y++) {
     boundary.push([-1, y, wallSprites.wallNS]);
   }
-  for (let x = 0; x < lot.width; x++) {
-    boundary.push([x, -1, wallSprites.wallEW]);
+  for (let x = -1; x < lot.width; x++) {
+    boundary.push([x, -1, x === -1 ? cornerStarts.ew : wallSprites.wallEW]);
   }
 
   // **Doorways are drawn out loud.** In the data a doorway is a GAP in a
@@ -225,12 +186,36 @@ export function buildStaticInstances(
     }
   }
 
+  const doorwayAxes = new Map<string, 'ns' | 'ew'>(
+    doorways.map(([x, y, sprite]) => [
+      `${x},${y}`, sprite === doorwaySprites.doorwayNS ? 'ns' : 'ew',
+    ]),
+  );
+  const connects = (x: number, y: number, axis: 'ns' | 'ew'): boolean =>
+    isWall(x, y) || doorwayAxes.get(`${x},${y}`) === axis;
+  const interiorPanels: [number, number, number][] = [];
+  for (const key of walls) {
+    const [x, y] = key.split(',').map(Number);
+    let mask = wallConnections(x, y, connects);
+    // A run reaching the far edge must cross the decorative floor ring
+    // before it meets the exterior wall. These panels are presentation only.
+    if (x === 0 && (mask & 10) !== 0) {
+      mask |= 8;
+      interiorPanels.push([-1, y, cornerStarts.ew]);
+    }
+    if (y === 0 && (mask & 5) !== 0) {
+      mask |= 1;
+      interiorPanels.push([x, -1, cornerStarts.ns]);
+    }
+    interiorPanels.push([x, y, connectedWallSprite(mask)]);
+  }
+
   // Floor extends one ring outward to sit under the boundary walls.
   // Without it the north and west runs stood on nothing and read as
   // extending past the slab's edge - the other half of [A-11]'s wall
   // report. The ring is (width+1) x (height+1) minus the interior.
   const floorCount = (lot.width + 1) * (lot.height + 1);
-  const count = floorCount + walls.size + boundary.length + doorways.length;
+  const count = floorCount + interiorPanels.length + boundary.length + doorways.length;
   if (scratch.length < count * FLOATS_PER_INSTANCE) {
     scratch = new Float32Array(count * FLOATS_PER_INSTANCE);
   }
@@ -286,24 +271,19 @@ export function buildStaticInstances(
       writeFloor(x, y, floorSprite);
     }
   }
-  // Interior walls are read back out of the set rather than off
-  // `lot.walls`, so a duplicated tile in the export cannot produce two
-  // quads fighting for one pixel - which at one tile means one depth, and
-  // `depthCompare: 'less'` rejects the second outright ([V12]).
-  for (const key of walls) {
-    const [x, y] = key.split(',').map(Number);
+  for (const [x, y, sprite] of interiorPanels) {
     write(
       x,
       y,
       LAYER_PROP,
-      wallSprites[wallOrientation(x, y, isWall)],
+      sprite,
       lighting === null ? 0 : sampleWallLight(lighting, x, y),
     );
   }
   for (const [x, y, sprite] of boundary) {
     write(
-      x,
-      y,
+      x - (sprite === wallSprites.wallNS ? 0.5 : 0),
+      y - (sprite === wallSprites.wallEW || sprite === cornerStarts.ew ? 0.5 : 0),
       LAYER_PROP,
       sprite,
       lighting === null ? 0 : sampleWallLight(lighting, x, y),

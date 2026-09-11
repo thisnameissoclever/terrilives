@@ -4811,3 +4811,382 @@ injected fetch function that increments a counter and throws. Both requests
 must fail with their preflight error and leave the counter at zero. The only
 subprocess cases may list the manifest or prove that a download without the
 approval flag is refused.
+**How to verify.** At 136 pixels the two-row bound gives 697 pixels for the
+16 by 12 lot, so `cameraOrigin` must place the whole extent on a 720-pixel
+canvas with a non-negative top and a bottom no greater than 720, centered.
+Reserving one height for both rows must fail. `BOUNDARY_SPRITE_NAMES` must be
+checked in both directions against what `buildStaticInstances` emits: a missing
+boundary piece is reserved for at the wrong row, and an extra one that never
+leaves the lot rebuilds the over-reservation. The obsolete tile-only centering
+formula must remain observably clipped.
+
+## [L-delegated-workspace-management] Routine workspace work is not an owner approval gate
+
+**What happened.** Animation work stopped to ask about creating a clean worktree
+after the owner had already approved the model and asked for continued execution.
+The owner had to return and explicitly repeat that workspace management was
+delegated.
+
+**Root cause.** Preserving a dirty checkout was confused with needing a new
+product decision. Creating an isolated worktree from a verified baseline did
+not require the owner to choose an animation direction or accept a risk to
+their existing edits.
+
+**Prevention rule.** Once routine workspace management is delegated, inspect
+the branch, preserve existing edits, create the isolated worktree and continue.
+Keep actual approval boundaries separate: new spending, foreground computer
+control, destructive changes and decisions outside the approved scope.
+
+**How to verify.** Record the new branch and baseline check, then compare the
+original checkout's status before and after. The next owner message should
+concern an artifact or a real blocker, not permission to resume authorized work.
+
+## [L-atlas-straight-alpha-copy] Packing RGBA frames must not apply alpha twice
+
+**What happened.** Preparing smooth Blender frames exposed an atlas compositor
+that pasted each RGBA crop using that same crop as its mask. A pixel with alpha
+128 became alpha 64 and its color channels were halved.
+
+**Root cause.** A compositing operation was used where non-overlapping atlas
+rectangles required an exact byte copy. Existing opaque sprites concealed the
+error. The two translucent crops, `bookcaseClosedWide` and `aquariumCabinet1`,
+also passed through it.
+
+**Prevention rule.** Copy non-overlapping RGBA atlas rectangles without a
+second alpha mask. Preserve fractional alpha from the source renderer through
+the PNG export and atlas assembly.
+
+**How to verify.** `test_compose_preserves_straight_rgba` must fail when the
+source crop is restored as the paste mask. Check atlas freshness afterward.
+The corrected alpha changes the two existing translucent crops but does not
+change their source art, dimensions, names or indices.
+
+## [L-rig-pixel-registration] A preview crop is not a physical ground anchor
+
+**What happened.** The approved idle preview used [19,88] as a bottom-centre
+anchor. Compositing it with real furniture put the character about twelve
+pixels too low. Padded animation canvases introduced another apparent shift.
+
+**Root cause.** Image boundaries were treated as model landmarks. Furniture
+also uses 38 vertical pixels per unit while the model camera projects about
+34.147, so equal source Z values did not establish matching seat height.
+
+**Prevention rule.** Project the model origin through the actual camera, add
+the renderer's 21-pixel tile-front drop, and record that physical pixel anchor.
+Allow fractional anchors outside the crop. Share registration between drawing,
+picking and attachments; use opaque content bounds for bubbles. Convert source
+units before claiming furniture contact, then inspect a real composite.
+
+**How to verify.** Test padded and unpadded landmark equality at several zoom
+levels, negative-direction gait and save/load reconstruction. Render chair and
+bed composites using compiled sockets and the same registration math.
+
+## [L-held-prop-depth] A correct hand coordinate does not establish occlusion
+
+**What happened.** Eating food tracked the exported grip but appeared over the
+back of the head in a rear-facing view.
+
+**Root cause.** The held-prop renderer always put food in front of the entire
+body, regardless of the camera-space hand position.
+
+**Prevention rule.** Export the grip's depth order with its coordinates and use
+the same selected body sample for both. Never hide a depth defect by moving the
+food away from the hand. A single body/prop order must still be visually checked
+for cases requiring more detailed occlusion.
+
+**How to verify.** Inspect snack and dinner composites for every facing and
+sample. Tests must cover both front and rear depth signs, preserve layer ordering,
+and keep the selection ring at the physical ground point.
+
+## [L-toon-shirt-palette] Inspect the controlling shader before recoloring
+
+**What happened.** Shirt-variant setup assumed a standard Principled shader,
+then tried the Emission input. Three setup attempts failed before rendering;
+the linked-input guard prevented a misleading export.
+
+**Root cause.** The approved toon material uses a Color Ramp upstream of
+Emission. Neither a presumed Principled color nor the linked Emission default
+owns the visible shirt color.
+
+**Prevention rule.** Inspect the actual graph first. For this model, transform
+only the original shirt ramps' RGB values, retaining positions, interpolation,
+alpha and links. After three similar failures, obtain fresh-context review
+before another attempt. Preserve each source palette independently so a red
+variant cannot accidentally inherit the previous blue transformation.
+
+**How to verify.** Assert the expected linked graph, compare all non-shirt
+material state and model geometry, preserve source/green-export hashes, and
+inspect the rendered colors at native size. Preserving per-channel shading
+ratios is not a claim that different colors have identical perceived brightness.
+
+## [L-rider-fit-needs-the-lot] Isolated contact can pass while the wall fails
+
+**What happened.** Two rider fits put the original bike grips in the approved
+character's head. Moving the controls forward cleared the isolated model, but
+the played scene hid the console and bars inside the adjacent divider wall.
+
+**Root cause.** Contact was fitted in a model-and-prop image without the lot's
+spatial envelope. A projected hand target also left its three-dimensional
+depth underconstrained; exact pixel coincidence did not prove a plausible arm.
+
+**Prevention rule.** Fit the character, reachable controls and neighboring
+surfaces together. Preserve save-compatible positions and footprints. After
+three related failures, use fresh-context architectural review before another
+variation. Do not force every part visible when correct occlusion hides it,
+and do not treat a mirrored prop as a four-facing model.
+
+**How to verify.** Check one occupied and one unoccupied SE view against the
+actual wall before exporting all palettes. Verify anatomical reach, projected
+contact, head clearance, and visible attachment, then repeat in the played
+build. Keep failed facings and rejected previews labeled as failures.
+
+## [L-hashed-source-checkout] Byte proofs must survive Git checkout
+
+**What happened.** Final staging normalized the approved source manifest's
+Windows newlines, changing its bytes. The preservation proof also contained
+Windows path separators that a Linux checkout would treat as filename text.
+
+**Root cause.** Raw-file hashes and host-native path strings were combined
+with a repository-wide text normalization rule.
+
+**Prevention rule.** Mark immutable byte-hashed source artifacts `-text` where
+their original bytes must remain unchanged. Emit portable relative paths with
+`as_posix()`. Do not update approved-source hashes merely to excuse checkout
+changes. This exception applies only to the accepted source manifest, not to
+ordinary code or documentation.
+
+**How to verify.** Compare the source file's raw Git object ID with its staged
+object ID, then run preservation checks against files exported from the index.
+After changing attributes, explicitly restage the affected artifact with
+`git add --renormalize`; ordinary staging can retain its old normalized blob.
+Run the same tests in Linux CI before publishing.
+
+## [L-atlas-buffer-comparison] Compare binary assets as bytes
+
+**What happened.** The web CI atlas test exceeded its five-second limit after
+the character atlas grew to 1,451,685 bytes. All other 533 web tests passed.
+
+**Root cause.** Generic recursive `toEqual` walked the PNG's Buffer entries.
+The same assertion took 2.8 seconds locally, versus 5 milliseconds for the
+test using native `Buffer.equals`. The CI failure reported a timeout, not a
+hash mismatch.
+
+**Prevention rule.** Use direct byte equality for binary artifacts. Preserve
+the independent SHA-256 and served-filename assertions; do not extend the
+timeout or replace exact equality with a visual tolerance.
+
+**How to verify.** Flip one byte in the in-memory served PNG and run the
+content-address test: it must fail with `expected false to be true`. Restore
+the mutation and run the full web suite, then confirm Linux CI passes.
+
+## [L-empty-reference-visibility] Hide a reference collection, not driven object flags
+
+**What happened.** The first empty furniture renders retained floating eye
+outlines from the Sim used for fitting, although the preview set each mesh's
+`hide_render` flag. The occupied renders were unaffected.
+
+**Root cause.** Saved visibility drivers re-evaluated during rendering and
+overrode the individual object flags. An empty-view switch competed with the
+accepted model's expression and prop visibility ownership.
+
+**Prevention rule.** Move the complete Sim reference into a dedicated collection
+and hide that collection for empty views. Preserve the individual driven state.
+Never remove stray pixels from an image to disguise faulty scene visibility.
+
+**How to verify.** Render every empty facing and inspect the full canvas,
+including above the object. Then restore the collection and check the occupied
+expressions and props. Hash and nonempty-image checks alone cannot catch this.
+
+## [L-drape-support-has-width] A correct cloth section does not prove a supported towel
+
+**What happened.** A towel's U-shaped section cleared its handle tube, but the
+sheet extended along the handle into its upward bend. The assumed support was
+straight while the actual tube changed height across the towel's width.
+
+**Root cause.** A two-dimensional section test was treated as proof for the
+whole three-dimensional attachment.
+
+**Prevention rule.** Give the towel an actual straight support segment, keep
+its full width inside that segment, and leave the gripping area clear. Test
+the width and section independently. Do not call a constructed drape a cloth
+simulation.
+
+**How to verify.** Trace the actual support endpoints and tube radius against
+the complete cloth surface, then inspect the fold and both tails from all four
+rotations. A passing radius test alone is insufficient.
+## [L-boundary-panel-endpoints] A corner post cannot close a gap between panel ends
+
+**What happened:** the back corner had a visible gap and a stray upright;
+both open ends exposed triangular floor wedges beyond the wall bases.
+
+**Root cause:** tile-centred panels were placed at x = -1 and y = -1,
+while the floor ring extended to -1.5. Both runs also omitted their corner
+segment. The narrow corner sprite could not span the missing half-panels.
+
+**Prevention rule:** derive exterior wall placement from the slab edges and
+check actual panel endpoints. Keep integer lighting samples separate from
+fractional draw positions, and update both camera framing and pan bounds
+when the topmost panel anchor changes.
+
+**How to verify:** run the tile and camera tests; removing the outward
+half-tile shift, omitting a corner segment, or restoring the old camera
+headroom must fail. Inspect all three corners in the rendered build at
+native and fractional zoom. See `docs/wall-boundary-verification.md`.
+
+
+## [L-joined-walls-and-atlas-gutters] Wall connectivity and texture sampling both affect seams
+
+**What happened:** interior dividers stopped short at junctions, doorway
+sprites drew full-height seams beside their openings, and fractional zoom
+revealed dark lines between otherwise touching wall panels.
+
+**Root cause:** choosing one straight panel discarded junction arms; outlining
+every doorway polygon also outlined its shared edges. Linear filtering then
+sampled transparent atlas gutters at sprite boundaries. Atlas-wide sampler
+clamping did not constrain samples to the individual sprite rectangle.
+
+**Prevention rule:** represent all incident arms in a joined sprite, outline
+only exposed doorway edges, and clamp filtered samples to the sprite's edge
+texel centres. Preserve the existing atlas prefix when adding architecture.
+When another branch has already appended animation records, append new wall
+records after that complete upstream prefix. Resolve the generator sources,
+then regenerate outputs; verify upstream pixels, indices and animation tables
+against the fetched commit before publishing.
+
+**How to verify:** test every elbow, T and crossroad, compare door seam pixels
+with straight wall pixels, and inspect fractional zoom. A 106-pixel wall strip
+contained four dark seam pixels before the shader clamp and none afterward.
+Removing junction selection, the shader clamp, a visible arm, or the pixel
+preservation guard must fail the relevant regression check. Require the named
+assertion to fail; a worker-start timeout is not a caught mutation.
+
+## [L-rider-shoe-envelope] Pedal contact points do not prove shoe clearance
+
+**What happened.** The approved bike still looked plausible at the review pose,
+but evaluated shoe meshes intersected the flywheel housing throughout a cycle.
+
+**Root cause.** The pedal centres cleared the housing while the shoes' inward
+extent did not. Point constraints cannot establish clearance for a solid foot.
+
+**Prevention rule.** Fit pedal spacing to the full evaluated shoe envelope and
+include the wheel covers, not only the main housing. Extend the pedal spindles
+physically; do not hide intersections with sprite masks or change the Sim.
+
+**How to verify.** Test the inward envelope against the outer wheel face, then
+check evaluated mesh intersections at sixteen phases. Inspect the full cycle
+from all four cameras before accepting the exported animation.
+
+The same probe must measure the evaluated sole underside against the pedal
+top. An ankle joint is not a contact surface. The original guessed ankle height
+embedded the sole by 0.02835 units; the approved shoe's measured ankle-to-sole
+offset is 0.110852 units. Include both lateral and vertical checks before a batch.
+
+## [L-portable-artifact-proof-paths] Shared manifests need platform-neutral paths
+
+**What happened.** A density export passed on Windows but its proof JSON used
+backslashes, which the Linux test runner would treat as filename characters.
+
+**Root cause.** Native `str(Path)` formatting leaked into a shared file format.
+
+**Prevention rule.** Serialize relative artifact paths with `.as_posix()` and
+keep native filesystem paths out of portable manifests.
+
+**How to verify.** Test both Windows and POSIX path serialization, reject
+backslashes in committed artifact references, and verify every referenced hash.
+
+## [L-independent-render-validation] A correct composite can hide incorrect ownership
+
+**What happened.** Adversarial review showed that swapping the Sim and furniture
+layers still passed their reconstruction comparison. The contact checker also
+accepted matching sole/pedal heights without proving horizontal support.
+
+**Root cause.** Addition is symmetric, so reconstruction cannot identify which
+layer belongs to which object. A height comparison omits two spatial axes, and
+an empty obstacle list makes collision testing vacuously pass.
+
+**Prevention rule.** Check ownership independently: furniture and outline pixels
+must remain identical across shirt palettes, while the visible Sim contribution
+must change. Cast through the pedal centre to the evaluated sole, require the
+expected obstacle/shoe inventory, and retain mesh-intersection checks.
+
+**How to verify.** Swap owners, zero the body, move a pedal sideways, and remove
+the obstacle inventory. Each must fail its named guard. Restore the original
+bindings and confirm both unchanged source bytes and a passing ordinary run.
+The 2026-09-10 scene mutations rejected a 0.5-unit lateral displacement and all
+six renamed obstacles; the restored sixteen-phase scene passed.
+
+## [L-complete-render-inputs] Hash the render dependency closure before a batch
+
+**What happened.** The first furniture journal hashed five scripts and the rig,
+but omitted imported pose/palette helpers and camera registration data.
+
+**Root cause.** The journal tracked obvious entry points rather than every input
+that could alter a pixel. A resumed batch could otherwise mix incompatible
+poses or camera settings.
+
+**Prevention rule.** Use the dependency wrapper before rendering and check the
+same set afterward and on resume. Record Blender build and colour-management
+settings. Preserve an old incomplete journal and label supplemental post-render
+verification as post-render; never claim it recorded history it did not observe.
+
+**How to verify.** Change a dependency hash or leave the generation proof in its
+running state. Export must reject it. Existing batch supplemental evidence
+explicitly records the narrower Git comparison and its historical limitation.
+
+## [L-authored-action-before-name] Resolve visual actions before inferring transitions
+
+**What happened.** Review raised a possible sit-pose regression for the reading
+chair from the interaction name `settle_in`.
+
+**Root cause.** The name suggested a transition, but shipped content declares
+`read` and the Rust projection maps it directly to the reading visual action.
+
+**Prevention rule.** Trace the authored action and its runtime projection before
+adding animation scope or reporting a missing transition.
+
+**How to verify.** Inspect the exact object's interaction declaration and the
+corresponding compiled-action mapping, not a similarly named test fixture.
+
+## [L-motion-direction-review] Correct poses can still play in the wrong direction
+
+**What happened.** The owner spotted backward pedalling after the bike's poses,
+contacts, facings and compositing had passed review.
+
+**Root cause.** Still-image review established physical contact but did not
+establish the intended direction of travel through the cycle. Increasing source
+phase moved the top pedal toward the rear of the bike rather than the front.
+
+**Prevention rule.** Review the temporal sequence as well as each pose. At the
+top of a forward pedal cycle, the pedal must next travel toward the handlebars.
+The runtime bike order is now 0,7,6,5,4,3,2,1; source phase zero remains the
+resting/reduced-motion pose. Chair order, geometry and sprite identities stay
+unchanged.
+
+**How to verify.** Assert the complete cycling order for every facing and shirt
+colour, assert reading order stays 0,1,2,3, then play the built animation. A
+paused pose or an unordered contact sheet cannot satisfy this check.
+## [L-wall-corner-definition] Closed joins still need a visible change of plane
+
+**What happened:** continuous wall faces blended together at actual corners
+after the unwanted panel seams were removed.
+
+**Root cause:** both wall axes shared one flat face color. Removing every
+vertical mark also removed the cue that distinguished adjoining planes.
+
+**Prevention rule:** shade actual junctions and connecting end panels, rather
+than every tile seam. Keep the fold inside the existing silhouette. The
+south-west elbow has both arms on the left in screen space, so its soft
+shadow must extend left as well.
+
+**How to verify:** inspect the back corner, both exterior divider joins and
+interior junctions in flat and night lighting. Pixel tests require visible
+contrast within three columns and an unchanged alpha mask. Removing the
+crease must fail both tests. Straight walls, doorways and non-wall assets
+must retain their prior pixels.
+
+**Visibility correction:** the first corner pass also marked rear T-junctions.
+Connectivity alone does not prove a visible corner: a north branch behind an
+east-west run, or a west branch behind a north-south run, leaves the near face
+flat. Suppress the crease in these two cases. The regression renders both
+orientations and requires exact agreement with the unshaded wall, while
+separate contrast checks retain the approved creases on visible corners.

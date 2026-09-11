@@ -1,0 +1,1479 @@
+{
+  "schema_version": 1,
+  "width": 38,
+  "height": 88,
+  "anchor": [
+    19.00001358985901,
+    100.00043803453445
+  ],
+  "source_sha256": "a90fd5be6c2c60b89216d4881b9f4265a45fb662d913299daa12cc3b247d9ece",
+  "frames": [
+    {
+      "name": "rigSimRedIdleSE0",
+      "action": "idle",
+      "facing": "SE",
+      "frame": 0,
+      "path": "idle-SE-0.png",
+      "sha256": "2840f208d5277ab55177f8e42cea0cb280f7274c8e6866773bd4025abd46c940"
+    },
+    {
+      "name": "rigSimRedIdleSW0",
+      "action": "idle",
+      "facing": "SW",
+      "frame": 0,
+      "path": "idle-SW-0.png",
+      "sha256": "91d79a735f2bfcbb6fc43739708f2facb046aa14406752e0e4b78f98b8299ccb"
+    },
+    {
+      "name": "rigSimRedIdleNW0",
+      "action": "idle",
+      "facing": "NW",
+      "frame": 0,
+      "path": "idle-NW-0.png",
+      "sha256": "74bac6a039d449b2f6cd050d58c7b55f05044ce5b889518ab8d516ba7c7f094f"
+    },
+    {
+      "name": "rigSimRedIdleNE0",
+      "action": "idle",
+      "facing": "NE",
+      "frame": 0,
+      "path": "idle-NE-0.png",
+      "sha256": "ec16409579893923c143766bd6b080ca9fed3bb1aa9a5bd2237785f5110bffdd"
+    },
+    {
+      "name": "rigSimRedWalkSE0",
+      "action": "walk",
+      "facing": "SE",
+      "frame": 0,
+      "path": "walk-SE-0.png",
+      "sha256": "4a4eb00e429cc0269283d926d834bba60f67f3761c9c9d5ac4c2aa0f93606f83"
+    },
+    {
+      "name": "rigSimRedWalkSE1",
+      "action": "walk",
+      "facing": "SE",
+      "frame": 1,
+      "path": "walk-SE-1.png",
+      "sha256": "daba027c1ee8c1aabd3e01d8ee0791a1a76073b5e487bfe9bcabae13618bea07"
+    },
+    {
+      "name": "rigSimRedWalkSE2",
+      "action": "walk",
+      "facing": "SE",
+      "frame": 2,
+      "path": "walk-SE-2.png",
+      "sha256": "7ad46215f5775c716e318c50fbcac36fb17f6ebffd82090b6cf9a29f906c141f"
+    },
+    {
+      "name": "rigSimRedWalkSE3",
+      "action": "walk",
+      "facing": "SE",
+      "frame": 3,
+      "path": "walk-SE-3.png",
+      "sha256": "cfa7aaedbbe7c3ab824432cf2aa0d9a83275d0a6f83a1fbd010552724abdf16b"
+    },
+    {
+      "name": "rigSimRedWalkSE4",
+      "action": "walk",
+      "facing": "SE",
+      "frame": 4,
+      "path": "walk-SE-4.png",
+      "sha256": "9c9d250d0c0f747817cee2862a0e7cbc2d08151f8d9de8762c9f82e61a00c067"
+    },
+    {
+      "name": "rigSimRedWalkSE5",
+      "action": "walk",
+      "facing": "SE",
+      "frame": 5,
+      "path": "walk-SE-5.png",
+      "sha256": "a82f098f391d13c2fb96a6098eb5e153862eb40dcec6f0ee9ddad1ae2bcca734"
+    },
+    {
+      "name": "rigSimRedWalkSE6",
+      "action": "walk",
+      "facing": "SE",
+      "frame": 6,
+      "path": "walk-SE-6.png",
+      "sha256": "80954f74ad8bcd1f3f3a7605b2d91b2f6df642ba9ee68e3d4ffbdcea17168a4d"
+    },
+    {
+      "name": "rigSimRedWalkSE7",
+      "action": "walk",
+      "facing": "SE",
+      "frame": 7,
+      "path": "walk-SE-7.png",
+      "sha256": "c517f758d287786e7fce935a2dcdf61004abe276cdc43ee8fa1d55769749b3c1"
+    },
+    {
+      "name": "rigSimRedWalkSW0",
+      "action": "walk",
+      "facing": "SW",
+      "frame": 0,
+      "path": "walk-SW-0.png",
+      "sha256": "9bcda80d1c67c7c16477145a9e9e20a9fa47e7a6af263175d1138cff4cc23be7"
+    },
+    {
+      "name": "rigSimRedWalkSW1",
+      "action": "walk",
+      "facing": "SW",
+      "frame": 1,
+      "path": "walk-SW-1.png",
+      "sha256": "c486b7979f383b09bdfd04f4ef8e6ba32573fcd87cdde79b1b92ccf2e9f5bbe5"
+    },
+    {
+      "name": "rigSimRedWalkSW2",
+      "action": "walk",
+      "facing": "SW",
+      "frame": 2,
+      "path": "walk-SW-2.png",
+      "sha256": "e130a2dafecfe177fa0c55b6097e32d6c8907632cc5d19a4d92e18b34cac9ad7"
+    },
+    {
+      "name": "rigSimRedWalkSW3",
+      "action": "walk",
+      "facing": "SW",
+      "frame": 3,
+      "path": "walk-SW-3.png",
+      "sha256": "1dcba0c1125954ef6af73f5425b2fa737aa6716236c1230f98330f1c8b813165"
+    },
+    {
+      "name": "rigSimRedWalkSW4",
+      "action": "walk",
+      "facing": "SW",
+      "frame": 4,
+      "path": "walk-SW-4.png",
+      "sha256": "855902c4c976a91ccd5b823558ca5542c3bf14442cc89cf585f151dc8bb25254"
+    },
+    {
+      "name": "rigSimRedWalkSW5",
+      "action": "walk",
+      "facing": "SW",
+      "frame": 5,
+      "path": "walk-SW-5.png",
+      "sha256": "032a22a1366b380cb2c5963ae9cf8a3df74a26c6fb6c1bb12a5bbee09ec22af0"
+    },
+    {
+      "name": "rigSimRedWalkSW6",
+      "action": "walk",
+      "facing": "SW",
+      "frame": 6,
+      "path": "walk-SW-6.png",
+      "sha256": "788edf35f2d1aa6e095a903449f1cb68138392516407acfd37791f591515890e"
+    },
+    {
+      "name": "rigSimRedWalkSW7",
+      "action": "walk",
+      "facing": "SW",
+      "frame": 7,
+      "path": "walk-SW-7.png",
+      "sha256": "4db9ee60d31c132ae9b4a4ae7fd377bdd5f3bb4a24b9b7592c27b7109ceb4e68"
+    },
+    {
+      "name": "rigSimRedWalkNW0",
+      "action": "walk",
+      "facing": "NW",
+      "frame": 0,
+      "path": "walk-NW-0.png",
+      "sha256": "7d390027a7be45019b3bed54628aa9b77ca84f8dc4d11e52e503b4df1f2c0181"
+    },
+    {
+      "name": "rigSimRedWalkNW1",
+      "action": "walk",
+      "facing": "NW",
+      "frame": 1,
+      "path": "walk-NW-1.png",
+      "sha256": "64e17571ec6b570a30455b77e195b80e2d0942b39966b5e3e5a541ef90340a82"
+    },
+    {
+      "name": "rigSimRedWalkNW2",
+      "action": "walk",
+      "facing": "NW",
+      "frame": 2,
+      "path": "walk-NW-2.png",
+      "sha256": "4fe331116d49bc9d1388ff376bc7aac2080b8c64c50332ca2efc8600cf04135e"
+    },
+    {
+      "name": "rigSimRedWalkNW3",
+      "action": "walk",
+      "facing": "NW",
+      "frame": 3,
+      "path": "walk-NW-3.png",
+      "sha256": "61bf866fc53a347ad26250931b69592c86b135f9e7437c96bc249ed0c9e62b63"
+    },
+    {
+      "name": "rigSimRedWalkNW4",
+      "action": "walk",
+      "facing": "NW",
+      "frame": 4,
+      "path": "walk-NW-4.png",
+      "sha256": "8c64013e255c0b18612f595c22c4733f88b7ee3100f9aff1c2d631683c9f2ce1"
+    },
+    {
+      "name": "rigSimRedWalkNW5",
+      "action": "walk",
+      "facing": "NW",
+      "frame": 5,
+      "path": "walk-NW-5.png",
+      "sha256": "63bc6704aff0b303c4cb0ef96ee6368988c1627d72aa2ac9c9ebb12833e536ee"
+    },
+    {
+      "name": "rigSimRedWalkNW6",
+      "action": "walk",
+      "facing": "NW",
+      "frame": 6,
+      "path": "walk-NW-6.png",
+      "sha256": "b2534b990c91d5a746bc03e2689b621566edde7c2effd268a063a53e3b27f456"
+    },
+    {
+      "name": "rigSimRedWalkNW7",
+      "action": "walk",
+      "facing": "NW",
+      "frame": 7,
+      "path": "walk-NW-7.png",
+      "sha256": "d3507fc7080bca77d831474660f3cf7e77f0e78bc2e08bcabaa71010023716f1"
+    },
+    {
+      "name": "rigSimRedWalkNE0",
+      "action": "walk",
+      "facing": "NE",
+      "frame": 0,
+      "path": "walk-NE-0.png",
+      "sha256": "ba5058e29521689c8019132aa63d44c5e8551a8ead943a252f02c4106b521cf6"
+    },
+    {
+      "name": "rigSimRedWalkNE1",
+      "action": "walk",
+      "facing": "NE",
+      "frame": 1,
+      "path": "walk-NE-1.png",
+      "sha256": "1b896efaa7f96a768f6d592f8a4722ffdb874bf1579a2e84d6cb619ca308e6ce"
+    },
+    {
+      "name": "rigSimRedWalkNE2",
+      "action": "walk",
+      "facing": "NE",
+      "frame": 2,
+      "path": "walk-NE-2.png",
+      "sha256": "8552d020af82befde8efc2fafd2f73bd5e448e6a069ddda3afd24cd0589fd7ec"
+    },
+    {
+      "name": "rigSimRedWalkNE3",
+      "action": "walk",
+      "facing": "NE",
+      "frame": 3,
+      "path": "walk-NE-3.png",
+      "sha256": "d64ab0c60cc709ea4462847f4e44d5a5509f5a6fa017432863a889dcc4efff48"
+    },
+    {
+      "name": "rigSimRedWalkNE4",
+      "action": "walk",
+      "facing": "NE",
+      "frame": 4,
+      "path": "walk-NE-4.png",
+      "sha256": "876120ed844a051d1db74a0cfb8394d540d36252425d87c58c2f2c419d9e6c09"
+    },
+    {
+      "name": "rigSimRedWalkNE5",
+      "action": "walk",
+      "facing": "NE",
+      "frame": 5,
+      "path": "walk-NE-5.png",
+      "sha256": "636a3fa73bc61f19b32d80134aba6110ef3ac255a38db2c7d283b6f90ba0240e"
+    },
+    {
+      "name": "rigSimRedWalkNE6",
+      "action": "walk",
+      "facing": "NE",
+      "frame": 6,
+      "path": "walk-NE-6.png",
+      "sha256": "716f5b4d7127b6898a3572597f5daa5ee39bf6533c0de52d5901cacb3de95702"
+    },
+    {
+      "name": "rigSimRedWalkNE7",
+      "action": "walk",
+      "facing": "NE",
+      "frame": 7,
+      "path": "walk-NE-7.png",
+      "sha256": "8d45f72b5589016624e82e6648b08dbb5e7e8b18762fab82eae0db9204537a84"
+    },
+    {
+      "name": "rigSimRedReadSE0",
+      "action": "read",
+      "facing": "SE",
+      "frame": 0,
+      "path": "read-SE-0.png",
+      "sha256": "35fbcfc80b5b2aca4f26a8110566b87d34d1a533623ed0168ff905dc9111f7f4"
+    },
+    {
+      "name": "rigSimRedReadSE1",
+      "action": "read",
+      "facing": "SE",
+      "frame": 1,
+      "path": "read-SE-1.png",
+      "sha256": "57dace307fa0bd385c94d19b62e878e5e40f24a58c4c11fd29e7fd402121f33a"
+    },
+    {
+      "name": "rigSimRedReadSE2",
+      "action": "read",
+      "facing": "SE",
+      "frame": 2,
+      "path": "read-SE-2.png",
+      "sha256": "35fbcfc80b5b2aca4f26a8110566b87d34d1a533623ed0168ff905dc9111f7f4"
+    },
+    {
+      "name": "rigSimRedReadSE3",
+      "action": "read",
+      "facing": "SE",
+      "frame": 3,
+      "path": "read-SE-3.png",
+      "sha256": "aa70d4dd81077e089f31f19a5c3c67e826951fb46ee50a2d7a84dbce08c710c6"
+    },
+    {
+      "name": "rigSimRedReadSW0",
+      "action": "read",
+      "facing": "SW",
+      "frame": 0,
+      "path": "read-SW-0.png",
+      "sha256": "11bc78ee98451a8324fee68ce25968f9e3fe563093f6397b9fe9ae3dfdb6f062"
+    },
+    {
+      "name": "rigSimRedReadSW1",
+      "action": "read",
+      "facing": "SW",
+      "frame": 1,
+      "path": "read-SW-1.png",
+      "sha256": "1de8ebc3601c7c4e44e643bac572c1e535f5f259853c1ce422b7a927445ca828"
+    },
+    {
+      "name": "rigSimRedReadSW2",
+      "action": "read",
+      "facing": "SW",
+      "frame": 2,
+      "path": "read-SW-2.png",
+      "sha256": "11bc78ee98451a8324fee68ce25968f9e3fe563093f6397b9fe9ae3dfdb6f062"
+    },
+    {
+      "name": "rigSimRedReadSW3",
+      "action": "read",
+      "facing": "SW",
+      "frame": 3,
+      "path": "read-SW-3.png",
+      "sha256": "40a4ae0da57120b965f60d2bbde37502e974f67b6596e7c0d0f14b5ef31d8964"
+    },
+    {
+      "name": "rigSimRedReadNW0",
+      "action": "read",
+      "facing": "NW",
+      "frame": 0,
+      "path": "read-NW-0.png",
+      "sha256": "b15aa52343f3362147c5c323d9b5f18ce364b3bb7744e8b3652d0647e4d52b8e"
+    },
+    {
+      "name": "rigSimRedReadNW1",
+      "action": "read",
+      "facing": "NW",
+      "frame": 1,
+      "path": "read-NW-1.png",
+      "sha256": "3f041236c4ebe39cfd012e4a33cd8371505e44b1117a6ff3cd059c34317e6e82"
+    },
+    {
+      "name": "rigSimRedReadNW2",
+      "action": "read",
+      "facing": "NW",
+      "frame": 2,
+      "path": "read-NW-2.png",
+      "sha256": "b15aa52343f3362147c5c323d9b5f18ce364b3bb7744e8b3652d0647e4d52b8e"
+    },
+    {
+      "name": "rigSimRedReadNW3",
+      "action": "read",
+      "facing": "NW",
+      "frame": 3,
+      "path": "read-NW-3.png",
+      "sha256": "2a4a1131504009abd435d65bd4782a0891140034e0387eb6763a0f7223996657"
+    },
+    {
+      "name": "rigSimRedReadNE0",
+      "action": "read",
+      "facing": "NE",
+      "frame": 0,
+      "path": "read-NE-0.png",
+      "sha256": "98757086beff25b923e20509e3a506b017cbfc6932f326d15a7652592fa3fc14"
+    },
+    {
+      "name": "rigSimRedReadNE1",
+      "action": "read",
+      "facing": "NE",
+      "frame": 1,
+      "path": "read-NE-1.png",
+      "sha256": "f4d22d12944127f32695a1c6bab329d9edf9696945bf5a1f327d4df5b678a76b"
+    },
+    {
+      "name": "rigSimRedReadNE2",
+      "action": "read",
+      "facing": "NE",
+      "frame": 2,
+      "path": "read-NE-2.png",
+      "sha256": "98757086beff25b923e20509e3a506b017cbfc6932f326d15a7652592fa3fc14"
+    },
+    {
+      "name": "rigSimRedReadNE3",
+      "action": "read",
+      "facing": "NE",
+      "frame": 3,
+      "path": "read-NE-3.png",
+      "sha256": "837b8b82e378b21701d23a8856701b3bae78d6edc924ed89e67253f92ff5b5ec"
+    },
+    {
+      "name": "rigSimRedTalkSE0",
+      "action": "talk",
+      "facing": "SE",
+      "frame": 0,
+      "path": "talk-SE-0.png",
+      "sha256": "3b342637d0a63f55c8bcd004143d3befd069cefd755719bcfabb381831f97d4f"
+    },
+    {
+      "name": "rigSimRedTalkSE1",
+      "action": "talk",
+      "facing": "SE",
+      "frame": 1,
+      "path": "talk-SE-1.png",
+      "sha256": "187191e9cdbaa7c87010330e4e28fe954a73fef4dfa1b1f020081233302907c1"
+    },
+    {
+      "name": "rigSimRedTalkSE2",
+      "action": "talk",
+      "facing": "SE",
+      "frame": 2,
+      "path": "talk-SE-2.png",
+      "sha256": "f31c86fea0460fe3e744da0ada585c4bc78780174a8e395f41bf504f302feef2"
+    },
+    {
+      "name": "rigSimRedTalkSE3",
+      "action": "talk",
+      "facing": "SE",
+      "frame": 3,
+      "path": "talk-SE-3.png",
+      "sha256": "9f77a8390aa020530406baab903a0b12473fad11e141afedb0dcad964aee88d4"
+    },
+    {
+      "name": "rigSimRedTalkSW0",
+      "action": "talk",
+      "facing": "SW",
+      "frame": 0,
+      "path": "talk-SW-0.png",
+      "sha256": "9349294b3d3c08c2cda1708d7219fd76957a75eca70fcb202d878ba9344cc412"
+    },
+    {
+      "name": "rigSimRedTalkSW1",
+      "action": "talk",
+      "facing": "SW",
+      "frame": 1,
+      "path": "talk-SW-1.png",
+      "sha256": "388069fd5de789884c5c8c31a85431082325ff17c47577ec85bad0622ad91702"
+    },
+    {
+      "name": "rigSimRedTalkSW2",
+      "action": "talk",
+      "facing": "SW",
+      "frame": 2,
+      "path": "talk-SW-2.png",
+      "sha256": "1ec3514c2377985a4134c0d7ed10214594b9a616f33f838a8b6a903bcf4485b9"
+    },
+    {
+      "name": "rigSimRedTalkSW3",
+      "action": "talk",
+      "facing": "SW",
+      "frame": 3,
+      "path": "talk-SW-3.png",
+      "sha256": "02a61b6623da1ef747471ed1367d7daa83d70a04cf0c2dcedd296c787b4a516f"
+    },
+    {
+      "name": "rigSimRedTalkNW0",
+      "action": "talk",
+      "facing": "NW",
+      "frame": 0,
+      "path": "talk-NW-0.png",
+      "sha256": "8cce1d186642c2fc27c45efc30b72b93a999e68bc4594039fdee48615cbb9da4"
+    },
+    {
+      "name": "rigSimRedTalkNW1",
+      "action": "talk",
+      "facing": "NW",
+      "frame": 1,
+      "path": "talk-NW-1.png",
+      "sha256": "850374f8705ff1eb900273cc5381207a3fe31a3a2a45808a295d8b5451433dc6"
+    },
+    {
+      "name": "rigSimRedTalkNW2",
+      "action": "talk",
+      "facing": "NW",
+      "frame": 2,
+      "path": "talk-NW-2.png",
+      "sha256": "ad440d8e6a78e754634229fb1124a2c9d7de02508dd426560fa10664ef667c74"
+    },
+    {
+      "name": "rigSimRedTalkNW3",
+      "action": "talk",
+      "facing": "NW",
+      "frame": 3,
+      "path": "talk-NW-3.png",
+      "sha256": "b3c63fa6e560e3a1c79b8af0e121751301c14def12d72d6611fc9e181cf66b9f"
+    },
+    {
+      "name": "rigSimRedTalkNE0",
+      "action": "talk",
+      "facing": "NE",
+      "frame": 0,
+      "path": "talk-NE-0.png",
+      "sha256": "792770348d8ca4357ef4f9b105d3c2559cd8a0619e9da140f3a4055e70998751"
+    },
+    {
+      "name": "rigSimRedTalkNE1",
+      "action": "talk",
+      "facing": "NE",
+      "frame": 1,
+      "path": "talk-NE-1.png",
+      "sha256": "7160f06fa6006be5e40af466ca7735ac5b7c984a9c12843cea7585377b66f841"
+    },
+    {
+      "name": "rigSimRedTalkNE2",
+      "action": "talk",
+      "facing": "NE",
+      "frame": 2,
+      "path": "talk-NE-2.png",
+      "sha256": "29265aad578b649f2a2432b47aa6f5846b84b7ef5ec95b063c4b1f04fcc08e8e"
+    },
+    {
+      "name": "rigSimRedTalkNE3",
+      "action": "talk",
+      "facing": "NE",
+      "frame": 3,
+      "path": "talk-NE-3.png",
+      "sha256": "37614dbdc6611e18696741b7c0feeb5c87afb28e94aabf7510ba78f041378696"
+    },
+    {
+      "name": "rigSimRedEatSE0",
+      "action": "eat",
+      "facing": "SE",
+      "frame": 0,
+      "path": "eat-SE-0.png",
+      "sha256": "d87ceca9d224dc81478ebf72888aac42a0ccb63122563b0905992480a2ec8b5b",
+      "hand_anchor": [
+        39.31576061248779,
+        46.81222105026245
+      ],
+      "hand_in_front": true
+    },
+    {
+      "name": "rigSimRedEatSE1",
+      "action": "eat",
+      "facing": "SE",
+      "frame": 1,
+      "path": "eat-SE-1.png",
+      "sha256": "8a99645de6b2441a453a5b3ad08dc2ae0c6816148d77e8a2bce117458ee74681",
+      "hand_anchor": [
+        38.195727467536926,
+        41.912996768951416
+      ],
+      "hand_in_front": true
+    },
+    {
+      "name": "rigSimRedEatSE2",
+      "action": "eat",
+      "facing": "SE",
+      "frame": 2,
+      "path": "eat-SE-2.png",
+      "sha256": "239eb74aa5f4e640a1d19cb579b7a2deb9963bd79f245f4e93a43fa72316340c",
+      "hand_anchor": [
+        37.075732827186584,
+        37.0137882232666
+      ],
+      "hand_in_front": true
+    },
+    {
+      "name": "rigSimRedEatSE3",
+      "action": "eat",
+      "facing": "SE",
+      "frame": 3,
+      "path": "eat-SE-3.png",
+      "sha256": "8a99645de6b2441a453a5b3ad08dc2ae0c6816148d77e8a2bce117458ee74681",
+      "hand_anchor": [
+        38.195727467536926,
+        41.912996768951416
+      ],
+      "hand_in_front": true
+    },
+    {
+      "name": "rigSimRedEatSW0",
+      "action": "eat",
+      "facing": "SW",
+      "frame": 0,
+      "path": "eat-SW-0.png",
+      "sha256": "87b62f8f03a6080d5e831a82b6fcfb62b658de4e9fe16994651e87e7d0830d63",
+      "hand_anchor": [
+        25.762970209121704,
+        55.395110845565796
+      ],
+      "hand_in_front": true
+    },
+    {
+      "name": "rigSimRedEatSW1",
+      "action": "eat",
+      "facing": "SW",
+      "frame": 1,
+      "path": "eat-SW-1.png",
+      "sha256": "6cee529c54507f76c1c6b4d2ed661295e079131978cc017069f7982e743f0830",
+      "hand_anchor": [
+        24.64298802614212,
+        49.025877475738525
+      ],
+      "hand_in_front": true
+    },
+    {
+      "name": "rigSimRedEatSW2",
+      "action": "eat",
+      "facing": "SW",
+      "frame": 2,
+      "path": "eat-SW-2.png",
+      "sha256": "1fbb7200da137d4e4d331838ebb0f591735e2efe67a6a8c960acc4a96c1f1980",
+      "hand_anchor": [
+        23.522975265979767,
+        42.656662464141846
+      ],
+      "hand_in_front": true
+    },
+    {
+      "name": "rigSimRedEatSW3",
+      "action": "eat",
+      "facing": "SW",
+      "frame": 3,
+      "path": "eat-SW-3.png",
+      "sha256": "6cee529c54507f76c1c6b4d2ed661295e079131978cc017069f7982e743f0830",
+      "hand_anchor": [
+        24.64298802614212,
+        49.025877475738525
+      ],
+      "hand_in_front": true
+    },
+    {
+      "name": "rigSimRedEatNW0",
+      "action": "eat",
+      "facing": "NW",
+      "frame": 0,
+      "path": "eat-NW-0.png",
+      "sha256": "89794f41a7ce0cc7d000c75314f9c1958446a7eb6839cb5ad7eb02b942cb1408",
+      "hand_anchor": [
+        12.684276193380356,
+        46.50109100341797
+      ],
+      "hand_in_front": true
+    },
+    {
+      "name": "rigSimRedEatNW1",
+      "action": "eat",
+      "facing": "NW",
+      "frame": 1,
+      "path": "eat-NW-1.png",
+      "sha256": "f2e5895038fcf077b10262d97700dc4378f6b8e6ea3959a818168db3028e0720",
+      "hand_anchor": [
+        13.804311037063599,
+        40.13189697265625
+      ],
+      "hand_in_front": true
+    },
+    {
+      "name": "rigSimRedEatNW2",
+      "action": "eat",
+      "facing": "NW",
+      "frame": 2,
+      "path": "eat-NW-2.png",
+      "sha256": "2c777232dbd317fdb608814449fdc16a74afa86f3bb937ae702070a89f7c5c73",
+      "hand_anchor": [
+        14.924307376146317,
+        33.76266622543335
+      ],
+      "hand_in_front": true
+    },
+    {
+      "name": "rigSimRedEatNW3",
+      "action": "eat",
+      "facing": "NW",
+      "frame": 3,
+      "path": "eat-NW-3.png",
+      "sha256": "f2e5895038fcf077b10262d97700dc4378f6b8e6ea3959a818168db3028e0720",
+      "hand_anchor": [
+        13.804311037063599,
+        40.13189697265625
+      ],
+      "hand_in_front": true
+    },
+    {
+      "name": "rigSimRedEatNE0",
+      "action": "eat",
+      "facing": "NE",
+      "frame": 0,
+      "path": "eat-NE-0.png",
+      "sha256": "b762243eddef42bc159d4134409164295369224e5501485af3e8218e40417fd3",
+      "hand_anchor": [
+        26.237063765525818,
+        37.918198585510254
+      ],
+      "hand_in_front": false
+    },
+    {
+      "name": "rigSimRedEatNE1",
+      "action": "eat",
+      "facing": "NE",
+      "frame": 1,
+      "path": "eat-NE-1.png",
+      "sha256": "5d8a90284fd8586d598b3aa0ba39dbcd479e8b21acf14be9948f93d8f59d41cb",
+      "hand_anchor": [
+        27.357049345970154,
+        33.01901626586914
+      ],
+      "hand_in_front": false
+    },
+    {
+      "name": "rigSimRedEatNE2",
+      "action": "eat",
+      "facing": "NE",
+      "frame": 2,
+      "path": "eat-NE-2.png",
+      "sha256": "606308170eded5211f1f2308de1c2762a71f677c898d882ecd9b3ee45c221810",
+      "hand_anchor": [
+        28.477062106132507,
+        28.119791984558105
+      ],
+      "hand_in_front": false
+    },
+    {
+      "name": "rigSimRedEatNE3",
+      "action": "eat",
+      "facing": "NE",
+      "frame": 3,
+      "path": "eat-NE-3.png",
+      "sha256": "5d8a90284fd8586d598b3aa0ba39dbcd479e8b21acf14be9948f93d8f59d41cb",
+      "hand_anchor": [
+        27.357049345970154,
+        33.01901626586914
+      ],
+      "hand_in_front": false
+    },
+    {
+      "name": "rigSimRedStandReadSE0",
+      "action": "stand_read",
+      "facing": "SE",
+      "frame": 0,
+      "path": "stand_read-SE-0.png",
+      "sha256": "a7c5d7995f73c02b866e9ff89e05e197e9a58cf5503f18a7deac5a84edaa9cc7"
+    },
+    {
+      "name": "rigSimRedStandReadSE1",
+      "action": "stand_read",
+      "facing": "SE",
+      "frame": 1,
+      "path": "stand_read-SE-1.png",
+      "sha256": "08719faec26847b8353dd2e526fa942217b442d1eb7e4e0df47a864d1b417273"
+    },
+    {
+      "name": "rigSimRedStandReadSE2",
+      "action": "stand_read",
+      "facing": "SE",
+      "frame": 2,
+      "path": "stand_read-SE-2.png",
+      "sha256": "a7c5d7995f73c02b866e9ff89e05e197e9a58cf5503f18a7deac5a84edaa9cc7"
+    },
+    {
+      "name": "rigSimRedStandReadSE3",
+      "action": "stand_read",
+      "facing": "SE",
+      "frame": 3,
+      "path": "stand_read-SE-3.png",
+      "sha256": "fd235df212a7eaea5bc8f54025b9a00b5bf969c964fa3e6a00843ff42602a1d3"
+    },
+    {
+      "name": "rigSimRedStandReadSW0",
+      "action": "stand_read",
+      "facing": "SW",
+      "frame": 0,
+      "path": "stand_read-SW-0.png",
+      "sha256": "1f61d0b4c66553d173d2bb70857eeb6fd7115e14b2eb38239d7045fcbe3f45e5"
+    },
+    {
+      "name": "rigSimRedStandReadSW1",
+      "action": "stand_read",
+      "facing": "SW",
+      "frame": 1,
+      "path": "stand_read-SW-1.png",
+      "sha256": "2fab14725f5d2310b5c8a264429b9060a680847ea7b7afad260ca100f4ee8c5b"
+    },
+    {
+      "name": "rigSimRedStandReadSW2",
+      "action": "stand_read",
+      "facing": "SW",
+      "frame": 2,
+      "path": "stand_read-SW-2.png",
+      "sha256": "1f61d0b4c66553d173d2bb70857eeb6fd7115e14b2eb38239d7045fcbe3f45e5"
+    },
+    {
+      "name": "rigSimRedStandReadSW3",
+      "action": "stand_read",
+      "facing": "SW",
+      "frame": 3,
+      "path": "stand_read-SW-3.png",
+      "sha256": "a2e66a2c12a8a5d4bb578319e8e6455f7fc2c5f95af8bb940ebaf15ee831f1b0"
+    },
+    {
+      "name": "rigSimRedStandReadNW0",
+      "action": "stand_read",
+      "facing": "NW",
+      "frame": 0,
+      "path": "stand_read-NW-0.png",
+      "sha256": "87d7cc6e5d705606daf1cd034079b53831554a578d9515787b694ab868c14ca7"
+    },
+    {
+      "name": "rigSimRedStandReadNW1",
+      "action": "stand_read",
+      "facing": "NW",
+      "frame": 1,
+      "path": "stand_read-NW-1.png",
+      "sha256": "ca299066d68170c1390b90513a7375899dfbdc1d92e3a8a9d96f188ef09a9b25"
+    },
+    {
+      "name": "rigSimRedStandReadNW2",
+      "action": "stand_read",
+      "facing": "NW",
+      "frame": 2,
+      "path": "stand_read-NW-2.png",
+      "sha256": "87d7cc6e5d705606daf1cd034079b53831554a578d9515787b694ab868c14ca7"
+    },
+    {
+      "name": "rigSimRedStandReadNW3",
+      "action": "stand_read",
+      "facing": "NW",
+      "frame": 3,
+      "path": "stand_read-NW-3.png",
+      "sha256": "a86be0f4945a4c9a41c1e1ad763c1ad80f161487680e3d8a8262abe88fbe47b7"
+    },
+    {
+      "name": "rigSimRedStandReadNE0",
+      "action": "stand_read",
+      "facing": "NE",
+      "frame": 0,
+      "path": "stand_read-NE-0.png",
+      "sha256": "beb3a41db514d0c1867a266b4b5fe21d8d192617be3c17f6b4dff792520046ab"
+    },
+    {
+      "name": "rigSimRedStandReadNE1",
+      "action": "stand_read",
+      "facing": "NE",
+      "frame": 1,
+      "path": "stand_read-NE-1.png",
+      "sha256": "7eb8a286930b620ee17eaa2608c4d11dd71569a6a4791e03c9d5462301e675fe"
+    },
+    {
+      "name": "rigSimRedStandReadNE2",
+      "action": "stand_read",
+      "facing": "NE",
+      "frame": 2,
+      "path": "stand_read-NE-2.png",
+      "sha256": "beb3a41db514d0c1867a266b4b5fe21d8d192617be3c17f6b4dff792520046ab"
+    },
+    {
+      "name": "rigSimRedStandReadNE3",
+      "action": "stand_read",
+      "facing": "NE",
+      "frame": 3,
+      "path": "stand_read-NE-3.png",
+      "sha256": "e828d7c5e054963e54943a32c5554773e62b116bd5a9c21ed14b319a385b1034"
+    },
+    {
+      "name": "rigSimRedWatchFishSE0",
+      "action": "watch_fish",
+      "facing": "SE",
+      "frame": 0,
+      "path": "watch_fish-SE-0.png",
+      "sha256": "412c2a0eef2b3380da65281dd04d098de3a546c8bdf392ba3673d9d3ca4dac85"
+    },
+    {
+      "name": "rigSimRedWatchFishSE1",
+      "action": "watch_fish",
+      "facing": "SE",
+      "frame": 1,
+      "path": "watch_fish-SE-1.png",
+      "sha256": "03d88c0433bc5a1d61d7f3f32083723d2972ff43d1ebd6c3cb26e94c99bbe883"
+    },
+    {
+      "name": "rigSimRedWatchFishSE2",
+      "action": "watch_fish",
+      "facing": "SE",
+      "frame": 2,
+      "path": "watch_fish-SE-2.png",
+      "sha256": "412c2a0eef2b3380da65281dd04d098de3a546c8bdf392ba3673d9d3ca4dac85"
+    },
+    {
+      "name": "rigSimRedWatchFishSE3",
+      "action": "watch_fish",
+      "facing": "SE",
+      "frame": 3,
+      "path": "watch_fish-SE-3.png",
+      "sha256": "9f6dedd74dc3f61aaf5c11bc6a5cef1299ca35f36f3735ed4ea5c66292670c2c"
+    },
+    {
+      "name": "rigSimRedWatchFishSW0",
+      "action": "watch_fish",
+      "facing": "SW",
+      "frame": 0,
+      "path": "watch_fish-SW-0.png",
+      "sha256": "8318353dcf196941633fbf4ac9271967e9995b0bb8f12a3b64cedfaaa6fa15f2"
+    },
+    {
+      "name": "rigSimRedWatchFishSW1",
+      "action": "watch_fish",
+      "facing": "SW",
+      "frame": 1,
+      "path": "watch_fish-SW-1.png",
+      "sha256": "66e4df5e6c192afc1e50b595beeb46e4f9deb921e0cccdbaa63efa88df92f901"
+    },
+    {
+      "name": "rigSimRedWatchFishSW2",
+      "action": "watch_fish",
+      "facing": "SW",
+      "frame": 2,
+      "path": "watch_fish-SW-2.png",
+      "sha256": "8318353dcf196941633fbf4ac9271967e9995b0bb8f12a3b64cedfaaa6fa15f2"
+    },
+    {
+      "name": "rigSimRedWatchFishSW3",
+      "action": "watch_fish",
+      "facing": "SW",
+      "frame": 3,
+      "path": "watch_fish-SW-3.png",
+      "sha256": "52122c38abc26fb0363b8d0414b3be1a8d33aac6f5412c8e8cdc01645a05f950"
+    },
+    {
+      "name": "rigSimRedWatchFishNW0",
+      "action": "watch_fish",
+      "facing": "NW",
+      "frame": 0,
+      "path": "watch_fish-NW-0.png",
+      "sha256": "46771f41b8dfbac607dcb3084567fdc79d41fb087255847fc37ff3fe3411f14f"
+    },
+    {
+      "name": "rigSimRedWatchFishNW1",
+      "action": "watch_fish",
+      "facing": "NW",
+      "frame": 1,
+      "path": "watch_fish-NW-1.png",
+      "sha256": "c475396b2d3cb27ffcc3134313b5b77ed484e1ab9218782cd3aec564abe3c1ac"
+    },
+    {
+      "name": "rigSimRedWatchFishNW2",
+      "action": "watch_fish",
+      "facing": "NW",
+      "frame": 2,
+      "path": "watch_fish-NW-2.png",
+      "sha256": "46771f41b8dfbac607dcb3084567fdc79d41fb087255847fc37ff3fe3411f14f"
+    },
+    {
+      "name": "rigSimRedWatchFishNW3",
+      "action": "watch_fish",
+      "facing": "NW",
+      "frame": 3,
+      "path": "watch_fish-NW-3.png",
+      "sha256": "00f9966c55ea4a3d9d01f53d1b194331c9b888ee3df146f928add5280b6b213f"
+    },
+    {
+      "name": "rigSimRedWatchFishNE0",
+      "action": "watch_fish",
+      "facing": "NE",
+      "frame": 0,
+      "path": "watch_fish-NE-0.png",
+      "sha256": "d4b5a8b37614497deb4f38b3fd63e9a05010a4cbf767748cc5b25af0ef29aaa4"
+    },
+    {
+      "name": "rigSimRedWatchFishNE1",
+      "action": "watch_fish",
+      "facing": "NE",
+      "frame": 1,
+      "path": "watch_fish-NE-1.png",
+      "sha256": "59240a4980a92a27dd8593c60720371e26f751b42ec6d5e5368dcc614b9dcf22"
+    },
+    {
+      "name": "rigSimRedWatchFishNE2",
+      "action": "watch_fish",
+      "facing": "NE",
+      "frame": 2,
+      "path": "watch_fish-NE-2.png",
+      "sha256": "d4b5a8b37614497deb4f38b3fd63e9a05010a4cbf767748cc5b25af0ef29aaa4"
+    },
+    {
+      "name": "rigSimRedWatchFishNE3",
+      "action": "watch_fish",
+      "facing": "NE",
+      "frame": 3,
+      "path": "watch_fish-NE-3.png",
+      "sha256": "a72871fac99fb961621ef0c99c4c2a2b2e51dc0c2aa37e21c922463d764c97d6"
+    },
+    {
+      "name": "rigSimRedSitSE0",
+      "action": "sit",
+      "facing": "SE",
+      "frame": 0,
+      "path": "sit-SE-0.png",
+      "sha256": "949c26f8f68ba8ef7fa75325b03fc2fd6e5be582c976b6a8dee455cfbfdd9e87"
+    },
+    {
+      "name": "rigSimRedSitSE1",
+      "action": "sit",
+      "facing": "SE",
+      "frame": 1,
+      "path": "sit-SE-1.png",
+      "sha256": "15f6187a4cf14139f8d652cbe804524aa8f448aa247061eb2971b411d9689173"
+    },
+    {
+      "name": "rigSimRedSitSE2",
+      "action": "sit",
+      "facing": "SE",
+      "frame": 2,
+      "path": "sit-SE-2.png",
+      "sha256": "949c26f8f68ba8ef7fa75325b03fc2fd6e5be582c976b6a8dee455cfbfdd9e87"
+    },
+    {
+      "name": "rigSimRedSitSE3",
+      "action": "sit",
+      "facing": "SE",
+      "frame": 3,
+      "path": "sit-SE-3.png",
+      "sha256": "b056387eaf169ee7b793656b0dad294a44473ed577a8d0eb2b991d530bdf7430"
+    },
+    {
+      "name": "rigSimRedSitSW0",
+      "action": "sit",
+      "facing": "SW",
+      "frame": 0,
+      "path": "sit-SW-0.png",
+      "sha256": "debc286b020e6650eef87d595a1625d0dc6ef98a2dcb3aae89f9eb0ad6e5160e"
+    },
+    {
+      "name": "rigSimRedSitSW1",
+      "action": "sit",
+      "facing": "SW",
+      "frame": 1,
+      "path": "sit-SW-1.png",
+      "sha256": "71ac0df76a967aeb3af34ef4b33c7488dfe60e31ee0911a7ed056327a56c5786"
+    },
+    {
+      "name": "rigSimRedSitSW2",
+      "action": "sit",
+      "facing": "SW",
+      "frame": 2,
+      "path": "sit-SW-2.png",
+      "sha256": "debc286b020e6650eef87d595a1625d0dc6ef98a2dcb3aae89f9eb0ad6e5160e"
+    },
+    {
+      "name": "rigSimRedSitSW3",
+      "action": "sit",
+      "facing": "SW",
+      "frame": 3,
+      "path": "sit-SW-3.png",
+      "sha256": "a17a97ee397ec1cb1237bd9492d1caf6667d8c31edee38f6083bb8aecc53ced6"
+    },
+    {
+      "name": "rigSimRedSitNW0",
+      "action": "sit",
+      "facing": "NW",
+      "frame": 0,
+      "path": "sit-NW-0.png",
+      "sha256": "896d6c20839b9c9a854a4fdb784555bf10fee8ba02d6b7098c1d12e49ea5f9b9"
+    },
+    {
+      "name": "rigSimRedSitNW1",
+      "action": "sit",
+      "facing": "NW",
+      "frame": 1,
+      "path": "sit-NW-1.png",
+      "sha256": "e2b22e0bb25372007479f93f2746e53ad4838e2998f34f0ec98bca82a5308605"
+    },
+    {
+      "name": "rigSimRedSitNW2",
+      "action": "sit",
+      "facing": "NW",
+      "frame": 2,
+      "path": "sit-NW-2.png",
+      "sha256": "896d6c20839b9c9a854a4fdb784555bf10fee8ba02d6b7098c1d12e49ea5f9b9"
+    },
+    {
+      "name": "rigSimRedSitNW3",
+      "action": "sit",
+      "facing": "NW",
+      "frame": 3,
+      "path": "sit-NW-3.png",
+      "sha256": "8231acaaf3c43f8215d5a914b19b2fbadb5c7649e659ef60358ad41946bc542d"
+    },
+    {
+      "name": "rigSimRedSitNE0",
+      "action": "sit",
+      "facing": "NE",
+      "frame": 0,
+      "path": "sit-NE-0.png",
+      "sha256": "ebaca3379df316a76900c24fd2906f90ee996abfe43563c2d6a1469ae6c90deb"
+    },
+    {
+      "name": "rigSimRedSitNE1",
+      "action": "sit",
+      "facing": "NE",
+      "frame": 1,
+      "path": "sit-NE-1.png",
+      "sha256": "beede65f2bb07f9ce85daa63b469896c7a4d25778e8d761d73d3f0a37e9f46f2"
+    },
+    {
+      "name": "rigSimRedSitNE2",
+      "action": "sit",
+      "facing": "NE",
+      "frame": 2,
+      "path": "sit-NE-2.png",
+      "sha256": "ebaca3379df316a76900c24fd2906f90ee996abfe43563c2d6a1469ae6c90deb"
+    },
+    {
+      "name": "rigSimRedSitNE3",
+      "action": "sit",
+      "facing": "NE",
+      "frame": 3,
+      "path": "sit-NE-3.png",
+      "sha256": "3a3a4bc788836482427b7dfe14154fb03251deac0b99e259274136632529fbdf"
+    },
+    {
+      "name": "rigSimRedSleepSE0",
+      "action": "sleep",
+      "facing": "SE",
+      "frame": 0,
+      "path": "sleep-SE-0.png",
+      "sha256": "c45fe223750dd41a904c98ad3c96c065c3676cb1daa7e2067bfd5a6a6d46ac32"
+    },
+    {
+      "name": "rigSimRedSleepSE1",
+      "action": "sleep",
+      "facing": "SE",
+      "frame": 1,
+      "path": "sleep-SE-1.png",
+      "sha256": "88f2bc8fb2bbad87593c91f2a6dee7ffd9886be7967c4d6fd410f5fb2b2005b6"
+    },
+    {
+      "name": "rigSimRedSleepSE2",
+      "action": "sleep",
+      "facing": "SE",
+      "frame": 2,
+      "path": "sleep-SE-2.png",
+      "sha256": "c45fe223750dd41a904c98ad3c96c065c3676cb1daa7e2067bfd5a6a6d46ac32"
+    },
+    {
+      "name": "rigSimRedSleepSE3",
+      "action": "sleep",
+      "facing": "SE",
+      "frame": 3,
+      "path": "sleep-SE-3.png",
+      "sha256": "9bbc3ec20919e25ddcc24387866aca1264c8874bb828b3443f9b5c74f3a7b0f4"
+    },
+    {
+      "name": "rigSimRedSleepSW0",
+      "action": "sleep",
+      "facing": "SW",
+      "frame": 0,
+      "path": "sleep-SW-0.png",
+      "sha256": "dd04c9516063b817fed6b2fe36fa297b1cb16d05d336c7162a2598e96e6f8ec4"
+    },
+    {
+      "name": "rigSimRedSleepSW1",
+      "action": "sleep",
+      "facing": "SW",
+      "frame": 1,
+      "path": "sleep-SW-1.png",
+      "sha256": "3bed849f2eff9d2a9adcf13cf5f4ea2793a3a7ca6be8811d345f9a67eb2e1162"
+    },
+    {
+      "name": "rigSimRedSleepSW2",
+      "action": "sleep",
+      "facing": "SW",
+      "frame": 2,
+      "path": "sleep-SW-2.png",
+      "sha256": "dd04c9516063b817fed6b2fe36fa297b1cb16d05d336c7162a2598e96e6f8ec4"
+    },
+    {
+      "name": "rigSimRedSleepSW3",
+      "action": "sleep",
+      "facing": "SW",
+      "frame": 3,
+      "path": "sleep-SW-3.png",
+      "sha256": "3a72a37f2008a1a2f234957cd5a11c4d7584b6afa28d1d348ed55af45cce5a7a"
+    },
+    {
+      "name": "rigSimRedSleepNW0",
+      "action": "sleep",
+      "facing": "NW",
+      "frame": 0,
+      "path": "sleep-NW-0.png",
+      "sha256": "1e0392bbed02e1818ad308bc844c772ecc615628f08130255cd9afec2d8d8e35"
+    },
+    {
+      "name": "rigSimRedSleepNW1",
+      "action": "sleep",
+      "facing": "NW",
+      "frame": 1,
+      "path": "sleep-NW-1.png",
+      "sha256": "c22313ed035cd53eb6c13f737b503182d0c8c7eeb6319366a3cfc8e1bd7cbfe6"
+    },
+    {
+      "name": "rigSimRedSleepNW2",
+      "action": "sleep",
+      "facing": "NW",
+      "frame": 2,
+      "path": "sleep-NW-2.png",
+      "sha256": "1e0392bbed02e1818ad308bc844c772ecc615628f08130255cd9afec2d8d8e35"
+    },
+    {
+      "name": "rigSimRedSleepNW3",
+      "action": "sleep",
+      "facing": "NW",
+      "frame": 3,
+      "path": "sleep-NW-3.png",
+      "sha256": "434fef0bea51a86233496ccb2fa9b87e5858a084c2df69ba379e2f38ba7ee43b"
+    },
+    {
+      "name": "rigSimRedSleepNE0",
+      "action": "sleep",
+      "facing": "NE",
+      "frame": 0,
+      "path": "sleep-NE-0.png",
+      "sha256": "dfea78f1063ece610716f09a4a8d35cdd8c56b871fb9ed562b265768e578a29c"
+    },
+    {
+      "name": "rigSimRedSleepNE1",
+      "action": "sleep",
+      "facing": "NE",
+      "frame": 1,
+      "path": "sleep-NE-1.png",
+      "sha256": "8d14844a3b081d2b73df1bd3d15d678380457b58b90f82fe15bcfb8d0d809605"
+    },
+    {
+      "name": "rigSimRedSleepNE2",
+      "action": "sleep",
+      "facing": "NE",
+      "frame": 2,
+      "path": "sleep-NE-2.png",
+      "sha256": "dfea78f1063ece610716f09a4a8d35cdd8c56b871fb9ed562b265768e578a29c"
+    },
+    {
+      "name": "rigSimRedSleepNE3",
+      "action": "sleep",
+      "facing": "NE",
+      "frame": 3,
+      "path": "sleep-NE-3.png",
+      "sha256": "6276ff5bc2bbec00d08ebbf8617f48aa2d73cd20e8c6574a775089d6ecdcb915"
+    }
+  ],
+  "clips": {
+    "idle": {
+      "frame_count": 1,
+      "sample_fps": 1,
+      "loop": true,
+      "source_action": "idle",
+      "width": 38,
+      "height": 88,
+      "anchor": [
+        19.00001358985901,
+        100.00043803453445
+      ],
+      "world_origin": [
+        19.00001358985901,
+        79.00043803453445
+      ]
+    },
+    "walk": {
+      "frame_count": 8,
+      "sample_fps": 10,
+      "loop": true,
+      "source_action": "walk",
+      "width": 52,
+      "height": 104,
+      "anchor": [
+        26.000012397766113,
+        108.00043880939484
+      ],
+      "world_origin": [
+        26.000012397766113,
+        87.00043880939484
+      ],
+      "distance_per_cycle_model_units": 1.0
+    },
+    "read": {
+      "frame_count": 4,
+      "sample_fps": 2,
+      "loop": true,
+      "source_action": "read",
+      "width": 52,
+      "height": 104,
+      "anchor": [
+        26.000012397766113,
+        108.00043880939484
+      ],
+      "world_origin": [
+        26.000012397766113,
+        87.00043880939484
+      ]
+    },
+    "talk": {
+      "frame_count": 4,
+      "sample_fps": 2,
+      "loop": true,
+      "source_action": "talk",
+      "width": 52,
+      "height": 104,
+      "anchor": [
+        26.000012397766113,
+        108.00043880939484
+      ],
+      "world_origin": [
+        26.000012397766113,
+        87.00043880939484
+      ]
+    },
+    "eat": {
+      "frame_count": 4,
+      "sample_fps": 2,
+      "loop": true,
+      "source_action": "eat",
+      "width": 52,
+      "height": 104,
+      "anchor": [
+        26.000012397766113,
+        108.00043880939484
+      ],
+      "world_origin": [
+        26.000012397766113,
+        87.00043880939484
+      ]
+    },
+    "stand_read": {
+      "frame_count": 4,
+      "sample_fps": 2,
+      "loop": true,
+      "source_action": "stand_read",
+      "width": 52,
+      "height": 104,
+      "anchor": [
+        26.000012397766113,
+        108.00043880939484
+      ],
+      "world_origin": [
+        26.000012397766113,
+        87.00043880939484
+      ]
+    },
+    "watch_fish": {
+      "frame_count": 4,
+      "sample_fps": 2,
+      "loop": true,
+      "source_action": "watch_fish",
+      "width": 52,
+      "height": 104,
+      "anchor": [
+        26.000012397766113,
+        108.00043880939484
+      ],
+      "world_origin": [
+        26.000012397766113,
+        87.00043880939484
+      ]
+    },
+    "sit": {
+      "frame_count": 4,
+      "sample_fps": 2,
+      "loop": true,
+      "source_action": "sit",
+      "width": 52,
+      "height": 104,
+      "anchor": [
+        26.000012397766113,
+        108.00043880939484
+      ],
+      "world_origin": [
+        26.000012397766113,
+        87.00043880939484
+      ]
+    },
+    "sleep": {
+      "frame_count": 4,
+      "sample_fps": 1,
+      "loop": true,
+      "source_action": "sleep",
+      "width": 104,
+      "height": 76,
+      "anchor": [
+        52.00001239776611,
+        86.00045645236969
+      ],
+      "world_origin": [
+        52.00001239776611,
+        65.00045645236969
+      ]
+    }
+  },
+  "facing_root_degrees": {
+    "SE": 90,
+    "SW": 0,
+    "NW": 270,
+    "NE": 180
+  },
+  "projection": {
+    "camera_ortho_scale": 1.9445436000823975,
+    "pixels_per_model_unit": 45.25483511723323
+  },
+  "reading_framing": {
+    "camera_scale": 1.9445436000823975,
+    "root_offsets": {
+      "SE": [
+        0,
+        0,
+        0
+      ],
+      "SW": [
+        0,
+        0,
+        0
+      ],
+      "NW": [
+        0,
+        0,
+        0
+      ],
+      "NE": [
+        0,
+        0,
+        0
+      ]
+    },
+    "pixel_offsets": {
+      "SE": [
+        0,
+        0
+      ],
+      "SW": [
+        0,
+        0
+      ],
+      "NW": [
+        0,
+        0
+      ],
+      "NE": [
+        0,
+        0
+      ]
+    }
+  },
+  "variant": "red",
+  "source_rig_sha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+  "pixel_density": 2
+}

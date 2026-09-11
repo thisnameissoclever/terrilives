@@ -1187,7 +1187,7 @@ mod tests {
                 object.action_sockets[0].y,
                 object.action_sockets[0].facing,
             ),
-            (0.0, 0.0, CompiledSocketFacing::PositiveX)
+            (0.0, 0.0, CompiledSocketFacing::PositiveY)
         );
 
         let placement = p
@@ -1203,7 +1203,7 @@ mod tests {
                 placement.action_sockets[0].y,
                 placement.action_sockets[0].facing,
             ),
-            (13.0, 0.0, CompiledSocketFacing::PositiveX)
+            (13.0, 0.0, CompiledSocketFacing::PositiveY)
         );
     }
 

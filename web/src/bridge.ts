@@ -232,6 +232,15 @@ export class SimBridge {
     );
   }
 
+  /** Exact active socket target IDs, never inferred from position or row order. */
+  interactionTargets(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.interaction_targets_ptr(),
+      this.count,
+    );
+  }
+
   /**
    * Authored object-sound action per row: 0 none, 1 shower water, and
    * 2 stove cooking. These codes describe current semantic state, not a cue

@@ -1,0 +1,5280 @@
+{
+  "signature": {
+    "source_sha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "density": 8,
+    "logical_canvas": [
+      96,
+      120
+    ],
+    "scripts": {
+      "render_contributions.py": "fdae4dc9bb7f4d232a3aa9c3fb2b091a502e333ea9063f0c3df60aca5c0071df",
+      "animation_export.py": "9259cbe55c15bb3e61dbb98c4957526e953fbe559409969ecf0e76ca967d4b30",
+      "build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+      "geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+      "preview.py": "436143c11bb564924af62356dfe4adf22d7c76c175b3ddb876dac2e7714ce54c"
+    }
+  },
+  "state": "complete",
+  "renders": [
+    {
+      "path": "bike-green-SE-0-empty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 0,
+      "owner": "empty",
+      "sha256": "f2f428a36bbd174b07cc131b30011386d72cddb5e7fc22b6eac66a6dbb049bd4"
+    },
+    {
+      "path": "bike-green-SE-0-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "bce3572a049ac47370d781c9711090b3a71d2e859c149a855e04b3edfe04e7a1"
+    },
+    {
+      "path": "bike-green-SE-0-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "ab8e2beb4a44ee5c3d6299ce2fcdb7e470d1a1f6683175635bae0afc45e0b81d"
+    },
+    {
+      "path": "bike-green-SE-0-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "7bfa018e14dca06d48c55ab1cf5a113a04469f3a439d73c705eb8a5b2d73c0ca"
+    },
+    {
+      "path": "bike-green-SE-0-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "15dbcdde6cac4e138dd3937f75d2afdb4be2523c68bc6f9a7a51ff186bb4ce7b"
+    },
+    {
+      "path": "bike-green-SE-1-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "6c1fa05a775f1637631f4c5d3b3767d29e01a2819cfd284c90b5fbd967f9c103"
+    },
+    {
+      "path": "bike-green-SE-1-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "86a1b3c451e87eb072f596f43a8bc6d70469b14b4d6e2d1762765033088445f0"
+    },
+    {
+      "path": "bike-green-SE-1-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "8ff13b8963bf2d2ada0d2c71872ecac57c1cd51649d90fc7837a0afd32009b7c"
+    },
+    {
+      "path": "bike-green-SE-1-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "8483e658f9c92159247d187560f663f54ed43586598df3664887fa2c58b9a77e"
+    },
+    {
+      "path": "bike-green-SE-2-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "4f13b53d937078197827a500e3360b519b8357b2cf79fb5833d643be038e7cde"
+    },
+    {
+      "path": "bike-green-SE-2-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "9fe05498196b0d9c821a2111de69f72b02b3d3d18478c8647c96daf259bcb74e"
+    },
+    {
+      "path": "bike-green-SE-2-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "5655e90686383d518dab7567238492ac2ca4dbb85bf51e6adbd7ad54a98422e7"
+    },
+    {
+      "path": "bike-green-SE-2-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "a955a4698f94ffce769d97d352fb3d9b8c2f5efb35a18daa367fa53e646a001c"
+    },
+    {
+      "path": "bike-green-SE-3-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "c78f39c685d7549b17134f1e458ce27a6db2628b716da2af950440d64ec448ca"
+    },
+    {
+      "path": "bike-green-SE-3-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "401ee6095a3d46fdb2586166cb4be3c6068ae785ef615134769e8cedb9b6a1a3"
+    },
+    {
+      "path": "bike-green-SE-3-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "96de931395fb57c1f54ccd725a071f673b75280550789bce2e61faf892943bb4"
+    },
+    {
+      "path": "bike-green-SE-3-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "7c3be41844f12b76fe34455bed37f367557f6e0e7d5087b5e3001a77426cfb62"
+    },
+    {
+      "path": "bike-green-SE-4-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 4,
+      "owner": "beauty",
+      "sha256": "ae4991443ee3417846a975e2480795e243a97ff8932c81c936b125970e7b6c1f"
+    },
+    {
+      "path": "bike-green-SE-4-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 4,
+      "owner": "sim",
+      "sha256": "3ba47bd05efc72234b00035d3c077d2bceb6806cf94cc8b362809a41d8381d66"
+    },
+    {
+      "path": "bike-green-SE-4-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 4,
+      "owner": "furniture",
+      "sha256": "52eb12b733ce79753b16ebeb907acc50d176bf3eec9a1b2f3b4f34cb6c854e62"
+    },
+    {
+      "path": "bike-green-SE-4-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 4,
+      "owner": "lines",
+      "sha256": "f1568e1838ad0d24cc0ca888b64812afac81fcbb5c14a6786359e41c05b0df68"
+    },
+    {
+      "path": "bike-green-SE-5-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 5,
+      "owner": "beauty",
+      "sha256": "82faa2790703461f3192c6cdceeaec642fce471958849e644382a72a6c0cd572"
+    },
+    {
+      "path": "bike-green-SE-5-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 5,
+      "owner": "sim",
+      "sha256": "fa590a1c23934db1bc65e2fe13f3c307d7ef5dc92c513131ce1c5a57f7375f66"
+    },
+    {
+      "path": "bike-green-SE-5-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 5,
+      "owner": "furniture",
+      "sha256": "75b782903634cec56a33786aefce8744796c8e79366e2ef98fa24671f20d18e0"
+    },
+    {
+      "path": "bike-green-SE-5-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 5,
+      "owner": "lines",
+      "sha256": "09b31b58413ec3b58f89917908673afe355469a72cb9128663ef63b6c1a5c62d"
+    },
+    {
+      "path": "bike-green-SE-6-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 6,
+      "owner": "beauty",
+      "sha256": "eda9755ebe2cefb1b675a6d6034ea3a08eb2bf97e94ea9701ffa245d5365a2df"
+    },
+    {
+      "path": "bike-green-SE-6-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 6,
+      "owner": "sim",
+      "sha256": "ba02aa00b26fc2d84ba4ad695d0d97d69bea145ed8218ed7c1528239402098ae"
+    },
+    {
+      "path": "bike-green-SE-6-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 6,
+      "owner": "furniture",
+      "sha256": "a6c0ecac840c154dcec74e83ffe0344740c115cc837662eb9669c0f2d7f9cba8"
+    },
+    {
+      "path": "bike-green-SE-6-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 6,
+      "owner": "lines",
+      "sha256": "856071b70a4b92fa9521e1e85cf024c9e9e967e19b21463b19f17330dd0dc919"
+    },
+    {
+      "path": "bike-green-SE-7-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 7,
+      "owner": "beauty",
+      "sha256": "a00c3175271efb92fb128422bf4467f0540bd04a39216570196d97417d5a8b75"
+    },
+    {
+      "path": "bike-green-SE-7-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 7,
+      "owner": "sim",
+      "sha256": "091273fa643547a42cb7ade3f8e03f3eb547fdc6ce7fbc42a1ffe623a5a69784"
+    },
+    {
+      "path": "bike-green-SE-7-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 7,
+      "owner": "furniture",
+      "sha256": "5def6a7a284242e8fba7bebbb56c293c340c6f12b2b352f3f180b4f97387e5c9"
+    },
+    {
+      "path": "bike-green-SE-7-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 7,
+      "owner": "lines",
+      "sha256": "9c81c64fa1644592663b00e70eb8114b94364f0af665404cbcd82c672c8406a2"
+    },
+    {
+      "path": "bike-green-NW-0-empty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 0,
+      "owner": "empty",
+      "sha256": "670d9785352b1e6cb7440d067af20ed09b86832a25e05742ba5d4770377010e1"
+    },
+    {
+      "path": "bike-green-NW-0-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "47e6bf5997e470ab0af88ca157662ec74590a01b7692908288f52afe39cb7602"
+    },
+    {
+      "path": "bike-green-NW-0-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "ea75a3f24aff4a640c832e179e4ac19c519d33ca08fe31b35c32652674670925"
+    },
+    {
+      "path": "bike-green-NW-0-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "7fcc6367c1f4beef36b5f09593092a17907f0c4388272c3f2be5e807d092988b"
+    },
+    {
+      "path": "bike-green-NW-0-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "1eb7e66ae2c4ea43ddfd78a99cf548d457c659c24305e8a219e0724ca76beb01"
+    },
+    {
+      "path": "bike-green-NW-1-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "40f36c8e93fbb9bbffb39a130dcb1712ee403c723c8968758aece23122b1e5c0"
+    },
+    {
+      "path": "bike-green-NW-1-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "1101d5b5e535d5fd71ffdc385c87e576e0e65962f3611204b9e17fa8e7d0dc10"
+    },
+    {
+      "path": "bike-green-NW-1-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "82673d67df5ec6f6223a29659a4bc619c6a63c4f3b146a163e04460ee31f8171"
+    },
+    {
+      "path": "bike-green-NW-1-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "ae11aedf2ad2eb79e2ecb1618d67aeb54c8d6308e927ad26bfba64caa6e8819b"
+    },
+    {
+      "path": "bike-green-NW-2-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "8c4772b32b341a60fac6d18e009665bb916e08dca2f364cc61a3a39769c53917"
+    },
+    {
+      "path": "bike-green-NW-2-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "06a09f14f415b5e812fab0a507377ec6b1571be61702f239c66bcc1bb5625c76"
+    },
+    {
+      "path": "bike-green-NW-2-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "4da09b0b3051de50ef01fd0426d6bc45c7e9fca72fa74c9af0579d61f8d80c99"
+    },
+    {
+      "path": "bike-green-NW-2-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "703969bc66497ccac5e004911ea713ee64bfa09d3316bc73c98a9fd17b2fb820"
+    },
+    {
+      "path": "bike-green-NW-3-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "746beea7d1f099e2838f963561a44441ac7b9a2062a8706aa230aa3fede7b682"
+    },
+    {
+      "path": "bike-green-NW-3-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "394f2426318b39ac8fd094c10ee65f1f0197ae383e4fe8ecbb490a68b2f5f37c"
+    },
+    {
+      "path": "bike-green-NW-3-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "cfb527e932a0b9c286426bce773819d8b71a82818093c98d2af6bddf2874485b"
+    },
+    {
+      "path": "bike-green-NW-3-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "4fbb82ece16d786e12f2b652c61c5046d492ebff5d99dca178dd91b1f0a2536f"
+    },
+    {
+      "path": "bike-green-NW-4-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 4,
+      "owner": "beauty",
+      "sha256": "48c582d1b9e3858d376429d91864515935327ae4c099d0ffa484df16abdbd853"
+    },
+    {
+      "path": "bike-green-NW-4-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 4,
+      "owner": "sim",
+      "sha256": "6d20324c8cbe1f9bd0c10dff7b5453d539bc2356202f0593c0a4c402f9707157"
+    },
+    {
+      "path": "bike-green-NW-4-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 4,
+      "owner": "furniture",
+      "sha256": "c97a2852efc1c529fde44af441283d1cb35c617e29b9061fcabd984ffcaaa689"
+    },
+    {
+      "path": "bike-green-NW-4-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 4,
+      "owner": "lines",
+      "sha256": "b80340551ea994bc3799d3da9a89d61e8730f42ba68843bd18cd4c428e7eaeaf"
+    },
+    {
+      "path": "bike-green-NW-5-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 5,
+      "owner": "beauty",
+      "sha256": "9cf26f484dc42945e4103365957f7169b141b41c6803dfe3c7092c80d5ff1805"
+    },
+    {
+      "path": "bike-green-NW-5-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 5,
+      "owner": "sim",
+      "sha256": "064b7dda292ff0169f2b856f7cba49be68a5243fdd8c3eeb71326af8f2234877"
+    },
+    {
+      "path": "bike-green-NW-5-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 5,
+      "owner": "furniture",
+      "sha256": "f93717738e24dce5b1efb6af1e3020fe2e8dd6308c031d6a5b698d3831e70c0d"
+    },
+    {
+      "path": "bike-green-NW-5-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 5,
+      "owner": "lines",
+      "sha256": "eea804fe6dab7d178cbd609f670d9e59cf3183566e3e8c7482bdc9e2908a3c94"
+    },
+    {
+      "path": "bike-green-NW-6-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 6,
+      "owner": "beauty",
+      "sha256": "2cc55dc8aaa8413c188309b18c3f213ab8359240d06b45ab5a81d226cf2ecb8d"
+    },
+    {
+      "path": "bike-green-NW-6-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 6,
+      "owner": "sim",
+      "sha256": "b1b125ff1a50c11feefdfdf6bd6b1607ab84afe806d3d1f3a3fc1d6f60adb102"
+    },
+    {
+      "path": "bike-green-NW-6-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 6,
+      "owner": "furniture",
+      "sha256": "66c0729e9ea8d57b92ab8c0fcd25dcb28617a123e4160d3fa18b06c0c7117f2c"
+    },
+    {
+      "path": "bike-green-NW-6-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 6,
+      "owner": "lines",
+      "sha256": "1ab03984a8e59305582c80feabb1a8f58f2d432f40e026d53ec198fa78c4661a"
+    },
+    {
+      "path": "bike-green-NW-7-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 7,
+      "owner": "beauty",
+      "sha256": "40730fc8b78cf8869b84d2cfecac7527e02689cafe0d76cc547fc757211fdcc4"
+    },
+    {
+      "path": "bike-green-NW-7-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 7,
+      "owner": "sim",
+      "sha256": "86f4a773dd95791bf6a869d364aad7ccfb3292600e3f287843d8e3dddff1ed33"
+    },
+    {
+      "path": "bike-green-NW-7-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 7,
+      "owner": "furniture",
+      "sha256": "917d0181446e561eb79c1a582c436d23b42abb8fe89298505d8ef82c1f6f541b"
+    },
+    {
+      "path": "bike-green-NW-7-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 7,
+      "owner": "lines",
+      "sha256": "3312b03081ecafaff59063be133e6c5c862120cbc39a9be9af8c3edbc1b024de"
+    },
+    {
+      "path": "bike-green-SW-0-empty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 0,
+      "owner": "empty",
+      "sha256": "92aeaf856682b25792cc691fb3017bce3b0c60cb40e6ddc531c83a5ff8cd5e6b"
+    },
+    {
+      "path": "bike-green-SW-0-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "c8f4d3afdb5d5191c6ed31c0c7f3dd93d4c345ef73edaa93f150222b4c395ed2"
+    },
+    {
+      "path": "bike-green-SW-0-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "2eb528e4931af65a14cdbdc0f938224c30203f6e2a0a1f0c741980ed689aac5b"
+    },
+    {
+      "path": "bike-green-SW-0-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "1695b0b7053e46d0c5ef1f305062f0fcc390d8d46b5c665b70990e09aec57592"
+    },
+    {
+      "path": "bike-green-SW-0-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "da25bf7519aad8043b1b740845ae8c5b268b9b5d977a253a650cd3e70682f3c1"
+    },
+    {
+      "path": "bike-green-SW-1-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "c517c53b406e654193500d957ad1cfd1b040d70f202e54a249d8424b400240de"
+    },
+    {
+      "path": "bike-green-SW-1-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "8751de14646ddffd6beeababdfd473f5abca6137b7574b45a6cbf75019934174"
+    },
+    {
+      "path": "bike-green-SW-1-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "facbd9d302fb20a34283a32bc58ed0d4259461bbcb974c6733fa2bad735f8727"
+    },
+    {
+      "path": "bike-green-SW-1-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "07acee5639bbde55c4211e2c79c0ccf83d147565fd30dbac8ef9f09cd4420bde"
+    },
+    {
+      "path": "bike-green-SW-2-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "13589c784a0c0ba5f65adc4fac6158b9142eb55ab8ffdccca7c582d3d64ba6b1"
+    },
+    {
+      "path": "bike-green-SW-2-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "1dd2c543796a5fe18068c0c227e902676623e9e6b1c968a6f6818b8e4b887af2"
+    },
+    {
+      "path": "bike-green-SW-2-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "fd1202c32523fcf2363b7f7f77007d3f6c21720c8838b1c8ce7cd7491a060eff"
+    },
+    {
+      "path": "bike-green-SW-2-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "9db54ea9f460ab689975ce28789d5272c246dd8ed7c9eb8c31f56b98f3e243cb"
+    },
+    {
+      "path": "bike-green-SW-3-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "6cc2e72061b0b678c6b73f8b8f19047f2956247a7ff6316ffdfedf843a7a134c"
+    },
+    {
+      "path": "bike-green-SW-3-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "e3f0b03b76f8ba9733ca29dcb564d57240fd4d200c38271bc287a84ecf596243"
+    },
+    {
+      "path": "bike-green-SW-3-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "f476121ab49d782b9c4b811b6dc2a53767aad4332b3652e03a85c33130ca2dae"
+    },
+    {
+      "path": "bike-green-SW-3-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "70d1259e99796505f22ae47c07275dc352198c6826b45bc58266ecb15e658a91"
+    },
+    {
+      "path": "bike-green-SW-4-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 4,
+      "owner": "beauty",
+      "sha256": "98c295668779ce3eaff485130c12c5cbfa88f06948138305407c94702f4dfcd6"
+    },
+    {
+      "path": "bike-green-SW-4-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 4,
+      "owner": "sim",
+      "sha256": "888c496c3ae32b3af8a7ce0d23d61bf1904910259e7b130d5a980b55d34289a8"
+    },
+    {
+      "path": "bike-green-SW-4-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 4,
+      "owner": "furniture",
+      "sha256": "c30a3656ea7b5e3feb1498797b9515ff47eb8c6ed747849af4eabb095316c265"
+    },
+    {
+      "path": "bike-green-SW-4-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 4,
+      "owner": "lines",
+      "sha256": "5d6b59997125ec4ba95fffc9678a80da5323118215bdd8756b061ba8db0052f3"
+    },
+    {
+      "path": "bike-green-SW-5-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 5,
+      "owner": "beauty",
+      "sha256": "979daaf4ba2f3311d2c775703c6aad1153e91357905f29d071331e7154880146"
+    },
+    {
+      "path": "bike-green-SW-5-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 5,
+      "owner": "sim",
+      "sha256": "dd519a61ed30d06104dfaa5663ce068bf623da44df8fe36fb4b3f3c9d59785b7"
+    },
+    {
+      "path": "bike-green-SW-5-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 5,
+      "owner": "furniture",
+      "sha256": "c6d93ce0566fa2c7cce4c8d52c4dfa9acfc968564017c303871a274815e75625"
+    },
+    {
+      "path": "bike-green-SW-5-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 5,
+      "owner": "lines",
+      "sha256": "53b9129f433a37eeba704af736182f5d3d4ac8d4dd83a0ebb5a00184d3e8406b"
+    },
+    {
+      "path": "bike-green-SW-6-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 6,
+      "owner": "beauty",
+      "sha256": "73470dfa1d4bc0933536c1371853d917de69e960e2185b875e9d9f8bdd1292d9"
+    },
+    {
+      "path": "bike-green-SW-6-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 6,
+      "owner": "sim",
+      "sha256": "466e69c0640ce23ffc3a46c706b9327a8fcd748f8ae2389f71c3d5f76629438c"
+    },
+    {
+      "path": "bike-green-SW-6-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 6,
+      "owner": "furniture",
+      "sha256": "eb7b2ea108f3a4c5e28b1ede55d3e0476614d7ab5c6e53a08781239eeda38ae8"
+    },
+    {
+      "path": "bike-green-SW-6-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 6,
+      "owner": "lines",
+      "sha256": "333785db6fa6259c9ebc4bb733175d4af47c9b4766513e3086793e1e018bfb65"
+    },
+    {
+      "path": "bike-green-SW-7-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 7,
+      "owner": "beauty",
+      "sha256": "72b0d6e3f6739ad4a2ac6d3fb5da2611447d339f983e15531893195a4c670f46"
+    },
+    {
+      "path": "bike-green-SW-7-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 7,
+      "owner": "sim",
+      "sha256": "84f8cb56aeafb5124e20beeca959e3e9e1d2d8f370a94143abe3d6cc0623cc31"
+    },
+    {
+      "path": "bike-green-SW-7-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 7,
+      "owner": "furniture",
+      "sha256": "3c4ca4b1057de36abee469eaa8f63a02bb0cb2295b097bf36da2969c048685d5"
+    },
+    {
+      "path": "bike-green-SW-7-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 7,
+      "owner": "lines",
+      "sha256": "e5173b8d6fee00b8e71a4553bec8aaa95781608fd90a47a8349e9fca10fafa00"
+    },
+    {
+      "path": "bike-green-NE-0-empty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 0,
+      "owner": "empty",
+      "sha256": "0d7202c86c61f434396dc45da83642122a253cf7170e4f7666b52aa14ac4a974"
+    },
+    {
+      "path": "bike-green-NE-0-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "5f547b5f9732a47889aedaa437159e29f8f471de6ab7e5b456168be2dcf1355a"
+    },
+    {
+      "path": "bike-green-NE-0-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "4fe13b20b6683f6615f1f4af5f21930e13092754c17df187a6e2060bee25186c"
+    },
+    {
+      "path": "bike-green-NE-0-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "837e79e54fb997a1b624aa562d2fc9b6e39b18e7896cd3cad3d20397e362d15d"
+    },
+    {
+      "path": "bike-green-NE-0-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "2aaad2af6c4adeef8aa5ec6cc5b1b90e33b5df1296ca4a94df42e981e8db4a05"
+    },
+    {
+      "path": "bike-green-NE-1-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "99787b50d1d2286d9c4ba72eb7bb6d9dcd42745c1baf0ce1e71b8f62d351175f"
+    },
+    {
+      "path": "bike-green-NE-1-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "4fbc1ce04bd97c046de9ec5cb838c980b0a1de3d71df589ab03df6e5a427bfae"
+    },
+    {
+      "path": "bike-green-NE-1-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "02d54e865d5ed8cc5f9e36e04344f41e754c1285bce789b2cabee3b899da42e3"
+    },
+    {
+      "path": "bike-green-NE-1-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "f9d9ac5ca768f5871bf39c56a4778f85690fecd598d3f72dd5664dd61708b908"
+    },
+    {
+      "path": "bike-green-NE-2-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "6786c9c6f3a12dd2cdc8c2160f675a63673254b10909b7b02a4062c7c03a554c"
+    },
+    {
+      "path": "bike-green-NE-2-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "92915d2d48627cb64316a2e80d4c8d3a0ed64c912121ac60a1f4e300ed9c0d24"
+    },
+    {
+      "path": "bike-green-NE-2-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "dbe09005ccb5aa687513d7fd9f06c47440a39de25377a6e1f5c9d10fc66d3259"
+    },
+    {
+      "path": "bike-green-NE-2-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "5ff65ef3e9f58dd2341b99abad62cb668a4ed7920ee0261dbce4a65acfa17a26"
+    },
+    {
+      "path": "bike-green-NE-3-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "27ee5174239388ac9859b80a7f2e9a22cfcf771b4c16fd2b43778837aee6e923"
+    },
+    {
+      "path": "bike-green-NE-3-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "6761ac0528de634deab0977fa68cf53421f9dcc2b14f88c42749c18164f0ee63"
+    },
+    {
+      "path": "bike-green-NE-3-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "536d98cbf8cc5fa9d123d4d99e85b920f599ef80d9c3edf1fbf078c4f43d78f1"
+    },
+    {
+      "path": "bike-green-NE-3-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "2050819c1c530deb79a78c9a6b24984cf20dd78c90abf9860a02eabedf21f4aa"
+    },
+    {
+      "path": "bike-green-NE-4-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 4,
+      "owner": "beauty",
+      "sha256": "c6764dddbb3e2ceccccb66d1bc8265530da37741891b7f56799ba077c38fab9d"
+    },
+    {
+      "path": "bike-green-NE-4-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 4,
+      "owner": "sim",
+      "sha256": "fb433dcfd1c22c5059449770cc752c41364cf5170d671ba34155a1eb0ad62b24"
+    },
+    {
+      "path": "bike-green-NE-4-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 4,
+      "owner": "furniture",
+      "sha256": "aecfe32563e8ae828c6961a5fc07c7aba640408fd1e9beebd5cba7e4aed70781"
+    },
+    {
+      "path": "bike-green-NE-4-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 4,
+      "owner": "lines",
+      "sha256": "861331f5c964cc7d0aa098869c82876303dc068562841c409679f3e710398a8d"
+    },
+    {
+      "path": "bike-green-NE-5-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 5,
+      "owner": "beauty",
+      "sha256": "a26ae6c98e985552c4c951794da4d5a2076f836fb93881c9d727a2a5b7280a8c"
+    },
+    {
+      "path": "bike-green-NE-5-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 5,
+      "owner": "sim",
+      "sha256": "12b5bf295920580be019e42945963452b1b7f6433ac4079f0b1484572089dabf"
+    },
+    {
+      "path": "bike-green-NE-5-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 5,
+      "owner": "furniture",
+      "sha256": "d59926b91a6b1003cbda014f08eb94e20cc535e40e7eb33f82092f2704b9f6a4"
+    },
+    {
+      "path": "bike-green-NE-5-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 5,
+      "owner": "lines",
+      "sha256": "0135c877391a595adc4d88b25ffafba5de671d31d6ce4183cf999b87223168c4"
+    },
+    {
+      "path": "bike-green-NE-6-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 6,
+      "owner": "beauty",
+      "sha256": "ec2b17c6e2aa933d71dc39c9fcdc8b1130aabcc469096449506c3226f2bd3bf3"
+    },
+    {
+      "path": "bike-green-NE-6-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 6,
+      "owner": "sim",
+      "sha256": "92e7b1c0c98f3c4b2fbddd3ef8826b84b8acd195562de1c542438fc71757a501"
+    },
+    {
+      "path": "bike-green-NE-6-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 6,
+      "owner": "furniture",
+      "sha256": "23665826e949879f9b67af14eedb86113f5251cce13fca23c50eba5a821faaa1"
+    },
+    {
+      "path": "bike-green-NE-6-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 6,
+      "owner": "lines",
+      "sha256": "db04e81d170516420bb7036e60e450181f601e73ac55908ebc3b6e123b5bd37e"
+    },
+    {
+      "path": "bike-green-NE-7-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 7,
+      "owner": "beauty",
+      "sha256": "02954ccb31be014284657bfc6dc42c8dfdbd3d23e97a523e14b13e1f6efab8fc"
+    },
+    {
+      "path": "bike-green-NE-7-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 7,
+      "owner": "sim",
+      "sha256": "63f67d425b13c9b234239dc73d6201282eedfb585e5ae9f2347dd99f192f873f"
+    },
+    {
+      "path": "bike-green-NE-7-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 7,
+      "owner": "furniture",
+      "sha256": "832ca83afda84163b9c03e552b75a33ced78281da8cf7e93fa6649e522185eef"
+    },
+    {
+      "path": "bike-green-NE-7-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 7,
+      "owner": "lines",
+      "sha256": "85f02cfd8010c092784cd6ed5ae030f57ac18b5390fdf2257cda9a7e2c41804d"
+    },
+    {
+      "path": "bike-blue-SE-0-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "8be40d2ab39f80163493654a496ac6063d287ecfb03396ed4fc527a9b52fdaa3"
+    },
+    {
+      "path": "bike-blue-SE-0-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "6c70866c5e40928017806710daabcf4ce59e6def6b6872dd66ab030638ae2a94"
+    },
+    {
+      "path": "bike-blue-SE-0-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "f8fb8f2051ed8b8b5fbf26f83ee0af210f87c3c35d0dca85396adf89a0df3d9c"
+    },
+    {
+      "path": "bike-blue-SE-0-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "3f8ee88cd054bb24c2b8dcdcd5cd511d669421022753ab6dffc219453d2e7cac"
+    },
+    {
+      "path": "bike-blue-SE-1-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "a693199962d4b4dc4408bfc9d48712caa94d4a242ea6d6998bfa0dc59b8d589c"
+    },
+    {
+      "path": "bike-blue-SE-1-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "713a7575326ddd5e3b594254f242eb991aa2acc4c40ad8cb8fce75f6fd224c8c"
+    },
+    {
+      "path": "bike-blue-SE-1-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "f6f5882b4378163204abd540c143a2f3f40aa9bee15fae3e5b6ca5cb37b9b0e1"
+    },
+    {
+      "path": "bike-blue-SE-1-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "212fc615e6002fcd2689d88e1e45a24bd780ee3c4aade439250fea4c54fc47ac"
+    },
+    {
+      "path": "bike-blue-SE-2-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "d5a114ea34f1d2077e1a7899cfcecf2902884736cfb637d00544c7b3b2138cbf"
+    },
+    {
+      "path": "bike-blue-SE-2-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "a80c109224ffb4d7342e551016a5e9a1a9fcb5ee503693f2dfd95d04596211be"
+    },
+    {
+      "path": "bike-blue-SE-2-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "735a6032a6254d316385296f6be57f358b11995f3452ad0b0c21e5b368ba6286"
+    },
+    {
+      "path": "bike-blue-SE-2-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "8a7bf190b0d6b69c835e2d241c46effda1922236ee5e509dd3f97c93b0009afa"
+    },
+    {
+      "path": "bike-blue-SE-3-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "cab44ea22b4a0d1432ea70761c5eb2e52eb4e80c20ee4075d1afd76ec9bb33c6"
+    },
+    {
+      "path": "bike-blue-SE-3-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "47fb5aeb25bd7452c5e059a6e11b1a19a745771d33c4ea18b8658696e505d011"
+    },
+    {
+      "path": "bike-blue-SE-3-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "a63136827a3437930d888a3116e43d614d4661b483eba7c3bb7781002472532f"
+    },
+    {
+      "path": "bike-blue-SE-3-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "bc776ddd9b1c7198c4922782a0d5c9dfdf9ebdd0fa37777c558981e18587dea4"
+    },
+    {
+      "path": "bike-blue-SE-4-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 4,
+      "owner": "beauty",
+      "sha256": "31bffc4982b40c03047e20f26894608cd519c1f0af9c8418d0ae42ea3110e0be"
+    },
+    {
+      "path": "bike-blue-SE-4-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 4,
+      "owner": "sim",
+      "sha256": "858f4a3bd5cbeb037570520aa0200c4eafc3dc8e69f252a3cb5273b153d90b17"
+    },
+    {
+      "path": "bike-blue-SE-4-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 4,
+      "owner": "furniture",
+      "sha256": "c87c8fd072fecc466979dbe0d3473dbf58510378b423e878ee8ae0e31f9bd9e0"
+    },
+    {
+      "path": "bike-blue-SE-4-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 4,
+      "owner": "lines",
+      "sha256": "1f9632ef3433c2742955a0dbb727b8c061e614f51ac0f5f0d5dd103be4f4bb43"
+    },
+    {
+      "path": "bike-blue-SE-5-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 5,
+      "owner": "beauty",
+      "sha256": "9d848c12b681b888713e3be92b3f533b6df104649e0d4fe1886561a06399ba04"
+    },
+    {
+      "path": "bike-blue-SE-5-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 5,
+      "owner": "sim",
+      "sha256": "2d3169ff245b7c68f58015aa41c5ca5d332ed72419e41d602b2b2b6e724e567d"
+    },
+    {
+      "path": "bike-blue-SE-5-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 5,
+      "owner": "furniture",
+      "sha256": "b6490604dd0b7148ef6fb9eca599be564b8ce0722e008a906837259e3c40e1a8"
+    },
+    {
+      "path": "bike-blue-SE-5-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 5,
+      "owner": "lines",
+      "sha256": "8ffcd3b3f1df155178d10bb3568490bb64b15dd0f283fd3ce23ff9dff1ad630d"
+    },
+    {
+      "path": "bike-blue-SE-6-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 6,
+      "owner": "beauty",
+      "sha256": "0abe833756552c15308463ce140d0b6fe941696aba8b23e905bc344f40e1b3e8"
+    },
+    {
+      "path": "bike-blue-SE-6-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 6,
+      "owner": "sim",
+      "sha256": "9b0916d63bcbb16255fb7f63c73d63cb1588c4eca49d74568bb7bed2cdb01e0d"
+    },
+    {
+      "path": "bike-blue-SE-6-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 6,
+      "owner": "furniture",
+      "sha256": "f9fb63f433b03f0bef2fdaed85cdaf49f2bd4aa2719e741e86ad117d71d1b05e"
+    },
+    {
+      "path": "bike-blue-SE-6-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 6,
+      "owner": "lines",
+      "sha256": "393f8cd711dcc89abd94ad3f463468d763e7de6e4eee806d550466ca7979d10e"
+    },
+    {
+      "path": "bike-blue-SE-7-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 7,
+      "owner": "beauty",
+      "sha256": "c8f3352c38ec734b03709a36215b705bae8e223e4c0c41a08452e09a155d7a12"
+    },
+    {
+      "path": "bike-blue-SE-7-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 7,
+      "owner": "sim",
+      "sha256": "93a5f8f15565d8dfa0e7f7f8699a0a9a807264f3f62f40b7b44f398baf841899"
+    },
+    {
+      "path": "bike-blue-SE-7-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 7,
+      "owner": "furniture",
+      "sha256": "c86e1fdc1175afed08591e8d5a78811420f0ce43c9674a6e73df339e460ef2d3"
+    },
+    {
+      "path": "bike-blue-SE-7-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 7,
+      "owner": "lines",
+      "sha256": "d21dac8875ad0d0432b783f0883b633ee3d98499aab8565f24c457d31203a5ee"
+    },
+    {
+      "path": "bike-blue-NW-0-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "62216e479bfb640287848d85637dcec26c504990d084bb0ad501035bf7acb45d"
+    },
+    {
+      "path": "bike-blue-NW-0-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "d38150f6b3ff0a03b3963e44919a9e1aa0f9c9e281be5ee0a89c365b8f55737b"
+    },
+    {
+      "path": "bike-blue-NW-0-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "26ca8f8f71f1d6d8ff8bde642d199a196f86788f4f72d7e1eb580a9604e5f976"
+    },
+    {
+      "path": "bike-blue-NW-0-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "caf1586492eb6d8f5287b80a6a069c62d5cd15c11f183514e9e9d557fbd606e7"
+    },
+    {
+      "path": "bike-blue-NW-1-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "9f7c183f7ab9a7678e3927a80be8804fcbfd7bfa93851f61f14c131431c02d10"
+    },
+    {
+      "path": "bike-blue-NW-1-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "41fcb70468ec407336b39af6f3cc3bc7d9105fc5689546603ac5ede1126f2d54"
+    },
+    {
+      "path": "bike-blue-NW-1-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "c4c12461318995a23807cf926fa63135361681dc0dc133033351fe65402ecd6f"
+    },
+    {
+      "path": "bike-blue-NW-1-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "ce1ab4268eab3813eee38b2a7a2b0f15dcc0ed11be08d0bef6b066d7bc920772"
+    },
+    {
+      "path": "bike-blue-NW-2-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "7f35a0fbeae4084f99825d86a2e5bd41cf486237c4b9988c17296d5d6420c5dd"
+    },
+    {
+      "path": "bike-blue-NW-2-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "e162fe4701e7bc6158dd2e521f22b233909805bb5de0dcfed88102cad4906dcc"
+    },
+    {
+      "path": "bike-blue-NW-2-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "b70fcc7d8379bbff1232cdbe2cc47acb830161193f717271a4f818b6cc9e1d0e"
+    },
+    {
+      "path": "bike-blue-NW-2-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "67232a949718b308d000541cf2fa73c9b4b1aef7eee5d7afa2aa80ff9fafd439"
+    },
+    {
+      "path": "bike-blue-NW-3-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "b779c92a58c9d876f29914aeaf703635348ea738bdebcaf7d2e6de55f3047def"
+    },
+    {
+      "path": "bike-blue-NW-3-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "c7ee08b22890282dcb337eae6045c29ee1b85e47454747d6a78090fe6dae102c"
+    },
+    {
+      "path": "bike-blue-NW-3-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "08f0a7e4ebb606c62f9857f1c6f4b3b1f7b838fbe9016b4b867f012f65f42ef2"
+    },
+    {
+      "path": "bike-blue-NW-3-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "8304d76ad584d5862743e0b1786dc9d70151693b62510ecddf950681f3ff2786"
+    },
+    {
+      "path": "bike-blue-NW-4-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 4,
+      "owner": "beauty",
+      "sha256": "593f209205c8e7f09761d396461ae22ecd51b5fddf18291b3c008adbccfafe25"
+    },
+    {
+      "path": "bike-blue-NW-4-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 4,
+      "owner": "sim",
+      "sha256": "1a1a10696873c0b245bf9b70acfa352d3007ec3238869d183dd9a21477bda766"
+    },
+    {
+      "path": "bike-blue-NW-4-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 4,
+      "owner": "furniture",
+      "sha256": "6586a0052ccdf13aa8339412fc689b4d285d064969d3a5eb0fd2521dba688725"
+    },
+    {
+      "path": "bike-blue-NW-4-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 4,
+      "owner": "lines",
+      "sha256": "05aa7e6acb53fed614161d0dc5a1f99f3c8eadad908e78124343f5a4375ed066"
+    },
+    {
+      "path": "bike-blue-NW-5-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 5,
+      "owner": "beauty",
+      "sha256": "adcc052d966bf1fd161d305e04eb45c7c5587e84cf5ae74fb5a7f886380a047e"
+    },
+    {
+      "path": "bike-blue-NW-5-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 5,
+      "owner": "sim",
+      "sha256": "40383507c77f3b59d3d9fdde2126be1ae61e25e4d42fde510b88d72ee40663df"
+    },
+    {
+      "path": "bike-blue-NW-5-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 5,
+      "owner": "furniture",
+      "sha256": "296c60e3f083525151721eefdbb488f13e9c2ae0b7c58aa1f83c729ec58844a6"
+    },
+    {
+      "path": "bike-blue-NW-5-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 5,
+      "owner": "lines",
+      "sha256": "fa4c06c0dff984a3826e254e35f774a2caefee6036928a9adf98ec41479ddaab"
+    },
+    {
+      "path": "bike-blue-NW-6-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 6,
+      "owner": "beauty",
+      "sha256": "5141f2aca4df7bf32819dad2230704799bde38e9f2ec6e71c96322b7e5e68c0f"
+    },
+    {
+      "path": "bike-blue-NW-6-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 6,
+      "owner": "sim",
+      "sha256": "1477d85d1fd51c35c4c6a65576dda2bbbf6544b26bc65fe50e649cadc7acb6e3"
+    },
+    {
+      "path": "bike-blue-NW-6-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 6,
+      "owner": "furniture",
+      "sha256": "3cf64f2e8bf945ece4d286164f5717c0a6630d0be0d5e84953ef67fb63baa68d"
+    },
+    {
+      "path": "bike-blue-NW-6-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 6,
+      "owner": "lines",
+      "sha256": "bde004fc4a214dce1f26fb3510aca36034096c9378da41e3d7e70b684c28fa92"
+    },
+    {
+      "path": "bike-blue-NW-7-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 7,
+      "owner": "beauty",
+      "sha256": "ea2871884eb1385c2450186c79d497939092887388873b525c29faa821727c93"
+    },
+    {
+      "path": "bike-blue-NW-7-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 7,
+      "owner": "sim",
+      "sha256": "86c6c29116bc377beb46b0e797bc62e03dc9bc986fd7bcb7313eeaca7d4c3c1e"
+    },
+    {
+      "path": "bike-blue-NW-7-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 7,
+      "owner": "furniture",
+      "sha256": "1c32be1f0f936069f07636668dc899cbdcea32326e5c7be2917711804fa80460"
+    },
+    {
+      "path": "bike-blue-NW-7-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 7,
+      "owner": "lines",
+      "sha256": "2fa9f51e26a6fe279f9171830bbea9e4eb576e1432f5ad0987d40a6fc7201819"
+    },
+    {
+      "path": "bike-blue-SW-0-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "0865499c6e5a38129a7b00b7547aa1053eb0aa4d6d03dd11e4a51ab4ea3895e3"
+    },
+    {
+      "path": "bike-blue-SW-0-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "32644939a2fee812501ea24408a093cdffa343f32ad1ee1ff007be7afa1d2e6a"
+    },
+    {
+      "path": "bike-blue-SW-0-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "a2496df5a6b8ece59da963187fb8932a0d055cd0ccc8dad3afb1aa631f275fe3"
+    },
+    {
+      "path": "bike-blue-SW-0-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "6cca130f3a8ac51e6f3793fdcaeedd5d6dda773ee2fafe970f3b610a4ccec5d8"
+    },
+    {
+      "path": "bike-blue-SW-1-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "9a852666ec930505039daa89b30cd7780c64ffc6800f9da27a2c45942ebf89f8"
+    },
+    {
+      "path": "bike-blue-SW-1-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "f07b1ff7d0fd7d6e632eb730a0471aa86f2921440892b5114189e9f86c50d929"
+    },
+    {
+      "path": "bike-blue-SW-1-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "47766bfe651025f1a09e8724bfcc82ad2b81498ef52a49fb9abc205e4a1ac4e2"
+    },
+    {
+      "path": "bike-blue-SW-1-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "25bb8156fd2c9118a0b0480ee9f48f9ef10d607fedafdf281f0c9e13ed94046e"
+    },
+    {
+      "path": "bike-blue-SW-2-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "8be33cf7dbb98a3b031867e24da7e2929d61b141054cb81c03ff1d07aa2b8523"
+    },
+    {
+      "path": "bike-blue-SW-2-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "4ef191904616320fed85074ace24dc0997703cb57b653d337540b212af1726b0"
+    },
+    {
+      "path": "bike-blue-SW-2-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "4a98b4e587ab4c856404dd6312b508a71cd474cdf8edd039602a9ad721916e88"
+    },
+    {
+      "path": "bike-blue-SW-2-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "a1a903ce4cd8d7954958f0be76ec09dfd325d83062f428a488a6c7ce11736b6a"
+    },
+    {
+      "path": "bike-blue-SW-3-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "f9e237975f1a92553f890bff202a5a5cc11d35452ee69d282cc033d8c3cab99c"
+    },
+    {
+      "path": "bike-blue-SW-3-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "5338fccfa8969a885a5e8e2f1f57340aa179407322e9eeccf61b84bac4b2974e"
+    },
+    {
+      "path": "bike-blue-SW-3-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "0b95d5205cdbd6a9317a8cba7da0a0a36534b5ba61908921445c531143ce693f"
+    },
+    {
+      "path": "bike-blue-SW-3-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "2425fc00f80c9f474f994939a03eb6c8993c73346f258d9d52fc5882581d1724"
+    },
+    {
+      "path": "bike-blue-SW-4-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 4,
+      "owner": "beauty",
+      "sha256": "d2a184dad6eca7928117b3488380d0d464e7a0eed6ad75d074e77e789652c034"
+    },
+    {
+      "path": "bike-blue-SW-4-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 4,
+      "owner": "sim",
+      "sha256": "3063db9d403b7d610702f445aa309885a7030d6576febdfaad9e9b9b02a85bf4"
+    },
+    {
+      "path": "bike-blue-SW-4-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 4,
+      "owner": "furniture",
+      "sha256": "1e9580c40b107847be24882389d8433d1f0617b41341301e65b0b1a9b20117aa"
+    },
+    {
+      "path": "bike-blue-SW-4-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 4,
+      "owner": "lines",
+      "sha256": "8e3dcff1987563ee5b1e2f8f2aa1643e15455d70cb7940d1dc6dbac66ca8fda3"
+    },
+    {
+      "path": "bike-blue-SW-5-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 5,
+      "owner": "beauty",
+      "sha256": "79be1a27f2e53b06c64fe4ef558161fe25cf064260d784c1476dfe13d384333f"
+    },
+    {
+      "path": "bike-blue-SW-5-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 5,
+      "owner": "sim",
+      "sha256": "1b51e0abbae40eab06d5d3923ee13a402e3425cc72d2efd648a72c6aa0bd7d17"
+    },
+    {
+      "path": "bike-blue-SW-5-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 5,
+      "owner": "furniture",
+      "sha256": "ed5e9ab8f56236d1fc2eebc8aeee93c7536ee506de5642e99d478a175179e87c"
+    },
+    {
+      "path": "bike-blue-SW-5-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 5,
+      "owner": "lines",
+      "sha256": "06d5a98928ca4c9ee4852ddeff382263cb867f51f09fc42a9f4e977818d844f3"
+    },
+    {
+      "path": "bike-blue-SW-6-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 6,
+      "owner": "beauty",
+      "sha256": "76171c7a0a62c5923938796dc0257617b77a0a0d7c87aed6f023cce89758709a"
+    },
+    {
+      "path": "bike-blue-SW-6-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 6,
+      "owner": "sim",
+      "sha256": "85838c0f502b3196f865439ed7894c1267698a91ef4f438b29d5fd618cfbe2de"
+    },
+    {
+      "path": "bike-blue-SW-6-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 6,
+      "owner": "furniture",
+      "sha256": "47461887364e471b0bacb73d9707246aeb5260a434222765570fe4025c6af53a"
+    },
+    {
+      "path": "bike-blue-SW-6-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 6,
+      "owner": "lines",
+      "sha256": "b147db2cae4ad8b258090d919659cdf1c79ba91bc5599d1071dcc913cf9f2270"
+    },
+    {
+      "path": "bike-blue-SW-7-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 7,
+      "owner": "beauty",
+      "sha256": "7aa7bc214ce130e2073c53c7bdaf3ae77ce78d78f48ccf6388e6b5fb4cb6874b"
+    },
+    {
+      "path": "bike-blue-SW-7-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 7,
+      "owner": "sim",
+      "sha256": "22f4247822110b7b1d6f1a57f2162075f44c7a83e6f6027493a690b35d278786"
+    },
+    {
+      "path": "bike-blue-SW-7-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 7,
+      "owner": "furniture",
+      "sha256": "8aae2a02ae42b4b25f6300be7fbe134da88c6194ef8dc40e123e9cbe044ebc73"
+    },
+    {
+      "path": "bike-blue-SW-7-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 7,
+      "owner": "lines",
+      "sha256": "2a6481714f1b88ff6aea178b321e1c62efc9dcff69b0f705530286e5ae5a8b51"
+    },
+    {
+      "path": "bike-blue-NE-0-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "45968f08b2fab83a42d8e89ae880a25e6fcdabdb59fce7cec60861745b2922b2"
+    },
+    {
+      "path": "bike-blue-NE-0-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "2aef70494780da2b61bd6c032216151180b910afdbfa06255794ae676f7cf82e"
+    },
+    {
+      "path": "bike-blue-NE-0-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "06c6cbaaa95884fc3e799f9860eee42c11eb43e73cf66d78e52ec529039e7c29"
+    },
+    {
+      "path": "bike-blue-NE-0-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "56e9109df97b2a5ecdad8bd6e88f606b78d5b47d92bb5ce6400f83a563d3be76"
+    },
+    {
+      "path": "bike-blue-NE-1-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "bb571c4193176090494bc0a36ff621a5efe74741c5fe5a8e65c65acca8c775d3"
+    },
+    {
+      "path": "bike-blue-NE-1-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "a881cf493b5457c797f66cb50d9d3cf54d50ccf5280a9ccc28458b33a41a8f13"
+    },
+    {
+      "path": "bike-blue-NE-1-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "90f01fd720977196dc12af10de06a940fec37de50b3bed4b39708d981ba3019c"
+    },
+    {
+      "path": "bike-blue-NE-1-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "4dd57367ebe60e64f5c252709e848f739d64fedc8c839b0f40babc443db2f7ea"
+    },
+    {
+      "path": "bike-blue-NE-2-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "5b8cf8c841a5d871d21110d10d5fb9f5f42571bd24f9d88de1742d9113b640d2"
+    },
+    {
+      "path": "bike-blue-NE-2-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "24b5d83a29ff484fa19274bdb5af557ad6138ca6772699f197f129c2f8d54936"
+    },
+    {
+      "path": "bike-blue-NE-2-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "6934a06b4be0ec61c6840ea75e36e0ac8ec2b56fd1c5d0b52ca710664fb482c5"
+    },
+    {
+      "path": "bike-blue-NE-2-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "da8d44bfcea62950a75251cfb0c32e851b86fef6a75f30f430ed491d27d36a98"
+    },
+    {
+      "path": "bike-blue-NE-3-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "082d82df1038ebcae500d4357c45997f3c6e73b7e010e985f930e2950e8be2f5"
+    },
+    {
+      "path": "bike-blue-NE-3-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "97e8f16d178c54ac04d73b6e215dd8f9e58448b8b748524a9c625ac3e13e4e7a"
+    },
+    {
+      "path": "bike-blue-NE-3-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "29c180bda8e061c7c90660e1f809cfb196c5a13552d0ed7000f0c7653f02dc6b"
+    },
+    {
+      "path": "bike-blue-NE-3-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "e23e59ba9f52328ad23a13b6398b85fff4268e751617fa701bf436ffe90a63ea"
+    },
+    {
+      "path": "bike-blue-NE-4-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 4,
+      "owner": "beauty",
+      "sha256": "2719f3860b555210ff88e2050b0096752a1b51da20e5d2861c983990e925188f"
+    },
+    {
+      "path": "bike-blue-NE-4-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 4,
+      "owner": "sim",
+      "sha256": "3e8fd4e6ad8ba2bb793a8548be67519893b87364f8405a97cb86c6c10bde5bd1"
+    },
+    {
+      "path": "bike-blue-NE-4-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 4,
+      "owner": "furniture",
+      "sha256": "f592d4f01b82cb8ac42c26764b219f4377abd762b708dcbd3a2a90109a66dfef"
+    },
+    {
+      "path": "bike-blue-NE-4-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 4,
+      "owner": "lines",
+      "sha256": "2ccf5f74113bb0d5fce0673a4d6e3ef89950d4572e51f6d62525591ce0de8d61"
+    },
+    {
+      "path": "bike-blue-NE-5-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 5,
+      "owner": "beauty",
+      "sha256": "1fc781a3b00d5ae141046a7f29b30f0db60942754efe43104f197e5bd2b2cbc0"
+    },
+    {
+      "path": "bike-blue-NE-5-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 5,
+      "owner": "sim",
+      "sha256": "40e7e52ac6427a868f7d37b91298f866560e19b2852d869098e1d1f7d999188d"
+    },
+    {
+      "path": "bike-blue-NE-5-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 5,
+      "owner": "furniture",
+      "sha256": "c8b1efde7990102b034fb72bf0458202a49ba92eea964e6f3ddfa9d56ce24cfa"
+    },
+    {
+      "path": "bike-blue-NE-5-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 5,
+      "owner": "lines",
+      "sha256": "cf4f706afc0e7e25769af3cccc016c665d34b84bfede7b24268753e1c889ff70"
+    },
+    {
+      "path": "bike-blue-NE-6-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 6,
+      "owner": "beauty",
+      "sha256": "98c6bba2b098d7de66ab99bb576a745b06e8d5d8866567237c133a7de8994aba"
+    },
+    {
+      "path": "bike-blue-NE-6-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 6,
+      "owner": "sim",
+      "sha256": "7ec42998d8a6d9e845ce63c8e717cd9ed48f326a278af03bd123147eb1f0d32a"
+    },
+    {
+      "path": "bike-blue-NE-6-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 6,
+      "owner": "furniture",
+      "sha256": "5d65a6954d5fae581c67ac156d551c488d03a9f56b0e9a53bd0a8449b40f0ae0"
+    },
+    {
+      "path": "bike-blue-NE-6-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 6,
+      "owner": "lines",
+      "sha256": "29ce532aeddbe2ec071876ba0ab428bfab5d8d3c2205da369308dd9641d12159"
+    },
+    {
+      "path": "bike-blue-NE-7-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 7,
+      "owner": "beauty",
+      "sha256": "a97b220e854d277ae7a516908c41b4e0ca9021b0c94e87ab63fe85ea8f646070"
+    },
+    {
+      "path": "bike-blue-NE-7-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 7,
+      "owner": "sim",
+      "sha256": "1178b705282a44663beb08fbd818933ba4d4c6a2ab719474b404de00aee1a804"
+    },
+    {
+      "path": "bike-blue-NE-7-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 7,
+      "owner": "furniture",
+      "sha256": "781c83267e277724ba60ef9ae75b57a9b63fe85ed7379c35b01d23a7133e1ca7"
+    },
+    {
+      "path": "bike-blue-NE-7-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 7,
+      "owner": "lines",
+      "sha256": "83d6b99f6949b3db65dbf84cbbb3d1fa0a0bc38c06da9101d989316c9385f7b1"
+    },
+    {
+      "path": "bike-red-SE-0-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "fe3ed6acd1fe885c1b1d8fd15513517ff7d366abd72acf43759e1c4b28dd49ef"
+    },
+    {
+      "path": "bike-red-SE-0-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "b0a46e4a466723e330035c7b7867e91b4c3bd6534e72ac6bf965d9a1702b0959"
+    },
+    {
+      "path": "bike-red-SE-0-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "5e90b34f5cef7eafbfc753ca6115648a7c35c2daa5e4b21ae08a0a034dd5a2d9"
+    },
+    {
+      "path": "bike-red-SE-0-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "fdc2635be5b5e34f39de3742f34312cf101cc7187ce7f2b70cb9061f402e3c4b"
+    },
+    {
+      "path": "bike-red-SE-1-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "84948b417b20d8a050c4cc2c4f7b79186ebb77ca7dcca0f82985b6e92f537256"
+    },
+    {
+      "path": "bike-red-SE-1-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "57c12d1f3cea51c8952cf8c7f278e2e7a13c4298429a15742648b09c968bcd4f"
+    },
+    {
+      "path": "bike-red-SE-1-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "ef18d8ee794e86313c59af358d45f46cbf6e4f3bda604d4c6f2ebd08aa4ac910"
+    },
+    {
+      "path": "bike-red-SE-1-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "3217f1d5c8a341ef2ed946ecb1b1d3abca59781538632ac782204ff96782371a"
+    },
+    {
+      "path": "bike-red-SE-2-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "d41dae9ff623a409489818b496c78cc0b0354c06cc15d837f44b4ad4611b69b9"
+    },
+    {
+      "path": "bike-red-SE-2-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "3bf1e265328eab7d3c4653fd9225460088c1f02325b9d02e6249fd35bcfd7a1a"
+    },
+    {
+      "path": "bike-red-SE-2-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "db3c5a8d1c0356e5919a39dc56db41582fa70c33d94fd20766e07f0ace6f9b09"
+    },
+    {
+      "path": "bike-red-SE-2-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "e87c91e09ee94608ce6765657e5a8d92c1ba4fa88e3f2897fa689a0d3e8cb03d"
+    },
+    {
+      "path": "bike-red-SE-3-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "be19e90effd4d8af0e35dd5ff89136fb1e8ee4191347809b2e1bcc22dfa61b86"
+    },
+    {
+      "path": "bike-red-SE-3-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "f15bfbdf7e056b79acf30fc09db377f5ece763f78bf5e948202a69a77ebdb9e0"
+    },
+    {
+      "path": "bike-red-SE-3-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "044d5f583c54c38669145a3f34386f52a35fdb6a8aba197dd95ba93f61d48f5a"
+    },
+    {
+      "path": "bike-red-SE-3-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "dcb3f009f7fe818c544cef30157c9121e35a8c2f20505d913e2ff0a6a93a75db"
+    },
+    {
+      "path": "bike-red-SE-4-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 4,
+      "owner": "beauty",
+      "sha256": "38426fd67e5d7a59d9752070a9d47ece0a628783581f9f3c07a036d582c02023"
+    },
+    {
+      "path": "bike-red-SE-4-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 4,
+      "owner": "sim",
+      "sha256": "4eb085df3ea076610b28602e17b927c5587f291671cc769f5b248a3ca1ee32bb"
+    },
+    {
+      "path": "bike-red-SE-4-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 4,
+      "owner": "furniture",
+      "sha256": "1c0ca2d3d6d6b4d1d78598bea5ae31c40f745b5aa44f088018af680380ef269f"
+    },
+    {
+      "path": "bike-red-SE-4-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 4,
+      "owner": "lines",
+      "sha256": "332aff6bbcf90b1dfdda0065e7db0783d11c0e26a82181df50370fd8474ab00b"
+    },
+    {
+      "path": "bike-red-SE-5-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 5,
+      "owner": "beauty",
+      "sha256": "3b3a758d1169fbbdeb22ecaab8b658696e0f3583a221318457567447c6d38898"
+    },
+    {
+      "path": "bike-red-SE-5-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 5,
+      "owner": "sim",
+      "sha256": "3e8400f311b6a4fe4c9d51ccff6cca3f381dbc38c13c90380d96b277f803447a"
+    },
+    {
+      "path": "bike-red-SE-5-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 5,
+      "owner": "furniture",
+      "sha256": "ff5f88d522b9121f598b48abeac93ae702850766bf6b7762dd7e278ebab94fae"
+    },
+    {
+      "path": "bike-red-SE-5-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 5,
+      "owner": "lines",
+      "sha256": "103c2d35a33520b18bf16eb3317f0e046349a5e573d55a078e183b9a6061be74"
+    },
+    {
+      "path": "bike-red-SE-6-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 6,
+      "owner": "beauty",
+      "sha256": "e7050e1d283d642b069261bf66afc704294434f9c45d70fb86be5ac3afa22fe0"
+    },
+    {
+      "path": "bike-red-SE-6-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 6,
+      "owner": "sim",
+      "sha256": "c663df05b7872c1c3e6beb9ec4f2a4f3295cd262c3888fbe7dc6939392bac377"
+    },
+    {
+      "path": "bike-red-SE-6-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 6,
+      "owner": "furniture",
+      "sha256": "14835a7f67cbad0526e3fd0de62d2ea103737f9ccbfccc2f294dbad40013027a"
+    },
+    {
+      "path": "bike-red-SE-6-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 6,
+      "owner": "lines",
+      "sha256": "c45721daf8e57961283843a88032cde200ccda746cdcd221fc148dba0de8cfae"
+    },
+    {
+      "path": "bike-red-SE-7-beauty.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 7,
+      "owner": "beauty",
+      "sha256": "2c86acaa1afbb4518331dd1c0535841f83f2fd58aa89841fa3720c6867e0ba42"
+    },
+    {
+      "path": "bike-red-SE-7-sim.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 7,
+      "owner": "sim",
+      "sha256": "4035ac887bcaa3f99fb87e8215f2da56316be376450d0c0ba358575d80e5c64b"
+    },
+    {
+      "path": "bike-red-SE-7-furniture.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 7,
+      "owner": "furniture",
+      "sha256": "ae64333ca21132ed9b1db9af544ccd3f3b107bcae24970708826147a6b15844c"
+    },
+    {
+      "path": "bike-red-SE-7-lines.png",
+      "object": "bike",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 7,
+      "owner": "lines",
+      "sha256": "30fc66872fcbf1f815eae2d10bb997528bd47a1a2759243c8e9f52544b8d39f3"
+    },
+    {
+      "path": "bike-red-NW-0-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "33d504d3c2513da20d1912e0530f677b490445328eb8faef524e616fd73af350"
+    },
+    {
+      "path": "bike-red-NW-0-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "2e7bbd419f831d608d0fa26cf7716321b8c19b7289aeb5aea955e3fc65d10764"
+    },
+    {
+      "path": "bike-red-NW-0-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "9d4b8a9c1325de1417fedfdfd651a7c5df8be8f906a3aee03b60c14f67c98b67"
+    },
+    {
+      "path": "bike-red-NW-0-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "c0b3b877176be301da619c703ec75618eb07ff77b0e43b9b1b899cd2165d98a7"
+    },
+    {
+      "path": "bike-red-NW-1-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "368994e28b27779a338fe12de7f8c4e5a0c13493dcc0802f022053419f1fe711"
+    },
+    {
+      "path": "bike-red-NW-1-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "36803e6c300f13bdb7367ef684b44fa11e676ffdfafabed15e8ad51841f34705"
+    },
+    {
+      "path": "bike-red-NW-1-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "100067085ff2a4dc1949d8434c71bcbcfed4586c53a2f2389bf7388736c8981b"
+    },
+    {
+      "path": "bike-red-NW-1-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "60ab4ba91d73b0e49205be35c72a8be71221fc4ac1571bdd2f0da07659062ccf"
+    },
+    {
+      "path": "bike-red-NW-2-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "1ab75fb8fe964145c10a0e05233413d83b83ff00cbbd9ab2d1b65800295979f8"
+    },
+    {
+      "path": "bike-red-NW-2-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "8311f122b79440091b95c8188692c89abda56b877024199b9168db9ddb40b9c7"
+    },
+    {
+      "path": "bike-red-NW-2-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "3364af2a9cc8e4220165883a4eed94a637177589450969ce697457ac420c15a1"
+    },
+    {
+      "path": "bike-red-NW-2-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "dc372598a0d464e4f325e7ad2f57fe8515f86a2503ec7bb59fc37b4e5c2ac4d9"
+    },
+    {
+      "path": "bike-red-NW-3-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "3a0a26aa262217ec39fa1752bbfbed014733ea5e3a4939c986fdb6ea11dd4006"
+    },
+    {
+      "path": "bike-red-NW-3-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "472d0961659ab83e59f601e7c16212158d201ec4a0343b6436ffe268dcfe7e84"
+    },
+    {
+      "path": "bike-red-NW-3-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "7673f1ca9138196786b6e87c2a425972f57e683239a33a08a6bf80da4d98b3cf"
+    },
+    {
+      "path": "bike-red-NW-3-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "6d8be848455523ccc3b184e20dec5f9a737fc9cb8fac0ee7382e6397882cd24e"
+    },
+    {
+      "path": "bike-red-NW-4-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 4,
+      "owner": "beauty",
+      "sha256": "015298ea3f7b52a2e1b0352774676b58199dbd26e1d3e53cf82a8009600deb79"
+    },
+    {
+      "path": "bike-red-NW-4-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 4,
+      "owner": "sim",
+      "sha256": "e926618d56367969bb2255dbd0b8d81bb41fd2070301322a2c0ccdb58c207ea8"
+    },
+    {
+      "path": "bike-red-NW-4-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 4,
+      "owner": "furniture",
+      "sha256": "72c52cb9544196f91bab3eb3a843623a17dabb97c956f47afef18a0416060435"
+    },
+    {
+      "path": "bike-red-NW-4-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 4,
+      "owner": "lines",
+      "sha256": "d2e1247ec9bdc8b51e1821f73649614625a1ed13495ac7ab6b73b2e4b989eb2e"
+    },
+    {
+      "path": "bike-red-NW-5-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 5,
+      "owner": "beauty",
+      "sha256": "13181208481663bda9465fb972f290b408238528d67b733127e7d913be91ff9d"
+    },
+    {
+      "path": "bike-red-NW-5-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 5,
+      "owner": "sim",
+      "sha256": "2109ac2faf85499e0bf094ab9aab02952309942e5c529caca950f5e7d140a4ac"
+    },
+    {
+      "path": "bike-red-NW-5-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 5,
+      "owner": "furniture",
+      "sha256": "e7188785374b73aaab53ebf82600164a7230e153ffb138e0aa995c05e0534549"
+    },
+    {
+      "path": "bike-red-NW-5-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 5,
+      "owner": "lines",
+      "sha256": "fc3f1f7ee666e1918bf609bbffcadc0204c75bf869db80130c7288222d7d9ada"
+    },
+    {
+      "path": "bike-red-NW-6-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 6,
+      "owner": "beauty",
+      "sha256": "25cf1bc21d35bde7a52c0998e4a7ed32e6b2a477ad90fff94d166504caba4f34"
+    },
+    {
+      "path": "bike-red-NW-6-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 6,
+      "owner": "sim",
+      "sha256": "5dbc722b0a21273b680c42e18170402847d777801698686524447719a9ef80f8"
+    },
+    {
+      "path": "bike-red-NW-6-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 6,
+      "owner": "furniture",
+      "sha256": "9d8b4b2ccaabb095663aac051dc38a7d2ab4be92545fd6c1614ff994c185ccdf"
+    },
+    {
+      "path": "bike-red-NW-6-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 6,
+      "owner": "lines",
+      "sha256": "90c105419d01ddf5d18d7e41f8b243bbce91dd3c3674fdec1004eed403776e1e"
+    },
+    {
+      "path": "bike-red-NW-7-beauty.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 7,
+      "owner": "beauty",
+      "sha256": "36be46f31176c12c4ec45b684ac9e24a7d34f331e1d93126d69683dc2a750556"
+    },
+    {
+      "path": "bike-red-NW-7-sim.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 7,
+      "owner": "sim",
+      "sha256": "c4c15dc7b49571557ca74debe5ac31d118d0ee248ab4da75f2a7bc7448808cb7"
+    },
+    {
+      "path": "bike-red-NW-7-furniture.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 7,
+      "owner": "furniture",
+      "sha256": "81b3d185746101a38e7113ab476428ade89c0285dbeff8c01831af029ec2e6d5"
+    },
+    {
+      "path": "bike-red-NW-7-lines.png",
+      "object": "bike",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 7,
+      "owner": "lines",
+      "sha256": "503e2a14c99008aedae1f86c0b297305b8cca3abbdd7aae6f7ddd85154b76622"
+    },
+    {
+      "path": "bike-red-SW-0-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "1a678c36734785c338cdc1585ff2e1e12d1b0a8f7bb0940bb6cc1c27143eae59"
+    },
+    {
+      "path": "bike-red-SW-0-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "f2b29920a1ba4c8498b119c8630c3029e8e013cfbee60ccff940f1264a64fe41"
+    },
+    {
+      "path": "bike-red-SW-0-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "fd04460b2604e204c1367e71a334374c330625c36355550e618e86a307d745f2"
+    },
+    {
+      "path": "bike-red-SW-0-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "159f7a5ee1c87a872bf5101c5eb5f71397d0c55ee56df8dd9117c60c543e3853"
+    },
+    {
+      "path": "bike-red-SW-1-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "156721d203bac0428f9b9f2d8c1543e9dd93388ebb0501963be6609e1000703f"
+    },
+    {
+      "path": "bike-red-SW-1-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "9ce3dff3ed05554b96f1d443b7136f200adfa9eb0c9a436b137fdfa5b892a691"
+    },
+    {
+      "path": "bike-red-SW-1-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "5db4ea95aa135b4519bd4de17f01048051c991abc4aff9eb2ea7d120f3f32634"
+    },
+    {
+      "path": "bike-red-SW-1-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "4e012700902042122b1a9dd5185122a63a112b231efdb877dcf45697d471d42a"
+    },
+    {
+      "path": "bike-red-SW-2-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "e8c7d357464e13cf427877544df39c1ceca878af2192b2a641977e3560ea4a14"
+    },
+    {
+      "path": "bike-red-SW-2-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "7622352a84fd52f834a939d66c3d7d768489c80858bf177d13c464f08e497f8c"
+    },
+    {
+      "path": "bike-red-SW-2-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "3f5738379e75bd6bd8dc18e079f03ca12c0114ef1c23f98dea07539ce4d6bed6"
+    },
+    {
+      "path": "bike-red-SW-2-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "7728225c338c9b2ef416b429264cd6bcc2b30cada98ee918b660e1f229a70f53"
+    },
+    {
+      "path": "bike-red-SW-3-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "2efac0d58c6cc8b3de2419466319bce5bf016ea701a43d22dc52ac1076cca6f1"
+    },
+    {
+      "path": "bike-red-SW-3-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "e11db4db7f9348d0a05e41fd0f4c90cb93629e49c17d146dd4823538d102b86f"
+    },
+    {
+      "path": "bike-red-SW-3-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "ec9dccc81d4e849c653cfde8e44451084a89f00144676a585f7b3486b4947e93"
+    },
+    {
+      "path": "bike-red-SW-3-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "0b451bb5a399996ec7fb34a1afcbfa75526b37fe6abd346ac064bd2ca012c488"
+    },
+    {
+      "path": "bike-red-SW-4-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 4,
+      "owner": "beauty",
+      "sha256": "b161ba6be93bb828b647d90767dae13762e53cc64057cbd4363ab4c066a3d5f4"
+    },
+    {
+      "path": "bike-red-SW-4-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 4,
+      "owner": "sim",
+      "sha256": "1492543f54342fd91d81101f6adfc9b5ff00b32d24e6bd3fb2c1b124e9d84bb8"
+    },
+    {
+      "path": "bike-red-SW-4-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 4,
+      "owner": "furniture",
+      "sha256": "7503050df7b67a5178082343ce41717b54ace04300bd9d7f0723a373d09c2682"
+    },
+    {
+      "path": "bike-red-SW-4-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 4,
+      "owner": "lines",
+      "sha256": "6d6322cbde61c1ff2231b8aeb741ec4121f4bdc52597dcae0c4028d1bcb276e0"
+    },
+    {
+      "path": "bike-red-SW-5-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 5,
+      "owner": "beauty",
+      "sha256": "c4a33d352a0582686472db87d1105017f4d59edbfb8d3441bf12081287c3994a"
+    },
+    {
+      "path": "bike-red-SW-5-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 5,
+      "owner": "sim",
+      "sha256": "7d3703f4db72b590fa568f130cdc6080fc0b783d155ebeb8fbe17a13769cdf78"
+    },
+    {
+      "path": "bike-red-SW-5-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 5,
+      "owner": "furniture",
+      "sha256": "b9382de78988c463d5418e9737265e003e94d26db55fcfac56c9696947d3cb01"
+    },
+    {
+      "path": "bike-red-SW-5-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 5,
+      "owner": "lines",
+      "sha256": "7728c07e84a5baffd0411d8df3a58e23e084ea0fe813ab2caee13ae8cc95132d"
+    },
+    {
+      "path": "bike-red-SW-6-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 6,
+      "owner": "beauty",
+      "sha256": "6fc5ffbbf2729d5ed0df8b538d938fc748ef01ddbc9ffbf9a8a644c3a0a98d0e"
+    },
+    {
+      "path": "bike-red-SW-6-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 6,
+      "owner": "sim",
+      "sha256": "6cf2f66d80eb1a5bbb434ae7716e42cf4a97e411bb6d0181a04f85c9351510d4"
+    },
+    {
+      "path": "bike-red-SW-6-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 6,
+      "owner": "furniture",
+      "sha256": "97e7481cb963d26d82885903383190b48c4e12cd7efd3a24064c4afceb1194ac"
+    },
+    {
+      "path": "bike-red-SW-6-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 6,
+      "owner": "lines",
+      "sha256": "a230b88b61bf6e6267586c3c5ed42b33e6c617c13d0fecdf84867870008ea4c8"
+    },
+    {
+      "path": "bike-red-SW-7-beauty.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 7,
+      "owner": "beauty",
+      "sha256": "cc100c48dd56dbf7659f337295c7d7099c0175ce044d183bb012b4c3551bb3ba"
+    },
+    {
+      "path": "bike-red-SW-7-sim.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 7,
+      "owner": "sim",
+      "sha256": "ba1ef17e8d4b296cfa8296a38ac9f0f018c43740e2bfbd753ec4384eb57bd82d"
+    },
+    {
+      "path": "bike-red-SW-7-furniture.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 7,
+      "owner": "furniture",
+      "sha256": "e3f238085df94679aff44e4136ad782206f4a410f7c3719ee54ca353e621e91c"
+    },
+    {
+      "path": "bike-red-SW-7-lines.png",
+      "object": "bike",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 7,
+      "owner": "lines",
+      "sha256": "2eb64fa5408754a75a7bc665f113ab7a08bd3f5eab073b12174b1d77913eb832"
+    },
+    {
+      "path": "bike-red-NE-0-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "ca95843fb24383578cb575ec6c79b0d2f3f5cd35dd71ff50c75bb3c8786b9cf2"
+    },
+    {
+      "path": "bike-red-NE-0-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "72459f7efcdf3b4c1262db74b39a6b6024aab77e2f919589146cca7bd0800cf3"
+    },
+    {
+      "path": "bike-red-NE-0-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "bc598aa0b5e3440a463563fd5e19d11e4a5e8afbb1b7c42c6024f602ba512fe3"
+    },
+    {
+      "path": "bike-red-NE-0-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "257323226f4c0c7ca6452946a16f810a0244a89ab61f1c26de7ff6104d334834"
+    },
+    {
+      "path": "bike-red-NE-1-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "77c6390e4b4ea67d7f2f0589f5eced8e43513c5feb05198c86e596324abbe5c9"
+    },
+    {
+      "path": "bike-red-NE-1-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "04120f2ef5149de3a5c4f01e4bc91f81c2ae953eaaa092226dd76efb7c1f1c13"
+    },
+    {
+      "path": "bike-red-NE-1-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "6b5030f33d13c4e8fb03f80851555b79baa03d21f7fe4476dcfb5b3cffe3f848"
+    },
+    {
+      "path": "bike-red-NE-1-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "a39c99f93047089ca19a6261497949656390f7e36501496008ea9a3891846eb8"
+    },
+    {
+      "path": "bike-red-NE-2-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "657a54c9cdf5d4bd9141e99699652a1b7d98f2f5f1299151005d1701fec5d302"
+    },
+    {
+      "path": "bike-red-NE-2-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "adbdbed4fa42f51bf33814df06e8de0219e91f1205dec264916b2b3a031ab907"
+    },
+    {
+      "path": "bike-red-NE-2-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "2d649c998cc1c98d25f46b593af0d4aea0a600adeef39c44a0848626c29693ef"
+    },
+    {
+      "path": "bike-red-NE-2-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "812ccaf9238e0598b7e440d6dfffeaa64a9d51d0825864074fd717098206c3b6"
+    },
+    {
+      "path": "bike-red-NE-3-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "0aac55d742b3dc3514da3666a42808f60f1789030cf1dc8c0575dbf30d9f8efa"
+    },
+    {
+      "path": "bike-red-NE-3-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "fb53513185a377ab8be53ec6a307dc7684e67c93c62c10ae10674e55738bf7f9"
+    },
+    {
+      "path": "bike-red-NE-3-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "19ee3762d073458672566e8bc79ea4db9fcf5b0c7d8c26be0291dfbb67c4d0d7"
+    },
+    {
+      "path": "bike-red-NE-3-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "98a595c414e939ce72e5cd1e67fc551341b996be51cc979dedaf1b9a4ab65d69"
+    },
+    {
+      "path": "bike-red-NE-4-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 4,
+      "owner": "beauty",
+      "sha256": "aa20cb2f757cc2194c49133432b37d2bcd2c61e32169221c083c7fb4529bdb1b"
+    },
+    {
+      "path": "bike-red-NE-4-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 4,
+      "owner": "sim",
+      "sha256": "cd0a01917cf952e3bf64bbebe105701c5a7118c1f4872240aada3be3d442fc1c"
+    },
+    {
+      "path": "bike-red-NE-4-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 4,
+      "owner": "furniture",
+      "sha256": "daf401457e73cd9a669bc2d3fd9d5fd56dcd472df901150f14ed30274623cb79"
+    },
+    {
+      "path": "bike-red-NE-4-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 4,
+      "owner": "lines",
+      "sha256": "82bea2880182a5f13e830cd254efdbfc0ebd848cc26a81d72e2526d3078f6106"
+    },
+    {
+      "path": "bike-red-NE-5-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 5,
+      "owner": "beauty",
+      "sha256": "69c19e5055bd7fee14194d98222a8068eddc277d5b996ac3aaf5e7ad760503f7"
+    },
+    {
+      "path": "bike-red-NE-5-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 5,
+      "owner": "sim",
+      "sha256": "1c106e6aec9ba33d0c02f52c6f0cb86fdf284291b3a40b405a8e9cbdf06ce083"
+    },
+    {
+      "path": "bike-red-NE-5-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 5,
+      "owner": "furniture",
+      "sha256": "c07b5441157c7c63cfc456862effed1bc47008ef42a96d0142c23877417d317f"
+    },
+    {
+      "path": "bike-red-NE-5-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 5,
+      "owner": "lines",
+      "sha256": "19de7699d184148381365cb98306e14dd8deb57caf004253e4d472f3b9f13710"
+    },
+    {
+      "path": "bike-red-NE-6-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 6,
+      "owner": "beauty",
+      "sha256": "6cec3a5c1c829494aa7459389acf672fea521b046791ec78e8a6b781a200b27a"
+    },
+    {
+      "path": "bike-red-NE-6-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 6,
+      "owner": "sim",
+      "sha256": "d5c0d716f12d2264f1b416ea6b0e86ccae2efddd9289080bf3bf24a93c102bc0"
+    },
+    {
+      "path": "bike-red-NE-6-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 6,
+      "owner": "furniture",
+      "sha256": "017e4867645b57d6f1c0079afee7540ae6a8468fd4bb618a5c900ab5c7aba65f"
+    },
+    {
+      "path": "bike-red-NE-6-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 6,
+      "owner": "lines",
+      "sha256": "871d5f657ce3c4c9d6e9a0dd5b8524506ad5fa728f1313a42c3f1a7d71b3adaa"
+    },
+    {
+      "path": "bike-red-NE-7-beauty.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 7,
+      "owner": "beauty",
+      "sha256": "91e1fdba9a10ca23dfd42324d90a050ceeeabc17ec85a004ec062303a09e2bc2"
+    },
+    {
+      "path": "bike-red-NE-7-sim.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 7,
+      "owner": "sim",
+      "sha256": "08231579a27dfcfe08f70025db685f95fb8379515db9a9285dc6ce8892e2a842"
+    },
+    {
+      "path": "bike-red-NE-7-furniture.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 7,
+      "owner": "furniture",
+      "sha256": "bbff45aec724d34a15bb13151ff6dc4f26a12a2626d345f66194498a09ea7714"
+    },
+    {
+      "path": "bike-red-NE-7-lines.png",
+      "object": "bike",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 7,
+      "owner": "lines",
+      "sha256": "0c47579e0abdd9f2da466ab55e4033b8086395421d34e44856c664fe02c00e8b"
+    },
+    {
+      "path": "chair-green-SE-0-empty.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 0,
+      "owner": "empty",
+      "sha256": "3e107f868f4a3334848eaaff58bb0502256977d5ad41720153d52d9e54837fe1"
+    },
+    {
+      "path": "chair-green-SE-0-beauty.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "90bbd8d7df86e9dd0cd0529ae0f242d3ecb2dde94b33df682f51be3f7bdcb689"
+    },
+    {
+      "path": "chair-green-SE-0-sim.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "832a32065396dcd5af7e9f0e451072759aee6963424f2641570962e7fdc78d18"
+    },
+    {
+      "path": "chair-green-SE-0-furniture.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "bf90347eb2521afebd30b97513b75e9d173390cd5df7de02879e68fbdd75ff99"
+    },
+    {
+      "path": "chair-green-SE-0-lines.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "977818b3f6379255083fefa3d8ed7bd78a9d4ba31fcef95723a027cd17d76135"
+    },
+    {
+      "path": "chair-green-SE-1-beauty.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "ad5063db674fdbbf5fb5ec0eb0513d69018b1a239df1706c68e0d064c1daddd6"
+    },
+    {
+      "path": "chair-green-SE-1-sim.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "b8c2b8001a91d23f5716768277f38b045e0da8e4d4543a2c89f8a429bcc47cf1"
+    },
+    {
+      "path": "chair-green-SE-1-furniture.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "a6dcd58c48d3dddb8f8f3788209d11e343f8dc39d24667494d56eef5738e4c03"
+    },
+    {
+      "path": "chair-green-SE-1-lines.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "ca17374f4ca132e603532dcddc5f315a30aaec6a69aae719cd9a0f7c7207896d"
+    },
+    {
+      "path": "chair-green-SE-2-beauty.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "b3833f5860c408fecf6b05cc670cd4ed7fc740d3be4caec825d694077ce1ee45"
+    },
+    {
+      "path": "chair-green-SE-2-sim.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "dd6832623510a3eb9e08cc32c510117b41be45410ccc2351a780099b76298476"
+    },
+    {
+      "path": "chair-green-SE-2-furniture.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "9e21f584146339961b3985c0a7c716a0416b1097cd1e5b4646982c21c34c51c3"
+    },
+    {
+      "path": "chair-green-SE-2-lines.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "66a931cf268804e6cb0a48ebfd411d46286106a2b6a8d1d99aa10a49609b8646"
+    },
+    {
+      "path": "chair-green-SE-3-beauty.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "18d8da823f6418931c12c0fe604ca26655ac5ef514238b809a490d498db5f16c"
+    },
+    {
+      "path": "chair-green-SE-3-sim.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "6f0608f486c735bb77588999eaaf534eb2ba1a2ac8bb58f569034352d51fea19"
+    },
+    {
+      "path": "chair-green-SE-3-furniture.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "7ffd4f0a4ebd38d28080c0ff98d8d4706d8400e25489d110164a534703e48eb6"
+    },
+    {
+      "path": "chair-green-SE-3-lines.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "green",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "ff386efe50d207caa0c78ad55113f0f5d6eb24b65920ab2aa3b21e95a44abdcc"
+    },
+    {
+      "path": "chair-green-NW-0-empty.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 0,
+      "owner": "empty",
+      "sha256": "7c739daf1cb515dc5f448b4b01d753e213de520681cc25d8774e48f74ed5053f"
+    },
+    {
+      "path": "chair-green-NW-0-beauty.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "9c4a14685e9c09b2e94e25eb02dfe5cd2316cd653bfb0385ab20ea055d7f04cd"
+    },
+    {
+      "path": "chair-green-NW-0-sim.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "e38d882e9c215b07197f69ee627b993517729a0e2b7aa6d8e3d97ba5c8390fab"
+    },
+    {
+      "path": "chair-green-NW-0-furniture.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "7928a594268e0177d71b8256cec9a2e5f57cb401be9b00b2b2d694ea6f6e829b"
+    },
+    {
+      "path": "chair-green-NW-0-lines.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "83c0cef5bc60d5ab5ad0863531af6ef3ba37882cb155189329a3b9bb561ecdf2"
+    },
+    {
+      "path": "chair-green-NW-1-beauty.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "d5b6e41751833502c3f08eff3fbe705d5054f0983a430d1301151cd3c7a7b7c9"
+    },
+    {
+      "path": "chair-green-NW-1-sim.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "810492335b54828e7684d11c4f0d5731c3325ea646bf9b9cf954dea6e7cbfd61"
+    },
+    {
+      "path": "chair-green-NW-1-furniture.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "4e811746f0fa1afc1baa41a10d97b93e745031653a7c331b8504668c7f29936f"
+    },
+    {
+      "path": "chair-green-NW-1-lines.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "cbce299d629a9f37e2c37f414526f9f311dc948cd7629c89cb0ea7c26bccd8c8"
+    },
+    {
+      "path": "chair-green-NW-2-beauty.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "b7cd3525936559988e65568bf2ce02d21cd027ddb7bc7487881ddb10afe9c0ed"
+    },
+    {
+      "path": "chair-green-NW-2-sim.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "5aef2668665fbf1fb5af4c6a03eac8a15ef7f3b938790ab8fb2a37f86c58bd46"
+    },
+    {
+      "path": "chair-green-NW-2-furniture.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "db02b28b1eb2a9a633818718488f055d041e2b57f1f764edd984d5b447be5338"
+    },
+    {
+      "path": "chair-green-NW-2-lines.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "7f20bb3e1f3084cf9b3ae3858bfe0bc50691b1bed406abfc5a72b6a952d031c8"
+    },
+    {
+      "path": "chair-green-NW-3-beauty.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "96446edbb19f91ea39ff4fb12781d40b8a8135765e063942228758e035b0a7a0"
+    },
+    {
+      "path": "chair-green-NW-3-sim.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "dbf55468e9764250dd630a3f1a054b38eb8ed5443b063f87c57d659ba18f4100"
+    },
+    {
+      "path": "chair-green-NW-3-furniture.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "086f0092c9ae3ac6d19e46f6794df134c71eab3d468f51d6d2c865d137e4e681"
+    },
+    {
+      "path": "chair-green-NW-3-lines.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "green",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "4291c8069242bbbe609f3b377641161104a24605d1c2c42e6d10510d220bf6e0"
+    },
+    {
+      "path": "chair-green-SW-0-empty.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 0,
+      "owner": "empty",
+      "sha256": "abd3b227a4f22410a754f67cba89f74a9e2ddaaf4a58d4ff943bdbcce4fa6305"
+    },
+    {
+      "path": "chair-green-SW-0-beauty.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "5b129ec2b20c868f86e03adb9ac6798986ba9444e0c63105491b40dd0923878d"
+    },
+    {
+      "path": "chair-green-SW-0-sim.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "ccf68d711d50b9791a8f4c5b012c15ca474c6008a77d8fad6ae3d9fd6ad1c861"
+    },
+    {
+      "path": "chair-green-SW-0-furniture.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "ff766ba021c4cab761d275870fedc1b499b7627dfb7b9bf48e8f80c3d595ce68"
+    },
+    {
+      "path": "chair-green-SW-0-lines.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "d12c59b66ca24d509eb756dec44ad874ff59b4c7aea9d4d8aeb25d57fdd5c077"
+    },
+    {
+      "path": "chair-green-SW-1-beauty.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "94aeaf8e709487b9e95f01eefdc1e884f968c59dab688d90a6ffa8a3266b3695"
+    },
+    {
+      "path": "chair-green-SW-1-sim.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "ca87a33344d3f88146cd5899accffd7fd67ba6aad1a8dd19db7bef2071e64290"
+    },
+    {
+      "path": "chair-green-SW-1-furniture.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "0ee54e5a6e89d1f0a16fa6c6db966550350bcc8a131414d5d4879efc1427c58e"
+    },
+    {
+      "path": "chair-green-SW-1-lines.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "308bc1ac4421a0167e188f7ed5fa100561540c4d92364bfc7fd1cc08057080d4"
+    },
+    {
+      "path": "chair-green-SW-2-beauty.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "f143cb589ab6c8d98d6befa1a15b06143e77590b442a1bcac90c6fa2bcd206d5"
+    },
+    {
+      "path": "chair-green-SW-2-sim.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "5a8e0f57e909c6672d0023fe29d8ba8ef5559c17576d1e319a45b43a9557beac"
+    },
+    {
+      "path": "chair-green-SW-2-furniture.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "f961b9f36beed33df72a7d9ee568adcb1a123be01f8327afb783da245d99186f"
+    },
+    {
+      "path": "chair-green-SW-2-lines.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "4187a7ab048e1589149379df768b301dd83229b528d813a2052301c08063bc91"
+    },
+    {
+      "path": "chair-green-SW-3-beauty.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "e6d12824fb663f2609e52a3574564bed0f0735e697c81c28956aec987da31c05"
+    },
+    {
+      "path": "chair-green-SW-3-sim.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "e1070940a656381560daddc723f1cee291e9e63e55c1e695db8af4ea8ec28ed1"
+    },
+    {
+      "path": "chair-green-SW-3-furniture.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "2d56001c14be01329c4bb4375c38c4a8b9cfb5d4fcdc612df1f482e2cebc778a"
+    },
+    {
+      "path": "chair-green-SW-3-lines.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "green",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "bddbbad579663d2721725e00fa8016afbec97ed3258cd07124ab35e674b7a015"
+    },
+    {
+      "path": "chair-green-NE-0-empty.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 0,
+      "owner": "empty",
+      "sha256": "e930dd1b0024a6336d6daa43fad4b93d99e4adbcf9b98071d626926afe164dba"
+    },
+    {
+      "path": "chair-green-NE-0-beauty.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "2867caf48ae6d54bdb68a7192760c703540f22803f772a100cba29c7b90b6d88"
+    },
+    {
+      "path": "chair-green-NE-0-sim.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "ec98c42a7a2ea1c0b0bb8670ae997d862f959e8f947dbf5042315ca2c324f466"
+    },
+    {
+      "path": "chair-green-NE-0-furniture.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "91707917f687bb0b53188d3350cbc2a4b92bfd731a8a98fd9c7352c26044c61f"
+    },
+    {
+      "path": "chair-green-NE-0-lines.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "c9d5fb599b06c44e29e09306895918618eb01826fd2bd31a470b0dbed759abb0"
+    },
+    {
+      "path": "chair-green-NE-1-beauty.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "f6df77737f8ddd79eb1b3c1409aebd27ecab499772ad16bd0788900452dbdcca"
+    },
+    {
+      "path": "chair-green-NE-1-sim.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "e15e39c83a14051d77756ceda2ddb91087c6c2b32be87b375abe4f9c47a7e725"
+    },
+    {
+      "path": "chair-green-NE-1-furniture.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "2750b1720a84ae2071bc61a1f689935fdf437f982d6a36255c9b96aec937f58e"
+    },
+    {
+      "path": "chair-green-NE-1-lines.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "b26455f8124be459acdb3be4643256b03e455e39b143182ee767a94097d238b6"
+    },
+    {
+      "path": "chair-green-NE-2-beauty.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "e647355f673b4ece9763a38a238b8abec10b3991a6e105b039a0e1c38929346b"
+    },
+    {
+      "path": "chair-green-NE-2-sim.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "1fcd4bcec3af0b425a5954d2530e1a758c759ac3cf18b2368e90a74c96193ee3"
+    },
+    {
+      "path": "chair-green-NE-2-furniture.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "38c39239086ad295e71180061d7cbfbf5fc71dceebe7e467f9e61ee76e9e149d"
+    },
+    {
+      "path": "chair-green-NE-2-lines.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "1498ac129910a780fbbf500777f597085ec8aef79f5dccf5198eaf27390720e0"
+    },
+    {
+      "path": "chair-green-NE-3-beauty.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "e14dce380f4209fc78452af7451b57e830ecf5c913b38d2f44054407e2b6fec5"
+    },
+    {
+      "path": "chair-green-NE-3-sim.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "52fca1376484c72c6710ee9583f1ab648e58abbb74aef91b957a81d9ae835129"
+    },
+    {
+      "path": "chair-green-NE-3-furniture.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "d5c247135c5cc0c0b9f4ede46f9c4390408c1dc072d40c6e23e75e362e6e799d"
+    },
+    {
+      "path": "chair-green-NE-3-lines.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "green",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "7cfa0f4c8293715c8d4316202fdcf79b32f8b93b1aecaa614d48f72c6ba0d2f5"
+    },
+    {
+      "path": "chair-blue-SE-0-beauty.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "9c5fd89a68f4f904b65c25ff668f265306fe5a0ec8840008473a13c574fc84cb"
+    },
+    {
+      "path": "chair-blue-SE-0-sim.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "a029027940dc237d7658f390e20d1a8f839d4a390b90223eea5d21607f1a6ee0"
+    },
+    {
+      "path": "chair-blue-SE-0-furniture.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "009a2ff8a458e2d56f473bfc36c128f2518dde710c9b925b28dd10d69fab0c6c"
+    },
+    {
+      "path": "chair-blue-SE-0-lines.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "25c1dc2a978b65353f3e6333ce146843d269bd761dcaff3fe9acd0bbd21d659e"
+    },
+    {
+      "path": "chair-blue-SE-1-beauty.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "31deaccb80497985d5b2a96cf8dcb3a3f65468edf1d649d683b8ec11848a9b1e"
+    },
+    {
+      "path": "chair-blue-SE-1-sim.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "8dc759a33a567d7e47bf2f0d82bce834ba971a4d529e716384330e6981e4d524"
+    },
+    {
+      "path": "chair-blue-SE-1-furniture.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "f93efe1598323f94709fbc20b0ce1e513e477cb75d3427509965deff1c66a0a3"
+    },
+    {
+      "path": "chair-blue-SE-1-lines.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "3c6e2d7b5a075e25c7a52e1003c32422073d834159cd41db78c5de2375ad9695"
+    },
+    {
+      "path": "chair-blue-SE-2-beauty.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "16598f52cc0cb18a778b938bc0232ec2dcafc8114e6613e654963960d9eb7dce"
+    },
+    {
+      "path": "chair-blue-SE-2-sim.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "d1babefb0eeeefa3ce2973f5619fb99c1ba7409d527b2773c29b900ad4bb6c1f"
+    },
+    {
+      "path": "chair-blue-SE-2-furniture.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "81b5720c3dd15d1ff94cff0cfd0722c63f0453a2e0603d79edbb246597538d92"
+    },
+    {
+      "path": "chair-blue-SE-2-lines.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "a84654a40c8aaee9e552bb142cf1ec7377ea5156e28b0acc36808d1f18ef66c3"
+    },
+    {
+      "path": "chair-blue-SE-3-beauty.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "c45ea5b0a4f0304a6af3f9295c03eb855b6c4f2a8c68e1d743f41649ae6d3e6d"
+    },
+    {
+      "path": "chair-blue-SE-3-sim.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "a497b874977f0dcb9bddcc68b693ec930abced176da52dbb05b882ba3265cb07"
+    },
+    {
+      "path": "chair-blue-SE-3-furniture.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "26e666e689e1b2e65e15c0e6d5dd412e4fb5bbd2b1b644c21f1186fea4a174bb"
+    },
+    {
+      "path": "chair-blue-SE-3-lines.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "3f27093b6c2dc41d080fd751079596a822117bcf849b7e73eafa24be5824d7a9"
+    },
+    {
+      "path": "chair-blue-NW-0-beauty.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "e6d1a0783676f42a906979826c70035c94993aeedc64830fbb8d7c382a0b0286"
+    },
+    {
+      "path": "chair-blue-NW-0-sim.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "bb120a7d70603d8a2c41ce544ecf45c67224b3bb1f895209054f37cbfca01ada"
+    },
+    {
+      "path": "chair-blue-NW-0-furniture.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "f3c0c4d0b3d89064bbce607df1c93813a6498e231952116a48a5f1af8d9be443"
+    },
+    {
+      "path": "chair-blue-NW-0-lines.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "e28adf9699b82cdf6b157715da136269ee5564e76573ea65f3660a9904990ca9"
+    },
+    {
+      "path": "chair-blue-NW-1-beauty.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "a5589fc33414985fdc0a233d4b067104b703536da13d903ff2712c5609d6d276"
+    },
+    {
+      "path": "chair-blue-NW-1-sim.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "c9f6e73ac3d29f49146da469c998e8d622e8d999bb0d39cdcc6f9d482d924f45"
+    },
+    {
+      "path": "chair-blue-NW-1-furniture.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "02bdd0367a94b672f10fd0e0148c3e329530e65debbe6d2727a855c6d9a49ce4"
+    },
+    {
+      "path": "chair-blue-NW-1-lines.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "979382bb9c0ebb6c8009640fe5d0eb0cb151c5b4236b6ae5c07207669332e8cd"
+    },
+    {
+      "path": "chair-blue-NW-2-beauty.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "9351592a6e8354662927a171f69f071357b8bcd217a2611f4b260305a5b20063"
+    },
+    {
+      "path": "chair-blue-NW-2-sim.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "fd55b8863c0901fe8717b0d196223d0feef252f343c4e2826fbcc7ebaa3f604f"
+    },
+    {
+      "path": "chair-blue-NW-2-furniture.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "a9eb8bb67cfa2db3fddce5e738e5f7bae81965464efb9648b9e0efce49aceb20"
+    },
+    {
+      "path": "chair-blue-NW-2-lines.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "272f52bd991a50e0704b6fe9fd228a19094cc0c90200dfcb1f56968f5b5ef45a"
+    },
+    {
+      "path": "chair-blue-NW-3-beauty.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "2f6e95b0fcfaaef025b0dc60fa073f8e19711fe46dce3fe10ca4750032485025"
+    },
+    {
+      "path": "chair-blue-NW-3-sim.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "7a120e3597172525d4c81ec843efad10b0140ec1d02fbb9a072ffc235ef64771"
+    },
+    {
+      "path": "chair-blue-NW-3-furniture.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "6d5ad552b56e5289311b0c70bacf8f804349c22cb19236da6c04a2b4eb22dd96"
+    },
+    {
+      "path": "chair-blue-NW-3-lines.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "f95c13f33697d6879e546e12ec2f89bbbcec36ac44901fc9f6705603656dd645"
+    },
+    {
+      "path": "chair-blue-SW-0-beauty.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "4450b878c05ef5ed303cafe96dda1f76f5a357067ed2ac4e2e1516788e1f4670"
+    },
+    {
+      "path": "chair-blue-SW-0-sim.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "3970642dbc764907164631a1ddaac5f01c26353bc8fc4cc6dfccac54fc7c4359"
+    },
+    {
+      "path": "chair-blue-SW-0-furniture.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "d6c67b65d3d44add98da22313f5968a75a4f28defe193f9b05e0cfc221c80f31"
+    },
+    {
+      "path": "chair-blue-SW-0-lines.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "5da0e821b42fef68fa18f0201943bcd73bc0b668696c4e88a22bb68df7df102a"
+    },
+    {
+      "path": "chair-blue-SW-1-beauty.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "9c7058971a7c0bdc71585bb2de60fd4572f895152fdc0ed50cfa3cfdeae1cfff"
+    },
+    {
+      "path": "chair-blue-SW-1-sim.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "49794cfa64518b3ff46f34a65cab23587a7d4a6f4c4fdc079564cbe7a7f8e2ec"
+    },
+    {
+      "path": "chair-blue-SW-1-furniture.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "e10ff36f6efa03ed9fede9b84fcf31ead64de25b788e4114cab0b380fb187242"
+    },
+    {
+      "path": "chair-blue-SW-1-lines.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "b2b69a62325610da974241077d0d7d7bf699056a15ef7bb5e07b96e934118ccc"
+    },
+    {
+      "path": "chair-blue-SW-2-beauty.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "df72d9265aee5b78d54d74e482c835087ecd09ff1efe8512434bb4552e3fe6f1"
+    },
+    {
+      "path": "chair-blue-SW-2-sim.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "5ae5a28ba60b759fa45d93489fbcbf1c7043f1ed1674bdf63b1fbfdf66410009"
+    },
+    {
+      "path": "chair-blue-SW-2-furniture.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "c46ad690b6b3add5d7a27835643de0281e84b5b3389333c55f8e59b80e5b800d"
+    },
+    {
+      "path": "chair-blue-SW-2-lines.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "a60ac0b450b170861aecce538b92b35ea321beaf8b88dd395f92ca29a7d60899"
+    },
+    {
+      "path": "chair-blue-SW-3-beauty.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "39d7182679d926660bd2c3619d53c906732ac64e6a8b3af6fbdb69d00909fb7b"
+    },
+    {
+      "path": "chair-blue-SW-3-sim.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "ae0cf29638870df4ab3a1c1d6a701a17b83d0c0641fd81c201acdb11730cdffe"
+    },
+    {
+      "path": "chair-blue-SW-3-furniture.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "c038c6dba0a2e1dd02377bdcdc1fe4ff531a3a1b18c6a00adfda3db940927837"
+    },
+    {
+      "path": "chair-blue-SW-3-lines.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "1311488aecc657b922d836f283be4ea4784ab98bad5e3b81f68906f24d6e6926"
+    },
+    {
+      "path": "chair-blue-NE-0-beauty.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "5dce464052031e615c8dd6af6a51eb8d07f2e4ded1bd6b642013d18eff1349ec"
+    },
+    {
+      "path": "chair-blue-NE-0-sim.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "d80c7ee5fcd957f153c0cd8ca475cae72c8d72d9a9be851d1363608ff09175b7"
+    },
+    {
+      "path": "chair-blue-NE-0-furniture.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "3aa313c28e1d7cf25e8a397835ed3f7dd791569aeb942d2dddc61ac4f20524e8"
+    },
+    {
+      "path": "chair-blue-NE-0-lines.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "f336326a9ddda0af8f161605aef62b6714993f02939848055f8157893ecb6129"
+    },
+    {
+      "path": "chair-blue-NE-1-beauty.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "e3ded66378d3821e1f7c6b508288131eacdf440c65c0f39b0ccd2d586fe5136e"
+    },
+    {
+      "path": "chair-blue-NE-1-sim.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "07cbc2fc196c3f24d5d0f5a217db0f86e306acfb6edc474976eef481f5fed670"
+    },
+    {
+      "path": "chair-blue-NE-1-furniture.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "d7daa59ec7532d0cdaa5d961ca30bf749b6dc5fc1e3320876e14fc742313d675"
+    },
+    {
+      "path": "chair-blue-NE-1-lines.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "619cac943bc85cacb55de17257cb5ec179a41733e665a2f1656e975c612f7f55"
+    },
+    {
+      "path": "chair-blue-NE-2-beauty.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "1060644ff154ca52115f2fa9b259571e8ee487c561f2cd9718db0f6a84d5c00a"
+    },
+    {
+      "path": "chair-blue-NE-2-sim.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "622fcdd08d26e01249d44360d3b4f2d0a8ad723fc8ec63e28f40853361e85beb"
+    },
+    {
+      "path": "chair-blue-NE-2-furniture.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "d1643ba6e154e2d5ccba3c81aa6676c4d8973cb83b27cfea5dbcaf06a0bc3058"
+    },
+    {
+      "path": "chair-blue-NE-2-lines.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "ac1617adedb0c4cb463be10c2396f42cab7ac25efe421542f9926c2e48adb013"
+    },
+    {
+      "path": "chair-blue-NE-3-beauty.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "cda9fdc993471216383c79ca6062a3db0c4b4520bd4befd263e02d58f9ac6e5d"
+    },
+    {
+      "path": "chair-blue-NE-3-sim.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "04262bf701ec0cc5699ea006f7b18baeefe404a21203e53cbf63f5c88d2333ee"
+    },
+    {
+      "path": "chair-blue-NE-3-furniture.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "b6ef37846104e7e13dda46f13eb924dde1938e674872a4602e93f59c89b46051"
+    },
+    {
+      "path": "chair-blue-NE-3-lines.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "blue",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "5033147c3c9949c77684f958301f9b503d0b0c8d368fe8edee45544b0ace8d67"
+    },
+    {
+      "path": "chair-red-SE-0-beauty.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "3af22914aec31b03303ea4c81f8ef16d8ff566722574cce3877acd343ed8279d"
+    },
+    {
+      "path": "chair-red-SE-0-sim.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "6cd501f76634a52734a843f733116175e46a885167cc8f134b0893f222504486"
+    },
+    {
+      "path": "chair-red-SE-0-furniture.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "7f44e2106d7a6d0c167be2b4a9d0f34436143a2dfcd7c88c8850dd409be49c22"
+    },
+    {
+      "path": "chair-red-SE-0-lines.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "7c97ef478abd75cf3e1705bd78b026a52c28f62271456c2691705fc8a8a444d2"
+    },
+    {
+      "path": "chair-red-SE-1-beauty.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "c49c4d24e364d4852c00620f22014018f6983efdf4be0faa153b66eebe5bb423"
+    },
+    {
+      "path": "chair-red-SE-1-sim.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "829118542b5995ed5267a98f39a64db15e60f3f996feafb583cbd735d9d96bec"
+    },
+    {
+      "path": "chair-red-SE-1-furniture.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "a2c2eca1f88ad13b20d25993fb11e734501e3398a0bbeefc7b0ab12ad0c82e2b"
+    },
+    {
+      "path": "chair-red-SE-1-lines.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "6edc4bd70f9228d13353509eb9c1deadfd65307997602fa98b8a56c88605d98d"
+    },
+    {
+      "path": "chair-red-SE-2-beauty.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "66f7a9869b1f87f4683fe9abf4505392d02f85b73b6649e47dc763bbb5119e18"
+    },
+    {
+      "path": "chair-red-SE-2-sim.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "188c9247c82f6b6b8d1c10459af14fb79375627b53ba167592c5552397345e1c"
+    },
+    {
+      "path": "chair-red-SE-2-furniture.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "f9bbe5bc8af4b089600e5cfa5772391d31ccfad753bfc97b47d944ec19721f7a"
+    },
+    {
+      "path": "chair-red-SE-2-lines.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "9961bdfe0e1df36b3c16aa572f916c7f0165eac616f1a10fc548a09bf3c89392"
+    },
+    {
+      "path": "chair-red-SE-3-beauty.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "88101e0348275ff5281ce8582fbc7c73740c23bb354b3bad5545d2e20f73b882"
+    },
+    {
+      "path": "chair-red-SE-3-sim.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "365cd9d3f0e3215766800f5da1429f20223b9edf45326b4b8baf8c3f037a6026"
+    },
+    {
+      "path": "chair-red-SE-3-furniture.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "57f5109a74d23e09c466aac280ba749b00358b19ce85dcf3c8ec82e2845e50cc"
+    },
+    {
+      "path": "chair-red-SE-3-lines.png",
+      "object": "chair",
+      "facing": "SE",
+      "variant": "red",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "cf0d927976c343904f76e80c265f271cc568cc0c89eeff80cb7c757750640bfc"
+    },
+    {
+      "path": "chair-red-NW-0-beauty.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "606478b4ca01811c927fc4d4b29afd7cdf93a8cda3a2f74cb9fefcf2bdc90676"
+    },
+    {
+      "path": "chair-red-NW-0-sim.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "5713725f4b55bf0d41365faa30a3074af8ae30e4028ba6dadb8ac5541a59e6c7"
+    },
+    {
+      "path": "chair-red-NW-0-furniture.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "0b6de78e9703c4499e30a5f60942c4a2a01be89536dd857744c33085042610e9"
+    },
+    {
+      "path": "chair-red-NW-0-lines.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "1bb4820b97ab9341645e7590d726eefd84c868d8db4848e4f4e165503d9bc079"
+    },
+    {
+      "path": "chair-red-NW-1-beauty.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "3bd86724e2d056f2b70a939f7c5ed406ef2ea38ccd4e891457e86b0f178bc4e6"
+    },
+    {
+      "path": "chair-red-NW-1-sim.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "d700f9da014b11fd34e4587cdcb93cad01139db7c59fc4ba0b636e05c3a911c3"
+    },
+    {
+      "path": "chair-red-NW-1-furniture.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "5df0659b70e3f159a26326bdd23b5717d5afa81e1ce2feef602d49c71526f110"
+    },
+    {
+      "path": "chair-red-NW-1-lines.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "40de1f18942bee4ec6e794d6f36c24f50b97130556afc3f1322932293b403f53"
+    },
+    {
+      "path": "chair-red-NW-2-beauty.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "f33101f641f292f3c2dbe03bc0cc6db2f760b822de776abd49bb3507f92b44a1"
+    },
+    {
+      "path": "chair-red-NW-2-sim.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "b5a2365a53939eb7fe7f1fdac87f22b192339d679c829abdc5d6a937d3f4d6f6"
+    },
+    {
+      "path": "chair-red-NW-2-furniture.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "20270fa5c4ce6ebb5a54ffb835e3a9ea4652c6d8bea8d92f7ccf9d7c01d8380b"
+    },
+    {
+      "path": "chair-red-NW-2-lines.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "1b9638040b58af786a7f1adbc1c4d9f34d00d237de4221aa56c2cee68401cc38"
+    },
+    {
+      "path": "chair-red-NW-3-beauty.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "e8210599c8d72fdb023eb5fecdd76dc36465d3a276a615b05e7dc75d40e5b0d5"
+    },
+    {
+      "path": "chair-red-NW-3-sim.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "d3148da0860e16a6ac6f01aff44975106252786ae594d22986b7c3fddbd3df92"
+    },
+    {
+      "path": "chair-red-NW-3-furniture.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "b6f9f516c1f6750d5e82132e922eb8121a0b2652fad89586da8f952af18723b0"
+    },
+    {
+      "path": "chair-red-NW-3-lines.png",
+      "object": "chair",
+      "facing": "NW",
+      "variant": "red",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "0061fcc5746b72dda8c1be3230c4a7ae4d9fe7e41448a278b790a82dc43e6907"
+    },
+    {
+      "path": "chair-red-SW-0-beauty.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "1d1df72e6dfa95421003be7854f7fbe3de50b4a3aeac9b56bfa82cff02616acc"
+    },
+    {
+      "path": "chair-red-SW-0-sim.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "18ddeb0d391ccfa18facddf46149c15818c0ac48edd67892ba46b06b86f63885"
+    },
+    {
+      "path": "chair-red-SW-0-furniture.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "35d91196882c641b34708fbaba957b9c66517ef5949ba7358b852ca49233de61"
+    },
+    {
+      "path": "chair-red-SW-0-lines.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "c3d82d13861a389fea6fcbfc7509e31bd0920b4a85e9f90b7c5c68f21f549829"
+    },
+    {
+      "path": "chair-red-SW-1-beauty.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "6686a54210cb6987be6cdb40e6c6858e6c66449a64a713658bd9b89cad741745"
+    },
+    {
+      "path": "chair-red-SW-1-sim.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "f27fbfcf59c6e86136bfe2b5ddcca5b73b45994afdfee68473c48f1fde8c1e3e"
+    },
+    {
+      "path": "chair-red-SW-1-furniture.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "33d617253952474fc5956b04d1eb82d23350cdb4a070aac53d04449b47690e0f"
+    },
+    {
+      "path": "chair-red-SW-1-lines.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "a71732e5165c4514049227b26b526f0267507cbd292928782317cedbfcf40857"
+    },
+    {
+      "path": "chair-red-SW-2-beauty.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "67a349e4aa5144241b9c77cc869acc50e6f64eb7821f83a1dda21e7d56d8cb73"
+    },
+    {
+      "path": "chair-red-SW-2-sim.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "3f0518f2b5e1fceef4886fc2a32b1985734684e7b3217dc6a066a9121fb111e9"
+    },
+    {
+      "path": "chair-red-SW-2-furniture.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "3a9ab500854122f6a4f252d54fbfc346f8311525f98c312e00e2cae10739b53a"
+    },
+    {
+      "path": "chair-red-SW-2-lines.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "0186145e7433e7ebdd74cf8f7670e3589c08f66a96faa18fa55017ce815aac5c"
+    },
+    {
+      "path": "chair-red-SW-3-beauty.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "e0284d141c58e72d40c04fb94376da5d26bce407131ce9d120bac1e44d1afa99"
+    },
+    {
+      "path": "chair-red-SW-3-sim.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "3068e844883ee2a3f29e2f0b1e147d951cb44a61c098de0e2346836090641294"
+    },
+    {
+      "path": "chair-red-SW-3-furniture.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "01a7b2ccdc1187eecb1e4e108b7f8c9c28d7028ede93d9a0eb4aa648d9eb217a"
+    },
+    {
+      "path": "chair-red-SW-3-lines.png",
+      "object": "chair",
+      "facing": "SW",
+      "variant": "red",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "26b04fd302db44d37f2ea1ee97fed10b09d5c12a442c7254512a78e93368d8c7"
+    },
+    {
+      "path": "chair-red-NE-0-beauty.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 0,
+      "owner": "beauty",
+      "sha256": "48150770b739affbef1f30d40e6edc637608ba874f712648796d0fc13c83da37"
+    },
+    {
+      "path": "chair-red-NE-0-sim.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 0,
+      "owner": "sim",
+      "sha256": "32066a746762382c15d8597a7de83fc4a6688c85aa9e10f032814c572ce15dfa"
+    },
+    {
+      "path": "chair-red-NE-0-furniture.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 0,
+      "owner": "furniture",
+      "sha256": "f956bde5dc3e4974f0fe1def9c0b972449bcf5a50fd8e30602d9b78cbd329205"
+    },
+    {
+      "path": "chair-red-NE-0-lines.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 0,
+      "owner": "lines",
+      "sha256": "489d8916ecdddae717a95adce6992e662cd82238ecbee4b676f36f445c7b9acf"
+    },
+    {
+      "path": "chair-red-NE-1-beauty.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 1,
+      "owner": "beauty",
+      "sha256": "d7f2ca0260bacfa0a64490eb5a337ad9ced47745b2f7fe16a062a50ed5a3a2e7"
+    },
+    {
+      "path": "chair-red-NE-1-sim.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 1,
+      "owner": "sim",
+      "sha256": "765e560aa7aab053e761edfafb9fb834f5743ca3ab39045606c7db90b37546f2"
+    },
+    {
+      "path": "chair-red-NE-1-furniture.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 1,
+      "owner": "furniture",
+      "sha256": "17446638e088c539ea6070e10626fef661b03bf7ff0d0e46cbeb638d2ef16cff"
+    },
+    {
+      "path": "chair-red-NE-1-lines.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 1,
+      "owner": "lines",
+      "sha256": "c8eb6a7a43e55f8384f60f8d5a2831d0bf66d288114c905f79b3e30c5102ed0f"
+    },
+    {
+      "path": "chair-red-NE-2-beauty.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 2,
+      "owner": "beauty",
+      "sha256": "4d80176c6705929f5879d67666ac7037395f6e9005e33952e5452cff132d6361"
+    },
+    {
+      "path": "chair-red-NE-2-sim.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 2,
+      "owner": "sim",
+      "sha256": "abbf6415add9b977902d85e64c28502b987335aed21ac66bcde9f17196e0e3a7"
+    },
+    {
+      "path": "chair-red-NE-2-furniture.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 2,
+      "owner": "furniture",
+      "sha256": "e78e64d2cd4ad2787b57bedeabb7b2aa4e1ba0ccbfc4e1005ba71f7c1ab146a2"
+    },
+    {
+      "path": "chair-red-NE-2-lines.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 2,
+      "owner": "lines",
+      "sha256": "9d0b8a0227af29672db373bebbb5bc72fa6fbf8413961e3cd36a9f0126577c09"
+    },
+    {
+      "path": "chair-red-NE-3-beauty.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 3,
+      "owner": "beauty",
+      "sha256": "811b54fcb2dc00a162b730d04890f1a831e515d0ebba28a84f1575960e732b80"
+    },
+    {
+      "path": "chair-red-NE-3-sim.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 3,
+      "owner": "sim",
+      "sha256": "acf1f37e91b13ae2b27c1623b7cb2612970573cbb0549430bfe6fc65da48f43e"
+    },
+    {
+      "path": "chair-red-NE-3-furniture.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 3,
+      "owner": "furniture",
+      "sha256": "41d8fa5f739b4ebc84f51a68fc84b69224d3c8e6358e97866f3bddf96e783622"
+    },
+    {
+      "path": "chair-red-NE-3-lines.png",
+      "object": "chair",
+      "facing": "NE",
+      "variant": "red",
+      "frame": 3,
+      "owner": "lines",
+      "sha256": "46a4793842f37c6af3953cca332d7fbbe6f2e04fbe60ebef21b15ede82aabed1"
+    }
+  ],
+  "anchor": [
+    48.0000114440918,
+    116.0004369020462
+  ]
+}

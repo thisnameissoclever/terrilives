@@ -5,11 +5,9 @@ resolves 30 of them, `tiles.ts` asks for 6 more by hand, and terri-data
 fails the content build on a dangling reference, so dropping or renaming
 one breaks the game rather than making it look different.
 
-Walls stay tile-CENTRED panels here, matching what `tiles.ts` draws today.
-Moving them onto tile edges is [B7] and is a renderer change, not an art
-change. What this file can fix without [B7] is the picket-fence read: the
-outgoing panels carry a bright lit edge that repeats every 32 px down a
-run, so the run stripes. These do not have one.
+Wall art uses tile-centred anchors. The renderer places boundary panels on
+slab edges and chooses appended junction sprites for connected interior arms.
+Legacy sprite pixels and indices remain fixed; see the build-time contracts.
 """
 from style import (PALETTE as C, OUTLINE, OUTLINE_WIDTH,
                    CHARACTER_PALETTES, FACE_LEFT, FACE_RIGHT, FACE_TOP,
@@ -45,18 +43,18 @@ def selectionRing(d):
     diamond(d, A + .09, A + .09, B - .09, B - .09, None, outline=C["select"], width=2)
 
 
-def _wall(d, axis, height=WALL_H, skirt=True):
+def _wall(d, axis, height=WALL_H, skirt=True, start=A, end=B):
     def face(z0, z1, colour, cap=True):
         a = (lambda t, z: P(0, t, z)) if axis == "ns" else (lambda t, z: P(t, 0, z))
-        d.polygon([a(A, z1), a(B, z1), a(B, z0), a(A, z0)], fill=colour)
+        d.polygon([a(start, z1), a(end, z1), a(end, z0), a(start, z0)], fill=colour)
         if cap:
-            d.line([a(A, z1), a(B, z1)], fill=OUTLINE, width=OUTLINE_WIDTH)
-            d.line([a(A, z0), a(B, z0)], fill=OUTLINE, width=OUTLINE_WIDTH)
+            d.line([a(start, z1), a(end, z1)], fill=OUTLINE, width=OUTLINE_WIDTH)
+            d.line([a(start, z0), a(end, z0)], fill=OUTLINE, width=OUTLINE_WIDTH)
     face(0, height, mul(C["wall"], 0.94))
     # A picture rail, not a second material. Horizontal only, so a run
     # does not picket-fence.
     a = (lambda t, z: P(0, t, z)) if axis == "ns" else (lambda t, z: P(t, 0, z))
-    d.line([a(A, 1.62), a(B, 1.62)], fill=mul(C["wall"], 0.86), width=1)
+    d.line([a(start, 1.62), a(end, 1.62)], fill=mul(C["wall"], 0.86), width=1)
     if skirt:
         face(0, 0.14, mul(C["skirt"], 0.94))
 
@@ -102,6 +100,76 @@ def doorwayNS(d):
 
 def doorwayEW(d):
     _doorway(d, "ew")
+
+
+# Cardinal bits agree with the renderer: north, east, south, west.
+WALL_JOIN_MASKS = (3, 6, 7, 9, 11, 12, 13, 14, 15)
+
+
+def _wall_crease(d, x=0, y=0, inset=0, shift_x=0):
+    """A narrow fold shadow, ending at the skirting instead of forming a post."""
+    px, top = P(x, y, WALL_H - .04)
+    px += shift_x
+    _, bottom = P(x, y, .14)
+    face = mul(C["wall"], .94)
+    # Fade into one adjoining face; leave the panel silhouette unchanged.
+    for offset, amount in ((inset * 2, .06), (inset, .12), (0, .25)):
+        d.line([(px + offset, top), (px + offset, bottom)],
+               fill=mix(face, OUTLINE, amount), width=1)
+
+
+def wallCornerStartNS(d):
+    _wall(d, "ns")
+    # The positive-x outline lies outside the exact 32-pixel crop.
+    _wall_crease(d, y=A, inset=-1, shift_x=-1)
+
+
+def wallCornerStartEW(d):
+    _wall(d, "ew")
+    _wall_crease(d, x=A, inset=1)
+
+
+def _joined_wall(mask):
+    def draw(d):
+        # Far arms first, so nearer wall faces hide their base and rail.
+        for bit, axis, start, end in (
+            (1, "ns", A, 0), (8, "ew", A, 0),
+            (2, "ew", 0, B), (4, "ns", 0, B),
+        ):
+            if mask & bit:
+                _wall(d, axis, start=start, end=end)
+        # A continuous near face hides a branch attached on its far side.
+        # North is behind an east-west run; west is behind a north-south run.
+        flat_ew_face = (mask & 10) == 10 and not (mask & 4)
+        flat_ns_face = (mask & 5) == 5 and not (mask & 2)
+        if not (flat_ew_face or flat_ns_face):
+            # South and west both project left; their fold has no right face.
+            _wall_crease(d, inset=-1 if mask == 12 else 1)
+    draw.__name__ = f"wallJoin{mask}"
+    return draw
+
+
+WALL_JOIN_SPRITES = tuple(_joined_wall(mask) for mask in WALL_JOIN_MASKS)
+
+
+def _joined_doorway(d, axis):
+    # Start with the same uninterrupted wall face, rail and skirting as
+    # adjacent panels. Only the actual opening gets an outlined frame.
+    _wall(d, axis)
+    point = (lambda t, z: P(0, t, z)) if axis == "ns" else (lambda t, z: P(t, 0, z))
+    left, right, height = A + .12, B - .12, 1.30
+    opening = [point(left, 0), point(left, height),
+               point(right, height), point(right, 0)]
+    d.polygon(opening, fill=(0, 0, 0, 0))
+    d.line(opening, fill=OUTLINE, width=OUTLINE_WIDTH)
+
+
+def doorwayJoinedNS(d):
+    _joined_doorway(d, "ns")
+
+
+def doorwayJoinedEW(d):
+    _joined_doorway(d, "ew")
 
 
 def _front_visible(facing):
@@ -588,16 +656,42 @@ def loungeSofaOttoman(d):
     _ottoman(d, "se")
 
 
-def _armchair(d, facing="se"):
+class _ChairForegroundDraw:
+    """Replay chair polygons, retaining only visible camera-near parts.
+
+    Transparent polygons erase far parts in the original painter order. This
+    prevents a near part hidden by a later cushion or arm from reappearing in
+    the overlay. Complete chairs keep the original polygon calls unchanged.
+    """
+
+    def __init__(self, draw, foreground):
+        self.draw = draw
+        self.foreground = foreground
+        self.near = False
+
+    def polygon(self, points, **kwargs):
+        if self.foreground and not self.near:
+            # Pillow skips its separate outline rasterization when fill and
+            # outline are equal. Distinct transparent RGB retains that path.
+            kwargs = {**kwargs, "fill": (0, 0, 0, 0), "outline": (1, 1, 1, 0)}
+        self.draw.polygon(points, **kwargs)
+
+
+def _armchair(d, facing="se", foreground=False):
+    d = _ChairForegroundDraw(d, foreground)
     f = C["accent_clay"]
     contact_shadow(d, A + .12, A + .12, B - .12, B - .12, facing)
     box(d, A + .14, A + .14, B - .14, B - .14, 0, 0.22, mul(f, .88),
         facing=facing)
+    d.near = facing in ("sw", "nw")
     box(d, A + .14, A + .14, B - .14, A + .28, 0.22, 0.86, f, facing=facing)
+    d.near = facing in ("nw", "ne")
     box(d, A + .14, A + .14, A + .26, B - .14, 0.22, 0.58, mul(f, .96),
         facing=facing)
+    d.near = False
     slab(d, A + .26, A + .28, B - .14, B - .14, 0.42, mul(f, 1.04), thick=0.16,
          facing=facing)
+    d.near = facing in ("se", "sw")
     box(d, B - .26, A + .14, B - .14, B - .14, 0.22, 0.58, mul(f, .96),
         facing=facing)
 
@@ -606,8 +700,9 @@ def loungeChair(d):
     _armchair(d, "se")
 
 
-def _wingback(d, facing="se"):
+def _wingback(d, facing="se", foreground=False):
     """Reclined, with a footrest - Bill's chair."""
+    d = _ChairForegroundDraw(d, foreground)
     f = C["accent_clay"]
     dark = mul(f, .78)
     contact_shadow(d, A + .10, A + .12, B - .04, B - .12, facing)
@@ -616,17 +711,24 @@ def _wingback(d, facing="se"):
         box(d, lx, ly, lx + .10, ly + .10, 0, 0.28, dark, facing=facing)
     for lx, ly in ((B - .16, A + .24), (B - .16, B - .30)):
         box(d, lx, ly, lx + .10, ly + .10, 0, 0.18, dark, facing=facing)
+    d.near = facing in ("nw", "ne")
     box(d, A + .12, A + .14, A + .28, B - .14, 0.24, 1.08, f, facing=facing)
+    d.near = facing in ("sw", "nw")
     box(d, A + .12, A + .10, A + .38, A + .22, 0.72, 1.10, mul(f, .96),
         facing=facing)
+    d.near = facing in ("se", "ne")
     box(d, A + .12, B - .22, A + .38, B - .10, 0.72, 1.10, mul(f, .94),
-        facing=facing)
+         facing=facing)
+    d.near = False
     slab(d, A + .26, A + .20, B - .18, B - .20, 0.42, mul(f, 1.04), thick=0.16,
          facing=facing)
+    d.near = facing in ("sw", "nw")
     box(d, A + .26, A + .12, B - .22, A + .22, 0.42, 0.56, mul(f, .98),
-        facing=facing)
+         facing=facing)
+    d.near = facing in ("se", "ne")
     box(d, A + .26, B - .22, B - .22, B - .12, 0.42, 0.56, mul(f, .98),
         facing=facing)
+    d.near = False
     slab(d, B - .22, A + .24, B - .14, B - .24, 0.34, mul(f, .96), thick=0.10,
          facing=facing)
     slab(d, B - .20, A + .22, B - .04, B - .22, 0.28, mul(f, .92), thick=0.12,
@@ -1029,19 +1131,21 @@ def _bike(d, facing="se"):
 
     # Console and swept handlebars form the tall, unmistakable upright-bike
     # profile from the approved reference without crossing the east-wall edge.
-    d.line([pt(9, -45), pt(3, -57), pt(12, -64)],
+    # Lower the original assembly 25px without extending toward the divider.
+    # Keep its lower frame attachment and the original horizontal envelope.
+    d.line([pt(9, -45), pt(3, -32), pt(12, -39)],
            fill=OUTLINE, width=6)
-    d.line([pt(9, -45), pt(3, -57), pt(12, -64)],
+    d.line([pt(9, -45), pt(3, -32), pt(12, -39)],
            fill=frame, width=3)
-    d.line([pt(3, -57), pt(-4, -63)], fill=OUTLINE, width=5)
-    d.line([pt(3, -57), pt(-4, -63)], fill=frame, width=3)
-    console_a, console_b = pt(-8, -72), pt(5, -60)
+    d.line([pt(3, -32), pt(-4, -38)], fill=OUTLINE, width=5)
+    d.line([pt(3, -32), pt(-4, -38)], fill=frame, width=3)
+    console_a, console_b = pt(-8, -47), pt(5, -35)
     d.rounded_rectangle(
         [min(console_a[0], console_b[0]), min(console_a[1], console_b[1]),
          max(console_a[0], console_b[0]), max(console_a[1], console_b[1])],
         radius=2, fill=mul(C["screen"], .82), outline=OUTLINE, width=2,
     )
-    screen_a, screen_b = pt(-5, -69), pt(2, -63)
+    screen_a, screen_b = pt(-5, -44), pt(2, -38)
     d.rounded_rectangle(
         [min(screen_a[0], screen_b[0]), min(screen_a[1], screen_b[1]),
          max(screen_a[0], screen_b[0]), max(screen_a[1], screen_b[1])],
@@ -1596,6 +1700,19 @@ BATHTUB_FULL_VARIANTS = [
 ]
 
 
+CHAIR_FOREGROUND_SPRITES = []
+for base, drawer, sizes in (
+    ("loungeChair", _armchair, ((50, 70), (50, 60), (50, 60), (50, 70))),
+    ("loungeChairRelax", _wingback, ((54, 81), (54, 81), (54, 70), (54, 70))),
+):
+    for facing, size in zip(("SE", "SW", "NW", "NE"), sizes):
+        name = f"{base}Foreground{'' if facing == 'SE' else facing}"
+        CHAIR_FOREGROUND_SPRITES.append(_facing_sprite(
+            name, lambda d, f, drawer=drawer: drawer(d, f, foreground=True), facing.lower()
+        ))
+        EXACT[name] = size
+
+
 SPRITES = [
     floor, sim, wallNS, wallEW, kitchenFridgeBuiltIn, bathroomSinkSquare,
     showerRound, toiletSquare, bookcaseClosedDoors, loungeSofaOttoman,
@@ -1672,4 +1789,11 @@ SPRITES = [
     # These remain append-only so every earlier atlas index stays stable.
     bedBunkForeground,
     *SLEEPING_SPRITES,
+    # Camera-near chair surfaces cover seated bodies at the same object anchor.
+    *CHAIR_FOREGROUND_SPRITES,
 ]
+
+# Every architectural panel spans exactly one projected tile edge.
+for _sprite in (*WALL_JOIN_SPRITES, doorwayJoinedNS, doorwayJoinedEW,
+                wallCornerStartNS, wallCornerStartEW):
+    EXACT[_sprite.__name__] = (HW, None)

@@ -1,0 +1,21 @@
+{
+  "source_sha256": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+  "renders": [
+    {
+      "path": "bike-SE-beauty.png",
+      "sha256": "1282582ca9550c77f50b94ea5ee5edcebb37e87bbae0770f12160c397d7b8eb3"
+    },
+    {
+      "path": "bike-SE-sim.png",
+      "sha256": "fb6368999d20ca44302a1eca443d342e956bcad54c712b93029b4e70531181e1"
+    },
+    {
+      "path": "bike-SE-furniture.png",
+      "sha256": "09d767fd0423cfd51f55d4e24316c45cbf9d689c1d5a5243706e94df464ef5f2"
+    },
+    {
+      "path": "bike-SE-lines.png",
+      "sha256": "9f737e37bf31d91ea8206e1e130e1ff48ba45166acdb78db5abec8a0e8ba590a"
+    }
+  ]
+}

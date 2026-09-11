@@ -23,7 +23,11 @@ import {
   writeInstance,
   type InstanceArray,
 } from './render/instances.js';
-import { SPRITES, spriteIndex } from './render/atlas.js';
+import { SPRITES, RIGGED_SIM_VARIANTS, SPRITE_ANCHORS, SPRITE_HAND_ANCHORS, SPRITE_HAND_FOREGROUND, INTERACTION_SPRITES, spriteIndex } from './render/atlas.js';
+import { InteractionSelection } from './render/interaction-sprites.js';
+import { distanceAnimationFrame, tickAnimationFrame } from './render/sim-animation.js';
+import { spriteContentLift, spriteDrawOffsetX, spriteDrawOffsetY } from './render/sprite-anchors.js';
+import { spriteHeight } from './render/sprite-size.js';
 import {
   emissiveForSprite,
   sampleLight,
@@ -44,7 +48,8 @@ const SELECTION_RING_SPRITE = spriteIndex('selectionRing');
 const SELECTION_RING_EMISSIVE = 1;
 
 /**
- * The sim looks, one atlas entry each. [ML-chars].
+ * Legacy sim looks, retained for compatibility tests. [ML-chars].
+ * Active presentation uses the approved rig further below.
  *
  * A household of three identical people was the loudest thing wrong with
  * the frame after Muted Line landed, and this is the fix: three baked
@@ -350,7 +355,7 @@ const AQUARIUM_FRAME_ZERO_SPRITE = spriteIndex('bookcaseClosedWide');
 const AQUARIUM_FRAME_ONE_SPRITE = spriteIndex('aquariumCabinet1');
 
 function validFacing(facing: number): boolean {
-  return facing >= FACING_POSITIVE_X && facing <= FACING_NEGATIVE_Y;
+  return Number.isInteger(facing) && facing >= FACING_POSITIVE_X && facing <= FACING_NEGATIVE_Y;
 }
 
 /**
@@ -458,7 +463,7 @@ export function walkingFacing(
  * household of three actually needs - a hash would be free to give all
  * three the same face and be "correct".
  */
-export function simSprite(id: number): number {
+export function legacySimSprite(id: number): number {
   return SIM_SPRITES[id % SIM_SPRITES.length];
 }
 
@@ -469,7 +474,7 @@ export function simSprite(id: number): number {
  * Reduced motion keeps frame zero, which preserves the semantic directional
  * pose while removing the ornamental gesture.
  */
-export function simBodySprite(
+export function legacySimBodySprite(
   id: number,
   visualAction: number,
   facing: number,
@@ -524,6 +529,48 @@ export function simBodySprite(
     frameTicks,
   );
   return sprites[look][facing - 1][frame];
+}
+
+/** The authored household's persistent IDs: Tim 0, Bill 1, Casey 2. */
+export function simShirtVariant(simId = 0xffff_ffff): 'blue' | 'green' | 'red' {
+  if (simId === 0) return 'blue';
+  if (simId === 2) return 'red';
+  return 'green';
+}
+
+const frameInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant);
+const countInteractions = new InteractionSelection(INTERACTION_SPRITES, simShirtVariant);
+
+/** Unknown/new Sims retain the approved green shirt until assigned a style. */
+export function simSprite(_id: number, simId = 0xffff_ffff): number {
+  return RIGGED_SIM_VARIANTS[simShirtVariant(simId)].idle.frames[0][0];
+}
+
+const RIGGED_ACTIONS: readonly string[] = [
+  'idle', 'talk', 'eat', 'read', 'stand_read', 'walk', 'exercise',
+  'watch_fish', 'sit', 'sleep',
+];
+const ACTION_HALF_CYCLE_TICKS: readonly number[] = [
+  1, TALK_FRAME_TICKS, EAT_FRAME_TICKS, READ_FRAME_TICKS, READ_FRAME_TICKS,
+  1, EXERCISE_FRAME_TICKS, WATCH_FISH_FRAME_TICKS, SIT_FRAME_TICKS, SLEEP_FRAME_TICKS,
+];
+
+/** Sample the baked rig from simulation state, without an animation clock. */
+export function simBodySprite(
+  id: number, visualAction: number, facing: number, simulationTick: number,
+  reducedMotion: boolean, walkingX = 0, walkingY = 0, simId = 0xffff_ffff,
+): number {
+  if (!validFacing(facing)) return simSprite(id, simId);
+  const action = RIGGED_ACTIONS[visualAction] ?? 'idle';
+  const clip = RIGGED_SIM_VARIANTS[simShirtVariant(simId)][action];
+  const frames = clip.frames[facing - 1];
+  const halfCycle = ACTION_HALF_CYCLE_TICKS[visualAction] ?? 1;
+  const phase = visualAction === VISUAL_ACTION_TALK
+    ? (id & 1) * halfCycle : id % halfCycle;
+  const frame = visualAction === VISUAL_ACTION_WALK
+    ? distanceAnimationFrame(walkingX, walkingY, facing, frames.length, clip.cycleTiles!, reducedMotion)
+    : tickAnimationFrame(simulationTick, phase, frames.length, 2 * halfCycle / frames.length, reducedMotion);
+  return frames[frame];
 }
 
 /**
@@ -738,6 +785,10 @@ export interface RenderSource {
    * selected sim's row. A row number would not do; see `RenderBuffer::ids`.
    */
   ids(): Uint32Array;
+  /** Persistent authored household identity, independent of entity and row order. */
+  simIds?(): Uint32Array;
+  /** Exact validated action target entity ID, or u32::MAX. */
+  interactionTargets?(): Uint32Array;
   /** 0 for a sim, 1 for a smart object. Picks the depth layer, nothing else. */
   kinds(): Uint32Array;
   /**
@@ -816,23 +867,6 @@ function carriedSprite(source: RenderSource, kind: number): number | null {
 const CARRIED_LIFT = 24;
 const CARRIED_SIDE = 14;
 
-/**
- * The exact eating hand anchor for each facing and frame.
- *
- * Entries are unscaled screen-pixel offsets from the body's bottom-centre
- * anchor. Both held snack and carried dinner use these coordinates during an
- * exact eating pose. Other carrying keeps the established screen-right badge
- * placement, including ingredients moving between dinner stations.
- */
-const EATING_HAND_OFFSETS: readonly (
-  readonly [readonly [number, number], readonly [number, number]]
-)[] = [
-  [[12, -34], [10, -41]],
-  [[-12, -37], [-10, -45]],
-  [[-12, -34], [-10, -41]],
-  [[12, -37], [10, -45]],
-];
-
 function exactEatingPose(
   kind: number,
   activity: number,
@@ -893,6 +927,7 @@ export function buildInstances(
   reducedMotion = false,
   simulationTick = 0,
   lighting: TileLighting | null = null,
+  interactions: InteractionSelection = frameInteractions,
 ): InstanceArray {
   const count = source.count;
   // Room for the entities, one foreground, one bubble and one carried badge
@@ -914,20 +949,23 @@ export function buildInstances(
   const sprites = source.sprites();
   const activities = source.activities();
   const visualActions = source.visualActions();
+  const simIds = source.simIds?.();
   const facings = source.facings();
   const ids = source.ids();
   const foregroundSprites = source.foregroundSprites?.() ?? null;
+  interactions.updateSource(source, simulationTick, reducedMotion);
 
   for (let i = 0; i < count; i++) {
-    // A sim at the office is not drawn, and its slot must not shift:
+    // Office Sims and a paired object's replaced body keep their row slots:
     // the instance is written DEGENERATE - parked far off-screen, where
     // clipping discards it for free - so instance i stays row i.
-    if (activities[i] === ACTIVITY_AT_WORK) {
+    if (activities[i] === ACTIVITY_AT_WORK || interactions.suppressed[i]) {
       writeInstance(scratch, i, -1e6, -1e6, 1, 0);
       continue;
     }
-    const wx = lerp(previous[i * 2], current[i * 2], alpha);
-    const wy = lerp(previous[i * 2 + 1], current[i * 2 + 1], alpha);
+    const positionRow = interactions.targetRows[i] >= 0 ? interactions.targetRows[i] : i;
+    const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha);
+    const wy = lerp(previous[positionRow * 2 + 1], current[positionRow * 2 + 1], alpha);
     const bodyFacing =
       kinds[i] === KIND_AGENT && visualActions[i] === VISUAL_ACTION_WALK
         ? walkingFacing(
@@ -954,12 +992,11 @@ export function buildInstances(
     // disappearance in [V12], where the sim's 576 orange pixels were
     // simply absent from the frame in which it reached the fridge.
     //
-    // A sim draws one of `SIM_SPRITES` rather than the pack's single
-    // `sim_sprite`, keyed on its own stable entity id so a sim keeps its
-    // face across a walk, a save and a reload. Every object starts with what
+    // A Sim uses its persistent household identity to select a shirt palette.
+    // Entity IDs affect animation phase, not appearance. Every object starts with what
     // content resolved; `objectBodySprite` may select an authored alternate
     // frame, such as the aquarium's fish-motion frame.
-    const sprite =
+    const sprite = interactions.bodies[i] >= 0 ? interactions.bodies[i] :
       kinds[i] === KIND_AGENT
         ? simBodySprite(
             ids[i],
@@ -969,6 +1006,7 @@ export function buildInstances(
             reducedMotion,
             wx,
             wy,
+            simIds?.[i],
           )
         : objectBodySprite(sprites[i], simulationTick, reducedMotion);
     const localLight = lighting === null
@@ -977,8 +1015,8 @@ export function buildInstances(
     writeInstance(
       scratch,
       i,
-      screenX(wx, wy, originX, scale),
-      screenY(wx, wy, originY, scale),
+      screenX(wx, wy, originX, scale) + spriteDrawOffsetX(sprite) * scale,
+      screenY(wx, wy, originY, scale) + spriteDrawOffsetY(sprite) * scale,
       // Depth stays in WORLD terms on purpose: zoom changes how big
       // things are drawn, never what covers what.
       layeredDepth(
@@ -1003,7 +1041,7 @@ export function buildInstances(
   if (foregroundSprites !== null) {
     for (let i = 0; i < count; i++) {
       const sprite = foregroundSprites[i];
-      if (sprite === NO_FOREGROUND_SPRITE || activities[i] === ACTIVITY_AT_WORK) {
+      if (sprite === NO_FOREGROUND_SPRITE || activities[i] === ACTIVITY_AT_WORK || interactions.suppressed[i]) {
         continue;
       }
       const wx = lerp(previous[i * 2], current[i * 2], alpha);
@@ -1014,8 +1052,8 @@ export function buildInstances(
       writeInstance(
         scratch,
         slot++,
-        screenX(wx, wy, originX, scale),
-        screenY(wx, wy, originY, scale),
+        screenX(wx, wy, originX, scale) + spriteDrawOffsetX(sprite) * scale,
+        screenY(wx, wy, originY, scale) + spriteDrawOffsetY(sprite) * scale,
         layeredDepth(wx, wy, gridSize, LAYER_FOREGROUND),
         sprite,
         TINT_NONE,
@@ -1035,8 +1073,9 @@ export function buildInstances(
   for (let i = 0; i < count; i++) {
     const sprite = INDICATOR_SPRITES[activities[i]] ?? null;
     if (sprite === null) continue;
-    const wx = lerp(previous[i * 2], current[i * 2], alpha);
-    const wy = lerp(previous[i * 2 + 1], current[i * 2 + 1], alpha);
+    const positionRow = interactions.targetRows[i] >= 0 ? interactions.targetRows[i] : i;
+    const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha);
+    const wy = lerp(previous[positionRow * 2 + 1], current[positionRow * 2 + 1], alpha);
     const bodyFacing =
       kinds[i] === KIND_AGENT && visualActions[i] === VISUAL_ACTION_WALK
         ? walkingFacing(
@@ -1047,7 +1086,7 @@ export function buildInstances(
             facings[i],
           )
         : facings[i];
-    const displayedBody =
+    const displayedBody = interactions.bodies[i] >= 0 ? interactions.bodies[i] :
       kinds[i] === KIND_AGENT
         ? simBodySprite(
             ids[i],
@@ -1057,6 +1096,7 @@ export function buildInstances(
             reducedMotion,
             wx,
             wy,
+            simIds?.[i],
           )
         : objectBodySprite(sprites[i], simulationTick, reducedMotion);
     writeInstance(
@@ -1067,7 +1107,7 @@ export function buildInstances(
       // `scale` times taller, so an unscaled lift would sink the bubble
       // into a zoomed head and orbit it high over a zoomed-out one.
       screenY(wx, wy, originY, scale) -
-        (SPRITES[displayedBody].h - INDICATOR_INSET) * scale,
+        (spriteContentLift(displayedBody) - INDICATOR_INSET) * scale,
       layeredDepth(wx, wy, gridSize, LAYER_FOREGROUND) - INDICATOR_DEPTH_NUDGE,
       sprite,
     );
@@ -1099,23 +1139,18 @@ export function buildInstances(
     const eatingFood =
       eatingPose &&
       (carrying[i] === NOT_CARRYING || carrying[i] === dinnerItemKind);
-    const eatingFrame = eatingFood
-      ? timedActionFrame(
-          ids[i],
-          VISUAL_ACTION_EAT,
-          simulationTick,
-          reducedMotion,
-          EAT_FRAME_TICKS,
-        )
-      : 0;
-    const handOffset = eatingFood
-      ? EATING_HAND_OFFSETS[facings[i] - 1][eatingFrame]
-      : null;
-    // `carried_dinner` is four pixels taller than `heldSnack`. Its
-    // bottom-centre anchor therefore sits two pixels lower to keep both
-    // sprites centred on the same authored hand point.
-    const foodAnchorCorrection =
-      eatingFood && carrying[i] === dinnerItemKind ? 2 : 0;
+    let foodX = CARRIED_SIDE;
+    let foodY = -CARRIED_LIFT;
+    let foodDepthNudge = -INDICATOR_DEPTH_NUDGE;
+    if (eatingFood) {
+      const body = simBodySprite(ids[i], VISUAL_ACTION_EAT, facings[i], simulationTick, reducedMotion, wx, wy, simIds?.[i]);
+      const hand = SPRITE_HAND_ANCHORS[body];
+      const anchor = SPRITE_ANCHORS[body];
+      foodX = hand[0] - anchor[0];
+      foodY = hand[1] - anchor[1] + spriteHeight(sprite) / 2;
+      foodDepthNudge = SPRITE_HAND_FOREGROUND[body]
+        ? -INDICATOR_DEPTH_NUDGE : INDICATOR_DEPTH_NUDGE;
+    }
     const localLight = lighting === null
       ? EMISSIVE_NONE
       : sampleLight(lighting, Math.floor(wx), Math.floor(wy));
@@ -1123,12 +1158,10 @@ export function buildInstances(
       scratch,
       slot++,
       screenX(wx, wy, originX, scale) +
-        (handOffset === null ? CARRIED_SIDE : handOffset[0]) * scale,
+        foodX * scale,
       screenY(wx, wy, originY, scale) +
-        (handOffset === null
-          ? -CARRIED_LIFT
-          : handOffset[1] + foodAnchorCorrection) * scale,
-      layeredDepth(wx, wy, gridSize, LAYER_SIM) - INDICATOR_DEPTH_NUDGE,
+        foodY * scale,
+      layeredDepth(wx, wy, gridSize, LAYER_SIM) + foodDepthNudge,
       sprite,
       TINT_NONE,
       TINT_NONE,
@@ -1150,8 +1183,9 @@ export function buildInstances(
   // depth in front of nothing.
   const ringRow = findSelectedRow(source, selected);
   if (ringRow !== null) {
-    const wx = lerp(previous[ringRow * 2], current[ringRow * 2], alpha);
-    const wy = lerp(previous[ringRow * 2 + 1], current[ringRow * 2 + 1], alpha);
+    const positionRow = interactions.targetRows[ringRow] >= 0 ? interactions.targetRows[ringRow] : ringRow;
+    const wx = lerp(previous[positionRow * 2], current[positionRow * 2], alpha);
+    const wy = lerp(previous[positionRow * 2 + 1], current[positionRow * 2 + 1], alpha);
     writeInstance(
       scratch,
       slot,
@@ -1170,15 +1204,15 @@ export function buildInstances(
 }
 
 /**
- * How many instances `buildInstances` filled, which is the entity count plus a
- * selection ring if one was drawn.
+ * Count fixed entity rows plus unsuppressed foregrounds, bubbles, props and ring.
  *
  * Returned separately rather than folded into the array because the caller
  * passes a count to `draw`, and the scratch buffer is deliberately longer than
  * the live data. Getting this wrong uploads uninitialised zeroes - quads at
  * screen (0, 0) with depth 0, which draw in front of everything.
  */
-export function instanceCount(source: RenderSource, selected: number | null): number {
+export function instanceCount(source: RenderSource, selected: number | null,
+  interactions: InteractionSelection = countInteractions): number {
   let extras = 0;
   const activities = source.activities();
   const carrying = source.carrying();
@@ -1186,10 +1220,12 @@ export function instanceCount(source: RenderSource, selected: number | null): nu
   const visualActions = source.visualActions();
   const facings = source.facings();
   const foregroundSprites = source.foregroundSprites?.() ?? null;
+  interactions.updateSource(source, 0, true);
   for (let i = 0; i < source.count; i++) {
     if (
       foregroundSprites !== null &&
       foregroundSprites[i] !== NO_FOREGROUND_SPRITE &&
+      !interactions.suppressed[i] &&
       activities[i] !== ACTIVITY_AT_WORK
     ) {
       extras++;

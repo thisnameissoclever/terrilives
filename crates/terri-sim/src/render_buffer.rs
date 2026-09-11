@@ -101,6 +101,9 @@ pub struct RenderBuffer {
     /// Walking is the deliberate exception: it is presentation-owned and
     /// derived from the live path's next step.
     pub visual_actions: Vec<u32>,
+    /// Exact target entity index for a winning socket interaction, or the
+    /// absent-target sentinel. This is derived presentation state, not a save field.
+    pub interaction_targets: Vec<u32>,
     /// Lot-axis direction each projected body action faces. See [`facing`].
     /// A row whose visual action is [`visual_action::NONE`] also carries
     /// [`facing::NONE`].
@@ -131,6 +134,8 @@ pub struct RenderBuffer {
 pub const NOT_CARRYING: u32 = u32::MAX;
 /// The `foreground_sprites` column's absent-layer sentinel.
 pub const NO_FOREGROUND_SPRITE: u32 = u32::MAX;
+/// No active, validated socket interaction owns this presentation row.
+pub const NO_INTERACTION_TARGET: u32 = u32::MAX;
 /// The `sim_ids` column's absent authored-identity sentinel.
 pub const NO_SIM_ID: u32 = u32::MAX;
 /// The `sound_sources` column's absent-source sentinel.
@@ -1211,6 +1216,63 @@ mod tests {
         (agent, target, bike, interaction)
     }
 
+    #[test]
+    fn interaction_targets_follow_exact_active_socket_ownership_and_clear() {
+        let mut sim = Sim::new_with_lot(24, 24);
+        sim.world_mut().spawn(Position { x: 0.0, y: 0.0 });
+        let hole = sim.world_mut().spawn(Position { x: 1.0, y: 0.0 }).id();
+        let (agent, target, bike, _) = spawn_shipped_exerciser(
+            &mut sim,
+            Position { x: 18.0, y: 18.0 },
+            Position { x: 2.0, y: 2.0 },
+        );
+        let decoy = sim.spawn_object(Position { x: 2.0, y: 2.0 }, bike);
+        sim.world_mut().despawn(hole);
+        let target_of = |sim: &Sim, entity: Entity| {
+            let buffer = sim.render_buffer();
+            let row = buffer
+                .ids
+                .iter()
+                .position(|id| *id == entity.index_u32())
+                .unwrap();
+            buffer.interaction_targets[row]
+        };
+        sim.sync_render_buffer();
+        let target_row = sim
+            .render_buffer()
+            .ids
+            .iter()
+            .position(|id| *id == target.index_u32())
+            .unwrap();
+        assert_ne!(target_row as u32, target.index_u32());
+        assert_ne!(target.index_u32(), decoy.index_u32());
+        assert_eq!(target_of(&sim, agent), target.index_u32());
+        assert_eq!(target_of(&sim, target), super::NO_INTERACTION_TARGET);
+        assert_eq!(target_of(&sim, decoy), super::NO_INTERACTION_TARGET);
+
+        sim.world_mut()
+            .entity_mut(agent)
+            .insert(terri_core::AtWork {
+                remaining_ticks: 10,
+            });
+        sim.sync_render_buffer_after_commands();
+        assert_eq!(target_of(&sim, agent), super::NO_INTERACTION_TARGET);
+        sim.world_mut()
+            .entity_mut(agent)
+            .remove::<terri_core::AtWork>();
+        sim.sync_render_buffer_after_commands();
+        assert_eq!(target_of(&sim, agent), target.index_u32());
+        sim.world_mut()
+            .get_mut::<terri_core::Target>(agent)
+            .unwrap()
+            .object = decoy;
+        sim.sync_render_buffer_after_commands();
+        assert_eq!(target_of(&sim, agent), decoy.index_u32());
+        sim.world_mut().entity_mut(agent).remove::<Eating>();
+        sim.sync_render_buffer_after_commands();
+        assert_eq!(target_of(&sim, agent), super::NO_INTERACTION_TARGET);
+    }
+
     fn spawn_shipped_sitter(
         sim: &mut Sim,
         chair_at: Position,
@@ -1502,7 +1564,7 @@ mod tests {
         );
         assert_eq!(
             projection_of(sim.render_buffer(), sitter),
-            (visual_action::SIT, facing::POSITIVE_X, activity::SITTING,)
+            (visual_action::SIT, facing::POSITIVE_Y, activity::SITTING,)
         );
         assert_eq!(
             displayed_position_of(sim.render_buffer(), sitter),
@@ -1572,7 +1634,7 @@ mod tests {
         );
         assert_eq!(
             projection_of(restored.render_buffer(), sitter),
-            (visual_action::SIT, facing::POSITIVE_X, activity::SITTING,)
+            (visual_action::SIT, facing::POSITIVE_Y, activity::SITTING,)
         );
         assert_eq!(
             displayed_position_of(restored.render_buffer(), sitter),
@@ -4440,6 +4502,7 @@ mod tests {
             assert_eq!(buf.foreground_sprites.len(), expected_count);
             assert_eq!(buf.activities.len(), expected_count);
             assert_eq!(buf.visual_actions.len(), expected_count);
+            assert_eq!(buf.interaction_targets.len(), expected_count);
             assert_eq!(buf.facings.len(), expected_count);
             assert_eq!(buf.carrying.len(), expected_count);
             assert_eq!(buf.positions.len(), expected_count * 2);

@@ -9,384 +9,5502 @@
 // order of the [[sprite]] blocks in the TOML, which is why both files
 // are written in one pass rather than maintained separately.
 
-/** One packed sprite. `w` and `h` are texels and screen pixels alike. */
+/** One packed sprite. `w` and `h` are physical texture pixels. */
 export interface AtlasSprite {
   readonly name: string;
   readonly x: number;
   readonly y: number;
   readonly w: number;
   readonly h: number;
+  readonly pixel_density?: number;
 }
 
-export const ATLAS_WIDTH = 512;
-export const ATLAS_HEIGHT = 3315;
+export const ATLAS_WIDTH = 4096;
+export const ATLAS_HEIGHT = 6073;
 /** SHA-256 of the exact generated atlas PNG bytes. */
-export const ATLAS_CONTENT_SHA256 = 'df11b4b638af9ac782d9b689dfcf24464c318db189152fa17438a7c75337d40f';
+export const ATLAS_CONTENT_SHA256 = '71c2c448266c234483f5822ba7cb8bb4bdbc4926d9aa29d36bf8040120566993';
 /** Content-addressed public pathname; Pages ignores query strings in its cache key. */
-export const ATLAS_FILE_NAME = 'atlas-df11b4b638af9ac782d9b689dfcf24464c318db189152fa17438a7c75337d40f.png';
+export const ATLAS_FILE_NAME = 'atlas-71c2c448266c234483f5822ba7cb8bb4bdbc4926d9aa29d36bf8040120566993.png';
 
 export const SPRITES: readonly AtlasSprite[] = [
-  { name: 'floor', x: 96, y: 3264, w: 64, h: 42 },
-  { name: 'sim', x: 369, y: 474, w: 38, h: 88 },
-  { name: 'wallNS', x: 123, y: 137, w: 32, h: 109 },
-  { name: 'wallEW', x: 156, y: 137, w: 32, h: 109 },
-  { name: 'kitchenFridgeBuiltIn', x: 417, y: 137, w: 58, h: 102 },
-  { name: 'bathroomSinkSquare', x: 0, y: 3080, w: 34, h: 65 },
-  { name: 'showerRound', x: 0, y: 274, w: 58, h: 102 },
-  { name: 'toiletSquare', x: 290, y: 3080, w: 38, h: 63 },
-  { name: 'bookcaseClosedDoors', x: 408, y: 474, w: 58, h: 88 },
-  { name: 'loungeSofaOttoman', x: 197, y: 3207, w: 54, h: 51 },
-  { name: 'televisionVintage', x: 131, y: 3146, w: 44, h: 59 },
-  { name: 'bedBunk', x: 0, y: 0, w: 122, h: 136 },
-  { name: 'selectionRing', x: 161, y: 3264, w: 64, h: 42 },
-  { name: 'kitchenStove', x: 238, y: 2332, w: 66, h: 77 },
-  { name: 'kitchenCabinet', x: 295, y: 2412, w: 66, h: 76 },
-  { name: 'kitchenSink', x: 362, y: 2412, w: 66, h: 76 },
-  { name: 'table', x: 59, y: 2079, w: 112, h: 83 },
-  { name: 'chair', x: 55, y: 2250, w: 50, h: 80 },
-  { name: 'trashcan', x: 146, y: 3207, w: 16, h: 52 },
-  { name: 'loungeSofaLong', x: 343, y: 377, w: 122, h: 92 },
-  { name: 'loungeChair', x: 420, y: 2936, w: 50, h: 70 },
-  { name: 'loungeChairRelax', x: 452, y: 2166, w: 54, h: 81 },
-  { name: 'radio', x: 82, y: 3207, w: 46, h: 54 },
-  { name: 'pottedPlant', x: 329, y: 3080, w: 30, h: 63 },
-  { name: 'cardboardBoxOpen', x: 0, y: 567, w: 80, h: 88 },
-  { name: 'lampRoundFloor', x: 161, y: 3009, w: 34, h: 68 },
-  { name: 'coatRackStanding', x: 305, y: 2332, w: 18, h: 77 },
-  { name: 'bedDouble', x: 363, y: 274, w: 122, h: 96 },
-  { name: 'sideTableDrawers', x: 35, y: 3080, w: 54, h: 65 },
-  { name: 'cabinetBedDrawer', x: 342, y: 3146, w: 40, h: 56 },
-  { name: 'desk', x: 172, y: 2079, w: 112, h: 83 },
-  { name: 'chairDesk', x: 324, y: 2332, w: 48, h: 77 },
-  { name: 'bookcaseClosedWide', x: 255, y: 137, w: 80, h: 104 },
-  { name: 'bathtub', x: 0, y: 1991, w: 118, h: 87 },
-  { name: 'washerDryerStacked', x: 0, y: 377, w: 54, h: 96 },
-  { name: 'wallCornerNW', x: 354, y: 274, w: 8, h: 101 },
-  { name: 'doorwayNS', x: 189, y: 137, w: 32, h: 109 },
-  { name: 'doorwayEW', x: 222, y: 137, w: 32, h: 109 },
-  { name: 'kitchenStoveSW', x: 429, y: 2412, w: 66, h: 76 },
-  { name: 'kitchenCabinetSW', x: 0, y: 2490, w: 66, h: 76 },
-  { name: 'kitchenSinkSW', x: 67, y: 2490, w: 66, h: 76 },
-  { name: 'kitchenCabinetCornerInnerSW', x: 134, y: 2490, w: 66, h: 76 },
-  { name: 'indicatorTalk', x: 226, y: 3264, w: 26, h: 26 },
-  { name: 'indicatorEat', x: 253, y: 3264, w: 26, h: 26 },
-  { name: 'indicatorSleep', x: 280, y: 3264, w: 26, h: 26 },
-  { name: 'indicatorWait', x: 307, y: 3264, w: 26, h: 26 },
-  { name: 'carried_ingredients', x: 415, y: 3264, w: 16, h: 20 },
-  { name: 'carried_dinner', x: 432, y: 3264, w: 18, h: 14 },
-  { name: 'sim2', x: 81, y: 567, w: 38, h: 88 },
-  { name: 'sim3', x: 120, y: 567, w: 38, h: 88 },
-  { name: 'simTalkSE0', x: 159, y: 567, w: 38, h: 88 },
-  { name: 'simTalkSE1', x: 198, y: 567, w: 38, h: 88 },
-  { name: 'simTalkNW0', x: 237, y: 567, w: 38, h: 88 },
-  { name: 'simTalkNW1', x: 276, y: 567, w: 38, h: 88 },
-  { name: 'simTalkSW0', x: 315, y: 567, w: 38, h: 88 },
-  { name: 'simTalkSW1', x: 354, y: 567, w: 38, h: 88 },
-  { name: 'simTalkNE0', x: 393, y: 567, w: 38, h: 88 },
-  { name: 'simTalkNE1', x: 432, y: 567, w: 38, h: 88 },
-  { name: 'sim2TalkSE0', x: 471, y: 567, w: 38, h: 88 },
-  { name: 'sim2TalkSE1', x: 0, y: 656, w: 38, h: 88 },
-  { name: 'sim2TalkNW0', x: 39, y: 656, w: 38, h: 88 },
-  { name: 'sim2TalkNW1', x: 78, y: 656, w: 38, h: 88 },
-  { name: 'sim2TalkSW0', x: 117, y: 656, w: 38, h: 88 },
-  { name: 'sim2TalkSW1', x: 156, y: 656, w: 38, h: 88 },
-  { name: 'sim2TalkNE0', x: 195, y: 656, w: 38, h: 88 },
-  { name: 'sim2TalkNE1', x: 234, y: 656, w: 38, h: 88 },
-  { name: 'sim3TalkSE0', x: 273, y: 656, w: 38, h: 88 },
-  { name: 'sim3TalkSE1', x: 312, y: 656, w: 38, h: 88 },
-  { name: 'sim3TalkNW0', x: 351, y: 656, w: 38, h: 88 },
-  { name: 'sim3TalkNW1', x: 390, y: 656, w: 38, h: 88 },
-  { name: 'sim3TalkSW0', x: 429, y: 656, w: 38, h: 88 },
-  { name: 'sim3TalkSW1', x: 468, y: 656, w: 38, h: 88 },
-  { name: 'sim3TalkNE0', x: 0, y: 745, w: 38, h: 88 },
-  { name: 'sim3TalkNE1', x: 39, y: 745, w: 38, h: 88 },
-  { name: 'simEatSE0', x: 78, y: 745, w: 38, h: 88 },
-  { name: 'simEatSE1', x: 117, y: 745, w: 38, h: 88 },
-  { name: 'simEatNW0', x: 156, y: 745, w: 38, h: 88 },
-  { name: 'simEatNW1', x: 195, y: 745, w: 38, h: 88 },
-  { name: 'simEatSW0', x: 234, y: 745, w: 38, h: 88 },
-  { name: 'simEatSW1', x: 273, y: 745, w: 38, h: 88 },
-  { name: 'simEatNE0', x: 312, y: 745, w: 38, h: 88 },
-  { name: 'simEatNE1', x: 351, y: 745, w: 38, h: 88 },
-  { name: 'sim2EatSE0', x: 390, y: 745, w: 38, h: 88 },
-  { name: 'sim2EatSE1', x: 429, y: 745, w: 38, h: 88 },
-  { name: 'sim2EatNW0', x: 468, y: 745, w: 38, h: 88 },
-  { name: 'sim2EatNW1', x: 0, y: 834, w: 38, h: 88 },
-  { name: 'sim2EatSW0', x: 39, y: 834, w: 38, h: 88 },
-  { name: 'sim2EatSW1', x: 78, y: 834, w: 38, h: 88 },
-  { name: 'sim2EatNE0', x: 117, y: 834, w: 38, h: 88 },
-  { name: 'sim2EatNE1', x: 156, y: 834, w: 38, h: 88 },
-  { name: 'sim3EatSE0', x: 195, y: 834, w: 38, h: 88 },
-  { name: 'sim3EatSE1', x: 234, y: 834, w: 38, h: 88 },
-  { name: 'sim3EatNW0', x: 273, y: 834, w: 38, h: 88 },
-  { name: 'sim3EatNW1', x: 312, y: 834, w: 38, h: 88 },
-  { name: 'sim3EatSW0', x: 351, y: 834, w: 38, h: 88 },
-  { name: 'sim3EatSW1', x: 390, y: 834, w: 38, h: 88 },
-  { name: 'sim3EatNE0', x: 429, y: 834, w: 38, h: 88 },
-  { name: 'sim3EatNE1', x: 468, y: 834, w: 38, h: 88 },
-  { name: 'simReadSE0', x: 0, y: 923, w: 38, h: 88 },
-  { name: 'simReadSE1', x: 39, y: 923, w: 38, h: 88 },
-  { name: 'simReadNW0', x: 78, y: 923, w: 38, h: 88 },
-  { name: 'simReadNW1', x: 117, y: 923, w: 38, h: 88 },
-  { name: 'simReadSW0', x: 156, y: 923, w: 38, h: 88 },
-  { name: 'simReadSW1', x: 195, y: 923, w: 38, h: 88 },
-  { name: 'simReadNE0', x: 234, y: 923, w: 38, h: 88 },
-  { name: 'simReadNE1', x: 273, y: 923, w: 38, h: 88 },
-  { name: 'sim2ReadSE0', x: 312, y: 923, w: 38, h: 88 },
-  { name: 'sim2ReadSE1', x: 351, y: 923, w: 38, h: 88 },
-  { name: 'sim2ReadNW0', x: 390, y: 923, w: 38, h: 88 },
-  { name: 'sim2ReadNW1', x: 429, y: 923, w: 38, h: 88 },
-  { name: 'sim2ReadSW0', x: 468, y: 923, w: 38, h: 88 },
-  { name: 'sim2ReadSW1', x: 0, y: 1012, w: 38, h: 88 },
-  { name: 'sim2ReadNE0', x: 39, y: 1012, w: 38, h: 88 },
-  { name: 'sim2ReadNE1', x: 78, y: 1012, w: 38, h: 88 },
-  { name: 'sim3ReadSE0', x: 117, y: 1012, w: 38, h: 88 },
-  { name: 'sim3ReadSE1', x: 156, y: 1012, w: 38, h: 88 },
-  { name: 'sim3ReadNW0', x: 195, y: 1012, w: 38, h: 88 },
-  { name: 'sim3ReadNW1', x: 234, y: 1012, w: 38, h: 88 },
-  { name: 'sim3ReadSW0', x: 273, y: 1012, w: 38, h: 88 },
-  { name: 'sim3ReadSW1', x: 312, y: 1012, w: 38, h: 88 },
-  { name: 'sim3ReadNE0', x: 351, y: 1012, w: 38, h: 88 },
-  { name: 'sim3ReadNE1', x: 390, y: 1012, w: 38, h: 88 },
-  { name: 'indicatorReading', x: 334, y: 3264, w: 26, h: 26 },
-  { name: 'simStandReadSE0', x: 429, y: 1012, w: 38, h: 88 },
-  { name: 'simStandReadSE1', x: 468, y: 1012, w: 38, h: 88 },
-  { name: 'simStandReadNW0', x: 0, y: 1101, w: 38, h: 88 },
-  { name: 'simStandReadNW1', x: 39, y: 1101, w: 38, h: 88 },
-  { name: 'simStandReadSW0', x: 78, y: 1101, w: 38, h: 88 },
-  { name: 'simStandReadSW1', x: 117, y: 1101, w: 38, h: 88 },
-  { name: 'simStandReadNE0', x: 156, y: 1101, w: 38, h: 88 },
-  { name: 'simStandReadNE1', x: 195, y: 1101, w: 38, h: 88 },
-  { name: 'sim2StandReadSE0', x: 234, y: 1101, w: 38, h: 88 },
-  { name: 'sim2StandReadSE1', x: 273, y: 1101, w: 38, h: 88 },
-  { name: 'sim2StandReadNW0', x: 312, y: 1101, w: 38, h: 88 },
-  { name: 'sim2StandReadNW1', x: 351, y: 1101, w: 38, h: 88 },
-  { name: 'sim2StandReadSW0', x: 390, y: 1101, w: 38, h: 88 },
-  { name: 'sim2StandReadSW1', x: 429, y: 1101, w: 38, h: 88 },
-  { name: 'sim2StandReadNE0', x: 468, y: 1101, w: 38, h: 88 },
-  { name: 'sim2StandReadNE1', x: 0, y: 1190, w: 38, h: 88 },
-  { name: 'sim3StandReadSE0', x: 39, y: 1190, w: 38, h: 88 },
-  { name: 'sim3StandReadSE1', x: 78, y: 1190, w: 38, h: 88 },
-  { name: 'sim3StandReadNW0', x: 117, y: 1190, w: 38, h: 88 },
-  { name: 'sim3StandReadNW1', x: 156, y: 1190, w: 38, h: 88 },
-  { name: 'sim3StandReadSW0', x: 195, y: 1190, w: 38, h: 88 },
-  { name: 'sim3StandReadSW1', x: 234, y: 1190, w: 38, h: 88 },
-  { name: 'sim3StandReadNE0', x: 273, y: 1190, w: 38, h: 88 },
-  { name: 'sim3StandReadNE1', x: 312, y: 1190, w: 38, h: 88 },
-  { name: 'simWalkSE0', x: 351, y: 1190, w: 38, h: 88 },
-  { name: 'simWalkSE1', x: 390, y: 1190, w: 38, h: 88 },
-  { name: 'simWalkNW0', x: 429, y: 1190, w: 38, h: 88 },
-  { name: 'simWalkNW1', x: 468, y: 1190, w: 38, h: 88 },
-  { name: 'simWalkSW0', x: 0, y: 1279, w: 38, h: 88 },
-  { name: 'simWalkSW1', x: 39, y: 1279, w: 38, h: 88 },
-  { name: 'simWalkNE0', x: 78, y: 1279, w: 38, h: 88 },
-  { name: 'simWalkNE1', x: 117, y: 1279, w: 38, h: 88 },
-  { name: 'sim2WalkSE0', x: 156, y: 1279, w: 38, h: 88 },
-  { name: 'sim2WalkSE1', x: 195, y: 1279, w: 38, h: 88 },
-  { name: 'sim2WalkNW0', x: 234, y: 1279, w: 38, h: 88 },
-  { name: 'sim2WalkNW1', x: 273, y: 1279, w: 38, h: 88 },
-  { name: 'sim2WalkSW0', x: 312, y: 1279, w: 38, h: 88 },
-  { name: 'sim2WalkSW1', x: 351, y: 1279, w: 38, h: 88 },
-  { name: 'sim2WalkNE0', x: 390, y: 1279, w: 38, h: 88 },
-  { name: 'sim2WalkNE1', x: 429, y: 1279, w: 38, h: 88 },
-  { name: 'sim3WalkSE0', x: 468, y: 1279, w: 38, h: 88 },
-  { name: 'sim3WalkSE1', x: 0, y: 1368, w: 38, h: 88 },
-  { name: 'sim3WalkNW0', x: 39, y: 1368, w: 38, h: 88 },
-  { name: 'sim3WalkNW1', x: 78, y: 1368, w: 38, h: 88 },
-  { name: 'sim3WalkSW0', x: 117, y: 1368, w: 38, h: 88 },
-  { name: 'sim3WalkSW1', x: 156, y: 1368, w: 38, h: 88 },
-  { name: 'sim3WalkNE0', x: 195, y: 1368, w: 38, h: 88 },
-  { name: 'sim3WalkNE1', x: 234, y: 1368, w: 38, h: 88 },
-  { name: 'heldSnack', x: 451, y: 3264, w: 14, h: 10 },
-  { name: 'aquariumCabinet1', x: 336, y: 137, w: 80, h: 104 },
-  { name: 'indicatorExercise', x: 361, y: 3264, w: 26, h: 26 },
-  { name: 'indicatorWatchFish', x: 388, y: 3264, w: 26, h: 26 },
-  { name: 'simExerciseSE0', x: 273, y: 1368, w: 38, h: 88 },
-  { name: 'simExerciseSE1', x: 312, y: 1368, w: 38, h: 88 },
-  { name: 'simExerciseNW0', x: 351, y: 1368, w: 38, h: 88 },
-  { name: 'simExerciseNW1', x: 390, y: 1368, w: 38, h: 88 },
-  { name: 'simExerciseSW0', x: 429, y: 1368, w: 38, h: 88 },
-  { name: 'simExerciseSW1', x: 468, y: 1368, w: 38, h: 88 },
-  { name: 'simExerciseNE0', x: 0, y: 1457, w: 38, h: 88 },
-  { name: 'simExerciseNE1', x: 39, y: 1457, w: 38, h: 88 },
-  { name: 'sim2ExerciseSE0', x: 78, y: 1457, w: 38, h: 88 },
-  { name: 'sim2ExerciseSE1', x: 117, y: 1457, w: 38, h: 88 },
-  { name: 'sim2ExerciseNW0', x: 156, y: 1457, w: 38, h: 88 },
-  { name: 'sim2ExerciseNW1', x: 195, y: 1457, w: 38, h: 88 },
-  { name: 'sim2ExerciseSW0', x: 234, y: 1457, w: 38, h: 88 },
-  { name: 'sim2ExerciseSW1', x: 273, y: 1457, w: 38, h: 88 },
-  { name: 'sim2ExerciseNE0', x: 312, y: 1457, w: 38, h: 88 },
-  { name: 'sim2ExerciseNE1', x: 351, y: 1457, w: 38, h: 88 },
-  { name: 'sim3ExerciseSE0', x: 390, y: 1457, w: 38, h: 88 },
-  { name: 'sim3ExerciseSE1', x: 429, y: 1457, w: 38, h: 88 },
-  { name: 'sim3ExerciseNW0', x: 468, y: 1457, w: 38, h: 88 },
-  { name: 'sim3ExerciseNW1', x: 0, y: 1546, w: 38, h: 88 },
-  { name: 'sim3ExerciseSW0', x: 39, y: 1546, w: 38, h: 88 },
-  { name: 'sim3ExerciseSW1', x: 78, y: 1546, w: 38, h: 88 },
-  { name: 'sim3ExerciseNE0', x: 117, y: 1546, w: 38, h: 88 },
-  { name: 'sim3ExerciseNE1', x: 156, y: 1546, w: 38, h: 88 },
-  { name: 'simWatchFishSE0', x: 195, y: 1546, w: 38, h: 88 },
-  { name: 'simWatchFishSE1', x: 234, y: 1546, w: 38, h: 88 },
-  { name: 'simWatchFishNW0', x: 273, y: 1546, w: 38, h: 88 },
-  { name: 'simWatchFishNW1', x: 312, y: 1546, w: 38, h: 88 },
-  { name: 'simWatchFishSW0', x: 351, y: 1546, w: 38, h: 88 },
-  { name: 'simWatchFishSW1', x: 390, y: 1546, w: 38, h: 88 },
-  { name: 'simWatchFishNE0', x: 429, y: 1546, w: 38, h: 88 },
-  { name: 'simWatchFishNE1', x: 468, y: 1546, w: 38, h: 88 },
-  { name: 'sim2WatchFishSE0', x: 0, y: 1635, w: 38, h: 88 },
-  { name: 'sim2WatchFishSE1', x: 39, y: 1635, w: 38, h: 88 },
-  { name: 'sim2WatchFishNW0', x: 78, y: 1635, w: 38, h: 88 },
-  { name: 'sim2WatchFishNW1', x: 117, y: 1635, w: 38, h: 88 },
-  { name: 'sim2WatchFishSW0', x: 156, y: 1635, w: 38, h: 88 },
-  { name: 'sim2WatchFishSW1', x: 195, y: 1635, w: 38, h: 88 },
-  { name: 'sim2WatchFishNE0', x: 234, y: 1635, w: 38, h: 88 },
-  { name: 'sim2WatchFishNE1', x: 273, y: 1635, w: 38, h: 88 },
-  { name: 'sim3WatchFishSE0', x: 312, y: 1635, w: 38, h: 88 },
-  { name: 'sim3WatchFishSE1', x: 351, y: 1635, w: 38, h: 88 },
-  { name: 'sim3WatchFishNW0', x: 390, y: 1635, w: 38, h: 88 },
-  { name: 'sim3WatchFishNW1', x: 429, y: 1635, w: 38, h: 88 },
-  { name: 'sim3WatchFishSW0', x: 468, y: 1635, w: 38, h: 88 },
-  { name: 'sim3WatchFishSW1', x: 0, y: 1724, w: 38, h: 88 },
-  { name: 'sim3WatchFishNE0', x: 39, y: 1724, w: 38, h: 88 },
-  { name: 'sim3WatchFishNE1', x: 78, y: 1724, w: 38, h: 88 },
-  { name: 'kitchenFridgeBuiltInSW', x: 59, y: 274, w: 58, h: 102 },
-  { name: 'kitchenFridgeBuiltInNW', x: 118, y: 274, w: 58, h: 102 },
-  { name: 'kitchenFridgeBuiltInNE', x: 177, y: 274, w: 58, h: 102 },
-  { name: 'bathroomSinkSquareSW', x: 428, y: 3080, w: 34, h: 60 },
-  { name: 'bathroomSinkSquareNW', x: 463, y: 3080, w: 34, h: 60 },
-  { name: 'bathroomSinkSquareNE', x: 90, y: 3080, w: 34, h: 65 },
-  { name: 'showerRoundSW', x: 236, y: 274, w: 58, h: 102 },
-  { name: 'showerRoundNW', x: 0, y: 2079, w: 58, h: 86 },
-  { name: 'showerRoundNE', x: 295, y: 274, w: 58, h: 102 },
-  { name: 'toiletSquareSW', x: 383, y: 3146, w: 38, h: 56 },
-  { name: 'toiletSquareNW', x: 422, y: 3146, w: 38, h: 56 },
-  { name: 'toiletSquareNE', x: 360, y: 3080, w: 38, h: 63 },
-  { name: 'bookcaseClosedDoorsSW', x: 117, y: 1724, w: 58, h: 88 },
-  { name: 'bookcaseClosedDoorsNW', x: 176, y: 1724, w: 58, h: 88 },
-  { name: 'bookcaseClosedDoorsNE', x: 235, y: 1724, w: 58, h: 88 },
-  { name: 'loungeSofaOttomanSW', x: 252, y: 3207, w: 54, h: 51 },
-  { name: 'loungeSofaOttomanNW', x: 307, y: 3207, w: 54, h: 51 },
-  { name: 'loungeSofaOttomanNE', x: 362, y: 3207, w: 54, h: 51 },
-  { name: 'televisionVintageSW', x: 176, y: 3146, w: 44, h: 59 },
-  { name: 'televisionVintageNW', x: 221, y: 3146, w: 44, h: 59 },
-  { name: 'televisionVintageNE', x: 266, y: 3146, w: 44, h: 59 },
-  { name: 'bedBunkSW', x: 123, y: 0, w: 122, h: 136 },
-  { name: 'bedBunkNW', x: 246, y: 0, w: 122, h: 136 },
-  { name: 'bedBunkNE', x: 369, y: 0, w: 122, h: 136 },
-  { name: 'kitchenStoveNW', x: 201, y: 2490, w: 66, h: 76 },
-  { name: 'kitchenStoveNE', x: 373, y: 2332, w: 66, h: 77 },
-  { name: 'kitchenCabinetNW', x: 268, y: 2490, w: 66, h: 76 },
-  { name: 'kitchenCabinetNE', x: 335, y: 2490, w: 66, h: 76 },
-  { name: 'kitchenSinkNW', x: 402, y: 2490, w: 66, h: 76 },
-  { name: 'kitchenSinkNE', x: 0, y: 2567, w: 66, h: 76 },
-  { name: 'tableSW', x: 285, y: 2079, w: 112, h: 83 },
-  { name: 'tableNW', x: 398, y: 2079, w: 112, h: 83 },
-  { name: 'tableNE', x: 0, y: 2166, w: 112, h: 83 },
-  { name: 'chairSW', x: 301, y: 3009, w: 50, h: 67 },
-  { name: 'chairNW', x: 352, y: 3009, w: 50, h: 67 },
-  { name: 'chairNE', x: 106, y: 2250, w: 50, h: 80 },
-  { name: 'trashcanSW', x: 163, y: 3207, w: 16, h: 52 },
-  { name: 'trashcanNW', x: 180, y: 3207, w: 16, h: 52 },
-  { name: 'trashcanNE', x: 129, y: 3207, w: 16, h: 53 },
-  { name: 'loungeSofaLongSW', x: 0, y: 474, w: 122, h: 92 },
-  { name: 'loungeSofaLongNW', x: 123, y: 474, w: 122, h: 92 },
-  { name: 'loungeSofaLongNE', x: 246, y: 474, w: 122, h: 92 },
-  { name: 'loungeChairSW', x: 0, y: 3146, w: 50, h: 60 },
-  { name: 'loungeChairNW', x: 51, y: 3146, w: 50, h: 60 },
-  { name: 'loungeChairNE', x: 0, y: 3009, w: 50, h: 70 },
-  { name: 'loungeChairRelaxSW', x: 0, y: 2250, w: 54, h: 81 },
-  { name: 'loungeChairRelaxNW', x: 51, y: 3009, w: 54, h: 70 },
-  { name: 'loungeChairRelaxNE', x: 106, y: 3009, w: 54, h: 70 },
-  { name: 'radioSW', x: 417, y: 3207, w: 48, h: 50 },
-  { name: 'radioNW', x: 0, y: 3264, w: 46, h: 50 },
-  { name: 'radioNE', x: 47, y: 3264, w: 48, h: 50 },
-  { name: 'pottedPlantSW', x: 102, y: 3146, w: 28, h: 60 },
-  { name: 'pottedPlantNW', x: 311, y: 3146, w: 30, h: 59 },
-  { name: 'pottedPlantNE', x: 399, y: 3080, w: 28, h: 62 },
-  { name: 'cardboardBoxOpenSW', x: 294, y: 1724, w: 80, h: 88 },
-  { name: 'cardboardBoxOpenNW', x: 375, y: 1724, w: 80, h: 88 },
-  { name: 'cardboardBoxOpenNE', x: 0, y: 1813, w: 80, h: 88 },
-  { name: 'lampRoundFloorSW', x: 196, y: 3009, w: 34, h: 68 },
-  { name: 'lampRoundFloorNW', x: 231, y: 3009, w: 34, h: 68 },
-  { name: 'lampRoundFloorNE', x: 266, y: 3009, w: 34, h: 68 },
-  { name: 'coatRackStandingSW', x: 440, y: 2332, w: 18, h: 77 },
-  { name: 'coatRackStandingNW', x: 459, y: 2332, w: 18, h: 77 },
-  { name: 'coatRackStandingNE', x: 478, y: 2332, w: 18, h: 77 },
-  { name: 'bedDoubleSW', x: 55, y: 377, w: 122, h: 96 },
-  { name: 'bedDoubleNW', x: 0, y: 2412, w: 122, h: 77 },
-  { name: 'bedDoubleNE', x: 123, y: 2412, w: 122, h: 77 },
-  { name: 'sideTableDrawersSW', x: 125, y: 3080, w: 54, h: 65 },
-  { name: 'sideTableDrawersNW', x: 180, y: 3080, w: 54, h: 65 },
-  { name: 'sideTableDrawersNE', x: 235, y: 3080, w: 54, h: 65 },
-  { name: 'cabinetBedDrawerSW', x: 461, y: 3146, w: 40, h: 56 },
-  { name: 'cabinetBedDrawerNW', x: 0, y: 3207, w: 40, h: 56 },
-  { name: 'cabinetBedDrawerNE', x: 41, y: 3207, w: 40, h: 56 },
-  { name: 'deskSW', x: 113, y: 2166, w: 112, h: 83 },
-  { name: 'deskNW', x: 226, y: 2166, w: 112, h: 83 },
-  { name: 'deskNE', x: 339, y: 2166, w: 112, h: 83 },
-  { name: 'chairDeskSW', x: 403, y: 3009, w: 48, h: 66 },
-  { name: 'chairDeskNW', x: 452, y: 3009, w: 48, h: 66 },
-  { name: 'chairDeskNE', x: 246, y: 2412, w: 48, h: 77 },
-  { name: 'bathtubSW', x: 119, y: 1991, w: 118, h: 87 },
-  { name: 'bathtubNW', x: 157, y: 2250, w: 118, h: 79 },
-  { name: 'bathtubNE', x: 276, y: 2250, w: 118, h: 79 },
-  { name: 'washerDryerStackedSW', x: 178, y: 377, w: 54, h: 96 },
-  { name: 'washerDryerStackedNW', x: 233, y: 377, w: 54, h: 96 },
-  { name: 'washerDryerStackedNE', x: 288, y: 377, w: 54, h: 96 },
-  { name: 'bathtubFull', x: 238, y: 1991, w: 118, h: 87 },
-  { name: 'bathtubFullSW', x: 357, y: 1991, w: 118, h: 87 },
-  { name: 'bathtubFullNW', x: 0, y: 2332, w: 118, h: 79 },
-  { name: 'bathtubFullNE', x: 119, y: 2332, w: 118, h: 79 },
-  { name: 'simSitSE0', x: 81, y: 1813, w: 38, h: 88 },
-  { name: 'simSitSE1', x: 120, y: 1813, w: 38, h: 88 },
-  { name: 'simSitNW0', x: 159, y: 1813, w: 38, h: 88 },
-  { name: 'simSitNW1', x: 198, y: 1813, w: 38, h: 88 },
-  { name: 'simSitSW0', x: 237, y: 1813, w: 38, h: 88 },
-  { name: 'simSitSW1', x: 276, y: 1813, w: 38, h: 88 },
-  { name: 'simSitNE0', x: 315, y: 1813, w: 38, h: 88 },
-  { name: 'simSitNE1', x: 354, y: 1813, w: 38, h: 88 },
-  { name: 'sim2SitSE0', x: 393, y: 1813, w: 38, h: 88 },
-  { name: 'sim2SitSE1', x: 432, y: 1813, w: 38, h: 88 },
-  { name: 'sim2SitNW0', x: 471, y: 1813, w: 38, h: 88 },
-  { name: 'sim2SitNW1', x: 0, y: 1902, w: 38, h: 88 },
-  { name: 'sim2SitSW0', x: 39, y: 1902, w: 38, h: 88 },
-  { name: 'sim2SitSW1', x: 78, y: 1902, w: 38, h: 88 },
-  { name: 'sim2SitNE0', x: 117, y: 1902, w: 38, h: 88 },
-  { name: 'sim2SitNE1', x: 156, y: 1902, w: 38, h: 88 },
-  { name: 'sim3SitSE0', x: 195, y: 1902, w: 38, h: 88 },
-  { name: 'sim3SitSE1', x: 234, y: 1902, w: 38, h: 88 },
-  { name: 'sim3SitNW0', x: 273, y: 1902, w: 38, h: 88 },
-  { name: 'sim3SitNW1', x: 312, y: 1902, w: 38, h: 88 },
-  { name: 'sim3SitSW0', x: 351, y: 1902, w: 38, h: 88 },
-  { name: 'sim3SitSW1', x: 390, y: 1902, w: 38, h: 88 },
-  { name: 'sim3SitNE0', x: 429, y: 1902, w: 38, h: 88 },
-  { name: 'sim3SitNE1', x: 468, y: 1902, w: 38, h: 88 },
-  { name: 'bedBunkForeground', x: 0, y: 137, w: 122, h: 136 },
-  { name: 'simSleepSE0', x: 67, y: 2567, w: 104, h: 72 },
-  { name: 'simSleepSE1', x: 172, y: 2567, w: 104, h: 72 },
-  { name: 'simSleepNW0', x: 277, y: 2567, w: 104, h: 72 },
-  { name: 'simSleepNW1', x: 382, y: 2567, w: 104, h: 72 },
-  { name: 'simSleepSW0', x: 0, y: 2644, w: 104, h: 72 },
-  { name: 'simSleepSW1', x: 105, y: 2644, w: 104, h: 72 },
-  { name: 'simSleepNE0', x: 210, y: 2644, w: 104, h: 72 },
-  { name: 'simSleepNE1', x: 315, y: 2644, w: 104, h: 72 },
-  { name: 'sim2SleepSE0', x: 0, y: 2717, w: 104, h: 72 },
-  { name: 'sim2SleepSE1', x: 105, y: 2717, w: 104, h: 72 },
-  { name: 'sim2SleepNW0', x: 210, y: 2717, w: 104, h: 72 },
-  { name: 'sim2SleepNW1', x: 315, y: 2717, w: 104, h: 72 },
-  { name: 'sim2SleepSW0', x: 0, y: 2790, w: 104, h: 72 },
-  { name: 'sim2SleepSW1', x: 105, y: 2790, w: 104, h: 72 },
-  { name: 'sim2SleepNE0', x: 210, y: 2790, w: 104, h: 72 },
-  { name: 'sim2SleepNE1', x: 315, y: 2790, w: 104, h: 72 },
-  { name: 'sim3SleepSE0', x: 0, y: 2863, w: 104, h: 72 },
-  { name: 'sim3SleepSE1', x: 105, y: 2863, w: 104, h: 72 },
-  { name: 'sim3SleepNW0', x: 210, y: 2863, w: 104, h: 72 },
-  { name: 'sim3SleepNW1', x: 315, y: 2863, w: 104, h: 72 },
-  { name: 'sim3SleepSW0', x: 0, y: 2936, w: 104, h: 72 },
-  { name: 'sim3SleepSW1', x: 105, y: 2936, w: 104, h: 72 },
-  { name: 'sim3SleepNE0', x: 210, y: 2936, w: 104, h: 72 },
-  { name: 'sim3SleepNE1', x: 315, y: 2936, w: 104, h: 72 },
+  { name: 'floor', x: 365, y: 6021, w: 64, h: 42 },
+  { name: 'sim', x: 3972, y: 5529, w: 38, h: 88 },
+  { name: 'wallNS', x: 1869, y: 5529, w: 32, h: 109 },
+  { name: 'wallEW', x: 1902, y: 5529, w: 32, h: 109 },
+  { name: 'kitchenFridgeBuiltIn', x: 2559, y: 5529, w: 58, h: 102 },
+  { name: 'bathroomSinkSquare', x: 2759, y: 5948, w: 34, h: 65 },
+  { name: 'showerRound', x: 2618, y: 5529, w: 58, h: 102 },
+  { name: 'toiletSquare', x: 3049, y: 5948, w: 38, h: 63 },
+  { name: 'bookcaseClosedDoors', x: 4011, y: 5529, w: 58, h: 88 },
+  { name: 'loungeSofaOttoman', x: 0, y: 6021, w: 54, h: 51 },
+  { name: 'televisionVintage', x: 3490, y: 5948, w: 44, h: 59 },
+  { name: 'bedBunk', x: 1254, y: 5529, w: 122, h: 136 },
+  { name: 'selectionRing', x: 430, y: 6021, w: 64, h: 42 },
+  { name: 'kitchenStove', x: 2237, y: 5860, w: 66, h: 77 },
+  { name: 'kitchenCabinet', x: 2791, y: 5860, w: 66, h: 76 },
+  { name: 'kitchenSink', x: 2858, y: 5860, w: 66, h: 76 },
+  { name: 'table', x: 535, y: 5860, w: 112, h: 83 },
+  { name: 'chair', x: 1659, y: 5860, w: 50, h: 80 },
+  { name: 'trashcan', x: 4007, y: 5948, w: 16, h: 52 },
+  { name: 'loungeSofaLong', x: 3480, y: 5529, w: 122, h: 92 },
+  { name: 'loungeChair', x: 1995, y: 5948, w: 50, h: 70 },
+  { name: 'loungeChairRelax', x: 1439, y: 5860, w: 54, h: 81 },
+  { name: 'radio', x: 3943, y: 5948, w: 46, h: 54 },
+  { name: 'pottedPlant', x: 3088, y: 5948, w: 30, h: 63 },
+  { name: 'cardboardBoxOpen', x: 0, y: 5682, w: 80, h: 88 },
+  { name: 'lampRoundFloor', x: 2419, y: 5948, w: 34, h: 68 },
+  { name: 'coatRackStanding', x: 2304, y: 5860, w: 18, h: 77 },
+  { name: 'bedDouble', x: 3014, y: 5529, w: 122, h: 96 },
+  { name: 'sideTableDrawers', x: 2794, y: 5948, w: 54, h: 65 },
+  { name: 'cabinetBedDrawer', x: 3701, y: 5948, w: 40, h: 56 },
+  { name: 'desk', x: 648, y: 5860, w: 112, h: 83 },
+  { name: 'chairDesk', x: 2323, y: 5860, w: 48, h: 77 },
+  { name: 'bookcaseClosedWide', x: 2397, y: 5529, w: 80, h: 104 },
+  { name: 'bathtub', x: 0, y: 5860, w: 118, h: 87 },
+  { name: 'washerDryerStacked', x: 3137, y: 5529, w: 54, h: 96 },
+  { name: 'wallCornerNW', x: 2972, y: 5529, w: 8, h: 101 },
+  { name: 'doorwayNS', x: 1935, y: 5529, w: 32, h: 109 },
+  { name: 'doorwayEW', x: 1968, y: 5529, w: 32, h: 109 },
+  { name: 'kitchenStoveSW', x: 2925, y: 5860, w: 66, h: 76 },
+  { name: 'kitchenCabinetSW', x: 2992, y: 5860, w: 66, h: 76 },
+  { name: 'kitchenSinkSW', x: 3059, y: 5860, w: 66, h: 76 },
+  { name: 'kitchenCabinetCornerInnerSW', x: 3126, y: 5860, w: 66, h: 76 },
+  { name: 'indicatorTalk', x: 495, y: 6021, w: 26, h: 26 },
+  { name: 'indicatorEat', x: 522, y: 6021, w: 26, h: 26 },
+  { name: 'indicatorSleep', x: 549, y: 6021, w: 26, h: 26 },
+  { name: 'indicatorWait', x: 576, y: 6021, w: 26, h: 26 },
+  { name: 'carried_ingredients', x: 684, y: 6021, w: 16, h: 20 },
+  { name: 'carried_dinner', x: 701, y: 6021, w: 18, h: 14 },
+  { name: 'sim2', x: 81, y: 5682, w: 38, h: 88 },
+  { name: 'sim3', x: 120, y: 5682, w: 38, h: 88 },
+  { name: 'simTalkSE0', x: 159, y: 5682, w: 38, h: 88 },
+  { name: 'simTalkSE1', x: 198, y: 5682, w: 38, h: 88 },
+  { name: 'simTalkNW0', x: 237, y: 5682, w: 38, h: 88 },
+  { name: 'simTalkNW1', x: 276, y: 5682, w: 38, h: 88 },
+  { name: 'simTalkSW0', x: 315, y: 5682, w: 38, h: 88 },
+  { name: 'simTalkSW1', x: 354, y: 5682, w: 38, h: 88 },
+  { name: 'simTalkNE0', x: 393, y: 5682, w: 38, h: 88 },
+  { name: 'simTalkNE1', x: 432, y: 5682, w: 38, h: 88 },
+  { name: 'sim2TalkSE0', x: 471, y: 5682, w: 38, h: 88 },
+  { name: 'sim2TalkSE1', x: 510, y: 5682, w: 38, h: 88 },
+  { name: 'sim2TalkNW0', x: 549, y: 5682, w: 38, h: 88 },
+  { name: 'sim2TalkNW1', x: 588, y: 5682, w: 38, h: 88 },
+  { name: 'sim2TalkSW0', x: 627, y: 5682, w: 38, h: 88 },
+  { name: 'sim2TalkSW1', x: 666, y: 5682, w: 38, h: 88 },
+  { name: 'sim2TalkNE0', x: 705, y: 5682, w: 38, h: 88 },
+  { name: 'sim2TalkNE1', x: 744, y: 5682, w: 38, h: 88 },
+  { name: 'sim3TalkSE0', x: 783, y: 5682, w: 38, h: 88 },
+  { name: 'sim3TalkSE1', x: 822, y: 5682, w: 38, h: 88 },
+  { name: 'sim3TalkNW0', x: 861, y: 5682, w: 38, h: 88 },
+  { name: 'sim3TalkNW1', x: 900, y: 5682, w: 38, h: 88 },
+  { name: 'sim3TalkSW0', x: 939, y: 5682, w: 38, h: 88 },
+  { name: 'sim3TalkSW1', x: 978, y: 5682, w: 38, h: 88 },
+  { name: 'sim3TalkNE0', x: 1017, y: 5682, w: 38, h: 88 },
+  { name: 'sim3TalkNE1', x: 1056, y: 5682, w: 38, h: 88 },
+  { name: 'simEatSE0', x: 1095, y: 5682, w: 38, h: 88 },
+  { name: 'simEatSE1', x: 1134, y: 5682, w: 38, h: 88 },
+  { name: 'simEatNW0', x: 1173, y: 5682, w: 38, h: 88 },
+  { name: 'simEatNW1', x: 1212, y: 5682, w: 38, h: 88 },
+  { name: 'simEatSW0', x: 1251, y: 5682, w: 38, h: 88 },
+  { name: 'simEatSW1', x: 1290, y: 5682, w: 38, h: 88 },
+  { name: 'simEatNE0', x: 1329, y: 5682, w: 38, h: 88 },
+  { name: 'simEatNE1', x: 1368, y: 5682, w: 38, h: 88 },
+  { name: 'sim2EatSE0', x: 1407, y: 5682, w: 38, h: 88 },
+  { name: 'sim2EatSE1', x: 1446, y: 5682, w: 38, h: 88 },
+  { name: 'sim2EatNW0', x: 1485, y: 5682, w: 38, h: 88 },
+  { name: 'sim2EatNW1', x: 1524, y: 5682, w: 38, h: 88 },
+  { name: 'sim2EatSW0', x: 1563, y: 5682, w: 38, h: 88 },
+  { name: 'sim2EatSW1', x: 1602, y: 5682, w: 38, h: 88 },
+  { name: 'sim2EatNE0', x: 1641, y: 5682, w: 38, h: 88 },
+  { name: 'sim2EatNE1', x: 1680, y: 5682, w: 38, h: 88 },
+  { name: 'sim3EatSE0', x: 1719, y: 5682, w: 38, h: 88 },
+  { name: 'sim3EatSE1', x: 1758, y: 5682, w: 38, h: 88 },
+  { name: 'sim3EatNW0', x: 1797, y: 5682, w: 38, h: 88 },
+  { name: 'sim3EatNW1', x: 1836, y: 5682, w: 38, h: 88 },
+  { name: 'sim3EatSW0', x: 1875, y: 5682, w: 38, h: 88 },
+  { name: 'sim3EatSW1', x: 1914, y: 5682, w: 38, h: 88 },
+  { name: 'sim3EatNE0', x: 1953, y: 5682, w: 38, h: 88 },
+  { name: 'sim3EatNE1', x: 1992, y: 5682, w: 38, h: 88 },
+  { name: 'simReadSE0', x: 2031, y: 5682, w: 38, h: 88 },
+  { name: 'simReadSE1', x: 2070, y: 5682, w: 38, h: 88 },
+  { name: 'simReadNW0', x: 2109, y: 5682, w: 38, h: 88 },
+  { name: 'simReadNW1', x: 2148, y: 5682, w: 38, h: 88 },
+  { name: 'simReadSW0', x: 2187, y: 5682, w: 38, h: 88 },
+  { name: 'simReadSW1', x: 2226, y: 5682, w: 38, h: 88 },
+  { name: 'simReadNE0', x: 2265, y: 5682, w: 38, h: 88 },
+  { name: 'simReadNE1', x: 2304, y: 5682, w: 38, h: 88 },
+  { name: 'sim2ReadSE0', x: 2343, y: 5682, w: 38, h: 88 },
+  { name: 'sim2ReadSE1', x: 2382, y: 5682, w: 38, h: 88 },
+  { name: 'sim2ReadNW0', x: 2421, y: 5682, w: 38, h: 88 },
+  { name: 'sim2ReadNW1', x: 2460, y: 5682, w: 38, h: 88 },
+  { name: 'sim2ReadSW0', x: 2499, y: 5682, w: 38, h: 88 },
+  { name: 'sim2ReadSW1', x: 2538, y: 5682, w: 38, h: 88 },
+  { name: 'sim2ReadNE0', x: 2577, y: 5682, w: 38, h: 88 },
+  { name: 'sim2ReadNE1', x: 2616, y: 5682, w: 38, h: 88 },
+  { name: 'sim3ReadSE0', x: 2655, y: 5682, w: 38, h: 88 },
+  { name: 'sim3ReadSE1', x: 2694, y: 5682, w: 38, h: 88 },
+  { name: 'sim3ReadNW0', x: 2733, y: 5682, w: 38, h: 88 },
+  { name: 'sim3ReadNW1', x: 2772, y: 5682, w: 38, h: 88 },
+  { name: 'sim3ReadSW0', x: 2811, y: 5682, w: 38, h: 88 },
+  { name: 'sim3ReadSW1', x: 2850, y: 5682, w: 38, h: 88 },
+  { name: 'sim3ReadNE0', x: 2889, y: 5682, w: 38, h: 88 },
+  { name: 'sim3ReadNE1', x: 2928, y: 5682, w: 38, h: 88 },
+  { name: 'indicatorReading', x: 603, y: 6021, w: 26, h: 26 },
+  { name: 'simStandReadSE0', x: 2967, y: 5682, w: 38, h: 88 },
+  { name: 'simStandReadSE1', x: 3006, y: 5682, w: 38, h: 88 },
+  { name: 'simStandReadNW0', x: 3045, y: 5682, w: 38, h: 88 },
+  { name: 'simStandReadNW1', x: 3084, y: 5682, w: 38, h: 88 },
+  { name: 'simStandReadSW0', x: 3123, y: 5682, w: 38, h: 88 },
+  { name: 'simStandReadSW1', x: 3162, y: 5682, w: 38, h: 88 },
+  { name: 'simStandReadNE0', x: 3201, y: 5682, w: 38, h: 88 },
+  { name: 'simStandReadNE1', x: 3240, y: 5682, w: 38, h: 88 },
+  { name: 'sim2StandReadSE0', x: 3279, y: 5682, w: 38, h: 88 },
+  { name: 'sim2StandReadSE1', x: 3318, y: 5682, w: 38, h: 88 },
+  { name: 'sim2StandReadNW0', x: 3357, y: 5682, w: 38, h: 88 },
+  { name: 'sim2StandReadNW1', x: 3396, y: 5682, w: 38, h: 88 },
+  { name: 'sim2StandReadSW0', x: 3435, y: 5682, w: 38, h: 88 },
+  { name: 'sim2StandReadSW1', x: 3474, y: 5682, w: 38, h: 88 },
+  { name: 'sim2StandReadNE0', x: 3513, y: 5682, w: 38, h: 88 },
+  { name: 'sim2StandReadNE1', x: 3552, y: 5682, w: 38, h: 88 },
+  { name: 'sim3StandReadSE0', x: 3591, y: 5682, w: 38, h: 88 },
+  { name: 'sim3StandReadSE1', x: 3630, y: 5682, w: 38, h: 88 },
+  { name: 'sim3StandReadNW0', x: 3669, y: 5682, w: 38, h: 88 },
+  { name: 'sim3StandReadNW1', x: 3708, y: 5682, w: 38, h: 88 },
+  { name: 'sim3StandReadSW0', x: 3747, y: 5682, w: 38, h: 88 },
+  { name: 'sim3StandReadSW1', x: 3786, y: 5682, w: 38, h: 88 },
+  { name: 'sim3StandReadNE0', x: 3825, y: 5682, w: 38, h: 88 },
+  { name: 'sim3StandReadNE1', x: 3864, y: 5682, w: 38, h: 88 },
+  { name: 'simWalkSE0', x: 3903, y: 5682, w: 38, h: 88 },
+  { name: 'simWalkSE1', x: 3942, y: 5682, w: 38, h: 88 },
+  { name: 'simWalkNW0', x: 3981, y: 5682, w: 38, h: 88 },
+  { name: 'simWalkNW1', x: 4020, y: 5682, w: 38, h: 88 },
+  { name: 'simWalkSW0', x: 0, y: 5771, w: 38, h: 88 },
+  { name: 'simWalkSW1', x: 39, y: 5771, w: 38, h: 88 },
+  { name: 'simWalkNE0', x: 78, y: 5771, w: 38, h: 88 },
+  { name: 'simWalkNE1', x: 117, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WalkSE0', x: 156, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WalkSE1', x: 195, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WalkNW0', x: 234, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WalkNW1', x: 273, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WalkSW0', x: 312, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WalkSW1', x: 351, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WalkNE0', x: 390, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WalkNE1', x: 429, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WalkSE0', x: 468, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WalkSE1', x: 507, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WalkNW0', x: 546, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WalkNW1', x: 585, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WalkSW0', x: 624, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WalkSW1', x: 663, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WalkNE0', x: 702, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WalkNE1', x: 741, y: 5771, w: 38, h: 88 },
+  { name: 'heldSnack', x: 720, y: 6021, w: 14, h: 10 },
+  { name: 'aquariumCabinet1', x: 2478, y: 5529, w: 80, h: 104 },
+  { name: 'indicatorExercise', x: 630, y: 6021, w: 26, h: 26 },
+  { name: 'indicatorWatchFish', x: 657, y: 6021, w: 26, h: 26 },
+  { name: 'simExerciseSE0', x: 780, y: 5771, w: 38, h: 88 },
+  { name: 'simExerciseSE1', x: 819, y: 5771, w: 38, h: 88 },
+  { name: 'simExerciseNW0', x: 858, y: 5771, w: 38, h: 88 },
+  { name: 'simExerciseNW1', x: 897, y: 5771, w: 38, h: 88 },
+  { name: 'simExerciseSW0', x: 936, y: 5771, w: 38, h: 88 },
+  { name: 'simExerciseSW1', x: 975, y: 5771, w: 38, h: 88 },
+  { name: 'simExerciseNE0', x: 1014, y: 5771, w: 38, h: 88 },
+  { name: 'simExerciseNE1', x: 1053, y: 5771, w: 38, h: 88 },
+  { name: 'sim2ExerciseSE0', x: 1092, y: 5771, w: 38, h: 88 },
+  { name: 'sim2ExerciseSE1', x: 1131, y: 5771, w: 38, h: 88 },
+  { name: 'sim2ExerciseNW0', x: 1170, y: 5771, w: 38, h: 88 },
+  { name: 'sim2ExerciseNW1', x: 1209, y: 5771, w: 38, h: 88 },
+  { name: 'sim2ExerciseSW0', x: 1248, y: 5771, w: 38, h: 88 },
+  { name: 'sim2ExerciseSW1', x: 1287, y: 5771, w: 38, h: 88 },
+  { name: 'sim2ExerciseNE0', x: 1326, y: 5771, w: 38, h: 88 },
+  { name: 'sim2ExerciseNE1', x: 1365, y: 5771, w: 38, h: 88 },
+  { name: 'sim3ExerciseSE0', x: 1404, y: 5771, w: 38, h: 88 },
+  { name: 'sim3ExerciseSE1', x: 1443, y: 5771, w: 38, h: 88 },
+  { name: 'sim3ExerciseNW0', x: 1482, y: 5771, w: 38, h: 88 },
+  { name: 'sim3ExerciseNW1', x: 1521, y: 5771, w: 38, h: 88 },
+  { name: 'sim3ExerciseSW0', x: 1560, y: 5771, w: 38, h: 88 },
+  { name: 'sim3ExerciseSW1', x: 1599, y: 5771, w: 38, h: 88 },
+  { name: 'sim3ExerciseNE0', x: 1638, y: 5771, w: 38, h: 88 },
+  { name: 'sim3ExerciseNE1', x: 1677, y: 5771, w: 38, h: 88 },
+  { name: 'simWatchFishSE0', x: 1716, y: 5771, w: 38, h: 88 },
+  { name: 'simWatchFishSE1', x: 1755, y: 5771, w: 38, h: 88 },
+  { name: 'simWatchFishNW0', x: 1794, y: 5771, w: 38, h: 88 },
+  { name: 'simWatchFishNW1', x: 1833, y: 5771, w: 38, h: 88 },
+  { name: 'simWatchFishSW0', x: 1872, y: 5771, w: 38, h: 88 },
+  { name: 'simWatchFishSW1', x: 1911, y: 5771, w: 38, h: 88 },
+  { name: 'simWatchFishNE0', x: 1950, y: 5771, w: 38, h: 88 },
+  { name: 'simWatchFishNE1', x: 1989, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WatchFishSE0', x: 2028, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WatchFishSE1', x: 2067, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WatchFishNW0', x: 2106, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WatchFishNW1', x: 2145, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WatchFishSW0', x: 2184, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WatchFishSW1', x: 2223, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WatchFishNE0', x: 2262, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WatchFishNE1', x: 2301, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WatchFishSE0', x: 2340, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WatchFishSE1', x: 2379, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WatchFishNW0', x: 2418, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WatchFishNW1', x: 2457, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WatchFishSW0', x: 2496, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WatchFishSW1', x: 2535, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WatchFishNE0', x: 2574, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WatchFishNE1', x: 2613, y: 5771, w: 38, h: 88 },
+  { name: 'kitchenFridgeBuiltInSW', x: 2677, y: 5529, w: 58, h: 102 },
+  { name: 'kitchenFridgeBuiltInNW', x: 2736, y: 5529, w: 58, h: 102 },
+  { name: 'kitchenFridgeBuiltInNE', x: 2795, y: 5529, w: 58, h: 102 },
+  { name: 'bathroomSinkSquareSW', x: 3187, y: 5948, w: 34, h: 60 },
+  { name: 'bathroomSinkSquareNW', x: 3222, y: 5948, w: 34, h: 60 },
+  { name: 'bathroomSinkSquareNE', x: 2849, y: 5948, w: 34, h: 65 },
+  { name: 'showerRoundSW', x: 2854, y: 5529, w: 58, h: 102 },
+  { name: 'showerRoundNW', x: 476, y: 5860, w: 58, h: 86 },
+  { name: 'showerRoundNE', x: 2913, y: 5529, w: 58, h: 102 },
+  { name: 'toiletSquareSW', x: 3742, y: 5948, w: 38, h: 56 },
+  { name: 'toiletSquareNW', x: 3781, y: 5948, w: 38, h: 56 },
+  { name: 'toiletSquareNE', x: 3119, y: 5948, w: 38, h: 63 },
+  { name: 'bookcaseClosedDoorsSW', x: 2652, y: 5771, w: 58, h: 88 },
+  { name: 'bookcaseClosedDoorsNW', x: 2711, y: 5771, w: 58, h: 88 },
+  { name: 'bookcaseClosedDoorsNE', x: 2770, y: 5771, w: 58, h: 88 },
+  { name: 'loungeSofaOttomanSW', x: 55, y: 6021, w: 54, h: 51 },
+  { name: 'loungeSofaOttomanNW', x: 110, y: 6021, w: 54, h: 51 },
+  { name: 'loungeSofaOttomanNE', x: 165, y: 6021, w: 54, h: 51 },
+  { name: 'televisionVintageSW', x: 3535, y: 5948, w: 44, h: 59 },
+  { name: 'televisionVintageNW', x: 3580, y: 5948, w: 44, h: 59 },
+  { name: 'televisionVintageNE', x: 3625, y: 5948, w: 44, h: 59 },
+  { name: 'bedBunkSW', x: 1377, y: 5529, w: 122, h: 136 },
+  { name: 'bedBunkNW', x: 1500, y: 5529, w: 122, h: 136 },
+  { name: 'bedBunkNE', x: 1623, y: 5529, w: 122, h: 136 },
+  { name: 'kitchenStoveNW', x: 3193, y: 5860, w: 66, h: 76 },
+  { name: 'kitchenStoveNE', x: 2372, y: 5860, w: 66, h: 77 },
+  { name: 'kitchenCabinetNW', x: 3260, y: 5860, w: 66, h: 76 },
+  { name: 'kitchenCabinetNE', x: 3327, y: 5860, w: 66, h: 76 },
+  { name: 'kitchenSinkNW', x: 3394, y: 5860, w: 66, h: 76 },
+  { name: 'kitchenSinkNE', x: 3461, y: 5860, w: 66, h: 76 },
+  { name: 'tableSW', x: 761, y: 5860, w: 112, h: 83 },
+  { name: 'tableNW', x: 874, y: 5860, w: 112, h: 83 },
+  { name: 'tableNE', x: 987, y: 5860, w: 112, h: 83 },
+  { name: 'chairSW', x: 2559, y: 5948, w: 50, h: 67 },
+  { name: 'chairNW', x: 2610, y: 5948, w: 50, h: 67 },
+  { name: 'chairNE', x: 1710, y: 5860, w: 50, h: 80 },
+  { name: 'trashcanSW', x: 4024, y: 5948, w: 16, h: 52 },
+  { name: 'trashcanNW', x: 4041, y: 5948, w: 16, h: 52 },
+  { name: 'trashcanNE', x: 3990, y: 5948, w: 16, h: 53 },
+  { name: 'loungeSofaLongSW', x: 3603, y: 5529, w: 122, h: 92 },
+  { name: 'loungeSofaLongNW', x: 3726, y: 5529, w: 122, h: 92 },
+  { name: 'loungeSofaLongNE', x: 3849, y: 5529, w: 122, h: 92 },
+  { name: 'loungeChairSW', x: 3257, y: 5948, w: 50, h: 60 },
+  { name: 'loungeChairNW', x: 3308, y: 5948, w: 50, h: 60 },
+  { name: 'loungeChairNE', x: 2046, y: 5948, w: 50, h: 70 },
+  { name: 'loungeChairRelaxSW', x: 1494, y: 5860, w: 54, h: 81 },
+  { name: 'loungeChairRelaxNW', x: 2097, y: 5948, w: 54, h: 70 },
+  { name: 'loungeChairRelaxNE', x: 2152, y: 5948, w: 54, h: 70 },
+  { name: 'radioSW', x: 220, y: 6021, w: 48, h: 50 },
+  { name: 'radioNW', x: 269, y: 6021, w: 46, h: 50 },
+  { name: 'radioNE', x: 316, y: 6021, w: 48, h: 50 },
+  { name: 'pottedPlantSW', x: 3359, y: 5948, w: 28, h: 60 },
+  { name: 'pottedPlantNW', x: 3670, y: 5948, w: 30, h: 59 },
+  { name: 'pottedPlantNE', x: 3158, y: 5948, w: 28, h: 62 },
+  { name: 'cardboardBoxOpenSW', x: 2829, y: 5771, w: 80, h: 88 },
+  { name: 'cardboardBoxOpenNW', x: 2910, y: 5771, w: 80, h: 88 },
+  { name: 'cardboardBoxOpenNE', x: 2991, y: 5771, w: 80, h: 88 },
+  { name: 'lampRoundFloorSW', x: 2454, y: 5948, w: 34, h: 68 },
+  { name: 'lampRoundFloorNW', x: 2489, y: 5948, w: 34, h: 68 },
+  { name: 'lampRoundFloorNE', x: 2524, y: 5948, w: 34, h: 68 },
+  { name: 'coatRackStandingSW', x: 2439, y: 5860, w: 18, h: 77 },
+  { name: 'coatRackStandingNW', x: 2458, y: 5860, w: 18, h: 77 },
+  { name: 'coatRackStandingNE', x: 2477, y: 5860, w: 18, h: 77 },
+  { name: 'bedDoubleSW', x: 3192, y: 5529, w: 122, h: 96 },
+  { name: 'bedDoubleNW', x: 2496, y: 5860, w: 122, h: 77 },
+  { name: 'bedDoubleNE', x: 2619, y: 5860, w: 122, h: 77 },
+  { name: 'sideTableDrawersSW', x: 2884, y: 5948, w: 54, h: 65 },
+  { name: 'sideTableDrawersNW', x: 2939, y: 5948, w: 54, h: 65 },
+  { name: 'sideTableDrawersNE', x: 2994, y: 5948, w: 54, h: 65 },
+  { name: 'cabinetBedDrawerSW', x: 3820, y: 5948, w: 40, h: 56 },
+  { name: 'cabinetBedDrawerNW', x: 3861, y: 5948, w: 40, h: 56 },
+  { name: 'cabinetBedDrawerNE', x: 3902, y: 5948, w: 40, h: 56 },
+  { name: 'deskSW', x: 1100, y: 5860, w: 112, h: 83 },
+  { name: 'deskNW', x: 1213, y: 5860, w: 112, h: 83 },
+  { name: 'deskNE', x: 1326, y: 5860, w: 112, h: 83 },
+  { name: 'chairDeskSW', x: 2661, y: 5948, w: 48, h: 66 },
+  { name: 'chairDeskNW', x: 2710, y: 5948, w: 48, h: 66 },
+  { name: 'chairDeskNE', x: 2742, y: 5860, w: 48, h: 77 },
+  { name: 'bathtubSW', x: 119, y: 5860, w: 118, h: 87 },
+  { name: 'bathtubNW', x: 1761, y: 5860, w: 118, h: 79 },
+  { name: 'bathtubNE', x: 1880, y: 5860, w: 118, h: 79 },
+  { name: 'washerDryerStackedSW', x: 3315, y: 5529, w: 54, h: 96 },
+  { name: 'washerDryerStackedNW', x: 3370, y: 5529, w: 54, h: 96 },
+  { name: 'washerDryerStackedNE', x: 3425, y: 5529, w: 54, h: 96 },
+  { name: 'bathtubFull', x: 238, y: 5860, w: 118, h: 87 },
+  { name: 'bathtubFullSW', x: 357, y: 5860, w: 118, h: 87 },
+  { name: 'bathtubFullNW', x: 1999, y: 5860, w: 118, h: 79 },
+  { name: 'bathtubFullNE', x: 2118, y: 5860, w: 118, h: 79 },
+  { name: 'simSitSE0', x: 3072, y: 5771, w: 38, h: 88 },
+  { name: 'simSitSE1', x: 3111, y: 5771, w: 38, h: 88 },
+  { name: 'simSitNW0', x: 3150, y: 5771, w: 38, h: 88 },
+  { name: 'simSitNW1', x: 3189, y: 5771, w: 38, h: 88 },
+  { name: 'simSitSW0', x: 3228, y: 5771, w: 38, h: 88 },
+  { name: 'simSitSW1', x: 3267, y: 5771, w: 38, h: 88 },
+  { name: 'simSitNE0', x: 3306, y: 5771, w: 38, h: 88 },
+  { name: 'simSitNE1', x: 3345, y: 5771, w: 38, h: 88 },
+  { name: 'sim2SitSE0', x: 3384, y: 5771, w: 38, h: 88 },
+  { name: 'sim2SitSE1', x: 3423, y: 5771, w: 38, h: 88 },
+  { name: 'sim2SitNW0', x: 3462, y: 5771, w: 38, h: 88 },
+  { name: 'sim2SitNW1', x: 3501, y: 5771, w: 38, h: 88 },
+  { name: 'sim2SitSW0', x: 3540, y: 5771, w: 38, h: 88 },
+  { name: 'sim2SitSW1', x: 3579, y: 5771, w: 38, h: 88 },
+  { name: 'sim2SitNE0', x: 3618, y: 5771, w: 38, h: 88 },
+  { name: 'sim2SitNE1', x: 3657, y: 5771, w: 38, h: 88 },
+  { name: 'sim3SitSE0', x: 3696, y: 5771, w: 38, h: 88 },
+  { name: 'sim3SitSE1', x: 3735, y: 5771, w: 38, h: 88 },
+  { name: 'sim3SitNW0', x: 3774, y: 5771, w: 38, h: 88 },
+  { name: 'sim3SitNW1', x: 3813, y: 5771, w: 38, h: 88 },
+  { name: 'sim3SitSW0', x: 3852, y: 5771, w: 38, h: 88 },
+  { name: 'sim3SitSW1', x: 3891, y: 5771, w: 38, h: 88 },
+  { name: 'sim3SitNE0', x: 3930, y: 5771, w: 38, h: 88 },
+  { name: 'sim3SitNE1', x: 3969, y: 5771, w: 38, h: 88 },
+  { name: 'bedBunkForeground', x: 1746, y: 5529, w: 122, h: 136 },
+  { name: 'simSleepSE0', x: 3528, y: 5860, w: 104, h: 72 },
+  { name: 'simSleepSE1', x: 3633, y: 5860, w: 104, h: 72 },
+  { name: 'simSleepNW0', x: 3738, y: 5860, w: 104, h: 72 },
+  { name: 'simSleepNW1', x: 3843, y: 5860, w: 104, h: 72 },
+  { name: 'simSleepSW0', x: 3948, y: 5860, w: 104, h: 72 },
+  { name: 'simSleepSW1', x: 0, y: 5948, w: 104, h: 72 },
+  { name: 'simSleepNE0', x: 105, y: 5948, w: 104, h: 72 },
+  { name: 'simSleepNE1', x: 210, y: 5948, w: 104, h: 72 },
+  { name: 'sim2SleepSE0', x: 315, y: 5948, w: 104, h: 72 },
+  { name: 'sim2SleepSE1', x: 420, y: 5948, w: 104, h: 72 },
+  { name: 'sim2SleepNW0', x: 525, y: 5948, w: 104, h: 72 },
+  { name: 'sim2SleepNW1', x: 630, y: 5948, w: 104, h: 72 },
+  { name: 'sim2SleepSW0', x: 735, y: 5948, w: 104, h: 72 },
+  { name: 'sim2SleepSW1', x: 840, y: 5948, w: 104, h: 72 },
+  { name: 'sim2SleepNE0', x: 945, y: 5948, w: 104, h: 72 },
+  { name: 'sim2SleepNE1', x: 1050, y: 5948, w: 104, h: 72 },
+  { name: 'sim3SleepSE0', x: 1155, y: 5948, w: 104, h: 72 },
+  { name: 'sim3SleepSE1', x: 1260, y: 5948, w: 104, h: 72 },
+  { name: 'sim3SleepNW0', x: 1365, y: 5948, w: 104, h: 72 },
+  { name: 'sim3SleepNW1', x: 1470, y: 5948, w: 104, h: 72 },
+  { name: 'sim3SleepSW0', x: 1575, y: 5948, w: 104, h: 72 },
+  { name: 'sim3SleepSW1', x: 1680, y: 5948, w: 104, h: 72 },
+  { name: 'sim3SleepNE0', x: 1785, y: 5948, w: 104, h: 72 },
+  { name: 'sim3SleepNE1', x: 1890, y: 5948, w: 104, h: 72 },
+  { name: 'loungeChairForeground', x: 2207, y: 5948, w: 50, h: 70 },
+  { name: 'loungeChairForegroundSW', x: 3388, y: 5948, w: 50, h: 60 },
+  { name: 'loungeChairForegroundNW', x: 3439, y: 5948, w: 50, h: 60 },
+  { name: 'loungeChairForegroundNE', x: 2258, y: 5948, w: 50, h: 70 },
+  { name: 'loungeChairRelaxForeground', x: 1549, y: 5860, w: 54, h: 81 },
+  { name: 'loungeChairRelaxForegroundSW', x: 1604, y: 5860, w: 54, h: 81 },
+  { name: 'loungeChairRelaxForegroundNW', x: 2309, y: 5948, w: 54, h: 70 },
+  { name: 'loungeChairRelaxForegroundNE', x: 2364, y: 5948, w: 54, h: 70 },
+  { name: 'rigSimIdleSE0', x: 2310, y: 5014, w: 76, h: 176, pixel_density: 2 },
+  { name: 'rigSimIdleNW0', x: 2387, y: 5014, w: 76, h: 176, pixel_density: 2 },
+  { name: 'rigSimIdleSW0', x: 2464, y: 5014, w: 76, h: 176, pixel_density: 2 },
+  { name: 'rigSimIdleNE0', x: 2541, y: 5014, w: 76, h: 176, pixel_density: 2 },
+  { name: 'rigSimWalkSE0', x: 2895, y: 2892, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkSE1', x: 3000, y: 2892, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkSE2', x: 3105, y: 2892, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkSE3', x: 3210, y: 2892, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkSE4', x: 3315, y: 2892, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkSE5', x: 3420, y: 2892, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkSE6', x: 3525, y: 2892, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkSE7', x: 3630, y: 2892, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkNW0', x: 3735, y: 2892, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkNW1', x: 3840, y: 2892, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkNW2', x: 3945, y: 2892, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkNW3', x: 0, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkNW4', x: 105, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkNW5', x: 210, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkNW6', x: 315, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkNW7', x: 420, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkSW0', x: 525, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkSW1', x: 630, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkSW2', x: 735, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkSW3', x: 840, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkSW4', x: 945, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkSW5', x: 1050, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkSW6', x: 1155, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkSW7', x: 1260, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkNE0', x: 1365, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkNE1', x: 1470, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkNE2', x: 1575, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkNE3', x: 1680, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkNE4', x: 1785, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkNE5', x: 1890, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkNE6', x: 1995, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWalkNE7', x: 2100, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimReadSE0', x: 2205, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimReadSE1', x: 2310, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimReadSE2', x: 2415, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimReadSE3', x: 2520, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimReadNW0', x: 2625, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimReadNW1', x: 2730, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimReadNW2', x: 2835, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimReadNW3', x: 2940, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimReadSW0', x: 3045, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimReadSW1', x: 3150, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimReadSW2', x: 3255, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimReadSW3', x: 3360, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimReadNE0', x: 3465, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimReadNE1', x: 3570, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimReadNE2', x: 3675, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimReadNE3', x: 3780, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimTalkSE0', x: 3885, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimTalkSE1', x: 3990, y: 3133, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimTalkSE2', x: 0, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimTalkSE3', x: 105, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimTalkNW0', x: 210, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimTalkNW1', x: 315, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimTalkNW2', x: 420, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimTalkNW3', x: 525, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimTalkSW0', x: 630, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimTalkSW1', x: 735, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimTalkSW2', x: 840, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimTalkSW3', x: 945, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimTalkNE0', x: 1050, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimTalkNE1', x: 1155, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimTalkNE2', x: 1260, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimTalkNE3', x: 1365, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimEatSE0', x: 1470, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimEatSE1', x: 1575, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimEatSE2', x: 1680, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimEatSE3', x: 1785, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimEatNW0', x: 1890, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimEatNW1', x: 1995, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimEatNW2', x: 2100, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimEatNW3', x: 2205, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimEatSW0', x: 2310, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimEatSW1', x: 2415, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimEatSW2', x: 2520, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimEatSW3', x: 2625, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimEatNE0', x: 2730, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimEatNE1', x: 2835, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimEatNE2', x: 2940, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimEatNE3', x: 3045, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimStandReadSE0', x: 3150, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimStandReadSE1', x: 3255, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimStandReadSE2', x: 3360, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimStandReadSE3', x: 3465, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimStandReadNW0', x: 3570, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimStandReadNW1', x: 3675, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimStandReadNW2', x: 3780, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimStandReadNW3', x: 3885, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimStandReadSW0', x: 3990, y: 3342, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimStandReadSW1', x: 0, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimStandReadSW2', x: 105, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimStandReadSW3', x: 210, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimStandReadNE0', x: 315, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimStandReadNE1', x: 420, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimStandReadNE2', x: 525, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimStandReadNE3', x: 630, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWatchFishSE0', x: 735, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWatchFishSE1', x: 840, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWatchFishSE2', x: 945, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWatchFishSE3', x: 1050, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWatchFishNW0', x: 1155, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWatchFishNW1', x: 1260, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWatchFishNW2', x: 1365, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWatchFishNW3', x: 1470, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWatchFishSW0', x: 1575, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWatchFishSW1', x: 1680, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWatchFishSW2', x: 1785, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWatchFishSW3', x: 1890, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWatchFishNE0', x: 1995, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWatchFishNE1', x: 2100, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWatchFishNE2', x: 2205, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimWatchFishNE3', x: 2310, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimSitSE0', x: 2415, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimSitSE1', x: 2520, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimSitSE2', x: 2625, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimSitSE3', x: 2730, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimSitNW0', x: 2835, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimSitNW1', x: 2940, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimSitNW2', x: 3045, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimSitNW3', x: 3150, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimSitSW0', x: 3255, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimSitSW1', x: 3360, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimSitSW2', x: 3465, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimSitSW3', x: 3570, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimSitNE0', x: 3675, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimSitNE1', x: 3780, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimSitNE2', x: 3885, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimSitNE3', x: 3990, y: 3551, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimSleepSE0', x: 3234, y: 5014, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimSleepSE1', x: 3443, y: 5014, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimSleepSE2', x: 3652, y: 5014, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimSleepSE3', x: 3861, y: 5014, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimSleepNW0', x: 0, y: 5223, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimSleepNW1', x: 209, y: 5223, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimSleepNW2', x: 418, y: 5223, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimSleepNW3', x: 627, y: 5223, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimSleepSW0', x: 836, y: 5223, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimSleepSW1', x: 1045, y: 5223, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimSleepSW2', x: 1254, y: 5223, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimSleepSW3', x: 1463, y: 5223, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimSleepNE0', x: 1672, y: 5223, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimSleepNE1', x: 1881, y: 5223, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimSleepNE2', x: 2090, y: 5223, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimSleepNE3', x: 2299, y: 5223, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimBlueIdleSE0', x: 2618, y: 5014, w: 76, h: 176, pixel_density: 2 },
+  { name: 'rigSimBlueIdleNW0', x: 2695, y: 5014, w: 76, h: 176, pixel_density: 2 },
+  { name: 'rigSimBlueIdleSW0', x: 2772, y: 5014, w: 76, h: 176, pixel_density: 2 },
+  { name: 'rigSimBlueIdleNE0', x: 2849, y: 5014, w: 76, h: 176, pixel_density: 2 },
+  { name: 'rigSimBlueWalkSE0', x: 0, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkSE1', x: 105, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkSE2', x: 210, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkSE3', x: 315, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkSE4', x: 420, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkSE5', x: 525, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkSE6', x: 630, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkSE7', x: 735, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkNW0', x: 840, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkNW1', x: 945, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkNW2', x: 1050, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkNW3', x: 1155, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkNW4', x: 1260, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkNW5', x: 1365, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkNW6', x: 1470, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkNW7', x: 1575, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkSW0', x: 1680, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkSW1', x: 1785, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkSW2', x: 1890, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkSW3', x: 1995, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkSW4', x: 2100, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkSW5', x: 2205, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkSW6', x: 2310, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkSW7', x: 2415, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkNE0', x: 2520, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkNE1', x: 2625, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkNE2', x: 2730, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkNE3', x: 2835, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkNE4', x: 2940, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkNE5', x: 3045, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkNE6', x: 3150, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWalkNE7', x: 3255, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueReadSE0', x: 3360, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueReadSE1', x: 3465, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueReadSE2', x: 3570, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueReadSE3', x: 3675, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueReadNW0', x: 3780, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueReadNW1', x: 3885, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueReadNW2', x: 3990, y: 3760, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueReadNW3', x: 0, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueReadSW0', x: 105, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueReadSW1', x: 210, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueReadSW2', x: 315, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueReadSW3', x: 420, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueReadNE0', x: 525, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueReadNE1', x: 630, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueReadNE2', x: 735, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueReadNE3', x: 840, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueTalkSE0', x: 945, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueTalkSE1', x: 1050, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueTalkSE2', x: 1155, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueTalkSE3', x: 1260, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueTalkNW0', x: 1365, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueTalkNW1', x: 1470, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueTalkNW2', x: 1575, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueTalkNW3', x: 1680, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueTalkSW0', x: 1785, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueTalkSW1', x: 1890, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueTalkSW2', x: 1995, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueTalkSW3', x: 2100, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueTalkNE0', x: 2205, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueTalkNE1', x: 2310, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueTalkNE2', x: 2415, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueTalkNE3', x: 2520, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueEatSE0', x: 2625, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueEatSE1', x: 2730, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueEatSE2', x: 2835, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueEatSE3', x: 2940, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueEatNW0', x: 3045, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueEatNW1', x: 3150, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueEatNW2', x: 3255, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueEatNW3', x: 3360, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueEatSW0', x: 3465, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueEatSW1', x: 3570, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueEatSW2', x: 3675, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueEatSW3', x: 3780, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueEatNE0', x: 3885, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueEatNE1', x: 3990, y: 3969, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueEatNE2', x: 0, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueEatNE3', x: 105, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueStandReadSE0', x: 210, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueStandReadSE1', x: 315, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueStandReadSE2', x: 420, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueStandReadSE3', x: 525, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueStandReadNW0', x: 630, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueStandReadNW1', x: 735, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueStandReadNW2', x: 840, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueStandReadNW3', x: 945, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueStandReadSW0', x: 1050, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueStandReadSW1', x: 1155, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueStandReadSW2', x: 1260, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueStandReadSW3', x: 1365, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueStandReadNE0', x: 1470, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueStandReadNE1', x: 1575, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueStandReadNE2', x: 1680, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueStandReadNE3', x: 1785, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWatchFishSE0', x: 1890, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWatchFishSE1', x: 1995, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWatchFishSE2', x: 2100, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWatchFishSE3', x: 2205, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWatchFishNW0', x: 2310, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWatchFishNW1', x: 2415, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWatchFishNW2', x: 2520, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWatchFishNW3', x: 2625, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWatchFishSW0', x: 2730, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWatchFishSW1', x: 2835, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWatchFishSW2', x: 2940, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWatchFishSW3', x: 3045, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWatchFishNE0', x: 3150, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWatchFishNE1', x: 3255, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWatchFishNE2', x: 3360, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueWatchFishNE3', x: 3465, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueSitSE0', x: 3570, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueSitSE1', x: 3675, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueSitSE2', x: 3780, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueSitSE3', x: 3885, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueSitNW0', x: 3990, y: 4178, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueSitNW1', x: 0, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueSitNW2', x: 105, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueSitNW3', x: 210, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueSitSW0', x: 315, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueSitSW1', x: 420, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueSitSW2', x: 525, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueSitSW3', x: 630, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueSitNE0', x: 735, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueSitNE1', x: 840, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueSitNE2', x: 945, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueSitNE3', x: 1050, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimBlueSleepSE0', x: 2508, y: 5223, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimBlueSleepSE1', x: 2717, y: 5223, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimBlueSleepSE2', x: 2926, y: 5223, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimBlueSleepSE3', x: 3135, y: 5223, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimBlueSleepNW0', x: 3344, y: 5223, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimBlueSleepNW1', x: 3553, y: 5223, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimBlueSleepNW2', x: 3762, y: 5223, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimBlueSleepNW3', x: 0, y: 5376, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimBlueSleepSW0', x: 209, y: 5376, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimBlueSleepSW1', x: 418, y: 5376, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimBlueSleepSW2', x: 627, y: 5376, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimBlueSleepSW3', x: 836, y: 5376, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimBlueSleepNE0', x: 1045, y: 5376, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimBlueSleepNE1', x: 1254, y: 5376, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimBlueSleepNE2', x: 1463, y: 5376, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimBlueSleepNE3', x: 1672, y: 5376, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimRedIdleSE0', x: 2926, y: 5014, w: 76, h: 176, pixel_density: 2 },
+  { name: 'rigSimRedIdleNW0', x: 3003, y: 5014, w: 76, h: 176, pixel_density: 2 },
+  { name: 'rigSimRedIdleSW0', x: 3080, y: 5014, w: 76, h: 176, pixel_density: 2 },
+  { name: 'rigSimRedIdleNE0', x: 3157, y: 5014, w: 76, h: 176, pixel_density: 2 },
+  { name: 'rigSimRedWalkSE0', x: 1155, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkSE1', x: 1260, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkSE2', x: 1365, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkSE3', x: 1470, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkSE4', x: 1575, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkSE5', x: 1680, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkSE6', x: 1785, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkSE7', x: 1890, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkNW0', x: 1995, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkNW1', x: 2100, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkNW2', x: 2205, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkNW3', x: 2310, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkNW4', x: 2415, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkNW5', x: 2520, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkNW6', x: 2625, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkNW7', x: 2730, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkSW0', x: 2835, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkSW1', x: 2940, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkSW2', x: 3045, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkSW3', x: 3150, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkSW4', x: 3255, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkSW5', x: 3360, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkSW6', x: 3465, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkSW7', x: 3570, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkNE0', x: 3675, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkNE1', x: 3780, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkNE2', x: 3885, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkNE3', x: 3990, y: 4387, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkNE4', x: 0, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkNE5', x: 105, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkNE6', x: 210, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWalkNE7', x: 315, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedReadSE0', x: 420, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedReadSE1', x: 525, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedReadSE2', x: 630, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedReadSE3', x: 735, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedReadNW0', x: 840, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedReadNW1', x: 945, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedReadNW2', x: 1050, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedReadNW3', x: 1155, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedReadSW0', x: 1260, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedReadSW1', x: 1365, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedReadSW2', x: 1470, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedReadSW3', x: 1575, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedReadNE0', x: 1680, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedReadNE1', x: 1785, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedReadNE2', x: 1890, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedReadNE3', x: 1995, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedTalkSE0', x: 2100, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedTalkSE1', x: 2205, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedTalkSE2', x: 2310, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedTalkSE3', x: 2415, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedTalkNW0', x: 2520, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedTalkNW1', x: 2625, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedTalkNW2', x: 2730, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedTalkNW3', x: 2835, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedTalkSW0', x: 2940, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedTalkSW1', x: 3045, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedTalkSW2', x: 3150, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedTalkSW3', x: 3255, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedTalkNE0', x: 3360, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedTalkNE1', x: 3465, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedTalkNE2', x: 3570, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedTalkNE3', x: 3675, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedEatSE0', x: 3780, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedEatSE1', x: 3885, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedEatSE2', x: 3990, y: 4596, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedEatSE3', x: 0, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedEatNW0', x: 105, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedEatNW1', x: 210, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedEatNW2', x: 315, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedEatNW3', x: 420, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedEatSW0', x: 525, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedEatSW1', x: 630, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedEatSW2', x: 735, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedEatSW3', x: 840, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedEatNE0', x: 945, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedEatNE1', x: 1050, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedEatNE2', x: 1155, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedEatNE3', x: 1260, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedStandReadSE0', x: 1365, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedStandReadSE1', x: 1470, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedStandReadSE2', x: 1575, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedStandReadSE3', x: 1680, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedStandReadNW0', x: 1785, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedStandReadNW1', x: 1890, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedStandReadNW2', x: 1995, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedStandReadNW3', x: 2100, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedStandReadSW0', x: 2205, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedStandReadSW1', x: 2310, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedStandReadSW2', x: 2415, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedStandReadSW3', x: 2520, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedStandReadNE0', x: 2625, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedStandReadNE1', x: 2730, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedStandReadNE2', x: 2835, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedStandReadNE3', x: 2940, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWatchFishSE0', x: 3045, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWatchFishSE1', x: 3150, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWatchFishSE2', x: 3255, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWatchFishSE3', x: 3360, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWatchFishNW0', x: 3465, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWatchFishNW1', x: 3570, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWatchFishNW2', x: 3675, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWatchFishNW3', x: 3780, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWatchFishSW0', x: 3885, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWatchFishSW1', x: 3990, y: 4805, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWatchFishSW2', x: 0, y: 5014, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWatchFishSW3', x: 105, y: 5014, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWatchFishNE0', x: 210, y: 5014, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWatchFishNE1', x: 315, y: 5014, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWatchFishNE2', x: 420, y: 5014, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedWatchFishNE3', x: 525, y: 5014, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedSitSE0', x: 630, y: 5014, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedSitSE1', x: 735, y: 5014, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedSitSE2', x: 840, y: 5014, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedSitSE3', x: 945, y: 5014, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedSitNW0', x: 1050, y: 5014, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedSitNW1', x: 1155, y: 5014, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedSitNW2', x: 1260, y: 5014, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedSitNW3', x: 1365, y: 5014, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedSitSW0', x: 1470, y: 5014, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedSitSW1', x: 1575, y: 5014, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedSitSW2', x: 1680, y: 5014, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedSitSW3', x: 1785, y: 5014, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedSitNE0', x: 1890, y: 5014, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedSitNE1', x: 1995, y: 5014, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedSitNE2', x: 2100, y: 5014, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedSitNE3', x: 2205, y: 5014, w: 104, h: 208, pixel_density: 2 },
+  { name: 'rigSimRedSleepSE0', x: 1881, y: 5376, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimRedSleepSE1', x: 2090, y: 5376, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimRedSleepSE2', x: 2299, y: 5376, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimRedSleepSE3', x: 2508, y: 5376, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimRedSleepNW0', x: 2717, y: 5376, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimRedSleepNW1', x: 2926, y: 5376, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimRedSleepNW2', x: 3135, y: 5376, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimRedSleepNW3', x: 3344, y: 5376, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimRedSleepSW0', x: 3553, y: 5376, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimRedSleepSW1', x: 3762, y: 5376, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimRedSleepSW2', x: 0, y: 5529, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimRedSleepSW3', x: 209, y: 5529, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimRedSleepNE0', x: 418, y: 5529, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimRedSleepNE1', x: 627, y: 5529, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimRedSleepNE2', x: 836, y: 5529, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimRedSleepNE3', x: 1045, y: 5529, w: 208, h: 152, pixel_density: 2 },
+  { name: 'rigSimExerciseSE0', x: 0, y: 0, w: 208, h: 240, pixel_density: 2 },
+  { name: 'rigSimExerciseSE1', x: 209, y: 0, w: 208, h: 240, pixel_density: 2 },
+  { name: 'rigSimExerciseNW0', x: 418, y: 0, w: 208, h: 240, pixel_density: 2 },
+  { name: 'rigSimExerciseNW1', x: 627, y: 0, w: 208, h: 240, pixel_density: 2 },
+  { name: 'rigSimExerciseSW0', x: 836, y: 0, w: 208, h: 240, pixel_density: 2 },
+  { name: 'rigSimExerciseSW1', x: 1045, y: 0, w: 208, h: 240, pixel_density: 2 },
+  { name: 'rigSimExerciseNE0', x: 1254, y: 0, w: 208, h: 240, pixel_density: 2 },
+  { name: 'rigSimExerciseNE1', x: 1463, y: 0, w: 208, h: 240, pixel_density: 2 },
+  { name: 'rigSimBlueExerciseSE0', x: 1672, y: 0, w: 208, h: 240, pixel_density: 2 },
+  { name: 'rigSimBlueExerciseSE1', x: 1881, y: 0, w: 208, h: 240, pixel_density: 2 },
+  { name: 'rigSimBlueExerciseNW0', x: 2090, y: 0, w: 208, h: 240, pixel_density: 2 },
+  { name: 'rigSimBlueExerciseNW1', x: 2299, y: 0, w: 208, h: 240, pixel_density: 2 },
+  { name: 'rigSimBlueExerciseSW0', x: 2508, y: 0, w: 208, h: 240, pixel_density: 2 },
+  { name: 'rigSimBlueExerciseSW1', x: 2717, y: 0, w: 208, h: 240, pixel_density: 2 },
+  { name: 'rigSimBlueExerciseNE0', x: 2926, y: 0, w: 208, h: 240, pixel_density: 2 },
+  { name: 'rigSimBlueExerciseNE1', x: 3135, y: 0, w: 208, h: 240, pixel_density: 2 },
+  { name: 'rigSimRedExerciseSE0', x: 3344, y: 0, w: 208, h: 240, pixel_density: 2 },
+  { name: 'rigSimRedExerciseSE1', x: 3553, y: 0, w: 208, h: 240, pixel_density: 2 },
+  { name: 'rigSimRedExerciseNW0', x: 3762, y: 0, w: 208, h: 240, pixel_density: 2 },
+  { name: 'rigSimRedExerciseNW1', x: 0, y: 241, w: 208, h: 240, pixel_density: 2 },
+  { name: 'rigSimRedExerciseSW0', x: 209, y: 241, w: 208, h: 240, pixel_density: 2 },
+  { name: 'rigSimRedExerciseSW1', x: 418, y: 241, w: 208, h: 240, pixel_density: 2 },
+  { name: 'rigSimRedExerciseNE0', x: 627, y: 241, w: 208, h: 240, pixel_density: 2 },
+  { name: 'rigSimRedExerciseNE1', x: 836, y: 241, w: 208, h: 240, pixel_density: 2 },
+  { name: 'wallJoin3', x: 2001, y: 5529, w: 32, h: 109 },
+  { name: 'wallJoin6', x: 2981, y: 5529, w: 32, h: 98 },
+  { name: 'wallJoin7', x: 2034, y: 5529, w: 32, h: 109 },
+  { name: 'wallJoin9', x: 2067, y: 5529, w: 32, h: 109 },
+  { name: 'wallJoin11', x: 2100, y: 5529, w: 32, h: 109 },
+  { name: 'wallJoin12', x: 2133, y: 5529, w: 32, h: 109 },
+  { name: 'wallJoin13', x: 2166, y: 5529, w: 32, h: 109 },
+  { name: 'wallJoin14', x: 2199, y: 5529, w: 32, h: 109 },
+  { name: 'wallJoin15', x: 2232, y: 5529, w: 32, h: 109 },
+  { name: 'doorwayJoinedNS', x: 2265, y: 5529, w: 32, h: 109 },
+  { name: 'doorwayJoinedEW', x: 2298, y: 5529, w: 32, h: 109 },
+  { name: 'wallCornerStartNS', x: 2331, y: 5529, w: 32, h: 109 },
+  { name: 'wallCornerStartEW', x: 2364, y: 5529, w: 32, h: 109 },
+  { name: 'offlineBike', x: 1045, y: 241, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNW', x: 1238, y: 241, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSW', x: 1431, y: 241, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNE', x: 1624, y: 241, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChair', x: 1817, y: 241, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNW', x: 2010, y: 241, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSW', x: 2203, y: 241, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNE', x: 2396, y: 241, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSEGreen0', x: 2589, y: 241, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture0', x: 2782, y: 241, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline1', x: 2975, y: 241, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSEGreen1', x: 3168, y: 241, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture2', x: 3361, y: 241, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline3', x: 3554, y: 241, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSEGreen2', x: 3747, y: 241, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture4', x: 0, y: 482, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline5', x: 193, y: 482, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSEGreen3', x: 386, y: 482, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture6', x: 579, y: 482, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline7', x: 772, y: 482, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSEGreen4', x: 965, y: 482, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture8', x: 1158, y: 482, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline9', x: 1351, y: 482, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSEGreen5', x: 1544, y: 482, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture10', x: 1737, y: 482, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline11', x: 1930, y: 482, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSEGreen6', x: 2123, y: 482, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture12', x: 2316, y: 482, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline13', x: 2509, y: 482, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSEGreen7', x: 2702, y: 482, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture14', x: 2895, y: 482, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline15', x: 3088, y: 482, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSEBlue0', x: 3281, y: 482, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSEBlue1', x: 3474, y: 482, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSEBlue2', x: 3667, y: 482, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSEBlue3', x: 3860, y: 482, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSEBlue4', x: 0, y: 723, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSEBlue5', x: 193, y: 723, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSEBlue6', x: 386, y: 723, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSEBlue7', x: 579, y: 723, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSERed0', x: 772, y: 723, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSERed1', x: 965, y: 723, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSERed2', x: 1158, y: 723, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSERed3', x: 1351, y: 723, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSERed4', x: 1544, y: 723, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSERed5', x: 1737, y: 723, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSERed6', x: 1930, y: 723, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSERed7', x: 2123, y: 723, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWGreen0', x: 2316, y: 723, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture16', x: 2509, y: 723, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline17', x: 2702, y: 723, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWGreen1', x: 2895, y: 723, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture18', x: 3088, y: 723, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline19', x: 3281, y: 723, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWGreen2', x: 3474, y: 723, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture20', x: 3667, y: 723, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline21', x: 3860, y: 723, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWGreen3', x: 0, y: 964, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture22', x: 193, y: 964, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline23', x: 386, y: 964, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWGreen4', x: 579, y: 964, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture24', x: 772, y: 964, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline25', x: 965, y: 964, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWGreen5', x: 1158, y: 964, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture26', x: 1351, y: 964, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline27', x: 1544, y: 964, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWGreen6', x: 1737, y: 964, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture28', x: 1930, y: 964, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline29', x: 2123, y: 964, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWGreen7', x: 2316, y: 964, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture30', x: 2509, y: 964, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline31', x: 2702, y: 964, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWBlue0', x: 2895, y: 964, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWBlue1', x: 3088, y: 964, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWBlue2', x: 3281, y: 964, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWBlue3', x: 3474, y: 964, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWBlue4', x: 3667, y: 964, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWBlue5', x: 3860, y: 964, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWBlue6', x: 0, y: 1205, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWBlue7', x: 193, y: 1205, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWRed0', x: 386, y: 1205, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWRed1', x: 579, y: 1205, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWRed2', x: 772, y: 1205, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWRed3', x: 965, y: 1205, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWRed4', x: 1158, y: 1205, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWRed5', x: 1351, y: 1205, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWRed6', x: 1544, y: 1205, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNWRed7', x: 1737, y: 1205, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWGreen0', x: 1930, y: 1205, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture32', x: 2123, y: 1205, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline33', x: 2316, y: 1205, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWGreen1', x: 2509, y: 1205, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture34', x: 2702, y: 1205, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline35', x: 2895, y: 1205, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWGreen2', x: 3088, y: 1205, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture36', x: 3281, y: 1205, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline37', x: 3474, y: 1205, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWGreen3', x: 3667, y: 1205, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture38', x: 3860, y: 1205, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline39', x: 0, y: 1446, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWGreen4', x: 193, y: 1446, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture40', x: 386, y: 1446, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline41', x: 579, y: 1446, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWGreen5', x: 772, y: 1446, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture42', x: 965, y: 1446, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline43', x: 1158, y: 1446, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWGreen6', x: 1351, y: 1446, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture44', x: 1544, y: 1446, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline45', x: 1737, y: 1446, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWGreen7', x: 1930, y: 1446, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture46', x: 2123, y: 1446, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline47', x: 2316, y: 1446, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWBlue0', x: 2509, y: 1446, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWBlue1', x: 2702, y: 1446, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWBlue2', x: 2895, y: 1446, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWBlue3', x: 3088, y: 1446, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWBlue4', x: 3281, y: 1446, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWBlue5', x: 3474, y: 1446, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWBlue6', x: 3667, y: 1446, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWBlue7', x: 3860, y: 1446, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWRed0', x: 0, y: 1687, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWRed1', x: 193, y: 1687, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWRed2', x: 386, y: 1687, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWRed3', x: 579, y: 1687, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWRed4', x: 772, y: 1687, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWRed5', x: 965, y: 1687, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWRed6', x: 1158, y: 1687, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeSWRed7', x: 1351, y: 1687, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNEGreen0', x: 1544, y: 1687, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture48', x: 1737, y: 1687, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline49', x: 1930, y: 1687, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNEGreen1', x: 2123, y: 1687, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture50', x: 2316, y: 1687, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline51', x: 2509, y: 1687, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNEGreen2', x: 2702, y: 1687, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture52', x: 2895, y: 1687, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline53', x: 3088, y: 1687, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNEGreen3', x: 3281, y: 1687, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture54', x: 3474, y: 1687, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline55', x: 3667, y: 1687, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNEGreen4', x: 3860, y: 1687, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture56', x: 0, y: 1928, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline57', x: 193, y: 1928, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNEGreen5', x: 386, y: 1928, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture58', x: 579, y: 1928, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline59', x: 772, y: 1928, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNEGreen6', x: 965, y: 1928, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture60', x: 1158, y: 1928, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline61', x: 1351, y: 1928, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNEGreen7', x: 1544, y: 1928, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture62', x: 1737, y: 1928, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline63', x: 1930, y: 1928, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNEBlue0', x: 2123, y: 1928, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNEBlue1', x: 2316, y: 1928, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNEBlue2', x: 2509, y: 1928, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNEBlue3', x: 2702, y: 1928, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNEBlue4', x: 2895, y: 1928, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNEBlue5', x: 3088, y: 1928, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNEBlue6', x: 3281, y: 1928, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNEBlue7', x: 3474, y: 1928, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNERed0', x: 3667, y: 1928, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNERed1', x: 3860, y: 1928, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNERed2', x: 0, y: 2169, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNERed3', x: 193, y: 2169, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNERed4', x: 386, y: 2169, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNERed5', x: 579, y: 2169, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNERed6', x: 772, y: 2169, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineBikeNERed7', x: 965, y: 2169, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSEGreen0', x: 1158, y: 2169, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture64', x: 1351, y: 2169, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline65', x: 1544, y: 2169, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSEGreen1', x: 1737, y: 2169, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture66', x: 1930, y: 2169, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline67', x: 2123, y: 2169, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSEGreen2', x: 2316, y: 2169, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSEGreen3', x: 2509, y: 2169, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture68', x: 2702, y: 2169, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline69', x: 2895, y: 2169, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSEBlue0', x: 3088, y: 2169, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSEBlue1', x: 3281, y: 2169, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSEBlue2', x: 3474, y: 2169, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSEBlue3', x: 3667, y: 2169, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSERed0', x: 3860, y: 2169, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSERed1', x: 0, y: 2410, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSERed2', x: 193, y: 2410, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSERed3', x: 386, y: 2410, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNWGreen0', x: 579, y: 2410, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture70', x: 772, y: 2410, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline71', x: 965, y: 2410, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNWGreen1', x: 1158, y: 2410, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture72', x: 1351, y: 2410, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline73', x: 1544, y: 2410, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNWGreen2', x: 1737, y: 2410, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNWGreen3', x: 1930, y: 2410, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture74', x: 2123, y: 2410, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline75', x: 2316, y: 2410, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNWBlue0', x: 2509, y: 2410, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNWBlue1', x: 2702, y: 2410, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNWBlue2', x: 2895, y: 2410, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNWBlue3', x: 3088, y: 2410, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNWRed0', x: 3281, y: 2410, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNWRed1', x: 3474, y: 2410, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNWRed2', x: 3667, y: 2410, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNWRed3', x: 3860, y: 2410, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSWGreen0', x: 0, y: 2651, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture76', x: 193, y: 2651, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline77', x: 386, y: 2651, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSWGreen1', x: 579, y: 2651, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture78', x: 772, y: 2651, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline79', x: 965, y: 2651, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSWGreen2', x: 1158, y: 2651, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSWGreen3', x: 1351, y: 2651, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture80', x: 1544, y: 2651, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline81', x: 1737, y: 2651, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSWBlue0', x: 1930, y: 2651, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSWBlue1', x: 2123, y: 2651, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSWBlue2', x: 2316, y: 2651, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSWBlue3', x: 2509, y: 2651, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSWRed0', x: 2702, y: 2651, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSWRed1', x: 2895, y: 2651, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSWRed2', x: 3088, y: 2651, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairSWRed3', x: 3281, y: 2651, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNEGreen0', x: 3474, y: 2651, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture82', x: 3667, y: 2651, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline83', x: 3860, y: 2651, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNEGreen1', x: 0, y: 2892, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture84', x: 193, y: 2892, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline85', x: 386, y: 2892, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNEGreen2', x: 579, y: 2892, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNEGreen3', x: 772, y: 2892, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineFurniture86', x: 965, y: 2892, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineOutline87', x: 1158, y: 2892, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNEBlue0', x: 1351, y: 2892, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNEBlue1', x: 1544, y: 2892, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNEBlue2', x: 1737, y: 2892, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNEBlue3', x: 1930, y: 2892, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNERed0', x: 2123, y: 2892, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNERed1', x: 2316, y: 2892, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNERed2', x: 2509, y: 2892, w: 192, h: 240, pixel_density: 2 },
+  { name: 'offlineChairNERed3', x: 2702, y: 2892, w: 192, h: 240, pixel_density: 2 },
 ];
+
+/** Registered pixel anchors; omitted legacy records remain bottom-centred. */
+export const SPRITE_ANCHORS: Readonly<Record<number, readonly [number, number]>> = {
+  368: [19.00001358985901, 100.00043803453445],
+  369: [19.00001358985901, 100.00043803453445],
+  370: [19.00001358985901, 100.00043803453445],
+  371: [19.00001358985901, 100.00043803453445],
+  372: [26.000012397766113, 108.00043880939484],
+  373: [26.000012397766113, 108.00043880939484],
+  374: [26.000012397766113, 108.00043880939484],
+  375: [26.000012397766113, 108.00043880939484],
+  376: [26.000012397766113, 108.00043880939484],
+  377: [26.000012397766113, 108.00043880939484],
+  378: [26.000012397766113, 108.00043880939484],
+  379: [26.000012397766113, 108.00043880939484],
+  380: [26.000012397766113, 108.00043880939484],
+  381: [26.000012397766113, 108.00043880939484],
+  382: [26.000012397766113, 108.00043880939484],
+  383: [26.000012397766113, 108.00043880939484],
+  384: [26.000012397766113, 108.00043880939484],
+  385: [26.000012397766113, 108.00043880939484],
+  386: [26.000012397766113, 108.00043880939484],
+  387: [26.000012397766113, 108.00043880939484],
+  388: [26.000012397766113, 108.00043880939484],
+  389: [26.000012397766113, 108.00043880939484],
+  390: [26.000012397766113, 108.00043880939484],
+  391: [26.000012397766113, 108.00043880939484],
+  392: [26.000012397766113, 108.00043880939484],
+  393: [26.000012397766113, 108.00043880939484],
+  394: [26.000012397766113, 108.00043880939484],
+  395: [26.000012397766113, 108.00043880939484],
+  396: [26.000012397766113, 108.00043880939484],
+  397: [26.000012397766113, 108.00043880939484],
+  398: [26.000012397766113, 108.00043880939484],
+  399: [26.000012397766113, 108.00043880939484],
+  400: [26.000012397766113, 108.00043880939484],
+  401: [26.000012397766113, 108.00043880939484],
+  402: [26.000012397766113, 108.00043880939484],
+  403: [26.000012397766113, 108.00043880939484],
+  404: [26.000012397766113, 108.00043880939484],
+  405: [26.000012397766113, 108.00043880939484],
+  406: [26.000012397766113, 108.00043880939484],
+  407: [26.000012397766113, 108.00043880939484],
+  408: [26.000012397766113, 108.00043880939484],
+  409: [26.000012397766113, 108.00043880939484],
+  410: [26.000012397766113, 108.00043880939484],
+  411: [26.000012397766113, 108.00043880939484],
+  412: [26.000012397766113, 108.00043880939484],
+  413: [26.000012397766113, 108.00043880939484],
+  414: [26.000012397766113, 108.00043880939484],
+  415: [26.000012397766113, 108.00043880939484],
+  416: [26.000012397766113, 108.00043880939484],
+  417: [26.000012397766113, 108.00043880939484],
+  418: [26.000012397766113, 108.00043880939484],
+  419: [26.000012397766113, 108.00043880939484],
+  420: [26.000012397766113, 108.00043880939484],
+  421: [26.000012397766113, 108.00043880939484],
+  422: [26.000012397766113, 108.00043880939484],
+  423: [26.000012397766113, 108.00043880939484],
+  424: [26.000012397766113, 108.00043880939484],
+  425: [26.000012397766113, 108.00043880939484],
+  426: [26.000012397766113, 108.00043880939484],
+  427: [26.000012397766113, 108.00043880939484],
+  428: [26.000012397766113, 108.00043880939484],
+  429: [26.000012397766113, 108.00043880939484],
+  430: [26.000012397766113, 108.00043880939484],
+  431: [26.000012397766113, 108.00043880939484],
+  432: [26.000012397766113, 108.00043880939484],
+  433: [26.000012397766113, 108.00043880939484],
+  434: [26.000012397766113, 108.00043880939484],
+  435: [26.000012397766113, 108.00043880939484],
+  436: [26.000012397766113, 108.00043880939484],
+  437: [26.000012397766113, 108.00043880939484],
+  438: [26.000012397766113, 108.00043880939484],
+  439: [26.000012397766113, 108.00043880939484],
+  440: [26.000012397766113, 108.00043880939484],
+  441: [26.000012397766113, 108.00043880939484],
+  442: [26.000012397766113, 108.00043880939484],
+  443: [26.000012397766113, 108.00043880939484],
+  444: [26.000012397766113, 108.00043880939484],
+  445: [26.000012397766113, 108.00043880939484],
+  446: [26.000012397766113, 108.00043880939484],
+  447: [26.000012397766113, 108.00043880939484],
+  448: [26.000012397766113, 108.00043880939484],
+  449: [26.000012397766113, 108.00043880939484],
+  450: [26.000012397766113, 108.00043880939484],
+  451: [26.000012397766113, 108.00043880939484],
+  452: [26.000012397766113, 108.00043880939484],
+  453: [26.000012397766113, 108.00043880939484],
+  454: [26.000012397766113, 108.00043880939484],
+  455: [26.000012397766113, 108.00043880939484],
+  456: [26.000012397766113, 108.00043880939484],
+  457: [26.000012397766113, 108.00043880939484],
+  458: [26.000012397766113, 108.00043880939484],
+  459: [26.000012397766113, 108.00043880939484],
+  460: [26.000012397766113, 108.00043880939484],
+  461: [26.000012397766113, 108.00043880939484],
+  462: [26.000012397766113, 108.00043880939484],
+  463: [26.000012397766113, 108.00043880939484],
+  464: [26.000012397766113, 108.00043880939484],
+  465: [26.000012397766113, 108.00043880939484],
+  466: [26.000012397766113, 108.00043880939484],
+  467: [26.000012397766113, 108.00043880939484],
+  468: [26.000012397766113, 108.00043880939484],
+  469: [26.000012397766113, 108.00043880939484],
+  470: [26.000012397766113, 108.00043880939484],
+  471: [26.000012397766113, 108.00043880939484],
+  472: [26.000012397766113, 108.00043880939484],
+  473: [26.000012397766113, 108.00043880939484],
+  474: [26.000012397766113, 108.00043880939484],
+  475: [26.000012397766113, 108.00043880939484],
+  476: [26.000012397766113, 108.00043880939484],
+  477: [26.000012397766113, 108.00043880939484],
+  478: [26.000012397766113, 108.00043880939484],
+  479: [26.000012397766113, 108.00043880939484],
+  480: [26.000012397766113, 108.00043880939484],
+  481: [26.000012397766113, 108.00043880939484],
+  482: [26.000012397766113, 108.00043880939484],
+  483: [26.000012397766113, 108.00043880939484],
+  484: [26.000012397766113, 108.00043880939484],
+  485: [26.000012397766113, 108.00043880939484],
+  486: [26.000012397766113, 108.00043880939484],
+  487: [26.000012397766113, 108.00043880939484],
+  488: [26.000012397766113, 108.00043880939484],
+  489: [26.000012397766113, 108.00043880939484],
+  490: [26.000012397766113, 108.00043880939484],
+  491: [26.000012397766113, 108.00043880939484],
+  492: [26.000012397766113, 108.00043880939484],
+  493: [26.000012397766113, 108.00043880939484],
+  494: [26.000012397766113, 108.00043880939484],
+  495: [26.000012397766113, 108.00043880939484],
+  496: [26.000012397766113, 108.00043880939484],
+  497: [26.000012397766113, 108.00043880939484],
+  498: [26.000012397766113, 108.00043880939484],
+  499: [26.000012397766113, 108.00043880939484],
+  500: [52.00001239776611, 86.00045645236969],
+  501: [52.00001239776611, 86.00045645236969],
+  502: [52.00001239776611, 86.00045645236969],
+  503: [52.00001239776611, 86.00045645236969],
+  504: [52.00001239776611, 86.00045645236969],
+  505: [52.00001239776611, 86.00045645236969],
+  506: [52.00001239776611, 86.00045645236969],
+  507: [52.00001239776611, 86.00045645236969],
+  508: [52.00001239776611, 86.00045645236969],
+  509: [52.00001239776611, 86.00045645236969],
+  510: [52.00001239776611, 86.00045645236969],
+  511: [52.00001239776611, 86.00045645236969],
+  512: [52.00001239776611, 86.00045645236969],
+  513: [52.00001239776611, 86.00045645236969],
+  514: [52.00001239776611, 86.00045645236969],
+  515: [52.00001239776611, 86.00045645236969],
+  516: [19.00001358985901, 100.00043803453445],
+  517: [19.00001358985901, 100.00043803453445],
+  518: [19.00001358985901, 100.00043803453445],
+  519: [19.00001358985901, 100.00043803453445],
+  520: [26.000012397766113, 108.00043880939484],
+  521: [26.000012397766113, 108.00043880939484],
+  522: [26.000012397766113, 108.00043880939484],
+  523: [26.000012397766113, 108.00043880939484],
+  524: [26.000012397766113, 108.00043880939484],
+  525: [26.000012397766113, 108.00043880939484],
+  526: [26.000012397766113, 108.00043880939484],
+  527: [26.000012397766113, 108.00043880939484],
+  528: [26.000012397766113, 108.00043880939484],
+  529: [26.000012397766113, 108.00043880939484],
+  530: [26.000012397766113, 108.00043880939484],
+  531: [26.000012397766113, 108.00043880939484],
+  532: [26.000012397766113, 108.00043880939484],
+  533: [26.000012397766113, 108.00043880939484],
+  534: [26.000012397766113, 108.00043880939484],
+  535: [26.000012397766113, 108.00043880939484],
+  536: [26.000012397766113, 108.00043880939484],
+  537: [26.000012397766113, 108.00043880939484],
+  538: [26.000012397766113, 108.00043880939484],
+  539: [26.000012397766113, 108.00043880939484],
+  540: [26.000012397766113, 108.00043880939484],
+  541: [26.000012397766113, 108.00043880939484],
+  542: [26.000012397766113, 108.00043880939484],
+  543: [26.000012397766113, 108.00043880939484],
+  544: [26.000012397766113, 108.00043880939484],
+  545: [26.000012397766113, 108.00043880939484],
+  546: [26.000012397766113, 108.00043880939484],
+  547: [26.000012397766113, 108.00043880939484],
+  548: [26.000012397766113, 108.00043880939484],
+  549: [26.000012397766113, 108.00043880939484],
+  550: [26.000012397766113, 108.00043880939484],
+  551: [26.000012397766113, 108.00043880939484],
+  552: [26.000012397766113, 108.00043880939484],
+  553: [26.000012397766113, 108.00043880939484],
+  554: [26.000012397766113, 108.00043880939484],
+  555: [26.000012397766113, 108.00043880939484],
+  556: [26.000012397766113, 108.00043880939484],
+  557: [26.000012397766113, 108.00043880939484],
+  558: [26.000012397766113, 108.00043880939484],
+  559: [26.000012397766113, 108.00043880939484],
+  560: [26.000012397766113, 108.00043880939484],
+  561: [26.000012397766113, 108.00043880939484],
+  562: [26.000012397766113, 108.00043880939484],
+  563: [26.000012397766113, 108.00043880939484],
+  564: [26.000012397766113, 108.00043880939484],
+  565: [26.000012397766113, 108.00043880939484],
+  566: [26.000012397766113, 108.00043880939484],
+  567: [26.000012397766113, 108.00043880939484],
+  568: [26.000012397766113, 108.00043880939484],
+  569: [26.000012397766113, 108.00043880939484],
+  570: [26.000012397766113, 108.00043880939484],
+  571: [26.000012397766113, 108.00043880939484],
+  572: [26.000012397766113, 108.00043880939484],
+  573: [26.000012397766113, 108.00043880939484],
+  574: [26.000012397766113, 108.00043880939484],
+  575: [26.000012397766113, 108.00043880939484],
+  576: [26.000012397766113, 108.00043880939484],
+  577: [26.000012397766113, 108.00043880939484],
+  578: [26.000012397766113, 108.00043880939484],
+  579: [26.000012397766113, 108.00043880939484],
+  580: [26.000012397766113, 108.00043880939484],
+  581: [26.000012397766113, 108.00043880939484],
+  582: [26.000012397766113, 108.00043880939484],
+  583: [26.000012397766113, 108.00043880939484],
+  584: [26.000012397766113, 108.00043880939484],
+  585: [26.000012397766113, 108.00043880939484],
+  586: [26.000012397766113, 108.00043880939484],
+  587: [26.000012397766113, 108.00043880939484],
+  588: [26.000012397766113, 108.00043880939484],
+  589: [26.000012397766113, 108.00043880939484],
+  590: [26.000012397766113, 108.00043880939484],
+  591: [26.000012397766113, 108.00043880939484],
+  592: [26.000012397766113, 108.00043880939484],
+  593: [26.000012397766113, 108.00043880939484],
+  594: [26.000012397766113, 108.00043880939484],
+  595: [26.000012397766113, 108.00043880939484],
+  596: [26.000012397766113, 108.00043880939484],
+  597: [26.000012397766113, 108.00043880939484],
+  598: [26.000012397766113, 108.00043880939484],
+  599: [26.000012397766113, 108.00043880939484],
+  600: [26.000012397766113, 108.00043880939484],
+  601: [26.000012397766113, 108.00043880939484],
+  602: [26.000012397766113, 108.00043880939484],
+  603: [26.000012397766113, 108.00043880939484],
+  604: [26.000012397766113, 108.00043880939484],
+  605: [26.000012397766113, 108.00043880939484],
+  606: [26.000012397766113, 108.00043880939484],
+  607: [26.000012397766113, 108.00043880939484],
+  608: [26.000012397766113, 108.00043880939484],
+  609: [26.000012397766113, 108.00043880939484],
+  610: [26.000012397766113, 108.00043880939484],
+  611: [26.000012397766113, 108.00043880939484],
+  612: [26.000012397766113, 108.00043880939484],
+  613: [26.000012397766113, 108.00043880939484],
+  614: [26.000012397766113, 108.00043880939484],
+  615: [26.000012397766113, 108.00043880939484],
+  616: [26.000012397766113, 108.00043880939484],
+  617: [26.000012397766113, 108.00043880939484],
+  618: [26.000012397766113, 108.00043880939484],
+  619: [26.000012397766113, 108.00043880939484],
+  620: [26.000012397766113, 108.00043880939484],
+  621: [26.000012397766113, 108.00043880939484],
+  622: [26.000012397766113, 108.00043880939484],
+  623: [26.000012397766113, 108.00043880939484],
+  624: [26.000012397766113, 108.00043880939484],
+  625: [26.000012397766113, 108.00043880939484],
+  626: [26.000012397766113, 108.00043880939484],
+  627: [26.000012397766113, 108.00043880939484],
+  628: [26.000012397766113, 108.00043880939484],
+  629: [26.000012397766113, 108.00043880939484],
+  630: [26.000012397766113, 108.00043880939484],
+  631: [26.000012397766113, 108.00043880939484],
+  632: [26.000012397766113, 108.00043880939484],
+  633: [26.000012397766113, 108.00043880939484],
+  634: [26.000012397766113, 108.00043880939484],
+  635: [26.000012397766113, 108.00043880939484],
+  636: [26.000012397766113, 108.00043880939484],
+  637: [26.000012397766113, 108.00043880939484],
+  638: [26.000012397766113, 108.00043880939484],
+  639: [26.000012397766113, 108.00043880939484],
+  640: [26.000012397766113, 108.00043880939484],
+  641: [26.000012397766113, 108.00043880939484],
+  642: [26.000012397766113, 108.00043880939484],
+  643: [26.000012397766113, 108.00043880939484],
+  644: [26.000012397766113, 108.00043880939484],
+  645: [26.000012397766113, 108.00043880939484],
+  646: [26.000012397766113, 108.00043880939484],
+  647: [26.000012397766113, 108.00043880939484],
+  648: [52.00001239776611, 86.00045645236969],
+  649: [52.00001239776611, 86.00045645236969],
+  650: [52.00001239776611, 86.00045645236969],
+  651: [52.00001239776611, 86.00045645236969],
+  652: [52.00001239776611, 86.00045645236969],
+  653: [52.00001239776611, 86.00045645236969],
+  654: [52.00001239776611, 86.00045645236969],
+  655: [52.00001239776611, 86.00045645236969],
+  656: [52.00001239776611, 86.00045645236969],
+  657: [52.00001239776611, 86.00045645236969],
+  658: [52.00001239776611, 86.00045645236969],
+  659: [52.00001239776611, 86.00045645236969],
+  660: [52.00001239776611, 86.00045645236969],
+  661: [52.00001239776611, 86.00045645236969],
+  662: [52.00001239776611, 86.00045645236969],
+  663: [52.00001239776611, 86.00045645236969],
+  664: [19.00001358985901, 100.00043803453445],
+  665: [19.00001358985901, 100.00043803453445],
+  666: [19.00001358985901, 100.00043803453445],
+  667: [19.00001358985901, 100.00043803453445],
+  668: [26.000012397766113, 108.00043880939484],
+  669: [26.000012397766113, 108.00043880939484],
+  670: [26.000012397766113, 108.00043880939484],
+  671: [26.000012397766113, 108.00043880939484],
+  672: [26.000012397766113, 108.00043880939484],
+  673: [26.000012397766113, 108.00043880939484],
+  674: [26.000012397766113, 108.00043880939484],
+  675: [26.000012397766113, 108.00043880939484],
+  676: [26.000012397766113, 108.00043880939484],
+  677: [26.000012397766113, 108.00043880939484],
+  678: [26.000012397766113, 108.00043880939484],
+  679: [26.000012397766113, 108.00043880939484],
+  680: [26.000012397766113, 108.00043880939484],
+  681: [26.000012397766113, 108.00043880939484],
+  682: [26.000012397766113, 108.00043880939484],
+  683: [26.000012397766113, 108.00043880939484],
+  684: [26.000012397766113, 108.00043880939484],
+  685: [26.000012397766113, 108.00043880939484],
+  686: [26.000012397766113, 108.00043880939484],
+  687: [26.000012397766113, 108.00043880939484],
+  688: [26.000012397766113, 108.00043880939484],
+  689: [26.000012397766113, 108.00043880939484],
+  690: [26.000012397766113, 108.00043880939484],
+  691: [26.000012397766113, 108.00043880939484],
+  692: [26.000012397766113, 108.00043880939484],
+  693: [26.000012397766113, 108.00043880939484],
+  694: [26.000012397766113, 108.00043880939484],
+  695: [26.000012397766113, 108.00043880939484],
+  696: [26.000012397766113, 108.00043880939484],
+  697: [26.000012397766113, 108.00043880939484],
+  698: [26.000012397766113, 108.00043880939484],
+  699: [26.000012397766113, 108.00043880939484],
+  700: [26.000012397766113, 108.00043880939484],
+  701: [26.000012397766113, 108.00043880939484],
+  702: [26.000012397766113, 108.00043880939484],
+  703: [26.000012397766113, 108.00043880939484],
+  704: [26.000012397766113, 108.00043880939484],
+  705: [26.000012397766113, 108.00043880939484],
+  706: [26.000012397766113, 108.00043880939484],
+  707: [26.000012397766113, 108.00043880939484],
+  708: [26.000012397766113, 108.00043880939484],
+  709: [26.000012397766113, 108.00043880939484],
+  710: [26.000012397766113, 108.00043880939484],
+  711: [26.000012397766113, 108.00043880939484],
+  712: [26.000012397766113, 108.00043880939484],
+  713: [26.000012397766113, 108.00043880939484],
+  714: [26.000012397766113, 108.00043880939484],
+  715: [26.000012397766113, 108.00043880939484],
+  716: [26.000012397766113, 108.00043880939484],
+  717: [26.000012397766113, 108.00043880939484],
+  718: [26.000012397766113, 108.00043880939484],
+  719: [26.000012397766113, 108.00043880939484],
+  720: [26.000012397766113, 108.00043880939484],
+  721: [26.000012397766113, 108.00043880939484],
+  722: [26.000012397766113, 108.00043880939484],
+  723: [26.000012397766113, 108.00043880939484],
+  724: [26.000012397766113, 108.00043880939484],
+  725: [26.000012397766113, 108.00043880939484],
+  726: [26.000012397766113, 108.00043880939484],
+  727: [26.000012397766113, 108.00043880939484],
+  728: [26.000012397766113, 108.00043880939484],
+  729: [26.000012397766113, 108.00043880939484],
+  730: [26.000012397766113, 108.00043880939484],
+  731: [26.000012397766113, 108.00043880939484],
+  732: [26.000012397766113, 108.00043880939484],
+  733: [26.000012397766113, 108.00043880939484],
+  734: [26.000012397766113, 108.00043880939484],
+  735: [26.000012397766113, 108.00043880939484],
+  736: [26.000012397766113, 108.00043880939484],
+  737: [26.000012397766113, 108.00043880939484],
+  738: [26.000012397766113, 108.00043880939484],
+  739: [26.000012397766113, 108.00043880939484],
+  740: [26.000012397766113, 108.00043880939484],
+  741: [26.000012397766113, 108.00043880939484],
+  742: [26.000012397766113, 108.00043880939484],
+  743: [26.000012397766113, 108.00043880939484],
+  744: [26.000012397766113, 108.00043880939484],
+  745: [26.000012397766113, 108.00043880939484],
+  746: [26.000012397766113, 108.00043880939484],
+  747: [26.000012397766113, 108.00043880939484],
+  748: [26.000012397766113, 108.00043880939484],
+  749: [26.000012397766113, 108.00043880939484],
+  750: [26.000012397766113, 108.00043880939484],
+  751: [26.000012397766113, 108.00043880939484],
+  752: [26.000012397766113, 108.00043880939484],
+  753: [26.000012397766113, 108.00043880939484],
+  754: [26.000012397766113, 108.00043880939484],
+  755: [26.000012397766113, 108.00043880939484],
+  756: [26.000012397766113, 108.00043880939484],
+  757: [26.000012397766113, 108.00043880939484],
+  758: [26.000012397766113, 108.00043880939484],
+  759: [26.000012397766113, 108.00043880939484],
+  760: [26.000012397766113, 108.00043880939484],
+  761: [26.000012397766113, 108.00043880939484],
+  762: [26.000012397766113, 108.00043880939484],
+  763: [26.000012397766113, 108.00043880939484],
+  764: [26.000012397766113, 108.00043880939484],
+  765: [26.000012397766113, 108.00043880939484],
+  766: [26.000012397766113, 108.00043880939484],
+  767: [26.000012397766113, 108.00043880939484],
+  768: [26.000012397766113, 108.00043880939484],
+  769: [26.000012397766113, 108.00043880939484],
+  770: [26.000012397766113, 108.00043880939484],
+  771: [26.000012397766113, 108.00043880939484],
+  772: [26.000012397766113, 108.00043880939484],
+  773: [26.000012397766113, 108.00043880939484],
+  774: [26.000012397766113, 108.00043880939484],
+  775: [26.000012397766113, 108.00043880939484],
+  776: [26.000012397766113, 108.00043880939484],
+  777: [26.000012397766113, 108.00043880939484],
+  778: [26.000012397766113, 108.00043880939484],
+  779: [26.000012397766113, 108.00043880939484],
+  780: [26.000012397766113, 108.00043880939484],
+  781: [26.000012397766113, 108.00043880939484],
+  782: [26.000012397766113, 108.00043880939484],
+  783: [26.000012397766113, 108.00043880939484],
+  784: [26.000012397766113, 108.00043880939484],
+  785: [26.000012397766113, 108.00043880939484],
+  786: [26.000012397766113, 108.00043880939484],
+  787: [26.000012397766113, 108.00043880939484],
+  788: [26.000012397766113, 108.00043880939484],
+  789: [26.000012397766113, 108.00043880939484],
+  790: [26.000012397766113, 108.00043880939484],
+  791: [26.000012397766113, 108.00043880939484],
+  792: [26.000012397766113, 108.00043880939484],
+  793: [26.000012397766113, 108.00043880939484],
+  794: [26.000012397766113, 108.00043880939484],
+  795: [26.000012397766113, 108.00043880939484],
+  796: [52.00001239776611, 86.00045645236969],
+  797: [52.00001239776611, 86.00045645236969],
+  798: [52.00001239776611, 86.00045645236969],
+  799: [52.00001239776611, 86.00045645236969],
+  800: [52.00001239776611, 86.00045645236969],
+  801: [52.00001239776611, 86.00045645236969],
+  802: [52.00001239776611, 86.00045645236969],
+  803: [52.00001239776611, 86.00045645236969],
+  804: [52.00001239776611, 86.00045645236969],
+  805: [52.00001239776611, 86.00045645236969],
+  806: [52.00001239776611, 86.00045645236969],
+  807: [52.00001239776611, 86.00045645236969],
+  808: [52.00001239776611, 86.00045645236969],
+  809: [52.00001239776611, 86.00045645236969],
+  810: [52.00001239776611, 86.00045645236969],
+  811: [52.00001239776611, 86.00045645236969],
+  812: [52.00001239776611, 116.0004369020462],
+  813: [52.00001239776611, 116.0004369020462],
+  814: [52.00001239776611, 116.0004369020462],
+  815: [52.00001239776611, 116.0004369020462],
+  816: [52.00001239776611, 116.0004369020462],
+  817: [52.00001239776611, 116.0004369020462],
+  818: [52.00001239776611, 116.0004369020462],
+  819: [52.00001239776611, 116.0004369020462],
+  820: [52.00001239776611, 116.0004369020462],
+  821: [52.00001239776611, 116.0004369020462],
+  822: [52.00001239776611, 116.0004369020462],
+  823: [52.00001239776611, 116.0004369020462],
+  824: [52.00001239776611, 116.0004369020462],
+  825: [52.00001239776611, 116.0004369020462],
+  826: [52.00001239776611, 116.0004369020462],
+  827: [52.00001239776611, 116.0004369020462],
+  828: [52.00001239776611, 116.0004369020462],
+  829: [52.00001239776611, 116.0004369020462],
+  830: [52.00001239776611, 116.0004369020462],
+  831: [52.00001239776611, 116.0004369020462],
+  832: [52.00001239776611, 116.0004369020462],
+  833: [52.00001239776611, 116.0004369020462],
+  834: [52.00001239776611, 116.0004369020462],
+  835: [52.00001239776611, 116.0004369020462],
+  849: [48.0000114440918, 116.0004369020462],
+  850: [48.0000114440918, 116.0004369020462],
+  851: [48.0000114440918, 116.0004369020462],
+  852: [48.0000114440918, 116.0004369020462],
+  853: [48.0000114440918, 116.0004369020462],
+  854: [48.0000114440918, 116.0004369020462],
+  855: [48.0000114440918, 116.0004369020462],
+  856: [48.0000114440918, 116.0004369020462],
+  857: [48.0000114440918, 116.0004369020462],
+  858: [48.0000114440918, 116.0004369020462],
+  859: [48.0000114440918, 116.0004369020462],
+  860: [48.0000114440918, 116.0004369020462],
+  861: [48.0000114440918, 116.0004369020462],
+  862: [48.0000114440918, 116.0004369020462],
+  863: [48.0000114440918, 116.0004369020462],
+  864: [48.0000114440918, 116.0004369020462],
+  865: [48.0000114440918, 116.0004369020462],
+  866: [48.0000114440918, 116.0004369020462],
+  867: [48.0000114440918, 116.0004369020462],
+  868: [48.0000114440918, 116.0004369020462],
+  869: [48.0000114440918, 116.0004369020462],
+  870: [48.0000114440918, 116.0004369020462],
+  871: [48.0000114440918, 116.0004369020462],
+  872: [48.0000114440918, 116.0004369020462],
+  873: [48.0000114440918, 116.0004369020462],
+  874: [48.0000114440918, 116.0004369020462],
+  875: [48.0000114440918, 116.0004369020462],
+  876: [48.0000114440918, 116.0004369020462],
+  877: [48.0000114440918, 116.0004369020462],
+  878: [48.0000114440918, 116.0004369020462],
+  879: [48.0000114440918, 116.0004369020462],
+  880: [48.0000114440918, 116.0004369020462],
+  881: [48.0000114440918, 116.0004369020462],
+  882: [48.0000114440918, 116.0004369020462],
+  883: [48.0000114440918, 116.0004369020462],
+  884: [48.0000114440918, 116.0004369020462],
+  885: [48.0000114440918, 116.0004369020462],
+  886: [48.0000114440918, 116.0004369020462],
+  887: [48.0000114440918, 116.0004369020462],
+  888: [48.0000114440918, 116.0004369020462],
+  889: [48.0000114440918, 116.0004369020462],
+  890: [48.0000114440918, 116.0004369020462],
+  891: [48.0000114440918, 116.0004369020462],
+  892: [48.0000114440918, 116.0004369020462],
+  893: [48.0000114440918, 116.0004369020462],
+  894: [48.0000114440918, 116.0004369020462],
+  895: [48.0000114440918, 116.0004369020462],
+  896: [48.0000114440918, 116.0004369020462],
+  897: [48.0000114440918, 116.0004369020462],
+  898: [48.0000114440918, 116.0004369020462],
+  899: [48.0000114440918, 116.0004369020462],
+  900: [48.0000114440918, 116.0004369020462],
+  901: [48.0000114440918, 116.0004369020462],
+  902: [48.0000114440918, 116.0004369020462],
+  903: [48.0000114440918, 116.0004369020462],
+  904: [48.0000114440918, 116.0004369020462],
+  905: [48.0000114440918, 116.0004369020462],
+  906: [48.0000114440918, 116.0004369020462],
+  907: [48.0000114440918, 116.0004369020462],
+  908: [48.0000114440918, 116.0004369020462],
+  909: [48.0000114440918, 116.0004369020462],
+  910: [48.0000114440918, 116.0004369020462],
+  911: [48.0000114440918, 116.0004369020462],
+  912: [48.0000114440918, 116.0004369020462],
+  913: [48.0000114440918, 116.0004369020462],
+  914: [48.0000114440918, 116.0004369020462],
+  915: [48.0000114440918, 116.0004369020462],
+  916: [48.0000114440918, 116.0004369020462],
+  917: [48.0000114440918, 116.0004369020462],
+  918: [48.0000114440918, 116.0004369020462],
+  919: [48.0000114440918, 116.0004369020462],
+  920: [48.0000114440918, 116.0004369020462],
+  921: [48.0000114440918, 116.0004369020462],
+  922: [48.0000114440918, 116.0004369020462],
+  923: [48.0000114440918, 116.0004369020462],
+  924: [48.0000114440918, 116.0004369020462],
+  925: [48.0000114440918, 116.0004369020462],
+  926: [48.0000114440918, 116.0004369020462],
+  927: [48.0000114440918, 116.0004369020462],
+  928: [48.0000114440918, 116.0004369020462],
+  929: [48.0000114440918, 116.0004369020462],
+  930: [48.0000114440918, 116.0004369020462],
+  931: [48.0000114440918, 116.0004369020462],
+  932: [48.0000114440918, 116.0004369020462],
+  933: [48.0000114440918, 116.0004369020462],
+  934: [48.0000114440918, 116.0004369020462],
+  935: [48.0000114440918, 116.0004369020462],
+  936: [48.0000114440918, 116.0004369020462],
+  937: [48.0000114440918, 116.0004369020462],
+  938: [48.0000114440918, 116.0004369020462],
+  939: [48.0000114440918, 116.0004369020462],
+  940: [48.0000114440918, 116.0004369020462],
+  941: [48.0000114440918, 116.0004369020462],
+  942: [48.0000114440918, 116.0004369020462],
+  943: [48.0000114440918, 116.0004369020462],
+  944: [48.0000114440918, 116.0004369020462],
+  945: [48.0000114440918, 116.0004369020462],
+  946: [48.0000114440918, 116.0004369020462],
+  947: [48.0000114440918, 116.0004369020462],
+  948: [48.0000114440918, 116.0004369020462],
+  949: [48.0000114440918, 116.0004369020462],
+  950: [48.0000114440918, 116.0004369020462],
+  951: [48.0000114440918, 116.0004369020462],
+  952: [48.0000114440918, 116.0004369020462],
+  953: [48.0000114440918, 116.0004369020462],
+  954: [48.0000114440918, 116.0004369020462],
+  955: [48.0000114440918, 116.0004369020462],
+  956: [48.0000114440918, 116.0004369020462],
+  957: [48.0000114440918, 116.0004369020462],
+  958: [48.0000114440918, 116.0004369020462],
+  959: [48.0000114440918, 116.0004369020462],
+  960: [48.0000114440918, 116.0004369020462],
+  961: [48.0000114440918, 116.0004369020462],
+  962: [48.0000114440918, 116.0004369020462],
+  963: [48.0000114440918, 116.0004369020462],
+  964: [48.0000114440918, 116.0004369020462],
+  965: [48.0000114440918, 116.0004369020462],
+  966: [48.0000114440918, 116.0004369020462],
+  967: [48.0000114440918, 116.0004369020462],
+  968: [48.0000114440918, 116.0004369020462],
+  969: [48.0000114440918, 116.0004369020462],
+  970: [48.0000114440918, 116.0004369020462],
+  971: [48.0000114440918, 116.0004369020462],
+  972: [48.0000114440918, 116.0004369020462],
+  973: [48.0000114440918, 116.0004369020462],
+  974: [48.0000114440918, 116.0004369020462],
+  975: [48.0000114440918, 116.0004369020462],
+  976: [48.0000114440918, 116.0004369020462],
+  977: [48.0000114440918, 116.0004369020462],
+  978: [48.0000114440918, 116.0004369020462],
+  979: [48.0000114440918, 116.0004369020462],
+  980: [48.0000114440918, 116.0004369020462],
+  981: [48.0000114440918, 116.0004369020462],
+  982: [48.0000114440918, 116.0004369020462],
+  983: [48.0000114440918, 116.0004369020462],
+  984: [48.0000114440918, 116.0004369020462],
+  985: [48.0000114440918, 116.0004369020462],
+  986: [48.0000114440918, 116.0004369020462],
+  987: [48.0000114440918, 116.0004369020462],
+  988: [48.0000114440918, 116.0004369020462],
+  989: [48.0000114440918, 116.0004369020462],
+  990: [48.0000114440918, 116.0004369020462],
+  991: [48.0000114440918, 116.0004369020462],
+  992: [48.0000114440918, 116.0004369020462],
+  993: [48.0000114440918, 116.0004369020462],
+  994: [48.0000114440918, 116.0004369020462],
+  995: [48.0000114440918, 116.0004369020462],
+  996: [48.0000114440918, 116.0004369020462],
+  997: [48.0000114440918, 116.0004369020462],
+  998: [48.0000114440918, 116.0004369020462],
+  999: [48.0000114440918, 116.0004369020462],
+  1000: [48.0000114440918, 116.0004369020462],
+  1001: [48.0000114440918, 116.0004369020462],
+  1002: [48.0000114440918, 116.0004369020462],
+  1003: [48.0000114440918, 116.0004369020462],
+  1004: [48.0000114440918, 116.0004369020462],
+  1005: [48.0000114440918, 116.0004369020462],
+  1006: [48.0000114440918, 116.0004369020462],
+  1007: [48.0000114440918, 116.0004369020462],
+  1008: [48.0000114440918, 116.0004369020462],
+  1009: [48.0000114440918, 116.0004369020462],
+  1010: [48.0000114440918, 116.0004369020462],
+  1011: [48.0000114440918, 116.0004369020462],
+  1012: [48.0000114440918, 116.0004369020462],
+  1013: [48.0000114440918, 116.0004369020462],
+  1014: [48.0000114440918, 116.0004369020462],
+  1015: [48.0000114440918, 116.0004369020462],
+  1016: [48.0000114440918, 116.0004369020462],
+  1017: [48.0000114440918, 116.0004369020462],
+  1018: [48.0000114440918, 116.0004369020462],
+  1019: [48.0000114440918, 116.0004369020462],
+  1020: [48.0000114440918, 116.0004369020462],
+  1021: [48.0000114440918, 116.0004369020462],
+  1022: [48.0000114440918, 116.0004369020462],
+  1023: [48.0000114440918, 116.0004369020462],
+  1024: [48.0000114440918, 116.0004369020462],
+  1025: [48.0000114440918, 116.0004369020462],
+  1026: [48.0000114440918, 116.0004369020462],
+  1027: [48.0000114440918, 116.0004369020462],
+  1028: [48.0000114440918, 116.0004369020462],
+  1029: [48.0000114440918, 116.0004369020462],
+  1030: [48.0000114440918, 116.0004369020462],
+  1031: [48.0000114440918, 116.0004369020462],
+  1032: [48.0000114440918, 116.0004369020462],
+  1033: [48.0000114440918, 116.0004369020462],
+  1034: [48.0000114440918, 116.0004369020462],
+  1035: [48.0000114440918, 116.0004369020462],
+  1036: [48.0000114440918, 116.0004369020462],
+  1037: [48.0000114440918, 116.0004369020462],
+  1038: [48.0000114440918, 116.0004369020462],
+  1039: [48.0000114440918, 116.0004369020462],
+  1040: [48.0000114440918, 116.0004369020462],
+  1041: [48.0000114440918, 116.0004369020462],
+  1042: [48.0000114440918, 116.0004369020462],
+  1043: [48.0000114440918, 116.0004369020462],
+  1044: [48.0000114440918, 116.0004369020462],
+  1045: [48.0000114440918, 116.0004369020462],
+  1046: [48.0000114440918, 116.0004369020462],
+  1047: [48.0000114440918, 116.0004369020462],
+  1048: [48.0000114440918, 116.0004369020462],
+  1049: [48.0000114440918, 116.0004369020462],
+  1050: [48.0000114440918, 116.0004369020462],
+  1051: [48.0000114440918, 116.0004369020462],
+  1052: [48.0000114440918, 116.0004369020462],
+  1053: [48.0000114440918, 116.0004369020462],
+  1054: [48.0000114440918, 116.0004369020462],
+  1055: [48.0000114440918, 116.0004369020462],
+  1056: [48.0000114440918, 116.0004369020462],
+  1057: [48.0000114440918, 116.0004369020462],
+  1058: [48.0000114440918, 116.0004369020462],
+  1059: [48.0000114440918, 116.0004369020462],
+  1060: [48.0000114440918, 116.0004369020462],
+  1061: [48.0000114440918, 116.0004369020462],
+  1062: [48.0000114440918, 116.0004369020462],
+  1063: [48.0000114440918, 116.0004369020462],
+  1064: [48.0000114440918, 116.0004369020462],
+  1065: [48.0000114440918, 116.0004369020462],
+  1066: [48.0000114440918, 116.0004369020462],
+  1067: [48.0000114440918, 116.0004369020462],
+  1068: [48.0000114440918, 116.0004369020462],
+  1069: [48.0000114440918, 116.0004369020462],
+  1070: [48.0000114440918, 116.0004369020462],
+  1071: [48.0000114440918, 116.0004369020462],
+  1072: [48.0000114440918, 116.0004369020462],
+  1073: [48.0000114440918, 116.0004369020462],
+  1074: [48.0000114440918, 116.0004369020462],
+  1075: [48.0000114440918, 116.0004369020462],
+  1076: [48.0000114440918, 116.0004369020462],
+  1077: [48.0000114440918, 116.0004369020462],
+  1078: [48.0000114440918, 116.0004369020462],
+  1079: [48.0000114440918, 116.0004369020462],
+  1080: [48.0000114440918, 116.0004369020462],
+  1081: [48.0000114440918, 116.0004369020462],
+  1082: [48.0000114440918, 116.0004369020462],
+  1083: [48.0000114440918, 116.0004369020462],
+  1084: [48.0000114440918, 116.0004369020462],
+  1085: [48.0000114440918, 116.0004369020462],
+  1086: [48.0000114440918, 116.0004369020462],
+  1087: [48.0000114440918, 116.0004369020462],
+  1088: [48.0000114440918, 116.0004369020462],
+};
+
+/** Actual opaque top and gripping point in logical image coordinates. */
+export const SPRITE_CONTENT_TOPS: Readonly<Record<number, number>> = {
+  "368": 5.5,
+  "370": 4.0,
+  "369": 1.5,
+  "371": 4.5,
+  "372": 15.0,
+  "373": 14.5,
+  "374": 13.5,
+  "375": 14.5,
+  "376": 15.0,
+  "377": 14.5,
+  "378": 13.5,
+  "379": 14.5,
+  "388": 14.0,
+  "389": 13.0,
+  "390": 12.5,
+  "391": 13.0,
+  "392": 14.0,
+  "393": 13.0,
+  "394": 12.5,
+  "395": 13.0,
+  "380": 11.0,
+  "381": 10.5,
+  "382": 9.5,
+  "383": 10.5,
+  "384": 11.0,
+  "385": 10.5,
+  "386": 9.5,
+  "387": 10.5,
+  "396": 14.5,
+  "397": 14.0,
+  "398": 13.0,
+  "399": 14.0,
+  "400": 14.5,
+  "401": 14.0,
+  "402": 13.0,
+  "403": 14.0,
+  "404": 27.0,
+  "405": 27.5,
+  "406": 27.0,
+  "407": 27.0,
+  "412": 26.5,
+  "413": 27.0,
+  "414": 26.5,
+  "415": 26.0,
+  "408": 18.5,
+  "409": 18.0,
+  "410": 18.5,
+  "411": 18.5,
+  "416": 21.5,
+  "417": 21.5,
+  "418": 21.5,
+  "419": 22.0,
+  "420": 13.5,
+  "421": 13.5,
+  "422": 13.5,
+  "423": 13.0,
+  "428": 12.0,
+  "429": 12.5,
+  "430": 12.0,
+  "431": 12.0,
+  "424": 9.5,
+  "425": 9.0,
+  "426": 9.5,
+  "427": 9.5,
+  "432": 12.5,
+  "433": 12.5,
+  "434": 12.5,
+  "435": 13.0,
+  "436": 13.5,
+  "437": 13.5,
+  "438": 13.5,
+  "439": 13.5,
+  "444": 12.0,
+  "445": 12.0,
+  "446": 12.0,
+  "447": 12.0,
+  "440": 9.5,
+  "441": 9.5,
+  "442": 9.5,
+  "443": 9.5,
+  "448": 12.5,
+  "449": 12.5,
+  "450": 12.5,
+  "451": 12.5,
+  "452": 15.0,
+  "453": 15.5,
+  "454": 15.0,
+  "455": 15.0,
+  "460": 14.5,
+  "461": 15.0,
+  "462": 14.5,
+  "463": 14.0,
+  "456": 8.0,
+  "457": 8.0,
+  "458": 8.0,
+  "459": 8.0,
+  "464": 11.5,
+  "465": 11.5,
+  "466": 11.5,
+  "467": 11.5,
+  "468": 16.5,
+  "469": 17.5,
+  "470": 16.5,
+  "471": 15.5,
+  "476": 16.0,
+  "477": 17.0,
+  "478": 16.0,
+  "479": 15.0,
+  "472": 7.5,
+  "473": 7.0,
+  "474": 7.5,
+  "475": 7.5,
+  "480": 10.5,
+  "481": 10.5,
+  "482": 10.5,
+  "483": 11.0,
+  "484": 26.0,
+  "485": 26.0,
+  "486": 26.0,
+  "487": 25.5,
+  "492": 24.5,
+  "493": 25.0,
+  "494": 24.5,
+  "495": 24.5,
+  "488": 19.5,
+  "489": 19.0,
+  "490": 19.5,
+  "491": 19.5,
+  "496": 22.5,
+  "497": 22.5,
+  "498": 22.5,
+  "499": 23.0,
+  "500": 5.0,
+  "501": 5.0,
+  "502": 5.0,
+  "503": 5.0,
+  "508": 1.5,
+  "509": 1.5,
+  "510": 1.5,
+  "511": 1.5,
+  "504": 28.0,
+  "505": 28.0,
+  "506": 28.0,
+  "507": 28.0,
+  "512": 28.0,
+  "513": 28.0,
+  "514": 28.0,
+  "515": 28.0,
+  "516": 5.5,
+  "518": 4.0,
+  "517": 1.5,
+  "519": 4.5,
+  "520": 15.0,
+  "521": 14.5,
+  "522": 13.5,
+  "523": 14.5,
+  "524": 15.0,
+  "525": 14.5,
+  "526": 13.5,
+  "527": 14.5,
+  "536": 14.0,
+  "537": 13.0,
+  "538": 12.5,
+  "539": 13.0,
+  "540": 14.0,
+  "541": 13.0,
+  "542": 12.5,
+  "543": 13.0,
+  "528": 11.0,
+  "529": 10.5,
+  "530": 9.5,
+  "531": 10.5,
+  "532": 11.0,
+  "533": 10.5,
+  "534": 9.5,
+  "535": 10.5,
+  "544": 14.5,
+  "545": 14.0,
+  "546": 13.0,
+  "547": 14.0,
+  "548": 14.5,
+  "549": 14.0,
+  "550": 13.0,
+  "551": 14.0,
+  "552": 27.0,
+  "553": 27.5,
+  "554": 27.0,
+  "555": 27.0,
+  "560": 26.5,
+  "561": 27.0,
+  "562": 26.5,
+  "563": 26.0,
+  "556": 18.5,
+  "557": 18.0,
+  "558": 18.5,
+  "559": 18.5,
+  "564": 21.5,
+  "565": 21.5,
+  "566": 21.5,
+  "567": 22.0,
+  "568": 13.5,
+  "569": 13.5,
+  "570": 13.5,
+  "571": 13.0,
+  "576": 12.0,
+  "577": 12.5,
+  "578": 12.0,
+  "579": 12.0,
+  "572": 9.5,
+  "573": 9.0,
+  "574": 9.5,
+  "575": 9.5,
+  "580": 12.5,
+  "581": 12.5,
+  "582": 12.5,
+  "583": 13.0,
+  "584": 13.5,
+  "585": 13.5,
+  "586": 13.5,
+  "587": 13.5,
+  "592": 12.0,
+  "593": 12.0,
+  "594": 12.0,
+  "595": 12.0,
+  "588": 9.5,
+  "589": 9.5,
+  "590": 9.5,
+  "591": 9.5,
+  "596": 12.5,
+  "597": 12.5,
+  "598": 12.5,
+  "599": 12.5,
+  "600": 15.0,
+  "601": 15.5,
+  "602": 15.0,
+  "603": 15.0,
+  "608": 14.5,
+  "609": 15.0,
+  "610": 14.5,
+  "611": 14.0,
+  "604": 8.0,
+  "605": 8.0,
+  "606": 8.0,
+  "607": 8.0,
+  "612": 11.5,
+  "613": 11.5,
+  "614": 11.5,
+  "615": 11.5,
+  "616": 16.5,
+  "617": 17.5,
+  "618": 16.5,
+  "619": 15.5,
+  "624": 16.0,
+  "625": 17.0,
+  "626": 16.0,
+  "627": 15.0,
+  "620": 7.5,
+  "621": 7.0,
+  "622": 7.5,
+  "623": 7.5,
+  "628": 10.5,
+  "629": 10.5,
+  "630": 10.5,
+  "631": 11.0,
+  "632": 26.0,
+  "633": 26.0,
+  "634": 26.0,
+  "635": 25.5,
+  "640": 24.5,
+  "641": 25.0,
+  "642": 24.5,
+  "643": 24.5,
+  "636": 19.5,
+  "637": 19.0,
+  "638": 19.5,
+  "639": 19.5,
+  "644": 22.5,
+  "645": 22.5,
+  "646": 22.5,
+  "647": 23.0,
+  "648": 5.0,
+  "649": 5.0,
+  "650": 5.0,
+  "651": 5.0,
+  "656": 1.5,
+  "657": 1.5,
+  "658": 1.5,
+  "659": 1.5,
+  "652": 28.0,
+  "653": 28.0,
+  "654": 28.0,
+  "655": 28.0,
+  "660": 28.0,
+  "661": 28.0,
+  "662": 28.0,
+  "663": 28.0,
+  "664": 5.5,
+  "666": 4.0,
+  "665": 1.5,
+  "667": 4.5,
+  "668": 15.0,
+  "669": 14.5,
+  "670": 13.5,
+  "671": 14.5,
+  "672": 15.0,
+  "673": 14.5,
+  "674": 13.5,
+  "675": 14.5,
+  "684": 14.0,
+  "685": 13.0,
+  "686": 12.5,
+  "687": 13.0,
+  "688": 14.0,
+  "689": 13.0,
+  "690": 12.5,
+  "691": 13.0,
+  "676": 11.0,
+  "677": 10.5,
+  "678": 9.5,
+  "679": 10.5,
+  "680": 11.0,
+  "681": 10.5,
+  "682": 9.5,
+  "683": 10.5,
+  "692": 14.5,
+  "693": 14.0,
+  "694": 13.0,
+  "695": 14.0,
+  "696": 14.5,
+  "697": 14.0,
+  "698": 13.0,
+  "699": 14.0,
+  "700": 27.0,
+  "701": 27.5,
+  "702": 27.0,
+  "703": 27.0,
+  "708": 26.5,
+  "709": 27.0,
+  "710": 26.5,
+  "711": 26.0,
+  "704": 18.5,
+  "705": 18.0,
+  "706": 18.5,
+  "707": 18.5,
+  "712": 21.5,
+  "713": 21.5,
+  "714": 21.5,
+  "715": 22.0,
+  "716": 13.5,
+  "717": 13.5,
+  "718": 13.5,
+  "719": 13.0,
+  "724": 12.0,
+  "725": 12.5,
+  "726": 12.0,
+  "727": 12.0,
+  "720": 9.5,
+  "721": 9.0,
+  "722": 9.5,
+  "723": 9.5,
+  "728": 12.5,
+  "729": 12.5,
+  "730": 12.5,
+  "731": 13.0,
+  "732": 13.5,
+  "733": 13.5,
+  "734": 13.5,
+  "735": 13.5,
+  "740": 12.0,
+  "741": 12.0,
+  "742": 12.0,
+  "743": 12.0,
+  "736": 9.5,
+  "737": 9.5,
+  "738": 9.5,
+  "739": 9.5,
+  "744": 12.5,
+  "745": 12.5,
+  "746": 12.5,
+  "747": 12.5,
+  "748": 15.0,
+  "749": 15.5,
+  "750": 15.0,
+  "751": 15.0,
+  "756": 14.5,
+  "757": 15.0,
+  "758": 14.5,
+  "759": 14.0,
+  "752": 8.0,
+  "753": 8.0,
+  "754": 8.0,
+  "755": 8.0,
+  "760": 11.5,
+  "761": 11.5,
+  "762": 11.5,
+  "763": 11.5,
+  "764": 16.5,
+  "765": 17.5,
+  "766": 16.5,
+  "767": 15.5,
+  "772": 16.0,
+  "773": 17.0,
+  "774": 16.0,
+  "775": 15.0,
+  "768": 7.5,
+  "769": 7.0,
+  "770": 7.5,
+  "771": 7.5,
+  "776": 10.5,
+  "777": 10.5,
+  "778": 10.5,
+  "779": 11.0,
+  "780": 26.0,
+  "781": 26.0,
+  "782": 26.0,
+  "783": 25.5,
+  "788": 24.5,
+  "789": 25.0,
+  "790": 24.5,
+  "791": 24.5,
+  "784": 19.5,
+  "785": 19.0,
+  "786": 19.5,
+  "787": 19.5,
+  "792": 22.5,
+  "793": 22.5,
+  "794": 22.5,
+  "795": 23.0,
+  "796": 5.0,
+  "797": 5.0,
+  "798": 5.0,
+  "799": 5.0,
+  "804": 1.5,
+  "805": 1.5,
+  "806": 1.5,
+  "807": 1.5,
+  "800": 28.0,
+  "801": 28.0,
+  "802": 28.0,
+  "803": 28.0,
+  "808": 28.0,
+  "809": 28.0,
+  "810": 28.0,
+  "811": 28.0,
+  "812": 37.0,
+  "813": 37.0,
+  "816": 20.0,
+  "817": 20.0,
+  "814": 2.0,
+  "815": 2.0,
+  "818": 20.5,
+  "819": 20.5,
+  "820": 37.0,
+  "821": 37.0,
+  "824": 20.0,
+  "825": 20.0,
+  "822": 2.0,
+  "823": 2.0,
+  "826": 20.5,
+  "827": 20.5,
+  "828": 37.0,
+  "829": 37.0,
+  "832": 20.0,
+  "833": 20.0,
+  "830": 2.0,
+  "831": 2.0,
+  "834": 20.5,
+  "835": 20.5,
+  "857": 18.0,
+  "860": 18.0,
+  "863": 18.0,
+  "866": 18.0,
+  "869": 18.0,
+  "872": 18.0,
+  "875": 18.0,
+  "878": 18.0,
+  "881": 18.0,
+  "882": 18.0,
+  "883": 18.0,
+  "884": 18.0,
+  "885": 18.0,
+  "886": 18.0,
+  "887": 18.0,
+  "888": 18.0,
+  "889": 18.0,
+  "890": 18.0,
+  "891": 18.0,
+  "892": 18.0,
+  "893": 18.0,
+  "894": 18.0,
+  "895": 18.0,
+  "896": 18.0,
+  "897": 21.0,
+  "900": 21.0,
+  "903": 21.0,
+  "906": 21.0,
+  "909": 21.0,
+  "912": 21.0,
+  "915": 21.0,
+  "918": 21.0,
+  "921": 21.0,
+  "922": 21.0,
+  "923": 21.0,
+  "924": 21.0,
+  "925": 21.0,
+  "926": 21.0,
+  "927": 21.0,
+  "928": 21.0,
+  "929": 21.0,
+  "930": 21.0,
+  "931": 21.0,
+  "932": 21.0,
+  "933": 21.0,
+  "934": 21.0,
+  "935": 21.0,
+  "936": 21.0,
+  "937": 17.0,
+  "940": 17.0,
+  "943": 17.0,
+  "946": 17.0,
+  "949": 17.0,
+  "952": 17.0,
+  "955": 17.0,
+  "958": 17.0,
+  "961": 17.0,
+  "962": 17.0,
+  "963": 17.0,
+  "964": 17.0,
+  "965": 17.0,
+  "966": 17.0,
+  "967": 17.0,
+  "968": 17.0,
+  "969": 17.0,
+  "970": 17.0,
+  "971": 17.0,
+  "972": 17.0,
+  "973": 17.0,
+  "974": 17.0,
+  "975": 17.0,
+  "976": 17.0,
+  "977": 24.0,
+  "980": 24.0,
+  "983": 24.0,
+  "986": 24.0,
+  "989": 24.0,
+  "992": 24.0,
+  "995": 24.0,
+  "998": 24.0,
+  "1001": 24.0,
+  "1002": 24.0,
+  "1003": 24.0,
+  "1004": 24.0,
+  "1005": 24.0,
+  "1006": 24.0,
+  "1007": 24.0,
+  "1008": 24.0,
+  "1009": 24.0,
+  "1010": 24.0,
+  "1011": 24.0,
+  "1012": 24.0,
+  "1013": 24.0,
+  "1014": 24.0,
+  "1015": 24.0,
+  "1016": 24.0,
+  "1017": 35.5,
+  "1020": 35.5,
+  "1023": 35.5,
+  "1024": 35.0,
+  "1027": 35.5,
+  "1028": 35.5,
+  "1029": 35.5,
+  "1030": 35.0,
+  "1031": 35.5,
+  "1032": 35.5,
+  "1033": 35.5,
+  "1034": 35.0,
+  "1035": 26.5,
+  "1038": 26.5,
+  "1041": 26.5,
+  "1042": 26.5,
+  "1045": 26.5,
+  "1046": 26.5,
+  "1047": 26.5,
+  "1048": 26.5,
+  "1049": 26.5,
+  "1050": 26.5,
+  "1051": 26.5,
+  "1052": 26.5,
+  "1053": 34.5,
+  "1056": 35.0,
+  "1059": 34.5,
+  "1060": 34.0,
+  "1063": 34.5,
+  "1064": 35.0,
+  "1065": 34.5,
+  "1066": 34.0,
+  "1067": 34.5,
+  "1068": 35.0,
+  "1069": 34.5,
+  "1070": 34.0,
+  "1071": 29.5,
+  "1074": 29.5,
+  "1077": 29.5,
+  "1078": 30.0,
+  "1081": 29.5,
+  "1082": 29.5,
+  "1083": 29.5,
+  "1084": 30.0,
+  "1085": 29.5,
+  "1086": 29.5,
+  "1087": 29.5,
+  "1088": 30.0
+};
+/** Visible Sim contribution bounds, never the furniture silhouette. */
+export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, number, number, number]>> = {
+  "857": [
+    31.0,
+    18.0,
+    70.5,
+    89.5
+  ],
+  "860": [
+    31.0,
+    18.0,
+    71.0,
+    90.5
+  ],
+  "863": [
+    31.0,
+    18.0,
+    73.0,
+    89.0
+  ],
+  "866": [
+    31.0,
+    18.0,
+    71.0,
+    95.5
+  ],
+  "869": [
+    31.0,
+    18.0,
+    70.5,
+    100.5
+  ],
+  "872": [
+    31.0,
+    18.0,
+    70.5,
+    101.5
+  ],
+  "875": [
+    31.0,
+    18.0,
+    70.5,
+    98.0
+  ],
+  "878": [
+    31.0,
+    18.0,
+    70.5,
+    91.5
+  ],
+  "881": [
+    31.0,
+    18.0,
+    70.5,
+    89.5
+  ],
+  "882": [
+    31.0,
+    18.0,
+    71.0,
+    90.5
+  ],
+  "883": [
+    31.0,
+    18.0,
+    73.0,
+    89.0
+  ],
+  "884": [
+    31.0,
+    18.0,
+    71.0,
+    95.5
+  ],
+  "885": [
+    31.0,
+    18.0,
+    70.5,
+    100.5
+  ],
+  "886": [
+    31.0,
+    18.0,
+    70.5,
+    101.5
+  ],
+  "887": [
+    31.0,
+    18.0,
+    70.5,
+    98.0
+  ],
+  "888": [
+    31.0,
+    18.0,
+    70.5,
+    91.5
+  ],
+  "889": [
+    31.0,
+    18.0,
+    70.5,
+    89.5
+  ],
+  "890": [
+    31.0,
+    18.0,
+    71.0,
+    90.5
+  ],
+  "891": [
+    31.0,
+    18.0,
+    73.0,
+    89.0
+  ],
+  "892": [
+    31.0,
+    18.0,
+    71.0,
+    95.5
+  ],
+  "893": [
+    31.0,
+    18.0,
+    70.5,
+    100.5
+  ],
+  "894": [
+    31.0,
+    18.0,
+    70.5,
+    101.5
+  ],
+  "895": [
+    31.0,
+    18.0,
+    70.5,
+    98.0
+  ],
+  "896": [
+    31.0,
+    18.0,
+    70.5,
+    91.5
+  ],
+  "897": [
+    25.5,
+    21.0,
+    65.0,
+    95.5
+  ],
+  "900": [
+    25.0,
+    21.0,
+    65.0,
+    90.5
+  ],
+  "903": [
+    23.0,
+    21.0,
+    65.0,
+    84.0
+  ],
+  "906": [
+    25.0,
+    21.0,
+    65.0,
+    85.0
+  ],
+  "909": [
+    25.5,
+    21.0,
+    65.0,
+    81.0
+  ],
+  "912": [
+    25.5,
+    21.0,
+    65.0,
+    86.5
+  ],
+  "915": [
+    25.5,
+    21.0,
+    65.0,
+    92.5
+  ],
+  "918": [
+    25.5,
+    21.0,
+    65.0,
+    96.5
+  ],
+  "921": [
+    25.5,
+    21.0,
+    65.0,
+    95.5
+  ],
+  "922": [
+    25.0,
+    21.0,
+    65.0,
+    90.5
+  ],
+  "923": [
+    23.0,
+    21.0,
+    65.0,
+    84.0
+  ],
+  "924": [
+    25.0,
+    21.0,
+    65.0,
+    85.0
+  ],
+  "925": [
+    25.5,
+    21.0,
+    65.0,
+    81.0
+  ],
+  "926": [
+    25.5,
+    21.0,
+    65.0,
+    86.5
+  ],
+  "927": [
+    25.5,
+    21.0,
+    65.0,
+    92.5
+  ],
+  "928": [
+    25.5,
+    21.0,
+    65.0,
+    96.5
+  ],
+  "929": [
+    25.5,
+    21.0,
+    65.0,
+    95.5
+  ],
+  "930": [
+    25.0,
+    21.0,
+    65.0,
+    90.5
+  ],
+  "931": [
+    23.0,
+    21.0,
+    65.0,
+    84.0
+  ],
+  "932": [
+    25.0,
+    21.0,
+    65.0,
+    85.0
+  ],
+  "933": [
+    25.5,
+    21.0,
+    65.0,
+    81.0
+  ],
+  "934": [
+    25.5,
+    21.0,
+    65.0,
+    86.5
+  ],
+  "935": [
+    25.5,
+    21.0,
+    65.0,
+    92.5
+  ],
+  "936": [
+    25.5,
+    21.0,
+    65.0,
+    96.5
+  ],
+  "937": [
+    25.5,
+    17.0,
+    65.0,
+    100.5
+  ],
+  "940": [
+    25.5,
+    17.0,
+    65.0,
+    101.5
+  ],
+  "943": [
+    25.5,
+    17.0,
+    65.0,
+    98.0
+  ],
+  "946": [
+    25.5,
+    17.0,
+    65.0,
+    91.5
+  ],
+  "949": [
+    25.5,
+    17.0,
+    65.0,
+    89.5
+  ],
+  "952": [
+    25.0,
+    17.0,
+    65.0,
+    90.5
+  ],
+  "955": [
+    23.0,
+    17.0,
+    65.0,
+    89.0
+  ],
+  "958": [
+    25.0,
+    17.0,
+    65.0,
+    95.5
+  ],
+  "961": [
+    25.5,
+    17.0,
+    65.0,
+    100.5
+  ],
+  "962": [
+    25.5,
+    17.0,
+    65.0,
+    101.5
+  ],
+  "963": [
+    25.5,
+    17.0,
+    65.0,
+    98.0
+  ],
+  "964": [
+    25.5,
+    17.0,
+    65.0,
+    91.5
+  ],
+  "965": [
+    25.5,
+    17.0,
+    65.0,
+    89.5
+  ],
+  "966": [
+    25.0,
+    17.0,
+    65.0,
+    90.5
+  ],
+  "967": [
+    23.0,
+    17.0,
+    65.0,
+    89.0
+  ],
+  "968": [
+    25.0,
+    17.0,
+    65.0,
+    95.5
+  ],
+  "969": [
+    25.5,
+    17.0,
+    65.0,
+    100.5
+  ],
+  "970": [
+    25.5,
+    17.0,
+    65.0,
+    101.5
+  ],
+  "971": [
+    25.5,
+    17.0,
+    65.0,
+    98.0
+  ],
+  "972": [
+    25.5,
+    17.0,
+    65.0,
+    91.5
+  ],
+  "973": [
+    25.5,
+    17.0,
+    65.0,
+    89.5
+  ],
+  "974": [
+    25.0,
+    17.0,
+    65.0,
+    90.5
+  ],
+  "975": [
+    23.0,
+    17.0,
+    65.0,
+    89.0
+  ],
+  "976": [
+    25.0,
+    17.0,
+    65.0,
+    95.5
+  ],
+  "977": [
+    31.0,
+    24.0,
+    70.5,
+    81.0
+  ],
+  "980": [
+    31.0,
+    24.0,
+    70.5,
+    86.5
+  ],
+  "983": [
+    31.0,
+    24.0,
+    70.5,
+    92.5
+  ],
+  "986": [
+    31.0,
+    24.0,
+    70.5,
+    96.5
+  ],
+  "989": [
+    31.0,
+    24.0,
+    70.5,
+    95.5
+  ],
+  "992": [
+    31.0,
+    24.0,
+    71.0,
+    90.5
+  ],
+  "995": [
+    31.0,
+    24.0,
+    73.0,
+    84.0
+  ],
+  "998": [
+    31.0,
+    24.0,
+    71.0,
+    85.0
+  ],
+  "1001": [
+    31.0,
+    24.0,
+    70.5,
+    81.0
+  ],
+  "1002": [
+    31.0,
+    24.0,
+    70.5,
+    86.5
+  ],
+  "1003": [
+    31.0,
+    24.0,
+    70.5,
+    92.5
+  ],
+  "1004": [
+    31.0,
+    24.0,
+    70.5,
+    96.5
+  ],
+  "1005": [
+    31.0,
+    24.0,
+    70.5,
+    95.5
+  ],
+  "1006": [
+    31.0,
+    24.0,
+    71.0,
+    90.5
+  ],
+  "1007": [
+    31.0,
+    24.0,
+    73.0,
+    84.0
+  ],
+  "1008": [
+    31.0,
+    24.0,
+    71.0,
+    85.0
+  ],
+  "1009": [
+    31.0,
+    24.0,
+    70.5,
+    81.0
+  ],
+  "1010": [
+    31.0,
+    24.0,
+    70.5,
+    86.5
+  ],
+  "1011": [
+    31.0,
+    24.0,
+    70.5,
+    92.5
+  ],
+  "1012": [
+    31.0,
+    24.0,
+    70.5,
+    96.5
+  ],
+  "1013": [
+    31.0,
+    24.0,
+    70.5,
+    95.5
+  ],
+  "1014": [
+    31.0,
+    24.0,
+    71.0,
+    90.5
+  ],
+  "1015": [
+    31.0,
+    24.0,
+    73.0,
+    84.0
+  ],
+  "1016": [
+    31.0,
+    24.0,
+    71.0,
+    85.0
+  ],
+  "1017": [
+    37.5,
+    35.5,
+    70.5,
+    109.0
+  ],
+  "1020": [
+    37.5,
+    35.5,
+    70.5,
+    109.0
+  ],
+  "1023": [
+    37.5,
+    35.5,
+    70.5,
+    109.0
+  ],
+  "1024": [
+    37.5,
+    35.0,
+    70.5,
+    109.0
+  ],
+  "1027": [
+    37.5,
+    35.5,
+    70.5,
+    109.0
+  ],
+  "1028": [
+    37.5,
+    35.5,
+    70.5,
+    109.0
+  ],
+  "1029": [
+    37.5,
+    35.5,
+    70.5,
+    109.0
+  ],
+  "1030": [
+    37.5,
+    35.0,
+    70.5,
+    109.0
+  ],
+  "1031": [
+    37.5,
+    35.5,
+    70.5,
+    109.0
+  ],
+  "1032": [
+    37.5,
+    35.5,
+    70.5,
+    109.0
+  ],
+  "1033": [
+    37.5,
+    35.5,
+    70.5,
+    109.0
+  ],
+  "1034": [
+    37.5,
+    35.0,
+    70.5,
+    109.0
+  ],
+  "1035": [
+    25.5,
+    26.5,
+    58.5,
+    88.5
+  ],
+  "1038": [
+    25.5,
+    26.5,
+    58.5,
+    88.5
+  ],
+  "1041": [
+    25.5,
+    26.5,
+    58.5,
+    88.5
+  ],
+  "1042": [
+    25.5,
+    26.5,
+    58.5,
+    88.5
+  ],
+  "1045": [
+    25.5,
+    26.5,
+    58.5,
+    88.5
+  ],
+  "1046": [
+    25.5,
+    26.5,
+    58.5,
+    88.5
+  ],
+  "1047": [
+    25.5,
+    26.5,
+    58.5,
+    88.5
+  ],
+  "1048": [
+    25.5,
+    26.5,
+    58.5,
+    88.5
+  ],
+  "1049": [
+    25.5,
+    26.5,
+    58.5,
+    88.5
+  ],
+  "1050": [
+    25.5,
+    26.5,
+    58.5,
+    88.5
+  ],
+  "1051": [
+    25.5,
+    26.5,
+    58.5,
+    88.5
+  ],
+  "1052": [
+    25.5,
+    26.5,
+    58.5,
+    88.5
+  ],
+  "1053": [
+    25.5,
+    34.5,
+    58.0,
+    109.0
+  ],
+  "1056": [
+    25.5,
+    35.0,
+    58.0,
+    109.0
+  ],
+  "1059": [
+    25.5,
+    34.5,
+    58.0,
+    109.0
+  ],
+  "1060": [
+    25.5,
+    34.0,
+    58.0,
+    109.0
+  ],
+  "1063": [
+    25.5,
+    34.5,
+    58.0,
+    109.0
+  ],
+  "1064": [
+    25.5,
+    35.0,
+    58.0,
+    109.0
+  ],
+  "1065": [
+    25.5,
+    34.5,
+    58.0,
+    109.0
+  ],
+  "1066": [
+    25.5,
+    34.0,
+    58.0,
+    109.0
+  ],
+  "1067": [
+    25.5,
+    34.5,
+    58.0,
+    109.0
+  ],
+  "1068": [
+    25.5,
+    35.0,
+    58.0,
+    109.0
+  ],
+  "1069": [
+    25.5,
+    34.5,
+    58.0,
+    109.0
+  ],
+  "1070": [
+    25.5,
+    34.0,
+    58.0,
+    109.0
+  ],
+  "1071": [
+    38.0,
+    29.5,
+    70.5,
+    88.5
+  ],
+  "1074": [
+    38.0,
+    29.5,
+    70.5,
+    88.5
+  ],
+  "1077": [
+    38.0,
+    29.5,
+    70.5,
+    88.5
+  ],
+  "1078": [
+    38.0,
+    30.0,
+    70.5,
+    88.5
+  ],
+  "1081": [
+    38.0,
+    29.5,
+    70.5,
+    88.5
+  ],
+  "1082": [
+    38.0,
+    29.5,
+    70.5,
+    88.5
+  ],
+  "1083": [
+    38.0,
+    29.5,
+    70.5,
+    88.5
+  ],
+  "1084": [
+    38.0,
+    30.0,
+    70.5,
+    88.5
+  ],
+  "1085": [
+    38.0,
+    29.5,
+    70.5,
+    88.5
+  ],
+  "1086": [
+    38.0,
+    29.5,
+    70.5,
+    88.5
+  ],
+  "1087": [
+    38.0,
+    29.5,
+    70.5,
+    88.5
+  ],
+  "1088": [
+    38.0,
+    30.0,
+    70.5,
+    88.5
+  ]
+};
+/** Indices of premultiplied visibility contributions composed in one fragment. */
+export const SPRITE_PAIRS: Readonly<Record<number, { readonly furniture: number; readonly outline: number }>> = {
+  "857": {
+    "furniture": 858,
+    "outline": 859
+  },
+  "860": {
+    "furniture": 861,
+    "outline": 862
+  },
+  "863": {
+    "furniture": 864,
+    "outline": 865
+  },
+  "866": {
+    "furniture": 867,
+    "outline": 868
+  },
+  "869": {
+    "furniture": 870,
+    "outline": 871
+  },
+  "872": {
+    "furniture": 873,
+    "outline": 874
+  },
+  "875": {
+    "furniture": 876,
+    "outline": 877
+  },
+  "878": {
+    "furniture": 879,
+    "outline": 880
+  },
+  "881": {
+    "furniture": 858,
+    "outline": 859
+  },
+  "882": {
+    "furniture": 861,
+    "outline": 862
+  },
+  "883": {
+    "furniture": 864,
+    "outline": 865
+  },
+  "884": {
+    "furniture": 867,
+    "outline": 868
+  },
+  "885": {
+    "furniture": 870,
+    "outline": 871
+  },
+  "886": {
+    "furniture": 873,
+    "outline": 874
+  },
+  "887": {
+    "furniture": 876,
+    "outline": 877
+  },
+  "888": {
+    "furniture": 879,
+    "outline": 880
+  },
+  "889": {
+    "furniture": 858,
+    "outline": 859
+  },
+  "890": {
+    "furniture": 861,
+    "outline": 862
+  },
+  "891": {
+    "furniture": 864,
+    "outline": 865
+  },
+  "892": {
+    "furniture": 867,
+    "outline": 868
+  },
+  "893": {
+    "furniture": 870,
+    "outline": 871
+  },
+  "894": {
+    "furniture": 873,
+    "outline": 874
+  },
+  "895": {
+    "furniture": 876,
+    "outline": 877
+  },
+  "896": {
+    "furniture": 879,
+    "outline": 880
+  },
+  "897": {
+    "furniture": 898,
+    "outline": 899
+  },
+  "900": {
+    "furniture": 901,
+    "outline": 902
+  },
+  "903": {
+    "furniture": 904,
+    "outline": 905
+  },
+  "906": {
+    "furniture": 907,
+    "outline": 908
+  },
+  "909": {
+    "furniture": 910,
+    "outline": 911
+  },
+  "912": {
+    "furniture": 913,
+    "outline": 914
+  },
+  "915": {
+    "furniture": 916,
+    "outline": 917
+  },
+  "918": {
+    "furniture": 919,
+    "outline": 920
+  },
+  "921": {
+    "furniture": 898,
+    "outline": 899
+  },
+  "922": {
+    "furniture": 901,
+    "outline": 902
+  },
+  "923": {
+    "furniture": 904,
+    "outline": 905
+  },
+  "924": {
+    "furniture": 907,
+    "outline": 908
+  },
+  "925": {
+    "furniture": 910,
+    "outline": 911
+  },
+  "926": {
+    "furniture": 913,
+    "outline": 914
+  },
+  "927": {
+    "furniture": 916,
+    "outline": 917
+  },
+  "928": {
+    "furniture": 919,
+    "outline": 920
+  },
+  "929": {
+    "furniture": 898,
+    "outline": 899
+  },
+  "930": {
+    "furniture": 901,
+    "outline": 902
+  },
+  "931": {
+    "furniture": 904,
+    "outline": 905
+  },
+  "932": {
+    "furniture": 907,
+    "outline": 908
+  },
+  "933": {
+    "furniture": 910,
+    "outline": 911
+  },
+  "934": {
+    "furniture": 913,
+    "outline": 914
+  },
+  "935": {
+    "furniture": 916,
+    "outline": 917
+  },
+  "936": {
+    "furniture": 919,
+    "outline": 920
+  },
+  "937": {
+    "furniture": 938,
+    "outline": 939
+  },
+  "940": {
+    "furniture": 941,
+    "outline": 942
+  },
+  "943": {
+    "furniture": 944,
+    "outline": 945
+  },
+  "946": {
+    "furniture": 947,
+    "outline": 948
+  },
+  "949": {
+    "furniture": 950,
+    "outline": 951
+  },
+  "952": {
+    "furniture": 953,
+    "outline": 954
+  },
+  "955": {
+    "furniture": 956,
+    "outline": 957
+  },
+  "958": {
+    "furniture": 959,
+    "outline": 960
+  },
+  "961": {
+    "furniture": 938,
+    "outline": 939
+  },
+  "962": {
+    "furniture": 941,
+    "outline": 942
+  },
+  "963": {
+    "furniture": 944,
+    "outline": 945
+  },
+  "964": {
+    "furniture": 947,
+    "outline": 948
+  },
+  "965": {
+    "furniture": 950,
+    "outline": 951
+  },
+  "966": {
+    "furniture": 953,
+    "outline": 954
+  },
+  "967": {
+    "furniture": 956,
+    "outline": 957
+  },
+  "968": {
+    "furniture": 959,
+    "outline": 960
+  },
+  "969": {
+    "furniture": 938,
+    "outline": 939
+  },
+  "970": {
+    "furniture": 941,
+    "outline": 942
+  },
+  "971": {
+    "furniture": 944,
+    "outline": 945
+  },
+  "972": {
+    "furniture": 947,
+    "outline": 948
+  },
+  "973": {
+    "furniture": 950,
+    "outline": 951
+  },
+  "974": {
+    "furniture": 953,
+    "outline": 954
+  },
+  "975": {
+    "furniture": 956,
+    "outline": 957
+  },
+  "976": {
+    "furniture": 959,
+    "outline": 960
+  },
+  "977": {
+    "furniture": 978,
+    "outline": 979
+  },
+  "980": {
+    "furniture": 981,
+    "outline": 982
+  },
+  "983": {
+    "furniture": 984,
+    "outline": 985
+  },
+  "986": {
+    "furniture": 987,
+    "outline": 988
+  },
+  "989": {
+    "furniture": 990,
+    "outline": 991
+  },
+  "992": {
+    "furniture": 993,
+    "outline": 994
+  },
+  "995": {
+    "furniture": 996,
+    "outline": 997
+  },
+  "998": {
+    "furniture": 999,
+    "outline": 1000
+  },
+  "1001": {
+    "furniture": 978,
+    "outline": 979
+  },
+  "1002": {
+    "furniture": 981,
+    "outline": 982
+  },
+  "1003": {
+    "furniture": 984,
+    "outline": 985
+  },
+  "1004": {
+    "furniture": 987,
+    "outline": 988
+  },
+  "1005": {
+    "furniture": 990,
+    "outline": 991
+  },
+  "1006": {
+    "furniture": 993,
+    "outline": 994
+  },
+  "1007": {
+    "furniture": 996,
+    "outline": 997
+  },
+  "1008": {
+    "furniture": 999,
+    "outline": 1000
+  },
+  "1009": {
+    "furniture": 978,
+    "outline": 979
+  },
+  "1010": {
+    "furniture": 981,
+    "outline": 982
+  },
+  "1011": {
+    "furniture": 984,
+    "outline": 985
+  },
+  "1012": {
+    "furniture": 987,
+    "outline": 988
+  },
+  "1013": {
+    "furniture": 990,
+    "outline": 991
+  },
+  "1014": {
+    "furniture": 993,
+    "outline": 994
+  },
+  "1015": {
+    "furniture": 996,
+    "outline": 997
+  },
+  "1016": {
+    "furniture": 999,
+    "outline": 1000
+  },
+  "1017": {
+    "furniture": 1018,
+    "outline": 1019
+  },
+  "1020": {
+    "furniture": 1021,
+    "outline": 1022
+  },
+  "1023": {
+    "furniture": 1018,
+    "outline": 1019
+  },
+  "1024": {
+    "furniture": 1025,
+    "outline": 1026
+  },
+  "1027": {
+    "furniture": 1018,
+    "outline": 1019
+  },
+  "1028": {
+    "furniture": 1021,
+    "outline": 1022
+  },
+  "1029": {
+    "furniture": 1018,
+    "outline": 1019
+  },
+  "1030": {
+    "furniture": 1025,
+    "outline": 1026
+  },
+  "1031": {
+    "furniture": 1018,
+    "outline": 1019
+  },
+  "1032": {
+    "furniture": 1021,
+    "outline": 1022
+  },
+  "1033": {
+    "furniture": 1018,
+    "outline": 1019
+  },
+  "1034": {
+    "furniture": 1025,
+    "outline": 1026
+  },
+  "1035": {
+    "furniture": 1036,
+    "outline": 1037
+  },
+  "1038": {
+    "furniture": 1039,
+    "outline": 1040
+  },
+  "1041": {
+    "furniture": 1036,
+    "outline": 1037
+  },
+  "1042": {
+    "furniture": 1043,
+    "outline": 1044
+  },
+  "1045": {
+    "furniture": 1036,
+    "outline": 1037
+  },
+  "1046": {
+    "furniture": 1039,
+    "outline": 1040
+  },
+  "1047": {
+    "furniture": 1036,
+    "outline": 1037
+  },
+  "1048": {
+    "furniture": 1043,
+    "outline": 1044
+  },
+  "1049": {
+    "furniture": 1036,
+    "outline": 1037
+  },
+  "1050": {
+    "furniture": 1039,
+    "outline": 1040
+  },
+  "1051": {
+    "furniture": 1036,
+    "outline": 1037
+  },
+  "1052": {
+    "furniture": 1043,
+    "outline": 1044
+  },
+  "1053": {
+    "furniture": 1054,
+    "outline": 1055
+  },
+  "1056": {
+    "furniture": 1057,
+    "outline": 1058
+  },
+  "1059": {
+    "furniture": 1054,
+    "outline": 1055
+  },
+  "1060": {
+    "furniture": 1061,
+    "outline": 1062
+  },
+  "1063": {
+    "furniture": 1054,
+    "outline": 1055
+  },
+  "1064": {
+    "furniture": 1057,
+    "outline": 1058
+  },
+  "1065": {
+    "furniture": 1054,
+    "outline": 1055
+  },
+  "1066": {
+    "furniture": 1061,
+    "outline": 1062
+  },
+  "1067": {
+    "furniture": 1054,
+    "outline": 1055
+  },
+  "1068": {
+    "furniture": 1057,
+    "outline": 1058
+  },
+  "1069": {
+    "furniture": 1054,
+    "outline": 1055
+  },
+  "1070": {
+    "furniture": 1061,
+    "outline": 1062
+  },
+  "1071": {
+    "furniture": 1072,
+    "outline": 1073
+  },
+  "1074": {
+    "furniture": 1075,
+    "outline": 1076
+  },
+  "1077": {
+    "furniture": 1072,
+    "outline": 1073
+  },
+  "1078": {
+    "furniture": 1079,
+    "outline": 1080
+  },
+  "1081": {
+    "furniture": 1072,
+    "outline": 1073
+  },
+  "1082": {
+    "furniture": 1075,
+    "outline": 1076
+  },
+  "1083": {
+    "furniture": 1072,
+    "outline": 1073
+  },
+  "1084": {
+    "furniture": 1079,
+    "outline": 1080
+  },
+  "1085": {
+    "furniture": 1072,
+    "outline": 1073
+  },
+  "1086": {
+    "furniture": 1075,
+    "outline": 1076
+  },
+  "1087": {
+    "furniture": 1072,
+    "outline": 1073
+  },
+  "1088": {
+    "furniture": 1079,
+    "outline": 1080
+  }
+};
+/** Exact empty-sprite profiles; explicit body indices retain shared-layer deduplication. */
+export const INTERACTION_SPRITES: import('./interaction-sprites.js').InteractionCatalog = {
+  "849": {
+    "action": 6,
+    "halfCycleTicks": 8,
+    "frames": {
+      "green": [
+        857,
+        878,
+        875,
+        872,
+        869,
+        866,
+        863,
+        860
+      ],
+      "blue": [
+        881,
+        888,
+        887,
+        886,
+        885,
+        884,
+        883,
+        882
+      ],
+      "red": [
+        889,
+        896,
+        895,
+        894,
+        893,
+        892,
+        891,
+        890
+      ]
+    }
+  },
+  "850": {
+    "action": 6,
+    "halfCycleTicks": 8,
+    "frames": {
+      "green": [
+        897,
+        918,
+        915,
+        912,
+        909,
+        906,
+        903,
+        900
+      ],
+      "blue": [
+        921,
+        928,
+        927,
+        926,
+        925,
+        924,
+        923,
+        922
+      ],
+      "red": [
+        929,
+        936,
+        935,
+        934,
+        933,
+        932,
+        931,
+        930
+      ]
+    }
+  },
+  "851": {
+    "action": 6,
+    "halfCycleTicks": 8,
+    "frames": {
+      "green": [
+        937,
+        958,
+        955,
+        952,
+        949,
+        946,
+        943,
+        940
+      ],
+      "blue": [
+        961,
+        968,
+        967,
+        966,
+        965,
+        964,
+        963,
+        962
+      ],
+      "red": [
+        969,
+        976,
+        975,
+        974,
+        973,
+        972,
+        971,
+        970
+      ]
+    }
+  },
+  "852": {
+    "action": 6,
+    "halfCycleTicks": 8,
+    "frames": {
+      "green": [
+        977,
+        998,
+        995,
+        992,
+        989,
+        986,
+        983,
+        980
+      ],
+      "blue": [
+        1001,
+        1008,
+        1007,
+        1006,
+        1005,
+        1004,
+        1003,
+        1002
+      ],
+      "red": [
+        1009,
+        1016,
+        1015,
+        1014,
+        1013,
+        1012,
+        1011,
+        1010
+      ]
+    }
+  },
+  "853": {
+    "action": 3,
+    "halfCycleTicks": 24,
+    "frames": {
+      "green": [
+        1017,
+        1020,
+        1023,
+        1024
+      ],
+      "blue": [
+        1027,
+        1028,
+        1029,
+        1030
+      ],
+      "red": [
+        1031,
+        1032,
+        1033,
+        1034
+      ]
+    }
+  },
+  "854": {
+    "action": 3,
+    "halfCycleTicks": 24,
+    "frames": {
+      "green": [
+        1035,
+        1038,
+        1041,
+        1042
+      ],
+      "blue": [
+        1045,
+        1046,
+        1047,
+        1048
+      ],
+      "red": [
+        1049,
+        1050,
+        1051,
+        1052
+      ]
+    }
+  },
+  "855": {
+    "action": 3,
+    "halfCycleTicks": 24,
+    "frames": {
+      "green": [
+        1053,
+        1056,
+        1059,
+        1060
+      ],
+      "blue": [
+        1063,
+        1064,
+        1065,
+        1066
+      ],
+      "red": [
+        1067,
+        1068,
+        1069,
+        1070
+      ]
+    }
+  },
+  "856": {
+    "action": 3,
+    "halfCycleTicks": 24,
+    "frames": {
+      "green": [
+        1071,
+        1074,
+        1077,
+        1078
+      ],
+      "blue": [
+        1081,
+        1082,
+        1083,
+        1084
+      ],
+      "red": [
+        1085,
+        1086,
+        1087,
+        1088
+      ]
+    }
+  }
+};
+export const SPRITE_HAND_ANCHORS: Readonly<Record<number, readonly [number, number]>> = {
+  "436": [
+    39.31576061248779,
+    46.81222105026245
+  ],
+  "437": [
+    38.195727467536926,
+    41.912996768951416
+  ],
+  "438": [
+    37.075732827186584,
+    37.0137882232666
+  ],
+  "439": [
+    38.195727467536926,
+    41.912996768951416
+  ],
+  "444": [
+    25.762970209121704,
+    55.395110845565796
+  ],
+  "445": [
+    24.64298802614212,
+    49.025877475738525
+  ],
+  "446": [
+    23.522975265979767,
+    42.656662464141846
+  ],
+  "447": [
+    24.64298802614212,
+    49.025877475738525
+  ],
+  "440": [
+    12.684276193380356,
+    46.50109100341797
+  ],
+  "441": [
+    13.804311037063599,
+    40.13189697265625
+  ],
+  "442": [
+    14.924307376146317,
+    33.76266622543335
+  ],
+  "443": [
+    13.804311037063599,
+    40.13189697265625
+  ],
+  "448": [
+    26.237063765525818,
+    37.918198585510254
+  ],
+  "449": [
+    27.357049345970154,
+    33.01901626586914
+  ],
+  "450": [
+    28.477062106132507,
+    28.119791984558105
+  ],
+  "451": [
+    27.357049345970154,
+    33.01901626586914
+  ],
+  "584": [
+    39.31576061248779,
+    46.81222105026245
+  ],
+  "585": [
+    38.195727467536926,
+    41.912996768951416
+  ],
+  "586": [
+    37.075732827186584,
+    37.0137882232666
+  ],
+  "587": [
+    38.195727467536926,
+    41.912996768951416
+  ],
+  "592": [
+    25.762970209121704,
+    55.395110845565796
+  ],
+  "593": [
+    24.64298802614212,
+    49.025877475738525
+  ],
+  "594": [
+    23.522975265979767,
+    42.656662464141846
+  ],
+  "595": [
+    24.64298802614212,
+    49.025877475738525
+  ],
+  "588": [
+    12.684276193380356,
+    46.50109100341797
+  ],
+  "589": [
+    13.804311037063599,
+    40.13189697265625
+  ],
+  "590": [
+    14.924307376146317,
+    33.76266622543335
+  ],
+  "591": [
+    13.804311037063599,
+    40.13189697265625
+  ],
+  "596": [
+    26.237063765525818,
+    37.918198585510254
+  ],
+  "597": [
+    27.357049345970154,
+    33.01901626586914
+  ],
+  "598": [
+    28.477062106132507,
+    28.119791984558105
+  ],
+  "599": [
+    27.357049345970154,
+    33.01901626586914
+  ],
+  "732": [
+    39.31576061248779,
+    46.81222105026245
+  ],
+  "733": [
+    38.195727467536926,
+    41.912996768951416
+  ],
+  "734": [
+    37.075732827186584,
+    37.0137882232666
+  ],
+  "735": [
+    38.195727467536926,
+    41.912996768951416
+  ],
+  "740": [
+    25.762970209121704,
+    55.395110845565796
+  ],
+  "741": [
+    24.64298802614212,
+    49.025877475738525
+  ],
+  "742": [
+    23.522975265979767,
+    42.656662464141846
+  ],
+  "743": [
+    24.64298802614212,
+    49.025877475738525
+  ],
+  "736": [
+    12.684276193380356,
+    46.50109100341797
+  ],
+  "737": [
+    13.804311037063599,
+    40.13189697265625
+  ],
+  "738": [
+    14.924307376146317,
+    33.76266622543335
+  ],
+  "739": [
+    13.804311037063599,
+    40.13189697265625
+  ],
+  "744": [
+    26.237063765525818,
+    37.918198585510254
+  ],
+  "745": [
+    27.357049345970154,
+    33.01901626586914
+  ],
+  "746": [
+    28.477062106132507,
+    28.119791984558105
+  ],
+  "747": [
+    27.357049345970154,
+    33.01901626586914
+  ]
+};
+/** Whether a held meal is nearer the camera than the body at its grip. */
+export const SPRITE_HAND_FOREGROUND: Readonly<Record<number, boolean>> = {
+  "436": true,
+  "437": true,
+  "438": true,
+  "439": true,
+  "444": true,
+  "445": true,
+  "446": true,
+  "447": true,
+  "440": true,
+  "441": true,
+  "442": true,
+  "443": true,
+  "448": false,
+  "449": false,
+  "450": false,
+  "451": false,
+  "584": true,
+  "585": true,
+  "586": true,
+  "587": true,
+  "592": true,
+  "593": true,
+  "594": true,
+  "595": true,
+  "588": true,
+  "589": true,
+  "590": true,
+  "591": true,
+  "596": false,
+  "597": false,
+  "598": false,
+  "599": false,
+  "732": true,
+  "733": true,
+  "734": true,
+  "735": true,
+  "740": true,
+  "741": true,
+  "742": true,
+  "743": true,
+  "736": true,
+  "737": true,
+  "738": true,
+  "739": true,
+  "744": false,
+  "745": false,
+  "746": false,
+  "747": false
+};
+
+export interface RiggedSimClip {
+  readonly frames: readonly (readonly number[])[];
+  readonly cycleTiles?: number;
+}
+
+/** Runtime-facing order is +X, -X, +Y, -Y. */
+export const RIGGED_SIM_CLIPS: Readonly<Record<string, RiggedSimClip>> = {
+  "idle": {
+    "frames": [
+      [
+        368
+      ],
+      [
+        369
+      ],
+      [
+        370
+      ],
+      [
+        371
+      ]
+    ]
+  },
+  "walk": {
+    "frames": [
+      [
+        372,
+        373,
+        374,
+        375,
+        376,
+        377,
+        378,
+        379
+      ],
+      [
+        380,
+        381,
+        382,
+        383,
+        384,
+        385,
+        386,
+        387
+      ],
+      [
+        388,
+        389,
+        390,
+        391,
+        392,
+        393,
+        394,
+        395
+      ],
+      [
+        396,
+        397,
+        398,
+        399,
+        400,
+        401,
+        402,
+        403
+      ]
+    ],
+    "cycleTiles": 1.0
+  },
+  "read": {
+    "frames": [
+      [
+        404,
+        405,
+        406,
+        407
+      ],
+      [
+        408,
+        409,
+        410,
+        411
+      ],
+      [
+        412,
+        413,
+        414,
+        415
+      ],
+      [
+        416,
+        417,
+        418,
+        419
+      ]
+    ]
+  },
+  "talk": {
+    "frames": [
+      [
+        420,
+        421,
+        422,
+        423
+      ],
+      [
+        424,
+        425,
+        426,
+        427
+      ],
+      [
+        428,
+        429,
+        430,
+        431
+      ],
+      [
+        432,
+        433,
+        434,
+        435
+      ]
+    ]
+  },
+  "eat": {
+    "frames": [
+      [
+        436,
+        437,
+        438,
+        439
+      ],
+      [
+        440,
+        441,
+        442,
+        443
+      ],
+      [
+        444,
+        445,
+        446,
+        447
+      ],
+      [
+        448,
+        449,
+        450,
+        451
+      ]
+    ]
+  },
+  "stand_read": {
+    "frames": [
+      [
+        452,
+        453,
+        454,
+        455
+      ],
+      [
+        456,
+        457,
+        458,
+        459
+      ],
+      [
+        460,
+        461,
+        462,
+        463
+      ],
+      [
+        464,
+        465,
+        466,
+        467
+      ]
+    ]
+  },
+  "watch_fish": {
+    "frames": [
+      [
+        468,
+        469,
+        470,
+        471
+      ],
+      [
+        472,
+        473,
+        474,
+        475
+      ],
+      [
+        476,
+        477,
+        478,
+        479
+      ],
+      [
+        480,
+        481,
+        482,
+        483
+      ]
+    ]
+  },
+  "sit": {
+    "frames": [
+      [
+        484,
+        485,
+        486,
+        487
+      ],
+      [
+        488,
+        489,
+        490,
+        491
+      ],
+      [
+        492,
+        493,
+        494,
+        495
+      ],
+      [
+        496,
+        497,
+        498,
+        499
+      ]
+    ]
+  },
+  "sleep": {
+    "frames": [
+      [
+        500,
+        501,
+        502,
+        503
+      ],
+      [
+        504,
+        505,
+        506,
+        507
+      ],
+      [
+        508,
+        509,
+        510,
+        511
+      ],
+      [
+        512,
+        513,
+        514,
+        515
+      ]
+    ]
+  },
+  "exercise": {
+    "frames": [
+      [
+        812,
+        813
+      ],
+      [
+        814,
+        815
+      ],
+      [
+        816,
+        817
+      ],
+      [
+        818,
+        819
+      ]
+    ]
+  }
+};
+/** Otherwise identical material variants, selected by persistent household identity. */
+export const RIGGED_SIM_VARIANTS: Readonly<Record<string, Readonly<Record<string, RiggedSimClip>>>> = {
+  "green": {
+    "idle": {
+      "frames": [
+        [
+          368
+        ],
+        [
+          369
+        ],
+        [
+          370
+        ],
+        [
+          371
+        ]
+      ]
+    },
+    "walk": {
+      "frames": [
+        [
+          372,
+          373,
+          374,
+          375,
+          376,
+          377,
+          378,
+          379
+        ],
+        [
+          380,
+          381,
+          382,
+          383,
+          384,
+          385,
+          386,
+          387
+        ],
+        [
+          388,
+          389,
+          390,
+          391,
+          392,
+          393,
+          394,
+          395
+        ],
+        [
+          396,
+          397,
+          398,
+          399,
+          400,
+          401,
+          402,
+          403
+        ]
+      ],
+      "cycleTiles": 1.0
+    },
+    "read": {
+      "frames": [
+        [
+          404,
+          405,
+          406,
+          407
+        ],
+        [
+          408,
+          409,
+          410,
+          411
+        ],
+        [
+          412,
+          413,
+          414,
+          415
+        ],
+        [
+          416,
+          417,
+          418,
+          419
+        ]
+      ]
+    },
+    "talk": {
+      "frames": [
+        [
+          420,
+          421,
+          422,
+          423
+        ],
+        [
+          424,
+          425,
+          426,
+          427
+        ],
+        [
+          428,
+          429,
+          430,
+          431
+        ],
+        [
+          432,
+          433,
+          434,
+          435
+        ]
+      ]
+    },
+    "eat": {
+      "frames": [
+        [
+          436,
+          437,
+          438,
+          439
+        ],
+        [
+          440,
+          441,
+          442,
+          443
+        ],
+        [
+          444,
+          445,
+          446,
+          447
+        ],
+        [
+          448,
+          449,
+          450,
+          451
+        ]
+      ]
+    },
+    "stand_read": {
+      "frames": [
+        [
+          452,
+          453,
+          454,
+          455
+        ],
+        [
+          456,
+          457,
+          458,
+          459
+        ],
+        [
+          460,
+          461,
+          462,
+          463
+        ],
+        [
+          464,
+          465,
+          466,
+          467
+        ]
+      ]
+    },
+    "watch_fish": {
+      "frames": [
+        [
+          468,
+          469,
+          470,
+          471
+        ],
+        [
+          472,
+          473,
+          474,
+          475
+        ],
+        [
+          476,
+          477,
+          478,
+          479
+        ],
+        [
+          480,
+          481,
+          482,
+          483
+        ]
+      ]
+    },
+    "sit": {
+      "frames": [
+        [
+          484,
+          485,
+          486,
+          487
+        ],
+        [
+          488,
+          489,
+          490,
+          491
+        ],
+        [
+          492,
+          493,
+          494,
+          495
+        ],
+        [
+          496,
+          497,
+          498,
+          499
+        ]
+      ]
+    },
+    "sleep": {
+      "frames": [
+        [
+          500,
+          501,
+          502,
+          503
+        ],
+        [
+          504,
+          505,
+          506,
+          507
+        ],
+        [
+          508,
+          509,
+          510,
+          511
+        ],
+        [
+          512,
+          513,
+          514,
+          515
+        ]
+      ]
+    },
+    "exercise": {
+      "frames": [
+        [
+          812,
+          813
+        ],
+        [
+          814,
+          815
+        ],
+        [
+          816,
+          817
+        ],
+        [
+          818,
+          819
+        ]
+      ]
+    }
+  },
+  "blue": {
+    "idle": {
+      "frames": [
+        [
+          516
+        ],
+        [
+          517
+        ],
+        [
+          518
+        ],
+        [
+          519
+        ]
+      ]
+    },
+    "walk": {
+      "frames": [
+        [
+          520,
+          521,
+          522,
+          523,
+          524,
+          525,
+          526,
+          527
+        ],
+        [
+          528,
+          529,
+          530,
+          531,
+          532,
+          533,
+          534,
+          535
+        ],
+        [
+          536,
+          537,
+          538,
+          539,
+          540,
+          541,
+          542,
+          543
+        ],
+        [
+          544,
+          545,
+          546,
+          547,
+          548,
+          549,
+          550,
+          551
+        ]
+      ],
+      "cycleTiles": 1.0
+    },
+    "read": {
+      "frames": [
+        [
+          552,
+          553,
+          554,
+          555
+        ],
+        [
+          556,
+          557,
+          558,
+          559
+        ],
+        [
+          560,
+          561,
+          562,
+          563
+        ],
+        [
+          564,
+          565,
+          566,
+          567
+        ]
+      ]
+    },
+    "talk": {
+      "frames": [
+        [
+          568,
+          569,
+          570,
+          571
+        ],
+        [
+          572,
+          573,
+          574,
+          575
+        ],
+        [
+          576,
+          577,
+          578,
+          579
+        ],
+        [
+          580,
+          581,
+          582,
+          583
+        ]
+      ]
+    },
+    "eat": {
+      "frames": [
+        [
+          584,
+          585,
+          586,
+          587
+        ],
+        [
+          588,
+          589,
+          590,
+          591
+        ],
+        [
+          592,
+          593,
+          594,
+          595
+        ],
+        [
+          596,
+          597,
+          598,
+          599
+        ]
+      ]
+    },
+    "stand_read": {
+      "frames": [
+        [
+          600,
+          601,
+          602,
+          603
+        ],
+        [
+          604,
+          605,
+          606,
+          607
+        ],
+        [
+          608,
+          609,
+          610,
+          611
+        ],
+        [
+          612,
+          613,
+          614,
+          615
+        ]
+      ]
+    },
+    "watch_fish": {
+      "frames": [
+        [
+          616,
+          617,
+          618,
+          619
+        ],
+        [
+          620,
+          621,
+          622,
+          623
+        ],
+        [
+          624,
+          625,
+          626,
+          627
+        ],
+        [
+          628,
+          629,
+          630,
+          631
+        ]
+      ]
+    },
+    "sit": {
+      "frames": [
+        [
+          632,
+          633,
+          634,
+          635
+        ],
+        [
+          636,
+          637,
+          638,
+          639
+        ],
+        [
+          640,
+          641,
+          642,
+          643
+        ],
+        [
+          644,
+          645,
+          646,
+          647
+        ]
+      ]
+    },
+    "sleep": {
+      "frames": [
+        [
+          648,
+          649,
+          650,
+          651
+        ],
+        [
+          652,
+          653,
+          654,
+          655
+        ],
+        [
+          656,
+          657,
+          658,
+          659
+        ],
+        [
+          660,
+          661,
+          662,
+          663
+        ]
+      ]
+    },
+    "exercise": {
+      "frames": [
+        [
+          820,
+          821
+        ],
+        [
+          822,
+          823
+        ],
+        [
+          824,
+          825
+        ],
+        [
+          826,
+          827
+        ]
+      ]
+    }
+  },
+  "red": {
+    "idle": {
+      "frames": [
+        [
+          664
+        ],
+        [
+          665
+        ],
+        [
+          666
+        ],
+        [
+          667
+        ]
+      ]
+    },
+    "walk": {
+      "frames": [
+        [
+          668,
+          669,
+          670,
+          671,
+          672,
+          673,
+          674,
+          675
+        ],
+        [
+          676,
+          677,
+          678,
+          679,
+          680,
+          681,
+          682,
+          683
+        ],
+        [
+          684,
+          685,
+          686,
+          687,
+          688,
+          689,
+          690,
+          691
+        ],
+        [
+          692,
+          693,
+          694,
+          695,
+          696,
+          697,
+          698,
+          699
+        ]
+      ],
+      "cycleTiles": 1.0
+    },
+    "read": {
+      "frames": [
+        [
+          700,
+          701,
+          702,
+          703
+        ],
+        [
+          704,
+          705,
+          706,
+          707
+        ],
+        [
+          708,
+          709,
+          710,
+          711
+        ],
+        [
+          712,
+          713,
+          714,
+          715
+        ]
+      ]
+    },
+    "talk": {
+      "frames": [
+        [
+          716,
+          717,
+          718,
+          719
+        ],
+        [
+          720,
+          721,
+          722,
+          723
+        ],
+        [
+          724,
+          725,
+          726,
+          727
+        ],
+        [
+          728,
+          729,
+          730,
+          731
+        ]
+      ]
+    },
+    "eat": {
+      "frames": [
+        [
+          732,
+          733,
+          734,
+          735
+        ],
+        [
+          736,
+          737,
+          738,
+          739
+        ],
+        [
+          740,
+          741,
+          742,
+          743
+        ],
+        [
+          744,
+          745,
+          746,
+          747
+        ]
+      ]
+    },
+    "stand_read": {
+      "frames": [
+        [
+          748,
+          749,
+          750,
+          751
+        ],
+        [
+          752,
+          753,
+          754,
+          755
+        ],
+        [
+          756,
+          757,
+          758,
+          759
+        ],
+        [
+          760,
+          761,
+          762,
+          763
+        ]
+      ]
+    },
+    "watch_fish": {
+      "frames": [
+        [
+          764,
+          765,
+          766,
+          767
+        ],
+        [
+          768,
+          769,
+          770,
+          771
+        ],
+        [
+          772,
+          773,
+          774,
+          775
+        ],
+        [
+          776,
+          777,
+          778,
+          779
+        ]
+      ]
+    },
+    "sit": {
+      "frames": [
+        [
+          780,
+          781,
+          782,
+          783
+        ],
+        [
+          784,
+          785,
+          786,
+          787
+        ],
+        [
+          788,
+          789,
+          790,
+          791
+        ],
+        [
+          792,
+          793,
+          794,
+          795
+        ]
+      ]
+    },
+    "sleep": {
+      "frames": [
+        [
+          796,
+          797,
+          798,
+          799
+        ],
+        [
+          800,
+          801,
+          802,
+          803
+        ],
+        [
+          804,
+          805,
+          806,
+          807
+        ],
+        [
+          808,
+          809,
+          810,
+          811
+        ]
+      ]
+    },
+    "exercise": {
+      "frames": [
+        [
+          828,
+          829
+        ],
+        [
+          830,
+          831
+        ],
+        [
+          832,
+          833
+        ],
+        [
+          834,
+          835
+        ]
+      ]
+    }
+  }
+};
 
 /**
  * The index of a sprite the shell itself draws by name, including lot

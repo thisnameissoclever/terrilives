@@ -1,0 +1,2268 @@
+{
+  "objects": [
+    {
+      "name": "Collar stand",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [
+        {
+          "name": "Soft shaped surface",
+          "type": "SUBSURF"
+        }
+      ],
+      "bounds": [
+        [
+          -0.0974700003862381,
+          -0.08037000149488449,
+          1.3767940998077393
+        ],
+        [
+          0.0974700003862381,
+          0.09234000742435455,
+          1.409144401550293
+        ]
+      ],
+      "materials": [
+        "Sage seam and cuff"
+      ],
+      "vertices": 72
+    },
+    {
+      "name": "Dark pupil",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          -0.10345499962568283,
+          -0.18493406474590302,
+          1.6708018779754639
+        ],
+        [
+          -0.08293500542640686,
+          -0.176998570561409,
+          1.7107640504837036
+        ]
+      ],
+      "materials": [
+        "Warm dark facial marks"
+      ],
+      "vertices": 41
+    },
+    {
+      "name": "Dark pupil.001",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          0.08293500542640686,
+          -0.18493406474590302,
+          1.6708018779754639
+        ],
+        [
+          0.10345499962568283,
+          -0.176998570561409,
+          1.7107640504837036
+        ]
+      ],
+      "materials": [
+        "Warm dark facial marks"
+      ],
+      "vertices": 41
+    },
+    {
+      "name": "Ear",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        -0.25099998712539673,
+        0.014999999664723873,
+        1.7450000047683716
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          -0.25478994846343994,
+          -0.02393997460603714,
+          1.5908774137496948
+        ],
+        [
+          -0.17441999912261963,
+          0.04958995804190636,
+          1.729793667793274
+        ]
+      ],
+      "materials": [
+        "Warm ochre skin"
+      ],
+      "vertices": 610
+    },
+    {
+      "name": "Ear.001",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.25099998712539673,
+        0.014999999664723873,
+        1.7450000047683716
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          0.17442002892494202,
+          -0.02393997460603714,
+          1.5908774137496948
+        ],
+        [
+          0.25478997826576233,
+          0.04958995804190636,
+          1.729793667793274
+        ]
+      ],
+      "materials": [
+        "Warm ochre skin"
+      ],
+      "vertices": 610
+    },
+    {
+      "name": "Eye white",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          -0.1325249969959259,
+          -0.19042183458805084,
+          1.6641414165496826
+        ],
+        [
+          -0.04873500019311905,
+          -0.15835541486740112,
+          1.713618516921997
+        ]
+      ],
+      "materials": [
+        "Warm eye whites"
+      ],
+      "vertices": 41
+    },
+    {
+      "name": "Eye white.001",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          0.04873500019311905,
+          -0.19042183458805084,
+          1.6641414165496826
+        ],
+        [
+          0.1325249969959259,
+          -0.15835541486740112,
+          1.713618516921997
+        ]
+      ],
+      "materials": [
+        "Warm eye whites"
+      ],
+      "vertices": 41
+    },
+    {
+      "name": "Fitted rounded shoe sole",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [
+        {
+          "name": "Soft shaped surface",
+          "type": "SUBSURF"
+        }
+      ],
+      "bounds": [
+        [
+          -0.21802499890327454,
+          -0.18297000229358673,
+          0.019029634073376656
+        ],
+        [
+          -0.029924999922513962,
+          0.0974700003862381,
+          0.06850668042898178
+        ]
+      ],
+      "materials": [
+        "Quiet rubber soles"
+      ],
+      "vertices": 96
+    },
+    {
+      "name": "Fitted rounded shoe sole.001",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [
+        {
+          "name": "Soft shaped surface",
+          "type": "SUBSURF"
+        }
+      ],
+      "bounds": [
+        [
+          0.029924999922513962,
+          -0.18297000229358673,
+          0.019029634073376656
+        ],
+        [
+          0.21802499890327454,
+          0.0974700003862381,
+          0.06850668042898178
+        ]
+      ],
+      "materials": [
+        "Quiet rubber soles"
+      ],
+      "vertices": 96
+    },
+    {
+      "name": "Folded fabric collar leaf",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [
+        {
+          "name": "Fabric thickness",
+          "type": "SOLIDIFY"
+        },
+        {
+          "name": "Soft collar edge",
+          "type": "BEVEL"
+        }
+      ],
+      "bounds": [
+        [
+          -0.1203453466296196,
+          -0.13544464111328125,
+          1.339741826057434
+        ],
+        [
+          -0.021959954872727394,
+          -0.05129247531294823,
+          1.4129724502563477
+        ]
+      ],
+      "materials": [
+        "Sage folded collar fabric"
+      ],
+      "vertices": 6
+    },
+    {
+      "name": "Folded fabric collar leaf.001",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [
+        {
+          "name": "Fabric thickness",
+          "type": "SOLIDIFY"
+        },
+        {
+          "name": "Soft collar edge",
+          "type": "BEVEL"
+        }
+      ],
+      "bounds": [
+        [
+          0.021959960460662842,
+          -0.13544464111328125,
+          1.339741826057434
+        ],
+        [
+          0.1203453466296196,
+          -0.05129246786236763,
+          1.4129724502563477
+        ]
+      ],
+      "materials": [
+        "Sage folded collar fabric"
+      ],
+      "vertices": 6
+    },
+    {
+      "name": "Forearm with elbow and wrist sections",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [
+        {
+          "name": "Soft shaped surface",
+          "type": "SUBSURF"
+        }
+      ],
+      "bounds": [
+        [
+          -0.3625200092792511,
+          -0.07524000108242035,
+          0.7849723696708679
+        ],
+        [
+          -0.229994997382164,
+          0.05044500157237053,
+          1.0561447143554688
+        ]
+      ],
+      "materials": [
+        "Warm ochre skin"
+      ],
+      "vertices": 120
+    },
+    {
+      "name": "Forearm with elbow and wrist sections.001",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [
+        {
+          "name": "Soft shaped surface",
+          "type": "SUBSURF"
+        }
+      ],
+      "bounds": [
+        [
+          0.229994997382164,
+          -0.07524000108242035,
+          0.7849723696708679
+        ],
+        [
+          0.3625200092792511,
+          0.05044500157237053,
+          1.0561447143554688
+        ]
+      ],
+      "materials": [
+        "Warm ochre skin"
+      ],
+      "vertices": 120
+    },
+    {
+      "name": "Game projection camera",
+      "type": "CAMERA",
+      "parent": null,
+      "location": [
+        5.335428714752197,
+        -5.335428714752197,
+        7.587500095367432
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.8549583554267883,
+        -8.285385888484598e-08,
+        0.7853983044624329
+      ],
+      "hidden": false,
+      "ortho_scale": 1.9445436000823975
+    },
+    {
+      "name": "HAIR_01_TRIPO_CURL",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          -0.25222498178482056,
+          -0.23512500524520874,
+          1.6460633277893066
+        ],
+        [
+          0.25222498178482056,
+          0.23512500524520874,
+          2.093259811401367
+        ]
+      ],
+      "materials": [
+        "Chestnut hair planes"
+      ],
+      "vertices": 101802
+    },
+    {
+      "name": "Hazel iris",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          -0.11029499769210815,
+          -0.18541556596755981,
+          1.6660444736480713
+        ],
+        [
+          -0.07609499990940094,
+          -0.17215286195278168,
+          1.7155214548110962
+        ]
+      ],
+      "materials": [
+        "Hazel iris"
+      ],
+      "vertices": 41
+    },
+    {
+      "name": "Hazel iris.001",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          0.07609499990940094,
+          -0.18541556596755981,
+          1.6660444736480713
+        ],
+        [
+          0.11029499769210815,
+          -0.17215286195278168,
+          1.7155214548110962
+        ]
+      ],
+      "materials": [
+        "Hazel iris"
+      ],
+      "vertices": 41
+    },
+    {
+      "name": "Inner ear",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        -0.2750000059604645,
+        -0.01600000075995922,
+        1.746999979019165
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          -0.25222501158714294,
+          -0.022230003029108047,
+          1.6270337104797363
+        ],
+        [
+          -0.21802499890327454,
+          -0.005130000412464142,
+          1.6974432468414307
+        ]
+      ],
+      "materials": [
+        "Cheek warmth"
+      ],
+      "vertices": 382
+    },
+    {
+      "name": "Inner ear.001",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.2750000059604645,
+        -0.01600000075995922,
+        1.746999979019165
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          0.21802499890327454,
+          -0.022230003029108047,
+          1.6270337104797363
+        ],
+        [
+          0.25222501158714294,
+          -0.005130000412464142,
+          1.6974432468414307
+        ]
+      ],
+      "materials": [
+        "Cheek warmth"
+      ],
+      "vertices": 382
+    },
+    {
+      "name": "Natural neck",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [
+        {
+          "name": "Soft shaped surface",
+          "type": "SUBSURF"
+        }
+      ],
+      "bounds": [
+        [
+          -0.08977499604225159,
+          -0.07524000108242035,
+          1.3320744037628174
+        ],
+        [
+          0.08977499604225159,
+          0.08207999914884567,
+          1.4843113422393799
+        ]
+      ],
+      "materials": [
+        "Warm ochre skin"
+      ],
+      "vertices": 72
+    },
+    {
+      "name": "One sewn breast pocket",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        -0.12600000202655792,
+        -0.15600000321865082,
+        1.281000018119812
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [
+        {
+          "name": "Rounded sewn edge",
+          "type": "BEVEL"
+        },
+        {
+          "name": "Surface normals",
+          "type": "WEIGHTED_NORMAL"
+        }
+      ],
+      "bounds": [
+        [
+          -0.15646499395370483,
+          -0.14406751096248627,
+          1.1650893688201904
+        ],
+        [
+          -0.05899500101804733,
+          -0.12269251048564911,
+          1.2726068496704102
+        ]
+      ],
+      "materials": [
+        "Sage seam and cuff"
+      ],
+      "vertices": 8
+    },
+    {
+      "name": "Overshirt body",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [
+        {
+          "name": "Soft shaped surface",
+          "type": "SUBSURF"
+        }
+      ],
+      "bounds": [
+        [
+          -0.24966000020503998,
+          -0.14449501037597656,
+          0.880120575428009
+        ],
+        [
+          0.24966000020503998,
+          0.14449501037597656,
+          1.4034355878829956
+        ]
+      ],
+      "materials": [
+        "Washed sage overshirt"
+      ],
+      "vertices": 216
+    },
+    {
+      "name": "Pocket top seam",
+      "type": "CURVE",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          -0.15013165771961212,
+          -0.1603177785873413,
+          1.2526257038116455
+        ],
+        [
+          -0.06796903908252716,
+          -0.1475266069173813,
+          1.2621344327926636
+        ]
+      ],
+      "materials": [
+        "Washed sage overshirt"
+      ]
+    },
+    {
+      "name": "Quiet closed smile",
+      "type": "CURVE",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          -0.0393335223197937,
+          -0.18419505655765533,
+          1.534264326095581
+        ],
+        [
+          0.0393335223197937,
+          -0.17466486990451813,
+          1.555788516998291
+        ]
+      ],
+      "materials": [
+        "Warm dark facial marks"
+      ]
+    },
+    {
+      "name": "Quiet fill",
+      "type": "LIGHT",
+      "parent": null,
+      "location": [
+        4.0,
+        -1.0,
+        4.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.9417816400527954,
+        9.220694430212006e-09,
+        1.3258177042007446
+      ],
+      "hidden": false
+    },
+    {
+      "name": "Relaxed palm",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        -0.37400001287460327,
+        -0.04399999976158142,
+        0.7940000295639038
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        -0.11999999731779099,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          -0.3825618028640747,
+          -0.0812249705195427,
+          0.662338376045227
+        ],
+        [
+          -0.25697818398475647,
+          0.005984947085380554,
+          0.8486145734786987
+        ]
+      ],
+      "materials": [
+        "Warm ochre skin"
+      ],
+      "vertices": 610
+    },
+    {
+      "name": "Relaxed palm.001",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.37400001287460327,
+        -0.04399999976158142,
+        0.7940000295639038
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.11999999731779099,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          0.25697821378707886,
+          -0.0812249705195427,
+          0.662338376045227
+        ],
+        [
+          0.3825618326663971,
+          0.005984947085380554,
+          0.8486145734786987
+        ]
+      ],
+      "materials": [
+        "Warm ochre skin"
+      ],
+      "vertices": 610
+    },
+    {
+      "name": "Relaxed shirt sleeve",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [
+        {
+          "name": "Soft shaped surface",
+          "type": "SUBSURF"
+        }
+      ],
+      "bounds": [
+        [
+          -0.3633750081062317,
+          -0.09576000273227692,
+          1.0485328435897827
+        ],
+        [
+          -0.1410750150680542,
+          0.09576000273227692,
+          1.3653762340545654
+        ]
+      ],
+      "materials": [
+        "Washed sage overshirt"
+      ],
+      "vertices": 120
+    },
+    {
+      "name": "Relaxed shirt sleeve.001",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [
+        {
+          "name": "Soft shaped surface",
+          "type": "SUBSURF"
+        }
+      ],
+      "bounds": [
+        [
+          0.1410750150680542,
+          -0.09576000273227692,
+          1.0485328435897827
+        ],
+        [
+          0.3633750081062317,
+          0.09576000273227692,
+          1.3653762340545654
+        ]
+      ],
+      "materials": [
+        "Washed sage overshirt"
+      ],
+      "vertices": 120
+    },
+    {
+      "name": "Resting thumb",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        -0.32499998807907104,
+        -0.07000000029802322,
+        0.8149999976158142
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          -0.3026700019836426,
+          -0.09148499369621277,
+          0.7297864556312561
+        ],
+        [
+          -0.25308001041412354,
+          -0.02821499854326248,
+          0.8211286664009094
+        ]
+      ],
+      "materials": [
+        "Warm ochre skin"
+      ],
+      "vertices": 458
+    },
+    {
+      "name": "Resting thumb.001",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.32499998807907104,
+        -0.07000000029802322,
+        0.8149999976158142
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          0.25308001041412354,
+          -0.09148499369621277,
+          0.7297864556312561
+        ],
+        [
+          0.3026700019836426,
+          -0.02821499854326248,
+          0.8211286664009094
+        ]
+      ],
+      "materials": [
+        "Warm ochre skin"
+      ],
+      "vertices": 458
+    },
+    {
+      "name": "Sculpted head",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [
+        {
+          "name": "Soft shaped surface",
+          "type": "SUBSURF"
+        }
+      ],
+      "bounds": [
+        [
+          -0.22486501932144165,
+          -0.1855349987745285,
+          1.4129503965377808
+        ],
+        [
+          0.22486501932144165,
+          0.1940850019454956,
+          1.964809775352478
+        ]
+      ],
+      "materials": [
+        "Warm ochre skin"
+      ],
+      "vertices": 400
+    },
+    {
+      "name": "Shaped shoe",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [
+        {
+          "name": "Soft shaped surface",
+          "type": "SUBSURF"
+        }
+      ],
+      "bounds": [
+        [
+          -0.21546000242233276,
+          -0.19066500663757324,
+          0.06470075994729996
+        ],
+        [
+          -0.03249000012874603,
+          0.09661500155925751,
+          0.1703152358531952
+        ]
+      ],
+      "materials": [
+        "Warm charcoal shoes"
+      ],
+      "vertices": 120
+    },
+    {
+      "name": "Shaped shoe.001",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [
+        {
+          "name": "Soft shaped surface",
+          "type": "SUBSURF"
+        }
+      ],
+      "bounds": [
+        [
+          0.03249000012874603,
+          -0.19066500663757324,
+          0.06470075994729996
+        ],
+        [
+          0.21546000242233276,
+          0.09661500155925751,
+          0.1703152358531952
+        ]
+      ],
+      "materials": [
+        "Warm charcoal shoes"
+      ],
+      "vertices": 120
+    },
+    {
+      "name": "Shirt lower hem",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [
+        {
+          "name": "Soft shaped surface",
+          "type": "SUBSURF"
+        }
+      ],
+      "bounds": [
+        [
+          -0.21460498869419098,
+          -0.13594499230384827,
+          0.8829749822616577
+        ],
+        [
+          0.21460498869419098,
+          0.13594499230384827,
+          0.9257916808128357
+        ]
+      ],
+      "materials": [
+        "Sage seam and cuff"
+      ],
+      "vertices": 96
+    },
+    {
+      "name": "Shirt placket",
+      "type": "CURVE",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          -0.005130001809448004,
+          -0.15768581628799438,
+          0.9229056239128113
+        ],
+        [
+          0.005130001809448004,
+          -0.0853821188211441,
+          1.402812123298645
+        ]
+      ],
+      "materials": [
+        "Sage seam and cuff"
+      ]
+    },
+    {
+      "name": "Shoe apron stitch",
+      "type": "CURVE",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          -0.1823299527168274,
+          -0.17741161584854126,
+          0.11278297752141953
+        ],
+        [
+          -0.065620057284832,
+          -0.15108279883861542,
+          0.12892478704452515
+        ]
+      ],
+      "materials": [
+        "Quiet rubber soles"
+      ]
+    },
+    {
+      "name": "Shoe apron stitch.001",
+      "type": "CURVE",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          0.065620057284832,
+          -0.17741161584854126,
+          0.11278297752141953
+        ],
+        [
+          0.1823299527168274,
+          -0.15108279883861542,
+          0.12892478704452515
+        ]
+      ],
+      "materials": [
+        "Quiet rubber soles"
+      ]
+    },
+    {
+      "name": "SIM_PREVIEW_ROOT",
+      "type": "EMPTY",
+      "parent": null,
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        0.8550000190734863,
+        0.8550000190734863,
+        0.9514816999435425
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false
+    },
+    {
+      "name": "Small eye catchlight",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          -0.09832500666379929,
+          -0.1841307282447815,
+          1.6936373710632324
+        ],
+        [
+          -0.08977499604225159,
+          -0.1807694286108017,
+          1.7050552368164062
+        ]
+      ],
+      "materials": [
+        "Warm eye whites"
+      ],
+      "vertices": 41
+    },
+    {
+      "name": "Small eye catchlight.001",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          0.08293500542640686,
+          -0.18655841052532196,
+          1.6936373710632324
+        ],
+        [
+          0.09148500114679337,
+          -0.18348805606365204,
+          1.7050552368164062
+        ]
+      ],
+      "materials": [
+        "Warm eye whites"
+      ],
+      "vertices": 41
+    },
+    {
+      "name": "Small horn button",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        -0.16899999976158142,
+        1.0199999809265137
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          -0.010259999893605709,
+          -0.14877000451087952,
+          0.9590935111045837
+        ],
+        [
+          0.010259999893605709,
+          -0.1402200162410736,
+          0.9819291234016418
+        ]
+      ],
+      "materials": [
+        "Oatmeal undershirt"
+      ],
+      "vertices": 306
+    },
+    {
+      "name": "Small horn button.001",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        -0.16899999976158142,
+        1.1449999809265137
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          -0.010259999893605709,
+          -0.14877000451087952,
+          1.0780287981033325
+        ],
+        [
+          0.010259999893605709,
+          -0.1402200162410736,
+          1.100864291191101
+        ]
+      ],
+      "materials": [
+        "Oatmeal undershirt"
+      ],
+      "vertices": 306
+    },
+    {
+      "name": "Small horn button.002",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        -0.16899999976158142,
+        1.2699999809265137
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          -0.010259999893605709,
+          -0.14877000451087952,
+          1.1969640254974365
+        ],
+        [
+          0.010259999893605709,
+          -0.1402200162410736,
+          1.219799518585205
+        ]
+      ],
+      "materials": [
+        "Oatmeal undershirt"
+      ],
+      "vertices": 306
+    },
+    {
+      "name": "Small horn button.003",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        -0.15299999713897705,
+        1.3650000095367432
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          -0.010259999893605709,
+          -0.13508999347686768,
+          1.287354826927185
+        ],
+        [
+          0.010259999893605709,
+          -0.12654000520706177,
+          1.3101903200149536
+        ]
+      ],
+      "materials": [
+        "Oatmeal undershirt"
+      ],
+      "vertices": 306
+    },
+    {
+      "name": "Small rounded nose",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        -0.210999995470047,
+        1.7070000171661377
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          -0.03163498640060425,
+          -0.21802499890327454,
+          1.587071418762207
+        ],
+        [
+          0.031634993851184845,
+          -0.14278501272201538,
+          1.6612870693206787
+        ]
+      ],
+      "materials": [
+        "Warm ochre skin"
+      ],
+      "vertices": 458
+    },
+    {
+      "name": "Soft eyebrow",
+      "type": "CURVE",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          -0.1343192458152771,
+          -0.19787034392356873,
+          1.7394981384277344
+        ],
+        [
+          -0.04433383792638779,
+          -0.15072323381900787,
+          1.7678519487380981
+        ]
+      ],
+      "materials": [
+        "Original chestnut brow"
+      ]
+    },
+    {
+      "name": "Soft eyebrow.001",
+      "type": "CURVE",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          0.04433383792638779,
+          -0.19787034392356873,
+          1.7394981384277344
+        ],
+        [
+          0.1343192458152771,
+          -0.15072323381900787,
+          1.7678519487380981
+        ]
+      ],
+      "materials": [
+        "Original chestnut brow"
+      ]
+    },
+    {
+      "name": "Soft window key",
+      "type": "LIGHT",
+      "parent": null,
+      "location": [
+        -3.0,
+        -4.0,
+        7.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.6947383284568787,
+        -4.873782089021006e-08,
+        -0.6435011029243469
+      ],
+      "hidden": false
+    },
+    {
+      "name": "Tailored trouser leg",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [
+        {
+          "name": "Soft shaped surface",
+          "type": "SUBSURF"
+        }
+      ],
+      "bounds": [
+        [
+          -0.21546000242233276,
+          -0.09917999804019928,
+          0.13986781239509583
+        ],
+        [
+          0.00684000039473176,
+          0.11799000203609467,
+          0.8896353840827942
+        ]
+      ],
+      "materials": [
+        "Slate cotton trousers"
+      ],
+      "vertices": 168
+    },
+    {
+      "name": "Tailored trouser leg.001",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [
+        {
+          "name": "Soft shaped surface",
+          "type": "SUBSURF"
+        }
+      ],
+      "bounds": [
+        [
+          -0.00684000039473176,
+          -0.09917999804019928,
+          0.13986781239509583
+        ],
+        [
+          0.21546000242233276,
+          0.11799000203609467,
+          0.8896353840827942
+        ]
+      ],
+      "materials": [
+        "Slate cotton trousers"
+      ],
+      "vertices": 168
+    },
+    {
+      "name": "Trouser hem",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [
+        {
+          "name": "Soft shaped surface",
+          "type": "SUBSURF"
+        }
+      ],
+      "bounds": [
+        [
+          -0.19835999608039856,
+          -0.07866000384092331,
+          0.14747966825962067
+        ],
+        [
+          -0.04958999902009964,
+          0.07866000384092331,
+          0.187441885471344
+        ]
+      ],
+      "materials": [
+        "Trouser cuff"
+      ],
+      "vertices": 96
+    },
+    {
+      "name": "Trouser hem.001",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [
+        {
+          "name": "Soft shaped surface",
+          "type": "SUBSURF"
+        }
+      ],
+      "bounds": [
+        [
+          0.04958999902009964,
+          -0.07866000384092331,
+          0.14747966825962067
+        ],
+        [
+          0.19835999608039856,
+          0.07866000384092331,
+          0.187441885471344
+        ]
+      ],
+      "materials": [
+        "Trouser cuff"
+      ],
+      "vertices": 96
+    },
+    {
+      "name": "Trouser hip bridge",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [
+        {
+          "name": "Soft shaped surface",
+          "type": "SUBSURF"
+        }
+      ],
+      "bounds": [
+        [
+          -0.21118499338626862,
+          -0.10516500473022461,
+          0.7326408624649048
+        ],
+        [
+          0.21118499338626862,
+          0.13594499230384827,
+          0.9562391042709351
+        ]
+      ],
+      "materials": [
+        "Slate cotton trousers"
+      ],
+      "vertices": 96
+    },
+    {
+      "name": "Turned sleeve cuff",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [
+        {
+          "name": "Soft shaped surface",
+          "type": "SUBSURF"
+        }
+      ],
+      "bounds": [
+        [
+          -0.36594000458717346,
+          -0.08720999956130981,
+          1.0323576927185059
+        ],
+        [
+          -0.20862001180648804,
+          0.07267500460147858,
+          1.0970584154129028
+        ]
+      ],
+      "materials": [
+        "Sage seam and cuff"
+      ],
+      "vertices": 96
+    },
+    {
+      "name": "Turned sleeve cuff.001",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [
+        {
+          "name": "Soft shaped surface",
+          "type": "SUBSURF"
+        }
+      ],
+      "bounds": [
+        [
+          0.20862001180648804,
+          -0.08720999956130981,
+          1.0323576927185059
+        ],
+        [
+          0.36594000458717346,
+          0.07267500460147858,
+          1.0970584154129028
+        ]
+      ],
+      "materials": [
+        "Sage seam and cuff"
+      ],
+      "vertices": 96
+    },
+    {
+      "name": "Upper lid outline",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          -0.14022000133991241,
+          -0.19003300368785858,
+          1.657481074333191
+        ],
+        [
+          -0.041039999574422836,
+          -0.1515965759754181,
+          1.7240848541259766
+        ]
+      ],
+      "materials": [
+        "Warm dark facial marks"
+      ],
+      "vertices": 41
+    },
+    {
+      "name": "Upper lid outline.001",
+      "type": "MESH",
+      "parent": "SIM_PREVIEW_ROOT",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hidden": false,
+      "modifiers": [],
+      "bounds": [
+        [
+          0.041039999574422836,
+          -0.19003300368785858,
+          1.657481074333191
+        ],
+        [
+          0.14022000133991241,
+          -0.1515965759754181,
+          1.7240848541259766
+        ]
+      ],
+      "materials": [
+        "Warm dark facial marks"
+      ],
+      "vertices": 41
+    }
+  ],
+  "render": {
+    "x": 608,
+    "y": 1408,
+    "percentage": 100,
+    "engine": "BLENDER_EEVEE_NEXT",
+    "camera": "Game projection camera"
+  }
+}
