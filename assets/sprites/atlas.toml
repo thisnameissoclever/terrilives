@@ -10,6085 +10,6085 @@
 # Logical size is w/h divided by pixel_density (default 1).
 
 image = "atlas.png"
-width = 2048
-height = 6682
+width = 4096
+height = 6073
 
 [[sprite]]
 name = "floor"
-x = 521
-y = 6625
+x = 255
+y = 6021
 w = 64
 h = 42
 
 [[sprite]]
 name = "sim"
-x = 1872
-y = 5845
+x = 3906
+y = 5529
 w = 38
 h = 88
 
 [[sprite]]
 name = "wallNS"
 x = 1869
-y = 5692
+y = 5529
 w = 32
 h = 109
 
 [[sprite]]
 name = "wallEW"
 x = 1902
-y = 5692
+y = 5529
 w = 32
 h = 109
 
 [[sprite]]
 name = "kitchenFridgeBuiltIn"
-x = 459
-y = 5845
+x = 2493
+y = 5529
 w = 58
 h = 102
 
 [[sprite]]
 name = "bathroomSinkSquare"
-x = 869
-y = 6552
+x = 2654
+y = 5948
 w = 34
 h = 65
 
 [[sprite]]
 name = "showerRound"
-x = 518
-y = 5845
+x = 2552
+y = 5529
 w = 58
 h = 102
 
 [[sprite]]
 name = "toiletSquare"
-x = 1159
-y = 6552
+x = 2944
+y = 5948
 w = 38
 h = 63
 
 [[sprite]]
 name = "bookcaseClosedDoors"
-x = 1911
-y = 5845
+x = 3945
+y = 5529
 w = 58
 h = 88
 
 [[sprite]]
 name = "loungeSofaOttoman"
-x = 156
-y = 6625
+x = 3953
+y = 5948
 w = 54
 h = 51
 
 [[sprite]]
 name = "televisionVintage"
-x = 1600
-y = 6552
+x = 3385
+y = 5948
 w = 44
 h = 59
 
 [[sprite]]
 name = "bedBunk"
 x = 1254
-y = 5692
+y = 5529
 w = 122
 h = 136
 
 [[sprite]]
 name = "selectionRing"
-x = 586
-y = 6625
+x = 320
+y = 6021
 w = 64
 h = 42
 
 [[sprite]]
 name = "kitchenStove"
-x = 238
-y = 6399
+x = 2118
+y = 5860
 w = 66
 h = 77
 
 [[sprite]]
 name = "kitchenCabinet"
-x = 792
-y = 6399
+x = 2672
+y = 5860
 w = 66
 h = 76
 
 [[sprite]]
 name = "kitchenSink"
-x = 859
-y = 6399
+x = 2739
+y = 5860
 w = 66
 h = 76
 
 [[sprite]]
 name = "table"
-x = 535
-y = 6311
+x = 416
+y = 5860
 w = 112
 h = 83
 
 [[sprite]]
 name = "chair"
-x = 1659
-y = 6311
+x = 1540
+y = 5860
 w = 50
 h = 80
 
 [[sprite]]
 name = "trashcan"
-x = 105
-y = 6625
+x = 3902
+y = 5948
 w = 16
 h = 52
 
 [[sprite]]
 name = "loungeSofaLong"
-x = 1380
-y = 5845
+x = 3414
+y = 5529
 w = 122
 h = 92
 
 [[sprite]]
 name = "loungeChair"
-x = 105
-y = 6552
+x = 1890
+y = 5948
 w = 50
 h = 70
 
 [[sprite]]
 name = "loungeChairRelax"
-x = 1439
-y = 6311
+x = 1320
+y = 5860
 w = 54
 h = 81
 
 [[sprite]]
 name = "radio"
-x = 41
-y = 6625
+x = 3838
+y = 5948
 w = 46
 h = 54
 
 [[sprite]]
 name = "pottedPlant"
-x = 1198
-y = 6552
+x = 2983
+y = 5948
 w = 30
 h = 63
 
 [[sprite]]
 name = "cardboardBoxOpen"
-x = 0
-y = 5955
+x = 4004
+y = 5529
 w = 80
 h = 88
 
 [[sprite]]
 name = "lampRoundFloor"
-x = 529
-y = 6552
+x = 2314
+y = 5948
 w = 34
 h = 68
 
 [[sprite]]
 name = "coatRackStanding"
-x = 305
-y = 6399
+x = 2185
+y = 5860
 w = 18
 h = 77
 
 [[sprite]]
 name = "bedDouble"
-x = 914
-y = 5845
+x = 2948
+y = 5529
 w = 122
 h = 96
 
 [[sprite]]
 name = "sideTableDrawers"
-x = 904
-y = 6552
+x = 2689
+y = 5948
 w = 54
 h = 65
 
 [[sprite]]
 name = "cabinetBedDrawer"
-x = 1811
-y = 6552
+x = 3596
+y = 5948
 w = 40
 h = 56
 
 [[sprite]]
 name = "desk"
-x = 648
-y = 6311
+x = 529
+y = 5860
 w = 112
 h = 83
 
 [[sprite]]
 name = "chairDesk"
-x = 324
-y = 6399
+x = 2204
+y = 5860
 w = 48
 h = 77
 
 [[sprite]]
 name = "bookcaseClosedWide"
-x = 297
-y = 5845
+x = 2331
+y = 5529
 w = 80
 h = 104
 
 [[sprite]]
 name = "bathtub"
-x = 0
-y = 6311
+x = 3891
+y = 5771
 w = 118
 h = 87
 
 [[sprite]]
 name = "washerDryerStacked"
-x = 1037
-y = 5845
+x = 3071
+y = 5529
 w = 54
 h = 96
 
 [[sprite]]
 name = "wallCornerNW"
-x = 872
-y = 5845
+x = 2906
+y = 5529
 w = 8
 h = 101
 
 [[sprite]]
 name = "doorwayNS"
 x = 1935
-y = 5692
+y = 5529
 w = 32
 h = 109
 
 [[sprite]]
 name = "doorwayEW"
 x = 1968
-y = 5692
+y = 5529
 w = 32
 h = 109
 
 [[sprite]]
 name = "kitchenStoveSW"
-x = 926
-y = 6399
+x = 2806
+y = 5860
 w = 66
 h = 76
 
 [[sprite]]
 name = "kitchenCabinetSW"
-x = 993
-y = 6399
+x = 2873
+y = 5860
 w = 66
 h = 76
 
 [[sprite]]
 name = "kitchenSinkSW"
-x = 1060
-y = 6399
+x = 2940
+y = 5860
 w = 66
 h = 76
 
 [[sprite]]
 name = "kitchenCabinetCornerInnerSW"
-x = 1127
-y = 6399
+x = 3007
+y = 5860
 w = 66
 h = 76
 
 [[sprite]]
 name = "indicatorTalk"
-x = 651
-y = 6625
+x = 385
+y = 6021
 w = 26
 h = 26
 
 [[sprite]]
 name = "indicatorEat"
-x = 678
-y = 6625
+x = 412
+y = 6021
 w = 26
 h = 26
 
 [[sprite]]
 name = "indicatorSleep"
-x = 705
-y = 6625
+x = 439
+y = 6021
 w = 26
 h = 26
 
 [[sprite]]
 name = "indicatorWait"
-x = 732
-y = 6625
+x = 466
+y = 6021
 w = 26
 h = 26
 
 [[sprite]]
 name = "carried_ingredients"
-x = 840
-y = 6625
+x = 574
+y = 6021
 w = 16
 h = 20
 
 [[sprite]]
 name = "carried_dinner"
-x = 857
-y = 6625
+x = 591
+y = 6021
 w = 18
 h = 14
 
 [[sprite]]
 name = "sim2"
-x = 81
-y = 5955
+x = 0
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3"
-x = 120
-y = 5955
+x = 39
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simTalkSE0"
-x = 159
-y = 5955
+x = 78
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simTalkSE1"
-x = 198
-y = 5955
+x = 117
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simTalkNW0"
-x = 237
-y = 5955
+x = 156
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simTalkNW1"
-x = 276
-y = 5955
+x = 195
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simTalkSW0"
-x = 315
-y = 5955
+x = 234
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simTalkSW1"
-x = 354
-y = 5955
+x = 273
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simTalkNE0"
-x = 393
-y = 5955
+x = 312
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simTalkNE1"
-x = 432
-y = 5955
+x = 351
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2TalkSE0"
-x = 471
-y = 5955
+x = 390
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2TalkSE1"
-x = 510
-y = 5955
+x = 429
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2TalkNW0"
-x = 549
-y = 5955
+x = 468
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2TalkNW1"
-x = 588
-y = 5955
+x = 507
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2TalkSW0"
-x = 627
-y = 5955
+x = 546
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2TalkSW1"
-x = 666
-y = 5955
+x = 585
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2TalkNE0"
-x = 705
-y = 5955
+x = 624
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2TalkNE1"
-x = 744
-y = 5955
+x = 663
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3TalkSE0"
-x = 783
-y = 5955
+x = 702
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3TalkSE1"
-x = 822
-y = 5955
+x = 741
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3TalkNW0"
-x = 861
-y = 5955
+x = 780
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3TalkNW1"
-x = 900
-y = 5955
+x = 819
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3TalkSW0"
-x = 939
-y = 5955
+x = 858
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3TalkSW1"
-x = 978
-y = 5955
+x = 897
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3TalkNE0"
-x = 1017
-y = 5955
+x = 936
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3TalkNE1"
-x = 1056
-y = 5955
+x = 975
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simEatSE0"
-x = 1095
-y = 5955
+x = 1014
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simEatSE1"
-x = 1134
-y = 5955
+x = 1053
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simEatNW0"
-x = 1173
-y = 5955
+x = 1092
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simEatNW1"
-x = 1212
-y = 5955
+x = 1131
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simEatSW0"
-x = 1251
-y = 5955
+x = 1170
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simEatSW1"
-x = 1290
-y = 5955
+x = 1209
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simEatNE0"
-x = 1329
-y = 5955
+x = 1248
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simEatNE1"
-x = 1368
-y = 5955
+x = 1287
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2EatSE0"
-x = 1407
-y = 5955
+x = 1326
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2EatSE1"
-x = 1446
-y = 5955
+x = 1365
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2EatNW0"
-x = 1485
-y = 5955
+x = 1404
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2EatNW1"
-x = 1524
-y = 5955
+x = 1443
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2EatSW0"
-x = 1563
-y = 5955
+x = 1482
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2EatSW1"
-x = 1602
-y = 5955
+x = 1521
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2EatNE0"
-x = 1641
-y = 5955
+x = 1560
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2EatNE1"
-x = 1680
-y = 5955
+x = 1599
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3EatSE0"
-x = 1719
-y = 5955
+x = 1638
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3EatSE1"
-x = 1758
-y = 5955
+x = 1677
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3EatNW0"
-x = 1797
-y = 5955
+x = 1716
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3EatNW1"
-x = 1836
-y = 5955
+x = 1755
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3EatSW0"
-x = 1875
-y = 5955
+x = 1794
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3EatSW1"
-x = 1914
-y = 5955
+x = 1833
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3EatNE0"
-x = 1953
-y = 5955
+x = 1872
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3EatNE1"
-x = 1992
-y = 5955
+x = 1911
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simReadSE0"
-x = 0
-y = 6044
+x = 1950
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simReadSE1"
-x = 39
-y = 6044
+x = 1989
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simReadNW0"
-x = 78
-y = 6044
+x = 2028
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simReadNW1"
-x = 117
-y = 6044
+x = 2067
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simReadSW0"
-x = 156
-y = 6044
+x = 2106
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simReadSW1"
-x = 195
-y = 6044
+x = 2145
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simReadNE0"
-x = 234
-y = 6044
+x = 2184
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simReadNE1"
-x = 273
-y = 6044
+x = 2223
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ReadSE0"
-x = 312
-y = 6044
+x = 2262
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ReadSE1"
-x = 351
-y = 6044
+x = 2301
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ReadNW0"
-x = 390
-y = 6044
+x = 2340
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ReadNW1"
-x = 429
-y = 6044
+x = 2379
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ReadSW0"
-x = 468
-y = 6044
+x = 2418
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ReadSW1"
-x = 507
-y = 6044
+x = 2457
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ReadNE0"
-x = 546
-y = 6044
+x = 2496
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ReadNE1"
-x = 585
-y = 6044
+x = 2535
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ReadSE0"
-x = 624
-y = 6044
+x = 2574
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ReadSE1"
-x = 663
-y = 6044
+x = 2613
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ReadNW0"
-x = 702
-y = 6044
+x = 2652
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ReadNW1"
-x = 741
-y = 6044
+x = 2691
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ReadSW0"
-x = 780
-y = 6044
+x = 2730
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ReadSW1"
-x = 819
-y = 6044
+x = 2769
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ReadNE0"
-x = 858
-y = 6044
+x = 2808
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ReadNE1"
-x = 897
-y = 6044
+x = 2847
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "indicatorReading"
-x = 759
-y = 6625
+x = 493
+y = 6021
 w = 26
 h = 26
 
 [[sprite]]
 name = "simStandReadSE0"
-x = 936
-y = 6044
+x = 2886
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simStandReadSE1"
-x = 975
-y = 6044
+x = 2925
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simStandReadNW0"
-x = 1014
-y = 6044
+x = 2964
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simStandReadNW1"
-x = 1053
-y = 6044
+x = 3003
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simStandReadSW0"
-x = 1092
-y = 6044
+x = 3042
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simStandReadSW1"
-x = 1131
-y = 6044
+x = 3081
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simStandReadNE0"
-x = 1170
-y = 6044
+x = 3120
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simStandReadNE1"
-x = 1209
-y = 6044
+x = 3159
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2StandReadSE0"
-x = 1248
-y = 6044
+x = 3198
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2StandReadSE1"
-x = 1287
-y = 6044
+x = 3237
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2StandReadNW0"
-x = 1326
-y = 6044
+x = 3276
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2StandReadNW1"
-x = 1365
-y = 6044
+x = 3315
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2StandReadSW0"
-x = 1404
-y = 6044
+x = 3354
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2StandReadSW1"
-x = 1443
-y = 6044
+x = 3393
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2StandReadNE0"
-x = 1482
-y = 6044
+x = 3432
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2StandReadNE1"
-x = 1521
-y = 6044
+x = 3471
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3StandReadSE0"
-x = 1560
-y = 6044
+x = 3510
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3StandReadSE1"
-x = 1599
-y = 6044
+x = 3549
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3StandReadNW0"
-x = 1638
-y = 6044
+x = 3588
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3StandReadNW1"
-x = 1677
-y = 6044
+x = 3627
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3StandReadSW0"
-x = 1716
-y = 6044
+x = 3666
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3StandReadSW1"
-x = 1755
-y = 6044
+x = 3705
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3StandReadNE0"
-x = 1794
-y = 6044
+x = 3744
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3StandReadNE1"
-x = 1833
-y = 6044
+x = 3783
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simWalkSE0"
-x = 1872
-y = 6044
+x = 3822
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simWalkSE1"
-x = 1911
-y = 6044
+x = 3861
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simWalkNW0"
-x = 1950
-y = 6044
+x = 3900
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simWalkNW1"
-x = 1989
-y = 6044
+x = 3939
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simWalkSW0"
-x = 0
-y = 6133
+x = 3978
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simWalkSW1"
-x = 39
-y = 6133
+x = 4017
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simWalkNE0"
-x = 78
-y = 6133
+x = 4056
+y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simWalkNE1"
-x = 117
-y = 6133
+x = 0
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2WalkSE0"
-x = 156
-y = 6133
+x = 39
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2WalkSE1"
-x = 195
-y = 6133
+x = 78
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2WalkNW0"
-x = 234
-y = 6133
+x = 117
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2WalkNW1"
-x = 273
-y = 6133
+x = 156
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2WalkSW0"
-x = 312
-y = 6133
+x = 195
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2WalkSW1"
-x = 351
-y = 6133
+x = 234
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2WalkNE0"
-x = 390
-y = 6133
+x = 273
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2WalkNE1"
-x = 429
-y = 6133
+x = 312
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3WalkSE0"
-x = 468
-y = 6133
+x = 351
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3WalkSE1"
-x = 507
-y = 6133
+x = 390
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3WalkNW0"
-x = 546
-y = 6133
+x = 429
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3WalkNW1"
-x = 585
-y = 6133
+x = 468
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3WalkSW0"
-x = 624
-y = 6133
+x = 507
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3WalkSW1"
-x = 663
-y = 6133
+x = 546
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3WalkNE0"
-x = 702
-y = 6133
+x = 585
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3WalkNE1"
-x = 741
-y = 6133
+x = 624
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "heldSnack"
-x = 876
-y = 6625
+x = 610
+y = 6021
 w = 14
 h = 10
 
 [[sprite]]
 name = "aquariumCabinet1"
-x = 378
-y = 5845
+x = 2412
+y = 5529
 w = 80
 h = 104
 
 [[sprite]]
 name = "indicatorExercise"
-x = 786
-y = 6625
+x = 520
+y = 6021
 w = 26
 h = 26
 
 [[sprite]]
 name = "indicatorWatchFish"
-x = 813
-y = 6625
+x = 547
+y = 6021
 w = 26
 h = 26
 
 [[sprite]]
 name = "simExerciseSE0"
-x = 780
-y = 6133
+x = 663
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "simExerciseSE1"
-x = 819
-y = 6133
+x = 702
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "simExerciseNW0"
-x = 858
-y = 6133
+x = 741
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "simExerciseNW1"
-x = 897
-y = 6133
+x = 780
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "simExerciseSW0"
-x = 936
-y = 6133
+x = 819
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "simExerciseSW1"
-x = 975
-y = 6133
+x = 858
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "simExerciseNE0"
-x = 1014
-y = 6133
+x = 897
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "simExerciseNE1"
-x = 1053
-y = 6133
+x = 936
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ExerciseSE0"
-x = 1092
-y = 6133
+x = 975
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ExerciseSE1"
-x = 1131
-y = 6133
+x = 1014
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ExerciseNW0"
-x = 1170
-y = 6133
+x = 1053
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ExerciseNW1"
-x = 1209
-y = 6133
+x = 1092
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ExerciseSW0"
-x = 1248
-y = 6133
+x = 1131
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ExerciseSW1"
-x = 1287
-y = 6133
+x = 1170
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ExerciseNE0"
-x = 1326
-y = 6133
+x = 1209
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ExerciseNE1"
-x = 1365
-y = 6133
+x = 1248
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ExerciseSE0"
-x = 1404
-y = 6133
+x = 1287
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ExerciseSE1"
-x = 1443
-y = 6133
+x = 1326
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ExerciseNW0"
-x = 1482
-y = 6133
+x = 1365
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ExerciseNW1"
-x = 1521
-y = 6133
+x = 1404
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ExerciseSW0"
-x = 1560
-y = 6133
+x = 1443
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ExerciseSW1"
-x = 1599
-y = 6133
+x = 1482
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ExerciseNE0"
-x = 1638
-y = 6133
+x = 1521
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ExerciseNE1"
-x = 1677
-y = 6133
+x = 1560
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "simWatchFishSE0"
-x = 1716
-y = 6133
+x = 1599
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "simWatchFishSE1"
-x = 1755
-y = 6133
+x = 1638
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "simWatchFishNW0"
-x = 1794
-y = 6133
+x = 1677
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "simWatchFishNW1"
-x = 1833
-y = 6133
+x = 1716
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "simWatchFishSW0"
-x = 1872
-y = 6133
+x = 1755
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "simWatchFishSW1"
-x = 1911
-y = 6133
+x = 1794
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "simWatchFishNE0"
-x = 1950
-y = 6133
+x = 1833
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "simWatchFishNE1"
-x = 1989
-y = 6133
+x = 1872
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2WatchFishSE0"
-x = 0
-y = 6222
+x = 1911
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2WatchFishSE1"
-x = 39
-y = 6222
+x = 1950
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2WatchFishNW0"
-x = 78
-y = 6222
+x = 1989
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2WatchFishNW1"
-x = 117
-y = 6222
+x = 2028
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2WatchFishSW0"
-x = 156
-y = 6222
+x = 2067
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2WatchFishSW1"
-x = 195
-y = 6222
+x = 2106
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2WatchFishNE0"
-x = 234
-y = 6222
+x = 2145
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2WatchFishNE1"
-x = 273
-y = 6222
+x = 2184
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3WatchFishSE0"
-x = 312
-y = 6222
+x = 2223
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3WatchFishSE1"
-x = 351
-y = 6222
+x = 2262
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3WatchFishNW0"
-x = 390
-y = 6222
+x = 2301
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3WatchFishNW1"
-x = 429
-y = 6222
+x = 2340
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3WatchFishSW0"
-x = 468
-y = 6222
+x = 2379
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3WatchFishSW1"
-x = 507
-y = 6222
+x = 2418
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3WatchFishNE0"
-x = 546
-y = 6222
+x = 2457
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3WatchFishNE1"
-x = 585
-y = 6222
+x = 2496
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "kitchenFridgeBuiltInSW"
-x = 577
-y = 5845
+x = 2611
+y = 5529
 w = 58
 h = 102
 
 [[sprite]]
 name = "kitchenFridgeBuiltInNW"
-x = 636
-y = 5845
+x = 2670
+y = 5529
 w = 58
 h = 102
 
 [[sprite]]
 name = "kitchenFridgeBuiltInNE"
-x = 695
-y = 5845
+x = 2729
+y = 5529
 w = 58
 h = 102
 
 [[sprite]]
 name = "bathroomSinkSquareSW"
-x = 1297
-y = 6552
+x = 3082
+y = 5948
 w = 34
 h = 60
 
 [[sprite]]
 name = "bathroomSinkSquareNW"
-x = 1332
-y = 6552
+x = 3117
+y = 5948
 w = 34
 h = 60
 
 [[sprite]]
 name = "bathroomSinkSquareNE"
-x = 959
-y = 6552
+x = 2744
+y = 5948
 w = 34
 h = 65
 
 [[sprite]]
 name = "showerRoundSW"
-x = 754
-y = 5845
+x = 2788
+y = 5529
 w = 58
 h = 102
 
 [[sprite]]
 name = "showerRoundNW"
-x = 476
-y = 6311
+x = 357
+y = 5860
 w = 58
 h = 86
 
 [[sprite]]
 name = "showerRoundNE"
-x = 813
-y = 5845
+x = 2847
+y = 5529
 w = 58
 h = 102
 
 [[sprite]]
 name = "toiletSquareSW"
-x = 1852
-y = 6552
+x = 3637
+y = 5948
 w = 38
 h = 56
 
 [[sprite]]
 name = "toiletSquareNW"
-x = 1891
-y = 6552
+x = 3676
+y = 5948
 w = 38
 h = 56
 
 [[sprite]]
 name = "toiletSquareNE"
-x = 1229
-y = 6552
+x = 3014
+y = 5948
 w = 38
 h = 63
 
 [[sprite]]
 name = "bookcaseClosedDoorsSW"
-x = 624
-y = 6222
+x = 2535
+y = 5771
 w = 58
 h = 88
 
 [[sprite]]
 name = "bookcaseClosedDoorsNW"
-x = 683
-y = 6222
+x = 2594
+y = 5771
 w = 58
 h = 88
 
 [[sprite]]
 name = "bookcaseClosedDoorsNE"
-x = 742
-y = 6222
+x = 2653
+y = 5771
 w = 58
 h = 88
 
 [[sprite]]
 name = "loungeSofaOttomanSW"
-x = 211
-y = 6625
+x = 4008
+y = 5948
 w = 54
 h = 51
 
 [[sprite]]
 name = "loungeSofaOttomanNW"
-x = 266
-y = 6625
+x = 0
+y = 6021
 w = 54
 h = 51
 
 [[sprite]]
 name = "loungeSofaOttomanNE"
-x = 321
-y = 6625
+x = 55
+y = 6021
 w = 54
 h = 51
 
 [[sprite]]
 name = "televisionVintageSW"
-x = 1645
-y = 6552
+x = 3430
+y = 5948
 w = 44
 h = 59
 
 [[sprite]]
 name = "televisionVintageNW"
-x = 1690
-y = 6552
+x = 3475
+y = 5948
 w = 44
 h = 59
 
 [[sprite]]
 name = "televisionVintageNE"
-x = 1735
-y = 6552
+x = 3520
+y = 5948
 w = 44
 h = 59
 
 [[sprite]]
 name = "bedBunkSW"
 x = 1377
-y = 5692
+y = 5529
 w = 122
 h = 136
 
 [[sprite]]
 name = "bedBunkNW"
 x = 1500
-y = 5692
+y = 5529
 w = 122
 h = 136
 
 [[sprite]]
 name = "bedBunkNE"
 x = 1623
-y = 5692
+y = 5529
 w = 122
 h = 136
 
 [[sprite]]
 name = "kitchenStoveNW"
-x = 1194
-y = 6399
+x = 3074
+y = 5860
 w = 66
 h = 76
 
 [[sprite]]
 name = "kitchenStoveNE"
-x = 373
-y = 6399
+x = 2253
+y = 5860
 w = 66
 h = 77
 
 [[sprite]]
 name = "kitchenCabinetNW"
-x = 1261
-y = 6399
+x = 3141
+y = 5860
 w = 66
 h = 76
 
 [[sprite]]
 name = "kitchenCabinetNE"
-x = 1328
-y = 6399
+x = 3208
+y = 5860
 w = 66
 h = 76
 
 [[sprite]]
 name = "kitchenSinkNW"
-x = 1395
-y = 6399
+x = 3275
+y = 5860
 w = 66
 h = 76
 
 [[sprite]]
 name = "kitchenSinkNE"
-x = 1462
-y = 6399
+x = 3342
+y = 5860
 w = 66
 h = 76
 
 [[sprite]]
 name = "tableSW"
-x = 761
-y = 6311
+x = 642
+y = 5860
 w = 112
 h = 83
 
 [[sprite]]
 name = "tableNW"
-x = 874
-y = 6311
+x = 755
+y = 5860
 w = 112
 h = 83
 
 [[sprite]]
 name = "tableNE"
-x = 987
-y = 6311
+x = 868
+y = 5860
 w = 112
 h = 83
 
 [[sprite]]
 name = "chairSW"
-x = 669
-y = 6552
+x = 2454
+y = 5948
 w = 50
 h = 67
 
 [[sprite]]
 name = "chairNW"
-x = 720
-y = 6552
+x = 2505
+y = 5948
 w = 50
 h = 67
 
 [[sprite]]
 name = "chairNE"
-x = 1710
-y = 6311
+x = 1591
+y = 5860
 w = 50
 h = 80
 
 [[sprite]]
 name = "trashcanSW"
-x = 122
-y = 6625
+x = 3919
+y = 5948
 w = 16
 h = 52
 
 [[sprite]]
 name = "trashcanNW"
-x = 139
-y = 6625
+x = 3936
+y = 5948
 w = 16
 h = 52
 
 [[sprite]]
 name = "trashcanNE"
-x = 88
-y = 6625
+x = 3885
+y = 5948
 w = 16
 h = 53
 
 [[sprite]]
 name = "loungeSofaLongSW"
-x = 1503
-y = 5845
+x = 3537
+y = 5529
 w = 122
 h = 92
 
 [[sprite]]
 name = "loungeSofaLongNW"
-x = 1626
-y = 5845
+x = 3660
+y = 5529
 w = 122
 h = 92
 
 [[sprite]]
 name = "loungeSofaLongNE"
-x = 1749
-y = 5845
+x = 3783
+y = 5529
 w = 122
 h = 92
 
 [[sprite]]
 name = "loungeChairSW"
-x = 1367
-y = 6552
+x = 3152
+y = 5948
 w = 50
 h = 60
 
 [[sprite]]
 name = "loungeChairNW"
-x = 1418
-y = 6552
+x = 3203
+y = 5948
 w = 50
 h = 60
 
 [[sprite]]
 name = "loungeChairNE"
-x = 156
-y = 6552
+x = 1941
+y = 5948
 w = 50
 h = 70
 
 [[sprite]]
 name = "loungeChairRelaxSW"
-x = 1494
-y = 6311
+x = 1375
+y = 5860
 w = 54
 h = 81
 
 [[sprite]]
 name = "loungeChairRelaxNW"
-x = 207
-y = 6552
+x = 1992
+y = 5948
 w = 54
 h = 70
 
 [[sprite]]
 name = "loungeChairRelaxNE"
-x = 262
-y = 6552
+x = 2047
+y = 5948
 w = 54
 h = 70
 
 [[sprite]]
 name = "radioSW"
-x = 376
-y = 6625
+x = 110
+y = 6021
 w = 48
 h = 50
 
 [[sprite]]
 name = "radioNW"
-x = 425
-y = 6625
+x = 159
+y = 6021
 w = 46
 h = 50
 
 [[sprite]]
 name = "radioNE"
-x = 472
-y = 6625
+x = 206
+y = 6021
 w = 48
 h = 50
 
 [[sprite]]
 name = "pottedPlantSW"
-x = 1469
-y = 6552
+x = 3254
+y = 5948
 w = 28
 h = 60
 
 [[sprite]]
 name = "pottedPlantNW"
-x = 1780
-y = 6552
+x = 3565
+y = 5948
 w = 30
 h = 59
 
 [[sprite]]
 name = "pottedPlantNE"
-x = 1268
-y = 6552
+x = 3053
+y = 5948
 w = 28
 h = 62
 
 [[sprite]]
 name = "cardboardBoxOpenSW"
-x = 801
-y = 6222
+x = 2712
+y = 5771
 w = 80
 h = 88
 
 [[sprite]]
 name = "cardboardBoxOpenNW"
-x = 882
-y = 6222
+x = 2793
+y = 5771
 w = 80
 h = 88
 
 [[sprite]]
 name = "cardboardBoxOpenNE"
-x = 963
-y = 6222
+x = 2874
+y = 5771
 w = 80
 h = 88
 
 [[sprite]]
 name = "lampRoundFloorSW"
-x = 564
-y = 6552
+x = 2349
+y = 5948
 w = 34
 h = 68
 
 [[sprite]]
 name = "lampRoundFloorNW"
-x = 599
-y = 6552
+x = 2384
+y = 5948
 w = 34
 h = 68
 
 [[sprite]]
 name = "lampRoundFloorNE"
-x = 634
-y = 6552
+x = 2419
+y = 5948
 w = 34
 h = 68
 
 [[sprite]]
 name = "coatRackStandingSW"
-x = 440
-y = 6399
+x = 2320
+y = 5860
 w = 18
 h = 77
 
 [[sprite]]
 name = "coatRackStandingNW"
-x = 459
-y = 6399
+x = 2339
+y = 5860
 w = 18
 h = 77
 
 [[sprite]]
 name = "coatRackStandingNE"
-x = 478
-y = 6399
+x = 2358
+y = 5860
 w = 18
 h = 77
 
 [[sprite]]
 name = "bedDoubleSW"
-x = 1092
-y = 5845
+x = 3126
+y = 5529
 w = 122
 h = 96
 
 [[sprite]]
 name = "bedDoubleNW"
-x = 497
-y = 6399
+x = 2377
+y = 5860
 w = 122
 h = 77
 
 [[sprite]]
 name = "bedDoubleNE"
-x = 620
-y = 6399
+x = 2500
+y = 5860
 w = 122
 h = 77
 
 [[sprite]]
 name = "sideTableDrawersSW"
-x = 994
-y = 6552
+x = 2779
+y = 5948
 w = 54
 h = 65
 
 [[sprite]]
 name = "sideTableDrawersNW"
-x = 1049
-y = 6552
+x = 2834
+y = 5948
 w = 54
 h = 65
 
 [[sprite]]
 name = "sideTableDrawersNE"
-x = 1104
-y = 6552
+x = 2889
+y = 5948
 w = 54
 h = 65
 
 [[sprite]]
 name = "cabinetBedDrawerSW"
-x = 1930
-y = 6552
+x = 3715
+y = 5948
 w = 40
 h = 56
 
 [[sprite]]
 name = "cabinetBedDrawerNW"
-x = 1971
-y = 6552
+x = 3756
+y = 5948
 w = 40
 h = 56
 
 [[sprite]]
 name = "cabinetBedDrawerNE"
-x = 0
-y = 6625
+x = 3797
+y = 5948
 w = 40
 h = 56
 
 [[sprite]]
 name = "deskSW"
-x = 1100
-y = 6311
+x = 981
+y = 5860
 w = 112
 h = 83
 
 [[sprite]]
 name = "deskNW"
-x = 1213
-y = 6311
+x = 1094
+y = 5860
 w = 112
 h = 83
 
 [[sprite]]
 name = "deskNE"
-x = 1326
-y = 6311
+x = 1207
+y = 5860
 w = 112
 h = 83
 
 [[sprite]]
 name = "chairDeskSW"
-x = 771
-y = 6552
+x = 2556
+y = 5948
 w = 48
 h = 66
 
 [[sprite]]
 name = "chairDeskNW"
-x = 820
-y = 6552
+x = 2605
+y = 5948
 w = 48
 h = 66
 
 [[sprite]]
 name = "chairDeskNE"
-x = 743
-y = 6399
+x = 2623
+y = 5860
 w = 48
 h = 77
 
 [[sprite]]
 name = "bathtubSW"
-x = 119
-y = 6311
+x = 0
+y = 5860
 w = 118
 h = 87
 
 [[sprite]]
 name = "bathtubNW"
-x = 1761
-y = 6311
+x = 1642
+y = 5860
 w = 118
 h = 79
 
 [[sprite]]
 name = "bathtubNE"
-x = 1880
-y = 6311
+x = 1761
+y = 5860
 w = 118
 h = 79
 
 [[sprite]]
 name = "washerDryerStackedSW"
-x = 1215
-y = 5845
+x = 3249
+y = 5529
 w = 54
 h = 96
 
 [[sprite]]
 name = "washerDryerStackedNW"
-x = 1270
-y = 5845
+x = 3304
+y = 5529
 w = 54
 h = 96
 
 [[sprite]]
 name = "washerDryerStackedNE"
-x = 1325
-y = 5845
+x = 3359
+y = 5529
 w = 54
 h = 96
 
 [[sprite]]
 name = "bathtubFull"
-x = 238
-y = 6311
+x = 119
+y = 5860
 w = 118
 h = 87
 
 [[sprite]]
 name = "bathtubFullSW"
-x = 357
-y = 6311
+x = 238
+y = 5860
 w = 118
 h = 87
 
 [[sprite]]
 name = "bathtubFullNW"
-x = 0
-y = 6399
+x = 1880
+y = 5860
 w = 118
 h = 79
 
 [[sprite]]
 name = "bathtubFullNE"
-x = 119
-y = 6399
+x = 1999
+y = 5860
 w = 118
 h = 79
 
 [[sprite]]
 name = "simSitSE0"
-x = 1044
-y = 6222
+x = 2955
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "simSitSE1"
-x = 1083
-y = 6222
+x = 2994
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "simSitNW0"
-x = 1122
-y = 6222
+x = 3033
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "simSitNW1"
-x = 1161
-y = 6222
+x = 3072
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "simSitSW0"
-x = 1200
-y = 6222
+x = 3111
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "simSitSW1"
-x = 1239
-y = 6222
+x = 3150
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "simSitNE0"
-x = 1278
-y = 6222
+x = 3189
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "simSitNE1"
-x = 1317
-y = 6222
+x = 3228
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2SitSE0"
-x = 1356
-y = 6222
+x = 3267
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2SitSE1"
-x = 1395
-y = 6222
+x = 3306
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2SitNW0"
-x = 1434
-y = 6222
+x = 3345
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2SitNW1"
-x = 1473
-y = 6222
+x = 3384
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2SitSW0"
-x = 1512
-y = 6222
+x = 3423
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2SitSW1"
-x = 1551
-y = 6222
+x = 3462
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2SitNE0"
-x = 1590
-y = 6222
+x = 3501
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2SitNE1"
-x = 1629
-y = 6222
+x = 3540
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3SitSE0"
-x = 1668
-y = 6222
+x = 3579
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3SitSE1"
-x = 1707
-y = 6222
+x = 3618
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3SitNW0"
-x = 1746
-y = 6222
+x = 3657
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3SitNW1"
-x = 1785
-y = 6222
+x = 3696
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3SitSW0"
-x = 1824
-y = 6222
+x = 3735
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3SitSW1"
-x = 1863
-y = 6222
+x = 3774
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3SitNE0"
-x = 1902
-y = 6222
+x = 3813
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3SitNE1"
-x = 1941
-y = 6222
+x = 3852
+y = 5771
 w = 38
 h = 88
 
 [[sprite]]
 name = "bedBunkForeground"
 x = 1746
-y = 5692
+y = 5529
 w = 122
 h = 136
 
 [[sprite]]
 name = "simSleepSE0"
-x = 1529
-y = 6399
+x = 3409
+y = 5860
 w = 104
 h = 72
 
 [[sprite]]
 name = "simSleepSE1"
-x = 1634
-y = 6399
+x = 3514
+y = 5860
 w = 104
 h = 72
 
 [[sprite]]
 name = "simSleepNW0"
-x = 1739
-y = 6399
+x = 3619
+y = 5860
 w = 104
 h = 72
 
 [[sprite]]
 name = "simSleepNW1"
-x = 1844
-y = 6399
+x = 3724
+y = 5860
 w = 104
 h = 72
 
 [[sprite]]
 name = "simSleepSW0"
-x = 0
-y = 6479
+x = 3829
+y = 5860
 w = 104
 h = 72
 
 [[sprite]]
 name = "simSleepSW1"
-x = 105
-y = 6479
+x = 3934
+y = 5860
 w = 104
 h = 72
 
 [[sprite]]
 name = "simSleepNE0"
-x = 210
-y = 6479
+x = 0
+y = 5948
 w = 104
 h = 72
 
 [[sprite]]
 name = "simSleepNE1"
-x = 315
-y = 6479
+x = 105
+y = 5948
 w = 104
 h = 72
 
 [[sprite]]
 name = "sim2SleepSE0"
-x = 420
-y = 6479
+x = 210
+y = 5948
 w = 104
 h = 72
 
 [[sprite]]
 name = "sim2SleepSE1"
-x = 525
-y = 6479
+x = 315
+y = 5948
 w = 104
 h = 72
 
 [[sprite]]
 name = "sim2SleepNW0"
-x = 630
-y = 6479
+x = 420
+y = 5948
 w = 104
 h = 72
 
 [[sprite]]
 name = "sim2SleepNW1"
-x = 735
-y = 6479
+x = 525
+y = 5948
 w = 104
 h = 72
 
 [[sprite]]
 name = "sim2SleepSW0"
-x = 840
-y = 6479
+x = 630
+y = 5948
 w = 104
 h = 72
 
 [[sprite]]
 name = "sim2SleepSW1"
-x = 945
-y = 6479
+x = 735
+y = 5948
 w = 104
 h = 72
 
 [[sprite]]
 name = "sim2SleepNE0"
-x = 1050
-y = 6479
+x = 840
+y = 5948
 w = 104
 h = 72
 
 [[sprite]]
 name = "sim2SleepNE1"
-x = 1155
-y = 6479
+x = 945
+y = 5948
 w = 104
 h = 72
 
 [[sprite]]
 name = "sim3SleepSE0"
-x = 1260
-y = 6479
+x = 1050
+y = 5948
 w = 104
 h = 72
 
 [[sprite]]
 name = "sim3SleepSE1"
-x = 1365
-y = 6479
+x = 1155
+y = 5948
 w = 104
 h = 72
 
 [[sprite]]
 name = "sim3SleepNW0"
-x = 1470
-y = 6479
+x = 1260
+y = 5948
 w = 104
 h = 72
 
 [[sprite]]
 name = "sim3SleepNW1"
-x = 1575
-y = 6479
+x = 1365
+y = 5948
 w = 104
 h = 72
 
 [[sprite]]
 name = "sim3SleepSW0"
-x = 1680
-y = 6479
+x = 1470
+y = 5948
 w = 104
 h = 72
 
 [[sprite]]
 name = "sim3SleepSW1"
-x = 1785
-y = 6479
+x = 1575
+y = 5948
 w = 104
 h = 72
 
 [[sprite]]
 name = "sim3SleepNE0"
-x = 1890
-y = 6479
+x = 1680
+y = 5948
 w = 104
 h = 72
 
 [[sprite]]
 name = "sim3SleepNE1"
-x = 0
-y = 6552
+x = 1785
+y = 5948
 w = 104
 h = 72
 
 [[sprite]]
 name = "loungeChairForeground"
-x = 317
-y = 6552
+x = 2102
+y = 5948
 w = 50
 h = 70
 
 [[sprite]]
 name = "loungeChairForegroundSW"
-x = 1498
-y = 6552
+x = 3283
+y = 5948
 w = 50
 h = 60
 
 [[sprite]]
 name = "loungeChairForegroundNW"
-x = 1549
-y = 6552
+x = 3334
+y = 5948
 w = 50
 h = 60
 
 [[sprite]]
 name = "loungeChairForegroundNE"
-x = 368
-y = 6552
+x = 2153
+y = 5948
 w = 50
 h = 70
 
 [[sprite]]
 name = "loungeChairRelaxForeground"
-x = 1549
-y = 6311
+x = 1430
+y = 5860
 w = 54
 h = 81
 
 [[sprite]]
 name = "loungeChairRelaxForegroundSW"
-x = 1604
-y = 6311
+x = 1485
+y = 5860
 w = 54
 h = 81
 
 [[sprite]]
 name = "loungeChairRelaxForegroundNW"
-x = 419
-y = 6552
+x = 2204
+y = 5948
 w = 54
 h = 70
 
 [[sprite]]
 name = "loungeChairRelaxForegroundNE"
-x = 474
-y = 6552
+x = 2259
+y = 5948
 w = 54
 h = 70
 
 [[sprite]]
 name = "rigSimIdleSE0"
-x = 1680
-y = 4694
+x = 2310
+y = 5014
 w = 76
 h = 176
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimIdleNW0"
-x = 1757
-y = 4694
+x = 2387
+y = 5014
 w = 76
 h = 176
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimIdleSW0"
-x = 1834
-y = 4694
+x = 2464
+y = 5014
 w = 76
 h = 176
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimIdleNE0"
-x = 1911
-y = 4694
+x = 2541
+y = 5014
 w = 76
 h = 176
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkSE0"
-x = 1254
-y = 482
+x = 2895
+y = 2892
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkSE1"
-x = 1359
-y = 482
+x = 3000
+y = 2892
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkSE2"
-x = 1464
-y = 482
+x = 3105
+y = 2892
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkSE3"
-x = 1569
-y = 482
+x = 3210
+y = 2892
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkSE4"
-x = 1674
-y = 482
+x = 3315
+y = 2892
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkSE5"
-x = 1779
-y = 482
+x = 3420
+y = 2892
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkSE6"
-x = 1884
-y = 482
+x = 3525
+y = 2892
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkSE7"
-x = 0
-y = 723
+x = 3630
+y = 2892
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkNW0"
-x = 105
-y = 723
+x = 3735
+y = 2892
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkNW1"
-x = 210
-y = 723
+x = 3840
+y = 2892
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkNW2"
-x = 315
-y = 723
+x = 3945
+y = 2892
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkNW3"
-x = 420
-y = 723
+x = 0
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkNW4"
-x = 525
-y = 723
+x = 105
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkNW5"
-x = 630
-y = 723
+x = 210
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkNW6"
-x = 735
-y = 723
+x = 315
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkNW7"
-x = 840
-y = 723
+x = 420
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkSW0"
-x = 945
-y = 723
+x = 525
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkSW1"
-x = 1050
-y = 723
+x = 630
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkSW2"
-x = 1155
-y = 723
+x = 735
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkSW3"
-x = 1260
-y = 723
+x = 840
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkSW4"
-x = 1365
-y = 723
+x = 945
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkSW5"
-x = 1470
-y = 723
+x = 1050
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkSW6"
-x = 1575
-y = 723
+x = 1155
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkSW7"
-x = 1680
-y = 723
+x = 1260
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkNE0"
-x = 1785
-y = 723
+x = 1365
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkNE1"
-x = 1890
-y = 723
+x = 1470
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkNE2"
-x = 0
-y = 932
+x = 1575
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkNE3"
-x = 105
-y = 932
+x = 1680
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkNE4"
-x = 210
-y = 932
+x = 1785
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkNE5"
-x = 315
-y = 932
+x = 1890
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkNE6"
-x = 420
-y = 932
+x = 1995
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWalkNE7"
-x = 525
-y = 932
+x = 2100
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimReadSE0"
-x = 630
-y = 932
+x = 2205
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimReadSE1"
-x = 735
-y = 932
+x = 2310
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimReadSE2"
-x = 840
-y = 932
+x = 2415
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimReadSE3"
-x = 945
-y = 932
+x = 2520
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimReadNW0"
-x = 1050
-y = 932
+x = 2625
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimReadNW1"
-x = 1155
-y = 932
+x = 2730
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimReadNW2"
-x = 1260
-y = 932
+x = 2835
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimReadNW3"
-x = 1365
-y = 932
+x = 2940
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimReadSW0"
-x = 1470
-y = 932
+x = 3045
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimReadSW1"
-x = 1575
-y = 932
+x = 3150
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimReadSW2"
-x = 1680
-y = 932
+x = 3255
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimReadSW3"
-x = 1785
-y = 932
+x = 3360
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimReadNE0"
-x = 1890
-y = 932
+x = 3465
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimReadNE1"
-x = 0
-y = 1141
+x = 3570
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimReadNE2"
-x = 105
-y = 1141
+x = 3675
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimReadNE3"
-x = 210
-y = 1141
+x = 3780
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimTalkSE0"
-x = 315
-y = 1141
+x = 3885
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimTalkSE1"
-x = 420
-y = 1141
+x = 3990
+y = 3133
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimTalkSE2"
-x = 525
-y = 1141
+x = 0
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimTalkSE3"
-x = 630
-y = 1141
+x = 105
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimTalkNW0"
-x = 735
-y = 1141
+x = 210
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimTalkNW1"
-x = 840
-y = 1141
+x = 315
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimTalkNW2"
-x = 945
-y = 1141
+x = 420
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimTalkNW3"
-x = 1050
-y = 1141
+x = 525
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimTalkSW0"
-x = 1155
-y = 1141
+x = 630
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimTalkSW1"
-x = 1260
-y = 1141
+x = 735
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimTalkSW2"
-x = 1365
-y = 1141
+x = 840
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimTalkSW3"
-x = 1470
-y = 1141
+x = 945
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimTalkNE0"
-x = 1575
-y = 1141
+x = 1050
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimTalkNE1"
-x = 1680
-y = 1141
+x = 1155
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimTalkNE2"
-x = 1785
-y = 1141
+x = 1260
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimTalkNE3"
-x = 1890
-y = 1141
+x = 1365
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimEatSE0"
-x = 0
-y = 1350
+x = 1470
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimEatSE1"
-x = 105
-y = 1350
+x = 1575
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimEatSE2"
-x = 210
-y = 1350
+x = 1680
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimEatSE3"
-x = 315
-y = 1350
+x = 1785
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimEatNW0"
-x = 420
-y = 1350
+x = 1890
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimEatNW1"
-x = 525
-y = 1350
+x = 1995
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimEatNW2"
-x = 630
-y = 1350
+x = 2100
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimEatNW3"
-x = 735
-y = 1350
+x = 2205
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimEatSW0"
-x = 840
-y = 1350
+x = 2310
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimEatSW1"
-x = 945
-y = 1350
+x = 2415
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimEatSW2"
-x = 1050
-y = 1350
+x = 2520
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimEatSW3"
-x = 1155
-y = 1350
+x = 2625
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimEatNE0"
-x = 1260
-y = 1350
+x = 2730
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimEatNE1"
-x = 1365
-y = 1350
+x = 2835
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimEatNE2"
-x = 1470
-y = 1350
+x = 2940
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimEatNE3"
-x = 1575
-y = 1350
+x = 3045
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimStandReadSE0"
-x = 1680
-y = 1350
+x = 3150
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimStandReadSE1"
-x = 1785
-y = 1350
+x = 3255
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimStandReadSE2"
-x = 1890
-y = 1350
+x = 3360
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimStandReadSE3"
-x = 0
-y = 1559
+x = 3465
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimStandReadNW0"
-x = 105
-y = 1559
+x = 3570
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimStandReadNW1"
-x = 210
-y = 1559
+x = 3675
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimStandReadNW2"
-x = 315
-y = 1559
+x = 3780
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimStandReadNW3"
-x = 420
-y = 1559
+x = 3885
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimStandReadSW0"
-x = 525
-y = 1559
+x = 3990
+y = 3342
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimStandReadSW1"
-x = 630
-y = 1559
+x = 0
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimStandReadSW2"
-x = 735
-y = 1559
+x = 105
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimStandReadSW3"
-x = 840
-y = 1559
+x = 210
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimStandReadNE0"
-x = 945
-y = 1559
+x = 315
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimStandReadNE1"
-x = 1050
-y = 1559
+x = 420
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimStandReadNE2"
-x = 1155
-y = 1559
+x = 525
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimStandReadNE3"
-x = 1260
-y = 1559
+x = 630
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWatchFishSE0"
-x = 1365
-y = 1559
+x = 735
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWatchFishSE1"
-x = 1470
-y = 1559
+x = 840
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWatchFishSE2"
-x = 1575
-y = 1559
+x = 945
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWatchFishSE3"
-x = 1680
-y = 1559
+x = 1050
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWatchFishNW0"
-x = 1785
-y = 1559
+x = 1155
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWatchFishNW1"
-x = 1890
-y = 1559
+x = 1260
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWatchFishNW2"
-x = 0
-y = 1768
+x = 1365
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWatchFishNW3"
-x = 105
-y = 1768
+x = 1470
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWatchFishSW0"
-x = 210
-y = 1768
+x = 1575
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWatchFishSW1"
-x = 315
-y = 1768
+x = 1680
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWatchFishSW2"
-x = 420
-y = 1768
+x = 1785
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWatchFishSW3"
-x = 525
-y = 1768
+x = 1890
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWatchFishNE0"
-x = 630
-y = 1768
+x = 1995
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWatchFishNE1"
-x = 735
-y = 1768
+x = 2100
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWatchFishNE2"
-x = 840
-y = 1768
+x = 2205
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimWatchFishNE3"
-x = 945
-y = 1768
+x = 2310
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSitSE0"
-x = 1050
-y = 1768
+x = 2415
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSitSE1"
-x = 1155
-y = 1768
+x = 2520
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSitSE2"
-x = 1260
-y = 1768
+x = 2625
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSitSE3"
-x = 1365
-y = 1768
+x = 2730
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSitNW0"
-x = 1470
-y = 1768
+x = 2835
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSitNW1"
-x = 1575
-y = 1768
+x = 2940
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSitNW2"
-x = 1680
-y = 1768
+x = 3045
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSitNW3"
-x = 1785
-y = 1768
+x = 3150
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSitSW0"
-x = 1890
-y = 1768
+x = 3255
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSitSW1"
-x = 0
-y = 1977
+x = 3360
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSitSW2"
-x = 105
-y = 1977
+x = 3465
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSitSW3"
-x = 210
-y = 1977
+x = 3570
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSitNE0"
-x = 315
-y = 1977
+x = 3675
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSitNE1"
-x = 420
-y = 1977
+x = 3780
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSitNE2"
-x = 525
-y = 1977
+x = 3885
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSitNE3"
-x = 630
-y = 1977
+x = 3990
+y = 3551
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSleepSE0"
-x = 616
-y = 4903
+x = 3234
+y = 5014
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSleepSE1"
-x = 825
-y = 4903
+x = 3443
+y = 5014
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSleepSE2"
-x = 1034
-y = 4903
+x = 3652
+y = 5014
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSleepSE3"
-x = 1243
-y = 4903
+x = 3861
+y = 5014
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSleepNW0"
-x = 1452
-y = 4903
+x = 0
+y = 5223
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSleepNW1"
-x = 1661
-y = 4903
+x = 209
+y = 5223
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSleepNW2"
-x = 0
-y = 5080
+x = 418
+y = 5223
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSleepNW3"
-x = 209
-y = 5080
+x = 627
+y = 5223
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSleepSW0"
-x = 418
-y = 5080
+x = 836
+y = 5223
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSleepSW1"
-x = 627
-y = 5080
+x = 1045
+y = 5223
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSleepSW2"
-x = 836
-y = 5080
+x = 1254
+y = 5223
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSleepSW3"
-x = 1045
-y = 5080
+x = 1463
+y = 5223
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSleepNE0"
-x = 1254
-y = 5080
+x = 1672
+y = 5223
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSleepNE1"
-x = 1463
-y = 5080
+x = 1881
+y = 5223
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSleepNE2"
-x = 1672
-y = 5080
+x = 2090
+y = 5223
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimSleepNE3"
-x = 0
-y = 5233
+x = 2299
+y = 5223
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueIdleSE0"
-x = 0
-y = 4903
+x = 2618
+y = 5014
 w = 76
 h = 176
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueIdleNW0"
-x = 77
-y = 4903
+x = 2695
+y = 5014
 w = 76
 h = 176
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueIdleSW0"
-x = 154
-y = 4903
+x = 2772
+y = 5014
 w = 76
 h = 176
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueIdleNE0"
-x = 231
-y = 4903
+x = 2849
+y = 5014
 w = 76
 h = 176
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkSE0"
-x = 735
-y = 1977
+x = 0
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkSE1"
-x = 840
-y = 1977
+x = 105
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkSE2"
-x = 945
-y = 1977
+x = 210
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkSE3"
-x = 1050
-y = 1977
+x = 315
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkSE4"
-x = 1155
-y = 1977
+x = 420
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkSE5"
-x = 1260
-y = 1977
+x = 525
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkSE6"
-x = 1365
-y = 1977
+x = 630
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkSE7"
-x = 1470
-y = 1977
+x = 735
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkNW0"
-x = 1575
-y = 1977
+x = 840
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkNW1"
-x = 1680
-y = 1977
+x = 945
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkNW2"
-x = 1785
-y = 1977
+x = 1050
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkNW3"
-x = 1890
-y = 1977
+x = 1155
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkNW4"
-x = 0
-y = 2186
+x = 1260
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkNW5"
-x = 105
-y = 2186
+x = 1365
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkNW6"
-x = 210
-y = 2186
+x = 1470
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkNW7"
-x = 315
-y = 2186
+x = 1575
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkSW0"
-x = 420
-y = 2186
+x = 1680
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkSW1"
-x = 525
-y = 2186
+x = 1785
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkSW2"
-x = 630
-y = 2186
+x = 1890
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkSW3"
-x = 735
-y = 2186
+x = 1995
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkSW4"
-x = 840
-y = 2186
+x = 2100
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkSW5"
-x = 945
-y = 2186
+x = 2205
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkSW6"
-x = 1050
-y = 2186
+x = 2310
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkSW7"
-x = 1155
-y = 2186
+x = 2415
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkNE0"
-x = 1260
-y = 2186
+x = 2520
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkNE1"
-x = 1365
-y = 2186
+x = 2625
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkNE2"
-x = 1470
-y = 2186
+x = 2730
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkNE3"
-x = 1575
-y = 2186
+x = 2835
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkNE4"
-x = 1680
-y = 2186
+x = 2940
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkNE5"
-x = 1785
-y = 2186
+x = 3045
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkNE6"
-x = 1890
-y = 2186
+x = 3150
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWalkNE7"
-x = 0
-y = 2395
+x = 3255
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueReadSE0"
-x = 105
-y = 2395
+x = 3360
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueReadSE1"
-x = 210
-y = 2395
+x = 3465
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueReadSE2"
-x = 315
-y = 2395
+x = 3570
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueReadSE3"
-x = 420
-y = 2395
+x = 3675
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueReadNW0"
-x = 525
-y = 2395
+x = 3780
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueReadNW1"
-x = 630
-y = 2395
+x = 3885
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueReadNW2"
-x = 735
-y = 2395
+x = 3990
+y = 3760
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueReadNW3"
-x = 840
-y = 2395
+x = 0
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueReadSW0"
-x = 945
-y = 2395
+x = 105
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueReadSW1"
-x = 1050
-y = 2395
+x = 210
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueReadSW2"
-x = 1155
-y = 2395
+x = 315
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueReadSW3"
-x = 1260
-y = 2395
+x = 420
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueReadNE0"
-x = 1365
-y = 2395
+x = 525
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueReadNE1"
-x = 1470
-y = 2395
+x = 630
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueReadNE2"
-x = 1575
-y = 2395
+x = 735
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueReadNE3"
-x = 1680
-y = 2395
+x = 840
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueTalkSE0"
-x = 1785
-y = 2395
+x = 945
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueTalkSE1"
-x = 1890
-y = 2395
+x = 1050
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueTalkSE2"
-x = 0
-y = 2604
+x = 1155
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueTalkSE3"
-x = 105
-y = 2604
+x = 1260
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueTalkNW0"
-x = 210
-y = 2604
+x = 1365
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueTalkNW1"
-x = 315
-y = 2604
+x = 1470
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueTalkNW2"
-x = 420
-y = 2604
+x = 1575
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueTalkNW3"
-x = 525
-y = 2604
+x = 1680
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueTalkSW0"
-x = 630
-y = 2604
+x = 1785
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueTalkSW1"
-x = 735
-y = 2604
+x = 1890
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueTalkSW2"
-x = 840
-y = 2604
+x = 1995
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueTalkSW3"
-x = 945
-y = 2604
+x = 2100
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueTalkNE0"
-x = 1050
-y = 2604
+x = 2205
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueTalkNE1"
-x = 1155
-y = 2604
+x = 2310
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueTalkNE2"
-x = 1260
-y = 2604
+x = 2415
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueTalkNE3"
-x = 1365
-y = 2604
+x = 2520
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueEatSE0"
-x = 1470
-y = 2604
+x = 2625
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueEatSE1"
-x = 1575
-y = 2604
+x = 2730
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueEatSE2"
-x = 1680
-y = 2604
+x = 2835
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueEatSE3"
-x = 1785
-y = 2604
+x = 2940
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueEatNW0"
-x = 1890
-y = 2604
+x = 3045
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueEatNW1"
-x = 0
-y = 2813
+x = 3150
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueEatNW2"
-x = 105
-y = 2813
+x = 3255
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueEatNW3"
-x = 210
-y = 2813
+x = 3360
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueEatSW0"
-x = 315
-y = 2813
+x = 3465
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueEatSW1"
-x = 420
-y = 2813
+x = 3570
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueEatSW2"
-x = 525
-y = 2813
+x = 3675
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueEatSW3"
-x = 630
-y = 2813
+x = 3780
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueEatNE0"
-x = 735
-y = 2813
+x = 3885
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueEatNE1"
-x = 840
-y = 2813
+x = 3990
+y = 3969
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueEatNE2"
-x = 945
-y = 2813
+x = 0
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueEatNE3"
-x = 1050
-y = 2813
+x = 105
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueStandReadSE0"
-x = 1155
-y = 2813
+x = 210
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueStandReadSE1"
-x = 1260
-y = 2813
+x = 315
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueStandReadSE2"
-x = 1365
-y = 2813
+x = 420
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueStandReadSE3"
-x = 1470
-y = 2813
+x = 525
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueStandReadNW0"
-x = 1575
-y = 2813
+x = 630
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueStandReadNW1"
-x = 1680
-y = 2813
+x = 735
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueStandReadNW2"
-x = 1785
-y = 2813
+x = 840
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueStandReadNW3"
-x = 1890
-y = 2813
+x = 945
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueStandReadSW0"
-x = 0
-y = 3022
+x = 1050
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueStandReadSW1"
-x = 105
-y = 3022
+x = 1155
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueStandReadSW2"
-x = 210
-y = 3022
+x = 1260
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueStandReadSW3"
-x = 315
-y = 3022
+x = 1365
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueStandReadNE0"
-x = 420
-y = 3022
+x = 1470
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueStandReadNE1"
-x = 525
-y = 3022
+x = 1575
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueStandReadNE2"
-x = 630
-y = 3022
+x = 1680
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueStandReadNE3"
-x = 735
-y = 3022
+x = 1785
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWatchFishSE0"
-x = 840
-y = 3022
+x = 1890
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWatchFishSE1"
-x = 945
-y = 3022
+x = 1995
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWatchFishSE2"
-x = 1050
-y = 3022
+x = 2100
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWatchFishSE3"
-x = 1155
-y = 3022
+x = 2205
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWatchFishNW0"
-x = 1260
-y = 3022
+x = 2310
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWatchFishNW1"
-x = 1365
-y = 3022
+x = 2415
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWatchFishNW2"
-x = 1470
-y = 3022
+x = 2520
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWatchFishNW3"
-x = 1575
-y = 3022
+x = 2625
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWatchFishSW0"
-x = 1680
-y = 3022
+x = 2730
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWatchFishSW1"
-x = 1785
-y = 3022
+x = 2835
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWatchFishSW2"
-x = 1890
-y = 3022
+x = 2940
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWatchFishSW3"
-x = 0
-y = 3231
+x = 3045
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWatchFishNE0"
-x = 105
-y = 3231
+x = 3150
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWatchFishNE1"
-x = 210
-y = 3231
+x = 3255
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWatchFishNE2"
-x = 315
-y = 3231
+x = 3360
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueWatchFishNE3"
-x = 420
-y = 3231
+x = 3465
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSitSE0"
-x = 525
-y = 3231
+x = 3570
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSitSE1"
-x = 630
-y = 3231
+x = 3675
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSitSE2"
-x = 735
-y = 3231
+x = 3780
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSitSE3"
-x = 840
-y = 3231
+x = 3885
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSitNW0"
-x = 945
-y = 3231
+x = 3990
+y = 4178
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSitNW1"
-x = 1050
-y = 3231
+x = 0
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSitNW2"
-x = 1155
-y = 3231
+x = 105
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSitNW3"
-x = 1260
-y = 3231
+x = 210
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSitSW0"
-x = 1365
-y = 3231
+x = 315
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSitSW1"
-x = 1470
-y = 3231
+x = 420
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSitSW2"
-x = 1575
-y = 3231
+x = 525
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSitSW3"
-x = 1680
-y = 3231
+x = 630
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSitNE0"
-x = 1785
-y = 3231
+x = 735
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSitNE1"
-x = 1890
-y = 3231
+x = 840
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSitNE2"
-x = 0
-y = 3440
+x = 945
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSitNE3"
-x = 105
-y = 3440
+x = 1050
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSleepSE0"
-x = 209
-y = 5233
+x = 2508
+y = 5223
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSleepSE1"
-x = 418
-y = 5233
+x = 2717
+y = 5223
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSleepSE2"
-x = 627
-y = 5233
+x = 2926
+y = 5223
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSleepSE3"
-x = 836
-y = 5233
+x = 3135
+y = 5223
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSleepNW0"
-x = 1045
-y = 5233
+x = 3344
+y = 5223
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSleepNW1"
-x = 1254
-y = 5233
+x = 3553
+y = 5223
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSleepNW2"
-x = 1463
-y = 5233
+x = 3762
+y = 5223
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSleepNW3"
-x = 1672
-y = 5233
+x = 0
+y = 5376
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSleepSW0"
-x = 0
-y = 5386
+x = 209
+y = 5376
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSleepSW1"
-x = 209
-y = 5386
+x = 418
+y = 5376
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSleepSW2"
-x = 418
-y = 5386
+x = 627
+y = 5376
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSleepSW3"
-x = 627
-y = 5386
+x = 836
+y = 5376
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSleepNE0"
-x = 836
-y = 5386
+x = 1045
+y = 5376
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSleepNE1"
-x = 1045
-y = 5386
+x = 1254
+y = 5376
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSleepNE2"
-x = 1254
-y = 5386
+x = 1463
+y = 5376
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueSleepNE3"
-x = 1463
-y = 5386
+x = 1672
+y = 5376
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedIdleSE0"
-x = 308
-y = 4903
+x = 2926
+y = 5014
 w = 76
 h = 176
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedIdleNW0"
-x = 385
-y = 4903
+x = 3003
+y = 5014
 w = 76
 h = 176
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedIdleSW0"
-x = 462
-y = 4903
+x = 3080
+y = 5014
 w = 76
 h = 176
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedIdleNE0"
-x = 539
-y = 4903
+x = 3157
+y = 5014
 w = 76
 h = 176
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkSE0"
-x = 210
-y = 3440
+x = 1155
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkSE1"
-x = 315
-y = 3440
+x = 1260
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkSE2"
-x = 420
-y = 3440
+x = 1365
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkSE3"
-x = 525
-y = 3440
+x = 1470
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkSE4"
-x = 630
-y = 3440
+x = 1575
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkSE5"
-x = 735
-y = 3440
+x = 1680
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkSE6"
-x = 840
-y = 3440
+x = 1785
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkSE7"
-x = 945
-y = 3440
+x = 1890
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkNW0"
-x = 1050
-y = 3440
+x = 1995
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkNW1"
-x = 1155
-y = 3440
+x = 2100
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkNW2"
-x = 1260
-y = 3440
+x = 2205
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkNW3"
-x = 1365
-y = 3440
+x = 2310
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkNW4"
-x = 1470
-y = 3440
+x = 2415
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkNW5"
-x = 1575
-y = 3440
+x = 2520
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkNW6"
-x = 1680
-y = 3440
+x = 2625
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkNW7"
-x = 1785
-y = 3440
+x = 2730
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkSW0"
-x = 1890
-y = 3440
+x = 2835
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkSW1"
-x = 0
-y = 3649
+x = 2940
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkSW2"
-x = 105
-y = 3649
+x = 3045
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkSW3"
-x = 210
-y = 3649
+x = 3150
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkSW4"
-x = 315
-y = 3649
+x = 3255
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkSW5"
-x = 420
-y = 3649
+x = 3360
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkSW6"
-x = 525
-y = 3649
+x = 3465
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkSW7"
-x = 630
-y = 3649
+x = 3570
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkNE0"
-x = 735
-y = 3649
+x = 3675
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkNE1"
-x = 840
-y = 3649
+x = 3780
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkNE2"
-x = 945
-y = 3649
+x = 3885
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkNE3"
-x = 1050
-y = 3649
+x = 3990
+y = 4387
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkNE4"
-x = 1155
-y = 3649
+x = 0
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkNE5"
-x = 1260
-y = 3649
+x = 105
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkNE6"
-x = 1365
-y = 3649
+x = 210
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWalkNE7"
-x = 1470
-y = 3649
+x = 315
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedReadSE0"
-x = 1575
-y = 3649
+x = 420
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedReadSE1"
-x = 1680
-y = 3649
+x = 525
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedReadSE2"
-x = 1785
-y = 3649
+x = 630
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedReadSE3"
-x = 1890
-y = 3649
+x = 735
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedReadNW0"
-x = 0
-y = 3858
+x = 840
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedReadNW1"
-x = 105
-y = 3858
+x = 945
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedReadNW2"
-x = 210
-y = 3858
+x = 1050
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedReadNW3"
-x = 315
-y = 3858
+x = 1155
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedReadSW0"
-x = 420
-y = 3858
+x = 1260
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedReadSW1"
-x = 525
-y = 3858
+x = 1365
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedReadSW2"
-x = 630
-y = 3858
+x = 1470
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedReadSW3"
-x = 735
-y = 3858
+x = 1575
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedReadNE0"
-x = 840
-y = 3858
+x = 1680
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedReadNE1"
-x = 945
-y = 3858
+x = 1785
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedReadNE2"
-x = 1050
-y = 3858
+x = 1890
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedReadNE3"
-x = 1155
-y = 3858
+x = 1995
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedTalkSE0"
-x = 1260
-y = 3858
+x = 2100
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedTalkSE1"
-x = 1365
-y = 3858
+x = 2205
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedTalkSE2"
-x = 1470
-y = 3858
+x = 2310
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedTalkSE3"
-x = 1575
-y = 3858
+x = 2415
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedTalkNW0"
-x = 1680
-y = 3858
+x = 2520
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedTalkNW1"
-x = 1785
-y = 3858
+x = 2625
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedTalkNW2"
-x = 1890
-y = 3858
+x = 2730
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedTalkNW3"
-x = 0
-y = 4067
+x = 2835
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedTalkSW0"
-x = 105
-y = 4067
+x = 2940
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedTalkSW1"
-x = 210
-y = 4067
+x = 3045
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedTalkSW2"
-x = 315
-y = 4067
+x = 3150
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedTalkSW3"
-x = 420
-y = 4067
+x = 3255
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedTalkNE0"
-x = 525
-y = 4067
+x = 3360
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedTalkNE1"
-x = 630
-y = 4067
+x = 3465
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedTalkNE2"
-x = 735
-y = 4067
+x = 3570
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedTalkNE3"
-x = 840
-y = 4067
+x = 3675
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedEatSE0"
-x = 945
-y = 4067
+x = 3780
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedEatSE1"
-x = 1050
-y = 4067
+x = 3885
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedEatSE2"
-x = 1155
-y = 4067
+x = 3990
+y = 4596
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedEatSE3"
-x = 1260
-y = 4067
+x = 0
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedEatNW0"
-x = 1365
-y = 4067
+x = 105
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedEatNW1"
-x = 1470
-y = 4067
+x = 210
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedEatNW2"
-x = 1575
-y = 4067
+x = 315
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedEatNW3"
-x = 1680
-y = 4067
+x = 420
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedEatSW0"
-x = 1785
-y = 4067
+x = 525
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedEatSW1"
-x = 1890
-y = 4067
+x = 630
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedEatSW2"
-x = 0
-y = 4276
+x = 735
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedEatSW3"
-x = 105
-y = 4276
+x = 840
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedEatNE0"
-x = 210
-y = 4276
+x = 945
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedEatNE1"
-x = 315
-y = 4276
+x = 1050
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedEatNE2"
-x = 420
-y = 4276
+x = 1155
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedEatNE3"
-x = 525
-y = 4276
+x = 1260
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedStandReadSE0"
-x = 630
-y = 4276
+x = 1365
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedStandReadSE1"
-x = 735
-y = 4276
+x = 1470
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedStandReadSE2"
-x = 840
-y = 4276
+x = 1575
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedStandReadSE3"
-x = 945
-y = 4276
+x = 1680
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedStandReadNW0"
-x = 1050
-y = 4276
+x = 1785
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedStandReadNW1"
-x = 1155
-y = 4276
+x = 1890
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedStandReadNW2"
-x = 1260
-y = 4276
+x = 1995
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedStandReadNW3"
-x = 1365
-y = 4276
+x = 2100
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedStandReadSW0"
-x = 1470
-y = 4276
+x = 2205
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedStandReadSW1"
-x = 1575
-y = 4276
+x = 2310
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedStandReadSW2"
-x = 1680
-y = 4276
+x = 2415
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedStandReadSW3"
-x = 1785
-y = 4276
+x = 2520
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedStandReadNE0"
-x = 1890
-y = 4276
+x = 2625
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedStandReadNE1"
-x = 0
-y = 4485
+x = 2730
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedStandReadNE2"
-x = 105
-y = 4485
+x = 2835
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedStandReadNE3"
-x = 210
-y = 4485
+x = 2940
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWatchFishSE0"
-x = 315
-y = 4485
+x = 3045
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWatchFishSE1"
-x = 420
-y = 4485
+x = 3150
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWatchFishSE2"
-x = 525
-y = 4485
+x = 3255
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWatchFishSE3"
-x = 630
-y = 4485
+x = 3360
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWatchFishNW0"
-x = 735
-y = 4485
+x = 3465
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWatchFishNW1"
-x = 840
-y = 4485
+x = 3570
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWatchFishNW2"
-x = 945
-y = 4485
+x = 3675
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWatchFishNW3"
-x = 1050
-y = 4485
+x = 3780
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWatchFishSW0"
-x = 1155
-y = 4485
+x = 3885
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWatchFishSW1"
-x = 1260
-y = 4485
+x = 3990
+y = 4805
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWatchFishSW2"
-x = 1365
-y = 4485
+x = 0
+y = 5014
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWatchFishSW3"
-x = 1470
-y = 4485
+x = 105
+y = 5014
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWatchFishNE0"
-x = 1575
-y = 4485
+x = 210
+y = 5014
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWatchFishNE1"
-x = 1680
-y = 4485
+x = 315
+y = 5014
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWatchFishNE2"
-x = 1785
-y = 4485
+x = 420
+y = 5014
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedWatchFishNE3"
-x = 1890
-y = 4485
+x = 525
+y = 5014
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSitSE0"
-x = 0
-y = 4694
+x = 630
+y = 5014
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSitSE1"
-x = 105
-y = 4694
+x = 735
+y = 5014
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSitSE2"
-x = 210
-y = 4694
+x = 840
+y = 5014
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSitSE3"
-x = 315
-y = 4694
+x = 945
+y = 5014
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSitNW0"
-x = 420
-y = 4694
+x = 1050
+y = 5014
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSitNW1"
-x = 525
-y = 4694
+x = 1155
+y = 5014
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSitNW2"
-x = 630
-y = 4694
+x = 1260
+y = 5014
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSitNW3"
-x = 735
-y = 4694
+x = 1365
+y = 5014
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSitSW0"
-x = 840
-y = 4694
+x = 1470
+y = 5014
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSitSW1"
-x = 945
-y = 4694
+x = 1575
+y = 5014
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSitSW2"
-x = 1050
-y = 4694
+x = 1680
+y = 5014
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSitSW3"
-x = 1155
-y = 4694
+x = 1785
+y = 5014
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSitNE0"
-x = 1260
-y = 4694
+x = 1890
+y = 5014
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSitNE1"
-x = 1365
-y = 4694
+x = 1995
+y = 5014
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSitNE2"
-x = 1470
-y = 4694
+x = 2100
+y = 5014
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSitNE3"
-x = 1575
-y = 4694
+x = 2205
+y = 5014
 w = 104
 h = 208
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSleepSE0"
-x = 1672
-y = 5386
+x = 1881
+y = 5376
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSleepSE1"
-x = 0
-y = 5539
+x = 2090
+y = 5376
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSleepSE2"
-x = 209
-y = 5539
+x = 2299
+y = 5376
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSleepSE3"
-x = 418
-y = 5539
+x = 2508
+y = 5376
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSleepNW0"
-x = 627
-y = 5539
+x = 2717
+y = 5376
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSleepNW1"
-x = 836
-y = 5539
+x = 2926
+y = 5376
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSleepNW2"
-x = 1045
-y = 5539
+x = 3135
+y = 5376
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSleepNW3"
-x = 1254
-y = 5539
+x = 3344
+y = 5376
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSleepSW0"
-x = 1463
-y = 5539
+x = 3553
+y = 5376
 w = 208
 h = 152
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedSleepSW1"
-x = 1672
-y = 5539
+x = 3762
+y = 5376
 w = 208
 h = 152
 pixel_density = 2
@@ -6096,7 +6096,7 @@ pixel_density = 2
 [[sprite]]
 name = "rigSimRedSleepSW2"
 x = 0
-y = 5692
+y = 5529
 w = 208
 h = 152
 pixel_density = 2
@@ -6104,7 +6104,7 @@ pixel_density = 2
 [[sprite]]
 name = "rigSimRedSleepSW3"
 x = 209
-y = 5692
+y = 5529
 w = 208
 h = 152
 pixel_density = 2
@@ -6112,7 +6112,7 @@ pixel_density = 2
 [[sprite]]
 name = "rigSimRedSleepNE0"
 x = 418
-y = 5692
+y = 5529
 w = 208
 h = 152
 pixel_density = 2
@@ -6120,7 +6120,7 @@ pixel_density = 2
 [[sprite]]
 name = "rigSimRedSleepNE1"
 x = 627
-y = 5692
+y = 5529
 w = 208
 h = 152
 pixel_density = 2
@@ -6128,7 +6128,7 @@ pixel_density = 2
 [[sprite]]
 name = "rigSimRedSleepNE2"
 x = 836
-y = 5692
+y = 5529
 w = 208
 h = 152
 pixel_density = 2
@@ -6136,7 +6136,7 @@ pixel_density = 2
 [[sprite]]
 name = "rigSimRedSleepNE3"
 x = 1045
-y = 5692
+y = 5529
 w = 208
 h = 152
 pixel_density = 2
@@ -6215,120 +6215,120 @@ pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueExerciseSE1"
-x = 0
-y = 241
+x = 1881
+y = 0
 w = 208
 h = 240
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueExerciseNW0"
-x = 209
-y = 241
+x = 2090
+y = 0
 w = 208
 h = 240
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueExerciseNW1"
-x = 418
-y = 241
+x = 2299
+y = 0
 w = 208
 h = 240
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueExerciseSW0"
-x = 627
-y = 241
+x = 2508
+y = 0
 w = 208
 h = 240
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueExerciseSW1"
-x = 836
-y = 241
+x = 2717
+y = 0
 w = 208
 h = 240
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueExerciseNE0"
-x = 1045
-y = 241
+x = 2926
+y = 0
 w = 208
 h = 240
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimBlueExerciseNE1"
-x = 1254
-y = 241
+x = 3135
+y = 0
 w = 208
 h = 240
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedExerciseSE0"
-x = 1463
-y = 241
+x = 3344
+y = 0
 w = 208
 h = 240
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedExerciseSE1"
-x = 1672
-y = 241
+x = 3553
+y = 0
 w = 208
 h = 240
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedExerciseNW0"
-x = 0
-y = 482
+x = 3762
+y = 0
 w = 208
 h = 240
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedExerciseNW1"
-x = 209
-y = 482
+x = 0
+y = 241
 w = 208
 h = 240
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedExerciseSW0"
-x = 418
-y = 482
+x = 209
+y = 241
 w = 208
 h = 240
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedExerciseSW1"
-x = 627
-y = 482
+x = 418
+y = 241
 w = 208
 h = 240
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedExerciseNE0"
-x = 836
-y = 482
+x = 627
+y = 241
 w = 208
 h = 240
 pixel_density = 2
 
 [[sprite]]
 name = "rigSimRedExerciseNE1"
-x = 1045
-y = 482
+x = 836
+y = 241
 w = 208
 h = 240
 pixel_density = 2
@@ -6336,76 +6336,1996 @@ pixel_density = 2
 [[sprite]]
 name = "wallJoin3"
 x = 2001
-y = 5692
+y = 5529
 w = 32
 h = 109
 
 [[sprite]]
 name = "wallJoin6"
-x = 881
-y = 5845
+x = 2915
+y = 5529
 w = 32
 h = 98
 
 [[sprite]]
 name = "wallJoin7"
-x = 0
-y = 5845
+x = 2034
+y = 5529
 w = 32
 h = 109
 
 [[sprite]]
 name = "wallJoin9"
-x = 33
-y = 5845
+x = 2067
+y = 5529
 w = 32
 h = 109
 
 [[sprite]]
 name = "wallJoin11"
-x = 66
-y = 5845
+x = 2100
+y = 5529
 w = 32
 h = 109
 
 [[sprite]]
 name = "wallJoin12"
-x = 99
-y = 5845
+x = 2133
+y = 5529
 w = 32
 h = 109
 
 [[sprite]]
 name = "wallJoin13"
-x = 132
-y = 5845
+x = 2166
+y = 5529
 w = 32
 h = 109
 
 [[sprite]]
 name = "wallJoin14"
-x = 165
-y = 5845
+x = 2199
+y = 5529
 w = 32
 h = 109
 
 [[sprite]]
 name = "wallJoin15"
-x = 198
-y = 5845
+x = 2232
+y = 5529
 w = 32
 h = 109
 
 [[sprite]]
 name = "doorwayJoinedNS"
-x = 231
-y = 5845
+x = 2265
+y = 5529
 w = 32
 h = 109
 
 [[sprite]]
 name = "doorwayJoinedEW"
-x = 264
-y = 5845
+x = 2298
+y = 5529
 w = 32
 h = 109
+
+[[sprite]]
+name = "offlineBike"
+x = 1045
+y = 241
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNW"
+x = 1238
+y = 241
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSW"
+x = 1431
+y = 241
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNE"
+x = 1624
+y = 241
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChair"
+x = 1817
+y = 241
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNW"
+x = 2010
+y = 241
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSW"
+x = 2203
+y = 241
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNE"
+x = 2396
+y = 241
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSEGreen0"
+x = 2589
+y = 241
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture0"
+x = 2782
+y = 241
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline1"
+x = 2975
+y = 241
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSEGreen1"
+x = 3168
+y = 241
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture2"
+x = 3361
+y = 241
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline3"
+x = 3554
+y = 241
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSEGreen2"
+x = 3747
+y = 241
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture4"
+x = 0
+y = 482
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline5"
+x = 193
+y = 482
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSEGreen3"
+x = 386
+y = 482
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture6"
+x = 579
+y = 482
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline7"
+x = 772
+y = 482
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSEGreen4"
+x = 965
+y = 482
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture8"
+x = 1158
+y = 482
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline9"
+x = 1351
+y = 482
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSEGreen5"
+x = 1544
+y = 482
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture10"
+x = 1737
+y = 482
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline11"
+x = 1930
+y = 482
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSEGreen6"
+x = 2123
+y = 482
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture12"
+x = 2316
+y = 482
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline13"
+x = 2509
+y = 482
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSEGreen7"
+x = 2702
+y = 482
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture14"
+x = 2895
+y = 482
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline15"
+x = 3088
+y = 482
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSEBlue0"
+x = 3281
+y = 482
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSEBlue1"
+x = 3474
+y = 482
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSEBlue2"
+x = 3667
+y = 482
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSEBlue3"
+x = 3860
+y = 482
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSEBlue4"
+x = 0
+y = 723
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSEBlue5"
+x = 193
+y = 723
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSEBlue6"
+x = 386
+y = 723
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSEBlue7"
+x = 579
+y = 723
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSERed0"
+x = 772
+y = 723
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSERed1"
+x = 965
+y = 723
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSERed2"
+x = 1158
+y = 723
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSERed3"
+x = 1351
+y = 723
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSERed4"
+x = 1544
+y = 723
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSERed5"
+x = 1737
+y = 723
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSERed6"
+x = 1930
+y = 723
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSERed7"
+x = 2123
+y = 723
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWGreen0"
+x = 2316
+y = 723
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture16"
+x = 2509
+y = 723
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline17"
+x = 2702
+y = 723
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWGreen1"
+x = 2895
+y = 723
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture18"
+x = 3088
+y = 723
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline19"
+x = 3281
+y = 723
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWGreen2"
+x = 3474
+y = 723
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture20"
+x = 3667
+y = 723
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline21"
+x = 3860
+y = 723
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWGreen3"
+x = 0
+y = 964
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture22"
+x = 193
+y = 964
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline23"
+x = 386
+y = 964
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWGreen4"
+x = 579
+y = 964
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture24"
+x = 772
+y = 964
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline25"
+x = 965
+y = 964
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWGreen5"
+x = 1158
+y = 964
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture26"
+x = 1351
+y = 964
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline27"
+x = 1544
+y = 964
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWGreen6"
+x = 1737
+y = 964
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture28"
+x = 1930
+y = 964
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline29"
+x = 2123
+y = 964
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWGreen7"
+x = 2316
+y = 964
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture30"
+x = 2509
+y = 964
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline31"
+x = 2702
+y = 964
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWBlue0"
+x = 2895
+y = 964
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWBlue1"
+x = 3088
+y = 964
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWBlue2"
+x = 3281
+y = 964
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWBlue3"
+x = 3474
+y = 964
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWBlue4"
+x = 3667
+y = 964
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWBlue5"
+x = 3860
+y = 964
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWBlue6"
+x = 0
+y = 1205
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWBlue7"
+x = 193
+y = 1205
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWRed0"
+x = 386
+y = 1205
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWRed1"
+x = 579
+y = 1205
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWRed2"
+x = 772
+y = 1205
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWRed3"
+x = 965
+y = 1205
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWRed4"
+x = 1158
+y = 1205
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWRed5"
+x = 1351
+y = 1205
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWRed6"
+x = 1544
+y = 1205
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNWRed7"
+x = 1737
+y = 1205
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWGreen0"
+x = 1930
+y = 1205
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture32"
+x = 2123
+y = 1205
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline33"
+x = 2316
+y = 1205
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWGreen1"
+x = 2509
+y = 1205
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture34"
+x = 2702
+y = 1205
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline35"
+x = 2895
+y = 1205
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWGreen2"
+x = 3088
+y = 1205
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture36"
+x = 3281
+y = 1205
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline37"
+x = 3474
+y = 1205
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWGreen3"
+x = 3667
+y = 1205
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture38"
+x = 3860
+y = 1205
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline39"
+x = 0
+y = 1446
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWGreen4"
+x = 193
+y = 1446
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture40"
+x = 386
+y = 1446
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline41"
+x = 579
+y = 1446
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWGreen5"
+x = 772
+y = 1446
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture42"
+x = 965
+y = 1446
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline43"
+x = 1158
+y = 1446
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWGreen6"
+x = 1351
+y = 1446
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture44"
+x = 1544
+y = 1446
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline45"
+x = 1737
+y = 1446
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWGreen7"
+x = 1930
+y = 1446
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture46"
+x = 2123
+y = 1446
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline47"
+x = 2316
+y = 1446
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWBlue0"
+x = 2509
+y = 1446
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWBlue1"
+x = 2702
+y = 1446
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWBlue2"
+x = 2895
+y = 1446
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWBlue3"
+x = 3088
+y = 1446
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWBlue4"
+x = 3281
+y = 1446
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWBlue5"
+x = 3474
+y = 1446
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWBlue6"
+x = 3667
+y = 1446
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWBlue7"
+x = 3860
+y = 1446
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWRed0"
+x = 0
+y = 1687
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWRed1"
+x = 193
+y = 1687
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWRed2"
+x = 386
+y = 1687
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWRed3"
+x = 579
+y = 1687
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWRed4"
+x = 772
+y = 1687
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWRed5"
+x = 965
+y = 1687
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWRed6"
+x = 1158
+y = 1687
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeSWRed7"
+x = 1351
+y = 1687
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNEGreen0"
+x = 1544
+y = 1687
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture48"
+x = 1737
+y = 1687
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline49"
+x = 1930
+y = 1687
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNEGreen1"
+x = 2123
+y = 1687
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture50"
+x = 2316
+y = 1687
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline51"
+x = 2509
+y = 1687
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNEGreen2"
+x = 2702
+y = 1687
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture52"
+x = 2895
+y = 1687
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline53"
+x = 3088
+y = 1687
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNEGreen3"
+x = 3281
+y = 1687
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture54"
+x = 3474
+y = 1687
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline55"
+x = 3667
+y = 1687
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNEGreen4"
+x = 3860
+y = 1687
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture56"
+x = 0
+y = 1928
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline57"
+x = 193
+y = 1928
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNEGreen5"
+x = 386
+y = 1928
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture58"
+x = 579
+y = 1928
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline59"
+x = 772
+y = 1928
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNEGreen6"
+x = 965
+y = 1928
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture60"
+x = 1158
+y = 1928
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline61"
+x = 1351
+y = 1928
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNEGreen7"
+x = 1544
+y = 1928
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture62"
+x = 1737
+y = 1928
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline63"
+x = 1930
+y = 1928
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNEBlue0"
+x = 2123
+y = 1928
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNEBlue1"
+x = 2316
+y = 1928
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNEBlue2"
+x = 2509
+y = 1928
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNEBlue3"
+x = 2702
+y = 1928
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNEBlue4"
+x = 2895
+y = 1928
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNEBlue5"
+x = 3088
+y = 1928
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNEBlue6"
+x = 3281
+y = 1928
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNEBlue7"
+x = 3474
+y = 1928
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNERed0"
+x = 3667
+y = 1928
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNERed1"
+x = 3860
+y = 1928
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNERed2"
+x = 0
+y = 2169
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNERed3"
+x = 193
+y = 2169
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNERed4"
+x = 386
+y = 2169
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNERed5"
+x = 579
+y = 2169
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNERed6"
+x = 772
+y = 2169
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineBikeNERed7"
+x = 965
+y = 2169
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSEGreen0"
+x = 1158
+y = 2169
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture64"
+x = 1351
+y = 2169
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline65"
+x = 1544
+y = 2169
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSEGreen1"
+x = 1737
+y = 2169
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture66"
+x = 1930
+y = 2169
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline67"
+x = 2123
+y = 2169
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSEGreen2"
+x = 2316
+y = 2169
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSEGreen3"
+x = 2509
+y = 2169
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture68"
+x = 2702
+y = 2169
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline69"
+x = 2895
+y = 2169
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSEBlue0"
+x = 3088
+y = 2169
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSEBlue1"
+x = 3281
+y = 2169
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSEBlue2"
+x = 3474
+y = 2169
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSEBlue3"
+x = 3667
+y = 2169
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSERed0"
+x = 3860
+y = 2169
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSERed1"
+x = 0
+y = 2410
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSERed2"
+x = 193
+y = 2410
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSERed3"
+x = 386
+y = 2410
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNWGreen0"
+x = 579
+y = 2410
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture70"
+x = 772
+y = 2410
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline71"
+x = 965
+y = 2410
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNWGreen1"
+x = 1158
+y = 2410
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture72"
+x = 1351
+y = 2410
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline73"
+x = 1544
+y = 2410
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNWGreen2"
+x = 1737
+y = 2410
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNWGreen3"
+x = 1930
+y = 2410
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture74"
+x = 2123
+y = 2410
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline75"
+x = 2316
+y = 2410
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNWBlue0"
+x = 2509
+y = 2410
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNWBlue1"
+x = 2702
+y = 2410
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNWBlue2"
+x = 2895
+y = 2410
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNWBlue3"
+x = 3088
+y = 2410
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNWRed0"
+x = 3281
+y = 2410
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNWRed1"
+x = 3474
+y = 2410
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNWRed2"
+x = 3667
+y = 2410
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNWRed3"
+x = 3860
+y = 2410
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSWGreen0"
+x = 0
+y = 2651
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture76"
+x = 193
+y = 2651
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline77"
+x = 386
+y = 2651
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSWGreen1"
+x = 579
+y = 2651
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture78"
+x = 772
+y = 2651
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline79"
+x = 965
+y = 2651
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSWGreen2"
+x = 1158
+y = 2651
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSWGreen3"
+x = 1351
+y = 2651
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture80"
+x = 1544
+y = 2651
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline81"
+x = 1737
+y = 2651
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSWBlue0"
+x = 1930
+y = 2651
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSWBlue1"
+x = 2123
+y = 2651
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSWBlue2"
+x = 2316
+y = 2651
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSWBlue3"
+x = 2509
+y = 2651
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSWRed0"
+x = 2702
+y = 2651
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSWRed1"
+x = 2895
+y = 2651
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSWRed2"
+x = 3088
+y = 2651
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairSWRed3"
+x = 3281
+y = 2651
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNEGreen0"
+x = 3474
+y = 2651
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture82"
+x = 3667
+y = 2651
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline83"
+x = 3860
+y = 2651
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNEGreen1"
+x = 0
+y = 2892
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture84"
+x = 193
+y = 2892
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline85"
+x = 386
+y = 2892
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNEGreen2"
+x = 579
+y = 2892
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNEGreen3"
+x = 772
+y = 2892
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineFurniture86"
+x = 965
+y = 2892
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineOutline87"
+x = 1158
+y = 2892
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNEBlue0"
+x = 1351
+y = 2892
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNEBlue1"
+x = 1544
+y = 2892
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNEBlue2"
+x = 1737
+y = 2892
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNEBlue3"
+x = 1930
+y = 2892
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNERed0"
+x = 2123
+y = 2892
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNERed1"
+x = 2316
+y = 2892
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNERed2"
+x = 2509
+y = 2892
+w = 192
+h = 240
+pixel_density = 2
+
+[[sprite]]
+name = "offlineChairNERed3"
+x = 2702
+y = 2892
+w = 192
+h = 240
+pixel_density = 2

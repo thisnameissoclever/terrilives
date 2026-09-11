@@ -719,7 +719,7 @@ sprite = "cabinetBedDrawer"
 [[object]]
 id = "moving_box"
 name = "Wellness Initiative, Indoor"
-sprite = "cardboardBoxOpen"
+sprite = "offlineBike"
 
   # `moving_box` is now a Save V1 persistence key rather than a description.
   # Keep this id, its one-tile footprint, and its lot position unchanged: old
@@ -789,8 +789,7 @@ sprite = "chairDesk"
 [[object]]
 id = "reading_chair"
 name = "The Wingback Sabbatical"
-sprite = "loungeChairRelax"
-foreground_sprite = "loungeChairRelaxForeground"
+sprite = "offlineChair"
 
   [[object.action_socket]]
   id = "seat"
