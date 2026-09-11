@@ -820,6 +820,35 @@ describe('AudioController gesture and cue lifecycle', () => {
     expect(context.resumeCalls).toBe(3);
   });
 
+  it('clears every scheduler after an externally suspended context recovers', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+    footstepFrame(controller, 17, 0);
+    activityFrame(controller, [[17, 'eating']]);
+    objectSoundFrame(controller, [[44, OBJECT_SOUND_ACTION_SHOWER_WATER]]);
+
+    context.state = 'suspended';
+    footstepFrame(controller, 17, 0.4);
+    activityFrame(controller, [[17, 'eating']]);
+    objectSoundFrame(controller, [[44, OBJECT_SOUND_ACTION_SHOWER_WATER]]);
+    expect(controller.activeFootstepTrackCount()).toBe(1);
+    expect(controller.activeActivityTrackCount()).toBe(1);
+    expect(controller.activeObjectSoundTrackCount()).toBe(1);
+
+    expect(await controller.unlockFromGesture()).toBe(true);
+    expect(controller.activeFootstepTrackCount()).toBe(0);
+    expect(controller.activeActivityTrackCount()).toBe(0);
+    expect(controller.activeObjectSoundTrackCount()).toBe(0);
+
+    footstepFrame(controller, 17, 0.8);
+    activityFrame(controller, [[17, 'eating']]);
+    objectSoundFrame(controller, [[44, OBJECT_SOUND_ACTION_SHOWER_WATER]]);
+    expect(controller.cuePlayCounts().footstep).toBe(0);
+    expect(controller.cuePlayCounts().eating).toBe(2);
+    expect(controller.activeObjectSoundTrackCount()).toBe(1);
+  });
+
   it('re-anchors after hidden samples before audible foreground travel', async () => {
     const context = new FakeContext();
     const controller = new AudioController(() => context, undefined);

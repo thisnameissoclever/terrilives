@@ -262,6 +262,8 @@ async function collectMemorySample(page, cdp, includePageMemory) {
         activeVoices: stress.audio.activeVoices,
         footstepTracks: stress.audio.footstepTracks,
         footstepCapacity: stress.audio.footstepCapacity,
+        activityTracks: stress.audio.activityTracks,
+        activityCapacity: stress.audio.activityCapacity,
         objectSoundTracks: stress.audio.objectSoundTracks,
         objectSoundCapacity: stress.audio.objectSoundCapacity,
       };
@@ -371,6 +373,8 @@ function analyseMemory(runs) {
         sample.wasmMemoryBytes >= 65_536 &&
         sample.footstepCapacity === baseline.footstepCapacity &&
         sample.footstepTracks <= 3 &&
+        sample.activityCapacity === baseline.activityCapacity &&
+        sample.activityTracks <= 3 &&
         sample.objectSoundCapacity === baseline.objectSoundCapacity &&
         sample.objectSoundTracks <= 2 &&
         sample.activeVoices <= 8,

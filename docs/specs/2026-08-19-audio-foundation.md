@@ -53,8 +53,8 @@ partial, out-of-range, or unknown-version record is ignored in full.
    cadence.
 6. Hiding the document gates new voices synchronously, stops active voices,
    clears stride and activity cadence state, and requests context suspension.
-7. Showing the document clears both schedulers again and requests resume only
-   for a context that was previously gesture-activated.
+7. Showing the document clears all scheduler state again and requests resume
+   only for a context that was previously gesture-activated.
 8. Visibility requests are revisioned and serialized. The latest requested
    state wins even when an older browser promise settles late.
 9. Pause stops simulation ticks. It does not suspend audio or cut off an
@@ -145,9 +145,10 @@ entry, then once every eight ticks while any conversation remains active.
 Sleep follows the same household-level rule. One quiet breath plays on entry,
 then once every 30 ticks while at least one Sim remains asleep. Multiple
 sleepers do not create synchronized breath stacks. Leaving an activity resets
-its cadence. Load, backgrounding, the first successful audio unlock, master
-mute changes, and Effects crossing zero reset both cadences so silent intervals
-cannot delay or burst later.
+its cadence. Load, backgrounding, the first successful audio unlock, recovery
+from an externally suspended audio context, master mute changes, and Effects
+crossing zero reset both cadences so silent intervals cannot delay or burst
+later.
 
 These rates are presentation policy at 10 fixed ticks per second: 0.8 seconds
 between conversation phrases and 3 seconds between sleep breaths. They do not
@@ -168,9 +169,10 @@ conversation or bedroom scene, these actions belong to one Sim. Each stable
    aligned with the visible pedal-frame hold.
 
 Changing personal action starts the new cue immediately. Leaving the action,
-Load, backgrounding, the first successful audio unlock, master mute changes,
-and Effects crossing zero remove the retained personal cadence. Sim
-disappearance does the same at the end of the sampled frame.
+Load, backgrounding, the first successful audio unlock, recovery from an
+externally suspended audio context, master mute changes, and Effects crossing
+zero remove the retained personal cadence. Sim disappearance does the same at
+the end of the sampled frame.
 
 Personal tracks use retained aligned typed arrays plus one Sim-ID-to-slot map.
 Dense removal preserves existing cadence and map identity for a moved slot.
@@ -192,7 +194,7 @@ audible object loop. Content may author an optional sound action on an ordinary
 interaction or one chain step. The first two proof cases are:
 
 1. `shower_water` on the shower's ordinary `take_shower` interaction.
-2. `stove_cooking` on the cooking chain's `use_hob` step.
+2. `stove_cooking` on the cooking chain's step authored with the `hob` role.
 
 The compiler converts those names to a closed numeric action enum. Every Sim
 render row carries two aligned `u32` columns after a fixed tick:

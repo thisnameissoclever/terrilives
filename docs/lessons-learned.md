@@ -4811,14 +4811,6 @@ injected fetch function that increments a counter and throws. Both requests
 must fail with their preflight error and leave the counter at zero. The only
 subprocess cases may list the manifest or prove that a download without the
 approval flag is refused.
-**How to verify.** At 136 pixels the two-row bound gives 697 pixels for the
-16 by 12 lot, so `cameraOrigin` must place the whole extent on a 720-pixel
-canvas with a non-negative top and a bottom no greater than 720, centered.
-Reserving one height for both rows must fail. `BOUNDARY_SPRITE_NAMES` must be
-checked in both directions against what `buildStaticInstances` emits: a missing
-boundary piece is reserved for at the wrong row, and an extra one that never
-leaves the lot rebuilds the over-reservation. The obsolete tile-only centering
-formula must remain observably clipped.
 
 ## [L-delegated-workspace-management] Routine workspace work is not an owner approval gate
 
@@ -5213,3 +5205,28 @@ Changing the guard's `||` to `&&` must make that focused regression fail by
 projecting the shower sound from mismatched state. Keep a separate render-sync
 test for the public buffer contract; outer presentation policy can suppress a
 malformed combination before it exposes this lower-level identity defect.
+
+## [L-audio-boundaries-and-proofs-must-cover-every-scheduler] Scheduler families change as one contract
+
+**What happened.** Recovery from an externally suspended browser audio context
+reset object-sound state but retained footstep and activity cadence. The
+retained-memory proof also measured footsteps and object sounds while omitting
+personal-activity track count and capacity.
+
+**Root cause.** Activity and object schedulers were added after the original
+footstep lifecycle. Two explicit scheduler lists evolved independently: the
+audible re-entry branch and the browser proof's diagnostics. Each list was
+partially updated, so neither represented the complete controller contract.
+
+**Prevention rule.** Every transition from inaudible to audible must call the
+controller's single all-scheduler reset. Every bounded-state proof must sample
+and constrain every retained scheduler's live count and capacity. Adding a
+scheduler requires updating both contracts in the same change.
+
+**How to verify.** Populate footstep, personal-activity, and object-sound state;
+externally suspend the context; continue sampling while inaudible; then recover
+through a trusted gesture. Recovery must clear all three schedulers, the next
+footstep must anchor without playing, and the current personal activity must
+restart at entry cadence. The browser memory report must include stable
+footstep, activity, and object-sound capacities and bounds of three, three, and
+two live tracks respectively.

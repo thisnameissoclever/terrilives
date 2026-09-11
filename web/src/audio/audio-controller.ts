@@ -409,11 +409,9 @@ export class AudioController implements GameAudioEventSink {
     const running = context.state === 'running';
     if (running && !this.hasUnlocked) {
       this.hasUnlocked = true;
-      this.footsteps.reset();
-      this.activities.reset();
-      this.objectSounds.reset();
+      this.resetSchedulers();
     } else if (running && resumedContext) {
-      this.objectSounds.reset();
+      this.resetSchedulers();
     }
     return running;
   }
