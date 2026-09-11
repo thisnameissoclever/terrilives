@@ -628,7 +628,7 @@ motion pins frame zero. Conversation, eating, and seated socket reading retain
 their existing precedence; every incomplete or surplus contract falls back to
 generic object use.
 
-The current local candidate shares one approved face, hairstyle and body across
+The shipped Sim shares one approved face, hairstyle and body across
 all Sims. Three material-only shirt palettes are selected from the persistent
 render-buffer Sim ID: Tim (0) blue, Bill (1) green, Casey (2) red. Unnamed Sims
 default to green. Entity IDs remain animation-phase inputs, not color choices.
@@ -638,9 +638,10 @@ schema change is needed because persistent identity already exists.
 Nine clips come from the preserved editable rig; a separate exercise source
 adds two held poses per facing without replacing that source. The importer
 requires all nine base clips and the exercise supplement for each of the three
-palettes. The atlas contains 836 records: 368 procedural records followed by
-444 base-clip frames and 24 exercise frames. Its width is 1024 pixels and height
-4596 pixels. The shipped SE bike uses adjusted bar/console geometry; its other
+palettes. The generated atlas tables are authoritative for sprite counts and
+texture dimensions. Logical sprite dimensions and anchors remain independent
+of texture density; a 2x texture does not double a Sim's size in the world.
+The shipped SE bike uses adjusted bar/console geometry; its other
 mirrored facings have not passed rider-contact acceptance.
 CI runs the sprite-import and model-export unit tests before checking atlas
 reproducibility, including the bike's actual neighboring-wall clearance.
@@ -662,7 +663,7 @@ pressed Save; that presentation boundary already exists for travel itself.
 The simulation owns all state in WASM linear memory. JS holds
 `Float32Array`/`Uint32Array` **views** over render-relevant slices, including
 positions, sprite IDs, optional foreground sprite IDs, activity codes,
-presentation visual actions, and lot-axis facings, plus compiled footprint
+presentation visual actions, exact active socket target IDs, and lot-axis facings, plus compiled footprint
 width and depth, and feeds them directly into GPU buffers. Walking reuses the
 action, facing, activity, and position columns.
 Conversation, eating, sleeping, sitting, seated reading, standing reading,

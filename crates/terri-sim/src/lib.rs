@@ -66,6 +66,7 @@ struct RenderRow {
     foreground_sprite: u32,
     activity: u32,
     visual_action: u32,
+    interaction_target: u32,
     facing: u32,
     socket_projected: bool,
     carrying: u32,
@@ -78,6 +79,7 @@ struct SocketActionProjection {
     facing: u32,
     visual_action: u32,
     activity: u32,
+    target_entity: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -331,6 +333,7 @@ fn authored_socket_action_visual(
         facing: socket_facing_code(socket.facing),
         visual_action,
         activity,
+        target_entity: target.object.index_u32(),
     })
 }
 
@@ -1052,6 +1055,7 @@ impl Sim {
         self.render.ids.clear();
         self.render.activities.clear();
         self.render.visual_actions.clear();
+        self.render.interaction_targets.clear();
         self.render.facings.clear();
         self.render.carrying.clear();
 
@@ -1357,6 +1361,11 @@ impl Sim {
                     .map_or(render_buffer::NO_FOREGROUND_SPRITE, |sprite| sprite.0),
                 activity,
                 visual_action,
+                interaction_target: socket_action_visual
+                    .filter(|_| socket_projected)
+                    .map_or(render_buffer::NO_INTERACTION_TARGET, |projection| {
+                        projection.target_entity
+                    }),
                 facing,
                 socket_projected,
                 carrying: carrying.map_or(render_buffer::NOT_CARRYING, |c| c.0),
@@ -1379,6 +1388,7 @@ impl Sim {
             self.render.ids.push(row.index);
             self.render.activities.push(row.activity);
             self.render.visual_actions.push(row.visual_action);
+            self.render.interaction_targets.push(row.interaction_target);
             self.render.facings.push(row.facing);
             self.render.carrying.push(row.carrying);
         }

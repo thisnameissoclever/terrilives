@@ -87,12 +87,25 @@ Independent read-only review confirmed that object cranks currently have no
 shared animation-sample owner with the rider. The rider is phased by Sim entity
 ID, and the object animation path only handles the aquarium. New moving bike
 layers must use the exact active rider/target association, not a nearest-position
-guess or independent object clock. That association is not in the current
-render buffer. Extending it requires a focused Rust/bridge/presentation impact
-scan and a documented implementation design before runtime work.
+guess or independent object clock. At initial review that association was not
+in the render buffer. The implementation adds `interaction_targets`, an exact
+entity index only when the validated socket action wins presentation selection.
+All other rows use `u32::MAX`. It is cleared and rebuilt on every sync, including
+command-only syncs. `SimBridge.interactionTargets()` recreates its memory view
+after sync or growth. No simulation component, save field or new clock is added.
 
 The current static foreground draws ahead of the whole Sim and omits the
 registered draw offsets used for bodies. Test its capacity against actual
 full-scene renders; do not assume one foreground can describe every moving
 limb crossing. Paired visibility-resolved exports are the reviewer's preferred
-next route if a static split fails. Runtime integration has not begun.
+next route if a static split fails. Runtime integration is underway.
+
+The export probe found that owner-filtered Freestyle strokes can overlap even
+when the reciprocal surface holdouts are complementary. The selected contract
+keeps three textures: visible Sim surfaces, visible furniture surfaces, and
+one outline pass rendered with both complete objects present as occluders.
+Surfaces contain premultiplied colour contributions; the shader adds those
+contributions, composites the outlines once, then applies its existing alpha
+test and lighting. Empty furniture remains a separate ordinary RGBA sprite.
+This is still one 2D instanced draw, not a live 3D scene or a Sim baked into a
+furniture texture. Source comparison and actual GPU acceptance remain required.
