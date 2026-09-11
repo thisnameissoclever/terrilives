@@ -62,6 +62,17 @@ class FurnitureTests(unittest.TestCase):
                 self.load()
             self.data[field] = original
 
+    def test_cycling_runs_forward_without_changing_rest_pose_or_reading_order(self):
+        export = self.load()
+        *_, catalog = furniture_tables(export,export.sprites)
+        names = [sprite[0] for sprite in export.sprites]
+        for facing in ("SE","NW","SW","NE"):
+            for variant in ("green","blue","red"):
+                for obj,order in (("bike",[0,7,6,5,4,3,2,1]),("chair",[0,1,2,3])):
+                    empty = f"offline{obj.title()}{'' if facing == 'SE' else facing}"
+                    actual = [names[index] for index in catalog[names.index(empty)]["frames"][variant]]
+                    self.assertEqual(actual,[f"offline{obj.title()}{facing}{variant.title()}{i}" for i in order])
+
     def test_bad_hash_path_and_dimensions_rejected(self):
         for change, message in (({"sha256": "0" * 64}, "hash"), ({"path": "../sample.png"}, "path"),
                                 ({"path": "folder\\sample.png"}, "path")):

@@ -4957,3 +4957,22 @@ adding animation scope or reporting a missing transition.
 
 **How to verify.** Inspect the exact object's interaction declaration and the
 corresponding compiled-action mapping, not a similarly named test fixture.
+
+## [L-motion-direction-review] Correct poses can still play in the wrong direction
+
+**What happened.** The owner spotted backward pedalling after the bike's poses,
+contacts, facings and compositing had passed review.
+
+**Root cause.** Still-image review established physical contact but did not
+establish the intended direction of travel through the cycle. Increasing source
+phase moved the top pedal toward the rear of the bike rather than the front.
+
+**Prevention rule.** Review the temporal sequence as well as each pose. At the
+top of a forward pedal cycle, the pedal must next travel toward the handlebars.
+The runtime bike order is now 0,7,6,5,4,3,2,1; source phase zero remains the
+resting/reduced-motion pose. Chair order, geometry and sprite identities stay
+unchanged.
+
+**How to verify.** Assert the complete cycling order for every facing and shirt
+colour, assert reading order stays 0,1,2,3, then play the built animation. A
+paused pose or an unordered contact sheet cannot satisfy this check.

@@ -137,6 +137,11 @@ def load_furniture(manifest_path, *, existing_names=()):
             layers[role] = name
         pairs[body] = layers
         profiles[empty_name(obj, facing)]["frames"][variant].append(body)
+    # Source phases turn backward for this rig. Reverse playback, retaining
+    # phase zero as the resting/reduced-motion pose and every sprite's index.
+    for facing in FACINGS:
+        for sequence in profiles[empty_name("bike",facing)]["frames"].values():
+            sequence[1:] = reversed(sequence[1:])
     return FurnitureExport(sprites, anchor, pairs, profiles, bounds)
 
 

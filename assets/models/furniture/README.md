@@ -92,6 +92,9 @@ Do not describe the offline review as the completed bike-and-chair milestone.
 All palettes retain the same rig, camera and physical attachments. Only the
 approved shirt materials change. At runtime the exact active target ID binds
 the rider to its furniture; nearby objects are never guessed from distance.
+Cycling plays source phases 0,7,6,5,4,3,2,1 so the upper pedal moves toward the
+handlebars. Reading retains source order 0,1,2,3. Phase zero remains the resting
+and reduced-motion pose; reversing playback does not change any PNG or index.
 
 The first completed batch predates the full dependency wrapper. Its original
 five-script journal is preserved. `dependency-proof.json` separately records
