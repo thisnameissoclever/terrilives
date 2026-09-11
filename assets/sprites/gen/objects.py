@@ -106,6 +106,29 @@ def doorwayEW(d):
 WALL_JOIN_MASKS = (3, 6, 7, 9, 11, 12, 13, 14, 15)
 
 
+def _wall_crease(d, x=0, y=0, inset=0, shift_x=0):
+    """A narrow fold shadow, ending at the skirting instead of forming a post."""
+    px, top = P(x, y, WALL_H - .04)
+    px += shift_x
+    _, bottom = P(x, y, .14)
+    face = mul(C["wall"], .94)
+    # Fade into one adjoining face; leave the panel silhouette unchanged.
+    for offset, amount in ((inset * 2, .06), (inset, .12), (0, .25)):
+        d.line([(px + offset, top), (px + offset, bottom)],
+               fill=mix(face, OUTLINE, amount), width=1)
+
+
+def wallCornerStartNS(d):
+    _wall(d, "ns")
+    # The positive-x outline lies outside the exact 32-pixel crop.
+    _wall_crease(d, y=A, inset=-1, shift_x=-1)
+
+
+def wallCornerStartEW(d):
+    _wall(d, "ew")
+    _wall_crease(d, x=A, inset=1)
+
+
 def _joined_wall(mask):
     def draw(d):
         # Far arms first, so nearer wall faces hide their base and rail.
@@ -115,6 +138,13 @@ def _joined_wall(mask):
         ):
             if mask & bit:
                 _wall(d, axis, start=start, end=end)
+        # A continuous near face hides a branch attached on its far side.
+        # North is behind an east-west run; west is behind a north-south run.
+        flat_ew_face = (mask & 10) == 10 and not (mask & 4)
+        flat_ns_face = (mask & 5) == 5 and not (mask & 2)
+        if not (flat_ew_face or flat_ns_face):
+            # South and west both project left; their fold has no right face.
+            _wall_crease(d, inset=-1 if mask == 12 else 1)
     draw.__name__ = f"wallJoin{mask}"
     return draw
 
@@ -1764,5 +1794,6 @@ SPRITES = [
 ]
 
 # Every architectural panel spans exactly one projected tile edge.
-for _sprite in (*WALL_JOIN_SPRITES, doorwayJoinedNS, doorwayJoinedEW):
+for _sprite in (*WALL_JOIN_SPRITES, doorwayJoinedNS, doorwayJoinedEW,
+                wallCornerStartNS, wallCornerStartEW):
     EXACT[_sprite.__name__] = (HW, None)

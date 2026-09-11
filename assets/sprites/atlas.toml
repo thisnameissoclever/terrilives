@@ -44,7 +44,7 @@ h = 109
 
 [[sprite]]
 name = "kitchenFridgeBuiltIn"
-x = 159
+x = 212
 y = 2600
 w = 58
 h = 102
@@ -58,7 +58,7 @@ h = 65
 
 [[sprite]]
 name = "showerRound"
-x = 218
+x = 271
 y = 2600
 w = 58
 h = 102
@@ -205,7 +205,7 @@ h = 77
 
 [[sprite]]
 name = "bedDouble"
-x = 614
+x = 667
 y = 2600
 w = 122
 h = 96
@@ -240,7 +240,7 @@ h = 77
 
 [[sprite]]
 name = "bookcaseClosedWide"
-x = 777
+x = 843
 y = 379
 w = 80
 h = 104
@@ -254,14 +254,14 @@ h = 87
 
 [[sprite]]
 name = "washerDryerStacked"
-x = 737
+x = 790
 y = 2600
 w = 54
 h = 96
 
 [[sprite]]
 name = "wallCornerNW"
-x = 572
+x = 625
 y = 2600
 w = 8
 h = 101
@@ -1220,7 +1220,7 @@ h = 10
 
 [[sprite]]
 name = "aquariumCabinet1"
-x = 858
+x = 924
 y = 379
 w = 80
 h = 104
@@ -1577,21 +1577,21 @@ h = 88
 
 [[sprite]]
 name = "kitchenFridgeBuiltInSW"
-x = 277
+x = 330
 y = 2600
 w = 58
 h = 102
 
 [[sprite]]
 name = "kitchenFridgeBuiltInNW"
-x = 336
+x = 389
 y = 2600
 w = 58
 h = 102
 
 [[sprite]]
 name = "kitchenFridgeBuiltInNE"
-x = 395
+x = 448
 y = 2600
 w = 58
 h = 102
@@ -1619,7 +1619,7 @@ h = 65
 
 [[sprite]]
 name = "showerRoundSW"
-x = 454
+x = 507
 y = 2600
 w = 58
 h = 102
@@ -1633,7 +1633,7 @@ h = 86
 
 [[sprite]]
 name = "showerRoundNE"
-x = 513
+x = 566
 y = 2600
 w = 58
 h = 102
@@ -2018,7 +2018,7 @@ h = 77
 
 [[sprite]]
 name = "bedDoubleSW"
-x = 792
+x = 845
 y = 2600
 w = 122
 h = 96
@@ -2144,7 +2144,7 @@ h = 79
 
 [[sprite]]
 name = "washerDryerStackedSW"
-x = 915
+x = 968
 y = 2600
 w = 54
 h = 96
@@ -2620,896 +2620,896 @@ h = 88
 
 [[sprite]]
 name = "rigSimWalkSE0"
-x = 939
-y = 379
+x = 0
+y = 500
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkSE1"
-x = 0
+x = 53
 y = 500
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkSE2"
-x = 53
+x = 106
 y = 500
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkSE3"
-x = 106
+x = 159
 y = 500
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkSE4"
-x = 159
+x = 212
 y = 500
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkSE5"
-x = 212
+x = 265
 y = 500
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkSE6"
-x = 265
+x = 318
 y = 500
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkSE7"
-x = 318
+x = 371
 y = 500
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkNW0"
-x = 371
+x = 424
 y = 500
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkNW1"
-x = 424
+x = 477
 y = 500
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkNW2"
-x = 477
+x = 530
 y = 500
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkNW3"
-x = 530
+x = 583
 y = 500
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkNW4"
-x = 583
+x = 636
 y = 500
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkNW5"
-x = 636
+x = 689
 y = 500
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkNW6"
-x = 689
+x = 742
 y = 500
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkNW7"
-x = 742
+x = 795
 y = 500
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkSW0"
-x = 795
+x = 848
 y = 500
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkSW1"
-x = 848
+x = 901
 y = 500
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkSW2"
-x = 901
+x = 954
 y = 500
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkSW3"
-x = 954
-y = 500
+x = 0
+y = 605
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkSW4"
-x = 0
+x = 53
 y = 605
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkSW5"
-x = 53
+x = 106
 y = 605
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkSW6"
-x = 106
+x = 159
 y = 605
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkSW7"
-x = 159
+x = 212
 y = 605
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkNE0"
-x = 212
+x = 265
 y = 605
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkNE1"
-x = 265
+x = 318
 y = 605
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkNE2"
-x = 318
+x = 371
 y = 605
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkNE3"
-x = 371
+x = 424
 y = 605
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkNE4"
-x = 424
+x = 477
 y = 605
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkNE5"
-x = 477
+x = 530
 y = 605
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkNE6"
-x = 530
+x = 583
 y = 605
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWalkNE7"
-x = 583
+x = 636
 y = 605
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimReadSE0"
-x = 636
+x = 689
 y = 605
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimReadSE1"
-x = 689
+x = 742
 y = 605
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimReadSE2"
-x = 742
+x = 795
 y = 605
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimReadSE3"
-x = 795
+x = 848
 y = 605
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimReadNW0"
-x = 848
+x = 901
 y = 605
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimReadNW1"
-x = 901
+x = 954
 y = 605
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimReadNW2"
-x = 954
-y = 605
+x = 0
+y = 710
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimReadNW3"
-x = 0
+x = 53
 y = 710
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimReadSW0"
-x = 53
+x = 106
 y = 710
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimReadSW1"
-x = 106
+x = 159
 y = 710
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimReadSW2"
-x = 159
+x = 212
 y = 710
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimReadSW3"
-x = 212
+x = 265
 y = 710
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimReadNE0"
-x = 265
+x = 318
 y = 710
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimReadNE1"
-x = 318
+x = 371
 y = 710
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimReadNE2"
-x = 371
+x = 424
 y = 710
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimReadNE3"
-x = 424
+x = 477
 y = 710
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimTalkSE0"
-x = 477
+x = 530
 y = 710
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimTalkSE1"
-x = 530
+x = 583
 y = 710
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimTalkSE2"
-x = 583
+x = 636
 y = 710
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimTalkSE3"
-x = 636
+x = 689
 y = 710
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimTalkNW0"
-x = 689
+x = 742
 y = 710
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimTalkNW1"
-x = 742
+x = 795
 y = 710
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimTalkNW2"
-x = 795
+x = 848
 y = 710
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimTalkNW3"
-x = 848
+x = 901
 y = 710
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimTalkSW0"
-x = 901
+x = 954
 y = 710
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimTalkSW1"
-x = 954
-y = 710
+x = 0
+y = 815
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimTalkSW2"
-x = 0
+x = 53
 y = 815
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimTalkSW3"
-x = 53
+x = 106
 y = 815
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimTalkNE0"
-x = 106
+x = 159
 y = 815
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimTalkNE1"
-x = 159
+x = 212
 y = 815
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimTalkNE2"
-x = 212
+x = 265
 y = 815
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimTalkNE3"
-x = 265
+x = 318
 y = 815
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimEatSE0"
-x = 318
+x = 371
 y = 815
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimEatSE1"
-x = 371
+x = 424
 y = 815
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimEatSE2"
-x = 424
+x = 477
 y = 815
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimEatSE3"
-x = 477
+x = 530
 y = 815
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimEatNW0"
-x = 530
+x = 583
 y = 815
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimEatNW1"
-x = 583
+x = 636
 y = 815
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimEatNW2"
-x = 636
+x = 689
 y = 815
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimEatNW3"
-x = 689
+x = 742
 y = 815
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimEatSW0"
-x = 742
+x = 795
 y = 815
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimEatSW1"
-x = 795
+x = 848
 y = 815
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimEatSW2"
-x = 848
+x = 901
 y = 815
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimEatSW3"
-x = 901
+x = 954
 y = 815
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimEatNE0"
-x = 954
-y = 815
+x = 0
+y = 920
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimEatNE1"
-x = 0
+x = 53
 y = 920
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimEatNE2"
-x = 53
+x = 106
 y = 920
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimEatNE3"
-x = 106
+x = 159
 y = 920
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimStandReadSE0"
-x = 159
+x = 212
 y = 920
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimStandReadSE1"
-x = 212
+x = 265
 y = 920
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimStandReadSE2"
-x = 265
+x = 318
 y = 920
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimStandReadSE3"
-x = 318
+x = 371
 y = 920
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimStandReadNW0"
-x = 371
+x = 424
 y = 920
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimStandReadNW1"
-x = 424
+x = 477
 y = 920
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimStandReadNW2"
-x = 477
+x = 530
 y = 920
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimStandReadNW3"
-x = 530
+x = 583
 y = 920
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimStandReadSW0"
-x = 583
+x = 636
 y = 920
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimStandReadSW1"
-x = 636
+x = 689
 y = 920
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimStandReadSW2"
-x = 689
+x = 742
 y = 920
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimStandReadSW3"
-x = 742
+x = 795
 y = 920
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimStandReadNE0"
-x = 795
+x = 848
 y = 920
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimStandReadNE1"
-x = 848
+x = 901
 y = 920
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimStandReadNE2"
-x = 901
+x = 954
 y = 920
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimStandReadNE3"
-x = 954
-y = 920
+x = 0
+y = 1025
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWatchFishSE0"
-x = 0
+x = 53
 y = 1025
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWatchFishSE1"
-x = 53
+x = 106
 y = 1025
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWatchFishSE2"
-x = 106
+x = 159
 y = 1025
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWatchFishSE3"
-x = 159
+x = 212
 y = 1025
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWatchFishNW0"
-x = 212
+x = 265
 y = 1025
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWatchFishNW1"
-x = 265
+x = 318
 y = 1025
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWatchFishNW2"
-x = 318
+x = 371
 y = 1025
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWatchFishNW3"
-x = 371
+x = 424
 y = 1025
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWatchFishSW0"
-x = 424
+x = 477
 y = 1025
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWatchFishSW1"
-x = 477
+x = 530
 y = 1025
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWatchFishSW2"
-x = 530
+x = 583
 y = 1025
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWatchFishSW3"
-x = 583
+x = 636
 y = 1025
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimWatchFishNE0"
-x = 636
-y = 1025
-w = 52
-h = 104
-
-[[sprite]]
-name = "rigSimWatchFishNE1"
 x = 689
 y = 1025
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimWatchFishNE2"
+name = "rigSimWatchFishNE1"
 x = 742
 y = 1025
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimWatchFishNE3"
+name = "rigSimWatchFishNE2"
 x = 795
 y = 1025
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimSitSE0"
+name = "rigSimWatchFishNE3"
 x = 848
 y = 1025
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimSitSE1"
+name = "rigSimSitSE0"
 x = 901
 y = 1025
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimSitSE2"
+name = "rigSimSitSE1"
 x = 954
 y = 1025
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimSitSE3"
+name = "rigSimSitSE2"
 x = 0
 y = 1130
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimSitNW0"
+name = "rigSimSitSE3"
 x = 53
 y = 1130
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimSitNW1"
+name = "rigSimSitNW0"
 x = 106
 y = 1130
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimSitNW2"
+name = "rigSimSitNW1"
 x = 159
 y = 1130
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimSitNW3"
+name = "rigSimSitNW2"
 x = 212
 y = 1130
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimSitSW0"
+name = "rigSimSitNW3"
 x = 265
 y = 1130
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimSitSW1"
+name = "rigSimSitSW0"
 x = 318
 y = 1130
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimSitSW2"
+name = "rigSimSitSW1"
 x = 371
 y = 1130
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimSitSW3"
+name = "rigSimSitSW2"
 x = 424
 y = 1130
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimSitNE0"
+name = "rigSimSitSW3"
 x = 477
 y = 1130
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimSitNE1"
+name = "rigSimSitNE0"
 x = 530
 y = 1130
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimSitNE2"
+name = "rigSimSitNE1"
 x = 583
 y = 1130
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimSitNE3"
+name = "rigSimSitNE2"
 x = 636
+y = 1130
+w = 52
+h = 104
+
+[[sprite]]
+name = "rigSimSitNE3"
+x = 689
 y = 1130
 w = 52
 h = 104
@@ -3656,896 +3656,896 @@ h = 88
 
 [[sprite]]
 name = "rigSimBlueWalkSE0"
-x = 689
+x = 742
 y = 1130
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkSE1"
-x = 742
+x = 795
 y = 1130
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkSE2"
-x = 795
+x = 848
 y = 1130
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkSE3"
-x = 848
+x = 901
 y = 1130
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkSE4"
-x = 901
+x = 954
 y = 1130
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkSE5"
-x = 954
-y = 1130
+x = 0
+y = 1235
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkSE6"
-x = 0
+x = 53
 y = 1235
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkSE7"
-x = 53
+x = 106
 y = 1235
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkNW0"
-x = 106
+x = 159
 y = 1235
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkNW1"
-x = 159
+x = 212
 y = 1235
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkNW2"
-x = 212
+x = 265
 y = 1235
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkNW3"
-x = 265
+x = 318
 y = 1235
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkNW4"
-x = 318
+x = 371
 y = 1235
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkNW5"
-x = 371
+x = 424
 y = 1235
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkNW6"
-x = 424
+x = 477
 y = 1235
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkNW7"
-x = 477
+x = 530
 y = 1235
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkSW0"
-x = 530
+x = 583
 y = 1235
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkSW1"
-x = 583
+x = 636
 y = 1235
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkSW2"
-x = 636
+x = 689
 y = 1235
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkSW3"
-x = 689
+x = 742
 y = 1235
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkSW4"
-x = 742
+x = 795
 y = 1235
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkSW5"
-x = 795
+x = 848
 y = 1235
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkSW6"
-x = 848
+x = 901
 y = 1235
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkSW7"
-x = 901
+x = 954
 y = 1235
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkNE0"
-x = 954
-y = 1235
+x = 0
+y = 1340
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkNE1"
-x = 0
+x = 53
 y = 1340
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkNE2"
-x = 53
+x = 106
 y = 1340
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkNE3"
-x = 106
+x = 159
 y = 1340
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkNE4"
-x = 159
+x = 212
 y = 1340
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkNE5"
-x = 212
+x = 265
 y = 1340
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkNE6"
-x = 265
+x = 318
 y = 1340
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWalkNE7"
-x = 318
+x = 371
 y = 1340
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueReadSE0"
-x = 371
+x = 424
 y = 1340
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueReadSE1"
-x = 424
+x = 477
 y = 1340
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueReadSE2"
-x = 477
+x = 530
 y = 1340
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueReadSE3"
-x = 530
+x = 583
 y = 1340
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueReadNW0"
-x = 583
+x = 636
 y = 1340
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueReadNW1"
-x = 636
+x = 689
 y = 1340
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueReadNW2"
-x = 689
+x = 742
 y = 1340
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueReadNW3"
-x = 742
+x = 795
 y = 1340
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueReadSW0"
-x = 795
+x = 848
 y = 1340
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueReadSW1"
-x = 848
+x = 901
 y = 1340
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueReadSW2"
-x = 901
+x = 954
 y = 1340
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueReadSW3"
-x = 954
-y = 1340
+x = 0
+y = 1445
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueReadNE0"
-x = 0
+x = 53
 y = 1445
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueReadNE1"
-x = 53
+x = 106
 y = 1445
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueReadNE2"
-x = 106
+x = 159
 y = 1445
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueReadNE3"
-x = 159
+x = 212
 y = 1445
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueTalkSE0"
-x = 212
+x = 265
 y = 1445
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueTalkSE1"
-x = 265
+x = 318
 y = 1445
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueTalkSE2"
-x = 318
+x = 371
 y = 1445
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueTalkSE3"
-x = 371
+x = 424
 y = 1445
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueTalkNW0"
-x = 424
+x = 477
 y = 1445
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueTalkNW1"
-x = 477
+x = 530
 y = 1445
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueTalkNW2"
-x = 530
+x = 583
 y = 1445
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueTalkNW3"
-x = 583
+x = 636
 y = 1445
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueTalkSW0"
-x = 636
+x = 689
 y = 1445
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueTalkSW1"
-x = 689
+x = 742
 y = 1445
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueTalkSW2"
-x = 742
+x = 795
 y = 1445
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueTalkSW3"
-x = 795
+x = 848
 y = 1445
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueTalkNE0"
-x = 848
+x = 901
 y = 1445
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueTalkNE1"
-x = 901
+x = 954
 y = 1445
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueTalkNE2"
-x = 954
-y = 1445
+x = 0
+y = 1550
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueTalkNE3"
-x = 0
+x = 53
 y = 1550
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueEatSE0"
-x = 53
+x = 106
 y = 1550
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueEatSE1"
-x = 106
+x = 159
 y = 1550
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueEatSE2"
-x = 159
+x = 212
 y = 1550
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueEatSE3"
-x = 212
+x = 265
 y = 1550
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueEatNW0"
-x = 265
+x = 318
 y = 1550
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueEatNW1"
-x = 318
+x = 371
 y = 1550
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueEatNW2"
-x = 371
+x = 424
 y = 1550
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueEatNW3"
-x = 424
+x = 477
 y = 1550
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueEatSW0"
-x = 477
+x = 530
 y = 1550
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueEatSW1"
-x = 530
+x = 583
 y = 1550
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueEatSW2"
-x = 583
+x = 636
 y = 1550
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueEatSW3"
-x = 636
+x = 689
 y = 1550
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueEatNE0"
-x = 689
+x = 742
 y = 1550
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueEatNE1"
-x = 742
+x = 795
 y = 1550
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueEatNE2"
-x = 795
+x = 848
 y = 1550
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueEatNE3"
-x = 848
+x = 901
 y = 1550
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueStandReadSE0"
-x = 901
+x = 954
 y = 1550
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueStandReadSE1"
-x = 954
-y = 1550
+x = 0
+y = 1655
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueStandReadSE2"
-x = 0
+x = 53
 y = 1655
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueStandReadSE3"
-x = 53
+x = 106
 y = 1655
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueStandReadNW0"
-x = 106
+x = 159
 y = 1655
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueStandReadNW1"
-x = 159
+x = 212
 y = 1655
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueStandReadNW2"
-x = 212
+x = 265
 y = 1655
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueStandReadNW3"
-x = 265
+x = 318
 y = 1655
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueStandReadSW0"
-x = 318
+x = 371
 y = 1655
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueStandReadSW1"
-x = 371
+x = 424
 y = 1655
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueStandReadSW2"
-x = 424
+x = 477
 y = 1655
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueStandReadSW3"
-x = 477
+x = 530
 y = 1655
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueStandReadNE0"
-x = 530
+x = 583
 y = 1655
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueStandReadNE1"
-x = 583
+x = 636
 y = 1655
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueStandReadNE2"
-x = 636
+x = 689
 y = 1655
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueStandReadNE3"
-x = 689
+x = 742
 y = 1655
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWatchFishSE0"
-x = 742
+x = 795
 y = 1655
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWatchFishSE1"
-x = 795
+x = 848
 y = 1655
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWatchFishSE2"
-x = 848
+x = 901
 y = 1655
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWatchFishSE3"
-x = 901
+x = 954
 y = 1655
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWatchFishNW0"
-x = 954
-y = 1655
+x = 0
+y = 1760
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWatchFishNW1"
-x = 0
+x = 53
 y = 1760
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWatchFishNW2"
-x = 53
+x = 106
 y = 1760
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWatchFishNW3"
-x = 106
+x = 159
 y = 1760
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWatchFishSW0"
-x = 159
+x = 212
 y = 1760
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWatchFishSW1"
-x = 212
+x = 265
 y = 1760
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWatchFishSW2"
-x = 265
+x = 318
 y = 1760
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWatchFishSW3"
-x = 318
+x = 371
 y = 1760
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimBlueWatchFishNE0"
-x = 371
-y = 1760
-w = 52
-h = 104
-
-[[sprite]]
-name = "rigSimBlueWatchFishNE1"
 x = 424
 y = 1760
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimBlueWatchFishNE2"
+name = "rigSimBlueWatchFishNE1"
 x = 477
 y = 1760
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimBlueWatchFishNE3"
+name = "rigSimBlueWatchFishNE2"
 x = 530
 y = 1760
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimBlueSitSE0"
+name = "rigSimBlueWatchFishNE3"
 x = 583
 y = 1760
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimBlueSitSE1"
+name = "rigSimBlueSitSE0"
 x = 636
 y = 1760
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimBlueSitSE2"
+name = "rigSimBlueSitSE1"
 x = 689
 y = 1760
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimBlueSitSE3"
+name = "rigSimBlueSitSE2"
 x = 742
 y = 1760
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimBlueSitNW0"
+name = "rigSimBlueSitSE3"
 x = 795
 y = 1760
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimBlueSitNW1"
+name = "rigSimBlueSitNW0"
 x = 848
 y = 1760
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimBlueSitNW2"
+name = "rigSimBlueSitNW1"
 x = 901
 y = 1760
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimBlueSitNW3"
+name = "rigSimBlueSitNW2"
 x = 954
 y = 1760
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimBlueSitSW0"
+name = "rigSimBlueSitNW3"
 x = 0
 y = 1865
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimBlueSitSW1"
+name = "rigSimBlueSitSW0"
 x = 53
 y = 1865
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimBlueSitSW2"
+name = "rigSimBlueSitSW1"
 x = 106
 y = 1865
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimBlueSitSW3"
+name = "rigSimBlueSitSW2"
 x = 159
 y = 1865
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimBlueSitNE0"
+name = "rigSimBlueSitSW3"
 x = 212
 y = 1865
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimBlueSitNE1"
+name = "rigSimBlueSitNE0"
 x = 265
 y = 1865
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimBlueSitNE2"
+name = "rigSimBlueSitNE1"
 x = 318
 y = 1865
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimBlueSitNE3"
+name = "rigSimBlueSitNE2"
 x = 371
+y = 1865
+w = 52
+h = 104
+
+[[sprite]]
+name = "rigSimBlueSitNE3"
+x = 424
 y = 1865
 w = 52
 h = 104
@@ -4692,896 +4692,896 @@ h = 88
 
 [[sprite]]
 name = "rigSimRedWalkSE0"
-x = 424
+x = 477
 y = 1865
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkSE1"
-x = 477
+x = 530
 y = 1865
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkSE2"
-x = 530
+x = 583
 y = 1865
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkSE3"
-x = 583
+x = 636
 y = 1865
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkSE4"
-x = 636
+x = 689
 y = 1865
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkSE5"
-x = 689
+x = 742
 y = 1865
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkSE6"
-x = 742
+x = 795
 y = 1865
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkSE7"
-x = 795
+x = 848
 y = 1865
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkNW0"
-x = 848
+x = 901
 y = 1865
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkNW1"
-x = 901
+x = 954
 y = 1865
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkNW2"
-x = 954
-y = 1865
+x = 0
+y = 1970
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkNW3"
-x = 0
+x = 53
 y = 1970
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkNW4"
-x = 53
+x = 106
 y = 1970
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkNW5"
-x = 106
+x = 159
 y = 1970
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkNW6"
-x = 159
+x = 212
 y = 1970
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkNW7"
-x = 212
+x = 265
 y = 1970
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkSW0"
-x = 265
+x = 318
 y = 1970
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkSW1"
-x = 318
+x = 371
 y = 1970
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkSW2"
-x = 371
+x = 424
 y = 1970
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkSW3"
-x = 424
+x = 477
 y = 1970
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkSW4"
-x = 477
+x = 530
 y = 1970
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkSW5"
-x = 530
+x = 583
 y = 1970
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkSW6"
-x = 583
+x = 636
 y = 1970
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkSW7"
-x = 636
+x = 689
 y = 1970
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkNE0"
-x = 689
+x = 742
 y = 1970
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkNE1"
-x = 742
+x = 795
 y = 1970
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkNE2"
-x = 795
+x = 848
 y = 1970
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkNE3"
-x = 848
+x = 901
 y = 1970
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkNE4"
-x = 901
+x = 954
 y = 1970
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkNE5"
-x = 954
-y = 1970
+x = 0
+y = 2075
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkNE6"
-x = 0
+x = 53
 y = 2075
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWalkNE7"
-x = 53
+x = 106
 y = 2075
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedReadSE0"
-x = 106
+x = 159
 y = 2075
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedReadSE1"
-x = 159
+x = 212
 y = 2075
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedReadSE2"
-x = 212
+x = 265
 y = 2075
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedReadSE3"
-x = 265
+x = 318
 y = 2075
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedReadNW0"
-x = 318
+x = 371
 y = 2075
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedReadNW1"
-x = 371
+x = 424
 y = 2075
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedReadNW2"
-x = 424
+x = 477
 y = 2075
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedReadNW3"
-x = 477
+x = 530
 y = 2075
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedReadSW0"
-x = 530
+x = 583
 y = 2075
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedReadSW1"
-x = 583
+x = 636
 y = 2075
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedReadSW2"
-x = 636
+x = 689
 y = 2075
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedReadSW3"
-x = 689
+x = 742
 y = 2075
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedReadNE0"
-x = 742
+x = 795
 y = 2075
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedReadNE1"
-x = 795
+x = 848
 y = 2075
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedReadNE2"
-x = 848
+x = 901
 y = 2075
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedReadNE3"
-x = 901
+x = 954
 y = 2075
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedTalkSE0"
-x = 954
-y = 2075
+x = 0
+y = 2180
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedTalkSE1"
-x = 0
+x = 53
 y = 2180
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedTalkSE2"
-x = 53
+x = 106
 y = 2180
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedTalkSE3"
-x = 106
+x = 159
 y = 2180
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedTalkNW0"
-x = 159
+x = 212
 y = 2180
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedTalkNW1"
-x = 212
+x = 265
 y = 2180
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedTalkNW2"
-x = 265
+x = 318
 y = 2180
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedTalkNW3"
-x = 318
+x = 371
 y = 2180
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedTalkSW0"
-x = 371
+x = 424
 y = 2180
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedTalkSW1"
-x = 424
+x = 477
 y = 2180
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedTalkSW2"
-x = 477
+x = 530
 y = 2180
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedTalkSW3"
-x = 530
+x = 583
 y = 2180
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedTalkNE0"
-x = 583
+x = 636
 y = 2180
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedTalkNE1"
-x = 636
+x = 689
 y = 2180
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedTalkNE2"
-x = 689
+x = 742
 y = 2180
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedTalkNE3"
-x = 742
+x = 795
 y = 2180
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedEatSE0"
-x = 795
+x = 848
 y = 2180
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedEatSE1"
-x = 848
+x = 901
 y = 2180
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedEatSE2"
-x = 901
+x = 954
 y = 2180
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedEatSE3"
-x = 954
-y = 2180
+x = 0
+y = 2285
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedEatNW0"
-x = 0
+x = 53
 y = 2285
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedEatNW1"
-x = 53
+x = 106
 y = 2285
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedEatNW2"
-x = 106
+x = 159
 y = 2285
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedEatNW3"
-x = 159
+x = 212
 y = 2285
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedEatSW0"
-x = 212
+x = 265
 y = 2285
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedEatSW1"
-x = 265
+x = 318
 y = 2285
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedEatSW2"
-x = 318
+x = 371
 y = 2285
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedEatSW3"
-x = 371
+x = 424
 y = 2285
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedEatNE0"
-x = 424
+x = 477
 y = 2285
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedEatNE1"
-x = 477
+x = 530
 y = 2285
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedEatNE2"
-x = 530
+x = 583
 y = 2285
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedEatNE3"
-x = 583
+x = 636
 y = 2285
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedStandReadSE0"
-x = 636
+x = 689
 y = 2285
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedStandReadSE1"
-x = 689
+x = 742
 y = 2285
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedStandReadSE2"
-x = 742
+x = 795
 y = 2285
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedStandReadSE3"
-x = 795
+x = 848
 y = 2285
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedStandReadNW0"
-x = 848
+x = 901
 y = 2285
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedStandReadNW1"
-x = 901
+x = 954
 y = 2285
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedStandReadNW2"
-x = 954
-y = 2285
+x = 0
+y = 2390
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedStandReadNW3"
-x = 0
+x = 53
 y = 2390
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedStandReadSW0"
-x = 53
+x = 106
 y = 2390
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedStandReadSW1"
-x = 106
+x = 159
 y = 2390
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedStandReadSW2"
-x = 159
+x = 212
 y = 2390
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedStandReadSW3"
-x = 212
+x = 265
 y = 2390
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedStandReadNE0"
-x = 265
+x = 318
 y = 2390
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedStandReadNE1"
-x = 318
+x = 371
 y = 2390
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedStandReadNE2"
-x = 371
+x = 424
 y = 2390
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedStandReadNE3"
-x = 424
+x = 477
 y = 2390
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWatchFishSE0"
-x = 477
+x = 530
 y = 2390
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWatchFishSE1"
-x = 530
+x = 583
 y = 2390
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWatchFishSE2"
-x = 583
+x = 636
 y = 2390
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWatchFishSE3"
-x = 636
+x = 689
 y = 2390
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWatchFishNW0"
-x = 689
+x = 742
 y = 2390
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWatchFishNW1"
-x = 742
+x = 795
 y = 2390
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWatchFishNW2"
-x = 795
+x = 848
 y = 2390
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWatchFishNW3"
-x = 848
+x = 901
 y = 2390
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWatchFishSW0"
-x = 901
+x = 954
 y = 2390
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWatchFishSW1"
-x = 954
-y = 2390
+x = 0
+y = 2495
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWatchFishSW2"
-x = 0
+x = 53
 y = 2495
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWatchFishSW3"
-x = 53
+x = 106
 y = 2495
 w = 52
 h = 104
 
 [[sprite]]
 name = "rigSimRedWatchFishNE0"
-x = 106
-y = 2495
-w = 52
-h = 104
-
-[[sprite]]
-name = "rigSimRedWatchFishNE1"
 x = 159
 y = 2495
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimRedWatchFishNE2"
+name = "rigSimRedWatchFishNE1"
 x = 212
 y = 2495
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimRedWatchFishNE3"
+name = "rigSimRedWatchFishNE2"
 x = 265
 y = 2495
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimRedSitSE0"
+name = "rigSimRedWatchFishNE3"
 x = 318
 y = 2495
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimRedSitSE1"
+name = "rigSimRedSitSE0"
 x = 371
 y = 2495
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimRedSitSE2"
+name = "rigSimRedSitSE1"
 x = 424
 y = 2495
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimRedSitSE3"
+name = "rigSimRedSitSE2"
 x = 477
 y = 2495
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimRedSitNW0"
+name = "rigSimRedSitSE3"
 x = 530
 y = 2495
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimRedSitNW1"
+name = "rigSimRedSitNW0"
 x = 583
 y = 2495
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimRedSitNW2"
+name = "rigSimRedSitNW1"
 x = 636
 y = 2495
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimRedSitNW3"
+name = "rigSimRedSitNW2"
 x = 689
 y = 2495
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimRedSitSW0"
+name = "rigSimRedSitNW3"
 x = 742
 y = 2495
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimRedSitSW1"
+name = "rigSimRedSitSW0"
 x = 795
 y = 2495
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimRedSitSW2"
+name = "rigSimRedSitSW1"
 x = 848
 y = 2495
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimRedSitSW3"
+name = "rigSimRedSitSW2"
 x = 901
 y = 2495
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimRedSitNE0"
+name = "rigSimRedSitSW3"
 x = 954
 y = 2495
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimRedSitNE1"
+name = "rigSimRedSitNE0"
 x = 0
 y = 2600
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimRedSitNE2"
+name = "rigSimRedSitNE1"
 x = 53
 y = 2600
 w = 52
 h = 104
 
 [[sprite]]
-name = "rigSimRedSitNE3"
+name = "rigSimRedSitNE2"
 x = 106
+y = 2600
+w = 52
+h = 104
+
+[[sprite]]
+name = "rigSimRedSitNE3"
+x = 159
 y = 2600
 w = 52
 h = 104
@@ -5875,7 +5875,7 @@ h = 109
 
 [[sprite]]
 name = "wallJoin6"
-x = 581
+x = 634
 y = 2600
 w = 32
 h = 98
@@ -5939,6 +5939,20 @@ h = 109
 [[sprite]]
 name = "doorwayJoinedEW"
 x = 744
+y = 379
+w = 32
+h = 109
+
+[[sprite]]
+name = "wallCornerStartNS"
+x = 777
+y = 379
+w = 32
+h = 109
+
+[[sprite]]
+name = "wallCornerStartEW"
+x = 810
 y = 379
 w = 32
 h = 109

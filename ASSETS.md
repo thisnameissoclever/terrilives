@@ -58,7 +58,7 @@ Pillow, nothing else:
 | `style.py` | The palette, the line, the shading ramp, the character build. The style bible. |
 | `iso.py` | The projection, the box/slab/cylinder primitives, and the anchoring rule. |
 | `chars.py` | Character anatomy and pose drawing for idle, walking, talk, eating, reading, exercise, and fish-watching bodies. |
-| `objects.py` | The 368-entry procedural registry and 11 appended wall drawers; furniture, props, directional variants, and character-pose names that delegate into `chars.py`. The complete atlas includes imported Sim frames. |
+| `objects.py` | The 368-entry procedural registry and 13 appended wall drawers; furniture, props, directional variants, and character-pose names that delegate into `chars.py`. The complete atlas includes imported Sim frames. |
 | `build.py` | Packs the sheet and writes all four output files. |
 | `_qa_dump.py` | A one-off native and enlarged crop helper. It is not part of generation or CI. |
 
@@ -200,6 +200,14 @@ sprites. Their names encode cardinal bits shared with `tiles.ts`: north 1,
 east 2, south 4, west 8. Indices 845 and 846 are `doorwayJoinedNS` and
 `doorwayJoinedEW`, with an outlined passage and no border at the panel seam.
 The older doorway entries remain available to preserve every existing index.
+
+Junction sprites carry a narrow vertical fold shadow where the visible faces
+form a corner. Rear-only branches leave the continuous near face unmarked:
+north behind an east-west run, or west behind a north-south run.
+`wallCornerStartNS` and `wallCornerStartEW` append at indices 847
+and 848 for dividers meeting exterior walls and the back corner. These shade
+only the connecting end; ordinary panels and doorways keep their clean edges.
+The shadow ends at the skirting and stays within the existing wall silhouette.
 
 `validate_joined_walls_contract` hashes all 836 prior records, including names,
 dimensions and decoded pixels. It also checks junction arm coverage, doorway

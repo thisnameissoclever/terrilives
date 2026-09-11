@@ -105,6 +105,8 @@ export const BOUNDARY_SPRITE_NAMES = [
   'floor',
   'wallNS',
   'wallEW',
+  'wallCornerStartNS',
+  'wallCornerStartEW',
 ] as const;
 
 /**
@@ -126,6 +128,10 @@ export function buildStaticInstances(
   const wallSprites = {
     wallNS: spriteIndex('wallNS'),
     wallEW: spriteIndex('wallEW'),
+  };
+  const cornerStarts = {
+    ns: spriteIndex('wallCornerStartNS'),
+    ew: spriteIndex('wallCornerStartEW'),
   };
   const doorwaySprites = {
     doorwayNS: spriteIndex('doorwayJoinedNS'),
@@ -153,7 +159,7 @@ export function buildStaticInstances(
     boundary.push([-1, y, wallSprites.wallNS]);
   }
   for (let x = -1; x < lot.width; x++) {
-    boundary.push([x, -1, wallSprites.wallEW]);
+    boundary.push([x, -1, x === -1 ? cornerStarts.ew : wallSprites.wallEW]);
   }
 
   // **Doorways are drawn out loud.** In the data a doorway is a GAP in a
@@ -195,11 +201,11 @@ export function buildStaticInstances(
     // before it meets the exterior wall. These panels are presentation only.
     if (x === 0 && (mask & 10) !== 0) {
       mask |= 8;
-      interiorPanels.push([-1, y, wallSprites.wallEW]);
+      interiorPanels.push([-1, y, cornerStarts.ew]);
     }
     if (y === 0 && (mask & 5) !== 0) {
       mask |= 1;
-      interiorPanels.push([x, -1, wallSprites.wallNS]);
+      interiorPanels.push([x, -1, cornerStarts.ns]);
     }
     interiorPanels.push([x, y, connectedWallSprite(mask)]);
   }
@@ -277,7 +283,7 @@ export function buildStaticInstances(
   for (const [x, y, sprite] of boundary) {
     write(
       x - (sprite === wallSprites.wallNS ? 0.5 : 0),
-      y - (sprite === wallSprites.wallEW ? 0.5 : 0),
+      y - (sprite === wallSprites.wallEW || sprite === cornerStarts.ew ? 0.5 : 0),
       LAYER_PROP,
       sprite,
       lighting === null ? 0 : sampleWallLight(lighting, x, y),

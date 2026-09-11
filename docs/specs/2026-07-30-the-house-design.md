@@ -212,6 +212,13 @@ outer border produced a seam beside every frame and protruding lintel corners.
 The shader clamps linear texture sampling to each sprite's edge texels so
 fractional zoom cannot blend the transparent atlas gutter into wall joins.
 
+Actual corners retain a visual fold: a muted vertical crease with a narrow
+fade onto one adjoining face. It is baked into junction sprites and selected
+end panels where dividers meet the exterior walls. The back boundary corner
+uses one shaded end panel. Straight-panel seams and doorframes stay unmarked.
+A perpendicular branch attached behind a continuous visible wall does not
+create a visible fold. The two rear T-junctions retain their uninterrupted face.
+
 ## [B6] The comfort rebalance, which took three passes and overshot on the second
 
 The five-room house added five comfort objects. Each pass was measured; each
