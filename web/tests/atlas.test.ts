@@ -283,10 +283,11 @@ describe('the atlas manifest', () => {
       '../assets/models/sims/sim-01/export/exercise/green/manifest.json', 'utf8',
     ));
     const upstreamCount = 368 + 3 * (exportManifest.frames.length + exercise.frames.length);
-    expect(SPRITES.length).toBe(upstreamCount + 11);
+    expect(SPRITES.length).toBe(upstreamCount + 13);
     expect(SPRITES.slice(upstreamCount).map((sprite) => sprite.name)).toEqual([
       ...[3, 6, 7, 9, 11, 12, 13, 14, 15].map((mask) => `wallJoin${mask}`),
       'doorwayJoinedNS', 'doorwayJoinedEW',
+      'wallCornerStartNS', 'wallCornerStartEW',
     ]);
     expect(
       createHash('sha256')

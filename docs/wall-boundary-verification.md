@@ -136,3 +136,45 @@ again. The full web suite also passed against that final WASM package.
 
 The original `D:/VIBES/terrilives` checkout and its unrelated local edits were
 left untouched. Scratch logs and the backup remain outside the commit.
+
+## Corner definition follow-up
+
+The owner requested a visible indication of the corners after accepting the
+closed joins. The nine junction sprites now have a muted fold shadow. Two
+new end-panel variants mark the back corner and where dividers meet the outer
+walls, bringing the atlas to 849 sprites. All 838 existing non-junction
+sprites retain their indices, dimensions and decoded pixels.
+
+`npm --prefix web test -- --maxWorkers=1` passes 538 tests. Sprite unittest
+discovery passes 25 tests, including two corner tests. Removing the crease
+in memory causes assertion failures in both corner tests. Type checking,
+the production client build, atlas `--check`, documentation IDs and patch
+whitespace checks pass. Each command exited 0 except the deliberately failing
+in-memory mutation.
+
+The displayed WebGPU browser was inspected at enlarged zoom in flat and
+automatic night lighting. It reported zero console errors or warnings.
+The new shadow preserves each wall's alpha mask, stays within three pixel
+columns and ends at the skirting. The following images are local previews
+of this follow-up, separate from the previously published wall correction.
+
+![Corner definition in flat lighting](assets/wall-boundary-fixes/corner-definition-flat.png)
+
+![Corner definition at night](assets/wall-boundary-fixes/corner-definition-night.png)
+
+### Visible corners only
+
+The owner approved the crease strength and identified a false crease where
+a divider joins the back of a continuous wall. The generator now suppresses
+the crease for rear branches behind either wall axis (junction masks 11 and
+13). Visible corners retain the approved shadow.
+
+The new regression failed for both rear-junction orientations before the fix
+and passed afterward. All 538 web tests and 26 sprite tests pass, as do the
+production client build and atlas check. The displayed browser shows the
+smooth through-wall and adjacent shaded corner together in flat and night
+lighting, with no console errors or warnings.
+
+![Only visible corners receive creases](assets/wall-boundary-fixes/visible-corners-only.png)
+
+![Visible corner creases at night](assets/wall-boundary-fixes/visible-corners-only-night.png)

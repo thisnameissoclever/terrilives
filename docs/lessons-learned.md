@@ -4835,3 +4835,29 @@ contained four dark seam pixels before the shader clamp and none afterward.
 Removing junction selection, the shader clamp, a visible arm, or the pixel
 preservation guard must fail the relevant regression check. Require the named
 assertion to fail; a worker-start timeout is not a caught mutation.
+
+## [L-wall-corner-definition] Closed joins still need a visible change of plane
+
+**What happened:** continuous wall faces blended together at actual corners
+after the unwanted panel seams were removed.
+
+**Root cause:** both wall axes shared one flat face color. Removing every
+vertical mark also removed the cue that distinguished adjoining planes.
+
+**Prevention rule:** shade actual junctions and connecting end panels, rather
+than every tile seam. Keep the fold inside the existing silhouette. The
+south-west elbow has both arms on the left in screen space, so its soft
+shadow must extend left as well.
+
+**How to verify:** inspect the back corner, both exterior divider joins and
+interior junctions in flat and night lighting. Pixel tests require visible
+contrast within three columns and an unchanged alpha mask. Removing the
+crease must fail both tests. Straight walls, doorways and non-wall assets
+must retain their prior pixels.
+
+**Visibility correction:** the first corner pass also marked rear T-junctions.
+Connectivity alone does not prove a visible corner: a north branch behind an
+east-west run, or a west branch behind a north-south run, leaves the near face
+flat. Suppress the crease in these two cases. The regression renders both
+orientations and requires exact agreement with the unshaded wall, while
+separate contrast checks retain the approved creases on visible corners.
