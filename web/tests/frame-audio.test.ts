@@ -22,6 +22,10 @@ const SOURCE = readFileSync(
   'utf8',
 );
 const MAIN = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
+const UNLOCK = readFileSync(
+  new URL('../src/audio/gesture-unlock.ts', import.meta.url),
+  'utf8',
+);
 
 function source(): SimAudioFrameSource {
   return {
@@ -353,10 +357,12 @@ describe('sampleSimAudioAfterTick', () => {
   });
 
   it('keeps trusted-gesture recovery armed after the first unlock', () => {
-    expect(MAIN).toMatch(
-      /const unlockAudio = \(\): void => \{\s*if \(audio\.isUnlocked\(\)\) return;\s*void audio\.unlockFromGesture\(\);\s*\}/,
-    );
-    expect(MAIN).not.toMatch(/removeEventListener\([^\n]*unlockAudio/);
+    // Which events grant user activation is a browser rule, not a startup
+    // detail, so the listener set moved into the audio module. What main()
+    // still owns is arming it once, across the whole document.
+    expect(MAIN).toMatch(/armAudioUnlock\(document, audio\)/);
+    expect(MAIN).not.toMatch(/addEventListener\([^\n]*unlockFromGesture/);
+    expect(UNLOCK).not.toMatch(/removeEventListener/);
   });
 
   it('uses the aligned stable-id column without a rebuild or identity query', () => {

@@ -75,6 +75,7 @@ import {
   type AudioCuePlayCounts,
 } from './audio/audio-controller.js';
 import { sampleSimAudioAfterTick } from './audio/frame-audio.js';
+import { armAudioUnlock } from './audio/gesture-unlock.js';
 import { AudioControls } from './ui/audio-controls.js';
 
 /** [D2]: the simulation's one true rate. Speed controls change how many
@@ -243,14 +244,10 @@ async function main(): Promise<void> {
   }
   const audio = new AudioController(undefined, preferences ?? undefined);
   void audio.setBackgrounded(document.visibilityState === 'hidden');
-  const unlockAudio = (): void => {
-    if (audio.isUnlocked()) return;
-    void audio.unlockFromGesture();
-  };
   // Browser autoplay policy requires the context to start from a trusted
-  // gesture. Capture sees the gesture before the command it may accompany.
-  document.addEventListener('pointerdown', unlockAudio, true);
-  document.addEventListener('keydown', unlockAudio, true);
+  // gesture, and which events count is narrower than it looks - a touch
+  // `pointerdown` grants nothing. `armAudioUnlock` owns that list.
+  armAudioUnlock(document, audio);
   const persistence = new PersistenceController(
     createSaveStore(),
     sim,
