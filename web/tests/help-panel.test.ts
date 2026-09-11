@@ -149,11 +149,20 @@ describe('first-run help layout', () => {
     // column, or the body stops being allowed to shrink under its content,
     // the footer is not pushed below the fold - it is clipped away entirely,
     // with no scrollbar anywhere and no way to reach "Got it".
-    const panel = cssBlock('#help-panel');
-    expect(panel).toMatch(/display:\s*flex;/);
-    expect(panel).toMatch(/flex-direction:\s*column;/);
+    const open = cssBlock('#help-panel[open]');
+    expect(open).toMatch(/display:\s*flex;/);
+    expect(open).toMatch(/flex-direction:\s*column;/);
     expect(cssBlock('#help-body')).toMatch(/min-height:\s*0;/);
     expect(cssBlock('#help-actions')).toMatch(/flex:\s*0 0 auto;/);
+  });
+
+  it('lets the browser hide the dialog once it is closed', () => {
+    // The browser hides a closed dialog with its own
+    // `dialog:not([open]) { display: none }`. Any unconditional `display`
+    // here is an author rule that outranks it, so the dialog would stay on
+    // screen after "Got it" and reappear on every later load despite being
+    // dismissed. The layout `display` therefore has to be keyed to [open].
+    expect(cssBlock('#help-panel')).not.toMatch(/display:/);
   });
 
   it('clears the phone system bars on every edge it can be pushed against', () => {

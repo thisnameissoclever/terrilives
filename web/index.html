@@ -460,11 +460,6 @@
         margin: auto;
         width: min(680px, calc(100vw - 24px));
         max-height: min(560px, calc(100dvh - 24px));
-        /* Header, scrolling instructions, pinned actions. The dialog itself
-           must not scroll: when it did, "Got it" scrolled off the bottom and
-           players had to go hunting for it. */
-        display: flex;
-        flex-direction: column;
         box-sizing: border-box;
         overflow: hidden;
         padding: 16px;
@@ -481,6 +476,19 @@
         background: rgba(22, 22, 28, 0.97);
         box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
         z-index: 20;
+      }
+      /* Header, scrolling instructions, pinned actions. The dialog itself must
+         not scroll: when it did, "Got it" scrolled off the bottom and players
+         had to go hunting for it.
+
+         This MUST stay keyed to [open]. The browser hides a closed dialog with
+         a `dialog:not([open]) { display: none }` rule of its own, and any
+         unconditional `display` here is an author rule that outranks it - so
+         the dialog would keep rendering after it closed, and would come back
+         on every later load even once dismissed. */
+      #help-panel[open] {
+        display: flex;
+        flex-direction: column;
       }
       #help-panel::backdrop {
         background: rgba(13, 13, 16, 0.48);
