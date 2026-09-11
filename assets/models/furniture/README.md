@@ -1,8 +1,10 @@
 # Furniture authoring checkpoint
 
 The owner approved `review/candidate-02/` on 2026-09-10. The character's
-appearance remains unchanged. Animation and runtime integration are in progress;
-these furniture replacements are not yet used by the live game.
+appearance remains unchanged. Animation and runtime integration are complete:
+the exercise bike and reading chair use these exports in all four facings.
+Live publication is verified separately through the successful main CI and
+GitHub Pages deployment, not inferred from this authoring checkpoint.
 
 `preview.py` opens the existing accepted Sim rig, builds editable furniture
 with `build_parts.py`, and renders actual SE/NW/SW/NE rotations. It preserves
