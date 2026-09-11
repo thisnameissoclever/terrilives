@@ -5280,3 +5280,46 @@ was virgin first. The same run also reported no context being built at all,
 which was a race against startup rather than a finding. Check the preconditions
 of a surprising measurement before letting it overturn a mechanism you can read
 in the browser's own source.
+
+## [L-measuring-a-control-is-not-operating-it] Click the button before calling it fixed
+
+**What happened.** The help dialog was restyled to centre it and pin its
+confirm button. Acceptance measured the button's rectangle against the dialog
+and the viewport, at two viewport sizes, and read the markup and the CSS. All
+of it passed, and the button was dead: "Got it" closed the dialog and the
+dialog stayed on screen, then reappeared on every later load despite the
+dismissal being stored.
+
+**Root cause.** The restyle put `display: flex` on the dialog to build its
+header, scrolling body and pinned footer. A browser hides a closed dialog with
+`dialog:not([open]) { display: none }` from its own stylesheet, and an
+unconditional author `display` outranks that, so the element kept rendering
+after `close()`. Every part of the behaviour worked except the one that was
+never exercised: the click, the `close()`, and the stored preference were all
+correct.
+
+The acceptance gap is the general point. Geometry, computed styles, markup
+structure and the unit tests all describe the control at rest. None of them
+operates it. A control that is measured but never used is not verified, and a
+styling change to a `<dialog>`, `<details>`, `<select>` or anything else whose
+open and closed states the browser styles for you is exactly where that gap
+bites, because the failure appears only in the state the check never entered.
+
+**Prevention rule.** Acceptance for an interactive element has to include
+driving it: activate the control, then assert the resulting state, not only
+the state it started in. For anything with a browser-managed open or closed
+state, assert the closed state explicitly, because that is the one an author
+`display` rule silently captures. Never set an unconditional `display` on a
+`<dialog>`; key layout declarations to `[open]`.
+
+**How to verify.** Dismiss the dialog and require `getComputedStyle(dialog)
+.display` to be `none` and its bounding height to be zero, not merely that
+`dialog.open` went false. Reload afterwards and require it stays closed.
+Reopen it and require it returns at the first instruction. Moving the layout
+`display` back onto the unconditional rule must fail the closed-state check.
+
+**Related.** A stale module in an already-open browser tab reported a
+constructor arity error from a file that had since been corrected, which sent
+the first minutes of this investigation at a phantom. Confirm what the server
+actually serves, and retest in a fresh tab, before believing a console trace
+that names a file you have already fixed.
