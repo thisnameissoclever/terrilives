@@ -360,6 +360,19 @@ impl SimHandle {
         self.sim.render_buffer().visual_actions.as_ptr()
     }
 
+    /// Authored object-audio category per row. Re-read after every sync or
+    /// memory growth like every other zero-copy render column.
+    pub fn sound_actions_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().sound_actions.as_ptr()
+    }
+
+    /// Exact SmartObject entity index that sources each authored sound, or
+    /// `u32::MAX` when the row has no active object sound. Re-read after every
+    /// sync or memory growth.
+    pub fn sound_sources_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().sound_sources.as_ptr()
+    }
+
     /// Exact active socket target per row, or u32::MAX. Re-read after sync
     /// or memory growth; entity indices are not render row numbers.
     pub fn interaction_targets_ptr(&self) -> *const u32 {
@@ -1640,6 +1653,83 @@ mod boundary_tests {
         assert_eq!(named, vec![0, 1, 2]);
         assert_ne!(sim_ids, ids, "stable identity is not the ECS entity index");
         assert_ne!(sim_ids, kinds, "stable identity is not the row kind tag");
+    }
+
+    #[test]
+    fn sound_pointers_address_loaded_authored_action_after_growth() {
+        let mut source = SimHandle::from_lot();
+        let (shower_entity, shower_def, take_shower) = {
+            let pack = source.sim.world().resource::<Content>().0;
+            let shower = pack.find("shower").expect("shipped shower");
+            let interaction = pack
+                .object(shower)
+                .interactions
+                .iter()
+                .position(|interaction| interaction.id == "take_shower")
+                .expect("shipped shower interaction") as u32;
+            let world = source.sim.world_mut();
+            let mut objects = world.query::<(terri_core::Entity, &terri_core::SmartObject)>();
+            let entity = objects
+                .iter(world)
+                .find_map(|(entity, object)| (object.0 == shower).then_some(entity))
+                .expect("the shipped lot places a shower");
+            (entity, shower, interaction)
+        };
+        let agent = {
+            let world = source.sim.world_mut();
+            let mut agents = world.query::<(terri_core::Entity, &Agent)>();
+            agents
+                .iter(world)
+                .map(|(entity, _)| entity)
+                .next()
+                .expect("the shipped lot has a Sim")
+        };
+        source.sim.world_mut().entity_mut(agent).insert((
+            terri_core::Eating {
+                object: shower_def,
+                interaction: take_shower,
+                remaining_ticks: 20,
+            },
+            terri_core::Target {
+                object: shower_entity,
+                interaction: take_shower,
+            },
+        ));
+        source.sim.sync_render_buffer();
+        let bytes = source.save_bytes();
+
+        let mut handle = SimHandle::new(2, 2);
+        assert!(handle.load_bytes(&bytes));
+        for index in 0..48 {
+            handle.spawn_agent(30.0 + index as f32, 30.0, 50.0);
+        }
+
+        let rows = handle.entity_count();
+        let ids = addressed(handle.ids_ptr(), rows, "ids_ptr");
+        let actions = addressed(handle.sound_actions_ptr(), rows, "sound_actions_ptr");
+        let sources = addressed(handle.sound_sources_ptr(), rows, "sound_sources_ptr");
+        let row = ids
+            .iter()
+            .position(|&id| id == agent.index_u32())
+            .expect("the loaded active Sim has a render row");
+
+        assert_eq!(
+            actions[row],
+            terri_sim::render_buffer::sound_action::SHOWER_WATER
+        );
+        assert_eq!(sources[row], shower_entity.index_u32());
+        assert!(
+            actions.iter().enumerate().any(|(index, &action)| {
+                index != row && action == terri_sim::render_buffer::sound_action::NONE
+            }),
+            "unrelated rows distinguish the authored action column from a constant"
+        );
+        assert!(
+            sources.iter().enumerate().any(|(index, &source)| {
+                index != row && source == terri_sim::render_buffer::NO_SOUND_SOURCE
+            }),
+            "unrelated rows distinguish the source column from entity ids"
+        );
     }
 
     #[test]

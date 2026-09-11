@@ -14,8 +14,8 @@ pub use error::ContentError;
 pub use pack::{
     CompiledActionSocket, CompiledCareer, CompiledChain, CompiledChainStep,
     CompiledHouseholdMember, CompiledInteraction, CompiledLot, CompiledObject, CompiledPersonality,
-    CompiledPlacement, CompiledPlacementSocket, CompiledSocketFacing, CompiledTrait,
-    CompiledTraitKind, CompiledVisual, CompiledVisualAction, CompiledVisualAnchor,
+    CompiledPlacement, CompiledPlacementSocket, CompiledSocketFacing, CompiledSoundAction,
+    CompiledTrait, CompiledTraitKind, CompiledVisual, CompiledVisualAction, CompiledVisualAnchor,
     CompiledVisualFacing, ContentPack, Footprint, ObjectDefId, Tuning,
 };
 pub use schema::{
@@ -65,9 +65,10 @@ static PACK_BYTES: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/content_pac
 ///
 /// What is deliberately NOT hashed: every number in `tuning.toml`, every
 /// advert delta, label, duration, tag, object-interaction visual contract,
-/// chain-step visual contract, action socket, every sprite index, every sim's
-/// NAME, the rest of the lot, careers, carried-item declaration order, and the
-/// circadian curve. Object, career, trait, chain, and carried-item string
+/// chain-step visual contract, object or chain-step sound action, action socket,
+/// every sprite index, every sim's NAME, the rest of the lot, careers,
+/// carried-item declaration order, and the circadian curve. Object, career,
+/// trait, chain, and carried-item string
 /// references are validated against the current pack while loading. Hobbies
 /// remain raw tags; removing their last matching activity makes the hobby
 /// inactive rather than making the save corrupt. A save that loads into
@@ -936,6 +937,35 @@ mod tests {
             base,
             content_fingerprint(&presentation_only),
             "chain-step visual metadata must not invalidate a Save V1"
+        );
+    }
+
+    #[test]
+    fn the_fingerprint_allows_object_and_chain_sound_presentation_changes() {
+        let original = pack().clone();
+        let base = content_fingerprint(&original);
+
+        let mut presentation_only = original.clone();
+        let shower = presentation_only
+            .find("shower")
+            .expect("the shipped pack declares the shower");
+        presentation_only.objects[shower.0 as usize].interactions[0].sound_action = None;
+        let dinner_index = presentation_only
+            .chains
+            .iter()
+            .position(|chain| chain.id == "cook_dinner")
+            .expect("the shipped pack declares the dinner chain");
+        let hob_step = presentation_only.chains[dinner_index]
+            .steps
+            .iter()
+            .position(|step| presentation_only.roles[step.role as usize] == "hob")
+            .expect("the dinner chain has a hob step");
+        presentation_only.chains[dinner_index].steps[hob_step].sound_action = None;
+
+        assert_eq!(
+            base,
+            content_fingerprint(&presentation_only),
+            "sound metadata is presentation-only and cannot invalidate Save V1"
         );
     }
 

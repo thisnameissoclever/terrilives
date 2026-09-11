@@ -267,8 +267,14 @@ about that before committing to [D13].
 
 The old Kenney Furniture Kit is downloaded and recorded in `ASSETS.md`, but no
 pack art remains in the shipped alpha. Muted Line replaced it with generated
-original sprites. If a future 3D or full-art pipeline needs CC0 packs, I will
-assemble the exact URL list and fetch script and ask before downloading.
+original sprites.
+
+The first audio shortlist is now exact and ready for approval in
+`docs/specs/2026-09-06-cc0-audio-intake.md`: four CC0 OpenGameArt archives,
+approximately 23.7 MB combined. `scripts/fetch-cc0-audio.cjs --list` reports the
+fixed IDs and sources without network access. The download flag is deliberately
+approval-gated. No pack is approved or accepted into the game merely because it
+appears in that list.
 
 ### [T5] Confirm the repository should stay public `[APPROVE]`
 
@@ -313,7 +319,14 @@ The first [A-audio-voices] foundation is now implemented: gesture-gated native
 Web Audio, procedural command/UI cues, fixed-tick distance footsteps, master
 mute, and Effects volume. Ambience, object loops, alarms, music, category
 controls beyond Effects, and Sim voices remain mine to build. The current door
-event types are reserved plumbing, not a functioning door sound.
+event types are reserved plumbing, not a functioning door sound. A candidate
+second pass also adds household-scoped conversation and sleep cues plus
+per-Sim eating, reading, and exercise cues; owner listening remains open.
+The candidate branch also carries authored source identity for shower water and
+stove cooking. It proves both ordinary-interaction and cooking-chain routes and
+deduplicates state by exact placed object. Sample selection, editing, looping,
+and audible playback remain mine after the CC0 download approval and listening
+gates; the bridge does not generate a fake procedural appliance sound.
 
 ### [T2] Install the toolchain `[MINE]` - DONE
 

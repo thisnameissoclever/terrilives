@@ -4,7 +4,16 @@ import {
   type ProceduralAudioContext,
   type ProceduralCue,
 } from './procedural-cues.js';
+import {
+  ActivityCueScheduler,
+  type ActivityCueEvent,
+  type SimActivityAudioState,
+} from './activity-cues.js';
 import { FootstepScheduler } from './footsteps.js';
+import {
+  ObjectSoundCueScheduler,
+  type ObjectSoundCueEvent,
+} from './object-cues.js';
 
 export const AUDIO_PREFERENCES_KEY = 'terrilives.audio-preferences.v1';
 export const AUDIO_PREFERENCES_VERSION = 1;
@@ -45,11 +54,25 @@ export type GameAudioEvent =
       readonly simId: number;
       readonly stepIndex: number;
     }
+  | ActivityCueEvent
+  | ObjectSoundCueEvent
   | { readonly type: 'door.opened'; readonly doorId: string }
   | { readonly type: 'door.closed'; readonly doorId: string };
 
 export interface GameAudioEventSink {
   emit(event: GameAudioEvent): void;
+}
+
+export interface AudioCuePlayCounts {
+  readonly rejected: number;
+  readonly footstep: number;
+  readonly conversation: number;
+  readonly 'sleep-breath': number;
+  readonly eating: number;
+  readonly 'page-turn': number;
+  readonly exercise: number;
+  readonly 'door-opened': number;
+  readonly 'door-closed': number;
 }
 
 export type AudioResetBoundary = 'load' | 'background';
@@ -83,6 +106,9 @@ export class AudioController implements GameAudioEventSink {
   private contextStateRevision = 0;
   private contextStateTail: Promise<void> = Promise.resolve();
   private readonly footsteps: FootstepScheduler;
+  private readonly activities: ActivityCueScheduler;
+  private readonly objectSounds: ObjectSoundCueScheduler;
+  private readonly playedCueCounts = new Uint32Array(9);
 
   constructor(
     private readonly createContext: AudioContextFactory = createBrowserAudioContext,
@@ -92,6 +118,8 @@ export class AudioController implements GameAudioEventSink {
     this.mutedPreference = preferences.muted;
     this.effectsLevelPreference = preferences.effectsLevel;
     this.footsteps = new FootstepScheduler(this);
+    this.activities = new ActivityCueScheduler(this);
+    this.objectSounds = new ObjectSoundCueScheduler(this);
   }
 
   preferences(): AudioPreferences {
@@ -122,7 +150,9 @@ export class AudioController implements GameAudioEventSink {
   }
 
   setMuted(muted: boolean): void {
+    const changed = this.mutedPreference !== muted;
     this.mutedPreference = muted;
+    if (changed) this.resetSchedulers();
     this.applyMasterGain();
     this.persist();
     if (muted) this.player?.stopAll();
@@ -139,7 +169,11 @@ export class AudioController implements GameAudioEventSink {
 
   /** Applies a live slider preview without writing storage on every pixel. */
   previewEffectsLevel(level: number): void {
+    const wasSilent = this.effectsLevelPreference === 0;
     this.effectsLevelPreference = clampLevel(level);
+    if (wasSilent !== (this.effectsLevelPreference === 0)) {
+      this.resetSchedulers();
+    }
     this.applyEffectsGain();
     if (this.effectsLevelPreference === 0) this.player?.stopAll();
   }
@@ -158,12 +192,14 @@ export class AudioController implements GameAudioEventSink {
     }
 
     const cue = cueForEvent(event);
-    const pitchScale =
-      event.type === 'sim.footstep'
-        ? footstepPitchScale(event.simId, event.stepIndex)
-        : 1;
+    if (cue === null) return;
+    const pitchScale = pitchScaleForEvent(event);
+    const player = this.player;
+    if (player === null) return;
     try {
-      this.player?.play(cue, pitchScale);
+      if (player.play(cue, pitchScale)) {
+        this.playedCueCounts[cueIndex(cue)] += 1;
+      }
     } catch {
       // Sound is presentation. A browser node failure may drop one cue but may
       // never terminate the simulation frame that observed it.
@@ -182,6 +218,30 @@ export class AudioController implements GameAudioEventSink {
     this.footsteps.endFrame();
   }
 
+  beginActivityFrame(): void {
+    this.activities.beginFrame();
+  }
+
+  observeActivity(simId: number, activity: SimActivityAudioState): void {
+    this.activities.observe(simId, activity);
+  }
+
+  endActivityFrame(): void {
+    this.activities.endFrame();
+  }
+
+  beginObjectSoundFrame(): void {
+    this.objectSounds.beginFrame();
+  }
+
+  observeObjectSound(sourceId: number, action: number): void {
+    this.objectSounds.observe(sourceId, action);
+  }
+
+  endObjectSoundFrame(): void {
+    this.objectSounds.endFrame();
+  }
+
   /**
    * Gates sound synchronously, then serializes hardware suspend or resume.
    * The latest desired visibility wins even if an older browser promise settles
@@ -194,6 +254,8 @@ export class AudioController implements GameAudioEventSink {
     // the first reset; the foreground reset makes the first audible tick a new
     // anchor instead of completing a stride travelled while inaudible.
     this.footsteps.reset();
+    this.activities.reset();
+    this.objectSounds.reset();
     if (backgrounded) {
       this.player?.stopAll();
     }
@@ -237,6 +299,8 @@ export class AudioController implements GameAudioEventSink {
     }
     this.player?.stopAll();
     this.footsteps.reset();
+    this.activities.reset();
+    this.objectSounds.reset();
   }
 
   activeVoiceCount(): number {
@@ -249,6 +313,43 @@ export class AudioController implements GameAudioEventSink {
 
   footstepTrackCapacity(): number {
     return this.footsteps.trackCapacity();
+  }
+
+  activeActivityTrackCount(): number {
+    return this.activities.activePersonalTrackCount();
+  }
+
+  activityTrackCapacity(): number {
+    return this.activities.personalTrackCapacity();
+  }
+
+  activeObjectSoundTrackCount(): number {
+    return this.objectSounds.activeTrackCount();
+  }
+
+  objectSoundTrackCapacity(): number {
+    return this.objectSounds.trackCapacity();
+  }
+
+  /** Successful procedural cue starts, exposed through `?stress=N` only. */
+  cuePlayCounts(): AudioCuePlayCounts {
+    return {
+      rejected: this.playedCueCounts[0] ?? 0,
+      footstep: this.playedCueCounts[1] ?? 0,
+      conversation: this.playedCueCounts[2] ?? 0,
+      'sleep-breath': this.playedCueCounts[3] ?? 0,
+      eating: this.playedCueCounts[4] ?? 0,
+      'page-turn': this.playedCueCounts[5] ?? 0,
+      exercise: this.playedCueCounts[6] ?? 0,
+      'door-opened': this.playedCueCounts[7] ?? 0,
+      'door-closed': this.playedCueCounts[8] ?? 0,
+    };
+  }
+
+  private resetSchedulers(): void {
+    this.footsteps.reset();
+    this.activities.reset();
+    this.objectSounds.reset();
   }
 
   private async resumeFromGesture(): Promise<boolean> {
@@ -288,7 +389,8 @@ export class AudioController implements GameAudioEventSink {
 
     const context = this.context;
     if (context === null || this.backgrounded) return false;
-    if (context.state !== 'running') {
+    const resumedContext = context.state !== 'running';
+    if (resumedContext) {
       try {
         await context.resume();
       } catch {
@@ -307,7 +409,9 @@ export class AudioController implements GameAudioEventSink {
     const running = context.state === 'running';
     if (running && !this.hasUnlocked) {
       this.hasUnlocked = true;
-      this.footsteps.reset();
+      this.resetSchedulers();
+    } else if (running && resumedContext) {
+      this.resetSchedulers();
     }
     return running;
   }
@@ -352,15 +456,28 @@ function safelyDisconnect(node: GainNodePort | null): void {
   }
 }
 
-function cueForEvent(event: GameAudioEvent): ProceduralCue {
+function cueForEvent(event: GameAudioEvent): ProceduralCue | null {
   switch (event.type) {
     case 'command.staged':
     case 'ui.confirmed':
-      return 'accepted';
+      return null;
     case 'command.rejected':
       return 'rejected';
     case 'sim.footstep':
       return 'footstep';
+    case 'sim.conversation':
+      return 'conversation';
+    case 'sim.sleep-breath':
+      return 'sleep-breath';
+    case 'sim.eating':
+      return 'eating';
+    case 'sim.page-turn':
+      return 'page-turn';
+    case 'sim.exercise':
+      return 'exercise';
+    case 'object.sound-started':
+    case 'object.sound-stopped':
+      return null;
     case 'door.opened':
       return 'door-opened';
     case 'door.closed':
@@ -368,9 +485,61 @@ function cueForEvent(event: GameAudioEvent): ProceduralCue {
   }
 }
 
+function pitchScaleForEvent(event: GameAudioEvent): number {
+  switch (event.type) {
+    case 'sim.footstep':
+      return footstepPitchScale(event.simId, event.stepIndex);
+    case 'sim.conversation': {
+      const phase = (Math.trunc(event.simId) * 13 + event.phraseIndex * 7) & 3;
+      return 0.94 + phase * 0.045;
+    }
+    case 'sim.sleep-breath': {
+      const phase = (Math.trunc(event.simId) + event.breathIndex) & 1;
+      return 0.97 + phase * 0.04;
+    }
+    case 'sim.eating': {
+      const phase = (Math.trunc(event.simId) * 5 + event.biteIndex) & 3;
+      return 0.96 + phase * 0.025;
+    }
+    case 'sim.page-turn': {
+      const phase = (Math.trunc(event.simId) + event.pageIndex * 3) & 3;
+      return 0.94 + phase * 0.03;
+    }
+    case 'sim.exercise': {
+      const phase = (Math.trunc(event.simId) + event.repetitionIndex) & 1;
+      return 0.97 + phase * 0.04;
+    }
+    default:
+      return 1;
+  }
+}
+
 function footstepPitchScale(simId: number, stepIndex: number): number {
   const phase = (Math.trunc(simId) * 17 + Math.trunc(stepIndex) * 31) & 3;
   return 0.94 + phase * 0.035;
+}
+
+function cueIndex(cue: ProceduralCue): number {
+  switch (cue) {
+    case 'rejected':
+      return 0;
+    case 'footstep':
+      return 1;
+    case 'conversation':
+      return 2;
+    case 'sleep-breath':
+      return 3;
+    case 'eating':
+      return 4;
+    case 'page-turn':
+      return 5;
+    case 'exercise':
+      return 6;
+    case 'door-opened':
+      return 7;
+    case 'door-closed':
+      return 8;
+  }
 }
 
 function clampLevel(value: number): number {

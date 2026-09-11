@@ -169,8 +169,8 @@ export type RejectedCommandKind = Exclude<LeftClickOutcome['kind'], 'none'>;
 
 /**
  * Publishes the result of one resolved click without making DOM wiring own
- * command semantics. Empty canvas activity has no cue; accepted and rejected
- * commands have exactly one result callback.
+ * command semantics. Empty canvas activity has no outcome callback; accepted
+ * and rejected commands have exactly one result callback.
  */
 export function reportCommandOutcome(
   outcome: LeftClickOutcome,

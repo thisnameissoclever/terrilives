@@ -695,12 +695,29 @@ this being authored data rather than inferred from who shares a house.
 The first audio foundation is implemented in the TypeScript shell with native
 Web Audio. A trusted pointer or keyboard gesture activates it; events before
 activation are dropped rather than queued. The current bounded cue set covers
-staged and rejected commands on the canvas, keyboard, object menu, Clear orders,
-and Household roster routes, plus selected immediate controls and
-distance-driven footsteps. Master mute and Effects level are visible,
-touch-sized, persisted controls. Important state changes retain their visual
-and text equivalents. Stable Sim identity now travels as an aligned render
-column, so fixed-tick footstep sampling makes no per-row identity query.
+rejected commands, distance-driven footsteps, and authored activity. Routine
+commands, menu selections, speed changes, unmute, and Effects release are
+deliberately silent even though their semantic events remain available. The
+rejection sound is a quiet 90 ms triangle cue rather than the earlier harsher
+low square pulse. The second sound pass raises isolated steps out of the
+bass-thud range and adds sparse conversation and sleep cues from authored
+fixed-tick activity state. One conversation sounds once for the scene rather
+than once per participant; sleep breathing is capped at one household cue every
+three seconds. Eating, seated or standing reading, and exercise now emit
+low-gain candidate cues on independent per-Sim cadences. These cues use the
+existing authored visual-action contract; they do not guess which appliance or
+object is involved. Master mute and Effects level are visible, touch-sized,
+persisted controls. Important state changes retain their visual and text
+equivalents. Stable Sim identity travels as an aligned render column, so
+fixed-tick audio sampling makes no per-row identity query.
+
+An authored object-sound identity bridge is also implemented for the shower's
+ordinary interaction and the stove hob's cooking-chain step. Rust exports each
+active action with the exact target object entity; the Web scheduler collapses
+duplicate observations into source-owned start and stop edges. Load,
+backgrounding, first unlock, mute changes, and Effects crossing zero clear that
+retained state. This is semantic plumbing only: no procedural stand-in or
+downloaded shower or stove recording plays yet.
 
 The production proof runs in visible Chrome on a display configured at 120 Hz.
 With 1,037 entities, sampling-enabled application-work p95 is 1.615 ms, sampler
@@ -708,18 +725,29 @@ p95 is 0.100 ms, zero application-work frames exceed 16.6 ms, and the paired
 audio-disabled p95 delta is -0.025 ms. Three alternating retained-memory pairs
 show a 10,896-byte median enabled-minus-disabled JavaScript differential against
 the predeclared 64 KiB allowance. The 40-walker scheduler probe passes at p95
-0.0099999905 ms per tick. The ordinary-Chrome harness selects a stable household
-Sim, stages a real walk, and passes settings persistence; hidden-tab silence
-remains an explicit owner action because automated Chrome 151 tab creation never
-produced trustworthy hidden-document state. Human listening remains required
-before this sound slice is accepted for merge.
+0.0099999905 ms per tick. The ordinary-Chrome harness selects stable household
+Sims and stages real walking, conversation, eating, reading, exercise, and
+lower-bunk sleep actions. Each fixture must prove its exact live visual action,
+the named semantic cue counter, and a real Web Audio oscillator. The owner
+workflow does not yet guarantee acoustic isolation from unrelated autonomous
+Sims, so exact target evidence and owner listening remain separate gates.
+Hidden-tab silence remains an explicit owner action because automated tab
+creation has not produced trustworthy hidden-document state. The owner accepted the original
+footstep character on 2026-08-28, requested less bass, and then identified an
+isolated one-second thud. The revised footstep and the new conversation and
+sleep, eating, and reading cues still require owner listening. A later code
+audit found the strongest match for the second intermittent thud: exercise used
+a 150 to 210 Hz square pulse every seven fixed ticks while the pedal pose held
+for eight. The current candidate aligns both at eight ticks and
+replaces it with a quieter 520 to 340 Hz triangle sweep, but that correction
+also remains owner-listening evidence rather than accepted sound design.
 
 This is not the complete audio feature. Door open and close event types are
-reserved but no authoritative door transition emits them yet. Save, Load, Help,
-and every mobile-HUD control do not all have cues. Room and outdoor ambience,
-object loops, alarms, music, and nonverbal Sim voices remain unbuilt. The later
-control surface still needs music, ambience, and voice categories alongside the
-current master and effects controls. The detailed contract is
+reserved but no authoritative door transition emits them yet. Routine controls
+are silent by design rather than waiting for blanket click sounds. Room and
+outdoor ambience, object loops, alarms, music, and nonverbal Sim voices remain
+unbuilt. The later control surface still needs music, ambience, and voice
+categories alongside the current master and effects controls. The detailed contract is
 `docs/specs/2026-08-19-audio-foundation.md`.
 
 ### [B-death] Sims can die and leave consequences

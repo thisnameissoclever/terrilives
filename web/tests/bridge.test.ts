@@ -102,6 +102,55 @@ describe('SimBridge', () => {
     expect(Array.from(after)).not.toEqual(Array.from(bridge.kinds()));
   });
 
+  it('exposes exact authored shower sound state across release-wasm growth', () => {
+    const bridge = new SimBridge(new SimHandle(16, 16), wasmMemory);
+    expect(bridge.spawnObject(4, 5, 'shower')).toBe(true);
+    bridge.spawnAgent(3, 5, 50);
+
+    const ids = bridge.ids();
+    const kinds = bridge.kinds();
+    const objectRow = Array.from(kinds).indexOf(1);
+    const agentRow = Array.from(kinds).indexOf(0);
+    const objectId = ids[objectRow];
+    const agentId = ids[agentRow];
+    expect(objectRow).toBeGreaterThanOrEqual(0);
+    expect(agentRow).toBeGreaterThanOrEqual(0);
+    expect(bridge.useObject(agentId, objectId, 0)).toBe(true);
+
+    let activeRow = -1;
+    for (let tick = 0; tick < 80; tick += 1) {
+      bridge.tick();
+      activeRow = Array.from(bridge.ids()).indexOf(agentId);
+      if (activeRow >= 0 && bridge.soundActions()[activeRow] === 1) break;
+    }
+
+    expect(activeRow).toBeGreaterThanOrEqual(0);
+    expect([
+      bridge.soundActions()[activeRow],
+      bridge.soundSources()[activeRow],
+    ]).toEqual([1, objectId]);
+    expect([
+      bridge.soundActions()[objectRow],
+      bridge.soundSources()[objectRow],
+    ]).toEqual([0, 0xffff_ffff]);
+
+    const heldActions = bridge.soundActions();
+    const heldSources = bridge.soundSources();
+    const bufferBeforeGrowth = wasmMemory.buffer;
+    wasmMemory.grow(1);
+    expect(wasmMemory.buffer).not.toBe(bufferBeforeGrowth);
+    expect(heldActions.length).toBe(0);
+    expect(heldSources.length).toBe(0);
+
+    activeRow = Array.from(bridge.ids()).indexOf(agentId);
+    expect([
+      bridge.soundActions()[activeRow],
+      bridge.soundSources()[activeRow],
+    ]).toEqual([1, objectId]);
+    expect(bridge.soundActions().buffer).toBe(wasmMemory.buffer);
+    expect(bridge.soundSources().buffer).toBe(wasmMemory.buffer);
+  });
+
   it('exposes content-derived footprint axes for every render row', () => {
     // The 2x1 and 2x2 shipped beds make each axis non-constant and make the
     // two columns differ. The 1x1 fridge and agent pin the row-wise default.

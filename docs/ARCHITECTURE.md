@@ -663,8 +663,10 @@ pressed Save; that presentation boundary already exists for travel itself.
 The simulation owns all state in WASM linear memory. JS holds
 `Float32Array`/`Uint32Array` **views** over render-relevant slices, including
 positions, sprite IDs, optional foreground sprite IDs, activity codes,
-presentation visual actions, exact active socket target IDs, and lot-axis facings, plus compiled footprint
-width and depth, and feeds them directly into GPU buffers. Walking reuses the
+presentation visual actions, exact active socket target IDs, lot-axis facings,
+authored object-sound actions, and their exact source entity indices, plus
+compiled footprint width and depth, and feeds them directly into GPU buffers.
+Walking reuses the
 action, facing, activity, and position columns.
 Conversation, eating, sleeping, sitting, seated reading, standing reading,
 aquarium watching, and exercise read the action and facing columns, so the broad status
@@ -742,21 +744,30 @@ Audio is presentation owned by the TypeScript shell. The Rust simulation has
 no browser audio types, nodes, volume settings, or playback state. The shell
 translates observed outcomes into a small semantic event vocabulary:
 `command.staged`, `command.rejected`, `ui.confirmed`, stable-identity
-`sim.footstep`, and reserved door open and close events. Staged means accepted
-into the command channel; it does not overclaim that the simulation later
-started the intent. Door events are schema only until the static front door has
-an authoritative transition.
+`sim.footstep`, household conversation and sleep cadence, personal eating,
+reading, and exercise cadence, source-owned object sound start and stop edges,
+and reserved door open and close events. Staged means accepted into the command
+channel; it does not overclaim that the simulation later started the intent.
+Door events are schema only until the static front door has an authoritative
+transition. Semantic events do not imply audible feedback. Routine staged
+commands and completed controls remain silent; `command.rejected` is the only
+current routine-interface event mapped to a sound.
 
 The `AudioContext` is created or resumed only from a trusted pointer or keyboard
 gesture. Ordinary event emission never creates, resumes, or queues audio. The
 master gain is mute-only and the effects gain owns the current cue volume.
+Crossing either master mute or zero Effects clears footstep, shared-activity,
+personal-activity, and object-sound scheduler state on both edges. The first
+audible fixed tick therefore describes the current action instead of waiting
+on cadence that advanced while silent or replaying motion accumulated there.
 Visibility changes synchronously gate emission, stop voices, clear walking
 phase, and serialize `suspend()` or `resume()` so the latest foreground state
 wins an asynchronous race. Both visibility edges clear stride history. A later
 trusted gesture remains armed in case an automatic foreground resume is denied.
-Pause stops fixed ticks but does not stop the context or UI cues. A successful
-Load reads identity from the replacement world's aligned render rows and clears
-transient audio only after the world was actually replaced.
+Pause stops fixed ticks but does not stop the context or an already-playing
+cue. A successful Load reads identity from the replacement world's aligned
+render rows and clears transient audio only after the world was actually
+replaced.
 
 Footsteps follow travelled world distance after each fixed simulation tick.
 They never follow render count or wall time, so 1x, 2x, and 3x preserve the
@@ -768,6 +779,12 @@ rows carry `u32::MAX`. The shell re-reads the zero-copy column after every fixed
 tick under [D11]. Runtime topology may change the row set without rebuilding a
 separate lookup, and no steady tick calls `simIdOf`.
 
+Personal eating, reading, and exercise cadence uses the same retained-storage
+rule: aligned typed arrays plus one Sim-ID-to-slot map, with dense in-place
+removal and geometric growth. A normal fixed tick creates no per-Sim track
+object, and the stress handle reports both active personal tracks and retained
+capacity.
+
 The release performance gate uses a visible production build on a display
 configured at 120 Hz. A five-second paused calibration must achieve 118 to 122
 animation frames per second with median interval from 8.0 to 8.7 ms; the active
@@ -777,6 +794,20 @@ maximum at most 1 ms, application-work p95 regression is at most 1 ms against
 `&audio=0`, no application-work frame exceeds 16.6 ms, and steady `simIdOf`
 calls remain zero.
 
+Object and appliance audio cannot be inferred from broad activity or body pose.
+Content authors a closed sound action on the exact ordinary interaction or
+chain step. Rust validates the active `Target`, exports the action and exact
+SmartObject entity index in two aligned columns, and writes none plus
+`u32::MAX` on every inactive or invalid row. The shell observes these columns
+before the stable-Sim-ID gate because source ownership does not depend on the
+actor having a `SimId`. A retained typed-array scheduler uses one
+source-ID-to-slot map, emits one start/change/stop edge per source, collapses
+duplicates, and fails conflicting same-frame actions closed. It creates no
+per-source JavaScript track object and grows no capacity after warm-up. Load,
+backgrounding, first unlock, mute changes, and Effects crossing zero reset its
+phase. The initial shower and stove actions are semantic bridge proof only;
+they have no procedural or sample playback yet.
+
 Fresh bridge wrappers are expected under [D11]. The allocation rule is no
 allocation proportional to entity count and no scheduler capacity growth after
 warm-up. Three alternating enabled/disabled memory pairs compare quiescent
@@ -785,6 +816,13 @@ retained-JavaScript differential must stay within a predeclared 64 KiB allowance
 while voices, tracks, capacity, DOM nodes, and listeners remain bounded. Broader
 page and WASM growth is reported separately. A production 40-walker, 600-tick
 scheduler run exercises retained audio state directly.
+
+The stress-only browser handle exposes cumulative successful cue starts by
+semantic cue name. The ordinary-Chrome listening harness pairs that counter
+with the exact live visual action and Chrome DevTools Web Audio node creation.
+No one signal is accepted alone: a queued command is not a started action, a
+semantic event is not proof of a browser node, and an oscillator does not name
+the sound that created it.
 
 The first full run exposed a separate application bottleneck: 1,000 idle agents
 and 34 placed objects triggered roughly 34,000 A* searches during one selection

@@ -8,6 +8,23 @@ const FORBIDDEN_BACKGROUND_FLAGS = [
   '--disable-renderer-backgrounding',
 ];
 
+const ACTIVITY_LISTENING_SCENARIOS = [
+  ["conversation","Chat","talkTo",1,4,"conversation"],
+  ["eating","Grab a snack","useObject",2,3,"eating"],
+  ["reading","Read a book","useObject",4,8,"page-turn"],
+  ["exercise","Use the exercise bike","useObject",6,9,"exercise"],
+  ["sleep","Sleep","useObject",9,5,"sleep-breath"],
+].map(
+  ([id, label, command, expectedVisualAction, expectedActivity, cue]) => ({
+    id,
+    label,
+    command,
+    expectedVisualAction,
+    expectedActivity,
+    cue,
+  }),
+);
+
 function parseArgs(argv) {
   const result = {
     cdp: null,
@@ -136,11 +153,21 @@ class WebAudioMonitor {
 async function waitForCondition(read, predicate, timeoutMs, description) {
   const deadline = Date.now() + timeoutMs;
   do {
-    const value = read();
+    const value = await read();
     if (predicate(value)) return value;
     await new Promise((resolve) => setTimeout(resolve, 50));
   } while (Date.now() < deadline);
   throw new Error(`timed out waiting for ${description}`);
+}
+
+function everyContextIs(states, expectedState) {
+  return states.length > 0 && states.every((state) => state === expectedState);
+}
+
+function hasCompleteActivityEvidence(evidence) {
+  return evidence.observedRenderState !== null &&
+    evidence.expectedCueDelta > 0 &&
+    evidence.oscillatorDelta > 0;
 }
 
 async function waitForGame(page) {
@@ -162,7 +189,14 @@ async function closeHelp(page) {
 }
 
 async function setSpeed(page, multiplier) {
-  await page.locator(`#speed-${multiplier}`).check();
+  await page.evaluate((multiplier) => {
+    const speed = document.querySelector(`#speed-${multiplier}`);
+    if (!(speed instanceof HTMLInputElement)) {
+      throw new Error(`missing #speed-${multiplier} input`);
+    }
+    speed.checked = true;
+    speed.dispatchEvent(new Event('change', { bubbles: true }));
+  }, multiplier);
   await page.waitForTimeout(350);
 }
 
@@ -186,6 +220,7 @@ async function prepareWalking(page) {
     let farthest = -1;
     for (let row = 0; row < kinds.length; row += 1) {
       if (kinds[row] !== 1) continue;
+      if (sim.interactionLabels(ids[row]).length === 0) continue;
       const dx = positions[row * 2] - ax;
       const dy = positions[row * 2 + 1] - ay;
       const distance = dx * dx + dy * dy;
@@ -196,8 +231,11 @@ async function prepareWalking(page) {
     }
     if (objectRow < 0) throw new Error('no object row found');
     sim.select(agent);
-    sim.flushCommands();
-    sim.cancelIntents(agent);
+    for (let row = 0; row < kinds.length; row += 1) {
+      if (kinds[row] === 0 && simIds[row] !== 0xffff_ffff) {
+        sim.cancelIntents(ids[row]);
+      }
+    }
     sim.flushCommands();
     const staged = sim.useObject(agent, ids[objectRow], 0);
     sim.flushCommands();
@@ -212,7 +250,218 @@ async function prepareWalking(page) {
   });
 }
 
+async function stageActivityScenario(page, scenario) {
+  return page.evaluate((scenario) => {
+    const stress = globalThis.__terriStress;
+    if (stress === undefined) throw new Error('stress handle disappeared');
+    const sim = stress.sim;
+    const kinds = Uint32Array.from(sim.kinds());
+    const ids = Uint32Array.from(sim.ids());
+    const simIds = Uint32Array.from(sim.simIds());
+    const stableSimRows = [];
+    for (let row = 0; row < kinds.length; row += 1) {
+      if (kinds[row] === 0 && simIds[row] !== 0xffff_ffff) stableSimRows.push(row);
+    }
+    if (stableSimRows.length < 2) {
+      throw new Error('activity listening requires two stable household Sims');
+    }
+
+    const agentRow = stableSimRows[0];
+    const agent = ids[agentRow];
+    let target = null;
+    let targetSimId = null;
+    let interaction = -1;
+
+    if (scenario.command === 'talkTo') {
+      const matches = sim.socialLabels()
+        .map((label, index) => ({ label, index }))
+        .filter((entry) => entry.label === scenario.label);
+      if (matches.length !== 1) {
+        throw new Error(
+          `expected one social label ${scenario.label}; found ${matches.length}`,
+        );
+      }
+      const targetRow = stableSimRows[1];
+      target = ids[targetRow];
+      targetSimId = simIds[targetRow];
+      interaction = matches[0].index;
+    } else {
+      const matches = [];
+      for (let row = 0; row < kinds.length; row += 1) {
+        if (kinds[row] !== 1) continue;
+        const labels = sim.interactionLabels(ids[row]);
+        for (let index = 0; index < labels.length; index += 1) {
+          if (labels[index] === scenario.label) {
+            matches.push({ entity: ids[row], interaction: index });
+          }
+        }
+      }
+      if (matches.length !== 1) {
+        throw new Error(
+          `expected one object interaction ${scenario.label}; found ${matches.length}`,
+        );
+      }
+      target = matches[0].entity;
+      interaction = matches[0].interaction;
+    }
+
+    sim.select(agent);
+    sim.cancelIntents(agent);
+    if (target !== null && targetSimId !== null) sim.cancelIntents(target);
+    sim.flushCommands();
+    const staged = scenario.command === 'talkTo'
+      ? sim.talkTo(agent, target, interaction)
+      : sim.useObject(agent, target, interaction);
+    sim.flushCommands();
+    if (!staged) throw new Error(`${scenario.id} command was rejected`);
+    return {
+      agent,
+      simId: simIds[agentRow],
+      target,
+      targetSimId,
+      interaction,
+      staged,
+    };
+  }, scenario);
+}
+
+async function readActivityScenarioState(page, scenario, setup) {
+  return page.evaluate(({ scenario, setup }) => {
+    const stress = globalThis.__terriStress;
+    if (stress === undefined) throw new Error('stress handle disappeared');
+    const sim = stress.sim;
+    const ids = Uint32Array.from(sim.ids());
+    const visualActions = Uint32Array.from(sim.visualActions());
+    const activities = Uint32Array.from(sim.activities());
+    const stateFor = (entity) => {
+      const row = ids.findIndex((id) => id === entity);
+      if (row < 0) return null;
+      return {
+        entity,
+        row,
+        visualAction: visualActions[row],
+        activity: activities[row],
+      };
+    };
+    const agent = stateFor(setup.agent);
+    const target = setup.targetSimId === null ? null : stateFor(setup.target);
+    const agentMatches =
+      agent?.visualAction === scenario.expectedVisualAction &&
+      agent?.activity === scenario.expectedActivity;
+    const targetMatches =
+      scenario.command !== 'talkTo' ||
+      (target?.visualAction === scenario.expectedVisualAction &&
+        target?.activity === scenario.expectedActivity);
+    return { agent, target, pass: agentMatches && targetMatches };
+  }, { scenario, setup });
+}
+
+async function readCuePlayCounts(page) {
+  return page.evaluate(() => {
+    const stress = globalThis.__terriStress;
+    if (stress === undefined) throw new Error('stress handle disappeared');
+    return { ...stress.audio.cuePlayCounts };
+  });
+}
+
+async function waitForActivityEvidence(page, monitor, scenario, setup, before, timeoutMs) {
+  let observedRenderState = null;
+  return waitForCondition(
+    async () => {
+      const renderState = await readActivityScenarioState(page, scenario, setup);
+      if (renderState.pass && observedRenderState === null) {
+        observedRenderState = renderState;
+      }
+      const cuePlayCounts = await readCuePlayCounts(page);
+      const audio = monitor.snapshot();
+      return {
+        observedRenderState,
+        cuePlayCounts,
+        audio,
+        expectedCueDelta:
+          cuePlayCounts[scenario.cue] - before.cuePlayCounts[scenario.cue],
+        oscillatorDelta:
+          audio.createdOscillators - before.audio.createdOscillators,
+      };
+    },
+    hasCompleteActivityEvidence,
+    timeoutMs,
+    `${scenario.id} action, ${scenario.cue} cue, and oscillator`,
+  );
+}
+
+async function runActivityScenario(page, monitor, scenario, mechanicalOnly) {
+  await setSpeed(page, mechanicalOnly ? 3 : 1);
+  const before = {
+    cuePlayCounts: await readCuePlayCounts(page),
+    audio: monitor.snapshot(),
+  };
+  const setup = await stageActivityScenario(page, scenario);
+  const evidence = await waitForActivityEvidence(
+    page,
+    monitor,
+    scenario,
+    setup,
+    before,
+    mechanicalOnly ? 12_000 : 30_000,
+  );
+  if (!mechanicalOnly) {
+    await page.waitForTimeout(scenario.id === 'sleep' ? 6_500 : 4_000);
+    await setSpeed(page, 0);
+  }
+  return { scenario, setup, before, ...evidence };
+}
+
+async function waitForWalkingEvidence(page, monitor, setup, before, timeoutMs) {
+  let observedRenderState = null;
+  return waitForCondition(
+    async () => {
+      const renderState = await page.evaluate((entity) => {
+        const stress = globalThis.__terriStress;
+        if (stress === undefined) throw new Error('stress handle disappeared');
+        const sim = stress.sim;
+        const ids = Uint32Array.from(sim.ids());
+        const row = ids.findIndex((id) => id === entity);
+        if (row < 0) return null;
+        const visualActions = sim.visualActions();
+        const activities = sim.activities();
+        return {
+          row,
+          visualAction: visualActions[row],
+          activity: activities[row],
+          pass: visualActions[row] === 5 && activities[row] === 1,
+        };
+      }, setup.agent);
+      if (renderState?.pass && observedRenderState === null) {
+        observedRenderState = renderState;
+      }
+      const cuePlayCounts = await readCuePlayCounts(page);
+      const audio = monitor.snapshot();
+      return {
+        observedRenderState,
+        cuePlayCounts,
+        audio,
+        expectedCueDelta: cuePlayCounts.footstep - before.cuePlayCounts.footstep,
+        oscillatorDelta:
+          audio.createdOscillators - before.audio.createdOscillators,
+      };
+    },
+    (evidence) =>
+      evidence.observedRenderState !== null &&
+      evidence.expectedCueDelta > 0 &&
+      evidence.oscillatorDelta > 0,
+    timeoutMs,
+    'walking action, footstep cue, and oscillator',
+  );
+}
+
 async function runOwnerHiddenTabCheck(browserSession, page, monitor, input) {
+  await page.evaluate(() => {
+    const stress = globalThis.__terriStress;
+    if (stress === undefined) throw new Error('stress handle disappeared');
+    stress.sim.select(null);
+    stress.sim.flushCommands();
+  });
   const context = page.context();
   const existingPages = new Set(context.pages());
   await input.question(
@@ -257,13 +506,13 @@ async function runOwnerHiddenTabCheck(browserSession, page, monitor, input) {
   const hiddenState = await page.evaluate(() => document.visibilityState);
   const hiddenContextStates = await waitForCondition(
     () => monitor.snapshot().contextStates,
-    (states) => states.length > 0 && states.every((state) => state === 'suspended'),
+    (states) => everyContextIs(states, 'suspended'),
     5_000,
     'the game Web Audio context to suspend',
   );
   await page.evaluate(() => {
-    const button = document.querySelector('#queue-mode');
-    if (!(button instanceof HTMLButtonElement)) throw new Error('missing #queue-mode');
+    const button = document.querySelector('#stop-orders');
+    if (!(button instanceof HTMLButtonElement)) throw new Error('missing #stop-orders');
     for (let index = 0; index < 20; index += 1) button.click();
   });
   await page.waitForTimeout(750);
@@ -276,20 +525,32 @@ async function runOwnerHiddenTabCheck(browserSession, page, monitor, input) {
   await page.waitForFunction(() => document.visibilityState === 'visible', undefined, {
     timeout: 10_000,
   });
-  await page.locator('#queue-mode').click();
+  const foregroundContextStates = await waitForCondition(
+    () => monitor.snapshot().contextStates,
+    (states) => everyContextIs(states, 'running'),
+    5_000,
+    'the game Web Audio context to resume',
+  );
+  const beforeRecovery = monitor.snapshot();
+  await page.locator('#stop-orders').click();
   await page.waitForTimeout(300);
+  const afterRecovery = monitor.snapshot();
   return {
     hiddenState,
     hiddenMechanism: 'owner-opened same-window tab in ordinary Chrome',
     gameWindowId: gameWindow.windowId,
     coverWindowId: coverWindow.windowId,
     hiddenContextStates,
+    foregroundContextStates,
     semanticEventsAttempted: 20,
     oscillatorNodesCreatedWhileHidden:
       after.createdOscillators - before.createdOscillators,
+    foregroundRecoveryOscillators:
+      afterRecovery.createdOscillators - beforeRecovery.createdOscillators,
     pass:
       hiddenState === 'hidden' &&
-      after.createdOscillators === before.createdOscillators,
+      after.createdOscillators === before.createdOscillators &&
+      afterRecovery.createdOscillators > beforeRecovery.createdOscillators,
   };
 }
 
@@ -331,28 +592,35 @@ async function runHumanWorkflow(browserSession, page, monitor) {
       {
         number: 1,
         id: 'gesture-recovery',
-        name: 'First trusted gesture and cue recovery',
+        name: 'First trusted gesture and rejected-action recovery',
         instructions:
-          'Listen for one short confirmation cue after the controls are clicked. There must be no delayed burst from events that happened before the browser allowed sound.',
+          'A routine control first unlocks audio silently, then one invalid Clear orders action plays the rejection cue. There must be no delayed burst from events that happened before the browser allowed sound.',
         run: async () => {
           const before = monitor.snapshot();
           await page.locator('#queue-mode').click();
           await page.waitForTimeout(250);
-          await page.locator('#queue-mode').click();
+          await page.evaluate(() => {
+            const stress = globalThis.__terriStress;
+            if (stress === undefined) throw new Error('stress handle disappeared');
+            stress.sim.select(null);
+            stress.sim.flushCommands();
+          });
+          await page.locator('#stop-orders').click();
           await page.waitForTimeout(350);
           return { before, after: monitor.snapshot() };
         },
       },
       {
         number: 2,
-        id: 'accepted-rejected',
-        name: 'Accepted and rejected command contrast',
+        id: 'routine-silence-rejection',
+        name: 'Routine control silence and rejected action',
         instructions:
-          'You will hear an accepted selection cue, then a rejected Clear orders cue. They must be unmistakably different without being obnoxious.',
+          'A routine Sim selection must be silent. The invalid Clear orders action that follows should play one quiet rejection cue.',
         run: async () => {
           const before = monitor.snapshot();
           await page.locator('#household-roster-members button').first().click();
           await page.waitForTimeout(400);
+          const afterRoutine = monitor.snapshot();
           await page.evaluate(() => {
             const stress = globalThis.__terriStress;
             if (stress === undefined) throw new Error('stress handle disappeared');
@@ -363,6 +631,7 @@ async function runHumanWorkflow(browserSession, page, monitor) {
           await page.waitForTimeout(450);
           return {
             before,
+            afterRoutine,
             after: monitor.snapshot(),
             feedback: await page.locator('#command-feedback').textContent(),
           };
@@ -373,7 +642,7 @@ async function runHumanWorkflow(browserSession, page, monitor) {
         id: 'effects-preview',
         name: 'Effects level preview and commit',
         instructions:
-          'The slider moves to 25 percent. Input movement must not chatter. One audible confirmation should play when the value is committed.',
+          'The slider moves to 25 percent. Both movement and release must remain silent.',
         run: async () => {
           const before = monitor.snapshot();
           await page.locator('#effects-volume').evaluate((element) => {
@@ -396,19 +665,39 @@ async function runHumanWorkflow(browserSession, page, monitor) {
         instructions:
           `A Sim will walk for five seconds at ${speed}x. Footsteps should track movement without machine-gun bursts, double hits, or a sound caused by the initial position anchor.`,
         run: async () => {
-          const prepared = await prepareWalking(page);
           await setSpeed(page, speed);
-          const before = monitor.snapshot();
+          const before = {
+            cuePlayCounts: await readCuePlayCounts(page),
+            audio: monitor.snapshot(),
+          };
+          const prepared = await prepareWalking(page);
+          const evidence = await waitForWalkingEvidence(
+            page,
+            monitor,
+            prepared,
+            before,
+            30_000,
+          );
           await page.waitForTimeout(5_000);
-          return { prepared, before, after: monitor.snapshot() };
+          return { prepared, before, ...evidence };
         },
       })),
+      ...ACTIVITY_LISTENING_SCENARIOS.map((scenario, index) => ({
+        number: 7 + index,
+        id: `activity-${scenario.id}`,
+        name: `${scenario.id[0].toUpperCase()}${scenario.id.slice(1)} cue`,
+        instructions:
+          scenario.id === 'sleep'
+            ? 'One Sim will use the lower bunk. Listen for quiet, sparse breathing that reads as sleep without becoming a repeated thud or a continuous loop.'
+            : `One exact ${scenario.id} action will run at 1x. The sound should identify the action without masking the rest of the game or becoming tiring at its normal cadence.`,
+        run: () => runActivityScenario(page, monitor, scenario, false),
+      })),
       {
-        number: 7,
+        number: 12,
         id: 'pause-resume',
         name: 'Pause and resume discontinuity',
         instructions:
-          'A walking Sim pauses, waits, and resumes. The pause control may confirm once. Resuming must not replay distance travelled before or during the pause.',
+          'A walking Sim pauses, waits, and resumes. The speed controls remain silent. Resuming must not replay distance travelled before or during the pause.',
         run: async () => {
           const prepared = await prepareWalking(page);
           await setSpeed(page, 3);
@@ -423,7 +712,7 @@ async function runHumanWorkflow(browserSession, page, monitor) {
         },
       },
       {
-        number: 8,
+        number: 13,
         id: 'load-reset',
         name: 'Successful Load discontinuity',
         instructions:
@@ -452,7 +741,7 @@ async function runHumanWorkflow(browserSession, page, monitor) {
         },
       },
       {
-        number: 9,
+        number: 14,
         id: 'hidden-tab',
         name: 'Hidden-tab silence and foreground recovery',
         instructions:
@@ -460,15 +749,21 @@ async function runHumanWorkflow(browserSession, page, monitor) {
         run: () => runOwnerHiddenTabCheck(browserSession, page, monitor, input),
       },
       {
-        number: 10,
+        number: 15,
         id: 'rapid-input',
         name: 'Rapid input and voice-cap artifact check',
         instructions:
-          'Twenty confirmation events fire quickly. Listen for clipping, clicks, pops, or a long queued tail. A brief dense cluster is expected; a small synthesizer riot is not.',
+          'Twenty rejected actions fire quickly. Listen for clipping, clicks, pops, or a long queued tail. A brief dense cluster is expected, followed by clean silence.',
         run: async () => {
+          await page.evaluate(() => {
+            const stress = globalThis.__terriStress;
+            if (stress === undefined) throw new Error('stress handle disappeared');
+            stress.sim.select(null);
+            stress.sim.flushCommands();
+          });
           const before = monitor.snapshot();
           for (let index = 0; index < 20; index += 1) {
-            await page.locator('#queue-mode').click();
+            await page.locator('#stop-orders').click();
             await page.waitForTimeout(12);
           }
           await page.waitForTimeout(700);
@@ -476,11 +771,11 @@ async function runHumanWorkflow(browserSession, page, monitor) {
         },
       },
       {
-        number: 11,
+        number: 16,
         id: 'settings-persistence',
         name: 'Mute and level persistence',
         instructions:
-          'The workflow stores Effects at 35 percent and Sound off, reloads, and verifies both controls. It then turns Sound on. The muted period must remain silent and the final confirmation must respect 35 percent.',
+          'The workflow stores Effects at 35 percent and Sound off, reloads, and verifies both controls. It then turns Sound on silently. The muted period and unmute control must remain silent.',
         run: async () => {
           await page.locator('#effects-volume').evaluate((element) => {
             element.value = '35';
@@ -519,10 +814,31 @@ async function runHumanWorkflow(browserSession, page, monitor) {
   return stages;
 }
 
-async function runMechanicalWorkflow(page) {
+async function runMechanicalWorkflow(page, monitor) {
   await page.locator('#queue-mode').click();
   await page.waitForTimeout(350);
+  await setSpeed(page, 3);
+  const walkingBefore = {
+    cuePlayCounts: await readCuePlayCounts(page),
+    audio: monitor.snapshot(),
+  };
   const walkingSetup = await prepareWalking(page);
+  const walkingEvidence = await waitForWalkingEvidence(
+    page,
+    monitor,
+    walkingSetup,
+    walkingBefore,
+    12_000,
+  );
+  const activityStages = [];
+  for (const scenario of ACTIVITY_LISTENING_SCENARIOS) {
+    const evidence = await runActivityScenario(page, monitor, scenario, true);
+    activityStages.push({
+      id: `activity-${scenario.id}`,
+      mechanicalResult: 'pass',
+      evidence,
+    });
+  }
   await page.locator('#effects-volume').evaluate((element) => {
     element.value = '35';
     element.dispatchEvent(new Event('input', { bubbles: true }));
@@ -541,16 +857,22 @@ async function runMechanicalWorkflow(page) {
   return [
     {
       id: 'stable-walking-setup',
-      mechanicalResult: walkingSetup.staged ? 'pass' : 'fail',
-      evidence: walkingSetup,
+      mechanicalResult:
+        walkingSetup.staged &&
+        walkingEvidence.expectedCueDelta > 0 &&
+        walkingEvidence.oscillatorDelta > 0
+          ? 'pass'
+          : 'fail',
+      evidence: { setup: walkingSetup, before: walkingBefore, ...walkingEvidence },
     },
+    ...activityStages,
     {
       id: 'hidden-tab',
       mechanicalResult: 'owner-required',
       evidence: {
         pass: false,
         reason:
-          'Chrome 151 did not produce a trustworthy visibility transition through CDP or exact-window UI Automation. The owner-listening run validates a manual same-window tab switch.',
+          'Automated tab creation did not produce a trustworthy visibility transition in the current Chrome build. The owner-listening run validates a manual same-window tab switch.',
       },
     },
     {
@@ -608,7 +930,7 @@ async function main() {
     await waitForGame(page);
     await closeHelp(page);
     report.stages = args.mechanicalOnly
-      ? await runMechanicalWorkflow(page)
+      ? await runMechanicalWorkflow(page, monitor)
       : await runHumanWorkflow(browserSession, page, monitor);
     report.audioTelemetry = monitor.snapshot();
     report.pass = args.mechanicalOnly
@@ -625,4 +947,6 @@ async function main() {
   if (!report.pass) process.exitCode = 1;
 }
 
-void main();
+module.exports = { everyContextIs, hasCompleteActivityEvidence };
+
+if (require.main === module) void main();

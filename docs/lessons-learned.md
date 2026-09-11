@@ -4347,11 +4347,14 @@ which coordinates each reserved term can actually be drawn at. Only once the
 model is confirmed tight is the choice between automatic scaling and centered
 overflow a real product decision.
 
-**How to verify.** At 136 pixels, the 16 by 12 conservative span is exactly 724
-pixels. `cameraOrigin` must place it at -2 through 722 in a 720-pixel canvas,
-sharing the unavoidable overflow equally. A future shorter extent may fit, but
-overflow beyond four pixels must fail for deliberate review. The obsolete
-tile-only centering formula must remain observably off-center.
+**How to verify.** At 136 pixels the two-row bound gives 697 pixels for the
+16 by 12 lot, so `cameraOrigin` must place the whole extent on a 720-pixel
+canvas with a non-negative top and a bottom no greater than 720, centered.
+Reserving one height for both rows must fail. `BOUNDARY_SPRITE_NAMES` must be
+checked in both directions against what `buildStaticInstances` emits: a missing
+boundary piece is reserved for at the wrong row, and an extra one that never
+leaves the lot rebuilds the over-reservation. The obsolete tile-only centering
+formula must remain observably clipped.
 
 ## [L-pages-must-follow-green-ci] A successful static build is not a releasable revision
 
@@ -4408,8 +4411,8 @@ rendered frame, resolved stable identity through one Rust call per agent on
 every tick, stopped all voices when Pause was selected, and reset walking phase
 only when a tab became hidden. Each choice looked reasonable alone. Together
 they would undercount 2x and 3x travel, become quadratic at town scale, cut off
-the Pause confirmation cue, and let hidden ticks contribute to the first sound
-after tab return.
+an already-playing cue when Pause was selected, and let hidden ticks contribute
+to the first sound after tab return.
 
 **Root cause.** Playback lifecycle, world lifecycle, and simulation phase were
 treated as one concern. They are three. UI audio remains usable while the world
@@ -4573,8 +4576,9 @@ select a non-sentinel stable Sim ID, stage a real walk, record settings
 persistence and `hidden-tab: owner-required`, then exit nonzero. Run the owner
 workflow, open exactly one same-window tab when prompted, and require equal CDP
 window IDs, hidden document state, suspended context state, zero oscillator
-growth across 20 hidden events, visible state on return, and a human judgment
-that no hidden or catch-up sound occurred.
+growth across 20 hidden events, visible state on return, running context state
+before the recovery event, one foreground recovery oscillator, and a human
+judgment that no hidden or catch-up sound occurred.
 
 ## [L-listening-fixtures-must-prove-the-audible-identity] An agent row is not necessarily an audible Sim
 
@@ -4622,14 +4626,191 @@ a dedicated loopback port, require HTTP 200, open that URL in a visible browser,
 and confirm the review controls exist. Only then ask the owner to review it.
 For public review, cite the successful deployment run tied to the exact merge
 SHA and open the mutable Pages site immediately afterward.
-**How to verify.** At 136 pixels the two-row bound gives 697 pixels for the
-16 by 12 lot, so `cameraOrigin` must place the whole extent on a 720-pixel
-canvas with a non-negative top and a bottom no greater than 720, centered.
-Reserving one height for both rows must fail. `BOUNDARY_SPRITE_NAMES` must be
-checked in both directions against what `buildStaticInstances` emits: a missing
-boundary piece is reserved for at the wrong row, and an extra one that never
-leaves the lot rebuilds the over-reservation. The obsolete tile-only centering
-formula must remain observably clipped.
+
+## [L-isolated-audio-must-work-without-accidental-layering] Judge one voice before a crowd hides its shape
+
+**What happened.** Several overlapping movement cues read as pleasant
+footsteps, but one autonomous Sim walking alone produced an unexplained thud
+about once per second. The stride scheduler was working as designed: normal
+travel crossed its 0.42-tile threshold at roughly that cadence. The cue itself
+was a 45 ms sine sweep from about 105 Hz down to 72 Hz, so an isolated event was
+almost entirely bass energy. A cluster supplied the rhythm that the single cue
+did not contain.
+
+**Root cause.** The listening pass judged the layered result without also
+auditioning one semantic voice at its ordinary cadence. Correct scheduling can
+still expose a bad sound shape when activity becomes sparse.
+
+**Prevention rule.** Every repeated game cue must pass three listening states:
+one isolated event, its normal single-source cadence, and the busiest legal
+overlap. Keep sustained activity cues below the fixed-tick rate and represent a
+shared scene once rather than once per participant. A crowd must not be needed
+to make one cue intelligible.
+
+**How to verify.** Drive one Sim across exactly one stride threshold and require
+the scheduled footstep frequencies to remain above the rejected bass-only
+range. Then hold one two-Sim conversation and one multi-Sim sleep scene across
+their full cadence windows. Require one conversation voice every eight ticks
+and one household sleep breath every 30 ticks, with no per-participant doubling
+and no retained cadence after Load or background reset. Finish with owner
+listening at ordinary Effects volume; frequency assertions cannot decide
+whether the result is pleasant.
+
+## [L-audio-cadence-narrows-a-source-but-does-not-name-it] Trace every cue near the reported rhythm
+
+**What happened.** After the bass-heavy footstep was replaced, the owner heard
+another intermittent thud at roughly one-second intervals. The closest code
+match was not another stride. Exercise emitted a square pulse from 150 to 210
+Hz every seven fixed ticks, or 0.7 seconds at normal simulation cadence, while
+the visible pedal pose held for eight ticks. An
+autonomous Sim using the bike made that cue appear only sometimes, which made
+it sound unexplained when attention was elsewhere.
+
+**Root cause.** The investigation initially associated rhythm with footsteps
+instead of comparing every cue whose scheduled period and bass content fit the
+report. Timing is useful evidence, but several systems can share a cadence. The
+sound scheduler also duplicated an animation interval as a different literal,
+so the audible cue drifted against the pedal motion.
+
+**Prevention rule.** When a repeated sound is reported without an obvious
+source, list every semantic cue within the reported cadence range, then compare
+waveform, frequency, gain, and the gameplay condition that activates it. Do not
+name the source from rhythm alone. Give each low-frequency repeated cue an
+isolated scenario before combining it with autonomous play.
+
+**How to verify.** Hold one Sim in the exercise action and suppress unrelated
+movement. The candidate must use the 520 to 340 Hz triangle sweep at 0.014 peak
+gain on the shared eight-tick pedal-frame interval, never the rejected 150 to
+210 Hz square pulse. Then listen during ordinary
+autonomous play and confirm the periodic thud is gone. The numeric assertion
+proves the rejected shape cannot return; only owner listening can accept the
+replacement.
+
+## [L-hidden-radio-harnesses-must-use-the-widget-event] Drive the control contract, not an invisible input box
+
+**What happened.** The ordinary-Chrome audio listening harness tried to select
+3x with Playwright's `check()` operation. The speed radio is intentionally
+absolute-positioned, transparent, and unable to receive pointer events. Its
+following 44-pixel label is the player-facing target. Playwright resolved the
+input but repeatedly reported that the Pause label intercepted its synthetic
+click.
+
+**Root cause.** The listening harness treated an invisible form input as a
+click target even though this widget's actual contract is the input's checked
+state followed by its `change` event. The sibling performance harness already
+used that contract, but the listening path had drifted.
+
+**Prevention rule.** When browser verification drives a visually hidden native
+input, do not aim pointer automation at its invisible box. Reuse the same
+programmatic checked-state and bubbling `change` event path across every harness,
+or click the visible associated label when the purpose of the test is pointer
+hit testing. Audit sibling entry points before accepting a browser-control fix.
+
+**How to verify.** Run `scripts/audio-listening.ps1 -MechanicalOnly` in ordinary
+Chrome. Every Pause, 1x, 2x, and 3x transition must complete without an
+intercepted-pointer timeout, and the resulting report must still show a staged
+walk plus persisted audio settings. A separate screenshot run should reach the
+exercise action and capture rendered canvas pixels after the 3x change.
+
+## [L-listening-evidence-must-name-the-cue-and-action] An oscillator does not identify what the player heard
+
+**What happened.** Conversation, sleep, eating, reading, and exercise had unit
+coverage, but the owner could hear only footsteps during ordinary play. The
+listening harness staged a walking command and watched Web Audio globally. It
+did not put each other action into a known live render state, and an oscillator
+count could not distinguish the requested cue from autonomous footsteps or a
+different activity cue.
+
+**Root cause.** The browser proof stopped at two weak signals: command queuing
+and anonymous audio-node creation. A queued command may later be dropped, while
+an oscillator proves only that some procedural cue started. Silence was treated
+as gain alone even though retained cadence is also presentation state.
+
+**Prevention rule.** An activity-listening fixture must discover Sims and
+interactions from fresh bridge views, stage one exact command, observe the
+intended entity's exact visual action and activity, require the named semantic
+cue counter to increase, and require Chrome to report a new oscillator. Reset
+every cadence scheduler on both edges of master mute and Effects zero so the
+first audible tick describes the action currently on screen. Keep acoustic
+isolation as a separate claim until the harness can prove it.
+
+**How to verify.** Run `scripts/audio-listening.ps1 -MechanicalOnly` in
+ordinary Chrome. Walking, conversation, eating, standing reading, exercise,
+and lower-bunk sleep must each pass exact render-state, semantic-cue, and Web
+Audio checks. The run must still report `hidden-tab: owner-required` rather
+than converting the browser automation limitation into a pass. Then run the
+owner workflow and judge each isolated sample at 1x.
+
+## [L-routine-events-do-not-all-need-cues] Semantic feedback is not a demand for a click sound
+
+**What happened.** Successful commands, menu choices, speed changes, unmute,
+and Effects release all played the same short confirmation tone. At that
+frequency the cue became clutter, and its character sounded more like failure
+than success.
+
+**Root cause.** The event-to-cue mapping treated every staged command and
+completed control as an audible event. Semantic events are useful for state,
+testing, and accessibility even when silence is the correct sound design.
+
+**Prevention rule.** Do not map broad success or completion categories to a
+blanket click. Routine success remains silent unless a control has a specific
+sound-design reason to speak. Reserve the current interface cue for rejected
+actions and keep it brief and lower in gain.
+
+**How to verify.** After audio unlock, emit `command.staged` and `ui.confirmed`
+and require zero oscillator creation. Emit `command.rejected` and require one
+90 ms triangle voice from 520 to 680 Hz at 0.07 peak gain. In the owner workflow,
+change speed, release Effects, and unmute without hearing a cue; then attempt
+Clear orders with no selected Sim and hear one quiet rejection.
+
+## [L-audio-isolation-must-respect-live-action-ownership] A spare bed is not a universal mute button
+
+**What happened.** The listening harness tried three times to park unrelated
+Sims on the double bed before each activity sample. One run was blocked by Help;
+two more timed out after command cancellation because a Sim's self-chosen live
+action could continue and consume the bed's limited interaction capacity.
+
+**Root cause.** The setup assumed cancelling queued intents interrupted the
+currently chosen action, and it assumed one object could accept every unrelated
+Sim. Neither assumption belongs to the bridge contract.
+
+**Prevention rule.** Do not isolate a listening fixture by issuing unrelated
+gameplay commands unless current-action interruption and target capacity are
+both explicit, tested contracts. Preserve exact action, semantic cue, and Web
+Audio evidence, but describe acoustic isolation as open when autonomous sources
+can still overlap.
+
+**How to verify.** The listening driver contains no parking helper or parking
+claim. Its mechanical run stages every named activity successfully without
+waiting for unrelated Sims to occupy the bed, while the owner instructions do
+not claim that other autonomous sounds have been suppressed.
+
+## [L-approval-gated-network-tests-must-inject-the-network] An approval-shaped flag is not a safe test boundary
+
+**What happened.** A duplicate-pack regression test spawned the real CC0 intake
+CLI with its approval flag. The duplicate preflight did not exist yet, so the
+first occurrence downloaded a 2.9 MB archive into a unique temporary directory
+before the second occurrence failed. The file did not enter the repository,
+but the network request itself was outside the owner's approval.
+
+**Root cause.** The test relied on expected validation order to prevent a real
+side effect. Passing a production approval-shaped flag to a subprocess left
+the global `fetch` implementation live. The test was intended to prove that
+network was unreachable, but its design gave the network no enforceable test
+double.
+
+**Prevention rule.** Never run an approval-bearing CLI path in a test while its
+real network, billing, publishing, or destructive dependency is available.
+Expose an in-process runner, inject a dependency that throws if called, and
+assert that its call count remains zero. Keep subprocess tests on read-only or
+explicitly refused paths. Owner approval must come from the conversation and
+cannot be manufactured by a test argument.
+
+**How to verify.** Call the intake runner with duplicate and unknown IDs plus an
+injected fetch function that increments a counter and throws. Both requests
+must fail with their preflight error and leave the counter at zero. The only
+subprocess cases may list the manifest or prove that a download without the
+approval flag is refused.
 
 ## [L-delegated-workspace-management] Routine workspace work is not an owner approval gate
 
@@ -5001,3 +5182,56 @@ east-west run, or a west branch behind a north-south run, leaves the near face
 flat. Suppress the crease in these two cases. The regression renders both
 orientations and requires exact agreement with the unshaded wall, while
 separate contrast checks retain the approved creases on visible corners.
+
+## [L-audio-target-interaction-must-match-action-state] Validate each side of a compound identity guard
+
+**What happened.** The mutation gate changed the ordinary object-sound guard
+from rejecting either a chain sentinel or an interaction mismatch to rejecting
+only when both conditions were true. Existing sound tests still passed.
+
+**Root cause.** The malformed fixtures covered a missing SmartObject and a
+wrong object role, but every ordinary fixture used matching interaction indices.
+They never isolated the second half of the compound guard with an otherwise
+valid sound-producing object and target.
+
+**Prevention rule.** When presentation state is valid only if two independently
+owned identities agree, test each mismatch separately while every later lookup
+would otherwise succeed. A fixture that fails an earlier lookup cannot prove a
+later identity guard.
+
+**How to verify.** Give the ordinary sound projection helper one interaction
+index and its valid shower target another. The helper must return no sound.
+Changing the guard's `||` to `&&` must make that focused regression fail by
+projecting the shower sound from mismatched state. Keep a separate render-sync
+test for the public buffer contract; outer presentation policy can suppress a
+malformed combination before it exposes this lower-level identity defect.
+
+**Outer projection correction.** The helper test cannot protect the call-site
+eligibility guard. Include a non-agent render row carrying otherwise valid
+ordinary-action and shower-target components; it must still project no sound.
+Changing either outer `&&` to `||` must make that render-buffer regression fail.
+
+## [L-audio-boundaries-and-proofs-must-cover-every-scheduler] Scheduler families change as one contract
+
+**What happened.** Recovery from an externally suspended browser audio context
+reset object-sound state but retained footstep and activity cadence. The
+retained-memory proof also measured footsteps and object sounds while omitting
+personal-activity track count and capacity.
+
+**Root cause.** Activity and object schedulers were added after the original
+footstep lifecycle. Two explicit scheduler lists evolved independently: the
+audible re-entry branch and the browser proof's diagnostics. Each list was
+partially updated, so neither represented the complete controller contract.
+
+**Prevention rule.** Every transition from inaudible to audible must call the
+controller's single all-scheduler reset. Every bounded-state proof must sample
+and constrain every retained scheduler's live count and capacity. Adding a
+scheduler requires updating both contracts in the same change.
+
+**How to verify.** Populate footstep, personal-activity, and object-sound state;
+externally suspend the context; continue sampling while inaudible; then recover
+through a trusted gesture. Recovery must clear all three schedulers, the next
+footstep must anchor without playing, and the current personal activity must
+restart at entry cadence. The browser memory report must include stable
+footstep, activity, and object-sound capacities and bounds of three, three, and
+two live tracks respectively.

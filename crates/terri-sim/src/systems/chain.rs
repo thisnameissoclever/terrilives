@@ -368,6 +368,7 @@ mod tests {
                     transforms: None,
                     consumes: None,
                     visual: None,
+                    sound_action: None,
                 },
                 CompiledChainStep {
                     role: 1,
@@ -378,6 +379,7 @@ mod tests {
                     transforms: None,
                     consumes: Some(0),
                     visual: None,
+                    sound_action: None,
                 },
             ],
         }

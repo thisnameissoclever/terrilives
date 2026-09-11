@@ -9,6 +9,10 @@ import {
   type BrowserAudioContext,
 } from '../src/audio/audio-controller.js';
 import { FOOTSTEP_DISTANCE_TILES } from '../src/audio/footsteps.js';
+import {
+  OBJECT_SOUND_ACTION_SHOWER_WATER,
+  OBJECT_SOUND_ACTION_STOVE_COOKING,
+} from '../src/audio/object-cues.js';
 import type {
   AudioParamPort,
   GainNodePort,
@@ -146,6 +150,38 @@ function footstepFrame(
   controller.endFootstepFrame();
 }
 
+function activityFrame(
+  controller: AudioController,
+  observations: ReadonlyArray<
+    readonly [
+      number,
+      | 'other'
+      | 'conversation'
+      | 'sleep'
+      | 'eating'
+      | 'reading'
+      | 'exercise',
+    ]
+  >,
+): void {
+  controller.beginActivityFrame();
+  for (const [simId, activity] of observations) {
+    controller.observeActivity(simId, activity);
+  }
+  controller.endActivityFrame();
+}
+
+function objectSoundFrame(
+  controller: AudioController,
+  observations: ReadonlyArray<readonly [number, number]>,
+): void {
+  controller.beginObjectSoundFrame();
+  for (const [sourceId, action] of observations) {
+    controller.observeObjectSound(sourceId, action);
+  }
+  controller.endObjectSoundFrame();
+}
+
 describe('AudioController preferences', () => {
   it('uses audible bounded defaults and persists one versioned record', () => {
     const store = memoryStore();
@@ -258,36 +294,259 @@ describe('AudioController gesture and cue lifecycle', () => {
     expect(context.oscillators).toHaveLength(1);
   });
 
-  it('schedules distinct accepted and rejected envelopes under 150 ms', async () => {
+  it('keeps routine controls silent and gives rejection one quiet short cue', async () => {
     const context = new FakeContext();
     const controller = new AudioController(() => context, undefined);
     await controller.unlockFromGesture();
 
     controller.emit({ type: 'command.staged' });
+    controller.emit({ type: 'ui.confirmed' });
+    expect(context.oscillators).toHaveLength(0);
+
     controller.emit({ type: 'command.rejected' });
 
-    const [accepted, rejected] = context.oscillators;
-    expect(accepted?.type).toBe('triangle');
-    expect(rejected?.type).toBe('square');
-    expect(accepted?.frequency.calls).toContainEqual({
+    const [rejected] = context.oscillators;
+    expect(rejected?.type).toBe('triangle');
+    expect(rejected?.frequency.calls).toContainEqual({
       kind: 'set',
       value: 520,
       time: 4,
     });
     expect(rejected?.frequency.calls).toContainEqual({
-      kind: 'set',
-      value: 240,
-      time: 4,
+      kind: 'ramp',
+      value: 680,
+      time: 4.09,
     });
-    expect(accepted?.stops).toEqual([4.09]);
-    expect(rejected?.stops).toEqual([4.13]);
-    expect(Math.max(...(accepted?.stops ?? [])) - context.currentTime).toBeLessThan(
-      0.15,
-    );
+    expect(context.gains[2]?.gain.calls).toContainEqual({
+      kind: 'ramp',
+      value: 0.07,
+      time: 4.008,
+    });
+    expect(rejected?.stops).toEqual([4.09]);
     expect(Math.max(...(rejected?.stops ?? [])) - context.currentTime).toBeLessThan(
       0.15,
     );
   });
+
+  it('keeps an isolated footstep out of the bass-only thud range', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+
+    footstepFrame(controller, 3, 0);
+    footstepFrame(controller, 3, FOOTSTEP_DISTANCE_TILES);
+
+    const footstep = context.oscillators[0];
+    expect(footstep?.type).toBe('triangle');
+    const pitchedValues = footstep?.frequency.calls
+      .map((call) => call.value)
+      .filter((value): value is number => value !== undefined);
+    expect(Math.min(...(pitchedValues ?? []))).toBeGreaterThanOrEqual(120);
+  });
+
+  it('gives conversation and sleep distinct sparse activity voices', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+
+    activityFrame(controller, [
+      [12, 'conversation'],
+      [4, 'conversation'],
+    ]);
+    activityFrame(controller, []);
+    activityFrame(controller, [[9, 'sleep']]);
+
+    const [conversation, sleep] = context.oscillators;
+    expect(conversation?.type).toBe('triangle');
+    expect(sleep?.type).toBe('sine');
+    expect(conversation?.stops[0]).toBeLessThanOrEqual(4.18);
+    expect(sleep?.stops[0]).toBeLessThanOrEqual(4.5);
+    expect(conversation?.frequency.calls).not.toEqual(sleep?.frequency.calls);
+  });
+
+  it('keeps eating, reading, and exercise distinct without a bassy exercise thud', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+
+    activityFrame(controller, [[5, 'eating']]);
+    activityFrame(controller, [[5, 'reading']]);
+    activityFrame(controller, [[5, 'exercise']]);
+
+    const [eating, reading, exercise] = context.oscillators;
+    expect(eating?.type).toBe('sine');
+    expect(reading?.type).toBe('triangle');
+    expect(exercise?.type).toBe('triangle');
+    const exerciseFrequencies = exercise?.frequency.calls
+      .map((call) => call.value)
+      .filter((value): value is number => value !== undefined);
+    expect(exerciseFrequencies).toHaveLength(2);
+    expect(exerciseFrequencies?.[0]).toBeCloseTo(520 * 1.01);
+    expect(exerciseFrequencies?.[1]).toBeCloseTo(340 * 1.01);
+    expect(Math.min(...(exerciseFrequencies ?? []))).toBeGreaterThanOrEqual(300);
+    expect(eating?.frequency.calls).not.toEqual(reading?.frequency.calls);
+    expect(reading?.frequency.calls).not.toEqual(exercise?.frequency.calls);
+    expect(eating?.stops[0]).toBeLessThanOrEqual(4.12);
+    expect(reading?.stops[0]).toBeLessThanOrEqual(4.16);
+    expect(exercise?.stops[0]).toBeLessThanOrEqual(4.09);
+    const cuePeakGains = context.gains.slice(2).map((gain) =>
+      Math.max(
+        ...gain.gain.calls
+          .map((call) => call.value)
+          .filter((value): value is number => value !== undefined),
+      ),
+    );
+    expect(cuePeakGains).toEqual([0.022, 0.018, 0.014]);
+  });
+
+  it('tracks exact object sounds without inventing a procedural replacement', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+
+    objectSoundFrame(controller, [
+      [44, OBJECT_SOUND_ACTION_SHOWER_WATER],
+      [73, OBJECT_SOUND_ACTION_STOVE_COOKING],
+    ]);
+    objectSoundFrame(controller, [
+      [44, OBJECT_SOUND_ACTION_SHOWER_WATER],
+      [73, OBJECT_SOUND_ACTION_STOVE_COOKING],
+    ]);
+
+    expect(controller.activeObjectSoundTrackCount()).toBe(2);
+    expect(context.oscillators).toHaveLength(0);
+
+    objectSoundFrame(controller, []);
+    expect(controller.activeObjectSoundTrackCount()).toBe(0);
+    expect(context.oscillators).toHaveLength(0);
+  });
+
+  it.each(['load', 'background'] as const)(
+    'clears exact object sound state across the %s boundary',
+    async (boundary) => {
+      const context = new FakeContext();
+      const controller = new AudioController(() => context, undefined);
+      await controller.unlockFromGesture();
+      objectSoundFrame(controller, [[44, OBJECT_SOUND_ACTION_SHOWER_WATER]]);
+      expect(controller.activeObjectSoundTrackCount()).toBe(1);
+
+      if (boundary === 'background') {
+        await controller.setBackgrounded(true);
+        await controller.setBackgrounded(false);
+      } else {
+        controller.reset(boundary);
+      }
+
+      expect(controller.activeObjectSoundTrackCount()).toBe(0);
+      objectSoundFrame(controller, [[44, OBJECT_SOUND_ACTION_SHOWER_WATER]]);
+      expect(controller.activeObjectSoundTrackCount()).toBe(1);
+    },
+  );
+
+  it.each(['mute', 'effects'] as const)(
+    'restarts exact object sound state after the %s silence boundary',
+    async (boundary) => {
+      const context = new FakeContext();
+      const controller = new AudioController(() => context, undefined);
+      await controller.unlockFromGesture();
+      objectSoundFrame(controller, [[44, OBJECT_SOUND_ACTION_SHOWER_WATER]]);
+      expect(controller.activeObjectSoundTrackCount()).toBe(1);
+
+      if (boundary === 'mute') {
+        controller.setMuted(true);
+      } else {
+        controller.setEffectsLevel(0);
+      }
+      objectSoundFrame(controller, [[44, OBJECT_SOUND_ACTION_SHOWER_WATER]]);
+      expect(controller.activeObjectSoundTrackCount()).toBe(1);
+
+      if (boundary === 'mute') {
+        controller.setMuted(false);
+      } else {
+        controller.setEffectsLevel(0.4);
+      }
+      expect(controller.activeObjectSoundTrackCount()).toBe(0);
+      objectSoundFrame(controller, [[44, OBJECT_SOUND_ACTION_SHOWER_WATER]]);
+      expect(controller.activeObjectSoundTrackCount()).toBe(1);
+    },
+  );
+
+  it('starts personal cadence fresh after the first unlock', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+
+    activityFrame(controller, [[5, 'eating']]);
+    await controller.unlockFromGesture();
+    activityFrame(controller, [[5, 'eating']]);
+
+    expect(context.oscillators).toHaveLength(1);
+  });
+
+  it.each(['mute', 'effects'] as const)(
+    'starts personal cadence fresh after the %s silence boundary',
+    async (boundary) => {
+      const context = new FakeContext();
+      const controller = new AudioController(() => context, undefined);
+      await controller.unlockFromGesture();
+      activityFrame(controller, [[5, 'eating']]);
+      expect(controller.cuePlayCounts().eating).toBe(1);
+
+      if (boundary === 'mute') {
+        controller.setMuted(true);
+      } else {
+        controller.setEffectsLevel(0);
+      }
+      activityFrame(controller, [[5, 'eating']]);
+
+      if (boundary === 'mute') {
+        controller.setMuted(false);
+      } else {
+        controller.setEffectsLevel(0.4);
+      }
+      activityFrame(controller, [[5, 'eating']]);
+
+      expect(controller.cuePlayCounts().eating).toBe(2);
+      expect(context.oscillators).toHaveLength(2);
+    },
+  );
+
+  it('counts only cues that successfully reach the procedural player', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+
+    controller.emit({ type: 'sim.sleep-breath', simId: 3, breathIndex: 0 });
+    expect(controller.cuePlayCounts()['sleep-breath']).toBe(0);
+
+    await controller.unlockFromGesture();
+    controller.emit({ type: 'sim.sleep-breath', simId: 3, breathIndex: 0 });
+    controller.emit({ type: 'sim.conversation', simId: 3, phraseIndex: 0 });
+
+    expect(controller.cuePlayCounts()).toMatchObject({
+      conversation: 1,
+      'sleep-breath': 1,
+    });
+    expect(context.oscillators).toHaveLength(2);
+  });
+
+  it.each(['load', 'background'] as const)(
+    'starts personal cadence fresh after the %s boundary',
+    async (boundary) => {
+      const context = new FakeContext();
+      const controller = new AudioController(() => context, undefined);
+      await controller.unlockFromGesture();
+      activityFrame(controller, [[5, 'eating']]);
+
+      if (boundary === 'background') {
+        await controller.setBackgrounded(true);
+        await controller.setBackgrounded(false);
+      } else {
+        controller.reset(boundary);
+      }
+      activityFrame(controller, [[5, 'eating']]);
+
+      expect(context.oscillators).toHaveLength(2);
+    },
+  );
 
   it('applies mute and effects level immediately without creating muted voices', async () => {
     const context = new FakeContext();
@@ -300,13 +559,13 @@ describe('AudioController gesture and cue lifecycle', () => {
     expect(master?.connections).toEqual([context.destination]);
 
     controller.emit({ type: 'ui.confirmed' });
-    expect(controller.activeVoiceCount()).toBe(1);
+    expect(controller.activeVoiceCount()).toBe(0);
 
     controller.setMuted(true);
     expect(controller.activeVoiceCount()).toBe(0);
     expect(master?.gain.calls.at(-1)).toEqual({ kind: 'set', value: 0, time: 4 });
     controller.emit({ type: 'command.rejected' });
-    expect(context.oscillators).toHaveLength(1);
+    expect(context.oscillators).toHaveLength(0);
 
     controller.setMuted(false);
     controller.setEffectsLevel(0.35);
@@ -317,7 +576,7 @@ describe('AudioController gesture and cue lifecycle', () => {
       time: 4,
     });
     controller.emit({ type: 'command.rejected' });
-    expect(context.oscillators).toHaveLength(2);
+    expect(context.oscillators).toHaveLength(1);
   });
 
   it('caps active voices and disconnects the oldest voice in a burst', async () => {
@@ -326,7 +585,7 @@ describe('AudioController gesture and cue lifecycle', () => {
     await controller.unlockFromGesture();
 
     for (let index = 0; index < 9; index += 1) {
-      controller.emit({ type: 'command.staged' });
+      controller.emit({ type: 'command.rejected' });
     }
 
     expect(controller.activeVoiceCount()).toBe(8);
@@ -340,7 +599,7 @@ describe('AudioController gesture and cue lifecycle', () => {
     const context = new FakeContext();
     const controller = new AudioController(() => context, undefined);
     await controller.unlockFromGesture();
-    controller.emit({ type: 'ui.confirmed' });
+    controller.emit({ type: 'command.rejected' });
 
     context.oscillators[0]?.onended?.();
 
@@ -358,13 +617,15 @@ describe('AudioController gesture and cue lifecycle', () => {
       throw new Error('device disappeared');
     };
 
-    expect(() => controller.emit({ type: 'command.staged' })).not.toThrow();
+    expect(() => controller.emit({ type: 'command.rejected' })).not.toThrow();
     expect(controller.activeVoiceCount()).toBe(0);
+    expect(controller.cuePlayCounts().rejected).toBe(0);
 
     context.createOscillator = createOscillator;
     footstepFrame(controller, 27, 0);
     footstepFrame(controller, 27, FOOTSTEP_DISTANCE_TILES);
     expect(controller.activeVoiceCount()).toBe(1);
+    expect(controller.cuePlayCounts().footstep).toBe(1);
   });
 
   it('cleans up a partially configured cue when parameter scheduling fails', async () => {
@@ -380,7 +641,7 @@ describe('AudioController gesture and cue lifecycle', () => {
       return oscillator;
     };
 
-    expect(() => controller.emit({ type: 'command.staged' })).not.toThrow();
+    expect(() => controller.emit({ type: 'command.rejected' })).not.toThrow();
     expect(controller.activeVoiceCount()).toBe(0);
     expect(context.oscillators[0]?.disconnected).toBe(true);
     expect(context.gains[2]?.disconnected).toBe(true);
@@ -399,7 +660,7 @@ describe('AudioController gesture and cue lifecycle', () => {
       return oscillator;
     };
 
-    expect(() => controller.emit({ type: 'command.staged' })).not.toThrow();
+    expect(() => controller.emit({ type: 'command.rejected' })).not.toThrow();
     expect(context.oscillators[0]?.starts).toEqual([4]);
     expect(controller.activeVoiceCount()).toBe(0);
     expect(context.oscillators[0]?.disconnected).toBe(true);
@@ -557,6 +818,35 @@ describe('AudioController gesture and cue lifecycle', () => {
     expect(await controller.unlockFromGesture()).toBe(true);
     expect(controller.isUnlocked()).toBe(true);
     expect(context.resumeCalls).toBe(3);
+  });
+
+  it('clears every scheduler after an externally suspended context recovers', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+    footstepFrame(controller, 17, 0);
+    activityFrame(controller, [[17, 'eating']]);
+    objectSoundFrame(controller, [[44, OBJECT_SOUND_ACTION_SHOWER_WATER]]);
+
+    context.state = 'suspended';
+    footstepFrame(controller, 17, 0.4);
+    activityFrame(controller, [[17, 'eating']]);
+    objectSoundFrame(controller, [[44, OBJECT_SOUND_ACTION_SHOWER_WATER]]);
+    expect(controller.activeFootstepTrackCount()).toBe(1);
+    expect(controller.activeActivityTrackCount()).toBe(1);
+    expect(controller.activeObjectSoundTrackCount()).toBe(1);
+
+    expect(await controller.unlockFromGesture()).toBe(true);
+    expect(controller.activeFootstepTrackCount()).toBe(0);
+    expect(controller.activeActivityTrackCount()).toBe(0);
+    expect(controller.activeObjectSoundTrackCount()).toBe(0);
+
+    footstepFrame(controller, 17, 0.8);
+    activityFrame(controller, [[17, 'eating']]);
+    objectSoundFrame(controller, [[44, OBJECT_SOUND_ACTION_SHOWER_WATER]]);
+    expect(controller.cuePlayCounts().footstep).toBe(0);
+    expect(controller.cuePlayCounts().eating).toBe(2);
+    expect(controller.activeObjectSoundTrackCount()).toBe(1);
   });
 
   it('re-anchors after hidden samples before audible foreground travel', async () => {

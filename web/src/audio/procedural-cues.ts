@@ -1,7 +1,11 @@
 export type ProceduralCue =
-  | 'accepted'
   | 'rejected'
   | 'footstep'
+  | 'conversation'
+  | 'sleep-breath'
+  | 'eating'
+  | 'page-turn'
+  | 'exercise'
   | 'door-opened'
   | 'door-closed';
 
@@ -52,26 +56,54 @@ const SILENCE_GAIN = 0.0001;
 export const MAX_ACTIVE_PROCEDURAL_VOICES = 8;
 
 const CUE_SHAPES: Readonly<Record<ProceduralCue, CueShape>> = {
-  accepted: {
+  rejected: {
     durationSeconds: 0.09,
-    peakGain: 0.13,
+    peakGain: 0.07,
     startHz: 520,
     endHz: 680,
     oscillator: 'triangle',
   },
-  rejected: {
-    durationSeconds: 0.13,
-    peakGain: 0.11,
-    startHz: 240,
-    endHz: 150,
-    oscillator: 'square',
-  },
   footstep: {
-    durationSeconds: 0.045,
-    peakGain: 0.055,
-    startHz: 105,
-    endHz: 72,
+    durationSeconds: 0.04,
+    peakGain: 0.045,
+    startHz: 175,
+    endHz: 130,
+    oscillator: 'triangle',
+  },
+  conversation: {
+    durationSeconds: 0.16,
+    peakGain: 0.032,
+    startHz: 310,
+    endHz: 390,
+    oscillator: 'triangle',
+  },
+  'sleep-breath': {
+    durationSeconds: 0.42,
+    peakGain: 0.012,
+    startHz: 250,
+    endHz: 185,
     oscillator: 'sine',
+  },
+  eating: {
+    durationSeconds: 0.08,
+    peakGain: 0.022,
+    startHz: 920,
+    endHz: 680,
+    oscillator: 'sine',
+  },
+  'page-turn': {
+    durationSeconds: 0.13,
+    peakGain: 0.018,
+    startHz: 1200,
+    endHz: 480,
+    oscillator: 'triangle',
+  },
+  exercise: {
+    durationSeconds: 0.055,
+    peakGain: 0.014,
+    startHz: 520,
+    endHz: 340,
+    oscillator: 'triangle',
   },
   'door-opened': {
     durationSeconds: 0.12,
@@ -102,7 +134,7 @@ export class ProceduralCuePlayer {
     private readonly output: unknown,
   ) {}
 
-  play(cue: ProceduralCue, pitchScale = 1): void {
+  play(cue: ProceduralCue, pitchScale = 1): boolean {
     const shape = CUE_SHAPES[cue];
     const now = this.context.currentTime;
     let gain: GainNodePort | null = null;
@@ -141,6 +173,7 @@ export class ProceduralCuePlayer {
       this.voices.push(activeVoice);
       oscillator.start(now);
       oscillator.stop(now + shape.durationSeconds);
+      return true;
     } catch {
       if (voice !== null) {
         this.finishVoice(voice, true);
@@ -156,6 +189,7 @@ export class ProceduralCuePlayer {
         }
         if (gain !== null) safeDisconnect(gain);
       }
+      return false;
     }
   }
 

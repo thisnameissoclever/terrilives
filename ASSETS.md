@@ -48,6 +48,18 @@ language and character build live in `assets/sprites/gen/style.py`, which is
 the style bible and is executable.
 `docs/specs/2026-08-03-muted-line-implementation.md` is the plan it came from.
 
+## There are no third-party audio assets
+
+**As of 2026-09-06 the game ships no borrowed audio.** The current Web Audio
+layer synthesizes its cues at runtime. Four compact CC0 archives are proposed
+in `docs/specs/2026-09-06-cc0-audio-intake.md`, but a proposed or downloaded
+archive is not a game asset and is not a provenance entry here.
+
+When an individual recording is accepted, this file must name its pack, source
+page, author, licence, archive SHA-256, exact archive entry, every material edit,
+and final runtime path. Only reviewed files used by the game belong in the
+repository; source packs remain outside it.
+
 ## What was here before, and why it is gone
 
 The alpha shipped 39 isometric PNGs from the **Kenney Furniture Kit** (CC0,

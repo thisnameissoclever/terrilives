@@ -1,19 +1,21 @@
 # Audio foundation
 
-Status: implemented first slice. Focused Rust and Web tests, deliberate
-mutations, production-browser performance, bounded retained-memory, scheduler,
-and responsive visual gates pass locally. The clean 629-test Rust workspace,
-503-test Web suite, TypeScript check, Clippy, WASM build, and production Web build
-also pass locally. The ordinary-Chrome listening harness selects a stable
-household Sim, stages a real walk, and passes settings persistence, but correctly
-leaves hidden-tab silence as an owner-required action. Human listening, merge,
-exact-head CI, and deployment evidence remain open.
+Status: the first slice was integrated into `main` on 2026-08-28 after the owner
+accepted the overall footstep character and requested slightly less bass. A
+second local slice raises isolated footsteps out of the bass-only thud range,
+replaces the exercise cue's low square pulse with a quieter high triangle
+sweep, and adds sparse fixed-tick cues for conversation and sleep. Automated
+tests cover event timing, lifecycle resets, cue bounds, and the combined
+simulation. Owner listening for the revised footstep, exercise, conversation,
+and sleep sounds remains open. Hidden-tab silence also remains an owner-required
+action.
 
 ## Decision
 
 Terrilives uses the browser's native Web Audio API for its first sound layer.
 Audio remains in the TypeScript presentation shell. The Rust simulation emits
-no sound, owns no volume state, and stays deterministic and headless.
+semantic presentation state but owns no playback, volume state, or audio file.
+It stays deterministic and headless.
 
 This slice establishes the durable plumbing without adding an audio library or
 downloaded sound pack. It intentionally uses short procedural tones. Those
@@ -26,8 +28,8 @@ The HUD exposes two persistent controls:
 1. `Sound: on/off` is master mute. It changes only the master gain between one
    and zero.
 2. `Effects` is a zero-to-100 percent range for current cues and footsteps. It
-   previews gain during drag, writes storage once on committed change, and
-   plays one confirmation at the committed level.
+   previews gain during drag and writes storage once on committed change. Drag
+   and release are silent.
 
 Both controls remain visible in the desktop HUD and belong to the compact
 mobile HUD. The range is at least 44 CSS pixels tall. The help dialog names both
@@ -45,15 +47,19 @@ partial, out-of-range, or unknown-version record is ignored in full.
 3. Event emission never creates or resumes the context.
 4. Gesture listeners remain armed. If a device interruption or rejected tab
    resume suspends audio later, the next trusted gesture can recover it.
-5. Hiding the document gates new voices synchronously, stops active voices,
-   clears stride state, and requests context suspension.
-6. Showing the document clears stride state again and requests resume only for
-   a context that was previously gesture-activated.
-7. Visibility requests are revisioned and serialized. The latest requested
+5. Master mute changes and Effects crossing zero clear stride, shared-activity,
+   personal-activity, and object-sound scheduler state on both edges. Returning
+   to audible output starts from the current action instead of stale silent
+   cadence.
+6. Hiding the document gates new voices synchronously, stops active voices,
+   clears stride and activity cadence state, and requests context suspension.
+7. Showing the document clears all scheduler state again and requests resume
+   only for a context that was previously gesture-activated.
+8. Visibility requests are revisioned and serialized. The latest requested
    state wins even when an older browser promise settles late.
-8. Pause stops simulation ticks. It does not suspend audio or cut off the Pause
-   control's own confirmation.
-9. Successful Load reads the replacement world's aligned stable identity and
+9. Pause stops simulation ticks. It does not suspend audio or cut off an
+   already-playing cue. The Pause control itself is silent.
+10. Successful Load reads the replacement world's aligned stable identity and
    clears active world phase after replacement. Failed or cancelled Load
    changes no audio world state.
 
@@ -66,10 +72,11 @@ The graph is:
 The split is load-bearing. Effects may not change a future music, ambience, or
 voice bus. Mute owns the master gain only.
 
-Each cue creates one oscillator and one gain envelope, schedules a stop under
-150 ms, and disconnects both nodes when ended or evicted. At most eight voices
-remain active. A ninth event stops and disconnects the oldest voice instead of
-building an invisible backlog.
+Each audible cue creates one oscillator and one gain envelope, then disconnects
+both nodes when ended or evicted. Rejection, footstep, conversation, and
+personal activity cues stop within 160 ms. The low-gain sleep-breath envelope
+lasts 420 ms. At most eight voices remain active. A ninth event stops and
+disconnects the oldest voice instead of building an invisible backlog.
 
 The current semantic events are:
 
@@ -79,14 +86,29 @@ The current semantic events are:
 3. `ui.confirmed`: a selected immediate control completed.
 4. `sim.footstep { simId, stepIndex }`: a stable Sim crossed one stride
    threshold.
-5. `door.opened` and `door.closed`: reserved event shapes only. No current door
+5. `sim.conversation { simId, phraseIndex }`: one household conversation began
+   or reached its next sparse chatter interval.
+6. `sim.sleep-breath { simId, breathIndex }`: sleep began or reached its next
+   slow breathing interval.
+7. `sim.eating { simId, biteIndex }`: one Sim began eating or reached its next
+   sparse bite interval.
+8. `sim.page-turn { simId, pageIndex }`: one Sim began reading or reached its
+   next sparse page interval.
+9. `sim.exercise { simId, repetitionIndex }`: one Sim began exercising or
+   reached its next sparse motion interval.
+10. `object.sound-started { sourceId, action }` and
+    `object.sound-stopped { sourceId, action }`: an exact placed object's
+    authored semantic sound state changed. These events have no audible player
+    yet.
+11. `door.opened` and `door.closed`: reserved event shapes only. No current door
    transition emits them.
 
 Canvas, keyboard, object-menu, Clear-orders, and Household-roster command
-outcomes use the same staged/rejected distinction. Queue, speed, lighting,
-unmute, and committed Effects changes use the current immediate confirmation.
-Save, Load, Help, and every mobile-HUD action are not claimed as fully cued by
-this slice.
+outcomes use the same staged/rejected distinction. The distinction remains
+useful for diagnostics, but `command.staged` and `ui.confirmed` are silent.
+Only `command.rejected` maps routine interface activity to an audible cue. Queue,
+menu, speed, lighting, mute, committed Effects, Save, Load, Help, and routine
+mobile-HUD actions do not play blanket click or confirmation sounds.
 
 ## Footstep phase and stable identity
 
@@ -112,6 +134,110 @@ fixed tick, so WASM growth cannot leave a cached view behind. Steady ticks make
 no `simIdOf` calls, and runtime topology changes cannot shift a separate lookup
 out of alignment.
 
+## Conversation and sleep cadence
+
+The same fixed-tick sample maps authored visual actions into `conversation`,
+`sleep`, or no sustained audio activity. Two participants do not emit two
+conversation cues. The scheduler selects the lowest stable `SimId` as the
+deterministic representative and emits one household conversation voice on
+entry, then once every eight ticks while any conversation remains active.
+
+Sleep follows the same household-level rule. One quiet breath plays on entry,
+then once every 30 ticks while at least one Sim remains asleep. Multiple
+sleepers do not create synchronized breath stacks. Leaving an activity resets
+its cadence. Load, backgrounding, the first successful audio unlock, recovery
+from an externally suspended audio context, master mute changes, and Effects
+crossing zero reset both cadences so silent intervals cannot delay or burst
+later.
+
+These rates are presentation policy at 10 fixed ticks per second: 0.8 seconds
+between conversation phrases and 3 seconds between sleep breaths. They do not
+change simulation duration, animation timing, or save data.
+
+## Personal activity cadence
+
+The fixed-tick sample also maps the authored eating, seated reading, standing
+reading, and exercise visual actions into personal audio state. Unlike a shared
+conversation or bedroom scene, these actions belong to one Sim. Each stable
+`SimId` therefore retains its own cadence:
+
+1. Eating emits one light cue on entry and every 12 ticks while the action
+   remains active.
+2. Seated and standing reading share one page-turn cue on entry and every 28
+   ticks.
+3. Exercise emits one short, low-gain motion cue on entry and every 8 ticks,
+   aligned with the visible pedal-frame hold.
+
+Changing personal action starts the new cue immediately. Leaving the action,
+Load, backgrounding, the first successful audio unlock, recovery from an
+externally suspended audio context, master mute changes, and Effects crossing
+zero remove the retained personal cadence. Sim disappearance does the same at
+the end of the sampled frame.
+
+Personal tracks use retained aligned typed arrays plus one Sim-ID-to-slot map.
+Dense removal preserves existing cadence and map identity for a moved slot.
+Capacity grows geometrically and remains allocated after activity ends, so
+steady ticks do not allocate a JavaScript track object per active Sim. The
+stress handle reports active personal tracks and retained capacity alongside
+footstep and object-sound diagnostics.
+
+This mapping does not identify the current object. It is safe for the personal
+action itself, but it must not be used to infer refrigerator, stove, television,
+sink, toilet, shower, aquarium, or door state. Object and appliance sound needs
+an authored semantic sound action plus stable source-object identity before it
+can schedule one sound per source without guessing or duplication.
+
+## Authored object-sound identity
+
+The object-audio bridge now supplies that missing identity without claiming an
+audible object loop. Content may author an optional sound action on an ordinary
+interaction or one chain step. The first two proof cases are:
+
+1. `shower_water` on the shower's ordinary `take_shower` interaction.
+2. `stove_cooking` on the cooking chain's step authored with the `hob` role.
+
+The compiler converts those names to a closed numeric action enum. Every Sim
+render row carries two aligned `u32` columns after a fixed tick:
+
+1. `sound_action`: zero for none, one for shower water, or two for stove
+   cooking.
+2. `sound_source`: the exact target object's entity index, or `u32::MAX` when
+   no sound action is active.
+
+The source is not an object definition, Sim ID, or transient render row. Rust
+checks the Sim's exact `Target` against the target entity's `SmartObject` before
+projecting the action. This proves one placed appliance can own one future
+voice even when more than one Sim row observes it. Sound authoring is
+presentation metadata and is excluded from the Save V1 content fingerprint;
+the existing target and chain state already reconstruct it after Load.
+
+TypeScript acquires fresh zero-copy views after every fixed tick. It observes
+object sound state before filtering personal cadence by stable `SimId`, because
+source ownership must not depend on the actor having that optional identity.
+A source-keyed scheduler turns state into edges:
+
+1. A newly observed source and action emits one `object.sound-started` event.
+2. The unchanged pair emits nothing on later ticks.
+3. An action change stops the old action before starting the new one.
+4. A missing source emits one stop.
+5. Duplicate rows for one source and action collapse into one source state.
+6. Conflicting actions for one source in one tick fail closed instead of making
+   render-row order choose a winner.
+
+The scheduler retains aligned typed arrays plus one source-ID-to-slot map. It
+does not allocate a JavaScript track object per active source, and its capacity
+does not grow after warm-up.
+
+Load, backgrounding, first audio unlock, mute changes, and Effects crossing
+zero clear retained source state. The next audible observation therefore begins
+fresh rather than resuming a loop whose start happened while silent.
+
+This bridge deliberately produces no oscillator placeholder and plays no
+downloaded sample. Shower and stove audio remain silent until recordings pass
+the documented CC0 intake, source review, editing, and owner listening gates.
+There is also no real door entity or door state in the current lot, so the
+reserved door event shapes are not evidence of working door audio.
+
 ## Performance acceptance
 
 Use a visible production build, not a hidden `requestAnimationFrame` loop.
@@ -124,8 +250,8 @@ Use a visible production build, not a hidden `requestAnimationFrame` loop.
    timer retains the final 540.
 3. Require sampler p95 at or below 0.25 ms per tick and maximum at or below
    1.0 ms.
-4. Repeat with `?stress=1000&audio=0`. This diagnostic switch disables only
-   footstep sampling. The sampling-enabled whole-frame p95 may regress by at
+4. Repeat with `?stress=1000&audio=0`. This diagnostic switch disables fixed-tick
+   Sim audio sampling. The sampling-enabled whole-frame p95 may regress by at
    most 1.0 ms and neither run may place application work over 16.6 ms. A 120 Hz
    display interval is about 8.33 ms; the 16.6 ms application guard remains the
    existing project gate and is not a claim that every frame finishes inside
@@ -148,19 +274,88 @@ Use a visible production build, not a hidden `requestAnimationFrame` loop.
 The human listening pass must confirm:
 
 1. The first trusted gesture activates sound without replaying older events.
-2. Staged and rejected cues are distinct and not abrasive.
-3. Effects gain follows the slider during drag. One cue plays on commit at a
-   nonzero level, not one cue per drag pixel.
-4. Mute and Effects level apply immediately and survive reload.
-5. Footsteps remain paced at 1x, 2x, and 3x without bursts after Pause, Load, or
+2. Routine selections, successful commands, buttons, speed changes, unmute,
+   and slider release remain silent.
+3. A rejected action plays one quiet, brief cue that does not resemble a
+   routine success sound.
+4. Effects gain follows the slider during drag without playing on movement or
+   commit.
+5. Mute and Effects level apply immediately and survive reload.
+6. Footsteps remain paced at 1x, 2x, and 3x without bursts after Pause, Load, or
    tab return.
-6. A hidden tab is silent.
-7. No cue clicks, pops, or machine-gun bursts under rapid input.
-8. Every meaningful cue retains visible or text feedback.
+7. One isolated footstep reads as a light step rather than a bass thud.
+8. Conversation remains identifiable without sounding once per participant or
+   once per fixed tick.
+9. Sleep breathing is audible at ordinary volume without becoming a dominant
+   room loop.
+10. Eating, reading, and exercise cues remain quiet, distinct, and paced with
+   their visible actions instead of sounding on every fixed tick.
+11. Two Sims performing personal activities retain independent cadence without
+    creating duplicate household-scene sounds.
+12. A hidden tab is silent.
+13. Repeated rejected actions do not click, pop, or leave a queued tail.
+14. Every meaningful cue retains visible or text feedback.
+
+The activity portion of the owner run stages one exact action at a time and
+records its cue baseline before the command. Conversation requires both named
+Sims in visual action 1 and activity 4;
+eating requires `Grab a snack` at 2 and 3; standing reading requires
+`Read a book` at 4 and 8; exercise requires `Use the exercise bike` at 6 and
+9; and sleep requires the lower bunk's `Sleep` at 9 and 5. Other autonomous
+Sims can still produce sound during an owner sample. Exact target evidence
+proves the requested action and cue occurred; it does not yet prove acoustic
+isolation.
+
+Every stage must provide three independent facts before an owner is asked to
+listen: the exact live render state appeared on the intended entity, the named
+semantic cue count increased, and Chrome reported a new oscillator. Stable Sims
+and object interactions are discovered from fresh bridge views and exact labels
+on every setup; no render row or entity index is hardcoded.
 
 The displayed visual pass covers 1280 by 720, 390 by 844, 568 by 320, and 240
 by 568. Audio controls must remain reachable, correctly labelled, touch-sized,
 and unable to starve the canvas in the compact HUD.
+
+## Local evidence on 2026-09-07
+
+1. The Rust workspace passes 649 tests across its four crates plus doc tests.
+   Focused data, simulation, and WASM tests cover authored sound vocabulary,
+   exact shower and stove sources, inactive-row clearing, Save V1 fingerprint
+   stability, Load, and vector growth.
+2. The Web suite passes 567 tests. The object-audio tests cover fresh bridge
+   views, exact source identity,
+   start/change/stop edges, duplicate collapse, conflict closure, fixed-tick
+   sampler cleanup, and lifecycle resets.
+3. TypeScript checking, Clippy with warnings denied, Rust formatting,
+   documentation-ID checking, whitespace validation, the release WASM build,
+   and the production Web build pass.
+4. The served production build at `http://127.0.0.1:52868/` returns HTTP 200;
+   its current JavaScript bundle contains both the object start event and the
+   new WASM sound-pointer accessor. This proves local deployment of the
+   semantic bridge. It does not claim that shower or stove audio is audible.
+5. The extended ordinary-Chrome 152 mechanical run passes exact walking,
+   conversation, eating, reading, exercise, and lower-bunk sleep fixtures.
+   Each passes visual-action, activity, named cue-count, and Web Audio
+   oscillator checks. The overall report still exits nonzero solely because
+   hidden-tab proof requires the owner to switch tabs in the same Chrome
+   window.
+
+## Local evidence on 2026-08-28
+
+1. The merged Rust workspace passes 641 tests across its four crates. The
+   revised Web suite passes 516 tests, including isolated-footstep frequency,
+   conversation de-duplication and cadence, sleep cadence, lifecycle reset,
+   semantic frame mapping, and exception cleanup.
+2. TypeScript checking, documentation-ID checking, whitespace validation, the
+   release WASM build, and the production Web build pass.
+3. The served production bundle at `http://127.0.0.1:52868/` contains the new
+   `sim.conversation` and `sim.sleep-breath` paths. This proves deployment of
+   the candidate code to the local listening build; it does not prove that the
+   sounds are pleasant or sufficiently distinct.
+4. Main commit `3cf99414c965f4bf0c94758094edd7a05c05c6ca`, containing the accepted
+   first audio foundation and its integration with the current game, passed CI
+   and GitHub Pages deployment. The revised footstep and activity cues remain
+   local until the owner listening gate passes.
 
 ## Local evidence on 2026-08-19
 

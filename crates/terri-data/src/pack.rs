@@ -20,6 +20,17 @@ pub use terri_core::ObjectDefId;
 /// content crate rather than inside it.
 pub use terri_core::Footprint;
 
+/// Closed object-audio vocabulary resolved from authored `sound_action`.
+///
+/// This is presentation metadata. Gameplay tags, broad activities, and object
+/// names cannot be used as substitutes because each answers a different
+/// question.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum CompiledSoundAction {
+    ShowerWater,
+    StoveCooking,
+}
+
 /// Body-pose category resolved from an authored `visual` table.
 /// Presentation has its own vocabulary rather than reusing gameplay tags or
 /// broad activity-indicator codes, which answer different questions.
@@ -120,8 +131,12 @@ pub struct CompiledInteraction {
     pub satisfaction: f32,
     /// Optional authored body-presentation contract. Presentation-only and
     /// deliberately outside Save V1's compatibility digest.
-    /// **Last in this struct on purpose**, per the appending rule.
+    /// It was last until the object-audio field below arrived.
     pub visual: Option<CompiledVisual>,
+    /// Optional authored object-audio category. Presentation-only and outside
+    /// Save V1's compatibility digest.
+    /// **Last in this struct on purpose**, per the appending rule.
+    pub sound_action: Option<CompiledSoundAction>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -649,8 +664,12 @@ pub struct CompiledChainStep {
     pub consumes: Option<u32>,
     /// Optional authored body-presentation contract. Presentation-only and
     /// deliberately outside Save V1's compatibility digest.
-    /// **Last in this struct on purpose**, per the appending rule.
+    /// It was last until the station-audio field below arrived.
     pub visual: Option<CompiledVisual>,
+    /// Optional authored station-audio category. Presentation-only and outside
+    /// Save V1's compatibility digest.
+    /// **Last in this struct on purpose**, per the appending rule.
+    pub sound_action: Option<CompiledSoundAction>,
 }
 
 /// One career, compiled and validated: the shift fits inside the day,
@@ -706,6 +725,7 @@ mod tests {
             tags: vec!["tinkering".to_string(), "puttering".to_string()],
             satisfaction: 2.25,
             visual: None,
+            sound_action: Some(CompiledSoundAction::ShowerWater),
         }
     }
 
@@ -911,6 +931,7 @@ mod tests {
                     facing: CompiledVisualFacing::TowardAnchor,
                     socket: None,
                 }),
+                sound_action: None,
             }],
             // Three traits, one of each kind with pairwise-distinct
             // numbers, so a round trip that transposed two kinds' fields
@@ -998,6 +1019,7 @@ mod tests {
                         transforms: None,
                         consumes: None,
                         visual: None,
+                        sound_action: None,
                     },
                     CompiledChainStep {
                         role: 0,
@@ -1008,6 +1030,7 @@ mod tests {
                         transforms: Some((1, 0)),
                         consumes: None,
                         visual: None,
+                        sound_action: Some(CompiledSoundAction::StoveCooking),
                     },
                     CompiledChainStep {
                         role: 1,
@@ -1023,6 +1046,7 @@ mod tests {
                             facing: CompiledVisualFacing::TowardAnchor,
                             socket: None,
                         }),
+                        sound_action: None,
                     },
                 ],
             }],
@@ -1169,12 +1193,14 @@ mod tests {
                 facing: CompiledVisualFacing::TowardAnchor,
                 socket: None,
             }),
+            sound_action: Some(CompiledSoundAction::StoveCooking),
         };
 
         assert_eq!(
             postcard::to_allocvec(&step).expect("chain step must serialise"),
-            // The final zero is the appended visual socket `None`.
-            vec![7, 3, 69, 97, 116, 42, 0, 0, 0, 1, 4, 1, 1, 2, 0, 0]
+            // Visual socket `None` is followed by Some and enum discriminant
+            // 1 for the appended StoveCooking sound action.
+            vec![7, 3, 69, 97, 116, 42, 0, 0, 0, 1, 4, 1, 1, 2, 0, 0, 1, 1]
         );
     }
 

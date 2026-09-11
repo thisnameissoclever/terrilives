@@ -139,6 +139,7 @@ sprite = "showerRound"
   advertises = { hygiene = 70.0, energy = -12.0 }
   duration_ticks = 45
   slots = 1
+  sound_action = "shower_water"
 
 [[object]]
 id = "toilet"

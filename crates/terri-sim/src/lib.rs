@@ -68,6 +68,8 @@ struct RenderRow {
     visual_action: u32,
     interaction_target: u32,
     facing: u32,
+    sound_action: u32,
+    sound_source: u32,
     socket_projected: bool,
     carrying: u32,
 }
@@ -466,6 +468,73 @@ fn authored_eating_visual(
         return Some((
             visual_action::EAT,
             facing_toward(entity, position, target.object, &anchor),
+        ));
+    }
+
+    None
+}
+
+fn sound_action_code(action: terri_data::CompiledSoundAction) -> u32 {
+    match action {
+        terri_data::CompiledSoundAction::ShowerWater => render_buffer::sound_action::SHOWER_WATER,
+        terri_data::CompiledSoundAction::StoveCooking => render_buffer::sound_action::STOVE_COOKING,
+    }
+}
+
+/// Projects the authored sound category and exact SmartObject source for an
+/// actively running ordinary interaction or chain step.
+///
+/// This deliberately validates the same component identities that drive the
+/// action. A broad activity, object name, or gameplay tag cannot invent sound.
+fn authored_object_sound(
+    content: &terri_data::ContentPack,
+    world: &World,
+    eating: Option<&terri_core::Eating>,
+    chain_state: Option<&terri_core::ChainState>,
+    step_work: Option<&terri_core::StepWork>,
+    target: Option<&terri_core::Target>,
+) -> Option<(u32, u32)> {
+    if eating.is_some() && step_work.is_some() {
+        return None;
+    }
+
+    if let Some(eating) = eating {
+        let target = target?;
+        if target.interaction == systems::chain::CHAIN_STEP
+            || target.interaction != eating.interaction
+        {
+            return None;
+        }
+        let target_object = world.get::<terri_core::SmartObject>(target.object)?;
+        world.get::<terri_core::Position>(target.object)?;
+        if target_object.0 != eating.object {
+            return None;
+        }
+        let definition = content.objects.get(target_object.0 .0 as usize)?;
+        let interaction = definition.interactions.get(target.interaction as usize)?;
+        return Some((
+            sound_action_code(interaction.sound_action?),
+            target.object.index_u32(),
+        ));
+    }
+
+    if step_work.is_some() {
+        let chain_state = chain_state?;
+        let target = target?;
+        if target.interaction != systems::chain::CHAIN_STEP {
+            return None;
+        }
+        let chain = content.chains.get(chain_state.chain as usize)?;
+        let step = chain.steps.get(chain_state.step as usize)?;
+        let target_object = world.get::<terri_core::SmartObject>(target.object)?;
+        world.get::<terri_core::Position>(target.object)?;
+        let definition = content.objects.get(target_object.0 .0 as usize)?;
+        if !definition.roles.contains(&step.role) {
+            return None;
+        }
+        return Some((
+            sound_action_code(step.sound_action?),
+            target.object.index_u32(),
         ));
     }
 
@@ -1057,6 +1126,8 @@ impl Sim {
         self.render.visual_actions.clear();
         self.render.interaction_targets.clear();
         self.render.facings.clear();
+        self.render.sound_actions.clear();
+        self.render.sound_sources.clear();
         self.render.carrying.clear();
 
         // Read before the query, because `Content` is a resource and the
@@ -1245,6 +1316,11 @@ impl Sim {
             } else {
                 None
             };
+            let sound_projection = if is_agent && !socially_active && !at_work {
+                authored_object_sound(content, &self.world, eating, chain_state, step_work, target)
+            } else {
+                None
+            };
             // Conversation and eating keep their established precedence.
             // A socket changes position only when its exact authored action
             // wins the presentation choice; malformed overlapping state must
@@ -1347,6 +1423,10 @@ impl Sim {
             } else {
                 (visual_action, facing)
             };
+            let (sound_action, sound_source) = sound_projection.unwrap_or((
+                render_buffer::sound_action::NONE,
+                render_buffer::NO_SOUND_SOURCE,
+            ));
             rows.push(RenderRow {
                 entity,
                 index: entity.index_u32(),
@@ -1367,6 +1447,8 @@ impl Sim {
                         projection.target_entity
                     }),
                 facing,
+                sound_action,
+                sound_source,
                 socket_projected,
                 carrying: carrying.map_or(render_buffer::NOT_CARRYING, |c| c.0),
             });
@@ -1390,6 +1472,8 @@ impl Sim {
             self.render.visual_actions.push(row.visual_action);
             self.render.interaction_targets.push(row.interaction_target);
             self.render.facings.push(row.facing);
+            self.render.sound_actions.push(row.sound_action);
+            self.render.sound_sources.push(row.sound_source);
             self.render.carrying.push(row.carrying);
         }
         self.render.count = rows.len();
