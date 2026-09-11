@@ -1,16 +1,22 @@
 /**
- * Proves that a touch tap starts the game's AudioContext.
+ * Drives a real trusted touch tap and checks that sound follows it.
  *
  * This exists because the bug it guards is invisible to every desktop check.
- * The HTML standard grants user activation on `pointerdown` only when the
- * pointer is a mouse; a finger grants it when it lifts, on `pointerup` or
- * `touchend`. Wiring the unlock to `pointerdown` therefore works for every
- * developer with a mouse and for no player with a phone, and Chrome leaves the
- * rejected `resume()` pending rather than rejecting it, so nothing is logged.
+ * A finger never grants user activation on `pointerdown`; Blink grants it when
+ * the finger lifts. A `resume()` called without activation is not rejected,
+ * it is left pending forever, so the failure is silent in every sense.
  *
- * The run uses a real trusted touch sequence (`page.tap`), a mobile context,
- * and Chrome's strictest autoplay policy, so a pass means the gesture really
- * opened the gate rather than the gate being open already.
+ * What this run does and does not establish:
+ *
+ * - It DOES exercise the whole path a phone player takes, with a trusted touch
+ *   sequence in a mobile context: tap, context running, cues counting up.
+ * - It DOES record whether user activation was live at the instant `resume()`
+ *   was called, which is the question the autoplay gate actually asks.
+ * - It does NOT reliably close the autoplay gate. A desktop Chrome ignores
+ *   `--autoplay-policy` for a top-level frame, so a fresh context may simply
+ *   start running. The report says whether the gate was armed, and the run
+ *   warns when a pass is therefore weaker evidence than it looks. The unit
+ *   tests in web/tests/gesture-unlock.test.ts carry the activation rule.
  *
  * Usage: node scripts/audio-touch-unlock-proof.cjs [--url <url>] [--output <file>]
  */
@@ -65,7 +71,17 @@ function loadPlaywright() {
 const INSTRUMENT = () => {
   const contexts = [];
   const activation = [];
+  const resumeCalls = [];
   const Native = window.AudioContext;
+  const snapshot = () => ({
+    isActive: navigator.userActivation?.isActive ?? null,
+    hasBeenActive: navigator.userActivation?.hasBeenActive ?? null,
+  });
+  // Taken before any input can have happened. If this already reports sticky
+  // activation then the page is not virgin and no later reading about what a
+  // tap granted can be trusted.
+  const atLoad = snapshot();
+
   const Wrapped = function AudioContext(...args) {
     const context = new Native(...args);
     contexts.push(context);
@@ -74,6 +90,15 @@ const INSTRUMENT = () => {
   Wrapped.prototype = Native.prototype;
   window.AudioContext = Wrapped;
   window.webkitAudioContext = Wrapped;
+
+  // The decisive measurement: was activation live at the instant the app asked
+  // the browser to resume? That is the question the autoplay gate answers, and
+  // it is true or false regardless of whether the gate happens to be open.
+  const nativeResume = Native.prototype.resume;
+  Native.prototype.resume = function resume(...args) {
+    resumeCalls.push(snapshot());
+    return nativeResume.apply(this, args);
+  };
 
   for (const type of ['pointerdown', 'pointerup', 'touchend', 'keydown']) {
     document.addEventListener(
@@ -94,6 +119,8 @@ const INSTRUMENT = () => {
   window.__terriAudioProof = {
     contexts,
     activation,
+    resumeCalls,
+    atLoad,
     // The gate probe must not be counted as one of the app's contexts, so it
     // is built from the untouched constructor.
     Native,
@@ -202,6 +229,10 @@ async function run(browser, url) {
     () => window.__terriAudioProof.activation,
   );
   const visibilityAtTap = await page.evaluate(() => document.visibilityState);
+  const atLoad = await page.evaluate(() => window.__terriAudioProof.atLoad);
+  const resumeCalls = await page.evaluate(
+    () => window.__terriAudioProof.resumeCalls,
+  );
   await context.close();
 
   const running = after.includes('running');
@@ -214,6 +245,11 @@ async function run(browser, url) {
     probe,
     visibilityAtTap,
     firstTouchTarget,
+    // A virgin page is the precondition for reading anything into the tap.
+    pageWasVirgin: atLoad.hasBeenActive === false,
+    atLoad,
+    resumeCalls,
+    resumedWithActivation: resumeCalls.every((call) => call.isActive !== false),
     consoleErrors,
     contextsBeforeTap: before,
     contextsAfterTap: after,
@@ -221,7 +257,7 @@ async function run(browser, url) {
     unlockedByTouch: running,
     cuesStarted,
     cuePlayCounts,
-    pass: running && cuesStarted,
+    pass: running && cuesStarted && resumeCalls.every((c) => c.isActive !== false),
   };
 }
 
@@ -271,6 +307,21 @@ async function main() {
   if (!report.cuesStarted) {
     console.error('FAIL: the context ran but no cue ever started.');
     process.exitCode = 1;
+    return;
+  }
+  if (!report.resumedWithActivation) {
+    console.error(
+      'FAIL: resume() was called with no user activation live. That call is the ' +
+        'one the browser leaves pending forever.',
+    );
+    process.exitCode = 1;
+    return;
+  }
+  if (!report.pageWasVirgin) {
+    console.warn(
+      'WARNING: the page already held sticky activation before the first tap, ' +
+        'so this run cannot show that the tap is what granted it.',
+    );
   }
 }
 

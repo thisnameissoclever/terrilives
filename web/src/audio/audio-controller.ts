@@ -100,7 +100,6 @@ export class AudioController implements GameAudioEventSink {
   private masterGain: GainNodePort | null = null;
   private effectsGain: GainNodePort | null = null;
   private player: ProceduralCuePlayer | null = null;
-  private unlockAttempt: Promise<boolean> | null = null;
   private hasUnlocked = false;
   private backgrounded = false;
   private contextStateRevision = 0;
@@ -136,17 +135,17 @@ export class AudioController implements GameAudioEventSink {
   /**
    * Creates or resumes the context. This method never runs from `emit`, so a
    * background event cannot consume the browser's user-activation allowance.
+   *
+   * Every trusted gesture gets its own `resume()`. An in-flight attempt is
+   * deliberately NOT reused: a browser that blocks a resume answers with a
+   * promise it never settles, so a cached attempt from one mistimed gesture
+   * would be handed to every later one and the page would never try again.
+   * Repeating the call is cheap, and the context itself is built only once
+   * because `resumeFromGesture` assigns it before it awaits anything.
    */
   unlockFromGesture(): Promise<boolean> {
     if (this.backgrounded) return Promise.resolve(false);
-    if (this.unlockAttempt !== null) return this.unlockAttempt;
-
-    const attempt = this.resumeFromGesture();
-    this.unlockAttempt = attempt;
-    void attempt.finally(() => {
-      if (this.unlockAttempt === attempt) this.unlockAttempt = null;
-    });
-    return attempt;
+    return this.resumeFromGesture();
   }
 
   setMuted(muted: boolean): void {

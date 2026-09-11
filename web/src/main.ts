@@ -199,6 +199,23 @@ declare global {
 }
 
 async function main(): Promise<void> {
+  // Audio is wired FIRST, ahead of every await below. Two reasons, both
+  // learned the hard way. A phone takes seconds to fetch the WASM, bring up
+  // WebGPU and decode the atlas, and a gesture made during that wait is the
+  // one chance the browser gives to open the autoplay gate; arming later
+  // throws it away. And if any of those awaits throws, the startup card is
+  // the only thing on screen - but nothing about audio depends on the
+  // simulation or the GPU, so there is no reason for it to fall with them.
+  let preferences: Storage | null = null;
+  try {
+    preferences = window.localStorage;
+  } catch {
+    // Session preferences still work in memory when browser storage is denied.
+  }
+  const audio = new AudioController(undefined, preferences ?? undefined);
+  void audio.setBackgrounded(document.visibilityState === 'hidden');
+  armAudioUnlock(document, audio);
+
   // init() resolves to the instance exports, whose `memory` is the
   // WebAssembly.Memory backing every view the bridge hands out. It is
   // passed in rather than imported: `--target web` has no importable
@@ -236,18 +253,6 @@ async function main(): Promise<void> {
   const commandStatusElement = document.querySelector<HTMLElement>('#command-feedback');
   if (!commandStatusElement) throw new Error('missing #command-feedback');
   const commandStatus: HTMLElement = commandStatusElement;
-  let preferences: Storage | null = null;
-  try {
-    preferences = window.localStorage;
-  } catch {
-    // Session preferences still work in memory when browser storage is denied.
-  }
-  const audio = new AudioController(undefined, preferences ?? undefined);
-  void audio.setBackgrounded(document.visibilityState === 'hidden');
-  // Browser autoplay policy requires the context to start from a trusted
-  // gesture, and which events count is narrower than it looks - a touch
-  // `pointerdown` grants nothing. `armAudioUnlock` owns that list.
-  armAudioUnlock(document, audio);
   const persistence = new PersistenceController(
     createSaveStore(),
     sim,

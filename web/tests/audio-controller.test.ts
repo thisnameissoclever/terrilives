@@ -93,6 +93,8 @@ class FakeContext implements BrowserAudioContext {
   suspendCalls = 0;
   closeCalls = 0;
   rejectResume = false;
+  /** Chrome does not reject a blocked resume; it leaves the promise pending. */
+  hangResume = false;
   rejectSuspend = false;
   suspendGate: Promise<void> | null = null;
 
@@ -111,6 +113,7 @@ class FakeContext implements BrowserAudioContext {
   async resume(): Promise<void> {
     this.resumeCalls += 1;
     if (this.rejectResume) throw new Error('gesture expired');
+    if (this.hangResume) return new Promise<void>(() => {});
     this.state = 'running';
   }
 
@@ -263,20 +266,48 @@ describe('AudioController gesture and cue lifecycle', () => {
     expect(context.oscillators).toHaveLength(0);
   });
 
-  it('shares concurrent gesture attempts and permits a later retry after failure', async () => {
+  it('permits a later retry after a rejected gesture', async () => {
     const context = new FakeContext();
     context.rejectResume = true;
     const controller = new AudioController(() => context, undefined);
 
-    const first = controller.unlockFromGesture();
-    const second = controller.unlockFromGesture();
-    expect(second).toBe(first);
-    expect(await first).toBe(false);
+    expect(await controller.unlockFromGesture()).toBe(false);
     expect(context.resumeCalls).toBe(1);
 
     context.rejectResume = false;
     expect(await controller.unlockFromGesture()).toBe(true);
     expect(context.resumeCalls).toBe(2);
+  });
+
+  it('builds the context once even when gestures arrive back to back', async () => {
+    const context = new FakeContext();
+    const factory = vi.fn(() => context);
+    const controller = new AudioController(factory, undefined);
+
+    const first = controller.unlockFromGesture();
+    const second = controller.unlockFromGesture();
+    expect(await first).toBe(true);
+    expect(await second).toBe(true);
+    expect(factory).toHaveBeenCalledTimes(1);
+  });
+
+  it('still reaches the browser on a later gesture when a resume never settles', async () => {
+    // Chrome answers a blocked resume with a promise it never settles. Caching
+    // that promise and handing it to every later gesture is what turned one
+    // mistimed tap into a session with no sound at all.
+    const context = new FakeContext();
+    context.hangResume = true;
+    const controller = new AudioController(() => context, undefined);
+
+    void controller.unlockFromGesture();
+    expect(context.resumeCalls).toBe(1);
+
+    void controller.unlockFromGesture();
+    expect(context.resumeCalls).toBe(2);
+
+    context.hangResume = false;
+    expect(await controller.unlockFromGesture()).toBe(true);
+    expect(controller.isUnlocked()).toBe(true);
   });
 
   it('discards pre-unlock stride progress on the first successful gesture', async () => {

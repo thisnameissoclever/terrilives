@@ -1,15 +1,21 @@
 /**
- * Arms the browser's autoplay gate on the events that actually open it.
+ * Arms the browser's autoplay gate on the gestures that actually open it.
  *
- * The HTML standard is narrow about which input event grants user activation,
- * and `pointerdown` is the trap: it counts for a mouse and never for a finger.
- * A touch device grants activation when the finger lifts - `pointerup` with a
- * non-mouse pointer, or `touchend` - so wiring the unlock to `pointerdown`
- * alone calls `AudioContext.resume()` with no activation behind it on every
- * phone. Chrome leaves that resume pending rather than rejecting it, so the
- * context stays suspended, every cue is dropped, and no later tap recovers it.
+ * The rule is narrower than it looks. `pointerdown` grants user activation for
+ * a mouse and never for a finger: Blink grants it when the finger lifts, and
+ * then only if a scroll did not claim the gesture first. Wiring the unlock to
+ * `pointerdown` alone therefore works for every developer with a mouse and for
+ * no player with a phone.
  *
- * This module owns the event list and nothing else. It never touches an
+ * Rather than re-deriving that rule here, this asks the browser what it thinks.
+ * `navigator.userActivation.isActive` is the same flag the autoplay gate
+ * consults, so a gesture is worth acting on exactly when it says so, including
+ * for clauses a hand-written list cannot know about such as the scroll one.
+ * The event list below is only the set of moments worth asking at. Browsers
+ * without `userActivation` (Firefox, Safari before 16.4) fall back to the HTML
+ * standard's activation triggering input event list.
+ *
+ * This module owns that decision and nothing else. It never touches an
  * `AudioContext`; the controller it is handed decides what an unlock means.
  */
 
@@ -18,6 +24,11 @@ export interface GestureUnlockEvent {
   readonly type: string;
   readonly pointerType?: string;
   readonly key?: string;
+}
+
+/** The live `navigator.userActivation`. `isActive` is transient activation. */
+export interface UserActivationPort {
+  readonly isActive: boolean;
 }
 
 export interface GestureUnlockTarget {
@@ -34,25 +45,23 @@ export interface GestureUnlockAudio {
 }
 
 /**
- * The event types that can carry user activation, so the listener set and the
- * per-event test cannot drift apart. `mousedown` is deliberately absent:
- * pointer events cover the same press, and listening for both would open two
- * unlock attempts for one click.
+ * The moments worth asking the browser about. Listening broadly is safe
+ * because the answer, not the event type, decides whether to act.
  */
 const ARMED_EVENT_TYPES: readonly string[] = [
   'pointerdown',
   'pointerup',
   'touchend',
+  'click',
   'keydown',
 ];
 
 /**
- * Reports whether the browser would treat this event as an activation
- * triggering input event, per the HTML standard's user activation processing
- * model. Escape is excluded there because it is how a player backs out of a
- * dialog, which is not consent to start making noise.
+ * The HTML standard's activation triggering input event list, used only when
+ * the browser does not expose `navigator.userActivation`. Escape is excluded
+ * there because backing out of a dialog is not consent to start making noise.
  */
-export function grantsUserActivation(event: GestureUnlockEvent): boolean {
+function specGrantsActivation(event: GestureUnlockEvent): boolean {
   switch (event.type) {
     case 'keydown':
       return event.key !== 'Escape';
@@ -70,21 +79,43 @@ export function grantsUserActivation(event: GestureUnlockEvent): boolean {
 }
 
 /**
- * Registers the unlock on `target` and returns nothing to unwind: the listeners
- * stay armed for the life of the document so a device interruption or a
- * rejected tab resume can still be recovered by the next gesture.
+ * Reports whether a resume attempted from this event would have user
+ * activation behind it. Prefers the browser's own flag, and falls back to the
+ * standard's event list when the browser does not publish one.
+ */
+export function grantsUserActivation(
+  event: GestureUnlockEvent,
+  activation?: UserActivationPort,
+): boolean {
+  if (activation !== undefined) return activation.isActive;
+  return specGrantsActivation(event);
+}
+
+function browserUserActivation(): UserActivationPort | undefined {
+  try {
+    return globalThis.navigator?.userActivation as UserActivationPort | undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Registers the unlock on `target`. Nothing is returned to unwind: the
+ * listeners stay armed for the life of the document, so a device interruption
+ * or a rejected tab resume can still be recovered by the next gesture.
  *
- * Capture phase, because the gesture that unlocks sound is usually the same one
- * that issues a command, and a handler that stops propagation must not also
- * silence the game.
+ * Capture phase, because the gesture that unlocks sound is usually the same
+ * one that issues a command, and a handler that stops propagation must not
+ * also silence the game.
  */
 export function armAudioUnlock(
   target: GestureUnlockTarget,
   audio: GestureUnlockAudio,
+  activation: UserActivationPort | undefined = browserUserActivation(),
 ): void {
   const unlock = (event: GestureUnlockEvent): void => {
-    if (!grantsUserActivation(event)) return;
     if (audio.isUnlocked()) return;
+    if (!grantsUserActivation(event, activation)) return;
     // Deliberately not awaited. `resume()` has to be called inside this
     // handler's task for the activation to still be live when it runs.
     void audio.unlockFromGesture();
