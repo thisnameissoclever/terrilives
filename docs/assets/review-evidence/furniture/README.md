@@ -62,3 +62,21 @@ with no P1/P2 findings. The render review's validation findings were addressed
 with ownership, dependency, support and inventory checks. The first batch's
 incomplete generation-time provenance remains explicitly documented in its
 supplemental proof and the furniture README.
+
+## Latest wall integration
+
+Pulled origin/main `1631863` before publication. The combined atlas has 1,089
+sprites at 4096x6073, SHA256
+`71c2c448266c234483f5822ba7cb8bb4bdbc4926d9aa29d36bf8040120566993`.
+The first 836 records match the HD branch, the next 13 match the committed
+upstream wall crops, and all 240 furniture records retain their decoded pixels,
+dimensions and density. The new wall sprites keep published indices 847/848;
+unpublished furniture follows at 849. Both manifests and WASM were rebuilt.
+
+`wall-integration.png` shows the combined production bundle `index-DkvbxJ6g.js`
+at tick 57, with Tim reading at target 26 and Bill cycling at target 22. The
+visible corner folds and continuous rear junctions retain the upstream design.
+The direction correction remains in the generated playback tables. Current
+checks pass: 39 sprite, 24 Sim, 30 furniture and 556 web tests, typecheck,
+production build, atlas freshness and documentation IDs. The earlier 847-record
+comparison above describes the pre-corner baseline, not this final atlas.

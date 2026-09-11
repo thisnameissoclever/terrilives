@@ -82,7 +82,7 @@ function find(all: Row[], wx: number, wy: number): Row[] {
 function wallsAt(all: Row[], wx: number, wy: number): Row[] {
   const ns = spriteIndex('wallNS');
   const ew = spriteIndex('wallEW');
-  return find(all, wx, wy).filter((r) => r.sprite === ns || r.sprite === ew || SPRITES[r.sprite].name.startsWith('wallJoin'));
+  return find(all, wx, wy).filter((r) => r.sprite === ns || r.sprite === ew || SPRITES[r.sprite].name.startsWith('wallJoin') || SPRITES[r.sprite].name.startsWith('wallCornerStart'));
 }
 
 /** A sparse, ring-inclusive field for testing static geometry sampling. */
@@ -149,7 +149,7 @@ describe('buildStaticInstances', () => {
   it('emits one wall per blocked tile and none anywhere else', () => {
     const ns = spriteIndex('wallNS');
     const ew = spriteIndex('wallEW');
-    const walls = all.filter((r) => r.sprite === ns || r.sprite === ew || SPRITES[r.sprite].name.startsWith('wallJoin'));
+    const walls = all.filter((r) => r.sprite === ns || r.sprite === ew || SPRITES[r.sprite].name.startsWith('wallJoin') || SPRITES[r.sprite].name.startsWith('wallCornerStart'));
 
     // Each run includes the outer ring corner, using two edge panels.
     const boundary = LOT.height + LOT.width + 3;
@@ -303,8 +303,8 @@ describe('buildStaticInstances', () => {
       ORIGIN_X, ORIGIN_Y, GRID,
     );
     const all = rows(built.instances, built.count);
-    expect(wallsAt(all, -1, 2).map((row) => row.sprite)).toEqual([spriteIndex('wallEW')]);
-    expect(wallsAt(all, 4, -1).map((row) => row.sprite)).toEqual([spriteIndex('wallNS')]);
+    expect(wallsAt(all, -1, 2).map((row) => row.sprite)).toEqual([spriteIndex('wallCornerStartEW')]);
+    expect(wallsAt(all, 4, -1).map((row) => row.sprite)).toEqual([spriteIndex('wallCornerStartNS')]);
     expect(wallsAt(all, -1, 1)).toEqual([]);
     expect(wallsAt(all, 3, -1)).toEqual([]);
   });
@@ -326,7 +326,7 @@ describe('buildStaticInstances', () => {
       expect(panelsAt(-1.5, y)).toEqual([ns]);
     }
     for (let x = -1; x < LOT.width; x++) {
-      expect(panelsAt(x, -1.5)).toEqual([ew]);
+      expect(panelsAt(x, -1.5)).toEqual([x === -1 ? spriteIndex('wallCornerStartEW') : ew]);
     }
     // The runs meet at the slab corner without a separate post.
     expect(panelsAt(-1, -1)).toEqual([]);
@@ -345,7 +345,8 @@ describe('buildStaticInstances', () => {
       const all = rows(geometry.instances, geometry.count);
       const floors = all.filter((row) => row.sprite === spriteIndex('floor'));
       const west = all.filter((row) => row.sprite === spriteIndex('wallNS'));
-      const north = all.filter((row) => row.sprite === spriteIndex('wallEW'));
+      const north = all.filter((row) =>
+        [spriteIndex('wallEW'), spriteIndex('wallCornerStartEW')].includes(row.sprite));
       const left = (row: Row): number => row.x - SPRITES[row.sprite].w * scale / 2;
       const right = (row: Row): number => row.x + SPRITES[row.sprite].w * scale / 2;
       expect(west).toHaveLength(LOT.height + 1);

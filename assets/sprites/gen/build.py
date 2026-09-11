@@ -698,6 +698,7 @@ def validate_joined_walls_contract(sprites):
         raise SystemExit("joined walls changed a legacy sprite record")
     expected = [f"wallJoin{mask}" for mask in (3, 6, 7, 9, 11, 12, 13, 14, 15)]
     expected += ["doorwayJoinedNS", "doorwayJoinedEW"]
+    expected += ["wallCornerStartNS", "wallCornerStartEW"]
     if [record[0] for record in sprites[836:]] != expected:
         raise SystemExit("joined architecture must append after sprite 835")
     by_name = {name: image for name, image, _, _ in sprites}
@@ -1007,6 +1008,7 @@ def main():
     # Append architecture after all imported bodies to preserve their indices.
     sprites.extend(render_sprites((
         *objects.WALL_JOIN_SPRITES, objects.doorwayJoinedNS, objects.doorwayJoinedEW,
+        objects.wallCornerStartNS, objects.wallCornerStartEW,
     )))
     validate_joined_walls_contract(sprites)
     # Validate the native prefix first, then replace only the imported textures.

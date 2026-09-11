@@ -15,14 +15,14 @@ height = 6073
 
 [[sprite]]
 name = "floor"
-x = 255
+x = 365
 y = 6021
 w = 64
 h = 42
 
 [[sprite]]
 name = "sim"
-x = 3906
+x = 3972
 y = 5529
 w = 38
 h = 88
@@ -43,49 +43,49 @@ h = 109
 
 [[sprite]]
 name = "kitchenFridgeBuiltIn"
-x = 2493
+x = 2559
 y = 5529
 w = 58
 h = 102
 
 [[sprite]]
 name = "bathroomSinkSquare"
-x = 2654
+x = 2759
 y = 5948
 w = 34
 h = 65
 
 [[sprite]]
 name = "showerRound"
-x = 2552
+x = 2618
 y = 5529
 w = 58
 h = 102
 
 [[sprite]]
 name = "toiletSquare"
-x = 2944
+x = 3049
 y = 5948
 w = 38
 h = 63
 
 [[sprite]]
 name = "bookcaseClosedDoors"
-x = 3945
+x = 4011
 y = 5529
 w = 58
 h = 88
 
 [[sprite]]
 name = "loungeSofaOttoman"
-x = 3953
-y = 5948
+x = 0
+y = 6021
 w = 54
 h = 51
 
 [[sprite]]
 name = "televisionVintage"
-x = 3385
+x = 3490
 y = 5948
 w = 44
 h = 59
@@ -99,168 +99,168 @@ h = 136
 
 [[sprite]]
 name = "selectionRing"
-x = 320
+x = 430
 y = 6021
 w = 64
 h = 42
 
 [[sprite]]
 name = "kitchenStove"
-x = 2118
+x = 2237
 y = 5860
 w = 66
 h = 77
 
 [[sprite]]
 name = "kitchenCabinet"
-x = 2672
+x = 2791
 y = 5860
 w = 66
 h = 76
 
 [[sprite]]
 name = "kitchenSink"
-x = 2739
+x = 2858
 y = 5860
 w = 66
 h = 76
 
 [[sprite]]
 name = "table"
-x = 416
+x = 535
 y = 5860
 w = 112
 h = 83
 
 [[sprite]]
 name = "chair"
-x = 1540
+x = 1659
 y = 5860
 w = 50
 h = 80
 
 [[sprite]]
 name = "trashcan"
-x = 3902
+x = 4007
 y = 5948
 w = 16
 h = 52
 
 [[sprite]]
 name = "loungeSofaLong"
-x = 3414
+x = 3480
 y = 5529
 w = 122
 h = 92
 
 [[sprite]]
 name = "loungeChair"
-x = 1890
+x = 1995
 y = 5948
 w = 50
 h = 70
 
 [[sprite]]
 name = "loungeChairRelax"
-x = 1320
+x = 1439
 y = 5860
 w = 54
 h = 81
 
 [[sprite]]
 name = "radio"
-x = 3838
+x = 3943
 y = 5948
 w = 46
 h = 54
 
 [[sprite]]
 name = "pottedPlant"
-x = 2983
+x = 3088
 y = 5948
 w = 30
 h = 63
 
 [[sprite]]
 name = "cardboardBoxOpen"
-x = 4004
-y = 5529
+x = 0
+y = 5682
 w = 80
 h = 88
 
 [[sprite]]
 name = "lampRoundFloor"
-x = 2314
+x = 2419
 y = 5948
 w = 34
 h = 68
 
 [[sprite]]
 name = "coatRackStanding"
-x = 2185
+x = 2304
 y = 5860
 w = 18
 h = 77
 
 [[sprite]]
 name = "bedDouble"
-x = 2948
+x = 3014
 y = 5529
 w = 122
 h = 96
 
 [[sprite]]
 name = "sideTableDrawers"
-x = 2689
+x = 2794
 y = 5948
 w = 54
 h = 65
 
 [[sprite]]
 name = "cabinetBedDrawer"
-x = 3596
+x = 3701
 y = 5948
 w = 40
 h = 56
 
 [[sprite]]
 name = "desk"
-x = 529
+x = 648
 y = 5860
 w = 112
 h = 83
 
 [[sprite]]
 name = "chairDesk"
-x = 2204
+x = 2323
 y = 5860
 w = 48
 h = 77
 
 [[sprite]]
 name = "bookcaseClosedWide"
-x = 2331
+x = 2397
 y = 5529
 w = 80
 h = 104
 
 [[sprite]]
 name = "bathtub"
-x = 3891
-y = 5771
+x = 0
+y = 5860
 w = 118
 h = 87
 
 [[sprite]]
 name = "washerDryerStacked"
-x = 3071
+x = 3137
 y = 5529
 w = 54
 h = 96
 
 [[sprite]]
 name = "wallCornerNW"
-x = 2906
+x = 2972
 y = 5529
 w = 8
 h = 101
@@ -281,1442 +281,1442 @@ h = 109
 
 [[sprite]]
 name = "kitchenStoveSW"
-x = 2806
+x = 2925
 y = 5860
 w = 66
 h = 76
 
 [[sprite]]
 name = "kitchenCabinetSW"
-x = 2873
+x = 2992
 y = 5860
 w = 66
 h = 76
 
 [[sprite]]
 name = "kitchenSinkSW"
-x = 2940
+x = 3059
 y = 5860
 w = 66
 h = 76
 
 [[sprite]]
 name = "kitchenCabinetCornerInnerSW"
-x = 3007
+x = 3126
 y = 5860
 w = 66
 h = 76
 
 [[sprite]]
 name = "indicatorTalk"
-x = 385
+x = 495
 y = 6021
 w = 26
 h = 26
 
 [[sprite]]
 name = "indicatorEat"
-x = 412
+x = 522
 y = 6021
 w = 26
 h = 26
 
 [[sprite]]
 name = "indicatorSleep"
-x = 439
+x = 549
 y = 6021
 w = 26
 h = 26
 
 [[sprite]]
 name = "indicatorWait"
-x = 466
+x = 576
 y = 6021
 w = 26
 h = 26
 
 [[sprite]]
 name = "carried_ingredients"
-x = 574
+x = 684
 y = 6021
 w = 16
 h = 20
 
 [[sprite]]
 name = "carried_dinner"
-x = 591
+x = 701
 y = 6021
 w = 18
 h = 14
 
 [[sprite]]
 name = "sim2"
-x = 0
+x = 81
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3"
-x = 39
+x = 120
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simTalkSE0"
-x = 78
+x = 159
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simTalkSE1"
-x = 117
+x = 198
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simTalkNW0"
-x = 156
+x = 237
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simTalkNW1"
-x = 195
+x = 276
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simTalkSW0"
-x = 234
+x = 315
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simTalkSW1"
-x = 273
+x = 354
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simTalkNE0"
-x = 312
+x = 393
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simTalkNE1"
-x = 351
+x = 432
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2TalkSE0"
-x = 390
+x = 471
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2TalkSE1"
-x = 429
+x = 510
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2TalkNW0"
-x = 468
+x = 549
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2TalkNW1"
-x = 507
+x = 588
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2TalkSW0"
-x = 546
+x = 627
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2TalkSW1"
-x = 585
+x = 666
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2TalkNE0"
-x = 624
+x = 705
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2TalkNE1"
-x = 663
+x = 744
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3TalkSE0"
-x = 702
+x = 783
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3TalkSE1"
-x = 741
+x = 822
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3TalkNW0"
-x = 780
+x = 861
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3TalkNW1"
-x = 819
+x = 900
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3TalkSW0"
-x = 858
+x = 939
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3TalkSW1"
-x = 897
+x = 978
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3TalkNE0"
-x = 936
+x = 1017
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3TalkNE1"
-x = 975
+x = 1056
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simEatSE0"
-x = 1014
+x = 1095
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simEatSE1"
-x = 1053
+x = 1134
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simEatNW0"
-x = 1092
+x = 1173
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simEatNW1"
-x = 1131
+x = 1212
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simEatSW0"
-x = 1170
+x = 1251
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simEatSW1"
-x = 1209
+x = 1290
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simEatNE0"
-x = 1248
+x = 1329
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simEatNE1"
-x = 1287
+x = 1368
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2EatSE0"
-x = 1326
+x = 1407
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2EatSE1"
-x = 1365
+x = 1446
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2EatNW0"
-x = 1404
+x = 1485
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2EatNW1"
-x = 1443
+x = 1524
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2EatSW0"
-x = 1482
+x = 1563
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2EatSW1"
-x = 1521
+x = 1602
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2EatNE0"
-x = 1560
+x = 1641
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2EatNE1"
-x = 1599
+x = 1680
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3EatSE0"
-x = 1638
+x = 1719
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3EatSE1"
-x = 1677
+x = 1758
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3EatNW0"
-x = 1716
+x = 1797
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3EatNW1"
-x = 1755
+x = 1836
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3EatSW0"
-x = 1794
+x = 1875
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3EatSW1"
-x = 1833
+x = 1914
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3EatNE0"
-x = 1872
+x = 1953
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3EatNE1"
-x = 1911
+x = 1992
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simReadSE0"
-x = 1950
+x = 2031
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simReadSE1"
-x = 1989
+x = 2070
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simReadNW0"
-x = 2028
+x = 2109
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simReadNW1"
-x = 2067
+x = 2148
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simReadSW0"
-x = 2106
+x = 2187
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simReadSW1"
-x = 2145
+x = 2226
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simReadNE0"
-x = 2184
+x = 2265
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simReadNE1"
-x = 2223
+x = 2304
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ReadSE0"
-x = 2262
+x = 2343
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ReadSE1"
-x = 2301
+x = 2382
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ReadNW0"
-x = 2340
+x = 2421
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ReadNW1"
-x = 2379
+x = 2460
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ReadSW0"
-x = 2418
+x = 2499
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ReadSW1"
-x = 2457
+x = 2538
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ReadNE0"
-x = 2496
+x = 2577
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2ReadNE1"
-x = 2535
+x = 2616
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ReadSE0"
-x = 2574
+x = 2655
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ReadSE1"
-x = 2613
+x = 2694
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ReadNW0"
-x = 2652
+x = 2733
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ReadNW1"
-x = 2691
+x = 2772
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ReadSW0"
-x = 2730
+x = 2811
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ReadSW1"
-x = 2769
+x = 2850
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ReadNE0"
-x = 2808
+x = 2889
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3ReadNE1"
-x = 2847
+x = 2928
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "indicatorReading"
-x = 493
+x = 603
 y = 6021
 w = 26
 h = 26
 
 [[sprite]]
 name = "simStandReadSE0"
-x = 2886
+x = 2967
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simStandReadSE1"
-x = 2925
+x = 3006
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simStandReadNW0"
-x = 2964
+x = 3045
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simStandReadNW1"
-x = 3003
+x = 3084
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simStandReadSW0"
-x = 3042
+x = 3123
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simStandReadSW1"
-x = 3081
+x = 3162
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simStandReadNE0"
-x = 3120
+x = 3201
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simStandReadNE1"
-x = 3159
+x = 3240
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2StandReadSE0"
-x = 3198
+x = 3279
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2StandReadSE1"
-x = 3237
+x = 3318
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2StandReadNW0"
-x = 3276
+x = 3357
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2StandReadNW1"
-x = 3315
+x = 3396
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2StandReadSW0"
-x = 3354
+x = 3435
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2StandReadSW1"
-x = 3393
+x = 3474
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2StandReadNE0"
-x = 3432
+x = 3513
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim2StandReadNE1"
-x = 3471
+x = 3552
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3StandReadSE0"
-x = 3510
+x = 3591
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3StandReadSE1"
-x = 3549
+x = 3630
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3StandReadNW0"
-x = 3588
+x = 3669
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3StandReadNW1"
-x = 3627
+x = 3708
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3StandReadSW0"
-x = 3666
+x = 3747
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3StandReadSW1"
-x = 3705
+x = 3786
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3StandReadNE0"
-x = 3744
+x = 3825
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "sim3StandReadNE1"
-x = 3783
+x = 3864
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simWalkSE0"
-x = 3822
+x = 3903
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simWalkSE1"
-x = 3861
+x = 3942
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simWalkNW0"
-x = 3900
+x = 3981
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simWalkNW1"
-x = 3939
+x = 4020
 y = 5682
 w = 38
 h = 88
 
 [[sprite]]
 name = "simWalkSW0"
-x = 3978
-y = 5682
-w = 38
-h = 88
-
-[[sprite]]
-name = "simWalkSW1"
-x = 4017
-y = 5682
-w = 38
-h = 88
-
-[[sprite]]
-name = "simWalkNE0"
-x = 4056
-y = 5682
-w = 38
-h = 88
-
-[[sprite]]
-name = "simWalkNE1"
 x = 0
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2WalkSE0"
+name = "simWalkSW1"
 x = 39
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2WalkSE1"
+name = "simWalkNE0"
 x = 78
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2WalkNW0"
+name = "simWalkNE1"
 x = 117
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2WalkNW1"
+name = "sim2WalkSE0"
 x = 156
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2WalkSW0"
+name = "sim2WalkSE1"
 x = 195
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2WalkSW1"
+name = "sim2WalkNW0"
 x = 234
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2WalkNE0"
+name = "sim2WalkNW1"
 x = 273
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2WalkNE1"
+name = "sim2WalkSW0"
 x = 312
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3WalkSE0"
+name = "sim2WalkSW1"
 x = 351
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3WalkSE1"
+name = "sim2WalkNE0"
 x = 390
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3WalkNW0"
+name = "sim2WalkNE1"
 x = 429
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3WalkNW1"
+name = "sim3WalkSE0"
 x = 468
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3WalkSW0"
+name = "sim3WalkSE1"
 x = 507
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3WalkSW1"
+name = "sim3WalkNW0"
 x = 546
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3WalkNE0"
+name = "sim3WalkNW1"
 x = 585
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3WalkNE1"
+name = "sim3WalkSW0"
 x = 624
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "heldSnack"
-x = 610
-y = 6021
-w = 14
-h = 10
-
-[[sprite]]
-name = "aquariumCabinet1"
-x = 2412
-y = 5529
-w = 80
-h = 104
-
-[[sprite]]
-name = "indicatorExercise"
-x = 520
-y = 6021
-w = 26
-h = 26
-
-[[sprite]]
-name = "indicatorWatchFish"
-x = 547
-y = 6021
-w = 26
-h = 26
-
-[[sprite]]
-name = "simExerciseSE0"
+name = "sim3WalkSW1"
 x = 663
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "simExerciseSE1"
+name = "sim3WalkNE0"
 x = 702
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "simExerciseNW0"
+name = "sim3WalkNE1"
 x = 741
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "simExerciseNW1"
+name = "heldSnack"
+x = 720
+y = 6021
+w = 14
+h = 10
+
+[[sprite]]
+name = "aquariumCabinet1"
+x = 2478
+y = 5529
+w = 80
+h = 104
+
+[[sprite]]
+name = "indicatorExercise"
+x = 630
+y = 6021
+w = 26
+h = 26
+
+[[sprite]]
+name = "indicatorWatchFish"
+x = 657
+y = 6021
+w = 26
+h = 26
+
+[[sprite]]
+name = "simExerciseSE0"
 x = 780
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "simExerciseSW0"
+name = "simExerciseSE1"
 x = 819
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "simExerciseSW1"
+name = "simExerciseNW0"
 x = 858
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "simExerciseNE0"
+name = "simExerciseNW1"
 x = 897
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "simExerciseNE1"
+name = "simExerciseSW0"
 x = 936
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2ExerciseSE0"
+name = "simExerciseSW1"
 x = 975
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2ExerciseSE1"
+name = "simExerciseNE0"
 x = 1014
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2ExerciseNW0"
+name = "simExerciseNE1"
 x = 1053
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2ExerciseNW1"
+name = "sim2ExerciseSE0"
 x = 1092
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2ExerciseSW0"
+name = "sim2ExerciseSE1"
 x = 1131
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2ExerciseSW1"
+name = "sim2ExerciseNW0"
 x = 1170
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2ExerciseNE0"
+name = "sim2ExerciseNW1"
 x = 1209
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2ExerciseNE1"
+name = "sim2ExerciseSW0"
 x = 1248
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3ExerciseSE0"
+name = "sim2ExerciseSW1"
 x = 1287
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3ExerciseSE1"
+name = "sim2ExerciseNE0"
 x = 1326
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3ExerciseNW0"
+name = "sim2ExerciseNE1"
 x = 1365
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3ExerciseNW1"
+name = "sim3ExerciseSE0"
 x = 1404
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3ExerciseSW0"
+name = "sim3ExerciseSE1"
 x = 1443
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3ExerciseSW1"
+name = "sim3ExerciseNW0"
 x = 1482
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3ExerciseNE0"
+name = "sim3ExerciseNW1"
 x = 1521
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3ExerciseNE1"
+name = "sim3ExerciseSW0"
 x = 1560
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "simWatchFishSE0"
+name = "sim3ExerciseSW1"
 x = 1599
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "simWatchFishSE1"
+name = "sim3ExerciseNE0"
 x = 1638
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "simWatchFishNW0"
+name = "sim3ExerciseNE1"
 x = 1677
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "simWatchFishNW1"
+name = "simWatchFishSE0"
 x = 1716
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "simWatchFishSW0"
+name = "simWatchFishSE1"
 x = 1755
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "simWatchFishSW1"
+name = "simWatchFishNW0"
 x = 1794
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "simWatchFishNE0"
+name = "simWatchFishNW1"
 x = 1833
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "simWatchFishNE1"
+name = "simWatchFishSW0"
 x = 1872
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2WatchFishSE0"
+name = "simWatchFishSW1"
 x = 1911
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2WatchFishSE1"
+name = "simWatchFishNE0"
 x = 1950
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2WatchFishNW0"
+name = "simWatchFishNE1"
 x = 1989
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2WatchFishNW1"
+name = "sim2WatchFishSE0"
 x = 2028
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2WatchFishSW0"
+name = "sim2WatchFishSE1"
 x = 2067
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2WatchFishSW1"
+name = "sim2WatchFishNW0"
 x = 2106
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2WatchFishNE0"
+name = "sim2WatchFishNW1"
 x = 2145
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2WatchFishNE1"
+name = "sim2WatchFishSW0"
 x = 2184
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3WatchFishSE0"
+name = "sim2WatchFishSW1"
 x = 2223
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3WatchFishSE1"
+name = "sim2WatchFishNE0"
 x = 2262
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3WatchFishNW0"
+name = "sim2WatchFishNE1"
 x = 2301
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3WatchFishNW1"
+name = "sim3WatchFishSE0"
 x = 2340
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3WatchFishSW0"
+name = "sim3WatchFishSE1"
 x = 2379
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3WatchFishSW1"
+name = "sim3WatchFishNW0"
 x = 2418
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3WatchFishNE0"
+name = "sim3WatchFishNW1"
 x = 2457
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3WatchFishNE1"
+name = "sim3WatchFishSW0"
 x = 2496
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
+name = "sim3WatchFishSW1"
+x = 2535
+y = 5771
+w = 38
+h = 88
+
+[[sprite]]
+name = "sim3WatchFishNE0"
+x = 2574
+y = 5771
+w = 38
+h = 88
+
+[[sprite]]
+name = "sim3WatchFishNE1"
+x = 2613
+y = 5771
+w = 38
+h = 88
+
+[[sprite]]
 name = "kitchenFridgeBuiltInSW"
-x = 2611
+x = 2677
 y = 5529
 w = 58
 h = 102
 
 [[sprite]]
 name = "kitchenFridgeBuiltInNW"
-x = 2670
+x = 2736
 y = 5529
 w = 58
 h = 102
 
 [[sprite]]
 name = "kitchenFridgeBuiltInNE"
-x = 2729
+x = 2795
 y = 5529
 w = 58
 h = 102
 
 [[sprite]]
 name = "bathroomSinkSquareSW"
-x = 3082
+x = 3187
 y = 5948
 w = 34
 h = 60
 
 [[sprite]]
 name = "bathroomSinkSquareNW"
-x = 3117
+x = 3222
 y = 5948
 w = 34
 h = 60
 
 [[sprite]]
 name = "bathroomSinkSquareNE"
-x = 2744
+x = 2849
 y = 5948
 w = 34
 h = 65
 
 [[sprite]]
 name = "showerRoundSW"
-x = 2788
+x = 2854
 y = 5529
 w = 58
 h = 102
 
 [[sprite]]
 name = "showerRoundNW"
-x = 357
+x = 476
 y = 5860
 w = 58
 h = 86
 
 [[sprite]]
 name = "showerRoundNE"
-x = 2847
+x = 2913
 y = 5529
 w = 58
 h = 102
 
 [[sprite]]
 name = "toiletSquareSW"
-x = 3637
+x = 3742
 y = 5948
 w = 38
 h = 56
 
 [[sprite]]
 name = "toiletSquareNW"
-x = 3676
+x = 3781
 y = 5948
 w = 38
 h = 56
 
 [[sprite]]
 name = "toiletSquareNE"
-x = 3014
+x = 3119
 y = 5948
 w = 38
 h = 63
 
 [[sprite]]
 name = "bookcaseClosedDoorsSW"
-x = 2535
+x = 2652
 y = 5771
 w = 58
 h = 88
 
 [[sprite]]
 name = "bookcaseClosedDoorsNW"
-x = 2594
+x = 2711
 y = 5771
 w = 58
 h = 88
 
 [[sprite]]
 name = "bookcaseClosedDoorsNE"
-x = 2653
+x = 2770
 y = 5771
 w = 58
 h = 88
 
 [[sprite]]
 name = "loungeSofaOttomanSW"
-x = 4008
-y = 5948
-w = 54
-h = 51
-
-[[sprite]]
-name = "loungeSofaOttomanNW"
-x = 0
-y = 6021
-w = 54
-h = 51
-
-[[sprite]]
-name = "loungeSofaOttomanNE"
 x = 55
 y = 6021
 w = 54
 h = 51
 
 [[sprite]]
+name = "loungeSofaOttomanNW"
+x = 110
+y = 6021
+w = 54
+h = 51
+
+[[sprite]]
+name = "loungeSofaOttomanNE"
+x = 165
+y = 6021
+w = 54
+h = 51
+
+[[sprite]]
 name = "televisionVintageSW"
-x = 3430
+x = 3535
 y = 5948
 w = 44
 h = 59
 
 [[sprite]]
 name = "televisionVintageNW"
-x = 3475
+x = 3580
 y = 5948
 w = 44
 h = 59
 
 [[sprite]]
 name = "televisionVintageNE"
-x = 3520
+x = 3625
 y = 5948
 w = 44
 h = 59
@@ -1744,616 +1744,616 @@ h = 136
 
 [[sprite]]
 name = "kitchenStoveNW"
-x = 3074
+x = 3193
 y = 5860
 w = 66
 h = 76
 
 [[sprite]]
 name = "kitchenStoveNE"
-x = 2253
+x = 2372
 y = 5860
 w = 66
 h = 77
 
 [[sprite]]
 name = "kitchenCabinetNW"
-x = 3141
+x = 3260
 y = 5860
 w = 66
 h = 76
 
 [[sprite]]
 name = "kitchenCabinetNE"
-x = 3208
+x = 3327
 y = 5860
 w = 66
 h = 76
 
 [[sprite]]
 name = "kitchenSinkNW"
-x = 3275
+x = 3394
 y = 5860
 w = 66
 h = 76
 
 [[sprite]]
 name = "kitchenSinkNE"
-x = 3342
+x = 3461
 y = 5860
 w = 66
 h = 76
 
 [[sprite]]
 name = "tableSW"
-x = 642
+x = 761
 y = 5860
 w = 112
 h = 83
 
 [[sprite]]
 name = "tableNW"
-x = 755
+x = 874
 y = 5860
 w = 112
 h = 83
 
 [[sprite]]
 name = "tableNE"
-x = 868
+x = 987
 y = 5860
 w = 112
 h = 83
 
 [[sprite]]
 name = "chairSW"
-x = 2454
+x = 2559
 y = 5948
 w = 50
 h = 67
 
 [[sprite]]
 name = "chairNW"
-x = 2505
+x = 2610
 y = 5948
 w = 50
 h = 67
 
 [[sprite]]
 name = "chairNE"
-x = 1591
+x = 1710
 y = 5860
 w = 50
 h = 80
 
 [[sprite]]
 name = "trashcanSW"
-x = 3919
+x = 4024
 y = 5948
 w = 16
 h = 52
 
 [[sprite]]
 name = "trashcanNW"
-x = 3936
+x = 4041
 y = 5948
 w = 16
 h = 52
 
 [[sprite]]
 name = "trashcanNE"
-x = 3885
+x = 3990
 y = 5948
 w = 16
 h = 53
 
 [[sprite]]
 name = "loungeSofaLongSW"
-x = 3537
+x = 3603
 y = 5529
 w = 122
 h = 92
 
 [[sprite]]
 name = "loungeSofaLongNW"
-x = 3660
+x = 3726
 y = 5529
 w = 122
 h = 92
 
 [[sprite]]
 name = "loungeSofaLongNE"
-x = 3783
+x = 3849
 y = 5529
 w = 122
 h = 92
 
 [[sprite]]
 name = "loungeChairSW"
-x = 3152
+x = 3257
 y = 5948
 w = 50
 h = 60
 
 [[sprite]]
 name = "loungeChairNW"
-x = 3203
+x = 3308
 y = 5948
 w = 50
 h = 60
 
 [[sprite]]
 name = "loungeChairNE"
-x = 1941
+x = 2046
 y = 5948
 w = 50
 h = 70
 
 [[sprite]]
 name = "loungeChairRelaxSW"
-x = 1375
+x = 1494
 y = 5860
 w = 54
 h = 81
 
 [[sprite]]
 name = "loungeChairRelaxNW"
-x = 1992
+x = 2097
 y = 5948
 w = 54
 h = 70
 
 [[sprite]]
 name = "loungeChairRelaxNE"
-x = 2047
+x = 2152
 y = 5948
 w = 54
 h = 70
 
 [[sprite]]
 name = "radioSW"
-x = 110
+x = 220
 y = 6021
 w = 48
 h = 50
 
 [[sprite]]
 name = "radioNW"
-x = 159
+x = 269
 y = 6021
 w = 46
 h = 50
 
 [[sprite]]
 name = "radioNE"
-x = 206
+x = 316
 y = 6021
 w = 48
 h = 50
 
 [[sprite]]
 name = "pottedPlantSW"
-x = 3254
+x = 3359
 y = 5948
 w = 28
 h = 60
 
 [[sprite]]
 name = "pottedPlantNW"
-x = 3565
+x = 3670
 y = 5948
 w = 30
 h = 59
 
 [[sprite]]
 name = "pottedPlantNE"
-x = 3053
+x = 3158
 y = 5948
 w = 28
 h = 62
 
 [[sprite]]
 name = "cardboardBoxOpenSW"
-x = 2712
+x = 2829
 y = 5771
 w = 80
 h = 88
 
 [[sprite]]
 name = "cardboardBoxOpenNW"
-x = 2793
+x = 2910
 y = 5771
 w = 80
 h = 88
 
 [[sprite]]
 name = "cardboardBoxOpenNE"
-x = 2874
+x = 2991
 y = 5771
 w = 80
 h = 88
 
 [[sprite]]
 name = "lampRoundFloorSW"
-x = 2349
+x = 2454
 y = 5948
 w = 34
 h = 68
 
 [[sprite]]
 name = "lampRoundFloorNW"
-x = 2384
+x = 2489
 y = 5948
 w = 34
 h = 68
 
 [[sprite]]
 name = "lampRoundFloorNE"
-x = 2419
+x = 2524
 y = 5948
 w = 34
 h = 68
 
 [[sprite]]
 name = "coatRackStandingSW"
-x = 2320
+x = 2439
 y = 5860
 w = 18
 h = 77
 
 [[sprite]]
 name = "coatRackStandingNW"
-x = 2339
+x = 2458
 y = 5860
 w = 18
 h = 77
 
 [[sprite]]
 name = "coatRackStandingNE"
-x = 2358
+x = 2477
 y = 5860
 w = 18
 h = 77
 
 [[sprite]]
 name = "bedDoubleSW"
-x = 3126
+x = 3192
 y = 5529
 w = 122
 h = 96
 
 [[sprite]]
 name = "bedDoubleNW"
-x = 2377
+x = 2496
 y = 5860
 w = 122
 h = 77
 
 [[sprite]]
 name = "bedDoubleNE"
-x = 2500
+x = 2619
 y = 5860
 w = 122
 h = 77
 
 [[sprite]]
 name = "sideTableDrawersSW"
-x = 2779
+x = 2884
 y = 5948
 w = 54
 h = 65
 
 [[sprite]]
 name = "sideTableDrawersNW"
-x = 2834
+x = 2939
 y = 5948
 w = 54
 h = 65
 
 [[sprite]]
 name = "sideTableDrawersNE"
-x = 2889
+x = 2994
 y = 5948
 w = 54
 h = 65
 
 [[sprite]]
 name = "cabinetBedDrawerSW"
-x = 3715
+x = 3820
 y = 5948
 w = 40
 h = 56
 
 [[sprite]]
 name = "cabinetBedDrawerNW"
-x = 3756
+x = 3861
 y = 5948
 w = 40
 h = 56
 
 [[sprite]]
 name = "cabinetBedDrawerNE"
-x = 3797
+x = 3902
 y = 5948
 w = 40
 h = 56
 
 [[sprite]]
 name = "deskSW"
-x = 981
+x = 1100
 y = 5860
 w = 112
 h = 83
 
 [[sprite]]
 name = "deskNW"
-x = 1094
+x = 1213
 y = 5860
 w = 112
 h = 83
 
 [[sprite]]
 name = "deskNE"
-x = 1207
+x = 1326
 y = 5860
 w = 112
 h = 83
 
 [[sprite]]
 name = "chairDeskSW"
-x = 2556
+x = 2661
 y = 5948
 w = 48
 h = 66
 
 [[sprite]]
 name = "chairDeskNW"
-x = 2605
+x = 2710
 y = 5948
 w = 48
 h = 66
 
 [[sprite]]
 name = "chairDeskNE"
-x = 2623
+x = 2742
 y = 5860
 w = 48
 h = 77
 
 [[sprite]]
 name = "bathtubSW"
-x = 0
-y = 5860
-w = 118
-h = 87
-
-[[sprite]]
-name = "bathtubNW"
-x = 1642
-y = 5860
-w = 118
-h = 79
-
-[[sprite]]
-name = "bathtubNE"
-x = 1761
-y = 5860
-w = 118
-h = 79
-
-[[sprite]]
-name = "washerDryerStackedSW"
-x = 3249
-y = 5529
-w = 54
-h = 96
-
-[[sprite]]
-name = "washerDryerStackedNW"
-x = 3304
-y = 5529
-w = 54
-h = 96
-
-[[sprite]]
-name = "washerDryerStackedNE"
-x = 3359
-y = 5529
-w = 54
-h = 96
-
-[[sprite]]
-name = "bathtubFull"
 x = 119
 y = 5860
 w = 118
 h = 87
 
 [[sprite]]
-name = "bathtubFullSW"
-x = 238
+name = "bathtubNW"
+x = 1761
 y = 5860
 w = 118
-h = 87
+h = 79
 
 [[sprite]]
-name = "bathtubFullNW"
+name = "bathtubNE"
 x = 1880
 y = 5860
 w = 118
 h = 79
 
 [[sprite]]
-name = "bathtubFullNE"
+name = "washerDryerStackedSW"
+x = 3315
+y = 5529
+w = 54
+h = 96
+
+[[sprite]]
+name = "washerDryerStackedNW"
+x = 3370
+y = 5529
+w = 54
+h = 96
+
+[[sprite]]
+name = "washerDryerStackedNE"
+x = 3425
+y = 5529
+w = 54
+h = 96
+
+[[sprite]]
+name = "bathtubFull"
+x = 238
+y = 5860
+w = 118
+h = 87
+
+[[sprite]]
+name = "bathtubFullSW"
+x = 357
+y = 5860
+w = 118
+h = 87
+
+[[sprite]]
+name = "bathtubFullNW"
 x = 1999
 y = 5860
 w = 118
 h = 79
 
 [[sprite]]
+name = "bathtubFullNE"
+x = 2118
+y = 5860
+w = 118
+h = 79
+
+[[sprite]]
 name = "simSitSE0"
-x = 2955
-y = 5771
-w = 38
-h = 88
-
-[[sprite]]
-name = "simSitSE1"
-x = 2994
-y = 5771
-w = 38
-h = 88
-
-[[sprite]]
-name = "simSitNW0"
-x = 3033
-y = 5771
-w = 38
-h = 88
-
-[[sprite]]
-name = "simSitNW1"
 x = 3072
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "simSitSW0"
+name = "simSitSE1"
 x = 3111
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "simSitSW1"
+name = "simSitNW0"
 x = 3150
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "simSitNE0"
+name = "simSitNW1"
 x = 3189
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "simSitNE1"
+name = "simSitSW0"
 x = 3228
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2SitSE0"
+name = "simSitSW1"
 x = 3267
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2SitSE1"
+name = "simSitNE0"
 x = 3306
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2SitNW0"
+name = "simSitNE1"
 x = 3345
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2SitNW1"
+name = "sim2SitSE0"
 x = 3384
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2SitSW0"
+name = "sim2SitSE1"
 x = 3423
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2SitSW1"
+name = "sim2SitNW0"
 x = 3462
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2SitNE0"
+name = "sim2SitNW1"
 x = 3501
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim2SitNE1"
+name = "sim2SitSW0"
 x = 3540
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3SitSE0"
+name = "sim2SitSW1"
 x = 3579
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3SitSE1"
+name = "sim2SitNE0"
 x = 3618
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3SitNW0"
+name = "sim2SitNE1"
 x = 3657
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3SitNW1"
+name = "sim3SitSE0"
 x = 3696
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3SitSW0"
+name = "sim3SitSE1"
 x = 3735
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3SitSW1"
+name = "sim3SitNW0"
 x = 3774
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3SitNE0"
+name = "sim3SitNW1"
 x = 3813
 y = 5771
 w = 38
 h = 88
 
 [[sprite]]
-name = "sim3SitNE1"
+name = "sim3SitSW0"
 x = 3852
+y = 5771
+w = 38
+h = 88
+
+[[sprite]]
+name = "sim3SitSW1"
+x = 3891
+y = 5771
+w = 38
+h = 88
+
+[[sprite]]
+name = "sim3SitNE0"
+x = 3930
+y = 5771
+w = 38
+h = 88
+
+[[sprite]]
+name = "sim3SitNE1"
+x = 3969
 y = 5771
 w = 38
 h = 88
@@ -2367,224 +2367,224 @@ h = 136
 
 [[sprite]]
 name = "simSleepSE0"
-x = 3409
+x = 3528
 y = 5860
 w = 104
 h = 72
 
 [[sprite]]
 name = "simSleepSE1"
-x = 3514
+x = 3633
 y = 5860
 w = 104
 h = 72
 
 [[sprite]]
 name = "simSleepNW0"
-x = 3619
+x = 3738
 y = 5860
 w = 104
 h = 72
 
 [[sprite]]
 name = "simSleepNW1"
-x = 3724
+x = 3843
 y = 5860
 w = 104
 h = 72
 
 [[sprite]]
 name = "simSleepSW0"
-x = 3829
+x = 3948
 y = 5860
 w = 104
 h = 72
 
 [[sprite]]
 name = "simSleepSW1"
-x = 3934
-y = 5860
-w = 104
-h = 72
-
-[[sprite]]
-name = "simSleepNE0"
 x = 0
 y = 5948
 w = 104
 h = 72
 
 [[sprite]]
-name = "simSleepNE1"
+name = "simSleepNE0"
 x = 105
 y = 5948
 w = 104
 h = 72
 
 [[sprite]]
-name = "sim2SleepSE0"
+name = "simSleepNE1"
 x = 210
 y = 5948
 w = 104
 h = 72
 
 [[sprite]]
-name = "sim2SleepSE1"
+name = "sim2SleepSE0"
 x = 315
 y = 5948
 w = 104
 h = 72
 
 [[sprite]]
-name = "sim2SleepNW0"
+name = "sim2SleepSE1"
 x = 420
 y = 5948
 w = 104
 h = 72
 
 [[sprite]]
-name = "sim2SleepNW1"
+name = "sim2SleepNW0"
 x = 525
 y = 5948
 w = 104
 h = 72
 
 [[sprite]]
-name = "sim2SleepSW0"
+name = "sim2SleepNW1"
 x = 630
 y = 5948
 w = 104
 h = 72
 
 [[sprite]]
-name = "sim2SleepSW1"
+name = "sim2SleepSW0"
 x = 735
 y = 5948
 w = 104
 h = 72
 
 [[sprite]]
-name = "sim2SleepNE0"
+name = "sim2SleepSW1"
 x = 840
 y = 5948
 w = 104
 h = 72
 
 [[sprite]]
-name = "sim2SleepNE1"
+name = "sim2SleepNE0"
 x = 945
 y = 5948
 w = 104
 h = 72
 
 [[sprite]]
-name = "sim3SleepSE0"
+name = "sim2SleepNE1"
 x = 1050
 y = 5948
 w = 104
 h = 72
 
 [[sprite]]
-name = "sim3SleepSE1"
+name = "sim3SleepSE0"
 x = 1155
 y = 5948
 w = 104
 h = 72
 
 [[sprite]]
-name = "sim3SleepNW0"
+name = "sim3SleepSE1"
 x = 1260
 y = 5948
 w = 104
 h = 72
 
 [[sprite]]
-name = "sim3SleepNW1"
+name = "sim3SleepNW0"
 x = 1365
 y = 5948
 w = 104
 h = 72
 
 [[sprite]]
-name = "sim3SleepSW0"
+name = "sim3SleepNW1"
 x = 1470
 y = 5948
 w = 104
 h = 72
 
 [[sprite]]
-name = "sim3SleepSW1"
+name = "sim3SleepSW0"
 x = 1575
 y = 5948
 w = 104
 h = 72
 
 [[sprite]]
-name = "sim3SleepNE0"
+name = "sim3SleepSW1"
 x = 1680
 y = 5948
 w = 104
 h = 72
 
 [[sprite]]
-name = "sim3SleepNE1"
+name = "sim3SleepNE0"
 x = 1785
 y = 5948
 w = 104
 h = 72
 
 [[sprite]]
+name = "sim3SleepNE1"
+x = 1890
+y = 5948
+w = 104
+h = 72
+
+[[sprite]]
 name = "loungeChairForeground"
-x = 2102
+x = 2207
 y = 5948
 w = 50
 h = 70
 
 [[sprite]]
 name = "loungeChairForegroundSW"
-x = 3283
+x = 3388
 y = 5948
 w = 50
 h = 60
 
 [[sprite]]
 name = "loungeChairForegroundNW"
-x = 3334
+x = 3439
 y = 5948
 w = 50
 h = 60
 
 [[sprite]]
 name = "loungeChairForegroundNE"
-x = 2153
+x = 2258
 y = 5948
 w = 50
 h = 70
 
 [[sprite]]
 name = "loungeChairRelaxForeground"
-x = 1430
+x = 1549
 y = 5860
 w = 54
 h = 81
 
 [[sprite]]
 name = "loungeChairRelaxForegroundSW"
-x = 1485
+x = 1604
 y = 5860
 w = 54
 h = 81
 
 [[sprite]]
 name = "loungeChairRelaxForegroundNW"
-x = 2204
+x = 2309
 y = 5948
 w = 54
 h = 70
 
 [[sprite]]
 name = "loungeChairRelaxForegroundNE"
-x = 2259
+x = 2364
 y = 5948
 w = 54
 h = 70
@@ -6342,7 +6342,7 @@ h = 109
 
 [[sprite]]
 name = "wallJoin6"
-x = 2915
+x = 2981
 y = 5529
 w = 32
 h = 98
@@ -6406,6 +6406,20 @@ h = 109
 [[sprite]]
 name = "doorwayJoinedEW"
 x = 2298
+y = 5529
+w = 32
+h = 109
+
+[[sprite]]
+name = "wallCornerStartNS"
+x = 2331
+y = 5529
+w = 32
+h = 109
+
+[[sprite]]
+name = "wallCornerStartEW"
+x = 2364
 y = 5529
 w = 32
 h = 109

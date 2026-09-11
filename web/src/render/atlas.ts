@@ -22,379 +22,379 @@ export interface AtlasSprite {
 export const ATLAS_WIDTH = 4096;
 export const ATLAS_HEIGHT = 6073;
 /** SHA-256 of the exact generated atlas PNG bytes. */
-export const ATLAS_CONTENT_SHA256 = '658091ca3f670f217e94b626428431187e15b3c6236f6aab6636fb7097e78e1f';
+export const ATLAS_CONTENT_SHA256 = '71c2c448266c234483f5822ba7cb8bb4bdbc4926d9aa29d36bf8040120566993';
 /** Content-addressed public pathname; Pages ignores query strings in its cache key. */
-export const ATLAS_FILE_NAME = 'atlas-658091ca3f670f217e94b626428431187e15b3c6236f6aab6636fb7097e78e1f.png';
+export const ATLAS_FILE_NAME = 'atlas-71c2c448266c234483f5822ba7cb8bb4bdbc4926d9aa29d36bf8040120566993.png';
 
 export const SPRITES: readonly AtlasSprite[] = [
-  { name: 'floor', x: 255, y: 6021, w: 64, h: 42 },
-  { name: 'sim', x: 3906, y: 5529, w: 38, h: 88 },
+  { name: 'floor', x: 365, y: 6021, w: 64, h: 42 },
+  { name: 'sim', x: 3972, y: 5529, w: 38, h: 88 },
   { name: 'wallNS', x: 1869, y: 5529, w: 32, h: 109 },
   { name: 'wallEW', x: 1902, y: 5529, w: 32, h: 109 },
-  { name: 'kitchenFridgeBuiltIn', x: 2493, y: 5529, w: 58, h: 102 },
-  { name: 'bathroomSinkSquare', x: 2654, y: 5948, w: 34, h: 65 },
-  { name: 'showerRound', x: 2552, y: 5529, w: 58, h: 102 },
-  { name: 'toiletSquare', x: 2944, y: 5948, w: 38, h: 63 },
-  { name: 'bookcaseClosedDoors', x: 3945, y: 5529, w: 58, h: 88 },
-  { name: 'loungeSofaOttoman', x: 3953, y: 5948, w: 54, h: 51 },
-  { name: 'televisionVintage', x: 3385, y: 5948, w: 44, h: 59 },
+  { name: 'kitchenFridgeBuiltIn', x: 2559, y: 5529, w: 58, h: 102 },
+  { name: 'bathroomSinkSquare', x: 2759, y: 5948, w: 34, h: 65 },
+  { name: 'showerRound', x: 2618, y: 5529, w: 58, h: 102 },
+  { name: 'toiletSquare', x: 3049, y: 5948, w: 38, h: 63 },
+  { name: 'bookcaseClosedDoors', x: 4011, y: 5529, w: 58, h: 88 },
+  { name: 'loungeSofaOttoman', x: 0, y: 6021, w: 54, h: 51 },
+  { name: 'televisionVintage', x: 3490, y: 5948, w: 44, h: 59 },
   { name: 'bedBunk', x: 1254, y: 5529, w: 122, h: 136 },
-  { name: 'selectionRing', x: 320, y: 6021, w: 64, h: 42 },
-  { name: 'kitchenStove', x: 2118, y: 5860, w: 66, h: 77 },
-  { name: 'kitchenCabinet', x: 2672, y: 5860, w: 66, h: 76 },
-  { name: 'kitchenSink', x: 2739, y: 5860, w: 66, h: 76 },
-  { name: 'table', x: 416, y: 5860, w: 112, h: 83 },
-  { name: 'chair', x: 1540, y: 5860, w: 50, h: 80 },
-  { name: 'trashcan', x: 3902, y: 5948, w: 16, h: 52 },
-  { name: 'loungeSofaLong', x: 3414, y: 5529, w: 122, h: 92 },
-  { name: 'loungeChair', x: 1890, y: 5948, w: 50, h: 70 },
-  { name: 'loungeChairRelax', x: 1320, y: 5860, w: 54, h: 81 },
-  { name: 'radio', x: 3838, y: 5948, w: 46, h: 54 },
-  { name: 'pottedPlant', x: 2983, y: 5948, w: 30, h: 63 },
-  { name: 'cardboardBoxOpen', x: 4004, y: 5529, w: 80, h: 88 },
-  { name: 'lampRoundFloor', x: 2314, y: 5948, w: 34, h: 68 },
-  { name: 'coatRackStanding', x: 2185, y: 5860, w: 18, h: 77 },
-  { name: 'bedDouble', x: 2948, y: 5529, w: 122, h: 96 },
-  { name: 'sideTableDrawers', x: 2689, y: 5948, w: 54, h: 65 },
-  { name: 'cabinetBedDrawer', x: 3596, y: 5948, w: 40, h: 56 },
-  { name: 'desk', x: 529, y: 5860, w: 112, h: 83 },
-  { name: 'chairDesk', x: 2204, y: 5860, w: 48, h: 77 },
-  { name: 'bookcaseClosedWide', x: 2331, y: 5529, w: 80, h: 104 },
-  { name: 'bathtub', x: 3891, y: 5771, w: 118, h: 87 },
-  { name: 'washerDryerStacked', x: 3071, y: 5529, w: 54, h: 96 },
-  { name: 'wallCornerNW', x: 2906, y: 5529, w: 8, h: 101 },
+  { name: 'selectionRing', x: 430, y: 6021, w: 64, h: 42 },
+  { name: 'kitchenStove', x: 2237, y: 5860, w: 66, h: 77 },
+  { name: 'kitchenCabinet', x: 2791, y: 5860, w: 66, h: 76 },
+  { name: 'kitchenSink', x: 2858, y: 5860, w: 66, h: 76 },
+  { name: 'table', x: 535, y: 5860, w: 112, h: 83 },
+  { name: 'chair', x: 1659, y: 5860, w: 50, h: 80 },
+  { name: 'trashcan', x: 4007, y: 5948, w: 16, h: 52 },
+  { name: 'loungeSofaLong', x: 3480, y: 5529, w: 122, h: 92 },
+  { name: 'loungeChair', x: 1995, y: 5948, w: 50, h: 70 },
+  { name: 'loungeChairRelax', x: 1439, y: 5860, w: 54, h: 81 },
+  { name: 'radio', x: 3943, y: 5948, w: 46, h: 54 },
+  { name: 'pottedPlant', x: 3088, y: 5948, w: 30, h: 63 },
+  { name: 'cardboardBoxOpen', x: 0, y: 5682, w: 80, h: 88 },
+  { name: 'lampRoundFloor', x: 2419, y: 5948, w: 34, h: 68 },
+  { name: 'coatRackStanding', x: 2304, y: 5860, w: 18, h: 77 },
+  { name: 'bedDouble', x: 3014, y: 5529, w: 122, h: 96 },
+  { name: 'sideTableDrawers', x: 2794, y: 5948, w: 54, h: 65 },
+  { name: 'cabinetBedDrawer', x: 3701, y: 5948, w: 40, h: 56 },
+  { name: 'desk', x: 648, y: 5860, w: 112, h: 83 },
+  { name: 'chairDesk', x: 2323, y: 5860, w: 48, h: 77 },
+  { name: 'bookcaseClosedWide', x: 2397, y: 5529, w: 80, h: 104 },
+  { name: 'bathtub', x: 0, y: 5860, w: 118, h: 87 },
+  { name: 'washerDryerStacked', x: 3137, y: 5529, w: 54, h: 96 },
+  { name: 'wallCornerNW', x: 2972, y: 5529, w: 8, h: 101 },
   { name: 'doorwayNS', x: 1935, y: 5529, w: 32, h: 109 },
   { name: 'doorwayEW', x: 1968, y: 5529, w: 32, h: 109 },
-  { name: 'kitchenStoveSW', x: 2806, y: 5860, w: 66, h: 76 },
-  { name: 'kitchenCabinetSW', x: 2873, y: 5860, w: 66, h: 76 },
-  { name: 'kitchenSinkSW', x: 2940, y: 5860, w: 66, h: 76 },
-  { name: 'kitchenCabinetCornerInnerSW', x: 3007, y: 5860, w: 66, h: 76 },
-  { name: 'indicatorTalk', x: 385, y: 6021, w: 26, h: 26 },
-  { name: 'indicatorEat', x: 412, y: 6021, w: 26, h: 26 },
-  { name: 'indicatorSleep', x: 439, y: 6021, w: 26, h: 26 },
-  { name: 'indicatorWait', x: 466, y: 6021, w: 26, h: 26 },
-  { name: 'carried_ingredients', x: 574, y: 6021, w: 16, h: 20 },
-  { name: 'carried_dinner', x: 591, y: 6021, w: 18, h: 14 },
-  { name: 'sim2', x: 0, y: 5682, w: 38, h: 88 },
-  { name: 'sim3', x: 39, y: 5682, w: 38, h: 88 },
-  { name: 'simTalkSE0', x: 78, y: 5682, w: 38, h: 88 },
-  { name: 'simTalkSE1', x: 117, y: 5682, w: 38, h: 88 },
-  { name: 'simTalkNW0', x: 156, y: 5682, w: 38, h: 88 },
-  { name: 'simTalkNW1', x: 195, y: 5682, w: 38, h: 88 },
-  { name: 'simTalkSW0', x: 234, y: 5682, w: 38, h: 88 },
-  { name: 'simTalkSW1', x: 273, y: 5682, w: 38, h: 88 },
-  { name: 'simTalkNE0', x: 312, y: 5682, w: 38, h: 88 },
-  { name: 'simTalkNE1', x: 351, y: 5682, w: 38, h: 88 },
-  { name: 'sim2TalkSE0', x: 390, y: 5682, w: 38, h: 88 },
-  { name: 'sim2TalkSE1', x: 429, y: 5682, w: 38, h: 88 },
-  { name: 'sim2TalkNW0', x: 468, y: 5682, w: 38, h: 88 },
-  { name: 'sim2TalkNW1', x: 507, y: 5682, w: 38, h: 88 },
-  { name: 'sim2TalkSW0', x: 546, y: 5682, w: 38, h: 88 },
-  { name: 'sim2TalkSW1', x: 585, y: 5682, w: 38, h: 88 },
-  { name: 'sim2TalkNE0', x: 624, y: 5682, w: 38, h: 88 },
-  { name: 'sim2TalkNE1', x: 663, y: 5682, w: 38, h: 88 },
-  { name: 'sim3TalkSE0', x: 702, y: 5682, w: 38, h: 88 },
-  { name: 'sim3TalkSE1', x: 741, y: 5682, w: 38, h: 88 },
-  { name: 'sim3TalkNW0', x: 780, y: 5682, w: 38, h: 88 },
-  { name: 'sim3TalkNW1', x: 819, y: 5682, w: 38, h: 88 },
-  { name: 'sim3TalkSW0', x: 858, y: 5682, w: 38, h: 88 },
-  { name: 'sim3TalkSW1', x: 897, y: 5682, w: 38, h: 88 },
-  { name: 'sim3TalkNE0', x: 936, y: 5682, w: 38, h: 88 },
-  { name: 'sim3TalkNE1', x: 975, y: 5682, w: 38, h: 88 },
-  { name: 'simEatSE0', x: 1014, y: 5682, w: 38, h: 88 },
-  { name: 'simEatSE1', x: 1053, y: 5682, w: 38, h: 88 },
-  { name: 'simEatNW0', x: 1092, y: 5682, w: 38, h: 88 },
-  { name: 'simEatNW1', x: 1131, y: 5682, w: 38, h: 88 },
-  { name: 'simEatSW0', x: 1170, y: 5682, w: 38, h: 88 },
-  { name: 'simEatSW1', x: 1209, y: 5682, w: 38, h: 88 },
-  { name: 'simEatNE0', x: 1248, y: 5682, w: 38, h: 88 },
-  { name: 'simEatNE1', x: 1287, y: 5682, w: 38, h: 88 },
-  { name: 'sim2EatSE0', x: 1326, y: 5682, w: 38, h: 88 },
-  { name: 'sim2EatSE1', x: 1365, y: 5682, w: 38, h: 88 },
-  { name: 'sim2EatNW0', x: 1404, y: 5682, w: 38, h: 88 },
-  { name: 'sim2EatNW1', x: 1443, y: 5682, w: 38, h: 88 },
-  { name: 'sim2EatSW0', x: 1482, y: 5682, w: 38, h: 88 },
-  { name: 'sim2EatSW1', x: 1521, y: 5682, w: 38, h: 88 },
-  { name: 'sim2EatNE0', x: 1560, y: 5682, w: 38, h: 88 },
-  { name: 'sim2EatNE1', x: 1599, y: 5682, w: 38, h: 88 },
-  { name: 'sim3EatSE0', x: 1638, y: 5682, w: 38, h: 88 },
-  { name: 'sim3EatSE1', x: 1677, y: 5682, w: 38, h: 88 },
-  { name: 'sim3EatNW0', x: 1716, y: 5682, w: 38, h: 88 },
-  { name: 'sim3EatNW1', x: 1755, y: 5682, w: 38, h: 88 },
-  { name: 'sim3EatSW0', x: 1794, y: 5682, w: 38, h: 88 },
-  { name: 'sim3EatSW1', x: 1833, y: 5682, w: 38, h: 88 },
-  { name: 'sim3EatNE0', x: 1872, y: 5682, w: 38, h: 88 },
-  { name: 'sim3EatNE1', x: 1911, y: 5682, w: 38, h: 88 },
-  { name: 'simReadSE0', x: 1950, y: 5682, w: 38, h: 88 },
-  { name: 'simReadSE1', x: 1989, y: 5682, w: 38, h: 88 },
-  { name: 'simReadNW0', x: 2028, y: 5682, w: 38, h: 88 },
-  { name: 'simReadNW1', x: 2067, y: 5682, w: 38, h: 88 },
-  { name: 'simReadSW0', x: 2106, y: 5682, w: 38, h: 88 },
-  { name: 'simReadSW1', x: 2145, y: 5682, w: 38, h: 88 },
-  { name: 'simReadNE0', x: 2184, y: 5682, w: 38, h: 88 },
-  { name: 'simReadNE1', x: 2223, y: 5682, w: 38, h: 88 },
-  { name: 'sim2ReadSE0', x: 2262, y: 5682, w: 38, h: 88 },
-  { name: 'sim2ReadSE1', x: 2301, y: 5682, w: 38, h: 88 },
-  { name: 'sim2ReadNW0', x: 2340, y: 5682, w: 38, h: 88 },
-  { name: 'sim2ReadNW1', x: 2379, y: 5682, w: 38, h: 88 },
-  { name: 'sim2ReadSW0', x: 2418, y: 5682, w: 38, h: 88 },
-  { name: 'sim2ReadSW1', x: 2457, y: 5682, w: 38, h: 88 },
-  { name: 'sim2ReadNE0', x: 2496, y: 5682, w: 38, h: 88 },
-  { name: 'sim2ReadNE1', x: 2535, y: 5682, w: 38, h: 88 },
-  { name: 'sim3ReadSE0', x: 2574, y: 5682, w: 38, h: 88 },
-  { name: 'sim3ReadSE1', x: 2613, y: 5682, w: 38, h: 88 },
-  { name: 'sim3ReadNW0', x: 2652, y: 5682, w: 38, h: 88 },
-  { name: 'sim3ReadNW1', x: 2691, y: 5682, w: 38, h: 88 },
-  { name: 'sim3ReadSW0', x: 2730, y: 5682, w: 38, h: 88 },
-  { name: 'sim3ReadSW1', x: 2769, y: 5682, w: 38, h: 88 },
-  { name: 'sim3ReadNE0', x: 2808, y: 5682, w: 38, h: 88 },
-  { name: 'sim3ReadNE1', x: 2847, y: 5682, w: 38, h: 88 },
-  { name: 'indicatorReading', x: 493, y: 6021, w: 26, h: 26 },
-  { name: 'simStandReadSE0', x: 2886, y: 5682, w: 38, h: 88 },
-  { name: 'simStandReadSE1', x: 2925, y: 5682, w: 38, h: 88 },
-  { name: 'simStandReadNW0', x: 2964, y: 5682, w: 38, h: 88 },
-  { name: 'simStandReadNW1', x: 3003, y: 5682, w: 38, h: 88 },
-  { name: 'simStandReadSW0', x: 3042, y: 5682, w: 38, h: 88 },
-  { name: 'simStandReadSW1', x: 3081, y: 5682, w: 38, h: 88 },
-  { name: 'simStandReadNE0', x: 3120, y: 5682, w: 38, h: 88 },
-  { name: 'simStandReadNE1', x: 3159, y: 5682, w: 38, h: 88 },
-  { name: 'sim2StandReadSE0', x: 3198, y: 5682, w: 38, h: 88 },
-  { name: 'sim2StandReadSE1', x: 3237, y: 5682, w: 38, h: 88 },
-  { name: 'sim2StandReadNW0', x: 3276, y: 5682, w: 38, h: 88 },
-  { name: 'sim2StandReadNW1', x: 3315, y: 5682, w: 38, h: 88 },
-  { name: 'sim2StandReadSW0', x: 3354, y: 5682, w: 38, h: 88 },
-  { name: 'sim2StandReadSW1', x: 3393, y: 5682, w: 38, h: 88 },
-  { name: 'sim2StandReadNE0', x: 3432, y: 5682, w: 38, h: 88 },
-  { name: 'sim2StandReadNE1', x: 3471, y: 5682, w: 38, h: 88 },
-  { name: 'sim3StandReadSE0', x: 3510, y: 5682, w: 38, h: 88 },
-  { name: 'sim3StandReadSE1', x: 3549, y: 5682, w: 38, h: 88 },
-  { name: 'sim3StandReadNW0', x: 3588, y: 5682, w: 38, h: 88 },
-  { name: 'sim3StandReadNW1', x: 3627, y: 5682, w: 38, h: 88 },
-  { name: 'sim3StandReadSW0', x: 3666, y: 5682, w: 38, h: 88 },
-  { name: 'sim3StandReadSW1', x: 3705, y: 5682, w: 38, h: 88 },
-  { name: 'sim3StandReadNE0', x: 3744, y: 5682, w: 38, h: 88 },
-  { name: 'sim3StandReadNE1', x: 3783, y: 5682, w: 38, h: 88 },
-  { name: 'simWalkSE0', x: 3822, y: 5682, w: 38, h: 88 },
-  { name: 'simWalkSE1', x: 3861, y: 5682, w: 38, h: 88 },
-  { name: 'simWalkNW0', x: 3900, y: 5682, w: 38, h: 88 },
-  { name: 'simWalkNW1', x: 3939, y: 5682, w: 38, h: 88 },
-  { name: 'simWalkSW0', x: 3978, y: 5682, w: 38, h: 88 },
-  { name: 'simWalkSW1', x: 4017, y: 5682, w: 38, h: 88 },
-  { name: 'simWalkNE0', x: 4056, y: 5682, w: 38, h: 88 },
-  { name: 'simWalkNE1', x: 0, y: 5771, w: 38, h: 88 },
-  { name: 'sim2WalkSE0', x: 39, y: 5771, w: 38, h: 88 },
-  { name: 'sim2WalkSE1', x: 78, y: 5771, w: 38, h: 88 },
-  { name: 'sim2WalkNW0', x: 117, y: 5771, w: 38, h: 88 },
-  { name: 'sim2WalkNW1', x: 156, y: 5771, w: 38, h: 88 },
-  { name: 'sim2WalkSW0', x: 195, y: 5771, w: 38, h: 88 },
-  { name: 'sim2WalkSW1', x: 234, y: 5771, w: 38, h: 88 },
-  { name: 'sim2WalkNE0', x: 273, y: 5771, w: 38, h: 88 },
-  { name: 'sim2WalkNE1', x: 312, y: 5771, w: 38, h: 88 },
-  { name: 'sim3WalkSE0', x: 351, y: 5771, w: 38, h: 88 },
-  { name: 'sim3WalkSE1', x: 390, y: 5771, w: 38, h: 88 },
-  { name: 'sim3WalkNW0', x: 429, y: 5771, w: 38, h: 88 },
-  { name: 'sim3WalkNW1', x: 468, y: 5771, w: 38, h: 88 },
-  { name: 'sim3WalkSW0', x: 507, y: 5771, w: 38, h: 88 },
-  { name: 'sim3WalkSW1', x: 546, y: 5771, w: 38, h: 88 },
-  { name: 'sim3WalkNE0', x: 585, y: 5771, w: 38, h: 88 },
-  { name: 'sim3WalkNE1', x: 624, y: 5771, w: 38, h: 88 },
-  { name: 'heldSnack', x: 610, y: 6021, w: 14, h: 10 },
-  { name: 'aquariumCabinet1', x: 2412, y: 5529, w: 80, h: 104 },
-  { name: 'indicatorExercise', x: 520, y: 6021, w: 26, h: 26 },
-  { name: 'indicatorWatchFish', x: 547, y: 6021, w: 26, h: 26 },
-  { name: 'simExerciseSE0', x: 663, y: 5771, w: 38, h: 88 },
-  { name: 'simExerciseSE1', x: 702, y: 5771, w: 38, h: 88 },
-  { name: 'simExerciseNW0', x: 741, y: 5771, w: 38, h: 88 },
-  { name: 'simExerciseNW1', x: 780, y: 5771, w: 38, h: 88 },
-  { name: 'simExerciseSW0', x: 819, y: 5771, w: 38, h: 88 },
-  { name: 'simExerciseSW1', x: 858, y: 5771, w: 38, h: 88 },
-  { name: 'simExerciseNE0', x: 897, y: 5771, w: 38, h: 88 },
-  { name: 'simExerciseNE1', x: 936, y: 5771, w: 38, h: 88 },
-  { name: 'sim2ExerciseSE0', x: 975, y: 5771, w: 38, h: 88 },
-  { name: 'sim2ExerciseSE1', x: 1014, y: 5771, w: 38, h: 88 },
-  { name: 'sim2ExerciseNW0', x: 1053, y: 5771, w: 38, h: 88 },
-  { name: 'sim2ExerciseNW1', x: 1092, y: 5771, w: 38, h: 88 },
-  { name: 'sim2ExerciseSW0', x: 1131, y: 5771, w: 38, h: 88 },
-  { name: 'sim2ExerciseSW1', x: 1170, y: 5771, w: 38, h: 88 },
-  { name: 'sim2ExerciseNE0', x: 1209, y: 5771, w: 38, h: 88 },
-  { name: 'sim2ExerciseNE1', x: 1248, y: 5771, w: 38, h: 88 },
-  { name: 'sim3ExerciseSE0', x: 1287, y: 5771, w: 38, h: 88 },
-  { name: 'sim3ExerciseSE1', x: 1326, y: 5771, w: 38, h: 88 },
-  { name: 'sim3ExerciseNW0', x: 1365, y: 5771, w: 38, h: 88 },
-  { name: 'sim3ExerciseNW1', x: 1404, y: 5771, w: 38, h: 88 },
-  { name: 'sim3ExerciseSW0', x: 1443, y: 5771, w: 38, h: 88 },
-  { name: 'sim3ExerciseSW1', x: 1482, y: 5771, w: 38, h: 88 },
-  { name: 'sim3ExerciseNE0', x: 1521, y: 5771, w: 38, h: 88 },
-  { name: 'sim3ExerciseNE1', x: 1560, y: 5771, w: 38, h: 88 },
-  { name: 'simWatchFishSE0', x: 1599, y: 5771, w: 38, h: 88 },
-  { name: 'simWatchFishSE1', x: 1638, y: 5771, w: 38, h: 88 },
-  { name: 'simWatchFishNW0', x: 1677, y: 5771, w: 38, h: 88 },
-  { name: 'simWatchFishNW1', x: 1716, y: 5771, w: 38, h: 88 },
-  { name: 'simWatchFishSW0', x: 1755, y: 5771, w: 38, h: 88 },
-  { name: 'simWatchFishSW1', x: 1794, y: 5771, w: 38, h: 88 },
-  { name: 'simWatchFishNE0', x: 1833, y: 5771, w: 38, h: 88 },
-  { name: 'simWatchFishNE1', x: 1872, y: 5771, w: 38, h: 88 },
-  { name: 'sim2WatchFishSE0', x: 1911, y: 5771, w: 38, h: 88 },
-  { name: 'sim2WatchFishSE1', x: 1950, y: 5771, w: 38, h: 88 },
-  { name: 'sim2WatchFishNW0', x: 1989, y: 5771, w: 38, h: 88 },
-  { name: 'sim2WatchFishNW1', x: 2028, y: 5771, w: 38, h: 88 },
-  { name: 'sim2WatchFishSW0', x: 2067, y: 5771, w: 38, h: 88 },
-  { name: 'sim2WatchFishSW1', x: 2106, y: 5771, w: 38, h: 88 },
-  { name: 'sim2WatchFishNE0', x: 2145, y: 5771, w: 38, h: 88 },
-  { name: 'sim2WatchFishNE1', x: 2184, y: 5771, w: 38, h: 88 },
-  { name: 'sim3WatchFishSE0', x: 2223, y: 5771, w: 38, h: 88 },
-  { name: 'sim3WatchFishSE1', x: 2262, y: 5771, w: 38, h: 88 },
-  { name: 'sim3WatchFishNW0', x: 2301, y: 5771, w: 38, h: 88 },
-  { name: 'sim3WatchFishNW1', x: 2340, y: 5771, w: 38, h: 88 },
-  { name: 'sim3WatchFishSW0', x: 2379, y: 5771, w: 38, h: 88 },
-  { name: 'sim3WatchFishSW1', x: 2418, y: 5771, w: 38, h: 88 },
-  { name: 'sim3WatchFishNE0', x: 2457, y: 5771, w: 38, h: 88 },
-  { name: 'sim3WatchFishNE1', x: 2496, y: 5771, w: 38, h: 88 },
-  { name: 'kitchenFridgeBuiltInSW', x: 2611, y: 5529, w: 58, h: 102 },
-  { name: 'kitchenFridgeBuiltInNW', x: 2670, y: 5529, w: 58, h: 102 },
-  { name: 'kitchenFridgeBuiltInNE', x: 2729, y: 5529, w: 58, h: 102 },
-  { name: 'bathroomSinkSquareSW', x: 3082, y: 5948, w: 34, h: 60 },
-  { name: 'bathroomSinkSquareNW', x: 3117, y: 5948, w: 34, h: 60 },
-  { name: 'bathroomSinkSquareNE', x: 2744, y: 5948, w: 34, h: 65 },
-  { name: 'showerRoundSW', x: 2788, y: 5529, w: 58, h: 102 },
-  { name: 'showerRoundNW', x: 357, y: 5860, w: 58, h: 86 },
-  { name: 'showerRoundNE', x: 2847, y: 5529, w: 58, h: 102 },
-  { name: 'toiletSquareSW', x: 3637, y: 5948, w: 38, h: 56 },
-  { name: 'toiletSquareNW', x: 3676, y: 5948, w: 38, h: 56 },
-  { name: 'toiletSquareNE', x: 3014, y: 5948, w: 38, h: 63 },
-  { name: 'bookcaseClosedDoorsSW', x: 2535, y: 5771, w: 58, h: 88 },
-  { name: 'bookcaseClosedDoorsNW', x: 2594, y: 5771, w: 58, h: 88 },
-  { name: 'bookcaseClosedDoorsNE', x: 2653, y: 5771, w: 58, h: 88 },
-  { name: 'loungeSofaOttomanSW', x: 4008, y: 5948, w: 54, h: 51 },
-  { name: 'loungeSofaOttomanNW', x: 0, y: 6021, w: 54, h: 51 },
-  { name: 'loungeSofaOttomanNE', x: 55, y: 6021, w: 54, h: 51 },
-  { name: 'televisionVintageSW', x: 3430, y: 5948, w: 44, h: 59 },
-  { name: 'televisionVintageNW', x: 3475, y: 5948, w: 44, h: 59 },
-  { name: 'televisionVintageNE', x: 3520, y: 5948, w: 44, h: 59 },
+  { name: 'kitchenStoveSW', x: 2925, y: 5860, w: 66, h: 76 },
+  { name: 'kitchenCabinetSW', x: 2992, y: 5860, w: 66, h: 76 },
+  { name: 'kitchenSinkSW', x: 3059, y: 5860, w: 66, h: 76 },
+  { name: 'kitchenCabinetCornerInnerSW', x: 3126, y: 5860, w: 66, h: 76 },
+  { name: 'indicatorTalk', x: 495, y: 6021, w: 26, h: 26 },
+  { name: 'indicatorEat', x: 522, y: 6021, w: 26, h: 26 },
+  { name: 'indicatorSleep', x: 549, y: 6021, w: 26, h: 26 },
+  { name: 'indicatorWait', x: 576, y: 6021, w: 26, h: 26 },
+  { name: 'carried_ingredients', x: 684, y: 6021, w: 16, h: 20 },
+  { name: 'carried_dinner', x: 701, y: 6021, w: 18, h: 14 },
+  { name: 'sim2', x: 81, y: 5682, w: 38, h: 88 },
+  { name: 'sim3', x: 120, y: 5682, w: 38, h: 88 },
+  { name: 'simTalkSE0', x: 159, y: 5682, w: 38, h: 88 },
+  { name: 'simTalkSE1', x: 198, y: 5682, w: 38, h: 88 },
+  { name: 'simTalkNW0', x: 237, y: 5682, w: 38, h: 88 },
+  { name: 'simTalkNW1', x: 276, y: 5682, w: 38, h: 88 },
+  { name: 'simTalkSW0', x: 315, y: 5682, w: 38, h: 88 },
+  { name: 'simTalkSW1', x: 354, y: 5682, w: 38, h: 88 },
+  { name: 'simTalkNE0', x: 393, y: 5682, w: 38, h: 88 },
+  { name: 'simTalkNE1', x: 432, y: 5682, w: 38, h: 88 },
+  { name: 'sim2TalkSE0', x: 471, y: 5682, w: 38, h: 88 },
+  { name: 'sim2TalkSE1', x: 510, y: 5682, w: 38, h: 88 },
+  { name: 'sim2TalkNW0', x: 549, y: 5682, w: 38, h: 88 },
+  { name: 'sim2TalkNW1', x: 588, y: 5682, w: 38, h: 88 },
+  { name: 'sim2TalkSW0', x: 627, y: 5682, w: 38, h: 88 },
+  { name: 'sim2TalkSW1', x: 666, y: 5682, w: 38, h: 88 },
+  { name: 'sim2TalkNE0', x: 705, y: 5682, w: 38, h: 88 },
+  { name: 'sim2TalkNE1', x: 744, y: 5682, w: 38, h: 88 },
+  { name: 'sim3TalkSE0', x: 783, y: 5682, w: 38, h: 88 },
+  { name: 'sim3TalkSE1', x: 822, y: 5682, w: 38, h: 88 },
+  { name: 'sim3TalkNW0', x: 861, y: 5682, w: 38, h: 88 },
+  { name: 'sim3TalkNW1', x: 900, y: 5682, w: 38, h: 88 },
+  { name: 'sim3TalkSW0', x: 939, y: 5682, w: 38, h: 88 },
+  { name: 'sim3TalkSW1', x: 978, y: 5682, w: 38, h: 88 },
+  { name: 'sim3TalkNE0', x: 1017, y: 5682, w: 38, h: 88 },
+  { name: 'sim3TalkNE1', x: 1056, y: 5682, w: 38, h: 88 },
+  { name: 'simEatSE0', x: 1095, y: 5682, w: 38, h: 88 },
+  { name: 'simEatSE1', x: 1134, y: 5682, w: 38, h: 88 },
+  { name: 'simEatNW0', x: 1173, y: 5682, w: 38, h: 88 },
+  { name: 'simEatNW1', x: 1212, y: 5682, w: 38, h: 88 },
+  { name: 'simEatSW0', x: 1251, y: 5682, w: 38, h: 88 },
+  { name: 'simEatSW1', x: 1290, y: 5682, w: 38, h: 88 },
+  { name: 'simEatNE0', x: 1329, y: 5682, w: 38, h: 88 },
+  { name: 'simEatNE1', x: 1368, y: 5682, w: 38, h: 88 },
+  { name: 'sim2EatSE0', x: 1407, y: 5682, w: 38, h: 88 },
+  { name: 'sim2EatSE1', x: 1446, y: 5682, w: 38, h: 88 },
+  { name: 'sim2EatNW0', x: 1485, y: 5682, w: 38, h: 88 },
+  { name: 'sim2EatNW1', x: 1524, y: 5682, w: 38, h: 88 },
+  { name: 'sim2EatSW0', x: 1563, y: 5682, w: 38, h: 88 },
+  { name: 'sim2EatSW1', x: 1602, y: 5682, w: 38, h: 88 },
+  { name: 'sim2EatNE0', x: 1641, y: 5682, w: 38, h: 88 },
+  { name: 'sim2EatNE1', x: 1680, y: 5682, w: 38, h: 88 },
+  { name: 'sim3EatSE0', x: 1719, y: 5682, w: 38, h: 88 },
+  { name: 'sim3EatSE1', x: 1758, y: 5682, w: 38, h: 88 },
+  { name: 'sim3EatNW0', x: 1797, y: 5682, w: 38, h: 88 },
+  { name: 'sim3EatNW1', x: 1836, y: 5682, w: 38, h: 88 },
+  { name: 'sim3EatSW0', x: 1875, y: 5682, w: 38, h: 88 },
+  { name: 'sim3EatSW1', x: 1914, y: 5682, w: 38, h: 88 },
+  { name: 'sim3EatNE0', x: 1953, y: 5682, w: 38, h: 88 },
+  { name: 'sim3EatNE1', x: 1992, y: 5682, w: 38, h: 88 },
+  { name: 'simReadSE0', x: 2031, y: 5682, w: 38, h: 88 },
+  { name: 'simReadSE1', x: 2070, y: 5682, w: 38, h: 88 },
+  { name: 'simReadNW0', x: 2109, y: 5682, w: 38, h: 88 },
+  { name: 'simReadNW1', x: 2148, y: 5682, w: 38, h: 88 },
+  { name: 'simReadSW0', x: 2187, y: 5682, w: 38, h: 88 },
+  { name: 'simReadSW1', x: 2226, y: 5682, w: 38, h: 88 },
+  { name: 'simReadNE0', x: 2265, y: 5682, w: 38, h: 88 },
+  { name: 'simReadNE1', x: 2304, y: 5682, w: 38, h: 88 },
+  { name: 'sim2ReadSE0', x: 2343, y: 5682, w: 38, h: 88 },
+  { name: 'sim2ReadSE1', x: 2382, y: 5682, w: 38, h: 88 },
+  { name: 'sim2ReadNW0', x: 2421, y: 5682, w: 38, h: 88 },
+  { name: 'sim2ReadNW1', x: 2460, y: 5682, w: 38, h: 88 },
+  { name: 'sim2ReadSW0', x: 2499, y: 5682, w: 38, h: 88 },
+  { name: 'sim2ReadSW1', x: 2538, y: 5682, w: 38, h: 88 },
+  { name: 'sim2ReadNE0', x: 2577, y: 5682, w: 38, h: 88 },
+  { name: 'sim2ReadNE1', x: 2616, y: 5682, w: 38, h: 88 },
+  { name: 'sim3ReadSE0', x: 2655, y: 5682, w: 38, h: 88 },
+  { name: 'sim3ReadSE1', x: 2694, y: 5682, w: 38, h: 88 },
+  { name: 'sim3ReadNW0', x: 2733, y: 5682, w: 38, h: 88 },
+  { name: 'sim3ReadNW1', x: 2772, y: 5682, w: 38, h: 88 },
+  { name: 'sim3ReadSW0', x: 2811, y: 5682, w: 38, h: 88 },
+  { name: 'sim3ReadSW1', x: 2850, y: 5682, w: 38, h: 88 },
+  { name: 'sim3ReadNE0', x: 2889, y: 5682, w: 38, h: 88 },
+  { name: 'sim3ReadNE1', x: 2928, y: 5682, w: 38, h: 88 },
+  { name: 'indicatorReading', x: 603, y: 6021, w: 26, h: 26 },
+  { name: 'simStandReadSE0', x: 2967, y: 5682, w: 38, h: 88 },
+  { name: 'simStandReadSE1', x: 3006, y: 5682, w: 38, h: 88 },
+  { name: 'simStandReadNW0', x: 3045, y: 5682, w: 38, h: 88 },
+  { name: 'simStandReadNW1', x: 3084, y: 5682, w: 38, h: 88 },
+  { name: 'simStandReadSW0', x: 3123, y: 5682, w: 38, h: 88 },
+  { name: 'simStandReadSW1', x: 3162, y: 5682, w: 38, h: 88 },
+  { name: 'simStandReadNE0', x: 3201, y: 5682, w: 38, h: 88 },
+  { name: 'simStandReadNE1', x: 3240, y: 5682, w: 38, h: 88 },
+  { name: 'sim2StandReadSE0', x: 3279, y: 5682, w: 38, h: 88 },
+  { name: 'sim2StandReadSE1', x: 3318, y: 5682, w: 38, h: 88 },
+  { name: 'sim2StandReadNW0', x: 3357, y: 5682, w: 38, h: 88 },
+  { name: 'sim2StandReadNW1', x: 3396, y: 5682, w: 38, h: 88 },
+  { name: 'sim2StandReadSW0', x: 3435, y: 5682, w: 38, h: 88 },
+  { name: 'sim2StandReadSW1', x: 3474, y: 5682, w: 38, h: 88 },
+  { name: 'sim2StandReadNE0', x: 3513, y: 5682, w: 38, h: 88 },
+  { name: 'sim2StandReadNE1', x: 3552, y: 5682, w: 38, h: 88 },
+  { name: 'sim3StandReadSE0', x: 3591, y: 5682, w: 38, h: 88 },
+  { name: 'sim3StandReadSE1', x: 3630, y: 5682, w: 38, h: 88 },
+  { name: 'sim3StandReadNW0', x: 3669, y: 5682, w: 38, h: 88 },
+  { name: 'sim3StandReadNW1', x: 3708, y: 5682, w: 38, h: 88 },
+  { name: 'sim3StandReadSW0', x: 3747, y: 5682, w: 38, h: 88 },
+  { name: 'sim3StandReadSW1', x: 3786, y: 5682, w: 38, h: 88 },
+  { name: 'sim3StandReadNE0', x: 3825, y: 5682, w: 38, h: 88 },
+  { name: 'sim3StandReadNE1', x: 3864, y: 5682, w: 38, h: 88 },
+  { name: 'simWalkSE0', x: 3903, y: 5682, w: 38, h: 88 },
+  { name: 'simWalkSE1', x: 3942, y: 5682, w: 38, h: 88 },
+  { name: 'simWalkNW0', x: 3981, y: 5682, w: 38, h: 88 },
+  { name: 'simWalkNW1', x: 4020, y: 5682, w: 38, h: 88 },
+  { name: 'simWalkSW0', x: 0, y: 5771, w: 38, h: 88 },
+  { name: 'simWalkSW1', x: 39, y: 5771, w: 38, h: 88 },
+  { name: 'simWalkNE0', x: 78, y: 5771, w: 38, h: 88 },
+  { name: 'simWalkNE1', x: 117, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WalkSE0', x: 156, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WalkSE1', x: 195, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WalkNW0', x: 234, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WalkNW1', x: 273, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WalkSW0', x: 312, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WalkSW1', x: 351, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WalkNE0', x: 390, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WalkNE1', x: 429, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WalkSE0', x: 468, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WalkSE1', x: 507, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WalkNW0', x: 546, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WalkNW1', x: 585, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WalkSW0', x: 624, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WalkSW1', x: 663, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WalkNE0', x: 702, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WalkNE1', x: 741, y: 5771, w: 38, h: 88 },
+  { name: 'heldSnack', x: 720, y: 6021, w: 14, h: 10 },
+  { name: 'aquariumCabinet1', x: 2478, y: 5529, w: 80, h: 104 },
+  { name: 'indicatorExercise', x: 630, y: 6021, w: 26, h: 26 },
+  { name: 'indicatorWatchFish', x: 657, y: 6021, w: 26, h: 26 },
+  { name: 'simExerciseSE0', x: 780, y: 5771, w: 38, h: 88 },
+  { name: 'simExerciseSE1', x: 819, y: 5771, w: 38, h: 88 },
+  { name: 'simExerciseNW0', x: 858, y: 5771, w: 38, h: 88 },
+  { name: 'simExerciseNW1', x: 897, y: 5771, w: 38, h: 88 },
+  { name: 'simExerciseSW0', x: 936, y: 5771, w: 38, h: 88 },
+  { name: 'simExerciseSW1', x: 975, y: 5771, w: 38, h: 88 },
+  { name: 'simExerciseNE0', x: 1014, y: 5771, w: 38, h: 88 },
+  { name: 'simExerciseNE1', x: 1053, y: 5771, w: 38, h: 88 },
+  { name: 'sim2ExerciseSE0', x: 1092, y: 5771, w: 38, h: 88 },
+  { name: 'sim2ExerciseSE1', x: 1131, y: 5771, w: 38, h: 88 },
+  { name: 'sim2ExerciseNW0', x: 1170, y: 5771, w: 38, h: 88 },
+  { name: 'sim2ExerciseNW1', x: 1209, y: 5771, w: 38, h: 88 },
+  { name: 'sim2ExerciseSW0', x: 1248, y: 5771, w: 38, h: 88 },
+  { name: 'sim2ExerciseSW1', x: 1287, y: 5771, w: 38, h: 88 },
+  { name: 'sim2ExerciseNE0', x: 1326, y: 5771, w: 38, h: 88 },
+  { name: 'sim2ExerciseNE1', x: 1365, y: 5771, w: 38, h: 88 },
+  { name: 'sim3ExerciseSE0', x: 1404, y: 5771, w: 38, h: 88 },
+  { name: 'sim3ExerciseSE1', x: 1443, y: 5771, w: 38, h: 88 },
+  { name: 'sim3ExerciseNW0', x: 1482, y: 5771, w: 38, h: 88 },
+  { name: 'sim3ExerciseNW1', x: 1521, y: 5771, w: 38, h: 88 },
+  { name: 'sim3ExerciseSW0', x: 1560, y: 5771, w: 38, h: 88 },
+  { name: 'sim3ExerciseSW1', x: 1599, y: 5771, w: 38, h: 88 },
+  { name: 'sim3ExerciseNE0', x: 1638, y: 5771, w: 38, h: 88 },
+  { name: 'sim3ExerciseNE1', x: 1677, y: 5771, w: 38, h: 88 },
+  { name: 'simWatchFishSE0', x: 1716, y: 5771, w: 38, h: 88 },
+  { name: 'simWatchFishSE1', x: 1755, y: 5771, w: 38, h: 88 },
+  { name: 'simWatchFishNW0', x: 1794, y: 5771, w: 38, h: 88 },
+  { name: 'simWatchFishNW1', x: 1833, y: 5771, w: 38, h: 88 },
+  { name: 'simWatchFishSW0', x: 1872, y: 5771, w: 38, h: 88 },
+  { name: 'simWatchFishSW1', x: 1911, y: 5771, w: 38, h: 88 },
+  { name: 'simWatchFishNE0', x: 1950, y: 5771, w: 38, h: 88 },
+  { name: 'simWatchFishNE1', x: 1989, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WatchFishSE0', x: 2028, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WatchFishSE1', x: 2067, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WatchFishNW0', x: 2106, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WatchFishNW1', x: 2145, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WatchFishSW0', x: 2184, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WatchFishSW1', x: 2223, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WatchFishNE0', x: 2262, y: 5771, w: 38, h: 88 },
+  { name: 'sim2WatchFishNE1', x: 2301, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WatchFishSE0', x: 2340, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WatchFishSE1', x: 2379, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WatchFishNW0', x: 2418, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WatchFishNW1', x: 2457, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WatchFishSW0', x: 2496, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WatchFishSW1', x: 2535, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WatchFishNE0', x: 2574, y: 5771, w: 38, h: 88 },
+  { name: 'sim3WatchFishNE1', x: 2613, y: 5771, w: 38, h: 88 },
+  { name: 'kitchenFridgeBuiltInSW', x: 2677, y: 5529, w: 58, h: 102 },
+  { name: 'kitchenFridgeBuiltInNW', x: 2736, y: 5529, w: 58, h: 102 },
+  { name: 'kitchenFridgeBuiltInNE', x: 2795, y: 5529, w: 58, h: 102 },
+  { name: 'bathroomSinkSquareSW', x: 3187, y: 5948, w: 34, h: 60 },
+  { name: 'bathroomSinkSquareNW', x: 3222, y: 5948, w: 34, h: 60 },
+  { name: 'bathroomSinkSquareNE', x: 2849, y: 5948, w: 34, h: 65 },
+  { name: 'showerRoundSW', x: 2854, y: 5529, w: 58, h: 102 },
+  { name: 'showerRoundNW', x: 476, y: 5860, w: 58, h: 86 },
+  { name: 'showerRoundNE', x: 2913, y: 5529, w: 58, h: 102 },
+  { name: 'toiletSquareSW', x: 3742, y: 5948, w: 38, h: 56 },
+  { name: 'toiletSquareNW', x: 3781, y: 5948, w: 38, h: 56 },
+  { name: 'toiletSquareNE', x: 3119, y: 5948, w: 38, h: 63 },
+  { name: 'bookcaseClosedDoorsSW', x: 2652, y: 5771, w: 58, h: 88 },
+  { name: 'bookcaseClosedDoorsNW', x: 2711, y: 5771, w: 58, h: 88 },
+  { name: 'bookcaseClosedDoorsNE', x: 2770, y: 5771, w: 58, h: 88 },
+  { name: 'loungeSofaOttomanSW', x: 55, y: 6021, w: 54, h: 51 },
+  { name: 'loungeSofaOttomanNW', x: 110, y: 6021, w: 54, h: 51 },
+  { name: 'loungeSofaOttomanNE', x: 165, y: 6021, w: 54, h: 51 },
+  { name: 'televisionVintageSW', x: 3535, y: 5948, w: 44, h: 59 },
+  { name: 'televisionVintageNW', x: 3580, y: 5948, w: 44, h: 59 },
+  { name: 'televisionVintageNE', x: 3625, y: 5948, w: 44, h: 59 },
   { name: 'bedBunkSW', x: 1377, y: 5529, w: 122, h: 136 },
   { name: 'bedBunkNW', x: 1500, y: 5529, w: 122, h: 136 },
   { name: 'bedBunkNE', x: 1623, y: 5529, w: 122, h: 136 },
-  { name: 'kitchenStoveNW', x: 3074, y: 5860, w: 66, h: 76 },
-  { name: 'kitchenStoveNE', x: 2253, y: 5860, w: 66, h: 77 },
-  { name: 'kitchenCabinetNW', x: 3141, y: 5860, w: 66, h: 76 },
-  { name: 'kitchenCabinetNE', x: 3208, y: 5860, w: 66, h: 76 },
-  { name: 'kitchenSinkNW', x: 3275, y: 5860, w: 66, h: 76 },
-  { name: 'kitchenSinkNE', x: 3342, y: 5860, w: 66, h: 76 },
-  { name: 'tableSW', x: 642, y: 5860, w: 112, h: 83 },
-  { name: 'tableNW', x: 755, y: 5860, w: 112, h: 83 },
-  { name: 'tableNE', x: 868, y: 5860, w: 112, h: 83 },
-  { name: 'chairSW', x: 2454, y: 5948, w: 50, h: 67 },
-  { name: 'chairNW', x: 2505, y: 5948, w: 50, h: 67 },
-  { name: 'chairNE', x: 1591, y: 5860, w: 50, h: 80 },
-  { name: 'trashcanSW', x: 3919, y: 5948, w: 16, h: 52 },
-  { name: 'trashcanNW', x: 3936, y: 5948, w: 16, h: 52 },
-  { name: 'trashcanNE', x: 3885, y: 5948, w: 16, h: 53 },
-  { name: 'loungeSofaLongSW', x: 3537, y: 5529, w: 122, h: 92 },
-  { name: 'loungeSofaLongNW', x: 3660, y: 5529, w: 122, h: 92 },
-  { name: 'loungeSofaLongNE', x: 3783, y: 5529, w: 122, h: 92 },
-  { name: 'loungeChairSW', x: 3152, y: 5948, w: 50, h: 60 },
-  { name: 'loungeChairNW', x: 3203, y: 5948, w: 50, h: 60 },
-  { name: 'loungeChairNE', x: 1941, y: 5948, w: 50, h: 70 },
-  { name: 'loungeChairRelaxSW', x: 1375, y: 5860, w: 54, h: 81 },
-  { name: 'loungeChairRelaxNW', x: 1992, y: 5948, w: 54, h: 70 },
-  { name: 'loungeChairRelaxNE', x: 2047, y: 5948, w: 54, h: 70 },
-  { name: 'radioSW', x: 110, y: 6021, w: 48, h: 50 },
-  { name: 'radioNW', x: 159, y: 6021, w: 46, h: 50 },
-  { name: 'radioNE', x: 206, y: 6021, w: 48, h: 50 },
-  { name: 'pottedPlantSW', x: 3254, y: 5948, w: 28, h: 60 },
-  { name: 'pottedPlantNW', x: 3565, y: 5948, w: 30, h: 59 },
-  { name: 'pottedPlantNE', x: 3053, y: 5948, w: 28, h: 62 },
-  { name: 'cardboardBoxOpenSW', x: 2712, y: 5771, w: 80, h: 88 },
-  { name: 'cardboardBoxOpenNW', x: 2793, y: 5771, w: 80, h: 88 },
-  { name: 'cardboardBoxOpenNE', x: 2874, y: 5771, w: 80, h: 88 },
-  { name: 'lampRoundFloorSW', x: 2349, y: 5948, w: 34, h: 68 },
-  { name: 'lampRoundFloorNW', x: 2384, y: 5948, w: 34, h: 68 },
-  { name: 'lampRoundFloorNE', x: 2419, y: 5948, w: 34, h: 68 },
-  { name: 'coatRackStandingSW', x: 2320, y: 5860, w: 18, h: 77 },
-  { name: 'coatRackStandingNW', x: 2339, y: 5860, w: 18, h: 77 },
-  { name: 'coatRackStandingNE', x: 2358, y: 5860, w: 18, h: 77 },
-  { name: 'bedDoubleSW', x: 3126, y: 5529, w: 122, h: 96 },
-  { name: 'bedDoubleNW', x: 2377, y: 5860, w: 122, h: 77 },
-  { name: 'bedDoubleNE', x: 2500, y: 5860, w: 122, h: 77 },
-  { name: 'sideTableDrawersSW', x: 2779, y: 5948, w: 54, h: 65 },
-  { name: 'sideTableDrawersNW', x: 2834, y: 5948, w: 54, h: 65 },
-  { name: 'sideTableDrawersNE', x: 2889, y: 5948, w: 54, h: 65 },
-  { name: 'cabinetBedDrawerSW', x: 3715, y: 5948, w: 40, h: 56 },
-  { name: 'cabinetBedDrawerNW', x: 3756, y: 5948, w: 40, h: 56 },
-  { name: 'cabinetBedDrawerNE', x: 3797, y: 5948, w: 40, h: 56 },
-  { name: 'deskSW', x: 981, y: 5860, w: 112, h: 83 },
-  { name: 'deskNW', x: 1094, y: 5860, w: 112, h: 83 },
-  { name: 'deskNE', x: 1207, y: 5860, w: 112, h: 83 },
-  { name: 'chairDeskSW', x: 2556, y: 5948, w: 48, h: 66 },
-  { name: 'chairDeskNW', x: 2605, y: 5948, w: 48, h: 66 },
-  { name: 'chairDeskNE', x: 2623, y: 5860, w: 48, h: 77 },
-  { name: 'bathtubSW', x: 0, y: 5860, w: 118, h: 87 },
-  { name: 'bathtubNW', x: 1642, y: 5860, w: 118, h: 79 },
-  { name: 'bathtubNE', x: 1761, y: 5860, w: 118, h: 79 },
-  { name: 'washerDryerStackedSW', x: 3249, y: 5529, w: 54, h: 96 },
-  { name: 'washerDryerStackedNW', x: 3304, y: 5529, w: 54, h: 96 },
-  { name: 'washerDryerStackedNE', x: 3359, y: 5529, w: 54, h: 96 },
-  { name: 'bathtubFull', x: 119, y: 5860, w: 118, h: 87 },
-  { name: 'bathtubFullSW', x: 238, y: 5860, w: 118, h: 87 },
-  { name: 'bathtubFullNW', x: 1880, y: 5860, w: 118, h: 79 },
-  { name: 'bathtubFullNE', x: 1999, y: 5860, w: 118, h: 79 },
-  { name: 'simSitSE0', x: 2955, y: 5771, w: 38, h: 88 },
-  { name: 'simSitSE1', x: 2994, y: 5771, w: 38, h: 88 },
-  { name: 'simSitNW0', x: 3033, y: 5771, w: 38, h: 88 },
-  { name: 'simSitNW1', x: 3072, y: 5771, w: 38, h: 88 },
-  { name: 'simSitSW0', x: 3111, y: 5771, w: 38, h: 88 },
-  { name: 'simSitSW1', x: 3150, y: 5771, w: 38, h: 88 },
-  { name: 'simSitNE0', x: 3189, y: 5771, w: 38, h: 88 },
-  { name: 'simSitNE1', x: 3228, y: 5771, w: 38, h: 88 },
-  { name: 'sim2SitSE0', x: 3267, y: 5771, w: 38, h: 88 },
-  { name: 'sim2SitSE1', x: 3306, y: 5771, w: 38, h: 88 },
-  { name: 'sim2SitNW0', x: 3345, y: 5771, w: 38, h: 88 },
-  { name: 'sim2SitNW1', x: 3384, y: 5771, w: 38, h: 88 },
-  { name: 'sim2SitSW0', x: 3423, y: 5771, w: 38, h: 88 },
-  { name: 'sim2SitSW1', x: 3462, y: 5771, w: 38, h: 88 },
-  { name: 'sim2SitNE0', x: 3501, y: 5771, w: 38, h: 88 },
-  { name: 'sim2SitNE1', x: 3540, y: 5771, w: 38, h: 88 },
-  { name: 'sim3SitSE0', x: 3579, y: 5771, w: 38, h: 88 },
-  { name: 'sim3SitSE1', x: 3618, y: 5771, w: 38, h: 88 },
-  { name: 'sim3SitNW0', x: 3657, y: 5771, w: 38, h: 88 },
-  { name: 'sim3SitNW1', x: 3696, y: 5771, w: 38, h: 88 },
-  { name: 'sim3SitSW0', x: 3735, y: 5771, w: 38, h: 88 },
-  { name: 'sim3SitSW1', x: 3774, y: 5771, w: 38, h: 88 },
-  { name: 'sim3SitNE0', x: 3813, y: 5771, w: 38, h: 88 },
-  { name: 'sim3SitNE1', x: 3852, y: 5771, w: 38, h: 88 },
+  { name: 'kitchenStoveNW', x: 3193, y: 5860, w: 66, h: 76 },
+  { name: 'kitchenStoveNE', x: 2372, y: 5860, w: 66, h: 77 },
+  { name: 'kitchenCabinetNW', x: 3260, y: 5860, w: 66, h: 76 },
+  { name: 'kitchenCabinetNE', x: 3327, y: 5860, w: 66, h: 76 },
+  { name: 'kitchenSinkNW', x: 3394, y: 5860, w: 66, h: 76 },
+  { name: 'kitchenSinkNE', x: 3461, y: 5860, w: 66, h: 76 },
+  { name: 'tableSW', x: 761, y: 5860, w: 112, h: 83 },
+  { name: 'tableNW', x: 874, y: 5860, w: 112, h: 83 },
+  { name: 'tableNE', x: 987, y: 5860, w: 112, h: 83 },
+  { name: 'chairSW', x: 2559, y: 5948, w: 50, h: 67 },
+  { name: 'chairNW', x: 2610, y: 5948, w: 50, h: 67 },
+  { name: 'chairNE', x: 1710, y: 5860, w: 50, h: 80 },
+  { name: 'trashcanSW', x: 4024, y: 5948, w: 16, h: 52 },
+  { name: 'trashcanNW', x: 4041, y: 5948, w: 16, h: 52 },
+  { name: 'trashcanNE', x: 3990, y: 5948, w: 16, h: 53 },
+  { name: 'loungeSofaLongSW', x: 3603, y: 5529, w: 122, h: 92 },
+  { name: 'loungeSofaLongNW', x: 3726, y: 5529, w: 122, h: 92 },
+  { name: 'loungeSofaLongNE', x: 3849, y: 5529, w: 122, h: 92 },
+  { name: 'loungeChairSW', x: 3257, y: 5948, w: 50, h: 60 },
+  { name: 'loungeChairNW', x: 3308, y: 5948, w: 50, h: 60 },
+  { name: 'loungeChairNE', x: 2046, y: 5948, w: 50, h: 70 },
+  { name: 'loungeChairRelaxSW', x: 1494, y: 5860, w: 54, h: 81 },
+  { name: 'loungeChairRelaxNW', x: 2097, y: 5948, w: 54, h: 70 },
+  { name: 'loungeChairRelaxNE', x: 2152, y: 5948, w: 54, h: 70 },
+  { name: 'radioSW', x: 220, y: 6021, w: 48, h: 50 },
+  { name: 'radioNW', x: 269, y: 6021, w: 46, h: 50 },
+  { name: 'radioNE', x: 316, y: 6021, w: 48, h: 50 },
+  { name: 'pottedPlantSW', x: 3359, y: 5948, w: 28, h: 60 },
+  { name: 'pottedPlantNW', x: 3670, y: 5948, w: 30, h: 59 },
+  { name: 'pottedPlantNE', x: 3158, y: 5948, w: 28, h: 62 },
+  { name: 'cardboardBoxOpenSW', x: 2829, y: 5771, w: 80, h: 88 },
+  { name: 'cardboardBoxOpenNW', x: 2910, y: 5771, w: 80, h: 88 },
+  { name: 'cardboardBoxOpenNE', x: 2991, y: 5771, w: 80, h: 88 },
+  { name: 'lampRoundFloorSW', x: 2454, y: 5948, w: 34, h: 68 },
+  { name: 'lampRoundFloorNW', x: 2489, y: 5948, w: 34, h: 68 },
+  { name: 'lampRoundFloorNE', x: 2524, y: 5948, w: 34, h: 68 },
+  { name: 'coatRackStandingSW', x: 2439, y: 5860, w: 18, h: 77 },
+  { name: 'coatRackStandingNW', x: 2458, y: 5860, w: 18, h: 77 },
+  { name: 'coatRackStandingNE', x: 2477, y: 5860, w: 18, h: 77 },
+  { name: 'bedDoubleSW', x: 3192, y: 5529, w: 122, h: 96 },
+  { name: 'bedDoubleNW', x: 2496, y: 5860, w: 122, h: 77 },
+  { name: 'bedDoubleNE', x: 2619, y: 5860, w: 122, h: 77 },
+  { name: 'sideTableDrawersSW', x: 2884, y: 5948, w: 54, h: 65 },
+  { name: 'sideTableDrawersNW', x: 2939, y: 5948, w: 54, h: 65 },
+  { name: 'sideTableDrawersNE', x: 2994, y: 5948, w: 54, h: 65 },
+  { name: 'cabinetBedDrawerSW', x: 3820, y: 5948, w: 40, h: 56 },
+  { name: 'cabinetBedDrawerNW', x: 3861, y: 5948, w: 40, h: 56 },
+  { name: 'cabinetBedDrawerNE', x: 3902, y: 5948, w: 40, h: 56 },
+  { name: 'deskSW', x: 1100, y: 5860, w: 112, h: 83 },
+  { name: 'deskNW', x: 1213, y: 5860, w: 112, h: 83 },
+  { name: 'deskNE', x: 1326, y: 5860, w: 112, h: 83 },
+  { name: 'chairDeskSW', x: 2661, y: 5948, w: 48, h: 66 },
+  { name: 'chairDeskNW', x: 2710, y: 5948, w: 48, h: 66 },
+  { name: 'chairDeskNE', x: 2742, y: 5860, w: 48, h: 77 },
+  { name: 'bathtubSW', x: 119, y: 5860, w: 118, h: 87 },
+  { name: 'bathtubNW', x: 1761, y: 5860, w: 118, h: 79 },
+  { name: 'bathtubNE', x: 1880, y: 5860, w: 118, h: 79 },
+  { name: 'washerDryerStackedSW', x: 3315, y: 5529, w: 54, h: 96 },
+  { name: 'washerDryerStackedNW', x: 3370, y: 5529, w: 54, h: 96 },
+  { name: 'washerDryerStackedNE', x: 3425, y: 5529, w: 54, h: 96 },
+  { name: 'bathtubFull', x: 238, y: 5860, w: 118, h: 87 },
+  { name: 'bathtubFullSW', x: 357, y: 5860, w: 118, h: 87 },
+  { name: 'bathtubFullNW', x: 1999, y: 5860, w: 118, h: 79 },
+  { name: 'bathtubFullNE', x: 2118, y: 5860, w: 118, h: 79 },
+  { name: 'simSitSE0', x: 3072, y: 5771, w: 38, h: 88 },
+  { name: 'simSitSE1', x: 3111, y: 5771, w: 38, h: 88 },
+  { name: 'simSitNW0', x: 3150, y: 5771, w: 38, h: 88 },
+  { name: 'simSitNW1', x: 3189, y: 5771, w: 38, h: 88 },
+  { name: 'simSitSW0', x: 3228, y: 5771, w: 38, h: 88 },
+  { name: 'simSitSW1', x: 3267, y: 5771, w: 38, h: 88 },
+  { name: 'simSitNE0', x: 3306, y: 5771, w: 38, h: 88 },
+  { name: 'simSitNE1', x: 3345, y: 5771, w: 38, h: 88 },
+  { name: 'sim2SitSE0', x: 3384, y: 5771, w: 38, h: 88 },
+  { name: 'sim2SitSE1', x: 3423, y: 5771, w: 38, h: 88 },
+  { name: 'sim2SitNW0', x: 3462, y: 5771, w: 38, h: 88 },
+  { name: 'sim2SitNW1', x: 3501, y: 5771, w: 38, h: 88 },
+  { name: 'sim2SitSW0', x: 3540, y: 5771, w: 38, h: 88 },
+  { name: 'sim2SitSW1', x: 3579, y: 5771, w: 38, h: 88 },
+  { name: 'sim2SitNE0', x: 3618, y: 5771, w: 38, h: 88 },
+  { name: 'sim2SitNE1', x: 3657, y: 5771, w: 38, h: 88 },
+  { name: 'sim3SitSE0', x: 3696, y: 5771, w: 38, h: 88 },
+  { name: 'sim3SitSE1', x: 3735, y: 5771, w: 38, h: 88 },
+  { name: 'sim3SitNW0', x: 3774, y: 5771, w: 38, h: 88 },
+  { name: 'sim3SitNW1', x: 3813, y: 5771, w: 38, h: 88 },
+  { name: 'sim3SitSW0', x: 3852, y: 5771, w: 38, h: 88 },
+  { name: 'sim3SitSW1', x: 3891, y: 5771, w: 38, h: 88 },
+  { name: 'sim3SitNE0', x: 3930, y: 5771, w: 38, h: 88 },
+  { name: 'sim3SitNE1', x: 3969, y: 5771, w: 38, h: 88 },
   { name: 'bedBunkForeground', x: 1746, y: 5529, w: 122, h: 136 },
-  { name: 'simSleepSE0', x: 3409, y: 5860, w: 104, h: 72 },
-  { name: 'simSleepSE1', x: 3514, y: 5860, w: 104, h: 72 },
-  { name: 'simSleepNW0', x: 3619, y: 5860, w: 104, h: 72 },
-  { name: 'simSleepNW1', x: 3724, y: 5860, w: 104, h: 72 },
-  { name: 'simSleepSW0', x: 3829, y: 5860, w: 104, h: 72 },
-  { name: 'simSleepSW1', x: 3934, y: 5860, w: 104, h: 72 },
-  { name: 'simSleepNE0', x: 0, y: 5948, w: 104, h: 72 },
-  { name: 'simSleepNE1', x: 105, y: 5948, w: 104, h: 72 },
-  { name: 'sim2SleepSE0', x: 210, y: 5948, w: 104, h: 72 },
-  { name: 'sim2SleepSE1', x: 315, y: 5948, w: 104, h: 72 },
-  { name: 'sim2SleepNW0', x: 420, y: 5948, w: 104, h: 72 },
-  { name: 'sim2SleepNW1', x: 525, y: 5948, w: 104, h: 72 },
-  { name: 'sim2SleepSW0', x: 630, y: 5948, w: 104, h: 72 },
-  { name: 'sim2SleepSW1', x: 735, y: 5948, w: 104, h: 72 },
-  { name: 'sim2SleepNE0', x: 840, y: 5948, w: 104, h: 72 },
-  { name: 'sim2SleepNE1', x: 945, y: 5948, w: 104, h: 72 },
-  { name: 'sim3SleepSE0', x: 1050, y: 5948, w: 104, h: 72 },
-  { name: 'sim3SleepSE1', x: 1155, y: 5948, w: 104, h: 72 },
-  { name: 'sim3SleepNW0', x: 1260, y: 5948, w: 104, h: 72 },
-  { name: 'sim3SleepNW1', x: 1365, y: 5948, w: 104, h: 72 },
-  { name: 'sim3SleepSW0', x: 1470, y: 5948, w: 104, h: 72 },
-  { name: 'sim3SleepSW1', x: 1575, y: 5948, w: 104, h: 72 },
-  { name: 'sim3SleepNE0', x: 1680, y: 5948, w: 104, h: 72 },
-  { name: 'sim3SleepNE1', x: 1785, y: 5948, w: 104, h: 72 },
-  { name: 'loungeChairForeground', x: 2102, y: 5948, w: 50, h: 70 },
-  { name: 'loungeChairForegroundSW', x: 3283, y: 5948, w: 50, h: 60 },
-  { name: 'loungeChairForegroundNW', x: 3334, y: 5948, w: 50, h: 60 },
-  { name: 'loungeChairForegroundNE', x: 2153, y: 5948, w: 50, h: 70 },
-  { name: 'loungeChairRelaxForeground', x: 1430, y: 5860, w: 54, h: 81 },
-  { name: 'loungeChairRelaxForegroundSW', x: 1485, y: 5860, w: 54, h: 81 },
-  { name: 'loungeChairRelaxForegroundNW', x: 2204, y: 5948, w: 54, h: 70 },
-  { name: 'loungeChairRelaxForegroundNE', x: 2259, y: 5948, w: 54, h: 70 },
+  { name: 'simSleepSE0', x: 3528, y: 5860, w: 104, h: 72 },
+  { name: 'simSleepSE1', x: 3633, y: 5860, w: 104, h: 72 },
+  { name: 'simSleepNW0', x: 3738, y: 5860, w: 104, h: 72 },
+  { name: 'simSleepNW1', x: 3843, y: 5860, w: 104, h: 72 },
+  { name: 'simSleepSW0', x: 3948, y: 5860, w: 104, h: 72 },
+  { name: 'simSleepSW1', x: 0, y: 5948, w: 104, h: 72 },
+  { name: 'simSleepNE0', x: 105, y: 5948, w: 104, h: 72 },
+  { name: 'simSleepNE1', x: 210, y: 5948, w: 104, h: 72 },
+  { name: 'sim2SleepSE0', x: 315, y: 5948, w: 104, h: 72 },
+  { name: 'sim2SleepSE1', x: 420, y: 5948, w: 104, h: 72 },
+  { name: 'sim2SleepNW0', x: 525, y: 5948, w: 104, h: 72 },
+  { name: 'sim2SleepNW1', x: 630, y: 5948, w: 104, h: 72 },
+  { name: 'sim2SleepSW0', x: 735, y: 5948, w: 104, h: 72 },
+  { name: 'sim2SleepSW1', x: 840, y: 5948, w: 104, h: 72 },
+  { name: 'sim2SleepNE0', x: 945, y: 5948, w: 104, h: 72 },
+  { name: 'sim2SleepNE1', x: 1050, y: 5948, w: 104, h: 72 },
+  { name: 'sim3SleepSE0', x: 1155, y: 5948, w: 104, h: 72 },
+  { name: 'sim3SleepSE1', x: 1260, y: 5948, w: 104, h: 72 },
+  { name: 'sim3SleepNW0', x: 1365, y: 5948, w: 104, h: 72 },
+  { name: 'sim3SleepNW1', x: 1470, y: 5948, w: 104, h: 72 },
+  { name: 'sim3SleepSW0', x: 1575, y: 5948, w: 104, h: 72 },
+  { name: 'sim3SleepSW1', x: 1680, y: 5948, w: 104, h: 72 },
+  { name: 'sim3SleepNE0', x: 1785, y: 5948, w: 104, h: 72 },
+  { name: 'sim3SleepNE1', x: 1890, y: 5948, w: 104, h: 72 },
+  { name: 'loungeChairForeground', x: 2207, y: 5948, w: 50, h: 70 },
+  { name: 'loungeChairForegroundSW', x: 3388, y: 5948, w: 50, h: 60 },
+  { name: 'loungeChairForegroundNW', x: 3439, y: 5948, w: 50, h: 60 },
+  { name: 'loungeChairForegroundNE', x: 2258, y: 5948, w: 50, h: 70 },
+  { name: 'loungeChairRelaxForeground', x: 1549, y: 5860, w: 54, h: 81 },
+  { name: 'loungeChairRelaxForegroundSW', x: 1604, y: 5860, w: 54, h: 81 },
+  { name: 'loungeChairRelaxForegroundNW', x: 2309, y: 5948, w: 54, h: 70 },
+  { name: 'loungeChairRelaxForegroundNE', x: 2364, y: 5948, w: 54, h: 70 },
   { name: 'rigSimIdleSE0', x: 2310, y: 5014, w: 76, h: 176, pixel_density: 2 },
   { name: 'rigSimIdleNW0', x: 2387, y: 5014, w: 76, h: 176, pixel_density: 2 },
   { name: 'rigSimIdleSW0', x: 2464, y: 5014, w: 76, h: 176, pixel_density: 2 },
@@ -864,7 +864,7 @@ export const SPRITES: readonly AtlasSprite[] = [
   { name: 'rigSimRedExerciseNE0', x: 627, y: 241, w: 208, h: 240, pixel_density: 2 },
   { name: 'rigSimRedExerciseNE1', x: 836, y: 241, w: 208, h: 240, pixel_density: 2 },
   { name: 'wallJoin3', x: 2001, y: 5529, w: 32, h: 109 },
-  { name: 'wallJoin6', x: 2915, y: 5529, w: 32, h: 98 },
+  { name: 'wallJoin6', x: 2981, y: 5529, w: 32, h: 98 },
   { name: 'wallJoin7', x: 2034, y: 5529, w: 32, h: 109 },
   { name: 'wallJoin9', x: 2067, y: 5529, w: 32, h: 109 },
   { name: 'wallJoin11', x: 2100, y: 5529, w: 32, h: 109 },
@@ -874,6 +874,8 @@ export const SPRITES: readonly AtlasSprite[] = [
   { name: 'wallJoin15', x: 2232, y: 5529, w: 32, h: 109 },
   { name: 'doorwayJoinedNS', x: 2265, y: 5529, w: 32, h: 109 },
   { name: 'doorwayJoinedEW', x: 2298, y: 5529, w: 32, h: 109 },
+  { name: 'wallCornerStartNS', x: 2331, y: 5529, w: 32, h: 109 },
+  { name: 'wallCornerStartEW', x: 2364, y: 5529, w: 32, h: 109 },
   { name: 'offlineBike', x: 1045, y: 241, w: 192, h: 240, pixel_density: 2 },
   { name: 'offlineBikeNW', x: 1238, y: 241, w: 192, h: 240, pixel_density: 2 },
   { name: 'offlineBikeSW', x: 1431, y: 241, w: 192, h: 240, pixel_density: 2 },
@@ -1586,8 +1588,6 @@ export const SPRITE_ANCHORS: Readonly<Record<number, readonly [number, number]>>
   833: [52.00001239776611, 116.0004369020462],
   834: [52.00001239776611, 116.0004369020462],
   835: [52.00001239776611, 116.0004369020462],
-  847: [48.0000114440918, 116.0004369020462],
-  848: [48.0000114440918, 116.0004369020462],
   849: [48.0000114440918, 116.0004369020462],
   850: [48.0000114440918, 116.0004369020462],
   851: [48.0000114440918, 116.0004369020462],
@@ -1826,6 +1826,8 @@ export const SPRITE_ANCHORS: Readonly<Record<number, readonly [number, number]>>
   1084: [48.0000114440918, 116.0004369020462],
   1085: [48.0000114440918, 116.0004369020462],
   1086: [48.0000114440918, 116.0004369020462],
+  1087: [48.0000114440918, 116.0004369020462],
+  1088: [48.0000114440918, 116.0004369020462],
 };
 
 /** Actual opaque top and gripping point in logical image coordinates. */
@@ -2298,16 +2300,14 @@ export const SPRITE_CONTENT_TOPS: Readonly<Record<number, number>> = {
   "831": 2.0,
   "834": 20.5,
   "835": 20.5,
-  "855": 18.0,
-  "858": 18.0,
-  "861": 18.0,
-  "864": 18.0,
-  "867": 18.0,
-  "870": 18.0,
-  "873": 18.0,
-  "876": 18.0,
-  "879": 18.0,
-  "880": 18.0,
+  "857": 18.0,
+  "860": 18.0,
+  "863": 18.0,
+  "866": 18.0,
+  "869": 18.0,
+  "872": 18.0,
+  "875": 18.0,
+  "878": 18.0,
   "881": 18.0,
   "882": 18.0,
   "883": 18.0,
@@ -2322,16 +2322,16 @@ export const SPRITE_CONTENT_TOPS: Readonly<Record<number, number>> = {
   "892": 18.0,
   "893": 18.0,
   "894": 18.0,
-  "895": 21.0,
-  "898": 21.0,
-  "901": 21.0,
-  "904": 21.0,
-  "907": 21.0,
-  "910": 21.0,
-  "913": 21.0,
-  "916": 21.0,
-  "919": 21.0,
-  "920": 21.0,
+  "895": 18.0,
+  "896": 18.0,
+  "897": 21.0,
+  "900": 21.0,
+  "903": 21.0,
+  "906": 21.0,
+  "909": 21.0,
+  "912": 21.0,
+  "915": 21.0,
+  "918": 21.0,
   "921": 21.0,
   "922": 21.0,
   "923": 21.0,
@@ -2346,16 +2346,16 @@ export const SPRITE_CONTENT_TOPS: Readonly<Record<number, number>> = {
   "932": 21.0,
   "933": 21.0,
   "934": 21.0,
-  "935": 17.0,
-  "938": 17.0,
-  "941": 17.0,
-  "944": 17.0,
-  "947": 17.0,
-  "950": 17.0,
-  "953": 17.0,
-  "956": 17.0,
-  "959": 17.0,
-  "960": 17.0,
+  "935": 21.0,
+  "936": 21.0,
+  "937": 17.0,
+  "940": 17.0,
+  "943": 17.0,
+  "946": 17.0,
+  "949": 17.0,
+  "952": 17.0,
+  "955": 17.0,
+  "958": 17.0,
   "961": 17.0,
   "962": 17.0,
   "963": 17.0,
@@ -2370,16 +2370,16 @@ export const SPRITE_CONTENT_TOPS: Readonly<Record<number, number>> = {
   "972": 17.0,
   "973": 17.0,
   "974": 17.0,
-  "975": 24.0,
-  "978": 24.0,
-  "981": 24.0,
-  "984": 24.0,
-  "987": 24.0,
-  "990": 24.0,
-  "993": 24.0,
-  "996": 24.0,
-  "999": 24.0,
-  "1000": 24.0,
+  "975": 17.0,
+  "976": 17.0,
+  "977": 24.0,
+  "980": 24.0,
+  "983": 24.0,
+  "986": 24.0,
+  "989": 24.0,
+  "992": 24.0,
+  "995": 24.0,
+  "998": 24.0,
   "1001": 24.0,
   "1002": 24.0,
   "1003": 24.0,
@@ -2394,666 +2394,656 @@ export const SPRITE_CONTENT_TOPS: Readonly<Record<number, number>> = {
   "1012": 24.0,
   "1013": 24.0,
   "1014": 24.0,
-  "1015": 35.5,
-  "1018": 35.5,
-  "1021": 35.5,
-  "1022": 35.0,
-  "1025": 35.5,
-  "1026": 35.5,
+  "1015": 24.0,
+  "1016": 24.0,
+  "1017": 35.5,
+  "1020": 35.5,
+  "1023": 35.5,
+  "1024": 35.0,
   "1027": 35.5,
-  "1028": 35.0,
+  "1028": 35.5,
   "1029": 35.5,
-  "1030": 35.5,
+  "1030": 35.0,
   "1031": 35.5,
-  "1032": 35.0,
-  "1033": 26.5,
-  "1036": 26.5,
-  "1039": 26.5,
-  "1040": 26.5,
-  "1043": 26.5,
-  "1044": 26.5,
+  "1032": 35.5,
+  "1033": 35.5,
+  "1034": 35.0,
+  "1035": 26.5,
+  "1038": 26.5,
+  "1041": 26.5,
+  "1042": 26.5,
   "1045": 26.5,
   "1046": 26.5,
   "1047": 26.5,
   "1048": 26.5,
   "1049": 26.5,
   "1050": 26.5,
-  "1051": 34.5,
-  "1054": 35.0,
-  "1057": 34.5,
-  "1058": 34.0,
-  "1061": 34.5,
-  "1062": 35.0,
+  "1051": 26.5,
+  "1052": 26.5,
+  "1053": 34.5,
+  "1056": 35.0,
+  "1059": 34.5,
+  "1060": 34.0,
   "1063": 34.5,
-  "1064": 34.0,
+  "1064": 35.0,
   "1065": 34.5,
-  "1066": 35.0,
+  "1066": 34.0,
   "1067": 34.5,
-  "1068": 34.0,
-  "1069": 29.5,
-  "1072": 29.5,
-  "1075": 29.5,
-  "1076": 30.0,
-  "1079": 29.5,
-  "1080": 29.5,
+  "1068": 35.0,
+  "1069": 34.5,
+  "1070": 34.0,
+  "1071": 29.5,
+  "1074": 29.5,
+  "1077": 29.5,
+  "1078": 30.0,
   "1081": 29.5,
-  "1082": 30.0,
+  "1082": 29.5,
   "1083": 29.5,
-  "1084": 29.5,
+  "1084": 30.0,
   "1085": 29.5,
-  "1086": 30.0
+  "1086": 29.5,
+  "1087": 29.5,
+  "1088": 30.0
 };
 /** Visible Sim contribution bounds, never the furniture silhouette. */
 export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, number, number, number]>> = {
-  "855": [
+  "857": [
     31.0,
     18.0,
     70.5,
     89.5
   ],
-  "858": [
+  "860": [
     31.0,
     18.0,
     71.0,
     90.5
   ],
-  "861": [
+  "863": [
     31.0,
     18.0,
     73.0,
     89.0
   ],
-  "864": [
+  "866": [
     31.0,
     18.0,
     71.0,
     95.5
   ],
-  "867": [
+  "869": [
     31.0,
     18.0,
     70.5,
     100.5
   ],
-  "870": [
+  "872": [
     31.0,
     18.0,
     70.5,
     101.5
   ],
-  "873": [
+  "875": [
     31.0,
     18.0,
     70.5,
     98.0
   ],
-  "876": [
+  "878": [
     31.0,
     18.0,
     70.5,
     91.5
   ],
-  "879": [
+  "881": [
     31.0,
     18.0,
     70.5,
     89.5
-  ],
-  "880": [
-    31.0,
-    18.0,
-    71.0,
-    90.5
-  ],
-  "881": [
-    31.0,
-    18.0,
-    73.0,
-    89.0
   ],
   "882": [
     31.0,
     18.0,
     71.0,
-    95.5
+    90.5
   ],
   "883": [
     31.0,
     18.0,
-    70.5,
-    100.5
+    73.0,
+    89.0
   ],
   "884": [
     31.0,
     18.0,
-    70.5,
-    101.5
+    71.0,
+    95.5
   ],
   "885": [
     31.0,
     18.0,
     70.5,
-    98.0
+    100.5
   ],
   "886": [
     31.0,
     18.0,
     70.5,
-    91.5
+    101.5
   ],
   "887": [
     31.0,
     18.0,
     70.5,
-    89.5
+    98.0
   ],
   "888": [
     31.0,
     18.0,
-    71.0,
-    90.5
+    70.5,
+    91.5
   ],
   "889": [
     31.0,
     18.0,
-    73.0,
-    89.0
+    70.5,
+    89.5
   ],
   "890": [
     31.0,
     18.0,
     71.0,
-    95.5
+    90.5
   ],
   "891": [
     31.0,
     18.0,
-    70.5,
-    100.5
+    73.0,
+    89.0
   ],
   "892": [
     31.0,
     18.0,
-    70.5,
-    101.5
+    71.0,
+    95.5
   ],
   "893": [
     31.0,
     18.0,
     70.5,
-    98.0
+    100.5
   ],
   "894": [
     31.0,
     18.0,
     70.5,
-    91.5
+    101.5
   ],
   "895": [
+    31.0,
+    18.0,
+    70.5,
+    98.0
+  ],
+  "896": [
+    31.0,
+    18.0,
+    70.5,
+    91.5
+  ],
+  "897": [
     25.5,
     21.0,
     65.0,
     95.5
   ],
-  "898": [
+  "900": [
     25.0,
     21.0,
     65.0,
     90.5
   ],
-  "901": [
+  "903": [
     23.0,
     21.0,
     65.0,
     84.0
   ],
-  "904": [
+  "906": [
     25.0,
     21.0,
     65.0,
     85.0
   ],
-  "907": [
+  "909": [
     25.5,
     21.0,
     65.0,
     81.0
   ],
-  "910": [
+  "912": [
     25.5,
     21.0,
     65.0,
     86.5
   ],
-  "913": [
+  "915": [
     25.5,
     21.0,
     65.0,
     92.5
   ],
-  "916": [
+  "918": [
     25.5,
     21.0,
     65.0,
     96.5
   ],
-  "919": [
+  "921": [
     25.5,
     21.0,
     65.0,
     95.5
-  ],
-  "920": [
-    25.0,
-    21.0,
-    65.0,
-    90.5
-  ],
-  "921": [
-    23.0,
-    21.0,
-    65.0,
-    84.0
   ],
   "922": [
     25.0,
     21.0,
     65.0,
-    85.0
+    90.5
   ],
   "923": [
-    25.5,
+    23.0,
     21.0,
     65.0,
-    81.0
+    84.0
   ],
   "924": [
-    25.5,
+    25.0,
     21.0,
     65.0,
-    86.5
+    85.0
   ],
   "925": [
     25.5,
     21.0,
     65.0,
-    92.5
+    81.0
   ],
   "926": [
     25.5,
     21.0,
     65.0,
-    96.5
+    86.5
   ],
   "927": [
     25.5,
     21.0,
     65.0,
-    95.5
+    92.5
   ],
   "928": [
-    25.0,
+    25.5,
     21.0,
     65.0,
-    90.5
+    96.5
   ],
   "929": [
-    23.0,
+    25.5,
     21.0,
     65.0,
-    84.0
+    95.5
   ],
   "930": [
     25.0,
     21.0,
     65.0,
-    85.0
+    90.5
   ],
   "931": [
-    25.5,
+    23.0,
     21.0,
     65.0,
-    81.0
+    84.0
   ],
   "932": [
-    25.5,
+    25.0,
     21.0,
     65.0,
-    86.5
+    85.0
   ],
   "933": [
     25.5,
     21.0,
     65.0,
-    92.5
+    81.0
   ],
   "934": [
     25.5,
     21.0,
     65.0,
-    96.5
+    86.5
   ],
   "935": [
+    25.5,
+    21.0,
+    65.0,
+    92.5
+  ],
+  "936": [
+    25.5,
+    21.0,
+    65.0,
+    96.5
+  ],
+  "937": [
     25.5,
     17.0,
     65.0,
     100.5
   ],
-  "938": [
+  "940": [
     25.5,
     17.0,
     65.0,
     101.5
   ],
-  "941": [
+  "943": [
     25.5,
     17.0,
     65.0,
     98.0
   ],
-  "944": [
+  "946": [
     25.5,
     17.0,
     65.0,
     91.5
   ],
-  "947": [
+  "949": [
     25.5,
     17.0,
     65.0,
     89.5
   ],
-  "950": [
+  "952": [
     25.0,
     17.0,
     65.0,
     90.5
   ],
-  "953": [
+  "955": [
     23.0,
     17.0,
     65.0,
     89.0
   ],
-  "956": [
+  "958": [
     25.0,
     17.0,
     65.0,
     95.5
-  ],
-  "959": [
-    25.5,
-    17.0,
-    65.0,
-    100.5
-  ],
-  "960": [
-    25.5,
-    17.0,
-    65.0,
-    101.5
   ],
   "961": [
     25.5,
     17.0,
     65.0,
-    98.0
+    100.5
   ],
   "962": [
     25.5,
     17.0,
     65.0,
-    91.5
+    101.5
   ],
   "963": [
     25.5,
     17.0,
     65.0,
-    89.5
-  ],
-  "964": [
-    25.0,
-    17.0,
-    65.0,
-    90.5
-  ],
-  "965": [
-    23.0,
-    17.0,
-    65.0,
-    89.0
-  ],
-  "966": [
-    25.0,
-    17.0,
-    65.0,
-    95.5
-  ],
-  "967": [
-    25.5,
-    17.0,
-    65.0,
-    100.5
-  ],
-  "968": [
-    25.5,
-    17.0,
-    65.0,
-    101.5
-  ],
-  "969": [
-    25.5,
-    17.0,
-    65.0,
     98.0
   ],
-  "970": [
+  "964": [
     25.5,
     17.0,
     65.0,
     91.5
   ],
-  "971": [
+  "965": [
     25.5,
     17.0,
     65.0,
     89.5
   ],
-  "972": [
+  "966": [
     25.0,
     17.0,
     65.0,
     90.5
   ],
-  "973": [
+  "967": [
     23.0,
     17.0,
     65.0,
     89.0
   ],
-  "974": [
+  "968": [
     25.0,
     17.0,
     65.0,
     95.5
   ],
+  "969": [
+    25.5,
+    17.0,
+    65.0,
+    100.5
+  ],
+  "970": [
+    25.5,
+    17.0,
+    65.0,
+    101.5
+  ],
+  "971": [
+    25.5,
+    17.0,
+    65.0,
+    98.0
+  ],
+  "972": [
+    25.5,
+    17.0,
+    65.0,
+    91.5
+  ],
+  "973": [
+    25.5,
+    17.0,
+    65.0,
+    89.5
+  ],
+  "974": [
+    25.0,
+    17.0,
+    65.0,
+    90.5
+  ],
   "975": [
+    23.0,
+    17.0,
+    65.0,
+    89.0
+  ],
+  "976": [
+    25.0,
+    17.0,
+    65.0,
+    95.5
+  ],
+  "977": [
     31.0,
     24.0,
     70.5,
     81.0
   ],
-  "978": [
+  "980": [
     31.0,
     24.0,
     70.5,
     86.5
   ],
-  "981": [
+  "983": [
     31.0,
     24.0,
     70.5,
     92.5
   ],
-  "984": [
+  "986": [
     31.0,
     24.0,
     70.5,
     96.5
   ],
-  "987": [
+  "989": [
     31.0,
     24.0,
     70.5,
     95.5
   ],
-  "990": [
+  "992": [
     31.0,
     24.0,
     71.0,
     90.5
   ],
-  "993": [
+  "995": [
     31.0,
     24.0,
     73.0,
     84.0
   ],
-  "996": [
+  "998": [
     31.0,
     24.0,
     71.0,
     85.0
-  ],
-  "999": [
-    31.0,
-    24.0,
-    70.5,
-    81.0
-  ],
-  "1000": [
-    31.0,
-    24.0,
-    70.5,
-    86.5
   ],
   "1001": [
     31.0,
     24.0,
     70.5,
-    92.5
+    81.0
   ],
   "1002": [
     31.0,
     24.0,
     70.5,
-    96.5
+    86.5
   ],
   "1003": [
     31.0,
     24.0,
     70.5,
-    95.5
-  ],
-  "1004": [
-    31.0,
-    24.0,
-    71.0,
-    90.5
-  ],
-  "1005": [
-    31.0,
-    24.0,
-    73.0,
-    84.0
-  ],
-  "1006": [
-    31.0,
-    24.0,
-    71.0,
-    85.0
-  ],
-  "1007": [
-    31.0,
-    24.0,
-    70.5,
-    81.0
-  ],
-  "1008": [
-    31.0,
-    24.0,
-    70.5,
-    86.5
-  ],
-  "1009": [
-    31.0,
-    24.0,
-    70.5,
     92.5
   ],
-  "1010": [
+  "1004": [
     31.0,
     24.0,
     70.5,
     96.5
   ],
-  "1011": [
+  "1005": [
     31.0,
     24.0,
     70.5,
     95.5
   ],
-  "1012": [
+  "1006": [
     31.0,
     24.0,
     71.0,
     90.5
   ],
-  "1013": [
+  "1007": [
     31.0,
     24.0,
     73.0,
     84.0
   ],
-  "1014": [
+  "1008": [
     31.0,
     24.0,
     71.0,
     85.0
   ],
+  "1009": [
+    31.0,
+    24.0,
+    70.5,
+    81.0
+  ],
+  "1010": [
+    31.0,
+    24.0,
+    70.5,
+    86.5
+  ],
+  "1011": [
+    31.0,
+    24.0,
+    70.5,
+    92.5
+  ],
+  "1012": [
+    31.0,
+    24.0,
+    70.5,
+    96.5
+  ],
+  "1013": [
+    31.0,
+    24.0,
+    70.5,
+    95.5
+  ],
+  "1014": [
+    31.0,
+    24.0,
+    71.0,
+    90.5
+  ],
   "1015": [
+    31.0,
+    24.0,
+    73.0,
+    84.0
+  ],
+  "1016": [
+    31.0,
+    24.0,
+    71.0,
+    85.0
+  ],
+  "1017": [
     37.5,
     35.5,
     70.5,
     109.0
   ],
-  "1018": [
+  "1020": [
     37.5,
     35.5,
     70.5,
     109.0
   ],
-  "1021": [
+  "1023": [
     37.5,
     35.5,
     70.5,
     109.0
   ],
-  "1022": [
+  "1024": [
     37.5,
     35.0,
-    70.5,
-    109.0
-  ],
-  "1025": [
-    37.5,
-    35.5,
-    70.5,
-    109.0
-  ],
-  "1026": [
-    37.5,
-    35.5,
     70.5,
     109.0
   ],
@@ -3065,7 +3055,7 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
   ],
   "1028": [
     37.5,
-    35.0,
+    35.5,
     70.5,
     109.0
   ],
@@ -3077,7 +3067,7 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
   ],
   "1030": [
     37.5,
-    35.5,
+    35.0,
     70.5,
     109.0
   ],
@@ -3089,41 +3079,41 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
   ],
   "1032": [
     37.5,
-    35.0,
+    35.5,
     70.5,
     109.0
   ],
   "1033": [
+    37.5,
+    35.5,
+    70.5,
+    109.0
+  ],
+  "1034": [
+    37.5,
+    35.0,
+    70.5,
+    109.0
+  ],
+  "1035": [
     25.5,
     26.5,
     58.5,
     88.5
   ],
-  "1036": [
+  "1038": [
     25.5,
     26.5,
     58.5,
     88.5
   ],
-  "1039": [
+  "1041": [
     25.5,
     26.5,
     58.5,
     88.5
   ],
-  "1040": [
-    25.5,
-    26.5,
-    58.5,
-    88.5
-  ],
-  "1043": [
-    25.5,
-    26.5,
-    58.5,
-    88.5
-  ],
-  "1044": [
+  "1042": [
     25.5,
     26.5,
     58.5,
@@ -3167,37 +3157,37 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
   ],
   "1051": [
     25.5,
+    26.5,
+    58.5,
+    88.5
+  ],
+  "1052": [
+    25.5,
+    26.5,
+    58.5,
+    88.5
+  ],
+  "1053": [
+    25.5,
     34.5,
     58.0,
     109.0
   ],
-  "1054": [
+  "1056": [
     25.5,
     35.0,
     58.0,
     109.0
   ],
-  "1057": [
+  "1059": [
     25.5,
     34.5,
     58.0,
     109.0
   ],
-  "1058": [
+  "1060": [
     25.5,
     34.0,
-    58.0,
-    109.0
-  ],
-  "1061": [
-    25.5,
-    34.5,
-    58.0,
-    109.0
-  ],
-  "1062": [
-    25.5,
-    35.0,
     58.0,
     109.0
   ],
@@ -3209,7 +3199,7 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
   ],
   "1064": [
     25.5,
-    34.0,
+    35.0,
     58.0,
     109.0
   ],
@@ -3221,7 +3211,7 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
   ],
   "1066": [
     25.5,
-    35.0,
+    34.0,
     58.0,
     109.0
   ],
@@ -3233,43 +3223,43 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
   ],
   "1068": [
     25.5,
-    34.0,
+    35.0,
     58.0,
     109.0
   ],
   "1069": [
+    25.5,
+    34.5,
+    58.0,
+    109.0
+  ],
+  "1070": [
+    25.5,
+    34.0,
+    58.0,
+    109.0
+  ],
+  "1071": [
     38.0,
     29.5,
     70.5,
     88.5
   ],
-  "1072": [
+  "1074": [
     38.0,
     29.5,
     70.5,
     88.5
   ],
-  "1075": [
+  "1077": [
     38.0,
     29.5,
     70.5,
     88.5
   ],
-  "1076": [
+  "1078": [
     38.0,
     30.0,
-    70.5,
-    88.5
-  ],
-  "1079": [
-    38.0,
-    29.5,
-    70.5,
-    88.5
-  ],
-  "1080": [
-    38.0,
-    29.5,
     70.5,
     88.5
   ],
@@ -3281,7 +3271,7 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
   ],
   "1082": [
     38.0,
-    30.0,
+    29.5,
     70.5,
     88.5
   ],
@@ -3293,7 +3283,7 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
   ],
   "1084": [
     38.0,
-    29.5,
+    30.0,
     70.5,
     88.5
   ],
@@ -3305,6 +3295,18 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
   ],
   "1086": [
     38.0,
+    29.5,
+    70.5,
+    88.5
+  ],
+  "1087": [
+    38.0,
+    29.5,
+    70.5,
+    88.5
+  ],
+  "1088": [
+    38.0,
     30.0,
     70.5,
     88.5
@@ -3312,690 +3314,618 @@ export const SPRITE_CONTENT_BOUNDS: Readonly<Record<number, readonly [number, nu
 };
 /** Indices of premultiplied visibility contributions composed in one fragment. */
 export const SPRITE_PAIRS: Readonly<Record<number, { readonly furniture: number; readonly outline: number }>> = {
-  "855": {
-    "furniture": 856,
-    "outline": 857
+  "857": {
+    "furniture": 858,
+    "outline": 859
   },
-  "858": {
-    "furniture": 859,
-    "outline": 860
+  "860": {
+    "furniture": 861,
+    "outline": 862
   },
-  "861": {
-    "furniture": 862,
-    "outline": 863
+  "863": {
+    "furniture": 864,
+    "outline": 865
   },
-  "864": {
-    "furniture": 865,
-    "outline": 866
+  "866": {
+    "furniture": 867,
+    "outline": 868
   },
-  "867": {
-    "furniture": 868,
-    "outline": 869
+  "869": {
+    "furniture": 870,
+    "outline": 871
   },
-  "870": {
-    "furniture": 871,
-    "outline": 872
+  "872": {
+    "furniture": 873,
+    "outline": 874
   },
-  "873": {
-    "furniture": 874,
-    "outline": 875
+  "875": {
+    "furniture": 876,
+    "outline": 877
   },
-  "876": {
-    "furniture": 877,
-    "outline": 878
-  },
-  "879": {
-    "furniture": 856,
-    "outline": 857
-  },
-  "880": {
-    "furniture": 859,
-    "outline": 860
+  "878": {
+    "furniture": 879,
+    "outline": 880
   },
   "881": {
-    "furniture": 862,
-    "outline": 863
+    "furniture": 858,
+    "outline": 859
   },
   "882": {
-    "furniture": 865,
-    "outline": 866
+    "furniture": 861,
+    "outline": 862
   },
   "883": {
-    "furniture": 868,
-    "outline": 869
+    "furniture": 864,
+    "outline": 865
   },
   "884": {
-    "furniture": 871,
-    "outline": 872
+    "furniture": 867,
+    "outline": 868
   },
   "885": {
-    "furniture": 874,
-    "outline": 875
+    "furniture": 870,
+    "outline": 871
   },
   "886": {
-    "furniture": 877,
-    "outline": 878
+    "furniture": 873,
+    "outline": 874
   },
   "887": {
-    "furniture": 856,
-    "outline": 857
+    "furniture": 876,
+    "outline": 877
   },
   "888": {
-    "furniture": 859,
-    "outline": 860
+    "furniture": 879,
+    "outline": 880
   },
   "889": {
-    "furniture": 862,
-    "outline": 863
+    "furniture": 858,
+    "outline": 859
   },
   "890": {
-    "furniture": 865,
-    "outline": 866
+    "furniture": 861,
+    "outline": 862
   },
   "891": {
-    "furniture": 868,
-    "outline": 869
+    "furniture": 864,
+    "outline": 865
   },
   "892": {
-    "furniture": 871,
-    "outline": 872
+    "furniture": 867,
+    "outline": 868
   },
   "893": {
-    "furniture": 874,
-    "outline": 875
+    "furniture": 870,
+    "outline": 871
   },
   "894": {
-    "furniture": 877,
-    "outline": 878
+    "furniture": 873,
+    "outline": 874
   },
   "895": {
-    "furniture": 896,
-    "outline": 897
+    "furniture": 876,
+    "outline": 877
   },
-  "898": {
-    "furniture": 899,
-    "outline": 900
+  "896": {
+    "furniture": 879,
+    "outline": 880
   },
-  "901": {
-    "furniture": 902,
-    "outline": 903
+  "897": {
+    "furniture": 898,
+    "outline": 899
   },
-  "904": {
-    "furniture": 905,
-    "outline": 906
+  "900": {
+    "furniture": 901,
+    "outline": 902
   },
-  "907": {
-    "furniture": 908,
-    "outline": 909
+  "903": {
+    "furniture": 904,
+    "outline": 905
   },
-  "910": {
-    "furniture": 911,
-    "outline": 912
+  "906": {
+    "furniture": 907,
+    "outline": 908
   },
-  "913": {
-    "furniture": 914,
-    "outline": 915
+  "909": {
+    "furniture": 910,
+    "outline": 911
   },
-  "916": {
-    "furniture": 917,
-    "outline": 918
+  "912": {
+    "furniture": 913,
+    "outline": 914
   },
-  "919": {
-    "furniture": 896,
-    "outline": 897
+  "915": {
+    "furniture": 916,
+    "outline": 917
   },
-  "920": {
-    "furniture": 899,
-    "outline": 900
+  "918": {
+    "furniture": 919,
+    "outline": 920
   },
   "921": {
-    "furniture": 902,
-    "outline": 903
+    "furniture": 898,
+    "outline": 899
   },
   "922": {
-    "furniture": 905,
-    "outline": 906
+    "furniture": 901,
+    "outline": 902
   },
   "923": {
-    "furniture": 908,
-    "outline": 909
+    "furniture": 904,
+    "outline": 905
   },
   "924": {
-    "furniture": 911,
-    "outline": 912
+    "furniture": 907,
+    "outline": 908
   },
   "925": {
-    "furniture": 914,
-    "outline": 915
+    "furniture": 910,
+    "outline": 911
   },
   "926": {
-    "furniture": 917,
-    "outline": 918
+    "furniture": 913,
+    "outline": 914
   },
   "927": {
-    "furniture": 896,
-    "outline": 897
+    "furniture": 916,
+    "outline": 917
   },
   "928": {
-    "furniture": 899,
-    "outline": 900
+    "furniture": 919,
+    "outline": 920
   },
   "929": {
-    "furniture": 902,
-    "outline": 903
+    "furniture": 898,
+    "outline": 899
   },
   "930": {
-    "furniture": 905,
-    "outline": 906
+    "furniture": 901,
+    "outline": 902
   },
   "931": {
-    "furniture": 908,
-    "outline": 909
+    "furniture": 904,
+    "outline": 905
   },
   "932": {
-    "furniture": 911,
-    "outline": 912
+    "furniture": 907,
+    "outline": 908
   },
   "933": {
-    "furniture": 914,
-    "outline": 915
+    "furniture": 910,
+    "outline": 911
   },
   "934": {
-    "furniture": 917,
-    "outline": 918
+    "furniture": 913,
+    "outline": 914
   },
   "935": {
-    "furniture": 936,
-    "outline": 937
+    "furniture": 916,
+    "outline": 917
   },
-  "938": {
-    "furniture": 939,
-    "outline": 940
+  "936": {
+    "furniture": 919,
+    "outline": 920
   },
-  "941": {
-    "furniture": 942,
-    "outline": 943
+  "937": {
+    "furniture": 938,
+    "outline": 939
   },
-  "944": {
-    "furniture": 945,
-    "outline": 946
+  "940": {
+    "furniture": 941,
+    "outline": 942
   },
-  "947": {
-    "furniture": 948,
-    "outline": 949
+  "943": {
+    "furniture": 944,
+    "outline": 945
   },
-  "950": {
-    "furniture": 951,
-    "outline": 952
+  "946": {
+    "furniture": 947,
+    "outline": 948
   },
-  "953": {
-    "furniture": 954,
-    "outline": 955
+  "949": {
+    "furniture": 950,
+    "outline": 951
   },
-  "956": {
-    "furniture": 957,
-    "outline": 958
+  "952": {
+    "furniture": 953,
+    "outline": 954
   },
-  "959": {
-    "furniture": 936,
-    "outline": 937
+  "955": {
+    "furniture": 956,
+    "outline": 957
   },
-  "960": {
-    "furniture": 939,
-    "outline": 940
+  "958": {
+    "furniture": 959,
+    "outline": 960
   },
   "961": {
-    "furniture": 942,
-    "outline": 943
+    "furniture": 938,
+    "outline": 939
   },
   "962": {
-    "furniture": 945,
-    "outline": 946
+    "furniture": 941,
+    "outline": 942
   },
   "963": {
-    "furniture": 948,
-    "outline": 949
+    "furniture": 944,
+    "outline": 945
   },
   "964": {
-    "furniture": 951,
-    "outline": 952
+    "furniture": 947,
+    "outline": 948
   },
   "965": {
-    "furniture": 954,
-    "outline": 955
+    "furniture": 950,
+    "outline": 951
   },
   "966": {
-    "furniture": 957,
-    "outline": 958
+    "furniture": 953,
+    "outline": 954
   },
   "967": {
-    "furniture": 936,
-    "outline": 937
+    "furniture": 956,
+    "outline": 957
   },
   "968": {
-    "furniture": 939,
-    "outline": 940
+    "furniture": 959,
+    "outline": 960
   },
   "969": {
-    "furniture": 942,
-    "outline": 943
+    "furniture": 938,
+    "outline": 939
   },
   "970": {
-    "furniture": 945,
-    "outline": 946
+    "furniture": 941,
+    "outline": 942
   },
   "971": {
-    "furniture": 948,
-    "outline": 949
+    "furniture": 944,
+    "outline": 945
   },
   "972": {
-    "furniture": 951,
-    "outline": 952
+    "furniture": 947,
+    "outline": 948
   },
   "973": {
-    "furniture": 954,
-    "outline": 955
+    "furniture": 950,
+    "outline": 951
   },
   "974": {
-    "furniture": 957,
-    "outline": 958
+    "furniture": 953,
+    "outline": 954
   },
   "975": {
-    "furniture": 976,
-    "outline": 977
+    "furniture": 956,
+    "outline": 957
   },
-  "978": {
-    "furniture": 979,
-    "outline": 980
+  "976": {
+    "furniture": 959,
+    "outline": 960
   },
-  "981": {
-    "furniture": 982,
-    "outline": 983
+  "977": {
+    "furniture": 978,
+    "outline": 979
   },
-  "984": {
-    "furniture": 985,
-    "outline": 986
+  "980": {
+    "furniture": 981,
+    "outline": 982
   },
-  "987": {
-    "furniture": 988,
-    "outline": 989
+  "983": {
+    "furniture": 984,
+    "outline": 985
   },
-  "990": {
-    "furniture": 991,
-    "outline": 992
+  "986": {
+    "furniture": 987,
+    "outline": 988
   },
-  "993": {
-    "furniture": 994,
-    "outline": 995
+  "989": {
+    "furniture": 990,
+    "outline": 991
   },
-  "996": {
-    "furniture": 997,
-    "outline": 998
+  "992": {
+    "furniture": 993,
+    "outline": 994
   },
-  "999": {
-    "furniture": 976,
-    "outline": 977
+  "995": {
+    "furniture": 996,
+    "outline": 997
   },
-  "1000": {
-    "furniture": 979,
-    "outline": 980
+  "998": {
+    "furniture": 999,
+    "outline": 1000
   },
   "1001": {
-    "furniture": 982,
-    "outline": 983
+    "furniture": 978,
+    "outline": 979
   },
   "1002": {
-    "furniture": 985,
-    "outline": 986
+    "furniture": 981,
+    "outline": 982
   },
   "1003": {
-    "furniture": 988,
-    "outline": 989
+    "furniture": 984,
+    "outline": 985
   },
   "1004": {
-    "furniture": 991,
-    "outline": 992
+    "furniture": 987,
+    "outline": 988
   },
   "1005": {
-    "furniture": 994,
-    "outline": 995
+    "furniture": 990,
+    "outline": 991
   },
   "1006": {
-    "furniture": 997,
-    "outline": 998
+    "furniture": 993,
+    "outline": 994
   },
   "1007": {
-    "furniture": 976,
-    "outline": 977
+    "furniture": 996,
+    "outline": 997
   },
   "1008": {
-    "furniture": 979,
-    "outline": 980
+    "furniture": 999,
+    "outline": 1000
   },
   "1009": {
-    "furniture": 982,
-    "outline": 983
+    "furniture": 978,
+    "outline": 979
   },
   "1010": {
-    "furniture": 985,
-    "outline": 986
+    "furniture": 981,
+    "outline": 982
   },
   "1011": {
-    "furniture": 988,
-    "outline": 989
+    "furniture": 984,
+    "outline": 985
   },
   "1012": {
-    "furniture": 991,
-    "outline": 992
+    "furniture": 987,
+    "outline": 988
   },
   "1013": {
-    "furniture": 994,
-    "outline": 995
+    "furniture": 990,
+    "outline": 991
   },
   "1014": {
-    "furniture": 997,
-    "outline": 998
+    "furniture": 993,
+    "outline": 994
   },
   "1015": {
-    "furniture": 1016,
-    "outline": 1017
+    "furniture": 996,
+    "outline": 997
   },
-  "1018": {
-    "furniture": 1019,
-    "outline": 1020
+  "1016": {
+    "furniture": 999,
+    "outline": 1000
   },
-  "1021": {
-    "furniture": 1016,
-    "outline": 1017
+  "1017": {
+    "furniture": 1018,
+    "outline": 1019
   },
-  "1022": {
-    "furniture": 1023,
-    "outline": 1024
+  "1020": {
+    "furniture": 1021,
+    "outline": 1022
   },
-  "1025": {
-    "furniture": 1016,
-    "outline": 1017
+  "1023": {
+    "furniture": 1018,
+    "outline": 1019
   },
-  "1026": {
-    "furniture": 1019,
-    "outline": 1020
+  "1024": {
+    "furniture": 1025,
+    "outline": 1026
   },
   "1027": {
-    "furniture": 1016,
-    "outline": 1017
+    "furniture": 1018,
+    "outline": 1019
   },
   "1028": {
-    "furniture": 1023,
-    "outline": 1024
+    "furniture": 1021,
+    "outline": 1022
   },
   "1029": {
-    "furniture": 1016,
-    "outline": 1017
+    "furniture": 1018,
+    "outline": 1019
   },
   "1030": {
-    "furniture": 1019,
-    "outline": 1020
+    "furniture": 1025,
+    "outline": 1026
   },
   "1031": {
-    "furniture": 1016,
-    "outline": 1017
+    "furniture": 1018,
+    "outline": 1019
   },
   "1032": {
-    "furniture": 1023,
-    "outline": 1024
+    "furniture": 1021,
+    "outline": 1022
   },
   "1033": {
-    "furniture": 1034,
-    "outline": 1035
+    "furniture": 1018,
+    "outline": 1019
   },
-  "1036": {
-    "furniture": 1037,
-    "outline": 1038
+  "1034": {
+    "furniture": 1025,
+    "outline": 1026
   },
-  "1039": {
-    "furniture": 1034,
-    "outline": 1035
+  "1035": {
+    "furniture": 1036,
+    "outline": 1037
   },
-  "1040": {
-    "furniture": 1041,
-    "outline": 1042
+  "1038": {
+    "furniture": 1039,
+    "outline": 1040
   },
-  "1043": {
-    "furniture": 1034,
-    "outline": 1035
+  "1041": {
+    "furniture": 1036,
+    "outline": 1037
   },
-  "1044": {
-    "furniture": 1037,
-    "outline": 1038
+  "1042": {
+    "furniture": 1043,
+    "outline": 1044
   },
   "1045": {
-    "furniture": 1034,
-    "outline": 1035
+    "furniture": 1036,
+    "outline": 1037
   },
   "1046": {
-    "furniture": 1041,
-    "outline": 1042
+    "furniture": 1039,
+    "outline": 1040
   },
   "1047": {
-    "furniture": 1034,
-    "outline": 1035
+    "furniture": 1036,
+    "outline": 1037
   },
   "1048": {
-    "furniture": 1037,
-    "outline": 1038
+    "furniture": 1043,
+    "outline": 1044
   },
   "1049": {
-    "furniture": 1034,
-    "outline": 1035
+    "furniture": 1036,
+    "outline": 1037
   },
   "1050": {
-    "furniture": 1041,
-    "outline": 1042
+    "furniture": 1039,
+    "outline": 1040
   },
   "1051": {
-    "furniture": 1052,
-    "outline": 1053
+    "furniture": 1036,
+    "outline": 1037
   },
-  "1054": {
-    "furniture": 1055,
-    "outline": 1056
+  "1052": {
+    "furniture": 1043,
+    "outline": 1044
   },
-  "1057": {
-    "furniture": 1052,
-    "outline": 1053
+  "1053": {
+    "furniture": 1054,
+    "outline": 1055
   },
-  "1058": {
-    "furniture": 1059,
-    "outline": 1060
+  "1056": {
+    "furniture": 1057,
+    "outline": 1058
   },
-  "1061": {
-    "furniture": 1052,
-    "outline": 1053
+  "1059": {
+    "furniture": 1054,
+    "outline": 1055
   },
-  "1062": {
-    "furniture": 1055,
-    "outline": 1056
+  "1060": {
+    "furniture": 1061,
+    "outline": 1062
   },
   "1063": {
-    "furniture": 1052,
-    "outline": 1053
+    "furniture": 1054,
+    "outline": 1055
   },
   "1064": {
-    "furniture": 1059,
-    "outline": 1060
+    "furniture": 1057,
+    "outline": 1058
   },
   "1065": {
-    "furniture": 1052,
-    "outline": 1053
+    "furniture": 1054,
+    "outline": 1055
   },
   "1066": {
-    "furniture": 1055,
-    "outline": 1056
+    "furniture": 1061,
+    "outline": 1062
   },
   "1067": {
-    "furniture": 1052,
-    "outline": 1053
+    "furniture": 1054,
+    "outline": 1055
   },
   "1068": {
-    "furniture": 1059,
-    "outline": 1060
+    "furniture": 1057,
+    "outline": 1058
   },
   "1069": {
-    "furniture": 1070,
-    "outline": 1071
+    "furniture": 1054,
+    "outline": 1055
   },
-  "1072": {
-    "furniture": 1073,
-    "outline": 1074
+  "1070": {
+    "furniture": 1061,
+    "outline": 1062
   },
-  "1075": {
-    "furniture": 1070,
-    "outline": 1071
+  "1071": {
+    "furniture": 1072,
+    "outline": 1073
   },
-  "1076": {
-    "furniture": 1077,
-    "outline": 1078
+  "1074": {
+    "furniture": 1075,
+    "outline": 1076
   },
-  "1079": {
-    "furniture": 1070,
-    "outline": 1071
+  "1077": {
+    "furniture": 1072,
+    "outline": 1073
   },
-  "1080": {
-    "furniture": 1073,
-    "outline": 1074
+  "1078": {
+    "furniture": 1079,
+    "outline": 1080
   },
   "1081": {
-    "furniture": 1070,
-    "outline": 1071
+    "furniture": 1072,
+    "outline": 1073
   },
   "1082": {
-    "furniture": 1077,
-    "outline": 1078
+    "furniture": 1075,
+    "outline": 1076
   },
   "1083": {
-    "furniture": 1070,
-    "outline": 1071
+    "furniture": 1072,
+    "outline": 1073
   },
   "1084": {
-    "furniture": 1073,
-    "outline": 1074
+    "furniture": 1079,
+    "outline": 1080
   },
   "1085": {
-    "furniture": 1070,
-    "outline": 1071
+    "furniture": 1072,
+    "outline": 1073
   },
   "1086": {
-    "furniture": 1077,
-    "outline": 1078
+    "furniture": 1075,
+    "outline": 1076
+  },
+  "1087": {
+    "furniture": 1072,
+    "outline": 1073
+  },
+  "1088": {
+    "furniture": 1079,
+    "outline": 1080
   }
 };
 /** Exact empty-sprite profiles; explicit body indices retain shared-layer deduplication. */
 export const INTERACTION_SPRITES: import('./interaction-sprites.js').InteractionCatalog = {
-  "847": {
-    "action": 6,
-    "halfCycleTicks": 8,
-    "frames": {
-      "green": [
-        855,
-        876,
-        873,
-        870,
-        867,
-        864,
-        861,
-        858
-      ],
-      "blue": [
-        879,
-        886,
-        885,
-        884,
-        883,
-        882,
-        881,
-        880
-      ],
-      "red": [
-        887,
-        894,
-        893,
-        892,
-        891,
-        890,
-        889,
-        888
-      ]
-    }
-  },
-  "848": {
-    "action": 6,
-    "halfCycleTicks": 8,
-    "frames": {
-      "green": [
-        895,
-        916,
-        913,
-        910,
-        907,
-        904,
-        901,
-        898
-      ],
-      "blue": [
-        919,
-        926,
-        925,
-        924,
-        923,
-        922,
-        921,
-        920
-      ],
-      "red": [
-        927,
-        934,
-        933,
-        932,
-        931,
-        930,
-        929,
-        928
-      ]
-    }
-  },
   "849": {
     "action": 6,
     "halfCycleTicks": 8,
     "frames": {
       "green": [
-        935,
-        956,
-        953,
-        950,
-        947,
-        944,
-        941,
-        938
+        857,
+        878,
+        875,
+        872,
+        869,
+        866,
+        863,
+        860
       ],
       "blue": [
-        959,
-        966,
-        965,
-        964,
-        963,
-        962,
-        961,
-        960
+        881,
+        888,
+        887,
+        886,
+        885,
+        884,
+        883,
+        882
       ],
       "red": [
-        967,
-        974,
-        973,
-        972,
-        971,
-        970,
-        969,
-        968
+        889,
+        896,
+        895,
+        894,
+        893,
+        892,
+        891,
+        890
       ]
     }
   },
@@ -4004,82 +3934,106 @@ export const INTERACTION_SPRITES: import('./interaction-sprites.js').Interaction
     "halfCycleTicks": 8,
     "frames": {
       "green": [
-        975,
-        996,
-        993,
-        990,
-        987,
-        984,
-        981,
-        978
+        897,
+        918,
+        915,
+        912,
+        909,
+        906,
+        903,
+        900
       ],
       "blue": [
-        999,
-        1006,
-        1005,
-        1004,
-        1003,
-        1002,
-        1001,
-        1000
+        921,
+        928,
+        927,
+        926,
+        925,
+        924,
+        923,
+        922
       ],
       "red": [
-        1007,
-        1014,
-        1013,
-        1012,
-        1011,
-        1010,
-        1009,
-        1008
+        929,
+        936,
+        935,
+        934,
+        933,
+        932,
+        931,
+        930
       ]
     }
   },
   "851": {
-    "action": 3,
-    "halfCycleTicks": 24,
+    "action": 6,
+    "halfCycleTicks": 8,
     "frames": {
       "green": [
-        1015,
-        1018,
-        1021,
-        1022
+        937,
+        958,
+        955,
+        952,
+        949,
+        946,
+        943,
+        940
       ],
       "blue": [
-        1025,
-        1026,
-        1027,
-        1028
+        961,
+        968,
+        967,
+        966,
+        965,
+        964,
+        963,
+        962
       ],
       "red": [
-        1029,
-        1030,
-        1031,
-        1032
+        969,
+        976,
+        975,
+        974,
+        973,
+        972,
+        971,
+        970
       ]
     }
   },
   "852": {
-    "action": 3,
-    "halfCycleTicks": 24,
+    "action": 6,
+    "halfCycleTicks": 8,
     "frames": {
       "green": [
-        1033,
-        1036,
-        1039,
-        1040
+        977,
+        998,
+        995,
+        992,
+        989,
+        986,
+        983,
+        980
       ],
       "blue": [
-        1043,
-        1044,
-        1045,
-        1046
+        1001,
+        1008,
+        1007,
+        1006,
+        1005,
+        1004,
+        1003,
+        1002
       ],
       "red": [
-        1047,
-        1048,
-        1049,
-        1050
+        1009,
+        1016,
+        1015,
+        1014,
+        1013,
+        1012,
+        1011,
+        1010
       ]
     }
   },
@@ -4088,22 +4042,22 @@ export const INTERACTION_SPRITES: import('./interaction-sprites.js').Interaction
     "halfCycleTicks": 24,
     "frames": {
       "green": [
-        1051,
-        1054,
-        1057,
-        1058
+        1017,
+        1020,
+        1023,
+        1024
       ],
       "blue": [
-        1061,
-        1062,
-        1063,
-        1064
+        1027,
+        1028,
+        1029,
+        1030
       ],
       "red": [
-        1065,
-        1066,
-        1067,
-        1068
+        1031,
+        1032,
+        1033,
+        1034
       ]
     }
   },
@@ -4112,22 +4066,70 @@ export const INTERACTION_SPRITES: import('./interaction-sprites.js').Interaction
     "halfCycleTicks": 24,
     "frames": {
       "green": [
-        1069,
-        1072,
-        1075,
-        1076
+        1035,
+        1038,
+        1041,
+        1042
       ],
       "blue": [
-        1079,
-        1080,
-        1081,
-        1082
+        1045,
+        1046,
+        1047,
+        1048
       ],
       "red": [
+        1049,
+        1050,
+        1051,
+        1052
+      ]
+    }
+  },
+  "855": {
+    "action": 3,
+    "halfCycleTicks": 24,
+    "frames": {
+      "green": [
+        1053,
+        1056,
+        1059,
+        1060
+      ],
+      "blue": [
+        1063,
+        1064,
+        1065,
+        1066
+      ],
+      "red": [
+        1067,
+        1068,
+        1069,
+        1070
+      ]
+    }
+  },
+  "856": {
+    "action": 3,
+    "halfCycleTicks": 24,
+    "frames": {
+      "green": [
+        1071,
+        1074,
+        1077,
+        1078
+      ],
+      "blue": [
+        1081,
+        1082,
         1083,
-        1084,
+        1084
+      ],
+      "red": [
         1085,
-        1086
+        1086,
+        1087,
+        1088
       ]
     }
   }
