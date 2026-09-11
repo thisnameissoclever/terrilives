@@ -428,6 +428,7 @@ mod tests {
         let wash_hands = shipped_interaction_index(sink, "wash_hands");
         let mut sim = Sim::new_with_lot(24, 24);
         let sink_target = sim.spawn_object(Position { x: 8.0, y: 8.0 }, sink);
+        let shower_target = sim.spawn_object(Position { x: 12.0, y: 8.0 }, shower);
         let no_smart_object = sim.world_mut().spawn(Position { x: 10.0, y: 8.0 }).id();
         let generic = sim
             .world_mut()
@@ -461,8 +462,23 @@ mod tests {
                 },
             ))
             .id();
+        let non_agent = sim
+            .world_mut()
+            .spawn((
+                Position { x: 13.0, y: 8.0 },
+                Eating {
+                    object: shower,
+                    interaction: take_shower,
+                    remaining_ticks: 10,
+                },
+                Target {
+                    object: shower_target,
+                    interaction: take_shower,
+                },
+            ))
+            .id();
         sim.sync_render_buffer();
-        for entity in [generic, malformed] {
+        for entity in [generic, malformed, non_agent] {
             assert_eq!(
                 sound_projection_of(sim.render_buffer(), entity),
                 (super::sound_action::NONE, super::NO_SOUND_SOURCE),

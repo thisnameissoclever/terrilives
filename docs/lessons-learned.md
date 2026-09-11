@@ -5206,6 +5206,11 @@ projecting the shower sound from mismatched state. Keep a separate render-sync
 test for the public buffer contract; outer presentation policy can suppress a
 malformed combination before it exposes this lower-level identity defect.
 
+**Outer projection correction.** The helper test cannot protect the call-site
+eligibility guard. Include a non-agent render row carrying otherwise valid
+ordinary-action and shower-target components; it must still project no sound.
+Changing either outer `&&` to `||` must make that render-buffer regression fail.
+
 ## [L-audio-boundaries-and-proofs-must-cover-every-scheduler] Scheduler families change as one contract
 
 **What happened.** Recovery from an externally suspended browser audio context
