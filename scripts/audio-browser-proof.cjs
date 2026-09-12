@@ -391,7 +391,13 @@ function analyseMemory(runs) {
         // has been stopped leaves the sounding list immediately and keeps its
         // nodes until its fade has rendered, so a reclaim that stopped
         // working would be invisible to the sounding count alone.
-        sample.retainedConversationVoices <= 3,
+        // Six, not three: the retained count is the sounding ones plus the
+        // ones still fading, and each is capped at three. Bounding it at the
+        // number today's calling pattern happens to produce would make this
+        // gate fail the day more than one conversation may sound at once,
+        // which is the flake this check already had to have removed once.
+        sample.conversationVoices <= 3 &&
+        sample.retainedConversationVoices <= 6,
     );
     return (
       boundedLiveState &&

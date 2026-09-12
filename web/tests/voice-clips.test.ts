@@ -70,7 +70,14 @@ class FakeSource implements AudioBufferSourcePort {
     this.starts.push(when);
   }
 
+  /** Set to make the next `stop` throw, as a closed context's would. */
+  failNextStop = false;
+
   stop(when = 0): void {
+    if (this.failNextStop) {
+      this.failNextStop = false;
+      throw new Error('source was never started');
+    }
     this.stops.push(when);
   }
 }
@@ -195,11 +202,43 @@ describe('VoiceClipPlayer', () => {
     expect(gain?.disconnected).toBe(false);
     expect(voices.activeConversationCount()).toBe(0);
 
-    // Torn down once the ramp has actually played out, reported by the
-    // sources ending at the scheduled stop.
-    for (const source of context.sources) source.onended?.();
+    // **Only the LAST source is fired**, because that is all a browser will
+    // do: the first clip's handler was cleared when it ended naturally and
+    // can never fire again. Firing both would let a teardown that waits on
+    // every source pass here while hanging on forever in the real thing.
+    context.sources.at(-1)?.onended?.();
     for (const source of context.sources) expect(source.disconnected).toBe(true);
     expect(gain?.disconnected).toBe(true);
+  });
+
+  it('reclaims a conversation whose every source refused to stop', () => {
+    // The ordering that produced the original leak: teardown running inside
+    // the stop loop, before the conversation had been listed as draining, so
+    // it was listed afterwards and no sweep could ever remove it again.
+    const { context, player: voices } = player();
+    voices.play(0, 1);
+    for (const source of context.sources) source.failNextStop = true;
+
+    voices.stopAll();
+
+    expect(voices.retainedConversationCount()).toBe(0);
+    for (const source of context.sources) expect(source.disconnected).toBe(true);
+  });
+
+  it('counts a fading conversation as retained until it is reclaimed', () => {
+    // `retainedConversationCount` is the only number the bounded-memory proof
+    // now watches, so it has to move: a conversation that has been stopped is
+    // out of the sounding list and still holds every node it was built from.
+    const { context, player: voices } = player();
+    voices.play(0, 1);
+    expect(voices.retainedConversationCount()).toBe(1);
+
+    voices.stopAll();
+    expect(voices.activeConversationCount()).toBe(0);
+    expect(voices.retainedConversationCount()).toBe(1);
+
+    context.sources.at(-1)?.onended?.();
+    expect(voices.retainedConversationCount()).toBe(0);
   });
 
   it('reclaims a faded conversation whose sources never report ending', () => {

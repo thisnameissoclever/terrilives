@@ -73,17 +73,6 @@ export interface ActivityCueEventSink {
 }
 
 /**
- * Converts fixed-tick activity state into sparse audio cues at the correct
- * ownership scope.
- *
- * Conversation and sleep are shared scenes. Emitting once per participant
- * would double a conversation and turn a bedroom into a pile of synchronized
- * breathing loops. The lowest stable Sim ID identifies each active scene, and
- * retained counters keep the cues audible without firing on every 10 Hz tick.
- * Eating, reading, and exercise belong to individual Sims, so each Sim retains
- * an independent cadence until the authored action changes or disappears.
- */
-/**
  * One bit per talking Sim, for identifying WHICH Sims a conversation is
  * between.
  *
@@ -95,6 +84,17 @@ function talkerBit(simId: number): number {
   return 1 << Math.min(simId, 30);
 }
 
+/**
+ * Converts fixed-tick activity state into sparse audio cues at the correct
+ * ownership scope.
+ *
+ * Conversation and sleep are shared scenes. Emitting once per participant
+ * would double a conversation and turn a bedroom into a pile of synchronized
+ * breathing loops. The lowest stable Sim ID identifies each active scene, and
+ * retained counters keep the cues audible without firing on every 10 Hz tick.
+ * Eating, reading, and exercise belong to individual Sims, so each Sim retains
+ * an independent cadence until the authored action changes or disappears.
+ */
 export class ActivityCueScheduler {
   private readonly seenSimIds = new Set<number>();
   private readonly personalSlotBySimId = new Map<number, number>();
@@ -112,7 +112,7 @@ export class ActivityCueScheduler {
   private frameVoice: ConversationVoicePair | null = null;
   private activeVoice: ConversationVoicePair | null = null;
   /**
-   * Who is talking, as a count and a sum of stable Sim IDs.
+   * Which Sims are talking, as one bit per stable Sim ID.
    *
    * Part of a conversation's identity, because the clip pair alone is not
    * one: two consecutive conversations can draw the same pair, and the second

@@ -360,15 +360,19 @@ export class AudioController implements GameAudioEventSink {
    * next one added here cannot be half-wired.
    */
   private stopEveryPlayer(): void {
-    this.player?.stopAll();
-    this.voices?.stopAll();
-    // **Drop the held conversation too.** Every route here - mute, Effects
+    // **Dropped FIRST**, before anything that touches the audio hardware. If
+    // a `stopAll` threw, a hold cleared after it would survive the silencing,
+    // which is the whole defect this line exists to prevent.
+    //
+    // **Drop the held conversation at all.** Every route here - mute, Effects
     // reaching zero, backgrounding, Load - also resets the scheduler, and
     // that reset deliberately emits no end event. Without this the pair stays
     // held, and the library landing a moment later would start a conversation
     // the player has already silenced: against a muted master gain, or
     // against a suspended clock that plays it on return to the tab.
     this.pendingVoice = null;
+    this.player?.stopAll();
+    this.voices?.stopAll();
   }
 
   /**
@@ -477,6 +481,11 @@ export class AudioController implements GameAudioEventSink {
     // The same gate `emit` applies. Reaching the player directly from the
     // library's load would otherwise bypass every reason the game has for
     // being silent right now.
+    //
+    // The hold is dropped rather than kept when this gate refuses, on
+    // purpose: recovering a resumed context resets the schedulers, and the
+    // next tick re-emits a conversation that is still running. Keeping it
+    // would risk starting one that is not.
     if (
       !this.isUnlocked() ||
       this.mutedPreference ||

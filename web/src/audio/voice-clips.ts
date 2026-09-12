@@ -291,14 +291,22 @@ export class VoiceClipPlayer {
     for (const source of conversation.sources) source.onended = null;
     last.onended = () => this.tearDown(conversation);
 
+    let lastWillReport = true;
     for (const source of conversation.sources) {
       try {
         source.stop(silentAt);
       } catch {
-        // A source that never reached a startable state will not report
-        // ending either; `sweepDrained` is what reclaims it.
+        // A source that never reached a startable state cannot be stopped,
+        // and will not report ending either.
+        if (source === last) lastWillReport = false;
       }
     }
+
+    // Reclaimed now rather than left for the sweep when the one source that
+    // was going to report cannot. Waiting would hold every node until some
+    // later conversation happened to start, and in a quiet house that is
+    // never.
+    if (!lastWillReport) this.tearDown(conversation);
   }
 
   /**
@@ -311,6 +319,11 @@ export class VoiceClipPlayer {
     // Unlisted FIRST, and before the already-torn guard, so a conversation
     // cannot be left on the draining list by a teardown that ran before it
     // was added to one.
+    //
+    // **Defensive rather than reachable**, and no test covers it: `finish`
+    // lists the conversation before anything that can tear it down, so the
+    // ordering this protects against no longer occurs. It is kept because it
+    // costs nothing and the original leak came from exactly this shape.
     const index = this.draining.indexOf(conversation);
     if (index >= 0) this.draining.splice(index, 1);
     if (conversation.torn) return;

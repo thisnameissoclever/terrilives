@@ -438,6 +438,13 @@ describe('AudioController gesture and cue lifecycle', () => {
 
     controller.setMuted(true);
 
+    // **Unmuted before the library lands**, which is what makes this test
+    // about the hold being DROPPED rather than about the retry's own gate.
+    // With the hold cleared nothing plays, correctly, because the
+    // conversation is long over. Leave the hold in place and a finished
+    // conversation starts here.
+    controller.setMuted(false);
+
     const originalFetch = globalThis.fetch;
     globalThis.fetch = (async () =>
       new Response(new ArrayBuffer(16))) as typeof globalThis.fetch;
@@ -447,6 +454,7 @@ describe('AudioController gesture and cue lifecycle', () => {
       globalThis.fetch = originalFetch;
     }
 
+    expect(context.decodedByteLengths).toHaveLength(2);
     expect(context.bufferSources).toHaveLength(0);
     expect(controller.activeConversationVoiceCount()).toBe(0);
   });
