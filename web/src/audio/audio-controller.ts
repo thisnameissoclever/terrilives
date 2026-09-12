@@ -115,7 +115,6 @@ export class AudioController implements GameAudioEventSink {
   private voiceClipIds: readonly string[] = [];
   /** The player's chosen speed, so conversations can follow it. */
   private gameSpeed = 1;
-  private unlockAttempt: Promise<boolean> | null = null;
   private hasUnlocked = false;
   private backgrounded = false;
   private contextStateRevision = 0;
@@ -151,17 +150,17 @@ export class AudioController implements GameAudioEventSink {
   /**
    * Creates or resumes the context. This method never runs from `emit`, so a
    * background event cannot consume the browser's user-activation allowance.
+   *
+   * Every trusted gesture gets its own `resume()`. An in-flight attempt is
+   * deliberately NOT reused: a browser that blocks a resume answers with a
+   * promise it never settles, so a cached attempt from one mistimed gesture
+   * would be handed to every later one and the page would never try again.
+   * Repeating the call is cheap, and the context itself is built only once
+   * because `resumeFromGesture` assigns it before it awaits anything.
    */
   unlockFromGesture(): Promise<boolean> {
     if (this.backgrounded) return Promise.resolve(false);
-    if (this.unlockAttempt !== null) return this.unlockAttempt;
-
-    const attempt = this.resumeFromGesture();
-    this.unlockAttempt = attempt;
-    void attempt.finally(() => {
-      if (this.unlockAttempt === attempt) this.unlockAttempt = null;
-    });
-    return attempt;
+    return this.resumeFromGesture();
   }
 
   setMuted(muted: boolean): void {
@@ -382,11 +381,38 @@ export class AudioController implements GameAudioEventSink {
    */
   async loadVoiceLibrary(ids: readonly string[]): Promise<void> {
     this.voiceClipIds = ids;
+    await this.fetchVoiceLibrary();
+  }
+
+  /**
+   * Fetches and decodes whatever library has been handed over, if there is a
+   * context to decode with.
+   *
+   * **The caller does not choose the moment.** Decoding needs an audio
+   * context, and a context needs a gesture, so the ids arrive long before the
+   * bytes can. Calling this again when a context appears is what makes the
+   * ordering the caller's non-problem - and it has to be, because unlocking
+   * is owned by `gesture-unlock.ts` and main() is forbidden from driving it.
+   *
+   * Fetching only after a gesture is also the right behaviour on its own
+   * terms: a player who never clicks never downloads several megabytes of
+   * audio they will never hear.
+   *
+   * Never rejects. A library that fails to load costs conversations their
+   * sound; it does not stop the game.
+   */
+  private async fetchVoiceLibrary(): Promise<void> {
     const context = this.context;
-    if (context === null || ids.length === 0) return;
+    if (context === null || this.voiceClipIds.length === 0) return;
+    if (this.voiceClips.length === this.voiceClipIds.length) {
+      // Already decoded. A rebuilt context reinstalls these buffers rather
+      // than pulling them down a second time.
+      this.voices?.setClips(compactClips(this.voiceClips));
+      return;
+    }
     try {
       this.voiceClips = await loadVoiceClips(
-        ids,
+        this.voiceClipIds,
         async (url) => {
           const response = await fetch(url);
           if (!response.ok) throw new Error(`voice clip ${url}: ${response.status}`);
@@ -496,6 +522,9 @@ export class AudioController implements GameAudioEventSink {
         const voices = new VoiceClipPlayer(context, effectsGain);
         voices.setClips(compactClips(this.voiceClips));
         this.voices = voices;
+        // The ids usually arrived before any gesture could create this
+        // context, so this is the first moment the bytes can be decoded.
+        void this.fetchVoiceLibrary();
         this.applyMasterGain();
         this.applyEffectsGain();
       } catch {

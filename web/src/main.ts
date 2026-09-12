@@ -75,6 +75,7 @@ import {
   type AudioCuePlayCounts,
 } from './audio/audio-controller.js';
 import { sampleSimAudioAfterTick } from './audio/frame-audio.js';
+import { armAudioUnlock } from './audio/gesture-unlock.js';
 import { AudioControls } from './ui/audio-controls.js';
 
 /** [D2]: the simulation's one true rate. Speed controls change how many
@@ -200,6 +201,35 @@ declare global {
 }
 
 async function main(): Promise<void> {
+  // Audio is wired FIRST, ahead of every await below. Two reasons, both
+  // learned the hard way. A phone takes seconds to fetch the WASM, bring up
+  // WebGPU and decode the atlas, and a gesture made during that wait is the
+  // one chance the browser gives to open the autoplay gate; arming later
+  // throws it away. And if any of those awaits throws, the startup card is
+  // the only thing on screen - but nothing about audio depends on the
+  // simulation or the GPU, so there is no reason for it to fall with them.
+  // On that failure path the listeners below stay armed and a tap will build
+  // a context that can never be heard. That is deliberate and harmless: the
+  // alternative is unarming audio on exactly the paths where it is cheapest
+  // to keep, and the page is showing a failure card rather than a game.
+  let preferences: Storage | null = null;
+  try {
+    preferences = window.localStorage;
+  } catch {
+    // Session preferences still work in memory when browser storage is denied.
+  }
+  const audio = new AudioController(undefined, preferences ?? undefined);
+  void audio.setBackgrounded(document.visibilityState === 'hidden');
+  armAudioUnlock(document, audio);
+  // Registered here rather than with the save-on-hide handler below, and for
+  // the same reason as the arming: the reading above is a snapshot taken
+  // before the awaits, so the listener that corrects it has to exist before
+  // them too. A tab that loads hidden and is shown during the load would
+  // otherwise stay marked backgrounded, and refuse every gesture, for good.
+  document.addEventListener('visibilitychange', () => {
+    void audio.setBackgrounded(document.visibilityState === 'hidden');
+  });
+
   // init() resolves to the instance exports, whose `memory` is the
   // WebAssembly.Memory backing every view the bridge hands out. It is
   // passed in rather than imported: `--target web` has no importable
@@ -231,33 +261,17 @@ async function main(): Promise<void> {
   // is the zero-copy views.
   const handle = SimHandle.from_lot();
   const sim = new SimBridge(handle, wasm.memory);
+  // The names of the conversation recordings come from the compiled content
+  // pack, so this is the first moment they exist. The controller decides WHEN
+  // to fetch them: decoding needs an audio context, and a context needs a
+  // gesture that may not have happened yet.
+  void audio.loadVoiceLibrary(sim.voiceClipIds());
   const saveStatusElement = document.querySelector<HTMLElement>('#save-status');
   if (!saveStatusElement) throw new Error('missing #save-status');
   const saveStatus: HTMLElement = saveStatusElement;
   const commandStatusElement = document.querySelector<HTMLElement>('#command-feedback');
   if (!commandStatusElement) throw new Error('missing #command-feedback');
   const commandStatus: HTMLElement = commandStatusElement;
-  let preferences: Storage | null = null;
-  try {
-    preferences = window.localStorage;
-  } catch {
-    // Session preferences still work in memory when browser storage is denied.
-  }
-  const audio = new AudioController(undefined, preferences ?? undefined);
-  void audio.setBackgrounded(document.visibilityState === 'hidden');
-  const unlockAudio = (): void => {
-    if (audio.isUnlocked()) return;
-    // The recordings are fetched only once a gesture has created the audio
-    // context, because decoding needs one. Fetching them at start-up would
-    // pull three megabytes for a player who never clicks.
-    void audio.unlockFromGesture().then(() => {
-      if (audio.isUnlocked()) void audio.loadVoiceLibrary(sim.voiceClipIds());
-    });
-  };
-  // Browser autoplay policy requires the context to start from a trusted
-  // gesture. Capture sees the gesture before the command it may accompany.
-  document.addEventListener('pointerdown', unlockAudio, true);
-  document.addEventListener('keydown', unlockAudio, true);
   const persistence = new PersistenceController(
     createSaveStore(),
     sim,
@@ -619,6 +633,7 @@ async function main(): Promise<void> {
   const closeHelpButton = document.querySelector<HTMLButtonElement>('#close-help');
   const helpRoot = document.querySelector<HTMLDialogElement>('#help-panel');
   const helpTitle = document.querySelector<HTMLElement>('#help-title');
+  const helpBody = document.querySelector<HTMLElement>('#help-body');
   const newGameDialog = document.querySelector<HTMLDialogElement>('#new-game-dialog');
   const loadGameDialog = document.querySelector<HTMLDialogElement>('#load-game-dialog');
   const confirmNewGame = document.querySelector<HTMLButtonElement>('#confirm-new-game');
@@ -639,6 +654,7 @@ async function main(): Promise<void> {
     !closeHelpButton ||
     !helpRoot ||
     !helpTitle ||
+    !helpBody ||
     !newGameDialog ||
     !loadGameDialog ||
     !confirmNewGame ||
@@ -799,7 +815,7 @@ async function main(): Promise<void> {
     }
   });
 
-  const helpPanel = new HelpPanel(helpRoot, helpTitle, preferences);
+  const helpPanel = new HelpPanel(helpRoot, helpBody, helpTitle, preferences);
   const lightingMode = new LightingMode(lightingModeButton, preferences);
   let helpReturnTarget: HTMLElement = canvas;
   const firstRunHelpOpened = helpPanel.showOnFirstRun();
@@ -826,9 +842,10 @@ async function main(): Promise<void> {
     closeHelp();
   });
 
+  // Audio's half of this event is handled at the top of main(); this half
+  // needs `persistence`, which does not exist until the awaits have run.
   document.addEventListener('visibilitychange', () => {
     const hidden = document.visibilityState === 'hidden';
-    void audio.setBackgrounded(hidden);
     if (hidden && !startingNewGame) {
       const saving = persistence.save('Game saved');
       syncPersistenceButtons();
