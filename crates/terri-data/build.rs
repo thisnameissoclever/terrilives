@@ -100,6 +100,15 @@ fn voice_clip_ticks(path: &std::path::Path) -> u32 {
     }
 
     let frame_bytes = channels * (bits / 8);
+    // Checked before the division, which would otherwise round a partial
+    // frame away. A file carrying one extra byte can land on a tick-aligned
+    // frame count once that byte is discarded, so it would pass the check
+    // below while the audio the browser decodes is not the length measured
+    // here - the audio-to-simulation desync this whole reader exists to
+    // prevent, arriving through the one door that discards evidence.
+    if !data_len.is_multiple_of(frame_bytes) {
+        fail("data chunk is not a whole number of frames");
+    }
     let frames = data_len / frame_bytes;
     let frames_per_tick = sample_rate / TICK_HZ;
     if !frames.is_multiple_of(frames_per_tick) {
