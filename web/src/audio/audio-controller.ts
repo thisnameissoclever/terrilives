@@ -12,6 +12,7 @@ import {
 } from './activity-cues.js';
 import {
   loadVoiceClips,
+  MAX_ACTIVE_VOICE_CONVERSATIONS,
   VoiceClipPlayer,
   type AudioBufferPort,
   type VoiceAudioContext,
@@ -115,6 +116,17 @@ export class AudioController implements GameAudioEventSink {
   private voiceClipIds: readonly string[] = [];
   /** The player's chosen speed, so conversations can follow it. */
   private gameSpeed = 1;
+  /**
+   * A conversation that asked to be played before it could be.
+   *
+   * The recordings are fetched after a gesture and decoded asynchronously,
+   * so the first conversation of a session can easily begin while the
+   * library is still arriving. Without this it would be recorded as playing,
+   * never retried, and stay silent for its whole length.
+   */
+  private pendingVoice: ConversationVoicePair | null = null;
+  /** The in-flight library fetch, so two callers cannot both download it. */
+  private voiceFetch: Promise<(AudioBufferPort | undefined)[]> | null = null;
   private hasUnlocked = false;
   private backgrounded = false;
   private contextStateRevision = 0;
@@ -210,6 +222,7 @@ export class AudioController implements GameAudioEventSink {
       return;
     }
     if (event.type === 'sim.conversation-ended') {
+      this.pendingVoice = null;
       // Only reached when the world outran its own audio, which is what
       // fast-forward makes routine. At normal speed the recordings finish on
       // the tick the talking does and have already torn themselves down.
@@ -404,27 +417,56 @@ export class AudioController implements GameAudioEventSink {
   private async fetchVoiceLibrary(): Promise<void> {
     const context = this.context;
     if (context === null || this.voiceClipIds.length === 0) return;
+    // One fetch at a time. The cache check below only sees a finished load,
+    // so without this a context rebuild during the first fetch would pull the
+    // whole library down a second time - several megabytes, for nothing.
+    if (this.voiceFetch !== null) {
+      await this.voiceFetch;
+      return;
+    }
     if (this.voiceClips.length === this.voiceClipIds.length) {
       // Already decoded. A rebuilt context reinstalls these buffers rather
       // than pulling them down a second time.
       this.voices?.setClips(compactClips(this.voiceClips));
+      this.retryPendingVoice();
       return;
     }
+    const fetching = loadVoiceClips(
+      this.voiceClipIds,
+      async (url) => {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`voice clip ${url}: ${response.status}`);
+        return response.arrayBuffer();
+      },
+      (bytes) => context.decodeAudioData(bytes),
+    );
+    this.voiceFetch = fetching;
     try {
-      this.voiceClips = await loadVoiceClips(
-        this.voiceClipIds,
-        async (url) => {
-          const response = await fetch(url);
-          if (!response.ok) throw new Error(`voice clip ${url}: ${response.status}`);
-          return response.arrayBuffer();
-        },
-        (bytes) => context.decodeAudioData(bytes),
-      );
+      this.voiceClips = await fetching;
       this.voices?.setClips(compactClips(this.voiceClips));
+      this.retryPendingVoice();
     } catch {
       // Presentation only. The simulation already decided the conversation's
       // length, so a silent conversation is the whole cost of failing here.
+    } finally {
+      if (this.voiceFetch === fetching) this.voiceFetch = null;
     }
+  }
+
+  /**
+   * Plays a conversation that asked to start before the library was ready.
+   *
+   * Starts from the beginning rather than from where the conversation has got
+   * to. The pair is what the simulation chose and the talking has not finished
+   * yet, so the recordings are still the right thing to hear; starting them
+   * partway through to chase the clock would be a worse result than a
+   * conversation whose audio runs a moment past it.
+   */
+  private retryPendingVoice(): void {
+    const voice = this.pendingVoice;
+    if (voice === null) return;
+    this.pendingVoice = null;
+    this.startConversationVoice(voice);
   }
 
   /** Ids the shell last handed over, so a rebuilt context can reload them. */
@@ -437,18 +479,41 @@ export class AudioController implements GameAudioEventSink {
     return this.voices?.activeConversationCount() ?? 0;
   }
 
+  /**
+   * The ceiling conversation voices are held under.
+   *
+   * Reported beside the live count because the bounded-state proof has to
+   * constrain both: a count that stays low while the ceiling climbs is not
+   * bounded, it is merely quiet.
+   */
+  conversationVoiceCapacity(): number {
+    return MAX_ACTIVE_VOICE_CONVERSATIONS;
+  }
+
   private startConversationVoice(voice: ConversationVoicePair): void {
     const voices = this.voices;
-    if (voices === null) return;
+    if (voices === null) {
+      this.pendingVoice = voice;
+      return;
+    }
     try {
       // One conversation at a time from this scheduler: it tracks a single
       // household-wide conversation, so a new pair replaces the old rather
       // than layering on top of it.
       voices.stopAll();
-      voices.play(voice.first, voice.second, voiceRateForSpeed(this.gameSpeed));
+      const played = voices.play(
+        voice.first,
+        voice.second,
+        voiceRateForSpeed(this.gameSpeed),
+      );
+      // Held rather than dropped. The usual reason a play fails is that the
+      // library has not finished decoding, and that resolves on its own
+      // moments later while this conversation is still going.
+      this.pendingVoice = played ? null : voice;
     } catch {
       // Sound is presentation. A node failure may drop one conversation but
       // may never terminate the simulation frame that observed it.
+      this.pendingVoice = voice;
     }
   }
 
@@ -490,7 +555,7 @@ export class AudioController implements GameAudioEventSink {
       'page-turn': this.playedCueCounts[4] ?? 0,
       exercise: this.playedCueCounts[5] ?? 0,
       'door-opened': this.playedCueCounts[6] ?? 0,
-      'door-closed': this.playedCueCounts[8] ?? 0,
+      'door-closed': this.playedCueCounts[7] ?? 0,
     };
   }
 

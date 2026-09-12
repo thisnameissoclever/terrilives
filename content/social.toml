@@ -50,6 +50,24 @@ visual = { action = "talk", anchor = "partner", facing = "toward_anchor" }
 # is what the rate protects and it is why the rate, rather than the total
 # per conversation, is the quantity held fixed here.
 #
+# **TWO THINGS THIS SCALING DOES NOT HOLD FIXED**, both measured rather than
+# assumed, and both left as they are pending a feel pass.
+#
+# Scoring divides by `travel_ticks + duration_ticks + 1` rather than by the
+# duration alone, so scaling both numbers by 1.675 only reproduces the old
+# score at zero distance. The ratio is `1.675 * (t + 41) / (t + 68)`: 1.01x
+# adjacent, about 1.16x at twenty travel ticks, about 1.26x at forty. Travel
+# ticks are four times the tile distance, so crossing ten tiles to chat is
+# roughly a quarter more attractive than it used to be, and the formula's
+# preference for nearby things is correspondingly blunter for chat alone.
+#
+# Relationship gain and the hobby payout are paid once per COMPLETED
+# conversation rather than per tick, so at about 1.675x the length they now
+# arrive around 0.6x as often per unit of played time. Relationships warm
+# more slowly in wall-clock terms even though each conversation is worth the
+# same. That may be the right feel for longer conversations or it may not;
+# it is a number to watch in the next measured pass rather than a defect.
+#
 # **A conversation now delivers about twice what it used to**, because it
 # lasts about twice as long at the same rate: 40 to 63 social where it
 # used to be 18 to 42. That is not a free lunch and it is not avoidable -

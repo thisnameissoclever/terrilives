@@ -1083,19 +1083,6 @@ impl Sim {
         &mut self.world
     }
 
-    /// Copies render-relevant state into the struct-of-arrays buffer that
-    /// JavaScript views directly. Called once per tick, before the
-    /// renderer reads.
-    ///
-    /// Entities are sorted by index so an entity keeps its slot between
-    /// frames. This is load-bearing rather than tidiness: the renderer
-    /// interpolates slot `i` of `prev_positions` towards slot `i` of
-    /// `positions` and assumes both belong to the same entity. Query
-    /// iteration is archetype order, which shifts every time any entity
-    /// gains or loses a component, so without the sort entities would
-    /// smear across each other's positions whenever an agent started or
-    /// stopped eating. `entity_slots_survive_archetype_churn` pins it;
-    /// deleting the sort must fail that test.
     /// One id per compiled voice clip, in the index order the render
     /// buffer's voice columns use.
     ///
@@ -1111,6 +1098,19 @@ impl Sim {
             .collect()
     }
 
+    /// Copies render-relevant state into the struct-of-arrays buffer that
+    /// JavaScript views directly. Called once per tick, before the
+    /// renderer reads.
+    ///
+    /// Entities are sorted by index so an entity keeps its slot between
+    /// frames. This is load-bearing rather than tidiness: the renderer
+    /// interpolates slot `i` of `prev_positions` towards slot `i` of
+    /// `positions` and assumes both belong to the same entity. Query
+    /// iteration is archetype order, which shifts every time any entity
+    /// gains or loses a component, so without the sort entities would
+    /// smear across each other's positions whenever an agent started or
+    /// stopped eating. `entity_slots_survive_archetype_churn` pins it;
+    /// deleting the sort must fail that test.
     pub fn sync_render_buffer(&mut self) {
         self.sync_render_buffer_inner(true);
     }

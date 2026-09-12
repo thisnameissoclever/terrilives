@@ -5263,7 +5263,13 @@ all; only a choice between two different balances was.
 
 **Prevention rule.** Never change `duration_ticks` without scaling
 `advertises` by the same factor, unless making the interaction less attractive
-is the actual intent. The rate is what the content comments pin and what fixes
+is the actual intent. Know what that scaling does and does not buy: it holds
+the delivery rate exactly, and it holds the SCORE only at zero distance,
+because scoring divides by `travel_ticks + duration_ticks + 1`. A longer
+interaction scaled this way becomes progressively more attractive the further
+a sim has to walk to reach it. Anything paid once per completion rather than
+per tick - relationship gain, the hobby payout - also arrives less often per
+unit of played time, in proportion to the length change. The rate is what the content comments pin and what fixes
 the ordering between competing interactions; the total per use follows from the
 rate and the length and cannot be pinned separately. Before offering a tuning
 option, check every system that reads the number, not just the one the change
@@ -5274,6 +5280,7 @@ is about.
 interaction was not one anybody chose. For `chat` specifically, the guard is
 `every_tick_of_a_played_stretch_produces_a_loadable_save`, which asserts its
 own fixture is not vacuous and therefore notices when sims stop socialising.
+
 ## [L-a-blocked-browser-promise-may-never-settle] Caching an in-flight promise assumes it settles
 
 **What happened.** Sound never played on Android and no later tap recovered it,

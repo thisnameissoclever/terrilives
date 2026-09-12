@@ -513,6 +513,7 @@ pub fn compile(
     // length, and no other compiled thing resolves against it. The link to
     // `social` runs the other way and at runtime, where the draw reads both.
     let voice_clips = compile_voice(voice, voice_clip_ticks)?;
+    check_voice_floor(&voice_clips, &tuning)?;
 
     Ok(ContentPack {
         decay_per_tick: decay,
@@ -586,6 +587,35 @@ fn compile_voice(
     }
 
     Ok(compiled)
+}
+
+/// Rejects a voice library whose shortest possible conversation would fall
+/// below the interaction floor.
+///
+/// **The floor lost its grip on chat when the clips took over the duration.**
+/// `sample_duration` is what applies `min_interaction_ticks`, and a voiced
+/// conversation does not go through it: its length is the sum of two clips.
+/// Without this, two one-tick recordings compile happily and produce a
+/// two-tick conversation that delivers two sixty-sevenths of what it
+/// advertises - verbatim the silent lie `ClippedDuration` exists to make
+/// unauthorable, arriving through the one door that rule never covered.
+///
+/// The shortest POSSIBLE pair is the two shortest clips, because the draw is
+/// uniform over distinct pairs and will eventually make that one.
+fn check_voice_floor(clips: &[CompiledVoiceClip], tuning: &Tuning) -> Result<(), ContentError> {
+    if clips.len() < 2 {
+        return Ok(());
+    }
+    let mut shortest: Vec<u32> = clips.iter().map(|clip| clip.duration_ticks).collect();
+    shortest.sort_unstable();
+    let pair = shortest[0] + shortest[1];
+    if pair < tuning.min_interaction_ticks {
+        return Err(ContentError::VoicePairBelowFloor {
+            ticks: pair,
+            floor: tuning.min_interaction_ticks,
+        });
+    }
+    Ok(())
 }
 
 /// Validates `content/chains.toml` - [K1]'s multi-step sequences.
@@ -2853,7 +2883,7 @@ mod tests {
     use crate::schema::{
         ActionSocketDef, ArchetypeDef, AtlasSpriteDef, CareerDef, CircadianFile, DispositionDef,
         HouseholdSimDef, InteractionDef, NeedDef, ObjectDef, PlacementDef, TraitDef, VisualDef,
-        WallDef,
+        VoiceClipDef, WallDef,
     };
 
     /// The atlas every test compiles against.
@@ -3999,6 +4029,82 @@ mod tests {
     /// change to the pack format needs the vector regenerated and every
     /// previously written pack rebuilt. Anything else is a determinism
     /// regression, and the vector is doing its job.
+    /// The floor still binds a conversation now that clips decide its length.
+    ///
+    /// `sample_duration` is what applies `min_interaction_ticks`, and a voiced
+    /// conversation never reaches it. Without this check two one-tick clips
+    /// compile and make a two-tick conversation that delivers a fraction of
+    /// what it advertises: verbatim the silent lie `ClippedDuration` exists to
+    /// make unauthorable, arriving through the one door that rule never
+    /// covered.
+    #[test]
+    fn a_voice_pair_below_the_interaction_floor_is_rejected() {
+        // The fixture's floor is 3 rather than the shipped 12, so these are
+        // stated against `distinct_tuning`'s value. Reading it rather than
+        // restating it is what stops the test passing for the wrong reason if
+        // the fixture is ever retuned.
+        let floor = distinct_tuning().min_interaction_ticks;
+        assert_eq!(floor, 3, "this test is written against the fixture's floor");
+
+        assert!(
+            compile_voice_clips(&["a", "b"], vec![2, 1]).is_ok(),
+            "a pair meeting the floor exactly must compile"
+        );
+
+        let err =
+            compile_voice_clips(&["a", "b"], vec![1, 1]).expect_err("two ticks is under the floor");
+        assert!(
+            matches!(
+                err,
+                ContentError::VoicePairBelowFloor { ticks: 2, floor: 3 }
+            ),
+            "expected the floor rejection, got {err:?}"
+        );
+
+        // The SHORTEST possible pair is what matters, not the first two: the
+        // draw is uniform over distinct pairs and will make that one.
+        let err = compile_voice_clips(&["a", "b", "c"], vec![40, 1, 1])
+            .expect_err("the two shortest still total two");
+        assert!(
+            matches!(err, ContentError::VoicePairBelowFloor { ticks: 2, .. }),
+            "the check must sort rather than take the first two, got {err:?}"
+        );
+
+        // One clip cannot make a pair, so there is no conversation to floor.
+        assert!(
+            compile_voice_clips(&["a"], vec![1]).is_ok(),
+            "a single clip is the no-voice case and is not subject to the floor"
+        );
+    }
+
+    /// Compiles just a voice library against the shipped tuning.
+    fn compile_voice_clips(ids: &[&str], ticks: Vec<u32>) -> Result<ContentPack, ContentError> {
+        compile(
+            full_needs(),
+            one_object(snack_advertising_three_needs()),
+            distinct_lot(),
+            test_atlas(),
+            distinct_tuning(),
+            PersonalitiesFile { archetype: vec![] },
+            HouseholdFile { sim: vec![] },
+            SocialFile {
+                interaction: vec![],
+            },
+            TraitsFile { trait_def: vec![] },
+            CareersFile { career: vec![] },
+            ChainsFile { chain: vec![] },
+            VoiceFile {
+                clip: ids
+                    .iter()
+                    .map(|id| VoiceClipDef {
+                        id: (*id).to_string(),
+                    })
+                    .collect(),
+            },
+            ticks,
+        )
+    }
+
     #[test]
     fn a_compiled_pack_serialises_to_a_stable_golden_vector() {
         let pack = compile_bare(

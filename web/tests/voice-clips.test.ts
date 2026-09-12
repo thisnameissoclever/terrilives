@@ -185,19 +185,70 @@ describe('VoiceClipPlayer', () => {
     expect(lastRamp?.endTime).toBeGreaterThan(context.currentTime);
     for (const source of context.sources) {
       expect(source.stops.at(-1)).toBeCloseTo(lastRamp?.endTime ?? 0, 6);
-      expect(source.disconnected).toBe(true);
+      // **Still connected.** This assertion used to demand the opposite, and
+      // in doing so it enshrined the bug: disconnecting in the same turn as
+      // scheduling the ramp removes the nodes from the graph before the ramp
+      // can reach the output, so the fade never rendered and the stop was the
+      // hard cut it exists to prevent.
+      expect(source.disconnected).toBe(false);
     }
+    expect(gain?.disconnected).toBe(false);
     expect(voices.activeConversationCount()).toBe(0);
+
+    // Torn down once the ramp has actually played out, reported by the
+    // sources ending at the scheduled stop.
+    for (const source of context.sources) source.onended?.();
+    for (const source of context.sources) expect(source.disconnected).toBe(true);
+    expect(gain?.disconnected).toBe(true);
   });
 
-  it('drops the oldest conversation rather than stacking babble', () => {
-    const { player: voices } = player();
+  it('reclaims a faded conversation whose sources never report ending', () => {
+    // The safety net for a source stopped before its scheduled start, which
+    // may never fire `onended`. Without it those nodes would stay connected
+    // for the life of the audio context.
+    const { context, player: voices } = player();
+    voices.play(0, 1);
+    voices.stopAll();
 
-    for (let index = 0; index < MAX_ACTIVE_VOICE_CONVERSATIONS + 2; index += 1) {
-      voices.play(0, 1);
-    }
+    const stranded = [...context.sources];
+    for (const source of stranded) expect(source.disconnected).toBe(false);
+
+    // Advance past the fade and start something else, which sweeps.
+    context.currentTime += 1;
+    voices.play(1, 2);
+
+    for (const source of stranded) expect(source.disconnected).toBe(true);
+  });
+
+  it('drops the OLDEST conversation rather than stacking babble', () => {
+    const { context, player: voices } = player();
+
+    // Distinct pairs, so which conversations survived is visible. Asserting
+    // only the resulting count would pass just as happily if eviction threw
+    // away the newest arrival instead of the oldest, which is the opposite
+    // of what the cap is for.
+    const pairs: readonly [number, number][] = [
+      [0, 1],
+      [1, 2],
+      [2, 0],
+      [0, 2],
+    ];
+    for (const [first, second] of pairs) voices.play(first, second);
 
     expect(voices.activeConversationCount()).toBe(MAX_ACTIVE_VOICE_CONVERSATIONS);
+
+    // Four conversations of two sources each were created; the first pair's
+    // sources are the ones that should have been stopped.
+    const firstConversationSources = context.sources.slice(0, 2);
+    for (const source of firstConversationSources) {
+      expect(source.stops.length).toBeGreaterThan(0);
+    }
+    // The most recent arrival must still be playing out on its own schedule,
+    // with only the stop its own clip length implies.
+    const newestSources = context.sources.slice(-2);
+    for (const source of newestSources) {
+      expect(source.stops).toHaveLength(1);
+    }
   });
 
   it('plays nothing rather than throwing when a clip is missing', () => {

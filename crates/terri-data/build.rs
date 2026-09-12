@@ -90,6 +90,14 @@ fn voice_clip_ticks(path: &std::path::Path) -> u32 {
     if !sample_rate.is_multiple_of(TICK_HZ) {
         fail("sample rate is not a whole number of frames per tick");
     }
+    // Guarded rather than assumed. `bits / 8` truncates, so a 12-bit or
+    // 20-bit file would compute a frame size one to two bytes short and
+    // report a duration that is too long; below 8 bits it is zero, and the
+    // division below would panic on it instead of reaching a message that
+    // says what is wrong.
+    if bits < 8 || !bits.is_multiple_of(8) {
+        fail("sample bit depth is not a whole number of bytes");
+    }
 
     let frame_bytes = channels * (bits / 8);
     let frames = data_len / frame_bytes;

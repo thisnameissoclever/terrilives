@@ -2879,3 +2879,28 @@ stress viewport.
   performance, bounded retained memory, and scheduler evidence pass locally.
   Human listening, merge, exact-head CI, and public Pages deployment remain
   open.
+
+## Recorded conversation voices, 2026-09-11
+
+Played the built bundle over the local preview across several in-game days at
+1x and 3x, watching for conversations and sampling the audio scheduler.
+
+- **Two recordings play per conversation, back to back.** Confirmed with two
+  Sims visibly talking, both render rows carrying the same clip pair, and two
+  buffer sources created per conversation. Counted four sources across two
+  conversations in one 40-second window at 3x.
+- **The library loads on the first gesture and not before.** All twelve clips
+  fetched 200 after the first click, and none before it. A player who never
+  clicks never downloads the 3.8 MB.
+- **The voices stop when the talking stops.** The live count returns to zero
+  on the frame the conversation ends rather than running on.
+- **Conversations are noticeably rarer and longer**, as the doubled length and
+  doubled social payout predict. Several 40-second windows at 3x contained no
+  conversation at all, where the old tuning produced them more often. That
+  matches the intent and is the main thing to judge by ear.
+- **Open: the mix level has not been judged by anyone.** `VOICE_CLIP_GAIN` is
+  a first guess made against footsteps, not a decision. It is one constant.
+- **Open: a browser listening pass by the owner.** Everything above is
+  measured from the scheduler and the network, not heard. Nothing here
+  establishes that the clips sound right in the mix, only that the right
+  clips play at the right times.

@@ -126,6 +126,8 @@ export interface StressHandle {
     readonly activeVoices: number;
     /** Conversations currently playing recordings. */
     readonly conversationVoices: number;
+    /** The ceiling those conversations are held under. */
+    readonly conversationVoiceCapacity: number;
     readonly footstepTracks: number;
     readonly footstepCapacity: number;
     readonly activityTracks: number;
@@ -1232,6 +1234,9 @@ async function main(): Promise<void> {
         // [L-audio-boundaries-and-proofs-must-cover-every-scheduler] records.
         get conversationVoices() {
           return audio.activeConversationVoiceCount();
+        },
+        get conversationVoiceCapacity() {
+          return audio.conversationVoiceCapacity();
         },
         get footstepTracks() {
           return audio.activeFootstepTrackCount();

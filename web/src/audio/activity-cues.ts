@@ -99,6 +99,19 @@ export class ActivityCueScheduler {
   /** This frame's representative pair, and what is currently sounding. */
   private frameVoice: ConversationVoicePair | null = null;
   private activeVoice: ConversationVoicePair | null = null;
+  /**
+   * Who is talking, as a count and a sum of stable Sim IDs.
+   *
+   * Part of a conversation's identity, because the clip pair alone is not
+   * one: two consecutive conversations can draw the same pair, and the second
+   * would then be mistaken for the first still running and play nothing. Two
+   * cheap order-independent numbers rather than a set, because this runs on
+   * every fixed tick and must not allocate.
+   */
+  private frameTalkerCount = 0;
+  private frameTalkerSum = 0;
+  private activeTalkerCount = 0;
+  private activeTalkerSum = 0;
   private sleepActive = false;
   private sleepTicksRemaining = 0;
   private breathIndex = 0;
@@ -118,6 +131,8 @@ export class ActivityCueScheduler {
     this.conversationSimId = Number.MAX_SAFE_INTEGER;
     this.sleepingSimId = Number.MAX_SAFE_INTEGER;
     this.frameVoice = null;
+    this.frameTalkerCount = 0;
+    this.frameTalkerSum = 0;
   }
 
   observe(
@@ -137,6 +152,8 @@ export class ActivityCueScheduler {
       // its pair is the one that sounds. Taking the pair from whichever row
       // wins rather than from the first seen keeps the choice independent of
       // row order, which shifts whenever any Sim gains or loses a component.
+      this.frameTalkerCount += 1;
+      this.frameTalkerSum += simId;
       if (simId <= this.conversationSimId) {
         this.conversationSimId = simId;
         this.frameVoice = voice ?? null;
@@ -182,6 +199,10 @@ export class ActivityCueScheduler {
     // conversation the SECOND thing to stop them.
     this.frameVoice = null;
     this.activeVoice = null;
+    this.frameTalkerCount = 0;
+    this.frameTalkerSum = 0;
+    this.activeTalkerCount = 0;
+    this.activeTalkerSum = 0;
     this.sleepActive = false;
     this.sleepTicksRemaining = 0;
     this.breathIndex = 0;
@@ -201,13 +222,21 @@ export class ActivityCueScheduler {
    * Starts a conversation's clips, or stops them, by comparing what is
    * sounding against what the frame observed.
    *
-   * **The comparison is on the clip PAIR, not on whether anybody is talking.**
-   * One conversation ending and another starting on the same tick looks
-   * identical to one long conversation if you only ask "is anyone talking",
-   * and the new pair would never be heard. Two consecutive conversations can
-   * draw the same pair, which this treats as one - a rare and harmless miss,
-   * and far better than restarting the audio every time the representative
-   * changes.
+   * **Identity is the clip pair AND who is talking.** Asking only "is anybody
+   * talking" would see one unbroken conversation where two ran back to back,
+   * and the second pair would never be heard. The pair alone is not identity
+   * either: two conversations can draw the same pair, and the second would be
+   * mistaken for the first still running. The talker count and id sum settle
+   * both cases without allocating.
+   *
+   * **Known limitation with more than one conversation at a time.** This
+   * scheduler speaks for the whole household through the lowest talking Sim
+   * id, so when a lower-numbered conversation ends beside a running one, the
+   * representative reverts and the surviving conversation's clips start again
+   * from their first sample partway through it. Reaching that needs four
+   * talking Sims; the shipped household is three, so it is latent rather than
+   * live. Fixing it properly means per-conversation audio rather than one
+   * household voice, which is a larger change than this one.
    */
   private finishConversationFrame(): void {
     const voice = this.conversationSimId === Number.MAX_SAFE_INTEGER ? null : this.frameVoice;
@@ -215,17 +244,25 @@ export class ActivityCueScheduler {
     if (voice === null) {
       if (this.activeVoice !== null) {
         this.activeVoice = null;
+        this.activeTalkerCount = 0;
+        this.activeTalkerSum = 0;
         this.sink.emit({ type: 'sim.conversation-ended' });
       }
       return;
     }
 
     const active = this.activeVoice;
-    if (active !== null && active.first === voice.first && active.second === voice.second) {
-      return;
-    }
+    const sameConversation =
+      active !== null &&
+      active.first === voice.first &&
+      active.second === voice.second &&
+      this.frameTalkerCount === this.activeTalkerCount &&
+      this.frameTalkerSum === this.activeTalkerSum;
+    if (sameConversation) return;
 
     this.activeVoice = voice;
+    this.activeTalkerCount = this.frameTalkerCount;
+    this.activeTalkerSum = this.frameTalkerSum;
     this.sink.emit({
       type: 'sim.conversation-started',
       simId: this.conversationSimId,

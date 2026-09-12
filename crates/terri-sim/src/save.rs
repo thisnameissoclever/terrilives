@@ -905,6 +905,20 @@ fn validate_entity(
             return Err(SaveError::InvalidContentReference);
         }
     }
+    // The clip pair is two numeric rows into the pack, so it gets the same
+    // bounds check every other numeric row gets. Distinctness is checked too,
+    // because a conversation plays two DIFFERENT clips by construction: a
+    // file claiming otherwise describes a conversation the simulation cannot
+    // produce, and [D9] says such a state must not be constructible.
+    if let Some(voice) = entity.conversation_voice {
+        let clips = pack.voice_clips.len();
+        if voice.first as usize >= clips || voice.second as usize >= clips {
+            return Err(SaveError::InvalidContentReference);
+        }
+        if voice.first == voice.second {
+            return Err(SaveError::InvalidContentReference);
+        }
+    }
     if let Some(hobbies) = &entity.hobbies {
         if exceeds_limit(hobbies.len(), MAX_LIST_ENTRIES) {
             return Err(SaveError::InvalidValue);
@@ -1584,6 +1598,63 @@ mod tests {
             saw_chain_row_habituation,
             "fixture is vacuous: nobody habituated to a chain row in {TICKS} ticks, \
              so the flyout-row arm was never validated"
+        );
+    }
+
+    /// A saved clip pair is two numeric rows into the pack, so it gets the
+    /// same treatment every other numeric row gets.
+    ///
+    /// Without the bounds check a file could name clips the current pack does
+    /// not have, and the conversation would restore holding a pair whose
+    /// lengths have nothing to do with the `remaining_ticks` beside it: the
+    /// audio-to-simulation desync the clip-driven duration exists to remove.
+    /// Without the distinctness check it could describe a conversation that
+    /// plays one recording twice, which the draw cannot produce and [D9] says
+    /// must therefore have no representation.
+    #[test]
+    fn a_saved_voice_pair_is_bounded_by_the_clip_library_and_must_be_distinct() {
+        let sim = Sim::new_from_shipped_lot();
+        let clips = sim.world().resource::<Content>().0.voice_clips.len();
+        assert!(
+            clips >= 2,
+            "the shipped pack needs a voice library for this to mean anything"
+        );
+        let base = sim.save_snapshot();
+        let agent = base
+            .entities
+            .iter()
+            .find(|entity| entity.agent)
+            .map(|entity| entity.index)
+            .expect("the shipped lot spawns agents");
+
+        let with_voice = |first: u32, second: u32| {
+            let mut snapshot = base.clone();
+            snapshot
+                .entities
+                .iter_mut()
+                .find(|entity| entity.index == agent)
+                .expect("agent")
+                .conversation_voice = Some(SavedConversationVoice { first, second });
+            snapshot
+        };
+
+        assert_validation(&with_voice(0, 1), Ok(()), "a pair the library holds");
+        assert_validation(
+            &with_voice(0, clips as u32),
+            Err(SaveError::InvalidContentReference),
+            "a second clip one past the end of the library",
+        );
+        assert_validation(
+            &with_voice(clips as u32, 0),
+            Err(SaveError::InvalidContentReference),
+            "a first clip one past the end of the library",
+        );
+        // Both halves separately, so the `||` between them cannot become `&&`
+        // without a test noticing.
+        assert_validation(
+            &with_voice(1, 1),
+            Err(SaveError::InvalidContentReference),
+            "a conversation that plays one recording twice",
         );
     }
 
@@ -3159,7 +3230,7 @@ mod tests {
         assert_eq!(restored.load_snapshot(prior), Ok(()));
 
         let current = restored.save_snapshot();
-        assert_eq!(current.content_fingerprint, 0xb8d0_2015_e030_64d9);
+        assert_eq!(current.content_fingerprint, 0xa020_602a_6acd_3a90);
         assert_eq!(current.blocked_tiles, expected_blocked);
         assert_eq!(current.entities, expected_entities);
         let name = current

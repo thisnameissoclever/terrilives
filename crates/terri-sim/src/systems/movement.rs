@@ -24,10 +24,14 @@ const SPEED: f32 = TILES_PER_TICK;
 ///
 /// The second draw is taken from a space one smaller and then stepped over
 /// the first, which is uniform across all `n * (n - 1)` ordered pairs and
-/// costs a FIXED number of draws. A reject-and-retry loop would have been
-/// simpler to read and wrong to use here: how many draws it consumed would
-/// depend on what it drew, so an unlucky conversation would shift every
-/// later decision in the run and two replays of one save could diverge.
+/// costs exactly two `range` calls whatever it draws.
+///
+/// A reject-and-retry loop would also have been deterministic, and the
+/// earlier version of this comment was wrong to claim otherwise: a retry loop
+/// is a function of the seed like anything else, and replays of one save
+/// cannot diverge from it. `range` itself already retries internally to
+/// debias its modulo. Two fixed calls is simply the smaller and steadier
+/// thing, not the only correct one.
 ///
 /// # Fewer than two clips
 ///
@@ -240,8 +244,19 @@ pub fn follow_path(
                     partner: target.object,
                     remaining_ticks,
                 });
-                if let Some(pair) = voice {
-                    talker.insert(pair);
+                match voice {
+                    Some(pair) => {
+                        talker.insert(pair);
+                    }
+                    // Cleared rather than left alone. A pack with no voice
+                    // must not inherit a pair from a save written by a pack
+                    // that had one: the render buffer would publish clips
+                    // whose lengths had nothing to do with this
+                    // conversation's `remaining_ticks`, which is exactly the
+                    // desync the clip-driven duration exists to remove.
+                    None => {
+                        talker.remove::<ConversationVoice>();
+                    }
                 }
             } else {
                 // Neither an object nor a sim: the target lost its

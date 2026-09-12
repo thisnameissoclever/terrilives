@@ -90,7 +90,8 @@ playback gain, and retuning it must not mean reprocessing the audio.
 
 ## There are no third-party audio assets
 
-**As of 2026-09-11 the game ships no BORROWED audio.** The Sim voice clips above are first-party and recorded for this project. The current Web Audio
+**As of 2026-09-11 the game ships no BORROWED audio.** The Sim voice clips
+above are first-party and recorded for this project. The current Web Audio
 layer synthesizes its cues at runtime. Four compact CC0 archives are proposed
 in `docs/specs/2026-09-06-cc0-audio-intake.md`, but a proposed or downloaded
 archive is not a game asset and is not a provenance entry here.

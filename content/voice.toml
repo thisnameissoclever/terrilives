@@ -15,9 +15,9 @@
 # saved game has to replay move for move. If the browser's audio layer chose
 # the clips and told the simulation how long to run, a muted player and an
 # unmuted player would get different worlds and a reloaded save would drift.
-# So the draw happens in `assign_conversation_voice`, from the world's seeded
-# generator, beside every other draw; the shell is handed the two indices and
-# plays what it is told.
+# So the draw happens in `draw_voice_pair` in the movement system, from the
+# world's seeded generator beside every other draw; the shell is handed the
+# two indices and plays what it is told.
 #
 # **The durations are NOT authored here.** They are read from the WAV files
 # at build time by `voice_clip_ticks` in the build script. A duration written

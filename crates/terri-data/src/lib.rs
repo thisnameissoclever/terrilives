@@ -55,6 +55,12 @@ static PACK_BYTES: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/content_pac
 ///   running chain will continue.
 /// * The social vocabulary's ids in order - `SavedSocialising` holds an
 ///   index into it.
+/// * The voice clip ids IN ORDER and their durations -
+///   `SavedConversationVoice` holds two indices into the list, and the
+///   conversation's remaining ticks were computed from those clips' lengths.
+///   Re-cutting a clip without renaming it changes what its index means just
+///   as surely as reordering the list does, so the duration is hashed as well
+///   as the id.
 /// * Each chain's id and ordered structural steps - `SavedChainState` holds a
 ///   step index, so a same-length reorder must not silently resume a different
 ///   station or hand-off.
@@ -129,6 +135,12 @@ pub fn content_fingerprint(pack: &ContentPack) -> u64 {
         hash_text(&mut hasher, &interaction.id);
     }
 
+    hash_count(&mut hasher, pack.voice_clips.len());
+    for clip in &pack.voice_clips {
+        hash_text(&mut hasher, &clip.id);
+        hasher.write_u64(clip.duration_ticks as u64);
+    }
+
     match pack.lot.front_door {
         Some((x, y)) => {
             hasher.write_bytes(&[1]);
@@ -192,14 +204,25 @@ pub fn content_fingerprint(pack: &ContentPack) -> u64 {
 /// treating an old opaque hash as a permanent skeleton key.
 const LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS: &[(u64, u64)] = &[
     // 115ad03, where Save V1 first shipped.
-    (0x9d22_8822_6933_d3c7, 0xb8d0_2015_e030_64d9),
+    (0x9d22_8822_6933_d3c7, 0xa020_602a_6acd_3a90),
     // b772ab9 through ebfa686. Those public revisions compiled identically.
-    (0x263e_ed3b_bdcb_a7d0, 0xb8d0_2015_e030_64d9),
+    (0x263e_ed3b_bdcb_a7d0, 0xa020_602a_6acd_3a90),
     // 3a5e936, the Muted Line and circadian release.
-    (0x08ec_6011_bc11_7ad8, 0xb8d0_2015_e030_64d9),
+    (0x08ec_6011_bc11_7ad8, 0xa020_602a_6acd_3a90),
     // 72d67c5, the last public full-pack fingerprint before this migration.
-    (0x2eb2_02fa_e70e_4939, 0xb8d0_2015_e030_64d9),
+    (0x2eb2_02fa_e70e_4939, 0xa020_602a_6acd_3a90),
 ];
+
+// **The recorded voices moved this target, and they also moved the SAVE WIRE
+// FORMAT**, which is worth knowing before reading the bridges above as a
+// compatibility promise. `SavedEntity` gained `conversation_voice`, and
+// postcard is not self-describing, so a file written by any earlier build
+// fails to decode before its fingerprint is ever consulted. Every bridge here
+// is therefore inert for this release: they are kept because they cost
+// nothing and the structure has to survive for the next content-only change,
+// not because a save from 72d67c5 can still be loaded. The player-visible
+// consequence is that this release resets saved games, and the shell already
+// reports that as "Saved game is invalid. Starting a new game."
 
 /// Reviewed structural-digest migrations that do not carry any legacy data
 /// rewrite. The first bridge adds interaction row zero to two formerly inert
@@ -213,7 +236,7 @@ const LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS: &[(u64, u64)] = &[
 /// ordinary current-format save carrying the source digest must retain every
 /// saved name verbatim.
 const PRIOR_STRUCTURAL_FINGERPRINT_MIGRATIONS: &[(u64, u64)] =
-    &[(0x26d5_982c_9af8_3de8, 0xb8d0_2015_e030_64d9)];
+    &[(0x26d5_982c_9af8_3de8, 0xa020_602a_6acd_3a90)];
 
 /// Whether a Save V1 fingerprint may load against this content pack.
 ///
@@ -988,15 +1011,58 @@ mod tests {
         );
     }
 
+    /// The voice library is numeric save state, so the fingerprint has to see
+    /// it.
+    ///
+    /// `SavedConversationVoice` holds two indices into `voice_clips`, and the
+    /// conversation's remaining ticks were computed from those clips' lengths.
+    /// Without this, reordering `content/voice.toml` or re-cutting one
+    /// recording leaves the digest unchanged, an old save loads against it,
+    /// and the conversation plays a pair whose lengths have nothing to do with
+    /// the time left on it. That is exactly the audio-to-simulation desync the
+    /// clip-driven duration exists to remove, arriving silently.
+    #[test]
+    fn the_fingerprint_observes_the_voice_library() {
+        let base = pack().clone();
+        assert!(
+            base.voice_clips.len() >= 2,
+            "the shipped pack needs a voice library for this to mean anything"
+        );
+
+        let mut reordered = base.clone();
+        reordered.voice_clips.swap(0, 1);
+        assert_ne!(
+            content_fingerprint(&base),
+            content_fingerprint(&reordered),
+            "clip order decides what a saved index means, so it must be hashed"
+        );
+
+        let mut recut = base.clone();
+        recut.voice_clips[0].duration_ticks += 1;
+        assert_ne!(
+            content_fingerprint(&base),
+            content_fingerprint(&recut),
+            "a clip's length is what a conversation's duration was built from"
+        );
+
+        let mut shorter = base.clone();
+        shorter.voice_clips.pop();
+        assert_ne!(
+            content_fingerprint(&base),
+            content_fingerprint(&shorter),
+            "dropping a clip puts saved indices out of range"
+        );
+    }
+
     #[test]
     fn every_public_full_pack_fingerprint_migrates_only_to_the_reviewed_shape() {
         assert_eq!(
             content_fingerprint(pack()),
-            0xb8d0_2015_e030_64d9,
+            0xa020_602a_6acd_3a90,
             "a structural content edit must review or retire each legacy bridge"
         );
         for &(legacy, target) in LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS {
-            assert_eq!(target, 0xb8d0_2015_e030_64d9);
+            assert_eq!(target, 0xa020_602a_6acd_3a90);
             assert!(
                 content_fingerprint_matches(pack(), legacy),
                 "deployed fingerprint {legacy:#018x} lost its migration"
@@ -1022,7 +1088,7 @@ mod tests {
         let prior = 0x26d5_982c_9af8_3de8;
         assert_eq!(
             PRIOR_STRUCTURAL_FINGERPRINT_MIGRATIONS,
-            &[(prior, 0xb8d0_2015_e030_64d9)],
+            &[(prior, 0xa020_602a_6acd_3a90)],
             "each structural bridge must name exactly one reviewed destination"
         );
         assert!(content_fingerprint_matches(pack(), prior));
@@ -1979,12 +2045,19 @@ mod tests {
     #[test]
     fn the_shipped_chat_duration_still_matches_the_shipped_clips() {
         let p = pack();
-        if p.voice_clips.len() < 2 {
-            return;
-        }
-        let Some(chat) = p.social.iter().find(|act| act.id == "chat") else {
-            return;
-        };
+        // Asserted rather than returned on, per testing-protocol rule 5. Both
+        // of these were early returns, which meant renaming `chat` in
+        // content/social.toml turned this drift guard permanently green
+        // without anything saying so.
+        assert!(
+            p.voice_clips.len() >= 2,
+            "the shipped pack must carry a voice library for this guard to mean anything"
+        );
+        let chat = p
+            .social
+            .iter()
+            .find(|act| act.id == "chat")
+            .expect("the shipped social vocabulary must still declare 'chat'");
 
         let total: u32 = p.voice_clips.iter().map(|clip| clip.duration_ticks).sum();
         let mean_pair = 2.0 * f64::from(total) / p.voice_clips.len() as f64;

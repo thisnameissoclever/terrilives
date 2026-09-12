@@ -483,6 +483,13 @@ pub enum ContentError {
     DuplicateVoiceClip {
         clip: String,
     },
+    /// The two shortest voice clips together fall below the interaction
+    /// floor, so the shortest conversation the draw can make is shorter than
+    /// every other action in the game is allowed to be.
+    VoicePairBelowFloor {
+        ticks: u32,
+        floor: u32,
+    },
     /// `voice.toml` declares a clip with a blank id. It names no file, so
     /// nothing can play it.
     BlankVoiceClipId,
@@ -1347,6 +1354,10 @@ impl fmt::Display for ContentError {
             ContentError::DuplicateVoiceClip { clip } => write!(
                 f,
                 "voice.toml declares clip '{clip}' more than once"
+            ),
+            ContentError::VoicePairBelowFloor { ticks, floor } => write!(
+                f,
+                "the two shortest voice clips total {ticks} ticks, below the                  {floor}-tick interaction floor; a conversation is two clips,                  so the shortest one the draw can make would be shorter than                  any other action is allowed to be"
             ),
             ContentError::BlankVoiceClipId => write!(
                 f,

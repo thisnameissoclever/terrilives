@@ -78,6 +78,17 @@ interface ActiveConversation {
   readonly gain: GainNodePort;
   readonly sources: AudioBufferSourcePort[];
   ended: boolean;
+  /** Set once the nodes have left the graph, so teardown cannot run twice. */
+  torn: boolean;
+  /**
+   * Audio-clock time after which this conversation's nodes may be torn down
+   * even if nothing reported them ended.
+   *
+   * The safety net for a source that never fires `onended` - one stopped
+   * before its scheduled start, most likely. Without it a fade that is never
+   * reported would leak its nodes for the life of the audio context.
+   */
+  teardownAfter: number;
 }
 
 /**
@@ -85,6 +96,8 @@ interface ActiveConversation {
  */
 export class VoiceClipPlayer {
   private readonly active: ActiveConversation[] = [];
+  /** Faded out, still connected until their ramp has rendered. */
+  private readonly draining: ActiveConversation[] = [];
   private clips: readonly AudioBufferPort[] = [];
 
   constructor(
@@ -123,7 +136,15 @@ export class VoiceClipPlayer {
     const firstClip = this.clips[first];
     const secondClip = this.clips[second];
     if (firstClip === undefined || secondClip === undefined) return false;
+    // A recording that failed to load is carried as a zero-length stand-in so
+    // that every other clip keeps its index. Playing its PARTNER alone would
+    // be half a conversation arriving out of nowhere, so the pair goes silent
+    // together.
+    if (!(firstClip.duration > 0) || !(secondClip.duration > 0)) return false;
     if (!(rate > 0)) return false;
+
+    // Reclaim anything whose fade has finished before adding to the graph.
+    this.sweepDrained();
 
     const now = this.context.currentTime;
     let gain: GainNodePort | null = null;
@@ -148,7 +169,13 @@ export class VoiceClipPlayer {
       );
       gain.gain.linearRampToValueAtTime(0, now + totalSeconds);
 
-      const record: ActiveConversation = { gain, sources: [], ended: false };
+      const record: ActiveConversation = {
+        gain,
+        sources: [],
+        ended: false,
+        torn: false,
+        teardownAfter: 0,
+      };
       conversation = record;
 
       const starts: readonly [AudioBufferPort, number][] = [
@@ -207,31 +234,82 @@ export class VoiceClipPlayer {
     const index = this.active.indexOf(conversation);
     if (index >= 0) this.active.splice(index, 1);
 
-    for (const source of conversation.sources) source.onended = null;
+    if (!stop) {
+      // Reported ended: the audio has already played out, so the nodes can go
+      // immediately.
+      this.tearDown(conversation);
+      return;
+    }
 
-    if (stop) {
-      const now = this.context.currentTime;
-      // Ramp the shared gain down before stopping the sources, so a cut
-      // lands on silence instead of on a step partway through a waveform.
+    const now = this.context.currentTime;
+    const silentAt = now + EDGE_FADE_SECONDS;
+
+    // **Ramp first, disconnect LATER.** Disconnecting in this same turn would
+    // remove the nodes from the graph before the ramp could reach the output,
+    // which turns this fade back into the hard cut it exists to prevent - and
+    // a cut partway through a waveform is a click.
+    try {
+      conversation.gain.gain.cancelScheduledValues(now);
+      conversation.gain.gain.linearRampToValueAtTime(0, silentAt);
+    } catch {
+      // A context that is already closed cannot be ramped. Tearing down at
+      // once is then both safe and correct: nothing can be heard from it.
+      this.tearDown(conversation);
+      return;
+    }
+
+    conversation.teardownAfter = silentAt;
+    let pending = conversation.sources.length;
+    const drained = (): void => {
+      pending -= 1;
+      if (pending <= 0) this.tearDown(conversation);
+    };
+
+    for (const source of conversation.sources) {
+      source.onended = drained;
       try {
-        conversation.gain.gain.cancelScheduledValues(now);
-        conversation.gain.gain.linearRampToValueAtTime(0, now + EDGE_FADE_SECONDS);
+        source.stop(silentAt);
       } catch {
-        // A context that is already closed cannot be ramped; the stop below
-        // and the disconnect still have to happen.
-      }
-      for (const source of conversation.sources) {
-        try {
-          source.stop(now + EDGE_FADE_SECONDS);
-        } catch {
-          // A source may never have reached a startable state, or may have
-          // passed its stop time already.
-        }
+        // A source may never have reached a startable state, or may have
+        // passed its stop time already; it will never report ended, so the
+        // sweep in `play` is what reclaims it.
+        drained();
       }
     }
 
+    if (conversation.sources.length === 0) this.tearDown(conversation);
+    else this.draining.push(conversation);
+  }
+
+  /**
+   * Disconnects one conversation's nodes, once.
+   *
+   * Idempotent because two paths can reach it: every source reporting ended,
+   * and the sweep below reclaiming one whose sources never did.
+   */
+  private tearDown(conversation: ActiveConversation): void {
+    if (conversation.torn) return;
+    conversation.torn = true;
+    const index = this.draining.indexOf(conversation);
+    if (index >= 0) this.draining.splice(index, 1);
+    for (const source of conversation.sources) source.onended = null;
     for (const source of conversation.sources) safeDisconnect(source);
     safeDisconnect(conversation.gain);
+  }
+
+  /**
+   * Reclaims faded-out conversations whose sources never reported ending.
+   *
+   * A source stopped before its scheduled start time is the case that makes
+   * this necessary: browsers generally still report it, but nothing in the
+   * specification is worth betting a node leak on, and the leak would be
+   * permanent for the life of the audio context.
+   */
+  private sweepDrained(): void {
+    const now = this.context.currentTime;
+    for (const conversation of [...this.draining]) {
+      if (now >= conversation.teardownAfter) this.tearDown(conversation);
+    }
   }
 }
 
