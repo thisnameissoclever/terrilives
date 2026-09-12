@@ -32,6 +32,8 @@ function source(): SimAudioFrameSource {
       new Uint32Array([VISUAL_ACTION_WALK, VISUAL_ACTION_WALK, 0, VISUAL_ACTION_WALK]),
     soundActions: () => new Uint32Array(4),
     soundSources: () => new Uint32Array(4).fill(0xffff_ffff),
+    voiceFirsts: () => new Uint32Array(4).fill(0xffff_ffff),
+    voiceSeconds: () => new Uint32Array(4).fill(0xffff_ffff),
   };
 }
 
@@ -115,6 +117,8 @@ describe('sampleSimAudioAfterTick', () => {
       ]),
       soundActions: () => new Uint32Array(5),
       soundSources: () => new Uint32Array(5).fill(0xffff_ffff),
+      voiceFirsts: () => new Uint32Array(5).fill(0xffff_ffff),
+      voiceSeconds: () => new Uint32Array(5).fill(0xffff_ffff),
     };
 
     sampleSimAudioAfterTick(input, sink(calls));
@@ -353,9 +357,18 @@ describe('sampleSimAudioAfterTick', () => {
   });
 
   it('keeps trusted-gesture recovery armed after the first unlock', () => {
+    // Two halves of one invariant: the handler returns early when audio is
+    // already running, so a later device interruption can still be recovered
+    // by the next gesture, and it never unregisters itself.
+    //
+    // Matched loosely on purpose. The handler now also starts loading the
+    // voice recordings once a context exists, and pinning its exact body
+    // would fail on every future addition rather than on a lost recovery
+    // path - which is the only thing here worth catching.
     expect(MAIN).toMatch(
-      /const unlockAudio = \(\): void => \{\s*if \(audio\.isUnlocked\(\)\) return;\s*void audio\.unlockFromGesture\(\);\s*\}/,
+      /const unlockAudio = \(\): void => \{\s*if \(audio\.isUnlocked\(\)\) return;/,
     );
+    expect(MAIN).toMatch(/void audio\.unlockFromGesture\(\)/);
     expect(MAIN).not.toMatch(/removeEventListener\([^\n]*unlockAudio/);
   });
 

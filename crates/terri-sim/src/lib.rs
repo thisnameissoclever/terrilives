@@ -72,6 +72,8 @@ struct RenderRow {
     sound_source: u32,
     socket_projected: bool,
     carrying: u32,
+    voice_first: u32,
+    voice_second: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -642,6 +644,10 @@ impl Sim {
         // components even behind filters.
         world.register_component::<terri_core::Relationships>();
         world.register_component::<terri_core::Socialising>();
+        // Registered for the same reason `Socialising` is: a save restores it
+        // into a world that may never have run a conversation, and `try_query`
+        // panics on an unregistered component even behind a filter.
+        world.register_component::<terri_core::ConversationVoice>();
         // M2e's two. `Satisfaction` is in `world_hash`'s query, so [L3]
         // bites exactly as it does for Habituation and Relationships:
         // unregistered, the digest goes EMPTY rather than wrong.
@@ -1090,6 +1096,21 @@ impl Sim {
     /// smear across each other's positions whenever an agent started or
     /// stopped eating. `entity_slots_survive_archetype_churn` pins it;
     /// deleting the sort must fail that test.
+    /// One id per compiled voice clip, in the index order the render
+    /// buffer's voice columns use.
+    ///
+    /// Borrowed rather than owned: the pack outlives the simulation, and the
+    /// boundary crate is the only caller that needs owned strings.
+    pub fn voice_clip_ids(&self) -> Vec<&str> {
+        self.world
+            .resource::<Content>()
+            .0
+            .voice_clips
+            .iter()
+            .map(|clip| clip.id.as_str())
+            .collect()
+    }
+
     pub fn sync_render_buffer(&mut self) {
         self.sync_render_buffer_inner(true);
     }
@@ -1129,6 +1150,8 @@ impl Sim {
         self.render.sound_actions.clear();
         self.render.sound_sources.clear();
         self.render.carrying.clear();
+        self.render.voice_firsts.clear();
+        self.render.voice_seconds.clear();
 
         // Read before the query, because `Content` is a resource and the
         // query below borrows the world. `ContentPack` is behind a
@@ -1141,10 +1164,23 @@ impl Sim {
         // pass before the per-row loop can answer it.
         let mut partners: HashSet<Entity> = HashSet::new();
         let mut conversation_visuals: HashMap<Entity, (u32, u32)> = HashMap::new();
+        // Filled for BOTH participants in the same pass, for the reason
+        // `RenderBuffer::voice_firsts` documents: the shell chooses which
+        // row speaks for a conversation and may well choose the partner.
+        let mut conversation_voices: HashMap<Entity, (u32, u32)> = HashMap::new();
         {
             let mut talks = self.world.query::<(Entity, &terri_core::Socialising)>();
             for (initiator, talk) in talks.iter(&self.world) {
                 partners.insert(talk.partner);
+                // Read before the visual checks below, which skip a
+                // conversation whose interaction authors no talk pose. The
+                // voice is about the conversation existing, not about how
+                // it is drawn, so gating it on the pose would silence a
+                // talk that is perfectly real and merely invisible.
+                if let Some(voice) = self.world.get::<terri_core::ConversationVoice>(initiator) {
+                    conversation_voices.insert(initiator, (voice.first, voice.second));
+                    conversation_voices.insert(talk.partner, (voice.first, voice.second));
+                }
                 let Some(interaction) = content.social.get(talk.interaction as usize) else {
                     continue;
                 };
@@ -1451,6 +1487,12 @@ impl Sim {
                 sound_source,
                 socket_projected,
                 carrying: carrying.map_or(render_buffer::NOT_CARRYING, |c| c.0),
+                voice_first: conversation_voices
+                    .get(&entity)
+                    .map_or(render_buffer::NO_VOICE_CLIP, |(first, _)| *first),
+                voice_second: conversation_voices
+                    .get(&entity)
+                    .map_or(render_buffer::NO_VOICE_CLIP, |(_, second)| *second),
             });
         }
         rows.sort_by_key(|row| row.index);
@@ -1475,6 +1517,8 @@ impl Sim {
             self.render.sound_actions.push(row.sound_action);
             self.render.sound_sources.push(row.sound_source);
             self.render.carrying.push(row.carrying);
+            self.render.voice_firsts.push(row.voice_first);
+            self.render.voice_seconds.push(row.voice_second);
         }
         self.render.count = rows.len();
 

@@ -7,7 +7,10 @@ import {
   VISUAL_ACTION_TALK,
   VISUAL_ACTION_WALK,
 } from '../frame.js';
-import type { SimActivityAudioState } from './activity-cues.js';
+import type {
+  ConversationVoicePair,
+  SimActivityAudioState,
+} from './activity-cues.js';
 export interface SimAudioFrameSource {
   readonly count: number;
   positions(): Float32Array;
@@ -15,6 +18,8 @@ export interface SimAudioFrameSource {
   visualActions(): Uint32Array;
   soundActions(): Uint32Array;
   soundSources(): Uint32Array;
+  voiceFirsts(): Uint32Array;
+  voiceSeconds(): Uint32Array;
 }
 
 export interface SimAudioFrameSink {
@@ -22,7 +27,11 @@ export interface SimAudioFrameSink {
   observeFootstep(simId: number, x: number, y: number, walking: boolean): void;
   endFootstepFrame(): void;
   beginActivityFrame(): void;
-  observeActivity(simId: number, activity: SimActivityAudioState): void;
+  observeActivity(
+    simId: number,
+    activity: SimActivityAudioState,
+    voice?: ConversationVoicePair,
+  ): void;
   endActivityFrame(): void;
   beginObjectSoundFrame(): void;
   observeObjectSound(sourceId: number, action: number): void;
@@ -30,6 +39,8 @@ export interface SimAudioFrameSink {
 }
 
 const NO_SIM_ID = 0xffff_ffff;
+/** Matches `render_buffer::NO_VOICE_CLIP`: this row is not in a talk. */
+const NO_VOICE_CLIP = 0xffff_ffff;
 
 /**
  * Samples stable Sim identity, travel, and authored activity after one fixed
@@ -50,6 +61,8 @@ export function sampleSimAudioAfterTick(
   const visualActions = source.visualActions();
   const soundActions = source.soundActions();
   const soundSources = source.soundSources();
+  const voiceFirsts = source.voiceFirsts();
+  const voiceSeconds = source.voiceSeconds();
 
   sink.beginFootstepFrame();
   try {
@@ -73,7 +86,21 @@ export function sampleSimAudioAfterTick(
             visualAction === VISUAL_ACTION_WALK,
           );
           const activity = activityForVisualAction(visualAction);
-          if (activity !== 'other') sink.observeActivity(simId, activity);
+          if (activity !== 'other') {
+            // Both talkers carry the pair, so whichever row the scheduler
+            // picks to speak for the conversation finds it. A row that is
+            // talking but carries no pair is a pack with no recordings,
+            // which is silent rather than broken.
+            const first = voiceFirsts[row];
+            const second = voiceSeconds[row];
+            const voice =
+              activity === 'conversation' &&
+              first !== NO_VOICE_CLIP &&
+              second !== NO_VOICE_CLIP
+                ? { first, second }
+                : undefined;
+            sink.observeActivity(simId, activity, voice);
+          }
         }
       } finally {
         sink.endObjectSoundFrame();

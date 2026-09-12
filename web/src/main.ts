@@ -123,6 +123,8 @@ export interface StressHandle {
   /** Bounded audio-owned state used by retained-memory acceptance. */
   readonly audio: {
     readonly activeVoices: number;
+    /** Conversations currently playing recordings. */
+    readonly conversationVoices: number;
     readonly footstepTracks: number;
     readonly footstepCapacity: number;
     readonly activityTracks: number;
@@ -245,7 +247,12 @@ async function main(): Promise<void> {
   void audio.setBackgrounded(document.visibilityState === 'hidden');
   const unlockAudio = (): void => {
     if (audio.isUnlocked()) return;
-    void audio.unlockFromGesture();
+    // The recordings are fetched only once a gesture has created the audio
+    // context, because decoding needs one. Fetching them at start-up would
+    // pull three megabytes for a player who never clicks.
+    void audio.unlockFromGesture().then(() => {
+      if (audio.isUnlocked()) void audio.loadVoiceLibrary(sim.voiceClipIds());
+    });
   };
   // Browser autoplay policy requires the context to start from a trusted
   // gesture. Capture sees the gesture before the command it may accompany.
@@ -595,6 +602,10 @@ async function main(): Promise<void> {
     // multiplies how many steps run per frame and never how long a step
     // is.
     overlayPause.selectSpeed(ticksPerFrame);
+    // Conversations follow the world's pace. Paused counts as normal speed:
+    // nothing new starts while paused, and an already-playing conversation
+    // should not change pitch because the player reached for the button.
+    audio.setGameSpeed(ticksPerFrame > 0 ? ticksPerFrame : 1);
     audio.emit({ type: 'ui.confirmed' });
   });
 
@@ -1197,6 +1208,13 @@ async function main(): Promise<void> {
       audio: {
         get activeVoices() {
           return audio.activeVoiceCount();
+        },
+        // Voices are a retained scheduler like the others, so the
+        // bounded-state proof has to be able to see them. Adding a scheduler
+        // without adding it here is the omission
+        // [L-audio-boundaries-and-proofs-must-cover-every-scheduler] records.
+        get conversationVoices() {
+          return audio.activeConversationVoiceCount();
         },
         get footstepTracks() {
           return audio.activeFootstepTrackCount();

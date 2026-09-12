@@ -31,6 +31,80 @@ mod pack;
 #[path = "src/schema.rs"]
 mod schema;
 
+/// Ticks per second. Must match `TICK_HZ` in `terri-core`, which this build
+/// script cannot depend on without a cycle.
+const TICK_HZ: u32 = 10;
+
+/// Reads one voice clip's length in ticks straight out of its WAV header.
+///
+/// The length is NOT authored in `voice.toml`, because it already exists in
+/// the file and a second copy would drift the first time a clip was re-cut.
+/// Reading it here is what makes that impossible.
+///
+/// Only the header is parsed; the samples are never touched. What is needed
+/// is the frame count, which is the data chunk's size divided by the size of
+/// one frame.
+///
+/// A clip that is not a whole number of ticks aborts the build rather than
+/// rounding. Rounding would leave audio and simulation disagreeing by a
+/// fraction of a tick on every conversation, which is inaudible once and
+/// obvious after twenty; `scripts/voice-clip-intake.cjs` pads clips to a tick
+/// boundary precisely so this never fires on a properly prepared set.
+fn voice_clip_ticks(path: &std::path::Path) -> u32 {
+    let bytes = fs::read(path).unwrap_or_else(|e| panic!("cannot read {}: {e}", path.display()));
+    let fail = |why: &str| -> ! { panic!("{}: {why}", path.display()) };
+
+    if bytes.len() < 12 || &bytes[0..4] != b"RIFF" || &bytes[8..12] != b"WAVE" {
+        fail("not a RIFF/WAVE file");
+    }
+
+    let u16_at = |at: usize| u16::from_le_bytes([bytes[at], bytes[at + 1]]);
+    let u32_at =
+        |at: usize| u32::from_le_bytes([bytes[at], bytes[at + 1], bytes[at + 2], bytes[at + 3]]);
+
+    let mut channels = 0u32;
+    let mut sample_rate = 0u32;
+    let mut bits = 0u32;
+    let mut data_len = 0u32;
+
+    // Chunks are word aligned: an odd size is followed by one pad byte that
+    // the size field does not count.
+    let mut offset = 12usize;
+    while offset + 8 <= bytes.len() {
+        let id = &bytes[offset..offset + 4];
+        let size = u32_at(offset + 4) as usize;
+        let body = offset + 8;
+        if id == b"fmt " && body + 16 <= bytes.len() {
+            channels = u16_at(body + 2) as u32;
+            sample_rate = u32_at(body + 4);
+            bits = u16_at(body + 14) as u32;
+        } else if id == b"data" {
+            data_len = size.min(bytes.len() - body) as u32;
+        }
+        offset = body + size + (size % 2);
+    }
+
+    if channels == 0 || sample_rate == 0 || bits == 0 {
+        fail("no usable fmt chunk");
+    }
+    if !sample_rate.is_multiple_of(TICK_HZ) {
+        fail("sample rate is not a whole number of frames per tick");
+    }
+
+    let frame_bytes = channels * (bits / 8);
+    let frames = data_len / frame_bytes;
+    let frames_per_tick = sample_rate / TICK_HZ;
+    if !frames.is_multiple_of(frames_per_tick) {
+        panic!(
+            "{}: {frames} frames is not a whole number of ticks ({frames_per_tick} frames each); \
+             run scripts/voice-clip-intake.cjs to pad it to a tick boundary",
+            path.display()
+        );
+    }
+
+    frames / frames_per_tick
+}
+
 fn main() {
     let workspace = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap())
         .join("..")
@@ -65,6 +139,21 @@ fn main() {
     // is what makes "this object's sprite exists" a build failure rather
     // than a blank quad at run time.
     let atlas_path = workspace.join("assets").join("sprites").join("atlas.toml");
+    // The clips a conversation is built out of. Content like the rest, so a
+    // clip listed here with no recording behind it aborts the build instead
+    // of leaving a conversation that lasts no time and plays nothing.
+    let voice_path = root.join("voice.toml");
+    // Under `web/public` rather than `assets`, which is where every other
+    // input lives, and deliberately: this is the directory the browser is
+    // served from, so the bytes measured here are literally the bytes that
+    // get played. A copy under `assets` would be a second source of truth
+    // for a duration, and the pair would drift the first time one was
+    // re-cut without the other.
+    let voice_dir = workspace
+        .join("web")
+        .join("public")
+        .join("audio")
+        .join("voice");
 
     // Without these, editing content does not trigger a rebuild and you
     // silently run the previous pack. The content lives outside this
@@ -81,6 +170,11 @@ fn main() {
     println!("cargo:rerun-if-changed={}", careers_path.display());
     println!("cargo:rerun-if-changed={}", chains_path.display());
     println!("cargo:rerun-if-changed={}", atlas_path.display());
+    println!("cargo:rerun-if-changed={}", voice_path.display());
+    // The recordings themselves are inputs, not just the file that lists
+    // them: their lengths ARE the compiled durations, so re-cutting a clip
+    // has to rebuild the pack.
+    println!("cargo:rerun-if-changed={}", voice_dir.display());
 
     let needs_src = fs::read_to_string(&needs_path)
         .unwrap_or_else(|e| panic!("cannot read {}: {e}", needs_path.display()));
@@ -131,6 +225,20 @@ fn main() {
     let chains: schema::ChainsFile = toml::from_str(&chains_src)
         .unwrap_or_else(|e| panic!("{} is not valid TOML: {e}", chains_path.display()));
 
+    let voice_src = fs::read_to_string(&voice_path)
+        .unwrap_or_else(|e| panic!("cannot read {}: {e}", voice_path.display()));
+    let voice: schema::VoiceFile = toml::from_str(&voice_src)
+        .unwrap_or_else(|e| panic!("{} is not valid TOML: {e}", voice_path.display()));
+    // Measured here, paired by position with the declarations. `compile`
+    // takes the lengths rather than reading them because `terri-data` does
+    // no file IO, which is also what lets a test state a clip length without
+    // owning a recording.
+    let voice_clip_ticks: Vec<u32> = voice
+        .clip
+        .iter()
+        .map(|def| voice_clip_ticks(&voice_dir.join(format!("{}.wav", def.id))))
+        .collect();
+
     let pack = compile::compile(
         needs,
         objects,
@@ -143,6 +251,8 @@ fn main() {
         traits,
         careers,
         chains,
+        voice,
+        voice_clip_ticks,
     )
     .unwrap_or_else(|e| panic!("content is invalid: {e}"));
 

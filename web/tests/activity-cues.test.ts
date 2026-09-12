@@ -4,8 +4,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ActivityCueScheduler,
-  CONVERSATION_REPEAT_TICKS,
   SLEEP_REPEAT_TICKS,
+  type ConversationVoicePair,
   type SimActivityAudioState,
 } from '../src/audio/activity-cues.js';
 import { EXERCISE_FRAME_TICKS } from '../src/frame.js';
@@ -29,16 +29,25 @@ function recordingSink(): GameAudioEventSink & {
   };
 }
 
+/** A conversation observation carries the clip pair the simulation drew. */
+type Observation =
+  | readonly [number, SimActivityAudioState]
+  | readonly [number, SimActivityAudioState, ConversationVoicePair];
+
 function frame(
   scheduler: ActivityCueScheduler,
-  observations: ReadonlyArray<readonly [number, SimActivityAudioState]>,
+  observations: ReadonlyArray<Observation>,
 ): void {
   scheduler.beginFrame();
-  for (const [simId, activity] of observations) {
-    scheduler.observe(simId, activity);
+  for (const [simId, activity, voice] of observations) {
+    scheduler.observe(simId, activity, voice);
   }
   scheduler.endFrame();
 }
+
+/** A distinct pair per test, so a mixed-up one is visible in the failure. */
+const PAIR_A = { first: 3, second: 8 } as const;
+const PAIR_B = { first: 5, second: 1 } as const;
 
 describe('ActivityCueScheduler', () => {
   it('represents one conversation once instead of sounding once per participant', () => {
@@ -46,31 +55,74 @@ describe('ActivityCueScheduler', () => {
     const scheduler = new ActivityCueScheduler(sink);
 
     frame(scheduler, [
-      [12, 'conversation'],
-      [4, 'conversation'],
+      [12, 'conversation', PAIR_A],
+      [4, 'conversation', PAIR_A],
       [9, 'other'],
     ]);
 
     expect(sink.events).toEqual([
-      { type: 'sim.conversation', simId: 4, phraseIndex: 0 },
+      { type: 'sim.conversation-started', simId: 4, voice: PAIR_A },
     ]);
   });
 
-  it('keeps conversation audible without repeating on every fixed tick', () => {
+  it('starts a conversation once and never repeats it', () => {
     const sink = recordingSink();
     const scheduler = new ActivityCueScheduler(sink);
-    frame(scheduler, [[7, 'conversation']]);
 
-    for (let tick = 1; tick < CONVERSATION_REPEAT_TICKS; tick += 1) {
-      frame(scheduler, [[7, 'conversation']]);
+    // The clips cover the whole exchange by construction - the simulation
+    // made the conversation exactly as long as the pair - so a cadence would
+    // restart the audio on top of itself.
+    for (let tick = 0; tick < 40; tick += 1) {
+      frame(scheduler, [[7, 'conversation', PAIR_A]]);
     }
-    expect(sink.events).toHaveLength(1);
 
-    frame(scheduler, [[7, 'conversation']]);
     expect(sink.events).toEqual([
-      { type: 'sim.conversation', simId: 7, phraseIndex: 0 },
-      { type: 'sim.conversation', simId: 7, phraseIndex: 1 },
+      { type: 'sim.conversation-started', simId: 7, voice: PAIR_A },
     ]);
+  });
+
+  it('starts the new clips when one conversation runs straight into another', () => {
+    const sink = recordingSink();
+    const scheduler = new ActivityCueScheduler(sink);
+
+    // Never a tick of silence between them. Asking only "is anybody talking"
+    // would see one unbroken conversation here and never play the second
+    // pair, which is why the scheduler compares the PAIR.
+    frame(scheduler, [[7, 'conversation', PAIR_A]]);
+    frame(scheduler, [[7, 'conversation', PAIR_A]]);
+    frame(scheduler, [[7, 'conversation', PAIR_B]]);
+    frame(scheduler, [[7, 'conversation', PAIR_B]]);
+
+    expect(sink.events).toEqual([
+      { type: 'sim.conversation-started', simId: 7, voice: PAIR_A },
+      { type: 'sim.conversation-started', simId: 7, voice: PAIR_B },
+    ]);
+  });
+
+  it('says when the talking stopped, so audio outrunning it can be cut', () => {
+    const sink = recordingSink();
+    const scheduler = new ActivityCueScheduler(sink);
+
+    frame(scheduler, [[7, 'conversation', PAIR_A]]);
+    frame(scheduler, [[7, 'other']]);
+    // Silence stays silent rather than announcing itself once a tick.
+    frame(scheduler, [[7, 'other']]);
+
+    expect(sink.events).toEqual([
+      { type: 'sim.conversation-started', simId: 7, voice: PAIR_A },
+      { type: 'sim.conversation-ended' },
+    ]);
+  });
+
+  it('stays silent for a conversation from a pack with no recordings', () => {
+    const sink = recordingSink();
+    const scheduler = new ActivityCueScheduler(sink);
+
+    // Legal, and what every simulation fixture does: a pack with fewer than
+    // two clips has no voice and its conversations take a sampled duration.
+    frame(scheduler, [[7, 'conversation']]);
+
+    expect(sink.events).toEqual([]);
   });
 
   it('uses a slower breathing cadence while any Sim remains asleep', () => {
@@ -102,19 +154,23 @@ describe('ActivityCueScheduler', () => {
     });
   });
 
-  it('starts a new phrase after silence and drops old cadence on reset', () => {
+  it('restarts the clips after silence and emits nothing on reset', () => {
     const sink = recordingSink();
     const scheduler = new ActivityCueScheduler(sink);
-    frame(scheduler, [[2, 'conversation']]);
+    frame(scheduler, [[2, 'conversation', PAIR_A]]);
     frame(scheduler, [[2, 'other']]);
-    frame(scheduler, [[2, 'conversation']]);
+    frame(scheduler, [[2, 'conversation', PAIR_A]]);
 
+    // `reset` is what mute, backgrounding, Load and recovery all call, and
+    // each of those stops the voices itself. An end event here would make the
+    // next audible conversation the second thing to stop them.
     scheduler.reset();
     frame(scheduler, [[2, 'sleep']]);
 
     expect(sink.events).toEqual([
-      { type: 'sim.conversation', simId: 2, phraseIndex: 0 },
-      { type: 'sim.conversation', simId: 2, phraseIndex: 0 },
+      { type: 'sim.conversation-started', simId: 2, voice: PAIR_A },
+      { type: 'sim.conversation-ended' },
+      { type: 'sim.conversation-started', simId: 2, voice: PAIR_A },
       { type: 'sim.sleep-breath', simId: 2, breathIndex: 0 },
     ]);
   });

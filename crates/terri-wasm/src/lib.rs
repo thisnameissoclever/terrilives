@@ -373,6 +373,40 @@ impl SimHandle {
         self.sim.render_buffer().sound_sources.as_ptr()
     }
 
+    /// The voice clip each row's conversation plays first, or `u32::MAX`
+    /// when the row is not in one. Resolves against `voice_clip_ids()`.
+    ///
+    /// Both participants carry the pair, so whichever row the audio layer
+    /// picks to speak for a conversation finds the clips on it. Zero-copy per
+    /// frame; re-read after every sync or memory growth like every other
+    /// column pointer.
+    pub fn voice_firsts_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().voice_firsts.as_ptr()
+    }
+
+    /// The clip each row's conversation plays second, or `u32::MAX`. Same
+    /// caching hazard and the same resolution as `voice_firsts_ptr`.
+    pub fn voice_seconds_ptr(&self) -> *const u32 {
+        self.sim.render_buffer().voice_seconds.as_ptr()
+    }
+
+    /// One id per voice clip, in the index order the voice columns use.
+    ///
+    /// The id names a file: `audio/voice/<id>.wav` under the served root.
+    /// Handed over rather than hardcoded in the shell for the reason [D1]
+    /// exists - a list in TypeScript would be a second copy of
+    /// `content/voice.toml`, stale from the first clip anybody added.
+    ///
+    /// Read once at start-up, not per frame: this allocates a string per
+    /// clip, which is why the per-row data stays numeric.
+    pub fn voice_clip_ids(&self) -> Vec<String> {
+        self.sim
+            .voice_clip_ids()
+            .into_iter()
+            .map(str::to_string)
+            .collect()
+    }
+
     /// Exact active socket target per row, or u32::MAX. Re-read after sync
     /// or memory growth; entity indices are not render row numbers.
     pub fn interaction_targets_ptr(&self) -> *const u32 {

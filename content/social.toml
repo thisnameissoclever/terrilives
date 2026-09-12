@@ -30,23 +30,72 @@ label = "Chat"
 # activity indicator. The target sim is the anchor and both participants face
 # one another while this interaction is active.
 visual = { action = "talk", anchor = "partner", facing = "toward_anchor" }
-# 30 social over 40 ticks. Stronger per tick than the television's 24
-# over 55, on purpose: the television is the placeholder company a lone
-# sim falls back on, and the real thing should win when a person is
-# actually available. Fun rides along at a token 6 - a conversation in
-# this house is at least faintly entertaining. Two sims standing
-# together CAN chat on the fun rider alone: at distance zero the rider
-# scores deficit-cubed x 6 / 41, which clears the 0.05 action threshold
-# once fun is below about 30 - a bored sim bothering whoever is beside
-# it is intended colour, not a leak. The social need's own cubed
-# urgency is still the main brake ([H7]); the rider only opens the
-# door when fun is genuinely low.
-advertises = { social = 30.0, fun = 6.0 }
-# 40 ticks is 4 seconds at speed 1 - long enough to watch two sims stand
-# together and be visibly IN a conversation (the A2 rule: an interaction
-# shorter than a glance reads as teleporting), short enough that the
-# reserved partner is not imprisoned by politeness.
-duration_ticks = 40
+# 50.25 social over 67 ticks, which is the SAME RATE as the 30 over 40
+# this used to be: 0.75 social a tick, unchanged. Both numbers moved
+# together when the voice clips took over the duration, and they had to.
+#
+# **`duration_ticks` is the scoring divisor as well as the delivery
+# divisor.** `score_advertisement` is `urgency * delta / (travel +
+# duration_ticks + 1)`, so raising the duration without raising the advert
+# does not merely pay out less - it makes the whole interaction less
+# attractive, and chat quietly stops being chosen. Raising 40 to 67 alone
+# dropped the rate to 0.448 a tick, below the television's 0.436 by almost
+# nothing, and `every_tick_of_a_played_stretch_produces_a_loadable_save`
+# went from finding conversations to finding none in 2000 ticks. That test
+# is the reason this pair of numbers is written down together.
+#
+# Stronger per tick than the television's 24 over 55, on purpose: the
+# television is the placeholder company a lone sim falls back on, and the
+# real thing should win when a person is actually available. That ordering
+# is what the rate protects and it is why the rate, rather than the total
+# per conversation, is the quantity held fixed here.
+#
+# **A conversation now delivers about twice what it used to**, because it
+# lasts about twice as long at the same rate: 40 to 63 social where it
+# used to be 18 to 42. That is not a free lunch and it is not avoidable -
+# holding the rate and holding the per-conversation total are mutually
+# exclusive once conversations take twice as long. The brake is the one
+# [H7] always relied on: social urgency is cubed, so a sim topped up to 60
+# scores another chat near zero and simply stops seeking company. If the
+# measured feel notes show sims talking less often but for longer, that is
+# this change working rather than failing.
+#
+# Fun rides along at a token 10.05, the same 0.15 a tick it always was.
+# Two sims standing together CAN chat on the fun rider alone: at distance
+# zero the rider scores deficit-cubed x 10.05 / 68, which clears the 0.05
+# action threshold once fun is below about 30 - the same threshold the old
+# 6 / 41 gave, because the rate did not move. A bored sim bothering
+# whoever is beside it is intended colour, not a leak. The social need's
+# own cubed urgency is still the main brake ([H7]); the rider only opens
+# the door when fun is genuinely low.
+advertises = { social = 50.25, fun = 10.05 }
+# **THIS NUMBER NO LONGER SETS THE LENGTH OF A CONVERSATION.** The voice
+# clips do - see content/voice.toml. A chat plays two of them back to back
+# and runs for exactly as long as the pair, which with the twelve shipped
+# recordings is 54 to 84 ticks: 5.4 to 8.4 seconds, averaging 6.7.
+#
+# What it still does is name how long a chat is EXPECTED to take, and two
+# separate things read it: delivery divides the advert by it to get a rate
+# per tick, and scoring divides by it to decide whether a chat is worth
+# walking over for. 67 is the mean clip pair - twice the 33.58-tick mean
+# clip - so it is an honest statement of the real average rather than a
+# balance lever.
+#
+# It is NOT a way to control what a conversation pays out. Delivery divides
+# by this number and then runs for the real duration, so paying out less
+# per conversation means lowering the RATE, which is the same thing as
+# making chat less attractive than the television. The advert above carries
+# the full reasoning and the two numbers move together.
+#
+# **Re-cutting the clips changes the right answer here, and changes the
+# advert with it.** Nothing computes either: the build does not know what
+# the mean pair is. If the voice library changes materially, re-run
+# scripts/voice-clip-intake.cjs --measure, set this to the new mean pair,
+# and scale `advertises` by the same factor so the rate does not move.
+#
+# A pack with no voice clips falls back to drawing a duration around this
+# number, which is what every test fixture does.
+duration_ticks = 67
 # Two people. Slots are compiled and validated but not yet consumed by
 # any system; when group conversations arrive, this is the knob that
 # already says how many may join.

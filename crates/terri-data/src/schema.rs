@@ -801,6 +801,32 @@ pub struct AtlasSpriteDef {
     pub name: String,
 }
 
+/// Mirrors `content/voice.toml` - the nonverbal clips a conversation is
+/// built out of, [A-11].
+///
+/// Fewer than two entries is legal and means the pack has no voice: a
+/// conversation then takes an ordinary sampled duration, which is what every
+/// test fixture does and what the game did before the recordings existed.
+#[derive(Debug, Deserialize)]
+pub struct VoiceFile {
+    pub clip: Vec<VoiceClipDef>,
+}
+
+/// One recorded clip.
+///
+/// **There is no duration field, and that is deliberate.** A clip's length
+/// already exists, exactly, in the WAV file; writing it here as well would be
+/// two copies of one fact, and the copies would drift the first time a clip
+/// was re-cut. The build script reads the real length instead, so a clip that
+/// does not exist aborts the build and a clip that changed length changes the
+/// pack.
+#[derive(Debug, Deserialize)]
+pub struct VoiceClipDef {
+    /// Names `web/public/audio/voice/<id>.wav` - the directory the browser
+    /// is served from - and names the clip across the boundary.
+    pub id: String,
+}
+
 /// One object, placed. `object` is the string id of an entry in
 /// `objects.toml`; the compile step resolves it to an `ObjectDefId`, so
 /// a dangling reference has no representation once a pack exists.

@@ -10,12 +10,12 @@ use crate::pack::{Circadian, CompiledHouseholdMember, CompiledPersonality};
 use crate::pack::{
     CompiledActionSocket, CompiledInteraction, CompiledLot, CompiledObject, CompiledPlacement,
     CompiledPlacementSocket, CompiledSocketFacing, CompiledSoundAction, CompiledVisual,
-    CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, ContentPack, ObjectDefId,
-    Tuning,
+    CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, CompiledVoiceClip,
+    ContentPack, ObjectDefId, Tuning,
 };
 use crate::schema::{
     AtlasFile, CareersFile, ChainsFile, HouseholdFile, InteractionDef, LotFile, NeedsFile,
-    ObjectsFile, PersonalitiesFile, SocialFile, TraitsFile, TuningFile, VisualDef,
+    ObjectsFile, PersonalitiesFile, SocialFile, TraitsFile, TuningFile, VisualDef, VoiceFile,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use terri_core::{Footprint, NeedId, NEED_COUNT, NEED_MAX, NEED_MIN};
@@ -94,6 +94,13 @@ pub fn compile(
     traits: TraitsFile,
     careers: CareersFile,
     chains: ChainsFile,
+    voice: VoiceFile,
+    // `voice_clip_ticks` is each clip's real length, parallel to `voice.clip`.
+    // Passed in rather than read here because a clip's length lives in a WAV
+    // file, and `terri-data` does no file IO: the build script reads the
+    // headers and this validates what it found. Splitting it that way also
+    // means a test can state a clip length without owning an audio file.
+    voice_clip_ticks: Vec<u32>,
 ) -> Result<ContentPack, ContentError> {
     let sprite_index = |name: &str| atlas.sprite.iter().position(|s| s.name == name);
     let sim_sprite = sprite_index(SIM_SPRITE).ok_or_else(|| ContentError::MissingSimSprite {
@@ -502,6 +509,11 @@ pub fn compile(
         &lot,
     )?;
 
+    // Voice last, and it depends on nothing: a clip is a recording with a
+    // length, and no other compiled thing resolves against it. The link to
+    // `social` runs the other way and at runtime, where the draw reads both.
+    let voice_clips = compile_voice(voice, voice_clip_ticks)?;
+
     Ok(ContentPack {
         decay_per_tick: decay,
         objects: compiled,
@@ -518,7 +530,62 @@ pub fn compile(
         chains,
         circadian,
         sleep_tag,
+        voice_clips,
     })
+}
+
+/// Validates `content/voice.toml` against the lengths the build script read
+/// out of the WAV files.
+///
+/// A pack with fewer than two clips is LEGAL and means no voice. Every test
+/// fixture is in that state, and so was the game before the recordings
+/// existed; conversations then take an ordinary sampled duration. Rejecting
+/// it would force an audio library on every fixture that merely wants two
+/// sims to talk.
+///
+/// One clip is treated the same as none rather than as a set of one. A
+/// conversation plays two DIFFERENT clips, so a single clip cannot make a
+/// pair, and silently playing it twice would be a different feature nobody
+/// asked for.
+fn compile_voice(
+    voice: VoiceFile,
+    clip_ticks: Vec<u32>,
+) -> Result<Vec<CompiledVoiceClip>, ContentError> {
+    if clip_ticks.len() != voice.clip.len() {
+        return Err(ContentError::VoiceClipTickMismatch {
+            clips: voice.clip.len(),
+            ticks: clip_ticks.len(),
+        });
+    }
+
+    let mut seen: Vec<&str> = Vec::with_capacity(voice.clip.len());
+    let mut compiled = Vec::with_capacity(voice.clip.len());
+
+    for (def, ticks) in voice.clip.iter().zip(clip_ticks) {
+        if def.id.trim().is_empty() {
+            return Err(ContentError::BlankVoiceClipId);
+        }
+        if seen.contains(&def.id.as_str()) {
+            return Err(ContentError::DuplicateVoiceClip {
+                clip: def.id.clone(),
+            });
+        }
+        // A zero-length clip would make a conversation that is over before
+        // it starts, and at worst a pair that lasts no ticks at all - which
+        // the interaction floor exists to prevent for every other action.
+        if ticks == 0 {
+            return Err(ContentError::EmptyVoiceClip {
+                clip: def.id.clone(),
+            });
+        }
+        seen.push(&def.id);
+        compiled.push(CompiledVoiceClip {
+            id: def.id.clone(),
+            duration_ticks: ticks,
+        });
+    }
+
+    Ok(compiled)
 }
 
 /// Validates `content/chains.toml` - [K1]'s multi-step sequences.
@@ -2774,6 +2841,8 @@ mod tests {
             TraitsFile { trait_def: vec![] },
             CareersFile { career: vec![] },
             ChainsFile { chain: vec![] },
+            VoiceFile { clip: vec![] },
+            vec![],
         )
     }
 
@@ -2878,8 +2947,22 @@ mod tests {
     /// author's wording, and not `grab_snack`, is what reaches the pack.
     #[rustfmt::skip]
     const GOLDEN_PACK_BYTES: &[u8] = &[
-        // **[ML-curve] appended one field, and it is the single trailing
-        // `0`.** `ContentPack` gained `circadian: Option<Circadian>`, and
+        // **The voice library appended one field, and it is the LAST
+        // trailing `0`.** `ContentPack` gained `voice_clips`, and this
+        // fixture lists no recordings, so postcard writes an empty sequence
+        // as a single zero-length byte after the sleep tag. Every byte
+        // before it kept its offset, which is the appending rule on
+        // `ContentPack::lot` doing its job again; this vector was
+        // regenerated from the failing assertion rather than hand-edited.
+        //
+        // A pack WITH clips is deliberately not pinned here. The shipped
+        // clip lengths are read out of WAV files, so a vector carrying them
+        // would fail every time a recording was re-cut - an asset change
+        // rather than a determinism regression. `pack.rs`'s round-trip test
+        // covers the encoding of a populated list instead.
+        //
+        // **[ML-curve] appended one field before that, the second-to-last
+        // trailing `0`.** `ContentPack` gained `circadian: Option<Circadian>`, and
         // this fixture authors no rhythm, so postcard writes `None` as one
         // byte at the very end. Every byte before it is unchanged, which
         // is the whole point of the appending rule on `ContentPack::lot`
@@ -2973,7 +3056,7 @@ mod tests {
         80, 63, 0, 0, 224, 63, 0, 0, 184, 65, 154, 153,
         25, 63, 0, 0, 0, 60, 19, 0, 0, 192, 62, 29, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 5, 115, 108, 101,
-        101, 112,
+        101, 112, 0,
     ];
 
     /// The object tests are about objects, so they compile against a lot
@@ -5087,6 +5170,8 @@ mod tests {
             TraitsFile { trait_def },
             CareersFile { career },
             ChainsFile { chain: vec![] },
+            VoiceFile { clip: vec![] },
+            vec![],
         )
     }
 
@@ -5394,6 +5479,8 @@ mod tests {
                     career: vec![a_career("office_job")],
                 },
                 ChainsFile { chain: vec![] },
+                VoiceFile { clip: vec![] },
+                vec![],
             )
         };
 
@@ -5958,6 +6045,8 @@ mod tests {
             TraitsFile { trait_def: vec![] },
             CareersFile { career: vec![] },
             ChainsFile { chain: vec![] },
+            VoiceFile { clip: vec![] },
+            vec![],
         )
         .expect("two dispositions on two objects are valid");
 
@@ -6257,6 +6346,8 @@ mod tests {
             TraitsFile { trait_def: vec![] },
             CareersFile { career: vec![] },
             ChainsFile { chain: vec![] },
+            VoiceFile { clip: vec![] },
+            vec![],
         )
         .unwrap_err();
         assert_eq!(
@@ -7801,6 +7892,8 @@ mod tests {
                 TraitsFile { trait_def: vec![] },
                 CareersFile { career: vec![] },
                 ChainsFile { chain: vec![] },
+                VoiceFile { clip: vec![] },
+                vec![],
             )
         };
 
@@ -7889,6 +7982,8 @@ mod tests {
                 TraitsFile { trait_def: vec![] },
                 CareersFile { career: vec![] },
                 ChainsFile { chain: vec![] },
+                VoiceFile { clip: vec![] },
+                vec![],
             )
         };
 
@@ -7956,6 +8051,8 @@ mod tests {
                 TraitsFile { trait_def: vec![] },
                 CareersFile { career: vec![] },
                 ChainsFile { chain: vec![] },
+                VoiceFile { clip: vec![] },
+                vec![],
             )
             .unwrap_err(),
             ContentError::FacingSpriteMissing {
@@ -8003,6 +8100,8 @@ mod tests {
             TraitsFile { trait_def: vec![] },
             CareersFile { career: vec![] },
             ChainsFile { chain },
+            VoiceFile { clip: vec![] },
+            vec![],
         )
     }
 
@@ -8416,6 +8515,8 @@ mod tests {
             ChainsFile {
                 chain: vec![a_chain("dinner")],
             },
+            VoiceFile { clip: vec![] },
+            vec![],
         )
         .unwrap_err();
         assert_eq!(
@@ -8527,6 +8628,8 @@ mod tests {
             TraitsFile { trait_def: vec![] },
             CareersFile { career: vec![] },
             ChainsFile { chain: vec![] },
+            VoiceFile { clip: vec![] },
+            vec![],
         )
     }
 }

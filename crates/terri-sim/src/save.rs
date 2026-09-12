@@ -7,13 +7,14 @@ use bevy_ecs::{
     prelude::{Entity, World},
 };
 use terri_core::{
-    Agent, AtWork, Blocked, Career, Carrying, ChainState, CommandQueue, Commuting, Eating, Fumbled,
-    Funds, Habituation, Hobbies, Intent, IntentQueue, Needs, Path, Personality, Position,
-    Relationships, Reserved, Restless, Satisfaction, SaveSnapshotV1, SavedChainState, SavedCommand,
-    SavedEating, SavedEntity, SavedHabituation, SavedIntent, SavedPath, SavedPersonality,
-    SavedPosition, SavedSocialising, SavedTarget, SavedTraitState, Selected, SimClock, SimCommand,
-    SimId, SimIdAllocator, SimName, SimRng, SmartObject, Socialising, SpriteVariant, StepWork,
-    Target, TileGrid, Traits, Wander, NEED_MAX, NEED_MIN,
+    Agent, AtWork, Blocked, Career, Carrying, ChainState, CommandQueue, Commuting,
+    ConversationVoice, Eating, Fumbled, Funds, Habituation, Hobbies, Intent, IntentQueue, Needs,
+    Path, Personality, Position, Relationships, Reserved, Restless, Satisfaction, SaveSnapshotV1,
+    SavedChainState, SavedCommand, SavedConversationVoice, SavedEating, SavedEntity,
+    SavedHabituation, SavedIntent, SavedPath, SavedPersonality, SavedPosition, SavedSocialising,
+    SavedTarget, SavedTraitState, Selected, SimClock, SimCommand, SimId, SimIdAllocator, SimName,
+    SimRng, SmartObject, Socialising, SpriteVariant, StepWork, Target, TileGrid, Traits, Wander,
+    NEED_MAX, NEED_MIN,
 };
 use terri_data::{ContentPack, ObjectDefId};
 
@@ -182,6 +183,12 @@ fn capture_entity(entity: bevy_ecs::world::EntityRef<'_>, pack: &ContentPack) ->
             partner: social.partner.index_u32(),
             remaining_ticks: social.remaining_ticks,
         }),
+        conversation_voice: entity
+            .get::<ConversationVoice>()
+            .map(|voice| SavedConversationVoice {
+                first: voice.first,
+                second: voice.second,
+            }),
         satisfaction: entity.get::<Satisfaction>().map(Satisfaction::value),
         hobbies: entity.get::<Hobbies>().map(|hobbies| hobbies.0.clone()),
         traits: entity.get::<Traits>().map(|traits| {
@@ -455,6 +462,16 @@ fn restore_entity(
             interaction: social.interaction,
             partner: resolve_entity(slots, social.partner)?,
             remaining_ticks: social.remaining_ticks,
+        });
+    }
+    // Restored independently of `socialising` rather than nested under it.
+    // The two are written from separate components and a save from a pack
+    // with no voice carries the conversation without the clips, so reading
+    // one out of the other would invent a pair that was never drawn.
+    if let Some(voice) = saved.conversation_voice {
+        target.insert(ConversationVoice {
+            first: voice.first,
+            second: voice.second,
         });
     }
     if let Some(value) = saved.satisfaction {
@@ -1180,6 +1197,7 @@ mod tests {
             reserved: false,
             path: None,
             target: None,
+            conversation_voice: None,
             eating: None,
             restless: false,
             blocked: false,

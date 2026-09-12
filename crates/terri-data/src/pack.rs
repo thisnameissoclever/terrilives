@@ -623,6 +623,26 @@ pub struct ContentPack {
     /// not, so hanging it off an absent table made two of them dead in
     /// the shipped game.
     pub sleep_tag: String,
+    /// The nonverbal voice clips a conversation is built out of.
+    ///
+    /// Fewer than two means the pack has no voice and a conversation takes
+    /// an ordinary sampled duration, which is what every test fixture does.
+    /// With two or more, the simulation draws a pair and the conversation
+    /// lasts exactly as long as those two clips together.
+    ///
+    /// **Last in this struct on purpose**, per the appending rule on `lot`.
+    pub voice_clips: Vec<CompiledVoiceClip>,
+}
+
+/// One recorded clip, compiled.
+///
+/// `duration_ticks` is read out of the WAV file by the build script rather
+/// than authored, so it cannot disagree with the audio the shell will play.
+/// The shell resolves `id` to `audio/voice/<id>.wav` under the served root.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CompiledVoiceClip {
+    pub id: String,
+    pub duration_ticks: u32,
 }
 
 /// One chain, compiled: steps across station roles, the whole payoff
@@ -1050,6 +1070,20 @@ mod tests {
                     },
                 ],
             }],
+            // Two clips, with lengths that are neither equal to each other
+            // nor to any index, so a duration read off the wrong slot moves
+            // the round-trip assertion rather than landing on a value that
+            // happens to match.
+            voice_clips: vec![
+                CompiledVoiceClip {
+                    id: "chatter-a".to_string(),
+                    duration_ticks: 19,
+                },
+                CompiledVoiceClip {
+                    id: "chatter-b".to_string(),
+                    duration_ticks: 27,
+                },
+            ],
         }
     }
 

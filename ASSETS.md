@@ -48,9 +48,49 @@ language and character build live in `assets/sprites/gen/style.py`, which is
 the style bible and is executable.
 `docs/specs/2026-08-03-muted-line-implementation.md` is the plan it came from.
 
+## Sim voice recordings
+
+**Twelve nonverbal clips, recorded by Tim Woodruff, owned outright.** They are
+first-party rather than borrowed, so there is no pack, archive or upstream
+licence to trace; the provenance that matters is what was done to them between
+the microphone and the repository.
+
+| Field | Value |
+| --- | --- |
+| Runtime path | `web/public/audio/voice/sim-talking-{1..12}.wav` |
+| Author and rights holder | Tim Woodruff |
+| Recorded | 2026-09-11, one microphone, one session |
+| Source masters | Audacity project directory, outside the repository |
+| Delivered as | 48 kHz stereo 32-bit float WAV |
+| Shipped as | 48 kHz **mono** 16-bit WAV, 40.3 seconds total, 3.8 MB |
+
+Every edit was made by `scripts/voice-clip-intake.cjs`, which is the only thing
+that has touched them. In order:
+
+1. **Folded to mono.** All twelve were single-microphone takes saved as stereo:
+   the two channels differed by less than -80 dB, so folding is lossless rather
+   than a mixing decision. The tool measures that difference and leaves a
+   genuinely stereo file alone.
+2. **Trimmed to the voiced range and padded at the END to a whole number of
+   ticks.** Clips must be a whole number of ticks because their lengths ARE
+   compiled durations - see `content/voice.toml`. Padding goes at the end only,
+   because a clip has to start on its first audible sample.
+3. **Level-matched DOWNWARD to -33.2 LUFS**, the loudness of the quietest clip
+   in the set. Nothing was boosted, deliberately: raising a clip raises its
+   noise floor and room tone with it, and the quietest recording would have
+   needed about 11 dB. Gains applied ran from 0.00 to -7.43 dB, closing an
+   original spread of 7.5 LU.
+
+Loudness is measured as ITU-R BS.1770 defines it, with block gating, rather
+than by peak. The unedited originals are preserved outside the repository.
+
+**These are not a mix level.** The clips sit at a consistent loudness so that
+random selection does not jump; how loud Sims are in the game is a separate
+playback gain, and retuning it must not mean reprocessing the audio.
+
 ## There are no third-party audio assets
 
-**As of 2026-09-06 the game ships no borrowed audio.** The current Web Audio
+**As of 2026-09-11 the game ships no BORROWED audio.** The Sim voice clips above are first-party and recorded for this project. The current Web Audio
 layer synthesizes its cues at runtime. Four compact CC0 archives are proposed
 in `docs/specs/2026-09-06-cc0-audio-intake.md`, but a proposed or downloaded
 archive is not a game asset and is not a provenance entry here.

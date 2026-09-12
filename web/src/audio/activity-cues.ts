@@ -8,7 +8,6 @@ export type SimActivityAudioState =
   | 'reading'
   | 'exercise';
 
-export const CONVERSATION_REPEAT_TICKS = 8;
 export const SLEEP_REPEAT_TICKS = 30;
 
 type PersonalActivityAudioState = 'eating' | 'reading' | 'exercise';
@@ -18,11 +17,35 @@ const PERSONAL_ACTIVITY_EATING = 1;
 const PERSONAL_ACTIVITY_READING = 2;
 const PERSONAL_ACTIVITY_EXERCISE = 3;
 
+/** The two clips a conversation plays, in order. */
+export interface ConversationVoicePair {
+  readonly first: number;
+  readonly second: number;
+}
+
 export type ActivityCueEvent =
   | {
-      readonly type: 'sim.conversation';
+      /**
+       * A conversation began, and these are the two clips it plays.
+       *
+       * Emitted ONCE per conversation rather than on a cadence. The clips
+       * cover the whole exchange by construction - the simulation made the
+       * conversation exactly as long as the pair - so there is nothing to
+       * repeat and no gap to fill.
+       */
+      readonly type: 'sim.conversation-started';
       readonly simId: number;
-      readonly phraseIndex: number;
+      readonly voice: ConversationVoicePair;
+    }
+  | {
+      /**
+       * No conversation is running any more.
+       *
+       * Needed because the world can outrun its own audio: at double and
+       * triple speed the talking finishes while the recordings are still
+       * playing, and something has to say so.
+       */
+      readonly type: 'sim.conversation-ended';
     }
   | {
       readonly type: 'sim.sleep-breath';
@@ -73,11 +96,11 @@ export class ActivityCueScheduler {
   private frameOpen = false;
   private conversationSimId = Number.MAX_SAFE_INTEGER;
   private sleepingSimId = Number.MAX_SAFE_INTEGER;
-  private conversationActive = false;
+  /** This frame's representative pair, and what is currently sounding. */
+  private frameVoice: ConversationVoicePair | null = null;
+  private activeVoice: ConversationVoicePair | null = null;
   private sleepActive = false;
-  private conversationTicksRemaining = 0;
   private sleepTicksRemaining = 0;
-  private phraseIndex = 0;
   private breathIndex = 0;
 
   constructor(private readonly sink: ActivityCueEventSink) {}
@@ -94,9 +117,14 @@ export class ActivityCueScheduler {
     }
     this.conversationSimId = Number.MAX_SAFE_INTEGER;
     this.sleepingSimId = Number.MAX_SAFE_INTEGER;
+    this.frameVoice = null;
   }
 
-  observe(simId: number, activity: SimActivityAudioState): void {
+  observe(
+    simId: number,
+    activity: SimActivityAudioState,
+    voice?: ConversationVoicePair,
+  ): void {
     if (!this.frameOpen) throw new Error('activity audio frame is not open');
     if (!Number.isSafeInteger(simId) || simId < 0) return;
     if (this.seenSimIds.has(simId)) {
@@ -105,7 +133,14 @@ export class ActivityCueScheduler {
     this.seenSimIds.add(simId);
 
     if (activity === 'conversation') {
-      this.conversationSimId = Math.min(this.conversationSimId, simId);
+      // The representative is the lowest stable Sim ID that is talking, and
+      // its pair is the one that sounds. Taking the pair from whichever row
+      // wins rather than from the first seen keeps the choice independent of
+      // row order, which shifts whenever any Sim gains or loses a component.
+      if (simId <= this.conversationSimId) {
+        this.conversationSimId = simId;
+        this.frameVoice = voice ?? null;
+      }
     } else if (activity === 'sleep') {
       this.sleepingSimId = Math.min(this.sleepingSimId, simId);
     }
@@ -141,11 +176,14 @@ export class ActivityCueScheduler {
     this.frameOpen = false;
     this.conversationSimId = Number.MAX_SAFE_INTEGER;
     this.sleepingSimId = Number.MAX_SAFE_INTEGER;
-    this.conversationActive = false;
+    // Cleared without emitting an end. `reset` is what every route back to
+    // silence calls - mute, backgrounding, Load, recovery - and each of those
+    // stops the voices itself. Emitting here would make the next audible
+    // conversation the SECOND thing to stop them.
+    this.frameVoice = null;
+    this.activeVoice = null;
     this.sleepActive = false;
-    this.conversationTicksRemaining = 0;
     this.sleepTicksRemaining = 0;
-    this.phraseIndex = 0;
     this.breathIndex = 0;
   }
 
@@ -159,27 +197,40 @@ export class ActivityCueScheduler {
     return this.personalSimIds.length;
   }
 
+  /**
+   * Starts a conversation's clips, or stops them, by comparing what is
+   * sounding against what the frame observed.
+   *
+   * **The comparison is on the clip PAIR, not on whether anybody is talking.**
+   * One conversation ending and another starting on the same tick looks
+   * identical to one long conversation if you only ask "is anyone talking",
+   * and the new pair would never be heard. Two consecutive conversations can
+   * draw the same pair, which this treats as one - a rare and harmless miss,
+   * and far better than restarting the audio every time the representative
+   * changes.
+   */
   private finishConversationFrame(): void {
-    if (this.conversationSimId === Number.MAX_SAFE_INTEGER) {
-      this.conversationActive = false;
-      this.conversationTicksRemaining = 0;
-      this.phraseIndex = 0;
+    const voice = this.conversationSimId === Number.MAX_SAFE_INTEGER ? null : this.frameVoice;
+
+    if (voice === null) {
+      if (this.activeVoice !== null) {
+        this.activeVoice = null;
+        this.sink.emit({ type: 'sim.conversation-ended' });
+      }
       return;
     }
 
-    if (!this.conversationActive) {
-      this.conversationActive = true;
-      this.conversationTicksRemaining = CONVERSATION_REPEAT_TICKS;
-      this.phraseIndex = 0;
-      this.emitConversation();
+    const active = this.activeVoice;
+    if (active !== null && active.first === voice.first && active.second === voice.second) {
       return;
     }
 
-    this.conversationTicksRemaining -= 1;
-    if (this.conversationTicksRemaining > 0) return;
-    this.conversationTicksRemaining = CONVERSATION_REPEAT_TICKS;
-    this.phraseIndex += 1;
-    this.emitConversation();
+    this.activeVoice = voice;
+    this.sink.emit({
+      type: 'sim.conversation-started',
+      simId: this.conversationSimId,
+      voice,
+    });
   }
 
   private finishSleepFrame(): void {
@@ -203,14 +254,6 @@ export class ActivityCueScheduler {
     this.sleepTicksRemaining = SLEEP_REPEAT_TICKS;
     this.breathIndex += 1;
     this.emitSleepBreath();
-  }
-
-  private emitConversation(): void {
-    this.sink.emit({
-      type: 'sim.conversation',
-      simId: this.conversationSimId,
-      phraseIndex: this.phraseIndex,
-    });
   }
 
   private emitSleepBreath(): void {

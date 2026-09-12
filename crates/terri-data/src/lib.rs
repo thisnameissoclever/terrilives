@@ -16,13 +16,13 @@ pub use pack::{
     CompiledHouseholdMember, CompiledInteraction, CompiledLot, CompiledObject, CompiledPersonality,
     CompiledPlacement, CompiledPlacementSocket, CompiledSocketFacing, CompiledSoundAction,
     CompiledTrait, CompiledTraitKind, CompiledVisual, CompiledVisualAction, CompiledVisualAnchor,
-    CompiledVisualFacing, ContentPack, Footprint, ObjectDefId, Tuning,
+    CompiledVisualFacing, CompiledVoiceClip, ContentPack, Footprint, ObjectDefId, Tuning,
 };
 pub use schema::{
     ActionSocketDef, ArchetypeDef, AtlasFile, AtlasSpriteDef, DispositionDef, HouseholdFile,
     HouseholdSimDef, InteractionDef, LotFile, NeedDef, NeedsFile, ObjectDef, ObjectsFile,
-    PersonalitiesFile, PlacementDef, TraitDef, TraitsFile, TuningFile, VisualDef, WallDef,
-    MAX_HOUSEHOLD_SIZE, TRAIT_KINDS,
+    PersonalitiesFile, PlacementDef, TraitDef, TraitsFile, TuningFile, VisualDef, VoiceClipDef,
+    VoiceFile, WallDef, MAX_HOUSEHOLD_SIZE, TRAIT_KINDS,
 };
 
 use std::sync::OnceLock;
@@ -1937,6 +1937,68 @@ mod tests {
             }),
             "no social interaction advertises a positive social delta, so \
              company satisfies everything except the need it exists for"
+        );
+    }
+
+    /// The shipped recordings reached the pack, and can make a pair.
+    ///
+    /// A pack with fewer than two clips is legal - that is how every test
+    /// fixture runs - so nothing else would notice the shipped library going
+    /// missing. It would simply fall back to sampled durations and the game
+    /// would go quiet, which is a silent regression of exactly the kind a
+    /// shipped-content assertion exists to catch.
+    #[test]
+    fn the_shipped_pack_carries_a_voice_library_that_can_make_a_pair() {
+        let p = pack();
+        assert!(
+            p.voice_clips.len() >= 2,
+            "content/voice.toml compiled to {} clips; a conversation plays \
+             two different ones, so fewer than two means no voice at all",
+            p.voice_clips.len()
+        );
+        assert!(
+            p.voice_clips.iter().all(|clip| clip.duration_ticks > 0),
+            "a clip with no audio in it would make a conversation shorter \
+             than the interaction floor guarantees for everything else"
+        );
+    }
+
+    /// `chat`'s authored duration still matches what the clips actually do.
+    ///
+    /// This is the one number in the feature that nothing computes. The clip
+    /// lengths come out of the WAV files, but `duration_ticks` is typed by
+    /// hand, and it sets BOTH the delivery rate and how attractive a chat is
+    /// against every other thing a sim could do. Re-cutting the recordings
+    /// moves the real mean and leaves that number stale, which shows up as
+    /// sims quietly socialising more or less than intended rather than as
+    /// anything failing.
+    ///
+    /// The tolerance is deliberately loose. This is a guard against the
+    /// library drifting away from the tuning, not a demand that a designer
+    /// retype the number over one re-trimmed clip.
+    #[test]
+    fn the_shipped_chat_duration_still_matches_the_shipped_clips() {
+        let p = pack();
+        if p.voice_clips.len() < 2 {
+            return;
+        }
+        let Some(chat) = p.social.iter().find(|act| act.id == "chat") else {
+            return;
+        };
+
+        let total: u32 = p.voice_clips.iter().map(|clip| clip.duration_ticks).sum();
+        let mean_pair = 2.0 * f64::from(total) / p.voice_clips.len() as f64;
+        let authored = f64::from(chat.duration_ticks);
+        let drift = (authored - mean_pair).abs() / mean_pair;
+
+        assert!(
+            drift <= 0.1,
+            "chat declares {authored} ticks but the shipped clips average \
+             {mean_pair:.1} ticks a pair ({:.0}% out). Re-run \
+             scripts/voice-clip-intake.cjs --measure, set duration_ticks to \
+             the new mean pair, and scale `advertises` by the same factor so \
+             the per-tick rate does not move.",
+            drift * 100.0
         );
     }
 }
