@@ -217,12 +217,16 @@ const LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS: &[(u64, u64)] = &[
 // FORMAT**, which is worth knowing before reading the bridges above as a
 // compatibility promise. `SavedEntity` gained `conversation_voice`, and
 // postcard is not self-describing, so a file written by any earlier build
-// fails to decode before its fingerprint is ever consulted. Every bridge here
-// is therefore inert for this release: they are kept because they cost
-// nothing and the structure has to survive for the next content-only change,
-// not because a save from 72d67c5 can still be loaded. The player-visible
-// consequence is that this release resets saved games, and the shell already
-// reports that as "Saved game is invalid. Starting a new game."
+// cannot be read back: each saved entity is now one field short, and the
+// one-byte padding retry in `load_bytes` cannot rescue it because the new
+// field sits inside a repeated record rather than at the end of the
+// snapshot. Whether such a file is rejected for running out of input or for
+// failing validation after misparsing, the outcome is the same and no bridge
+// below is consulted. They are kept because they cost nothing and the
+// structure has to survive the next content-only change, not because a save
+// from 72d67c5 can still be loaded. The player-visible consequence is that
+// this release resets saved games, which the shell already reports as
+// "Saved game is invalid. Starting a new game."
 
 /// Reviewed structural-digest migrations that do not carry any legacy data
 /// rewrite. The first bridge adds interaction row zero to two formerly inert

@@ -83,6 +83,18 @@ export interface ActivityCueEventSink {
  * Eating, reading, and exercise belong to individual Sims, so each Sim retains
  * an independent cadence until the authored action changes or disappears.
  */
+/**
+ * One bit per talking Sim, for identifying WHICH Sims a conversation is
+ * between.
+ *
+ * Ids at or beyond the mask's width fold onto the top bit rather than being
+ * dropped: the game caps a household well below that, and losing a talker
+ * entirely would be worse than sharing a bit with another.
+ */
+function talkerBit(simId: number): number {
+  return 1 << Math.min(simId, 30);
+}
+
 export class ActivityCueScheduler {
   private readonly seenSimIds = new Set<number>();
   private readonly personalSlotBySimId = new Map<number, number>();
@@ -104,14 +116,18 @@ export class ActivityCueScheduler {
    *
    * Part of a conversation's identity, because the clip pair alone is not
    * one: two consecutive conversations can draw the same pair, and the second
-   * would then be mistaken for the first still running and play nothing. Two
-   * cheap order-independent numbers rather than a set, because this runs on
-   * every fixed tick and must not allocate.
+   * would then be mistaken for the first still running and play nothing.
+   *
+   * **A bitmask rather than a count and a sum.** Those two numbers collide as
+   * soon as a fourth Sim can talk: talkers 0 and 3 give the same count and
+   * sum as talkers 1 and 2, so the very case this check exists for would slip
+   * through it. A mask identifies the set exactly, costs one integer, and
+   * allocates nothing. Ids at or past the mask's width fold onto a shared bit
+   * rather than being dropped, which degrades to the old ambiguity only for
+   * households far larger than the game allows.
    */
-  private frameTalkerCount = 0;
-  private frameTalkerSum = 0;
-  private activeTalkerCount = 0;
-  private activeTalkerSum = 0;
+  private frameTalkerMask = 0;
+  private activeTalkerMask = 0;
   private sleepActive = false;
   private sleepTicksRemaining = 0;
   private breathIndex = 0;
@@ -131,8 +147,7 @@ export class ActivityCueScheduler {
     this.conversationSimId = Number.MAX_SAFE_INTEGER;
     this.sleepingSimId = Number.MAX_SAFE_INTEGER;
     this.frameVoice = null;
-    this.frameTalkerCount = 0;
-    this.frameTalkerSum = 0;
+    this.frameTalkerMask = 0;
   }
 
   observe(
@@ -152,8 +167,7 @@ export class ActivityCueScheduler {
       // its pair is the one that sounds. Taking the pair from whichever row
       // wins rather than from the first seen keeps the choice independent of
       // row order, which shifts whenever any Sim gains or loses a component.
-      this.frameTalkerCount += 1;
-      this.frameTalkerSum += simId;
+      this.frameTalkerMask |= talkerBit(simId);
       if (simId <= this.conversationSimId) {
         this.conversationSimId = simId;
         this.frameVoice = voice ?? null;
@@ -199,10 +213,8 @@ export class ActivityCueScheduler {
     // conversation the SECOND thing to stop them.
     this.frameVoice = null;
     this.activeVoice = null;
-    this.frameTalkerCount = 0;
-    this.frameTalkerSum = 0;
-    this.activeTalkerCount = 0;
-    this.activeTalkerSum = 0;
+    this.frameTalkerMask = 0;
+    this.activeTalkerMask = 0;
     this.sleepActive = false;
     this.sleepTicksRemaining = 0;
     this.breathIndex = 0;
@@ -244,8 +256,7 @@ export class ActivityCueScheduler {
     if (voice === null) {
       if (this.activeVoice !== null) {
         this.activeVoice = null;
-        this.activeTalkerCount = 0;
-        this.activeTalkerSum = 0;
+        this.activeTalkerMask = 0;
         this.sink.emit({ type: 'sim.conversation-ended' });
       }
       return;
@@ -256,13 +267,11 @@ export class ActivityCueScheduler {
       active !== null &&
       active.first === voice.first &&
       active.second === voice.second &&
-      this.frameTalkerCount === this.activeTalkerCount &&
-      this.frameTalkerSum === this.activeTalkerSum;
+      this.frameTalkerMask === this.activeTalkerMask;
     if (sameConversation) return;
 
     this.activeVoice = voice;
-    this.activeTalkerCount = this.frameTalkerCount;
-    this.activeTalkerSum = this.frameTalkerSum;
+    this.activeTalkerMask = this.frameTalkerMask;
     this.sink.emit({
       type: 'sim.conversation-started',
       simId: this.conversationSimId,

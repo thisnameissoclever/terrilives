@@ -421,6 +421,56 @@ describe('AudioController gesture and cue lifecycle', () => {
     expect(Math.min(...(pitchedValues ?? []))).toBeGreaterThanOrEqual(120);
   });
 
+  it('drops a held conversation when the player silences the game', async () => {
+    // A conversation can begin while the recordings are still decoding, and
+    // is held so it can start when they land. If the player mutes in that
+    // window the hold has to go: resetting the scheduler emits no end event,
+    // so nothing else would clear it, and the library landing afterwards
+    // would start a conversation that is over - against a muted master gain,
+    // and audible again the moment the player unmutes.
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+
+    // No library yet, so the conversation cannot play and is held.
+    activityFrame(controller, [[4, 'conversation', { first: 1, second: 0 }]]);
+    expect(context.bufferSources).toHaveLength(0);
+
+    controller.setMuted(true);
+
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async () =>
+      new Response(new ArrayBuffer(16))) as typeof globalThis.fetch;
+    try {
+      await controller.loadVoiceLibrary(['clip-a', 'clip-b']);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+
+    expect(context.bufferSources).toHaveLength(0);
+    expect(controller.activeConversationVoiceCount()).toBe(0);
+  });
+
+  it('counts every procedural cue against its own slot', async () => {
+    // The conversation cue's removal renumbered these, and `door-closed` was
+    // left reading one slot past the end of the array, where the `?? 0` turned
+    // a permanently missing value into a permanent zero. Nothing else names
+    // `door-closed`, so nothing else would notice it going quiet again.
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+
+    controller.emit({ type: 'door.closed', doorId: 'front' });
+    controller.emit({ type: 'door.opened', doorId: 'front' });
+    controller.emit({ type: 'command.rejected' });
+
+    expect(controller.cuePlayCounts()).toMatchObject({
+      'door-closed': 1,
+      'door-opened': 1,
+      rejected: 1,
+    });
+  });
+
   it('plays a conversation\'s recordings end to end from an observed frame', async () => {
     // **The regression this exists for.** `observeActivity` took two
     // parameters while the interface it implements takes three, which

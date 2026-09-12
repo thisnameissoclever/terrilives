@@ -12,7 +12,6 @@ import {
 } from './activity-cues.js';
 import {
   loadVoiceClips,
-  MAX_ACTIVE_VOICE_CONVERSATIONS,
   VoiceClipPlayer,
   type AudioBufferPort,
   type VoiceAudioContext,
@@ -363,6 +362,13 @@ export class AudioController implements GameAudioEventSink {
   private stopEveryPlayer(): void {
     this.player?.stopAll();
     this.voices?.stopAll();
+    // **Drop the held conversation too.** Every route here - mute, Effects
+    // reaching zero, backgrounding, Load - also resets the scheduler, and
+    // that reset deliberately emits no end event. Without this the pair stays
+    // held, and the library landing a moment later would start a conversation
+    // the player has already silenced: against a muted master gain, or
+    // against a suspended clock that plays it on return to the tab.
+    this.pendingVoice = null;
   }
 
   /**
@@ -417,9 +423,11 @@ export class AudioController implements GameAudioEventSink {
   private async fetchVoiceLibrary(): Promise<void> {
     const context = this.context;
     if (context === null || this.voiceClipIds.length === 0) return;
-    // One fetch at a time. The cache check below only sees a finished load,
-    // so without this a context rebuild during the first fetch would pull the
-    // whole library down a second time - several megabytes, for nothing.
+    // One fetch at a time, defensively. The cache check below only sees a
+    // FINISHED load, so any second caller arriving mid-flight would fetch the
+    // whole library again. No current path does: the context is built once
+    // and only cleared when construction itself fails. This costs one field
+    // and removes the question.
     if (this.voiceFetch !== null) {
       await this.voiceFetch;
       return;
@@ -466,6 +474,16 @@ export class AudioController implements GameAudioEventSink {
     const voice = this.pendingVoice;
     if (voice === null) return;
     this.pendingVoice = null;
+    // The same gate `emit` applies. Reaching the player directly from the
+    // library's load would otherwise bypass every reason the game has for
+    // being silent right now.
+    if (
+      !this.isUnlocked() ||
+      this.mutedPreference ||
+      this.effectsLevelPreference === 0
+    ) {
+      return;
+    }
     this.startConversationVoice(voice);
   }
 
@@ -480,14 +498,16 @@ export class AudioController implements GameAudioEventSink {
   }
 
   /**
-   * The ceiling conversation voices are held under.
+   * Every conversation this player still holds nodes for, sounding or fading.
    *
-   * Reported beside the live count because the bounded-state proof has to
-   * constrain both: a count that stays low while the ceiling climbs is not
-   * bounded, it is merely quiet.
+   * Reported separately from the live count because the fading ones are the
+   * half that can actually grow: they leave the active list as soon as they
+   * are stopped and are reclaimed later, so a leak would be invisible to
+   * `activeConversationVoiceCount` while being exactly what a bounded-state
+   * proof exists to catch.
    */
-  conversationVoiceCapacity(): number {
-    return MAX_ACTIVE_VOICE_CONVERSATIONS;
+  retainedConversationVoiceCount(): number {
+    return this.voices?.retainedConversationCount() ?? 0;
   }
 
   private startConversationVoice(voice: ConversationVoicePair): void {

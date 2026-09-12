@@ -126,8 +126,8 @@ export interface StressHandle {
     readonly activeVoices: number;
     /** Conversations currently playing recordings. */
     readonly conversationVoices: number;
-    /** The ceiling those conversations are held under. */
-    readonly conversationVoiceCapacity: number;
+    /** Conversations still holding audio nodes, sounding or fading out. */
+    readonly retainedConversationVoices: number;
     readonly footstepTracks: number;
     readonly footstepCapacity: number;
     readonly activityTracks: number;
@@ -1235,8 +1235,8 @@ async function main(): Promise<void> {
         get conversationVoices() {
           return audio.activeConversationVoiceCount();
         },
-        get conversationVoiceCapacity() {
-          return audio.conversationVoiceCapacity();
+        get retainedConversationVoices() {
+          return audio.retainedConversationVoiceCount();
         },
         get footstepTracks() {
           return audio.activeFootstepTrackCount();

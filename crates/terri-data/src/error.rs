@@ -1357,7 +1357,10 @@ impl fmt::Display for ContentError {
             ),
             ContentError::VoicePairBelowFloor { ticks, floor } => write!(
                 f,
-                "the two shortest voice clips total {ticks} ticks, below the                  {floor}-tick interaction floor; a conversation is two clips,                  so the shortest one the draw can make would be shorter than                  any other action is allowed to be"
+                "the two shortest voice clips total {ticks} ticks, below \
+                 the {floor}-tick interaction floor; a conversation is two \
+                 clips, so the shortest one the draw can make would be \
+                 shorter than any other action is allowed to be"
             ),
             ContentError::BlankVoiceClipId => write!(
                 f,

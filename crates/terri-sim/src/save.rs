@@ -911,6 +911,13 @@ fn validate_entity(
     // file claiming otherwise describes a conversation the simulation cannot
     // produce, and [D9] says such a state must not be constructible.
     if let Some(voice) = entity.conversation_voice {
+        // A clip pair belongs TO a conversation. The simulation writes both
+        // together or neither, so a file carrying one without the other
+        // describes a state it cannot produce - the same [D9] argument the
+        // distinctness check below rests on, applied to the pairing itself.
+        if entity.socialising.is_none() {
+            return Err(SaveError::InvalidContentReference);
+        }
         let clips = pack.voice_clips.len();
         if voice.first as usize >= clips || voice.second as usize >= clips {
             return Err(SaveError::InvalidContentReference);
@@ -1627,18 +1634,46 @@ mod tests {
             .map(|entity| entity.index)
             .expect("the shipped lot spawns agents");
 
+        let partner = base
+            .entities
+            .iter()
+            .find(|entity| entity.agent && entity.index != agent)
+            .map(|entity| entity.index)
+            .expect("the shipped lot spawns more than one agent");
+
+        // A pair only exists as part of a conversation, so the fixture writes
+        // one. Setting the pair alone is its own rejection case below.
         let with_voice = |first: u32, second: u32| {
             let mut snapshot = base.clone();
-            snapshot
+            let row = snapshot
                 .entities
                 .iter_mut()
                 .find(|entity| entity.index == agent)
-                .expect("agent")
-                .conversation_voice = Some(SavedConversationVoice { first, second });
+                .expect("agent");
+            row.socialising = Some(SavedSocialising {
+                interaction: 0,
+                partner,
+                remaining_ticks: 20,
+            });
+            row.conversation_voice = Some(SavedConversationVoice { first, second });
             snapshot
         };
 
         assert_validation(&with_voice(0, 1), Ok(()), "a pair the library holds");
+
+        // The pair without the conversation it belongs to.
+        let mut orphaned = with_voice(0, 1);
+        orphaned
+            .entities
+            .iter_mut()
+            .find(|entity| entity.index == agent)
+            .expect("agent")
+            .socialising = None;
+        assert_validation(
+            &orphaned,
+            Err(SaveError::InvalidContentReference),
+            "a clip pair with no conversation to belong to",
+        );
         assert_validation(
             &with_voice(0, clips as u32),
             Err(SaveError::InvalidContentReference),

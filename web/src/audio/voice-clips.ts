@@ -227,6 +227,17 @@ export class VoiceClipPlayer {
     return this.active.length;
   }
 
+  /**
+   * Conversations still holding nodes, sounding or fading out.
+   *
+   * The number a bounded-state proof wants: the fading ones have left the
+   * active list but not the audio graph, so a reclaim that stopped working
+   * would show up here and nowhere else.
+   */
+  retainedConversationCount(): number {
+    return this.active.length + this.draining.length;
+  }
+
   private finish(conversation: ActiveConversation, stop: boolean): void {
     if (conversation.ended) return;
     conversation.ended = true;
@@ -259,26 +270,35 @@ export class VoiceClipPlayer {
     }
 
     conversation.teardownAfter = silentAt;
-    let pending = conversation.sources.length;
-    const drained = (): void => {
-      pending -= 1;
-      if (pending <= 0) this.tearDown(conversation);
-    };
+    // Listed BEFORE anything that can tear down synchronously below, because
+    // `tearDown` removes the entry and a push afterwards would put a
+    // already-torn conversation back on the list, where every later sweep
+    // bounces off its own guard and the entry never leaves.
+    this.draining.push(conversation);
+
+    const last = conversation.sources[conversation.sources.length - 1];
+    if (last === undefined) {
+      this.tearDown(conversation);
+      return;
+    }
+
+    // **Only the last source is asked to report, and a countdown across both
+    // would never finish.** When the first clip ends naturally its handler is
+    // already cleared, so it can never fire again; a stop during the second
+    // half of the pair - which is most of them - would leave the count stuck
+    // at one and the nodes connected until something else happened to call
+    // `play`.
+    for (const source of conversation.sources) source.onended = null;
+    last.onended = () => this.tearDown(conversation);
 
     for (const source of conversation.sources) {
-      source.onended = drained;
       try {
         source.stop(silentAt);
       } catch {
-        // A source may never have reached a startable state, or may have
-        // passed its stop time already; it will never report ended, so the
-        // sweep in `play` is what reclaims it.
-        drained();
+        // A source that never reached a startable state will not report
+        // ending either; `sweepDrained` is what reclaims it.
       }
     }
-
-    if (conversation.sources.length === 0) this.tearDown(conversation);
-    else this.draining.push(conversation);
   }
 
   /**
@@ -288,10 +308,13 @@ export class VoiceClipPlayer {
    * and the sweep below reclaiming one whose sources never did.
    */
   private tearDown(conversation: ActiveConversation): void {
-    if (conversation.torn) return;
-    conversation.torn = true;
+    // Unlisted FIRST, and before the already-torn guard, so a conversation
+    // cannot be left on the draining list by a teardown that ran before it
+    // was added to one.
     const index = this.draining.indexOf(conversation);
     if (index >= 0) this.draining.splice(index, 1);
+    if (conversation.torn) return;
+    conversation.torn = true;
     for (const source of conversation.sources) source.onended = null;
     for (const source of conversation.sources) safeDisconnect(source);
     safeDisconnect(conversation.gain);

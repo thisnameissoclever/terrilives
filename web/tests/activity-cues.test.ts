@@ -99,6 +99,52 @@ describe('ActivityCueScheduler', () => {
     ]);
   });
 
+  it('restarts for a different pair of Sims drawing the same clips', () => {
+    const sink = recordingSink();
+    const scheduler = new ActivityCueScheduler(sink);
+
+    // The case the whole identity check exists for, and the one a clip-pair
+    // comparison alone cannot see: one conversation ends and a DIFFERENT pair
+    // of Sims starts another on the same tick, drawing the same two clips.
+    // Sims 0 and 3 then 1 and 2 specifically, because those two sets share a
+    // talker count and a sum of ids: anything weaker than a set would call
+    // them one conversation and play the second in silence.
+    frame(scheduler, [
+      [0, 'conversation', PAIR_A],
+      [3, 'conversation', PAIR_A],
+    ]);
+    frame(scheduler, [
+      [1, 'conversation', PAIR_A],
+      [2, 'conversation', PAIR_A],
+    ]);
+
+    expect(sink.events).toEqual([
+      { type: 'sim.conversation-started', simId: 0, voice: PAIR_A },
+      { type: 'sim.conversation-started', simId: 1, voice: PAIR_A },
+    ]);
+  });
+
+  it('does not restart while the same Sims keep talking', () => {
+    const sink = recordingSink();
+    const scheduler = new ActivityCueScheduler(sink);
+
+    // The other half of the same rule. Observation order changes between
+    // frames because render rows move whenever any Sim gains or loses a
+    // component, and that must not read as a new conversation.
+    frame(scheduler, [
+      [5, 'conversation', PAIR_A],
+      [2, 'conversation', PAIR_A],
+    ]);
+    frame(scheduler, [
+      [2, 'conversation', PAIR_A],
+      [5, 'conversation', PAIR_A],
+    ]);
+
+    expect(sink.events).toEqual([
+      { type: 'sim.conversation-started', simId: 2, voice: PAIR_A },
+    ]);
+  });
+
   it('says when the talking stopped, so audio outrunning it can be cut', () => {
     const sink = recordingSink();
     const scheduler = new ActivityCueScheduler(sink);

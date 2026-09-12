@@ -237,18 +237,37 @@ describe('VoiceClipPlayer', () => {
 
     expect(voices.activeConversationCount()).toBe(MAX_ACTIVE_VOICE_CONVERSATIONS);
 
-    // Four conversations of two sources each were created; the first pair's
-    // sources are the ones that should have been stopped.
-    const firstConversationSources = context.sources.slice(0, 2);
-    for (const source of firstConversationSources) {
-      expect(source.stops.length).toBeGreaterThan(0);
+    // **Counted stops, not merely "was stopped".** Every source gets one stop
+    // when it is scheduled, so "has at least one stop" cannot fail and says
+    // nothing. The EVICTED conversation gets a second one, so the count is
+    // what distinguishes it: evicting the newest instead of the oldest moves
+    // the pair of twos to the other end of this list.
+    const stopCounts: number[][] = [];
+    for (let index = 0; index < context.sources.length; index += 2) {
+      stopCounts.push([
+        context.sources[index]?.stops.length ?? 0,
+        context.sources[index + 1]?.stops.length ?? 0,
+      ]);
     }
-    // The most recent arrival must still be playing out on its own schedule,
-    // with only the stop its own clip length implies.
-    const newestSources = context.sources.slice(-2);
-    for (const source of newestSources) {
-      expect(source.stops).toHaveLength(1);
-    }
+    expect(stopCounts).toEqual([
+      [2, 2],
+      [1, 1],
+      [1, 1],
+      [1, 1],
+    ]);
+  });
+
+  it('silences BOTH halves when one recording failed to load', () => {
+    // A clip that failed to load is carried as a zero-length stand-in so the
+    // others keep their indices. Playing its partner alone would be half a
+    // conversation arriving from nowhere and running for the wrong length.
+    const context = new FakeContext();
+    const voices = new VoiceClipPlayer(context, {});
+    voices.setClips([{ duration: 2.5 }, { duration: 0 }]);
+
+    expect(voices.play(0, 1)).toBe(false);
+    expect(voices.play(1, 0)).toBe(false);
+    expect(context.sources).toHaveLength(0);
   });
 
   it('plays nothing rather than throwing when a clip is missing', () => {
