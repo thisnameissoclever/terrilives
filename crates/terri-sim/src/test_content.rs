@@ -199,6 +199,37 @@ pub fn pack_with_social(
     }))
 }
 
+/// A pack whose conversations have a voice, for the tests about one.
+///
+/// Explicit for the same reason the social vocabulary is, and more sharply:
+/// clips DECIDE how long a conversation runs, so a fixture that carried them
+/// by default would change the duration of every conversation in the suite
+/// and consume two extra draws from the shared generator while doing it.
+///
+/// `clip_ticks` states each clip's length directly. The shipped pack reads
+/// those out of WAV files, but a test has no business owning audio: what it
+/// needs is a library with known lengths, and the compile step treats a
+/// length the same however it was measured.
+pub fn pack_with_voice(
+    objects: Vec<CompiledObject>,
+    social: Vec<CompiledInteraction>,
+    tuning: Tuning,
+    clip_ticks: &[u32],
+) -> &'static ContentPack {
+    let pack = pack_with_social(objects, social, tuning);
+    Box::leak(Box::new(ContentPack {
+        voice_clips: clip_ticks
+            .iter()
+            .enumerate()
+            .map(|(index, ticks)| terri_data::CompiledVoiceClip {
+                id: format!("clip-{index}"),
+                duration_ticks: *ticks,
+            })
+            .collect(),
+        ..pack.clone()
+    }))
+}
+
 /// A pack carrying a sleep rhythm, for the tests about one.
 ///
 /// Explicit for the same reason the social vocabulary and the household
@@ -283,6 +314,15 @@ pub fn pack_tuned(objects: Vec<CompiledObject>, tuning: Tuning) -> &'static Cont
         // up: `content/objects.toml` is what declares it, and a fixture
         // with its own would test a vocabulary the game does not have.
         sleep_tag: terri_data::pack().sleep_tag.clone(),
+        // Empty, the same call as the social vocabulary above and for a
+        // sharper version of the same reason. Voice clips do not merely add
+        // candidates, they DECIDE how long a conversation runs: a fixture
+        // that silently carried the shipped twelve would stretch every
+        // conversation in the suite from its authored duration to whatever
+        // pair the draw happened to make, and would consume two extra draws
+        // from the shared generator while doing it. A test about the voice
+        // installs clips explicitly.
+        voice_clips: Vec::new(),
     }))
 }
 

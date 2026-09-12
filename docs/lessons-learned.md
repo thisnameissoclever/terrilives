@@ -5236,6 +5236,51 @@ restart at entry cadence. The browser memory report must include stable
 footstep, activity, and object-sound capacities and bounds of three, three, and
 two live tracks respectively.
 
+## [L-duration-ticks-prices-and-advertises] An interaction's duration is two knobs wearing one name
+
+**What happened.** The voice clips took over how long a conversation runs,
+stretching a chat from about 3.5 seconds to about 6.7. To stop conversations
+paying out double, `chat`'s `duration_ticks` was raised from 40 to 67 and the
+advert was left alone. That was described, in advance and in writing, as
+holding the economy still while only the length changed. It did nothing of the
+kind: sims stopped talking altogether, and
+`every_tick_of_a_played_stretch_produces_a_loadable_save` failed with "nobody
+walked over to talk in 2000 ticks".
+
+**Root cause.** `duration_ticks` is read by two systems that want opposite
+things from it. `tick_interactions` divides the advert by it to get a delivery
+RATE, so raising it pays out less per tick. `score_advertisement` also divides
+by it - the score is `urgency * delta / (travel + duration_ticks + 1)` - so
+raising it makes the interaction less ATTRACTIVE. Raising the duration alone
+dropped chat from 0.75 social a tick to 0.448, just below the television's
+0.436, and selection stopped choosing the thing it was supposed to prefer.
+
+The deeper error was the framing offered before any code was written. Holding
+the per-tick rate and holding the per-conversation total are mutually exclusive
+once the real duration doubles, because payout is rate times duration. The
+option presented as "keeps the balance where it was tuned" was not available at
+all; only a choice between two different balances was.
+
+**Prevention rule.** Never change `duration_ticks` without scaling
+`advertises` by the same factor, unless making the interaction less attractive
+is the actual intent. Know what that scaling does and does not buy: it holds
+the delivery rate exactly, and it holds the SCORE only at zero distance,
+because scoring divides by `travel_ticks + duration_ticks + 1`. A longer
+interaction scaled this way becomes progressively more attractive the further
+a sim has to walk to reach it. Anything paid once per completion rather than
+per tick - relationship gain, the hobby payout - also arrives less often per
+unit of played time, in proportion to the length change. The rate is what the content comments pin and what fixes
+the ordering between competing interactions; the total per use follows from the
+rate and the length and cannot be pinned separately. Before offering a tuning
+option, check every system that reads the number, not just the one the change
+is about.
+
+**How to verify.** Change a `duration_ticks` in `content/` without touching its
+`advertises`, and run `cargo test -p terri-sim --lib`. If nothing fails, the
+interaction was not one anybody chose. For `chat` specifically, the guard is
+`every_tick_of_a_played_stretch_produces_a_loadable_save`, which asserts its
+own fixture is not vacuous and therefore notices when sims stop socialising.
+
 ## [L-a-blocked-browser-promise-may-never-settle] Caching an in-flight promise assumes it settles
 
 **What happened.** Sound never played on Android and no later tap recovered it,

@@ -126,6 +126,24 @@ pub struct RenderBuffer {
     /// shell resolves the index against `item_kinds()` and the
     /// `carried_<kind>` atlas convention.
     pub carrying: Vec<u32>,
+    /// The voice clip played first by the conversation this row is in, or
+    /// [`NO_VOICE_CLIP`].
+    ///
+    /// **Both participants carry the pair, not just the initiator.** The
+    /// simulation keeps one record of a conversation and hangs it on whoever
+    /// started it, but the shell picks which row speaks for a conversation by
+    /// its own rule, and that rule has no reason to land on the initiator.
+    /// Filling one row would leave the audio silently unable to find the
+    /// clips whenever it picked the other one.
+    ///
+    /// An index into the pack's voice clips rather than a file name, for the
+    /// same reason every other column is an index: a name would make each row
+    /// carry a string, and the shell already learns the names once.
+    pub voice_firsts: Vec<u32>,
+    /// The clip played when the first ends, or [`NO_VOICE_CLIP`]. A sibling
+    /// column rather than a pair packed into one, so JavaScript can view each
+    /// directly as a `Uint32Array` - the reasoning on `footprint_depths`.
+    pub voice_seconds: Vec<u32>,
     pub count: usize,
 }
 
@@ -140,6 +158,9 @@ pub const NO_INTERACTION_TARGET: u32 = u32::MAX;
 pub const NO_SIM_ID: u32 = u32::MAX;
 /// The `sound_sources` column's absent-source sentinel.
 pub const NO_SOUND_SOURCE: u32 = u32::MAX;
+/// The voice columns' not-talking sentinel. Out of band for the same reason
+/// `NOT_CARRYING` is: a voice library is a handful of recordings.
+pub const NO_VOICE_CLIP: u32 = u32::MAX;
 
 /// Authored object-audio codes. Existing values are append-only because the
 /// TypeScript shell interprets these values across the WASM boundary.
@@ -3141,6 +3162,83 @@ mod tests {
             displayed_position_of(sim.render_buffer(), agent).0,
             (17.25, 18.5),
             "definition equality must not substitute a different chair's socket"
+        );
+    }
+
+    /// **Both talkers carry the pair, and nobody else carries anything.**
+    ///
+    /// The simulation keeps one conversation record and hangs it on whoever
+    /// started the talk, but the shell picks which row speaks for a
+    /// conversation by its own rule, and that rule has no reason to land on
+    /// the initiator. Filling only the initiator's row would leave the audio
+    /// silently unable to find the clips about half the time - silently,
+    /// because a missing sentinel reads as "not talking" rather than as an
+    /// error, so the conversation would simply play nothing.
+    #[test]
+    fn both_sides_of_a_conversation_carry_the_same_voice_pair() {
+        use crate::render_buffer::NO_VOICE_CLIP;
+        use terri_core::{ConversationVoice, Reserved, Socialising};
+
+        let pack = crate::test_content::pack_with_social(
+            Vec::new(),
+            vec![authored_talk_interaction("chat")],
+            crate::test_content::tuning(),
+        );
+        let mut sim = crate::test_content::sim_with(20, 20, pack);
+
+        let initiator = sim
+            .world_mut()
+            .spawn((Agent, Position { x: 3.0, y: 4.0 }))
+            .id();
+        let partner = sim
+            .world_mut()
+            .spawn((Agent, Position { x: 4.0, y: 4.0 }, Reserved))
+            .id();
+        // A bystander, to prove the columns are about being in a conversation
+        // rather than about being a sim.
+        let bystander = sim
+            .world_mut()
+            .spawn((Agent, Position { x: 9.0, y: 9.0 }))
+            .id();
+
+        sim.world_mut().entity_mut(initiator).insert((
+            Socialising {
+                interaction: 0,
+                partner,
+                remaining_ticks: 10,
+            },
+            // Distinct from each other and from any row index, so a column
+            // read off the wrong place cannot coincidentally match.
+            ConversationVoice {
+                first: 7,
+                second: 3,
+            },
+        ));
+
+        sim.sync_render_buffer();
+        let buffer = sim.render_buffer();
+        let row_of = |entity: Entity| {
+            buffer
+                .ids
+                .iter()
+                .position(|id| *id == entity.index_u32())
+                .expect("every live entity has a row")
+        };
+
+        for (entity, who) in [(initiator, "the initiator"), (partner, "the partner")] {
+            let row = row_of(entity);
+            assert_eq!(
+                (buffer.voice_firsts[row], buffer.voice_seconds[row]),
+                (7, 3),
+                "{who} must carry the conversation's clip pair, in order"
+            );
+        }
+
+        let idle = row_of(bystander);
+        assert_eq!(
+            (buffer.voice_firsts[idle], buffer.voice_seconds[idle]),
+            (NO_VOICE_CLIP, NO_VOICE_CLIP),
+            "a sim who is not talking must carry no clips"
         );
     }
 

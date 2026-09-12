@@ -124,6 +124,10 @@ export interface StressHandle {
   /** Bounded audio-owned state used by retained-memory acceptance. */
   readonly audio: {
     readonly activeVoices: number;
+    /** Conversations currently playing recordings. */
+    readonly conversationVoices: number;
+    /** Conversations still holding audio nodes, sounding or fading out. */
+    readonly retainedConversationVoices: number;
     readonly footstepTracks: number;
     readonly footstepCapacity: number;
     readonly activityTracks: number;
@@ -259,6 +263,11 @@ async function main(): Promise<void> {
   // is the zero-copy views.
   const handle = SimHandle.from_lot();
   const sim = new SimBridge(handle, wasm.memory);
+  // The names of the conversation recordings come from the compiled content
+  // pack, so this is the first moment they exist. The controller decides WHEN
+  // to fetch them: decoding needs an audio context, and a context needs a
+  // gesture that may not have happened yet.
+  void audio.loadVoiceLibrary(sim.voiceClipIds());
   const saveStatusElement = document.querySelector<HTMLElement>('#save-status');
   if (!saveStatusElement) throw new Error('missing #save-status');
   const saveStatus: HTMLElement = saveStatusElement;
@@ -609,6 +618,10 @@ async function main(): Promise<void> {
     // multiplies how many steps run per frame and never how long a step
     // is.
     overlayPause.selectSpeed(ticksPerFrame);
+    // Conversations follow the world's pace. Paused counts as normal speed:
+    // nothing new starts while paused, and an already-playing conversation
+    // should not change pitch because the player reached for the button.
+    audio.setGameSpeed(ticksPerFrame > 0 ? ticksPerFrame : 1);
     audio.emit({ type: 'ui.confirmed' });
   });
 
@@ -1214,6 +1227,16 @@ async function main(): Promise<void> {
       audio: {
         get activeVoices() {
           return audio.activeVoiceCount();
+        },
+        // Voices are a retained scheduler like the others, so the
+        // bounded-state proof has to be able to see them. Adding a scheduler
+        // without adding it here is the omission
+        // [L-audio-boundaries-and-proofs-must-cover-every-scheduler] records.
+        get conversationVoices() {
+          return audio.activeConversationVoiceCount();
+        },
+        get retainedConversationVoices() {
+          return audio.retainedConversationVoiceCount();
         },
         get footstepTracks() {
           return audio.activeFootstepTrackCount();

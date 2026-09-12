@@ -1,0 +1,88 @@
+# The nonverbal voice clips a conversation is built out of.
+#
+# THE CLIPS DECIDE HOW LONG A CONVERSATION LASTS. That is the whole point
+# of this file and it is backwards from every other duration in the game,
+# so it is worth being explicit about which way the arrow points.
+#
+# A conversation plays exactly two clips, one after the other. Rather than
+# cutting the audio to fit a duration the simulation picked, the simulation
+# picks two clips and makes the conversation exactly as long as they are.
+# Picture and sound then end together by construction, with no fading a clip
+# off mid-syllable and no silence left hanging at the end.
+#
+# **The simulation picks, not the audio layer**, and that is load-bearing.
+# The simulation runs with no sound at all: the tests run it headless and a
+# saved game has to replay move for move. If the browser's audio layer chose
+# the clips and told the simulation how long to run, a muted player and an
+# unmuted player would get different worlds and a reloaded save would drift.
+# So the draw happens in `draw_voice_pair` in the movement system, from the
+# world's seeded generator beside every other draw; the shell is handed the
+# two indices and plays what it is told.
+#
+# **The durations are NOT authored here.** They are read from the WAV files
+# at build time by `voice_clip_ticks` in the build script. A duration written
+# in this file would be a second copy of a fact that already lives in the
+# audio, and the two would drift the first time a clip was re-cut - silently,
+# because a conversation that runs 3 ticks long looks fine and sounds wrong.
+# Listing the id is the whole contract: the file must exist under
+# `web/public/audio/voice/<id>.wav`, or the build aborts. That directory is
+# what the browser is served from, so the build measures the same bytes the
+# player hears rather than a copy of them.
+#
+# Clips must be a whole number of ticks long. `scripts/voice-clip-intake.cjs`
+# is what guarantees that: it trims each recording to its voiced range, pads
+# the end to a tick boundary, and level-matches the set. Raw recordings out of
+# Audacity are not shippable and the build will reject them.
+#
+# TWO CLIPS, NEVER THE SAME ONE TWICE. With 12 clips that is 132 ordered
+# pairs spanning 54 to 84 ticks, which is far more variation than the old
+# duration_variance draw ever produced, so `chat` does not use that draw at
+# all any more.
+#
+# A pack with fewer than two clips is legal and means no voice: conversations
+# fall back to the ordinary sampled duration, which is what every test fixture
+# does and what the game did before these recordings existed.
+
+# Recorded by Tim Woodruff. Nonverbal on purpose - there is nothing to
+# understand, so there is nothing to localise and nothing that can be
+# misheard as a real word in someone's language.
+#
+# Ordered by recording, not by length. Nothing reads this order except the
+# draw, and the draw is uniform, so the order is documentation rather than
+# behaviour.
+
+[[clip]]
+id = "sim-talking-1"
+
+[[clip]]
+id = "sim-talking-2"
+
+[[clip]]
+id = "sim-talking-3"
+
+[[clip]]
+id = "sim-talking-4"
+
+[[clip]]
+id = "sim-talking-5"
+
+[[clip]]
+id = "sim-talking-6"
+
+[[clip]]
+id = "sim-talking-7"
+
+[[clip]]
+id = "sim-talking-8"
+
+[[clip]]
+id = "sim-talking-9"
+
+[[clip]]
+id = "sim-talking-10"
+
+[[clip]]
+id = "sim-talking-11"
+
+[[clip]]
+id = "sim-talking-12"

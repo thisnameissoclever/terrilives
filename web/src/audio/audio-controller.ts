@@ -7,8 +7,15 @@ import {
 import {
   ActivityCueScheduler,
   type ActivityCueEvent,
+  type ConversationVoicePair,
   type SimActivityAudioState,
 } from './activity-cues.js';
+import {
+  loadVoiceClips,
+  VoiceClipPlayer,
+  type AudioBufferPort,
+  type VoiceAudioContext,
+} from './voice-clips.js';
 import { FootstepScheduler } from './footsteps.js';
 import {
   ObjectSoundCueScheduler,
@@ -33,12 +40,15 @@ export interface AudioPreferenceStore {
   setItem(key: string, value: string): void;
 }
 
-export interface BrowserAudioContext extends ProceduralAudioContext {
+export interface BrowserAudioContext
+  extends ProceduralAudioContext,
+    VoiceAudioContext {
   readonly destination: unknown;
   readonly state: AudioContextState;
   close(): Promise<void>;
   resume(): Promise<void>;
   suspend(): Promise<void>;
+  decodeAudioData(bytes: ArrayBuffer): Promise<AudioBufferPort>;
 }
 
 export type AudioContextFactory = () => BrowserAudioContext;
@@ -66,7 +76,6 @@ export interface GameAudioEventSink {
 export interface AudioCuePlayCounts {
   readonly rejected: number;
   readonly footstep: number;
-  readonly conversation: number;
   readonly 'sleep-breath': number;
   readonly eating: number;
   readonly 'page-turn': number;
@@ -100,6 +109,23 @@ export class AudioController implements GameAudioEventSink {
   private masterGain: GainNodePort | null = null;
   private effectsGain: GainNodePort | null = null;
   private player: ProceduralCuePlayer | null = null;
+  private voices: VoiceClipPlayer | null = null;
+  /** Decoded once and reinstalled on every context rebuild. */
+  private voiceClips: readonly (AudioBufferPort | undefined)[] = [];
+  private voiceClipIds: readonly string[] = [];
+  /** The player's chosen speed, so conversations can follow it. */
+  private gameSpeed = 1;
+  /**
+   * A conversation that asked to be played before it could be.
+   *
+   * The recordings are fetched after a gesture and decoded asynchronously,
+   * so the first conversation of a session can easily begin while the
+   * library is still arriving. Without this it would be recorded as playing,
+   * never retried, and stay silent for its whole length.
+   */
+  private pendingVoice: ConversationVoicePair | null = null;
+  /** The in-flight library fetch, so two callers cannot both download it. */
+  private voiceFetch: Promise<(AudioBufferPort | undefined)[]> | null = null;
   private hasUnlocked = false;
   private backgrounded = false;
   private contextStateRevision = 0;
@@ -107,7 +133,7 @@ export class AudioController implements GameAudioEventSink {
   private readonly footsteps: FootstepScheduler;
   private readonly activities: ActivityCueScheduler;
   private readonly objectSounds: ObjectSoundCueScheduler;
-  private readonly playedCueCounts = new Uint32Array(9);
+  private readonly playedCueCounts = new Uint32Array(8);
 
   constructor(
     private readonly createContext: AudioContextFactory = createBrowserAudioContext,
@@ -154,7 +180,7 @@ export class AudioController implements GameAudioEventSink {
     if (changed) this.resetSchedulers();
     this.applyMasterGain();
     this.persist();
-    if (muted) this.player?.stopAll();
+    if (muted) this.stopEveryPlayer();
   }
 
   isMuted(): boolean {
@@ -174,7 +200,7 @@ export class AudioController implements GameAudioEventSink {
       this.resetSchedulers();
     }
     this.applyEffectsGain();
-    if (this.effectsLevelPreference === 0) this.player?.stopAll();
+    if (this.effectsLevelPreference === 0) this.stopEveryPlayer();
   }
 
   effectsLevel(): number {
@@ -187,6 +213,19 @@ export class AudioController implements GameAudioEventSink {
       this.mutedPreference ||
       this.effectsLevelPreference === 0
     ) {
+      return;
+    }
+
+    if (event.type === 'sim.conversation-started') {
+      this.startConversationVoice(event.voice);
+      return;
+    }
+    if (event.type === 'sim.conversation-ended') {
+      this.pendingVoice = null;
+      // Only reached when the world outran its own audio, which is what
+      // fast-forward makes routine. At normal speed the recordings finish on
+      // the tick the talking does and have already torn themselves down.
+      this.voices?.stopAll();
       return;
     }
 
@@ -221,8 +260,18 @@ export class AudioController implements GameAudioEventSink {
     this.activities.beginFrame();
   }
 
-  observeActivity(simId: number, activity: SimActivityAudioState): void {
-    this.activities.observe(simId, activity);
+  observeActivity(
+    simId: number,
+    activity: SimActivityAudioState,
+    voice?: ConversationVoicePair,
+  ): void {
+    // **The third argument is load-bearing and the types cannot protect it.**
+    // A two-parameter method is assignable to a three-parameter signature in
+    // TypeScript, so leaving `voice` off compiles, typechecks, and silently
+    // drops every conversation's clips - which is exactly what it did until a
+    // run in the browser showed two Sims talking with the pair reaching the
+    // render buffer and nothing playing.
+    this.activities.observe(simId, activity, voice);
   }
 
   endActivityFrame(): void {
@@ -256,7 +305,7 @@ export class AudioController implements GameAudioEventSink {
     this.activities.reset();
     this.objectSounds.reset();
     if (backgrounded) {
-      this.player?.stopAll();
+      this.stopEveryPlayer();
     }
 
     const revision = this.contextStateRevision + 1;
@@ -296,10 +345,205 @@ export class AudioController implements GameAudioEventSink {
       void this.setBackgrounded(true);
       return;
     }
-    this.player?.stopAll();
+    this.stopEveryPlayer();
     this.footsteps.reset();
     this.activities.reset();
     this.objectSounds.reset();
+  }
+
+  /**
+   * Silences every player at once.
+   *
+   * A single method rather than a call to each, because the schedulers have
+   * already been through the failure where a new one was added and three of
+   * the four routes back to silence were not updated. One method means the
+   * next one added here cannot be half-wired.
+   */
+  private stopEveryPlayer(): void {
+    // **Dropped FIRST**, before anything that touches the audio hardware. If
+    // a `stopAll` threw, a hold cleared after it would survive the silencing,
+    // which is the whole defect this line exists to prevent.
+    //
+    // **Drop the held conversation at all.** Every route here - mute, Effects
+    // reaching zero, backgrounding, Load - also resets the scheduler, and
+    // that reset deliberately emits no end event. Without this the pair stays
+    // held, and the library landing a moment later would start a conversation
+    // the player has already silenced: against a muted master gain, or
+    // against a suspended clock that plays it on return to the tab.
+    this.pendingVoice = null;
+    this.player?.stopAll();
+    this.voices?.stopAll();
+  }
+
+  /**
+   * Follows the player's chosen speed, so conversations keep pace with the
+   * world.
+   *
+   * Only the RATE changes, and only a little. Conversation length is measured
+   * in simulation ticks, so at double speed a conversation is over in half the
+   * real time while its recordings are not; matching that exactly would mean
+   * playing them at 2x, which is a full octave up and sounds like a cartoon.
+   * A gentle rise reads as "faster and brighter" without that, and the
+   * mismatch it leaves is handled by cutting the audio when the talking ends,
+   * which is what `sim.conversation-ended` is for.
+   */
+  setGameSpeed(multiplier: number): void {
+    this.gameSpeed = Number.isFinite(multiplier) && multiplier > 0 ? multiplier : 1;
+  }
+
+  /**
+   * Fetches and decodes the voice library, then installs it.
+   *
+   * Takes ids rather than URLs or files: the ids come from the compiled
+   * content pack across the boundary, and this is the only place that knows
+   * they name files. Safe to call again - a rebuilt audio context reinstalls
+   * the buffers it already decoded rather than fetching them a second time.
+   *
+   * Never rejects. A library that fails to load costs conversations their
+   * sound; it does not stop the game.
+   */
+  async loadVoiceLibrary(ids: readonly string[]): Promise<void> {
+    this.voiceClipIds = ids;
+    await this.fetchVoiceLibrary();
+  }
+
+  /**
+   * Fetches and decodes whatever library has been handed over, if there is a
+   * context to decode with.
+   *
+   * **The caller does not choose the moment.** Decoding needs an audio
+   * context, and a context needs a gesture, so the ids arrive long before the
+   * bytes can. Calling this again when a context appears is what makes the
+   * ordering the caller's non-problem - and it has to be, because unlocking
+   * is owned by `gesture-unlock.ts` and main() is forbidden from driving it.
+   *
+   * Fetching only after a gesture is also the right behaviour on its own
+   * terms: a player who never clicks never downloads several megabytes of
+   * audio they will never hear.
+   *
+   * Never rejects. A library that fails to load costs conversations their
+   * sound; it does not stop the game.
+   */
+  private async fetchVoiceLibrary(): Promise<void> {
+    const context = this.context;
+    if (context === null || this.voiceClipIds.length === 0) return;
+    // One fetch at a time, defensively. The cache check below only sees a
+    // FINISHED load, so any second caller arriving mid-flight would fetch the
+    // whole library again. No current path does: the context is built once
+    // and only cleared when construction itself fails. This costs one field
+    // and removes the question.
+    if (this.voiceFetch !== null) {
+      await this.voiceFetch;
+      return;
+    }
+    if (this.voiceClips.length === this.voiceClipIds.length) {
+      // Already decoded. A rebuilt context reinstalls these buffers rather
+      // than pulling them down a second time.
+      this.voices?.setClips(compactClips(this.voiceClips));
+      this.retryPendingVoice();
+      return;
+    }
+    const fetching = loadVoiceClips(
+      this.voiceClipIds,
+      async (url) => {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`voice clip ${url}: ${response.status}`);
+        return response.arrayBuffer();
+      },
+      (bytes) => context.decodeAudioData(bytes),
+    );
+    this.voiceFetch = fetching;
+    try {
+      this.voiceClips = await fetching;
+      this.voices?.setClips(compactClips(this.voiceClips));
+      this.retryPendingVoice();
+    } catch {
+      // Presentation only. The simulation already decided the conversation's
+      // length, so a silent conversation is the whole cost of failing here.
+    } finally {
+      if (this.voiceFetch === fetching) this.voiceFetch = null;
+    }
+  }
+
+  /**
+   * Plays a conversation that asked to start before the library was ready.
+   *
+   * Starts from the beginning rather than from where the conversation has got
+   * to. The pair is what the simulation chose and the talking has not finished
+   * yet, so the recordings are still the right thing to hear; starting them
+   * partway through to chase the clock would be a worse result than a
+   * conversation whose audio runs a moment past it.
+   */
+  private retryPendingVoice(): void {
+    const voice = this.pendingVoice;
+    if (voice === null) return;
+    this.pendingVoice = null;
+    // The same gate `emit` applies. Reaching the player directly from the
+    // library's load would otherwise bypass every reason the game has for
+    // being silent right now.
+    //
+    // The hold is dropped rather than kept when this gate refuses, on
+    // purpose: recovering a resumed context resets the schedulers, and the
+    // next tick re-emits a conversation that is still running. Keeping it
+    // would risk starting one that is not.
+    if (
+      !this.isUnlocked() ||
+      this.mutedPreference ||
+      this.effectsLevelPreference === 0
+    ) {
+      return;
+    }
+    this.startConversationVoice(voice);
+  }
+
+  /** Ids the shell last handed over, so a rebuilt context can reload them. */
+  voiceLibraryIds(): readonly string[] {
+    return this.voiceClipIds;
+  }
+
+  /** Conversations currently sounding, for the retained-memory proof. */
+  activeConversationVoiceCount(): number {
+    return this.voices?.activeConversationCount() ?? 0;
+  }
+
+  /**
+   * Every conversation this player still holds nodes for, sounding or fading.
+   *
+   * Reported separately from the live count because the fading ones are the
+   * half that can actually grow: they leave the active list as soon as they
+   * are stopped and are reclaimed later, so a leak would be invisible to
+   * `activeConversationVoiceCount` while being exactly what a bounded-state
+   * proof exists to catch.
+   */
+  retainedConversationVoiceCount(): number {
+    return this.voices?.retainedConversationCount() ?? 0;
+  }
+
+  private startConversationVoice(voice: ConversationVoicePair): void {
+    const voices = this.voices;
+    if (voices === null) {
+      this.pendingVoice = voice;
+      return;
+    }
+    try {
+      // One conversation at a time from this scheduler: it tracks a single
+      // household-wide conversation, so a new pair replaces the old rather
+      // than layering on top of it.
+      voices.stopAll();
+      const played = voices.play(
+        voice.first,
+        voice.second,
+        voiceRateForSpeed(this.gameSpeed),
+      );
+      // Held rather than dropped. The usual reason a play fails is that the
+      // library has not finished decoding, and that resolves on its own
+      // moments later while this conversation is still going.
+      this.pendingVoice = played ? null : voice;
+    } catch {
+      // Sound is presentation. A node failure may drop one conversation but
+      // may never terminate the simulation frame that observed it.
+      this.pendingVoice = voice;
+    }
   }
 
   activeVoiceCount(): number {
@@ -335,13 +579,12 @@ export class AudioController implements GameAudioEventSink {
     return {
       rejected: this.playedCueCounts[0] ?? 0,
       footstep: this.playedCueCounts[1] ?? 0,
-      conversation: this.playedCueCounts[2] ?? 0,
-      'sleep-breath': this.playedCueCounts[3] ?? 0,
-      eating: this.playedCueCounts[4] ?? 0,
-      'page-turn': this.playedCueCounts[5] ?? 0,
-      exercise: this.playedCueCounts[6] ?? 0,
-      'door-opened': this.playedCueCounts[7] ?? 0,
-      'door-closed': this.playedCueCounts[8] ?? 0,
+      'sleep-breath': this.playedCueCounts[2] ?? 0,
+      eating: this.playedCueCounts[3] ?? 0,
+      'page-turn': this.playedCueCounts[4] ?? 0,
+      exercise: this.playedCueCounts[5] ?? 0,
+      'door-opened': this.playedCueCounts[6] ?? 0,
+      'door-closed': this.playedCueCounts[7] ?? 0,
     };
   }
 
@@ -366,6 +609,16 @@ export class AudioController implements GameAudioEventSink {
         this.masterGain = masterGain;
         this.effectsGain = effectsGain;
         this.player = new ProceduralCuePlayer(context, effectsGain);
+        // Same bus as the cues: `Effects` governs both, and `Sound`
+        // governs the master gain above it. Voices must never hang off
+        // the master directly, or muting effects would leave Sims
+        // talking over silence.
+        const voices = new VoiceClipPlayer(context, effectsGain);
+        voices.setClips(compactClips(this.voiceClips));
+        this.voices = voices;
+        // The ids usually arrived before any gesture could create this
+        // context, so this is the first moment the bytes can be decoded.
+        void this.fetchVoiceLibrary();
         this.applyMasterGain();
         this.applyEffectsGain();
       } catch {
@@ -375,6 +628,7 @@ export class AudioController implements GameAudioEventSink {
         this.masterGain = null;
         this.effectsGain = null;
         this.player = null;
+        this.voices = null;
         if (context !== null) {
           try {
             await context.close();
@@ -455,17 +709,47 @@ function safelyDisconnect(node: GainNodePort | null): void {
   }
 }
 
+/**
+ * Maps game speed to playback rate.
+ *
+ * Deliberately far below the speed itself: 2x speed plays at 1.12 and 3x at
+ * 1.22, which is about two and three and a half semitones up rather than the
+ * twelve and nineteen that matching the speed exactly would cost. The
+ * exponent is the whole rule - `speed ** 0.18` - and it exists so that
+ * fast-forward sounds quicker without sounding like a different species.
+ */
+export function voiceRateForSpeed(speed: number): number {
+  if (!Number.isFinite(speed) || speed <= 1) return 1;
+  return Math.pow(speed, 0.18);
+}
+
+/**
+ * Replaces clips that failed to load with a zero-length stand-in.
+ *
+ * The player indexes this array with the simulation's clip index, so a hole
+ * has to keep its position. A zero-length buffer plays nothing and ends
+ * immediately, which is the honest behaviour for a recording that is not
+ * there.
+ */
+function compactClips(
+  clips: readonly (AudioBufferPort | undefined)[],
+): readonly AudioBufferPort[] {
+  return clips.map((clip) => clip ?? { duration: 0 });
+}
+
 function cueForEvent(event: GameAudioEvent): ProceduralCue | null {
   switch (event.type) {
     case 'command.staged':
     case 'ui.confirmed':
+    // The recordings replaced the conversation tone, so these two carry no
+    // procedural cue at all; `emit` handles them before reaching here.
+    case 'sim.conversation-started':
+    case 'sim.conversation-ended':
       return null;
     case 'command.rejected':
       return 'rejected';
     case 'sim.footstep':
       return 'footstep';
-    case 'sim.conversation':
-      return 'conversation';
     case 'sim.sleep-breath':
       return 'sleep-breath';
     case 'sim.eating':
@@ -488,10 +772,6 @@ function pitchScaleForEvent(event: GameAudioEvent): number {
   switch (event.type) {
     case 'sim.footstep':
       return footstepPitchScale(event.simId, event.stepIndex);
-    case 'sim.conversation': {
-      const phase = (Math.trunc(event.simId) * 13 + event.phraseIndex * 7) & 3;
-      return 0.94 + phase * 0.045;
-    }
     case 'sim.sleep-breath': {
       const phase = (Math.trunc(event.simId) + event.breathIndex) & 1;
       return 0.97 + phase * 0.04;
@@ -524,20 +804,18 @@ function cueIndex(cue: ProceduralCue): number {
       return 0;
     case 'footstep':
       return 1;
-    case 'conversation':
-      return 2;
     case 'sleep-breath':
-      return 3;
+      return 2;
     case 'eating':
-      return 4;
+      return 3;
     case 'page-turn':
-      return 5;
+      return 4;
     case 'exercise':
-      return 6;
+      return 5;
     case 'door-opened':
-      return 7;
+      return 6;
     case 'door-closed':
-      return 8;
+      return 7;
   }
 }
 

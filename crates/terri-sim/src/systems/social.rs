@@ -90,6 +90,7 @@ pub fn tick_social(
             commands
                 .entity(initiator)
                 .remove::<Socialising>()
+                .remove::<terri_core::ConversationVoice>()
                 .remove::<Target>();
             commands.entity(partner).try_remove::<Reserved>();
             continue;
@@ -209,6 +210,7 @@ pub fn tick_social(
         commands
             .entity(initiator)
             .remove::<Socialising>()
+            .remove::<terri_core::ConversationVoice>()
             .remove::<Target>();
         // `try_remove`, matching `tick_interactions`' release: the
         // command must not panic if the partner despawned mid-talk.

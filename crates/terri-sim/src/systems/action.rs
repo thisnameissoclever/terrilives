@@ -563,6 +563,7 @@ pub fn serve_intents(
                 .entity(agent)
                 .remove::<Eating>()
                 .remove::<Socialising>()
+                .remove::<terri_core::ConversationVoice>()
                 .remove::<terri_core::StepWork>()
                 .remove::<terri_core::Fumbled>()
                 .insert((
@@ -612,6 +613,7 @@ pub fn serve_intents(
                     .remove::<Path>()
                     .remove::<Eating>()
                     .remove::<Socialising>()
+                    .remove::<terri_core::ConversationVoice>()
                     .remove::<terri_core::StepWork>()
                     .remove::<terri_core::Fumbled>()
                     .remove::<terri_core::Carrying>()
@@ -682,6 +684,7 @@ pub fn serve_intents(
             .entity(agent)
             .remove::<Eating>()
             .remove::<Socialising>()
+            .remove::<terri_core::ConversationVoice>()
             .remove::<terri_core::StepWork>()
             .remove::<terri_core::Fumbled>()
             .insert((

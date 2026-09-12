@@ -465,6 +465,43 @@ pub enum ContentError {
     DuplicateSocialInteraction {
         id: String,
     },
+    /// The build script handed `compile` a different number of clip lengths
+    /// than `voice.toml` declares clips.
+    ///
+    /// Not reachable from content alone: it means the caller paired the two
+    /// lists wrongly. It is an error rather than an assertion because the
+    /// two come from different places - a TOML file and a directory of WAVs -
+    /// and a silent zip would drop the tail of whichever list is longer,
+    /// giving every clip after the mismatch somebody else's duration.
+    VoiceClipTickMismatch {
+        clips: usize,
+        ticks: usize,
+    },
+    /// `voice.toml` declares the same clip twice. A duplicate would appear
+    /// twice in the draw, making that clip likelier than the rest for no
+    /// reason anybody could see in the file.
+    DuplicateVoiceClip {
+        clip: String,
+    },
+    /// The two shortest voice clips together fall below the interaction
+    /// floor, so the shortest conversation the draw can make is shorter than
+    /// every other action in the game is allowed to be.
+    VoicePairBelowFloor {
+        ticks: u32,
+        floor: u32,
+    },
+    /// `voice.toml` declares a clip with a blank id. It names no file, so
+    /// nothing can play it.
+    BlankVoiceClipId,
+    /// A clip whose WAV holds less than one whole tick of audio.
+    ///
+    /// A conversation's length is the sum of two clips, so a zero-length clip
+    /// makes a conversation shorter than the interaction floor guarantees for
+    /// every other action - and two of them would make one that lasts no time
+    /// at all.
+    EmptyVoiceClip {
+        clip: String,
+    },
     /// A social interaction with a duration of 0 - the same silent
     /// nothing as [`ContentError::ZeroDuration`], on the social file.
     SocialZeroDuration {
@@ -1307,6 +1344,34 @@ impl fmt::Display for ContentError {
             ContentError::DuplicateSocialInteraction { id } => write!(
                 f,
                 "social.toml declares interaction '{id}' more than once"
+            ),
+            ContentError::VoiceClipTickMismatch { clips, ticks } => write!(
+                f,
+                "voice.toml declares {clips} clips but {ticks} clip lengths \
+                 were measured; these lists are paired by position and must \
+                 be the same length"
+            ),
+            ContentError::DuplicateVoiceClip { clip } => write!(
+                f,
+                "voice.toml declares clip '{clip}' more than once"
+            ),
+            ContentError::VoicePairBelowFloor { ticks, floor } => write!(
+                f,
+                "the two shortest voice clips total {ticks} ticks, below \
+                 the {floor}-tick interaction floor; a conversation is two \
+                 clips, so the shortest one the draw can make would be \
+                 shorter than any other action is allowed to be"
+            ),
+            ContentError::BlankVoiceClipId => write!(
+                f,
+                "voice.toml declares a clip with a blank id; the id names \
+                 web/public/audio/voice/<id>.wav and cannot be empty"
+            ),
+            ContentError::EmptyVoiceClip { clip } => write!(
+                f,
+                "voice clip '{clip}' holds less than one tick of audio; run \
+                 scripts/voice-clip-intake.cjs to trim and pad it to a tick \
+                 boundary"
             ),
             ContentError::SocialZeroDuration { interaction } => write!(
                 f,

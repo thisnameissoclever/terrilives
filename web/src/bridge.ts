@@ -268,6 +268,39 @@ export class SimBridge {
   }
 
   /**
+   * The voice clip each row's conversation plays first, or u32::MAX when the
+   * row is not in one. Both talkers carry the pair, so whichever row the
+   * audio scheduler speaks for finds it. Re-create this view after every
+   * fixed tick and memory growth.
+   */
+  voiceFirsts(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.voice_firsts_ptr(),
+      this.count,
+    );
+  }
+
+  /** The clip played when the first ends, or u32::MAX. Same rules. */
+  voiceSeconds(): Uint32Array {
+    return new Uint32Array(
+      this.memory.buffer,
+      this.handle.voice_seconds_ptr(),
+      this.count,
+    );
+  }
+
+  /**
+   * One id per voice clip, in the index order the columns above use.
+   *
+   * Read once at start-up, not per frame: it allocates a string per clip,
+   * which is exactly why the per-row data stays numeric.
+   */
+  voiceClipIds(): string[] {
+    return this.handle.voice_clip_ids();
+  }
+
+  /**
    * The lot-axis direction in which each presentation body action faces:
    * 0 none, 1 positive x, 2 negative x, 3 positive y, 4 negative y.
    */

@@ -36,6 +36,8 @@ function source(): SimAudioFrameSource {
       new Uint32Array([VISUAL_ACTION_WALK, VISUAL_ACTION_WALK, 0, VISUAL_ACTION_WALK]),
     soundActions: () => new Uint32Array(4),
     soundSources: () => new Uint32Array(4).fill(0xffff_ffff),
+    voiceFirsts: () => new Uint32Array(4).fill(0xffff_ffff),
+    voiceSeconds: () => new Uint32Array(4).fill(0xffff_ffff),
   };
 }
 
@@ -119,6 +121,8 @@ describe('sampleSimAudioAfterTick', () => {
       ]),
       soundActions: () => new Uint32Array(5),
       soundSources: () => new Uint32Array(5).fill(0xffff_ffff),
+      voiceFirsts: () => new Uint32Array(5).fill(0xffff_ffff),
+      voiceSeconds: () => new Uint32Array(5).fill(0xffff_ffff),
     };
 
     sampleSimAudioAfterTick(input, sink(calls));
@@ -361,6 +365,78 @@ describe('sampleSimAudioAfterTick', () => {
     );
     expect(pointer.match(/audio\.emit\(\{ type: 'command\.rejected' \}\)/g)).toHaveLength(1);
     expect(pointer.match(/audio\.emit\(\{ type: 'command\.staged' \}\)/g)).toHaveLength(1);
+  });
+
+  it('hands the conversation scheduler the clip pair from a talking row', () => {
+    // Both fixtures above fill the voice columns with the not-talking
+    // sentinel, so nothing exercised this path with a real pair: swapping
+    // first and second, or dropping the third argument entirely, was
+    // invisible. The pair below is ordered and asymmetric so both mistakes
+    // show up.
+    const observed: unknown[] = [];
+    const source: SimAudioFrameSource = {
+      count: 2,
+      positions: () => new Float32Array([1, 1, 2, 1]),
+      simIds: () => new Uint32Array([11, 4]),
+      visualActions: () => new Uint32Array([VISUAL_ACTION_TALK, VISUAL_ACTION_TALK]),
+      soundActions: () => new Uint32Array(2),
+      soundSources: () => new Uint32Array(2).fill(0xffff_ffff),
+      voiceFirsts: () => new Uint32Array([7, 7]),
+      voiceSeconds: () => new Uint32Array([2, 2]),
+    };
+    const sink: SimAudioFrameSink = {
+      beginFootstepFrame: () => {},
+      observeFootstep: () => {},
+      endFootstepFrame: () => {},
+      beginActivityFrame: () => {},
+      observeActivity: (simId, activity, voice) =>
+        observed.push({ simId, activity, voice }),
+      endActivityFrame: () => {},
+      beginObjectSoundFrame: () => {},
+      observeObjectSound: () => {},
+      endObjectSoundFrame: () => {},
+    };
+
+    sampleSimAudioAfterTick(source, sink);
+
+    expect(observed).toEqual([
+      { simId: 11, activity: 'conversation', voice: { first: 7, second: 2 } },
+      { simId: 4, activity: 'conversation', voice: { first: 7, second: 2 } },
+    ]);
+  });
+
+  it('passes no pair for a talking row from a pack with no recordings', () => {
+    // Legal and common: every simulation test fixture is in this state, and
+    // the game was too before the recordings existed.
+    const observed: unknown[] = [];
+    const source: SimAudioFrameSource = {
+      count: 1,
+      positions: () => new Float32Array([1, 1]),
+      simIds: () => new Uint32Array([3]),
+      visualActions: () => new Uint32Array([VISUAL_ACTION_TALK]),
+      soundActions: () => new Uint32Array(1),
+      soundSources: () => new Uint32Array(1).fill(0xffff_ffff),
+      voiceFirsts: () => new Uint32Array([0xffff_ffff]),
+      voiceSeconds: () => new Uint32Array([0xffff_ffff]),
+    };
+    const sink: SimAudioFrameSink = {
+      beginFootstepFrame: () => {},
+      observeFootstep: () => {},
+      endFootstepFrame: () => {},
+      beginActivityFrame: () => {},
+      observeActivity: (simId, activity, voice) =>
+        observed.push({ simId, activity, voice }),
+      endActivityFrame: () => {},
+      beginObjectSoundFrame: () => {},
+      observeObjectSound: () => {},
+      endObjectSoundFrame: () => {},
+    };
+
+    sampleSimAudioAfterTick(source, sink);
+
+    expect(observed).toEqual([
+      { simId: 3, activity: 'conversation', voice: undefined },
+    ]);
   });
 
   it('keeps trusted-gesture recovery armed after the first unlock', () => {

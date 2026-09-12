@@ -266,6 +266,8 @@ async function collectMemorySample(page, cdp, includePageMemory) {
         activityCapacity: stress.audio.activityCapacity,
         objectSoundTracks: stress.audio.objectSoundTracks,
         objectSoundCapacity: stress.audio.objectSoundCapacity,
+        conversationVoices: stress.audio.conversationVoices,
+        retainedConversationVoices: stress.audio.retainedConversationVoices,
       };
     }),
   ]);
@@ -377,12 +379,36 @@ function analyseMemory(runs) {
         sample.activityTracks <= 3 &&
         sample.objectSoundCapacity === baseline.objectSoundCapacity &&
         sample.objectSoundTracks <= 2 &&
-        sample.activeVoices <= 8,
+        sample.activeVoices <= 8 &&
+        // The recorded conversation voices are a retained scheduler like the
+        // rest, and `activeVoices` cannot see them: that counts oscillators
+        // and these are buffer sources. Leaving them out is the exact
+        // omission [L-audio-boundaries-and-proofs-must-cover-every-scheduler]
+        // records, so they are bounded here in the same change that added
+        // them.
+        //
+        // The RETAINED count is the one worth bounding. A conversation that
+        // has been stopped leaves the sounding list immediately and keeps its
+        // nodes until its fade has rendered, so a reclaim that stopped
+        // working would be invisible to the sounding count alone.
+        // Six, not three: the retained count is the sounding ones plus the
+        // ones still fading, and each is capped at three. Bounding it at the
+        // number today's calling pattern happens to produce would make this
+        // gate fail the day more than one conversation may sound at once,
+        // which is the flake this check already had to have removed once.
+        sample.conversationVoices <= 3 &&
+        sample.retainedConversationVoices <= 6,
     );
     return (
       boundedLiveState &&
       baseline.activeVoices === 0 &&
       final.activeVoices === 0 &&
+      // **No assertion that nothing is SOUNDING.** Pausing does not stop a
+      // conversation's recordings - `main.ts` says so where it handles speed
+      // - and a pair runs six to seven seconds, so a healthy run sampled just
+      // after a pause can legitimately still be playing one. Bounding the
+      // retained count is the claim that holds; demanding silence here would
+      // fail at random.
       final.domDocuments === baseline.domDocuments &&
       final.domNodes === baseline.domNodes &&
       final.eventListeners === baseline.eventListeners

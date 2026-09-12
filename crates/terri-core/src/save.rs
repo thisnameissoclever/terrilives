@@ -77,6 +77,16 @@ pub struct SavedEntity {
     pub chain: Option<SavedChainState>,
     pub carrying: Option<String>,
     pub step_work_ticks: Option<u32>,
+    /// Which two voice clips an in-progress conversation is made of.
+    ///
+    /// Saved because the clips DECIDED the conversation's length: reloading
+    /// mid-talk has to resume the same two clips, or the sound would restart
+    /// from a different pair and finish at a different time from the talking.
+    ///
+    /// `None` for every agent not talking, and for every conversation started
+    /// by a pack with no voice. **Last in this struct on purpose**, per the
+    /// appending rule the pack's `lot` field documents.
+    pub conversation_voice: Option<SavedConversationVoice>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -129,6 +139,17 @@ pub struct SavedSocialising {
     pub interaction: u32,
     pub partner: u32,
     pub remaining_ticks: u32,
+}
+
+/// The clip pair behind an in-progress conversation.
+///
+/// Indices into the pack's `voice_clips`, not file names, for the same reason
+/// every other saved reference is an index: a name would let a save disagree
+/// with the pack it is loaded against without anything noticing.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SavedConversationVoice {
+    pub first: u32,
+    pub second: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

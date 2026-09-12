@@ -835,6 +835,37 @@ pub struct Socialising {
     pub remaining_ticks: u32,
 }
 
+/// Which two voice clips this conversation is made of, carried by the
+/// INITIATOR beside [`Socialising`].
+///
+/// **These indices decided the conversation's length, rather than the other
+/// way round.** `Socialising::remaining_ticks` was set to the sum of the two
+/// clips' durations when the pair was drawn, so the talking stops exactly
+/// when the second clip runs out. Nothing has to cut audio short or pad it.
+///
+/// **A SEPARATE component from `Socialising` rather than two more fields on
+/// it**, because a pack with fewer than two clips has no voice at all and
+/// there is nothing honest to put in those fields. Absence is the "no voice"
+/// case, and it is the case every test fixture is in; a conversation without
+/// this component took an ordinary sampled duration, exactly as the game
+/// behaved before the recordings existed.
+///
+/// **The simulation chooses, and the shell obeys.** The draw comes from the
+/// world's seeded generator like every other decision, which is what lets a
+/// headless run, a muted player, and a reloaded save all produce the same
+/// conversation. The shell is handed these indices and plays what it is told;
+/// it never picks, because a choice made in the presentation layer could not
+/// be replayed.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ConversationVoice {
+    /// Index into the content pack's `voice_clips`, played first.
+    pub first: u32,
+    /// Index into the content pack's `voice_clips`, played when `first` ends.
+    /// Never equal to `first`: hearing the same babble twice in one exchange
+    /// reads as a glitch rather than as a reply.
+    pub second: u32,
+}
+
 #[cfg(test)]
 mod intent_queue_tests {
     //! `IntentQueue`'s methods are the kind `cargo mutants` is blind to:

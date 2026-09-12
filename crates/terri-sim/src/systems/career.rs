@@ -101,6 +101,7 @@ pub fn start_shift(
             .remove::<Path>()
             .remove::<Eating>()
             .remove::<Socialising>()
+            .remove::<terri_core::ConversationVoice>()
             // A half-run chain STEP is dropped like a half-run meal;
             // the chain itself survives in its counter, and the worker
             // comes home and finishes cooking ([K4]).

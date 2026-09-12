@@ -18,6 +18,11 @@ import type {
   GainNodePort,
   OscillatorNodePort,
 } from '../src/audio/procedural-cues.js';
+import type { ConversationVoicePair } from '../src/audio/activity-cues.js';
+import type {
+  AudioBufferPort,
+  AudioBufferSourcePort,
+} from '../src/audio/voice-clips.js';
 
 interface ParamCall {
   readonly kind: 'cancel' | 'set' | 'ramp';
@@ -83,12 +88,41 @@ class FakeOscillator implements OscillatorNodePort {
   }
 }
 
+class FakeBufferSource implements AudioBufferSourcePort {
+  buffer: AudioBufferPort | null = null;
+  readonly playbackRate = new FakeParam();
+  readonly connections: unknown[] = [];
+  readonly starts: number[] = [];
+  readonly stops: number[] = [];
+  onended: (() => void) | null = null;
+  disconnected = false;
+
+  connect(destination: unknown): unknown {
+    this.connections.push(destination);
+    return destination;
+  }
+
+  disconnect(): void {
+    this.disconnected = true;
+  }
+
+  start(when = 0): void {
+    this.starts.push(when);
+  }
+
+  stop(when = 0): void {
+    this.stops.push(when);
+  }
+}
+
 class FakeContext implements BrowserAudioContext {
   currentTime = 4;
   readonly destination = { kind: 'destination' };
   state: AudioContextState = 'suspended';
   readonly gains: FakeGain[] = [];
   readonly oscillators: FakeOscillator[] = [];
+  readonly bufferSources: FakeBufferSource[] = [];
+  decodedByteLengths: number[] = [];
   resumeCalls = 0;
   suspendCalls = 0;
   closeCalls = 0;
@@ -108,6 +142,17 @@ class FakeContext implements BrowserAudioContext {
     const oscillator = new FakeOscillator();
     this.oscillators.push(oscillator);
     return oscillator;
+  }
+
+  createBufferSource(): FakeBufferSource {
+    const source = new FakeBufferSource();
+    this.bufferSources.push(source);
+    return source;
+  }
+
+  async decodeAudioData(bytes: ArrayBuffer): Promise<AudioBufferPort> {
+    this.decodedByteLengths.push(bytes.byteLength);
+    return { duration: 1 };
   }
 
   async resume(): Promise<void> {
@@ -164,12 +209,13 @@ function activityFrame(
       | 'eating'
       | 'reading'
       | 'exercise',
+      ConversationVoicePair?,
     ]
   >,
 ): void {
   controller.beginActivityFrame();
-  for (const [simId, activity] of observations) {
-    controller.observeActivity(simId, activity);
+  for (const [simId, activity, voice] of observations) {
+    controller.observeActivity(simId, activity, voice);
   }
   controller.endActivityFrame();
 }
@@ -375,24 +421,119 @@ describe('AudioController gesture and cue lifecycle', () => {
     expect(Math.min(...(pitchedValues ?? []))).toBeGreaterThanOrEqual(120);
   });
 
-  it('gives conversation and sleep distinct sparse activity voices', async () => {
+  it('drops a held conversation when the player silences the game', async () => {
+    // A conversation can begin while the recordings are still decoding, and
+    // is held so it can start when they land. If the player mutes in that
+    // window the hold has to go: resetting the scheduler emits no end event,
+    // so nothing else would clear it, and the library landing afterwards
+    // would start a conversation that is over - against a muted master gain,
+    // and audible again the moment the player unmutes.
     const context = new FakeContext();
     const controller = new AudioController(() => context, undefined);
     await controller.unlockFromGesture();
 
+    // No library yet, so the conversation cannot play and is held.
+    activityFrame(controller, [[4, 'conversation', { first: 1, second: 0 }]]);
+    expect(context.bufferSources).toHaveLength(0);
+
+    controller.setMuted(true);
+
+    // **Unmuted before the library lands**, which is what makes this test
+    // about the hold being DROPPED rather than about the retry's own gate.
+    // With the hold cleared nothing plays, correctly, because the
+    // conversation is long over. Leave the hold in place and a finished
+    // conversation starts here.
+    controller.setMuted(false);
+
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async () =>
+      new Response(new ArrayBuffer(16))) as typeof globalThis.fetch;
+    try {
+      await controller.loadVoiceLibrary(['clip-a', 'clip-b']);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+
+    expect(context.decodedByteLengths).toHaveLength(2);
+    expect(context.bufferSources).toHaveLength(0);
+    expect(controller.activeConversationVoiceCount()).toBe(0);
+  });
+
+  it('counts every procedural cue against its own slot', async () => {
+    // The conversation cue's removal renumbered these, and `door-closed` was
+    // left reading one slot past the end of the array, where the `?? 0` turned
+    // a permanently missing value into a permanent zero. Nothing else names
+    // `door-closed`, so nothing else would notice it going quiet again.
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+
+    controller.emit({ type: 'door.closed', doorId: 'front' });
+    controller.emit({ type: 'door.opened', doorId: 'front' });
+    controller.emit({ type: 'command.rejected' });
+
+    expect(controller.cuePlayCounts()).toMatchObject({
+      'door-closed': 1,
+      'door-opened': 1,
+      rejected: 1,
+    });
+  });
+
+  it('plays a conversation\'s recordings end to end from an observed frame', async () => {
+    // **The regression this exists for.** `observeActivity` took two
+    // parameters while the interface it implements takes three, which
+    // TypeScript accepts: a narrower function is assignable to a wider
+    // signature. The clip pair was therefore dropped on the floor, and every
+    // other check passed - the simulation drew a pair, the render buffer
+    // carried it, the library loaded, and nothing made a sound. Only running
+    // the real game found it, so the seam gets a test rather than trust.
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async () =>
+      new Response(new ArrayBuffer(16))) as typeof globalThis.fetch;
+    try {
+      await controller.loadVoiceLibrary(['clip-a', 'clip-b']);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+
+    expect(context.decodedByteLengths).toHaveLength(2);
+    expect(context.bufferSources).toHaveLength(0);
+
+    activityFrame(controller, [[4, 'conversation', { first: 1, second: 0 }]]);
+
+    // Two recordings, one conversation: the pair plays back to back.
+    expect(context.bufferSources).toHaveLength(2);
+    expect(controller.activeConversationVoiceCount()).toBe(1);
+
+    activityFrame(controller, [[4, 'other']]);
+    expect(controller.activeConversationVoiceCount()).toBe(0);
+  });
+
+  it('synthesizes no tone for a conversation, which now plays recordings', async () => {
+    const context = new FakeContext();
+    const controller = new AudioController(() => context, undefined);
+    await controller.unlockFromGesture();
+
+    // This asserted a triangle tone until the recorded voices replaced it.
+    // A conversation is two clips the simulation chose, so an oscillator
+    // here would be a leftover beeping underneath them.
     activityFrame(controller, [
       [12, 'conversation'],
       [4, 'conversation'],
     ]);
+    expect(context.oscillators).toHaveLength(0);
+
     activityFrame(controller, []);
     activityFrame(controller, [[9, 'sleep']]);
 
-    const [conversation, sleep] = context.oscillators;
-    expect(conversation?.type).toBe('triangle');
+    const [sleep] = context.oscillators;
+    expect(context.oscillators).toHaveLength(1);
     expect(sleep?.type).toBe('sine');
-    expect(conversation?.stops[0]).toBeLessThanOrEqual(4.18);
     expect(sleep?.stops[0]).toBeLessThanOrEqual(4.5);
-    expect(conversation?.frequency.calls).not.toEqual(sleep?.frequency.calls);
   });
 
   it('keeps eating, reading, and exercise distinct without a bassy exercise thud', async () => {
@@ -550,10 +691,10 @@ describe('AudioController gesture and cue lifecycle', () => {
 
     await controller.unlockFromGesture();
     controller.emit({ type: 'sim.sleep-breath', simId: 3, breathIndex: 0 });
-    controller.emit({ type: 'sim.conversation', simId: 3, phraseIndex: 0 });
+    controller.emit({ type: 'sim.eating', simId: 3, biteIndex: 0 });
 
     expect(controller.cuePlayCounts()).toMatchObject({
-      conversation: 1,
+      eating: 1,
       'sleep-breath': 1,
     });
     expect(context.oscillators).toHaveLength(2);
