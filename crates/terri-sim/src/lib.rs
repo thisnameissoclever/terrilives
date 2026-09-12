@@ -2310,6 +2310,40 @@ mod lot_tests {
 
     use super::*;
     use terri_core::{Footprint, Position, SmartObject, TileGrid};
+
+    /// The clip names handed across the boundary are the pack's, in order.
+    ///
+    /// Returning an empty list, or one blank name, would leave the shell with
+    /// nothing to fetch and every conversation silent, with no other symptom:
+    /// the simulation would still draw pairs and still run for the right
+    /// length. The mutation sweep found all three of those substitutions
+    /// survived, which is what this pins.
+    #[test]
+    fn voice_clip_ids_are_the_packs_clip_ids_in_order() {
+        let sim = Sim::new_from_shipped_lot();
+        let expected: Vec<&str> = sim
+            .world()
+            .resource::<Content>()
+            .0
+            .voice_clips
+            .iter()
+            .map(|clip| clip.id.as_str())
+            .collect();
+
+        assert!(
+            expected.len() >= 2,
+            "the shipped pack needs a voice library for this to mean anything"
+        );
+        assert!(
+            expected.iter().all(|id| !id.is_empty()),
+            "a blank clip id names no file"
+        );
+        assert_eq!(
+            sim.voice_clip_ids(),
+            expected,
+            "the ids must be the pack's own, in the index order the voice columns address"
+        );
+    }
     use terri_data::{CompiledLot, CompiledObject, CompiledPlacement, ObjectDefId};
 
     /// The definitions the fixture lots' placements point at, with

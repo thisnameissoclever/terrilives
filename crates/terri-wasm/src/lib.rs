@@ -1638,6 +1638,61 @@ mod boundary_tests {
         );
     }
 
+    /// The voice library and the two voice columns actually cross the
+    /// boundary.
+    ///
+    /// Every one of these was found unconstrained by the mutation sweep:
+    /// `voice_clip_ids` could return nothing or one blank name, and either
+    /// pointer could return null, and nothing failed. The cost of all four is
+    /// the same and it is total - conversations play in silence while the
+    /// simulation behaves perfectly - which is the failure this feature
+    /// already had once before a browser caught it.
+    #[test]
+    fn the_voice_library_and_columns_reach_the_boundary() {
+        let handle = SimHandle::from_lot();
+
+        let ids = handle.voice_clip_ids();
+        assert!(
+            ids.len() >= 2,
+            "the shipped pack carries a voice library; got {} ids",
+            ids.len()
+        );
+        assert!(
+            ids.iter().all(|id| !id.is_empty()),
+            "a blank id names no file and would fetch nothing"
+        );
+        assert!(
+            ids.iter().collect::<std::collections::BTreeSet<_>>().len() == ids.len(),
+            "duplicate ids would make one clip likelier than the rest"
+        );
+
+        // Null pointers are the other half of the same failure: the columns
+        // would read as garbage or crash rather than as "nobody is talking".
+        assert!(
+            !handle.voice_firsts_ptr().is_null(),
+            "voice_firsts_ptr must address the render column"
+        );
+        assert!(
+            !handle.voice_seconds_ptr().is_null(),
+            "voice_seconds_ptr must address the render column"
+        );
+
+        // Nobody is talking on a freshly loaded lot, so every row carries the
+        // not-talking sentinel. A zeroed array would read as clip 0 instead.
+        let rows = handle.entity_count();
+        assert!(rows > 0, "the shipped lot has rows");
+        let firsts = addressed(handle.voice_firsts_ptr(), rows, "voice_firsts_ptr");
+        let seconds = addressed(handle.voice_seconds_ptr(), rows, "voice_seconds_ptr");
+        assert!(
+            firsts.iter().all(|value| *value == u32::MAX),
+            "an idle lot must carry the not-talking sentinel, not clip zero"
+        );
+        assert_eq!(
+            firsts, seconds,
+            "both columns are sentinel while nobody talks"
+        );
+    }
+
     #[test]
     fn positions_ptr_addresses_the_current_frame_coordinates() {
         let mut handle = SimHandle::new(16, 16);
