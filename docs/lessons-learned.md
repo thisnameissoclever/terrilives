@@ -5235,3 +5235,91 @@ footstep must anchor without playing, and the current personal activity must
 restart at entry cadence. The browser memory report must include stable
 footstep, activity, and object-sound capacities and bounds of three, three, and
 two live tracks respectively.
+
+## [L-a-blocked-browser-promise-may-never-settle] Caching an in-flight promise assumes it settles
+
+**What happened.** Sound never played on Android and no later tap recovered it,
+while desktop was unaffected. The audio unlock was wired to `pointerdown`,
+which grants user activation for a mouse and never for a finger, so on a phone
+`AudioContext.resume()` was called with nothing behind it. That alone would
+have been a missed tap. What made it permanent was the controller caching the
+returned promise and handing it to every later gesture: Chrome does not reject
+a blocked resume, it parks the resolver and never settles the promise, so the
+cache never cleared and no later gesture ever reached the browser again.
+
+Audio was also wired last in startup, after the WASM, WebGPU and atlas awaits,
+so a gesture during a slow phone load was discarded and any startup failure
+took audio down with it.
+
+**Root cause.** Two assumptions, neither stated and neither tested. First, that
+an operation which fails does so observably; the existing test covered a resume
+that *rejects*, which settles, and never covered one that hangs. Second, that
+the set of events granting user activation could be modelled in a local
+allowlist; the real rule includes clauses a list cannot carry, such as Blink
+withholding activation when a scroll claimed the gesture.
+
+**Prevention rule.** Never cache an in-flight promise returned by a browser API
+whose failure mode is "does nothing". Let each user gesture make its own call
+and keep failure free. Where the browser publishes the state a gate consults,
+read that state rather than predicting it: `navigator.userActivation.isActive`
+is the flag the autoplay gate itself uses. Wire anything that depends on a user
+gesture before the awaits that can throw or take seconds.
+
+**How to verify.** Give the fake context a `resume()` that returns a promise
+which never settles. Two successive `unlockFromGesture()` calls must produce
+two `resume()` calls; restoring the cached-attempt branch must make that fail
+with one. Separately, a `pointerup` reported by the browser as carrying no
+activation must produce no attempt at all.
+
+**Investigation correction.** A measurement taken to refute the activation
+theory showed `isActive` true during a touch `pointerdown`, which looked
+decisive and was worthless: the same sample had `hasBeenActive` already true,
+so the page had been activated earlier and the transient window was simply
+still open. Any reading about what a gesture granted requires proving the page
+was virgin first. The same run also reported no context being built at all,
+which was a race against startup rather than a finding. Check the preconditions
+of a surprising measurement before letting it overturn a mechanism you can read
+in the browser's own source.
+
+## [L-measuring-a-control-is-not-operating-it] Click the button before calling it fixed
+
+**What happened.** The help dialog was restyled to centre it and pin its
+confirm button. Acceptance measured the button's rectangle against the dialog
+and the viewport, at two viewport sizes, and read the markup and the CSS. All
+of it passed, and the button was dead: "Got it" closed the dialog and the
+dialog stayed on screen, then reappeared on every later load despite the
+dismissal being stored.
+
+**Root cause.** The restyle put `display: flex` on the dialog to build its
+header, scrolling body and pinned footer. A browser hides a closed dialog with
+`dialog:not([open]) { display: none }` from its own stylesheet, and an
+unconditional author `display` outranks that, so the element kept rendering
+after `close()`. Every part of the behaviour worked except the one that was
+never exercised: the click, the `close()`, and the stored preference were all
+correct.
+
+The acceptance gap is the general point. Geometry, computed styles, markup
+structure and the unit tests all describe the control at rest. None of them
+operates it. A control that is measured but never used is not verified, and a
+styling change to a `<dialog>`, `<details>`, `<select>` or anything else whose
+open and closed states the browser styles for you is exactly where that gap
+bites, because the failure appears only in the state the check never entered.
+
+**Prevention rule.** Acceptance for an interactive element has to include
+driving it: activate the control, then assert the resulting state, not only
+the state it started in. For anything with a browser-managed open or closed
+state, assert the closed state explicitly, because that is the one an author
+`display` rule silently captures. Never set an unconditional `display` on a
+`<dialog>`; key layout declarations to `[open]`.
+
+**How to verify.** Dismiss the dialog and require `getComputedStyle(dialog)
+.display` to be `none` and its bounding height to be zero, not merely that
+`dialog.open` went false. Reload afterwards and require it stays closed.
+Reopen it and require it returns at the first instruction. Moving the layout
+`display` back onto the unconditional rule must fail the closed-state check.
+
+**Related.** A stale module in an already-open browser tab reported a
+constructor arity error from a file that had since been corrected, which sent
+the first minutes of this investigation at a phantom. Confirm what the server
+actually serves, and retest in a fresh tab, before believing a console trace
+that names a file you have already fixed.

@@ -22,6 +22,10 @@ const SOURCE = readFileSync(
   'utf8',
 );
 const MAIN = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
+const UNLOCK = readFileSync(
+  new URL('../src/audio/gesture-unlock.ts', import.meta.url),
+  'utf8',
+);
 
 function source(): SimAudioFrameSource {
   return {
@@ -328,8 +332,15 @@ describe('sampleSimAudioAfterTick', () => {
     expect(MAIN).toMatch(
       /if \(loaded\) \{[\s\S]*?audio\.reset\('load'\)/,
     );
-    expect(MAIN).toMatch(
-      /const hidden = document\.visibilityState === 'hidden';[\s\S]*?audio\.setBackgrounded\(hidden\)/,
+    // Scoped to the handler body rather than spanning the file: a lazy match
+    // from the word to any later call would be satisfied by a `setBackgrounded`
+    // sitting anywhere below, including outside the listener entirely.
+    const handler = MAIN.slice(
+      MAIN.indexOf("addEventListener('visibilitychange'"),
+      MAIN.indexOf("addEventListener('visibilitychange'") + 240,
+    );
+    expect(handler).toMatch(
+      /audio\.setBackgrounded\(\s*document\.visibilityState === 'hidden'/,
     );
   });
 
@@ -353,10 +364,39 @@ describe('sampleSimAudioAfterTick', () => {
   });
 
   it('keeps trusted-gesture recovery armed after the first unlock', () => {
-    expect(MAIN).toMatch(
-      /const unlockAudio = \(\): void => \{\s*if \(audio\.isUnlocked\(\)\) return;\s*void audio\.unlockFromGesture\(\);\s*\}/,
-    );
-    expect(MAIN).not.toMatch(/removeEventListener\([^\n]*unlockAudio/);
+    // Which events grant user activation is a browser rule, not a startup
+    // detail, so the listener set moved into the audio module. What main()
+    // still owns is arming it once, across the whole document.
+    expect(MAIN).toMatch(/armAudioUnlock\(document, audio\)/);
+    // main() must not call the unlock itself again, in any shape. Naming the
+    // call rather than the registration is what makes this bite: the wiring
+    // this replaced put `unlockFromGesture` inside a named closure, so a
+    // pattern anchored on `addEventListener` never matched it at all.
+    expect(MAIN).not.toMatch(/audio\.unlockFromGesture/);
+    expect(UNLOCK).not.toMatch(/removeEventListener/);
+  });
+
+  it('arms audio before anything that can throw or stall startup', () => {
+    // A phone spends seconds on these awaits, and a gesture made during them
+    // is the one chance to open the autoplay gate. Audio also depends on
+    // neither the simulation nor the GPU, so it must not fall with them.
+    const armed = MAIN.indexOf('armAudioUnlock(document, audio)');
+    expect(armed).toBeGreaterThan(0);
+    for (const step of ['await init()', 'await initDevice(', 'SpriteRenderer.create(']) {
+      const index = MAIN.indexOf(step);
+      expect({ step, armedFirst: armed < index }).toEqual({
+        step,
+        armedFirst: true,
+      });
+    }
+    // The visibility reading up there is a snapshot, correct only while a
+    // listener exists to correct it, so that listener is armed there too.
+    // Anchored on the registration, not on the bare word: a comment
+    // mentioning visibilitychange above the awaits would satisfy a substring
+    // search while the listener itself sat back down below them.
+    const registered = MAIN.indexOf("addEventListener('visibilitychange'");
+    expect(registered).toBeGreaterThan(0);
+    expect(registered).toBeLessThan(MAIN.indexOf('await init()'));
   });
 
   it('uses the aligned stable-id column without a rebuild or identity query', () => {

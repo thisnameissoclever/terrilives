@@ -7,9 +7,16 @@ export interface PreferenceStore {
 
 export interface HelpDialog {
   readonly open: boolean;
-  scrollTop: number;
   showModal(): void;
   close(): void;
+}
+
+/**
+ * The scrolling instructions inside the dialog. The dialog itself is clipped,
+ * so this is the element that actually holds a scroll position.
+ */
+export interface ScrollTarget {
+  scrollTop: number;
 }
 
 export interface FocusTarget {
@@ -29,6 +36,7 @@ export function shouldShowHelp(store: PreferenceStore | null): boolean {
 export class HelpPanel {
   constructor(
     private readonly root: HelpDialog,
+    private readonly body: ScrollTarget,
     private readonly start: FocusTarget,
     private readonly store: PreferenceStore | null,
   ) {}
@@ -43,7 +51,7 @@ export class HelpPanel {
   open(): boolean {
     if (this.root.open) return false;
     this.root.showModal();
-    this.root.scrollTop = 0;
+    this.body.scrollTop = 0;
     this.start.focus();
     return true;
   }

@@ -452,27 +452,65 @@
       }
       #help-panel {
         position: fixed;
-        inset:
-          auto max(12px, env(safe-area-inset-right))
-          max(12px, env(safe-area-inset-bottom)) auto;
-        margin: 0;
-        width: min(340px, calc(100vw - 24px));
-        max-height: min(560px, calc(100vh - 24px));
+        /* Centred on the viewport. The guide is the first thing a new player
+           reads, so it sits where they are already looking rather than in a
+           corner. `margin: auto` against a zero inset is what centres a
+           dialog; the safe-area padding keeps it clear of phone notches. */
+        inset: 0;
+        margin: auto;
+        width: min(680px, calc(100vw - 24px));
+        max-height: min(560px, calc(100dvh - 24px));
         box-sizing: border-box;
-        overflow-y: auto;
+        overflow: hidden;
         padding: 16px;
+        padding-right: max(16px, env(safe-area-inset-right));
+        padding-left: max(16px, env(safe-area-inset-left));
+        /* The old corner-pinned rule carried a bottom inset and centring
+           dropped it. Without this the confirm button lands under an
+           Android edge-to-edge navigation bar in landscape, where the
+           system band swallows the tap. */
+        padding-bottom: max(16px, env(safe-area-inset-bottom));
+        padding-top: max(16px, env(safe-area-inset-top));
         border: 1px solid var(--hud-edge);
         border-radius: 8px;
         background: rgba(22, 22, 28, 0.97);
         box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
         z-index: 20;
       }
+      /* Header, scrolling instructions, pinned actions. The dialog itself must
+         not scroll: when it did, "Got it" scrolled off the bottom and players
+         had to go hunting for it.
+
+         This MUST stay keyed to [open]. The browser hides a closed dialog with
+         a `dialog:not([open]) { display: none }` rule of its own, and any
+         unconditional `display` here is an author rule that outranks it - so
+         the dialog would keep rendering after it closed, and would come back
+         on every later load even once dismissed. */
+      #help-panel[open] {
+        display: flex;
+        flex-direction: column;
+      }
       #help-panel::backdrop {
         background: rgba(13, 13, 16, 0.48);
       }
       #help-panel h2 {
+        flex: 0 0 auto;
         margin: 0 0 8px;
         font-size: 16px;
+      }
+      #help-body {
+        flex: 1 1 auto;
+        /* Without this a flex child refuses to shrink below its content and
+           the scrollbar never appears. */
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+      }
+      #help-actions {
+        flex: 0 0 auto;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid var(--hud-edge);
       }
       #help-title:focus-visible {
         outline: 2px solid var(--need-fill);
@@ -483,7 +521,7 @@
         color: var(--hud-muted);
       }
       #help-panel ol {
-        margin: 0 0 14px;
+        margin: 0;
         padding-left: 22px;
       }
       #help-panel li + li {
@@ -668,13 +706,6 @@
         #game-actions {
           grid-area: actions;
           grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-        #help-panel {
-          inset:
-            auto max(12px, env(safe-area-inset-right))
-            max(12px, env(safe-area-inset-bottom))
-            max(12px, env(safe-area-inset-left));
-          width: auto;
         }
       }
       @media (max-height: 480px) and (min-width: 361px) {
@@ -955,21 +986,25 @@
       aria-labelledby="help-title"
     >
       <h2 id="help-title" tabindex="-1">How to play</h2>
-      <p class="dialog-note">Game time is paused while this guide is open.</p>
-      <ol>
-        <li>Choose a person under Household to select them and see their needs.</li>
-        <li>Tap or click an object to give the selected person its default action.</li>
-        <li>Long-press or right-click for more actions, including talking to another person.</li>
-        <li>Drag to move the camera. Pinch or use the mouse wheel to zoom.</li>
-        <li>Turn on Queue, or hold Ctrl or Cmd, to add actions instead of replacing them.</li>
-        <li>Use Clear orders to remove the selected person's waiting actions.</li>
-        <li>With the game view focused, use arrow keys to choose a target, Space to select a person, and Enter for actions.</li>
-        <li>Open the selected person's name to show or hide the needs panel.</li>
-        <li>Open People to see how the selected person feels about everyone else.</li>
-        <li>Use Light: flat for neutral daylight without the automatic lighting cycle.</li>
-        <li>Use Sound to mute everything, and Effects to set cue and footstep volume.</li>
-      </ol>
-      <button id="close-help" class="hud-button" type="button">Got it</button>
+      <div id="help-body">
+        <p class="dialog-note">Game time is paused while this guide is open.</p>
+        <ol>
+          <li>Choose a person under Household to select them and see their needs.</li>
+          <li>Tap or click an object to give the selected person its default action.</li>
+          <li>Long-press or right-click for more actions, including talking to another person.</li>
+          <li>Drag to move the camera. Pinch or use the mouse wheel to zoom.</li>
+          <li>Turn on Queue, or hold Ctrl or Cmd, to add actions instead of replacing them.</li>
+          <li>Use Clear orders to remove the selected person's waiting actions.</li>
+          <li>With the game view focused, use arrow keys to choose a target, Space to select a person, and Enter for actions.</li>
+          <li>Open the selected person's name to show or hide the needs panel.</li>
+          <li>Open People to see how the selected person feels about everyone else.</li>
+          <li>Use Light: flat for neutral daylight without the automatic lighting cycle.</li>
+          <li>Use Sound to mute everything, and Effects to set cue and footstep volume.</li>
+        </ol>
+      </div>
+      <div id="help-actions">
+        <button id="close-help" class="hud-button" type="button">Got it</button>
+      </div>
     </dialog>
     <dialog id="new-game-dialog" aria-labelledby="new-game-title">
       <h2 id="new-game-title">Start a new game?</h2>
