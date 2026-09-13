@@ -189,12 +189,18 @@ export function socialMenuEntries(
  * somebody would break with a mutable field.
  */
 export interface MenuSurface {
-  /** Draws `menu` at a point in CLIENT pixels and makes it visible. */
+  /**
+   * Draws `menu` at a point in CLIENT pixels and makes it visible.
+   *
+   * `onPick` receives the row index and whether the queue modifier (Ctrl
+   * or Cmd) was held when the row was activated, so a modified pick can
+   * append exactly as a modified click does.
+   */
   show(
     menu: Menu,
     clientX: number,
     clientY: number,
-    onPick: (index: number) => void,
+    onPick: (index: number, additive: boolean) => void,
   ): void;
   hide(): void;
 }
@@ -242,14 +248,15 @@ export class ObjectMenu {
 
   /**
    * @param surface  where rows are drawn.
-   * @param onAction what a picked row's action is handed to. It is a
+   * @param onAction what a picked row's action is handed to, with whether
+   *                 the queue modifier was held on the pick. It is a
    *                 callback rather than a `CommandSink` so this file
    *                 stays free of the command encoding, which keeps
    *                 `input.ts` importing this module and not the reverse.
    */
   constructor(
     private readonly surface: MenuSurface,
-    private readonly onAction: (action: MenuAction) => void,
+    private readonly onAction: (action: MenuAction, additive: boolean) => void,
   ) {}
 
   /** Whether rows are on screen. */
@@ -270,7 +277,9 @@ export class ObjectMenu {
   open(menu: Menu, clientX: number, clientY: number): void {
     this.entries = menu.entries;
     this.showing = true;
-    this.surface.show(menu, clientX, clientY, (index) => this.activate(index));
+    this.surface.show(menu, clientX, clientY, (index, additive) =>
+      this.activate(index, additive),
+    );
   }
 
   /**
@@ -330,12 +339,15 @@ export class ObjectMenu {
    *
    * An index that names no row does nothing at all - it is what a pick
    * arriving after a close looks like, and there is no row to report.
+   *
+   * `additive` is passed through untouched: whether the queue modifier
+   * was held is the surface's observation and the dispatcher's decision.
    */
-  private activate(index: number): void {
+  private activate(index: number, additive: boolean): void {
     const entry = this.entries[index];
     this.close();
     if (entry === undefined) return;
-    this.onAction(entry.action);
+    this.onAction(entry.action, additive);
   }
 }
 
@@ -387,7 +399,13 @@ export function createMenuSurface(
         button.type = 'button';
         button.className = 'menu-entry';
         button.textContent = entry.label;
-        button.addEventListener('click', () => onPick(index));
+        // Ctrl and Cmd both mean "queue it", exactly as on a canvas click
+        // (see `attachPointerInput` for why both). A keyboard activation
+        // of the button arrives as a click too, carrying the same
+        // modifier state, so Enter with Ctrl held queues as well.
+        button.addEventListener('click', (event) =>
+          onPick(index, event.ctrlKey || event.metaKey),
+        );
         root.appendChild(button);
       }
       root.style.left = `${clientX}px`;

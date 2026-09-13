@@ -996,11 +996,13 @@ async function main(): Promise<void> {
   // interaction index and `SimCommand::UseObject` carries one too, so
   // picking row `n` runs interaction `n`; the shipped lot cannot show that
   // off, because every object on it offers exactly one.
-  const menu = new ObjectMenu(createMenuSurface(document, menuRoot), (action) => {
+  // Queue mode or the modifier held on the row: either appends, the same
+  // rule the canvas click follows.
+  const menu = new ObjectMenu(createMenuSurface(document, menuRoot), (action, additive) => {
     const accepted = dispatchMenuAction(
       sim,
       action,
-      queueMode.isActive() ? 'back' : 'front',
+      queueMode.isActive() || additive ? 'back' : 'front',
       () => clearCommandFeedback(commandStatus),
     );
     if (!accepted) {

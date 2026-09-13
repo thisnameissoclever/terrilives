@@ -885,8 +885,10 @@ export function handleRightClick(
  * simulation currently says is selected, or on nobody.
  *
  * A row goes to the FRONT of the queue by default, like a plain left click.
- * The visible Queue mode passes `'back'`, matching Ctrl or Cmd click on
- * desktop so touch and keyboard players have the same append operation.
+ * `main.ts` passes `'back'` when the visible Queue mode is on OR when Ctrl
+ * or Cmd was held on the row itself (the surface reports that with the
+ * pick), so touch, keyboard and desktop players all have the same append
+ * operation.
  * **The placement applies to talk rows exactly as to object rows.** An
  * earlier build sent a cancel before every talk regardless of Queue mode,
  * so five Chat picks were one chat five times over; that is the report

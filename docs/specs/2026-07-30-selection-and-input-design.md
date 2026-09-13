@@ -91,7 +91,14 @@ one.
 
 ---
 
-## [I3] Click redirects, ctrl-click queues. BUILT.
+## [I3] Click redirects, ctrl-click queues. BUILT; the "replace" half SUPERSEDED by [I-plain-order-goes-first].
+
+**Status note (2026-09-13).** The gesture split below stands: a plain click is
+the correction and the modifier is the plan. What "replace" meant has changed:
+a plain click no longer empties the queue with `CancelIntents` + `UseObject`;
+it sends `UseObjectFirst`, which puts the order at the front and keeps the
+waiting orders behind it. Read the table below as history and
+[I-plain-order-goes-first] as the current rule.
 
 **Reported:** clicking a second object while the sim is still walking should
 **redirect** it, and ctrl-click should add to the queue instead.
@@ -240,7 +247,7 @@ fight, and the correction always won.
 | input | effect |
 | --- | --- |
 | click an object, or pick a menu row, with Queue off | the order goes to the **front** of the queue; the sim drops what it is doing for it and the waiting orders resume behind it |
-| the same with Queue on, or Ctrl or Cmd held | the order goes to the **back**, for objects and for talks alike |
+| the same with Queue on, or Ctrl or Cmd held (on the click or on the menu row) | the order goes to the **back**, for objects and for talks alike |
 | Clear orders, or the flyout's Never mind | empties the queue and cancels the running action; the only thing that does |
 
 **Two new commands, `UseObjectFirst` and `TalkToFirst`**, appended to

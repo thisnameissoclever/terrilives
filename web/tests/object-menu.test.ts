@@ -42,10 +42,13 @@ function recordingSurface(): MenuSurface & {
   readonly calls: string[];
   shown: Menu | null;
   at: readonly [number, number] | null;
-  /** Fires row `index` the way a click on it would. */
-  pick(index: number): void;
+  /**
+   * Fires row `index` the way a click on it would, with `additive` saying
+   * whether Ctrl or Cmd was held.
+   */
+  pick(index: number, additive?: boolean): void;
 } {
-  let onPick: ((index: number) => void) | null = null;
+  let onPick: ((index: number, additive: boolean) => void) | null = null;
   const surface = {
     calls: [] as string[],
     shown: null as Menu | null,
@@ -54,7 +57,7 @@ function recordingSurface(): MenuSurface & {
       shown: Menu,
       clientX: number,
       clientY: number,
-      pick: (index: number) => void,
+      pick: (index: number, additive: boolean) => void,
     ) {
       surface.calls.push(`show ${shown.entries.length} at ${clientX},${clientY}`);
       surface.shown = shown;
@@ -65,22 +68,31 @@ function recordingSurface(): MenuSurface & {
       surface.calls.push('hide');
       surface.shown = null;
     },
-    pick(index: number) {
+    pick(index: number, additive = false) {
       if (onPick === null) throw new Error('nothing has been shown yet');
-      onPick(index);
+      onPick(index, additive);
     },
   };
   return surface;
 }
 
-/** A menu, its surface, and the actions it reported, wired together. */
+/**
+ * A menu, its surface, and the actions it reported, wired together.
+ * `modifiers` records, per reported action, whether the pick carried the
+ * queue modifier.
+ */
 function menu() {
   const surface = recordingSurface();
   const actions: MenuAction[] = [];
+  const modifiers: boolean[] = [];
   return {
     surface,
     actions,
-    menu: new ObjectMenu(surface, (action) => actions.push(action)),
+    modifiers,
+    menu: new ObjectMenu(surface, (action, additive) => {
+      actions.push(action);
+      modifiers.push(additive);
+    }),
   };
 }
 
@@ -249,6 +261,26 @@ describe('ObjectMenu', () => {
 
     expect(actions).toEqual([{ kind: 'use', object: 9, interaction: 1 }]);
     expect(m.isShowing(), 'picking a row must close the menu').toBe(false);
+  });
+
+  /**
+   * Ctrl or Cmd held on a row means "queue it", the same as on a canvas
+   * click. The menu passes the surface's observation through untouched;
+   * without this a Chat picked five times with Ctrl held was five front
+   * placements, each replacing the last ([I-plain-order-goes-first]).
+   */
+  it('passes the queue modifier through with the picked action', () => {
+    const { menu: m, surface, actions, modifiers } = menu();
+    m.open(ROWS, 0, 0);
+    surface.pick(1, true);
+    m.open(ROWS, 0, 0);
+    surface.pick(1);
+
+    expect(actions).toEqual([
+      { kind: 'use', object: 9, interaction: 1 },
+      { kind: 'use', object: 9, interaction: 1 },
+    ]);
+    expect(modifiers).toEqual([true, false]);
   });
 
   it('reports the cancel action for the Nothing row', () => {
