@@ -44,7 +44,10 @@ export function clearCommandFeedback(status: CommandFeedbackStatus): void {
  * it went in and the order that would have run last fell off. When one drain
  * produced both, the rejection is shown: it is the one the player has to act
  * on, since a refused order has to be given again. `onRejected` receives the
- * combined count, which is what the audio cue keys on.
+ * combined count, which is what the audio cue keys on: the cue means "an
+ * order did not survive this drain", which is true of a drop as much as of a
+ * refusal, and the click that caused the drop already played the staged cue
+ * for the order that did go in.
  */
 export function reportCommandFeedback(
   source: CommandFeedbackSource,

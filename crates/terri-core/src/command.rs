@@ -104,9 +104,12 @@ pub enum SimCommand {
     /// code path each.
     ///
     /// At a full queue the BACK intent is dropped to make room, and the
-    /// drop is reported as a capacity rejection so the player hears that
-    /// an order fell off. Refusing the front order instead would refuse
-    /// the correction a plain click exists to make.
+    /// drop is reported as a DISPLACEMENT, a counter of its own beside
+    /// the capacity rejections, so the player hears that an older order
+    /// fell off rather than that this one was refused. Refusing the
+    /// front order instead would refuse the correction a plain click
+    /// exists to make. If the dropped intent is the one the sim is
+    /// carrying out, the drain releases that commitment on the spot.
     UseObjectFirst {
         agent: u32,
         object: u32,

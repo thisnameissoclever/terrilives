@@ -130,17 +130,16 @@ impl Placement {
 /// Without the drop a run of plain clicks would grow the queue without
 /// bound, since each one lands ahead of the last.
 ///
-/// At a cap of 1 the dropped intent is the one being served. That is
-/// safe because nothing is released here: `serve_intents` sees the new
-/// front on this same tick and preempts the running action, releasing
-/// its reservation, exactly as for any other front placement.
+/// Returns the intent a front placement dropped, if any, so the caller
+/// can release the sim's commitment when the dropped intent is the one
+/// being carried out - see `place_intent`.
 fn place_in(
     queue: &mut IntentQueue,
     intent: Intent,
     placement: Placement,
     cap: usize,
     feedback: &mut CommandFeedback,
-) {
+) -> Option<Intent> {
     match placement {
         Placement::Back => {
             if queue.len() < cap {
@@ -148,15 +147,56 @@ fn place_in(
             } else {
                 feedback.record_intent_capacity_rejection();
             }
+            None
         }
         Placement::Front => {
-            if queue.len() >= cap {
-                queue.pop_back();
+            let displaced = if queue.len() >= cap {
                 feedback.record_intent_displacement();
-            }
+                queue.pop_back()
+            } else {
+                None
+            };
             queue.push_front(intent);
+            displaced
         }
     }
+}
+
+/// Releases the commitment `target` names: the object's or partner's
+/// reservation, the walk, and any running interaction or conversation.
+/// What a cancel does to a directed action, and what a front placement
+/// does when it drops the intent being carried out off the back of a
+/// full queue.
+///
+/// **`clear()` alone is not a cancel.** A cleared queue with a live
+/// reservation leaves the object claimed by a sim that is no longer
+/// coming, and `Eating` without a `Target` drops the agent out of
+/// `tick_interactions`' query entirely - so the interaction would never
+/// end, `select_action` would skip the agent for ever on its
+/// `Without<Eating>`, and the sim would freeze while its needs drained.
+/// That is [L17] reached by a button rather than by a distance metric.
+fn release_commitment(commands: &mut Commands, agent: Entity, target: Target) {
+    // try_remove for the same reason `tick_interactions` uses it:
+    // `Commands::entity` does not validate, so a `Target` naming an
+    // entity that has gone away would otherwise route the removal to
+    // the command error handler.
+    commands.entity(target.object).try_remove::<Reserved>();
+    commands
+        .entity(agent)
+        .remove::<Target>()
+        .remove::<Path>()
+        .remove::<Eating>()
+        // Reachable since TalkTo: a directed sim can be mid-conversation
+        // when the release lands, and a Socialising left behind with no
+        // Target is a talk tick_social finishes against nobody. The
+        // Reserved release above already freed the partner, and
+        // tick_social's disturbed check would self-heal one tick later -
+        // this makes the release whole on its own tick instead.
+        .remove::<terri_core::Socialising>()
+        .remove::<terri_core::ConversationVoice>()
+        // A fumble belongs to the attempt; ending the attempt closes it
+        // unfinished, unlearned.
+        .remove::<terri_core::Fumbled>();
 }
 
 /// Places one resolved intent for `agent`, whether its queue is live, was
@@ -167,10 +207,26 @@ fn place_in(
 /// single code path - the reason [I4] gave for not splitting `UseObject`
 /// in two, kept now that the split has happened for a different reason.
 ///
+/// **A front placement that drops the intent being carried out releases
+/// that commitment here, on the spot.** The served intent is normally
+/// somewhere in the queue; that is what the cancel's serving guard and
+/// the completion pops rely on. A run of plain clicks on a full queue
+/// pushes it to the back and then off, and once it is gone nothing else
+/// would ever release its target and reservation: a following Clear
+/// orders would find no queued match and leave the sim finishing an
+/// order the player had dropped, and at a cap of 1 every plain click
+/// would do this. Releasing at the moment of the drop restores the
+/// invariant that a directed sim's commitment is always in its queue.
+/// `serve_intents` then serves the new front on this same tick.
+///
 /// The type_complexity allow is `drain_commands`'s own query type, passed
-/// through; an alias would name it once and read it nowhere.
-#[allow(clippy::type_complexity)]
+/// through; an alias would name it once and read it nowhere. The arity
+/// allow is for the same reason `tick_social` carries one: each argument
+/// is a distinct borrow the drain already holds, and bundling them into a
+/// struct would be a struct with one caller.
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 fn place_intent(
+    commands: &mut Commands,
     agents: &mut Query<(Entity, Option<&mut IntentQueue>, Option<&Target>), With<Agent>>,
     fresh: &mut Vec<(Entity, IntentQueue)>,
     feedback: &mut CommandFeedback,
@@ -179,17 +235,30 @@ fn place_intent(
     intent: Intent,
     placement: Placement,
 ) {
-    if let Ok((_, Some(mut queue), _)) = agents.get_mut(agent) {
-        place_in(&mut queue, intent, placement, cap, feedback);
+    let displaced = if let Ok((_, Some(mut queue), _)) = agents.get_mut(agent) {
+        place_in(&mut queue, intent, placement, cap, feedback)
     } else if let Some((_, staged)) = fresh.iter_mut().find(|(e, _)| *e == agent) {
-        place_in(staged, intent, placement, cap, feedback);
+        place_in(staged, intent, placement, cap, feedback)
     } else {
         // A new queue holds its first order whatever the placement asked
         // for, and the cap is at least 1 by content validation
         // (`ZeroQueuedIntents`), so this never trims.
         let mut queue = IntentQueue::default();
-        place_in(&mut queue, intent, placement, cap, feedback);
+        let displaced = place_in(&mut queue, intent, placement, cap, feedback);
         fresh.push((agent, queue));
+        displaced
+    };
+    let Some(displaced) = displaced else {
+        return;
+    };
+    let held = agents
+        .get(agent)
+        .ok()
+        .and_then(|(_, _, target)| target.copied());
+    if let Some(target) = held {
+        if target.object == displaced.object && target.interaction == displaced.interaction {
+            release_commitment(commands, agent, target);
+        }
     }
 }
 
@@ -324,6 +393,7 @@ pub fn drain_commands(
                     interaction,
                 };
                 place_intent(
+                    &mut commands,
                     &mut agents,
                     &mut fresh,
                     &mut feedback,
@@ -423,42 +493,9 @@ pub fn drain_commands(
                 }
 
                 if serving {
-                    // **`clear()` alone is not a cancel.** A cleared queue
-                    // with a live reservation leaves the object claimed by
-                    // a sim that is no longer coming, and `Eating` without
-                    // a `Target` drops the agent out of
-                    // `tick_interactions`' query entirely - so the
-                    // interaction would never end, `select_action` would
-                    // skip the agent for ever on its `Without<Eating>`,
-                    // and the sim would freeze while its needs drained.
-                    // That is [L17] reached by a button rather than by a
-                    // distance metric.
                     if let Some(target) = released {
-                        // try_remove for the same reason
-                        // `tick_interactions` uses it: `Commands::entity`
-                        // does not validate, so a `Target` naming an
-                        // entity that has gone away would otherwise route
-                        // the removal to the command error handler.
-                        commands.entity(target.object).try_remove::<Reserved>();
+                        release_commitment(&mut commands, agent, target);
                     }
-                    commands
-                        .entity(agent)
-                        .remove::<Target>()
-                        .remove::<Path>()
-                        .remove::<Eating>()
-                        // Reachable since TalkTo: a directed sim can be
-                        // mid-conversation when the cancel lands, and a
-                        // Socialising left behind with no Target is a
-                        // talk tick_social finishes against nobody. The
-                        // Reserved release above already freed the
-                        // partner, and tick_social's disturbed check
-                        // would self-heal one tick later - this makes
-                        // the cancel whole on its own tick instead.
-                        .remove::<terri_core::Socialising>()
-                        .remove::<terri_core::ConversationVoice>()
-                        // A fumble belongs to the attempt; cancelling
-                        // the attempt closes it unfinished, unlearned.
-                        .remove::<terri_core::Fumbled>();
                 }
 
                 // **A chain is abandoned by an explicit cancel
@@ -520,6 +557,7 @@ pub fn drain_commands(
                     interaction,
                 };
                 place_intent(
+                    &mut commands,
                     &mut agents,
                     &mut fresh,
                     &mut feedback,
@@ -2914,6 +2952,81 @@ mod tests {
         assert!(
             target_of(&sim, agent).is_none() && sim.world().get::<Reserved>(fridge).is_none(),
             "the staged-queue route must release the commitment too"
+        );
+    }
+
+    #[test]
+    fn a_front_placement_that_drops_the_served_intent_releases_its_commitment() {
+        // Found by the second adversarial review. `cap()` plain clicks on
+        // a sim carrying out a directed meal push that meal's intent to
+        // the back and then off the queue. Once it is gone no queued
+        // record says the meal was player-directed, so unless the drain
+        // releases it at the drop, a later Clear orders leaves the sim
+        // finishing a meal the player dropped. Two phases: `cap() - 1`
+        // clicks leave the served intent at the back and released
+        // NOTHING; the next click drops it and releases everything.
+        let (mut sim, bed, fridge, agent) = scenario();
+        enqueue(&mut sim, use_object(agent, fridge));
+        tick_until_interacting(&mut sim, agent);
+        assert_eq!(target_of(&sim, agent).map(|t| t.object), Some(fridge));
+
+        for _ in 1..cap() {
+            enqueue(&mut sim, use_object_first(agent, bed));
+        }
+        drain_only(&mut sim);
+        assert_eq!(
+            intents_of(&sim, agent).last().copied(),
+            Some((fridge, 0)),
+            "precondition: the served meal is now last in line, still queued"
+        );
+        assert_eq!(
+            take_displacements(&mut sim),
+            0,
+            "precondition: nothing dropped yet"
+        );
+        assert!(
+            sim.world().get::<Eating>(agent).is_some()
+                && sim.world().get::<Reserved>(fridge).is_some(),
+            "a drop that has not happened releases nothing"
+        );
+
+        enqueue(&mut sim, use_object_first(agent, bed));
+        drain_only(&mut sim);
+
+        assert_eq!(take_displacements(&mut sim), 1);
+        assert!(
+            !queue_of(&sim, agent).contains(Intent {
+                object: fridge,
+                interaction: 0
+            }),
+            "the served meal's intent fell off the back"
+        );
+        assert!(
+            target_of(&sim, agent).is_none() && sim.world().get::<Eating>(agent).is_none(),
+            "and the meal it stood for is released on the spot, so the sim \
+             never carries out an order that is no longer in its queue"
+        );
+        assert!(
+            sim.world().get::<Reserved>(fridge).is_none(),
+            "with the fridge freed"
+        );
+
+        // The whole point: Clear orders afterwards has nothing left to
+        // miss. Drained alone, so what is asserted is the drain's own
+        // state: a full tick would let autonomy choose the fridge again
+        // for the still-hungry sim, which is its own choice and not the
+        // dropped order resuming.
+        enqueue(
+            &mut sim,
+            SimCommand::CancelIntents {
+                agent: agent.index_u32(),
+            },
+        );
+        drain_only(&mut sim);
+        assert!(queue_of(&sim, agent).is_empty());
+        assert!(
+            target_of(&sim, agent).is_none() && sim.world().get::<Reserved>(fridge).is_none(),
+            "nothing of the dropped meal survives the cancel"
         );
     }
 

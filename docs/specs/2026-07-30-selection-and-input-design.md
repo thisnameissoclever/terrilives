@@ -264,7 +264,21 @@ had just been told to drop. `tick_interactions` and `tick_social` pop the
 intent that just completed wherever it sits, via `IntentQueue::remove_first`;
 otherwise an action that finished while a blocked front order waited ahead of
 it survived its own completion and ran a second time later. Both were found by
-the adversarial review of the first build and are pinned below.
+the adversarial review of the first build and are pinned below. The widening
+has a cost, accepted knowingly: an autonomous action that happens to equal ANY
+queued intent is treated as that intent being carried out, where before only
+the front intent was. It is reachable only when the action began before the
+orders arrived and the front order is blocked, and it is the same conflation
+the front-only rule already made, extended to the whole queue.
+
+**The served intent is always in the queue, and the drain keeps it so.** A
+run of `max_queued_intents` plain clicks on a full queue pushes the intent
+being carried out to the back and then off it. The moment that happens the
+drain releases the commitment itself, target and reservation, exactly as a
+cancel would; otherwise the commitment would have outlived every record that
+it was player-directed, and a later Clear orders would have left the sim
+finishing it. Found by the second adversarial review and pinned by
+`a_front_placement_that_drops_the_served_intent_releases_its_commitment`.
 
 **A plain order mid-chain no longer abandons the chain.** The old cancel pair
 removed `ChainState` and `Carrying`; a front placement removes neither, so the
@@ -304,7 +318,8 @@ append, per [I4]'s macOS note. A plain click still names interaction 0.
 **Pinned by:** `a_front_order_preempts_the_running_interaction_and_the_interrupted_order_resumes_afterwards`,
 `a_front_order_on_a_full_queue_drops_the_last_waiting_order_and_reports_it`,
 `a_cancel_still_empties_a_queue_that_holds_front_placed_orders`,
-`a_cancel_after_a_front_placement_still_releases_the_running_directed_action`
+`a_cancel_after_a_front_placement_still_releases_the_running_directed_action`,
+`a_front_placement_that_drops_the_served_intent_releases_its_commitment`
 and `a_directed_action_that_finishes_while_a_blocked_front_order_waits_is_popped_once`
 in `crates/terri-sim/src/systems/command.rs`;
 `a_directed_talk_that_finishes_while_a_blocked_front_order_waits_is_popped_once`,

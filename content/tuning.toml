@@ -345,11 +345,13 @@ rng_seed = 20260728
 # player's correction, so it always lands, and the order that falls off is
 # the one that would have run last - the same "newest loses" rule as the
 # refusal, seen from the other end. The shell reports the drop with its own
-# sentence, not the refusal's. At a cap of 1 the dropped intent is the one
-# being served; that is safe because the drain releases nothing itself -
-# `serve_intents` sees the new front on the same tick and preempts the
-# running action, releasing its reservation like any other front placement.
-# Raise this only if watched play says four remembered orders are too few.
+# sentence, not the refusal's. When the dropped intent is the one the sim
+# is carrying out (after `max_queued_intents` plain clicks in a row, or on
+# the very first at a cap of 1) the drain releases that commitment itself,
+# target and reservation, so the sim is never left carrying out an order
+# that is no longer in its queue; `serve_intents` then serves the new
+# front on the same tick. Raise this only if watched play says four
+# remembered orders are too few.
 #
 # Zero is rejected at build time: a cap of zero is not "no queueing", it
 # is a game where clicking an object never does anything.
