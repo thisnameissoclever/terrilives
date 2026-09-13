@@ -1,6 +1,11 @@
 export const ORDER_QUEUE_FULL_MESSAGE = 'That person\'s order queue is full';
+/**
+ * "Last in line" rather than "last waiting": after enough plain clicks the
+ * order at the back of a full queue is the one the sim is carrying out, and
+ * that is what falls off. Both cases are the order that would have run last.
+ */
 export const ORDER_DISPLACED_MESSAGE =
-  'That person\'s order queue was full, so their last waiting order was dropped';
+  'That person\'s order queue was full, so the order last in line was dropped';
 
 export interface CommandFeedbackSource {
   /** Orders refused at the per-sim cap: nothing was added. */

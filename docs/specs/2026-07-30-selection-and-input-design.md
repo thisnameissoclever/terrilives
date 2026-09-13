@@ -307,8 +307,10 @@ talks, and the first plain order would still discard them.
 **A front order onto a full queue drops the LAST waiting order** rather than
 being refused, and the drop is recorded as a DISPLACEMENT, a counter of its
 own beside the capacity rejections, so the shell says `That person's order
-queue was full, so their last waiting order was dropped` rather than telling
-the player an order that went in was refused. Refusing the plain order would
+queue was full, so the order last in line was dropped` rather than telling
+the player an order that went in was refused. "Last in line" and not "last
+waiting", because after enough plain clicks the order at the back is the one
+being carried out. Refusing the plain order would
 refuse the correction a plain click exists to make; dropping the order that
 would have run last is the same "newest loses" rule an append follows. Without
 the drop a run of plain clicks would grow the queue without bound, since each
