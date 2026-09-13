@@ -99,6 +99,15 @@ export class SimBridge {
     return this.handle.take_intent_capacity_rejections();
   }
 
+  /**
+   * Returns and clears the number of waiting orders a front-placed order
+   * pushed off the back of a full queue. The new order was accepted; an
+   * older one fell off.
+   */
+  takeIntentDisplacements(): number {
+    return this.handle.take_intent_displacements();
+  }
+
   /** Current fixed-step tick, converted from wasm-bindgen's u64 BigInt. */
   clockTick(): number {
     const tick = this.handle.sim_tick();

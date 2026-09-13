@@ -191,21 +191,23 @@ pub fn tick_social(
         // possible. Without this pop the front intent survives its own
         // completion, `serve_intents` re-serves it next tick, and one
         // right-click becomes a conversation loop the player can only
-        // escape with a cancel. Guarded on the front intent MATCHING
+        // escape with a cancel. Guarded on a queued intent MATCHING
         // what just finished, for tick_interactions' reason: an
         // autonomous talk can complete with an unserved intent for
         // somebody else waiting at the front, and popping that would
-        // discard an instruction never carried out. The DISTURBED branch
-        // above deliberately does not pop: a talk that never completed
-        // leaves the order standing, the same way an intent for a
-        // reserved object waits at serve, so the sim tries again once
-        // the partner is free.
+        // discard an instruction never carried out. The matching intent
+        // is removed wherever it sits, for tick_interactions' other
+        // reason: a blocked front-placed order can be waiting ahead of
+        // the talk that just finished. The DISTURBED branch above
+        // deliberately does not pop: a talk that never completed leaves
+        // the order standing, the same way an intent for a reserved
+        // object waits at serve, so the sim tries again once the partner
+        // is free.
         if let Ok(mut queue) = queues.get_mut(initiator) {
-            if queue.front().is_some_and(|intent| {
-                intent.object == partner && intent.interaction == socialising.interaction
-            }) {
-                queue.pop();
-            }
+            queue.remove_first(terri_core::Intent {
+                object: partner,
+                interaction: socialising.interaction,
+            });
         }
         commands
             .entity(initiator)
@@ -1713,6 +1715,77 @@ mod tests {
         assert!(
             resumed,
             "when it ends, the fridge order it jumped must be served"
+        );
+    }
+
+    /// The social twin of the drain's blocked-front-order test: a fridge
+    /// order placed FIRST while the fridge is somebody else's waits ahead
+    /// of the running conversation, and the conversation's completion
+    /// must pop the talk order from second place rather than the front.
+    #[test]
+    fn a_directed_talk_that_finishes_while_a_blocked_front_order_waits_is_popped_once() {
+        let (mut sim, a, b, fridge) = command_fixture();
+        talk(&mut sim, a, b);
+        let mut talked = false;
+        for _ in 0..SESSION {
+            sim.tick();
+            if sim.world().get::<Socialising>(a).is_some() {
+                talked = true;
+                break;
+            }
+        }
+        assert!(talked, "precondition: the ordered conversation began");
+        sim.world_mut().entity_mut(fridge).insert(Reserved);
+
+        push_command(
+            &mut sim,
+            terri_core::SimCommand::UseObjectFirst {
+                agent: a.index_u32(),
+                object: fridge.index_u32(),
+                interaction: 0,
+            },
+        );
+        sim.tick();
+        let queued: Vec<Entity> = sim
+            .world()
+            .get::<terri_core::IntentQueue>(a)
+            .expect("directed")
+            .as_slice()
+            .iter()
+            .map(|intent| intent.object)
+            .collect();
+        assert_eq!(
+            queued,
+            vec![fridge, b],
+            "precondition: the blocked front order waits ahead"
+        );
+        assert!(
+            sim.world().get::<Socialising>(a).is_some(),
+            "precondition: the conversation carries on while it waits"
+        );
+
+        let mut done = false;
+        for _ in 0..SESSION {
+            sim.tick();
+            if sim.world().get::<Socialising>(a).is_none() {
+                done = true;
+                break;
+            }
+        }
+        assert!(done, "the conversation must complete inside the session");
+        let queued: Vec<Entity> = sim
+            .world()
+            .get::<terri_core::IntentQueue>(a)
+            .expect("directed")
+            .as_slice()
+            .iter()
+            .map(|intent| intent.object)
+            .collect();
+        assert_eq!(
+            queued,
+            vec![fridge],
+            "the finished talk order is popped from second place; the \
+             blocked front order is kept"
         );
     }
 

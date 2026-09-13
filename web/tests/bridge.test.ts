@@ -6,6 +6,7 @@ import { buildLightField } from '../src/render/lighting.js';
 import { dispatch, dispatchMenuAction } from '../src/input.js';
 import {
   clearCommandFeedback,
+  ORDER_DISPLACED_MESSAGE,
   ORDER_QUEUE_FULL_MESSAGE,
   reportCommandFeedback,
 } from '../src/ui/command-feedback.js';
@@ -1339,7 +1340,8 @@ describe('SimBridge', () => {
   it('accepts a plain order onto a full queue and reports the order it displaced', () => {
     // [I-plain-order-goes-first]'s full-queue rule through the release
     // wasm: the plain order is never refused, the queue stays at the cap,
-    // and the player hears that something fell off.
+    // and the player hears that something fell off - as a DISPLACEMENT,
+    // through its own counter, never as a refusal of the order they gave.
     const bridge = new SimBridge(new SimHandle(8, 8), wasmMemory);
     expect(bridge.spawnObject(4, 4, 'fridge')).toBe(true);
     bridge.spawnAgent(1, 1, 80);
@@ -1355,16 +1357,25 @@ describe('SimBridge', () => {
     bridge.flushCommands();
     expect(bridge.queuedOrdersOf(1)).toBe(4);
     expect(bridge.takeIntentCapacityRejections()).toBe(0);
+    expect(bridge.takeIntentDisplacements()).toBe(0);
 
+    const status = {
+      textContent: '',
+      setAttribute: (_name: string, _value: string) => {},
+      removeAttribute: (_name: string) => {},
+    };
     expect(dispatchMenuAction(
       bridge,
       { kind: 'use', object: 0, interaction: 0 },
       'front',
+      () => clearCommandFeedback(status),
     )).toBe(true);
     bridge.flushCommands();
 
     expect(bridge.queuedOrdersOf(1)).toBe(4);
-    expect(bridge.takeIntentCapacityRejections()).toBe(1);
+    expect(reportCommandFeedback(bridge, status)).toBe(1);
+    expect(status.textContent).toBe(ORDER_DISPLACED_MESSAGE);
+    expect(bridge.takeIntentCapacityRejections(), 'nothing was refused').toBe(0);
   });
 
   it('encodes an entity index above 127 as a multi-byte varint', () => {

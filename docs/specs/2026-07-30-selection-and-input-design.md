@@ -214,7 +214,7 @@ recorded here so they are not re-litigated:
 
 ---
 
-## [I-plain-order-goes-first] A plain order goes to the front; only Clear orders empties the queue. BUILT.
+## [I-plain-order-goes-first] A plain order goes to the front; only an explicit cancel empties the queue. BUILT.
 
 **Reported (2026-09-13):** with Queue on, or Ctrl held, picking Chat on a
 housemate five times gave one chat, not five. And giving a sim a plain order
@@ -248,9 +248,31 @@ fight, and the correction always won.
 order lands, and [D-2] says such facts cross the boundary as data, so the
 simulation owns it: `drain_commands` shares one `place_intent` routine between
 the four order variants, and `serve_intents` already preempts the running
-interaction when the front intent changes, which is the whole of "drops what it
-is doing". The interrupted order stays in the queue and is re-served from the
+interaction when a servable front intent appears, which is the whole of "drops
+what it is doing". A front intent that cannot be served yet (its object
+reserved by somebody else, its partner busy) waits at the front while the sim
+finishes what it was doing, exactly as a queued intent always has. The
+interrupted object or talk order stays in the queue and is re-served from the
 start when the front order completes.
+
+**The served intent is no longer always the front of the queue**, and two
+guards that assumed it was had to widen. `CancelIntents` decides whether to
+release the running commitment by matching the `Target` against ANY queued or
+staged intent, not only the front; otherwise a Clear orders pressed after a
+paused plain click emptied the queue and left the sim finishing the order it
+had just been told to drop. `tick_interactions` and `tick_social` pop the
+intent that just completed wherever it sits, via `IntentQueue::remove_first`;
+otherwise an action that finished while a blocked front order waited ahead of
+it survived its own completion and ran a second time later. Both were found by
+the adversarial review of the first build and are pinned below.
+
+**A plain order mid-chain no longer abandons the chain.** The old cancel pair
+removed `ChainState` and `Carrying`; a front placement removes neither, so the
+interposed order runs and `advance_chains` then resumes the chain at its
+current step, item in hand. That is [M-4]'s preferred "resume instead of
+discard", reached by the route [I3]'s note above hoped for.
+`a_player_command_interrupts_and_the_chain_resumes` in `chain.rs` pins the
+resume; only Clear orders and the menu's cancel row abandon a chain.
 
 **Rejected: a `front` field appended to `UseObject` and `TalkTo`.** [I4]
 appended a field to `UseObject` while nothing was persisted. Saves exist now
@@ -265,8 +287,10 @@ repairs the first report and leaves the second: Queue mode would then queue
 talks, and the first plain order would still discard them.
 
 **A front order onto a full queue drops the LAST waiting order** rather than
-being refused, and the drop is recorded as a capacity rejection so the shell's
-`That person's order queue is full` fires. Refusing the plain order would
+being refused, and the drop is recorded as a DISPLACEMENT, a counter of its
+own beside the capacity rejections, so the shell says `That person's order
+queue was full, so their last waiting order was dropped` rather than telling
+the player an order that went in was refused. Refusing the plain order would
 refuse the correction a plain click exists to make; dropping the order that
 would have run last is the same "newest loses" rule an append follows. Without
 the drop a run of plain clicks would grow the queue without bound, since each
@@ -278,9 +302,12 @@ raising it is a one-line tuning change if five is wanted. Ctrl and Cmd both
 append, per [I4]'s macOS note. A plain click still names interaction 0.
 
 **Pinned by:** `a_front_order_preempts_the_running_interaction_and_the_interrupted_order_resumes_afterwards`,
-`a_front_order_on_a_full_queue_drops_the_last_waiting_order_and_reports_it`
-and `a_cancel_still_empties_a_queue_that_holds_front_placed_orders` in
-`crates/terri-sim/src/systems/command.rs`;
+`a_front_order_on_a_full_queue_drops_the_last_waiting_order_and_reports_it`,
+`a_cancel_still_empties_a_queue_that_holds_front_placed_orders`,
+`a_cancel_after_a_front_placement_still_releases_the_running_directed_action`
+and `a_directed_action_that_finishes_while_a_blocked_front_order_waits_is_popped_once`
+in `crates/terri-sim/src/systems/command.rs`;
+`a_directed_talk_that_finishes_while_a_blocked_front_order_waits_is_popped_once`,
 `a_run_of_queued_chat_orders_runs_as_that_many_separate_conversations_in_sequence`
 and `a_plain_talk_order_goes_ahead_of_the_queue_and_the_queued_order_resumes`
 in `crates/terri-sim/src/systems/social.rs`; the `dispatchMenuAction` and

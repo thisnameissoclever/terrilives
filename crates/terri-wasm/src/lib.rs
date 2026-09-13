@@ -223,6 +223,14 @@ impl SimHandle {
         self.sim.take_intent_capacity_rejections()
     }
 
+    /// Returns and clears the number of waiting orders a front-placed
+    /// order pushed off the back of a full queue. Separate from
+    /// `take_intent_capacity_rejections` because the shell says something
+    /// different for an accepted order that displaced an older one.
+    pub fn take_intent_displacements(&mut self) -> u32 {
+        self.sim.take_intent_displacements()
+    }
+
     /// Arguments are sanitised here rather than trusted. See
     /// [`sanitize_hunger`] and [`sanitize_coord`] for what that means and
     /// why the sim crates are not the place to do it.
@@ -3250,7 +3258,46 @@ mod boundary_tests {
         assert_eq!(
             handle.take_intent_capacity_rejections(),
             0,
-            "nothing fell off a queue with room"
+            "nothing was refused on a queue with room"
+        );
+        assert_eq!(
+            handle.take_intent_displacements(),
+            0,
+            "and nothing fell off it"
+        );
+    }
+
+    #[test]
+    fn a_front_placement_onto_a_full_queue_reports_a_displacement_not_a_rejection() {
+        let mut handle = SimHandle::new(8, 8);
+        assert!(handle.spawn_object(4.0, 4.0, "fridge"));
+        let agent = spawn_agent_at(&mut handle, 1.0, 1.0, 80.0);
+        let cap = intent_cap(&handle);
+        for _ in 0..cap {
+            assert!(handle.enqueue_command(&use_object_bytes(agent, 0, 0)));
+        }
+        assert!(handle.enqueue_command(&use_object_first_bytes(agent, 0, 0)));
+        handle.flush_commands();
+
+        assert_eq!(
+            handle.queued_orders_of(agent),
+            cap,
+            "the queue stays at the cap"
+        );
+        assert_eq!(
+            handle.take_intent_capacity_rejections(),
+            0,
+            "the plain order was accepted, so nothing was refused"
+        );
+        assert_eq!(
+            handle.take_intent_displacements(),
+            1,
+            "and exactly one waiting order fell off the back"
+        );
+        assert_eq!(
+            handle.take_intent_displacements(),
+            0,
+            "one displacement must not be repeated on every rendered frame"
         );
     }
 

@@ -257,6 +257,32 @@ impl IntentQueue {
         self.0.pop()
     }
 
+    /// Whether `intent` is queued anywhere, front or not.
+    ///
+    /// **The intent being served is not always the front.** A front
+    /// placement lands AHEAD of the intent the sim is carrying out, and
+    /// stays there while that front intent cannot be served yet (its
+    /// object reserved, its partner busy), so the served intent can sit
+    /// second or later. Every guard that asks "is the current commitment
+    /// one of the player's orders" has to look at the whole queue, which
+    /// is what this and [`IntentQueue::remove_first`] are for.
+    pub fn contains(&self, intent: Intent) -> bool {
+        self.0.contains(&intent)
+    }
+
+    /// Removes the first queued copy of `intent`, wherever it sits, and
+    /// says whether there was one. What a completed directed action pops:
+    /// the order it carried out, not whatever happens to be at the front.
+    pub fn remove_first(&mut self, intent: Intent) -> bool {
+        match self.0.iter().position(|queued| *queued == intent) {
+            Some(index) => {
+                self.0.remove(index);
+                true
+            }
+            None => false,
+        }
+    }
+
     /// The intent being served right now, or `None` when the agent is
     /// back on autonomy.
     pub fn front(&self) -> Option<Intent> {
@@ -1064,6 +1090,35 @@ mod intent_queue_tests {
 
         let mut empty = IntentQueue::default();
         assert_eq!(empty.pop_back(), None, "an empty queue yields nothing");
+    }
+
+    #[test]
+    fn remove_first_takes_the_matching_intent_wherever_it_sits_and_only_one_copy() {
+        // The served intent second in line behind a blocked front order,
+        // and a duplicate of it further back: completing it must remove
+        // exactly the earlier copy and leave the front and the duplicate.
+        // `(a, 0)` and `(a, 3)` share an object, so a match on the object
+        // alone would take the wrong one.
+        let (a, b, _) = three_objects();
+        let mut queue =
+            IntentQueue::from_intents(vec![intent(b, 1), intent(a, 3), intent(a, 0), intent(a, 0)]);
+        assert!(queue.contains(intent(a, 0)));
+        assert!(
+            !queue.contains(intent(b, 0)),
+            "same object, other interaction"
+        );
+
+        assert!(queue.remove_first(intent(a, 0)));
+        assert_eq!(
+            queue.as_slice(),
+            &[intent(b, 1), intent(a, 3), intent(a, 0)],
+            "the FIRST copy goes; the front and the later copy stay"
+        );
+        assert!(
+            !queue.remove_first(intent(b, 0)),
+            "an intent that is not queued removes nothing"
+        );
+        assert_eq!(queue.len(), 3);
     }
 }
 

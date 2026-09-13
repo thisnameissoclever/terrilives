@@ -1,7 +1,15 @@
 export const ORDER_QUEUE_FULL_MESSAGE = 'That person\'s order queue is full';
+export const ORDER_DISPLACED_MESSAGE =
+  'That person\'s order queue was full, so their last waiting order was dropped';
 
 export interface CommandFeedbackSource {
+  /** Orders refused at the per-sim cap: nothing was added. */
   takeIntentCapacityRejections(): number;
+  /**
+   * Waiting orders dropped from the back of a full queue to make room for
+   * a front-placed order: the new order WAS added, an older one fell off.
+   */
+  takeIntentDisplacements(): number;
 }
 
 export interface CommandFeedbackStatus {
@@ -24,11 +32,19 @@ export function clearCommandFeedback(status: CommandFeedbackStatus): void {
 }
 
 /**
- * Consumes simulation-authored order failures after a full or paused drain.
+ * Consumes simulation-authored order outcomes after a full or paused drain.
  *
  * Input events only know that a command entered the staging queue. The sim
- * resolves the agent and applies ordered cancellation, replacement, and append
- * commands before it can know whether the per-person queue had room.
+ * resolves the agent and applies the batch, in issue order, before it can
+ * know whether the per-person queue had room - and, for a front placement,
+ * whether making room cost an older order.
+ *
+ * Two outcomes, two sentences, because they are opposites for the player: a
+ * REJECTION means the order they just gave was refused, a DISPLACEMENT means
+ * it went in and the order that would have run last fell off. When one drain
+ * produced both, the rejection is shown: it is the one the player has to act
+ * on, since a refused order has to be given again. `onRejected` receives the
+ * combined count, which is what the audio cue keys on.
  */
 export function reportCommandFeedback(
   source: CommandFeedbackSource,
@@ -36,11 +52,13 @@ export function reportCommandFeedback(
   onRejected: (count: number) => void = () => {},
 ): number {
   const rejected = source.takeIntentCapacityRejections();
-  if (rejected === 0) return 0;
-  status.textContent = ORDER_QUEUE_FULL_MESSAGE;
+  const displaced = source.takeIntentDisplacements();
+  const total = rejected + displaced;
+  if (total === 0) return 0;
+  status.textContent = rejected > 0 ? ORDER_QUEUE_FULL_MESSAGE : ORDER_DISPLACED_MESSAGE;
   status.setAttribute('data-kind', 'error');
-  onRejected(rejected);
-  return rejected;
+  onRejected(total);
+  return total;
 }
 
 /**

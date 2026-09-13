@@ -159,7 +159,7 @@ export type ClickAction =
  * `'front'`: the sim drops what it is doing for this order and, once it
  * is done, carries on with everything that was already waiting. `'back'`:
  * the order waits its turn behind them. Neither empties the queue; only
- * the Clear orders button does that.
+ * the Clear orders button and the action menu's cancel row do that.
  */
 export type OrderPlacement = 'front' | 'back';
 
@@ -510,7 +510,8 @@ export function pickAt(
  * every order the player had queued the moment they gave one without the
  * modifier. [I-plain-order-goes-first] keeps the correction immediate and
  * keeps the plan: the plain order goes to the FRONT of the queue and the
- * waiting orders resume behind it. Only Clear orders empties a queue.
+ * waiting orders resume behind it. Only an explicit cancel - Clear orders,
+ * or the action menu's cancel row - empties a queue.
  *
  * The simulation understands both placements as commands of their own,
  * `UseObjectFirst` and `UseObject`, so `dispatch` sends exactly one
