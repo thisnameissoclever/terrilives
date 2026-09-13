@@ -3093,6 +3093,132 @@ mod tests {
     }
 
     #[test]
+    fn dropping_an_order_that_is_not_the_served_one_leaves_the_running_action_alone() {
+        // Found by the CI mutation sweep: nothing dropped an intent that
+        // merely SHARED a field with the running commitment. The served
+        // fridge meal is interaction 0 and so is the bed order that falls
+        // off, so a release keyed on the interaction alone, or on either
+        // field, would abort the meal; keyed on both it must not.
+        //
+        // The dropped `bed/0` has to be the ONLY copy of itself, or the
+        // "a copy remains" guard hides the release rule from the test; the
+        // other bed orders therefore carry interaction 1. The drain copies
+        // an interaction index without checking it ([I4]), and `drain_only`
+        // never serves, so a bed row that does not exist is fine here.
+        let (mut sim, bed, fridge, agent) = scenario();
+        let bed_row_one = SimCommand::UseObject {
+            agent: agent.index_u32(),
+            object: bed.index_u32(),
+            interaction: 1,
+        };
+        enqueue(&mut sim, use_object(agent, fridge));
+        tick_until_interacting(&mut sim, agent);
+        for _ in 2..cap() {
+            enqueue(&mut sim, bed_row_one.clone());
+        }
+        enqueue(&mut sim, use_object(agent, bed));
+        drain_only(&mut sim);
+        assert_eq!(queue_of(&sim, agent).len(), cap(), "precondition: full");
+        assert_eq!(
+            intents_of(&sim, agent).last().copied(),
+            Some((bed, 0)),
+            "precondition: a bed order, same interaction index as the meal, is last"
+        );
+
+        enqueue(
+            &mut sim,
+            SimCommand::UseObjectFirst {
+                agent: agent.index_u32(),
+                object: bed.index_u32(),
+                interaction: 1,
+            },
+        );
+        drain_only(&mut sim);
+        assert!(
+            !queue_of(&sim, agent).contains(Intent {
+                object: bed,
+                interaction: 0
+            }),
+            "precondition: no copy of the dropped order remains"
+        );
+
+        assert_eq!(
+            take_displacements(&mut sim),
+            1,
+            "the last bed order fell off"
+        );
+        assert!(
+            sim.world().get::<Eating>(agent).is_some()
+                && target_of(&sim, agent).map(|t| t.object) == Some(fridge)
+                && sim.world().get::<Reserved>(fridge).is_some(),
+            "the meal must carry on: the dropped order named another object"
+        );
+    }
+
+    #[test]
+    fn a_staged_queue_releases_the_served_intent_it_drops_and_keeps_a_copy_it_still_holds() {
+        // The staged-queue twin of the two live-queue tests above, found
+        // by the CI mutation sweep: a fresh agent's orders all land in the
+        // staged queue within one batch, and its "no copy remains" check
+        // had no test. Two batches on two fixtures, one per half.
+        //
+        // Half one: the served meal's only copy falls off, so the meal is
+        // released. The queue component is removed after the meal starts,
+        // exactly as the one-batch cancel test does, so the batch stages
+        // a fresh queue for a sim that is mid-way through a directed meal.
+        let (mut sim, bed, fridge, agent) = scenario();
+        enqueue(&mut sim, use_object(agent, fridge));
+        tick_until_interacting(&mut sim, agent);
+        sim.world_mut().entity_mut(agent).remove::<IntentQueue>();
+        for _ in 1..cap() {
+            enqueue(&mut sim, use_object(agent, bed));
+        }
+        enqueue(&mut sim, use_object(agent, fridge));
+        enqueue(&mut sim, use_object_first(agent, bed));
+        drain_only(&mut sim);
+        assert_eq!(take_displacements(&mut sim), 1);
+        assert!(
+            !queue_of(&sim, agent).contains(Intent {
+                object: fridge,
+                interaction: 0
+            }),
+            "precondition: the staged fridge copy fell off"
+        );
+        assert!(
+            target_of(&sim, agent).is_none() && sim.world().get::<Reserved>(fridge).is_none(),
+            "the served meal is released when its last copy leaves the staged queue"
+        );
+
+        // Half two: a duplicate remains in the staged queue, so nothing is
+        // released. Needs room for the duplicate ahead of the dropped one.
+        assert!(cap() >= 3, "the fixture needs room for a duplicate");
+        let (mut sim, bed, fridge, agent) = scenario();
+        enqueue(&mut sim, use_object(agent, fridge));
+        tick_until_interacting(&mut sim, agent);
+        sim.world_mut().entity_mut(agent).remove::<IntentQueue>();
+        enqueue(&mut sim, use_object(agent, fridge));
+        for _ in 2..cap() {
+            enqueue(&mut sim, use_object(agent, bed));
+        }
+        enqueue(&mut sim, use_object(agent, fridge));
+        enqueue(&mut sim, use_object_first(agent, bed));
+        drain_only(&mut sim);
+        assert_eq!(take_displacements(&mut sim), 1);
+        assert!(
+            queue_of(&sim, agent).contains(Intent {
+                object: fridge,
+                interaction: 0
+            }),
+            "precondition: a fridge copy is still staged"
+        );
+        assert!(
+            sim.world().get::<Eating>(agent).is_some()
+                && target_of(&sim, agent).map(|t| t.object) == Some(fridge),
+            "a copy still queued means the meal is still ordered, so it carries on"
+        );
+    }
+
+    #[test]
     fn a_directed_action_that_finishes_while_a_blocked_front_order_waits_is_popped_once() {
         // Found by the adversarial review of the first build. A front
         // order that cannot be served yet waits AHEAD of the intent the
