@@ -235,10 +235,15 @@ fn place_intent(
     intent: Intent,
     placement: Placement,
 ) {
-    let displaced = if let Ok((_, Some(mut queue), _)) = agents.get_mut(agent) {
-        place_in(&mut queue, intent, placement, cap, feedback)
+    // What fell off AND is no longer queued anywhere. A dropped intent
+    // that has another copy still in the queue is not a lost order: the
+    // sim is still under that order, so its commitment stands. Without
+    // this filter a queue of `[fridge, bed, bed, fridge]` losing its back
+    // `fridge` would abort the meal the front `fridge` still asks for.
+    let gone = if let Ok((_, Some(mut queue), _)) = agents.get_mut(agent) {
+        place_in(&mut queue, intent, placement, cap, feedback).filter(|d| !queue.contains(*d))
     } else if let Some((_, staged)) = fresh.iter_mut().find(|(e, _)| *e == agent) {
-        place_in(staged, intent, placement, cap, feedback)
+        place_in(staged, intent, placement, cap, feedback).filter(|d| !staged.contains(*d))
     } else {
         // A new queue holds its first order whatever the placement asked
         // for, and the cap is at least 1 by content validation
@@ -248,7 +253,7 @@ fn place_intent(
         fresh.push((agent, queue));
         displaced
     };
-    let Some(displaced) = displaced else {
+    let Some(gone) = gone else {
         return;
     };
     let held = agents
@@ -256,7 +261,12 @@ fn place_intent(
         .ok()
         .and_then(|(_, _, target)| target.copied());
     if let Some(target) = held {
-        if target.object == displaced.object && target.interaction == displaced.interaction {
+        // A chain step's Target carries the `CHAIN_STEP` sentinel, which
+        // no shell-produced intent names; a crafted command that did must
+        // not free a station mid-step. Chains are abandoned only by an
+        // explicit cancel, per [K4].
+        let same = target.object == gone.object && target.interaction == gone.interaction;
+        if same && target.interaction != crate::systems::chain::CHAIN_STEP {
             release_commitment(commands, agent, target);
         }
     }
@@ -3027,6 +3037,56 @@ mod tests {
         assert!(
             target_of(&sim, agent).is_none() && sim.world().get::<Reserved>(fridge).is_none(),
             "nothing of the dropped meal survives the cancel"
+        );
+    }
+
+    #[test]
+    fn dropping_a_duplicate_of_the_served_order_leaves_the_running_action_alone() {
+        // Found by the third adversarial review. The drop-release above
+        // must fire only when NO copy of the served order remains: a
+        // queue `[fridge, bed, bed, fridge]` losing its back `fridge` to
+        // a plain click is still under the front `fridge` order, so the
+        // meal it stands for carries on. The front-placed bed is held by
+        // someone else, so serve_intents cannot preempt the meal either
+        // and the only thing that could end it is a wrong release.
+        assert!(cap() >= 3, "the fixture needs room for a duplicate");
+        let (mut sim, bed, fridge, agent) = scenario();
+        enqueue(&mut sim, use_object(agent, fridge));
+        tick_until_interacting(&mut sim, agent);
+        for _ in 0..cap() - 2 {
+            enqueue(&mut sim, use_object(agent, bed));
+        }
+        enqueue(&mut sim, use_object(agent, fridge));
+        drain_only(&mut sim);
+        assert_eq!(queue_of(&sim, agent).len(), cap(), "precondition: full");
+        assert_eq!(
+            intents_of(&sim, agent).last().copied(),
+            Some((fridge, 0)),
+            "precondition: the duplicate fridge order is at the back"
+        );
+        sim.world_mut().entity_mut(bed).insert(Reserved);
+
+        enqueue(&mut sim, use_object_first(agent, bed));
+        drain_only(&mut sim);
+
+        assert_eq!(take_displacements(&mut sim), 1, "the duplicate fell off");
+        assert_eq!(
+            intents_of(&sim, agent).first().copied(),
+            Some((bed, 0)),
+            "and the plain order is at the front"
+        );
+        assert!(
+            queue_of(&sim, agent).contains(Intent {
+                object: fridge,
+                interaction: 0
+            }),
+            "precondition: the served fridge order is still queued"
+        );
+        assert!(
+            sim.world().get::<Eating>(agent).is_some()
+                && target_of(&sim, agent).map(|t| t.object) == Some(fridge)
+                && sim.world().get::<Reserved>(fridge).is_some(),
+            "the meal the sim is still under orders for must carry on"
         );
     }
 

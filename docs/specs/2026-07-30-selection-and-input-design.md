@@ -277,8 +277,12 @@ being carried out to the back and then off it. The moment that happens the
 drain releases the commitment itself, target and reservation, exactly as a
 cancel would; otherwise the commitment would have outlived every record that
 it was player-directed, and a later Clear orders would have left the sim
-finishing it. Found by the second adversarial review and pinned by
-`a_front_placement_that_drops_the_served_intent_releases_its_commitment`.
+finishing it. The release fires only when no copy of the served order remains
+queued (a duplicate order at the back falling off is not a lost order) and
+never for a chain step's sentinel target. Found by the second and third
+adversarial reviews and pinned by
+`a_front_placement_that_drops_the_served_intent_releases_its_commitment` and
+`dropping_a_duplicate_of_the_served_order_leaves_the_running_action_alone`.
 
 **A plain order mid-chain no longer abandons the chain.** The old cancel pair
 removed `ChainState` and `Carrying`; a front placement removes neither, so the
