@@ -51,8 +51,14 @@ export interface VoiceAudioContext {
  *
  * Low on purpose. The clips are nonverbal babble with nothing to understand,
  * so they should sit under the game rather than compete with it.
+ *
+ * Set by ear. The first value, 0.28, was a guess against the footsteps; the
+ * owner heard it on the live site and asked for about a fifth quieter. That
+ * is a statement about perceived loudness, not about this number: a fifth
+ * off the gain itself is under 2 dB, which most listeners cannot hear, so the
+ * step taken is about 3 dB, which is 0.28 scaled by roughly 0.71.
  */
-export const VOICE_CLIP_GAIN = 0.28;
+export const VOICE_CLIP_GAIN = 0.2;
 
 /**
  * Seconds of ramp at each end of a clip.

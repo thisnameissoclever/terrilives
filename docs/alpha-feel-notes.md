@@ -2898,8 +2898,11 @@ Played the built bundle over the local preview across several in-game days at
   doubled social payout predict. Several 40-second windows at 3x contained no
   conversation at all, where the old tuning produced them more often. That
   matches the intent and is the main thing to judge by ear.
-- **Open: the mix level has not been judged by anyone.** `VOICE_CLIP_GAIN` is
-  a first guess made against footsteps, not a decision. It is one constant.
+- **The mix level was judged by the owner on the live site, 2026-09-12**, and
+  found a little loud. `VOICE_CLIP_GAIN` went from 0.28 to 0.2, about 3 dB
+  down, taken as the perceived-loudness reading of "a fifth quieter" rather
+  than a fifth off the gain number, which would have been under 2 dB and
+  hard to hear. Still one constant if it wants moving again.
 - **Open: a browser listening pass by the owner.** Everything above is
   measured from the scheduler and the network, not heard. Nothing here
   establishes that the clips sound right in the mix, only that the right
