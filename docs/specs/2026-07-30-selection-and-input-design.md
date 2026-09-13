@@ -297,7 +297,10 @@ interposed order runs and `advance_chains` then resumes the chain at its
 current step, item in hand. That is [M-4]'s preferred "resume instead of
 discard", reached by the route [I3]'s note above hoped for.
 `a_player_command_interrupts_and_the_chain_resumes` in `chain.rs` pins the
-resume; only Clear orders and the menu's cancel row abandon a chain.
+resume. A chain is abandoned by the two cancel controls, or by starting
+another chain (front-placed or not), since two dinners at once is not a state
+the chain runtime has ([K5]); an ordinary object or talk order never abandons
+one.
 
 **Rejected: a `front` field appended to `UseObject` and `TalkTo`.** [I4]
 appended a field to `UseObject` while nothing was persisted. Saves exist now
