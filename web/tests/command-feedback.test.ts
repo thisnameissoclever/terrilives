@@ -43,9 +43,11 @@ describe('command feedback', () => {
    * falls off; telling the player their order was refused would be the
    * opposite of what happened. The two counters carry different sentences,
    * and when a drain produced both, the refusal wins because it is the one
-   * the player has to act on.
+   * the player has to act on. The rejection callback, which the shell maps
+   * to the `command.rejected` cue, fires for refusals only: a drop is an
+   * accepted order whose click already played the staged cue.
    */
-  it('reports a displaced waiting order as a drop, not as a refusal', () => {
+  it('reports a displaced order as a drop, not as a refusal, and plays no rejection cue', () => {
     const target = status();
     const reported: number[] = [];
 
@@ -58,16 +60,19 @@ describe('command feedback', () => {
     ).toBe(1);
     expect(target.textContent).toBe(ORDER_DISPLACED_MESSAGE);
     expect(target.attributes.get('data-kind')).toBe('error');
-    expect(reported).toEqual([1]);
+    expect(reported, 'a drop must not sound like a refusal').toEqual([]);
 
     const both = status();
+    const bothReported: number[] = [];
     expect(
       reportCommandFeedback(
         { takeIntentCapacityRejections: () => 1, takeIntentDisplacements: () => 1 },
         both,
+        (count) => bothReported.push(count),
       ),
     ).toBe(2);
     expect(both.textContent, 'a refusal outranks a drop').toBe(ORDER_QUEUE_FULL_MESSAGE);
+    expect(bothReported, 'the cue counts the refusal alone').toEqual([1]);
   });
 
   it('does not overwrite status when every drained order was accepted', () => {

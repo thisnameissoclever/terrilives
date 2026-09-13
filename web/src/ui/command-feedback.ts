@@ -49,11 +49,14 @@ export function clearCommandFeedback(status: CommandFeedbackStatus): void {
  * REJECTION means the order they just gave was refused, a DISPLACEMENT means
  * it went in and the order that would have run last fell off. When one drain
  * produced both, the rejection is shown: it is the one the player has to act
- * on, since a refused order has to be given again. `onRejected` receives the
- * combined count, which is what the audio cue keys on: the cue means "an
- * order did not survive this drain", which is true of a drop as much as of a
- * refusal, and the click that caused the drop already played the staged cue
- * for the order that did go in.
+ * on, since a refused order has to be given again.
+ *
+ * `onRejected` receives the REJECTION count only. The audio design
+ * (`docs/specs/2026-08-19-audio-foundation.md`) reserves `command.rejected`
+ * for an input or queue refusal, and a displacement is an accepted order
+ * whose click already played the staged cue; the live region carries the
+ * drop on its own. The return value is the combined count, for callers that
+ * want to know whether anything at all was reported.
  */
 export function reportCommandFeedback(
   source: CommandFeedbackSource,
@@ -66,7 +69,7 @@ export function reportCommandFeedback(
   if (total === 0) return 0;
   status.textContent = rejected > 0 ? ORDER_QUEUE_FULL_MESSAGE : ORDER_DISPLACED_MESSAGE;
   status.setAttribute('data-kind', 'error');
-  onRejected(total);
+  if (rejected > 0) onRejected(rejected);
   return total;
 }
 

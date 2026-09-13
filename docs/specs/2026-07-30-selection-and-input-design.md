@@ -317,7 +317,10 @@ own beside the capacity rejections, so the shell says `That person's order
 queue was full, so the order last in line was dropped` rather than telling
 the player an order that went in was refused. "Last in line" and not "last
 waiting", because after enough plain clicks the order at the back is the one
-being carried out. Refusing the plain order would
+being carried out. The drop is written to the live region only; the
+`command.rejected` cue stays reserved for a refusal, per the audio design,
+and the click that caused the drop already played the staged cue for the
+order that went in. Refusing the plain order would
 refuse the correction a plain click exists to make; dropping the order that
 would have run last is the same "newest loses" rule an append follows. Without
 the drop a run of plain clicks would grow the queue without bound, since each

@@ -352,6 +352,19 @@ export class ObjectMenu {
 }
 
 /**
+ * Whether a row activation carried the queue modifier. Ctrl and Cmd both
+ * count, exactly as on a canvas click (see `attachPointerInput` for why
+ * both). Extracted so the rule is testable without a DOM: the listener in
+ * `createMenuSurface` is the only caller.
+ */
+export function queueModifierHeld(event: {
+  readonly ctrlKey: boolean;
+  readonly metaKey: boolean;
+}): boolean {
+  return event.ctrlKey || event.metaKey;
+}
+
+/**
  * A [`MenuSurface`] over a real DOM element.
  *
  * Browser-only wiring with no decisions in it, in the sense
@@ -371,19 +384,6 @@ export class ObjectMenu {
  * its final position is calculated so `offsetWidth` and `offsetHeight` are
  * real layout measurements rather than guessed menu dimensions.
  */
-/**
- * Whether a row activation carried the queue modifier. Ctrl and Cmd both
- * count, exactly as on a canvas click (see `attachPointerInput` for why
- * both). Extracted so the rule is testable without a DOM: the listener in
- * `createMenuSurface` is the only caller.
- */
-export function queueModifierHeld(event: {
-  readonly ctrlKey: boolean;
-  readonly metaKey: boolean;
-}): boolean {
-  return event.ctrlKey || event.metaKey;
-}
-
 export function createMenuSurface(
   doc: Document,
   root: HTMLElement,
