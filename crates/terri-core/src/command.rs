@@ -88,8 +88,10 @@ pub enum SimCommand {
     /// sends, per [I-plain-order-goes-first] in
     /// `docs/specs/2026-07-30-selection-and-input-design.md`.
     ///
-    /// The sim drops what it is doing for this order and, once it is
-    /// done, carries on with everything that was already waiting. That
+    /// The sim drops what it is doing for this order as soon as the order
+    /// can be served (while its object or partner is taken, the order
+    /// waits at the front and the current action carries on) and, once
+    /// it is done, carries on with everything that was already waiting. That
     /// is the difference from the `CancelIntents` + `UseObject` pair the
     /// shell used to send for a plain click: the pair emptied the queue,
     /// so an order given without Queue mode threw away every order given

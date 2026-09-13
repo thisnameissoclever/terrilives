@@ -4,10 +4,26 @@ import {
   NOTHING,
   ObjectMenu,
   menuEntries,
+  queueModifierHeld,
   type Menu,
   type MenuAction,
   type MenuSurface,
 } from '../src/ui/object-menu.js';
+
+describe('queueModifierHeld', () => {
+  /**
+   * The rule the DOM listener applies to every row activation, tested
+   * on plain event shapes because the project runs no DOM in tests. Ctrl
+   * and Cmd each count alone, per the macOS note in `attachPointerInput`;
+   * neither held is a plain pick.
+   */
+  it('counts Ctrl or Cmd alone, and neither as a plain pick', () => {
+    expect(queueModifierHeld({ ctrlKey: true, metaKey: false })).toBe(true);
+    expect(queueModifierHeld({ ctrlKey: false, metaKey: true })).toBe(true);
+    expect(queueModifierHeld({ ctrlKey: true, metaKey: true })).toBe(true);
+    expect(queueModifierHeld({ ctrlKey: false, metaKey: false })).toBe(false);
+  });
+});
 
 describe('clampMenuPosition', () => {
   it('keeps every edge inside the viewport with a touch-sized margin', () => {

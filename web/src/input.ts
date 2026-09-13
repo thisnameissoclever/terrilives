@@ -156,10 +156,12 @@ export type ClickAction =
 /**
  * Where a new order lands in a sim's queue - [I-plain-order-goes-first].
  *
- * `'front'`: the sim drops what it is doing for this order and, once it
- * is done, carries on with everything that was already waiting. `'back'`:
- * the order waits its turn behind them. Neither empties the queue; only
- * the Clear orders button and the action menu's cancel row do that.
+ * `'front'`: the sim drops what it is doing for this order as soon as the
+ * simulation can serve it (an order whose object or partner is taken
+ * waits at the front while the current action carries on) and, once it is
+ * done, carries on with everything that was already waiting. `'back'`: the
+ * order waits its turn behind them. Neither empties the queue; only the
+ * Clear orders button and the action menu's cancel row do that.
  */
 export type OrderPlacement = 'front' | 'back';
 

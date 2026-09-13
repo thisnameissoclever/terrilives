@@ -95,7 +95,9 @@ enum Placement {
     /// After everything already waiting: Queue mode, or Ctrl or Cmd held.
     Back,
     /// Ahead of everything already waiting: a plain click or menu row. The
-    /// sim drops what it is doing for this order and resumes the rest.
+    /// sim drops what it is doing for this order as soon as `serve_intents`
+    /// can serve it (a blocked front order waits while the current action
+    /// carries on) and resumes the rest afterwards.
     Front,
 }
 

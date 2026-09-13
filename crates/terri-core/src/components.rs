@@ -208,9 +208,12 @@ pub struct Intent {
 /// **This is a simulation structure, not UI scaffolding.** A directed
 /// action has to beat autonomy or clicking feels ignored, so
 /// `select_action` skips any agent whose queue is non-empty and
-/// `serve_intents` turns the front intent into a `Target`. The front
-/// entry is the sim's current commitment and is popped when the
-/// interaction it names completes.
+/// `serve_intents` turns the front intent into a `Target`. The intent
+/// the sim is carrying out is popped when the interaction it names
+/// completes. It is usually the front entry, and not always: a
+/// front-placed order that cannot be served yet waits ahead of it (see
+/// [`IntentQueue::contains`]), so completion and cancellation match the
+/// served intent wherever it sits.
 ///
 /// # `pop` takes from the FRONT
 ///
@@ -244,7 +247,10 @@ impl IntentQueue {
     /// Adds an intent at the FRONT, so it is served next and everything
     /// already queued waits behind it. This is what
     /// `SimCommand::UseObjectFirst` and `SimCommand::TalkToFirst` reach:
-    /// a plain order interrupts, and the interrupted orders resume.
+    /// a plain order interrupts as soon as it can be served, and the
+    /// interrupted orders resume. While it cannot be served (its object
+    /// reserved, its partner busy) it waits at the front and the current
+    /// action carries on.
     pub fn push_front(&mut self, intent: Intent) {
         self.0.insert(0, intent);
     }

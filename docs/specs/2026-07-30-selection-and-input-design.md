@@ -311,7 +311,7 @@ calls.
 repairs the first report and leaves the second: Queue mode would then queue
 talks, and the first plain order would still discard them.
 
-**A front order onto a full queue drops the LAST waiting order** rather than
+**A front order onto a full queue drops the order LAST IN LINE** rather than
 being refused, and the drop is recorded as a DISPLACEMENT, a counter of its
 own beside the capacity rejections, so the shell says `That person's order
 queue was full, so the order last in line was dropped` rather than telling

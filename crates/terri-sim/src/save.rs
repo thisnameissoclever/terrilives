@@ -1389,6 +1389,20 @@ mod tests {
                 target: agents[1],
                 interaction: 0,
             },
+            // The front placements too, so the capture and restore arms
+            // for both are on the exact round trip rather than only
+            // compiled: a swapped or lossy mapping would fail
+            // `a_rich_snapshot_restores_every_saved_field_exactly`.
+            SavedCommand::UseObjectFirst {
+                agent: agents[0],
+                object: object.index,
+                interaction: 0,
+            },
+            SavedCommand::TalkToFirst {
+                agent: agents[0],
+                target: agents[1],
+                interaction: 0,
+            },
         ];
         snapshot
     }
