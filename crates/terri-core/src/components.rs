@@ -208,9 +208,12 @@ pub struct Intent {
 /// **This is a simulation structure, not UI scaffolding.** A directed
 /// action has to beat autonomy or clicking feels ignored, so
 /// `select_action` skips any agent whose queue is non-empty and
-/// `serve_intents` turns the front intent into a `Target`. The front
-/// entry is the sim's current commitment and is popped when the
-/// interaction it names completes.
+/// `serve_intents` turns the front intent into a `Target`. The intent
+/// the sim is carrying out is popped when the interaction it names
+/// completes. It is usually the front entry, and not always: a
+/// front-placed order that cannot be served yet waits ahead of it (see
+/// [`IntentQueue::contains`]), so completion and cancellation match the
+/// served intent wherever it sits.
 ///
 /// # `pop` takes from the FRONT
 ///
@@ -239,6 +242,51 @@ impl IntentQueue {
     /// already queued.
     pub fn push(&mut self, intent: Intent) {
         self.0.push(intent);
+    }
+
+    /// Adds an intent at the FRONT, so it is served next and everything
+    /// already queued waits behind it. This is what
+    /// `SimCommand::UseObjectFirst` and `SimCommand::TalkToFirst` reach:
+    /// a plain order interrupts as soon as it can be served, and the
+    /// interrupted orders resume. While it cannot be served (its object
+    /// reserved, its partner busy) it waits at the front and the current
+    /// action carries on.
+    pub fn push_front(&mut self, intent: Intent) {
+        self.0.insert(0, intent);
+    }
+
+    /// Removes and returns the BACK intent - the one that would have been
+    /// served last. The drain uses it to make room for a front placement
+    /// on a full queue, which is the one place an accepted order is ever
+    /// dropped; see `max_queued_intents` in `content/tuning.toml`.
+    pub fn pop_back(&mut self) -> Option<Intent> {
+        self.0.pop()
+    }
+
+    /// Whether `intent` is queued anywhere, front or not.
+    ///
+    /// **The intent being served is not always the front.** A front
+    /// placement lands AHEAD of the intent the sim is carrying out, and
+    /// stays there while that front intent cannot be served yet (its
+    /// object reserved, its partner busy), so the served intent can sit
+    /// second or later. Every guard that asks "is the current commitment
+    /// one of the player's orders" has to look at the whole queue, which
+    /// is what this and [`IntentQueue::remove_first`] are for.
+    pub fn contains(&self, intent: Intent) -> bool {
+        self.0.contains(&intent)
+    }
+
+    /// Removes the first queued copy of `intent`, wherever it sits, and
+    /// says whether there was one. What a completed directed action pops:
+    /// the order it carried out, not whatever happens to be at the front.
+    pub fn remove_first(&mut self, intent: Intent) -> bool {
+        match self.0.iter().position(|queued| *queued == intent) {
+            Some(index) => {
+                self.0.remove(index);
+                true
+            }
+            None => false,
+        }
     }
 
     /// The intent being served right now, or `None` when the agent is
@@ -1005,6 +1053,78 @@ mod intent_queue_tests {
             Some(intent(a, 3)),
             "the second intent must keep its own interaction index"
         );
+    }
+
+    #[test]
+    fn push_front_makes_the_new_intent_the_next_one_served_and_keeps_the_rest_in_order() {
+        // Three entries already queued and a fourth pushed to the FRONT.
+        // Three rather than one, so the mutants `insert(1, ..)` and
+        // `push` (insert at the back) each produce a different sequence
+        // from the one asserted here; with a single entry `insert(1, ..)`
+        // and `push` agree.
+        let (a, b, c) = three_objects();
+        let mut queue = IntentQueue::from_intents(vec![intent(a, 0), intent(b, 1), intent(c, 2)]);
+
+        queue.push_front(intent(c, 7));
+
+        assert_eq!(queue.len(), 4, "push_front must actually add");
+        assert_eq!(
+            queue.front(),
+            Some(intent(c, 7)),
+            "the front-placed intent is served next"
+        );
+        assert_eq!(queue.pop(), Some(intent(c, 7)));
+        assert_eq!(
+            queue.as_slice(),
+            &[intent(a, 0), intent(b, 1), intent(c, 2)],
+            "everything that was waiting resumes in its original order"
+        );
+    }
+
+    #[test]
+    fn pop_back_removes_the_last_intent_and_leaves_the_front_alone() {
+        let (a, b, c) = three_objects();
+        let mut queue = IntentQueue::from_intents(vec![intent(a, 0), intent(b, 1), intent(c, 2)]);
+
+        assert_eq!(
+            queue.pop_back(),
+            Some(intent(c, 2)),
+            "pop_back takes the intent that would have been served LAST"
+        );
+        assert_eq!(queue.as_slice(), &[intent(a, 0), intent(b, 1)]);
+        assert_eq!(queue.front(), Some(intent(a, 0)), "the front is untouched");
+
+        let mut empty = IntentQueue::default();
+        assert_eq!(empty.pop_back(), None, "an empty queue yields nothing");
+    }
+
+    #[test]
+    fn remove_first_takes_the_matching_intent_wherever_it_sits_and_only_one_copy() {
+        // The served intent second in line behind a blocked front order,
+        // and a duplicate of it further back: completing it must remove
+        // exactly the earlier copy and leave the front and the duplicate.
+        // `(a, 0)` and `(a, 3)` share an object, so a match on the object
+        // alone would take the wrong one.
+        let (a, b, _) = three_objects();
+        let mut queue =
+            IntentQueue::from_intents(vec![intent(b, 1), intent(a, 3), intent(a, 0), intent(a, 0)]);
+        assert!(queue.contains(intent(a, 0)));
+        assert!(
+            !queue.contains(intent(b, 0)),
+            "same object, other interaction"
+        );
+
+        assert!(queue.remove_first(intent(a, 0)));
+        assert_eq!(
+            queue.as_slice(),
+            &[intent(b, 1), intent(a, 3), intent(a, 0)],
+            "the FIRST copy goes; the front and the later copy stay"
+        );
+        assert!(
+            !queue.remove_first(intent(b, 0)),
+            "an intent that is not queued removes nothing"
+        );
+        assert_eq!(queue.len(), 3);
     }
 }
 

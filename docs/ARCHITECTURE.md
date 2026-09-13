@@ -206,7 +206,12 @@ currently happen inside the action or wander system that requests them.
    tick, or a click would take a tick to have any effect and the sim would
    spend that tick choosing for itself. Entity references arrive from JavaScript as raw
    `u32` indices, so resolution tolerates a stale one - a panic here traps
-   the WASM module for the rest of the page's life.
+   the WASM module for the rest of the page's life. An order command names
+   its placement: `UseObject` and `TalkTo` go to the BACK of the sim's
+   queue (Queue mode, or Ctrl or Cmd held) and `UseObjectFirst` and
+   `TalkToFirst` go to the FRONT (a plain click or menu row), with the
+   waiting orders kept behind the new one. Only `CancelIntents` empties a
+   queue ([I-plain-order-goes-first] of the selection and input design).
 
 When paused, the shell runs step 0 by itself once per rendered frame. It uses
 the same queue and the same `drain_commands` system as a full tick; steps 1

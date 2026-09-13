@@ -41,6 +41,11 @@ Exact standing reading for `bookshelf.read` shipped in PR 49 at merge
 `579f35d0`. Pages run 31327528687 deployed that exact SHA, and the public
 WebGPU replay is recorded in [A-standing-bookshelf-reading]. Displayed reduced
 motion and owner review of the bookshelf art remain open.
+Order placement is now a property of the command ([I-plain-order-goes-first]):
+Queue mode and Ctrl or Cmd append every order, talks included, and a plain
+order goes to the front of the queue with the waiting orders kept behind it.
+Only the two cancel controls, Clear orders and the action menu's cancel row,
+empty a queue.
 The M1 household contract is now code-complete too: content accepts up to six
 members, rejects a seventh, and normal play exposes every member through a
 restore-safe accessible roster.

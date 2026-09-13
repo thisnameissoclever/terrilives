@@ -315,10 +315,12 @@ rng_seed = 20260728
 #
 # THIS IS A BOUND ON THE PLAYER, not on the simulation, and it is the only
 # thing rate-limiting a click. `drain_commands` pushes one intent per
-# `UseObject` command and nothing else trims the queue, so without a cap a
-# JavaScript loop - or a player leaning on the mouse - grows one sim's
-# queue without limit, and every entry in it is a stretch of time that sim
-# is not choosing for itself.
+# order command (`UseObject` and `TalkTo` at the back, `UseObjectFirst`
+# and `TalkToFirst` at the front) and nothing but a front placement onto a
+# full queue ever trims it, so without a cap a JavaScript loop - or a
+# player leaning on the mouse - grows one sim's queue without limit, and
+# every entry in it is a stretch of time that sim is not choosing for
+# itself.
 #
 # The number is a TIME budget rather than a count. Measured over the
 # shipped lot (docs/alpha-feel-notes.md): an interaction runs 12 to 25
@@ -328,15 +330,27 @@ rng_seed = 20260728
 # already promised before a fifth click is even considered, which is well
 # past the point where a player can still remember what they asked for.
 #
-# **The overflow drops the NEWEST intent, not the oldest**, and that is a
-# deliberate trade rather than the obvious one. Dropping the oldest would
-# mean evicting the intent the sim is currently carrying out, which would
-# have to release its target and its reservation from inside the drain and
-# would make a click able to cancel an earlier click's work silently.
-# Refusing the new one keeps every accepted instruction honoured. The cost
-# is a hard planning ceiling: the fifth rapid click is refused and the shell
-# reports that the person's order queue is full. It no longer disappears as
-# an apparently accepted click. Raise this only if watched play says four
+# **An append past the cap is REFUSED, and the newest intent is the one
+# that loses**, a deliberate trade rather than the obvious one. Evicting
+# the oldest would mean evicting the intent the sim is currently carrying
+# out, which would have to release its target and its reservation from
+# inside the drain and would make a click able to cancel an earlier
+# click's work silently. Refusing the new one keeps every accepted
+# instruction honoured. The cost is a hard planning ceiling: the fifth
+# rapid click is refused and the shell reports that the person's order
+# queue is full. It no longer disappears as an apparently accepted click.
+#
+# **A FRONT placement past the cap is never refused; the BACK intent is
+# dropped instead** ([I-plain-order-goes-first]). A plain click is the
+# player's correction, so it always lands, and the order that falls off is
+# the one that would have run last - the same "newest loses" rule as the
+# refusal, seen from the other end. The shell reports the drop with its own
+# sentence, not the refusal's. When the dropped intent is the one the sim
+# is carrying out (after `max_queued_intents` plain clicks in a row, or on
+# the very first at a cap of 1) the drain releases that commitment itself,
+# target and reservation, so the sim is never left carrying out an order
+# that is no longer in its queue; `serve_intents` then serves the new
+# front on the same tick. Raise this only if watched play says four
 # remembered orders are too few.
 #
 # Zero is rejected at build time: a cap of zero is not "no queueing", it
@@ -351,7 +365,8 @@ max_queued_intents = 4
 # THIS IS THE BOUND ON THE QUEUE ITSELF, and it is a different failure
 # from `max_queued_intents` above rather than a second copy of it. That
 # one bounds what a single sim can be told to do, and it is only ever
-# reached by a `UseObject` that resolved to a live agent. Everything
+# reached by an order command (`UseObject`, `TalkTo` or their front-placed
+# twins) that resolved to a live agent. Everything
 # else a player can send - every `Select`, every `SetSpeed`, every
 # command naming an index that no longer exists - reaches this staging
 # queue and never touches an intent queue at all. So without a bound

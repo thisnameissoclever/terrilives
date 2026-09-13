@@ -6,6 +6,7 @@ import { buildLightField } from '../src/render/lighting.js';
 import { dispatch, dispatchMenuAction } from '../src/input.js';
 import {
   clearCommandFeedback,
+  ORDER_DISPLACED_MESSAGE,
   ORDER_QUEUE_FULL_MESSAGE,
   reportCommandFeedback,
 } from '../src/ui/command-feedback.js';
@@ -1118,11 +1119,15 @@ describe('SimBridge', () => {
       ['empty', []],
       // This row read `[0x04, 0x00]` until TalkTo became variant 4 and
       // quietly turned it into a TRUNCATED VALID variant - still red,
-      // but no longer testing what its label said. The unknown-variant
-      // case has to track the enum's edge to keep meaning itself.
-      ['variant index 5, one past the five that exist', [0x05, 0x00]],
+      // but no longer testing what its label said; the same happened at
+      // `[0x05, 0x00]` when UseObjectFirst became variant 5. The
+      // unknown-variant case has to track the enum's edge to keep
+      // meaning itself.
+      ['variant index 7, one past the seven that exist', [0x07, 0x00]],
       ['variant index 0xFF', [0xff]],
       ['TalkTo missing its interaction field', [0x04, 0x03, 0x05]],
+      ['UseObjectFirst missing its interaction field', [0x05, 0x03, 0x09]],
+      ['TalkToFirst missing its interaction field', [0x06, 0x03, 0x05]],
       ['Select with an Option tag and no payload', [0x00, 0x01]],
       ['UseObject missing its second field', [0x01, 0x03]],
       // The OLD three-byte form, from before `UseObject` carried an
@@ -1208,7 +1213,7 @@ describe('SimBridge', () => {
           agent: 1,
           object: 0,
           interaction: 0,
-          replace: false,
+          placement: 'back',
         }),
         `pointer click ${click} must enter command staging`,
       ).toBe(true);
@@ -1240,7 +1245,7 @@ describe('SimBridge', () => {
         dispatchMenuAction(
           bridge,
           { kind: 'use', object: 0, interaction: 0 },
-          false,
+          'back',
         ),
         `keyboard order ${order} must enter command staging`,
       ).toBe(true);
@@ -1258,7 +1263,14 @@ describe('SimBridge', () => {
     expect(reportCommandFeedback(bridge, status)).toBe(0);
   });
 
-  it('clears a rejection on accepted replacement before announcing a later one', () => {
+  it('clears a rejection on an accepted order before announcing a later one', () => {
+    // The feedback lifecycle: refused, cleared by the next attempt, empty
+    // while the accepted order stands, then refused again. Clear orders
+    // makes the room in the middle, because since
+    // [I-plain-order-goes-first] a plain order onto a FULL queue is
+    // accepted by dropping the last waiting order - which is itself
+    // reported (see the test below), so it cannot play the "accepted and
+    // quiet" step here.
     const bridge = new SimBridge(new SimHandle(8, 8), wasmMemory);
     expect(bridge.spawnObject(4, 4, 'fridge')).toBe(true);
     bridge.spawnAgent(1, 1, 80);
@@ -1269,7 +1281,7 @@ describe('SimBridge', () => {
       expect(dispatchMenuAction(
         bridge,
         { kind: 'use', object: 0, interaction: 0 },
-        false,
+        'back',
       )).toBe(true);
     }
     bridge.flushCommands();
@@ -1290,10 +1302,11 @@ describe('SimBridge', () => {
     };
     expect(reportCommandFeedback(bridge, status)).toBe(1);
 
+    expect(bridge.cancelIntents(1)).toBe(true);
     expect(dispatchMenuAction(
       bridge,
       { kind: 'use', object: 0, interaction: 0 },
-      true,
+      'front',
       () => clearCommandFeedback(status),
     )).toBe(true);
     bridge.flushCommands();
@@ -1306,7 +1319,7 @@ describe('SimBridge', () => {
       expect(dispatchMenuAction(
         bridge,
         { kind: 'use', object: 0, interaction: 0 },
-        false,
+        'back',
         () => clearCommandFeedback(status),
       )).toBe(true);
     }
@@ -1322,6 +1335,47 @@ describe('SimBridge', () => {
       '',
       ORDER_QUEUE_FULL_MESSAGE,
     ]);
+  });
+
+  it('accepts a plain order onto a full queue and reports the order it displaced', () => {
+    // [I-plain-order-goes-first]'s full-queue rule through the release
+    // wasm: the plain order is never refused, the queue stays at the cap,
+    // and the player hears that something fell off - as a DISPLACEMENT,
+    // through its own counter, never as a refusal of the order they gave.
+    const bridge = new SimBridge(new SimHandle(8, 8), wasmMemory);
+    expect(bridge.spawnObject(4, 4, 'fridge')).toBe(true);
+    bridge.spawnAgent(1, 1, 80);
+    expect(bridge.select(1)).toBe(true);
+    bridge.flushCommands();
+    for (let order = 0; order < 4; order += 1) {
+      expect(dispatchMenuAction(
+        bridge,
+        { kind: 'use', object: 0, interaction: 0 },
+        'back',
+      )).toBe(true);
+    }
+    bridge.flushCommands();
+    expect(bridge.queuedOrdersOf(1)).toBe(4);
+    expect(bridge.takeIntentCapacityRejections()).toBe(0);
+    expect(bridge.takeIntentDisplacements()).toBe(0);
+
+    const status = {
+      textContent: '',
+      setAttribute: (_name: string, _value: string) => {},
+      removeAttribute: (_name: string) => {},
+    };
+    expect(dispatchMenuAction(
+      bridge,
+      { kind: 'use', object: 0, interaction: 0 },
+      'front',
+      () => clearCommandFeedback(status),
+    )).toBe(true);
+    bridge.flushCommands();
+
+    expect(bridge.queuedOrdersOf(1)).toBe(4);
+    expect(reportCommandFeedback(bridge, status)).toBe(1);
+    expect(status.textContent).toBe(ORDER_DISPLACED_MESSAGE);
+    expect(bridge.takeIntentCapacityRejections(), 'nothing was refused').toBe(0);
   });
 
   it('encodes an entity index above 127 as a multi-byte varint', () => {
@@ -1487,6 +1541,58 @@ describe('SimBridge', () => {
     expect(visualActions.buffer).toBe(wasmMemory.buffer);
     expect(facings.buffer).toBe(wasmMemory.buffer);
 
+    expect(viaMethod.worldHash()).toBe(viaBytes.worldHash());
+    expect(viaMethod.worldHash()).not.toBe(control.worldHash());
+  });
+
+  it('places a plain order first, with method bytes matching the hand-written wire bytes', () => {
+    // [I-plain-order-goes-first] through the RELEASE wasm, both halves per
+    // [L33]. `[0x05, 2, 0, 0]` and `[0x06, 0, 1, 0]` restate the
+    // UseObjectFirst and TalkToFirst rows of
+    // `command_encoding_is_pinned_by_a_golden_byte_vector`; one run through
+    // the methods and its twin through those raw bytes must reach EQUAL
+    // world hashes.
+    //
+    // The behaviour half reuses the bed-west, fridge-east lot: a fridge
+    // order is appended and then a bed order is placed FIRST, so the sim
+    // walks WEST to the bed. The control appends the bed order instead and
+    // walks EAST to the fridge, which is what an encoder that emitted the
+    // append variant for both would also do.
+    const build = () => {
+      const b = new SimBridge(new SimHandle(16, 16), wasmMemory);
+      expect(b.spawnObject(2, 8, 'bed')).toBe(true);
+      expect(b.spawnObject(11, 8, 'fridge')).toBe(true);
+      b.spawnAgent(8, 8, 20);
+      b.spawnAgent(8, 11, 80);
+      return b;
+    };
+
+    const viaMethod = build();
+    expect(viaMethod.useObject(2, 1, 0)).toBe(true);
+    expect(viaMethod.useObjectFirst(2, 0, 0)).toBe(true);
+    expect(viaMethod.talkToFirst(3, 2, 0)).toBe(true);
+    const viaBytes = build();
+    expect(viaBytes.useObject(2, 1, 0)).toBe(true);
+    expect(
+      viaBytes.enqueueCommand(new Uint8Array([0x05, 0x02, 0x00, 0x00])),
+    ).toBe(true);
+    expect(
+      viaBytes.enqueueCommand(new Uint8Array([0x06, 0x03, 0x02, 0x00])),
+    ).toBe(true);
+    const control = build();
+    expect(control.useObject(2, 1, 0)).toBe(true);
+    expect(control.useObject(2, 0, 0)).toBe(true);
+
+    for (let i = 0; i < 20; i++) {
+      viaMethod.tick();
+      viaBytes.tick();
+      control.tick();
+    }
+
+    expect(viaMethod.queuedOrdersOf(2)).toBe(2);
+    expect(viaMethod.queuedOrdersOf(3)).toBe(1);
+    expect(viaMethod.positions()[4], 'the front-placed bed order wins').toBeLessThan(8);
+    expect(control.positions()[4], 'an appended bed order waits').toBeGreaterThan(8);
     expect(viaMethod.worldHash()).toBe(viaBytes.worldHash());
     expect(viaMethod.worldHash()).not.toBe(control.worldHash());
   });

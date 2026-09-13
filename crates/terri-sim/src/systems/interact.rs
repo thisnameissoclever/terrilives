@@ -208,7 +208,7 @@ pub fn tick_interactions(
             // single click would become a loop the player can only
             // escape with a cancel.
             //
-            // Guarded on the front intent MATCHING what just finished,
+            // Guarded on a queued intent MATCHING what just finished,
             // rather than popping unconditionally, because an agent can
             // finish an autonomously chosen interaction with an intent it
             // has never started sitting at the front of its queue. The
@@ -217,12 +217,18 @@ pub fn tick_interactions(
             // meal and kept the intent for when the object frees up.
             // Popping there would discard an instruction that was never
             // carried out.
+            //
+            // **The matching intent is removed wherever it sits, not only
+            // at the front.** A front-placed order that cannot be served
+            // yet waits AHEAD of the intent this meal is carrying out, so
+            // the finished order can be second in line. Popping the front
+            // there would discard the waiting order and leave the finished
+            // one to run a second time. See `IntentQueue::contains`.
             if let Some(mut queue) = queue {
-                if queue.front().is_some_and(|intent| {
-                    intent.object == target.object && intent.interaction == target.interaction
-                }) {
-                    queue.pop();
-                }
+                queue.remove_first(terri_core::Intent {
+                    object: target.object,
+                    interaction: target.interaction,
+                });
             }
 
             // **The hobby payout - the second axis's only upward path**

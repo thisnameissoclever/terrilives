@@ -223,6 +223,16 @@ impl SimHandle {
         self.sim.take_intent_capacity_rejections()
     }
 
+    /// Returns and clears the number of orders a front-placed order
+    /// pushed off the back of a full queue: the order last in line, which
+    /// may be a waiting one or the one the sim was carrying out. Separate
+    /// from `take_intent_capacity_rejections` because the shell says
+    /// something different for an accepted order that displaced an older
+    /// one.
+    pub fn take_intent_displacements(&mut self) -> u32 {
+        self.sim.take_intent_displacements()
+    }
+
     /// Arguments are sanitised here rather than trusted. See
     /// [`sanitize_hunger`] and [`sanitize_coord`] for what that means and
     /// why the sim crates are not the place to do it.
@@ -473,7 +483,7 @@ impl SimHandle {
     /// shapes of bad input reach this and all four return `false`:
     ///
     /// - **empty** - no variant index at all;
-    /// - **an unknown variant index** - a byte past the four `SimCommand`
+    /// - **an unknown variant index** - a byte past the seven `SimCommand`
     ///   declares, which is also what an OLDER shell sending a NEWER
     ///   format looks like;
     /// - **a truncated payload** - a variant index with its fields
@@ -497,8 +507,9 @@ impl SimHandle {
     /// # The cap is the bound on the queue itself
     ///
     /// `max_queued_intents` bounds what one sim can be told to do, and
-    /// nothing reaches it except a `UseObject` that resolved to a live
-    /// agent. Everything else a player can send - every `Select`, every
+    /// nothing reaches it except an order command (`UseObject`, `TalkTo`
+    /// or their front-placed twins) that resolved to a live agent.
+    /// Everything else a player can send - every `Select`, every
     /// `SetSpeed`, every command naming an index that no longer exists -
     /// lands in the staging queue and never touches an intent queue at
     /// all, so a JavaScript loop could grow this without limit. Paused play
@@ -3182,6 +3193,117 @@ mod boundary_tests {
         );
     }
 
+    /// `SimCommand::UseObjectFirst { agent, object, interaction }`: variant
+    /// 5, then the same three varints as `use_object_bytes`. Written by
+    /// hand for the reason the rest of this module gives ([L33]).
+    fn use_object_first_bytes(agent: u32, object: u32, interaction: u32) -> Vec<u8> {
+        assert!(
+            agent < 128 && object < 128 && interaction < 128,
+            "one-byte varints only"
+        );
+        vec![0x05, agent as u8, object as u8, interaction as u8]
+    }
+
+    /// `SimCommand::TalkToFirst { agent, target, interaction }`: variant 6.
+    fn talk_to_first_bytes(agent: u32, target: u32, interaction: u32) -> Vec<u8> {
+        assert!(
+            agent < 128 && target < 128 && interaction < 128,
+            "one-byte varints only"
+        );
+        vec![0x06, agent as u8, target as u8, interaction as u8]
+    }
+
+    /// The objects the agent at `agent` has queued, front first, as raw
+    /// entity indices - what the shell's plain-versus-Queue distinction
+    /// comes down to on this side of the boundary.
+    fn queued_objects_of(handle: &SimHandle, agent: u32) -> Vec<u32> {
+        let world = handle.sim.world();
+        let mut state = world
+            .try_query::<(terri_core::Entity, &terri_core::IntentQueue)>()
+            .expect("IntentQueue is registered eagerly in Sim::new");
+        state
+            .iter(world)
+            .find(|(entity, _)| entity.index_u32() == agent)
+            .map(|(_, queue)| {
+                queue
+                    .as_slice()
+                    .iter()
+                    .map(|intent| intent.object.index_u32())
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    #[test]
+    fn front_placed_orders_cross_the_boundary_and_land_ahead_of_appended_ones() {
+        // Variant bytes 5 and 6 decode to the front placements and the
+        // drain honours them: an appended fridge order, then a
+        // front-placed bed order and a front-placed talk, leave the talk
+        // first, the bed second and the fridge last.
+        let mut handle = SimHandle::new(8, 8);
+        assert!(handle.spawn_object(4.0, 4.0, "fridge"));
+        assert!(handle.spawn_object(6.0, 6.0, "bed"));
+        let agent = spawn_agent_at(&mut handle, 1.0, 1.0, 80.0);
+        let partner = spawn_agent_at(&mut handle, 1.0, 3.0, 80.0);
+        let (fridge, bed) = (0, 1);
+
+        assert!(handle.enqueue_command(&use_object_bytes(agent, fridge, 0)));
+        assert!(handle.enqueue_command(&use_object_first_bytes(agent, bed, 0)));
+        assert!(handle.enqueue_command(&talk_to_first_bytes(agent, partner, 0)));
+        handle.flush_commands();
+
+        assert_eq!(handle.queued_orders_of(agent), 3);
+        assert_eq!(
+            queued_objects_of(&handle, agent),
+            vec![partner, bed, fridge],
+            "each front placement lands ahead of everything before it"
+        );
+        assert_eq!(
+            handle.take_intent_capacity_rejections(),
+            0,
+            "nothing was refused on a queue with room"
+        );
+        assert_eq!(
+            handle.take_intent_displacements(),
+            0,
+            "and nothing fell off it"
+        );
+    }
+
+    #[test]
+    fn a_front_placement_onto_a_full_queue_reports_a_displacement_not_a_rejection() {
+        let mut handle = SimHandle::new(8, 8);
+        assert!(handle.spawn_object(4.0, 4.0, "fridge"));
+        let agent = spawn_agent_at(&mut handle, 1.0, 1.0, 80.0);
+        let cap = intent_cap(&handle);
+        for _ in 0..cap {
+            assert!(handle.enqueue_command(&use_object_bytes(agent, 0, 0)));
+        }
+        assert!(handle.enqueue_command(&use_object_first_bytes(agent, 0, 0)));
+        handle.flush_commands();
+
+        assert_eq!(
+            handle.queued_orders_of(agent),
+            cap,
+            "the queue stays at the cap"
+        );
+        assert_eq!(
+            handle.take_intent_capacity_rejections(),
+            0,
+            "the plain order was accepted, so nothing was refused"
+        );
+        assert_eq!(
+            handle.take_intent_displacements(),
+            1,
+            "and exactly one waiting order fell off the back"
+        );
+        assert_eq!(
+            handle.take_intent_displacements(),
+            0,
+            "one displacement must not be repeated on every rendered frame"
+        );
+    }
+
     #[test]
     fn flush_commands_preserves_an_in_flight_interpolation_pair() {
         let mut handle = SimHandle::new(8, 8);
@@ -3276,10 +3398,15 @@ mod boundary_tests {
 
         let cases: Vec<(&str, Vec<u8>)> = vec![
             ("empty - no variant index at all", vec![]),
+            // This row read `[0x04, 0x00]` from before `TalkTo` became
+            // variant 4, and then `[0x05, 0x00]` would have been the same
+            // trap once `UseObjectFirst` took 5: each is a TRUNCATED valid
+            // variant, still rejected, but no longer testing the unknown
+            // index its label names. The row has to track the enum's edge.
             (
-                "variant index 4, one past the four SimCommand declares; \
+                "variant index 7, one past the seven SimCommand declares; \
                  also what an older shell sending a newer format looks like",
-                vec![0x04, 0x00],
+                vec![0x07, 0x00],
             ),
             ("variant index 0xFF", vec![0xFF]),
             (
@@ -3336,8 +3463,9 @@ mod boundary_tests {
     #[test]
     fn the_staging_queue_is_capped_at_the_tuned_depth_rather_than_growing_without_bound() {
         // Nothing downstream bounds this queue. `max_queued_intents`
-        // bounds one sim's orders and is only ever reached by a
-        // `UseObject` that resolved to a live agent; every `Select`,
+        // bounds one sim's orders and is only ever reached by an order
+        // command (`UseObject`, `TalkTo` or their front-placed twins)
+        // that resolved to a live agent; every `Select`,
         // every `SetSpeed` and every command naming an index that no
         // longer exists lands here and touches no intent queue at all.
         // The commands below are deliberately of the kind that could

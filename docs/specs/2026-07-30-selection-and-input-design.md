@@ -1,8 +1,11 @@
 # Depth, Selection and the Input Model - Decisions
 
-Status: **all four are built.** All of it came out of one play session's
+Status: **all five are built.** The first four came out of one play session's
 reports, and all of it is goal item 10 - "at a glance: which sim is selected,
-what it is doing, what it is about to do, and why".
+what it is doing, what it is about to do, and why". The fifth,
+[I-plain-order-goes-first], came out of a 2026-09-13 report that Queue mode
+did not queue talks and that a plain order threw the queue away; it restates
+[I3]'s "replace" as "go first".
 
 ---
 
@@ -88,7 +91,14 @@ one.
 
 ---
 
-## [I3] Click redirects, ctrl-click queues. BUILT.
+## [I3] Click redirects, ctrl-click queues. BUILT; the "replace" half SUPERSEDED by [I-plain-order-goes-first].
+
+**Status note (2026-09-13).** The gesture split below stands: a plain click is
+the correction and the modifier is the plan. What "replace" meant has changed:
+a plain click no longer empties the queue with `CancelIntents` + `UseObject`;
+it sends `UseObjectFirst`, which puts the order at the front and keeps the
+waiting orders behind it. Read the table below as history and
+[I-plain-order-goes-first] as the current rule.
 
 **Reported:** clicking a second object while the sim is still walking should
 **redirect** it, and ctrl-click should add to the queue instead.
@@ -208,3 +218,132 @@ recorded here so they are not re-litigated:
 - **Right-clicking a sim, bare floor or a wall opens a menu of just "Never
   mind".** The cancel moved into the menu rather than being deleted, so a flyout
   that only appeared over furniture would take the binding away everywhere else.
+
+---
+
+## [I-plain-order-goes-first] A plain order goes to the front; only an explicit cancel empties the queue. BUILT.
+
+**Reported (2026-09-13):** with Queue on, or Ctrl held, picking Chat on a
+housemate five times gave one chat, not five. And giving a sim a plain order
+after queueing several threw the queued ones away.
+
+**Two defects, one decision.**
+
+The first was a shell rule: `dispatchMenuAction`'s talk branch sent a cancel
+before every talk order regardless of Queue mode, with a comment saying Queue
+mode "only applies to object actions". Every Chat pick therefore replaced the
+one before it. The glossary said Queue "appends each new order"; the code
+appended object orders and replaced talk orders.
+
+The second was [I3] itself. [I3] made a plain click a REPLACE: `CancelIntents`
+then `UseObject`, which empties the queue and cancels the running action. That
+was right about the common case being a correction and wrong about what a
+correction should cost: a player who queues four things and then clicks a fifth
+without the modifier loses all four. The plan and the correction were made to
+fight, and the correction always won.
+
+**Decision:**
+
+| input | effect |
+| --- | --- |
+| click an object, or pick a menu row, with Queue off | the order goes to the **front** of the queue; the sim drops what it is doing for it and the waiting orders resume behind it |
+| the same with Queue on, or Ctrl or Cmd held (on the click or on the menu row) | the order goes to the **back**, for objects and for talks alike |
+| Clear orders, or the flyout's Never mind | empties the queue and cancels the running action; the only thing that does |
+
+**Two new commands, `UseObjectFirst` and `TalkToFirst`**, appended to
+`SimCommand` as variants 5 and 6. A front placement is a fact about where the
+order lands, and [D-2] says such facts cross the boundary as data, so the
+simulation owns it: `drain_commands` shares one `place_intent` routine between
+the four order variants, and `serve_intents` already preempts the running
+interaction when a servable front intent appears, which is the whole of "drops
+what it is doing". A front intent that cannot be served yet (its object
+reserved by somebody else, its partner busy) waits at the front while the sim
+finishes what it was doing, exactly as a queued intent always has. The
+interrupted object or talk order stays in the queue and is re-served from the
+start when the front order completes.
+
+**The served intent is no longer always the front of the queue**, and two
+guards that assumed it was had to widen. `CancelIntents` decides whether to
+release the running commitment by matching the `Target` against ANY queued or
+staged intent, not only the front; otherwise a Clear orders pressed after a
+paused plain click emptied the queue and left the sim finishing the order it
+had just been told to drop. `tick_interactions` and `tick_social` pop the
+intent that just completed wherever it sits, via `IntentQueue::remove_first`;
+otherwise an action that finished while a blocked front order waited ahead of
+it survived its own completion and ran a second time later. Both were found by
+the adversarial review of the first build and are pinned below. The widening
+has a cost, accepted knowingly: an autonomous action that happens to equal ANY
+queued intent is treated as that intent being carried out, where before only
+the front intent was. It is reachable only when the action began before the
+orders arrived and the front order is blocked, and it is the same conflation
+the front-only rule already made, extended to the whole queue.
+
+**The served intent is always in the queue, and the drain keeps it so.** A
+run of `max_queued_intents` plain clicks on a full queue pushes the intent
+being carried out to the back and then off it. The moment that happens the
+drain releases the commitment itself, target and reservation, exactly as a
+cancel would; otherwise the commitment would have outlived every record that
+it was player-directed, and a later Clear orders would have left the sim
+finishing it. The release fires only when no copy of the served order remains
+queued (a duplicate order at the back falling off is not a lost order) and
+never for a chain step's sentinel target. Found by the second and third
+adversarial reviews and pinned by
+`a_front_placement_that_drops_the_served_intent_releases_its_commitment` and
+`dropping_a_duplicate_of_the_served_order_leaves_the_running_action_alone`.
+
+**A plain order mid-chain no longer abandons the chain.** The old cancel pair
+removed `ChainState` and `Carrying`; a front placement removes neither, so the
+interposed order runs and `advance_chains` then resumes the chain at its
+current step, item in hand. That is [M-4]'s preferred "resume instead of
+discard", reached by the route [I3]'s note above hoped for.
+`a_player_command_interrupts_and_the_chain_resumes` in `chain.rs` pins the
+resume. A chain is abandoned by the two cancel controls, or by starting
+another chain (front-placed or not), since two dinners at once is not a state
+the chain runtime has ([K5]); an ordinary object or talk order never abandons
+one.
+
+**Rejected: a `front` field appended to `UseObject` and `TalkTo`.** [I4]
+appended a field to `UseObject` while nothing was persisted. Saves exist now
+and carry the staged command log, and an appended field lengthens every saved
+byte sequence of that variant; a new variant leaves every earlier byte alone.
+The cost [I4] feared - two code paths for the cap, the fresh-queue staging and
+the serving guard - is paid once in `place_intent`, which every order variant
+calls.
+
+**Rejected: keep the cancel-then-use pair and only fix the talk branch.** That
+repairs the first report and leaves the second: Queue mode would then queue
+talks, and the first plain order would still discard them.
+
+**A front order onto a full queue drops the order LAST IN LINE** rather than
+being refused, and the drop is recorded as a DISPLACEMENT, a counter of its
+own beside the capacity rejections, so the shell says `That person's order
+queue was full, so the order last in line was dropped` rather than telling
+the player an order that went in was refused. "Last in line" and not "last
+waiting", because after enough plain clicks the order at the back is the one
+being carried out. The drop is written to the live region only; the
+`command.rejected` cue stays reserved for a refusal, per the audio design,
+and the click that caused the drop already played the staged cue for the
+order that went in. Refusing the plain order would
+refuse the correction a plain click exists to make; dropping the order that
+would have run last is the same "newest loses" rule an append follows. Without
+the drop a run of plain clicks would grow the queue without bound, since each
+lands ahead of the last.
+
+**What did not change.** The cap stays at `max_queued_intents` (4), so the
+fifth queued Chat is still refused out loud, per [A-queue-capacity-feedback];
+raising it is a one-line tuning change if five is wanted. Ctrl and Cmd both
+append, per [I4]'s macOS note. A plain click still names interaction 0.
+
+**Pinned by:** `a_front_order_preempts_the_running_interaction_and_the_interrupted_order_resumes_afterwards`,
+`a_front_order_on_a_full_queue_drops_the_last_waiting_order_and_reports_it`,
+`a_cancel_still_empties_a_queue_that_holds_front_placed_orders`,
+`a_cancel_after_a_front_placement_still_releases_the_running_directed_action`,
+`a_front_placement_that_drops_the_served_intent_releases_its_commitment`
+and `a_directed_action_that_finishes_while_a_blocked_front_order_waits_is_popped_once`
+in `crates/terri-sim/src/systems/command.rs`;
+`a_directed_talk_that_finishes_while_a_blocked_front_order_waits_is_popped_once`,
+`a_run_of_queued_chat_orders_runs_as_that_many_separate_conversations_in_sequence`
+and `a_plain_talk_order_goes_ahead_of_the_queue_and_the_queued_order_resumes`
+in `crates/terri-sim/src/systems/social.rs`; the `dispatchMenuAction` and
+`handleLeftClick` suites in `web/tests/input.test.ts`; and the release-WASM
+byte twins in `web/tests/bridge.test.ts`.

@@ -27,6 +27,7 @@ use crate::Content;
 #[derive(Resource, Debug, Default)]
 pub struct CommandFeedback {
     intent_capacity_rejections: u32,
+    intent_displacements: u32,
 }
 
 impl CommandFeedback {
@@ -34,8 +35,21 @@ impl CommandFeedback {
         self.intent_capacity_rejections = self.intent_capacity_rejections.saturating_add(1);
     }
 
+    /// A front placement onto a full queue was ACCEPTED and the order
+    /// that would have run last was dropped to make room. Counted apart
+    /// from a rejection because the shell says something different for
+    /// each: "your order was refused" is the wrong sentence for "your
+    /// order went in and an older one fell off".
+    fn record_intent_displacement(&mut self) {
+        self.intent_displacements = self.intent_displacements.saturating_add(1);
+    }
+
     pub fn take_intent_capacity_rejections(&mut self) -> u32 {
         std::mem::take(&mut self.intent_capacity_rejections)
+    }
+
+    pub fn take_intent_displacements(&mut self) -> u32 {
+        std::mem::take(&mut self.intent_displacements)
     }
 }
 
@@ -72,6 +86,192 @@ impl CommandFeedback {
 /// whatever order the query yields.
 fn resolve(index: u32, mut live: impl Iterator<Item = Entity>) -> Option<Entity> {
     live.find(|entity| entity.index_u32() == index)
+}
+
+/// Where a new order lands in the agent's queue - [I-plain-order-goes-first]
+/// in `docs/specs/2026-07-30-selection-and-input-design.md`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Placement {
+    /// After everything already waiting: Queue mode, or Ctrl or Cmd held.
+    Back,
+    /// Ahead of everything already waiting: a plain click or menu row. The
+    /// sim drops what it is doing for this order as soon as `serve_intents`
+    /// can serve it (a blocked front order waits while the current action
+    /// carries on) and resumes the rest afterwards.
+    Front,
+}
+
+impl Placement {
+    /// The placement a command asks for. Commands that carry no order
+    /// report `Back`, which nothing reads.
+    fn of(command: &SimCommand) -> Self {
+        match command {
+            SimCommand::UseObjectFirst { .. } | SimCommand::TalkToFirst { .. } => Self::Front,
+            SimCommand::Select(_)
+            | SimCommand::UseObject { .. }
+            | SimCommand::CancelIntents { .. }
+            | SimCommand::SetSpeed(_)
+            | SimCommand::TalkTo { .. } => Self::Back,
+        }
+    }
+}
+
+/// Puts `intent` into `queue` at `placement`, holding the queue at `cap`.
+///
+/// **An append is refused at the cap, not trimmed.** See
+/// `max_queued_intents` in content/tuning.toml for why the overflow drops
+/// the newest rather than the oldest.
+///
+/// **A front placement is never refused; the BACK intent is dropped to
+/// make room.** A plain order is the player's correction, and a full
+/// queue is the one moment it matters most that the correction lands.
+/// The dropped intent is the one that would have been served last, which
+/// is the same "newest loses" rule an append follows, and the drop is
+/// recorded as a DISPLACEMENT - not a rejection, since the new order was
+/// accepted - so the shell says out loud that an older order fell off.
+/// Without the drop a run of plain clicks would grow the queue without
+/// bound, since each one lands ahead of the last.
+///
+/// Returns the intent a front placement dropped, if any, so the caller
+/// can release the sim's commitment when the dropped intent is the one
+/// being carried out - see `place_intent`.
+fn place_in(
+    queue: &mut IntentQueue,
+    intent: Intent,
+    placement: Placement,
+    cap: usize,
+    feedback: &mut CommandFeedback,
+) -> Option<Intent> {
+    match placement {
+        Placement::Back => {
+            if queue.len() < cap {
+                queue.push(intent);
+            } else {
+                feedback.record_intent_capacity_rejection();
+            }
+            None
+        }
+        Placement::Front => {
+            let displaced = if queue.len() >= cap {
+                feedback.record_intent_displacement();
+                queue.pop_back()
+            } else {
+                None
+            };
+            queue.push_front(intent);
+            displaced
+        }
+    }
+}
+
+/// Releases the commitment `target` names: the object's or partner's
+/// reservation, the walk, and any running interaction or conversation.
+/// What a cancel does to a directed action, and what a front placement
+/// does when it drops the intent being carried out off the back of a
+/// full queue.
+///
+/// **`clear()` alone is not a cancel.** A cleared queue with a live
+/// reservation leaves the object claimed by a sim that is no longer
+/// coming, and `Eating` without a `Target` drops the agent out of
+/// `tick_interactions`' query entirely - so the interaction would never
+/// end, `select_action` would skip the agent for ever on its
+/// `Without<Eating>`, and the sim would freeze while its needs drained.
+/// That is [L17] reached by a button rather than by a distance metric.
+fn release_commitment(commands: &mut Commands, agent: Entity, target: Target) {
+    // try_remove for the same reason `tick_interactions` uses it:
+    // `Commands::entity` does not validate, so a `Target` naming an
+    // entity that has gone away would otherwise route the removal to
+    // the command error handler.
+    commands.entity(target.object).try_remove::<Reserved>();
+    commands
+        .entity(agent)
+        .remove::<Target>()
+        .remove::<Path>()
+        .remove::<Eating>()
+        // Reachable since TalkTo: a directed sim can be mid-conversation
+        // when the release lands, and a Socialising left behind with no
+        // Target is a talk tick_social finishes against nobody. The
+        // Reserved release above already freed the partner, and
+        // tick_social's disturbed check would self-heal one tick later -
+        // this makes the release whole on its own tick instead.
+        .remove::<terri_core::Socialising>()
+        .remove::<terri_core::ConversationVoice>()
+        // A fumble belongs to the attempt; ending the attempt closes it
+        // unfinished, unlearned.
+        .remove::<terri_core::Fumbled>();
+}
+
+/// Places one resolved intent for `agent`, whether its queue is live, was
+/// staged earlier in this same batch, or does not exist yet.
+///
+/// One routine for `UseObject`, `TalkTo` and their front-placed twins, so
+/// the cap, the fresh-queue staging and the capacity report are each a
+/// single code path - the reason [I4] gave for not splitting `UseObject`
+/// in two, kept now that the split has happened for a different reason.
+///
+/// **A front placement that drops the intent being carried out releases
+/// that commitment here, on the spot.** The served intent is normally
+/// somewhere in the queue; that is what the cancel's serving guard and
+/// the completion pops rely on. A run of plain clicks on a full queue
+/// pushes it to the back and then off, and once it is gone nothing else
+/// would ever release its target and reservation: a following Clear
+/// orders would find no queued match and leave the sim finishing an
+/// order the player had dropped, and at a cap of 1 every plain click
+/// would do this. Releasing at the moment of the drop restores the
+/// invariant that a directed sim's commitment is always in its queue.
+/// `serve_intents` then serves the new front on this same tick.
+///
+/// The type_complexity allow is `drain_commands`'s own query type, passed
+/// through; an alias would name it once and read it nowhere. The arity
+/// allow is for the same reason `tick_social` carries one: each argument
+/// is a distinct borrow the drain already holds, and bundling them into a
+/// struct would be a struct with one caller.
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
+fn place_intent(
+    commands: &mut Commands,
+    agents: &mut Query<(Entity, Option<&mut IntentQueue>, Option<&Target>), With<Agent>>,
+    fresh: &mut Vec<(Entity, IntentQueue)>,
+    feedback: &mut CommandFeedback,
+    cap: usize,
+    agent: Entity,
+    intent: Intent,
+    placement: Placement,
+) {
+    // What fell off AND is no longer queued anywhere. A dropped intent
+    // that has another copy still in the queue is not a lost order: the
+    // sim is still under that order, so its commitment stands. Without
+    // this filter a queue of `[fridge, bed, bed, fridge]` losing its back
+    // `fridge` would abort the meal the front `fridge` still asks for.
+    let gone = if let Ok((_, Some(mut queue), _)) = agents.get_mut(agent) {
+        place_in(&mut queue, intent, placement, cap, feedback).filter(|d| !queue.contains(*d))
+    } else if let Some((_, staged)) = fresh.iter_mut().find(|(e, _)| *e == agent) {
+        place_in(staged, intent, placement, cap, feedback).filter(|d| !staged.contains(*d))
+    } else {
+        // A new queue holds its first order whatever the placement asked
+        // for, and the cap is at least 1 by content validation
+        // (`ZeroQueuedIntents`), so this never trims.
+        let mut queue = IntentQueue::default();
+        let displaced = place_in(&mut queue, intent, placement, cap, feedback);
+        fresh.push((agent, queue));
+        displaced
+    };
+    let Some(gone) = gone else {
+        return;
+    };
+    let held = agents
+        .get(agent)
+        .ok()
+        .and_then(|(_, _, target)| target.copied());
+    if let Some(target) = held {
+        // A chain step's Target carries the `CHAIN_STEP` sentinel, which
+        // no shell-produced intent names; a crafted command that did must
+        // not free a station mid-step. Chains are abandoned only by an
+        // explicit cancel, per [K4].
+        let same = target.object == gone.object && target.interaction == gone.interaction;
+        if same && target.interaction != crate::systems::chain::CHAIN_STEP {
+            release_commitment(commands, agent, target);
+        }
+    }
 }
 
 /// Applies every queued player command, in the order the player issued
@@ -146,10 +346,13 @@ pub fn drain_commands(
 
     // Intents for agents that do not carry an `IntentQueue` yet. An agent
     // gains one the first time it is directed, so this is the ordinary
-    // case rather than an edge case.
-    let mut fresh: Vec<(Entity, Vec<Intent>)> = Vec::new();
+    // case rather than an edge case. Staged as the real queue type so
+    // `place_intent` applies one placement rule to a live queue and to a
+    // staged one.
+    let mut fresh: Vec<(Entity, IntentQueue)> = Vec::new();
 
     for command in issued {
+        let placement = Placement::of(&command);
         match command {
             // A stale index leaves the selection ALONE rather than
             // clearing it. Clearing would make a click on a sim that has
@@ -165,6 +368,11 @@ pub fn drain_commands(
             SimCommand::Select(None) => selection = None,
 
             SimCommand::UseObject {
+                agent,
+                object,
+                interaction,
+            }
+            | SimCommand::UseObjectFirst {
                 agent,
                 object,
                 interaction,
@@ -196,41 +404,31 @@ pub fn drain_commands(
                     object,
                     interaction,
                 };
-
-                // **Refused at the cap, not trimmed.** See
-                // `max_queued_intents` in content/tuning.toml for why the
-                // overflow drops the newest rather than the oldest.
-                if let Ok((_, Some(mut queue), _)) = agents.get_mut(agent) {
-                    if queue.len() < cap {
-                        queue.push(intent);
-                    } else {
-                        feedback.record_intent_capacity_rejection();
-                    }
-                } else if let Some((_, staged)) = fresh.iter_mut().find(|(e, _)| *e == agent) {
-                    if staged.len() < cap {
-                        staged.push(intent);
-                    } else {
-                        feedback.record_intent_capacity_rejection();
-                    }
-                } else {
-                    fresh.push((agent, vec![intent]));
-                }
+                place_intent(
+                    &mut commands,
+                    &mut agents,
+                    &mut fresh,
+                    &mut feedback,
+                    cap,
+                    agent,
+                    intent,
+                    placement,
+                );
             }
 
             SimCommand::CancelIntents { agent } => {
                 let Some(agent) = resolve(agent, agents.iter().map(|(entity, _, _)| entity)) else {
                     continue;
                 };
-                // A staged front is already part of the ordered command
-                // stream even though `Commands` has not inserted its queue
-                // yet. Capture it before removal so a cancel makes the same
+                // A staged queue is already part of the ordered command
+                // stream even though `Commands` has not inserted it yet.
+                // Capture it before clearing so a cancel makes the same
                 // release decision whether UseObject and CancelIntents land
                 // in one drain batch or two paused-frame batches.
-                let staged_front = fresh
+                let staged: Option<IntentQueue> = fresh
                     .iter()
                     .find(|(entity, _)| *entity == agent)
-                    .and_then(|(_, intents)| intents.first())
-                    .copied();
+                    .map(|(_, intents)| intents.clone());
                 // Intents staged earlier in this same batch are part of
                 // what is being cancelled. Keep the staged queue itself and
                 // empty it, because a split drain first inserts that queue and
@@ -280,15 +478,25 @@ pub fn drain_commands(
                 // is what fails on the `||`; it was found by the mutation
                 // sweep back when every fixture had BOTH fields agreeing,
                 // which is [L34].
-                let serving_intent = queue
-                    .as_deref()
-                    .and_then(IntentQueue::front)
-                    .or(staged_front);
-                let serving = match (serving_intent, target) {
-                    (Some(intent), Some(target)) => {
-                        intent.object == target.object && intent.interaction == target.interaction
+                //
+                // **Matched against the WHOLE queue, live or staged, not
+                // only its front.** A front placement lands ahead of the
+                // intent being served, and while paused nothing re-serves
+                // in between, so a Clear orders pressed after a paused
+                // plain click finds the served intent second in line. A
+                // front-only match would then empty the queue and leave
+                // the sim finishing, or walking to, the order it was just
+                // told to drop. See `IntentQueue::contains`.
+                let serving = match target {
+                    Some(target) => {
+                        let carrying_out = Intent {
+                            object: target.object,
+                            interaction: target.interaction,
+                        };
+                        queue.as_deref().is_some_and(|q| q.contains(carrying_out))
+                            || staged.is_some_and(|q| q.contains(carrying_out))
                     }
-                    _ => false,
+                    None => false,
                 };
                 let released = target.copied();
 
@@ -297,42 +505,9 @@ pub fn drain_commands(
                 }
 
                 if serving {
-                    // **`clear()` alone is not a cancel.** A cleared queue
-                    // with a live reservation leaves the object claimed by
-                    // a sim that is no longer coming, and `Eating` without
-                    // a `Target` drops the agent out of
-                    // `tick_interactions`' query entirely - so the
-                    // interaction would never end, `select_action` would
-                    // skip the agent for ever on its `Without<Eating>`,
-                    // and the sim would freeze while its needs drained.
-                    // That is [L17] reached by a button rather than by a
-                    // distance metric.
                     if let Some(target) = released {
-                        // try_remove for the same reason
-                        // `tick_interactions` uses it: `Commands::entity`
-                        // does not validate, so a `Target` naming an
-                        // entity that has gone away would otherwise route
-                        // the removal to the command error handler.
-                        commands.entity(target.object).try_remove::<Reserved>();
+                        release_commitment(&mut commands, agent, target);
                     }
-                    commands
-                        .entity(agent)
-                        .remove::<Target>()
-                        .remove::<Path>()
-                        .remove::<Eating>()
-                        // Reachable since TalkTo: a directed sim can be
-                        // mid-conversation when the cancel lands, and a
-                        // Socialising left behind with no Target is a
-                        // talk tick_social finishes against nobody. The
-                        // Reserved release above already freed the
-                        // partner, and tick_social's disturbed check
-                        // would self-heal one tick later - this makes
-                        // the cancel whole on its own tick instead.
-                        .remove::<terri_core::Socialising>()
-                        .remove::<terri_core::ConversationVoice>()
-                        // A fumble belongs to the attempt; cancelling
-                        // the attempt closes it unfinished, unlearned.
-                        .remove::<terri_core::Fumbled>();
                 }
 
                 // **A chain is abandoned by an explicit cancel
@@ -362,6 +537,11 @@ pub fn drain_commands(
                 agent,
                 target,
                 interaction,
+            }
+            | SimCommand::TalkToFirst {
+                agent,
+                target,
+                interaction,
             } => {
                 let Some(agent) = resolve(agent, agents.iter().map(|(entity, _, _)| entity)) else {
                     continue;
@@ -388,21 +568,16 @@ pub fn drain_commands(
                     object: target,
                     interaction,
                 };
-                if let Ok((_, Some(mut queue), _)) = agents.get_mut(agent) {
-                    if queue.len() < cap {
-                        queue.push(intent);
-                    } else {
-                        feedback.record_intent_capacity_rejection();
-                    }
-                } else if let Some((_, staged)) = fresh.iter_mut().find(|(e, _)| *e == agent) {
-                    if staged.len() < cap {
-                        staged.push(intent);
-                    } else {
-                        feedback.record_intent_capacity_rejection();
-                    }
-                } else {
-                    fresh.push((agent, vec![intent]));
-                }
+                place_intent(
+                    &mut commands,
+                    &mut agents,
+                    &mut fresh,
+                    &mut feedback,
+                    cap,
+                    agent,
+                    intent,
+                    placement,
+                );
             }
 
             // **Speed changes no simulation state.** It is a tick
@@ -421,10 +596,8 @@ pub fn drain_commands(
         }
     }
 
-    for (agent, intents) in fresh {
-        commands
-            .entity(agent)
-            .insert(IntentQueue::from_intents(intents));
+    for (agent, queue) in fresh {
+        commands.entity(agent).insert(queue);
     }
 
     // The selection, written once. Removing first and inserting second is
@@ -2518,5 +2691,646 @@ mod tests {
             a,
             "restoring the script must restore the digest"
         );
+    }
+
+    // ---- Front placement ([I-plain-order-goes-first]) ------------------
+    //
+    // A plain click or a plain menu row sends `UseObjectFirst` (or
+    // `TalkToFirst`, pinned beside the talk tests in `social.rs`). The
+    // order lands AHEAD of everything waiting, the sim drops what it is
+    // doing for it, and the interrupted orders resume when it is done.
+    // Only `CancelIntents` empties a queue.
+
+    fn intents_of(sim: &Sim, agent: Entity) -> Vec<(Entity, u32)> {
+        queue_of(sim, agent)
+            .as_slice()
+            .iter()
+            .map(|intent| (intent.object, intent.interaction))
+            .collect()
+    }
+
+    fn use_object(agent: Entity, object: Entity) -> SimCommand {
+        SimCommand::UseObject {
+            agent: agent.index_u32(),
+            object: object.index_u32(),
+            interaction: 0,
+        }
+    }
+
+    fn use_object_first(agent: Entity, object: Entity) -> SimCommand {
+        SimCommand::UseObjectFirst {
+            agent: agent.index_u32(),
+            object: object.index_u32(),
+            interaction: 0,
+        }
+    }
+
+    fn take_rejections(sim: &mut Sim) -> u32 {
+        sim.world_mut()
+            .resource_mut::<CommandFeedback>()
+            .take_intent_capacity_rejections()
+    }
+
+    fn take_displacements(sim: &mut Sim) -> u32 {
+        sim.world_mut()
+            .resource_mut::<CommandFeedback>()
+            .take_intent_displacements()
+    }
+
+    #[test]
+    fn a_front_order_goes_ahead_of_everything_waiting_and_keeps_the_rest_in_order() {
+        // Two orders waiting, then a front-placed third. The new order
+        // names the fridge so that the three placements a mutant could
+        // choose - front, second, back - each produce a different
+        // sequence: `[fridge, bed, fridge]`, `[bed, fridge, fridge]` and
+        // `[bed, fridge, fridge]` respectively, and only the first is
+        // asserted.
+        let (mut sim, bed, fridge, agent) = scenario();
+        enqueue(&mut sim, use_object(agent, bed));
+        enqueue(&mut sim, use_object(agent, fridge));
+        drain_only(&mut sim);
+        assert_eq!(
+            intents_of(&sim, agent),
+            vec![(bed, 0), (fridge, 0)],
+            "precondition: two appended orders in issue order"
+        );
+
+        enqueue(&mut sim, use_object_first(agent, fridge));
+        drain_only(&mut sim);
+
+        assert_eq!(
+            intents_of(&sim, agent),
+            vec![(fridge, 0), (bed, 0), (fridge, 0)],
+            "the front order is served next and the waiting orders keep \
+             their order behind it"
+        );
+        assert_eq!(
+            take_rejections(&mut sim),
+            0,
+            "a front order on a queue with room drops nothing"
+        );
+    }
+
+    #[test]
+    fn a_front_order_preempts_the_running_interaction_and_the_interrupted_order_resumes_afterwards()
+    {
+        // The whole player-visible claim, through the real schedule: a sim
+        // mid-way through a directed action is sent elsewhere by a plain
+        // click, does that, and then comes back to finish what it was
+        // told first. Under the old cancel-then-use pair the bed order
+        // would have been gone for good.
+        let (mut sim, bed, fridge, agent) = scenario();
+        enqueue(&mut sim, use_object(agent, bed));
+        tick_until_interacting(&mut sim, agent);
+        assert_eq!(
+            target_of(&sim, agent).map(|t| t.object),
+            Some(bed),
+            "precondition: the sim is in the bed under orders"
+        );
+        assert!(sim.world().get::<Reserved>(bed).is_some());
+
+        enqueue(&mut sim, use_object_first(agent, fridge));
+        sim.tick();
+
+        assert_eq!(
+            target_of(&sim, agent).map(|t| t.object),
+            Some(fridge),
+            "the plain order takes effect on the tick it arrives"
+        );
+        assert!(
+            sim.world().get::<Eating>(agent).is_none(),
+            "the bed interaction was interrupted rather than finished first"
+        );
+        assert!(
+            sim.world().get::<Reserved>(bed).is_none(),
+            "the interrupted bed is released while the sim is away"
+        );
+        assert_eq!(
+            intents_of(&sim, agent),
+            vec![(fridge, 0), (bed, 0)],
+            "the interrupted order is still waiting behind the new one"
+        );
+
+        // Run the fridge order out and watch the bed order come back.
+        // Bounded, per [L15]: one walk each way plus two interactions is
+        // well inside 400 ticks on a 16x16 lot.
+        let mut ate = false;
+        let mut resumed = false;
+        for _ in 0..400 {
+            sim.tick();
+            if sim.world().get::<Eating>(agent).is_some()
+                && target_of(&sim, agent).map(|t| t.object) == Some(fridge)
+            {
+                ate = true;
+            }
+            if ate && target_of(&sim, agent).map(|t| t.object) == Some(bed) {
+                resumed = true;
+                break;
+            }
+        }
+        assert!(ate, "the front order must actually run");
+        assert!(
+            resumed,
+            "once the front order finished, the sim must return to the \
+             order it was interrupted in"
+        );
+        assert_eq!(
+            intents_of(&sim, agent),
+            vec![(bed, 0)],
+            "the finished front order was popped and only the resumed \
+             order remains"
+        );
+        assert!(
+            sim.world().get::<Reserved>(fridge).is_none(),
+            "the finished fridge is released"
+        );
+    }
+
+    #[test]
+    fn a_front_order_on_a_full_queue_drops_the_last_waiting_order_and_reports_it() {
+        // Fill to the cap with beds and one fridge at the BACK, then place
+        // a fridge order at the front. Which entry made room is visible in
+        // the back of the queue: dropping the back (asserted) leaves a bed
+        // there; dropping the front would leave the old fridge there; and
+        // refusing the new order would leave a bed at the FRONT.
+        let (mut sim, bed, fridge, agent) = scenario();
+        for _ in 1..cap() {
+            enqueue(&mut sim, use_object(agent, bed));
+        }
+        enqueue(&mut sim, use_object(agent, fridge));
+        drain_only(&mut sim);
+        assert_eq!(queue_of(&sim, agent).len(), cap(), "precondition: full");
+        assert_eq!(
+            intents_of(&sim, agent).last().copied(),
+            Some((fridge, 0)),
+            "precondition: the fridge is the last order waiting"
+        );
+        assert_eq!(
+            take_rejections(&mut sim),
+            0,
+            "precondition: nothing refused yet"
+        );
+
+        enqueue(&mut sim, use_object_first(agent, fridge));
+        drain_only(&mut sim);
+
+        let queue = intents_of(&sim, agent);
+        assert_eq!(queue.len(), cap(), "the queue stays at the cap");
+        assert_eq!(
+            queue.first().copied(),
+            Some((fridge, 0)),
+            "the plain order is never refused: it is at the front"
+        );
+        assert_eq!(
+            queue.last().copied(),
+            Some((bed, 0)),
+            "the order that would have run LAST is the one that fell off"
+        );
+        assert_eq!(
+            take_displacements(&mut sim),
+            1,
+            "the dropped order is reported as a displacement, so the shell \
+             can say an older order fell off"
+        );
+        assert_eq!(
+            take_rejections(&mut sim),
+            0,
+            "and NOT as a refusal: the plain order was accepted"
+        );
+    }
+
+    #[test]
+    fn a_cancel_after_a_front_placement_still_releases_the_running_directed_action() {
+        // Found by the adversarial review of the first build. The cancel's
+        // "serving" guard compared the Target with the FRONT intent, which
+        // was the served intent for as long as every order appended. A
+        // front placement puts a new intent ahead of the served one, and
+        // while paused nothing re-serves in between: Clear orders pressed
+        // then emptied the queue and left the sim finishing the fridge
+        // meal it had just been told to drop. Two routes, because the
+        // guard reads the live queue on one and the staged queue on the
+        // other: the paused two-drain route, and a fresh agent whose front
+        // placement and cancel land in one batch.
+        let (mut sim, bed, fridge, agent) = scenario();
+        enqueue(&mut sim, use_object(agent, fridge));
+        tick_until_interacting(&mut sim, agent);
+        assert_eq!(target_of(&sim, agent).map(|t| t.object), Some(fridge));
+
+        // Paused: the plain click drains alone, then Clear orders drains
+        // alone. serve_intents never runs between them.
+        enqueue(&mut sim, use_object_first(agent, bed));
+        drain_only(&mut sim);
+        assert_eq!(
+            intents_of(&sim, agent),
+            vec![(bed, 0), (fridge, 0)],
+            "precondition: the served fridge order is second in line"
+        );
+        enqueue(
+            &mut sim,
+            SimCommand::CancelIntents {
+                agent: agent.index_u32(),
+            },
+        );
+        drain_only(&mut sim);
+
+        assert!(queue_of(&sim, agent).is_empty());
+        assert!(
+            target_of(&sim, agent).is_none(),
+            "the cancelled meal must stop; a Target left behind means the \
+             sim finishes an order the player just cleared"
+        );
+        assert!(sim.world().get::<Eating>(agent).is_none());
+        assert!(
+            sim.world().get::<Reserved>(fridge).is_none(),
+            "and the fridge is released"
+        );
+
+        // One batch, fresh agent: the staged queue holds the served intent
+        // behind a front placement when the cancel looks.
+        let (mut sim, bed, fridge, agent) = scenario();
+        enqueue(&mut sim, use_object(agent, fridge));
+        tick_until_interacting(&mut sim, agent);
+        // Remove the live queue so the next batch stages a fresh one.
+        sim.world_mut().entity_mut(agent).remove::<IntentQueue>();
+        enqueue(&mut sim, use_object(agent, fridge));
+        enqueue(&mut sim, use_object_first(agent, bed));
+        enqueue(
+            &mut sim,
+            SimCommand::CancelIntents {
+                agent: agent.index_u32(),
+            },
+        );
+        drain_only(&mut sim);
+        assert!(
+            target_of(&sim, agent).is_none() && sim.world().get::<Reserved>(fridge).is_none(),
+            "the staged-queue route must release the commitment too"
+        );
+    }
+
+    #[test]
+    fn a_front_placement_that_drops_the_served_intent_releases_its_commitment() {
+        // Found by the second adversarial review. `cap()` plain clicks on
+        // a sim carrying out a directed meal push that meal's intent to
+        // the back and then off the queue. Once it is gone no queued
+        // record says the meal was player-directed, so unless the drain
+        // releases it at the drop, a later Clear orders leaves the sim
+        // finishing a meal the player dropped. Two phases: `cap() - 1`
+        // clicks leave the served intent at the back and released
+        // NOTHING; the next click drops it and releases everything.
+        let (mut sim, bed, fridge, agent) = scenario();
+        enqueue(&mut sim, use_object(agent, fridge));
+        tick_until_interacting(&mut sim, agent);
+        assert_eq!(target_of(&sim, agent).map(|t| t.object), Some(fridge));
+
+        for _ in 1..cap() {
+            enqueue(&mut sim, use_object_first(agent, bed));
+        }
+        drain_only(&mut sim);
+        assert_eq!(
+            intents_of(&sim, agent).last().copied(),
+            Some((fridge, 0)),
+            "precondition: the served meal is now last in line, still queued"
+        );
+        assert_eq!(
+            take_displacements(&mut sim),
+            0,
+            "precondition: nothing dropped yet"
+        );
+        assert!(
+            sim.world().get::<Eating>(agent).is_some()
+                && sim.world().get::<Reserved>(fridge).is_some(),
+            "a drop that has not happened releases nothing"
+        );
+
+        enqueue(&mut sim, use_object_first(agent, bed));
+        drain_only(&mut sim);
+
+        assert_eq!(take_displacements(&mut sim), 1);
+        assert!(
+            !queue_of(&sim, agent).contains(Intent {
+                object: fridge,
+                interaction: 0
+            }),
+            "the served meal's intent fell off the back"
+        );
+        assert!(
+            target_of(&sim, agent).is_none() && sim.world().get::<Eating>(agent).is_none(),
+            "and the meal it stood for is released on the spot, so the sim \
+             never carries out an order that is no longer in its queue"
+        );
+        assert!(
+            sim.world().get::<Reserved>(fridge).is_none(),
+            "with the fridge freed"
+        );
+
+        // The whole point: Clear orders afterwards has nothing left to
+        // miss. Drained alone, so what is asserted is the drain's own
+        // state: a full tick would let autonomy choose the fridge again
+        // for the still-hungry sim, which is its own choice and not the
+        // dropped order resuming.
+        enqueue(
+            &mut sim,
+            SimCommand::CancelIntents {
+                agent: agent.index_u32(),
+            },
+        );
+        drain_only(&mut sim);
+        assert!(queue_of(&sim, agent).is_empty());
+        assert!(
+            target_of(&sim, agent).is_none() && sim.world().get::<Reserved>(fridge).is_none(),
+            "nothing of the dropped meal survives the cancel"
+        );
+    }
+
+    #[test]
+    fn dropping_a_duplicate_of_the_served_order_leaves_the_running_action_alone() {
+        // Found by the third adversarial review. The drop-release above
+        // must fire only when NO copy of the served order remains: a
+        // queue `[fridge, bed, bed, fridge]` losing its back `fridge` to
+        // a plain click is still under the front `fridge` order, so the
+        // meal it stands for carries on. The front-placed bed is held by
+        // someone else, so serve_intents cannot preempt the meal either
+        // and the only thing that could end it is a wrong release.
+        assert!(cap() >= 3, "the fixture needs room for a duplicate");
+        let (mut sim, bed, fridge, agent) = scenario();
+        enqueue(&mut sim, use_object(agent, fridge));
+        tick_until_interacting(&mut sim, agent);
+        for _ in 0..cap() - 2 {
+            enqueue(&mut sim, use_object(agent, bed));
+        }
+        enqueue(&mut sim, use_object(agent, fridge));
+        drain_only(&mut sim);
+        assert_eq!(queue_of(&sim, agent).len(), cap(), "precondition: full");
+        assert_eq!(
+            intents_of(&sim, agent).last().copied(),
+            Some((fridge, 0)),
+            "precondition: the duplicate fridge order is at the back"
+        );
+        sim.world_mut().entity_mut(bed).insert(Reserved);
+
+        enqueue(&mut sim, use_object_first(agent, bed));
+        drain_only(&mut sim);
+
+        assert_eq!(take_displacements(&mut sim), 1, "the duplicate fell off");
+        assert_eq!(
+            intents_of(&sim, agent).first().copied(),
+            Some((bed, 0)),
+            "and the plain order is at the front"
+        );
+        assert!(
+            queue_of(&sim, agent).contains(Intent {
+                object: fridge,
+                interaction: 0
+            }),
+            "precondition: the served fridge order is still queued"
+        );
+        assert!(
+            sim.world().get::<Eating>(agent).is_some()
+                && target_of(&sim, agent).map(|t| t.object) == Some(fridge)
+                && sim.world().get::<Reserved>(fridge).is_some(),
+            "the meal the sim is still under orders for must carry on"
+        );
+    }
+
+    #[test]
+    fn dropping_an_order_that_is_not_the_served_one_leaves_the_running_action_alone() {
+        // Found by the CI mutation sweep: nothing dropped an intent that
+        // merely SHARED a field with the running commitment. The served
+        // fridge meal is interaction 0 and so is the bed order that falls
+        // off, so a release keyed on the interaction alone, or on either
+        // field, would abort the meal; keyed on both it must not.
+        //
+        // The dropped `bed/0` has to be the ONLY copy of itself, or the
+        // "a copy remains" guard hides the release rule from the test; the
+        // other bed orders therefore carry interaction 1. The drain copies
+        // an interaction index without checking it ([I4]), and `drain_only`
+        // never serves, so a bed row that does not exist is fine here.
+        let (mut sim, bed, fridge, agent) = scenario();
+        let bed_row_one = SimCommand::UseObject {
+            agent: agent.index_u32(),
+            object: bed.index_u32(),
+            interaction: 1,
+        };
+        enqueue(&mut sim, use_object(agent, fridge));
+        tick_until_interacting(&mut sim, agent);
+        for _ in 2..cap() {
+            enqueue(&mut sim, bed_row_one.clone());
+        }
+        enqueue(&mut sim, use_object(agent, bed));
+        drain_only(&mut sim);
+        assert_eq!(queue_of(&sim, agent).len(), cap(), "precondition: full");
+        assert_eq!(
+            intents_of(&sim, agent).last().copied(),
+            Some((bed, 0)),
+            "precondition: a bed order, same interaction index as the meal, is last"
+        );
+
+        enqueue(
+            &mut sim,
+            SimCommand::UseObjectFirst {
+                agent: agent.index_u32(),
+                object: bed.index_u32(),
+                interaction: 1,
+            },
+        );
+        drain_only(&mut sim);
+        assert!(
+            !queue_of(&sim, agent).contains(Intent {
+                object: bed,
+                interaction: 0
+            }),
+            "precondition: no copy of the dropped order remains"
+        );
+
+        assert_eq!(
+            take_displacements(&mut sim),
+            1,
+            "the last bed order fell off"
+        );
+        assert!(
+            sim.world().get::<Eating>(agent).is_some()
+                && target_of(&sim, agent).map(|t| t.object) == Some(fridge)
+                && sim.world().get::<Reserved>(fridge).is_some(),
+            "the meal must carry on: the dropped order named another object"
+        );
+    }
+
+    #[test]
+    fn a_staged_queue_releases_the_served_intent_it_drops_and_keeps_a_copy_it_still_holds() {
+        // The staged-queue twin of the two live-queue tests above, found
+        // by the CI mutation sweep: a fresh agent's orders all land in the
+        // staged queue within one batch, and its "no copy remains" check
+        // had no test. Two batches on two fixtures, one per half.
+        //
+        // Half one: the served meal's only copy falls off, so the meal is
+        // released. The queue component is removed after the meal starts,
+        // exactly as the one-batch cancel test does, so the batch stages
+        // a fresh queue for a sim that is mid-way through a directed meal.
+        let (mut sim, bed, fridge, agent) = scenario();
+        enqueue(&mut sim, use_object(agent, fridge));
+        tick_until_interacting(&mut sim, agent);
+        sim.world_mut().entity_mut(agent).remove::<IntentQueue>();
+        for _ in 1..cap() {
+            enqueue(&mut sim, use_object(agent, bed));
+        }
+        enqueue(&mut sim, use_object(agent, fridge));
+        enqueue(&mut sim, use_object_first(agent, bed));
+        drain_only(&mut sim);
+        assert_eq!(take_displacements(&mut sim), 1);
+        assert!(
+            !queue_of(&sim, agent).contains(Intent {
+                object: fridge,
+                interaction: 0
+            }),
+            "precondition: the staged fridge copy fell off"
+        );
+        assert!(
+            target_of(&sim, agent).is_none() && sim.world().get::<Reserved>(fridge).is_none(),
+            "the served meal is released when its last copy leaves the staged queue"
+        );
+
+        // Half two: a duplicate remains in the staged queue, so nothing is
+        // released. Needs room for the duplicate ahead of the dropped one.
+        assert!(cap() >= 3, "the fixture needs room for a duplicate");
+        let (mut sim, bed, fridge, agent) = scenario();
+        enqueue(&mut sim, use_object(agent, fridge));
+        tick_until_interacting(&mut sim, agent);
+        sim.world_mut().entity_mut(agent).remove::<IntentQueue>();
+        enqueue(&mut sim, use_object(agent, fridge));
+        for _ in 2..cap() {
+            enqueue(&mut sim, use_object(agent, bed));
+        }
+        enqueue(&mut sim, use_object(agent, fridge));
+        enqueue(&mut sim, use_object_first(agent, bed));
+        drain_only(&mut sim);
+        assert_eq!(take_displacements(&mut sim), 1);
+        assert!(
+            queue_of(&sim, agent).contains(Intent {
+                object: fridge,
+                interaction: 0
+            }),
+            "precondition: a fridge copy is still staged"
+        );
+        assert!(
+            sim.world().get::<Eating>(agent).is_some()
+                && target_of(&sim, agent).map(|t| t.object) == Some(fridge),
+            "a copy still queued means the meal is still ordered, so it carries on"
+        );
+    }
+
+    #[test]
+    fn a_directed_action_that_finishes_while_a_blocked_front_order_waits_is_popped_once() {
+        // Found by the adversarial review of the first build. A front
+        // order that cannot be served yet waits AHEAD of the intent the
+        // sim is carrying out. The completion pop matched the FRONT, so
+        // the finished fridge order survived its own completion and, once
+        // the bed order was done, ran a second time.
+        let (mut sim, bed, fridge, agent) = scenario();
+        enqueue(&mut sim, use_object(agent, fridge));
+        tick_until_interacting(&mut sim, agent);
+        // Somebody else holds the bed, so the front order must wait.
+        sim.world_mut().entity_mut(bed).insert(Reserved);
+
+        enqueue(&mut sim, use_object_first(agent, bed));
+        sim.tick();
+        assert_eq!(
+            intents_of(&sim, agent),
+            vec![(bed, 0), (fridge, 0)],
+            "precondition: the blocked front order waits ahead of the meal"
+        );
+        assert!(
+            sim.world().get::<Eating>(agent).is_some(),
+            "precondition: the meal carries on while the front order waits"
+        );
+
+        let mut finished = false;
+        for _ in 0..DURATION + 8 {
+            sim.tick();
+            if sim.world().get::<Eating>(agent).is_none() {
+                finished = true;
+                break;
+            }
+        }
+        assert!(
+            finished,
+            "the meal must end inside its own duration plus slack"
+        );
+        assert_eq!(
+            intents_of(&sim, agent),
+            vec![(bed, 0)],
+            "the finished fridge order is popped from second place; the \
+             blocked front order is kept"
+        );
+    }
+
+    #[test]
+    fn a_front_order_for_a_sim_with_no_queue_yet_is_staged_ahead_of_an_append_in_the_same_batch() {
+        // The `fresh` staging path: neither order finds a live queue, so
+        // both land in the staged one and the placement rule has to hold
+        // there too. A staging path that only ever appended would leave
+        // `[bed, fridge]`.
+        let (mut sim, bed, fridge, agent) = scenario();
+        enqueue(&mut sim, use_object(agent, bed));
+        enqueue(&mut sim, use_object_first(agent, fridge));
+        drain_only(&mut sim);
+
+        assert_eq!(intents_of(&sim, agent), vec![(fridge, 0), (bed, 0)]);
+    }
+
+    #[test]
+    fn a_front_order_lands_the_same_whether_it_drains_with_the_append_or_after_it() {
+        // The paused shell drains once per rendered frame, so two clicks
+        // may land in one batch or in two. Both routes - the staged queue
+        // and the live queue - must agree, or a saved world would depend
+        // on frame timing ([D-2]'s associativity rule).
+        let (mut batched, bed, fridge, agent) = scenario();
+        enqueue(&mut batched, use_object(agent, bed));
+        enqueue(&mut batched, use_object_first(agent, fridge));
+        drain_only(&mut batched);
+
+        let (mut split, bed2, fridge2, agent2) = scenario();
+        enqueue(&mut split, use_object(agent2, bed2));
+        drain_only(&mut split);
+        enqueue(&mut split, use_object_first(agent2, fridge2));
+        drain_only(&mut split);
+
+        // Same spawn order in both fixtures, so the entities compare.
+        assert_eq!(intents_of(&batched, agent), intents_of(&split, agent2));
+        assert_eq!(intents_of(&split, agent2), vec![(fridge2, 0), (bed2, 0)]);
+    }
+
+    #[test]
+    fn a_cancel_still_empties_a_queue_that_holds_front_placed_orders() {
+        // The Clear orders button is the one thing that empties a queue
+        // now that a plain click no longer does. Pinned against a queue
+        // built by both placements, mid-service.
+        let (mut sim, bed, fridge, agent) = scenario();
+        enqueue(&mut sim, use_object(agent, bed));
+        enqueue(&mut sim, use_object_first(agent, fridge));
+        sim.tick();
+        assert_eq!(
+            target_of(&sim, agent).map(|t| t.object),
+            Some(fridge),
+            "precondition: the front order is being served"
+        );
+        assert_eq!(queue_of(&sim, agent).len(), 2);
+
+        enqueue(
+            &mut sim,
+            SimCommand::CancelIntents {
+                agent: agent.index_u32(),
+            },
+        );
+        drain_only(&mut sim);
+
+        assert!(
+            queue_of(&sim, agent).is_empty(),
+            "cancel empties everything"
+        );
+        assert!(
+            target_of(&sim, agent).is_none(),
+            "and releases the commitment"
+        );
+        assert!(sim.world().get::<Reserved>(fridge).is_none());
     }
 }
