@@ -100,9 +100,10 @@ export class SimBridge {
   }
 
   /**
-   * Returns and clears the number of waiting orders a front-placed order
-   * pushed off the back of a full queue. The new order was accepted; an
-   * older one fell off.
+   * Returns and clears the number of orders a front-placed order pushed
+   * off the back of a full queue: the order last in line, whether it was
+   * waiting or being carried out. The new order was accepted; an older one
+   * fell off.
    */
   takeIntentDisplacements(): number {
     return this.handle.take_intent_displacements();

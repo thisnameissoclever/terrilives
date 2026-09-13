@@ -223,10 +223,12 @@ impl SimHandle {
         self.sim.take_intent_capacity_rejections()
     }
 
-    /// Returns and clears the number of waiting orders a front-placed
-    /// order pushed off the back of a full queue. Separate from
-    /// `take_intent_capacity_rejections` because the shell says something
-    /// different for an accepted order that displaced an older one.
+    /// Returns and clears the number of orders a front-placed order
+    /// pushed off the back of a full queue: the order last in line, which
+    /// may be a waiting one or the one the sim was carrying out. Separate
+    /// from `take_intent_capacity_rejections` because the shell says
+    /// something different for an accepted order that displaced an older
+    /// one.
     pub fn take_intent_displacements(&mut self) -> u32 {
         self.sim.take_intent_displacements()
     }

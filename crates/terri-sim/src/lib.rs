@@ -1075,10 +1075,13 @@ impl Sim {
             .take_intent_capacity_rejections()
     }
 
-    /// Returns and clears the number of waiting orders dropped from the
-    /// back of a full queue to make room for a front-placed order. The
-    /// new order was accepted; an older one fell off, and the shell's
-    /// sentence for that is different from a refusal's.
+    /// Returns and clears the number of orders dropped from the back of a
+    /// full queue to make room for a front-placed order. The dropped order
+    /// is whichever was last in line: usually one still waiting, but after
+    /// enough front placements the one the sim is carrying out, which the
+    /// drain then releases. The new order was accepted; an older one fell
+    /// off, and the shell's sentence for that is different from a
+    /// refusal's.
     pub fn take_intent_displacements(&mut self) -> u32 {
         self.world
             .resource_mut::<systems::command::CommandFeedback>()

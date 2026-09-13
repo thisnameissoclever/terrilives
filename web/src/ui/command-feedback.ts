@@ -11,8 +11,9 @@ export interface CommandFeedbackSource {
   /** Orders refused at the per-sim cap: nothing was added. */
   takeIntentCapacityRejections(): number;
   /**
-   * Waiting orders dropped from the back of a full queue to make room for
-   * a front-placed order: the new order WAS added, an older one fell off.
+   * Orders dropped from the back of a full queue to make room for a
+   * front-placed order, whether the dropped order was waiting or being
+   * carried out: the new order WAS added, an older one fell off.
    */
   takeIntentDisplacements(): number;
 }
