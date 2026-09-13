@@ -365,7 +365,8 @@ max_queued_intents = 4
 # THIS IS THE BOUND ON THE QUEUE ITSELF, and it is a different failure
 # from `max_queued_intents` above rather than a second copy of it. That
 # one bounds what a single sim can be told to do, and it is only ever
-# reached by a `UseObject` that resolved to a live agent. Everything
+# reached by an order command (`UseObject`, `TalkTo` or their front-placed
+# twins) that resolved to a live agent. Everything
 # else a player can send - every `Select`, every `SetSpeed`, every
 # command naming an index that no longer exists - reaches this staging
 # queue and never touches an intent queue at all. So without a bound

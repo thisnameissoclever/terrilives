@@ -503,10 +503,11 @@ export class SimBridge {
   }
 
   /**
-   * `useObject` placed at the FRONT of `agent`'s queue: the sim drops what
-   * it is doing for this order and resumes the rest afterwards. What a
-   * plain click or a plain menu row sends, per [I-plain-order-goes-first];
-   * `useObject` is the Queue-mode append. `SimCommand::UseObjectFirst`.
+   * The front-placed twin of `useObject`: directs `agent` to use one of
+   * `object`'s interactions AHEAD of everything queued, so the sim drops
+   * what it is doing for this order and resumes the rest afterwards. What
+   * a plain click or a plain menu row sends, per [I-plain-order-goes-first],
+   * where `useObject` is the Queue-mode append. `SimCommand::UseObjectFirst`.
    */
   useObjectFirst(agent: number, object: number, interaction: number): boolean {
     return this.enqueueOrder(VARIANT_USE_OBJECT_FIRST, agent, object, interaction);

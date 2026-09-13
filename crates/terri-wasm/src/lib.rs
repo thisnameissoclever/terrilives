@@ -483,7 +483,7 @@ impl SimHandle {
     /// shapes of bad input reach this and all four return `false`:
     ///
     /// - **empty** - no variant index at all;
-    /// - **an unknown variant index** - a byte past the four `SimCommand`
+    /// - **an unknown variant index** - a byte past the seven `SimCommand`
     ///   declares, which is also what an OLDER shell sending a NEWER
     ///   format looks like;
     /// - **a truncated payload** - a variant index with its fields
@@ -507,8 +507,9 @@ impl SimHandle {
     /// # The cap is the bound on the queue itself
     ///
     /// `max_queued_intents` bounds what one sim can be told to do, and
-    /// nothing reaches it except a `UseObject` that resolved to a live
-    /// agent. Everything else a player can send - every `Select`, every
+    /// nothing reaches it except an order command (`UseObject`, `TalkTo`
+    /// or their front-placed twins) that resolved to a live agent.
+    /// Everything else a player can send - every `Select`, every
     /// `SetSpeed`, every command naming an index that no longer exists -
     /// lands in the staging queue and never touches an intent queue at
     /// all, so a JavaScript loop could grow this without limit. Paused play
@@ -3397,10 +3398,15 @@ mod boundary_tests {
 
         let cases: Vec<(&str, Vec<u8>)> = vec![
             ("empty - no variant index at all", vec![]),
+            // This row read `[0x04, 0x00]` from before `TalkTo` became
+            // variant 4, and then `[0x05, 0x00]` would have been the same
+            // trap once `UseObjectFirst` took 5: each is a TRUNCATED valid
+            // variant, still rejected, but no longer testing the unknown
+            // index its label names. The row has to track the enum's edge.
             (
-                "variant index 4, one past the four SimCommand declares; \
+                "variant index 7, one past the seven SimCommand declares; \
                  also what an older shell sending a newer format looks like",
-                vec![0x04, 0x00],
+                vec![0x07, 0x00],
             ),
             ("variant index 0xFF", vec![0xFF]),
             (
@@ -3457,8 +3463,9 @@ mod boundary_tests {
     #[test]
     fn the_staging_queue_is_capped_at_the_tuned_depth_rather_than_growing_without_bound() {
         // Nothing downstream bounds this queue. `max_queued_intents`
-        // bounds one sim's orders and is only ever reached by a
-        // `UseObject` that resolved to a live agent; every `Select`,
+        // bounds one sim's orders and is only ever reached by an order
+        // command (`UseObject`, `TalkTo` or their front-placed twins)
+        // that resolved to a live agent; every `Select`,
         // every `SetSpeed` and every command naming an index that no
         // longer exists lands here and touches no intent queue at all.
         // The commands below are deliberately of the kind that could

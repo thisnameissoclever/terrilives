@@ -24,10 +24,10 @@
  * | right click or long press | open the flyout in `ui/object-menu.ts` |
  *
  * The two placements are two commands the simulation understands
- * (`UseObjectFirst` and `UseObject`); see `dispatch`. Only the Clear orders
- * button empties a queue. The flyout's own rules live beside it, and this
- * file holds only the part that needs a pick: which rows a right click asks
- * for.
+ * (`UseObjectFirst` and `UseObject`); see `dispatch`. Only an explicit
+ * cancel, the Clear orders button or the flyout's cancel row, empties a
+ * queue. The flyout's own rules live beside it, and this file holds only
+ * the part that needs a pick: which rows a right click asks for.
  */
 
 import { SPRITES, INTERACTION_SPRITES, SPRITE_CONTENT_BOUNDS } from './render/atlas.js';
