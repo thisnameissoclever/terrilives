@@ -1,8 +1,11 @@
 # Depth, Selection and the Input Model - Decisions
 
-Status: **all four are built.** All of it came out of one play session's
+Status: **all five are built.** The first four came out of one play session's
 reports, and all of it is goal item 10 - "at a glance: which sim is selected,
-what it is doing, what it is about to do, and why".
+what it is doing, what it is about to do, and why". The fifth,
+[I-plain-order-goes-first], came out of a 2026-09-13 report that Queue mode
+did not queue talks and that a plain order threw the queue away; it restates
+[I3]'s "replace" as "go first".
 
 ---
 
@@ -208,3 +211,78 @@ recorded here so they are not re-litigated:
 - **Right-clicking a sim, bare floor or a wall opens a menu of just "Never
   mind".** The cancel moved into the menu rather than being deleted, so a flyout
   that only appeared over furniture would take the binding away everywhere else.
+
+---
+
+## [I-plain-order-goes-first] A plain order goes to the front; only Clear orders empties the queue. BUILT.
+
+**Reported (2026-09-13):** with Queue on, or Ctrl held, picking Chat on a
+housemate five times gave one chat, not five. And giving a sim a plain order
+after queueing several threw the queued ones away.
+
+**Two defects, one decision.**
+
+The first was a shell rule: `dispatchMenuAction`'s talk branch sent a cancel
+before every talk order regardless of Queue mode, with a comment saying Queue
+mode "only applies to object actions". Every Chat pick therefore replaced the
+one before it. The glossary said Queue "appends each new order"; the code
+appended object orders and replaced talk orders.
+
+The second was [I3] itself. [I3] made a plain click a REPLACE: `CancelIntents`
+then `UseObject`, which empties the queue and cancels the running action. That
+was right about the common case being a correction and wrong about what a
+correction should cost: a player who queues four things and then clicks a fifth
+without the modifier loses all four. The plan and the correction were made to
+fight, and the correction always won.
+
+**Decision:**
+
+| input | effect |
+| --- | --- |
+| click an object, or pick a menu row, with Queue off | the order goes to the **front** of the queue; the sim drops what it is doing for it and the waiting orders resume behind it |
+| the same with Queue on, or Ctrl or Cmd held | the order goes to the **back**, for objects and for talks alike |
+| Clear orders, or the flyout's Never mind | empties the queue and cancels the running action; the only thing that does |
+
+**Two new commands, `UseObjectFirst` and `TalkToFirst`**, appended to
+`SimCommand` as variants 5 and 6. A front placement is a fact about where the
+order lands, and [D-2] says such facts cross the boundary as data, so the
+simulation owns it: `drain_commands` shares one `place_intent` routine between
+the four order variants, and `serve_intents` already preempts the running
+interaction when the front intent changes, which is the whole of "drops what it
+is doing". The interrupted order stays in the queue and is re-served from the
+start when the front order completes.
+
+**Rejected: a `front` field appended to `UseObject` and `TalkTo`.** [I4]
+appended a field to `UseObject` while nothing was persisted. Saves exist now
+and carry the staged command log, and an appended field lengthens every saved
+byte sequence of that variant; a new variant leaves every earlier byte alone.
+The cost [I4] feared - two code paths for the cap, the fresh-queue staging and
+the serving guard - is paid once in `place_intent`, which every order variant
+calls.
+
+**Rejected: keep the cancel-then-use pair and only fix the talk branch.** That
+repairs the first report and leaves the second: Queue mode would then queue
+talks, and the first plain order would still discard them.
+
+**A front order onto a full queue drops the LAST waiting order** rather than
+being refused, and the drop is recorded as a capacity rejection so the shell's
+`That person's order queue is full` fires. Refusing the plain order would
+refuse the correction a plain click exists to make; dropping the order that
+would have run last is the same "newest loses" rule an append follows. Without
+the drop a run of plain clicks would grow the queue without bound, since each
+lands ahead of the last.
+
+**What did not change.** The cap stays at `max_queued_intents` (4), so the
+fifth queued Chat is still refused out loud, per [A-queue-capacity-feedback];
+raising it is a one-line tuning change if five is wanted. Ctrl and Cmd both
+append, per [I4]'s macOS note. A plain click still names interaction 0.
+
+**Pinned by:** `a_front_order_preempts_the_running_interaction_and_the_interrupted_order_resumes_afterwards`,
+`a_front_order_on_a_full_queue_drops_the_last_waiting_order_and_reports_it`
+and `a_cancel_still_empties_a_queue_that_holds_front_placed_orders` in
+`crates/terri-sim/src/systems/command.rs`;
+`a_run_of_queued_chat_orders_runs_as_that_many_separate_conversations_in_sequence`
+and `a_plain_talk_order_goes_ahead_of_the_queue_and_the_queued_order_resumes`
+in `crates/terri-sim/src/systems/social.rs`; the `dispatchMenuAction` and
+`handleLeftClick` suites in `web/tests/input.test.ts`; and the release-WASM
+byte twins in `web/tests/bridge.test.ts`.

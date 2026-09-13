@@ -1000,7 +1000,7 @@ async function main(): Promise<void> {
     const accepted = dispatchMenuAction(
       sim,
       action,
-      !queueMode.isActive(),
+      queueMode.isActive() ? 'back' : 'front',
       () => clearCommandFeedback(commandStatus),
     );
     if (!accepted) {
@@ -1065,9 +1065,10 @@ async function main(): Promise<void> {
   window.addEventListener('resize', () => menu.close());
 
   // Clicks and every camera gesture, last of the wiring because they
-  // need the camera above. Left click selects a sim or redirects the
-  // selected one at an object, ctrl or cmd click queues instead, right
-  // click opens the flyout; the wheel zooms at the cursor, a pinch
+  // need the camera above. Left click selects a sim or sends the
+  // selected one to an object ahead of its waiting orders, ctrl or cmd
+  // click queues behind them instead, right click opens the flyout; the
+  // wheel zooms at the cursor, a pinch
   // zooms at its midpoint, and a drag pans. Every command among those
   // is serialised ([D-2]); the camera is not a command at all, because
   // it is presentation - two players watching one simulation at

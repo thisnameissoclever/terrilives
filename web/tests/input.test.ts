@@ -187,19 +187,20 @@ function drawnBox(
  * A `CommandSink` that records the commands it was sent AND models what
  * they would leave in the sim's intent queue.
  *
- * **The model is the point, and it is three lines of `drain_commands`
+ * **The model is the point, and it is four lines of `drain_commands`
  * rather than a guess**: a `CancelIntents` empties the named agent's
- * queue, a `UseObject` pushes one intent onto it, and a batch is applied
- * in issue order. That is exactly what
- * `a_cancel_then_a_use_in_one_batch_replaces_the_queue_rather_than_appending_to_it`
- * and `the_reverse_order_does_not_replace_and_is_why_the_shell_sends_cancel_first`
- * pin on the Rust side, which is what keeps this from being a fake that
- * merely agrees with itself.
+ * queue, a `UseObject` or `TalkTo` pushes one intent onto the BACK, a
+ * `UseObjectFirst` or `TalkToFirst` puts one at the FRONT, and a batch is
+ * applied in issue order. That is exactly what
+ * `a_front_order_goes_ahead_of_everything_waiting_and_keeps_the_rest_in_order`
+ * and `a_cancel_still_empties_a_queue_that_holds_front_placed_orders` pin
+ * on the Rust side, which is what keeps this from being a fake that merely
+ * agrees with itself.
  *
- * It exists because "replace" and "append" are claims about the QUEUE, and
- * a list of emitted commands cannot state them: `cancel, use, cancel, use`
- * and `use, use` are both four-symbol strings, and only one of them leaves
- * the sim with one instruction. `queue` is what makes the difference
+ * It exists because "first" and "after" are claims about the QUEUE, and a
+ * list of emitted commands cannot state them: `use-first, use` and
+ * `use, use-first` are both two-symbol strings, and they leave the sim's
+ * orders in opposite orders. `queue` is what makes the difference
  * countable.
  *
  * The cap is deliberately not modelled. `max_queued_intents` refuses
@@ -231,9 +232,19 @@ function recordingSink(selected: number | null = null): CommandSink & {
       queue.push([object, interaction]),
       true
     ),
+    useObjectFirst: (agent, object, interaction) => (
+      calls.push(`use-first ${agent} ${object} ${interaction}`),
+      queue.unshift([object, interaction]),
+      true
+    ),
     talkTo: (agent, target, interaction) => (
       calls.push(`talk ${agent} ${target} ${interaction}`),
       queue.push([target, interaction]),
+      true
+    ),
+    talkToFirst: (agent, target, interaction) => (
+      calls.push(`talk-first ${agent} ${target} ${interaction}`),
+      queue.unshift([target, interaction]),
       true
     ),
     cancelIntents: (agent) => (
@@ -571,27 +582,29 @@ describe('resolveLeftClick', () => {
   });
 
   /**
-   * **The decision [I3] reversed**, stated as the two actions it produces.
+   * **[I3] as [I-plain-order-goes-first] restated it**, as the two actions
+   * it produces.
    *
-   * A plain click carries `replace`; a ctrl-click does not. Asserted as a
-   * pair in one test rather than two, because either one alone passes on
-   * an implementation that ignores the modifier and hardcodes its own
-   * answer - which is precisely the code that was here before.
+   * A plain click is placed at the front; a ctrl-click at the back.
+   * Asserted as a pair in one test rather than two, because either one
+   * alone passes on an implementation that ignores the modifier and
+   * hardcodes its own answer - which is precisely the code that was here
+   * before [I3].
    */
-  it('replaces on a plain click and appends when the modifier is held', () => {
+  it('goes to the front on a plain click and to the back when the modifier is held', () => {
     expect(resolveLeftClick(object, 4, PLAIN)).toEqual({
       kind: 'use',
       agent: 4,
       object: 9,
       interaction: 0,
-      replace: true,
+      placement: 'front',
     });
     expect(resolveLeftClick(object, 4, ADDITIVE)).toEqual({
       kind: 'use',
       agent: 4,
       object: 9,
       interaction: 0,
-      replace: false,
+      placement: 'back',
     });
   });
 
@@ -629,7 +642,7 @@ describe('resolveLeftClick', () => {
       agent: 0,
       object: 9,
       interaction: 0,
-      replace: true,
+      placement: 'front',
     });
   });
 
@@ -674,7 +687,7 @@ describe('dispatch', () => {
       agent: 1,
       object: 6,
       interaction: 0,
-      replace: false,
+      placement: 'back',
     });
     expect(sink.calls).toEqual(['use 1 6 0']);
   });
@@ -697,69 +710,60 @@ describe('dispatch', () => {
       agent: 1,
       object: 6,
       interaction: 3,
-      replace: true,
+      placement: 'front',
     });
-    expect(sink.calls).toEqual(['cancel 1', 'use 1 6 3']);
+    expect(sink.calls).toEqual(['use-first 1 6 3']);
     expect(sink.queue).toEqual([[6, 3]]);
   });
 
   /**
-   * **The order, and it is the whole of "replace".**
-   *
-   * `drain_commands` applies a batch in issue order, so cancel-then-use
-   * empties the queue and puts the new instruction in it, while
-   * use-then-cancel stages the new instruction and then wipes it - the
-   * cancel's `fresh.retain` and `clear()` both see what the same batch just
-   * staged. The sim would end up holding nothing and the click would look
-   * ignored.
-   *
-   * `toEqual` on the whole array rather than two `toContain`s, because
-   * containment is order-blind and order is the only thing under test here.
-   * Swapping the two lines in `dispatch` fails this and nothing else in the
-   * file, which is why the queue model below exists as well.
+   * **A front placement is one command and no cancel.** The cancel-then-use
+   * pair a plain click used to send emptied the queue on the way, which is
+   * how an order given without Queue mode destroyed every order given with
+   * it ([I-plain-order-goes-first]). `toEqual` on the whole array, so a
+   * cancel creeping back in fails here.
    */
-  it('sends a replace as cancel first and then use, in that order', () => {
+  it('sends a front placement as use-first alone, with no cancel', () => {
     const sink = recordingSink();
     dispatch(sink, {
       kind: 'use',
       agent: 1,
       object: 6,
       interaction: 0,
-      replace: true,
+      placement: 'front',
     });
-    expect(sink.calls).toEqual(['cancel 1', 'use 1 6 0']);
+    expect(sink.calls).toEqual(['use-first 1 6 0']);
   });
 
   /**
-   * The same ordering claim measured on the QUEUE rather than on the call
-   * list, so it survives someone rewording the recorded strings - and so
-   * that the reversal is visible as the behaviour it produces rather than
-   * as a permuted array.
-   *
-   * Reversed, the model ends at zero instructions rather than one, which is
-   * a sim standing still after a click.
+   * The same claim measured on the QUEUE rather than on the call list, so
+   * it survives someone rewording the recorded strings - and so the
+   * behaviour is visible as the order the sim would hold: the plain order
+   * first, the earlier order still waiting behind it rather than gone.
    */
-  it('leaves the replaced sim holding exactly the new instruction', () => {
+  it('leaves the sim holding the new instruction first and the old one behind it', () => {
     const sink = recordingSink(1);
     dispatch(sink, {
       kind: 'use',
       agent: 1,
       object: 6,
       interaction: 0,
-      replace: false,
+      placement: 'back',
     });
     dispatch(sink, {
       kind: 'use',
       agent: 1,
       object: 7,
       interaction: 1,
-      replace: true,
+      placement: 'front',
     });
-    // The replacement carries its OWN interaction index, so this also
-    // fails on a dispatcher that reused the index of the intent it
-    // replaced - which a fixture whose two actions both named 0 could not
-    // see.
-    expect(sink.queue).toEqual([[7, 1]]);
+    // The front order carries its OWN interaction index, so this also
+    // fails on a dispatcher that reused the index of the intent ahead of
+    // it - which a fixture whose two actions both named 0 could not see.
+    expect(sink.queue).toEqual([
+      [7, 1],
+      [6, 0],
+    ]);
   });
 
   it('sends nothing at all for none', () => {
@@ -771,15 +775,19 @@ describe('dispatch', () => {
   it('reports a command-queue rejection to the caller', () => {
     const sink = recordingSink(1);
     sink.useObject = () => false;
-    expect(
-      dispatch(sink, {
-        kind: 'use',
-        agent: 1,
-        object: 6,
-        interaction: 0,
-        replace: false,
-      }),
-    ).toBe(false);
+    sink.useObjectFirst = () => false;
+    for (const placement of ['back', 'front'] as const) {
+      expect(
+        dispatch(sink, {
+          kind: 'use',
+          agent: 1,
+          object: 6,
+          interaction: 0,
+          placement,
+        }),
+        `a refused ${placement} placement must be reported`,
+      ).toBe(false);
+    }
   });
 });
 
@@ -1254,7 +1262,7 @@ describe('handleLeftClick', () => {
       kind: 'order',
       accepted: true,
     });
-    expect(sink.calls).toEqual(['cancel 6', 'use 6 9 0']);
+    expect(sink.calls).toEqual(['use-first 6 9 0']);
   });
 
   it('clears the selection when the click lands on bare floor', () => {
@@ -1325,29 +1333,32 @@ describe('handleLeftClick', () => {
   });
 
   /**
-   * **[I3], end to end and countable: a plain click on a SECOND object
-   * leaves one instruction, and a ctrl-click leaves two.**
+   * **[I-plain-order-goes-first], end to end and countable: a plain click
+   * on a SECOND object puts it FIRST with the earlier order still behind
+   * it, and a ctrl-click puts it LAST.**
    *
    * Both halves in one test, against the same two-object lot, because
    * either alone is satisfied by an implementation that ignores the
-   * modifier: assert only the plain case and a shell that always replaces
-   * passes; assert only the additive case and the shell this task replaced
-   * - which always appended - passes. The pair is what pins that the
-   * modifier decides.
+   * modifier: assert only the plain case and a shell that always places
+   * first passes; assert only the additive case and a shell that always
+   * appends passes. The pair is what pins that the modifier decides.
    *
-   * The queue is asserted by CONTENT rather than by length, so "one
-   * instruction" cannot be satisfied by the wrong one: a replace that kept
-   * the first object would also leave a single entry, and it is the second
-   * object the player just clicked.
+   * The queue is asserted by CONTENT and ORDER, so neither half can be
+   * satisfied by the wrong arrangement: both clicks survive in both
+   * cases, and only their order differs. A shell that still sent the old
+   * cancel would leave a single entry and fail the first half.
    */
-  it('leaves one instruction after a plain second click and two after a ctrl-click', () => {
-    const redirected = target(6, TWO_OBJECTS);
-    handleLeftClick(redirected, bodyOf([7, 3]), 0, 0, PLAIN);
-    handleLeftClick(redirected, bodyOf([2, 5]), 0, 0, PLAIN);
+  it('puts a plain second click first and a ctrl-click last, keeping both', () => {
+    const plain = target(6, TWO_OBJECTS);
+    handleLeftClick(plain, bodyOf([7, 3]), 0, 0, PLAIN);
+    handleLeftClick(plain, bodyOf([2, 5]), 0, 0, PLAIN);
     expect(
-      redirected.queue,
-      'a plain click must replace, so only the object clicked last survives',
-    ).toEqual([[10, 0]]);
+      plain.queue,
+      'a plain click must go first, with the earlier order kept behind it',
+    ).toEqual([
+      [10, 0],
+      [9, 0],
+    ]);
 
     const queued = target(6, TWO_OBJECTS);
     handleLeftClick(queued, bodyOf([7, 3]), 0, 0, PLAIN);
@@ -1362,22 +1373,21 @@ describe('handleLeftClick', () => {
   });
 
   /**
-   * The commands behind the counts above, so a broken model in the fake
-   * cannot hide a broken shell. The redirect is two commands and the queue
-   * is one - `toEqual` on the array, because the cancel arriving after the
-   * use is the reversal that produces an empty queue instead of a replaced
-   * one.
+   * The commands behind the queues above, so a broken model in the fake
+   * cannot hide a broken shell. Each click is exactly one command and
+   * neither sends a cancel - `toEqual` on the array, because a cancel
+   * arriving alongside either would be the replace this decision removed.
    */
-  it('sends the cancel before the use on a plain click and neither on a ctrl-click', () => {
-    const redirected = target(6, TWO_OBJECTS);
-    handleLeftClick(redirected, bodyOf([2, 5]), 0, 0, PLAIN);
-    expect(redirected.calls).toEqual(['cancel 6', 'use 6 10 0']);
+  it('sends use-first on a plain click and use on a ctrl-click, never a cancel', () => {
+    const plain = target(6, TWO_OBJECTS);
+    handleLeftClick(plain, bodyOf([2, 5]), 0, 0, PLAIN);
+    expect(plain.calls).toEqual(['use-first 6 10 0']);
 
     const queued = target(6, TWO_OBJECTS);
     handleLeftClick(queued, bodyOf([2, 5]), 0, 0, ADDITIVE);
     expect(
       queued.calls,
-      'a ctrl-click must send no cancel, or appending is a replace wearing a modifier',
+      'a ctrl-click must send the plain append and nothing else',
     ).toEqual(['use 6 10 0']);
   });
 
@@ -1622,21 +1632,21 @@ describe('handleRightClick', () => {
  */
 describe('dispatchMenuAction', () => {
   /**
-   * A row's `use` is a replace, exactly as a plain left click is, and the
-   * cancel comes first for the same reason. `toEqual` on the array because
-   * the order is the claim.
+   * A row's `use` goes to the front, exactly as a plain left click does,
+   * and sends no cancel for the same reason. `toEqual` on the array
+   * because "one command, no cancel" is the claim.
    */
-  it('sends cancel then use for an interaction row', () => {
+  it('sends use-first alone for an interaction row', () => {
     const sink = recordingSink(6);
     dispatchMenuAction(sink, { kind: 'use', object: 9, interaction: 0 });
-    expect(sink.calls).toEqual(['cancel 6', 'use 6 9 0']);
+    expect(sink.calls).toEqual(['use-first 6 9 0']);
     expect(sink.queue).toEqual([[9, 0]]);
   });
 
   /**
    * **The row's own index reaches the command, and this is the assertion
    * the whole flyout exists for.** Row 0 and row 2 differ in nothing else:
-   * same object, same sim, same replace pair. A dispatcher that sent 0 for
+   * same object, same sim, same placement. A dispatcher that sent 0 for
    * every row would pass the test above and fail only here, and it would
    * also look completely correct in the shipped game, where every object
    * offers exactly one interaction and row 0 is the only row.
@@ -1647,42 +1657,67 @@ describe('dispatchMenuAction', () => {
   it('sends the row interaction index rather than the first one', () => {
     const sink = recordingSink(6);
     dispatchMenuAction(sink, { kind: 'use', object: 9, interaction: 2 });
-    expect(sink.calls).toEqual(['cancel 6', 'use 6 9 2']);
+    expect(sink.calls).toEqual(['use-first 6 9 2']);
     expect(sink.queue).toEqual([[9, 2]]);
   });
 
   /**
-   * A social row is the same replace pair as `use`: cancel first, then
-   * the talk, so an ordered chat supersedes the queue rather than
-   * joining it. The index is 1 rather than 0, so a dispatcher that
-   * substituted the first social verb is visible here and nowhere in
-   * the shipped game, whose vocabulary has one entry ([L34]).
+   * A social row takes the same placement as `use`: a plain pick goes to
+   * the front, with no cancel. The index is 1 rather than 0, so a
+   * dispatcher that substituted the first social verb is visible here and
+   * nowhere in the shipped game, whose vocabulary has one entry ([L34]).
    */
-  it('sends cancel then talk for a social row, carrying the row index', () => {
+  it('sends talk-first alone for a social row, carrying the row index', () => {
     const sink = recordingSink(6);
     dispatchMenuAction(sink, { kind: 'talk', target: 8, interaction: 1 });
-    expect(sink.calls).toEqual(['cancel 6', 'talk 6 8 1']);
+    expect(sink.calls).toEqual(['talk-first 6 8 1']);
     expect(sink.queue).toEqual([[8, 1]]);
   });
 
-  it('appends a menu action without cancelling while queue mode is active', () => {
+  it('appends a menu action to the back while queue mode is active', () => {
     const sink = recordingSink(6);
     dispatchMenuAction(
       sink,
       { kind: 'use', object: 9, interaction: 2 },
-      false,
+      'back',
     );
     expect(sink.calls).toEqual(['use 6 9 2']);
   });
 
-  it('still replaces the queue for a social action while queue mode is active', () => {
+  /**
+   * **The report this decision answers.** Queue mode used to leave talk
+   * rows alone, so five Chat picks were five replacements of one chat.
+   * Five picks in Queue mode must be five appended talks, in order, with
+   * no cancel anywhere among them.
+   */
+  it('appends a social action to the back while queue mode is active, every time', () => {
     const sink = recordingSink(6);
-    dispatchMenuAction(
-      sink,
-      { kind: 'talk', target: 8, interaction: 1 },
-      false,
-    );
-    expect(sink.calls).toEqual(['cancel 6', 'talk 6 8 1']);
+    for (let pick = 0; pick < 5; pick += 1) {
+      dispatchMenuAction(
+        sink,
+        { kind: 'talk', target: 8, interaction: 1 },
+        'back',
+      );
+    }
+    expect(sink.calls).toEqual(Array(5).fill('talk 6 8 1'));
+    expect(sink.queue).toEqual(Array(5).fill([8, 1]));
+  });
+
+  /**
+   * Turning Queue off and giving a new order puts it first WITHOUT
+   * discarding what was queued: the queued talks resume behind it.
+   */
+  it('puts a plain order ahead of queued ones and keeps them', () => {
+    const sink = recordingSink(6);
+    dispatchMenuAction(sink, { kind: 'talk', target: 8, interaction: 0 }, 'back');
+    dispatchMenuAction(sink, { kind: 'talk', target: 8, interaction: 0 }, 'back');
+    dispatchMenuAction(sink, { kind: 'use', object: 9, interaction: 0 }, 'front');
+    expect(sink.calls).toEqual(['talk 6 8 0', 'talk 6 8 0', 'use-first 6 9 0']);
+    expect(sink.queue).toEqual([
+      [9, 0],
+      [8, 0],
+      [8, 0],
+    ]);
   });
 
   it('sends the cancel alone for the Never mind row', () => {
@@ -1698,19 +1733,19 @@ describe('dispatchMenuAction', () => {
     dispatchMenuAction(
       sink,
       { kind: 'use', object: 9, interaction: 0 },
-      true,
+      'front',
       () => calls.push('use attempt'),
     );
     dispatchMenuAction(
       sink,
       { kind: 'talk', target: 8, interaction: 0 },
-      true,
+      'front',
       () => calls.push('talk attempt'),
     );
     dispatchMenuAction(
       sink,
       NOTHING.action,
-      true,
+      'front',
       () => calls.push('cancel attempt'),
     );
 
@@ -1719,7 +1754,7 @@ describe('dispatchMenuAction', () => {
     dispatchMenuAction(
       recordingSink(null),
       { kind: 'use', object: 9, interaction: 0 },
-      true,
+      'front',
       () => calls.push('deselected attempt'),
     );
     expect(calls).toEqual(['use attempt', 'talk attempt']);

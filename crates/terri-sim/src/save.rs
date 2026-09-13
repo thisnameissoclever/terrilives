@@ -242,6 +242,24 @@ fn capture_command(command: &SimCommand) -> SavedCommand {
             target: *target,
             interaction: *interaction,
         },
+        SimCommand::UseObjectFirst {
+            agent,
+            object,
+            interaction,
+        } => SavedCommand::UseObjectFirst {
+            agent: *agent,
+            object: *object,
+            interaction: *interaction,
+        },
+        SimCommand::TalkToFirst {
+            agent,
+            target,
+            interaction,
+        } => SavedCommand::TalkToFirst {
+            agent: *agent,
+            target: *target,
+            interaction: *interaction,
+        },
     }
 }
 
@@ -646,6 +664,24 @@ fn restore_command(command: SavedCommand) -> SimCommand {
             target,
             interaction,
         },
+        SavedCommand::UseObjectFirst {
+            agent,
+            object,
+            interaction,
+        } => SimCommand::UseObjectFirst {
+            agent,
+            object,
+            interaction,
+        },
+        SavedCommand::TalkToFirst {
+            agent,
+            target,
+            interaction,
+        } => SimCommand::TalkToFirst {
+            agent,
+            target,
+            interaction,
+        },
     }
 }
 
@@ -738,7 +774,14 @@ fn validate_command(
         SavedCommand::Select(Some(index)) | SavedCommand::CancelIntents { agent: index } => {
             validate_agent_reference(entities, *index).map(|_| ())
         }
+        // A front placement validates exactly as its append twin: the
+        // placement changes where the order lands, never what it names.
         SavedCommand::UseObject {
+            agent,
+            object,
+            interaction,
+        }
+        | SavedCommand::UseObjectFirst {
             agent,
             object,
             interaction,
@@ -760,6 +803,11 @@ fn validate_command(
             validate_flyout_row(pack, object, *interaction, pre_aquarium_bike)
         }
         SavedCommand::TalkTo {
+            agent,
+            target,
+            interaction,
+        }
+        | SavedCommand::TalkToFirst {
             agent,
             target,
             interaction,
@@ -2884,6 +2932,16 @@ mod tests {
                 target: partner,
                 interaction: 0,
             },
+            SavedCommand::UseObjectFirst {
+                agent,
+                object,
+                interaction: 0,
+            },
+            SavedCommand::TalkToFirst {
+                agent,
+                target: partner,
+                interaction: 0,
+            },
         ];
         for command in valid {
             let mut snapshot = baseline.clone();
@@ -2955,6 +3013,27 @@ mod tests {
                 },
                 SaveError::InvalidContentReference,
                 "TalkTo interaction must belong to social vocabulary",
+            ),
+            // The front placements share their twins' rules; one refusal
+            // each is enough to show the arm is wired rather than a
+            // fall-through that accepts anything.
+            (
+                SavedCommand::UseObjectFirst {
+                    agent,
+                    object: partner,
+                    interaction: 0,
+                },
+                SaveError::InvalidEntityReference,
+                "UseObjectFirst target must be an object",
+            ),
+            (
+                SavedCommand::TalkToFirst {
+                    agent,
+                    target: object,
+                    interaction: 0,
+                },
+                SaveError::InvalidEntityReference,
+                "TalkToFirst target must be an agent",
             ),
         ];
         for (command, expected, label) in invalid {

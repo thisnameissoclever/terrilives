@@ -13,19 +13,21 @@
  * which keeps a recorded session replayable and is what a Layer 2 client would
  * send over a wire.
  *
- * # The gestures, as [I3] and [I4] settled them
+ * # The gestures, as [I3], [I4] and [I-plain-order-goes-first] settled them
  *
  * | input | effect |
  * | --- | --- |
  * | click a sim | select it |
- * | click an object | **replace** the selected sim's queue with this |
- * | ctrl or cmd click an object | **append** to the queue |
+ * | click an object | order the selected sim there **ahead of** its waiting orders |
+ * | ctrl or cmd click an object | order it there **after** its waiting orders |
  * | click bare floor | clear the selection |
  * | right click or long press | open the flyout in `ui/object-menu.ts` |
  *
- * Replace is two existing commands in one drain batch rather than a new
- * one; see `dispatch`. The flyout's own rules live beside it, and this file
- * holds only the part that needs a pick: which rows a right click asks for.
+ * The two placements are two commands the simulation understands
+ * (`UseObjectFirst` and `UseObject`); see `dispatch`. Only the Clear orders
+ * button empties a queue. The flyout's own rules live beside it, and this
+ * file holds only the part that needs a pick: which rows a right click asks
+ * for.
  */
 
 import { SPRITES, INTERACTION_SPRITES, SPRITE_CONTENT_BOUNDS } from './render/atlas.js';
@@ -141,16 +143,25 @@ export type ClickAction =
        */
       readonly interaction: number;
       /**
-       * Whether this instruction is the sim's ONLY instruction.
-       *
-       * `true` for a plain click and `false` for a ctrl-click, per [I3].
+       * Where the order lands in the sim's queue: `'front'` for a plain
+       * click and `'back'` for a ctrl-click, per [I-plain-order-goes-first].
        * It is carried here rather than decided in `dispatch` because it
        * is a property of the gesture the player made, and `dispatch`
        * only ever sees an action.
        */
-      readonly replace: boolean;
+      readonly placement: OrderPlacement;
     }
   | { readonly kind: 'none' };
+
+/**
+ * Where a new order lands in a sim's queue - [I-plain-order-goes-first].
+ *
+ * `'front'`: the sim drops what it is doing for this order and, once it
+ * is done, carries on with everything that was already waiting. `'back'`:
+ * the order waits its turn behind them. Neither empties the queue; only
+ * the Clear orders button does that.
+ */
+export type OrderPlacement = 'front' | 'back';
 
 /**
  * What happened after a left click reached the command boundary.
@@ -480,30 +491,33 @@ export function pickAt(
  *
  * - A sim: select it. Selection lives in the simulation ([D-5]), so this is
  *   a command like everything else rather than a variable in the shell.
- * - An object with a sim selected: direct that sim to use it, **replacing
- *   whatever it was doing**. With `additive` - ctrl or cmd held - the
- *   instruction is appended instead, up to `max_queued_intents`.
+ * - An object with a sim selected: direct that sim to use it **ahead of
+ *   whatever it was doing and whatever is waiting**. With `additive` -
+ *   ctrl or cmd held - the instruction waits its turn at the back
+ *   instead, up to `max_queued_intents`.
  * - An object with nothing selected: nothing. There is no sim to direct,
  *   and selecting furniture is not a thing the game has a meaning for.
  * - Bare floor or a wall: clear the selection.
  *
- * # Why a plain click replaces
+ * # Why a plain click goes first, and no longer replaces
  *
- * It appended until [I3] in
+ * A plain click appended until [I3] in
  * `docs/specs/2026-07-30-selection-and-input-design.md`, which reversed
  * it on one observation: **the common case is correcting yourself and the
  * rare case is planning a sequence**, so the plain gesture should be the
- * correction and the modifier should be the plan. Appending by default
- * meant a mis-click could not be taken back except by waiting out the
- * queue or right-clicking to cancel the lot.
+ * correction and the modifier should be the plan. [I3] made the correction
+ * a REPLACE - cancel everything, then the new order - and that threw away
+ * every order the player had queued the moment they gave one without the
+ * modifier. [I-plain-order-goes-first] keeps the correction immediate and
+ * keeps the plan: the plain order goes to the FRONT of the queue and the
+ * waiting orders resume behind it. Only Clear orders empties a queue.
  *
- * Nothing new crosses the boundary for it. Replace is `CancelIntents`
- * followed by `UseObject`, two commands that already existed, which is why
- * this is a change to what the shell SENDS rather than to what the
- * simulation understands. `dispatch` is where the pair is emitted and
- * `a_cancel_then_a_use_in_one_batch_replaces_the_queue_rather_than_appending_to_it`
- * in `crates/terri-sim/src/systems/command.rs` is what pins that the two
- * mean "replace" when they land in one drain, in that order.
+ * The simulation understands both placements as commands of their own,
+ * `UseObjectFirst` and `UseObject`, so `dispatch` sends exactly one
+ * command per click and no cancel.
+ * `a_front_order_preempts_the_running_interaction_and_the_interrupted_order_resumes_afterwards`
+ * in `crates/terri-sim/src/systems/command.rs` is what pins the front
+ * placement's meaning.
  *
  * **`additive` is the gesture, not the modifier key.** Which physical keys
  * produce it is `attachPointerInput`'s business, and it accepts two of
@@ -538,7 +552,7 @@ export function resolveLeftClick(
     agent: selected,
     object: pick.entity,
     interaction: LEFT_CLICK_INTERACTION,
-    replace: !additive,
+    placement: additive ? 'back' : 'front',
   };
 }
 
@@ -563,8 +577,12 @@ export interface CommandSink {
    * exactly one.
    */
   useObject(agent: number, object: number, interaction: number): boolean;
+  /** The same order placed at the FRONT of the queue; `SimBridge.useObjectFirst`. */
+  useObjectFirst(agent: number, object: number, interaction: number): boolean;
   /** Matching `SimBridge.talkTo`; `interaction` indexes the social vocabulary. */
   talkTo(agent: number, target: number, interaction: number): boolean;
+  /** The same talk placed at the FRONT of the queue; `SimBridge.talkToFirst`. */
+  talkToFirst(agent: number, target: number, interaction: number): boolean;
   cancelIntents(agent: number): boolean;
   selectedIndex(): number | null;
 }
@@ -573,33 +591,48 @@ export interface CommandSink {
  * Applies a resolved action. Separated so the resolution can be tested
  * without a bridge.
  *
- * **The cancel goes first, and that ordering is the whole of "replace".**
- * Both commands land in the same drain batch, and `drain_commands`
- * applies a batch in issue order, so:
- *
- *  - cancel then use empties the queue and then puts the new instruction
- *    in it - one entry, the new one, with the abandoned object's
- *    reservation released;
- *  - use then cancel stages the new instruction and then clears both that
- *    staged queue and any live queue. The sim ends up with nothing queued
- *    and the click looks like it was ignored.
- *
- * Two Rust tests hold the pair apart -
- * `a_cancel_then_a_use_in_one_batch_replaces_the_queue_rather_than_appending_to_it`
- * and `the_reverse_order_does_not_replace_and_is_why_the_shell_sends_cancel_first` -
- * because "the order matters" is a claim about two runs and pinning one of
- * them says nothing about the other.
+ * One command per action. A `'front'` placement is `useObjectFirst` and a
+ * `'back'` placement is `useObject`; the simulation puts the order where
+ * the command says, so there is no cancel to send and no ordering between
+ * two commands to get right. The cancel-then-use pair this replaced was
+ * how a plain click emptied the queue, which
+ * [I-plain-order-goes-first] stopped.
  */
 export function dispatch(sink: CommandSink, action: ClickAction): boolean | null {
   switch (action.kind) {
     case 'select':
       return sink.select(action.entity);
     case 'use':
-      if (action.replace && !sink.cancelIntents(action.agent)) return false;
-      return sink.useObject(action.agent, action.object, action.interaction);
+      return sendUse(sink, action.agent, action.object, action.interaction, action.placement);
     case 'none':
       return null;
   }
+}
+
+/** `useObjectFirst` or `useObject`, by placement. */
+function sendUse(
+  sink: CommandSink,
+  agent: number,
+  object: number,
+  interaction: number,
+  placement: OrderPlacement,
+): boolean {
+  return placement === 'front'
+    ? sink.useObjectFirst(agent, object, interaction)
+    : sink.useObject(agent, object, interaction);
+}
+
+/** `talkToFirst` or `talkTo`, by placement. */
+function sendTalk(
+  sink: CommandSink,
+  agent: number,
+  target: number,
+  interaction: number,
+  placement: OrderPlacement,
+): boolean {
+  return placement === 'front'
+    ? sink.talkToFirst(agent, target, interaction)
+    : sink.talkTo(agent, target, interaction);
 }
 
 /** Everything a click handler needs of its sim: pick from it, command it. */
@@ -850,9 +883,14 @@ export function handleRightClick(
  * sim may have gone away. Reading now means the row acts on whoever the
  * simulation currently says is selected, or on nobody.
  *
- * A row replaces by default, like a plain left click. The visible Queue
- * mode passes `replace = false`, matching Ctrl or Cmd click on desktop so
- * touch and keyboard players have the same append operation.
+ * A row goes to the FRONT of the queue by default, like a plain left click.
+ * The visible Queue mode passes `'back'`, matching Ctrl or Cmd click on
+ * desktop so touch and keyboard players have the same append operation.
+ * **The placement applies to talk rows exactly as to object rows.** An
+ * earlier build sent a cancel before every talk regardless of Queue mode,
+ * so five Chat picks were one chat five times over; that is the report
+ * [I-plain-order-goes-first] answers, and `sendTalk` is where both
+ * placements now reach the simulation.
  *
  * **The row's own interaction index is what is sent**, which is the only
  * thing that makes a second row mean anything: the rows come back from the
@@ -862,14 +900,14 @@ export function handleRightClick(
  * look correct on every object the game currently ships because each has
  * exactly one row above the cancel.
  *
- * `onOrderAttempt` runs before either order variant sends its replace pair.
- * The cancel row is control input, not a new order, so it does not fire the
+ * `onOrderAttempt` runs before either order variant sends its command. The
+ * cancel row is control input, not a new order, so it does not fire the
  * callback. Both pointer and keyboard menu activation enter here.
  */
 export function dispatchMenuAction(
   sink: CommandSink,
   action: MenuAction,
-  replace = true,
+  placement: OrderPlacement = 'front',
   onOrderAttempt: () => void = () => {},
 ): boolean {
   const agent = sink.selectedIndex();
@@ -877,15 +915,9 @@ export function dispatchMenuAction(
   if (action.kind !== 'cancel') onOrderAttempt();
   switch (action.kind) {
     case 'use':
-      // Cancel first, then use: the replace pair. See `dispatch`.
-      if (replace && !sink.cancelIntents(agent)) return false;
-      return sink.useObject(agent, action.object, action.interaction);
+      return sendUse(sink, agent, action.object, action.interaction, placement);
     case 'talk':
-      // The same replace pair as 'use': a talk order supersedes the
-      // queue rather than joining it. Queue mode only applies to object
-      // actions, so `replace` deliberately cannot change this branch.
-      if (!sink.cancelIntents(agent)) return false;
-      return sink.talkTo(agent, action.target, action.interaction);
+      return sendTalk(sink, agent, action.target, action.interaction, placement);
     case 'cancel':
       return sink.cancelIntents(agent);
   }

@@ -182,4 +182,17 @@ pub enum SavedCommand {
         target: u32,
         interaction: u32,
     },
+    /// Appended after `TalkTo`, so a save written before front placement
+    /// existed still decodes: postcard writes the variant index, and every
+    /// earlier variant keeps its number.
+    UseObjectFirst {
+        agent: u32,
+        object: u32,
+        interaction: u32,
+    },
+    TalkToFirst {
+        agent: u32,
+        target: u32,
+        interaction: u32,
+    },
 }

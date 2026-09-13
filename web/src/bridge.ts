@@ -13,6 +13,8 @@ const VARIANT_USE_OBJECT = 1;
 const VARIANT_CANCEL_INTENTS = 2;
 const VARIANT_SET_SPEED = 3;
 const VARIANT_TALK_TO = 4;
+const VARIANT_USE_OBJECT_FIRST = 5;
+const VARIANT_TALK_TO_FIRST = 6;
 
 /** postcard's `Option` discriminant: one byte, 0 for none, 1 for some. */
 const OPTION_NONE = 0;
@@ -487,17 +489,17 @@ export class SimBridge {
    * `serve_intents` drops such an intent rather than indexing with it.
    */
   useObject(agent: number, object: number, interaction: number): boolean {
-    if (!isU32(agent) || !isU32(object) || !isU32(interaction)) return false;
-    const bytes = [VARIANT_USE_OBJECT];
-    pushVarint(bytes, agent);
-    pushVarint(bytes, object);
-    // Last, because postcard writes a struct variant's fields in
-    // declaration order and `interaction` is declared last in
-    // `SimCommand::UseObject`. Emitting it before `object` would produce
-    // bytes that decode without error into a command naming a different
-    // object entirely.
-    pushVarint(bytes, interaction);
-    return this.enqueueCommand(new Uint8Array(bytes));
+    return this.enqueueOrder(VARIANT_USE_OBJECT, agent, object, interaction);
+  }
+
+  /**
+   * `useObject` placed at the FRONT of `agent`'s queue: the sim drops what
+   * it is doing for this order and resumes the rest afterwards. What a
+   * plain click or a plain menu row sends, per [I-plain-order-goes-first];
+   * `useObject` is the Queue-mode append. `SimCommand::UseObjectFirst`.
+   */
+  useObjectFirst(agent: number, object: number, interaction: number): boolean {
+    return this.enqueueOrder(VARIANT_USE_OBJECT_FIRST, agent, object, interaction);
   }
 
   /**
@@ -507,10 +509,33 @@ export class SimBridge {
    * as `useObject`; the Rust golden vector carries matching rows.
    */
   talkTo(agent: number, target: number, interaction: number): boolean {
-    if (!isU32(agent) || !isU32(target) || !isU32(interaction)) return false;
-    const bytes = [VARIANT_TALK_TO];
+    return this.enqueueOrder(VARIANT_TALK_TO, agent, target, interaction);
+  }
+
+  /** `talkTo` placed at the FRONT of the queue; `SimCommand::TalkToFirst`. */
+  talkToFirst(agent: number, target: number, interaction: number): boolean {
+    return this.enqueueOrder(VARIANT_TALK_TO_FIRST, agent, target, interaction);
+  }
+
+  /**
+   * The four order commands share one byte shape: the variant, then
+   * `agent`, the thing named (an object or a sim), and `interaction`, each
+   * as a varint. `interaction` is last because postcard writes a struct
+   * variant's fields in declaration order and it is declared last in every
+   * one of `UseObject`, `TalkTo`, `UseObjectFirst` and `TalkToFirst`;
+   * emitting it before the named entity would produce bytes that decode
+   * without error into a command naming a different entity entirely.
+   */
+  private enqueueOrder(
+    variant: number,
+    agent: number,
+    named: number,
+    interaction: number,
+  ): boolean {
+    if (!isU32(agent) || !isU32(named) || !isU32(interaction)) return false;
+    const bytes = [variant];
     pushVarint(bytes, agent);
-    pushVarint(bytes, target);
+    pushVarint(bytes, named);
     pushVarint(bytes, interaction);
     return this.enqueueCommand(new Uint8Array(bytes));
   }

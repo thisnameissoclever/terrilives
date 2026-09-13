@@ -241,6 +241,22 @@ impl IntentQueue {
         self.0.push(intent);
     }
 
+    /// Adds an intent at the FRONT, so it is served next and everything
+    /// already queued waits behind it. This is what
+    /// `SimCommand::UseObjectFirst` and `SimCommand::TalkToFirst` reach:
+    /// a plain order interrupts, and the interrupted orders resume.
+    pub fn push_front(&mut self, intent: Intent) {
+        self.0.insert(0, intent);
+    }
+
+    /// Removes and returns the BACK intent - the one that would have been
+    /// served last. The drain uses it to make room for a front placement
+    /// on a full queue, which is the one place an accepted order is ever
+    /// dropped; see `max_queued_intents` in `content/tuning.toml`.
+    pub fn pop_back(&mut self) -> Option<Intent> {
+        self.0.pop()
+    }
+
     /// The intent being served right now, or `None` when the agent is
     /// back on autonomy.
     pub fn front(&self) -> Option<Intent> {
@@ -1005,6 +1021,49 @@ mod intent_queue_tests {
             Some(intent(a, 3)),
             "the second intent must keep its own interaction index"
         );
+    }
+
+    #[test]
+    fn push_front_makes_the_new_intent_the_next_one_served_and_keeps_the_rest_in_order() {
+        // Three entries already queued and a fourth pushed to the FRONT.
+        // Three rather than one, so the mutants `insert(1, ..)` and
+        // `push` (insert at the back) each produce a different sequence
+        // from the one asserted here; with a single entry `insert(1, ..)`
+        // and `push` agree.
+        let (a, b, c) = three_objects();
+        let mut queue = IntentQueue::from_intents(vec![intent(a, 0), intent(b, 1), intent(c, 2)]);
+
+        queue.push_front(intent(c, 7));
+
+        assert_eq!(queue.len(), 4, "push_front must actually add");
+        assert_eq!(
+            queue.front(),
+            Some(intent(c, 7)),
+            "the front-placed intent is served next"
+        );
+        assert_eq!(queue.pop(), Some(intent(c, 7)));
+        assert_eq!(
+            queue.as_slice(),
+            &[intent(a, 0), intent(b, 1), intent(c, 2)],
+            "everything that was waiting resumes in its original order"
+        );
+    }
+
+    #[test]
+    fn pop_back_removes_the_last_intent_and_leaves_the_front_alone() {
+        let (a, b, c) = three_objects();
+        let mut queue = IntentQueue::from_intents(vec![intent(a, 0), intent(b, 1), intent(c, 2)]);
+
+        assert_eq!(
+            queue.pop_back(),
+            Some(intent(c, 2)),
+            "pop_back takes the intent that would have been served LAST"
+        );
+        assert_eq!(queue.as_slice(), &[intent(a, 0), intent(b, 1)]);
+        assert_eq!(queue.front(), Some(intent(a, 0)), "the front is untouched");
+
+        let mut empty = IntentQueue::default();
+        assert_eq!(empty.pop_back(), None, "an empty queue yields nothing");
     }
 }
 

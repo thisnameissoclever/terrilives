@@ -3182,6 +3182,78 @@ mod boundary_tests {
         );
     }
 
+    /// `SimCommand::UseObjectFirst { agent, object, interaction }`: variant
+    /// 5, then the same three varints as `use_object_bytes`. Written by
+    /// hand for the reason the rest of this module gives ([L33]).
+    fn use_object_first_bytes(agent: u32, object: u32, interaction: u32) -> Vec<u8> {
+        assert!(
+            agent < 128 && object < 128 && interaction < 128,
+            "one-byte varints only"
+        );
+        vec![0x05, agent as u8, object as u8, interaction as u8]
+    }
+
+    /// `SimCommand::TalkToFirst { agent, target, interaction }`: variant 6.
+    fn talk_to_first_bytes(agent: u32, target: u32, interaction: u32) -> Vec<u8> {
+        assert!(
+            agent < 128 && target < 128 && interaction < 128,
+            "one-byte varints only"
+        );
+        vec![0x06, agent as u8, target as u8, interaction as u8]
+    }
+
+    /// The objects the agent at `agent` has queued, front first, as raw
+    /// entity indices - what the shell's plain-versus-Queue distinction
+    /// comes down to on this side of the boundary.
+    fn queued_objects_of(handle: &SimHandle, agent: u32) -> Vec<u32> {
+        let world = handle.sim.world();
+        let mut state = world
+            .try_query::<(terri_core::Entity, &terri_core::IntentQueue)>()
+            .expect("IntentQueue is registered eagerly in Sim::new");
+        state
+            .iter(world)
+            .find(|(entity, _)| entity.index_u32() == agent)
+            .map(|(_, queue)| {
+                queue
+                    .as_slice()
+                    .iter()
+                    .map(|intent| intent.object.index_u32())
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    #[test]
+    fn front_placed_orders_cross_the_boundary_and_land_ahead_of_appended_ones() {
+        // Variant bytes 5 and 6 decode to the front placements and the
+        // drain honours them: an appended fridge order, then a
+        // front-placed bed order and a front-placed talk, leave the talk
+        // first, the bed second and the fridge last.
+        let mut handle = SimHandle::new(8, 8);
+        assert!(handle.spawn_object(4.0, 4.0, "fridge"));
+        assert!(handle.spawn_object(6.0, 6.0, "bed"));
+        let agent = spawn_agent_at(&mut handle, 1.0, 1.0, 80.0);
+        let partner = spawn_agent_at(&mut handle, 1.0, 3.0, 80.0);
+        let (fridge, bed) = (0, 1);
+
+        assert!(handle.enqueue_command(&use_object_bytes(agent, fridge, 0)));
+        assert!(handle.enqueue_command(&use_object_first_bytes(agent, bed, 0)));
+        assert!(handle.enqueue_command(&talk_to_first_bytes(agent, partner, 0)));
+        handle.flush_commands();
+
+        assert_eq!(handle.queued_orders_of(agent), 3);
+        assert_eq!(
+            queued_objects_of(&handle, agent),
+            vec![partner, bed, fridge],
+            "each front placement lands ahead of everything before it"
+        );
+        assert_eq!(
+            handle.take_intent_capacity_rejections(),
+            0,
+            "nothing fell off a queue with room"
+        );
+    }
+
     #[test]
     fn flush_commands_preserves_an_in_flight_interpolation_pair() {
         let mut handle = SimHandle::new(8, 8);

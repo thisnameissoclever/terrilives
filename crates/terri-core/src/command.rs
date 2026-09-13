@@ -83,6 +83,42 @@ pub enum SimCommand {
         target: u32,
         interaction: u32,
     },
+    /// [`SimCommand::UseObject`] placed at the FRONT of the agent's queue
+    /// rather than the back - what a plain click or a plain menu row
+    /// sends, per [I-plain-order-goes-first] in
+    /// `docs/specs/2026-07-30-selection-and-input-design.md`.
+    ///
+    /// The sim drops what it is doing for this order and, once it is
+    /// done, carries on with everything that was already waiting. That
+    /// is the difference from the `CancelIntents` + `UseObject` pair the
+    /// shell used to send for a plain click: the pair emptied the queue,
+    /// so an order given without Queue mode threw away every order given
+    /// with it. Only `CancelIntents` empties a queue now.
+    ///
+    /// A separate variant rather than a `front` field appended to
+    /// `UseObject`, because a field appended to a struct variant lengthens
+    /// the bytes of every already-saved command of that variant, and
+    /// saves exist now; a new variant leaves every earlier byte alone.
+    /// The drain shares one placement routine between the two, so the
+    /// cap, the fresh-queue staging and the serving guard are still one
+    /// code path each.
+    ///
+    /// At a full queue the BACK intent is dropped to make room, and the
+    /// drop is reported as a capacity rejection so the player hears that
+    /// an order fell off. Refusing the front order instead would refuse
+    /// the correction a plain click exists to make.
+    UseObjectFirst {
+        agent: u32,
+        object: u32,
+        interaction: u32,
+    },
+    /// [`SimCommand::TalkTo`] placed at the FRONT of the agent's queue.
+    /// The social twin of `UseObjectFirst`, with the same placement rules.
+    TalkToFirst {
+        agent: u32,
+        target: u32,
+        interaction: u32,
+    },
 }
 
 /// Commands awaiting the next drain point. Ordered, because two commands
@@ -272,6 +308,44 @@ mod tests {
                     interaction: u32::MAX,
                 },
                 &[0x04, 0x03, 0x05, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F],
+            ),
+            // The two FRONT placements, variants 5 and 6 - appended, so
+            // every row above keeps its bytes. Each carries the same
+            // three varints as the append variant it shadows, and the
+            // two-byte interaction row pins the width the same way.
+            // Derived from the failing assertion, per this test's
+            // convention.
+            (
+                SimCommand::UseObjectFirst {
+                    agent: 3,
+                    object: 9,
+                    interaction: 1,
+                },
+                &[0x05, 0x03, 0x09, 0x01],
+            ),
+            (
+                SimCommand::UseObjectFirst {
+                    agent: 3,
+                    object: 9,
+                    interaction: 200,
+                },
+                &[0x05, 0x03, 0x09, 0xC8, 0x01],
+            ),
+            (
+                SimCommand::TalkToFirst {
+                    agent: 3,
+                    target: 5,
+                    interaction: 1,
+                },
+                &[0x06, 0x03, 0x05, 0x01],
+            ),
+            (
+                SimCommand::TalkToFirst {
+                    agent: 3,
+                    target: 5,
+                    interaction: 200,
+                },
+                &[0x06, 0x03, 0x05, 0xC8, 0x01],
             ),
         ];
         for (cmd, expected) in cases {

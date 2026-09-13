@@ -5368,3 +5368,36 @@ constructor arity error from a file that had since been corrected, which sent
 the first minutes of this investigation at a phantom. Confirm what the server
 actually serves, and retest in a fresh tab, before believing a console trace
 that names a file you have already fixed.
+
+---
+
+## [L-a-mode-must-cover-every-order-it-names] Queue mode queued objects and replaced talks
+
+**What happened.** The Queue button and the Ctrl or Cmd modifier were
+documented as appending each new order. The object branch of the flyout
+dispatcher honoured that. The talk branch sent a cancel before every talk
+order regardless, with a comment saying Queue mode "only applies to object
+actions". Five Chat picks in Queue mode were one chat five times over, and
+the player's report was that queueing "doesn't seem to actually queue". It
+shipped that way because the branch had a test pinning the exception, so the
+suite was green while the mode lied.
+
+**Root cause.** A player-facing mode was implemented per command kind rather
+than at the one place every order passes through. The exception was
+deliberate, tested and documented in a code comment, and never written where
+the player could read it: the glossary and the Help text both said "each new
+order". A tested exception to a rule the player is told is a bug with a
+receipt.
+
+**Prevention rule.** A mode the player can see applies to every order it
+names, or the player-visible text says which orders it does not. Implement
+such a mode at the single dispatch point that every order variant calls, so a
+new order kind cannot opt out by accident. When a code comment says a mode
+"only applies to" some subset, check the glossary and the Help text say the
+same; if they do not, the comment is the defect.
+
+**How to verify.** In Queue mode, pick the same talk row several times and
+count conversations: each pick must become its own conversation, in sequence.
+`a_run_of_queued_chat_orders_runs_as_that_many_separate_conversations_in_sequence`
+pins it against the simulation, and the `dispatchMenuAction` suite pins that
+the shell sends one append per pick with no cancel among them.

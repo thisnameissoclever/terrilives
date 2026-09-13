@@ -74,6 +74,105 @@ fn resolve(index: u32, mut live: impl Iterator<Item = Entity>) -> Option<Entity>
     live.find(|entity| entity.index_u32() == index)
 }
 
+/// Where a new order lands in the agent's queue - [I-plain-order-goes-first]
+/// in `docs/specs/2026-07-30-selection-and-input-design.md`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Placement {
+    /// After everything already waiting: Queue mode, or Ctrl or Cmd held.
+    Back,
+    /// Ahead of everything already waiting: a plain click or menu row. The
+    /// sim drops what it is doing for this order and resumes the rest.
+    Front,
+}
+
+impl Placement {
+    /// The placement a command asks for. Commands that carry no order
+    /// report `Back`, which nothing reads.
+    fn of(command: &SimCommand) -> Self {
+        match command {
+            SimCommand::UseObjectFirst { .. } | SimCommand::TalkToFirst { .. } => Self::Front,
+            SimCommand::Select(_)
+            | SimCommand::UseObject { .. }
+            | SimCommand::CancelIntents { .. }
+            | SimCommand::SetSpeed(_)
+            | SimCommand::TalkTo { .. } => Self::Back,
+        }
+    }
+}
+
+/// Puts `intent` into `queue` at `placement`, holding the queue at `cap`.
+///
+/// **An append is refused at the cap, not trimmed.** See
+/// `max_queued_intents` in content/tuning.toml for why the overflow drops
+/// the newest rather than the oldest.
+///
+/// **A front placement is never refused; the BACK intent is dropped to
+/// make room.** A plain order is the player's correction, and a full
+/// queue is the one moment it matters most that the correction lands.
+/// The dropped intent is the one that would have been served last, which
+/// is the same "newest loses" rule an append follows, and the drop is
+/// recorded as a capacity rejection so the shell says out loud that an
+/// order fell off. Without the drop a run of plain clicks would grow the
+/// queue without bound, since each one lands ahead of the last.
+fn place_in(
+    queue: &mut IntentQueue,
+    intent: Intent,
+    placement: Placement,
+    cap: usize,
+    feedback: &mut CommandFeedback,
+) {
+    match placement {
+        Placement::Back => {
+            if queue.len() < cap {
+                queue.push(intent);
+            } else {
+                feedback.record_intent_capacity_rejection();
+            }
+        }
+        Placement::Front => {
+            if queue.len() >= cap {
+                queue.pop_back();
+                feedback.record_intent_capacity_rejection();
+            }
+            queue.push_front(intent);
+        }
+    }
+}
+
+/// Places one resolved intent for `agent`, whether its queue is live, was
+/// staged earlier in this same batch, or does not exist yet.
+///
+/// One routine for `UseObject`, `TalkTo` and their front-placed twins, so
+/// the cap, the fresh-queue staging and the capacity report are each a
+/// single code path - the reason [I4] gave for not splitting `UseObject`
+/// in two, kept now that the split has happened for a different reason.
+///
+/// The type_complexity allow is `drain_commands`'s own query type, passed
+/// through; an alias would name it once and read it nowhere.
+#[allow(clippy::type_complexity)]
+fn place_intent(
+    agents: &mut Query<(Entity, Option<&mut IntentQueue>, Option<&Target>), With<Agent>>,
+    fresh: &mut Vec<(Entity, IntentQueue)>,
+    feedback: &mut CommandFeedback,
+    cap: usize,
+    agent: Entity,
+    intent: Intent,
+    placement: Placement,
+) {
+    if let Ok((_, Some(mut queue), _)) = agents.get_mut(agent) {
+        place_in(&mut queue, intent, placement, cap, feedback);
+    } else if let Some((_, staged)) = fresh.iter_mut().find(|(e, _)| *e == agent) {
+        place_in(staged, intent, placement, cap, feedback);
+    } else {
+        // A new queue holds its first order whatever the placement asked
+        // for, and the cap is at least 1 by content validation
+        // (`ZeroQueuedIntents`), so this never trims.
+        let mut queue = IntentQueue::default();
+        place_in(&mut queue, intent, placement, cap, feedback);
+        fresh.push((agent, queue));
+    }
+}
+
 /// Applies every queued player command, in the order the player issued
 /// them, and empties the queue.
 ///
@@ -146,10 +245,13 @@ pub fn drain_commands(
 
     // Intents for agents that do not carry an `IntentQueue` yet. An agent
     // gains one the first time it is directed, so this is the ordinary
-    // case rather than an edge case.
-    let mut fresh: Vec<(Entity, Vec<Intent>)> = Vec::new();
+    // case rather than an edge case. Staged as the real queue type so
+    // `place_intent` applies one placement rule to a live queue and to a
+    // staged one.
+    let mut fresh: Vec<(Entity, IntentQueue)> = Vec::new();
 
     for command in issued {
+        let placement = Placement::of(&command);
         match command {
             // A stale index leaves the selection ALONE rather than
             // clearing it. Clearing would make a click on a sim that has
@@ -165,6 +267,11 @@ pub fn drain_commands(
             SimCommand::Select(None) => selection = None,
 
             SimCommand::UseObject {
+                agent,
+                object,
+                interaction,
+            }
+            | SimCommand::UseObjectFirst {
                 agent,
                 object,
                 interaction,
@@ -196,25 +303,15 @@ pub fn drain_commands(
                     object,
                     interaction,
                 };
-
-                // **Refused at the cap, not trimmed.** See
-                // `max_queued_intents` in content/tuning.toml for why the
-                // overflow drops the newest rather than the oldest.
-                if let Ok((_, Some(mut queue), _)) = agents.get_mut(agent) {
-                    if queue.len() < cap {
-                        queue.push(intent);
-                    } else {
-                        feedback.record_intent_capacity_rejection();
-                    }
-                } else if let Some((_, staged)) = fresh.iter_mut().find(|(e, _)| *e == agent) {
-                    if staged.len() < cap {
-                        staged.push(intent);
-                    } else {
-                        feedback.record_intent_capacity_rejection();
-                    }
-                } else {
-                    fresh.push((agent, vec![intent]));
-                }
+                place_intent(
+                    &mut agents,
+                    &mut fresh,
+                    &mut feedback,
+                    cap,
+                    agent,
+                    intent,
+                    placement,
+                );
             }
 
             SimCommand::CancelIntents { agent } => {
@@ -229,8 +326,7 @@ pub fn drain_commands(
                 let staged_front = fresh
                     .iter()
                     .find(|(entity, _)| *entity == agent)
-                    .and_then(|(_, intents)| intents.first())
-                    .copied();
+                    .and_then(|(_, intents)| intents.front());
                 // Intents staged earlier in this same batch are part of
                 // what is being cancelled. Keep the staged queue itself and
                 // empty it, because a split drain first inserts that queue and
@@ -362,6 +458,11 @@ pub fn drain_commands(
                 agent,
                 target,
                 interaction,
+            }
+            | SimCommand::TalkToFirst {
+                agent,
+                target,
+                interaction,
             } => {
                 let Some(agent) = resolve(agent, agents.iter().map(|(entity, _, _)| entity)) else {
                     continue;
@@ -388,21 +489,15 @@ pub fn drain_commands(
                     object: target,
                     interaction,
                 };
-                if let Ok((_, Some(mut queue), _)) = agents.get_mut(agent) {
-                    if queue.len() < cap {
-                        queue.push(intent);
-                    } else {
-                        feedback.record_intent_capacity_rejection();
-                    }
-                } else if let Some((_, staged)) = fresh.iter_mut().find(|(e, _)| *e == agent) {
-                    if staged.len() < cap {
-                        staged.push(intent);
-                    } else {
-                        feedback.record_intent_capacity_rejection();
-                    }
-                } else {
-                    fresh.push((agent, vec![intent]));
-                }
+                place_intent(
+                    &mut agents,
+                    &mut fresh,
+                    &mut feedback,
+                    cap,
+                    agent,
+                    intent,
+                    placement,
+                );
             }
 
             // **Speed changes no simulation state.** It is a tick
@@ -421,10 +516,8 @@ pub fn drain_commands(
         }
     }
 
-    for (agent, intents) in fresh {
-        commands
-            .entity(agent)
-            .insert(IntentQueue::from_intents(intents));
+    for (agent, queue) in fresh {
+        commands.entity(agent).insert(queue);
     }
 
     // The selection, written once. Removing first and inserting second is
@@ -2518,5 +2611,270 @@ mod tests {
             a,
             "restoring the script must restore the digest"
         );
+    }
+
+    // ---- Front placement ([I-plain-order-goes-first]) ------------------
+    //
+    // A plain click or a plain menu row sends `UseObjectFirst` (or
+    // `TalkToFirst`, pinned beside the talk tests in `social.rs`). The
+    // order lands AHEAD of everything waiting, the sim drops what it is
+    // doing for it, and the interrupted orders resume when it is done.
+    // Only `CancelIntents` empties a queue.
+
+    fn intents_of(sim: &Sim, agent: Entity) -> Vec<(Entity, u32)> {
+        queue_of(sim, agent)
+            .as_slice()
+            .iter()
+            .map(|intent| (intent.object, intent.interaction))
+            .collect()
+    }
+
+    fn use_object(agent: Entity, object: Entity) -> SimCommand {
+        SimCommand::UseObject {
+            agent: agent.index_u32(),
+            object: object.index_u32(),
+            interaction: 0,
+        }
+    }
+
+    fn use_object_first(agent: Entity, object: Entity) -> SimCommand {
+        SimCommand::UseObjectFirst {
+            agent: agent.index_u32(),
+            object: object.index_u32(),
+            interaction: 0,
+        }
+    }
+
+    fn take_rejections(sim: &mut Sim) -> u32 {
+        sim.world_mut()
+            .resource_mut::<CommandFeedback>()
+            .take_intent_capacity_rejections()
+    }
+
+    #[test]
+    fn a_front_order_goes_ahead_of_everything_waiting_and_keeps_the_rest_in_order() {
+        // Two orders waiting, then a front-placed third. The new order
+        // names the fridge so that the three placements a mutant could
+        // choose - front, second, back - each produce a different
+        // sequence: `[fridge, bed, fridge]`, `[bed, fridge, fridge]` and
+        // `[bed, fridge, fridge]` respectively, and only the first is
+        // asserted.
+        let (mut sim, bed, fridge, agent) = scenario();
+        enqueue(&mut sim, use_object(agent, bed));
+        enqueue(&mut sim, use_object(agent, fridge));
+        drain_only(&mut sim);
+        assert_eq!(
+            intents_of(&sim, agent),
+            vec![(bed, 0), (fridge, 0)],
+            "precondition: two appended orders in issue order"
+        );
+
+        enqueue(&mut sim, use_object_first(agent, fridge));
+        drain_only(&mut sim);
+
+        assert_eq!(
+            intents_of(&sim, agent),
+            vec![(fridge, 0), (bed, 0), (fridge, 0)],
+            "the front order is served next and the waiting orders keep \
+             their order behind it"
+        );
+        assert_eq!(
+            take_rejections(&mut sim),
+            0,
+            "a front order on a queue with room drops nothing"
+        );
+    }
+
+    #[test]
+    fn a_front_order_preempts_the_running_interaction_and_the_interrupted_order_resumes_afterwards()
+    {
+        // The whole player-visible claim, through the real schedule: a sim
+        // mid-way through a directed action is sent elsewhere by a plain
+        // click, does that, and then comes back to finish what it was
+        // told first. Under the old cancel-then-use pair the bed order
+        // would have been gone for good.
+        let (mut sim, bed, fridge, agent) = scenario();
+        enqueue(&mut sim, use_object(agent, bed));
+        tick_until_interacting(&mut sim, agent);
+        assert_eq!(
+            target_of(&sim, agent).map(|t| t.object),
+            Some(bed),
+            "precondition: the sim is in the bed under orders"
+        );
+        assert!(sim.world().get::<Reserved>(bed).is_some());
+
+        enqueue(&mut sim, use_object_first(agent, fridge));
+        sim.tick();
+
+        assert_eq!(
+            target_of(&sim, agent).map(|t| t.object),
+            Some(fridge),
+            "the plain order takes effect on the tick it arrives"
+        );
+        assert!(
+            sim.world().get::<Eating>(agent).is_none(),
+            "the bed interaction was interrupted rather than finished first"
+        );
+        assert!(
+            sim.world().get::<Reserved>(bed).is_none(),
+            "the interrupted bed is released while the sim is away"
+        );
+        assert_eq!(
+            intents_of(&sim, agent),
+            vec![(fridge, 0), (bed, 0)],
+            "the interrupted order is still waiting behind the new one"
+        );
+
+        // Run the fridge order out and watch the bed order come back.
+        // Bounded, per [L15]: one walk each way plus two interactions is
+        // well inside 400 ticks on a 16x16 lot.
+        let mut ate = false;
+        let mut resumed = false;
+        for _ in 0..400 {
+            sim.tick();
+            if sim.world().get::<Eating>(agent).is_some()
+                && target_of(&sim, agent).map(|t| t.object) == Some(fridge)
+            {
+                ate = true;
+            }
+            if ate && target_of(&sim, agent).map(|t| t.object) == Some(bed) {
+                resumed = true;
+                break;
+            }
+        }
+        assert!(ate, "the front order must actually run");
+        assert!(
+            resumed,
+            "once the front order finished, the sim must return to the \
+             order it was interrupted in"
+        );
+        assert_eq!(
+            intents_of(&sim, agent),
+            vec![(bed, 0)],
+            "the finished front order was popped and only the resumed \
+             order remains"
+        );
+        assert!(
+            sim.world().get::<Reserved>(fridge).is_none(),
+            "the finished fridge is released"
+        );
+    }
+
+    #[test]
+    fn a_front_order_on_a_full_queue_drops_the_last_waiting_order_and_reports_it() {
+        // Fill to the cap with beds and one fridge at the BACK, then place
+        // a fridge order at the front. Which entry made room is visible in
+        // the back of the queue: dropping the back (asserted) leaves a bed
+        // there; dropping the front would leave the old fridge there; and
+        // refusing the new order would leave a bed at the FRONT.
+        let (mut sim, bed, fridge, agent) = scenario();
+        for _ in 1..cap() {
+            enqueue(&mut sim, use_object(agent, bed));
+        }
+        enqueue(&mut sim, use_object(agent, fridge));
+        drain_only(&mut sim);
+        assert_eq!(queue_of(&sim, agent).len(), cap(), "precondition: full");
+        assert_eq!(
+            intents_of(&sim, agent).last().copied(),
+            Some((fridge, 0)),
+            "precondition: the fridge is the last order waiting"
+        );
+        assert_eq!(
+            take_rejections(&mut sim),
+            0,
+            "precondition: nothing refused yet"
+        );
+
+        enqueue(&mut sim, use_object_first(agent, fridge));
+        drain_only(&mut sim);
+
+        let queue = intents_of(&sim, agent);
+        assert_eq!(queue.len(), cap(), "the queue stays at the cap");
+        assert_eq!(
+            queue.first().copied(),
+            Some((fridge, 0)),
+            "the plain order is never refused: it is at the front"
+        );
+        assert_eq!(
+            queue.last().copied(),
+            Some((bed, 0)),
+            "the order that would have run LAST is the one that fell off"
+        );
+        assert_eq!(
+            take_rejections(&mut sim),
+            1,
+            "the dropped order is reported, so the shell can say so"
+        );
+    }
+
+    #[test]
+    fn a_front_order_for_a_sim_with_no_queue_yet_is_staged_ahead_of_an_append_in_the_same_batch() {
+        // The `fresh` staging path: neither order finds a live queue, so
+        // both land in the staged one and the placement rule has to hold
+        // there too. A staging path that only ever appended would leave
+        // `[bed, fridge]`.
+        let (mut sim, bed, fridge, agent) = scenario();
+        enqueue(&mut sim, use_object(agent, bed));
+        enqueue(&mut sim, use_object_first(agent, fridge));
+        drain_only(&mut sim);
+
+        assert_eq!(intents_of(&sim, agent), vec![(fridge, 0), (bed, 0)]);
+    }
+
+    #[test]
+    fn a_front_order_lands_the_same_whether_it_drains_with_the_append_or_after_it() {
+        // The paused shell drains once per rendered frame, so two clicks
+        // may land in one batch or in two. Both routes - the staged queue
+        // and the live queue - must agree, or a saved world would depend
+        // on frame timing ([D-2]'s associativity rule).
+        let (mut batched, bed, fridge, agent) = scenario();
+        enqueue(&mut batched, use_object(agent, bed));
+        enqueue(&mut batched, use_object_first(agent, fridge));
+        drain_only(&mut batched);
+
+        let (mut split, bed2, fridge2, agent2) = scenario();
+        enqueue(&mut split, use_object(agent2, bed2));
+        drain_only(&mut split);
+        enqueue(&mut split, use_object_first(agent2, fridge2));
+        drain_only(&mut split);
+
+        // Same spawn order in both fixtures, so the entities compare.
+        assert_eq!(intents_of(&batched, agent), intents_of(&split, agent2));
+        assert_eq!(intents_of(&split, agent2), vec![(fridge2, 0), (bed2, 0)]);
+    }
+
+    #[test]
+    fn a_cancel_still_empties_a_queue_that_holds_front_placed_orders() {
+        // The Clear orders button is the one thing that empties a queue
+        // now that a plain click no longer does. Pinned against a queue
+        // built by both placements, mid-service.
+        let (mut sim, bed, fridge, agent) = scenario();
+        enqueue(&mut sim, use_object(agent, bed));
+        enqueue(&mut sim, use_object_first(agent, fridge));
+        sim.tick();
+        assert_eq!(
+            target_of(&sim, agent).map(|t| t.object),
+            Some(fridge),
+            "precondition: the front order is being served"
+        );
+        assert_eq!(queue_of(&sim, agent).len(), 2);
+
+        enqueue(
+            &mut sim,
+            SimCommand::CancelIntents {
+                agent: agent.index_u32(),
+            },
+        );
+        drain_only(&mut sim);
+
+        assert!(
+            queue_of(&sim, agent).is_empty(),
+            "cancel empties everything"
+        );
+        assert!(
+            target_of(&sim, agent).is_none(),
+            "and releases the commitment"
+        );
+        assert!(sim.world().get::<Reserved>(fridge).is_none());
     }
 }
