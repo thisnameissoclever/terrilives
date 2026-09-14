@@ -1157,14 +1157,15 @@ mod tests {
     }
 
     #[test]
-    fn exactly_the_fifth_additive_order_reports_the_capacity_rejection() {
-        // The shipped paused Queue-mode failure in its exact shape: five
-        // object orders enter the command staging queue before one paused
-        // flush. The first four fit the per-sim intent queue. The fifth is
-        // refused, and the refusal must cross back to the shell rather than
-        // looking like another accepted click.
+    fn exactly_the_order_past_the_cap_reports_the_capacity_rejection() {
+        // The shipped paused Queue-mode failure in its exact shape: one
+        // more object order than the cap enters the command staging queue
+        // before one paused flush. The first `cap` fit the per-sim intent
+        // queue. The one past it is refused, and the refusal must cross
+        // back to the shell rather than looking like another accepted
+        // click. The cap is read from content rather than restated, so
+        // this tracks the shipped value whatever it is tuned to.
         let (mut sim, bed, _fridge, agent) = scenario();
-        assert_eq!(cap(), 4, "this fixture must track the shipped order cap");
 
         for _ in 0..=cap() {
             enqueue(
@@ -1180,13 +1181,13 @@ mod tests {
 
         assert_eq!(
             queue_of(&sim, agent).len(),
-            4,
-            "the fifth order must not grow the four-order queue"
+            cap(),
+            "the order past the cap must not grow the queue"
         );
         assert_eq!(
             sim.take_intent_capacity_rejections(),
             1,
-            "the silently dropped fifth order must become one player-visible rejection"
+            "the silently dropped order must become one player-visible rejection"
         );
     }
 

@@ -1201,12 +1201,19 @@ describe('SimBridge', () => {
     expect(bridge.needsOf(0)).toEqual(needsBefore);
   });
 
-  it('surfaces the fifth paused Queue-mode pointer order rejected by the sim', () => {
+  /**
+   * The per-sim order cap, mirroring `max_queued_intents` in
+   * `content/tuning.toml`. The release wasm does not expose it, so the
+   * tests below restate it; a retune shows up here as one failing number.
+   */
+  const ORDER_CAP = 10;
+
+  it('surfaces the paused Queue-mode pointer order past the cap rejected by the sim', () => {
     const bridge = new SimBridge(new SimHandle(8, 8), wasmMemory);
     expect(bridge.spawnObject(4, 4, 'fridge')).toBe(true);
     bridge.spawnAgent(1, 1, 80);
 
-    for (let click = 1; click <= 5; click += 1) {
+    for (let click = 1; click <= ORDER_CAP + 1; click += 1) {
       expect(
         dispatch(bridge, {
           kind: 'use',
@@ -1226,21 +1233,21 @@ describe('SimBridge', () => {
       setAttribute: (name: string, value: string) => attributes.set(name, value),
       removeAttribute: (name: string) => attributes.delete(name),
     };
-    expect(bridge.queuedOrdersOf(1)).toBe(4);
+    expect(bridge.queuedOrdersOf(1)).toBe(ORDER_CAP);
     expect(reportCommandFeedback(bridge, status)).toBe(1);
     expect(status.textContent).toBe(ORDER_QUEUE_FULL_MESSAGE);
     expect(attributes.get('data-kind')).toBe('error');
     expect(reportCommandFeedback(bridge, status)).toBe(0);
   });
 
-  it('surfaces the fifth paused keyboard-menu order through the same result', () => {
+  it('surfaces the paused keyboard-menu order past the cap through the same result', () => {
     const bridge = new SimBridge(new SimHandle(8, 8), wasmMemory);
     expect(bridge.spawnObject(4, 4, 'fridge')).toBe(true);
     bridge.spawnAgent(1, 1, 80);
     expect(bridge.select(1)).toBe(true);
     bridge.flushCommands();
 
-    for (let order = 1; order <= 5; order += 1) {
+    for (let order = 1; order <= ORDER_CAP + 1; order += 1) {
       expect(
         dispatchMenuAction(
           bridge,
@@ -1257,7 +1264,7 @@ describe('SimBridge', () => {
       setAttribute: (_name: string, _value: string) => {},
       removeAttribute: (_name: string) => {},
     };
-    expect(bridge.queuedOrdersOf(1)).toBe(4);
+    expect(bridge.queuedOrdersOf(1)).toBe(ORDER_CAP);
     expect(reportCommandFeedback(bridge, status)).toBe(1);
     expect(status.textContent).toBe(ORDER_QUEUE_FULL_MESSAGE);
     expect(reportCommandFeedback(bridge, status)).toBe(0);
@@ -1277,7 +1284,7 @@ describe('SimBridge', () => {
     expect(bridge.select(1)).toBe(true);
     bridge.flushCommands();
 
-    for (let order = 0; order < 5; order += 1) {
+    for (let order = 0; order < ORDER_CAP + 1; order += 1) {
       expect(dispatchMenuAction(
         bridge,
         { kind: 'use', object: 0, interaction: 0 },
@@ -1315,7 +1322,7 @@ describe('SimBridge', () => {
     expect(status.textContent).toBe('');
     expect(attributes.has('data-kind')).toBe(false);
 
-    for (let order = 0; order < 4; order += 1) {
+    for (let order = 0; order < ORDER_CAP; order += 1) {
       expect(dispatchMenuAction(
         bridge,
         { kind: 'use', object: 0, interaction: 0 },
@@ -1324,15 +1331,12 @@ describe('SimBridge', () => {
       )).toBe(true);
     }
     bridge.flushCommands();
-    expect(bridge.queuedOrdersOf(1)).toBe(4);
+    expect(bridge.queuedOrdersOf(1)).toBe(ORDER_CAP);
     expect(reportCommandFeedback(bridge, status)).toBe(1);
+    // One clear for the accepted plain order, then one per refill append.
     expect(transitions).toEqual([
       ORDER_QUEUE_FULL_MESSAGE,
-      '',
-      '',
-      '',
-      '',
-      '',
+      ...Array<string>(ORDER_CAP + 1).fill(''),
       ORDER_QUEUE_FULL_MESSAGE,
     ]);
   });
@@ -1347,7 +1351,7 @@ describe('SimBridge', () => {
     bridge.spawnAgent(1, 1, 80);
     expect(bridge.select(1)).toBe(true);
     bridge.flushCommands();
-    for (let order = 0; order < 4; order += 1) {
+    for (let order = 0; order < ORDER_CAP; order += 1) {
       expect(dispatchMenuAction(
         bridge,
         { kind: 'use', object: 0, interaction: 0 },
@@ -1355,7 +1359,7 @@ describe('SimBridge', () => {
       )).toBe(true);
     }
     bridge.flushCommands();
-    expect(bridge.queuedOrdersOf(1)).toBe(4);
+    expect(bridge.queuedOrdersOf(1)).toBe(ORDER_CAP);
     expect(bridge.takeIntentCapacityRejections()).toBe(0);
     expect(bridge.takeIntentDisplacements()).toBe(0);
 
@@ -1372,7 +1376,7 @@ describe('SimBridge', () => {
     )).toBe(true);
     bridge.flushCommands();
 
-    expect(bridge.queuedOrdersOf(1)).toBe(4);
+    expect(bridge.queuedOrdersOf(1)).toBe(ORDER_CAP);
     expect(reportCommandFeedback(bridge, status)).toBe(1);
     expect(status.textContent).toBe(ORDER_DISPLACED_MESSAGE);
     expect(bridge.takeIntentCapacityRejections(), 'nothing was refused').toBe(0);

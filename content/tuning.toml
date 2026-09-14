@@ -326,9 +326,11 @@ rng_seed = 20260728
 # shipped lot (docs/alpha-feel-notes.md): an interaction runs 12 to 25
 # ticks and the walk to it costs up to about 80 more on a 14x10 lot at
 # 0.25 tiles a tick, so one queued intent is roughly 2 to 10 real seconds
-# at 1x. Four is therefore up to about 40 seconds of directed work
-# already promised before a fifth click is even considered, which is well
-# past the point where a player can still remember what they asked for.
+# at 1x. Ten is therefore up to about 100 seconds of directed work already
+# promised before an eleventh click is even considered. It shipped at 4
+# (about 40 seconds) and was raised to 10 on 2026-09-14 at the owner's
+# request, once Queue mode queued every kind of order and a plan of five
+# or more chats became something a player actually asks for.
 #
 # **An append past the cap is REFUSED, and the newest intent is the one
 # that loses**, a deliberate trade rather than the obvious one. Evicting
@@ -336,9 +338,9 @@ rng_seed = 20260728
 # out, which would have to release its target and its reservation from
 # inside the drain and would make a click able to cancel an earlier
 # click's work silently. Refusing the new one keeps every accepted
-# instruction honoured. The cost is a hard planning ceiling: the fifth
-# rapid click is refused and the shell reports that the person's order
-# queue is full. It no longer disappears as an apparently accepted click.
+# instruction honoured. The cost is a hard planning ceiling: the click past
+# the cap is refused and the shell reports that the person's order queue
+# is full. It no longer disappears as an apparently accepted click.
 #
 # **A FRONT placement past the cap is never refused; the BACK intent is
 # dropped instead** ([I-plain-order-goes-first]). A plain click is the
@@ -355,7 +357,7 @@ rng_seed = 20260728
 #
 # Zero is rejected at build time: a cap of zero is not "no queueing", it
 # is a game where clicking an object never does anything.
-max_queued_intents = 4
+max_queued_intents = 10
 
 # The most commands the WASM boundary will hold between two drains. A
 # command that would take the queue past this is refused, and

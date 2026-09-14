@@ -3162,12 +3162,13 @@ mod boundary_tests {
     }
 
     #[test]
-    fn paused_flush_reports_exactly_the_fifth_order_rejected_by_the_simulation() {
+    fn paused_flush_reports_exactly_the_order_past_the_cap_rejected_by_the_simulation() {
         let mut handle = SimHandle::new(8, 8);
         assert!(handle.spawn_object(4.0, 4.0, "fridge"));
         let agent = spawn_agent_at(&mut handle, 1.0, 1.0, 80.0);
+        // Read from content rather than restated, so the fixture tracks
+        // the shipped value whatever it is tuned to.
         let cap = intent_cap(&handle);
-        assert_eq!(cap, 4, "the fixture must track the shipped order cap");
 
         for click in 1..=cap + 1 {
             assert!(

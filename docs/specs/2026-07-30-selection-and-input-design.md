@@ -329,9 +329,11 @@ would have run last is the same "newest loses" rule an append follows. Without
 the drop a run of plain clicks would grow the queue without bound, since each
 lands ahead of the last.
 
-**What did not change.** The cap stays at `max_queued_intents` (4), so the
-fifth queued Chat is still refused out loud, per [A-queue-capacity-feedback];
-raising it is a one-line tuning change if five is wanted. Ctrl and Cmd both
+**What did not change.** The refusal at `max_queued_intents` still speaks, per
+[A-queue-capacity-feedback]. The cap itself shipped at 4 with this decision and
+was raised to 10 on 2026-09-14 at the owner's request, once queueing every
+kind of order made a plan of five or more chats something a player asks for;
+the tuning comment carries the time-budget arithmetic. Ctrl and Cmd both
 append, per [I4]'s macOS note. A plain click still names interaction 0.
 
 **Pinned by:** `a_front_order_preempts_the_running_interaction_and_the_interrupted_order_resumes_afterwards`,

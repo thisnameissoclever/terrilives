@@ -1759,7 +1759,7 @@ mod tests {
         assert_eq!(t.duration_variance, 0.4);
         assert_eq!(t.min_interaction_ticks, 12);
         assert_eq!(t.rng_seed, 20260728);
-        assert_eq!(t.max_queued_intents, 4);
+        assert_eq!(t.max_queued_intents, 10);
         assert_eq!(t.max_queued_commands, 64);
         assert_eq!(t.need_bar_refresh_ms, 100);
         assert_eq!(t.contested_score_multiplier, 0.75);
