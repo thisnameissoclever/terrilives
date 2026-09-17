@@ -1,0 +1,124 @@
+{
+  "state": "complete",
+  "inputs": {
+    "kitchen\\render_fridge.py": "e21005ae93b0599ecc9c40a53175235190027c28bb32732075edbbc13206d3de",
+    "kitchen\\fridge_model.py": "2d5588218688d99079b1096d7e3a980e108efb644ced1e542933134e92b4ffc5",
+    "kitchen\\fridge_geometry.py": "6079457301e72f76b2ff3202ab8bdff31d3bca3fce9b534993bad926b6d20f42",
+    "furniture\\build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture\\geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims\\sim-01\\sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "sims\\sim-01\\registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "8cc2990fb5281042bc2b03757b6a1f28e4f535bb6eafdce7dbac03395a8d3a2a"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "3374e8bc0f4e11a90609d7548ec8801e1a328e46521a739836ff6c2aac2cc7b6"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "97e77dccc2d581dbd691e167e75d54e521dd13aeb70ff880a9109a38d10c6a51"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "7ab6a6de678238dc0716c918877a851f1f9dc5f49974861d9f569dd0dedb1e54"
+    }
+  ],
+  "logical_canvas": [
+    96,
+    120
+  ],
+  "source_density": 8,
+  "blender_version": "4.5.14 LTS",
+  "approval": "Not owner approved; offline visual candidate only.",
+  "origin_pixels": [
+    384.0000915527344,
+    760.0034952163696
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 2.6516504287719727,
+  "parts": [
+    "Case base",
+    "Case rear",
+    "Case side -1",
+    "Case side 1",
+    "Case top",
+    "Compartment divider",
+    "Food shelf 0.19",
+    "Food shelf 0.48",
+    "Food shelf 0.8",
+    "Freezer right hinge",
+    "Freezer door",
+    "Freezer door seal",
+    "Freezer handle",
+    "Freezer handle mount -1",
+    "Freezer handle mount 1",
+    "Freezer inner liner",
+    "Interior back liner",
+    "Levelling foot -0.285 -0.29",
+    "Levelling foot -0.285 0.28",
+    "Levelling foot 0.285 -0.29",
+    "Levelling foot 0.285 0.28",
+    "Lower toe kick",
+    "Rear service panel",
+    "Rear vent slot 0.22",
+    "Rear vent slot 0.255",
+    "Rear vent slot 0.29",
+    "Rear vent slot 0.325",
+    "Refrigerator right hinge",
+    "Refrigerator door",
+    "Refrigerator door seal",
+    "Refrigerator handle",
+    "Refrigerator handle mount -1",
+    "Refrigerator handle mount 1",
+    "Refrigerator inner liner",
+    "Shelf front lip 0.19",
+    "Shelf front lip 0.48",
+    "Shelf front lip 0.8"
+  ],
+  "door_hinges": [
+    "Refrigerator right hinge",
+    "Freezer right hinge"
+  ],
+  "color_management": {
+    "view": "Standard",
+    "look": "None"
+  },
+  "model_sha256": "05a3e230039850dd9a757e80248d1b82613d48f633b3fff0ed3081cb418a70d6"
+}
