@@ -5401,3 +5401,25 @@ count conversations: each pick must become its own conversation, in sequence.
 `a_run_of_queued_chat_orders_runs_as_that_many_separate_conversations_in_sequence`
 pins it against the simulation, and the `dispatchMenuAction` suite pins that
 the shell sends one append per pick with no cancel among them.
+
+---
+
+## [L-asset-checkpoint-status] Historical visual gates need an explicit date and scope
+
+**What happened.** The furniture README still described game-scale and played
+checks as open after later evidence recorded them. The provenance overview
+also retained the pre-wall atlas count of 1,087 rather than 1,089.
+
+**Root cause.** An offline review's limitations were written as current status,
+then the later runtime evidence was recorded elsewhere without reconciling
+the overview.
+
+**Prevention rule.** Preserve historical evidence, but label its scope and link
+to the later checks. Update the current provenance overview when an accepted
+asset batch changes. Keep pending replacements explicitly separate from the
+integrated production set.
+
+**How to verify.** Compare the current overview with the committed atlas and
+latest played evidence. Search authoring READMEs for unresolved-gate wording
+and check whether it describes a dated checkpoint or an actual remaining task.
+Never infer a successful deployment from either an offline render or a commit.

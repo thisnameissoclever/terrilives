@@ -29,8 +29,12 @@ It is a style reference, not part of the furniture's visible geometry.
 6. Record defects and scores with each candidate. Retain rejected originals.
    Nothing becomes production art until owner approval and played verification.
 
-The current group is `owner-review-pending/refrigerator/candidate-01/`.
+The current group is `owner-review-pending/refrigerator/candidate-02/`.
 It contains four original transparent PNGs, the editable Blender scene, the
 hash journal and the labelled review board. Door pivots are prepared and
 scene transforms checked at 0,45,90 degrees. This is not a completed door
 animation, Sim contact check, collision proof or runtime integration.
+
+Candidate 01 is superseded, not approved. Its originals and rejection notes
+remain in its own folder. Candidate 02 passed primary and independent visual
+review; owner approval is still pending. See its `review.md` for limitations.

@@ -48,9 +48,12 @@ checkpoint with the named polish concerns; neither approved the full milestone.
 The original candidate shows one occupied pose per facing. Subsequent cycle
 review is in `review/animation-02/`: eight cycling poses and four reading poses
 for each facing. Primary and independent visual review passed those sampled
-views. Reading motion is subtle; it is not a page-turn animation. Native game
-scale, actual adjacent-wall clearance and played acceptance remain open.
-Do not describe the offline review as the completed bike-and-chair milestone.
+views. Reading motion is subtle; it is not a page-turn animation. At that
+offline checkpoint, native game scale, wall fit and played acceptance were
+still open. Subsequent GPU, contact and played wall-fit checks are recorded
+in `../../../docs/assets/review-evidence/furniture/README.md`; integration is
+now on main. Keep the original offline evidence distinct from those later
+checks rather than treating the old checkpoint as current release status.
 
 ## Reproducible animation export
 

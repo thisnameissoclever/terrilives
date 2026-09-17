@@ -10,14 +10,14 @@ is fine inside a compiled build and a violation inside git. See TECH_STACK.md.
 
 ## Current visual sources
 
-**Current provenance, 2026-09-10:** the primitive-only account below
+**Current provenance, 2026-09-17:** the primitive-only account below
 describes the earlier generator migration, not the full current asset set.
 The approved shared Sim now comes from the editable Blender source and rig in
 `assets/models/sims/sim-01/`, including the retained Tripo hair source.
 Its README records immutable source hashes, material-only shirt variants and
 offline animation exports. High-resolution Blender renders are downsampled to
 RGBA frames at twice their logical dimensions, validated and packed into the
-same 2D atlas. The integrated atlas contains 1,087 records at 4096x6073 physical
+same 2D atlas. The integrated atlas contains 1,089 records at 4096x6073 physical
 pixels; the older counts below are historical. Existing sprite identities,
 logical dimensions and unrelated decoded pixels remain unchanged.
 
@@ -28,8 +28,14 @@ poses per facing, in all three shirt colours. Their independently rendered
 visible Sim, furniture and shared-outline contributions are combined in one
 GPU sprite draw. Source/provenance limitations and export instructions are in
 `assets/models/furniture/README.md`; played evidence is under
-`docs/assets/review-evidence/furniture/`. Publication remains subject to CI and
-deployment verification. Neither workflow requires runtime 3D rendering.
+`docs/assets/review-evidence/furniture/`. These assets are integrated on main;
+the review notes record played verification, including the later wall changes.
+Neither workflow requires runtime 3D rendering.
+
+Kitchen replacements now follow the same offline authoring workflow in
+`assets/models/kitchen/`. The refrigerator's candidate 02 contains four true
+rotations, an editable model and hashed render inputs. It is pending owner
+review, not production art. No kitchen candidate has replaced the live atlas.
 
 ## Historical primitive-only migration
 

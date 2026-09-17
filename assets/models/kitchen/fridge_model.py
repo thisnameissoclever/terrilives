@@ -47,12 +47,12 @@ def build(root):
             cylinder(f'Levelling foot {x} {y}',(x,y,0),(x,y,.09),.028,seal,root)
     # A plain recessed rear panel and lower vent identify the actual back.
     box('Rear service panel',(0,.383,.80),(.58,.012,1.23),shelf,root,.016)
-    for z in (.22,.255,.29,.325):
-        box(f'Rear vent slot {z}',(0,.393,z),(.43,.008,.012),seal,root,.003)
+    for z in (.21,.26,.31,.36):
+        box(f'Rear vent slot {z}',(0,.393,z),(.43,.008,.007),seal,root,.002)
     hinges = []
     for label,z,height,handle_z,handle_height in (
         ('Refrigerator',.652,1.016,.69,.36),
-        ('Freezer',1.378,.396,1.38,.21),
+        ('Freezer',1.395,.426,1.38,.21),
     ):
         hinge = hinge_group(label+' right hinge',root)
         hinges.append(hinge)
