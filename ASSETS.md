@@ -17,7 +17,7 @@ The approved shared Sim now comes from the editable Blender source and rig in
 Its README records immutable source hashes, material-only shirt variants and
 offline animation exports. High-resolution Blender renders are downsampled to
 RGBA frames at twice their logical dimensions, validated and packed into the
-same 2D atlas. The integrated atlas contains 1,089 records at 4096x6073 physical
+same 2D atlas. The integrated atlas contains 1,093 records at 4096x6095 physical
 pixels; the older counts below are historical. Existing sprite identities,
 logical dimensions and unrelated decoded pixels remain unchanged.
 
@@ -32,10 +32,14 @@ GPU sprite draw. Source/provenance limitations and export instructions are in
 the review notes record played verification, including the later wall changes.
 Neither workflow requires runtime 3D rendering.
 
-Kitchen replacements now follow the same offline authoring workflow in
+Kitchen replacements follow the same offline authoring workflow in
 `assets/models/kitchen/`. The refrigerator's candidate 02 contains four true
-rotations, an editable model and hashed render inputs. It is pending owner
-review, not production art. No kitchen candidate has replaced the live atlas.
+rotations, an editable model and hashed render inputs. On 2026-09-17 the owner
+delegated per-object acceptance to primary and adversarial review. Its four
+static views are integrated after all 1,089 previous sprites, preserving those
+decoded pixels and registration tables. The source proof is pinned in the
+kitchen catalog. Played and GPU evidence is in
+`docs/assets/review-evidence/kitchen/`; live deployment is a separate check.
 
 ## Historical primitive-only migration
 

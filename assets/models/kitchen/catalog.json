@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "objects": [
+    {
+      "name": "offlineFridge",
+      "directory": "owner-review-pending/refrigerator/candidate-02",
+      "proof_sha256": "8cf3376eb0d01b09677505cb6877d29535840cb528c244a0bb17978558671080",
+      "review_status": "accepted-independent-review"
+    }
+  ]
+}

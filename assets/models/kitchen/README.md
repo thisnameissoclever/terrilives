@@ -1,8 +1,9 @@
 # Kitchen asset review
 
 Continue the accepted offline Blender-to-sprite workflow, kitchen first. The
-first object is the existing refrigerator, not a new gameplay object. No runtime
-mapping, footprint, interaction, save format or accepted Sim is changed here.
+first object is the existing refrigerator, not a new gameplay object. Only its
+sprite mapping changes; footprint, interactions, save format and accepted Sims
+remain unchanged.
 
 The refrigerator keeps the current cool-grey enamel, muted brass handles and
 upper freezer. One physical model supplies all four facings. It has a hollow
@@ -27,14 +28,41 @@ It is a style reference, not part of the furniture's visible geometry.
    structure, actual front/back rotation, attachment consistency, line quality
    and style. Use fresh independent visual review before owner review.
 6. Record defects and scores with each candidate. Retain rejected originals.
-   Nothing becomes production art until owner approval and played verification.
+   On 2026-09-17 the owner delegated per-object visual acceptance to the primary
+   and adversarial reviewers. Do not wait for individual owner approvals.
+   Runtime integration still requires registration and played verification.
 
 The current group is `owner-review-pending/refrigerator/candidate-02/`.
 It contains four original transparent PNGs, the editable Blender scene, the
 hash journal and the labelled review board. Door pivots are prepared and
-scene transforms checked at 0,45,90 degrees. This is not a completed door
-animation, Sim contact check, collision proof or runtime integration.
+scene transforms checked at 0,45,90 degrees. Closed renders alone are not a
+completed door animation, Sim contact check, collision proof or runtime test.
+Subsequent static integration evidence is recorded separately in
+`../../../docs/assets/review-evidence/kitchen/README.md`.
 
 Candidate 01 is superseded, not approved. Its originals and rejection notes
 remain in its own folder. Candidate 02 passed primary and independent visual
-review; owner approval is still pending. See its `review.md` for limitations.
+review and is accepted under the delegated review policy. See its `review.md`
+for limitations. The historical `owner-review-pending` folder name is retained
+to avoid breaking source paths and review links; it is not a blocking gate.
+
+## Static runtime integration
+
+`catalog.json` lists accepted static batches in append order. The atlas builder
+loads them through `assets/sprites/gen/offline_props.py`, validates image hashes,
+true rotation labels, complete coverage, registration and padding, then
+downsamples the source to 192x240. No per-facing crop, recentering or mirroring
+is allowed. New sprites follow every existing record; previous art and its
+registration tables are protected by prefix tests. Map only the relevant
+object's sprite name after a successful build. The catalog pins the SHA256 of
+the proof serialized as sorted-key, compact JSON. This preserves the exact
+reviewed camera and dependencies without making Git line endings significant.
+Changed proofs require another review; changed PNG bytes fail independently.
+Run `python -B assets/sprites/gen/check_prop_mutations.py` to prove the loader
+tests detect mirroring, wrong facing order, missing tile compensation, unbound
+review metadata and unchecked source pixels.
+
+The runtime anchor is source world-origin pixels divided by eight, plus the
+21-pixel tile south-corner offset on Y. It is not the bare source origin. The
+frame offset and shader projection cancel that offset to keep the object on
+its tile. Preserve this measurement when exporting more kitchen models.

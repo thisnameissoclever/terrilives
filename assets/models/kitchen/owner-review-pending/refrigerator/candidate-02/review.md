@@ -1,6 +1,8 @@
 # Refrigerator candidate 02
 
-Status: ready for owner appearance review. Not owner approved or integrated.
+Status: accepted for integration by primary and independent visual review.
+The owner delegated per-object acceptance on 2026-09-17; this is not a claim
+that the owner personally approved this image. Runtime verification is separate.
 Reviewed 2026-09-17 by the primary reviewer and a fresh independent reviewer.
 
 ## Source and method
@@ -38,6 +40,6 @@ checked at 0, 45 and 90 degrees, but no finished door animation is claimed.
 
 ## Permitted next action
 
-Present this complete four-view set for owner approval. Keep candidate 01
-and its rejection reasons. Do not replace runtime sprites until approval,
-registration and played validation. Other objects may proceed independently.
+Proceed with static integration under the delegated review policy. Keep
+candidate 01 and its rejection reasons. Verify registration and played
+placement before publishing. Other objects may proceed independently.

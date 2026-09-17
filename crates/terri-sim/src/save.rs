@@ -2192,6 +2192,59 @@ mod tests {
     }
 
     #[test]
+    fn fridge_art_replacement_restores_authored_and_dynamic_objects_without_save_changes() {
+        let pack = terri_data::pack();
+        let fridge = pack.find("fridge").expect("shipped fridge");
+        let expected_sprite = pack.object(fridge).sprite;
+        assert_ne!(expected_sprite, 4, "new fridge replaces the legacy sprite");
+        let mut source = Sim::new_from_shipped_lot();
+        let dynamic = source.spawn_object(Position { x: 4.25, y: 2.5 }, fridge);
+        let mut fridge_entities = Vec::new();
+        {
+            let world = source.world_mut();
+            let mut query = world.query::<(Entity, &SmartObject)>();
+            for (entity, object) in query.iter(world) {
+                if object.0 == fridge {
+                    fridge_entities.push(entity);
+                }
+            }
+        }
+        assert_eq!(fridge_entities.len(), 2);
+        assert!(fridge_entities.contains(&dynamic));
+        let before = source.save_snapshot();
+        let world_hash = source.world_hash();
+        // Recreate the pre-replacement presentation. Art is deliberately
+        // absent from Save V1, so both layouts must produce identical saves.
+        for entity in &fridge_entities {
+            source
+                .world_mut()
+                .entity_mut(*entity)
+                .insert(SpriteVariant(4));
+        }
+        assert_eq!(source.save_snapshot(), before);
+        assert_eq!(source.world_hash(), world_hash);
+        let mut restored = Sim::new_from_shipped_lot();
+        restored
+            .load_snapshot(source.save_snapshot())
+            .expect("old fridge art saves load");
+        assert_eq!(restored.save_snapshot(), before);
+        assert_eq!(restored.world_hash(), world_hash);
+        restored.sync_render_buffer();
+        for original in fridge_entities {
+            let buffer = restored.render_buffer();
+            let row = buffer
+                .ids
+                .iter()
+                .position(|id| *id == original.index_u32())
+                .expect("fridge render row");
+            assert_eq!(
+                buffer.sprites[row], expected_sprite,
+                "authored and dynamic fridges render the current art"
+            );
+        }
+    }
+
+    #[test]
     fn authored_foreground_sprite_reconstructs_without_entering_save_v1_or_hash_state() {
         let pack = terri_data::pack();
         let bed = pack.find("bed").expect("shipped bunk bed");

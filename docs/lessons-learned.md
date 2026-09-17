@@ -5423,3 +5423,51 @@ integrated production set.
 latest played evidence. Search authoring READMEs for unresolved-gate wording
 and check whether it describes a dated checkpoint or an actual remaining task.
 Never infer a successful deployment from either an offline render or a commit.
+
+---
+
+## [L-static-prop-review-guards] Model review must survive atlas import
+
+**What happened.** The refrigerator looked correct in four source views, but
+its initial import made transparent canvas margins clickable. Adversarial
+review then demonstrated that mirroring survived a symmetric image fixture,
+and a changed camera proof still carried the same acceptance status.
+
+**Root cause.** Source appearance, input hit boxes and provenance are separate
+contracts. Uniform rectangles cannot reveal reflection. Projected origin alone
+does not establish camera scale or perspective, and a review label does not
+bind to the exact reviewed batch.
+
+**Prevention rule.** Export visible alpha bounds alongside padded sprites.
+Use off-centre landmarks in transformation fixtures. Bind acceptance to the
+canonical proof digest and validate image hashes separately. Derive runtime
+anchors from both camera projection and shader placement: this renderer adds
+21 logical pixels before subtracting the sprite anchor, so bare projected
+origin is not the runtime anchor.
+
+**How to verify.** Click visible content and blank margins in all four facings.
+Run `check_prop_mutations.py`: mirroring, wrong facing order, omitted tile
+compensation and disabled proof/pixel guards must each fail, with production
+bytes unchanged afterward. Inspect the actual GPU output and played placement.
+
+---
+
+## [L-browser-proof-source-contract] Read UI contracts before automating verification
+
+**What happened.** Refrigerator browser checks timed out on a pointer-disabled
+radio, a nonexistent menu role, and an incorrectly capitalized load status.
+After fixing those selectors, an immediate clock read briefly showed the
+pre-load value because the HUD and persistence status update separately.
+
+**Root cause.** The verification code guessed roles and messages instead of
+using the existing DOM and controller contracts. Status success was also
+treated as simultaneous with every displayed projection of simulation state.
+
+**Prevention rule.** Inspect source-backed controls and exact status messages.
+Click the visible speed label, target the ordinary action buttons, and confirm
+load through its real dialog. Prove restoration causally by advancing state
+after a save, then waiting for both persistence completion and restored state.
+
+**How to verify.** Save while paused, advance the clock, pause and load. Require
+`Saved game loaded`, a closed confirmation dialog, enabled controls, the saved
+clock and saved activity. An unchanged screenshot alone cannot prove loading.
