@@ -1,0 +1,5 @@
+{
+  "state": "failed",
+  "error": "'tuple' object has no attribute 'x'",
+  "completed": []
+}
