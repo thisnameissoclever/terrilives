@@ -5586,3 +5586,22 @@ Keep played verification in a separate ordinary production-build tab.
 **How to verify.** Require both a clean GPU error scope and a screenshot that
 actually shows the expected four facings. Inspect the played game separately
 for load errors and correct interaction behavior.
+
+---
+
+## [L-control-layout-clearance] Keep functional controls in distinct panel areas
+
+**What happened.** Laundry candidate 01 put its detergent drawer over the
+washer indicator, leaving only a dark sliver visible. Primary review rejected
+the batch before integration.
+
+**Root cause.** The generic control strip was built first and the drawer was
+added afterward without checking its footprint against the existing controls.
+
+**Prevention rule.** Lay out all controls together. Test their actual horizontal
+or vertical clearances in the saved model, not only contact with the panel.
+Supporting each control does not prove the controls are mutually usable.
+
+**How to verify.** Candidate 01 must fail the washer control-clearance check.
+The replacement must show separate drawer, dial and indicator in both front
+views, and moving the drawer back over the display must fail the checker.

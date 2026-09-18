@@ -80,3 +80,20 @@ The existing Take a shower action still completes and raises hygiene. See
 `../../../docs/assets/review-evidence/bathroom/shower.md` for source hashes,
 runtime images and checks. This static batch adds no showering pose, water,
 door or transparent glass. Publication requires separate live verification.
+
+## Stacked laundry
+
+`render_laundry.py` exports the closed washer/dryer using the same camera.
+Candidate 02 separates the washer drawer, dial and indicator; candidate 01
+remains rejected with its original files and overlapping-control report.
+Run `check_laundry_scene.py` through hidden background Blender with the saved
+model and a new result JSON path. It checks four feet, 34 sampled attachment
+contacts, open door-rim centers and control clearances. Six displaced parts
+must fail before a clean reload passes with the same model hash.
+
+Candidate 02 passed primary and adversarial source, GPU and room-relative
+review at 90/100. Its four views append indices 1117 through 1120. The original
+1,117 records remain unchanged, including the corrected refrigerator. See
+`../../../docs/assets/review-evidence/bathroom/laundry.md` for proof hashes,
+room screenshots and verification commands. Cycle, Perpetual remains decorative
+with no interactions, moving drums, opening doors or connected utilities.

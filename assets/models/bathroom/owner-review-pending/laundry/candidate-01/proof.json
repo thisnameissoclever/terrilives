@@ -1,0 +1,133 @@
+{
+  "state": "complete",
+  "object": "laundry",
+  "inputs": {
+    "kitchen/render_static.py": "67af4a6c2a96c171b55b6f52949ffd264b98e2e8ec891524c58889214344df21",
+    "bathroom/render_laundry.py": "b3989680fce0f5473e3b53c38b626e2cbe32e1feedbbf70ea61c057ee146505a",
+    "bathroom/laundry_model.py": "6f30f3a8c3bffa15772e7963c6dcf8cd1cd821b926d4a0f4b63b5931bc2a4583",
+    "bathroom/laundry_geometry.py": "33d58510f531429fb2133eec51757f2f9947103b614b4a0cdd92f8c57fcebb1f",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "f70753a95b9729245011687b3d2ef1ae63151acb7db3016135cfac1d4e23b2bc"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "4f9a655c9641923913b241adee093111458c9db194ef50a93a510c33de0b4eb3"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "3315461463f796921add073942b2666791ff732fcf34845a3178ad670a95069d"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "7b94a70816b45094352f8dd7cf4951e3a7fb29a3f3e7aa24a1dce7487e20d2c7"
+    }
+  ],
+  "logical_canvas": [
+    96,
+    120
+  ],
+  "source_density": 8,
+  "blender_version": "4.5.14 LTS",
+  "approval": "Unreviewed offline candidate; independent visual review required.",
+  "model_checks": {
+    "front": "-Y",
+    "bounds_m": [
+      0.76,
+      0.867,
+      1.74
+    ],
+    "stacked_units": 2,
+    "door_state": "closed",
+    "windows": "opaque dark material",
+    "interaction_animation": false,
+    "utility_connections": "not simulated"
+  },
+  "origin_pixels": [
+    384.0000915527344,
+    760.0034952163696
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 2.6516504287719727,
+  "parts": [
+    "Dryer case",
+    "Dryer control strip",
+    "Dryer dark window",
+    "Dryer dial",
+    "Dryer dial marker",
+    "Dryer door grip",
+    "Dryer door rim",
+    "Dryer door seal",
+    "Dryer front panel",
+    "Dryer hinge cover",
+    "Dryer indicator",
+    "Dryer rear service panel",
+    "Dryer rear vent 1.05",
+    "Dryer rear vent 1.09",
+    "Dryer rear vent 1.13",
+    "Laundry foot -0.29 -0.28",
+    "Laundry foot -0.29 0.28",
+    "Laundry foot 0.29 -0.28",
+    "Laundry foot 0.29 0.28",
+    "Laundry stacking tray",
+    "Washer case",
+    "Washer control strip",
+    "Washer dark window",
+    "Washer detergent drawer",
+    "Washer dial",
+    "Washer dial marker",
+    "Washer door grip",
+    "Washer door rim",
+    "Washer door seal",
+    "Washer front panel",
+    "Washer hinge cover",
+    "Washer indicator",
+    "Washer rear connector -0.14",
+    "Washer rear connector 0.14",
+    "Washer rear service panel"
+  ],
+  "color_management": {
+    "view": "Standard",
+    "look": "None"
+  },
+  "model_sha256": "cd9ee3980226fa1113c97e26017778379c0a1b825a2f94b0d7d7aa6c0f0d812a"
+}

@@ -32,6 +32,11 @@ GPU sprite draw. Source/provenance limitations and export instructions are in
 the review notes record played verification, including the later wall changes.
 Neither workflow requires runtime 3D rendering.
 
+The static bathroom batch also includes the reviewed stacked washer/dryer in
+`assets/models/bathroom/owner-review-pending/laundry/candidate-02/`. Its four
+rotations and room-relative scale passed independent review; the object stays
+decorative. Verification is recorded in `docs/assets/review-evidence/bathroom/laundry.md`.
+
 Kitchen replacements follow the same offline authoring workflow in
 `assets/models/kitchen/`. The refrigerator's candidate 03 contains four true
 rotations, an editable model and hashed render inputs. On 2026-09-17 the owner

@@ -901,7 +901,7 @@ footprint = { width = 2, depth = 1 }
 [[object]]
 id = "laundry"
 name = "Cycle, Perpetual"
-sprite = "washerDryerStacked"
+sprite = "offlineLaundry"
 
   # **No interactions, and this is the one that was hardest to leave alone.**
   # A chore that costs time and returns nothing is perfect for this game's
