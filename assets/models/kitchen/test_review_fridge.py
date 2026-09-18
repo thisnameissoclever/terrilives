@@ -5,8 +5,8 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from PIL import Image
-from review_fridge import load_views
+from PIL import Image, ImageChops
+from review_fridge import load_views, main
 
 
 class ReviewTests(unittest.TestCase):
@@ -31,6 +31,16 @@ class ReviewTests(unittest.TestCase):
 
     def test_accepts_the_complete_four_view_batch(self):
         self.assertEqual(set(load_views(self.folder)),{'SE','SW','NW','NE'})
+
+    def test_object_label_changes_without_changing_any_reviewed_pixels(self):
+        main(self.folder)
+        with Image.open(self.folder/'four-facing-review.png') as image:
+            first = image.copy()
+        main(self.folder, 'Stove')
+        with Image.open(self.folder/'four-facing-review.png') as second:
+            changed = ImageChops.difference(first,second).getbbox()
+        self.assertIsNotNone(changed, 'The stove must not be labelled Refrigerator')
+        self.assertLess(changed[3],44, 'Labels must not overwrite or change the source views')
 
     def test_rejects_missing_or_duplicate_facings(self):
         self.rows.pop()

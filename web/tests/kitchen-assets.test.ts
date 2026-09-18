@@ -6,6 +6,29 @@ import { packSpriteTable } from '../src/render/sprites.js';
 import { pickSprite, type PickSource } from '../src/input.js';
 
 describe('reviewed kitchen sprites', () => {
+  it('registers four stove facings without selecting the empty upper canvas', () => {
+    const table = packSpriteTable();
+    for (const [offset, suffix] of ['', 'NW', 'SW', 'NE'].entries()) {
+      const index = atlas.spriteIndex(`offlineStove${suffix}`);
+      expect(index).toBe(1093 + offset);
+      expect([...table.slice(index * 8 + 4, index * 8 + 6)]).toEqual([96, 120]);
+      expect(atlas.SPRITES[index].pixel_density).toBe(2);
+      expect(atlas.SPRITE_ANCHORS[index][1]).toBeCloseTo(116.000437, 4);
+      const source: PickSource = {
+        count: 1,
+        positions: () => new Float32Array([0, 0]),
+        kinds: () => new Uint32Array([1]),
+        ids: () => new Uint32Array([8]),
+        sprites: () => new Uint32Array([index]),
+        activities: () => new Uint32Array([0]),
+      };
+      expect(pickSprite(source, 0, -20, 0, 0)).toEqual({ entity: 8, isAgent: false });
+      expect(pickSprite(source, 0, -85, 0, 0)).toBeNull();
+      expect(pickSprite(source, -47, -20, 0, 0)).toBeNull();
+      expect(atlas.SPRITE_PAIRS[index]).toBeUndefined();
+      expect(atlas.INTERACTION_SPRITES[index]).toBeUndefined();
+    }
+  });
   it('does not select the refrigerator through its transparent canvas margins', () => {
     for (const suffix of ['', 'NW', 'SW', 'NE']) {
       const source: PickSource = {

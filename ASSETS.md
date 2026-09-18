@@ -17,7 +17,7 @@ The approved shared Sim now comes from the editable Blender source and rig in
 Its README records immutable source hashes, material-only shirt variants and
 offline animation exports. High-resolution Blender renders are downsampled to
 RGBA frames at twice their logical dimensions, validated and packed into the
-same 2D atlas. The integrated atlas contains 1,093 records at 4096x6095 physical
+same 2D atlas. The integrated atlas contains 1,097 records at 4096x6168 physical
 pixels; the older counts below are historical. Existing sprite identities,
 logical dimensions and unrelated decoded pixels remain unchanged.
 
@@ -40,6 +40,13 @@ static views are integrated after all 1,089 previous sprites, preserving those
 decoded pixels and registration tables. The source proof is pinned in the
 kitchen catalog. Played and GPU evidence is in
 `docs/assets/review-evidence/kitchen/`; live deployment is a separate check.
+
+The stove's candidate 02 adds four further views at indices 1093 through 1096.
+Its editable model preserves the kitchen's blue-grey enamel and cream hob,
+with four coil burners, attached controls and a bottom-hinged oven door.
+Primary and adversarial review accepted the closed static views. Played
+verification completed the cooking chain, but no new cooking or oven-opening
+animation is claimed. The previous 1,093 decoded sprites remain unchanged.
 
 ## Historical primitive-only migration
 

@@ -1,0 +1,151 @@
+{
+  "state": "complete",
+  "inputs": {
+    "kitchen\\render_stove.py": "306f655001ecec8372b3bfeec3d26d8b3b947eb7aa73a9b6c3871cb8c5d06989",
+    "kitchen\\stove_model.py": "a90bdccfcc6851306b26b0ff2aba1fa4671bdfbc861e82cc115b2fac3ffdaaa3",
+    "kitchen\\stove_geometry.py": "982a5ed0efd59714953ff9eba36bf836a24bda0ba355f24257a1af05fc653c2f",
+    "furniture\\build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture\\geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims\\sim-01\\sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "sims\\sim-01\\registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "894ddf59df34acfd215012fe564df35744e796ccef826e421d2d9bf94a79eff7"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "cfba821f1421c7f6b2db6676804486166a92b96537ebaad7ec22d03035bd63b1"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "1ed6a7535a40efc3f62910b2fb118138f6ccc43083a71e6564d5705afc5059e3"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "1015ba9bc03a596e6a5f3ab84fca03ee5bb99137b8097458135056d6cd2bb9a2"
+    }
+  ],
+  "logical_canvas": [
+    96,
+    120
+  ],
+  "source_density": 8,
+  "blender_version": "4.5.14 LTS",
+  "approval": "Unreviewed offline candidate; independent visual review required.",
+  "origin_pixels": [
+    384.0000915527344,
+    760.0034952163696
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 2.6516504287719727,
+  "parts": [
+    "Burner coil -0.235 -0.23 0.4",
+    "Burner coil -0.235 -0.23 0.7",
+    "Burner coil -0.235 -0.23 1",
+    "Burner coil -0.235 0.22 0.4",
+    "Burner coil -0.235 0.22 0.7",
+    "Burner coil -0.235 0.22 1",
+    "Burner coil 0.235 -0.23 0.4",
+    "Burner coil 0.235 -0.23 0.7",
+    "Burner coil 0.235 -0.23 1",
+    "Burner coil 0.235 0.22 0.4",
+    "Burner coil 0.235 0.22 0.7",
+    "Burner coil 0.235 0.22 1",
+    "Burner well -0.235 -0.23",
+    "Burner well -0.235 0.22",
+    "Burner well 0.235 -0.23",
+    "Burner well 0.235 0.22",
+    "Oven bottom hinge",
+    "Oven door",
+    "Oven door gasket",
+    "Oven handle",
+    "Oven handle mount -0.29",
+    "Oven handle mount 0.29",
+    "Oven window glass",
+    "Oven window trim",
+    "Oven ceiling",
+    "Oven floor",
+    "Oven rear liner",
+    "Oven shelf 0.32 edge -0.39",
+    "Oven shelf 0.32 edge 0.38",
+    "Oven shelf 0.32 rod -0.1",
+    "Oven shelf 0.32 rod -0.2",
+    "Oven shelf 0.32 rod -0.3",
+    "Oven shelf 0.32 rod 0",
+    "Oven shelf 0.32 rod 0.1",
+    "Oven shelf 0.32 rod 0.2",
+    "Oven shelf 0.32 rod 0.3",
+    "Oven shelf 0.5 edge -0.39",
+    "Oven shelf 0.5 edge 0.38",
+    "Oven shelf 0.5 rod -0.1",
+    "Oven shelf 0.5 rod -0.2",
+    "Oven shelf 0.5 rod -0.3",
+    "Oven shelf 0.5 rod 0",
+    "Oven shelf 0.5 rod 0.1",
+    "Oven shelf 0.5 rod 0.2",
+    "Oven shelf 0.5 rod 0.3",
+    "Range back",
+    "Range control -0.1",
+    "Range control -0.3",
+    "Range control 0.1",
+    "Range control 0.3",
+    "Range control indicator -0.1",
+    "Range control indicator -0.3",
+    "Range control indicator 0.1",
+    "Range control indicator 0.3",
+    "Range controls",
+    "Range lower drawer",
+    "Range porcelain hob",
+    "Range rear upstand",
+    "Range side -1",
+    "Range side 1",
+    "Range toe kick",
+    "Rear cooling vent 0.21",
+    "Rear cooling vent 0.25",
+    "Rear cooling vent 0.29",
+    "Rear service panel"
+  ],
+  "door_hinges": [
+    "Oven bottom hinge"
+  ],
+  "color_management": {
+    "view": "Standard",
+    "look": "None"
+  },
+  "model_sha256": "e28688c02d66bebe3c2a259a493c3e16b8cbabaf447a51d7bb6538b9c3dd52b2"
+}

@@ -1,5 +1,8 @@
 # Refrigerator static replacement
 
+Subsequent kitchen work: [stove static replacement](stove.md). Counts and hashes
+below describe the refrigerator checkpoint, not the later combined atlas.
+
 Reviewed 2026-09-17. The owner delegated per-object visual acceptance to the
 primary and adversarial reviewers. Both passed this static replacement.
 This evidence does not claim a published deployment or an opening animation.

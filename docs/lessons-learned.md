@@ -5424,6 +5424,26 @@ latest played evidence. Search authoring READMEs for unresolved-gate wording
 and check whether it describes a dated checkpoint or an actual remaining task.
 Never infer a successful deployment from either an offline render or a commit.
 
+## [L-small-model-attachments] Small details still need physical support
+
+**What happened.** The first stove candidate looked coherent at game scale,
+but independent review found knob indicators in front of their supporting
+faces. Follow-up geometry inspection found coil rings above their burner wells.
+
+**Root cause.** Small decorative parts were positioned by centre coordinates
+without checking their full extents against the surfaces supporting them.
+Downsampling hid the gaps rather than correcting them.
+
+**Prevention rule.** Check contacts in the saved scene, not only in the source
+script or final sprite. Preserve rejected candidates so a new guard can prove
+it fails on the original defect. Smooth shading alone does not guarantee that
+an outline renderer will remove every small contour mark.
+
+**How to verify.** Run the saved-scene attachment checker against both retained
+stove candidates. Candidate 01 must fail 12 coil and four indicator contacts;
+candidate 02 must pass. Inspect the high-resolution source and game-size views
+separately and record any residual contour defect without calling it fixed.
+
 ---
 
 ## [L-static-prop-review-guards] Model review must survive atlas import

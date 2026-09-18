@@ -1,8 +1,8 @@
 # Kitchen asset review
 
 Continue the accepted offline Blender-to-sprite workflow, kitchen first. The
-first object is the existing refrigerator, not a new gameplay object. Only its
-sprite mapping changes; footprint, interactions, save format and accepted Sims
+first objects are the existing refrigerator and stove, not new gameplay objects.
+Only their sprite mappings change; footprints, interactions, save format and accepted Sims
 remain unchanged.
 
 The refrigerator keeps the current cool-grey enamel, muted brass handles and
@@ -26,7 +26,7 @@ It is a style reference, not part of the furniture's visible geometry.
    resolution before laying out the review board. It does not repair geometry.
 5. Inspect the four original images and the 2x texture-size samples. Review
    structure, actual front/back rotation, attachment consistency, line quality
-   and style. Use fresh independent visual review before owner review.
+   and style. Use fresh independent visual review before accepting a candidate.
 6. Record defects and scores with each candidate. Retain rejected originals.
    On 2026-09-17 the owner delegated per-object visual acceptance to the primary
    and adversarial reviewers. Do not wait for individual owner approvals.
@@ -66,3 +66,26 @@ The runtime anchor is source world-origin pixels divided by eight, plus the
 21-pixel tile south-corner offset on Y. It is not the bare source origin. The
 frame offset and shader projection cancel that offset to keep the object on
 its tile. Preserve this measurement when exporting more kitchen models.
+
+## Stove
+
+`render_stove.py` follows the same hidden-background launch and new-directory
+rules. Review its output with `review_fridge.py OUTPUT_DIRECTORY Stove`; the
+optional label changes headings only. Candidate 01 remains with rejection
+notes. Candidate 02 passed primary and adversarial review at 90/100 and is
+listed in the static catalog. It keeps the existing hob role and counter-run
+height. The hollow oven and bottom hinge are preparation for future animation,
+not an exported opening clip.
+
+Run `check_stove_scene.py` through the installed Blender launcher, passing the
+saved `.blend` path and a new JSON result path after `--`. This checks the saved
+geometry, not source constants: coil support, knob-indicator contact and door
+parenting. The retained results show candidate 01 failing and candidate 02
+passing. Use the result file to establish completion; the Windows Store
+launcher does not reliably forward redirected console output. Direct access
+to the packaged executable was denied; no permissions were changed.
+
+The accepted stove's four runtime records follow the refrigerator. Both the
+source review and played cooking evidence are retained in the kitchen evidence
+directory. Tiny burner-rim contour ticks remain visible at full source size;
+the independent reviewer judged them non-blocking in the downsampled sprites.

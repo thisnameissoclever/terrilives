@@ -34,7 +34,7 @@ def load_views(folder):
     return images
 
 
-def main(folder):
+def main(folder, object_label='Refrigerator'):
     images = load_views(folder)
     board = Image.new('RGBA',(1536,800),(235,230,218,255))
     draw = ImageDraw.Draw(board)
@@ -42,7 +42,7 @@ def main(folder):
     label = ImageFont.load_default(size=18)
     for i,facing in enumerate(FACINGS):
         x = i*384
-        draw.text((x+16,12),f'Refrigerator / {facing}',fill='#302d28',font=title)
+        draw.text((x+16,12),f'{object_label} / {facing}',fill='#302d28',font=title)
         board.alpha_composite(images[facing].resize((384,480),Image.Resampling.LANCZOS),(x,44))
         draw.text((x+16,536),'2x texture sample (192 x 240)',fill='#302d28',font=label)
         board.alpha_composite(images[facing].resize((192,240),Image.Resampling.LANCZOS),(x+96,558))
@@ -51,4 +51,4 @@ def main(folder):
 
 
 if __name__ == '__main__':
-    main(Path(sys.argv[1]))
+    main(Path(sys.argv[1]),sys.argv[2] if len(sys.argv)>2 else 'Refrigerator')
