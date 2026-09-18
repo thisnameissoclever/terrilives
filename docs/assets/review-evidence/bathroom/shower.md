@@ -75,7 +75,8 @@ The decoded-prefix guard pins all 1,113 previous records with digest
 `0f8c408d7519f793bbd744716881354099f0a1b84a8117e30c01bbf9983712e1`.
 Independent review reran the four shower web tests, nine static-loader tests,
 the prefix guards and atlas reproducibility check, all passing.
-# Refrigerator correction carried forward
+
+## Refrigerator correction carried forward
 
 The combined atlas retains refrigerator candidate 03 and its SW lot placement.
 Its 1,117 records now have atlas hash
@@ -85,5 +86,21 @@ shower branch and all 1,113 records from the corrected toilet branch. The
 1,113-record complement digest was calculated from old shower commit `a776c95`,
 excluding only the four intentionally replaced fridge images. Fresh checks
 passed: 688 Rust tests, 689 web tests, 50 sprite tests, typecheck and atlas
-reproducibility. Earlier screenshots and hashes below describe their original
+reproducibility. Earlier screenshots and hashes above describe their original
 checkpoint, not publication of this combined build.
+
+## Combined room check
+
+`combined-room-fit.png` shows the rebuilt production preview at Day 1, 03:32.
+Its bundle is `index-BcLLP00R.js`, WASM `terri_wasm_bg-CXYd8-h0.wasm`, and
+atlas hash is the corrected combined hash above. Primary and independent
+review accepted the visible sink, toilet and shower directions, their heights
+beside standing Casey, and visible floor contact and clearance. The unchanged
+washer hides part of the sink; hidden edge clearance remains unverified by
+this screenshot. No washing, reaching or showering animation is claimed.
+
+Ordinary UI selected Casey, Basin Basic, then Wash hands. Casey reached Using
+object, then returned to Deciding what to do; hygiene rose from 60.3 at the
+paused screenshot to 83.7 after completion. The only console error was a
+missing favicon (404). WASM and Vite production builds passed with exit 0.
+The dedicated verification tab was closed afterward.
