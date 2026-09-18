@@ -42,6 +42,12 @@
       "directory": "bathroom/owner-review-pending/shower/candidate-01",
       "proof_sha256": "86fc45fcc8ddb648427b83f15bd5560a8d117bdd6d3195d0fcd46d2512c9d486",
       "review_status": "accepted-independent-review"
+    },
+    {
+      "name": "offlineLaundry",
+      "directory": "bathroom/owner-review-pending/laundry/candidate-02",
+      "proof_sha256": "701191a5e165100ca92604dcb7e6a89507c84032bfa160bca88630e356cc176f",
+      "review_status": "accepted-independent-review"
     }
   ]
 }

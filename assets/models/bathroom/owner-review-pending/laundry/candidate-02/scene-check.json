@@ -1,0 +1,208 @@
+{
+  "state": "passed",
+  "control_clearances_m": [
+    0.07499999180436134,
+    0.0949999950826168
+  ],
+  "contact_witnesses": {
+    "Laundry foot -0.29 -0.28 / Washer case": [
+      -0.3163999915122986,
+      -0.29319998621940613,
+      0.0820000097155571
+    ],
+    "Laundry foot -0.29 0.28 / Washer case": [
+      -0.3163999915122986,
+      0.2667999863624573,
+      0.0820000097155571
+    ],
+    "Laundry foot 0.29 -0.28 / Washer case": [
+      0.2635999917984009,
+      -0.29319998621940613,
+      0.0820000097155571
+    ],
+    "Laundry foot 0.29 0.28 / Washer case": [
+      0.2635999917984009,
+      0.2667999863624573,
+      0.0820000097155571
+    ],
+    "Laundry stacking tray / Washer case": [
+      -0.30000001192092896,
+      -0.29600000381469727,
+      0.8910000324249268
+    ],
+    "Laundry stacking tray / Dryer case": [
+      -0.30000001192092896,
+      -0.29600000381469727,
+      0.921000063419342
+    ],
+    "Washer front panel / Washer case": [
+      -0.2839999794960022,
+      -0.374099999666214,
+      0.17999999225139618
+    ],
+    "Washer door seal / Washer front panel": [
+      -0.19600000977516174,
+      -0.3869999945163727,
+      0.3320000171661377
+    ],
+    "Washer door rim / Washer door seal": [
+      -0.19040000438690186,
+      -0.4174000322818756,
+      0.33480000495910645
+    ],
+    "Washer dark window / Washer door seal": [
+      -0.15520000457763672,
+      -0.41760003566741943,
+      0.27480000257492065
+    ],
+    "Washer door grip / Washer door rim": [
+      0.19499999284744263,
+      -0.44529998302459717,
+      0.3760000169277191
+    ],
+    "Washer hinge cover / Washer door seal": [
+      -0.24070000648498535,
+      -0.412600040435791,
+      0.40400001406669617
+    ],
+    "Washer control strip / Washer front panel": [
+      -0.26600000262260437,
+      -0.38770002126693726,
+      0.7460000514984131
+    ],
+    "Washer indicator / Washer control strip": [
+      0.12999999523162842,
+      -0.4047999978065491,
+      0.7784000039100647
+    ],
+    "Washer dial / Washer control strip": [
+      -0.05199999734759331,
+      -0.40450000762939453,
+      0.7799999713897705
+    ],
+    "Washer dial marker / Washer dial": [
+      -0.02279999852180481,
+      -0.4367000162601471,
+      0.8112000226974487
+    ],
+    "Washer rear service panel / Washer case": [
+      -0.25200000405311584,
+      0.3682500123977661,
+      0.21199998259544373
+    ],
+    "Dryer front panel / Dryer case": [
+      -0.2839999794960022,
+      -0.374099999666214,
+      1.0200001001358032
+    ],
+    "Dryer door seal / Dryer front panel": [
+      -0.19600000977516174,
+      -0.3869999945163727,
+      1.1719999313354492
+    ],
+    "Dryer door rim / Dryer door seal": [
+      -0.19040000438690186,
+      -0.4174000322818756,
+      1.174799919128418
+    ],
+    "Dryer dark window / Dryer door seal": [
+      -0.15520000457763672,
+      -0.41760003566741943,
+      1.114799976348877
+    ],
+    "Dryer door grip / Dryer door rim": [
+      0.19499999284744263,
+      -0.44529998302459717,
+      1.215999960899353
+    ],
+    "Dryer hinge cover / Dryer door seal": [
+      -0.24070000648498535,
+      -0.412600040435791,
+      1.24399995803833
+    ],
+    "Dryer control strip / Dryer front panel": [
+      -0.26600000262260437,
+      -0.38770002126693726,
+      1.5859999656677246
+    ],
+    "Dryer indicator / Dryer control strip": [
+      0.06999999284744263,
+      -0.4047999978065491,
+      1.6184000968933105
+    ],
+    "Dryer dial / Dryer control strip": [
+      -0.22199998795986176,
+      -0.40450000762939453,
+      1.6200000047683716
+    ],
+    "Dryer dial marker / Dryer dial": [
+      -0.19280000030994415,
+      -0.4367000162601471,
+      1.6512000560760498
+    ],
+    "Dryer rear service panel / Dryer case": [
+      -0.25200000405311584,
+      0.3682500123977661,
+      1.0520000457763672
+    ],
+    "Washer detergent drawer / Washer control strip": [
+      -0.26999998092651367,
+      -0.40470001101493835,
+      0.763200044631958
+    ],
+    "Washer rear connector -0.14 / Washer rear service panel": [
+      -0.1608000099658966,
+      0.37485000491142273,
+      0.6696000099182129
+    ],
+    "Washer rear connector 0.14 / Washer rear service panel": [
+      0.11919999122619629,
+      0.37485000491142273,
+      0.6696000099182129
+    ],
+    "Dryer rear vent 1.05 / Dryer rear service panel": [
+      -0.12000000476837158,
+      0.3811500072479248,
+      1.0476000308990479
+    ],
+    "Dryer rear vent 1.09 / Dryer rear service panel": [
+      -0.12000000476837158,
+      0.3811500072479248,
+      1.0876001119613647
+    ],
+    "Dryer rear vent 1.13 / Dryer rear service panel": [
+      -0.12000000476837158,
+      0.3811500072479248,
+      1.127600073814392
+    ]
+  },
+  "floor_contacts": 4,
+  "door_rim_centers_open": true,
+  "model_sha256": "9d13fee1a2b293510e669174c396d47e8b31453fbcd2864ab363f0b6def6ac9c",
+  "mutations": [
+    {
+      "part": "Washer detergent drawer",
+      "caught": "Washer controls overlap"
+    },
+    {
+      "part": "Laundry foot -0.29 -0.28",
+      "caught": "Foot lost floor contact"
+    },
+    {
+      "part": "Dryer case",
+      "caught": "Laundry stacking tray detached from Dryer case"
+    },
+    {
+      "part": "Washer door grip",
+      "caught": "Washer door grip detached from Washer door rim"
+    },
+    {
+      "part": "Dryer dark window",
+      "caught": "Dryer dark window detached from Dryer door seal"
+    },
+    {
+      "part": "Dryer dial",
+      "caught": "Dryer dial detached from Dryer control strip"
+    }
+  ]
+}
