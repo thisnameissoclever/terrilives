@@ -102,7 +102,11 @@ review views, not valid gameplay placements with the fixed 2x1 footprint.
    not the lower-level image loader. It rejects changed inputs, incomplete
    coverage, stale hashes and failed reconstruction evidence. Full local
    acceptance additionally calls `offline_bunk.verify_bunk_generation` from
-   `assets/sprites/gen`, requiring every original render's bytes. CI imports
+   `assets/sprites/gen`, requiring every original render's bytes and readable
+   1280x1408 RGBA PNG data. Import rejects duplicate resolved raw paths and
+   requires all four valid contact samples, exact obstacle inventories,
+   no excluded geometry/collisions, and supported torso, soles and head.
+   Equal image hashes are allowed for palette-independent contributions. CI imports
    the accepted export and does not claim to rerender or inspect raw images.
    Full-resolution contributions and rejected source models remain local;
    journals, source helpers, accepted model, review images and exports are tracked.

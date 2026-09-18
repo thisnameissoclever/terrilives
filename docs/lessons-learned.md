@@ -1,5 +1,23 @@
 # Lessons Learned
 
+## [L-retired-asset-review-command] Retire review tools with their rendering contract
+
+**What happened.** The bunk stopped using a separate foreground sprite, but
+the Sim evidence README still instructed readers to run a generator requiring
+that removed field and the old procedural sprite name.
+
+**Root cause.** Runtime references were updated without checking documentary
+scripts that also consumed the object definition.
+
+**Prevention rule.** Search review scripts and documentation when replacing
+asset contracts. Remove obsolete generators and label their retained images
+historical; point to the current supported workflow rather than inventing a
+compatibility layer that combines incompatible furniture.
+
+**How to verify.** Search for the retired command and check every remaining
+reference. The current bedroom workflow must validate the reviewed composite,
+without requiring `bedBunkForeground` or overwriting historical evidence.
+
 ## [L-bed-body-envelope] Distinguish furniture proportions from sleeping fit
 
 **What happened.** A replacement double bed passed isolated source review but

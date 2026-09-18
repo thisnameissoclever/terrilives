@@ -5,6 +5,16 @@ SE placement, 2x1 footprint and approved Sim rig. It uses the established
 object-centered composite renderer. The former `bedBunkForeground` mapping is
 removed; its sprite remains unchanged for legacy coverage.
 
+PR review exposed two evidence-validator gaps, not a defect in the accepted
+renders. The importer now checks all four contact frames and support thresholds
+and rejects duplicate raw paths. Full-generation verification also checks the
+originals' readable PNG/RGBA format and 1280x1408 size. Tests deliberately
+re-sign invalid journals so hash failures cannot conceal missing semantic
+checks. Eighteen such cases failed before the validator change, then passed
+by rejecting those invalid inputs. Accepted source and export hashes are
+unchanged. The obsolete split-layer review generator was retired; its retained
+image is explicitly historical and its README points to the current workflow.
+
 ## Geometry and source review
 
 Primary and independent reviewers accepted the source and sixteen occupied
