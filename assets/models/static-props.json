@@ -66,6 +66,12 @@
       "directory": "bedroom/owner-review-pending/dresser/candidate-01",
       "proof_sha256": "f9bc06893154c3025fc84b73f323f14ba6d2f627504f861045b38fa9e87323b7",
       "review_status": "accepted-independent-review"
+    },
+    {
+      "name": "offlineDoubleBed",
+      "directory": "bedroom/owner-review-pending/double-bed/candidate-02",
+      "proof_sha256": "6c7f216df0c4302dd53b3e6de700081792aac300359657bd9144924f28f6bf81",
+      "review_status": "accepted-independent-review"
     }
   ]
 }

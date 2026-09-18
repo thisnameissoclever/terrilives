@@ -73,3 +73,19 @@ at the unchanged fridge placement without a migration.
 Atlas SHA-256:
 `6b711ba6663c3b25582a72f186d464a9d027e6698f152d2e3c948ff4df415c5f`.
 Publication must be recorded separately after merge and live verification.
+
+## Published correction
+
+PR #76 merged as `af3e6d4979d83e5735e3ea17060ce57d702256d0`. The subsequent
+sink merge `772b46944a5c5ba3605351cc905687ee53941d48` also contains this correction.
+That revision passed main CI 35300175083 and Pages 35300329330; the actual
+deploy-pages step succeeded rather than being skipped as stale.
+
+On 2026-09-17, the public game loaded `index-V1wiAr0-.js` and returned HTTP 200
+for atlas `b10c81d72d41cdbb818b2e78cd4b7a88a662f3dae6fec7994e8cbfe9d6f6cf35`.
+The downloaded bytes match the atlas in Git revision `772b469` exactly.
+`fridge-room-fit-live.png` shows doors into the room and the enlarged cabinet
+beside the kitchen counter. The household was paused at Day 1, 01:53 using
+normal controls; no console ERROR entries were found. The dedicated tab was
+closed. This proves the fridge correction and sink revision were published,
+not that subsequent bathroom or bedroom batches were live at that checkpoint.

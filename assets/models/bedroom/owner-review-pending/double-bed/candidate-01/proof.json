@@ -1,0 +1,122 @@
+{
+  "state": "complete",
+  "object": "double-bed",
+  "inputs": {
+    "bathroom/render_wide_static.py": "d775615b099666ac1fc15ba1eba547c66ab20a4fe278ff9af79c9f1fad671491",
+    "bedroom/render_double_bed.py": "22966f979b7826190fff9054dd67c6f9aeeeddd66e13be840fcfb9e73ab1c654",
+    "bedroom/double_bed_model.py": "799dabb45e6eb3eaefc814c236ffc3d00f3134236f2c64886972f8b5f5054ecf",
+    "bedroom/double_bed_layout.py": "0ff611350a6e4984b52e21b1d936c41be50a128f053ac7996dc172687cf92f75",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "3284b876994202efea256c56ada1576759b01b0ad2eec7da1892fc401e73443a"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "1a51e672ac56bb6588410b4ea1843e7b365b7da3bd4712d64098181cc0d655ae"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "ddef7f879deb60387a9f6eed4b4cd2e850992c7a327ec3a0f64a4379786f377b"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "917fc3d09fdec333d8430dd5c704483d86404c397045b3ef5bcf5a72390e2c39"
+    }
+  ],
+  "logical_canvas": [
+    160,
+    176
+  ],
+  "source_density": 8,
+  "blender_version": "4.5.14 LTS",
+  "approval": "Unreviewed offline candidate; independent visual review required.",
+  "model_checks": {
+    "footprint": [
+      2,
+      2
+    ],
+    "canonical_center": [
+      0,
+      0,
+      0
+    ],
+    "head_end": "+Y",
+    "foot_end": "-Y",
+    "mattress_size": [
+      1.6,
+      1.76,
+      0.19
+    ],
+    "duvet_top": 0.55,
+    "sleep_pose_added": false,
+    "foreground_added": false,
+    "slots": 2
+  },
+  "origin_pixels": [
+    640.0000762939453,
+    984.0035095214844
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 3.889087200164795,
+  "parts": [
+    "Folded duvet edge",
+    "Foot -0.79 -0.85",
+    "Foot -0.79 0.85",
+    "Foot 0.79 -0.85",
+    "Foot 0.79 0.85",
+    "Foot rail",
+    "Headboard",
+    "Headboard inset",
+    "Mattress",
+    "Mattress platform",
+    "Pillow -0.415",
+    "Pillow 0.415",
+    "Sage duvet",
+    "Side rail -0.815",
+    "Side rail 0.815"
+  ],
+  "color_management": {
+    "view": "Standard",
+    "look": "None"
+  },
+  "model_sha256": "7e362b5ca73f901ebf2f2ef3e47e58ba23d9725b4f47ce6a9709a133fc36b2fa"
+}

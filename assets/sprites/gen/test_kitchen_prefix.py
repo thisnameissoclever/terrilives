@@ -21,6 +21,7 @@ class KitchenPrefixTests(unittest.TestCase):
             (1117,'7df64f812c534cd7a2f16f4e6aa1b92c5038199ff9bbed01d72785f2c1b66488'),
             (1121,'6c6e9938a5de9ed35a62a45bb5dc63114a5a1c9358ced3592781e00987f6685e'),
             (1125,'303d593494271f880caa13190dccebe5d5e9a00bcd4b353e0345f2d114eaef66'),
+            (1133,'cc6bf794b7def991014d55e12798c4993c87d33b240c00eb059f07f913625b4e'),
         ):
             with self.subTest(count=count), Image.open(ROOT/'web/public/atlas.png') as image:
                 rows = records[:count]
