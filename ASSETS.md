@@ -17,7 +17,7 @@ The approved shared Sim now comes from the editable Blender source and rig in
 Its README records immutable source hashes, material-only shirt variants and
 offline animation exports. High-resolution Blender renders are downsampled to
 RGBA frames at twice their logical dimensions, validated and packed into the
-same 2D atlas. The integrated atlas contains 1,105 records at 4096x6258 physical
+same 2D atlas. The integrated atlas contains 1,109 records at 4096x6313 physical
 pixels; the older counts below are historical. Existing sprite identities,
 logical dimensions and unrelated decoded pixels remain unchanged.
 
@@ -38,7 +38,7 @@ rotations, an editable model and hashed render inputs. On 2026-09-17 the owner
 delegated per-object acceptance to primary and adversarial review. Its four
 static views are integrated after all 1,089 previous sprites, preserving those
 decoded pixels and registration tables. The source proof is pinned in the
-kitchen catalog. Played and GPU evidence is in
+global append-only `assets/models/static-props.json` catalog. Played and GPU evidence is in
 `docs/assets/review-evidence/kitchen/`; live deployment is a separate check.
 
 The stove's candidate 02 adds four further views at indices 1093 through 1096.
@@ -54,6 +54,16 @@ opening and recessed basin, with saved-scene support checks for the drain and
 faucet bases. Primary and adversarial review accepted the static source views.
 The previous 1,097 decoded sprites remain unchanged. This does not implement
 surface-item placement, dishwashing motion or new hand-contact animation.
+
+The bathroom pedestal sink's candidate 01 adds four views at indices 1105
+through 1108. Its warm ceramic shell includes a recessed basin and closed
+underside, with a supported pedestal, drain and faucet. Primary and adversarial
+review accepted the source and four-facing GPU renders. Played verification
+confirmed the existing wash-hands interaction still raises hygiene to 100.
+The previous 1,105 decoded sprites remain unchanged. Sources and limitations
+are in `assets/models/bathroom/`; retained evidence is in
+`docs/assets/review-evidence/bathroom/`. No hand-contact or water animation is
+included in this static replacement.
 
 ## Historical primitive-only migration
 

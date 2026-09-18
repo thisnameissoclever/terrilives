@@ -49,7 +49,10 @@ to avoid breaking source paths and review links; it is not a blocking gate.
 
 ## Static runtime integration
 
-`catalog.json` lists accepted static batches in append order. The atlas builder
+`../static-props.json` lists accepted static batches in one append order across
+all rooms. It replaces this directory's former `catalog.json` without changing
+the kitchen order or proof hashes. Never regroup entries by room: adding a
+kitchen object later must not renumber an accepted bathroom sprite. The atlas builder
 loads them through `assets/sprites/gen/offline_props.py`, validates image hashes,
 true rotation labels, complete coverage, registration and padding, then
 downsamples the source to 192x240. No per-facing crop, recentering or mirroring
