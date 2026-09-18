@@ -1,0 +1,79 @@
+{
+  "state": "passed",
+  "floor_height": 0.05500030517578125,
+  "drain_supported": true,
+  "arm_endpoints_connected": true,
+  "contact_witnesses": {
+    "Shower rear panel / Shower recessed tray": [
+      -0.34200000762939453,
+      0.39149999618530273,
+      0.1323000192642212
+    ],
+    "Shower side panel / Shower recessed tray": [
+      -0.4230000078678131,
+      -0.3240000009536743,
+      0.1332000195980072
+    ],
+    "Shower rear panel / Shower side panel": [
+      -0.4230000078678131,
+      0.38475000858306885,
+      0.3068000376224518
+    ],
+    "Shower arm flange / Shower rear panel": [
+      -0.03440000116825104,
+      0.3825500011444092,
+      1.6713999509811401
+    ],
+    "Shower head / Shower nozzle face": [
+      -0.058399997651576996,
+      -0.04878268390893936,
+      1.6947413682937622
+    ],
+    "Shower control plate / Shower rear panel": [
+      -0.06399999558925629,
+      0.3825500011444092,
+      0.9399999380111694
+    ],
+    "Shower control dial / Shower control plate": [
+      -0.025600001215934753,
+      0.36570000648498535,
+      1.0271999835968018
+    ],
+    "Shower control lever / Shower control dial": [
+      -0.0036000018008053303,
+      0.3352000117301941,
+      1.0144000053405762
+    ]
+  },
+  "model_sha256": "c57a911a5e3964e4d23278e1a48150e2fcf3e940ad91183b9480db8a78e60865",
+  "mutations": [
+    {
+      "part": "Shower drain",
+      "caught": "Drain lost floor support"
+    },
+    {
+      "part": "Shower rear panel",
+      "caught": "Shower rear panel detached from Shower recessed tray"
+    },
+    {
+      "part": "Shower curved arm",
+      "caught": "Arm detached from flange"
+    },
+    {
+      "part": "Shower control plate",
+      "caught": "Shower control plate detached from Shower rear panel"
+    },
+    {
+      "part": "Shower control dial",
+      "caught": "Shower control dial detached from Shower control plate"
+    },
+    {
+      "part": "Shower control lever",
+      "caught": "Shower control lever detached from Shower control dial"
+    },
+    {
+      "part": "Shower trim left edge",
+      "caught": "Trim lost tray support"
+    }
+  ]
+}

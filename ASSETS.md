@@ -17,7 +17,7 @@ The approved shared Sim now comes from the editable Blender source and rig in
 Its README records immutable source hashes, material-only shirt variants and
 offline animation exports. High-resolution Blender renders are downsampled to
 RGBA frames at twice their logical dimensions, validated and packed into the
-same 2D atlas. The integrated atlas contains 1,113 records at 4096x6331 physical
+same 2D atlas. The integrated atlas contains 1,117 records at 4096x6403 physical
 pixels; the older counts below are historical. Existing sprite identities,
 logical dimensions and unrelated decoded pixels remain unchanged.
 
@@ -78,6 +78,13 @@ contacts and clearance from the cistern and supports. Two rejected candidates
 remain archived beside it with their failed checks and review notes. The
 previous 1,109 decoded sprites remain unchanged. The existing interaction was
 played to completion; seated use and flushing animations are not included.
+
+The shower's candidate 01 adds indices 1113 through 1116. Its recessed tray,
+two opaque panels and attached metal fittings use the same bathroom palette.
+Primary and adversarial review accepted the four static rotations and GPU
+renders. Played verification confirmed the existing shower action raises
+hygiene. All 1,113 previous decoded sprites remain unchanged. Water, glass
+transparency and a showering pose are not part of this static replacement.
 
 ## Historical primitive-only migration
 

@@ -60,3 +60,23 @@ The exact accepted batch appends records 1109 through 1112. Only the existing
 object's sprite name changes. See
 `../../../docs/assets/review-evidence/bathroom/toilet.md` for integration and
 played evidence. Sitting, clothing, flushing and lid animation are not added.
+
+## Shower
+
+`shower_model.py` builds Rainfall Cubicle with a recessed ceramic tray, two
+opaque blue-grey panels and satin-metal fittings. Use `render_shower.py` with
+a new candidate directory, then run `check_shower_scene.py` against its saved
+model and a new JSON result path. Candidate 01 passed primary and adversarial
+source review at 90/100 and appends indices 1113 through 1116.
+
+The checker verifies tray height, drain and trim support, eight sampled
+inside-solid contact witnesses and the arm's connections to flange and head.
+Seven deliberate displacements fail; a clean reload passes without changing
+the model hash. The vertical probe below the head checks tray coverage, not
+water direction or spray containment. Broad panel shading and simplified
+small fittings remain documented nonblocking limitations.
+
+The existing Take a shower action still completes and raises hygiene. See
+`../../../docs/assets/review-evidence/bathroom/shower.md` for source hashes,
+runtime images and checks. This static batch adds no showering pose, water,
+door or transparent glass. Publication requires separate live verification.

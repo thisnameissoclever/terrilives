@@ -36,6 +36,12 @@
       "directory": "bathroom/owner-review-pending/toilet/candidate-03",
       "proof_sha256": "c0046046dc041a22bf429ff9d4f6ccb181e210fcaf1649e46cf1e1faeaacc430",
       "review_status": "accepted-independent-review"
+    },
+    {
+      "name": "offlineShower",
+      "directory": "bathroom/owner-review-pending/shower/candidate-01",
+      "proof_sha256": "86fc45fcc8ddb648427b83f15bd5560a8d117bdd6d3195d0fcd46d2512c9d486",
+      "review_status": "accepted-independent-review"
     }
   ]
 }

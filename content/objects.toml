@@ -126,7 +126,7 @@ foreground_sprite = "bedBunkForeground"
 [[object]]
 id = "shower"
 name = "Rainfall Cubicle"
-sprite = "showerRound"
+sprite = "offlineShower"
 
   # The trade-off object, and the reason negative deltas are allowed. It
   # restores a lot of hygiene and costs some energy, so a tired sim puts
