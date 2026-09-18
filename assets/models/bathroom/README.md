@@ -39,3 +39,24 @@ wash-hands action completed in the production build with hygiene reaching 100.
 See `../../../docs/assets/review-evidence/bathroom/README.md` for commands,
 hashes, screenshots and the limits of those checks. Publication is recorded
 separately from local acceptance.
+
+## Toilet
+
+`toilet_model.py` builds Porcelain Standard with the same warm ceramic and
+camera setup. The seat is down and the lid upright; `closed-*.png` is the
+shared exporter's static filename, not a claim that the toilet lid is closed.
+Use `render_toilet.py` with a new absolute candidate directory, then generate
+the review board and run `check_toilet_scene.py` with the saved model and a
+new result JSON path.
+
+Candidate 03 passed primary and adversarial static review at 88/100. Its lid
+clears the cistern and both neck sections. The saved-scene check verifies
+supporting surfaces and finds points inside both solids at five hinge contacts;
+eight deliberate displacements fail, followed by a clean reload and unchanged
+model hash. These finite checks do not certify arbitrary geometry or future
+animation poses. Candidates 01 and 02 are rejected and retained with reasons.
+
+The exact accepted batch appends records 1109 through 1112. Only the existing
+object's sprite name changes. See
+`../../../docs/assets/review-evidence/bathroom/toilet.md` for integration and
+played evidence. Sitting, clothing, flushing and lid animation are not added.

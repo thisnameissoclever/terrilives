@@ -17,7 +17,7 @@ The approved shared Sim now comes from the editable Blender source and rig in
 Its README records immutable source hashes, material-only shirt variants and
 offline animation exports. High-resolution Blender renders are downsampled to
 RGBA frames at twice their logical dimensions, validated and packed into the
-same 2D atlas. The integrated atlas contains 1,109 records at 4096x6313 physical
+same 2D atlas. The integrated atlas contains 1,113 records at 4096x6331 physical
 pixels; the older counts below are historical. Existing sprite identities,
 logical dimensions and unrelated decoded pixels remain unchanged.
 
@@ -71,6 +71,13 @@ The previous 1,105 decoded sprites remain unchanged. Sources and limitations
 are in `assets/models/bathroom/`; retained evidence is in
 `docs/assets/review-evidence/bathroom/`. No hand-contact or water animation is
 included in this static replacement.
+
+The toilet's candidate 03 adds indices 1109 through 1112. It uses the same warm
+ceramic, a recessed bowl, an open seat and an upright lid with checked hinge
+contacts and clearance from the cistern and supports. Two rejected candidates
+remain archived beside it with their failed checks and review notes. The
+previous 1,109 decoded sprites remain unchanged. The existing interaction was
+played to completion; seated use and flushing animations are not included.
 
 ## Historical primitive-only migration
 

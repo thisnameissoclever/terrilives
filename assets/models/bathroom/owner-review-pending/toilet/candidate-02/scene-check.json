@@ -1,0 +1,32 @@
+{
+  "state": "passed",
+  "lid_cistern_clearance": 0.010999992489814758,
+  "bowl_floor": 0.24500000476837158,
+  "seat_open": true,
+  "seat_top": 0.4500000476837158,
+  "seat_bumpers_supported": true,
+  "flush_button_supported": true,
+  "model_sha256": "0ea204403c27ab902d993de93617120db3f547f5a05c285f1763e08a4756a94b",
+  "mutations": [
+    {
+      "part": "Toilet upright lid",
+      "caught": "Lid intersects cistern"
+    },
+    {
+      "part": "Toilet open seat ring",
+      "caught": "Seat height changed"
+    },
+    {
+      "part": "Toilet seat bumper 1",
+      "caught": "Seat bumper lost support"
+    },
+    {
+      "part": "Toilet flush button",
+      "caught": "Flush button detached"
+    },
+    {
+      "part": "Toilet pedestal",
+      "caught": "Pedestal floats"
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "state": "complete",
+  "object": "toilet",
+  "inputs": {
+    "kitchen/render_static.py": "67af4a6c2a96c171b55b6f52949ffd264b98e2e8ec891524c58889214344df21",
+    "bathroom/render_toilet.py": "955f3fc263ba12060756890d19c390129ed65539cfa70881a9c5cf220e3e1f31",
+    "bathroom/toilet_model.py": "30834d79f7e2a093896d2804306ef009ede36c6e01ca5135c3a96471cba5d5a5",
+    "bathroom/toilet_geometry.py": "15462e99d9fba188117b63986da948cbc51898cde9f14fd47c390fd5398496f8",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "787624f3292879eff1048c1d00545bcf4f10c8285d4a15d2ae9bdb1642431447"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "bc3827e7e1bbb2f4500394b93893118f6ff9ec72e8ea170a5fa8a3fa181702c0"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "9ba312f0bef70386ede2a46fa2896b671ce4476dc9a8668d411e5ef9777bc3f8"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "fd662dd15151201638a33fb518fabbf6987ade71d9af07857cc3d7afc67e2836"
+    }
+  ],
+  "logical_canvas": [
+    96,
+    120
+  ],
+  "source_density": 8,
+  "blender_version": "4.5.14 LTS",
+  "approval": "Unreviewed offline candidate; independent visual review required.",
+  "model_checks": {
+    "front": "-Y",
+    "bowl_floor": 0.245,
+    "bowl_rim": 0.415,
+    "seat_height": 0.45,
+    "lid_pose": "upright, seat down",
+    "fixture_bounds_m": [
+      0.45500001311302185,
+      0.8379999995231628,
+      1.0290000438690186
+    ]
+  },
+  "origin_pixels": [
+    384.0000915527344,
+    760.0034952163696
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 2.6516504287719727,
+  "parts": [
+    "Toilet bowl water",
+    "Toilet cistern",
+    "Toilet cistern cap",
+    "Toilet flush button",
+    "Toilet hinge axle",
+    "Toilet hinge mount -1",
+    "Toilet hinge mount 1",
+    "Toilet open seat ring",
+    "Toilet pedestal",
+    "Toilet rear ceramic neck",
+    "Toilet recessed bowl",
+    "Toilet seat bumper -1",
+    "Toilet seat bumper 1",
+    "Toilet upper tank support",
+    "Toilet upright lid"
+  ],
+  "color_management": {
+    "view": "Standard",
+    "look": "None"
+  },
+  "model_sha256": "7eac6444f15d540cfc025c3d5c650ba694c2f30c6cdaebb119853b08f7651859"
+}
