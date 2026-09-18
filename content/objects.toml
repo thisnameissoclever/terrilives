@@ -422,18 +422,15 @@ roles = ["hob"]
 [[object]]
 id = "counter"
 name = "Surface of Deferred Decisions"
-sprite = "kitchenCabinet"
+sprite = "offlineCounter"
 # The middle step this object was placed for, per the comment below -
 # the chain has arrived.
 roles = ["prep_surface"]
 
-  # No interactions, deliberately. This is the counter the cooking chain in
-  # docs/specs/2026-07-29-multi-step-interactions-design.md will use as its
-  # middle step, and it is placed now so the kitchen has the geometry that
-  # chain needs before the chain exists. Giving it a standalone "wipe the
-  # counter" today would be an interaction the chain then has to work around.
+  # No standalone interactions. The cooking chain uses this counter for its
+  # preparation step; see docs/specs/2026-07-29-multi-step-interactions-design.md.
   #
-  # Placed twice in lot.toml. One definition, two placements: a run of
+  # Placed three times in lot.toml. One definition, three placements: a run of
   # cabinets is several of the same cabinet, and modelling it as one wide
   # object would give the kitchen a single 3x1 obstacle instead of separate
   # approach points.
@@ -441,7 +438,7 @@ roles = ["prep_surface"]
 [[object]]
 id = "kitchen_sink"
 name = "Basin, Communal"
-sprite = "kitchenSink"
+sprite = "offlineSink"
 # A second prep station, so two cooks do not serialise on one counter
 # tile and a one-counter lot still compiles.
 roles = ["prep_surface"]

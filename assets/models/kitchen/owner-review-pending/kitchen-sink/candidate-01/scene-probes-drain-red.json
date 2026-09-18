@@ -1,0 +1,22 @@
+{
+  "state": "failed",
+  "error": "Mutation survived: floating drain",
+  "completed": [
+    {
+      "mutation": "capped opening",
+      "caught": "Sink opening is capped"
+    },
+    {
+      "mutation": "flat basin",
+      "caught": "Sink floor or outlet drainage changed"
+    },
+    {
+      "mutation": "displaced faucet",
+      "caught": "Sink floor or outlet drainage changed"
+    },
+    {
+      "mutation": "detached handle",
+      "caught": "Handle grip detached from mount"
+    }
+  ]
+}

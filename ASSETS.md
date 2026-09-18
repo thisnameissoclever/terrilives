@@ -17,7 +17,7 @@ The approved shared Sim now comes from the editable Blender source and rig in
 Its README records immutable source hashes, material-only shirt variants and
 offline animation exports. High-resolution Blender renders are downsampled to
 RGBA frames at twice their logical dimensions, validated and packed into the
-same 2D atlas. The integrated atlas contains 1,097 records at 4096x6168 physical
+same 2D atlas. The integrated atlas contains 1,105 records at 4096x6258 physical
 pixels; the older counts below are historical. Existing sprite identities,
 logical dimensions and unrelated decoded pixels remain unchanged.
 
@@ -47,6 +47,13 @@ with four coil burners, attached controls and a bottom-hinged oven door.
 Primary and adversarial review accepted the closed static views. Played
 verification completed the cooking chain, but no new cooking or oven-opening
 animation is claimed. The previous 1,093 decoded sprites remain unchanged.
+
+Counter and kitchen-sink candidate 01 add eight views at indices 1097 through
+1104. They share the stove's palette and worktop height. The sink has an actual
+opening and recessed basin, with saved-scene support checks for the drain and
+faucet bases. Primary and adversarial review accepted the static source views.
+The previous 1,097 decoded sprites remain unchanged. This does not implement
+surface-item placement, dishwashing motion or new hand-contact animation.
 
 ## Historical primitive-only migration
 

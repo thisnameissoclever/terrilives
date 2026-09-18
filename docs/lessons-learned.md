@@ -5491,3 +5491,29 @@ after a save, then waiting for both persistence completion and restored state.
 **How to verify.** Save while paused, advance the clock, pause and load. Require
 `Saved game loaded`, a closed confirmation dialog, enabled controls, the saved
 clock and saved activity. An unchanged screenshot alone cannot prove loading.
+
+For ordinary object use, the HUD says `Using object`, not the interaction's
+menu label. Chain steps have named status text; ordinary interactions do not.
+Inspect the activity formatter and job priority before waiting for a label.
+Record the command, target, arrival and completion separately.
+
+---
+
+## [L-surface-contact-not-bounds] Overlapping bounds do not establish support
+
+**What happened.** Adversarial review found that the sink's attachment checker
+would accept a drain raised above the bowl floor. A retained mutation test
+confirmed the defect before the check was changed.
+
+**Root cause.** The basin's overall bounding box includes its empty interior.
+A floating part can overlap that box without touching any supporting surface.
+
+**Prevention rule.** Trace the evaluated support surface beneath small fittings
+and compare its hit height with the fitting's underside. Bounds remain useful
+for coarse rejection, but do not claim they prove contact with a recessed bowl.
+Check the faucet flange and lever base against the actual worktop too.
+
+**How to verify.** The saved sink must pass. Raising the drain, faucet flange or
+lever base by 0.1 must fail the corresponding support assertion. The retained
+seven-mutation probe must pass after all intended failures are caught, and
+the original saved model hash must remain unchanged.

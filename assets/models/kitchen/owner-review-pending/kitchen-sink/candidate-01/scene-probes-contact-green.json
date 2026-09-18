@@ -1,0 +1,43 @@
+{
+  "state": "passed",
+  "mutations": [
+    {
+      "mutation": "capped opening",
+      "caught": "Sink opening is capped"
+    },
+    {
+      "mutation": "flat basin",
+      "caught": "Sink floor or outlet drainage changed"
+    },
+    {
+      "mutation": "displaced faucet",
+      "caught": "Sink floor or outlet drainage changed"
+    },
+    {
+      "mutation": "detached handle",
+      "caught": "Handle grip detached from mount"
+    },
+    {
+      "mutation": "floating drain",
+      "caught": "Drain is detached from bowl floor"
+    },
+    {
+      "mutation": "floating flange",
+      "caught": "Faucet mounting flange is detached from worktop"
+    },
+    {
+      "mutation": "floating lever base",
+      "caught": "Faucet lever base is detached from worktop"
+    }
+  ],
+  "model_sha256": "daa3cae408a52088bdc8576fc6688a3283ec1810f2d3025c0491fe30f29e1528",
+  "clean": {
+    "model": "D:\\VIBES\\.worktrees\\terrilives\\bike-chair-four-facings\\assets\\models\\kitchen\\owner-review-pending\\kitchen-sink\\candidate-01\\sink-authoring.blend",
+    "state": "passed",
+    "worktop_height": 0.86,
+    "attached_handle_mounts": 2,
+    "sink_floor": 0.63,
+    "opening_clear": true,
+    "faucet_drains_into_basin": true
+  }
+}

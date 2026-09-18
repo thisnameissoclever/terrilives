@@ -1,6 +1,7 @@
 # Refrigerator static replacement
 
-Subsequent kitchen work: [stove static replacement](stove.md). Counts and hashes
+Subsequent kitchen work: [stove static replacement](stove.md) and
+[counter and sink](counter-sink.md). Counts and hashes
 below describe the refrigerator checkpoint, not the later combined atlas.
 
 Reviewed 2026-09-17. The owner delegated per-object visual acceptance to the
