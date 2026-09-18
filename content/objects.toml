@@ -46,7 +46,7 @@
 [[object]]
 id = "fridge"
 name = "Chill-o-Matic 3000"
-sprite = "kitchenFridgeBuiltIn"
+sprite = "offlineFridge"
 # Station roles - [K1] in the M2f working design. A role is a fact
 # about furniture ("this is where ingredients live"), kept apart from
 # the activity tags on interactions.

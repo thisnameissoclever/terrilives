@@ -5401,3 +5401,73 @@ count conversations: each pick must become its own conversation, in sequence.
 `a_run_of_queued_chat_orders_runs_as_that_many_separate_conversations_in_sequence`
 pins it against the simulation, and the `dispatchMenuAction` suite pins that
 the shell sends one append per pick with no cancel among them.
+
+---
+
+## [L-asset-checkpoint-status] Historical visual gates need an explicit date and scope
+
+**What happened.** The furniture README still described game-scale and played
+checks as open after later evidence recorded them. The provenance overview
+also retained the pre-wall atlas count of 1,087 rather than 1,089.
+
+**Root cause.** An offline review's limitations were written as current status,
+then the later runtime evidence was recorded elsewhere without reconciling
+the overview.
+
+**Prevention rule.** Preserve historical evidence, but label its scope and link
+to the later checks. Update the current provenance overview when an accepted
+asset batch changes. Keep pending replacements explicitly separate from the
+integrated production set.
+
+**How to verify.** Compare the current overview with the committed atlas and
+latest played evidence. Search authoring READMEs for unresolved-gate wording
+and check whether it describes a dated checkpoint or an actual remaining task.
+Never infer a successful deployment from either an offline render or a commit.
+
+---
+
+## [L-static-prop-review-guards] Model review must survive atlas import
+
+**What happened.** The refrigerator looked correct in four source views, but
+its initial import made transparent canvas margins clickable. Adversarial
+review then demonstrated that mirroring survived a symmetric image fixture,
+and a changed camera proof still carried the same acceptance status.
+
+**Root cause.** Source appearance, input hit boxes and provenance are separate
+contracts. Uniform rectangles cannot reveal reflection. Projected origin alone
+does not establish camera scale or perspective, and a review label does not
+bind to the exact reviewed batch.
+
+**Prevention rule.** Export visible alpha bounds alongside padded sprites.
+Use off-centre landmarks in transformation fixtures. Bind acceptance to the
+canonical proof digest and validate image hashes separately. Derive runtime
+anchors from both camera projection and shader placement: this renderer adds
+21 logical pixels before subtracting the sprite anchor, so bare projected
+origin is not the runtime anchor.
+
+**How to verify.** Click visible content and blank margins in all four facings.
+Run `check_prop_mutations.py`: mirroring, wrong facing order, omitted tile
+compensation and disabled proof/pixel guards must each fail, with production
+bytes unchanged afterward. Inspect the actual GPU output and played placement.
+
+---
+
+## [L-browser-proof-source-contract] Read UI contracts before automating verification
+
+**What happened.** Refrigerator browser checks timed out on a pointer-disabled
+radio, a nonexistent menu role, and an incorrectly capitalized load status.
+After fixing those selectors, an immediate clock read briefly showed the
+pre-load value because the HUD and persistence status update separately.
+
+**Root cause.** The verification code guessed roles and messages instead of
+using the existing DOM and controller contracts. Status success was also
+treated as simultaneous with every displayed projection of simulation state.
+
+**Prevention rule.** Inspect source-backed controls and exact status messages.
+Click the visible speed label, target the ordinary action buttons, and confirm
+load through its real dialog. Prove restoration causally by advancing state
+after a save, then waiting for both persistence completion and restored state.
+
+**How to verify.** Save while paused, advance the clock, pause and load. Require
+`Saved game loaded`, a closed confirmation dialog, enabled controls, the saved
+clock and saved activity. An unchanged screenshot alone cannot prove loading.
