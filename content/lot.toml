@@ -193,7 +193,7 @@ place = [
   # The double bed is in the corner furthest from everything, which is
   # what makes "I am tired" a journey rather than a step to the left.
   { object = "double_bed", x = 0.0, y = 6.0 },
-  { object = "nightstand", x = 2.0, y = 6.0 },
+  { object = "nightstand", x = 2.0, y = 6.0, facing = "SW" },
   { object = "dresser", x = 0.0, y = 10.0 },
   # `moving_box` is the bike's historical Save V1 persistence key. Keep the
   # key, position, and one-tile footprint unchanged.

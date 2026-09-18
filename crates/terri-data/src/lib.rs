@@ -367,6 +367,25 @@ mod tests {
     }
 
     #[test]
+    fn bedroom_storage_faces_open_room_space_without_moving() {
+        let p = pack();
+        for (id, x, y, sprite) in [("nightstand", 2.0, 6.0, 1127), ("dresser", 0.0, 10.0, 1129)] {
+            let object = p.find(id).expect("bedroom storage definition");
+            let placement = p
+                .lot
+                .placements
+                .iter()
+                .find(|row| row.object == object)
+                .expect("authored bedroom storage placement");
+            assert_eq!((placement.x, placement.y), (x, y));
+            assert_eq!(
+                placement.sprite, sprite,
+                "{id} drawers must face the open room"
+            );
+        }
+    }
+
+    #[test]
     fn every_need_has_a_finite_decay_rate() {
         // compile() fills this array from content and leaves NaN where a
         // rate is missing, so a NaN here means validation was bypassed.
