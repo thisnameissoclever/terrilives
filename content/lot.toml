@@ -204,7 +204,7 @@ place = [
   # The bunk bed lives here rather than in the bedroom, which is the joke
   # and also the mechanism: two beds in two different rooms means "go to
   # bed" has a choice in it, and the bunk is the faster, worse one.
-  { object = "desk", x = 6.0, y = 6.0 },
+  { object = "desk", x = 6.0, y = 6.0, facing = "SW" },
   { object = "desk_chair", x = 6.0, y = 7.0 },
   { object = "bed", x = 9.0, y = 6.0 },
   { object = "reading_chair", x = 9.0, y = 9.0 },

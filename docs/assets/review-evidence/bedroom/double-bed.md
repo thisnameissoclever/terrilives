@@ -87,3 +87,17 @@ and pass with all four registered views and transparent margins.
 
 Atlas SHA-256: `69ff8dcd012b7f3fef99fb95e46822411d5f842482b62e9dbaff7268a5d5fdf5`.
 Publication requires separate green main CI, Pages and live verification.
+
+## Published verification
+
+PR #80 merged as `d09c065590c098380ece30b58d7ad801e76b9686`. Main CI
+35306090738 passed. Pages 35306253099 passed, including the actual deploy
+step reporting success for that revision.
+
+The public game loaded `index-D7ZIWSni.js` and `terri_wasm_bg-CajaJaKP.wasm`
+on 2026-09-17. Its atlas returned HTTP 200 and the downloaded bytes matched
+the SHA-256 above. `double-bed-live.png` shows the double bed, storage and
+corrected kitchen in the running household, paused using normal controls.
+The saved game loaded; no console ERROR entries were recorded. The dedicated
+tab was closed. This verifies the published static bed art, not a new sleeping
+animation or seated interaction.

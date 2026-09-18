@@ -17,7 +17,7 @@ The approved shared Sim now comes from the editable Blender source and rig in
 Its README records immutable source hashes, material-only shirt variants and
 offline animation exports. High-resolution Blender renders are downsampled to
 RGBA frames at twice their logical dimensions, validated and packed into the
-same 2D atlas. This candidate branch contains 1,213 records at 4096x7848 physical
+same 2D atlas. This candidate branch contains 1,217 records at 4096x7926 physical
 pixels; the older counts below are historical. Existing sprite identities,
 logical dimensions and unrelated decoded pixels remain unchanged.
 
@@ -41,6 +41,15 @@ successful independent reconstruction comparisons. Previous decoded sprites,
 including the corrected refrigerator, are byte-identical. Runtime evidence is
 in `docs/assets/review-evidence/bedroom/bunk.md`; publication is separate.
 
+The oak and metal desk adds four static rotations at indices 1213 through
+1216. Its working face points SW toward the existing chair, retaining its
+two-by-one footprint and position. Source, connected-support checks and
+independent review are in `assets/models/office/`; played and GPU evidence is
+in `docs/assets/review-evidence/office/desk.md`. Work remains a standing action.
+The append order is defined in `assets/models/atlas-batches.json`: the frozen
+first static catalog, the bunk batch, then `static-props-02.json`. Adding new
+props must not renumber the bunk or any earlier sprite.
+
 The static bathroom batch also includes the reviewed stacked washer/dryer in
 `assets/models/bathroom/owner-review-pending/laundry/candidate-02/`. Its four
 rotations and room-relative scale passed independent review; the object stays
@@ -52,7 +61,7 @@ rotations, an editable model and hashed render inputs. On 2026-09-17 the owner
 delegated per-object acceptance to primary and adversarial review. Its four
 static views are integrated after all 1,089 previous sprites, preserving those
 decoded pixels and registration tables. The source proof is pinned in the
-global append-only `assets/models/static-props.json` catalog. Played and GPU evidence is in
+first static batch, `assets/models/static-props.json`. Played and GPU evidence is in
 `docs/assets/review-evidence/kitchen/`; live deployment is a separate check.
 
 Candidate 03 corrects the owner's reported room-fit defects: the refrigerator

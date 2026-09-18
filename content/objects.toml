@@ -743,7 +743,7 @@ sprite = "offlineBike"
 [[object]]
 id = "desk"
 name = "Station of Ongoing Concern"
-sprite = "desk"
+sprite = "offlineDesk"
 footprint = { width = 2, depth = 1 }
 # A second eating surface, so meals do not funnel through one table
 # tile - and eating at the desk is a life the game should be able to
