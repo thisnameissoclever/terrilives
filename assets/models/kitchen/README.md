@@ -16,7 +16,7 @@ It is a style reference, not part of the furniture's visible geometry.
 
 1. Run `python -B -m unittest discover -s assets/models/kitchen -p 'test_*.py'`.
 2. Launch installed Blender in hidden background mode with `--threads 2
-   --python-exit-code 1 --python ABSOLUTE_PATH/render_fridge.py --
+   --python-exit-code 1 --python ABSOLUTE_PATH/render_fridge_room_fit.py --
    ABSOLUTE_NEW_OUTPUT_DIRECTORY`. Never render into an existing candidate.
 3. Read `proof.json` until it reports complete. Launcher exit alone does not
    prove that the background render finished. The proof hashes the source rig,
@@ -53,7 +53,10 @@ to avoid breaking source paths and review links; it is not a blocking gate.
 
 ## Static runtime integration
 
-`catalog.json` lists accepted static batches in append order. The atlas builder
+`../static-props.json` lists accepted static batches in one append order across
+all rooms. It replaces this directory's former `catalog.json` without changing
+the kitchen order or proof hashes. Never regroup entries by room: adding a
+kitchen object later must not renumber an accepted bathroom sprite. The atlas builder
 loads them through `assets/sprites/gen/offline_props.py`, validates image hashes,
 true rotation labels, complete coverage, registration and padding, then
 downsamples the source to 192x240. No per-facing crop, recentering or mirroring

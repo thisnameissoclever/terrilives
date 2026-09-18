@@ -279,7 +279,7 @@ sprite = "loungeSofaOttoman"
 [[object]]
 id = "sink"
 name = "Basin Basic"
-sprite = "bathroomSinkSquare"
+sprite = "offlineBathroomSink"
 
   # The quick partial fix for hygiene, and its whole reason for existing
   # is to give the shower something to lose to: a short action with no

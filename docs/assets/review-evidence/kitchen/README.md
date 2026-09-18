@@ -14,6 +14,14 @@ Reviewed 2026-09-17. The owner delegated per-object visual acceptance to the
 primary and adversarial reviewers. Both passed this static replacement.
 This evidence does not claim a published deployment or an opening animation.
 
+Publication was subsequently verified on 2026-09-17. PR #70 merged as
+`7b42b3c198e9374eac29eba0650bf9dd46f061f9`; main CI run 35291563211 and Pages
+run 35291723138 passed. The live page returned HTTP 200 for the atlas with
+SHA256 `445b674cf3f9252d9cc005213e926c7369baa6772fa75676cde696b1d66026e2`
+and loaded bundle `index-VfSrqatg.js`. `fridge-live.png` shows the rendered
+household and new refrigerator on that page. The dedicated tab was closed.
+This checkpoint does not claim that later stove/counter branches were live.
+
 ## Visible result
 
 1. `fridge-four-facing-gpu.png` shows indices 1089 through 1092 in SE, NW,

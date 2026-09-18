@@ -1,0 +1,33 @@
+{
+  "state": "passed",
+  "clean": {
+    "state": "passed",
+    "recessed_floor": 0.6549999713897705,
+    "drain_supported": true,
+    "faucet_supported": true,
+    "pedestal_supported": true
+  },
+  "mutations": [
+    {
+      "part": "Bathroom drain",
+      "caught": "Drain lost floor support"
+    },
+    {
+      "part": "Bathroom faucet flange",
+      "caught": "Faucet lost deck support"
+    },
+    {
+      "part": "Bathroom faucet",
+      "caught": "Faucet misses the bowl"
+    },
+    {
+      "part": "Bathroom ceramic pedestal",
+      "caught": "Pedestal does not support bowl"
+    },
+    {
+      "part": "Bathroom tap lever",
+      "caught": "Lever detached"
+    }
+  ],
+  "model_sha256": "86039365e144c7972db456181270c65c0b86fa17c032b6a9b300979272f96c7c"
+}

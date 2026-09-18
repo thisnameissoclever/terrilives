@@ -1,0 +1,100 @@
+{
+  "state": "complete",
+  "object": "bathroom-sink",
+  "inputs": {
+    "kitchen/render_static.py": "67af4a6c2a96c171b55b6f52949ffd264b98e2e8ec891524c58889214344df21",
+    "bathroom/render_sink.py": "7cf02d3c243b8027a1958b20340385fd41009e328b83858f36cc64e01bc72aa1",
+    "bathroom/sink_model.py": "4d81c48b80d5c0461ebb990eb711bad74db8d2d55293ac8e1d7a91bde91b1199",
+    "bathroom/basin_geometry.py": "d3925a17531b80bcd2b493427090ec2efbefceb42f6dd7d3916e229e1063857e",
+    "kitchen/counter_geometry.py": "231280575218524613c6b099f4a0a9ddf92cc70a726f3aa4f8bb6d837971f3f6",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "e76d00a69117c4e5a4e6e9546747c7420ba02ff83b6442ac33ef7e8b91ef2fd2"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "98ff9a1e21b7e25c571168f04110c182ce95a8ce9352ba1c995f5cb535cdf7b2"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "81e51152bce65f8ea0bb23d6139da690dae2c4e8d024b5a53ef97eb09e34f767"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "ded41c7b9430fc1625e2c908993075ea85920d4618e306d4b7e35e67c9e10c59"
+    }
+  ],
+  "logical_canvas": [
+    96,
+    120
+  ],
+  "source_density": 8,
+  "blender_version": "4.5.14 LTS",
+  "approval": "Unreviewed offline candidate; independent visual review required.",
+  "model_checks": {
+    "basin_rim": 0.82,
+    "basin_floor": 0.655,
+    "pedestal_top": 0.625,
+    "faucet_drains_into_basin": true,
+    "front": "-Y"
+  },
+  "origin_pixels": [
+    384.0000915527344,
+    760.0034952163696
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 2.6516504287719727,
+  "parts": [
+    "Bathroom ceramic basin",
+    "Bathroom ceramic pedestal",
+    "Bathroom drain",
+    "Bathroom faucet",
+    "Bathroom faucet flange",
+    "Bathroom lever hinge",
+    "Bathroom tap lever"
+  ],
+  "color_management": {
+    "view": "Standard",
+    "look": "None"
+  },
+  "model_sha256": "86039365e144c7972db456181270c65c0b86fa17c032b6a9b300979272f96c7c"
+}

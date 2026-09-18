@@ -1042,7 +1042,7 @@ def main():
     tops.update(extra_tops)
     densities.update(extra_density)
     props, prop_anchors, prop_density, prop_bounds = load_props(
-        os.path.join(ROOT, "assets", "models", "kitchen", "catalog.json"),
+        os.path.join(ROOT, "assets", "models", "static-props.json"),
         existing_names={sprite[0] for sprite in sprites},
     )
     for sprite in props:
