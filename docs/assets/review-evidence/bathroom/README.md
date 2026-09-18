@@ -1,5 +1,23 @@
 # Bathroom sink verification
 
+## Refrigerator correction carried forward
+
+The combined atlas now retains refrigerator candidate 03 and its SW kitchen
+placement from commit `3ef2f3b`. It contains the same 1,109 records, with hash
+`b10c81d72d41cdbb818b2e78cd4b7a88a662f3dae6fec7994e8cbfe9d6f6cf35`.
+Decoded-image comparison against the pre-merge bathroom branch verified all
+1,105 non-fridge records unchanged. Comparison against the fridge correction
+verified its complete 1,105-record atlas unchanged, including all four fridge
+images. Only atlas packing coordinates may differ between these comparisons.
+
+Fresh merged-tree checks passed with exit 0: 688 Rust tests, 681 web tests,
+50 sprite tests, typecheck and atlas reproducibility. The screenshots and
+hashes below describe the earlier bathroom-only checkpoint, not this combined
+build or a published revision. Refrigerator room-fit evidence is recorded in
+`../kitchen/fridge-room-fit.md`.
+
+## Original bathroom checkpoint
+
 Candidate 01 replaces Basin Basic without changing its identity, footprint,
 placement, interaction definitions or Sim art. The owner delegated per-object
 acceptance to primary and adversarial review on 2026-09-17.

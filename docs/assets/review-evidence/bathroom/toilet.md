@@ -81,3 +81,16 @@ implementation before passing. The four web tests failed on missing sprite
 names before integration and passed afterward. The decoded-prefix guard pins
 all 1,109 prior records with digest
 `cb9a2872f53ef196f60fb64ff7b675e6ac202ea1542526b35892bcd7a8ad9fca`.
+# Refrigerator correction carried forward
+
+The combined atlas retains refrigerator candidate 03 and its SW lot placement.
+Its 1,113 records now have atlas hash
+`a7e4a19892154beb2ff000efbc1cc210cf0b432570acd1415a54ebf43a9ea6b0`.
+Direct decoded-image comparisons preserve all 1,109 non-fridge records from
+the previous toilet branch and all 1,109 records from the corrected sink
+branch. The 1,109-record complement digest was calculated from the old toilet
+commit `38dac45`, excluding only the four intentionally replaced fridge images.
+Fresh checks passed: 688 Rust tests, 685 web tests, 50 sprite tests, typecheck,
+atlas reproducibility, formatting and documentation IDs. Earlier screenshots
+and hashes below remain evidence of their original checkpoint, not publication
+of this combined build.

@@ -1,5 +1,10 @@
 # Refrigerator candidate 02
 
+**Superseded on 2026-09-17:** the owner reported wrong kitchen orientation and
+undersized room-relative scale. Earlier source review did not catch the room
+defects. Candidate 03 replaces this batch; `room-fit-check.json` retains the
+failed size check. The original acceptance below is historical.
+
 Status: accepted for integration by primary and independent visual review.
 The owner delegated per-object acceptance on 2026-09-17; this is not a claim
 that the owner personally approved this image. Runtime verification is separate.

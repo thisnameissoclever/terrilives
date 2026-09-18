@@ -1,5 +1,28 @@
 # Lessons Learned
 
+## [L-room-relative-asset-review] Review the room, not only isolated facings
+
+**What happened.** Primary and adversarial review accepted a refrigerator that
+faced the adjacent counter and looked too small beside the kitchen run. The
+owner caught both in the played game.
+
+**Root cause.** Review verified four internally consistent views and a working
+interaction, then treated those as sufficient room-fit evidence. The lot's
+default SE refrigerator facing was retained even though every other station
+faces SW into the room. Shared camera settings also did not guarantee a
+consistent physical scale: the fridge was only 0.76 counter widths.
+
+**Prevention rule.** Compare every replacement with its actual room, neighbors
+and a standing Sim. Trace the usable face toward accessible room space. Check
+relative widths, heights, ground contact and hardware overhang. A functional
+interaction and an isolated four-facing board cannot substitute for that check.
+
+**How to verify.** The shipped kitchen fridge must compile to its SW sprite.
+The saved replacement must measure about 0.912 wide and 1.944 tall against the
+1.0-wide, 0.86-high counter. Retain a whole-room screenshot and a close view
+showing aligned fronts, side clearance and a nearby Sim; obtain independent
+review of those images. The old model must fail the new size check.
+
 Gotchas and hard-won context. Read this before starting work; it is cheaper
 than rediscovering any of it.
 

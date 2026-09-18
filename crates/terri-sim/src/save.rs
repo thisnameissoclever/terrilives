@@ -2197,6 +2197,17 @@ mod tests {
         let fridge = pack.find("fridge").expect("shipped fridge");
         let expected_sprite = pack.object(fridge).sprite;
         assert_ne!(expected_sprite, 4, "new fridge replaces the legacy sprite");
+        let authored_sprite = pack
+            .lot
+            .placements
+            .iter()
+            .find(|placement| placement.object == fridge)
+            .expect("shipped kitchen fridge")
+            .sprite;
+        assert_ne!(
+            authored_sprite, expected_sprite,
+            "the kitchen uses SW while dynamically spawned fridges default to SE"
+        );
         let mut source = Sim::new_from_shipped_lot();
         let dynamic = source.spawn_object(Position { x: 4.25, y: 2.5 }, fridge);
         let mut fridge_entities = Vec::new();
@@ -2238,8 +2249,13 @@ mod tests {
                 .position(|id| *id == original.index_u32())
                 .expect("fridge render row");
             assert_eq!(
-                buffer.sprites[row], expected_sprite,
-                "authored and dynamic fridges render the current art"
+                buffer.sprites[row],
+                if original == dynamic {
+                    expected_sprite
+                } else {
+                    authored_sprite
+                },
+                "restoring art must preserve the kitchen's room-facing placement"
             );
         }
     }

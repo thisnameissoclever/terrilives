@@ -1,4 +1,4 @@
-"""Kitchen appends must preserve all decoded art already shipped on main."""
+"""Preserve shipped artwork outside the explicit refrigerator correction."""
 import hashlib
 import json
 from pathlib import Path
@@ -11,20 +11,24 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 class KitchenPrefixTests(unittest.TestCase):
-    def test_preserves_prior_records_and_decoded_pixels_including_the_fridge(self):
+    def test_preserves_prior_records_and_decoded_pixels_except_corrected_fridge(self):
         records = tomllib.loads((ROOT/'assets/sprites/atlas.toml').read_text())['sprite']
         for count, expected in (
             (1089,'23f80e402b082a50b8b9df64e10da8f765f81f578ffee7487b05ec4c47d20582'),
-            (1093,'69d92462b8465ee6385619c88fc6c34acd94bd80fdd2558dc3ed6c2f606994e1'),
-            (1097,'89e29612c0661ef22999dcc80fcfe55f68e9bbf174561252b3b41225c2faea12'),
-            (1105,'eb4f24055fbfd926c879c995be89d61bec6d8a87f2c811159a73e325fcf926c9'),
-            (1109,'cb9a2872f53ef196f60fb64ff7b675e6ac202ea1542526b35892bcd7a8ad9fca'),
+            (1105,'c360e7e68bab407603c36e3f49bb7e43a19cc4f6b1f9554a2abd6bc2a62d8d8d'),
+            (1109,'f9353a052fe42c7fff9988e7d247d5aac1dd3949d237ed161b209bccd23fdfda'),
         ):
             with self.subTest(count=count), Image.open(ROOT/'web/public/atlas.png') as image:
                 rows = records[:count]
                 self.assertEqual(len(rows),count)
                 digest = hashlib.sha256()
-                for row in rows:
+                for index, row in enumerate(rows):
+                    if 1089 <= index < 1093:
+                        self.assertEqual(row['name'],
+                            ('offlineFridge','offlineFridgeNW','offlineFridgeSW','offlineFridgeNE')[index-1089])
+                        # These four images are intentionally replaced for the
+                        # owner's room-scale correction, not new appended art.
+                        continue
                     metadata = [row['name'],row['w'],row['h'],row.get('pixel_density',1)]
                     digest.update(json.dumps(metadata,separators=(',',':')).encode())
                     digest.update(image.crop((row['x'],row['y'],row['x']+row['w'],row['y']+row['h'])).tobytes())
