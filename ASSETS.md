@@ -33,13 +33,20 @@ the review notes record played verification, including the later wall changes.
 Neither workflow requires runtime 3D rendering.
 
 Kitchen replacements follow the same offline authoring workflow in
-`assets/models/kitchen/`. The refrigerator's candidate 02 contains four true
+`assets/models/kitchen/`. The refrigerator's candidate 03 contains four true
 rotations, an editable model and hashed render inputs. On 2026-09-17 the owner
 delegated per-object acceptance to primary and adversarial review. Its four
 static views are integrated after all 1,089 previous sprites, preserving those
 decoded pixels and registration tables. The source proof is pinned in the
 kitchen catalog. Played and GPU evidence is in
 `docs/assets/review-evidence/kitchen/`; live deployment is a separate check.
+
+Candidate 03 corrects the owner's reported room-fit defects: the refrigerator
+is uniformly 20% larger in model space, and its kitchen placement faces SW into
+the room rather than SE into the counter. Its four existing records are
+replaced deliberately; all other decoded art remains unchanged. Source and
+whole-room acceptance are recorded in `fridge-room-fit.md` in that evidence
+directory. Gameplay footprint, camera and save format remain unchanged.
 
 The stove's candidate 02 adds four further views at indices 1093 through 1096.
 Its editable model preserves the kitchen's blue-grey enamel and cream hob,

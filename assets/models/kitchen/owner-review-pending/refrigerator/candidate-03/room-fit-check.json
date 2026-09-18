@@ -1,0 +1,34 @@
+{
+  "state": "passed",
+  "case_width_m": 0.9120000004768372,
+  "bounds_min_m": [
+    -0.4560000002384186,
+    -0.61080002784729,
+    0.0
+  ],
+  "bounds_max_m": [
+    0.4560000002384186,
+    0.4764000177383423,
+    1.9440001249313354
+  ],
+  "counter_height_m": 0.86,
+  "height_ratio_to_counter": 2.2604652615480645,
+  "adjacent_counter_gap_m": 0.04399999976158142,
+  "front_overhang_m": 0.11080002784729004,
+  "hinge_angles_degrees": [
+    0,
+    45,
+    90
+  ],
+  "model_sha256": "4bed8dfb3fb968725c99c8345ac5e17a4c75b45b5e487d867655ed17163a7b82",
+  "mutations": [
+    {
+      "change": "scale",
+      "caught": "Fridge too narrow beside the counter"
+    },
+    {
+      "change": "floor",
+      "caught": "Fridge lost floor contact"
+    }
+  ]
+}

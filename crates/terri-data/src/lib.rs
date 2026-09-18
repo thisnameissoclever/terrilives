@@ -349,6 +349,24 @@ mod tests {
     }
 
     #[test]
+    fn the_shipped_fridge_faces_into_the_room_with_the_kitchen_run() {
+        let p = pack();
+        let fridge = p.find("fridge").expect("shipped refrigerator");
+        let placement = p
+            .lot
+            .placements
+            .iter()
+            .find(|placement| placement.object == fridge)
+            .expect("refrigerator placed in the kitchen");
+        assert_eq!((placement.x, placement.y), (0.0, 0.0));
+        // The registered atlas contract pins SW at 1091; default SE is 1089.
+        assert_eq!(
+            placement.sprite, 1091,
+            "fridge doors must face SW into the room, not SE into the counter"
+        );
+    }
+
+    #[test]
     fn every_need_has_a_finite_decay_rate() {
         // compile() fills this array from content and leaves NaN where a
         // rate is missing, so a NaN here means validation was bypassed.

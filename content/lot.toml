@@ -151,11 +151,11 @@ place = [
   # **Every station on the run faces SW - into the room** ([A-11]). The
   # atlas's plain sprites are the kit's east-facing `_SE` renders, which
   # on a run along x had the whole kitchen working against the wrong
-  # wall. The fridge keeps the plain facing on purpose: it stands at the
-  # run's west end and reads as closing it. A second counter fills the
+  # wall. The fridge must face the room too; its doors cannot open into
+  # the adjacent counter. A second counter fills the
   # old one-tile hole at (5, 0), so the run meets the trashcan instead
   # of stopping at a gap that read as a missing appliance.
-  { object = "fridge", x = 0.0, y = 0.0 },
+  { object = "fridge", x = 0.0, y = 0.0, facing = "SW" },
   { object = "counter", x = 1.0, y = 0.0, facing = "SW" },
   { object = "stove", x = 2.0, y = 0.0, facing = "SW" },
   { object = "counter", x = 3.0, y = 0.0, facing = "SW" },
