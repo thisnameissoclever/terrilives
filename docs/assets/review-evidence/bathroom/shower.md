@@ -75,3 +75,15 @@ The decoded-prefix guard pins all 1,113 previous records with digest
 `0f8c408d7519f793bbd744716881354099f0a1b84a8117e30c01bbf9983712e1`.
 Independent review reran the four shower web tests, nine static-loader tests,
 the prefix guards and atlas reproducibility check, all passing.
+# Refrigerator correction carried forward
+
+The combined atlas retains refrigerator candidate 03 and its SW lot placement.
+Its 1,117 records now have atlas hash
+`9843586ce1e0d52f034a931561296f3c3507818024f75fbb79d4f338ecb24e11`.
+Decoded-image comparisons preserve all 1,113 non-fridge records from the old
+shower branch and all 1,113 records from the corrected toilet branch. The
+1,113-record complement digest was calculated from old shower commit `a776c95`,
+excluding only the four intentionally replaced fridge images. Fresh checks
+passed: 688 Rust tests, 689 web tests, 50 sprite tests, typecheck and atlas
+reproducibility. Earlier screenshots and hashes below describe their original
+checkpoint, not publication of this combined build.

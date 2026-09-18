@@ -3,8 +3,8 @@
   "objects": [
     {
       "name": "offlineFridge",
-      "directory": "kitchen/owner-review-pending/refrigerator/candidate-02",
-      "proof_sha256": "8cf3376eb0d01b09677505cb6877d29535840cb528c244a0bb17978558671080",
+      "directory": "kitchen/owner-review-pending/refrigerator/candidate-03",
+      "proof_sha256": "f9093343b4774fa9cde6a498a9c5583f3a9aef15197d1cd5623dcfea755a4ad6",
       "review_status": "accepted-independent-review"
     },
     {
