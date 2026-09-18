@@ -703,14 +703,14 @@ footprint = { width = 2, depth = 2 }
 [[object]]
 id = "nightstand"
 name = "Repository of Unread Nightstand Books"
-sprite = "sideTableDrawers"
+sprite = "offlineNightstand"
 
   # No interactions.
 
 [[object]]
 id = "dresser"
 name = "Storage, Personal Effects"
-sprite = "cabinetBedDrawer"
+sprite = "offlineDresser"
 
   # No interactions. It will hold clothes when there are clothes.
 

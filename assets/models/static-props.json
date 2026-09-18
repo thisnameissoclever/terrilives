@@ -54,6 +54,18 @@
       "directory": "bathroom/owner-review-pending/bathtub/candidate-02",
       "proof_sha256": "8b5ff938cf832787038900ac50c6fc44719d9b090f98f1650faa627f64bc23c1",
       "review_status": "accepted-independent-review"
+    },
+    {
+      "name": "offlineNightstand",
+      "directory": "bedroom/owner-review-pending/nightstand/candidate-02",
+      "proof_sha256": "d809044fa1f971692f9e58c87c480cf8721c9f97b5b470b71868b07439aa01ec",
+      "review_status": "accepted-independent-review"
+    },
+    {
+      "name": "offlineDresser",
+      "directory": "bedroom/owner-review-pending/dresser/candidate-01",
+      "proof_sha256": "f9bc06893154c3025fc84b73f323f14ba6d2f627504f861045b38fa9e87323b7",
+      "review_status": "accepted-independent-review"
     }
   ]
 }

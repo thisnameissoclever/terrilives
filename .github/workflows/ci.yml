@@ -52,6 +52,7 @@ jobs:
           python3 -B -m unittest discover -s assets/models/furniture -p 'test_*.py'
           python3 -B -m unittest discover -s assets/models/kitchen -p 'test_*.py'
           python3 -B -m unittest discover -s assets/models/bathroom -p 'test_*.py'
+          python3 -B -m unittest discover -s assets/models/bedroom -p 'test_*.py'
           python3 assets/sprites/gen/build.py --check
       # Mechanically enforces [D1]: terri-core, terri-data and terri-sim
       # never depend on a web crate. terri-data is in the list from the

@@ -1,5 +1,22 @@
 # Lessons Learned
 
+## [L-storage-attachment-gaps] Check contact before and after beveling
+
+**What happened.** The first nightstand render had tiny gaps behind its drawer
+fronts and between the book spine and pages. The attachment test rejected it
+before integration.
+
+**Root cause.** Independently chosen panel thicknesses and offsets did not
+overlap their supporting solids. At game size the missing contact was subtle.
+
+**Prevention rule.** Test part contact before exporting. Then test the evaluated
+saved meshes because a bevel can remove a contact that raw boxes appear to have.
+Keep rejected originals and source snapshots instead of overwriting evidence.
+
+**How to verify.** Bedroom layout tests reject candidate 01's detached fronts.
+The saved-scene checker finds interior contact witnesses and rejects displaced
+drawer, handle and foot parts, then reloads the unchanged passing model.
+
 ## [L-multitile-model-origin] Match the render row, not the placement tile
 
 **What happened.** The first replacement bathtub passed isolated source and
