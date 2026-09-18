@@ -1,5 +1,11 @@
 # Refrigerator static replacement
 
+**Acceptance correction, 2026-09-17:** the owner identified a wrong room-facing
+placement and undersized refrigerator relative to the counter. The original
+placement/scale acceptance below was incorrect, despite primary and independent
+review. Keep this checkpoint as historical evidence, not current room-fit
+approval. Candidate 03 and the room-fit correction replace that assessment.
+
 Subsequent kitchen work: [stove static replacement](stove.md) and
 [counter and sink](counter-sink.md). Counts and hashes
 below describe the refrigerator checkpoint, not the later combined atlas.
@@ -16,8 +22,9 @@ This evidence does not claim a published deployment or an opening animation.
    2x camera zoom. No GPU validation errors were observed. This is a renderer
    fixture, not four objects simultaneously placed in the household.
 2. `fridge-played.png` shows the built bundle `index-CvX27vfC.js` served from
-   the production preview server. The refrigerator fits its original corner
-   placement and adjacent counter height; Tim is eating in front of it.
+   the production preview server. Tim is eating in front of it. The original
+   claim that its corner placement and counter-relative scale were correct
+   was withdrawn after the owner's report.
 3. The player-facing path used Tim's roster button, canvas keyboard targeting,
    the fridge's `Grab a snack` button and the visible 1x/Pause controls. Tim was
    observed eating at Day 1, 00:41 and returned to idle at 01:18 with hunger
@@ -28,8 +35,8 @@ This evidence does not claim a published deployment or an opening animation.
    closed. The clock HUD updates separately from the persistence status;
    verification waited for both rather than treating a stale clock as failure.
 
-The independent reviewer found no blocking placement, facing, outline or
-depth-order defect. This is the existing eating action, not a new reach/open
+The independent reviewer missed the placement and scale defects later reported
+by the owner. This is the existing eating action, not a new reach/open
 sequence. Hinged doors remain authoring structure only.
 
 ## Data and regression evidence
