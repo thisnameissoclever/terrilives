@@ -128,13 +128,18 @@ class BunkImportTests(unittest.TestCase):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(f'Synthetic dependency fixture: {name}')
         raw_image = bedroom/'raw.png'
-        raw_image.write_bytes((self.root/'sample.png').read_bytes())
+        Image.new('RGBA', (1280,1408), (30,40,50,100)).save(raw_image)
         renders = [dict(facing=f,frame=i,variant=v,owner=o,path='raw.png',sha256=sha(raw_image))
                    for f in ('SE','NW','SW','NE') for i in range(4)
                    for v in ('green','blue','red') for o in ('beauty','sim','furniture','lines')]
         renders.extend(dict(facing=f,frame=0,variant='green',owner='empty',path='raw.png',sha256=sha(raw_image))
                        for f in ('SE','NW','SW','NE'))
+        for index, row in enumerate(renders):
+            row['path'] = f'raw-{index}.png'
+            (bedroom/row['path']).write_bytes(raw_image.read_bytes())
+        accepted = Path(__file__).resolve().parents[2]/'models/bedroom/owner-review-pending/bunk/candidate-02/contributions-02/raw-proof.json'
         raw = {'state':'complete', 'blender_version':'test', 'blender_build_hash':'test',
+               'contact_samples':json.loads(accepted.read_text())['contact_samples'],
                'signature':{'mode':'complete', 'source_density':8, 'logical_canvas':[160,176],
                             'translation':[0,-.50151527,0],
                             'inputs':{name:sha(model_root/name) for name in input_names}}, 'renders':renders}
@@ -182,17 +187,72 @@ class BunkImportTests(unittest.TestCase):
     def test_import_and_full_generation_have_distinct_required_inputs(self):
         bedroom, _, _, _ = self.reviewed_fixture()
         self.assertEqual(len(verify_bunk_generation(bedroom/'reviewed.json').pairs),48)
-        (bedroom/'raw.png').unlink()
+        (bedroom/'raw-0.png').unlink()
         self.assertEqual(len(load_reviewed_bunk(bedroom/'reviewed.json').pairs),48)
         with self.assertRaises(FileNotFoundError):
             verify_bunk_generation(bedroom/'reviewed.json')
-        (bedroom/'raw.png').write_text('Changed raw bytes')
+        (bedroom/'raw-0.png').write_text('Changed raw bytes')
         with self.assertRaisesRegex(ValueError,'raw image changed'):
             verify_bunk_generation(bedroom/'reviewed.json')
         (bedroom/'sample.png').write_text('Changed exported bytes')
         for verifier in (load_reviewed_bunk,verify_bunk_generation):
             with self.assertRaisesRegex(ValueError,'image hash mismatch'):
                 verifier(bedroom/'reviewed.json')
+
+    def resign_raw(self, bedroom, catalog, raw, write):
+        raw_hash = write(bedroom/'raw-proof.json', raw)
+        manifest = json.loads((bedroom/'manifest.json').read_text())
+        manifest['raw_proof_sha256'] = raw_hash
+        manifest_hash = write(bedroom/'manifest.json', manifest)
+        report = json.loads((bedroom/'comparison.json').read_text())
+        report.update(raw_proof_sha256=raw_hash, manifest_sha256=manifest_hash)
+        catalog['raw_proof']['sha256'] = raw_hash
+        catalog['manifest']['sha256'] = manifest_hash
+        catalog['comparison']['sha256'] = write(bedroom/'comparison.json', report)
+        write(bedroom/'reviewed.json', catalog)
+
+    def test_resigned_incomplete_contact_and_duplicate_paths_still_fail(self):
+        bedroom, catalog, _, write = self.reviewed_fixture()
+        original = json.loads((bedroom/'raw-proof.json').read_text())
+        mutations = []
+        for field, value in (('contact_samples', []),):
+            raw = copy.deepcopy(original)
+            raw[field] = value
+            mutations.append(raw)
+        raw = copy.deepcopy(original)
+        raw['renders'][1]['path'] = raw['renders'][0]['path']
+        mutations.append(raw)
+        for field, value in (('frame', True), ('frame', 2), ('frame', 5), ('structural_inventory', []),
+                             ('obstacles', []), ('excluded_visible_geometry', ['head']),
+                             ('body_obstacle_overlap_candidates', [['head','post']]),
+                             ('bounds', [[0,-1,0],[1,1,1]]), ('bounds', [[1,0,0],[0,0,0]]),
+                             ('bounds', [[0,0,0],[float('nan'),0,0]]), ('support_samples', {})):
+            raw = copy.deepcopy(original)
+            raw['contact_samples'][0][field] = value
+            mutations.append(raw)
+        for field, value in (('contact_count', 2), ('query_count', 0),
+                             ('ray_hits', True), ('min_gap', float('nan')),
+                             ('min_gap', .02), ('contact_bounds', [[0,0,0],[0,0,0]])):
+            raw = copy.deepcopy(original)
+            raw['contact_samples'][0]['support_samples']['head_to_pillow'][field] = value
+            mutations.append(raw)
+        for index, raw in enumerate(mutations):
+            self.resign_raw(bedroom, catalog, raw, write)
+            with self.subTest(index=index), self.assertRaisesRegex(ValueError, 'contact|raw path'):
+                load_reviewed_bunk(bedroom/'reviewed.json')
+
+    def test_full_generation_rejects_resigned_wrong_size_mode_and_format(self):
+        bedroom, catalog, _, write = self.reviewed_fixture()
+        raw = json.loads((bedroom/'raw-proof.json').read_text())
+        for size, mode, format_ in (((200,272),'RGBA','PNG'), ((1280,1408),'RGB','PNG'),
+                                    ((1280,1408),'RGBA','TIFF')):
+            path = bedroom/raw['renders'][0]['path']
+            Image.new(mode, size).save(path, format=format_)
+            raw['renders'][0]['sha256'] = hashlib.sha256(path.read_bytes()).hexdigest()
+            self.resign_raw(bedroom, catalog, raw, write)
+            self.assertEqual(len(load_reviewed_bunk(bedroom/'reviewed.json').pairs),48)
+            with self.subTest(size=size,mode=mode,format=format_), self.assertRaisesRegex(ValueError,'raw RGBA PNG'):
+                verify_bunk_generation(bedroom/'reviewed.json')
 
 
 if __name__ == '__main__':

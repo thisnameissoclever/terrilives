@@ -20,6 +20,67 @@ RENDER_INPUTS = {
 }
 
 
+def contact_bounds(value):
+    if (not isinstance(value, list) or len(value) != 2
+            or any(not isinstance(row, list) or len(row) != 3 for row in value)
+            or any(type(v) not in (int, float) or not math.isfinite(v) for row in value for v in row)
+            or any(value[0][axis] > value[1][axis] for axis in range(3))):
+        raise ValueError('invalid bunk contact bounds')
+    return value
+
+
+def validate_contacts(samples):
+    structure = {f'Post {x} {y}' for x in (-.43, .43) for y in (-.925, .925)}
+    for level in ('Lower', 'Upper'):
+        structure.update(f'{level} side rail {x}' for x in (-.425, .425))
+        structure.update(f'{level} end rail {y}' for y in (-.925, .925))
+        structure.add(f'{level} platform')
+    structure.update(('Upper rear guard', 'Upper access guard', 'Upper access upright'))
+    structure.update(f'Upper end guard {y}' for y in (-.925, .925))
+    structure.update(f'Ladder upright {y}' for y in (-.82, -.43))
+    structure.update(f'Ladder rung {z}' for z in (.24, .54, .84, 1.14, 1.44))
+    obstacles = structure | {'Upper mattress', 'Upper pillow', 'Upper duvet', 'Upper duvet fold'}
+    supports = {'Overshirt body', 'Fitted rounded shoe sole',
+                'Fitted rounded shoe sole.001', 'head_to_pillow'}
+    if not isinstance(samples, list) or len(samples) != 4:
+        raise ValueError('incomplete bunk contact samples')
+    frames = set()
+    for row in samples:
+        if (not isinstance(row, dict) or type(row.get('frame')) is not int
+                or row['frame'] in frames):
+            raise ValueError('duplicate or invalid bunk contact frame')
+        frames.add(row['frame'])
+        for field, expected in (('structural_inventory', structure), ('obstacles', obstacles)):
+            values = row.get(field)
+            if (not isinstance(values, list) or len(values) != len(expected)
+                    or any(not isinstance(v, str) for v in values) or set(values) != expected):
+                raise ValueError('bunk contact inventory changed')
+        if (row.get('excluded_visible_geometry') != []
+                or row.get('body_obstacle_overlap_candidates') != []):
+            raise ValueError('bunk contact excludes geometry or intersects an obstacle')
+        low, high = contact_bounds(row.get('bounds'))
+        if low[1] < -.90 or high[1] > .90:
+            raise ValueError('bunk contact leaves mattress length')
+        measurements = row.get('support_samples')
+        if not isinstance(measurements, dict) or set(measurements) != supports:
+            raise ValueError('incomplete bunk contact supports')
+        for support in measurements.values():
+            if not isinstance(support, dict):
+                raise ValueError('invalid bunk contact support')
+            counts = [support.get(key) for key in ('query_count', 'ray_hits', 'contact_count')]
+            gap = support.get('min_gap')
+            if (any(type(n) is not int for n in counts)
+                    or not counts[0] >= counts[1] >= counts[2] >= 3
+                    or type(gap) not in (int, float) or not math.isfinite(gap)
+                    or not -.025 <= gap <= .01):
+                raise ValueError('invalid bunk contact support measurement')
+            low, high = contact_bounds(support.get('contact_bounds'))
+            if high[0]-low[0] < .03 or high[1]-low[1] < .003:
+                raise ValueError('bunk contact collapses to a point or line')
+    if frames != {1, 2, 3, 4}:
+        raise ValueError('incomplete bunk contact frame coverage')
+
+
 def validate_comparison(report):
     if report.get('production_export') is not True or report.get('checked_groups') != 48:
         raise ValueError('bunk recombination gate is incomplete')
@@ -56,6 +117,7 @@ def load_reviewed_bunk(catalog_path, *, existing_names=()):
         values[field] = json.loads(path.read_text())
     raw, comparison, manifest = (values[key] for key in ('raw_proof','comparison','manifest'))
     validate_comparison(comparison)
+    validate_contacts(raw.get('contact_samples'))
     if (raw.get('state') != 'complete' or raw.get('signature',{}).get('mode') != 'complete'
             or not raw.get('blender_version') or not raw.get('blender_build_hash')):
         raise ValueError('bunk raw render proof is incomplete')
@@ -80,13 +142,16 @@ def load_reviewed_bunk(catalog_path, *, existing_names=()):
                         ('comparison_sha256','furniture/export_contributions.py')):
         if hashlib.sha256((models/name).read_bytes()).hexdigest() != comparison.get(field):
             raise ValueError('bunk comparison implementation changed')
-    found = set()
+    found, raw_paths = set(), set()
     for row in raw.get('renders',[]):
         key = (row.get('facing'),row.get('frame'),row.get('variant'),row.get('owner'))
         if type(key[1]) is not int or key in found:
             raise ValueError('duplicate or invalid raw render sample')
         found.add(key)
-        inside(paths['raw_proof'].parent,row.get('path'))
+        raw_path = inside(paths['raw_proof'].parent,row.get('path'))
+        if raw_path in raw_paths:
+            raise ValueError('duplicate bunk raw path')
+        raw_paths.add(raw_path)
         if not isinstance(row.get('sha256'),str) or not re.fullmatch(r'[0-9a-f]{64}',row['sha256']):
             raise ValueError('invalid raw render hash')
     expected = {(f,i,v,o) for f in FACINGS for i in range(4) for v in VARIANTS
@@ -108,6 +173,10 @@ def verify_bunk_generation(catalog_path):
         path = inside(proof_path.parent,row['path'])
         if hashlib.sha256(path.read_bytes()).hexdigest() != row['sha256']:
             raise ValueError('bunk raw image changed after comparison')
+        with Image.open(path) as image:
+            if image.format != 'PNG' or image.mode != 'RGBA' or image.size != (1280,1408):
+                raise ValueError('expected bunk raw RGBA PNG at 1280x1408')
+            image.load()
     return result
 
 
