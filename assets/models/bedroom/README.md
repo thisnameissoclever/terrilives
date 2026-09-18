@@ -37,3 +37,41 @@ Its files and changed source are retained with the rejection reason. Candidate
 02 corrects those contacts. The owner delegated per-object acceptance to the
 primary and adversarial reviewers; the historical `owner-review-pending` folder
 name does not require waiting for the owner.
+
+## Double bed
+
+`render_double_bed.py` uses the unchanged bathroom wide exporter and its
+160x176 logical canvas. Pass one new absolute output directory after `--`.
+Use `../bathroom/review_wide_static.py DIRECTORY "Double bed"` for the board,
+and `check_double_bed_scene.py MODEL NEW_RESULT_JSON` through background Blender.
+The checker covers evaluated supports and four deliberate detachments.
+
+Candidate 01 was rejected after room review: its 1.60x1.76 mattress looked too
+short and square beside Bill. Its original sources and evidence are retained.
+Candidate 02's centered frame is 1.62 wide and 1.95 long; its mattress is
+1.50x1.86, raising its length-to-width ratio from 1.10 to 1.24.
+Headboard is at local +Y, foot at -Y. Two separate linen pillows and a sage
+duvet preserve the existing colors while correcting the old single-width art.
+The duvet top is 0.55, its folded edge 0.568, and pillows 0.59. These are
+different surfaces, not one maximum-height value. The runtime centers the
+unchanged 2x2 placement at (0.5,6.5); do not add another model offset.
+
+The existing double-bed action has two slots but no sleeping pose or foreground.
+This artwork does not fix that animation gap. A future two-sleeper implementation
+needs distinct body positions and correct occlusion. One shared sleep socket
+or the current single-owner composite path would overlap both occupants.
+
+`probe_sim_height.py MODEL NEW_RESULT_JSON` measures the immutable idle Sim
+without saving it. `sim-height-reference.json` records a 2.07411 sole-to-hair
+height. The mattress is 10.3% shorter; this is not full-extension adult fit.
+Do not shrink the Sim or extend the frame into unreserved walking tiles.
+A folded sleep pose may fit, but that requires separate evidence. Evaluate
+every visible body part, sample, facing and assigned slot. A starting envelope
+reserves 0.03 at each end and side: 1.80 long by 0.69 wide per sleeper lane.
+Require supported head/torso, no frame penetration or sleeper intersection,
+unchanged rig scale and actual GPU occlusion review before calling sleep done.
+
+The bunk remains unchanged. It has an existing lower-bunk sleep socket and
+SE foreground layer; replacement requires coordinated background/foreground
+and occupied review. SW/NE source rotations cannot be called valid gameplay
+placements while the 2x1 footprint remains unrotated.

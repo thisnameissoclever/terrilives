@@ -1,5 +1,25 @@
 # Lessons Learned
 
+## [L-bed-body-envelope] Distinguish furniture proportions from sleeping fit
+
+**What happened.** A replacement double bed passed isolated source review but
+looked too short and square beside the approved Sim. Room review rejected it.
+
+**Root cause.** Width and footprint checks did not compare mattress length
+with the actual body. The idle Sim measures 2.07411 from soles to hair, longer
+than the fixed two-tile bed envelope allows for a fully extended sleeper.
+
+**Prevention rule.** Measure the immutable character before settling furniture
+proportions. Do not shrink the body, extend into unreserved walking tiles or
+claim a plausible folded pose is already proven. Static artwork and occupied
+animation require separate acceptance evidence.
+
+**How to verify.** Keep the height probe and source hash. Reject the first
+1.60x1.76 mattress with length/aspect guards and compare its 1.50x1.86 successor
+in the actual room. Before adding sleep, evaluate all visible body parts over
+all samples and slots for support, lane clearance, frame collisions and body
+intersections, then inspect their GPU composites.
+
 ## [L-storage-attachment-gaps] Check contact before and after beveling
 
 **What happened.** The first nightstand render had tiny gaps behind its drawer

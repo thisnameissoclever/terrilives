@@ -7,7 +7,7 @@ import sys
 from PIL import Image, ImageDraw, ImageFont
 
 
-def main(folder):
+def main(folder, label='Bathtub'):
     proof = json.loads((folder/'proof.json').read_text())
     if (proof['state']!='complete' or proof['logical_canvas']!=[160,176]
             or proof['source_density']!=8):
@@ -30,7 +30,7 @@ def main(folder):
             bounds = source.getchannel('A').getbbox()
             if not bounds or min(bounds[:2])<8 or bounds[2]>1272 or bounds[3]>1400:
                 raise ValueError('Empty or clipped source')
-            draw.text((i*400+12,10),f'Bathtub / {facing}',fill='#302d28',font=font)
+            draw.text((i*400+12,10),f'{label} / {facing}',fill='#302d28',font=font)
             board.alpha_composite(source.resize((400,440),Image.Resampling.LANCZOS),(i*400,38))
             draw.text((i*400+12,492),'2x texture sample (320 x 352)',fill='#302d28',font=font)
             board.alpha_composite(source.resize((320,352),Image.Resampling.LANCZOS),(i*400+40,518))
@@ -39,4 +39,4 @@ def main(folder):
 
 
 if __name__=='__main__':
-    main(Path(sys.argv[1]))
+    main(Path(sys.argv[1]), sys.argv[2] if len(sys.argv)>2 else 'Bathtub')

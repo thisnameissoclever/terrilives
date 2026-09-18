@@ -665,7 +665,7 @@ sprite = "coatRackStanding"
 [[object]]
 id = "double_bed"
 name = "The Restorative Unit"
-sprite = "bedDouble"
+sprite = "offlineDoubleBed"
 footprint = { width = 2, depth = 2 }
 
   # **The only 2x2 object in the house**, and the one that most needed real
