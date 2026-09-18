@@ -860,7 +860,7 @@ sprite = "bookcaseClosedWide"
 [[object]]
 id = "bathtub"
 name = "The Long Soak Directive"
-sprite = "bathtub"
+sprite = "offlineBathtub"
 footprint = { width = 2, depth = 1 }
 
   # **The shower's opposite number.** 58 hygiene against the shower's 70, but

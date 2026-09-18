@@ -97,3 +97,24 @@ review at 90/100. Its four views append indices 1117 through 1120. The original
 `../../../docs/assets/review-evidence/bathroom/laundry.md` for proof hashes,
 room screenshots and verification commands. Cycle, Perpetual remains decorative
 with no interactions, moving drums, opening doors or connected utilities.
+
+## Bathtub
+
+`render_bathtub.py` uses the separate `render_wide_static.py` exporter. Its
+160x176 logical canvas produces 1280x1408 source images at the same world
+scale as earlier props. Orthographic camera size follows `max(width,height)`;
+the projected origin is approximately [640,984.0035]. Earlier hashed exporters
+remain unchanged. The atlas importer permits only the two registered canvas
+pairs and preserves source-hash, padding, density and anchor checks.
+
+The runtime already centers a two-tile object's render row on its footprint.
+The model therefore stays centered at local Y=0. Candidate 01 incorrectly
+added another half-tile offset and failed played-room review. Its original
+files, source snapshot and rejection are retained. Candidate 02 removes that
+offset without changing geometry shape, game placement or interactions.
+
+Use `review_wide_static.py` for the review board and `check_bathtub_scene.py`
+for saved-scene verification. The checker tests the cavity, floor/deck support,
+sampled solid contacts and spout placement, then rejects six moved parts.
+Only SE is the current 2x1 gameplay placement; other rotations are source
+views. This static asset does not add a bathing pose, water or faucet motion.

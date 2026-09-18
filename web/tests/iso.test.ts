@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { SPRITES } from '../src/render/atlas.js';
+import { spriteFramingHeight } from '../src/render/sprite-anchors.js';
 import { BOUNDARY_SPRITE_NAMES } from '../src/render/tiles.js';
 import {
   cameraOrigin,
@@ -520,12 +521,10 @@ describe('cameraOrigin', () => {
   /** The shipped lot, so this is a statement about the game. */
   const LOT_W = 16;
   const LOT_H = 12;
-  const TALLEST = Math.max(...SPRITES.map((sprite) => sprite.h / (sprite.pixel_density ?? 1)));
+  const TALLEST = Math.max(...SPRITES.map((_, index) => spriteFramingHeight(index)));
   const boundaryNames: readonly string[] = BOUNDARY_SPRITE_NAMES;
   const TALLEST_BOUNDARY = Math.max(
-    ...SPRITES.filter((sprite) => boundaryNames.includes(sprite.name)).map(
-      (sprite) => sprite.h / (sprite.pixel_density ?? 1),
-    ),
+    ...SPRITES.flatMap((sprite, index) => boundaryNames.includes(sprite.name) ? [spriteFramingHeight(index)] : []),
   );
 
   /**

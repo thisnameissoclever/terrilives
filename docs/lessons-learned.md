@@ -1,5 +1,44 @@
 # Lessons Learned
 
+## [L-multitile-model-origin] Match the render row, not the placement tile
+
+**What happened.** The first replacement bathtub passed isolated source and
+GPU checks, but its played-room view extended past the exterior floor edge.
+Independent room review rejected it before publication.
+
+**Root cause.** The model added a half-tile offset to span a 2x1 footprint.
+`Sim::sync_render_buffer` already centers each object row on its footprint.
+The isolated fixture omitted that runtime centering, so it concealed the
+double offset instead of testing the actual placement.
+
+**Prevention rule.** Trace placement coordinates through the render buffer
+before choosing the model origin. Center multi-tile models on the emitted
+row; do not add the footprint offset again. Camera scale and object location
+are separate contracts. Enlarging a source canvas must change neither.
+
+**How to verify.** The tub at (14,9) emits a row at (14.5,9). After SE rotation,
+its centered 1.84x0.82 shell stays inside the occupied world bounds
+X=[13.5,15.5], Y=[8.5,9.5]. Use that row in the GPU fixture, retain a played
+room image, and require independent review against the visible floor edge.
+The geometry test must reject candidate 01's extra half-tile offset.
+
+## [L-camera-visible-headroom] Do not frame transparent sprite padding
+
+**What happened.** A 160x176 source canvas made the whole-lot camera test fail
+even though the new object was a low bathtub.
+
+**Root cause.** Camera setup used rectangle height, ignoring registration
+and transparent padding. It treated the tub's empty source margin as tall art.
+
+**Prevention rule.** Compute camera headroom from the registered vertical
+anchor minus the visible content top. Preserve legacy rectangle behavior
+only for sprites without content bounds or a content-top record.
+
+**How to verify.** `spriteFramingHeight` returns equal headroom for equivalent
+art with different padding and pixel densities. The real-atlas camera test
+must keep the whole lot in the default 1280x720 viewport. Inspect that view
+after changes, as well as zoomed object views.
+
 ## [L-room-relative-asset-review] Review the room, not only isolated facings
 
 **What happened.** Primary and adversarial review accepted a refrigerator that
