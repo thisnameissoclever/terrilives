@@ -101,7 +101,8 @@ export function screenY(
  * The slab's final tile supplies the bottom extent. Both extents scale
  * with the camera, sharing spare space or unavoidable overflow equally.
  *
- * Sprite heights come from the atlas through `main.ts`; the boundary
+ * Heights measure visible content above registered anchors, excluding source
+ * padding. They come from the atlas through `main.ts`; the boundary
  * subset is declared beside the geometry in `BOUNDARY_SPRITE_NAMES`.
  */
 export function cameraOrigin(

@@ -60,6 +60,51 @@ class StaticPropTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'four distinct'):
             self.load()
 
+    def wide_sources(self):
+        self.proof['logical_canvas'] = [160,176]
+        self.proof['origin_pixels'] = [640,984.0035]
+        for row in self.proof['renders']:
+            path = self.batch/row['path']
+            image = Image.new('RGBA',(1280,1408))
+            image.paste((60,80,110,255),(80,200,1200,1200))
+            image.paste((240,30,70,255),(200,300,240,340))
+            image.save(path)
+            row['sha256'] = hashlib.sha256(path.read_bytes()).hexdigest()
+
+    def test_wide_canvas_preserves_world_scale_and_off_center_registration(self):
+        self.wide_sources()
+        sprites, anchors, densities, _ = self.load()
+        self.assertTrue(all(s[2:] == (320,352) for s in sprites))
+        self.assertEqual(densities, {s[0]:2 for s in sprites})
+        for name, sprite, _, _ in sprites:
+            self.assertEqual(sprite.size,(320,352))
+            self.assertEqual(anchors[name],[80,144.0004375])
+            self.assertEqual(sprite.getpixel((30,60)),(60,80,110,255))
+            self.assertEqual(sprite.getpixel((55,80)),(240,30,70,255))
+            self.assertEqual(sprite.getpixel((265,80)),(60,80,110,255))
+
+    def test_wide_sources_reject_registration_dimension_and_padding_errors(self):
+        self.wide_sources()
+        for key,value in [('logical_canvas',[160,144]),('logical_canvas',[160.0,176]),
+                          ('origin_pixels',[384,760]),('source_density',4)]:
+            original = self.proof[key]
+            self.proof[key] = value
+            with self.subTest(key=key,value=value), self.assertRaisesRegex(ValueError,'registration'):
+                self.load()
+            self.proof[key] = original
+        row = self.proof['renders'][0]
+        path = self.batch/row['path']
+        for size,rectangle,message in [((768,960),(80,80,200,200),'1280x1408'),
+                                       ((1280,1408),(7,80,200,200),'clipped'),
+                                       ((1280,1408),(80,80,1273,200),'clipped'),
+                                       ((1280,1408),(80,80,200,1401),'clipped')]:
+            source = Image.new('RGBA',size)
+            source.paste((60,80,110,255),rectangle)
+            source.save(path)
+            row['sha256'] = hashlib.sha256(path.read_bytes()).hexdigest()
+            with self.subTest(size=size,rectangle=rectangle), self.assertRaisesRegex(ValueError,message):
+                self.load()
+
     def test_rejects_mirrored_rotation_labels(self):
         self.proof['renders'][0]['degrees'] = 180
         with self.assertRaisesRegex(ValueError,'rotation'):

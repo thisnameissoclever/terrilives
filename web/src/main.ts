@@ -21,7 +21,7 @@ import {
 import { cameraOrigin } from './render/iso.js';
 import { clampOrigin, lotExtent, zoomAnchoredOrigin } from './render/camera.js';
 import { SPRITES } from './render/atlas.js';
-import { spriteHeight } from './render/sprite-size.js';
+import { spriteFramingHeight } from './render/sprite-anchors.js';
 import { buildLightField } from './render/lighting.js';
 import {
   BOUNDARY_SPRITE_NAMES,
@@ -867,18 +867,18 @@ async function main(): Promise<void> {
   // afterward; `applyCamera` preserves the center across buffer resizes and
   // clamps the result rather than resetting the player's view.
   //
-  // Both heights are read off the atlas rather than named, so adding taller
+  // Both visible heights use atlas anchors and content bounds, so adding taller
   // furniture moves the camera extent rather than silently invalidating a
   // fixed magic number. `cameraOrigin` centres that DRAWN extent; if a lot
   // is ever big enough to exceed the viewport, the overflow is shared
   // equally between the two edges and pan reaches either.
-  const tallestSprite = Math.max(...SPRITES.map((_, index) => spriteHeight(index)));
+  const tallestSprite = Math.max(...SPRITES.map((_, index) => spriteFramingHeight(index)));
   // Reserve wall height above the first boundary panels, and furniture
   // height above the first interior tile. Their anchors differ by 2.5
   // half-tile rows; furniture cannot stand outside the lot.
   const boundaryNames: readonly string[] = BOUNDARY_SPRITE_NAMES;
   const tallestBoundarySprite = Math.max(
-    ...SPRITES.flatMap((sprite, index) => boundaryNames.includes(sprite.name) ? [spriteHeight(index)] : []),
+    ...SPRITES.flatMap((sprite, index) => boundaryNames.includes(sprite.name) ? [spriteFramingHeight(index)] : []),
   );
   const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles() };
   const camera = { scale: 1, originX: 0, originY: 0 };

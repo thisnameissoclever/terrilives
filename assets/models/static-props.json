@@ -48,6 +48,12 @@
       "directory": "bathroom/owner-review-pending/laundry/candidate-02",
       "proof_sha256": "701191a5e165100ca92604dcb7e6a89507c84032bfa160bca88630e356cc176f",
       "review_status": "accepted-independent-review"
+    },
+    {
+      "name": "offlineBathtub",
+      "directory": "bathroom/owner-review-pending/bathtub/candidate-02",
+      "proof_sha256": "8b5ff938cf832787038900ac50c6fc44719d9b090f98f1650faa627f64bc23c1",
+      "review_status": "accepted-independent-review"
     }
   ]
 }

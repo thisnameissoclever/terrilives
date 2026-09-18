@@ -9,8 +9,8 @@ import test_offline_props
 
 SOURCE = Path(offline_props.__file__)
 MUTATIONS = (
-    ('horizontal mirror', 'sprite = image.resize((192,240),Image.Resampling.LANCZOS)',
-     'sprite = image.resize((192,240),Image.Resampling.LANCZOS).transpose(Image.Transpose.FLIP_LEFT_RIGHT)',
+    ('horizontal mirror', 'sprite = image.resize(texture_size,Image.Resampling.LANCZOS)',
+     'sprite = image.resize(texture_size,Image.Resampling.LANCZOS).transpose(Image.Transpose.FLIP_LEFT_RIGHT)',
      'test_maps_four_actual_rotations_without_recentering_or_mirroring'),
     ('missing tile compensation', 'origin[1]/8+TILE_HALF_HEIGHT', 'origin[1]/8',
      'test_maps_four_actual_rotations_without_recentering_or_mirroring'),

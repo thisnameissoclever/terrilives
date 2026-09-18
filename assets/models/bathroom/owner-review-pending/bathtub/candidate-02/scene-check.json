@@ -1,0 +1,86 @@
+{
+  "state": "passed",
+  "floor_z": 0.14999985694885254,
+  "shell_bounds": [
+    [
+      -0.4089129567146301,
+      -0.9186534285545349,
+      0.04500000178813934
+    ],
+    [
+      0.4089129567146301,
+      0.9186534285545349,
+      0.5699999928474426
+    ]
+  ],
+  "authored_SE_occupied_bounds_relative_to_render_row": [
+    [
+      -1,
+      1
+    ],
+    [
+      -0.5,
+      0.5
+    ]
+  ],
+  "spout_hit_z": 0.24692317843437195,
+  "contact_witnesses": {
+    "Bathtub inset plinth / Bathtub continuous shell": [
+      -0.2240000069141388,
+      -0.5920000076293945,
+      0.048500001430511475
+    ],
+    "Bathtub overflow / Bathtub continuous shell": [
+      -0.02160000056028366,
+      0.6855000257492065,
+      0.48113885521888733
+    ],
+    "Bathtub tap stem -0.135 / Bathtub tap base -0.135": [
+      -0.1494000107049942,
+      0.8227999806404114,
+      0.5852000117301941
+    ],
+    "Bathtub tap handle -0.135 / Bathtub tap stem -0.135": [
+      -0.1494000107049942,
+      0.819599986076355,
+      0.6213000416755676
+    ],
+    "Bathtub tap stem 0.135 / Bathtub tap base 0.135": [
+      0.12060000747442245,
+      0.8227999806404114,
+      0.5852000117301941
+    ],
+    "Bathtub tap handle 0.135 / Bathtub tap stem 0.135": [
+      0.12060000747442245,
+      0.819599986076355,
+      0.6213000416755676
+    ]
+  },
+  "model_sha256": "4eb71e029fd7904cffa612fbec122831b86911f24643ff92099c8c731fc25f56",
+  "mutations": [
+    {
+      "part": "Bathtub drain",
+      "caught": "Drain lost floor support"
+    },
+    {
+      "part": "Bathtub tap foot",
+      "caught": "Bathtub tap foot lost deck support"
+    },
+    {
+      "part": "Bathtub overflow",
+      "caught": "Bathtub overflow detached from Bathtub continuous shell"
+    },
+    {
+      "part": "Bathtub inset plinth",
+      "caught": "Tub plinth floats"
+    },
+    {
+      "part": "Bathtub tap handle -0.135",
+      "caught": "Bathtub tap handle -0.135 detached from Bathtub tap stem -0.135"
+    },
+    {
+      "part": "Bathtub curved spout",
+      "caught": "Spout detached from foot"
+    }
+  ]
+}

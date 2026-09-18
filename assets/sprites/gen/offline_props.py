@@ -23,11 +23,16 @@ def inside(root, relative):
 
 def registered_anchor(proof):
     origin = proof.get('origin_pixels')
-    if (proof.get('logical_canvas') != [96,120] or proof.get('source_density') != 8
+    canvas = proof.get('logical_canvas')
+    if (canvas not in ([96,120],[160,176])
+            or any(type(value) is not int for value in canvas)):
+        raise ValueError('prop camera registration changed')
+    expected_origin = (canvas[0]*4,canvas[1]*4+280.0035)
+    if (proof.get('source_density') != 8
             or not isinstance(origin,list) or len(origin) != 2
             or any(type(value) not in (int,float) or not math.isfinite(value)
                    or abs(value-expected) > .01
-                   for value,expected in zip(origin,(384,760.0035)))):
+                   for value,expected in zip(origin,expected_origin))):
         raise ValueError('prop camera registration changed')
     # The shader adds the south-corner tile offset before subtracting this
     # anchor. Keep world origin on the tile centre, not 21 pixels below it.
@@ -58,6 +63,9 @@ def load_props(catalog_path, *, existing_names=()):
         if proof.get('state') != 'complete':
             raise ValueError('prop batch must be complete')
         anchor = registered_anchor(proof)
+        width,height = proof['logical_canvas']
+        source_size = (width*8,height*8)
+        texture_size = (width*2,height*2)
         rows = proof.get('renders',[])
         if len(rows) != 4 or {row.get('facing') for row in rows} != set(FACINGS):
             raise ValueError('prop needs four distinct facings')
@@ -74,15 +82,16 @@ def load_props(catalog_path, *, existing_names=()):
             if hashlib.sha256(source.read_bytes()).hexdigest() != row.get('sha256'):
                 raise ValueError(f'{name}: source hash mismatch')
             with Image.open(source) as image:
-                if image.format != 'PNG' or image.mode != 'RGBA' or image.size != (768,960):
-                    raise ValueError(f'{name}: expected 768x960 RGBA PNG')
+                if image.format != 'PNG' or image.mode != 'RGBA' or image.size != source_size:
+                    raise ValueError(f'{name}: expected {source_size[0]}x{source_size[1]} RGBA PNG')
                 bounds = image.getchannel('A').getbbox()
                 if not bounds:
                     raise ValueError(f'{name}: empty source')
-                if bounds[0]<8 or bounds[1]<8 or bounds[2]>760 or bounds[3]>952:
+                if (bounds[0]<8 or bounds[1]<8 or bounds[2]>source_size[0]-8
+                        or bounds[3]>source_size[1]-8):
                     raise ValueError(f'{name}: clipped source')
-                sprite = image.resize((192,240),Image.Resampling.LANCZOS)
-            sprites.append((name,sprite,192,240))
+                sprite = image.resize(texture_size,Image.Resampling.LANCZOS)
+            sprites.append((name,sprite,*texture_size))
             anchors[name] = list(anchor)
             densities[name] = 2
             content_bounds[name] = [value/2 for value in sprite.getchannel('A').getbbox()]

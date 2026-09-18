@@ -1,15 +1,24 @@
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('../src/render/atlas.js', () => ({
-  SPRITES: [{ w: 38, h: 88 }, { w: 52, h: 104 }, { w: 52, h: 104 }, { w: 104, h: 208, pixel_density: 2 }],
-  SPRITE_ANCHORS: { 1: [26, 96], 2: [25.5, 108.25], 3: [25.5, 108.25] },
-  SPRITE_CONTENT_TOPS: { 0: 5, 1: 13 },
+  SPRITES: [{ w: 38, h: 88 }, { w: 52, h: 104 }, { w: 52, h: 104 }, { w: 104, h: 208, pixel_density: 2 }, { w: 320, h: 352, pixel_density: 2 }, { w: 42, h: 66 }],
+  SPRITE_ANCHORS: { 1: [26, 96], 2: [25.5, 108.25], 3: [25.5, 108.25], 4: [80, 144] },
+  SPRITE_CONTENT_TOPS: { 0: 5, 1: 13, 4: 7 },
+  SPRITE_CONTENT_BOUNDS: { 2: [3, 25.25, 48, 99], 3: [3, 25.25, 48, 99], 4: [3, 80, 157, 160] },
 }));
 
-import { spriteAnchorY, spriteContentLift, spriteDrawOffsetX, spriteDrawOffsetY } from '../src/render/sprite-anchors.js';
+import { spriteAnchorY, spriteContentLift, spriteDrawOffsetX, spriteDrawOffsetY, spriteFramingHeight } from '../src/render/sprite-anchors.js';
 import { spriteWidth, spriteHeight } from '../src/render/sprite-size.js';
 
 describe('registered sprite anchors', () => {
+  it('frames visible content equally across padding and pixel densities', () => {
+    expect(spriteFramingHeight(0)).toBe(83);
+    expect(spriteFramingHeight(1)).toBe(83);
+    expect(spriteFramingHeight(2)).toBe(83);
+    expect(spriteFramingHeight(3)).toBe(83);
+    expect(spriteFramingHeight(4)).toBe(64);
+    expect(spriteFramingHeight(5)).toBe(66);
+  });
   it('2x texels retain logical size and fractional draw registration', () => {
     expect(spriteWidth(3)).toBe(52);
     expect(spriteHeight(3)).toBe(104);
