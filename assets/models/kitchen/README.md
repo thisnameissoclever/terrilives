@@ -53,13 +53,15 @@ to avoid breaking source paths and review links; it is not a blocking gate.
 
 ## Static runtime integration
 
-`../static-props.json` lists accepted static batches in one append order across
-all rooms. It replaces this directory's former `catalog.json` without changing
-the kitchen order or proof hashes. Never regroup entries by room: adding a
-kitchen object later must not renumber an accepted bathroom sprite. The atlas builder
+`../atlas-batches.json` defines the append order across static and animated
+batches. `../static-props.json` is the frozen first static batch, followed by
+the bunk export, then `../static-props-02.json`. Append new static objects only
+to the last static batch; after another animated batch, start a new static
+catalog. Never regroup entries by room or insert into a frozen batch: adding a
+kitchen object later must not renumber an accepted bathroom or bunk sprite. The atlas builder
 loads them through `assets/sprites/gen/offline_props.py`, validates image hashes,
 true rotation labels, complete coverage, registration and padding, then
-downsamples the source to 192x240. No per-facing crop, recentering or mirroring
+downsamples small sources to 192x240 and wide sources to 320x352. No per-facing crop, recentering or mirroring
 is allowed. New sprites follow every existing record; previous art and its
 registration tables are protected by prefix tests. Map only the relevant
 object's sprite name after a successful build. The catalog pins the SHA256 of

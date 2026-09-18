@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "objects": [
+    {
+      "name": "offlineDesk",
+      "directory": "office/owner-review-pending/desk/candidate-01",
+      "proof_sha256": "ba194c97eb1104281089e13300d3bf6759d17b1e3e32e3d6d251b78c84ef7cd4",
+      "review_status": "accepted-independent-review"
+    }
+  ]
+}

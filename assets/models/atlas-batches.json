@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "batches": [
+    { "kind": "static", "catalog": "static-props.json" },
+    { "kind": "bunk", "catalog": "bedroom/bunk-reviewed.json" },
+    { "kind": "static", "catalog": "static-props-02.json" }
+  ]
+}

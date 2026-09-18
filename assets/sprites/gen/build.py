@@ -33,8 +33,7 @@ import objects                                                  # noqa: E402
 from iso import canvas, emit                                    # noqa: E402
 from offline_sims import load_export, runtime_tables             # noqa: E402
 from offline_furniture import load_furniture, furniture_tables  # noqa: E402
-from offline_props import load_props                            # noqa: E402
-from offline_bunk import load_reviewed_bunk                     # noqa: E402
+from offline_batches import load_batches                       # noqa: E402
 from style import TILE_HALF_WIDTH, TILE_HALF_HEIGHT             # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
@@ -1042,28 +1041,27 @@ def main():
     anchors.update(extra_anchors)
     tops.update(extra_tops)
     densities.update(extra_density)
-    props, prop_anchors, prop_density, prop_bounds = load_props(
-        os.path.join(ROOT, "assets", "models", "static-props.json"),
+    for kind, batch in load_batches(
+        os.path.join(ROOT, "assets", "models", "atlas-batches.json"),
         existing_names={sprite[0] for sprite in sprites},
-    )
-    for sprite in props:
-        index = len(sprites)
-        sprites.append(sprite)
-        anchors[index] = prop_anchors[sprite[0]]
-        densities[index] = prop_density[sprite[0]]
-        bounds[index] = prop_bounds[sprite[0]]
-    bunk = load_reviewed_bunk(
-        os.path.join(ROOT, "assets", "models", "bedroom", "bunk-reviewed.json"),
-        existing_names={sprite[0] for sprite in sprites},
-    )
-    sprites.extend(bunk.sprites)
-    bunk_anchors, bunk_tops, bunk_bounds, bunk_density, bunk_pairs, bunk_profiles = furniture_tables(bunk, sprites)
-    anchors.update(bunk_anchors)
-    tops.update(bunk_tops)
-    bounds.update(bunk_bounds)
-    densities.update(bunk_density)
-    pairs.update(bunk_pairs)
-    interactions.update(bunk_profiles)
+    ):
+        if kind == 'static':
+            props, prop_anchors, prop_density, prop_bounds = batch
+            for sprite in props:
+                index = len(sprites)
+                sprites.append(sprite)
+                anchors[index] = prop_anchors[sprite[0]]
+                densities[index] = prop_density[sprite[0]]
+                bounds[index] = prop_bounds[sprite[0]]
+        else:
+            sprites.extend(batch.sprites)
+            more_anchors, more_tops, more_bounds, more_density, more_pairs, more_profiles = furniture_tables(batch, sprites)
+            anchors.update(more_anchors)
+            tops.update(more_tops)
+            bounds.update(more_bounds)
+            densities.update(more_density)
+            pairs.update(more_pairs)
+            interactions.update(more_profiles)
     names = [s[0] for s in sprites]
     if len(set(names)) != len(names):
         sys.exit("duplicate sprite name in objects.SPRITES")

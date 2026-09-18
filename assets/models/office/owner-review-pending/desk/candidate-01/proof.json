@@ -1,0 +1,117 @@
+{
+  "state": "complete",
+  "object": "desk",
+  "inputs": {
+    "bathroom/render_wide_static.py": "d775615b099666ac1fc15ba1eba547c66ab20a4fe278ff9af79c9f1fad671491",
+    "office/render_desk.py": "54ad5a00e02851f3bf2c17b6f2c3148117643fb526b39b046e09938982146bdf",
+    "office/desk_model.py": "f2180860f0bf619087517ca76a051ba45636d5ec97cee31a714112940e660277",
+    "office/desk_layout.py": "1e326f7cf657c9a7cc223195fae019e19c655e7a88090d3f265b6c1d040acbea",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "e5a89731ea48b42d1ad3a0cd3dbeb926626e072ea8644e65b3421060cc5d01be"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "d2a0cda5923a3fadbe48ac9ffcbbecabe7b0253f5875beaa1d6daf40d5c5f819"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "cc996e008e03f46e34e2b30b1a7307315606f5b2cca6b5edffffe10769fb58f5"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "dc6e53318fbd2d2999590c115acfc4517e9edb8eb73eede56960a40704d3e8c5"
+    }
+  ],
+  "logical_canvas": [
+    160,
+    176
+  ],
+  "source_density": 8,
+  "blender_version": "4.5.14 LTS",
+  "approval": "Unreviewed offline candidate; independent visual review required.",
+  "model_checks": {
+    "front": "-Y",
+    "width": 1.86,
+    "depth": 0.84,
+    "top_height": 0.78,
+    "drawer_state": "closed",
+    "room_facing": "SW",
+    "seated_animation_proven": false
+  },
+  "origin_pixels": [
+    640.0000762939453,
+    984.0035095214844
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 3.889087200164795,
+  "parts": [
+    "Desktop",
+    "Drawer 1",
+    "Drawer 1 mount -1",
+    "Drawer 1 mount 1",
+    "Drawer 1 pull",
+    "Drawer 2",
+    "Drawer 2 mount -1",
+    "Drawer 2 mount 1",
+    "Drawer 2 pull",
+    "Drawer 3",
+    "Drawer 3 mount -1",
+    "Drawer 3 mount 1",
+    "Drawer 3 pull",
+    "Front knee rail",
+    "Left back leg",
+    "Left floor brace",
+    "Left front leg",
+    "Pedestal",
+    "Pedestal foot 0.425 -0.28",
+    "Pedestal foot 0.425 0.28",
+    "Pedestal foot 0.775 -0.28",
+    "Pedestal foot 0.775 0.28",
+    "Rear rail"
+  ],
+  "color_management": {
+    "view": "Standard",
+    "look": "None"
+  },
+  "model_sha256": "ce0249394d556e6a9ebaa089dbd04e5d119457ffab6fa6db23cd466e308d9796"
+}

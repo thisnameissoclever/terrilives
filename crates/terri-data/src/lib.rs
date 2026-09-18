@@ -386,6 +386,32 @@ mod tests {
     }
 
     #[test]
+    fn desk_working_face_matches_the_chair_without_moving_its_footprint() {
+        let p = pack();
+        let desk = p.find("desk").expect("shipped desk");
+        let placement = p
+            .lot
+            .placements
+            .iter()
+            .find(|row| row.object == desk)
+            .unwrap();
+        assert_eq!((placement.x, placement.y), (6.0, 6.0));
+        assert_eq!(
+            placement.sprite, 1215,
+            "desk front must face SW toward its chair"
+        );
+        assert_eq!(p.object(desk).footprint, Footprint { width: 2, depth: 1 });
+        let chair = p.find("desk_chair").expect("existing desk chair");
+        let chair_placement = p
+            .lot
+            .placements
+            .iter()
+            .find(|row| row.object == chair)
+            .unwrap();
+        assert_eq!((chair_placement.x, chair_placement.y), (6.0, 7.0));
+    }
+
+    #[test]
     fn every_need_has_a_finite_decay_rate() {
         // compile() fills this array from content and leaves NaN where a
         // rate is missing, so a NaN here means validation was bypassed.
