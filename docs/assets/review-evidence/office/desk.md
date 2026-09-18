@@ -57,3 +57,7 @@ Atlas SHA-256: `94a9cdb354527aa59d9bb8ae942483d8ed9a9434a2b09e7fec6ad8875af877c1
 Only 266 vertical pixels remain below 8192. Future additions need to respect
 the device texture-size limit without reducing accepted sprite resolution.
 Publication requires separate green main CI, Pages and public verification.
+
+The exact staged file set was exported with `git archive` to an isolated
+directory before commit. Atlas reproduction and all 65 sprite tests passed
+there too, without untracked files or dependencies on the working tree.
