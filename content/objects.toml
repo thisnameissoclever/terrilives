@@ -144,7 +144,7 @@ sprite = "showerRound"
 [[object]]
 id = "toilet"
 name = "Porcelain Standard"
-sprite = "toiletSquare"
+sprite = "offlineToilet"
 
   # Cheap, fast and near-total. Bladder is the fastest-draining need
   # (0.139 per tick), so this has to be able to interrupt anything, and the

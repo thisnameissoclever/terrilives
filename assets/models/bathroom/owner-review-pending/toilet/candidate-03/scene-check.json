@@ -1,0 +1,71 @@
+{
+  "state": "passed",
+  "lid_cistern_clearance": 0.010999992489814758,
+  "bowl_floor": 0.24500000476837158,
+  "seat_open": true,
+  "seat_top": 0.4500000476837158,
+  "seat_bumpers_supported": true,
+  "flush_button_supported": true,
+  "contact_witnesses": {
+    "lid_to_axle": [
+      -0.02199999988079071,
+      0.1914999932050705,
+      0.4706000089645386
+    ],
+    "mount_to_axle_-1": [
+      -0.09999999403953552,
+      0.17790000140666962,
+      0.44859999418258667
+    ],
+    "mount_to_bowl_-1": [
+      -0.09999999403953552,
+      0.14844824373722076,
+      0.4145999848842621
+    ],
+    "mount_to_axle_1": [
+      0.05999999865889549,
+      0.17790000140666962,
+      0.44859999418258667
+    ],
+    "mount_to_bowl_1": [
+      0.05999999865889549,
+      0.14844824373722076,
+      0.4145999848842621
+    ]
+  },
+  "model_sha256": "7eac6444f15d540cfc025c3d5c650ba694c2f30c6cdaebb119853b08f7651859",
+  "mutations": [
+    {
+      "part": "Toilet upright lid",
+      "caught": "Lid intersects cistern"
+    },
+    {
+      "part": "Toilet open seat ring",
+      "caught": "Seat height changed"
+    },
+    {
+      "part": "Toilet seat bumper 1",
+      "caught": "Seat bumper lost support"
+    },
+    {
+      "part": "Toilet flush button",
+      "caught": "Flush button detached"
+    },
+    {
+      "part": "Toilet pedestal",
+      "caught": "Pedestal floats"
+    },
+    {
+      "part": "Toilet upper tank support",
+      "caught": "Lid intersects Toilet upper tank support"
+    },
+    {
+      "part": "Toilet hinge axle",
+      "caught": "Hinge detached from lid"
+    },
+    {
+      "part": "Toilet hinge mount 1",
+      "caught": "Hinge mount detached from axle"
+    }
+  ]
+}

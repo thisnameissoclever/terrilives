@@ -5517,3 +5517,49 @@ Check the faucet flange and lever base against the actual worktop too.
 lever base by 0.1 must fail the corresponding support assertion. The retained
 seven-mutation probe must pass after all intended failures are caught, and
 the original saved model hash must remain unchanged.
+
+---
+
+## [L-raised-lid-clearance] Test the raised pose against nearby solids
+
+**What happened.** The first toilet candidate raised its lid through the cistern.
+The tank hid most of the lid while its top protruded through the cap. Primary
+visual review rejected the batch before it reached the atlas.
+
+**Root cause.** The parts were individually plausible, but their coordinates
+were chosen without checking the rotated lid against the tank's front plane.
+
+**Prevention rule.** Place the hinge at the lid's rear edge and check the whole
+raised lid against adjacent solids in the saved scene. Do not count a part
+hidden inside another solid as ordinary camera occlusion. Bounds can establish
+separation here, though overlapping bounds alone do not prove collision.
+
+**How to verify.** The retained candidate 01 must fail with `Lid intersects
+cistern`. A corrected candidate must have positive clearance from both tank
+and cap, pass visual review in all four rotations, and fail when the lid is
+displaced into the tank in memory. Preserve every rejected candidate.
+
+Candidate 02 cleared the tank but still intersected the lower ceramic neck.
+The initial checker passed because it named only the tank and cap. Check the
+full set of nearby solids, including supports below and behind a moving part;
+a passing check establishes only the relationships it actually tests.
+
+---
+
+## [L-isolate-renderer-probes] Do not replace the DOM while game startup is running
+
+**What happened.** A four-facing renderer probe replaced the page body while
+the game was still starting. The renderer reported no GPU error, but the game
+then failed because its save-status element had been removed and replaced the
+probe with an error screen. That screenshot was rejected.
+
+**Root cause.** The test fixture and application bootstrap both owned the same
+document. Successful GPU submission did not establish what remained visible.
+
+**Prevention rule.** Give isolated renderer probes their own minimal document
+without the application bootstrap. Import the real renderer and atlas there.
+Keep played verification in a separate ordinary production-build tab.
+
+**How to verify.** Require both a clean GPU error scope and a screenshot that
+actually shows the expected four facings. Inspect the played game separately
+for load errors and correct interaction behavior.

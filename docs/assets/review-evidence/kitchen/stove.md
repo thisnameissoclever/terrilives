@@ -4,6 +4,15 @@ Reviewed 2026-09-17. Primary and adversarial review accepted candidate 02 under
 the owner's delegated review policy. No per-object owner gate remains.
 This is local production-build evidence, not proof of a live deployment.
 
+Publication was subsequently verified on 2026-09-17. PR #71 merged as
+`fcd2a78a2791b659bf31a06b27477b8b82f29e6d`. Main CI run 35293085843 and Pages
+run 35293217237 passed, including the deploy step. The live household loaded
+`index-Bvrt0ZBM.js` and returned the atlas with HTTP 200 and SHA-256
+`c35e86dd0f609578731180956809bcaf637e5f28d833cd02f0d260f2518fa01e`.
+`stove-live.png` shows that household under flat lighting. The sole console
+error was the missing favicon, and the dedicated tab was closed. This does
+not claim publication of the later counter or bathroom batches.
+
 ## Visual and played checks
 
 1. `stove-four-facing-gpu.png` shows the actual atlas through WebGPU at 2x
