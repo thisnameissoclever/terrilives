@@ -59,9 +59,11 @@ the bunk export, then `../static-props-02.json`. Append new static objects only
 to the last static batch; after another animated batch, start a new static
 catalog. Never regroup entries by room or insert into a frozen batch: adding a
 kitchen object later must not renumber an accepted bathroom or bunk sprite. The atlas builder
-loads them through `assets/sprites/gen/offline_props.py`, validates image hashes,
-true rotation labels, complete coverage, registration and padding, then
-downsamples small sources to 192x240 and wide sources to 320x352. No per-facing crop, recentering or mirroring
+dispatches them through `assets/sprites/gen/offline_batches.py` to
+`offline_props.py` for static objects or `offline_bunk.py` for reviewed bunk
+composites. Static imports validate image hashes, true rotation labels,
+complete coverage, registration and padding, then downsample small sources
+to 192x240 and wide sources to 320x352. No per-facing crop, recentering or mirroring
 is allowed. New sprites follow every existing record; previous art and its
 registration tables are protected by prefix tests. Map only the relevant
 object's sprite name after a successful build. The catalog pins the SHA256 of

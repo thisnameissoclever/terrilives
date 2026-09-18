@@ -61,3 +61,24 @@ Publication requires separate green main CI, Pages and public verification.
 The exact staged file set was exported with `git archive` to an isolated
 directory before commit. Atlas reproduction and all 65 sprite tests passed
 there too, without untracked files or dependencies on the working tree.
+
+## Published verification
+
+PR #82 merged as `39eec49ee61d735eb56b2bb78377a662d5daa40d` after all ten
+checks passed on `c2be168450feabf75fcd9e25b9c92f6805300b8d`. The final
+integrated sprite suite passed 67 tests after the bunk review corrections.
+Main CI 35312590057 and Pages 35312770267 passed. The actual deploy-pages
+step reported success for that exact main revision.
+
+On 2026-09-17, the public game loaded `index-b9oLfyEZ.js` and
+`terri_wasm_bg-JwAoD-dZ.wasm`. Its atlas returned HTTP 200 and the fetched
+bytes matched the SHA-256 above. `desk-live.png` shows the new SW-facing
+desk, chair clearance and accepted bunk at Day 2, 02:35, paused through
+normal controls. The saved game loaded. The dedicated review tab was closed.
+
+The first navigation reused the previous release from browser cache. A fresh
+diagnostic request for that superseded atlas returned 404. Fetching current
+HTML and performing a normal reload loaded the desk release; no further
+console ERROR entries occurred. GitHub Pages advertises a 600-second HTML
+cache lifetime. Do not accept deployment evidence from an old cached bundle;
+check the loaded bundle and fetched atlas hash before recording success.

@@ -107,3 +107,18 @@ A staged-only export, with no ignored raw PNGs, also passed atlas freshness
 attempt exposed Git line-ending conversion in signed JSON. Scoped `-text`
 attributes now preserve those bytes; the index was re-normalized under the
 new attributes before the successful check. No acceptance hash was changed.
+
+## Published verification
+
+PR #81 merged as `2a954362442d53941d0590cb6087b8b3ae189ca2` after all ten
+checks passed on corrected head `e573d8056294be5b0ca5a93b16622977b38f72b7`.
+Main CI 35312082027 and Pages 35312260499 passed. The actual deploy-pages
+step reported success for that exact main revision.
+
+On 2026-09-17, the public game loaded `index-BjdKvqil.js` and
+`terri_wasm_bg-D44nIBwM.wasm`. Its atlas returned HTTP 200; the fetched bytes
+matched `97fd1e00c71311e5dd439625b570211c9d0c4015ff842aa2c4118cae510cdd8d`.
+`bunk-live.png` shows the new bunk in the household, paused at Day 2, 03:51
+using normal controls. The saved game loaded and no console ERROR entries
+were observed. The dedicated tab was closed. This live appearance check is
+separate from the occupied sleeping and replay tests recorded above.
