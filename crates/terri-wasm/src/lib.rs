@@ -2753,16 +2753,19 @@ mod boundary_tests {
     #[test]
     fn foreground_sprites_ptr_addresses_the_optional_layer_after_growth() {
         let mut handle = SimHandle::new(96, 96);
-        assert!(handle.spawn_object(1.0, 1.0, "bed"));
+        assert!(handle.spawn_object(1.0, 1.0, "armchair"));
         for index in 0..48 {
             handle.spawn_agent(20.0 + index as f32, 20.0, 50.0);
         }
 
         let pack = handle.sim.world().resource::<Content>().0;
-        let bed = pack.object(pack.find("bed").expect("shipped content has a bed"));
+        let bed = pack.object(
+            pack.find("armchair")
+                .expect("shipped content has an armchair"),
+        );
         let expected = bed
             .foreground_sprite
-            .expect("the shipped bunk bed declares foreground bedding");
+            .expect("the shipped armchair declares a foreground");
         let layers = addressed(
             handle.foreground_sprites_ptr(),
             handle.entity_count(),

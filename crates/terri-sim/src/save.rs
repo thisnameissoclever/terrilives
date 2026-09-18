@@ -2263,16 +2263,16 @@ mod tests {
     #[test]
     fn authored_foreground_sprite_reconstructs_without_entering_save_v1_or_hash_state() {
         let pack = terri_data::pack();
-        let bed = pack.find("bed").expect("shipped bunk bed");
+        let bed = pack.find("armchair").expect("shipped split armchair");
         let placement = pack
             .lot
             .placements
             .iter()
             .find(|placement| placement.object == bed)
-            .expect("the shipped bunk bed is placed");
+            .expect("the shipped split armchair is placed");
         let expected = placement
             .foreground_sprite
-            .expect("the shipped bunk placement has foreground bedding");
+            .expect("the split armchair placement has a foreground");
 
         let mut source = Sim::new_from_shipped_lot();
         let authored = {
@@ -2284,7 +2284,7 @@ mod tests {
                     object.0 == bed && position.x == placement.x && position.y == placement.y
                 })
                 .map(|(entity, _, _)| entity)
-                .expect("the authored bunk bed spawned")
+                .expect("the authored split armchair spawned")
         };
         assert_eq!(
             source.world().get::<ForegroundSprite>(authored),

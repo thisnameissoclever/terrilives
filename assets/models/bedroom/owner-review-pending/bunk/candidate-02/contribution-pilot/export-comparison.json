@@ -1,0 +1,36 @@
+{
+  "production_export": false,
+  "checked_groups": 3,
+  "comparisons": [
+    {
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 29137,
+      "pixels_above_8": 1598
+    },
+    {
+      "facing": "SE",
+      "frame": 0,
+      "variant": "blue",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 29137,
+      "pixels_above_8": 1624
+    },
+    {
+      "facing": "SE",
+      "frame": 0,
+      "variant": "red",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 29137,
+      "pixels_above_8": 1600
+    }
+  ],
+  "encoder_sha256": "f36fc7e0734652c9a681df94a3b4d0b67904b07937a13d41056b31509f0cc377",
+  "partition_sha256": "0bf4f0308d39a3c7f65548673335c8568089022bfa278bb6ca26937119d4fd19",
+  "comparison_sha256": "f84c108e5d2c14999a73456f6c300845b7209e3648f398169ff4a1e8db93f01c"
+}

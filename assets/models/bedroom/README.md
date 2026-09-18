@@ -71,7 +71,47 @@ reserves 0.03 at each end and side: 1.80 long by 0.69 wide per sleeper lane.
 Require supported head/torso, no frame penetration or sleeper intersection,
 unchanged rig scale and actual GPU occlusion review before calling sleep done.
 
-The bunk remains unchanged. It has an existing lower-bunk sleep socket and
-SE foreground layer; replacement requires coordinated background/foreground
-and occupied review. SW/NE source rotations cannot be called valid gameplay
-placements while the 2x1 footprint remains unrotated.
+## Bunk
+
+Candidate 02 replaces the old split bunk with the same registered composite
+mechanism as the bike and reading chair. The existing one-slot sleep action,
+centered socket, 2x1 footprint and Sim rig are unchanged. A rigid translation
+of the whole sleeping rig centers its folded pose on the mattress. This is
+a clothed nap atop a fitted sheet, not a simulated blanket or a claim that
+the bed accommodates a fully extended adult. SW/NE source rotations remain
+review views, not valid gameplay placements with the fixed 2x1 footprint.
+
+1. `render_bunk.py NEW_DIRECTORY` through background Blender generates four
+   empty views. `check_bunk_scene.py MODEL NEW_RESULT_JSON` checks actual
+   supports and four deliberate detachments.
+2. `probe_bunk_sleep.py MODEL NEW_DIRECTORY --all-views` checks every sampled
+   sleep pose and generates sixteen beauty views. Three displaced bedding
+   or platform cases must fail. `review_bunk_sleep.py DIRECTORY` assembles
+   a hash-checked review board without repainting originals.
+3. `render_bunk_contributions.py MODEL NEW_DIRECTORY` through background
+   Blender exports four empty views and 48 groups of beauty/body/furniture/
+   outline, across four facings, four samples and three palettes. `--pilot`
+   limits this to one sample/facing in all three colors. Resume is allowed
+   only with identical source hashes and Blender version/build.
+4. `export_bunk.py INPUT OUTPUT` independently compares all occupied groups,
+   checks palette ownership and preserves 2x texture density. It removes only
+   verified transparent padding: 320x352 becomes 200x272; the logical anchor
+   changes from (80,144.00044) to (50,124.00044). No visible texel is discarded.
+5. Independent acceptance records exact manifest, raw-proof and comparison
+   hashes in `bunk-reviewed.json`. The atlas uses the strict reviewed loader,
+   not the lower-level image loader. It rejects changed inputs, incomplete
+   coverage, stale hashes and failed reconstruction evidence. Full local
+   acceptance additionally calls `offline_bunk.verify_bunk_generation` from
+   `assets/sprites/gen`, requiring every original render's bytes and readable
+   1280x1408 RGBA PNG data. Import rejects duplicate resolved raw paths and
+   requires all four valid contact samples, exact obstacle inventories,
+   no excluded geometry/collisions, and supported torso, soles and head.
+   Equal image hashes are allowed for palette-independent contributions. CI imports
+   the accepted export and does not claim to rerender or inspect raw images.
+   Full-resolution contributions and rejected source models remain local;
+   journals, source helpers, accepted model, review images and exports are tracked.
+
+Source, export and local runtime review are complete. Publication remains
+pending; see `docs/assets/review-evidence/bedroom/bunk.md` for evidence and
+`docs/plans/2026-09-17-bunk-asset.md` for the full plan. Never combine this composite with
+the old `bedBunkForeground`; that would draw incompatible furniture twice.

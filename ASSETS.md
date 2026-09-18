@@ -17,7 +17,7 @@ The approved shared Sim now comes from the editable Blender source and rig in
 Its README records immutable source hashes, material-only shirt variants and
 offline animation exports. High-resolution Blender renders are downsampled to
 RGBA frames at twice their logical dimensions, validated and packed into the
-same 2D atlas. This candidate branch contains 1,137 records at 4096x6803 physical
+same 2D atlas. This candidate branch contains 1,213 records at 4096x7848 physical
 pixels; the older counts below are historical. Existing sprite identities,
 logical dimensions and unrelated decoded pixels remain unchanged.
 
@@ -31,6 +31,15 @@ GPU sprite draw. Source/provenance limitations and export instructions are in
 `docs/assets/review-evidence/furniture/`. These assets are integrated on main;
 the review notes record played verification, including the later wall changes.
 Neither workflow requires runtime 3D rendering.
+
+The reviewed bunk now uses that composite mechanism for its unchanged lower
+sleep socket. Four empty facings, 48 occupied bodies and 24 shared contribution
+layers append at 1137 through 1212. Its editable source, rejected first model,
+support checks and complete render evidence are in `assets/models/bedroom/`.
+The strict `bunk-reviewed.json` catalog binds accepted image files to all 48
+successful independent reconstruction comparisons. Previous decoded sprites,
+including the corrected refrigerator, are byte-identical. Runtime evidence is
+in `docs/assets/review-evidence/bedroom/bunk.md`; publication is separate.
 
 The static bathroom batch also includes the reviewed stacked washer/dryer in
 `assets/models/bathroom/owner-review-pending/laundry/candidate-02/`. Its four

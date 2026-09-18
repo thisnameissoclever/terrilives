@@ -1,5 +1,23 @@
 # Lessons Learned
 
+## [L-retired-asset-review-command] Retire review tools with their rendering contract
+
+**What happened.** The bunk stopped using a separate foreground sprite, but
+the Sim evidence README still instructed readers to run a generator requiring
+that removed field and the old procedural sprite name.
+
+**Root cause.** Runtime references were updated without checking documentary
+scripts that also consumed the object definition.
+
+**Prevention rule.** Search review scripts and documentation when replacing
+asset contracts. Remove obsolete generators and label their retained images
+historical; point to the current supported workflow rather than inventing a
+compatibility layer that combines incompatible furniture.
+
+**How to verify.** Search for the retired command and check every remaining
+reference. The current bedroom workflow must validate the reviewed composite,
+without requiring `bedBunkForeground` or overwriting historical evidence.
+
 ## [L-bed-body-envelope] Distinguish furniture proportions from sleeping fit
 
 **What happened.** A replacement double bed passed isolated source review but
@@ -75,6 +93,27 @@ only for sprites without content bounds or a content-top record.
 art with different padding and pixel densities. The real-atlas camera test
 must keep the whole lot in the default 1280x720 viewport. Inspect that view
 after changes, as well as zoomed object views.
+
+## [L-signed-render-checkout-bytes] Verify signed artifacts after Git checkout
+
+**What happened.** The bunk built locally but a staged-only checkout rejected
+its reviewed manifest hash. Git's text normalization converted its CRLF bytes
+to LF, breaking the manifest, journal and comparison-report acceptance chain.
+
+**Root cause.** The review binds exact file bytes, while the repository applies
+LF conversion by default. A working-tree check alone cannot exercise that boundary.
+
+**Prevention rule.** Mark byte-signed manifests and journals as `-text` before
+staging. Preserve the signed originals rather than rewriting their evidence or
+weakening hash validation. Finish staging before exporting the index for review.
+If those files were already staged under text conversion, explicitly re-stage
+them with `git add --renormalize` after changing attributes; ordinary `git add`
+may retain the cached normalized blob when the working file has not changed.
+
+**How to verify.** Export the completed index to a new isolated directory and
+run the atlas freshness check there. Confirm it reports the new sprite count,
+not the previous index's count. Missing raw render intermediates must not prevent
+accepted-export import, but must still fail full generation verification.
 
 ## [L-room-relative-asset-review] Review the room, not only isolated facings
 
@@ -1360,6 +1399,13 @@ compile step to exist first.
 ---
 
 ## [L25] The Bash tool is Git Bash, so PowerShell here-string syntax lands as a literal argument
+
+**PowerShell search follow-up, 2026-09-17.** Positional wildcard paths passed to
+native `rg` are not expanded like Bash paths; unquoted brace lists may fail
+PowerShell parsing before `rg` runs. Three repeated search failures triggered
+a fresh-context review. Use literal directory arguments and quoted `-g`
+patterns owned by `rg`, or enumerate already discovered filenames. Verify with
+`rg --files DIRECTORY -g 'PATTERN'` before searching uncertain filenames.
 
 **What happened:** a commit was made from the Bash tool with
 `git commit -m @'...'@`, which is PowerShell here-string syntax. Bash has no such
@@ -5681,3 +5727,30 @@ Supporting each control does not prove the controls are mutually usable.
 **How to verify.** Candidate 01 must fail the washer control-clearance check.
 The replacement must show separate drawer, dial and indicator in both front
 views, and moving the drawer back over the display must fail the checker.
+
+---
+
+## [L-bunk-contact-and-export] Check occupied solids and preserve export evidence
+
+**What happened.** The first bunk model's flat duvet intersected the unchanged
+sleeping body. Later review also found that the contribution renderer could
+resume under a different Blender build and that the importer did not consume
+the full-scene comparison evidence.
+
+**Root cause.** Empty furniture review cannot establish occupied fit. The
+initial contact checker did not require a complete named obstacle inventory
+or a contact footprint. Source hashes alone did not identify the render
+environment; an unconsumed proof field did not enforce an acceptance gate.
+
+**Prevention rule.** Inspect every visible evaluated body part against the full
+furniture inventory. Record sampled support counts and spans, then deliberately
+displace bedding and structure to verify failure. Require the same Blender
+version/build on resume. Bind the accepted manifest, raw proof and complete
+recombination report in the production import, not just in documentation.
+
+**How to verify.** Candidate 01 stays rejected and retained. Candidate 02 passes
+all four sampled poses, sixteen source views and the actual occupied room;
+three contact mutations and four structural mutations fail. The complete
+reviewed-loader test must accept a valid fixture and reject changed bindings,
+dependencies, raw images and comparison implementation. Keep the old render
+journal when fixing provenance code; never relabel it as a fresh run.

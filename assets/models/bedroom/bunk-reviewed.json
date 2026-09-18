@@ -1,0 +1,16 @@
+{
+  "review_status": "accepted-independent-review",
+  "scope": "Source geometry and verified composite export; played runtime review remains separate",
+  "manifest": {
+    "path": "export/bunk/manifest.json",
+    "sha256": "15e971448c216fee995e642e7540565d8c2aa1f884a58550a8281a3093b62d73"
+  },
+  "raw_proof": {
+    "path": "owner-review-pending/bunk/candidate-02/contributions-02/raw-proof.json",
+    "sha256": "04aac5dc9da87440c8237ccfd67315e2262b7028ad826bbaa05d35c2b9fe8ccb"
+  },
+  "comparison": {
+    "path": "owner-review-pending/bunk/candidate-02/contributions-02/export-comparison.json",
+    "sha256": "690df7e67a75dc42b38b5789f2dc6f17651818fa6b970bf7d28ee4415eaf62e6"
+  }
+}

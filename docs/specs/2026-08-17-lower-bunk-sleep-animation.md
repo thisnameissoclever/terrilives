@@ -1,8 +1,18 @@
 # Lower-bunk sleep animation
 
-Status: implemented and locally played. Merge, exact-head CI, public Pages
-deployment and replay, physical-phone review, operating-system reduced motion,
-and final owner acceptance remain open.
+Current status, 2026-09-17: the offline bunk composite replacement is locally
+verified and independently reviewed. Its merge and public deployment remain
+separate gates. See `docs/assets/review-evidence/bedroom/bunk.md` and
+`assets/models/bedroom/README.md` for current source and runtime evidence.
+The owner has delegated per-object acceptance to primary and adversarial review.
+
+The original implementation notes below describe the historical two-piece
+pixel artwork. Those sprite records remain preserved, but the shipped bunk
+mapping now uses `offlineBunk` and no legacy foreground. Four unchanged rigged
+sleep samples in each facing and shirt color are encoded as visible body and
+furniture contributions plus one shared outline. The single-owner interaction
+renderer anchors the occupied composite at the exact target object. The socket,
+64-tick cycle, action 9, Save V1 format and gameplay effects are unchanged.
 
 This slice gives `bed.sleep` an honest horizontal body in the lower bunk. It
 does not change the interaction's adverts, duration, reservation, pathing,
