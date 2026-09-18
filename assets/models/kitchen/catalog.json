@@ -6,6 +6,12 @@
       "directory": "owner-review-pending/refrigerator/candidate-02",
       "proof_sha256": "8cf3376eb0d01b09677505cb6877d29535840cb528c244a0bb17978558671080",
       "review_status": "accepted-independent-review"
+    },
+    {
+      "name": "offlineStove",
+      "directory": "owner-review-pending/stove/candidate-02",
+      "proof_sha256": "7188e02ef289d756cb961772c1ab858588d0e56b8dd2ad150dc8635ad53054b4",
+      "review_status": "accepted-independent-review"
     }
   ]
 }

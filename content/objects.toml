@@ -403,7 +403,7 @@ sprite = "bookcaseClosedDoors"
 [[object]]
 id = "stove"
 name = "The Combustible Optimist"
-sprite = "kitchenStove"
+sprite = "offlineStove"
 roles = ["hob"]
 
   # **`cook_meal` RETIRED at M2f PR 2, superseded by the cook_dinner
