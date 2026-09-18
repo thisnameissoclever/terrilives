@@ -4,6 +4,10 @@
 # Newline conversion would change the approved input on a clean checkout.
 assets/models/sims/sim-01/export/manifest.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 
+# Reviewed bunk exports and journals bind exact bytes, including line endings.
+assets/models/bedroom/export/bunk/manifest.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+assets/models/bedroom/owner-review-pending/bunk/**/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
 # **Append-only prose, merged by keeping BOTH sides.**
 #
 # These two files accrete one entry at the end per branch, so two

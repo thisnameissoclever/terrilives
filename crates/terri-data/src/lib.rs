@@ -948,13 +948,15 @@ mod tests {
     fn the_fingerprint_allows_foreground_sprite_presentation_changes() {
         let original = pack().clone();
         let base = content_fingerprint(&original);
-        let bed = original.find("bed").expect("the shipped bunk bed exists");
+        let bed = original
+            .find("armchair")
+            .expect("the split armchair exists");
         let placement = original
             .lot
             .placements
             .iter()
             .position(|candidate| candidate.object == bed)
-            .expect("the shipped lot places the bunk bed");
+            .expect("the shipped lot places the split armchair");
         assert!(original.object(bed).foreground_sprite.is_some());
         assert!(original.lot.placements[placement]
             .foreground_sprite
@@ -1345,9 +1347,7 @@ mod tests {
             ),
             (0.0, 0.0, CompiledSocketFacing::PositiveX)
         );
-        let foreground = object
-            .foreground_sprite
-            .expect("the bunk bed resolves its foreground bedding");
+        assert_eq!(object.foreground_sprite, None);
 
         let placement = p
             .lot
@@ -1355,7 +1355,7 @@ mod tests {
             .iter()
             .find(|placement| placement.object == bed)
             .expect("bunk bed placement");
-        assert_eq!(placement.foreground_sprite, Some(foreground));
+        assert_eq!(placement.foreground_sprite, None);
         assert_eq!(placement.action_sockets.len(), 1);
         assert_eq!(
             (

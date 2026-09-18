@@ -235,6 +235,7 @@ pub mod facing {
 
 #[cfg(test)]
 mod tests {
+    use super::NO_FOREGROUND_SPRITE;
     use crate::test_content::shipped_fridge as a_smart_object;
     use crate::Sim;
     use bevy_ecs::prelude::*;
@@ -1588,7 +1589,7 @@ mod tests {
 
         let bed_position = Position { x: 25.0, y: 24.0 };
         let bed_agent_position = Position { x: 23.0, y: 24.0 };
-        let (sleeper, bed_target, bed, _) =
+        let (sleeper, bed_target, _, _) =
             spawn_shipped_sleeper(&mut sim, bed_position, bed_agent_position);
         let lower_bunk = sim
             .world()
@@ -1656,12 +1657,8 @@ mod tests {
             .expect("the bunk bed has a render row");
         assert_eq!(
             sim.render_buffer().foreground_sprites[bed_row],
-            sim.world()
-                .resource::<crate::Content>()
-                .0
-                .object(bed)
-                .foreground_sprite
-                .expect("the shipped bunk bed declares foreground bedding")
+            NO_FOREGROUND_SPRITE,
+            "the registered bunk composite must not retain the old foreground"
         );
         for &(watcher, position, expected_facing) in &watchers {
             assert_eq!(
@@ -1724,13 +1721,8 @@ mod tests {
             .expect("the loaded bunk bed has a render row");
         assert_eq!(
             restored.render_buffer().foreground_sprites[restored_bed_row],
-            restored
-                .world()
-                .resource::<crate::Content>()
-                .0
-                .object(bed)
-                .foreground_sprite
-                .expect("Load reconstructs foreground bedding from the current pack")
+            NO_FOREGROUND_SPRITE,
+            "Load must use the current composite art without restoring an obsolete foreground"
         );
         for &(watcher, position, expected_facing) in &watchers {
             assert_eq!(

@@ -1,0 +1,4432 @@
+{
+  "signature": {
+    "inputs": {
+      "bedroom/bunk_batch.py": "1f8cbc5113e9925027a0934d9a4f6b5c9c0a2df56b3fd649080b64f71d6de2f2",
+      "bedroom/render_bunk_contributions.py": "5e8ca4f7862ff22ece044f606a5ce301d34f2de7c614d56ae5274c9750804cb6",
+      "bedroom/bunk_contact.py": "3d77d6948f84638e6109be8e882c1924241cf09474aae64bb0cb39c16f30203a",
+      "furniture/animation_export.py": "9259cbe55c15bb3e61dbb98c4957526e953fbe559409969ecf0e76ca967d4b30",
+      "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+      "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+      "furniture/preview.py": "436143c11bb564924af62356dfe4adf22d7c76c175b3ddb876dac2e7714ce54c",
+      "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+      "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68",
+      "sims/sim-01/render_shirt_variants.py": "6184af19516052877c48722f7222293b3f4b33ccc5fa3fa1bc8454da4928045b",
+      "sims/sim-01/shirt_colors.py": "586acf888a102130ce032546827cf7fbe2e9d1ec91005e2c19c8fb950e3fd4c0",
+      "sims/sim-01/render_job.py": "3f18794f17d8c467d8fe5250ca4f029eeaaf9c9f7920818545b8d7bb1abd5122",
+      "sims/sim-01/build_rig.py": "f090090a5d651ebbb12951aae17690a7f16d34b1b4eb605df35c952093f65a55",
+      "sims/sim-01/rig_math.py": "31f766a6271bfafa6a9215340a52de7c3688e2bc4f863d20fac25ff0c3873b68",
+      "sims/sim-01/food_depth.py": "bf997ae0d29c17cc5ac64ddf2cf62283c26047a1f664ffa8cc8196f1a7d503eb",
+      "bedroom/owner-review-pending/bunk/candidate-02/bunk-authoring.blend": "fd7bccd98f28916e2207268078451b87280a23ca8990c7fb768c07c06e4a5c17"
+    },
+    "mode": "complete",
+    "source_density": 8,
+    "logical_canvas": [
+      160,
+      176
+    ],
+    "translation": [
+      0,
+      -0.50151527,
+      0
+    ]
+  },
+  "state": "complete",
+  "renders": [
+    {
+      "path": "bunk-green-SE-0-empty.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "empty",
+      "sha256": "46619943beb7bfa80903e3921d5c2d07cbc399f57e58de0e2493ac13ca2fbdac"
+    },
+    {
+      "path": "bunk-green-SE-0-beauty.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "74f265e457f7d4f248d2f6f8631e207cb3e796135d288db39ff9566eb6c48cb4"
+    },
+    {
+      "path": "bunk-green-SE-0-sim.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "ef7fabd0771fd125a9d8c7e37f2de9195d3d41e4ef558109f8d10c93badb9be7"
+    },
+    {
+      "path": "bunk-green-SE-0-furniture.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "00f0b33cfc412738d77373ee48411dda47a22d21df390d74ebadba209b332ecd"
+    },
+    {
+      "path": "bunk-green-SE-0-lines.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "5ea18af12e3d12e74572c5355d306a799e96c88e02ce6ace3c25b887398981b6"
+    },
+    {
+      "path": "bunk-green-SE-1-beauty.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "529b1a53c5ab6a4ae7d1dae77b1bc037bd731e9c5d1e09f66fe115a20fd72d2a"
+    },
+    {
+      "path": "bunk-green-SE-1-sim.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "5e8259be6309630a588fafa926545e35de32d5718c791accf5e597a191350b63"
+    },
+    {
+      "path": "bunk-green-SE-1-furniture.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "bf7bb86ba09175f38aece1a3d2e6ee0854ae55fdda7267bf4362697e80b75b12"
+    },
+    {
+      "path": "bunk-green-SE-1-lines.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "0555cf130e6ca8311482dc06a6483bf076e63984a34407b3f35f05cb592a37e5"
+    },
+    {
+      "path": "bunk-green-SE-2-beauty.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "c5e3320f58d294cea9f329b418467fcc89faa783681a7f09ce24ebb66ba65135"
+    },
+    {
+      "path": "bunk-green-SE-2-sim.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "fdb66ff6b8ee10390ecb222f708c40d4d9d197738ec2cc548288338c9dc6d804"
+    },
+    {
+      "path": "bunk-green-SE-2-furniture.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "2e0327a30a7c55f955580954fceb4704ceefad33c2fb21b9879b58b07580597f"
+    },
+    {
+      "path": "bunk-green-SE-2-lines.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "b7a02772daaea2836455f4aef7b4b97f8d5abe5d3859b21f15c43f7b4be2f6fd"
+    },
+    {
+      "path": "bunk-green-SE-3-beauty.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "8cd7a74fe0ef08965068cc1047edd2b711e5db0c5de50fe00b2f56ca28608498"
+    },
+    {
+      "path": "bunk-green-SE-3-sim.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "63e548c006ee020d3c6de5a370a6842ff63fb56e1cbac159473b233cbffbce80"
+    },
+    {
+      "path": "bunk-green-SE-3-furniture.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "51dfc67b5e11b0a8c8c7593c6ee0eac876289bd355d0a5abd99de96ce27d5f25"
+    },
+    {
+      "path": "bunk-green-SE-3-lines.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "6ea58dd0d64623b7fd2e6f8cd4fb865c12aa10972935564a0f18b32932c61c30"
+    },
+    {
+      "path": "bunk-green-NW-0-empty.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "empty",
+      "sha256": "3e157968d71be04d8bbede2c89259274d07149174dcc3c65d6e7020fa0682019"
+    },
+    {
+      "path": "bunk-green-NW-0-beauty.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "2789e11a89e015bb1112946b71064881308db90cb6cdf03bf97f7ff89a8b55ad"
+    },
+    {
+      "path": "bunk-green-NW-0-sim.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "dbef701c3b129ff8cd26df7835b450ced2a602465faab9384ce5b444e105d372"
+    },
+    {
+      "path": "bunk-green-NW-0-furniture.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "70efda06f61232a9faf830b45c3ec4a8bf0afdb971e224f601fd898217ebd445"
+    },
+    {
+      "path": "bunk-green-NW-0-lines.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "36686329a1316b5d922d7d79d9e570f890f177d4f5ec01555021ce46dfe4bef2"
+    },
+    {
+      "path": "bunk-green-NW-1-beauty.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "69ecc0cee1087c5a0e530b7e137f34d7df80e6528d1c73c5568707b9ced46000"
+    },
+    {
+      "path": "bunk-green-NW-1-sim.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "cb6360ee4069dde02c7410a5a450d362da755b23c5fc0e75194fe85528fcc244"
+    },
+    {
+      "path": "bunk-green-NW-1-furniture.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "a7f8d37a9f133e0afeca3d68a474be5b1490e760236061a301ffc16b8ca53ff8"
+    },
+    {
+      "path": "bunk-green-NW-1-lines.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "7a4edf0537aa3ba4d8699666482fbaf0c609430e9e41753def4869b5a81f8c5e"
+    },
+    {
+      "path": "bunk-green-NW-2-beauty.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "2b1751d01a746464941f8efa7aa6470642e2ff27710dee5e3ec780b6b92515ff"
+    },
+    {
+      "path": "bunk-green-NW-2-sim.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "9e380511bf2a404d74fab49033f5fc296409baa1660c0164b2037ea2d210d5ee"
+    },
+    {
+      "path": "bunk-green-NW-2-furniture.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "8e97bfa71188248ce44aa8a9346745922c43212fd9ea8f2b27e114862142536f"
+    },
+    {
+      "path": "bunk-green-NW-2-lines.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "d1c4c5620bd4fdf7e3ac650eb9b5e11a372c8b431fc8970a6e34029e10624b55"
+    },
+    {
+      "path": "bunk-green-NW-3-beauty.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "639de1f65cb03fffe1803697d82dd8f0a6ca9989017b43c75f122a9d45e3c574"
+    },
+    {
+      "path": "bunk-green-NW-3-sim.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "37e20a3415ef9aca9107dfc71f13bc04cd02d048198e6fc595b5ab9e29743780"
+    },
+    {
+      "path": "bunk-green-NW-3-furniture.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "afb858867347c318d45c7fe3a2cdb41888423d98645c372b37739e2fdc9e7b50"
+    },
+    {
+      "path": "bunk-green-NW-3-lines.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "8e1878615d91a411b67532b411cb7f323f3d5526f8f6dbdc8a577e41fc4d714b"
+    },
+    {
+      "path": "bunk-green-SW-0-empty.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "empty",
+      "sha256": "946e8c5d48d27b29fbfc1cfe9bfc7c1b02d540ba644c868456f8bd236c01270a"
+    },
+    {
+      "path": "bunk-green-SW-0-beauty.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "fedf30434169befaa1d2b22878d8013f730d4895f9a258ddc56f57557a128e6e"
+    },
+    {
+      "path": "bunk-green-SW-0-sim.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "abc574cee941acac0864d80db12cadcdaf7f0863332b09656d1d5aa62a4423ec"
+    },
+    {
+      "path": "bunk-green-SW-0-furniture.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "a51d93555ac3e9e75a02bf38019911f3d5003f36d99a46b661cff7e63bab1fde"
+    },
+    {
+      "path": "bunk-green-SW-0-lines.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "e3a44048c116a54987b5dc4d882c4122c8e607086af3c75810943cad44b339da"
+    },
+    {
+      "path": "bunk-green-SW-1-beauty.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "53750ec865280e1a300ff169e3029d9120051579f6305041c384fb5d1cf86f27"
+    },
+    {
+      "path": "bunk-green-SW-1-sim.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "e4308a028377550f0bd74148dc1ffb9e75cb1dc59bded4ceea108f804613be24"
+    },
+    {
+      "path": "bunk-green-SW-1-furniture.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "2463ee9ebf16e75a6b6d470c3d3eb70f9f14a1bf182e83750235edb8c4ce0fc9"
+    },
+    {
+      "path": "bunk-green-SW-1-lines.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "4961c2fed945e33ca7a87489e87eed3142b5f40d015f0ef32bc1c2fa09d26cc4"
+    },
+    {
+      "path": "bunk-green-SW-2-beauty.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "8db4626057eee2bdc9504e190b8a76f2028d9e5cca61862a6fa80156d6e6a302"
+    },
+    {
+      "path": "bunk-green-SW-2-sim.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "7c1c489d3584009c0303cfd71bdd9c87f2111e8f1913c6c8c98049c754b71d46"
+    },
+    {
+      "path": "bunk-green-SW-2-furniture.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "5069a7cc0b82b36e0c9468cf462ef6183cdd46ea61e877f8e2fea6465f115e44"
+    },
+    {
+      "path": "bunk-green-SW-2-lines.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "a5f3ce39197c524f0f8f9d6ce749d1b99a6744e77927aedb04a9dd65be6519ed"
+    },
+    {
+      "path": "bunk-green-SW-3-beauty.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "c8d94b2c1d8683d4bdb864a484c72b3d53f137621f00e487e742d7e3fdd8ac33"
+    },
+    {
+      "path": "bunk-green-SW-3-sim.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "e76e5ed51fb8d99f83a27e5c132ab5ba4b27ad9b8ece720331ee86d37c0e4759"
+    },
+    {
+      "path": "bunk-green-SW-3-furniture.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "308d9e05ac0fd3e3c0dd92685b04bf48fe6ba77ce4abe8b94a674668fd3e76f5"
+    },
+    {
+      "path": "bunk-green-SW-3-lines.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "381560d812d580c60d9fb3b85a34ea364eac59a48c9531d3494b067e255cfdd9"
+    },
+    {
+      "path": "bunk-green-NE-0-empty.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "empty",
+      "sha256": "047e65bef1ddf84312d7a38c9891165aa28e2241f0447a33599c84026002aed6"
+    },
+    {
+      "path": "bunk-green-NE-0-beauty.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "5c43adbd0526c451c0dcef75cffa5a494c3e862600e92185f675ede76d0fa4e2"
+    },
+    {
+      "path": "bunk-green-NE-0-sim.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "a16edc72e1a1a0d5f3780f2338e119ffbaa3a6f9bce0347f6099e11f0900aafe"
+    },
+    {
+      "path": "bunk-green-NE-0-furniture.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "e6ea9ec91f27e0bc2f5a72298a228388edfd552d38a719db24e8a9f962e7c78f"
+    },
+    {
+      "path": "bunk-green-NE-0-lines.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "ae75de6ebac8d1b4a03e7c145a285eafdc284434b9d23977299ce5b08b55ab4f"
+    },
+    {
+      "path": "bunk-green-NE-1-beauty.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "92b74203360835dde02e50eca1b27b7bcf64e5001896ac6102bb8e6828456871"
+    },
+    {
+      "path": "bunk-green-NE-1-sim.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "725c76bfba84d3b33b9bfa1c3c295652cf0858825b0cfd309cb185db61c49a97"
+    },
+    {
+      "path": "bunk-green-NE-1-furniture.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "3a772d8c1025ca1156499ae4b8bee3ef2f3e421136675b71a217b19afd24270f"
+    },
+    {
+      "path": "bunk-green-NE-1-lines.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "1a579a523608dcf81bac4895f3eba428b48100c31bad1fcacf049b340e4cf4ba"
+    },
+    {
+      "path": "bunk-green-NE-2-beauty.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "9b48946f3af6f0b53918cbae4cde1eaeb7caa6904aeb00ab773a9c4e1c779f43"
+    },
+    {
+      "path": "bunk-green-NE-2-sim.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "bd3ded7923271d91ecdf38a3ab1690007da6694ecf5fb74e54238547d2d43bec"
+    },
+    {
+      "path": "bunk-green-NE-2-furniture.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "7394f9b1ff4c8edbc4b7481c799396f6767679aa847fed1eb22398d04785d2f8"
+    },
+    {
+      "path": "bunk-green-NE-2-lines.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "a07fa01ab23b29e63e2c5976e4b8b0e18e9a9eeeee7505469911bbbcde2b4574"
+    },
+    {
+      "path": "bunk-green-NE-3-beauty.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "beauty",
+      "sha256": "c397a5b71e6b5ced446b83f64b5c1caa615ac16b9b663350de6a17980cfcbc3f"
+    },
+    {
+      "path": "bunk-green-NE-3-sim.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "sim",
+      "sha256": "21a6db820ef95ab17f8669768995a82b79a1ef8fee835cb597f150e0ad390c49"
+    },
+    {
+      "path": "bunk-green-NE-3-furniture.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "furniture",
+      "sha256": "a31845610eb6e58b037f35dfab8fdd9d758657d292083c40359cdd12910668bc"
+    },
+    {
+      "path": "bunk-green-NE-3-lines.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "green",
+      "owner": "lines",
+      "sha256": "0f21819c0ae9c24ff4d37b0bc5c5e3b5992c2180085cfbf9c64c5cebceae2269"
+    },
+    {
+      "path": "bunk-blue-SE-0-beauty.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "53c7ae6a251457891a4a7730826fac99cf06597af73274d01cc68e56cb50e067"
+    },
+    {
+      "path": "bunk-blue-SE-0-sim.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "ab277403f451757aff570dbb811fb905afa0911d387f99c4582d647d54fba47b"
+    },
+    {
+      "path": "bunk-blue-SE-0-furniture.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "ec7ba3487f3094211f12e27483ea27fde77b877cfee6ad31512388edbe3b5bd6"
+    },
+    {
+      "path": "bunk-blue-SE-0-lines.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "efdeab322170c70f47a007cb7b8796ab8380ff304c1dd52bbbee9318b653dc66"
+    },
+    {
+      "path": "bunk-blue-SE-1-beauty.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "cec797742c35b6844cfd7d60e174f46deb9836de35e4203569583c20df188f06"
+    },
+    {
+      "path": "bunk-blue-SE-1-sim.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "d9e0e95c0419ef9df2d767c6eecf96062dafc3e4c508e83fc21932847a536e5a"
+    },
+    {
+      "path": "bunk-blue-SE-1-furniture.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "fb395ba390b9162fdc0c1f0283a9cda703a2926af184f1d7a527be6424893cce"
+    },
+    {
+      "path": "bunk-blue-SE-1-lines.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "74323ea6803192eb8dc4a31b533a7d539918946ed617a3c799fe1586505a740c"
+    },
+    {
+      "path": "bunk-blue-SE-2-beauty.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "ee85b663da7d1542673f453b5159e19bb24f797afad8fcb58b4cc13202c60918"
+    },
+    {
+      "path": "bunk-blue-SE-2-sim.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "fdd1f2aeb646e2a6eb0c2c07f7a8e872f8a219d53bb56883024c0677780ef703"
+    },
+    {
+      "path": "bunk-blue-SE-2-furniture.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "944d754a26a0e6224f11a872900fce7fa5f8b95e87fe208966ba1ea64c759370"
+    },
+    {
+      "path": "bunk-blue-SE-2-lines.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "c0f97649179f7f822f25701597fe515926787ec75ab47a35b8dc912474c34464"
+    },
+    {
+      "path": "bunk-blue-SE-3-beauty.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "68173bba3df0b79657651f9a2e91dc1852ca9dccbfa79691ae9b5812959fd7ff"
+    },
+    {
+      "path": "bunk-blue-SE-3-sim.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "bec579f0c73b0cc2ae1cf646fa09281658daefed119c7b91c4d239e0f8d055e9"
+    },
+    {
+      "path": "bunk-blue-SE-3-furniture.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "5db0c61fb6b4cf248535d1d2230998df48090669455c9decb0399e6b870b0138"
+    },
+    {
+      "path": "bunk-blue-SE-3-lines.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "d4495d0895a29ef2822dae9dde4394f9d9372d7a7637a0218c848897e4cb1788"
+    },
+    {
+      "path": "bunk-blue-NW-0-beauty.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "3b6823be69cd31b06787ca939c9d74e0f4eaac0c8d3808369c56730f72c94de1"
+    },
+    {
+      "path": "bunk-blue-NW-0-sim.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "1f66fe188083aecbcaae6504080465ff352fde7988cb64b990fb95bad9a9a1a9"
+    },
+    {
+      "path": "bunk-blue-NW-0-furniture.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "241766d3c710bf178fad2f3378a84b31925e43c5fbad02ba18acb9d324120a18"
+    },
+    {
+      "path": "bunk-blue-NW-0-lines.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "bc5b31886d1140d80e294b63351d23fc8383115bf6d73f7ac2df8c3de9a2b0c3"
+    },
+    {
+      "path": "bunk-blue-NW-1-beauty.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "837d0c813b33a2e2f51a9330b63e7e220a93e2bd7e4ed4fe0afd2e3da59c4d47"
+    },
+    {
+      "path": "bunk-blue-NW-1-sim.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "28785e4c39a0ea5483ba8116aaf8d89bb7d32be773038aaae7021455bca55939"
+    },
+    {
+      "path": "bunk-blue-NW-1-furniture.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "793a07aacfcbdfea1e2bd72cbdc5cc9dcc69f3e0ea2ca4b0b4e73ef1117078df"
+    },
+    {
+      "path": "bunk-blue-NW-1-lines.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "9b85e53d5ebd670fe380bf0dd3f790bebcf0e025ad52c5710da5bfb7ff43129f"
+    },
+    {
+      "path": "bunk-blue-NW-2-beauty.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "e83fded273bea99354c17d9714bdf2bf7769b5bd749d5367dbb2eb8289cb605d"
+    },
+    {
+      "path": "bunk-blue-NW-2-sim.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "cc1268daaa097be9dae78bcffc40df6ff9cad763460a1eb9d89fbf6211aa3a89"
+    },
+    {
+      "path": "bunk-blue-NW-2-furniture.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "9b535472e21f02bb96d5c5b365a3c8344bdd5c7bb3131f782ccc8631a509e58c"
+    },
+    {
+      "path": "bunk-blue-NW-2-lines.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "d5f90d005b64fcf86b34941eea9a0c6b1710298cb40610d9bb18f07a0cf22555"
+    },
+    {
+      "path": "bunk-blue-NW-3-beauty.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "06977cc9a292f4fb1b54f786dc5ae7850b3b33c21d4112d67d73859e61102e1e"
+    },
+    {
+      "path": "bunk-blue-NW-3-sim.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "36b0bbb6e9ae1d7b7e1793a444f9fc903d1ea5fdfc46d4a3fd8c20de8a619bd7"
+    },
+    {
+      "path": "bunk-blue-NW-3-furniture.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "7682c97172bfa362855b619219339852fcdb1a3d147e9de933a0ea9b3aaba0b0"
+    },
+    {
+      "path": "bunk-blue-NW-3-lines.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "47153e5ef6a59b5e6d17c24ae309e4788d0bbd84a51b27b0422c8644489f4f33"
+    },
+    {
+      "path": "bunk-blue-SW-0-beauty.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "db469ec2353edff30110ed08920a7f7299cd3c64fb6faae70e889cd7a25d495b"
+    },
+    {
+      "path": "bunk-blue-SW-0-sim.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "c333580dd9da7515753f94e3015eded10045186b648007955e01bb96a7c5965c"
+    },
+    {
+      "path": "bunk-blue-SW-0-furniture.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "98d43dbbeff61f2f7c639eedce84d749cc9c570ae5218a38df5900dc97e78169"
+    },
+    {
+      "path": "bunk-blue-SW-0-lines.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "d123872514c6b597d7d02dc01773d80c20de74a777c628889517dd0ab94d53bc"
+    },
+    {
+      "path": "bunk-blue-SW-1-beauty.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "5cf53b8471d31d2392785112d5feb09cee89f41ef01cbf4c7335f9a1d307d3c6"
+    },
+    {
+      "path": "bunk-blue-SW-1-sim.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "d1de805fd601f2f6f27a38b33e8374e2efe6dcb1e925194bf3671e8e29d15613"
+    },
+    {
+      "path": "bunk-blue-SW-1-furniture.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "bf63b10c262399f989ad55b2667547c94e761a81a2f39f8b02d0189814f33f6e"
+    },
+    {
+      "path": "bunk-blue-SW-1-lines.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "03cce5f80ec86f8632e3541694d4f3f410d50145bd536156fba470dfcb5c814e"
+    },
+    {
+      "path": "bunk-blue-SW-2-beauty.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "22ad08dbbb77eb0d42362fbb8bd6432f1e949704349c61bf6fbc0c0ddddf21d5"
+    },
+    {
+      "path": "bunk-blue-SW-2-sim.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "11227acf45ed2a896a1a5e49ce8642d70847bea7bb4e69a1fbd2b0cde6d75300"
+    },
+    {
+      "path": "bunk-blue-SW-2-furniture.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "a33e7f4a3afb04f955a8ef64ef7d0b5303e7d7c7e666326433da383ec69e82f6"
+    },
+    {
+      "path": "bunk-blue-SW-2-lines.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "67ee0ea7db3b31659f256cbda9f55bf7af8d3c0608342d17c60092124d0e7c18"
+    },
+    {
+      "path": "bunk-blue-SW-3-beauty.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "77ac7d07a9e96780306f86c240e1d5b6a66eb3837ec4e6588e930d8e027f0a59"
+    },
+    {
+      "path": "bunk-blue-SW-3-sim.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "70d17a6a3646708efc818e286709966238de7b45bbb095cc4b13432dc225ff22"
+    },
+    {
+      "path": "bunk-blue-SW-3-furniture.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "c47482d1607cd9b9f9fdce71b5e625a3d25ab5c6ef8d324b807829e917ebca04"
+    },
+    {
+      "path": "bunk-blue-SW-3-lines.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "8060209548f2c686e98dcf76ba26289f4d71329065051405afcc12e2d6c447b8"
+    },
+    {
+      "path": "bunk-blue-NE-0-beauty.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "7ea1a2ecedbd6237c2eba511c5ceb299890e24d2f3ac60265f25b42e1cab42dc"
+    },
+    {
+      "path": "bunk-blue-NE-0-sim.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "96782049251e02669f9078b2b023a2e3b591c6482eebdf6e8af04674069dd8df"
+    },
+    {
+      "path": "bunk-blue-NE-0-furniture.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "17adb70b9382f52923f53b806ec98a5a91606d960f50744a9b8ddf54e9a100bc"
+    },
+    {
+      "path": "bunk-blue-NE-0-lines.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "efa3121de12eaddf0630e5c2aa85dde9f0e9c8144a325f9180b5e46e9674e648"
+    },
+    {
+      "path": "bunk-blue-NE-1-beauty.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "f4606875a9ecc7f968d9ecf9e72487fc638bc4c62c43ba83f61b32b14b3f87ad"
+    },
+    {
+      "path": "bunk-blue-NE-1-sim.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "c7c409d556a625f42a90203ded38a729c6b50dc983f592a6be3b61ace429fe05"
+    },
+    {
+      "path": "bunk-blue-NE-1-furniture.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "87c19998fe61cc3ddec455dc47362a8ce1f2b336906c89695feae94038767ea3"
+    },
+    {
+      "path": "bunk-blue-NE-1-lines.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "d7a256a4a0e945eb5ec1c4ccaf90f07ab75a6c1d4696b2e5e6bc2ed72dc8c2c1"
+    },
+    {
+      "path": "bunk-blue-NE-2-beauty.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "ce8e0417cbb171ddcdc14264e0523f43063f9c9cd8483ca7f4fc4baad16101d0"
+    },
+    {
+      "path": "bunk-blue-NE-2-sim.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "c8ae98f6becaede127adca08a3bc22c6fe5289a51cb8239a99faf310c39971ae"
+    },
+    {
+      "path": "bunk-blue-NE-2-furniture.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "174e1b3a941e480cfd2432e7c64389b50576714009fde28cf6de1ed0c4805a63"
+    },
+    {
+      "path": "bunk-blue-NE-2-lines.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "668f50c086ed6b00c16357dc372583ec038446de71f43543287245ca3876a973"
+    },
+    {
+      "path": "bunk-blue-NE-3-beauty.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "beauty",
+      "sha256": "e7098156d90f7a4fea050e627190d7c54cc9801ede923b1e9cd90066d2a385de"
+    },
+    {
+      "path": "bunk-blue-NE-3-sim.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "sim",
+      "sha256": "5bf80e31c031950746dbfc1e0e1781dc91bf6a96847a7a8bc028e2eba34ac7f2"
+    },
+    {
+      "path": "bunk-blue-NE-3-furniture.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "furniture",
+      "sha256": "76a013e6a6be96658d721088e18d48752cccc8fcca84c16d94d57930e2c2069a"
+    },
+    {
+      "path": "bunk-blue-NE-3-lines.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "blue",
+      "owner": "lines",
+      "sha256": "fa52ccf1e66c6e425d0d761d61de19bf1394a7461d6fbf6bd557f9b45bffd5a0"
+    },
+    {
+      "path": "bunk-red-SE-0-beauty.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "4ac400cbbf6bad20d36c2ca2aa2a3848e661b663dfa14a6cb72d7131befce9a3"
+    },
+    {
+      "path": "bunk-red-SE-0-sim.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "3f7c5a3fc085af6645ab5849c7dd950f1a048182dee68f1ff4ce0858949e0fad"
+    },
+    {
+      "path": "bunk-red-SE-0-furniture.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "3afc397baf38338d903a58e3b5dc5e9de41e02bd011ef3bd9c7ec032a1a55d9e"
+    },
+    {
+      "path": "bunk-red-SE-0-lines.png",
+      "facing": "SE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "192564a984fbcbf30b5ea823fa2554e104a942f4f3e81d738485bb60e5530c25"
+    },
+    {
+      "path": "bunk-red-SE-1-beauty.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "53767daca0e69779b2ba638ebaafd5bf054ff68a01a532db047e4e22accc4565"
+    },
+    {
+      "path": "bunk-red-SE-1-sim.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "6fa6005c2a467d08fc7d345f8636857b7975a230b31b2e1d260b1c67308462c5"
+    },
+    {
+      "path": "bunk-red-SE-1-furniture.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "a507c995942c042eae41cc91e926b362fed9edbc0551176a441dedcff445c0c0"
+    },
+    {
+      "path": "bunk-red-SE-1-lines.png",
+      "facing": "SE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "a4fd9a2954ab2bae3717175d67ecf22e9e0a0640339ce7f758d8f0aaeec58ffc"
+    },
+    {
+      "path": "bunk-red-SE-2-beauty.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "13c7e92bcee11fe7490e29046ce653c19914daa68e289b9b141b866cd2206920"
+    },
+    {
+      "path": "bunk-red-SE-2-sim.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "7d4e93f13562e598cf0dc0716154ec3afda291d567814580b53dd98e2aa1c806"
+    },
+    {
+      "path": "bunk-red-SE-2-furniture.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "d64a48d4f27dfe79f2af792ae4db3edb9b1e0331b3cf3d88994a913f0d6062cf"
+    },
+    {
+      "path": "bunk-red-SE-2-lines.png",
+      "facing": "SE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "ba1055872df2c1b05fafd899e96622c018ece9d3a2c4dfb91000bd4cee5bd015"
+    },
+    {
+      "path": "bunk-red-SE-3-beauty.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "98aa54820b0e59df63d0dcec9cf1b850fc8987885e43c133a7c1d5f2b6dd969d"
+    },
+    {
+      "path": "bunk-red-SE-3-sim.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "48711720ee510e0f3fb78b293eb3710640a7ad79dcd9bef9ddc7067973951db2"
+    },
+    {
+      "path": "bunk-red-SE-3-furniture.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "eab709ecff358e158e3300fa499e344f44435cd501f55c7762e2b59e34ed4a55"
+    },
+    {
+      "path": "bunk-red-SE-3-lines.png",
+      "facing": "SE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "05dd63f351d875a65a431a3e3d6717b864c44301bc8065120dc370c1643adee6"
+    },
+    {
+      "path": "bunk-red-NW-0-beauty.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "ff7cb11cbe675c4eb80ea85880c8c533632bbd5bd3a855cbf63bf5518c2619d1"
+    },
+    {
+      "path": "bunk-red-NW-0-sim.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "44736852f7e5c09982a9e439d727744cb719df2510ade8974587999dbf818407"
+    },
+    {
+      "path": "bunk-red-NW-0-furniture.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "0976a5cc35b37483bb1dc1fa103c3236cfda6546a0554bfe0f7657fd45258c2f"
+    },
+    {
+      "path": "bunk-red-NW-0-lines.png",
+      "facing": "NW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "7e5ce629332419ef6930cc479b9e6f12fc75a4cfcf1322c103170208645b1870"
+    },
+    {
+      "path": "bunk-red-NW-1-beauty.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "ff2888156bf6b340bf121b34cc7a276f9a13972915aaf9934878c0670b2f40d8"
+    },
+    {
+      "path": "bunk-red-NW-1-sim.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "10bf3f16e6b62759d1314ee944a870c00820a010f8717c56f556e496bb53b22f"
+    },
+    {
+      "path": "bunk-red-NW-1-furniture.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "7231d7f3fa61e5cd69785d76fa8467a5be1ad85de0187502f0404aec890a77a7"
+    },
+    {
+      "path": "bunk-red-NW-1-lines.png",
+      "facing": "NW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "394e663e54adb6f8de041aca196e49e5a926dc645952b66894d43351258809f6"
+    },
+    {
+      "path": "bunk-red-NW-2-beauty.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "9acb4f271e682e6c00e24079326a06dd9139a69090bd8f06537f1449fac1e47e"
+    },
+    {
+      "path": "bunk-red-NW-2-sim.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "87e5640af8392afc68a8695f145acafc5a66d9c4b8a7405c9228284dbdf982e9"
+    },
+    {
+      "path": "bunk-red-NW-2-furniture.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "96197ed2808c1ee6430d18f19fbf6239a5ce7dc41d6883e1053c16498909dc6b"
+    },
+    {
+      "path": "bunk-red-NW-2-lines.png",
+      "facing": "NW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "93a3e81d5bccbdc9150a06934e40713aeda9adfdd3e1b450c33054d3b8db0995"
+    },
+    {
+      "path": "bunk-red-NW-3-beauty.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "b2514135ae123ae16024ff40b93637d764a3010094d9b0fb5ee90930bfad2d63"
+    },
+    {
+      "path": "bunk-red-NW-3-sim.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "e4bcf05fc4a4e2eb46dedb5492da54bee7bca2ab0925c914f33d4b595b90704d"
+    },
+    {
+      "path": "bunk-red-NW-3-furniture.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "29ae8c89f0b74df8b1f078705df4640ab684af92946d807df557758f48ce082c"
+    },
+    {
+      "path": "bunk-red-NW-3-lines.png",
+      "facing": "NW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "11dfe1db6aea6250391b4d48bb6312b167fb7d83d58d81333d3d10ddc5029fdd"
+    },
+    {
+      "path": "bunk-red-SW-0-beauty.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "c2ee28198829ff3500730f7930158b80016ec91edcc08637160a38368e04f5c6"
+    },
+    {
+      "path": "bunk-red-SW-0-sim.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "b4d5bfd9d5cbdbe45b19ee578e5adf54fdba54b1f721419fb2f925e2211258aa"
+    },
+    {
+      "path": "bunk-red-SW-0-furniture.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "5140877331de56a2f891e0fd1352d6328be6742cf482884392d52ca870136d60"
+    },
+    {
+      "path": "bunk-red-SW-0-lines.png",
+      "facing": "SW",
+      "frame": 0,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "10ffaed27842dcb16a10dd5dc5a1da65775bd5c4a727757ad69bb9a89895c20c"
+    },
+    {
+      "path": "bunk-red-SW-1-beauty.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "2ccacec8ce34c1997bf8ff4492064449d8436ba5829b61b4f2c954ffdf3f20d2"
+    },
+    {
+      "path": "bunk-red-SW-1-sim.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "e5466d3bb5216fc4d194cc57c0c30e0345368ad1541175155b32bd9c1cd9de2d"
+    },
+    {
+      "path": "bunk-red-SW-1-furniture.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "21636d6ec77a69b5c0152d1d5c79b6f675c4acf3fd86b8ad74104192c555f0ca"
+    },
+    {
+      "path": "bunk-red-SW-1-lines.png",
+      "facing": "SW",
+      "frame": 1,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "0d348f9b1a83e9952c04020c7a102ebe04e83f2d25eda672663e1d22a371a57b"
+    },
+    {
+      "path": "bunk-red-SW-2-beauty.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "4ef270055cc062826ee79e889d60a3426d83cd2902615395d3789beeca120612"
+    },
+    {
+      "path": "bunk-red-SW-2-sim.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "236651c4c580ff17f0f19e507ed72da77dc7059ba41dcf2c6ac380fb9e4918ad"
+    },
+    {
+      "path": "bunk-red-SW-2-furniture.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "034985da110fb9d1be5e1c094463cfbacdb5c42ffb9a1e6732efbb6f78ee2593"
+    },
+    {
+      "path": "bunk-red-SW-2-lines.png",
+      "facing": "SW",
+      "frame": 2,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "0c4241e493c987188068d6820395f2f45169943762c41487b40c6977c4972280"
+    },
+    {
+      "path": "bunk-red-SW-3-beauty.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "7d83b4f4288f71aad0c62eeed30683b323dd4f66d33c8e1f014481430878c2be"
+    },
+    {
+      "path": "bunk-red-SW-3-sim.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "61b189e9e8cf4a5b297105488ae135f12923d6d1cd8f087846185e7fcf59836a"
+    },
+    {
+      "path": "bunk-red-SW-3-furniture.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "cf0641e362012fb59c72c12cce1d57b36b4a66ee0f83b8b236dcd914c66013f8"
+    },
+    {
+      "path": "bunk-red-SW-3-lines.png",
+      "facing": "SW",
+      "frame": 3,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "48cd78000ce46402bfc1057a28a7d9d97927fdf09176456d47dfaf9f1404cb11"
+    },
+    {
+      "path": "bunk-red-NE-0-beauty.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "b1b43d764acb37e9afaaf0b88c88f674a864ac91b159e561b8e5aec408cf5706"
+    },
+    {
+      "path": "bunk-red-NE-0-sim.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "4d7b39b97bdaf0179c696b104ce20ac3f3571fa8baaa887a21c66f04106ff4fb"
+    },
+    {
+      "path": "bunk-red-NE-0-furniture.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "62905f74ae5b3c6d83455ea299ac0689b9262c61ebcdf227a5e995e52346735c"
+    },
+    {
+      "path": "bunk-red-NE-0-lines.png",
+      "facing": "NE",
+      "frame": 0,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "e0ca74646fd50f893939c25b5f4a82fcd7bd064792a3f30441dfed4284470d3a"
+    },
+    {
+      "path": "bunk-red-NE-1-beauty.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "045c2dff6f687e9fd1d0cb2a4f0415f2c025b02ef1fc563d2f51d7197cda4a10"
+    },
+    {
+      "path": "bunk-red-NE-1-sim.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "b1c4076f2c7f06a61ec9c9cd19a22e94acae5d1d5e5544e1c65a603a719ea344"
+    },
+    {
+      "path": "bunk-red-NE-1-furniture.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "1b041bca757ee7a3c108538382eec431f3ad167b3085c9937f3033713e75ee82"
+    },
+    {
+      "path": "bunk-red-NE-1-lines.png",
+      "facing": "NE",
+      "frame": 1,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "e4417a6536af839331004640bd3f21deec790fa16e842939a189744805c194f2"
+    },
+    {
+      "path": "bunk-red-NE-2-beauty.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "1ef7a179f745993925abe04fccc170ae467a6182d14be0124297b2c73e4ca1bd"
+    },
+    {
+      "path": "bunk-red-NE-2-sim.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "0e4eb757e80806615e94e17e9e2ede4d1d837613df69e75f9d8c673446fa2ff5"
+    },
+    {
+      "path": "bunk-red-NE-2-furniture.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "8d36c33b56ae9a058114e143c9999477914e812f21c1fa29358a6558c026caab"
+    },
+    {
+      "path": "bunk-red-NE-2-lines.png",
+      "facing": "NE",
+      "frame": 2,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "c9523d79aa7d499069cb92fe307fb9ba90bbff1690ec8457c1d5f17cebde1dc6"
+    },
+    {
+      "path": "bunk-red-NE-3-beauty.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "beauty",
+      "sha256": "1ac99ba47e0989e232bf579ffc72f33dbce2acc53e4396130dfdac175f3ab340"
+    },
+    {
+      "path": "bunk-red-NE-3-sim.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "sim",
+      "sha256": "52651069cbd0fd6266450589896367a6cca51f64475d22a6cf20a5f7cc83f3ac"
+    },
+    {
+      "path": "bunk-red-NE-3-furniture.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "furniture",
+      "sha256": "3e542f0914a07ab43302c97cd3d6b9465b5230ed28b03c3f8476a48e801920b1"
+    },
+    {
+      "path": "bunk-red-NE-3-lines.png",
+      "facing": "NE",
+      "frame": 3,
+      "variant": "red",
+      "owner": "lines",
+      "sha256": "c137bad938a81272662be898e6e983b0e863dbf54569f825408b3408947450dc"
+    }
+  ],
+  "anchor": [
+    80.00000953674316,
+    144.00043869018555
+  ],
+  "blender_version": "4.5.14 LTS",
+  "blender_build_hash": "62c1db4208e8",
+  "contact_samples": [
+    {
+      "frame": 1,
+      "bounds": [
+        [
+          -0.39432981610298157,
+          -0.7973672151565552,
+          0.4673922657966614
+        ],
+        [
+          0.39432981610298157,
+          0.7973672151565552,
+          1.0563220977783203
+        ]
+      ],
+      "parts": {
+        "Collar stand": [
+          [
+            -0.09298177808523178,
+            0.11565792560577393,
+            0.5185965895652771
+          ],
+          [
+            0.09298178553581238,
+            0.14762932062149048,
+            0.6842733025550842
+          ]
+        ],
+        "Ear": [
+          [
+            -0.25478994846343994,
+            0.31844592094421387,
+            0.6517117619514465
+          ],
+          [
+            -0.17441999912261963,
+            0.4496825933456421,
+            0.7378256916999817
+          ]
+        ],
+        "Ear.001": [
+          [
+            0.17442002892494202,
+            0.31844592094421387,
+            0.6517117619514465
+          ],
+          [
+            0.25478997826576233,
+            0.4496825933456421,
+            0.7378256916999817
+          ]
+        ],
+        "Fitted rounded shoe sole": [
+          [
+            -0.21597722172737122,
+            -0.7973672151565552,
+            0.4677327871322632
+          ],
+          [
+            -0.03197278827428818,
+            -0.7483639717102051,
+            0.7424781322479248
+          ]
+        ],
+        "Fitted rounded shoe sole.001": [
+          [
+            0.031972795724868774,
+            -0.7973672151565552,
+            0.4677327871322632
+          ],
+          [
+            0.21597722172737122,
+            -0.7483639717102051,
+            0.7424781322479248
+          ]
+        ],
+        "Folded fabric collar leaf": [
+          [
+            -0.1203453466296196,
+            0.07822668552398682,
+            0.6587123274803162
+          ],
+          [
+            -0.021959954872727394,
+            0.1514573097229004,
+            0.7428644895553589
+          ]
+        ],
+        "Folded fabric collar leaf.001": [
+          [
+            0.021959960460662842,
+            0.07822668552398682,
+            0.6587123274803162
+          ],
+          [
+            0.1203453466296196,
+            0.1514573097229004,
+            0.7428644895553589
+          ]
+        ],
+        "Forearm with elbow and wrist sections": [
+          [
+            -0.343266099691391,
+            -0.21132463216781616,
+            0.6916135549545288
+          ],
+          [
+            -0.12076759338378906,
+            -0.04858517646789551,
+            0.8310186266899109
+          ]
+        ],
+        "Forearm with elbow and wrist sections.001": [
+          [
+            0.12076759338378906,
+            -0.21132463216781616,
+            0.6916135549545288
+          ],
+          [
+            0.343266099691391,
+            -0.04858517646789551,
+            0.8310186862945557
+          ]
+        ],
+        "HAIR_01_TRIPO_CURL": [
+          [
+            -0.25222498178482056,
+            0.35031843185424805,
+            0.5097225904464722
+          ],
+          [
+            0.25222498178482056,
+            0.7973672151565552,
+            1.0563220977783203
+          ]
+        ],
+        "Inner ear": [
+          [
+            -0.25222501158714294,
+            0.34306585788726807,
+            0.7044569253921509
+          ],
+          [
+            -0.21802499890327454,
+            0.40838074684143066,
+            0.735541045665741
+          ]
+        ],
+        "Inner ear.001": [
+          [
+            0.21802499890327454,
+            0.34306585788726807,
+            0.7044569253921509
+          ],
+          [
+            0.25222501158714294,
+            0.40838074684143066,
+            0.735541045665741
+          ]
+        ],
+        "Natural neck": [
+          [
+            -0.0825624018907547,
+            0.07271063327789307,
+            0.5344175100326538
+          ],
+          [
+            0.0825624018907547,
+            0.2262643575668335,
+            0.6911340355873108
+          ]
+        ],
+        "One sewn breast pocket": [
+          [
+            -0.15646499395370483,
+            -0.09642577171325684,
+            0.7301123738288879
+          ],
+          [
+            -0.05899500101804733,
+            0.01109170913696289,
+            0.7514873743057251
+          ]
+        ],
+        "Overshirt body": [
+          [
+            -0.2382349967956543,
+            -0.38099169731140137,
+            0.4673922657966614
+          ],
+          [
+            0.2382349967956543,
+            0.14192050695419312,
+            0.7474163174629211
+          ]
+        ],
+        "Pocket top seam": [
+          [
+            -0.15013165771961212,
+            -0.008889436721801758,
+            0.7549464702606201
+          ],
+          [
+            -0.06796903908252716,
+            0.0006192922592163086,
+            0.767737627029419
+          ]
+        ],
+        "Quiet closed smile": [
+          [
+            -0.0393335223197937,
+            0.19398343563079834,
+            0.8217291831970215
+          ],
+          [
+            0.0393335223197937,
+            0.2144557237625122,
+            0.8354611396789551
+          ]
+        ],
+        "Relaxed palm": [
+          [
+            -0.18470346927642822,
+            -0.11310011148452759,
+            0.7512929439544678
+          ],
+          [
+            -0.06189459562301636,
+            0.03176295757293701,
+            0.8644888997077942
+          ]
+        ],
+        "Relaxed palm.001": [
+          [
+            0.061894625425338745,
+            -0.11310005187988281,
+            0.7512929439544678
+          ],
+          [
+            0.18470346927642822,
+            0.03176295757293701,
+            0.8644888997077942
+          ]
+        ],
+        "Relaxed shirt sleeve": [
+          [
+            -0.3851480484008789,
+            -0.18556106090545654,
+            0.5179195404052734
+          ],
+          [
+            -0.146158829331398,
+            0.10250216722488403,
+            0.7820495963096619
+          ]
+        ],
+        "Relaxed shirt sleeve.001": [
+          [
+            0.146158829331398,
+            -0.18556106090545654,
+            0.5179196000099182
+          ],
+          [
+            0.3851480782032013,
+            0.10250228643417358,
+            0.7820497155189514
+          ]
+        ],
+        "Resting thumb": [
+          [
+            -0.1827663779258728,
+            -0.06808114051818848,
+            0.735176146030426
+          ],
+          [
+            -0.10977178812026978,
+            0.0105857253074646,
+            0.7916368842124939
+          ]
+        ],
+        "Resting thumb.001": [
+          [
+            0.10977178812026978,
+            -0.06808114051818848,
+            0.7351762056350708
+          ],
+          [
+            0.1827663779258728,
+            0.0105857253074646,
+            0.7916369438171387
+          ]
+        ],
+        "Sculpted head": [
+          [
+            -0.22118595242500305,
+            0.11777311563491821,
+            0.5039488673210144
+          ],
+          [
+            0.22118595242500305,
+            0.6816456317901611,
+            0.9260044097900391
+          ]
+        ],
+        "Shaped shoe": [
+          [
+            -0.21230770647525787,
+            -0.7514588832855225,
+            0.4692859351634979
+          ],
+          [
+            -0.03564231097698212,
+            -0.6463897228240967,
+            0.7488850355148315
+          ]
+        ],
+        "Shaped shoe.001": [
+          [
+            0.035642318427562714,
+            -0.7514588832855225,
+            0.4692859351634979
+          ],
+          [
+            0.21230770647525787,
+            -0.6463897228240967,
+            0.7488850355148315
+          ]
+        ],
+        "Shirt lower hem": [
+          [
+            -0.21188576519489288,
+            -0.3783743381500244,
+            0.4732479453086853
+          ],
+          [
+            0.21188576519489288,
+            -0.3358895480632782,
+            0.7415920495986938
+          ]
+        ],
+        "Shirt placket": [
+          [
+            -0.005130001809448004,
+            -0.338609516620636,
+            0.6928019523620605
+          ],
+          [
+            0.005130001809448004,
+            0.14129698276519775,
+            0.7651057243347168
+          ]
+        ],
+        "Shoe apron stitch": [
+          [
+            -0.1823299527168274,
+            -0.7037322521209717,
+            0.7135027647018433
+          ],
+          [
+            -0.0656200498342514,
+            -0.687590479850769,
+            0.7398315668106079
+          ]
+        ],
+        "Shoe apron stitch.001": [
+          [
+            0.065620057284832,
+            -0.7037322521209717,
+            0.7135027647018433
+          ],
+          [
+            0.1823299527168274,
+            -0.687590479850769,
+            0.7398315668106079
+          ]
+        ],
+        "Sleep closed eyelid": [
+          [
+            -0.12806247174739838,
+            0.3217650055885315,
+            0.8793371319770813
+          ],
+          [
+            -0.0519375316798687,
+            0.34406810998916626,
+            0.891884446144104
+          ]
+        ],
+        "Sleep closed eyelid.001": [
+          [
+            0.051937535405159,
+            0.3217650055885315,
+            0.8793371319770813
+          ],
+          [
+            0.12806247174739838,
+            0.3440679907798767,
+            0.891884446144104
+          ]
+        ],
+        "Small horn button": [
+          [
+            -0.010259999893605709,
+            -0.3024216294288635,
+            0.7476398944854736
+          ],
+          [
+            0.010259999893605709,
+            -0.2795860171318054,
+            0.7561899423599243
+          ]
+        ],
+        "Small horn button.001": [
+          [
+            -0.010259999893605709,
+            -0.18348634243011475,
+            0.7476398944854736
+          ],
+          [
+            0.010259999893605709,
+            -0.1606508493423462,
+            0.7561898827552795
+          ]
+        ],
+        "Small horn button.002": [
+          [
+            -0.010259999893605709,
+            -0.06455111503601074,
+            0.7476398944854736
+          ],
+          [
+            0.010259999893605709,
+            -0.04171562194824219,
+            0.7561898827552795
+          ]
+        ],
+        "Small horn button.003": [
+          [
+            -0.010259999893605709,
+            0.025839686393737793,
+            0.7339598536491394
+          ],
+          [
+            0.010259999893605709,
+            0.04867517948150635,
+            0.7425098419189453
+          ]
+        ],
+        "Small rounded nose": [
+          [
+            -0.03163498640060425,
+            0.23992490768432617,
+            0.8221918940544128
+          ],
+          [
+            0.031634993851184845,
+            0.314078688621521,
+            0.8970894813537598
+          ]
+        ],
+        "Soft eyebrow": [
+          [
+            -0.1343192458152771,
+            0.38213491439819336,
+            0.8789142370223999
+          ],
+          [
+            -0.04433383792638779,
+            0.4119267463684082,
+            0.9249038100242615
+          ]
+        ],
+        "Soft eyebrow.001": [
+          [
+            0.04433383792638779,
+            0.38213491439819336,
+            0.8789142370223999
+          ],
+          [
+            0.1343192458152771,
+            0.4119267463684082,
+            0.9249038100242615
+          ]
+        ],
+        "Tailored trouser leg": [
+          [
+            -0.21280530095100403,
+            -0.7511336803436279,
+            0.5294692516326904
+          ],
+          [
+            -0.001025178818963468,
+            -0.3579777479171753,
+            0.9020485281944275
+          ]
+        ],
+        "Tailored trouser leg.001": [
+          [
+            0.0010251787025481462,
+            -0.7511336803436279,
+            0.5294692516326904
+          ],
+          [
+            0.21280530095100403,
+            -0.3579777479171753,
+            0.9020485281944275
+          ]
+        ],
+        "Trouser hem": [
+          [
+            -0.1974094808101654,
+            -0.7564436197280884,
+            0.5655593872070312
+          ],
+          [
+            -0.050540536642074585,
+            -0.6007495522499084,
+            0.6314852237701416
+          ]
+        ],
+        "Trouser hem.001": [
+          [
+            0.050540536642074585,
+            -0.7564436197280884,
+            0.5655593872070312
+          ],
+          [
+            0.1974094808101654,
+            -0.6007495522499084,
+            0.6314852237701416
+          ]
+        ],
+        "Trouser hip bridge": [
+          [
+            -0.20709577202796936,
+            -0.5272156000137329,
+            0.47491344809532166
+          ],
+          [
+            0.20709577202796936,
+            -0.30634236335754395,
+            0.7091553211212158
+          ]
+        ],
+        "Turned sleeve cuff": [
+          [
+            -0.39432981610298157,
+            -0.20880764722824097,
+            0.6480984687805176
+          ],
+          [
+            -0.2398500293493271,
+            -0.09745803475379944,
+            0.8042880296707153
+          ]
+        ],
+        "Turned sleeve cuff.001": [
+          [
+            0.2398500293493271,
+            -0.20880764722824097,
+            0.6480984687805176
+          ],
+          [
+            0.39432981610298157,
+            -0.09745797514915466,
+            0.8042879700660706
+          ]
+        ]
+      },
+      "structural_inventory": [
+        "Ladder rung 0.24",
+        "Ladder rung 0.54",
+        "Ladder rung 0.84",
+        "Ladder rung 1.14",
+        "Ladder rung 1.44",
+        "Ladder upright -0.43",
+        "Ladder upright -0.82",
+        "Lower end rail -0.925",
+        "Lower end rail 0.925",
+        "Lower platform",
+        "Lower side rail -0.425",
+        "Lower side rail 0.425",
+        "Post -0.43 -0.925",
+        "Post -0.43 0.925",
+        "Post 0.43 -0.925",
+        "Post 0.43 0.925",
+        "Upper access guard",
+        "Upper access upright",
+        "Upper end guard -0.925",
+        "Upper end guard 0.925",
+        "Upper end rail -0.925",
+        "Upper end rail 0.925",
+        "Upper platform",
+        "Upper rear guard",
+        "Upper side rail -0.425",
+        "Upper side rail 0.425"
+      ],
+      "obstacles": [
+        "Ladder rung 0.24",
+        "Ladder rung 0.54",
+        "Ladder rung 0.84",
+        "Ladder rung 1.14",
+        "Ladder rung 1.44",
+        "Ladder upright -0.43",
+        "Ladder upright -0.82",
+        "Lower end rail -0.925",
+        "Lower end rail 0.925",
+        "Lower platform",
+        "Lower side rail -0.425",
+        "Lower side rail 0.425",
+        "Post -0.43 -0.925",
+        "Post -0.43 0.925",
+        "Post 0.43 -0.925",
+        "Post 0.43 0.925",
+        "Upper access guard",
+        "Upper access upright",
+        "Upper duvet",
+        "Upper duvet fold",
+        "Upper end guard -0.925",
+        "Upper end guard 0.925",
+        "Upper end rail -0.925",
+        "Upper end rail 0.925",
+        "Upper mattress",
+        "Upper pillow",
+        "Upper platform",
+        "Upper rear guard",
+        "Upper side rail -0.425",
+        "Upper side rail 0.425"
+      ],
+      "excluded_visible_geometry": [],
+      "body_obstacle_overlap_candidates": [],
+      "support_samples": {
+        "Overshirt body": {
+          "query_count": 3217,
+          "ray_hits": 3217,
+          "contact_count": 149,
+          "min_gap": -2.384185791015625e-06,
+          "contact_bounds": [
+            [
+              -0.07657737284898758,
+              -0.3664671778678894,
+              0.4673922657966614
+            ],
+            [
+              0.07657737284898758,
+              0.0787857174873352,
+              0.4773824214935303
+            ]
+          ]
+        },
+        "Fitted rounded shoe sole": {
+          "query_count": 1346,
+          "ray_hits": 1346,
+          "contact_count": 82,
+          "min_gap": 0.000338137149810791,
+          "contact_bounds": [
+            [
+              -0.15354786813259125,
+              -0.7920956611633301,
+              0.4677327871322632
+            ],
+            [
+              -0.09440214931964874,
+              -0.7558561563491821,
+              0.4772735834121704
+            ]
+          ]
+        },
+        "Fitted rounded shoe sole.001": {
+          "query_count": 1346,
+          "ray_hits": 1346,
+          "contact_count": 82,
+          "min_gap": 0.0003383755683898926,
+          "contact_bounds": [
+            [
+              0.09440215677022934,
+              -0.7920956611633301,
+              0.4677327871322632
+            ],
+            [
+              0.15354788303375244,
+              -0.7558561563491821,
+              0.4772735834121704
+            ]
+          ]
+        },
+        "head_to_pillow": {
+          "query_count": 24212,
+          "ray_hits": 24212,
+          "contact_count": 305,
+          "min_gap": -0.012014567852020264,
+          "contact_bounds": [
+            [
+              -0.11187777668237686,
+              0.6601345539093018,
+              0.5703853368759155
+            ],
+            [
+              0.10047419369220734,
+              0.6946715116500854,
+              0.592300295829773
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "frame": 2,
+      "bounds": [
+        [
+          -0.39264193177223206,
+          -0.7973672151565552,
+          0.4673922657966614
+        ],
+        [
+          0.39264193177223206,
+          0.7973672151565552,
+          1.0563220977783203
+        ]
+      ],
+      "parts": {
+        "Collar stand": [
+          [
+            -0.09298177808523178,
+            0.11565792560577393,
+            0.5185965895652771
+          ],
+          [
+            0.09298178553581238,
+            0.14762932062149048,
+            0.6842733025550842
+          ]
+        ],
+        "Ear": [
+          [
+            -0.25478994846343994,
+            0.31844592094421387,
+            0.6517117619514465
+          ],
+          [
+            -0.17441999912261963,
+            0.4496825933456421,
+            0.7378256916999817
+          ]
+        ],
+        "Ear.001": [
+          [
+            0.17442002892494202,
+            0.31844592094421387,
+            0.6517117619514465
+          ],
+          [
+            0.25478997826576233,
+            0.4496825933456421,
+            0.7378256916999817
+          ]
+        ],
+        "Fitted rounded shoe sole": [
+          [
+            -0.21597722172737122,
+            -0.7973672151565552,
+            0.4677327871322632
+          ],
+          [
+            -0.03197278827428818,
+            -0.7483639717102051,
+            0.7424781322479248
+          ]
+        ],
+        "Fitted rounded shoe sole.001": [
+          [
+            0.031972795724868774,
+            -0.7973672151565552,
+            0.4677327871322632
+          ],
+          [
+            0.21597722172737122,
+            -0.7483639717102051,
+            0.7424781322479248
+          ]
+        ],
+        "Folded fabric collar leaf": [
+          [
+            -0.1203453466296196,
+            0.07822668552398682,
+            0.6587123274803162
+          ],
+          [
+            -0.021959954872727394,
+            0.1514573097229004,
+            0.7428644895553589
+          ]
+        ],
+        "Folded fabric collar leaf.001": [
+          [
+            0.021959960460662842,
+            0.07822668552398682,
+            0.6587123274803162
+          ],
+          [
+            0.1203453466296196,
+            0.1514573097229004,
+            0.7428644895553589
+          ]
+        ],
+        "Forearm with elbow and wrist sections": [
+          [
+            -0.34118595719337463,
+            -0.2088334560394287,
+            0.6945939660072327
+          ],
+          [
+            -0.12078851461410522,
+            -0.04287821054458618,
+            0.8317089676856995
+          ]
+        ],
+        "Forearm with elbow and wrist sections.001": [
+          [
+            0.12078852206468582,
+            -0.20883342623710632,
+            0.6945939660072327
+          ],
+          [
+            0.34118595719337463,
+            -0.04287821054458618,
+            0.8317089676856995
+          ]
+        ],
+        "HAIR_01_TRIPO_CURL": [
+          [
+            -0.25222498178482056,
+            0.35031843185424805,
+            0.5097225904464722
+          ],
+          [
+            0.25222498178482056,
+            0.7973672151565552,
+            1.0563220977783203
+          ]
+        ],
+        "Inner ear": [
+          [
+            -0.25222501158714294,
+            0.34306585788726807,
+            0.7044569253921509
+          ],
+          [
+            -0.21802499890327454,
+            0.40838074684143066,
+            0.735541045665741
+          ]
+        ],
+        "Inner ear.001": [
+          [
+            0.21802499890327454,
+            0.34306585788726807,
+            0.7044569253921509
+          ],
+          [
+            0.25222501158714294,
+            0.40838074684143066,
+            0.735541045665741
+          ]
+        ],
+        "Natural neck": [
+          [
+            -0.0825624018907547,
+            0.07271063327789307,
+            0.5344175100326538
+          ],
+          [
+            0.0825624018907547,
+            0.2262643575668335,
+            0.6911340355873108
+          ]
+        ],
+        "One sewn breast pocket": [
+          [
+            -0.15646499395370483,
+            -0.09642577171325684,
+            0.7301123738288879
+          ],
+          [
+            -0.05899500101804733,
+            0.01109170913696289,
+            0.7514873743057251
+          ]
+        ],
+        "Overshirt body": [
+          [
+            -0.2382349967956543,
+            -0.38099169731140137,
+            0.4673922657966614
+          ],
+          [
+            0.2382349967956543,
+            0.14192050695419312,
+            0.7474163174629211
+          ]
+        ],
+        "Pocket top seam": [
+          [
+            -0.15013165771961212,
+            -0.008889436721801758,
+            0.7549464702606201
+          ],
+          [
+            -0.06796903908252716,
+            0.0006192922592163086,
+            0.767737627029419
+          ]
+        ],
+        "Quiet closed smile": [
+          [
+            -0.0393335223197937,
+            0.19398343563079834,
+            0.8217291831970215
+          ],
+          [
+            0.0393335223197937,
+            0.2144557237625122,
+            0.8354611396789551
+          ]
+        ],
+        "Relaxed palm": [
+          [
+            -0.18470355868339539,
+            -0.10710030794143677,
+            0.7512927055358887
+          ],
+          [
+            -0.06189471483230591,
+            0.03776282072067261,
+            0.8644886016845703
+          ]
+        ],
+        "Relaxed palm.001": [
+          [
+            0.06189471483230591,
+            -0.10710024833679199,
+            0.7512927055358887
+          ],
+          [
+            0.18470355868339539,
+            0.03776282072067261,
+            0.8644886016845703
+          ]
+        ],
+        "Relaxed shirt sleeve": [
+          [
+            -0.3838115632534027,
+            -0.18515029549598694,
+            0.5180168747901917
+          ],
+          [
+            -0.14620865881443024,
+            0.10254096984863281,
+            0.784372866153717
+          ]
+        ],
+        "Relaxed shirt sleeve.001": [
+          [
+            0.14620865881443024,
+            -0.18515029549598694,
+            0.5180168151855469
+          ],
+          [
+            0.3838115334510803,
+            0.10254108905792236,
+            0.7843729257583618
+          ]
+        ],
+        "Resting thumb": [
+          [
+            -0.18276652693748474,
+            -0.062081336975097656,
+            0.7351759076118469
+          ],
+          [
+            -0.10977184772491455,
+            0.016585469245910645,
+            0.7916366457939148
+          ]
+        ],
+        "Resting thumb.001": [
+          [
+            0.10977187752723694,
+            -0.062081336975097656,
+            0.7351759672164917
+          ],
+          [
+            0.18276652693748474,
+            0.016585469245910645,
+            0.7916367053985596
+          ]
+        ],
+        "Sculpted head": [
+          [
+            -0.22118595242500305,
+            0.11777311563491821,
+            0.5039488673210144
+          ],
+          [
+            0.22118595242500305,
+            0.6816456317901611,
+            0.9260044097900391
+          ]
+        ],
+        "Shaped shoe": [
+          [
+            -0.21230770647525787,
+            -0.7514588832855225,
+            0.4692859351634979
+          ],
+          [
+            -0.03564231097698212,
+            -0.6463897228240967,
+            0.7488850355148315
+          ]
+        ],
+        "Shaped shoe.001": [
+          [
+            0.035642318427562714,
+            -0.7514588832855225,
+            0.4692859351634979
+          ],
+          [
+            0.21230770647525787,
+            -0.6463897228240967,
+            0.7488850355148315
+          ]
+        ],
+        "Shirt lower hem": [
+          [
+            -0.21188576519489288,
+            -0.3783743381500244,
+            0.4732479453086853
+          ],
+          [
+            0.21188576519489288,
+            -0.3358895480632782,
+            0.7415920495986938
+          ]
+        ],
+        "Shirt placket": [
+          [
+            -0.005130001809448004,
+            -0.338609516620636,
+            0.6928019523620605
+          ],
+          [
+            0.005130001809448004,
+            0.14129698276519775,
+            0.7651057243347168
+          ]
+        ],
+        "Shoe apron stitch": [
+          [
+            -0.1823299527168274,
+            -0.7037322521209717,
+            0.7135027647018433
+          ],
+          [
+            -0.0656200498342514,
+            -0.687590479850769,
+            0.7398315668106079
+          ]
+        ],
+        "Shoe apron stitch.001": [
+          [
+            0.065620057284832,
+            -0.7037322521209717,
+            0.7135027647018433
+          ],
+          [
+            0.1823299527168274,
+            -0.687590479850769,
+            0.7398315668106079
+          ]
+        ],
+        "Sleep closed eyelid": [
+          [
+            -0.12806247174739838,
+            0.3217650055885315,
+            0.8793371319770813
+          ],
+          [
+            -0.0519375316798687,
+            0.34406810998916626,
+            0.891884446144104
+          ]
+        ],
+        "Sleep closed eyelid.001": [
+          [
+            0.051937535405159,
+            0.3217650055885315,
+            0.8793371319770813
+          ],
+          [
+            0.12806247174739838,
+            0.3440679907798767,
+            0.891884446144104
+          ]
+        ],
+        "Small horn button": [
+          [
+            -0.010259999893605709,
+            -0.3024216294288635,
+            0.7476398944854736
+          ],
+          [
+            0.010259999893605709,
+            -0.2795860171318054,
+            0.7561899423599243
+          ]
+        ],
+        "Small horn button.001": [
+          [
+            -0.010259999893605709,
+            -0.18348634243011475,
+            0.7476398944854736
+          ],
+          [
+            0.010259999893605709,
+            -0.1606508493423462,
+            0.7561898827552795
+          ]
+        ],
+        "Small horn button.002": [
+          [
+            -0.010259999893605709,
+            -0.06455111503601074,
+            0.7476398944854736
+          ],
+          [
+            0.010259999893605709,
+            -0.04171562194824219,
+            0.7561898827552795
+          ]
+        ],
+        "Small horn button.003": [
+          [
+            -0.010259999893605709,
+            0.025839686393737793,
+            0.7339598536491394
+          ],
+          [
+            0.010259999893605709,
+            0.04867517948150635,
+            0.7425098419189453
+          ]
+        ],
+        "Small rounded nose": [
+          [
+            -0.03163498640060425,
+            0.23992490768432617,
+            0.8221918940544128
+          ],
+          [
+            0.031634993851184845,
+            0.314078688621521,
+            0.8970894813537598
+          ]
+        ],
+        "Soft eyebrow": [
+          [
+            -0.1343192458152771,
+            0.38213491439819336,
+            0.8789142370223999
+          ],
+          [
+            -0.04433383792638779,
+            0.4119267463684082,
+            0.9249038100242615
+          ]
+        ],
+        "Soft eyebrow.001": [
+          [
+            0.04433383792638779,
+            0.38213491439819336,
+            0.8789142370223999
+          ],
+          [
+            0.1343192458152771,
+            0.4119267463684082,
+            0.9249038100242615
+          ]
+        ],
+        "Tailored trouser leg": [
+          [
+            -0.21280530095100403,
+            -0.7511336803436279,
+            0.5294692516326904
+          ],
+          [
+            -0.001025178818963468,
+            -0.3579777479171753,
+            0.9020485281944275
+          ]
+        ],
+        "Tailored trouser leg.001": [
+          [
+            0.0010251787025481462,
+            -0.7511336803436279,
+            0.5294692516326904
+          ],
+          [
+            0.21280530095100403,
+            -0.3579777479171753,
+            0.9020485281944275
+          ]
+        ],
+        "Trouser hem": [
+          [
+            -0.1974094808101654,
+            -0.7564436197280884,
+            0.5655593872070312
+          ],
+          [
+            -0.050540536642074585,
+            -0.6007495522499084,
+            0.6314852237701416
+          ]
+        ],
+        "Trouser hem.001": [
+          [
+            0.050540536642074585,
+            -0.7564436197280884,
+            0.5655593872070312
+          ],
+          [
+            0.1974094808101654,
+            -0.6007495522499084,
+            0.6314852237701416
+          ]
+        ],
+        "Trouser hip bridge": [
+          [
+            -0.20709577202796936,
+            -0.5272156000137329,
+            0.47491344809532166
+          ],
+          [
+            0.20709577202796936,
+            -0.30634236335754395,
+            0.7091553211212158
+          ]
+        ],
+        "Turned sleeve cuff": [
+          [
+            -0.39264193177223206,
+            -0.2083597481250763,
+            0.6510168313980103
+          ],
+          [
+            -0.2382664978504181,
+            -0.09589523077011108,
+            0.8069031238555908
+          ]
+        ],
+        "Turned sleeve cuff.001": [
+          [
+            0.2382664978504181,
+            -0.2083597481250763,
+            0.6510168313980103
+          ],
+          [
+            0.39264193177223206,
+            -0.09589523077011108,
+            0.8069031834602356
+          ]
+        ]
+      },
+      "structural_inventory": [
+        "Ladder rung 0.24",
+        "Ladder rung 0.54",
+        "Ladder rung 0.84",
+        "Ladder rung 1.14",
+        "Ladder rung 1.44",
+        "Ladder upright -0.43",
+        "Ladder upright -0.82",
+        "Lower end rail -0.925",
+        "Lower end rail 0.925",
+        "Lower platform",
+        "Lower side rail -0.425",
+        "Lower side rail 0.425",
+        "Post -0.43 -0.925",
+        "Post -0.43 0.925",
+        "Post 0.43 -0.925",
+        "Post 0.43 0.925",
+        "Upper access guard",
+        "Upper access upright",
+        "Upper end guard -0.925",
+        "Upper end guard 0.925",
+        "Upper end rail -0.925",
+        "Upper end rail 0.925",
+        "Upper platform",
+        "Upper rear guard",
+        "Upper side rail -0.425",
+        "Upper side rail 0.425"
+      ],
+      "obstacles": [
+        "Ladder rung 0.24",
+        "Ladder rung 0.54",
+        "Ladder rung 0.84",
+        "Ladder rung 1.14",
+        "Ladder rung 1.44",
+        "Ladder upright -0.43",
+        "Ladder upright -0.82",
+        "Lower end rail -0.925",
+        "Lower end rail 0.925",
+        "Lower platform",
+        "Lower side rail -0.425",
+        "Lower side rail 0.425",
+        "Post -0.43 -0.925",
+        "Post -0.43 0.925",
+        "Post 0.43 -0.925",
+        "Post 0.43 0.925",
+        "Upper access guard",
+        "Upper access upright",
+        "Upper duvet",
+        "Upper duvet fold",
+        "Upper end guard -0.925",
+        "Upper end guard 0.925",
+        "Upper end rail -0.925",
+        "Upper end rail 0.925",
+        "Upper mattress",
+        "Upper pillow",
+        "Upper platform",
+        "Upper rear guard",
+        "Upper side rail -0.425",
+        "Upper side rail 0.425"
+      ],
+      "excluded_visible_geometry": [],
+      "body_obstacle_overlap_candidates": [],
+      "support_samples": {
+        "Overshirt body": {
+          "query_count": 3217,
+          "ray_hits": 3217,
+          "contact_count": 149,
+          "min_gap": -2.384185791015625e-06,
+          "contact_bounds": [
+            [
+              -0.07657737284898758,
+              -0.3664671778678894,
+              0.4673922657966614
+            ],
+            [
+              0.07657737284898758,
+              0.0787857174873352,
+              0.4773824214935303
+            ]
+          ]
+        },
+        "Fitted rounded shoe sole": {
+          "query_count": 1346,
+          "ray_hits": 1346,
+          "contact_count": 82,
+          "min_gap": 0.000338137149810791,
+          "contact_bounds": [
+            [
+              -0.15354786813259125,
+              -0.7920956611633301,
+              0.4677327871322632
+            ],
+            [
+              -0.09440214931964874,
+              -0.7558561563491821,
+              0.4772735834121704
+            ]
+          ]
+        },
+        "Fitted rounded shoe sole.001": {
+          "query_count": 1346,
+          "ray_hits": 1346,
+          "contact_count": 82,
+          "min_gap": 0.0003383755683898926,
+          "contact_bounds": [
+            [
+              0.09440215677022934,
+              -0.7920956611633301,
+              0.4677327871322632
+            ],
+            [
+              0.15354788303375244,
+              -0.7558561563491821,
+              0.4772735834121704
+            ]
+          ]
+        },
+        "head_to_pillow": {
+          "query_count": 24212,
+          "ray_hits": 24212,
+          "contact_count": 305,
+          "min_gap": -0.012014567852020264,
+          "contact_bounds": [
+            [
+              -0.11187777668237686,
+              0.6601345539093018,
+              0.5703853368759155
+            ],
+            [
+              0.10047419369220734,
+              0.6946715116500854,
+              0.592300295829773
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "frame": 3,
+      "bounds": [
+        [
+          -0.39432981610298157,
+          -0.7973672151565552,
+          0.4673922657966614
+        ],
+        [
+          0.39432981610298157,
+          0.7973672151565552,
+          1.0563220977783203
+        ]
+      ],
+      "parts": {
+        "Collar stand": [
+          [
+            -0.09298177808523178,
+            0.11565792560577393,
+            0.5185965895652771
+          ],
+          [
+            0.09298178553581238,
+            0.14762932062149048,
+            0.6842733025550842
+          ]
+        ],
+        "Ear": [
+          [
+            -0.25478994846343994,
+            0.31844592094421387,
+            0.6517117619514465
+          ],
+          [
+            -0.17441999912261963,
+            0.4496825933456421,
+            0.7378256916999817
+          ]
+        ],
+        "Ear.001": [
+          [
+            0.17442002892494202,
+            0.31844592094421387,
+            0.6517117619514465
+          ],
+          [
+            0.25478997826576233,
+            0.4496825933456421,
+            0.7378256916999817
+          ]
+        ],
+        "Fitted rounded shoe sole": [
+          [
+            -0.21597722172737122,
+            -0.7973672151565552,
+            0.4677327871322632
+          ],
+          [
+            -0.03197278827428818,
+            -0.7483639717102051,
+            0.7424781322479248
+          ]
+        ],
+        "Fitted rounded shoe sole.001": [
+          [
+            0.031972795724868774,
+            -0.7973672151565552,
+            0.4677327871322632
+          ],
+          [
+            0.21597722172737122,
+            -0.7483639717102051,
+            0.7424781322479248
+          ]
+        ],
+        "Folded fabric collar leaf": [
+          [
+            -0.1203453466296196,
+            0.07822668552398682,
+            0.6587123274803162
+          ],
+          [
+            -0.021959954872727394,
+            0.1514573097229004,
+            0.7428644895553589
+          ]
+        ],
+        "Folded fabric collar leaf.001": [
+          [
+            0.021959960460662842,
+            0.07822668552398682,
+            0.6587123274803162
+          ],
+          [
+            0.1203453466296196,
+            0.1514573097229004,
+            0.7428644895553589
+          ]
+        ],
+        "Forearm with elbow and wrist sections": [
+          [
+            -0.343266099691391,
+            -0.21132463216781616,
+            0.6916135549545288
+          ],
+          [
+            -0.12076759338378906,
+            -0.04858517646789551,
+            0.8310186266899109
+          ]
+        ],
+        "Forearm with elbow and wrist sections.001": [
+          [
+            0.12076759338378906,
+            -0.21132463216781616,
+            0.6916135549545288
+          ],
+          [
+            0.343266099691391,
+            -0.04858517646789551,
+            0.8310186862945557
+          ]
+        ],
+        "HAIR_01_TRIPO_CURL": [
+          [
+            -0.25222498178482056,
+            0.35031843185424805,
+            0.5097225904464722
+          ],
+          [
+            0.25222498178482056,
+            0.7973672151565552,
+            1.0563220977783203
+          ]
+        ],
+        "Inner ear": [
+          [
+            -0.25222501158714294,
+            0.34306585788726807,
+            0.7044569253921509
+          ],
+          [
+            -0.21802499890327454,
+            0.40838074684143066,
+            0.735541045665741
+          ]
+        ],
+        "Inner ear.001": [
+          [
+            0.21802499890327454,
+            0.34306585788726807,
+            0.7044569253921509
+          ],
+          [
+            0.25222501158714294,
+            0.40838074684143066,
+            0.735541045665741
+          ]
+        ],
+        "Natural neck": [
+          [
+            -0.0825624018907547,
+            0.07271063327789307,
+            0.5344175100326538
+          ],
+          [
+            0.0825624018907547,
+            0.2262643575668335,
+            0.6911340355873108
+          ]
+        ],
+        "One sewn breast pocket": [
+          [
+            -0.15646499395370483,
+            -0.09642577171325684,
+            0.7301123738288879
+          ],
+          [
+            -0.05899500101804733,
+            0.01109170913696289,
+            0.7514873743057251
+          ]
+        ],
+        "Overshirt body": [
+          [
+            -0.2382349967956543,
+            -0.38099169731140137,
+            0.4673922657966614
+          ],
+          [
+            0.2382349967956543,
+            0.14192050695419312,
+            0.7474163174629211
+          ]
+        ],
+        "Pocket top seam": [
+          [
+            -0.15013165771961212,
+            -0.008889436721801758,
+            0.7549464702606201
+          ],
+          [
+            -0.06796903908252716,
+            0.0006192922592163086,
+            0.767737627029419
+          ]
+        ],
+        "Quiet closed smile": [
+          [
+            -0.0393335223197937,
+            0.19398343563079834,
+            0.8217291831970215
+          ],
+          [
+            0.0393335223197937,
+            0.2144557237625122,
+            0.8354611396789551
+          ]
+        ],
+        "Relaxed palm": [
+          [
+            -0.18470346927642822,
+            -0.11310011148452759,
+            0.7512929439544678
+          ],
+          [
+            -0.06189459562301636,
+            0.03176295757293701,
+            0.8644888997077942
+          ]
+        ],
+        "Relaxed palm.001": [
+          [
+            0.061894625425338745,
+            -0.11310005187988281,
+            0.7512929439544678
+          ],
+          [
+            0.18470346927642822,
+            0.03176295757293701,
+            0.8644888997077942
+          ]
+        ],
+        "Relaxed shirt sleeve": [
+          [
+            -0.3851480484008789,
+            -0.18556106090545654,
+            0.5179195404052734
+          ],
+          [
+            -0.146158829331398,
+            0.10250216722488403,
+            0.7820495963096619
+          ]
+        ],
+        "Relaxed shirt sleeve.001": [
+          [
+            0.146158829331398,
+            -0.18556106090545654,
+            0.5179196000099182
+          ],
+          [
+            0.3851480782032013,
+            0.10250228643417358,
+            0.7820497155189514
+          ]
+        ],
+        "Resting thumb": [
+          [
+            -0.1827663779258728,
+            -0.06808114051818848,
+            0.735176146030426
+          ],
+          [
+            -0.10977178812026978,
+            0.0105857253074646,
+            0.7916368842124939
+          ]
+        ],
+        "Resting thumb.001": [
+          [
+            0.10977178812026978,
+            -0.06808114051818848,
+            0.7351762056350708
+          ],
+          [
+            0.1827663779258728,
+            0.0105857253074646,
+            0.7916369438171387
+          ]
+        ],
+        "Sculpted head": [
+          [
+            -0.22118595242500305,
+            0.11777311563491821,
+            0.5039488673210144
+          ],
+          [
+            0.22118595242500305,
+            0.6816456317901611,
+            0.9260044097900391
+          ]
+        ],
+        "Shaped shoe": [
+          [
+            -0.21230770647525787,
+            -0.7514588832855225,
+            0.4692859351634979
+          ],
+          [
+            -0.03564231097698212,
+            -0.6463897228240967,
+            0.7488850355148315
+          ]
+        ],
+        "Shaped shoe.001": [
+          [
+            0.035642318427562714,
+            -0.7514588832855225,
+            0.4692859351634979
+          ],
+          [
+            0.21230770647525787,
+            -0.6463897228240967,
+            0.7488850355148315
+          ]
+        ],
+        "Shirt lower hem": [
+          [
+            -0.21188576519489288,
+            -0.3783743381500244,
+            0.4732479453086853
+          ],
+          [
+            0.21188576519489288,
+            -0.3358895480632782,
+            0.7415920495986938
+          ]
+        ],
+        "Shirt placket": [
+          [
+            -0.005130001809448004,
+            -0.338609516620636,
+            0.6928019523620605
+          ],
+          [
+            0.005130001809448004,
+            0.14129698276519775,
+            0.7651057243347168
+          ]
+        ],
+        "Shoe apron stitch": [
+          [
+            -0.1823299527168274,
+            -0.7037322521209717,
+            0.7135027647018433
+          ],
+          [
+            -0.0656200498342514,
+            -0.687590479850769,
+            0.7398315668106079
+          ]
+        ],
+        "Shoe apron stitch.001": [
+          [
+            0.065620057284832,
+            -0.7037322521209717,
+            0.7135027647018433
+          ],
+          [
+            0.1823299527168274,
+            -0.687590479850769,
+            0.7398315668106079
+          ]
+        ],
+        "Sleep closed eyelid": [
+          [
+            -0.12806247174739838,
+            0.3217650055885315,
+            0.8793371319770813
+          ],
+          [
+            -0.0519375316798687,
+            0.34406810998916626,
+            0.891884446144104
+          ]
+        ],
+        "Sleep closed eyelid.001": [
+          [
+            0.051937535405159,
+            0.3217650055885315,
+            0.8793371319770813
+          ],
+          [
+            0.12806247174739838,
+            0.3440679907798767,
+            0.891884446144104
+          ]
+        ],
+        "Small horn button": [
+          [
+            -0.010259999893605709,
+            -0.3024216294288635,
+            0.7476398944854736
+          ],
+          [
+            0.010259999893605709,
+            -0.2795860171318054,
+            0.7561899423599243
+          ]
+        ],
+        "Small horn button.001": [
+          [
+            -0.010259999893605709,
+            -0.18348634243011475,
+            0.7476398944854736
+          ],
+          [
+            0.010259999893605709,
+            -0.1606508493423462,
+            0.7561898827552795
+          ]
+        ],
+        "Small horn button.002": [
+          [
+            -0.010259999893605709,
+            -0.06455111503601074,
+            0.7476398944854736
+          ],
+          [
+            0.010259999893605709,
+            -0.04171562194824219,
+            0.7561898827552795
+          ]
+        ],
+        "Small horn button.003": [
+          [
+            -0.010259999893605709,
+            0.025839686393737793,
+            0.7339598536491394
+          ],
+          [
+            0.010259999893605709,
+            0.04867517948150635,
+            0.7425098419189453
+          ]
+        ],
+        "Small rounded nose": [
+          [
+            -0.03163498640060425,
+            0.23992490768432617,
+            0.8221918940544128
+          ],
+          [
+            0.031634993851184845,
+            0.314078688621521,
+            0.8970894813537598
+          ]
+        ],
+        "Soft eyebrow": [
+          [
+            -0.1343192458152771,
+            0.38213491439819336,
+            0.8789142370223999
+          ],
+          [
+            -0.04433383792638779,
+            0.4119267463684082,
+            0.9249038100242615
+          ]
+        ],
+        "Soft eyebrow.001": [
+          [
+            0.04433383792638779,
+            0.38213491439819336,
+            0.8789142370223999
+          ],
+          [
+            0.1343192458152771,
+            0.4119267463684082,
+            0.9249038100242615
+          ]
+        ],
+        "Tailored trouser leg": [
+          [
+            -0.21280530095100403,
+            -0.7511336803436279,
+            0.5294692516326904
+          ],
+          [
+            -0.001025178818963468,
+            -0.3579777479171753,
+            0.9020485281944275
+          ]
+        ],
+        "Tailored trouser leg.001": [
+          [
+            0.0010251787025481462,
+            -0.7511336803436279,
+            0.5294692516326904
+          ],
+          [
+            0.21280530095100403,
+            -0.3579777479171753,
+            0.9020485281944275
+          ]
+        ],
+        "Trouser hem": [
+          [
+            -0.1974094808101654,
+            -0.7564436197280884,
+            0.5655593872070312
+          ],
+          [
+            -0.050540536642074585,
+            -0.6007495522499084,
+            0.6314852237701416
+          ]
+        ],
+        "Trouser hem.001": [
+          [
+            0.050540536642074585,
+            -0.7564436197280884,
+            0.5655593872070312
+          ],
+          [
+            0.1974094808101654,
+            -0.6007495522499084,
+            0.6314852237701416
+          ]
+        ],
+        "Trouser hip bridge": [
+          [
+            -0.20709577202796936,
+            -0.5272156000137329,
+            0.47491344809532166
+          ],
+          [
+            0.20709577202796936,
+            -0.30634236335754395,
+            0.7091553211212158
+          ]
+        ],
+        "Turned sleeve cuff": [
+          [
+            -0.39432981610298157,
+            -0.20880764722824097,
+            0.6480984687805176
+          ],
+          [
+            -0.2398500293493271,
+            -0.09745803475379944,
+            0.8042880296707153
+          ]
+        ],
+        "Turned sleeve cuff.001": [
+          [
+            0.2398500293493271,
+            -0.20880764722824097,
+            0.6480984687805176
+          ],
+          [
+            0.39432981610298157,
+            -0.09745797514915466,
+            0.8042879700660706
+          ]
+        ]
+      },
+      "structural_inventory": [
+        "Ladder rung 0.24",
+        "Ladder rung 0.54",
+        "Ladder rung 0.84",
+        "Ladder rung 1.14",
+        "Ladder rung 1.44",
+        "Ladder upright -0.43",
+        "Ladder upright -0.82",
+        "Lower end rail -0.925",
+        "Lower end rail 0.925",
+        "Lower platform",
+        "Lower side rail -0.425",
+        "Lower side rail 0.425",
+        "Post -0.43 -0.925",
+        "Post -0.43 0.925",
+        "Post 0.43 -0.925",
+        "Post 0.43 0.925",
+        "Upper access guard",
+        "Upper access upright",
+        "Upper end guard -0.925",
+        "Upper end guard 0.925",
+        "Upper end rail -0.925",
+        "Upper end rail 0.925",
+        "Upper platform",
+        "Upper rear guard",
+        "Upper side rail -0.425",
+        "Upper side rail 0.425"
+      ],
+      "obstacles": [
+        "Ladder rung 0.24",
+        "Ladder rung 0.54",
+        "Ladder rung 0.84",
+        "Ladder rung 1.14",
+        "Ladder rung 1.44",
+        "Ladder upright -0.43",
+        "Ladder upright -0.82",
+        "Lower end rail -0.925",
+        "Lower end rail 0.925",
+        "Lower platform",
+        "Lower side rail -0.425",
+        "Lower side rail 0.425",
+        "Post -0.43 -0.925",
+        "Post -0.43 0.925",
+        "Post 0.43 -0.925",
+        "Post 0.43 0.925",
+        "Upper access guard",
+        "Upper access upright",
+        "Upper duvet",
+        "Upper duvet fold",
+        "Upper end guard -0.925",
+        "Upper end guard 0.925",
+        "Upper end rail -0.925",
+        "Upper end rail 0.925",
+        "Upper mattress",
+        "Upper pillow",
+        "Upper platform",
+        "Upper rear guard",
+        "Upper side rail -0.425",
+        "Upper side rail 0.425"
+      ],
+      "excluded_visible_geometry": [],
+      "body_obstacle_overlap_candidates": [],
+      "support_samples": {
+        "Overshirt body": {
+          "query_count": 3217,
+          "ray_hits": 3217,
+          "contact_count": 149,
+          "min_gap": -2.384185791015625e-06,
+          "contact_bounds": [
+            [
+              -0.07657737284898758,
+              -0.3664671778678894,
+              0.4673922657966614
+            ],
+            [
+              0.07657737284898758,
+              0.0787857174873352,
+              0.4773824214935303
+            ]
+          ]
+        },
+        "Fitted rounded shoe sole": {
+          "query_count": 1346,
+          "ray_hits": 1346,
+          "contact_count": 82,
+          "min_gap": 0.000338137149810791,
+          "contact_bounds": [
+            [
+              -0.15354786813259125,
+              -0.7920956611633301,
+              0.4677327871322632
+            ],
+            [
+              -0.09440214931964874,
+              -0.7558561563491821,
+              0.4772735834121704
+            ]
+          ]
+        },
+        "Fitted rounded shoe sole.001": {
+          "query_count": 1346,
+          "ray_hits": 1346,
+          "contact_count": 82,
+          "min_gap": 0.0003383755683898926,
+          "contact_bounds": [
+            [
+              0.09440215677022934,
+              -0.7920956611633301,
+              0.4677327871322632
+            ],
+            [
+              0.15354788303375244,
+              -0.7558561563491821,
+              0.4772735834121704
+            ]
+          ]
+        },
+        "head_to_pillow": {
+          "query_count": 24212,
+          "ray_hits": 24212,
+          "contact_count": 305,
+          "min_gap": -0.012014567852020264,
+          "contact_bounds": [
+            [
+              -0.11187777668237686,
+              0.6601345539093018,
+              0.5703853368759155
+            ],
+            [
+              0.10047419369220734,
+              0.6946715116500854,
+              0.592300295829773
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "frame": 4,
+      "bounds": [
+        [
+          -0.3959251642227173,
+          -0.7973672151565552,
+          0.4673922657966614
+        ],
+        [
+          0.3959251642227173,
+          0.7973672151565552,
+          1.0563220977783203
+        ]
+      ],
+      "parts": {
+        "Collar stand": [
+          [
+            -0.09298177808523178,
+            0.11565792560577393,
+            0.5185965895652771
+          ],
+          [
+            0.09298178553581238,
+            0.14762932062149048,
+            0.6842733025550842
+          ]
+        ],
+        "Ear": [
+          [
+            -0.25478994846343994,
+            0.31844592094421387,
+            0.6517117619514465
+          ],
+          [
+            -0.17441999912261963,
+            0.4496825933456421,
+            0.7378256916999817
+          ]
+        ],
+        "Ear.001": [
+          [
+            0.17442002892494202,
+            0.31844592094421387,
+            0.6517117619514465
+          ],
+          [
+            0.25478997826576233,
+            0.4496825933456421,
+            0.7378256916999817
+          ]
+        ],
+        "Fitted rounded shoe sole": [
+          [
+            -0.21597722172737122,
+            -0.7973672151565552,
+            0.4677327871322632
+          ],
+          [
+            -0.03197278827428818,
+            -0.7483639717102051,
+            0.7424781322479248
+          ]
+        ],
+        "Fitted rounded shoe sole.001": [
+          [
+            0.031972795724868774,
+            -0.7973672151565552,
+            0.4677327871322632
+          ],
+          [
+            0.21597722172737122,
+            -0.7483639717102051,
+            0.7424781322479248
+          ]
+        ],
+        "Folded fabric collar leaf": [
+          [
+            -0.1203453466296196,
+            0.07822668552398682,
+            0.6587123274803162
+          ],
+          [
+            -0.021959954872727394,
+            0.1514573097229004,
+            0.7428644895553589
+          ]
+        ],
+        "Folded fabric collar leaf.001": [
+          [
+            0.021959960460662842,
+            0.07822668552398682,
+            0.6587123274803162
+          ],
+          [
+            0.1203453466296196,
+            0.1514573097229004,
+            0.7428644895553589
+          ]
+        ],
+        "Forearm with elbow and wrist sections": [
+          [
+            -0.34525066614151,
+            -0.21369168162345886,
+            0.688782274723053
+          ],
+          [
+            -0.12075987458229065,
+            -0.054301679134368896,
+            0.8303415179252625
+          ]
+        ],
+        "Forearm with elbow and wrist sections.001": [
+          [
+            0.12075988203287125,
+            -0.21369168162345886,
+            0.688782274723053
+          ],
+          [
+            0.34525066614151,
+            -0.054301708936691284,
+            0.8303415775299072
+          ]
+        ],
+        "HAIR_01_TRIPO_CURL": [
+          [
+            -0.25222498178482056,
+            0.35031843185424805,
+            0.5097225904464722
+          ],
+          [
+            0.25222498178482056,
+            0.7973672151565552,
+            1.0563220977783203
+          ]
+        ],
+        "Inner ear": [
+          [
+            -0.25222501158714294,
+            0.34306585788726807,
+            0.7044569253921509
+          ],
+          [
+            -0.21802499890327454,
+            0.40838074684143066,
+            0.735541045665741
+          ]
+        ],
+        "Inner ear.001": [
+          [
+            0.21802499890327454,
+            0.34306585788726807,
+            0.7044569253921509
+          ],
+          [
+            0.25222501158714294,
+            0.40838074684143066,
+            0.735541045665741
+          ]
+        ],
+        "Natural neck": [
+          [
+            -0.0825624018907547,
+            0.07271063327789307,
+            0.5344175100326538
+          ],
+          [
+            0.0825624018907547,
+            0.2262643575668335,
+            0.6911340355873108
+          ]
+        ],
+        "One sewn breast pocket": [
+          [
+            -0.15646499395370483,
+            -0.09642577171325684,
+            0.7301123738288879
+          ],
+          [
+            -0.05899500101804733,
+            0.01109170913696289,
+            0.7514873743057251
+          ]
+        ],
+        "Overshirt body": [
+          [
+            -0.2382349967956543,
+            -0.38099169731140137,
+            0.4673922657966614
+          ],
+          [
+            0.2382349967956543,
+            0.14192050695419312,
+            0.7474163174629211
+          ]
+        ],
+        "Pocket top seam": [
+          [
+            -0.15013165771961212,
+            -0.008889436721801758,
+            0.7549464702606201
+          ],
+          [
+            -0.06796903908252716,
+            0.0006192922592163086,
+            0.767737627029419
+          ]
+        ],
+        "Quiet closed smile": [
+          [
+            -0.0393335223197937,
+            0.19398343563079834,
+            0.8217291831970215
+          ],
+          [
+            0.0393335223197937,
+            0.2144557237625122,
+            0.8354611396789551
+          ]
+        ],
+        "Relaxed palm": [
+          [
+            -0.184703528881073,
+            -0.11910021305084229,
+            0.7512927055358887
+          ],
+          [
+            -0.06189465522766113,
+            0.02576279640197754,
+            0.8644887208938599
+          ]
+        ],
+        "Relaxed palm.001": [
+          [
+            0.06189465522766113,
+            -0.11910015344619751,
+            0.7512927055358887
+          ],
+          [
+            0.184703528881073,
+            0.02576279640197754,
+            0.8644887208938599
+          ]
+        ],
+        "Relaxed shirt sleeve": [
+          [
+            -0.3864099085330963,
+            -0.1859295666217804,
+            0.5178318023681641
+          ],
+          [
+            -0.14611227810382843,
+            0.10247385501861572,
+            0.779827892780304
+          ]
+        ],
+        "Relaxed shirt sleeve.001": [
+          [
+            0.14611227810382843,
+            -0.18592959642410278,
+            0.5178318023681641
+          ],
+          [
+            0.3864098787307739,
+            0.10247397422790527,
+            0.779827892780304
+          ]
+        ],
+        "Resting thumb": [
+          [
+            -0.18276649713516235,
+            -0.07408124208450317,
+            0.7351759076118469
+          ],
+          [
+            -0.10977181792259216,
+            0.004585564136505127,
+            0.7916367053985596
+          ]
+        ],
+        "Resting thumb.001": [
+          [
+            0.10977184772491455,
+            -0.07408124208450317,
+            0.7351759672164917
+          ],
+          [
+            0.18276649713516235,
+            0.0045855045318603516,
+            0.7916367053985596
+          ]
+        ],
+        "Sculpted head": [
+          [
+            -0.22118595242500305,
+            0.11777311563491821,
+            0.5039488673210144
+          ],
+          [
+            0.22118595242500305,
+            0.6816456317901611,
+            0.9260044097900391
+          ]
+        ],
+        "Shaped shoe": [
+          [
+            -0.21230770647525787,
+            -0.7514588832855225,
+            0.4692859351634979
+          ],
+          [
+            -0.03564231097698212,
+            -0.6463897228240967,
+            0.7488850355148315
+          ]
+        ],
+        "Shaped shoe.001": [
+          [
+            0.035642318427562714,
+            -0.7514588832855225,
+            0.4692859351634979
+          ],
+          [
+            0.21230770647525787,
+            -0.6463897228240967,
+            0.7488850355148315
+          ]
+        ],
+        "Shirt lower hem": [
+          [
+            -0.21188576519489288,
+            -0.3783743381500244,
+            0.4732479453086853
+          ],
+          [
+            0.21188576519489288,
+            -0.3358895480632782,
+            0.7415920495986938
+          ]
+        ],
+        "Shirt placket": [
+          [
+            -0.005130001809448004,
+            -0.338609516620636,
+            0.6928019523620605
+          ],
+          [
+            0.005130001809448004,
+            0.14129698276519775,
+            0.7651057243347168
+          ]
+        ],
+        "Shoe apron stitch": [
+          [
+            -0.1823299527168274,
+            -0.7037322521209717,
+            0.7135027647018433
+          ],
+          [
+            -0.0656200498342514,
+            -0.687590479850769,
+            0.7398315668106079
+          ]
+        ],
+        "Shoe apron stitch.001": [
+          [
+            0.065620057284832,
+            -0.7037322521209717,
+            0.7135027647018433
+          ],
+          [
+            0.1823299527168274,
+            -0.687590479850769,
+            0.7398315668106079
+          ]
+        ],
+        "Sleep closed eyelid": [
+          [
+            -0.12806247174739838,
+            0.3217650055885315,
+            0.8793371319770813
+          ],
+          [
+            -0.0519375316798687,
+            0.34406810998916626,
+            0.891884446144104
+          ]
+        ],
+        "Sleep closed eyelid.001": [
+          [
+            0.051937535405159,
+            0.3217650055885315,
+            0.8793371319770813
+          ],
+          [
+            0.12806247174739838,
+            0.3440679907798767,
+            0.891884446144104
+          ]
+        ],
+        "Small horn button": [
+          [
+            -0.010259999893605709,
+            -0.3024216294288635,
+            0.7476398944854736
+          ],
+          [
+            0.010259999893605709,
+            -0.2795860171318054,
+            0.7561899423599243
+          ]
+        ],
+        "Small horn button.001": [
+          [
+            -0.010259999893605709,
+            -0.18348634243011475,
+            0.7476398944854736
+          ],
+          [
+            0.010259999893605709,
+            -0.1606508493423462,
+            0.7561898827552795
+          ]
+        ],
+        "Small horn button.002": [
+          [
+            -0.010259999893605709,
+            -0.06455111503601074,
+            0.7476398944854736
+          ],
+          [
+            0.010259999893605709,
+            -0.04171562194824219,
+            0.7561898827552795
+          ]
+        ],
+        "Small horn button.003": [
+          [
+            -0.010259999893605709,
+            0.025839686393737793,
+            0.7339598536491394
+          ],
+          [
+            0.010259999893605709,
+            0.04867517948150635,
+            0.7425098419189453
+          ]
+        ],
+        "Small rounded nose": [
+          [
+            -0.03163498640060425,
+            0.23992490768432617,
+            0.8221918940544128
+          ],
+          [
+            0.031634993851184845,
+            0.314078688621521,
+            0.8970894813537598
+          ]
+        ],
+        "Soft eyebrow": [
+          [
+            -0.1343192458152771,
+            0.38213491439819336,
+            0.8789142370223999
+          ],
+          [
+            -0.04433383792638779,
+            0.4119267463684082,
+            0.9249038100242615
+          ]
+        ],
+        "Soft eyebrow.001": [
+          [
+            0.04433383792638779,
+            0.38213491439819336,
+            0.8789142370223999
+          ],
+          [
+            0.1343192458152771,
+            0.4119267463684082,
+            0.9249038100242615
+          ]
+        ],
+        "Tailored trouser leg": [
+          [
+            -0.21280530095100403,
+            -0.7511336803436279,
+            0.5294692516326904
+          ],
+          [
+            -0.001025178818963468,
+            -0.3579777479171753,
+            0.9020485281944275
+          ]
+        ],
+        "Tailored trouser leg.001": [
+          [
+            0.0010251787025481462,
+            -0.7511336803436279,
+            0.5294692516326904
+          ],
+          [
+            0.21280530095100403,
+            -0.3579777479171753,
+            0.9020485281944275
+          ]
+        ],
+        "Trouser hem": [
+          [
+            -0.1974094808101654,
+            -0.7564436197280884,
+            0.5655593872070312
+          ],
+          [
+            -0.050540536642074585,
+            -0.6007495522499084,
+            0.6314852237701416
+          ]
+        ],
+        "Trouser hem.001": [
+          [
+            0.050540536642074585,
+            -0.7564436197280884,
+            0.5655593872070312
+          ],
+          [
+            0.1974094808101654,
+            -0.6007495522499084,
+            0.6314852237701416
+          ]
+        ],
+        "Trouser hip bridge": [
+          [
+            -0.20709577202796936,
+            -0.5272156000137329,
+            0.47491344809532166
+          ],
+          [
+            0.20709577202796936,
+            -0.30634236335754395,
+            0.7091553211212158
+          ]
+        ],
+        "Turned sleeve cuff": [
+          [
+            -0.3959251642227173,
+            -0.20925354957580566,
+            0.6453363299369812
+          ],
+          [
+            -0.24135397374629974,
+            -0.09884458780288696,
+            0.8017870187759399
+          ]
+        ],
+        "Turned sleeve cuff.001": [
+          [
+            0.24135394394397736,
+            -0.20925351977348328,
+            0.645336389541626
+          ],
+          [
+            0.3959251642227173,
+            -0.09884458780288696,
+            0.8017870187759399
+          ]
+        ]
+      },
+      "structural_inventory": [
+        "Ladder rung 0.24",
+        "Ladder rung 0.54",
+        "Ladder rung 0.84",
+        "Ladder rung 1.14",
+        "Ladder rung 1.44",
+        "Ladder upright -0.43",
+        "Ladder upright -0.82",
+        "Lower end rail -0.925",
+        "Lower end rail 0.925",
+        "Lower platform",
+        "Lower side rail -0.425",
+        "Lower side rail 0.425",
+        "Post -0.43 -0.925",
+        "Post -0.43 0.925",
+        "Post 0.43 -0.925",
+        "Post 0.43 0.925",
+        "Upper access guard",
+        "Upper access upright",
+        "Upper end guard -0.925",
+        "Upper end guard 0.925",
+        "Upper end rail -0.925",
+        "Upper end rail 0.925",
+        "Upper platform",
+        "Upper rear guard",
+        "Upper side rail -0.425",
+        "Upper side rail 0.425"
+      ],
+      "obstacles": [
+        "Ladder rung 0.24",
+        "Ladder rung 0.54",
+        "Ladder rung 0.84",
+        "Ladder rung 1.14",
+        "Ladder rung 1.44",
+        "Ladder upright -0.43",
+        "Ladder upright -0.82",
+        "Lower end rail -0.925",
+        "Lower end rail 0.925",
+        "Lower platform",
+        "Lower side rail -0.425",
+        "Lower side rail 0.425",
+        "Post -0.43 -0.925",
+        "Post -0.43 0.925",
+        "Post 0.43 -0.925",
+        "Post 0.43 0.925",
+        "Upper access guard",
+        "Upper access upright",
+        "Upper duvet",
+        "Upper duvet fold",
+        "Upper end guard -0.925",
+        "Upper end guard 0.925",
+        "Upper end rail -0.925",
+        "Upper end rail 0.925",
+        "Upper mattress",
+        "Upper pillow",
+        "Upper platform",
+        "Upper rear guard",
+        "Upper side rail -0.425",
+        "Upper side rail 0.425"
+      ],
+      "excluded_visible_geometry": [],
+      "body_obstacle_overlap_candidates": [],
+      "support_samples": {
+        "Overshirt body": {
+          "query_count": 3217,
+          "ray_hits": 3217,
+          "contact_count": 149,
+          "min_gap": -2.384185791015625e-06,
+          "contact_bounds": [
+            [
+              -0.07657737284898758,
+              -0.3664671778678894,
+              0.4673922657966614
+            ],
+            [
+              0.07657737284898758,
+              0.0787857174873352,
+              0.4773824214935303
+            ]
+          ]
+        },
+        "Fitted rounded shoe sole": {
+          "query_count": 1346,
+          "ray_hits": 1346,
+          "contact_count": 82,
+          "min_gap": 0.000338137149810791,
+          "contact_bounds": [
+            [
+              -0.15354786813259125,
+              -0.7920956611633301,
+              0.4677327871322632
+            ],
+            [
+              -0.09440214931964874,
+              -0.7558561563491821,
+              0.4772735834121704
+            ]
+          ]
+        },
+        "Fitted rounded shoe sole.001": {
+          "query_count": 1346,
+          "ray_hits": 1346,
+          "contact_count": 82,
+          "min_gap": 0.0003383755683898926,
+          "contact_bounds": [
+            [
+              0.09440215677022934,
+              -0.7920956611633301,
+              0.4677327871322632
+            ],
+            [
+              0.15354788303375244,
+              -0.7558561563491821,
+              0.4772735834121704
+            ]
+          ]
+        },
+        "head_to_pillow": {
+          "query_count": 24212,
+          "ray_hits": 24212,
+          "contact_count": 305,
+          "min_gap": -0.012014567852020264,
+          "contact_bounds": [
+            [
+              -0.11187777668237686,
+              0.6601345539093018,
+              0.5703853368759155
+            ],
+            [
+              0.10047419369220734,
+              0.6946715116500854,
+              0.592300295829773
+            ]
+          ]
+        }
+      }
+    }
+  ]
+}

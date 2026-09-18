@@ -83,5 +83,15 @@ Verification commands passed with exit code 0:
 | `cargo fmt --all -- --check` | PASS |
 | `python check-doc-ids.py` | PASS |
 
-Publication is separate from local acceptance and must be recorded after
-merge and live verification.
+## Publication
+
+PR 78 merged as `dd97e4769be682765c62235f76125a31301a6af0`.
+Main CI run `35303008871` passed. Pages run `35303156290` passed, including
+the actual `actions/deploy-pages@v4` step. The public game then served
+`index-v-h599PH.js` and the atlas hash above; fetching the public atlas and
+hashing its bytes produced that same SHA-256.
+
+`bathtub-live.png` records the public room at 1920x993, paused at Day 2
+15:37, with Casey standing beside the tub. This confirms deployed art and
+room fit, not a new bathing pose. The pre-existing invalid-save fixture was
+left untouched; this check does not establish save/load acceptance.

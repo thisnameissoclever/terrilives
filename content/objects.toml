@@ -79,8 +79,7 @@ roles = ["cold_storage"]
 [[object]]
 id = "bed"
 name = "Sleepeazy Deluxe"
-sprite = "bedBunk"
-foreground_sprite = "bedBunkForeground"
+sprite = "offlineBunk"
 
   # The FIRST object in shipped content that was not 1x1 - there are six now,
   # listed in `the_shipped_lot_satisfies_every_footprint_rule` - and the
