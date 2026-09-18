@@ -3,7 +3,7 @@
 Reviewed 2026-09-17 under delegated primary and adversarial acceptance.
 Nightstand candidate 02 and dresser candidate 01 passed source and played-room
 review. Both received subjective source scores of 91/100. No owner action is
-required. This record does not claim publication.
+required. Publication was subsequently verified below.
 
 Independent final integration and room-fit score: 92/100, with no blocking
 visual finding. Broad plain side/back panels remain the minor style limitation.
@@ -79,3 +79,17 @@ Commands passed with exit code 0:
 
 Atlas SHA-256: `5b1e65f7794939690d638d3bd73390a2f121a99414f55ec41c090b8dcecba603`.
 Main CI and Pages must pass before any live acceptance claim.
+
+## Published verification
+
+PR #79 merged as `e2e362b8b72d7c295c1285e4f4a23123499f0fe6`.
+Main CI 35304134922 and Pages 35304287192 passed. The actual deploy-pages
+step reported success for that exact revision.
+
+On 2026-09-17, the public game loaded `index-Qq36BJZp.js` and
+`terri_wasm_bg-DVKgxOMS.wasm`. Its atlas returned HTTP 200 and the downloaded
+bytes matched the SHA-256 above. `storage-live.png` shows the accepted dresser
+and nightstand in the bedroom, paused at Day 2, 02:59 using normal controls
+and wheel zoom. The page reported that its saved game loaded; this observation
+does not replace the separate save-compatibility tests. No console ERROR
+entries occurred. The dedicated tab was closed after review.
