@@ -159,3 +159,26 @@ Five bounds-filter survivors were independently reviewed as redundant with the
 shared grid interaction predicate, which rejects out-of-grid contacts before
 adjacency arithmetic. The duplicate filter was removed, with no new baseline
 allowance. Final exact-head verification follows this correction batch.
+
+Shard 5 exposed 21 further missing assertions in saved-wall validation. Five
+new architecture tests distinguish internal furniture edges from the perimeter,
+preserve repeated path steps and not-yet-active targets, reject invalid legacy
+wall cells, and constrain each contact origin and footprint extent independently.
+The exact 20 reported architecture mutations were rerun: all 20 caught, with
+zero misses, unviable mutations or timeouts. Production architecture code is
+unchanged. Restored tests passed 16/16.
+
+The remaining survivor weakened the frozen wall-migration destination's height
+guard. A separate helper test holds the walls and other dimension valid while
+varying one dimension at a time. Its exact OR-to-AND mutation failed at `16x0`;
+restoring the file restored SHA256
+`fd5289c7ad74283f1cd9d538cde3d432bdf646a0a2d90271547aedb7e3a17e7e`.
+Independent review confirmed the fixture isolation and narrow helper contract.
+All 432 simulation tests then passed, as did formatting and diff checks. These
+tests add no baseline exceptions and make no production behavior changes.
+
+The combined correction batch then passed a fresh
+`cargo test --workspace -j 1 --quiet`: 821 tests (86 core, 218 data, one data
+integration, 432 simulation and 84 WASM), with zero failures. Documentation
+IDs, formatting and the diff check passed. Remote exact-head checks remain
+pending at publication of this batch.

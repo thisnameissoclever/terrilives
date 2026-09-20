@@ -6108,6 +6108,25 @@ test uses no allocation. Changing only the first OR to AND returns an invalid
 index and fails its assertion. Restoring the original source passes all 84 core
 tests. No production behavior or mutation baseline changes are needed.
 
+## [L-saved-wall-independent-guards] Isolate saved-layout validation conditions
+
+**What happened.** PR84's full mutation sweep found 21 unconstrained conditions
+in saved-wall validation and the frozen migration destination check.
+
+**Root cause.** End-to-end invalid saves could fail at a later guard and hide a
+weakened earlier condition. Contact examples did not distinguish an object flush
+with a boundary from one extending past it, or internal edges from its perimeter.
+
+**Prevention rule.** Pair each refusal with a valid control. Test independent
+axes, exact boundaries, repeated path tiles and inactive targets. Use narrow
+helper tests when later fingerprint or geometry checks mask the helper contract;
+do not present those scalar cases as reachable ordinary-household defects.
+
+**How to verify.** The 20 reported architecture mutations all fail new assertions,
+with zero survivors or timeouts. The wall-migration OR-to-AND mutation separately
+fails the `16x0` destination assertion. Restored production files pass all 432
+simulation tests. Production validation and the mutation baseline are unchanged.
+
 ## [L-layout-migration-passive-conversation-partners] Preserve both sides of saved activities
 
 **What happened.** The first bathtub-rotation migration rejected an active
