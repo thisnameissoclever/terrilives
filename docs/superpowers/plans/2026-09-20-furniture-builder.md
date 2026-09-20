@@ -27,7 +27,7 @@ controls and WebGPU instancing.
    slice. No new dependencies, generic engine replacement or paid assets.
 4. A refused placement changes no world state. Preview is observational and
    commit revalidates it. Never clear blocked tiles under an object; construct
-   candidate occupancy from authored walls and every other live object.
+   candidate occupancy from the saved architecture and every other live object.
 5. Preserve entity identity, interaction rows, queues and save compatibility.
    Refuse occupied or targeted furniture and placements that block Sims,
    remaining paths, usable interaction approaches, door or door landing.
@@ -60,10 +60,20 @@ metadata. No command or builder UI work yet.
    all construction, rendering, interaction geometry and validation consumers.
    Search every footprint and socket caller. Unsupported directions fail
    compilation or command validation, never fall back silently.
-4. Append saved per-object facing data without reordering existing Save V1
-   fields. Validate duplicate, non-object, unsupported and invalid codes before
-   replacement. Old saves without the suffix retain their authored direction.
-   Preserve the frozen pre-bathtub migration and exact pre-door bridge.
+4. Main introduced Save V2 while this unit was underway. Keep both historical
+   wire records frozen and introduce Save V3 containing `world: SaveSnapshotV1`,
+   `layout: SavedLayout` and required `object_facings: Vec<(u32, u8)>`.
+   Remove the initial implementation's facing suffix from embedded V1. Validate
+   duplicate, non-object, unsupported and invalid codes before replacement.
+   Restore facing before validating saved architecture, routes and contacts;
+   all geometry checks must use the restored oriented footprint. Old V1/V2
+   saves retain authored directions and existing exact migration bridges.
+   Decode V2/V3 strictly; preserve V1's historical sleep-pressure repair only
+   for V1. Update the browser writer guard for V3, preserving immutable V1/V2
+   recovery copies under the existing lock before their first overwrite.
+   Refuse unreadable or future headers before writing. Test that the deployed
+   V2 worker refuses an existing V3 slot, preventing a cached tab from silently
+   discarding rotations. Re-review this changed persistence implementation.
 5. Add causal tests for all directions, non-square dimensions, socket axes,
    foreground matching, world hash sensitivity and save replay. Use the real
    pre-bathtub fixture plus current public saves as compatibility evidence.
@@ -101,7 +111,7 @@ definition's base direction. The placement helper updates position, facing,
 sprite, foreground and action sockets together; callers validate first.
 
 - [ ] Run a red test that asserts a restored, explicitly turned object keeps
-  its direction and rotated socket, then implement the save suffix.
+  its direction and rotated socket, then implement the V3 facing record.
 - [ ] Run `cargo test -p terri-core`, `cargo test -p terri-data`, and targeted
   simulation facing/save tests. Expected green: exact authored defaults,
   rotation changes hash, roundtrip preserves direction, invalid suffix refuses.
@@ -118,8 +128,8 @@ WASM exports and `web/src/bridge.ts` with boundary tests.
    remaining path, inaccessible interaction, blocked door and blocked landing.
 2. Implement one planner taking object ID, integer origin and facing. Return
    either a complete placement plan or a stable refusal enum. Build candidate
-   occupancy from fixed walls and other objects; check every live furniture
-   approach and Sim route against the candidate grid. Bound all traversals.
+   occupancy from saved fixed architecture and other objects; check every live
+   furniture approach and Sim route against the candidate grid. Bound traversals.
    Match the existing F5 lot rule: every object has at least one clear cardinal
    approach tile, and every clear approach tile belongs to the common reachable
    region. Authored action sockets are display projections, not route goals;
@@ -127,14 +137,17 @@ WASM exports and `web/src/bridge.ts` with boundary tests.
    SmartObject blocks, including scenery. Keep out-of-bounds boundaries implicit
    rather than inventing perimeter wall cells. Reconstruct existing origins
    with the same nonnegative truncation as `new_from_lot`, not route rounding.
-   Before deriving a candidate, reconstruct the current grid from the
-   fingerprinted content's wall coordinates and all live object rectangles.
-   Require equal dimensions and exact equality with the live bitmap; also
-   reject overlapping current rectangles or current objects overlapping walls.
-   If provenance does not match, return `UnsupportedLayout` without writes.
-   Do not invent wall ownership by subtracting object cells from the bitmap.
-   This admits valid moved layouts on the same walls and refuses arbitrary
-   headless/custom grids whose wall ownership Save V1 cannot represent.
+   Before deriving a candidate, reconstruct the current grid from `SavedLayout`
+   and all live oriented object rectangles. `EdgeWallsV1` owns boundary edges;
+   `LegacyCells` owns its explicit wall cells. Reject `LegacyAuthoredV1`, whose
+   mixed bitmap cannot establish wall ownership. Require equal dimensions and
+   exact equality of both bitmap and blocked edges; reject overlapping current
+   rectangles or furniture crossing solid edges. If provenance does not match,
+   return `UnsupportedLayout` without writes. Never derive saved architecture
+   from today's content or subtract furniture cells to guess wall ownership.
+   Connectivity, remaining route segments and usable approach tiles must use
+   `can_step`, `segment_can_cross` and `can_interact_with_rect`, respectively.
+   A nearby tile across a solid edge is not a usable approach.
 3. Preview returns status plus the candidate footprint and resolved render
    layers without mutating the world or consuming randomness. Commit reruns
    the planner and applies grid, position, facing, sockets and presentation
@@ -215,8 +228,15 @@ state for exit. On narrow screens, keep mode and Exit visible independently
 of the collapsible Menu; place the compact object controls in a safe-area-aware
 bottom dock and preserve camera panning above it. Review both layouts at 390px.
 
+Place the single Build toggle in `#household-summary`, not the bottom action
+group. This summary already remains visible when the compact Menu is closed.
+Use a full-width compact row below Time/Funds/Menu. The same toggle becomes
+Exit build while active; do not create a second Exit control in the dock or
+add this toggle to Menu's `aria-controls`. Keep the mobile dock outside `#hud`
+so the closed-menu rule cannot hide it.
+
 ```text
-Build mode                 Exit
+Build mode
 Reading chair
 Facing: South-west         Rotate
 Ready to place / specific refusal
@@ -247,6 +267,12 @@ the footprint identify the candidate without widening every instance.
 4. Provide keyboard selection and tile adjustment, R to rotate, Enter to
    confirm and Escape to cancel/exit, without stealing text-input shortcuts.
    Controls have visible focus, accessible names and touch-sized targets.
+   Entering from the Build button focuses the canvas before collapsing the
+   person panels, since world shortcuts currently belong to the canvas.
+   Exit restores focus to the same toggle. If a document-level handler is
+   necessary, ignore dialogs, the object menu, editable elements and native
+   button activation: one Escape must not close Help and exit Build, and
+   Enter on Confirm must not also trigger a second placement command.
 5. On commit, read actual command result, refresh floor/occupancy/lighting and
    selection caches using lot revision, and retain useful selection. Requery
    after load or any intervening edit. Never display speculative success.
