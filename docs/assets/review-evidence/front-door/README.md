@@ -97,13 +97,36 @@ numbers above are evidence for their earlier build, not a timing requirement.
    the live world. Independent statement-deletion tests broke and then restored
    portal activation propagation and off-door return-segment validation.
 
-The inherited bathtub mutation survivors are tracked separately in
-`mutation-baseline.md`; their targeted rerun and GitHub gates remain release
-checks, not claims established by these screenshots.
+The inherited bathtub rerun completed all 36 selected mutations: 28 caught,
+eight reviewed equivalents missed, zero unviable and zero timeouts. A separate
+comparison found no misses outside the committed baseline. Its isolated source
+snapshot predates `04fd0c8`'s destination guard, which does not change the known-D
+migration behavior exercised here. The separate eight-mutant portal-return
+validation sweep at `04fd0c8` caught all eight, with no survivors, unviable
+mutants or timeouts. Exact-head GitHub gates remain release checks, not claims
+established by these screenshots. Equivalence arguments are recorded in
+`mutation-baseline.md`.
 
 Main's follow-up `c0eca30` was then merged without runtime changes. Its four
 exercise-clearance tooling tests passed, as did documentation IDs and the diff
 check. The latest main ref was fetched again before preparing publication.
+
+After the reviewed migration-destination guard landed at `04fd0c8`, a fresh
+`cargo test --workspace -j 1 --quiet` passed all 811 tests: 83 core, 217 data,
+one data integration, 426 simulation and 84 WASM. Formatting and diff checks
+also passed. The two additional simulation tests constrain migration ordering
+and exact destination compatibility; they do not change the current household.
+
+The final production bundle (`terri_wasm_bg-B10R6jV9.wasm`,
+`index-iOYiGNd3.js`) passed Clippy, release WASM generation, TypeScript checking,
+all 782 browser tests and the Vite build. It was then opened and inspected in
+the same disposable local origin. Its existing saved household loaded normally.
+The next return opened at 2338; at 2341 Tim visibly crossed and funds were 240.
+UI Save, advance to the closed door at 2356, and confirmed UI Load restored
+2341, the open crossing and the same funds. `final-return-restored.png` records
+the restored game. Completing the crossing again left funds at 240. Browser
+warning/error logs were empty. The test tab and preview server were closed;
+the public household was not touched.
 
 Public deployment verification is recorded separately after merge. These
 local screenshots do not establish that GitHub Pages has updated.
