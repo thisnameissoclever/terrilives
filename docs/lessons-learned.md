@@ -6069,6 +6069,26 @@ becomes `low * 1.0`. The new anchor test fails when OR becomes AND. Each exact
 mutation was tested independently; restoring the unchanged production file
 passes all 86 core tests. Neither change adds a mutation-baseline allowance.
 
+## [L-wall-approach-completeness] Validate every reachable side of a footprint
+
+**What happened.** The full wall mutation sweep could inflate an object's
+interaction rectangle and silently omit its south-side contact.
+
+**Root cause.** Existing connectivity fixtures did not isolate an unreachable
+south approach while leaving the other sides reachable. Five other survivors
+only weakened a redundant bounds filter; the shared interaction predicate
+still rejected those coordinates before adjacency arithmetic.
+
+**Prevention rule.** Test all usable contacts, not just whether an object has
+one reachable side. Keep bounds ownership in the shared grid predicate rather
+than maintaining duplicate filters with indistinguishable rejection paths.
+
+**How to verify.** The south-contact fixture rejects `(2,3)` behind a divider
+and accepts the same lot with a second opening. The exact depth subtraction
+mutation fails that assertion. The redundant bounds filter was removed after
+independent review of negative coordinates, upper boundaries and signed casts;
+the blocked-cell and interaction checks remain. No baseline allowance was added.
+
 ## [L-edge-slot-signed-bounds] Check signed coordinates before unsigned indexing
 
 **What happened.** PR84's mutation sweep found that changing the first OR in

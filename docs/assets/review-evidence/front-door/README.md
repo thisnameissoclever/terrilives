@@ -149,3 +149,13 @@ reverse directions, both wall axes and independently invalid anchor conditions.
 Each exact mutation failed its respective test. The same production SHA256 was
 restored, and all 86 core tests passed. These are additional test corrections;
 the prior visual bundle's runtime behavior is unchanged.
+
+Shard 3 found a further missing south-side connectivity assertion in the lot
+compiler. Its new fixture rejects an isolated south approach while all other
+sides remain reachable; opening a second crossing is the positive control.
+The exact depth subtraction-to-addition mutation fails the new test. All 218
+data tests and the data integration test passed after restoring the operator.
+Five bounds-filter survivors were independently reviewed as redundant with the
+shared grid interaction predicate, which rejects out-of-grid contacts before
+adjacency arithmetic. The duplicate filter was removed, with no new baseline
+allowance. Final exact-head verification follows this correction batch.
