@@ -1,5 +1,45 @@
 # Lessons Learned
 
+## [L-browser-artifact-paths] Use explicit temporary paths for review screenshots
+
+**What happened.** A browser screenshot write to the task worktree was denied.
+A later relative filename resolved into the canonical checkout instead.
+Only that newly created screenshot was removed after an identical copy was
+retained in the permitted temporary directory and task evidence folder.
+
+**Root cause.** The browser tool's output root differs from the shell worktree.
+A relative artifact filename does not reliably identify either location.
+
+**Prevention rule.** Use an absolute path under the browser tool's permitted
+temporary output directory. Copy the returned artifact to the task worktree
+using its full path. The owner explicitly authorized this workflow; routine
+artifact copies do not require another approval. Do not modify unrelated files.
+
+**How to verify.** Check the returned file path, compare source/destination
+hashes, and confirm no screenshot was left in a different checkout.
+
+## [L-visible-border-is-not-placeable-floor] Trace wall gaps to the grid before moving furniture
+
+**What happened.** Kitchen furniture looked one tile away from the exterior
+wall, and moving the run toward it was proposed before checking placement.
+The kitchen was already on row zero. The apparent extra room was an
+unplayable decorative floor border with the wall at Y=-1.5.
+
+**Root cause.** Visual floor coverage was mistaken for valid placement space.
+Moving saved furniture also has a separate hazard: Save V1 stores positions
+and collision state, and reattaches authored facing by exact id and position.
+
+**Prevention rule.** Compare floor rendering, wall coordinates and legal grid
+bounds before choosing a placement fix. With owner approval, move the floor
+edge and exterior walls together. Do not move sprites into blocked space or
+change rectangular footprints without an explicit save-migration design.
+
+**How to verify.** Floor count equals width times height; wall ends meet the
+slab at four zoom levels; camera framing and pan bounds use that same extent.
+Inspect kitchen contact, divider joins and lighting in the played build.
+Existing save positions, grid dimensions and interaction footprints stay
+unchanged for this renderer correction.
+
 ## [L-retired-asset-review-command] Retire review tools with their rendering contract
 
 **What happened.** The bunk stopped using a separate foreground sprite, but

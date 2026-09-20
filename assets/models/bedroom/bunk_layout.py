@@ -29,19 +29,19 @@ def parts():
                 'sage', f'{label} mattress', .04)
             add(f'{label} duvet fold', (0, .35, .549+offset), (.76, .12, .04),
                 'sage_light', f'{label} duvet', .012)
-    add('Upper rear guard', (-.43, 0, 1.79), (.07, 1.86, .10),
-        support='Post -0.43 -0.925')
-    add('Upper access guard', (.43, .25, 1.79), (.07, 1.36, .10),
-        support='Post 0.43 0.925')
-    add('Upper access upright', (.43, -.40, 1.57), (.07, .07, .48),
-        support='Upper side rail 0.425')
+    add('Upper rear guard', (.43, 0, 1.79), (.07, 1.86, .10),
+        support='Post 0.43 -0.925')
+    add('Upper access guard', (-.43, .25, 1.79), (.07, 1.36, .10),
+        support='Post -0.43 0.925')
+    add('Upper access upright', (-.43, -.40, 1.57), (.07, .07, .48),
+        support='Upper side rail -0.425')
     for y in (-.925, .925):
         add(f'Upper end guard {y}', (0, y, 1.79), (.86, .08, .10),
             support=f'Post -0.43 {y}')
     for y in (-.82, -.43):
-        add(f'Ladder upright {y}', (.46, y, .77), (.045, .06, 1.54),
-            support='Upper side rail 0.425')
+        add(f'Ladder upright {y}', (-.46, y, .77), (.045, .06, 1.54),
+            support='Upper side rail -0.425')
     for z in (.24, .54, .84, 1.14, 1.44):
-        add(f'Ladder rung {z}', (.46, -.625, z), (.045, .40, .06),
+        add(f'Ladder rung {z}', (-.46, -.625, z), (.045, .40, .06),
             support='Ladder upright -0.82')
     return rows

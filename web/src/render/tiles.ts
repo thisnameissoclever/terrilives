@@ -12,8 +12,8 @@
  * in `frame.ts` runs every frame under [D11]'s no-allocation rule, and
  * [V11] measured what a single unexamined allocation on that path costs:
  * 57.76 MB over 2,394 frames, from a two-element array nobody had
- * checked. The shipped block is 221 floor tiles, 30 interior wall panels,
- * 30 boundary panels, and 5 doorway panels. Local-light values are baked into
+ * checked. The shipped block is 192 floor tiles, 28 interior wall panels,
+ * 28 boundary panels, and 5 doorway panels. Local-light values are baked into
  * those same rows; rebuilding or uploading them per frame would be that
  * mistake an order of magnitude larger.
  *
@@ -92,20 +92,18 @@ function connectedWallSprite(mask: number): number {
 }
 
 /**
- * The sprites drawn outside the lot, including the floor ring.
+ * The sprites whose anchors sit outside the playable tile centers.
  *
  * `cameraOrigin` reserves headroom above that row for the tallest of
  * THESE, and reserves headroom for the whole atlas above the lot's first
- * tile 2.5 half-rows lower - because nothing but a boundary piece can
+ * tile 0.5 half-rows lower - because nothing but a boundary piece can
  * stand at a negative coordinate. That split is only sound while this
  * list is complete, so it lives here, beside the loop below that places
  * them, and `tiles.test.ts` checks the two agree.
  */
 export const BOUNDARY_SPRITE_NAMES = [
-  'floor',
   'wallNS',
   'wallEW',
-  'wallCornerStartNS',
   'wallCornerStartEW',
 ] as const;
 
@@ -150,16 +148,15 @@ export function buildStaticInstances(
   // that listing 80 redundant tiles would be worse. Drawing it is what
   // turns the lot from a slab floating in the dark into a room.
   //
-  // Only the two far sides. Include the outer floor ring's corner tile
-  // in both runs; their half-tile panel ends meet at (-1.5, -1.5).
-  // Keep integer coordinates here for lighting, then move each panel
-  // half a tile outward when drawing so it follows the slab's edge.
+  // Only the two far sides, on playable tile edges. Keep integer sampling
+  // coordinates for lighting; draw half a tile inward from those samples.
+  // The two runs meet at (-0.5, -0.5) with no decorative floor border.
   const boundary: [number, number, number][] = [];
-  for (let y = -1; y < lot.height; y++) {
+  for (let y = 0; y < lot.height; y++) {
     boundary.push([-1, y, wallSprites.wallNS]);
   }
-  for (let x = -1; x < lot.width; x++) {
-    boundary.push([x, -1, x === -1 ? cornerStarts.ew : wallSprites.wallEW]);
+  for (let x = 0; x < lot.width; x++) {
+    boundary.push([x, -1, x === 0 ? cornerStarts.ew : wallSprites.wallEW]);
   }
 
   // **Doorways are drawn out loud.** In the data a doorway is a GAP in a
@@ -197,24 +194,23 @@ export function buildStaticInstances(
   for (const key of walls) {
     const [x, y] = key.split(',').map(Number);
     let mask = wallConnections(x, y, connects);
-    // A run reaching the far edge must cross the decorative floor ring
-    // before it meets the exterior wall. These panels are presentation only.
+    // A straight endpoint already reaches the exterior edge. Give that
+    // panel the corner fold without extending the run outside the floor.
     if (x === 0 && (mask & 10) !== 0) {
       mask |= 8;
-      interiorPanels.push([-1, y, cornerStarts.ew]);
     }
     if (y === 0 && (mask & 5) !== 0) {
       mask |= 1;
-      interiorPanels.push([x, -1, cornerStarts.ns]);
     }
-    interiorPanels.push([x, y, connectedWallSprite(mask)]);
+    const sprite = connectedWallSprite(mask);
+    interiorPanels.push([x, y,
+      x === 0 && sprite === wallSprites.wallEW ? cornerStarts.ew
+        : y === 0 && sprite === wallSprites.wallNS ? cornerStarts.ns : sprite,
+    ]);
   }
 
-  // Floor extends one ring outward to sit under the boundary walls.
-  // Without it the north and west runs stood on nothing and read as
-  // extending past the slab's edge - the other half of [A-11]'s wall
-  // report. The ring is (width+1) x (height+1) minus the interior.
-  const floorCount = (lot.width + 1) * (lot.height + 1);
+  // Floor and exterior walls share the playable grid's exact boundary.
+  const floorCount = lot.width * lot.height;
   const count = floorCount + interiorPanels.length + boundary.length + doorways.length;
   if (scratch.length < count * FLOATS_PER_INSTANCE) {
     scratch = new Float32Array(count * FLOATS_PER_INSTANCE);
@@ -266,8 +262,8 @@ export function buildStaticInstances(
     );
   };
 
-  for (let y = -1; y < lot.height; y++) {
-    for (let x = -1; x < lot.width; x++) {
+  for (let y = 0; y < lot.height; y++) {
+    for (let x = 0; x < lot.width; x++) {
       writeFloor(x, y, floorSprite);
     }
   }
@@ -282,8 +278,8 @@ export function buildStaticInstances(
   }
   for (const [x, y, sprite] of boundary) {
     write(
-      x - (sprite === wallSprites.wallNS ? 0.5 : 0),
-      y - (sprite === wallSprites.wallEW || sprite === cornerStarts.ew ? 0.5 : 0),
+      x + (sprite === wallSprites.wallNS ? 0.5 : 0),
+      y + (sprite === wallSprites.wallEW || sprite === cornerStarts.ew ? 0.5 : 0),
       LAYER_PROP,
       sprite,
       lighting === null ? 0 : sampleWallLight(lighting, x, y),

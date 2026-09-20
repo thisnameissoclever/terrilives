@@ -1,0 +1,132 @@
+{
+  "state": "complete",
+  "object": "bunk",
+  "inputs": {
+    "bathroom/render_wide_static.py": "d775615b099666ac1fc15ba1eba547c66ab20a4fe278ff9af79c9f1fad671491",
+    "bedroom/render_bunk.py": "2543711ea14275122311d79013652bdd8d04696a5c973515ac7a8ec14ad807d7",
+    "bedroom/bunk_model.py": "f655e27bcc8995b7285ee9a433b57d264cd19468a068311df3533353730e94f6",
+    "bedroom/bunk_layout.py": "1c56aa62adaaa872b604058204256aa52beb9ece54ff996164ae046597e0792c",
+    "furniture/build_parts.py": "ef1e9976ed4fd1ed2c052e4facb5e35d6008178370df08d33651889aa5593e28",
+    "furniture/geometry.py": "5137780de27edbd300068c647c9822d4f3306d93915fcb47b7700250fd86e4c7",
+    "sims/sim-01/sim-01-rigged.blend": "919e8994cbf7510a4d9947f173abec8b41ac77d61f6e829bcf5981c8d2fcddce",
+    "sims/sim-01/registered-canvas-proof.json": "08a3461284b15293306b395d7f182d99c66d8b7c315b522ca34f2b4839668b68"
+  },
+  "renders": [
+    {
+      "facing": "SE",
+      "degrees": 90,
+      "path": "closed-SE.png",
+      "sha256": "c7e1a655539c009de2021addf7362b8f97a7df718b5ca2432ee1955ba0653942"
+    },
+    {
+      "facing": "NW",
+      "degrees": 270,
+      "path": "closed-NW.png",
+      "sha256": "13dc397f90aa3eff11ea0e84e89c6cab5d5d2b122cc3f8709cd8bb3b2a13e8da"
+    },
+    {
+      "facing": "SW",
+      "degrees": 0,
+      "path": "closed-SW.png",
+      "sha256": "a25cf874e511fa9883b2e30d94c9de34ce94ec14cb7c9d92063de42d57b5f8ad"
+    },
+    {
+      "facing": "NE",
+      "degrees": 180,
+      "path": "closed-NE.png",
+      "sha256": "0bd9af615ded1650a5dab263405bd83b7e87a4902605efef45fdcfbc517fb57d"
+    }
+  ],
+  "logical_canvas": [
+    160,
+    176
+  ],
+  "source_density": 8,
+  "blender_version": "4.5.14 LTS",
+  "approval": "Unreviewed offline candidate; independent visual review required.",
+  "model_checks": {
+    "footprint_SE": [
+      2,
+      1
+    ],
+    "canonical_center": [
+      0,
+      0,
+      0
+    ],
+    "head_end": "+Y",
+    "lower_mattress_top": 0.46739448,
+    "source_views_only": true,
+    "occupied_review_pending": true
+  },
+  "origin_pixels": [
+    640.0000762939453,
+    984.0035095214844
+  ],
+  "camera_matrix": [
+    [
+      0.7071067094802856,
+      -0.4640388786792755,
+      0.5335429310798645,
+      5.335428714752197
+    ],
+    [
+      0.70710688829422,
+      0.4640386700630188,
+      -0.5335428714752197,
+      -5.335428714752197
+    ],
+    [
+      8.285385888484598e-08,
+      0.7545436024665833,
+      0.6562499403953552,
+      7.587500095367432
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "ortho_scale": 3.889087200164795,
+  "parts": [
+    "Ladder rung 0.24",
+    "Ladder rung 0.54",
+    "Ladder rung 0.84",
+    "Ladder rung 1.14",
+    "Ladder rung 1.44",
+    "Ladder upright -0.43",
+    "Ladder upright -0.82",
+    "Lower end rail -0.925",
+    "Lower end rail 0.925",
+    "Lower mattress",
+    "Lower pillow",
+    "Lower platform",
+    "Lower side rail -0.425",
+    "Lower side rail 0.425",
+    "Post -0.43 -0.925",
+    "Post -0.43 0.925",
+    "Post 0.43 -0.925",
+    "Post 0.43 0.925",
+    "Upper access guard",
+    "Upper access upright",
+    "Upper duvet",
+    "Upper duvet fold",
+    "Upper end guard -0.925",
+    "Upper end guard 0.925",
+    "Upper end rail -0.925",
+    "Upper end rail 0.925",
+    "Upper mattress",
+    "Upper pillow",
+    "Upper platform",
+    "Upper rear guard",
+    "Upper side rail -0.425",
+    "Upper side rail 0.425"
+  ],
+  "color_management": {
+    "view": "Standard",
+    "look": "None"
+  },
+  "model_sha256": "10b507a6dfcbbec05457cf7c9c857ee1f3fc08b80915967b743cace15b9fa9fa"
+}

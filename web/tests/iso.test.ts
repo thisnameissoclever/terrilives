@@ -220,7 +220,7 @@ describe('the camera scale on the projection', () => {
       // and the assertion below can name it directly.
       const origin = cameraOrigin(1280, 720, 14, 10, 99, 99, scale);
       const spriteTop =
-        screenY(-1.5, -1, origin.y, scale) + (TILE_HALF_HEIGHT - 99) * scale;
+        screenY(-0.5, 0, origin.y, scale) + (TILE_HALF_HEIGHT - 99) * scale;
       const bottom =
         screenY(13, 9, origin.y, scale) + TILE_HALF_HEIGHT * scale;
       expect((spriteTop + bottom) / 2).toBeCloseTo(360, 6);
@@ -534,10 +534,9 @@ describe('cameraOrigin', () => {
    * anchor half a tile down, so the topmost pixel is a race between two
    * rows rather than one:
    *
-   * - `tiles.ts` draws a boundary at x = -1 and y = -1, which the shipped
-   *   version of this arithmetic left out altogether. Only wall pieces are
-   *   ever drawn there.
-   * - The lot's first tile, (0, 0), is two half-tile rows LOWER, and is
+   * - `tiles.ts` draws boundary anchors at x = -0.5 or y = -0.5.
+   *   Only wall pieces are drawn there.
+   * - The lot's first tile, (0, 0), is half a half-tile row LOWER, and is
    *   where the tallest piece of furniture can actually stand.
    *
    * Modelling those as one row - the whole atlas reserved above the
@@ -548,7 +547,7 @@ describe('cameraOrigin', () => {
     spriteH: number,
     boundaryH = spriteH,
   ) {
-    const boundaryRowY = screenY(-1.5, -1, originY);
+    const boundaryRowY = screenY(-0.5, 0, originY);
     const firstTileY = screenY(0, 0, originY);
     const lastRowY = screenY(LOT_W - 1, LOT_H - 1, originY);
     return {
@@ -616,9 +615,14 @@ describe('cameraOrigin', () => {
       TALLEST,
       TALLEST,
     );
-    expect(overReserved.top).toBeLessThan(0);
+    const correct = drawnBounds(
+      cameraOrigin(CANVAS_W, CANVAS_H, LOT_W, LOT_H, TALLEST, TALLEST_BOUNDARY).y,
+      TALLEST,
+      TALLEST_BOUNDARY,
+    );
+    expect(overReserved.bottom).toBeGreaterThan(correct.bottom);
 
-    // The saving is exactly the two half-tile rows between the boundary
+    // The saving is exactly the half half-tile row between the boundary
     // and the lot, so an object shorter than the walls by that much costs
     // no headroom at all.
     const wallsDominate = cameraOrigin(
@@ -634,7 +638,7 @@ describe('cameraOrigin', () => {
       CANVAS_H,
       LOT_W,
       LOT_H,
-      100 + 2 * TILE_HALF_HEIGHT,
+      100 + 0.5 * TILE_HALF_HEIGHT,
       100,
     ).y;
     expect(stillDominated).toBe(wallsDominate);
@@ -672,7 +676,7 @@ describe('cameraOrigin', () => {
   });
 
   it('gives a tall object more room once it out-reaches the boundary row', () => {
-    // The other half of the same requirement. Past the two-half-row head
+    // The other half of the same requirement. Past the half-half-row head
     // start the walls get, furniture drives the reservation again - so the
     // saving above is a saving and not a ceiling on how tall art may be.
     const short = cameraOrigin(CANVAS_W, CANVAS_H, LOT_W, LOT_H, 100, 40).y;
@@ -692,7 +696,7 @@ describe('cameraOrigin', () => {
       TALLEST,
       TALLEST_BOUNDARY,
     );
-    const boundaryRowY = screenY(-1.5, -1, y);
+    const boundaryRowY = screenY(-0.5, 0, y);
     const firstTileY = screenY(0, 0, y);
     const lastRowY = screenY(13, 9, y);
     expect(

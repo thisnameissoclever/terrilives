@@ -1,0 +1,443 @@
+{
+  "production_export": true,
+  "checked_groups": 48,
+  "comparisons": [
+    {
+      "facing": "SE",
+      "frame": 0,
+      "variant": "green",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 29199,
+      "pixels_above_8": 1607
+    },
+    {
+      "facing": "SE",
+      "frame": 0,
+      "variant": "blue",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 29199,
+      "pixels_above_8": 1649
+    },
+    {
+      "facing": "SE",
+      "frame": 0,
+      "variant": "red",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 29199,
+      "pixels_above_8": 1607
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "variant": "green",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 29199,
+      "pixels_above_8": 1607
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "variant": "blue",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 29199,
+      "pixels_above_8": 1655
+    },
+    {
+      "facing": "SE",
+      "frame": 1,
+      "variant": "red",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 29199,
+      "pixels_above_8": 1609
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "variant": "green",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 29199,
+      "pixels_above_8": 1607
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "variant": "blue",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 29199,
+      "pixels_above_8": 1649
+    },
+    {
+      "facing": "SE",
+      "frame": 2,
+      "variant": "red",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 29199,
+      "pixels_above_8": 1607
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "variant": "green",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 29199,
+      "pixels_above_8": 1607
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "variant": "blue",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 29199,
+      "pixels_above_8": 1655
+    },
+    {
+      "facing": "SE",
+      "frame": 3,
+      "variant": "red",
+      "max_error": 21,
+      "p95_error": 9,
+      "active_pixels": 29199,
+      "pixels_above_8": 1618
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "variant": "green",
+      "max_error": 19,
+      "p95_error": 9,
+      "active_pixels": 28768,
+      "pixels_above_8": 1705
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "variant": "blue",
+      "max_error": 19,
+      "p95_error": 10,
+      "active_pixels": 28768,
+      "pixels_above_8": 1739
+    },
+    {
+      "facing": "NW",
+      "frame": 0,
+      "variant": "red",
+      "max_error": 19,
+      "p95_error": 10,
+      "active_pixels": 28768,
+      "pixels_above_8": 1710
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "variant": "green",
+      "max_error": 19,
+      "p95_error": 10,
+      "active_pixels": 28768,
+      "pixels_above_8": 1699
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "variant": "blue",
+      "max_error": 19,
+      "p95_error": 10,
+      "active_pixels": 28768,
+      "pixels_above_8": 1736
+    },
+    {
+      "facing": "NW",
+      "frame": 1,
+      "variant": "red",
+      "max_error": 19,
+      "p95_error": 10,
+      "active_pixels": 28768,
+      "pixels_above_8": 1710
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "variant": "green",
+      "max_error": 19,
+      "p95_error": 9,
+      "active_pixels": 28768,
+      "pixels_above_8": 1705
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "variant": "blue",
+      "max_error": 19,
+      "p95_error": 10,
+      "active_pixels": 28768,
+      "pixels_above_8": 1739
+    },
+    {
+      "facing": "NW",
+      "frame": 2,
+      "variant": "red",
+      "max_error": 19,
+      "p95_error": 10,
+      "active_pixels": 28768,
+      "pixels_above_8": 1710
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "variant": "green",
+      "max_error": 19,
+      "p95_error": 10,
+      "active_pixels": 28768,
+      "pixels_above_8": 1704
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "variant": "blue",
+      "max_error": 19,
+      "p95_error": 10,
+      "active_pixels": 28768,
+      "pixels_above_8": 1747
+    },
+    {
+      "facing": "NW",
+      "frame": 3,
+      "variant": "red",
+      "max_error": 19,
+      "p95_error": 10,
+      "active_pixels": 28768,
+      "pixels_above_8": 1718
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "variant": "green",
+      "max_error": 23,
+      "p95_error": 9,
+      "active_pixels": 29106,
+      "pixels_above_8": 1607
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "variant": "blue",
+      "max_error": 23,
+      "p95_error": 9,
+      "active_pixels": 29106,
+      "pixels_above_8": 1628
+    },
+    {
+      "facing": "SW",
+      "frame": 0,
+      "variant": "red",
+      "max_error": 23,
+      "p95_error": 9,
+      "active_pixels": 29106,
+      "pixels_above_8": 1614
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "variant": "green",
+      "max_error": 23,
+      "p95_error": 9,
+      "active_pixels": 29106,
+      "pixels_above_8": 1607
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "variant": "blue",
+      "max_error": 23,
+      "p95_error": 9,
+      "active_pixels": 29106,
+      "pixels_above_8": 1632
+    },
+    {
+      "facing": "SW",
+      "frame": 1,
+      "variant": "red",
+      "max_error": 23,
+      "p95_error": 9,
+      "active_pixels": 29106,
+      "pixels_above_8": 1615
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "variant": "green",
+      "max_error": 23,
+      "p95_error": 9,
+      "active_pixels": 29106,
+      "pixels_above_8": 1607
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "variant": "blue",
+      "max_error": 23,
+      "p95_error": 9,
+      "active_pixels": 29106,
+      "pixels_above_8": 1628
+    },
+    {
+      "facing": "SW",
+      "frame": 2,
+      "variant": "red",
+      "max_error": 23,
+      "p95_error": 9,
+      "active_pixels": 29106,
+      "pixels_above_8": 1614
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "variant": "green",
+      "max_error": 23,
+      "p95_error": 9,
+      "active_pixels": 29106,
+      "pixels_above_8": 1606
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "variant": "blue",
+      "max_error": 23,
+      "p95_error": 9,
+      "active_pixels": 29106,
+      "pixels_above_8": 1632
+    },
+    {
+      "facing": "SW",
+      "frame": 3,
+      "variant": "red",
+      "max_error": 23,
+      "p95_error": 9,
+      "active_pixels": 29106,
+      "pixels_above_8": 1620
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "variant": "green",
+      "max_error": 18,
+      "p95_error": 9,
+      "active_pixels": 29328,
+      "pixels_above_8": 1724
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "variant": "blue",
+      "max_error": 18,
+      "p95_error": 9,
+      "active_pixels": 29328,
+      "pixels_above_8": 1754
+    },
+    {
+      "facing": "NE",
+      "frame": 0,
+      "variant": "red",
+      "max_error": 18,
+      "p95_error": 9,
+      "active_pixels": 29328,
+      "pixels_above_8": 1738
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "variant": "green",
+      "max_error": 18,
+      "p95_error": 9,
+      "active_pixels": 29328,
+      "pixels_above_8": 1725
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "variant": "blue",
+      "max_error": 18,
+      "p95_error": 9,
+      "active_pixels": 29328,
+      "pixels_above_8": 1752
+    },
+    {
+      "facing": "NE",
+      "frame": 1,
+      "variant": "red",
+      "max_error": 18,
+      "p95_error": 9,
+      "active_pixels": 29328,
+      "pixels_above_8": 1735
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "variant": "green",
+      "max_error": 18,
+      "p95_error": 9,
+      "active_pixels": 29328,
+      "pixels_above_8": 1724
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "variant": "blue",
+      "max_error": 18,
+      "p95_error": 9,
+      "active_pixels": 29328,
+      "pixels_above_8": 1754
+    },
+    {
+      "facing": "NE",
+      "frame": 2,
+      "variant": "red",
+      "max_error": 18,
+      "p95_error": 9,
+      "active_pixels": 29328,
+      "pixels_above_8": 1738
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "variant": "green",
+      "max_error": 18,
+      "p95_error": 9,
+      "active_pixels": 29328,
+      "pixels_above_8": 1732
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "variant": "blue",
+      "max_error": 18,
+      "p95_error": 9,
+      "active_pixels": 29328,
+      "pixels_above_8": 1759
+    },
+    {
+      "facing": "NE",
+      "frame": 3,
+      "variant": "red",
+      "max_error": 18,
+      "p95_error": 9,
+      "active_pixels": 29328,
+      "pixels_above_8": 1742
+    }
+  ],
+  "encoder_sha256": "7618111bbf52a829eedb00acdbf1019646598a38c9cbb40a7134fa263cbf2f3b",
+  "partition_sha256": "0bf4f0308d39a3c7f65548673335c8568089022bfa278bb6ca26937119d4fd19",
+  "comparison_sha256": "f84c108e5d2c14999a73456f6c300845b7209e3648f398169ff4a1e8db93f01c",
+  "manifest_sha256": "6d8fa54cbc648d9f8d026b80eef33fcafcc916b3c6ff4e58789834e4b598f6e1",
+  "raw_proof_sha256": "9b8c3c63a91631a342f170c560389425d7542ae7b8cc361281c678246ae7461c"
+}

@@ -5,6 +5,19 @@ from bunk_layout import parts
 
 
 class BunkLayoutTests(unittest.TestCase):
+    def test_ladder_and_access_opening_are_on_near_side_without_reversing_head(self):
+        by_name = {row['name']: row for row in parts()}
+        for row in by_name.values():
+            if row['name'].startswith('Ladder '):
+                self.assertLess(row['center'][0], -.43,
+                                'SE view must expose the ladder on the near long side')
+        self.assertLess(by_name['Upper access guard']['center'][0], 0)
+        self.assertLess(by_name['Upper access upright']['center'][0], 0)
+        self.assertGreater(by_name['Upper rear guard']['center'][0], 0)
+        for level in ('Lower', 'Upper'):
+            self.assertAlmostEqual(by_name[f'{level} pillow']['center'][1], .68,
+                                   msg='Pillows must stay at the original head end')
+
     def test_bunk_has_grounded_posts_and_two_supported_mattresses(self):
         rows = parts()
         posts = [row for row in rows if row['name'].startswith('Post ')]

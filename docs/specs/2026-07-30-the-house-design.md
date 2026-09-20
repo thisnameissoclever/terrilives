@@ -13,6 +13,15 @@ caught it was a measurement.
 
 ## [B1] Five rooms, and the circulation is a ring rather than a corridor
 
+September 20 layout correction: the exterior wall panels now stand at
+X=-0.5 and Y=-0.5, exactly on the playable grid boundary. Only the 16x12
+playable floor is drawn. The one-tile decorative border described in the
+historical measurements below has been removed. Camera framing uses the
+first wall anchor (-0.5,0), separate from furniture at (0,0); pan bounds
+use the same extent. Room capacity, simulation walls and saved coordinates
+are unchanged. Dining chairs now face the table and the desk chair faces
+the desk, using the legacy chair artwork's actual front axis.
+
 `content/lot.toml` carries a tile-by-tile plan; this is the shape of it.
 Kitchen and living room north of a full-width spine at y = 5, with bedroom,
 study and bathroom south of it, and five doorways: (7,2), (3,5), (13,5),
@@ -291,6 +300,13 @@ distant object's score, and that is correct rather than a bug to tune away.
 ---
 
 ## [B7] Interior walls still occupy tiles; boundary walls follow the slab edges
+
+Current exterior geometry: the slab is the playable grid, with both far walls
+on its X=-0.5 and Y=-0.5 edges. Divider endpoints use the existing corner-fold
+panels on their own tiles; they no longer cross an extra decorative border.
+This supersedes the outer-ring placement recorded below. Interior walls still
+occupy blocked tiles, so genuinely flush interior furniture and arbitrary
+rectangular-object rotation remain separate simulation/layout work.
 
 The two exterior runs now lie at x = -1.5 and y = -1.5, on the outer
 edges of the existing floor ring. Each includes that ring's corner tile;

@@ -78,9 +78,9 @@
 # top of the page.
 #
 # `cameraOrigin` in web/src/render/iso.ts owns the current framing arithmetic.
-# The outer-edge panels add 2.5 half-tile rows above the first furniture
-# anchor. With the current atlas the 1x drawn extent is 707.5 px, leaving
-# 12.5 px inside a 720 px canvas. See [B1] in the house design before
+# The exterior panels now sit on the playable boundary, half a half-tile
+# row above the first furniture anchor. The former decorative floor border
+# is not drawn. See [B1] in the house design before
 # enlarging the lot or increasing wall height.
 width = 16
 height = 12
@@ -168,8 +168,9 @@ place = [
   # because a footprint blocks its tiles and a chair under the table would
   # be an overlap the build refuses.
   { object = "dining_table", x = 2.0, y = 3.0 },
-  { object = "chair", x = 1.0, y = 3.0 },
-  { object = "chair", x = 4.0, y = 3.0 },
+  # Legacy chair art starts facing +Y; NE and SW face the table from its ends.
+  { object = "chair", x = 1.0, y = 3.0, facing = "NE" },
+  { object = "chair", x = 4.0, y = 3.0, facing = "SW" },
 
   # ---- Living room, x 8..15, y 0..4 ------------------------------------
   #
@@ -205,7 +206,7 @@ place = [
   # and also the mechanism: two beds in two different rooms means "go to
   # bed" has a choice in it, and the bunk is the faster, worse one.
   { object = "desk", x = 6.0, y = 6.0, facing = "SW" },
-  { object = "desk_chair", x = 6.0, y = 7.0 },
+  { object = "desk_chair", x = 6.0, y = 7.0, facing = "NW" },
   { object = "bed", x = 9.0, y = 6.0 },
   { object = "reading_chair", x = 9.0, y = 9.0 },
   # `reference_shelf` is the aquarium's historical Save V1 persistence key.
