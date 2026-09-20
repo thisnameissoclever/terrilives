@@ -6049,6 +6049,26 @@ searches. After three failures, get a fresh review instead of another variant.
 **How to verify.** `1..5 | Select-Object -Skip 2 -First 2` emits 3 and 4.
 The corrected `-First 50` source read succeeds; no repository edits are needed.
 
+## [L-continuous-wall-rejection-boundaries] Separate the conditions that reject a route
+
+**What happened.** PR84's full mutation sweep found two unconstrained wall
+checks: the upper endpoint of a collinear wall segment and the OR joining
+walkable-center and open-segment requirements during fractional replanning.
+
+**Root cause.** A test spanning the entire wall still collided when the upper
+bound was shortened. Successful replan examples did not distinguish independent
+reasons to refuse an anchor.
+
+**Prevention rule.** Exercise a segment entirely inside each relevant boundary
+region, not only one spanning it. For combined rejection guards, construct each
+failure independently and assert the other condition is valid. Cover horizontal
+and vertical walls, reverse travel, endpoint contact and clear-side controls.
+
+**How to verify.** The new collinear upper-half test fails when `low + 1.0`
+becomes `low * 1.0`. The new anchor test fails when OR becomes AND. Each exact
+mutation was tested independently; restoring the unchanged production file
+passes all 86 core tests. Neither change adds a mutation-baseline allowance.
+
 ## [L-edge-slot-signed-bounds] Check signed coordinates before unsigned indexing
 
 **What happened.** PR84's mutation sweep found that changing the first OR in

@@ -141,3 +141,11 @@ the original production file restored its SHA256
 All 84 core tests then passed. Independent review approved this as defensive
 helper coverage, not proof of a reachable ordinary-lot defect. Production code
 and the mutation baseline are unchanged by this test correction.
+
+Shard 0 subsequently reported two additional shared-wall survivors: the upper
+bound of collinear wall overlap and the combined rejection guard in route
+anchoring. New regressions cover upper-half wall travel, endpoint contact,
+reverse directions, both wall axes and independently invalid anchor conditions.
+Each exact mutation failed its respective test. The same production SHA256 was
+restored, and all 86 core tests passed. These are additional test corrections;
+the prior visual bundle's runtime behavior is unchanged.
