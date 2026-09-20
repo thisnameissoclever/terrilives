@@ -299,11 +299,21 @@ mod tests {
     }
 
     fn career_pack_with_portal() -> &'static ContentPack {
+        career_pack_with_portal_route((15, 2), (15, 3))
+    }
+
+    fn career_pack_with_portal_route(
+        position: (u32, u32),
+        inward: (u32, u32),
+    ) -> &'static ContentPack {
         let base = career_pack(vec![]);
+        let mut lot = base.lot.clone();
+        lot.front_door = Some(position);
         Box::leak(Box::new(ContentPack {
+            lot,
             portals: vec![CompiledPortal {
-                position: (15, 2),
-                inward: (15, 3),
+                position,
+                inward,
                 facing: CompiledSocketFacing::PositiveX,
                 hinge: CompiledPortalHinge::Left,
                 frame_sprite: 41,
@@ -370,6 +380,72 @@ mod tests {
             130,
             "finishing the doorway walk cannot pay again"
         );
+    }
+
+    #[test]
+    fn an_inbound_portal_walk_finishes_without_clocking_back_in_on_either_axis() {
+        for (axis, door, inward) in [("x", (5, 4), (6, 4)), ("y", (5, 4), (5, 5))] {
+            let pack = career_pack_with_portal_route(door, inward);
+            let mut sim = test_content::sim_with(8, 8, pack);
+            let worker = a_worker(&mut sim, door.0 as f32, door.1 as f32);
+            sim.world_mut().entity_mut(worker).insert((
+                Commuting,
+                Path {
+                    steps: vec![(inward.0 as i32, inward.1 as i32)],
+                    cursor: 0,
+                },
+            ));
+
+            for _ in 0..8 {
+                sim.tick();
+                if sim.world().get::<Commuting>(worker).is_none() {
+                    break;
+                }
+            }
+
+            assert!(
+                sim.world().get::<Commuting>(worker).is_none(),
+                "the {axis}-axis return must finish"
+            );
+            assert!(
+                sim.world().get::<AtWork>(worker).is_none(),
+                "the {axis}-axis return must not clock the worker back in"
+            );
+            let position = sim.world().get::<Position>(worker).unwrap();
+            assert_eq!(
+                (position.x, position.y),
+                (inward.0 as f32, inward.1 as f32),
+                "the {axis}-axis return settles on its authored landing"
+            );
+        }
+    }
+
+    #[test]
+    fn outbound_arrival_accepts_the_exact_door_and_each_tolerance_boundary() {
+        for (case, door, position) in [
+            ("nonzero exact door", (5, 4), Position { x: 5.0, y: 4.0 }),
+            ("x tolerance", (0, 0), Position { x: 0.01, y: 0.0 }),
+            ("y tolerance", (0, 0), Position { x: 0.0, y: 0.01 }),
+        ] {
+            let pack = career_pack_with_portal_route(door, (door.0, door.1 + 1));
+            let mut sim = test_content::sim_with(8, 8, pack);
+            let worker = a_worker(&mut sim, position.x, position.y);
+            sim.world_mut().entity_mut(worker).insert(Commuting);
+
+            sim.tick();
+
+            assert!(
+                sim.world().get::<Commuting>(worker).is_none(),
+                "{case} must finish the outbound commute"
+            );
+            assert_eq!(
+                sim.world()
+                    .get::<AtWork>(worker)
+                    .map(|work| work.remaining_ticks),
+                Some(a_career().shift_ticks),
+                "{case} is inside the inclusive arrival tolerance"
+            );
+        }
     }
 
     #[test]

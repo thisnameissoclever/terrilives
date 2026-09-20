@@ -1,5 +1,22 @@
 # Lessons Learned
 
+## [L-door-arrival-needs-independent-axis-tests] A working route can hide an untested coordinate
+
+**What happened.** The front-door release passed ordinary tests and its played
+departure/return check, but CI found eight surviving mutations in the career
+arrival predicate. The shipped return changes only the Y coordinate.
+
+**Root cause.** A single route did not independently constrain both sides of
+the X-or-Y distance check, and no test pinned its inclusive arrival tolerance.
+
+**Prevention rule.** Exercise an X-only return, a Y-only return, an exact
+nonzero doorway position, and each tolerance boundary separately. Assert the
+resulting career state and settled position, not only the rendered door state.
+
+**How to verify.** The two career arrival regressions must pass; the targeted
+mutation run must catch all eight changed comparisons and coordinate
+subtractions. The 2026-09-20 correction caught 8/8 without a baseline exception.
+
 ## [L-browser-artifact-paths] Use explicit temporary paths for review screenshots
 
 **What happened.** A browser screenshot write to the task worktree was denied.
