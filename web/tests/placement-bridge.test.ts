@@ -33,16 +33,33 @@ it('keeps preview observational, reports the drained result, and survives memory
   const bridge = new SimBridge(handle, memory);
   const facing = bridge.objectFacing(0)!;
   const before = handle.save_bytes();
-  const wall = bridge.wallTiles();
-  expect(wall.length).toBeGreaterThan(0);
-  const refused = bridge.placementPreview(0, wall[0], wall[1], facing);
+  const edges = bridge.wallEdges();
+  expect(edges?.length).toBeGreaterThan(0);
+  // Find a real multi-tile object crossing a solid boundary. Boundary walls
+  // occupy no tile, so a single-tile fridge cannot overlap one.
+  let wallCollision: { object: number; x: number; y: number; facing: number } | undefined;
+  for (const object of Array.from(bridge.ids())) {
+    const direction = bridge.objectFacing(object);
+    if (direction === null) continue;
+    for (let y = 0; y < handle.lot_height() && !wallCollision; y += 1) {
+      for (let x = 0; x < handle.lot_width(); x += 1) {
+        if (handle.placement_preview(object, x, y, direction)[0] === 6) {
+          wallCollision = { object, x, y, facing: direction }; break;
+        }
+      }
+    }
+    if (wallCollision) break;
+  }
+  expect(wallCollision).toBeDefined();
+  const collision = wallCollision!;
+  const refused = bridge.placementPreview(collision.object, collision.x, collision.y, collision.facing);
   expect(refused.valid).toBe(false);
   expect(refused.reason).toBe('That position overlaps a wall.');
   expect(bridge.lastPlacementResult()).toBeNull();
   expect(handle.save_bytes()).toEqual(before);
-  expect(bridge.placeObject(0, wall[0], wall[1], facing)).toBe(true);
+  expect(bridge.placeObject(collision.object, collision.x, collision.y, collision.facing)).toBe(true);
   bridge.flushCommands();
-  expect(bridge.lastPlacementResult()).toEqual({ object: 0, reason: refused.reason });
+  expect(bridge.lastPlacementResult()).toEqual({ object: collision.object, reason: refused.reason });
   expect(handle.save_bytes()).toEqual(before);
   expect(bridge.lotRevision()).toBe(0);
   let valid: ReturnType<SimBridge['placementPreview']> | undefined;

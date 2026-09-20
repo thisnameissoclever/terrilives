@@ -54,11 +54,9 @@ pub struct TileDistanceField {
 /// and `terri-core` is the lowest layer and must not depend on the content
 /// crate. `terri-data` re-exports it and `CompiledObject` holds one.
 ///
-/// **Axis-aligned, with no rotation.** Every sprite in the kit is
-/// pre-rendered at one facing and the projection is fixed, so a rotation
-/// concept has nothing to act on yet; when build mode adds one it will need
-/// a facing on the placement and a swap of `width` and `depth`. Nothing
-/// here may assume square.
+/// The rectangle stays axis-aligned. Runtime placement resolves its width and
+/// depth from the object's facing relative to its authored base direction;
+/// a quarter turn swaps those dimensions. Nothing here may assume square.
 ///
 /// Content declares it and `terri-data`'s `compile` is what enforces that
 /// both dimensions are at least 1 and that the whole rectangle fits inside

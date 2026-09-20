@@ -14,8 +14,8 @@ use terri_core::{
     SmartObject, Target,
 };
 
-use crate::Content;
 pub use super::lot_edit::drain_commands;
+use crate::Content;
 
 /// Player-visible results produced while staged commands become simulation
 /// state.
