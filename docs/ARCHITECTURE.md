@@ -626,6 +626,27 @@ closes the old compatibility bridges. The exact new destination digest
 `4dab6950757c1f15` inherits the published D and B shapes; the frozen bathtub
 source `93b0a49525ce6e0c` retains A's distinct migration and legacy row rules.
 
+Furniture preview and commit share `validate_placement`. It reconstructs the
+fixed architecture from `SavedLayout`, then proves the live occupancy and wall
+edges match that architecture plus every placed object. It does not infer walls
+from blocked cells or replace saved architecture with the current content lot.
+The candidate must preserve usable interaction approaches, continuous Sim routes,
+and the front door and return landing. Reserved or targeted furniture cannot move.
+
+`PlaceObject` is an appended command variant. The single command drain validates
+again against the then-current world before replacing geometry atomically.
+Queue acceptance is not placement success: the shell reads `lastPlacementResult`
+after draining. Nonempty command queues contribute their complete ordered contents
+to the world hash; empty queues retain the historical hash behavior. Save V3
+preserves pending placement commands as well as applied directions.
+
+`LotEditState` carries a transient revision and the last result, outside saves
+and deterministic hashes. A successful edit marks only that object's render
+samples discontinuous, so a paused furniture move snaps into place without
+resetting other Sims' walking interpolation. The shell uses the revision to
+invalidate geometry-derived caches; successful Load must reset selection even
+when the replacement revision happens to equal the previous one.
+
 Only `reading_chair.settle_in` currently authors
 `read / object_socket / socket`. Render sync requires matching `Eating` and
 `Target` object and interaction identity, the exact target entity, its position,

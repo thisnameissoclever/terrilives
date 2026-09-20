@@ -245,12 +245,15 @@ Three baked looks rather than the three tinted instances per sim the spec
 proposed - the reasoning, and what would flip it back, is written down in
 `assets/sprites/gen/style.py` beside the palettes.
 
-**Save V2 stores room architecture; historical V1 saves remain supported.**
+**Save V3 stores room architecture and furniture directions; V1/V2 remain supported.**
 The reviewed default household upgrades to boundary walls without moving its
 furniture or resetting its Sims. Custom V1 layouts keep their legacy walls.
-The browser keeps a byte-for-byte V1 recovery copy before its first V2 save,
-and a failed load disables saving until a successful load or confirmed New
-game. V2 files cannot be opened by older builds. See [D8] in
+The browser keeps byte-for-byte V1 and V2 recovery copies before replacing
+their respective historical primary saves with V3. A failed load disables
+saving until a successful load or confirmed New game. The deployed V2 writer
+refuses an existing V3 primary rather than overwriting its directions; the
+earliest V1 writers did not have that guard, so close those stale tabs before
+upgrading. Older builds cannot open V3 files. See [D8] in
 `docs/ARCHITECTURE.md` for the compatibility and backup boundaries.
 
 **V1 compatibility remains limited to known patch classes.** The old
