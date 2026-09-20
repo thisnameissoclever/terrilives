@@ -17,6 +17,28 @@ Bill, and Nadia is now Casey. Measurements were not rewritten after the fact.
 
 ---
 
+## [A-builder-played-layout] Furniture edits survive ordinary household life
+
+2026-09-20, local production build, 1280x720 desktop and 390x844 compact layout.
+The corrected builder preview replaces intersecting old artwork instead of
+drawing two chairs or tables on top of each other. Its lighter tint preserves
+surface detail. The mobile panel states that the household is paused and uses
+short touch instructions. These were inspected screenshots, not inferred CSS.
+
+In the rebuilt game, Bill walked to the SW reading chair and sat with his book
+between the chair arms. Casey used the SW bike with aligned hands and seat;
+the pedal pose changed between observed ticks. Tim and Bill conversed beside
+the desk while she cycled. The rectangular table remained reachable after
+moving and rotating, but its existing interaction still uses a standing body.
+That dining-seat gap remains listed in [A-animations].
+
+The edited layout also survived a work departure, return and saved crossing.
+The door opened before Tim crossed, closed during his shift and opened for his
+return. Restoring the crossing did not add another payment. These observations
+establish local integration, not public deployment or final owner approval.
+Exact checkpoints and images are in
+`docs/assets/review-evidence/furniture-builder/README.md`.
+
 
 ## [A-household-rig-shirts] Approved character and household shirt colors
 

@@ -1724,6 +1724,11 @@ a fresh-context review. Use literal directory arguments and quoted `-g`
 patterns owned by `rg`, or enumerate already discovered filenames. Verify with
 `rg --files DIRECTORY -g 'PATTERN'` before searching uncertain filenames.
 
+**2026-09-20 recurrence.** The same literal-wildcard mistake recurred during
+builder release checks. Fresh review confirmed the existing rule, not a new
+repository problem. Use directory-scoped discovery before content lookup;
+never turn a no-match result into guesses at adjacent module filenames.
+
 **What happened:** a commit was made from the Bash tool with
 `git commit -m @'...'@`, which is PowerShell here-string syntax. Bash has no such
 form, so `@` was passed through as an ordinary character: the commit subject

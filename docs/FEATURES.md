@@ -877,7 +877,13 @@ contacts remain historical evidence, not the current bike's limitation. See
 All Sims share one approved appearance with household-specific shirts. The lower bunk also
 has a generated foreground layer, so its upper mattress, near posts, rail, and
 ladder cover the horizontal body correctly. Double-bed sleeping, cooking,
-washing, using a toilet, and idling remain static poses. The generic
+washing, using a toilet, dining-table seating, and idling remain static poses.
+The builder play-through on 2026-09-20 confirmed that a moved and rotated table
+is reachable and usable, but its "Sit down to eat" action still leaves Sims
+standing beside it. Proper multi-seat dining needs authored seating anchors,
+chair/table association and matching poses; moving the table must not silently
+move separately placed chairs. This remains an animation task, not a completed
+part of furniture placement. The generic
 `Using object` activity stays deliberately text-only until each category has
 an honest anchor and body contract.
 
