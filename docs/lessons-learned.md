@@ -6121,6 +6121,13 @@ inputs as a defect observed in the shipped household.
 the exact production source passes all 26 placement tests. No production or
 mutation-baseline change is required.
 
+The same campaign exposed missing north-side approach coverage. A literal full
+2x2 perimeter now constrains every usable side, then separately removes a solid
+wall contact and an occupied approach. Each `y - 1` mutation to addition or
+division fails before source restoration; all 27 placement tests then pass.
+An integration check requiring some reachable contact is not proof that the
+helper enumerates every contact the placement policy promises to protect.
+
 ## [L-layout-migration-passive-conversation-partners] Preserve both sides of saved activities
 
 **What happened.** The first bathtub-rotation migration rejected an active

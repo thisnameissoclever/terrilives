@@ -21,6 +21,42 @@ fn footprint_fit_requires_nonzero_dimensions_and_checked_bounds() {
     }
 }
 
+#[test]
+fn usable_approaches_include_every_side_and_exclude_blocked_contacts() {
+    let mut world = World::new();
+    let rect = Rectangle {
+        entity: world.spawn_empty().id(),
+        origin: (2, 2),
+        footprint: Footprint { width: 2, depth: 2 },
+    };
+    let mut grid = TileGrid::new(6, 6);
+    for (x, y) in [(2, 2), (3, 2), (2, 3), (3, 3)] {
+        grid.set_blocked(x, y, true);
+    }
+    let mut expected = HashSet::from([
+        (2, 1),
+        (3, 1),
+        (2, 4),
+        (3, 4),
+        (1, 2),
+        (1, 3),
+        (4, 2),
+        (4, 3),
+    ]);
+    let actual = approaches(rect, &grid);
+    assert_eq!(actual.len(), expected.len());
+    assert_eq!(actual.into_iter().collect::<HashSet<_>>(), expected);
+
+    grid.set_edge_blocked((2, 1), (2, 2), true);
+    grid.set_blocked(3, 4, true);
+    expected.remove(&(2, 1));
+    expected.remove(&(3, 4));
+    assert_eq!(
+        approaches(rect, &grid).into_iter().collect::<HashSet<_>>(),
+        expected
+    );
+}
+
 fn place(sim: &mut Sim, object: u32, origin: (u32, u32), facing: Facing) {
     sim.world_mut()
         .resource_mut::<CommandQueue>()
