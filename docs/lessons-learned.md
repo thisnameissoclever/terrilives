@@ -57,6 +57,25 @@ resulting career state and settled position, not only the rendered door state.
 **How to verify.** The two career arrival regressions must pass; the targeted
 mutation run must catch all eight changed comparisons and coordinate
 subtractions. The 2026-09-20 correction caught 8/8 without a baseline exception.
+## [L-layout-schema-exporter-impact] Include offline asset tools in schema impact scans
+
+**What happened.** Main CI stopped publication because the exercise-bike
+clearance test still indexed the removed `lot['wall']` field. The corresponding
+offline preview exporter had the same stale assumption. Local Rust, web and
+sprite suites passed but did not include this separate model-test suite.
+
+**Root cause.** The impact scan covered runtime content consumers but missed
+offline art tooling. Running only the atlas generator tests was not equivalent
+to the CI step, which runs seven Python suites.
+
+**Prevention rule.** Search all content readers, including model exporters,
+when changing authored schemas. Run the complete asset-test command list from
+CI on a staged-only export before claiming reproduction acceptance.
+
+**How to verify.** Check current wall geometry independently, retain the old
+clearance regression as historical proof, and run sprite, Sim, furniture,
+kitchen, bathroom, bedroom and office suites. Do not delete a stale test just
+to make CI green; update the production consumer it exposed.
 
 ## [L-edge-contact-legacy-and-bounds] Keep strict new geometry separate from legacy contact
 
