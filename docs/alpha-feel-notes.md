@@ -2908,3 +2908,29 @@ Played the built bundle over the local preview across several in-game days at
   measured from the scheduler and the network, not heard. Nothing here
   establishes that the clips sound right in the mix, only that the right
   clips play at the right times.
+
+## [A-front-door-played] A visible career doorway, 2026-09-20
+
+Played the production preview with the shipped household. The door opens as
+Tim approaches, stays open while he crosses, closes while he is away, and
+opens for his paid return. The fixed frame and brass handle remain readable
+at normal zoom. Day and night tinting match the room; phone-sized camera
+panning reaches the doorway without opening the HUD over it.
+
+The first integration found a blocked straight-inward tile: the existing floor
+lamp lives there. The authored side landing now keeps the lamp and saved
+positions intact. Review also caught a ghost door in blank rooms, a reversed
+first return interval, and an unpersisted presentation marker affecting saved
+gameplay. Constructor, interpolation and cross-constructor replay regressions
+now cover those boundaries.
+
+Save and Load were exercised while the worker stood at the open threshold.
+The restored crossing completed with funds still at 120. A conversation was
+watched from gestures through completion, and Tim completed his post-work
+sleep with energy back at 100. Reduced motion keeps the leaf fully open during
+crossings, while Pause freezes it.
+
+Evidence and exact proof boundaries are in
+`docs/assets/review-evidence/front-door/README.md`. This entry records local
+play, not a claim that the Pages release has already happened. An outside
+world, room construction and movable furniture are not part of this door slice.

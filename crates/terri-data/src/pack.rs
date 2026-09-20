@@ -240,6 +240,34 @@ pub struct CompiledLot {
     pub front_door: Option<(u32, u32)>,
 }
 
+/// Structural routing and presentation data for one validated lot-boundary portal.
+///
+/// A portal remains ordinary walkable floor. It is not a smart object and has
+/// no Save V1 identity. The current lot has one front door, while the pack
+/// stores a list so later lot transitions can reuse this presentation shape.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CompiledPortal {
+    pub position: (u32, u32),
+    /// Walkable approach and return landing.
+    ///
+    /// This may sit beside the door along the boundary. It is not the door's
+    /// outward normal; renderers derive that exclusively from `facing`.
+    pub inward: (u32, u32),
+    pub facing: CompiledSocketFacing,
+    pub hinge: CompiledPortalHinge,
+    pub frame_sprite: u32,
+    pub closed_sprite: u32,
+    pub ajar_sprite: u32,
+    pub open_sprite: u32,
+}
+
+/// Which jamb carries the leaf, relative to the portal's outward facing.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum CompiledPortalHinge {
+    Left,
+    Right,
+}
+
 impl CompiledLot {
     /// Whether `(x, y)` is one of this lot's wall tiles.
     ///
@@ -610,8 +638,8 @@ pub struct ContentPack {
     /// the feature land without every test fixture growing a table it
     /// does not care about.
     ///
-    /// **Last in this struct on purpose**, per the appending rule on
-    /// `lot`.
+    /// Appended at its introduction, per the pack's compatibility rule.
+    /// Later fields follow it rather than being inserted ahead of it.
     pub circadian: Option<Circadian>,
     /// The activity tag that means sleeping, from `[tuning]`.
     ///
@@ -630,8 +658,16 @@ pub struct ContentPack {
     /// With two or more, the simulation draws a pair and the conversation
     /// lasts exactly as long as those two clips together.
     ///
-    /// **Last in this struct on purpose**, per the appending rule on `lot`.
+    /// It was the pack tail until portal presentation arrived. New fields
+    /// continue to append after it rather than moving this block.
     pub voice_clips: Vec<CompiledVoiceClip>,
+    /// Validated lot-boundary portal rows.
+    ///
+    /// Appended at the complete pack tail so every established block retains
+    /// its byte offset. The existing `lot.front_door` remains the career-route
+    /// identity. Portal coordinates affect routing and the save-content
+    /// fingerprint; facing, hinge and sprites remain presentation metadata.
+    pub portals: Vec<CompiledPortal>,
 }
 
 /// One recorded clip, compiled.
@@ -1084,6 +1120,7 @@ mod tests {
                     duration_ticks: 27,
                 },
             ],
+            portals: vec![],
         }
     }
 

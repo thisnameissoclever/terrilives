@@ -10,8 +10,9 @@
 //! What a shift does, end to end: at `tick % day_ticks == shift_start`
 //! the worker drops whatever it holds, walks to the lot's front door
 //! and vanishes into `AtWork` for `shift_ticks`; the return restores
-//! it at the door, debits energy, credits the household [`Funds`] and
-//! pays the career's (non-negative, deliberately small) satisfaction.
+//! it at the door, pays the shift, then crosses one tile into the lot
+//! when the door has authored portal routing. Legacy lots still reappear
+//! on the door tile.
 //! Needs keep decaying at work - a shift is tiring, and hungry - and
 //! that time-tax on the second axis is the career's real price, which
 //! is [S1]'s framing and the reason career satisfaction never needs to
@@ -137,7 +138,7 @@ pub fn start_shift(
     }
 }
 
-/// Clocks arrived commuters in, counts shifts down, and pays returns.
+/// Clocks departures in, counts shifts down, pays returns, and finishes arrivals.
 ///
 /// Runs after `follow_path`: a commuter whose `Path` is gone has
 /// arrived at the door, because movement removes an exhausted
@@ -145,11 +146,13 @@ pub fn start_shift(
 /// there is exactly one mover. The same-tick handoff works because
 /// command effects apply between systems: `follow_path` removes the
 /// Path, this system sees `Commuting` without `Path` and swaps it for
-/// [`AtWork`].
+/// [`AtWork`]. The same marker also owns a content portal's one-tile return
+/// path. Once that path ends away from the door, the marker is removed rather
+/// than clocking the worker straight back in.
 ///
-/// The countdown starts on the tick AFTER arrival - the insert is
-/// deferred - so a shift occupies `shift_ticks + 1` ticks door to
-/// door, the off-by-one every interaction's delivery loop shares.
+/// The countdown starts on the tick AFTER arrival because the insert is
+/// deferred. The office absence therefore occupies `shift_ticks + 1` ticks.
+/// A content portal adds its ordinary one-tile walk after the worker is paid.
 // The standing type_complexity allow: the query tuple is what pushes
 // past clippy's threshold, and an alias would only move it.
 #[allow(clippy::type_complexity)]
@@ -161,6 +164,7 @@ pub fn commute_and_work(
         (
             Entity,
             &Career,
+            &Position,
             &mut Needs,
             &mut Satisfaction,
             Option<&mut AtWork>,
@@ -176,14 +180,33 @@ pub fn commute_and_work(
     working.sort_by_key(|entity| entity.index());
 
     for worker in working {
-        let Ok((_, career, mut needs, mut satisfaction, at_work, commuting, has_path)) =
+        let Ok((_, career, position, mut needs, mut satisfaction, at_work, commuting, has_path)) =
             workers.get_mut(worker)
         else {
             continue;
         };
         let career = &content.0.careers[career.0 as usize];
+        let front_portal = content.0.lot.front_door.and_then(|door| {
+            content
+                .0
+                .portals
+                .iter()
+                .find(|portal| portal.position == door)
+        });
 
         if commuting && !has_path {
+            if let Some(portal) = front_portal {
+                let away_from_door = (position.x - portal.position.0 as f32).abs() > 0.01
+                    || (position.y - portal.position.1 as f32).abs() > 0.01;
+                if away_from_door {
+                    // The same marker covers both directions. An outbound
+                    // commuter exhausts its path on the door tile; an inbound
+                    // commuter exhausts it one tile inside. Position therefore
+                    // distinguishes the two without adding Save V1 state.
+                    commands.entity(worker).remove::<Commuting>();
+                    continue;
+                }
+            }
             // Arrived. The rabbit hole swallows the sim: render skips
             // it, selection and the people loops exclude it, and its
             // Position stays frozen at the door so its hash row (and
@@ -202,12 +225,24 @@ pub fn commute_and_work(
         };
         at_work.remaining_ticks -= 1;
         if at_work.remaining_ticks == 0 {
-            // The return, all four effects on one tick: reappear (the
-            // AtWork removal is what un-hides the sim), pay the
-            // household, bill the body, and credit the life score.
+            // The return settles all four shift effects on one tick:
+            // reappear (the AtWork removal is what un-hides the sim),
+            // pay the household, bill the body, and credit the life score.
+            // An authored portal adds a normal one-tile walk, but the walk
+            // owns no second payment edge.
             // Needs::drain clamps at zero; a worker who left exhausted
             // comes home at rock bottom, not in debt.
-            commands.entity(worker).remove::<AtWork>();
+            let mut returning = commands.entity(worker);
+            returning.remove::<AtWork>();
+            if let Some(portal) = front_portal {
+                returning.insert((
+                    Commuting,
+                    Path {
+                        steps: vec![(portal.inward.0 as i32, portal.inward.1 as i32)],
+                        cursor: 0,
+                    },
+                ));
+            }
             needs.drain(NeedId::Energy, career.energy_cost);
             funds.0 += career.pay as i64;
             satisfaction.add(career.satisfaction);
@@ -221,7 +256,9 @@ mod tests {
     use crate::test_content;
     use crate::Sim;
     use terri_core::{Agent, CommandQueue};
-    use terri_data::{CompiledCareer, ContentPack};
+    use terri_data::{
+        CompiledCareer, CompiledPortal, CompiledPortalHinge, CompiledSocketFacing, ContentPack,
+    };
 
     /// A 6-tick shift starting at day-tick 3 of a 30-tick day, with
     /// pairwise distinct pay, energy and satisfaction so a payout read
@@ -261,6 +298,23 @@ mod tests {
         }))
     }
 
+    fn career_pack_with_portal() -> &'static ContentPack {
+        let base = career_pack(vec![]);
+        Box::leak(Box::new(ContentPack {
+            portals: vec![CompiledPortal {
+                position: (15, 2),
+                inward: (15, 3),
+                facing: CompiledSocketFacing::PositiveX,
+                hinge: CompiledPortalHinge::Left,
+                frame_sprite: 41,
+                closed_sprite: 42,
+                ajar_sprite: 43,
+                open_sprite: 44,
+            }],
+            ..base.clone()
+        }))
+    }
+
     fn a_worker(sim: &mut Sim, x: f32, y: f32) -> Entity {
         sim.world_mut()
             .spawn((
@@ -271,6 +325,166 @@ mod tests {
                 Career(0),
             ))
             .id()
+    }
+
+    #[test]
+    fn a_return_crosses_a_content_portal_and_save_load_does_not_pay_twice() {
+        let pack = career_pack_with_portal();
+        let mut sim = test_content::sim_with_portals(16, 12, pack);
+        let worker = a_worker(&mut sim, 15.0, 2.0);
+        sim.world_mut()
+            .entity_mut(worker)
+            .insert(AtWork { remaining_ticks: 1 });
+
+        sim.tick();
+
+        assert!(sim.world().get::<AtWork>(worker).is_none());
+        assert!(sim.world().get::<Commuting>(worker).is_some());
+        assert_eq!(
+            sim.world()
+                .get::<Path>(worker)
+                .and_then(|path| path.steps.last().copied()),
+            Some((15, 3)),
+            "the return crosses one authored tile into the lot"
+        );
+        assert_eq!(sim.funds(), 130, "the completed shift pays once");
+
+        let snapshot = sim.save_snapshot();
+        let mut restored = test_content::sim_with_portals(16, 12, pack);
+        assert_eq!(restored.load_snapshot(snapshot), Ok(()));
+        assert_eq!(restored.funds(), 130);
+
+        for _ in 0..20 {
+            restored.tick();
+            if restored.world().get::<Commuting>(worker).is_none() {
+                break;
+            }
+        }
+
+        assert!(restored.world().get::<AtWork>(worker).is_none());
+        assert!(restored.world().get::<Commuting>(worker).is_none());
+        let position = restored.world().get::<Position>(worker).unwrap();
+        assert_eq!((position.x, position.y), (15.0, 3.0));
+        assert_eq!(
+            restored.funds(),
+            130,
+            "finishing the doorway walk cannot pay again"
+        );
+    }
+
+    #[test]
+    fn career_return_replays_identically_with_or_without_portal_presentation() {
+        let mut source = Sim::new_from_shipped_lot();
+        let worker = {
+            let mut workers = source
+                .world_mut()
+                .query_filtered::<Entity, (With<Agent>, With<Career>)>();
+            workers
+                .iter(source.world())
+                .next()
+                .expect("the shipped household has an employed Sim")
+        };
+        source
+            .world_mut()
+            .entity_mut(worker)
+            .insert((Position { x: 15.0, y: 2.0 }, AtWork { remaining_ticks: 1 }));
+        let snapshot = source.save_snapshot();
+
+        let mut presented = Sim::new_from_shipped_lot();
+        let mut headless = Sim::new();
+        assert_eq!(presented.load_snapshot(snapshot.clone()), Ok(()));
+        assert_eq!(headless.load_snapshot(snapshot), Ok(()));
+        assert!(
+            presented
+                .world()
+                .contains_resource::<crate::portals::ActivePortals>(),
+            "the shipped constructor activates portal presentation"
+        );
+        assert!(
+            !headless
+                .world()
+                .contains_resource::<crate::portals::ActivePortals>(),
+            "the blank constructor deliberately has no portal presentation"
+        );
+
+        let mut settled = false;
+        for tick in 1..=20 {
+            presented.tick();
+            headless.tick();
+            assert_eq!(
+                presented.save_snapshot(),
+                headless.save_snapshot(),
+                "presentation activation changed replay state on tick {tick}"
+            );
+            assert_eq!(
+                presented.world_hash(),
+                headless.world_hash(),
+                "presentation activation changed the world hash on tick {tick}"
+            );
+
+            let position = presented
+                .world()
+                .get::<Position>(worker)
+                .expect("the worker survives the return");
+            if presented.world().get::<AtWork>(worker).is_none()
+                && presented.world().get::<Commuting>(worker).is_none()
+                && (position.x, position.y) == (15.0, 3.0)
+            {
+                settled = true;
+                break;
+            }
+        }
+
+        assert!(settled, "the worker must finish the authored return walk");
+        let position = presented
+            .world()
+            .get::<Position>(worker)
+            .expect("the worker survives the return");
+        assert_eq!((position.x, position.y), (15.0, 3.0));
+        assert!(presented.world().get::<AtWork>(worker).is_none());
+        assert!(presented.world().get::<Commuting>(worker).is_none());
+    }
+
+    #[test]
+    fn a_visible_return_starts_at_the_boundary_plane_without_reversing_outward() {
+        let pack = career_pack_with_portal();
+        let mut sim = test_content::sim_with_portals(16, 12, pack);
+        let worker = a_worker(&mut sim, 15.0, 2.0);
+        sim.world_mut()
+            .entity_mut(worker)
+            .insert(AtWork { remaining_ticks: 2 });
+
+        let samples = |sim: &Sim| {
+            let buffer = sim.render_buffer();
+            let row = buffer
+                .ids
+                .iter()
+                .position(|id| *id == worker.index_u32())
+                .expect("the hidden worker keeps its aligned render row");
+            let offset = row * 2;
+            (
+                (
+                    buffer.prev_positions[offset],
+                    buffer.prev_positions[offset + 1],
+                ),
+                (buffer.positions[offset], buffer.positions[offset + 1]),
+            )
+        };
+
+        sim.sync_render_buffer();
+        sim.tick();
+        sim.sync_render_buffer();
+        assert_eq!(samples(&sim), ((15.5, 2.0), (15.5, 2.0)));
+
+        sim.tick();
+        sim.sync_render_buffer();
+        assert!(sim.world().get::<AtWork>(worker).is_none());
+        assert!(sim.world().get::<Commuting>(worker).is_some());
+        assert_eq!(
+            samples(&sim),
+            ((15.5, 2.0), (15.5, 2.0)),
+            "the first visible interval must not step outward and reverse"
+        );
     }
 
     /// The whole rabbit hole on one worker: the shift starts on the

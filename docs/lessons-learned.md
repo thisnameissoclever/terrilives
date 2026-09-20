@@ -5794,3 +5794,43 @@ three contact mutations and four structural mutations fail. The complete
 reviewed-loader test must accept a valid fixture and reject changed bindings,
 dependencies, raw images and comparison implementation. Keep the old render
 journal when fixing provenance code; never relabel it as a fresh run.
+
+## [L-all-refs-history-is-not-shipped-history] Check ancestry before claiming a feature is on main
+
+**What happened.** The front-door continuation described furniture rotation as
+already on main after finding its commits in a history search across all refs.
+The implementation existed only on an unmerged local branch.
+
+**Root cause.** Commit discovery was mistaken for release provenance.
+
+**Prevention rule.** Fetch, then check the feature commit's ancestry against
+`origin/main` before describing it as merged. A local branch can contain useful
+implementation without being part of the deployed game.
+
+**How to verify.** `git merge-base --is-ancestor <feature> origin/main` must exit
+zero for a merged claim. Verify the merge's Pages deployment separately for a
+live claim. The builder round should reuse the unmerged facing implementation
+after reconciling it with current main.
+
+## [L-portal-runtime-boundaries] Door metadata needs an active lot and a visible-transition test
+
+**What happened.** The first integrated door build drew the shipped doorway
+inside empty test rooms. Review also found that a returning worker's first
+visible interval interpolated outward before the inward walk began.
+
+**Root cause.** Shared content definitions were mistaken for active scene
+instances. The interpolation test checked individual positions but not the
+hidden-to-visible transition that consumes both the previous and current rows.
+
+**Prevention rule.** Activate portal instances with the authored lot, not with
+the content registry. Save restoration must restore that active-lot contract.
+At a visibility boundary, test both interpolation endpoints. A routing field
+such as the return landing is structural content even when nested under a
+table named `visual`; use the existing reviewed migration mechanism when
+adding it to the compatibility digest.
+
+**How to verify.** Empty-room render tests must retain their original instance
+counts. The final hidden work sample and first visible return sample must both
+begin at the physical threshold, followed by inward movement. Changing only
+the landing must change compatibility, while the specifically reviewed
+pre-door public save remains loadable.

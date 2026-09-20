@@ -1,6 +1,7 @@
 //! Simulation systems and scheduling. No web dependencies, ever.
 
 mod mood;
+pub mod portals;
 pub mod render_buffer;
 mod save;
 pub mod systems;
@@ -43,6 +44,7 @@ pub struct Sim {
     schedule: Schedule,
     command_schedule: Schedule,
     render: render_buffer::RenderBuffer,
+    portals: portals::PortalBuffer,
     /// Full ECS identities that used a socket in the last render sample.
     ///
     /// Keeping `Entity` rather than its raw index means a despawn and index
@@ -554,7 +556,8 @@ impl Sim {
     /// On any error `self` is untouched.
     pub fn load_snapshot(&mut self, snapshot: terri_core::SaveSnapshotV1) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
-        let restored = save::restore(snapshot, content)?;
+        let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let restored = save::restore(snapshot, content, active_portals)?;
         *self = restored;
         Ok(())
     }
@@ -821,6 +824,7 @@ impl Sim {
             schedule,
             command_schedule,
             render: render_buffer::RenderBuffer::default(),
+            portals: portals::PortalBuffer::default(),
             socket_projected_entities: std::collections::HashSet::new(),
         }
     }
@@ -962,6 +966,8 @@ impl Sim {
     pub fn new_from_shipped_lot() -> Self {
         let pack = terri_data::pack();
         let mut sim = Self::new_from_lot(&pack.lot, &pack.objects);
+        sim.world
+            .insert_resource(portals::ActivePortals::from_content(pack));
         sim.spawn_household(&pack.personalities, &pack.household, &pack.traits);
         sim
     }
@@ -1139,6 +1145,7 @@ impl Sim {
     }
 
     fn sync_render_buffer_inner(&mut self, advance_interpolation: bool) {
+        portals::sync_portals(&mut self.world, &mut self.portals);
         use std::collections::{HashMap, HashSet};
 
         use terri_core::{Agent, Position, SmartObject};
@@ -1476,11 +1483,12 @@ impl Sim {
                 render_buffer::sound_action::NONE,
                 render_buffer::NO_SOUND_SOURCE,
             ));
+            let crossing = portals::crossing_position(&self.world, entity, Position { x, y });
             rows.push(RenderRow {
                 entity,
                 index: entity.index_u32(),
-                x,
-                y,
+                x: crossing.x,
+                y: crossing.y,
                 kind,
                 sim_id: sim_id.map_or(render_buffer::NO_SIM_ID, |id| id.0),
                 footprint_width,
@@ -1578,6 +1586,10 @@ impl Sim {
 
     pub fn render_buffer(&self) -> &render_buffer::RenderBuffer {
         &self.render
+    }
+
+    pub fn portal_buffer(&self) -> &portals::PortalBuffer {
+        &self.portals
     }
 
     /// The seven need levels of the entity carrying `index`, or `None`

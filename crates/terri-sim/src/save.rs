@@ -1,7 +1,10 @@
 //! Simulation snapshot capture, validation, and reconstruction.
 
 use crate::systems::chain::CHAIN_STEP;
-use crate::{default_action_sockets, Content, ForegroundSprite, ResolvedActionSockets, Sim};
+use crate::{
+    default_action_sockets, portals::ActivePortals, Content, ForegroundSprite,
+    ResolvedActionSockets, Sim,
+};
 use bevy_ecs::{
     entity::EntityIndex,
     prelude::{Entity, World},
@@ -266,6 +269,7 @@ fn capture_command(command: &SimCommand) -> SavedCommand {
 pub(super) fn restore(
     snapshot: SaveSnapshotV1,
     content: &'static ContentPack,
+    active_portals: Option<ActivePortals>,
 ) -> Result<Sim, SaveError> {
     validate_snapshot(&snapshot, content)?;
     let migrate_legacy_household_names =
@@ -273,6 +277,9 @@ pub(super) fn restore(
 
     let mut sim = Sim::new();
     sim.world.insert_resource(Content(content));
+    if let Some(active_portals) = active_portals {
+        sim.world.insert_resource(active_portals);
+    }
     sim.world.insert_resource(SimClock {
         tick: snapshot.tick,
     });
@@ -1256,6 +1263,7 @@ fn exceeds_limit(value: usize, inclusive_maximum: usize) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bevy_ecs::prelude::With;
 
     fn blank_entity(index: u32) -> SavedEntity {
         SavedEntity {
@@ -3427,7 +3435,7 @@ mod tests {
         assert_eq!(restored.load_snapshot(prior), Ok(()));
 
         let current = restored.save_snapshot();
-        assert_eq!(current.content_fingerprint, 0xa020_602a_6acd_3a90);
+        assert_eq!(current.content_fingerprint, 0xd1c8_9f68_9f73_2f30);
         assert_eq!(current.blocked_tiles, expected_blocked);
         assert_eq!(current.entities, expected_entities);
         let name = current
@@ -3621,6 +3629,64 @@ mod tests {
                 "current {object} action must retain its row and remaining duration"
             );
         }
+    }
+
+    #[test]
+    fn the_pre_portal_save_keeps_current_actions_names_and_the_active_lot() {
+        let mut source = Sim::new_from_shipped_lot();
+        let pack = source.world().resource::<Content>().0;
+        let object_def = pack.find("moving_box").expect("shipped exercise bike row");
+        let object = {
+            let mut query = source.world_mut().query::<(Entity, &SmartObject)>();
+            query
+                .iter(source.world())
+                .find_map(|(entity, object)| (object.0 == object_def).then_some(entity))
+                .expect("the shipped lot places the exercise bike")
+        };
+        let worker = {
+            let mut query = source.world_mut().query_filtered::<Entity, With<Agent>>();
+            query
+                .iter(source.world())
+                .next()
+                .expect("the shipped household has a Sim")
+        };
+        source.world_mut().entity_mut(object).insert(Reserved);
+        source.world_mut().entity_mut(worker).insert((
+            SimName("Terri".to_string()),
+            Target {
+                object,
+                interaction: 0,
+            },
+            Eating {
+                object: object_def,
+                interaction: 0,
+                remaining_ticks: 47,
+            },
+        ));
+
+        let mut prior = source.save_snapshot();
+        prior.content_fingerprint = 0xa020_602a_6acd_3a90;
+        let expected_entities = prior.entities.clone();
+
+        let mut restored = Sim::new_from_shipped_lot();
+        assert_eq!(restored.load_snapshot(prior), Ok(()));
+        let current = restored.save_snapshot();
+        assert_eq!(current.entities, expected_entities);
+        assert_eq!(current.content_fingerprint, 0xd1c8_9f68_9f73_2f30);
+        assert!(
+            restored.world().contains_resource::<ActivePortals>(),
+            "load must retain the active lot independently of Save V1"
+        );
+        assert_eq!(restored.portal_buffer().states.len(), 1);
+        assert_eq!(
+            current
+                .entities
+                .iter()
+                .find(|entity| entity.index == worker.index_u32())
+                .and_then(|entity| entity.sim_name.as_deref()),
+            Some("Terri"),
+            "the portal-only migration must not invoke the old household rename"
+        );
     }
 
     #[test]

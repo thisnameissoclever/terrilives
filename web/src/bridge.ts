@@ -361,6 +361,31 @@ export class SimBridge {
     );
   }
 
+  get portalCount(): number { return this.handle.portal_count(); }
+
+  portals(): this { return this; }
+
+  portalPositions(): Float32Array {
+    return new Float32Array(this.memory.buffer, this.handle.portal_positions_ptr(), this.portalCount * 2);
+  }
+
+  portalFrames(): Uint32Array {
+    return new Uint32Array(this.memory.buffer, this.handle.portal_frames_ptr(), this.portalCount);
+  }
+
+  portalDepthOffsets(): Float32Array {
+    return new Float32Array(this.memory.buffer, this.handle.portal_depth_offsets_ptr(), this.portalCount);
+  }
+
+  portalLeaves(reducedMotion: boolean): Uint32Array {
+    return new Uint32Array(this.memory.buffer, reducedMotion
+      ? this.handle.portal_reduced_leaves_ptr() : this.handle.portal_leaves_ptr(), this.portalCount);
+  }
+
+  portalStates(): Uint32Array {
+    return new Uint32Array(this.memory.buffer, this.handle.portal_states_ptr(), this.portalCount);
+  }
+
   /**
    * The raw entity index standing in each row.
    *

@@ -450,6 +450,39 @@ pub struct LotFile {
 pub struct FrontDoorDef {
     pub x: i32,
     pub y: i32,
+    /// Optional contract for an animated boundary portal and its landing.
+    /// Coordinate-only doors remain valid for legacy lots and test fixtures.
+    #[serde(default)]
+    pub visual: Option<FrontDoorVisualDef>,
+}
+
+/// Authored boundary behavior and presentation for a front door.
+///
+/// `facing` uses the established isometric lot vocabulary (`SE`, `NW`, `SW`,
+/// `NE`). `hinge` is `left` or `right` relative to that outward facing.
+#[derive(Debug, Deserialize)]
+pub struct FrontDoorVisualDef {
+    pub facing: String,
+    pub hinge: String,
+    /// Optional cardinally adjacent approach and return landing.
+    ///
+    /// This coordinate changes routing and therefore participates in the
+    /// save-content fingerprint. When omitted, compilation uses the neighbor
+    /// opposite the outward facing. A side neighbor lets furnished boundary tiles keep their
+    /// existing layout without confusing the landing with the door normal.
+    #[serde(default)]
+    pub entry: Option<PortalEntryDef>,
+    pub frame_sprite: String,
+    pub closed_sprite: String,
+    pub ajar_sprite: String,
+    pub open_sprite: String,
+}
+
+/// One walkable tile from which a Sim approaches or finishes crossing a portal.
+#[derive(Debug, Deserialize)]
+pub struct PortalEntryDef {
+    pub x: i32,
+    pub y: i32,
 }
 
 /// One impassable tile.
