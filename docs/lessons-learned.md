@@ -5794,3 +5794,66 @@ three contact mutations and four structural mutations fail. The complete
 reviewed-loader test must accept a valid fixture and reject changed bindings,
 dependencies, raw images and comparison implementation. Keep the old render
 journal when fixing provenance code; never relabel it as a fresh run.
+
+## [L-cancelled-mutation-sweeps-are-not-local-test-results] Distinguish verification costs and coverage
+
+**What happened.** PR83 waited on two full eight-shard mutation sweeps after
+a documentation-only correction triggered another run. The owner asked about
+cost, cancelled the runs, then explicitly authorized deployment using the
+completed local checks and exact-head Rust/web checks.
+
+**Root cause.** Every PR update triggers the full Rust mutation workflow,
+including documentation updates. Ordinary tests, targeted local mutations and
+a full mutation sweep are different evidence; none should be described as an
+identical rerun of the others. Long silent waits obscured that distinction.
+
+**Prevention rule.** Report which checks ran, which remain incomplete, and
+why they matter. Standard hosted runner minutes in this public repository are
+free under GitHub's current billing rules; storage and account-wide charges
+are separate. Do not claim an account-wide billing audit from runner labels.
+Honor the owner's explicit release exception without calling cancelled checks
+green. Do not restart cancelled sweeps or alter standing workflow policy
+without authorization.
+
+**How to verify.** PR83's release comment records five successful mutation
+shards and three cancelled shards. Main CI 35528602122 and actual Pages deploy
+35528743259 passed for d5ec05b; the fetched public atlas hash matched the
+reviewed asset. Future reporting must identify the actual revision and checks.
+
+## [L-shell-error-parameters-must-change-on-retry] Check the failed parameter before retrying
+
+**What happened.** A source-reading command repeatedly passed the word `fifty`
+to PowerShell's numeric `Select-Object -First` argument.
+
+**Root cause.** The next command preserved the invalid argument instead of
+correcting the parameter named in the error.
+
+**Prevention rule.** Compare the error's parameter and value with the proposed
+retry. Use numeric literals for line windows, or symbol-centered `rg -n -A`
+searches. After three failures, get a fresh review instead of another variant.
+
+**How to verify.** `1..5 | Select-Object -Skip 2 -First 2` emits 3 and 4.
+The corrected `-First 50` source read succeeds; no repository edits are needed.
+
+## [L-layout-migration-passive-conversation-partners] Preserve both sides of saved activities
+
+**What happened.** The first bathtub-rotation migration rejected an active
+conversation on the newly occupied tile. It could also move the passive
+participant away from the speaker, leaving a gap or placing them together.
+
+**Root cause.** Only the initiator carries `Socialising`; the passive partner
+has a reservation. Inspecting each entity's own active-action component missed
+the relationship. Treating this as an unsupported custom world would reject
+an ordinary shipped-world save.
+
+**Prevention rule.** Build contact constraints from both ends of saved
+relationships before relocating anyone. Preserve the untouched partner where
+possible and choose a reachable adjacent location for the affected person.
+Keep timers, voice clips, reservations and queued actions unchanged. Validate
+the original content references before migrating their fingerprint.
+
+**How to verify.** Test both initiator and passive-partner relocation with
+stationary partners on either side. Deleting passive-contact registration must
+fail the distance assertion. Also sample running source worlds and retain a
+save produced by the previous browser build; freshly encoded fixtures alone
+do not establish that an old runtime's actual bytes load.

@@ -1149,6 +1149,8 @@ mod tests {
 
     #[test]
     fn every_public_full_pack_fingerprint_migrates_only_to_the_reviewed_shape() {
+        let reviewed = pre_rotation_pack();
+        let pack = || &reviewed;
         assert_eq!(
             content_fingerprint(pack()),
             0xa020_602a_6acd_3a90,
@@ -1178,6 +1180,8 @@ mod tests {
 
     #[test]
     fn the_prior_structural_shape_migrates_without_becoming_a_legacy_name_save() {
+        let reviewed = pre_rotation_pack();
+        let pack = || &reviewed;
         let prior = 0x26d5_982c_9af8_3de8;
         assert_eq!(
             PRIOR_STRUCTURAL_FINGERPRINT_MIGRATIONS,
@@ -1203,7 +1207,7 @@ mod tests {
 
     #[test]
     fn changing_either_new_interaction_closes_every_old_fingerprint_bridge() {
-        let current = pack().clone();
+        let current = pre_rotation_pack();
         for object in ["moving_box", "reference_shelf"] {
             let id = current.find(object).expect("shipped persistence key");
             for (mutation, changed) in [
@@ -1235,6 +1239,13 @@ mod tests {
                 }
             }
         }
+    }
+
+    fn pre_rotation_pack() -> ContentPack {
+        let mut source = pack().clone();
+        let bathtub = source.find("bathtub").expect("shipped bathtub");
+        source.objects[bathtub.0 as usize].footprint = Footprint { width: 2, depth: 1 };
+        source
     }
 
     #[test]
