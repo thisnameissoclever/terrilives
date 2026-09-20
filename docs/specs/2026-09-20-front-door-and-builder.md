@@ -1,8 +1,9 @@
 # Front door, then furniture builder
 
-Status: implemented and played locally with main's boundary walls and Save V2
-at `6951ba7`. Native and browser suites pass; targeted mutation and GitHub
-release checks remain pending.
+Status: implemented and played locally after integrating main through
+`c0eca30`, including boundary walls and Save V2. Native and browser suites and
+targeted mutation checks pass. The full GitHub mutation sweep and post-merge
+Pages verification remain release gates; this is not yet a deployed feature.
 
 ## Front-door release
 
