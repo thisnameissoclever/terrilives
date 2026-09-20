@@ -1,7 +1,15 @@
 # Interior walls on cell boundaries
 
-Status: implementation and local verification in progress; not published.
+Status at the corrected source checkpoint: local acceptance passed;
+production verification pending.
 Base: `412bf5c14cb1ad2fd3311673e203453c4d3418dc`.
+
+Publication checkpoint: source commit `6951ba7` reached main, but CI
+`35536147215` rejected an overlooked model test and Pages `35536281105`
+correctly skipped deployment. No claim of live success applies to that push.
+The exercise clearance test and its offline exporter still assumed legacy
+wall cells. Their correction and complete model-suite verification follow
+below. The 70 sprite tests alone were not the full CI asset-test step.
 
 The house stays 16x12. All furniture origins stay unchanged. The 28 former
 wall cells become floor. There are 34 boundary segments: 29 solid and five
@@ -159,6 +167,25 @@ A staged-only export under `output/interior-release-export/` passed all 70
 sprite tests, `python assets/sprites/gen/build.py --check` (1,221 sprites,
 4096x7926) and documentation-ID validation, exit 0. This export contains no
 ignored source renders, local dependencies, `.tmp/` or prior output evidence.
+
+## Offline-tool correction after CI
+
+The corrected staged-only export passed the complete CI asset matrix: 70
+sprite, 26 Sim, 30 furniture, 14 kitchen, eight bathroom, 13 bedroom and three
+office tests (164 total), followed by atlas reproduction and documentation
+IDs, all exit 0. One premature invocation read the old export while Git was
+still refreshing it; it is not accepted evidence. The final run began after
+export completion and its exporter SHA matched the restored source below.
+
+The bike proxy now uses current boundary endpoints and exact native offsets.
+Independent review accepted those coordinates. Removing the half-tile shift
+or the raster anchor caused the new tests to fail. The exporter was restored
+byte-for-byte to SHA256
+`5a14301413a5ff81b9c95833a605d20157854e4dbfcf85e294994f8e0d702b9b`.
+The historical forward-envelope test and its rejected-shape overlap remain
+unchanged. No runtime code, atlas bytes, Sim rig or art changed in this
+follow-up. The old committed proxy image is explicitly labeled historical;
+no new Blender render or current occupied-proxy approval is implied.
 
 Retained images: `interior-edges-flat.png`, `interior-edges-close.png`,
 `interior-edges-night.png`, and `interior-edges-work.png` in this directory.

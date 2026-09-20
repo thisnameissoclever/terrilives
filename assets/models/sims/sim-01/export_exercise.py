@@ -16,21 +16,55 @@ import objects
 from iso import canvas, emit
 
 
-def wall_proxy(clip, bike, images):
-    lot = tomllib.loads((ROOT / 'content/lot.toml').read_text())
+def bike_wall_panels(lot):
+    """The two solid segments below the bedroom door, using runtime vertex ownership."""
     placement = next(row for row in lot['place'] if row['object'] == 'moving_box')
     assert (placement['x'], placement['y']) == (4, 11)
-    assert {'x': 5, 'y': 11} in lot['wall']
-    wall_source, wall_draw = canvas()
-    objects.wallNS(wall_draw)
-    wall = emit(wall_source, *objects.EXACT['wallNS'])[0]
+    assert lot['height'] == 12
+    run = [edge for edge in lot['wall_edge']
+           if edge['axis'] == 'vertical' and edge['x'] == 6 and edge['y'] >= 9]
+    assert sorted((edge['y'], edge.get('doorway', False)) for edge in run) == [
+        (9, True), (10, False), (11, False)]
+    # Door apertures contribute no solid arms. North=1, south=4, as in edge-walls.ts.
+    vertices = {}
+    for edge in run:
+        if edge.get('doorway', False):
+            continue
+        x, y = edge['x'], edge['y']
+        vertices[(x, y)] = vertices.get((x, y), 0) | 4
+        vertices[(x, y + 1)] = vertices.get((x, y + 1), 0) | 1
+    names = {1: 'wallHalf1', 4: 'wallHalf4', 5: 'wallNS'}
+    return [(names[mask], x - 0.5, y - 0.5)
+            for (x, y), mask in sorted(vertices.items())]
+
+
+def bike_wall_offsets(lot):
+    """Project wall anchors relative to the unchanged bike origin."""
+    bike = next(row for row in lot['place'] if row['object'] == 'moving_box')
+    return [(name, ((x - bike['x']) - (y - bike['y'])) * 32,
+             ((x - bike['x']) + (y - bike['y'])) * 21)
+            for name, x, y in bike_wall_panels(lot)]
+
+
+def draw_bike_wall(board, origin, lot):
+    sprites = {sprite.__name__: sprite for sprite in (objects.wallNS, *objects.WALL_HALF_SPRITES)}
+    for name, dx, dy in bike_wall_offsets(lot):
+        source, draw = canvas()
+        sprites[name](draw)
+        wall = emit(source, *objects.EXACT[name])[0]
+        board.alpha_composite(wall, (round(origin[0] + dx - wall.width / 2),
+                                     round(origin[1] + dy + 21 - wall.height)))
+
+
+def wall_proxy(clip, bike, images):
+    lot = tomllib.loads((ROOT / 'content/lot.toml').read_text())
     floor_source, floor_draw = canvas()
     objects.floor(floor_draw)
     floor = emit(floor_source, *objects.EXACT.get('floor', (None, None)))[0]
     board = Image.new('RGBA', (3 * 200, 200), (235, 230, 218, 255))
     labels = ImageDraw.Draw(board)
     for column in range(3):
-        origin = (column * 200 + 90, 145)
+        origin = (column * 200 + 80, 145)
         for dx, dy in ((0, -1), (1, -1), (-1, 0), (0, 0), (1, 0)):
             point = (origin[0] + (dx - dy) * 32, origin[1] + (dx + dy) * 21)
             board.alpha_composite(floor, (round(point[0] - floor.width / 2), round(point[1] + 21 - floor.height)))
@@ -38,10 +72,8 @@ def wall_proxy(clip, bike, images):
         if column:
             body = images[('green', f'exercise-SE-{column - 1}.png')]
             board.alpha_composite(body, (round(origin[0] - clip['anchor'][0]), round(origin[1] + 21 - clip['anchor'][1])))
-        # Actual lot divider tiles (5,10) and (5,11), drawn after the bike and body.
-        for dx, dy in ((1, -1), (1, 0)):
-            point = (origin[0] + (dx - dy) * 32, origin[1] + (dx + dy) * 21)
-            board.alpha_composite(wall, (round(point[0] - wall.width / 2), point[1] + 21 - wall.height))
+        # Current edge panels, drawn after the bike and body as in the game.
+        draw_bike_wall(board, origin, lot)
         labels.text((column * 200 + 6, 7), 'Unoccupied + actual wall' if not column else f'Pose {column - 1} + actual wall', fill=(35, 32, 28))
     board.convert('RGB').resize((2400, 800), Image.Resampling.NEAREST).save(BASE / 'review/exercise/se-bike-wall-proxy-4x.png')
 
