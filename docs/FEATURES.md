@@ -245,7 +245,15 @@ Three baked looks rather than the three tinted instances per sim the spec
 proposed - the reasoning, and what would flip it back, is written down in
 `assets/sprites/gen/style.py` beside the palettes.
 
-**Save V1 survives the patch classes it can identify honestly.** The old
+**Save V2 stores room architecture; historical V1 saves remain supported.**
+The reviewed default household upgrades to boundary walls without moving its
+furniture or resetting its Sims. Custom V1 layouts keep their legacy walls.
+The browser keeps a byte-for-byte V1 recovery copy before its first V2 save,
+and a failed load disables saving until a successful load or confirmed New
+game. V2 files cannot be opened by older builds. See [D8] in
+`docs/ARCHITECTURE.md` for the compatibility and backup boundaries.
+
+**V1 compatibility remains limited to known patch classes.** The old
 fingerprint hashed the whole serialised pack, so every balance or art deploy
 invalidated every save. The replacement hashes numeric meanings the snapshot
 cannot validate by authored id: object footprints, station-role mappings and
@@ -301,12 +309,12 @@ morning and it reads as a simulation bug rather than as tuning. A zero
 point in the curve is no longer legal for the same reason: "never on its
 own" and "exhaustion always wins" cannot both be true.
 
-**Old saves survive it.** The counter is appended last in the snapshot and
-`load_bytes` retries a payload one byte short, because postcard writes a
+**Old saves survive it.** The counter is appended last in the V1 snapshot and
+the V1 branch of `load_bytes` retries a payload one byte short, because postcard writes a
 struct as its fields back to back and an empty `Vec` is a single zero -
 so a pre-ramp save IS a current one with that byte missing. The
-alternative was a schema-version bump, which would have thrown away every
-save anybody had.
+V2 retains that historical decoder rather than discarding old saves. Its
+own payload is decoded strictly, without the V1 tail repair.
 
 **The curve itself still wants a watched run.** A three-day probe of the
 shipped lot put sleep across both the evening and the afternoon rather
@@ -817,10 +825,12 @@ can use the same infrastructure.
 
 Two pieces, and they are separable:
 
-* **Facing.** An object gets an authored direction, the sprite it draws
-  follows from it, and a builder can turn it. The kitchen already has
-  hand-authored `SW` variants of four sprites, which is this feature done
-  once by hand for one direction.
+* **Facing.** The approved bike and reading chair already have real rendered
+  art and matching interaction poses for all four directions. The kitchen also
+  has hand-authored `SW` variants. The builder unit adds persistent runtime
+  direction and player controls; it must expose only directions with matching
+  art, foregrounds and sockets. Available art alone does not make an object
+  player-rotatable.
 * **Sub-object depth.** A tall object needs more than one depth. The bunk is
   the first shipped proof. Television screens, refrigerator doors, and other
   moving or occluding parts still need their own authored split.
@@ -849,10 +859,13 @@ every sim. `hair_cap` in `objects.py` traces the head instead.
 
 ### [A-animations] Several ordinary actions are still static poses
 
-The local rigged candidate has eight walking samples and four samples for
+The rigged Sim has eight walking samples and four samples for
 talking, eating, lower-bunk sleeping, armchair sitting, seated and standing
-reading, and watching fish. Cycling uses two held poses of the same model,
-with SE furniture contact accepted and other bike facings still failing.
+reading, and watching fish. The approved replacement bike has eight cycling
+samples in each of four directions, with matching furniture contributions and
+forward pedalling. The older two-pose supplement and failed mirrored-bike
+contacts remain historical evidence, not the current bike's limitation. See
+`docs/assets/review-evidence/furniture/README.md` for GPU and played checks.
 All Sims share one approved appearance with household-specific shirts. The lower bunk also
 has a generated foreground layer, so its upper mattress, near posts, rail, and
 ladder cover the horizontal body correctly. Double-bed sleeping, cooking,

@@ -119,7 +119,10 @@ pub fn advance_chains(
             // The ORIENTED rectangle: a station the player has turned is
             // approached where it now lies.
             let footprint = crate::placed_footprint(content.0, object.0, facing);
-            let Some(steps) = grid.find_path_adjacent(from, to, footprint) else {
+            let Some(steps) = grid
+                .find_path_adjacent(from, to, footprint)
+                .and_then(|steps| grid.anchor_path((pos.x, pos.y), steps))
+            else {
                 continue;
             };
             let shorter = match &best {

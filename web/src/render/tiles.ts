@@ -12,9 +12,9 @@
  * in `frame.ts` runs every frame under [D11]'s no-allocation rule, and
  * [V11] measured what a single unexamined allocation on that path costs:
  * 57.76 MB over 2,394 frames, from a two-element array nobody had
- * checked. The shipped block is 192 floor tiles, 28 interior wall panels,
- * 28 boundary panels, and 5 doorway panels. Local-light values are baked into
- * those same rows; rebuilding or uploading them per frame would be that
+ * checked. Legacy layouts draw cell panels; explicit edge layouts own each
+ * half-panel at one endpoint and each doorway at its midpoint. Local-light
+ * values are baked into those rows; rebuilding or uploading them per frame would be that
  * mistake an order of magnitude larger.
  *
  * Pure arithmetic and no GPU, like `iso.ts` and `instances.ts`, so it is
@@ -22,6 +22,7 @@
  */
 
 import { spriteIndex } from './atlas.js';
+import { buildEdgeWallGeometry } from './edge-walls.js';
 import {
   FLOATS_PER_INSTANCE,
   TINT_NONE,
@@ -48,9 +49,11 @@ export interface Lot {
   /**
    * Impassable interior tiles, interleaved `[x0, y0, x1, y1, ...]`, as
    * `SimHandle.wall_tiles` reports them. The lot boundary is not in
-   * here; see `boundary` below.
+   * here; see `boundary` below. Ignored when explicit `edges` are supplied.
    */
   readonly walls: Uint32Array;
+  /** Explicit [axis, x, y, door] rows; absent/null retains legacy cell walls. */
+  readonly edges?: Uint32Array | null;
 }
 
 /** A finished static block: the array and how many slots of it are live. */
@@ -105,6 +108,11 @@ export const BOUNDARY_SPRITE_NAMES = [
   'wallNS',
   'wallEW',
   'wallCornerStartEW',
+  'wallJoin6',
+  'wallJoin7',
+  'wallJoin14',
+  'wallHalf1',
+  'wallHalf8',
 ] as const;
 
 /**
@@ -122,6 +130,7 @@ export function buildStaticInstances(
   scale = 1,
   lighting: TileLighting | null = null,
 ): StaticGeometry {
+  const edgePanels = lot.edges == null ? null : buildEdgeWallGeometry(lot.width, lot.height, lot.edges);
   const floorSprite = spriteIndex('floor');
   const wallSprites = {
     wallNS: spriteIndex('wallNS'),
@@ -137,7 +146,7 @@ export function buildStaticInstances(
   };
 
   const walls = new Set<string>();
-  for (let i = 0; i + 1 < lot.walls.length; i += 2) {
+  for (let i = 0; edgePanels === null && i + 1 < lot.walls.length; i += 2) {
     walls.add(`${lot.walls[i]},${lot.walls[i + 1]}`);
   }
   const isWall = (x: number, y: number): boolean => walls.has(`${x},${y}`);
@@ -152,23 +161,15 @@ export function buildStaticInstances(
   // coordinates for lighting; draw half a tile inward from those samples.
   // The two runs meet at (-0.5, -0.5) with no decorative floor border.
   const boundary: [number, number, number][] = [];
-  for (let y = 0; y < lot.height; y++) {
+  for (let y = 0; edgePanels === null && y < lot.height; y++) {
     boundary.push([-1, y, wallSprites.wallNS]);
   }
-  for (let x = 0; x < lot.width; x++) {
+  for (let x = 0; edgePanels === null && x < lot.width; x++) {
     boundary.push([x, -1, x === 0 ? cornerStarts.ew : wallSprites.wallEW]);
   }
 
-  // **Doorways are drawn out loud.** In the data a doorway is a GAP in a
-  // wall run - lot.toml says so, and the deferred [B7] wall-on-edge
-  // redesign is where doors become real things. But a 32 px panel on a
-  // 64 px tile already leaves floor showing beside every wall, so a gap
-  // read as "the wall just stops", not as "you may walk through here" -
-  // [A-11]'s "no doors" report. The renderer can SAY what the gap means
-  // without the data changing: a floor tile whose two neighbours along
-  // one axis are both walls is a doorway in that run, and gets the
-  // kit's doorway piece - one tile-edge wide, 18 px shorter than a wall
-  // panel, which reads as a lintel over an opening.
+  // Legacy snapshots encode doorways only as gaps. Preserve their inferred
+  // frames; explicit edge layouts already carry authoritative door segments.
   const doorways: [number, number, number][] = [];
   for (let y = 0; y < lot.height; y++) {
     for (let x = 0; x < lot.width; x++) {
@@ -211,7 +212,8 @@ export function buildStaticInstances(
 
   // Floor and exterior walls share the playable grid's exact boundary.
   const floorCount = lot.width * lot.height;
-  const count = floorCount + interiorPanels.length + boundary.length + doorways.length;
+  const count = floorCount + interiorPanels.length + boundary.length + doorways.length
+    + (edgePanels?.length ?? 0);
   if (scratch.length < count * FLOATS_PER_INSTANCE) {
     scratch = new Float32Array(count * FLOATS_PER_INSTANCE);
   }
@@ -275,6 +277,15 @@ export function buildStaticInstances(
       sprite,
       lighting === null ? 0 : sampleWallLight(lighting, x, y),
     );
+  }
+  for (const panel of edgePanels ?? []) {
+    let emissive = 0;
+    if (lighting !== null) {
+      for (const [x, y] of panel.lightSamples) {
+        emissive = Math.max(emissive, sampleLight(lighting, x, y));
+      }
+    }
+    write(panel.x, panel.y, LAYER_PROP, spriteIndex(panel.spriteName), emissive);
   }
   for (const [x, y, sprite] of boundary) {
     write(

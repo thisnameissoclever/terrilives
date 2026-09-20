@@ -1,6 +1,7 @@
 use bevy_ecs::prelude::*;
 use terri_core::{
-    Agent, ConversationVoice, Eating, Path, Position, SimRng, SmartObject, Socialising, Target,
+    Agent, ConversationVoice, Eating, Footprint, Path, Position, Reserved, SimRng, SmartObject,
+    Socialising, Target, TileGrid,
 };
 
 use super::advertise::TILES_PER_TICK;
@@ -11,6 +12,10 @@ use crate::Content;
 /// scoring function's travel estimate cannot silently drift out of step
 /// with actual movement.
 const SPEED: f32 = TILES_PER_TICK;
+
+#[cfg(test)]
+#[path = "movement_edge_tests.rs"]
+mod edge_tests;
 
 /// Draws the two voice clips a conversation will be made of, or `None` when
 /// the pack has no voice.
@@ -87,10 +92,13 @@ fn draw_voice_pair(clip_count: usize, rng: &mut SimRng) -> Option<ConversationVo
 // drain_commands: the query tuple is what pushes past clippy's
 // threshold, and a type alias would only move it somewhere less
 // readable. It grew a fifth member when the capability roll arrived.
-#[allow(clippy::type_complexity)]
+// The edge guard needs a disjoint stationary-partner query and the grid.
+// Keep those system borrows explicit, as tick_social does for its queries.
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub fn follow_path(
     mut commands: Commands,
     content: Res<Content>,
+    grid: Res<TileGrid>,
     mut rng: ResMut<SimRng>,
     mut agents: Query<(
         Entity,
@@ -102,6 +110,7 @@ pub fn follow_path(
     )>,
     objects: Query<&SmartObject>,
     sims: Query<(), With<Agent>>,
+    partners: Query<(&Position, Option<&Reserved>, Option<&Target>), (With<Agent>, Without<Path>)>,
 ) {
     let mut walking: Vec<Entity> = agents
         .iter()
@@ -214,6 +223,30 @@ pub fn follow_path(
                     remaining_ticks,
                 });
             } else if sims.get(target.object).is_ok() {
+                // A reserved partner can be redirected while this route is
+                // in flight. Edge worlds must recheck contact before drawing
+                // voices or duration. Without<Path> also keeps this position
+                // query disjoint from the walkers' mutable positions.
+                if grid.blocked_edges().next().is_some()
+                    && !partners.get(target.object).is_ok_and(
+                        |(partner_position, reserved, partner_target)| {
+                            reserved.is_some()
+                                && partner_target.is_none()
+                                && grid.can_interact_with_rect(
+                                    (pos.x.round() as i32, pos.y.round() as i32),
+                                    (
+                                        partner_position.x.round() as i32,
+                                        partner_position.y.round() as i32,
+                                    ),
+                                    Footprint::SINGLE,
+                                )
+                        },
+                    )
+                {
+                    commands.entity(entity).remove::<Path>().remove::<Target>();
+                    commands.entity(target.object).remove::<Reserved>();
+                    continue;
+                }
                 // A conversation's length is drawn the same way a meal's
                 // is, from the same generator, for the same replay
                 // reason. The initiator carries the whole record; the

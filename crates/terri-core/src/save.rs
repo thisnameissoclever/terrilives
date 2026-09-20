@@ -1,4 +1,4 @@
-//! Stable, engine-free data carried by a version 1 save file.
+//! Stable, engine-free data carried by versioned save files.
 //!
 //! These are wire types, not ECS components. Entity references use saved
 //! entity indices and content references use authored string ids. Neither a
@@ -12,7 +12,60 @@ pub const SAVE_MAGIC: [u8; 8] = *b"TERRISAV";
 
 /// The current payload schema. The prefix is decoded before postcard so an
 /// incompatible future payload is reported as incompatible, not merely corrupt.
-pub const SAVE_SCHEMA_VERSION: u16 = 1;
+pub const SAVE_SCHEMA_VERSION: u16 = 3;
+
+/// Current envelope: frozen world and architecture, followed by required directions.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SaveSnapshotV3 {
+    pub world: SaveSnapshotV1,
+    pub layout: crate::layout::SavedLayout,
+    /// Missing entries use authored defaults; the list itself is required on the wire.
+    pub object_facings: Vec<(u32, u8)>,
+}
+
+#[cfg(test)]
+mod wire_tests {
+    use super::*;
+
+    fn wire(hex: &str) -> Vec<u8> {
+        let hex: String = hex.split_whitespace().collect();
+        hex.as_bytes()
+            .chunks_exact(2)
+            .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
+            .collect()
+    }
+
+    #[test]
+    fn public_v1_world_record_is_frozen_byte_for_byte() {
+        let bytes = wire(include_str!(
+            "../../terri-wasm/tests/fixtures/pre-builder-600.hex"
+        ));
+        assert_eq!(&bytes[8..10], &[1, 0]);
+        let (snapshot, rest) = postcard::take_from_bytes::<SaveSnapshotV1>(&bytes[10..])
+            .expect("published V1 must decode without unpublished fields");
+        assert!(rest.is_empty());
+        assert_eq!(postcard::to_allocvec(&snapshot).unwrap(), &bytes[10..]);
+    }
+
+    #[test]
+    fn public_v2_architecture_record_is_frozen_byte_for_byte() {
+        let bytes = wire(include_str!(
+            "../../terri-wasm/tests/fixtures/pre-front-door-schema2.hex"
+        ));
+        assert_eq!(&bytes[8..10], &[2, 0]);
+        let (snapshot, rest) = postcard::take_from_bytes::<SaveSnapshotV2>(&bytes[10..])
+            .expect("published V2 must decode its original embedded V1 layout");
+        assert!(rest.is_empty());
+        assert_eq!(postcard::to_allocvec(&snapshot).unwrap(), &bytes[10..]);
+    }
+}
+
+/// Explicit architecture envelope. V1 remains a frozen embedded world record.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SaveSnapshotV2 {
+    pub world: SaveSnapshotV1,
+    pub layout: crate::layout::SavedLayout,
+}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SaveSnapshotV1 {
@@ -43,9 +96,6 @@ pub struct SaveSnapshotV1 {
     /// and nothing has to stay the same length as `entities`.
     #[serde(default)]
     pub sleep_pressure: Vec<(u32, u32)>,
-    /// Appended direction codes keyed by entity index. Missing entries retain authored defaults.
-    #[serde(default)]
-    pub object_facings: Vec<(u32, u8)>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -198,5 +248,10 @@ pub enum SavedCommand {
         target: u32,
         interaction: u32,
     },
-    PlaceObject { object: u32, x: u32, y: u32, facing: crate::Facing },
+    PlaceObject {
+        object: u32,
+        x: u32,
+        y: u32,
+        facing: crate::Facing,
+    },
 }

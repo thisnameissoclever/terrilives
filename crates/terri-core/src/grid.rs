@@ -2,6 +2,12 @@ use bevy_ecs::prelude::Resource;
 use serde::{Deserialize, Serialize};
 use std::collections::{BinaryHeap, VecDeque};
 
+#[cfg(test)]
+mod segment_tests;
+
+#[cfg(test)]
+mod edge_tests;
+
 /// A single lot's walkability grid. One tile is roughly one metre.
 /// M0 is a single room; the room and portal graph in [D7] arrives with
 /// multi-room lots.
@@ -10,7 +16,16 @@ pub struct TileGrid {
     width: usize,
     height: usize,
     blocked: Vec<bool>,
+    // Canonical ownership: each tile stores its east and south barriers.
+    // The west/north queries use their neighbor's bits, so edges cannot disagree.
+    edge_barriers: Vec<u8>,
 }
+
+/// The two cardinally adjacent tile centers separated by one boundary.
+pub type TileEdge = ((i32, i32), (i32, i32));
+
+const EAST_EDGE: u8 = 1;
+const SOUTH_EDGE: u8 = 2;
 
 /// Shortest four-way walk distance from one source tile to every walkable
 /// tile in a fixed grid snapshot.
@@ -25,6 +40,7 @@ pub struct TileDistanceField {
     width: usize,
     height: usize,
     distances: Vec<u32>,
+    edge_barriers: Vec<u8>,
 }
 
 /// The tile rectangle an object occupies. `width` runs along +x and
@@ -85,6 +101,7 @@ impl TileGrid {
             width,
             height,
             blocked: vec![false; width * height],
+            edge_barriers: vec![0; width * height],
         }
     }
 
@@ -119,6 +136,138 @@ impl TileGrid {
         !self.blocked[y as usize * self.width + x as usize]
     }
 
+    /// Blocks or opens one cardinal boundary in both directions, without
+    /// changing either tile's occupancy. Panics unless both tiles are in bounds
+    /// and share an edge. Opening a boundary is how a passable door is represented.
+    pub fn set_edge_blocked(&mut self, from: (i32, i32), to: (i32, i32), blocked: bool) {
+        let (index, mask) = edge_slot(self.width, self.height, from, to)
+            .expect("edge endpoints must be in-bounds cardinal neighbors");
+        if blocked {
+            self.edge_barriers[index] |= mask;
+        } else {
+            self.edge_barriers[index] &= !mask;
+        }
+    }
+
+    /// Whether this cardinal boundary is open. Occupancy is deliberately
+    /// ignored so interaction checks can reach into a blocked object's tile.
+    /// Invalid or out-of-bounds pairs are not crossable.
+    pub fn can_cross(&self, from: (i32, i32), to: (i32, i32)) -> bool {
+        edge_is_open(&self.edge_barriers, self.width, self.height, from, to)
+    }
+
+    /// Whether an agent can walk across this boundary between two free tiles.
+    pub fn can_step(&self, from: (i32, i32), to: (i32, i32)) -> bool {
+        self.is_walkable(from.0, from.1) && self.is_walkable(to.0, to.1) && self.can_cross(from, to)
+    }
+
+    /// Continuous movement segment against solid boundary planes. Tile
+    /// occupancy is separate. Touching a solid segment endpoint is blocked,
+    /// so diagonal replans cannot clip the corner of a wall beside a door.
+    pub fn segment_can_cross(&self, from: (f32, f32), to: (f32, f32)) -> bool {
+        if ![from.0, from.1, to.0, to.1].iter().all(|v| v.is_finite()) {
+            return false;
+        }
+        for (a, b) in self.blocked_edges() {
+            let (normal0, normal1, along0, along1, plane, low) = if a.0 != b.0 {
+                (
+                    from.0,
+                    to.0,
+                    from.1,
+                    to.1,
+                    a.0 as f64 + 0.5,
+                    a.1 as f64 - 0.5,
+                )
+            } else {
+                (
+                    from.1,
+                    to.1,
+                    from.0,
+                    to.0,
+                    a.1 as f64 + 0.5,
+                    a.0 as f64 - 0.5,
+                )
+            };
+            let (n0, n1, p0, p1) = (normal0 as f64, normal1 as f64, along0 as f64, along1 as f64);
+            if n0 == n1 {
+                if n0 == plane && p0.max(p1) >= low && p0.min(p1) <= low + 1.0 {
+                    return false;
+                }
+            } else {
+                let t = (plane - n0) / (n1 - n0);
+                if (0.0..=1.0).contains(&t) {
+                    let along = p0 + t * (p1 - p0);
+                    if (low..=low + 1.0).contains(&along) {
+                        return false;
+                    }
+                }
+            }
+        }
+        true
+    }
+
+    /// New routes from fractional positions first reach their rounded source
+    /// center before turning. Without that anchor a cardinal path can begin
+    /// with a diagonal segment through a wall. Legacy movement is unchanged.
+    pub fn anchor_path(
+        &self,
+        position: (f32, f32),
+        mut steps: Vec<(i32, i32)>,
+    ) -> Option<Vec<(i32, i32)>> {
+        if self.edge_barriers.iter().all(|&mask| mask == 0) {
+            return Some(steps);
+        }
+        let center = (position.0.round(), position.1.round());
+        let tile = (center.0 as i32, center.1 as i32);
+        if !self.is_walkable(tile.0, tile.1) || !self.segment_can_cross(position, center) {
+            return None;
+        }
+        if position != center && steps.first() != Some(&tile) {
+            steps.insert(0, tile);
+        }
+        Some(steps)
+    }
+
+    /// Whether a walkable tile touches the footprint across an open boundary.
+    /// The contacted footprint tile may be blocked by the object itself.
+    pub fn can_interact_with_rect(
+        &self,
+        from: (i32, i32),
+        origin: (i32, i32),
+        footprint: Footprint,
+    ) -> bool {
+        if !self.is_walkable(from.0, from.1) || !is_adjacent_to_rect(from, origin, footprint) {
+            return false;
+        }
+        let contact = (
+            from.0
+                .clamp(origin.0, origin.0 + footprint.width as i32 - 1),
+            from.1
+                .clamp(origin.1, origin.1 + footprint.depth as i32 - 1),
+        );
+        // Legacy lots allowed contact with finite off-lot object positions.
+        // Preserve that rule only when no solid boundary architecture exists.
+        self.can_cross(from, contact) || self.edge_barriers.iter().all(|&mask| mask == 0)
+    }
+
+    /// Returns each solid internal boundary once, in row-major tile order,
+    /// east before south. Endpoint pairs expose a stable snapshot interface
+    /// without exposing the compact storage or changing an existing save wire.
+    pub fn blocked_edges(&self) -> impl Iterator<Item = TileEdge> + '_ {
+        self.edge_barriers
+            .iter()
+            .enumerate()
+            .flat_map(move |(index, &flags)| {
+                let from = ((index % self.width) as i32, (index / self.width) as i32);
+                [
+                    (flags & EAST_EDGE != 0).then_some((from, (from.0 + 1, from.1))),
+                    (flags & SOUTH_EDGE != 0).then_some((from, (from.0, from.1 + 1))),
+                ]
+                .into_iter()
+                .flatten()
+            })
+    }
+
     fn index(&self, x: i32, y: i32) -> usize {
         y as usize * self.width + x as usize
     }
@@ -140,7 +289,7 @@ impl TileGrid {
             let current_distance = distances[self.index(current.0, current.1)];
             for (dx, dy) in NEIGHBOURS {
                 let next = (current.0 + dx, current.1 + dy);
-                if !self.is_walkable(next.0, next.1) {
+                if !self.can_step(current, next) {
                     continue;
                 }
                 let next_index = self.index(next.0, next.1);
@@ -156,6 +305,7 @@ impl TileGrid {
             width: self.width,
             height: self.height,
             distances,
+            edge_barriers: self.edge_barriers.clone(),
         })
     }
 
@@ -200,7 +350,7 @@ impl TileGrid {
 
             for (dx, dy) in NEIGHBOURS {
                 let next = (current.pos.0 + dx, current.pos.1 + dy);
-                if !self.is_walkable(next.0, next.1) {
+                if !self.can_step(current.pos, next) {
                     continue;
                 }
                 let next_idx = self.index(next.0, next.1);
@@ -324,10 +474,9 @@ impl TileGrid {
     /// but selection runs one of these searches per candidate object per idle
     /// agent per tick.
     ///
-    /// Note there is no separate goal-set arithmetic to keep in step: the goal
-    /// test **is** `rect_distance(..) == 1`, so "h is 1 at every goal" holds by
-    /// construction rather than by two pieces of code agreeing about what
-    /// "beside" means.
+    /// Geometric eligibility is `rect_distance(..) == 1`. A solid boundary
+    /// removes that contact from the goal set without changing the heuristic
+    /// at any remaining goal, so "h is 1 at every goal" still holds.
     ///
     /// The other change that would break the uniformity is still outstanding:
     /// **admitting diagonal movement**, where `h` at a goal would be 1 or 2
@@ -347,7 +496,7 @@ impl TileGrid {
     /// which is the correct behaviour for a sim that has been told to use the
     /// thing it is standing on top of.
     ///
-    /// An agent already beside the rectangle gets `Some(empty)`, mirroring
+    /// An agent already beside an open contact boundary gets `Some(empty)`, mirroring
     /// `find_path`'s `from == to` case: it is already where it needs to be, and
     /// an empty path is what makes `follow_path` start the interaction
     /// immediately.
@@ -368,7 +517,7 @@ impl TileGrid {
         if !self.is_walkable(from.0, from.1) {
             return None;
         }
-        if is_adjacent_to_rect(from, to, footprint) {
+        if self.can_interact_with_rect(from, to, footprint) {
             return Some(Vec::new());
         }
 
@@ -391,7 +540,7 @@ impl TileGrid {
             // The one difference from `find_path`. Tested on POP rather than
             // on push, so the first adjacent tile accepted is the cheapest
             // one to reach rather than the first one stumbled across.
-            if is_adjacent_to_rect(current.pos, to, footprint) {
+            if self.can_interact_with_rect(current.pos, to, footprint) {
                 return Some(reconstruct(&came_from, self.width, start, current.index));
             }
             if closed[current.index] {
@@ -401,7 +550,7 @@ impl TileGrid {
 
             for (dx, dy) in NEIGHBOURS {
                 let next = (current.pos.0 + dx, current.pos.1 + dy);
-                if !self.is_walkable(next.0, next.1) {
+                if !self.can_step(current.pos, next) {
                     continue;
                 }
                 let next_idx = self.index(next.0, next.1);
@@ -445,7 +594,9 @@ impl TileGrid {
 
 impl TileDistanceField {
     /// Shortest distance to any orthogonally adjacent tile around the whole
-    /// footprint rectangle, matching [`TileGrid::find_path_adjacent`].
+    /// footprint rectangle across an open contact boundary, matching
+    /// [`TileGrid::find_path_adjacent`]. The field retains the edge snapshot
+    /// from its construction, even if the live grid changes afterward.
     pub fn distance_to_adjacent(&self, origin: (i32, i32), footprint: Footprint) -> Option<u32> {
         let far = (
             origin.0 + footprint.width as i32 - 1,
@@ -453,14 +604,29 @@ impl TileDistanceField {
         );
         let mut best = u32::MAX;
         for x in origin.0..=far.0 {
-            best = best.min(self.distance_at((x, origin.1 - 1)));
-            best = best.min(self.distance_at((x, far.1 + 1)));
+            best = best.min(self.distance_across_boundary((x, origin.1 - 1), (x, origin.1)));
+            best = best.min(self.distance_across_boundary((x, far.1 + 1), (x, far.1)));
         }
         for y in origin.1..=far.1 {
-            best = best.min(self.distance_at((far.0 + 1, y)));
-            best = best.min(self.distance_at((origin.0 - 1, y)));
+            best = best.min(self.distance_across_boundary((far.0 + 1, y), (far.0, y)));
+            best = best.min(self.distance_across_boundary((origin.0 - 1, y), (origin.0, y)));
         }
         (best != u32::MAX).then_some(best)
+    }
+
+    fn distance_across_boundary(&self, approach: (i32, i32), contact: (i32, i32)) -> u32 {
+        if edge_is_open(
+            &self.edge_barriers,
+            self.width,
+            self.height,
+            approach,
+            contact,
+        ) || self.edge_barriers.iter().all(|&mask| mask == 0)
+        {
+            self.distance_at(approach)
+        } else {
+            u32::MAX
+        }
     }
 
     fn distance_at(&self, tile: (i32, i32)) -> u32 {
@@ -516,6 +682,37 @@ fn rect_distance(p: (i32, i32), origin: (i32, i32), footprint: Footprint) -> u32
 /// rectangle itself, which sits at 0.
 fn is_adjacent_to_rect(p: (i32, i32), origin: (i32, i32), footprint: Footprint) -> bool {
     rect_distance(p, origin, footprint) == 1
+}
+
+fn edge_slot(width: usize, height: usize, from: (i32, i32), to: (i32, i32)) -> Option<(usize, u8)> {
+    for (x, y) in [from, to] {
+        if x < 0 || y < 0 || x as usize >= width || y as usize >= height {
+            return None;
+        }
+    }
+    if from.1 == to.1 && from.0.abs_diff(to.0) == 1 {
+        Some((
+            from.1 as usize * width + from.0.min(to.0) as usize,
+            EAST_EDGE,
+        ))
+    } else if from.0 == to.0 && from.1.abs_diff(to.1) == 1 {
+        Some((
+            from.1.min(to.1) as usize * width + from.0 as usize,
+            SOUTH_EDGE,
+        ))
+    } else {
+        None
+    }
+}
+
+fn edge_is_open(
+    edges: &[u8],
+    width: usize,
+    height: usize,
+    from: (i32, i32),
+    to: (i32, i32),
+) -> bool {
+    edge_slot(width, height, from, to).is_some_and(|(index, mask)| edges[index] & mask == 0)
 }
 
 fn heuristic(a: (i32, i32), b: (i32, i32)) -> u32 {

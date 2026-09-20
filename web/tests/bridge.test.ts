@@ -46,6 +46,7 @@ describe('SimBridge', () => {
         height,
         enabled.wallTiles(),
         true,
+        enabled.wallEdges(),
       );
       sawEnabledPool ||= enabledField.values.some((value) => value > 0);
 
@@ -56,6 +57,7 @@ describe('SimBridge', () => {
         height,
         disabled.wallTiles(),
         false,
+        disabled.wallEdges(),
       );
       expect(disabledField.values.every((value) => value === 0)).toBe(true);
     }
@@ -200,54 +202,58 @@ describe('SimBridge', () => {
     expect(sprites[1]).not.toBe(sprites[2]);
   });
 
-  it('reports the shipped lot walls, with the doorway left open', () => {
-    // The renderer draws these, so if they disagreed with the grid the
-    // page would show a wall where a sim walks through, or a gap where
-    // one detours. Both read as an AI fault rather than a drawing one.
+  it('reports all 34 shipped wall edges with five explicit doorway flags', () => {
     const handle = SimHandle.from_lot();
     const bridge = new SimBridge(handle, wasmMemory);
-    const walls = bridge.wallTiles();
+    expect(Array.from(bridge.wallTiles())).toEqual([]);
+    const packed = bridge.wallEdges();
+    expect(packed).toBeDefined();
+    expect(packed).toHaveLength(34 * 4);
+    const expected: number[] = [];
+    for (let y = 0; y < 6; y++) expected.push(0, 8, y, Number(y === 2));
+    for (let x = 0; x < 16; x++) expected.push(1, x, 6, Number(x === 3 || x === 13));
+    for (let y = 6; y < 12; y++) expected.push(0, 6, y, Number(y === 9));
+    for (let y = 6; y < 12; y++) expected.push(0, 12, y, Number(y === 8));
+    expect(Array.from(packed!)).toEqual(expected);
+    const doors: string[] = [];
+    let solids = 0;
+    for (let offset = 0; offset < packed!.length; offset += 4) {
+      const [axis, x, y, doorway] = packed!.slice(offset, offset + 4);
+      if (doorway === 1) doors.push(`${axis},${x},${y}`);
+      else solids++;
+    }
+    expect(solids).toBe(29);
+    expect(doors).toEqual(['0,8,2', '1,3,6', '1,13,6', '0,6,9', '0,12,8']);
+  });
 
-    expect(walls.length % 2).toBe(0);
-    const pairs = new Set<string>();
-    for (let i = 0; i < walls.length; i += 2) {
-      pairs.add(`${walls[i]},${walls[i + 1]}`);
+  it('keeps edge-layout spawn validation and accepted saves intact in release WASM', () => {
+    const edge = new SimBridge(SimHandle.from_lot(), wasmMemory);
+    expect(edge.wallEdges()).toHaveLength(136);
+    const before = edge.saveBytes();
+    const count = edge.count;
+    for (const [x, y] of [[0, 0], [-100, 1], [16, 12]]) {
+      edge.spawnAgent(x, y, 50);
+      expect(edge.count).toBe(count);
+      expect(edge.saveBytes()).toEqual(before);
     }
-    // Rule 5: an empty list would satisfy the two absence checks below.
-    expect(pairs.size).toBeGreaterThanOrEqual(8);
-    expect(pairs.size * 2).toBe(walls.length);
+    expect(edge.spawnObject(7, 5, 'bathtub')).toBe(false);
+    expect(edge.saveBytes()).toEqual(before);
+    expect(edge.spawnObject(3, 5, 'bathtub')).toBe(true);
+    edge.spawnAgent(0.49, 1.49, 50);
+    expect(edge.count).toBe(count + 2);
+    const accepted = edge.saveBytes();
+    const restored = new SimBridge(SimHandle.from_lot(), wasmMemory);
+    expect(restored.loadBytes(accepted)).toBe(true);
+    expect(restored.saveBytes()).toEqual(accepted);
 
-    // **The doorways, found rather than named.** This used to assert the
-    // literal tiles `9,1`, `9,3` and `9,2` of the one-room flat, and the
-    // five-room lot broke it for a reason this export does not care about:
-    // which tile is a door is `content/lot.toml`'s business, and whether a
-    // GAP gets drawn as a wall is this export's.
-    //
-    // A doorway is a tile absent from the list with list entries on both
-    // sides along one axis - which is exactly "the gap IS the doorway" as
-    // lot.toml puts it. Drawn as a wall, a room would look sealed while the
-    // sim walked straight through the picture of one.
-    const solid = (x: number, y: number) => pairs.has(`${x},${y}`);
-    let gaps = 0;
-    for (let y = 0; y < handle.lot_height(); y++) {
-      for (let x = 0; x < handle.lot_width(); x++) {
-        if (solid(x, y)) continue;
-        const vertical = solid(x, y - 1) && solid(x, y + 1);
-        const horizontal = solid(x - 1, y) && solid(x + 1, y);
-        if (vertical || horizontal) gaps++;
-      }
-    }
-    // Five in the shipped house, one per wall run. A floor rather than an
-    // equality, so adding a room is not a test edit; zero would mean every
-    // gap had been filled in and the rooms sealed.
-    expect(gaps).toBeGreaterThanOrEqual(5);
-    // Every tile is inside the lot; the boundary is drawn from the lot's
-    // dimensions instead, because no tile exists off the grid to report.
-    for (const key of pairs) {
-      const [x, y] = key.split(',').map(Number);
-      expect(x).toBeLessThan(handle.lot_width());
-      expect(y).toBeLessThan(handle.lot_height());
-    }
+    const legacy = new SimBridge(new SimHandle(4, 4), wasmMemory);
+    expect(legacy.wallEdges()).toBeUndefined();
+    legacy.spawnAgent(30, 30, 50);
+    expect(legacy.spawnObject(7, 5, 'bathtub')).toBe(true);
+    expect(legacy.count).toBe(2);
+    const legacyBytes = legacy.saveBytes();
+    expect(restored.loadBytes(legacyBytes)).toBe(true);
+    expect(restored.saveBytes()).toEqual(legacyBytes);
   });
 
   it('rejects an unknown content id without trapping the wasm module', () => {
@@ -729,17 +735,65 @@ describe('SimBridge', () => {
     for (let tick = 0; tick < 173; tick++) original.tick();
     const before = original.worldHash();
     const bytes = original.saveBytes();
+    expect(Array.from(bytes.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, 3, 0]);
+    const expectedEdges = original.wallEdges()!.slice();
+    expect(expectedEdges).toHaveLength(136);
 
     const resumed = new SimBridge(SimHandle.from_lot(), wasmMemory);
     expect(resumed.loadBytes(bytes)).toBe(true);
     expect(resumed.clockTick()).toBe(173);
     expect(resumed.dayTicks()).toBe(1440);
     expect(resumed.worldHash()).toBe(before);
+    expect(resumed.wallEdges()).toEqual(expectedEdges);
+    expect(resumed.wallTiles()).toHaveLength(0);
 
     for (let tick = 0; tick < 300; tick++) {
       original.tick();
       resumed.tick();
       expect(resumed.worldHash()).toBe(original.worldHash());
+    }
+  });
+
+  it('restores the explicit empty edge layout without falling back to current or legacy walls', () => {
+    const blank = new SimBridge(new SimHandle(4, 4), wasmMemory);
+    const legacyCells = blank.saveBytes();
+    expect(Array.from(legacyCells.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, 3, 0]);
+    // V3 ends with SavedLayout then the required empty facing list.
+    // Change only that tag to EdgeWallsV1 (2). This fixture has no entities
+    // or walls; it tests the distinction between undefined and an empty list.
+    expect(Array.from(legacyCells.slice(-3))).toEqual([1, 0, 0]);
+    const edgeBytes = legacyCells.slice();
+    edgeBytes[edgeBytes.length - 3] = 2;
+    const restored = new SimBridge(SimHandle.from_lot(), wasmMemory);
+    expect(restored.wallEdges()).toHaveLength(136);
+    expect(restored.loadBytes(edgeBytes)).toBe(true);
+    expect(restored.wallEdges()).toEqual(new Uint32Array());
+    expect(restored.wallTiles()).toEqual(new Uint32Array());
+    expect(restored.saveBytes()).toEqual(edgeBytes);
+    expect(restored.loadBytes(legacyCells)).toBe(true);
+    expect(restored.wallEdges()).toBeUndefined();
+    expect(restored.wallTiles()).toEqual(new Uint32Array());
+    expect(restored.saveBytes()).toEqual(legacyCells);
+  });
+
+  it('rejects V3 truncation, V1-style tail padding, trailing bytes and future versions transactionally', () => {
+    const source = new SimBridge(new SimHandle(4, 4), wasmMemory);
+    const valid = source.saveBytes();
+    expect(Array.from(valid.slice(8, 10))).toEqual([3, 0]);
+    expect(Array.from(valid.slice(-3))).toEqual([1, 0, 0]);
+    const trailing = new Uint8Array(valid.length + 1);
+    trailing.set(valid);
+    const future = valid.slice();
+    future[8] = 4;
+    const invalid = [valid.slice(0, -1), valid.slice(0, -2), valid.slice(0, valid.length / 2), trailing, future];
+    const live = new SimBridge(SimHandle.from_lot(), wasmMemory);
+    const before = live.saveBytes();
+    const edges = live.wallEdges()!.slice();
+    expect(edges).toHaveLength(136);
+    for (const bytes of invalid) {
+      expect(live.loadBytes(bytes)).toBe(false);
+      expect(live.saveBytes()).toEqual(before);
+      expect(live.wallEdges()).toEqual(edges);
     }
   });
 

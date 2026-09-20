@@ -65,6 +65,7 @@ const field: MutableTileLighting = {
 };
 
 let blocked = new Uint8Array(0);
+let boundaries = new Uint8Array(0);
 let shadowed = new Uint8Array(0);
 let distances = new Int32Array(0);
 let queue = new Int32Array(0);
@@ -109,11 +110,13 @@ function configureField(width: number, height: number): boolean {
 
   if (blocked.length !== lotTiles) {
     blocked = new Uint8Array(lotTiles);
+    boundaries = new Uint8Array(lotTiles);
     shadowed = new Uint8Array(lotTiles);
     distances = new Int32Array(lotTiles);
     queue = new Int32Array(lotTiles);
   } else {
     blocked.fill(0);
+    boundaries.fill(0);
     shadowed.fill(0);
   }
   return true;
@@ -190,6 +193,23 @@ function markWalls(walls: Uint32Array, width: number, height: number): void {
     const x = walls[i];
     const y = walls[i + 1];
     if (x < width && y < height) blocked[y * width + x] = 1;
+  }
+}
+
+/** Cardinal masks are symmetric so propagation sees the same wall from either room. */
+function markEdges(edges: Uint32Array, width: number, height: number): void {
+  for (let i = 0; i + 3 < edges.length; i += 4) {
+    const axis = edges[i];
+    const x = edges[i + 1];
+    const y = edges[i + 2];
+    if (edges[i + 3] !== 0) continue;
+    if (axis === 0 && x > 0 && x < width && y < height) {
+      boundaries[y * width + x - 1] |= 2;
+      boundaries[y * width + x] |= 8;
+    } else if (axis === 1 && x < width && y > 0 && y < height) {
+      boundaries[(y - 1) * width + x] |= 4;
+      boundaries[y * width + x] |= 1;
+    }
   }
 }
 
@@ -355,7 +375,7 @@ function spreadEmitter(
     const nextDistance = distance + 1;
     if (nextDistance >= profile.length) continue;
 
-    if (x > 0) {
+    if (x > 0 && (boundaries[index] & 8) === 0) {
       const next = index - 1;
       if (blocked[next] === 0 && distances[next] < 0) {
         distances[next] = nextDistance;
@@ -363,7 +383,7 @@ function spreadEmitter(
         tail += 1;
       }
     }
-    if (x + 1 < width) {
+    if (x + 1 < width && (boundaries[index] & 2) === 0) {
       const next = index + 1;
       if (blocked[next] === 0 && distances[next] < 0) {
         distances[next] = nextDistance;
@@ -371,7 +391,7 @@ function spreadEmitter(
         tail += 1;
       }
     }
-    if (y > 0) {
+    if (y > 0 && (boundaries[index] & 1) === 0) {
       const next = index - width;
       if (blocked[next] === 0 && distances[next] < 0) {
         distances[next] = nextDistance;
@@ -379,7 +399,7 @@ function spreadEmitter(
         tail += 1;
       }
     }
-    if (y + 1 < height) {
+    if (y + 1 < height && (boundaries[index] & 4) === 0) {
       const next = index + width;
       if (blocked[next] === 0 && distances[next] < 0) {
         distances[next] = nextDistance;
@@ -393,7 +413,8 @@ function spreadEmitter(
 /**
  * Rebuilds the reusable local-light field from smart-object rows.
  *
- * Source columns and `walls` are consumed during this call and never retained.
+ * Source columns and architecture are consumed during this call, never retained.
+ * Explicit `edges`, including an empty array, replace legacy blocked wall cells.
  * Contributions combine with `max`, making the result independent of row
  * order. Disabled lighting still resets the reused field so old pools cannot
  * survive the flat-lighting toggle.
@@ -404,11 +425,13 @@ export function buildLightField(
   height: number,
   walls: Uint32Array,
   enabled: boolean,
+  edges: Uint32Array | null = null,
 ): TileLighting {
   if (!configureField(width, height)) return field;
   if (!enabled) return field;
 
-  markWalls(walls, width, height);
+  if (edges === null) markWalls(walls, width, height);
+  else markEdges(edges, width, height);
   const count = source.count;
   if (!Number.isSafeInteger(count) || count <= 0) return field;
 

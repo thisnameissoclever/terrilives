@@ -72,3 +72,13 @@ lighting, then play navigation and interactions through every doorway. Obtain
 independent visual and code review before publication. Preserve the approved
 Sims, rigs, unrelated art and saves. Verify the deployed revision and atlas
 bytes after publishing; a source push alone is not live acceptance.
+
+## Implementation checkpoint
+
+The boundary architecture, schema 2 compatibility transition, renderer and
+lighting are implemented. The exact shipped migration needs no new path
+repair: the old movement graph is a subset of the new one. New fractional
+routes and loaded edge-world contact still receive explicit validation.
+See `docs/assets/review-evidence/interior-wall-edges.md` for executable proof,
+real-browser backup/load and doorway traversal, independent review, and the
+remaining publication gate. Do not infer deployment from this plan.

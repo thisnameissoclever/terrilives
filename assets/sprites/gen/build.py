@@ -1089,6 +1089,8 @@ def main():
             densities.update(more_density)
             pairs.update(more_pairs)
             interactions.update(more_profiles)
+    # Endpoint endcaps append after every imported asset; all prior indices stay fixed.
+    sprites.extend(render_sprites(objects.WALL_HALF_SPRITES))
     append_front_door_sprites(sprites)
     names = [s[0] for s in sprites]
     if len(set(names)) != len(names):

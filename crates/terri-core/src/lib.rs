@@ -7,6 +7,7 @@ pub mod facing;
 pub mod grid;
 pub mod hash;
 pub mod ids;
+pub mod layout;
 pub mod needs;
 pub mod rng;
 pub mod save;
@@ -33,7 +34,8 @@ pub use ids::ObjectDefId;
 pub use needs::{NeedId, Needs, NEED_COUNT, NEED_MAX, NEED_MIN};
 pub use rng::SimRng;
 pub use save::{
-    SaveSnapshotV1, SavedChainState, SavedCommand, SavedConversationVoice, SavedEating,
-    SavedEntity, SavedHabituation, SavedIntent, SavedPath, SavedPersonality, SavedPosition,
-    SavedSocialising, SavedTarget, SavedTraitState, SAVE_MAGIC, SAVE_SCHEMA_VERSION,
+    SaveSnapshotV1, SaveSnapshotV2, SaveSnapshotV3, SavedChainState, SavedCommand,
+    SavedConversationVoice, SavedEating, SavedEntity, SavedHabituation, SavedIntent, SavedPath,
+    SavedPersonality, SavedPosition, SavedSocialising, SavedTarget, SavedTraitState, SAVE_MAGIC,
+    SAVE_SCHEMA_VERSION,
 };

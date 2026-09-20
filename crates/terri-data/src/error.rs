@@ -110,6 +110,25 @@ pub enum ContentError {
         width: u32,
         height: u32,
     },
+    MixedWallArchitecture,
+    WallEdgeOutOfBounds {
+        axis: terri_core::layout::EdgeAxis,
+        x: i32,
+        y: i32,
+        width: u32,
+        height: u32,
+    },
+    DuplicateWallEdge {
+        axis: terri_core::layout::EdgeAxis,
+        x: u32,
+        y: u32,
+    },
+    FootprintSpansWallEdge {
+        object: String,
+        axis: terri_core::layout::EdgeAxis,
+        x: u32,
+        y: u32,
+    },
     /// Coordinates are the authored `f32` pair, not the tile, because
     /// that is what the author has to go and edit. They are always
     /// finite here: a non-finite coordinate is rejected earlier as a
@@ -1105,6 +1124,18 @@ impl fmt::Display for ContentError {
             } => write!(
                 f,
                 "lot.toml has a wall at ({x}, {y}), outside the {width}x{height} lot"
+            ),
+            ContentError::MixedWallArchitecture => write!(
+                f, "lot.toml must not mix legacy wall tiles and wall edges"
+            ),
+            ContentError::WallEdgeOutOfBounds { axis, x, y, width, height } => write!(
+                f, "lot.toml has a {axis:?} wall edge at ({x}, {y}), outside the interior boundaries of the {width}x{height} lot"
+            ),
+            ContentError::DuplicateWallEdge { axis, x, y } => write!(
+                f, "lot.toml declares the {axis:?} wall edge at ({x}, {y}) more than once"
+            ),
+            ContentError::FootprintSpansWallEdge { object, axis, x, y } => write!(
+                f, "lot.toml places '{object}' so its footprint spans the solid {axis:?} wall edge at ({x}, {y})"
             ),
             ContentError::PlacementOutOfBounds {
                 object,

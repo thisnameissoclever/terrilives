@@ -84,13 +84,21 @@ surface distances are 0.0634 and 0.0885 model units. Contact residuals are below
 The console is a 2D sprite, not a modeled 3D surface: its occupied occlusion
 follows bike-before-body drawing and does not establish physical console depth.
 
-`review/exercise/se-bike-wall-proxy-4x.png` includes the actual neighboring
-divider tiles, occupied and unoccupied. `test_exercise_wall.py` checks the
-saved bike at (4,11) against the wall at (5,11), then mutates only the upper
-assembly back to the rejected forward translation. The old version produces
-an overlap box [216,158,232,178] on the 400-pixel generator canvas; the corrected
-version has no upper-assembly overlap. This negative control prevents another
-isolated-contact approval from overlooking the room envelope.
+The committed `review/exercise/se-bike-wall-proxy-4x.png` records the historical
+cell-wall layout, occupied and unoccupied. It has not been regenerated for
+boundary walls. The exporter now reads `wall_edge` and draws the current
+bedroom divider at x=5.5, using the runtime endpoint-owned panels: `wallHalf4`
+at (5.5,9.5), `wallNS` at (5.5,10.5), and `wallHalf1` at (5.5,11.5). From the
+unchanged bike origin (4,11), their native projected offsets are [96,0],
+[64,21], and [32,42]. `test_exercise_wall.py` pins those positions, the
+registered wall raster, and the current upper-assembly clearance.
+
+A separate historical regression retains the old wall at (5,11) and mutates
+only the upper assembly back to the rejected forward translation. That version
+produces an overlap box [216,158,232,178] on the 400-pixel generator canvas;
+the corrected bike has no upper-assembly overlap and retains its original
+forward envelope. The current wall's greater clearance does not relax this
+older art constraint. Neither check replaces occupied played-scene review.
 
 Run `build_exercise.py` through the background launcher, with `-- --preview`
 for the two green SE samples. Wait for `exercise-preview-status.json`, then run
@@ -99,13 +107,18 @@ preview flag on both commands for the 24-frame supplemental batch. Native
 manifests are `export/exercise/{green,blue,red}/manifest.json`. All palettes
 share the 104 by 120 registered canvas, anchors, geometry and alpha.
 
-The shipped SE bike placement passed the offline composite review. SW, NW and
+At this historical two-pose checkpoint, the SE bike placement passed the
+offline composite review. SW, NW and
 NE did not: the body makes true 3D rotations while the existing bike only
 mirrors. Those composites visibly miss the saddle and grips. Inspect
 `review/exercise/all-facing-bike-contact-3x.png`; four exported model facings
 do not establish four accepted furniture contacts. Correcting those placements
 requires matching directional bike art, not per-facing body offsets that hide
-the mismatch. Runtime and owner acceptance remain separate.
+the mismatch. The later owner-approved replacement bike resolves this with
+real four-direction renders and eight cycling phases. Its current export and
+runtime evidence is in `../../furniture/README.md` and
+`../../../../docs/assets/review-evidence/furniture/README.md`. Keep this older
+failed checkpoint separate from that replacement's acceptance.
 
 ## Build and verify
 

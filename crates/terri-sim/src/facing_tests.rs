@@ -65,14 +65,15 @@ fn every_authored_object_keeps_the_pre_builder_release_render_geometry() {
 fn facing_suffix_rejects_duplicate_non_object_missing_and_invalid_entries_without_a_swap() {
     let pack = terri_data::pack();
     let source = Sim::new_from_shipped_lot();
-    let valid = source.save_snapshot();
+    let valid = source.save_snapshot_v3();
     let object = valid
+        .world
         .entities
         .iter()
         .find(|e| e.smart_object.is_some())
         .unwrap()
         .index;
-    let agent = valid.entities.iter().find(|e| e.agent).unwrap().index;
+    let agent = valid.world.entities.iter().find(|e| e.agent).unwrap().index;
     for entries in [
         vec![(object, 0), (object, 1)],
         vec![(agent, 0)],
@@ -84,20 +85,23 @@ fn facing_suffix_rejects_duplicate_non_object_missing_and_invalid_entries_withou
         snapshot.object_facings = entries;
         let mut live = Sim::new_from_shipped_lot();
         live.tick();
-        let before = live.save_snapshot();
-        assert!(live.load_snapshot(snapshot).is_err());
-        assert_eq!(live.save_snapshot(), before);
+        let before = live.save_snapshot_v3();
+        assert!(live.load_snapshot_v3(snapshot).is_err());
+        assert_eq!(live.save_snapshot_v3(), before);
     }
     let mut restricted = pack.clone();
     let id = restricted.find("fridge").unwrap();
     restricted.objects[id.0 as usize].facing_sprites.0[Facing::NorthEast.code() as usize] = None;
     let restricted = Box::leak(Box::new(restricted));
     let mut live = test_content::sim_with(16, 16, restricted);
-    let before = live.save_snapshot();
+    let before = live.save_snapshot_v3();
     let mut snapshot = valid;
     snapshot.object_facings = vec![(object, Facing::NorthEast.code())];
-    assert_eq!(live.load_snapshot(snapshot), Err(SaveError::InvalidValue));
-    assert_eq!(live.save_snapshot(), before);
+    assert_eq!(
+        live.load_snapshot_v3(snapshot),
+        Err(SaveError::InvalidValue)
+    );
+    assert_eq!(live.save_snapshot_v3(), before);
 }
 
 #[test]
@@ -122,9 +126,9 @@ fn facing_roundtrip_keeps_explicit_turn_and_rotated_socket() {
         expected.0[0].facing,
         terri_data::CompiledSocketFacing::PositiveY
     );
-    let snapshot = sim.save_snapshot();
+    let snapshot = sim.save_snapshot_v3();
     let mut restored = test_content::sim_with(16, 16, pack);
-    restored.load_snapshot(snapshot).unwrap();
+    restored.load_snapshot_v3(snapshot).unwrap();
     assert_eq!(
         restored.world().get::<ObjectFacing>(entity),
         Some(&ObjectFacing(Facing::SouthWest))
@@ -137,7 +141,7 @@ fn facing_roundtrip_keeps_explicit_turn_and_rotated_socket() {
         sim.tick();
         restored.tick();
     }
-    assert_eq!(sim.save_snapshot(), restored.save_snapshot());
+    assert_eq!(sim.save_snapshot_v3(), restored.save_snapshot_v3());
 }
 
 #[test]
@@ -171,7 +175,6 @@ fn legacy_dynamic_desk_keeps_its_two_by_one_collision_with_the_new_base_art() {
     }
     let mut old = source.save_snapshot();
     old.content_fingerprint = 0xfdf5_87d9_437f_bfd0;
-    old.object_facings.clear();
     let before = old.blocked_tiles.clone();
     let mut resumed = test_content::sim_with(16, 16, pack);
     resumed.load_snapshot(old).unwrap();

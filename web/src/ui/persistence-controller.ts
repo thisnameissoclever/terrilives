@@ -1,4 +1,5 @@
 import type { SaveStore } from '../storage/save-store.js';
+import { saveSchemaVersion } from '../storage/save-header.js';
 
 export interface PersistableSim {
   saveBytes(): Uint8Array;
@@ -93,6 +94,7 @@ export function applyPersistenceControlState(
 export class PersistenceController {
   private autosaveDay = 0;
   private savedGameAvailable = false;
+  private savingPaused = false;
   private activeOperation: PersistenceOperation | null = null;
 
   constructor(
@@ -113,23 +115,23 @@ export class PersistenceController {
       }
       if (!this.sim.loadBytes(bytes)) {
         this.savedGameAvailable = false;
-        this.armAutosave();
-        this.show('Saved game is invalid. Starting a new game.', true);
+        this.protectSavedGame(bytes);
         return 'invalid';
       }
+      this.savingPaused = false;
       this.armAutosave();
       this.savedGameAvailable = true;
       this.show('Saved game loaded');
       return 'loaded';
     } catch (error: unknown) {
       this.reportError(error);
-      this.armAutosave();
-      this.show('Saving is unavailable. Starting a new game.', true);
+      this.protectSavedGame();
       return 'unavailable';
     }
   }
 
   async save(message = 'Game saved'): Promise<boolean> {
+    if (this.savingPaused) return false;
     if (!this.beginOperation('save')) return false;
     this.show('Saving');
     try {
@@ -158,21 +160,23 @@ export class PersistenceController {
       const bytes = await this.store.load();
       if (bytes === null) {
         this.savedGameAvailable = false;
-        this.show('No saved game found', true);
+        if (this.savingPaused) this.protectSavedGame();
+        else this.show('No saved game found', true);
         return false;
       }
       if (!this.sim.loadBytes(bytes)) {
         this.savedGameAvailable = false;
-        this.show('Load failed. Current game kept.', true);
+        this.protectSavedGame(bytes);
         return false;
       }
+      this.savingPaused = false;
       this.armAutosave();
       this.savedGameAvailable = true;
       this.show('Saved game loaded');
       return true;
     } catch (error: unknown) {
       this.reportError(error);
-      this.show('Load failed. Current game kept.', true);
+      this.protectSavedGame();
       return false;
     } finally {
       this.finishOperation('load');
@@ -185,10 +189,17 @@ export class PersistenceController {
     try {
       await this.store.clear();
       this.savedGameAvailable = false;
+      this.savingPaused = false;
+      this.armAutosave();
       return true;
     } catch (error: unknown) {
       this.reportError(error);
-      this.show('Could not remove the saved game.', true);
+      this.show(
+        this.savingPaused
+          ? 'Could not remove the saved game. Saved data kept. Saving paused.'
+          : 'Could not remove the saved game.',
+        true,
+      );
       return false;
     } finally {
       this.finishOperation('clear');
@@ -197,6 +208,7 @@ export class PersistenceController {
 
   /** Called from the frame loop. It schedules at most one save per new day. */
   updateAutosave(): void {
+    if (this.savingPaused) return;
     const day = this.currentDay();
     if (day <= this.autosaveDay || this.activeOperation !== null) return;
     // Advance before starting the asynchronous write so sixty frames cannot
@@ -218,8 +230,8 @@ export class PersistenceController {
   controlState(): PersistenceControlState {
     const busy = this.activeOperation !== null;
     return {
-      saveDisabled: busy,
-      loadDisabled: busy || !this.savedGameAvailable,
+      saveDisabled: busy || this.savingPaused,
+      loadDisabled: busy || (!this.savedGameAvailable && !this.savingPaused),
       newGameDisabled: busy,
       confirmationDisabled: busy,
     };
@@ -227,6 +239,18 @@ export class PersistenceController {
 
   private armAutosave(): void {
     this.autosaveDay = this.currentDay();
+  }
+
+  private protectSavedGame(bytes?: Uint8Array): void {
+    this.savingPaused = true;
+    const version = bytes ? saveSchemaVersion(bytes) : null;
+    const reason = version !== null && version !== 1 && version !== 2 && version !== 3
+      ? `Saved game version ${version} is not supported.`
+      : 'Load failed.';
+    this.show(
+      `${reason} Current game and saved data kept. Saving paused. Retry Load or confirm New game to resume saving.`,
+      true,
+    );
   }
 
   private currentDay(): number {

@@ -201,13 +201,13 @@ fn placement_save_reload_keeps_rotated_rectangles_sockets_foregrounds_and_pendin
     let hash = sim.world_hash();
     sim.world_mut().resource_mut::<CommandQueue>().push(SimCommand::PlaceObject{object,x:origin.0,y:origin.1,facing:f});
     assert_ne!(sim.world_hash(),hash,"hash ignores queued placement");
-    let snapshot = sim.save_snapshot();
+    let snapshot = sim.save_snapshot_v3();
     let mut loaded = Sim::new();
-    loaded.load_snapshot(snapshot.clone()).unwrap();
-    assert_eq!(loaded.save_snapshot(),snapshot);
+    loaded.load_snapshot_v3(snapshot.clone()).unwrap();
+    assert_eq!(loaded.save_snapshot_v3(),snapshot);
     assert_eq!(loaded.world_hash(),sim.world_hash());
     loaded.flush_commands(); sim.flush_commands();
-    assert_eq!(loaded.save_snapshot(),sim.save_snapshot());
+    assert_eq!(loaded.save_snapshot_v3(),sim.save_snapshot_v3());
     assert_eq!(loaded.world_hash(),sim.world_hash());
     assert!(validate_placement(loaded.world(),object,origin,f).is_ok(),"headless restore keeps gameplay editing");
 }

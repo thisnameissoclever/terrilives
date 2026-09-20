@@ -1,5 +1,41 @@
 # Lessons Learned
 
+## [L-asset-checkpoints-need-current-status] Keep rejected art history distinct
+
+**What happened.** Feature and architecture notes still described the old
+mirrored bike's failed non-SE contacts after its four-direction replacement
+and eight-phase cycling animation had integrated on main.
+
+**Root cause.** An earlier checkpoint's limitation remained phrased as current
+status outside the replacement asset's own release notes.
+
+**Prevention.** When replacing an asset, search feature, architecture and source
+README files for the old limitation. Preserve dated rejection evidence while
+linking to the replacement's actual acceptance record. Keep available art,
+runtime integration, player controls and public deployment as distinct claims.
+
+**Verification.** Compare these summaries with the furniture authoring README,
+`docs/assets/review-evidence/furniture/README.md` and the current manifests.
+The builder's player-rotation controls still require their own played check.
+
+## [L-serialized-golden-field-order] Map fields before updating byte fixtures
+
+**What happened.** Integrating saved boundary walls with furniture facing left
+the content serialization golden test failing. Its expected empty `wall_edges`
+vector byte had been inserted near the placement coordinates rather than after
+`CompiledLot.front_door`.
+
+**Root cause.** The literal was edited by visual proximity instead of tracing
+the serialized struct's field order. Production serialization was correct.
+
+**Prevention.** Map each added field to its position in the serialized record
+before changing a golden vector. Keep the exact byte assertion; do not change
+the production wire format merely to match a mistaken fixture.
+
+**Verification.** After correcting only the literal position,
+`cargo test -p terri-data -j 1 --quiet` passed 225 unit tests and one integration
+test. Historical save fixtures remain separate compatibility checks.
+
 ## [L-runtime-direction-needs-an-authored-base] Existing art facings can already own rotated geometry
 
 **What happened.** Applying a quarter-turn directly to every directional
@@ -18,6 +54,159 @@ release before claiming defaults survived.
 **How to verify.** Run the relative-base geometry tests, the 34-object prior
 release render comparison, and real pre-builder and pre-bathtub byte fixtures.
 Change one base direction and require old digest bridges to close.
+## [L-atlas-palette-test-granularity] Verify independent palettes independently
+
+**What happened.** The combined blue/red palette check exceeded its unchanged
+five-second limit at 5.358 seconds, while 779 other browser tests passed.
+
+**Root cause.** One test bundled two independent 148-frame manifests, including
+296 small PNG reads and 961 assertions. This identified an over-broad test
+unit, not a production rendering regression or a proven Windows I/O defect.
+
+**Prevention rule.** Give each independently authored palette a named test.
+Retain every file hash, registration and interaction-anchor assertion; retain
+the global registry and atlas bounds in their own small case. Do not suppress
+checks or widen the global timeout to get a green result.
+
+**How to verify.** The full one-worker suite passes 782 tests with the original
+five-second budget. If an individual palette times out, investigate the source
+of that delay rather than repeatedly subdividing or increasing the allowance.
+
+## [L-door-landing-edge-validation] A clear tile can still be across a wall
+
+**What happened.** Integrating boundary walls with animated doors exposed a
+compiler gap: the landing tile could be empty but separated from the doorway
+by a solid edge. The regression accepted both a derived horizontal landing
+and an explicit vertical landing that should have been refused.
+
+**Root cause.** The door compiler checked occupied cells, while main's new
+architecture also represents barriers between cells.
+
+**Prevention rule.** Validate the doorway-to-landing step with the same grid
+edge rules used by movement. Carry presentation activation through every save
+restore path, including the new architecture envelope. Validate future career
+returns against the final restored grid even when the worker is currently at
+home: a save without a current path can still encode a blocked future landing.
+
+**How to verify.** `portal_landings_cannot_cross_solid_wall_edges` must reject
+both solid-edge cases and accept their doorway-edge counterparts. Load an
+actual pre-door V2 browser save and confirm its saved architecture is retained;
+reloading an active doorway must preserve its drawing state. Solid saved edges
+and blocked V1 landing cells must fail transactionally for career households;
+their open controls must still load and return normally.
+
+## [L-door-arrival-needs-independent-axis-tests] A working route can hide an untested coordinate
+
+**What happened.** The front-door release passed ordinary tests and its played
+departure/return check, but CI found eight surviving mutations in the career
+arrival predicate. The shipped return changes only the Y coordinate.
+
+**Root cause.** A single route did not independently constrain both sides of
+the X-or-Y distance check, and no test pinned its inclusive arrival tolerance.
+
+**Prevention rule.** Exercise an X-only return, a Y-only return, an exact
+nonzero doorway position, and each tolerance boundary separately. Assert the
+resulting career state and settled position, not only the rendered door state.
+
+**How to verify.** The two career arrival regressions must pass; the targeted
+mutation run must catch all eight changed comparisons and coordinate
+subtractions. The 2026-09-20 correction caught 8/8 without a baseline exception.
+## [L-layout-schema-exporter-impact] Include offline asset tools in schema impact scans
+
+**What happened.** Main CI stopped publication because the exercise-bike
+clearance test still indexed the removed `lot['wall']` field. The corresponding
+offline preview exporter had the same stale assumption. Local Rust, web and
+sprite suites passed but did not include this separate model-test suite.
+
+**Root cause.** The impact scan covered runtime content consumers but missed
+offline art tooling. Running only the atlas generator tests was not equivalent
+to the CI step, which runs seven Python suites.
+
+**Prevention rule.** Search all content readers, including model exporters,
+when changing authored schemas. Run the complete asset-test command list from
+CI on a staged-only export before claiming reproduction acceptance.
+
+**How to verify.** Check current wall geometry independently, retain the old
+clearance regression as historical proof, and run sprite, Sim, furniture,
+kitchen, bathroom, bedroom and office suites. Do not delete a stale test just
+to make CI green; update the production consumer it exposed.
+
+## [L-edge-contact-legacy-and-bounds] Keep strict new geometry separate from legacy contact
+
+**What happened.** Final review found two contact-validation defects: finite
+extreme target coordinates could overflow rectangle arithmetic, and rejecting
+off-lot contact changed behavior in custom legacy worlds that allow such objects.
+
+**Root cause.** A valid float is not necessarily a valid grid coordinate. The
+new boundary rule also tightened a historical API outside its intended scope.
+
+**Prevention rule.** Check edge-world target bounds before integer rectangle
+arithmetic. Retain the old contact rule when no solid barriers exist; do not
+silently apply new placement constraints to legacy saves.
+
+**How to verify.** Test positive and negative finite extremes for walking and
+active contact. Test path and distance-field contact on all four outside edges,
+then add a solid barrier and require rejection. Remove each compatibility
+fallback separately and require its regression to fail.
+
+## [L-edge-wall-save-contract] Save architecture before reclaiming wall tiles
+
+**What happened.** Moving interior walls to cell boundaries required freeing
+28 cells. The old save format held one combined collision bitmap, so changing
+authored content alone could not distinguish wall occupancy from custom data.
+
+**Root cause.** The structural content fingerprint describes referenced
+definitions, not ownership of a saved collision cell. Inferring wall ownership
+from a partial pattern could silently alter a customized household.
+
+**Prevention rule.** Persist explicit architecture in a new schema and retain
+the old decoder. Upgrade only a frozen, complete source-layout match. Preserve
+custom layouts without reinterpreting them. Back up original wire bytes before
+the first overwrite, and pause saving after failed loads.
+
+**How to verify.** Compare complete snapshots across the upgrade, test custom
+collision/placement differences, reload the new format without remigration,
+and load bytes produced by a previous browser build. A filesystem mock proves
+write ordering, not real-browser recovery. Test the retained backup through
+the actual loader as well. Origin-wide locks serialize cooperating workers;
+they do not prevent stale progress from a second game tab.
+
+## [L-wall-edge-arrival-and-fractional-turns] Validate contact where movement ends
+
+**What happened.** Cardinal pathfinding could still begin with a diagonal
+segment when a Sim changed direction between tile centers. Review also found
+that a saved path could end across a wall and start an object interaction.
+
+**Root cause.** Cell-to-cell path validity does not prove the actual first
+movement segment or the final interaction contact. A person being approached
+can also move after the route was calculated.
+
+**Prevention rule.** Anchor new fractional routes at the rounded source
+center before turning. Validate remaining saved segments and static-object
+endpoints. Recheck moving social partners at arrival rather than rejecting
+legitimate saves containing stale social approaches. Public spawn operations
+must not create geometry their own save loader rejects.
+
+**How to verify.** Test both wall axes, reversed segments and endpoint contact.
+Remove the anchor and boundary checks separately and require failures. Test
+empty/exhausted object paths, redirected conversation partners, unchanged RNG
+on rejected arrivals, and accepted spawn/save/load round trips. Retain the
+whole played-stretch save test to catch over-strict validation.
+
+## [L-half-wall-raster-identity] Derive wall halves from the full raster
+
+**What happened.** Independently rasterized wall halves did not reproduce
+the existing full wall exactly along diagonal edges.
+
+**Root cause.** Polygon endpoint rounding differed between the full panel and
+its separately drawn halves.
+
+**Prevention rule.** Render the existing full wall, then clear the unwanted
+half. Keep shared pixels consistent and give each geometric half one owner.
+
+**How to verify.** Opposite halves must reconstruct the full panel pixel for
+pixel. Check every previous decoded sprite remains unchanged after packing,
+then inspect joins and doorway apertures in the actual GPU view.
 
 ## [L-browser-artifact-paths] Use explicit temporary paths for review screenshots
 

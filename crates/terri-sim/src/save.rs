@@ -29,9 +29,15 @@ const MAX_TEXT_BYTES: usize = 1_024;
 const LEGACY_HOUSEHOLD_NAMES: [&str; 3] = ["Terri", "Doug", "Nadia"];
 const AQUARIUM_BIKE_PERSISTENCE_KEYS: [&str; 2] = ["moving_box", "reference_shelf"];
 
+pub(super) mod architecture;
 mod bathtub;
 #[cfg(test)]
 mod bathtub_tests;
+#[cfg(test)]
+mod v3_tests;
+mod wall_migration;
+#[cfg(test)]
+mod wall_migration_tests;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SaveError {
@@ -87,19 +93,6 @@ pub(super) fn capture(sim: &Sim) -> SaveSnapshotV1 {
     }
 
     SaveSnapshotV1 {
-        object_facings: entities
-            .iter()
-            .filter_map(|saved| {
-                let object = pack.find(saved.smart_object.as_deref()?)?;
-                let entity = world
-                    .entities()
-                    .resolve_from_index(EntityIndex::from_raw_u32(saved.index).unwrap());
-                let facing = world
-                    .get::<terri_core::ObjectFacing>(entity)
-                    .map_or(pack.object(object).base_facing, |f| f.0);
-                Some((saved.index, facing.code()))
-            })
-            .collect(),
         sleep_pressure,
         content_fingerprint: terri_data::content_fingerprint(pack),
         tick: world.resource::<SimClock>().tick,
@@ -242,7 +235,17 @@ fn capture_entity(entity: bevy_ecs::world::EntityRef<'_>, pack: &ContentPack) ->
 
 fn capture_command(command: &SimCommand) -> SavedCommand {
     match command {
-        SimCommand::PlaceObject {object,x,y,facing} => SavedCommand::PlaceObject {object:*object,x:*x,y:*y,facing:*facing},
+        SimCommand::PlaceObject {
+            object,
+            x,
+            y,
+            facing,
+        } => SavedCommand::PlaceObject {
+            object: *object,
+            x: *x,
+            y: *y,
+            facing: *facing,
+        },
         SimCommand::Select(entity) => SavedCommand::Select(*entity),
         SimCommand::UseObject {
             agent,
@@ -290,6 +293,35 @@ pub(super) fn restore(
     content: &'static ContentPack,
     active_portals: Option<ActivePortals>,
 ) -> Result<Sim, SaveError> {
+    let candidate = restore_legacy(snapshot, content, active_portals)?;
+    let candidate = wall_migration::upgrade(candidate, content);
+    validate_portal_returns(
+        &capture(&candidate),
+        candidate.world.resource::<TileGrid>(),
+        content,
+    )?;
+    Ok(candidate)
+}
+
+pub(super) fn restore_legacy(
+    snapshot: SaveSnapshotV1,
+    content: &'static ContentPack,
+    active_portals: Option<ActivePortals>,
+) -> Result<Sim, SaveError> {
+    restore_with_facings(
+        snapshot,
+        content,
+        active_portals,
+        &std::collections::BTreeMap::new(),
+    )
+}
+
+fn restore_with_facings(
+    snapshot: SaveSnapshotV1,
+    content: &'static ContentPack,
+    active_portals: Option<ActivePortals>,
+    facings: &std::collections::BTreeMap<u32, terri_core::Facing>,
+) -> Result<Sim, SaveError> {
     let (snapshot, migrate_legacy_household_names) = bathtub::prepare(snapshot, content)?;
 
     let mut sim = Sim::new();
@@ -320,6 +352,8 @@ pub(super) fn restore(
         }
     }
     sim.world.insert_resource(grid);
+    sim.world
+        .insert_resource(terri_core::layout::SavedLayout::LegacyAuthoredV1);
 
     let max_index = snapshot.entities.last().map(|entity| entity.index);
     let mut slots = vec![None; max_index.map_or(0, |index| index as usize + 1)];
@@ -344,16 +378,6 @@ pub(super) fn restore(
         }
     }
 
-    let facings: std::collections::BTreeMap<_, _> = snapshot
-        .object_facings
-        .iter()
-        .map(|&(index, code)| {
-            (
-                index,
-                terri_core::Facing::from_code(code).expect("validated direction"),
-            )
-        })
-        .collect();
     for saved in &snapshot.entities {
         restore_entity(
             &mut sim.world,
@@ -667,7 +691,17 @@ fn placement_matches(
 
 fn restore_command(command: SavedCommand) -> SimCommand {
     match command {
-        SavedCommand::PlaceObject {object,x,y,facing} => SimCommand::PlaceObject {object,x,y,facing},
+        SavedCommand::PlaceObject {
+            object,
+            x,
+            y,
+            facing,
+        } => SimCommand::PlaceObject {
+            object,
+            x,
+            y,
+            facing,
+        },
         SavedCommand::Select(entity) => SimCommand::Select(entity),
         SavedCommand::UseObject {
             agent,
@@ -768,25 +802,6 @@ fn validate_snapshot(snapshot: &SaveSnapshotV1, pack: &ContentPack) -> Result<()
         )?;
     }
     sim_ids.sort_unstable();
-    if snapshot.object_facings.len() > snapshot.entities.len() {
-        return Err(SaveError::InvalidValue);
-    }
-    let mut facing_indices = std::collections::BTreeSet::new();
-    for &(index, code) in &snapshot.object_facings {
-        if !facing_indices.insert(index) {
-            return Err(SaveError::InvalidValue);
-        }
-        let facing = terri_core::Facing::from_code(code).ok_or(SaveError::InvalidValue)?;
-        let entity = validate_entity_reference(&snapshot.entities, index)?;
-        let id = entity
-            .smart_object
-            .as_deref()
-            .ok_or(SaveError::InvalidEntityReference)?;
-        let definition = pack.object(resolve_object(pack, id)?);
-        if !definition.supports(facing) {
-            return Err(SaveError::InvalidValue);
-        }
-    }
     if sim_ids.windows(2).any(|ids| ids[0] == ids[1]) {
         return Err(SaveError::InvalidSimIdAllocator);
     }
@@ -803,6 +818,47 @@ fn validate_snapshot(snapshot: &SaveSnapshotV1, pack: &ContentPack) -> Result<()
     }
     for command in &snapshot.queued_commands {
         validate_command(command, &snapshot.entities, pack, pre_aquarium_bike)?;
+    }
+    Ok(())
+}
+
+fn validate_portal_returns(
+    snapshot: &SaveSnapshotV1,
+    grid: &TileGrid,
+    content: &ContentPack,
+) -> Result<(), SaveError> {
+    let Some(portal) = content.lot.front_door.and_then(|door| {
+        content
+            .portals
+            .iter()
+            .find(|portal| portal.position == door)
+    }) else {
+        return Ok(());
+    };
+    if !snapshot
+        .entities
+        .iter()
+        .any(|entity| entity.agent && entity.career.is_some())
+    {
+        return Ok(());
+    }
+    let door = (portal.position.0 as i32, portal.position.1 as i32);
+    let landing = (portal.inward.0 as i32, portal.inward.1 as i32);
+    if !grid.can_step(door, landing) {
+        return Err(SaveError::InvalidGrid);
+    }
+    for worker in snapshot
+        .entities
+        .iter()
+        .filter(|entity| entity.agent && entity.career.is_some() && entity.at_work_ticks.is_some())
+    {
+        let position = worker.position.ok_or(SaveError::InvalidGrid)?;
+        if !grid.segment_can_cross(
+            (position.x, position.y),
+            (landing.0 as f32, landing.1 as f32),
+        ) {
+            return Err(SaveError::InvalidGrid);
+        }
     }
     Ok(())
 }
@@ -1561,12 +1617,12 @@ mod tests {
             uninterrupted.tick();
         }
 
-        let state = uninterrupted.save_snapshot();
+        let state = uninterrupted.save_snapshot_v2();
         let mut resumed = Sim::new_from_shipped_lot();
         resumed
-            .load_snapshot(state.clone())
+            .load_snapshot_v2(state.clone())
             .expect("own snapshot restores");
-        assert_eq!(resumed.save_snapshot(), state);
+        assert_eq!(resumed.save_snapshot_v2(), state);
 
         for tick_after_load in 1..=300 {
             uninterrupted.tick();
@@ -1700,7 +1756,7 @@ mod tests {
 
             let mut fresh = Sim::new_from_shipped_lot();
             assert_eq!(
-                fresh.load_snapshot(snapshot),
+                fresh.load_snapshot_v2(sim.save_snapshot_v2()),
                 Ok(()),
                 "the snapshot taken at tick {tick} will not load"
             );
@@ -2401,6 +2457,7 @@ mod tests {
                 width: 16,
                 height: 16,
                 walls: Vec::new(),
+                wall_edges: Vec::new(),
                 placements: vec![terri_data::CompiledPlacement {
                     object: chair,
                     facing: terri_core::Facing::NorthWest,
@@ -2427,12 +2484,13 @@ mod tests {
             Some(default_se.as_slice()),
             "before Save, the dynamic object must carry default-SE sockets"
         );
-        let snapshot = source.save_snapshot();
+        let snapshot = source.save_snapshot_v3();
         let saved_position = snapshot
+            .world
             .entities
             .iter()
             .find(|saved| saved.index == dynamic.index_u32())
-            .expect("the dynamic object is present in Save V1")
+            .expect("the dynamic object is present in Save V3")
             .position
             .expect("the dynamic object has a saved position");
         assert!(placement_matches(
@@ -2443,8 +2501,8 @@ mod tests {
 
         let mut restored = crate::test_content::sim_with(16, 16, fixture);
         restored
-            .load_snapshot(snapshot)
-            .expect("same-position dynamic Save V1 restores");
+            .load_snapshot_v3(snapshot)
+            .expect("same-position dynamic Save V3 restores");
         let restored_dynamic = restored.world().entities().resolve_from_index(
             EntityIndex::from_raw_u32(dynamic.index_u32()).expect("ordinary saved entity index"),
         );
@@ -2455,6 +2513,17 @@ mod tests {
                 .map(|sockets| sockets.0.as_slice()),
             Some(default_se.as_slice()),
             "the saved direction distinguishes a dynamic object from the authored placement"
+        );
+
+        let mut historical = crate::test_content::sim_with(16, 16, fixture);
+        historical.load_snapshot(source.save_snapshot()).unwrap();
+        assert_eq!(
+            historical
+                .world()
+                .get::<ResolvedActionSockets>(restored_dynamic)
+                .map(|sockets| sockets.0.as_slice()),
+            Some([authored_nw].as_slice()),
+            "frozen V1 retains authored inference because it cannot store explicit directions"
         );
     }
 
@@ -2559,7 +2628,6 @@ mod tests {
 
         let mut empty = rich_snapshot();
         empty.entities.clear();
-        empty.object_facings.clear();
         empty.issued_sim_ids = 0;
         empty.queued_commands.clear();
         assert_validation(&empty, Ok(()), "empty world is valid");
@@ -3474,6 +3542,9 @@ mod tests {
         let width = prior.grid_width as usize;
         expected_blocked[9 * width + 15] = false;
         expected_blocked[10 * width + 14] = true;
+        for (x, y) in terri_core::layout::LEGACY_WALL_TILES {
+            expected_blocked[y as usize * width + x as usize] = false;
+        }
         let expected_entities = prior.entities.clone();
         let mut restored = Sim::new_from_shipped_lot();
         assert_eq!(restored.load_snapshot(prior), Ok(()));

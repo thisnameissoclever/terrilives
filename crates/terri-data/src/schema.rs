@@ -420,8 +420,8 @@ pub struct VisualDef {
     pub socket: Option<String>,
 }
 
-/// Mirrors `content/lot.toml`: the size of the lot, its interior wall
-/// tiles, and where each object stands.
+/// Mirrors `content/lot.toml`: the size of the lot, its interior architecture,
+/// and where each object stands.
 ///
 /// Walls and placements both default, so an empty lot of a given size is
 /// expressible without writing two empty arrays. A lot with no size is
@@ -444,6 +444,20 @@ pub struct LotFile {
     /// names it.
     #[serde(default)]
     pub front_door: Option<FrontDoorDef>,
+    /// Interior boundaries, mutually exclusive with legacy wall tiles.
+    #[serde(default)]
+    pub wall_edge: Vec<WallEdgeDef>,
+}
+
+/// One interior boundary. Signed coordinates keep invalid negatives available
+/// to the compiler's content-specific error reporting.
+#[derive(Debug, Deserialize)]
+pub struct WallEdgeDef {
+    pub axis: terri_core::layout::EdgeAxis,
+    pub x: i32,
+    pub y: i32,
+    #[serde(default)]
+    pub doorway: bool,
 }
 
 /// The front door tile. `i32` for the same reporting reason as

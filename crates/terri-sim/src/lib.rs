@@ -603,20 +603,105 @@ fn authored_object_sound(
 }
 
 impl Sim {
-    /// Captures every world resource, entity component, entity reference,
-    /// and staged player command needed to resume this simulation exactly.
+    /// Captures the frozen V1 world payload, without edge architecture.
+    /// Use `save_snapshot_v3` for complete persistence of a current world.
     pub fn save_snapshot(&self) -> terri_core::SaveSnapshotV1 {
         save::capture(self)
     }
 
-    /// Transactionally replaces this simulation from a validated snapshot.
+    /// Captures historical V2 architecture and world, without runtime directions.
+    pub fn save_snapshot_v2(&self) -> terri_core::SaveSnapshotV2 {
+        terri_core::SaveSnapshotV2 {
+            world: save::capture(self),
+            layout: self
+                .world
+                .resource::<terri_core::layout::SavedLayout>()
+                .clone(),
+        }
+    }
+
+    pub fn load_snapshot_v2(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV2,
+    ) -> Result<(), SaveError> {
+        let content = self.world.resource::<Content>().0;
+        let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let mut restored = save::architecture::restore(snapshot, content, active_portals)?;
+        restored
+            .world
+            .resource_mut::<placement::LotEditState>()
+            .revision = self
+            .world
+            .resource::<placement::LotEditState>()
+            .revision
+            .saturating_add(1);
+        *self = restored;
+        Ok(())
+    }
+
+    /// Captures architecture and runtime directions without changing historical records.
+    pub fn save_snapshot_v3(&self) -> terri_core::SaveSnapshotV3 {
+        let world = save::capture(self);
+        let content = self.world.resource::<Content>().0;
+        let object_facings = world
+            .entities
+            .iter()
+            .filter_map(|saved| {
+                let id = content.find(saved.smart_object.as_deref()?)?;
+                let entity = self.world.entities().resolve_from_index(
+                    bevy_ecs::entity::EntityIndex::from_raw_u32(saved.index).unwrap(),
+                );
+                let facing = self
+                    .world
+                    .get::<terri_core::ObjectFacing>(entity)
+                    .map_or(content.object(id).base_facing, |f| f.0);
+                Some((saved.index, facing.code()))
+            })
+            .collect();
+        terri_core::SaveSnapshotV3 {
+            world,
+            layout: self
+                .world
+                .resource::<terri_core::layout::SavedLayout>()
+                .clone(),
+            object_facings,
+        }
+    }
+
+    /// Validates the complete candidate before replacing the running simulation.
+    pub fn load_snapshot_v3(
+        &mut self,
+        snapshot: terri_core::SaveSnapshotV3,
+    ) -> Result<(), SaveError> {
+        let content = self.world.resource::<Content>().0;
+        let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
+        let mut restored = save::architecture::restore_v3(snapshot, content, active_portals)?;
+        restored
+            .world
+            .resource_mut::<placement::LotEditState>()
+            .revision = self
+            .world
+            .resource::<placement::LotEditState>()
+            .revision
+            .saturating_add(1);
+        *self = restored;
+        Ok(())
+    }
+
+    /// Loads a historical V1 payload, including reviewed layout migrations.
     /// On any error `self` is untouched.
     pub fn load_snapshot(&mut self, snapshot: terri_core::SaveSnapshotV1) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
         let mut restored = save::restore(snapshot, content, active_portals)?;
-        restored.world.resource_mut::<placement::LotEditState>().revision =
-            self.world.resource::<placement::LotEditState>().revision.saturating_add(1);
+        restored
+            .world
+            .resource_mut::<placement::LotEditState>()
+            .revision = self
+            .world
+            .resource::<placement::LotEditState>()
+            .revision
+            .saturating_add(1);
         *self = restored;
         Ok(())
     }
@@ -638,6 +723,7 @@ impl Sim {
         // A placeholder lot so Res<TileGrid> never panics. Callers that
         // care about the lot use new_with_lot, which replaces this.
         world.insert_resource(terri_core::TileGrid::new(1, 1));
+        world.insert_resource(terri_core::layout::SavedLayout::default());
         world.insert_resource(Content(terri_data::pack()));
         // The simulation PRNG, as a world resource per [D-3]. Randomness
         // must not mean nondeterminism: the golden hashes, replay, the
@@ -942,6 +1028,23 @@ impl Sim {
             grid.set_blocked(x as usize, y as usize, true);
         }
 
+        let layout = if lot.wall_edges.is_empty() {
+            terri_core::layout::SavedLayout::LegacyCells {
+                walls: lot.walls.clone(),
+            }
+        } else {
+            for edge in &lot.wall_edges {
+                if !edge.doorway {
+                    let [from, to] = edge.cells();
+                    grid.set_edge_blocked(from, to, true);
+                }
+            }
+            terri_core::layout::SavedLayout::EdgeWallsV1 {
+                edges: lot.wall_edges.clone(),
+            }
+        };
+        sim.world.insert_resource(layout);
+
         for placement in &lot.placements {
             // The tile the object stands in is the tile its coordinates fall
             // in, which for a non-negative `f32` is the truncating cast. Same
@@ -1201,7 +1304,12 @@ impl Sim {
         use terri_core::{Agent, Position, SmartObject};
 
         let mut previous_socket_projection = std::mem::take(&mut self.socket_projected_entities);
-        let discontinuities = std::mem::take(&mut self.world.resource_mut::<placement::LotEditState>().discontinuities);
+        let discontinuities = std::mem::take(
+            &mut self
+                .world
+                .resource_mut::<placement::LotEditState>()
+                .discontinuities,
+        );
 
         if advance_interpolation {
             std::mem::swap(&mut self.render.prev_positions, &mut self.render.positions);
@@ -1624,7 +1732,8 @@ impl Sim {
         } else {
             for (slot, row) in rows.iter().enumerate() {
                 if previous_socket_projection.contains(&row.entity) != row.socket_projected
-                    || discontinuities.contains(&row.entity) {
+                    || discontinuities.contains(&row.entity)
+                {
                     let position = slot * 2;
                     self.render.prev_positions[position] = self.render.positions[position];
                     self.render.prev_positions[position + 1] = self.render.positions[position + 1];
@@ -2397,15 +2506,44 @@ impl Sim {
                 use terri_core::SimCommand::*;
                 let fields: Vec<u64> = match command {
                     Select(id) => vec![0, id.map_or(u64::MAX, |id| id as u64)],
-                    UseObject {agent,object,interaction} => vec![1,*agent as u64,*object as u64,*interaction as u64],
-                    CancelIntents {agent} => vec![2,*agent as u64],
-                    SetSpeed(speed) => vec![3,*speed as u64],
-                    TalkTo {agent,target,interaction} => vec![4,*agent as u64,*target as u64,*interaction as u64],
-                    UseObjectFirst {agent,object,interaction} => vec![5,*agent as u64,*object as u64,*interaction as u64],
-                    TalkToFirst {agent,target,interaction} => vec![6,*agent as u64,*target as u64,*interaction as u64],
-                    PlaceObject {object,x,y,facing} => vec![7,*object as u64,*x as u64,*y as u64,facing.code() as u64],
+                    UseObject {
+                        agent,
+                        object,
+                        interaction,
+                    } => vec![1, *agent as u64, *object as u64, *interaction as u64],
+                    CancelIntents { agent } => vec![2, *agent as u64],
+                    SetSpeed(speed) => vec![3, *speed as u64],
+                    TalkTo {
+                        agent,
+                        target,
+                        interaction,
+                    } => vec![4, *agent as u64, *target as u64, *interaction as u64],
+                    UseObjectFirst {
+                        agent,
+                        object,
+                        interaction,
+                    } => vec![5, *agent as u64, *object as u64, *interaction as u64],
+                    TalkToFirst {
+                        agent,
+                        target,
+                        interaction,
+                    } => vec![6, *agent as u64, *target as u64, *interaction as u64],
+                    PlaceObject {
+                        object,
+                        x,
+                        y,
+                        facing,
+                    } => vec![
+                        7,
+                        *object as u64,
+                        *x as u64,
+                        *y as u64,
+                        facing.code() as u64,
+                    ],
                 };
-                for field in fields { hasher.write_u64(field); }
+                for field in fields {
+                    hasher.write_u64(field);
+                }
             }
         }
 
@@ -2520,6 +2658,7 @@ mod lot_tests {
             height: 4,
             front_door: None,
             walls: vec![(3, 2), (1, 0)],
+            wall_edges: Vec::new(),
             placements: vec![
                 CompiledPlacement {
                     object: ObjectDefId(2),
@@ -2775,6 +2914,7 @@ mod lot_tests {
             height: 5,
             front_door: None,
             walls: vec![(6, 0)],
+            wall_edges: Vec::new(),
             placements: vec![CompiledPlacement {
                 object: ObjectDefId(2),
                 facing: terri_core::Facing::NorthWest,
@@ -2866,18 +3006,12 @@ mod lot_tests {
     }
 
     #[test]
-    fn the_shipped_lot_loads_its_walls_its_doorway_and_all_of_its_objects() {
-        // The synthetic fixture above pins the mapping; this pins that
-        // the mapping is applied to the content the game actually ships,
-        // which is the whole reason this function exists. It reads the
-        // lot rather than restating it, so it stays true when the lot is
-        // re-authored - but the counts and the doorway are asserted
-        // against numbers, because a lot that compiled to nothing would
-        // satisfy any purely self-referential check.
-        //
-        // It goes through `new_from_shipped_lot`, which is the entry
-        // point `terri-wasm` calls, so that thin wrapper is constrained
-        // by something rather than being an untested public function.
+    fn the_shipped_lot_loads_its_wall_edges_door_ring_and_all_of_its_objects() {
+        use terri_core::layout::{EdgeAxis, WallEdge};
+
+        // Exercise the entry point used by WASM. Placements must retain their
+        // authored mapping; literal boundaries below pin the reviewed floor
+        // plan independently of what the content pack happens to contain.
         let lot = &terri_data::pack().lot;
         let sim = Sim::new_from_shipped_lot();
         let grid = sim.world().resource::<TileGrid>();
@@ -2887,9 +3021,12 @@ mod lot_tests {
             (lot.width as usize, lot.height as usize)
         );
         assert_eq!(
-            placed_objects(&sim).len(),
-            lot.placements.len(),
-            "every placement in the shipped lot must be spawned"
+            placed_objects(&sim),
+            lot.placements
+                .iter()
+                .map(|placement| (placement.x, placement.y, placement.object))
+                .collect::<Vec<_>>(),
+            "every placement must keep its coordinates, definition and order"
         );
         assert!(
             placed_objects(&sim).len() >= 25,
@@ -2898,35 +3035,64 @@ mod lot_tests {
             placed_objects(&sim).len()
         );
 
-        // **The five-room house's doorways, one per wall run.** A doorway is
-        // a GAP in a run rather than an entry of its own, so each is asserted
-        // as the open tile between two solid ones - which is the shape a
-        // missing gap actually breaks. Sealing a room is a silent behaviour
-        // change rather than a visible one ([L17]): the sim simply stops
-        // choosing anything in there, and nothing reports it.
-        //
-        // These coordinates are deliberately literal rather than derived from
-        // the content, so that re-authoring the lot fails this test and forces
-        // someone to look at whether the rooms still connect. It has already
-        // done that job twice, when the lot shrank from 24x18 to 14x10 and
-        // again when it grew to 16x12.
-        for (open, solid_before, solid_after, what) in [
-            ((7, 2), (7, 1), (7, 3), "kitchen to living room"),
-            ((3, 5), (2, 5), (4, 5), "kitchen to bedroom"),
-            ((13, 5), (12, 5), (14, 5), "living room to bathroom"),
-            ((5, 9), (5, 8), (5, 10), "bedroom to study"),
-            ((11, 8), (11, 7), (11, 9), "study to bathroom"),
+        assert!(
+            lot.walls.is_empty(),
+            "interior walls no longer consume tiles"
+        );
+        assert_eq!(lot.wall_edges.len(), 34);
+        assert_eq!(grid.blocked_edges().count(), 29);
+
+        // Literal boundaries pin the reviewed house, including V(8,5), which
+        // closes a bypass through the reclaimed former wall column.
+        for (axis, fixed, range, doors) in [
+            (EdgeAxis::Vertical, 8, 0..6, vec![2]),
+            (EdgeAxis::Horizontal, 6, 0..16, vec![3, 13]),
+            (EdgeAxis::Vertical, 6, 6..12, vec![9]),
+            (EdgeAxis::Vertical, 12, 6..12, vec![8]),
         ] {
-            assert!(
-                grid.is_walkable(open.0, open.1),
-                "the {what} doorway at {open:?} must be open"
-            );
-            assert!(
-                !grid.is_walkable(solid_before.0, solid_before.1)
-                    && !grid.is_walkable(solid_after.0, solid_after.1),
-                "the {what} wall must be solid either side of {open:?}, or \
-                 the gap is not a doorway and this asserts nothing"
-            );
+            for varying in range {
+                let (x, y) = match axis {
+                    EdgeAxis::Vertical => (fixed, varying),
+                    EdgeAxis::Horizontal => (varying, fixed),
+                };
+                let edge = WallEdge {
+                    axis,
+                    x,
+                    y,
+                    doorway: doors.contains(&varying),
+                };
+                assert!(
+                    lot.wall_edges.contains(&edge),
+                    "missing reviewed edge {edge:?}"
+                );
+                let [from, to] = edge.cells();
+                assert_eq!(grid.can_cross(from, to), edge.doorway, "{edge:?}");
+                assert_eq!(grid.can_cross(to, from), edge.doorway, "{edge:?}");
+                if edge.doorway {
+                    assert!(grid.can_step(from, to) && grid.can_step(to, from));
+                }
+            }
+        }
+
+        // Every blocked cell now belongs to furniture. This catches retaining
+        // invisible legacy wall tiles even when edge barriers work correctly.
+        let mut occupied = std::collections::BTreeSet::new();
+        for placement in &lot.placements {
+            let footprint = terri_data::pack().object(placement.object).footprint;
+            for y in placement.y as i32..placement.y as i32 + footprint.depth as i32 {
+                for x in placement.x as i32..placement.x as i32 + footprint.width as i32 {
+                    occupied.insert((x, y));
+                }
+            }
+        }
+        for y in 0..grid.height() as i32 {
+            for x in 0..grid.width() as i32 {
+                assert_eq!(
+                    grid.is_walkable(x, y),
+                    !occupied.contains(&(x, y)),
+                    "tile ({x}, {y})"
+                );
+            }
         }
 
         // **The circulation is a RING, and this is what says so.**
@@ -2948,7 +3114,13 @@ mod lot_tests {
         // being vacuous. Sealing TWO doorways of the same room must cut that
         // room off - otherwise "sealing one is survivable" would be equally
         // true of a house with no walls in it at all.
-        let ring = [(7, 2), (3, 5), (13, 5), (5, 9), (11, 8)];
+        let ring = [
+            ((7, 2), (8, 2)),
+            ((3, 5), (3, 6)),
+            ((13, 5), (13, 6)),
+            ((5, 9), (6, 9)),
+            ((11, 8), (12, 8)),
+        ];
         let probes = [
             (1, 1),  // kitchen
             (9, 2),  // living room
@@ -2956,9 +3128,9 @@ mod lot_tests {
             (8, 8),  // study
             (13, 7), // bathroom
         ];
-        for sealed in ring {
+        for (from, to) in ring {
             let mut cut = grid.clone();
-            cut.set_blocked(sealed.0 as usize, sealed.1 as usize, true);
+            cut.set_edge_blocked(from, to, true);
             for probe in probes {
                 // No `|| probe == probes[0]` escape: `find_path` returns
                 // `Some(empty)` when from == to, so the kitchen probe against
@@ -2966,18 +3138,18 @@ mod lot_tests {
                 // would be dead code that looked like a special case.
                 assert!(
                     cut.find_path(probes[0], probe).is_some(),
-                    "with the doorway at {sealed:?} sealed, {probe:?} is cut \
+                    "with the doorway {from:?} -> {to:?} sealed, {probe:?} is cut \
                      off from the kitchen; the circulation is a tree rather \
                      than a ring and one blocked door strands a room"
                 );
             }
         }
-        // The bedroom's two doorways are (3, 5) and (5, 9). Seal both and it
+        // The bedroom's two doorways are H(3,6) and V(6,9). Seal both and it
         // has to become unreachable, or the ring test above is measuring a
         // house whose walls do nothing.
         let mut sealed_bedroom = grid.clone();
-        sealed_bedroom.set_blocked(3, 5, true);
-        sealed_bedroom.set_blocked(5, 9, true);
+        sealed_bedroom.set_edge_blocked((3, 5), (3, 6), true);
+        sealed_bedroom.set_edge_blocked((5, 9), (6, 9), true);
         assert!(
             sealed_bedroom.find_path((1, 1), (3, 8)).is_none(),
             "with both of the bedroom's doorways sealed it must be cut off; \
