@@ -1,5 +1,9 @@
 # Furniture builder implementation plan
 
+> For agentic workers: use `superpowers:subagent-driven-development` to
+> implement and review these units in order. Track completion in the plan's
+> gitignored SDD ledger; do not restart completed units after compaction.
+
 **Goal:** Let players move existing furniture and rotate it to supported
 directions, with a reliable preview, clear refusals and durable saved layouts.
 
@@ -70,6 +74,39 @@ Output contract: stable direction codes; `CompiledObject` support and geometry
 queries; one function applying position/facing-derived presentation;
 `placed_footprint`; validated persistent runtime directions.
 
+The shared interface to implement is:
+
+```rust
+// terri-core
+// Codes: SouthEast=0, SouthWest=1, NorthWest=2, NorthEast=3.
+pub struct ObjectFacing(pub Facing);
+// Facing: ALL, code(), from_code(u8) -> Option<Self>, turned().
+
+// terri-data::CompiledObject
+pub fn supports(&self, facing: Facing) -> bool;
+pub fn next_supported_facing(&self, from: Facing) -> Option<Facing>;
+pub fn footprint_at(&self, facing: Facing) -> Footprint;
+pub fn sockets_at(&self, x: f32, y: f32, facing: Facing)
+    -> Vec<CompiledPlacementSocket>;
+
+// terri-sim
+pub fn placed_footprint(content: &ContentPack, id: ObjectDefId,
+    facing: Option<&ObjectFacing>) -> Footprint;
+pub fn apply_object_placement(world: &mut World, entity: Entity,
+    definition: &CompiledObject, origin: Position, facing: Facing);
+```
+
+For old entities with no direction component, `placed_footprint` uses the
+definition's base direction. The placement helper updates position, facing,
+sprite, foreground and action sockets together; callers validate first.
+
+- [ ] Run a red test that asserts a restored, explicitly turned object keeps
+  its direction and rotated socket, then implement the save suffix.
+- [ ] Run `cargo test -p terri-core`, `cargo test -p terri-data`, and targeted
+  simulation facing/save tests. Expected green: exact authored defaults,
+  rotation changes hash, roundtrip preserves direction, invalid suffix refuses.
+- [ ] Run the full workspace and clippy once, record evidence and commit.
+
 ## Task 2: Atomic placement preview and commands
 
 Ownership: new `crates/terri-sim/src/placement.rs` and focused tests,
@@ -104,6 +141,41 @@ WASM exports and `web/src/bridge.ts` with boundary tests.
 Output contract: placement query, appended command, result/refusal query,
 lot revision and geometry projection available from `SimBridge`.
 
+```rust
+pub fn validate_placement(world: &World, object: u32, origin: (u32, u32),
+    facing: Facing) -> Result<PlacementPlan, PlacementRefusal>;
+// PlacementPlan owns candidate grid and resolved identity/origin/facing.
+// The result must not borrow a World that commit will mutate.
+```
+
+```typescript
+interface PlacementPreview {
+  readonly valid: boolean;
+  readonly reason: string | null;
+  readonly x: number;
+  readonly y: number;
+  readonly facing: number;
+  readonly width: number;
+  readonly depth: number;
+  readonly sprite: number;
+  readonly foreground: number | null;
+}
+// SimBridge methods, backed by boundary-validated WASM queries:
+// placementPreview(object, x, y, facing): PlacementPreview
+// placeObject(object, x, y, facing): boolean (queue acceptance, not commit)
+// objectFacing(object): number | null
+// objectFacingMask(object): number (four low bits)
+// lotRevision(): number
+// lastPlacementResult(): { object: number; reason: string | null } | null
+```
+
+- [ ] RED: preview a wall overlap, apply the same command, then compare the
+  entire snapshot with before; assert both refuse for the same reason.
+- [ ] GREEN: planner performs every check before writes; command result is
+  distinct from queue acceptance and preserves strict command ordering.
+- [ ] Run `cargo test -p terri-sim placement`, command-ordering tests,
+  `cargo test -p terri-wasm --release` and bridge boundary tests.
+
 ## Task 3: Paused builder controls and visible preview
 
 Ownership: new `web/src/ui/builder.ts`, `web/src/render/placement-preview.ts`,
@@ -130,6 +202,12 @@ HTML/CSS, help and command feedback. Consume Task 2's contract.
 6. Test mode ownership, input isolation, valid/invalid previews, rotation
    support, confirmation failure, cancellation, cache refresh, keyboard and
    mobile layout. Run typecheck, one-worker web suite, release build and commit.
+
+- [ ] RED: an active builder consumes furniture clicks without calling the
+  normal Sim-use handler; Cancel leaves the snapshot byte-identical.
+- [ ] GREEN: confirm reads `lastPlacementResult`, not `placeObject`'s boolean;
+  invalid previews remain visible with the refusal reason.
+- [ ] Run `npm run typecheck`, `npm test -- --maxWorkers=1`, `npm run build`.
 
 ## Task 4: Played review, documentation and delivery
 
