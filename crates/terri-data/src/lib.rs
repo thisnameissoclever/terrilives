@@ -158,16 +158,20 @@ pub fn content_fingerprint(pack: &ContentPack) -> u64 {
     // A portal's identity and return landing change career routing, including
     // the future route of a worker saved while AtWork. Art, hinge and facing
     // remain presentation-only, but these coordinates must invalidate a save
-    // unless an exact reviewed migration says otherwise. Sort by identity
-    // because no saved state refers to the vector's declaration order.
-    let mut portals: Vec<_> = pack.portals.iter().collect();
-    portals.sort_unstable_by_key(|portal| (portal.position, portal.inward));
-    hash_count(&mut hasher, portals.len());
-    for portal in portals {
-        hasher.write_u64(portal.position.0 as u64);
-        hasher.write_u64(portal.position.1 as u64);
-        hasher.write_u64(portal.inward.0 as u64);
-        hasher.write_u64(portal.inward.1 as u64);
+    // unless an exact reviewed migration says otherwise. An empty vector
+    // deliberately writes no bytes so this additive extension preserves every
+    // deployed pre-portal structural digest. Sort by identity because no saved
+    // state refers to the vector's declaration order.
+    if !pack.portals.is_empty() {
+        let mut portals: Vec<_> = pack.portals.iter().collect();
+        portals.sort_unstable_by_key(|portal| (portal.position, portal.inward));
+        hash_count(&mut hasher, portals.len());
+        for portal in portals {
+            hasher.write_u64(portal.position.0 as u64);
+            hasher.write_u64(portal.position.1 as u64);
+            hasher.write_u64(portal.inward.0 as u64);
+            hasher.write_u64(portal.inward.1 as u64);
+        }
     }
 
     let mut chains: Vec<_> = pack.chains.iter().collect();
@@ -224,13 +228,13 @@ pub fn content_fingerprint(pack: &ContentPack) -> u64 {
 /// treating an old opaque hash as a permanent skeleton key.
 const LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS: &[(u64, u64)] = &[
     // 115ad03, where Save V1 first shipped.
-    (0x9d22_8822_6933_d3c7, 0xd1c8_9f68_9f73_2f30),
+    (0x9d22_8822_6933_d3c7, 0xa020_602a_6acd_3a90),
     // b772ab9 through ebfa686. Those public revisions compiled identically.
-    (0x263e_ed3b_bdcb_a7d0, 0xd1c8_9f68_9f73_2f30),
+    (0x263e_ed3b_bdcb_a7d0, 0xa020_602a_6acd_3a90),
     // 3a5e936, the Muted Line and circadian release.
-    (0x08ec_6011_bc11_7ad8, 0xd1c8_9f68_9f73_2f30),
+    (0x08ec_6011_bc11_7ad8, 0xa020_602a_6acd_3a90),
     // 72d67c5, the last public full-pack fingerprint before this migration.
-    (0x2eb2_02fa_e70e_4939, 0xd1c8_9f68_9f73_2f30),
+    (0x2eb2_02fa_e70e_4939, 0xa020_602a_6acd_3a90),
 ];
 
 // **The recorded voices moved this target, and they also moved the SAVE WIRE
@@ -266,16 +270,16 @@ const LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS: &[(u64, u64)] = &[
 /// ordinary current-format save carrying the source digest must retain every
 /// saved name verbatim.
 const PRIOR_STRUCTURAL_FINGERPRINT_MIGRATIONS: &[(u64, u64)] =
-    &[(0x26d5_982c_9af8_3de8, 0xd1c8_9f68_9f73_2f30)];
+    &[(0x26d5_982c_9af8_3de8, 0xa020_602a_6acd_3a90)];
 
-/// The exact structural digest immediately before front-door portals gained a
-/// route landing. That source already has the current interaction rows and
-/// needs no legacy data rewrite. Keeping this separate from
+/// The exact rotated-bathtub digest immediately before front-door portals
+/// gained a route landing. That source already has the current interaction
+/// rows and geometry and needs no legacy data rewrite. Keeping this separate from
 /// [`PRIOR_STRUCTURAL_FINGERPRINT_MIGRATIONS`] prevents a valid aquarium or
 /// exercise-bike action from being mistaken for an impossible old row-zero
 /// reference during load validation.
 const PRE_PORTAL_FINGERPRINT_MIGRATIONS: &[(u64, u64)] =
-    &[(0xa020_602a_6acd_3a90, 0xd1c8_9f68_9f73_2f30)];
+    &[(0xbcdd_476e_1e23_8ab0, 0xfdf5_87d9_437f_bfd0)];
 
 /// Whether a Save V1 fingerprint may load against this content pack.
 ///
@@ -941,6 +945,10 @@ mod tests {
         let base = content_fingerprint(&original);
         assert_eq!(original.portals.len(), 1);
 
+        let mut removed_portal = original.clone();
+        removed_portal.portals.clear();
+        assert_ne!(base, content_fingerprint(&removed_portal));
+
         let mut moved_door = original.clone();
         moved_door.portals[0].position = (14, 2);
         assert_ne!(base, content_fingerprint(&moved_door));
@@ -1238,13 +1246,15 @@ mod tests {
 
     #[test]
     fn every_public_full_pack_fingerprint_migrates_only_to_the_reviewed_shape() {
+        let reviewed = pre_rotation_pack();
+        let pack = || &reviewed;
         assert_eq!(
             content_fingerprint(pack()),
-            0xd1c8_9f68_9f73_2f30,
+            0xa020_602a_6acd_3a90,
             "a structural content edit must review or retire each legacy bridge"
         );
         for &(legacy, target) in LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS {
-            assert_eq!(target, 0xd1c8_9f68_9f73_2f30);
+            assert_eq!(target, 0xa020_602a_6acd_3a90);
             assert!(
                 content_fingerprint_matches(pack(), legacy),
                 "deployed fingerprint {legacy:#018x} lost its migration"
@@ -1267,10 +1277,12 @@ mod tests {
 
     #[test]
     fn the_prior_structural_shape_migrates_without_becoming_a_legacy_name_save() {
+        let reviewed = pre_rotation_pack();
+        let pack = || &reviewed;
         let prior = 0x26d5_982c_9af8_3de8;
         assert_eq!(
             PRIOR_STRUCTURAL_FINGERPRINT_MIGRATIONS,
-            &[(prior, 0xd1c8_9f68_9f73_2f30)],
+            &[(prior, 0xa020_602a_6acd_3a90)],
             "each structural bridge must name exactly one reviewed destination"
         );
         assert!(content_fingerprint_matches(pack(), prior));
@@ -1292,10 +1304,14 @@ mod tests {
 
     #[test]
     fn the_pre_portal_shape_migrates_only_to_the_reviewed_landing() {
-        let prior = 0xa020_602a_6acd_3a90;
+        let prior_pack = pre_portal_pack();
+        let prior = content_fingerprint(&prior_pack);
+        let current = content_fingerprint(pack());
+        assert_eq!(prior, 0xbcdd_476e_1e23_8ab0);
+        assert_eq!(current, 0xfdf5_87d9_437f_bfd0);
         assert_eq!(
             PRE_PORTAL_FINGERPRINT_MIGRATIONS,
-            &[(prior, 0xd1c8_9f68_9f73_2f30)],
+            &[(prior, current)],
             "the pre-portal digest must name one exact reviewed destination"
         );
         assert!(content_fingerprint_matches(pack(), prior));
@@ -1312,8 +1328,18 @@ mod tests {
     }
 
     #[test]
+    fn the_unpublished_old_bathtub_portal_checkpoint_is_not_a_save_bridge() {
+        let mut unpublished = pack().clone();
+        let bathtub = unpublished.find("bathtub").expect("shipped bathtub");
+        unpublished.objects[bathtub.0 as usize].footprint = Footprint { width: 2, depth: 1 };
+        let checkpoint = content_fingerprint(&unpublished);
+        assert_eq!(checkpoint, 0xd1c8_9f68_9f73_2f30);
+        assert!(!content_fingerprint_matches(pack(), checkpoint));
+    }
+
+    #[test]
     fn changing_either_new_interaction_closes_every_old_fingerprint_bridge() {
-        let current = pack().clone();
+        let current = pre_rotation_pack();
         for object in ["moving_box", "reference_shelf"] {
             let id = current.find(object).expect("shipped persistence key");
             for (mutation, changed) in [
@@ -1345,6 +1371,20 @@ mod tests {
                 }
             }
         }
+    }
+
+    fn pre_rotation_pack() -> ContentPack {
+        let mut source = pack().clone();
+        let bathtub = source.find("bathtub").expect("shipped bathtub");
+        source.objects[bathtub.0 as usize].footprint = Footprint { width: 2, depth: 1 };
+        source.portals.clear();
+        source
+    }
+
+    fn pre_portal_pack() -> ContentPack {
+        let mut source = pack().clone();
+        source.portals.clear();
+        source
     }
 
     #[test]

@@ -116,5 +116,10 @@ offset without changing geometry shape, game placement or interactions.
 Use `review_wide_static.py` for the review board and `check_bathtub_scene.py`
 for saved-scene verification. The checker tests the cavity, floor/deck support,
 sampled solid contacts and spout placement, then rejects six moved parts.
-Only SE is the current 2x1 gameplay placement; other rotations are source
-views. This static asset does not add a bathing pose, water or faucet motion.
+The original release used SE with a 2x1 footprint. The September 20 layout
+update uses the existing SW art with a 1x2 footprint at the same origin.
+The default definition sprite is SW too, so dynamically spawned tubs agree
+with collision without depending on an authored placement lookup. Old saves
+require the explicit bathtub migration; changing the sprite alone is not a
+rotation. See `docs/superpowers/specs/2026-09-20-interior-layout-design.md`.
+This static asset does not add a bathing pose, water or faucet motion.

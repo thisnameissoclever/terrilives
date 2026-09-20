@@ -5899,6 +5899,34 @@ mod tests {
             compile_entry(entry(4, 3), &[(4, 3)]).unwrap_err(),
             ContentError::FrontDoorEntryBlocked { x: 4, y: 3 }
         );
+
+        let mut south_visual = portal_visual("SW");
+        south_visual.entry = entry(2, 5);
+        let mut south_lot = lot_of(5, 5, &[], &[]);
+        south_lot.front_door = Some(crate::schema::FrontDoorDef {
+            x: 2,
+            y: 4,
+            visual: Some(south_visual),
+        });
+        assert_eq!(
+            compile_bare(
+                full_needs(),
+                one_object(snack()),
+                south_lot,
+                test_atlas(),
+                full_tuning(),
+            )
+            .unwrap_err(),
+            ContentError::InvalidFrontDoorEntry {
+                door_x: 2,
+                door_y: 4,
+                x: 2,
+                y: 5,
+                width: 5,
+                height: 5,
+            },
+            "a cardinally adjacent landing beyond the south boundary is invalid"
+        );
     }
 
     #[test]

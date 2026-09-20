@@ -1,6 +1,7 @@
 # Front-door played verification
 
-Local production preview, 2026-09-20. Base: `d5ec05b`. The browser ran the
+Local production preview, 2026-09-20. Base: `d5ec05b`, then integrated with
+main's bathtub rotation at `412bf5c`. The browser ran the
 release WASM bundle with the shipped household and no filler Sims. Normal UI
 controls covered lighting, speed, Save, Load and mobile camera panning. The
 existing `?stress=0` frame interface also stepped real simulation ticks to
@@ -31,20 +32,35 @@ captures precede the final presentation/resource separation, which leaves
 their pixels unchanged. `return-restored.png` and `night.png` use the final
 production bundle (`terri_wasm_bg-p4f1Acir.wasm`).
 
+`integrated-return.png` shows the combined front door and rotated bathtub in
+`terri_wasm_bg-BYf0czAQ.wasm`. Departure at 426 and return at 908 were inspected
+again in this build. Saving the return succeeded with funds at 120; reloading
+the page reported the saved game loaded, and UI Load restored tick 908 while
+paused. No browser warnings or errors were recorded. The real
+pre-bathtub browser fixture and rotated pre-door save path also pass through
+the release WASM boundary tests; these are separate migration cases.
+
 ## Checks
 
-1. `cargo test --workspace --quiet`: 716 passed (69 core, 205 data,
-   367 simulation, 75 WASM), with no failures; doc tests also passed.
+1. `cargo test --workspace --quiet` after integration: 742 passed (69 core,
+   206 data, one data integration, 389 simulation, 77 WASM), with no failures;
+   doc tests also passed. Two additional portal boundary tests were then added;
+   the focused portal suite passed 10/10.
 2. `cargo clippy --workspace --all-targets -- -D warnings`: exit 0.
 3. `wasm-pack build crates/terri-wasm --target web --out-dir ../../web/src/wasm`:
    exit 0, release build.
-4. `npm run typecheck`: exit 0. `npm test -- --maxWorkers=1`: 718/718 passed.
+4. `npm run typecheck`: exit 0. `npm test -- --maxWorkers=1`: 719/719 passed.
    `npm run build`: exit 0.
 5. Sprite generator: 70/70 tests; atlas reproducibility check passed. Every
    previous sprite retains its identity, dimensions, density and decoded pixels.
 6. Deliberate guard, open-state precedence, no-double-pay, fingerprint and
    renderer-depth mutations failed their named assertions and were restored.
-   Automated focused mutation sweeps and GitHub checks remain release gates.
+   The 40-mutant compiler sweep's two real survivors were closed with cardinal
+   adjacency and strict south-bound tests; the final targeted mutant was caught.
+   The 78-mutant portal sweep caught 65, left 10 and rejected three unviable
+   mutations, with zero timeouts. Three survivors are equivalent, documented in
+   `mutation-baseline.md`; the targeted rerun caught all seven real survivors.
+   GitHub checks remain a release gate.
 
 Public deployment verification is recorded separately after merge. These
 local screenshots do not establish that GitHub Pages has updated.

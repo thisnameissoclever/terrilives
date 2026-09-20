@@ -1,5 +1,28 @@
 # Mutation Testing Baseline
 
+## Front-door equivalent mutants, 2026-09-20
+
+The focused 78-mutant portal sweep found three equivalent operations. These
+are the only portal additions to the baseline; uncovered directional and
+distance-boundary behavior received regression tests instead.
+
+1. `sync_portals`, priority `>` to `>=`: the projection returns only the four
+   declared states, and each has a distinct priority. Equal priority means
+   the same state, so assigning it again cannot change the result.
+2. `sync_portals`, depth `*` to `/`: a cardinal outward normal has one zero
+   coordinate and one coordinate equal to `1` or `-1`. Their sum is exactly
+   `1` or `-1`; multiplying or dividing `0.5` by either produces the same
+   signed depth. The all-facing test constrains the cardinal mapping.
+3. `crossing_position`, cutoff `>` to `>=`: at distance exactly one, the
+   projection scale is zero. Returning before that calculation yields the
+   same displayed position as adding the zero offset. This function has no
+   other side effects or saved state.
+
+The focused sweep reported 65 caught, 10 missed, three unviable and zero
+timeouts. Seven non-equivalent survivors are covered by the all-facing,
+outside-projection-window and inclusive-work-tolerance tests, with targeted
+mutation verification recorded in the front-door release evidence.
+
 **This document is the argument. `docs/mutants-baseline.txt` is the
 contract.** That file, not this one, is what CI compares against; it is the
 sorted contents of `mutants.out/missed.txt` from a full sweep.

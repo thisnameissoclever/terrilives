@@ -362,6 +362,49 @@ mod tests {
     }
 
     #[test]
+    fn a_commuter_two_tiles_from_the_door_keeps_its_world_position() {
+        let mut world = world_with_active_portals(portal_pack());
+        let outbound = world
+            .spawn((
+                Commuting,
+                Path {
+                    steps: vec![(5, 2)],
+                    cursor: 0,
+                },
+            ))
+            .id();
+        let approaching = Position { x: 3.0, y: 2.0 };
+
+        assert_eq!(
+            crossing_position(&world, outbound, approaching),
+            approaching,
+            "projection starts only inside the final one-tile approach"
+        );
+    }
+
+    #[test]
+    fn an_at_work_body_exactly_on_the_door_tolerance_still_opens_it() {
+        let position = Position { x: 0.01, y: 0.0 };
+        let work = terri_core::AtWork { remaining_ticks: 1 };
+        let pack = portal_career_pack();
+
+        assert_eq!(distance_from(&position, (0, 0)), 0.01);
+        assert_eq!(
+            project_person(
+                &position,
+                None,
+                false,
+                Some(&work),
+                Some(&pack.careers[0]),
+                (0, 0),
+                (0, 1),
+            ),
+            OPEN,
+            "the tolerance boundary matches body projection and stays inclusive"
+        );
+    }
+
+    #[test]
     fn every_facing_projects_the_boundary_and_depth_along_its_signed_normal() {
         for (facing, expected_depth, expected_position) in [
             (

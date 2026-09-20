@@ -1,6 +1,7 @@
 # Front door, then furniture builder
 
-Status: implemented and played locally from main `d5ec05b`; release checks pending.
+Status: implemented and played locally, integrated with main `412bf5c`;
+GitHub release checks pending.
 
 ## Front-door release
 
@@ -34,9 +35,11 @@ identically through either constructor. Hidden work samples are already at the
 physical threshold before a returning worker becomes visible.
 
 Portal identity and return landing participate in the compatibility digest.
-The exact pre-door public digest has a reviewed migration to this landing,
-without changing Save V1's bytes or applying older household-name/action-row
-rewrites. Moving a landing in a later content revision closes that migration.
+The rotated-bathtub pre-door public digest has an exact bridge to this landing.
+Earlier public households first pass the bathtub migration's frozen-layout
+validation. Neither path changes Save V1's bytes or accidentally applies older
+household-name/action-row rewrites. Moving a landing in a later content revision
+closes the exact bridge.
 Facing, hinge and sprite changes remain presentation-only.
 
 Pause freezes the state. Reduced motion uses a fully open leaf for every active
@@ -63,6 +66,9 @@ walls and live furniture rather than clearing individual blocked tiles. If an
 object is in use, explain why it cannot move. Unsupported rotation must be
 disabled with an explanation. Purchasing furniture, building walls and roofs,
 and changing room shapes remain later parts of the broader builder backlog.
+
+The implementation units and acceptance tests are recorded in
+`docs/superpowers/plans/2026-09-20-furniture-builder.md`.
 
 ## Delivery
 

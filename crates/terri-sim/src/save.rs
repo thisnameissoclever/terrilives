@@ -28,6 +28,10 @@ const MAX_TEXT_BYTES: usize = 1_024;
 const LEGACY_HOUSEHOLD_NAMES: [&str; 3] = ["Terri", "Doug", "Nadia"];
 const AQUARIUM_BIKE_PERSISTENCE_KEYS: [&str; 2] = ["moving_box", "reference_shelf"];
 
+mod bathtub;
+#[cfg(test)]
+mod bathtub_tests;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SaveError {
     IncompatibleContent,
@@ -271,9 +275,7 @@ pub(super) fn restore(
     content: &'static ContentPack,
     active_portals: Option<ActivePortals>,
 ) -> Result<Sim, SaveError> {
-    validate_snapshot(&snapshot, content)?;
-    let migrate_legacy_household_names =
-        terri_data::content_fingerprint_is_legacy(content, snapshot.content_fingerprint);
+    let (snapshot, migrate_legacy_household_names) = bathtub::prepare(snapshot, content)?;
 
     let mut sim = Sim::new();
     sim.world.insert_resource(Content(content));
@@ -3363,8 +3365,7 @@ mod tests {
 
     #[test]
     fn every_public_full_pack_save_loads_and_migrates_the_old_household_names() {
-        let source = Sim::new_from_shipped_lot();
-        let mut legacy = source.save_snapshot();
+        let mut legacy = bathtub_tests::old_snapshot();
         for entity in legacy.entities.iter_mut().filter(|entity| entity.agent) {
             let id = entity.sim_id.expect("shipped agents have stable ids") as usize;
             entity.sim_name = Some(
@@ -3410,8 +3411,8 @@ mod tests {
     }
 
     #[test]
-    fn the_prior_structural_save_keeps_names_entities_positions_and_collision() {
-        let mut prior = Sim::new_from_shipped_lot().save_snapshot();
+    fn the_prior_structural_save_keeps_names_and_entities_while_rotating_collision() {
+        let mut prior = bathtub_tests::old_snapshot();
         prior.content_fingerprint = 0x26d5_982c_9af8_3de8;
         prior
             .entities
@@ -3429,13 +3430,19 @@ mod tests {
             assert_eq!(entity.position, Some(SavedPosition { x, y }));
         }
 
-        let expected_blocked = prior.blocked_tiles.clone();
+        let mut expected_blocked = prior.blocked_tiles.clone();
+        let width = prior.grid_width as usize;
+        expected_blocked[9 * width + 15] = false;
+        expected_blocked[10 * width + 14] = true;
         let expected_entities = prior.entities.clone();
         let mut restored = Sim::new_from_shipped_lot();
         assert_eq!(restored.load_snapshot(prior), Ok(()));
 
         let current = restored.save_snapshot();
-        assert_eq!(current.content_fingerprint, 0xd1c8_9f68_9f73_2f30);
+        assert_eq!(
+            current.content_fingerprint,
+            terri_data::content_fingerprint(terri_data::pack())
+        );
         assert_eq!(current.blocked_tiles, expected_blocked);
         assert_eq!(current.entities, expected_entities);
         let name = current
@@ -3457,7 +3464,7 @@ mod tests {
 
     #[test]
     fn pre_feature_fingerprints_reject_every_impossible_aquarium_and_bike_row_transactionally() {
-        let source = Sim::new_from_shipped_lot().save_snapshot();
+        let source = bathtub_tests::old_snapshot();
         let agent_index = source
             .entities
             .iter()
@@ -3665,14 +3672,17 @@ mod tests {
         ));
 
         let mut prior = source.save_snapshot();
-        prior.content_fingerprint = 0xa020_602a_6acd_3a90;
+        prior.content_fingerprint = 0xbcdd_476e_1e23_8ab0;
         let expected_entities = prior.entities.clone();
 
         let mut restored = Sim::new_from_shipped_lot();
         assert_eq!(restored.load_snapshot(prior), Ok(()));
         let current = restored.save_snapshot();
         assert_eq!(current.entities, expected_entities);
-        assert_eq!(current.content_fingerprint, 0xd1c8_9f68_9f73_2f30);
+        assert_eq!(
+            current.content_fingerprint,
+            terri_data::content_fingerprint(terri_data::pack())
+        );
         assert!(
             restored.world().contains_resource::<ActivePortals>(),
             "load must retain the active lot independently of Save V1"
@@ -3691,7 +3701,7 @@ mod tests {
 
     #[test]
     fn a_saved_custom_name_is_not_overwritten_by_the_household_migration() {
-        let mut snapshot = Sim::new_from_shipped_lot().save_snapshot();
+        let mut snapshot = bathtub_tests::old_snapshot();
         snapshot.content_fingerprint = 0x2eb2_02fa_e70e_4939;
         snapshot
             .entities

@@ -10,7 +10,7 @@ beforeAll(async () => {
 });
 
 describe('front door through the release WASM bridge', () => {
-  it('migrates the reviewed pre-door fingerprint through the release boundary', () => {
+  it('migrates the rotated-bathtub pre-door fingerprint through the release boundary', () => {
     const handle = SimHandle.from_lot();
     const sim = new SimBridge(handle, memory);
     try {
@@ -24,7 +24,7 @@ describe('front door through the release WASM bridge', () => {
       let end = 10;
       while (end < 20 && (current[end++] & 0x80) !== 0) { /* bounded u64 */ }
       const prior: number[] = [];
-      let value = 0xa020602a6acd3a90n;
+      let value = 0xbcdd476e1e238ab0n;
       do {
         const byte = Number(value & 0x7fn);
         value >>= 7n;
@@ -37,6 +37,29 @@ describe('front door through the release WASM bridge', () => {
       for (let tick = 0; tick < 400; tick++) sim.tick();
       expect(sim.funds()).toBe(120);
       expect(sim.activities()).not.toContain(6);
+    } finally {
+      handle.free();
+    }
+  });
+
+  it('loads the real pre-bathtub household with an active front door', () => {
+    const handle = SimHandle.from_lot();
+    const sim = new SimBridge(handle, memory);
+    const fixture = readFileSync('../crates/terri-wasm/tests/fixtures/pre-bathtub-rotation.hex', 'utf8');
+    const bytes = Uint8Array.from(Buffer.from(fixture.replace(/\s/g, ''), 'hex'));
+    try {
+      expect(sim.loadBytes(bytes)).toBe(true);
+      expect(sim.portalCount).toBe(1);
+      const migrated = sim.saveBytes();
+      expect(sim.loadBytes(migrated)).toBe(true);
+      expect(sim.saveBytes()).toEqual(migrated);
+      const seen = new Set<number>();
+      for (let tick = 0; tick < 1000; tick++) {
+        sim.tick();
+        seen.add(sim.portalStates()[0]);
+      }
+      expect([...seen].sort()).toEqual([0, 1, 2, 3]);
+      expect(sim.funds()).toBe(120);
     } finally {
       handle.free();
     }

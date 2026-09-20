@@ -1087,6 +1087,80 @@ mod boundary_tests {
     }
 
     #[test]
+    fn rotated_bathtub_loads_public_v1_bytes_and_resaves_idempotently() {
+        let mut old = SimHandle::from_lot().sim.save_snapshot();
+        old.content_fingerprint = 0xa020_602a_6acd_3a90;
+        old.blocked_tiles[9 * 16 + 15] = true;
+        old.blocked_tiles[10 * 16 + 14] = false;
+        let bytes = encode_save(&old);
+        let mut migrated = SimHandle::from_lot();
+        assert!(
+            migrated.load_bytes(&bytes),
+            "published Save V1 must survive the quarter-turn"
+        );
+        let snapshot = migrated.sim.save_snapshot();
+        assert!(!snapshot.blocked_tiles[9 * 16 + 15]);
+        assert!(snapshot.blocked_tiles[10 * 16 + 14]);
+        assert_eq!(snapshot.entities, old.entities);
+        assert_eq!(snapshot.funds, old.funds);
+        assert_eq!(snapshot.tick, old.tick);
+        assert_eq!(snapshot.rng, old.rng);
+        let tub = snapshot
+            .entities
+            .iter()
+            .find(|entity| entity.smart_object.as_deref() == Some("bathtub"))
+            .unwrap()
+            .index;
+        let render = migrated.sim.render_buffer();
+        let row = render.ids.iter().position(|&id| id == tub).unwrap();
+        assert_eq!(render.sprites[row], 1123);
+        assert_eq!(render.footprint_widths[row], 1);
+        assert_eq!(render.footprint_depths[row], 2);
+        assert_eq!(&render.positions[row * 2..row * 2 + 2], &[14.0, 9.5]);
+        let resaved = migrated.save_bytes();
+        let mut resumed = SimHandle::from_lot();
+        assert!(resumed.load_bytes(&resaved));
+        assert_eq!(resumed.save_bytes(), resaved);
+        for _ in 0..300 {
+            migrated.tick();
+            resumed.tick();
+            assert_eq!(resumed.world_hash(), migrated.world_hash());
+        }
+    }
+
+    #[test]
+    fn actual_prior_browser_save_survives_the_bathtub_rotation() {
+        // Captured from our own local PR83 build at Day 1, 02:14. This is
+        // real old-runtime output, separate from the constructed fixtures.
+        let hex: String = include_str!("../tests/fixtures/pre-bathtub-rotation.hex")
+            .split_whitespace()
+            .collect();
+        let bytes: Vec<u8> = hex
+            .as_bytes()
+            .chunks_exact(2)
+            .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
+            .collect();
+        assert_eq!(bytes.len(), 2580);
+        let mut expected: terri_core::SaveSnapshotV1 =
+            postcard::from_bytes(&bytes[SAVE_HEADER_BYTES..]).unwrap();
+        assert_eq!(expected.content_fingerprint, 0xa020_602a_6acd_3a90);
+        let mut migrated = SimHandle::from_lot();
+        let destination_fingerprint = migrated.sim.save_snapshot().content_fingerprint;
+        assert!(migrated.load_bytes(&bytes));
+        expected.content_fingerprint = destination_fingerprint;
+        expected.blocked_tiles[9 * 16 + 15] = false;
+        expected.blocked_tiles[10 * 16 + 14] = true;
+        assert_eq!(migrated.sim.save_snapshot(), expected);
+        let mut resumed = SimHandle::from_lot();
+        assert!(resumed.load_bytes(&migrated.save_bytes()));
+        for _ in 0..300 {
+            migrated.tick();
+            resumed.tick();
+            assert_eq!(migrated.world_hash(), resumed.world_hash());
+        }
+    }
+
+    #[test]
     fn save_bytes_round_trip_and_continue_the_running_sim() {
         let mut uninterrupted = SimHandle::from_lot();
         for _ in 0..173 {
@@ -1127,6 +1201,9 @@ mod boundary_tests {
         let current_fingerprint = source.sim.save_snapshot().content_fingerprint;
         let mut snapshot = source.sim.save_snapshot();
         snapshot.content_fingerprint = 0x2eb2_02fa_e70e_4939;
+        // The historical fingerprint belongs to the old 2x1 bathtub grid.
+        snapshot.blocked_tiles[9 * 16 + 15] = true;
+        snapshot.blocked_tiles[10 * 16 + 14] = false;
         for entity in snapshot.entities.iter_mut().filter(|entity| entity.agent) {
             let legacy_name = match entity.sim_id {
                 Some(0) => "Terri",
@@ -1182,6 +1259,8 @@ mod boundary_tests {
         let current_fingerprint = source.sim.save_snapshot().content_fingerprint;
         let mut snapshot = source.sim.save_snapshot();
         snapshot.content_fingerprint = 0x26d5_982c_9af8_3de8;
+        snapshot.blocked_tiles[9 * 16 + 15] = true;
+        snapshot.blocked_tiles[10 * 16 + 14] = false;
         snapshot
             .entities
             .iter_mut()
@@ -1198,10 +1277,12 @@ mod boundary_tests {
 
         let mut expected = snapshot;
         expected.content_fingerprint = current_fingerprint;
+        expected.blocked_tiles[9 * 16 + 15] = false;
+        expected.blocked_tiles[10 * 16 + 14] = true;
         assert_eq!(
             resumed.sim.save_snapshot(),
             expected,
-            "the structural bridge must preserve names, entities, positions, collision, and queues while canonicalising only the digest"
+            "the bridge must preserve household state and queues while rotating only the bathtub collision and updating the digest"
         );
     }
 

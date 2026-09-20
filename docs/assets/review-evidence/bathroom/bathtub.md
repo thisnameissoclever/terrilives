@@ -1,5 +1,9 @@
 # Bathtub replacement
 
+This records the original art release. The later quarter-turn keeps these
+same source/atlas bytes but pairs SW art with a migrated 1x2 collision strip;
+see `bathtub-quarter-turn.md` for that release's separate evidence.
+
 Candidate 02 replaces the existing Long Soak Directive art. Its identity,
 2x1 footprint, placement, needs effects and duration remain unchanged. Four
 static views append atlas records 1121 through 1124. This adds no bathing

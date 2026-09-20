@@ -2934,3 +2934,16 @@ Evidence and exact proof boundaries are in
 `docs/assets/review-evidence/front-door/README.md`. This entry records local
 play, not a claim that the Pages release has already happened. An outside
 world, room construction and movable furniture are not part of this door slice.
+## [A-bathtub-quarter-turn] Rotated tub and saved-household upgrade
+
+On 2026-09-20, the isolated production build loaded a save produced by the
+prior browser build, preserving its Day 1 household rather than restarting.
+The tub now extends along world Y with the existing SW art and 1x2 collision.
+Casey reached it through the normal object menu, used it, survived a mid-action
+save/reload and completed the action. Hygiene rose from 60.3 to 99.9.
+
+Primary and independent visual review accepted the orientation and adjacent
+standing position. This is the existing standing use, not a new bathing pose.
+The remaining gaps beside interior walls are explicitly deferred to the
+separate edge-wall/navigation/save-layout change. Retained screenshots and
+commands are in `assets/review-evidence/bathroom/bathtub-quarter-turn.md`.
