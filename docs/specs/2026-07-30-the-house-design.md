@@ -61,7 +61,9 @@ again at x = -1 and y = -1. The lot is 28, the bound said 28, and **three
 boundary panels were being cut off the top of the page** - measured afterwards
 as a topmost painted row of 0 where an unclipped picture starts at 25.
 
-`cameraOrigin` in `web/src/render/iso.ts` owns the arithmetic now, centres the
+**Historical camera measurements, before the September 20 correction.**
+
+`cameraOrigin` in `web/src/render/iso.ts` took ownership of the arithmetic, centring the
 DRAWN extent rather than the tile span, and reads two heights off the atlas
 rather than one. The two are the point: only wall pieces are drawn on the
 first boundary panels at (-1.5, -1) and (-1, -1.5), while everything else
@@ -305,15 +307,16 @@ Current exterior geometry: the slab is the playable grid, with both far walls
 on its X=-0.5 and Y=-0.5 edges. Divider endpoints use the existing corner-fold
 panels on their own tiles; they no longer cross an extra decorative border.
 This supersedes the outer-ring placement recorded below. Interior walls still
-occupy blocked tiles, so genuinely flush interior furniture and arbitrary
+occupy blocked tiles, so flush interior furniture and arbitrary
 rectangular-object rotation remain separate simulation/layout work.
 
-The two exterior runs now lie at x = -1.5 and y = -1.5, on the outer
-edges of the existing floor ring. Each includes that ring's corner tile;
-the panels meet at (-1.5, -1.5) without the narrow corner post. Their free
-ends align with the slab silhouette, removing the exposed floor wedges.
-Lighting still samples the integer ring tiles, and the camera reserves
-headroom above the shifted panel anchors. This changes presentation only.
+Historical geometry, before September 20: the two exterior runs lay at
+x = -1.5 and y = -1.5, on the outer edges of the decorative floor ring.
+Each included that ring's corner tile; the panels met at (-1.5, -1.5)
+without the narrow corner post. Their free ends aligned with the old slab
+silhouette, removing exposed floor wedges. Lighting sampled integer ring
+tiles, and the camera reserved headroom above those former panel anchors.
+That earlier correction changed presentation only.
 
 The remaining interior-wall redesign is still deferred.
 
