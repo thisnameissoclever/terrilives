@@ -5,6 +5,22 @@ use terri_core::{
     TileGrid,
 };
 
+#[test]
+fn footprint_fit_requires_nonzero_dimensions_and_checked_bounds() {
+    let grid = TileGrid::new(4, 3);
+    assert!(fits(&grid, (2, 1), Footprint { width: 2, depth: 2 }));
+    for footprint in [
+        Footprint { width: 0, depth: 1 },
+        Footprint { width: 1, depth: 0 },
+        Footprint { width: 0, depth: 0 },
+    ] {
+        assert!(!fits(&grid, (1, 1), footprint));
+    }
+    for origin in [(3, 1), (2, 2), (u32::MAX, 1), (1, u32::MAX)] {
+        assert!(!fits(&grid, origin, Footprint { width: 2, depth: 2 }));
+    }
+}
+
 fn place(sim: &mut Sim, object: u32, origin: (u32, u32), facing: Facing) {
     sim.world_mut()
         .resource_mut::<CommandQueue>()

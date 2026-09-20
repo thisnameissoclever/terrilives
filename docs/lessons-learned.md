@@ -6103,6 +6103,24 @@ searches. After three failures, get a fresh review instead of another variant.
 **How to verify.** `1..5 | Select-Object -Skip 2 -First 2` emits 3 and 4.
 The corrected `-First 50` source read succeeds; no repository edits are needed.
 
+## [L-placement-helper-empty-footprints] Test geometry helper preconditions directly
+
+**What happened.** The placement mutation sweep let either nonzero-dimension
+guard in `fits` become an always-true unsigned comparison.
+
+**Root cause.** The integration fixtures use valid compiled furniture, whose
+positive dimensions never exercise the private helper's empty-rectangle checks.
+
+**Prevention rule.** Keep integration tests for real furniture and add direct
+helper tests for invalid dimensions and checked arithmetic. Test width and depth
+independently, with an exact boundary-fit control. Do not describe these synthetic
+inputs as a defect observed in the shipped household.
+
+**How to verify.** Each width/depth `> 0` to `>= 0` mutation fails the new
+`footprint_fit_requires_nonzero_dimensions_and_checked_bounds` assertion. Restoring
+the exact production source passes all 26 placement tests. No production or
+mutation-baseline change is required.
+
 ## [L-layout-migration-passive-conversation-partners] Preserve both sides of saved activities
 
 **What happened.** The first bathtub-rotation migration rejected an active
