@@ -101,5 +101,9 @@ The inherited bathtub mutation survivors are tracked separately in
 `mutation-baseline.md`; their targeted rerun and GitHub gates remain release
 checks, not claims established by these screenshots.
 
+Main's follow-up `c0eca30` was then merged without runtime changes. Its four
+exercise-clearance tooling tests passed, as did documentation IDs and the diff
+check. The latest main ref was fetched again before preparing publication.
+
 Public deployment verification is recorded separately after merge. These
 local screenshots do not establish that GitHub Pages has updated.

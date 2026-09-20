@@ -54,6 +54,27 @@ release before claiming defaults survived.
 **How to verify.** Run the relative-base geometry tests, the 34-object prior
 release render comparison, and real pre-builder and pre-bathtub byte fixtures.
 Change one base direction and require old digest bridges to close.
+## [L-migration-pins-both-endpoints] Reconstructing a known source does not approve the destination
+
+**What happened.** Final front-door review found that the old bathtub migration
+removed destination portals to reconstruct its historical source digest. That
+could pass the source check after a later portal landing or identity changed,
+outside the intended exact destination bridge. The current reviewed household
+was unaffected; this was a future migration-contract gap.
+
+**Root cause.** Normalizing newly introduced structural fields erased the
+evidence needed to distinguish reviewed and unreviewed destinations. A later
+grid rejection was not a replacement for the content-compatibility decision.
+
+**Prevention rule.** Pin both ends of a structural migration before rebuilding
+the source shape. New reviewed destination digests must be added deliberately;
+presentation-only changes should remain accepted without new exceptions.
+
+**How to verify.** The A-to-B and A-to-D controls load, including presentation
+changes that retain D. Changed portal identity, added portals and moved landings
+must fail with `IncompatibleContent` before final grid validation. The original
+test failed with `InvalidGrid` instead; it passes with the exact B/D gate.
+
 ## [L-atlas-palette-test-granularity] Verify independent palettes independently
 
 **What happened.** The combined blue/red palette check exceeded its unchanged
