@@ -115,12 +115,10 @@ describe('buildStaticInstances', () => {
   const built = buildStaticInstances(LOT, ORIGIN_X, ORIGIN_Y, GRID);
   const all = rows(built.instances, built.count);
 
-  it('emits one floor tile per tile of the lot plus the boundary ring', () => {
+  it('emits floor only on the playable grid, without a decorative border', () => {
     const floor = spriteIndex('floor');
     const floors = all.filter((r) => r.sprite === floor);
-    // The ring at x = -1 and y = -1 is floored too, so the boundary
-    // walls stand on ground instead of past the slab's edge - [A-11].
-    expect(floors).toHaveLength((LOT.width + 1) * (LOT.height + 1));
+    expect(floors).toHaveLength(LOT.width * LOT.height);
 
     // The four corners by name, so a loop that transposed width and
     // height - which on a 5 x 3 lot would still emit 15 tiles - fails.
@@ -139,11 +137,10 @@ describe('buildStaticInstances', () => {
     expect(floors.some((r) => r.x === at(0, 4).x && r.y === at(0, 4).y)).toBe(
       false,
     );
-    // The ring's own far corner is floored - the tile the wall corner
-    // piece stands on.
+    // The former border must not leave floor visible behind the exterior walls.
     expect(
       floors.filter((r) => r.x === at(-1, -1).x && r.y === at(-1, -1).y),
-    ).toHaveLength(1);
+    ).toHaveLength(0);
   });
 
   it('emits one wall per blocked tile and none anywhere else', () => {
@@ -151,8 +148,7 @@ describe('buildStaticInstances', () => {
     const ew = spriteIndex('wallEW');
     const walls = all.filter((r) => r.sprite === ns || r.sprite === ew || SPRITES[r.sprite].name.startsWith('wallJoin') || SPRITES[r.sprite].name.startsWith('wallCornerStart'));
 
-    // Each run includes the outer ring corner, using two edge panels.
-    const boundary = LOT.height + LOT.width + 3;
+    const boundary = LOT.height + LOT.width;
     expect(walls).toHaveLength(5 + boundary);
 
     // **One panel per tile, the corner included.** Two coincident quads at
@@ -189,7 +185,7 @@ describe('buildStaticInstances', () => {
 
     // The north-south run. (2, 0) and (2, 1) each have a neighbour on
     // the y axis and none on the x axis.
-    expect(find(all, 2, 0).map((r) => r.sprite)).toContain(ns);
+    expect(find(all, 2, 0).map((r) => r.sprite)).toContain(spriteIndex('wallCornerStartNS'));
     expect(find(all, 2, 1).map((r) => r.sprite)).toContain(ns);
     // The east-west run. (3, 2) and (4, 2) have x-axis neighbours only.
     expect(find(all, 3, 2).map((r) => r.sprite)).toContain(ew);
@@ -233,7 +229,7 @@ describe('buildStaticInstances', () => {
     expect(wallsAt(rowsOf, 2, 1).map((r) => r.sprite)).toEqual([spriteIndex('wallJoin14')]);
     // The run either side of it is unbroken and single.
     for (const wx of [0, 1, 3, 4]) {
-      expect(wallsAt(rowsOf, wx, 1).map((r) => r.sprite)).toEqual([ew]);
+      expect(wallsAt(rowsOf, wx, 1).map((r) => r.sprite)).toEqual([wx === 0 ? spriteIndex('wallCornerStartEW') : ew]);
     }
     // And the spur is still a north-south wall, including its far end,
     // which has a neighbour on one axis only.
@@ -264,7 +260,7 @@ describe('buildStaticInstances', () => {
 
     expect(wallsAt(rowsOf, 1, 2).map((r) => r.sprite)).toEqual([spriteIndex('wallJoin7')]);
     for (const wy of [0, 1, 3, 4]) {
-      expect(wallsAt(rowsOf, 1, wy).map((r) => r.sprite)).toEqual([ns]);
+      expect(wallsAt(rowsOf, 1, wy).map((r) => r.sprite)).toEqual([wy === 0 ? spriteIndex('wallCornerStartNS') : ns]);
     }
     expect(wallsAt(rowsOf, 2, 2).map((r) => r.sprite)).toEqual([ew]);
     expect(wallsAt(rowsOf, 3, 2).map((r) => r.sprite)).toEqual([ew]);
@@ -297,14 +293,16 @@ describe('buildStaticInstances', () => {
     }
   });
 
-  it('extends far-edge interior runs across the floor ring to the exterior walls', () => {
+  it('joins far-edge interior runs to exterior walls without border extensions', () => {
     const built = buildStaticInstances(
       { width: 6, height: 4, walls: Uint32Array.from([0, 2, 1, 2, 4, 0, 4, 1]) },
       ORIGIN_X, ORIGIN_Y, GRID,
     );
     const all = rows(built.instances, built.count);
-    expect(wallsAt(all, -1, 2).map((row) => row.sprite)).toEqual([spriteIndex('wallCornerStartEW')]);
-    expect(wallsAt(all, 4, -1).map((row) => row.sprite)).toEqual([spriteIndex('wallCornerStartNS')]);
+    expect(wallsAt(all, 0, 2).map((row) => row.sprite)).toEqual([spriteIndex('wallCornerStartEW')]);
+    expect(wallsAt(all, 4, 0).map((row) => row.sprite)).toEqual([spriteIndex('wallCornerStartNS')]);
+    expect(wallsAt(all, -1, 2)).toEqual([]);
+    expect(wallsAt(all, 4, -1)).toEqual([]);
     expect(wallsAt(all, -1, 1)).toEqual([]);
     expect(wallsAt(all, 3, -1)).toEqual([]);
   });
@@ -322,11 +320,11 @@ describe('buildStaticInstances', () => {
         .filter((r) => r.sprite !== floor)
         .map((r) => r.sprite);
 
-    for (let y = -1; y < LOT.height; y++) {
-      expect(panelsAt(-1.5, y)).toEqual([ns]);
+    for (let y = 0; y < LOT.height; y++) {
+      expect(panelsAt(-0.5, y)).toEqual([ns]);
     }
-    for (let x = -1; x < LOT.width; x++) {
-      expect(panelsAt(x, -1.5)).toEqual([x === -1 ? spriteIndex('wallCornerStartEW') : ew]);
+    for (let x = 0; x < LOT.width; x++) {
+      expect(panelsAt(x, -0.5)).toEqual([x === 0 ? spriteIndex('wallCornerStartEW') : ew]);
     }
     // The runs meet at the slab corner without a separate post.
     expect(panelsAt(-1, -1)).toEqual([]);
@@ -349,8 +347,8 @@ describe('buildStaticInstances', () => {
         [spriteIndex('wallEW'), spriteIndex('wallCornerStartEW')].includes(row.sprite));
       const left = (row: Row): number => row.x - SPRITES[row.sprite].w * scale / 2;
       const right = (row: Row): number => row.x + SPRITES[row.sprite].w * scale / 2;
-      expect(west).toHaveLength(LOT.height + 1);
-      expect(north).toHaveLength(LOT.width + 1);
+      expect(west).toHaveLength(LOT.height);
+      expect(north).toHaveLength(LOT.width);
       // A thin post cannot cover the interval between two separate runs.
       expect(right(west[0])).toBe(left(north[0]));
       expect(west[0].y).toBe(north[0].y);
@@ -367,7 +365,7 @@ describe('buildStaticInstances', () => {
   });
 
   it('puts every quad on a depth inside the clip range', () => {
-    // The boundary sits at x = -1 and y = -1, where `worldDepth` alone
+    // The boundary sits at x = -0.5 or y = -0.5, where `worldDepth` alone
     // would clamp to the far plane and lose the ordering among the
     // panels entirely. DEPTH_MARGIN is what buys the room; this is what
     // notices if it is removed.
@@ -384,7 +382,7 @@ describe('buildStaticInstances', () => {
     const boundaryDepths = new Set(
       Array.from(
         { length: LOT.height },
-        (_, y) => find(all, -1.5, y).filter((r) => r.sprite !== floorSprite)[0].depth,
+        (_, y) => find(all, -0.5, y).filter((r) => r.sprite !== floorSprite)[0].depth,
       ),
     );
     expect(boundaryDepths.size).toBe(LOT.height);
@@ -446,12 +444,29 @@ describe('buildStaticInstances', () => {
     // larger than what was written uploads uninitialised zeroes - quads
     // at screen (0, 0) with depth 0, which draw in front of everything.
     expect(built.instances.length).toBe(built.count * FLOATS_PER_INSTANCE);
-    // Ring-inclusive floor, five interior walls, the two boundary runs,
-    // including both corner edges. This fixture has no doorway gaps.
+    // Playable floor, five interior walls and two boundary runs; no doorway gaps.
     expect(built.count).toBe(
-      (LOT.width + 1) * (LOT.height + 1) + 5 + LOT.height + LOT.width + 3,
+      LOT.width * LOT.height + 5 + LOT.height + LOT.width,
     );
-    expect(built.floorCount).toBe((LOT.width + 1) * (LOT.height + 1));
+    expect(built.floorCount).toBe(LOT.width * LOT.height);
+  });
+
+  it('preserves junction arms where interior walls meet both exterior edges', () => {
+    const edgeLot = {
+      width: 6,
+      height: 5,
+      walls: Uint32Array.from([
+        0, 2, 0, 1, 1, 2, 0, 3,
+        3, 0, 2, 0, 4, 0, 3, 1,
+      ]),
+    };
+    const built = buildStaticInstances(edgeLot, ORIGIN_X, ORIGIN_Y, GRID);
+    const all = rows(built.instances, built.count);
+    for (const [x, y] of [[0, 2], [3, 0]]) {
+      expect(wallsAt(all, x, y).map((row) => row.sprite)).toEqual([
+        spriteIndex('wallJoin15'),
+      ]);
+    }
   });
 
   it('samples floor, interior wall, boundary wall, and doorway light without changing geometry', () => {
@@ -472,6 +487,7 @@ describe('buildStaticInstances', () => {
     const unlitRows = rows(unlitBuilt.instances, unlitBuilt.count);
     const lighting = tileLighting(litLot.width, litLot.height, [
       [0, 0, 0.13], // floor and the adjacent west boundary wall
+      [1, 0, 0.23], // north boundary must sample its own integer neighbour
       [2, 1, 0.44], // doorway samples its own tile
       [1, 3, 0.31], // brightest neighbour of the interior wall at (2, 3)
       [2, 2, 0.17], // dimmer neighbour proves the wall takes the maximum
@@ -488,8 +504,8 @@ describe('buildStaticInstances', () => {
 
     expect(unlitRows.every((row) => row.emissive === 0)).toBe(true);
     expect(litBuilt.count).toBe(unlitBuilt.count);
-    expect(litBuilt.count).toBe(48);
-    expect(litBuilt.floorCount).toBe(30);
+    expect(litBuilt.count).toBe(35);
+    expect(litBuilt.floorCount).toBe(20);
     expect(litRows.map(({ emissive: _emissive, ...row }) => row)).toEqual(
       unlitRows.map(({ emissive: _emissive, ...row }) => row),
     );
@@ -498,7 +514,7 @@ describe('buildStaticInstances', () => {
       (row) => row.sprite === spriteIndex('floor'),
     );
     const interiorWall = wallsAt(litRows, 2, 3)[0];
-    const boundaryWall = wallsAt(litRows, -1.5, 0)[0];
+    const boundaryWall = wallsAt(litRows, -0.5, 0)[0];
     const doorway = find(litRows, 2, 1).find(
       (row) => row.sprite === spriteIndex('doorwayJoinedEW'),
     );
@@ -506,6 +522,12 @@ describe('buildStaticInstances', () => {
     expect(floor?.emissive).toBe(Math.fround(0.13));
     expect(interiorWall?.emissive).toBe(Math.fround(0.31));
     expect(boundaryWall?.emissive).toBe(Math.fround(0.13));
+    const northCorner = wallsAt(litRows, 0, -0.5)[0];
+    const northWall = wallsAt(litRows, 1, -0.5)[0];
+    expect(northCorner?.sprite).toBe(spriteIndex('wallCornerStartEW'));
+    expect(northCorner?.emissive).toBe(Math.fround(0.13));
+    expect(northWall?.sprite).toBe(spriteIndex('wallEW'));
+    expect(northWall?.emissive).toBe(Math.fround(0.23));
     expect(doorway?.emissive).toBe(Math.fround(0.44));
   });
 
@@ -565,9 +587,8 @@ describe('buildStaticInstances', () => {
 
 describe('BOUNDARY_SPRITE_NAMES', () => {
   // `cameraOrigin` reserves headroom for the whole atlas above the lot's
-  // FIRST tile and only for these above the boundary row two half-rows
-  // higher, which is what stopped a 136 px bunk bed from clipping a lot
-  // that is really 697 px of a 720 px page. The saving is only sound
+  // FIRST tile and only for these above the boundary half a half-row
+  // higher. The separate reservation is only sound
   // while this list is complete: a boundary piece taller than every name
   // in it would be reserved for at the wrong row and go off the top of
   // the page, which is the exact bug the split was introduced to fix,
@@ -591,7 +612,7 @@ describe('BOUNDARY_SPRITE_NAMES', () => {
 
   it('names every sprite that is actually drawn outside the lot', () => {
     // Incompleteness is the dangerous direction: a boundary piece missing
-    // from the list is reserved for at the lot's row, two half-rows too
+    // from the list is reserved for at the lot's row, half a half-row too
     // low, and goes off the top of the page.
     const outside = drawnOutside();
     const named = new Set(

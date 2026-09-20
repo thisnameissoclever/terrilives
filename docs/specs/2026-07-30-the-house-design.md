@@ -13,6 +13,15 @@ caught it was a measurement.
 
 ## [B1] Five rooms, and the circulation is a ring rather than a corridor
 
+September 20 layout correction: the exterior wall panels now stand at
+X=-0.5 and Y=-0.5, exactly on the playable grid boundary. Only the 16x12
+playable floor is drawn. The one-tile decorative border described in the
+historical measurements below has been removed. Camera framing uses the
+first wall anchor (-0.5,0), separate from furniture at (0,0); pan bounds
+use the same extent. Room capacity, simulation walls and saved coordinates
+are unchanged. Dining chairs now face the table and the desk chair faces
+the desk, using the legacy chair artwork's actual front axis.
+
 `content/lot.toml` carries a tile-by-tile plan; this is the shape of it.
 Kitchen and living room north of a full-width spine at y = 5, with bedroom,
 study and bathroom south of it, and five doorways: (7,2), (3,5), (13,5),
@@ -52,7 +61,9 @@ again at x = -1 and y = -1. The lot is 28, the bound said 28, and **three
 boundary panels were being cut off the top of the page** - measured afterwards
 as a topmost painted row of 0 where an unclipped picture starts at 25.
 
-`cameraOrigin` in `web/src/render/iso.ts` owns the arithmetic now, centres the
+**Historical camera measurements, before the September 20 correction.**
+
+`cameraOrigin` in `web/src/render/iso.ts` took ownership of the arithmetic, centring the
 DRAWN extent rather than the tile span, and reads two heights off the atlas
 rather than one. The two are the point: only wall pieces are drawn on the
 first boundary panels at (-1.5, -1) and (-1, -1.5), while everything else
@@ -292,12 +303,20 @@ distant object's score, and that is correct rather than a bug to tune away.
 
 ## [B7] Interior walls still occupy tiles; boundary walls follow the slab edges
 
-The two exterior runs now lie at x = -1.5 and y = -1.5, on the outer
-edges of the existing floor ring. Each includes that ring's corner tile;
-the panels meet at (-1.5, -1.5) without the narrow corner post. Their free
-ends align with the slab silhouette, removing the exposed floor wedges.
-Lighting still samples the integer ring tiles, and the camera reserves
-headroom above the shifted panel anchors. This changes presentation only.
+Current exterior geometry: the slab is the playable grid, with both far walls
+on its X=-0.5 and Y=-0.5 edges. Divider endpoints use the existing corner-fold
+panels on their own tiles; they no longer cross an extra decorative border.
+This supersedes the outer-ring placement recorded below. Interior walls still
+occupy blocked tiles, so flush interior furniture and arbitrary
+rectangular-object rotation remain separate simulation/layout work.
+
+Historical geometry, before September 20: the two exterior runs lay at
+x = -1.5 and y = -1.5, on the outer edges of the decorative floor ring.
+Each included that ring's corner tile; the panels met at (-1.5, -1.5)
+without the narrow corner post. Their free ends aligned with the old slab
+silhouette, removing exposed floor wedges. Lighting sampled integer ring
+tiles, and the camera reserved headroom above those former panel anchors.
+That earlier correction changed presentation only.
 
 The remaining interior-wall redesign is still deferred.
 

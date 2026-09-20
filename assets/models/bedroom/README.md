@@ -111,7 +111,14 @@ review views, not valid gameplay placements with the fixed 2x1 footprint.
    Full-resolution contributions and rejected source models remain local;
    journals, source helpers, accepted model, review images and exports are tracked.
 
-Source, export and local runtime review are complete. Publication remains
-pending; see `docs/assets/review-evidence/bedroom/bunk.md` for evidence and
+Candidate 02 shipped in PR #81; see `docs/assets/review-evidence/bedroom/bunk.md` for evidence and
 `docs/plans/2026-09-17-bunk-asset.md` for the full plan. Never combine this composite with
 the old `bedBunkForeground`; that would draw incompatible furniture twice.
+
+Candidate 03 moves the ladder and matching guard opening to local -X, the
+near long side in the placed SE view. The head remains at +Y. Its geometry
+and sixteen occupied source views passed primary and independent review.
+Runtime integration and publication are separate gates; do not treat the
+candidate 02 release evidence as proof for this revision.
+The candidate 03 runtime review is recorded in
+`docs/assets/review-evidence/bedroom/bunk-near-ladder.md`.

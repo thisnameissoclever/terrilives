@@ -143,10 +143,10 @@ export function zoomAnchoredOrigin(
  *
  * The vertical terms are `cameraOrigin`'s own, including its split
  * between the first boundary panels (wall pieces only) and the
- * lot's first tile at (0, 0), 2.5 half-rows lower (anything else), and
+ * lot's first tile at (0, 0), 0.5 half-rows lower (anything else), and
  * the last tile row plus its anchor below. Horizontally the extreme
- * columns are the boundary tiles at `(-1, lotHeight - 1)` (west) and
- * `(lotWidth - 1, -1)` (east), each half a tile wider for the
+ * columns are the floor tiles at `(0, lotHeight - 1)` (west) and
+ * `(lotWidth - 1, 0)` (east), each half a tile wider for the
  * diamond's own width.
  *
  * This has to agree with `cameraOrigin` or the pan clamp fights the
@@ -161,11 +161,11 @@ export function lotExtent(
   scale: number,
 ): { left: number; right: number; top: number; bottom: number } {
   return {
-    left: -(lotHeight + 1) * TILE_HALF_WIDTH * scale,
-    right: (lotWidth + 1) * TILE_HALF_WIDTH * scale,
+    left: -lotHeight * TILE_HALF_WIDTH * scale,
+    right: lotWidth * TILE_HALF_WIDTH * scale,
     top:
       Math.min(
-        -1.5 * TILE_HALF_HEIGHT - tallestBoundarySprite,
+        0.5 * TILE_HALF_HEIGHT - tallestBoundarySprite,
         TILE_HALF_HEIGHT - tallestSprite,
       ) * scale,
     bottom:

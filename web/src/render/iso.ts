@@ -94,8 +94,8 @@ export function screenY(
  * Centres the drawn lot, including wall headroom, on the first frame.
  * Pan and zoom own the origin afterward.
  *
- * The first boundary panels stand at (-1.5, -1) and (-1, -1.5), so
- * their anchors sit 2.5 half-tile rows above the first furniture tile.
+ * The first boundary panels stand at (-0.5, 0) and (0, -0.5), so
+ * their anchors sit half a half-tile row above the first furniture tile.
  * Only boundary sprite heights count there; reserving a bunk bed above
  * that row wastes space and can push an otherwise fitting lot off screen.
  * The slab's final tile supplies the bottom extent. Both extents scale
@@ -115,10 +115,10 @@ export function cameraOrigin(
   scale = 1,
 ): { x: number; y: number } {
   // Sprite top = screenY + anchor - height. The outer-edge wall anchors
-  // contribute -2.5 half-tile rows; furniture at (0, 0) contributes zero.
+  // contribute -0.5 half-tile rows; furniture at (0, 0) contributes zero.
   const top =
     Math.min(
-      -2.5 * TILE_HALF_HEIGHT + TILE_HALF_HEIGHT - tallestBoundarySprite,
+      0.5 * TILE_HALF_HEIGHT - tallestBoundarySprite,
       TILE_HALF_HEIGHT - tallestSprite,
     ) * scale;
   const bottom =

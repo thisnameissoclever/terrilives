@@ -412,6 +412,30 @@ mod tests {
     }
 
     #[test]
+    fn decorative_chairs_face_their_table_and_desk() {
+        let p = pack();
+        // These legacy chair models face +Y in their base SE artwork.
+        // NE points +X, SW points -X, and NW points -Y.
+        for (id, x, y, sprite) in [
+            ("chair", 1.0, 3.0, 258),
+            ("chair", 4.0, 3.0, 256),
+            ("desk_chair", 6.0, 7.0, 299),
+        ] {
+            let object = p.find(id).expect("existing decorative chair");
+            let placement = p
+                .lot
+                .placements
+                .iter()
+                .find(|row| row.object == object && row.x == x && row.y == y)
+                .expect("chair beside its furniture");
+            assert_eq!(
+                placement.sprite, sprite,
+                "{id} at ({x}, {y}) faces away from its furniture"
+            );
+        }
+    }
+
+    #[test]
     fn every_need_has_a_finite_decay_rate() {
         // compile() fills this array from content and leaves NaN where a
         // rate is missing, so a NaN here means validation was bypassed.

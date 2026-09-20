@@ -59,4 +59,5 @@ assets/models/furniture/review/contributions-01/*.png
 # CI validates the accepted export receipt and runtime bytes, not fresh renders.
 assets/models/bedroom/owner-review-pending/bunk/candidate-02/contributions-*/*.png
 assets/models/bedroom/owner-review-pending/bunk/candidate-02/contribution-pilot/*.png
+assets/models/bedroom/owner-review-pending/bunk/candidate-03/contributions-*/*.png
 assets/models/bedroom/owner-review-pending/bunk/candidate-01/*.blend

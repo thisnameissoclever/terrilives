@@ -190,12 +190,12 @@ describe('lotExtent and clampOrigin', () => {
   const EXTENT = lotExtent(14, 10, 99, 99, 1);
 
   it('describes the drawn box in the projection constants', () => {
-    // West boundary column at (-1, 9), east at (13, -1), each half a
+    // West floor column at (0, 9), east at (13, 0), each half a
     // diamond wider; top is the tallest sprite over the boundary row,
     // bottom the last tile row plus its anchor.
-    expect(EXTENT.left).toBe(-11 * TILE_HALF_WIDTH);
-    expect(EXTENT.right).toBe(15 * TILE_HALF_WIDTH);
-    expect(EXTENT.top).toBe(-1.5 * TILE_HALF_HEIGHT - 99);
+    expect(EXTENT.left).toBe(-10 * TILE_HALF_WIDTH);
+    expect(EXTENT.right).toBe(14 * TILE_HALF_WIDTH);
+    expect(EXTENT.top).toBe(0.5 * TILE_HALF_HEIGHT - 99);
     expect(EXTENT.bottom).toBe(23 * TILE_HALF_HEIGHT);
     // And it scales as one shape: a zoomed lot is the same box times
     // the zoom, which is what keeps the clamp band honest at 2.5x.
@@ -286,7 +286,7 @@ describe('lotExtent against cameraOrigin', () => {
         // `lotExtent` is relative to the origin, so adding the origin
         // back must land on the topmost pixel the opening view draws.
         const topmost = Math.min(
-          screenY(-1.5, -1, origin.y, scale) +
+          screenY(-0.5, 0, origin.y, scale) +
             (TILE_HALF_HEIGHT - boundary) * scale,
           screenY(0, 0, origin.y, scale) +
             (TILE_HALF_HEIGHT - tallest) * scale,

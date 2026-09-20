@@ -874,7 +874,7 @@ async function main(): Promise<void> {
   // equally between the two edges and pan reaches either.
   const tallestSprite = Math.max(...SPRITES.map((_, index) => spriteFramingHeight(index)));
   // Reserve wall height above the first boundary panels, and furniture
-  // height above the first interior tile. Their anchors differ by 2.5
+  // height above the first interior tile. Their anchors differ by 0.5
   // half-tile rows; furniture cannot stand outside the lot.
   const boundaryNames: readonly string[] = BOUNDARY_SPRITE_NAMES;
   const tallestBoundarySprite = Math.max(
