@@ -28,9 +28,13 @@ const MAX_TEXT_BYTES: usize = 1_024;
 const LEGACY_HOUSEHOLD_NAMES: [&str; 3] = ["Terri", "Doug", "Nadia"];
 const AQUARIUM_BIKE_PERSISTENCE_KEYS: [&str; 2] = ["moving_box", "reference_shelf"];
 
+pub(super) mod architecture;
 mod bathtub;
 #[cfg(test)]
 mod bathtub_tests;
+mod wall_migration;
+#[cfg(test)]
+mod wall_migration_tests;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SaveError {
@@ -275,6 +279,21 @@ pub(super) fn restore(
     content: &'static ContentPack,
     active_portals: Option<ActivePortals>,
 ) -> Result<Sim, SaveError> {
+    let candidate = restore_legacy(snapshot, content, active_portals)?;
+    let candidate = wall_migration::upgrade(candidate, content);
+    validate_portal_returns(
+        &capture(&candidate),
+        candidate.world.resource::<TileGrid>(),
+        content,
+    )?;
+    Ok(candidate)
+}
+
+pub(super) fn restore_legacy(
+    snapshot: SaveSnapshotV1,
+    content: &'static ContentPack,
+    active_portals: Option<ActivePortals>,
+) -> Result<Sim, SaveError> {
     let (snapshot, migrate_legacy_household_names) = bathtub::prepare(snapshot, content)?;
 
     let mut sim = Sim::new();
@@ -305,6 +324,8 @@ pub(super) fn restore(
         }
     }
     sim.world.insert_resource(grid);
+    sim.world
+        .insert_resource(terri_core::layout::SavedLayout::LegacyAuthoredV1);
 
     let max_index = snapshot.entities.last().map(|entity| entity.index);
     let mut slots = vec![None; max_index.map_or(0, |index| index as usize + 1)];
@@ -768,6 +789,47 @@ fn validate_snapshot(snapshot: &SaveSnapshotV1, pack: &ContentPack) -> Result<()
     }
     for command in &snapshot.queued_commands {
         validate_command(command, &snapshot.entities, pack, pre_aquarium_bike)?;
+    }
+    Ok(())
+}
+
+fn validate_portal_returns(
+    snapshot: &SaveSnapshotV1,
+    grid: &TileGrid,
+    content: &ContentPack,
+) -> Result<(), SaveError> {
+    let Some(portal) = content.lot.front_door.and_then(|door| {
+        content
+            .portals
+            .iter()
+            .find(|portal| portal.position == door)
+    }) else {
+        return Ok(());
+    };
+    if !snapshot
+        .entities
+        .iter()
+        .any(|entity| entity.agent && entity.career.is_some())
+    {
+        return Ok(());
+    }
+    let door = (portal.position.0 as i32, portal.position.1 as i32);
+    let landing = (portal.inward.0 as i32, portal.inward.1 as i32);
+    if !grid.can_step(door, landing) {
+        return Err(SaveError::InvalidGrid);
+    }
+    for worker in snapshot
+        .entities
+        .iter()
+        .filter(|entity| entity.agent && entity.career.is_some() && entity.at_work_ticks.is_some())
+    {
+        let position = worker.position.ok_or(SaveError::InvalidGrid)?;
+        if !grid.segment_can_cross(
+            (position.x, position.y),
+            (landing.0 as f32, landing.1 as f32),
+        ) {
+            return Err(SaveError::InvalidGrid);
+        }
     }
     Ok(())
 }
@@ -1523,12 +1585,12 @@ mod tests {
             uninterrupted.tick();
         }
 
-        let state = uninterrupted.save_snapshot();
+        let state = uninterrupted.save_snapshot_v2();
         let mut resumed = Sim::new_from_shipped_lot();
         resumed
-            .load_snapshot(state.clone())
+            .load_snapshot_v2(state.clone())
             .expect("own snapshot restores");
-        assert_eq!(resumed.save_snapshot(), state);
+        assert_eq!(resumed.save_snapshot_v2(), state);
 
         for tick_after_load in 1..=300 {
             uninterrupted.tick();
@@ -1662,7 +1724,7 @@ mod tests {
 
             let mut fresh = Sim::new_from_shipped_lot();
             assert_eq!(
-                fresh.load_snapshot(snapshot),
+                fresh.load_snapshot_v2(sim.save_snapshot_v2()),
                 Ok(()),
                 "the snapshot taken at tick {tick} will not load"
             );
@@ -2363,6 +2425,7 @@ mod tests {
                 width: 16,
                 height: 16,
                 walls: Vec::new(),
+                wall_edges: Vec::new(),
                 placements: vec![terri_data::CompiledPlacement {
                     object: chair,
                     x: position.x,
@@ -3434,6 +3497,9 @@ mod tests {
         let width = prior.grid_width as usize;
         expected_blocked[9 * width + 15] = false;
         expected_blocked[10 * width + 14] = true;
+        for (x, y) in terri_core::layout::LEGACY_WALL_TILES {
+            expected_blocked[y as usize * width + x as usize] = false;
+        }
         let expected_entities = prior.entities.clone();
         let mut restored = Sim::new_from_shipped_lot();
         assert_eq!(restored.load_snapshot(prior), Ok(()));

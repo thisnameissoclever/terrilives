@@ -10,7 +10,7 @@ use terri_data::ContentPack;
 
 const WIDTH: usize = 16;
 const HEIGHT: usize = 12;
-const WALLS: [(usize, usize); 28] = [
+pub(in crate::save) const WALLS: [(usize, usize); 28] = [
     (7, 0),
     (7, 1),
     (7, 3),
@@ -77,7 +77,10 @@ const OBJECTS: [(&str, usize, usize); 34] = [
     ("laundry", 12, 11),
 ];
 
-pub(super) fn validate(snapshot: &SaveSnapshotV1, source: &ContentPack) -> Result<(), SaveError> {
+pub(in crate::save) fn validate(
+    snapshot: &SaveSnapshotV1,
+    source: &ContentPack,
+) -> Result<(), SaveError> {
     if snapshot.grid_width as usize != WIDTH || snapshot.grid_height as usize != HEIGHT {
         return Err(SaveError::InvalidGrid);
     }

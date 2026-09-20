@@ -1,7 +1,8 @@
 # Front door, then furniture builder
 
-Status: implemented and played locally, integrated with main `412bf5c`;
-GitHub release checks pending.
+Status: implemented and played locally with main's boundary walls and Save V2
+at `6951ba7`. Native and browser suites pass; targeted mutation and GitHub
+release checks remain pending.
 
 ## Front-door release
 
@@ -17,7 +18,8 @@ an optional adjacent entry point. The shipped door uses a side approach at
 `(15,3)` to avoid the existing floor lamp at `(14,2)` without moving furniture.
 Legacy lots without that table retain their existing behavior. The compiler
 validates a unique boundary edge, matching outward facing, a clear cardinally
-adjacent entry tile, and all sprite references. Facing determines the physical
+adjacent entry tile reachable without crossing a solid wall edge, and all
+sprite references. Facing determines the physical
 crossing normal independently of that entry tile. Compiled portal records
 append to the pack.
 
@@ -41,6 +43,11 @@ validation. Neither path changes Save V1's bytes or accidentally applies older
 household-name/action-row rewrites. Moving a landing in a later content revision
 closes the exact bridge.
 Facing, hinge and sprite changes remain presentation-only.
+
+Main's Save V2 envelope owns the saved architecture. Door restoration retains
+that architecture and the caller's portal drawing activation; it does not
+replace saved walls with the current authored lot. A real pre-door V2 browser
+fixture covers the existing public content fingerprint and wire format.
 
 Pause freezes the state. Reduced motion uses a fully open leaf for every active
 crossing. Concurrent workers keep the door open when either needs it. The art

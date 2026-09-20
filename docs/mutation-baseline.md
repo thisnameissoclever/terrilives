@@ -1,5 +1,31 @@
 # Mutation Testing Baseline
 
+## Frozen bathtub migration equivalents, 2026-09-20
+
+The front-door PR's full CI sweep exposed 36 unbaselined survivors inherited
+from the bathtub migration. Eight are equivalent within that migration's
+accepted input domain; the other 28 require regression coverage.
+
+1. Seven `object_tile` mutations change the lower-bound comparisons or join
+   its bounds predicates with `&&`. Its only caller is `bathtub_origins` in
+   `rotate_world`. The frozen source-layout validator requires the bathtub at
+   exactly `(14,9)` in a `16x12` grid. Every listed mutation returns that same
+   tile for this accepted input. A distinguishing position either fails the
+   bounds check or reaches `source_layout::validate` and fails there, before
+   any collision cells or entities are changed. Both outcomes are
+   `SaveError::InvalidGrid`; neither commits the candidate world. The original
+   finite-position and snapshot validation also remains before this helper.
+   This argument depends on the complete frozen source-layout gate. It must
+   be revisited if that migration starts accepting moved source bathtubs.
+2. The stationary-axis comparison `start < low` changed to `start <= low`
+   in `segment_crosses_cell` cannot distinguish an input. This branch requires
+   `delta == 0`, so `start == end`; the endpoint is an integer tile coordinate.
+   The lower cell boundary is an integer coordinate minus `0.5`. Those values
+   cannot be equal. The conversion to `f64` represents these `i32` coordinates
+   and their half-integer boundaries exactly. This does not excuse the final
+   `enter < leave` comparison: a segment merely touching a boundary is a real,
+   separately tested distinction.
+
 ## Front-door equivalent mutants, 2026-09-20
 
 The focused 78-mutant portal sweep found three equivalent operations. These

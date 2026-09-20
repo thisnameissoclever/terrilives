@@ -152,6 +152,25 @@ def _joined_wall(mask):
 WALL_JOIN_SPRITES = tuple(_joined_wall(mask) for mask in WALL_JOIN_MASKS)
 
 
+def _half_wall(bit, axis, positive_x):
+    def draw(d):
+        # Crop the full raster so splitting the diagonal does not change its
+        # line rounding. Two complementary halves retain the old silhouette.
+        _wall(d, axis)
+        if positive_x:
+            d.rectangle((0, 0, OX - 1, OY + HH + 1), fill=(0, 0, 0, 0))
+        else:
+            d.rectangle((OX + 1, 0, OX * 2, OY + HH + 1), fill=(0, 0, 0, 0))
+    draw.__name__ = f"wallHalf{bit}"
+    return draw
+
+
+WALL_HALF_SPRITES = tuple(_half_wall(*args) for args in (
+    (1, "ns", True), (2, "ew", True),
+    (4, "ns", False), (8, "ew", False),
+))
+
+
 def _joined_doorway(d, axis):
     # Start with the same uninterrupted wall face, rail and skirting as
     # adjacent panels. Only the actual opening gets an outlined frame.
@@ -1492,6 +1511,10 @@ EXACT = {
     "selectionRing": (2 * HW, 2 * HH),
     "wallNS": (HW, None),
     "wallEW": (HW, None),
+    "wallHalf1": (HW, None),
+    "wallHalf2": (HW, None),
+    "wallHalf4": (HW, None),
+    "wallHalf8": (HW, None),
     "doorwayNS": (HW, None),
     "doorwayEW": (HW, None),
     "sim": (38, 88),

@@ -245,7 +245,15 @@ Three baked looks rather than the three tinted instances per sim the spec
 proposed - the reasoning, and what would flip it back, is written down in
 `assets/sprites/gen/style.py` beside the palettes.
 
-**Save V1 survives the patch classes it can identify honestly.** The old
+**Save V2 stores room architecture; historical V1 saves remain supported.**
+The reviewed default household upgrades to boundary walls without moving its
+furniture or resetting its Sims. Custom V1 layouts keep their legacy walls.
+The browser keeps a byte-for-byte V1 recovery copy before its first V2 save,
+and a failed load disables saving until a successful load or confirmed New
+game. V2 files cannot be opened by older builds. See [D8] in
+`docs/ARCHITECTURE.md` for the compatibility and backup boundaries.
+
+**V1 compatibility remains limited to known patch classes.** The old
 fingerprint hashed the whole serialised pack, so every balance or art deploy
 invalidated every save. The replacement hashes numeric meanings the snapshot
 cannot validate by authored id: object footprints, station-role mappings and
@@ -301,12 +309,12 @@ morning and it reads as a simulation bug rather than as tuning. A zero
 point in the curve is no longer legal for the same reason: "never on its
 own" and "exhaustion always wins" cannot both be true.
 
-**Old saves survive it.** The counter is appended last in the snapshot and
-`load_bytes` retries a payload one byte short, because postcard writes a
+**Old saves survive it.** The counter is appended last in the V1 snapshot and
+the V1 branch of `load_bytes` retries a payload one byte short, because postcard writes a
 struct as its fields back to back and an empty `Vec` is a single zero -
 so a pre-ramp save IS a current one with that byte missing. The
-alternative was a schema-version bump, which would have thrown away every
-save anybody had.
+V2 retains that historical decoder rather than discarding old saves. Its
+own payload is decoded strictly, without the V1 tail repair.
 
 **The curve itself still wants a watched run.** A three-day probe of the
 shipped lot put sleep across both the evening and the afternoon rather

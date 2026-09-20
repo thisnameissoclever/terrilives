@@ -9,6 +9,7 @@
 
 import init, { SimHandle } from './wasm/terri_wasm.js';
 import { SimBridge } from './bridge.js';
+import { spawnStressAgents } from './debug/stress-spawn.js';
 import { AMBIENT_NEUTRAL, ambientFor } from './render/daylight.js';
 import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
@@ -281,8 +282,8 @@ async function main(): Promise<void> {
     (error) => console.error('save storage failed:', error),
   );
   await persistence.restoreAtStartup();
-  const lotWidth = handle.lot_width();
-  const lotHeight = handle.lot_height();
+  let lotWidth = handle.lot_width();
+  let lotHeight = handle.lot_height();
   // Checked rather than assumed. An empty lot is not a crash: it renders
   // a blank canvas with a lone sim wandering it, which reads as a broken
   // renderer rather than as missing content ([L17] is what that costs to
@@ -360,19 +361,10 @@ async function main(): Promise<void> {
   const footstepSamplerTimer = stressParam === null ? null : new FrameTimer(540);
   const stress = Number(stressParam ?? 0);
   const spawnStartMs = performance.now();
-  for (let i = 0; i < stress; i++) {
-    // Hunger 100 starts them satisfied, so they do not reserve an object or
-    // eat at first. Idle selection still scores the lot. It now shares one
-    // shortest-distance field per occupied source tile and reconstructs only
-    // a chosen route, so the harness exercises real autonomy without turning
-    // 1,000 agents and 34 objects into 34,000 A* searches per tick.
-    //
-    // This walks every tile of the lot in turn, so entities stack
-    // several deep on each. That is deliberate rather than incidental:
-    // it raises overdraw, which makes the test harder on the GPU, not
-    // easier.
-    sim.spawnAgent(i % lotWidth, Math.floor(i / lotWidth) % lotHeight, 100);
-  }
+  // Probe accepted floor cells, then stack filler there. Edge-mode spawning
+  // refuses furniture cells; count actual additions rather than attempts.
+  // Hunger 100 leaves selection autonomous without immediate hunger pressure.
+  spawnStressAgents(sim, lotWidth, lotHeight, stress);
   if (stress > 0) {
     // Startup, not steady state, and it is superlinear: `spawn_agent`
     // calls `sync_render_buffer`, which sorts and clones on every
@@ -739,6 +731,13 @@ async function main(): Promise<void> {
     void loading
       .then((loaded) => {
         if (loaded) {
+          lotWidth = handle.lot_width();
+          lotHeight = handle.lot_height();
+          depthScale = Math.max(lotWidth, lotHeight);
+          lot.width = lotWidth;
+          lot.height = lotHeight;
+          lot.walls = sim.wallTiles();
+          lot.edges = sim.wallEdges();
           // A restored world may reuse entity indices for different live
           // entities. Discard every transient action that names the old world.
           lightingDirty = true;
@@ -860,7 +859,7 @@ async function main(): Promise<void> {
   // [0, 1]; taking the larger side guarantees it for any lot, since
   // 2 * max(w, h) >= w + h. A depth outside the range does not sort
   // wrong, it clips the entity away entirely.
-  const depthScale = Math.max(lotWidth, lotHeight);
+  let depthScale = Math.max(lotWidth, lotHeight);
 
   // **The camera.** One scale and two origins, all live state. `cameraOrigin`
   // seeds the centered initial view once. Pan and anchored zoom own the origins
@@ -880,11 +879,11 @@ async function main(): Promise<void> {
   const tallestBoundarySprite = Math.max(
     ...SPRITES.flatMap((sprite, index) => boundaryNames.includes(sprite.name) ? [spriteFramingHeight(index)] : []),
   );
-  const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles() };
+  const lot = { width: lotWidth, height: lotHeight, walls: sim.wallTiles(), edges: sim.wallEdges() };
   const camera = { scale: 1, originX: 0, originY: 0 };
   let cameraDirty = true;
   let lightingDirty = false;
-  let lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true);
+  let lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lot.edges);
   lightingModeButton.addEventListener('click', () => {
     const wasFlat = lightingMode.isFlat();
     lightingMode.toggle();
@@ -939,7 +938,7 @@ async function main(): Promise<void> {
   let cameraInitialised = false;
   function applyCamera(): void {
     if (lightingDirty) {
-      lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true);
+      lighting = buildLightField(sim, lotWidth, lotHeight, lot.walls, true, lot.edges);
       lightingDirty = false;
     }
     const ratio = window.devicePixelRatio || 1;

@@ -39,7 +39,7 @@ Review the actual browser view and bathing interaction before publication.
 
 ## Second release: interior wall edges and furniture
 
-Interior walls currently block whole tiles while their art occupies a thin
+The prior interior walls blocked whole tiles while their art occupied a thin
 center plane. Moving only the picture would leave an invisible blocked strip.
 The correct replacement stores blocked boundaries between cells, with doorways
 as passable boundary segments. Rendering, pathfinding, distance fields,
@@ -52,3 +52,17 @@ its full placement/grid signature, not the structural fingerprint alone.
 Preserve dynamic objects and existing household state. Keep general build mode
 outside this scope. This second release is not implemented or implied complete
 by the bathtub change.
+
+The implementation uses Save V2 with explicit architecture, while retaining
+the V1 decoder. Its 34 boundary segments reclaim the former 28 wall cells;
+29 segments are solid and five are doors. Furniture origins remain unchanged.
+The old navigation graph is a subset of the new graph, so this conversion
+preserves existing valid paths and contacts rather than relocating Sims.
+Fractional new routes return to their source cell center before turning.
+The strict source-layout gate keeps custom V1 worlds on frozen legacy
+architecture. V2 reloads its own saved geometry and never repeats migration.
+
+An immutable V1 backup precedes the first V2 overwrite. Failed loads pause
+saving so an unrecognized household cannot be replaced by an automatic save.
+Local and played acceptance are recorded separately from deployment in
+`docs/assets/review-evidence/interior-wall-edges.md`.

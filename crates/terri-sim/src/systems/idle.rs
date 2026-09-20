@@ -179,7 +179,9 @@ pub fn wander(
         let from = (pos.x.round() as i32, pos.y.round() as i32);
         // No reachable destination this tick. Stand still and try again
         // on the next one, rather than looping until one turns up.
-        let Some(steps) = roll_wander_path(&grid, from, radius, attempts, &mut rng) else {
+        let Some(steps) = roll_wander_path(&grid, from, radius, attempts, &mut rng)
+            .and_then(|steps| grid.anchor_path((pos.x, pos.y), steps))
+        else {
             continue;
         };
 

@@ -13,28 +13,22 @@ describe('front door through the release WASM bridge', () => {
   it('migrates the rotated-bathtub pre-door fingerprint through the release boundary', () => {
     const handle = SimHandle.from_lot();
     const sim = new SimBridge(handle, memory);
+    const fixture = readFileSync(
+      '../crates/terri-wasm/tests/fixtures/pre-front-door-schema2.hex',
+      'utf8',
+    );
+    const bytes = Uint8Array.from(Buffer.from(fixture.replace(/\s/g, ''), 'hex'));
     try {
-      for (let tick = 0; tick < 600; tick++) sim.tick();
-      expect(sim.activities()).toContain(6);
-      const current = sim.saveBytes();
-      // Save V1: eight magic bytes, a little-endian u16 version, then the
-      // postcard u64 fingerprint. Only replace that field, not world state.
-      expect(new TextDecoder().decode(current.slice(0, 8))).toBe('TERRISAV');
-      expect(Array.from(current.slice(8, 10))).toEqual([1, 0]);
-      let end = 10;
-      while (end < 20 && (current[end++] & 0x80) !== 0) { /* bounded u64 */ }
-      const prior: number[] = [];
-      let value = 0xbcdd476e1e238ab0n;
-      do {
-        const byte = Number(value & 0x7fn);
-        value >>= 7n;
-        prior.push(byte | (value === 0n ? 0 : 0x80));
-      } while (value !== 0n);
-      const oldSave = Uint8Array.from([...current.slice(0, 10), ...prior, ...current.slice(end)]);
-      expect(sim.loadBytes(oldSave)).toBe(true);
-      expect(sim.saveBytes()).toEqual(current);
+      expect(bytes.byteLength).toBe(2679);
+      expect(new TextDecoder().decode(bytes.slice(0, 8))).toBe('TERRISAV');
+      expect(Array.from(bytes.slice(8, 10))).toEqual([2, 0]);
+      expect(sim.loadBytes(bytes)).toBe(true);
       expect(sim.portalCount).toBe(1);
-      for (let tick = 0; tick < 400; tick++) sim.tick();
+      const migrated = sim.saveBytes();
+      expect(migrated).not.toEqual(bytes);
+      expect(sim.loadBytes(migrated)).toBe(true);
+      expect(sim.saveBytes()).toEqual(migrated);
+      for (let tick = 0; tick < 1000; tick++) sim.tick();
       expect(sim.funds()).toBe(120);
       expect(sim.activities()).not.toContain(6);
     } finally {

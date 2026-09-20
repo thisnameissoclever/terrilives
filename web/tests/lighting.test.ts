@@ -67,6 +67,36 @@ function rows(
 
 const NO_WALLS = new Uint32Array(0);
 
+describe('explicit edge lighting', () => {
+  it('blocks both directions on both axes while an open door passes light', () => {
+    for (const [edge, from, to] of [
+      [[0, 1, 0, 0], [0, 0], [1, 0]],
+      [[0, 1, 0, 0], [1, 0], [0, 0]],
+      [[1, 0, 1, 0], [0, 0], [0, 1]],
+      [[1, 0, 1, 0], [0, 1], [0, 0]],
+    ]) {
+      const width = edge[0] === 0 ? 2 : 1;
+      const height = edge[0] === 0 ? 1 : 2;
+      const source = rows([[from[0], from[1], 1, LAMP]]);
+      let field = buildLightField(source, width, height, NO_WALLS, true, Uint32Array.from(edge));
+      expect(sampleLight(field, to[0], to[1])).toBe(0);
+      const door = Uint32Array.from(edge);
+      door[3] = 1;
+      field = buildLightField(source, width, height, NO_WALLS, true, door);
+      // East-facing furniture shadow remains separate from wall barriers.
+      expect(sampleLight(field, to[0], to[1])).toBeCloseTo(to[0] > from[0] ? 0.1 : 0.22);
+    }
+  });
+
+  it('uses an explicit empty edge layout instead of stale legacy wall tiles', () => {
+    const source = rows([[1, 0, 1, LAMP]]);
+    const walls = Uint32Array.from([0, 0]);
+    expect(sampleLight(buildLightField(source, 2, 1, walls, true), 0, 0)).toBe(0);
+    expect(sampleLight(buildLightField(source, 2, 1, walls, true, new Uint32Array()), 0, 0))
+      .toBeCloseTo(0.22);
+  });
+});
+
 describe('tile light profiles', () => {
   it('uses the complete lamp graph-distance profile', () => {
     const field = buildLightField(

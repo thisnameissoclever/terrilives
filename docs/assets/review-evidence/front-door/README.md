@@ -62,5 +62,44 @@ the release WASM boundary tests; these are separate migration cases.
    `mutation-baseline.md`; the targeted rerun caught all seven real survivors.
    GitHub checks remain a release gate.
 
+## Boundary-wall and Save V2 integration
+
+Main advanced to boundary walls at `6951ba7` during the release. A fresh
+production build (`terri_wasm_bg-B7Pz4Vp0.wasm`, `index-CA0mGe9L.js`) was
+played in a separate local origin with the new walls and the animated door.
+The changed walking routes also changed crossing times; the earlier tick
+numbers above are evidence for their earlier build, not a timing requirement.
+
+1. The return approached at tick 884, was visibly open with Tim crossing at
+   889, and was closed by 900. Funds were 120. UI Save at 889, advance to 900,
+   then confirmed UI Load restored the same visible crossing, pause and funds.
+   `edge-wall-return.png` and `edge-wall-restored.png` capture these states.
+2. The next natural departure was ajar at 1851, open at 1857 and closing at
+   1862. The frame stayed planted and the leaf correctly occluded Tim through
+   the threshold. `edge-wall-departure.png` captures the open crossing.
+3. Reduced motion displayed the fully open leaf during the same closing
+   interval. At 390x844 the Menu collapsed and camera dragging brought the door
+   into view. `edge-wall-mobile-reduced.png` records that played combination.
+4. Automatic lighting at tick 2760 tinted the closed door with the room;
+   `edge-wall-night.png` records it. Funds were 240 after the second shift.
+   No browser warnings or errors were recorded. Temporary viewport and media
+   overrides were reset; the test tab and preview server were closed. The
+   public origin's household was not reset or modified.
+5. Native workspace: 809 tests passed (83 core, 217 data, one data integration,
+   424 simulation, 84 WASM). Clippy and formatting checks passed. Release WASM
+   build, TypeScript check and Vite production build passed. Browser suite:
+   782/782 across 62 files, one worker and the unchanged five-second timeout.
+   The blue/red palette verification now uses separate named cases with all
+   image hashes and registration assertions retained.
+6. A real previous-main V2 browser fixture loads through native and release
+   WASM tests. New regressions reject saved walls or occupied cells that block
+   a future career return, including workers still at home, without replacing
+   the live world. Independent statement-deletion tests broke and then restored
+   portal activation propagation and off-door return-segment validation.
+
+The inherited bathtub mutation survivors are tracked separately in
+`mutation-baseline.md`; their targeted rerun and GitHub gates remain release
+checks, not claims established by these screenshots.
+
 Public deployment verification is recorded separately after merge. These
 local screenshots do not establish that GitHub Pages has updated.

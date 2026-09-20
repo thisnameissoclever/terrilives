@@ -168,6 +168,77 @@ describe('restorePersistenceFocus', () => {
 });
 
 describe('PersistenceController', () => {
+  it('identifies an unsupported envelope version without claiming the payload is corrupt', async () => {
+    const bytes = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 3, 0, 17]);
+    const view = status();
+    const controller = new PersistenceController(store(bytes), sim(false), view);
+    expect(await controller.restoreAtStartup()).toBe('invalid');
+    expect(view.textContent).toContain('version 3 is not supported');
+    expect(view.textContent).toContain('Saving paused');
+  });
+
+  it('keeps saving paused through missing retry data and failed clear until confirmed clear succeeds', async () => {
+    const backend = store(new Uint8Array([9]));
+    const game = sim(false);
+    const controller = new PersistenceController(backend, game, status());
+    await controller.restoreAtStartup();
+    backend.load = async () => null;
+    expect(await controller.load()).toBe(false);
+    expect(controller.controlState().saveDisabled).toBe(true);
+    backend.clear = async () => { throw new Error('denied'); };
+    expect(await controller.clear()).toBe(false);
+    expect(controller.controlState().saveDisabled).toBe(true);
+    expect(await controller.save()).toBe(false);
+    backend.clear = async () => {};
+    expect(await controller.clear()).toBe(true);
+    expect(controller.controlState().saveDisabled).toBe(false);
+    expect(controller.controlState().loadDisabled).toBe(true);
+    game.tick = 100;
+    controller.updateAutosave();
+    await Promise.resolve();
+    expect(backend.saves).toHaveLength(1);
+  });
+
+  it.each(['invalid', 'unavailable'] as const)(
+    'protects the original slot after %s startup restore until Load succeeds',
+    async (failure) => {
+      const original = new Uint8Array([9]);
+      const backend = store(original);
+      const game = sim(false);
+      const capture = vi.fn(game.saveBytes);
+      game.saveBytes = capture;
+      if (failure === 'unavailable') {
+        backend.load = async () => { throw new Error('storage unavailable'); };
+      }
+      const view = status();
+      const controller = new PersistenceController(backend, game, view);
+
+      expect(await controller.restoreAtStartup()).toBe(failure);
+      expect(controller.controlState()).toEqual({
+        saveDisabled: true,
+        loadDisabled: false,
+        newGameDisabled: false,
+        confirmationDisabled: false,
+      });
+      expect(view.textContent).toContain('Saving paused');
+      expect(view.textContent).toContain('kept');
+      game.tick = 100;
+      controller.updateAutosave();
+      expect(await controller.save()).toBe(false);
+      expect(capture).not.toHaveBeenCalled();
+      expect(backend.saves).toEqual([]);
+
+      backend.load = async () => original;
+      expect(await controller.load()).toBe(false);
+      expect(controller.controlState().saveDisabled).toBe(true);
+      game.loadBytes = () => true;
+      expect(await controller.load()).toBe(true);
+      expect(controller.controlState().saveDisabled).toBe(false);
+      expect(await controller.save()).toBe(true);
+      expect(backend.saves).toHaveLength(1);
+    },
+  );
+
   it('distinguishes a new game, a restored game and invalid bytes', async () => {
     const newStatus = status();
     expect(
@@ -192,7 +263,7 @@ describe('PersistenceController', () => {
       invalidStatus,
     );
     expect(await invalid.restoreAtStartup()).toBe('invalid');
-    expect(invalidStatus.textContent).toContain('Starting a new game');
+    expect(invalidStatus.textContent).toContain('Saving paused');
     expect(invalidStatus.attributes.get('data-kind')).toBe('error');
     expect(invalid.hasSavedGame()).toBe(false);
   });
@@ -207,7 +278,7 @@ describe('PersistenceController', () => {
     const controller = new PersistenceController(broken, sim(), view, report);
 
     expect(await controller.load()).toBe(false);
-    expect(view.textContent).toBe('Load failed. Current game kept.');
+    expect(view.textContent).toContain('Current game and saved data kept. Saving paused.');
     expect(report).toHaveBeenCalledTimes(1);
   });
 

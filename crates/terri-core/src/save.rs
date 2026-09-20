@@ -12,7 +12,14 @@ pub const SAVE_MAGIC: [u8; 8] = *b"TERRISAV";
 
 /// The current payload schema. The prefix is decoded before postcard so an
 /// incompatible future payload is reported as incompatible, not merely corrupt.
-pub const SAVE_SCHEMA_VERSION: u16 = 1;
+pub const SAVE_SCHEMA_VERSION: u16 = 2;
+
+/// Explicit architecture envelope. V1 remains a frozen embedded world record.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SaveSnapshotV2 {
+    pub world: SaveSnapshotV1,
+    pub layout: crate::layout::SavedLayout,
+}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SaveSnapshotV1 {

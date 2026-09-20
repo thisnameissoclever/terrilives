@@ -18,7 +18,8 @@ use crate::schema::{
     ObjectsFile, PersonalitiesFile, SocialFile, TraitsFile, TuningFile, VisualDef, VoiceFile,
 };
 use std::collections::{BTreeMap, BTreeSet};
-use terri_core::{Footprint, NeedId, NEED_COUNT, NEED_MAX, NEED_MIN};
+use terri_core::layout::WallEdge;
+use terri_core::{Footprint, NeedId, TileGrid, NEED_COUNT, NEED_MAX, NEED_MIN};
 
 /// The atlas sprite every sim is drawn with.
 ///
@@ -1815,7 +1816,8 @@ fn compile_household(
     let root = (0..lot.height)
         .flat_map(|y| (0..lot.width).map(move |x| (x, y)))
         .find(|tile| !blocked.contains(tile));
-    let reached = root.map(|root| flood_fill(lot.width, lot.height, &blocked, root));
+    let reached =
+        root.map(|root| flood_fill(lot.width, lot.height, &blocked, &lot.wall_edges, root));
 
     let mut compiled = Vec::with_capacity(household.sim.len());
     for (index, sim) in household.sim.iter().enumerate() {
@@ -2373,6 +2375,41 @@ fn compile_lot(
         });
     }
 
+    if !lot.wall.is_empty() && !lot.wall_edge.is_empty() {
+        return Err(ContentError::MixedWallArchitecture);
+    }
+    let mut wall_edges = Vec::with_capacity(lot.wall_edge.len());
+    let mut edge_keys = BTreeSet::new();
+    for authored in &lot.wall_edge {
+        let invalid = || ContentError::WallEdgeOutOfBounds {
+            axis: authored.axis,
+            x: authored.x,
+            y: authored.y,
+            width: lot.width,
+            height: lot.height,
+        };
+        let (Ok(x), Ok(y)) = (u32::try_from(authored.x), u32::try_from(authored.y)) else {
+            return Err(invalid());
+        };
+        let edge = WallEdge {
+            axis: authored.axis,
+            x,
+            y,
+            doorway: authored.doorway,
+        };
+        if !edge.in_bounds(lot.width, lot.height) {
+            return Err(invalid());
+        }
+        if !edge_keys.insert((edge.axis, x, y)) {
+            return Err(ContentError::DuplicateWallEdge {
+                axis: edge.axis,
+                x,
+                y,
+            });
+        }
+        wall_edges.push(edge);
+    }
+
     let mut walls = Vec::with_capacity(lot.wall.len());
     // Membership is asked once per placement, so a set rather than a
     // scan over `walls`. Ordered, because nothing here may depend on
@@ -2613,6 +2650,18 @@ fn compile_lot(
                 }
             }
         }
+        for edge in wall_edges.iter().filter(|edge| !edge.doorway) {
+            if edge.cells().iter().all(|&(x, y)| {
+                x >= tile.0 as i32 && x <= far.0 as i32 && y >= tile.1 as i32 && y <= far.1 as i32
+            }) {
+                return Err(ContentError::FootprintSpansWallEdge {
+                    object: object.clone(),
+                    axis: edge.axis,
+                    x: edge.x,
+                    y: edge.y,
+                });
+            }
+        }
         corners.push(far);
     }
 
@@ -2645,6 +2694,7 @@ fn compile_lot(
     // `Sim::new_from_lot` will block.
     let mut blocked = wall_tiles.clone();
     blocked.extend(occupied.keys().copied());
+    let grid = navigation_grid(lot.width, lot.height, &blocked, &wall_edges);
 
     // Every tile beside a rectangle that is inside the lot and walkable.
     // `i64` so a rectangle touching x = 0 can name the column before it
@@ -2665,6 +2715,16 @@ fn compile_lot(
             .filter(|&(x, y)| x >= 0 && y >= 0 && x < lot.width as i64 && y < lot.height as i64)
             .map(|(x, y)| (x as u32, y as u32))
             .filter(|tile| !blocked.contains(tile))
+            .filter(|&(x, y)| {
+                grid.can_interact_with_rect(
+                    (x as i32, y as i32),
+                    (tile.0 as i32, tile.1 as i32),
+                    Footprint {
+                        width: far.0 - tile.0 + 1,
+                        depth: far.1 - tile.1 + 1,
+                    },
+                )
+            })
             .collect()
     };
 
@@ -2729,7 +2789,7 @@ fn compile_lot(
                     lot.width,
                     lot.height,
                     visual,
-                    &blocked,
+                    &grid,
                     sprite_index,
                 )?);
             }
@@ -2741,7 +2801,7 @@ fn compile_lot(
         .flat_map(|y| (0..lot.width).map(move |x| (x, y)))
         .find(|tile| !blocked.contains(tile));
     if let Some(root) = root {
-        let reached = flood_fill(lot.width, lot.height, &blocked, root);
+        let reached = flood_fill(lot.width, lot.height, &blocked, &wall_edges, root);
         let index_of = |x: u32, y: u32| (y as usize) * (lot.width as usize) + (x as usize);
         for ((object, _, _), beside) in rects.iter().zip(&approach_sets) {
             for &(x, y) in beside {
@@ -2778,6 +2838,7 @@ fn compile_lot(
             walls,
             placements,
             front_door,
+            wall_edges,
         },
         portals,
     ))
@@ -2789,7 +2850,7 @@ fn compile_front_door_visual(
     width: u32,
     height: u32,
     visual: &crate::schema::FrontDoorVisualDef,
-    blocked: &BTreeSet<(u32, u32)>,
+    grid: &TileGrid,
     sprite_index: &dyn Fn(&str) -> Option<usize>,
 ) -> Result<CompiledPortal, ContentError> {
     let facing = match visual.facing.as_str() {
@@ -2862,7 +2923,7 @@ fn compile_front_door_visual(
             (entry.x as u32, entry.y as u32)
         }
     };
-    if blocked.contains(&inward) {
+    if !grid.can_step((x as i32, y as i32), (inward.0 as i32, inward.1 as i32)) {
         return Err(ContentError::FrontDoorEntryBlocked {
             x: inward.0,
             y: inward.1,
@@ -2899,6 +2960,24 @@ fn compile_front_door_visual(
     })
 }
 
+/// Build the same occupancy and boundary rules used by runtime navigation.
+fn navigation_grid(
+    width: u32,
+    height: u32,
+    blocked: &BTreeSet<(u32, u32)>,
+    wall_edges: &[WallEdge],
+) -> TileGrid {
+    let mut grid = TileGrid::new(width as usize, height as usize);
+    for &(x, y) in blocked {
+        grid.set_blocked(x as usize, y as usize, true);
+    }
+    for edge in wall_edges {
+        let [from, to] = edge.cells();
+        grid.set_edge_blocked(from, to, !edge.doorway);
+    }
+    grid
+}
+
 /// Which tiles are reachable from `root` by four-way movement over the
 /// unblocked tiles, as a `width * height` row-major bitmap.
 ///
@@ -2914,8 +2993,10 @@ fn flood_fill(
     width: u32,
     height: u32,
     blocked: &BTreeSet<(u32, u32)>,
+    wall_edges: &[WallEdge],
     root: (u32, u32),
 ) -> Vec<bool> {
+    let grid = navigation_grid(width, height, blocked, wall_edges);
     let (w, h) = (width as usize, height as usize);
     let mut reached = vec![false; w * h];
     let index_of = |x: u32, y: u32| (y as usize) * w + (x as usize);
@@ -2943,7 +3024,7 @@ fn flood_fill(
             }
             let next = (nx as u32, ny as u32);
             let index = index_of(next.0, next.1);
-            if reached[index] || blocked.contains(&next) {
+            if reached[index] || !grid.can_step((x as i32, y as i32), (nx as i32, ny as i32)) {
                 continue;
             }
             reached[index] = true;
@@ -3220,7 +3301,9 @@ mod tests {
         15, 1, 15, 69, 97, 116, 32, 115, 116, 97, 110, 100,
         105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1, 1,
         1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0,
-        0, 0, 32, 64, 0, 0, 160, 63, 2, 0, 0, 0, 0,
+        // Empty wall_edges follows front_door; all earlier lot fields retain
+        // their bytes. Removing this appended zero reproduces the old vector.
+        0, 0, 32, 64, 0, 0, 160, 63, 2, 0, 0, 0, 0, 0,
         0, 128, 62, 0, 0, 0, 63, 0, 0, 0, 62, 9, 6,
         0, 0, 160, 62, 10, 215, 35, 59, 0, 0, 32, 63,
         0, 0, 64, 63, 3, 172, 2, 7, 11, 13, 0, 0,
@@ -3252,6 +3335,7 @@ mod tests {
 
     fn bare_lot() -> LotFile {
         LotFile {
+            wall_edge: vec![],
             width: 1,
             height: 1,
             wall: Vec::new(),
@@ -3279,6 +3363,7 @@ mod tests {
     /// row 2.
     fn distinct_lot() -> LotFile {
         LotFile {
+            wall_edge: vec![],
             width: 5,
             height: 3,
             wall: vec![WallDef { x: 4, y: 2 }, WallDef { x: 1, y: 0 }],
@@ -4926,6 +5011,7 @@ mod tests {
     #[test]
     fn placements_resolve_to_the_declared_object_index() {
         let lot = LotFile {
+            wall_edge: vec![],
             front_door: None,
             width: 4,
             height: 4,
@@ -5847,6 +5933,59 @@ mod tests {
             .unwrap_err(),
             ContentError::FrontDoorEntryBlocked { x: 2, y: 1 }
         );
+    }
+
+    #[test]
+    fn portal_landings_cannot_cross_solid_wall_edges() {
+        use terri_core::layout::EdgeAxis;
+
+        for (axis, edge_x, edge_y, entry) in [
+            (EdgeAxis::Vertical, 4, 2, None),
+            (EdgeAxis::Horizontal, 4, 3, Some((4, 3))),
+        ] {
+            for doorway in [false, true] {
+                let mut visual = portal_visual("SE");
+                visual.entry = entry.map(|(x, y)| crate::schema::PortalEntryDef { x, y });
+                let mut lot = lot_of(5, 5, &[], &[]);
+                lot.front_door = Some(crate::schema::FrontDoorDef {
+                    x: 4,
+                    y: 2,
+                    visual: Some(visual),
+                });
+                lot.wall_edge.push(crate::schema::WallEdgeDef {
+                    axis,
+                    x: edge_x,
+                    y: edge_y,
+                    doorway,
+                });
+                let result = compile_bare(
+                    full_needs(),
+                    one_object(snack()),
+                    lot,
+                    test_atlas(),
+                    full_tuning(),
+                );
+                let (x, y) = entry.unwrap_or((3, 2));
+                if doorway {
+                    assert_eq!(
+                        result
+                            .expect("an open edge permits the return step")
+                            .portals[0]
+                            .inward,
+                        (x as u32, y as u32),
+                    );
+                } else {
+                    assert_eq!(
+                        result.unwrap_err(),
+                        ContentError::FrontDoorEntryBlocked {
+                            x: x as u32,
+                            y: y as u32
+                        },
+                        "a clear landing behind a solid edge is not a valid return step",
+                    );
+                }
+            }
+        }
     }
 
     #[test]
@@ -6983,6 +7122,7 @@ mod tests {
         places: &[(&str, f32, f32)],
     ) -> LotFile {
         LotFile {
+            wall_edge: vec![],
             front_door: None,
             width,
             height,
@@ -7003,6 +7143,212 @@ mod tests {
     /// each test below varies only the objects and the lot.
     fn compile_geometry(objects: ObjectsFile, lot: LotFile) -> Result<ContentPack, ContentError> {
         compile_bare(full_needs(), objects, lot, test_atlas(), full_tuning())
+    }
+
+    fn wall_edge_lot(extra: &str) -> LotFile {
+        toml::from_str(&format!("width = 5\nheight = 4\n{extra}")).unwrap()
+    }
+
+    fn wall_edge(axis: &str, x: i32, y: i32, doorway: bool) -> String {
+        format!("\n[[wall_edge]]\naxis = '{axis}'\nx = {x}\ny = {y}\ndoorway = {doorway}\n")
+    }
+
+    #[test]
+    fn wall_edge_compilation_preserves_axis_coordinates_doorways_and_order() {
+        use terri_core::layout::EdgeAxis::{Horizontal, Vertical};
+        let authored = wall_edge("horizontal", 3, 2, true) + &wall_edge("vertical", 1, 3, false);
+        let pack = compile_geometry(one_object(snack()), wall_edge_lot(&authored)).unwrap();
+        assert_eq!(
+            pack.lot.wall_edges,
+            vec![
+                WallEdge {
+                    axis: Horizontal,
+                    x: 3,
+                    y: 2,
+                    doorway: true
+                },
+                WallEdge {
+                    axis: Vertical,
+                    x: 1,
+                    y: 3,
+                    doorway: false
+                },
+            ]
+        );
+        assert!(pack.lot.walls.is_empty());
+        let bytes = postcard::to_allocvec(&pack.lot).unwrap();
+        let decoded: CompiledLot = postcard::from_bytes(&bytes).unwrap();
+        assert_eq!(decoded, pack.lot);
+        assert_eq!(&bytes[bytes.len() - 9..], &[2, 1, 3, 2, 1, 0, 1, 3, 0]);
+        let legacy = compile_geometry(one_object(snack()), wall_edge_lot("")).unwrap();
+        assert!(legacy.lot.wall_edges.is_empty());
+        assert_eq!(
+            postcard::to_allocvec(&legacy.lot).unwrap(),
+            vec![5, 4, 0, 0, 0, 0]
+        );
+    }
+
+    #[test]
+    fn wall_edge_omitted_doorway_is_solid() {
+        let pack = compile_geometry(
+            one_object(snack()),
+            wall_edge_lot("[[wall_edge]]\naxis='vertical'\nx=1\ny=1\n"),
+        )
+        .unwrap();
+        assert!(!pack.lot.wall_edges[0].doorway);
+    }
+
+    #[test]
+    fn wall_edge_accepts_first_and_last_interior_boundaries() {
+        for (axis, x, y) in [
+            ("vertical", 1, 0),
+            ("vertical", 4, 3),
+            ("horizontal", 0, 1),
+            ("horizontal", 4, 3),
+        ] {
+            compile_geometry(
+                one_object(snack()),
+                wall_edge_lot(&wall_edge(axis, x, y, false)),
+            )
+            .expect("each outermost interior boundary is legal");
+        }
+    }
+
+    #[test]
+    fn wall_edge_rejects_out_of_bounds_on_both_axes() {
+        for (axis, x, y) in [
+            ("vertical", -1, 1),
+            ("vertical", 0, 1),
+            ("vertical", 5, 1),
+            ("vertical", 2, -1),
+            ("vertical", 2, 4),
+            ("horizontal", -1, 2),
+            ("horizontal", 5, 2),
+            ("horizontal", 1, -1),
+            ("horizontal", 1, 0),
+            ("horizontal", 1, 4),
+        ] {
+            let err = compile_geometry(
+                one_object(snack()),
+                wall_edge_lot(&wall_edge(axis, x, y, false)),
+            )
+            .expect_err("an invalid interior edge must not compile");
+            assert!(err.to_string().contains("outside"), "{err}");
+        }
+    }
+
+    #[test]
+    fn wall_edge_rejects_duplicate_and_conflicting_segments() {
+        for doorway in [false, true] {
+            let edges = wall_edge("vertical", 2, 1, false) + &wall_edge("vertical", 2, 1, doorway);
+            let err = compile_geometry(one_object(snack()), wall_edge_lot(&edges)).unwrap_err();
+            assert!(err.to_string().contains("more than once"), "{err}");
+        }
+    }
+
+    #[test]
+    fn wall_edge_rejects_mixed_legacy_architecture() {
+        let authored = "[[wall]]\nx=0\ny=0\n".to_string() + &wall_edge("horizontal", 3, 2, true);
+        let err = compile_geometry(one_object(snack()), wall_edge_lot(&authored)).unwrap_err();
+        assert!(err.to_string().contains("mix"), "{err}");
+    }
+
+    #[test]
+    fn wall_edge_rejects_footprint_spanning_solid_but_allows_doorway() {
+        for (axis, x, y) in [("vertical", 2, 1), ("horizontal", 1, 2)] {
+            for doorway in [false, true] {
+                let authored = "[[place]]\nobject='fridge'\nx=1\ny=1\n".to_string()
+                    + &wall_edge(axis, x, y, doorway);
+                let result =
+                    compile_geometry(sized_objects(&[("fridge", 2, 2)]), wall_edge_lot(&authored));
+                if doorway {
+                    result.expect("a passable edge does not split a footprint");
+                } else {
+                    assert!(result.unwrap_err().to_string().contains("spans"));
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn wall_edge_blocks_interaction_approaches_even_when_floor_is_walkable() {
+        let authored = "[[place]]\nobject='fridge'\nx=2\ny=1\n".to_string()
+            + &wall_edge("vertical", 2, 1, false)
+            + &wall_edge("vertical", 3, 1, false)
+            + &wall_edge("horizontal", 2, 1, false)
+            + &wall_edge("horizontal", 2, 2, false);
+        assert!(matches!(
+            compile_geometry(one_object(snack()), wall_edge_lot(&authored)),
+            Err(ContentError::NoWalkableApproach { .. })
+        ));
+        let opened = authored.replacen("doorway = false", "doorway = true", 1);
+        compile_geometry(one_object(snack()), wall_edge_lot(&opened)).unwrap();
+    }
+
+    fn wall_edge_divider(doorway: bool) -> String {
+        (0..4)
+            .map(|y| wall_edge("vertical", 2, y, doorway && y == 2))
+            .collect()
+    }
+
+    #[test]
+    fn wall_edge_sealed_room_rejects_approaches_and_front_door() {
+        for doorway in [false, true] {
+            let edges = wall_edge_divider(doorway);
+            let furniture = "[[place]]\nobject='fridge'\nx=3\ny=1\n".to_string() + &edges;
+            let result = compile_geometry(one_object(snack()), wall_edge_lot(&furniture));
+            if doorway {
+                result.unwrap();
+            } else {
+                assert!(matches!(
+                    result,
+                    Err(ContentError::UnreachableApproach { .. })
+                ));
+            }
+            let door = "[front_door]\nx=4\ny=1\n".to_string() + &edges;
+            let result = compile_geometry(one_object(snack()), wall_edge_lot(&door));
+            if doorway {
+                result.unwrap();
+            } else {
+                assert!(matches!(
+                    result,
+                    Err(ContentError::FrontDoorUnreachable { .. })
+                ));
+            }
+        }
+    }
+
+    #[test]
+    fn wall_edge_sealed_room_rejects_household_spawn() {
+        for doorway in [false, true] {
+            let lot = wall_edge_lot(&wall_edge_divider(doorway));
+            let result = compile(
+                full_needs(),
+                one_object(snack()),
+                lot,
+                test_atlas(),
+                full_tuning(),
+                PersonalitiesFile {
+                    archetype: vec![archetype("the_settled")],
+                },
+                HouseholdFile {
+                    sim: vec![member("Terri", "the_settled", 3.0, 1.0)],
+                },
+                SocialFile {
+                    interaction: vec![],
+                },
+                TraitsFile { trait_def: vec![] },
+                CareersFile { career: vec![] },
+                ChainsFile { chain: vec![] },
+                VoiceFile { clip: vec![] },
+                vec![],
+            );
+            if doorway {
+                result.unwrap();
+            } else {
+                assert!(matches!(result, Err(ContentError::SpawnUnreachable { .. })));
+            }
+        }
     }
 
     /// The accepting half of the whole feature: a declared footprint reaches
@@ -7378,6 +7724,13 @@ mod tests {
         let pack = crate::pack();
         let lot = &pack.lot;
 
+        assert!(lot.walls.is_empty(), "the shipped house uses edge walls");
+        assert_eq!(lot.wall_edges.len(), 34);
+        assert_eq!(lot.wall_edges.iter().filter(|edge| edge.doorway).count(), 5);
+        for edge in &lot.wall_edges {
+            assert!(edge.in_bounds(lot.width, lot.height), "{edge:?}");
+        }
+
         assert!(
             !lot.placements.is_empty(),
             "an empty lot satisfies all three rules vacuously"
@@ -7418,7 +7771,6 @@ mod tests {
         // Rule 2 and rule 1 in one pass, because both are statements about
         // one tile at a time. Rebuilt from the pack rather than read out of
         // `compile`, so the two are separate statements of the same claim.
-        let walls: BTreeSet<(u32, u32)> = lot.walls.iter().copied().collect();
         let mut occupied: BTreeMap<(u32, u32), &str> = BTreeMap::new();
         for placement in &lot.placements {
             let object = pack.object(placement.object);
@@ -7432,28 +7784,36 @@ mod tests {
                         lot.width,
                         lot.height
                     );
-                    assert!(
-                        !walls.contains(&(x, y)),
-                        "'{}' covers the wall tile ({x}, {y})",
-                        object.id
-                    );
                     if let Some(previous) = occupied.insert((x, y), object.id.as_str()) {
                         panic!("'{previous}' and '{}' both cover ({x}, {y})", object.id);
                     }
                 }
             }
+            for edge in lot.wall_edges.iter().filter(|edge| !edge.doorway) {
+                assert!(
+                    !edge.cells().iter().all(|&(x, y)| {
+                        x >= tile.0 as i32
+                            && x < (tile.0 + object.footprint.width) as i32
+                            && y >= tile.1 as i32
+                            && y < (tile.1 + object.footprint.depth) as i32
+                    }),
+                    "'{}' spans solid boundary {edge:?}",
+                    object.id
+                );
+            }
         }
 
         // Rule 3, over the tiles the simulation will actually treat as solid.
-        let mut blocked = walls;
-        blocked.extend(occupied.keys().copied());
+        let blocked = occupied.keys().copied().collect();
+        let grid = navigation_grid(lot.width, lot.height, &blocked, &lot.wall_edges);
         let root = (0..lot.height)
             .flat_map(|y| (0..lot.width).map(move |x| (x, y)))
             .find(|tile| !blocked.contains(tile))
             .expect("the shipped lot has somewhere to stand");
-        let reached = flood_fill(lot.width, lot.height, &blocked, root);
+        let reached = flood_fill(lot.width, lot.height, &blocked, &lot.wall_edges, root);
 
         let mut checked = 0;
+        let mut solid_side_approaches = 0;
         for placement in &lot.placements {
             let object = pack.object(placement.object);
             let tile = (placement.x as i64, placement.y as i64);
@@ -7473,6 +7833,14 @@ mod tests {
                 if blocked.contains(&approach) {
                     continue;
                 }
+                if !grid.can_interact_with_rect(
+                    (x as i32, y as i32),
+                    (tile.0 as i32, tile.1 as i32),
+                    object.footprint,
+                ) {
+                    solid_side_approaches += 1;
+                    continue;
+                }
                 beside += 1;
                 assert!(
                     reached[(approach.1 as usize) * (lot.width as usize) + approach.0 as usize],
@@ -7484,7 +7852,7 @@ mod tests {
             }
             assert!(
                 beside > 0,
-                "'{}' has no walkable tile beside it and could never be used",
+                "'{}' has no walkable approach across an open boundary",
                 object.id
             );
             checked += 1;
@@ -7493,6 +7861,10 @@ mod tests {
             checked,
             lot.placements.len(),
             "every placement must have been checked"
+        );
+        assert!(
+            solid_side_approaches > 0,
+            "the shipped fixture must exercise walkable approaches blocked by walls"
         );
     }
 
