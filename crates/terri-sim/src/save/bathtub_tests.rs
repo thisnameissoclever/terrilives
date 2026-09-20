@@ -83,6 +83,90 @@ fn public_bathtub_and_portal_migrations_keep_their_distinct_source_shapes() {
 }
 
 #[test]
+fn bathtub_migration_rejects_an_unreviewed_return_landing_before_grid_validation() {
+    let source = old_snapshot();
+    let width = source.grid_width as usize;
+    assert!(
+        !source.blocked_tiles[3 * width + 14],
+        "the moved landing witness must be clear so occupancy is not the rejection reason"
+    );
+    let mut changed = destination().clone();
+    changed.portals[0].inward = (14, 3);
+    assert_ne!(
+        terri_data::content_fingerprint(&changed),
+        0xfdf5_87d9_437f_bfd0
+    );
+
+    assert_eq!(
+        restore_without_portals(source, Box::leak(Box::new(changed))).err(),
+        Some(SaveError::IncompatibleContent),
+        "the old bathtub migration cannot authorize a future portal route"
+    );
+}
+
+#[test]
+fn bathtub_migration_accepts_only_the_two_reviewed_destination_digests() {
+    let source = old_snapshot();
+    let current = destination();
+    assert_eq!(
+        terri_data::content_fingerprint(current),
+        0xfdf5_87d9_437f_bfd0
+    );
+    assert!(restore_without_portals(source.clone(), current).is_ok());
+
+    let mut before_portal = current.clone();
+    before_portal.portals.clear();
+    assert_eq!(
+        terri_data::content_fingerprint(&before_portal),
+        0xbcdd_476e_1e23_8ab0
+    );
+    let before_portal = Box::leak(Box::new(before_portal));
+    let rotated = restore_without_portals(source.clone(), before_portal)
+        .expect("the public pre-portal release remains a reviewed bathtub destination")
+        .save_snapshot();
+    assert_eq!(rotated.content_fingerprint, 0xbcdd_476e_1e23_8ab0);
+
+    let mut presentation_only = current.clone();
+    let portal = &mut presentation_only.portals[0];
+    portal.facing = terri_data::CompiledSocketFacing::NegativeX;
+    portal.hinge = terri_data::CompiledPortalHinge::Right;
+    portal.frame_sprite = portal.frame_sprite.wrapping_add(1);
+    portal.closed_sprite = portal.closed_sprite.wrapping_add(1);
+    portal.ajar_sprite = portal.ajar_sprite.wrapping_add(1);
+    portal.open_sprite = portal.open_sprite.wrapping_add(1);
+    assert_eq!(
+        terri_data::content_fingerprint(&presentation_only),
+        0xfdf5_87d9_437f_bfd0
+    );
+    assert!(
+        restore_without_portals(source.clone(), Box::leak(Box::new(presentation_only))).is_ok()
+    );
+
+    let mut moved_identity = current.clone();
+    moved_identity.portals[0].position = (0, 2);
+    let mut extra_portal = current.clone();
+    extra_portal.portals.push(extra_portal.portals[0].clone());
+    for (label, changed) in [
+        ("moved portal identity", moved_identity),
+        ("extra portal", extra_portal),
+    ] {
+        assert_eq!(
+            restore_without_portals(source.clone(), Box::leak(Box::new(changed))).err(),
+            Some(SaveError::IncompatibleContent),
+            "{label} must close the old bathtub bridge"
+        );
+    }
+
+    let mut moved_landing = current.clone();
+    moved_landing.portals[0].inward = (14, 3);
+    assert_eq!(
+        restore_without_portals(rotated, Box::leak(Box::new(moved_landing))).err(),
+        Some(SaveError::IncompatibleContent),
+        "the direct pre-portal bridge must remain pinned to its reviewed landing"
+    );
+}
+
+#[test]
 fn bathtub_rotation_relocates_newly_blocked_agent_and_repairs_walking_route() {
     for position in [(14.0, 10.0), (13.0, 10.0), (13.6, 10.0)] {
         let mut before = old_snapshot();
