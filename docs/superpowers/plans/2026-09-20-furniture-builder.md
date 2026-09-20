@@ -120,10 +120,31 @@ WASM exports and `web/src/bridge.ts` with boundary tests.
    either a complete placement plan or a stable refusal enum. Build candidate
    occupancy from fixed walls and other objects; check every live furniture
    approach and Sim route against the candidate grid. Bound all traversals.
+   Match the existing F5 lot rule: every object has at least one clear cardinal
+   approach tile, and every clear approach tile belongs to the common reachable
+   region. Authored action sockets are display projections, not route goals;
+   do not require paths into a blocked footprint to reach them. Every live
+   SmartObject blocks, including scenery. Keep out-of-bounds boundaries implicit
+   rather than inventing perimeter wall cells. Reconstruct existing origins
+   with the same nonnegative truncation as `new_from_lot`, not route rounding.
+   Before deriving a candidate, reconstruct the current grid from the
+   fingerprinted content's wall coordinates and all live object rectangles.
+   Require equal dimensions and exact equality with the live bitmap; also
+   reject overlapping current rectangles or current objects overlapping walls.
+   If provenance does not match, return `UnsupportedLayout` without writes.
+   Do not invent wall ownership by subtracting object cells from the bitmap.
+   This admits valid moved layouts on the same walls and refuses arbitrary
+   headless/custom grids whose wall ownership Save V1 cannot represent.
 3. Preview returns status plus the candidate footprint and resolved render
    layers without mutating the world or consuming randomness. Commit reruns
    the planner and applies grid, position, facing, sockets and presentation
    together. Unchanged placement succeeds without unnecessary revision bumps.
+   A successful moved placement records a one-shot render discontinuity for
+   that entity. The next render sync reseeds only its previous position from
+   its new current position, so paused interpolation cannot leave furniture
+   halfway between tiles. Do not reseed every entity: paused Sim walking must
+   retain its in-flight interpolation. Test the edited object and an unrelated
+   walking Sim together, including at a nonzero interpolation fraction.
 4. Append one serialized `PlaceObject` command for atomic move plus rotation.
    Preserve stream order across ordinary commands and edits by draining each
    ordinary stretch before the intervening edit. Do not make a second command
@@ -182,6 +203,36 @@ Ownership: new `web/src/ui/builder.ts`, `web/src/render/placement-preview.ts`,
 associated tests, and focused integration in `main.ts`, `input.ts`, `frame.ts`,
 HTML/CSS, help and command feedback. Consume Task 2's contract.
 
+Visual direction: furniture placement should be the dominant visual, not a
+new dashboard. Reuse the established HUD tokens: panel `#16161c`, edge
+`#2c2c36`, text `#d8d8e0`, secondary `#9aa3ad`, valid/selected `#6fb2d2` and
+invalid `#e58c85`. Keep the existing system font, 13px secondary text, 14px
+controls and a 16px object-name heading. Do not add a font dependency.
+
+On desktop, use the existing left HUD region for the editing panel and
+temporarily collapse the ordinary person-detail surfaces, remembering their
+state for exit. On narrow screens, keep mode and Exit visible independently
+of the collapsible Menu; place the compact object controls in a safe-area-aware
+bottom dock and preserve camera panning above it. Review both layouts at 390px.
+
+```text
+Build mode                 Exit
+Reading chair
+Facing: South-west         Rotate
+Ready to place / specific refusal
+[ Confirm placement ] [ Cancel ]
+```
+
+Use a restrained tinted candidate sprite and footprint, with a clear
+selection marker for the original. No looping bounce, glow or decorative
+entry motion. The exact furniture orientation is the distinguishing visual.
+This keeps the current game's identity; a separate floating card theme would
+consume canvas without improving placement.
+
+The existing instance format has RGB tint and emissive, not opacity. Keep
+that contract for this slice; do not reinterpret emissive as alpha. Tint and
+the footprint identify the candidate without widening every instance.
+
 1. Add a plainly labeled Build button with pressed state. Entering uses the
    existing pause ownership model and remembers player speed. Exiting restores
    it once, unless another modal still owns the pause. Keep save/load and
@@ -224,5 +275,9 @@ to the owning implementation unit and independently reviewed.
    one need cycle and a conversation. Capture direct browser evidence.
 4. Update FEATURES, architecture, alpha feel notes and lessons with precise
    shipped scope and findings. Do not call wider room construction complete.
+   Correct the stale bike-facing paragraphs in FEATURES and ARCHITECTURE:
+   distinguish the approved four-facing art from the old mirrored-art failure,
+   and distinguish that available art from runtime builder controls. Retain
+   historical evidence as dated history, not as a current limitation.
 5. Commit/push the reviewed feature, open and attach its PR, wait for all checks,
    merge, then verify the merge SHA's Pages deployment and running game.
