@@ -1,5 +1,82 @@
 # Lessons Learned
 
+## [L-edge-contact-legacy-and-bounds] Keep strict new geometry separate from legacy contact
+
+**What happened.** Final review found two contact-validation defects: finite
+extreme target coordinates could overflow rectangle arithmetic, and rejecting
+off-lot contact changed behavior in custom legacy worlds that allow such objects.
+
+**Root cause.** A valid float is not necessarily a valid grid coordinate. The
+new boundary rule also tightened a historical API outside its intended scope.
+
+**Prevention rule.** Check edge-world target bounds before integer rectangle
+arithmetic. Retain the old contact rule when no solid barriers exist; do not
+silently apply new placement constraints to legacy saves.
+
+**How to verify.** Test positive and negative finite extremes for walking and
+active contact. Test path and distance-field contact on all four outside edges,
+then add a solid barrier and require rejection. Remove each compatibility
+fallback separately and require its regression to fail.
+
+## [L-edge-wall-save-contract] Save architecture before reclaiming wall tiles
+
+**What happened.** Moving interior walls to cell boundaries required freeing
+28 cells. The old save format held one combined collision bitmap, so changing
+authored content alone could not distinguish wall occupancy from custom data.
+
+**Root cause.** The structural content fingerprint describes referenced
+definitions, not ownership of a saved collision cell. Inferring wall ownership
+from a partial pattern could silently alter a customized household.
+
+**Prevention rule.** Persist explicit architecture in a new schema and retain
+the old decoder. Upgrade only a frozen, complete source-layout match. Preserve
+custom layouts without reinterpreting them. Back up original wire bytes before
+the first overwrite, and pause saving after failed loads.
+
+**How to verify.** Compare complete snapshots across the upgrade, test custom
+collision/placement differences, reload the new format without remigration,
+and load bytes produced by a previous browser build. A filesystem mock proves
+write ordering, not real-browser recovery. Test the retained backup through
+the actual loader as well. Origin-wide locks serialize cooperating workers;
+they do not prevent stale progress from a second game tab.
+
+## [L-wall-edge-arrival-and-fractional-turns] Validate contact where movement ends
+
+**What happened.** Cardinal pathfinding could still begin with a diagonal
+segment when a Sim changed direction between tile centers. Review also found
+that a saved path could end across a wall and start an object interaction.
+
+**Root cause.** Cell-to-cell path validity does not prove the actual first
+movement segment or the final interaction contact. A person being approached
+can also move after the route was calculated.
+
+**Prevention rule.** Anchor new fractional routes at the rounded source
+center before turning. Validate remaining saved segments and static-object
+endpoints. Recheck moving social partners at arrival rather than rejecting
+legitimate saves containing stale social approaches. Public spawn operations
+must not create geometry their own save loader rejects.
+
+**How to verify.** Test both wall axes, reversed segments and endpoint contact.
+Remove the anchor and boundary checks separately and require failures. Test
+empty/exhausted object paths, redirected conversation partners, unchanged RNG
+on rejected arrivals, and accepted spawn/save/load round trips. Retain the
+whole played-stretch save test to catch over-strict validation.
+
+## [L-half-wall-raster-identity] Derive wall halves from the full raster
+
+**What happened.** Independently rasterized wall halves did not reproduce
+the existing full wall exactly along diagonal edges.
+
+**Root cause.** Polygon endpoint rounding differed between the full panel and
+its separately drawn halves.
+
+**Prevention rule.** Render the existing full wall, then clear the unwanted
+half. Keep shared pixels consistent and give each geometric half one owner.
+
+**How to verify.** Opposite halves must reconstruct the full panel pixel for
+pixel. Check every previous decoded sprite remains unchanged after packing,
+then inspect joins and doorway apertures in the actual GPU view.
+
 ## [L-browser-artifact-paths] Use explicit temporary paths for review screenshots
 
 **What happened.** A browser screenshot write to the task worktree was denied.

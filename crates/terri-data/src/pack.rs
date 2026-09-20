@@ -212,7 +212,7 @@ pub struct CompiledPlacement {
     pub foreground_sprite: Option<u32>,
 }
 
-/// The lot: its size, its interior wall tiles, and what stands on it.
+/// The lot: its size, interior architecture, and what stands on it.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CompiledLot {
     pub width: u32,
@@ -235,9 +235,11 @@ pub struct CompiledLot {
     /// and reappears ([E4]). Post-validation: in bounds, walkable and
     /// reachable, and present whenever any household member holds a
     /// career, so the career system may unwrap it for a working sim
-    /// rather than re-check. **Appended last** per the pack's growth
-    /// rule.
+    /// rather than re-check. Appended after placements; its encoded position
+    /// stays fixed when later fields are added.
     pub front_door: Option<(u32, u32)>,
+    /// Interior boundaries in declaration order. Appended for postcard stability.
+    pub wall_edges: Vec<terri_core::layout::WallEdge>,
 }
 
 impl CompiledLot {
@@ -756,6 +758,7 @@ mod tests {
     /// visible rather than hidden by a tidy fixture.
     fn a_lot() -> CompiledLot {
         CompiledLot {
+            wall_edges: vec![],
             width: 6,
             height: 4,
             // Present rather than None, with coordinates distinct from

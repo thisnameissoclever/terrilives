@@ -540,7 +540,10 @@ pub fn serve_intents(
             // select_action. Unreachable drops rather than waits: the
             // partner is idle, so its tile is stable, and a wall between
             // the two is not a transient.
-            let Some(steps) = grid.find_path_adjacent_to_tile(from, to) else {
+            let Some(steps) = grid
+                .find_path_adjacent_to_tile(from, to)
+                .and_then(|steps| grid.anchor_path((agent_pos.x, agent_pos.y), steps))
+            else {
                 queue.pop();
                 continue;
             };
@@ -647,7 +650,10 @@ pub fn serve_intents(
         // 1x1 default here would be the bug footprints exist to remove, which
         // is why the argument is required rather than optional.
         let footprint = content.0.object(placed.0).footprint;
-        let Some(steps) = grid.find_path_adjacent(from, to, footprint) else {
+        let Some(steps) = grid
+            .find_path_adjacent(from, to, footprint)
+            .and_then(|steps| grid.anchor_path((agent_pos.x, agent_pos.y), steps))
+        else {
             queue.pop();
             continue;
         };
@@ -1572,7 +1578,9 @@ pub fn select_action(
         } else {
             continue;
         };
-        let Some(steps) = reconstruct_winning_path(&grid, from, destination, footprint) else {
+        let Some(steps) = reconstruct_winning_path(&grid, from, destination, footprint)
+            .and_then(|steps| grid.anchor_path((agent_pos.x, agent_pos.y), steps))
+        else {
             continue;
         };
 

@@ -110,7 +110,10 @@ pub fn advance_chains(
                 continue;
             }
             let to = (station_pos.x.round() as i32, station_pos.y.round() as i32);
-            let Some(steps) = grid.find_path_adjacent(from, to, def.footprint) else {
+            let Some(steps) = grid
+                .find_path_adjacent(from, to, def.footprint)
+                .and_then(|steps| grid.anchor_path((pos.x, pos.y), steps))
+            else {
                 continue;
             };
             let shorter = match &best {

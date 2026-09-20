@@ -355,6 +355,12 @@ The current one-lot alpha uses deterministic tile-grid A* over the complete
 static lot. The room graph and lazy segment plan below is not built yet; it is
 the route from that working alpha solver to the population targets in [D3].
 
+Interior walls now occupy cell boundaries, not blocked floor cells. A* and
+distance fields use the same symmetric edge-crossing rule as object and
+conversation contact. Doors are explicit open edges. When an agent changes
+route between cell centers, its new path first returns to the rounded center
+before turning; this prevents a diagonal shortcut through a wall endpoint.
+
 At scale, rooms are graph nodes, doors and
 portals are edges; the graph is rebuilt on wall change. A path is A* over the
 room graph, with **tile-level A* solved lazily per room segment as the agent
@@ -373,11 +379,11 @@ next tick. Loading validates into a fresh world and swaps only after the
 candidate is complete, so corrupt bytes cannot half-mutate a running game.
 
 The earlier snapshot-plus-command-log design remains a future compaction
-option, not the current format. Version 1 deliberately chooses the smaller
-failure surface: one complete snapshot whose continuation is directly tested.
+option, not the current format. Version 2 wraps the existing world snapshot
+with explicit saved architecture. Continuation is tested across save/load.
 
 Storage is **OPFS** (Origin Private File System), not `localStorage` - real
-file handles from a worker with no meaningful quota ceiling.
+file handles from a worker, subject to the browser's storage quota.
 
 The worker queue serializes file I/O, but the player operation begins one layer
 higher. `PersistenceController` exclusively owns Save, Load, or clear before it
@@ -385,10 +391,16 @@ captures simulation bytes and until any loaded world has been applied. During
 that interval the three persistence controls are disabled and autosave waits.
 Serializing only the worker calls would leave snapshot capture outside the
 lock, allowing Load or New game to finish and then be overwritten by older
-intent queued behind them.
+intent queued behind them. A named Web Lock serializes file operations across
+tabs. Missing Web Locks fail without writing. A failed load pauses manual
+saving and autosave until a successful load or confirmed New game, so a
+freshly initialized household cannot overwrite a rejected save.
 
-The raw prefix is `TERRISAV` plus a little-endian schema version. Version 1
-also stores a content-compatibility digest. It observes numeric meanings the
+The raw prefix is `TERRISAV` plus a little-endian schema version. New saves
+use version 2; the version 1 decoder and its historical optional-tail repair
+remain supported. V2 decoding requires complete consumption and never applies
+that repair. Both versions carry a content-compatibility digest in the world
+payload. It observes numeric meanings the
 snapshot cannot validate by authored string id, including interaction and
 flyout row order, social order, chain step structure, object station-role
 mappings, footprints, trait state kind, and the current-content front door a
@@ -399,6 +411,32 @@ not bypass normal snapshot validation. The one shipped household rename is
 also gated by that legacy match rather than by a name string alone. The next
 incompatible wire shape must bump the version and make an explicit migration
 decision.
+
+V2 saves store either explicit cell walls, explicit wall/door edges, or the
+frozen legacy authored-wall presentation. The latter preserves V1 custom
+worlds whose collision bitmap does not identify wall ownership. Loading V2
+uses its saved architecture, not the latest `lot.toml`. Loading V1 upgrades
+only the exact reviewed shipped layout: its 34 object placements and complete
+28-wall collision bitmap must match. The edge conversion clears only those
+28 wall cells and preserves all entity and activity state. Custom V1 layouts
+that pass the existing content validator keep their old architecture. The
+separate bathtub migration retains its narrower compatibility gate.
+
+Before the first V1-to-V2 overwrite, the storage worker preserves the original
+bytes in `terri-save-1.v1-backup.bin`. It never replaces an existing backup;
+an existing file without a V1 header blocks the overwrite. Backup write failure
+leaves the playable slot unchanged. New game clears only `terri-save-1.bin`.
+Older builds cannot read V2. The backup is retained for deliberate recovery,
+not automatically restored over newer progress. Browser storage clearing can
+still erase both files; this is not an external backup.
+
+The lock does not detect stale progress from another tab. Two supported game
+tabs still use last-writer-wins storage; play a household in one tab. Older
+cached workers do not participate in the new lock. The worker checks file
+headers, not full payload validity; recoverability is established by loading
+the retained real fixture, not by the filesystem mock tests alone. An
+unsupported or unreadable primary header discovered before a V2 write is
+rejected without replacing the file.
 
 The aquarium and exercise-bike slice adds a narrower second migration class.
 It turns two formerly inert definitions into interactive objects while keeping
@@ -561,7 +599,7 @@ footprint centre; lot compilation rotates each socket with the placement and
 stores the resolved absolute position and facing. `Sim::new_from_lot` attaches
 those values to the exact placed object in a private presentation-only
 component. The public dynamic-object path derives the same data in the default
-SE orientation. Save V1 remains unchanged: restore reconstructs authored
+SE orientation. The embedded V1 world payload remains unchanged: restore reconstructs authored
 placement sockets by exact object and position, or the default orientation for
 a non-colliding dynamic object. A dynamic object that exactly collides with an
 authored object id and position remains the documented Save V1 identity

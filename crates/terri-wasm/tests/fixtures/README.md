@@ -12,6 +12,7 @@ length is 2,580 bytes and SHA-256 is
 Its original content fingerprint is `a020602a6acd3a90`.
 
 The public-loader test preserves every saved field except the two bathtub
-collision bits and destination fingerprint, then compares 300 ticks after a
-second save/load. Synthetic fixtures separately exercise affected agents,
+collision bits, the 28 reclaimed wall cells and destination fingerprint,
+then compares 300 ticks after a second save/load. V2 adds explicit boundary
+architecture around that preserved world. Synthetic fixtures separately exercise affected agents,
 conversations, active baths, legacy names and invalid inputs.

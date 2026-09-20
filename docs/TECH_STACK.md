@@ -16,7 +16,7 @@ stable.
 | Audio | **Native Web Audio API in TypeScript** | No dependency, gesture-gated browser playback, procedural first-slice cues, and a shell-only boundary |
 | Bridge | **`wasm-bindgen`**, zero-copy typed-array views | See [D11] |
 | Content format | **TOML**, compiled to a binary pack | See [D9] |
-| Save storage | **OPFS** | Real file handles from a worker, no meaningful quota ceiling |
+| Save storage | **OPFS** | Worker-owned file handles, subject to browser storage quotas and deletion |
 | Planned backend | Object storage plus a thin API | Unbuilt content sync only; see [D14] |
 
 ## Why this stack

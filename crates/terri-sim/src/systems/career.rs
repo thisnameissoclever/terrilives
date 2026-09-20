@@ -119,9 +119,16 @@ pub fn start_shift(
         // The commute. A worker standing ON the door tile gets the
         // empty path, walks it in zero steps, and clocks in on this
         // same tick's `commute_and_work`.
-        let from = (pos.x as i32, pos.y as i32);
+        let from = if grid.blocked_edges().next().is_some() {
+            (pos.x.round() as i32, pos.y.round() as i32)
+        } else {
+            (pos.x as i32, pos.y as i32)
+        };
         let to = (door.0 as i32, door.1 as i32);
-        match grid.find_path(from, to) {
+        match grid
+            .find_path(from, to)
+            .and_then(|steps| grid.anchor_path((pos.x, pos.y), steps))
+        {
             Some(steps) => {
                 commands
                     .entity(worker)

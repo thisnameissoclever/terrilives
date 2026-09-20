@@ -5,6 +5,8 @@ import {
 } from '../src/render/tiles.js';
 import { SPRITES, spriteIndex } from '../src/render/atlas.js';
 import type { TileLighting } from '../src/render/lighting.js';
+import { spriteFramingHeight } from '../src/render/sprite-anchors.js';
+import { lotExtent } from '../src/render/camera.js';
 import {
   FLOATS_PER_INSTANCE,
   OFFSET_DEPTH,
@@ -31,6 +33,42 @@ import {
 const ORIGIN_X = 100;
 const ORIGIN_Y = 50;
 const GRID = 8;
+
+describe('explicit edge instances', () => {
+  it('draws endpoint-owned halves on exact half-tile planes without legacy panels', () => {
+    const built = buildStaticInstances({
+      width: 3, height: 2, walls: Uint32Array.from([1, 1]),
+      edges: Uint32Array.from([0, 1, 0, 0, 0, 1, 1, 1]),
+    }, ORIGIN_X, ORIGIN_Y, GRID);
+    const all = rows(built.instances, built.count);
+    expect(built.floorCount).toBe(6);
+    expect(built.count).toBe(14);
+    expect(find(all, 0.5, -0.5).map((r) => SPRITES[r.sprite].name)).toEqual(['wallJoin14']);
+    expect(find(all, 0.5, 0.5).map((r) => SPRITES[r.sprite].name)).toEqual(['wallHalf1']);
+    expect(find(all, 0.5, 1).map((r) => SPRITES[r.sprite].name)).toEqual(['doorwayJoinedNS']);
+    expect(find(all, 1, 1).map((r) => SPRITES[r.sprite].name)).toEqual(['floor']);
+  });
+
+  it('samples the cells beside each edge, including door frames and junctions', () => {
+    const built = buildStaticInstances({
+      width: 3, height: 2, walls: new Uint32Array(),
+      edges: Uint32Array.from([0, 1, 0, 0, 0, 1, 1, 1]),
+    }, ORIGIN_X, ORIGIN_Y, GRID, 1, tileLighting(3, 2, [[1, 0, 0.7], [0, 1, 0.4]]));
+    const all = rows(built.instances, built.count);
+    expect(find(all, 0.5, 0.5)[0].emissive).toBeCloseTo(0.7);
+    expect(find(all, 0.5, 1)[0].emissive).toBeCloseTo(0.4);
+    expect(find(all, 0.5, -0.5)[0].emissive).toBeCloseTo(0.7);
+  });
+
+  it('distinguishes explicit empty architecture from absent legacy edge data', () => {
+    const lot = { width: 3, height: 2, walls: Uint32Array.from([1, 1]) };
+    const legacy = buildStaticInstances(lot, ORIGIN_X, ORIGIN_Y, GRID);
+    expect(find(rows(legacy.instances, legacy.count), 1, 1)).toHaveLength(2);
+    const empty = buildStaticInstances({ ...lot, edges: new Uint32Array() }, ORIGIN_X, ORIGIN_Y, GRID);
+    expect(find(rows(empty.instances, empty.count), 1, 1)).toHaveLength(1);
+    expect(empty.count).toBe(12);
+  });
+});
 
 interface Row {
   x: number;
@@ -599,13 +637,16 @@ describe('BOUNDARY_SPRITE_NAMES', () => {
 
   /** Every sprite index drawn at a tile with a negative coordinate. */
   const drawnOutside = (): Set<number> => {
-    const built = buildStaticInstances(LOT, ORIGIN_X, ORIGIN_Y, GRID);
-    const all = rows(built.instances, built.count);
     const outside = new Set<number>();
-    for (const row of all) {
-      const dx = (row.x - ORIGIN_X) / 32;
-      const dy = (row.y - ORIGIN_Y) / 21;
-      if ((dx + dy) / 2 < 0 || (dy - dx) / 2 < 0) outside.add(row.sprite);
+    for (const lot of [LOT, {
+      ...LOT, edges: Uint32Array.from([0, 2, 0, 0, 1, 0, 2, 0]),
+    }]) {
+      const built = buildStaticInstances(lot, ORIGIN_X, ORIGIN_Y, GRID);
+      for (const row of rows(built.instances, built.count)) {
+        const dx = (row.x - ORIGIN_X) / 32;
+        const dy = (row.y - ORIGIN_Y) / 21;
+        if ((dx + dy) / 2 < 0 || (dy - dx) / 2 < 0) outside.add(row.sprite);
+      }
     }
     return outside;
   };
@@ -634,5 +675,21 @@ describe('BOUNDARY_SPRITE_NAMES', () => {
       expect(outside).toContain(spriteIndex(name));
     }
     expect(outside).not.toContain(spriteIndex('doorwayJoinedNS'));
+  });
+
+  it('keeps endpoint art inside camera headroom at both zoom limits', () => {
+    const tallest = Math.max(...SPRITES.map((_, index) => spriteFramingHeight(index)));
+    const boundary = Math.max(...BOUNDARY_SPRITE_NAMES.map((name) => spriteFramingHeight(spriteIndex(name))));
+    const lot = { ...LOT, edges: Uint32Array.from([0, 2, 0, 0, 1, 0, 2, 0]) };
+    for (const scale of [0.5, 1, 2.5]) {
+      const built = buildStaticInstances(lot, 0, 0, GRID, scale);
+      const extent = lotExtent(lot.width, lot.height, tallest, boundary, scale);
+      const panels = rows(built.instances, built.count).slice(built.floorCount);
+      expect(panels.length).toBeGreaterThan(0);
+      for (const panel of panels) {
+        const top = panel.y + (21 - spriteFramingHeight(panel.sprite)) * scale;
+        expect(top).toBeGreaterThanOrEqual(extent.top);
+      }
+    }
   });
 });

@@ -11,41 +11,19 @@
 # is an f32 pair and an object's tile is the tile its coordinates fall
 # in - `x = 7.5` is legal and sits on tile 7.
 #
-# Walls list INTERIOR tiles only. The lot boundary is already solid,
-# because `TileGrid::is_walkable` treats everything outside the grid as
-# blocked, so authoring a perimeter here would be 52 redundant entries
-# that no code would read differently.
-#
-# **A doorway is a GAP in a wall run, not an entry of its own.** There is
-# no door concept; a tile is either impassable or it is not. Every gap
-# below is annotated, because a missing gap seals a room and the symptom
-# is a sim that stops choosing anything rather than an error.
+# Interior walls separate cells instead of consuming whole floor tiles.
+# Vertical(x,y) separates (x-1,y)/(x,y); horizontal(x,y) separates
+# (x,y-1)/(x,y). A doorway is an explicit passable segment. Exterior
+# boundaries remain implicit and are drawn on the playable grid edges.
 #
 # ---------------------------------------------------------------------------
 # THE PLAN
 # ---------------------------------------------------------------------------
 #
-# One character per tile, read off the wall list below. `#` is wall, `.` is
-# a doorway - a GAP in a run rather than an entry of its own - and a space
-# is floor.
-#
-#          x = 0 1 2 3 4 5 6 7 8 9 . . . . . 15
-#   y = 0                      #                  KITCHEN  |  LIVING ROOM
-#   y = 1                      #
-#   y = 2                      .                  kitchen to living room
-#   y = 3                      #
-#   y = 4                      #
-#   y = 5      # # # . # # # # # # # # # . # #    the spine
-#   y = 6                #           #            BEDROOM | STUDY | BATH
-#   y = 7                #           #
-#   y = 8                #           .            study to bathroom
-#   y = 9                .           #            bedroom to study
-#   y = 10               #           #
-#   y = 11               #           #
-#
-# The spine's two gaps are at x = 3 and x = 13; the bedroom/study divider
-# is the column at x = 5 with its gap at y = 9; the study/bathroom divider
-# is at x = 11 with its gap at y = 8.
+# Kitchen x0..7 and living x8..15 occupy y0..5. Below y=5.5, bedroom
+# x0..5, study x6..11, and bathroom x12..15 occupy y6..11. Furniture
+# origins are unchanged. The former blocked wall cells are now usable floor.
+# Doors: V(8,2), H(3,6), H(13,6), V(6,9), V(12,8).
 #
 # Five rooms, and the circulation is a **ring** rather than a tree:
 # kitchen to living, living to bathroom, bathroom to study, study to
@@ -92,50 +70,41 @@ height = 12
 # implicitly solid and this merely names the leaving spot.
 front_door = { x = 15, y = 2 }
 
-wall = [
-  # ---- Kitchen / living room, running north-south at x = 7 --------------
-  # The gap at y = 2 is the doorway between them.
-  { x = 7, y = 0 },
-  { x = 7, y = 1 },
-  { x = 7, y = 3 },
-  { x = 7, y = 4 },
-
-  # ---- The spine, running east-west at y = 5 ----------------------------
-  # It separates the two north rooms from the three south ones and it runs
-  # the full width of the lot. Two gaps: x = 3 joins the kitchen to the
-  # bedroom, and x = 13 joins the living room to the bathroom. Those two
-  # are what close the ring, so removing either one turns the loop into a
-  # dead-ended tree.
-  { x = 0, y = 5 },
-  { x = 1, y = 5 },
-  { x = 2, y = 5 },
-  { x = 4, y = 5 },
-  { x = 5, y = 5 },
-  { x = 6, y = 5 },
-  { x = 7, y = 5 },
-  { x = 8, y = 5 },
-  { x = 9, y = 5 },
-  { x = 10, y = 5 },
-  { x = 11, y = 5 },
-  { x = 12, y = 5 },
-  { x = 14, y = 5 },
-  { x = 15, y = 5 },
-
-  # ---- Bedroom / study, running north-south at x = 5 --------------------
-  # Doorway at y = 9.
-  { x = 5, y = 6 },
-  { x = 5, y = 7 },
-  { x = 5, y = 8 },
-  { x = 5, y = 10 },
-  { x = 5, y = 11 },
-
-  # ---- Study / bathroom, running north-south at x = 11 ------------------
-  # Doorway at y = 8.
-  { x = 11, y = 6 },
-  { x = 11, y = 7 },
-  { x = 11, y = 9 },
-  { x = 11, y = 10 },
-  { x = 11, y = 11 },
+wall_edge = [
+  { axis = "vertical", x = 8, y = 0 },
+  { axis = "vertical", x = 8, y = 1 },
+  { axis = "vertical", x = 8, y = 2, doorway = true },
+  { axis = "vertical", x = 8, y = 3 },
+  { axis = "vertical", x = 8, y = 4 },
+  { axis = "vertical", x = 8, y = 5 },
+  { axis = "horizontal", x = 0, y = 6 },
+  { axis = "horizontal", x = 1, y = 6 },
+  { axis = "horizontal", x = 2, y = 6 },
+  { axis = "horizontal", x = 3, y = 6, doorway = true },
+  { axis = "horizontal", x = 4, y = 6 },
+  { axis = "horizontal", x = 5, y = 6 },
+  { axis = "horizontal", x = 6, y = 6 },
+  { axis = "horizontal", x = 7, y = 6 },
+  { axis = "horizontal", x = 8, y = 6 },
+  { axis = "horizontal", x = 9, y = 6 },
+  { axis = "horizontal", x = 10, y = 6 },
+  { axis = "horizontal", x = 11, y = 6 },
+  { axis = "horizontal", x = 12, y = 6 },
+  { axis = "horizontal", x = 13, y = 6, doorway = true },
+  { axis = "horizontal", x = 14, y = 6 },
+  { axis = "horizontal", x = 15, y = 6 },
+  { axis = "vertical", x = 6, y = 6 },
+  { axis = "vertical", x = 6, y = 7 },
+  { axis = "vertical", x = 6, y = 8 },
+  { axis = "vertical", x = 6, y = 9, doorway = true },
+  { axis = "vertical", x = 6, y = 10 },
+  { axis = "vertical", x = 6, y = 11 },
+  { axis = "vertical", x = 12, y = 6 },
+  { axis = "vertical", x = 12, y = 7 },
+  { axis = "vertical", x = 12, y = 8, doorway = true },
+  { axis = "vertical", x = 12, y = 9 },
+  { axis = "vertical", x = 12, y = 10 },
+  { axis = "vertical", x = 12, y = 11 },
 ]
 
 place = [
@@ -172,7 +141,7 @@ place = [
   { object = "chair", x = 1.0, y = 3.0, facing = "NE" },
   { object = "chair", x = 4.0, y = 3.0, facing = "SW" },
 
-  # ---- Living room, x 8..15, y 0..4 ------------------------------------
+  # ---- Living room, x 8..15, y 0..5 ------------------------------------
   #
   # Seating along the north wall and facing back across the room, with the
   # television and the ottoman sofa on the south side of it. The armchair -
@@ -189,7 +158,7 @@ place = [
   { object = "television", x = 10.0, y = 3.0 },
   { object = "sofa", x = 12.0, y = 3.0 },
 
-  # ---- Bedroom, x 0..4, y 6..11 ----------------------------------------
+  # ---- Bedroom, x 0..5, y 6..11 ----------------------------------------
   #
   # The double bed is in the corner furthest from everything, which is
   # what makes "I am tired" a journey rather than a step to the left.

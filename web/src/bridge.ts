@@ -396,14 +396,21 @@ export class SimBridge {
     return this.handle.wall_tiles();
   }
 
+  /** Undefined is legacy architecture; an empty array is an open edge layout. */
+  wallEdges(): Uint32Array | undefined {
+    return this.handle.wall_layout_kind() === 1 ? this.handle.wall_edges() : undefined;
+  }
+
+  /** Edge layouts refuse blocked or off-lot rounded positions; legacy behavior is unchanged. */
   spawnAgent(x: number, y: number, hunger: number): void {
     this.handle.spawn_agent(x, y, hunger);
   }
 
   /**
    * Places the smart object `contentId` names, and returns whether it
-   * was placed. `false` means the compiled content pack declares no
-   * object with that id and nothing was spawned.
+   * was placed. `false` means the id is unknown or, for an edge layout,
+   * its footprint spans a solid wall. Doorways remain passable. Spawning
+   * does not write occupancy; this is not a furniture-placement editor.
    *
    * The id is checked in Rust rather than here. A string arriving from
    * JavaScript is untrusted input at the FFI boundary, and this class is

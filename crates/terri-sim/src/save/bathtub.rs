@@ -5,7 +5,7 @@ use std::collections::{BTreeMap, VecDeque};
 use terri_core::{Footprint, SaveSnapshotV1, SavedEntity, SavedPath, SavedPosition, TileGrid};
 use terri_data::ContentPack;
 
-mod source_layout;
+pub(super) mod source_layout;
 
 const SOURCE_FINGERPRINT: u64 = 0xa020_602a_6acd_3a90;
 const OLD: Footprint = Footprint { width: 2, depth: 1 };
@@ -37,7 +37,7 @@ pub(super) fn prepare(
     Ok((snapshot, rename))
 }
 
-fn reviewed_source(destination: &ContentPack) -> Option<ContentPack> {
+pub(super) fn reviewed_source(destination: &ContentPack) -> Option<ContentPack> {
     let bathtub = destination.find("bathtub")?;
     if destination.object(bathtub).footprint != NEW {
         return None;

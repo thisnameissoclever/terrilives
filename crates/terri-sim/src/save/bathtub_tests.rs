@@ -2,6 +2,8 @@ use super::*;
 
 fn destination() -> &'static ContentPack {
     let mut pack = terri_data::pack().clone();
+    pack.lot.wall_edges.clear();
+    pack.lot.walls = terri_core::layout::LEGACY_WALL_TILES.to_vec();
     let id = pack.find("bathtub").unwrap();
     pack.objects[id.0 as usize].footprint = terri_data::Footprint { width: 1, depth: 2 };
     Box::leak(Box::new(pack))
@@ -9,6 +11,9 @@ fn destination() -> &'static ContentPack {
 
 pub(super) fn old_snapshot() -> SaveSnapshotV1 {
     let mut snapshot = Sim::new_from_shipped_lot().save_snapshot();
+    for (x, y) in terri_core::layout::LEGACY_WALL_TILES {
+        snapshot.blocked_tiles[y as usize * snapshot.grid_width as usize + x as usize] = true;
+    }
     snapshot.content_fingerprint = 0xa020_602a_6acd_3a90;
     let width = snapshot.grid_width as usize;
     snapshot.blocked_tiles[9 * width + 15] = true;

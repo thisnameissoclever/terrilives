@@ -85,7 +85,7 @@ static PACK_BYTES: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/content_pac
 /// mid-flight interaction finishes under the new one. That is a save
 /// continuing into a patched game, which is the normal thing for a game
 /// to do. This remains one global digest, so adding an otherwise unrelated
-/// object or trait still changes it. Save V2 can remove that false rejection
+/// object or trait still changes it. A later save revision can remove that false rejection
 /// only by persisting stable ids beside every numeric row; pretending one hash
 /// can infer which definitions a particular save used would be theatre.
 pub fn content_fingerprint(pack: &ContentPack) -> u64 {
@@ -1602,19 +1602,26 @@ mod tests {
         let lot = &p.lot;
 
         assert!(lot.width > 0 && lot.height > 0);
-        assert!(!lot.walls.is_empty(), "the lot must have interior walls");
+        assert!(lot.walls.is_empty(), "the shipped house uses edge walls");
+        assert_eq!(lot.wall_edges.len(), 34);
+        assert_eq!(lot.wall_edges.iter().filter(|edge| edge.doorway).count(), 5);
         assert!(
             !lot.placements.is_empty(),
             "an empty lot would satisfy every assertion below vacuously"
         );
 
-        for (x, y) in &lot.walls {
+        let mut grid = terri_core::TileGrid::new(lot.width as usize, lot.height as usize);
+        let mut edge_keys = std::collections::BTreeSet::new();
+        for edge in &lot.wall_edges {
             assert!(
-                *x < lot.width && *y < lot.height,
-                "wall ({x}, {y}) is outside the {}x{} lot",
+                edge.in_bounds(lot.width, lot.height),
+                "wall edge {edge:?} is outside the {}x{} lot",
                 lot.width,
                 lot.height
             );
+            assert!(edge_keys.insert((edge.axis, edge.x, edge.y)));
+            let [from, to] = edge.cells();
+            grid.set_edge_blocked(from, to, !edge.doorway);
         }
 
         for placement in &lot.placements {
@@ -1629,12 +1636,48 @@ mod tests {
                 placement.x,
                 placement.y
             );
+            let origin = (placement.x as u32, placement.y as u32);
+            let end = (
+                origin.0 + object.footprint.width,
+                origin.1 + object.footprint.depth,
+            );
+            assert!(end.0 <= lot.width && end.1 <= lot.height);
+            for y in origin.1..end.1 {
+                for x in origin.0..end.0 {
+                    grid.set_blocked(x as usize, y as usize, true);
+                }
+            }
+            for edge in lot.wall_edges.iter().filter(|edge| !edge.doorway) {
+                assert!(
+                    !edge.cells().iter().all(|&(x, y)| {
+                        x >= origin.0 as i32
+                            && x < end.0 as i32
+                            && y >= origin.1 as i32
+                            && y < end.1 as i32
+                    }),
+                    "'{}' spans solid boundary {edge:?}",
+                    object.id
+                );
+            }
+        }
+        for placement in &lot.placements {
+            let object = p.object(placement.object);
+            let origin = (placement.x as i32, placement.y as i32);
             assert!(
-                !lot.is_wall(placement.x as u32, placement.y as u32),
-                "'{}' stands on a wall and would be unreachable",
+                (0..lot.height as i32).any(|y| (0..lot.width as i32)
+                    .any(|x| { grid.can_interact_with_rect((x, y), origin, object.footprint) })),
+                "'{}' has no walkable approach across an open boundary",
                 object.id
             );
         }
+
+        let desk = p.object(p.find("desk").unwrap());
+        assert!(
+            grid.is_walkable(5, 6),
+            "the former bedroom wall cell is floor"
+        );
+        assert!(!grid.can_interact_with_rect((5, 6), (6, 6), desk.footprint));
+        assert!(grid.can_interact_with_rect((8, 6), (6, 6), desk.footprint));
     }
 
     /// Every shipped object draws as something, and as something of its

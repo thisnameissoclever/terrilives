@@ -102,7 +102,22 @@ there were no other console errors. The owned tab and preview server closed.
 The earlier wait for a literal HUD label `Take a bath` timed out because the
 HUD uses `Using object`; the successful check above used the actual label.
 
-## Compatibility boundary
+## Live release verification
+
+Commit `412bf5c14cb1ad2fd3311673e203453c4d3418dc` was pushed to main.
+CI run `35532621341` passed both Rust and web jobs; the workflow did not run
+the PR-only mutation matrix. Pages run `35532765267` completed its actual
+`actions/deploy-pages@v4` step successfully for that same revision.
+
+The public game loaded `index-2Am_K22e.js` and
+`terri_wasm_bg-DBMgn4L4.wasm`. Its atlas returned HTTP 200, 6,600,283 bytes,
+and SHA256 `0a4e720f4a023147749cdb559db393133d8904c4f2a86dc00968890ed74db401`.
+The loaded household showed the rotated tub at Day 2, 07:44, with the bunk
+occupied. There were no console errors. The dedicated verification tab was
+closed afterward. The screenshot is retained outside the repository at
+`C:/Users/myema/.codex/tmp/playwright-mcp/bathtub-quarter-turn-live.png`.
+
+## Save compatibility boundary
 
 The migration accepts the frozen 16x12 source house with its 34 object
 placements and 28 wall cells. It ignores object entity-slot order and runtime
