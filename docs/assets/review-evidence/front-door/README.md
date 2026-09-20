@@ -130,3 +130,14 @@ the public household was not touched.
 
 Public deployment verification is recorded separately after merge. These
 local screenshots do not establish that GitHub Pages has updated.
+
+PR CI at `60171e3` passed Rust and browser checks but shard 1 found one new
+surviving mutation: the first OR in `edge_slot`'s negative-coordinate guard.
+A no-allocation helper test now covers each negative axis independently of
+unsigned upper bounds, reversed endpoints and valid controls. Applying the
+exact mutation failed with an invalid `Some` index instead of `None`; restoring
+the original production file restored its SHA256
+`07dda1836221d6ff65da7e1855c0c84ccc76e4435f1d279b717d3c3649975181`.
+All 84 core tests then passed. Independent review approved this as defensive
+helper coverage, not proof of a reachable ordinary-lot defect. Production code
+and the mutation baseline are unchanged by this test correction.

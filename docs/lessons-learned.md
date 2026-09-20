@@ -6049,6 +6049,25 @@ searches. After three failures, get a fresh review instead of another variant.
 **How to verify.** `1..5 | Select-Object -Skip 2 -First 2` emits 3 and 4.
 The corrected `-First 50` source read succeeds; no repository edits are needed.
 
+## [L-edge-slot-signed-bounds] Check signed coordinates before unsigned indexing
+
+**What happened.** PR84's mutation sweep found that changing the first OR in
+`edge_slot`'s negative-coordinate guard to AND escaped ordinary grid tests.
+
+**Root cause.** With small dimensions, the later unsigned upper-bound checks
+also reject a negative coordinate after its cast. Those tests did not constrain
+the helper's independent signed-coordinate rejection.
+
+**Prevention rule.** Test scalar index helpers independently of allocations.
+Include each negative axis, reversed endpoints and valid controls. Keep the
+claim narrow: extremely large scalar bounds test a defensive helper contract,
+not a reachable failure in an ordinary allocated household grid.
+
+**How to verify.** The new `edge_slots_reject_negative_coordinates_independently_of_unsigned_bounds`
+test uses no allocation. Changing only the first OR to AND returns an invalid
+index and fails its assertion. Restoring the original source passes all 84 core
+tests. No production behavior or mutation baseline changes are needed.
+
 ## [L-layout-migration-passive-conversation-partners] Preserve both sides of saved activities
 
 **What happened.** The first bathtub-rotation migration rejected an active
