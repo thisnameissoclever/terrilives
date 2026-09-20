@@ -6180,6 +6180,83 @@ wall contact and an occupied approach. Each `y - 1` mutation to addition or
 division fails before source restoration; all 27 placement tests then pass.
 An integration check requiring some reachable contact is not proof that the
 helper enumerates every contact the placement policy promises to protect.
+## [L-continuous-wall-rejection-boundaries] Separate the conditions that reject a route
+
+**What happened.** PR84's full mutation sweep found two unconstrained wall
+checks: the upper endpoint of a collinear wall segment and the OR joining
+walkable-center and open-segment requirements during fractional replanning.
+
+**Root cause.** A test spanning the entire wall still collided when the upper
+bound was shortened. Successful replan examples did not distinguish independent
+reasons to refuse an anchor.
+
+**Prevention rule.** Exercise a segment entirely inside each relevant boundary
+region, not only one spanning it. For combined rejection guards, construct each
+failure independently and assert the other condition is valid. Cover horizontal
+and vertical walls, reverse travel, endpoint contact and clear-side controls.
+
+**How to verify.** The new collinear upper-half test fails when `low + 1.0`
+becomes `low * 1.0`. The new anchor test fails when OR becomes AND. Each exact
+mutation was tested independently; restoring the unchanged production file
+passes all 86 core tests. Neither change adds a mutation-baseline allowance.
+
+## [L-wall-approach-completeness] Validate every reachable side of a footprint
+
+**What happened.** The full wall mutation sweep could inflate an object's
+interaction rectangle and silently omit its south-side contact.
+
+**Root cause.** Existing connectivity fixtures did not isolate an unreachable
+south approach while leaving the other sides reachable. Five other survivors
+only weakened a redundant bounds filter; the shared interaction predicate
+still rejected those coordinates before adjacency arithmetic.
+
+**Prevention rule.** Test all usable contacts, not just whether an object has
+one reachable side. Keep bounds ownership in the shared grid predicate rather
+than maintaining duplicate filters with indistinguishable rejection paths.
+
+**How to verify.** The south-contact fixture rejects `(2,3)` behind a divider
+and accepts the same lot with a second opening. The exact depth subtraction
+mutation fails that assertion. The redundant bounds filter was removed after
+independent review of negative coordinates, upper boundaries and signed casts;
+the blocked-cell and interaction checks remain. No baseline allowance was added.
+
+## [L-edge-slot-signed-bounds] Check signed coordinates before unsigned indexing
+
+**What happened.** PR84's mutation sweep found that changing the first OR in
+`edge_slot`'s negative-coordinate guard to AND escaped ordinary grid tests.
+
+**Root cause.** With small dimensions, the later unsigned upper-bound checks
+also reject a negative coordinate after its cast. Those tests did not constrain
+the helper's independent signed-coordinate rejection.
+
+**Prevention rule.** Test scalar index helpers independently of allocations.
+Include each negative axis, reversed endpoints and valid controls. Keep the
+claim narrow: extremely large scalar bounds test a defensive helper contract,
+not a reachable failure in an ordinary allocated household grid.
+
+**How to verify.** The new `edge_slots_reject_negative_coordinates_independently_of_unsigned_bounds`
+test uses no allocation. Changing only the first OR to AND returns an invalid
+index and fails its assertion. Restoring the original source passes all 84 core
+tests. No production behavior or mutation baseline changes are needed.
+
+## [L-saved-wall-independent-guards] Isolate saved-layout validation conditions
+
+**What happened.** PR84's full mutation sweep found 21 unconstrained conditions
+in saved-wall validation and the frozen migration destination check.
+
+**Root cause.** End-to-end invalid saves could fail at a later guard and hide a
+weakened earlier condition. Contact examples did not distinguish an object flush
+with a boundary from one extending past it, or internal edges from its perimeter.
+
+**Prevention rule.** Pair each refusal with a valid control. Test independent
+axes, exact boundaries, repeated path tiles and inactive targets. Use narrow
+helper tests when later fingerprint or geometry checks mask the helper contract;
+do not present those scalar cases as reachable ordinary-household defects.
+
+**How to verify.** The 20 reported architecture mutations all fail new assertions,
+with zero survivors or timeouts. The wall-migration OR-to-AND mutation separately
+fails the `16x0` destination assertion. Restored production files pass all 432
+simulation tests. Production validation and the mutation baseline are unchanged.
 
 ## [L-layout-migration-passive-conversation-partners] Preserve both sides of saved activities
 

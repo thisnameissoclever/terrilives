@@ -1,6 +1,48 @@
 use super::*;
 
 #[test]
+fn collinear_segments_cannot_slide_along_the_upper_half_of_a_wall() {
+    for transpose in [false, true] {
+        let point = |(x, y)| if transpose { (y, x) } else { (x, y) };
+        let tile = |(x, y)| if transpose { (y, x) } else { (x, y) };
+        let mut grid = TileGrid::new(4, 4);
+        grid.set_edge_blocked(tile((1, 1)), tile((2, 1)), true);
+        for (from, to) in [
+            ((1.5, 1.0), (1.5, 1.4)),
+            ((1.5, 1.25), (1.5, 1.25)),
+            ((1.5, 1.5), (1.5, 1.75)),
+        ] {
+            assert!(!grid.segment_can_cross(point(from), point(to)));
+            assert!(!grid.segment_can_cross(point(to), point(from)));
+        }
+        for (from, to) in [((1.5, 0.0), (1.5, 0.4)), ((1.5, 1.6), (1.5, 2.0))] {
+            assert!(grid.segment_can_cross(point(from), point(to)));
+            assert!(grid.segment_can_cross(point(to), point(from)));
+        }
+    }
+}
+
+#[test]
+fn fractional_replans_require_a_walkable_center_and_an_open_segment_independently() {
+    for transpose in [false, true] {
+        let point = |(x, y)| if transpose { (y, x) } else { (x, y) };
+        let tile = |(x, y)| if transpose { (y, x) } else { (x, y) };
+        let mut grid = TileGrid::new(4, 4);
+        grid.set_edge_blocked(tile((1, 1)), tile((2, 1)), true);
+        let blocked = tile((1, 0));
+        grid.set_blocked(blocked.0 as usize, blocked.1 as usize, true);
+        assert!(grid.segment_can_cross(point((1.0, 0.25)), point((1.0, 0.0))));
+        assert_eq!(grid.anchor_path(point((1.0, 0.25)), vec![]), None);
+
+        let clear = tile((2, 1));
+        assert!(grid.is_walkable(clear.0, clear.1));
+        assert!(!grid.segment_can_cross(point((1.5, 1.0)), point((2.0, 1.0))));
+        assert_eq!(grid.anchor_path(point((1.5, 1.0)), vec![]), None);
+        assert_eq!(grid.anchor_path(point((2.0, 1.0)), vec![]), Some(vec![]));
+    }
+}
+
+#[test]
 fn fractional_segments_cannot_cross_solid_edges_or_clip_their_endpoints() {
     let mut grid = TileGrid::new(5, 4);
     grid.set_edge_blocked((1, 1), (2, 1), true);

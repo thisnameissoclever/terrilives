@@ -97,13 +97,88 @@ numbers above are evidence for their earlier build, not a timing requirement.
    the live world. Independent statement-deletion tests broke and then restored
    portal activation propagation and off-door return-segment validation.
 
-The inherited bathtub mutation survivors are tracked separately in
-`mutation-baseline.md`; their targeted rerun and GitHub gates remain release
-checks, not claims established by these screenshots.
+The inherited bathtub rerun completed all 36 selected mutations: 28 caught,
+eight reviewed equivalents missed, zero unviable and zero timeouts. A separate
+comparison found no misses outside the committed baseline. Its isolated source
+snapshot predates `04fd0c8`'s destination guard, which does not change the known-D
+migration behavior exercised here. The separate eight-mutant portal-return
+validation sweep at `04fd0c8` caught all eight, with no survivors, unviable
+mutants or timeouts. Exact-head GitHub gates remain release checks, not claims
+established by these screenshots. Equivalence arguments are recorded in
+`mutation-baseline.md`.
 
 Main's follow-up `c0eca30` was then merged without runtime changes. Its four
 exercise-clearance tooling tests passed, as did documentation IDs and the diff
 check. The latest main ref was fetched again before preparing publication.
 
+After the reviewed migration-destination guard landed at `04fd0c8`, a fresh
+`cargo test --workspace -j 1 --quiet` passed all 811 tests: 83 core, 217 data,
+one data integration, 426 simulation and 84 WASM. Formatting and diff checks
+also passed. The two additional simulation tests constrain migration ordering
+and exact destination compatibility; they do not change the current household.
+
+The final production bundle (`terri_wasm_bg-B10R6jV9.wasm`,
+`index-iOYiGNd3.js`) passed Clippy, release WASM generation, TypeScript checking,
+all 782 browser tests and the Vite build. It was then opened and inspected in
+the same disposable local origin. Its existing saved household loaded normally.
+The next return opened at 2338; at 2341 Tim visibly crossed and funds were 240.
+UI Save, advance to the closed door at 2356, and confirmed UI Load restored
+2341, the open crossing and the same funds. `final-return-restored.png` records
+the restored game. Completing the crossing again left funds at 240. Browser
+warning/error logs were empty. The test tab and preview server were closed;
+the public household was not touched.
+
 Public deployment verification is recorded separately after merge. These
 local screenshots do not establish that GitHub Pages has updated.
+
+PR CI at `60171e3` passed Rust and browser checks but shard 1 found one new
+surviving mutation: the first OR in `edge_slot`'s negative-coordinate guard.
+A no-allocation helper test now covers each negative axis independently of
+unsigned upper bounds, reversed endpoints and valid controls. Applying the
+exact mutation failed with an invalid `Some` index instead of `None`; restoring
+the original production file restored its SHA256
+`07dda1836221d6ff65da7e1855c0c84ccc76e4435f1d279b717d3c3649975181`.
+All 84 core tests then passed. Independent review approved this as defensive
+helper coverage, not proof of a reachable ordinary-lot defect. Production code
+and the mutation baseline are unchanged by this test correction.
+
+Shard 0 subsequently reported two additional shared-wall survivors: the upper
+bound of collinear wall overlap and the combined rejection guard in route
+anchoring. New regressions cover upper-half wall travel, endpoint contact,
+reverse directions, both wall axes and independently invalid anchor conditions.
+Each exact mutation failed its respective test. The same production SHA256 was
+restored, and all 86 core tests passed. These are additional test corrections;
+the prior visual bundle's runtime behavior is unchanged.
+
+Shard 3 found a further missing south-side connectivity assertion in the lot
+compiler. Its new fixture rejects an isolated south approach while all other
+sides remain reachable; opening a second crossing is the positive control.
+The exact depth subtraction-to-addition mutation fails the new test. All 218
+data tests and the data integration test passed after restoring the operator.
+Five bounds-filter survivors were independently reviewed as redundant with the
+shared grid interaction predicate, which rejects out-of-grid contacts before
+adjacency arithmetic. The duplicate filter was removed, with no new baseline
+allowance. Final exact-head verification follows this correction batch.
+
+Shard 5 exposed 21 further missing assertions in saved-wall validation. Five
+new architecture tests distinguish internal furniture edges from the perimeter,
+preserve repeated path steps and not-yet-active targets, reject invalid legacy
+wall cells, and constrain each contact origin and footprint extent independently.
+The exact 20 reported architecture mutations were rerun: all 20 caught, with
+zero misses, unviable mutations or timeouts. Production architecture code is
+unchanged. Restored tests passed 16/16.
+
+The remaining survivor weakened the frozen wall-migration destination's height
+guard. A separate helper test holds the walls and other dimension valid while
+varying one dimension at a time. Its exact OR-to-AND mutation failed at `16x0`;
+restoring the file restored SHA256
+`fd5289c7ad74283f1cd9d538cde3d432bdf646a0a2d90271547aedb7e3a17e7e`.
+Independent review confirmed the fixture isolation and narrow helper contract.
+All 432 simulation tests then passed, as did formatting and diff checks. These
+tests add no baseline exceptions and make no production behavior changes.
+
+The combined correction batch then passed a fresh
+`cargo test --workspace -j 1 --quiet`: 821 tests (86 core, 218 data, one data
+integration, 432 simulation and 84 WASM), with zero failures. Documentation
+IDs, formatting and the diff check passed. Remote exact-head checks remain
+pending at publication of this batch.

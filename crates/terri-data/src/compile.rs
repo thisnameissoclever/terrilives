@@ -2716,10 +2716,11 @@ fn compile_lot(
             ring.push((x1 + 1, y));
         }
         ring.into_iter()
-            .filter(|&(x, y)| x >= 0 && y >= 0 && x < lot.width as i64 && y < lot.height as i64)
             .map(|(x, y)| (x as u32, y as u32))
             .filter(|tile| !blocked.contains(tile))
             .filter(|&(x, y)| {
+                // The shared interaction predicate rejects out-of-grid contacts
+                // before adjacency arithmetic, including the ring's -1 edges.
                 grid.can_interact_with_rect(
                     (x as i32, y as i32),
                     (tile.0 as i32, tile.1 as i32),
@@ -7299,6 +7300,30 @@ mod tests {
         (0..4)
             .map(|y| wall_edge("vertical", 2, y, doorway && y == 2))
             .collect()
+    }
+
+    #[test]
+    fn wall_edge_checks_the_south_approach_even_when_other_sides_are_reachable() {
+        for connected in [false, true] {
+            let mut authored = "[[place]]\nobject='fridge'\nx=2\ny=2\n".to_string();
+            for x in 0..5 {
+                authored.push_str(&wall_edge(
+                    "horizontal",
+                    x,
+                    3,
+                    x == 2 || (connected && x == 1),
+                ));
+            }
+            let result = compile_geometry(one_object(snack()), wall_edge_lot(&authored));
+            if connected {
+                result.expect("a second opening connects the south approach to the spawn region");
+            } else {
+                assert!(matches!(
+                    result,
+                    Err(ContentError::UnreachableApproach { x: 2, y: 3, .. })
+                ));
+            }
+        }
     }
 
     #[test]

@@ -69,3 +69,8 @@ temporary viewport and reduced-motion overrides were reset.
    failed exact regression probes. One equivalent duplicate bounds check was
    removed after independent review. This is focused causal evidence, not a
    claim that the original sweep was green. Full exact-head CI remains a gate.
+
+After integrating front-door `69c0052`, a fresh native workspace run passed all
+881 tests (95 core, 226 data, one data integration, 468 simulation and 91 WASM).
+Formatting, documentation IDs and the merge diff check passed. Independent
+review found no loss of V3 facing-before-geometry validation in the merge.

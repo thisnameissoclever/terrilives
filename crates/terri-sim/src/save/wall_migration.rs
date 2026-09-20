@@ -52,3 +52,26 @@ fn reviewed_destination(content: &ContentPack) -> bool {
         edge.doorway == doorway && seen.insert((edge.axis, edge.x, edge.y))
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn reviewed_destination_requires_each_frozen_dimension_independently() {
+        let original = terri_data::pack();
+        assert!(reviewed_destination(original));
+        for (width, height) in [(0, 12), (15, 12), (17, 12), (16, 0), (16, 11), (16, 13)] {
+            let mut changed = original.clone();
+            changed.lot.width = width;
+            changed.lot.height = height;
+            assert!(changed.lot.walls.is_empty());
+            assert_eq!(changed.lot.wall_edges.len(), 34);
+            assert!(
+                !reviewed_destination(&changed),
+                "unexpected {width}x{height} destination"
+            );
+        }
+        assert!(reviewed_destination(original));
+    }
+}

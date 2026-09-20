@@ -97,6 +97,27 @@ fn crossings_ignore_occupancy_but_steps_and_interaction_approaches_do_not() {
 }
 
 #[test]
+fn edge_slots_reject_negative_coordinates_independently_of_unsigned_bounds() {
+    // Test the index helper without allocating a grid. Large unsigned bounds
+    // must not turn a negative coordinate into a valid index after casting.
+    for (width, height, from, to) in [
+        (usize::MAX, 1, (-3, 0), (-2, 0)),
+        (1, usize::MAX, (0, -3), (0, -2)),
+    ] {
+        assert_eq!(edge_slot(width, height, from, to), None);
+        assert_eq!(edge_slot(width, height, to, from), None);
+    }
+    assert_eq!(
+        edge_slot(usize::MAX, 1, (0, 0), (1, 0)),
+        Some((0, EAST_EDGE))
+    );
+    assert_eq!(
+        edge_slot(1, usize::MAX, (0, 0), (0, 1)),
+        Some((0, SOUTH_EDGE))
+    );
+}
+
+#[test]
 fn invalid_boundary_pairs_are_not_crossable_and_cannot_be_set() {
     for (from, to) in [
         ((0, 0), (0, 0)),

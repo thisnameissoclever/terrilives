@@ -6,6 +6,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use terri_core::{layout::SavedLayout, Facing, SaveSnapshotV2, SaveSnapshotV3, TileGrid};
 use terri_data::ContentPack;
 
+#[cfg(test)]
+#[path = "architecture_boundary_tests.rs"]
+mod boundary_tests;
+
 pub(crate) fn restore(
     snapshot: SaveSnapshotV2,
     content: &'static ContentPack,

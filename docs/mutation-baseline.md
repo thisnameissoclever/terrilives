@@ -4,7 +4,14 @@
 
 The front-door PR's full CI sweep exposed 36 unbaselined survivors inherited
 from the bathtub migration. Eight are equivalent within that migration's
-accepted input domain; the other 28 require regression coverage.
+accepted input domain; regression tests now catch the other 28.
+
+The exact 36-mutant rerun completed in 22 minutes: 28 caught, eight missed,
+zero unviable and zero timeouts. The eight misses exactly match the reviewed
+entries below after the same address normalization used by CI. The isolated
+source snapshot predates `04fd0c8`'s destination guard; these mutations test
+the known-D migration path, whose behavior that guard does not change. This
+targeted result does not replace the full exact-head GitHub sweep.
 
 1. Seven `object_tile` mutations change the lower-bound comparisons or join
    its bounds predicates with `&&`. Its only caller is `bathtub_origins` in
