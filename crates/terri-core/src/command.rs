@@ -124,6 +124,8 @@ pub enum SimCommand {
         target: u32,
         interaction: u32,
     },
+    /// Atomic move and rotation. Appended to preserve earlier wire codes.
+    PlaceObject { object: u32, x: u32, y: u32, facing: crate::Facing },
 }
 
 /// Commands awaiting the next drain point. Ordered, because two commands
@@ -223,6 +225,7 @@ mod tests {
         // the thing that says so, and the fix is a save-format decision
         // rather than a version bump.
         let cases: Vec<(SimCommand, &[u8])> = vec![
+            (SimCommand::PlaceObject {object:300,x:2,y:5,facing:crate::Facing::NorthWest}, &[7,172,2,2,5,2]),
             (SimCommand::Select(Some(7)), &[0x00, 0x01, 0x07]),
             (SimCommand::Select(None), &[0x00, 0x00]),
             // 300 needs two varint bytes, so this fails if the index ever

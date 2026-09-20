@@ -8,6 +8,9 @@ use terri_core::{
 use terri_sim::{Content, Sim};
 use wasm_bindgen::prelude::*;
 
+#[cfg(test)]
+mod placement_tests;
+
 /// The level a non-finite hunger argument is replaced with. Either end of
 /// the range would do; what matters is that it is finite and in range.
 /// `NEED_MAX` is chosen because it is the value the sim itself produces
@@ -94,6 +97,16 @@ fn sanitize_coord(value: f32) -> f32 {
 #[wasm_bindgen]
 pub struct SimHandle {
     sim: Sim,
+}
+
+fn placement_u32(value: f64) -> Option<u32> {
+    (value.is_finite() && value.fract() == 0.0 && value >= 0.0 && value <= u32::MAX as f64).then_some(value as u32)
+}
+
+fn placement_arguments(object: f64, x: f64, y: f64, facing: f64) -> Option<(u32,u32,u32,terri_core::Facing)> {
+    let code = placement_u32(facing)?;
+    let direction = u8::try_from(code).ok().and_then(terri_core::Facing::from_code)?;
+    Some((placement_u32(object)?,placement_u32(x)?,placement_u32(y)?,direction))
 }
 
 /// Decode current saves and the two append-only predecessor payloads.
@@ -239,6 +252,49 @@ impl SimHandle {
     pub fn flush_commands(&mut self) {
         self.sim.flush_commands();
         self.sim.sync_render_buffer_after_commands();
+    }
+
+    /// Owned projection: refusal code, origin, facing, rectangle, body, foreground.
+    /// f64 inputs preserve hostile JS values until release-mode validation.
+    pub fn placement_preview(&self, object: f64, x: f64, y: f64, facing: f64) -> Vec<f64> {
+        use terri_sim::placement::{object_definition, validate_placement, PlacementRefusal};
+        let mut out = vec![PlacementRefusal::InvalidInput as u32 as f64, x, y, facing, 0.0, 0.0, 0.0, -1.0];
+        let Some((object,x,y,direction)) = placement_arguments(object,x,y,facing) else { return out; };
+        if let Some((_,definition,_)) = object_definition(self.sim.world(),object) {
+            let footprint = definition.footprint_at(direction);
+            out[4] = footprint.width as f64;
+            out[5] = footprint.depth as f64;
+            out[6] = definition.facing_sprites.get(direction).unwrap_or(definition.sprite) as f64;
+            out[7] = definition.facing_foreground_sprites.get(direction).map_or(-1.0, |s| s as f64);
+        }
+        out[0] = validate_placement(self.sim.world(),object,(x,y),direction).err().map_or(0.0, |reason| reason as u32 as f64);
+        out
+    }
+
+    /// Queue acceptance only. The eventual result is read after the drain.
+    pub fn place_object(&mut self, object: f64, x: f64, y: f64, facing: f64) -> bool {
+        let Some((object,x,y,facing)) = placement_arguments(object,x,y,facing) else { return false; };
+        let bytes = postcard::to_allocvec(&SimCommand::PlaceObject {object,x,y,facing}).expect("placement serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    pub fn object_facing(&self, object: f64) -> Option<u32> {
+        let object = placement_u32(object)?;
+        terri_sim::placement::object_definition(self.sim.world(),object).map(|(_,_,f)| f.code() as u32)
+    }
+
+    pub fn object_facing_mask(&self, object: f64) -> u32 {
+        placement_u32(object).and_then(|id| terri_sim::placement::object_definition(self.sim.world(),id))
+            .map_or(0, |(_,definition,_)| terri_core::Facing::ALL.into_iter().filter(|&f| definition.supports(f)).fold(0, |mask,f| mask | (1 << f.code())))
+    }
+
+    pub fn lot_revision(&self) -> u64 {
+        self.sim.world().resource::<terri_sim::placement::LotEditState>().revision
+    }
+
+    pub fn last_placement_result(&self) -> Vec<u32> {
+        self.sim.world().resource::<terri_sim::placement::LotEditState>().last_result
+            .map_or_else(Vec::new, |result| vec![result.object,result.reason.map_or(0, |r| r as u32)])
     }
 
     /// Returns and clears per-sim order-capacity rejections produced by the

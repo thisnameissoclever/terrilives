@@ -3,6 +3,7 @@
 #[cfg(test)]
 mod facing_tests;
 mod mood;
+pub mod placement;
 pub mod portals;
 pub mod render_buffer;
 mod save;
@@ -613,7 +614,9 @@ impl Sim {
     pub fn load_snapshot(&mut self, snapshot: terri_core::SaveSnapshotV1) -> Result<(), SaveError> {
         let content = self.world.resource::<Content>().0;
         let active_portals = self.world.get_resource::<portals::ActivePortals>().copied();
-        let restored = save::restore(snapshot, content, active_portals)?;
+        let mut restored = save::restore(snapshot, content, active_portals)?;
+        restored.world.resource_mut::<placement::LotEditState>().revision =
+            self.world.resource::<placement::LotEditState>().revision.saturating_add(1);
         *self = restored;
         Ok(())
     }
@@ -654,6 +657,7 @@ impl Sim {
         // first tick rather than a command that quietly does nothing.
         world.insert_resource(terri_core::CommandQueue::default());
         world.insert_resource(systems::command::CommandFeedback::default());
+        world.insert_resource(placement::LotEditState::default());
 
         // Register components eagerly. This is NOT optional bookkeeping:
         // World::try_query returns None if ANY component in the query is
@@ -1197,6 +1201,7 @@ impl Sim {
         use terri_core::{Agent, Position, SmartObject};
 
         let mut previous_socket_projection = std::mem::take(&mut self.socket_projected_entities);
+        let discontinuities = std::mem::take(&mut self.world.resource_mut::<placement::LotEditState>().discontinuities);
 
         if advance_interpolation {
             std::mem::swap(&mut self.render.prev_positions, &mut self.render.positions);
@@ -1618,7 +1623,8 @@ impl Sim {
             self.render.prev_positions = self.render.positions.clone();
         } else {
             for (slot, row) in rows.iter().enumerate() {
-                if previous_socket_projection.contains(&row.entity) != row.socket_projected {
+                if previous_socket_projection.contains(&row.entity) != row.socket_projected
+                    || discontinuities.contains(&row.entity) {
                     let position = slot * 2;
                     self.render.prev_positions[position] = self.render.positions[position];
                     self.render.prev_positions[position + 1] = self.render.positions[position + 1];
@@ -2382,6 +2388,26 @@ impl Sim {
         // before them: world-level state, one value, in the digest
         // because a shift's pay is what the player was promised.
         hasher.write_u64(self.world.resource::<terri_core::Funds>().0 as u64);
+
+        let commands = self.world.resource::<terri_core::CommandQueue>();
+        if !commands.is_empty() {
+            hasher.write_bytes(b"queued-commands-v1");
+            hasher.write_u64(commands.len() as u64);
+            for command in commands.as_slice() {
+                use terri_core::SimCommand::*;
+                let fields: Vec<u64> = match command {
+                    Select(id) => vec![0, id.map_or(u64::MAX, |id| id as u64)],
+                    UseObject {agent,object,interaction} => vec![1,*agent as u64,*object as u64,*interaction as u64],
+                    CancelIntents {agent} => vec![2,*agent as u64],
+                    SetSpeed(speed) => vec![3,*speed as u64],
+                    TalkTo {agent,target,interaction} => vec![4,*agent as u64,*target as u64,*interaction as u64],
+                    UseObjectFirst {agent,object,interaction} => vec![5,*agent as u64,*object as u64,*interaction as u64],
+                    TalkToFirst {agent,target,interaction} => vec![6,*agent as u64,*target as u64,*interaction as u64],
+                    PlaceObject {object,x,y,facing} => vec![7,*object as u64,*x as u64,*y as u64,facing.code() as u64],
+                };
+                for field in fields { hasher.write_u64(field); }
+            }
+        }
 
         hasher.finish()
     }

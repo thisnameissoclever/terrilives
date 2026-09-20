@@ -1,0 +1,189 @@
+//! Atomic furniture placement planning. Preview never writes simulation state.
+
+use bevy_ecs::prelude::*;
+use std::collections::{HashSet, VecDeque};
+use terri_core::{Agent, Facing, Footprint, ObjectFacing, Path, Position, Reserved, SmartObject, Target, TileGrid};
+use crate::{Content, apply_object_placement};
+
+/// Stable boundary codes. Zero is success; English belongs to the shell.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u32)]
+pub enum PlacementRefusal {
+    InvalidInput = 1,
+    UnknownObject = 2,
+    UnsupportedFacing = 3,
+    UnsupportedLayout = 4,
+    OutOfBounds = 5,
+    WallOverlap = 6,
+    FurnitureOverlap = 7,
+    InUse = 8,
+    SimOverlap = 9,
+    BlockedRoute = 10,
+    InaccessibleInteraction = 11,
+    BlockedDoor = 12,
+    BlockedLanding = 13,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PlacementResult {
+    pub object: u32,
+    pub reason: Option<PlacementRefusal>,
+}
+
+/// Presentation/cache state, deliberately excluded from saves and world hashes.
+#[derive(Resource, Debug, Default)]
+pub struct LotEditState {
+    pub revision: u64,
+    pub last_result: Option<PlacementResult>,
+    pub(crate) discontinuities: HashSet<Entity>,
+}
+
+#[derive(Debug)]
+pub struct PlacementPlan {
+    grid: TileGrid,
+    entity: Entity,
+    pub origin: (u32, u32),
+    pub facing: Facing,
+    pub footprint: Footprint,
+    pub sprite: u32,
+    pub foreground: Option<u32>,
+}
+
+/// Resolves a live object without requiring a mutable query cache.
+pub fn object_definition(world: &World, object: u32) -> Option<(Entity, &'static terri_data::CompiledObject, Facing)> {
+    let content = world.get_resource::<Content>()?.0;
+    let mut query = world.try_query::<EntityRef>()?;
+    let entity = query.iter(world).find(|e| e.id().index_u32() == object && e.contains::<SmartObject>())?;
+    let definition = content.objects.get(entity.get::<SmartObject>()?.0.0 as usize)?;
+    Some((entity.id(), definition, entity.get::<ObjectFacing>().map_or(definition.base_facing, |f| f.0)))
+}
+
+#[derive(Clone, Copy)]
+struct Rectangle { entity: Entity, origin: (u32, u32), footprint: Footprint }
+
+fn fits(grid: &TileGrid, origin: (u32, u32), footprint: Footprint) -> bool {
+    footprint.width > 0 && footprint.depth > 0
+        && origin.0.checked_add(footprint.width).is_some_and(|x| x as usize <= grid.width())
+        && origin.1.checked_add(footprint.depth).is_some_and(|y| y as usize <= grid.height())
+}
+
+fn cells(rect: Rectangle) -> impl Iterator<Item = (u32, u32)> {
+    (rect.origin.1..rect.origin.1 + rect.footprint.depth).flat_map(move |y|
+        (rect.origin.0..rect.origin.0 + rect.footprint.width).map(move |x| (x, y)))
+}
+
+fn approaches(rect: Rectangle, grid: &TileGrid) -> Vec<(i32, i32)> {
+    let (x, y) = (rect.origin.0 as i32, rect.origin.1 as i32);
+    let (right, bottom) = (x + rect.footprint.width as i32, y + rect.footprint.depth as i32);
+    (x..right).flat_map(|x| [(x, y - 1), (x, bottom)])
+        .chain((y..bottom).flat_map(|y| [(x - 1, y), (right, y)]))
+        .filter(|&(x,y)| grid.is_walkable(x,y)).collect()
+}
+
+/// Every visit inserts a previously unseen tile, bounded by the bitmap size.
+fn reachable(grid: &TileGrid) -> HashSet<(i32, i32)> {
+    let mut seen = HashSet::new();
+    let root = (0..grid.height() as i32).flat_map(|y| (0..grid.width() as i32).map(move |x| (x,y)))
+        .find(|&(x,y)| grid.is_walkable(x,y));
+    let Some(root) = root else { return seen; };
+    let mut pending = VecDeque::from([root]);
+    seen.insert(root);
+    for _ in 0..grid.width() * grid.height() {
+        let Some((x,y)) = pending.pop_front() else { return seen; };
+        for next in [(x+1,y),(x-1,y),(x,y+1),(x,y-1)] {
+            if grid.is_walkable(next.0,next.1) && seen.insert(next) { pending.push_back(next); }
+        }
+    }
+    assert!(pending.is_empty(), "placement flood exceeded tile bound");
+    seen
+}
+
+/// Produces a complete owned transaction; no mutation and no random draws.
+pub fn validate_placement(world: &World, object: u32, origin: (u32, u32), facing: Facing) -> Result<PlacementPlan, PlacementRefusal> {
+    use PlacementRefusal::*;
+    let (entity, definition, _) = object_definition(world, object).ok_or(UnknownObject)?;
+    if !definition.supports(facing) { return Err(UnsupportedFacing); }
+    let content = world.resource::<Content>().0;
+    let live = world.resource::<TileGrid>();
+    if live.width() != content.lot.width as usize || live.height() != content.lot.height as usize { return Err(UnsupportedLayout); }
+    let mut walls = TileGrid::new(live.width(),live.height());
+    for &(x,y) in &content.lot.walls {
+        if x as usize >= walls.width() || y as usize >= walls.height() { return Err(UnsupportedLayout); }
+        walls.set_blocked(x as usize,y as usize,true);
+    }
+    let mut current = walls.clone();
+    let mut rectangles = Vec::new();
+    let mut entities = world.try_query::<EntityRef>().ok_or(UnsupportedLayout)?;
+    for row in entities.iter(world).filter(|e| e.contains::<SmartObject>()) {
+        let position = row.get::<Position>().ok_or(UnsupportedLayout)?;
+        if !position.x.is_finite() || !position.y.is_finite() || position.x < 0.0 || position.y < 0.0 { return Err(UnsupportedLayout); }
+        let def = content.objects.get(row.get::<SmartObject>().unwrap().0.0 as usize).ok_or(UnsupportedLayout)?;
+        let direction = row.get::<ObjectFacing>().map_or(def.base_facing, |f| f.0);
+        if !def.supports(direction) { return Err(UnsupportedLayout); }
+        let rect = Rectangle { entity: row.id(), origin: (position.x as u32,position.y as u32), footprint: def.footprint_at(direction) };
+        if !fits(&current,rect.origin,rect.footprint) { return Err(UnsupportedLayout); }
+        for (x,y) in cells(rect) {
+            if !current.is_walkable(x as i32,y as i32) { return Err(UnsupportedLayout); }
+            current.set_blocked(x as usize,y as usize,true);
+        }
+        rectangles.push(rect);
+    }
+    if (0..live.height()).any(|y| (0..live.width()).any(|x| live.is_walkable(x as i32,y as i32) != current.is_walkable(x as i32,y as i32))) { return Err(UnsupportedLayout); }
+    let footprint = definition.footprint_at(facing);
+    if !fits(live,origin,footprint) { return Err(OutOfBounds); }
+    if world.get::<Reserved>(entity).is_some() || entities.iter(world).any(|e| e.get::<Target>().is_some_and(|t| t.object == entity)) { return Err(InUse); }
+    let candidate = Rectangle {entity,origin,footprint};
+    if cells(candidate).any(|(x,y)| !walls.is_walkable(x as i32,y as i32)) { return Err(WallOverlap); }
+    let mut grid = walls;
+    for rect in rectangles.iter().filter(|r| r.entity != entity) {
+        for (x,y) in cells(*rect) { grid.set_blocked(x as usize,y as usize,true); }
+    }
+    if cells(candidate).any(|(x,y)| !grid.is_walkable(x as i32,y as i32)) { return Err(FurnitureOverlap); }
+    for (x,y) in cells(candidate) { grid.set_blocked(x as usize,y as usize,true); }
+    for rect in &mut rectangles { if rect.entity == entity { *rect = candidate; } }
+    if content.lot.front_door.is_some_and(|(x,y)| !grid.is_walkable(x as i32,y as i32)) { return Err(BlockedDoor); }
+    if content.portals.iter().any(|p| !grid.is_walkable(p.inward.0 as i32,p.inward.1 as i32)) { return Err(BlockedLanding); }
+    let reached = reachable(&grid);
+    for row in entities.iter(world).filter(|e| e.contains::<Agent>()) {
+        let pos = row.get::<Position>().ok_or(UnsupportedLayout)?;
+        for x in [pos.x.floor() as i32,pos.x.ceil() as i32] {
+            for y in [pos.y.floor() as i32,pos.y.ceil() as i32] {
+                if !grid.is_walkable(x,y) { return Err(SimOverlap); }
+                if !reached.contains(&(x,y)) { return Err(BlockedRoute); }
+            }
+        }
+        if let Some(path) = row.get::<Path>() {
+            if path.steps.iter().skip(path.cursor).any(|tile| !reached.contains(tile)) { return Err(BlockedRoute); }
+        }
+    }
+    // Match F5: every object, including scenery, has a clear approach and
+    // every clear approach belongs to the common reachable region.
+    for rect in rectangles {
+        let beside = approaches(rect,&grid);
+        if beside.is_empty() || beside.iter().any(|tile| !reached.contains(tile)) { return Err(InaccessibleInteraction); }
+    }
+    if content.lot.front_door.is_some_and(|(x,y)| !reached.contains(&(x as i32,y as i32))) { return Err(BlockedDoor); }
+    if content.portals.iter().any(|p| !reached.contains(&(p.inward.0 as i32,p.inward.1 as i32))) { return Err(BlockedLanding); }
+    Ok(PlacementPlan { grid, entity, origin, facing, footprint, sprite:definition.facing_sprites.get(facing).unwrap(), foreground:definition.facing_foreground_sprites.get(facing) })
+}
+
+/// Revalidation and writes happen in one exclusive command drain.
+pub(crate) fn commit(world: &mut World, object: u32, origin: (u32,u32), facing: Facing) {
+    let result = validate_placement(world,object,origin,facing);
+    let reason = result.as_ref().err().copied();
+    if let Ok(plan) = result {
+        let (_,def,old_facing) = object_definition(world,object).unwrap();
+        let old = world.get::<Position>(plan.entity).unwrap();
+        if old.x != origin.0 as f32 || old.y != origin.1 as f32 || old_facing != facing {
+            world.insert_resource(plan.grid);
+            apply_object_placement(world,plan.entity,def,Position {x:origin.0 as f32,y:origin.1 as f32},facing);
+            let mut state = world.resource_mut::<LotEditState>();
+            state.revision = state.revision.saturating_add(1);
+            state.discontinuities.insert(plan.entity);
+        }
+    }
+    world.resource_mut::<LotEditState>().last_result = Some(PlacementResult {object,reason});
+}
+
+#[cfg(test)]
+mod tests;

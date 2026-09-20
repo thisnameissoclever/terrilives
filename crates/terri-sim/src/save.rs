@@ -242,6 +242,7 @@ fn capture_entity(entity: bevy_ecs::world::EntityRef<'_>, pack: &ContentPack) ->
 
 fn capture_command(command: &SimCommand) -> SavedCommand {
     match command {
+        SimCommand::PlaceObject {object,x,y,facing} => SavedCommand::PlaceObject {object:*object,x:*x,y:*y,facing:*facing},
         SimCommand::Select(entity) => SavedCommand::Select(*entity),
         SimCommand::UseObject {
             agent,
@@ -666,6 +667,7 @@ fn placement_matches(
 
 fn restore_command(command: SavedCommand) -> SimCommand {
     match command {
+        SavedCommand::PlaceObject {object,x,y,facing} => SimCommand::PlaceObject {object,x,y,facing},
         SavedCommand::Select(entity) => SimCommand::Select(entity),
         SavedCommand::UseObject {
             agent,
@@ -813,6 +815,9 @@ fn validate_command(
 ) -> Result<(), SaveError> {
     match command {
         SavedCommand::Select(None) | SavedCommand::SetSpeed(_) => Ok(()),
+        // Placement is revalidated when its position in the stream drains.
+        // Impossible or stale edits must replay as refusals, not prevent Load.
+        SavedCommand::PlaceObject { .. } => Ok(()),
         SavedCommand::Select(Some(index)) | SavedCommand::CancelIntents { agent: index } => {
             validate_agent_reference(entities, *index).map(|_| ())
         }

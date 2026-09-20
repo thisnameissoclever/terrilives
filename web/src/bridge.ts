@@ -16,6 +16,39 @@ const VARIANT_TALK_TO = 4;
 const VARIANT_USE_OBJECT_FIRST = 5;
 const VARIANT_TALK_TO_FIRST = 6;
 
+export interface PlacementPreview {
+  readonly valid: boolean;
+  readonly reason: string | null;
+  readonly x: number;
+  readonly y: number;
+  readonly facing: number;
+  readonly width: number;
+  readonly depth: number;
+  readonly sprite: number;
+  readonly foreground: number | null;
+}
+
+/** Stable Rust refusal codes; player-facing wording lives only here. */
+const PLACEMENT_REASONS: Readonly<Record<number, string>> = {
+  1: 'Choose a whole tile and a supported direction.',
+  2: 'That furniture is no longer available.',
+  3: 'This direction has no matching artwork.',
+  4: 'This lot layout does not support furniture editing.',
+  5: 'Keep the entire object inside the lot.',
+  6: 'That position overlaps a wall.',
+  7: 'That position overlaps other furniture.',
+  8: 'Wait until nobody is using or approaching this object.',
+  9: 'A Sim is standing there.',
+  10: 'That position blocks a Sim’s route.',
+  11: 'Leave every object reachable.',
+  12: 'Keep the front door clear and reachable.',
+  13: 'Keep the front-door landing clear and reachable.',
+};
+
+function placementReason(code: number): string | null {
+  return code === 0 ? null : PLACEMENT_REASONS[code] ?? 'This placement is unavailable.';
+}
+
 /** postcard's `Option` discriminant: one byte, 0 for none, 1 for some. */
 const OPTION_NONE = 0;
 const OPTION_SOME = 1;
@@ -81,6 +114,34 @@ export class SimBridge {
     private readonly handle: SimHandle,
     private readonly memory: WebAssembly.Memory,
   ) {}
+
+  placementPreview(object: number, x: number, y: number, facing: number): PlacementPreview {
+    const values = this.handle.placement_preview(object, x, y, facing);
+    return { valid: values[0] === 0, reason: placementReason(values[0]),
+      x: values[1], y: values[2], facing: values[3], width: values[4], depth: values[5],
+      sprite: values[6], foreground: values[7] < 0 ? null : values[7] };
+  }
+
+  placeObject(object: number, x: number, y: number, facing: number): boolean {
+    return this.handle.place_object(object, x, y, facing);
+  }
+
+  objectFacing(object: number): number | null {
+    return this.handle.object_facing(object) ?? null;
+  }
+
+  objectFacingMask(object: number): number {
+    return this.handle.object_facing_mask(object);
+  }
+
+  lotRevision(): number {
+    return Number(this.handle.lot_revision());
+  }
+
+  lastPlacementResult(): { object: number; reason: string | null } | null {
+    const values = this.handle.last_placement_result();
+    return values.length === 0 ? null : { object: values[0], reason: placementReason(values[1]) };
+  }
 
   tick(): void {
     this.handle.tick();

@@ -198,4 +198,5 @@ pub enum SavedCommand {
         target: u32,
         interaction: u32,
     },
+    PlaceObject { object: u32, x: u32, y: u32, facing: crate::Facing },
 }
