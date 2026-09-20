@@ -138,13 +138,13 @@ fn reachable(grid: &TileGrid) -> HashSet<(i32, i32)> {
     seen
 }
 
+fn architecture_dimensions_valid(width: usize, height: usize) -> bool {
+    !(width == 0 || height == 0 || width > i32::MAX as usize || height > i32::MAX as usize)
+}
+
 fn fixed_architecture(world: &World, live: &TileGrid) -> Result<TileGrid, PlacementRefusal> {
     use PlacementRefusal::UnsupportedLayout;
-    if live.width() == 0
-        || live.height() == 0
-        || live.width() > i32::MAX as usize
-        || live.height() > i32::MAX as usize
-    {
+    if !architecture_dimensions_valid(live.width(), live.height()) {
         return Err(UnsupportedLayout);
     }
     let mut grid = TileGrid::new(live.width(), live.height());
@@ -155,10 +155,9 @@ fn fixed_architecture(world: &World, live: &TileGrid) -> Result<TileGrid, Placem
         SavedLayout::LegacyAuthoredV1 => return Err(UnsupportedLayout),
         SavedLayout::LegacyCells { walls } => {
             for &(x, y) in walls {
-                if x as usize >= grid.width()
-                    || y as usize >= grid.height()
-                    || !grid.is_walkable(x as i32, y as i32)
-                {
+                // Dimensions fit i32. High-bit u32 coordinates become negative;
+                // is_walkable rejects those, positive overflow and duplicates.
+                if !grid.is_walkable(x as i32, y as i32) {
                     return Err(UnsupportedLayout);
                 }
                 grid.set_blocked(x as usize, y as usize, true);

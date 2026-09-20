@@ -25,6 +25,7 @@ export interface MobileHudDetails {
 export class MobileHud {
   private compact = false;
   private open = false;
+  private editing: { panels: boolean[]; menuOpen: boolean; compact: boolean } | null = null;
 
   constructor(
     private readonly root: MobileHudRoot,
@@ -50,6 +51,25 @@ export class MobileHud {
     this.open = !this.open;
     this.reflect();
     return this.open;
+  }
+
+  beginEditing(): void {
+    if (this.editing) return;
+    this.editing = { panels: this.details.map(panel => panel.open), menuOpen: this.open, compact: this.compact };
+    for (const panel of this.details) panel.open = false;
+    this.open = false;
+    this.reflect();
+  }
+
+  endEditing(): void {
+    if (!this.editing) return;
+    const saved = this.editing;
+    this.editing = null;
+    if (!this.compact || saved.compact === this.compact) {
+      this.details.forEach((panel, index) => { panel.open = saved.panels[index]; });
+    }
+    if (saved.compact === this.compact) this.open = saved.menuOpen;
+    this.reflect();
   }
 
   private reflect(): void {

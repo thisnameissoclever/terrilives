@@ -29,6 +29,8 @@ import { distanceAnimationFrame, tickAnimationFrame } from './render/sim-animati
 import { spriteContentLift, spriteDrawOffsetX, spriteDrawOffsetY } from './render/sprite-anchors.js';
 import { spriteHeight } from './render/sprite-size.js';
 import { writePortals, type PortalSource } from './render/portals.js';
+import type { PlacementPreview } from './bridge.js';
+import { placementInstanceCount, writePlacementPreview } from './render/placement-preview.js';
 import {
   emissiveForSprite,
   sampleLight,
@@ -805,6 +807,9 @@ export interface RenderSource {
   sprites(): Uint32Array;
   /** Optional authored object layer drawn in front of a socket-projected sim. */
   foregroundSprites?(): Uint32Array;
+  /** Current oriented furniture dimensions, used for overlapping preview replacement. */
+  footprintWidths?(): Uint32Array;
+  footprintDepths?(): Uint32Array;
   /**
    * What each row is doing, as `render_buffer::activity` codes - the
    * [A-11] indicator column. Read every frame like every other view.
@@ -930,6 +935,7 @@ export function buildInstances(
   simulationTick = 0,
   lighting: TileLighting | null = null,
   interactions: InteractionSelection = frameInteractions,
+  placement: PlacementPreview | null = null,
 ): InstanceArray {
   const count = source.count;
   // Room for the entities, one foreground, one bubble and one carried badge
@@ -937,7 +943,7 @@ export function buildInstances(
   // scratch buffer grows once to the high-water mark and is reused;
   // nothing per-frame allocates.
   const portals = source.portals?.();
-  const needed = (count * 4 + 1 + (portals?.portalCount ?? 0) * 2) * FLOATS_PER_INSTANCE;
+  const needed = (count * 4 + 1 + (portals?.portalCount ?? 0) * 2 + placementInstanceCount(placement)) * FLOATS_PER_INSTANCE;
   if (scratch.length < needed) {
     scratch = new Float32Array(needed);
   }
@@ -957,12 +963,13 @@ export function buildInstances(
   const ids = source.ids();
   const foregroundSprites = source.foregroundSprites?.() ?? null;
   interactions.updateSource(source, simulationTick, reducedMotion);
+  const replacedRow = placementReplacedRow(source, selected, placement);
 
   for (let i = 0; i < count; i++) {
-    // Office Sims and a paired object's replaced body keep their row slots:
+    // Office Sims, paired objects and overlapping previews keep their row slots:
     // the instance is written DEGENERATE - parked far off-screen, where
     // clipping discards it for free - so instance i stays row i.
-    if (activities[i] === ACTIVITY_AT_WORK || interactions.suppressed[i]) {
+    if (activities[i] === ACTIVITY_AT_WORK || interactions.suppressed[i] || i === replacedRow) {
       writeInstance(scratch, i, -1e6, -1e6, 1, 0);
       continue;
     }
@@ -1047,7 +1054,7 @@ export function buildInstances(
   if (foregroundSprites !== null) {
     for (let i = 0; i < count; i++) {
       const sprite = foregroundSprites[i];
-      if (sprite === NO_FOREGROUND_SPRITE || activities[i] === ACTIVITY_AT_WORK || interactions.suppressed[i]) {
+      if (sprite === NO_FOREGROUND_SPRITE || activities[i] === ACTIVITY_AT_WORK || interactions.suppressed[i] || i === replacedRow) {
         continue;
       }
       const wx = lerp(previous[i * 2], current[i * 2], alpha);
@@ -1194,7 +1201,7 @@ export function buildInstances(
     const wy = lerp(previous[positionRow * 2 + 1], current[positionRow * 2 + 1], alpha);
     writeInstance(
       scratch,
-      slot,
+      slot++,
       screenX(wx, wy, originX, scale),
       screenY(wx, wy, originY, scale),
       layeredDepth(wx, wy, gridSize, LAYER_PROP),
@@ -1206,6 +1213,7 @@ export function buildInstances(
     );
   }
 
+  writePlacementPreview(scratch, slot, placement, originX, originY, gridSize, scale, lighting);
   return scratch;
 }
 
@@ -1218,7 +1226,7 @@ export function buildInstances(
  * screen (0, 0) with depth 0, which draw in front of everything.
  */
 export function instanceCount(source: RenderSource, selected: number | null,
-  interactions: InteractionSelection = countInteractions): number {
+  interactions: InteractionSelection = countInteractions, placement: PlacementPreview | null = null): number {
   let extras = 0;
   const activities = source.activities();
   const carrying = source.carrying();
@@ -1227,11 +1235,13 @@ export function instanceCount(source: RenderSource, selected: number | null,
   const facings = source.facings();
   const foregroundSprites = source.foregroundSprites?.() ?? null;
   interactions.updateSource(source, 0, true);
+  const replacedRow = placementReplacedRow(source, selected, placement);
   for (let i = 0; i < source.count; i++) {
     if (
       foregroundSprites !== null &&
       foregroundSprites[i] !== NO_FOREGROUND_SPRITE &&
       !interactions.suppressed[i] &&
+      i !== replacedRow &&
       activities[i] !== ACTIVITY_AT_WORK
     ) {
       extras++;
@@ -1251,7 +1261,7 @@ export function instanceCount(source: RenderSource, selected: number | null,
     }
   }
   return source.count + extras + (source.portals?.().portalCount ?? 0) * 2
-    + (findSelectedRow(source, selected) === null ? 0 : 1);
+    + (findSelectedRow(source, selected) === null ? 0 : 1) + placementInstanceCount(placement);
 }
 
 /**
@@ -1273,4 +1283,19 @@ function findSelectedRow(source: RenderSource, selected: number | null): number 
   // simulation keeps a selection whose index has gone away rather than
   // clearing it, deliberately, so the ring simply is not drawn.
   return null;
+}
+
+/** Replace presentation only: valid overlapping previews must not expose old art. */
+function placementReplacedRow(source: RenderSource, selected: number | null,
+  placement: PlacementPreview | null): number | null {
+  if (!placement?.valid || !source.footprintWidths || !source.footprintDepths) return null;
+  const row = findSelectedRow(source, selected);
+  if (row === null || source.kinds()[row] !== 1) return null;
+  const current = source.positions();
+  const width = source.footprintWidths()[row];
+  const depth = source.footprintDepths()[row];
+  const x = Math.floor(current[row * 2] - (width - 1) / 2);
+  const y = Math.floor(current[row * 2 + 1] - (depth - 1) / 2);
+  return placement.x < x + width && placement.x + placement.width > x &&
+    placement.y < y + depth && placement.y + placement.depth > y ? row : null;
 }

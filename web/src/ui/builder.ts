@@ -1,0 +1,199 @@
+import type { PlacementPreview, SimBridge } from '../bridge.js';
+import type { OverlayPauseController } from './overlay-pause.js';
+
+type BuilderSource = Pick<SimBridge, 'ids' | 'kinds' | 'positions' | 'count' |
+  'objectName' | 'objectFacing' | 'objectFacingMask' | 'footprintWidths' |
+  'footprintDepths' | 'placementPreview' | 'placeObject' | 'lotRevision' |
+  'lastPlacementResult'>;
+
+export interface BuilderObject { readonly id: number; readonly name: string }
+export interface BuilderHooks { changed(): void; enter(): void; exit(): void }
+export const FACING_NAMES = ['South-east', 'South-west', 'North-west', 'North-east'] as const;
+const EDIT_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+  '[', ']', 'r', 'R', 'Enter', 'Escape']);
+
+/** Paused edit state. Rust owns every placement decision and world write. */
+export class FurnitureBuilder {
+  active = false;
+  selected: number | null = null;
+  preview: PlacementPreview | null = null;
+  objects: readonly BuilderObject[] = [];
+  name = '';
+  status = 'Choose furniture to move or rotate.';
+  pending = false;
+  blocked = false;
+  private mask = 0;
+  private revision: number;
+
+  constructor(private readonly source: BuilderSource,
+    private readonly pause: OverlayPauseController, private readonly hooks: BuilderHooks) {
+    this.revision = source.lotRevision();
+  }
+
+  get canRotate(): boolean { return (this.mask & (this.mask - 1)) !== 0; }
+  get canConfirm(): boolean {
+    return this.active && !this.blocked && !this.pending && this.preview?.valid === true;
+  }
+
+  enter(): void {
+    if (this.active) return;
+    this.active = true;
+    this.pause.suspend('builder');
+    this.refreshObjects();
+    this.hooks.enter();
+    this.hooks.changed();
+  }
+
+  exit(): void {
+    if (!this.active || this.pending) return;
+    this.clearSelection();
+    this.active = false;
+    this.pause.resume('builder');
+    this.hooks.exit();
+    this.hooks.changed();
+  }
+
+  setBlocked(blocked: boolean): void {
+    if (this.blocked === blocked) return;
+    this.blocked = blocked;
+    this.hooks.changed();
+  }
+
+  select(object: number): void {
+    if (!this.active || this.pending || this.blocked) return;
+    // Copy scalar geometry before any allocating label or placement export.
+    const row = Array.from(this.source.ids()).indexOf(object);
+    if (row < 0 || this.source.kinds()[row] !== 1) return;
+    const x = this.source.positions()[row * 2];
+    const y = this.source.positions()[row * 2 + 1];
+    const width = this.source.footprintWidths()[row];
+    const depth = this.source.footprintDepths()[row];
+    const facing = this.source.objectFacing(object);
+    if (facing === null) return;
+    this.selected = object;
+    this.name = this.source.objectName(object);
+    this.mask = this.source.objectFacingMask(object);
+    this.query(Math.floor(x - (width - 1) / 2), Math.floor(y - (depth - 1) / 2), facing);
+  }
+
+  cycle(direction: -1 | 1): void {
+    if (!this.active || this.objects.length === 0) return;
+    const current = this.objects.findIndex(object => object.id === this.selected);
+    const index = current < 0 ? (direction > 0 ? 0 : this.objects.length - 1) :
+      (current + direction + this.objects.length) % this.objects.length;
+    this.select(this.objects[index].id);
+  }
+
+  moveTo(x: number, y: number): void {
+    if (!this.active || this.pending || this.blocked || !this.preview) return;
+    this.query(x, y, this.preview.facing);
+  }
+
+  nudge(x: number, y: number): void {
+    if (this.preview) this.moveTo(this.preview.x + x, this.preview.y + y);
+    else this.cycle(1);
+  }
+
+  rotate(): void {
+    if (!this.active || this.pending || this.blocked || !this.preview || !this.canRotate) return;
+    for (let turn = 1; turn <= 4; turn += 1) {
+      const facing = (this.preview.facing + turn) % 4;
+      if ((this.mask & (1 << facing)) !== 0) {
+        this.query(this.preview.x, this.preview.y, facing);
+        return;
+      }
+    }
+  }
+
+  confirm(): boolean {
+    if (!this.canConfirm || this.selected === null || this.preview === null) return false;
+    const { x, y, facing } = this.preview;
+    this.pending = this.source.placeObject(this.selected, x, y, facing);
+    this.status = this.pending ? 'Placing furniture…' : 'The placement could not be queued.';
+    this.hooks.changed();
+    return this.pending;
+  }
+
+  cancel(): void {
+    if (this.pending || this.blocked) return;
+    this.clearSelection();
+    this.hooks.changed();
+  }
+
+  handleKey(key: string): boolean {
+    if (!this.active || !EDIT_KEYS.has(key)) return false;
+    if (this.pending || this.blocked) return true;
+    switch (key) {
+      case 'ArrowLeft': this.nudge(-1, 0); break;
+      case 'ArrowRight': this.nudge(1, 0); break;
+      case 'ArrowUp': this.nudge(0, -1); break;
+      case 'ArrowDown': this.nudge(0, 1); break;
+      case '[': this.cycle(-1); break;
+      case ']': this.cycle(1); break;
+      case 'r': case 'R': this.rotate(); break;
+      case 'Enter': this.confirm(); break;
+      case 'Escape': if (this.selected === null) this.exit(); else this.cancel(); break;
+      default: return false;
+    }
+    return true;
+  }
+
+  /** Call after the frame drains commands, before rebuilding geometry or drawing. */
+  afterCommands(): boolean {
+    const revision = this.source.lotRevision();
+    const changed = revision !== this.revision;
+    this.revision = revision;
+    if (changed && this.active) {
+      this.refreshObjects();
+      if (this.preview && this.selected !== null) {
+        this.query(this.preview.x, this.preview.y, this.preview.facing);
+      }
+    }
+    if (this.pending) {
+      const result = this.source.lastPlacementResult();
+      if (result?.object === this.selected) {
+        this.pending = false;
+        if (this.preview) this.query(this.preview.x, this.preview.y, this.preview.facing);
+        this.status = result.reason ?? 'Furniture placed.';
+        this.hooks.changed();
+      }
+    }
+    return changed;
+  }
+
+  resetAfterLoad(): void {
+    this.pending = false;
+    this.clearSelection();
+    this.revision = this.source.lotRevision();
+    if (this.active) this.refreshObjects();
+    this.hooks.changed();
+  }
+
+  private refreshObjects(): void {
+    const ids = Array.from(this.source.ids());
+    const kinds = Array.from(this.source.kinds());
+    this.objects = ids.filter((_, row) => kinds[row] === 1)
+      .map(id => ({ id, name: this.source.objectName(id) }));
+  }
+
+  private query(x: number, y: number, facing: number): void {
+    if (this.selected === null) return;
+    const preview = this.source.placementPreview(this.selected, x, y, facing);
+    // Invalid unsigned coordinates still need the resolved art for the red
+    // preview. The valid-coordinate query supplies geometry only, not approval.
+    const geometry = preview.width > 0 ? preview :
+      this.source.placementPreview(this.selected, 0, 0, facing);
+    this.preview = { ...geometry, ...preview, width: geometry.width, depth: geometry.depth,
+      sprite: geometry.sprite, foreground: geometry.foreground };
+    this.status = preview.valid ? 'Ready to place.' : preview.reason ?? 'This placement is unavailable.';
+    this.hooks.changed();
+  }
+
+  private clearSelection(): void {
+    this.selected = null;
+    this.preview = null;
+    this.mask = 0;
+    this.name = '';
+    this.status = 'Choose furniture to move or rotate.';
+  }
+}

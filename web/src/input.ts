@@ -939,10 +939,8 @@ export interface MenuHandle extends MenuController {
 }
 
 /**
- * Wires the canvas and the document to the handlers above. The only
- * function here that needs a DOM, and therefore the only one with no test -
- * the same division `buildTimeControls` draws, where the list it builds
- * from is tested and the `addEventListener` calls are not.
+ * Wires the canvas and document to the handlers above. Event-port tests cover
+ * editing interception alongside the existing gesture and action handlers.
  *
  * `contextmenu` is the right-click event rather than `mousedown` with
  * `button === 2`, because it is the one the browser menu hangs off: handling
@@ -1085,6 +1083,11 @@ export class LongPressGesture {
   }
 }
 
+export interface CanvasEditInput {
+  active(): boolean;
+  click(pick: Pick | null, tile: readonly [number, number] | null): void;
+}
+
 export function attachPointerInput(
   canvas: HTMLCanvasElement,
   target: MenuTarget,
@@ -1097,6 +1100,7 @@ export function attachPointerInput(
   reducedMotion: () => boolean = () => false,
   onOrderAttempt: () => void = () => {},
   onCommandAccepted: (kind: RejectedCommandKind) => void = () => {},
+  editing?: CanvasEditInput,
 ): void {
   const canvasPoint = (event: {
     clientX: number;
@@ -1128,6 +1132,7 @@ export function attachPointerInput(
   let pinchStartScale = 1;
   let suppressNextClick = false;
   const longPress = new LongPressGesture((clientX, clientY) => {
+    if (editing?.active()) return;
     suppressNextClick = true;
     canvas.focus();
     handleRightClick(
@@ -1171,7 +1176,7 @@ export function attachPointerInput(
     });
     if (isTouch) {
       touchCount++;
-      if (touchCount === 1) {
+      if (touchCount === 1 && !editing?.active()) {
         longPress.begin(event.pointerId, event.clientX, event.clientY);
       } else {
         longPress.cancel();
@@ -1260,6 +1265,15 @@ export function attachPointerInput(
       suppressNextClick = false;
       return;
     }
+    if (editing?.active()) {
+      canvas.focus();
+      const point = canvasPoint(event);
+      editing.click(point ? pickSprite(target, point.x, point.y, camera.originX,
+        camera.originY, camera.scale, reducedMotion()) : null,
+      clientToTile(event.clientX, event.clientY, canvas.getBoundingClientRect(),
+        canvas.width, canvas.height, camera.originX, camera.originY, camera.scale));
+      return;
+    }
     const outcome = handleLeftClick(
       target,
       canvasPoint(event),
@@ -1274,6 +1288,7 @@ export function attachPointerInput(
   });
 
   canvas.addEventListener('contextmenu', (event) => {
+    if (editing?.active()) { event.preventDefault(); return; }
     canvas.focus();
     handleRightClick(
       target,
@@ -1297,6 +1312,10 @@ export function attachPointerInput(
     menu.pointerDown(inside);
   });
   doc.addEventListener('keydown', (event) => {
-    menu.handleKey(event.key);
+    if (event.defaultPrevented) return;
+    if (menu.handleKey(event.key)) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
   });
 }

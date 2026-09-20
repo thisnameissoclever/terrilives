@@ -1,5 +1,53 @@
 # Lessons Learned
 
+## [L-builder-preview-overlap] Preview geometry and drawing must agree
+
+**What happened.** The first played builder pass showed old chair arms behind
+a rotated candidate, and old table artwork beneath a partially overlapping
+move. The initial valid tint also obscured surface detail.
+
+**Root cause.** Drawing both complete objects at intersecting footprints is not
+a useful preview. An origin-only replacement rule missed partial intersections.
+
+**Prevention.** For valid overlapping candidates, replace only the selected
+object's presentation. Share one rectangle-intersection predicate between
+instance counting and drawing, including foreground layers. Keep the original
+marker, world state and cancellation behavior intact. Invalid or nonoverlapping
+candidates retain the original artwork.
+
+**Verification.** Real chair, foreground-object and rectangular-table tests
+assert matching draw counts, untouched other rows and byte-identical saves.
+Played desktop and 390x844 phone checks confirm clean artwork and readable
+controls. Evening and reduced-motion checks are separate visual observations.
+
+## [L-builder-shortcuts-preserve-tab] Recognize shortcuts before blocking them
+
+**What happened.** The initial pending/modal guard consumed Tab in Build mode.
+
+**Root cause.** It returned handled for every key before identifying edit keys.
+
+**Prevention.** Recognize the editor's actual shortcuts first. A blocked editor
+may consume those shortcuts, but must leave unrelated native navigation alone.
+
+**Verification.** Regression tests distinguish Tab from edit keys while pending
+or blocked. In the actual game, Tab reaches Help's close control and Escape
+closes Help without also exiting Build.
+
+## [L-browser-probes-read-clock] Inspect method semantics before runtime probes
+
+**What happened.** A local visual-review probe called `tick()` intending to read
+time. That method advances the simulation by one tick, even during a shell pause.
+
+**Root cause.** The probe inferred a getter from its name instead of checking
+the bridge contract. The correct read-only method is `clockTick()`.
+
+**Prevention.** Read the bridge method before invoking it in a browser probe.
+Do not attribute a direct debug step to a broken player pause.
+
+**Verification.** The disposable household was restored through the game's
+Load confirmation to tick 2476 with its saved chair and bike directions. No
+public save was touched; later clock observations use `clockTick()`.
+
 ## [L-asset-checkpoints-need-current-status] Keep rejected art history distinct
 
 **What happened.** Feature and architecture notes still described the old

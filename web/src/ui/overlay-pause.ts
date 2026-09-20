@@ -47,4 +47,10 @@ export class OverlayPauseController {
   get suspended(): boolean {
     return this.blockers.size > 0;
   }
+
+  /** An edit mode may own its own pause while still respecting a dialog. */
+  suspendedExcept(owner: string): boolean {
+    for (const blocker of this.blockers) if (blocker !== owner) return true;
+    return false;
+  }
 }

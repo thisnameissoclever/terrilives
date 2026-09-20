@@ -57,6 +57,66 @@ fn usable_approaches_include_every_side_and_exclude_blocked_contacts() {
     );
 }
 
+#[test]
+fn architecture_dimensions_require_nonzero_signed_coordinate_bounds_on_each_axis() {
+    let limit = i32::MAX as usize;
+    for dimensions in [(1, 1), (limit, 1), (1, limit), (limit, limit)] {
+        assert!(architecture_dimensions_valid(dimensions.0, dimensions.1));
+    }
+    for dimensions in [
+        (0, 0),
+        (0, 1),
+        (1, 0),
+        (limit + 1, 1),
+        (1, limit + 1),
+        (limit + 2, 1),
+        (1, limit + 2),
+        (usize::MAX, 1),
+        (1, usize::MAX),
+        (usize::MAX, usize::MAX),
+    ] {
+        assert!(!architecture_dimensions_valid(dimensions.0, dimensions.1));
+    }
+    let mut world = World::new();
+    world.insert_resource(SavedLayout::LegacyCells { walls: vec![] });
+    for dimensions in [(0, 0), (0, 1), (1, 0)] {
+        assert!(matches!(
+            fixed_architecture(&world, &TileGrid::new(dimensions.0, dimensions.1)),
+            Err(PlacementRefusal::UnsupportedLayout)
+        ));
+    }
+}
+
+#[test]
+fn legacy_architecture_rejects_each_invalid_coordinate_and_duplicate_wall_cell() {
+    let mut world = World::new();
+    let live = TileGrid::new(4, 3);
+    for walls in [
+        vec![(4, 0)],
+        vec![(0, 3)],
+        vec![(4, 3)],
+        vec![(u32::MAX, 0)],
+        vec![(0, u32::MAX)],
+        vec![(i32::MAX as u32 + 1, 0)],
+        vec![(0, i32::MAX as u32 + 1)],
+        vec![(1, 1), (1, 1)],
+    ] {
+        world.insert_resource(SavedLayout::LegacyCells { walls });
+        assert!(matches!(
+            fixed_architecture(&world, &live),
+            Err(PlacementRefusal::UnsupportedLayout)
+        ));
+        assert!(live.is_walkable(1, 1));
+    }
+    world.insert_resource(SavedLayout::LegacyCells {
+        walls: vec![(0, 0), (3, 2)],
+    });
+    let rebuilt = fixed_architecture(&world, &live).unwrap();
+    assert!(!rebuilt.is_walkable(0, 0));
+    assert!(!rebuilt.is_walkable(3, 2));
+    assert!(rebuilt.is_walkable(1, 1));
+}
+
 fn place(sim: &mut Sim, object: u32, origin: (u32, u32), facing: Facing) {
     sim.world_mut()
         .resource_mut::<CommandQueue>()
@@ -969,6 +1029,138 @@ fn placement_rejects_overlap_in_current_layout_and_uses_nonnegative_truncation()
         f,
         PlacementRefusal::UnsupportedLayout,
     );
+}
+
+#[test]
+fn placement_rejects_nonfinite_or_negative_existing_coordinates_independently() {
+    let (mut sim, object) = fixture();
+    let entity = object_definition(sim.world(), object).unwrap().0;
+    let f = facing(&sim, object);
+    for position in [
+        Position {
+            x: f32::NAN,
+            y: 0.0,
+        },
+        Position {
+            x: 0.0,
+            y: f32::NAN,
+        },
+        Position {
+            x: f32::INFINITY,
+            y: 0.0,
+        },
+        Position {
+            x: 0.0,
+            y: f32::INFINITY,
+        },
+        Position {
+            x: f32::NEG_INFINITY,
+            y: 0.0,
+        },
+        Position {
+            x: 0.0,
+            y: f32::NEG_INFINITY,
+        },
+        Position { x: -0.5, y: 0.0 },
+        Position { x: 0.0, y: -0.5 },
+    ] {
+        sim.world_mut().entity_mut(entity).insert(position);
+        let before = sim.world_hash();
+        assert_eq!(
+            validate_placement(sim.world(), object, (1, 0), f).unwrap_err(),
+            PlacementRefusal::UnsupportedLayout
+        );
+        assert_eq!(sim.world_hash(), before);
+        place(&mut sim, object, (1, 0), f);
+        assert_eq!(
+            sim.world()
+                .resource::<LotEditState>()
+                .last_result
+                .unwrap()
+                .reason,
+            Some(PlacementRefusal::UnsupportedLayout)
+        );
+        assert_eq!(sim.world_hash(), before);
+        let after = sim.world().get::<Position>(entity).unwrap();
+        assert_eq!(
+            (after.x.to_bits(), after.y.to_bits()),
+            (position.x.to_bits(), position.y.to_bits())
+        );
+    }
+    for position in [Position { x: 0.0, y: -0.0 }, Position { x: 0.75, y: 0.75 }] {
+        sim.world_mut().entity_mut(entity).insert(position);
+        assert!(validate_placement(sim.world(), object, (1, 0), f).is_ok());
+    }
+}
+
+#[test]
+fn placement_protects_the_targeted_object_without_requiring_a_reservation() {
+    let (mut sim, object) = fixture();
+    let entity = object_definition(sim.world(), object).unwrap().0;
+    let f = facing(&sim, object);
+    let other = sim.spawn_object(
+        Position { x: 2.0, y: 0.0 },
+        terri_data::pack().find("fridge").unwrap(),
+    );
+    sim.world_mut()
+        .resource_mut::<TileGrid>()
+        .set_blocked(2, 0, true);
+    let agent = sim
+        .world_mut()
+        .spawn((
+            Agent,
+            Position { x: 1.0, y: 1.0 },
+            Target {
+                object: entity,
+                interaction: 0,
+            },
+        ))
+        .id();
+    assert!(sim.world().get::<Reserved>(entity).is_none());
+    refusal(&mut sim, object, (1, 0), f, PlacementRefusal::InUse);
+    sim.world_mut().entity_mut(agent).insert(Target {
+        object: other,
+        interaction: 0,
+    });
+    assert!(
+        validate_placement(sim.world(), object, (1, 0), f).is_ok(),
+        "another object's target must not prevent moving this furniture"
+    );
+}
+
+#[test]
+fn placement_preserves_clear_remaining_routes_with_repeated_waypoints() {
+    let (mut sim, object) = fixture();
+    let f = facing(&sim, object);
+    let agent = sim
+        .world_mut()
+        .spawn((Agent, Position { x: 1.0, y: 1.0 }))
+        .id();
+    assert!(!sim.world().resource::<TileGrid>().can_step((1, 2), (1, 2)));
+    for steps in [vec![(1, 2), (1, 3)], vec![(1, 2), (1, 2), (1, 3)]] {
+        sim.world_mut()
+            .entity_mut(agent)
+            .insert(Path { steps, cursor: 0 });
+        let before = sim.save_snapshot_v3();
+        assert!(
+            validate_placement(sim.world(), object, (1, 0), f).is_ok(),
+            "an already-reached waypoint is not a blocked move"
+        );
+        assert_eq!(sim.save_snapshot_v3(), before);
+    }
+    let path = sim.world().get::<Path>(agent).unwrap().clone();
+    place(&mut sim, object, (1, 0), f);
+    assert_eq!(
+        sim.world()
+            .resource::<LotEditState>()
+            .last_result
+            .unwrap()
+            .reason,
+        None
+    );
+    let after = sim.world().get::<Path>(agent).unwrap();
+    assert_eq!(after.steps, path.steps);
+    assert_eq!(after.cursor, path.cursor);
 }
 
 #[test]

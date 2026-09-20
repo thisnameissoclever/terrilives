@@ -797,9 +797,9 @@ Sims.
 
 ### [B-builder] A builder: rooms, furniture, placement and rotation
 
-The lot is authored in `content/lot.toml` and a player cannot touch it.
-The whole point of this genre is that the house is yours, so this is a
-headline feature rather than a nicety.
+The lot starts from `content/lot.toml`. The furniture builder is implemented
+locally; its release checks and public deployment are still pending. Room and
+wall construction remain separate work.
 
 It is also the thing that makes several complaints below stop mattering.
 Furniture positioning in the shipped lot is wonky in places, and hand
@@ -810,12 +810,17 @@ than a layout anybody has to get right.
 Placement wants rotation, and rotation is what [B-facing] is about, so
 that lands first or alongside.
 
-The next release after the front door is furniture movement and supported
-rotation, as requested on 2026-09-20. Existing unmerged facing work must first
-be reconciled with main. This slice needs placement preview, confirm/cancel,
-collision and route validation, and saved positions and directions. Room and
-wall construction remain subsequent builder work. The implementation sequence
-is recorded in `docs/specs/2026-09-20-front-door-and-builder.md`.
+The next release after the front door adds furniture movement and supported
+rotation, as requested on 2026-09-20. Build pauses the household, selects any
+placed furniture, and previews its destination and supported direction.
+Confirm applies a validated command; Cancel leaves the world unchanged.
+Collision, walls, interaction approaches, active reservations, remaining
+walking routes and the front-door landing are protected. Save V3 preserves
+positions, directions and room architecture. Keyboard controls and compact
+touch controls share the same placement rules. Valid overlapping previews
+temporarily replace only the original artwork, never its simulation state.
+The implementation sequence and release gates are recorded in
+`docs/specs/2026-09-20-front-door-and-builder.md`.
 
 ### [B-facing] Objects know which way they face, and overlap follows
 

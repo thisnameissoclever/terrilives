@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   clientToCanvas,
+  attachPointerInput,
   clientToTile,
   dispatch,
   dispatchMenuAction,
@@ -31,6 +32,46 @@ import {
 import { TILE_HALF_HEIGHT, screenX, screenY } from '../src/render/iso.js';
 
 const KIND_OBJECT = 1;
+
+it('routes actual canvas events to editing while preserving pan and suppressing ordinary menus and orders', () => {
+  vi.useFakeTimers();
+  const listeners = new Map<string, (event: any) => void>();
+  const documentListeners = new Map<string, (event: any) => void>();
+  const canvas = { width: 1280, height: 720, focus: vi.fn(), setPointerCapture() {},
+    getBoundingClientRect: () => ({ left: 0, top: 0, width: 1280, height: 720 }),
+    addEventListener: (name: string, listener: (event: any) => void) => listeners.set(name, listener),
+    ownerDocument: { addEventListener: (name: string, listener: (event: any) => void) => documentListeners.set(name, listener) },
+  };
+  const rows = source([[15, KIND_OBJECT, 3, 3]]);
+  const use = vi.fn(() => true), select = vi.fn(() => true);
+  const target = { ...rows, selectedIndex: () => 8, select, useObject: use, useObjectFirst: use,
+    cancelIntents: () => true, talkTo: use, talkToFirst: use, entityName: () => 'Lamp',
+    interactionLabels: () => ['Use'], socialLabels: () => [] };
+  const menu = { close: vi.fn(), open: vi.fn(), handleKey: vi.fn(() => false), pointerDown: vi.fn() };
+  const click = vi.fn(), panBy = vi.fn(), zoomAt = vi.fn();
+  attachPointerInput(canvas as unknown as HTMLCanvasElement, target, menu,
+    {} as Node, { originX: 100, originY: 100, scale: 1 }, { panBy, zoomAt },
+    undefined, undefined, undefined, undefined, undefined, { active: () => true, click });
+  const event = { clientX: 196, clientY: 226, ctrlKey: false, metaKey: false, preventDefault: vi.fn(),
+    pointerId: 1, pointerType: 'touch', button: 0 };
+  listeners.get('click')!(event);
+  expect(click).toHaveBeenCalledTimes(1);
+  expect(use).not.toHaveBeenCalled(); expect(select).not.toHaveBeenCalled();
+  listeners.get('contextmenu')!(event);
+  listeners.get('pointerdown')!(event);
+  vi.advanceTimersByTime(1000);
+  expect(menu.open).not.toHaveBeenCalled();
+  listeners.get('pointermove')!({ ...event, clientX: 220 });
+  expect(panBy).toHaveBeenCalled();
+  listeners.get('pointerup')!(event);
+  listeners.get('click')!(event);
+  expect(click).toHaveBeenCalledTimes(1);
+  listeners.get('wheel')!({ ...event, deltaY: 20 });
+  expect(zoomAt).toHaveBeenCalled();
+  documentListeners.get('keydown')!({ key: 'Escape', defaultPrevented: true });
+  expect(menu.handleKey).not.toHaveBeenCalled();
+  vi.useRealTimers();
+});
 
 describe('command outcome feedback', () => {
   it('routes accepted and rejected outcomes exactly once and ignores no-op clicks', () => {
