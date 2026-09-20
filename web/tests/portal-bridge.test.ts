@@ -17,12 +17,15 @@ describe('front door through the release WASM bridge', () => {
       for (let tick = 0; tick < 600; tick++) sim.tick();
       expect(sim.activities()).toContain(6);
       const current = sim.saveBytes();
+      const fixture = readFileSync('../crates/terri-wasm/tests/fixtures/pre-builder-600.hex', 'utf8');
+      const legacy = Uint8Array.from(Buffer.from(fixture.replace(/\s/g, ''), 'hex'));
       // Save V1: eight magic bytes, a little-endian u16 version, then the
-      // postcard u64 fingerprint. Only replace that field, not world state.
+      // postcard u64 fingerprint. Start with real pre-builder D wire bytes,
+      // then substitute the prior B digest without introducing a facing suffix.
       expect(new TextDecoder().decode(current.slice(0, 8))).toBe('TERRISAV');
       expect(Array.from(current.slice(8, 10))).toEqual([1, 0]);
       let end = 10;
-      while (end < 20 && (current[end++] & 0x80) !== 0) { /* bounded u64 */ }
+      while (end < 20 && (legacy[end++] & 0x80) !== 0) { /* bounded u64 */ }
       const prior: number[] = [];
       let value = 0xbcdd476e1e238ab0n;
       do {
@@ -30,7 +33,7 @@ describe('front door through the release WASM bridge', () => {
         value >>= 7n;
         prior.push(byte | (value === 0n ? 0 : 0x80));
       } while (value !== 0n);
-      const oldSave = Uint8Array.from([...current.slice(0, 10), ...prior, ...current.slice(end)]);
+      const oldSave = Uint8Array.from([...legacy.slice(0, 10), ...prior, ...legacy.slice(end)]);
       expect(sim.loadBytes(oldSave)).toBe(true);
       expect(sim.saveBytes()).toEqual(current);
       expect(sim.portalCount).toBe(1);

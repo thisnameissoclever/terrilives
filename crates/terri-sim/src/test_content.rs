@@ -147,6 +147,9 @@ pub fn object_sized(
         roles: Vec::new(),
         action_sockets: Vec::new(),
         foreground_sprite: None,
+        base_facing: terri_core::Facing::SouthEast,
+        facing_sprites: terri_data::FacingSprites::south_east_only(terri_data::pack().sim_sprite),
+        facing_foreground_sprites: terri_data::FacingSprites::NONE,
     }
 }
 

@@ -43,6 +43,9 @@ pub struct SaveSnapshotV1 {
     /// and nothing has to stay the same length as `entities`.
     #[serde(default)]
     pub sleep_pressure: Vec<(u32, u32)>,
+    /// Appended direction codes keyed by entity index. Missing entries retain authored defaults.
+    #[serde(default)]
+    pub object_facings: Vec<(u32, u8)>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

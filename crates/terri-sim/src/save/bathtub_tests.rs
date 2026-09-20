@@ -453,10 +453,16 @@ fn bathtub_rotation_loads_sampled_real_source_world_states() {
     let mut source_pack = destination().clone();
     let tub = source_pack.find("bathtub").unwrap();
     source_pack.objects[tub.0 as usize].footprint = terri_data::Footprint { width: 2, depth: 1 };
+    source_pack.objects[tub.0 as usize].base_facing = terri_core::Facing::SouthEast;
+    for placement in &mut source_pack.lot.placements {
+        if placement.object == tub {
+            placement.facing = terri_core::Facing::SouthEast;
+        }
+    }
     source_pack.portals.clear();
     assert_eq!(
         terri_data::content_fingerprint(&source_pack),
-        0xa020_602a_6acd_3a90
+        0x93b0_a495_25ce_6e0c
     );
     let source_pack = Box::leak(Box::new(source_pack));
     let mut source = Sim::new_from_lot(&source_pack.lot, &source_pack.objects);
@@ -471,7 +477,9 @@ fn bathtub_rotation_loads_sampled_real_source_world_states() {
     for tick in 0..2_000 {
         source.tick();
         if tick % 10 == 0 {
-            let before = source.save_snapshot();
+            let mut before = source.save_snapshot();
+            before.content_fingerprint = 0xa020_602a_6acd_3a90;
+            before.object_facings.clear();
             let mut restored = restore_without_portals(before.clone(), pack)
                 .unwrap_or_else(|error| panic!("source tick {tick}: {error:?}"));
             let mut after = restored.save_snapshot();
@@ -552,6 +560,13 @@ fn bathtub_rotation_source_layout_is_frozen_independently_of_destination_lot() {
 #[test]
 fn bathtub_rotation_preserves_permuted_entity_slots_holes_and_reservations() {
     let mut source = old_snapshot();
+    for (index, _) in &mut source.object_facings {
+        *index = match *index {
+            0 => 3,
+            1 => 2,
+            value => value + 2,
+        };
+    }
     for entity in &mut source.entities {
         entity.index += 2;
     }

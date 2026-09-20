@@ -1,14 +1,15 @@
 //! Simulation snapshot capture, validation, and reconstruction.
 
 use crate::systems::chain::CHAIN_STEP;
-use crate::{
-    default_action_sockets, portals::ActivePortals, Content, ForegroundSprite,
-    ResolvedActionSockets, Sim,
-};
+#[cfg(test)]
+use crate::{default_action_sockets, ForegroundSprite, ResolvedActionSockets};
+use crate::{portals::ActivePortals, Content, Sim};
 use bevy_ecs::{
     entity::EntityIndex,
     prelude::{Entity, World},
 };
+#[cfg(test)]
+use terri_core::SpriteVariant;
 use terri_core::{
     Agent, AtWork, Blocked, Career, Carrying, ChainState, CommandQueue, Commuting,
     ConversationVoice, Eating, Fumbled, Funds, Habituation, Hobbies, Intent, IntentQueue, Needs,
@@ -16,8 +17,8 @@ use terri_core::{
     SavedChainState, SavedCommand, SavedConversationVoice, SavedEating, SavedEntity,
     SavedHabituation, SavedIntent, SavedPath, SavedPersonality, SavedPosition, SavedSocialising,
     SavedTarget, SavedTraitState, Selected, SimClock, SimCommand, SimId, SimIdAllocator, SimName,
-    SimRng, SmartObject, Socialising, SpriteVariant, StepWork, Target, TileGrid, Traits, Wander,
-    NEED_MAX, NEED_MIN,
+    SimRng, SmartObject, Socialising, StepWork, Target, TileGrid, Traits, Wander, NEED_MAX,
+    NEED_MIN,
 };
 use terri_data::{ContentPack, ObjectDefId};
 
@@ -86,6 +87,19 @@ pub(super) fn capture(sim: &Sim) -> SaveSnapshotV1 {
     }
 
     SaveSnapshotV1 {
+        object_facings: entities
+            .iter()
+            .filter_map(|saved| {
+                let object = pack.find(saved.smart_object.as_deref()?)?;
+                let entity = world
+                    .entities()
+                    .resolve_from_index(EntityIndex::from_raw_u32(saved.index).unwrap());
+                let facing = world
+                    .get::<terri_core::ObjectFacing>(entity)
+                    .map_or(pack.object(object).base_facing, |f| f.0);
+                Some((saved.index, facing.code()))
+            })
+            .collect(),
         sleep_pressure,
         content_fingerprint: terri_data::content_fingerprint(pack),
         tick: world.resource::<SimClock>().tick,
@@ -329,6 +343,16 @@ pub(super) fn restore(
         }
     }
 
+    let facings: std::collections::BTreeMap<_, _> = snapshot
+        .object_facings
+        .iter()
+        .map(|&(index, code)| {
+            (
+                index,
+                terri_core::Facing::from_code(code).expect("validated direction"),
+            )
+        })
+        .collect();
     for saved in &snapshot.entities {
         restore_entity(
             &mut sim.world,
@@ -336,6 +360,7 @@ pub(super) fn restore(
             &slots,
             content,
             migrate_legacy_household_names,
+            facings.get(&saved.index).copied(),
         )?;
     }
 
@@ -373,6 +398,7 @@ fn restore_entity(
     slots: &[Option<Entity>],
     pack: &ContentPack,
     migrate_legacy_household_names: bool,
+    saved_facing: Option<terri_core::Facing>,
 ) -> Result<(), SaveError> {
     let entity = slots[saved.index as usize].ok_or(SaveError::InvalidEntityReference)?;
     let mut target = world.entity_mut(entity);
@@ -564,43 +590,31 @@ fn restore_entity(
         target.insert(StepWork { remaining_ticks });
     }
 
-    // Facing, action sockets, and foreground layers are immutable authored
-    // presentation data today, so all are derived from the current pack instead of widening
-    // Save V1. This expires when build mode can move or rotate an object: that
-    // schema must carry stable placement identity and authored facing.
     if let (Some(position), Some(object_name)) = (saved.position, saved.smart_object.as_deref()) {
         let object = resolve_object(pack, object_name)?;
-        let placement = pack
-            .lot
-            .placements
-            .iter()
-            .find(|placement| placement_matches(placement, object, position));
-        if let Some(placement) = placement {
-            if placement.sprite != pack.object(object).sprite {
-                target.insert(SpriteVariant(placement.sprite));
-            }
-            if !placement.action_sockets.is_empty() {
-                target.insert(ResolvedActionSockets(placement.action_sockets.clone()));
-            }
-            if let Some(sprite) = placement.foreground_sprite {
-                target.insert(ForegroundSprite(sprite));
-            }
-        } else {
-            let definition = pack.object(object);
-            let sockets = default_action_sockets(
-                definition,
-                Position {
-                    x: position.x,
-                    y: position.y,
-                },
-            );
-            if !sockets.is_empty() {
-                target.insert(ResolvedActionSockets(sockets));
-            }
-            if let Some(sprite) = definition.foreground_sprite {
-                target.insert(ForegroundSprite(sprite));
-            }
+        let definition = pack.object(object);
+        let facing = saved_facing.unwrap_or_else(|| {
+            pack.lot
+                .placements
+                .iter()
+                .find(|placement| placement_matches(placement, object, position))
+                .map_or(definition.base_facing, |placement| placement.facing)
+        });
+        if !definition.supports(facing) {
+            return Err(SaveError::InvalidValue);
         }
+        crate::apply_object_placement(
+            world,
+            entity,
+            definition,
+            Position {
+                x: position.x,
+                y: position.y,
+            },
+            facing,
+        );
+    } else if let Some(facing) = saved_facing {
+        target.insert(terri_core::ObjectFacing(facing));
     }
 
     Ok(())
@@ -752,6 +766,25 @@ fn validate_snapshot(snapshot: &SaveSnapshotV1, pack: &ContentPack) -> Result<()
         )?;
     }
     sim_ids.sort_unstable();
+    if snapshot.object_facings.len() > snapshot.entities.len() {
+        return Err(SaveError::InvalidValue);
+    }
+    let mut facing_indices = std::collections::BTreeSet::new();
+    for &(index, code) in &snapshot.object_facings {
+        if !facing_indices.insert(index) {
+            return Err(SaveError::InvalidValue);
+        }
+        let facing = terri_core::Facing::from_code(code).ok_or(SaveError::InvalidValue)?;
+        let entity = validate_entity_reference(&snapshot.entities, index)?;
+        let id = entity
+            .smart_object
+            .as_deref()
+            .ok_or(SaveError::InvalidEntityReference)?;
+        let definition = pack.object(resolve_object(pack, id)?);
+        if !definition.supports(facing) {
+            return Err(SaveError::InvalidValue);
+        }
+    }
     if sim_ids.windows(2).any(|ids| ids[0] == ids[1]) {
         return Err(SaveError::InvalidSimIdAllocator);
     }
@@ -2326,7 +2359,7 @@ mod tests {
     }
 
     #[test]
-    fn same_id_same_position_dynamic_save_collision_adopts_the_authored_rotated_socket() {
+    fn same_id_same_position_dynamic_save_keeps_its_explicit_direction() {
         let shipped = terri_data::pack();
         let shipped_chair = shipped
             .find("reading_chair")
@@ -2365,6 +2398,7 @@ mod tests {
                 walls: Vec::new(),
                 placements: vec![terri_data::CompiledPlacement {
                     object: chair,
+                    facing: terri_core::Facing::NorthWest,
                     x: position.x,
                     y: position.y,
                     sprite: base.object(chair).sprite,
@@ -2414,8 +2448,8 @@ mod tests {
                 .world()
                 .get::<ResolvedActionSockets>(restored_dynamic)
                 .map(|sockets| sockets.0.as_slice()),
-            Some([authored_nw].as_slice()),
-            "Save V1 cannot distinguish the collision, so Load must adopt the authored placement"
+            Some(default_se.as_slice()),
+            "the saved direction distinguishes a dynamic object from the authored placement"
         );
     }
 
@@ -2520,6 +2554,7 @@ mod tests {
 
         let mut empty = rich_snapshot();
         empty.entities.clear();
+        empty.object_facings.clear();
         empty.issued_sim_ids = 0;
         empty.queued_commands.clear();
         assert_validation(&empty, Ok(()), "empty world is valid");

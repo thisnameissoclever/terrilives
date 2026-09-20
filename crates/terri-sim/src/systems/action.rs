@@ -1,9 +1,9 @@
 use bevy_ecs::prelude::*;
 use terri_core::clock::SimClock;
 use terri_core::{
-    Agent, Blocked, Eating, Habituation, IntentQueue, NeedId, Needs, Path, Personality, Position,
-    Relationships, Reserved, Restless, SimId, SimRng, SmartObject, Socialising, Target,
-    TileDistanceField, TileGrid,
+    Agent, Blocked, Eating, Habituation, IntentQueue, NeedId, Needs, ObjectFacing, Path,
+    Personality, Position, Relationships, Reserved, Restless, SimId, SimRng, SmartObject,
+    Socialising, Target, TileDistanceField, TileGrid,
 };
 
 use super::advertise::{benefit_scale, relationship_scale, scaled_delta, score_advertisement};
@@ -424,7 +424,12 @@ pub fn serve_intents(
             Without<terri_core::Commuting>,
         ),
     >,
-    objects: Query<(&Position, &SmartObject, Has<Reserved>)>,
+    objects: Query<(
+        &Position,
+        &SmartObject,
+        Has<Reserved>,
+        Option<&ObjectFacing>,
+    )>,
     // Everything a TalkTo intent needs to know about its target: where
     // it stands, whether it is spoken for, and whether it is busy in
     // any of the four ways [H10] rules out. Component reads rather than
@@ -499,7 +504,7 @@ pub fn serve_intents(
         // mistaken for contention with somebody else.
         let held_here = target.is_some_and(|t| t.object == intent.object);
 
-        let Ok((object_pos, placed, reserved)) = objects.get(intent.object) else {
+        let Ok((object_pos, placed, reserved, facing)) = objects.get(intent.object) else {
             // **Not an object - perhaps a PERSON.** A TalkTo intent
             // carries the target sim's entity in the same field a
             // UseObject carries a fridge's, and this is where the two
@@ -641,12 +646,13 @@ pub fn serve_intents(
         // neighbour is walled off.
         //
         // **Beside the whole RECTANGLE**, not beside the origin tile - [F4].
-        // The footprint comes from the object's definition rather than from
-        // its placement, so a click on the east end of a 2x1 bed sends the sim
-        // to the tile beside that end rather than round to the origin. A
+        // The footprint is the definition's, oriented by the object's
+        // facing, so a click on the east end of a 2x1 bed sends the sim
+        // to the tile beside that end rather than round to the origin, and
+        // a bed the player has turned is approached where it now lies. A
         // 1x1 default here would be the bug footprints exist to remove, which
         // is why the argument is required rather than optional.
-        let footprint = content.0.object(placed.0).footprint;
+        let footprint = crate::placed_footprint(content.0, placed.0, facing);
         let Some(steps) = grid.find_path_adjacent(from, to, footprint) else {
             queue.pop();
             continue;
@@ -835,7 +841,13 @@ pub fn select_action(
     // docs/alpha-feel-notes.md is the report;
     // `an_agent_waiting_on_an_object_reserved_earlier_waits_rather_than_wandering_off`
     // is what fails if the filter comes back.
-    objects: Query<(Entity, &Position, &SmartObject, Has<Reserved>)>,
+    objects: Query<(
+        Entity,
+        &Position,
+        &SmartObject,
+        Has<Reserved>,
+        Option<&ObjectFacing>,
+    )>,
 ) {
     // Where every station stands, by role index - the chain cost
     // estimate's input, built once per run ([K2]). Positions rather
@@ -843,7 +855,7 @@ pub fn select_action(
     // walked at STEP time against live reservations, and this only has
     // to make a far kitchen cost more than a near one.
     let mut role_positions: Vec<Vec<(f32, f32)>> = vec![Vec::new(); content.0.roles.len()];
-    for (_, position, placed, _) in objects.iter() {
+    for (_, position, placed, _, _) in objects.iter() {
         for role in &content.0.object(placed.0).roles {
             role_positions[*role as usize].push((position.x, position.y));
         }
@@ -977,11 +989,20 @@ pub fn select_action(
     // which is a silent determinism break of exactly the class [D-3] and
     // [L5] are about. `tied_scores_resolve_by_object_index_not_archetype_order`
     // is what pins it; deleting this line must fail that test.
-    let mut placed_objects: Vec<(Entity, Position, SmartObject, bool)> = objects
-        .iter()
-        .map(|(e, pos, object, reserved)| (e, *pos, *object, reserved))
-        .collect();
-    placed_objects.sort_by_key(|(e, _, _, _)| e.index());
+    let mut placed_objects: Vec<(Entity, Position, SmartObject, bool, terri_core::Footprint)> =
+        objects
+            .iter()
+            .map(|(e, pos, object, reserved, facing)| {
+                (
+                    e,
+                    *pos,
+                    *object,
+                    reserved,
+                    crate::placed_footprint(content.0, object.0, facing),
+                )
+            })
+            .collect();
+    placed_objects.sort_by_key(|(e, ..)| e.index());
 
     // The people who could be talked to, sorted for the same
     // bucket-order reason as the objects. Collected once, before the
@@ -1058,7 +1079,7 @@ pub fn select_action(
         // else, which is what `Blocked` means.
         let mut best_available = f32::NEG_INFINITY;
 
-        for (object, object_pos, placed, reserved) in &placed_objects {
+        for (object, object_pos, placed, reserved, footprint) in &placed_objects {
             let object = *object;
             // **Contested, not absent.** An object somebody else already
             // holds is still scored, and its score still reaches `best_seen`;
@@ -1130,10 +1151,10 @@ pub fn select_action(
             // round to its origin, so the bed read as further away than it is
             // and the sim's ranking disagreed with its own movement. Same
             // class of error as scoring a walled-off object by straight-line
-            // distance, one object-width smaller.
-            let footprint = content.0.object(placed.0).footprint;
+            // distance, one object-width smaller. The rectangle is the
+            // ORIENTED one, so a turned bed is scored where it now lies.
             let Some(distance) =
-                distances.and_then(|field| field.distance_to_adjacent(to, footprint))
+                distances.and_then(|field| field.distance_to_adjacent(to, *footprint))
             else {
                 continue;
             };
@@ -1538,7 +1559,7 @@ pub fn select_action(
         // path. The agent is claimed (it chose, so it is not idle);
         // the advertiser is not - the chain may well start there, but
         // that is the station picker's call against live reservations.
-        if let Ok((_, _, placed, _)) = objects.get(object) {
+        if let Ok((_, _, placed, _, _)) = objects.get(object) {
             let interactions_len = content.0.object(placed.0).interactions.len() as u32;
             if interaction >= interactions_len {
                 let local = (interaction - interactions_len) as usize;
@@ -1559,19 +1580,20 @@ pub fn select_action(
             }
         }
 
-        let (destination, footprint) = if let Ok((_, position, placed, _)) = objects.get(object) {
-            (
-                (position.x.round() as i32, position.y.round() as i32),
-                content.0.object(placed.0).footprint,
-            )
-        } else if let Ok((_, position, _, _)) = people.get(object) {
-            (
-                (position.x.round() as i32, position.y.round() as i32),
-                terri_core::Footprint::SINGLE,
-            )
-        } else {
-            continue;
-        };
+        let (destination, footprint) =
+            if let Ok((_, position, placed, _, facing)) = objects.get(object) {
+                (
+                    (position.x.round() as i32, position.y.round() as i32),
+                    crate::placed_footprint(content.0, placed.0, facing),
+                )
+            } else if let Ok((_, position, _, _)) = people.get(object) {
+                (
+                    (position.x.round() as i32, position.y.round() as i32),
+                    terri_core::Footprint::SINGLE,
+                )
+            } else {
+                continue;
+            };
         let Some(steps) = reconstruct_winning_path(&grid, from, destination, footprint) else {
             continue;
         };

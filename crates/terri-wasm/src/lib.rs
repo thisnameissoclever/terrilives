@@ -96,6 +96,35 @@ pub struct SimHandle {
     sim: Sim,
 }
 
+/// Decode current saves and the two append-only predecessor payloads.
+fn decode_save_payload(payload: &[u8]) -> Option<terri_core::SaveSnapshotV1> {
+    /// One entry per payload shape any build has written, newest first:
+    /// how many trailing fields it lacks is its position, and the check is
+    /// that exactly those fields decoded empty. `object_facings` was
+    /// appended after `sleep_pressure`, so a payload lacking one field
+    /// lacks the facings, and a payload lacking two lacks both. Appending a
+    /// field to `SaveSnapshotV1` means appending a row here.
+    const PADDED_FIELDS_ARE_EMPTY: [fn(&terri_core::SaveSnapshotV1) -> bool; 3] = [
+        |_| true,
+        |snapshot| snapshot.object_facings.is_empty(),
+        |snapshot| snapshot.object_facings.is_empty() && snapshot.sleep_pressure.is_empty(),
+    ];
+
+    let mut padded = payload.to_vec();
+    for padded_fields_are_empty in PADDED_FIELDS_ARE_EMPTY {
+        if let Ok((snapshot, rest)) =
+            postcard::take_from_bytes::<terri_core::SaveSnapshotV1>(&padded)
+        {
+            // The first shape that decodes is the answer either way: more
+            // zeros cannot turn trailing bytes or a half-written list into
+            // an older save.
+            return (rest.is_empty() && padded_fields_are_empty(&snapshot)).then_some(snapshot);
+        }
+        padded.push(0);
+    }
+    None
+}
+
 #[wasm_bindgen]
 impl SimHandle {
     #[wasm_bindgen(constructor)]
@@ -601,42 +630,9 @@ impl SimHandle {
             return false;
         }
 
-        let payload = &bytes[SAVE_HEADER_BYTES..];
-        let decoded = postcard::take_from_bytes::<terri_core::SaveSnapshotV1>(payload);
-
-        // **A save written before sleep pressure existed still loads.**
-        //
-        // Postcard writes a struct as its fields back to back with no
-        // framing, and `sleep_pressure` is the last field, so an old
-        // payload is exactly a new one with those bytes missing. An empty
-        // `Vec` encodes as the single byte 0, which means an old payload
-        // followed by one zero IS a well-formed new payload - so the
-        // retry below is a migration rather than a guess.
-        //
-        // Done this way rather than by keeping a second struct mirroring
-        // the old field list, because that mirror would have to be edited
-        // in lockstep with the real one forever, and the failure when
-        // somebody forgot would be a misparsed save rather than a
-        // compile error.
-        //
-        // The alternative was bumping SAVE_SCHEMA_VERSION, which would
-        // have thrown away every save anybody had - the exact complaint
-        // this change was asked not to repeat.
-        let (snapshot, rest_len) = match decoded {
-            Ok((snapshot, rest)) => (snapshot, rest.len()),
-            Err(_) => {
-                let mut padded = Vec::with_capacity(payload.len() + 1);
-                padded.extend_from_slice(payload);
-                padded.push(0);
-                match postcard::take_from_bytes::<terri_core::SaveSnapshotV1>(&padded) {
-                    Ok((snapshot, rest)) => (snapshot, rest.len()),
-                    Err(_) => return false,
-                }
-            }
-        };
-        if rest_len != 0 {
+        let Some(snapshot) = decode_save_payload(&bytes[SAVE_HEADER_BYTES..]) else {
             return false;
-        }
+        };
         self.sim.load_snapshot(snapshot).is_ok()
     }
 
@@ -1025,6 +1021,7 @@ mod boundary_tests {
             entities: Vec::new(),
             queued_commands: Vec::new(),
             sleep_pressure: Vec::new(),
+            object_facings: Vec::new(),
         };
         // The trailing `0` is the empty `sleep_pressure`. Every byte
         // before it is unchanged, which is the appending rule doing its
@@ -1033,49 +1030,33 @@ mod boundary_tests {
             encode_save(&snapshot),
             vec![
                 84, 69, 82, 82, 73, 83, 65, 86, 1, 0, 1, 2, 201, 239, 219, 238, 207, 184, 226, 153,
-                115, 7, 7, 5, 2, 1, 2, 0, 1, 0, 0, 0,
+                115, 7, 7, 5, 2, 1, 2, 0, 1, 0, 0, 0, 0,
             ]
         );
     }
 
-    /// **A save written before sleep pressure existed still loads.**
-    ///
-    /// The owner reported that every deploy opened on "Saved game is
-    /// invalid. Starting a new game.", and the fix for THAT was narrowing
-    /// the content fingerprint. This is the other half: a new simulation
-    /// field must not throw the same saves away either.
-    ///
-    /// The old payload is built by taking a current one and dropping its
-    /// last byte, which is exactly the empty `sleep_pressure` the vector
-    /// above pins. That is a real pre-ramp save rather than a hand-typed
-    /// approximation of one.
     #[test]
-    fn a_save_written_before_sleep_pressure_still_loads() {
+    fn both_older_suffix_shapes_load_and_truncated_facing_rows_refuse() {
         let mut original = SimHandle::from_lot();
         for _ in 0..40 {
             original.tick();
         }
+        let mut snapshot = original.sim.save_snapshot();
+        snapshot.object_facings.clear();
+        assert!(snapshot.sleep_pressure.is_empty());
+        let bytes = encode_save(&snapshot);
+        for missing in [1, 2] {
+            let mut resumed = SimHandle::from_lot();
+            assert!(resumed.load_bytes(&bytes[..bytes.len() - missing]));
+            assert_eq!(resumed.sim.save_snapshot(), original.sim.save_snapshot());
+        }
         let current = original.save_bytes();
-        assert_eq!(
-            *current.last().expect("a save is never empty"),
-            0,
-            "the fixture assumes an untired household writes an empty \
-             sleep_pressure, which is the single trailing zero"
-        );
-        let legacy = &current[..current.len() - 1];
-
-        let mut resumed = SimHandle::from_lot();
-        assert!(
-            resumed.load_bytes(legacy),
-            "a payload one byte short is a pre-ramp save, not a corrupt one"
-        );
-        // And it is the same game, not merely a game.
-        assert_eq!(resumed.sim.save_snapshot(), original.sim.save_snapshot());
-
-        // The retry must not turn genuine corruption into a load. Two
-        // bytes short is not a shape any version ever wrote.
-        let mut refused = SimHandle::from_lot();
-        assert!(!refused.load_bytes(&current[..current.len() - 2]));
+        for cut in [1, 2] {
+            let mut refused = SimHandle::from_lot();
+            let before = refused.save_bytes();
+            assert!(!refused.load_bytes(&current[..current.len() - cut]));
+            assert_eq!(refused.save_bytes(), before);
+        }
     }
 
     #[test]
@@ -1142,12 +1123,13 @@ mod boundary_tests {
             .collect();
         assert_eq!(bytes.len(), 2580);
         let mut expected: terri_core::SaveSnapshotV1 =
-            postcard::from_bytes(&bytes[SAVE_HEADER_BYTES..]).unwrap();
+            decode_save_payload(&bytes[SAVE_HEADER_BYTES..]).unwrap();
         assert_eq!(expected.content_fingerprint, 0xa020_602a_6acd_3a90);
         let mut migrated = SimHandle::from_lot();
         let destination_fingerprint = migrated.sim.save_snapshot().content_fingerprint;
         assert!(migrated.load_bytes(&bytes));
         expected.content_fingerprint = destination_fingerprint;
+        expected.object_facings = migrated.sim.save_snapshot().object_facings;
         expected.blocked_tiles[9 * 16 + 15] = false;
         expected.blocked_tiles[10 * 16 + 14] = true;
         assert_eq!(migrated.sim.save_snapshot(), expected);
@@ -1157,6 +1139,44 @@ mod boundary_tests {
             migrated.tick();
             resumed.tick();
             assert_eq!(migrated.world_hash(), resumed.world_hash());
+        }
+    }
+
+    #[test]
+    fn actual_pre_builder_saves_keep_work_and_return_crossing_state() {
+        for (tick, hex) in [
+            (600, include_str!("../tests/fixtures/pre-builder-600.hex")),
+            (908, include_str!("../tests/fixtures/pre-builder-908.hex")),
+        ] {
+            let hex: String = hex.split_whitespace().collect();
+            let bytes: Vec<u8> = hex
+                .as_bytes()
+                .chunks_exact(2)
+                .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
+                .collect();
+            let old = decode_save_payload(&bytes[SAVE_HEADER_BYTES..]).unwrap();
+            assert_eq!(old.tick, tick);
+            assert_eq!(old.content_fingerprint, 0xfdf5_87d9_437f_bfd0);
+            assert!(old.object_facings.is_empty());
+            if tick == 600 {
+                assert!(old.entities.iter().any(|e| e.at_work_ticks.is_some()));
+            } else {
+                assert!(old.entities.iter().any(|e| e.commuting && e.path.is_some()));
+            }
+            let mut migrated = SimHandle::from_lot();
+            assert!(migrated.load_bytes(&bytes));
+            let current = migrated.sim.save_snapshot();
+            assert_eq!(current.entities, old.entities);
+            assert_eq!(current.blocked_tiles, old.blocked_tiles);
+            assert_eq!(current.funds, old.funds);
+            assert_eq!(current.object_facings.len(), 34);
+            let mut resumed = SimHandle::from_lot();
+            assert!(resumed.load_bytes(&migrated.save_bytes()));
+            for _ in 0..320 {
+                migrated.tick();
+                resumed.tick();
+                assert_eq!(resumed.world_hash(), migrated.world_hash());
+            }
         }
     }
 
@@ -1219,7 +1239,7 @@ mod boundary_tests {
         // emitted by public revision 72d67c5 under the retired full-pack
         // algorithm rather than a value computed by the new code. The bytes
         // are encoded here, not copied from a player's slot; the separately
-        // pinned Save V1 golden vector, unchanged SaveSnapshotV1 source blob,
+        // pinned Save V1 prefix and append-only suffix,
         // and unchanged postcard/serde lock versions are the evidence that the
         // historical encoder has the same wire shape. Keep that proof boundary
         // explicit instead of calling this a captured deployed save.

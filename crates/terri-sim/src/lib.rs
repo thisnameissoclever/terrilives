@@ -1,5 +1,7 @@
 //! Simulation systems and scheduling. No web dependencies, ever.
 
+#[cfg(test)]
+mod facing_tests;
 mod mood;
 pub mod portals;
 pub mod render_buffer;
@@ -24,13 +26,61 @@ pub use save::SaveError;
 #[derive(Resource, Debug, Clone, Copy)]
 pub struct Content(pub &'static terri_data::ContentPack);
 
+/// Rectangle occupied at the live direction, or the definition's authored base.
+pub fn placed_footprint(
+    content: &terri_data::ContentPack,
+    id: terri_core::ObjectDefId,
+    facing: Option<&terri_core::ObjectFacing>,
+) -> terri_core::Footprint {
+    let definition = content.object(id);
+    definition.footprint_at(facing.map_or(definition.base_facing, |f| f.0))
+}
+
+/// Applies a previously validated placement and all derived presentation together.
+pub fn apply_object_placement(
+    world: &mut World,
+    entity: Entity,
+    definition: &terri_data::CompiledObject,
+    origin: terri_core::Position,
+    facing: terri_core::Facing,
+) {
+    assert!(
+        definition.supports(facing),
+        "object direction requires matching art"
+    );
+    let sprite = definition
+        .facing_sprites
+        .get(facing)
+        .expect("validated direction");
+    let sockets = definition.sockets_at(origin.x, origin.y, facing);
+    let mut target = world.entity_mut(entity);
+    target.insert((origin, terri_core::ObjectFacing(facing)));
+    if sprite == definition.sprite {
+        target.remove::<terri_core::SpriteVariant>();
+    } else {
+        target.insert(terri_core::SpriteVariant(sprite));
+    }
+    match definition.facing_foreground_sprites.get(facing) {
+        Some(sprite) => {
+            target.insert(ForegroundSprite(sprite));
+        }
+        None => {
+            target.remove::<ForegroundSprite>();
+        }
+    }
+    if sockets.is_empty() {
+        target.remove::<ResolvedActionSockets>();
+    } else {
+        target.insert(ResolvedActionSockets(sockets));
+    }
+}
+
 /// Presentation-only action positions resolved from compiled object content.
 ///
 /// This component deliberately stays out of `terri-core`: gameplay systems,
 /// Save V1, and the world hash have no reason to know that a body may be drawn
-/// somewhere other than its pathing tile. Placed objects receive the compiler's
-/// absolute sockets, while dynamic objects receive the definition's default-SE
-/// sockets through [`Sim::spawn_object`].
+/// somewhere other than its pathing tile. Placement, dynamic spawn and restore
+/// resolve sockets through [`apply_object_placement`].
 #[derive(Component, Debug, Clone, PartialEq)]
 struct ResolvedActionSockets(Vec<terri_data::CompiledPlacementSocket>);
 
@@ -254,24 +304,13 @@ fn socket_facing_code(facing: terri_data::CompiledSocketFacing) -> u32 {
     }
 }
 
-/// Resolves a dynamically spawned object's sockets in the default SE
-/// orientation. Placement rotation belongs to content compilation, so runtime
-/// performs only the identity-orientation translation here.
+/// Expected sockets for tests of the default spawn boundary.
+#[cfg(test)]
 fn default_action_sockets(
     object: &terri_data::CompiledObject,
     position: terri_core::Position,
 ) -> Vec<terri_data::CompiledPlacementSocket> {
-    let centre_x = position.x + (object.footprint.width as f32 - 1.0) * 0.5;
-    let centre_y = position.y + (object.footprint.depth as f32 - 1.0) * 0.5;
-    object
-        .action_sockets
-        .iter()
-        .map(|socket| terri_data::CompiledPlacementSocket {
-            x: centre_x + socket.x,
-            y: centre_y + socket.y,
-            facing: socket.facing,
-        })
-        .collect()
+    object.sockets_at(position.x, position.y, object.base_facing)
 }
 
 fn authored_socket_action_visual(
@@ -376,7 +415,12 @@ fn authored_object_facing_visual(
     let definition = content.objects.get(target_object.0 .0 as usize)?;
     let interaction = definition.interactions.get(target.interaction as usize)?;
     let (visual_action, activity) = authored_object_facing_codes(interaction)?;
-    let anchor = object_footprint_centre(content, target_object, target_position)?;
+    let anchor = object_footprint_centre(
+        content,
+        target_object,
+        target_position,
+        world.get::<terri_core::ObjectFacing>(target.object),
+    )?;
     Some(ObjectFacingProjection {
         facing: facing_toward(entity, position, target.object, &anchor),
         visual_action,
@@ -399,11 +443,13 @@ fn object_footprint_centre(
     content: &terri_data::ContentPack,
     object: &terri_core::SmartObject,
     origin: &terri_core::Position,
+    facing: Option<&terri_core::ObjectFacing>,
 ) -> Option<terri_core::Position> {
-    let definition = content.objects.get(object.0 .0 as usize)?;
+    content.objects.get(object.0 .0 as usize)?;
+    let footprint = placed_footprint(content, object.0, facing);
     Some(terri_core::Position {
-        x: origin.x + (definition.footprint.width as f32 - 1.0) * 0.5,
-        y: origin.y + (definition.footprint.depth as f32 - 1.0) * 0.5,
+        x: origin.x + (footprint.width as f32 - 1.0) * 0.5,
+        y: origin.y + (footprint.depth as f32 - 1.0) * 0.5,
     })
 }
 
@@ -444,7 +490,12 @@ fn authored_eating_visual(
         if !is_authored_object_eat_visual(interaction) {
             return None;
         }
-        let anchor = object_footprint_centre(content, target_object, target_position)?;
+        let anchor = object_footprint_centre(
+            content,
+            target_object,
+            target_position,
+            world.get::<terri_core::ObjectFacing>(target.object),
+        )?;
         return Some((
             visual_action::EAT,
             facing_toward(entity, position, target.object, &anchor),
@@ -468,7 +519,12 @@ fn authored_eating_visual(
         if !definition.roles.contains(&step.role) {
             return None;
         }
-        let anchor = object_footprint_centre(content, target_object, target_position)?;
+        let anchor = object_footprint_centre(
+            content,
+            target_object,
+            target_position,
+            world.get::<terri_core::ObjectFacing>(target.object),
+        )?;
         return Some((
             visual_action::EAT,
             facing_toward(entity, position, target.object, &anchor),
@@ -676,6 +732,7 @@ impl Sim {
         // digest's `try_query`, so this line is for the determinism
         // tests' benefit, like Selected and IntentQueue above.
         world.register_component::<terri_core::SpriteVariant>();
+        world.register_component::<terri_core::ObjectFacing>();
         // Object-local sockets are presentation-only, but tests use
         // `try_query` to prove their spawn and restore boundaries. Registering
         // the carrier here makes an absent component mean "no sockets" rather
@@ -887,7 +944,7 @@ impl Sim {
             // rule `compile_lot` applies when it validates the rectangle, so
             // the tiles blocked here are exactly the tiles it checked.
             let (tile_x, tile_y) = (placement.x as u32, placement.y as u32);
-            let footprint = objects[placement.object.0 as usize].footprint;
+            let footprint = objects[placement.object.0 as usize].footprint_at(placement.facing);
             for y in tile_y..tile_y + footprint.depth {
                 for x in tile_x..tile_x + footprint.width {
                     grid.set_blocked(x as usize, y as usize, true);
@@ -897,34 +954,27 @@ impl Sim {
         sim.world.insert_resource(grid);
 
         for placement in &lot.placements {
-            let spawned = sim.world.spawn((
-                terri_core::Position {
-                    x: placement.x,
-                    y: placement.y,
-                },
-                terri_core::SmartObject(placement.object),
-            ));
-            // A facing is per PLACEMENT, so it cannot live on the object
-            // definition; the compile step resolved it to a sprite index
-            // and this component is how the index reaches the render
-            // buffer. Inserted only when it differs, so every world
-            // predating facings - and every test fixture - is untouched.
-            let mut spawned = spawned;
-            if placement.sprite != objects[placement.object.0 as usize].sprite {
-                spawned.insert(terri_core::SpriteVariant(placement.sprite));
-            }
-            if !placement.action_sockets.is_empty() {
-                spawned.insert(ResolvedActionSockets(placement.action_sockets.clone()));
-            }
-            if let Some(sprite) = placement.foreground_sprite {
-                spawned.insert(ForegroundSprite(sprite));
-            }
+            let origin = terri_core::Position {
+                x: placement.x,
+                y: placement.y,
+            };
+            let entity = sim
+                .world
+                .spawn((origin, terri_core::SmartObject(placement.object)))
+                .id();
+            apply_object_placement(
+                &mut sim.world,
+                entity,
+                &objects[placement.object.0 as usize],
+                origin,
+                placement.facing,
+            );
         }
 
         sim
     }
 
-    /// Spawns one runtime object with its default-SE presentation sockets.
+    /// Spawns one runtime object at its definition's base direction.
     ///
     /// The public WASM object-spawn path delegates here so it cannot create a
     /// usable reading chair whose action position disappeared at the crate
@@ -935,24 +985,20 @@ impl Sim {
         position: terri_core::Position,
         object: terri_data::ObjectDefId,
     ) -> Entity {
-        let (sockets, foreground_sprite) = {
-            let content = self.world.resource::<Content>().0;
-            let definition = content.object(object);
-            (
-                default_action_sockets(definition, position),
-                definition.foreground_sprite,
-            )
-        };
-        let mut spawned = self
+        let content = self.world.resource::<Content>().0;
+        let definition = content.object(object);
+        let entity = self
             .world
-            .spawn((position, terri_core::SmartObject(object)));
-        if !sockets.is_empty() {
-            spawned.insert(ResolvedActionSockets(sockets));
-        }
-        if let Some(sprite) = foreground_sprite {
-            spawned.insert(ForegroundSprite(sprite));
-        }
-        spawned.id()
+            .spawn((position, terri_core::SmartObject(object)))
+            .id();
+        apply_object_placement(
+            &mut self.world,
+            entity,
+            definition,
+            position,
+            definition.base_facing,
+        );
+        entity
     }
 
     /// The lot the game ships, compiled from `content/lot.toml`, with the
@@ -1307,7 +1353,11 @@ impl Sim {
             // together.
             let (x, y, footprint_width, footprint_depth) = match object {
                 Some(placed) => {
-                    let footprint = content.object(placed.0).footprint;
+                    let footprint = placed_footprint(
+                        content,
+                        placed.0,
+                        self.world.get::<terri_core::ObjectFacing>(entity),
+                    );
                     (
                         pos.x + (footprint.width as f32 - 1.0) * 0.5,
                         pos.y + (footprint.depth as f32 - 1.0) * 0.5,
@@ -2302,6 +2352,32 @@ impl Sim {
             hasher.write_u64(carrying);
         }
 
+        // Canonical direction deviations, sorted independently of archetype order.
+        let content = self.world.resource::<Content>().0;
+        let mut facings = Vec::new();
+        if let Some(mut query) = self.world.try_query::<(
+            Entity,
+            &terri_core::SmartObject,
+            Option<&terri_core::ObjectFacing>,
+        )>() {
+            for (entity, object, facing) in query.iter(&self.world) {
+                let base = content.object(object.0).base_facing;
+                let value = facing.map_or(base, |f| f.0);
+                if value != base {
+                    facings.push((entity.index_u32(), value.code()));
+                }
+            }
+        }
+        facings.sort_unstable();
+        if !facings.is_empty() {
+            hasher.write_bytes(b"object-facing-v1");
+            hasher.write_u64(facings.len() as u64);
+            for (entity, code) in facings {
+                hasher.write_u64(entity as u64);
+                hasher.write_bytes(&[code]);
+            }
+        }
+
         // The household's money, after the rows the way the clock sits
         // before them: world-level state, one value, in the digest
         // because a shift's pay is what the player was promised.
@@ -2390,6 +2466,9 @@ mod lot_tests {
                 sprite: 0,
                 interactions: Vec::new(),
                 footprint: *footprint,
+                base_facing: terri_core::Facing::SouthEast,
+                facing_sprites: terri_data::FacingSprites([Some(0), None, Some(2), None]),
+                facing_foreground_sprites: terri_data::FacingSprites::NONE,
                 roles: Vec::new(),
                 action_sockets: Vec::new(),
                 foreground_sprite: None,
@@ -2418,6 +2497,7 @@ mod lot_tests {
             placements: vec![
                 CompiledPlacement {
                     object: ObjectDefId(2),
+                    facing: terri_core::Facing::NorthWest,
                     x: 2.5,
                     y: 1.25,
                     sprite: 2,
@@ -2426,6 +2506,7 @@ mod lot_tests {
                 },
                 CompiledPlacement {
                     object: ObjectDefId(0),
+                    facing: terri_core::Facing::SouthEast,
                     x: 4.0,
                     y: 3.5,
                     sprite: 0,
@@ -2496,7 +2577,13 @@ mod lot_tests {
     #[test]
     fn placed_and_dynamic_objects_receive_exact_sockets_while_ordinary_objects_receive_none() {
         let mut lot = a_lot();
-        let defs = one_tile_defs();
+        let mut defs = one_tile_defs();
+        defs[2].action_sockets = vec![terri_data::CompiledActionSocket {
+            id: "seat".into(),
+            x: -0.25,
+            y: -0.25,
+            facing: terri_data::CompiledSocketFacing::PositiveY,
+        }];
         lot.placements[0].action_sockets = vec![terri_data::CompiledPlacementSocket {
             x: 2.75,
             y: 1.5,
@@ -2664,6 +2751,7 @@ mod lot_tests {
             walls: vec![(6, 0)],
             placements: vec![CompiledPlacement {
                 object: ObjectDefId(2),
+                facing: terri_core::Facing::NorthWest,
                 x: 2.5,
                 y: 1.25,
                 sprite: 2,

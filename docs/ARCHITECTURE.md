@@ -555,17 +555,29 @@ but no indicator sprite because one 26-pixel glyph cannot honestly cover
 washing, television, bathing, and toilet use. Generic object
 use never selects eating body art.
 
-Seated reading adds an exact object-local action position without widening the
-bridge. An object definition may author named action sockets around its rendered
-footprint centre; lot compilation rotates each socket with the placement and
-stores the resolved absolute position and facing. `Sim::new_from_lot` attaches
-those values to the exact placed object in a private presentation-only
-component. The public dynamic-object path derives the same data in the default
-SE orientation. Save V1 remains unchanged: restore reconstructs authored
-placement sockets by exact object and position, or the default orientation for
-a non-colliding dynamic object. A dynamic object that exactly collides with an
-authored object id and position remains the documented Save V1 identity
-boundary.
+Seated reading adds an object-local action position without widening the
+render bridge. Definitions author sockets relative to their base-facing
+footprint centre. `ObjectFacing` stores runtime direction with stable codes
+SE=0, SW=1, NW=2, NE=3. `CompiledObject::footprint_at` and `sockets_at`
+apply the turn relative to `base_facing`; the bathtub and desk already use SW
+as their base. Every current authored placement retains its art and geometry.
+Dynamic desks use the SW default art with their existing 2x1 collision shape.
+`apply_object_placement` updates origin, direction, sprite, foreground and
+resolved sockets together. Runtime geometry readers use `placed_footprint`.
+Unsupported directions lack matching primary or required foreground art and
+cannot be applied. The compiler checks sockets for every supported direction.
+
+Save V1 appends an `object_facings` list after `sleep_pressure`. Explicit
+entries preserve direction even when a dynamic object shares an authored
+placement's id and position. Old payloads lacking one or both suffix fields
+still load; absent directions use the matching authored placement or the
+definition's base. Duplicate, invalid, non-object and unsupported entries
+refuse before the live world is replaced. Sockets and sprite indices remain
+derived presentation. Non-base direction changes enter the deterministic hash.
+Base directions enter the content digest, so changing their geometry meaning
+closes the old compatibility bridges. The exact new destination digest
+`4dab6950757c1f15` inherits the published D and B shapes; the frozen bathtub
+source `93b0a49525ce6e0c` retains A's distinct migration and legacy row rules.
 
 Only `reading_chair.settle_in` currently authors
 `read / object_socket / socket`. Render sync requires matching `Eating` and

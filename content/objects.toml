@@ -743,7 +743,8 @@ sprite = "offlineBike"
 [[object]]
 id = "desk"
 name = "Station of Ongoing Concern"
-sprite = "offlineDesk"
+sprite = "offlineDeskSW"
+base_facing = "SW"
 footprint = { width = 2, depth = 1 }
 # A second eating surface, so meals do not funnel through one table
 # tile - and eating at the desk is a life the game should be able to
@@ -861,6 +862,7 @@ id = "bathtub"
 name = "The Long Soak Directive"
 # Default art and collision share the same quarter-turn, including spawned tubs.
 sprite = "offlineBathtubSW"
+base_facing = "SW"
 footprint = { width = 1, depth = 2 }
 
   # **The shower's opposite number.** 58 hygiene against the shower's 70, but

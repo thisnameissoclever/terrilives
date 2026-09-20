@@ -1,5 +1,24 @@
 # Lessons Learned
 
+## [L-runtime-direction-needs-an-authored-base] Existing art facings can already own rotated geometry
+
+**What happened.** Applying a quarter-turn directly to every directional
+placement would rotate the current SW bathtub twice and turn the desk's
+existing 2x1 footprint into the chair at (6,7).
+
+**Root cause.** Earlier placement directions changed only art; object
+definitions and later art replacements already carried their reviewed
+collision shapes. Direction codes alone did not identify the geometry's base.
+
+**Prevention rule.** Author the base direction and transform by the relative
+turn. Include that base in save compatibility, preserve historical source
+geometry independently, and compare all authored render rows with the prior
+release before claiming defaults survived.
+
+**How to verify.** Run the relative-base geometry tests, the 34-object prior
+release render comparison, and real pre-builder and pre-bathtub byte fixtures.
+Change one base direction and require old digest bridges to close.
+
 ## [L-browser-artifact-paths] Use explicit temporary paths for review screenshots
 
 **What happened.** A browser screenshot write to the task worktree was denied.

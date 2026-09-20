@@ -38,14 +38,18 @@ pub(super) fn prepare(
 }
 
 fn reviewed_source(destination: &ContentPack) -> Option<ContentPack> {
+    if terri_data::content_fingerprint(destination) != 0x4dab_6950_757c_1f15 {
+        return None;
+    }
     let bathtub = destination.find("bathtub")?;
     if destination.object(bathtub).footprint != NEW {
         return None;
     }
     let mut source = destination.clone();
     source.objects[bathtub.0 as usize].footprint = OLD;
+    source.objects[bathtub.0 as usize].base_facing = terri_core::Facing::SouthEast;
     source.portals.clear();
-    (terri_data::content_fingerprint(&source) == SOURCE_FINGERPRINT).then_some(source)
+    terri_data::content_fingerprint_matches(&source, SOURCE_FINGERPRINT).then_some(source)
 }
 
 fn rotate_world(
