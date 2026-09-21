@@ -5,6 +5,7 @@ import {
   FLOATS_PER_INSTANCE,
   BYTES_PER_INSTANCE,
   TINT_ATTRIBUTE_OFFSET,
+  WALL_ATTRIBUTE_OFFSET,
   TINT_NONE,
   VERTICES_PER_QUAD,
   growCapacity,
@@ -34,6 +35,7 @@ describe('instance layout', () => {
     expect(out[5]).toBe(0.625);
     expect(out[6]).toBe(0.75);
     expect(out[7]).toBe(0.875);
+    expect(Array.from(out.subarray(8))).toEqual([0, 0]);
   });
 
   it('defaults an untinted instance to white and non-emissive', () => {
@@ -61,26 +63,35 @@ describe('instance layout', () => {
     const out = new Float32Array(4 * FLOATS_PER_INSTANCE).fill(-1);
     writeInstance(out, 2, 7, 8, 0.5, 0, 0.25, 0.5, 0.75, 1);
 
-    expect(Array.from(out.subarray(16, 24))).toEqual([
-      7, 8, 0.5, 0, 0.25, 0.5, 0.75, 1,
+    expect(Array.from(out.subarray(20, 30))).toEqual([
+      7, 8, 0.5, 0, 0.25, 0.5, 0.75, 1, 0, 0,
     ]);
     // Precondition and the actual claim in one: everything else is still
     // the sentinel, so the write was confined to slot 2.
-    expect(Array.from(out.subarray(0, 16))).toEqual(Array(16).fill(-1));
-    expect(Array.from(out.subarray(24, 32))).toEqual(Array(8).fill(-1));
+    expect(Array.from(out.subarray(0, 20))).toEqual(Array(20).fill(-1));
+    expect(Array.from(out.subarray(30, 40))).toEqual(Array(10).fill(-1));
   });
 
-  it('sizes one instance at eight contiguous f32s, tint included', () => {
+  it('sizes one instance at ten contiguous f32s, including wall projection', () => {
     // The vertex buffer arrayStride. A stride that disagrees with the
     // packer reads each entity's fields from a sliding offset into its
     // neighbour, which is a smear rather than a crash.
-    expect(BYTES_PER_INSTANCE).toBe(32);
+    expect(BYTES_PER_INSTANCE).toBe(40);
     expect(BYTES_PER_INSTANCE).toBe(FLOATS_PER_INSTANCE * 4);
     // The second attribute starts where the first one ends. This is the
     // number `createRenderPipeline` is given for `shaderLocation: 1`, and
     // it is the one place the two halves of the instance are related by
     // arithmetic rather than by adjacency in a struct.
     expect(TINT_ATTRIBUTE_OFFSET).toBe(16);
+    expect(WALL_ATTRIBUTE_OFFSET).toBe(32);
+  });
+
+  it('writes wall projection and clears it when the slot becomes furniture', () => {
+    const out = new Float32Array(FLOATS_PER_INSTANCE);
+    writeInstance(out, 0, 0, 0, 0.5, 1, 1, 1, 1, 0, 5, 0.03125);
+    expect(Array.from(out.subarray(8))).toEqual([5, 0.03125]);
+    writeInstance(out, 0, 0, 0, 0.5, 1);
+    expect(Array.from(out.subarray(8))).toEqual([0, 0]);
   });
 });
 
@@ -116,7 +127,7 @@ describe('sprites.wgsl contract', () => {
   // says - only a GPU can do that - but they are the only mechanism tying
   // the TypeScript constants to the WGSL declarations, and CI has no GPU.
 
-  it('declares two instance attributes totalling FLOATS_PER_INSTANCE', () => {
+  it('declares three instance attributes totalling FLOATS_PER_INSTANCE', () => {
     const position = shader.match(/@location\(0\)\s+instance:\s*vec(\d)<f32>/);
     const tint = shader.match(/@location\(1\)\s+tint:\s*vec(\d)<f32>/g);
     // Rule 5: without these the regexes could stop matching after a
@@ -129,7 +140,10 @@ describe('sprites.wgsl contract', () => {
     expect(Number(position![1])).toBe(4);
     const tintWidth = shader.match(/@location\(1\)\s+tint:\s*vec(\d)<f32>/);
     expect(Number(tintWidth![1])).toBe(4);
-    expect(4 + 4).toBe(FLOATS_PER_INSTANCE);
+    const wall = shader.match(/@location\(2\)\s+wall:\s*vec(\d)<f32>/);
+    expect(wall).not.toBeNull();
+    expect(Number(wall![1])).toBe(2);
+    expect(4 + 4 + 2).toBe(FLOATS_PER_INSTANCE);
   });
 
   it('multiplies by the instance tint and lets emissive resist the hour', () => {
