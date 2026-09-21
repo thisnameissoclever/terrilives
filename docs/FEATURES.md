@@ -670,6 +670,14 @@ why they are here rather than in ARCHITECTURE.md: somebody looked at the
 screen and said what was wrong with it. Named so the boundary between
 "known" and "nobody has noticed" stays a decision.
 
+### [B-game-systems] Build every system in the systems document
+
+[GAME-SYSTEMS.md](GAME-SYSTEMS.md) is the single inventory of gameplay systems: the ones the owner requested on 2026-09-21, the ones this file already plans, the shared foundations they need, and the additional systems proposed alongside them. Building all of them is backlog work. Each requested, planned, and foundation entry there carries a build status checked against the code. The document also names the main dependencies and suggests a build order for the owner's requests.
+
+A system that has not been started is tracked there and not repeated here. When work on a system starts, give it an entry in this section or a spec, and update its status in GAME-SYSTEMS.md in the same change.
+
+The owner's 2026-09-21 requests are skills, pets as full characters, random household events and messes, deep earning and spending of money, player-directed career paths, far more furniture and art, a larger household, and a build mode that can buy objects and build more house.
+
 ### [B-jobs-careers] Jobs and careers become a full life system
 
 The shipped career is one content-defined rabbit hole with a schedule, pay,
@@ -680,6 +688,8 @@ identities, workplace events, career history, retirement, and several careers
 with different schedules and tradeoffs. Simulated workplaces remain the
 compatibility target in [D15], so this extends the current state instead of
 building a second career system beside it.
+
+On 2026-09-21 the owner added two requirements: the player directs each Sim's career choices, and every career is a path with levels. Earning and spending money must both become much deeper alongside it. The detailed scope is `[S-careers]` and `[S-money]` in [GAME-SYSTEMS.md](GAME-SYSTEMS.md).
 
 ### [B-outside] The house has an actual outside
 
