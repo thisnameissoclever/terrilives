@@ -17,7 +17,7 @@ The approved shared Sim now comes from the editable Blender source and rig in
 Its README records immutable source hashes, material-only shirt variants and
 offline animation exports. High-resolution Blender renders are downsampled to
 RGBA frames at twice their logical dimensions, validated and packed into the
-same 2D atlas. This candidate branch contains 1,221 records at 4096x7928 physical
+same 2D atlas. This candidate branch contains 1,225 records at 4096x7928 physical
 pixels; the older counts below are historical. Existing sprite identities,
 logical dimensions and unrelated decoded pixels remain unchanged.
 
@@ -50,14 +50,15 @@ The append order is defined in `assets/models/atlas-batches.json`: the frozen
 first static catalog, the bunk batch, then `static-props-02.json`. Adding new
 props must not renumber the bunk or any earlier sprite.
 
-The front-door frame and closed, ajar and open leaves append at indices
-1217 through 1220. They are original procedural artwork in
+The four half-wall records occupy indices 1217 through 1220. The front-door
+frame and closed, ajar and open leaves append at indices 1221 through 1224.
+They are original procedural artwork in
 `assets/sprites/gen/front_door.py`, using the existing Pillow generator with
 no imported asset, new dependency or licensing cost. The four logical
 112x109 sprites share one fixed hinge and threshold registration. The prefix
-test preserves all 1,217 prior sprite identities and decoded images; the new
-door test pins the reviewed four-record tail. This is a static sprite door
-animated by the simulation, not a new runtime 3D system.
+tests preserve the earlier 1,217-record furniture prefix and the four
+half-wall records; the door test pins the reviewed four-record tail. This is a
+static sprite door animated by the simulation, not a new runtime 3D system.
 
 The static bathroom batch also includes the reviewed stacked washer/dryer in
 `assets/models/bathroom/owner-review-pending/laundry/candidate-02/`. Its four
