@@ -811,7 +811,8 @@ Sims.
 
 The lot starts from `content/lot.toml`. The furniture builder shipped in
 PR 85 at merge `097a849`; main's CI and the Pages deployment both passed for
-that commit. The Walls tool shipped in PR 95: in Build mode the player picks the
+that commit. PR 95 adds a Walls tool; its merge commit and deployment are
+recorded by the next change. In Build mode the player picks the
 line between two floor tiles and makes it a wall, a doorway or nothing, and the
 house they build is saved. The design is `docs/specs/2026-09-21-wall-tool.md`
 and the played check is [A-wall-tool]. Dragging out a whole room in one edit,

@@ -2496,8 +2496,11 @@ impl Sim {
         // The walls, now that a player can change them - [WT-hash]. Sorted by
         // line, so the digest sees what the house IS and not the order it was
         // built in; the doorway flag is in it because a doorway and a wall
-        // are different houses. Written only when there are edges, so every
-        // hand-built world without architecture keeps its golden value.
+        // are different houses. Written for every edge-wall world, an empty
+        // one included, because an edge world with no walls and a legacy
+        // world are different saves. Legacy layouts are never edited, so
+        // they add nothing, and the golden worlds, built with legacy cells,
+        // keep their values.
         if let Some(terri_core::layout::SavedLayout::EdgeWallsV1 { edges }) =
             self.world.get_resource::<terri_core::layout::SavedLayout>()
         {
@@ -2506,15 +2509,13 @@ impl Sim {
                 .map(|edge| (edge.axis.code(), edge.x, edge.y, edge.doorway))
                 .collect();
             lines.sort_unstable();
-            if !lines.is_empty() {
-                hasher.write_bytes(b"wall-edges-v1");
-                hasher.write_u64(lines.len() as u64);
-                for (axis, x, y, doorway) in lines {
-                    hasher.write_bytes(&[axis]);
-                    hasher.write_u64(x as u64);
-                    hasher.write_u64(y as u64);
-                    hasher.write_bytes(&[u8::from(doorway)]);
-                }
+            hasher.write_bytes(b"wall-edges-v1");
+            hasher.write_u64(lines.len() as u64);
+            for (axis, x, y, doorway) in lines {
+                hasher.write_bytes(&[axis]);
+                hasher.write_u64(x as u64);
+                hasher.write_u64(y as u64);
+                hasher.write_bytes(&[u8::from(doorway)]);
             }
         }
 

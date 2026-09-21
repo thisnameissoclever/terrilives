@@ -5,8 +5,11 @@
 import { DOORWAY, OPEN, WALL, type WallStateCode, type WallTool } from './wall-tool.js';
 
 export interface BuildToolHooks {
-  /** Switching to Walls drops any furniture preview, so only one is ever drawn. */
-  leaveFurniture(): void;
+  /**
+   * Drops any furniture preview so only one tool's preview is ever drawn, and
+   * says whether it could: a move waiting on the drain cannot be dropped.
+   */
+  leaveFurniture(): boolean;
 }
 
 export class WallToolControls {
@@ -15,6 +18,8 @@ export class WallToolControls {
   private readonly furniturePanel: HTMLElement;
   private readonly wallPanel: HTMLElement;
   private readonly status: HTMLElement;
+  private readonly keyboardHelp: HTMLElement;
+  private readonly touchHelp: HTMLElement;
   private readonly buttons: ReadonlyArray<readonly [HTMLButtonElement, WallStateCode]>;
 
   constructor(document: Document, private readonly tool: WallTool, hooks: BuildToolHooks) {
@@ -28,6 +33,8 @@ export class WallToolControls {
     this.furniturePanel = required('furniture-tool');
     this.wallPanel = required('wall-tool');
     this.status = required('wall-status');
+    this.keyboardHelp = required('wall-keyboard-help');
+    this.touchHelp = required('wall-touch-help');
     this.buttons = [
       [required<HTMLButtonElement>('wall-build'), WALL],
       [required<HTMLButtonElement>('wall-doorway'), DOORWAY],
@@ -35,13 +42,18 @@ export class WallToolControls {
     ];
     this.furnitureTool.addEventListener('click', () => tool.exit());
     this.wallsTool.addEventListener('click', () => {
-      hooks.leaveFurniture();
-      tool.enter();
+      if (hooks.leaveFurniture()) tool.enter();
     });
     for (const [button, state] of this.buttons) {
       button.addEventListener('click', () => tool.apply(state));
     }
     this.render();
+  }
+
+  /** The phone layout reads the touch help, as the furniture tool's does. */
+  setCompact(compact: boolean): void {
+    this.keyboardHelp.hidden = compact;
+    this.touchHelp.hidden = !compact;
   }
 
   render(): void {

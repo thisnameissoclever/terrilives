@@ -345,6 +345,29 @@ fn a_wall_cannot_come_between_a_sim_and_what_it_is_using_or_who_it_is_talking_to
     applied(&mut sim, edit(Vertical, 4, 2, Wall));
 }
 
+/// The in-use rule is about what is ACROSS the line, not about who is near it.
+/// A sim standing beside a line with a target elsewhere does not stop a wall.
+/// Both cases sit one tile past the fridge's edge on each axis, so a rectangle
+/// test that counted its far edge as inside would refuse them.
+#[test]
+fn a_sim_beside_a_line_using_something_elsewhere_does_not_stop_a_wall() {
+    for (at, request) in [
+        (Position { x: 2.0, y: 0.0 }, edit(Vertical, 2, 0, Wall)),
+        (Position { x: 0.0, y: 2.0 }, edit(Horizontal, 0, 2, Wall)),
+    ] {
+        let (mut sim, fridge) = house(vec![]);
+        sim.world_mut().spawn((
+            Agent,
+            at,
+            Target {
+                object: fridge,
+                interaction: 0,
+            },
+        ));
+        applied(&mut sim, request);
+    }
+}
+
 #[test]
 fn a_wall_is_held_to_every_proof_a_furniture_move_is() {
     // One gap left in a partition at x = 3; closing it cuts the door off.
@@ -557,4 +580,178 @@ fn the_world_hash_sees_the_house_and_every_field_of_a_staged_wall_edit() {
     ] {
         assert_ne!(staged(changed.clone()), reference, "{changed:?}");
     }
+}
+
+/// Review finding [F1] on PR 95. A sim walking to the fridge along
+/// (2,0) then (1,0) would arrive beside it with a new wall between them. Every
+/// rule of the wall validator's own passed, and the V3 loader refused the save.
+#[test]
+fn a_wall_between_where_a_walk_ends_and_what_it_is_walking_to_is_refused() {
+    let (mut sim, fridge) = house(vec![]);
+    sim.world_mut().spawn((
+        Agent,
+        Position { x: 3.0, y: 0.0 },
+        terri_core::Path {
+            steps: vec![(2, 0), (1, 0)],
+            cursor: 0,
+        },
+        Target {
+            object: fridge,
+            interaction: 0,
+        },
+    ));
+    refused(
+        &mut sim,
+        edit(Vertical, 1, 0, Wall),
+        PlacementRefusal::BlockedRoute,
+    );
+    // The fridge's other side is not where this walk ends.
+    applied(&mut sim, edit(Horizontal, 0, 1, Wall));
+}
+
+/// Review finding [F2] on PR 95. With a worker in the house, the loader needs
+/// a straight step from the front door to its landing. A second way in kept the
+/// house connected, so the proofs passed, and the save would not load.
+#[test]
+fn a_wall_between_the_front_door_and_its_landing_is_refused_while_anyone_works() {
+    let (mut sim, _) = house(vec![]);
+    let worker = sim
+        .world_mut()
+        .spawn((Agent, Position { x: 2.0, y: 5.0 }, terri_core::Career(0)))
+        .id();
+    refused(
+        &mut sim,
+        edit(Vertical, 6, 3, Wall),
+        PlacementRefusal::BlockedLanding,
+    );
+    // Nobody has a job, so nobody comes home through that door.
+    sim.world_mut()
+        .entity_mut(worker)
+        .remove::<terri_core::Career>();
+    applied(&mut sim, edit(Vertical, 6, 3, Wall));
+}
+
+/// The invariant both blockers broke, over the real household at the ticks the
+/// review found them: every wall the validator accepts leaves a save that the
+/// V3 loader accepts. Opening a line or making a doorway only removes a barrier
+/// and cannot make a save unloadable, so walls are the state checked.
+#[test]
+fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
+    let mut sim = Sim::new_from_shipped_lot();
+    let (width, height) = {
+        let grid = sim.world().resource::<TileGrid>();
+        (grid.width() as u32, grid.height() as u32)
+    };
+    let mut checked = 0;
+    let mut reloaded = Sim::new_from_shipped_lot();
+    for stop in [240u64, 600] {
+        while sim.world().resource::<terri_core::SimClock>().tick < stop {
+            sim.tick();
+        }
+        let base = sim.save_snapshot_v3();
+        let lines = (1..width)
+            .flat_map(|x| (0..height).map(move |y| (Vertical, x, y)))
+            .chain((0..width).flat_map(|x| (1..height).map(move |y| (Horizontal, x, y))));
+        for (axis, x, y) in lines {
+            let request = edit(axis, x, y, Wall);
+            let Ok(plan) = validate_wall_edit(sim.world(), request) else {
+                continue;
+            };
+            if !plan.changed {
+                continue;
+            }
+            // A commit writes the plan's edge list and the grid built from it,
+            // and the loader rebuilds that grid from the list, so the save a
+            // commit would leave is the base save carrying this list.
+            let mut after = base.clone();
+            after.layout = SavedLayout::EdgeWallsV1 { edges: plan.edges };
+            assert_eq!(
+                reloaded.load_snapshot_v3(after).err(),
+                None,
+                "an accepted {request:?} at tick {stop} left a save that will not load"
+            );
+            checked += 1;
+        }
+    }
+    assert!(checked > 100, "only {checked} walls were accepted to check");
+}
+
+/// [WT-hash]: an edge-wall house with no walls is a different save from a
+/// legacy house, so the digest tells them apart.
+#[test]
+fn an_edge_house_with_no_walls_hashes_apart_from_a_legacy_house() {
+    let (edge, _) = house(vec![]);
+    let (mut legacy, _) = house(vec![]);
+    legacy
+        .world_mut()
+        .insert_resource(SavedLayout::LegacyCells { walls: vec![] });
+    assert_ne!(edge.world_hash(), legacy.world_hash());
+}
+
+/// [WT-command], held to the placement standard: the same stream drained in one
+/// batch and one command at a time leaves the same save and the same hash.
+#[test]
+fn a_stream_with_wall_edits_drains_the_same_joined_or_split() {
+    let stream = |fridge: Entity, user: Entity| {
+        vec![
+            SimCommand::Select(Some(user.index_u32())),
+            SimCommand::SetWallEdge {
+                axis: Vertical,
+                x: 3,
+                y: 2,
+                state: Wall,
+            },
+            SimCommand::UseObject {
+                agent: user.index_u32(),
+                object: fridge.index_u32(),
+                interaction: 0,
+            },
+            SimCommand::SetWallEdge {
+                axis: Vertical,
+                x: 3,
+                y: 2,
+                state: Doorway,
+            },
+            SimCommand::CancelIntents {
+                agent: user.index_u32(),
+            },
+            SimCommand::SetWallEdge {
+                axis: Horizontal,
+                x: 4,
+                y: 5,
+                state: Wall,
+            },
+        ]
+    };
+    let world = |split: bool| {
+        let (mut sim, fridge) = house(vec![]);
+        let user = sim
+            .world_mut()
+            .spawn((
+                Agent,
+                Position { x: 4.0, y: 1.0 },
+                terri_core::Needs::all_at(60.0),
+                terri_core::IntentQueue::default(),
+            ))
+            .id();
+        for command in stream(fridge, user) {
+            sim.world_mut().resource_mut::<CommandQueue>().push(command);
+            if split {
+                sim.flush_commands();
+            }
+        }
+        sim.flush_commands();
+        for _ in 0..30 {
+            sim.tick();
+        }
+        (sim.save_snapshot_v3(), sim.world_hash())
+    };
+    let (joined, joined_hash) = world(false);
+    let (split, split_hash) = world(true);
+    assert_eq!(joined, split);
+    assert_eq!(joined_hash, split_hash);
+    assert!(matches!(
+        &joined.layout,
+        SavedLayout::EdgeWallsV1 { edges } if edges.len() == 2
+    ));
 }

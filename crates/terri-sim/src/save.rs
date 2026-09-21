@@ -54,7 +54,11 @@ pub enum SaveError {
 }
 
 pub(super) fn capture(sim: &Sim) -> SaveSnapshotV1 {
-    let world = sim.world();
+    capture_world(sim.world())
+}
+
+/// [`capture`] for anything holding a world, which a lot-edit validator does.
+fn capture_world(world: &bevy_ecs::world::World) -> SaveSnapshotV1 {
     let pack = world.resource::<Content>().0;
     let grid = world.resource::<TileGrid>();
 
@@ -829,6 +833,32 @@ fn validate_snapshot(snapshot: &SaveSnapshotV1, pack: &ContentPack) -> Result<()
         validate_command(command, &snapshot.entities, pack, pre_aquarium_bike)?;
     }
     Ok(())
+}
+
+/// Which of the loader's grid checks a candidate grid fails, if any.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum LoadProblem {
+    /// `validate_portal_returns`: the door, its landing, or a worker's way
+    /// back to it.
+    PortalReturn,
+    /// The edge-wall checks: a sim, its walk, or its contact with what it
+    /// is using, against the walls.
+    EdgeWorld,
+}
+
+/// Whether this world, with `grid` in place of its own, passes the grid checks
+/// the V3 loader runs - [WT-rules]. A lot edit that passes every rule of its own
+/// and fails this would save a game that refuses to load, so the wall validator
+/// asks the loader rather than keeping a second copy of its rules.
+pub(crate) fn candidate_grid_loads(
+    world: &bevy_ecs::world::World,
+    grid: &TileGrid,
+) -> Result<(), LoadProblem> {
+    let content = world.resource::<Content>().0;
+    let snapshot = capture_world(world);
+    validate_portal_returns(&snapshot, grid, content).map_err(|_| LoadProblem::PortalReturn)?;
+    architecture::validate_edge_world(&snapshot, grid, content, world)
+        .map_err(|_| LoadProblem::EdgeWorld)
 }
 
 fn validate_portal_returns(
@@ -2347,13 +2377,19 @@ mod tests {
         }
         assert_eq!(source.save_snapshot(), before);
         assert_eq!(source.world_hash(), world_hash);
-        // Through the format the game writes. A V1 record carries no wall
-        // edges, so a V1 round trip rebuilds a house with no walls, and the
-        // world hash sees walls since the wall tool ([WT-hash]).
+        // An old save is a V1 record, and the V1 loader must still restore
+        // both fridges' art from it. A V1 record carries no wall edges, so
+        // the world hash, which sees walls since [WT-hash], is compared on the
+        // V3 round trip the game now writes, beside the V1 record check.
+        let mut historical = Sim::new_from_shipped_lot();
+        historical
+            .load_snapshot(source.save_snapshot())
+            .expect("old fridge art saves load");
+        assert_eq!(historical.save_snapshot(), before);
         let mut restored = Sim::new_from_shipped_lot();
         restored
             .load_snapshot_v3(source.save_snapshot_v3())
-            .expect("old fridge art saves load");
+            .expect("current fridge art saves load");
         assert_eq!(restored.save_snapshot(), before);
         assert_eq!(restored.world_hash(), world_hash);
         restored.sync_render_buffer();

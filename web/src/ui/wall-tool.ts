@@ -38,22 +38,21 @@ const DONE: Readonly<Record<WallStateCode, string>> = {
 const NOT_SENT = 'That change could not be sent.';
 
 /**
- * The boundary nearest a world point, or null. Tiles are centred on whole
- * numbers, so the line between tile x-1 and tile x sits at x - 0.5. The nearer
- * of the nearest vertical and the nearest horizontal line wins, and the result
- * is kept inside the lot: the outside wall is not this tool's to change.
+ * The boundary nearest a world point, or null when the point is off the lot.
+ * Tiles are centred on whole numbers, so the line between tile x-1 and tile x
+ * sits at x - 0.5. The nearer of the nearest vertical and the nearest
+ * horizontal line wins. A lot's outer lines are offered too, so a click there
+ * reads the simulation's own refusal rather than quietly choosing another line.
  */
 export function nearestLine(wx: number, wy: number, width: number, height: number): WallLine | null {
   if (!Number.isFinite(wx) || !Number.isFinite(wy) || width < 1 || height < 1) return null;
-  if (width < 2 && height < 2) return null;
   const tx = wx + 0.5;
   const ty = wy + 0.5;
-  const clamp = (value: number, low: number, high: number) => Math.min(high, Math.max(low, value));
+  if (tx < 0 || ty < 0 || tx >= width || ty >= height) return null;
   const vertical = Math.abs(tx - Math.round(tx)) <= Math.abs(ty - Math.round(ty));
-  if ((vertical && width >= 2) || height < 2) {
-    return { axis: 0, x: clamp(Math.round(tx), 1, width - 1), y: clamp(Math.floor(ty), 0, height - 1) };
-  }
-  return { axis: 1, x: clamp(Math.floor(tx), 0, width - 1), y: clamp(Math.round(ty), 1, height - 1) };
+  return vertical
+    ? { axis: 0, x: Math.round(tx), y: Math.floor(ty) }
+    : { axis: 1, x: Math.floor(tx), y: Math.round(ty) };
 }
 
 /** The two tiles a line separates. */
@@ -61,6 +60,17 @@ export function tilesBeside(line: WallLine): [[number, number], [number, number]
   return line.axis === 0
     ? [[line.x - 1, line.y], [line.x, line.y]]
     : [[line.x, line.y - 1], [line.x, line.y]];
+}
+
+/**
+ * Where a key in Build mode goes - [WT-shell]. While Walls is the tool, a key it
+ * does not use goes nowhere, except Escape, which Build mode reads to leave: a
+ * furniture key must not move furniture the player cannot see is selected.
+ */
+export function routeBuildKey(key: string, walls: Pick<WallTool, 'active' | 'handleKey'>,
+  furniture: { handleKey(key: string): boolean }): boolean {
+  if (!walls.active) return furniture.handleKey(key);
+  return walls.handleKey(key) || (key === 'Escape' && furniture.handleKey(key));
 }
 
 /** What `wall_edges` says the line is: four words per record. */
@@ -79,8 +89,12 @@ export class WallTool {
   current: WallStateCode = OPEN;
   status = CHOOSE_LINE;
   pending: WallStateCode | null = null;
+  /** Another pause holds, such as a Load in progress: nothing may be staged. */
+  blocked = false;
   private previews: readonly [WallEditPreview, WallEditPreview, WallEditPreview] | null = null;
   private revision: number;
+  /** Rebuilt when the line or what it may become changes, never per frame. */
+  private shownHighlight: TileHighlight | null = null;
 
   constructor(private readonly source: WallSource, private width: number,
     private height: number, private readonly hooks: { changed(): void }) {
@@ -115,9 +129,15 @@ export class WallTool {
     this.hooks.changed();
   }
 
+  setBlocked(blocked: boolean): void {
+    if (this.blocked === blocked) return;
+    this.blocked = blocked;
+    this.hooks.changed();
+  }
+
   /** Whether pressing this state's button would stage an edit. */
   canApply(state: WallStateCode): boolean {
-    return this.active && this.line !== null && this.pending === null
+    return this.active && !this.blocked && this.line !== null && this.pending === null
       && state !== this.current && this.previews?.[state].valid === true;
   }
 
@@ -189,13 +209,9 @@ export class WallTool {
     this.clear();
   }
 
-  /** The two tiles beside the chosen line, tinted for whether a wall may go there. */
+  /** The lot tiles beside the chosen line, tinted for whether a wall may go there. */
   highlight(): TileHighlight | null {
-    if (!this.active || this.line === null) return null;
-    return {
-      tiles: tilesBeside(this.line),
-      valid: this.current === WALL || this.previews?.[WALL].valid === true,
-    };
+    return this.active ? this.shownHighlight : null;
   }
 
   private clear(): void {
@@ -204,6 +220,7 @@ export class WallTool {
     this.previews = null;
     this.current = OPEN;
     this.status = CHOOSE_LINE;
+    this.shownHighlight = null;
     this.hooks.changed();
   }
 
@@ -226,6 +243,10 @@ export class WallTool {
     this.current = stateOf(this.source.wallEdges() ?? [], line);
     const preview = (state: WallStateCode) => this.source.wallEditPreview(line.axis, line.x, line.y, state);
     this.previews = [preview(OPEN), preview(WALL), preview(DOORWAY)];
+    this.shownHighlight = {
+      tiles: tilesBeside(line).filter(([x, y]) => x >= 0 && y >= 0 && x < this.width && y < this.height),
+      valid: this.current === WALL || this.previews[WALL].valid,
+    };
   }
 
   private describe(): string {

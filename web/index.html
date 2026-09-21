@@ -561,6 +561,9 @@
       #builder-controls[hidden] { display: none; }
       #builder-name { margin: 0; font-size: 16px; overflow-wrap: anywhere; }
       #builder-controls p { margin: 0; }
+      /* The tool wrappers keep the panel's own spacing for what they hold. */
+      #furniture-tool, #wall-tool { display: grid; gap: 8px; }
+      #furniture-tool[hidden], #wall-tool[hidden] { display: none; }
       #builder-object {
         width: 100%; min-width: 0; min-height: 44px;
         color: var(--hud-text); background: var(--hud-bg);
@@ -1058,7 +1061,8 @@
             <button id="wall-doorway" class="hud-button" type="button">Doorway</button>
             <button id="wall-remove" class="hud-button" type="button">Remove</button>
           </div>
-          <p id="wall-help" class="builder-note">Click or tap near the line between two tiles. With the game view focused: arrows move the line; V and H turn it; W builds a wall; D makes a doorway; Backspace removes; Escape clears the choice.</p>
+          <p id="wall-keyboard-help" class="builder-note">Click near the line between two tiles. With the game view focused: arrows move the line; V and H turn it; W builds a wall; D makes a doorway; Backspace removes; Escape clears the choice.</p>
+          <p id="wall-touch-help" class="builder-note" hidden>Tap near the line between two tiles. Drag to pan; pinch to zoom.</p>
         </div>
       </section>
     </div>

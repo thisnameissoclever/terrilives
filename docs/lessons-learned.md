@@ -6633,7 +6633,33 @@ true? When a test compares two worlds through a lossy format, compare what that
 format carries, or use the format the game writes.
 
 **How to verify.** `fridge_art_replacement_restores_authored_and_dynamic_objects_without_save_changes`
-now round-trips through V3 and compares hashes;
+keeps its V1 load and compares V1 records, and adds a V3 round trip that
+compares hashes;
 `load_during_settle_in_reconstructs_the_socketed_render_endpoint_before_another_tick`
 keeps V1 on purpose, because its fixture is only valid there, and compares V1
-records. Both fail if the wall hash is removed and the V3 change is reverted.
+records. With the wall hash in place, turning either back into a V1 world-hash
+comparison makes it fail.
+
+## [L-an-edit-must-pass-the-loader] A lot edit's own rules accepted walls the loader refused
+
+**What happened.** The first review of the Walls tool found two walls the
+validator accepted that left a save the V3 loader refused: one between where a
+sim's walk ends and the object it is walking to, and one between the front door
+and its landing while another way in stayed open. The player could not resume
+the game. Both came up in ordinary play of the shipped household.
+
+**Root cause.** I built the wall validator from the furniture validator's
+rules and added the ones I could think of. The loader has its own, older rules
+about walls, walks and the front door, and nothing tied the two lists
+together. Any rule only the loader knew was a way to write a save it refuses.
+
+**Prevention rule.** An edit that writes saved state must pass the loader's
+checks on the candidate state, by calling them rather than copying them. Test
+the invariant directly: every edit the validator accepts leaves a save the
+loader accepts, over the real household at more than one moment.
+
+**How to verify.** Remove the `candidate_grid_loads` call from
+`validate_wall_edit`. `a_wall_between_where_a_walk_ends_and_what_it_is_walking_to_is_refused`,
+`a_wall_between_the_front_door_and_its_landing_is_refused_while_anyone_works`
+and `every_wall_the_shipped_household_accepts_leaves_a_save_that_loads` fail;
+the last names the vertical line at x 14, y 6, at tick 240.

@@ -12,7 +12,7 @@ import { SimBridge } from './bridge.js';
 import { spawnStressAgents } from './debug/stress-spawn.js';
 import { FurnitureBuilder } from './ui/builder.js';
 import { BuilderControls } from './ui/builder-controls.js';
-import { WallTool } from './ui/wall-tool.js';
+import { WallTool, routeBuildKey } from './ui/wall-tool.js';
 import { WallToolControls } from './ui/wall-tool-controls.js';
 import { AMBIENT_NEUTRAL, ambientFor } from './render/daylight.js';
 import { initDevice } from './render/device.js';
@@ -529,6 +529,7 @@ async function main(): Promise<void> {
   compactHudQuery.addEventListener('change', (event) => {
     mobileHud.setCompact(event.matches);
     builderControls.setCompact(event.matches);
+    wallControls?.setCompact(event.matches);
   });
   const gameHud = new GameHud(
     {
@@ -1049,15 +1050,17 @@ async function main(): Promise<void> {
   builderControls = new BuilderControls(document, builder);
   builderControls.setCompact(compactHudQuery.matches);
   wallControls = new WallToolControls(document, wallTool, {
-    leaveFurniture: () => builder.cancel(),
+    leaveFurniture() {
+      builder.cancel();
+      return builder.selected === null && !builder.pending;
+    },
   });
+  wallControls.setCompact(compactHudQuery.matches);
   canvas.addEventListener('keydown', (event) => {
     if (event.defaultPrevented) return;
     if (builder.active) {
-      // The Walls tool reads its keys first; what it leaves (Escape with no
-      // line chosen) falls through to Build mode, which exits.
       if (!menu.isShowing() && !event.ctrlKey && !event.metaKey && !event.altKey
-        && ((wallTool.active && wallTool.handleKey(event.key)) || builder.handleKey(event.key))) {
+        && routeBuildKey(event.key, wallTool, builder)) {
         event.preventDefault();
       }
       return;
@@ -1192,9 +1195,7 @@ async function main(): Promise<void> {
     if (!builder.active || event.defaultPrevented || event.key !== 'Escape' || menu.isShowing()) return;
     const target = event.target;
     if (target instanceof Element && target.closest('dialog, input, textarea, select, [contenteditable="true"]')) return;
-    if ((wallTool.active && wallTool.handleKey(event.key)) || builder.handleKey(event.key)) {
-      event.preventDefault();
-    }
+    if (routeBuildKey(event.key, wallTool, builder)) event.preventDefault();
   });
 
   const timer = new FrameTimer(FRAME_WINDOW);
@@ -1229,6 +1230,7 @@ async function main(): Promise<void> {
       () => audio.emit({ type: 'command.rejected' }),
     );
     builder.setBlocked(overlayPause.suspendedExcept('builder'));
+    wallTool.setBlocked(overlayPause.suspendedExcept('builder'));
     wallTool.afterCommands();
     if (builder.afterCommands()) {
       lot.walls = sim.wallTiles();

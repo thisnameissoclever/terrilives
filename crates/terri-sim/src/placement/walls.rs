@@ -43,7 +43,6 @@ pub struct WallPlan {
 
 /// A sim, the tiles it stands on, and what it is walking to or using.
 struct Standing {
-    entity: Entity,
     tiles: [(i32, i32); 4],
     target: Option<Entity>,
 }
@@ -122,20 +121,20 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
             return Err(WallOverlap);
         }
         // Nothing registered as a sim yet means there are no sims to wall in.
-        let mut standing: Vec<Standing> = world
+        // Every check below asks whether ANY sim matches, so the order the
+        // query returns them in cannot change an answer.
+        let standing: Vec<Standing> = world
             .try_query_filtered::<(Entity, &Position), With<Agent>>()
             .map(|mut agents| {
                 agents
                     .iter(world)
                     .map(|(entity, position)| Standing {
-                        entity,
                         tiles: tiles_under(position),
                         target: world.get::<Target>(entity).map(|t| t.object),
                     })
                     .collect()
             })
             .unwrap_or_default();
-        standing.sort_by_key(|sim| sim.entity.index());
         if standing
             .iter()
             .any(|sim| sim.tiles.contains(&a) && sim.tiles.contains(&b))
@@ -165,6 +164,15 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
             }
         }
         prove_lot_usable(world, &grid, &rectangles)?;
+        // Last, the loader's own grid checks: a wall that passed everything
+        // above can still leave a save that will not load - a sim walking to
+        // an object that is now across the wall from where its walk ends, or
+        // the front door walled off from its landing while another way in
+        // stays open. The review of this slice found both in ordinary play.
+        crate::save::candidate_grid_loads(world, &grid).map_err(|problem| match problem {
+            crate::save::LoadProblem::PortalReturn => BlockedLanding,
+            crate::save::LoadProblem::EdgeWorld => BlockedRoute,
+        })?;
     }
 
     Ok(WallPlan {

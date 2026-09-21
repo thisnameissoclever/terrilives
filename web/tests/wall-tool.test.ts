@@ -3,6 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge, wallReason, type WallEditPreview } from '../src/bridge.js';
 import { tileHighlightCount, writeTileHighlight } from '../src/render/placement-preview.js';
+import { WallToolControls } from '../src/ui/wall-tool-controls.js';
 import {
   CHOOSE_LINE,
   DOORWAY,
@@ -10,6 +11,7 @@ import {
   WALL,
   WallTool,
   nearestLine,
+  routeBuildKey,
   stateOf,
   tilesBeside,
   type WallLine,
@@ -77,24 +79,26 @@ describe('nearestLine', () => {
     expect(nearestLine(1.75, 0.75, 7, 5)).toEqual({ axis: 0, x: 2, y: 1 });
   });
 
-  it('never offers the outside wall', () => {
-    expect(nearestLine(-0.45, 2.0, 7, 5)).toEqual({ axis: 0, x: 1, y: 2 });
-    expect(nearestLine(6.45, 2.0, 7, 5)).toEqual({ axis: 0, x: 6, y: 2 });
-    expect(nearestLine(3.0, -0.45, 7, 5)).toEqual({ axis: 1, x: 3, y: 1 });
-    expect(nearestLine(3.0, 4.45, 7, 5)).toEqual({ axis: 1, x: 3, y: 4 });
-    expect(nearestLine(40, -40, 7, 5)).toEqual({ axis: 0, x: 6, y: 0 });
+  it('offers the outer lines, so the simulation can say why they cannot change', () => {
+    expect(nearestLine(-0.45, 2.0, 7, 5)).toEqual({ axis: 0, x: 0, y: 2 });
+    expect(nearestLine(6.45, 2.0, 7, 5)).toEqual({ axis: 0, x: 7, y: 2 });
+    expect(nearestLine(3.0, -0.45, 7, 5)).toEqual({ axis: 1, x: 3, y: 0 });
+    expect(nearestLine(3.0, 4.45, 7, 5)).toEqual({ axis: 1, x: 3, y: 5 });
   });
 
-  it('falls back to the only axis a one-tile-wide or one-tile-deep lot has', () => {
-    expect(nearestLine(0.0, 1.45, 1, 5)).toEqual({ axis: 1, x: 0, y: 2 });
-    expect(nearestLine(1.45, 0.0, 5, 1)).toEqual({ axis: 0, x: 2, y: 0 });
+  it('picks nothing for a point off the lot', () => {
+    // The lot's tiles span -0.5 up to width - 0.5.
+    for (const [wx, wy] of [[-0.51, 2], [6.5, 2], [3, -0.51], [3, 4.5], [40, -40]]) {
+      expect(nearestLine(wx, wy, 7, 5)).toBeNull();
+    }
+    expect(nearestLine(-0.5, -0.5, 7, 5)).toEqual({ axis: 0, x: 0, y: 0 });
   });
 
   it.each([
     [Number.NaN, 1, 7, 5],
     [1, Number.POSITIVE_INFINITY, 7, 5],
-    [1, 1, 1, 1],
     [1, 1, 0, 5],
+    [1, 1, 7, 0],
   ])('has no line for (%s, %s) in a %s by %s lot', (wx, wy, width, height) => {
     expect(nearestLine(wx, wy, width, height)).toBeNull();
   });
@@ -259,6 +263,34 @@ describe('WallTool', () => {
     expect(walls.handleKey('Escape')).toBe(false);
   });
 
+  it('stages nothing while another pause blocks Build mode', () => {
+    const { walls, source } = tool();
+    walls.enter();
+    walls.choosePoint(1.6, 1.0);
+    walls.setBlocked(true);
+    expect(walls.canApply(WALL)).toBe(false);
+    walls.apply(WALL);
+    walls.handleKey('w');
+    expect(source.staged).toEqual([]);
+    walls.setBlocked(false);
+    walls.apply(WALL);
+    expect(source.staged).toHaveLength(1);
+  });
+
+  it('rings only lot tiles, and keeps one highlight until the line changes', () => {
+    const { walls, source } = tool(7, 5);
+    walls.enter();
+    walls.choosePoint(-0.45, 2.0);
+    expect(walls.highlight()?.tiles).toEqual([[0, 2]]);
+    const shown = walls.highlight();
+    expect(walls.highlight()).toBe(shown);
+    source.revision = 2;
+    walls.afterCommands();
+    expect(walls.highlight()).not.toBe(shown);
+    walls.exit();
+    expect(walls.highlight()).toBeNull();
+  });
+
   it('forgets everything on exit and on Load, and takes the loaded lot size', () => {
     const { walls, source } = tool(7, 5);
     walls.enter();
@@ -337,7 +369,8 @@ describe('the Walls tool on real wasm', () => {
 
 describe('the Walls tool in the page', () => {
   const IDS = ['build-tool-furniture', 'build-tool-walls', 'furniture-tool', 'wall-tool',
-    'wall-status', 'wall-build', 'wall-doorway', 'wall-remove'];
+    'wall-status', 'wall-build', 'wall-doorway', 'wall-remove', 'wall-keyboard-help',
+    'wall-touch-help'];
 
   it.each(IDS)('declares #%s exactly once', (id) => {
     expect(INDEX_HTML.split(`id="${id}"`)).toHaveLength(2);
@@ -351,6 +384,11 @@ describe('the Walls tool in the page', () => {
     expect(panel).toContain('aria-pressed="true">Furniture</button>');
   });
 
+  it('keeps the build panel spacing inside both tool wrappers', () => {
+    expect(INDEX_HTML).toContain('#furniture-tool, #wall-tool { display: grid; gap: 8px; }');
+    expect(INDEX_HTML).toContain('#furniture-tool[hidden], #wall-tool[hidden] { display: none; }');
+  });
+
   it('is wired into the frame, the click and Load', () => {
     for (const wiring of ['wallTool.afterCommands()', 'wallTool.highlight()',
       'wallTool.choosePoint(world[0], world[1])',
@@ -359,12 +397,99 @@ describe('the Walls tool in the page', () => {
     }
   });
 
-  it('reads its keys first in both key listeners, before Build mode does', () => {
+  it('routes Build mode keys the same way in both key listeners, and blocks with Build', () => {
     // The canvas listener handles every key; the document listener catches
-    // Escape wherever focus is. Missing from either, a key reaches the
-    // furniture builder instead, and Escape would leave Build mode with a
-    // line still chosen.
-    const routing = '(wallTool.active && wallTool.handleKey(event.key)) || builder.handleKey(event.key)';
-    expect(MAIN_TS.split(routing)).toHaveLength(3);
+    // Escape wherever focus is.
+    expect(MAIN_TS.split('routeBuildKey(event.key, wallTool, builder)')).toHaveLength(3);
+    expect(MAIN_TS).toContain("wallTool.setBlocked(overlayPause.suspendedExcept('builder'))");
+  });
+});
+
+describe('routeBuildKey', () => {
+  function furniture() {
+    const seen: string[] = [];
+    return { seen, handleKey: (key: string) => { seen.push(key); return true; } };
+  }
+
+  it('gives every key to the furniture tool while Walls is not the tool', () => {
+    const { walls } = tool();
+    const builder = furniture();
+    expect(routeBuildKey(']', walls, builder)).toBe(true);
+    expect(builder.seen).toEqual([']']);
+  });
+
+  it('keeps furniture keys away from a furniture tool the player cannot see', () => {
+    const { walls } = tool();
+    walls.enter();
+    const builder = furniture();
+    for (const key of [']', '[', 'r', 'R', 'Enter']) {
+      expect(routeBuildKey(key, walls, builder)).toBe(false);
+    }
+    expect(routeBuildKey('ArrowLeft', walls, builder)).toBe(true);
+    expect(builder.seen).toEqual([]);
+  });
+
+  it('lets Escape through to leave Build mode only once no line is chosen', () => {
+    const { walls } = tool();
+    walls.enter();
+    walls.choosePoint(1.6, 1.0);
+    const builder = furniture();
+    expect(routeBuildKey('Escape', walls, builder)).toBe(true);
+    expect(builder.seen).toEqual([]);
+    expect(routeBuildKey('Escape', walls, builder)).toBe(true);
+    expect(builder.seen).toEqual(['Escape']);
+  });
+});
+
+describe('WallToolControls', () => {
+  class FakeElement {
+    hidden = false;
+    disabled = false;
+    textContent = '';
+    readonly attributes = new Map<string, string>();
+    readonly listeners: (() => void)[] = [];
+    setAttribute(name: string, value: string) { this.attributes.set(name, value); }
+    addEventListener(_type: string, listener: () => void) { this.listeners.push(listener); }
+    click() { for (const listener of this.listeners) listener(); }
+  }
+
+  function controls(leave: () => boolean) {
+    const elements = new Map<string, FakeElement>();
+    const doc = {
+      querySelector: (selector: string) => {
+        const id = selector.slice(1);
+        if (!elements.has(id)) elements.set(id, new FakeElement());
+        return elements.get(id);
+      },
+    } as unknown as Document;
+    const { walls } = tool();
+    const view = new WallToolControls(doc, walls, { leaveFurniture: leave });
+    return { walls, view, element: (id: string) => elements.get(id)! };
+  }
+
+  it('switches tools only when the furniture tool could let go', () => {
+    let free = false;
+    const { walls, view, element } = controls(() => free);
+    element('build-tool-walls').click();
+    expect(walls.active).toBe(false);
+    free = true;
+    element('build-tool-walls').click();
+    expect(walls.active).toBe(true);
+    view.render();
+    expect(element('wall-tool').hidden).toBe(false);
+    expect(element('furniture-tool').hidden).toBe(true);
+    expect(element('build-tool-walls').attributes.get('aria-pressed')).toBe('true');
+    element('build-tool-furniture').click();
+    view.render();
+    expect(walls.active).toBe(false);
+    expect(element('wall-tool').hidden).toBe(true);
+  });
+
+  it('shows the touch help on a phone and the keyboard help elsewhere', () => {
+    const { view, element } = controls(() => true);
+    view.setCompact(true);
+    expect([element('wall-keyboard-help').hidden, element('wall-touch-help').hidden]).toEqual([true, false]);
+    view.setCompact(false);
+    expect([element('wall-keyboard-help').hidden, element('wall-touch-help').hidden]).toEqual([false, true]);
   });
 });
