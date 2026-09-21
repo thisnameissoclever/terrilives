@@ -14,6 +14,7 @@ use terri_core::{
     SmartObject, Target,
 };
 
+pub use super::lot_edit::drain_commands;
 use crate::Content;
 
 /// Player-visible results produced while staged commands become simulation
@@ -111,7 +112,8 @@ impl Placement {
             | SimCommand::UseObject { .. }
             | SimCommand::CancelIntents { .. }
             | SimCommand::SetSpeed(_)
-            | SimCommand::TalkTo { .. } => Self::Back,
+            | SimCommand::TalkTo { .. }
+            | SimCommand::PlaceObject { .. } => Self::Back,
         }
     }
 }
@@ -317,7 +319,7 @@ fn place_intent(
 /// `select_action`: the query tuple is what pushes past clippy's
 /// threshold, and a type alias would only move it somewhere less readable.
 #[allow(clippy::type_complexity)]
-pub fn drain_commands(
+pub(crate) fn drain_ordinary_commands(
     mut commands: Commands,
     mut queue: ResMut<CommandQueue>,
     mut feedback: ResMut<CommandFeedback>,
@@ -354,6 +356,7 @@ pub fn drain_commands(
     for command in issued {
         let placement = Placement::of(&command);
         match command {
+            SimCommand::PlaceObject { .. } => unreachable!("lot edit splits ordinary stretches"),
             // A stale index leaves the selection ALONE rather than
             // clearing it. Clearing would make a click on a sim that has
             // just gone away deselect the one the player is watching,

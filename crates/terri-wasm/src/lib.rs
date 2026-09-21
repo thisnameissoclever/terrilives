@@ -9,6 +9,10 @@ use terri_sim::{Content, Sim};
 use wasm_bindgen::prelude::*;
 
 #[cfg(test)]
+mod placement_tests;
+#[cfg(test)]
+mod save_v3_tests;
+#[cfg(test)]
 mod spawn_boundary_tests;
 
 /// The level a non-finite hunger argument is replaced with. Either end of
@@ -100,6 +104,44 @@ pub struct SimHandle {
     sim: Sim,
 }
 
+fn placement_u32(value: f64) -> Option<u32> {
+    (value.is_finite() && value.fract() == 0.0 && value >= 0.0 && value <= u32::MAX as f64)
+        .then_some(value as u32)
+}
+
+fn placement_arguments(
+    object: f64,
+    x: f64,
+    y: f64,
+    facing: f64,
+) -> Option<(u32, u32, u32, terri_core::Facing)> {
+    let code = placement_u32(facing)?;
+    let direction = u8::try_from(code)
+        .ok()
+        .and_then(terri_core::Facing::from_code)?;
+    Some((
+        placement_u32(object)?,
+        placement_u32(x)?,
+        placement_u32(y)?,
+        direction,
+    ))
+}
+
+/// Decode frozen V1, including only the historical missing sleep-pressure list.
+fn decode_save_payload(payload: &[u8]) -> Option<terri_core::SaveSnapshotV1> {
+    match postcard::take_from_bytes::<terri_core::SaveSnapshotV1>(payload) {
+        Ok((snapshot, rest)) => rest.is_empty().then_some(snapshot),
+        Err(_) => {
+            let mut padded = payload.to_vec();
+            padded.push(0);
+            match postcard::take_from_bytes::<terri_core::SaveSnapshotV1>(&padded) {
+                Ok((snapshot, [])) if snapshot.sleep_pressure.is_empty() => Some(snapshot),
+                _ => None,
+            }
+        }
+    }
+}
+
 #[wasm_bindgen]
 impl SimHandle {
     #[wasm_bindgen(constructor)]
@@ -159,7 +201,7 @@ impl SimHandle {
 
     /// Saved legacy wall cells, interleaved `[x0, y0, x1, y1, ...]`.
     /// Furniture occupancy is not wall ownership. V1 custom worlds retain
-    /// their frozen legacy presentation; V2 explicit layouts use their own
+    /// their frozen legacy presentation; V2/V3 explicit layouts use their own
     /// saved cells. Edge layouts return no cells and use `wall_edges`.
     /// The renderer rebuilds this copied data after Load. Exterior boundaries
     /// are drawn separately from the saved lot dimensions.
@@ -216,6 +258,92 @@ impl SimHandle {
         self.sim.sync_render_buffer_after_commands();
     }
 
+    /// Owned projection: refusal code, origin, facing, rectangle, body, foreground.
+    /// f64 inputs preserve hostile JS values until release-mode validation.
+    pub fn placement_preview(&self, object: f64, x: f64, y: f64, facing: f64) -> Vec<f64> {
+        use terri_sim::placement::{object_definition, validate_placement, PlacementRefusal};
+        let mut out = vec![
+            PlacementRefusal::InvalidInput as u32 as f64,
+            x,
+            y,
+            facing,
+            0.0,
+            0.0,
+            0.0,
+            -1.0,
+        ];
+        let Some((object, x, y, direction)) = placement_arguments(object, x, y, facing) else {
+            return out;
+        };
+        if let Some((_, definition, _)) = object_definition(self.sim.world(), object) {
+            let footprint = definition.footprint_at(direction);
+            out[4] = footprint.width as f64;
+            out[5] = footprint.depth as f64;
+            out[6] = definition
+                .facing_sprites
+                .get(direction)
+                .unwrap_or(definition.sprite) as f64;
+            out[7] = definition
+                .facing_foreground_sprites
+                .get(direction)
+                .map_or(-1.0, |s| s as f64);
+        }
+        out[0] = validate_placement(self.sim.world(), object, (x, y), direction)
+            .err()
+            .map_or(0.0, |reason| reason as u32 as f64);
+        out
+    }
+
+    /// Queue acceptance only. The eventual result is read after the drain.
+    pub fn place_object(&mut self, object: f64, x: f64, y: f64, facing: f64) -> bool {
+        let Some((object, x, y, facing)) = placement_arguments(object, x, y, facing) else {
+            return false;
+        };
+        let bytes = postcard::to_allocvec(&SimCommand::PlaceObject {
+            object,
+            x,
+            y,
+            facing,
+        })
+        .expect("placement serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    pub fn object_facing(&self, object: f64) -> Option<u32> {
+        let object = placement_u32(object)?;
+        terri_sim::placement::object_definition(self.sim.world(), object)
+            .map(|(_, _, f)| f.code() as u32)
+    }
+
+    pub fn object_facing_mask(&self, object: f64) -> u32 {
+        placement_u32(object)
+            .and_then(|id| terri_sim::placement::object_definition(self.sim.world(), id))
+            .map_or(0, |(_, definition, _)| {
+                terri_core::Facing::ALL
+                    .into_iter()
+                    .filter(|&f| definition.supports(f))
+                    .map(|f| 1u32 << f.code())
+                    .sum()
+            })
+    }
+
+    pub fn lot_revision(&self) -> u64 {
+        self.sim
+            .world()
+            .resource::<terri_sim::placement::LotEditState>()
+            .revision
+    }
+
+    pub fn last_placement_result(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .resource::<terri_sim::placement::LotEditState>()
+            .last_result
+            .map_or_else(Vec::new, |result| {
+                vec![result.object, result.reason.map_or(0, |r| r as u32)]
+            })
+    }
+
     /// Returns and clears per-sim order-capacity rejections produced by the
     /// last full-tick or paused command drains.
     ///
@@ -241,7 +369,7 @@ impl SimHandle {
     /// [`sanitize_hunger`] and [`sanitize_coord`] for what that means and
     /// why the sim crates are not the place to do it. Edge-layout worlds
     /// refuse agents whose rounded tile is blocked or outside the lot, so
-    /// this public API cannot create a world its V2 loader would reject.
+    /// this public API cannot create a world its architecture loader would reject.
     /// Legacy worlds retain their permissive finite-coordinate behavior.
     pub fn spawn_agent(&mut self, x: f32, y: f32, hunger: f32) {
         let x = sanitize_coord(x);
@@ -633,7 +761,7 @@ impl SimHandle {
     /// interpret a shape it does not understand.
     pub fn save_bytes(&self) -> Vec<u8> {
         let payload =
-            postcard::to_allocvec(&self.sim.save_snapshot_v2()).expect("SaveSnapshotV2 serialises");
+            postcard::to_allocvec(&self.sim.save_snapshot_v3()).expect("SaveSnapshotV3 serialises");
         let mut bytes = Vec::with_capacity(SAVE_HEADER_BYTES + payload.len());
         bytes.extend_from_slice(&SAVE_MAGIC);
         bytes.extend_from_slice(&SAVE_SCHEMA_VERSION.to_le_bytes());
@@ -656,6 +784,12 @@ impl SimHandle {
         let version_start = SAVE_MAGIC.len();
         let version = u16::from_le_bytes([bytes[version_start], bytes[version_start + 1]]);
         let payload = &bytes[SAVE_HEADER_BYTES..];
+        if version == 3 {
+            return match postcard::take_from_bytes::<terri_core::SaveSnapshotV3>(payload) {
+                Ok((snapshot, [])) => self.sim.load_snapshot_v3(snapshot).is_ok(),
+                _ => false,
+            };
+        }
         if version == 2 {
             return match postcard::take_from_bytes::<terri_core::SaveSnapshotV2>(payload) {
                 Ok((snapshot, [])) => self.sim.load_snapshot_v2(snapshot).is_ok(),
@@ -666,40 +800,9 @@ impl SimHandle {
             return false;
         }
 
-        let decoded = postcard::take_from_bytes::<terri_core::SaveSnapshotV1>(payload);
-
-        // **A save written before sleep pressure existed still loads.**
-        //
-        // Postcard writes a struct as its fields back to back with no
-        // framing, and `sleep_pressure` is the last field, so an old
-        // payload is exactly a new one with those bytes missing. An empty
-        // `Vec` encodes as the single byte 0, which means an old payload
-        // followed by one zero IS a well-formed new payload - so the
-        // retry below is a migration rather than a guess.
-        //
-        // Done this way rather than by keeping a second struct mirroring
-        // the old field list, because that mirror would have to be edited
-        // in lockstep with the real one forever, and the failure when
-        // somebody forgot would be a misparsed save rather than a
-        // compile error.
-        //
-        // This repair belongs only to historical V1 payloads. V2 has its own
-        // strict decoder above; its embedded world record is never padded.
-        let (snapshot, rest_len) = match decoded {
-            Ok((snapshot, rest)) => (snapshot, rest.len()),
-            Err(_) => {
-                let mut padded = Vec::with_capacity(payload.len() + 1);
-                padded.extend_from_slice(payload);
-                padded.push(0);
-                match postcard::take_from_bytes::<terri_core::SaveSnapshotV1>(&padded) {
-                    Ok((snapshot, rest)) => (snapshot, rest.len()),
-                    Err(_) => return false,
-                }
-            }
-        };
-        if rest_len != 0 {
+        let Some(snapshot) = decode_save_payload(payload) else {
             return false;
-        }
+        };
         self.sim.load_snapshot(snapshot).is_ok()
     }
 
@@ -1151,17 +1254,6 @@ mod boundary_tests {
         );
     }
 
-    /// **A save written before sleep pressure existed still loads.**
-    ///
-    /// The owner reported that every deploy opened on "Saved game is
-    /// invalid. Starting a new game.", and the fix for THAT was narrowing
-    /// the content fingerprint. This is the other half: a new simulation
-    /// field must not throw the same saves away either.
-    ///
-    /// The old payload is built by taking a current one and dropping its
-    /// last byte, which is exactly the empty `sleep_pressure` the vector
-    /// above pins. That is a real pre-ramp save rather than a hand-typed
-    /// approximation of one.
     #[test]
     fn a_save_written_before_sleep_pressure_still_loads() {
         let mut original = legacy_cell_handle();
@@ -1193,6 +1285,37 @@ mod boundary_tests {
         // bytes short is not a shape any version ever wrote.
         let mut refused = SimHandle::from_lot();
         assert!(!refused.load_bytes(&current[..current.len() - 2]));
+    }
+
+    #[test]
+    fn legacy_repair_never_completes_a_truncated_sleep_pressure_record() {
+        let source = legacy_cell_handle();
+        let mut snapshot = source.sim.save_snapshot();
+        let agent = snapshot
+            .entities
+            .iter()
+            .find(|entity| entity.agent)
+            .unwrap()
+            .index;
+        snapshot.sleep_pressure = vec![(agent, 7)];
+        let complete = encode_save(&snapshot);
+        assert_eq!(complete.last(), Some(&7));
+
+        let mut live = SimHandle::from_lot();
+        assert!(
+            live.load_bytes(&complete),
+            "the complete nonempty list is valid"
+        );
+        assert_eq!(live.sim.save_snapshot().sleep_pressure, vec![(agent, 7)]);
+        live.tick();
+        let before = live.save_bytes();
+        let truncated = &complete[..complete.len() - 1];
+        assert!(
+            !live.load_bytes(truncated),
+            "a missing counter is corruption, not the historical missing list"
+        );
+        assert_eq!(live.save_bytes(), before);
+        assert!(decode_save_payload(&truncated[SAVE_HEADER_BYTES..]).is_none());
     }
 
     #[test]
@@ -1314,7 +1437,7 @@ mod boundary_tests {
             .collect();
         assert_eq!(bytes.len(), 2580);
         let mut expected: terri_core::SaveSnapshotV1 =
-            postcard::from_bytes(&bytes[SAVE_HEADER_BYTES..]).unwrap();
+            decode_save_payload(&bytes[SAVE_HEADER_BYTES..]).unwrap();
         assert_eq!(expected.content_fingerprint, 0xa020_602a_6acd_3a90);
         let original_grid = expected.blocked_tiles.clone();
         assert!(LEGACY_WALLS
@@ -1342,6 +1465,45 @@ mod boundary_tests {
             migrated.tick();
             resumed.tick();
             assert_eq!(migrated.world_hash(), resumed.world_hash());
+        }
+    }
+
+    #[test]
+    fn actual_pre_builder_saves_keep_work_and_return_crossing_state() {
+        for (tick, hex) in [
+            (600, include_str!("../tests/fixtures/pre-builder-600.hex")),
+            (908, include_str!("../tests/fixtures/pre-builder-908.hex")),
+        ] {
+            let hex: String = hex.split_whitespace().collect();
+            let bytes: Vec<u8> = hex
+                .as_bytes()
+                .chunks_exact(2)
+                .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
+                .collect();
+            let old = decode_save_payload(&bytes[SAVE_HEADER_BYTES..]).unwrap();
+            assert_eq!(old.tick, tick);
+            assert_eq!(old.content_fingerprint, 0xfdf5_87d9_437f_bfd0);
+            if tick == 600 {
+                assert!(old.entities.iter().any(|e| e.at_work_ticks.is_some()));
+            } else {
+                assert!(old.entities.iter().any(|e| e.commuting && e.path.is_some()));
+            }
+            let mut migrated = SimHandle::from_lot();
+            assert!(migrated.load_bytes(&bytes));
+            let current = migrated.sim.save_snapshot();
+            assert_eq!(current.entities, old.entities);
+            let mut expected = old.clone();
+            set_legacy_walls(&mut expected, false);
+            assert_eq!(current.blocked_tiles, expected.blocked_tiles);
+            assert_eq!(current.funds, old.funds);
+            assert_eq!(migrated.sim.save_snapshot_v3().object_facings.len(), 34);
+            let mut resumed = SimHandle::from_lot();
+            assert!(resumed.load_bytes(&migrated.save_bytes()));
+            for _ in 0..320 {
+                migrated.tick();
+                resumed.tick();
+                assert_eq!(resumed.world_hash(), migrated.world_hash());
+            }
         }
     }
 
@@ -1377,7 +1539,7 @@ mod boundary_tests {
 
         let current = migrated.sim.save_snapshot_v2();
         let mut expected_world = prior.world;
-        expected_world.content_fingerprint = 0xfdf5_87d9_437f_bfd0;
+        expected_world.content_fingerprint = 0x4dab_6950_757c_1f15;
         assert_eq!(current.world, expected_world);
         assert_eq!(current.layout, prior.layout);
         assert_eq!(migrated.wall_layout_kind(), 1);
@@ -1401,8 +1563,8 @@ mod boundary_tests {
         assert_eq!(&bytes[..SAVE_MAGIC.len()], &SAVE_MAGIC);
         assert_eq!(
             u16::from_le_bytes([bytes[SAVE_MAGIC.len()], bytes[SAVE_MAGIC.len() + 1]]),
-            2,
-            "the public writer must emit the V2 envelope"
+            3,
+            "the public writer must emit the V3 envelope"
         );
 
         let mut resumed = SimHandle::from_lot();
@@ -1453,7 +1615,7 @@ mod boundary_tests {
                 edges: edges.clone(),
             };
             source.sim.load_snapshot_v2(snapshot.clone()).unwrap();
-            let bytes = source.save_bytes();
+            let bytes = save_v3_tests::v2_bytes(&snapshot);
             assert_eq!(&bytes[8..10], &[2, 0]);
             let mut restored = SimHandle::from_lot();
             assert_eq!(restored.wall_edges().len(), 34 * 4);
@@ -1468,7 +1630,7 @@ mod boundary_tests {
             };
             assert_eq!(restored.wall_edges(), expected);
             assert_eq!(restored.sim.save_snapshot_v2(), snapshot);
-            assert_eq!(restored.save_bytes(), bytes);
+            assert_eq!(restored.save_bytes(), source.save_bytes());
             let grid = restored.sim.world().resource::<TileGrid>();
             assert_eq!(grid.can_cross((1, 1), (2, 1)), edges.is_empty());
             assert_eq!(grid.can_cross((2, 1), (1, 1)), edges.is_empty());
@@ -1479,7 +1641,7 @@ mod boundary_tests {
     #[test]
     fn v2_never_pads_a_truncated_payload_or_accepts_trailing_bytes_or_a_v1_body() {
         let source = SimHandle::new(4, 4);
-        let valid = source.save_bytes();
+        let valid = save_v3_tests::v2_bytes(&source.sim.save_snapshot_v2());
         assert_eq!(&valid[8..10], &[2, 0]);
         // LegacyCells is tag 1 followed by its empty vector. Removing the
         // final zero would become valid again if the V1 tail repair leaked in.
@@ -1489,7 +1651,7 @@ mod boundary_tests {
         let mut trailing = valid.clone();
         trailing.push(0);
         let mut future = valid.clone();
-        future[8..10].copy_from_slice(&3u16.to_le_bytes());
+        future[8..10].copy_from_slice(&4u16.to_le_bytes());
         let mut cases = vec![mislabeled_v1, trailing, future];
         for cut in SAVE_HEADER_BYTES..valid.len() {
             cases.push(valid[..cut].to_vec());
@@ -1555,7 +1717,7 @@ mod boundary_tests {
         // emitted by public revision 72d67c5 under the retired full-pack
         // algorithm rather than a value computed by the new code. The bytes
         // are encoded here, not copied from a player's slot; the separately
-        // pinned Save V1 golden vector, unchanged SaveSnapshotV1 source blob,
+        // pinned Save V1 prefix and append-only suffix,
         // and unchanged postcard/serde lock versions are the evidence that the
         // historical encoder has the same wire shape. Keep that proof boundary
         // explicit instead of calling this a captured deployed save.

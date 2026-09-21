@@ -3,6 +3,7 @@
 pub mod clock;
 pub mod command;
 pub mod components;
+pub mod facing;
 pub mod grid;
 pub mod hash;
 pub mod ids;
@@ -19,19 +20,22 @@ pub mod save;
 pub use bevy_ecs::prelude::Entity;
 pub use clock::{SimClock, TICKS_PER_SIM_HOUR, TICK_HZ};
 pub use command::{CommandQueue, SimCommand};
+pub use components::ObjectFacing;
 pub use components::{
     Agent, AtWork, Blocked, Career, Carrying, ChainState, Commuting, ConversationVoice, Eating,
     Fumbled, Funds, Habituation, Hobbies, Intent, IntentQueue, Path, Personality, Position,
     Relationships, Reserved, Restless, Satisfaction, Selected, SimId, SimIdAllocator, SimName,
     SleepPressure, SmartObject, Socialising, SpriteVariant, StepWork, Target, Traits, Wander,
 };
+pub use facing::Facing;
 pub use grid::{Footprint, TileDistanceField, TileGrid};
 pub use hash::FnvHasher;
 pub use ids::ObjectDefId;
 pub use needs::{NeedId, Needs, NEED_COUNT, NEED_MAX, NEED_MIN};
 pub use rng::SimRng;
 pub use save::{
-    SaveSnapshotV1, SaveSnapshotV2, SavedChainState, SavedCommand, SavedConversationVoice,
-    SavedEating, SavedEntity, SavedHabituation, SavedIntent, SavedPath, SavedPersonality,
-    SavedPosition, SavedSocialising, SavedTarget, SavedTraitState, SAVE_MAGIC, SAVE_SCHEMA_VERSION,
+    SaveSnapshotV1, SaveSnapshotV2, SaveSnapshotV3, SavedChainState, SavedCommand,
+    SavedConversationVoice, SavedEating, SavedEntity, SavedHabituation, SavedIntent, SavedPath,
+    SavedPersonality, SavedPosition, SavedSocialising, SavedTarget, SavedTraitState, SAVE_MAGIC,
+    SAVE_SCHEMA_VERSION,
 };

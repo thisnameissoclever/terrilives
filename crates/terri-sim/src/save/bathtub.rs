@@ -11,7 +11,11 @@ pub(super) mod source_layout;
 mod mutation_tests;
 
 const SOURCE_FINGERPRINT: u64 = 0xa020_602a_6acd_3a90;
-const REVIEWED_DESTINATION_FINGERPRINTS: [u64; 2] = [0xbcdd_476e_1e23_8ab0, 0xfdf5_87d9_437f_bfd0];
+const REVIEWED_DESTINATION_FINGERPRINTS: [u64; 3] = [
+    0xbcdd_476e_1e23_8ab0,
+    0xfdf5_87d9_437f_bfd0,
+    0x4dab_6950_757c_1f15,
+];
 const OLD: Footprint = Footprint { width: 2, depth: 1 };
 const NEW: Footprint = Footprint { width: 1, depth: 2 };
 type Tile = (i32, i32);
@@ -51,8 +55,9 @@ pub(super) fn reviewed_source(destination: &ContentPack) -> Option<ContentPack> 
     }
     let mut source = destination.clone();
     source.objects[bathtub.0 as usize].footprint = OLD;
+    source.objects[bathtub.0 as usize].base_facing = terri_core::Facing::SouthEast;
     source.portals.clear();
-    (terri_data::content_fingerprint(&source) == SOURCE_FINGERPRINT).then_some(source)
+    terri_data::content_fingerprint_matches(&source, SOURCE_FINGERPRINT).then_some(source)
 }
 
 fn rotate_world(

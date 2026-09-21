@@ -20,6 +20,31 @@ pub use terri_core::ObjectDefId;
 /// content crate rather than inside it.
 pub use terri_core::Footprint;
 
+/// Also defined in `terri-core`: the simulation's `ObjectFacing` component
+/// and the save file both carry one, so it lives below the content crate.
+pub use terri_core::Facing;
+
+/// One optional atlas index per direction, in [`Facing::ALL`] code order.
+/// The base-direction slot holds the definition's sprite; missing imports
+/// remain `None`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct FacingSprites(pub [Option<u32>; 4]);
+
+impl FacingSprites {
+    /// No facing drawn at all: an object with no foreground layer.
+    pub const NONE: Self = Self([None; 4]);
+
+    /// Only the south-east render exists, as in most test fixtures.
+    pub fn south_east_only(sprite: u32) -> Self {
+        Self([Some(sprite), None, None, None])
+    }
+
+    /// The atlas index drawn at `facing`, if that render exists.
+    pub fn get(&self, facing: Facing) -> Option<u32> {
+        self.0[facing.code() as usize]
+    }
+}
+
 /// Closed object-audio vocabulary resolved from authored `sound_action`.
 ///
 /// This is presentation metadata. Gameplay tags, broad activities, and object
@@ -89,6 +114,31 @@ pub struct CompiledActionSocket {
     pub x: f32,
     pub y: f32,
     pub facing: CompiledSocketFacing,
+}
+
+impl CompiledSocketFacing {
+    /// The unit lot axis this facing points along.
+    fn axis(self) -> (i32, i32) {
+        match self {
+            Self::PositiveX => (1, 0),
+            Self::NegativeX => (-1, 0),
+            Self::PositiveY => (0, 1),
+            Self::NegativeY => (0, -1),
+        }
+    }
+
+    /// Rotate this socket axis by a relative turn from the definition's base.
+    /// `SouthEast` represents zero quarter turns and returns it unchanged.
+    pub fn turned_with(self, object_facing: Facing) -> Self {
+        let (x, y) = self.axis();
+        match object_facing.rotate_axis(x, y) {
+            (1, 0) => Self::PositiveX,
+            (-1, 0) => Self::NegativeX,
+            (0, 1) => Self::PositiveY,
+            (0, -1) => Self::NegativeY,
+            _ => unreachable!("rotating a unit axis by quarter turns produces a unit axis"),
+        }
+    }
 }
 
 /// A placement's absolute socket after its authored facing is applied.
@@ -183,6 +233,89 @@ pub struct CompiledObject {
     /// Optional atlas layer drawn after bodies occupying this object.
     /// Presentation-only and reconstructed from the current pack on load.
     pub foreground_sprite: Option<u32>,
+    /// The atlas index this object is drawn with at each facing. The
+    /// base-facing entry is always `sprite`. Appended when objects became
+    /// turnable at runtime; its encoded position must not move.
+    pub facing_sprites: FacingSprites,
+    /// The foreground layer at each facing. All `None` for an object with
+    /// no foreground layer; otherwise the base-facing entry is
+    /// `foreground_sprite`.
+    pub facing_foreground_sprites: FacingSprites,
+    /// Authored geometry and default art orientation. Transforms use a relative turn.
+    pub base_facing: Facing,
+}
+
+impl CompiledObject {
+    pub fn footprint_at(&self, facing: Facing) -> Footprint {
+        if self.relative_turn(facing).swaps_footprint_sides() {
+            Footprint {
+                width: self.footprint.depth,
+                depth: self.footprint.width,
+            }
+        } else {
+            self.footprint
+        }
+    }
+
+    fn relative_turn(&self, facing: Facing) -> Facing {
+        Facing::ALL[((facing.code() + 4 - self.base_facing.code()) % 4) as usize]
+    }
+    /// Whether this object can be drawn at `facing`: its sprite exists
+    /// for that facing and, when it has a foreground layer, so does the
+    /// layer. A body drawn behind a foreground from another facing would
+    /// be covered by the wrong pixels, so a missing layer rules the facing
+    /// out rather than being skipped.
+    pub fn supports(&self, facing: Facing) -> bool {
+        self.facing_sprites.get(facing).is_some()
+            && (self.foreground_sprite.is_none()
+                || self.facing_foreground_sprites.get(facing).is_some())
+    }
+
+    /// The next supported facing after `from` in quarter-turn order, or
+    /// `None` when `from` is the only facing this object supports.
+    pub fn next_supported_facing(&self, from: Facing) -> Option<Facing> {
+        let mut candidate = from.turned();
+        // Three steps reach every facing other than `from`; the fourth
+        // would be `from` itself.
+        for _ in 0..3 {
+            if self.supports(candidate) {
+                return Some(candidate);
+            }
+            candidate = candidate.turned();
+        }
+        None
+    }
+
+    /// This object's action sockets in lot coordinates, for an object whose
+    /// origin tile is `(origin_x, origin_y)` and which faces `facing`.
+    ///
+    /// A socket is authored as an offset from the footprint's centre for
+    /// the definition's base render. Turning the object rotates the offset about
+    /// the centre of the ORIENTED rectangle and turns the socket's own
+    /// facing with it. The compile step has already checked that every
+    /// socket stays inside the rectangle at every supported facing.
+    pub fn sockets_at(
+        &self,
+        origin_x: f32,
+        origin_y: f32,
+        facing: Facing,
+    ) -> Vec<CompiledPlacementSocket> {
+        let footprint = self.footprint_at(facing);
+        let turn = self.relative_turn(facing);
+        let centre_x = origin_x + (footprint.width - 1) as f32 / 2.0;
+        let centre_y = origin_y + (footprint.depth - 1) as f32 / 2.0;
+        self.action_sockets
+            .iter()
+            .map(|socket| {
+                let (offset_x, offset_y) = turn.rotate_offset(socket.x, socket.y);
+                CompiledPlacementSocket {
+                    x: centre_x + offset_x,
+                    y: centre_y + offset_y,
+                    facing: socket.facing.turned_with(turn),
+                }
+            })
+            .collect()
+    }
 }
 
 /// One object, placed on the lot.
@@ -210,6 +343,12 @@ pub struct CompiledPlacement {
     pub action_sockets: Vec<CompiledPlacementSocket>,
     /// Facing-resolved foreground atlas layer for this placement.
     pub foreground_sprite: Option<u32>,
+    /// The authored facing itself, the definition's base when the placement
+    /// declares none. `sprite`, `action_sockets` and `foreground_sprite` above are
+    /// what this facing resolves to; the simulation keeps the facing so a
+    /// player can turn the object afterwards. **Last in this struct on
+    /// purpose**, per the appending rule.
+    pub facing: Facing,
 }
 
 /// The lot: its size, interior architecture, and what stands on it.
@@ -814,6 +953,7 @@ mod tests {
                     sprite: 9,
                     action_sockets: vec![],
                     foreground_sprite: None,
+                    facing: Facing::NorthWest,
                 },
                 CompiledPlacement {
                     object: ObjectDefId(0),
@@ -833,6 +973,11 @@ mod tests {
                         },
                     ],
                     foreground_sprite: Some(12),
+                    // A different facing per placement, neither of them the
+                    // default, so a round trip that dropped the field or
+                    // stamped one placement's facing on both moves the
+                    // equality ([L34]).
+                    facing: Facing::SouthWest,
                 },
             ],
         }
@@ -938,6 +1083,22 @@ mod tests {
                             vec![]
                         },
                         foreground_sprite: (i == 1).then_some(11),
+                        base_facing: Facing::SouthEast,
+                        // A different table per object, with a hole in a
+                        // different place each time, so the round trip can
+                        // see the two tables transposed, one dropped, or an
+                        // entry moved to another facing's slot ([L34]).
+                        facing_sprites: FacingSprites([
+                            Some((i as u32) + 4),
+                            (i != 0).then_some((i as u32) + 40),
+                            (i != 1).then_some((i as u32) + 50),
+                            Some((i as u32) + 60),
+                        ]),
+                        facing_foreground_sprites: if i == 1 {
+                            FacingSprites([Some(11), None, Some(71), None])
+                        } else {
+                            FacingSprites::NONE
+                        },
                     }
                 })
                 .collect(),
@@ -1171,6 +1332,225 @@ mod tests {
         assert!(!lot.is_wall(0, 1), "(0, 1) is (1, 0) transposed");
         assert!(!lot.is_wall(3, 0), "x alone must not decide a wall");
         assert!(!lot.is_wall(1, 2), "y alone must not decide a wall");
+    }
+
+    /// A one-tile object with the given facing tables and no sockets.
+    fn turnable(
+        foreground_sprite: Option<u32>,
+        facing_sprites: FacingSprites,
+        facing_foreground_sprites: FacingSprites,
+    ) -> CompiledObject {
+        CompiledObject {
+            id: "thing".to_string(),
+            name: "Thing".to_string(),
+            sprite: 4,
+            interactions: vec![],
+            footprint: Footprint::SINGLE,
+            roles: vec![],
+            action_sockets: vec![],
+            foreground_sprite,
+            facing_sprites,
+            facing_foreground_sprites,
+            base_facing: Facing::SouthEast,
+        }
+    }
+
+    #[test]
+    fn a_facing_table_reads_back_the_slot_for_each_facing() {
+        let table = FacingSprites([Some(10), Some(11), None, Some(13)]);
+        let read: Vec<Option<u32>> = Facing::ALL.into_iter().map(|f| table.get(f)).collect();
+        assert_eq!(read, vec![Some(10), Some(11), None, Some(13)]);
+        assert_eq!(
+            FacingSprites::south_east_only(7),
+            FacingSprites([Some(7), None, None, None])
+        );
+        assert_eq!(FacingSprites::NONE, FacingSprites([None; 4]));
+    }
+
+    /// Support needs the sprite, and ALSO the foreground layer when the
+    /// object has one. Each object below isolates one half: the first has
+    /// no foreground, so only its sprite table decides; the second has
+    /// every sprite, so only its foreground table decides.
+    #[test]
+    fn a_facing_is_supported_only_with_its_sprite_and_its_foreground_layer() {
+        let no_foreground = turnable(
+            None,
+            FacingSprites([Some(4), None, Some(6), None]),
+            FacingSprites::NONE,
+        );
+        let supported: Vec<bool> = Facing::ALL
+            .into_iter()
+            .map(|f| no_foreground.supports(f))
+            .collect();
+        assert_eq!(supported, vec![true, false, true, false]);
+
+        let layered = turnable(
+            Some(20),
+            FacingSprites([Some(4), Some(5), Some(6), Some(7)]),
+            FacingSprites([Some(20), Some(21), None, None]),
+        );
+        let supported: Vec<bool> = Facing::ALL
+            .into_iter()
+            .map(|f| layered.supports(f))
+            .collect();
+        assert_eq!(
+            supported,
+            vec![true, true, false, false],
+            "a facing whose foreground layer is missing is not supported, \
+             even though the sprite exists"
+        );
+    }
+
+    #[test]
+    fn the_next_supported_facing_skips_facings_with_no_art_and_wraps() {
+        // South-east and north-west only: each is the other's next.
+        let two = turnable(
+            None,
+            FacingSprites([Some(4), None, Some(6), None]),
+            FacingSprites::NONE,
+        );
+        assert_eq!(
+            two.next_supported_facing(Facing::SouthEast),
+            Some(Facing::NorthWest)
+        );
+        assert_eq!(
+            two.next_supported_facing(Facing::NorthWest),
+            Some(Facing::SouthEast),
+            "the search wraps past north-east back to south-east"
+        );
+
+        // All four: the next is simply the next quarter turn.
+        let four = turnable(
+            None,
+            FacingSprites([Some(4), Some(5), Some(6), Some(7)]),
+            FacingSprites::NONE,
+        );
+        let sequence: Vec<Option<Facing>> = Facing::ALL
+            .into_iter()
+            .map(|f| four.next_supported_facing(f))
+            .collect();
+        assert_eq!(
+            sequence,
+            vec![
+                Some(Facing::SouthWest),
+                Some(Facing::NorthWest),
+                Some(Facing::NorthEast),
+                Some(Facing::SouthEast),
+            ]
+        );
+
+        // Only the third step away is supported, which is the last step
+        // the search takes before it would arrive back at `from`.
+        let far = turnable(
+            None,
+            FacingSprites([Some(4), None, None, Some(7)]),
+            FacingSprites::NONE,
+        );
+        assert_eq!(
+            far.next_supported_facing(Facing::SouthEast),
+            Some(Facing::NorthEast)
+        );
+
+        // One facing only: there is nowhere to turn to, and the answer is
+        // None rather than the facing it already has.
+        let fixed = turnable(None, FacingSprites::south_east_only(4), FacingSprites::NONE);
+        assert_eq!(fixed.next_supported_facing(Facing::SouthEast), None);
+    }
+
+    #[test]
+    fn a_socket_facing_turns_with_its_object_for_every_source_and_facing() {
+        use CompiledSocketFacing::{NegativeX, NegativeY, PositiveX, PositiveY};
+
+        for (source, expected) in [
+            (PositiveX, [PositiveX, PositiveY, NegativeX, NegativeY]),
+            (NegativeX, [NegativeX, NegativeY, PositiveX, PositiveY]),
+            (PositiveY, [PositiveY, NegativeX, NegativeY, PositiveX]),
+            (NegativeY, [NegativeY, PositiveX, PositiveY, NegativeX]),
+        ] {
+            for (facing, expected) in Facing::ALL.into_iter().zip(expected) {
+                assert_eq!(
+                    source.turned_with(facing),
+                    expected,
+                    "source {source:?} on an object facing {facing:?}"
+                );
+            }
+        }
+    }
+
+    /// A 3 by 2 object with one off-centre socket, so the centre term, the
+    /// offset rotation and the side swap each move the answer on both axes
+    /// ([L-exercise-geometry-on-both-axes]). Origin (10, 20): distinct
+    /// enough that a transposed origin cannot land on a right answer.
+    #[test]
+    fn sockets_resolve_about_the_centre_of_the_oriented_rectangle() {
+        let mut object = turnable(
+            None,
+            FacingSprites([Some(4), Some(5), Some(6), Some(7)]),
+            FacingSprites::NONE,
+        );
+        object.footprint = Footprint { width: 3, depth: 2 };
+        object.action_sockets = vec![CompiledActionSocket {
+            id: "seat".to_string(),
+            x: 0.75,
+            y: -0.25,
+            facing: CompiledSocketFacing::PositiveX,
+        }];
+
+        let resolved: Vec<(f32, f32, CompiledSocketFacing)> = Facing::ALL
+            .into_iter()
+            .map(|facing| {
+                let sockets = object.sockets_at(10.0, 20.0, facing);
+                assert_eq!(sockets.len(), 1);
+                (sockets[0].x, sockets[0].y, sockets[0].facing)
+            })
+            .collect();
+        assert_eq!(
+            resolved,
+            vec![
+                // Centre (11, 20.5), offset (0.75, -0.25).
+                (11.75, 20.25, CompiledSocketFacing::PositiveX),
+                // Sides swapped: centre (10.5, 21), offset (0.25, 0.75).
+                (10.75, 21.75, CompiledSocketFacing::PositiveY),
+                // Centre (11, 20.5) again, offset (-0.75, 0.25).
+                (10.25, 20.75, CompiledSocketFacing::NegativeX),
+                // Centre (10.5, 21), offset (-0.25, -0.75).
+                (10.25, 20.25, CompiledSocketFacing::NegativeY),
+            ]
+        );
+    }
+
+    #[test]
+    fn a_directional_base_rotates_geometry_only_by_the_relative_turn() {
+        let mut object = turnable(
+            None,
+            FacingSprites([Some(4), Some(5), Some(6), Some(7)]),
+            FacingSprites::NONE,
+        );
+        object.base_facing = Facing::SouthWest;
+        object.footprint = Footprint { width: 3, depth: 2 };
+        object.action_sockets = vec![CompiledActionSocket {
+            id: "seat".into(),
+            x: 0.75,
+            y: -0.25,
+            facing: CompiledSocketFacing::PositiveX,
+        }];
+        let expected = [
+            (2, 3, 10.25, 20.25, CompiledSocketFacing::NegativeY),
+            (3, 2, 11.75, 20.25, CompiledSocketFacing::PositiveX),
+            (2, 3, 10.75, 21.75, CompiledSocketFacing::PositiveY),
+            (3, 2, 10.25, 20.75, CompiledSocketFacing::NegativeX),
+        ];
+        for (facing, (width, depth, x, y, socket_facing)) in Facing::ALL.into_iter().zip(expected) {
+            assert_eq!(object.footprint_at(facing), Footprint { width, depth });
+            assert_eq!(
+                object.sockets_at(10.0, 20.0, facing),
+                vec![CompiledPlacementSocket {
+                    x,
+                    y,
+                    facing: socket_facing
+                }]
+            );
+        }
     }
 
     /// Task 5's `build.rs` writes the pack with `postcard::to_allocvec`

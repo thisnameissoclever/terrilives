@@ -19,6 +19,7 @@ pub use pack::{
     CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, CompiledVoiceClip,
     ContentPack, Footprint, ObjectDefId, Tuning,
 };
+pub use pack::{Facing, FacingSprites};
 pub use schema::{
     ActionSocketDef, ArchetypeDef, AtlasFile, AtlasSpriteDef, DispositionDef, FrontDoorDef,
     FrontDoorVisualDef, HouseholdFile, HouseholdSimDef, InteractionDef, LotFile, NeedDef,
@@ -50,7 +51,7 @@ static PACK_BYTES: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/content_pac
 /// What is hashed here is the part of a `SaveSnapshotV1` address that the
 /// snapshot itself cannot validate by name:
 ///
-/// * Each object's footprint, resolved station-role names, interaction ids IN
+/// * Each object's base direction, footprint, resolved station-role names, interaction ids IN
 ///   ORDER, and advertised chain ids IN FLYOUT ORDER. Saves name objects by
 ///   string, so object declaration order is free; interaction and flyout rows
 ///   are numeric, so their order is not. Station roles decide where a restored
@@ -94,6 +95,20 @@ static PACK_BYTES: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/content_pac
 /// only by persisting stable ids beside every numeric row; pretending one hash
 /// can infer which definitions a particular save used would be theatre.
 pub fn content_fingerprint(pack: &ContentPack) -> u64 {
+    let mut hasher = terri_core::FnvHasher::default();
+    hasher.write_bytes(b"terrilives-object-facing-v1");
+    hasher.write_u64(pre_facing_fingerprint(pack));
+    let mut objects: Vec<_> = pack.objects.iter().collect();
+    objects.sort_unstable_by(|a, b| a.id.cmp(&b.id));
+    for object in objects {
+        hash_text(&mut hasher, &object.id);
+        hasher.write_bytes(&[object.base_facing.code()]);
+    }
+    hasher.finish()
+}
+
+/// Frozen digest algorithm used by published saves before runtime direction.
+fn pre_facing_fingerprint(pack: &ContentPack) -> u64 {
     let mut hasher = terri_core::FnvHasher::default();
     hasher.write_bytes(b"terrilives-save-compatibility-v1");
 
@@ -288,7 +303,11 @@ const PRE_PORTAL_FINGERPRINT_MIGRATIONS: &[(u64, u64)] =
 /// whole-pack algorithm, but only while the current structural digest remains
 /// the specifically reviewed target.
 pub fn content_fingerprint_matches(pack: &ContentPack, saved: u64) -> bool {
-    let current = content_fingerprint(pack);
+    let exact = content_fingerprint(pack);
+    let current = reviewed_pre_facing_target(exact);
+    if saved == exact {
+        return true;
+    }
     saved == current
         || LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS
             .iter()
@@ -304,7 +323,7 @@ pub fn content_fingerprint_matches(pack: &ContentPack, saved: u64) -> bool {
 /// Whether `saved` is one of the retired whole-pack fingerprints accepted by
 /// the migration table for this exact current content shape.
 pub fn content_fingerprint_is_legacy(pack: &ContentPack, saved: u64) -> bool {
-    let current = content_fingerprint(pack);
+    let current = reviewed_pre_facing_target(content_fingerprint(pack));
     LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS
         .iter()
         .any(|&(legacy, target)| saved == legacy && current == target)
@@ -318,7 +337,7 @@ pub fn content_fingerprint_is_legacy(pack: &ContentPack, saved: u64) -> bool {
 /// from [`content_fingerprint_is_legacy`]: this bridge never authorises the
 /// historical household-name rewrite.
 pub fn content_fingerprint_is_prior_structural(pack: &ContentPack, saved: u64) -> bool {
-    let current = content_fingerprint(pack);
+    let current = reviewed_pre_facing_target(content_fingerprint(pack));
     PRIOR_STRUCTURAL_FINGERPRINT_MIGRATIONS
         .iter()
         .any(|&(prior, target)| saved == prior && current == target)
@@ -337,6 +356,15 @@ pub fn content_fingerprint_is_pre_aquarium_bike(pack: &ContentPack, saved: u64) 
 
 fn hash_count(hasher: &mut terri_core::FnvHasher, count: usize) {
     hasher.write_u64(count as u64);
+}
+
+// Only these exact new structural shapes inherit the reviewed public bridges.
+fn reviewed_pre_facing_target(current: u64) -> u64 {
+    match current {
+        0x4dab_6950_757c_1f15 => 0xfdf5_87d9_437f_bfd0,
+        0x93b0_a495_25ce_6e0c => 0xa020_602a_6acd_3a90,
+        other => other,
+    }
 }
 
 fn hash_text(hasher: &mut terri_core::FnvHasher, value: &str) {
@@ -368,6 +396,33 @@ pub fn pack() -> &'static ContentPack {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn facing_digest_targets_are_pinned() {
+        assert_eq!(content_fingerprint(pack()), 0x4dab_6950_757c_1f15);
+        let mut source = pre_rotation_pack();
+        let tub = source.find("bathtub").unwrap();
+        source.objects[tub.0 as usize].base_facing = Facing::SouthEast;
+        assert_eq!(content_fingerprint(&source), 0x93b0_a495_25ce_6e0c);
+    }
+
+    #[test]
+    fn base_direction_changes_close_public_bridges() {
+        for key in ["desk", "bathtub", "chair"] {
+            let mut changed = pack().clone();
+            let id = changed.find(key).unwrap();
+            changed.objects[id.0 as usize].base_facing =
+                changed.objects[id.0 as usize].base_facing.turned();
+            assert_ne!(content_fingerprint(&changed), content_fingerprint(pack()));
+            for saved in [
+                0xa020_602a_6acd_3a90,
+                0xbcdd_476e_1e23_8ab0,
+                0xfdf5_87d9_437f_bfd0,
+            ] {
+                assert!(!content_fingerprint_matches(&changed, saved));
+            }
+        }
+    }
 
     #[test]
     fn the_embedded_pack_deserialises_and_holds_the_fridge() {
@@ -1249,7 +1304,7 @@ mod tests {
         let reviewed = pre_rotation_pack();
         let pack = || &reviewed;
         assert_eq!(
-            content_fingerprint(pack()),
+            pre_facing_fingerprint(pack()),
             0xa020_602a_6acd_3a90,
             "a structural content edit must review or retire each legacy bridge"
         );
@@ -1305,13 +1360,13 @@ mod tests {
     #[test]
     fn the_pre_portal_shape_migrates_only_to_the_reviewed_landing() {
         let prior_pack = pre_portal_pack();
-        let prior = content_fingerprint(&prior_pack);
+        let prior = pre_facing_fingerprint(&prior_pack);
         let current = content_fingerprint(pack());
         assert_eq!(prior, 0xbcdd_476e_1e23_8ab0);
-        assert_eq!(current, 0xfdf5_87d9_437f_bfd0);
+        assert_eq!(current, 0x4dab_6950_757c_1f15);
         assert_eq!(
             PRE_PORTAL_FINGERPRINT_MIGRATIONS,
-            &[(prior, current)],
+            &[(prior, 0xfdf5_87d9_437f_bfd0)],
             "the pre-portal digest must name one exact reviewed destination"
         );
         assert!(content_fingerprint_matches(pack(), prior));
@@ -1332,7 +1387,7 @@ mod tests {
         let mut unpublished = pack().clone();
         let bathtub = unpublished.find("bathtub").expect("shipped bathtub");
         unpublished.objects[bathtub.0 as usize].footprint = Footprint { width: 2, depth: 1 };
-        let checkpoint = content_fingerprint(&unpublished);
+        let checkpoint = pre_facing_fingerprint(&unpublished);
         assert_eq!(checkpoint, 0xd1c8_9f68_9f73_2f30);
         assert!(!content_fingerprint_matches(pack(), checkpoint));
     }
@@ -1377,6 +1432,7 @@ mod tests {
         let mut source = pack().clone();
         let bathtub = source.find("bathtub").expect("shipped bathtub");
         source.objects[bathtub.0 as usize].footprint = Footprint { width: 2, depth: 1 };
+        source.objects[bathtub.0 as usize].base_facing = Facing::SouthEast;
         source.portals.clear();
         source
     }

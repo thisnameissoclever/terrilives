@@ -9,10 +9,11 @@ use crate::error::ContentError;
 use crate::pack::{Circadian, CompiledHouseholdMember, CompiledPersonality};
 use crate::pack::{
     CompiledActionSocket, CompiledInteraction, CompiledLot, CompiledObject, CompiledPlacement,
-    CompiledPlacementSocket, CompiledPortal, CompiledPortalHinge, CompiledSocketFacing,
-    CompiledSoundAction, CompiledVisual, CompiledVisualAction, CompiledVisualAnchor,
-    CompiledVisualFacing, CompiledVoiceClip, ContentPack, ObjectDefId, Tuning,
+    CompiledPortal, CompiledPortalHinge, CompiledSocketFacing, CompiledSoundAction, CompiledVisual,
+    CompiledVisualAction, CompiledVisualAnchor, CompiledVisualFacing, CompiledVoiceClip,
+    ContentPack, ObjectDefId, Tuning,
 };
+use crate::pack::{Facing, FacingSprites};
 use crate::schema::{
     AtlasFile, CareersFile, ChainsFile, HouseholdFile, InteractionDef, LotFile, NeedsFile,
     ObjectsFile, PersonalitiesFile, SocialFile, TraitsFile, TuningFile, VisualDef, VoiceFile,
@@ -254,18 +255,7 @@ pub fn compile(
             };
             let x = (object.footprint.width - 1) as f32 / 2.0 + socket.x;
             let y = (object.footprint.depth - 1) as f32 / 2.0 + socket.y;
-            if x.floor() < 0.0
-                || y.floor() < 0.0
-                || x.floor() >= object.footprint.width as f32
-                || y.floor() >= object.footprint.depth as f32
-            {
-                return Err(ContentError::ActionSocketOutsideFootprint {
-                    object: object.id.clone(),
-                    socket: socket.id.clone(),
-                    x,
-                    y,
-                });
-            }
+            check_socket_bounds(&object.id, &socket.id, x, y, object.footprint)?;
             action_sockets.push(CompiledActionSocket {
                 id: socket.id.clone(),
                 x: socket.x,
@@ -396,7 +386,30 @@ pub fn compile(
         }
         worn_roles.sort_unstable();
 
-        compiled.push(CompiledObject {
+        let base_facing = match object.base_facing.as_deref() {
+            None => Facing::SouthEast,
+            Some(value) => crate::schema::FACINGS
+                .contains(&value)
+                .then(|| Facing::from_suffix(value).unwrap())
+                .ok_or_else(|| ContentError::UnknownFacing {
+                    object: object.id.clone(),
+                    facing: value.to_string(),
+                })?,
+        };
+        if base_facing != Facing::SouthEast {
+            for name in
+                std::iter::once(object.sprite.as_str()).chain(object.foreground_sprite.as_deref())
+            {
+                if !name.ends_with(base_facing.suffix()) {
+                    return Err(ContentError::FacingSpriteMissing {
+                        object: object.id.clone(),
+                        facing: base_facing.suffix().to_string(),
+                        sprite: format!("{name}{}", base_facing.suffix()),
+                    });
+                }
+            }
+        }
+        let definition = CompiledObject {
             id: object.id.clone(),
             name: object.name.clone(),
             sprite: sprite as u32,
@@ -405,7 +418,17 @@ pub fn compile(
             roles: worn_roles,
             action_sockets,
             foreground_sprite,
-        });
+            base_facing,
+            facing_sprites: resolve_facing_sprites(&object.sprite, base_facing, &sprite_index),
+            facing_foreground_sprites: object
+                .foreground_sprite
+                .as_deref()
+                .map_or(FacingSprites::NONE, |name| {
+                    resolve_facing_sprites(name, base_facing, &sprite_index)
+                }),
+        };
+        check_direction_sockets(&definition)?;
+        compiled.push(definition);
     }
 
     // The authored sprite names ride beside the compiled objects only
@@ -1806,9 +1829,10 @@ fn compile_household(
     let mut blocked: BTreeSet<(u32, u32)> = lot.walls.iter().copied().collect();
     for placement in &lot.placements {
         let object = &objects[placement.object.0 as usize];
+        let footprint = object.footprint_at(placement.facing);
         let tile = (placement.x as u32, placement.y as u32);
-        for dy in 0..object.footprint.depth {
-            for dx in 0..object.footprint.width {
+        for dy in 0..footprint.depth {
+            for dx in 0..footprint.width {
                 blocked.insert((tile.0 + dx, tile.1 + dy));
             }
         }
@@ -2315,40 +2339,70 @@ fn compile_tuning(tuning: TuningFile) -> Result<CompiledTuning, ContentError> {
 /// Validates the lot against the objects that were just compiled, and
 /// resolves every placement's object id to its index in them.
 ///
-fn rotate_socket_terms(x: f32, y: f32, placement_facing: &str) -> (f32, f32) {
-    match placement_facing {
-        "SE" => (x, y),
-        "SW" => (-y, x),
-        "NW" => (-x, -y),
-        "NE" => (y, -x),
-        _ => unreachable!("placement facing is validated before socket resolution"),
+fn facing_sprite_name(name: &str, base: Facing, facing: Facing) -> String {
+    if facing == base {
+        return name.to_string();
+    }
+    let stem = if base == Facing::SouthEast {
+        name
+    } else {
+        name.strip_suffix(base.suffix())
+            .expect("directional base sprite has its facing suffix")
+    };
+    if facing == Facing::SouthEast {
+        stem.to_string()
+    } else {
+        format!("{stem}{}", facing.suffix())
     }
 }
 
-fn resolve_socket_facing(
-    socket_facing: CompiledSocketFacing,
-    placement_facing: &str,
-) -> CompiledSocketFacing {
-    let (x, y) = match socket_facing {
-        CompiledSocketFacing::PositiveX => (1, 0),
-        CompiledSocketFacing::NegativeX => (-1, 0),
-        CompiledSocketFacing::PositiveY => (0, 1),
-        CompiledSocketFacing::NegativeY => (0, -1),
-    };
-    let rotated = match placement_facing {
-        "SE" => (x, y),
-        "SW" => (-y, x),
-        "NW" => (-x, -y),
-        "NE" => (y, -x),
-        _ => unreachable!("placement facing is validated before socket resolution"),
-    };
-    match rotated {
-        (1, 0) => CompiledSocketFacing::PositiveX,
-        (-1, 0) => CompiledSocketFacing::NegativeX,
-        (0, 1) => CompiledSocketFacing::PositiveY,
-        (0, -1) => CompiledSocketFacing::NegativeY,
-        _ => unreachable!("rotating a unit axis produces a unit axis"),
+fn resolve_facing_sprites(
+    name: &str,
+    base: Facing,
+    atlas: &dyn Fn(&str) -> Option<usize>,
+) -> FacingSprites {
+    FacingSprites(
+        Facing::ALL.map(|facing| atlas(&facing_sprite_name(name, base, facing)).map(|i| i as u32)),
+    )
+}
+
+fn check_socket_bounds(
+    object: &str,
+    socket: &str,
+    x: f32,
+    y: f32,
+    footprint: Footprint,
+) -> Result<(), ContentError> {
+    if x.floor() < 0.0
+        || y.floor() < 0.0
+        || x.floor() >= footprint.width as f32
+        || y.floor() >= footprint.depth as f32
+    {
+        return Err(ContentError::ActionSocketOutsideFootprint {
+            object: object.to_string(),
+            socket: socket.to_string(),
+            x,
+            y,
+        });
     }
+    Ok(())
+}
+
+fn check_direction_sockets(object: &CompiledObject) -> Result<(), ContentError> {
+    for facing in Facing::ALL {
+        if !object.supports(facing) {
+            continue;
+        }
+        let footprint = object.footprint_at(facing);
+        for (socket, resolved) in object
+            .action_sockets
+            .iter()
+            .zip(object.sockets_at(0.0, 0.0, facing))
+        {
+            check_socket_bounds(&object.id, &socket.id, resolved.x, resolved.y, footprint)?;
+        }
+    }
+    Ok(())
 }
 
 /// Taking the compiled objects rather than the authored ones is what
@@ -2494,88 +2548,37 @@ fn compile_lot(
             });
         }
 
-        // A facing is presentation, resolved here so a variant nobody
-        // imported has no representation past this point ([D9]). The
-        // variant naming convention is the atlas's: the plain name is
-        // the `_SE` import and a directional variant appends its facing,
-        // so `kitchenCabinet` facing SW is the atlas entry
-        // `kitchenCabinetSW`.
-        let sprite = match &place.facing {
-            None => objects[index].sprite,
-            Some(facing) => {
-                if !crate::schema::FACINGS.contains(&facing.as_str()) {
-                    return Err(ContentError::UnknownFacing {
-                        object: place.object.clone(),
-                        facing: facing.clone(),
-                    });
-                }
-                // The unsuffixed atlas name IS the SE facing. A builder that
-                // writes facing = "SE" must not look for `kitchenCabinetSE`.
-                if facing == "SE" {
-                    objects[index].sprite
-                } else {
-                    let variant = format!("{}{}", sprite_names[index], facing);
-                    match sprite_index(&variant) {
-                        Some(resolved) => resolved as u32,
-                        None => {
-                            return Err(ContentError::FacingSpriteMissing {
-                                object: place.object.clone(),
-                                facing: facing.clone(),
-                                sprite: variant,
-                            })
-                        }
-                    }
-                }
-            }
-        };
-        let foreground_sprite = match (&place.facing, foreground_sprite_names[index].as_deref()) {
-            (_, None) => None,
-            (None, Some(_)) => objects[index].foreground_sprite,
-            (Some(facing), Some(_)) if facing == "SE" => objects[index].foreground_sprite,
-            (Some(facing), Some(name)) => {
-                let variant = format!("{name}{facing}");
-                Some(match sprite_index(&variant) {
-                    Some(resolved) => resolved as u32,
-                    None => {
-                        return Err(ContentError::FacingSpriteMissing {
-                            object: place.object.clone(),
-                            facing: facing.clone(),
-                            sprite: variant,
-                        })
-                    }
-                })
-            }
-        };
-
-        let placement_facing = place.facing.as_deref().unwrap_or("SE");
-        let centre_x = place.x + (objects[index].footprint.width - 1) as f32 / 2.0;
-        let centre_y = place.y + (objects[index].footprint.depth - 1) as f32 / 2.0;
-        let mut action_sockets = Vec::with_capacity(objects[index].action_sockets.len());
-        for socket in &objects[index].action_sockets {
-            let (offset_x, offset_y) = rotate_socket_terms(socket.x, socket.y, placement_facing);
-            let x = centre_x + offset_x;
-            let y = centre_y + offset_y;
-            let socket_tile = (x.floor() as i64, y.floor() as i64);
-            if socket_tile.0 < tile.0 as i64
-                || socket_tile.1 < tile.1 as i64
-                || socket_tile.0 >= tile.0 as i64 + objects[index].footprint.width as i64
-                || socket_tile.1 >= tile.1 as i64 + objects[index].footprint.depth as i64
-            {
-                return Err(ContentError::ActionSocketOutsideFootprint {
+        let definition = &objects[index];
+        let facing = place
+            .facing
+            .as_deref()
+            .map_or(Ok(definition.base_facing), |value| {
+                Facing::from_suffix(value).ok_or_else(|| ContentError::UnknownFacing {
                     object: place.object.clone(),
-                    socket: socket.id.clone(),
-                    x,
-                    y,
-                });
-            }
-            action_sockets.push(CompiledPlacementSocket {
-                x,
-                y,
-                facing: resolve_socket_facing(socket.facing, placement_facing),
-            });
-        }
-
-        rects.push((place.object.clone(), tile, objects[index].footprint));
+                    facing: value.to_string(),
+                })
+            })?;
+        let missing = |name: &str| ContentError::FacingSpriteMissing {
+            object: place.object.clone(),
+            facing: facing.suffix().to_string(),
+            sprite: facing_sprite_name(name, definition.base_facing, facing),
+        };
+        let sprite = definition
+            .facing_sprites
+            .get(facing)
+            .ok_or_else(|| missing(&sprite_names[index]))?;
+        let foreground_sprite = foreground_sprite_names[index]
+            .as_deref()
+            .map(|name| {
+                definition
+                    .facing_foreground_sprites
+                    .get(facing)
+                    .ok_or_else(|| missing(name))
+            })
+            .transpose()?;
+        let footprint = definition.footprint_at(facing);
+        let action_sockets = definition.sockets_at(place.x, place.y, facing);
+        rects.push((place.object.clone(), tile, footprint));
         placements.push(CompiledPlacement {
             object: ObjectDefId(index as u32),
             x: place.x,
@@ -2583,6 +2586,7 @@ fn compile_lot(
             sprite,
             action_sockets,
             foreground_sprite,
+            facing,
         });
     }
 
@@ -3301,10 +3305,10 @@ mod tests {
         12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64,
         15, 1, 15, 69, 97, 116, 32, 115, 116, 97, 110, 100,
         105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1, 1,
-        1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0,
-        // Empty wall_edges follows front_door; all earlier lot fields retain
-        // their bytes. Removing this appended zero reproduces the old vector.
+        1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0,
         0, 0, 32, 64, 0, 0, 160, 63, 2, 0, 0, 0, 0, 0,
+        // Empty wall_edges follows front_door at the end of the lot record.
+        0,
         0, 128, 62, 0, 0, 0, 63, 0, 0, 0, 62, 9, 6,
         0, 0, 160, 62, 10, 215, 35, 59, 0, 0, 32, 63,
         0, 0, 64, 63, 3, 172, 2, 7, 11, 13, 0, 0,
@@ -3400,6 +3404,7 @@ mod tests {
                     name: id.to_uppercase(),
                     sprite: format!("{id}_art"),
                     foreground_sprite: None,
+                    base_facing: None,
                     // Every fixture in this module is 1x1 unless it is about
                     // footprints, and the footprint tests below build their own
                     // objects. Widening one here would silently change what
@@ -3540,6 +3545,7 @@ mod tests {
                 name: "Fridge".into(),
                 sprite: "fridge_art".into(),
                 foreground_sprite: None,
+                base_facing: None,
                 footprint,
                 interaction: vec![interaction],
             }],
@@ -3898,6 +3904,7 @@ mod tests {
             name: "Another".into(),
             sprite: "fridge_art".into(),
             foreground_sprite: None,
+            base_facing: None,
             footprint: Footprint::SINGLE,
             interaction: vec![],
         });
@@ -3934,6 +3941,7 @@ mod tests {
             name: "Vending".into(),
             sprite: "fridge_art".into(),
             foreground_sprite: None,
+            base_facing: None,
             footprint: Footprint::SINGLE,
             interaction: vec![snack()],
         });
@@ -5417,6 +5425,7 @@ mod tests {
                     name: id.to_uppercase(),
                     sprite: format!("{id}_art"),
                     foreground_sprite: None,
+                    base_facing: None,
                     footprint: Footprint {
                         width: *width,
                         depth: *depth,
@@ -6731,6 +6740,7 @@ mod tests {
             name: "Couch".into(),
             sprite: "couch_art".into(),
             foreground_sprite: None,
+            base_facing: None,
             footprint: Footprint::SINGLE,
             interaction: vec![InteractionDef {
                 tags: vec![],
@@ -8291,6 +8301,7 @@ mod tests {
             name: "Reading chair".to_string(),
             sprite: "fridge_art".to_string(),
             foreground_sprite: None,
+            base_facing: None,
             footprint: Footprint { width: 3, depth: 3 },
             interaction: vec![InteractionDef {
                 id: "settle_in".to_string(),
@@ -8595,7 +8606,7 @@ mod tests {
         ] {
             for (placement, expected) in ["SE", "SW", "NW", "NE"].into_iter().zip(expected) {
                 assert_eq!(
-                    resolve_socket_facing(source, placement),
+                    source.turned_with(Facing::from_suffix(placement).unwrap()),
                     expected,
                     "source {source:?} rotated by placement {placement}"
                 );
@@ -8644,6 +8655,79 @@ mod tests {
     }
 
     #[test]
+    fn socket_bounds_reject_each_axis_independently_and_accept_the_last_fractional_tile() {
+        let footprint = Footprint { width: 3, depth: 2 };
+        for (x, y) in [(0.0, 0.0), (2.75, 1.75)] {
+            assert_eq!(
+                check_socket_bounds("chair", "seat", x, y, footprint),
+                Ok(())
+            );
+        }
+        for (x, y) in [(-0.25, 0.5), (0.5, -0.25), (3.0, 0.5), (0.5, 2.0)] {
+            assert_eq!(
+                check_socket_bounds("chair", "seat", x, y, footprint),
+                Err(ContentError::ActionSocketOutsideFootprint {
+                    object: "chair".to_string(),
+                    socket: "seat".to_string(),
+                    x,
+                    y,
+                }),
+                "outside coordinate ({x}, {y})"
+            );
+        }
+    }
+
+    #[test]
+    fn direction_sockets_reject_one_negative_rotated_axis_without_a_lot_placement() {
+        for (facing, x, y) in [("NW", -0.25, 0.0), ("NE", 0.0, -0.25)] {
+            let compile_socket = |offset| {
+                let mut object = reading_object();
+                object.footprint = Footprint { width: 3, depth: 1 };
+                object.action_socket = vec![ActionSocketDef {
+                    id: "seat".to_string(),
+                    x: offset,
+                    y: 0.0,
+                    facing: "SE".to_string(),
+                }];
+                let atlas = AtlasFile {
+                    sprite: [
+                        "fridge_art".to_string(),
+                        format!("fridge_art{facing}"),
+                        SIM_SPRITE.to_string(),
+                    ]
+                    .into_iter()
+                    .map(|name| AtlasSpriteDef { name })
+                    .collect(),
+                };
+                compile_bare(
+                    full_needs(),
+                    ObjectsFile {
+                        object: vec![object],
+                    },
+                    bare_lot(),
+                    atlas,
+                    full_tuning(),
+                )
+            };
+            let valid =
+                compile_socket(0.75).expect("the centered socket fits both supported directions");
+            assert!(valid.lot.placements.is_empty());
+            assert_eq!(valid.objects[0].action_sockets.len(), 1);
+            assert!(valid.objects[0].supports(Facing::from_suffix(facing).unwrap()));
+            assert_eq!(
+                compile_socket(1.25).unwrap_err(),
+                ContentError::ActionSocketOutsideFootprint {
+                    object: "reading_chair".to_string(),
+                    socket: "seat".to_string(),
+                    x,
+                    y,
+                },
+                "{facing} moves exactly one axis below zero"
+            );
+        }
+    }
+
+    #[test]
     fn rejects_a_socket_inside_before_rotation_but_outside_the_rotated_non_square_footprint() {
         let mut object = reading_object();
         object.footprint = Footprint { width: 3, depth: 1 };
@@ -8679,10 +8763,10 @@ mod tests {
             ContentError::ActionSocketOutsideFootprint {
                 object: "reading_chair".to_string(),
                 socket: "seat".to_string(),
-                x: 1.75,
+                x: -0.25,
                 y: 2.0,
             },
-            "the unrotated socket is inside 3x1; SW rotation moves it beyond the depth-1 placement"
+            "the unrotated socket is inside 3x1; SW rotation moves it beyond the width-1 rectangle"
         );
 
         let mut object = reading_object();
@@ -8703,25 +8787,18 @@ mod tests {
                 })
                 .collect(),
         };
-        assert_eq!(
-            compile_bare(
-                full_needs(),
-                ObjectsFile {
-                    object: vec![object],
-                },
-                lot,
-                atlas,
-                full_tuning(),
-            )
-            .unwrap_err(),
-            ContentError::ActionSocketOutsideFootprint {
-                object: "reading_chair".to_string(),
-                socket: "seat".to_string(),
-                x: 2.25,
-                y: 0.0,
+        let pack = compile_bare(
+            full_needs(),
+            ObjectsFile {
+                object: vec![object],
             },
-            "the unrotated socket is inside 3x1; NE rotation moves it below the depth-1 placement"
-        );
+            lot,
+            atlas,
+            full_tuning(),
+        )
+        .expect("NE fits the correctly rotated 1x3 footprint");
+        assert_eq!(pack.lot.placements[0].action_sockets[0].x, 1.25);
+        assert_eq!(pack.lot.placements[0].action_sockets[0].y, 1.0);
     }
 
     /// One rejection test per rule, each pinning its own error variant so
@@ -9053,6 +9130,7 @@ mod tests {
             name: "Sink".into(),
             sprite: "sink_art".into(),
             foreground_sprite: None,
+            base_facing: None,
             footprint: Footprint::SINGLE,
             interaction: vec![],
         };
@@ -9466,6 +9544,7 @@ mod tests {
             name: "Sink".into(),
             sprite: "sink_art".into(),
             foreground_sprite: None,
+            base_facing: None,
             footprint: Footprint::SINGLE,
             interaction: vec![],
         };

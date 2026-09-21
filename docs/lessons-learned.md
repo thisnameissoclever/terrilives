@@ -1,5 +1,24 @@
 # Lessons Learned
 
+## [L-builder-preview-overlap] Preview geometry and drawing must agree
+
+**What happened.** The first played builder pass showed old chair arms behind
+a rotated candidate, and old table artwork beneath a partially overlapping
+move. The initial valid tint also obscured surface detail.
+
+**Root cause.** Drawing both complete objects at intersecting footprints is not
+a useful preview. An origin-only replacement rule missed partial intersections.
+
+**Prevention.** For valid overlapping candidates, replace only the selected
+object's presentation. Share one rectangle-intersection predicate between
+instance counting and drawing, including foreground layers. Keep the original
+marker, world state and cancellation behavior intact. Invalid or nonoverlapping
+candidates retain the original artwork.
+
+**Verification.** Real chair, foreground-object and rectangular-table tests
+assert matching draw counts, untouched other rows and byte-identical saves.
+Played desktop and 390x844 phone checks confirm clean artwork and readable
+controls. Evening and reduced-motion checks are separate visual observations.
 ## [L-atlas-append-provenance] Reconcile provenance after another sprite batch merges
 
 **What happened.** Asset notes retained a 1,221-record total and door indices
@@ -36,6 +55,88 @@ the wall-mask write and the wall-depth-step write separately makes the
 corresponding assertion fail with `expected -999 to be +0`. Restoring both
 writes returns the source to its recorded SHA-256 and passes all three tests.
 
+## [L-builder-shortcuts-preserve-tab] Recognize shortcuts before blocking them
+
+**What happened.** The initial pending/modal guard consumed Tab in Build mode.
+
+**Root cause.** It returned handled for every key before identifying edit keys.
+
+**Prevention.** Recognize the editor's actual shortcuts first. A blocked editor
+may consume those shortcuts, but must leave unrelated native navigation alone.
+
+**Verification.** Regression tests distinguish Tab from edit keys while pending
+or blocked. In the actual game, Tab reaches Help's close control and Escape
+closes Help without also exiting Build.
+
+## [L-browser-probes-read-clock] Inspect method semantics before runtime probes
+
+**What happened.** A local visual-review probe called `tick()` intending to read
+time. That method advances the simulation by one tick, even during a shell pause.
+
+**Root cause.** The probe inferred a getter from its name instead of checking
+the bridge contract. The correct read-only method is `clockTick()`.
+
+**Prevention.** Read the bridge method before invoking it in a browser probe.
+Do not attribute a direct debug step to a broken player pause.
+
+**Verification.** The disposable household was restored through the game's
+Load confirmation to tick 2476 with its saved chair and bike directions. No
+public save was touched; later clock observations use `clockTick()`.
+
+## [L-asset-checkpoints-need-current-status] Keep rejected art history distinct
+
+**What happened.** Feature and architecture notes still described the old
+mirrored bike's failed non-SE contacts after its four-direction replacement
+and eight-phase cycling animation had integrated on main.
+
+**Root cause.** An earlier checkpoint's limitation remained phrased as current
+status outside the replacement asset's own release notes.
+
+**Prevention.** When replacing an asset, search feature, architecture and source
+README files for the old limitation. Preserve dated rejection evidence while
+linking to the replacement's actual acceptance record. Keep available art,
+runtime integration, player controls and public deployment as distinct claims.
+
+**Verification.** Compare these summaries with the furniture authoring README,
+`docs/assets/review-evidence/furniture/README.md` and the current manifests.
+The builder's player-rotation controls still require their own played check.
+
+## [L-serialized-golden-field-order] Map fields before updating byte fixtures
+
+**What happened.** Integrating saved boundary walls with furniture facing left
+the content serialization golden test failing. Its expected empty `wall_edges`
+vector byte had been inserted near the placement coordinates rather than after
+`CompiledLot.front_door`.
+
+**Root cause.** The literal was edited by visual proximity instead of tracing
+the serialized struct's field order. Production serialization was correct.
+
+**Prevention.** Map each added field to its position in the serialized record
+before changing a golden vector. Keep the exact byte assertion; do not change
+the production wire format merely to match a mistaken fixture.
+
+**Verification.** After correcting only the literal position,
+`cargo test -p terri-data -j 1 --quiet` passed 225 unit tests and one integration
+test. Historical save fixtures remain separate compatibility checks.
+
+## [L-runtime-direction-needs-an-authored-base] Existing art facings can already own rotated geometry
+
+**What happened.** Applying a quarter-turn directly to every directional
+placement would rotate the current SW bathtub twice and turn the desk's
+existing 2x1 footprint into the chair at (6,7).
+
+**Root cause.** Earlier placement directions changed only art; object
+definitions and later art replacements already carried their reviewed
+collision shapes. Direction codes alone did not identify the geometry's base.
+
+**Prevention rule.** Author the base direction and transform by the relative
+turn. Include that base in save compatibility, preserve historical source
+geometry independently, and compare all authored render rows with the prior
+release before claiming defaults survived.
+
+**How to verify.** Run the relative-base geometry tests, the 34-object prior
+release render comparison, and real pre-builder and pre-bathtub byte fixtures.
+Change one base direction and require old digest bridges to close.
 ## [L-migration-pins-both-endpoints] Reconstructing a known source does not approve the destination
 
 **What happened.** Final front-door review found that the old bathtub migration
@@ -1678,6 +1779,11 @@ PowerShell parsing before `rg` runs. Three repeated search failures triggered
 a fresh-context review. Use literal directory arguments and quoted `-g`
 patterns owned by `rg`, or enumerate already discovered filenames. Verify with
 `rg --files DIRECTORY -g 'PATTERN'` before searching uncertain filenames.
+
+**2026-09-20 recurrence.** The same literal-wildcard mistake recurred during
+builder release checks. Fresh review confirmed the existing rule, not a new
+repository problem. Use directory-scoped discovery before content lookup;
+never turn a no-match result into guesses at adjacent module filenames.
 
 **What happened:** a commit was made from the Bash tool with
 `git commit -m @'...'@`, which is PowerShell here-string syntax. Bash has no such
@@ -6106,6 +6212,30 @@ searches. After three failures, get a fresh review instead of another variant.
 **How to verify.** `1..5 | Select-Object -Skip 2 -First 2` emits 3 and 4.
 The corrected `-First 50` source read succeeds; no repository edits are needed.
 
+## [L-placement-helper-empty-footprints] Test geometry helper preconditions directly
+
+**What happened.** The placement mutation sweep let either nonzero-dimension
+guard in `fits` become an always-true unsigned comparison.
+
+**Root cause.** The integration fixtures use valid compiled furniture, whose
+positive dimensions never exercise the private helper's empty-rectangle checks.
+
+**Prevention rule.** Keep integration tests for real furniture and add direct
+helper tests for invalid dimensions and checked arithmetic. Test width and depth
+independently, with an exact boundary-fit control. Do not describe these synthetic
+inputs as a defect observed in the shipped household.
+
+**How to verify.** Each width/depth `> 0` to `>= 0` mutation fails the new
+`footprint_fit_requires_nonzero_dimensions_and_checked_bounds` assertion. Restoring
+the exact production source passes all 26 placement tests. No production or
+mutation-baseline change is required.
+
+The same campaign exposed missing north-side approach coverage. A literal full
+2x2 perimeter now constrains every usable side, then separately removes a solid
+wall contact and an occupied approach. Each `y - 1` mutation to addition or
+division fails before source restoration; all 27 placement tests then pass.
+An integration check requiring some reachable contact is not proof that the
+helper enumerates every contact the placement policy promises to protect.
 ## [L-continuous-wall-rejection-boundaries] Separate the conditions that reject a route
 
 **What happened.** PR84's full mutation sweep found two unconstrained wall
@@ -6203,6 +6333,69 @@ both render buffers rather than merely return false.
 test after successful compilation, with zero survivors or timeouts. Native
 WASM-boundary tests pass 86/86 after restoring the original source. These are
 test-only changes; neither production validation nor the baseline is relaxed.
+
+## [L-live-verification-autosave] Ordinary play can violate save-preservation requirements
+
+**What happened.** A live front-door check advanced the public household across
+midnight while trying to capture a crossing. The primary save was automatically
+written at 2026-09-21T03:09:33.828Z. No Save button was clicked, but that did not
+preserve the file. A V1 recovery copy was created before the V2 overwrite.
+
+**Root cause.** Verification treated ordinary UI playback as save-neutral without
+checking the midnight and hidden-tab autosave paths. Pausing also does not prevent
+the visibility handler from saving. Exact-minute HUD polling missed brief events;
+the HUD updates less often than simulation ticks at accelerated speed.
+
+**Prevention rule.** Before opening a live game under a save-preservation constraint,
+inspect startup, periodic and visibility-triggered writes. Perform gameplay on a
+disposable local origin. Keep public checks read-only and do not assume closing a
+paused tab is write-free. Preserve identified recovery bytes and seek direction
+before replacing a user's save.
+
+**How to verify.** Record public save hashes and metadata through a non-game,
+same-origin document before and after the check. Require unchanged bytes. Exercise
+midnight and hidden-tab behavior only on disposable saves. This incident's owned
+tab was script-disabled before closure; no recovery write was attempted.
+
+## [L-builder-export-contracts] Test the values returned to the browser
+
+**What happened.** The builder mutation gate found uncovered V1 truncation,
+preview foreground, facing-mask and lot-revision behavior at the WASM boundary.
+
+**Root cause.** Internal placement tests did not prove what the browser actually
+reads. A missing foreground needs an explicit negative sentinel, and revision
+checks must observe a real edit rather than only the initial zero value. The
+historical V1 repair must not append bytes to a truncated nonempty counter list.
+
+**Prevention rule.** Test the exported values with missing and present controls,
+individual supported direction bits, actual accepted edits and malformed public
+load requests. Build masks from the unique one-hot direction values; OR and XOR
+are indistinguishable when those values cannot overlap.
+
+**How to verify.** The four distinguishable mutations must fail assertions after
+successful compilation. Restore the exact source, then run the complete native
+and release-mode WASM suites. The equivalent OR/XOR operator was removed through
+the disjoint-bit sum, not counted as a caught mutation or added to the baseline.
+
+## [L-shared-socket-bounds] Keep repeated validation on one predicate
+
+**What happened.** The builder mutation sweep found five unconstrained OR
+operators across authored and rotated interaction-point bounds checks.
+
+**Root cause.** The later direction check repeated the authored check at the
+base facing, masking changes to the earlier predicate. Rotation fixtures also
+failed to isolate each negative axis. Removing the early check would change
+which diagnostic wins when content has more than one error.
+
+**Prevention rule.** Share the bounds predicate while retaining both call sites
+and their order. Test every rejection axis independently, with accepted origin
+and fractional upper-tile controls. Keep compiler-level rotation tests without
+lot placements, so placement validation cannot mask a missing direction check.
+
+**How to verify.** Change each of the shared predicate's three OR operators to
+AND separately; each must fail an assertion. Remove the direction-check call
+and require the unplaced rotated-socket test to fail. Restore exact source bytes
+and rerun the complete data suite. Do not add a mutation-baseline allowance.
 
 ## [L-layout-migration-passive-conversation-partners] Preserve both sides of saved activities
 

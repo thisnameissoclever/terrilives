@@ -10,6 +10,8 @@
 import init, { SimHandle } from './wasm/terri_wasm.js';
 import { SimBridge } from './bridge.js';
 import { spawnStressAgents } from './debug/stress-spawn.js';
+import { FurnitureBuilder } from './ui/builder.js';
+import { BuilderControls } from './ui/builder-controls.js';
 import { AMBIENT_NEUTRAL, ambientFor } from './render/daylight.js';
 import { initDevice } from './render/device.js';
 import { SpriteRenderer } from './render/sprites.js';
@@ -524,6 +526,7 @@ async function main(): Promise<void> {
   mobileHudButton.addEventListener('click', () => mobileHud.toggle());
   compactHudQuery.addEventListener('change', (event) => {
     mobileHud.setCompact(event.matches);
+    builderControls.setCompact(event.matches);
   });
   const gameHud = new GameHud(
     {
@@ -744,6 +747,7 @@ async function main(): Promise<void> {
           cameraDirty = true;
           menu.close();
           keyboardTargets.clear();
+          builder.resetAfterLoad();
           audio.reset('load');
           const nowMs = performance.now();
           householdRoster.update(nowMs, true);
@@ -998,6 +1002,7 @@ async function main(): Promise<void> {
   // Queue mode or the modifier held on the row: either appends, the same
   // rule the canvas click follows.
   const menu = new ObjectMenu(createMenuSurface(document, menuRoot), (action, additive) => {
+    if (builder.active) return;
     const accepted = dispatchMenuAction(
       sim,
       action,
@@ -1013,7 +1018,34 @@ async function main(): Promise<void> {
   const keyboardStatus = document.querySelector<HTMLElement>('#keyboard-target');
   if (!keyboardStatus) throw new Error('missing #keyboard-target');
   const keyboardTargets = new KeyboardTargetController(sim, keyboardStatus);
+  const buildToggle = document.querySelector<HTMLButtonElement>('#build-toggle');
+  if (!buildToggle) throw new Error('Missing Build button');
+  let builderControls: BuilderControls;
+  const builder = new FurnitureBuilder(sim, overlayPause, {
+    changed: () => builderControls?.render(),
+    enter() {
+      canvas.focus();
+      menu.close();
+      keyboardTargets.clear();
+      mobileHud.beginEditing();
+      cameraDirty = true;
+    },
+    exit() {
+      mobileHud.endEditing();
+      buildToggle.focus();
+      cameraDirty = true;
+    },
+  });
+  builderControls = new BuilderControls(document, builder);
+  builderControls.setCompact(compactHudQuery.matches);
   canvas.addEventListener('keydown', (event) => {
+    if (event.defaultPrevented) return;
+    if (builder.active) {
+      if (!menu.isShowing() && !event.ctrlKey && !event.metaKey && !event.altKey && builder.handleKey(event.key)) {
+        event.preventDefault();
+      }
+      return;
+    }
     if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
       event.preventDefault();
       keyboardTargets.cycle(1);
@@ -1128,7 +1160,20 @@ async function main(): Promise<void> {
     () => reducedMotion.matches,
     () => clearCommandFeedback(commandStatus),
     () => audio.emit({ type: 'command.staged' }),
+    {
+      active: () => builder.active,
+      click(pick, tile) {
+        if (pick && !pick.isAgent && pick.entity !== builder.selected) builder.select(pick.entity);
+        else if (tile) builder.moveTo(tile[0], tile[1]);
+      },
+    },
   );
+  document.addEventListener('keydown', (event) => {
+    if (!builder.active || event.defaultPrevented || event.key !== 'Escape' || menu.isShowing()) return;
+    const target = event.target;
+    if (target instanceof Element && target.closest('dialog, input, textarea, select, [contenteditable="true"]')) return;
+    if (builder.handleKey(event.key)) event.preventDefault();
+  });
 
   const timer = new FrameTimer(FRAME_WINDOW);
   let previousFrameMs = performance.now();
@@ -1149,11 +1194,6 @@ async function main(): Promise<void> {
     // touching the DOM or static buffer on steady frames.
     syncSystemLighting();
 
-    // The camera settles before anything reads it, so the statics, the
-    // entities and the picking all see one projection per frame. On
-    // every frame without a zoom or a resize this is one boolean check.
-    if (cameraDirty) applyCamera();
-
     // The sim advances in whole ticks; alpha is how far this frame sits
     // between the last one that ran and the next one that has not. A paused
     // frame drains input without running a full tick.
@@ -1166,10 +1206,19 @@ async function main(): Promise<void> {
       commandStatus,
       () => audio.emit({ type: 'command.rejected' }),
     );
-    // The selection comes from the simulation every frame rather than being
-    // remembered here ([D-5]), so the ring cannot disagree with what the need
-    // panel is showing.
-    const selected = sim.selectedIndex();
+    builder.setBlocked(overlayPause.suspendedExcept('builder'));
+    if (builder.afterCommands()) {
+      lot.walls = sim.wallTiles();
+      lot.edges = sim.wallEdges();
+      lightingDirty = true;
+      cameraDirty = true;
+      keyboardTargets.clear();
+    }
+    // Placement can change collision and lighting while paused. Rebuild the
+    // camera-derived statics after that drain, before any instances are drawn.
+    if (cameraDirty) applyCamera();
+    // Editing marks the original furniture; play mode marks the selected Sim.
+    const selected = builder.active ? builder.selected : sim.selectedIndex();
     const instances = buildInstances(
       sim,
       alpha,
@@ -1181,6 +1230,8 @@ async function main(): Promise<void> {
       reducedMotion.matches,
       sim.clockTick(),
       lightingMode.isFlat() ? null : lighting,
+      undefined,
+      builder.preview,
     );
     // The day/night cycle. `LightingMode` combines the player's saved flat
     // choice with reduced motion's temporary constraint, so one effective
@@ -1188,7 +1239,7 @@ async function main(): Promise<void> {
     // the player's preference.
     renderer.draw(
       instances,
-      instanceCount(sim, selected),
+      instanceCount(sim, selected, undefined, builder.preview),
       camera.scale,
       lightingMode.isFlat()
         ? AMBIENT_NEUTRAL

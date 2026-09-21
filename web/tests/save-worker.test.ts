@@ -2,9 +2,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const PRIMARY = 'terri-save-1.bin';
 const BACKUP = 'terri-save-1.v1-backup.bin';
+const V2_BACKUP = 'terri-save-1.v2-backup.bin';
 // Independent wire fixture: ASCII TERRISAV, little-endian u16 version, payload.
 const v1 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 1, 0, 17, 0, 255]);
 const v2 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 2, 0, 29, 128]);
+const v3 = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 3, 0, 29, 128, 0]);
 
 type Response = { id: number; ok: boolean; bytes?: ArrayBuffer | null; error?: string };
 
@@ -59,7 +61,7 @@ async function workerSlot(initial: Uint8Array | null = v1) {
       return result;
     }),
   };
-  async function connect() {
+  async function connect(legacy = false) {
     const waiting = new Map<number, (response: Response) => void>();
     const port = {
       onmessage: null as ((event: { data: unknown }) => void) | null,
@@ -68,9 +70,10 @@ async function workerSlot(initial: Uint8Array | null = v1) {
     vi.stubGlobal('self', port);
     vi.stubGlobal('navigator', { storage: { getDirectory: async () => root }, locks });
     vi.resetModules();
-    await import('../src/storage/save-worker.js');
+    if (legacy) await import('./fixtures/v2-worker/save-worker.js');
+    else await import('../src/storage/save-worker.js');
     let id = 0;
-    function request(kind: 'load' | 'save' | 'clear', bytes = v2): Promise<Response> {
+    function request(kind: 'load' | 'save' | 'clear', bytes = v3): Promise<Response> {
       const requestId = ++id;
       return new Promise((resolve) => {
         waiting.set(requestId, resolve);
@@ -86,6 +89,91 @@ async function workerSlot(initial: Uint8Array | null = v1) {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('save worker recovery backup', () => {
+  it('the actual V2 worker refuses a V3 slot installed by a newer tab', async () => {
+    const slot = await workerSlot(v3);
+    const oldWorker = await slot.connect(true);
+    expect(await oldWorker('save', v2)).toMatchObject({ ok: false });
+    expect(slot.files.get(PRIMARY)).toEqual(v3);
+    expect(slot.events).not.toContain(`writable ${PRIMARY}`);
+  });
+
+  it.each([v1, v2, new Uint8Array([2, 0]), new Uint8Array([...v3.slice(0, 8), 4, 0])])(
+    'refuses non-current outgoing headers before touching storage', async (next) => {
+      const slot = await workerSlot(v3);
+      expect(await slot.request('save', next)).toMatchObject({ ok: false });
+      expect(slot.files.get(PRIMARY)).toEqual(v3);
+      expect(slot.events).toEqual([]);
+    },
+  );
+
+  it.each(['open', 'write', 'close'])(
+    'preserves a V2 primary after backup %s failure and allows retry', async (phase) => {
+      const slot = await workerSlot(v2);
+      slot.fail.file = V2_BACKUP;
+      slot.fail.phase = phase;
+      expect(await slot.request('save')).toMatchObject({ ok: false });
+      expect(slot.files.get(PRIMARY)).toEqual(v2);
+      expect(slot.files.has(V2_BACKUP)).toBe(false);
+      expect(slot.events).not.toContain(`writable ${PRIMARY}`);
+      slot.fail.file = '';
+      expect(await slot.request('save')).toMatchObject({ ok: true });
+      expect(slot.files.get(V2_BACKUP)).toEqual(v2);
+    },
+  );
+
+  it('keeps both original recovery files immutable through writes and clear', async () => {
+    const slot = await workerSlot(v2);
+    const original = new Uint8Array([...v2, 42]);
+    slot.files.set(BACKUP, v1);
+    slot.files.set(V2_BACKUP, original);
+    expect(await slot.request('save')).toMatchObject({ ok: true });
+    expect(await slot.request('clear')).toMatchObject({ ok: true });
+    expect(slot.files.get(BACKUP)).toEqual(v1);
+    expect(slot.files.get(V2_BACKUP)).toEqual(original);
+    expect(slot.events).not.toContain(`writable ${V2_BACKUP}`);
+    expect(slot.events).not.toContain(`writable ${BACKUP}`);
+  });
+
+  it.each([new Uint8Array(), v1, v3])('refuses a damaged or mismatched V2 recovery copy', async (backup) => {
+    const slot = await workerSlot(v2);
+    slot.files.set(V2_BACKUP, backup);
+    expect(await slot.request('save')).toMatchObject({ ok: false });
+    expect(slot.files.get(PRIMARY)).toEqual(v2);
+    expect(slot.files.get(V2_BACKUP)).toEqual(backup);
+    expect(slot.events).not.toContain(`writable ${PRIMARY}`);
+  });
+
+  it('does not replace V2 when its existing backup cannot be read', async () => {
+    const slot = await workerSlot(v2);
+    slot.files.set(V2_BACKUP, v2);
+    slot.fail.file = V2_BACKUP;
+    slot.fail.phase = 'read';
+    expect(await slot.request('save')).toMatchObject({ ok: false });
+    expect(slot.files.get(PRIMARY)).toEqual(v2);
+    expect(slot.events).not.toContain(`writable ${PRIMARY}`);
+  });
+
+  it.each([[v1, BACKUP], [v2, V2_BACKUP]] as const)(
+    'preserves original historical bytes before a V3 overwrite', async (previous, backup) => {
+      const slot = await workerSlot(previous);
+      expect(await slot.request('save', v3)).toMatchObject({ ok: true });
+      expect(slot.files.get(backup)).toEqual(previous);
+      expect(slot.files.get(PRIMARY)).toEqual(v3);
+      expect(slot.events.indexOf(`close ${backup}`)).toBeLessThan(
+        slot.events.indexOf(`writable ${PRIMARY}`),
+      );
+    },
+  );
+
+  it.each([new Uint8Array([1, 0]), new Uint8Array([...v1.slice(0, 8), 4, 0, 77])])(
+    'refuses unknown primary headers before a V3 write', async (previous) => {
+      const slot = await workerSlot(previous);
+      expect(await slot.request('save', v3)).toMatchObject({ ok: false });
+      expect(slot.files.get(PRIMARY)).toEqual(previous);
+      expect(slot.events).not.toContain(`writable ${PRIMARY}`);
+    },
+  );
+
   it.each(['open', 'write', 'close'])(
     'keeps the primary untouched after backup %s failure and makes retry safe',
     async (phase) => {
@@ -100,15 +188,15 @@ describe('save worker recovery backup', () => {
       slot.fail.file = '';
       expect(await slot.request('save')).toMatchObject({ ok: true });
       expect(slot.files.get(BACKUP)).toEqual(v1);
-      expect(slot.files.get(PRIMARY)).toEqual(v2);
+      expect(slot.files.get(PRIMARY)).toEqual(v3);
     },
   );
 
-  it('closes a byte-exact V1 backup before opening the primary for a V2 write', async () => {
+  it('closes a byte-exact V1 backup before opening the primary for a V3 write', async () => {
     const slot = await workerSlot();
     expect(await slot.request('save')).toMatchObject({ ok: true });
     expect(slot.files.get(BACKUP)).toEqual(v1);
-    expect(slot.files.get(PRIMARY)).toEqual(v2);
+    expect(slot.files.get(PRIMARY)).toEqual(v3);
     expect(slot.events.indexOf(`close ${BACKUP}`)).toBeGreaterThan(-1);
     expect(slot.events.indexOf(`close ${BACKUP}`)).toBeLessThan(
       slot.events.indexOf(`writable ${PRIMARY}`),
@@ -159,18 +247,16 @@ describe('save worker recovery backup', () => {
   });
 
   it.each([
-    { previous: v1, next: v1 },
-    { previous: v2, next: v2 },
-    { previous: null, next: v2 },
-    { previous: v1, next: new Uint8Array([2, 0]) },
-  ])('backs up only a recognized V1-to-V2 transition: %j', async ({ previous, next }) => {
+    { previous: v3, next: v3 },
+    { previous: null, next: v3 },
+  ])('writes V3 without a historical backup when none is needed: %j', async ({ previous, next }) => {
     const slot = await workerSlot(previous);
     expect(await slot.request('save', next)).toMatchObject({ ok: true });
     expect(slot.files.get(PRIMARY)).toEqual(next);
     expect(slot.files.has(BACKUP)).toBe(false);
   });
 
-  it.each([new Uint8Array([1, 0]), new Uint8Array([...v1.slice(0, 8), 3, 0, 77])])(
+  it.each([new Uint8Array([1, 0]), new Uint8Array([...v1.slice(0, 8), 4, 0, 77])])(
     'does not overwrite an unreadable or newer slot installed after this tab loaded', async (previous) => {
       const slot = await workerSlot(previous);
       expect(await slot.request('save')).toMatchObject({ ok: false });
@@ -182,10 +268,10 @@ describe('save worker recovery backup', () => {
   it('serializes simultaneous first saves from two worker instances under one origin lock', async () => {
     const slot = await workerSlot();
     const other = await slot.connect();
-    const newerV2 = new Uint8Array([...v2, 42]);
-    const responses = await Promise.all([slot.request('save'), other('save', newerV2)]);
+    const newerV3 = new Uint8Array([...v3, 42]);
+    const responses = await Promise.all([slot.request('save'), other('save', newerV3)]);
     expect(responses.map((response) => response.ok)).toEqual([true, true]);
-    expect(slot.files.get(PRIMARY)).toEqual(newerV2);
+    expect(slot.files.get(PRIMARY)).toEqual(newerV3);
     expect(slot.files.get(BACKUP)).toEqual(v1);
     expect(slot.events.filter((event) => event === `writable ${BACKUP}`)).toHaveLength(1);
     expect(slot.locks.request).toHaveBeenCalledTimes(2);

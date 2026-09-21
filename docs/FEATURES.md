@@ -245,12 +245,15 @@ Three baked looks rather than the three tinted instances per sim the spec
 proposed - the reasoning, and what would flip it back, is written down in
 `assets/sprites/gen/style.py` beside the palettes.
 
-**Save V2 stores room architecture; historical V1 saves remain supported.**
+**Save V3 stores room architecture and furniture directions; V1/V2 remain supported.**
 The reviewed default household upgrades to boundary walls without moving its
 furniture or resetting its Sims. Custom V1 layouts keep their legacy walls.
-The browser keeps a byte-for-byte V1 recovery copy before its first V2 save,
-and a failed load disables saving until a successful load or confirmed New
-game. V2 files cannot be opened by older builds. See [D8] in
+The browser keeps byte-for-byte V1 and V2 recovery copies before replacing
+their respective historical primary saves with V3. A failed load disables
+saving until a successful load or confirmed New game. The deployed V2 writer
+refuses an existing V3 primary rather than overwriting its directions; the
+earliest V1 writers did not have that guard, so close those stale tabs before
+upgrading. Older builds cannot open V3 files. See [D8] in
 `docs/ARCHITECTURE.md` for the compatibility and backup boundaries.
 
 **V1 compatibility remains limited to known patch classes.** The old
@@ -794,9 +797,9 @@ Sims.
 
 ### [B-builder] A builder: rooms, furniture, placement and rotation
 
-The lot is authored in `content/lot.toml` and a player cannot touch it.
-The whole point of this genre is that the house is yours, so this is a
-headline feature rather than a nicety.
+The lot starts from `content/lot.toml`. The furniture builder is implemented
+locally; its release checks and public deployment are still pending. Room and
+wall construction remain separate work.
 
 It is also the thing that makes several complaints below stop mattering.
 Furniture positioning in the shipped lot is wonky in places, and hand
@@ -807,12 +810,17 @@ than a layout anybody has to get right.
 Placement wants rotation, and rotation is what [B-facing] is about, so
 that lands first or alongside.
 
-The next release after the front door is furniture movement and supported
-rotation, as requested on 2026-09-20. Existing unmerged facing work must first
-be reconciled with main. This slice needs placement preview, confirm/cancel,
-collision and route validation, and saved positions and directions. Room and
-wall construction remain subsequent builder work. The implementation sequence
-is recorded in `docs/specs/2026-09-20-front-door-and-builder.md`.
+The next release after the front door adds furniture movement and supported
+rotation, as requested on 2026-09-20. Build pauses the household, selects any
+placed furniture, and previews its destination and supported direction.
+Confirm applies a validated command; Cancel leaves the world unchanged.
+Collision, walls, interaction approaches, active reservations, remaining
+walking routes and the front-door landing are protected. Save V3 preserves
+positions, directions and room architecture. Keyboard controls and compact
+touch controls share the same placement rules. Valid overlapping previews
+temporarily replace only the original artwork, never its simulation state.
+The implementation sequence and release gates are recorded in
+`docs/specs/2026-09-20-front-door-and-builder.md`.
 
 ### [B-facing] Objects know which way they face, and overlap follows
 
@@ -825,10 +833,12 @@ can use the same infrastructure.
 
 Two pieces, and they are separable:
 
-* **Facing.** An object gets an authored direction, the sprite it draws
-  follows from it, and a builder can turn it. The kitchen already has
-  hand-authored `SW` variants of four sprites, which is this feature done
-  once by hand for one direction.
+* **Facing.** The approved bike and reading chair already have real rendered
+  art and matching interaction poses for all four directions. The kitchen also
+  has hand-authored `SW` variants. The builder unit adds persistent runtime
+  direction and player controls; it must expose only directions with matching
+  art, foregrounds and sockets. Available art alone does not make an object
+  player-rotatable.
 * **Sub-object depth.** A tall object needs more than one depth. The bunk is
   the first shipped proof. Television screens, refrigerator doors, and other
   moving or occluding parts still need their own authored split.
@@ -857,14 +867,23 @@ every sim. `hair_cap` in `objects.py` traces the head instead.
 
 ### [A-animations] Several ordinary actions are still static poses
 
-The local rigged candidate has eight walking samples and four samples for
+The rigged Sim has eight walking samples and four samples for
 talking, eating, lower-bunk sleeping, armchair sitting, seated and standing
-reading, and watching fish. Cycling uses two held poses of the same model,
-with SE furniture contact accepted and other bike facings still failing.
+reading, and watching fish. The approved replacement bike has eight cycling
+samples in each of four directions, with matching furniture contributions and
+forward pedalling. The older two-pose supplement and failed mirrored-bike
+contacts remain historical evidence, not the current bike's limitation. See
+`docs/assets/review-evidence/furniture/README.md` for GPU and played checks.
 All Sims share one approved appearance with household-specific shirts. The lower bunk also
 has a generated foreground layer, so its upper mattress, near posts, rail, and
 ladder cover the horizontal body correctly. Double-bed sleeping, cooking,
-washing, using a toilet, and idling remain static poses. The generic
+washing, using a toilet, dining-table seating, and idling remain static poses.
+The builder play-through on 2026-09-20 confirmed that a moved and rotated table
+is reachable and usable, but its "Sit down to eat" action still leaves Sims
+standing beside it. Proper multi-seat dining needs authored seating anchors,
+chair/table association and matching poses; moving the table must not silently
+move separately placed chairs. This remains an animation task, not a completed
+part of furniture placement. The generic
 `Using object` activity stays deliberately text-only until each category has
 an honest anchor and body contract.
 

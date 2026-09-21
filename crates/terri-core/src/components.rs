@@ -689,6 +689,10 @@ pub struct StepWork {
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SpriteVariant(pub u32);
 
+/// Runtime direction. An absent component uses the definition's base direction.
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ObjectFacing(pub crate::Facing);
+
 /// A sim's stable identity - [H1] in
 /// `docs/specs/2026-07-30-household-and-relationships-design.md`.
 ///

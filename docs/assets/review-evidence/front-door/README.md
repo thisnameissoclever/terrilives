@@ -215,3 +215,27 @@ retained their depth ordering while nearby furniture kept its full silhouette.
 `wall-depth-departure.png` and `wall-depth-return-restored.png` record the pass.
 Browser warnings/errors were empty. The test tab and preview server were closed.
 Exact-head CI and public Pages acceptance remain pending.
+
+## Public deployment verification, 2026-09-21
+
+PR84 merged as `d26b60e214a7d713824f825879b75aa80a73c81e` after all ten
+exact-head checks passed. Main CI35553958873 passed. Pages35554122223 attempt2
+deployed that revision successfully after the first deploy attempt failed on a
+GitHub artifact-service connection reset. The live page loaded the build log's
+exact `index-CQrKOF-Y.js` and `terri_wasm_bg-jwUx5N9Q.wasm` assets.
+
+The existing household loaded and the rendered door, furniture depth and day/night
+lighting were inspected. Browser warnings/errors were empty. Live crossing timing
+was not captured reliably; the previously recorded local crossing evidence remains
+the animation proof. Fixed-minute polling was stopped after three failed attempts.
+
+The live check violated the save-preservation constraint: crossing midnight
+triggered autosave. Read-only metadata confirmed primary modification at
+03:09:33.828Z, 2863 bytes, SHA256
+`4b67509107c1b2aa373d850588c340429c2728496643e207b2685316e83d6953`.
+The migration preserved a 2714-byte V1 backup at 03:09:33.826Z, SHA256
+`0b702b4fe41e7d77af0ad24cf55868e9c18e1ca4cccb3cf6b6d128d3a40a8719`.
+No recovery write was attempted. Playback stopped; script execution was disabled
+in the owned tab before closing it to prevent the hidden-tab save handler from
+running. Further gameplay checks use disposable local saves. See
+`L-live-verification-autosave` in lessons-learned.md.

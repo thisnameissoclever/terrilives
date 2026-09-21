@@ -107,13 +107,18 @@ preview flag on both commands for the 24-frame supplemental batch. Native
 manifests are `export/exercise/{green,blue,red}/manifest.json`. All palettes
 share the 104 by 120 registered canvas, anchors, geometry and alpha.
 
-The shipped SE bike placement passed the offline composite review. SW, NW and
+At this historical two-pose checkpoint, the SE bike placement passed the
+offline composite review. SW, NW and
 NE did not: the body makes true 3D rotations while the existing bike only
 mirrors. Those composites visibly miss the saddle and grips. Inspect
 `review/exercise/all-facing-bike-contact-3x.png`; four exported model facings
 do not establish four accepted furniture contacts. Correcting those placements
 requires matching directional bike art, not per-facing body offsets that hide
-the mismatch. Runtime and owner acceptance remain separate.
+the mismatch. The later owner-approved replacement bike resolves this with
+real four-direction renders and eight cycling phases. Its current export and
+runtime evidence is in `../../furniture/README.md` and
+`../../../../docs/assets/review-evidence/furniture/README.md`. Keep this older
+failed checkpoint separate from that replacement's acceptance.
 
 ## Build and verify
 

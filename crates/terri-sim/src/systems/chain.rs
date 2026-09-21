@@ -65,7 +65,13 @@ pub fn advance_chains(
             Without<AtWork>,
         ),
     >,
-    stations: Query<(Entity, &Position, &SmartObject, Has<Reserved>)>,
+    stations: Query<(
+        Entity,
+        &Position,
+        &SmartObject,
+        Has<Reserved>,
+        Option<&terri_core::ObjectFacing>,
+    )>,
 ) {
     // Entity order: stations are claimed within this loop, so which
     // sim gets the last free counter must be a function of world state.
@@ -98,9 +104,9 @@ pub fn advance_chains(
         // a free one exists anywhere; only a fully-booked role waits.
         let mut best: Option<(Entity, Vec<(i32, i32)>)> = None;
         let mut any_station = false;
-        let mut in_order: Vec<(Entity, &Position, &SmartObject, bool)> = stations.iter().collect();
+        let mut in_order: Vec<_> = stations.iter().collect();
         in_order.sort_by_key(|(entity, ..)| entity.index());
-        for (station, station_pos, object, reserved) in in_order {
+        for (station, station_pos, object, reserved, facing) in in_order {
             let def = content.0.object(object.0);
             if !def.roles.contains(&step.role) {
                 continue;
@@ -110,8 +116,11 @@ pub fn advance_chains(
                 continue;
             }
             let to = (station_pos.x.round() as i32, station_pos.y.round() as i32);
+            // The ORIENTED rectangle: a station the player has turned is
+            // approached where it now lies.
+            let footprint = crate::placed_footprint(content.0, object.0, facing);
             let Some(steps) = grid
-                .find_path_adjacent(from, to, def.footprint)
+                .find_path_adjacent(from, to, footprint)
                 .and_then(|steps| grid.anchor_path((pos.x, pos.y), steps))
             else {
                 continue;
@@ -447,6 +456,63 @@ mod tests {
         sim.world_mut()
             .entity_mut(agent)
             .insert(ChainState::begin(0));
+    }
+
+    /// A turned station is approached at its live footprint, not its base shape.
+    ///
+    /// The 2 by 1 pantry at origin (2, 1) faces south-west, covering (2, 1)
+    /// and (2, 2). Row 3 is wall except (2, 3) and the sim starts below it,
+    /// so (2, 3) is the only tile it can reach - and (2, 3) is beside the
+    /// oriented rectangle and not beside the authored one. A station walk
+    /// against the authored rectangle finds no path and the chain waits
+    /// for ever.
+    #[test]
+    fn a_chain_walks_to_the_oriented_rectangle_of_a_turned_station() {
+        let base = chain_pack();
+        let mut objects = base.objects.clone();
+        let pantry_def = base.find("pantry").expect("fixture");
+        objects[pantry_def.0 as usize].footprint = terri_core::Footprint { width: 2, depth: 1 };
+        let pack: &'static ContentPack = Box::leak(Box::new(ContentPack {
+            objects,
+            ..base.clone()
+        }));
+
+        let mut sim = test_content::sim_with(6, 6, pack);
+        {
+            let mut grid = sim.world_mut().resource_mut::<TileGrid>();
+            for (x, y) in [(2, 1), (2, 2), (0, 3), (1, 3), (3, 3), (4, 3), (5, 3)] {
+                grid.set_blocked(x, y, true);
+            }
+        }
+        let pantry = sim
+            .world_mut()
+            .spawn((
+                Position { x: 2.0, y: 1.0 },
+                SmartObject(pantry_def),
+                terri_core::ObjectFacing(terri_core::Facing::SouthWest),
+            ))
+            .id();
+        let agent = sim
+            .world_mut()
+            .spawn((Agent, Position { x: 2.0, y: 5.0 }, Needs::all_at(NEED_MAX)))
+            .id();
+        start_chain(&mut sim, agent);
+
+        sim.tick();
+
+        assert_eq!(
+            sim.world().get::<Target>(agent).copied(),
+            Some(Target {
+                object: pantry,
+                interaction: CHAIN_STEP,
+            })
+        );
+        assert_eq!(
+            sim.world()
+                .get::<Path>(agent)
+                .and_then(|path| path.steps.last().copied()),
+            Some((2, 3))
+        );
     }
 
     /// The whole errand, end to end: the counter walks the sim through

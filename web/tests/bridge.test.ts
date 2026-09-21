@@ -735,7 +735,7 @@ describe('SimBridge', () => {
     for (let tick = 0; tick < 173; tick++) original.tick();
     const before = original.worldHash();
     const bytes = original.saveBytes();
-    expect(Array.from(bytes.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, 2, 0]);
+    expect(Array.from(bytes.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, 3, 0]);
     const expectedEdges = original.wallEdges()!.slice();
     expect(expectedEdges).toHaveLength(136);
 
@@ -757,13 +757,13 @@ describe('SimBridge', () => {
   it('restores the explicit empty edge layout without falling back to current or legacy walls', () => {
     const blank = new SimBridge(new SimHandle(4, 4), wasmMemory);
     const legacyCells = blank.saveBytes();
-    expect(Array.from(legacyCells.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, 2, 0]);
-    // V2 ends with the SavedLayout enum: LegacyCells tag 1, empty vector 0.
+    expect(Array.from(legacyCells.slice(0, 10))).toEqual([84, 69, 82, 82, 73, 83, 65, 86, 3, 0]);
+    // V3 ends with SavedLayout then the required empty facing list.
     // Change only that tag to EdgeWallsV1 (2). This fixture has no entities
     // or walls; it tests the distinction between undefined and an empty list.
-    expect(Array.from(legacyCells.slice(-2))).toEqual([1, 0]);
+    expect(Array.from(legacyCells.slice(-3))).toEqual([1, 0, 0]);
     const edgeBytes = legacyCells.slice();
-    edgeBytes[edgeBytes.length - 2] = 2;
+    edgeBytes[edgeBytes.length - 3] = 2;
     const restored = new SimBridge(SimHandle.from_lot(), wasmMemory);
     expect(restored.wallEdges()).toHaveLength(136);
     expect(restored.loadBytes(edgeBytes)).toBe(true);
@@ -776,15 +776,15 @@ describe('SimBridge', () => {
     expect(restored.saveBytes()).toEqual(legacyCells);
   });
 
-  it('rejects V2 truncation, V1-style tail padding, trailing bytes and future versions transactionally', () => {
+  it('rejects V3 truncation, V1-style tail padding, trailing bytes and future versions transactionally', () => {
     const source = new SimBridge(new SimHandle(4, 4), wasmMemory);
     const valid = source.saveBytes();
-    expect(Array.from(valid.slice(8, 10))).toEqual([2, 0]);
-    expect(Array.from(valid.slice(-2))).toEqual([1, 0]);
+    expect(Array.from(valid.slice(8, 10))).toEqual([3, 0]);
+    expect(Array.from(valid.slice(-3))).toEqual([1, 0, 0]);
     const trailing = new Uint8Array(valid.length + 1);
     trailing.set(valid);
     const future = valid.slice();
-    future[8] = 3;
+    future[8] = 4;
     const invalid = [valid.slice(0, -1), valid.slice(0, -2), valid.slice(0, valid.length / 2), trailing, future];
     const live = new SimBridge(SimHandle.from_lot(), wasmMemory);
     const before = live.saveBytes();

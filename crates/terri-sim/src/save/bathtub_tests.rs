@@ -55,6 +55,63 @@ fn bathtub_rotation_changes_only_collision_and_resaves_idempotently() {
 }
 
 #[test]
+fn bathtub_migration_rejects_an_unreviewed_return_landing_before_grid_validation() {
+    let source = old_snapshot();
+    assert!(!source.blocked_tiles[3 * source.grid_width as usize + 14]);
+    let mut changed = destination().clone();
+    changed.portals[0].inward = (14, 3);
+    assert_ne!(
+        terri_data::content_fingerprint(&changed),
+        0x4dab_6950_757c_1f15
+    );
+    assert_eq!(
+        restore_without_portals(source, Box::leak(Box::new(changed))).err(),
+        Some(SaveError::IncompatibleContent)
+    );
+}
+
+#[test]
+fn bathtub_migration_pins_the_reviewed_facing_destination_before_reconstructing_the_source() {
+    let source = old_snapshot();
+    let current = destination();
+    assert_eq!(
+        terri_data::content_fingerprint(current),
+        0x4dab_6950_757c_1f15
+    );
+    assert!(restore_without_portals(source.clone(), current).is_ok());
+    let mut presentation = current.clone();
+    let portal = &mut presentation.portals[0];
+    portal.facing = terri_data::CompiledSocketFacing::NegativeX;
+    portal.hinge = terri_data::CompiledPortalHinge::Right;
+    portal.frame_sprite = portal.frame_sprite.wrapping_add(1);
+    portal.closed_sprite = portal.closed_sprite.wrapping_add(1);
+    portal.ajar_sprite = portal.ajar_sprite.wrapping_add(1);
+    portal.open_sprite = portal.open_sprite.wrapping_add(1);
+    assert_eq!(
+        terri_data::content_fingerprint(&presentation),
+        0x4dab_6950_757c_1f15
+    );
+    assert!(restore_without_portals(source.clone(), Box::leak(Box::new(presentation))).is_ok());
+    let mut moved = current.clone();
+    moved.portals[0].position = (0, 2);
+    let mut extra = current.clone();
+    extra.portals.push(extra.portals[0].clone());
+    let mut absent = current.clone();
+    absent.portals.clear();
+    for (label, changed) in [
+        ("identity", moved),
+        ("extra portal", extra),
+        ("portal-less facing pack", absent),
+    ] {
+        assert_eq!(
+            restore_without_portals(source.clone(), Box::leak(Box::new(changed))).err(),
+            Some(SaveError::IncompatibleContent),
+            "{label} must close the historical bridge"
+        );
+    }
+}
+
+#[test]
 fn public_bathtub_and_portal_migrations_keep_their_distinct_source_shapes() {
     let before_bathtub = old_snapshot();
     assert_eq!(before_bathtub.content_fingerprint, 0xa020_602a_6acd_3a90);
@@ -80,90 +137,6 @@ fn public_bathtub_and_portal_migrations_keep_their_distinct_source_shapes() {
         restore_without_portals(unpublished, pack),
         Err(SaveError::IncompatibleContent)
     ));
-}
-
-#[test]
-fn bathtub_migration_rejects_an_unreviewed_return_landing_before_grid_validation() {
-    let source = old_snapshot();
-    let width = source.grid_width as usize;
-    assert!(
-        !source.blocked_tiles[3 * width + 14],
-        "the moved landing witness must be clear so occupancy is not the rejection reason"
-    );
-    let mut changed = destination().clone();
-    changed.portals[0].inward = (14, 3);
-    assert_ne!(
-        terri_data::content_fingerprint(&changed),
-        0xfdf5_87d9_437f_bfd0
-    );
-
-    assert_eq!(
-        restore_without_portals(source, Box::leak(Box::new(changed))).err(),
-        Some(SaveError::IncompatibleContent),
-        "the old bathtub migration cannot authorize a future portal route"
-    );
-}
-
-#[test]
-fn bathtub_migration_accepts_only_the_two_reviewed_destination_digests() {
-    let source = old_snapshot();
-    let current = destination();
-    assert_eq!(
-        terri_data::content_fingerprint(current),
-        0xfdf5_87d9_437f_bfd0
-    );
-    assert!(restore_without_portals(source.clone(), current).is_ok());
-
-    let mut before_portal = current.clone();
-    before_portal.portals.clear();
-    assert_eq!(
-        terri_data::content_fingerprint(&before_portal),
-        0xbcdd_476e_1e23_8ab0
-    );
-    let before_portal = Box::leak(Box::new(before_portal));
-    let rotated = restore_without_portals(source.clone(), before_portal)
-        .expect("the public pre-portal release remains a reviewed bathtub destination")
-        .save_snapshot();
-    assert_eq!(rotated.content_fingerprint, 0xbcdd_476e_1e23_8ab0);
-
-    let mut presentation_only = current.clone();
-    let portal = &mut presentation_only.portals[0];
-    portal.facing = terri_data::CompiledSocketFacing::NegativeX;
-    portal.hinge = terri_data::CompiledPortalHinge::Right;
-    portal.frame_sprite = portal.frame_sprite.wrapping_add(1);
-    portal.closed_sprite = portal.closed_sprite.wrapping_add(1);
-    portal.ajar_sprite = portal.ajar_sprite.wrapping_add(1);
-    portal.open_sprite = portal.open_sprite.wrapping_add(1);
-    assert_eq!(
-        terri_data::content_fingerprint(&presentation_only),
-        0xfdf5_87d9_437f_bfd0
-    );
-    assert!(
-        restore_without_portals(source.clone(), Box::leak(Box::new(presentation_only))).is_ok()
-    );
-
-    let mut moved_identity = current.clone();
-    moved_identity.portals[0].position = (0, 2);
-    let mut extra_portal = current.clone();
-    extra_portal.portals.push(extra_portal.portals[0].clone());
-    for (label, changed) in [
-        ("moved portal identity", moved_identity),
-        ("extra portal", extra_portal),
-    ] {
-        assert_eq!(
-            restore_without_portals(source.clone(), Box::leak(Box::new(changed))).err(),
-            Some(SaveError::IncompatibleContent),
-            "{label} must close the old bathtub bridge"
-        );
-    }
-
-    let mut moved_landing = current.clone();
-    moved_landing.portals[0].inward = (14, 3);
-    assert_eq!(
-        restore_without_portals(rotated, Box::leak(Box::new(moved_landing))).err(),
-        Some(SaveError::IncompatibleContent),
-        "the direct pre-portal bridge must remain pinned to its reviewed landing"
-    );
 }
 
 #[test]
@@ -633,10 +606,16 @@ fn bathtub_rotation_loads_sampled_real_source_world_states() {
     let mut source_pack = destination().clone();
     let tub = source_pack.find("bathtub").unwrap();
     source_pack.objects[tub.0 as usize].footprint = terri_data::Footprint { width: 2, depth: 1 };
+    source_pack.objects[tub.0 as usize].base_facing = terri_core::Facing::SouthEast;
+    for placement in &mut source_pack.lot.placements {
+        if placement.object == tub {
+            placement.facing = terri_core::Facing::SouthEast;
+        }
+    }
     source_pack.portals.clear();
     assert_eq!(
         terri_data::content_fingerprint(&source_pack),
-        0xa020_602a_6acd_3a90
+        0x93b0_a495_25ce_6e0c
     );
     let source_pack = Box::leak(Box::new(source_pack));
     let mut source = Sim::new_from_lot(&source_pack.lot, &source_pack.objects);
@@ -651,7 +630,8 @@ fn bathtub_rotation_loads_sampled_real_source_world_states() {
     for tick in 0..2_000 {
         source.tick();
         if tick % 10 == 0 {
-            let before = source.save_snapshot();
+            let mut before = source.save_snapshot();
+            before.content_fingerprint = 0xa020_602a_6acd_3a90;
             let mut restored = restore_without_portals(before.clone(), pack)
                 .unwrap_or_else(|error| panic!("source tick {tick}: {error:?}"));
             let mut after = restored.save_snapshot();

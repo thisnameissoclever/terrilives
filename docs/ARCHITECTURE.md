@@ -379,8 +379,9 @@ next tick. Loading validates into a fresh world and swaps only after the
 candidate is complete, so corrupt bytes cannot half-mutate a running game.
 
 The earlier snapshot-plus-command-log design remains a future compaction
-option, not the current format. Version 2 wraps the existing world snapshot
-with explicit saved architecture. Continuation is tested across save/load.
+option, not the current format. Version 2 wraps the frozen V1 world snapshot
+with explicit saved architecture. Version 3 adds runtime furniture directions
+outside those frozen records. Continuation is tested across save/load.
 
 Storage is **OPFS** (Origin Private File System), not `localStorage` - real
 file handles from a worker, subject to the browser's storage quota.
@@ -397,9 +398,9 @@ saving and autosave until a successful load or confirmed New game, so a
 freshly initialized household cannot overwrite a rejected save.
 
 The raw prefix is `TERRISAV` plus a little-endian schema version. New saves
-use version 2; the version 1 decoder and its historical optional-tail repair
-remain supported. V2 decoding requires complete consumption and never applies
-that repair. Both versions carry a content-compatibility digest in the world
+use version 3; the version 1 decoder and its historical optional sleep-pressure
+tail repair remain supported. V2 and V3 decoding require complete consumption
+and never apply that repair. All versions carry a content-compatibility digest in the world
 payload. It observes numeric meanings the
 snapshot cannot validate by authored string id, including interaction and
 flyout row order, social order, chain step structure, object station-role
@@ -412,9 +413,9 @@ also gated by that legacy match rather than by a name string alone. The next
 incompatible wire shape must bump the version and make an explicit migration
 decision.
 
-V2 saves store either explicit cell walls, explicit wall/door edges, or the
+V2 and V3 saves store either explicit cell walls, explicit wall/door edges, or the
 frozen legacy authored-wall presentation. The latter preserves V1 custom
-worlds whose collision bitmap does not identify wall ownership. Loading V2
+worlds whose collision bitmap does not identify wall ownership. Loading V2/V3
 uses its saved architecture, not the latest `lot.toml`. Loading V1 upgrades
 only the exact reviewed shipped layout: its 34 object placements and complete
 28-wall collision bitmap must match. The edge conversion clears only those
@@ -422,20 +423,28 @@ only the exact reviewed shipped layout: its 34 object placements and complete
 that pass the existing content validator keep their old architecture. The
 separate bathtub migration retains its narrower compatibility gate.
 
-Before the first V1-to-V2 overwrite, the storage worker preserves the original
-bytes in `terri-save-1.v1-backup.bin`. It never replaces an existing backup;
-an existing file without a V1 header blocks the overwrite. Backup write failure
-leaves the playable slot unchanged. New game clears only `terri-save-1.bin`.
-Older builds cannot read V2. The backup is retained for deliberate recovery,
-not automatically restored over newer progress. Browser storage clearing can
-still erase both files; this is not an external backup.
+V3 contains `world: SaveSnapshotV1`, `layout: SavedLayout` and a required
+`object_facings` list. Restored directions are resolved before saved-wall,
+route and contact validation, so those checks see the actual rotated footprint.
+An invalid candidate never replaces the running world. V1 and V2 cannot store
+runtime directions and retain their historical authored-direction restoration.
+
+Before replacing an older primary save, the storage worker retains its original
+bytes in `terri-save-1.v1-backup.bin` or `terri-save-1.v2-backup.bin`, according
+to its source version. It never replaces an existing recovery file. A backup
+with the wrong header or a backup write failure blocks the primary overwrite.
+New game clears only `terri-save-1.bin`. Recovery copies are retained for
+deliberate recovery, not automatically restored over newer progress. Browser
+storage clearing can still erase all copies; this is not an external backup.
 
 The lock does not detect stale progress from another tab. Two supported game
-tabs still use last-writer-wins storage; play a household in one tab. Older
-cached workers do not participate in the new lock. The worker checks file
+tabs still use last-writer-wins storage; play a household in one tab. A cached
+V2 writer rejects a primary V3 header instead of overwriting its directions.
+Earlier V1 workers do not have that protection or participate in the lock;
+close stale game tabs before continuing. The worker checks file
 headers, not full payload validity; recoverability is established by loading
 the retained real fixture, not by the filesystem mock tests alone. An
-unsupported or unreadable primary header discovered before a V2 write is
+unsupported or unreadable primary header discovered before a current write is
 rejected without replacing the file.
 
 The aquarium and exercise-bike slice adds a narrower second migration class.
@@ -593,17 +602,53 @@ but no indicator sprite because one 26-pixel glyph cannot honestly cover
 washing, television, bathing, and toilet use. Generic object
 use never selects eating body art.
 
-Seated reading adds an exact object-local action position without widening the
-bridge. An object definition may author named action sockets around its rendered
-footprint centre; lot compilation rotates each socket with the placement and
-stores the resolved absolute position and facing. `Sim::new_from_lot` attaches
-those values to the exact placed object in a private presentation-only
-component. The public dynamic-object path derives the same data in the default
-SE orientation. The embedded V1 world payload remains unchanged: restore reconstructs authored
-placement sockets by exact object and position, or the default orientation for
-a non-colliding dynamic object. A dynamic object that exactly collides with an
-authored object id and position remains the documented Save V1 identity
-boundary.
+Seated reading adds an object-local action position without widening the
+render bridge. Definitions author sockets relative to their base-facing
+footprint centre. `ObjectFacing` stores runtime direction with stable codes
+SE=0, SW=1, NW=2, NE=3. `CompiledObject::footprint_at` and `sockets_at`
+apply the turn relative to `base_facing`; the bathtub and desk already use SW
+as their base. Every current authored placement retains its art and geometry.
+Dynamic desks use the SW default art with their existing 2x1 collision shape.
+`apply_object_placement` updates origin, direction, sprite, foreground and
+resolved sockets together. Runtime geometry readers use `placed_footprint`.
+Unsupported directions lack matching primary or required foreground art and
+cannot be applied. The compiler checks sockets for every supported direction.
+Authored and rotated sockets use the same bounds predicate, after resolving
+their coordinates against the appropriate footprint. The authored check stays
+before interaction compilation so invalid content keeps its existing diagnostics.
+
+Save V3's required `object_facings` list sits outside the frozen V1 world and
+V2 architecture records. Explicit entries preserve direction even when a
+dynamic object shares an authored placement's id and position. Historical V1
+and V2 payloads still load; absent directions use the matching authored
+placement or the definition's base. Duplicate, invalid, non-object and unsupported entries
+refuse before the live world is replaced. Sockets and sprite indices remain
+derived presentation. Non-base direction changes enter the deterministic hash.
+Base directions enter the content digest, so changing their geometry meaning
+closes the old compatibility bridges. The exact new destination digest
+`4dab6950757c1f15` inherits the published D and B shapes; the frozen bathtub
+source `93b0a49525ce6e0c` retains A's distinct migration and legacy row rules.
+
+Furniture preview and commit share `validate_placement`. It reconstructs the
+fixed architecture from `SavedLayout`, then proves the live occupancy and wall
+edges match that architecture plus every placed object. It does not infer walls
+from blocked cells or replace saved architecture with the current content lot.
+The candidate must preserve usable interaction approaches, continuous Sim routes,
+and the front door and return landing. Reserved or targeted furniture cannot move.
+
+`PlaceObject` is an appended command variant. The single command drain validates
+again against the then-current world before replacing geometry atomically.
+Queue acceptance is not placement success: the shell reads `lastPlacementResult`
+after draining. Nonempty command queues contribute their complete ordered contents
+to the world hash; empty queues retain the historical hash behavior. Save V3
+preserves pending placement commands as well as applied directions.
+
+`LotEditState` carries a transient revision and the last result, outside saves
+and deterministic hashes. A successful edit marks only that object's render
+samples discontinuous, so a paused furniture move snaps into place without
+resetting other Sims' walking interpolation. The shell uses the revision to
+invalidate geometry-derived caches; successful Load must reset selection even
+when the replacement revision happens to equal the previous one.
 
 Only `reading_chair.settle_in` currently authors
 `read / object_socket / socket`. Render sync requires matching `Eating` and
@@ -684,8 +729,14 @@ requires all nine base clips and the exercise supplement for each of the three
 palettes. The generated atlas tables are authoritative for sprite counts and
 texture dimensions. Logical sprite dimensions and anchors remain independent
 of texture density; a 2x texture does not double a Sim's size in the world.
-The shipped SE bike uses adjusted bar/console geometry; its other
-mirrored facings have not passed rider-contact acceptance.
+The old two-pose exercise supplement used a mirrored bike whose non-SE
+contacts failed review. The approved replacement bike and reading chair use
+real four-direction furniture renders and matched visible contributions;
+the bike has eight cycling phases and the chair four reading phases. The
+historical mismatch is not a limitation of those replacement assets. See
+`assets/models/furniture/README.md` and the furniture release evidence for the
+export, contact and played checks. Runtime rotation controls are a separate
+builder feature and must retain those direction-specific contracts.
 CI runs the sprite-import and model-export unit tests before checking atlas
 reproducibility, including the bike's actual neighboring-wall clearance.
 `SPRITE_ANCHORS` controls both draw and pick offsets;

@@ -63,6 +63,16 @@ function attributeValue(tag: string, name: string): string {
 }
 
 describe('MobileHud', () => {
+  it('collapses editing details and restores desktop state without reopening compact panels', () => {
+    const panels = [details(true), details(false)];
+    const hud = new MobileHud(root(), button(), panels);
+    hud.beginEditing(); hud.beginEditing();
+    expect(panels.map(panel => panel.open)).toEqual([false, false]);
+    hud.endEditing();
+    expect(panels.map(panel => panel.open)).toEqual([true, false]);
+    hud.beginEditing(); hud.setCompact(true); hud.endEditing();
+    expect(panels.map(panel => panel.open)).toEqual([false, false]);
+  });
   it('uses the same compact threshold as the responsive stylesheet', () => {
     expect(COMPACT_HUD_MEDIA_QUERY).toBe(
       '(max-width: 600px), (max-height: 480px)',

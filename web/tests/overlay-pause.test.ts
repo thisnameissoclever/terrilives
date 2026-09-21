@@ -3,6 +3,15 @@ import { describe, expect, it } from 'vitest';
 import { OverlayPauseController } from '../src/ui/overlay-pause.js';
 
 describe('OverlayPauseController', () => {
+  it('distinguishes builder ownership from other blocking overlays', () => {
+    const controller = new OverlayPauseController({ setSpeed() {} }, () => {}, 1);
+    controller.suspend('builder');
+    expect(controller.suspendedExcept('builder')).toBe(false);
+    controller.suspend('help');
+    expect(controller.suspendedExcept('builder')).toBe(true);
+    controller.resume('help');
+    expect(controller.suspendedExcept('builder')).toBe(false);
+  });
   it('pauses for an overlay and restores the player-selected speed', () => {
     const applied: number[] = [];
     const recorded: number[] = [];

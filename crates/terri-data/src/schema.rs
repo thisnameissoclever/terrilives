@@ -259,6 +259,9 @@ pub struct ObjectDef {
     /// reason a need name is: after compilation a sprite that the atlas
     /// does not hold has no representation.
     pub sprite: String,
+    /// Direction already represented by the definition's footprint, sockets and sprite.
+    #[serde(default)]
+    pub base_facing: Option<String>,
     /// Optional atlas layer drawn in front of bodies using this object.
     /// Resolved alongside `sprite`; absent preserves every existing object.
     #[serde(default)]
@@ -888,9 +891,8 @@ pub struct PlacementDef {
     pub y: f32,
     /// Which of the kit's four pre-rendered facings this placement is
     /// drawn with - `"SW"` and friends, see [`FACINGS`]. Absent means
-    /// the object definition's own sprite, which is the `_SE` facing by
-    /// this project's import convention. Presentation only: the
-    /// simulation neither knows nor cares which way a counter faces.
+    /// the definition's base direction. Direction controls geometry,
+    /// action sockets and matching rendered layers.
     #[serde(default)]
     pub facing: Option<String>,
 }

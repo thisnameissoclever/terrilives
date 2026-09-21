@@ -1,9 +1,9 @@
-//! V2 architecture validation. Historical world migration is a separate step.
+//! Saved architecture validation after restoring the world's object directions.
 
 use super::{SaveError, Sim};
 use crate::portals::ActivePortals;
-use std::collections::BTreeSet;
-use terri_core::{layout::SavedLayout, SaveSnapshotV2, TileGrid};
+use std::collections::{BTreeMap, BTreeSet};
+use terri_core::{layout::SavedLayout, Facing, SaveSnapshotV2, SaveSnapshotV3, TileGrid};
 use terri_data::ContentPack;
 
 #[cfg(test)]
@@ -15,25 +15,60 @@ pub(crate) fn restore(
     content: &'static ContentPack,
     active_portals: Option<ActivePortals>,
 ) -> Result<Sim, SaveError> {
-    // V2 is complete and current: do not apply V1's optional-tail repair or
+    // V2 carries complete architecture: do not apply V1's optional-tail repair or
     // reinterpret a saved layout from whatever lot content now happens to be.
     super::validate_snapshot(&snapshot.world, content)?;
-    let mut candidate = super::restore_legacy(snapshot.world, content, active_portals)?;
+    let candidate = super::restore_legacy(snapshot.world, content, active_portals)?;
+    finish_restore(candidate, snapshot.layout, content)
+}
+
+pub(crate) fn restore_v3(
+    snapshot: SaveSnapshotV3,
+    content: &'static ContentPack,
+    active_portals: Option<ActivePortals>,
+) -> Result<Sim, SaveError> {
+    super::validate_snapshot(&snapshot.world, content)?;
+    let mut facings = BTreeMap::new();
+    for (index, code) in snapshot.object_facings {
+        let facing = Facing::from_code(code).ok_or(SaveError::InvalidValue)?;
+        if facings.insert(index, facing).is_some() {
+            return Err(SaveError::InvalidValue);
+        }
+        let entity = super::validate_entity_reference(&snapshot.world.entities, index)?;
+        let id = entity
+            .smart_object
+            .as_deref()
+            .ok_or(SaveError::InvalidEntityReference)?;
+        let definition = content.object(super::resolve_object(content, id)?);
+        if !definition.supports(facing) {
+            return Err(SaveError::InvalidValue);
+        }
+    }
+    let candidate = super::restore_with_facings(snapshot.world, content, active_portals, &facings)?;
+    finish_restore(candidate, snapshot.layout, content)
+}
+
+fn finish_restore(
+    mut candidate: Sim,
+    layout: SavedLayout,
+    content: &ContentPack,
+) -> Result<Sim, SaveError> {
     let grid = candidate.world.resource_mut::<TileGrid>();
-    apply_layout(grid.into_inner(), &snapshot.layout)?;
+    apply_layout(grid.into_inner(), &layout)?;
     super::validate_portal_returns(
         &candidate.save_snapshot(),
         candidate.world.resource::<TileGrid>(),
         content,
     )?;
-    if matches!(snapshot.layout, SavedLayout::EdgeWallsV1 { .. }) {
+    if matches!(layout, SavedLayout::EdgeWallsV1 { .. }) {
         validate_edge_world(
             &candidate.save_snapshot(),
             candidate.world.resource::<TileGrid>(),
             content,
+            &candidate.world,
         )?;
     }
-    candidate.world.insert_resource(snapshot.layout);
+    candidate.world.insert_resource(layout);
     Ok(candidate)
 }
 
@@ -41,16 +76,15 @@ fn validate_edge_world(
     snapshot: &terri_core::SaveSnapshotV1,
     grid: &TileGrid,
     content: &ContentPack,
+    world: &bevy_ecs::world::World,
 ) -> Result<(), SaveError> {
     for entity in &snapshot.entities {
         let Some(position) = entity.position else {
             continue;
         };
         let tile = (position.x.round() as i32, position.y.round() as i32);
-        if let Some(id) = &entity.smart_object {
-            let footprint = content
-                .object(content.find(id).ok_or(SaveError::InvalidContentReference)?)
-                .footprint;
+        if entity.smart_object.is_some() {
+            let footprint = restored_footprint(entity, world, content)?;
             let origin = (position.x.floor() as i32, position.y.floor() as i32);
             for (a, b) in grid.blocked_edges() {
                 let inside = |p: (i32, i32)| {
@@ -96,11 +130,9 @@ fn validate_edge_world(
                 // Furniture stays put. A person may have been redirected while
                 // this agent approached; that stale social route is checked at
                 // arrival rather than rejecting a legitimate running save.
-                if let Some(id) = &target_entity.smart_object {
+                if target_entity.smart_object.is_some() {
                     let at = target_entity.position.ok_or(SaveError::InvalidGrid)?;
-                    let footprint = content
-                        .object(content.find(id).ok_or(SaveError::InvalidContentReference)?)
-                        .footprint;
+                    let footprint = restored_footprint(target_entity, world, content)?;
                     let endpoint = remaining.last().copied().unwrap_or(tile);
                     if !valid_contact(grid, endpoint, at, footprint) {
                         return Err(SaveError::InvalidGrid);
@@ -125,18 +157,32 @@ fn validate_edge_world(
                 .map(|i| &snapshot.entities[i])
                 .ok_or(SaveError::InvalidEntityReference)?;
             let at = target.position.ok_or(SaveError::InvalidGrid)?;
-            let footprint = target
-                .smart_object
-                .as_deref()
-                .and_then(|id| content.find(id))
-                .map(|id| content.object(id).footprint)
-                .unwrap_or(terri_core::Footprint::SINGLE);
+            let footprint = restored_footprint(target, world, content)?;
             if !valid_contact(grid, tile, at, footprint) {
                 return Err(SaveError::InvalidGrid);
             }
         }
     }
     Ok(())
+}
+
+fn restored_footprint(
+    saved: &terri_core::SavedEntity,
+    world: &bevy_ecs::world::World,
+    content: &ContentPack,
+) -> Result<terri_core::Footprint, SaveError> {
+    let Some(id) = saved.smart_object.as_deref() else {
+        return Ok(terri_core::Footprint::SINGLE);
+    };
+    let definition = content.find(id).ok_or(SaveError::InvalidContentReference)?;
+    let index = bevy_ecs::entity::EntityIndex::from_raw_u32(saved.index)
+        .ok_or(SaveError::InvalidEntityReference)?;
+    let entity = world.entities().resolve_from_index(index);
+    Ok(crate::placed_footprint(
+        content,
+        definition,
+        world.get::<terri_core::ObjectFacing>(entity),
+    ))
 }
 
 /// Saved coordinates are untrusted even after the finite-number check. Bound

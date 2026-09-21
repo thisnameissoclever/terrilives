@@ -169,11 +169,21 @@ describe('restorePersistenceFocus', () => {
 
 describe('PersistenceController', () => {
   it('identifies an unsupported envelope version without claiming the payload is corrupt', async () => {
+    const bytes = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 4, 0, 17]);
+    const view = status();
+    const controller = new PersistenceController(store(bytes), sim(false), view);
+    expect(await controller.restoreAtStartup()).toBe('invalid');
+    expect(view.textContent).toContain('version 4 is not supported');
+    expect(view.textContent).toContain('Saving paused');
+  });
+
+  it('reports malformed current V3 as a load failure, not an unsupported version', async () => {
     const bytes = new Uint8Array([84, 69, 82, 82, 73, 83, 65, 86, 3, 0, 17]);
     const view = status();
     const controller = new PersistenceController(store(bytes), sim(false), view);
     expect(await controller.restoreAtStartup()).toBe('invalid');
-    expect(view.textContent).toContain('version 3 is not supported');
+    expect(view.textContent).toContain('Load failed.');
+    expect(view.textContent).not.toContain('not supported');
     expect(view.textContent).toContain('Saving paused');
   });
 

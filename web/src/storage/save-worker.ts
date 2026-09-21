@@ -14,6 +14,7 @@ import { saveSchemaVersion } from './save-header.js';
 
 const SAVE_FILE = 'terri-save-1.bin';
 const V1_BACKUP_FILE = 'terri-save-1.v1-backup.bin';
+const V2_BACKUP_FILE = 'terri-save-1.v2-backup.bin';
 
 type SaveRequest =
   | { readonly id: number; readonly kind: 'load' }
@@ -62,7 +63,7 @@ async function handle(request: SaveRequest): Promise<void> {
           break;
         }
         case 'save': {
-          await preserveV1Backup(root, request.bytes);
+          await preserveHistoricalBackup(root, request.bytes);
           await write(root, SAVE_FILE, request.bytes);
           port.postMessage({ id: request.id, ok: true });
           break;
@@ -98,32 +99,35 @@ async function read(
   }
 }
 
-/** Preserve the original wire bytes before the first V2 overwrite. */
-async function preserveV1Backup(
+/** Guard every V3 write and preserve original historical wire bytes. */
+async function preserveHistoricalBackup(
   root: FileSystemDirectoryHandle,
   next: ArrayBuffer,
 ): Promise<void> {
-  if (saveSchemaVersion(new Uint8Array(next)) !== 2) return;
+  if (saveSchemaVersion(new Uint8Array(next)) !== 3) {
+    throw new Error('Only current V3 saves can be written. Saved data has not been changed.');
+  }
   const previous = await read(root);
   if (previous === null) return;
   const previousVersion = saveSchemaVersion(new Uint8Array(previous));
-  if (previousVersion !== 1 && previousVersion !== 2) {
+  if (previousVersion !== 1 && previousVersion !== 2 && previousVersion !== 3) {
     throw new Error('The saved file has an unreadable or unsupported version. It was not replaced.');
   }
-  if (previousVersion !== 1) return;
-  const existingBackup = await read(root, V1_BACKUP_FILE);
+  if (previousVersion === 3) return;
+  const backupFile = previousVersion === 1 ? V1_BACKUP_FILE : V2_BACKUP_FILE;
+  const existingBackup = await read(root, backupFile);
   if (existingBackup !== null) {
-    if (saveSchemaVersion(new Uint8Array(existingBackup)) !== 1) {
-      throw new Error('The existing V1 recovery backup is unreadable. The saved game was not replaced.');
+    if (saveSchemaVersion(new Uint8Array(existingBackup)) !== previousVersion) {
+      throw new Error(`The existing V${previousVersion} recovery backup is unreadable. The saved game was not replaced.`);
     }
     return;
   }
   try {
-    await write(root, V1_BACKUP_FILE, previous);
+    await write(root, backupFile, previous);
   } catch (error: unknown) {
     // Remove only the incomplete backup created by this operation, while
     // still holding the origin lock. A retry must not trust an empty file.
-    await removeIfPresent(root, V1_BACKUP_FILE);
+    await removeIfPresent(root, backupFile);
     throw error;
   }
 }

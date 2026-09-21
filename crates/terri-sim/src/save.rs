@@ -1,14 +1,15 @@
 //! Simulation snapshot capture, validation, and reconstruction.
 
 use crate::systems::chain::CHAIN_STEP;
-use crate::{
-    default_action_sockets, portals::ActivePortals, Content, ForegroundSprite,
-    ResolvedActionSockets, Sim,
-};
+#[cfg(test)]
+use crate::{default_action_sockets, ForegroundSprite, ResolvedActionSockets};
+use crate::{portals::ActivePortals, Content, Sim};
 use bevy_ecs::{
     entity::EntityIndex,
     prelude::{Entity, World},
 };
+#[cfg(test)]
+use terri_core::SpriteVariant;
 use terri_core::{
     Agent, AtWork, Blocked, Career, Carrying, ChainState, CommandQueue, Commuting,
     ConversationVoice, Eating, Fumbled, Funds, Habituation, Hobbies, Intent, IntentQueue, Needs,
@@ -16,8 +17,8 @@ use terri_core::{
     SavedChainState, SavedCommand, SavedConversationVoice, SavedEating, SavedEntity,
     SavedHabituation, SavedIntent, SavedPath, SavedPersonality, SavedPosition, SavedSocialising,
     SavedTarget, SavedTraitState, Selected, SimClock, SimCommand, SimId, SimIdAllocator, SimName,
-    SimRng, SmartObject, Socialising, SpriteVariant, StepWork, Target, TileGrid, Traits, Wander,
-    NEED_MAX, NEED_MIN,
+    SimRng, SmartObject, Socialising, StepWork, Target, TileGrid, Traits, Wander, NEED_MAX,
+    NEED_MIN,
 };
 use terri_data::{ContentPack, ObjectDefId};
 
@@ -32,6 +33,8 @@ pub(super) mod architecture;
 mod bathtub;
 #[cfg(test)]
 mod bathtub_tests;
+#[cfg(test)]
+mod v3_tests;
 mod wall_migration;
 #[cfg(test)]
 mod wall_migration_tests;
@@ -232,6 +235,17 @@ fn capture_entity(entity: bevy_ecs::world::EntityRef<'_>, pack: &ContentPack) ->
 
 fn capture_command(command: &SimCommand) -> SavedCommand {
     match command {
+        SimCommand::PlaceObject {
+            object,
+            x,
+            y,
+            facing,
+        } => SavedCommand::PlaceObject {
+            object: *object,
+            x: *x,
+            y: *y,
+            facing: *facing,
+        },
         SimCommand::Select(entity) => SavedCommand::Select(*entity),
         SimCommand::UseObject {
             agent,
@@ -293,6 +307,20 @@ pub(super) fn restore_legacy(
     snapshot: SaveSnapshotV1,
     content: &'static ContentPack,
     active_portals: Option<ActivePortals>,
+) -> Result<Sim, SaveError> {
+    restore_with_facings(
+        snapshot,
+        content,
+        active_portals,
+        &std::collections::BTreeMap::new(),
+    )
+}
+
+fn restore_with_facings(
+    snapshot: SaveSnapshotV1,
+    content: &'static ContentPack,
+    active_portals: Option<ActivePortals>,
+    facings: &std::collections::BTreeMap<u32, terri_core::Facing>,
 ) -> Result<Sim, SaveError> {
     let (snapshot, migrate_legacy_household_names) = bathtub::prepare(snapshot, content)?;
 
@@ -357,6 +385,7 @@ pub(super) fn restore_legacy(
             &slots,
             content,
             migrate_legacy_household_names,
+            facings.get(&saved.index).copied(),
         )?;
     }
 
@@ -394,6 +423,7 @@ fn restore_entity(
     slots: &[Option<Entity>],
     pack: &ContentPack,
     migrate_legacy_household_names: bool,
+    saved_facing: Option<terri_core::Facing>,
 ) -> Result<(), SaveError> {
     let entity = slots[saved.index as usize].ok_or(SaveError::InvalidEntityReference)?;
     let mut target = world.entity_mut(entity);
@@ -585,43 +615,31 @@ fn restore_entity(
         target.insert(StepWork { remaining_ticks });
     }
 
-    // Facing, action sockets, and foreground layers are immutable authored
-    // presentation data today, so all are derived from the current pack instead of widening
-    // Save V1. This expires when build mode can move or rotate an object: that
-    // schema must carry stable placement identity and authored facing.
     if let (Some(position), Some(object_name)) = (saved.position, saved.smart_object.as_deref()) {
         let object = resolve_object(pack, object_name)?;
-        let placement = pack
-            .lot
-            .placements
-            .iter()
-            .find(|placement| placement_matches(placement, object, position));
-        if let Some(placement) = placement {
-            if placement.sprite != pack.object(object).sprite {
-                target.insert(SpriteVariant(placement.sprite));
-            }
-            if !placement.action_sockets.is_empty() {
-                target.insert(ResolvedActionSockets(placement.action_sockets.clone()));
-            }
-            if let Some(sprite) = placement.foreground_sprite {
-                target.insert(ForegroundSprite(sprite));
-            }
-        } else {
-            let definition = pack.object(object);
-            let sockets = default_action_sockets(
-                definition,
-                Position {
-                    x: position.x,
-                    y: position.y,
-                },
-            );
-            if !sockets.is_empty() {
-                target.insert(ResolvedActionSockets(sockets));
-            }
-            if let Some(sprite) = definition.foreground_sprite {
-                target.insert(ForegroundSprite(sprite));
-            }
+        let definition = pack.object(object);
+        let facing = saved_facing.unwrap_or_else(|| {
+            pack.lot
+                .placements
+                .iter()
+                .find(|placement| placement_matches(placement, object, position))
+                .map_or(definition.base_facing, |placement| placement.facing)
+        });
+        if !definition.supports(facing) {
+            return Err(SaveError::InvalidValue);
         }
+        crate::apply_object_placement(
+            world,
+            entity,
+            definition,
+            Position {
+                x: position.x,
+                y: position.y,
+            },
+            facing,
+        );
+    } else if let Some(facing) = saved_facing {
+        target.insert(terri_core::ObjectFacing(facing));
     }
 
     Ok(())
@@ -673,6 +691,17 @@ fn placement_matches(
 
 fn restore_command(command: SavedCommand) -> SimCommand {
     match command {
+        SavedCommand::PlaceObject {
+            object,
+            x,
+            y,
+            facing,
+        } => SimCommand::PlaceObject {
+            object,
+            x,
+            y,
+            facing,
+        },
         SavedCommand::Select(entity) => SimCommand::Select(entity),
         SavedCommand::UseObject {
             agent,
@@ -842,6 +871,9 @@ fn validate_command(
 ) -> Result<(), SaveError> {
     match command {
         SavedCommand::Select(None) | SavedCommand::SetSpeed(_) => Ok(()),
+        // Placement is revalidated when its position in the stream drains.
+        // Impossible or stale edits must replay as refusals, not prevent Load.
+        SavedCommand::PlaceObject { .. } => Ok(()),
         SavedCommand::Select(Some(index)) | SavedCommand::CancelIntents { agent: index } => {
             validate_agent_reference(entities, *index).map(|_| ())
         }
@@ -2388,7 +2420,7 @@ mod tests {
     }
 
     #[test]
-    fn same_id_same_position_dynamic_save_collision_adopts_the_authored_rotated_socket() {
+    fn same_id_same_position_dynamic_save_keeps_its_explicit_direction() {
         let shipped = terri_data::pack();
         let shipped_chair = shipped
             .find("reading_chair")
@@ -2428,6 +2460,7 @@ mod tests {
                 wall_edges: Vec::new(),
                 placements: vec![terri_data::CompiledPlacement {
                     object: chair,
+                    facing: terri_core::Facing::NorthWest,
                     x: position.x,
                     y: position.y,
                     sprite: base.object(chair).sprite,
@@ -2451,12 +2484,13 @@ mod tests {
             Some(default_se.as_slice()),
             "before Save, the dynamic object must carry default-SE sockets"
         );
-        let snapshot = source.save_snapshot();
+        let snapshot = source.save_snapshot_v3();
         let saved_position = snapshot
+            .world
             .entities
             .iter()
             .find(|saved| saved.index == dynamic.index_u32())
-            .expect("the dynamic object is present in Save V1")
+            .expect("the dynamic object is present in Save V3")
             .position
             .expect("the dynamic object has a saved position");
         assert!(placement_matches(
@@ -2467,8 +2501,8 @@ mod tests {
 
         let mut restored = crate::test_content::sim_with(16, 16, fixture);
         restored
-            .load_snapshot(snapshot)
-            .expect("same-position dynamic Save V1 restores");
+            .load_snapshot_v3(snapshot)
+            .expect("same-position dynamic Save V3 restores");
         let restored_dynamic = restored.world().entities().resolve_from_index(
             EntityIndex::from_raw_u32(dynamic.index_u32()).expect("ordinary saved entity index"),
         );
@@ -2477,8 +2511,19 @@ mod tests {
                 .world()
                 .get::<ResolvedActionSockets>(restored_dynamic)
                 .map(|sockets| sockets.0.as_slice()),
+            Some(default_se.as_slice()),
+            "the saved direction distinguishes a dynamic object from the authored placement"
+        );
+
+        let mut historical = crate::test_content::sim_with(16, 16, fixture);
+        historical.load_snapshot(source.save_snapshot()).unwrap();
+        assert_eq!(
+            historical
+                .world()
+                .get::<ResolvedActionSockets>(restored_dynamic)
+                .map(|sockets| sockets.0.as_slice()),
             Some([authored_nw].as_slice()),
-            "Save V1 cannot distinguish the collision, so Load must adopt the authored placement"
+            "frozen V1 retains authored inference because it cannot store explicit directions"
         );
     }
 

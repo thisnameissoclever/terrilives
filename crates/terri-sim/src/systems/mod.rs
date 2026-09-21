@@ -27,6 +27,7 @@ pub mod habituation;
 // out` rather than as failures.
 pub mod idle;
 pub mod interact;
+pub mod lot_edit;
 pub mod movement;
 pub mod needs;
 // Declared in the same commit that creates `satisfaction.rs`, per [L2]:
