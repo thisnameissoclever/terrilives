@@ -653,10 +653,17 @@ fn a_wall_between_the_front_door_and_its_landing_is_refused_while_anyone_works()
     );
 }
 
-/// The invariant both blockers broke, over the real household at the ticks the
-/// review found them: every wall the validator accepts leaves a save that the
-/// V3 loader accepts. Opening a line or making a doorway only removes a barrier
-/// and cannot make a save unloadable, so walls are the state checked.
+/// The invariant the first review's blockers broke, over the real household:
+/// every wall the validator accepts leaves a save that the V3 loader accepts.
+/// Opening a line or making a doorway only removes a barrier and cannot make a
+/// save unloadable, so walls are the state checked.
+///
+/// The test also proves it met the case it guards. Content changes move the
+/// household, and after the trait library the ticks this first used no longer
+/// held a wall that passes every other rule and fails the loader, so the test
+/// passed with the loader check deleted. It now counts such walls, which the
+/// loader check alone refuses, and fails if it finds none: a household change
+/// that empties it fails loudly, and the fix is to choose ticks that hold one.
 #[test]
 fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
     let mut sim = Sim::new_from_shipped_lot();
@@ -665,19 +672,35 @@ fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
         (grid.width() as u32, grid.height() as u32)
     };
     let mut checked = 0;
+    let mut only_the_loader_refused = 0;
     let mut reloaded = Sim::new_from_shipped_lot();
-    for stop in [240u64, 600] {
+    for stop in [180u64, 620] {
         while sim.world().resource::<terri_core::SimClock>().tick < stop {
             sim.tick();
         }
         let base = sim.save_snapshot_v3();
+        let rectangles = super::super::current_layout(sim.world())
+            .expect("the shipped house is consistent")
+            .rectangles;
         let lines = (1..width)
             .flat_map(|x| (0..height).map(move |y| (Vertical, x, y)))
             .chain((0..width).flat_map(|x| (1..height).map(move |y| (Horizontal, x, y))));
         for (axis, x, y) in lines {
             let request = edit(axis, x, y, Wall);
-            let Ok(plan) = validate_wall_edit(sim.world(), request) else {
-                continue;
+            let plan = match validate_wall_edit(sim.world(), request) {
+                Ok(plan) => plan,
+                Err(PlacementRefusal::BlockedRoute) => {
+                    let [a, b] = line(axis, x, y, false).cells();
+                    let mut grid = sim.world().resource::<TileGrid>().clone();
+                    grid.set_edge_blocked(a, b, true);
+                    if super::super::prove_lot_usable(sim.world(), &grid, &rectangles).is_ok()
+                        && crate::save::candidate_grid_loads(sim.world(), &grid).is_err()
+                    {
+                        only_the_loader_refused += 1;
+                    }
+                    continue;
+                }
+                Err(_) => continue,
             };
             if !plan.changed {
                 continue;
@@ -696,6 +719,11 @@ fn every_wall_the_shipped_household_accepts_leaves_a_save_that_loads() {
         }
     }
     assert!(checked > 100, "only {checked} walls were accepted to check");
+    assert!(
+        only_the_loader_refused > 0,
+        "no wall at these ticks passes every other rule and fails the loader; the test \
+         no longer covers the case it guards, so choose other ticks"
+    );
 }
 
 /// [WT-hash]: an edge-wall house with no walls is a different save from a

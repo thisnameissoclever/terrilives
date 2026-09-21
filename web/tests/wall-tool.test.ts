@@ -275,6 +275,21 @@ describe('WallTool', () => {
     expect(walls.line).toBeNull();
   });
 
+  it('keeps an edit on its way through leaving the tool, then forgets it once it lands', () => {
+    const { walls, source } = tool();
+    walls.enter();
+    walls.choosePoint(1.6, 1.0);
+    walls.apply(WALL);
+    walls.exit();
+    expect([walls.active, walls.pending]).toEqual([false, WALL]);
+    expect(walls.highlight()).toBeNull();
+    source.result = { axis: 0, x: 2, y: 1, state: WALL, reason: null };
+    walls.afterCommands();
+    expect([walls.pending, walls.line, walls.status]).toEqual([null, null, CHOOSE_LINE]);
+    walls.enter();
+    expect(walls.status).toBe(CHOOSE_LINE);
+  });
+
   it('says only that the outside wall cannot change, on an outer line', () => {
     const { walls, source } = tool();
     source.refusals = [5, 5, 5];
@@ -327,7 +342,6 @@ describe('WallTool', () => {
     const { walls, source } = tool(7, 5);
     walls.enter();
     walls.choosePoint(1.6, 1.0);
-    walls.apply(WALL);
     walls.exit();
     expect([walls.active, walls.line, walls.pending]).toEqual([false, null, null]);
 

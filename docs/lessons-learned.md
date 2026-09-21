@@ -6783,7 +6783,10 @@ the invariant directly: every edit the validator accepts leaves a save the
 loader accepts, over the real household at more than one moment.
 
 **How to verify.** Remove the `candidate_grid_loads` call from
-`validate_wall_edit`. `a_wall_between_where_a_walk_ends_and_what_it_is_walking_to_is_refused`,
-`a_wall_between_the_front_door_and_its_landing_is_refused_while_anyone_works`
+`validate_wall_edit`. `a_wall_between_where_a_walk_ends_and_what_it_is_walking_to_is_refused`
 and `every_wall_the_shipped_household_accepts_leaves_a_save_that_loads` fail;
-the last names the vertical line at x 14, y 6, at tick 240.
+the second names the vertical line at x 14, y 6, at tick 180. The front-door
+test does not, because the door rule now refuses that wall first. The
+household test also fails on its own if its ticks stop holding a wall that
+only the loader refuses: the trait library moved the household once already
+and silently emptied the ticks it first used.

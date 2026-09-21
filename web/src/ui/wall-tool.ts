@@ -108,10 +108,16 @@ export class WallTool {
     this.hooks.changed();
   }
 
+  /**
+   * Leaves the tool. An edit already on its way is applied whatever happens
+   * here, so it is kept until its result arrives and only then forgotten;
+   * clearing it now would leave its result for nobody.
+   */
   exit(): void {
     if (!this.active) return;
     this.active = false;
-    this.clear();
+    if (this.pending === null) this.clear();
+    else this.hooks.changed();
   }
 
   /** A click or tap at an unrounded world point. */
@@ -190,6 +196,10 @@ export class WallTool {
         && result.state === this.pending) {
         const done = this.pending;
         this.pending = null;
+        if (!this.active) {
+          this.clear();
+          return;
+        }
         this.refresh();
         this.status = result.reason ?? DONE[done];
         this.hooks.changed();
