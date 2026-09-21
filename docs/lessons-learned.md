@@ -1,5 +1,23 @@
 # Lessons Learned
 
+## [L-builder-selection-handoff] Switching furniture must resolve its pending preview
+
+**What happened.** Selecting another item discarded a moved preview, even when
+the move was valid. The owner expected selection to act like Confirm.
+
+**Root cause.** Selection replaced editor state without resolving the outgoing
+edit. Preview and placement were separate, but their handoff had no contract.
+
+**Prevention rule.** Commit a valid changed preview through the existing command
+path before switching; cancel an invalid preview and switch immediately. Keep
+the deferred target until the result arrives, and clear it on Load. Do not queue
+placements for unchanged items or duplicate a completed manual confirmation.
+
+**How to verify.** Real-WASM tests cover movement, rotation, invalid cancellation,
+command-time rejection, rapid reselection, Load reset and dropdown state. Removing
+the valid-preview guard failed with selected object 15 instead of 22. Restored
+builder.ts SHA256 is 8DC185DBEAC1B512188BD91330DC3DB981CB6FD55F6A3D10EFB1E67C882A9524.
+
 ## [L-builder-preview-overlap] Preview geometry and drawing must agree
 
 **What happened.** The first played builder pass showed old chair arms behind

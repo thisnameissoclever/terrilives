@@ -132,3 +132,23 @@ edited SW table. The restored open door and returning body retained correct
 layering. No warnings/errors appeared. Tab17 and server91068 were closed.
 Public gameplay was not used for this builder check. The separate door live
 check's autosave incident is documented in its evidence and lessons learned.
+
+## Selection handoff correction
+
+The 2026-09-21 follow-up commits valid changed previews when another item is
+selected and cancels invalid previews. The production bundle index-B54IFr2f.js
+was played on disposable localhost4191. At Day3 16:11, rotating the table to NW
+then clicking the bookcase kept its new orientation without Confirm. Moving it
+one tile right and clicking the bookcase kept the new location. Three left
+nudges produced an invalid preview; clicking the bookcase cancelled that preview,
+and reselecting the table showed its last committed placement. The clock stayed
+paused and funds stayed360. Screenshots were inspected for each transition;
+there were no console warnings/errors. The owned tab and server were closed.
+No public save was opened or changed during this correction.
+
+All826 browser tests, TypeScript and the production build passed. Independent
+source review found no issues. The real-WASM regressions also cover rapid clicks,
+Load reset, duplicate manual confirmation and command-time rejection. Removing
+the valid-preview guard caused an assertion failure (selected15 instead of22);
+the exact source hash was restored before the full passing rerun. Hosted checks
+and deployment of this follow-up are separate pending gates.

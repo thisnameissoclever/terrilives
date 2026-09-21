@@ -15,6 +15,91 @@ beforeAll(async () => {
   memory = (await init({ module_or_path: readFileSync('src/wasm/terri_wasm_bg.wasm') })).memory;
 });
 
+it('commits a valid move before selecting another object without advancing time', () => {
+  const { handle, source, builder } = fixture();
+  builder.enter(); builder.select(15); builder.moveTo(7, 0);
+  const tick = source.clockTick();
+  builder.select(22);
+  expect(builder.pending).toBe(true);
+  expect(builder.selected).toBe(15);
+  builder.select(7);
+  source.flushCommands(); builder.afterCommands();
+  expect(builder.selected).toBe(22);
+  expect(source.lotRevision()).toBe(1);
+  expect(source.clockTick()).toBe(tick);
+  builder.select(15);
+  expect(builder.preview).toMatchObject({ x: 7, y: 0 });
+  expect(builder.pending).toBe(false);
+  handle.free();
+});
+
+it('switches immediately after manual Confirm without queuing a duplicate placement', () => {
+  const { handle, source, builder } = fixture();
+  builder.enter(); builder.select(15); builder.moveTo(7, 0);
+  builder.confirm(); source.flushCommands(); builder.afterCommands();
+  builder.select(22);
+  expect(builder.selected).toBe(22);
+  expect(builder.pending).toBe(false);
+  source.flushCommands(); builder.afterCommands();
+  expect(source.lotRevision()).toBe(1);
+  handle.free();
+});
+
+it('clears an automatic selection handoff on Load before subsequent placement', () => {
+  const { handle, source, builder } = fixture();
+  const saved = source.saveBytes();
+  builder.enter(); builder.select(15); builder.moveTo(7, 0); builder.select(22);
+  expect(builder.pending).toBe(true);
+  expect(source.loadBytes(saved)).toBe(true);
+  builder.resetAfterLoad();
+  builder.select(15); builder.moveTo(7, 0); builder.confirm();
+  source.flushCommands(); builder.afterCommands();
+  expect(builder.selected).toBe(15);
+  expect(builder.pending).toBe(false);
+  handle.free();
+});
+
+it('cancels an invalid move on selection and keeps the original furniture unchanged', () => {
+  const { handle, source, builder } = fixture();
+  const saved = source.saveBytes();
+  builder.enter(); builder.select(15); builder.moveTo(-1, 0);
+  builder.select(22);
+  expect(builder.selected).toBe(22);
+  expect(builder.pending).toBe(false);
+  source.flushCommands(); builder.afterCommands();
+  expect(source.saveBytes()).toEqual(saved);
+  handle.free();
+});
+
+it('commits rotation on keyboard selection but leaves same-object previews alone', () => {
+  const { handle, source, builder } = fixture();
+  builder.enter(); builder.select(7); builder.rotate(); builder.moveTo(2, 2);
+  builder.select(7);
+  expect(builder.preview).toMatchObject({ x: 2, y: 2, facing: 1 });
+  expect(builder.pending).toBe(false);
+  builder.handleKey(']');
+  expect(builder.pending).toBe(true);
+  source.flushCommands(); builder.afterCommands();
+  expect(builder.selected).toBe(8);
+  expect(source.objectFacing(7)).toBe(1);
+  expect(source.lotRevision()).toBe(1);
+  handle.free();
+});
+
+it('switches selection and reports cancellation if a valid preview is rejected during commit', () => {
+  const { handle, source, builder } = fixture();
+  builder.enter(); builder.select(15); builder.moveTo(7, 0);
+  source.placeObject(22, 7, 0, source.objectFacing(22)!);
+  builder.select(7);
+  expect(builder.pending).toBe(true);
+  source.flushCommands(); builder.afterCommands();
+  expect(builder.selected).toBe(7);
+  expect(builder.pending).toBe(false);
+  expect(builder.preview?.valid).toBe(true);
+  expect(builder.status).toMatch(/overlaps/);
+  handle.free();
+});
+
 function fixture() {
   const handle = SimHandle.from_lot();
   const source = new SimBridge(handle, memory);
