@@ -17,9 +17,8 @@ hairstyle choices in a future Sim creator, but only concept 1 is in scope now.
 
 These are generated illustrations, not finished 3D models. Their selection
 establishes visual direction; it does not prove hidden geometry, four-facing
-consistency, animation quality or in-game readability. The source prompts and
-generation records are retained in
-`.tmp/sim-blender-preview-20260906/owner-review-pending/sim-01/hair-concepts-01/`.
+consistency, animation quality or in-game readability. The source prompts are
+preserved in `docs/assets/review-evidence/sim-01/hair/concept-prompts.md`.
 
 ## Current modeling boundary
 
@@ -45,10 +44,11 @@ The local modeling track is paused, not declared successful.
 Evidence is retained under the Sim's `owner-review-pending/sim-01/rejected/`
 folder in the preview workspace. The owner authorized a hair-only Tripo
 experiment capped at USD 2, still within the original USD 10 total test ceiling,
-on 2026-09-07 and resumed it on 2026-09-09. It is not a proven fix. Its records
-are in `.tmp/sim-tripo-hair-20260909/`. The existing body and offline
-Blender-to-sprite direction remain intact. No foreground desktop interaction
-is authorized without asking first.
+on 2026-09-07 and resumed it on 2026-09-09. It is not a proven fix. Its
+settings, cost and reconciliation are summarized in
+`docs/assets/review-evidence/sim-01/hair/README.md`. The existing body and
+offline Blender-to-sprite direction remain intact. No foreground desktop
+interaction is authorized without asking first.
 
 The hair-only image reference was prepared. Before any paid submission, the
 2026-09-09 renderer preflight hit a Windows `Access is denied` error launching
@@ -69,15 +69,15 @@ love it, ship it." The thicker opposite-side fringe, pronounced rear ridges and
 curl's proximity to the far eyebrow were disclosed before approval. Retain this
 approved appearance instead of reopening those design choices during rigging.
 
-The one current owner-review set is
-`.tmp/sim-blender-preview-20260906/owner-review-pending/sim-01/tripo-hair-01/`.
-Its comparison and four-facing study are the accepted source checkpoint.
+The accepted source checkpoint is the concept comparison, tracked as
+`assets/models/sims/sim-01/source/approved-comparison.png`, and the four-facing
+study in `docs/assets/review-evidence/sim-01/hair/four-facing-study.png`.
 Earlier rejected drafts are not additional approval candidates.
 
 ## Authorized animation stage
 
-1. Rig the accepted master at
-   `.tmp/sim-tripo-hair-20260909/fit-01/sim-hair-candidate.blend` locally. Keep
+1. Rig the accepted master, tracked byte for byte as
+   `assets/models/sims/sim-01/source/approved-neutral.blend`. Keep
    the approved neutral appearance, body proportions, face, hair and clothing.
    Use one reusable skeleton and named actions, not new models for each frame.
 2. Prove the rig with actual limb motion in walking and a seated-reading stress
