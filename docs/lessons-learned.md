@@ -6537,15 +6537,16 @@ selection does not waive later four-facing and rigging verification.
 
 **Outcome.** Approximating the selected concept by hand in Blender did not
 succeed; see [L-concept-to-hair-shape]. The hair that shipped came from a
-different source method: one owner-authorized, hair-only Tripo generation,
-fitted to the retained Blender body and approved on 2026-09-09. The record is
-in `docs/specs/2026-09-07-sim-hairstyle-direction.md`.
+different source method: a capped, owner-authorized hair-only Tripo
+experiment, whose one generation was fitted to the retained Blender body and
+approved on 2026-09-09. The record is in
+`docs/specs/2026-09-07-sim-hairstyle-direction.md`.
 
-On 2026-09-21 the owner confirmed paid generation as a standing, approved
-option rather than a one-off. Try non-paid methods first; when they cannot
-reach the quality needed, paid generation is a legitimate route and need not
-be treated as exceptional. Each paid run still spends money, so confirm that
-specific spend before submitting it.
+On 2026-09-21 the owner established paid generation as a standing, approved
+option rather than a one-off. Prefer non-paid methods; when they are of
+insufficient quality, paid generation is a legitimate route and need not be
+treated as exceptional. Each paid run still spends money, so ask the owner to
+approve that specific run and its cost before submitting it.
 
 ## [L-concept-to-hair-shape] A clear concept does not validate the construction method
 
@@ -6585,7 +6586,7 @@ without reaching the concept, and the owner authorized a capped hair-only
 Tripo experiment. Its one generation cost USD 0.60, was fitted to the Blender
 body, and was approved. Details are in
 `docs/specs/2026-09-07-sim-hairstyle-direction.md`. Paid generation has since
-been confirmed as a standing option; see
+been established as a standing option; see
 [L-preserve-personality-in-visual-revisions].
 
 ## [L-store-blender-background-proof] Verify the background script, not the launcher exit
