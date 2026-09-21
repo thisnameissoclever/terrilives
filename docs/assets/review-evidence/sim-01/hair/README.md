@@ -9,7 +9,8 @@ as the record of the hairstyle decision.
 
 | File | What it is |
 | --- | --- |
-| `concept-prompts.md` | The four prompts that produced the concepts in `docs/assets/sim-hairstyles/`. Its first input was a local pre-hair render that was not preserved; a new concept round should use the approved Sim as its identity reference instead. |
+| `concept-prompts.md` | The four prompts that produced the concepts in `docs/assets/sim-hairstyles/`, copied verbatim, so its input paths are the original local ones. The first input was a local pre-hair render that was not preserved; a new concept round should use the approved Sim as its identity reference instead. The second is tracked as `docs/assets/aquarium-exercise-bike/reference-aquarium.png`. |
+| `concept-records.json` | The concept round's scoring record: each concept's score and concerns, the reviewer's verdict, the owner's selection and the SHA-256 of every input and output. The generator's local output paths were removed and the file paths made repository-relative. |
 | `tripo-source-prompt.md` | The prompt that isolated the selected hair from concept 01 to serve as the Tripo input. |
 | `four-facing-study.png` | The approved model at four physical rotations, with sprite-size samples. Together with `assets/models/sims/sim-01/source/approved-comparison.png` it is the accepted source checkpoint. |
 | `visual-review.json` | The two review verdicts, the remaining concerns and the owner's approval on 2026-09-09. |

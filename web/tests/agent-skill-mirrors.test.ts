@@ -4,6 +4,14 @@ import { describe, expect, it } from 'vitest';
 
 const ROOT = new URL('../../', import.meta.url);
 
+/** Skill directories only: a stray README or .DS_Store is not a skill. */
+function skills(root: string): string[] {
+  return readdirSync(new URL(`${root}/skills/`, ROOT), { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+}
+
 function skill(root: string, name: string): string {
   return readFileSync(new URL(`${root}/skills/${name}/SKILL.md`, ROOT), 'utf8');
 }
@@ -17,13 +25,20 @@ function skill(root: string, name: string): string {
  * `.Codex/launch.json` for exactly that reason.
  */
 describe('agent skill mirrors', () => {
-  const mirrored = readdirSync(new URL('.agents/skills/', ROOT));
+  const codexSkills = skills('.agents');
+  const claudeSkills = skills('.claude');
 
   it('mirrors at least one skill, so the checks below cannot pass empty', () => {
-    expect(mirrored.length).toBeGreaterThan(0);
+    expect(codexSkills.length).toBeGreaterThan(0);
   });
 
-  for (const name of mirrored) {
+  it('gives every skill a copy for both tools', () => {
+    // Checked from both sides: a skill added for one tool only, or a mirror
+    // deleted while others remain, would otherwise pass unnoticed.
+    expect(codexSkills).toEqual(claudeSkills);
+  });
+
+  for (const name of codexSkills) {
     it(`keeps ${name} identical apart from the tool it names`, () => {
       const codex = skill('.agents', name);
       expect(codex).toContain('Codex on the web');

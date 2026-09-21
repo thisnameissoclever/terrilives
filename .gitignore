@@ -21,6 +21,8 @@ web/.cert/
 # as an uncommitted local edit, so every other checkout would have staged a
 # .env without complaint.
 .env
+.env.*
+!.env.example
 
 # Playwright MCP session artifacts (screenshots, console logs)
 .playwright-mcp/

@@ -17,8 +17,8 @@ hairstyle choices in a future Sim creator, but only concept 1 is in scope now.
 
 These are generated illustrations, not finished 3D models. Their selection
 establishes visual direction; it does not prove hidden geometry, four-facing
-consistency, animation quality or in-game readability. The source prompts are
-preserved in `docs/assets/review-evidence/sim-01/hair/concept-prompts.md`.
+consistency, animation quality or in-game readability. The source prompts and
+the concept scoring record are preserved in `docs/assets/review-evidence/sim-01/hair/`.
 
 ## Current modeling boundary
 
@@ -41,11 +41,11 @@ fresh-context review also failed visual review. Mechanical closure improved;
 the broad roll, outward side wave and small curl still did not read correctly.
 The local modeling track is paused, not declared successful.
 
-Evidence is retained under the Sim's `owner-review-pending/sim-01/rejected/`
-folder in the preview workspace. The owner authorized a hair-only Tripo
-experiment capped at USD 2, still within the original USD 10 total test ceiling,
-on 2026-09-07 and resumed it on 2026-09-09. It is not a proven fix. Its
-settings, cost and reconciliation are summarized in
+Evidence of those rejected attempts was kept only in the local preview
+workspace and is not preserved in the repository. The owner authorized a
+hair-only Tripo experiment capped at USD 2, still within the original USD 10
+total test ceiling, on 2026-09-07 and resumed it on 2026-09-09. It is not a
+proven fix. Its settings, cost and reconciliation are summarized in
 `docs/assets/review-evidence/sim-01/hair/README.md`. The existing body and
 offline Blender-to-sprite direction remain intact. No foreground desktop
 interaction is authorized without asking first.
@@ -60,9 +60,11 @@ the Store launcher executed a script that confirmed Blender 4.5.13 LTS with
 changes or foreground control.
 
 The subsequent single Tripo `v3.1-20260211` task completed for USD 0.60. Its
-original GLB, request, charge reconciliation, scripts and inspection images are
-retained in the experiment directory. `fit-01` fits that hair to the retained
-body and existing hair shader; all four actual model rotations were rendered.
+original GLB is tracked as `assets/models/sims/sim-01/source/original-hair.glb`,
+and its request and charge reconciliation are summarized in the evidence README
+named above. The provider scripts and raw inspection images stayed local and
+are not preserved. `fit-01` fits that hair to the retained body and existing
+hair shader; all four actual model rotations were rendered.
 Both visual reviewers approved showing it as an early direction checkpoint.
 The owner then approved the result without requesting changes: "Perfection,
 love it, ship it." The thicker opposite-side fringe, pronounced rear ridges and
