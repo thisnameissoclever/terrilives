@@ -37,7 +37,8 @@ error line.
 - the save file `terri-save-1.bin` and its two backups,
   `terri-save-1.v1-backup.bin` and `terri-save-1.v2-backup.bin`: the game opens
   saves only under these names, so renaming them leaves every existing save
-  unfound and the player sees "No saved game found";
+  unfound. At startup the player would see "No save yet" and a new household,
+  while the old save stayed on disk unseen;
 - the save lock name `terrilives-save-slot` and the save worker name
   `terrilives-save-store`: with a renamed lock, a tab running the old build and
   a tab running the new one would stop excluding each other on the same save
