@@ -12,7 +12,7 @@ action.
 
 ## Decision
 
-Natural Causes uses the browser's native Web Audio API for its first sound layer.
+Terrilives uses the browser's native Web Audio API for its first sound layer.
 Audio remains in the TypeScript presentation shell. The Rust simulation emits
 semantic presentation state but owns no playback, volume state, or audio file.
 It stays deterministic and headless.

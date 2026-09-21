@@ -25,8 +25,8 @@ The owner chose **Natural Causes** on 2026-09-21. The working name was a pun on
 competing life sim. The new title is the phrase from a death certificate, which
 suits the dark-comedy register and the ghost layer.
 
-**Renamed:** the page title, the README and its Play button, the startup error
-line, and the living specs that name the game.
+**Renamed:** the page title, the README and its Play button, and the startup
+error line.
 
 **Kept as `terrilives` on purpose, and not to be "fixed" by a later pass:**
 

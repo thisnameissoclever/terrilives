@@ -5,7 +5,7 @@ copied into the game, or added to repository history.
 
 ## Decision
 
-Natural Causes should use a small, reviewed library of real recordings where a
+Terrilives should use a small, reviewed library of real recordings where a
 procedural oscillator cannot communicate the material or action convincingly.
 The initial candidates are four compact CC0 packs from OpenGameArt. They cover
 common household interactions without adding a runtime audio dependency or
