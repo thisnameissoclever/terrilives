@@ -106,11 +106,27 @@ function fixture() {
   const speeds: number[] = [];
   const pause = new OverlayPauseController({ setSpeed: speed => speeds.push(speed) }, () => {}, 2);
   const focus: string[] = [];
+  let changes = 0;
   const builder = new FurnitureBuilder(source, pause, {
-    changed() {}, enter: () => focus.push('canvas'), exit: () => focus.push('toggle'),
+    changed() { changes += 1; }, enter: () => focus.push('canvas'), exit: () => focus.push('toggle'),
   });
-  return { handle, source, builder, pause, speeds, focus };
+  return { handle, source, builder, pause, speeds, focus, changes: () => changes };
 }
+
+// A purchase adds an object while nothing is selected here; the list the
+// controls show must follow, or the new object cannot be chosen from it.
+it('tells its controls when a lot change refreshes the object list with nothing selected', () => {
+  const { handle, source, builder, changes } = fixture();
+  builder.enter();
+  const listed = builder.objects;
+  const before = changes();
+  expect(source.placeObject(15, 7, 0, source.objectFacing(15)!)).toBe(true);
+  source.flushCommands();
+  expect(builder.afterCommands()).toBe(true);
+  expect(builder.objects).not.toBe(listed);
+  expect(changes()).toBeGreaterThan(before);
+  handle.free();
+});
 
 it('selects inert scenery by live identity and cancels without writing simulation state', () => {
   const { handle, source, builder, speeds, focus } = fixture();

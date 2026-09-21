@@ -584,7 +584,14 @@ this milestone and is done; what follows is M1b onwards.
   Create-a-sim below.
 - **Smart object library:** ~40 objects across the core need categories
 - **Build mode:** walls, floors, doors, windows, roofs
-- **Buy mode:** catalog, placement, rotation, palette recolors ([G4])
+- **Buy mode:** catalog, placement, rotation, palette recolors ([G4]).
+  Catalogue, placement and rotation are built in PR 96: a Buy tool lists every
+  object by name with its price, greys out what the household cannot afford,
+  and stands the chosen object on the floor under the rules a move obeys,
+  taking the price from Funds. The design is
+  `docs/specs/2026-09-21-buy-mode.md` and the played check is [A-buy-mode].
+  Still open: selling an object back, which is [BM-slice-sell] in that design,
+  and palette recolours, which need art.
 - **Create-a-sim:** body type, face, hair, clothing, trait selection
 - ~~**Household** of up to ~6 sims~~ - done. Content preserves declaration
   order, enforces a six-member ceiling, and the normal HUD provides one
@@ -849,6 +856,19 @@ touch controls share the same placement rules. Valid overlapping previews
 temporarily replace only the original artwork, never its simulation state.
 The implementation sequence and release gates are recorded in
 `docs/specs/2026-09-20-front-door-and-builder.md`.
+
+### [B-catalogue-browsing] The catalogue says what each thing is for
+
+Found in the played check [A-buy-mode]. The Buy tool lists thirty objects by
+their joke names, and the names say nothing about what a thing does: "Wall of
+Intent" and "Frequency of Record" could be anything, and a chair bought on its
+own does nothing until it stands at a table. A player needs to see what each
+object is for and to narrow the list.
+
+The code-owned part needs no new words: the simulation already knows which
+needs each object's interactions serve, and the need names exist. The list can
+show them beside each price and filter by them. A one-line description per
+object is copy, and belongs with [T22].
 
 ### [B-facing] Objects know which way they face, and overlap follows
 

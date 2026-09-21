@@ -6790,3 +6790,24 @@ test does not, because the door rule now refuses that wall first. The
 household test also fails on its own if its ticks stop holding a wall that
 only the loader refuses: the trait library moved the household once already
 and silently emptied the ticks it first used.
+
+## [L-a-list-refreshed-in-silence] The Furniture list missed a bought chair
+
+**What happened.** In the played check of the Buy tool, a chair bought with
+nothing selected in the Furniture tool did not appear in that tool's list. The
+list showed two chairs where the lot had three.
+
+**Root cause.** The furniture builder re-read its object list whenever the lot
+changed, but only told its controls to redraw from inside the preview query,
+which runs only when something is selected. Until buying existed, nothing
+added or removed an object, so a stale list was never visible.
+
+**Prevention rule.** A controller that changes what its view shows tells the
+view in the same branch, not only in the branch that happened to exist first.
+When a feature adds a new way for shared state to change, check every view
+that reads that state for how it hears about the change.
+
+**How to verify.** Remove the `else` branch that calls `hooks.changed()` after
+`refreshObjects()` in `FurnitureBuilder.afterCommands`.
+`tells its controls when a lot change refreshes the object list with nothing
+selected` in `web/tests/builder.test.ts` fails.
