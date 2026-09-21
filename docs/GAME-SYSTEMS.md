@@ -263,7 +263,7 @@ A larger household also needs a larger house, so that six people are not queuein
 
 **Status: Not started, 0%.** No Sim has any sensitivity value today.
 
-**The target.** Each Sim has a sensitivity value in each of four primary categories: visual, auditory, olfactory, and social. The social category measures how much the presence and attention of other people wears on the Sim, which the owner also called antisocial. The category list is content, so more can be added later.
+**The target.** Each Sim has a sensitivity value in each of four primary categories: visual, auditory, olfactory, and social. The social category measures how much the presence and attention of other people wears on the Sim, which the owner also called antisocial and confirmed as the intended meaning on 2026-09-21. The category list is content, so more can be added later.
 
 **How the values are set.** Each value is drawn at random when the Sim is created. The draw comes from the game's seeded random generator and the result is saved, so the same new game always produces the same household. The player can change any value at any time once [S-advanced-controls] is switched on. Such a change is a recorded player command, like an order, so replays still agree.
 
