@@ -9,15 +9,19 @@ use terri_core::{CommandQueue, Footprint, SimCommand};
 /// A 7 by 7 house with the given edges, a fridge in the corner at (0, 0), and
 /// the front door on the east side at (6, 3) with its landing at (5, 3).
 fn house(edges: Vec<WallEdge>) -> (Sim, Entity) {
+    house_with_door((6, 3), (5, 3), edges)
+}
+
+fn house_with_door(door: (u32, u32), landing: (u32, u32), edges: Vec<WallEdge>) -> (Sim, Entity) {
     let mut pack = terri_data::pack().clone();
     pack.lot.width = 7;
     pack.lot.height = 7;
     pack.lot.wall_edges.clear();
     pack.lot.walls.clear();
     pack.lot.placements.clear();
-    pack.lot.front_door = Some((6, 3));
-    pack.portals[0].position = (6, 3);
-    pack.portals[0].inward = (5, 3);
+    pack.lot.front_door = Some(door);
+    pack.portals[0].position = door;
+    pack.portals[0].inward = landing;
     let pack = Box::leak(Box::new(pack));
     let mut sim = Sim::new_from_lot(&pack.lot, &pack.objects);
     sim.world_mut().insert_resource(Content(pack));
@@ -624,11 +628,29 @@ fn a_wall_between_the_front_door_and_its_landing_is_refused_while_anyone_works()
         edit(Vertical, 6, 3, Wall),
         PlacementRefusal::BlockedLanding,
     );
-    // Nobody has a job, so nobody comes home through that door.
+    // With nobody working the loader would accept it, and the first person to
+    // take a job would meet a walled-off door, so the door line stays refused.
     sim.world_mut()
         .entity_mut(worker)
         .remove::<terri_core::Career>();
-    applied(&mut sim, edit(Vertical, 6, 3, Wall));
+    refused(
+        &mut sim,
+        edit(Vertical, 6, 3, Wall),
+        PlacementRefusal::BlockedLanding,
+    );
+    // A doorway there is still a way in, and the line beside it is not the door.
+    applied(&mut sim, edit(Vertical, 6, 3, Doorway));
+    applied(&mut sim, edit(Vertical, 6, 2, Wall));
+
+    // A line lists its lower tile first. The east door above is the higher
+    // tile of its line; the shipped house's door, like this north one, is the
+    // lower. The rule has to recognise the door line both ways round.
+    let (mut sim, _) = house_with_door((3, 0), (3, 1), vec![]);
+    refused(
+        &mut sim,
+        edit(Horizontal, 3, 1, Wall),
+        PlacementRefusal::BlockedLanding,
+    );
 }
 
 /// The invariant both blockers broke, over the real household at the ticks the

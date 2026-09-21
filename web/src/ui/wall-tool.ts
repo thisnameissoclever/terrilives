@@ -6,7 +6,7 @@
 // preview of each state, stages the one the player picks, and reads back what
 // the drain did with it.
 
-import type { SimBridge, WallEditPreview } from '../bridge.js';
+import { WALL_OUT_OF_BOUNDS, type SimBridge, type WallEditPreview } from '../bridge.js';
 import type { TileHighlight } from '../render/placement-preview.js';
 
 export const OPEN = 0;
@@ -156,7 +156,9 @@ export class WallTool {
     if (!this.active) return false;
     if (key === 'Escape') {
       if (this.line === null) return false;
-      this.clear();
+      // An edit on its way is applied whatever happens here; clearing now
+      // would lose its result, so Escape waits the one frame it takes.
+      if (this.pending === null) this.clear();
       return true;
     }
     const step = ({ ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] } as
@@ -229,11 +231,12 @@ export class WallTool {
     this.choose(this.clamped({ ...from, axis }));
   }
 
+  /** Keeps a line on the lot, its outer lines included, as a click can choose. */
   private clamped(line: WallLine): WallLine {
     const clamp = (value: number, low: number, high: number) => Math.min(high, Math.max(low, value));
     return line.axis === 0
-      ? { axis: 0, x: clamp(line.x, 1, this.width - 1), y: clamp(line.y, 0, this.height - 1) }
-      : { axis: 1, x: clamp(line.x, 0, this.width - 1), y: clamp(line.y, 1, this.height - 1) };
+      ? { axis: 0, x: clamp(line.x, 0, this.width), y: clamp(line.y, 0, this.height - 1) }
+      : { axis: 1, x: clamp(line.x, 0, this.width - 1), y: clamp(line.y, 0, this.height) };
   }
 
   private refresh(): void {
@@ -250,8 +253,11 @@ export class WallTool {
   }
 
   private describe(): string {
-    const current = CURRENT[this.current];
     const wall = this.previews?.[WALL];
+    // The outside wall is drawn but is no line the tool owns, so "no wall on
+    // this line" would be false there. Say the one true thing instead.
+    if (wall?.code === WALL_OUT_OF_BOUNDS && wall.reason) return wall.reason;
+    const current = CURRENT[this.current];
     return this.current !== WALL && wall && !wall.valid && wall.reason ? `${current} ${wall.reason}` : current;
   }
 }

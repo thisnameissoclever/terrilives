@@ -2392,23 +2392,25 @@ mod tests {
             .expect("current fridge art saves load");
         assert_eq!(restored.save_snapshot(), before);
         assert_eq!(restored.world_hash(), world_hash);
-        restored.sync_render_buffer();
-        for original in fridge_entities {
-            let buffer = restored.render_buffer();
-            let row = buffer
-                .ids
-                .iter()
-                .position(|id| *id == original.index_u32())
-                .expect("fridge render row");
-            assert_eq!(
-                buffer.sprites[row],
-                if original == dynamic {
-                    expected_sprite
-                } else {
-                    authored_sprite
-                },
-                "restoring art must preserve the kitchen's room-facing placement"
-            );
+        for (format, world) in [("V1", &mut historical), ("V3", &mut restored)] {
+            world.sync_render_buffer();
+            for original in &fridge_entities {
+                let buffer = world.render_buffer();
+                let row = buffer
+                    .ids
+                    .iter()
+                    .position(|id| *id == original.index_u32())
+                    .expect("fridge render row");
+                assert_eq!(
+                    buffer.sprites[row],
+                    if *original == dynamic {
+                        expected_sprite
+                    } else {
+                        authored_sprite
+                    },
+                    "{format}: restoring art must preserve the kitchen's room-facing placement"
+                );
+            }
         }
     }
 

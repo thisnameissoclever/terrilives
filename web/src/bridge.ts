@@ -49,7 +49,12 @@ const PLACEMENT_REASONS: Readonly<Record<number, string>> = {
 export interface WallEditPreview {
   readonly valid: boolean;
   readonly reason: string | null;
+  /** The stable refusal code, zero when valid. */
+  readonly code: number;
 }
+
+/** The refusal code for a line the tool may not change at all: the outside wall. */
+export const WALL_OUT_OF_BOUNDS = 5;
 
 const WALL_REASONS: Readonly<Record<number, string>> = {
   1: 'Choose a line between two floor tiles.',
@@ -164,7 +169,7 @@ export class SimBridge {
   /** Axis 0 vertical, 1 horizontal; state 0 open, 1 wall, 2 doorway. Never writes. */
   wallEditPreview(axis: number, x: number, y: number, state: number): WallEditPreview {
     const code = this.handle.wall_edit_preview(axis, x, y, state);
-    return { valid: code === 0, reason: wallReason(code) };
+    return { valid: code === 0, reason: wallReason(code), code };
   }
 
   /** Queue acceptance only; read the outcome from `lastWallEditResult`. */

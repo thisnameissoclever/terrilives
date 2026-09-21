@@ -43,7 +43,7 @@ class FakeWalls {
   wallEditPreview(_axis: number, _x: number, _y: number, state: number): WallEditPreview {
     this.previewCalls += 1;
     const code = this.refusals[state];
-    return { valid: code === 0, reason: wallReason(code) };
+    return { valid: code === 0, reason: wallReason(code), code };
   }
 
   setWallEdge(axis: number, x: number, y: number, state: number): boolean {
@@ -232,11 +232,18 @@ describe('WallTool', () => {
     expect(walls.line).toEqual({ axis: 0, x: 4, y: 3 });
     walls.handleKey('h');
     expect(walls.line).toEqual({ axis: 1, x: 4, y: 3 });
+    // The keys reach the outer lines a click can choose, and stop there.
     for (let i = 0; i < 9; i += 1) walls.handleKey('ArrowUp');
-    expect(walls.line).toEqual({ axis: 1, x: 4, y: 1 });
+    expect(walls.line).toEqual({ axis: 1, x: 4, y: 0 });
+    walls.handleKey('ArrowDown');
     walls.handleKey('V');
     for (let i = 0; i < 9; i += 1) walls.handleKey('ArrowLeft');
+    expect(walls.line).toEqual({ axis: 0, x: 0, y: 1 });
+    walls.handleKey('ArrowRight');
     expect(walls.line).toEqual({ axis: 0, x: 1, y: 1 });
+    for (let i = 0; i < 9; i += 1) walls.handleKey('ArrowRight');
+    expect(walls.line).toEqual({ axis: 0, x: 7, y: 1 });
+    for (let i = 0; i < 6; i += 1) walls.handleKey('ArrowLeft');
 
     walls.handleKey('w');
     walls.handleKey('d');
@@ -251,6 +258,31 @@ describe('WallTool', () => {
     walls.handleKey('Backspace');
     expect(source.staged.map((edit) => edit[3])).toEqual([WALL, DOORWAY, OPEN]);
     expect(walls.handleKey('q')).toBe(false);
+  });
+
+  it('keeps its choice through Escape while an edit is on its way, and reports it', () => {
+    const { walls, source } = tool();
+    walls.enter();
+    walls.choosePoint(1.6, 1.0);
+    walls.apply(DOORWAY);
+    expect(walls.handleKey('Escape')).toBe(true);
+    expect([walls.line, walls.pending]).toEqual([{ axis: 0, x: 2, y: 1 }, DOORWAY]);
+    source.result = { axis: 0, x: 2, y: 1, state: DOORWAY, reason: null };
+    source.edges = [0, 2, 1, 1];
+    walls.afterCommands();
+    expect(walls.status).toBe('Doorway made.');
+    walls.handleKey('Escape');
+    expect(walls.line).toBeNull();
+  });
+
+  it('says only that the outside wall cannot change, on an outer line', () => {
+    const { walls, source } = tool();
+    source.refusals = [5, 5, 5];
+    walls.enter();
+    walls.choosePoint(-0.45, 2.0);
+    expect(walls.status).toBe('The outside wall cannot be changed here.');
+    expect(([OPEN, WALL, DOORWAY] as const).map((state) => walls.canApply(state))).toEqual([false, false, false]);
+    expect(walls.highlight()?.valid).toBe(false);
   });
 
   it('clears its choice on Escape, and leaves a second Escape to Build mode', () => {
@@ -362,6 +394,7 @@ describe('the Walls tool on real wasm', () => {
     expect(bridge.wallEditPreview(0, 0, 1, WALL)).toEqual({
       valid: false,
       reason: 'The outside wall cannot be changed here.',
+      code: 5,
     });
     expect(bridge.wallEditPreview(7, 0, 1, WALL).reason).toBe('Choose a line between two floor tiles.');
   });
@@ -462,9 +495,9 @@ describe('WallToolControls', () => {
         return elements.get(id);
       },
     } as unknown as Document;
-    const { walls } = tool();
+    const { walls, source } = tool();
     const view = new WallToolControls(doc, walls, { leaveFurniture: leave });
-    return { walls, view, element: (id: string) => elements.get(id)! };
+    return { walls, source, view, element: (id: string) => elements.get(id)! };
   }
 
   it('switches tools only when the furniture tool could let go', () => {
@@ -483,6 +516,22 @@ describe('WallToolControls', () => {
     view.render();
     expect(walls.active).toBe(false);
     expect(element('wall-tool').hidden).toBe(true);
+  });
+
+  it('disables the button for the current state and for a refused one, and presses apply', () => {
+    const { walls, source, view, element } = controls(() => true);
+    element('build-tool-walls').click();
+    source.refusals = [0, 12, 0];
+    source.edges = [0, 2, 1, 1];
+    walls.choosePoint(1.6, 1.0);
+    view.render();
+    expect(['wall-build', 'wall-doorway', 'wall-remove'].map((id) => element(id).disabled))
+      .toEqual([true, true, false]);
+    expect(element('wall-status').textContent).toBe(walls.status);
+    element('wall-remove').click();
+    expect(source.staged).toEqual([[0, 2, 1, OPEN]]);
+    element('wall-build').click();
+    expect(source.staged).toHaveLength(1);
   });
 
   it('shows the touch help on a phone and the keyboard help elsewhere', () => {

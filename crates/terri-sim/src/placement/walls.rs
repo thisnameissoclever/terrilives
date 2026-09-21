@@ -10,6 +10,7 @@ use super::{
     crosses_wall, current_layout, prove_lot_usable, CurrentLayout, LotEditState, PlacementRefusal,
     Rectangle,
 };
+use crate::Content;
 use bevy_ecs::prelude::*;
 use terri_core::layout::{EdgeAxis, SavedLayout, WallEdge, WallState};
 use terri_core::{Agent, Position, SmartObject, Target, TileGrid};
@@ -117,6 +118,25 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
     // it cannot cut anything off. Running the proofs for it would refuse to
     // mend a house that was already in trouble.
     if edit.state == WallState::Wall {
+        // The front door's one step in, whoever lives here now: a wall there
+        // would meet the first person to take a job. Matched to its portal
+        // the way the loader matches it.
+        let content = world.resource::<Content>().0;
+        let door = content
+            .lot
+            .front_door
+            .and_then(|door| content.portals.iter().find(|p| p.position == door))
+            .map(|portal| {
+                (
+                    (portal.position.0 as i32, portal.position.1 as i32),
+                    (portal.inward.0 as i32, portal.inward.1 as i32),
+                )
+            });
+        if door
+            .is_some_and(|(door, landing)| (a, b) == (door, landing) || (a, b) == (landing, door))
+        {
+            return Err(BlockedLanding);
+        }
         if rectangles.iter().any(|&rect| crosses_wall(rect, &grid)) {
             return Err(WallOverlap);
         }
@@ -166,9 +186,11 @@ pub fn validate_wall_edit(world: &World, edit: WallEdit) -> Result<WallPlan, Pla
         prove_lot_usable(world, &grid, &rectangles)?;
         // Last, the loader's own grid checks: a wall that passed everything
         // above can still leave a save that will not load - a sim walking to
-        // an object that is now across the wall from where its walk ends, or
-        // the front door walled off from its landing while another way in
-        // stays open. The review of this slice found both in ordinary play.
+        // an object that is now across the wall from where its walk ends. The
+        // review of this slice found that in ordinary play. The loader's
+        // front-door check is subsumed today by the door rule at the top of
+        // this block; it is asked anyway, so a door rule the loader gains
+        // later is honoured here without a second edit.
         crate::save::candidate_grid_loads(world, &grid).map_err(|problem| match problem {
             crate::save::LoadProblem::PortalReturn => BlockedLanding,
             crate::save::LoadProblem::EdgeWorld => BlockedRoute,
