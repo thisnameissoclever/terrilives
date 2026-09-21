@@ -678,6 +678,8 @@ A system that has not been started is tracked there and not repeated here. When 
 
 The owner's 2026-09-21 requests are skills, pets as full characters, random household events and messes, deep earning and spending of money, player-directed career paths, far more furniture and art, a larger household, and a build mode that can buy objects and build more house.
 
+A second round the same day added per-Sim sensory and social sensitivities, negative returns from overdoing an action, a fading happiness boost from new purchases, mood that affects nearly everything and can end in despondency, behaviour traits with hidden sub-traits, an expandable details panel for each Sim, an advanced controls toggle, bed assignment, a health and medical system, and a notification feed with channels and mutes. The owner also called a character creator important and asked for far more animations and sounds.
+
 ### [B-jobs-careers] Jobs and careers become a full life system
 
 The shipped career is one content-defined rabbit hole with a schedule, pay,

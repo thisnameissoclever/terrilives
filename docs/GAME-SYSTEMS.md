@@ -1,6 +1,6 @@
 # Game systems: inventory, build status, and proposals
 
-Written 2026-09-21 against `main` at `097a849`. This document lists every major gameplay system that the owner has requested, that the docs already plan, or that this document proposes. Each requested, planned, and foundation entry states how much of it exists in the game today. A proposed system has no status, because none of it exists.
+Written 2026-09-21 against `main` at `097a849`, and extended the same day with the owner's second round of direction. This document lists every major gameplay system that the owner has requested, that the docs already plan, or that this document proposes. Each requested, planned, and foundation entry states how much of it exists in the game today. A proposed system has no status, because none of it exists.
 
 [FEATURES.md](FEATURES.md) still owns milestone scope and shipped evidence. This document owns the system-by-system view: what each system is, how complete it is, and what it needs before work can start.
 
@@ -31,6 +31,19 @@ Entry IDs use a word slug, such as `[S-pets]`, so that parallel branches cannot 
 | [S-catalogue] | Furniture and visual asset volume | Partial | 15% |
 | [S-household-size] | More people in the house | Partial | 35% |
 | [S-build] | Build mode: buying, walls, rooms, and a bigger house | Partial | 20% |
+
+### Systems the owner added in a second round on 2026-09-21
+
+| ID | System | Status | Built |
+|---|---|---|---|
+| [S-sensitivities] | Sensory and social sensitivities | Not started | 0% |
+| [S-acclimation] | Overdoing it, novelty, and acclimation | Partial | 20% |
+| [S-deep-traits] | Behaviour traits with hidden sub-traits | Foundation only | 10% |
+| [S-sim-details] | An expandable details panel for each Sim | Foundation only | 10% |
+| [S-advanced-controls] | An advanced controls toggle | Not started | 0% |
+| [S-bed-assignment] | Assigning a Sim to a bed | Not started | 0% |
+
+The owner also accepted and expanded four proposals in that round: [P-nuisance], [P-mood-feedback], [P-health], and [P-upkeep]. The table under "Proposed additional systems" records each decision.
 
 ### Systems already planned in the docs and not fully built
 
@@ -107,11 +120,19 @@ Messes on the floor, a litter box that fills, a food bowl that empties, a sink t
 
 The proposal is one general rule. A task can declare a minimum mood and a maximum tiredness, and a person below the bar refuses the task, both on their own and when ordered. The same rule then serves cleaning, repairs, chores, homework, and exercise. Mood is currently a display-only summary, so this is also the first place mood would change behaviour.
 
+A task can also name the kind of unpleasantness it involves. A Sim who is sensitive to smells is less willing to clean up a dog mess than one who is not; [S-sensitivities] supplies that value.
+
 ### [F-notifications] A notification feed
 
 **Status: Foundation only.** The HUD has four one-line status messages, for saves, orders, keyboard targeting, and build mode. Each is visible text that a screen reader also announces, and each shows only its latest message. There is no feed or history that tells the player "the dog made a mess in the kitchen" or "the rent is due".
 
 Every event-driven system needs this feed, with a way to jump the camera to the place concerned.
+
+**Owner direction, 2026-09-21.** The feed reports significant things that happened. The owner's examples: two Sims have an actual fight, a Sim is promoted, a Sim becomes despondent. Many trigger conditions across every system should produce notifications.
+
+Each notification carries a channel, a type, and the Sim it concerns. A channel is a broad area, such as relationships, work, mood, money, pets, or the house. A type is one specific trigger, such as "promoted". The player can mute any one Sim, any one channel, or any one type, and the mutes are saved with the player's other preferences.
+
+The feed keeps a history the player can scroll back through. A muted notification is still recorded in that history, so that muting hides an interruption without deleting what happened. Notifications are presentation: they read the simulation and never change it, which keeps them out of the world hash.
 
 ## Systems the owner asked for
 
@@ -236,6 +257,94 @@ A larger household also needs a larger house, so that six people are not queuein
 
 **Depends on.** [S-money] for prices. [S-catalogue] for things worth buying. [S-object-facing] for rotation.
 
+## Systems the owner added in a second round on 2026-09-21
+
+### [S-sensitivities] Sensory and social sensitivities
+
+**Status: Not started, 0%.** No Sim has any sensitivity value today.
+
+**The target.** Each Sim has a sensitivity value in each of four primary categories: visual, auditory, olfactory, and social. The social category measures how much the presence and attention of other people wears on the Sim, which the owner also called antisocial. The category list is content, so more can be added later.
+
+**How the values are set.** Each value is drawn at random when the Sim is created. The draw comes from the game's seeded random generator and the result is saved, so the same new game always produces the same household. The player can change any value at any time once [S-advanced-controls] is switched on. Such a change is a recorded player command, like an order, so replays still agree.
+
+**How the values are used.** Every nuisance in [P-nuisance] declares how much of it reaches each category. The owner's example: a dog mess is mostly a smell and partly a sight. A Sim's annoyance is the strength of the nuisance where they stand, multiplied by their sensitivity in each category it touches.
+
+A more sensitive Sim is annoyed more, keeps a greater distance from the source, and is less willing to be the one who deals with it. The first effect feeds moodlets and relationships. The second feeds where the Sim chooses to walk and which objects they prefer. The third feeds [F-task-willingness].
+
+**Depends on.** Nothing to store and show the values. [P-nuisance] to give them an effect. The two should ship together, as the owner suggested.
+
+### [S-acclimation] Overdoing it, novelty, and acclimation
+
+**Status: Partial, about 20%.**
+
+**What exists.** Repeating the same action on the same object pays less each time. Each completed use lowers the benefit, the benefit recovers with time away, and it never falls below 45% of its full value. This is tracked separately for each Sim and each action on each kind of object, so two identical chairs count as one. It never turns negative, it covers actions only, and nothing in the game is new or old.
+
+**Owner direction, part one: overdoing it.** The 45% floor goes away for mood. A Sim who keeps repeating an action, even one they once liked, eventually loses happiness from it, and loses more the longer they keep going.
+
+An action's effect on its need is separate from its effect on happiness. Eating always reduces hunger. Eating again and again when not hungry lowers happiness and eventually makes the Sim feel sick. The first version of feeling sick can be a temporary condition with a moodlet; the full version belongs to [P-health].
+
+**Owner direction, part two: new things.** This part waits for the in-game shop in [S-build]. Every Sim in the household gets a happiness boost when something new is bought. The size of the boost depends on that Sim's affinity for the kind of item, its colour, and similar properties, and it is always positive.
+
+Being near the new thing keeps boosting the Sim for a while. The boost fades as the Sim grows used to the thing. It can return only after the Sim has spent long enough away from the thing, or has stopped doing the activity for long enough. The rate of fading belongs to each pairing of one Sim and one item, and it follows from that Sim's preferences.
+
+**The floor for possessions is zero.** A thing a Sim has owned and lived beside for a long time stops bringing joy. It does not start causing unhappiness, at least not in most cases. Overdoing an action is the case that does go negative.
+
+**The consequence the owner wants.** Keeping Sims above a baseline happiness takes continual novelty. The player either keeps buying new things and getting rid of old ones, or keeps giving Sims new experiences. Experiences join the same mechanism once there is a broader world to have them in. This treadmill suits the game's satirical tone, and it gives [S-money] a permanent reason to spend.
+
+**Design notes.** Both halves are one mechanism: a familiarity value held by each Sim toward each object and each activity, rising with exposure and falling with absence. The existing per-action value is the start of it. Selling an old object needs a price, so [S-build] must let the player sell.
+
+The game has two values a player might call happiness: mood, which moves minute to minute, and satisfaction, which is the long-term life score. This document assumes the boosts and losses here are moodlets, and that satisfaction follows mood slowly through [P-mood-feedback]. The owner should confirm that reading.
+
+**Depends on.** Part one depends on nothing. Part two depends on buy mode in [S-build], item properties in [S-catalogue], and affinities from [S-deep-traits].
+
+### [S-deep-traits] Behaviour traits with hidden sub-traits
+
+**Status: Foundation only, about 10%.**
+
+**What exists.** Three traits, one of each kind the engine supports. Three personality types, each a set of multipliers on how fast needs fall, how much each activity satisfies, and how attractive some actions are. No Sim has a numeric value for anything like novelty-seeking or empathy.
+
+**Owner direction.** The behaviour systems need to become much deeper, fed by a large set of traits. Each visible trait, such as novelty-seeking, is broken down into sub-traits that work under the hood. The owner's example: two Sims who both score eight for novelty-seeking should not have the same appetite for skydiving.
+
+**The shape this implies.** A visible trait is a summary of several hidden values. Novelty-seeking might summarise appetite for physical risk, for new places, for new people, for new food, and for new possessions. Each action and item declares which hidden values it appeals to. The visible score is what the player sees first; the hidden values are what the autonomy engine reads.
+
+Traits named so far by the owner's direction: novelty-seeking, which a poor mood raises, and empathy, which decides who can help a despondent Sim. Sensitivities in [S-sensitivities], item and colour affinities in [S-acclimation], tidiness in [P-chores], and species affinity in [S-pets] are all the same kind of value and should live in one model.
+
+**Relation to [S-traits].** The three existing trait kinds remain. This entry adds a fourth kind, a graded value with hidden parts, and it moves the personality multipliers under the same model over time.
+
+**Depends on.** Nothing to start. [S-sim-details] to show the values. [S-create-a-sim] to let the player set them.
+
+### [S-sim-details] An expandable details panel for each Sim
+
+**Status: Foundation only, about 10%.** The HUD shows the selected Sim's needs, mood and moodlets, relationships, satisfaction, job, and activity. A developer debug panel shows a few hidden numbers. Nothing shows a Sim's whole make-up in one place.
+
+**Owner direction.** Each Sim gets a details panel that the player can expand. It shows everything about the Sim, innate and temporary: sensitivities, traits and their hidden parts, affinities, skills, habits, familiarity with things, current moodlets, and anything later systems add. It presents them as many small bars, numbers, and similar marks, and it should be attractive to look at in the way good data graphics are.
+
+**Design notes.** The panel can ship early with the data that already exists: needs, how fast each need falls for this Sim, how used they are to each object, relationship values, the cooking competence, the sleep rhythm offset, and satisfaction. Each later system then adds its rows. Innate values and temporary values should look different at a glance. Every bar needs a text value too, so the panel works with a screen reader and at phone width.
+
+With [S-advanced-controls] on, the same panel is where the player edits a value.
+
+**Depends on.** Nothing. It grows with every other system.
+
+### [S-advanced-controls] An advanced controls toggle
+
+**Status: Not started, 0%.** The only comparable thing today is a read-only developer overlay reached through a web address option.
+
+**Owner direction.** A toggle in the game's settings. When it is on, the player can change values that are normally fixed, starting with each Sim's sensitivities. When it is off, those values are visible and locked.
+
+**Design notes.** Every edit is a recorded player command, so that a replay of the same commands produces the same world. The toggle itself is a player preference and changes nothing in the simulation. It is a natural home for later options of the same kind, such as editing traits, setting a need, or setting Funds.
+
+**Depends on.** [S-sim-details] for the place to edit.
+
+### [S-bed-assignment] Assigning a Sim to a bed
+
+**Status: Not started, 0%.** Any Sim sleeps in any free bed. The starting house has a bunk and a double bed.
+
+**Owner direction.** The player can assign a Sim to a bed. The Sim then prefers that bed when tired, and other Sims leave it alone when they have a choice.
+
+**Design notes.** This is the first slice of [P-ownership], and it should be built as that system's general rule applied to beds. A double bed has two places, so the assignment is to a sleeping place within the bed. An assigned Sim whose bed is unreachable or taken still sleeps somewhere else; exhaustion always wins.
+
+**Depends on.** Nothing.
+
 ## Systems already planned in the docs and not fully built
 
 ### [S-traits] Traits
@@ -244,7 +353,7 @@ A larger household also needs a larger house, so that six people are not queuein
 
 ### [S-moods] Moods and moodlets
 
-**Status: Substantial, about 60%.** The HUD shows an overall mood and a list of moodlets for the selected person. They derive from needs, active conditions, and nearby people the person likes or dislikes. Mood is display-only: it changes nothing a person does. The missing part is feedback into behaviour, which [F-task-willingness] and [P-mood-feedback] describe, and moodlets from events, memories, and surroundings.
+**Status: Substantial, about 60%.** The HUD shows an overall mood and a list of moodlets for the selected person. They derive from needs, active conditions, and nearby people the person likes or dislikes. Mood is display-only: it changes nothing a person does. The missing part is feedback into behaviour, which [F-task-willingness] and [P-mood-feedback] describe and which the owner has made a priority, and moodlets from events, memories, and surroundings.
 
 ### [S-chains] Multi-step activities
 
@@ -293,7 +402,7 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-create-a-sim] Create-a-sim and appearance
 
-**Status: Not started, 0%.** Every person uses one approved face, hairstyle, and body. The household is authored in a content file. There is no screen for making a person, and no body, face, hair, or clothing options to choose from. This blocks [S-household-size] from feeling real, and genetics later.
+**Status: Not started, 0%.** Every person uses one approved face, hairstyle, and body. The household is authored in a content file. There is no screen for making a person, and no body, face, hair, or clothing options to choose from. This blocks [S-household-size] from feeling real, and genetics later. On 2026-09-21 the owner called a character creator important. It should also set the values from [S-deep-traits] and [S-sensitivities], with a button that draws them at random.
 
 ### [S-life-stages] Life stages and aging
 
@@ -329,7 +438,7 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-action-animation] Action animation coverage
 
-**Status: Partial, about 50%.** Walking, talking, eating, sitting in the armchair, seated reading, standing reading, watching the fish, cycling, and lower-bunk sleeping are animated. Double-bed sleeping, cooking, washing, using the toilet, showering, watching television, sitting at the dining table, and standing idle are static poses. Every new system adds to this list: cleaning a mess, walking a dog, petting a cat, repairing a sink.
+**Status: Partial, about 50%.** Walking, talking, eating, sitting in the armchair, seated reading, standing reading, watching the fish, cycling, and lower-bunk sleeping are animated. Double-bed sleeping, cooking, washing, using the toilet, showering, watching television, sitting at the dining table, and standing idle are static poses. Every new system adds to this list: cleaning a mess, walking a dog, petting a cat, repairing a sink. On 2026-09-21 the owner asked for far more animations across the whole game.
 
 ### [S-object-facing] Object facing and layered depth
 
@@ -337,19 +446,32 @@ The player can set how a person works each shift: work hard, work normally, slac
 
 ### [S-audio] Sound, ambience, music, and voices
 
-**Status: Partial, about 45%.** Footsteps, a rejected-order cue, 12 recorded conversation clips, and cues for sleeping, eating, reading, and exercise are in. Two object loops are wired and silent until recordings are chosen: the shower and the stove. There is no music, no room or outdoor ambience, no door sound, no alarm, and no non-verbal voice for anything except conversation. Pets add barking, meowing, purring, and whining to this list.
+**Status: Partial, about 45%.** Footsteps, a rejected-order cue, 12 recorded conversation clips, and cues for sleeping, eating, reading, and exercise are in. Two object loops are wired and silent until recordings are chosen: the shower and the stove. There is no music, no room or outdoor ambience, no door sound, no alarm, and no non-verbal voice for anything except conversation. Pets add barking, meowing, purring, and whining to this list. On 2026-09-21 the owner asked for far more sounds across the whole game.
 
 ## Proposed additional systems
 
-None of these is planned in the docs today. Each is offered for the owner to accept, change, or reject by ID.
+None of these was planned in the docs before this document. Each is offered for the owner to accept, change, or reject by ID.
+
+| ID | Decision on 2026-09-21 |
+|---|---|
+| [P-nuisance] | Accepted, and extended with per-Sim sensitivities in [S-sensitivities]. |
+| [P-upkeep] | Accepted, and moved to the end of the build order. |
+| [P-mood-feedback] | Accepted and expanded. The owner called it a big one. |
+| [P-health] | Accepted. The owner asked for a health and medical system. |
+| [P-ownership] | First slice accepted as [S-bed-assignment]. The rest is undecided. |
+| [P-chores], [P-wants], [P-memories], [P-visitors], [P-food], [P-services], [P-room-quality] | Undecided. |
 
 ### [P-nuisance] Noise and nuisance with distance falloff
 
 Something in the world emits a nuisance of a given kind and strength. Every character in range receives it, weaker with distance and blocked or reduced by walls. The owner's barking example needs exactly this. Built once as a general field, it also covers a loud television while someone sleeps, a smoke alarm, a bad smell from a mess or a full bin, and a crying baby. The lighting system already spreads light across tiles and stops it at walls, so the spreading logic has a working model to copy.
 
+**Owner direction, 2026-09-21.** Each nuisance states how much of it reaches each sensory category. A dog mess is mostly a smell and partly a sight; barking is a sound. Each Sim reacts according to their own sensitivity in those categories, which [S-sensitivities] defines, so the same bark annoys one housemate and barely registers with another. A sensitive Sim also keeps further away from the source and is less willing to be the one who cleans it up.
+
 ### [P-upkeep] Dirt, wear, breakage, and repair
 
 Objects get dirty with use and break with a chance that rises with wear. A dirty or broken object works worse or not at all. People clean and repair, and repair is a natural skill. This gives money something recurring to pay for, gives skills a purpose, and makes a cheap object differ from an expensive one. It builds on [F-object-state] and overlaps [S-household-events]; the two should be designed together.
+
+**Owner direction, 2026-09-21.** Build this last. Messes from events and pets come earlier through [S-household-events]; wear, breakage, and repair wait until the end of the order.
 
 ### [P-chores] Chores and who does them
 
@@ -358,6 +480,14 @@ Once there are messes, dishes, litter boxes, and dog walks, the question of who 
 ### [P-mood-feedback] Mood that changes behaviour
 
 Mood is display-only today. Beyond the willingness gate, a bad mood could make a person choose comfort actions over productive ones, snap at others in conversation, work worse, and learn slower. A good mood could do the reverse. Without this, mood is a readout the player can ignore.
+
+**Owner direction, 2026-09-21.** Mood should affect nearly everything. Once careers exist it affects performance at work, how much the Sim earns, and how likely a promotion is.
+
+A poor mood raises novelty-seeking: an unhappy Sim goes looking for something new or fun. That holds only down to a threshold. Below it the Sim becomes despondent, stops seeking anything, and cannot recover alone in the ordinary way. Only another Sim with high empathy can help bring them out of it.
+
+A despondent Sim keeps a small chance of finding the motivation to go and do something fun unprompted. That chance is above zero and far below the normal rate. It is drawn from the seeded random generator like every other chance in the game.
+
+**Design notes.** Despondency is a state with its own entry and exit rules, and it should be saved. Helping a despondent Sim is a social action that only a Sim above an empathy threshold will offer or succeed at, and empathy comes from [S-deep-traits]. A household with no empathetic member needs another way out, such as a visitor or paid help through [P-health]; otherwise one bad week can end a game. Becoming despondent is one of the owner's named triggers for [F-notifications].
 
 ### [P-wants] Wants and short-term goals
 
@@ -383,30 +513,36 @@ A phone or computer through which the household orders food, hires a cleaner, a 
 
 People and pets can get sick or hurt, from neglect, from events, or by chance. Illness lowers needs faster, blocks some actions, and needs rest, medicine, or a paid visit. It is the step between "needs are low" and [S-death], and gives death a visible warning period.
 
+**Owner direction, 2026-09-21.** The game needs a health and medical system. Feeling sick from overeating, described in [S-acclimation], is the first cause. The medical half covers medicine, rest, a doctor or vet visit that costs money, and help for a despondent Sim in a household where nobody has the empathy to give it.
+
 ### [P-room-quality] Room quality
 
 Each room gets a score from its size, its lighting, its decoration, and any mess or broken object in it. The score feeds the comfort need and moodlets for whoever is in the room. This is what makes decorative objects, of which there are already 9, worth buying. Two inputs are missing today. The game has walls and no notion of a room, so it must first work out which tiles form each room. The light field exists only in the renderer, so the simulation cannot read it yet.
 
 ### [P-ownership] Personal belongings and territory
 
-A bed, a chair, or a room can belong to one person. The armchair is already named "The Chair That Is His". Using someone else's belongings lowers their feeling toward you. Cats in particular would claim furniture. It is a small system, and it produces household friction of a kind a player will recognise.
+A bed, a chair, or a room can belong to one person. The armchair is already named "The Chair That Is His". Using someone else's belongings lowers their feeling toward you. Cats in particular would claim furniture. It is a small system, and it produces household friction of a kind a player will recognise. The owner asked for its first slice, [S-bed-assignment], on 2026-09-21.
 
 ## A suggested build order
 
 This order is a recommendation. It puts each foundation before the systems that need it, and it keeps something new and playable at every step, which is the project's standing rule for milestones.
 
-1. **[S-skills].** It depends on nothing, and careers, food, upkeep, and ghosts all need it.
-2. **[S-calendar], [F-notifications], and buy mode with prices from [S-build] and [S-money].** Money gains a purpose the moment there is something to buy.
-3. **[S-careers] and the rest of [S-money], designed as one economy, with the phone from [P-services] as the way to look for work.** Career paths, the job search, performance, bills, and the ledger land together, so that income and costs can be balanced against each other from the start.
-4. **[F-object-state], [F-event-scheduler], and [F-task-willingness], delivered through [P-upkeep] and [S-household-events].** People can exercise the mess-and-clean loop alone, before any pet exists.
-5. **[P-nuisance].** A loud television near a sleeper proves it without new art.
-6. **[F-entity-lifecycle] and [F-creature], delivered through [P-visitors] first.** A visitor is a human, so it tests adding and removing characters without the cost of a new species.
-7. **[S-pets], one species first.** By this point every mechanism a dog needs already exists and has been played. What remains is the dog's own content, art, and animation.
-8. **The wall tool, a larger lot, [S-create-a-sim], and [S-household-size].** New housemates need to look different from each other, so making a person comes first.
-9. **[S-outside]**, which dog walks and visitors make more valuable by then.
+1. **[S-skills] and the first version of [S-sim-details].** Neither depends on anything. The panel starts with the data the game already has and gains rows with every later step.
+2. **[S-calendar], [F-notifications] with channels and mutes, and buy mode with prices from [S-build] and [S-money].** Money gains a purpose the moment there is something to buy.
+3. **[S-acclimation].** Overdoing it needs nothing new. The boost from new purchases needs the shop from step 2.
+4. **[S-deep-traits] and [P-mood-feedback], with [S-advanced-controls].** Work performance reads mood, so mood must affect behaviour before careers are balanced.
+5. **[S-careers] and the rest of [S-money], designed as one economy, with the phone from [P-services] as the way to look for work.** Career paths, the job search, performance, bills, and the ledger land together, so that income and costs can be balanced against each other from the start.
+6. **[F-object-state], [F-event-scheduler], and [F-task-willingness], delivered through [S-household-events].** People can exercise the mess-and-clean loop alone, before any pet exists.
+7. **[S-sensitivities] and [P-nuisance], together.** A loud television near a sleeper proves both without new art.
+8. **[F-entity-lifecycle] and [F-creature], delivered through [P-visitors] first.** A visitor is a human, so it tests adding and removing characters without the cost of a new species.
+9. **[S-pets], one species first.** By this point every mechanism a dog needs already exists and has been played. What remains is the dog's own content, art, and animation.
+10. **The wall tool, a larger lot, [S-create-a-sim], [S-household-size], and [S-bed-assignment].** New housemates need to look different from each other, so making a person comes first. Bed assignment depends on nothing and can move earlier.
+11. **[S-outside]**, which dog walks and visitors make more valuable by then.
+12. **[P-health].** The sick feeling from overeating ships earlier as a simple condition; this step is the full system.
+13. **[P-upkeep]**, last, as the owner directed.
 
 This order covers the owner's requests and what they depend on. It leaves out the later planned systems, such as life stages, death, the town, and ghosts, and most of the proposals; each of those takes a place when it is accepted or when its milestone comes up.
 
-[S-catalogue] and [S-action-animation] are not steps in this order. They run alongside every step, limited by the art pipeline and not by code.
+[S-catalogue], [S-action-animation], and [S-audio] are not steps in this order. They run alongside every step, limited by the art pipeline and not by code.
 
 The main risk in this plan is art throughput, not engineering. Nearly every system above needs new objects, new character animations, or a whole new species, and each of those passes through the same review pipeline. A pet species is the largest single art commitment in this document.
