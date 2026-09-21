@@ -1,16 +1,22 @@
-# terrilives
+# Natural Causes
 
 <p align="center">
   <a href="https://thisnameissoclever.github.io/terrilives/">
-    <img src="docs/assets/play-terrilives.svg" alt="Play Terrilives in your browser" width="360" height="80">
+    <img src="docs/assets/play-natural-causes.svg" alt="Play Natural Causes in your browser" width="360" height="80">
   </a>
 </p>
 
 <p align="center">Play the live game on GitHub Pages. Use a browser with WebGPU support.</p>
 
-Parallel lives? Nah-- Terribel lives. Terri..bel. Terrible. - ...Terrible lives.
-The dreadful title pun predates the household rename; the current cast is Tim,
-Bill, and Casey. Names may improve. Puns are apparently immortal.
+Natural Causes is a dark-comedy life sim that runs in the browser. The current
+cast is Tim, Bill, and Casey.
+
+**`terrilives` was the working title and is still the internal codename.** The
+repository, the play URL, the `terri-*` crates, the browser storage keys, and
+the save file all keep it on purpose: renaming the storage keys would reset
+every player's settings, renaming the save fingerprint seeds would invalidate
+every existing save, and renaming the repository would move the public play
+URL. `docs/TIM-TODO.md` [T1] records the decision and what is still open.
 
 ## Where the documentation is
 

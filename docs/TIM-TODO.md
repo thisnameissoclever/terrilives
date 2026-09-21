@@ -18,10 +18,40 @@ move between categories.
 
 ## Decisions only you can make
 
-### [T1] Decide whether "terrilives" is the shipping title `[YOURS]`
+### [T1] Decide whether "terrilives" is the shipping title `[YOURS]` - DECIDED 2026-09-21: "Natural Causes"
 
-A working name from a pun on *terrible lives*. Shapes tone, the domain purchase
-[T18], and store presence [T17]. Cheap now, annoying later.
+The owner chose **Natural Causes** on 2026-09-21. The working name was a pun on
+*terrible lives* that read as a person called Terri and leaned on the name of a
+competing life sim. The new title is the phrase from a death certificate, which
+suits the dark-comedy register and the ghost layer.
+
+**Renamed:** the page title, the README and its Play button, the startup error
+line, and the living specs that name the game.
+
+**Kept as `terrilives` on purpose, and not to be "fixed" by a later pass:**
+
+- browser storage keys such as `terrilives.audio-preferences.v1`: renaming them
+  resets every player's sound, lighting and help settings;
+- the save fingerprint seeds in `terri-data` and the golden hash in
+  `terri-core`: renaming them invalidates every existing save;
+- the `terri-*` crate names, the `terri_wasm` package, `terri-save-1.bin`, and
+  script and environment variable names: no player sees them, and the churn
+  would collide with every open branch;
+- dated records in `docs/`: they describe what was true when written.
+
+**Still yours:**
+
+- **[T-title-repo-url] Rename the GitHub repository and the play URL, or keep
+  them.** GitHub redirects a renamed repository but not its Pages site, so the
+  old play link would stop working the moment the repository is renamed. The
+  code side is small and mine: the Vite base path, one atlas URL test, and the
+  README link. The repository description on GitHub still carries the old pun
+  and is also yours to edit.
+- **A proper availability check.** A web search on 2026-09-21 found no video
+  game with this title, only a case file for a detective board game, a card in
+  a collectible card game, and a mod. That is not a trademark or store search.
+- The domain purchase [T18] and store presence [T17] were waiting on this and
+  can now proceed.
 
 ### [T22] Author the game's VOICE with me `[YOURS]` - the last alpha criterion
 
@@ -367,7 +397,7 @@ POLYGON and has no listed Godot or web-ready glTF package.
 More importantly, [POLYGON - Town Pack](https://syntystore.com/products/polygon-town-pack)
 already includes a modular house kit, preset houses, residential interior
 pieces, bedroom decorations, sofas, beds, bathtubs, washing machines, and
-other household props. It is the more coherent starting point for Terrilives,
+other household props. It is the more coherent starting point for Natural Causes,
 though its furniture breadth may not support a deep build-and-buy system
 without supplementary or custom assets.
 
