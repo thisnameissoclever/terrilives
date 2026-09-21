@@ -54,6 +54,7 @@ pub fn tick_social(
     sim_ids: Query<&SimId>,
     mut relationships: Query<&mut Relationships>,
     partners: Query<(Has<Reserved>, Has<Target>), With<terri_core::Agent>>,
+    targets: Query<&Target>,
     mut queues: Query<&mut IntentQueue>,
     mut ledgers: Query<(
         &mut terri_core::Satisfaction,
@@ -71,6 +72,18 @@ pub fn tick_social(
             continue;
         };
         let partner = socialising.partner;
+        // **A talk's cleanup removes the Target it OWNS and no other**
+        // ([L-cleanup-removes-only-what-it-owns]). The initiator's Target
+        // names the partner for as long as the talk is undisturbed, but
+        // another system may take it mid-tick - `start_shift` does, for
+        // every sim whose Target is a departing worker - and selection may
+        // then hand the initiator a new one before this system runs.
+        // Removing THAT leaves a sim using an object with no target, which
+        // `tick_interactions` never counts down: it sits there for good,
+        // holding the object's reservation.
+        let owns_target = targets
+            .get(initiator)
+            .is_ok_and(|target| target.object == partner);
 
         // **A conversation checks its partner is still IN it, every tick,
         // rather than trusting nothing to disturb it.** Two disturbances
@@ -87,11 +100,13 @@ pub fn tick_social(
             Err(_) => true,
         };
         if disturbed {
-            commands
-                .entity(initiator)
+            let mut initiator_commands = commands.entity(initiator);
+            initiator_commands
                 .remove::<Socialising>()
-                .remove::<terri_core::ConversationVoice>()
-                .remove::<Target>();
+                .remove::<terri_core::ConversationVoice>();
+            if owns_target {
+                initiator_commands.remove::<Target>();
+            }
             commands.entity(partner).try_remove::<Reserved>();
             continue;
         }
@@ -209,11 +224,13 @@ pub fn tick_social(
                 interaction: socialising.interaction,
             });
         }
-        commands
-            .entity(initiator)
+        let mut initiator_commands = commands.entity(initiator);
+        initiator_commands
             .remove::<Socialising>()
-            .remove::<terri_core::ConversationVoice>()
-            .remove::<Target>();
+            .remove::<terri_core::ConversationVoice>();
+        if owns_target {
+            initiator_commands.remove::<Target>();
+        }
         // `try_remove`, matching `tick_interactions`' release: the
         // command must not panic if the partner despawned mid-talk.
         commands.entity(partner).try_remove::<Reserved>();
@@ -2083,6 +2100,91 @@ mod tests {
             "the unserved order must survive someone else's completion; \
              popping it here turns a click into nothing"
         );
+    }
+
+    /// [L-cleanup-removes-only-what-it-owns], at the mechanism. A talk ends
+    /// two ways - it runs out, or its partner stops being in it - and both
+    /// clean the initiator up. Each removes the Target that names the
+    /// partner, and each leaves alone a Target that names anything else.
+    ///
+    /// Four cases from one fixture, because the pairs are what kill the
+    /// mutants: "never remove" fails the two owned cases, "always remove"
+    /// fails the two foreign ones, and a fix applied to only one of the two
+    /// cleanup sites fails one row of each.
+    #[test]
+    fn a_talk_that_ends_removes_the_target_it_owns_and_no_other() {
+        for runs_out in [true, false] {
+            for owned in [true, false] {
+                let pack = test_content::pack_with_social(
+                    vec![test_content::object(
+                        "fridge",
+                        &[(NeedId::Hunger, 30.0)],
+                        18,
+                    )],
+                    vec![test_content::interaction(
+                        "chat",
+                        &[(NeedId::Social, 30.0)],
+                        40,
+                    )],
+                    test_content::tuning(),
+                );
+                let fridge_def = pack.find("fridge").expect("the fixture declares it");
+                let mut sim = test_content::sim_with(10, 8, pack);
+                let partner = sim
+                    .world_mut()
+                    .spawn((
+                        Agent,
+                        SimId(1),
+                        Position { x: 2.0, y: 1.0 },
+                        Needs::all_at(90.0),
+                    ))
+                    .id();
+                // A talk that runs out still has its partner; a disturbed
+                // one has a partner who shed the reservation, which is
+                // exactly what a worker leaving for a shift does.
+                if runs_out {
+                    sim.world_mut().entity_mut(partner).insert(Reserved);
+                }
+                let fridge = sim
+                    .world_mut()
+                    .spawn((
+                        Position { x: 7.0, y: 1.0 },
+                        terri_core::SmartObject(fridge_def),
+                    ))
+                    .id();
+                let initiator = sim
+                    .world_mut()
+                    .spawn((
+                        Agent,
+                        SimId(0),
+                        Position { x: 1.0, y: 1.0 },
+                        Needs::all_at(90.0),
+                        Socialising {
+                            interaction: 0,
+                            partner,
+                            remaining_ticks: if runs_out { 1 } else { 20 },
+                        },
+                        Target {
+                            object: if owned { partner } else { fridge },
+                            interaction: 0,
+                        },
+                    ))
+                    .id();
+
+                sim.tick();
+
+                let case = format!("runs_out={runs_out} owned={owned}");
+                assert!(
+                    sim.world().get::<Socialising>(initiator).is_none(),
+                    "{case}: the talk is over either way"
+                );
+                assert_eq!(
+                    sim.world().get::<Target>(initiator).map(|t| t.object),
+                    if owned { None } else { Some(fridge) },
+                    "{case}: a talk removes the target that names its partner, and no other"
+                );
+            }
+        }
     }
 
     fn social_of(sim: &Sim, who: Entity) -> f32 {

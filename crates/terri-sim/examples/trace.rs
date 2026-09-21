@@ -512,13 +512,14 @@ fn main() {
             let agent_pos = *world.get::<Position>(agent).expect("a sim has a position");
             let hab = world.get::<Habituation>(agent).cloned().unwrap_or_default();
             let personality = world.get::<Personality>(agent).cloned().unwrap_or_default();
+            let worn_traits = world.get::<terri_core::Traits>(agent).cloned();
             let needs = *world.get::<Needs>(agent).expect("a sim has needs");
             let from = (agent_pos.x.round() as i32, agent_pos.y.round() as i32);
 
             println!("\nCANDIDATE TABLE at tick {ticks}: {name} at {from:?}");
             println!(
-                "{:<14} {:>5} {:>6} {:>6} {:>6} {:>9}  contributions",
-                "object", "dist", "hab", "disp", "scale", "score"
+                "{:<14} {:>5} {:>6} {:>6} {:>6} {:>6} {:>9}  contributions",
+                "object", "dist", "hab", "disp", "trait", "scale", "score"
             );
             for (pos, object) in &placed {
                 let def = pack.object(object.0);
@@ -536,7 +537,18 @@ fn main() {
                 for (index, act) in def.interactions.iter().enumerate() {
                     let h = hab.get(object.0, index as u32);
                     let disposition = personality.disposition(object.0, index as u32);
-                    let scale = benefit_scale(h, pack.tuning.habituation_floor) * disposition;
+                    // The worn traits' pull on this activity's tags, the
+                    // second disposition source `select_action` composes.
+                    // Left out, Bill's television printed 0.83 where the
+                    // engine used 0.83 x 1.5, and nine of the fifteen
+                    // traits are dispositions.
+                    let trait_pull = terri_sim::systems::trait_effects::disposition_multiplier(
+                        worn_traits.as_ref(),
+                        pack,
+                        &act.tags,
+                    );
+                    let scale =
+                        benefit_scale(h, pack.tuning.habituation_floor) * disposition * trait_pull;
                     let mut total = 0.0;
                     let mut parts = String::new();
                     for (need_index, delta) in &act.advertises {
@@ -549,14 +561,16 @@ fn main() {
                         parts.push_str(&format!("{id:?} {c:.4} (lvl {:.0}) ", needs.get(id)));
                     }
                     println!(
-                        "{:<14} {:>5.0} {:>6.2} {:>6.2} {:>6.2} {:>9.4}  {}",
-                        def.id, distance, h, disposition, scale, total, parts
+                        "{:<14} {:>5.0} {:>6.2} {:>6.2} {:>6.2} {:>6.2} {:>9.4}  {}",
+                        def.id, distance, h, disposition, trait_pull, scale, total, parts
                     );
                 }
             }
             // The PEOPLE, with the same ARITHMETIC selection uses: no
-            // habituation, no disposition, the relationship through
-            // `relationship_scale` in their place - [H7]/[H8]. A table
+            // habituation, no archetype disposition, the relationship
+            // through `relationship_scale` in their place - [H7]/[H8] -
+            // and the worn traits' pull on the talk's tags, which weighs a
+            // person exactly as it weighs an object. A table
             // that showed only the furniture would be the trace lying
             // about the newest thing selection weighs. Eligibility is a
             // separate question from arithmetic, and rows the live query
@@ -586,11 +600,17 @@ fn main() {
                 };
                 let distance = steps.len() as f32;
                 let feeling = feelings.feeling(*other_id);
-                let scale = terri_sim::systems::advertise::relationship_scale(
+                let relationship = terri_sim::systems::advertise::relationship_scale(
                     feeling,
                     pack.tuning.relationship_delta_scale,
                 );
                 for act in &pack.social {
+                    let trait_pull = terri_sim::systems::trait_effects::disposition_multiplier(
+                        worn_traits.as_ref(),
+                        pack,
+                        &act.tags,
+                    );
+                    let scale = relationship * trait_pull;
                     let mut total = 0.0;
                     let mut parts = String::new();
                     for (need_index, delta) in &act.advertises {
@@ -603,11 +623,12 @@ fn main() {
                         parts.push_str(&format!("{id:?} {c:.4} (lvl {:.0}) ", needs.get(id)));
                     }
                     println!(
-                        "{:<14} {:>5.0} {:>6} {:>6.2} {:>6.2} {:>9.4}  {} ({}){}",
+                        "{:<14} {:>5.0} {:>6.2} {:>6.2} {:>6.2} {:>6.2} {:>9.4}  {} ({}){}",
                         other_name,
                         distance,
-                        "-",
                         feeling,
+                        relationship,
+                        trait_pull,
                         scale,
                         total,
                         parts,
@@ -619,7 +640,7 @@ fn main() {
         }
         println!(
             "(action_threshold {:.3}, idle_threshold {:.3}, temperature {:.3}; \
-             person rows: third column is the relationship, not a disposition)",
+             person rows: `hab` is the feeling and `disp` the relationship scale)",
             pack.tuning.action_threshold,
             pack.tuning.idle_threshold,
             pack.tuning.choice_temperature

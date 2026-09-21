@@ -296,6 +296,24 @@ const PRIOR_STRUCTURAL_FINGERPRINT_MIGRATIONS: &[(u64, u64)] =
 const PRE_PORTAL_FINGERPRINT_MIGRATIONS: &[(u64, u64)] =
     &[(0xbcdd_476e_1e23_8ab0, 0xfdf5_87d9_437f_bfd0)];
 
+/// The exact digest of the last public build with three traits, paired with
+/// the one reviewed shape it may enter: the same content with the twelve
+/// library traits appended - [TL-old-saves] in
+/// `docs/specs/2026-09-21-trait-library-and-traits-panel.md`.
+///
+/// Why this bridge is safe: a save names traits by string id and the loader
+/// checks each id against the current pack, and the destination holds every
+/// source trait id with its source kind. Nothing a source save can say changes
+/// meaning. `removing_the_appended_traits_reproduces_the_previous_public_digest`
+/// pins the source end and `the_trait_library_digest_is_pinned` the
+/// destination end, so any other structural edit closes the bridge.
+///
+/// **Adding another trait moves the destination and closes this bridge.** Add
+/// the digest being left as a new source row, and re-point every row here at
+/// the new destination, in the same change that adds the trait.
+const PRE_TRAIT_LIBRARY_FINGERPRINT_MIGRATIONS: &[(u64, u64)] =
+    &[(0x4dab_6950_757c_1f15, 0xc2cf_2919_84ed_61f7)];
+
 /// Whether a Save V1 fingerprint may load against this content pack.
 ///
 /// New saves carry [`content_fingerprint`]. The small migration table accepts
@@ -309,6 +327,9 @@ pub fn content_fingerprint_matches(pack: &ContentPack, saved: u64) -> bool {
         return true;
     }
     saved == current
+        || PRE_TRAIT_LIBRARY_FINGERPRINT_MIGRATIONS
+            .iter()
+            .any(|&(prior, target)| saved == prior && exact == target)
         || LEGACY_FULL_PACK_FINGERPRINT_MIGRATIONS
             .iter()
             .any(|&(legacy, target)| saved == legacy && current == target)
@@ -361,6 +382,11 @@ fn hash_count(hasher: &mut terri_core::FnvHasher, count: usize) {
 // Only these exact new structural shapes inherit the reviewed public bridges.
 fn reviewed_pre_facing_target(current: u64) -> u64 {
     match current {
+        // With the trait library ([TL-old-saves]): the shipped shape, and the
+        // pre-rotation source `save/bathtub.rs` rebuilds from it at load time.
+        0xc2cf_2919_84ed_61f7 => 0xfdf5_87d9_437f_bfd0,
+        0xd396_b3f3_9e3c_6685 => 0xa020_602a_6acd_3a90,
+        // The same two shapes with three traits, before the library.
         0x4dab_6950_757c_1f15 => 0xfdf5_87d9_437f_bfd0,
         0x93b0_a495_25ce_6e0c => 0xa020_602a_6acd_3a90,
         other => other,
@@ -399,11 +425,274 @@ mod tests {
 
     #[test]
     fn facing_digest_targets_are_pinned() {
-        assert_eq!(content_fingerprint(pack()), 0x4dab_6950_757c_1f15);
+        assert_eq!(
+            content_fingerprint(&without_the_trait_library(pack().clone())),
+            0x4dab_6950_757c_1f15
+        );
         let mut source = pre_rotation_pack();
         let tub = source.find("bathtub").unwrap();
         source.objects[tub.0 as usize].base_facing = Facing::SouthEast;
         assert_eq!(content_fingerprint(&source), 0x93b0_a495_25ce_6e0c);
+    }
+
+    /// [TL-library]: fifteen traits, the three old ones first and unmoved,
+    /// in the kinds the design names.
+    #[test]
+    fn the_shipped_trait_library_holds_fifteen_traits_in_a_fixed_order() {
+        let ids: Vec<&str> = pack().traits.iter().map(|t| t.id.as_str()).collect();
+        assert_eq!(
+            ids,
+            [
+                "television_devotee",
+                "cannot_cook",
+                "low_spirits",
+                "bookworm",
+                "keen_cyclist",
+                "exercise_averse",
+                "fish_watcher",
+                "chatterbox",
+                "private_person",
+                "television_averse",
+                "couch_averse",
+                "out_of_shape",
+                "slow_reader",
+                "isolated",
+                "cooped_up",
+            ],
+            "the library is append-only: a sim's Traits component stores these indices"
+        );
+        let count = |wanted: u8| {
+            pack()
+                .traits
+                .iter()
+                .filter(|t| {
+                    wanted
+                        == match t.kind {
+                            CompiledTraitKind::Disposition { .. } => 0,
+                            CompiledTraitKind::Capability { .. } => 1,
+                            CompiledTraitKind::Condition { .. } => 2,
+                        }
+                })
+                .count()
+        };
+        assert_eq!((count(0), count(1), count(2)), (9, 3, 3));
+    }
+
+    /// "Avoids the couch" says sofas and armchairs, so every seat of that kind
+    /// has to carry the tag the trait keys on. The reading chair is an
+    /// armchair too, and was missed the first time.
+    #[test]
+    fn the_couch_trait_covers_every_sofa_and_armchair() {
+        let couch = pack()
+            .traits
+            .iter()
+            .find(|t| t.id == "couch_averse")
+            .expect("shipped trait");
+        assert_eq!(couch.tag, "lounging");
+        for (object, interaction) in [
+            ("sofa", "lounge"),
+            ("long_sofa", "stretch_out"),
+            ("armchair", "take_the_chair"),
+            ("reading_chair", "settle_in"),
+        ] {
+            let id = pack().find(object).expect("shipped seat");
+            let act = pack()
+                .object(id)
+                .interactions
+                .iter()
+                .find(|act| act.id == interaction)
+                .expect("shipped interaction");
+            assert!(
+                act.tags.iter().any(|tag| tag == "lounging"),
+                "{object}.{interaction} is a seat the couch trait claims to cover"
+            );
+        }
+    }
+
+    /// [L26]/[L29] applied to traits.toml: a multiplier pasted into a learning
+    /// rate has to change some test's answer, and it cannot while two slots
+    /// hold the same number.
+    #[test]
+    fn the_trait_library_numbers_are_pairwise_distinct() {
+        let mut numbers: Vec<(f32, String)> = Vec::new();
+        for t in &pack().traits {
+            match t.kind {
+                CompiledTraitKind::Disposition { score_multiplier } => {
+                    numbers.push((score_multiplier, format!("{}.score_multiplier", t.id)));
+                }
+                CompiledTraitKind::Capability {
+                    start_level,
+                    fail_delta_scale,
+                    learn_per_attempt,
+                } => {
+                    numbers.push((start_level, format!("{}.start_level", t.id)));
+                    numbers.push((fail_delta_scale, format!("{}.fail_delta_scale", t.id)));
+                    numbers.push((learn_per_attempt, format!("{}.learn_per_attempt", t.id)));
+                }
+                CompiledTraitKind::Condition {
+                    accrual_scale,
+                    manage_per_completion,
+                    start_severity,
+                } => {
+                    numbers.push((accrual_scale, format!("{}.accrual_scale", t.id)));
+                    numbers.push((
+                        manage_per_completion,
+                        format!("{}.manage_per_completion", t.id),
+                    ));
+                    numbers.push((start_severity, format!("{}.start_severity", t.id)));
+                }
+            }
+        }
+        assert_eq!(numbers.len(), 9 + 3 * 3 + 3 * 3);
+        for (index, (value, name)) in numbers.iter().enumerate() {
+            for (other_value, other_name) in &numbers[index + 1..] {
+                assert_ne!(
+                    value, other_value,
+                    "{name} and {other_name} hold the same number"
+                );
+            }
+        }
+    }
+
+    /// [TL-description]: the panel prints this sentence, so it has to exist
+    /// and has to read as a sentence.
+    #[test]
+    fn every_shipped_trait_says_what_it_does_in_one_sentence() {
+        for t in &pack().traits {
+            let text = t.description.as_str();
+            assert_eq!(text, text.trim(), "{}: stray whitespace", t.id);
+            assert!(text.ends_with('.'), "{}: '{text}' is not a sentence", t.id);
+            assert_eq!(
+                text.matches(". ").count(),
+                0,
+                "{}: one sentence, so a row stays a few lines in the half-width phone sheet",
+                t.id
+            );
+            assert!(text.len() <= 80, "{}: {} characters", t.id, text.len());
+            assert!(!text.contains('\u{2014}') && !text.contains('\u{2013}'));
+        }
+    }
+
+    /// [TL-household]: each member keeps the trait old saves know them by,
+    /// first in the authored list, and gains two or three.
+    #[test]
+    fn every_household_member_keeps_their_first_trait_and_wears_three_or_four() {
+        let worn = |name: &str| -> Vec<&str> {
+            let member = pack()
+                .household
+                .iter()
+                .find(|member| member.name == name)
+                .expect("shipped household member");
+            member
+                .traits
+                .iter()
+                .map(|index| pack().traits[*index as usize].id.as_str())
+                .collect()
+        };
+        assert_eq!(worn("Tim"), ["low_spirits", "bookworm", "out_of_shape"]);
+        assert_eq!(
+            worn("Bill"),
+            [
+                "television_devotee",
+                "exercise_averse",
+                "private_person",
+                "fish_watcher"
+            ]
+        );
+        assert_eq!(
+            worn("Casey"),
+            ["cannot_cook", "chatterbox", "keen_cyclist", "slow_reader"]
+        );
+    }
+
+    /// The destination end of [TL-old-saves]: the shipped shape, and the
+    /// pre-rotation source the bathtub migration rebuilds from it at load
+    /// time, which keeps the library because it is cloned from the shipped
+    /// pack. Both values were read from this assertion failing.
+    #[test]
+    fn the_trait_library_digest_is_pinned() {
+        assert_eq!(content_fingerprint(pack()), 0xc2cf_2919_84ed_61f7);
+        let mut rebuilt = pack().clone();
+        let tub = rebuilt.find("bathtub").unwrap();
+        rebuilt.objects[tub.0 as usize].footprint = Footprint { width: 2, depth: 1 };
+        rebuilt.objects[tub.0 as usize].base_facing = Facing::SouthEast;
+        rebuilt.portals.clear();
+        assert_eq!(content_fingerprint(&rebuilt), 0xd396_b3f3_9e3c_6685);
+    }
+
+    /// The source end of [TL-old-saves], per [L-migration-pins-both-endpoints]:
+    /// the ONLY structural difference between the previous public build and
+    /// this one is the appended traits. Take them away and the previous public
+    /// digest comes back exactly. If this fails, something else structural
+    /// moved too and the bridge below must not be trusted.
+    #[test]
+    fn removing_the_appended_traits_reproduces_the_previous_public_digest() {
+        let before = without_the_trait_library(pack().clone());
+        assert_eq!(before.traits.len(), 3);
+        assert_eq!(
+            before
+                .traits
+                .iter()
+                .map(|t| t.id.as_str())
+                .collect::<Vec<_>>(),
+            ["television_devotee", "cannot_cook", "low_spirits"],
+            "the three traits old saves can name stay first, in their old order"
+        );
+        assert_eq!(content_fingerprint(&before), 0x4dab_6950_757c_1f15);
+        for (before_trait, now) in before.traits.iter().zip(&pack().traits) {
+            assert_eq!(before_trait.id, now.id);
+            assert_eq!(
+                std::mem::discriminant(&before_trait.kind),
+                std::mem::discriminant(&now.kind),
+                "a saved level must never be read back as a severity"
+            );
+        }
+    }
+
+    #[test]
+    fn a_save_from_before_the_trait_library_loads_only_into_the_reviewed_shape() {
+        let previous_public = 0x4dab_6950_757c_1f15;
+        assert_eq!(
+            PRE_TRAIT_LIBRARY_FINGERPRINT_MIGRATIONS,
+            &[(previous_public, content_fingerprint(pack()))],
+            "the bridge names one source and one reviewed destination"
+        );
+        assert!(content_fingerprint_matches(pack(), previous_public));
+        assert!(!content_fingerprint_is_legacy(pack(), previous_public));
+        assert!(!content_fingerprint_is_prior_structural(
+            pack(),
+            previous_public
+        ));
+        assert!(!content_fingerprint_is_pre_aquarium_bike(
+            pack(),
+            previous_public
+        ));
+
+        // Everything the previous public build accepted is still accepted.
+        for saved in [0xfdf5_87d9_437f_bfd0, 0xbcdd_476e_1e23_8ab0] {
+            assert!(content_fingerprint_matches(pack(), saved), "{saved:#018x}");
+        }
+
+        // A different sixteenth trait is an unreviewed shape: the bridge closes.
+        let mut grown = pack().clone();
+        let mut extra = grown.traits[0].clone();
+        extra.id = "unreviewed".to_string();
+        grown.traits.push(extra);
+        assert!(!content_fingerprint_matches(&grown, previous_public));
+
+        // So does changing what an existing trait IS.
+        let mut rekinded = pack().clone();
+        rekinded.traits[1].kind = rekinded.traits[2].kind.clone();
+        assert!(!content_fingerprint_matches(&rekinded, previous_public));
+
+        // The source digest is not a skeleton key into the pre-library shape's
+        // own neighbours either.
+        let mut other_destination = without_the_trait_library(pack().clone());
+        other_destination.traits.pop();
+        assert!(!content_fingerprint_matches(
+            &other_destination,
+            previous_public
+        ));
     }
 
     #[test]
@@ -1363,7 +1652,7 @@ mod tests {
         let prior = pre_facing_fingerprint(&prior_pack);
         let current = content_fingerprint(pack());
         assert_eq!(prior, 0xbcdd_476e_1e23_8ab0);
-        assert_eq!(current, 0x4dab_6950_757c_1f15);
+        assert_eq!(current, 0xc2cf_2919_84ed_61f7);
         assert_eq!(
             PRE_PORTAL_FINGERPRINT_MIGRATIONS,
             &[(prior, 0xfdf5_87d9_437f_bfd0)],
@@ -1384,7 +1673,7 @@ mod tests {
 
     #[test]
     fn the_unpublished_old_bathtub_portal_checkpoint_is_not_a_save_bridge() {
-        let mut unpublished = pack().clone();
+        let mut unpublished = without_the_trait_library(pack().clone());
         let bathtub = unpublished.find("bathtub").expect("shipped bathtub");
         unpublished.objects[bathtub.0 as usize].footprint = Footprint { width: 2, depth: 1 };
         let checkpoint = pre_facing_fingerprint(&unpublished);
@@ -1428,8 +1717,15 @@ mod tests {
         }
     }
 
+    /// The shipped pack as it was before [TL-library]: the first three
+    /// traits only. Historical digests were computed over that list.
+    fn without_the_trait_library(mut source: ContentPack) -> ContentPack {
+        source.traits.truncate(3);
+        source
+    }
+
     fn pre_rotation_pack() -> ContentPack {
-        let mut source = pack().clone();
+        let mut source = without_the_trait_library(pack().clone());
         let bathtub = source.find("bathtub").expect("shipped bathtub");
         source.objects[bathtub.0 as usize].footprint = Footprint { width: 2, depth: 1 };
         source.objects[bathtub.0 as usize].base_facing = Facing::SouthEast;
@@ -1438,7 +1734,7 @@ mod tests {
     }
 
     fn pre_portal_pack() -> ContentPack {
-        let mut source = pack().clone();
+        let mut source = without_the_trait_library(pack().clone());
         source.portals.clear();
         source
     }

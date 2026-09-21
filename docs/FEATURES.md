@@ -570,7 +570,16 @@ this milestone and is done; what follows is M1b onwards.
   moodlets and a bounded overall label in the normal selected-person HUD.
   Save V1 is unchanged; Load force-refreshes the projection before another
   tick.
-- **Traits:** ~15 to start, affecting utility scoring ([D6])
+- ~~**Traits:** ~15 to start, affecting utility scoring ([D6])~~ - done in
+  PR 87. `content/traits.toml` holds fifteen traits in the three kinds [E3]
+  shipped: nine dispositions, three capabilities and three conditions. Each
+  household member wears three or four, and the selected person's panel lists
+  them in plain words with one sentence each and a percentage for a skill or
+  a severity. Every earlier save still loads, with exactly the traits it was
+  saved with. The design is
+  `docs/specs/2026-09-21-trait-library-and-traits-panel.md` and the played
+  check is [A-trait-library]. Choosing traits for a new sim belongs to
+  Create-a-sim below.
 - **Smart object library:** ~40 objects across the core need categories
 - **Build mode:** walls, floors, doors, windows, roofs
 - **Buy mode:** catalog, placement, rotation, palette recolors ([G4])

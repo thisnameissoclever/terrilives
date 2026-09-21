@@ -36,6 +36,7 @@ import { FrameTimer } from './perf.js';
 import { DebugPanel } from './ui/debug-panel.js';
 import { NeedsPanel, buildNeedBars } from './ui/needs-panel.js';
 import { MoodPanel, createMoodPanelSurface } from './ui/mood-panel.js';
+import { TraitsPanel, createTraitsPanelSurface } from './ui/traits-panel.js';
 import {
   describeStartupFailure,
   renderStartupFailure,
@@ -472,6 +473,25 @@ async function main(): Promise<void> {
     ),
     sim.needBarRefreshMs(),
   );
+  // [TL-panel]. A missing element throws, for the [L17] reason above.
+  const traitsBlock = document.querySelector<HTMLElement>('#traits-block');
+  const traitsEmpty = document.querySelector<HTMLElement>('#traits-empty');
+  const traitList = document.querySelector<HTMLElement>('#trait-list');
+  if (!traitsBlock || !traitsEmpty || !traitList) {
+    throw new Error('missing traits markup');
+  }
+  const traitsPanel = new TraitsPanel(
+    sim,
+    {
+      labels: sim.traitLabels(),
+      kinds: sim.traitKinds(),
+      descriptions: sim.traitDescriptions(),
+    },
+    createTraitsPanelSurface(document, traitsBlock, traitsEmpty, traitList),
+    // A level moves only when an activity completes, so the need bars'
+    // interval is already faster than anything this panel can show.
+    sim.needBarRefreshMs(),
+  );
   const peopleRoot = document.querySelector('#people-panel');
   const peopleCaption = document.querySelector<HTMLElement>('#people-caption');
   const peopleEmpty = document.querySelector<HTMLElement>('#people-empty');
@@ -562,6 +582,7 @@ async function main(): Promise<void> {
   householdRoster.update(initialHudMs, true);
   peoplePanel.update(initialHudMs, true);
   moodPanel.update(initialHudMs, true);
+  traitsPanel.update(initialHudMs, true);
   // The developer overlay, installed only under `?debug=1` - the same
   // presence rule as `?stress`, so the shipping page carries no extra
   // surface and no extra key binding. Backquote toggles it; that key
@@ -757,6 +778,7 @@ async function main(): Promise<void> {
           householdRoster.update(nowMs, true);
           peoplePanel.update(nowMs, true);
           moodPanel.update(nowMs, true);
+          traitsPanel.update(nowMs, true);
         }
       })
       .finally(() => {
@@ -1281,6 +1303,7 @@ async function main(): Promise<void> {
     householdRoster.update(nowMs);
     peoplePanel.update(nowMs);
     moodPanel.update(nowMs);
+    traitsPanel.update(nowMs);
     syncPersistenceButtons();
     debugPanel?.update(nowMs);
 

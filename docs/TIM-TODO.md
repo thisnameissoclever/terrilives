@@ -101,6 +101,26 @@ wall directions, matched to the existing wall art. Tell me whether to draft
 them with the generator for you to accept or reject, or whether you would
 rather supply them. Nothing is blocked meanwhile; doorways work.
 
+### [T-trait-copy] The twelve new traits need your words `[YOURS]`
+
+The trait library grew from three traits to fifteen (PR 87), and every trait
+now shows a label and one sentence in the selected person's panel. I wrote all
+of it as plain functional copy: "Bookworm", "More drawn to reading." The three
+conditions (Low spirits, Isolated, Cooped up) are played straight, as [S4]
+asks. The last two avoid words the game already uses: "Lonely" is what a low
+social need says in the Mood panel, and "Restless" is the engine's own word for
+a sim that found nothing worth doing.
+
+All of it lives in `content/traits.toml` and none of it is in a save, so
+rewording costs nothing. It belongs in the [T22] voice session.
+
+One decision sits beside it. **A household loaded from an older save keeps
+exactly the traits it was saved with**, one each, and only a new game gets the
+fuller household. I chose that because a load that changes what you saved is a
+bigger promise than I should make on my own. If you would rather old
+households gain the new traits on load, say so and I will build it as its own
+change.
+
 ### [T23] Verdict: should the sim with a job out-earn the one without? `[YOURS]`
 
 A taste call, surfaced rather than decided, because it is exactly the
