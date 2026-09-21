@@ -322,7 +322,8 @@ impl SimHandle {
                 terri_core::Facing::ALL
                     .into_iter()
                     .filter(|&f| definition.supports(f))
-                    .fold(0, |mask, f| mask | (1 << f.code()))
+                    .map(|f| 1u32 << f.code())
+                    .sum()
             })
     }
 
@@ -1284,6 +1285,37 @@ mod boundary_tests {
         // bytes short is not a shape any version ever wrote.
         let mut refused = SimHandle::from_lot();
         assert!(!refused.load_bytes(&current[..current.len() - 2]));
+    }
+
+    #[test]
+    fn legacy_repair_never_completes_a_truncated_sleep_pressure_record() {
+        let source = legacy_cell_handle();
+        let mut snapshot = source.sim.save_snapshot();
+        let agent = snapshot
+            .entities
+            .iter()
+            .find(|entity| entity.agent)
+            .unwrap()
+            .index;
+        snapshot.sleep_pressure = vec![(agent, 7)];
+        let complete = encode_save(&snapshot);
+        assert_eq!(complete.last(), Some(&7));
+
+        let mut live = SimHandle::from_lot();
+        assert!(
+            live.load_bytes(&complete),
+            "the complete nonempty list is valid"
+        );
+        assert_eq!(live.sim.save_snapshot().sleep_pressure, vec![(agent, 7)]);
+        live.tick();
+        let before = live.save_bytes();
+        let truncated = &complete[..complete.len() - 1];
+        assert!(
+            !live.load_bytes(truncated),
+            "a missing counter is corruption, not the historical missing list"
+        );
+        assert_eq!(live.save_bytes(), before);
+        assert!(decode_save_payload(&truncated[SAVE_HEADER_BYTES..]).is_none());
     }
 
     #[test]

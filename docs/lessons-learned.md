@@ -6334,6 +6334,49 @@ test after successful compilation, with zero survivors or timeouts. Native
 WASM-boundary tests pass 86/86 after restoring the original source. These are
 test-only changes; neither production validation nor the baseline is relaxed.
 
+## [L-live-verification-autosave] Ordinary play can violate save-preservation requirements
+
+**What happened.** A live front-door check advanced the public household across
+midnight while trying to capture a crossing. The primary save was automatically
+written at 2026-09-21T03:09:33.828Z. No Save button was clicked, but that did not
+preserve the file. A V1 recovery copy was created before the V2 overwrite.
+
+**Root cause.** Verification treated ordinary UI playback as save-neutral without
+checking the midnight and hidden-tab autosave paths. Pausing also does not prevent
+the visibility handler from saving. Exact-minute HUD polling missed brief events;
+the HUD updates less often than simulation ticks at accelerated speed.
+
+**Prevention rule.** Before opening a live game under a save-preservation constraint,
+inspect startup, periodic and visibility-triggered writes. Perform gameplay on a
+disposable local origin. Keep public checks read-only and do not assume closing a
+paused tab is write-free. Preserve identified recovery bytes and seek direction
+before replacing a user's save.
+
+**How to verify.** Record public save hashes and metadata through a non-game,
+same-origin document before and after the check. Require unchanged bytes. Exercise
+midnight and hidden-tab behavior only on disposable saves. This incident's owned
+tab was script-disabled before closure; no recovery write was attempted.
+
+## [L-builder-export-contracts] Test the values returned to the browser
+
+**What happened.** The builder mutation gate found uncovered V1 truncation,
+preview foreground, facing-mask and lot-revision behavior at the WASM boundary.
+
+**Root cause.** Internal placement tests did not prove what the browser actually
+reads. A missing foreground needs an explicit negative sentinel, and revision
+checks must observe a real edit rather than only the initial zero value. The
+historical V1 repair must not append bytes to a truncated nonempty counter list.
+
+**Prevention rule.** Test the exported values with missing and present controls,
+individual supported direction bits, actual accepted edits and malformed public
+load requests. Build masks from the unique one-hot direction values; OR and XOR
+are indistinguishable when those values cannot overlap.
+
+**How to verify.** The four distinguishable mutations must fail assertions after
+successful compilation. Restore the exact source, then run the complete native
+and release-mode WASM suites. The equivalent OR/XOR operator was removed through
+the disjoint-bit sum, not counted as a caught mutation or added to the baseline.
+
 ## [L-shared-socket-bounds] Keep repeated validation on one predicate
 
 **What happened.** The builder mutation sweep found five unconstrained OR

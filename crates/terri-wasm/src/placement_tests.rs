@@ -1,5 +1,99 @@
 use super::*;
 
+fn object_index(handle: &SimHandle, name: &str) -> u32 {
+    handle
+        .sim
+        .save_snapshot()
+        .entities
+        .iter()
+        .find(|entity| entity.smart_object.as_deref() == Some(name))
+        .unwrap()
+        .index
+}
+
+#[test]
+fn placement_preview_distinguishes_absent_and_present_foreground_layers() {
+    let handle = SimHandle::from_lot();
+    let before = handle.save_bytes();
+    for (name, has_foreground) in [("floor_lamp", false), ("armchair", true)] {
+        let object = object_index(&handle, name);
+        let facing = handle.object_facing(object as f64).unwrap();
+        let preview = handle.placement_preview(object as f64, 7.0, 0.0, facing as f64);
+        assert_eq!(preview[0], 0.0, "{name} has a valid preview control");
+        let (_, definition, _) =
+            terri_sim::placement::object_definition(handle.sim.world(), object).unwrap();
+        if has_foreground {
+            assert_eq!(preview[7], definition.foreground_sprite.unwrap() as f64);
+            assert!(preview[7] >= 0.0);
+        } else {
+            assert!(definition.foreground_sprite.is_none());
+            assert_eq!(preview[7], -1.0, "absence must not name atlas sprite 1");
+        }
+    }
+    assert_eq!(handle.save_bytes(), before);
+}
+
+#[test]
+fn object_facing_mask_reports_each_supported_wire_bit() {
+    let mut handle = SimHandle::new(4, 4);
+    assert!(handle.spawn_object(1.0, 1.0, "reading_chair"));
+    assert_eq!(handle.object_facing_mask(0.0), 0b1111);
+    assert_eq!(handle.object_facing_mask(u32::MAX as f64), 0);
+    let original = handle.sim.world().resource::<Content>().0;
+    let definition = original.find("reading_chair").unwrap();
+    for (facing, expected) in terri_core::Facing::ALL.into_iter().zip([1, 2, 4, 8]) {
+        let mut pack = original.clone();
+        let object = &mut pack.objects[definition.0 as usize];
+        let sprite = object.facing_sprites.get(facing).unwrap();
+        object.facing_sprites.0 = [None; 4];
+        object.facing_sprites.0[facing.code() as usize] = Some(sprite);
+        handle
+            .sim
+            .world_mut()
+            .insert_resource(Content(Box::leak(Box::new(pack))));
+        assert_eq!(handle.object_facing_mask(0.0), expected, "{facing:?}");
+    }
+}
+
+#[test]
+fn lot_revision_changes_only_after_a_committed_move() {
+    let mut handle = SimHandle::from_lot();
+    let object = object_index(&handle, "floor_lamp");
+    let facing = handle.object_facing(object as f64).unwrap() as f64;
+    assert_eq!(handle.lot_revision(), 0);
+    assert_eq!(
+        handle.placement_preview(object as f64, 7.0, 0.0, facing)[0],
+        0.0
+    );
+    assert_eq!(handle.lot_revision(), 0);
+    assert!(handle.place_object(object as f64, 7.0, 0.0, facing));
+    assert_eq!(handle.lot_revision(), 0, "queue acceptance is not a commit");
+    handle.flush_commands();
+    assert_eq!(handle.last_placement_result(), [object, 0]);
+    assert_eq!(handle.lot_revision(), 1);
+    let moved = handle.save_bytes();
+
+    assert!(handle.place_object(object as f64, 7.0, 0.0, facing));
+    handle.flush_commands();
+    assert_eq!(handle.last_placement_result(), [object, 0]);
+    assert_eq!(
+        handle.lot_revision(),
+        1,
+        "an unchanged placement is a no-op"
+    );
+    assert_eq!(handle.save_bytes(), moved);
+
+    assert!(handle.place_object(object as f64, 100.0, 0.0, facing));
+    handle.flush_commands();
+    assert_ne!(handle.last_placement_result()[1], 0);
+    assert_eq!(
+        handle.lot_revision(),
+        1,
+        "a refused command does not commit"
+    );
+    assert_eq!(handle.save_bytes(), moved);
+}
+
 #[test]
 fn placement_boundary_rejects_hostile_numbers_before_coercion_in_release() {
     let mut handle = SimHandle::from_lot();

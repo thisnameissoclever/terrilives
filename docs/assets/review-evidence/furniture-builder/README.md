@@ -114,3 +114,21 @@ return closed the door at 3795 with funds still 360; the Sim stood inside the
 entry and the nearby furniture retained correct wall depth. Warnings and errors
 were empty. The test tab and server were closed; public saves were untouched.
 Exact-head CI and post-merge Pages verification remain outstanding.
+
+## Export-boundary follow-up
+
+Main's deployed door merge `d26b60e` was integrated at `0fd81ab`; the merge
+changed no builder source. Four additional WASM-boundary tests caught the exact
+V1 truncation, missing foreground, facing-shift and revision mutations. One
+equivalent OR/XOR expression became a sum of unique direction bits. No baseline
+allowance changed. Independent review passed. Restored verification passed 889
+native tests, all 97 release-mode WASM tests, strict Clippy, formatting,
+TypeScript, all 819 browser tests and the production build.
+
+The rebuilt `index-BvV0TBxn.js` / `terri_wasm_bg-CfFbLFMP.wasm` was played on
+disposable origin4191. The NW table preview was clean; Confirm changed revision
+1 to2 while tick3863 stayed paused. UI Load restored tick3790, funds360 and the
+edited SW table. The restored open door and returning body retained correct
+layering. No warnings/errors appeared. Tab17 and server91068 were closed.
+Public gameplay was not used for this builder check. The separate door live
+check's autosave incident is documented in its evidence and lessons learned.
