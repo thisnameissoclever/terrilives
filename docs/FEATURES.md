@@ -663,7 +663,7 @@ screen and said what was wrong with it. Named so the boundary between
 
 ### [B-game-systems] Build every system in the systems document
 
-[GAME-SYSTEMS.md](GAME-SYSTEMS.md) is the single inventory of gameplay systems: the ones the owner requested on 2026-09-21, the ones this file already plans, the shared foundations they need, and the additional systems proposed alongside them. Building all of them is backlog work. Each entry there carries a build status checked against the code, its dependencies, and a place in a suggested build order.
+[GAME-SYSTEMS.md](GAME-SYSTEMS.md) is the single inventory of gameplay systems: the ones the owner requested on 2026-09-21, the ones this file already plans, the shared foundations they need, and the additional systems proposed alongside them. Building all of them is backlog work. Each requested, planned, and foundation entry there carries a build status checked against the code. The document also names the main dependencies and suggests a build order for the owner's requests.
 
 A system that has not been started is tracked there and not repeated here. When work on a system starts, give it an entry in this section or a spec, and update its status in GAME-SYSTEMS.md in the same change.
 

@@ -1,6 +1,6 @@
 # Game systems: inventory, build status, and proposals
 
-Written 2026-09-21 against `main` at `097a849`. This document lists every major gameplay system that the owner has requested, that the docs already plan, or that this document proposes. Each entry states how much of it exists in the game today.
+Written 2026-09-21 against `main` at `097a849`. This document lists every major gameplay system that the owner has requested, that the docs already plan, or that this document proposes. Each requested, planned, and foundation entry states how much of it exists in the game today. A proposed system has no status, because none of it exists.
 
 [FEATURES.md](FEATURES.md) still owns milestone scope and shipped evidence. This document owns the system-by-system view: what each system is, how complete it is, and what it needs before work can start.
 
@@ -30,7 +30,7 @@ Entry IDs use a word slug, such as `[S-pets]`, so that parallel branches cannot 
 | [S-money] | Money: deep earning and spending | Foundation only | 5% |
 | [S-catalogue] | Furniture and visual asset volume | Partial | 15% |
 | [S-household-size] | More people in the house | Partial | 35% |
-| [S-build] | Build mode: buying, walls, rooms, a bigger house | Partial | 20% |
+| [S-build] | Build mode: buying, walls, rooms, and a bigger house | Partial | 20% |
 
 ### Systems already planned in the docs and not fully built
 
@@ -70,7 +70,7 @@ These work in normal play today. They appear here because every new system must 
 | Save and load | Substantial | Save format version 3, with older versions still loadable. One save slot in browser storage, a daily autosave, and New game. |
 | Pathfinding | Substantial | Shortest-path walking on one floor, indoors. Walls sit on tile edges. The front door is the only exit. |
 | HUD | Substantial | Roster, needs, mood, relationships, career, activity, orders, time, audio, save controls, help, a build dock, and a phone layout. |
-| Tuning file | Complete | Every tunable number lives in `content/tuning.toml`, and the build rejects invalid values. New systems add their numbers there. |
+| Tuning file | Complete | Every system-wide tunable number lives in `content/tuning.toml`. Numbers that belong to one piece of content, such as a job's pay or an object's benefit, live in that content file. The build rejects invalid values in both. New systems follow the same split. |
 | Content compiler | Substantial | The build refuses content with a broken reference, an unreachable interaction point, or inconsistent tuning. |
 
 ## Shared foundations to build first
@@ -91,7 +91,7 @@ The work is to separate "a thing that has needs, makes choices, walks, and has r
 
 ### [F-event-scheduler] A deterministic event scheduler
 
-**Status: Not started.** Nothing in the game happens by chance except action choice and action length. There is no table of possible events, no per-event chance, and no cooldown.
+**Status: Not started.** No scheduled world event happens by chance. The seeded random generator is used for five things today: action choice, action length, where an idle person wanders, which voice clips a conversation plays, and the cooking fumble roll. There is no table of possible events, no per-event chance, and no cooldown.
 
 Pet accidents, breakages, visitors, bills, and emergencies all need one scheduler. It must draw from the seeded random generator, save its cooldowns, and enter the world hash, because determinism is a hard rule in this project. The clock already exposes an hourly boundary that nothing uses, and that boundary is the natural place to roll for events.
 
@@ -109,7 +109,7 @@ The proposal is one general rule. A task can declare a minimum mood and a maximu
 
 ### [F-notifications] A notification feed
 
-**Status: Foundation only.** The HUD has screen-reader announcements for saves, orders, and keyboard targeting. It has no visible feed that tells the player "the dog made a mess in the kitchen" or "the rent is due".
+**Status: Foundation only.** The HUD has four one-line status messages, for saves, orders, keyboard targeting, and build mode. Each is visible text that a screen reader also announces, and each shows only its latest message. There is no feed or history that tells the player "the dog made a mess in the kitchen" or "the rent is due".
 
 Every event-driven system needs this feed, with a way to jump the camera to the place concerned.
 
@@ -119,7 +119,7 @@ Every event-driven system needs this feed, with a way to jump the camera to the 
 
 **Status: Foundation only, about 5%.**
 
-**What exists.** One trait, "cannot cook", carries a hidden competence number. It starts low, rises a little with every cooking attempt, and sets the chance that the person fumbles the meal. A fumbled meal costs the full time and pays none of the benefit. The engine labels that number "Skill at cooking", and the player never sees it.
+**What exists.** One trait, labelled "Can't cook", carries a competence number. It starts low, rises a little with every cooking attempt, and sets the chance that the person fumbles the meal. A fumbled meal costs the full time and pays none of the benefit. The engine calls this kind of trait a capability. The normal HUD never shows the number; only the developer debug panel does.
 
 **What is missing.** A list of skills defined in content. A level and progress value per person per skill. Skill gain from doing tagged actions, with a tunable curve. A skills panel in the HUD.
 
@@ -165,7 +165,7 @@ Each event has a cause in the simulation where possible, a visible result in the
 
 **Depends on.** [F-event-scheduler], [F-object-state], [F-task-willingness], [F-notifications].
 
-### [S-money] Money and the household economy
+### [S-money] Money: deep earning and spending
 
 **Status: Foundation only, about 5%.** The owner raised the target for this system on 2026-09-21, so the same code now covers a smaller share of it.
 
@@ -187,7 +187,7 @@ Selling owned objects at a depreciated price. Rent paid by a lodger, once [S-hou
 
 Paid services through [P-services]: a cleaner, a repair person, a dog walker. Repairs and replacements through [P-upkeep]. Training courses and books that raise a skill faster. Medical costs through [P-health]. Leisure spending that buys fun or satisfaction, such as a night out, a holiday, or a gift that raises a relationship. Debt: an overdraft or a loan with interest, and consequences that escalate from a warning to a shut-off utility to a repossessed object.
 
-**Balance is the hard part.** The economy works only if a typical household sits near break-even, so that a better job, a raise, or a cheaper habit is a decision the player feels. Every price, wage, and bill rate belongs in the tuning file, and the headless trace tool that already reports funds over simulated days is the way to measure a change before shipping it.
+**Balance is the hard part.** The economy works only if a typical household sits near break-even, so that a better job, a raise, or a cheaper habit is a decision the player feels. Every price and wage belongs in its content file, every system-wide rate belongs in the tuning file, and the headless trace tool that already reports funds over simulated days is the way to measure a change before shipping it.
 
 **Depends on.** [S-careers] for income. [S-build] for buying and selling. [S-calendar] for pay days and billing periods. [F-notifications] for bills and warnings. [S-skills] for side income.
 
@@ -195,9 +195,9 @@ Paid services through [P-services]: a cleaner, a repair person, a dog walker. Re
 
 **Status: Partial, about 15%.**
 
-**What exists.** 30 object types, all of them placed in the starting house. 19 have an action and 11 are decorative. Every interactive object has exactly one action. 13 objects use the newer reviewed 3D-modelled art, plus the bunk, the exercise bike, and the reading chair. The original plan called for about 40 interactive objects at this stage.
+**What exists.** 30 object types, all of them placed in the starting house. 19 have an action of their own. 18 of those offer one action, and the fridge offers two: a snack, and the start of cooking dinner. Of the other 11, the stove and the counter are working stations in the cooking activity, and 9 are decorative. 13 objects use the newer reviewed 3D-modelled art, plus the bunk, the exercise bike, and the reading chair. The original plan called for about 40 interactive objects at this stage.
 
-**What is missing.** Volume, in several directions. More objects per need, at several quality and price tiers, so that buying a better bed means something. More than one action per object. Objects for every new system: pet bowls, pet beds, a litter box, a lead hook, skill objects such as an easel or a workbench, a phone, outdoor furniture.
+**What is missing.** Volume, in several directions. More objects per need, at several quality and price tiers, so that buying a better bed means something. Several actions per object as the normal case. Objects for every new system: pet bowls, pet beds, a litter box, a lead hook, skill objects such as an easel or a workbench, a phone, outdoor furniture.
 
 Walls, floors, doors, and windows as selectable styles. Recolours of existing objects. More hairstyles, clothing, and body variation for people, which [S-create-a-sim] needs. Every rotatable object needs art for each direction it supports, and only a few have all four today.
 
@@ -248,11 +248,11 @@ A larger household also needs a larger house, so that six people are not queuein
 
 ### [S-chains] Multi-step activities
 
-**Status: Partial, about 50%.** The engine runs an activity made of several steps across several objects, with a carried item, and resumes it after an interruption. Exactly one such activity exists: cooking dinner, which goes from fridge to counter to stove to table. Candidates for more: laundry, washing up after a meal, making coffee, a full morning routine, feeding a pet, and cleaning a litter box.
+**Status: Partial, about 50%.** The engine runs an activity made of several steps across several objects, with a carried item, and resumes it after an interruption. Exactly one such activity exists: cooking dinner. It needs cold storage, then a preparation surface, then a hob, then an eating surface, and at each step the person uses the nearest free object that fills that role. In the starting house that usually means fridge, counter, stove, and dining table. Candidates for more: laundry, washing up after a meal, making coffee, a full morning routine, feeding a pet, and cleaning a litter box.
 
 ### [S-relationship-dynamics] Relationship causes and consequences
 
-**Status: Partial, about 45%.** Each person holds a separate feeling toward every other person. Talking raises it and time slowly fades it. One social action exists, a two-person chat, with recorded voice clips that set its length. The relationships spec plans four additions in items `[H12]` through `[H15]`, and none is built.
+**Status: Partial, about 45%.** Each person holds a separate feeling toward every other person. Talking raises it and time slowly fades it. One social action exists, a two-person chat, with recorded voice clips that set its length. The relationships spec plans four additions in items `[H12]` through `[H15]`, and none is built. Item `[H16]` requires every one of them to be tunable, saved, hashed, and tested.
 
 - `[H12]` A small penalty toward someone when you have to wait for an object they are using.
 - `[H13]` Slow drift while sharing a room, positive for compatible personalities and negative for incompatible ones.
@@ -265,7 +265,7 @@ Also missing: more social actions than chat, group conversations (the content al
 
 **Status: Not started, 0%.** The game does not know who is whose parent, sibling, or partner. `[B-family-relationships]` in [FEATURES.md](FEATURES.md) plans a kinship graph and a family tree view. Genetics, inheritance, and bereavement depend on it.
 
-### [S-careers] Jobs and careers
+### [S-careers] Jobs and careers, with player-directed career paths
 
 **Status: Partial, about 15%.** The owner raised the target for this system on 2026-09-21, so the same code now covers a smaller share of it.
 
@@ -361,7 +361,7 @@ Mood is display-only today. Beyond the willingness gate, a bad mood could make a
 
 ### [P-wants] Wants and short-term goals
 
-Each person holds a few small current wants drawn from their traits, hobbies, relationships, and recent events: "talk to Bill", "buy a better bed", "get the dog to stop barking". Fulfilling a want pays satisfaction, and ignoring it costs a little. This gives the player direction at every moment, and it gives the satisfaction score, which already exists, a second source besides hobbies.
+Each person holds a few small current wants drawn from their traits, hobbies, relationships, and recent events: "talk to Bill", "buy a better bed", "get the dog to stop barking". Fulfilling a want pays satisfaction, and ignoring it costs a little. This gives the player direction at every moment, and it gives the satisfaction score, which already exists, a third source besides hobbies and completed work shifts.
 
 ### [P-memories] Life events and memories
 
@@ -385,7 +385,7 @@ People and pets can get sick or hurt, from neglect, from events, or by chance. I
 
 ### [P-room-quality] Room quality
 
-Each room gets a score from its size, its lighting, its decoration, and any mess or broken object in it. The score feeds the comfort need and moodlets for whoever is in the room. This is what makes decorative objects, of which there are already 11, worth buying. Rooms and the light field both already exist, so the inputs are in place.
+Each room gets a score from its size, its lighting, its decoration, and any mess or broken object in it. The score feeds the comfort need and moodlets for whoever is in the room. This is what makes decorative objects, of which there are already 9, worth buying. Two inputs are missing today. The game has walls and no notion of a room, so it must first work out which tiles form each room. The light field exists only in the renderer, so the simulation cannot read it yet.
 
 ### [P-ownership] Personal belongings and territory
 
@@ -397,13 +397,15 @@ This order is a recommendation. It puts each foundation before the systems that 
 
 1. **[S-skills].** It depends on nothing, and careers, food, upkeep, and ghosts all need it.
 2. **[S-calendar], [F-notifications], and buy mode with prices from [S-build] and [S-money].** Money gains a purpose the moment there is something to buy.
-3. **[S-careers] and the rest of [S-money], designed as one economy.** Career paths, the job search, performance, bills, and the ledger land together, so that income and costs can be balanced against each other from the start.
+3. **[S-careers] and the rest of [S-money], designed as one economy, with the phone from [P-services] as the way to look for work.** Career paths, the job search, performance, bills, and the ledger land together, so that income and costs can be balanced against each other from the start.
 4. **[F-object-state], [F-event-scheduler], and [F-task-willingness], delivered through [P-upkeep] and [S-household-events].** People can exercise the mess-and-clean loop alone, before any pet exists.
 5. **[P-nuisance].** A loud television near a sleeper proves it without new art.
 6. **[F-entity-lifecycle] and [F-creature], delivered through [P-visitors] first.** A visitor is a human, so it tests adding and removing characters without the cost of a new species.
 7. **[S-pets], one species first.** By this point every mechanism a dog needs already exists and has been played. What remains is the dog's own content, art, and animation.
-8. **The wall tool, a larger lot, and [S-household-size].**
+8. **The wall tool, a larger lot, [S-create-a-sim], and [S-household-size].** New housemates need to look different from each other, so making a person comes first.
 9. **[S-outside]**, which dog walks and visitors make more valuable by then.
+
+This order covers the owner's requests and what they depend on. It leaves out the later planned systems, such as life stages, death, the town, and ghosts, and most of the proposals; each of those takes a place when it is accepted or when its milestone comes up.
 
 [S-catalogue] and [S-action-animation] are not steps in this order. They run alongside every step, limited by the art pipeline and not by code.
 

@@ -315,7 +315,7 @@ neighbors and household dynamics [B-neighborhood-dynamics], family relationships
 These are not owner chores. They are recorded here so they remain visible in
 the TODO, while `FEATURES.md` owns their scope and implementation status.
 
-On 2026-09-21 you asked for more systems: skills, pets as full characters, random household events and messes, deep earning and spending of money, player-directed career paths, far more furniture and art, a larger household, and a fuller build mode. Building all of them is mine. [GAME-SYSTEMS.md](GAME-SYSTEMS.md) is the one place that lists every system, started or not, with its build status, its dependencies, and a suggested build order; `FEATURES.md` points to it under [B-game-systems].
+On 2026-09-21 you asked for more systems: skills, pets as full characters, random household events and messes, deep earning and spending of money, player-directed career paths, far more furniture and art, a larger household, and a fuller build mode. Building all of them is mine. [GAME-SYSTEMS.md](GAME-SYSTEMS.md) is the one place that lists every system, started or not. It gives a build status for everything except the new proposals, names the main dependencies, and suggests a build order for your requests; `FEATURES.md` points to it under [B-game-systems].
 
 The first [A-audio-voices] foundation is now implemented: gesture-gated native
 Web Audio, procedural command/UI cues, fixed-tick distance footsteps, master
