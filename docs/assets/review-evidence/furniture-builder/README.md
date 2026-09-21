@@ -74,3 +74,26 @@ After integrating front-door `69c0052`, a fresh native workspace run passed all
 881 tests (95 core, 226 data, one data integration, 468 simulation and 91 WASM).
 Formatting, documentation IDs and the merge diff check passed. Independent
 review found no loss of V3 facing-before-geometry validation in the merge.
+
+The final spawn-boundary correction from `c441f3f` then passed 883 native
+workspace tests and all 93 unfiltered release-mode WASM-boundary tests.
+
+## Main's wall-depth correction
+
+Main's `1d4b9ed` wall-plane renderer was integrated before release. Its instance
+rows grew to ten floats; builder and preview tests now use the shared stride
+instead of literal eight-float offsets. Sentinel checks prove all preview rows
+clear wall-only projection fields. Removing either writer assignment separately
+failed the corresponding assertion; the original source SHA256 was restored.
+TypeScript, all 819 browser tests across 67 files and the production build passed.
+
+The frozen `index-CqDpBPu4.js` / `terri_wasm_bg-BnbcxhuJ.wasm` production bundle
+was played again. Load restored the edited open-door save at 3790. Desktop and
+390x844 views showed a clean NW table preview; the compact Confirm placed it
+without advancing the clock. Load discarded that unsaved test edit. The
+restored crossing completed at 3795, with funds still 360 and correct door/body
+depth. Nearby fridge and laundry silhouettes retained main's correction.
+`wall-depth-builder.png` and `wall-depth-mobile.png` record the preview.
+Warnings/errors were empty, the viewport was reset, and the tab and server
+were closed. The public household was untouched. Exact-head CI and Pages remain
+release gates.

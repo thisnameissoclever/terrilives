@@ -180,6 +180,27 @@ resulting career state and settled position, not only the rendered door state.
 **How to verify.** The two career arrival regressions must pass; the targeted
 mutation run must catch all eight changed comparisons and coordinate
 subtractions. The 2026-09-20 correction caught 8/8 without a baseline exception.
+## [L-wall-plane-depth-closeups] Review wall contact at object scale
+
+**What happened.** The shipped boundary-wall layout passed a whole-room
+visual review, but walls visibly cut off the laundry stack, toilet tank and
+desk chair. The user caught the missing silhouettes in close-ups.
+
+**Root cause.** A wall panel and an adjacent object could share the same
+anchor depth. Walls drew first and won the equal-depth test. A constant depth
+for an entire panel also cannot describe both sides of its physical plane.
+Moving every wall backward would expose objects on the wrong side.
+
+**Prevention rule.** Give edge-wall fragments depth from their authored plane,
+including exposed far arms at junctions. Review close-ups as well as the room.
+Do not reposition furniture or alter artwork to hide a depth-buffer defect.
+
+**How to verify.** Run `web/proofs/wall-occlusion.js` through the real browser
+renderer. Check foreground and background objects on both axes, three zooms,
+all nine joins, and Sims crossing both door orientations. Disable the wall
+depth calculation and require the same pixel checks to fail; restore and
+compare source hashes. Retain close-up screenshots and an independent review.
+
 ## [L-layout-schema-exporter-impact] Include offline asset tools in schema impact scans
 
 **What happened.** Main CI stopped publication because the exercise-bike

@@ -100,6 +100,8 @@ struct VertexOut {
   // value, so the interpolation across the triangle is a no-op and the
   // fragment reads exactly what the instance packed.
   @location(1) tint: vec4<f32>,
+  @location(5) localPixel: vec2<f32>,
+  @location(6) @interpolate(flat) wall: vec2<f32>,
 };
 
 // Two triangles forming a unit quad with its origin at the top left. The
@@ -116,6 +118,7 @@ fn vs(
   @builtin(vertex_index) vi: u32,
   @location(0) instance: vec4<f32>,
   @location(1) tint: vec4<f32>,
+  @location(2) wall: vec2<f32>,
 ) -> VertexOut {
   let sprite = atlas.sprites[u32(instance.w)];
   let corner = CORNERS[vi];
@@ -143,11 +146,39 @@ fn vs(
   out.corner = corner;
   out.pair = vec2u(sprite.size.zw);
   out.tint = tint;
+  out.localPixel = u.anchor - vec2f(size.x * 0.5, size.y) + corner * size;
+  out.wall = wall;
   return out;
 }
 
+struct FragmentOut {
+  @location(0) colour: vec4<f32>,
+  @builtin(frag_depth) depth: f32,
+};
+
+// Raster contract: objects.py uses WALL_H=2 and style.py uses Z_UNIT=38.
+// North/east project right; south/west project left. A join can expose a
+// far arm ABOVE its near arm, so horizontal position alone is insufficient.
+fn wallSumOffset(pixel: vec2<f32>, mask: u32) -> f32 {
+  // emit() includes the final anchor row. Recover source raster coordinates,
+  // not the centre of the filtered screen pixel, before choosing its face.
+  let raster = vec2f(floor(pixel.x), floor(pixel.y) + 1.0);
+  let distance = abs(raster.x) / 32.0;
+  let nearBit = select(4u, 2u, raster.x >= 0.0);
+  let farBit = select(8u, 1u, raster.x >= 0.0);
+  // The half-panel endpoint rasterizes 21/2 to 10 pixels of rise over 16
+  // columns. Match that inclusive line, including its rounded outline.
+  let nearTop = floor(distance * 2.0 * floor(21.0 / 2.0) + 0.5) - 76.0;
+  let nearPresent = (mask & nearBit) != 0u;
+  let farPresent = (mask & farBit) != 0u;
+  if (nearPresent && (!farPresent || raster.y >= nearTop)) {
+    return distance;
+  }
+  return -distance;
+}
+
 @fragment
-fn fs(in: VertexOut) -> @location(0) vec4<f32> {
+fn fs(in: VertexOut) -> FragmentOut {
   // Linear filtering must stay inside this sprite's edge texels. Sampling
   // the transparent atlas gutter darkens every panel seam at fractional zoom.
   let halfTexel = vec2f(0.5) / vec2f(textureDimensions(atlasTexture));
@@ -195,5 +226,11 @@ fn fs(in: VertexOut) -> @location(0) vec4<f32> {
   // no second pipeline, and [D10]'s one draw and one submit per frame
   // are untouched.
   let lit = mix(u.ambient.rgb, vec3f(1.0), in.tint.w);
-  return vec4f(colour.rgb * in.tint.rgb * lit, colour.a);
+  var out: FragmentOut;
+  out.colour = vec4f(colour.rgb * in.tint.rgb * lit, colour.a);
+  out.depth = in.clip.z;
+  if (in.wall.x > 0.0) {
+    out.depth = clamp(in.clip.z - wallSumOffset(in.localPixel, u32(in.wall.x)) * in.wall.y, 0.0, 1.0);
+  }
+  return out;
 }

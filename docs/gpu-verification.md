@@ -1,5 +1,11 @@
 # GPU and Browser Verification
 
+Current edge-wall clipping proof (2026-09-20): see
+[wall clipping correction](assets/review-evidence/wall-clipping.md).
+It records real GPU pixel regressions, mutation failures, doorway samples and
+a bounded timing probe. Older constant-depth and 32-byte instance measurements
+below remain historical; current edge walls use fragment depth and 40-byte rows.
+
 Every claim in this repository about what the GPU, the render path or the
 simulation loop actually does, with the measurement that supports it.
 

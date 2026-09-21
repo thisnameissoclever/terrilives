@@ -8,6 +8,7 @@ import { buildInstances, instanceCount } from '../src/frame.js';
 import { buildLightField, sampleLight } from '../src/render/lighting.js';
 import { placementInstanceCount } from '../src/render/placement-preview.js';
 import { spriteIndex } from '../src/render/atlas.js';
+import { FLOATS_PER_INSTANCE as STRIDE } from '../src/render/instances.js';
 
 let memory: WebAssembly.Memory;
 beforeAll(async () => {
@@ -144,8 +145,8 @@ it('routes keyboard edits once and appends preview instances without changing or
   const count = instanceCount(source, 26, undefined, builder.preview);
   expect(count).toBe(base + 2);
   const instances = buildInstances(source, 0.37, 100, 100, 16, 26, 1, true, 0, null, undefined, builder.preview);
-  expect(instances.length).toBeGreaterThanOrEqual(count * 8);
-  expect(instances[(count - 1) * 8 + 3]).toBe(builder.preview!.sprite);
+  expect(instances.length).toBeGreaterThanOrEqual(count * STRIDE);
+  expect(instances[(count - 1) * STRIDE + 3]).toBe(builder.preview!.sprite);
   expect(Array.from(source.positions())).toEqual(original);
   builder.handleKey('Escape');
   expect(builder.active).toBe(true);
@@ -174,29 +175,31 @@ it('replaces only valid in-place furniture presentation, retains its marker and 
     const row = Array.from(source.ids()).indexOf(id);
     const baseCount = instanceCount(source, id);
     const original = Array.from(buildInstances(source, 0.37, 100, 100, 16, id, 1, true)
-      .slice(0, baseCount * 8));
+      .slice(0, baseCount * STRIDE));
     const extra = placementInstanceCount(preview);
     const count = instanceCount(source, id, undefined, preview);
     expect(count).toBe(baseCount + extra - (source.foregroundSprites()[row] === 0xffffffff ? 0 : 1));
     const rendered = buildInstances(source, 0.37, 100, 100, 16, id, 1, true, 0, null, undefined, preview);
-    expect(Array.from(rendered.slice(row * 8, row * 8 + 2))).toEqual([-1e6, -1e6]);
+    expect(Array.from(rendered.slice(row * STRIDE, row * STRIDE + 2))).toEqual([-1e6, -1e6]);
     for (let other = 0; other < source.count; other += 1) {
-      if (other !== row) expect(Array.from(rendered.slice(other * 8, other * 8 + 8)))
-        .toEqual(original.slice(other * 8, other * 8 + 8));
+      if (other !== row) expect(Array.from(rendered.slice(other * STRIDE, (other + 1) * STRIDE)))
+        .toEqual(original.slice(other * STRIDE, (other + 1) * STRIDE));
     }
-    expect(rendered[(count - extra - 1) * 8 + 3]).toBe(spriteIndex('selectionRing'));
-    expect(rendered[(count - 1) * 8 + 3]).toBe(preview.foreground ?? preview.sprite);
+    expect(rendered[(count - extra - 1) * STRIDE + 3]).toBe(spriteIndex('selectionRing'));
+    expect(rendered[(count - 1) * STRIDE + 3]).toBe(preview.foreground ?? preview.sprite);
     const refused = { ...preview, valid: false };
     expect(instanceCount(source, id, undefined, refused)).toBe(baseCount + extra);
     const refusedRows = buildInstances(source, 0.37, 100, 100, 16, id, 1, true, 0, null, undefined, refused);
-    expect(Array.from(refusedRows.slice(row * 8, row * 8 + 8))).toEqual(original.slice(row * 8, row * 8 + 8));
+    expect(Array.from(refusedRows.slice(row * STRIDE, (row + 1) * STRIDE)))
+      .toEqual(original.slice(row * STRIDE, (row + 1) * STRIDE));
     const moved = { ...preview, x: preview.x + source.footprintWidths()[row] };
     expect(instanceCount(source, id, undefined, moved)).toBe(baseCount + extra);
     const movedRows = buildInstances(source, 0.37, 100, 100, 16, id, 1, true, 0, null, undefined, moved);
-    expect(Array.from(movedRows.slice(row * 8, row * 8 + 8))).toEqual(original.slice(row * 8, row * 8 + 8));
+    expect(Array.from(movedRows.slice(row * STRIDE, (row + 1) * STRIDE)))
+      .toEqual(original.slice(row * STRIDE, (row + 1) * STRIDE));
     builder.cancel();
     expect(Array.from(buildInstances(source, 0.37, 100, 100, 16, id, 1, true)
-      .slice(0, baseCount * 8))).toEqual(original);
+      .slice(0, baseCount * STRIDE))).toEqual(original);
     expect(source.saveBytes()).toEqual(saved);
   }
   handle.free();
@@ -212,12 +215,12 @@ it('replaces the original table presentation when a valid rotated rectangle over
   const row = Array.from(source.ids()).indexOf(7);
   const count = instanceCount(source, 7, undefined, builder.preview);
   const rendered = buildInstances(source, 0.5, 100, 100, 16, 7, 1, true, 0, null, undefined, builder.preview);
-  expect(Array.from(rendered.slice(row * 8, row * 8 + 2))).toEqual([-1e6, -1e6]);
-  expect(rendered[(count - 1) * 8 + 3]).toBe(builder.preview!.sprite);
+  expect(Array.from(rendered.slice(row * STRIDE, row * STRIDE + 2))).toEqual([-1e6, -1e6]);
+  expect(rendered[(count - 1) * STRIDE + 3]).toBe(builder.preview!.sprite);
   expect(source.saveBytes()).toEqual(before);
   builder.cancel();
   const restored = buildInstances(source, 0.5, 100, 100, 16, 7, 1, true);
-  expect(restored[row * 8]).not.toBe(-1e6);
+  expect(restored[row * STRIDE]).not.toBe(-1e6);
   expect(source.saveBytes()).toEqual(before);
   handle.free();
 });

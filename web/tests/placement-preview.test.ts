@@ -1,6 +1,10 @@
 import { expect, it } from 'vitest';
 import { placementInstanceCount, writePlacementPreview } from '../src/render/placement-preview.js';
-import { FLOATS_PER_INSTANCE } from '../src/render/instances.js';
+import {
+  FLOATS_PER_INSTANCE, OFFSET_EMISSIVE, OFFSET_SPRITE,
+  OFFSET_TINT_R, OFFSET_TINT_G, OFFSET_TINT_B,
+  OFFSET_WALL_MASK, OFFSET_WALL_DEPTH_STEP,
+} from '../src/render/instances.js';
 import { spriteIndex } from '../src/render/atlas.js';
 import { spriteDrawOffsetX, spriteDrawOffsetY } from '../src/render/sprite-anchors.js';
 import type { PlacementPreview } from '../src/bridge.js';
@@ -12,16 +16,24 @@ it('writes every rectangular footprint tile plus centered art and foreground wit
   expect(placementInstanceCount(preview)).toBe(4);
   const data = new Float32Array(6 * FLOATS_PER_INSTANCE).fill(-99);
   expect(writePlacementPreview(data, 1, preview, 100, 100, 16, 1, null)).toBe(5);
-  expect(Array.from(data.slice(0, 8))).toEqual(Array(8).fill(-99));
-  expect([data[8], data[9], data[16], data[17]]).toEqual([36, 226, 68, 247]);
-  expect(data[24]).toBe(52 + spriteDrawOffsetX(preview.sprite));
-  expect(data[25]).toBe(236.5 + spriteDrawOffsetY(preview.sprite));
-  expect(data[28]).toBeCloseTo(0.75);
-  expect(data[29]).toBeCloseTo(0.9);
-  expect(data[30]).toBeCloseTo(1);
-  expect(data[31]).toBe(0);
-  expect(data[35]).toBe(preview.foreground);
-  expect(Array.from(data.slice(40))).toEqual(Array(8).fill(-99));
+  expect(Array.from(data.slice(0, FLOATS_PER_INSTANCE))).toEqual(Array(FLOATS_PER_INSTANCE).fill(-99));
+  const first = FLOATS_PER_INSTANCE;
+  const second = 2 * FLOATS_PER_INSTANCE;
+  const body = 3 * FLOATS_PER_INSTANCE;
+  expect([data[first], data[first + 1], data[second], data[second + 1]])
+    .toEqual([36, 226, 68, 247]);
+  expect(data[body]).toBe(52 + spriteDrawOffsetX(preview.sprite));
+  expect(data[body + 1]).toBe(236.5 + spriteDrawOffsetY(preview.sprite));
+  expect(data[body + OFFSET_TINT_R]).toBeCloseTo(0.75);
+  expect(data[body + OFFSET_TINT_G]).toBeCloseTo(0.9);
+  expect(data[body + OFFSET_TINT_B]).toBeCloseTo(1);
+  expect(data[body + OFFSET_EMISSIVE]).toBe(0);
+  expect(data[4 * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(preview.foreground);
+  for (let row = 1; row < 5; row += 1) {
+    expect(data[row * FLOATS_PER_INSTANCE + OFFSET_WALL_MASK]).toBe(0);
+    expect(data[row * FLOATS_PER_INSTANCE + OFFSET_WALL_DEPTH_STEP]).toBe(0);
+  }
+  expect(Array.from(data.slice(5 * FLOATS_PER_INSTANCE))).toEqual(Array(FLOATS_PER_INSTANCE).fill(-99));
 });
 
 it('keeps refused furniture and red footprint visible, and emits nothing without a selection', () => {
