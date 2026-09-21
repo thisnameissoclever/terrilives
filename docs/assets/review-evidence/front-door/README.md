@@ -182,3 +182,15 @@ The combined correction batch then passed a fresh
 integration, 432 simulation and 84 WASM), with zero failures. Documentation
 IDs, formatting and the diff check passed. Remote exact-head checks remain
 pending at publication of this batch.
+
+The earlier run's final shard 7 found three more missing object-spawning
+assertions. Public-boundary tests now accept solid walls on every perimeter
+side, reject internal walls on both axes without changing the world or render
+buffers, and accept internal doorways. The exact three mutations were caught
+with assertion failures after successful compilation; none survived or timed
+out. Restoring the original production source restored SHA256
+`f815a9e530e21349629b93774f71255abc69ed9cffdb552efa9a08c3f423d785`.
+All 86 native WASM-boundary tests passed. Independent source review approved
+the test fixtures and refusal observations. A fresh combined workspace run
+passed 823 tests, and the unfiltered release-mode WASM-boundary suite passed
+all 86 tests. The three source mutations and tests add no baseline exceptions.

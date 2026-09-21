@@ -12,6 +12,8 @@ use wasm_bindgen::prelude::*;
 mod placement_tests;
 #[cfg(test)]
 mod save_v3_tests;
+#[cfg(test)]
+mod spawn_boundary_tests;
 
 /// The level a non-finite hunger argument is replaced with. Either end of
 /// the range would do; what matters is that it is finite and in range.
