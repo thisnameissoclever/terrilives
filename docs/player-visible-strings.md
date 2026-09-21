@@ -50,7 +50,7 @@ authorize unrelated replacement copy.
 
 | Content family | Current authority | Voice-pass decision |
 | --- | --- | --- |
-| Game title | `docs/TIM-TODO.md` [T1] | Owner decision required. Do not treat the repository name as approval. |
+| Game title | `docs/TIM-TODO.md` [T1]; shown in the `<title>` of `web/index.html` | Decided 2026-09-21: **Natural Causes**. The repository name `terrilives` is the internal codename, not the title. |
 | Object display names | `content/objects.toml` `name` | Review all names together for one register. |
 | Object action labels | `content/objects.toml` interaction `label` | Keep verbs understandable; humor cannot obscure the action. |
 | Sim names and personality labels | `content/household.toml`, `content/personalities.toml` | Owner approval required. |

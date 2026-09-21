@@ -1411,7 +1411,7 @@ async function main(): Promise<void> {
 // secure context and WebGPU never existed there. The card names that
 // case in words a player can act on.
 void main().catch((error: unknown) => {
-  console.error('terrilives failed to start:', error);
+  console.error('Natural Causes failed to start:', error);
   renderStartupFailure(
     describeStartupFailure(error, {
       webgpu: 'gpu' in navigator && navigator.gpu !== undefined,
