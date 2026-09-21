@@ -1,9 +1,8 @@
 # Front door, then furniture builder
 
-Status: implemented and played locally after integrating main through
-`1d4b9ed`, including boundary walls, corrected wall depth and Save V2. Native and browser suites and
-targeted mutation checks pass. The full GitHub mutation sweep and post-merge
-Pages verification remain release gates; this is not yet a deployed feature.
+Status: front door and furniture builder deployed and visually verified through
+`097a849` on 2026-09-21. The selection handoff refinement below is a follow-up
+change and requires its own checks and deployment verification.
 
 ## Front-door release
 
@@ -67,6 +66,14 @@ existing facing work with current main. Use one authoritative Rust placement
 validator for both preview and commit. The interface needs an explicit editing
 mode, selection, a visible placement preview, confirm/cancel, clear rejection
 reasons, and controls usable with pointer, keyboard and touch.
+
+Selecting a different item commits the current valid, changed preview through
+the same command path as Confirm, then selects the new item after the result.
+An invalid preview is cancelled when another item is selected. Unchanged items
+switch immediately without a command; selecting the same item keeps its preview.
+If validation rejects an automatic commit during the command drain, the new item
+is selected and the previous move's cancellation reason is shown. Explicit Cancel
+and Exit build keep their existing behavior.
 
 Placement must preserve object identity and interactions, reject collisions and
 blocked routes, and survive Save and Load. Rebuild candidate occupancy from

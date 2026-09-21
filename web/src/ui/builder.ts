@@ -24,6 +24,8 @@ export class FurnitureBuilder {
   blocked = false;
   private mask = 0;
   private revision: number;
+  private original: { x: number; y: number; facing: number } | null = null;
+  private nextSelection: number | null = null;
 
   constructor(private readonly source: BuilderSource,
     private readonly pause: OverlayPauseController, private readonly hooks: BuilderHooks) {
@@ -61,6 +63,20 @@ export class FurnitureBuilder {
 
   select(object: number): void {
     if (!this.active || this.pending || this.blocked) return;
+    if (object === this.selected) return;
+    const ids = Array.from(this.source.ids());
+    const row = ids.indexOf(object);
+    if (row < 0 || this.source.kinds()[row] !== 1) return;
+    if (this.preview?.valid && this.original &&
+      (this.preview.x !== this.original.x || this.preview.y !== this.original.y ||
+        this.preview.facing !== this.original.facing)) {
+      if (this.confirm()) this.nextSelection = object;
+      return;
+    }
+    this.selectNow(object);
+  }
+
+  private selectNow(object: number): void {
     // Copy scalar geometry before any allocating label or placement export.
     const row = Array.from(this.source.ids()).indexOf(object);
     if (row < 0 || this.source.kinds()[row] !== 1) return;
@@ -73,7 +89,9 @@ export class FurnitureBuilder {
     this.selected = object;
     this.name = this.source.objectName(object);
     this.mask = this.source.objectFacingMask(object);
-    this.query(Math.floor(x - (width - 1) / 2), Math.floor(y - (depth - 1) / 2), facing);
+    this.original = { x: Math.floor(x - (width - 1) / 2),
+      y: Math.floor(y - (depth - 1) / 2), facing };
+    this.query(this.original.x, this.original.y, facing);
   }
 
   cycle(direction: -1 | 1): void {
@@ -153,8 +171,18 @@ export class FurnitureBuilder {
       const result = this.source.lastPlacementResult();
       if (result?.object === this.selected) {
         this.pending = false;
+        const next = this.nextSelection;
+        this.nextSelection = null;
+        if (result.reason === null && this.preview) {
+          const { x, y, facing } = this.preview;
+          this.original = { x, y, facing };
+        }
         if (this.preview) this.query(this.preview.x, this.preview.y, this.preview.facing);
         this.status = result.reason ?? 'Furniture placed.';
+        if (next !== null) {
+          this.selectNow(next);
+          if (result.reason !== null) this.status = `Previous move cancelled: ${result.reason}`;
+        }
         this.hooks.changed();
       }
     }
@@ -190,6 +218,8 @@ export class FurnitureBuilder {
   }
 
   private clearSelection(): void {
+    this.nextSelection = null;
+    this.original = null;
     this.selected = null;
     this.preview = null;
     this.mask = 0;
