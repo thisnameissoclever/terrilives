@@ -29,9 +29,9 @@ shift_start = 360
 # the whole antagonist. 48 real seconds absent at 1x, so a shift is
 # watchable end to end.
 shift_ticks = 480
-# Funds per completed shift. Money has nothing to buy until build mode;
-# the number is the score the job is FOR, and it only has to look like
-# a wage next to a future price list.
+# Funds per completed shift. The Buy tool spends it on the prices in
+# objects.toml: one shift buys a chair and a lamp, and the dearest object
+# costs a little over three shifts.
 pay = 120
 # Debited at return, on top of the ~24 points the energy decay rate
 # takes across the shift itself: a workday costs about 40 energy all

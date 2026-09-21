@@ -4631,6 +4631,7 @@ mod boundary_tests {
         let shown = preview(&handle, x, y);
         assert_eq!(shown[1..6], [x as f64, y as f64, facing as f64, 1.0, 1.0]);
         assert!(shown[6] >= 0.0, "the ghost has art");
+        assert_eq!(shown[7], -1.0, "a chair has no foreground layer");
         assert_eq!(handle.world_hash(), hash, "a preview wrote");
         assert_eq!(handle.lot_revision(), revision, "a preview wrote");
 
