@@ -16,6 +16,14 @@ assets/vendor/
 # one-liner in web/vite.config.ts.
 web/.cert/
 
+# Local provider credentials and paid-run guardrails, such as the Tripo API
+# key. Never commit: this repository is public. One worktree carried this rule
+# as an uncommitted local edit, so every other checkout would have staged a
+# .env without complaint.
+.env
+.env.*
+!.env.example
+
 # Playwright MCP session artifacts (screenshots, console logs)
 .playwright-mcp/
 career-*.jpeg
@@ -46,8 +54,11 @@ assets/models/sims/sim-01/review/exercise/pilot-v2/
 assets/models/sims/sim-01/review/exercise/pilot-v3/
 assets/models/sims/sim-01/exercise-*-status.json
 *.blend1
-# Disposable checkout of the staged release used for byte-preservation checks.
-.tmp/release-index-check/
+# Local scratch: disposable checkouts, experiment outputs and raw provider
+# logs. Anything worth keeping as evidence is copied into
+# docs/assets/review-evidence/ first, without account balances or provider
+# identifiers.
+.tmp/
 # Rejected furniture source snapshots are retained locally; keep their images
 # and rejection records. The current candidate's editable sources are tracked.
 assets/models/furniture/review/candidate-01/*.blend
