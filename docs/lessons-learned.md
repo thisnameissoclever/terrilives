@@ -1,5 +1,21 @@
 # Lessons Learned
 
+## [L-atlas-append-provenance] Reconcile provenance after another sprite batch merges
+
+**What happened.** Asset notes retained a 1,221-record total and door indices
+1217 through 1220 after main inserted four half-wall sprites before the door.
+
+**Root cause.** The generated atlas and prefix tests were reconciled during
+integration, but the human-readable provenance count was not.
+
+**Prevention rule.** When merging an appended asset batch, verify the total,
+each new interval, dimensions and preserved prefix against the generated
+manifest before publishing its provenance notes.
+
+**How to verify.** The manifest has 1,225 records: half walls at 1217 through
+1220 and the door at 1221 through 1224, in a 4096x7928 atlas. All five prefix
+tests pass, including the complete 1,221-record pre-door pixel digest.
+
 ## [L-instance-stride-integration] Share row offsets across renderer integration tests
 
 **What happened.** Integrating wall-plane depth expanded instance rows from
