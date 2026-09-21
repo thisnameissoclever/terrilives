@@ -72,7 +72,7 @@ fn finish_restore(
     Ok(candidate)
 }
 
-fn validate_edge_world(
+pub(super) fn validate_edge_world(
     snapshot: &terri_core::SaveSnapshotV1,
     grid: &TileGrid,
     content: &ContentPack,

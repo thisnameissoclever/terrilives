@@ -113,7 +113,8 @@ impl Placement {
             | SimCommand::CancelIntents { .. }
             | SimCommand::SetSpeed(_)
             | SimCommand::TalkTo { .. }
-            | SimCommand::PlaceObject { .. } => Self::Back,
+            | SimCommand::PlaceObject { .. }
+            | SimCommand::SetWallEdge { .. } => Self::Back,
         }
     }
 }
@@ -356,7 +357,9 @@ pub(crate) fn drain_ordinary_commands(
     for command in issued {
         let placement = Placement::of(&command);
         match command {
-            SimCommand::PlaceObject { .. } => unreachable!("lot edit splits ordinary stretches"),
+            SimCommand::PlaceObject { .. } | SimCommand::SetWallEdge { .. } => {
+                unreachable!("lot edit splits ordinary stretches")
+            }
             // A stale index leaves the selection ALONE rather than
             // clearing it. Clearing would make a click on a sim that has
             // just gone away deselect the one the player is watching,

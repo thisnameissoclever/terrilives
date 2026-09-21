@@ -31,7 +31,13 @@ import { spriteHeight } from './render/sprite-size.js';
 import { writePortals, type PortalSource } from './render/portals.js';
 import { writeFootprintProjection } from './render/footprint-depth.js';
 import type { PlacementPreview } from './bridge.js';
-import { placementInstanceCount, writePlacementPreview } from './render/placement-preview.js';
+import {
+  placementInstanceCount,
+  tileHighlightCount,
+  writePlacementPreview,
+  writeTileHighlight,
+  type TileHighlight,
+} from './render/placement-preview.js';
 import {
   emissiveForSprite,
   sampleLight,
@@ -937,6 +943,7 @@ export function buildInstances(
   lighting: TileLighting | null = null,
   interactions: InteractionSelection = frameInteractions,
   placement: PlacementPreview | null = null,
+  highlight: TileHighlight | null = null,
 ): InstanceArray {
   const count = source.count;
   // Room for the entities, one foreground, one bubble and one carried badge
@@ -944,7 +951,8 @@ export function buildInstances(
   // scratch buffer grows once to the high-water mark and is reused;
   // nothing per-frame allocates.
   const portals = source.portals?.();
-  const needed = (count * 4 + 1 + (portals?.portalCount ?? 0) * 2 + placementInstanceCount(placement)) * FLOATS_PER_INSTANCE;
+  const needed = (count * 4 + 1 + (portals?.portalCount ?? 0) * 2 + placementInstanceCount(placement)
+    + tileHighlightCount(highlight)) * FLOATS_PER_INSTANCE;
   if (scratch.length < needed) {
     scratch = new Float32Array(needed);
   }
@@ -1224,7 +1232,8 @@ export function buildInstances(
     );
   }
 
-  writePlacementPreview(scratch, slot, placement, originX, originY, gridSize, scale, lighting);
+  slot = writePlacementPreview(scratch, slot, placement, originX, originY, gridSize, scale, lighting);
+  writeTileHighlight(scratch, slot, highlight, originX, originY, gridSize, scale);
   return scratch;
 }
 
@@ -1237,7 +1246,8 @@ export function buildInstances(
  * screen (0, 0) with depth 0, which draw in front of everything.
  */
 export function instanceCount(source: RenderSource, selected: number | null,
-  interactions: InteractionSelection = countInteractions, placement: PlacementPreview | null = null): number {
+  interactions: InteractionSelection = countInteractions, placement: PlacementPreview | null = null,
+  highlight: TileHighlight | null = null): number {
   let extras = 0;
   const activities = source.activities();
   const carrying = source.carrying();
@@ -1272,7 +1282,8 @@ export function instanceCount(source: RenderSource, selected: number | null,
     }
   }
   return source.count + extras + (source.portals?.().portalCount ?? 0) * 2
-    + (findSelectedRow(source, selected) === null ? 0 : 1) + placementInstanceCount(placement);
+    + (findSelectedRow(source, selected) === null ? 0 : 1) + placementInstanceCount(placement)
+    + tileHighlightCount(highlight);
 }
 
 /**

@@ -606,6 +606,9 @@
       #builder-controls[hidden] { display: none; }
       #builder-name { margin: 0; font-size: 16px; overflow-wrap: anywhere; }
       #builder-controls p { margin: 0; }
+      /* The tool wrappers keep the panel's own spacing for what they hold. */
+      #furniture-tool, #wall-tool { display: grid; gap: 8px; }
+      #furniture-tool[hidden], #wall-tool[hidden] { display: none; }
       #builder-object {
         width: 100%; min-width: 0; min-height: 44px;
         color: var(--hud-text); background: var(--hud-bg);
@@ -1084,6 +1087,11 @@
       <section id="builder-controls" aria-labelledby="builder-name" hidden>
         <h2 id="builder-name">Build mode</h2>
         <p class="builder-note">Household paused</p>
+        <div class="builder-row" role="group" aria-label="Build tool">
+          <button id="build-tool-furniture" class="hud-button" type="button" aria-pressed="true">Furniture</button>
+          <button id="build-tool-walls" class="hud-button" type="button" aria-pressed="false">Walls</button>
+        </div>
+        <div id="furniture-tool">
         <label for="builder-object">Furniture</label>
         <select id="builder-object"><option value="">Choose furniture</option></select>
         <div class="builder-row">
@@ -1098,6 +1106,17 @@
         </div>
         <p id="builder-keyboard-help" class="builder-note">Choose furniture, then click a destination. With the game view focused: [ and ] choose furniture; arrows move; R rotates; Enter confirms; Escape cancels.</p>
         <p id="builder-touch-help" class="builder-note" hidden>Tap furniture, then a tile. Drag to pan; pinch to zoom.</p>
+        </div>
+        <div id="wall-tool" hidden>
+          <p id="wall-status" role="status" aria-live="polite">Choose a line between two floor tiles.</p>
+          <div class="builder-row">
+            <button id="wall-build" class="hud-button" type="button">Wall</button>
+            <button id="wall-doorway" class="hud-button" type="button">Doorway</button>
+            <button id="wall-remove" class="hud-button" type="button">Remove</button>
+          </div>
+          <p id="wall-keyboard-help" class="builder-note">Click near the line between two tiles. With the game view focused: arrows move the line; V and H turn it; W builds a wall; D makes a doorway; Backspace removes; Escape clears the choice.</p>
+          <p id="wall-touch-help" class="builder-note" hidden>Tap near the line between two tiles. Drag to pan; pinch to zoom.</p>
+        </div>
       </section>
     </div>
     <dialog
@@ -1113,6 +1132,7 @@
           <li>Long-press or right-click for more actions, including talking to another person.</li>
           <li>Drag to move the camera. Pinch or use the mouse wheel to zoom.</li>
             <li>Build pauses the household. Move or rotate furniture, then Confirm or choose another item. Choosing another item commits a valid move and cancels an invalid one. Cancel leaves it unchanged; Exit build returns to play.</li>
+          <li>In Build, Walls turns the line between two floor tiles into a wall, a doorway or nothing. Remove clears a wall; the status line says why when a change is not allowed.</li>
           <li>A new action goes first; the actions already waiting continue after it. Turn on Queue, or hold Ctrl or Cmd, to add actions after the waiting ones instead.</li>
           <li>Use Clear orders to stop the action you gave the selected person and remove their waiting actions.</li>
           <li>With the game view focused, use arrow keys to choose a target, Space to select a person, and Enter for actions.</li>

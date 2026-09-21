@@ -30,7 +30,7 @@ Entry IDs use a word slug, such as `[S-pets]`, so that parallel branches cannot 
 | [S-money] | Money: deep earning and spending | Foundation only | 5% |
 | [S-catalogue] | Furniture and visual asset volume | Partial | 15% |
 | [S-household-size] | More people in the house | Partial | 35% |
-| [S-build] | Build mode: buying, walls, rooms, and a bigger house | Partial | 20% |
+| [S-build] | Build mode: buying, walls, rooms, and a bigger house | Partial | 30% |
 
 ### Systems the owner added in a second round on 2026-09-21
 
@@ -240,14 +240,14 @@ A larger household also needs a larger house, so that six people are not queuein
 
 ### [S-build] Build mode: buying, walls, rooms, and a bigger house
 
-**Status: Partial, about 20%.**
+**Status: Partial, about 30%.**
 
-**What exists.** Build mode pauses the game. The player can select a placed object, move it, rotate it through the directions its art supports, and confirm or cancel. The game refuses a move that would overlap a wall, furniture, or a person, block a doorway, cut a room off, or make any object's use point unreachable. The save format already stores walls and furniture directions. Walls sit on tile edges, which is the right model for a wall tool.
+**What exists.** Build mode pauses the game. The player can select a placed object, move it, rotate it through the directions its art supports, and confirm or cancel. Since PR 95 a Walls tool beside it makes any line between two floor tiles a wall, a doorway or nothing, refusing a wall that would cut through furniture, stand on a person, come between a person and what they are using, or cut any part of the house off. The game refuses a move that would overlap a wall, furniture, or a person, block a doorway, cut a room off, or make any object's use point unreachable. The save format already stores walls and furniture directions. Walls sit on tile edges, which is the right model for a wall tool.
 
 **What is missing, in a sensible order.**
 
 1. Buy mode: a catalogue panel, placing a new object, deleting or selling an object, and charging Funds for it.
-2. A wall tool: draw and delete walls, place and move doors, with the same checks that every room stays reachable.
+2. ~~A wall tool: draw and delete walls and doorways, with the same checks that every room stays reachable.~~ Done in PR 95, one line at a time. Still open: a whole room outline in one edit, and hinged doors that need art.
 3. Floor and wall coverings per room or per tile.
 4. Windows, which also affect the lighting already in the game.
 5. A larger lot. The lot is 16 by 12 tiles and cannot change. This needs a lot-resize operation or a set of lot sizes to choose from.

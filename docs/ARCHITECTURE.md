@@ -664,6 +664,18 @@ after draining. Nonempty command queues contribute their complete ordered conten
 to the world hash; empty queues retain the historical hash behavior. Save V3
 preserves pending placement commands as well as applied directions.
 
+`SetWallEdge` is the second lot edit, appended after `PlaceObject`
+([WT-command] in `docs/specs/2026-09-21-wall-tool.md`). It makes one boundary
+between two tiles open, a wall or a doorway, and changes only the saved
+`EdgeWallsV1` list and the grid's edge barrier, so the save record does not
+change; the command enums gain an appended variant. `validate_wall_edit` and
+`validate_placement` share `current_layout` and `prove_lot_usable`, so a wall is
+held to every proof a furniture move is, and a wall must then pass the V3
+loader's own grid checks on the candidate (`save::candidate_grid_loads`), so an
+accepted wall can never leave a save that refuses to load. A legacy layout is
+refused rather than given a guessed edge list. The world hash includes the
+saved edges of every edge-wall world, sorted by line with their doorway flag.
+
 `LotEditState` carries a transient revision and the last result, outside saves
 and deterministic hashes. A successful edit marks only that object's render
 samples discontinuous, so a paused furniture move snaps into place without

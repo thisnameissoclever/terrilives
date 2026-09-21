@@ -54,7 +54,11 @@ pub enum SaveError {
 }
 
 pub(super) fn capture(sim: &Sim) -> SaveSnapshotV1 {
-    let world = sim.world();
+    capture_world(sim.world())
+}
+
+/// [`capture`] for anything holding a world, which a lot-edit validator does.
+fn capture_world(world: &bevy_ecs::world::World) -> SaveSnapshotV1 {
     let pack = world.resource::<Content>().0;
     let grid = world.resource::<TileGrid>();
 
@@ -235,6 +239,12 @@ fn capture_entity(entity: bevy_ecs::world::EntityRef<'_>, pack: &ContentPack) ->
 
 fn capture_command(command: &SimCommand) -> SavedCommand {
     match command {
+        SimCommand::SetWallEdge { axis, x, y, state } => SavedCommand::SetWallEdge {
+            axis: *axis,
+            x: *x,
+            y: *y,
+            state: *state,
+        },
         SimCommand::PlaceObject {
             object,
             x,
@@ -691,6 +701,9 @@ fn placement_matches(
 
 fn restore_command(command: SavedCommand) -> SimCommand {
     match command {
+        SavedCommand::SetWallEdge { axis, x, y, state } => {
+            SimCommand::SetWallEdge { axis, x, y, state }
+        }
         SavedCommand::PlaceObject {
             object,
             x,
@@ -822,6 +835,32 @@ fn validate_snapshot(snapshot: &SaveSnapshotV1, pack: &ContentPack) -> Result<()
     Ok(())
 }
 
+/// Which of the loader's grid checks a candidate grid fails, if any.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum LoadProblem {
+    /// `validate_portal_returns`: the door, its landing, or a worker's way
+    /// back to it.
+    PortalReturn,
+    /// The edge-wall checks: a sim, its walk, or its contact with what it
+    /// is using, against the walls.
+    EdgeWorld,
+}
+
+/// Whether this world, with `grid` in place of its own, passes the grid checks
+/// the V3 loader runs - [WT-rules]. A lot edit that passes every rule of its own
+/// and fails this would save a game that refuses to load, so the wall validator
+/// asks the loader rather than keeping a second copy of its rules.
+pub(crate) fn candidate_grid_loads(
+    world: &bevy_ecs::world::World,
+    grid: &TileGrid,
+) -> Result<(), LoadProblem> {
+    let content = world.resource::<Content>().0;
+    let snapshot = capture_world(world);
+    validate_portal_returns(&snapshot, grid, content).map_err(|_| LoadProblem::PortalReturn)?;
+    architecture::validate_edge_world(&snapshot, grid, content, world)
+        .map_err(|_| LoadProblem::EdgeWorld)
+}
+
 fn validate_portal_returns(
     snapshot: &SaveSnapshotV1,
     grid: &TileGrid,
@@ -873,7 +912,7 @@ fn validate_command(
         SavedCommand::Select(None) | SavedCommand::SetSpeed(_) => Ok(()),
         // Placement is revalidated when its position in the stream drains.
         // Impossible or stale edits must replay as refusals, not prevent Load.
-        SavedCommand::PlaceObject { .. } => Ok(()),
+        SavedCommand::PlaceObject { .. } | SavedCommand::SetWallEdge { .. } => Ok(()),
         SavedCommand::Select(Some(index)) | SavedCommand::CancelIntents { agent: index } => {
             validate_agent_reference(entities, *index).map(|_| ())
         }
@@ -2338,29 +2377,40 @@ mod tests {
         }
         assert_eq!(source.save_snapshot(), before);
         assert_eq!(source.world_hash(), world_hash);
-        let mut restored = Sim::new_from_shipped_lot();
-        restored
+        // An old save is a V1 record, and the V1 loader must still restore
+        // both fridges' art from it. A V1 record carries no wall edges, so
+        // the world hash, which sees walls since [WT-hash], is compared on the
+        // V3 round trip the game now writes, beside the V1 record check.
+        let mut historical = Sim::new_from_shipped_lot();
+        historical
             .load_snapshot(source.save_snapshot())
             .expect("old fridge art saves load");
+        assert_eq!(historical.save_snapshot(), before);
+        let mut restored = Sim::new_from_shipped_lot();
+        restored
+            .load_snapshot_v3(source.save_snapshot_v3())
+            .expect("current fridge art saves load");
         assert_eq!(restored.save_snapshot(), before);
         assert_eq!(restored.world_hash(), world_hash);
-        restored.sync_render_buffer();
-        for original in fridge_entities {
-            let buffer = restored.render_buffer();
-            let row = buffer
-                .ids
-                .iter()
-                .position(|id| *id == original.index_u32())
-                .expect("fridge render row");
-            assert_eq!(
-                buffer.sprites[row],
-                if original == dynamic {
-                    expected_sprite
-                } else {
-                    authored_sprite
-                },
-                "restoring art must preserve the kitchen's room-facing placement"
-            );
+        for (format, world) in [("V1", &mut historical), ("V3", &mut restored)] {
+            world.sync_render_buffer();
+            for original in &fridge_entities {
+                let buffer = world.render_buffer();
+                let row = buffer
+                    .ids
+                    .iter()
+                    .position(|id| *id == original.index_u32())
+                    .expect("fridge render row");
+                assert_eq!(
+                    buffer.sprites[row],
+                    if *original == dynamic {
+                        expected_sprite
+                    } else {
+                        authored_sprite
+                    },
+                    "{format}: restoring art must preserve the kitchen's room-facing placement"
+                );
+            }
         }
     }
 
@@ -2573,14 +2623,19 @@ mod tests {
                 },
             ))
             .id();
+        // Deliberately the V1 path: the saved reader stands far from its
+        // chair to prove the render endpoint comes from the socket, and only
+        // the V1 loader accepts that. A V1 record carries no wall edges, so
+        // the restored house has none and the world hash, which sees walls
+        // since [WT-hash], differs by exactly that. Everything V1 does carry
+        // is compared instead.
         let snapshot = source.save_snapshot();
-        let source_hash = source.world_hash();
 
         let mut restored = Sim::new_from_shipped_lot();
         restored
-            .load_snapshot(snapshot)
+            .load_snapshot(snapshot.clone())
             .expect("active reading save restores");
-        assert_eq!(restored.world_hash(), source_hash);
+        assert_eq!(restored.save_snapshot(), snapshot);
         let restored_agent = restored.world().entities().resolve_from_index(
             EntityIndex::from_raw_u32(agent.index_u32()).expect("ordinary saved agent index"),
         );
@@ -2617,7 +2672,7 @@ mod tests {
         for _ in 0..3 {
             source.tick();
             restored.tick();
-            assert_eq!(restored.world_hash(), source.world_hash());
+            assert_eq!(restored.save_snapshot(), source.save_snapshot());
         }
     }
 

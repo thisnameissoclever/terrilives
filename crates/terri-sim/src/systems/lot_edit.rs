@@ -15,6 +15,13 @@ pub fn drain_commands(world: &mut World) {
                 flush_ordinary(world);
                 crate::placement::commit(world, object, (x, y), facing);
             }
+            SimCommand::SetWallEdge { axis, x, y, state } => {
+                flush_ordinary(world);
+                crate::placement::walls::commit(
+                    world,
+                    crate::placement::walls::WallEdit { axis, x, y, state },
+                );
+            }
             ordinary => world.resource_mut::<CommandQueue>().push(ordinary),
         }
     }
