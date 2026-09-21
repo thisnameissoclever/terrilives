@@ -171,8 +171,8 @@ export async function loadAtlasTexture(device: GPUDevice): Promise<GPUTexture> {
 
 /**
  * Draws every sprite on screen in a single instanced draw call. Depth
- * starts at the instance's z; edge walls project fragment depth along their
- * authored plane. No CPU-side sorting is needed. See
+ * starts at the instance's z; edge walls project along their authored plane,
+ * and elongated furniture uses its footprint's column midpoint. See
  * [D10]: at 100k objects, not sorting beats sorting well.
  *
  * The pure parts of this - the instance layout and the capacity growth
@@ -284,7 +284,7 @@ export class SpriteRenderer {
                 offset: TINT_ATTRIBUTE_OFFSET,
                 format: 'float32x4',
               },
-              { shaderLocation: 2, offset: WALL_ATTRIBUTE_OFFSET, format: 'float32x2' },
+              { shaderLocation: 2, offset: WALL_ATTRIBUTE_OFFSET, format: 'float32x4' },
             ],
           },
         ],

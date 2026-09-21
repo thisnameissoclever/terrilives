@@ -1,10 +1,12 @@
 # GPU and Browser Verification
 
-Current edge-wall clipping proof (2026-09-20): see
+Current wall/furniture clipping proof (2026-09-21): see
 [wall clipping correction](assets/review-evidence/wall-clipping.md).
 It records real GPU pixel regressions, mutation failures, doorway samples and
 a bounded timing probe. Older constant-depth and 32-byte instance measurements
-below remain historical; current edge walls use fragment depth and 40-byte rows.
+below remain historical. Current rows are 48 bytes. Edge walls use plane depth;
+elongated furniture, occupied composites and their indicators use footprint
+column depth. Square footprints and ordinary Sims retain flat depth.
 
 Every claim in this repository about what the GPU, the render path or the
 simulation loop actually does, with the measurement that supports it.

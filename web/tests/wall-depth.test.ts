@@ -14,7 +14,7 @@ describe('edge wall projection', () => {
                 const row = result.instances.subarray(n * FLOATS_PER_INSTANCE, (n + 1) * FLOATS_PER_INSTANCE);
                 const name = SPRITES[row[3]].name;
                 if (n < result.floorCount) {
-                    expect(Array.from(row.subarray(8))).toEqual([0, 0]);
+                    expect(Array.from(row.subarray(8))).toEqual([0, 0, 0, 0]);
                     continue;
                 }
                 const expectedMask = name === 'wallNS' || name === 'doorwayJoinedNS' ? 5 :
@@ -33,7 +33,7 @@ describe('edge wall projection', () => {
     it('leaves legacy cell walls on their original depth contract', () => {
         const result = buildStaticInstances({ width: 4, height: 4, walls: Uint32Array.from([2, 2]) }, 0, 0, 4);
         for (let n = 0; n < result.count; n++)
-            expect(Array.from(result.instances.subarray(n * FLOATS_PER_INSTANCE + 8, (n + 1) * FLOATS_PER_INSTANCE))).toEqual([0, 0]);
+            expect(Array.from(result.instances.subarray(n * FLOATS_PER_INSTANCE + 8, (n + 1) * FLOATS_PER_INSTANCE))).toEqual([0, 0, 0, 0]);
     });
     it('keeps shader wall dimensions tied to the authored raster projection', () => {
         const style = readFileSync('../assets/sprites/gen/style.py', 'utf8');

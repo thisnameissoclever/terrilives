@@ -1,5 +1,28 @@
 # Lessons Learned
 
+## [L-wide-furniture-depth] Wall-plane depth needs compatible furniture depth
+
+**What happened.** The first clipping correction restored the laundry, toilet
+and desk chair, but the user found the desk and bunk still cut off on the right.
+The first occupied follow-up also let the upper mattress cover half a sleep icon.
+
+**Root cause.** Tests covered one-tile furniture against wall planes, while
+multi-tile art still used one depth at its center. A wall could therefore win
+against the nearer end of a wide object. Occupied UI indicators inherited the
+same constant-depth assumption even after the furniture was corrected.
+
+**Prevention.** Give rectangular furniture a per-column depth derived from its
+oriented physical footprint. Apply its owner's projection to occupied composites,
+foregrounds, indicators and previews. Keep each sprite's canvas registration.
+Do not move furniture or bias whole walls to conceal ordering defects.
+
+**Verification.** Exercise real frame construction for desk and bunk in all four
+facings, both wall axes, both sides and three zooms. Include occupied contribution
+masks and indicator-only comparisons, not merely the empty bed's silhouette.
+Keep the prior one-tile, corner and doorway checks. Mutation-test disabled and
+reversed projection, width/depth swaps, anchor omission, wrong occupied ownership,
+stale row fields and missing indicator projection. Review close-up played images.
+
 ## [L-builder-preview-overlap] Preview geometry and drawing must agree
 
 **What happened.** The first played builder pass showed old chair arms behind

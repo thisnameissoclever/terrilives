@@ -32,17 +32,17 @@
 export type InstanceArray = Float32Array<ArrayBuffer>;
 
 /**
- * Two vec4s and a wall projection vec2 per instance:
+ * Three vec4s per instance:
  *
  *   0..3  screenX, screenY, depth, sprite  - `@location(0)`
  *   4..7  tintR, tintG, tintB, emissive    - `@location(1)`
- *   8..9  wall arm mask, depth per tile   - `@location(2)`
+ *   8..11 projection mode, depth per tile, footprint span, anchor X offset
+ *                                       - `@location(2)`
  *
- * The tint is [ML-tint]. Wall projection adds eight bytes to the previous
- * 32-byte row. Furniture and Sims write zero projection values; all callers
- * retain one shared buffer and one draw call.
+ * Positive projection modes are wall arm masks; -1 projects a rectangular
+ * footprint. Zero retains flat depth. All callers share one buffer and draw.
  */
-export const FLOATS_PER_INSTANCE = 10;
+export const FLOATS_PER_INSTANCE = 12;
 
 /** The vertex buffer `arrayStride`, in bytes. */
 export const BYTES_PER_INSTANCE =
@@ -62,6 +62,9 @@ export const OFFSET_TINT_B = 6;
 export const OFFSET_EMISSIVE = 7;
 export const OFFSET_WALL_MASK = 8;
 export const OFFSET_WALL_DEPTH_STEP = 9;
+export const OFFSET_FOOTPRINT_SPAN = 10;
+export const OFFSET_PROJECTION_ANCHOR_X = 11;
+export const FOOTPRINT_PROJECTION = -1;
 export const WALL_ATTRIBUTE_OFFSET = OFFSET_WALL_MASK * Float32Array.BYTES_PER_ELEMENT;
 
 /** Byte offset of the tint attribute within one instance. */
@@ -136,7 +139,7 @@ export const ACTIVITY_AT_WORK = 6;
  *
  * `out` may be longer than the live entity count; callers reuse a scratch
  * buffer across frames and pass the count separately, so this must touch
- * exactly the ten floats belonging to `index` and nothing else.
+ * exactly the twelve floats belonging to `index` and nothing else.
  *
  * The tint is four loose numbers with defaults rather than a colour
  * object, and that is [D11] rather than taste: this is the per-entity
@@ -169,6 +172,8 @@ export function writeInstance(
   out[base + OFFSET_EMISSIVE] = emissive;
   out[base + OFFSET_WALL_MASK] = wallMask;
   out[base + OFFSET_WALL_DEPTH_STEP] = wallDepthStep;
+  out[base + OFFSET_FOOTPRINT_SPAN] = 0;
+  out[base + OFFSET_PROJECTION_ANCHOR_X] = 0;
 }
 
 /**

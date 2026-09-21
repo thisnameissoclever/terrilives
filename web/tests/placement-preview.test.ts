@@ -4,6 +4,7 @@ import {
   FLOATS_PER_INSTANCE, OFFSET_EMISSIVE, OFFSET_SPRITE,
   OFFSET_TINT_R, OFFSET_TINT_G, OFFSET_TINT_B,
   OFFSET_WALL_MASK, OFFSET_WALL_DEPTH_STEP,
+  OFFSET_FOOTPRINT_SPAN, OFFSET_PROJECTION_ANCHOR_X,
 } from '../src/render/instances.js';
 import { spriteIndex } from '../src/render/atlas.js';
 import { spriteDrawOffsetX, spriteDrawOffsetY } from '../src/render/sprite-anchors.js';
@@ -29,9 +30,16 @@ it('writes every rectangular footprint tile plus centered art and foreground wit
   expect(data[body + OFFSET_TINT_B]).toBeCloseTo(1);
   expect(data[body + OFFSET_EMISSIVE]).toBe(0);
   expect(data[4 * FLOATS_PER_INSTANCE + OFFSET_SPRITE]).toBe(preview.foreground);
-  for (let row = 1; row < 5; row += 1) {
+  for (let row = 1; row < 3; row += 1) {
     expect(data[row * FLOATS_PER_INSTANCE + OFFSET_WALL_MASK]).toBe(0);
     expect(data[row * FLOATS_PER_INSTANCE + OFFSET_WALL_DEPTH_STEP]).toBe(0);
+  }
+  for (let row = 3; row < 5; row += 1) {
+    const base = row * FLOATS_PER_INSTANCE;
+    expect(data[base + OFFSET_WALL_MASK]).toBe(-1);
+    expect(data[base + OFFSET_WALL_DEPTH_STEP]).toBeGreaterThan(0);
+    expect(data[base + OFFSET_FOOTPRINT_SPAN]).toBe(0.5);
+    expect(data[base + OFFSET_PROJECTION_ANCHOR_X]).toBe(spriteDrawOffsetX(preview.sprite));
   }
   expect(Array.from(data.slice(5 * FLOATS_PER_INSTANCE))).toEqual(Array(FLOATS_PER_INSTANCE).fill(-99));
 });

@@ -4,10 +4,10 @@ import { SpriteRenderer, atlasTextureUrl } from '../src/render/sprites.ts';
 import { buildStaticInstances } from '../src/render/tiles.ts';
 import { FLOATS_PER_INSTANCE, writeInstance } from '../src/render/instances.ts';
 import { layeredDepth, LAYER_PROP, LAYER_SIM } from '../src/render/iso.ts';
-import { simBodySprite, VISUAL_ACTION_WALK } from '../src/frame.ts';
-import { spriteIndex, SPRITES } from '../src/render/atlas.ts';
+import { simBodySprite, VISUAL_ACTION_WALK, buildInstances, instanceCount } from '../src/frame.ts';
+import { spriteIndex, SPRITES, SPRITE_PAIRS } from '../src/render/atlas.ts';
 import { spriteDrawOffsetX, spriteDrawOffsetY } from '../src/render/sprite-anchors.ts';
-export async function wallOcclusionProof({ show = false, flatWalls = false } = {}) {
+export async function wallOcclusionProof({ show = false, flatWalls = false, wide = false, indicators = false } = {}) {
     const atlas = await createImageBitmap(await (await fetch(atlasTextureUrl('/'))).blob());
     const canvas = document.createElement('canvas');
     canvas.width = 400;
@@ -23,9 +23,24 @@ export async function wallOcclusionProof({ show = false, flatWalls = false } = {
         document.body.append(board);
     }
     const results = [];
+    const wideCases = [];
+    if (wide) for (const [name, width, depth] of [
+        ['offlineDeskSW', 2, 1], ['offlineDeskNE', 2, 1],
+        ['offlineDesk', 1, 2], ['offlineDeskNW', 1, 2],
+        ['offlineBunk', 2, 1], ['offlineBunkNW', 2, 1],
+        ['offlineBunkSW', 1, 2], ['offlineBunkNE', 1, 2],
+    ]) for (const axis of [0, 1]) for (const behind of [false, true]) {
+        // The wall is at coordinate 7.5. Leave the complete rotated footprint
+        // on one side, touching its boundary but never crossing it.
+        const half = (axis === 0 ? width : depth) / 2;
+        const adjacent = 7.5 + (behind ? -half : half);
+        for (const occupied of name.startsWith('offlineBunk') ? [false, true] : [false])
+            wideCases.push([name, axis === 0 ? adjacent : 8,
+                axis === 1 ? adjacent : 8, 8, behind, axis, width, depth, occupied]);
+    }
     try {
         for (const scale of [1, 1.75, 3]) {
-            for (const [name, x, y, wallX, behind, axis = 0] of [
+            for (const [name, x, y, wallX, behind, axis = 0, width = 1, depth = 1, occupied = false] of [
                 ['offlineLaundry', 12, 11, 12, false],
                 ['offlineToilet', 12, 6, 12, false],
                 ['chairDeskNW', 6, 7, 6, false],
@@ -33,7 +48,13 @@ export async function wallOcclusionProof({ show = false, flatWalls = false } = {
                 ['offlineLaundry', 11, 10, 12, true],
                 ['offlineLaundrySW', 9, 6, 6, false, 1],
                 ['offlineLaundrySW', 10, 5, 6, true, 1],
+                ['offlineDeskSW', 6.5, 6, 6, false, 1, 2, 1],
+                ['offlineBunk', 9.5, 6, 6, false, 1, 2, 1],
+                ...wideCases,
             ]) {
+                // Indicators may legitimately sit above a background wall;
+                // only their foreground-owner visibility is asserted here.
+                if (indicators && (!occupied || behind)) continue;
                 const ox = 200 - (x - y) * 32 * scale;
                 const oy = 360 - (x + y) * 21 * scale;
                 const edges = [];
@@ -44,13 +65,26 @@ export async function wallOcclusionProof({ show = false, flatWalls = false } = {
                 if (flatWalls)
                     for (let n = geometry.floorCount; n < geometry.count; n++)
                         all[n * FLOATS_PER_INSTANCE + 8] = 0;
-                const id = spriteIndex(name), sprite = SPRITES[id], density = sprite.pixel_density ?? 1;
-                const dx = spriteDrawOffsetX(id), dy = spriteDrawOffsetY(id);
-                const prop = new Float32Array(FLOATS_PER_INSTANCE);
-                writeInstance(prop, 0, 200 + dx * scale, 360 + dy * scale, layeredDepth(x, y, 16, LAYER_PROP), id);
-                const capture = async (count) => {
+                const id = spriteIndex(name);
+                const positions = new Float32Array([x, y, x, y + 1]);
+                const source = { count: occupied ? 2 : 1, positions: () => positions, prevPositions: () => positions,
+                    ids: () => new Uint32Array([40, 7]), kinds: () => new Uint32Array([1, 0]),
+                    sprites: () => new Uint32Array([id, spriteIndex('sim')]),
+                    activities: () => new Uint32Array([0, 3]), visualActions: () => new Uint32Array([0, 9]),
+                    facings: () => new Uint32Array([1, 1]),
+                    interactionTargets: () => new Uint32Array([0xffffffff, 40]), simIds: () => new Uint32Array([0, 1]),
+                    carrying: () => new Uint32Array([0xffffffff, 0xffffffff]), itemKinds: () => [],
+                    footprintWidths: () => new Uint32Array([width, 1]), footprintDepths: () => new Uint32Array([depth, 1]) };
+                // The real frame builder selects occupied composites and target
+                // footprints. Exclude only UI bubbles from this silhouette probe.
+                const drawCount = indicators && occupied ? instanceCount(source, null) : source.count;
+                const prop = buildInstances(source, 1, ox, oy, 16, null, scale).slice(0, drawCount * FLOATS_PER_INSTANCE);
+                if (occupied && !SPRITE_PAIRS[prop[FLOATS_PER_INSTANCE + 3]]) throw new Error('occupied probe did not select a paired composite');
+                const maskRow = indicators && occupied ? drawCount - 1 : occupied ? 1 : 0;
+                const drawnId = prop[maskRow * FLOATS_PER_INSTANCE + 3];
+                const capture = async (count, rows = prop, rowCount = drawCount) => {
                     renderer.setStaticGeometry(all, count);
-                    renderer.draw(prop, 1, scale);
+                    renderer.draw(rows, rowCount, scale);
                     await gpu.device.queue.onSubmittedWorkDone();
                     const copy = document.createElement('canvas');
                     copy.width = canvas.width;
@@ -59,13 +93,31 @@ export async function wallOcclusionProof({ show = false, flatWalls = false } = {
                     ctx.drawImage(canvas, 0, 0);
                     return { copy, pixels: ctx.getImageData(0, 0, copy.width, copy.height).data };
                 };
-                const alone = await capture(geometry.floorCount);
+                const alone = indicators && occupied ? await capture(geometry.floorCount,
+                    prop.slice(maskRow * FLOATS_PER_INSTANCE, (maskRow + 1) * FLOATS_PER_INSTANCE), 1) :
+                    await capture(geometry.floorCount);
                 const together = await capture(geometry.count);
                 const mask = document.createElement('canvas');
                 mask.width = 400;
                 mask.height = 440;
                 const mc = mask.getContext('2d');
-                mc.drawImage(atlas, sprite.x, sprite.y, sprite.w, sprite.h, 200 + (dx - sprite.w / density / 2) * scale, 360 + (dy + 21 - sprite.h / density) * scale, sprite.w / density * scale, sprite.h / density * scale);
+                const drawMask = (index) => {
+                    const s = SPRITES[index], d = s.pixel_density ?? 1;
+                    mc.drawImage(atlas, s.x, s.y, s.w, s.h,
+                        prop[maskRow * FLOATS_PER_INSTANCE] - s.w / d / 2 * scale,
+                        prop[maskRow * FLOATS_PER_INSTANCE + 1] + (21 - s.h / d) * scale,
+                        s.w / d * scale, s.h / d * scale);
+                };
+                drawMask(drawnId);
+                const pair = SPRITE_PAIRS[drawnId];
+                if (pair) {
+                    // Match the shader's contribution sum, then ink-over-sum.
+                    // Includes the sleeper, not merely the empty bed's silhouette.
+                    mc.globalCompositeOperation = 'lighter';
+                    drawMask(pair.furniture);
+                    mc.globalCompositeOperation = 'source-over';
+                    drawMask(pair.outline);
+                }
                 const alpha = mc.getImageData(0, 0, 400, 440).data;
                 let opaque = 0, lost = 0;
                 for (let py = 2; py < 438; py++)
@@ -78,8 +130,9 @@ export async function wallOcclusionProof({ show = false, flatWalls = false } = {
                         if ([0, 1, 2].some(c => Math.abs(alone.pixels[offset + c] - together.pixels[offset + c]) > 3))
                             lost++;
                     }
-                const pass = opaque > 100 && (behind ? lost > opaque * 0.25 : lost === 0);
-                results.push({ name, x, y, scale, behind, opaque, lost, pass });
+                const pass = opaque > (indicators && occupied ? 10 : 100) &&
+                    (behind ? lost > opaque * 0.25 : lost === 0);
+                results.push({ name, x, y, scale, axis, occupied, behind, opaque, lost, pass });
                 if (show && scale === 3) {
                     const section = document.createElement('section');
                     section.append(`${name} ${behind ? 'behind wall' : 'in front'}: ${lost}/${opaque} hidden`, together.copy);
@@ -88,7 +141,7 @@ export async function wallOcclusionProof({ show = false, flatWalls = false } = {
             }
         }
         const error = await gpu.device.popErrorScope();
-        return { pass: !error && results.every(r => r.pass), error: error?.message ?? null, results };
+        return { pass: !error && results.length > 0 && results.every(r => r.pass), error: error?.message ?? null, results };
     }
     finally {
         atlas.close();
