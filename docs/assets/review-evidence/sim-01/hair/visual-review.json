@@ -1,0 +1,19 @@
+{
+  "root_verdict": "SHOW EARLY VISUAL CHECKPOINT",
+  "independent_verdict": "SHOW EARLY VISUAL CHECKPOINT",
+  "owner_status": "APPROVED on 2026-09-09; owner authorized rigging and animation of this Sim",
+  "subjective_correctness_percent": 84,
+  "score_scope": "Approximate hairstyle direction and four-facing fit at an early checkpoint, not production readiness or a calibrated metric.",
+  "positive_observations": [
+    "Front A reads as the selected broad roll, small hooked curl and outward side sweep.",
+    "No obvious eye coverage, ear penetration or major fit failure was found in the inspected views.",
+    "Body geometry, transforms and material slots match the retained base before and after hair fitting."
+  ],
+  "concerns": [
+    "Front B has a thicker layered fringe than the source concept establishes.",
+    "Rear ridges and roll segmentation are stronger than the illustration.",
+    "The curl nearly touches the far eyebrow in Front A's projection.",
+    "This is not a complete character-design approval or a rigging, animation or runtime test."
+  ],
+  "permitted_next_action": "Preserve approved appearance and proceed with local rigging and animation. More hairstyles and recoloring controls are deferred."
+}

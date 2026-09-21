@@ -132,3 +132,32 @@ edited SW table. The restored open door and returning body retained correct
 layering. No warnings/errors appeared. Tab17 and server91068 were closed.
 Public gameplay was not used for this builder check. The separate door live
 check's autosave incident is documented in its evidence and lessons learned.
+
+## Selection handoff correction
+
+The 2026-09-21 follow-up commits valid changed previews when another item is
+selected and cancels invalid previews. The production bundle index-B54IFr2f.js
+was played on disposable localhost 4191. At Day 3 16:11, rotating the table to NW
+then clicking the bookcase kept its new orientation without Confirm. Moving it
+one tile right and clicking the bookcase kept the new location. Three left
+nudges produced an invalid preview; clicking the bookcase cancelled that preview,
+and reselecting the table showed its last committed placement. The clock stayed
+paused and funds stayed 360. Screenshots were inspected for each transition;
+there were no console warnings/errors. The owned tab and server were closed.
+No public save was opened or changed during this correction.
+
+All 826 browser tests, TypeScript and the production build passed. Independent
+source review found no issues. The real-WASM regressions also cover rapid clicks,
+Load reset, duplicate manual confirmation and command-time rejection. Removing
+the valid-preview guard caused an assertion failure (selected 15 instead of 22);
+the exact source hash was restored before the full passing rerun. Hosted checks
+and deployment of this follow-up are separate pending gates.
+
+After integrating main ff557a5, the full suite passed 830 tests across 69 files
+with unchanged limits. The first run had one 5-second atlas hash-test timeout;
+the full rerun passed without changing code or timeouts. TypeScript, build,
+documentation IDs and diff checks passed. Bundle index-IxErqmSb.js was played
+again locally: table rotation committed on a bookcase click, and an invalid
+preview cancelled on the next bookcase click. Day 3 16:18 and funds 360 stayed
+fixed. The table and bookcase retained main's footprint-depth rendering; console
+warnings/errors were empty. Owned tab 21 and the preview server were closed.

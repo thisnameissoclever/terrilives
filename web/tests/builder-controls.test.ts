@@ -109,10 +109,31 @@ it('explains unavailable rotation and rotates only supported directions', () => 
   node('builder-rotate').fire('click');
   expect(builder.preview?.facing).toBe(0);
   source.objectFacingMask = () => 5;
+  builder.cancel();
   builder.select(26);
   node('builder-rotate').fire('click');
   expect(builder.preview?.facing).toBe(2);
   expect(node('builder-facing').textContent).toBe('Facing: North-west');
   expect(node('builder-rotation-note').hidden).toBe(true);
+  handle.free();
+});
+
+it('keeps dropdown selection synchronized through automatic commit and invalid cancellation', () => {
+  const { handle, source, builder, node } = fixture();
+  builder.enter(); builder.select(15); builder.moveTo(7, 0);
+  const selector = node('builder-object');
+  selector.value = '22'; selector.fire('change');
+  expect(selector.value).toBe('15');
+  expect(selector.disabled).toBe(true);
+  source.flushCommands(); builder.afterCommands();
+  expect(selector.value).toBe('22');
+  expect(selector.disabled).toBe(false);
+  expect(source.lotRevision()).toBe(1);
+  builder.moveTo(-1, 0);
+  selector.value = '7'; selector.fire('change');
+  expect(selector.value).toBe('7');
+  expect(builder.pending).toBe(false);
+  source.flushCommands(); builder.afterCommands();
+  expect(source.lotRevision()).toBe(1);
   handle.free();
 });

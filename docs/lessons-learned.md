@@ -1,5 +1,38 @@
 # Lessons Learned
 
+## [L-release-monitor-missing-checks] A pushed PR is not a running release
+
+**What happened.** The selection fix was pushed, but its CI never appeared and
+the task stopped. The owner had to ask for work to continue.
+
+**Root cause.** An empty check list was treated as pending CI without confirming
+a run existed, and no release continuation was active.
+
+**Prevention rule.** Confirm the exact-head CI run exists. When event delivery
+fails, use the repository's existing workflow-dispatch path. Carry the authorized
+release through checks, merge, Pages and live verification; keep continuation
+active across hosted waits rather than requiring another owner message.
+
+**How to verify.** Record the run ID and tested SHA, then the merge SHA and actual
+deployment step. Copilot review runs do not substitute for CI.
+
+## [L-builder-selection-handoff] Switching furniture must resolve its pending preview
+
+**What happened.** Selecting another item discarded a moved preview, even when
+the move was valid. The owner expected selection to act like Confirm.
+
+**Root cause.** Selection replaced editor state without resolving the outgoing
+edit. Preview and placement were separate, but their handoff had no contract.
+
+**Prevention rule.** Commit a valid changed preview through the existing command
+path before switching; cancel an invalid preview and switch immediately. Keep
+the deferred target until the result arrives, and clear it on Load. Do not queue
+placements for unchanged items or duplicate a completed manual confirmation.
+
+**How to verify.** Real-WASM tests cover movement, rotation, invalid cancellation,
+command-time rejection, rapid reselection, Load reset and dropdown state. Removing
+the valid-preview guard failed with selected object 15 instead of 22. Restored
+builder.ts SHA256 is 8DC185DBEAC1B512188BD91330DC3DB981CB6FD55F6A3D10EFB1E67C882A9524.
 ## [L-wide-furniture-depth] Wall-plane depth needs compatible furniture depth
 
 **What happened.** The first clipping correction restored the laundry, toilet
