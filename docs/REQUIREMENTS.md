@@ -9,6 +9,7 @@ with them, as documents tend to do when left unsupervised.
    Criterion 11 requires the owner's authored and approved voice pass.
 2. Feature status and deferred scope live in [FEATURES.md](FEATURES.md).
    Proposed M1 through M4 roadmap bullets are not automatically approved work.
+   The system-by-system inventory, with a build status for each requested and planned gameplay system and a list of proposed ones, lives in [GAME-SYSTEMS.md](GAME-SYSTEMS.md).
 3. Runtime, determinism, save, and ownership boundaries live in
    [ARCHITECTURE.md](ARCHITECTURE.md).
 4. Human and automated acceptance gates live in
