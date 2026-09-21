@@ -4,6 +4,7 @@ import init, { SimHandle } from '../src/wasm/terri_wasm.js';
 import { SimBridge, wallReason, type WallEditPreview } from '../src/bridge.js';
 import { tileHighlightCount, writeTileHighlight } from '../src/render/placement-preview.js';
 import { WallToolControls } from '../src/ui/wall-tool-controls.js';
+import { BuildToolSwitch, routeBuildKey } from '../src/ui/build-tools.js';
 import {
   CHOOSE_LINE,
   DOORWAY,
@@ -11,7 +12,6 @@ import {
   WALL,
   WallTool,
   nearestLine,
-  routeBuildKey,
   stateOf,
   tilesBeside,
   type WallLine,
@@ -446,9 +446,9 @@ describe('the Walls tool in the page', () => {
     expect(panel).toContain('aria-pressed="true">Furniture</button>');
   });
 
-  it('keeps the build panel spacing inside both tool wrappers', () => {
-    expect(INDEX_HTML).toContain('#furniture-tool, #wall-tool { display: grid; gap: 8px; }');
-    expect(INDEX_HTML).toContain('#furniture-tool[hidden], #wall-tool[hidden] { display: none; }');
+  it('keeps the build panel spacing inside every tool wrapper', () => {
+    expect(INDEX_HTML).toContain('#furniture-tool, #wall-tool, #buy-tool { display: grid; gap: 8px; }');
+    expect(INDEX_HTML).toContain('#furniture-tool[hidden], #wall-tool[hidden], #buy-tool[hidden] { display: none; }');
   });
 
   it('is wired into the frame, the click and Load', () => {
@@ -462,7 +462,8 @@ describe('the Walls tool in the page', () => {
   it('routes Build mode keys the same way in both key listeners, and blocks with Build', () => {
     // The canvas listener handles every key; the document listener catches
     // Escape wherever focus is.
-    expect(MAIN_TS.split('routeBuildKey(event.key, wallTool, builder)')).toHaveLength(3);
+    expect(MAIN_TS.split('routeBuildKey(event.key, buildTools, builder)')).toHaveLength(3);
+    expect(MAIN_TS).toContain('const buildTools = [wallTool, buyTool] as const;');
     expect(MAIN_TS).toContain("wallTool.setBlocked(overlayPause.suspendedExcept('builder'))");
   });
 });
@@ -476,7 +477,7 @@ describe('routeBuildKey', () => {
   it('gives every key to the furniture tool while Walls is not the tool', () => {
     const { walls } = tool();
     const builder = furniture();
-    expect(routeBuildKey(']', walls, builder)).toBe(true);
+    expect(routeBuildKey(']', [walls], builder)).toBe(true);
     expect(builder.seen).toEqual([']']);
   });
 
@@ -485,9 +486,9 @@ describe('routeBuildKey', () => {
     walls.enter();
     const builder = furniture();
     for (const key of [']', '[', 'r', 'R', 'Enter']) {
-      expect(routeBuildKey(key, walls, builder)).toBe(false);
+      expect(routeBuildKey(key, [walls], builder)).toBe(false);
     }
-    expect(routeBuildKey('ArrowLeft', walls, builder)).toBe(true);
+    expect(routeBuildKey('ArrowLeft', [walls], builder)).toBe(true);
     expect(builder.seen).toEqual([]);
   });
 
@@ -496,9 +497,9 @@ describe('routeBuildKey', () => {
     walls.enter();
     walls.choosePoint(1.6, 1.0);
     const builder = furniture();
-    expect(routeBuildKey('Escape', walls, builder)).toBe(true);
+    expect(routeBuildKey('Escape', [walls], builder)).toBe(true);
     expect(builder.seen).toEqual([]);
-    expect(routeBuildKey('Escape', walls, builder)).toBe(true);
+    expect(routeBuildKey('Escape', [walls], builder)).toBe(true);
     expect(builder.seen).toEqual(['Escape']);
   });
 });
@@ -525,26 +526,40 @@ describe('WallToolControls', () => {
       },
     } as unknown as Document;
     const { walls, source } = tool();
-    const view = new WallToolControls(doc, walls, { leaveFurniture: leave });
-    return { walls, source, view, element: (id: string) => elements.get(id)! };
+    const buy = { active: false, enter() { this.active = true; }, exit() { this.active = false; },
+      handleKey: () => false };
+    const view = new WallToolControls(doc, walls);
+    const toolSwitch = new BuildToolSwitch(doc, walls, buy, { leaveFurniture: leave });
+    return { walls, buy, source, view, toolSwitch, element: (id: string) => elements.get(id)! };
   }
 
-  it('switches tools only when the furniture tool could let go', () => {
+  it('switches tools only when the furniture tool could let go, and shows one panel', () => {
     let free = false;
-    const { walls, view, element } = controls(() => free);
+    const { walls, buy, toolSwitch, element } = controls(() => free);
+    const panels = ['furniture-tool', 'wall-tool', 'buy-tool'];
+    const shown = () => panels.filter((id) => !element(id).hidden);
+    const pressed = () => ['build-tool-furniture', 'build-tool-walls', 'build-tool-buy']
+      .filter((id) => element(id).attributes.get('aria-pressed') === 'true');
+    expect([shown(), pressed()]).toEqual([['furniture-tool'], ['build-tool-furniture']]);
     element('build-tool-walls').click();
-    expect(walls.active).toBe(false);
+    element('build-tool-buy').click();
+    expect([walls.active, buy.active]).toEqual([false, false]);
     free = true;
     element('build-tool-walls').click();
-    expect(walls.active).toBe(true);
-    view.render();
-    expect(element('wall-tool').hidden).toBe(false);
-    expect(element('furniture-tool').hidden).toBe(true);
-    expect(element('build-tool-walls').attributes.get('aria-pressed')).toBe('true');
+    toolSwitch.render();
+    expect([walls.active, buy.active]).toEqual([true, false]);
+    expect([shown(), pressed()]).toEqual([['wall-tool'], ['build-tool-walls']]);
+    element('build-tool-buy').click();
+    toolSwitch.render();
+    expect([walls.active, buy.active]).toEqual([false, true]);
+    expect([shown(), pressed()]).toEqual([['buy-tool'], ['build-tool-buy']]);
+    element('build-tool-walls').click();
+    toolSwitch.render();
+    expect([walls.active, buy.active]).toEqual([true, false]);
     element('build-tool-furniture').click();
-    view.render();
-    expect(walls.active).toBe(false);
-    expect(element('wall-tool').hidden).toBe(true);
+    toolSwitch.render();
+    expect([walls.active, buy.active]).toEqual([false, false]);
+    expect([shown(), pressed()]).toEqual([['furniture-tool'], ['build-tool-furniture']]);
   });
 
   it('disables the button for the current state and for a refused one, and presses apply', () => {

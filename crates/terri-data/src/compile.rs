@@ -409,9 +409,15 @@ pub fn compile(
                 }
             }
         }
+        if object.price == Some(0) {
+            return Err(ContentError::ZeroPrice {
+                object: object.id.clone(),
+            });
+        }
         let definition = CompiledObject {
             id: object.id.clone(),
             name: object.name.clone(),
+            price: object.price,
             sprite: sprite as u32,
             interactions,
             footprint: object.footprint,
@@ -3301,6 +3307,11 @@ mod tests {
         // `sound_action`. The following `1, 1` remains the object's 1x1
         // footprint. The value came from the failing golden assertion after
         // reviewing that single insertion.
+        //
+        // **Buy mode appends one object byte.** The zero immediately before
+        // `1, 5, 3, 2` is the fixture object's absent `price`, the last slot
+        // of its record after `base_facing`. Read from the failing golden
+        // assertion after reviewing that one-byte insertion.
         205, 204, 204, 61, 205, 204, 76, 62, 154, 153, 153, 62,
         205, 204, 204, 62, 0, 0, 0, 63, 154, 153, 25, 63,
         51, 51, 51, 63, 1, 6, 102, 114, 105, 100, 103, 101,
@@ -3309,7 +3320,7 @@ mod tests {
         12, 66, 1, 0, 0, 64, 64, 6, 0, 0, 160, 64,
         15, 1, 15, 69, 97, 116, 32, 115, 116, 97, 110, 100,
         105, 110, 103, 32, 117, 112, 0, 0, 0, 0, 0, 1, 1,
-        1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0,
+        1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 5, 3, 2, 4, 2, 1, 0, 1, 0,
         0, 0, 32, 64, 0, 0, 160, 63, 2, 0, 0, 0, 0, 0,
         // Empty wall_edges follows front_door at the end of the lot record.
         0,
@@ -3417,6 +3428,7 @@ mod tests {
                     // be an overlap error in a test about index resolution.
                     footprint: Footprint::SINGLE,
                     interaction: vec![snack()],
+                    price: None,
                 })
                 .collect(),
         }
@@ -3552,6 +3564,7 @@ mod tests {
                 base_facing: None,
                 footprint,
                 interaction: vec![interaction],
+                price: None,
             }],
         }
     }
@@ -3911,6 +3924,7 @@ mod tests {
             base_facing: None,
             footprint: Footprint::SINGLE,
             interaction: vec![],
+            price: None,
         });
         let err = compile_objects(full_needs(), objects).unwrap_err();
         assert_eq!(
@@ -3948,6 +3962,7 @@ mod tests {
             base_facing: None,
             footprint: Footprint::SINGLE,
             interaction: vec![snack()],
+            price: None,
         });
         compile_objects(full_needs(), objects).expect("ids are scoped to their object");
     }
@@ -5435,6 +5450,7 @@ mod tests {
                         depth: *depth,
                     },
                     interaction: vec![snack()],
+                    price: None,
                 })
                 .collect(),
         }
@@ -6787,6 +6803,7 @@ mod tests {
                 duration_ticks: 25,
                 slots: 1,
             }],
+            price: None,
         });
         let pack = compile(
             full_needs(),
@@ -8380,6 +8397,7 @@ mod tests {
                     facing: "NE".to_string(),
                 },
             ],
+            price: None,
         }
     }
 
@@ -9167,6 +9185,7 @@ mod tests {
             base_facing: None,
             footprint: Footprint::SINGLE,
             interaction: vec![],
+            price: None,
         };
         compile(
             full_needs(),
@@ -9581,6 +9600,7 @@ mod tests {
             base_facing: None,
             footprint: Footprint::SINGLE,
             interaction: vec![],
+            price: None,
         };
         let err = compile(
             full_needs(),

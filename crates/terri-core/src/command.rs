@@ -140,6 +140,16 @@ pub enum SimCommand {
         y: u32,
         state: crate::layout::WallState,
     },
+    /// Buy one of the object named by `definition`, a pack object index,
+    /// and stand it at `x`, `y` facing `facing` - [BM-buy]. A lot edit,
+    /// applied by itself in stream order like `PlaceObject`. Appended to
+    /// preserve earlier wire codes.
+    BuyObject {
+        definition: u32,
+        x: u32,
+        y: u32,
+        facing: crate::Facing,
+    },
 }
 
 /// Commands awaiting the next drain point. Ordered, because two commands
@@ -258,6 +268,17 @@ mod tests {
                 // Read from this assertion's failure: variant 8, axis 1,
                 // x 300 as a two-byte varint, y 4, state 2.
                 &[8, 1, 172, 2, 4, 2],
+            ),
+            (
+                SimCommand::BuyObject {
+                    definition: 300,
+                    x: 2,
+                    y: 5,
+                    facing: crate::Facing::NorthWest,
+                },
+                // Read from this assertion's failure: variant 9, definition
+                // 300 as a two-byte varint, x 2, y 5, facing 2.
+                &[9, 172, 2, 2, 5, 2],
             ),
             (SimCommand::Select(Some(7)), &[0x00, 0x01, 0x07]),
             (SimCommand::Select(None), &[0x00, 0x00]),

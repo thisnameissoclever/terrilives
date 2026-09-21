@@ -111,7 +111,7 @@ fn capture_world(world: &bevy_ecs::world::World) -> SaveSnapshotV1 {
             .resource::<CommandQueue>()
             .as_slice()
             .iter()
-            .map(capture_command)
+            .map(|command| capture_command(command, pack))
             .collect(),
     }
 }
@@ -237,8 +237,22 @@ fn capture_entity(entity: bevy_ecs::world::EntityRef<'_>, pack: &ContentPack) ->
     }
 }
 
-fn capture_command(command: &SimCommand) -> SavedCommand {
+fn capture_command(command: &SimCommand, pack: &ContentPack) -> SavedCommand {
     match command {
+        SimCommand::BuyObject {
+            definition,
+            x,
+            y,
+            facing,
+        } => SavedCommand::BuyObject {
+            definition: pack
+                .objects
+                .get(*definition as usize)
+                .map(|object| object.id.clone()),
+            x: *x,
+            y: *y,
+            facing: *facing,
+        },
         SimCommand::SetWallEdge { axis, x, y, state } => SavedCommand::SetWallEdge {
             axis: *axis,
             x: *x,
@@ -419,7 +433,7 @@ fn restore_with_facings(
     let commands = snapshot
         .queued_commands
         .into_iter()
-        .map(restore_command)
+        .map(|command| restore_command(command, content))
         .collect();
     sim.world
         .insert_resource(CommandQueue::from_commands(commands));
@@ -699,8 +713,24 @@ fn placement_matches(
         && placement.y.to_bits() == position.y.to_bits()
 }
 
-fn restore_command(command: SavedCommand) -> SimCommand {
+fn restore_command(command: SavedCommand, pack: &ContentPack) -> SimCommand {
     match command {
+        // An id this pack lacks can only come through a reviewed content
+        // bridge that dropped an object. It restores as an index past every
+        // object, which the drain refuses as it refuses any unknown object.
+        SavedCommand::BuyObject {
+            definition,
+            x,
+            y,
+            facing,
+        } => SimCommand::BuyObject {
+            definition: definition
+                .and_then(|id| pack.find(&id))
+                .map_or(u32::MAX, |object| object.0),
+            x,
+            y,
+            facing,
+        },
         SavedCommand::SetWallEdge { axis, x, y, state } => {
             SimCommand::SetWallEdge { axis, x, y, state }
         }
@@ -912,7 +942,9 @@ fn validate_command(
         SavedCommand::Select(None) | SavedCommand::SetSpeed(_) => Ok(()),
         // Placement is revalidated when its position in the stream drains.
         // Impossible or stale edits must replay as refusals, not prevent Load.
-        SavedCommand::PlaceObject { .. } | SavedCommand::SetWallEdge { .. } => Ok(()),
+        SavedCommand::PlaceObject { .. }
+        | SavedCommand::SetWallEdge { .. }
+        | SavedCommand::BuyObject { .. } => Ok(()),
         SavedCommand::Select(Some(index)) | SavedCommand::CancelIntents { agent: index } => {
             validate_agent_reference(entities, *index).map(|_| ())
         }

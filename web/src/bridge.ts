@@ -43,7 +43,29 @@ const PLACEMENT_REASONS: Readonly<Record<number, string>> = {
   11: 'Leave every object reachable.',
   12: 'Keep the front door clear and reachable.',
   13: 'Keep the front-door landing clear and reachable.',
+  14: 'The household cannot afford that.',
 };
+
+/** One object for sale - [BM-shell]. */
+export interface CatalogueItem {
+  /** The pack object index a purchase names. */
+  readonly definition: number;
+  readonly name: string;
+  readonly price: number;
+  /** Bit `n` set for each facing code `n` the object has art for. */
+  readonly facings: number;
+  readonly baseFacing: number;
+}
+
+/** What the drain did with the last purchase; `object` is null when nothing was bought. */
+export interface PurchaseResult {
+  readonly definition: number;
+  readonly x: number;
+  readonly y: number;
+  readonly facing: number;
+  readonly reason: string | null;
+  readonly object: number | null;
+}
 
 /** A wall edit's refusal, worded for the Walls tool - [WT-shell]. Same codes. */
 export interface WallEditPreview {
@@ -75,6 +97,13 @@ export function wallReason(code: number): string | null {
 
 function placementReason(code: number): string | null {
   return code === 0 ? null : PLACEMENT_REASONS[code] ?? 'This placement is unavailable.';
+}
+
+/** The eight numbers `placement_preview` and `purchase_preview` both return. */
+function previewOf(values: ArrayLike<number>): PlacementPreview {
+  return { valid: values[0] === 0, reason: placementReason(values[0]),
+    x: values[1], y: values[2], facing: values[3], width: values[4], depth: values[5],
+    sprite: values[6], foreground: values[7] < 0 ? null : values[7] };
 }
 
 /** postcard's `Option` discriminant: one byte, 0 for none, 1 for some. */
@@ -144,10 +173,33 @@ export class SimBridge {
   ) {}
 
   placementPreview(object: number, x: number, y: number, facing: number): PlacementPreview {
-    const values = this.handle.placement_preview(object, x, y, facing);
-    return { valid: values[0] === 0, reason: placementReason(values[0]),
-      x: values[1], y: values[2], facing: values[3], width: values[4], depth: values[5],
-      sprite: values[6], foreground: values[7] < 0 ? null : values[7] };
+    return previewOf(this.handle.placement_preview(object, x, y, facing));
+  }
+
+  /** Every object for sale, in content order - [BM-shell]. */
+  catalogue(): CatalogueItem[] {
+    const words = this.handle.catalogue();
+    return this.handle.catalogue_names().map((name, row) => ({
+      definition: words[row * 4], name, price: words[row * 4 + 1],
+      facings: words[row * 4 + 2], baseFacing: words[row * 4 + 3],
+    }));
+  }
+
+  /** The ghost for an object not yet bought; the same shape as `placementPreview`. Never writes. */
+  purchasePreview(definition: number, x: number, y: number, facing: number): PlacementPreview {
+    return previewOf(this.handle.purchase_preview(definition, x, y, facing));
+  }
+
+  /** Queue acceptance only; read the outcome from `lastPurchaseResult`. */
+  buyObject(definition: number, x: number, y: number, facing: number): boolean {
+    return this.handle.buy_object(definition, x, y, facing);
+  }
+
+  lastPurchaseResult(): PurchaseResult | null {
+    const values = this.handle.last_purchase_result();
+    return values.length === 0 ? null : { definition: values[0], x: values[1], y: values[2],
+      facing: values[3], reason: placementReason(values[4]),
+      object: values[5] === 0xffffffff ? null : values[5] };
   }
 
   placeObject(object: number, x: number, y: number, facing: number): boolean {

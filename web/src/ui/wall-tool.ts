@@ -62,17 +62,6 @@ export function tilesBeside(line: WallLine): [[number, number], [number, number]
     : [[line.x, line.y - 1], [line.x, line.y]];
 }
 
-/**
- * Where a key in Build mode goes - [WT-shell]. While Walls is the tool, a key it
- * does not use goes nowhere, except Escape, which Build mode reads to leave: a
- * furniture key must not move furniture the player cannot see is selected.
- */
-export function routeBuildKey(key: string, walls: Pick<WallTool, 'active' | 'handleKey'>,
-  furniture: { handleKey(key: string): boolean }): boolean {
-  if (!walls.active) return furniture.handleKey(key);
-  return walls.handleKey(key) || (key === 'Escape' && furniture.handleKey(key));
-}
-
 /** What `wall_edges` says the line is: four words per record. */
 export function stateOf(edges: ArrayLike<number>, line: WallLine): WallStateCode {
   for (let at = 0; at + 3 < edges.length; at += 4) {

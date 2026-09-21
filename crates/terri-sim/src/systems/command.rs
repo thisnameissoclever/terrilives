@@ -114,7 +114,8 @@ impl Placement {
             | SimCommand::SetSpeed(_)
             | SimCommand::TalkTo { .. }
             | SimCommand::PlaceObject { .. }
-            | SimCommand::SetWallEdge { .. } => Self::Back,
+            | SimCommand::SetWallEdge { .. }
+            | SimCommand::BuyObject { .. } => Self::Back,
         }
     }
 }
@@ -357,7 +358,9 @@ pub(crate) fn drain_ordinary_commands(
     for command in issued {
         let placement = Placement::of(&command);
         match command {
-            SimCommand::PlaceObject { .. } | SimCommand::SetWallEdge { .. } => {
+            SimCommand::PlaceObject { .. }
+            | SimCommand::SetWallEdge { .. }
+            | SimCommand::BuyObject { .. } => {
                 unreachable!("lot edit splits ordinary stretches")
             }
             // A stale index leaves the selection ALONE rather than

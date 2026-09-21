@@ -2589,6 +2589,29 @@ impl Sim {
                         *y as u64,
                         state.code() as u64,
                     ],
+                    // By the id the save stores rather than the index, so a
+                    // save and load cannot move the digest; `u64::MAX` for an
+                    // index that names nothing, which loads as one that still
+                    // names nothing.
+                    BuyObject {
+                        definition,
+                        x,
+                        y,
+                        facing,
+                    } => vec![
+                        9,
+                        self.world
+                            .get_resource::<Content>()
+                            .and_then(|content| content.0.objects.get(*definition as usize))
+                            .map_or(u64::MAX, |object| {
+                                let mut id = terri_core::FnvHasher::default();
+                                id.write_bytes(object.id.as_bytes());
+                                id.finish()
+                            }),
+                        *x as u64,
+                        *y as u64,
+                        facing.code() as u64,
+                    ],
                 };
                 for field in fields {
                     hasher.write_u64(field);
@@ -2685,6 +2708,7 @@ mod lot_tests {
                 roles: Vec::new(),
                 action_sockets: Vec::new(),
                 foreground_sprite: None,
+                price: None,
             })
             .collect()
     }

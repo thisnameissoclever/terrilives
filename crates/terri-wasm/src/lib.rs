@@ -127,6 +127,16 @@ fn placement_arguments(
     ))
 }
 
+/// The directions an object has art for, given its `supports`: bit `n` for
+/// facing code `n`.
+fn facing_mask(supports: impl Fn(terri_core::Facing) -> bool) -> u32 {
+    terri_core::Facing::ALL
+        .into_iter()
+        .filter(|&f| supports(f))
+        .map(|f| 1u32 << f.code())
+        .sum()
+}
+
 /// A wall edit from hostile JavaScript numbers, or `None` - [WT-boundary].
 fn wall_edit_arguments(
     axis: f64,
@@ -341,11 +351,7 @@ impl SimHandle {
         placement_u32(object)
             .and_then(|id| terri_sim::placement::object_definition(self.sim.world(), id))
             .map_or(0, |(_, definition, _)| {
-                terri_core::Facing::ALL
-                    .into_iter()
-                    .filter(|&f| definition.supports(f))
-                    .map(|f| 1u32 << f.code())
-                    .sum()
+                facing_mask(|f| definition.supports(f))
             })
     }
 
@@ -393,6 +399,123 @@ impl SimHandle {
                     result.edit.y,
                     u32::from(result.edit.state.code()),
                     result.reason.map_or(0, |r| r as u32),
+                ]
+            })
+    }
+
+    /// Every object for sale - [BM-shell]: four words each, the pack object
+    /// index, the price, the mask of directions it has art for (bit `n` for
+    /// facing code `n`) and its base direction. In pack order; the shell
+    /// decides how to list them. Names come from `catalogue_names`.
+    pub fn catalogue(&self) -> Vec<u32> {
+        let content = self.sim.world().resource::<Content>().0;
+        content
+            .objects
+            .iter()
+            .enumerate()
+            .filter_map(|(index, object)| {
+                Some([
+                    index as u32,
+                    object.price?,
+                    facing_mask(|f| object.supports(f)),
+                    u32::from(object.base_facing.code()),
+                ])
+            })
+            .flatten()
+            .collect()
+    }
+
+    /// The display name of each object `catalogue` lists, in the same order.
+    pub fn catalogue_names(&self) -> Vec<String> {
+        let content = self.sim.world().resource::<Content>().0;
+        content
+            .objects
+            .iter()
+            .filter(|object| object.price.is_some())
+            .map(|object| object.name.clone())
+            .collect()
+    }
+
+    /// The purchase preview - [BM-shell]: the same eight numbers as
+    /// `placement_preview`, for an object not yet on the lot. `definition` is
+    /// a pack object index from `catalogue`. Never writes.
+    pub fn purchase_preview(&self, definition: f64, x: f64, y: f64, facing: f64) -> Vec<f64> {
+        use terri_sim::placement::purchase::{for_sale, validate_purchase, Purchase};
+        use terri_sim::placement::PlacementRefusal;
+        let mut out = vec![
+            PlacementRefusal::InvalidInput as u32 as f64,
+            x,
+            y,
+            facing,
+            0.0,
+            0.0,
+            0.0,
+            -1.0,
+        ];
+        let Some((definition, x, y, direction)) = placement_arguments(definition, x, y, facing)
+        else {
+            return out;
+        };
+        if let Some((object, _)) = for_sale(self.sim.world(), definition) {
+            let footprint = object.footprint_at(direction);
+            out[4] = footprint.width as f64;
+            out[5] = footprint.depth as f64;
+            out[6] = object
+                .facing_sprites
+                .get(direction)
+                .unwrap_or(object.sprite) as f64;
+            out[7] = object
+                .facing_foreground_sprites
+                .get(direction)
+                .map_or(-1.0, |s| s as f64);
+        }
+        out[0] = validate_purchase(
+            self.sim.world(),
+            Purchase {
+                definition,
+                x,
+                y,
+                facing: direction,
+            },
+        )
+        .err()
+        .map_or(0.0, |reason| reason as u32 as f64);
+        out
+    }
+
+    /// Queue acceptance only. The eventual result is read after the drain,
+    /// from `last_purchase_result`.
+    pub fn buy_object(&mut self, definition: f64, x: f64, y: f64, facing: f64) -> bool {
+        let Some((definition, x, y, facing)) = placement_arguments(definition, x, y, facing) else {
+            return false;
+        };
+        let bytes = postcard::to_allocvec(&SimCommand::BuyObject {
+            definition,
+            x,
+            y,
+            facing,
+        })
+        .expect("a purchase serializes");
+        self.enqueue_command(&bytes)
+    }
+
+    /// `[definition, x, y, facing, refusal, object]` of the last purchase a
+    /// drain handled: refusal zero when it was bought, and `object` the new
+    /// object's entity index, or `u32::MAX` when nothing was bought. Empty
+    /// before the first.
+    pub fn last_purchase_result(&self) -> Vec<u32> {
+        self.sim
+            .world()
+            .resource::<terri_sim::placement::LotEditState>()
+            .last_purchase_result
+            .map_or_else(Vec::new, |result| {
+                vec![
+                    result.purchase.definition,
+                    result.purchase.x,
+                    result.purchase.y,
+                    u32::from(result.purchase.facing.code()),
+                    result.reason.map_or(0, |r| r as u32),
+                    result.object.unwrap_or(u32::MAX),
                 ]
             })
     }
@@ -762,7 +885,7 @@ impl SimHandle {
     /// shapes of bad input reach this and all four return `false`:
     ///
     /// - **empty** - no variant index at all;
-    /// - **an unknown variant index** - a byte past the nine `SimCommand`
+    /// - **an unknown variant index** - a byte past the ten `SimCommand`
     ///   declares, which is also what an OLDER shell sending a NEWER
     ///   format looks like;
     /// - **a truncated payload** - a variant index with its fields
@@ -4432,6 +4555,141 @@ mod boundary_tests {
         assert_eq!(handle.last_wall_edit_result(), [0, 0, 1, 1, out]);
     }
 
+    /// [BM-shell]: the catalogue is every priced object, in pack order, with
+    /// its price, the directions it has art for and its base direction, and
+    /// its names come in the same order. An object with no price is left out.
+    #[test]
+    fn the_catalogue_lists_every_priced_object_and_nothing_else() {
+        let mut handle = SimHandle::from_lot();
+        let mut pack = handle.sim.world().resource::<Content>().0.clone();
+        let dropped = pack.find("coat_rack").unwrap().0 as usize;
+        pack.objects[dropped].price = None;
+        let pack = &*Box::leak(Box::new(pack));
+        handle.sim.world_mut().insert_resource(Content(pack));
+        let catalogue = handle.catalogue();
+        let names = handle.catalogue_names();
+        let priced: Vec<_> = pack
+            .objects
+            .iter()
+            .enumerate()
+            .filter(|(index, _)| *index != dropped)
+            .collect();
+        assert_eq!(names.len(), priced.len());
+        assert_eq!(catalogue.len(), 4 * priced.len());
+        for ((row, name), (index, object)) in catalogue.chunks_exact(4).zip(&names).zip(priced) {
+            let mask: u32 = terri_core::Facing::ALL
+                .into_iter()
+                .filter(|&f| object.supports(f))
+                .map(|f| 1 << f.code())
+                .sum();
+            assert_eq!(
+                row,
+                [
+                    index as u32,
+                    object.price.unwrap(),
+                    mask,
+                    u32::from(object.base_facing.code())
+                ],
+                "{}",
+                object.id
+            );
+            assert_eq!(name, &object.name);
+        }
+    }
+
+    /// [BM-shell]: a purchase crosses the boundary as a preview that never
+    /// writes, a staged command, and a result the drain leaves behind, and
+    /// the renderer sees the new object.
+    #[test]
+    fn a_purchase_crosses_the_boundary_and_the_renderer_sees_it() {
+        use terri_sim::placement::PlacementRefusal;
+        let mut handle = SimHandle::from_lot();
+        handle
+            .sim
+            .world_mut()
+            .insert_resource(terri_core::Funds(1_000));
+        let pack = handle.sim.world().resource::<Content>().0;
+        let chair = pack.find("chair").unwrap().0;
+        let price = pack.objects[chair as usize].price.unwrap();
+        let facing = handle
+            .catalogue()
+            .chunks_exact(4)
+            .find(|row| row[0] == chair)
+            .expect("the chair is for sale")[3];
+        assert!(handle.last_purchase_result().is_empty());
+        let revision = handle.lot_revision();
+        let hash = handle.world_hash();
+        let preview = |handle: &SimHandle, x: u32, y: u32| {
+            handle.purchase_preview(chair as f64, x as f64, y as f64, facing as f64)
+        };
+        // The first tile the shipped house accepts a chair on, found rather
+        // than hard-coded so a re-authored lot does not break it.
+        let (x, y) = (0..16)
+            .flat_map(|y| (0..16).map(move |x| (x, y)))
+            .find(|&(x, y)| preview(&handle, x, y)[0] == 0.0)
+            .expect("the shipped house has room for a chair");
+        let shown = preview(&handle, x, y);
+        assert_eq!(shown[1..6], [x as f64, y as f64, facing as f64, 1.0, 1.0]);
+        assert!(shown[6] >= 0.0, "the ghost has art");
+        assert_eq!(handle.world_hash(), hash, "a preview wrote");
+        assert_eq!(handle.lot_revision(), revision, "a preview wrote");
+
+        let objects = handle.entity_count();
+        assert!(handle.buy_object(chair as f64, x as f64, y as f64, facing as f64));
+        handle.flush_commands();
+        let result = handle.last_purchase_result();
+        assert_eq!(result[..5], [chair, x, y, facing, 0]);
+        assert_ne!(result[5], u32::MAX, "the bought object is named");
+        assert!(handle.sim.render_buffer().ids.contains(&result[5]));
+        assert_eq!(handle.entity_count(), objects + 1);
+        assert_eq!(handle.lot_revision(), revision + 1);
+        assert_eq!(handle.funds(), f64::from(1_000 - price));
+
+        // Too dear now, read from the same result the shell reads.
+        handle.sim.world_mut().insert_resource(terri_core::Funds(0));
+        let dear = PlacementRefusal::CannotAfford as u32;
+        assert_eq!(preview(&handle, x + 1, y)[0], f64::from(dear));
+        assert!(handle.buy_object(chair as f64, (x + 1) as f64, y as f64, facing as f64));
+        handle.flush_commands();
+        assert_eq!(
+            handle.last_purchase_result(),
+            [chair, x + 1, y, facing, dear, u32::MAX]
+        );
+    }
+
+    #[test]
+    fn hostile_purchase_numbers_are_refused_before_they_reach_the_simulation() {
+        use terri_sim::placement::PlacementRefusal;
+        let mut handle = SimHandle::from_lot();
+        let invalid = f64::from(PlacementRefusal::InvalidInput as u32);
+        for (definition, x, y, facing) in [
+            (-1.0, 3.0, 2.0, 0.0),
+            (0.5, 3.0, 2.0, 0.0),
+            (f64::NAN, 3.0, 2.0, 0.0),
+            (0.0, f64::INFINITY, 2.0, 0.0),
+            (0.0, 3.5, 2.0, 0.0),
+            (0.0, 3.0, -2.0, 0.0),
+            (0.0, 3.0, 2.0, 4.0),
+            (0.0, 3.0, 2.0, 257.0),
+            (4_294_967_296.0, 3.0, 2.0, 0.0),
+        ] {
+            assert_eq!(
+                handle.purchase_preview(definition, x, y, facing)[0],
+                invalid,
+                "({definition}, {x}, {y}, {facing})"
+            );
+            assert!(
+                !handle.buy_object(definition, x, y, facing),
+                "({definition}, {x}, {y}, {facing})"
+            );
+        }
+        handle.flush_commands();
+        assert!(
+            handle.last_purchase_result().is_empty(),
+            "nothing was staged"
+        );
+    }
+
     #[test]
     fn hostile_wall_edit_numbers_are_refused_before_they_reach_the_simulation() {
         use terri_sim::placement::PlacementRefusal;
@@ -4494,12 +4752,18 @@ mod boundary_tests {
             // trap once `UseObjectFirst` took 5: each is a TRUNCATED valid
             // variant, still rejected, but no longer testing the unknown
             // index its label names. The row has to track the enum's edge.
-            // And `[0x07, 0x00]` became a truncated `PlaceObject`, and
-            // `[0x08, 0x00]` a truncated `SetWallEdge`.
+            // And `[0x07, 0x00]` became a truncated `PlaceObject`,
+            // `[0x08, 0x00]` a truncated `SetWallEdge`, and `[0x09, 0x00]` a
+            // truncated `BuyObject`.
             (
-                "variant index 9, one past the nine SimCommand declares; \
+                "variant index 10, one past the ten SimCommand declares; \
                  also what an older shell sending a newer format looks like",
-                vec![0x09, 0x00],
+                vec![0x0A, 0x00],
+            ),
+            ("BuyObject missing its facing", vec![0x09, 0x01, 0x02, 0x03]),
+            (
+                "BuyObject with a facing past the four that exist",
+                vec![0x09, 0x01, 0x02, 0x03, 0x04],
             ),
             (
                 "SetWallEdge missing its state",

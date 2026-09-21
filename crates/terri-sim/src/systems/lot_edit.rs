@@ -22,6 +22,23 @@ pub fn drain_commands(world: &mut World) {
                     crate::placement::walls::WallEdit { axis, x, y, state },
                 );
             }
+            SimCommand::BuyObject {
+                definition,
+                x,
+                y,
+                facing,
+            } => {
+                flush_ordinary(world);
+                crate::placement::purchase::commit(
+                    world,
+                    crate::placement::purchase::Purchase {
+                        definition,
+                        x,
+                        y,
+                        facing,
+                    },
+                );
+            }
             ordinary => world.resource_mut::<CommandQueue>().push(ordinary),
         }
     }

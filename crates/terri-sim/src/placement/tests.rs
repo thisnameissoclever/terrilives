@@ -25,7 +25,7 @@ fn footprint_fit_requires_nonzero_dimensions_and_checked_bounds() {
 fn usable_approaches_include_every_side_and_exclude_blocked_contacts() {
     let mut world = World::new();
     let rect = Rectangle {
-        entity: world.spawn_empty().id(),
+        entity: Some(world.spawn_empty().id()),
         origin: (2, 2),
         footprint: Footprint { width: 2, depth: 2 },
     };

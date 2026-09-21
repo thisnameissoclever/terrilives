@@ -676,6 +676,15 @@ accepted wall can never leave a save that refuses to load. A legacy layout is
 refused rather than given a guessed edge list. The world hash includes the
 saved edges of every edge-wall world, sorted by line with their doorway flag.
 
+`BuyObject` is the third lot edit, appended after `SetWallEdge` ([BM-buy] in
+`docs/specs/2026-09-21-buy-mode.md`). It spawns one object at a validated
+rectangle and takes its price from Funds in the same drain. Moves and
+purchases share `plan_rectangle`, which takes the object being moved or none,
+so a bought chair is held to every rule a moved one is, the loader's grid
+checks included. A purchase staged at save time is saved by object id rather
+than pack index, because the save digest does not cover object order, and the
+world hash reads it by the same id.
+
 `LotEditState` carries a transient revision and the last result, outside saves
 and deterministic hashes. A successful edit marks only that object's render
 samples discontinuous, so a paused furniture move snaps into place without

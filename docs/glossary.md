@@ -193,6 +193,9 @@ table. Authored in `content/chains.toml`.
 | **facing** | Which of the kit's four pre-rendered directions a placement is drawn with. Presentation only - the simulation neither knows nor cares which way a counter faces. |
 | **doorway** | A passable segment of a wall, recorded as its own line so it draws as a frame. There is no interior door object; the front door is the one animated door. |
 | **line** | In the Walls tool, the boundary between two neighbouring floor tiles. Each line is open, a wall, or a doorway. The outside edge of the lot is not a line the tool can change. |
+| **price** | What an object costs in the Buy tool, in Funds (`price` in `content/objects.toml`). An object with no price is not for sale. A save stores Funds, never prices. |
+| **catalogue** | Everything with a price, listed by name in the Buy tool. Items the household cannot afford are greyed out. |
+| **Buy tool** | Build mode's third tool. The player chooses from the catalogue, points at the floor, turns the ghost and presses Buy. A purchase is refused where a move would be, and when Funds are short of the price; the status line says which. |
 | **Walls tool** | Build mode's second tool. The player picks a line and presses Wall, Doorway or Remove. A wall is refused if it would cut through furniture, stand on a person, come between a person and what they are using, or cut part of the house off; the status line says which. |
 
 ## Under the hood
